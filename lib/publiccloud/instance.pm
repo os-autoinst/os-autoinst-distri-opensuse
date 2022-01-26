@@ -75,8 +75,6 @@ sub run_ssh_command {
     } elsif ($rc_only) {
         # Increase the hard timeout for script_run, otherwise our 'timeout $args{timeout} ...' has no effect
         $args{timeout} += 2;
-        # Pipe both the standard and error output serial for debug purposes
-        $ssh_cmd .= " >/dev/$serialdev 2>&1";
         $args{quiet} = 0;
         $args{die_on_timeout} = 1;
         # Run the command and return only the returncode here
