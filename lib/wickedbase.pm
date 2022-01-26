@@ -100,8 +100,8 @@ sub assert_wicked_state {
 sub reset_wicked {
     my $self = @_;
     # Remove any config file and leave the system clean to start tests
-    assert_script_run('find /etc/sysconfig/network/ -name "ifcfg-*" -not -name "ifcfg-lo" -exec rm {} \;');
-    assert_script_run('find /etc/sysconfig/network/ -name "routes" -o -name "ifroute-*" -exec rm {} \;');
+    assert_script_run('find /etc/sysconfig/network/ \( -name "ifcfg-*" -not -name "ifcfg-lo" \) -exec rm {} \;');
+    assert_script_run('find /etc/sysconfig/network/ \( -name "routes" -o -name "ifroute-*" \) -exec rm {} \;');
 
     # Remove any previous manual ip configuration
     my $iface = iface();
