@@ -11,6 +11,7 @@ package Installation::LocalUser::LocalUserPage;
 use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
+use testapi 'save_screenshot';
 
 sub new {
     my ($class, $args) = @_;
@@ -56,7 +57,9 @@ sub enter_confirm_password {
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{tb_full_name}->exist();
+    my $is_shown = $self->{tb_full_name}->exist();
+    save_screenshot if $is_shown;
+    return $is_shown;
 }
 
 sub set_autologin {

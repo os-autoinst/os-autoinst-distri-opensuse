@@ -997,9 +997,6 @@ sub load_inst_tests {
                 loadtest "installation/user_settings";
             }    # sles4sap wizard installation doesn't have user_settings step
         }
-        elsif (get_var('IMPORT_USER_DATA')) {
-            loadtest 'installation/user_import';
-        }
         elsif (is_microos) {
             loadtest "installation/ntp_config_settings";
         } else {
@@ -2739,7 +2736,12 @@ sub load_hypervisor_tests {
     }
 
     if (check_var('VIRT_PART', 'hotplugging')) {
-        loadtest 'virtualization/universal/hotplugging';    # Try to change properties of guests
+        loadtest 'virtualization/universal/hotplugging_guest_preparation';    # Prepare guests
+        loadtest 'virtualization/universal/hotplugging_network_interfaces';    # Virtual network hotplugging
+        loadtest 'virtualization/universal/hotplugging_HDD';    # Virtual block device hotplugging
+        loadtest 'virtualization/universal/hotplugging_vCPUs';    # Add and remove guests vCPU
+        loadtest 'virtualization/universal/hotplugging_memory';    # Live memory change of guests
+        loadtest 'virtualization/universal/hotplugging_cleanup';    # Restore guests properties
     }
 
     if (check_var('VIRT_PART', 'networking')) {

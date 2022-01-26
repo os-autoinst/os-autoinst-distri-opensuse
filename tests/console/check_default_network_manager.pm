@@ -35,7 +35,7 @@ sub run {
 
     my $expected = 'NetworkManager';
     my $unexpected = 'wicked';
-    my $reason = 'DESKTOP!=textmode';
+    my $reason = 'networking';
 
     if (is_sle) {
         if (is_server) {
@@ -52,7 +52,7 @@ sub run {
             $reason = 'SLED';
         }
     }
-    elsif (check_var('DESKTOP', 'textmode')) {
+    elsif (is_leap && check_var('DESKTOP', 'textmode')) {
         $expected = 'wicked';
         $unexpected = 'NetworkManager';
         $reason = 'DESKTOP=textmode';

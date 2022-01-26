@@ -33,7 +33,6 @@ sub run() {
 
     # Configure firewalld ypbind service (bsc#1083487)
     if ($self->firewall eq 'firewalld' && script_run 'firewall-offline-cmd --get-services | grep ypbind') {
-        record_soft_failure('bsc#1083487');
         assert_script_run 'firewall-cmd --permanent --new-service=ypbind';
         assert_script_run 'firewall-cmd --permanent --service=ypbind --add-port=717/tcp';
         assert_script_run 'firewall-cmd --permanent --service=ypbind --add-port=714/udp';

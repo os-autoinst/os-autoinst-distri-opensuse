@@ -57,6 +57,18 @@ sub is_shown {
     return $self->{txt_overview}->exist();
 }
 
+sub is_loaded_completely {
+    my ($self) = @_;
+    my $result;
+    eval {
+        $result = YuiRestClient::Wait::wait_until(object => sub {
+                my $overview_content = $self->get_overview_content();
+                return ($overview_content =~ m/SSH port will be/);
+        }, timeout => 60, message => "Overview content is not loaded.");
+    };
+    $result ? 1 : 0;
+}
+
 sub open_ssh_port {
     my ($self) = @_;
     YuiRestClient::Wait::wait_until(object => sub {

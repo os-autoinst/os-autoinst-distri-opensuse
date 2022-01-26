@@ -16,7 +16,6 @@
 # - Check if events were recorded by xev
 # - Close all opened windows
 # Maintainer: mkravec <mkravec@suse.com>
-#             Felix Niederwanger <felix.niederwanger@suse.de>
 # Tags: poo#11794
 
 use base "x11test";
@@ -109,6 +108,7 @@ sub run {
     # open xterm for xev
     x11_start_program('xterm');
     send_key "super-right";
+    assert_screen 'vncviewer-console-right';
 
     # Start vncviewer (rw & ro mode) and check if changes are processed by xev
     foreach my $opt (@options) {

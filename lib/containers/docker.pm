@@ -9,7 +9,7 @@
 package containers::docker;
 use Mojo::Base 'containers::engine';
 use testapi;
-use containers::utils qw(registry_url get_docker_version check_runtime_version container_ip);
+use containers::utils qw(registry_url get_docker_version check_runtime_version container_ip container_route);
 use containers::common qw(install_docker_when_needed);
 use utils qw(systemctl file_content_replace);
 use version_utils qw(get_os_release);
@@ -24,9 +24,11 @@ sub init {
 sub configure_insecure_registries {
     my ($self) = shift;
     my $registry = registry_url();
+    # The debug output is messing with terminal in migration tests
+    my $debug = (get_var('UPGRADE')) ? 'false' : 'true';
     # Allow our internal 'insecure' registry
     assert_script_run(
-        'echo "{ \"debug\": true, \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\", \"' . $registry . '\"] }" > /etc/docker/daemon.json');
+'echo "{ \"debug\": ' . $debug . ', \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\", \"' . $registry . '\"] }" > /etc/docker/daemon.json');
     assert_script_run('cat /etc/docker/daemon.json');
     systemctl('restart docker');
     record_info "setup $self->runtime", "deamon.json ready";
@@ -41,7 +43,7 @@ sub check_containers_connectivity {
     my $container_ip = container_ip($container_name, 'docker');
 
     # Connectivity to host check
-    my $default_route = script_output "docker run " . registry_url('alpine') . " ip route show default 2>/dev/null | awk \'/default/ {print \$3}\'";
+    my $default_route = container_route($container_name, 'docker');
     assert_script_run "docker run --rm " . registry_url('alpine') . " ping -c3 " . $default_route;
 
     # Cross-container connectivity check
