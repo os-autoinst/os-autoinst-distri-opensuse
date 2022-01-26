@@ -87,24 +87,29 @@ sub run {
 
     zypper_call(q{mr -d $(zypper lr | awk -F '|' '/NVIDIA/ {print $2}')}, exitcode => [0, 3]);
 
-    fully_patch_system;
-
     # Get packages affected by the incident.
     my @packages = get_incident_packages($incident_id);
 
     # Extract module name from repo url.
     my @modules = split(/,/, $repos);
-    s{http.*SUSE_Updates_(.*)/}{$1} for @modules;
+    foreach (@modules) {
+        next if s{http.*SUSE_Updates_(.*)/?}{$1};
+        die 'Modules regex failed. Modules could not be extracted from repos variable.';
+    }
 
     # Get binaries that are in each package across the modules that are in the repos.
     my %bins;
     foreach (@packages) {
         %bins = (%bins, get_packagebins_in_modules({package_name => $_, modules => \@modules}));
     }
+    die "Parsing binaries from SMELT data failed" if not keys %bins;
 
     my @l2 = grep { ($bins{$_}->{supportstatus} eq 'l2') } keys %bins;
     my @l3 = grep { ($bins{$_}->{supportstatus} eq 'l3') } keys %bins;
     my @unsupported = grep { ($bins{$_}->{supportstatus} eq 'unsupported') } keys %bins;
+
+    # Patch the SUT to a released state;
+    fully_patch_system;
 
     # Sort binaries into:
     my %installable;    #Binaries already released that can already be installed.
