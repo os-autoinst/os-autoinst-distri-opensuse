@@ -1,4 +1,4 @@
-# Copyright 2015-2021 SUSE LLC
+# Copyright 2015-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 package utils;
@@ -11,7 +11,7 @@ use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_microos is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp);
+use version_utils qw(is_microos is_leap is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends;
@@ -1964,10 +1964,14 @@ sub install_patterns {
     for my $pt (@pt_list) {
         # if pattern is set default, skip
         next if ($pt =~ /default/);
+        # For Public cloud module test we need skip Instance pattern if outside of public cloud images.
+        next if (($pt =~ /Instance/) && !is_public_cloud);
         # Cloud patterns are conflict by each other, only install cloud pattern from single vender.
         if ($pt =~ /$pcm_list/) {
             next unless $pcm == 0;
-            $pt .= '*';
+            # For Public cloud module test we need install 'Tools' but not 'Instance' pattern if outside of public cloud images.
+            next if (($pt !~ /Tools/) && !is_public_cloud);
+            $pt .= '*' if (is_public_cloud);
             $pcm = 1;
         }
         # Only one CFEngine pattern can be installed
@@ -1984,6 +1988,8 @@ sub install_patterns {
         if (($pt =~ /sap_server/) && is_sle('=11-SP4')) {
             next;
         }
+        # For Public cloud module test we need install 'Tools' but not 'Instance' pattern if outside of public cloud images.
+        next if (($pt =~ /OpenStack/) && ($pt !~ /Tools/) && !is_public_cloud);
         # if pattern is common-criteria and PATTERNS is all, skip, poo#73645
         next if (($pt =~ /common-criteria/) && check_var('PATTERNS', 'all'));
         zypper_call("in -t pattern $pt", timeout => 1800);
