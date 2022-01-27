@@ -180,8 +180,10 @@ sub wait_for_guestregister
         my $out = $self->run_ssh_command(cmd => 'sudo systemctl is-active guestregister', proceed_on_failure => 1, quiet => 1);
         # guestregister is expected to be inactive because it runs only once
         if ($out eq 'inactive') {
+            $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
             return time() - $start_time;
         } elsif ($out eq 'failed') {
+            $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
             $out = $self->run_ssh_command(cmd => 'sudo systemctl status guestregister', proceed_on_failure => 1, quiet => 1);
             record_info("guestregister failed", $out, result => 'fail');
             if (is_azure) {
@@ -191,6 +193,7 @@ sub wait_for_guestregister
             }
             return time() - $start_time;
         } elsif ($out eq 'active') {
+            $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
             die "guestregister should not be active on BYOS" if (is_byos);
         }
 
