@@ -13,6 +13,8 @@ use Carp 'croak';
 use Mojo::Base -base;
 use Mojo::Util 'trim';
 use File::Basename;
+use publiccloud::utils;
+use version_utils;
 
 use constant SSH_TIMEOUT => 90;
 
@@ -165,6 +167,7 @@ wait till guestregister is ready. If guestregister finish with state failed,
 a soft-failure will be recorded.
 If guestregister will not finish within C<timeout> seconds, job dies.
 In case of BYOS images we checking that service is inactive and quit
+Returns the time needed to wait for the guestregister to complete.
 =cut
 sub wait_for_guestregister
 {
@@ -175,14 +178,22 @@ sub wait_for_guestregister
 
     while (time() - $start_time < $args{timeout}) {
         my $out = $self->run_ssh_command(cmd => 'sudo systemctl is-active guestregister', proceed_on_failure => 1, quiet => 1);
+        # guestregister is expected to be inactive because it runs only once
         if ($out eq 'inactive') {
             return time() - $start_time;
-        }
-        if ($out eq 'failed') {
+        } elsif ($out eq 'failed') {
             $out = $self->run_ssh_command(cmd => 'sudo systemctl status guestregister', proceed_on_failure => 1, quiet => 1);
-            record_soft_failure("guestregister failed:\n\n" . $out);
+            record_info("guestregister failed", $out, result => 'fail');
+            if ((is_sle("=12-SP5") && is_azure) || (is_sle("=15-SP2") && is_azure)) {
+                record_soft_failure("bsc#1195156");
+            } else {
+                die("guestregister failed");
+            }
             return time() - $start_time;
+        } elsif ($out eq 'active') {
+            die "guestregister should not be active on BYOS" if (is_byos);
         }
+
         if (time() - $last_info > 10) {
             record_info('WAIT', 'Wait for guest register: ' . $out);
             $last_info = time();
