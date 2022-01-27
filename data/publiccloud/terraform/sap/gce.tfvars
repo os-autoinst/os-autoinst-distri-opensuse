@@ -4,7 +4,7 @@
 #################################
 
 # GCP project id
-project = "suse-css-qa"
+project = "suse-sle-qa"
 
 # Credentials file for GCP
 gcp_credentials_file = "/root/google_credentials.json"
