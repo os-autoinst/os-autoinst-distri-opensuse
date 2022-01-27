@@ -34,22 +34,14 @@ sub change_system_role {
             send_key_until_needlematch "system-role-$system_role-selected", 'spc';    # enable role
         }
         else {
-            if (!check_screen("system-role-$system_role-selected")) {
-                # scroll down in case role is not visible straight away
-                send_key_until_needlematch "system-role-$system_role", 'down', 5, 1;
-                assert_and_click "system-role-$system_role";
-                # after role is selected, we get top of the list shown, so might need to scroll again
-                send_key_until_needlematch "system-role-$system_role-selected", 'down', 5, 1;
-            }
+            assert_and_click "system-role-$system_role";
+            assert_and_click "system-role-$system_role-selected";
         }
     }
     else {
         send_key 'alt-' . $role_hotkey{$system_role};
         assert_screen "system-role-$system_role-selected";
     }
-    # every system role other than default will end up in textmode for SLE
-    # But can be minimalx/lxde/xfce
-    set_var('DESKTOP', 'textmode') unless is_opensuse;
 }
 
 sub assert_system_role {
@@ -57,24 +49,21 @@ sub assert_system_role {
     # Asserting screen with preselected role
     # Proper default role assertion will be addressed in poo#37504
     # Product might or might not have default selected
-    if (is_opensuse) {
-        assert_screen('before-role-selection', 180);
-        change_system_role(get_var('SYSTEM_ROLE', get_var('DESKTOP')));
+    assert_screen('before-role-selection', 180);
+    if (is_opensuse || (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'))) {
+        # on opensuse is system role 1:1 with DESKTOP, on SLE change system role if it's defined
+        my $system_role = is_opensuse ? get_var('SYSTEM_ROLE', get_var('DESKTOP')) : get_var('SYSTEM_ROLE');
+        change_system_role($system_role) unless check_screen("system-role-$system_role-selected");
     }
-    else {
-        assert_screen('system-role-default-system', 180);
-        my $system_role = get_var('SYSTEM_ROLE', 'default');
-        change_system_role($system_role) if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
+    elsif (check_var('SYSTEM_ROLE', 'default') || !get_var('SYSTEM_ROLE')) {
+        record_info('Default', 'SYSTEM_ROLE is default or not defined, same result');
     }
     send_key $cmd{next};
 }
 
 sub run {
-    if (is_sle('=12-SP5') && !is_x86_64) {
+    if (is_sle('<15') && !is_x86_64) {
         record_info("Skip screen", "System Role screen is displayed only for x86_64 in SLE-12-SP5 due to it has more than one role available");
-    }
-    elsif (is_aarch64 && is_sle('>=12-SP3') && is_sle('<15')) {
-        record_info("Skip screen", "System Role screen is  not displayed on aarch64 between 12SP3 and 12SP5");
     }
     else {
         assert_system_role;

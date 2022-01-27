@@ -548,7 +548,7 @@ sub has_license_on_welcome_screen {
             ((is_sle('>=15-SP1') && get_var('BASE_VERSION') && !get_var('UPGRADE')) && is_s390x())
             || is_sle('<15')
             || (is_sle('=15') && is_s390x())
-            || (is_sle('>=15-SP4') && check_var('FLAVOR', 'Full') && is_s390x())
+            || (is_sle('>=15-SP4') && check_var('FLAVOR', 'Full') && is_s390x() && !get_var('UPGRADE'))
         );
     }
 

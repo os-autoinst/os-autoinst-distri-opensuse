@@ -162,16 +162,14 @@ sub stop_dhcp_server {
     assert_script_run(sprintf('test -e %s && kill $(cat %s) || true', $pidfile, $pidfile));
 }
 
-sub before_test {
+sub prepare_sut {
     my $self = shift // wicked::wlan->new();
-    $self->prepare_packages();
     $self->prepare_phys();
     $self->prepare_freeradius_server();
     $self->adopt_apparmor();
 }
 
 sub prepare_packages {
-    my $self = shift;
     if (is_sle()) {
         set_var('QA_HEAD_REPO', 'http://download.suse.de/ibs/QA:/Head/' . generate_version('-')) unless (get_var('QA_HEAD_REPO'));
         add_qa_head_repo();
@@ -315,6 +313,13 @@ sub assert_sta_connected {
     }
 
     die("This should never reached!");
+}
+
+sub hostapd_can_wep {
+    my ($self) = @_;
+    $self->write_cfg('/tmp/check_wep.conf', 'wep_key0=123456789a');
+    my $s = script_output('hostapd /tmp/check_wep.conf', proceed_on_failure => 1);
+    return $s !~ m/unknown configuration item 'wep_key0'/i;
 }
 
 sub hostapd_start {
