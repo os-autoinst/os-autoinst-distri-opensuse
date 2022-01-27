@@ -94,6 +94,13 @@
         },
         "type": "bug"
     },
+    "bsc#1194903": {
+        "description": "Failed to start One time configuration for iscsid.service",
+        "products": {
+            "sle-micro": [ "5.2" ]
+        },
+        "type": "bug"
+    },
     "bsc#1178033": {
         "description": "kernel: ITS@0x8080000: Unable to locate ITS domain handle",
         "products": {
