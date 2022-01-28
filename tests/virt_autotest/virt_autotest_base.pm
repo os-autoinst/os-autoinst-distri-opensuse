@@ -254,9 +254,13 @@ sub post_fail_hook {
 
     #FOR S390X LPAR
     if (is_s390x) {
+        # Add new option die_on_timeout=>0 to adapt API script_run() new behavior change
+        # Refer to poo#105720 for more details
+        my %args = ();
+        $args{die_on_timeout} = 0;
         #collect and upload supportconfig log from S390X LPAR
         upload_system_log::upload_supportconfig_log();
-        script_run "rm -rf scc_*";
+        script_run "rm -rf scc_*", %args;
         return;
     }
 

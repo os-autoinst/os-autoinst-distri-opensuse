@@ -108,7 +108,11 @@ sub run {
     my $self = shift;
     my $timeout = get_var('MAX_TEST_TIME', '36000') + 10;
     my $upload_log_name = 'guest-upgrade-logs';
-    script_run("echo \"Debug info: max_test_time is $timeout\"");
+    # Add new option die_on_timeout=>0 to adapt API script_run() new behavior change
+    # Refer to poo#105720 for more details
+    my %args = ();
+    $args{die_on_timeout} = 0;
+    script_run("echo \"Debug info: max_test_time is $timeout\"", %args);
     # Modify source configuration file sources.* of virtauto-data pkg on host
     # to use openqa daily build installer repo and module repo for guests,
     # and it will be copied into guests to be used during guest upgrade test
@@ -116,7 +120,7 @@ sub run {
 
     $self->{'package_name'} = 'Guest Upgrade Test';
     if (is_s390x) {
-        script_run "[ -d /var/log/qa/ctcs2 ] && rm -r /var/log/qa/ctcs2 ; [ -d /var/lib/libvirt/images/prj4_guest_upgrade ] && rm -r /var/lib/libvirt/images/prj4_guest_upgrade /tmp/full_guest_upgrade_test-* /tmp/kill_zypper_procs-* /tmp/update-guest-*";
+        script_run "[ -d /var/log/qa/ctcs2 ] && rm -r /var/log/qa/ctcs2 ; [ -d /var/lib/libvirt/images/prj4_guest_upgrade ] && rm -r /var/lib/libvirt/images/prj4_guest_upgrade /tmp/full_guest_upgrade_test-* /tmp/kill_zypper_procs-* /tmp/update-guest-*", %args;
     }
     else {
         $self->execute_script_run("[ -d /var/log/qa/ctcs2 ] && rm -r /var/log/qa/ctcs2 ; [ -d /tmp/prj4_guest_upgrade ] && rm -r /tmp/prj4_guest_upgrade", 30);
@@ -126,20 +130,24 @@ sub run {
     if (is_s390x) {
         #upload s390x_guest_upgrade_test.log
         upload_asset("/tmp/s390x_guest_upgrade_test.log", 1, 1);
-        script_run "rm -rf /tmp/s390x_guest_upgrade_test.log";
+        script_run "rm -rf /tmp/s390x_guest_upgrade_test.log", %args;
     }
 
 }
 
 sub post_fail_hook {
     my ($self) = @_;
+    # Add new option die_on_timeout=>0 to adapt API script_run() new behavior change
+    # Refer to poo#105720 for more details
+    my %args = ();
+    $args{die_on_timeout} = 0;
 
     $self->SUPER::post_fail_hook;
 
     if (is_s390x) {
         #upload s390x_guest_upgrade_test.log
         upload_asset("/tmp/s390x_guest_upgrade_test.log", 1, 1);
-        script_run "rm -rf /tmp/s390x_guest_upgrade_test.log";
+        script_run "rm -rf /tmp/s390x_guest_upgrade_test.log", %args;
     }
 }
 

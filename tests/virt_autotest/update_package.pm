@@ -61,9 +61,13 @@ sub run {
     #workaround of bsc#1177790
     #disable DNSSEC validation as it is turned on by default but the forwarders donnot support it, refer to bsc#1177790
     if (is_sle('>=12-sp5')) {
-        script_run "sed -i 's/#dnssec-validation auto;/dnssec-validation no;/g' /etc/named.conf";
-        script_run "grep 'dnssec-validation' /etc/named.conf";
-        script_run "systemctl restart named";
+        # Add new option die_on_timeout=>0 to adapt API script_run() new behavior change
+        # Refer to poo#105720 for more details
+        my %args = ();
+        $args{die_on_timeout} = 0;
+        script_run "sed -i 's/#dnssec-validation auto;/dnssec-validation no;/g' /etc/named.conf", %args;
+        script_run "grep 'dnssec-validation' /etc/named.conf", %args;
+        script_run "systemctl restart named", %args;
         save_screenshot;
     }
 
