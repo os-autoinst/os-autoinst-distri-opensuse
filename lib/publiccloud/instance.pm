@@ -184,7 +184,7 @@ sub wait_for_guestregister
         } elsif ($out eq 'failed') {
             $out = $self->run_ssh_command(cmd => 'sudo systemctl status guestregister', proceed_on_failure => 1, quiet => 1);
             record_info("guestregister failed", $out, result => 'fail');
-            if ((is_sle("=12-SP5") && is_azure) || (is_sle("=15-SP2") && is_azure)) {
+            if (is_azure) {
                 record_soft_failure("bsc#1195156");
             } else {
                 die("guestregister failed");
