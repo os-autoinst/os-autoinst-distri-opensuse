@@ -137,7 +137,7 @@ sub run {
             my $file = path(bmwqemu::result_dir(), $filename);
             my $json = Mojo::JSON::decode_json($file->slurp);
             next if ($json->{result} ne 'fail');
-            $instance->upload_log('/var/log/cloudregister');
+            $instance->upload_log('/var/log/cloudregister', log_name => 'cloudregister.log');
             last;
         }
         $instance->run_ssh_command(cmd => 'rpm -qa > /tmp/rpm_qa.txt', no_quote => 1);
