@@ -6,3 +6,9 @@ device_status:
     cipher: 'aes-xts-plain64'
     key_location: 'dm-crypt'
     mode: 'read/write'
+partitioning_deletion_entries:
+  - 'Delete btrfs on /dev/system/root'
+  - 'Delete swap on /dev/system/swap'
+  - 'Delete xfs on /dev/system/home'
+  - 'Delete volume group system'
+  - 'Delete partition'

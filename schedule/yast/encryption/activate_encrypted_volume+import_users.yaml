@@ -17,7 +17,7 @@ schedule:
   - installation/system_probing/activate_encrypted_volume
   - installation/add_on_product/skip_install_addons
   - installation/system_role/accept_selected_role_SLES_with_GNOME
-  - installation/partitioning/encrypt_lvm_reuse_existing
+  - installation/partitioning/suggested_partitioning/verify_decrypted_partition_deleted
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/import_users
@@ -31,3 +31,10 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
+test_data:
+  partitioning_deletion_entries:
+    - 'Delete btrfs on /dev/system/root'
+    - 'Delete swap on /dev/system/swap'
+    - 'Delete xfs on /dev/system/home'
+    - 'Delete volume group system'
+    - 'Delete partition'
