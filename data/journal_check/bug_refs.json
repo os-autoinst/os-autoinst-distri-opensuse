@@ -221,6 +221,13 @@
         },
         "type": "bug"
     },
+    "boo#1193426": {
+        "description": "libapparmor.*: Can't create cache directory '/var/cache/apparmor/.*': Read-only file system",
+        "products": {
+            "opensuse": ["Tumbleweed", "15.4"]
+        },
+        "type": "bug"
+    },
     "apci-bridge": {
         "description": "fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge|PCI: System does not support PCI",
         "products": {
