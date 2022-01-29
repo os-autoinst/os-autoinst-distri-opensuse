@@ -20,12 +20,14 @@ use publiccloud::utils;
 sub run {
     my ($self, $args) = @_;
 
+    # Preserve args for post_fail_hook
+    $self->{instance} = $args->{my_instance};
+
     select_host_console();    # select console on the host, not the PC instance
 
-    if (is_ondemand) {
-        # on OnDemand image we use `registercloudguest` to register and configure the repositories
-        $args->{my_instance}->retry_ssh_command("sudo registercloudguest", timeout => 420, retry => 3);
-    } else {
+    # The OnDemand (PAYG) images should be registered
+    # automatically by the guestregister.service
+    if (!is_ondemand()) {
         my @addons = split(/,/, get_var('SCC_ADDONS', ''));
         my $remote = $args->{my_instance}->username . '@' . $args->{my_instance}->public_ip;
         registercloudguest($args->{my_instance});
@@ -36,6 +38,12 @@ sub run {
     }
     record_info('repos (lr)', $args->{my_instance}->run_ssh_command(cmd => "sudo zypper lr"));
     record_info('repos (ls)', $args->{my_instance}->run_ssh_command(cmd => "sudo zypper ls"));
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->{instance}->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
+    $self->SUPER::post_fail_hook;
 }
 
 1;

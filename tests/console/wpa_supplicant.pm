@@ -50,6 +50,7 @@ sub post_fail_hook {
     upload_logs("wicked.log") if (script_run("stat wicked.log") == 0);
     upload_logs("wpa-supplicant_test.txt") if (script_run("stat wpa-supplicant_test.txt") == 0);
     upload_logs("hostapd.log") if (script_run("stat hostapd.log") == 0);
+    upload_logs("wpa_supplicant.log") if (script_run("stat wpa_supplicant.log") == 0);
 }
 
 1;

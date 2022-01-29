@@ -2,7 +2,7 @@
     "gh#openSUSE/jeos-firstboot#83": {
         "description": "DHCPv4 not supported on 'lo'",
         "products": {
-            "opensuse": ["Tumbleweed", "15.2", "15.3"],
+            "opensuse": ["15.2", "15.3"],
             "sle": ["15-SP2", "15-SP3"]
         },
         "type": "bug"
@@ -91,6 +91,13 @@
         "products": {
             "sle-micro": [ "5.0", "5.1", "5.2" ],
             "microos":  ["Tumbleweed"]
+        },
+        "type": "bug"
+    },
+    "bsc#1194903": {
+        "description": "Failed to start One time configuration for iscsid.service",
+        "products": {
+            "sle-micro": [ "5.2" ]
         },
         "type": "bug"
     },
@@ -211,6 +218,13 @@
         "description": "kernel: ACPI: SRAT not present|kernel: ARM_SMCCC_ARCH_WORKAROUND_1 missing from firmware|kernel: ACPI PPTT: No PPTT table found, CPU and cache topology may be inaccurate|kernel: cacheinfo: Unable to detect cache hierarchy for CPU|kernel: hrtimer: interrupt took.*ns",
         "products": {
             "sle": ["15-SP4"]
+        },
+        "type": "bug"
+    },
+    "boo#1193426": {
+        "description": "libapparmor.*: Can't create cache directory '/var/cache/apparmor/.*': Read-only file system",
+        "products": {
+            "opensuse": ["Tumbleweed", "15.4"]
         },
         "type": "bug"
     },

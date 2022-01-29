@@ -17,7 +17,6 @@ use utils;
 use strict;
 use warnings;
 use version_utils;
-use version;
 use Utils::Architectures;
 use containers::utils;
 use containers::common qw(test_container_image is_unreleased_sle);
@@ -214,27 +213,6 @@ sub test_zypper_on_container {
     $runtime->remove_container('refreshed');
     $runtime->run_container($image, name => "refreshed-image", cmd => "zypper -nv ref", timeout => 300, retry => 3, delay => 60);
     record_info "The End", "zypper test completed";
-}
-
-sub ensure_container_rpm_updates {
-    my $diff_file = shift;
-    my $regex2match = qr/^-(?<package>[^\s]+)\s+(\d+\.?\d+?)+-(?P<update_version>\d+\.?\d+?\.\d+\b).*\s+(\d+\.?\d+?)+-(?P<stable_version>\d+\.?\d+?\.\d+\b)/;
-    my $regex2zerorpm = qr/^Version differences: None$/;
-    my $context = script_output "cat $diff_file";
-    open(my $data, '<', \$context) or die "problem with $diff_file argument", $!;
-    while (my $line = <$data>) {
-        if ($line =~ $regex2match) {
-            # Use of Dotted-Decimal-Versions. Do not remove 'v' prefix
-            my $updated_v = version->parse("v$+{update_version}");
-            my $stable_v = version->parse("v$+{stable_version}");
-            record_info("checking... $+{package}", "$+{package} $stable_v to $updated_v");
-            die "$+{package} $stable_v is not updated to $updated_v" unless ($updated_v > $stable_v);
-        } elsif ($line =~ $regex2zerorpm) {
-            record_info("No Update found", "no updates found between rpm versions");
-            last;
-        }
-    }
-    close($data);
 }
 
 sub exec_on_container {

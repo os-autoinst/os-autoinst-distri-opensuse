@@ -37,16 +37,16 @@ sub run {
     my $unexpected = 'wicked';
     my $reason = 'networking';
 
-    if (is_sle) {
+    if (is_jeos) {
+        $expected = 'wicked';
+        $unexpected = 'NetworkManager';
+        $reason = 'JeOS';
+    }
+    elsif (is_sle) {
         if (is_server) {
             $expected = 'wicked';
             $unexpected = 'NetworkManager';
             $reason = 'SLES';
-        }
-        elsif (is_jeos) {
-            $expected = 'wicked';
-            $unexpected = 'NetworkManager';
-            $reason = 'JeOS';
         }
         else {
             $reason = 'SLED';

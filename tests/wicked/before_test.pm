@@ -18,6 +18,8 @@ use serial_terminal;
 use main_common 'is_updates_tests';
 use repo_tools 'generate_version';
 use wicked::wlan;
+use mm_network;
+use power_action_utils 'power_action';
 
 sub run {
     my ($self, $ctx) = @_;
@@ -43,6 +45,9 @@ sub run {
     file_content_replace('/etc/sysconfig/network/config', '--sed-modifier' => 'g', '^WICKED_DEBUG=.*' => 'WICKED_DEBUG="all"', '^WICKED_LOG_LEVEL=.*' => 'WICKED_LOG_LEVEL="debug2"');
     #preparing directories for holding config files
     assert_script_run('mkdir -p /data/{static_address,dynamic_address}');
+
+    $self->switch_to_wicked($ctx) if (systemctl('is-active NetworkManager', ignore_failure => 1) == 0);
+
     if (check_var('WICKED', 'ipv6')) {
         setup_static_network(ip => $self->get_ip(type => 'host', netmask => 1), silent => 1, ipv6 =>
               $self->get_ip(type => 'dhcp6', netmask => 1));
@@ -144,6 +149,35 @@ sub run {
         record_info('PKG', script_output(q(rpm -qa 'wicked*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
         wicked::wlan::prepare_sut() if (check_var('WICKED', 'wlan'));
     }
+}
+
+sub switch_to_wicked {
+    my ($self, $ctx) = @_;
+    # setup_static_network doesn't work with Network Manager
+    # This configures quickly the interface to be able to install wicked package.
+    # Also, this block switches from NM to Wicked to be able to test Wicked tests.
+
+    # Wicked and NM shouldn't be enabled at the same time.
+    die "wicked and NetworkManager enabled simultaneously " if systemctl('is-active wicked', ignore_failure => 1) == 0;
+
+    my $ip = $self->get_ip(type => 'host', netmask => 1);
+    my $iface = $ctx->iface();
+    assert_script_run('rm -f /etc/NetworkManager/system-connections/*');
+    systemctl("restart NetworkManager");
+    assert_script_run("nmcli connection add type ethernet con-name $iface ifname $iface ip4 $ip gw4 10.0.2.2");
+    configure_static_dns(get_host_resolv_conf());
+    assert_script_run("nmcli con up $iface ifname $iface");
+    record_info('devices', script_output('nmcli device status'));
+    record_info('ip a', script_output('ip a'));
+    record_info('nameserver', script_output('cat /etc/resolv.conf'));
+    assert_script_run('ping -c 5 10.0.2.2');
+    zypper_call("in wicked", timeout => 400);
+    systemctl("enable --force wicked");
+    systemctl("stop NetworkManager");
+    systemctl("disable NetworkManager");
+    power_action('reboot', textmode => 1);
+    $self->wait_boot;
+    $self->select_serial_terminal;
 }
 
 sub test_flags {
