@@ -73,12 +73,10 @@ sub upload_audit_test_logs {
     my ($testcase) = @_;
     upload_logs("$current_file");
 
-    # For syscall test case, different arch has different baseline file,
-    # so we need to upload the correct file
-    if ($testcase eq 'syscalls') {
-        $baseline_file = $baseline_file . '.' . get_var('ARCH');
-    }
-    else {
+    # Base line file is ARCH specific in some cases,
+    # so we need to upload the correct file for each platform.
+    $baseline_file = 'baseline_run.log.' . get_var('ARCH');
+    if (script_run("test -e $baseline_file") != 0) {
         $baseline_file = "baseline_run.log";
     }
     upload_logs("$baseline_file", (log_name => "$testcase-baseline_run.log"));
