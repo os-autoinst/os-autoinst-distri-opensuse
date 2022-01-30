@@ -1,4 +1,4 @@
-# Copyright 2017-2021 SUSE LLC
+# Copyright 2017-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Base module for AppArmor test cases
@@ -73,7 +73,7 @@ sub aa_tmp_prof_prepare {
     if ($type == 0) {
         assert_script_run "mkdir $prof_dir_tmp";
         assert_script_run "cp -r $prof_dir/{tunables,abstractions} $prof_dir_tmp/";
-        if (!(is_sle('<16') or is_leap('<16.0'))) {    # apparmor >= 3.0
+        if (!(is_sle('<15-SP4') or is_leap('<16.0'))) {    # apparmor >= 3.0
             assert_script_run "cp -r $prof_dir/abi $prof_dir/disable $prof_dir_tmp/";
         }
         if (is_sle('<15') or is_leap('<15.0')) {    # apparmor < 2.8.95
