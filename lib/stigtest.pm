@@ -57,7 +57,9 @@ sub upload_logs_reports
     }
     upload_logs("$f_stdout") if script_run "! [[ -e $f_stdout ]]";
     upload_logs("$f_stderr") if script_run "! [[ -e $f_stderr ]]";
-    upload_logs("$f_report") if script_run "! [[ -e $f_report ]]";
+    if (get_var('UPLOAD_REPORT_HTML')) {
+        upload_logs("$f_report", timeout => 600) if script_run "! [[ -e $f_report ]]";
+    }
 }
 
 1;

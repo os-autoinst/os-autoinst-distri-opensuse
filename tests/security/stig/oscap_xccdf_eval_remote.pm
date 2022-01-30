@@ -11,7 +11,8 @@ use warnings;
 use testapi;
 use utils;
 use bootloader_setup qw(add_grub_cmdline_settings);
-use power_action_utils "power_action";
+use power_action_utils 'power_action';
+use Utils::Backends 'is_pvm';
 
 sub run {
     my ($self) = @_;
@@ -19,6 +20,7 @@ sub run {
 
     add_grub_cmdline_settings('ignore_loglevel', update_grub => 1);
     power_action('reboot', textmode => 1);
+    reconnect_mgmt_console if is_pvm;
     $self->wait_boot(textmode => 1);
 
     select_console 'root-console';
