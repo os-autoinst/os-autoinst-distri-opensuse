@@ -28,6 +28,7 @@ sub run {
 
     mutex_wait('IPSEC_SERVER_READY');
 
+    script_run("cp ./test_basic_ipsec_eval_weak.bash $audit_test::test_dir/ipsec_configuration/toe");
     assert_script_run("cd $audit_test::test_dir/ipsec_configuration/toe");
 
     # Setup the ipip tunnel to the IPSec gateway and test it
@@ -49,7 +50,8 @@ sub run {
 
     # Search for AUDIT SPD/SAD add records
     assert_script_run('ausearch -ts $stime | grep --color -e \'MAC_IPSEC_EVENT\' -e \'SPD-add\' -e \'SAD-add\'');
-
+    script_run('./test_basic_ipsec_eval_weak.bash');
+    script_run('cat ccc-ipsec-eval-weak.log');
     assert_script_run('stime=$(date +\'%H:%M:%S\')');
     assert_script_run('ipsec down ikev2suse');
 

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2021 SUSE LLC
+# Copyright 2016-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: yast2-ntp-client ntpd chronyd
@@ -123,7 +123,15 @@ sub run {
 
     # close it with OK
     my $ntp_client_needle = check_var('USE_SUPPORT_SERVER', 1) ? 'support_server' : 'public';
-    send_key_until_needlematch "yast2_ntp-client_${ntp_client_needle}_ntp_server_added", "alt-o", 3, 5;
+    # send_key_until_needlematch "yast2_ntp-client_${ntp_client_needle}_ntp_server_added", "alt-o", 3, 5;
+    if (check_var('USE_SUPPORT_SERVER', 1)) {
+        send_key_until_needlematch "yast2_ntp-client_${ntp_client_needle}_ntp_server_added", "alt-o", 3, 5;
+        assert_and_click "yast2_ntp-client_${ntp_client_needle}_ntp_server_settings_ok";
+        assert_and_click "yast2_ntp-client_${ntp_client_needle}_ntp_server_added";
+        send_key 'alt-o';
+    } elsif {
+        send_key_until_needlematch "yast2_ntp-client_${ntp_client_needle}_ntp_server_added", "alt-o", 3, 5;
+    }
 
     if (!$is_chronyd) {
         # now check display log and save log

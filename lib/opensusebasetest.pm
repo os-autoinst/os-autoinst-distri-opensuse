@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2009-2013 Bernhard M. Wiedemann
-# Copyright 2012-2020 SUSE LLC
+# Copyright 2012-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 package opensusebasetest;
@@ -1030,6 +1030,8 @@ sub wait_boot_past_bootloader {
     if ($gnome_ipmi) {
         # first boot takes sometimes quite long time, ensure that it reaches login prompt
         $self->wait_boot_textmode(ready_time => $ready_time);
+	# sleep $num for DESKTOP=gnoe and BACKEND=ipmi to workaround performance issues
+	sleep 30 if (check_var('DESKTOP', 'gnome') && check_var('BACKEND', 'ipmi'));
         select_console('x11');
     }
     elsif ($textmode || check_var('DESKTOP', 'textmode')) {
