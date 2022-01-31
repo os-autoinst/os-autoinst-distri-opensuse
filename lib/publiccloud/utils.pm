@@ -92,6 +92,9 @@ sub registercloudguest {
         $instance->run_ssh_command(cmd => "sudo zypper -q -n in $install_packages", timeout => 420);
         $instance->run_ssh_command(cmd => "sudo registercloudguest --clean");
     }
+    # Check what version of registercloudguest binary we use
+    $instance->run_ssh_command(cmd => "sudo rpm -qa cloud-regionsrv-client", proceed_on_failure => 1);
+    # Register the system
     $instance->retry_ssh_command(cmd => "sudo registercloudguest -r $regcode", timeout => 420, retry => 3);
 }
 
