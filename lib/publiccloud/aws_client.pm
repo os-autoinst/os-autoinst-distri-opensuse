@@ -121,18 +121,18 @@ sub get_container_image_full_name {
     return "$full_name_prefix/" . $self->container_registry . ":$tag";
 }
 
-=head2 configure_docker
+=head2 configure_podman
 
-Configure the docker to access the cloud provider registry
+Configure the podman to access the cloud provider registry
 =cut
 
-sub configure_docker {
+sub configure_podman {
     my ($self) = @_;
     my $full_name_prefix = $self->get_container_registry_prefix();
 
     assert_script_run("aws ecr get-login-password --region "
           . $self->region
-          . " | docker login --username AWS --password-stdin $full_name_prefix");
+          . " | podman login --username AWS --password-stdin $full_name_prefix");
 }
 
 sub cleanup {
