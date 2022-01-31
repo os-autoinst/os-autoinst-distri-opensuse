@@ -46,6 +46,8 @@ sub has_conflict {
         'dpdk-kmp-default' => 'dpdk-thunderx-kmp-default',
         'pulseaudio-module-gconf' => 'pulseaudio-module-gsettings',
         'systemtap-sdt-devel' => 'systemtap-headers',
+        libldb2 => 'libldb1',
+        'python3-ldb' => 'python-ldb',
     );
     return $conflict{$binary};
 }
