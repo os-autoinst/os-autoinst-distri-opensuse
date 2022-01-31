@@ -34,6 +34,7 @@ use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::SelectHardDisksC
 use Installation::Partitioner::LibstorageNG::GuidedSetupController;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
 use Installation::PerformingInstallation::PerformingInstallationController;
+use Installation::SSHKeyImport::SSHKeyImportController;
 use Installation::SystemProbing::EncryptedVolumeActivationController;
 use Installation::SystemRole::SystemRoleController;
 use Installation::Popups::OKPopupController;
@@ -186,6 +187,10 @@ sub get_dasd_disk_management {
 
 sub get_performing_installation {
     return Installation::PerformingInstallation::PerformingInstallationController->new();
+}
+
+sub get_ssh_import_settings {
+    return Installation::SSHKeyImport::SSHKeyImportController->new();
 }
 
 1;

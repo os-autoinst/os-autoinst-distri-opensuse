@@ -56,6 +56,11 @@ sub access_booting_options {
     $self->get_installation_settings_page()->access_booting_options();
 }
 
+sub access_ssh_import_options {
+    my ($self) = @_;
+    $self->get_installation_settings_page()->access_ssh_import_options();
+}
+
 sub install {
     my ($self) = @_;
     $self->get_installation_settings_page()->press_install();
