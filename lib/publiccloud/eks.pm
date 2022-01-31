@@ -23,6 +23,19 @@ sub init {
     assert_script_run("aws eks update-kubeconfig --name $cluster", 120);
 }
 
+=head2 delete_container_image
+
+Clean a container image from the ECR
+=cut
+sub delete_container_image {
+    my ($self, $tag) = @_;
+
+    assert_script_run("aws ecr batch-delete-image --repository-name "
+          . $self->provider_client->container_registry
+          . " --image-ids imageTag="
+          . $tag);
+}
+
 sub cleanup() {
     my ($self) = @_;
 
