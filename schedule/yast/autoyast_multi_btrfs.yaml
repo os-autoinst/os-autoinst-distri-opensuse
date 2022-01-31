@@ -9,7 +9,6 @@ vars:
   QEMURAM: 2048
 schedule:
   - autoyast/prepare_profile
-  - installation/isosize
   - installation/bootloader_start
   - autoyast/installation
   - installation/boot_encrypt

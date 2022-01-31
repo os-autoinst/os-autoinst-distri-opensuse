@@ -6,8 +6,6 @@ vars:
   FILESYSTEM: btrfs
   YUI_REST_API: 1
 schedule:
-  # Called on BACKEND: qemu
-  - '{{isosize}}'
   - installation/bootloader_start
   - installation/setup_libyui
   - installation/access_beta_distribution
@@ -55,10 +53,6 @@ conditional_schedule:
         - console/hibernation_disabled
       x86_64:
         - console/hibernation_enabled
-  isosize:
-    BACKEND:
-      qemu:
-        - installation/isosize
   disk_activation:
     BACKEND:
       s390x:

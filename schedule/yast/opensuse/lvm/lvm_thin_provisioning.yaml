@@ -8,7 +8,6 @@ description: >
 vars:
   YUI_REST_API: 1
 schedule:
-  - installation/isosize
   - installation/bootloader_start
   - installation/setup_libyui
   - '{{access_beta_distribution}}'
