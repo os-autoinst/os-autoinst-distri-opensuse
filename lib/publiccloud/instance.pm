@@ -176,6 +176,9 @@ sub wait_for_guestregister
     my $start_time = time();
     my $last_info = 0;
 
+    # Check what version of registercloudguest binary we use
+    $self->run_ssh_command(cmd => "sudo rpm -qa cloud-regionsrv-client", proceed_on_failure => 1);
+
     while (time() - $start_time < $args{timeout}) {
         my $out = $self->run_ssh_command(cmd => 'sudo systemctl is-active guestregister', proceed_on_failure => 1, quiet => 1);
         # guestregister is expected to be inactive because it runs only once
