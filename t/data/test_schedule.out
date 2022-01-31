@@ -40,6 +40,7 @@ tests/console/firewall_enabled.pm
 tests/console/sshd.pm
 tests/console/ssh_cleanup.pm
 tests/console/mtab.pm
+tests/console/nginx.pm
 tests/console/orphaned_packages_check.pm
 tests/console/consoletest_finish.pm
 tests/x11/desktop_runner.pm
