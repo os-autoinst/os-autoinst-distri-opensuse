@@ -2,11 +2,11 @@
 
 usage="Detect test modules usage in the schedules, inluding main.pm and yaml schedules.
 
-Usage: $(basename "$0") { -a | -m [modules] } | -h
+Usage: $(basename "$0") { -a | -m MODULES } | -h
 
     -h|--help                 show this help text
     -a|--all                  check all test modules
-    -m|--modules [modules]    check provided list"
+    -m|--modules MODULES      check provided list (module names must contain 'tests/', i.e. relative path)"
 
 if [ $# -eq 0 ]; then
     echo "$usage"
@@ -37,9 +37,11 @@ done
 
 for test in $MODULES ; do
     # Don't check non-existing modules it as it was either renamed or removed
-    if [ -z `git ls-files "tests/$test*"` ]; then
-        continue
-    fi
+    # also check only for tests in tests/ directory
+    git ls-files "*$test*" | grep -q ^tests/ || continue
+
+    echo "check $test" >&2
+
     t=$(basename $test | sed -e 's@\.pm$@@')
     t_dir=$(dirname $test | sed -e 's@tests/\(.*\)$@\1@')
     git grep -E "(- $t_dir/$t|loadtest.*$t|load_testdir.*$t_dir|^use (base )?\"?$t\"?)" | grep -qv ".(pm|yaml):\s*#" || echo "$test module is not used in any schedule"
