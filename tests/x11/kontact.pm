@@ -15,6 +15,8 @@ use testapi;
 use version_utils 'is_pre_15';
 
 sub run {
+    ensure_installed('patterns-kde-kde_pim');
+
     # Workaround: Try to fix a race condition between akonadi and kmail
     # to create the Local mail resources (boo#1105207)
     x11_start_program('echo -e "[SpecialCollections]\nDefaultResourceId=akonadi_maildir_resource_0" >> ~/.config/specialmailcollectionsrc', valid => 0);
