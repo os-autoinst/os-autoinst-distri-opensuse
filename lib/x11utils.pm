@@ -131,6 +131,10 @@ sub ensure_unlocked_desktop {
         if ((match_has_tag 'displaymanager-password-prompt') || (match_has_tag 'screenlock-password')) {
             if ($password ne '') {
                 type_password;
+                # poo#97556
+                send_key 'ret';
+                wait_still_screen;
+
                 assert_screen([qw(locked_screen-typed_password login_screen-typed_password generic-desktop)], timeout => 150);
                 next if match_has_tag 'generic-desktop';
             }
