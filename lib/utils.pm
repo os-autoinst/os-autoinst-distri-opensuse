@@ -47,6 +47,7 @@ our @EXPORT = qw(
   set_bridged_networking
   assert_screen_with_soft_timeout
   quit_packagekit
+  wait_for_purge_kernels
   systemctl
   addon_decline_license
   addon_license
@@ -974,6 +975,18 @@ This is needed to prevent access conflicts to the RPM database.
 =cut
 sub quit_packagekit {
     script_run("systemctl mask packagekit; systemctl stop packagekit; while pgrep packagekitd; do sleep 1; done");
+}
+
+=head2 wait_for_purge_kernels
+
+ wait_for_purge_kernels();
+
+Wait until purge-kernels is done
+Prevent RPM lock e.g. SUSEConnect fail
+
+=cut
+sub wait_for_purge_kernels {
+    script_run('while pgrep purge-kernels; do sleep 1; done');
 }
 
 =head2 addon_decline_license
