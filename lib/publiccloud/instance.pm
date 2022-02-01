@@ -206,6 +206,7 @@ sub wait_for_guestregister
         }
         sleep 1;
     }
+    $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
     die('guestregister didn\'t end in expected timeout=' . $args{timeout});
 }
 
