@@ -300,7 +300,7 @@ sub prepare_profile {
 
     if ($has_saptune) {
         assert_script_run "saptune daemon start";
-        my $ret = script_run "saptune solution verify $profile";
+        my $ret = script_run("saptune solution verify $profile", die_on_timeout => 0);
         if (!defined $ret) {
             # Command timed out. 'saptune daemon start' could have caused the SUT to
             # move out of root-console, so select root-console and try again
