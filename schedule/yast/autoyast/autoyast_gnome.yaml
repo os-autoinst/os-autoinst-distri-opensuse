@@ -9,7 +9,6 @@ vars:
   DESKTOP: gnome
 schedule:
   - autoyast/prepare_profile
-  - installation/isosize
   - installation/bootloader
   - autoyast/installation
   - autoyast/console

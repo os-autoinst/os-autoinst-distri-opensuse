@@ -7,7 +7,6 @@ vars:
   DESKTOP: textmode
 schedule:
   - autoyast/prepare_profile
-  - installation/isosize
   - installation/bootloader_start
   - autoyast/installation
   - installation/first_boot

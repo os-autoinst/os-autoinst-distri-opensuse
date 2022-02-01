@@ -8,7 +8,6 @@ vars:
   EXTRABOOTPARAMS: startshell=1
 schedule:
   - autoyast/prepare_profile
-  - installation/isosize
   - installation/bootloader_start
   - installation/verify_secure_boot_bios
   - autoyast/installation

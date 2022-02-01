@@ -8,7 +8,6 @@ vars:
   NTP_SERVER_ADDRESS: cz.pool.ntp.org
 schedule:
   - autoyast/prepare_profile
-  - installation/isosize
   - installation/bootloader_start
   - autoyast/installation
   - autoyast/console

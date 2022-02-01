@@ -7,7 +7,6 @@ vars:
   AUTOYAST_CONFIRM: 1
 schedule:
   - autoyast/prepare_profile
-  - installation/isosize
   - installation/bootloader_start
   - autoyast/installation
   - autoyast/console

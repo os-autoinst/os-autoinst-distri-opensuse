@@ -11,7 +11,6 @@ vars:
   EXTRABOOTPARAMS: startshell=1
   YUI_REST_API: 1
 schedule:
-  - installation/isosize
   - installation/bootloader_start
   - installation/validation/repo_inst
   - installation/setup_libyui
