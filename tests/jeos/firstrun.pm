@@ -72,7 +72,7 @@ sub run {
     mouse_hide;
     # https://github.com/openSUSE/jeos-firstboot/pull/82 welcome dialog is shown on all consoles
     # and configuration continues on console where *Start* has been pressed
-    unless (is_leap('<=15.4') || is_sle('<=15-sp4')) {
+    unless (is_leap('<15.4') || is_sle('<15-sp4')) {
         assert_screen 'jeos-init-config-screen', 300;
         # Without this 'ret' sometimes won't get to the dialog
         wait_still_screen;
