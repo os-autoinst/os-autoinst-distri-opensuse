@@ -26,13 +26,13 @@ sub run {
     $self->{tag} = $tag;
 
     record_info('Pull', "Pulling $image");
-    assert_script_run("docker pull $image", 360);
+    assert_script_run("podman pull $image", 360);
 
-    my $image_build = script_output("docker image inspect $image --format='{{ index .Config.Labels \"org.opencontainers.image.version\"}}'");
+    my $image_build = script_output("podman image inspect $image --format='{{ index .Config.Labels \"org.opencontainers.image.version\"}}'");
     record_info('Img version', $image_build);
 
     my $image_name = $provider->push_container_image($image, $tag);
-    record_info('Registry', "Image successfully uploaded to ECR:\n$image_name\n" . script_output("docker inspect $image_name"));
+    record_info('Registry', "Image successfully uploaded to ECR:\n$image_name\n" . script_output("podman inspect $image_name"));
 }
 
 sub post_fail_hook {

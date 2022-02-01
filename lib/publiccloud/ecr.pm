@@ -23,7 +23,7 @@ has security_token => undef;
 sub init {
     my ($self, %args) = @_;
     $self->SUPER::init("ECR");
-    $self->configure_docker();
+    $self->configure_podman();
 }
 
 =head2 delete_image

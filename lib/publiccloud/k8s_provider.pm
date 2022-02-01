@@ -79,14 +79,14 @@ sub get_default_tag {
     return join('-', $self->resource_name, get_current_job_id());
 }
 
-=head2 configure_docker
+=head2 configure_podman
 
-Configure the docker to access the cloud provider registry
+Configure the podman to access the cloud provider registry
 =cut
 
-sub configure_docker {
+sub configure_podman {
     my ($self) = @_;
-    $self->provider_client->configure_docker();
+    $self->provider_client->configure_podman();
 }
 
 =head2 push_container_image
@@ -102,8 +102,8 @@ sub push_container_image {
 
     my $full_name = $self->get_container_image_full_name($tag);
 
-    assert_script_run("docker tag $image $full_name");
-    assert_script_run("docker push $full_name", 180);
+    assert_script_run("podman tag $image $full_name");
+    assert_script_run("podman push --remove-signatures $full_name", 180);
 
     return $full_name;
 }

@@ -26,7 +26,7 @@ has tenantid => undef;
 sub init {
     my ($self, %args) = @_;
     $self->SUPER::init("ACR");
-    $self->configure_docker();
+    $self->configure_podman();
 }
 
 =head2 delete_image

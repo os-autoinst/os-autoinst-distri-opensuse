@@ -128,12 +128,12 @@ sub get_container_image_full_name {
     return "$full_name_prefix/$tag:latest";
 }
 
-=head2 configure_docker
+=head2 configure_podman
 
-Configure the docker to access the cloud provider registry
+Configure the podman to access the cloud provider registry
 =cut
 
-sub configure_docker {
+sub configure_podman {
     my ($self) = @_;
     assert_script_run('gcloud auth configure-docker --quiet ' . $self->gcr_zone);
 }
