@@ -13,7 +13,7 @@ use base 'opensusebasetest';
 use testapi;
 use warnings;
 use strict;
-use utils qw(zypper_call common_service_action);
+use utils qw(zypper_call common_service_action script_retry);
 
 my $service_type = 'Systemd';
 
@@ -26,6 +26,7 @@ sub enable_service {
 }
 
 sub start_service {
+    common_service_action('apache2', $service_type, 'stop') if (script_run("systemctl is-active apache2.service") == 0);
     common_service_action 'nginx', $service_type, 'start';
 }
 
@@ -48,7 +49,7 @@ sub config_service {
     assert_script_run "echo '127.0.0.1 vhost' >> /etc/hosts";
     assert_script_run "echo '::1 vhost' >> /etc/hosts";
 
-    common_service_action 'nginx', $service_type, 'reload';
+    common_service_action 'nginx', $service_type, 'restart';
 }
 
 # check service is running and enabled
@@ -61,7 +62,8 @@ sub check_function {
     my $grep = sub { /Hello from nginx/ };
 
     # Check that the servers responds
-    assert_script_run('curl http://localhost/');
+    # It may take few seconds as the nginx.service has been just started
+    script_retry('curl http://localhost/', delay => 5, retry => 3);
 
     # Check that the response is correct
     validate_script_output('curl http://localhost/', $grep);
