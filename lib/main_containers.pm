@@ -31,9 +31,9 @@ sub is_container_image_test {
     return get_var('CONTAINERS_UNTESTED_IMAGES', 0);
 }
 
-sub is_res_host {
+sub is_expanded_support_host {
     # returns if booted image is RedHat Expanded Support
-    return get_var("HDD_1") =~ /(res82.qcow2|res79.qcow2)/;
+    return get_var("HDD_1") =~ /sles-es/;
 }
 
 sub is_ubuntu_host {
@@ -100,7 +100,7 @@ sub load_container_tests {
 
     if (is_container_image_test()) {
         # Container Image tests
-        loadtest 'containers/host_configuration' unless (is_res_host || is_ubuntu_host || is_jeos);
+        loadtest 'containers/host_configuration' unless (is_expanded_support_host || is_ubuntu_host || is_jeos);
         load_image_tests_podman() if ($runtime =~ 'podman');
         load_image_tests_docker() if ($runtime =~ 'docker');
     } else {
