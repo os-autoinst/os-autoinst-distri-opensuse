@@ -12,7 +12,6 @@ use base 'x11test';
 use strict;
 use warnings;
 use testapi;
-use version_utils 'is_pre_15';
 
 sub run {
     ensure_installed('patterns-kde-kde_pim');
@@ -26,9 +25,6 @@ sub run {
 
     # Workaround: sometimes the account assistant behind of mainwindow or tips window
     # To disable it run at first time start
-    if (is_pre_15) {
-        x11_start_program('echo -e "[General]\nfirst-start=false" >> ~/.kde4/share/config/kmail2rc', valid => 0);
-    }
     x11_start_program('echo -e "[General]\nfirst-start=false" >> ~/.config/kmail2rc', valid => 0);
     my $match_timeout = 90;
     $match_timeout = $match_timeout * 3 if get_var('LIVETEST');
