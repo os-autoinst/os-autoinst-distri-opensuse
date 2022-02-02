@@ -23,7 +23,6 @@ schedule:
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   # Called on all, except BACKEND: s390x
-  - '{{hostname_inst}}'
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
   - installation/installation_settings/validate_default_target
@@ -40,12 +39,6 @@ schedule:
   - console/validate_free_space
   - console/validate_read_write
 conditional_schedule:
-  hostname_inst:
-    BACKEND:
-      qemu:
-        - installation/hostname_inst
-      svirt:
-        - installation/hostname_inst
   validate_partition_table:
     BACKEND:
       qemu:
