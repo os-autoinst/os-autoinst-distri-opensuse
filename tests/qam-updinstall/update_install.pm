@@ -184,7 +184,11 @@ sub run {
     }
 
     # Patch binaries already installed.
-    zypper_call("in -l -t patch ${patches}", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 1500);
+    my $ret = zypper_call("in -l -t patch ${patches}|tee zypper.log", exitcode => [0, 8, 102, 103], timeout => 1500);
+    if ($ret == 8 && script_run('grep -z "python36-pip.*SLES:12-SP5.*conflicts with.*python3-pip" zypper.log') == 0) {
+        record_soft_failure 'bsc#1195351';
+        zypper_call("in --replacefiles -l -t patch ${patches}", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 1500);
+    }
 
     # Install binaries newly added by the incident.
     if (scalar @new_binaries) {
