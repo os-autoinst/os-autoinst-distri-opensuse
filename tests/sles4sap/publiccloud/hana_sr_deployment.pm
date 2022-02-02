@@ -1,21 +1,21 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2020 SUSE LLC
+# Copyright 2019 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: pacemaker-cli crmsh csync2
-# Summary: Test public cloud SLES4SAP images
-#
-# Maintainer: Loic Devulder <ldevulder@suse.de>
+# Package: ha-cluster-bootstrap
+# Summary: Remove a node both by its hostname and ip address
+# Maintainer: Julien Adamek <jadamek@suse.com>
 
 use strict;
 use warnings;
-use Mojo::Base qw(publiccloud::basetest publiccloud::ssh_interactive_init);
+use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use Mojo::File 'path';
-use Mojo::JSON qw(to_json encode_json);
 use sles4sap_publiccloud;
+use publiccloud::utils;
 use Data::Dumper;
+use Storable;
 
 sub test_flags {
     return {
@@ -29,10 +29,26 @@ sub run {
     my ($self, $run_args) = @_;
     my $timeout = 120;
     my @cluster_types = split(',', get_required_var('CLUSTER_TYPES'));
+    # TODO: DEPLOYMENT SKIP - REMOVE!!!
+    my $instances_export_path = get_var("INSTANCES_EXPORT");
+    my $skip_deployment = get_var('INSTANCES_IMPORT');
 
     $self->select_serial_terminal;
 
+    # TODO: DEPLOYMENT SKIP - REMOVE!!!
+    if (defined($skip_deployment) and length($skip_deployment)){
+        assert_script_run("ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa");
+        copy_ssh_keys();
+        return;
+    }
+
     my $provider = $self->provider_factory();
+
+    # TODO: DEPLOYMENT SKIP - REMOVE!!!
+    if (defined($instances_export_path) and length($instances_export_path)) {
+        copy_ssh_keys();
+    }
+
     my @instances = $provider->create_instances(check_connectivity => 1);
     my @instances_export;
 
@@ -40,14 +56,23 @@ sub run {
 
     foreach my $instance (@instances) {
         $self->upload_ha_sap_logs($instance);
+        print(Dumper($instance));
         push(@instances_export, $instance);
     }
 
+    # TODO: DEPLOYMENT SKIP - REMOVE!!!
+    print(Dumper(@instances));
+    # Mostly for dev - for reusing deployed instances, load this file.
+    if (defined($instances_export_path) and length($instances_export_path)){
+        record_info('Exporting data', Dumper(@instances_export));
+        record_info('Export path', Dumper($instances_export_path));
+        store(\@instances_export, $instances_export_path);
+    }
+    else{
+        record_info('NOT exporting data');
+    }
+
     $run_args->{instances} = \@instances_export;
-    record_info("All inst dump", \@instances_export);
-    my $datadump = Dumper(@instances);
-    run_cmd("echo $datadump > /tmp/instances.pl");
-    upload_logs("/tmp/instances.pl");
 
     foreach my $instance (@instances) {
         record_info("instance dump", Dumper($instance));
@@ -72,6 +97,19 @@ sub run {
             }
         }
         record_info("$hostname created")
+    }
+}
+
+=head2 copy_ssh_keys
+
+Copies static ssh keys stored in /data/sls4sap/. Mostly for development purposes, most probably unsecure.
+
+=cut
+sub copy_ssh_keys{
+    foreach my $file ("id_rsa", "id_rsa.pub"){
+        assert_script_run("mkdir -p /root/.ssh");
+        assert_script_run("curl -f -v " . data_url("sles4sap/$file") . " -o /root/.ssh/$file");
+        assert_script_run("chmod 700 /root/.ssh/$file");
     }
 }
 

@@ -12,4 +12,4 @@ vars:
 schedule:
   - boot/boot_to_desktop
   - publiccloud/sles4sap/hana_sr_deployment
-  - publiccloud/sles4sap/hana_sr_test_sequences
+  - publiccloud/sles4sap/hana_sr_stop_primary_db
