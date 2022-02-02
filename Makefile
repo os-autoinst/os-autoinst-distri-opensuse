@@ -137,8 +137,8 @@ test-unused-modules-changed:
 	git --no-pager diff --unified=0 origin/master schedule/* | sed -n "s~^-\s\+-\s\+\([\"']\)\([^\"']\+\)\1.*~tests/\2.pm~p" | grep -v '{{' ) \
 	| sort -u`
 
-.PHONY: test-unused-modules
-test-unused-modules:
+.PHONY: test-unused-modules-full
+test-unused-modules-full:
 	tools/detect_unused_modules -a
 
 .PHONY: test-deleted-renamed-referenced-files
