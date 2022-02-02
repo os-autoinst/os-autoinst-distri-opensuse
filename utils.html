@@ -48,6 +48,7 @@
       <li><a href="#handle_livecd_reboot_failure">handle_livecd_reboot_failure</a></li>
       <li><a href="#assert_screen_with_soft_timeout">assert_screen_with_soft_timeout</a></li>
       <li><a href="#quit_packagekit">quit_packagekit</a></li>
+      <li><a href="#wait_for_purge_kernels">wait_for_purge_kernels</a></li>
       <li><a href="#addon_decline_license">addon_decline_license</a></li>
       <li><a href="#addon_license">addon_license</a></li>
       <li><a href="#addon_products_is_applicable">addon_products_is_applicable</a></li>
@@ -354,6 +355,12 @@
 <pre><code> quit_packagekit();</code></pre>
 
 <p>Stop and mask packagekit service and wait until it is really dead. This is needed to prevent access conflicts to the RPM database.</p>
+
+<h2 id="wait_for_purge_kernels">wait_for_purge_kernels</h2>
+
+<pre><code> wait_for_purge_kernels();</code></pre>
+
+<p>Wait until purge-kernels is done Prevent RPM lock e.g. SUSEConnect fail</p>
 
 <h2 id="addon_decline_license">addon_decline_license</h2>
 
