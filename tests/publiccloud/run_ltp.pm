@@ -117,8 +117,8 @@ sub run {
         $instance->run_ssh_command(cmd => 'sudo zypper --no-gpg-checks --gpg-auto-import-keys -q in -y ' . $remote_rpm_path, timeout => 600);
     }
     else {
-        $instance->run_ssh_command(cmd => 'sudo zypper -q addrepo -fG ' . $ltp_repo . ' ltp_repo', timeout => 600);
-        $instance->run_ssh_command(cmd => 'sudo zypper -q in -y ltp', timeout => 600);
+        $instance->run_ssh_command(cmd => 'sudo zypper -n addrepo -fG ' . $ltp_repo . ' ltp_repo', timeout => 600);
+        $instance->run_ssh_command(cmd => 'sudo zypper -n in ltp', timeout => 600);
     }
 
     download_whitelist();
