@@ -26,7 +26,6 @@ schedule:
   - installation/confirm_installation
   - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
-  - console/upload_asset
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
