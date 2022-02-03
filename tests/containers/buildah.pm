@@ -44,25 +44,25 @@ sub run {
 
     record_info('Test', "Install random package in the container");
     assert_script_run("buildah run $container -- zypper in -y python3", timeout => 300);
-    assert_script_run("buildah run $container -- python3 --version");
+    assert_script_run("buildah run $container -- python3 --version ");
 
     record_info('Test', "Add environment variable to the container");
-    assert_script_run("buildah config --env foo=bar $container");
-    validate_script_output("buildah run $container -- bash -c 'echo \$foo'", sub { /bar/ });
+    assert_script_run("buildah config --env foo=bar $container 2>/dev/null");
+    validate_script_output("buildah run $container -- bash -c 'echo \$foo' 2>/dev/null", sub { /bar/ });
 
     record_info('Test', "Copy executable script to container and run it");
     assert_script_run("curl -f -v " . data_url("containers/script.sh") . " -o /tmp/script.sh");
     assert_script_run("chmod +x /tmp/script.sh");
     assert_script_run("buildah copy $container /tmp/script.sh /usr/bin");
-    assert_script_run("buildah config --cmd /usr/bin/script.sh $container");
-    validate_script_output("buildah run $container /usr/bin/script.sh", sub { /Test shall pass/ });
+    assert_script_run("buildah config --cmd /usr/bin/script.sh $container 2>/dev/null");
+    validate_script_output("buildah run $container /usr/bin/script.sh 2>/dev/null", sub { /Test shall pass/ });
 
     record_info('Test', "Inject configuration metadata into the container");
-    assert_script_run("buildah config --created-by 'openQA' $container");
-    assert_script_run("buildah config --author 'someone at suse.com' --label name=buildah_openqa_test $container");
-    validate_script_output("buildah inspect --format '{{.ImageCreatedBy}}' $container", sub { /openQA/ });
-    validate_script_output("buildah inspect --format '{{.OCIv1.Author}}' $container", sub { /someone at suse.com/ });
-    validate_script_output("buildah inspect --format '{{.OCIv1.Config.Labels.name}}' $container", sub { /buildah_openqa_test/ });
+    assert_script_run("buildah config --created-by 'openQA' $container 2>/dev/null");
+    assert_script_run("buildah config --author 'someone at suse.com' --label name=buildah_openqa_test $container 2>/dev/null");
+    validate_script_output("buildah inspect --format '{{.ImageCreatedBy}} 2>/dev/null' $container", sub { /openQA/ });
+    validate_script_output("buildah inspect --format '{{.OCIv1.Author}} 2>/dev/null' $container", sub { /someone at suse.com/ });
+    validate_script_output("buildah inspect --format '{{.OCIv1.Config.Labels.name}} 2>/dev/null' $container", sub { /buildah_openqa_test/ });
 
     record_info('Test', "Commit image and use it with podman");
     assert_script_run("buildah commit $container newimage", timeout => 300);
