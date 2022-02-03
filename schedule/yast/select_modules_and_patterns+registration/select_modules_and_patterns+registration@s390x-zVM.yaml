@@ -39,7 +39,7 @@ schedule:
   - installation/performing_installation/stop_timeout_system_reboot_now
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - installation/handle_reboot
+  - boot/reconnect_mgmt_console
   - installation/first_boot
   - console/hostname
   - console/system_prepare
