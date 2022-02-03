@@ -85,7 +85,7 @@ sub change_hw_device_name {
 sub run {
     initialize_y2lan;
     verify_network_configuration;    # check simple access to Overview tab
-    my $service_status_after_conf = (is_sle('<=15')) ? 'no_restart_or_reload' : 'reload';
+    my $service_status_after_conf = (is_sle('<=15-SP1')) ? 'no_restart_or_reload' : 'reload';
     if ($backend eq "svirt") {
         verify_network_configuration(\&check_network_settings_tabs, $service_status_after_conf);
     }
