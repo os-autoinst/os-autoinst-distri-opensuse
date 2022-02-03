@@ -318,7 +318,8 @@ sub terraform_prepare_env {
         assert_script_run('curl ' . data_url("publiccloud/terraform/sap/$file.tfvars") . ' -o ' . TERRAFORM_DIR . "/$cloud_name/terraform.tfvars");
     }
     else {
-        assert_script_run('curl ' . data_url("publiccloud/terraform/$file.tf") . ' -o ' . TERRAFORM_DIR . '/plan.tf');
+        $file = get_var('PUBLIC_CLOUD_TERRAFORM_FILE', "publiccloud/terraform/$file.tf");
+        assert_script_run('curl ' . data_url("$file") . ' -o ' . TERRAFORM_DIR . '/plan.tf');
     }
     $self->terraform_env_prepared(1);
 }
@@ -426,20 +427,23 @@ sub terraform_apply {
     my $output = decode_json(script_output("terraform output -json"));
     my $vms;
     my $ips;
+    my $resource_id;
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         foreach my $vm_type ('cluster_nodes', 'drbd', 'netweaver') {
             push @{$vms}, @{$output->{$vm_type . '_name'}->{value}};
             push @{$ips}, @{$output->{$vm_type . '_public_ip'}->{value}};
         }
-    }
-    else {
+    } else {
         $vms = $output->{vm_name}->{value};
         $ips = $output->{public_ip}->{value};
+        # ResourceID is only provided in the PUBLIC_CLOUD_AZURE_NFS_TEST
+        $resource_id = $output->{resource_id}->{value} if (get_var('PUBLIC_CLOUD_AZURE_NFS_TEST'));
     }
 
     foreach my $i (0 .. $#{$vms}) {
         my $instance = publiccloud::instance->new(
             public_ip => @{$ips}[$i],
+            resource_id => $resource_id,
             instance_id => @{$vms}[$i],
             username => $self->provider_client->username,
             ssh_key => $ssh_private_key_file,
