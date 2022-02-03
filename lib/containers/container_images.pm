@@ -208,10 +208,10 @@ sub test_zypper_on_container {
         record_soft_failure("bsc#1192941 zypper-docker entrypoint confuses program arguments") if (script_run("docker run --rm -ti $image zypper ls | grep 'Usage:'") == 0);
     }
     validate_script_output("$runtime run -i --entrypoint '' $image zypper lr -s", sub { m/.*Alias.*Name.*Enabled.*GPG.*Refresh.*Service/ });
-    $runtime->run_container($image, name => 'refreshed', cmd => "zypper -nv ref", keep_container => 1, timeout => 300, retry => 3, delay => 60);
-    $runtime->commit('refreshed', "refreshed-image", timeout => 120);
-    $runtime->remove_container('refreshed');
-    $runtime->run_container($image, name => "refreshed-image", cmd => "zypper -nv ref", timeout => 300, retry => 3, delay => 60);
+    assert_script_run("$runtime run -i --name 'refreshed' --entrypoint '' $image zypper -nv ref", timeout => 300, retry => 3, delay => 60);
+    assert_script_run("$runtime commit refreshed refreshed-image", timeout => 120);
+    assert_script_run("$runtime rm -f refreshed");
+    assert_script_run("$runtime run -i --name 'refreshed-image' --rm --entrypoint '' $image zypper -nv ref", timeout => 300, retry => 3, delay => 60);
     record_info "The End", "zypper test completed";
 }
 
