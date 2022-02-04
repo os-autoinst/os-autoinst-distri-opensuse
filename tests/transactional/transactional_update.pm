@@ -78,7 +78,7 @@ sub run {
         record_info 'Update #1', 'Add repository and update - snapshot #2';
         # openSUSE does not need additional repo
         zypper_call 'ar utt.repo' unless is_opensuse;
-        trup_call 'cleanup up';
+        trup_call 'cleanup up', timeout => 300;
         check_reboot_changes;
         check_package(stage => 'up');
 
