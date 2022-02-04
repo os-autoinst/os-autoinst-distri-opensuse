@@ -1110,6 +1110,7 @@ sub load_consoletests {
     loadtest "console/system_state";
     loadtest "console/prepare_test_data";
     loadtest "console/consoletest_setup";
+    loadtest 'console/systemd_wo_udev' if (is_sle('15-sp4+') || is_leap('15.4+') || is_tumbleweed);
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
 
     if (get_var('IBM_TESTS')) {
