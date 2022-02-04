@@ -37,6 +37,7 @@ modules:
   - sle-module-development-tools
   - sle-module-legacy
   - sle-module-public-cloud
+  - sle-module-python3
   - PackageHub
   - sle-module-server-applications
   - sle-module-transactional-server

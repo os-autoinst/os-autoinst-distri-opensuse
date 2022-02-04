@@ -81,6 +81,7 @@ test_data:
     - sle-module-legacy
     - sle-module-public-cloud
     - sle-module-NVIDIA-compute
+    - sle-module-python3
     - PackageHub
     - sle-module-server-applications
     - sle-module-transactional-server
