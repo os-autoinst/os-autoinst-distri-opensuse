@@ -680,8 +680,13 @@ sub fully_patch_system {
     # Repeatedly call zypper patch until it returns something other than 103 (package manager updates)
     my $ret = 1;
     for (1 .. 3) {
-        $ret = zypper_call('patch --with-interactive -l', exitcode => [0, 4, 102, 103], timeout => 6000);
+        $ret = zypper_call('patch --with-interactive -l|tee zypper.log', exitcode => [0, 4, 8, 102, 103], timeout => 6000);
         last if $ret != 103;
+    }
+
+    if ($ret == 8 && script_run('grep -z "python36-pip.*SLES:12-SP5.*conflicts with.*python3-pip" zypper.log') == 0) {
+        record_soft_failure 'bsc#1195351';
+        $ret = zypper_call('patch --replacefiles --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000);
     }
 
     if (($ret == 4) && is_sle('>=12') && is_sle('<15')) {
