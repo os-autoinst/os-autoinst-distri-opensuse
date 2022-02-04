@@ -16,6 +16,14 @@ my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
 
+unregister_needle_tags('ENV-BACKEND-ipmi');
+unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm');
+unregister_needle_tags('ENV-JEOS-1');
+unregister_needle_tags('ENV-OFW-0');
+unregister_needle_tags('ENV-OFW-1');
+unregister_needle_tags('ENV-PXEBOOT-0');
+unregister_needle_tags('ENV-PXEBOOT-1');
+
 # Handle updates from repos defined in OS_TEST_TEMPLATE combined with the list
 # of issues defined in OS_TEST_ISSUES.
 # OS_TEST_ISSUES is set by openQABot and metadata repo used in maintenance
