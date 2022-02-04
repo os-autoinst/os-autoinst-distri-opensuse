@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Enable jeos-firstboot as required by openQA testsuite
@@ -11,7 +11,7 @@ use warnings;
 use base "opensusebasetest";
 use testapi;
 use utils 'zypper_call';
-use version_utils 'is_leap';
+use version_utils qw(is_leap is_sle);
 use Utils::Backends;
 
 sub run {
@@ -27,8 +27,12 @@ sub run {
         # Run jeos-firstboot manually and do not reboot as we use SSH
         $reboot_for_jeos_firstboot = 0;
 
-        # Handle default credentials for ssh login
-        $testapi::password = $default_password;
+        if (!is_sle()) {
+            # Handle default credentials for ssh login
+            # On SLE we use an image preprocessed by openQA where the default
+            # $testapi::password was set
+            $testapi::password = $default_password;
+        }
         # 'root-ssh' console will wait for SUT to be reachable from ssh
         select_console('root-ssh');
     }

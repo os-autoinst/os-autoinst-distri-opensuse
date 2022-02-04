@@ -1,4 +1,4 @@
-# Copyright 2018-2021 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: chrony ntp
@@ -18,7 +18,7 @@ sub run {
 
     assert_script_run 'timedatectl';
 
-    if (is_sle) {
+    if (is_sle() && !check_var('FLAVOR', 'JeOS-for-RaspberryPi')) {
         systemctl 'enable chronyd';
         systemctl 'start chronyd';
         # bsc#1179022 avoid '503 No such source' error while chrony does pick responding sources after start
