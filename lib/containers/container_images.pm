@@ -23,7 +23,7 @@ use containers::common qw(test_container_image is_unreleased_sle);
 
 our @EXPORT = qw(build_with_zypper_docker build_with_sle2docker
   test_opensuse_based_image exec_on_container ensure_container_rpm_updates build_and_run_image
-  test_zypper_on_container test_3rd_party_image upload_3rd_party_images_logs);
+  test_zypper_on_container test_3rd_party_image upload_3rd_party_images_logs test_systemd_install);
 
 =head2 build_and_run_image
 
@@ -238,6 +238,23 @@ sub upload_3rd_party_images_logs {
     } else {
         upload_logs("/tmp/$runtime-3rd_party_images_log.txt");
         script_run("rm /tmp/$runtime-3rd_party_images_log.txt");
+    }
+}
+
+sub test_systemd_install {
+    my %args = @_;
+    my $image = $args{image};
+    my $runtime = $args{runtime};
+
+    die 'Argument $image not provided!' unless $image;
+    die 'Argument $runtime not provided!' unless $runtime;
+
+    my ($image_version, $image_sp, $image_id) = get_os_release("$runtime run --entrypoint '' $image");
+    # TW and starting with SLE 15-SP4/Leap15.4 systemd's dependency with udev has been dropped
+    if ($image_id eq 'opensuse-tumbleweed' ||
+        ($image_id eq 'opensuse-leap' && check_version('>=15.4', "$image_version.$image_sp", qr/\d{2}\.\d/)) ||
+        ($image_id eq 'sles' && check_version('>=15-SP4', "$image_version-SP$image_sp", qr/\d{2}-sp\d/))) {
+        assert_script_run "$runtime run $image /bin/bash -c 'zypper al udev && zypper -n in systemd'";
     }
 }
 

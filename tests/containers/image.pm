@@ -33,6 +33,7 @@ sub run {
             record_info "IMAGE", "Testing image: $iname";
             test_container_image(image => $iname, runtime => $engine);
             test_rpm_db_backend(image => $iname, runtime => $engine);
+            test_systemd_install(image => $iname, runtime => $engine);
             my $beta = $version eq get_var('VERSION') ? get_var('BETA', 0) : 0;
             test_opensuse_based_image(image => $iname, runtime => $engine, version => $version, beta => $beta);
         }
