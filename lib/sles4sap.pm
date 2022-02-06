@@ -690,6 +690,8 @@ sub reboot {
 
     if (is_ipmi) {
         power_action('reboot', textmode => 1, keepconsole => 1);
+        # wait to not assert linux-login while system goes down
+        wait_still_screen(15);
         switch_from_ssh_to_sol_console;
         $self->wait_boot(textmode => 1, nologin => get_var('NOAUTOLOGIN', '0'));
     }
