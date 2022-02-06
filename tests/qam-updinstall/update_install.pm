@@ -24,6 +24,7 @@ use List::Util qw(first pairmap uniq notall);
 use qam;
 use maintenance_smelt qw(get_packagebins_in_modules get_incident_packages);
 use testapi;
+use version_utils qw(is_sle);
 
 sub has_conflict {
     my $binary = shift;
@@ -88,6 +89,7 @@ sub run {
     $self->select_serial_terminal;
 
     zypper_call(q{mr -d $(zypper lr | awk -F '|' '/NVIDIA/ {print $2}')}, exitcode => [0, 3]);
+    zypper_call("ar -f http://dist.suse.de/ibs/SUSE/Updates/SLE-Live-Patching/12-SP3/" . get_var('ARCH') . "/update/ sle-module-live-patching:12-SP3::update") if is_sle('=12-SP3');
 
     # Get packages affected by the incident.
     my @packages = get_incident_packages($incident_id);
