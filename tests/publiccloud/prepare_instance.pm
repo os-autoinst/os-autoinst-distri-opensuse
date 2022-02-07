@@ -78,6 +78,8 @@ sub run {
     assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
     $instance->ssh_opts("");
 
+    $instance->network_speed_test();
+
     # ssh-tunnel settings
     prepare_ssh_tunnel($instance) if (get_var('TUNNELED'));
 }

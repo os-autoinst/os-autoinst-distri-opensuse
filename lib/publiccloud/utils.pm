@@ -55,6 +55,7 @@ sub register_addon {
     my $arch = get_var('PUBLIC_CLOUD_ARCH') // "x86_64";
     $arch = "aarch64" if ($arch eq "arm64");
     record_info($addon, "Going to register '$addon' addon");
+    my $cmd_time = time();
     if ($addon =~ /ltss/) {
         ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch, "-r " . get_required_var('SCC_REGCODE_LTSS'));
     } elsif (is_sle('<15') && $addon =~ /tcm|wsm|contm|asmm|pcm/) {
@@ -64,6 +65,7 @@ sub register_addon {
     } else {
         ssh_add_suseconnect_product($remote, get_addon_fullname($addon), undef, $arch);
     }
+    record_info('SUSEConnect time', 'The command SUSEConnect -r ' . get_addon_fullname($addon) . ' took ' . (time() - $cmd_time) . ' seconds.');
 }
 
 sub registercloudguest {
@@ -95,7 +97,9 @@ sub registercloudguest {
     # Check what version of registercloudguest binary we use
     $instance->run_ssh_command(cmd => "sudo rpm -qa cloud-regionsrv-client", proceed_on_failure => 1);
     # Register the system
+    my $cmd_time = time();
     $instance->retry_ssh_command(cmd => "sudo registercloudguest -r $regcode", timeout => 420, retry => 3);
+    record_info('registercloudguest time', 'The command registercloudguest took ' . (time() - $cmd_time) . ' seconds.');
 }
 
 # Check if we are a BYOS test run
