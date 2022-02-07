@@ -36,6 +36,18 @@ use testapi qw(send_key %cmd assert_screen check_screen check_var click_lastmatc
   wait_still_screen wait_screen_change get_required_var diag);
 
 
+=head2 new
+
+Class constructor
+=cut
+sub new {
+    my ($class) = @_;
+    my $self = $class->SUPER::new(@_);
+
+    $self->{script_run_die_on_timeout} = 1;
+    return $self;
+}
+
 =head2 handle_password_prompt
 
 Types the password in a password prompt
