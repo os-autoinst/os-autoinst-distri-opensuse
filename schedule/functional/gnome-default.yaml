@@ -1,11 +1,9 @@
 ---
-name:           minimal_x
+name: gnome-default
 description:    >
     Maintainer: qe-core <qe-core@suse.de>
-    As default but explicitly unselecting DE patterns,
-    for example gnome, to have only a "minimal X" environment preserved,
-    for example icewm.
-
+    Installation with the standard scenario, where mainly the installation suggestions
+    are followed without any adjustments as long as the default desktop is gnome
 conditional_schedule:
     boot:
         ARCH:
@@ -28,18 +26,6 @@ conditional_schedule:
                 - installation/bootloader_uefi
             uefi:
                 - installation/bootloader_uefi
-    encrypt_lvm:
-        MACHINE:
-            64bit:
-                - '{{lvm}}'
-            aarch64:
-                - '{{lvm}}'
-            ppc64le:
-                - '{{lvm}}'
-    lvm:
-        LVM:
-            1:
-                - installation/partitioning/encrypt_lvm
     mgmt_console:
         ARCH:
             s390x:
@@ -68,14 +54,6 @@ conditional_schedule:
                 - console/x_vt
             ppc64le:
                 - console/x_vt
-    ncurses:
-        ARCH:
-            x86_64:
-                - console/ncurses
-            aarch64:
-                - console/ncurses
-            ppc64le:
-                - console/ncurses
 schedule:
     - '{{boot}}'
     - installation/welcome
@@ -84,7 +62,6 @@ schedule:
     - installation/addon_products_sle
     - installation/system_role
     - installation/partitioning
-    - '{{encrypt_lvm}}'
     - installation/partitioning_finish
     - installation/installer_timezone
     - installation/user_settings
@@ -111,16 +88,30 @@ schedule:
     - console/hostname
     - console/installation_snapshots
     - '{{x_vt}}'
-    - '{{ncurses}}'
     - console/curl_https
     - console/salt
     - '{{glibc_sanity}}'
     - console/glibc_tunables
-    - update/zypper_up
     - console/vim
     - console/firewall_enabled
     - console/sshd
     - console/ssh_cleanup
     - console/mtab
     - console/consoletest_finish
+    - x11/desktop_runner
+    - x11/xterm
+    - locale/keymap_or_locale_x11
+    - x11/sshxterm
+    - update/prepare_system_for_update_tests
+    - update/updates_packagekit_gpk
+    - update/check_system_is_updated
+    - x11/gnome_control_center
+    - x11/gnome_terminal
+    - x11/gedit
+    - x11/firefox
+    - x11/glxgears
+    - x11/nautilus
+    - x11/desktop_mainmenu
+    - x11/reboot_gnome
+    - shutdown/shutdown
 ...
