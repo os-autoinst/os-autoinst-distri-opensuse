@@ -324,4 +324,21 @@ sub get_state
     return $self->provider->get_state_from_instance($self, @_);
 }
 
+=head2 network_speed_test
+
+    network_speed_test();
+
+Test the network speed.
+=cut
+sub network_speed_test() {
+    my ($self, %args) = @_;
+    # Curl stats output format
+    my $write_out = 'time_namelookup:\t%{time_namelookup} s\ntime_connect:\t\t%{time_connect} s\ntime_appconnect:\t%{time_appconnect} s\ntime_pretransfer:\t%{time_pretransfer} s\ntime_redirect:\t\t%{time_redirect} s\ntime_starttransfer:\t%{time_starttransfer} s\ntime_total:\t\t%{time_total} s\n';
+    # PC RMT server domain name
+    my $rmt_host = "smt-" . lc(get_required_var('PUBLIC_CLOUD_PROVIDER')) . ".susecloud.net";
+    $self->run_ssh_command(cmd => "grep '$rmt_host' /etc/hosts", proceed_on_failure => 1);
+    record_info("ping 1.1.1.1", $self->run_ssh_command(cmd => "ping -c30 1.1.1.1", proceed_on_failure => 1, timeout => 600));
+    record_info("curl $rmt_host", $self->run_ssh_command(cmd => "curl -w '$write_out' -o /dev/null -v https://$rmt_host/", proceed_on_failure => 1));
+}
+
 1;
