@@ -45,7 +45,6 @@ schedule:
     - update/zypper_up
     - console/zypper_in
     - console/zypper_log
-    - console/vim
     - console/firewall_enabled
     - console/sshd
     - console/ssh_cleanup

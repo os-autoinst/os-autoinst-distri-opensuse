@@ -15,6 +15,7 @@ schedule:
     - boot/boot_to_desktop
     - update/zypper_up
     - console/ncurses
+    - console/vim
     - console/iotop
     - console/gd
     - console/journalctlLevels
