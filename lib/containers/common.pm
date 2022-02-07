@@ -13,7 +13,7 @@ use utils qw(zypper_call systemctl file_content_replace script_retry);
 use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos is_public_cloud get_os_release check_version);
 use containers::utils qw(can_build_sle_base registry_url);
 
-our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed
+our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed install_containerd_when_needed
   test_container_runtime test_container_image scc_apply_docker_image_credentials
   scc_restore_docker_image_credentials install_buildah_when_needed test_rpm_db_backend activate_containers_module);
 
@@ -130,6 +130,16 @@ sub install_buildah_when_needed {
         record_soft_failure 'bsc#1189893 - Failed to decode the keys [\"storage.options.ostree_repo\"] from \"/etc/containers/storage.conf\"';
     }
     record_info('buildah', script_output('buildah info'));
+}
+
+sub install_containerd_when_needed {
+    my $registry = registry_url();
+    zypper_call('in containerd cni-plugins', timeout => 300);
+    assert_script_run "curl " . data_url('containers/containerd.toml') . " -o /etc/containerd/config.toml";
+    file_content_replace("/etc/containerd/config.toml", REGISTRY => $registry);
+    assert_script_run('cat /etc/containerd/config.toml');
+    systemctl('start containerd.service');
+    record_info('containerd', script_output('containerd -h'));
 }
 
 sub test_container_runtime {
