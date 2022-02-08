@@ -47,7 +47,7 @@ sub run {
     assert_script_run "$qca_cmd plugins";
     assert_script_run "$qca_cmd plugins --debug";
     assert_script_run "$qca_cmd key make rsa 1024 --newpass=suse";
-    script_run "$qca_cmd cert makeself rsapriv.pem --pass=suse";
+    enter_cmd "$qca_cmd cert makeself rsapriv.pem --pass=suse";
     enter_cmd "tester";
     enter_cmd "DE";
     enter_cmd "SUSE";
@@ -57,7 +57,7 @@ sub run {
     assert_script_run "$qca_cmd show cert cert.pem";
     assert_script_run "$qca_cmd keybundle make rsapriv.pem cert.pem --pass=suse --newpass=suse";
     assert_script_run "$qca_cmd keystore list-stores";
-    script_run "$qca_cmd keystore monitor";
+    enter_cmd "$qca_cmd keystore monitor";
     enter_cmd "q";
     assert_script_run "$qca_cmd show kb cert.p12 --pass=suse";
 
