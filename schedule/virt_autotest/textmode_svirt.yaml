@@ -1,0 +1,51 @@
+name:           textmode_svirt
+description:    >
+    Maintainer: nan.zhang@suse.com
+    Textmode installation with integration services and open-vm-tools test modules
+schedule:
+    - installation/isosize
+    - '{{bootloader}}'
+    - installation/welcome
+    - installation/accept_license
+    - installation/scc_registration
+    - installation/addon_products_sle
+    - installation/system_role
+    - installation/partitioning
+    - installation/partitioning_finish
+    - installation/installer_timezone
+    - installation/user_settings
+    - installation/user_settings_root
+    - installation/resolve_dependency_issues
+    - installation/installation_overview
+    - installation/disable_grub_timeout
+    - installation/start_install
+    - installation/await_install
+    - installation/add_serial_console
+    - installation/logs_from_installation_system
+    - installation/reboot_after_installation
+    - installation/grub_test
+    - installation/first_boot
+    - console/system_prepare
+    - console/check_network
+    - console/system_state
+    - console/integration_services
+    - '{{open_vm_tools}}'
+conditional_schedule:
+    bootloader:
+        VIRSH_VMM_FAMILY:
+            vmware:
+                - installation/bootloader_svirt
+                - '{{uefi}}'
+            hyperv:
+                - installation/bootloader_hyperv
+                - '{{uefi}}'
+    uefi:
+        UEFI:
+            1:
+                - installation/bootloader_uefi
+            0:
+                - installation/bootloader
+    open_vm_tools:
+        VIRSH_VMM_FAMILY:
+            vmware:
+                - virt_autotest/esxi_open_vm_tools

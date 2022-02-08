@@ -1100,8 +1100,6 @@ sub load_consoletests {
     loadtest "console/prepare_test_data";
     loadtest "console/consoletest_setup";
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
-    # This is a temporary solution for enabling open-vm-tools tests, will use YAML job template instead.
-    loadtest 'virt_autotest/esxi_open_vm_tools' if is_vmware && get_var('OPEN_VM_TOOLS');
 
     if (get_var('IBM_TESTS')) {
         # prepare tarballs for the testcase
