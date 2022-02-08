@@ -152,7 +152,7 @@ sub repl_module_in_sourcefile {
         upload_asset "/usr/share/qa/virtautolib/data/sources.de", 1, 1;
     }
     else {
-        assert_script_run($command);
+        assert_script_run($command, timeout => 120);
         save_screenshot;
         assert_script_run("grep Module $source_file -r");
         save_screenshot;
