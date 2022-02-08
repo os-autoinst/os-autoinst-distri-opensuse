@@ -90,6 +90,13 @@ sub load_host_tests_docker {
     loadtest 'containers/validate_btrfs' if (is_x86_64 and is_qemu);
 }
 
+sub load_host_tests_load_containerd_crictl {
+    loadtest 'containers/containerd_crictl';
+}
+
+sub load_host_tests_load_containerd_nerdctl {
+    loadtest 'containers/containerd_nerdctl';
+}
 
 sub load_container_tests {
     my $runtime = get_required_var('CONTAINER_RUNTIME');
@@ -107,6 +114,8 @@ sub load_container_tests {
         # Container Host tests
         load_host_tests_podman() if ($runtime =~ 'podman');
         load_host_tests_docker() if ($runtime =~ 'docker');
+        load_host_tests_load_containerd_crictl() if ($runtime =~ 'containerd_crictl');
+        load_host_tests_load_containerd_nerdctl() if ($runtime =~ 'containerd_nerdctl');
     }
     loadtest 'console/coredump_collect' unless is_jeos;
 }
