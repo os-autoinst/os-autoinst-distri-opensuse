@@ -73,22 +73,19 @@ sub upload_supportconfig_log {
     }
     $args{options} //= '';
     $args{timeout} //= 600;
-    script_run("supportconfig -t . -B $args{file_name}", $args{timeout});
-    #FOR S390X LPAR
-    if (is_s390x) {
-        script_run("tar zcvfP scc_$args{file_name}.tar.gz scc_supportconfig");
-        upload_asset("scc_$args{file_name}.tar.gz", 1, 1);
-        return;
-    }
+
+    my $file_name = $args{file_name};
+    assert_script_run("supportconfig -B $file_name", $args{timeout});
+    my $scc_tarball = "/var/log/scc_$file_name.txz";
+    my $nts_tarball = "/var/log/nts_$file_name.txz";
+
     # bcc#1166774
-    if (script_run("test -d scc_$args{file_name}/") == 0) {
-        assert_script_run("tar zcvfP scc_$args{file_name}.tar.gz scc_$args{file_name}/");
-        upload_logs("scc_$args{file_name}.tar.gz");
-    } elsif (script_run("test -d nts_$args{file_name}/") == 0) {
-        assert_script_run("tar zcvfP nts_$args{file_name}.tar.gz nts_$args{file_name}/");
-        upload_logs("nts_$args{file_name}.tar.gz");
+    if (script_run("test -e $scc_tarball") == 0) {
+        upload_logs($scc_tarball);
+    } elsif (script_run("test -e $nts_tarball") == 0) {
+        upload_logs("$nts_tarball");
     } else {
-        assert_script_run("ls ./");
+        assert_script_run("ls /var/log");
         die("No supportconfig directory found!");
     }
 }
