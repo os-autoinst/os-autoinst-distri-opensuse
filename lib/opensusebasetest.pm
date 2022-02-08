@@ -492,9 +492,8 @@ sub export_logs {
     save_screenshot;
     show_oom_info;
     $self->remount_tmp_if_ro;
-    $self->problem_detection;
-
     $self->export_logs_basic;
+    $self->problem_detection;
 
     # Just after the setup: let's see the network configuration
     $self->save_and_upload_log("ip addr show", "/tmp/ip-addr-show.log");
