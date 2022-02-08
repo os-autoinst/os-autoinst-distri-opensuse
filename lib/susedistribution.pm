@@ -499,7 +499,6 @@ sub init_consoles {
     # Use ssh consoles on generalhw, without VNC connection
     if (get_var('BACKEND', '') =~ /generalhw/ && !defined(get_var('GENERAL_HW_VNC_IP'))) {
         my $hostname = get_required_var('SUT_IP');
-        # 'root-ssh' is only needed to set a serial over ssh
         $self->add_console(
             'root-ssh',
             'ssh-xterm',
@@ -508,7 +507,7 @@ sub init_consoles {
                 password => $testapi::password,
                 username => 'root',
                 serial => 'rm -f /dev/sshserial; mkfifo /dev/sshserial; chmod 666 /dev/sshserial; tail -fn +1 /dev/sshserial'
-            }) if (has_serial_over_ssh);
+            });
 
         $self->add_console(
             'root-console',
