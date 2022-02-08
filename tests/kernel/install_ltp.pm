@@ -84,7 +84,8 @@ sub install_runtime_dependencies {
       xfsprogs
     );
     for my $dep (@maybe_deps) {
-        script_run('zypper -n -t in ' . $dep . ' | tee');
+        # ignore failures due to missing packages (exit code 104)
+        zypper_call("in $dep", exitcode => [0, 104]);
     }
 }
 
@@ -96,7 +97,8 @@ sub install_debugging_tools {
       strace
     );
     for my $dep (@maybe_deps) {
-        script_run('zypper -n -t in ' . $dep . ' | tee');
+        # ignore failures due to missing packages (exit code 104)
+        zypper_call("in $dep", exitcode => [0, 104]);
     }
 }
 
@@ -125,7 +127,8 @@ sub install_runtime_dependencies_network {
       xinetd
     );
     for my $dep (@maybe_deps) {
-        script_run('zypper -n -t in ' . $dep . ' | tee');
+        # ignore failures due to missing packages (exit code 104)
+        zypper_call("in $dep", exitcode => [0, 104]);
     }
 }
 
@@ -165,7 +168,8 @@ sub install_build_dependencies {
       libtirpc-devel-32bit
     );
     for my $dep (@maybe_deps) {
-        script_run('zypper -n -t in ' . $dep . ' | tee');
+        # ignore failures due to missing packages (exit code 104)
+        zypper_call("in $dep", exitcode => [0, 104]);
     }
 }
 
