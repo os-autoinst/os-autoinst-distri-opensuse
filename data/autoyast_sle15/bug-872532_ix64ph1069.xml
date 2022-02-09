@@ -708,7 +708,6 @@
       <package>libgtk-2_0-0</package>
       <package>libmtdev1</package>
       <package>libpcre16-0</package>
-      <package>libpython3_4m1_0</package>
       <package>libstdc++6-32bit</package>
       <package>libxcb-icccm4</package>
       <package>libxcb-image0</package>
