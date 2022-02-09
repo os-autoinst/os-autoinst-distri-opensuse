@@ -6,4 +6,5 @@ schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
     - console/dracut
+    - console/dracut_enhanced
     - console/coredump_collect
