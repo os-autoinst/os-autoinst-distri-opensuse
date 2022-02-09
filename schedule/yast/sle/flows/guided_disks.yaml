@@ -1,0 +1,10 @@
+---
+# Configure default partitioning with Guided Setup when more than one disk
+guided_open:
+  - installation/partitioning/select_guided_setup
+guided_hard_disks:
+  - installation/partitioning/guided_setup/select_disks
+guided_scheme:
+  - installation/partitioning/guided_setup/accept_default_part_scheme
+guided_filesystem:
+  - installation/partitioning/guided_setup/accept_default_fs_options

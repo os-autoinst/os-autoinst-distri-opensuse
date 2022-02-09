@@ -1,0 +1,46 @@
+---
+name:           guided_btrfs
+description:    >
+  Guided Partitioning installation with btrfs filesystem.
+vars:
+  FILESYSTEM: btrfs
+  HDDSIZEGB: 40
+  YUI_REST_API: 1
+schedule:
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_preparation:
+    - console/system_prepare
+    - console/force_scheduled_tasks
+  system_validation:
+    - console/hibernation_enabled
+    - console/validate_product_installed_SLES
+    - console/validate_no_cow_attribute
+    - console/verify_separate_home
+    - console/validate_partition_table_via_blkid
+    - console/validate_blockdevices
+test_data:
+  subvolume:
+    cow:
+      - /root
+      - /tmp
+      - /usr/local
+      - /.snapshots
+      - /srv
+      - /opt
+    no_cow:
+      - /var
+  disks:
+  - name: vda
+    table_type: gpt
+    partitions:
+    - name: vda2
+      formatting_options:
+        filesystem: btrfs
+      mounting_options:
+        mount_point: /
+    - name: vda3
+      formatting_options:
+        filesystem: xfs
+      mounting_options:
+        mount_point: /home

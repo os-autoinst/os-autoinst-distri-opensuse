@@ -1,0 +1,5 @@
+---
+# Reconnect management console in remote backends: s390x,ipmi,pvm
+# handling GRUB as well.
+grub:
+  - installation/handle_reboot

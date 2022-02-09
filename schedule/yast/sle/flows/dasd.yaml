@@ -1,0 +1,6 @@
+---
+# Configure DASD Disks
+configure_dasd_disks:
+  - installation/disk_activation/select_configure_dasd_disks
+  - installation/disk_activation/configure_dasd
+  - installation/disk_activation/finish_disk_activation
