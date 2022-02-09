@@ -8,13 +8,13 @@
 #          Global mode - setup fips=1 in kernel command line
 #
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tags: poo#39071, poo#105591
+# Tags: poo#39071, poo#105591, poo#105999
 
 use strict;
 use warnings;
 use base "consoletest";
 use testapi;
-use utils "zypper_call";
+use utils qw(quit_packagekit zypper_call);
 use bootloader_setup "add_grub_cmdline_settings";
 use power_action_utils "power_action";
 
@@ -28,6 +28,9 @@ sub run {
         assert_script_run("grep '^GRUB_CMDLINE_LINUX_DEFAULT.*fips=1' /etc/default/grub");
         assert_script_run("grep '^1\$' /proc/sys/crypto/fips_enabled");
         record_info 'Kernel Mode', 'FIPS kernel mode (for global) configured!';
+
+        # Stop packagekitd
+        quit_packagekit;
 
         # Make sure FIPS pattern is installed and there is no conflicts.
         zypper_call("refresh");
