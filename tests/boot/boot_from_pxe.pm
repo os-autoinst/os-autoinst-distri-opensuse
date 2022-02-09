@@ -174,7 +174,8 @@ sub run {
 
         # Proceed if the 'installation' console is ready
         # otherwise the 'sol' console may be just freezed
-        wait_still_screen(stilltime => 180, timeout => 185);
+        my $stilltime = check_var('SLE_PRODUCT', 'sles4sap') ? 30 : 180;
+        wait_still_screen(stilltime => $stilltime, timeout => 185);
         if (check_screen(\@tags, $ssh_vnc_wait_time)) {
             save_screenshot;
             sleep 2;
