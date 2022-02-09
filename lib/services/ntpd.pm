@@ -33,7 +33,6 @@ sub check_config {
     assert_script_run 'ntpq -p';
     for (my $i = 0; $i < 5; $i++) {
         if ($server_count + 2 <= script_output('ntpq -pn | tail -n +3 | wc -l')) {
-            record_info 'Config', "$i ... 6 servers found";
             return;
         }
         sleep 30;
