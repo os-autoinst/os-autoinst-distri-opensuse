@@ -3,13 +3,10 @@ name: sles4sap_remote_desktop_windows_client
 description: >
   Remote Desktop Protocol (RDP) test from a Windows client.
 vars:
-  BOOTFROM: c
   NETWORKS: fixed
   REGRESSION: remote
   REMOTE_DESKTOP_TYPE: win_client
-  # Below have to be entered in the OpenQA UI because it doesn't read this YAML
-  # HDD_1: windows-10-x86_64-1511@64bit_win.qcow2
 schedule:
-  - x11/remote_desktop/windows_client_boot
+  - wsl/boot_windows
   - x11/remote_desktop/windows_network_setup
   - x11/remote_desktop/windows_client_remotelogin
