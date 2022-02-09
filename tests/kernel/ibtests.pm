@@ -6,11 +6,9 @@
 # Package: git-core twopence-shell-client bc iputils python
 # Summary: run InfiniBand test suite hpc-testing
 #
-# Maintainer: Michael Moese <mmoese@suse.de>, Nick Singer <nsinger@suse.de>
+# Maintainer: Michael Moese <mmoese@suse.de>, Nick Singer <nsinger@suse.de>, ybonatakis <ybonatakis@suse.com>
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base qw(opensusebasetest);
 use testapi;
 use utils;
 use power_action_utils 'power_action';
@@ -70,8 +68,8 @@ sub ibtest_master {
     if ($phase ne '') {
         $args = $args . "--phase $phase ";
     } else {
-        $args = $args - "--start-phase $start_phase " if $start_phase;
-        $args = $args - "--end-phase $end_phase " if $end_phase;
+        $args = $args . "--start-phase $start_phase " if $start_phase;
+        $args = $args . "--end-phase $end_phase " if $end_phase;
     }
 
     $args = $args . "--mpi $mpi_flavours " if $mpi_flavours;
@@ -79,6 +77,8 @@ sub ibtest_master {
 
     # do all test preparations and setup
     zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);
+    zypper_ar(get_required_var('SCIENCE_HPC_REPO'), no_gpg_check => 1, priority => 50) if get_var('SCIENCE_HPC_REPO', '');
+
     zypper_call('in git-core twopence-shell-client bc iputils python', exitcode => [0, 65, 107]);
 
     # pull in the testsuite
@@ -87,7 +87,7 @@ sub ibtest_master {
     # wait until the two machines under test are ready setting up their local things
     assert_script_run('cd hpc-testing');
     barrier_wait('IBTEST_BEGIN');
-    assert_script_run("./ib-test.sh $args $master $slave", $timeout);
+    script_run("./ib-test.sh $args $master $slave", $timeout);
     script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
     parse_extra_log('XUnit', '/tmp/results.xml');
 
@@ -135,7 +135,6 @@ sub run {
 
 sub post_fail_hook {
     my $self = shift;
-    my $slave = get_required_var('IBTEST_IP2');
     my $role = get_required_var('IBTEST_ROLE');
 
     if ($role eq 'IBTEST_MASTER') {
@@ -144,9 +143,6 @@ sub post_fail_hook {
     }
 
     $self->upload_ibtest_logs;
-
-    wait_for_children;
-
     $self->SUPER::post_fail_hook;
 }
 
