@@ -131,7 +131,7 @@ sub run {
     # when there are more jobs running concurrently. We need to wait for
     # various disk optimizations and snapshot enablement to land.
     # Meltdown/Spectre mitigations makes this even worse.
-    if (is_generalhw && !defined(get_var('GENERAL_HW_VNC_IP'))) {
+    if (is_generalhw && !defined(get_var('GENERAL_HW_VNC_IP')) && !defined(get_var('GENERAL_HW_VIDEO_STREAM_URL'))) {
         # Wait jeos-firstboot is done and clear screen, as we are already logged-in via ssh
         wait_still_screen;
         $self->clear_and_verify_console;

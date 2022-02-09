@@ -459,7 +459,7 @@ sub init_consoles {
     }
 
     if ((get_var('BACKEND', '') =~ /qemu|ikvm/
-            || (get_var('BACKEND', '') =~ /generalhw/ && get_var('GENERAL_HW_VNC_IP'))
+            || (get_var('BACKEND', '') =~ /generalhw/ && (get_var('GENERAL_HW_VNC_IP') || get_var('GENERAL_HW_VIDEO_STREAM_URL')))
             || is_svirt_except_s390x))
     {
         $self->add_console('install-shell', 'tty-console', {tty => 2});
@@ -497,7 +497,7 @@ sub init_consoles {
     }
 
     # Use ssh consoles on generalhw, without VNC connection
-    if (get_var('BACKEND', '') =~ /generalhw/ && !defined(get_var('GENERAL_HW_VNC_IP'))) {
+    if (get_var('BACKEND', '') =~ /generalhw/ && !defined(get_var('GENERAL_HW_VNC_IP')) && !defined(get_var('GENERAL_HW_VIDEO_STREAM_URL'))) {
         my $hostname = get_required_var('SUT_IP');
         $self->add_console(
             'root-ssh',
@@ -747,8 +747,8 @@ sub activate_console {
     elsif ($name =~ /log|tunnel/) {
         $user = 'root';
     }
-    # Use ssh for generalhw(ssh/no VNC) for given consoles
-    $type = 'ssh' if (get_var('BACKEND', '') =~ /generalhw/ && !defined(get_var('GENERAL_HW_VNC_IP')) && $console =~ /root-console|install-shell|user-console|log-console/);
+    # Force ssh for generalhw(ssh/no VNC/no Video) for given consoles
+    $type = 'ssh' if (get_var('BACKEND', '') =~ /generalhw/ && !defined(get_var('GENERAL_HW_VNC_IP')) && !defined(get_var('GENERAL_HW_VIDEO_STREAM_URL')) && $console =~ /root-console|install-shell|user-console|log-console/);
 
     diag "activate_console, console: $console, type: $type";
     if ($type eq 'console') {
