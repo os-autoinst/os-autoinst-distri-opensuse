@@ -130,6 +130,10 @@ sub load_create_publiccloud_tools_image {
     loadtest 'shutdown/shutdown';
 }
 
+sub load_check_publiccloud_tools_image {
+    loadtest 'boot/boot_to_desktop';
+}
+
 # Test CLI tools for each provider
 sub load_publiccloud_cli_tools {
     loadtest 'boot/boot_to_desktop';
@@ -157,6 +161,9 @@ The rest of the scheduling is divided into two separate subroutines C<load_maint
 sub load_publiccloud_tests {
     if (check_var('PUBLIC_CLOUD_PREPARE_TOOLS', 1)) {
         load_create_publiccloud_tools_image();
+    }
+    elsif (check_var('PUBLIC_CLOUD_CHECK_TOOLS', 1)) {
+        load_check_publiccloud_tools_image();
     }
     elsif (check_var('PUBLIC_CLOUD_TOOLS_CLI', 1)) {
         load_publiccloud_cli_tools();
