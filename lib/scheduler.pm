@@ -14,16 +14,18 @@ use testapi qw(get_var set_var diag);
 use main_common 'loadtest';
 use YAML::PP;
 use YAML::PP::Schema::Include;
-use Data::Dumper;
+use YAML::PP::Common 'PRESERVE_ORDER';
 
 our @EXPORT = qw(load_yaml_schedule get_test_suite_data);
 
 my $test_suite_data;
 my $root_project_dir = dirname(__FILE__) . '/../';
 my $include = YAML::PP::Schema::Include->new(paths => ($root_project_dir));
-my $ypp = YAML::PP->new(schema => ['Core', $include, 'Merge']);
+my $ypp = YAML::PP->new(
+    schema => ['Core', $include, 'Merge'],
+    preserve => PRESERVE_ORDER
+);
 $include->yp($ypp);
-$Data::Dumper::Terse = 1;
 
 sub parse_vars {
     my ($schedule) = shift;
@@ -32,18 +34,40 @@ sub parse_vars {
         $value =~ s/%(.*?)%/get_var($1)/eg;
         $vars{$var} = $value;
     }
-    my $varlog = Dumper(\%vars);
-    diag("parse_vars (variables parsed from YAML schedule): " . $varlog);
+    diag('parse_vars (variables parsed from YAML schedule):');
+    diag($ypp->dump_string(\%vars));
     return %vars;
 }
 
 sub parse_schedule {
     my ($schedule) = shift;
     my @scheduled;
-    for my $module (@{$schedule->{schedule}}) {
-        push(@scheduled, parse_schedule_module($schedule, $module));
 
+    # schedule contains keys overriding a default schedule
+    if (ref $schedule->{schedule} eq 'HASH') {
+        if (my $yaml_default_path = get_var('YAML_SCHEDULE_DEFAULT')) {
+            my $default_schedule = $ypp->load_file($root_project_dir . $yaml_default_path);
+            for my $k (keys %$default_schedule) {
+                if (exists $schedule->{schedule}{$k}) {
+                    push @scheduled, $schedule->{schedule}{$k}->@* if $schedule->{schedule}{$k};
+                }
+                else {
+                    push @scheduled, $default_schedule->{$k}->@* if $default_schedule->{$k};
+                }
+            }
+        }
+        else {
+            die "YAML_SCHEDULE_DEFAULT should be provided when using keys to be overriden " .
+              "instead of a list of test modules";
+        }
     }
+    # schedule contains a list of test modules
+    else {
+        for my $module (@{$schedule->{schedule}}) {
+            push(@scheduled, parse_schedule_module($schedule, $module));
+        }
+    }
+    diag($ypp->dump_string(\@scheduled));
     return @scheduled;
 }
 
@@ -116,9 +140,8 @@ sub parse_test_suite_data {
         $test_suite_data = {%$test_suite_data, %{$include_yaml}};
     }
     expand_test_data_vars($test_suite_data);
-    my $out = Dumper($test_suite_data);
-    chomp($out);
-    diag("parse_test_suite_data (data parsed from YAML test_data): $out");
+    diag('parse_test_suite_data (data parsed from YAML test_data):');
+    diag($ypp->dump_string($test_suite_data));
 }
 
 =head2 load_yaml_schedule
@@ -129,12 +152,12 @@ Parse variables and test modules from a yaml file representing a test suite to b
 
 sub load_yaml_schedule {
     if (my $yamlfile = get_var('YAML_SCHEDULE')) {
-        my $schedule = $ypp->load_file($root_project_dir . $yamlfile);
-        my %schedule_vars = parse_vars($schedule);
+        my $schedule_file = $ypp->load_file($root_project_dir . $yamlfile);
+        my %schedule_vars = parse_vars($schedule_file);
         my $test_context_instance = undef;
         while (my ($var, $value) = each %schedule_vars) { set_var($var, $value) }
-        my @schedule_modules = parse_schedule($schedule);
-        parse_test_suite_data($schedule);
+        my @schedule_modules = parse_schedule($schedule_file);
+        parse_test_suite_data($schedule_file);
         $test_context_instance = get_var('TEST_CONTEXT')->new() if defined get_var('TEST_CONTEXT');
         loadtest($_, run_args => $test_context_instance) for (@schedule_modules);
         return 1;

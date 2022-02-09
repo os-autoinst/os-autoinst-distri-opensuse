@@ -1,0 +1,4 @@
+---
+<<: !include schedule/yast/sle_15-sp4/defaults/default.yaml
+guided_setup:
+  - installation/partitioning/select_guided_setup 

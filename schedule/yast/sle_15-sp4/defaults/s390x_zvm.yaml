@@ -1,0 +1,8 @@
+---
+<<: !include schedule/yast/sle_15-sp4/defaults/remote.yaml
+configure_dasd_disks:
+  - installation/disk_activation/select_configure_dasd_disks
+  - installation/disk_activation/configure_dasd
+  - installation/disk_activation/finish_disk_activation
+stop_timeout_system_reboot:
+  - installation/performing_installation/stop_timeout_system_reboot_now

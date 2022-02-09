@@ -1,0 +1,41 @@
+---
+bootloader:
+  - installation/bootloader_start
+setup_libyui:
+  - installation/setup_libyui
+license_agreement:
+  - installation/licensing/accept_license
+disable_online_repos:
+  - installation/online_repos/disable_online_repos
+installation_mode:
+  - installation/installation_mode
+logpackages:
+  - installation/logpackages
+system_role: []
+suggested_partitioning:
+  - installation/partitioning/accept_proposed_layout  
+clock_and_timezone:
+  - installation/clock_and_timezone/accept_timezone_configuration
+local_user:
+  - installation/authentication/default_user_simple_pwd
+booting:
+  - installation/bootloader_settings/disable_boot_menu_timeout
+software: []
+default_systemd_target: []
+installation_settings: 
+  - installation/launch_installation
+confirm_installation:
+  - installation/confirm_installation
+perform_installation:
+  - installation/performing_installation/perform_installation
+install_logs:
+  - installation/logs_from_installation_system
+reboot:
+  - installation/performing_installation/confirm_reboot
+grub:
+  - installation/handle_reboot
+first_login:
+  - installation/first_boot
+  - installation/opensuse_welcome
+system_preparation: []
+system_validation: []

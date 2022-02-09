@@ -1,0 +1,5 @@
+---
+<<: !include schedule/yast/sle_15-sp4/defaults/xen_hvm.yaml
+stop_timeout_system_reboot:
+  - installation/performing_installation/stop_timeout_system_reboot_now
+booting: []

@@ -1,34 +1,51 @@
 ---
-name: yast_self_update
-description:    >
-  Test suite conducts installation with self-update explicitly enabled. No hard
-  checks are done that the self-updating is really disabled.
-  Installation is validated by successful boot and that YaST does not report
-  any issue.
-vars:
-  INSTALLER_SELF_UPDATE: 'http://openqa.suse.de/assets/repo/%REPO_SLE_PRODUCT_SLES%'
-  YUI_REST_API: 1
-schedule:
+bootloader:
   - installation/bootloader_start
+setup_libyui:
   - installation/setup_libyui
+access_beta: 
   - installation/access_beta_distribution
+product_selection: 
   - installation/product_selection/install_SLES
-  - installation/validate_self_update
+license_agreement: 
   - installation/licensing/accept_license
+configure_dasd_disks: []
+registration: 
   - installation/registration/register_via_scc
+extension_module_selection: 
   - installation/module_registration/skip_module_registration
+add_on_product: 
   - installation/add_on_product/skip_install_addons
+system_role: 
   - installation/system_role/accept_selected_role_text_mode
+guided_setup: []
+select_hard_disks: []
+suggested_partitioning: 
   - installation/partitioning/accept_proposed_layout
+clock_and_timezone: 
   - installation/clock_and_timezone/accept_timezone_configuration
+local_user: 
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
-  - installation/installation_settings/validate_default_target
+software: []
+booting:
   - installation/bootloader_settings/disable_boot_menu_timeout
+security: []
+default_systemd_target: []
+installation_settings: 
   - installation/launch_installation
+confirm_installation:
   - installation/confirm_installation
+perform_installation:
   - installation/performing_installation/perform_installation
+stop_timeout_system_reboot: []
+install_logs: 
   - installation/logs_from_installation_system
+reboot: 
   - installation/performing_installation/confirm_reboot
+grub: 
   - installation/handle_reboot
+first_login:
   - installation/first_boot
+system_preparation: []
+system_validation: []

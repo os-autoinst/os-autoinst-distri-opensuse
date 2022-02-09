@@ -1,0 +1,4 @@
+---
+<<: !include schedule/yast/sle_15-sp4/defaults/s390x_kvm.yaml
+guided_setup:
+  - installation/partitioning/select_guided_setup

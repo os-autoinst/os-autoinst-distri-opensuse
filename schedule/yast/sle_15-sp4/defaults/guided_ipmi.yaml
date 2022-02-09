@@ -1,0 +1,5 @@
+---
+<<: !include schedule/yast/sle_15-sp4/defaults/guided_remote.yaml
+select_hard_disks:
+  - installation/partitioning/guided_setup/select_disks
+booting: []

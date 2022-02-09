@@ -1,0 +1,34 @@
+---
+name:           ext4
+description:    >
+  Test for ext4 filesystem.
+vars:
+  DESKTOP: gnome
+  YUI_REST_API: 1
+schedule:
+  system_role:
+    - installation/system_role/select_role_desktop_with_GNOME
+  suggested_partitioning:
+    - installation/partitioning/select_guided_setup
+    - installation/partitioning/guided_setup/accept_default_part_scheme
+    - installation/partitioning/guided_setup/select_filesystem_option_ext4
+    - installation/partitioning/accept_proposed_layout
+  local_user:
+    - installation/authentication/disable_autologin
+    - installation/authentication/default_user_simple_pwd
+  software:
+    - installation/select_patterns
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  first_login:
+    - installation/first_boot
+  system_validation:
+    - console/validate_partition_table_via_blkid
+    - console/validate_blockdevices
+    - console/validate_free_space
+    - console/validate_read_write
+test_data:
+  guided_partitioning:
+    filesystem_options:
+      root_filesystem_type: ext4
+  <<: !include test_data/yast/ext4/ext4_no_separate_home.yaml
