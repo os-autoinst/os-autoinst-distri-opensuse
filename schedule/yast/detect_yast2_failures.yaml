@@ -7,7 +7,5 @@ description: >
    which would fail hard in case any yast2 failure is found in logs.
 schedule:
   - boot/boot_to_desktop
-  - console/download_asset
+  - console/download_y2logs_as_asset
   - console/detect_yast2_failures
-test_data:
-  file_location: "/tmp/compressed_y2log.tar"
