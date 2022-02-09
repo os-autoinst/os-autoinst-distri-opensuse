@@ -40,6 +40,16 @@ sub run {
     my $podman = $self->containers_factory('podman');
 
     my $user = $testapi::username;
+
+    # Some products don't have bernhard pre-defined (e.g. SLE Micro)
+    if (script_run("grep $user /etc/passwd") != 0) {
+        assert_script_run "useradd -m $user";
+        assert_script_run "echo '$user:$testapi::password' | chpasswd";
+        # Make sure user has access to tty group
+        my $serial_group = script_output "stat -c %G /dev/$testapi::serialdev";
+        assert_script_run "grep '^${serial_group}:.*:${user}\$' /etc/group || (chown $user /dev/$testapi::serialdev && gpasswd -a $user $serial_group)";
+    }
+
     my $subuid_start = get_user_subuid($user);
     if ($subuid_start eq '') {
         record_soft_failure 'bsc#1185342 - YaST does not set up subuids/-gids for users';
