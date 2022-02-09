@@ -20,7 +20,7 @@ schedule:
   - console/validate_encrypted_volume_activation
   - installation/add_on_product/skip_install_addons
   - installation/system_role/accept_selected_role_text_mode
-  - installation/partitioning/encrypt_lvm_reuse_existing
+  - installation/partitioning/suggested_partitioning/verify_decrypted_partition_deleted
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/use_same_password_for_root
@@ -45,3 +45,6 @@ test_data:
       cipher: 'aes-xts-plain64'
       key_location: 'dm-crypt'
       mode: 'read/write'
+  partitioning_deletion_entries:
+    - 'Delete partition'
+    - 'Delete GPT'

@@ -21,7 +21,7 @@ schedule:
   - installation/system_probing/activate_encrypted_volume
   - installation/add_on_product/skip_install_addons
   - installation/system_role/accept_selected_role_text_mode
-  - installation/partitioning/encrypt_lvm_reuse_existing
+  - installation/partitioning/suggested_partitioning/verify_decrypted_partition_deleted
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/import_users
@@ -37,3 +37,5 @@ schedule:
   - installation/handle_reboot
   - installation/first_boot
   - console/validate_user_login_textmode
+test_data:
+  <<: !include test_data/yast/encryption/activate_encrypted_volume+import_users_pvm.yaml

@@ -37,4 +37,9 @@ sub select_guided_setup {
     return $self->get_suggested_partitioning_page()->select_guided_setup();
 }
 
+sub get_partitioning_changes_summary {
+    my ($self) = @_;
+    return $self->get_suggested_partitioning_page()->get_text_summary();
+}
+
 1;
