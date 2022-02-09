@@ -163,10 +163,14 @@ sub install_build_dependencies {
       libmnl-devel
       libnuma-devel
       libnuma-devel-32bit
-      libopenssl-devel-32bit
       libselinux-devel-32bit
       libtirpc-devel-32bit
     );
+
+    # libopenssl-devel-32bit is blocked by dependency mess on SLE-12 and we
+    # don't use it anyway...
+    push @maybe_deps, 'libopenssl-devel-32bit' if !is_sle('<15');
+
     for my $dep (@maybe_deps) {
         # ignore failures due to missing packages (exit code 104)
         zypper_call("in $dep", exitcode => [0, 104]);
