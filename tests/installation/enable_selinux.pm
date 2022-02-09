@@ -47,7 +47,8 @@ sub run {
 
     send_key $cmd{ok};
 
-    # yast needs some time to think
+    # Make sure the overview is fully loaded and not being recalculated
+    wait_still_screen(3);
     assert_screen 'installation-settings-overview-loaded';
 }
 
