@@ -26,7 +26,9 @@ schedule:
   - installation/performing_installation/perform_installation
   - '{{stop_reboot_timeout}}'
   - installation/logs_from_installation_system
-  - installation/reboot_after_installation
+  - installation/performing_installation/update_virsh_config_to_boot_from_hd
+  - installation/performing_installation/confirm_reboot
+  - installation/performing_installation/reconnect_after_reboot
   - installation/first_boot
   - console/system_prepare
   - console/prepare_test_data

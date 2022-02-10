@@ -35,7 +35,7 @@ schedule:
   - installation/launch_installation
   - installation/confirm_installation
   - installation/performing_installation/perform_installation
-  - installation/reboot_after_installation
+  - installation/performing_installation/confirm_reboot
   - installation/grub_test
   - installation/first_boot
   - console/integration_services

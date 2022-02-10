@@ -59,6 +59,11 @@ sub wait_installation_popup {
         message => 'System reboot popup did not appear');
 }
 
+sub confirm_reboot {
+    my ($self) = @_;
+    $self->get_system_reboot_popup()->press_ok();
+}
+
 sub stop_timeout_system_reboot_now {
     my ($self) = @_;
     $self->get_system_reboot_with_timeout_popup->press_stop();
