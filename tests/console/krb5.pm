@@ -23,7 +23,7 @@ sub logout_and_verify_shell_availability {
     script_run 'logout', 0;
     # verify shell is ready with simple command
     # avoid fail due to following command being typed while logout in progress
-    script_retry('w', delay => 2, retry => 5);
+    script_retry('w', delay => 2, retry => 5, die_on_timeout => 0);
 }
 
 sub run {
