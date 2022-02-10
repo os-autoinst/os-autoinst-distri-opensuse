@@ -15,6 +15,7 @@ schedule:
   - installation/registration/register_via_scc
   - installation/module_registration/register_module_desktop
   - installation/system_probing/activate_encrypted_volume
+  - console/validate_encrypted_volume_activation
   - installation/add_on_product/skip_install_addons
   - installation/system_role/accept_selected_role_SLES_with_GNOME
   - installation/partitioning/suggested_partitioning/verify_decrypted_partition_deleted
@@ -32,6 +33,14 @@ schedule:
   - installation/grub_test
   - installation/first_boot
 test_data:
+  mapped_device: '/dev/mapper/cr-auto-1'
+  device_status:
+    message: 'is active and is in use.'
+    properties:
+      type: 'LUKS1'
+      cipher: 'aes-xts-plain64'
+      key_location: 'dm-crypt'
+      mode: 'read/write'
   partitioning_deletion_entries:
     - 'Delete btrfs on /dev/system/root'
     - 'Delete swap on /dev/system/swap'
