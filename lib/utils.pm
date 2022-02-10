@@ -684,7 +684,7 @@ sub fully_patch_system {
         last if $ret != 103;
     }
 
-    if ($ret == 8 && script_run('grep -z "python36-pip.*SLES:12-SP5.*conflicts with.*python3-pip" zypper.log') == 0) {
+    if ($ret == 8 && script_run('grep -Ez "python3(6?)-pip.*(SLES:12-SP5|cloud:12).*conflicts with.*python3(6?)-pip" zypper.log') == 0) {
         record_soft_failure 'bsc#1195351';
         $ret = zypper_call('patch --replacefiles --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000);
     }
