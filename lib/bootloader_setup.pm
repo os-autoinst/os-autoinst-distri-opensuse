@@ -15,7 +15,7 @@ use Time::HiRes 'sleep';
 use testapi;
 use Utils::Architectures;
 use utils;
-use version_utils qw(is_microos is_sle_micro is_jeos is_leap is_sle is_tumbleweed);
+use version_utils qw(is_microos is_sle_micro is_jeos is_leap is_sle is_tumbleweed is_selfinstall);
 use mm_network;
 use Utils::Backends;
 
@@ -451,10 +451,10 @@ sub bootmenu_default_params {
     }
     else {
         # On JeOS and MicroOS we don't have YaST installer.
-        push @params, "Y2DEBUG=1" unless is_jeos || is_microos;
+        push @params, "Y2DEBUG=1" unless is_jeos || is_microos || is_selfinstall;
 
         # gfxpayload variable replaced vga option in grub2
-        if (!is_jeos && !is_microos && (is_i586 || is_x86_64)) {
+        if (!is_jeos && !is_microos && !is_selfinstall && (is_i586 || is_x86_64)) {
             push @params, "vga=791";
             my $video = 'video=1024x768';
             $video .= '-16' if check_var('QEMUVGA', 'cirrus');
@@ -464,7 +464,7 @@ sub bootmenu_default_params {
     }
 
     if (!get_var("NICEVIDEO")) {
-        if (is_microos) {
+        if (is_microos || is_selfinstall) {
             push @params, get_bootmenu_console_params $args{baud_rate};
         }
         elsif (!is_jeos) {
