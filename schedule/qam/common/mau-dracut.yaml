@@ -1,0 +1,12 @@
+---
+name: mau-systemd
+schedule:
+- '{{zkvm_boot}}'
+- boot/boot_to_desktop
+- dracut_testsuite/prepare_dracut_and_testsuite
+conditional_schedule:
+  zkvm_boot:
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
+...
