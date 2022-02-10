@@ -4,6 +4,7 @@ schedule:
 - '{{zkvm_boot}}'
 - boot/boot_to_desktop
 - dracut_testsuite/prepare_dracut_and_testsuite
+- dracut_testsuite/test_03_usr_mount
 conditional_schedule:
   zkvm_boot:
     ARCH:
