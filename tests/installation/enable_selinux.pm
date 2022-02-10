@@ -10,7 +10,7 @@ use strict;
 use warnings;
 use base 'y2_installbase';
 use testapi;
-use version_utils 'is_microos';
+use version_utils 'is_sle_micro';
 
 sub run {
     my $textmode = check_var('VIDEOMODE', 'text');
@@ -29,7 +29,7 @@ sub run {
         send_key 'ret';
     }
 
-    if (is_microos('<5.3')) {
+    if (is_sle_micro('<5.3')) {
         # Combobox for SELinux specifically
         send_key 'alt-m';
         send_key_until_needlematch 'security-selinux-enforcing', 'down';
