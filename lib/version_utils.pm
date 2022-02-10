@@ -229,7 +229,14 @@ sub is_microos {
 Check if distribution is SUSE Linux Enterprise Micro
 =cut
 sub is_sle_micro {
-    return check_var('DISTRI', 'sle-micro');
+    my $query = shift;
+    my $version = shift // get_var('VERSION');
+
+    return 0 unless check_var('DISTRI', 'sle-micro');
+    return 1 unless $query;
+
+    # Version check
+    return check_version($query, $version, qr/\d{1,}\.\d/);
 }
 
 =head2 is_tumbleweed
