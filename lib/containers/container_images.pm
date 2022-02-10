@@ -204,7 +204,7 @@ sub test_zypper_on_container {
     # Check for bsc#1192941, which affects the docker runtime only - this is just check not softfailure as this won't be fixed.
     # bsc#1192941 states that the entrypoint of a derived image is set in a way, that program arguments are not passed anymore
     # we run 'zypper ls' on a container, and if we detect the zypper usage message, we know that the 'ls' parameter was ignored
-    if ($runtime->runtime eq 'docker' && script_run("docker run --rm -ti $image zypper ls | grep 'Usage:'") == 0) {
+    if ($runtime->runtime eq 'docker' && script_run("docker run --rm -ti $image zypper ls | grep 'Usage:'", timeout => 270) == 0) {
         record_info('bsc#1192941', 'bsc#1192941 - zypper-docker entrypoint confuses program arguments');
     }
     validate_script_output("$runtime run -i --entrypoint '' $image zypper lr -s", sub { m/.*Alias.*Name.*Enabled.*GPG.*Refresh.*Service/ }, timeout => 180);
