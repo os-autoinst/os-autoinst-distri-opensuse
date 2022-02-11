@@ -100,22 +100,31 @@ sub load_host_tests_load_containerd_nerdctl {
 
 sub load_container_tests {
     my $runtime = get_required_var('CONTAINER_RUNTIME');
+
     if (get_var('BOOT_HDD_IMAGE')) {
         loadtest 'installation/bootloader_zkvm' if is_s390x;
         loadtest 'boot/boot_to_desktop' unless is_jeos;
     }
 
     if (is_container_image_test()) {
-        # Container Image tests
+        # Container Image tests common
         loadtest 'containers/host_configuration' unless (is_expanded_support_host || is_ubuntu_host || is_jeos);
-        load_image_tests_podman() if ($runtime =~ 'podman');
-        load_image_tests_docker() if ($runtime =~ 'docker');
-    } else {
-        # Container Host tests
-        load_host_tests_podman() if ($runtime =~ 'podman');
-        load_host_tests_docker() if ($runtime =~ 'docker');
-        load_host_tests_load_containerd_crictl() if ($runtime =~ 'containerd_crictl');
-        load_host_tests_load_containerd_nerdctl() if ($runtime =~ 'containerd_nerdctl');
     }
+
+    foreach (split(',\s*', $runtime)) {
+        if (is_container_image_test()) {
+            # Container Image tests
+            load_image_tests_podman() if (/podman/i);
+            load_image_tests_docker() if (/docker/i);
+        }
+        else {
+            # Container Host tests
+            load_host_tests_podman() if (/podman/i);
+            load_host_tests_docker() if (/docker/i);
+            load_host_tests_load_containerd_crictl() if (/containerd_crictl/i);
+            load_host_tests_load_containerd_nerdctl() if (/containerd_nerdctl/i);
+        }
+    }
+
     loadtest 'console/coredump_collect' unless is_jeos;
 }
