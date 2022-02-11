@@ -21,8 +21,4 @@ sub run {
     validate_script_output "openssl rand -engine tpm2tss -hex 10  2>&1", sub { m/engine\s\"tpm2tss\"\sset/ };
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
-
 1;
