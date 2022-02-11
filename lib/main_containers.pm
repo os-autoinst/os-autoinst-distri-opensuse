@@ -90,11 +90,11 @@ sub load_host_tests_docker {
     loadtest 'containers/validate_btrfs' if (is_x86_64 and is_qemu);
 }
 
-sub load_host_tests_load_containerd_crictl {
+sub load_host_tests_containerd_crictl {
     loadtest 'containers/containerd_crictl';
 }
 
-sub load_host_tests_load_containerd_nerdctl {
+sub load_host_tests_containerd_nerdctl {
     loadtest 'containers/containerd_nerdctl';
 }
 
@@ -121,8 +121,8 @@ sub load_container_tests {
             # Container Host tests
             load_host_tests_podman() if (/podman/i);
             load_host_tests_docker() if (/docker/i);
-            load_host_tests_load_containerd_crictl() if (/containerd_crictl/i);
-            load_host_tests_load_containerd_nerdctl() if (/containerd_nerdctl/i);
+            load_host_tests_containerd_crictl() if (/containerd_crictl/i);
+            load_host_tests_containerd_nerdctl() if (/containerd_nerdctl/i);
         }
     }
 
