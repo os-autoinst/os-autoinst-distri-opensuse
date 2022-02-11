@@ -3,7 +3,7 @@
 # Copyright 2016-2020 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: common parts on SMT and RMT
+# Summary: common parts on SMT and RMT, and other tools related to repositories.
 # Maintainer: Lemon Li <leli@suse.com>
 
 =head1 repo_tools
@@ -48,6 +48,14 @@ Tools for repositories used by openQA:
 
 =item * generate_version
 
+=item * validate_repo_properties
+
+=item * parse_repo_data
+
+=item * verify_software
+
+=item * validate_install_repo
+
 =back
 
 =cut
@@ -88,6 +96,7 @@ our @EXPORT = qw(
   validate_repo_properties
   parse_repo_data
   verify_software
+  validate_install_repo
 );
 
 =head2 add_qa_head_repo
@@ -590,6 +599,21 @@ sub verify_software {
         return $error;
     }
     return '';
+}
+
+=head2
+
+Verify that install repo C<mirror> corresponds to the one expected one.
+
+=cut
+
+sub validate_install_repo {
+    my $method = uc get_required_var('INSTALL_SOURCE');
+    my $mirror = get_required_var("MIRROR_$method");
+    record_info("$method mirror:", "$mirror");
+    assert_script_run("grep -Pzo \"install url:(.|\\n)*$mirror\" /var/log/linuxrc.log");
+    assert_script_run('grep install=' . $mirror . ' /proc/cmdline');
+    assert_script_run("grep --color=always -e \"^RepoURL: $mirror\" -e \"^ZyppRepoURL: $mirror\" /etc/install.inf");
 }
 
 1;
