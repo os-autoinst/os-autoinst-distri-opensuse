@@ -14,6 +14,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use version_utils qw(is_sle);
 use registration qw(add_suseconnect_product get_addon_fullname);
+use publiccloud::utils qw(is_azure);
 use utils;
 
 # xfstests configuration file, as required by xfstests/run
@@ -47,7 +48,14 @@ sub ensure_user_exists {
 sub install_xfstests {
     my ($repo) = @_;
     zypper_ar($repo, name => "filesystems");    # Add filesystem repository, which contains the xfstests
-    add_suseconnect_product(get_addon_fullname('phub')) if is_sle;    # packagehub is required for dbench (required for e.g. generic/241)
+    if (is_sle) {
+        # packagehub is required for dbench (required for e.g. generic/241)
+        if (is_azure) {
+            add_suseconnect_product(get_addon_fullname('phub'), undef, undef, undef, 300, 1);
+        } else {
+            add_suseconnect_product(get_addon_fullname('phub'));
+        }
+    }
     my $packages = "xfsprogs xfsdump btrfsprogs kernel-default xfstests fio";
     $packages .= " dbench" unless (is_sle("<15"));    # dbench is not available on <SLE15
     zypper_call("in $packages");
