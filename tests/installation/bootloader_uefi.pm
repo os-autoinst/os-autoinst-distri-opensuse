@@ -120,7 +120,6 @@ sub run {
             send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 3);
         }
         elsif (!is_jeos && !is_microos('VMX')) {
-            send_key 'up';
             send_key_until_needlematch('inst-oninstallation', 'down', 10, 3);
         }
     }
