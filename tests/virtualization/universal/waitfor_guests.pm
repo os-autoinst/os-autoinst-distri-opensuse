@@ -40,10 +40,9 @@ sub add_pci_bridge {
         # Skip if a pci-bridge is already present
         return if (script_run("cat $xml | grep 'controller' | grep 'pci-bridge'") == 0);
 
-        my $machine = 'i440fx';
-        # add_pci_bridge.sh script inserts 1 pci-bridge for i400fx machine.
+        # add pci-bridge to xml settings
         assert_script_run("virsh dumpxml $guest > $xml");
-        assert_script_run("/root/add_pci_bridge.sh '$machine' '$xml'");
+        assert_script_run("sed -i '/.*<\\/devices>/i<controller type=\"pci\" model=\"pci-bridge\"/>' /root/$xml");
         upload_logs("$xml");
 
         # Check if settings are applied correctly in the new xml
@@ -55,15 +54,17 @@ sub add_pci_bridge {
         assert_script_run("virsh define $xml");
 
     } elsif (script_run("grep machine '$xml' | grep 'q35'") == 0) {
-        # On q35 add pcie-root-port and pcie-to-pci bridge
+        # On q35 add a pcie-root-port and a pcie-to-pci bridge
 
         # Skip if a pcie-to-pci-bridge is already present
         return if (script_run("cat $xml | grep 'controller' | grep 'pcie-to-pci-bridge'") == 0);
 
-        my $machine = 'q35';
-        # add_pci_bridge.sh script inserts 10 pcie-root-port and 1 pcie-to-pci-bridge for q35 machine.
+        # Add 10 pcie-root-port devices and a pcie-to-pci brdige
         assert_script_run("virsh dumpxml $guest > $xml");
-        assert_script_run("/root/add_pci_bridge.sh '$machine' '$xml'");
+        for (1 .. 10) {
+            assert_script_run("sed -i '/.*<\\/devices>/i<controller type=\"pci\" model=\"pcie-root-port\"/>' /root/$xml");
+        }
+        assert_script_run("sed -i '/.*<\\/devices>/i<controller type=\"pci\" model=\"pcie-to-pci-bridge\"/>' /root/$xml");
         upload_logs("$xml");
 
         # Check if settings are applied correctly in the xml
@@ -114,10 +115,7 @@ sub run {
     record_info("shutdown guests", "Shutting down all guests");
     shutdown_guests();
 
-    # Download helper script for adding PCI bridge.
-    assert_script_run('curl -v -o /root/add_pci_bridge.sh ' . data_url('virtualization/add_pci_bridge.sh'));
-    assert_script_run('chmod 0755 /root/add_pci_bridge.sh');
-    ## Add a PCI bridge for hotplugging
+    ## Add a PCIe root port and a PCIe to PCI bridge for hotplugging
     add_pci_bridge("$_") foreach (keys %virt_autotest::common::guests);
 
     ## Ensure the reboot policy is set to 'restart'. This needs to happen on shutdown guest
