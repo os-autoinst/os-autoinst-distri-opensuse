@@ -61,7 +61,7 @@ sub load_maintenance_publiccloud_tests {
 }
 
 sub load_publiccloud_consoletests {
-    loadtest 'console/cleanup_qam_testrepos';
+    loadtest 'console/cleanup_qam_testrepos' unless get_var('PUBLIC_CLOUD_QAM');
     loadtest 'console/openvswitch';
     loadtest 'console/rpm';
     loadtest 'console/openssl_alpn';
