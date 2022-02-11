@@ -2,10 +2,25 @@ name:           sle_micro_containers
 description:    >
     Maintainer: qa-c@suse.de.
     SUSE Linux Enterprise Micro tests
+conditional_schedule:
+  boot:
+    ARCH:
+      's390x':
+        - installation/bootloader_start
+        - boot/boot_to_desktop
+      'x86_64':
+        - microos/disk_boot
+      'aarch64':
+        - microos/disk_boot
+  live_patching:
+    LIVE_PATCHING:
+      '1':
+        - microos/enable_lp_module
 schedule:
-  - microos/disk_boot
+  - '{{boot}}'
   - transactional/host_config
   - console/suseconnect_scc
+  - '{{live_patching}}'
   - transactional/install_updates
   - migration/online_migration/zypper_migration
   - microos/networking
