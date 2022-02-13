@@ -15,6 +15,7 @@ use utils;
 use publiccloud::ec2;
 use publiccloud::azure;
 use publiccloud::gce;
+use publiccloud::openstack;
 
 sub run {
     my ($self) = @_;
