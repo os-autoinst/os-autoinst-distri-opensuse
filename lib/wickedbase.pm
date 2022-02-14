@@ -747,6 +747,7 @@ sub check_logs {
     $default_exclude .= ',wickedd-dhcp4=unable to confirm lease';
     $default_exclude .= ',wickedd-nanny=: call to org.opensuse.Network.Interface.waitLinkUp\(\) failed: General failure';
     $default_exclude .= ',wickedd-nanny=: call to org.opensuse.Network.Interface.waitLinkUp\(\) failed: Object does not support requested method';
+    $default_exclude .= ',wickedd-nanny=: call to org.opensuse.Network.Interface.linkUp\(\) failed: Object does not support requested method';
     $default_exclude .= ',wickedd-nanny=: failed to bring up device, still continuing';
     $default_exclude .= ',wickedd=error retrieving tap attribute from sysfs';
 
@@ -766,12 +767,13 @@ sub check_logs {
         }
         my $out = trim(script_output($cmd, proceed_on_failure => 1));
         if (length($out) > 0) {
-            my $msg = "$cmd\n\n$out\n\n";
+            my $msg = "Failing check logs command is:\n$cmd\n\n";
             $msg .= "Use WICKED_CHECK_LOG_EXCLUDE to change filter!\n";
             $msg .= "  WICKED_CHECK_LOG_EXCLUDE=$exclude_var\n";
             $msg .= '  WICKED_CHECK_LOG_EXCLUDE_' . $self->{name} . "=$exclude_test_var\n";
             $msg .= "Control if test fail with WICKED_CHECK_LOG_FAIL default off.\n";
-            record_info('LOG-ERROR', $msg, result => 'fail');
+            record_info('LOG-INFO', $msg);
+            record_info('LOG-ERROR', $out, result => 'fail');
             $self->result('fail') if get_var(WICKED_CHECK_LOG_FAIL => 0) && $self->{name} ne 'before_test';
         }
     }
