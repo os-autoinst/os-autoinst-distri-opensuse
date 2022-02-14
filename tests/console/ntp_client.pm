@@ -10,28 +10,32 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_jeos);
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
     assert_script_run 'timedatectl';
+    # check if pool file exists
+    assert_script_run 'test -f /etc/chrony.d/pool.conf', fail_message => 'chrony-pool package is missing';
 
-    if (is_sle() && !check_var('FLAVOR', 'JeOS-for-RaspberryPi')) {
+    if (is_sle() && !is_jeos) {
         systemctl 'enable chronyd';
         systemctl 'start chronyd';
-        # bsc#1179022 avoid '503 No such source' error while chrony does pick responding sources after start
-        script_run qq(timeout 85 bash -c 'until chronyc activity|grep "0 sources doing burst.*online"; do sleep 1; echo "waiting for ntp sources response"; done' -k);
+        # chronyd can shift the number of used sources, especially after startup
+        # in order to avoid a transient error *503 No such source* try to list sources until
+        # chronyc returns non empty table
+        # more info: https://bugzilla.suse.com/show_bug.cgi?id=1179022#c1
+        my $inc = 0;
+        while (scalar(split(/\n/, script_output('chronyc sources')) <= 3) && $inc < 10) {
+            sleep(++$inc);
+        }
     }
-
     # ensure that ntpd is neither installed nor enabled nor active
     systemctl 'is-active ntpd', expect_false => 1;
     systemctl 'is-enabled ntpd', expect_false => 1;
-    if (script_run('rpm -q ntp') == 0) {
-        # ntp should not be installed by default as we are using chrony
-        record_soft_failure 'boo#1114189 - ntp is installed by default';
-    }
+    die 'ntp should not be installed by default as we are using chrony' unless script_run('rpm -q ntp');
 
     # ensure that systemd-timesyncd is neither enabled nor active
     systemctl 'is-active systemd-timesyncd', expect_false => 1;
@@ -45,8 +49,25 @@ sub run {
     assert_script_run 'chronyc tracking';
     assert_script_run 'chronyc makestep';
     assert_script_run 'chronyc tracking';
-    assert_script_run 'chronyc waitsync 40 0.01', 400;
+    assert_script_run 'chronyc activity';
+    assert_script_run 'chronyc waitsync 60 0.01', 610;
+}
+
+sub post_checks {
+    assert_script_run 'chronyc sourcestats -a';
+    assert_script_run 'chronyc serverstats';
+    assert_script_run 'chronyc ntpdata';
     assert_script_run 'chronyc tracking';
+    assert_script_run 'chronyc activity';
+}
+
+sub post_run_hook {
+    post_checks;
+}
+
+sub post_fail_hook {
+    post_checks;
+    shift->SUPER::post_fail_hook;
 }
 
 1;
