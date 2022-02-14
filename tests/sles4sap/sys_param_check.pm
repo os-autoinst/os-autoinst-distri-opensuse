@@ -82,7 +82,7 @@ sub run {
         # Sanitize $robot_test
         $robot_test =~ s/[\n|\r]//g;
         record_info("$robot_test", "Starting [$robot_test]");
-        script_run "robot --log $robot_test.html --xunit $robot_test.xml $robot_test";
+        script_run "robot --log $robot_test.html --xunit $robot_test.xml $robot_test", timeout => 90;
         # Soft fail section - How to add a new one
         # add_softfail("TEST_NAME", "OS_VERSION", "BUG_NUMBER", "PARAMETERS") if ("TEST_NAME" eq "TEST_NAME");
         # TEST_NAME  : In which test the bug was reported.
