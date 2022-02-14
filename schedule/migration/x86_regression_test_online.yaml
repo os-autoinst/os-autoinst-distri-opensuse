@@ -3,7 +3,7 @@ description:    |
   This is for x86_64 online regression test.
   #REGRESSION_LTSS: '1' means base system supports ltss test.
   #REGRESSION_TEST: '1' means regression test part1 include console test. '2'
-  # means regression test part2 include x11 test and some performance related test.
+  # means regression test part2 include x11 test.
 vars:
   DESKTOP: gnome
   BOOT_HDD_IMAGE: 1
@@ -18,6 +18,7 @@ schedule:
   - migration/online_migration/pre_migration
   - '{{migration_method}}'
   - migration/online_migration/post_migration
+  - console/check_upgraded_service
   - console/system_prepare
   - console/check_system_info
   - console/check_network
@@ -51,8 +52,8 @@ conditional_schedule:
   regression_tests:
     REGRESSION_TEST:
       1:
-        - locale/keymap_or_locale
         - console/check_upgraded_service
+        - locale/keymap_or_locale
         - console/supportutils
         - console/force_scheduled_tasks
         - console/textinfo
@@ -60,7 +61,10 @@ conditional_schedule:
         - console/upgrade_snapshots
         - console/x_vt
         - console/zypper_lr
+        - console/pam
+        - console/btrfsmaintenance
         - console/java
+        - console/cpio
         - console/check_system_info
         - console/zypper_ref
         - console/ncurses
@@ -68,26 +72,24 @@ conditional_schedule:
         - console/curl_https
         - console/salt
         - console/glibc_sanity
+        - console/glibc_tunables
         - console/zypper_in
         - console/zypper_log
         - console/yast2_i
         - console/yast2_bootloader
         - console/vim
         - console/firewall_enabled
+        - console/krb5
         - console/sshd
         - console/ssh_cleanup
         - console/mtab
+        - console/upgrade_snapshots
         - console/zypper_lifecycle
         - console/orphaned_packages_check
         - console/kdump_and_crash
         - console/consoletest_finish
 
       2:
-        - console/check_upgraded_service
-        - console/supportutils
-        - console/force_scheduled_tasks
-        - console/upgrade_snapshots
-        - console/zypper_lifecycle
         - console/consoletest_finish
         - x11/desktop_runner
         - x11/xterm

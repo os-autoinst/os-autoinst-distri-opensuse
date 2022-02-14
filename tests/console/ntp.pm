@@ -15,7 +15,7 @@ use utils;
 use services::ntpd;
 
 sub run {
-    select_console 'root-console';
+    shift->select_serial_terminal;
     services::ntpd::install_service();
     services::ntpd::enable_service();
     services::ntpd::start_service();
@@ -23,6 +23,17 @@ sub run {
     services::ntpd::config_service();
     services::ntpd::check_service();
     services::ntpd::check_function();
+}
+
+sub post_fail_hook {
+    assert_script_run 'cp /etc/ntp.conf.bkp /etc/ntp.conf' if (script_run('test -f /etc/ntp.conf.bkp') == 0);
+    upload_logs '/var/log/ntp';
+    shift->save_and_upload_log('journalctl --no-pager -o short-precise', 'journalctl.txt');
+}
+
+sub post_run_hook {
+    assert_script_run 'cp /etc/ntp.conf.bkp /etc/ntp.conf' if (script_run('test -f /etc/ntp.conf.bkp') == 0);
+
 }
 
 1;

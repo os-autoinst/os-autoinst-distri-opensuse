@@ -23,7 +23,7 @@ use base "thunderbird_common";
 sub run {
     my $self = shift;
     my $account = "internal_account";
-    my $hostname = get_var('HOSTNAME');
+    my $hostname = get_var('HOSTNAME') // '';
     if ($hostname eq 'client') {
         $account = "internal_account_C";
     }

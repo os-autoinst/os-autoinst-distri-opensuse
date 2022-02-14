@@ -6,7 +6,7 @@ check service status or service function before and after migration
 
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2021-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: check service status before and after migration.
@@ -21,6 +21,7 @@ use utils;
 use base 'opensusebasetest';
 use strict;
 use warnings;
+use services::docker;
 use services::apache;
 use services::apparmor;
 use services::dhcpd;
@@ -31,12 +32,14 @@ use services::ntpd;
 use services::cups;
 use services::rpcbind;
 use services::users;
+use services::sshd;
 use autofs_utils;
 use services::postfix;
 use services::firewall;
 use services::libvirtd;
 use kdump_utils;
 use version_utils 'is_sle';
+use x11utils;
 
 our @EXPORT = qw(
   $default_services
@@ -58,6 +61,19 @@ our %srv_check_results = (
 );
 
 our $default_services = {
+    sshd => {
+        srv_pkg_name => 'sshd',
+        srv_proc_name => 'sshd',
+        support_ver => $support_ver_ge15,
+        service_check_func => \&services::sshd::full_sshd_check,
+        service_cleanup_func => \&services::sshd::sshd_cleanup
+    },
+    docker => {
+        srv_pkg_name => 'docker',
+        srv_proc_name => 'docker',
+        support_ver => $support_ver_ge12,
+        service_check_func => \&services::docker::full_docker_check,
+    },
     users => {
         srv_pkg_name => 'users',
         srv_proc_name => 'users',
@@ -236,6 +252,15 @@ sub install_services {
     my ($service) = @_;
     # turn off lmod shell debug information
     assert_script_run('echo export LMOD_SH_DBG_ON=1 >> /etc/bash.bashrc.local');
+    # turn off screen saver
+    if (check_var('DESKTOP', 'gnome')) {
+        if (is_s390x) {
+            turn_off_gnome_screensaver;
+        }
+        else {
+            turn_off_gnome_screensaver_for_running_gdm;
+        }
+    }
     # On ppc64le, sometime the console font will be distorted into pseudo graphics characters.
     # we need to reset the console font. As it impacted all the console services, added this command to bashrc file
     assert_script_run('echo /usr/lib/systemd/systemd-vconsole-setup >> /etc/bash.bashrc.local') if is_ppc64le;

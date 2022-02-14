@@ -101,7 +101,7 @@ sub run {
         record_soft_failure 'File overwrite test: bsc#1113042 - btrfs is not informed to commit transaction';
     }
     # write some more times to the same file to be sure
-    if (script_run("for c in {1..38}; do $write_chunk; done")) {
+    if (script_run("for c in {1..38}; do $write_chunk; done", die_on_timeout => 0)) {
         record_soft_failure 'File overwrite test: bsc#1113042 - btrfs is not informed to commit transaction';
     }
     assert_script_run 'sync';

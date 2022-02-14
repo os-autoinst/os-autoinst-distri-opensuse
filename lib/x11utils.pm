@@ -1,4 +1,4 @@
-# Copyright 2019-2021 SUSE LLC
+# Copyright 2019-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 package x11utils;
@@ -29,6 +29,7 @@ our @EXPORT = qw(
   turn_off_plasma_screenlocker
   turn_off_gnome_screensaver
   turn_off_gnome_screensaver_for_gdm
+  turn_off_gnome_screensaver_for_running_gdm
   turn_off_gnome_suspend
   turn_off_gnome_show_banner
   untick_welcome_on_next_startup
@@ -130,6 +131,11 @@ sub ensure_unlocked_desktop {
         if ((match_has_tag 'displaymanager-password-prompt') || (match_has_tag 'screenlock-password')) {
             if ($password ne '') {
                 type_password;
+                # poo#97556
+                if (check_var('DESKTOP', 'minimalx')) {
+                    send_key 'ret';
+                    wait_still_screen;
+                }
                 assert_screen([qw(locked_screen-typed_password login_screen-typed_password generic-desktop)], timeout => 150);
                 next if match_has_tag 'generic-desktop';
             }
@@ -192,7 +198,12 @@ sub handle_additional_polkit_windows {
         # for S390x testing, since they are not using qemu built-in vnc, it is
         # expected that polkit authentication window can open for first time login.
         # see bsc#1177446 for more information.
-        record_soft_failure 'bsc#1192992 - multiple authentication due to repositories refresh on s390x';
+        # Base latest feedback of bsc#1192992,authentication should never open if is_sle  >= 15SP4
+        if (is_sle('>=15-sp4')) {
+            record_soft_failure 'bsc#1192992 - authentication should never open if is_sle >= 15SP4';
+        } else {
+            record_info('authentication open for first time login');
+        }
         wait_still_screen(5);
         my $counter = 5;
         while (check_screen('authentication-required-user-settings', 10) && $counter) {
@@ -200,6 +211,9 @@ sub handle_additional_polkit_windows {
             send_key 'ret';
             wait_still_screen(2, 4);
             $counter--;
+            if ($counter < 4) {
+                record_soft_failure 'bsc#1192992 - multiple authentication due to repositories refresh on s390x';
+            }
         }
     }
     if (match_has_tag('authentication-required-modify-system')) {
@@ -406,6 +420,18 @@ a command prompt, for example an xterm window.
 =cut
 sub turn_off_gnome_screensaver_for_gdm {
     script_run 'sudo -u gdm dbus-launch gsettings set org.gnome.desktop.session idle-delay 0';
+}
+
+=head2 turn_off_gnome_screensaver_for_running_gdm
+
+turn_off_gnome_screensaver_for_running_gdm()
+
+Disable screensaver in gnome for running gdm. The function should be run under root. To be called
+from a command prompt, for example an xterm window.
+
+=cut
+sub turn_off_gnome_screensaver_for_running_gdm {
+    script_run 'su gdm -s /bin/bash -c "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u gdm)/bus gsettings set org.gnome.desktop.session idle-delay 0"';
 }
 
 =head2 turn_off_gnome_suspend

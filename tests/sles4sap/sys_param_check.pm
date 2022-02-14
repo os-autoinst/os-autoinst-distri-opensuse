@@ -6,6 +6,8 @@
 # Summary: Check the sles4sap "from scratch" settings (without saptune/sapconf) using the robot framework.
 #          This test is configured to be used with a 2 GB RAM system.
 #          Some values depend of the hardware configuration.
+#          External robotfw testkit is supplied in the SYS_PARAM_CHECK_TEST setting. Defaults to
+#          qa-css-hq.qa.suse.de/robot.tar.gz.
 # Maintainer: Julien Adamek <jadamek@suse.com>
 
 use base "sles4sap";
@@ -45,10 +47,12 @@ sub run {
     my $robot_fw_version = '3.2.2';
     my $test_repo = "/robot/tests/sles-" . get_var('VERSION');
     my $robot_tar = "robot.tar.gz";
+    my $testkit = get_var('SYS_PARAM_CHECK_TEST', "qa-css-hq.qa.suse.de/$robot_tar");
     my $python_bin = is_sle('15+') ? 'python3' : 'python';
+    $self->select_serial_terminal;
 
     # Download and prepare the test environment
-    assert_script_run "cd /; curl -f -v qa-css-hq.qa.suse.de/$robot_tar -o $robot_tar";
+    assert_script_run "cd /; curl -f -v \"$testkit\" -o $robot_tar";
     assert_script_run "tar -xzf $robot_tar";
 
     # Install the robot framework
@@ -61,7 +65,6 @@ sub run {
     if (check_var('SLE_PRODUCT', 'sles4sap')) {
         assert_script_run "systemctl disable sapconf";
         $self->reboot;
-        select_console 'root-console';
     }
 
     # It can only happen on sle product
@@ -70,14 +73,15 @@ sub run {
         record_info('Disabling kdump', 'Disabling kdump and crashkernel option');
         deactivate_kdump_cli;
         $self->reboot;
-        select_console 'root-console';
     }
 
     # Execute each test and upload its results
     assert_script_run "cd $test_repo";
-    foreach my $robot_test (split /\n/, script_output "ls $test_repo") {
-        record_info("$robot_test", "Starting $robot_test");
-        script_run "robot --log $robot_test.html --xunit $robot_test.xml $robot_test";
+    foreach my $robot_test (split /\n/, script_output "ls -1 $test_repo") {
+        # Sanitize $robot_test
+        $robot_test =~ s/[\n|\r]//g;
+        record_info("$robot_test", "Starting [$robot_test]");
+        script_run "robot --log $robot_test.html --xunit $robot_test.xml $robot_test", timeout => 90;
         # Soft fail section - How to add a new one
         # add_softfail("TEST_NAME", "OS_VERSION", "BUG_NUMBER", "PARAMETERS") if ("TEST_NAME" eq "TEST_NAME");
         # TEST_NAME  : In which test the bug was reported.
@@ -85,10 +89,6 @@ sub run {
         # BUG_NUMBER : Bugzilla bug number for tracking the issue.
         # PARAMETER  : What parameters have changed.
         # TEST_NAME  : The function needs to be trigger only in the targeted test.
-        if ($robot_test eq "sysctl.robot") {
-            # bsc#1181163 - unexpected values for net.ipv6.conf.lo.use_tempaddr and net.ipv6.conf.lo.accept_redirects
-            add_softfail("sysctl.robot", "15-SP1", "bsc#1181163", qw(Sysctl_net_ipv6_conf_lo_accept_redirects Sysctl_net_ipv6_conf_lo_use_tempaddr));
-        }
         parse_extra_log("XUnit", "$test_repo/$robot_test.xml");
         upload_logs("$test_repo/$robot_test.html", failok => 1);
     }

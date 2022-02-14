@@ -25,6 +25,8 @@ my $host;
 
 sub get_app {
     my (%args) = @_;
+    die "No environment for libyui REST API has been configured.",
+      " Please schedule test module `setup_libyui.pm` in previous steps." unless YuiRestClient::is_libyui_rest_api();
     $app = init_app(%args) unless $app;
     return $app;
 }

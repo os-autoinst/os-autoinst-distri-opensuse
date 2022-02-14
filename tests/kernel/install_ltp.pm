@@ -84,7 +84,8 @@ sub install_runtime_dependencies {
       xfsprogs
     );
     for my $dep (@maybe_deps) {
-        script_run('zypper -n -t in ' . $dep . ' | tee');
+        # ignore failures due to missing packages (exit code 104)
+        zypper_call("in $dep", exitcode => [0, 104]);
     }
 }
 
@@ -96,7 +97,8 @@ sub install_debugging_tools {
       strace
     );
     for my $dep (@maybe_deps) {
-        script_run('zypper -n -t in ' . $dep . ' | tee');
+        # ignore failures due to missing packages (exit code 104)
+        zypper_call("in $dep", exitcode => [0, 104]);
     }
 }
 
@@ -125,7 +127,8 @@ sub install_runtime_dependencies_network {
       xinetd
     );
     for my $dep (@maybe_deps) {
-        script_run('zypper -n -t in ' . $dep . ' | tee');
+        # ignore failures due to missing packages (exit code 104)
+        zypper_call("in $dep", exitcode => [0, 104]);
     }
 }
 
@@ -160,12 +163,17 @@ sub install_build_dependencies {
       libmnl-devel
       libnuma-devel
       libnuma-devel-32bit
-      libopenssl-devel-32bit
       libselinux-devel-32bit
       libtirpc-devel-32bit
     );
+
+    # libopenssl-devel-32bit is blocked by dependency mess on SLE-12 and we
+    # don't use it anyway...
+    push @maybe_deps, 'libopenssl-devel-32bit' if !is_sle('<15');
+
     for my $dep (@maybe_deps) {
-        script_run('zypper -n -t in ' . $dep . ' | tee');
+        # ignore failures due to missing packages (exit code 104)
+        zypper_call("in $dep", exitcode => [0, 104]);
     }
 }
 
@@ -178,9 +186,10 @@ sub prepare_ltp_git {
 
     $rel = "-b $rel" if ($rel);
 
-    my $ret = script_run("git clone -q --depth 1 $url $rel", timeout => 360);
+    script_run('rm -rf ltp');
+    my $ret = script_run("git clone -q --depth 1 $url $rel ltp", timeout => 360);
     if (!defined($ret) || $ret) {
-        assert_script_run("git clone -q $url $rel", timeout => 360);
+        assert_script_run("git clone -q $url $rel ltp", timeout => 360);
     }
     assert_script_run 'cd ltp';
     assert_script_run 'make autotools';
@@ -351,6 +360,7 @@ sub run {
     }
 
     upload_logs('/boot/config-$(uname -r)', failok => 1);
+    set_zypper_lock_timeout(300);
     add_we_repo_if_available;
 
     if ($inst_ltp =~ /git/i) {

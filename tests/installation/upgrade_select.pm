@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2009-2013 Bernhard M. Wiedemann
-# Copyright 2012-2020 SUSE LLC
+# Copyright 2012-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Select existing partition(s) for upgrade
@@ -12,7 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use utils 'assert_screen_with_soft_timeout';
-use version_utils qw(is_sle is_opensuse);
+use version_utils qw(is_sle is_opensuse is_leap);
 
 sub run {
     if (get_var('ENCRYPT')) {
@@ -23,8 +23,10 @@ sub run {
             send_key 'alt-p';    # provide password
             assert_screen "upgrade-enter-password";
         }
-        type_password;
-        send_key $cmd{ok};
+        type_password();
+        send_key is_sle('<=15-SP4') || is_leap('<=15.4') ?
+          $cmd{ok} :
+          'alt-d';
     }
 
     # hardware detection and waiting for updates from suse.com can take a while

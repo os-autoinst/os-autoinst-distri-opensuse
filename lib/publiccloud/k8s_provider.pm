@@ -13,7 +13,6 @@ use testapi;
 use mmapi 'get_current_job_id';
 use publiccloud::gcp_client;
 
-has region => undef;
 has resource_name => sub { get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm') };
 has provider_client => undef;
 
@@ -26,25 +25,18 @@ sub init {
     if ($provider eq 'EC2') {
         $self->provider_client(
             publiccloud::aws_client->new(
-                region => $self->region,
                 service => $service
             ));
     }
     elsif ($provider eq 'GCE') {
         $self->provider_client(
             publiccloud::gcp_client->new(
-                region => $self->region,
                 service => $service
             ));
     }
     elsif ($provider eq 'AZURE') {
         $self->provider_client(
             publiccloud::azure_client->new(
-                key_id => $self->key_id,
-                key_secret => $self->key_secret,
-                subscription => $self->subscription,
-                tenantid => $self->tenantid,
-                region => $self->region,
                 service => $service
             ));
     }
@@ -87,14 +79,14 @@ sub get_default_tag {
     return join('-', $self->resource_name, get_current_job_id());
 }
 
-=head2 configure_docker
+=head2 configure_podman
 
-Configure the docker to access the cloud provider registry
+Configure the podman to access the cloud provider registry
 =cut
 
-sub configure_docker {
+sub configure_podman {
     my ($self) = @_;
-    $self->provider_client->configure_docker();
+    $self->provider_client->configure_podman();
 }
 
 =head2 push_container_image
@@ -110,8 +102,8 @@ sub push_container_image {
 
     my $full_name = $self->get_container_image_full_name($tag);
 
-    assert_script_run("docker tag $image $full_name");
-    assert_script_run("docker push $full_name", 180);
+    assert_script_run("podman tag $image $full_name");
+    assert_script_run("podman push --remove-signatures $full_name", 180);
 
     return $full_name;
 }

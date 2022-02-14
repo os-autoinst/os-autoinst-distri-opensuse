@@ -175,4 +175,17 @@ has ifcfg_wlan => sub { [
         )
 ] };
 
+sub run {
+    my ($self, @args) = @_;
+
+    if (!$self->hostapd_can_wep()) {
+        record_info('SKIP',
+            'Skip test, cause installed hostapd does not support WEP',
+            result => 'softfail');
+        $self->result('skip');
+        return;
+    }
+    $self->SUPER::run(@args);
+}
+
 1;

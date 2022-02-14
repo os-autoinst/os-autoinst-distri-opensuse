@@ -39,6 +39,7 @@ use testapi;
 use lockapi;
 use autofs_utils qw(setup_autofs_server check_autofs_service);
 use utils 'systemctl';
+use version_utils 'is_opensuse';
 use strict;
 use warnings;
 
@@ -55,7 +56,7 @@ sub run {
     my $test_conf_file = '/etc/auto.share';
     my $test_mount_dir = '/mnt/test';
     my $test_mount_dir_nfsidmap = '/mnt/test_nfsidmap';
-    my $test_conf_file_content = "test -ro,no_subtree_check $nfs_server:$remote_mount";
+    my $test_conf_file_content = "test -ro $nfs_server:$remote_mount";
 
     # autofs
     check_autofs_service();
@@ -64,7 +65,7 @@ sub run {
     validate_script_output("systemctl --no-pager status autofs", sub { m/Active:\s*active/ }, 180);
 
     # nfsidmap
-    assert_script_run("rpm -q nfsidmap");
+    is_opensuse ? assert_script_run("rpm -q libnfsidmap1") : assert_script_run("rpm -q nfsidmap");
     # Allow failing, it's to clear the keyring if one exists
     assert_script_run("nfsidmap -c || true");
     assert_script_run("mkdir -p $test_mount_dir_nfsidmap");
@@ -91,7 +92,6 @@ sub run {
     validate_script_output("ls -l $test_mount_dir_nfsidmap/tux.txt", sub { m/tux.*users.*tux.txt/ });
     validate_script_output("cat $test_mount_dir_nfsidmap/tux.txt", sub { m/Hi tux/ });
     assert_script_run("umount $test_mount_dir_nfsidmap");
-
     barrier_wait 'AUTOFS_FINISHED';
 }
 

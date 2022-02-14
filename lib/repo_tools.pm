@@ -462,7 +462,9 @@ sub generate_version {
     my $dist = get_required_var('DISTRI');
     my $version = get_required_var('VERSION');
     $separator //= '_';
-    if (is_sle) {
+    if (is_leap(">=15.4")) {
+        return $version;
+    } elsif (is_sle) {
         $dist = 'SLE';
         $version =~ s/-/$separator/;
     } elsif (is_tumbleweed) {

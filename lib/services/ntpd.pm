@@ -25,11 +25,19 @@ sub install_service {
 # This will be used by QAM ntp test.
 sub check_config {
     my $server_count = script_output 'ntpq -p | tail -n +3 | wc -l';
-    assert_script_run 'echo "server 3.europe.pool.ntp.org" >> /etc/ntp.conf';
-    assert_script_run 'echo "server 2.europe.pool.ntp.org" >> /etc/ntp.conf';
+    record_info 'Servers', "Default ntp servers defined: $server_count";
+    assert_script_run 'cp /etc/ntp.conf /etc/ntp.conf.bkp';
+    assert_script_run 'echo "server 172.16.12.34" >> /etc/ntp.conf';
+    assert_script_run 'echo "server 172.16.21.43" >> /etc/ntp.conf';
     common_service_action($service_name, $service_type, 'restart');
     assert_script_run 'ntpq -p';
-    $server_count + 2 <= script_output 'ntpq -p | tail -n +3 | wc -l' or die "Configuration not loaded";
+    for (my $i = 0; $i < 5; $i++) {
+        if ($server_count + 2 <= script_output('ntpq -pn | tail -n +3 | wc -l')) {
+            return;
+        }
+        sleep 30;
+    }
+    die "Configuration not loaded";
 }
 
 sub config_service {

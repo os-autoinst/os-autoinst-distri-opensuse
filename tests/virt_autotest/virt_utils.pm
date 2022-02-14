@@ -152,7 +152,7 @@ sub repl_module_in_sourcefile {
         upload_asset "/usr/share/qa/virtautolib/data/sources.de", 1, 1;
     }
     else {
-        assert_script_run($command);
+        assert_script_run($command, timeout => 120);
         save_screenshot;
         assert_script_run("grep Module $source_file -r");
         save_screenshot;
@@ -491,10 +491,11 @@ sub download_guest_assets {
 #Start the guest from the downloaded vm xml and vm disk file
 sub restore_downloaded_guests {
     my ($guest, $vm_xml_dir) = @_;
-    record_info("Guest", "$guest");
+    record_info("Guest restored", "$guest");
     my $vm_xml = "$vm_xml_dir/$guest.xml";
     assert_script_run("virsh define $vm_xml", 30);
 }
+
 
 sub is_installed_equal_upgrade_major_release {
     #get the version that the host is installed to

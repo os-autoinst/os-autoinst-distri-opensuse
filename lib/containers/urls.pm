@@ -191,6 +191,21 @@ our %images_uri = (
             released => sub { 'registry.suse.com/suse/sle15:15.3' },
             totest => sub { },
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
+        },
+        '5.0' => {
+            released => sub { 'registry.opensuse.org/opensuse/tumbleweed' },
+            totest => sub { },
+            available_arch => ['x86_64', 'aarch64', 's390x']
+        },
+        '5.1' => {
+            released => sub { 'registry.opensuse.org/opensuse/tumbleweed' },
+            totest => sub { },
+            available_arch => ['x86_64', 'aarch64', 's390x']
+        },
+        '5.2' => {
+            released => sub { 'registry.opensuse.org/opensuse/tumbleweed' },
+            totest => sub { },
+            available_arch => ['x86_64', 'aarch64', 's390x']
         }
     },
     microos => {

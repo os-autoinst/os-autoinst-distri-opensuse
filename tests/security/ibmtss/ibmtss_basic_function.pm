@@ -1,11 +1,11 @@
-# Copyright 2021 SUSE LLC
+# Copyright 2021-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Update IBM's Trusted Computing Group Software Stack (TSS) to the latest version.
 #          IBM has tested x86_64, s390x and ppc64le, we only need cover aarch64
 #          This test module covers basic function test
 # Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#101088, poo#102792, poo#103086, tc#1769800
+# Tags: poo#101088, poo#102792, poo#103086, poo#106501, tc#1769800
 
 use base 'opensusebasetest';
 use base 'consoletest';
@@ -47,7 +47,7 @@ sub run {
     # Run the script
     assert_script_run('export TPM_INTERFACE_TYPE=socsim');
     my $tsslog = '/tmp/tss.log';
-    script_run("./reg.sh -a | tee $tsslog", timeout => 240);
+    script_run("./reg.sh -a | tee $tsslog", timeout => 360);
     upload_logs("$tsslog");
 
     # Check the test result

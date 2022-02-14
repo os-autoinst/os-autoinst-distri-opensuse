@@ -24,7 +24,7 @@ sub run {
     run_testcase('polkit-tests');
 
     # Compare current test results with baseline
-    my $result = compare_run_log('polkit_tests');
+    my $result = compare_run_log('polkit-tests');
     $self->result($result);
 }
 

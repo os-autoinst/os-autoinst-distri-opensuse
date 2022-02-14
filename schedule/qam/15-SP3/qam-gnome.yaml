@@ -24,7 +24,7 @@ schedule:
 - console/textinfo
 - console/hostname
 - console/installation_snapshots
-- '{{x86_64_tests}}'
+- '{{console_tests}}'
 - console/zypper_lr
 - console/zypper_ref
 - console/ncurses
@@ -34,7 +34,6 @@ schedule:
 - console/zypper_in
 - console/yast2_i
 - console/yast2_bootloader
-- console/vim
 - console/firewall_enabled
 - console/sshd
 - console/ssh_cleanup
@@ -61,11 +60,14 @@ schedule:
 - shutdown/cleanup_before_shutdown
 - shutdown/shutdown
 conditional_schedule:
-  x86_64_tests:
+  console_tests:
     ARCH:
       x86_64:
         - console/glibc_sanity
         - console/x_vt
+        - console/python_liblouis
+      aarch64:
+        - console/python_liblouis
   salt:
     SLE_PRODUCT:
       sles:

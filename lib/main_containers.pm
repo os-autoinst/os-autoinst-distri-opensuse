@@ -14,6 +14,7 @@ use version_utils;
 use main_common qw(loadtest boot_hdd_image);
 use testapi qw(check_var get_required_var get_var);
 use Utils::Architectures;
+use Utils::Backends;
 use strict;
 use warnings;
 
@@ -30,9 +31,9 @@ sub is_container_image_test {
     return get_var('CONTAINERS_UNTESTED_IMAGES', 0);
 }
 
-sub is_res_host {
+sub is_expanded_support_host {
     # returns if booted image is RedHat Expanded Support
-    return get_var("HDD_1") =~ /(res82.qcow2|res79.qcow2)/;
+    return get_var("HDD_1") =~ /sles-es/;
 }
 
 sub is_ubuntu_host {
@@ -61,7 +62,7 @@ sub load_host_tests_podman {
         loadtest 'containers/podman_3rd_party_images';
         loadtest 'containers/podman_firewall';
         loadtest 'containers/buildah';
-        loadtest 'containers/rootless_podman';
+        loadtest 'containers/rootless_podman' unless is_sle('=15-sp1');    # https://github.com/containers/podman/issues/5732#issuecomment-610222293
     }
 }
 
@@ -85,26 +86,45 @@ sub load_host_tests_docker {
     # works currently only for x86_64, more are coming (poo#103977)
     # Expected to work for all but JeOS on 15sp4 after
     # https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/13860
-    loadtest 'containers/validate_btrfs' if (is_x86_64 and !(is_jeos && is_sle("=15-SP4")));
+    # Disabled on svirt backends (VMWare, Hyper-V and XEN) as the device name might be different than vdX
+    loadtest 'containers/validate_btrfs' if (is_x86_64 and is_qemu);
 }
 
+sub load_host_tests_containerd_crictl {
+    loadtest 'containers/containerd_crictl';
+}
+
+sub load_host_tests_containerd_nerdctl {
+    loadtest 'containers/containerd_nerdctl';
+}
 
 sub load_container_tests {
     my $runtime = get_required_var('CONTAINER_RUNTIME');
+
     if (get_var('BOOT_HDD_IMAGE')) {
         loadtest 'installation/bootloader_zkvm' if is_s390x;
         loadtest 'boot/boot_to_desktop' unless is_jeos;
     }
 
     if (is_container_image_test()) {
-        # Container Image tests
-        loadtest 'containers/host_configuration' unless (is_res_host || is_ubuntu_host || is_jeos);
-        load_image_tests_podman() if ($runtime =~ 'podman');
-        load_image_tests_docker() if ($runtime =~ 'docker');
-    } else {
-        # Container Host tests
-        load_host_tests_podman() if ($runtime =~ 'podman');
-        load_host_tests_docker() if ($runtime =~ 'docker');
+        # Container Image tests common
+        loadtest 'containers/host_configuration' unless (is_expanded_support_host || is_ubuntu_host || is_jeos);
     }
+
+    foreach (split(',\s*', $runtime)) {
+        if (is_container_image_test()) {
+            # Container Image tests
+            load_image_tests_podman() if (/podman/i);
+            load_image_tests_docker() if (/docker/i);
+        }
+        else {
+            # Container Host tests
+            load_host_tests_podman() if (/podman/i);
+            load_host_tests_docker() if (/docker/i);
+            load_host_tests_containerd_crictl() if (/containerd_crictl/i);
+            load_host_tests_containerd_nerdctl() if (/containerd_nerdctl/i);
+        }
+    }
+
     loadtest 'console/coredump_collect' unless is_jeos;
 }

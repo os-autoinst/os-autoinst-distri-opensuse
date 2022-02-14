@@ -26,7 +26,7 @@ sub run {
     # Try to draw a bold red line
     script_run('echo "$(tput smacs;tput setaf 1;tput bold)lqqqqqqqqqqqqqqk$(tput rmacs;tput sgr0)"');
     # Try a simple yes/no dialog
-    script_run 'dialog --yesno "test for boo#1054448" 3 20 | tee boo_1054448.tee';
+    enter_cmd 'dialog --yesno "test for boo#1054448" 3 20 | tee boo_1054448.tee';
     assert_screen([qw(ncurses-simple-dialog ncurses-simple-dialog-broken-boo1183234)]);
     if (match_has_tag 'ncurses-simple-dialog-broken-boo1183234') {
         die "boo#1183234: Console misconfigured, ncurses UI broken!\n";

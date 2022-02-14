@@ -31,6 +31,12 @@ sub items {
     return map { $_->{label} } @{$items};
 }
 
+sub selected_items {
+    my ($self) = @_;
+    my $items = $self->property('items');
+    return map { $_->{label} } grep { $_->{selected} } @{$items};
+}
+
 1;
 
 __END__
@@ -99,5 +105,10 @@ B<uncheck($item)> - Uncheck checkbox for an item in a SelectionBox object.
 The item is identified by its label.
 
 B<items()> - returns a map of available items in the SelectionBox object.
+
+B<selected_items()> - get a list of selected items
+
+This method returns an array with all the labels of items that are selected in the
+current class object. 
 
 =cut

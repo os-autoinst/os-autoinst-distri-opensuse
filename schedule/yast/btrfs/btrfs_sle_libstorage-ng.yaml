@@ -6,8 +6,6 @@ vars:
   FILESYSTEM: btrfs
   YUI_REST_API: 1
 schedule:
-  # Called on BACKEND: qemu
-  - '{{isosize}}'
   - installation/bootloader_start
   - installation/setup_libyui
   - installation/access_beta_distribution
@@ -16,7 +14,7 @@ schedule:
   # Called only on BACKEND: s390x
   - '{{disk_activation}}'
   - installation/registration/register_via_scc
-  - installation/module_selection/select_module_desktop
+  - installation/module_registration/register_module_desktop
   - installation/add_on_product/skip_install_addons
   - installation/system_role/accept_selected_role_SLES_with_GNOME
   - installation/partitioning/select_guided_setup
@@ -25,17 +23,15 @@ schedule:
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   # Called on all, except BACKEND: s390x
-  - '{{hostname_inst}}'
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
-  - installation/resolve_dependency_issues
-  - installation/installation_overview
+  - installation/installation_settings/validate_default_target
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
   - installation/confirm_installation
   - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
-  - installation/reboot_after_installation
+  - installation/performing_installation/confirm_reboot
   - installation/handle_reboot
   - installation/first_boot
   - console/system_prepare
@@ -56,20 +52,10 @@ conditional_schedule:
         - console/hibernation_disabled
       x86_64:
         - console/hibernation_enabled
-  isosize:
-    BACKEND:
-      qemu:
-        - installation/isosize
   disk_activation:
     BACKEND:
       s390x:
         - installation/disk_activation
-  hostname_inst:
-    BACKEND:
-      qemu:
-        - installation/hostname_inst
-      svirt:
-        - installation/hostname_inst
   validate_home_partition:
     BACKEND:
       qemu:

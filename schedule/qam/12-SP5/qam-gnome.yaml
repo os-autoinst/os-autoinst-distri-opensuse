@@ -33,7 +33,6 @@ schedule:
 - console/zypper_in
 - console/yast2_i
 - console/yast2_bootloader
-- console/vim
 - console/firewall_enabled
 - console/sshd
 - console/ssh_cleanup

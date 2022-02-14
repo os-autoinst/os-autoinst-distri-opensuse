@@ -413,6 +413,40 @@ sub investigate_yast2_failure {
     }
 }
 
+=head2 export_healthcheck_basic
+
+ export_healthcheck_basic();
+
+Upload healthcheck logs that make sense for any failure.
+This includes C<cpu>, C<memory> and C<fdisk>.
+
+=cut
+sub export_healthcheck_basic {
+
+    my $cmd = <<'EOF';
+health_log_file="/tmp/basic_health_check.txt"
+echo -e "free -h" > $health_log_file
+free -h >> $health_log_file
+echo -e "\nvmstat" >> $health_log_file
+vmstat >> $health_log_file
+echo -e "\nfdisk -l" >> $health_log_file
+fdisk -l >> $health_log_file
+echo -e "\ndh -h" >> $health_log_file
+df -h >> $health_log_file
+echo -e "\ndh -i" >> $health_log_file
+df -i >> $health_log_file
+echo -e "\nTop 10 CPU Processes" >> $health_log_file
+ps axwwo %cpu,pid,user,cmd | sort -k 1 -r -n | head -11 | sed -e '/^%/d' >> $health_log_file
+echo -e "\nTop 10 Memory Processes" >> $health_log_file
+ps axwwo %mem,pid,user,cmd | sort -k 1 -r -n | head -11 | sed -e '/^%/d' >> $health_log_file
+echo -e "\nALL Processes" >> $health_log_file
+ps axwwo user,pid,ppid,%cpu,%mem,vsz,rss,stat,time,cmd >> $health_log_file
+EOF
+    script_run($_) foreach (split /\n/, $cmd);
+    upload_logs "/tmp/basic_health_check.txt";
+
+}
+
 =head2 export_logs_basic
 
  export_logs_basic();
@@ -458,9 +492,8 @@ sub export_logs {
     save_screenshot;
     show_oom_info;
     $self->remount_tmp_if_ro;
-    $self->problem_detection;
-
     $self->export_logs_basic;
+    $self->problem_detection;
 
     # Just after the setup: let's see the network configuration
     $self->save_and_upload_log("ip addr show", "/tmp/ip-addr-show.log");
@@ -514,7 +547,9 @@ Upload C</tmp/solverTestCase.tar.bz2>.
 
 =cut
 sub upload_solvertestcase_logs {
-    script_run("zypper -n patch --debug-solver --with-interactive -l");
+    my $ret = script_run("zypper -n patch --debug-solver --with-interactive -l");
+    # if zypper was not found, we just skip upload solverTestCase.tar.bz2
+    return if $ret != 0;
     script_run("tar -cvjf /tmp/solverTestCase.tar.bz2 /var/log/zypper.solverTestCase/*");
     upload_logs "/tmp/solverTestCase.tar.bz2 ";
 }
@@ -1305,6 +1340,10 @@ sub post_fail_hook {
     show_tasks_in_blocked_state;
 
     return if (get_var('NOLOGS'));
+
+    # Upload basic health check log
+    select_log_console;
+    $self->export_healthcheck_basic;
 
     # set by x11_start_program
     if (get_var('IN_X11_START_PROGRAM')) {

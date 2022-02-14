@@ -80,13 +80,13 @@ sub test_bsc1152598 {
     my $SLE = is_sle(">=15") ? "SLE15" : "SLE12";
 
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_1";
-    assert_script_run 'echo -e [version]\n# foobar-NOTE=foobar CATEGORY=foobar VERSION=0 DATE=foobar NAME=\" foobar \"\n[block]\nIO_SCHEDULER=noop, none, foobar\n" > /etc/saptune/extra/scheduler_test.conf';
-    assert_script_run "saptune note apply scheduler_test";
+    assert_script_run 'echo -e "[version]\n# foobar-NOTE=foobar CATEGORY=foobar VERSION=0 DATE=foobar NAME=\" foobar \"\n[block]\nIO_SCHEDULER=noop, none, foobar\n" > /etc/saptune/extra/scheduler-test.conf';
+    assert_script_run "saptune note apply scheduler-test";
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_2";
     assert_script_run "saptune revert all";
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_1";
-    assert_script_run 'echo -e "[version]\n# foobar-NOTE=foobar CATEGORY=foobar VERSION=0 DATE=foobar NAME=\" foobar \"\n[block]\nIO_SCHEDULER=foobar, noop, none\n" > /etc/saptune/extra/scheduler_test.conf';
-    assert_script_run 'saptune note apply scheduler_test';
+    assert_script_run 'echo -e "[version]\n# foobar-NOTE=foobar CATEGORY=foobar VERSION=0 DATE=foobar NAME=\" foobar \"\n[block]\nIO_SCHEDULER=foobar, noop, none\n" > /etc/saptune/extra/scheduler-test.conf';
+    assert_script_run 'saptune note apply scheduler-test';
     assert_script_run "egrep -q '\[(noop|none)\]' /sys/block/sda/queue/scheduler";
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_2";
     assert_script_run "saptune revert all";

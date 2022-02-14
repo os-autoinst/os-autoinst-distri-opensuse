@@ -46,6 +46,8 @@ sub has_conflict {
         'dpdk-kmp-default' => 'dpdk-thunderx-kmp-default',
         'pulseaudio-module-gconf' => 'pulseaudio-module-gsettings',
         'systemtap-sdt-devel' => 'systemtap-headers',
+        libldb2 => 'libldb1',
+        'python3-ldb' => 'python-ldb',
     );
     return $conflict{$binary};
 }
@@ -87,24 +89,31 @@ sub run {
 
     zypper_call(q{mr -d $(zypper lr | awk -F '|' '/NVIDIA/ {print $2}')}, exitcode => [0, 3]);
 
-    fully_patch_system;
-
     # Get packages affected by the incident.
     my @packages = get_incident_packages($incident_id);
 
     # Extract module name from repo url.
     my @modules = split(/,/, $repos);
-    s{http.*SUSE_Updates_(.*)/}{$1} for @modules;
+    foreach (@modules) {
+        # substitue SLES_SAP for LTSS repo at this point is SAP ESPOS
+        $_ =~ s/SAP_(\d+(-SP\d)?)/$1-LTSS/;
+        next if s{http.*SUSE_Updates_(.*)/?}{$1};
+        die 'Modules regex failed. Modules could not be extracted from repos variable.';
+    }
 
     # Get binaries that are in each package across the modules that are in the repos.
     my %bins;
     foreach (@packages) {
         %bins = (%bins, get_packagebins_in_modules({package_name => $_, modules => \@modules}));
     }
+    die "Parsing binaries from SMELT data failed" if not keys %bins;
 
     my @l2 = grep { ($bins{$_}->{supportstatus} eq 'l2') } keys %bins;
     my @l3 = grep { ($bins{$_}->{supportstatus} eq 'l3') } keys %bins;
     my @unsupported = grep { ($bins{$_}->{supportstatus} eq 'unsupported') } keys %bins;
+
+    # Patch the SUT to a released state;
+    fully_patch_system;
 
     # Sort binaries into:
     my %installable;    #Binaries already released that can already be installed.
@@ -177,7 +186,11 @@ sub run {
     }
 
     # Patch binaries already installed.
-    zypper_call("in -l -t patch ${patches}", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 1500);
+    my $ret = zypper_call("in -l -t patch ${patches}|tee zypper.log", exitcode => [0, 8, 102, 103], timeout => 1500);
+    if ($ret == 8 && script_run('grep -z "python36-pip.*SLES:12-SP5.*conflicts with.*python3-pip" zypper.log') == 0) {
+        record_soft_failure 'bsc#1195351';
+        zypper_call("in --replacefiles -l -t patch ${patches}", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 1500);
+    }
 
     # Install binaries newly added by the incident.
     if (scalar @new_binaries) {

@@ -12,7 +12,7 @@
 # - Disable temporarily created nscd profile
 # - Cleanup temporary profiles
 # Maintainer: llzhao <llzhao@suse.com>
-# Tags: poo#36889, poo#45803
+# Tags: poo#36889, poo#45803, poo#106002
 
 use base 'apparmortest';
 use strict;
@@ -55,7 +55,7 @@ sub run {
                 key => 'c',
             },
         ],
-        60
+        90
     );
 
     # Output generated profiles list to serial console

@@ -14,14 +14,15 @@ use publiccloud::vault;
 
 use constant CREDENTIALS_FILE => '/root/amazon_credentials';
 
-has key_id => undef;
-has key_secret => undef;
+has key_id => sub { get_var('PUBLIC_CLOUD_KEY_ID') };
+has key_secret => sub { get_var('PUBLIC_CLOUD_KEY_SECRET') };
 has security_token => undef;
-has region => undef;
+has region => sub { get_var('PUBLIC_CLOUD_REGION', 'eu-central-1') };
 has vault => undef;
 has aws_account_id => undef;
 has service => undef;
 has container_registry => sub { get_var("PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY", 'suse-qec-testing') };
+has username => sub { get_var('PUBLIC_CLOUD_USER', 'ec2-user') };
 
 sub vault_create_credentials {
     my ($self) = @_;
@@ -120,18 +121,18 @@ sub get_container_image_full_name {
     return "$full_name_prefix/" . $self->container_registry . ":$tag";
 }
 
-=head2 configure_docker
+=head2 configure_podman
 
-Configure the docker to access the cloud provider registry
+Configure the podman to access the cloud provider registry
 =cut
 
-sub configure_docker {
+sub configure_podman {
     my ($self) = @_;
     my $full_name_prefix = $self->get_container_registry_prefix();
 
     assert_script_run("aws ecr get-login-password --region "
           . $self->region
-          . " | docker login --username AWS --password-stdin $full_name_prefix");
+          . " | podman login --username AWS --password-stdin $full_name_prefix");
 }
 
 sub cleanup {

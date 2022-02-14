@@ -23,6 +23,7 @@ my $test_mount_dir = '/mnt/test_autofs_local';
 my $file_to_mount = '/tmp/test-iso.iso';
 my $test_conf_file_content = "iso -fstype=auto,ro :$file_to_mount";
 my $service_type = 'Systemd';
+my $autofs_sys_conf_file = '/etc/sysconfig/autofs';
 
 =head2 setup_autofs_server
 
@@ -42,6 +43,7 @@ sub setup_autofs_server {
     assert_script_run("grep '$args{test_conf_file}' $args{autofs_map_file}");
     assert_script_run("echo $args{test_conf_file_content} > $args{test_conf_file}", fail_message => "File $args{test_conf_file} could not be created");
     assert_script_run("grep '$args{test_conf_file_content}' $args{test_conf_file}");
+    assert_script_run(q{sed -i_bk 's|AUTOFS_OPTIONS=""|AUTOFS_OPTIONS="--debug"|' } . $autofs_sys_conf_file);
 }
 
 =head2 check_autofs_service

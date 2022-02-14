@@ -11,7 +11,6 @@ package publiccloud::provider;
 use testapi qw(is_serial_terminal :DEFAULT);
 use Mojo::Base -base;
 use publiccloud::instance;
-use publiccloud::vault;
 use Carp;
 use List::Util qw(max);
 use Data::Dumper;
@@ -22,15 +21,11 @@ use mmapi;
 use constant TERRAFORM_DIR => '/root/terraform';
 use constant TERRAFORM_TIMEOUT => 30 * 60;
 
-has key_id => undef;
-has key_secret => undef;
-has region => undef;
-has username => undef;
 has prefix => 'openqa';
 has terraform_env_prepared => 0;
 has terraform_applied => 0;
 has resource_name => sub { get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm') };
-has vault => undef;
+has provider_client => undef;
 
 =head1 METHODS
 
@@ -180,7 +175,7 @@ sub run_img_proof {
     my $cmd = 'img-proof --no-color test ' . $args{provider};
     $cmd .= ' --debug ';
     $cmd .= "--distro " . $args{distro} . " ";
-    $cmd .= '--region "' . $self->region . '" ';
+    $cmd .= '--region "' . $self->provider_client->region . '" ';
     $cmd .= '--results-dir "' . $args{results_dir} . '" ';
     $cmd .= '--no-cleanup ';
     $cmd .= '--collect-vm-info ';
@@ -357,7 +352,7 @@ sub terraform_apply {
         my $ha_sap_repo = get_var('HA_SAP_REPO') ? get_var('HA_SAP_REPO') . '/SLE_' . $sle_version : '';
         file_content_replace('terraform.tfvars',
             q(%MACHINE_TYPE%) => $instance_type,
-            q(%REGION%) => $self->region,
+            q(%REGION%) => $self->provider_client->region,
             q(%HANA_BUCKET%) => $sap_media,
             q(%SLE_IMAGE%) => $image,
             q(%SCC_REGCODE_SLES4SAP%) => $sap_regcode,
@@ -384,7 +379,7 @@ sub terraform_apply {
         $cmd .= "-var 'image_id=" . $image . "' " if ($image);
         $cmd .= "-var 'instance_count=" . $args{count} . "' ";
         $cmd .= "-var 'type=" . $instance_type . "' ";
-        $cmd .= "-var 'region=" . $self->region . "' ";
+        $cmd .= "-var 'region=" . $self->provider_client->region . "' ";
         $cmd .= "-var 'name=" . $self->resource_name . "' ";
         $cmd .= "-var 'project=" . $args{project} . "' " if $args{project};
         $cmd .= "-var 'enable_confidential_vm=true' " if $args{confidential_compute};
@@ -404,6 +399,7 @@ sub terraform_apply {
 
     script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
     my $ret = script_run('terraform apply -no-color -input=false myplan', $terraform_timeout);
+    $self->terraform_applied(1);    # Must happen here to prevent resource leakage
     unless (defined $ret) {
         if (is_serial_terminal()) {
             type_string(qq(\c\\));    # Send QUIT signal
@@ -418,8 +414,6 @@ sub terraform_apply {
         die('Terraform apply failed with timeout');
     }
     die('Terraform exit with ' . $ret) if ($ret != 0);
-
-    $self->terraform_applied(1);
 
     my $output = decode_json(script_output("terraform output -json"));
     my $vms;
@@ -439,10 +433,10 @@ sub terraform_apply {
         my $instance = publiccloud::instance->new(
             public_ip => @{$ips}[$i],
             instance_id => @{$vms}[$i],
-            username => $self->username,
+            username => $self->provider_client->username,
             ssh_key => $ssh_private_key_file,
             image_id => $image,
-            region => $self->region,
+            region => $self->provider_client->region,
             type => $instance_type,
             provider => $self
         );
@@ -472,7 +466,7 @@ sub terraform_destroy {
     else {
         assert_script_run('cd ' . TERRAFORM_DIR);
         # Add region variable also to `terraform destroy` (poo#63604) -- needed by AWS.
-        $cmd = sprintf(q(terraform destroy -no-color -auto-approve -var 'region=%s'), $self->region);
+        $cmd = sprintf(q(terraform destroy -no-color -auto-approve -var 'region=%s'), $self->provider_client->region);
     }
     # Retry 3 times with considerable delay. This has been introduced due to poo#95932 (RetryableError)
     # terraform keeps track of the allocated and destroyed resources, so its safe to run this multiple times.
@@ -489,7 +483,11 @@ sub terraform_destroy {
         assert_script_run('cd ' . TERRAFORM_DIR);
         $self->on_terraform_destroy_timeout();
     }
-    record_info('ERROR', 'Terraform exited with ' . $ret, result => 'fail') if ($ret != 0);
+
+    if ($ret != 0) {
+        record_info('ERROR', 'Terraform exited with ' . $ret, result => 'fail');
+        die('Terraform destroy failed');
+    }
 }
 
 =head2 terraform_param_tags

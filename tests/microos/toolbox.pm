@@ -59,7 +59,7 @@ sub run {
 
 
     record_info 'Test', "Rootless toolbox as $user";
-    select_console 'user-console';
+    my $console = select_console 'user-console';
     my $uid = script_output 'id -u';
     validate_script_output 'toolbox -u id', sub { m/uid=${uid}\(${user}\)/ }, timeout => 180;
     die "$user shouldn't have access to /etc/passwd!" if (script_run('toolbox -u touch /etc/passwd') == 0);
@@ -69,6 +69,9 @@ sub run {
     assert_script_run 'toolbox -r touch /etc/passwd', fail_message => 'Root should have access to /etc/passwd!';
     assert_script_run 'podman ps -a';
     clean_container_host(runtime => 'podman');
+
+    enter_cmd "exit";
+    $console->reset;
 
     # Back to root
     select_console 'root-console';

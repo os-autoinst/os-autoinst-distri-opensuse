@@ -9,7 +9,7 @@ ip link | grep "wlan0" > /dev/null
 
 echo "Starting hostapd ... "
 # hostapd starts the wifi hotspot on wlan0
-hostapd hostapd.conf >> hostapd.log &
+hostapd -t hostapd.conf >> hostapd.log &
 hostapd_pid=$!
 timeout 30s grep -q 'wlan0: AP-ENABLED ' <(tail -f hostapd.log)
 ip addr add 192.168.200.1/24 dev wlan0

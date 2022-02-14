@@ -50,6 +50,7 @@ sub run {
         zypper_call('modifyrepo -e 1');
         zypper_call('ref');
     }
+
     # autofs
     zypper_call('in nfs-kernel-server');
     assert_script_run "mkdir -p $test_share_dir";
@@ -60,10 +61,11 @@ sub run {
 
     # nfsidmap
     assert_script_run "echo N > /sys/module/nfsd/parameters/nfs4_disable_idmapping";
-    zypper_call('in nfsidmap');
+    is_opensuse ? zypper_call('in libnfsidmap1') : zypper_call('in nfsidmap');
     systemctl 'restart nfs-idmapd';
     assert_script_run "nfsidmap -c || true";
     assert_script_run "useradd -m tux";
+    assert_script_run "chmod -R 755 $nfsidmap_share_dir";
     assert_script_run "echo Hi tux > $nfsidmap_share_dir/tux.txt";
     assert_script_run "chown tux:users $nfsidmap_share_dir/tux.txt";
     assert_script_run "echo '/home/tux *(ro)' >> /etc/exports";
@@ -74,5 +76,4 @@ sub run {
     barrier_wait 'AUTOFS_SUITE_READY';
     barrier_wait 'AUTOFS_FINISHED';
 }
-
 1;

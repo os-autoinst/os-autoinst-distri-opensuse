@@ -41,7 +41,8 @@ sub run {
     assert_script_run("yast keyboard set layout=german");
 
     # Restore keyboard settings to english-us and verify(enter using german characters).
-    enter_cmd("zast kezboard set lazout)english/us", wait_still_screen => 40, timeout => 180);
+    enter_cmd("zast kezboard set lazout)english/us", wait_still_screen => 10, timeout => 180);
+    send_key_until_needlematch 'root-console', 'ret', 60, 5;
     validate_script_output("yast keyboard summary 2>&1", sub { m/english-us/ }, timeout => 180);
 }
 

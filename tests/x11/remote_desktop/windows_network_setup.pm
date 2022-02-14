@@ -7,33 +7,34 @@
 # Maintainer: GraceWang <gwang@suse.com>
 # Tags: tc#1610388
 
-use strict;
-use warnings;
-use base 'x11test';
+use Mojo::Base qw(windowsbasetest);
 use testapi;
-use lockapi;
+
+sub approve_network_popup {
+    # if there is the networks popup that ask's if it's ok to be discoverable, approve it
+    wait_still_screen stilltime => 5, timeout => 10;
+    assert_screen([qw(networks-popup-be-discoverable no-network-discover-popup)], 60);
+    if (match_has_tag 'networks-popup-be-discoverable') {
+        assert_and_click 'network-discover-yes';
+        wait_screen_change(sub { send_key 'ret' }, 10);
+    }
+}
 
 sub run {
     my $self = shift;
 
-    send_key "super-x";
-    assert_and_click "windows-powershell-admin";
-    assert_and_click "windows-powershell-yes";
-
-    assert_and_click "powershell-started", timeout => 120;
-    type_string "netsh interface ip set address name=Ethernet static 10.0.2.18 255.255.255.0 10.0.2.2";
-    send_key "ret";
-
-    assert_screen "network-allow-discovered";
-    assert_and_click "network-discovered-yes";
-
-    sleep 5;
-    type_string "netsh interface ip set dns Ethernet static 10.67.0.2";
-    send_key "ret";
-
-    type_string "ping 10.0.2.2";
-    send_key "ret";
-    type_string "exit";
-    send_key "ret";
+    assert_screen 'windows-desktop';
+    $self->open_powershell_as_admin;
+    $self->run_in_powershell(cmd => 'Get-NetIPAddress', tags => 'win-remote-desktop');
+    $self->run_in_powershell(cmd => '$a = Get-NetAdapter -Name "Ethernet*" ; echo $a.name', tags => 'win-remote-desktop');
+    $self->run_in_powershell(cmd => 'Set-NetIPInterface -InterfaceAlias $a.name -Dhcp Disabled', tags => 'win-remote-desktop');
+    approve_network_popup;
+    $self->run_in_powershell(cmd => 'Get-NetIPAddress -InterfaceAlias $a.name', tags => 'win-remote-desktop');
+    $self->run_in_powershell(cmd => 'New-NetIPAddress -InterfaceAlias $a.name -IPAddress 10.0.2.18 -PrefixLength 24 -DefaultGateway 10.0.2.2 -Confirm:$false', tags => 'win-remote-desktop');
+    approve_network_popup;
+    $self->run_in_powershell(cmd => 'Set-DnsClientServerAddress -InterfaceAlias $a.name -ServerAddresses ("10.67.0.2") -Confirm:$false', tags => 'win-remote-desktop');
+    enter_cmd('exit');
+    assert_screen 'windows-desktop';
 }
+
 1;

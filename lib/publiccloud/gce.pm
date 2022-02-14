@@ -16,27 +16,10 @@ use Mojo::JSON 'decode_json';
 use testapi;
 use utils;
 
-has storage_name => undef;
-has provider_client => undef;
-has project_id => undef;
-has account => undef;
-has service_acount_name => undef;
-has private_key_id => undef;
-has private_key => undef;
-has client_id => undef;
-
 sub init {
     my ($self, %params) = @_;
     $self->SUPER::init();
-    $self->provider_client(publiccloud::gcp_client->new(
-            region => $self->region,
-            account => $self->account,
-            service_acount_name => $self->service_acount_name,
-            project_id => $self->project_id,
-            private_key_id => $self->private_key_id,
-            private_key => $self->private_key,
-            client_id => $self->client_id
-    ));
+    $self->provider_client(publiccloud::gcp_client->new());
     $self->provider_client->init();
 }
 
@@ -63,7 +46,7 @@ sub find_img {
 sub upload_img {
     my ($self, $file) = @_;
     my $img_name = $self->file2name($file);
-    my $uri = $self->storage_name . '/' . $file;
+    my $uri = $self->provider_client->storage_name . '/' . $file;
     my $guest_os_features = get_var('PUBLIC_CLOUD_GCE_UPLOAD_GUEST_FEATURES', 'MULTI_IP_SUBNET,UEFI_COMPATIBLE,VIRTIO_SCSI_MULTIQUEUE');
 
     assert_script_run("gsutil cp '$file' 'gs://$uri'", timeout => 60 * 60);
@@ -91,7 +74,7 @@ sub img_proof {
 
 sub terraform_apply {
     my ($self, %args) = @_;
-    $args{project} //= $self->project_id;
+    $args{project} //= $self->provider_client->project_id;
     $args{confidential_compute} = get_var("PUBLIC_CLOUD_CONFIDENTIAL_VM", 0);
     return $self->SUPER::terraform_apply(%args);
 }

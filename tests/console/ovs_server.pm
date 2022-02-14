@@ -71,6 +71,7 @@ sub run {
     # Setup IPsec tunnel using pre-shared keys
     assert_script_run("ovs-vsctl add-port br-ipsec tun -- set interface tun type=gre options:remote_ip=$client_ip options:psk=swordfish");
     systemctl 'restart openvswitch-ipsec';
+    systemctl 'status openvswitch-ipsec';
 
     # Wait for the client host to setup the IPsec tunnel
     barrier_wait 'ipsec_done';
@@ -104,6 +105,7 @@ sub run {
     assert_script_run("ovs-vsctl set Open_vSwitch . other_config:certificate=/etc/keys/host_1-cert.pem other_config:private_key=/etc/keys/host_1-privkey.pem");
     assert_script_run("ovs-vsctl add-port br-ipsec tun -- set interface tun type=gre options:remote_ip=$client_ip options:remote_cert=/etc/keys/host_2-cert.pem");
     systemctl 'restart openvswitch-ipsec';
+    systemctl 'status openvswitch-ipsec';
 
     # Wait for the client host to setup the IPsec tunnel
     barrier_wait 'ipsec1_done';
@@ -147,6 +149,7 @@ sub run {
     assert_script_run("ovs-vsctl set Open_vSwitch . other_config:certificate=/etc/keys/host_1-cert.pem other_config:private_key=/etc/keys/host_1-privkey.pem other_config:ca_cert=/etc/keys/cacert.pem");
     assert_script_run("ovs-vsctl add-port br-ipsec tun -- set interface tun type=gre options:remote_ip=$client_ip options:remote_name=host_2");
     systemctl 'restart openvswitch-ipsec';
+    systemctl 'status openvswitch-ipsec';
 
     barrier_wait 'ipsec2_done';
 

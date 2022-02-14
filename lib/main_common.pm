@@ -174,6 +174,8 @@ sub setup_env {
         set_var('INSTLANG', 'en_US');
     }
 
+    set_var('LTP_KNOWN_ISSUES', 'https://raw.githubusercontent.com/openSUSE/kernel-qe/main/ltp_known_issues.yaml') if is_opensuse and !get_var('LTP_KNOWN_ISSUES');
+
     # By default format DASD devices before installation
     if (is_backend_s390x) {
         # Format DASD before the installation by default
@@ -995,9 +997,6 @@ sub load_inst_tests {
                 loadtest "installation/user_settings";
             }    # sles4sap wizard installation doesn't have user_settings step
         }
-        elsif (get_var('IMPORT_USER_DATA')) {
-            loadtest 'installation/user_import';
-        }
         elsif (is_microos) {
             loadtest "installation/ntp_config_settings";
         } else {
@@ -1101,8 +1100,6 @@ sub load_consoletests {
     loadtest "console/prepare_test_data";
     loadtest "console/consoletest_setup";
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
-    # This is a temporary solution for enabling open-vm-tools tests, will use YAML job template instead.
-    loadtest 'virt_autotest/esxi_open_vm_tools' if is_vmware && get_var('OPEN_VM_TOOLS');
 
     if (get_var('IBM_TESTS')) {
         # prepare tarballs for the testcase
@@ -1151,7 +1148,7 @@ sub load_consoletests {
     loadtest "console/check_system_info" if (is_sle && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE')));
     # Enable installation repo from the usb, unless we boot from USB, but don't use it
     # for the installation, like in case of LiveCDs and when using http/smb/ftp mirror
-    if (check_var('USBBOOT', 1) && !is_livecd && !get_var('NETBOOT')) {
+    if (check_var('USBBOOT', 1) && !(is_jeos || is_livecd) && !get_var('NETBOOT')) {
         loadtest 'console/enable_usb_repo';
     }
 
@@ -1244,6 +1241,7 @@ sub load_consoletests {
     if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && is_sle('<15') && !get_var("MEDIA_UPGRADE")) {
         loadtest "feature/feature_console/deregister";
     }
+    loadtest "console/nginx" if ((is_opensuse && !is_staging) || is_sle('15+'));
     loadtest 'console/orphaned_packages_check' if is_jeos || get_var('UPGRADE') || get_var('ZDUP') || !is_sle('<12-SP4');
     loadtest "console/consoletest_finish";
 }
@@ -2094,6 +2092,7 @@ sub load_common_x11 {
     elsif (check_var("REGRESSION", "firefox")) {
         loadtest "boot/boot_to_desktop";
         loadtest "x11/window_system";
+        loadtest 'x11/disable_screensaver';
         load_x11_webbrowser();
     }
     elsif (check_var('REGRESSION', 'remote')) {
@@ -2378,6 +2377,8 @@ sub load_security_tests_selinux {
     loadtest "security/selinux/restorecon";
     loadtest "security/selinux/chcon";
     loadtest "security/selinux/chcat";
+    loadtest "security/selinux/set_get_enforce";
+    loadtest "security/selinux/selinuxexeccon";
 }
 
 sub load_security_tests_cc_audit_test {
@@ -2736,7 +2737,12 @@ sub load_hypervisor_tests {
     }
 
     if (check_var('VIRT_PART', 'hotplugging')) {
-        loadtest 'virtualization/universal/hotplugging';    # Try to change properties of guests
+        loadtest 'virtualization/universal/hotplugging_guest_preparation';    # Prepare guests
+        loadtest 'virtualization/universal/hotplugging_network_interfaces';    # Virtual network hotplugging
+        loadtest 'virtualization/universal/hotplugging_HDD';    # Virtual block device hotplugging
+        loadtest 'virtualization/universal/hotplugging_vCPUs';    # Add and remove guests vCPU
+        loadtest 'virtualization/universal/hotplugging_memory';    # Live memory change of guests
+        loadtest 'virtualization/universal/hotplugging_cleanup';    # Restore guests properties
     }
 
     if (check_var('VIRT_PART', 'networking')) {

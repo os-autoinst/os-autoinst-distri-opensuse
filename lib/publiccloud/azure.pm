@@ -16,24 +16,16 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use utils qw(script_output_retry);
 use publiccloud::azure_client;
 
-has tenantid => undef;
-has subscription => undef;
 has resource_group => 'openqa-upload';
 has storage_account => 'openqa';
 has container => 'sle-images';
 has lease_id => undef;
 has vault => undef;
-has provider_client => undef;
 
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    $self->provider_client(publiccloud::azure_client->new(
-            key_id => $self->key_id,
-            key_secret => $self->key_secret,
-            subscription => $self->subscription,
-            tenantid => $self->tenantid,
-            region => $self->region));
+    $self->provider_client(publiccloud::azure_client->new());
     $self->provider_client->init();
 }
 
@@ -100,10 +92,10 @@ sub create_resources {
     my ($self) = @_;
     my $timeout = 60 * 5;
     record_info('INFO', 'Create resource group ' . $self->resource_group);
-    assert_script_run('az group create --name ' . $self->resource_group . ' -l ' . $self->region, $timeout);
+    assert_script_run('az group create --name ' . $self->resource_group . ' -l ' . $self->provider_client->region, $timeout);
     record_info('INFO', 'Create storage account ' . $self->storage_account);
     assert_script_run('az storage account create --resource-group ' . $self->resource_group . ' -l '
-          . $self->region . ' --name ' . $self->storage_account . ' --kind Storage --sku Standard_LRS', $timeout);
+          . $self->provider_client->region . ' --name ' . $self->storage_account . ' --kind Storage --sku Standard_LRS', $timeout);
     my $key = $self->get_storage_account_keys($self->resource_group, $self->storage_account);
     record_info('INFO', 'Create storage container ' . $self->container);
     assert_script_run('az storage container create --account-name ' . $self->storage_account

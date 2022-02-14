@@ -96,6 +96,8 @@ sub cleanup() {
 
 sub post_fail_hook {
     my $self = shift;
+    # Upload audit log to help to troubleshot issues
+    upload_logs '/var/log/audit/audit.log';
     cleanup();
     $self->SUPER::post_fail_hook;
 }

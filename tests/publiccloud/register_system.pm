@@ -15,43 +15,35 @@ use warnings;
 use testapi;
 use strict;
 use utils;
-use publiccloud::utils qw(select_host_console is_ondemand);
+use publiccloud::utils;
 
 sub run {
     my ($self, $args) = @_;
 
+    # Preserve args for post_fail_hook
+    $self->{instance} = $args->{my_instance};
+
     select_host_console();    # select console on the host, not the PC instance
 
-    if (is_ondemand) {
-        # on OnDemand image we use `registercloudguest` to register and configure the repositories
-        $args->{my_instance}->retry_ssh_command("sudo registercloudguest", timeout => 420, retry => 3);
-    } else {
+    # The OnDemand (PAYG) images should be registered
+    # automatically by the guestregister.service
+    if (!is_ondemand()) {
         my @addons = split(/,/, get_var('SCC_ADDONS', ''));
-
-        # note: ssh_script_retry dies on failure
-        my $regcode = get_required_var('SCC_REGCODE');
-        $args->{my_instance}->retry_ssh_command("sudo SUSEConnect -r $regcode", timeout => 420, retry => 3);
-        my $arch = get_var('PUBLIC_CLOUD_ARCH') // "x86_64";
-        $arch = "aarch64" if ($arch eq "arm64");
         my $remote = $args->{my_instance}->username . '@' . $args->{my_instance}->public_ip;
+        registercloudguest($args->{my_instance});
         for my $addon (@addons) {
             next if ($addon =~ /^\s+$/);
-            record_info $addon, "Going to register '$addon' addon";
-            if ($addon =~ /ltss/) {
-                $regcode = get_required_var('SCC_REGCODE_LTSS');
-                ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch, "-r $regcode");
-            } elsif (is_sle('<15') && $addon =~ /tcm|wsm|contm|asmm|pcm/) {
-                ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '`echo ${VERSION} | cut -d- -f1`', $arch);
-            } elsif (is_sle('<15') && $addon =~ /sdk|we/) {
-                ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch);
-            } else {
-                ssh_add_suseconnect_product($remote, get_addon_fullname($addon), undef, $arch);
-            }
+            register_addon($remote, $addon);
         }
     }
-    record_info('LR', $args->{my_instance}->run_ssh_command(cmd => "sudo zypper lr || true"));
-    record_info('LS', $args->{my_instance}->run_ssh_command(cmd => "sudo zypper ls || true"));
+    record_info('repos (lr)', $args->{my_instance}->run_ssh_command(cmd => "sudo zypper lr"));
+    record_info('repos (ls)', $args->{my_instance}->run_ssh_command(cmd => "sudo zypper ls"));
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->{instance}->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
+    $self->SUPER::post_fail_hook;
 }
 
 1;
-

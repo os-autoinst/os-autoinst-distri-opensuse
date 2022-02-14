@@ -1,11 +1,11 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2021-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Run 'netfilter' test case of 'audit-test' test suite
+# Summary: Setup network configuration for netfilter and netfilebt test cases
 # Maintainer: Liu Xiaojing <xiaojing.liu@suse.com>
-# Tags: poo#96540 poo#99441, poo#110157
+# Tags: poo#96540 poo#99441, poo#110157, poo#101914
 
 use base 'consoletest';
 use strict;
@@ -14,6 +14,7 @@ use testapi;
 use autotest;
 use utils;
 use lockapi;
+use Utils::Architectures;
 use mmapi 'wait_for_children';
 use audit_test qw(compare_run_log prepare_for_test upload_audit_test_logs);
 use scheduler 'get_test_suite_data';
@@ -28,15 +29,23 @@ sub run {
     # Need to do 'make netconfig' to generate 'lblnet_tst_server'
     prepare_for_test(make => 1, timeout => 900, make_netconfig => 1);
 
+    # Get netdev
+    my $netdev = 'eth0';
+    if (is_s390x) {
+        $netdev = 'eth1';
+        assert_script_run('ip link set eth1 up');
+        script_run('ip a');
+    }
+
     # Configure the network
     my $data = get_test_suite_data();
 
     my $role = get_required_var('ROLE');
     foreach my $key (keys %{$data->{$role}}) {
         my $n = $data->{$role}->{$key};
-        my $netcard = $n->{netcard};
+        my $netcard = $netdev . '.' . $n->{netcard};
         my $dev = $netcard;
-        assert_script_run("ip link add link eth0 address $n->{mac_addr} $netcard type macvlan");
+        assert_script_run("ip link add link $netdev address $n->{mac_addr} $netcard type macvlan");
 
         # Network Bridge setting for Target of Evaluation(TOE)
         if ($role eq 'client' && $key eq 'second_interface') {
@@ -76,8 +85,10 @@ sub run {
         $server_first->{ipv4} =~ s/\/.*//g;
         $server_second->{ipv4} =~ s/\/.*//g;
 
+        my $client_first_dev = $netdev . '.' . $client_first->{netcard} . '@' . $netdev;
+        my $client_second_dev = $netdev . '.' . $client_second->{netcard} . '@' . $netdev;
         assert_script_run(
-"export PASSWD=$testapi::password LOCAL_DEV=$client_first->{netcard}\@eth0 LOCAL_SEC_DEV=$client_second->{netcard}\@eth0 LOCAL_SEC_MAC=$client_second->{mac_addr} LOCAL_IPV4=$client_first->{ipv4} LOCAL_IPV6=$client_first->{ipv6} LOCAL_SEC_IPV4=$client_second->{ipv4} LOCAL_SEC_IPV6=$client_second->{ipv6} LBLNET_SVR_IPV4=$server_first->{ipv4} LBLNET_SVR_IPV6=$server_first->{ipv6} SECNET_SVR_IPV4=$server_second->{ipv4} SECNET_SVR_IPV6=$server_second->{ipv6} SECNET_SVR_MAC=$server_second->{mac_addr} BRIDGE_FILTER=toebr"
+"export PASSWD=$testapi::password LOCAL_DEV=$client_first_dev LOCAL_SEC_DEV=$client_second_dev LOCAL_SEC_MAC=$client_second->{mac_addr} LOCAL_IPV4=$client_first->{ipv4} LOCAL_IPV6=$client_first->{ipv6} LOCAL_SEC_IPV4=$client_second->{ipv4} LOCAL_SEC_IPV6=$client_second->{ipv6} LBLNET_SVR_IPV4=$server_first->{ipv4} LBLNET_SVR_IPV6=$server_first->{ipv6} SECNET_SVR_IPV4=$server_second->{ipv4} SECNET_SVR_IPV6=$server_second->{ipv6} SECNET_SVR_MAC=$server_second->{mac_addr} BRIDGE_FILTER=toebr"
         );
 
         my $run_netfilter_args = OpenQA::Test::RunArgs->new();

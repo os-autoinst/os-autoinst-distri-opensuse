@@ -10,7 +10,6 @@ vars:
   INSTALL_KEYBOARD_LAYOUT: cz
 schedule:
   - autoyast/prepare_profile
-  - installation/isosize
   - installation/bootloader
   - autoyast/installation
   - locale/keymap_or_locale

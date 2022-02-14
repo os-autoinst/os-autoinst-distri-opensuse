@@ -16,15 +16,11 @@ use publiccloud::aws_client;
 
 has ssh_key => undef;
 has ssh_key_file => undef;
-has provider_client => undef;
 
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    $self->provider_client(publiccloud::aws_client->new(
-            key_id => $self->key_id,
-            key_secret => $self->key_secret,
-            region => $self->region));
+    $self->provider_client(publiccloud::aws_client->new());
     $self->provider_client->init();
 }
 
@@ -109,7 +105,7 @@ sub upload_img {
             'eu-west-1-byos-arm64' => 'ami-02eae5be24d203db3',
         };
 
-        my $ami_id_key = $self->region;
+        my $ami_id_key = $self->provider_client->region;
         $ami_id_key .= '-byos' if is_byos();
         $ami_id_key .= '-arm64' if check_var('PUBLIC_CLOUD_ARCH', 'arm64');
         $helper_ami_id = $ami_id_hash->{$ami_id_key} if exists($ami_id_hash->{$ami_id_key});
@@ -137,14 +133,14 @@ sub upload_img {
           . (is_byos() ? '' : '--use-root-swap ')
           . '--ena-support '
           . "--verbose "
-          . "--regions '" . $self->region . "' "
+          . "--regions '" . $self->provider_client->region . "' "
           . "--ssh-key-pair '" . $self->ssh_key . "' "
           . "--private-key-file " . $self->ssh_key_file . " "
           . "-d 'OpenQA upload image' "
           . "--wait-count 3 "
           . "--ec2-ami '" . $helper_ami_id . "' "
           . "--type '" . $instance_type . "' "
-          . "--user '" . $self->username . "' "
+          . "--user '" . $self->provider_client->username . "' "
           . ($sec_group ? "--security-group-ids '" . $sec_group . "' " : '')
           . ($vpc_subnet ? "--vpc-subnet-id '" . $vpc_subnet . "' " : '')
           . "'$file'",

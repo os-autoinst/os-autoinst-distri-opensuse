@@ -11,16 +11,12 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
-use scheduler "get_test_suite_data";
-use File::Basename;
 
 sub run {
     my $self = shift;
     select_console 'root-console';
-    my $file_location = get_test_suite_data()->{file_location};
-    assert_script_run("tar -xvf $file_location -C " . dirname($file_location));
-    $self->investigate_yast2_failure(logs_path => dirname($file_location));
-    record_info(dirname($file_location));
+    assert_script_run("mkdir -p /tmp/var/log; tar -xvf '/tmp/y2logs.tar.bz2' -C " . "/tmp/var/log");
+    $self->investigate_yast2_failure(logs_path => '/tmp');
 }
 
 1;

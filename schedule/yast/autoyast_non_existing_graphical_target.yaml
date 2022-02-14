@@ -15,7 +15,6 @@ vars:
   AUTOYAST_PREPARE_PROFILE: 1
 schedule:
   - autoyast/prepare_profile
-  - installation/isosize
   - installation/bootloader_start
   - autoyast/installation
   - console/verify_default_target

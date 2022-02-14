@@ -1,0 +1,2 @@
+runtime-endpoint: unix:///run/containerd/containerd.sock
+debug: true

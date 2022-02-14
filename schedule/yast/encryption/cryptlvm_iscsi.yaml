@@ -18,25 +18,24 @@ schedule:
   - installation/licensing/accept_license
   - installation/iscsi_configuration
   - installation/registration/register_via_scc
-  - installation/module_selection/select_module_desktop
+  - installation/module_registration/register_module_desktop
   - installation/add_on_product/skip_install_addons
   - installation/system_role/accept_selected_role_SLES_with_GNOME
   - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup/select_disks
   - installation/partitioning/guided_setup/encrypt_lvm_simple_pwd
   - installation/partitioning/guided_setup/accept_default_fs_options
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
-  - installation/hostname_inst
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
-  - installation/resolve_dependency_issues
-  - installation/installation_overview
+  - installation/installation_settings/validate_default_target
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
   - installation/confirm_installation
   - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
-  - installation/reboot_after_installation
+  - installation/performing_installation/confirm_reboot
   - installation/grub_test
   - installation/boot_encrypt
   - installation/first_boot
@@ -47,6 +46,9 @@ schedule:
   - console/validate_lvm
   - console/validate_encrypt
 test_data:
+  guided_partitioning:
+    disks:
+      - sda
   crypttab:
     num_devices_encrypted: 1
   <<: !include test_data/yast/encryption/default_enc.yaml

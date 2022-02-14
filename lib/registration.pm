@@ -9,7 +9,7 @@ use strict;
 use warnings;
 use testapi;
 use Utils::Architectures;
-use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key quit_packagekit script_retry);
+use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key quit_packagekit script_retry wait_for_purge_kernels);
 use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro);
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
@@ -226,7 +226,7 @@ sub remove_suseconnect_product {
     $version //= scc_version();
     $arch //= get_required_var('ARCH');
     $params //= '';
-    assert_script_run("SUSEConnect -d -p $name/$version/$arch $params");
+    assert_script_run("SUSEConnect -d -p $name/$version/$arch $params", timeout => 150);
 }
 
 =head2 cleanup_registration
@@ -238,7 +238,7 @@ variable set.
 =cut
 sub cleanup_registration {
     # Remove registration from the system
-    assert_script_run 'SUSEConnect --clean';
+    assert_script_run 'SUSEConnect --cleanup';
     # Define proxy SCC if provided
     my $proxyscc = get_var('SCC_URL');
     assert_script_run "echo \"url: $proxyscc\" > /etc/SUSEConnect" if $proxyscc;
@@ -791,6 +791,13 @@ sub fill_in_reg_server {
         $regcode = $prdcode if ($prdcode);
     }
 
+    # rmt slp discovery, the smt server address will auto filled
+    # and selected. We do this kind of test on local openQA to avoid
+    # affecting the jobs on openqa.suse.de.
+    if (get_var('SLP_RMT_INSTALL')) {
+        wait_screen_change { send_key $cmd{next} };
+        return;
+    }
     if (!get_var("SMT_URL")) {
         if (is_sle('15+') && check_var('DESKTOP', 'textmode')) {
             send_key "alt-m";    # select email field if yast2 add-on
@@ -832,8 +839,9 @@ sub scc_deregistration {
     if (is_sle('12-SP1+', get_var($args{version_variable}))) {
         # Need quit packagekit to ensure it won't block to de-register system via SUSEConnect.
         quit_packagekit;
+        wait_for_purge_kernels;
         assert_script_run('SUSEConnect --version');
-        my $deregister_ret = script_run('SUSEConnect --de-register --debug > /tmp/SUSEConnect.debug 2>&1', 200);
+        my $deregister_ret = script_run('SUSEConnect --de-register --debug > /tmp/SUSEConnect.debug 2>&1', 300);
         if (defined $deregister_ret and $deregister_ret == 104) {
             # https://bugzilla.suse.com/show_bug.cgi?id=1119512
             # https://bugzilla.suse.com/show_bug.cgi?id=1122497

@@ -17,7 +17,8 @@ use strict;
 use warnings;
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
     validate_script_output "curl --ciphers RC4,SEED -v https://eu.httpbin.org/get 2>&1 || true", sub { m/failed setting cipher/ };
     validate_script_output "rpm -q curl libcurl4", sub { m/curl-.*/ };
 }

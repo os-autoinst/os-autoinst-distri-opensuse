@@ -23,8 +23,12 @@ sub is_networkmanager {
 sub run {
     my ($self) = @_;
     my $hostname = get_var('HOSTNAME');
+    my ($nm_id, $device);
     select_console 'root-console';
-    my $nm_id = is_sle('15-sp4+') ? 'eth0' : 'Wired connection 1';
+    if (is_networkmanager) {
+        $nm_id = script_output('nmcli -t -f NAME c');
+        $device = script_output('nmcli -t -f DEVICE c');
+    }
 
     # Do not use external DNS for our internal hostnames
     assert_script_run('echo "10.0.2.101 server master" >> /etc/hosts');
@@ -39,7 +43,7 @@ sub run {
         setup_static_mm_network('10.0.2.101/24');
 
         if (is_networkmanager) {
-            assert_script_run "nmcli connection modify '$nm_id' ifname 'eth0' ip4 '10.0.2.101/24' gw4 10.0.2.2 ipv4.method manual ";
+            assert_script_run "nmcli connection modify '$nm_id' ifname '$device' ip4 '10.0.2.101/24' gw4 10.0.2.2 ipv4.method manual ";
             assert_script_run "nmcli connection down '$nm_id'";
             assert_script_run "nmcli connection up '$nm_id'";
         }
@@ -51,7 +55,7 @@ sub run {
         setup_static_mm_network('10.0.2.102/24');
 
         if (is_networkmanager) {
-            assert_script_run "nmcli connection modify '$nm_id' ifname 'eth0' ip4 '10.0.2.102/24' gw4 10.0.2.2 ipv4.method manual ";
+            assert_script_run "nmcli connection modify '$nm_id' ifname '$device' ip4 '10.0.2.102/24' gw4 10.0.2.2 ipv4.method manual ";
             assert_script_run "nmcli connection down '$nm_id'";
             assert_script_run "nmcli connection up '$nm_id'";
         }

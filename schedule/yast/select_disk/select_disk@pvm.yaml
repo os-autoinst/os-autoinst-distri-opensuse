@@ -13,7 +13,7 @@ schedule:
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
-  - installation/module_selection/skip_module_selection
+  - installation/module_registration/skip_module_registration
   - installation/add_on_product/skip_install_addons
   - installation/system_role/accept_selected_role_text_mode
   - installation/partitioning/select_guided_setup
@@ -24,7 +24,6 @@ schedule:
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
-  - installation/resolve_dependency_issues
   - installation/installation_settings/validate_ssh_service_enabled
   - installation/installation_settings/open_ssh_port
   - installation/bootloader_settings/disable_plymouth
@@ -33,7 +32,7 @@ schedule:
   - installation/confirm_installation
   - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
-  - installation/reboot_after_installation
+  - installation/performing_installation/confirm_reboot
   - installation/handle_reboot
   - installation/first_boot
   - console/validate_first_disk_selection

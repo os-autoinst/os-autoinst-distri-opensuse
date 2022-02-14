@@ -4,7 +4,6 @@ description: |
   Gnome installation with separate /home partition encrypted
 schedule:
   - autoyast/prepare_profile
-  - installation/isosize
   - installation/bootloader_start
   - autoyast/installation
   - installation/boot_encrypt

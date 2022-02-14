@@ -54,8 +54,9 @@ sub run {
     type_string "hong";
     send_key "down";
 
+    send_key 'tab';
     sleep 1;
-    send_key "alt-shift-e";
+    send_key "shift-e";
 
     sleep 1;
     send_key "spc";

@@ -86,7 +86,7 @@ main(){
   echo "OS_VERSION: $OS_VERSION"
 
   # Install dependencies to apply source patches and run tests
-  zypper -n in quilt rpm-build
+  zypper -n in quilt rpm-build  libopenssl1_1-hmac
 
   if [ "$OS_VERSION" = "SLE_12_SP5" ]; then
     zypper -n in openssl-1_1
@@ -150,6 +150,8 @@ node_flags=(
 # Example: ["14 tests/directory/mytest.js SLE_15"]="skip"
 declare -A skip_test
 skip_test=(
+  ["16.13.2-8.3.1 test/parallel/test-crypto-engine.js SLE_12_SP5"]="skip" # This should be skipped also on future versions
+  ["16.13.2-150300.7.3.1 test/parallel/test-crypto-engine.js SLE_15_SP3"]="skip" # This should be skipped also on future versions
   ["14.15.1-6.3.1 test/sequential/test-tls-securepair-client.js SLE_12_SP5"]="skip"
   ["14.15.1-6.3.1 test/sequential/test-tls-session-timeout.js SLE_12_SP5"]="skip"
   ["10.22.1-1.27.1 test/parallel/test-crypto-dh.js SLE_15"]="skip"

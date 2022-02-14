@@ -23,7 +23,7 @@ use utils;
 sub init {
     my ($self, %args) = @_;
     $self->SUPER::init("GCR");
-    $self->configure_docker();
+    $self->configure_podman();
 }
 
 =head2 delete_image

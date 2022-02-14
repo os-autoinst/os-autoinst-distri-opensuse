@@ -34,7 +34,7 @@ sub grub_test {
     workaround_type_encrypted_passphrase;
     # 60 due to rare slowness e.g. multipath poo#11908
     # 90 as a workaround due to the qemu backend fallout
-    assert_screen_with_soft_timeout('grub2', timeout => 2 * $timeout, soft_timeout => $timeout, bugref => 'boo#1120256');
+    assert_screen('grub2', $timeout);
     stop_grub_timeout;
     boot_into_snapshot if get_var("BOOT_TO_SNAPSHOT");
     send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5) if get_var('XEN');

@@ -17,7 +17,7 @@
 # - Cleanup
 #
 # Maintainer: Petr Cervinka <pcervinka@suse.com>, Ben Chou <bchou@suse.com>
-# Tags: poo#65375, poo#97685
+# Tags: poo#65375, poo#97685, poo#104556
 
 use base "consoletest";
 use strict;
@@ -27,6 +27,7 @@ use Utils::Backends;
 use Utils::Architectures;
 use utils;
 use version_utils 'is_sle';
+use utils qw(zypper_call package_upgrade_check);
 
 sub gpg_test {
     my ($key_size, $gpg_ver) = @_;
@@ -154,7 +155,20 @@ sub run {
 
     # Obtain GnuPG version
     my $gpg_version_output = script_output("gpg --version");
-    my ($gpg_version) = $gpg_version_output =~ /gpg \(GnuPG\) (\d\.\d)/;
+    my ($gpg_version) = $gpg_version_output =~ /gpg \(GnuPG\) (\S+)/;
+    record_info('gpg version', "Version of Current gpg package: $gpg_version");
+
+    # libgcrypt version check
+    my $pkg_list = {libgcrypt20 => '1.9.0'};
+    zypper_call("in " . join(' ', keys %$pkg_list));
+
+    if (is_sle('>=15-sp4')) {
+        package_upgrade_check($pkg_list);
+    }
+    else {
+        my $libgcrypt_ver = script_output("rpm -q --qf '%{version}\n' libgcrypt20");
+        record_info('libgcrypt20 version', "Version of Current package: $libgcrypt_ver");
+    }
 
     # GPG key generation and basic function testing with differnet key lengths
     # RSA keys may be between 1024 and 4096 only currently

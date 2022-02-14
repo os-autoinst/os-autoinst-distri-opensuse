@@ -66,7 +66,7 @@ sub run {
         # we do not support ethernet with mvapich2
         my $return = script_run("set -o pipefail;/usr/lib64/mpi/gcc/$mpi/bin/mpirun --host $cluster_nodes /tmp/simple_mpi |& tee /tmp/simple_mpi.log");
         if ($return == 143) {
-            record_info("echo $return - No IB device found");
+            record_info("mvapich2 info", "echo $return - No IB device found");
         } elsif ($return == 139 || $return == 255) {
             # process running (on master return 139, on slave return 255)
             if (script_run('grep \'Caught error: Segmentation fault (signal 11)\' /tmp/simple_mpi.log') == 0) {

@@ -107,18 +107,27 @@ sub login {
     # Eat stale buffer contents, otherwise the code below may get confused
     # after reboot and start typing the username before the console is actually
     # ready to accept it
-    wait_serial(qr/login:\s*$/i, timeout => 5, quiet => 1);
+    wait_serial(qr/login:\s*$/i, timeout => 3, quiet => 1);
     # newline nudges the guest to display the login prompt, if this behaviour
     # changes then remove it
     send_key 'ret';
     die 'Failed to wait for login prompt' unless wait_serial(qr/login:\s*$/i);
     enter_cmd("$user");
+
+    my $re = qr/$user/i;
+    if (!wait_serial($re, timeout => 3)) {
+        record_info('RELOGIN', 'Need to retry login to workaround virtio console race', result => 'softfail');
+        enter_cmd("$user");
+        die 'Failed to wait for password prompt' unless wait_serial($re, timeout => 3);
+    }
+
     if (length $testapi::password) {
-        die 'Failed to wait for password prompt' unless wait_serial(qr/Password:\s*$/i);
+        die 'Failed to wait for password prompt' unless wait_serial(qr/Password:\s*$/i, timeout => 30);
         type_password;
         send_key 'ret';
     }
     die 'Failed to confirm that login was successful' unless wait_serial(qr/$escseq* \w+:~\s\# $escseq* \s*$/x);
+
     # Some (older) versions of bash don't take changes to the terminal during runtime into account. Re-exec it.
     enter_cmd('export TERM=dumb; stty cols 2048; exec $SHELL');
     die 'Failed to confirm that shell re-exec was successful' unless wait_serial(qr/$escseq* \w+:~\s\# $escseq* \s*$/x);

@@ -11,9 +11,7 @@ schedule:
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
-  - '{{fix_sle_15gm_multi_disks}}'
-  - '{{separate_home}}'
-  - '{{partitioning_method}}'
+  - '{{partition_for_systemrole_default}}'
   - installation/partitioning_finish
   - installation/installer_timezone
   - installation/user_settings
@@ -28,6 +26,16 @@ schedule:
   - installation/reboot_after_installation
   - '{{post_installation}}'
 conditional_schedule:
+  partition_for_systemrole_default:
+    SYSTEM_ROLE:
+      default:
+        - '{{fix_sle_15gm_multi_disks}}'
+        - '{{separate_home}}'
+        - '{{partitioning_method}}'
+      textmode:
+        - '{{fix_sle_15gm_multi_disks}}'
+        - '{{separate_home}}'
+        - '{{partitioning_method}}'
   fix_sle_15gm_multi_disks:
     VERSION:
       15:
@@ -70,6 +78,8 @@ conditional_schedule:
       15-SP2:
         - installation/partitioning/no_enlarge_swap
       15-SP3:
+        - installation/partitioning/no_enlarge_swap
+      15-SP4:
         - installation/partitioning/no_enlarge_swap
   partitioning_method:
     ARCH:

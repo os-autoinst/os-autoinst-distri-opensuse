@@ -51,7 +51,7 @@ sub run {
     run_testcase('audit-remote-libvirt', make => 0, timeout => 120);
 
     # Compare current test results with baseline
-    my $result = compare_run_log('audit_remote_libvirt');
+    my $result = compare_run_log('audit-remote-libvirt');
     $self->result($result);
 }
 

@@ -20,6 +20,7 @@ use constant {
           is_pre_15
           is_microos
           is_sle_micro
+          is_selfinstall
           is_gnome_next
           is_jeos
           is_krypton_argon
@@ -229,7 +230,22 @@ sub is_microos {
 Check if distribution is SUSE Linux Enterprise Micro
 =cut
 sub is_sle_micro {
-    return check_var('DISTRI', 'sle-micro');
+    my $query = shift;
+    my $version = shift // get_var('VERSION');
+
+    return 0 unless check_var('DISTRI', 'sle-micro');
+    return 1 unless $query;
+
+    # Version check
+    return check_version($query, $version, qr/\d{1,}\.\d/);
+}
+
+=head2 is_selfinstall
+
+Check if SLEM is in flavor of self installable iso
+=cut
+sub is_selfinstall {
+    return get_var('FLAVOR') =~ /selfinstall/i;
 }
 
 =head2 is_tumbleweed
@@ -548,7 +564,7 @@ sub has_license_on_welcome_screen {
             ((is_sle('>=15-SP1') && get_var('BASE_VERSION') && !get_var('UPGRADE')) && is_s390x())
             || is_sle('<15')
             || (is_sle('=15') && is_s390x())
-            || (is_sle('>=15-SP4') && check_var('FLAVOR', 'Full') && is_s390x())
+            || (is_sle('>=15-SP4') && check_var('FLAVOR', 'Full') && is_s390x() && !get_var('UPGRADE'))
         );
     }
 

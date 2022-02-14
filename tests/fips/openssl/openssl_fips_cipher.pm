@@ -19,7 +19,8 @@ use utils;
 use version_utils 'is_sle';
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
     zypper_call 'in openssl';
 
     my $enc_passwd = "pass1234";

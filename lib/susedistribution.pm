@@ -36,6 +36,18 @@ use testapi qw(send_key %cmd assert_screen check_screen check_var click_lastmatc
   wait_still_screen wait_screen_change get_required_var diag);
 
 
+=head2 new
+
+Class constructor
+=cut
+sub new {
+    my ($class) = @_;
+    my $self = $class->SUPER::new(@_);
+
+    $self->{script_run_die_on_timeout} = 1;
+    return $self;
+}
+
 =head2 handle_password_prompt
 
 Types the password in a password prompt
@@ -412,7 +424,7 @@ sub init_consoles {
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user => 'root'
+                username => 'root'
             });
 
         $self->add_console(
@@ -421,7 +433,7 @@ sub init_consoles {
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user => $testapi::username
+                username => $testapi::username
             });
     }
 
@@ -478,7 +490,7 @@ sub init_consoles {
             {
                 hostname => get_required_var('SUT_IP'),
                 password => $testapi::password,
-                user => 'root',
+                username => 'root',
                 serial => 'rm -f /dev/sshserial; mkfifo /dev/sshserial; chmod 666 /dev/sshserial; while true; do cat /dev/sshserial; done',
                 gui => 1
             });
@@ -487,16 +499,15 @@ sub init_consoles {
     # Use ssh consoles on generalhw, without VNC connection
     if (get_var('BACKEND', '') =~ /generalhw/ && !defined(get_var('GENERAL_HW_VNC_IP'))) {
         my $hostname = get_required_var('SUT_IP');
-        # 'root-ssh' is only needed to set a serial over ssh
         $self->add_console(
             'root-ssh',
             'ssh-xterm',
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user => 'root',
+                username => 'root',
                 serial => 'rm -f /dev/sshserial; mkfifo /dev/sshserial; chmod 666 /dev/sshserial; tail -fn +1 /dev/sshserial'
-            }) if (has_serial_over_ssh);
+            });
 
         $self->add_console(
             'root-console',
@@ -504,7 +515,7 @@ sub init_consoles {
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user => 'root',
+                username => 'root',
             });
         $self->add_console(
             'log-console',
@@ -512,7 +523,7 @@ sub init_consoles {
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user => 'root',
+                username => 'root',
             });
         $self->add_console(
             'user-console',
@@ -520,7 +531,7 @@ sub init_consoles {
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user => $testapi::username
+                username => $testapi::username
             });
     }
 
@@ -548,7 +559,7 @@ sub init_consoles {
                 {
                     hostname => $hostname,
                     password => $testapi::password,
-                    user => 'root'
+                    username => 'root'
                 });
         }
         elsif (check_var("VIDEOMODE", "ssh-x")) {
@@ -558,7 +569,7 @@ sub init_consoles {
                 {
                     hostname => $hostname,
                     password => $testapi::password,
-                    user => 'root',
+                    username => 'root',
                     gui => 1
                 });
         }
@@ -594,7 +605,7 @@ sub init_consoles {
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user => 'root'
+                username => 'root'
             });
         $self->add_console(
             'root-console',
@@ -602,7 +613,7 @@ sub init_consoles {
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user => 'root'
+                username => 'root'
             });
         $self->add_console(
             'user-console',
@@ -610,7 +621,7 @@ sub init_consoles {
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user => $testapi::username
+                username => $testapi::username
             });
         $self->add_console(
             'log-console',
@@ -618,7 +629,7 @@ sub init_consoles {
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user => 'root'
+                username => 'root'
             });
     }
 

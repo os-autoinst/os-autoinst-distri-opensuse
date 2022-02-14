@@ -1,4 +1,4 @@
-# Copyright 2016-2019 SUSE LLC
+# Copyright 2016-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: patterns-server-enterprise-fips
@@ -6,8 +6,9 @@
 #          Installation check - verify the setup of FIPS installation
 #          ENV mode - selected by FIPS_ENV_MODE
 #          Global mode - setup fips=1 in kernel command line
+#
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tags: poo#39071
+# Tags: poo#39071, poo#105591
 
 use strict;
 use warnings;
@@ -19,7 +20,7 @@ use power_action_utils "power_action";
 
 sub run {
     my ($self) = @_;
-    select_console "root-console";
+    $self->select_serial_terminal;
 
     # For installation only. FIPS has already been setup during installation
     # (DVD installer booted with fips=1), so we only do verification here.
@@ -46,7 +47,7 @@ sub run {
     if (get_var("FIPS_ENV_MODE")) {
         die 'FIPS kernel mode is required for this test!' if check_var('SECURITY_TEST', 'crypt_kernel');
         zypper_call('in -t pattern fips');
-        foreach my $env ('OPENSSL_FIPS', 'OPENSSL_FORCE_FIPS_MODE', 'LIBGCRYPT_FORCE_FIPS_MODE', 'NSS_FIPS') {
+        foreach my $env ('OPENSSL_FIPS', 'OPENSSL_FORCE_FIPS_MODE', 'LIBGCRYPT_FORCE_FIPS_MODE', 'NSS_FIPS', 'GnuTLS_FORCE_FIPS_MODE') {
             assert_script_run "echo 'export $env=1' >> /etc/bash.bashrc";
         }
 
@@ -62,7 +63,7 @@ sub run {
     $self->wait_boot(bootloader_time => 200);
 
     # Workaround to resolve console switch issue
-    select_console 'root-console';
+    $self->select_serial_terminal;
     assert_script_run q(grep '^1$' /proc/sys/crypto/fips_enabled) unless (get_var('FIPS_ENV_MODE'));
 }
 

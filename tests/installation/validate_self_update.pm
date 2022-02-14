@@ -14,7 +14,7 @@ sub run {
     my $self = shift;
     select_console('install-shell');
     my $self_update_repo = get_required_var('INSTALLER_SELF_UPDATE');
-    assert_script_run("grep /var/log/YaST2/y2log -e '$self_update_repo'",
+    assert_script_run("zgrep '$self_update_repo' /var/log/YaST2/y2log*",
         fail_message => 'Expected to have log entries that self update repo was contacted');
     assert_script_run('test -n "$(ls -A /download | grep yast_)"',
         fail_message => '/download is expected to contain downloaded updates, no yast_* files found');

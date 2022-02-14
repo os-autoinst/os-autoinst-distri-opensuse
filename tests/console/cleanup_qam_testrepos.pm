@@ -30,8 +30,7 @@ sub get_repo_aliases() {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
-    return if (script_run('zypper -n ref') == 0);    # If all repos are OK we don't have to do anything
+    return if (script_retry('zypper -n ref', timeout => (is_public_cloud ? 1200 : 300), retry => 3, delay => 30) == 0); # If all repos are OK we don't have to do anything
     my $behav = get_var('QAM_TESTREPO_FAIL') // "fail";
     # Check all repositories if they are valid
     foreach my $repo (get_repo_aliases()) {

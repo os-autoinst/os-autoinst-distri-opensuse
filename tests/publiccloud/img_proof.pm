@@ -68,15 +68,15 @@ our $img_proof_tests = {
     'AZURE-Priority-gen2-Image-Updates' => $azure_on_demand_updates,
 
     'EC2-CHOST-BYOS' => $ec2_byos_chost,
-    'EC2-HVM' => $ec2_on_demand,
-    'EC2-HVM-ARM' => $ec2_on_demand,
+    EC2 => $ec2_on_demand,
+    'EC2-ARM' => $ec2_on_demand,
     'EC2-Updates' => $ec2_on_demand_updates,
     'EC2-ARM-Updates' => $ec2_on_demand_updates,
     'EC2-BYOS-Updates' => $ec2_byos_updates,
     'EC2-BYOS-ARM-Updates' => $ec2_byos_updates,
-    'EC2-HVM-BYOS' => $ec2_byos,
+    'EC2-BYOS' => $ec2_byos,
     'EC2-HVM-BYOS-Updates' => $ec2_byos_updates,
-    'EC2-HVM-HPC-BYOS' => $ec2_byos,
+    'EC2-HPC-BYOS' => $ec2_byos,
     'EC2-BYOS-Image-Updates' => $ec2_byos_updates,
     'EC2-Image-Updates' => $ec2_on_demand_updates,
     'EC2-BYOS-ARM-Image-Updates' => $ec2_byos_updates,
@@ -137,7 +137,7 @@ sub run {
             my $file = path(bmwqemu::result_dir(), $filename);
             my $json = Mojo::JSON::decode_json($file->slurp);
             next if ($json->{result} ne 'fail');
-            $instance->upload_log('/var/log/cloudregister');
+            $instance->upload_log('/var/log/cloudregister', log_name => 'cloudregister.log');
             last;
         }
         $instance->run_ssh_command(cmd => 'rpm -qa > /tmp/rpm_qa.txt', no_quote => 1);

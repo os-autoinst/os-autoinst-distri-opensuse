@@ -35,24 +35,24 @@ sub run {
 
     my $expected = 'NetworkManager';
     my $unexpected = 'wicked';
-    my $reason = 'DESKTOP!=textmode';
+    my $reason = 'networking';
 
-    if (is_sle) {
+    if (is_jeos) {
+        $expected = 'wicked';
+        $unexpected = 'NetworkManager';
+        $reason = 'JeOS';
+    }
+    elsif (is_sle) {
         if (is_server) {
             $expected = 'wicked';
             $unexpected = 'NetworkManager';
             $reason = 'SLES';
         }
-        elsif (is_jeos) {
-            $expected = 'wicked';
-            $unexpected = 'NetworkManager';
-            $reason = 'JeOS';
-        }
         else {
             $reason = 'SLED';
         }
     }
-    elsif (check_var('DESKTOP', 'textmode')) {
+    elsif (is_leap && check_var('DESKTOP', 'textmode')) {
         $expected = 'wicked';
         $unexpected = 'NetworkManager';
         $reason = 'DESKTOP=textmode';

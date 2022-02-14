@@ -11,3 +11,4 @@ docs/*.html
 docs/**/*.html
 /script/yaml_generator/env/
 __pycache__/
+.tidyall.d/

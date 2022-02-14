@@ -24,14 +24,13 @@ schedule:
   - installation/partitioning/new_partitioning_gpt
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/default_user_simple_pwd
-  - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
   - installation/confirm_installation
   - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
-  - installation/reboot_after_installation
+  - installation/performing_installation/confirm_reboot
   - installation/grub_test
   - installation/boot_encrypt
   - installation/first_boot

@@ -28,6 +28,9 @@ sub install_pkg {
 
     # Install qa_lib_ctcs2 package to fix dependency issue
     zypper_call("install qa_lib_ctcs2");
+    if (get_var('VERSION') =~ /^12/) {
+        zypper_call("install python3");
+    }
 }
 
 sub extract_settings_qaset_config {

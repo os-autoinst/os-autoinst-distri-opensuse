@@ -31,6 +31,8 @@ schedule:
   - '{{maintenance}}'
   - '{{selinux}}'
   - microos/toolbox
-  - containers/podman_3rd_party_images
   - containers/podman
   - containers/podman_image
+  - containers/podman_3rd_party_images
+  - containers/podman_firewall
+  - containers/rootless_podman

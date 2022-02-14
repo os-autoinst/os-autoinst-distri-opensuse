@@ -65,8 +65,7 @@ sub get_product_shortcuts {
             : is_aarch64() ? 's'
             : 'i',
             sled => 'x',
-            sles4sap => is_ppc64le() ? (is_sle('15-SP4+') ? 'U' : 'i')
-            : (is_sle('15-SP4+') && is_x86_64() && !is_quarterly_iso()) ? 'i'
+            sles4sap => is_ppc64le() ? 'i'
             : (is_sle('15-SP2+') && is_x86_64() && !is_quarterly_iso()) ? 't'
             : 'p',
             hpc => is_x86_64() ? 'g' : 'u',
@@ -86,8 +85,8 @@ sub get_product_shortcuts {
 sub run {
     my ($self) = @_;
     my $iterations;
-
     my @welcome_tags = ('inst-welcome-confirm-self-update-server', 'scc-invalid-url');
+    push @welcome_tags, 'local-registration-server' if get_var('SLP_RMT_INSTALL');
     my $expect_beta_warn = get_var('BETA');
     if ($expect_beta_warn) {
         push @welcome_tags, 'inst-betawarning';
@@ -96,7 +95,7 @@ sub run {
         push @welcome_tags, 'inst-welcome';
     }
     # Add tag for untrusted-ca-cert with SMT
-    push @welcome_tags, 'untrusted-ca-cert' if get_var('SMT_URL');
+    push @welcome_tags, 'untrusted-ca-cert' if (get_var('SMT_URL') || get_var('SLP_RMT_INSTALL'));
     # Add tag for sle15 upgrade mode, where product list should NOT be shown
     push @welcome_tags, 'inst-welcome-no-product-list' if is_sle('15+') and get_var('UPGRADE');
     # Add tag to check for https://progress.opensuse.org/issues/30823 "test is
@@ -113,6 +112,17 @@ sub run {
         my $timeout = is_aarch64 ? '1000' : '500';
         assert_screen(\@welcome_tags, $timeout);
         # Normal exit condition
+        if (match_has_tag 'local-registration-server') {
+            if (is_sle('15+')) {
+                send_key 'alt-h';
+            } else {
+                send_key 'alt-r';
+            }
+            wait_still_screen 5;
+            send_key 'alt-o';
+            wait_still_screen 5;
+            save_screenshot;
+        }
         if ((match_has_tag 'inst-betawarning') || (match_has_tag 'inst-welcome') || (match_has_tag 'inst-welcome-no-product-list')) {
             last;
         }

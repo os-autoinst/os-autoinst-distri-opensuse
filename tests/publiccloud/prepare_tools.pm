@@ -71,7 +71,7 @@ sub run {
     ensure_ca_certificates_suse_installed();
 
     # Install prerequesite packages test
-    zypper_call('-q in python3-pip python3-devel python3-virtualenv python3-img-proof python3-img-proof-tests podman docker jq');
+    zypper_call('-q in python3-pip python3-devel python3-virtualenv python3-img-proof python3-img-proof-tests podman docker jq rsync');
     record_info('python', script_output('python --version'));
     systemctl('enable --now docker');
     assert_script_run('podman ps');

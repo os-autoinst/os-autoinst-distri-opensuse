@@ -22,7 +22,8 @@ use warnings;
 use utils qw(zypper_call);
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
     zypper_call 'in openssl';
 
     my $tmp_file = "/tmp/hello.txt";
@@ -40,7 +41,13 @@ sub run {
     # Remove md2 and sha, and add rmd160 and md5-sha1 from invalid hash check in fips mode
     my @invalid_hash = ("md4", "md5", "mdc2", "rmd160", "ripemd160", "whirlpool", "md5-sha1");
     for my $hash (@invalid_hash) {
-        validate_script_output "openssl dgst -$hash $tmp_file 2>&1 || true", sub { m/$hash is not a known digest|unknown option|Unknown digest|dgst: Unrecognized flag/ };
+        eval {
+            validate_script_output "openssl dgst -$hash $tmp_file 2>&1 || true", sub { m/$hash is not a known digest|unknown option|Unknown digest|dgst: Unrecognized flag/ };
+        };
+        if ($@) {
+            record_soft_failure 'bsc#1193859';
+            validate_script_output "openssl dgst -$hash $tmp_file 2>&1 || true", sub { m/disabled for fips|disabled for FIPS|unknown option|Unknown digest|dgst: Unrecognized flag/ };
+        }
     }
 
     script_run 'rm -f $tmp_file';

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2021-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Package for users service test
@@ -134,6 +134,8 @@ sub restore_passwd {
 
 # remove test user
 sub remove_test_user {
+    # We need wait a bit more time for the user related process to quit even after logout the user.
+    assert_script_run('for ((i=5; i>0; i--)) do if (! ps -e -u test > /dev/null 2>&1); then break; else sleep 3; fi done');
     assert_script_run("userdel -r $newUser");
 }
 
@@ -152,15 +154,6 @@ sub full_users_check {
     # reset consoles before select x11 console will make the connect operation
     # more stable on s390x
     reset_consoles if is_s390x;
-    if (check_var('DESKTOP', 'gnome')) {
-        if (is_s390x) {
-            turn_off_gnome_screensaver;
-        }
-        else {
-            select_console 'root-console';
-            turn_off_gnome_screensaver_for_gdm;
-        }
-    }
     select_console 'x11', await_console => 0;
     wait_still_screen 15;
     ensure_unlocked_desktop;

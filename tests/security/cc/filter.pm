@@ -19,7 +19,7 @@ sub run {
 
     select_console 'root-console';
 
-    run_testcase('filter', (make => 1));
+    run_testcase('filter', (make => 1, timeout => 180));
 
     # Compare current test results with baseline
     my $result = compare_run_log('filter');

@@ -387,9 +387,21 @@ sub umount_xfstests_dev {
     }
 }
 
+sub config_debug_option {
+    script_run('echo 1 > /proc/sys/kernel/softlockup_all_cpu_backtrace');    # on detection capture more debug information
+    script_run('echo 1 > /proc/sys/kernel/softlockup_panic');    # panic when softlockup
+    if (get_var('XFSTESTS_DEBUG')) {
+        # e.g. XFSTESTS_DEBUG could be one or more parameter in following
+        # [hardlockup_panic hung_task_panic panic_on_io_nmi panic_on_oops panic_on_rcu_stall...]
+        script_run("echo 1 > /proc/sys/kernel/$_ ") foreach (split ' ', get_var('XFSTESTS_DEBUG'));
+    }
+}
+
 sub run {
     my $self = shift;
     select_console('root-console');
+
+    config_debug_option;
 
     # Get wrapper
     assert_script_run("curl -o $TEST_WRAPPER " . data_url('xfstests/wrapper.sh'));
@@ -414,6 +426,8 @@ sub run {
     heartbeat_start;
     my $status_log_content = "";
     foreach my $test (@tests) {
+        # trim testname
+        $test =~ s/^\s+|\s+$//g;
         # Skip tests inside blacklist
         if (exists($BLACKLIST{$test})) {
             next;

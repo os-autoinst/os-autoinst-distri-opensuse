@@ -145,11 +145,16 @@ Save screenshot and upload widgets json file.
 sub upload_widgets_json {
     save_screenshot;
     if (get_var('YUI_REST_API')) {
-        my $json_content = to_json(YuiRestClient::get_app()->check_connection());
-        my $json_path = $autotest::current_test->{name} . '-widgets.json';
-        save_tmp_file($json_path, $json_content);
-        make_path('ulogs');
-        copy(hashed_string($json_path), "ulogs/$json_path");
+        my $json_content;
+        eval { $json_content = to_json(YuiRestClient::get_app()->check_connection()) };
+        if ($json_content) {
+            my $json_path = $autotest::current_test->{name} . '-widgets.json';
+            save_tmp_file($json_path, $json_content);
+            make_path('ulogs');
+            copy(hashed_string($json_path), "ulogs/$json_path");
+        } else {
+            record_info('rest-api down', 'widgets.json not uploaded because libyui-rest-api server is down.');
+        }
     }
 }
 

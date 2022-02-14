@@ -17,7 +17,6 @@ use utils;
 use strict;
 use warnings;
 use version_utils;
-use version;
 use Utils::Architectures;
 use containers::utils;
 use containers::common qw(test_container_image is_unreleased_sle);
@@ -124,11 +123,11 @@ sub build_with_zypper_docker {
     }
 
     zypper_call("in zypper-docker") if (script_run("which zypper-docker") != 0);
-    assert_script_run("zypper-docker list-updates $image", 300);
-    assert_script_run("zypper-docker up $image $derived_image", timeout => 300);
+    script_retry("zypper-docker list-updates $image", timeout => 300, retry => 3, delay => 60);
+    script_retry("zypper-docker up $image $derived_image", timeout => 300, retry => 3, delay => 60);
 
     # If zypper-docker list-updates lists no updates then derived image was successfully updated
-    assert_script_run("zypper-docker list-updates $derived_image | grep 'No updates found'", 240);
+    script_retry("zypper-docker list-updates $derived_image | grep 'No updates found'", timeout => 300, retry => 3, delay => 60);
 
     my $local_images_list = script_output("$runtime image ls");
     die("$runtime $derived_image not found") unless ($local_images_list =~ $derived_image);
@@ -172,9 +171,9 @@ sub test_opensuse_based_image {
             unless (is_unreleased_sle) {
                 # we set --entrypoint specifically to the zypper plugin to avoid bsc#1192941
                 my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect-zypp';
-                validate_script_output("$runtime run --entrypoint $plugin -i $image -v", sub { m/container-suseconnect version .*/ });
-                validate_script_output("$runtime run --entrypoint $plugin -i $image lp", sub { m/.*All available products.*/ });
-                validate_script_output("$runtime run --entrypoint $plugin -i $image lm", sub { m/.*Installed product.*\n.*Registration server set to.*\nAll available modules.*/ });
+                validate_script_output("$runtime run --entrypoint $plugin -i $image -v", sub { m/container-suseconnect version .*/ }, timeout => 180);
+                validate_script_output("$runtime run --entrypoint $plugin -i $image lp", sub { m/.*All available products.*/ }, timeout => 180);
+                validate_script_output("$runtime run --entrypoint $plugin -i $image lm", sub { m/.*All available modules.*/ }, timeout => 180);
             }
         } else {
             record_info "non-SLE host", "This host ($host_id) does not support zypper service";
@@ -202,39 +201,18 @@ sub test_zypper_on_container {
     die 'Argument $image not provided!' unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
-    # Check for bsc#1192941, which affects the docker runtime only
+    # Check for bsc#1192941, which affects the docker runtime only - this is just check not softfailure as this won't be fixed.
     # bsc#1192941 states that the entrypoint of a derived image is set in a way, that program arguments are not passed anymore
     # we run 'zypper ls' on a container, and if we detect the zypper usage message, we know that the 'ls' parameter was ignored
-    if ($runtime->runtime eq 'docker') {
-        record_soft_failure("bsc#1192941 zypper-docker entrypoint confuses program arguments") if (script_run("docker run --rm -ti $image zypper ls | grep 'Usage:'") == 0);
+    if ($runtime->runtime eq 'docker' && script_run("docker run --rm -ti $image zypper ls | grep 'Usage:'", timeout => 270) == 0) {
+        record_info('bsc#1192941', 'bsc#1192941 - zypper-docker entrypoint confuses program arguments');
     }
-    validate_script_output("$runtime run -i --entrypoint '' $image zypper lr -s", sub { m/.*Alias.*Name.*Enabled.*GPG.*Refresh.*Service/ });
-    $runtime->run_container($image, name => 'refreshed', cmd => "zypper -nv ref", keep_container => 1, timeout => 300, retry => 3, delay => 60);
-    $runtime->commit('refreshed', "refreshed-image", timeout => 120);
-    $runtime->remove_container('refreshed');
-    $runtime->run_container($image, name => "refreshed-image", cmd => "zypper -nv ref", timeout => 300, retry => 3, delay => 60);
+    validate_script_output("$runtime run -i --entrypoint '' $image zypper lr -s", sub { m/.*Alias.*Name.*Enabled.*GPG.*Refresh.*Service/ }, timeout => 180);
+    script_retry("$runtime run -i --name 'refreshed' --entrypoint '' $image zypper -nv ref", timeout => 300, retry => 3, delay => 60);
+    assert_script_run("$runtime commit refreshed refreshed-image", timeout => 120);
+    assert_script_run("$runtime rm -f refreshed");
+    script_retry("$runtime run -i --name 'refreshed-image' --rm --entrypoint '' $image zypper -nv ref", timeout => 300, retry => 3, delay => 60);
     record_info "The End", "zypper test completed";
-}
-
-sub ensure_container_rpm_updates {
-    my $diff_file = shift;
-    my $regex2match = qr/^-(?<package>[^\s]+)\s+(\d+\.?\d+?)+-(?P<update_version>\d+\.?\d+?\.\d+\b).*\s+(\d+\.?\d+?)+-(?P<stable_version>\d+\.?\d+?\.\d+\b)/;
-    my $regex2zerorpm = qr/^Version differences: None$/;
-    my $context = script_output "cat $diff_file";
-    open(my $data, '<', \$context) or die "problem with $diff_file argument", $!;
-    while (my $line = <$data>) {
-        if ($line =~ $regex2match) {
-            # Use of Dotted-Decimal-Versions. Do not remove 'v' prefix
-            my $updated_v = version->parse("v$+{update_version}");
-            my $stable_v = version->parse("v$+{stable_version}");
-            record_info("checking... $+{package}", "$+{package} $stable_v to $updated_v");
-            die "$+{package} $stable_v is not updated to $updated_v" unless ($updated_v > $stable_v);
-        } elsif ($line =~ $regex2zerorpm) {
-            record_info("No Update found", "no updates found between rpm versions");
-            last;
-        }
-    }
-    close($data);
 }
 
 sub exec_on_container {

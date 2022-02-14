@@ -1,4 +1,4 @@
-# Copyright 2015-2021 SUSE LLC
+# Copyright 2015-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 package utils;
@@ -11,7 +11,7 @@ use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_microos is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp);
+use version_utils qw(is_microos is_leap is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends;
@@ -40,12 +40,14 @@ our @EXPORT = qw(
   ssh_fully_patch_system
   minimal_patch_system
   zypper_search
+  set_zypper_lock_timeout
   workaround_type_encrypted_passphrase
   is_boot_encrypted
   is_bridged_networking
   set_bridged_networking
   assert_screen_with_soft_timeout
   quit_packagekit
+  wait_for_purge_kernels
   systemctl
   addon_decline_license
   addon_license
@@ -639,13 +641,13 @@ sub zypper_ar {
     $no_gpg_check = $no_gpg_check ? "--no-gpgcheck" : "";
     my $prioarg = defined($priority) && !is_sle('<=12') ? "-p $priority" : "";
     my $cmd_ar = "--gpg-auto-import-keys ar -f $prioarg $no_gpg_check $params $url";
-    my $cmd_mr = "mr -p $priority $url";
+    my $cmd_mr = "mr $prioarg $url";
     my $cmd_ref = "--gpg-auto-import-keys ref";
 
     # repo file
     if (!$name) {
         zypper_call($cmd_ar);
-        zypper_call($cmd_mr) if $priority && is_sle('<12');
+        zypper_call($cmd_mr) if defined($priority) && is_sle('<12');
         return zypper_call($cmd_ref);
     }
 
@@ -678,8 +680,13 @@ sub fully_patch_system {
     # Repeatedly call zypper patch until it returns something other than 103 (package manager updates)
     my $ret = 1;
     for (1 .. 3) {
-        $ret = zypper_call('patch --with-interactive -l', exitcode => [0, 4, 102, 103], timeout => 6000);
+        $ret = zypper_call('patch --with-interactive -l|tee zypper.log', exitcode => [0, 4, 8, 102, 103], timeout => 6000);
         last if $ret != 103;
+    }
+
+    if ($ret == 8 && script_run('grep -z "python36-pip.*SLES:12-SP5.*conflicts with.*python3-pip" zypper.log') == 0) {
+        record_soft_failure 'bsc#1195351';
+        $ret = zypper_call('patch --replacefiles --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000);
     }
 
     if (($ret == 4) && is_sle('>=12') && is_sle('<15')) {
@@ -704,11 +711,17 @@ the second run will update the system.
 =cut
 sub ssh_fully_patch_system {
     my $remote = shift;
+
+    my $cmd_time = time();
     # first run, possible update of packager -- exit code 103
     my $ret = script_run("ssh $remote 'sudo zypper -n patch --with-interactive -l'", 1500);
+    record_info('zypper patch', 'The command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
     die "Zypper failed with $ret" if ($ret != 0 && $ret != 102 && $ret != 103);
+
+    $cmd_time = time();
     # second run, full system update
     $ret = script_run("ssh $remote 'sudo zypper -n patch --with-interactive -l'", 6000);
+    record_info('zypper patch', 'The second command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
     die "Zypper failed with $ret" if ($ret != 0 && $ret != 102);
 }
 
@@ -760,6 +773,21 @@ sub zypper_search {
     # Remove header from package list
     shift @ret;
     return \@ret;
+}
+
+=head2 set_zypper_lock_timeout
+
+ set_zypper_lock_timeout($timeout);
+
+Set how many seconds zypper will wait for other processes to release
+the system lock. If this function is called without arguments, it'll set
+timeout to 300 seconds.
+
+=cut
+sub set_zypper_lock_timeout {
+    my $timeout = shift // 300;
+
+    script_run("export ZYPP_LOCK_TIMEOUT='$timeout'");
 }
 
 =head2 workaround_type_encrypted_passphrase
@@ -958,6 +986,18 @@ This is needed to prevent access conflicts to the RPM database.
 =cut
 sub quit_packagekit {
     script_run("systemctl mask packagekit; systemctl stop packagekit; while pgrep packagekitd; do sleep 1; done");
+}
+
+=head2 wait_for_purge_kernels
+
+ wait_for_purge_kernels();
+
+Wait until purge-kernels is done
+Prevent RPM lock e.g. SUSEConnect fail
+
+=cut
+sub wait_for_purge_kernels {
+    script_run('while pgrep purge-kernels; do sleep 1; done');
 }
 
 =head2 addon_decline_license
@@ -1349,6 +1389,33 @@ sub _handle_login_not_found {
     die "unknown error, system couldn't boot. Detailed bootup log:\n$error_details";
 }
 
+=head2 _handle_firewall
+
+ _handle_firewall();
+
+Internal helper function used by C<reconnect_mgmt_console>.
+
+=cut
+sub _handle_firewall {
+    select_console 'root-console';
+    return if script_run("iptables -S | grep 'A input_ext.*tcp.*dport 59.*-j ACCEPT'", 30) == 0;
+    wait_quit_zypper;
+    my $ret;
+    my $max_num = 3;
+    # Sometimes wait_quit_zypper still not wait enough timeout
+    for (1 .. $max_num) {
+        $ret = zypper_call("in susefirewall2-to-firewalld", exitcode => [0, 7]);
+        if ($ret == 7) {
+            record_info('The ZYPP library is still locked, wait more seconds');
+            wait_quit_zypper;
+        } else {
+            last;
+        }
+    }
+
+    susefirewall2_to_firewalld();
+}
+
 =head2 reconnect_mgmt_console
 
  reconnect_mgmt_console([timeout => $timeout]);
@@ -1404,12 +1471,7 @@ sub reconnect_mgmt_console {
 
         if (!check_var('DESKTOP', 'textmode')) {
             if (check_var("UPGRADE", "1") && is_sle('15+') && is_sle('<15', get_var('HDDVERSION'))) {
-                select_console 'root-console';
-                if (script_run("iptables -S | grep 'A input_ext.*tcp.*dport 59.*-j ACCEPT'", 30) != 0) {
-                    wait_quit_zypper;
-                    zypper_call("in susefirewall2-to-firewalld");
-                    susefirewall2_to_firewalld();
-                }
+                _handle_firewall;
             }
             reset_consoles;
             select_console('x11', await_console => 0);
@@ -1464,7 +1526,11 @@ sub show_tasks_in_blocked_state {
         send_key 'alt-sysrq-w';
         # info will be sent to serial tty
         wait_serial(qr/sysrq\s*:\s+show\s+blocked\s+state/i);
-        send_key 'ret';    # ensure clean shell prompt
+
+        # If the 'An error occured during the installation.' OK popup has popped up,
+        # do not press the 'return' key, because it will result in all ttys logging out.
+        send_key 'ret' unless (check_screen 'linuxrc-install-fail');
+
     }
 }
 
@@ -1922,10 +1988,14 @@ sub install_patterns {
     for my $pt (@pt_list) {
         # if pattern is set default, skip
         next if ($pt =~ /default/);
+        # For Public cloud module test we need skip Instance pattern if outside of public cloud images.
+        next if (($pt =~ /Instance/) && !is_public_cloud);
         # Cloud patterns are conflict by each other, only install cloud pattern from single vender.
         if ($pt =~ /$pcm_list/) {
             next unless $pcm == 0;
-            $pt .= '*';
+            # For Public cloud module test we need install 'Tools' but not 'Instance' pattern if outside of public cloud images.
+            next if (($pt !~ /Tools/) && !is_public_cloud);
+            $pt .= '*' if (is_public_cloud);
             $pcm = 1;
         }
         # Only one CFEngine pattern can be installed
@@ -1942,6 +2012,8 @@ sub install_patterns {
         if (($pt =~ /sap_server/) && is_sle('=11-SP4')) {
             next;
         }
+        # For Public cloud module test we need install 'Tools' but not 'Instance' pattern if outside of public cloud images.
+        next if (($pt =~ /OpenStack/) && ($pt !~ /Tools/) && !is_public_cloud);
         # if pattern is common-criteria and PATTERNS is all, skip, poo#73645
         next if (($pt =~ /common-criteria/) && check_var('PATTERNS', 'all'));
         zypper_call("in -t pattern $pt", timeout => 1800);

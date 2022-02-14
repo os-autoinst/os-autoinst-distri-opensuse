@@ -614,6 +614,7 @@ sub restart_firefox {
     enter_cmd "$cmd";
     enter_cmd "firefox $url >>firefox.log 2>&1 &";
     $self->firefox_check_default;
+    assert_screen 'firefox-url-loaded';
 }
 
 sub firefox_check_default {
@@ -659,7 +660,7 @@ sub firefox_check_popups {
 }
 
 sub firefox_open_url {
-    my ($self, $url, $do_not_check_loaded_url) = @_;
+    my ($self, $url) = @_;
     my $counter = 1;
     while (1) {
         # make sure firefox window is focused
@@ -677,15 +678,12 @@ sub firefox_open_url {
     }
     enter_cmd_slow "$url";
     wait_still_screen 2, 4;
-    # this is because of adobe flash, screensaver will activate sooner than the page
-    unless ($do_not_check_loaded_url) {
-        assert_screen 'firefox-url-loaded', 300;
-    }
+    send_key_until_needlematch 'firefox-url-loaded', 'f5', 3, 90;
 }
 
 sub firefox_preferences {
-    send_key_until_needlematch 'firefox-edit-menu', 'alt-e', 3, 15;
-    send_key_until_needlematch 'firefox-preferences', 'n', 3, 15;
+    send_key_until_needlematch 'firefox-edit-menu', 'alt-e', 5, 5;
+    send_key_until_needlematch 'firefox-preferences', 'n', 5, 5;
 }
 
 sub exit_firefox_common {
@@ -697,6 +695,8 @@ sub exit_firefox_common {
         # confirm "save&quit"
         send_key "ret";
     }
+    # wait a sec because xterm-without-focus can match while firefox is being closed
+    wait_still_screen 2;
     assert_screen [qw(xterm-left-open xterm-without-focus)];
     if (match_has_tag 'xterm-without-focus') {
         # focus it
@@ -974,7 +974,7 @@ sub libreoffice_start_program {
     my %start_program_args;
     $start_program_args{timeout} = 100 if get_var('LIVECD') && check_var('MACHINE', 'uefi-usb');
     x11_start_program($program, %start_program_args);
-    if (match_has_tag('ooffice-tip-of-the-day')) {
+    if (check_screen('ooffice-tip-of-the-day', 5)) {
         # Unselect "_S_how tips on startup", select "_O_k"
         send_key "alt-s";
         send_key "alt-o";

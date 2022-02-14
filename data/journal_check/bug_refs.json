@@ -2,7 +2,7 @@
     "gh#openSUSE/jeos-firstboot#83": {
         "description": "DHCPv4 not supported on 'lo'",
         "products": {
-            "opensuse": ["Tumbleweed", "15.2", "15.3"],
+            "opensuse": ["15.2", "15.3"],
             "sle": ["15-SP2", "15-SP3"]
         },
         "type": "bug"
@@ -16,14 +16,6 @@
         },
         "type": "bug"
     },
-    "bsc#1186742": {
-        "description": "Directory '.*.hdmi' with parent 'vc4-hdmi.*' already present",
-        "products": {
-            "sle-micro": [ "5.0", "5.1" ],
-            "opensuse": ["Tumbleweed", "15.3", "15.2"]
-        },
-        "type": "bug"
-    },
     "bsc#1188270": {
         "description": "lan78xx 1-1.1.1:1.0 eth0: No phy led trigger registered for speed\\(-1\\)",
         "products": {
@@ -34,14 +26,14 @@
     "bsc#1188237": {
         "description": "kevent 4 may have been dropped",
         "products": {
-            "opensuse": ["15.3"]
+            "opensuse": ["15.3","15.4"]
         },
         "type": "bug"
     },
     "bsc#1188238": {
         "description": "BCM: Reset failed \\(-110\\)|hci0: command .* tx timeout",
         "products": {
-            "opensuse": ["Tumbleweed", "15.3"]
+            "opensuse": ["Tumbleweed", "15.3", "15.4"]
         },
         "type": "bug"
     },
@@ -55,7 +47,7 @@
     "bsc#1022527": {
         "description": ".*wickedd.*ni_process_reap.*blocking waitpid.*",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ],
+            "sle-micro": [ "5.0", "5.1", "5.2" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
             "sle": ["15-SP2", "15-SP3", "15-SP4", "12-SP5"]
@@ -65,7 +57,7 @@
     "bsc#1126272": {
         "description": "Failed unmounting \/\\S+\\.|-- Reboot --|pam_systemd.*Failed to release session",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ],
+            "sle-micro": [ "5.0", "5.1", "5.2" ],
             "microos":  ["Tumbleweed"]
         },
         "type": "ignore"
@@ -73,7 +65,7 @@
     "bsc#1022525|bsc#1177461": {
         "description": ".*rpcbind.*cannot(.*open file.*rpcbind.xdr.*|.*open file.*portmap.xdr.*|.*save any registration.*)",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ],
+            "sle-micro": [ "5.0", "5.1", "5.2" ],
             "microos":  ["Tumbleweed"]
         },
         "type": "bug"
@@ -81,7 +73,7 @@
     "bsc#1184970": {
         "description": ".*rpc\\.statd.*Failed to open directory sm.*|.*Failed to stat \/var\/lib\/nfs\/sm: No such file or directory",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ],
+            "sle-micro": [ "5.0", "5.1", "5.2"],
             "microos":  ["Tumbleweed"]
         },
         "type": "bug"
@@ -89,15 +81,22 @@
     "bsc#1182500": {
         "description": "Failed to transition into init label 'system_u:system_r:init_t:s0'",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ],
+            "sle-micro": [ "5.0", "5.1", "5.2" ],
             "microos":  ["Tumbleweed"]
+        },
+        "type": "bug"
+    },
+    "bsc#1194903": {
+        "description": "Failed to start One time configuration for iscsid.service",
+        "products": {
+            "sle-micro": [ "5.2" ]
         },
         "type": "bug"
     },
     "bsc#1178033": {
         "description": "kernel: ITS@0x8080000: Unable to locate ITS domain handle",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ],
+            "sle-micro": [ "5.0", "5.1", "5.2" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
             "sle": ["15-SP2", "15-SP3", "15-SP4"]
@@ -129,12 +128,12 @@
     "bsc#1190662": {
         "description": "/etc/udev/rules.d/41-qeth-.*Failed to write ATTR",
         "products": {
-            "sle-micro": [ "5.1" ]
+            "sle-micro": [ "5.1", "5.2" ]
         },
         "type": "bug"
     },
     "bsc#1182961": {
-        "description": "could not read from '/sys/module/pcc_pufreq/initstate': No such device",
+        "description": "could not read from '/sys/module/pcc_cpufreq/initstate': No such device",
         "products": {
             "sle-micro": [ "5.0", "5.1" ],
             "microos":  ["Tumbleweed"]
@@ -175,7 +174,7 @@
     "bsc#1032323": {
         "description": "Initialization of hypfs failed|The hardware system does not support hypfs",
         "products": {
-            "sle-micro": [ "5.1" ]
+            "sle-micro": [ "5.1", "5.2" ]
         },
         "type": "bug"
     },
@@ -200,19 +199,27 @@
         },
         "type": "bug"
     },
-    "bsc#1192164": {
-        "description": "wickedd.*: unexpected combination of interface flags 0x11003",
-        "products": {
-            "sle": ["15-SP4"]
-        },
-        "type": "bug"
-    },
     "bsc#1191575": {
         "description": "kernel: ACPI: SRAT not present|kernel: ARM_SMCCC_ARCH_WORKAROUND_1 missing from firmware|kernel: ACPI PPTT: No PPTT table found, CPU and cache topology may be inaccurate|kernel: cacheinfo: Unable to detect cache hierarchy for CPU|kernel: hrtimer: interrupt took.*ns",
         "products": {
             "sle": ["15-SP4"]
         },
         "type": "bug"
+    },
+    "boo#1193426": {
+        "description": "libapparmor.*: Can't create cache directory '/var/cache/apparmor/.*': Read-only file system",
+        "products": {
+            "opensuse": ["Tumbleweed", "15.4"]
+        },
+        "type": "bug"
+    },
+    "bsc#1186742": {
+        "description": "Directory '.*.hdmi' with parent 'vc4-hdmi.*' already present",
+        "products": {
+            "sle-micro": [ "5.0", "5.1" ],
+            "opensuse": ["Tumbleweed", "15.2", "15.3", "15.4"]
+        },
+        "type": "ignore"
     },
     "apci-bridge": {
         "description": "fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge|PCI: System does not support PCI",
@@ -282,7 +289,7 @@
     "health-check": {
         "description": "health-checker/fail.sh check\" failed|Machine didn't come up correct, do a rollback",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ],
+            "sle-micro": [ "5.0", "5.1", "5.2" ],
             "microos":  ["Tumbleweed"]
         },
         "type": "ignore"
@@ -300,8 +307,8 @@
     "ssh-connection-close-by-remote": {
         "description": "error: kex_exchange_identification: Connection closed by remote host",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ],
-            "opensuse": ["Tumbleweed", "15.2", "15.3"],
+            "sle-micro": [ "5.0", "5.1", "5.2" ],
+            "opensuse": ["Tumbleweed", "15.2", "15.3", "15.4"],
             "microos":  ["Tumbleweed"],
             "sle": ["15-SP2", "15-SP3"]
         },

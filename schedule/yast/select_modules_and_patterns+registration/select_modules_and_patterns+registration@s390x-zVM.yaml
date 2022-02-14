@@ -23,22 +23,22 @@ schedule:
   - installation/disk_activation/configure_dasd
   - installation/disk_activation/finish_disk_activation
   - installation/registration/skip_registration
-  - installation/addon_products_sle
+  - installation/module_selection/select_nonconflicting_modules
+  - installation/add_on_product_installation/accept_add_on_installation
   - installation/system_role/accept_selected_role_SLES_with_GNOME
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
-  - installation/resolve_dependency_issues
   - installation/select_patterns
-  - installation/installation_overview
+  - installation/installation_settings/validate_default_target
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
   - installation/confirm_installation
   - installation/performing_installation/perform_installation
   - installation/performing_installation/stop_timeout_system_reboot_now
   - installation/logs_from_installation_system
-  - installation/reboot_after_installation
+  - installation/performing_installation/confirm_reboot
   - installation/handle_reboot
   - installation/first_boot
   - console/hostname

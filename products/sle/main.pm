@@ -156,10 +156,6 @@ if (is_sle('15+')) {
 diag('default desktop: ' . default_desktop);
 set_var('DESKTOP', get_var('DESKTOP', default_desktop));
 
-# don't want updates, as we don't test it or rely on it in any tests, if is executed during installation
-# For released products we want install updates during installation, only in minimal workflow disable
-set_var('DISABLE_SLE_UPDATES', get_var('DISABLE_SLE_UPDATES', get_var('QAM_MINIMAL')));
-
 # set remote connection variable for s390x, svirt and ipmi
 set_var('REMOTE_CONNECTION', 'vnc') if get_var('BACKEND', '') =~ /s390x|svirt|ipmi/;
 
@@ -633,8 +629,16 @@ sub load_virt_feature_tests {
         loadtest "virt_autotest/libvirt_routed_virtual_network";
         loadtest "virt_autotest/libvirt_isolated_virtual_network";
     }
+    loadtest "virt_autotest/xen_guest_irqbalance" if get_var("ENABLE_XEN_GUEST_IRQBALANCE");
     loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH");
-    loadtest "virtualization/universal/hotplugging" if get_var("ENABLE_HOTPLUGGING");
+    if (get_var('ENABLE_HOTPLUGGING')) {
+        loadtest 'virtualization/universal/hotplugging_guest_preparation';
+        loadtest 'virtualization/universal/hotplugging_network_interfaces';
+        loadtest 'virtualization/universal/hotplugging_HDD';
+        loadtest 'virtualization/universal/hotplugging_vCPUs';
+        loadtest 'virtualization/universal/hotplugging_memory';
+        loadtest 'virtualization/universal/hotplugging_cleanup';
+    }
     loadtest "virtualization/universal/storage" if get_var("ENABLE_STORAGE");
     if (get_var("ENABLE_SNAPSHOT")) {
         loadtest "virt_autotest/virsh_internal_snapshot";

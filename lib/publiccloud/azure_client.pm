@@ -13,11 +13,14 @@ use testapi;
 use utils;
 use publiccloud::vault;
 
-has key_id => undef;
-has key_secret => undef;
-has subscription => undef;
-has tenantid => undef;
-has region => undef;
+has key_id => sub { get_var('PUBLIC_CLOUD_KEY_ID') };
+has key_secret => sub { get_var('PUBLIC_CLOUD_KEY_SECRET') };
+has subscription => sub { get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') };
+has tenantid => sub { get_var('PUBLIC_CLOUD_AZURE_TENANT_ID') };
+has region => sub { get_var('PUBLIC_CLOUD_REGION', 'westeurope') };
+has subscription => sub { get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') };
+has username => sub { get_var('PUBLIC_CLOUD_USER', 'azureuser') };
+
 has vault => undef;
 has container_registry => sub { get_var('PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY', 'suseqectesting') };
 
@@ -64,18 +67,18 @@ sub vault_create_credentials {
     }
 }
 
-=head2 configure_docker
+=head2 configure_podman
 
-Configure the docker to access the cloud provider registry
+Configure the podman to access the cloud provider registry
 =cut
 
-sub configure_docker {
+sub configure_podman {
     my ($self) = @_;
 
     my $login_cmd = sprintf(q(while ! az acr login --name '%s' -u '%s' -p '%s'; do sleep 10; done),
         $self->container_registry, $self->key_id, $self->key_secret);
     assert_script_run($login_cmd);
-    $login_cmd = sprintf(q(docker login %s.azurecr.io), $self->container_registry);
+    $login_cmd = sprintf(q(podman login %s.azurecr.io), $self->container_registry);
     assert_script_run($login_cmd);
 }
 

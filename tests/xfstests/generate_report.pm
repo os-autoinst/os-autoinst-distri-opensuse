@@ -61,7 +61,7 @@ sub analyze_result {
             my $test_time = $3;
             (my $test_path = $test_name) =~ s/-/\//;
             $test_num += 1;
-            $test_range = $test_range . $test_path . "\n";
+            $test_range = $test_range . $test_path . " ... ... " . $test_status . " ($test_time seconds)" . "\n";
             $test_path = '/opt/log/' . $test_path;
             bmwqemu::fctinfo("$test_name");
             if ($test_status =~ /FAILED|SKIPPED/) {

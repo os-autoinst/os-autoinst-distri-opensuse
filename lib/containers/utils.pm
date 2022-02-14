@@ -21,7 +21,7 @@ use version_utils;
 use Mojo::Util 'trim';
 
 our @EXPORT = qw(test_seccomp basic_container_tests get_vars can_build_sle_base
-  get_docker_version check_runtime_version container_ip registry_url);
+  get_docker_version check_runtime_version container_ip container_route registry_url);
 
 sub test_seccomp {
     my $no_seccomp = script_run('docker info | tee /tmp/docker_info.txt | grep seccomp');
@@ -58,6 +58,13 @@ sub container_ip {
     return $ip;
 }
 
+sub container_route {
+    my ($container, $runtime) = @_;
+    my $route = script_output "$runtime inspect $container --format='{{.NetworkSettings.Gateway}}'";
+    record_info "container route", "$route";
+    return $route;
+}
+
 sub registry_url {
     my ($container_name, $version_tag) = @_;
     my $registry = trim(get_var('REGISTRY', 'docker.io'));
@@ -82,7 +89,7 @@ sub basic_container_tests {
     my $tumbleweed = "registry.opensuse.org/opensuse/tumbleweed";
 
     # Test search feature
-    validate_script_output("$runtime search --no-trunc tumbleweed", sub { m/Official openSUSE Tumbleweed images/ });
+    validate_script_output("$runtime search --no-trunc --format \"table {{.Name}} {{.Description}}\" tumbleweed", sub { m/Official openSUSE Tumbleweed images/ });
 
     #   - pull minimalistic alpine image of declared version using tag
     #   - https://store.docker.com/images/alpine
@@ -131,7 +138,6 @@ sub basic_container_tests {
     my $ret = script_run("$runtime container exec $container_name zypper -n in curl", 600);
     die('zypper inside container timed out') if (!defined($ret));
     if ($ret != 0) {
-        record_info('poo#40958 - curl install failure, try with force-resolution.');
         my $output = script_output("$runtime container exec $container_name zypper in --force-resolution -y -n curl", 600);
         die('error: curl not installed in the container') unless (($output =~ m/Installing: curl.*done/) || ($output =~ m/\'curl\' .* already installed/));
     }

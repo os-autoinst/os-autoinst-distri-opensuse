@@ -15,7 +15,22 @@ use warnings;
 use strict;
 use utils qw(random_string);
 
+=head2 init
+
+Prepare the provider and install kubectl
+=cut
+sub init {
+    my ($self) = @_;
+
+    my $service = $self->get_k8s_service_name();
+    $self->provider_factory(service => $service);
+
+    $self->select_serial_terminal;
+    $self->install_kubectl();
+}
+
 =head2 install_kubectl
+
 Install kubectl from the k8s page
 =cut
 sub install_kubectl {
@@ -27,6 +42,7 @@ sub install_kubectl {
 }
 
 =head2 apply_manifest
+
 Apply a kubernetes manifest
 =cut
 sub apply_manifest {
@@ -41,6 +57,7 @@ sub apply_manifest {
 }
 
 =head2 find_pods
+
 Find pods using kubectl queries
 =cut
 sub find_pods {
@@ -49,6 +66,7 @@ sub find_pods {
 }
 
 =head2 wait_for_job_complete
+
 Wait until the job is complete
 =cut
 sub wait_for_job_complete {
@@ -57,10 +75,36 @@ sub wait_for_job_complete {
 }
 
 =head2 validate_log
+
 Validates that the logs contains a text
 =cut
 sub validate_log {
     my ($self, $pod, $text) = @_;
     validate_script_output("kubectl logs $pod 2>&1", qr/$text/);
 }
+
+
+=head2 get_k8s_service_name
+
+Returns the name for the kubernetes service
+=cut
+sub get_k8s_service_name {
+    my ($self) = @_;
+
+    my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
+
+    if ($provider eq 'EC2') {
+        return "EKS";
+    }
+    elsif ($provider eq 'GCE') {
+        return "GKE";
+    }
+    elsif ($provider eq 'AZURE') {
+        return "AKS";
+    }
+    else {
+        die('Unknown PUBLIC_CLOUD_PROVIDER given');
+    }
+}
+
 1;
