@@ -79,7 +79,7 @@ sub install_docker_when_needed {
                 # Temporarly enable LTSS product on LTSS systems where it is not present
                 my $ltss_needed = 0;
                 if (get_var('SCC_REGCODE_LTSS') && script_run('test -f /etc/products.d/SLES-LTSS.prod') != 0) {
-                    add_suseconnect_product('SLES-LTSS', undef, undef, '-r ' . get_var('SCC_REGCODE_LTSS'));
+                    add_suseconnect_product('SLES-LTSS', undef, undef, '-r ' . get_var('SCC_REGCODE_LTSS'), 150);
                     $ltss_needed = 1;
                 }
 
