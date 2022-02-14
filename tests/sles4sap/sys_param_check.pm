@@ -89,10 +89,6 @@ sub run {
         # BUG_NUMBER : Bugzilla bug number for tracking the issue.
         # PARAMETER  : What parameters have changed.
         # TEST_NAME  : The function needs to be trigger only in the targeted test.
-        if ($robot_test eq "sysctl.robot") {
-            # bsc#1181163 - unexpected values for net.ipv6.conf.lo.use_tempaddr and net.ipv6.conf.lo.accept_redirects
-            add_softfail("sysctl.robot", "15-SP1", "bsc#1181163", qw(Sysctl_net_ipv6_conf_lo_accept_redirects Sysctl_net_ipv6_conf_lo_use_tempaddr));
-        }
         parse_extra_log("XUnit", "$test_repo/$robot_test.xml");
         upload_logs("$test_repo/$robot_test.html", failok => 1);
     }
