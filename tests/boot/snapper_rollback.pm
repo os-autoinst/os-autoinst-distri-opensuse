@@ -32,7 +32,7 @@ sub run {
     script_run("snapper list", 0);
     script_run("cat /etc/os-release", 0);
     # rollback
-    script_run("snapper rollback -d rollback-before-migration", timeout => 120);
+    script_run("snapper rollback -d rollback-before-migration", timeout => 240);
     my $ret = script_run("snapper --help | grep disable-used-space");
     my $disable = '';
     $disable = '--disable-used-space' unless $ret;
