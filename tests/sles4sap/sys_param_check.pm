@@ -49,6 +49,7 @@ sub run {
     my $robot_tar = "robot.tar.gz";
     my $testkit = get_var('SYS_PARAM_CHECK_TEST', "qa-css-hq.qa.suse.de/$robot_tar");
     my $python_bin = is_sle('15+') ? 'python3' : 'python';
+    $self->select_serial_terminal;
 
     # Download and prepare the test environment
     assert_script_run "cd /; curl -f -v \"$testkit\" -o $robot_tar";
@@ -64,7 +65,6 @@ sub run {
     if (check_var('SLE_PRODUCT', 'sles4sap')) {
         assert_script_run "systemctl disable sapconf";
         $self->reboot;
-        select_console 'root-console';
     }
 
     # It can only happen on sle product
@@ -73,12 +73,11 @@ sub run {
         record_info('Disabling kdump', 'Disabling kdump and crashkernel option');
         deactivate_kdump_cli;
         $self->reboot;
-        select_console 'root-console';
     }
 
     # Execute each test and upload its results
     assert_script_run "cd $test_repo";
-    foreach my $robot_test (split /\n/, script_output "ls $test_repo") {
+    foreach my $robot_test (split /\n/, script_output "ls -1 $test_repo") {
         # Sanitize $robot_test
         $robot_test =~ s/[\n|\r]//g;
         record_info("$robot_test", "Starting [$robot_test]");
