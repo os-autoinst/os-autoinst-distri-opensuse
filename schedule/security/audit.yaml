@@ -1,0 +1,7 @@
+name: audit
+description:    >
+    Audit test for sle and Tumbleweed
+schedule:
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - security/audit/autrace
