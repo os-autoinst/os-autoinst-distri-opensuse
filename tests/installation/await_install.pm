@@ -99,6 +99,16 @@ sub _set_timeout {
     ${$timeout} *= 2 if check_var_array('PATTERNS', 'all');
     # multipath installations seem to take longer (failed some time)
     ${$timeout} *= 2 if check_var('MULTIPATH', 1);
+
+    # Reset timeout for migration group test cases
+    if (get_var('FLAVOR') =~ /Migration/) {
+        ${$timeout} = 5500;
+        ${$timeout} += 2000 if is_s390x;
+        if (get_var('FLAVOR') =~ /Regression/) {
+            ${$timeout} *= 2 if is_s390x;
+        }
+    }
+
     # Scale timeout
     ${$timeout} *= get_var('TIMEOUT_SCALE', 1);
 }
@@ -243,5 +253,16 @@ sub ssh_password_possibility {
     }
 }
 
+sub post_fail_hook {
+    my ($self) = shift;
+    # Collect y2log firstly for migration case since this is high priority
+    # since sometimes error happen during default post_fail_hook
+    if (get_var('FLAVOR') =~ /Migration/) {
+        select_console 'root-console';
+        assert_script_run 'save_y2logs /tmp/y2logs.tar.bz2';
+        upload_logs '/tmp/y2logs.tar.bz2';
+    }
+    $self->SUPER::post_fail_hook;
+}
 
 1;
