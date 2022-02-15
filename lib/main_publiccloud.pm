@@ -116,6 +116,7 @@ sub load_latest_publiccloud_tests {
         loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     }
     elsif (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
+        bmwqemu::fctwarn("!!!!!!!!!!About to load publiccloud upload image test!!!!!!!!!!!");
         loadtest "publiccloud/upload_image";
     }
     else {
@@ -154,6 +155,8 @@ which B<create_hdd_autoyast_pc> publishes. The later is scheduled when I<PUBLIC_
 The rest of the scheduling is divided into two separate subroutines C<load_maintenance_publiccloud_tests> and C<load_latest_publiccloud_tests>.
 
 =cut
+
+bmwqemu::fctwarn("!!!!!!!!!!Calling Publiccloud tests!!!!!!!!!!");
 
 sub load_publiccloud_tests {
     if (check_var('PUBLIC_CLOUD_PREPARE_TOOLS', 1)) {

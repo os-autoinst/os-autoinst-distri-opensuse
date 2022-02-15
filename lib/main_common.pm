@@ -470,10 +470,12 @@ sub load_rescuecd_tests {
 }
 
 sub load_autoyast_clone_tests {
+    bmwqemu::fctwarn("!!!!!!!!!!preparing system!!!!!!!!!!!");
     loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
     loadtest "console/yast2_clone_system";
     loadtest "console/consoletest_finish";
+    bmwqemu::fctwarn("!!!!!!!!!!console test finish!!!!!!!!!!!");
 }
 
 sub load_zdup_tests {
@@ -2885,7 +2887,9 @@ sub load_transactional_role_tests {
 }
 
 sub load_common_opensuse_sle_tests {
+    bmwqemu::fctwarn("!!!!!!!!!!Inside Load Common Opensuse sle testsD!!!!!!!!!!!");
     load_autoyast_clone_tests if get_var("CLONE_SYSTEM");
+    bmwqemu::fctwarn("!!!!!!!!!!Before terraform create image       !!!!!!!!!!!");
     loadtest "terraform/create_image" if get_var('TERRAFORM');
     load_create_hdd_tests if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) && !get_var('PUBLIC_CLOUD');
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');

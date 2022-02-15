@@ -1284,6 +1284,7 @@ else {
     }
 }
 
+bmwqemu::fctwarn("!!!!!!!!!!Loading Common Opensuse sle tests!!!!!!!!!!!");
 load_common_opensuse_sle_tests;
 
 1;
