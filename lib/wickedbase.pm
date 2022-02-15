@@ -747,6 +747,7 @@ sub check_logs {
     $default_exclude .= ',wickedd-dhcp4=unable to confirm lease';
     $default_exclude .= ',wickedd-nanny=: call to org.opensuse.Network.Interface.waitLinkUp\(\) failed: General failure';
     $default_exclude .= ',wickedd-nanny=: call to org.opensuse.Network.Interface.waitLinkUp\(\) failed: Object does not support requested method';
+    $default_exclude .= ',wickedd-nanny=: call to org.opensuse.Network.Interface.linkUp\(\) failed: Object does not support requested method';
     $default_exclude .= ',wickedd-nanny=: failed to bring up device, still continuing';
     $default_exclude .= ',wickedd=error retrieving tap attribute from sysfs';
 
