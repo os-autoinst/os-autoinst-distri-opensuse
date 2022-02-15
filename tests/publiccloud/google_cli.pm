@@ -14,8 +14,8 @@
 use Mojo::Base 'publiccloud::basetest';
 use registration;
 use testapi;
-use mmapi;
-use utils;
+use mmapi 'get_current_job_id';
+use utils qw(zypper_call script_retry);
 use publiccloud::utils "select_host_console";
 
 sub run {
