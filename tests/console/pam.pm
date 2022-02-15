@@ -64,7 +64,7 @@ sub run {
     # restore the system after running pam.pm
     assert_script_run("snapaf=\$(snapper create -p -d 'after pam test')");
     assert_script_run("snapper -v undochange \$snapbf..\$snapaf");
-    assert_script_run("snapper delete \$snapaf \$snapbf");
+    assert_script_run("snapper delete \$snapaf \$snapbf", timeout => 180);
     zypper_call('rr qa-head-repo');
     zypper_call('rm bats pam-test');
 
