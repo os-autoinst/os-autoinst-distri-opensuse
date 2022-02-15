@@ -8,12 +8,18 @@
 
 package main_publiccloud;
 use Mojo::Base 'Exporter';
+use testapi;
+use publiccloud::utils;
 use utils;
 use version_utils;
+use Mojo::UserAgent;
 use main_common qw(loadtest);
 use testapi qw(check_var get_var);
 use Utils::Architectures qw(is_aarch64);
 use main_containers qw(load_3rd_party_image_test load_container_engine_test);
+use Data::Dumper;
+our $root_dir = '/root';
+
 
 our @EXPORT = qw(
   load_publiccloud_tests
@@ -116,12 +122,40 @@ sub load_latest_publiccloud_tests {
         loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     }
     elsif (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
-        bmwqemu::fctwarn("!!!!!!!!!!About to load publiccloud upload image test!!!!!!!!!!!");
         loadtest "publiccloud/upload_image";
+    }
+    elsif (get_var('PUBLIC_CLOUD_DMS')) {
+        bmwqemu::fctwarn("!!!!!!!!!!About to load publiccloud upload image test from DMS part!!!!!!!!!!!");
+        my $args = OpenQA::Test::RunArgs->new();
+        loadtest "publiccloud/prepare_instance", run_args => $args;
+        loadtest "publiccloud/register_system", run_args => $args;
+        loadtest "publiccloud/ssh_interactive_start", run_args => $args;
+	loadtest('publiccloud/migration', run_args => $args);
+           # bmwqemu::fctwarn("!!!!!!!!!!About to upload rpm manual!!!!!!!!!!!");
+           # my ($self, $args) = @_;
+           # my $dms_repo = get_var('PUBLIC_CLOUD_RPM_MANUAL_UPLOAD');
+           # publiccloud_rpm_manual_upload();      
     }
     else {
         die "*publiccloud - Latest* expects PUBLIC_CLOUD_* job variable. None is matched from the expected ones.";
     }
+}
+
+sub publiccloud_rpm_manual_upload {
+        my $url = get_var('PUBLIC_CLOUD_DMS_IMAGE_LOCATION');
+        my $package = get_var('PUBLIC_CLOUD_DMS_PACKAGE');
+        my $dms_rpm = "$url"."$package";
+        print Dumper($dms_rpm)."URL Value\n";
+        my $instance;
+        my $source_rpm_path = $package;
+        my $remote_rpm_path = '/tmp/' . $package;
+        print "DMS remote $remote_rpm_path \n";
+        print "DMS source  $source_rpm_path \n";
+        assert_script_run("wget --quiet --no-check-certificate $dms_rpm -O $source_rpm_path ", timeout => 600);
+        print "wget done \n";
+#        $instance->scp($source_rpm_path, 'remote:' . $remote_rpm_path);
+#        $instance->run_ssh_command(cmd => 'sudo zypper --no-gpg-checks --gpg-auto-import-keys -q in -y ' . $remote_rpm_path, timeout => 600);
+#        print "DMS run_ssh_command \n";
 }
 
 sub load_create_publiccloud_tools_image {

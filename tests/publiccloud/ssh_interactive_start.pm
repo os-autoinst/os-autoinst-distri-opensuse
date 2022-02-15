@@ -13,6 +13,8 @@ use publiccloud::ssh_interactive;
 use testapi;
 use utils;
 use publiccloud::utils "select_host_console";
+our $root_dir = '/root';
+
 
 sub run {
     my ($self, $args) = @_;
@@ -42,6 +44,12 @@ sub run {
     assert_script_run('test -e /dev/' . get_var('SERIALDEV'), 180);
     assert_script_run('test $(id -un) == "root"');
 
+    #$self->select_serial_terminal();
+    #$instance->run_ssh_command(cmd => 'sudo zypper in ' . $remote_rpm_path, timeout => 600);
+    #print "DMS run_ssh_command \n";
+
+
+
     select_console('user-console');
     assert_script_run('test -e /dev/' . get_var('SERIALDEV'));
     assert_script_run('test $(id -un) == "' . $testapi::username . '"');
@@ -49,6 +57,19 @@ sub run {
     $self->select_serial_terminal();
     assert_script_run('test -e /dev/' . get_var('SERIALDEV'));
     assert_script_run('test $(id -un) == "root"');
+    my $url = get_var('PUBLIC_CLOUD_DMS_IMAGE_LOCATION');
+    my $package = get_var('PUBLIC_CLOUD_DMS_PACKAGE');
+    my $instance;
+    my $dms_rpm = "$url"."$package";
+    my $source_rpm_path = $root_dir . '/' . $package;
+    my $remote_rpm_path = $package;
+    print "DMS remote $remote_rpm_path \n";
+    print "DMS source  $source_rpm_path \n";
+    my $wgt_cmd = "sudo wget $dms_rpm -O $remote_rpm_path";
+    print "DMS wgt_cmd $wgt_cmd \n";
+    exec ($wgt_cmd);
+    print "DMS run_ssh_command \n";
+
 }
 
 1;

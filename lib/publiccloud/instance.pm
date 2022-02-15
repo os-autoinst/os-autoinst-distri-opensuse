@@ -56,15 +56,19 @@ sub run_ssh_command {
     $args{no_quote} //= 0;
     my $rc_only = $args{rc_only} // 0;
     my $timeout = $args{timeout};
+    printf('timeout rc_only $timeout $rc_only \n');
 
     my $cmd = $args{cmd};
+    printf('command $cmd  \n');
     unless ($args{no_quote}) {
         $cmd =~ s/'/'"'"'/g;
         $cmd = "'$cmd'";
     }
 
     my $ssh_cmd = sprintf('ssh %s "%s@%s" -- %s', $args{ssh_opts}, $args{username}, $self->public_ip, $cmd);
+    printf("ssh command $ssh_cmd  \n");
     $ssh_cmd = "timeout $timeout $ssh_cmd" if ($timeout > 0);
+    printf("ssh command after timeout $ssh_cmd  \n");
     record_info('SSH CMD', $ssh_cmd);
 
     delete($args{cmd});
@@ -73,6 +77,7 @@ sub run_ssh_command {
     delete($args{username});
     delete($args{rc_only});
     if ($args{timeout} == 0) {
+        printf("ssh command first if $ssh_cmd %args \n");
         # Run the command and don't wait for it - no output nor returncode here
         script_run($ssh_cmd, %args);
     } elsif ($rc_only) {
@@ -81,9 +86,11 @@ sub run_ssh_command {
         $args{quiet} = 0;
         $args{die_on_timeout} = 1;
         # Run the command and return only the returncode here
+        printf("ssh command else if $ssh_cmd %args \n");
         return script_run($ssh_cmd, %args);
     } else {
         # Run the command, wait for it and return the output
+        printf("ssh command else $ssh_cmd %args \n");
         return script_output($ssh_cmd, %args);
     }
 }
