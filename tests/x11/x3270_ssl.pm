@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2012-2021 SUSE LLC
+# Copyright 2012-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Testopia Case#1595207 - FIPS: x3270
@@ -8,7 +8,7 @@
 # Summary: x3270 for SSL support testing, with openssl s_server running on local system
 #
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tags: poo#65570, poo#65615, poo#89005
+# Tags: poo#65570, poo#65615, poo#89005, poo#106504
 
 use base "x11test";
 use strict;
@@ -70,7 +70,11 @@ sub run {
     # Launch x3270
     # Add noverifycert option if x3270 is or greater than v3.6ga
     my $noverifycert = ($current_ver < 3.6 ? '' : '-noverifycert');
-    script_run "x3270 -trace $noverifycert -tracefile $tracelog_file L:localhost:8443";
+
+    # Run x3270 as background since backend code adjust warning policy
+    # It introduces run error if the command is not quit
+    background_script_run("x3270 -trace $noverifycert -tracefile $tracelog_file L:localhost:8443");
+
     assert_screen 'x3270_fips_launched_with_TLS_SSL';
 
     # Exit and back to generic desktop
@@ -93,8 +97,10 @@ sub run {
         wait_serial "TLS/SSL tunneled connection complete", 5 || die "x3270 output doesn't match";
     }
 
-    #Clean
+    # Clean up
     script_run "rm -f $tracelog_file $cert_file $key_file";
+    script_run 'pkill -9 x3270';
+    enter_cmd 'killall xterm';
 
     # Return to x11
     select_console 'x11';
