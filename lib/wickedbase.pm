@@ -13,6 +13,7 @@ use utils qw(systemctl file_content_replace zypper_call);
 use network_utils;
 use lockapi;
 use testapi qw(is_serial_terminal :DEFAULT);
+use bmwqemu;
 use serial_terminal;
 use Carp;
 use Mojo::File 'path';
@@ -766,12 +767,13 @@ sub check_logs {
         }
         my $out = trim(script_output($cmd, proceed_on_failure => 1));
         if (length($out) > 0) {
-            my $msg = "$cmd\n\n$out\n\n";
+            my $msg = "wicked check logs failed:\n$cmd\n\n$out\n\n";
             $msg .= "Use WICKED_CHECK_LOG_EXCLUDE to change filter!\n";
             $msg .= "  WICKED_CHECK_LOG_EXCLUDE=$exclude_var\n";
             $msg .= '  WICKED_CHECK_LOG_EXCLUDE_' . $self->{name} . "=$exclude_test_var\n";
             $msg .= "Control if test fail with WICKED_CHECK_LOG_FAIL default off.\n";
-            record_info('LOG-ERROR', $msg, result => 'fail');
+            bmwqemu::fctwarn($msg);
+            record_info('LOG-ERROR', $out, result => 'fail');
             $self->result('fail') if get_var(WICKED_CHECK_LOG_FAIL => 0) && $self->{name} ne 'before_test';
         }
     }
