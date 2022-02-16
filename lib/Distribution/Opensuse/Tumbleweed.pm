@@ -34,6 +34,7 @@ use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::SelectHardDisksC
 use Installation::Partitioner::LibstorageNG::GuidedSetupController;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
 use Installation::PerformingInstallation::PerformingInstallationController;
+use Installation::SecurityConfiguration::SecurityConfigurationController;
 use Installation::SSHKeyImport::SSHKeyImportController;
 use Installation::SystemProbing::EncryptedVolumeActivationController;
 use Installation::SystemRole::SystemRoleController;
@@ -191,6 +192,10 @@ sub get_performing_installation {
 
 sub get_ssh_import_settings {
     return Installation::SSHKeyImport::SSHKeyImportController->new();
+}
+
+sub get_security_configuration {
+    return Installation::SecurityConfiguration::SecurityConfigurationController->new();
 }
 
 1;
