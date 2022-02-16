@@ -851,6 +851,48 @@ sub check_logs {
     }
 }
 
+sub coredumpctl_has_debug {
+    my ($self) = @_;
+    $self->{systemd_ver} = script_output('rpm -q --qf "%{VERSION}" systemd') unless $self->{systemd_ver};
+    return check_version('>=249', $self->{systemd_ver});
+}
+
+sub prepare_coredump {
+    my $self = shift;
+    zypper_call('--quiet in systemd-coredump');
+    zypper_call('--quiet in gdb', exitcode => [104, 0]) if ($self->has_coredump_with_debug());
+
+    if (script_run('sysctl kernel.core_pattern | grep systemd-coredump') != 0) {
+        my $core_pattern = 'kernel.core_pattern=|/usr/lib/systemd/systemd-coredump %P %u %g %s %t %c %e';
+        assert_script_run("sysctl -w '$core_pattern'");
+        assert_script_run("echo '$core_pattern' > /etc/sysctl.d/50-coredump.conf");
+    }
+
+    assert_script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend)" ]');
+    for my $pkg (qw(wicked-debuginfo wicked-debugsource)) {
+        if (script_run("zypper search $pkg") == 0) {
+            zypper_call("in --force -y --force-resolution $pkg");
+        }
+    }
+}
+
+sub check_coredump {
+    my $self = shift;
+    return if (script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend)" ]') == 0);
+
+    my @core_pids = split(/\s+/, script_output(q(coredumpctl list --no-pager --no-legend | perl -ne '$_ =~ m/ ([0-9]+) / && print $1 .$/')));
+    for my $pid (@core_pids) {
+        my $core;
+        if ($self->coredumpctl_has_debug() && script_run('command -v gdb') == 0 && script_run('rpm -q --qf "" wicked-debuginfo') == 0) {
+            $core = script_output(qq(coredumpctl debug $pid --debugger-arguments='-quiet -ex "set pagination off" -ex "set debuginfod off" -ex bt -ex quit'));
+        } else {
+            $core = script_output(qq(coredumpctl info $pid));
+        }
+        record_info('CORE DUMP', $core, result => 'fail');
+        $self->result('fail');
+    }
+}
+
 sub reboot {
     my ($self) = @_;
     $self->check_logs();
@@ -868,6 +910,7 @@ sub post_run {
         $self->upload_log_file('/tmp/' . $self->{name} . '_tcpdump.pcap');
     }
     $self->check_logs();
+    $self->check_coredump();
     $self->upload_wicked_logs('post');
 }
 
