@@ -17,6 +17,7 @@ use publiccloud::ecr;
 use publiccloud::gce;
 use publiccloud::gcr;
 use publiccloud::acr;
+use publiccloud::openstack;
 use strict;
 use warnings;
 
@@ -92,6 +93,9 @@ sub provider_factory {
         else {
             die('Unknown service given');
         }
+    }
+    elsif ($args{provider} eq 'OPENSTACK') {
+        $provider = publiccloud::openstack->new();
     }
     else {
         die('Unknown PUBLIC_CLOUD_PROVIDER given');

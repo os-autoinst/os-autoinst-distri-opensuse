@@ -1,0 +1,13 @@
+clouds:
+  mycloud:
+    region_name: CustomRegion
+    auth:
+      auth_url: %OPENSTACK_AUTH_URI%
+      username: %OPENSTACK_USER%
+      password: %OPENSTACK_PASSWORD%
+      project_name: %OPENSTACK_PROJECT_NAME%
+      project_id: %OPENSTACK_PROJECT_ID%
+      user_domain_name: default
+    interface: public
+    identity_api_version: 3
+    cacert: /root/SUSE_Trust_Root.crt.pem
