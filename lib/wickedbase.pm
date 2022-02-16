@@ -860,7 +860,7 @@ sub coredumpctl_has_debug {
 sub prepare_coredump {
     my $self = shift;
     zypper_call('--quiet in systemd-coredump');
-    zypper_call('--quiet in gdb', exitcode => [104, 0]) if ($self->has_coredump_with_debug());
+    zypper_call('--quiet in gdb', exitcode => [104, 0]) if ($self->coredumpctl_has_debug());
 
     if (script_run('sysctl kernel.core_pattern | grep systemd-coredump') != 0) {
         my $core_pattern = 'kernel.core_pattern=|/usr/lib/systemd/systemd-coredump %P %u %g %s %t %c %e';
