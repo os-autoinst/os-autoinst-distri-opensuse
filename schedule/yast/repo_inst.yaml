@@ -8,13 +8,14 @@ description: >
 vars:
   DESKTOP: gnome
   VALIDATE_INST_SRC: '1'
-  EXTRABOOTPARAMS: startshell=1
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/validation/repo_inst
   - installation/setup_libyui
-  - installation/welcome
+  - installation/validation/repo_inst
+  - installation/validation/validate_install_repo
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
   - installation/module_registration/register_module_desktop
@@ -31,7 +32,6 @@ schedule:
   - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
   - installation/performing_installation/confirm_reboot
-  - installation/exit_startshell
   - installation/grub_test
   - installation/first_boot
   - console/validate_mirror_repos
