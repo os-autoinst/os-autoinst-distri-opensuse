@@ -1,0 +1,8 @@
+name: keylime
+description:    >
+    This is for keylime tests
+schedule:
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - security/tpm2/tpm2_env_setup
+    - security/tpm2/keylime/keylime
