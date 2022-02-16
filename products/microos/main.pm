@@ -63,9 +63,12 @@ sub load_feature_tests {
         loadtest 'console/kubeadm';
     }
     elsif (check_var 'SYSTEM_ROLE', 'container-host') {
+        my $args = OpenQA::Test::RunArgs->new();
+        my $runtime = get_required_var('CONTAINER_RUNTIME');
+        $args->{runtime} = $runtime;
         loadtest 'microos/toolbox';
         loadtest 'containers/podman';
-        loadtest 'containers/podman_image';
+        loadtest('containers/image', run_args => $args, name => "image_$runtime");
     }
 }
 
