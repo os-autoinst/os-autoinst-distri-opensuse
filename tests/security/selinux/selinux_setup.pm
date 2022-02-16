@@ -20,8 +20,8 @@ sub run {
 
     # Program 'sestatus' can be found in policycoreutils pkgs
     zypper_call("in policycoreutils");
-    # Program 'semanage' is in policycoreutils-python-utils pkgs on TW
-    if (is_tumbleweed) {
+    # Program 'semanage' is in policycoreutils-python-utils pkgs on TW and SLES 15-SP4
+    if (is_tumbleweed || is_sle('>=15-SP4')) {
         zypper_call('in policycoreutils-python-utils');
     }
     if (!is_sle('>=15')) {
@@ -32,7 +32,7 @@ sub run {
     my @pkgs = (
         'selinux-tools', 'libselinux-devel', 'libselinux1', 'python3-selinux', 'libsepol1', 'libsepol-devel',
         'libsemanage1', 'libsemanage-devel', 'checkpolicy', 'mcstrans', 'restorecond', 'setools-console',
-        'setools-devel', 'setools-java', 'setools-libs', 'setools-tcl'
+        'setools-devel', 'setools-java', 'setools-libs', 'setools-tcl', 'policycoreutils-python-utils'
     );
     foreach my $pkg (@pkgs) {
         my $results = script_run("zypper --non-interactive se $pkg");
