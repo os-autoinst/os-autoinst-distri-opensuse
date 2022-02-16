@@ -31,35 +31,14 @@ sub run {
 
     add_suseconnect_product(get_addon_fullname('phub')) if is_sle();
     add_suseconnect_product(get_addon_fullname('python2')) if is_sle('=15-sp1');
-    add_suseconnect_product(get_addon_fullname('pcm'), '12') if (is_sle('=12-sp5'));
+    # Some python dependencies for SLE 12-SPx are in Public Cloud module
+    add_suseconnect_product(get_addon_fullname('pcm'), '12') if (is_sle('<15'));
 
     my $docker = $self->containers_factory('docker');
 
     record_info 'Test #1', 'Test: Installation';
-
-    my $ret;
-    if (is_sle || is_leap) {
-        $ret = zypper_call "in docker-compose", exitcode => [0, 4];
-    } else {
-        $ret = zypper_call "in docker-compose-switch";
-    }
-
-    if ($ret == 4) {
-        # https://bugzilla.suse.com/show_bug.cgi?id=1186691#c29
-        # Possible outcomes:
-        #  nothing provides python-dockerpty >= 0.3.2 needed by docker-compose-1.2.0-5.1.noarch (12-SP5 s390x)
-        #  nothing provides python-docker-py >= 1.0.0 needed by docker-compose-1.2.0-5.1.noarch (12-SP4 s390x)
-        record_soft_failure "bsc#1186691 - docker-compose probably missing dependency";
-        return 0;
-    }
-
-    if (script_output('docker-compose --version', proceed_on_failure => 1) =~ /distribution was not found/) {
-        # Installation is ok, but when issuing docker-compose commands it throws:
-        # pkg_resources.DistributionNotFound: The 'PyYAML<4,>=3.10' distribution was not found and is required by docker-compose
-        # This happens only in 12-SP3 and 12-SP4 x86_64
-        record_soft_failure "bsc#1186691 - docker-compose probably missing dependency";
-        return 0;
-    }
+    my $pkg = (is_sle || is_leap) ? 'docker-compose' : 'docker-compose-switch';
+    zypper_call "in $pkg";
 
     # Prepare docker-compose.yml and haproxy.cfg
     assert_script_run 'mkdir -p dcproject; cd dcproject';
