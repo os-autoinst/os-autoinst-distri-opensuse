@@ -26,9 +26,9 @@ sub action {
 }
 
 sub exist {
-    my ($self) = @_;
+    my ($self, $args) = @_;
 
-    eval { $self->find_widgets() };
+    eval { $self->find_widgets($args) };
     return 0 if $@;
     return 1;
 }
@@ -46,17 +46,21 @@ sub property {
 }
 
 sub find_widgets {
-    my ($self) = @_;
+    my ($self, $args) = @_;
 
     $self->resolve_filter() unless $self->{filter}->is_resolved();
-    return $self->{widget_controller}->find($self->{filter}->get_filter());
+    return $self->{widget_controller}->find({
+            filter => $self->{filter}->get_filter(),
+            timeout => $args->{timeout},
+            interval => $args->{interval}
+    });
 }
 
 sub resolve_filter {
-    my ($self) = @_;
+    my ($self, $args) = @_;
 
     # get json with widgets according to current filter (which does not include regex)
-    my $json = $self->{widget_controller}->find($self->{filter}->get_filter());
+    my $json = $self->{widget_controller}->find({filter => $self->{filter}->get_filter()});
     # replace regex by found value in the filter
     $self->{filter}->resolve($json);
 }

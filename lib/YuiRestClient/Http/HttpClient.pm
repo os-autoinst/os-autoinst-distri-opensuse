@@ -10,8 +10,10 @@ use YuiRestClient::Logger;
 my $ua = Mojo::UserAgent->new;
 
 sub http_get {
-    my $url = Mojo::URL->new(shift);
-    sleep(1);
+    my (%args) = @_;
+    $args{add_delay} //= 1;
+    my $url = Mojo::URL->new($args{uri});
+    sleep(1) if $args{add_delay};
     my $res = $ua->get($url)->result;
     return $res if $res->is_success;
     # Die if non OK response code
@@ -20,8 +22,10 @@ sub http_get {
 }
 
 sub http_post {
-    my $url = Mojo::URL->new(shift);
-    sleep(1);
+    my (%args) = @_;
+    $args{add_delay} //= 1;
+    my $url = Mojo::URL->new($args{uri});
+    sleep(1) if $args{add_delay};
     my $res = $ua->post($url)->result;
     return $res if $res->is_success;
     # Die if non OK response code
