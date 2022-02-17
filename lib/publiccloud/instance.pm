@@ -228,8 +228,14 @@ sub wait_for_ssh
         if ($check_port) {
             $check_port = 0 if (script_run('nc -vz -w 1 ' . $self->{public_ip} . ' 22', quiet => 1) == 0);
         }
-        elsif ($self->run_ssh_command(cmd => 'sudo journalctl -b | grep -E "Reached target (Cloud-init|Default|Main User Target)"', proceed_on_failure => 1, quiet => 1, username => $args{username}) =~ m/Reached target.*/) {
-            return $duration;
+        else {
+            my $output = $self->run_ssh_command(cmd => 'sudo journalctl -b | grep -E "Reached target (Cloud-init|Default|Main User Target)"', proceed_on_failure => 1, username => $args{username});
+            if ($output =~ m/Reached target.*/) {
+                return $duration;
+            }
+            elsif ($output =~ m/Permission denied (publickey).*/) {
+                die "ssh permission denied (pubkey)";
+            }
         }
         sleep 1;
     }
