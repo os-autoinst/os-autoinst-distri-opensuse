@@ -21,6 +21,7 @@ use warnings;
 our @EXPORT = qw(
   is_container_test
   load_container_tests
+  load_host_tests_podman
 );
 
 sub is_container_test {
@@ -63,13 +64,13 @@ sub load_image_tests_docker {
 }
 
 sub load_host_tests_podman {
-    if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+")) {
+    if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+") || is_sle_micro) {
         # podman package is only available as of 15-SP1
         loadtest 'containers/podman';
         load_image_test('podman');
         loadtest 'containers/podman_3rd_party_images';
         loadtest 'containers/podman_firewall';
-        loadtest 'containers/buildah';
+        loadtest 'containers/buildah' unless is_sle_micro;
         loadtest 'containers/rootless_podman' unless is_sle('=15-sp1');    # https://github.com/containers/podman/issues/5732#issuecomment-610222293
     }
 }
