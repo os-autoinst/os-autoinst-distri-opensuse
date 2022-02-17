@@ -27,10 +27,4 @@ sub init {
     assert_script_run('crictl info');
 }
 
-sub minimal_tests {
-    my $alpine = registry_url('alpine', '3.6');
-    assert_script_run("crictl pull $alpine");
-    validate_script_output("crictl image ls", sub { /alpine/ });
-}
-
 1;

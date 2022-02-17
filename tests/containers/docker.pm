@@ -49,7 +49,10 @@ sub run {
     # Build an image from Dockerfile and run it
     build_and_run_image(runtime => $engine, dockerfile => 'Dockerfile.python3', base => registry_url('python', '3'));
 
-    # Clean container
+    # Once more test the basic functionality
+    runtime_smoke_tests(runtime => $engine);
+
+    # Clean the container host
     $engine->cleanup_system_host();
 }
 

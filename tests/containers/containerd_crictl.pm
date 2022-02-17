@@ -8,11 +8,7 @@
 # Maintainer: qa-c team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
-use testapi;
-use utils;
-use containers::common;
-use containers::utils;
-use containers::container_images;
+use containers::utils 'runtime_smoke_tests';
 
 sub run {
     my ($self) = @_;
@@ -20,8 +16,8 @@ sub run {
 
     my $engine = $self->containers_factory('containerd_crictl');
 
-    # Run minimal runtime tests
-    $engine->minimal_tests();
+    # Run runtime smoke tests
+    runtime_smoke_tests(runtime => $engine);
 }
 
 1;
