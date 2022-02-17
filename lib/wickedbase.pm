@@ -870,9 +870,7 @@ sub prepare_coredump {
 
     assert_script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend)" ]');
     for my $pkg (qw(wicked-debuginfo wicked-debugsource)) {
-        if (script_run("zypper search $pkg") == 0) {
-            zypper_call("in --force -y --force-resolution $pkg");
-        }
+        zypper_call("in --force -y --no-recommends $pkg", exitcode => [0, 104, 8]);
     }
 }
 
