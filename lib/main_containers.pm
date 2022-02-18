@@ -50,6 +50,14 @@ sub load_image_test {
     loadtest('containers/image', run_args => $args, name => "image_$runtime");
 }
 
+sub load_3rd_party_image_test {
+    my ($runtime) = @_;
+    my $args = OpenQA::Test::RunArgs->new();
+    $args->{runtime} = $runtime;
+
+    loadtest('containers/third_party_images', run_args => $args, name => $runtime . "_3rd_party_images");
+}
+
 sub load_image_tests_podman {
     load_image_test('podman');
 }
@@ -68,7 +76,7 @@ sub load_host_tests_podman {
         # podman package is only available as of 15-SP1
         loadtest 'containers/podman';
         load_image_test('podman');
-        loadtest 'containers/podman_3rd_party_images';
+        load_3rd_party_image_test('podman');
         loadtest 'containers/podman_firewall';
         loadtest 'containers/buildah' unless is_sle_micro;
         loadtest 'containers/rootless_podman' unless is_sle('=15-sp1');    # https://github.com/containers/podman/issues/5732#issuecomment-610222293
@@ -78,7 +86,7 @@ sub load_host_tests_podman {
 sub load_host_tests_docker {
     loadtest 'containers/docker';
     load_image_test('docker');
-    loadtest 'containers/docker_3rd_party_images';
+    load_3rd_party_image_test('docker');
     loadtest 'containers/docker_firewall';
     unless (is_sle("<=15") && is_aarch64) {
         # these 2 packages are not avaiable for <=15 (aarch64 only)
