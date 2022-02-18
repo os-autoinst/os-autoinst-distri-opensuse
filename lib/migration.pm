@@ -1,4 +1,4 @@
-# Copyright 2017-2021 SUSE LLC
+# Copyright 2017-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 package migration;
@@ -47,7 +47,7 @@ sub setup_sle {
 
     # Enable Y2DEBUG for error debugging
     enter_cmd "echo 'export Y2DEBUG=1' >> /etc/bash.bashrc.local";
-    script_run "source /etc/bash.bashrc.local";
+    script_run("source /etc/bash.bashrc.local", die_on_timeout => 0);
 }
 
 sub setup_migration {
