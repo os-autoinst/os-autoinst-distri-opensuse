@@ -174,25 +174,29 @@ sub add_suseconnect_product {
     $version //= '${VERSION_ID}';
     $arch //= '${CPU}';
     $params //= '';
-    $retry //= 0;    # run SUSEConnect a 2nd time to workaround the gpg error due to missing repo key on 1st run
+    $retry //= 3;    # run SUSEConnect $retry times before failing
+    $timeout //= 300;
 
     # some modules on sle12 use major version e.g. containers module
     my $major_version = '$(echo ${VERSION_ID}|cut -c1-2)';
     $version = $major_version if $name eq 'sle-module-containers' && is_sle('<15');
+    record_info('SCC product', "Activating product $name");
 
-    my $result = script_run("SUSEConnect -p $name/$version/$arch $params", $timeout);
-    if ($result != 0 && $retry) {
-        if ($name =~ /PackageHub/) {
-            record_soft_failure 'bsc#1124318 - Fail to get module repo metadata - running the command again as a workaround';
-
+    my $try_cnt = 0;
+    while ($try_cnt++ < $retry) {
+        eval { assert_script_run("SUSEConnect -p $name/$version/$arch $params", timeout => $timeout); };
+        if ($@) {
+            record_info('retry', "SUSEConnect failed to activate the module $name. Retrying...");
+            sleep 60 * $try_cnt;    # we wait a bit longer for each retry
         }
-
-        my $fail_message = ($name =~ /PackageHub/ && check_var('BETA', '1')) ? "PackageHub installation might fail in early development" : undef;
-        assert_script_run("SUSEConnect -p $name/$version/$arch $params", $timeout, $fail_message);
-
-    } elsif ($result && !$retry) {
-        die "SUSEConnect failed activating module $name with exit code (see log output): $result.";
+        else {
+            return 1;
+        }
     }
+    if ($name =~ /PackageHub/ && check_var('BETA', '1')) {
+        record_info('INFO', 'PackageHub installation might fail in early development');
+    }
+    die "SUSEConnect failed activating module $name after $$retry retries.";
 }
 
 =head2 ssh_add_suseconnect_product
