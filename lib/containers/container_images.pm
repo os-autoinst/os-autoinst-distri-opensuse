@@ -169,11 +169,14 @@ sub test_opensuse_based_image {
 
             # SUSEConnect zypper service is supported only on SLE based image on SLE host
             unless (is_unreleased_sle) {
+                my $output;
                 # we set --entrypoint specifically to the zypper plugin to avoid bsc#1192941
                 my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect-zypp';
                 validate_script_output("$runtime run --entrypoint $plugin -i $image -v", sub { m/container-suseconnect version .*/ }, timeout => 180);
-                validate_script_output("$runtime run --entrypoint $plugin -i $image lp", sub { m/.*All available products.*/ }, timeout => 180);
-                validate_script_output("$runtime run --entrypoint $plugin -i $image lm", sub { m/.*All available modules.*/ }, timeout => 180);
+                $output = script_output_retry("$runtime run --entrypoint $plugin -i $image lp", retry => 3, timeout => 300, delay => 60);
+                die "$plugin lp failed" if ($output !~ m/.*All available products.*/);
+                $output = script_output_retry("$runtime run --entrypoint $plugin -i $image lm", retry => 3, timeout => 300, delay => 60);
+                die "$plugin lm failed" if ($output !~ m/.*All available modules.*/);
             }
         } else {
             record_info "non-SLE host", "This host ($host_id) does not support zypper service";
