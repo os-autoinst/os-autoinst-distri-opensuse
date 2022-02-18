@@ -5,3 +5,4 @@ schedule:
     - boot/boot_to_desktop
     - console/consoletest_setup
     - security/audit/autrace
+    - security/audit/ausearch
