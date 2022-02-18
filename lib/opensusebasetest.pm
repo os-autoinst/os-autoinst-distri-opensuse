@@ -195,7 +195,7 @@ sub problem_detection {
     $self->save_and_upload_log(
 "find / -type d \\( -path /proc -o -path /run -o -path /.snapshots -o -path /var \\) -prune -o -xtype l -exec ls -l --color=always {} \\; -exec rpmquery -f {} \\;",
         "broken-symlinks.txt",
-        {screenshot => 1, noupload => 1});
+        {screenshot => 1, noupload => 1, timeout => 60});
     clear_console;
 
     # Binaries with missing libraries
