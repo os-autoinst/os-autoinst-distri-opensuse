@@ -410,7 +410,8 @@ sub uefi_bootmenu_params {
 # Returns kernel framebuffer configuration we have to
 # explicitly set on Hyper-V to get 1024x768 resolution.
 sub get_hyperv_fb_video_resolution {
-    return 'video=hyperv_fb:1024x768';
+	#return 'video=hyperv_drmdrmfb:1024x768';
+    return ' ';
 }
 
 
@@ -1075,7 +1076,8 @@ sub zkvm_add_interface {
 sub set_framebuffer_resolution {
     my $video;
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        $video = 'video=hyperv_fb:1024x768';
+        #$video = 'video=hyperv_drmdrmfb:1024x768';
+        $video = ' ';
     }
     elsif (check_var('VIRSH_VMM_TYPE', 'linux')) {
         $video = 'xen-fbfront.video=32,1024,768 xen-kbdfront.ptr_size=1024,768';

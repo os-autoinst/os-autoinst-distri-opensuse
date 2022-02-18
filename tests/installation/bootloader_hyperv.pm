@@ -221,6 +221,9 @@ sub run {
 
     hyperv_cmd("$ps Set-VMProcessor $name -Count $cpucount");
 
+    #DEBUG
+    #hyperv_cmd("$ps Set-VMVideo -VMName $name -ResolutionType Single -HorizontalResolution 1024 -VerticalResolution 768") if $winserver eq '2012r2';
+
     if (get_var('UEFI')) {
         if ($winserver eq '2012r2' || get_var('DISABLE_SECUREBOOT')) {
             hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot Off");
