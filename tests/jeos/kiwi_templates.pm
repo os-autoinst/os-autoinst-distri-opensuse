@@ -4,18 +4,25 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Install kiwi templates for JeOS
-# Maintainer: Martin Loviska <mloviska@suse.com>
+# Maintainer: QA-C <qa-c@suse.de>
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base qw(opensusebasetest);
 use testapi;
-use version_utils qw(is_sle is_leap);
+use version_utils qw(is_sle is_leap is_tumbleweed);
 use utils qw(zypper_call);
 
 sub run {
-    select_console 'root-console';
-    my $rpm = is_sle('<15-SP2') ? 'kiwi-templates-SLES15-JeOS' : 'kiwi-templates-JeOS';
+    shift->select_serial_terminal;
+
+    my $rpm;
+    if (is_sle('<15-SP2')) {
+        $rpm = 'kiwi-templates-SLES15-JeOS';
+    } elsif (is_leap('<=15.4') || is_sle('<15-SP4') || is_tumbleweed) {
+        $rpm = 'kiwi-templates-JeOS';
+    } else {
+        $rpm = 'kiwi-templates-Minimal';
+    }
+
     zypper_call "in $rpm";
     assert_script_run "rpm -ql $rpm";
 }
