@@ -7,7 +7,7 @@ description:    >
 vars:
   DESKTOP: textmode
   INSTALLONLY: 1
-  PATTERNS: base,minimal
+  PATTERNS: base,minimal,apparmor
   SLE_PRODUCT: hpc
   HDDSIZEGB: 30
 conditional_schedule:
