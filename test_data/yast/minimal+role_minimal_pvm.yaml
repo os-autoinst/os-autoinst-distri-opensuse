@@ -10,6 +10,7 @@ software:
       installed: 1
   patterns:
     - base
+    - apparmor
 table_type: gpt
 subvolume:
   cow:
