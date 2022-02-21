@@ -18,15 +18,23 @@ our @EXPORT = qw(
   load_publiccloud_tests
 );
 
+sub load_3rd_party_image_test {
+    my ($runtime) = @_;
+    my $args = OpenQA::Test::RunArgs->new();
+    $args->{runtime} = $runtime;
+
+    loadtest('containers/third_party_images', run_args => $args, name => $runtime . "_3rd_party_images");
+}
+
 sub load_podman_tests() {
     loadtest 'containers/podman';
-    loadtest 'containers/podman_3rd_party_images';
+    load_3rd_party_image_test('podman');
 }
 
 sub load_docker_tests() {
     loadtest 'containers/docker';
     loadtest 'containers/docker_runc' unless (is_aarch64 && is_sle('<=15'));
-    loadtest 'containers/docker_3rd_party_images';
+    load_3rd_party_image_test('docker');
     loadtest 'containers/registry' unless (is_aarch64 && is_sle('<=15-SP1'));
     loadtest 'containers/zypper_docker' unless (is_aarch64 && is_sle('<=15'));
 }
