@@ -1679,22 +1679,30 @@ Example:
 
 =cut
 sub validate_script_output_retry {
-    my ($cmd, $check, %args) = @_;
-    my $retry = $args{retry} // 10;
-    my $delay = $args{delay} // 30;
-    my $timeout = $args{timeout} // 90;
+    my ($cmd, $check) = splice(@_, 0, 2);
+    my %args = testapi::compat_args({retry => 10, delay => 30, timeout => 90}, [], @_);
+    my $retry = delete $args{retry};
+    my $delay = delete $args{delay};
 
-    for (1 .. $retry) {
-        eval { validate_script_output($cmd, $check, timeout => $timeout); };
-        if ($@) {
-            record_info("Retry $retry", "validate_script_output failed. Retrying...");
-            sleep $delay;
-        }
-        else {
-            return 1;
-        }
+    my $ret;
+
+    my $exec = "timeout $args{timeout} $cmd";
+    # Exclamation mark needs to be moved before the timeout command, if present
+    if (substr($cmd, 0, 1) eq "!") {
+        $cmd = substr($cmd, 1);
+        $cmd =~ s/^\s+//;    # left trim spaces after the exclamation mark
+        $exec = "! timeout $args{timeout} $cmd";
     }
-    die("Can't validate output after $retry retries");
+
+    $args{timeout} += 3;    # timeout for script_run must be larger than for the 'timeout ...' command
+    for (1 .. $retry) {
+        eval { $ret = validate_script_output($exec, $check, %args, procced_on_failure => 1); };
+        return $ret if (defined($ret));
+        die("Can't validate output after $retry retries") if $retry == $_;
+        record_info("Retry", "validate_script_output timed out. Retrying...");
+        sleep $delay;
+    }
+    return $ret;
 }
 
 =head2 script_run_interactive

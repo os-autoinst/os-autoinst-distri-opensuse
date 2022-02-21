@@ -33,4 +33,15 @@ subtest 'script_retry' => sub {
     dies_ok { script_retry('sleep 10', retry => 1, delay => 0, timeout => 1) } 'script_retry(sleep) is expected to die';
 };
 
+subtest 'validate_script_output_retry' => sub {
+    # Override script_output, which is called by validate_script_output
+    my $testapi = Test::MockModule->new('utils');
+    # script_output runs the commands on the local machine as bash
+    $testapi->redefine("script_output", sub { my $output = `echo test`; print("$output")});
+
+    is validate_script_output_retry('echo test', m/test/, retry => 2, delay => 0, timeout => 1), 0, "validate_script_output_retry(echo)";
+    dies_ok { validate_script_output_retry('echo test', m/nomatch/, retry => 2, delay => 0, timeout => 1) } 'validate_script_output_retry(no match) is expected to die';
+    dies_ok { validate_script_output_retry('sleep 10', '', retry => 1, delay => 0, timeout => 1) } 'validate_script_output_retry is expected to die';
+};
+
 done_testing;
