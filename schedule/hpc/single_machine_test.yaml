@@ -5,7 +5,7 @@ description:    >
      all singe machine HPC tests based loaded based on hpctest
 vars:
   DESKTOP: textmode
-  PATTERNS: base,minimal
+  PATTERNS: base,minimal,apparmor
   SLE_PRODUCT: hpc
   HDDSIZEGB: 30
 conditional_schedule:

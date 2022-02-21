@@ -45,9 +45,9 @@ sub run {
     #workaround end
 
     # clean up logs from prevous tests
-    script_run('[ -d /var/log/qa/ctcs2/ ] && rm -rf /var/log/qa/ctcs2/', 30);
-    script_run('[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/', 30);
-    script_run('[ -d /tmp/prj3_migrate_admin_log/ ] && rm -rf /tmp/prj3_migrate_admin_log/', 30);
+    script_run('[ -d /var/log/qa/ctcs2/ ] && rm -rf /var/log/qa/ctcs2/', die_on_timeout => 0);
+    script_run('[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/');
+    script_run('[ -d /tmp/prj3_migrate_admin_log/ ] && rm -rf /tmp/prj3_migrate_admin_log/');
 
     #mark ready state
     mutex_create('DST_READY_TO_START');
@@ -57,7 +57,6 @@ sub run {
     $self->workaround_for_reverse_lock("SRC_TEST_DONE", $src_test_timeout);
 
     #upload logs
-    script_run("xl dmesg > /tmp/xl-dmesg.log");
     my $xen_logs = "";
     if ($hypervisor =~ /XEN/im) {
         $xen_logs = "/var/lib/xen/dump /tmp/xl-dmesg.log";

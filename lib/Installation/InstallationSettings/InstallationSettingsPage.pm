@@ -82,6 +82,11 @@ sub access_booting_options {
     $self->{txt_overview}->activate_link('bootloader_stuff');
 }
 
+sub access_security_options {
+    my ($self) = @_;
+    $self->{txt_overview}->activate_link('security');
+}
+
 sub access_ssh_import_options {
     my ($self) = @_;
     $self->{txt_overview}->activate_link('ssh_import');

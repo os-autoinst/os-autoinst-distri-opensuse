@@ -40,10 +40,9 @@ sub add_pci_bridge {
         # Skip if a pci-bridge is already present
         return if (script_run("cat $xml | grep 'controller' | grep 'pci-bridge'") == 0);
 
-        my $regex = '<controller type=.pci. .*model=.pci-root..*>';
-        my $addbefore = '<controller type="pci" model="pci-bridge"/>';
-        # the add_before.sh script inserts a given line before the line matching the given regex
-        assert_script_run("virsh dumpxml $guest | /root/add_before.sh '$regex' '$addbefore' > $xml");
+        # add pci-bridge to xml settings
+        assert_script_run("virsh dumpxml $guest > $xml");
+        assert_script_run("sed -i '/.*<\\/devices>/i<controller type=\"pci\" model=\"pci-bridge\"/>' /root/$xml");
         upload_logs("$xml");
 
         # Check if settings are applied correctly in the new xml
@@ -60,10 +59,12 @@ sub add_pci_bridge {
         # Skip if a pcie-to-pci-bridge is already present
         return if (script_run("cat $xml | grep 'controller' | grep 'pcie-to-pci-bridge'") == 0);
 
-        my $regex = '<controller type=.pci. .*model=.pcie-root..*>';
-        my $addbefore = '<controller type="pci" model="pcie-root-port"/><controller type="pci" model="pcie-to-pci-bridge"/>';
-        # the add_before.sh script inserts a given line before the line matching the given regex
-        assert_script_run("virsh dumpxml $guest | /root/add_before.sh '$regex' '$addbefore' > $xml");
+        # Add 10 pcie-root-port devices and a pcie-to-pci brdige
+        assert_script_run("virsh dumpxml $guest > $xml");
+        for (1 .. 10) {
+            assert_script_run("sed -i '/.*<\\/devices>/i<controller type=\"pci\" model=\"pcie-root-port\"/>' /root/$xml");
+        }
+        assert_script_run("sed -i '/.*<\\/devices>/i<controller type=\"pci\" model=\"pcie-to-pci-bridge\"/>' /root/$xml");
         upload_logs("$xml");
 
         # Check if settings are applied correctly in the xml
@@ -114,10 +115,6 @@ sub run {
     record_info("shutdown guests", "Shutting down all guests");
     shutdown_guests();
 
-    # Download helper script for adding PCI bridge. add_before adds a line before a given regex.
-    # Usage: add_before REGEX LINE_TO_ADD
-    assert_script_run('curl -v -o /root/add_before.sh ' . data_url('virtualization/add_before.sh'));
-    assert_script_run('chmod 0755 /root/add_before.sh');
     ## Add a PCIe root port and a PCIe to PCI bridge for hotplugging
     add_pci_bridge("$_") foreach (keys %virt_autotest::common::guests);
 

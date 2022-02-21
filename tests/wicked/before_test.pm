@@ -40,7 +40,6 @@ sub run {
         systemctl("stop " . opensusebasetest::firewall);
         systemctl("disable " . opensusebasetest::firewall);
     }
-    assert_script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend)" ]');
     record_info('INFO', 'Setting debug level for wicked logs');
     file_content_replace('/etc/sysconfig/network/config', '--sed-modifier' => 'g', '^WICKED_DEBUG=.*' => 'WICKED_DEBUG="all"', '^WICKED_LOG_LEVEL=.*' => 'WICKED_LOG_LEVEL="debug2"');
     #preparing directories for holding config files
@@ -108,7 +107,7 @@ sub run {
                 zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/$version/SUSE:CA.repo");
                 zypper_call("in ca-certificates-suse");
             }
-            zypper_ar($wicked_repo, params => '-n wicked_repo', no_gpg_check => 1);
+            zypper_ar($wicked_repo, priority => 10, params => '-n wicked_repo', no_gpg_check => 1);
             my ($resolv_options, $repo_id) = (' --allow-vendor-change  --allow-downgrade ', 'wicked_repo');
             $resolv_options = ' --oldpackage' if (is_sle('<15'));
             ($repo_id) = ($wicked_repo =~ m!(^.*/)!s) if (is_sle('<=12-sp1'));
@@ -138,6 +137,7 @@ sub run {
             $package_list .= ' ndisc6';
         }
         wicked::wlan::prepare_packages() if (check_var('WICKED', 'wlan'));
+        $self->prepare_coredump();
 
         $package_list .= ' openvswitch iputils';
         $package_list .= ' libteam-tools libteamdctl0 ' if check_var('WICKED', 'advanced') || check_var('WICKED', 'aggregate');

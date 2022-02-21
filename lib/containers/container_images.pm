@@ -197,6 +197,7 @@ sub test_opensuse_based_image {
 
 sub test_zypper_on_container {
     my ($runtime, $image) = @_;
+    record_info('zypper tests', 'Basic zypper commands in the container.');
 
     die 'Argument $image not provided!' unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
@@ -208,11 +209,11 @@ sub test_zypper_on_container {
         record_info('bsc#1192941', 'bsc#1192941 - zypper-docker entrypoint confuses program arguments');
     }
     validate_script_output("$runtime run -i --entrypoint '' $image zypper lr -s", sub { m/.*Alias.*Name.*Enabled.*GPG.*Refresh.*Service/ }, timeout => 180);
-    script_retry("$runtime run -i --name 'refreshed' --entrypoint '' $image zypper -nv ref", timeout => 300, retry => 3, delay => 60);
+    assert_script_run("$runtime run -t -d --name 'refreshed' --entrypoint '' $image bash", timeout => 300);
+    script_retry("$runtime exec refreshed zypper -nv ref", timeout => 600, retry => 3, delay => 60);
     assert_script_run("$runtime commit refreshed refreshed-image", timeout => 120);
     assert_script_run("$runtime rm -f refreshed");
-    script_retry("$runtime run -i --name 'refreshed-image' --rm --entrypoint '' $image zypper -nv ref", timeout => 300, retry => 3, delay => 60);
-    record_info "The End", "zypper test completed";
+    script_retry("$runtime run -i --rm --entrypoint '' refreshed-image zypper -nv ref", timeout => 300, retry => 3, delay => 60);
 }
 
 sub exec_on_container {

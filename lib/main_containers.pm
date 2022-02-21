@@ -21,6 +21,7 @@ use warnings;
 our @EXPORT = qw(
   is_container_test
   load_container_tests
+  load_host_tests_podman
 );
 
 sub is_container_test {
@@ -41,12 +42,28 @@ sub is_ubuntu_host {
     return get_var("HDD_1") =~ /ubuntu/;
 }
 
+sub load_image_test {
+    my ($runtime) = @_;
+    my $args = OpenQA::Test::RunArgs->new();
+    $args->{runtime} = $runtime;
+
+    loadtest('containers/image', run_args => $args, name => "image_$runtime");
+}
+
+sub load_3rd_party_image_test {
+    my ($runtime) = @_;
+    my $args = OpenQA::Test::RunArgs->new();
+    $args->{runtime} = $runtime;
+
+    loadtest('containers/third_party_images', run_args => $args, name => $runtime . "_3rd_party_images");
+}
+
 sub load_image_tests_podman {
-    loadtest 'containers/podman_image';
+    load_image_test('podman');
 }
 
 sub load_image_tests_docker {
-    loadtest 'containers/docker_image';
+    load_image_test('docker');
     # container_diff package is not avaiable for <=15 in aarch64
     # Also, we don't want to run it on 3rd party hosts
     unless ((is_sle("<=15") and is_aarch64) || get_var('CONTAINERS_NO_SUSE_OS')) {
@@ -55,21 +72,21 @@ sub load_image_tests_docker {
 }
 
 sub load_host_tests_podman {
-    if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+")) {
+    if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+") || is_sle_micro) {
         # podman package is only available as of 15-SP1
         loadtest 'containers/podman';
-        loadtest 'containers/podman_image';
-        loadtest 'containers/podman_3rd_party_images';
+        load_image_test('podman');
+        load_3rd_party_image_test('podman');
         loadtest 'containers/podman_firewall';
-        loadtest 'containers/buildah';
+        loadtest 'containers/buildah' unless is_sle_micro;
         loadtest 'containers/rootless_podman' unless is_sle('=15-sp1');    # https://github.com/containers/podman/issues/5732#issuecomment-610222293
     }
 }
 
 sub load_host_tests_docker {
     loadtest 'containers/docker';
-    loadtest 'containers/docker_image';
-    loadtest 'containers/docker_3rd_party_images';
+    load_image_test('docker');
+    load_3rd_party_image_test('docker');
     loadtest 'containers/docker_firewall';
     unless (is_sle("<=15") && is_aarch64) {
         # these 2 packages are not avaiable for <=15 (aarch64 only)
@@ -99,6 +116,7 @@ sub load_host_tests_containerd_nerdctl {
 }
 
 sub load_container_tests {
+    my $args = OpenQA::Test::RunArgs->new();
     my $runtime = get_required_var('CONTAINER_RUNTIME');
 
     if (get_var('BOOT_HDD_IMAGE')) {

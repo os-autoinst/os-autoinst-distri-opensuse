@@ -1,10 +1,10 @@
 ---
 name: gnome_install_from_source
 description: >
-   Install default system using the gnome desktop
-   using a remote repository over http or https or samba.
-   Scenario is thought to use Online medium to boot
-   and Full medium for remote repositories.
+  Install default system using the gnome desktop
+  using a remote repository over http or https or samba.
+  Scenario is thought to use Online medium to boot
+  and Full medium for remote repositories.
 vars:
   DESKTOP: gnome
   NETBOOT: 1
@@ -12,7 +12,9 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
+  - installation/validation/validate_install_repo
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/registration/skip_registration
   - installation/module_selection/select_module_desktop

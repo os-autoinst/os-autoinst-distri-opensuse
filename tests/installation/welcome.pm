@@ -65,8 +65,8 @@ sub get_product_shortcuts {
             : is_aarch64() ? 's'
             : 'i',
             sled => 'x',
-            sles4sap => is_ppc64le() ? 'i'
-            : (is_sle('15-SP2+') && is_x86_64() && !is_quarterly_iso()) ? 't'
+            sles4sap => is_ppc64le() ? 'u'
+            : (is_sle('15-SP2+') && is_x86_64() && !is_quarterly_iso()) ? 'i'
             : 'p',
             hpc => is_x86_64() ? 'g' : 'u',
             rt => is_x86_64() ? 't' : undef

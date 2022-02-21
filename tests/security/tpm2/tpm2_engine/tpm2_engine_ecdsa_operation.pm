@@ -38,8 +38,4 @@ sub run {
     assert_script_run "cd";
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
-
 1;

@@ -11,10 +11,11 @@
 # Maintainer: qa-c team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
-use registration;
 use testapi;
-use mmapi;
-use utils;
+use mmapi 'get_current_job_id';
+use utils 'zypper_call';
+use version_utils 'is_sle';
+use registration qw(add_suseconnect_product get_addon_fullname);
 use publiccloud::utils "select_host_console";
 
 sub run {
@@ -24,7 +25,8 @@ sub run {
 
     # If 'az' is preinstalled, we test that version
     if (script_run("which az") != 0) {
-        add_suseconnect_product 'sle-module-public-cloud';
+        add_suseconnect_product(get_addon_fullname('pcm'), (is_sle('=12-sp5') ? '12' : undef));
+        add_suseconnect_product(get_addon_fullname('phub')) if is_sle('=12-sp5');
         zypper_call('in azure-cli jq python3-susepubliccloudinfo');
     }
     assert_script_run('az --version');

@@ -1,23 +1,24 @@
-# Copyright 2020 SUSE LLC
+# Copyright 2020-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: PAM tests for su, su to root should fail if user is not in group "wheel"
 # Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#70345, tc#1167579
+# Tags: poo#70345, poo#106020, tc#1167579
 
 use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
 use base 'consoletest';
-use utils 'clear_console';
+use utils qw(clear_console ensure_serialdev_permissions);
+use Utils::Architectures;
 
 sub run {
     select_console 'root-console';
 
     # User will not be able to su to root since it is not belong to group "wheel"
-    my $user = 'bernhard';
-    my $passwd = 'nots3cr3t';
+    my $user = $testapi::username;
+    my $passwd = $testapi::password;
     my $group = 'wheel';
     validate_script_output "id $user | grep $group || echo 'check pass'", sub { m/check pass/ };
 
@@ -43,8 +44,14 @@ sub run {
     upload_logs($su_file);
     upload_logs($sul_file);
 
-    # Switch to user console
     clear_console;
+
+    # On s390x platform, make sure that non-root user has
+    # permissions for $serialdev to get openQA work properly.
+    # Please refer to bsc#1195620
+    ensure_serialdev_permissions if (is_s390x);
+
+    # Switch to user console
     select_console 'user-console';
 
     # Then su to root should fail
@@ -59,7 +66,7 @@ expect {
    }
 }'";
 
-    # Make sure your current user "suse"
+    # Make sure the current user is not root
     validate_script_output "whoami | grep $user && echo 'check pass'", sub { m/check pass/ };
     # Tear down, clear the pam configuration changes
     clear_console;

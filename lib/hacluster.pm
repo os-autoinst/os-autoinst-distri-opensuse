@@ -204,8 +204,15 @@ Returns 0 on failure.
 
 sub get_ip {
     my $node_hostname = shift;
-    my $node_ip = get_var('USE_SUPPORT_SERVER') ? script_output "host -t A $node_hostname" :
-      script_output "awk 'BEGIN {RET=1} /$node_hostname/ {print \$1; RET=0; exit} END {exit RET}' /etc/hosts";
+    my $node_ip;
+
+    if (get_var('USE_SUPPORT_SERVER')) {
+        $node_ip = script_output_retry("host -t A $node_hostname", retry => 3, delay => 5);
+    }
+    else {
+        $node_ip = script_output("awk 'BEGIN {RET=1} /$node_hostname/ {print \$1; RET=0; exit} END {exit RET}' /etc/hosts");
+    }
+
     return _just_the_ip($node_ip);
 }
 
@@ -588,7 +595,7 @@ sub ha_export_logs {
     upload_logs($mdadm_conf, failok => 1);
 
     # supportconfig
-    script_run "supportconfig -g -B $clustername", 180;
+    script_run "supportconfig -g -B $clustername", 300;
     upload_logs("/var/log/nts_$clustername.tgz", failok => 1);
 
     # pacemaker cts log

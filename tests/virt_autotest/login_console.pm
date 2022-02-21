@@ -103,6 +103,7 @@ sub login_to_console {
     }
 
     if (!get_var("reboot_for_upgrade_step")) {
+        set_var("first_reboot_after_upgrade", "no") if (check_var("first_reboot_after_upgrade", "yes"));
         if (is_xen_host) {
             #send key 'up' to stop grub timer counting down, to be more robust to select xen
             send_key 'up';
@@ -147,6 +148,7 @@ sub login_to_console {
         }
         #setup vars
         set_var("reboot_for_upgrade_step", undef);
+        set_var("first_reboot_after_upgrade", "yes");
         set_var("after_upgrade", "yes");
     }
     save_screenshot;
@@ -166,7 +168,7 @@ sub login_to_console {
     # use console based on ssh to avoid unstable ipmi
     use_ssh_serial_console;
     # double-check xen role for xen host
-    double_check_xen_role if is_xen_host;
+    double_check_xen_role if (is_xen_host and (!check_var("first_reboot_after_upgrade", "yes")));
 }
 
 sub run {

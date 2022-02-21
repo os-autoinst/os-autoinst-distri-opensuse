@@ -1,10 +1,10 @@
-# Copyright 2020-2021 SUSE LLC
+# Copyright 2020-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: TPM2 test environment prepare
 #          Install required packages and create user, start the abrmd service
 # Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#64899, poo#103143, tc#1742297, tc#1742298
+# Tags: poo#64899, poo#103143, poo#105732, tc#1742297, tc#1742298
 
 use strict;
 use warnings;
@@ -38,11 +38,14 @@ sub run {
         zypper_call("in system-user-tss");
     }
 
+    # We can use swtpm device during our test with qemu backend to simulate "real"
+    # tpm2 device, and we can also user TPM emulator.
     # As we use TPM emulator, we should do some modification for tpm2-abrmd service
     # and make it connect to "--tcti=libtss2-tcti-mssim.so"
-    assert_script_run("mkdir /etc/systemd/system/tpm2-abrmd.service.d");
-    assert_script_run(
-        "echo \"\$(cat <<EOF
+    if (get_var('QEMUTPM', 0) != 1 || get_var('QEMUTPM_VER', '') ne '2.0') {
+        assert_script_run("mkdir /etc/systemd/system/tpm2-abrmd.service.d");
+        assert_script_run(
+            "echo \"\$(cat <<EOF
 [Service]
 ExecStart=
 ExecStart=/usr/sbin/tpm2-abrmd --tcti=libtss2-tcti-mssim.so
@@ -50,17 +53,18 @@ ExecStart=/usr/sbin/tpm2-abrmd --tcti=libtss2-tcti-mssim.so
 [Unit]
 ConditionPathExistsGlob=
 EOF
-        )\" > /etc/systemd/system/tpm2-abrmd.service.d/emulator.conf"
-    );
-    assert_script_run("systemctl daemon-reload");
-    assert_script_run("systemctl enable tpm2-abrmd");
+            )\" > /etc/systemd/system/tpm2-abrmd.service.d/emulator.conf"
+        );
+        assert_script_run("systemctl daemon-reload");
 
-    # Start the emulator
-    my $server = script_output("ls /usr/*/ibmtss/tpm_server | tail -1");
-    die "missing tpm_server path\n" if ($server eq '');
-    assert_script_run("su -s /bin/bash - $tss_user -c '$server &'");
+        # Start the emulator
+        my $server = script_output("ls /usr/*/ibmtss/tpm_server | tail -1");
+        die "missing tpm_server path\n" if ($server eq '');
+        assert_script_run("su -s /bin/bash - $tss_user -c '$server &'");
+    }
 
     # Restart the tpm2-abrmd service
+    assert_script_run("systemctl enable tpm2-abrmd");
     assert_script_run("systemctl restart tpm2-abrmd");
     assert_script_run("systemctl is-active tpm2-abrmd");
 }

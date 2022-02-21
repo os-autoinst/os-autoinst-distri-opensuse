@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2021 SUSE LLC
+# Copyright 2017-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Base module for all wicked scenarios
@@ -9,14 +9,16 @@
 package wickedbase;
 
 use base 'opensusebasetest';
-use utils qw(systemctl file_content_replace zypper_call);
+use utils qw(systemctl file_content_replace zypper_call random_string);
+use Encode qw(encode_utf8);
 use network_utils;
 use lockapi;
 use testapi qw(is_serial_terminal :DEFAULT);
+use bmwqemu;
 use serial_terminal;
 use Carp;
 use Mojo::File 'path';
-use Mojo::Util 'trim';
+use Mojo::Util qw(b64_encode b64_decode trim);
 use Regexp::Common 'net';
 use File::Basename;
 use version_utils 'check_version';
@@ -70,7 +72,21 @@ sub get_wicked_version {
 =cut
 sub check_wicked_version {
     my ($self, $query) = @_;
+    return 1 if get_var('WICKED_SKIP_VERSION_CHECK', 0);
     return check_version($query, $self->get_wicked_version());
+}
+
+sub skip_by_wicked_version
+{
+    my ($self, $v) = @_;
+    $v //= $self->wicked_version;
+
+    if ($v && !$self->check_wicked_version($v)) {
+        $self->result('skip');
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 =head2 assert_wicked_state
@@ -718,12 +734,70 @@ sub check_ipv6 {
     die "There were errors during test" if $errors || $dns_failure;
 }
 
+sub lookup {
+    my ($self, $name, $env) = @_;
+    if (exists $env->{$name}) {
+        return $env->{$name};
+    } elsif (my $v = eval { return $self->$name }) {
+        return $v;
+    }
+    die("Failed to lookup '{{$name}}' variable");
+}
+
+=head2 write_cfg
+
+  write_cfg($filename, $content[, env => {}, encode_base64 => 0 ]);
+
+Write all data at once to the file. Replace all ocurance of C<{{name}}>.
+First lookup is the given c<$env> hash and if it doesn't exists
+it try to lookup a member function with the given c<name> and replace the string
+with return value
+
+=cut
+sub write_cfg {
+    my ($self, $filename, $content, %args) = @_;
+    my ($filename_orig, $content_orig);
+    $args{env} //= {};
+    $args{encode_base64} //= 0;
+    my $rand = random_string;
+    # replace variables
+    $content =~ s/\{\{(\w+)\}\}/$self->lookup($1, $args{env})/eg;
+    # unwrap content
+    my ($indent) = $content =~ /^\r?\n?([ ]*)/m;
+    $content =~ s/^$indent//mg;
+    $content =~ s/^[ \t]+$//mg;
+
+    if ($args{encode_base64}) {
+        $content = encode_utf8($content);
+        $content_orig = $content;
+        $filename_orig = $filename;
+        $content = b64_encode($content);
+        $filename .= '.base64';
+    }
+
+    script_output(qq(cat > '$filename' << 'END_OF_CONTENT_$rand'
+$content
+END_OF_CONTENT_$rand
+));
+
+    if ($args{encode_base64}) {
+        $content = $content_orig;
+        assert_script_run("base64 -d '$filename' > '$filename_orig'");
+        assert_script_run("rm '$filename'");
+    }
+
+    record_info(basename($filename), $content);
+    return $content;
+}
+
 sub run_test_shell_script
 {
     my ($self, $title, $script_cmd) = @_;
-    my $output = script_output($script_cmd . '; echo "==COLLECT_EXIT_CODE==$?=="', proceed_on_failure => 1, timeout => 300);
-    my $result = $output =~ m/==COLLECT_EXIT_CODE==0==/ ? 'ok' : 'fail';
-    $self->record_console_test_result($title, $output, result => $result);
+    $self->check_logs(sub {
+            my $output = script_output($script_cmd . '; echo "==COLLECT_EXIT_CODE==$?=="', proceed_on_failure => 1, timeout => 300);
+            my $result = $output =~ m/==COLLECT_EXIT_CODE==0==/ ? 'ok' : 'fail';
+            $self->record_console_test_result($title, $output, result => $result);
+    });
 }
 
 sub record_console_test_result {
@@ -738,8 +812,21 @@ sub record_console_test_result {
     $self->write_resultfile($filename, $content);
 }
 
+sub skip_check_logs_on_post_run {
+    shift->{skip_check_logs_on_post_run} = 1;
+}
+
 sub check_logs {
     my $self = shift;
+    my $code = shift;
+    my $cursor = '';
+
+    if (ref($code) eq 'CODE') {
+        $cursor = script_output(q(journalctl -o export -n 1 | tr -dc '\n|[[:print:]]' |  grep __CURSOR));
+        ($cursor) = ($cursor =~ /^__CURSOR=(.*)$/m);
+        $cursor = "-c '$cursor'";
+        $code->();
+    }
     my @units = qw(wickedd-nanny wickedd-dhcp4 wickedd-dhcp6 wicked wickedd);
     my $default_exclude = 'wickedd=process \d+ has not exited yet; now doing a blocking waitpid';
     $default_exclude .= ',wickedd-dhcp6=Link-local IPv6 address is marked duplicate:';
@@ -758,7 +845,7 @@ sub check_logs {
     @excludes = map { my $v = trim($_); length($v) > 0 ? $v : () } @excludes;
 
     for my $unit (@units) {
-        my $cmd = "journalctl -q -p 3 -x -u $unit";
+        my $cmd = "journalctl $cursor -q -p 3 -x -u $unit";
         for my $exclude (@excludes) {
             my ($unit_match, $regex) = split(/\s*=\s*/, $exclude, 2);
             if ($unit_match =~ /^all$/i || $unit_match eq $unit) {
@@ -767,15 +854,57 @@ sub check_logs {
         }
         my $out = trim(script_output($cmd, proceed_on_failure => 1));
         if (length($out) > 0) {
-            my $msg = "Failing check logs command is:\n$cmd\n\n";
+            my $msg = "wicked check logs failed:\n$cmd\n\n$out\n\n";
             $msg .= "Use WICKED_CHECK_LOG_EXCLUDE to change filter!\n";
             $msg .= "  WICKED_CHECK_LOG_EXCLUDE=$exclude_var\n";
             $msg .= '  WICKED_CHECK_LOG_EXCLUDE_' . $self->{name} . "=$exclude_test_var\n";
             $msg .= "Control if test fail with WICKED_CHECK_LOG_FAIL default off.\n";
-            record_info('LOG-INFO', $msg);
+            bmwqemu::fctwarn($msg);
             record_info('LOG-ERROR', $out, result => 'fail');
             $self->result('fail') if get_var(WICKED_CHECK_LOG_FAIL => 0) && $self->{name} ne 'before_test';
         }
+    }
+}
+
+sub coredumpctl_has_debug {
+    my ($self) = @_;
+    $self->{systemd_ver} = script_output('rpm -q --qf "%{VERSION}" systemd') unless $self->{systemd_ver};
+    return check_version('>=249', $self->{systemd_ver});
+}
+
+sub prepare_coredump {
+    my $self = shift;
+    zypper_call('--quiet in systemd-coredump') if (script_run('command -v coredumpctl') != 0);
+    zypper_call('--quiet in gdb', exitcode => [104, 0]) if ($self->coredumpctl_has_debug());
+
+    if (script_run('sysctl kernel.core_pattern | grep systemd-coredump') != 0) {
+        my $core_pattern = 'kernel.core_pattern=|/usr/lib/systemd/systemd-coredump %P %u %g %s %t %c %e';
+        assert_script_run("sysctl -w '$core_pattern'");
+        assert_script_run("echo '$core_pattern' > /etc/sysctl.d/50-coredump.conf");
+    }
+
+    assert_script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend)" ]');
+    for my $pkg (qw(wicked-debuginfo wicked-debugsource)) {
+        if (script_run("zypper search $pkg") == 0) {
+            zypper_call("in --force -y --force-resolution $pkg");
+        }
+    }
+}
+
+sub check_coredump {
+    my $self = shift;
+    return if (script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend)" ]') == 0);
+
+    my @core_pids = split(/\s+/, script_output(q(coredumpctl list --no-pager --no-legend | perl -ne '$_ =~ m/ ([0-9]+) / && print $1 .$/')));
+    for my $pid (@core_pids) {
+        my $core;
+        if ($self->coredumpctl_has_debug() && script_run('command -v gdb') == 0 && script_run('rpm -q --qf "" wicked-debuginfo') == 0) {
+            $core = script_output(qq(coredumpctl debug $pid --debugger-arguments='-quiet -ex "set pagination off" -ex "set debuginfod off" -ex bt -ex quit'));
+        } else {
+            $core = script_output(qq(coredumpctl info $pid));
+        }
+        record_info('CORE DUMP', $core, result => 'fail');
+        $self->result('fail');
     }
 }
 
@@ -795,7 +924,8 @@ sub post_run {
         script_run('kill ' . get_var('WICKED_TCPDUMP_PID'));
         $self->upload_log_file('/tmp/' . $self->{name} . '_tcpdump.pcap');
     }
-    $self->check_logs();
+    $self->check_logs() unless $self->{skip_check_logs_on_post_run};
+    $self->check_coredump();
     $self->upload_wicked_logs('post');
 }
 

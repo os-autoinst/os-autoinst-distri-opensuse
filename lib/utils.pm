@@ -684,8 +684,8 @@ sub fully_patch_system {
         last if $ret != 103;
     }
 
-    if ($ret == 8 && script_run('grep -z "python36-pip.*SLES:12-SP5.*conflicts with.*python3-pip" zypper.log') == 0) {
-        record_soft_failure 'bsc#1195351';
+    if ($ret == 8 && script_run('grep -Ez "python3(6?)-pip.*(SLES:12-SP5|cloud:12).*conflicts with.*python3(6?)-pip" zypper.log') == 0) {
+        record_soft_failure 'bsc#1195351 - python3 vs python36 in SLE12 SP5 has file conflicts on /usr/bin/pip3';
         $ret = zypper_call('patch --replacefiles --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000);
     }
 
@@ -716,7 +716,11 @@ sub ssh_fully_patch_system {
     # first run, possible update of packager -- exit code 103
     my $ret = script_run("ssh $remote 'sudo zypper -n patch --with-interactive -l'", 1500);
     record_info('zypper patch', 'The command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
-    die "Zypper failed with $ret" if ($ret != 0 && $ret != 102 && $ret != 103);
+    if (is_sle('=12-SP5') && $ret == 8) {
+        record_soft_failure 'bsc#1195351 - python3 vs python36 in SLE12 SP5 has file conflicts on /usr/bin/pip3';
+        $ret = script_run("ssh $remote 'sudo zypper -n patch --replacefiles --with-interactive -l'", 1500);
+    }
+    die "Zypper failed with $ret" if ($ret != 0 && $ret != 8 && $ret != 102 && $ret != 103);
 
     $cmd_time = time();
     # second run, full system update
@@ -1259,7 +1263,8 @@ sub ensure_serialdev_permissions {
     else {
         # when serial getty is started, it changes the group of serialdev from dialout to tty (but doesn't change it back when stopped)
         # let's make sure that both will work
-        assert_script_run "chown $testapi::username /dev/$testapi::serialdev && usermod -a -G tty,dialout,\$(stat -c %G /dev/$testapi::serialdev) $testapi::username";
+        # based on bsc#1195620, let's restore file permission to '620'
+        assert_script_run "chmod 620 /dev/$testapi::serialdev && chown $testapi::username /dev/$testapi::serialdev && usermod -a -G tty,dialout,\$(stat -c %G /dev/$testapi::serialdev) $testapi::username";
     }
 }
 
