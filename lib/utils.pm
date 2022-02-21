@@ -86,6 +86,7 @@ our @EXPORT = qw(
   install_patterns
   common_service_action
   script_output_retry
+  validate_script_output_retry
   get_secureboot_status
   assert_secureboot_status
   susefirewall2_to_firewalld
@@ -1658,6 +1659,44 @@ sub script_output_retry {
     die("Waiting for Godot: $cmd") if $die;
 }
 
+
+=head2 validate_script_output_retry
+
+ validate_script_output_retry($cmd, $check, [retry => $retry], [delay => $delay], [timeout => $timeout]);
+
+Repeat command until validate_script_output succeeds or die. Return the output of the command on success.
+
+C<$retry> refers to the number of retries and defaults to C<10>.
+
+C<$delay> is the time between retries and defaults to C<30>.
+
+If the command doesn't succeed after C<$retry> retries,
+this function will die.
+
+Example:
+
+ validate_script_output_retry('ping -c1 -W1 machine', m/1 packets transmitted/, retry => 5, delay => 60);
+
+=cut
+sub validate_script_output_retry {
+    my ($cmd, $check, %args) = @_;
+    my $retry = $args{retry} // 10;
+    my $delay = $args{delay} // 30;
+    my $timeout = $args{timeout} // 90;
+
+    for (1 .. $retry) {
+        eval { validate_script_output($cmd, $check, timeout => $timeout); };
+        if ($@) {
+            record_info("Retry $retry", "validate_script_output failed. Retrying...");
+            sleep $delay;
+        }
+        else {
+            return 1;
+        }
+    }
+    die("Can't validate output after $retry retries");
+}
+
 =head2 script_run_interactive
 
  script_run_interactive($cmd, $prompt, $timeout);
@@ -1759,12 +1798,12 @@ sub create_btrfs_subvolume {
     assert_script_run("rm -fr /tmp/arm64-efi/");
 }
 
-=head2 create_raid_loop_device 
-    
+=head2 create_raid_loop_device
+
  create_raid_loop_device([raid_type => $raid_type], [device_num => $device_num], [file_size => $file_size]);
 
 Create a raid array over loop devices.
-Raid type is C<$raid_type>, using C<$device_num> number of loop device, 
+Raid type is C<$raid_type>, using C<$device_num> number of loop device,
 with the size of each device being C<$file_size> megabytes.
 
 Example to create a RAID C<5> array over C<3> loop devices, C<200> Mb each:
