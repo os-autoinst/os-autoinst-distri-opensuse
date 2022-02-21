@@ -1,4 +1,4 @@
-# Copyright 2020-2021 SUSE LLC
+# Copyright 2020-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test "# audit2allow" command with options
@@ -79,14 +79,24 @@ sub run {
     # run "# audit2allow -R" to generate reference policy and verify the policy format
     # NOTE: the output depends on the contents of audit log it may change at any time
     #       so only check the policy format is OK
+    # as suggested in bsc#1196116: Run it once without -R and check for allow,
+    # then run it with -R again and check if you see calls to interfaces (need to check
+    # if the second one is stable enough)
+    validate_script_output(
+        "audit2allow -i $audit_log_short",
+        sub {
+            m/
+            .*#=============.*==============.*
+            .*allow.*/sx
+        }, 600);
     validate_script_output(
         "audit2allow -R -i $audit_log_short",
         sub {
             m/
             .*require\ \{.*
-            .*type\ .*;.*
+            .*type\ init_t;.*
             #=============.*==============.*
-            .*(?:allow.*;|systemd_config_generic_services).*/sx
+            .*(init_t).*/sx
         }, 600);
 }
 
