@@ -5,14 +5,14 @@
 #
 # Summary: Run 'audit-tools' test case of 'audit-test' test suite
 # Maintainer: llzhao <llzhao@suse.com>
-# Tags: poo#94450
+# Tags: poo#94450, poo#106816
 
 use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
 use utils;
-use audit_test qw(run_testcase compare_run_log);
+use audit_test qw(run_testcase compare_run_log rerun_fail_cases);
 
 sub run {
     my ($self) = shift;
@@ -21,6 +21,9 @@ sub run {
 
     # Run test case
     run_testcase('audit-tools');
+
+    # Rerun randomly fail cases
+    rerun_fail_cases();
 
     # Compare current test results with baseline
     my $result = compare_run_log('audit-tools');

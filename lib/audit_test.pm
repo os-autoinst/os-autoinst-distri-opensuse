@@ -31,6 +31,7 @@ our @EXPORT = qw(
   parse_lines
   prepare_for_test
   upload_audit_test_logs
+  rerun_fail_cases
 );
 
 our $tmp_dir = '/tmp/';
@@ -102,7 +103,7 @@ sub parse_lines {
     my ($lines) = @_;
     my @results;
     foreach my $line (@$lines) {
-        if ($line =~ /(\[\d+\])\s+(.*)\s+(PASS|FAIL|ERROR)/) {
+        if ($line =~ /\[(\d+)\]\s+(.*)\s+(PASS|FAIL|ERROR)/) {
             my $name = trim $2;
             push @results, {id => $1, name => $name, result => $3};
         }
@@ -137,18 +138,18 @@ sub compare_run_log {
         my $c_result = $current_result->{result};
         my $name = $current_result->{name};
         unless ($baseline_results{$c_id}) {
-            my $msg = "poo#93441\nNo baseline found(defined).\n$c_id $name $c_result";
+            my $msg = "poo#93441\nNo baseline found(defined).\n[$c_id] $name $c_result";
             $flag = _parse_results_with_diff_baseline($name, $c_result, $msg, $flag);
             next;
         }
         my $b_name = $baseline_results{$c_id}->{name};
         my $b_result = $baseline_results{$c_id}->{result};
         if ($c_result ne $b_result) {
-            my $info = "Test result is NOT same as baseline \nCurrent:  $c_id $name $c_result\nBaseline: $c_id $b_name $b_result";
+            my $info = "Test result is NOT same as baseline \nCurrent:  [$c_id] $name $c_result\nBaseline: [$c_id] $b_name $b_result";
             $flag = _parse_results_with_diff_baseline($name, $c_result, $info, $flag);
             next;
         }
-        record_info($name, "Test result is the same as baseline\n$c_id $name $c_result", result => 'ok');
+        record_info($name, "Test result is the same as baseline\n[$c_id] $name $c_result", result => 'ok');
     }
     return $flag;
 }
@@ -192,6 +193,31 @@ sub _parse_results_with_diff_baseline {
         $flag = 'fail';
     }
     return $flag;
+}
+
+# Sometimes the test cases will fail due to performance issue or something else reason.
+# And rerun this case may work, so we will rerun the cases which usually fail randomly.
+#
+sub rerun_fail_cases {
+    my $fail_case = shift;
+    my $output = script_output('egrep "FAIL|ERROR" rollup.log', proceed_on_failure => 1);
+    return if ($output eq '');
+
+    my @lines = split(/\n/, $output);
+    my @current_results = parse_lines(\@lines);
+
+    unless ($fail_case) {
+        script_run("./run.bash $_->{id}", timeout => 180) for (@current_results);
+        return;
+    }
+
+    my %rerun_cases = map { ($_->{id} => $_->{timeout}) } @$fail_case;
+    foreach my $fail_case (@current_results) {
+        my $case_id = $fail_case->{id};
+        if (exists $rerun_cases{$case_id}) {
+            script_run("./run.bash $case_id", timeout => $rerun_cases{$case_id} // 180);
+        }
+    }
 }
 
 1;
