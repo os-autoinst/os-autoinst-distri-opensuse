@@ -16,7 +16,7 @@ defaults
 
 frontend LB
   bind %VIP_IP%:8080
-  reqadd X-Forwarded-Proto:\ http
+  http-request add-header X-Forwarded-Proto http
   default_backend LB
 
 backend LB
