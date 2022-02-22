@@ -26,10 +26,4 @@ sub init {
     assert_script_run('nerdctl');
 }
 
-sub minimal_tests {
-    my $alpine = registry_url('alpine', '3.6');
-    assert_script_run("nerdctl image pull --insecure-registry $alpine");
-    validate_script_output("nerdctl image ls", sub { /alpine/ });
-}
-
 1;
