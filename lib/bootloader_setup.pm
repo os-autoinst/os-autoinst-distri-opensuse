@@ -724,6 +724,10 @@ sub specific_bootmenu_params {
         push @params, "fips=1";
     }
 
+    if (get_var("LUKS2_ENCRYPT")) {
+        push @params, "YAST_LUKS2_AVAILABLE=1";
+    }
+
     if (my $kexec_value = get_var("LINUXRC_KEXEC")) {
         push @params, "kexec=$kexec_value";
         record_info('Info', 'boo#990374 - pass kexec to installer to use initrd from FTP');
