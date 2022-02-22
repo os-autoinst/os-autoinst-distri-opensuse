@@ -31,6 +31,7 @@ schedule:
   - installation/installation_settings/validate_ssh_service_enabled
   - installation/installation_settings/open_ssh_port
   - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/security/select_security_module_none
   - installation/launch_installation
   - installation/confirm_installation
   - installation/performing_installation/perform_installation
