@@ -101,7 +101,8 @@ sub run {
                 assert_screen 'inst-xen-pattern';
             }
         }
-        set_linux_security_to_none if (check_var('LINUX_SECURITY_MODULE', 'none') && is_sle('>=15-SP4'));
+     # the Installer of 15SP4 requires Apparmor pattern activation by default. If Apparmor not presented in PATTERNS select None for Major Linux Security Module
+        set_linux_security_to_none if (is_sle('>=15-SP4') && !(get_var('PATTERNS') =~ 'default|all|apparmor'));
         ensure_ssh_unblocked;
         $self->check_default_target();
     }
