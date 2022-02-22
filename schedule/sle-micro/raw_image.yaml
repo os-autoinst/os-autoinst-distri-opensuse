@@ -28,15 +28,10 @@ conditional_schedule:
     SLE_MICRO_K3S:
       '1':
         - containers/k3s_cli_check
-  rt:
-    FLAVOR:
-      'MicroOS-Image-RT':
-        - rt/rt_is_realtime
 
 schedule:
   - '{{boot}}'
   - transactional/host_config
-  - '{{rt}}'
   - '{{registration}}'
   - '{{maintenance}}'
   - '{{selinux}}'
