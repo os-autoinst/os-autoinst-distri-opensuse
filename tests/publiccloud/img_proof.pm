@@ -117,6 +117,9 @@ sub run {
 
     $instance->wait_for_guestregister() if is_ondemand();
 
+    # fetch the instance ssh public key, do not use default $instance->ssh_opts
+    assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
+
     my $img_proof = $provider->img_proof(
         instance => $instance,
         tests => $tests,
