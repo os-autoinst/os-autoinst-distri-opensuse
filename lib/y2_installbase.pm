@@ -60,7 +60,7 @@ sub accept_changes {
         send_key 'alt-o';
     }
     $self->accept3rdparty();
-    assert_screen 'inst-overview';
+    assert_screen 'inst-overview', 120;
 }
 
 =head2 validate_default_target
