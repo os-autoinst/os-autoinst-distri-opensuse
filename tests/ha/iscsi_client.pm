@@ -59,6 +59,8 @@ sub run {
     wait_still_screen 3;
     send_key 'alt-n';    # Next
 
+    # Sometimes client connection does not work immediately
+    wait_still_screen 10;
     # Select target with internal IP first?
     assert_screen 'iscsi-client-target-list';
     send_key 'alt-e';    # connEct
