@@ -58,16 +58,22 @@ sub switch_keyboard_layout {
 Returns hash which contains shortcuts for the product selection.
 =cut
 sub get_product_shortcuts {
+    # sles4sap does have different shortcuts in different tests at same time
+    #     ppc64le x86_64
+    # Full   u      i
+    # QR     i      p
+    # Online i      t
+    if (check_var('SLE_PRODUCT', 'sles4sap')) {
+        return (sles4sap => is_ppc64le() ? 'u' : 'i') if get_var('ISO') =~ /Full/;
+        return (sles4sap => is_ppc64le() ? 'i' : is_quarterly_iso() ? 'p' : 't') unless get_var('ISO') =~ /Full/;
+    }
     # We got new products in SLE 15 SP1
-    if (is_sle '15-SP1+') {
+    elsif (is_sle '15-SP1+') {
         return (
             sles => (is_ppc64le() || is_s390x()) ? 'u'
             : is_aarch64() ? 's'
             : 'i',
             sled => 'x',
-            sles4sap => is_ppc64le() ? 'u'
-            : (is_sle('15-SP2+') && is_x86_64() && !is_quarterly_iso()) ? 'i'
-            : 'p',
             hpc => is_x86_64() ? 'g' : 'u',
             rt => is_x86_64() ? 't' : undef
         );
