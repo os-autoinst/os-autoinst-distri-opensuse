@@ -31,7 +31,10 @@ sub run {
     if ((is_jeos || is_sle_micro) && script_run(q(SUSEConnect --status-text | grep -i 'not registered'))) {
         die 'System has been already registered!';
     }
-    script_retry("$cmd", expect => 0, retry => 5, delay => 60, timeout => 300);
+
+    # There are sporadic failures due to the command timing out, so we increase the timeout
+    # and make use of retries to overcome a possible sporadic network issue.
+    script_retry("$cmd", retry => 5, delay => 60, timeout => 180);
     # Check available extenstions (only present in sle)
     assert_script_run q[SUSEConnect --list-extensions];
     if (is_sle) {
