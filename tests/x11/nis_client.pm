@@ -89,7 +89,7 @@ sub nfs_shares_tab {
     send_key 'alt-o';    # OK
     assert_screen 'nis-client-nfs-client-configuration';
     send_key 'alt-o';    # OK
-    assert_screen 'nis-client-configuration';
+    assert_screen 'nis-client-configuration', 120;
     send_key 'alt-f';    # finish
     if (is_opensuse) {
         assert_screen 'disable_auto_login_popup';
