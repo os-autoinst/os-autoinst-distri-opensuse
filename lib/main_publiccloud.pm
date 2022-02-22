@@ -13,18 +13,11 @@ use version_utils;
 use main_common qw(loadtest);
 use testapi qw(check_var get_var);
 use Utils::Architectures qw(is_aarch64);
+use main_containers qw(load_3rd_party_image_test);
 
 our @EXPORT = qw(
   load_publiccloud_tests
 );
-
-sub load_3rd_party_image_test {
-    my ($runtime) = @_;
-    my $args = OpenQA::Test::RunArgs->new();
-    $args->{runtime} = $runtime;
-
-    loadtest('containers/third_party_images', run_args => $args, name => $runtime . "_3rd_party_images");
-}
 
 sub load_podman_tests() {
     loadtest 'containers/podman';
