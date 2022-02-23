@@ -38,6 +38,7 @@ sub run {
     my $zypper_migration_notification = qr/^View the notifications now\? \[y/m;
     my $zypper_migration_failed = qr/^Migration failed/m;
     my $zypper_migration_bsc1184347 = qr/rpmdb2solv: invalid option -- 'D'/m;
+    my $zypper_migration_bsc1196114 = qr/scriptlet failed, exit status 127/m;
     my $zypper_migration_license = qr/Do you agree with the terms of the license\? \[y/m;
     my $zypper_migration_urlerror = qr/URI::InvalidURIError/m;
     my $zypper_migration_reterror = qr/^No migration available|Can't get available migrations/m;
@@ -53,6 +54,7 @@ sub run {
     # migration process take long time
     my $timeout = 7200;
     my $migration_checks = [
+        $zypper_migration_bsc1184347, $zypper_migration_bsc1196114,
         $zypper_migration_target, $zypper_disable_repos, $zypper_continue, $zypper_migration_done,
         $zypper_migration_error, $zypper_migration_conflict, $zypper_migration_fileconflict, $zypper_migration_notification,
         $zypper_migration_failed, $zypper_migration_license, $zypper_migration_reterror, $zypper_migration_signing_key
@@ -76,6 +78,19 @@ sub run {
         elsif ($out =~ $zypper_disable_repos) {
             send_key "y";
             send_key "ret";
+        }
+        elsif ($out =~ $zypper_migration_bsc1196114) {
+            # another case of migration LTSS to LTSS, when dependensies are in LTSS which is not part of migration
+            record_soft_failure('bsc#1196114');
+            send_key 'i';
+            send_key 'ret';
+        }
+        elsif ($out =~ $zypper_migration_bsc1184347) {
+            # migration is done, but zypper failed because of the bug
+            # LTSS can't be migrated, and there is fix for the bug
+            # othwerwise migration is done, test can continue, libsolv will be updated later
+            record_soft_failure('bsc#1184347');
+            last;
         }
         elsif ($out =~ $zypper_migration_error) {
             $zypper_migration_error_cnt += 1;
@@ -104,14 +119,6 @@ sub run {
         {
             send_key 'a';
             send_key 'ret';
-        }
-        elsif ($out =~ $zypper_migration_bsc1184347)
-        {
-            # migration is done, but zypper failed because of the bug
-            # LTSS can't be migrated, and there is fix for the bug
-            # othwerwise migration is done, test can continue, libsolv will be updated later
-            record_soft_failure('bsc#1184347');
-            last;
         }
         elsif ($out =~ $zypper_migration_fileconflict
             || $out =~ $zypper_migration_failed
