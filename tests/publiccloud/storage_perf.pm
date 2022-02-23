@@ -168,6 +168,9 @@ sub run {
     my $instance = $provider->create_instance(use_extra_disk => {size => $disk_size, type => $disk_type});
     $instance->wait_for_guestregister();
 
+    # Add host key to prevent authenticity issues when using ssh
+    assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
+
     $tags->{os_kernel_release} = $instance->run_ssh_command(cmd => 'uname -r');
     $tags->{os_kernel_version} = $instance->run_ssh_command(cmd => 'uname -v');
 
