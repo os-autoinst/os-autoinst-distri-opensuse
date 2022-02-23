@@ -159,11 +159,6 @@ sub run {
             prepare_disks if (!is_upgrade && !get_var('KEEP_DISKS'));
         }
         save_screenshot;
-        # Disable SATA disks on arm server as workaround for poo#88403
-        if (is_aarch64) {
-            script_run('for disk in $(lsscsi | awk \'/ST9500325AS/ {split ($6, dev, "/"); print dev[3] }\'); do echo 1> /sys/block/$disk/device/delete; done');
-            save_screenshot;
-        }
 
         set_bootscript_hdd if get_var('IPXE_UEFI');
 
