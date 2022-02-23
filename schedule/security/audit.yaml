@@ -6,3 +6,4 @@ schedule:
     - console/consoletest_setup
     - security/audit/autrace
     - security/audit/ausearch
+    - security/audit/aureport
