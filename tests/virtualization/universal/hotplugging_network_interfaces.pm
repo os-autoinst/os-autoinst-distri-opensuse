@@ -34,16 +34,9 @@ sub add_virtual_network_interface {
         if (get_var('VIRT_AUTOTEST') && is_xen_host) {
             record_soft_failure 'bsc#1168124 Bridge network interface hotplugging has to be performed at the beginning.';
             $self->{test_results}->{$guest}->{"bsc#1168124 Bridge network interface hotplugging has to be performed at the beginning"}->{status} = 'SOFTFAILED';
-            $persistent_config_option = '--persistent' if ($sles_running_version eq '11' && $sles_running_sp eq '4');
-            script_run "brctl addbr br0; ip link set dev br0 up", 60 if ($sles_running_version eq '11' && $sles_running_sp eq '4');
         }
         if (get_var('VIRT_AUTOTEST') && is_kvm_host) {
             $interface_model_option = '--model virtio';
-            script_run "brctl addbr br0; ip link set dev br0 up", 60 if ($sles_running_version eq '11' && $sles_running_sp eq '4');
-            if ($guest =~ /^sles-11-sp4.*$/img) {
-                script_run "ssh root\@$guest modprobe acpiphp", 60;
-                record_info('Info: Manually loading acpiphp module in SLE 11-SP4 guest due to bsc#1167828 otherwise network interface hotplugging does not work');
-            }
         }
         script_retry("ssh root\@$guest ip l | grep " . $virt_autotest::common::guests{$guest}->{macaddress}, delay => 60, retry => 3, timeout => 60);
         assert_script_run("virsh domiflist $guest", 90);

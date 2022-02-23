@@ -20,7 +20,7 @@ use version_utils 'is_sle';
 #   * autoyast profile
 #   * extra parameters for virsh create / xl create
 # By default, our guests will be installed via `virt-install`. If "method => 'import'" is set, the virtual machine will
-# be imported instead of installed (see sles11sp4PVx64 for an example)
+# be imported instead of installed.
 
 our %guests = ();
 if (get_var("REGRESSION", '') =~ /xen/) {
@@ -64,48 +64,6 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             distro => 'SLE_15',
             location => 'http://mirror.suse.cz/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.101/24,192.168.122.1,192.168.122.1"',
-        },
-        sles11sp4PVx32 => {
-            name => 'sles11sp4PVx32',
-            autoyast => 'autoyast_xen/sles11sp4PVx32_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --paravirt --arch i686 --os-variant sles11sp4',
-            macaddress => '52:54:00:78:73:a5',
-            ip => '192.168.122.110',
-            distro => 'SLE_11_SP4',
-            location => 'http://mirror.suse.cz/install/SLP/SLES-11-SP4-LATEST/i386/DVD1/',
-            linuxrc => 'ifcfg="eth0=192.168.122.110/24,192.168.122.1,192.168.122.1"',
-        },
-        sles11sp4HVMx32 => {
-            name => 'sles11sp4HVMx32',
-            method => 'import',
-            extra_params => '--connect xen:/// --virt-type xen --hvm --arch i686 --os-variant sles11sp4',
-            disk => '/var/lib/libvirt/images/sles11sp4HVMx32.qcow2',
-            source => 'http://pandora.suse.cz/virtual-machines/sles11sp4HVMx32.qcow2',
-            macaddress => '52:54:00:78:73:a6',
-            ip => '192.168.122.108',
-            distro => 'SLE_11_SP4',
-            linuxrc => 'ifcfg="eth0=192.168.122.108/24,192.168.122.1,192.168.122.1"',
-        },
-        sles11sp4PVx64 => {
-            name => 'sles11sp4PVx64',
-            method => 'import',
-            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sles11sp4',
-            disk => '/var/lib/libvirt/images/sles11sp4PVx64.qcow2',
-            source => 'http://pandora.suse.cz/virtual-machines/sles11sp4PVx64.qcow2',
-            macaddress => '52:54:00:78:73:a7',
-            ip => '192.168.122.109',
-            distro => 'SLE_11_SP4',
-            linuxrc => 'ifcfg="eth0=192.168.122.109/24,192.168.122.1,192.168.122.1"',
-        },
-        sles11sp4HVMx64 => {
-            name => 'sles11sp4HVMx64',
-            autoyast => 'autoyast_xen/sles11sp4HVMx64_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sles11sp4',
-            macaddress => '52:54:00:78:73:a8',
-            ip => '192.168.122.107',
-            distro => 'SLE_11_SP4',
-            location => 'http://mirror.suse.cz/install/SLP/SLES-11-SP4-LATEST/x86_64/DVD1/',
-            linuxrc => 'ifcfg="eth0=192.168.122.107/24,192.168.122.1,192.168.122.1"',
         },
         sles12sp4PV => {
             name => 'sles12sp4PV',
@@ -209,8 +167,6 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
     );
 
-    delete($guests{sles11sp4PVx32});
-    delete($guests{sles11sp4HVMx64});
     delete($guests{sles12sp3HVM}) if (!is_sle('=12-SP3'));
     delete($guests{sles12sp4PV}) if (!is_sle('=12-SP4'));
     delete($guests{sles12sp5HVM}) if (!is_sle('=12-SP5'));
@@ -291,14 +247,6 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     );
 } elsif (get_var("REGRESSION", '') =~ /vmware/) {
     %guests = (
-        sles11sp4x64 => {
-            name => 'sles11sp4x64',
-            ip => 'd125.qam.suse.de',
-        },
-        sles11sp4x32 => {
-            name => 'sles11sp4x32',
-            ip => 'd11.qam.suse.de',
-        },
         sles12sp2 => {
             name => 'sles12sp2',
             ip => 'vm-sle12-sp2-a60.qam.suse.de',
@@ -333,8 +281,6 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
     );
 
-    delete($guests{sles11sp4x32}) if (!is_sle('=11-SP4'));
-    delete($guests{sles11sp4x64}) if (!is_sle('=11-SP4'));
     delete($guests{sles12sp2}) if (!is_sle('=12-SP2'));
     delete($guests{sles12sp3}) if (!is_sle('=12-SP3'));
     delete($guests{sles12sp4}) if (!is_sle('=12-SP4'));
@@ -345,14 +291,6 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     delete($guests{sles15sp3}) if (!is_sle('=15-SP3'));
 } elsif (get_var("REGRESSION", '') =~ /hyperv/) {
     %guests = (
-        sles11sp4x32 => {
-            name => 'sles11sp4x32',
-            ip => 'win2k19-sle11-SP4x32.qa.suse.cz',
-        },
-        sles11sp4x64 => {
-            name => 'sles11sp4x64',
-            ip => 'win2k19-sle11-SP4x64.qa.suse.cz',
-        },
         sles12sp3 => {
             name => 'sles12sp3',
             ip => 'win2k19-sle12-SP3.qa.suse.cz',
@@ -387,8 +325,6 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
     );
 
-    delete($guests{sles11sp4x32}) if (!is_sle('=11-SP4'));
-    delete($guests{sles11sp4x64}) if (!is_sle('=11-SP4'));
     delete($guests{sles12sp2}) if (!is_sle('=12-SP2'));
     delete($guests{sles12sp3}) if (!is_sle('=12-SP3'));
     delete($guests{sles12sp4}) if (!is_sle('=12-SP4'));
