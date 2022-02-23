@@ -265,6 +265,8 @@ sub boot_local_disk {
 sub boot_into_snapshot {
     send_key_until_needlematch('boot-menu-snapshot', 'down', 10, 5);
     send_key 'ret';
+    # assert needle to make sure grub2 page show up
+    assert_screen('grub2-page', 60);
     # assert needle to avoid send down key early in grub_test_snapshot.
     if (get_var('OFW') || is_pvm || check_var('SLE_PRODUCT', 'hpc')) {
         send_key_until_needlematch('snap-default', 'down', 60, 5);
