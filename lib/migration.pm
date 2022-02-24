@@ -32,6 +32,11 @@ our @EXPORT = qw(
 sub setup_sle {
     select_console 'root-console';
 
+    if (is_ppc64le && is_sle('<=12-sp5')) {
+        record_soft_failure("bsc#1195046", 'ncurses display a wrong checker board character');
+        assert_script_run('echo /usr/lib/systemd/systemd-vconsole-setup >> /etc/bash.bashrc.local');
+    }
+
     # Stop packagekitd
     if (is_sle('12+')) {
         quit_packagekit;
