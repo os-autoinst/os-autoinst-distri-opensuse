@@ -77,6 +77,7 @@ sub run {
     wait_still_screen;
     enter_cmd "whoami|grep $user > /tmp/whoami.log";
     assert_script_sudo "grep $user /tmp/whoami.log";
+    send_key 'ctrl-d';
     # logout user
     handle_logout;
     # Wait some more seconds before selecting root-console, as it fails sporadically in aarch64
