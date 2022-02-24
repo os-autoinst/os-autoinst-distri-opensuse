@@ -454,7 +454,8 @@ sub extended_hpc_tests {
 
     # do all test preparations and setup
     zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);
-    zypper_call('in git-core twopence-shell-client bc iputils python');
+    # https://progress.opensuse.org/issues/107395 include twopence post scripts error code
+    zypper_call('in git-core twopence-shell-client bc iputils python3', exitcode => [0, 107]);
     assert_script_run('git -c http.sslVerify=false clone https://github.com/schlad/hpc-testing.git --branch HPC');
 
     #execute tests
