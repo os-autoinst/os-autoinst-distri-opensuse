@@ -36,7 +36,7 @@ sub run {
     }
 
     if (!check_var('QEMUVGA', 'cirrus')) {
-        x11_start_program('vlc --no-autoscale --loop data/test.ogv', target_match => 'vlc-playing');
+        x11_start_program('vlc --no-autoscale --loop data/test.ogv', target_match => 'vlc-playing', no_wait => 1);
         assert_and_click 'close_vlc';
     }
 }
