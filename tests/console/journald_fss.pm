@@ -1,19 +1,19 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2021 SUSE LLC
+# Copyright 2016-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Case 1560070  - FIPS: systemd journald FSS
 #
-# Package: systemd
+# Package: systemd/journald_fss
 # Summary: Add Case 1463314-FIPS:systemd-journald test
-#    Systemd depend on libgcrypt for journald's FSS(Forward Secure Sealing) function
-#    It is only needed to test journald's key generation and verification function
-#    Verify key should be generated,as well as a QR code
-#    No failed messages output
+#          Systemd depend on libgcrypt for journald's FSS(Forward Secure Sealing) function
+#          It is only needed to test journald's key generation and verification function
+#          Verify key should be generated,as well as a QR code
+#          No failed messages output
 #
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tags: poo#102038
+# Tags: poo#102038, poo#107485
 
 use base "consoletest";
 use strict;
@@ -44,4 +44,7 @@ sub run {
     assert_script_run("rm -f /tmp/key");
 }
 
+sub test_flags {
+    return {fatal => 0};
+}
 1;
