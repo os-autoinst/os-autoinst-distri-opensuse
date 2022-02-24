@@ -10,11 +10,20 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-
+use version_utils qw(is_sle_micro);
+use Utils::Architectures qw(is_aarch64);
 use microos "microos_login";
 
 sub run {
-    shift->wait_boot(bootloader_time => 300);
+
+    # default timeout in grub2 is set to 10s
+    # osd's arm machines tend to stall when trying to match grub2
+    # this leads to test failures because openQA does not assert grub2 properly
+    if (is_sle_micro && is_aarch64) {
+        shift->wait_boot_past_bootloader(textmode => 1, ready_time => 300);
+    } else {
+        shift->wait_boot(bootloader_time => 300);
+    }
     microos_login;
 }
 
