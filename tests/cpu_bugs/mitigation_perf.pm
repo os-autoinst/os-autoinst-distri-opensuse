@@ -174,7 +174,7 @@ sub run {
         }
         sleep(30);
     }
-    upload_logs("/root/$logfile");
+    #upload_logs("/root/$logfile");
     if (check_var('NETTEST', '1')) {
         record_info("Info", "Finished net performanace test on " . get_var('HOST'), result => 'ok');
     } else {
