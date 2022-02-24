@@ -35,11 +35,11 @@ sub run {
     # It may happen that the screen sharing is not available
     assert_screen [qw(with_screensharing without_screensharing)];
     if (match_has_tag 'without_screensharing') {
-        record_info 'vino missing', 'After the installation the screen sharing is not available - vino is missing and we need to install it now.';
+        record_info 'gnome-remote-desktop missing', 'After the installation the screen sharing is not available -  gnome-remote-desktop is missing and we need to install it now.';
         send_key 'ctrl-q';
 
         # Install the vino package which is probably the case of missing screen sharing option
-        ensure_installed 'vino';
+        ensure_installed 'gnome-remote-desktop';
 
         # Log of and back in to ensure the vino feature gets enabled
         handle_relogin;
