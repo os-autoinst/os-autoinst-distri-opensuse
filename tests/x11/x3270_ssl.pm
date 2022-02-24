@@ -73,9 +73,19 @@ sub run {
 
     # Run x3270 as background since backend code adjust warning policy
     # It introduces run error if the command is not quit
-    background_script_run("x3270 -trace $noverifycert -tracefile $tracelog_file L:localhost:8443");
 
-    assert_screen 'x3270_fips_launched_with_TLS_SSL';
+    if (is_s390x) {
+        script_run("x3270 -trace $noverifycert -tracefile $tracelog_file L:localhost:8443 2>&1", 180);
+        # Exit and back to generic desktop
+        send_key "ctrl-c";
+        send_key "alt-tab";
+        send_key "ctrl-c";
+        assert_screen 'generic-desktop';
+        #validate_script_output("cat /tmp/x3270-trace.log", sub { m/SSLOK/ });
+    } else {
+        background_script_run("x3270 -trace $noverifycert -tracefile $tracelog_file L:localhost:8443");
+        assert_screen 'x3270_fips_launched_with_TLS_SSL';
+    }
 
     # Exit and back to generic desktop
     send_key "ctrl-c";
