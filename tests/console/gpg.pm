@@ -45,9 +45,9 @@ sub gpg_test {
         # Preparing a config file for gpg --batch option
         assert_script_run(
             "echo \"\$(cat <<EOF
-Key-Type: default
+Key-Type: RSA
 Key-Length: $key_size
-Subkey-Type: default
+Subkey-Type: RSA
 Subkey-Length: $key_size
 Name-Real: $username
 Name-Email: $email
