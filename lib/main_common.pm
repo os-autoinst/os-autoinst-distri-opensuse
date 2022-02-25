@@ -1089,6 +1089,7 @@ sub load_console_server_tests {
         loadtest "console/php_pcre" if is_sle;
         # TODO test on SLE https://progress.opensuse.org/issues/31972
         loadtest "console/mariadb_odbc" if is_opensuse;
+        loadtest "console/php8" unless is_leap("<15.4") || is_sle("<15-SP4");
         loadtest "console/php7";
         loadtest "console/php7_mysql";
         loadtest "console/php7_postgresql";
