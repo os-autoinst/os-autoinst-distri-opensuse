@@ -57,7 +57,7 @@ EOF
         );
         assert_script_run("cat $egg_file");
 
-        script_run("gpg2 -vv --batch --full-generate-key $egg_file &> /dev/$serialdev", 0);
+        script_run("gpg2 -vv --batch --full-generate-key $egg_file &> /dev/$serialdev; echo gpg-finished-\$? >/dev/$serialdev", 0);
     }
     else {
         # Batch mode does not work in gpg version < 2.1. Workaround like using
@@ -67,7 +67,7 @@ EOF
         # appeared at the bottom for needles matching
         assert_script_run "gpg -h";
 
-        script_run("gpg2 -vv --gen-key &> /dev/$serialdev", 0);
+        script_run("gpg2 -vv --gen-key &> /dev/$serialdev; echo gpg-finished-\$? >/dev/$serialdev", 0);
         assert_screen 'gpg-set-keytype';    # Your Selection?
         enter_cmd "1";
         assert_screen 'gpg-set-keysize';    # What keysize do you want?
@@ -110,7 +110,7 @@ EOF
         return;
     }
 
-    wait_serial("gpg: key.*accepted as trusted key", 90) || die "Key generating failed!";
+    wait_serial("gpg-finished-0", 90) || die "Key generation failed!";
 
     assert_script_run("gpg --list-keys | grep '\\[ultimate\\] $username <$email>'");
 
