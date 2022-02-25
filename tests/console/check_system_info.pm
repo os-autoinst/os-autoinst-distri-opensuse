@@ -1,4 +1,4 @@
-# Copyright 2021 SUSE LLC
+# Copyright 2021-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: SUSEConnect
@@ -17,9 +17,8 @@ use registration;
 use List::MoreUtils 'uniq';
 
 sub check_milestone_version {
-    if (!get_var('MILESTONE_VERSION')) {
-        assert_script_run('cat /etc/issue');
-    } else {
+    assert_script_run('cat /etc/issue');
+    if (get_var('MILESTONE_VERSION')) {
         my $milestone_version = get_var('MILESTONE_VERSION');
         assert_script_run("grep -w $milestone_version /etc/issue");
     }
