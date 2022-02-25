@@ -19,7 +19,7 @@ sub run {
     # default timeout in grub2 is set to 10s
     # osd's arm machines tend to stall when trying to match grub2
     # this leads to test failures because openQA does not assert grub2 properly
-    if (is_sle_micro && is_aarch64) {
+    if (is_sle_micro && is_aarch64 && get_var('BOOT_HDD_IMAGE')) {
         shift->wait_boot_past_bootloader(textmode => 1, ready_time => 300);
     } else {
         shift->wait_boot(bootloader_time => 300);
