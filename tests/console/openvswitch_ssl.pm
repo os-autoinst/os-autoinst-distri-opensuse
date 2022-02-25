@@ -1,13 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2020 SUSE LLC
+# Copyright 2017-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Package: python openvswitch
 # Summary: The test to connect openvswitch to openflow with SSL enabled
 #
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tags: TC1595181, poo#65375
+# Tags: TC1595181, poo#65375, poo#107134
 
 use base "consoletest";
 use strict;
@@ -17,7 +17,9 @@ use utils;
 
 sub run {
     select_console 'root-console';
-    zypper_call('in python openvswitch');    # Install python2 here since pox scripts need python2
+
+    # Install python here since pox scripts need python
+    zypper_call('in python python-base openvswitch');
 
     # Start openvswitch service
     systemctl('start openvswitch');

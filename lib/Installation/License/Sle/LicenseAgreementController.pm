@@ -23,9 +23,9 @@ sub init {
             btn_ok_filter => {id => 'ok'}});
     $self->{LicenseAgreementPage} = Installation::License::LicenseAgreementExplicitPage->new({
             app => YuiRestClient::get_app(),
-            ch_accept_license_filter => {id => '"Y2Packager::Widgets::ProductLicenseConfirmation"'},
-            cb_language_filter => {id => '"simple_language_selection"'},
-            rt_eula_filter => {id => '"CWM::RichText"'}});
+            chb_accept_license_filter => {id => '"Y2Packager::Widgets::ProductLicenseConfirmation"'},
+            cmb_language_filter => {id => '"simple_language_selection"'},
+            rct_eula_filter => {id => '"CWM::RichText"'}});
     return $self;
 }
 

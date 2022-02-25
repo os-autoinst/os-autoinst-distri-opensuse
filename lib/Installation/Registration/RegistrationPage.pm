@@ -23,30 +23,30 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    $self->{rb_skip_registration} = $self->{app}->radiobutton({id => 'skip_registration'});
-    $self->{tb_email} = $self->{app}->textbox({id => 'email'});
-    $self->{tb_reg_code} = $self->{app}->textbox({id => 'reg_code'});
+    $self->{rdb_skip_registration} = $self->{app}->radiobutton({id => 'skip_registration'});
+    $self->{txb_email} = $self->{app}->textbox({id => 'email'});
+    $self->{txb_reg_code} = $self->{app}->textbox({id => 'reg_code'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{rb_skip_registration}->exist();
+    return $self->{rdb_skip_registration}->exist();
 }
 
 sub enter_email {
     my ($self, $email) = @_;
-    return $self->{tb_email}->set($email);
+    return $self->{txb_email}->set($email);
 }
 
 sub select_skip_registration {
     my ($self) = @_;
-    $self->{rb_skip_registration}->select();
+    $self->{rdb_skip_registration}->select();
 }
 
 sub enter_reg_code {
     my ($self, $reg_code) = @_;
-    return $self->{tb_reg_code}->set($reg_code);
+    return $self->{txb_reg_code}->set($reg_code);
 }
 
 1;

@@ -15,8 +15,6 @@ use strict;
 use warnings;
 use power_action_utils qw(power_action);
 
-
-
 sub check_package
 {
     my ($not_installed, $pkgname, $check_path) = @_;
@@ -47,6 +45,15 @@ sub rollback_and_reboot {
     }
     select_console('root-console');
     assert_script_run("snapper list");
+    # check whether SUSEConnect --rollback is running executed by rollback-reset-registration
+    # this might cause a system management lock by zypper
+    for (my $runs = 0; $runs < 5; $runs++) {
+        if (script_run('test -f /var/lib/rollback/check-registration') == 1) {
+            return 1;
+        }
+        record_info('ps', script_output('ps -ef'));
+        sleep 20;
+    }
 }
 
 sub run {

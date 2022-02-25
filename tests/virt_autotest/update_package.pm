@@ -61,9 +61,16 @@ sub run {
     #workaround of bsc#1177790
     #disable DNSSEC validation as it is turned on by default but the forwarders donnot support it, refer to bsc#1177790
     if (is_sle('>=12-sp5')) {
-        script_run "sed -i 's/#dnssec-validation auto;/dnssec-validation no;/g' /etc/named.conf";
-        script_run "grep 'dnssec-validation' /etc/named.conf";
-        script_run "systemctl restart named";
+        #ues die_on_timeout=> 0 as workaround for s390x test during call script_run, refer to poo#106765
+        my %args = ();
+        if (is_s390x) {
+            $args{die_on_timeout} = 0;
+        } else {
+            $args{die_on_timeout} = 1;
+        }
+        script_run "sed -i 's/#dnssec-validation auto;/dnssec-validation no;/g' /etc/named.conf", %args;
+        script_run "grep 'dnssec-validation' /etc/named.conf", %args;
+        script_run "systemctl restart named", %args;
         save_screenshot;
     }
 

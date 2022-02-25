@@ -9,7 +9,7 @@ use strict;
 use warnings;
 use testapi;
 use registration;
-use utils qw(zypper_call systemctl file_content_replace script_retry);
+use utils qw(zypper_call systemctl file_content_replace script_retry script_output_retry);
 use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos is_public_cloud get_os_release check_version);
 use containers::utils qw(can_build_sle_base registry_url);
 
@@ -25,10 +25,10 @@ sub is_unreleased_sle {
 
 sub activate_containers_module {
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $suseconnect = script_output('SUSEConnect --status-text', timeout => 240);
+    my $suseconnect = script_output_retry('SUSEConnect --status-text', timeout => 240, retry => 3, delay => 60);
     if ($suseconnect !~ m/Containers/) {
         $running_version eq '12' ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
-        $suseconnect = script_output('SUSEConnect --status-text', timeout => 240);
+        $suseconnect = script_output_retry('SUSEConnect --status-text', timeout => 240, retry => 3, delay => 60);
     }
     record_info('SUSEConnect', $suseconnect);
 }
@@ -85,6 +85,11 @@ sub install_docker_when_needed {
 
                 # docker package can be installed
                 zypper_call('in docker', timeout => 300);
+
+                # Restart firewalld if enabled before. Ensure docker can properly interact (boo#1196801)
+                if (script_run('systemctl is-active firewalld') == 0) {
+                    systemctl 'try-restart firewalld';
+                }
 
                 remove_suseconnect_product('SLES-LTSS') if ($ltss_needed);
             }

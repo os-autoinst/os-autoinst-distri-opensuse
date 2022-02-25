@@ -16,7 +16,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_microos is_sle_micro is_upgrade);
+use version_utils qw(is_microos is_sle_micro is_upgrade is_sle);
 use Utils::Backends qw(is_remote_backend is_hyperv);
 use Test::Assert ':all';
 
@@ -73,6 +73,17 @@ sub check_default_target {
     $self->validate_default_target($expected_target);
 }
 
+sub set_linux_security_to_none {
+    send_key_until_needlematch 'security-section-selected', 'tab', 25;
+    send_key 'ret';
+    assert_screen 'security-configuration', 120;
+    send_key 'alt-s';
+    send_key 'pgup';
+    assert_screen 'lsm-selected-none';
+    send_key 'alt-o';
+    assert_screen 'installation-settings-overview-loaded', 120;
+}
+
 sub run {
     my ($self) = shift;
     # overview-generation
@@ -90,6 +101,9 @@ sub run {
                 assert_screen 'inst-xen-pattern';
             }
         }
+        # the Installer of 15SP4 requires Apparmor pattern activation by default. If Apparmor not presented in PATTERNS and needle matches
+        # select None for Major Linux Security Module.
+        set_linux_security_to_none if (is_sle('>=15-SP4') && check_screen("apparmor-not-selected") && !(get_var('PATTERNS') =~ 'default|all|apparmor'));
         ensure_ssh_unblocked;
         $self->check_default_target();
     }

@@ -62,7 +62,7 @@ sub check_connection {
 
     YuiRestClient::Logger->get_instance()->debug("Check connection to the app by url: $uri");
     YuiRestClient::Wait::wait_until(object => sub {
-            my $response = YuiRestClient::Http::HttpClient::http_get($uri);
+            my $response = YuiRestClient::Http::HttpClient::http_get(uri => $uri);
             return $response->json if $response;
         },
         message => "Connection to YUI REST server failed",

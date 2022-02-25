@@ -20,7 +20,7 @@ use version_utils qw(is_sle is_leap check_version is_tumbleweed);
 use Utils::Architectures qw(is_aarch64);
 
 our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb test_pgsql test_mysql postgresql_cleanup);
-# Setup apache2 service in different mode: SSL, NSS, NSSFIPS, PHP7
+# Setup apache2 service in different mode: SSL, NSS, NSSFIPS, PHP7, PHP8
 # Example: setup_apache2(mode => 'SSL');
 
 =head2 setup_apache2
@@ -28,7 +28,7 @@ our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb test_pgsql test_mys
  setup_apache2(mode => $mode);
 
 Setup Apache service in different mode.
-Possible values for C<$mode> are: SSL, NSS, NSSFIPS and PHP7
+Possible values for C<$mode> are: SSL, NSS, NSSFIPS, PHP7 and PHP8
 
  setup_apache2(mode => 'SSL');
 
@@ -52,7 +52,12 @@ sub setup_apache2 {
     if ($mode eq "PHP7") {
         push @packages, qw(apache2-mod_php7 php7);
         push @packages, qw(php7-cli) unless (is_sle("<15-SP4") || is_leap("<15.4"));
-        zypper_call("rm -u apache2-mod_php5 php5", exitcode => [0, 104]);
+        zypper_call("rm -u apache2-mod_php{5,8} php{5,8}", exitcode => [0, 104]);
+    }
+
+    if ($mode eq "PHP8") {
+        push @packages, qw(apache2-mod_php8 php8-cli);
+        zypper_call("rm -u apache2-mod_php{5,7} php{5,7}", exitcode => [0, 104]);
     }
 
     # Make sure the packages are installed
@@ -62,7 +67,15 @@ sub setup_apache2 {
     # Enable php7
     if ($mode eq "PHP7") {
         assert_script_run 'a2enmod -d php5';
+        assert_script_run 'a2enmod -d php8';
         assert_script_run 'a2enmod php7';
+    }
+
+    # Enable php8
+    if ($mode eq "PHP8") {
+        assert_script_run 'a2enmod -d php5';
+        assert_script_run 'a2enmod -d php7';
+        assert_script_run 'a2enmod php8';
     }
 
     # Enable the ssl
@@ -138,7 +151,7 @@ sub setup_apache2 {
     my $curl_option = ($mode =~ m/SSL|NSS/) ? '-k https' : 'http';
     assert_script_run "curl $curl_option://localhost/hello.html | grep 'Hello Linux'";
 
-    if ($mode =~ /PHP5|PHP7/) {
+    if ($mode =~ /PHP/) {
         assert_script_run "curl --no-buffer http://localhost/index.php | grep \"\$(uname -s -n -r -v -m)\"";
     }
 }

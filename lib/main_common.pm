@@ -1089,6 +1089,7 @@ sub load_console_server_tests {
         loadtest "console/php_pcre" if is_sle;
         # TODO test on SLE https://progress.opensuse.org/issues/31972
         loadtest "console/mariadb_odbc" if is_opensuse;
+        loadtest "console/php8" unless is_leap("<15.4") || is_sle("<15-SP4");
         loadtest "console/php7";
         loadtest "console/php7_mysql";
         loadtest "console/php7_postgresql";
@@ -1183,6 +1184,7 @@ sub load_consoletests {
         loadtest "jeos/glibc_locale";
         loadtest "jeos/kiwi_templates" unless (is_leap('<15.2'));
     }
+    loadtest 'console/systemd_wo_udev' if (is_sle('15-sp4+') || is_leap('15.4+') || is_tumbleweed);
     loadtest "console/ncurses" if is_leap;
     loadtest "console/yast2_lan" unless is_bridged_networking;
     # no local certificate store
@@ -1194,8 +1196,8 @@ sub load_consoletests {
         loadtest "console/puppet";
     }
     # salt in SLE is only available for SLE12 ASMM or SLES15 and variants of
-    # SLES but not SLED
-    if (is_opensuse || !is_staging && (check_var_array('SCC_ADDONS', 'asmm') || is_sle('15+') && !is_desktop)) {
+    # SLES but not SLED. Don't run it on live media, not really useful there.
+    if (!get_var("LIVETEST") && is_opensuse || (check_var_array('SCC_ADDONS', 'asmm') || is_sle('15+') && !is_desktop)) {
         loadtest "console/salt";
     }
     if (!is_staging && (is_x86_64
@@ -1251,7 +1253,7 @@ sub load_consoletests {
     if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && is_sle('<15') && !get_var("MEDIA_UPGRADE")) {
         loadtest "feature/feature_console/deregister";
     }
-    loadtest "console/nginx" if ((is_opensuse && !is_staging) || is_sle('15+'));
+    loadtest "console/nginx" if ((is_opensuse && !is_staging) || (is_sle('15+') && !is_desktop));
     loadtest 'console/orphaned_packages_check' if is_jeos || get_var('UPGRADE') || get_var('ZDUP') || !is_sle('<12-SP4');
     loadtest "console/consoletest_finish";
 }
@@ -1298,7 +1300,8 @@ sub load_x11tests {
     if (xfcestep_is_applicable()) {
         # Midori got dropped from TW
         loadtest "x11/midori" unless (is_staging || is_livesystem || !is_leap("<16.0"));
-        loadtest "x11/ristretto";
+        # Tumbleweed and Leap 15.4+ no longer have ristretto on the Rescue CD
+        loadtest "x11/ristretto" unless (check_var("FLAVOR", "Rescue-CD") && !is_leap("<=15.3"));
     }
     if (gnomestep_is_applicable()) {
         # TODO test on openSUSE https://progress.opensuse.org/issues/31972
@@ -2761,6 +2764,10 @@ sub load_hypervisor_tests {
         loadtest "virt_autotest/libvirt_isolated_virtual_network";
     }
 
+    if (check_var('VIRT_PART', 'irqbalance')) {
+        loadtest "virt_autotest/xen_guest_irqbalance";
+    }
+
     if (check_var('VIRT_PART', 'snapshots')) {
         loadtest "virt_autotest/virsh_internal_snapshot";
         loadtest "virt_autotest/virsh_external_snapshot";
@@ -2815,6 +2822,7 @@ sub load_extra_tests_syscontainer {
 sub load_extra_tests_kernel {
     loadtest "kernel/module_build";
     loadtest "kernel/tuned";
+    loadtest "kernel/fwupd";
 }
 
 # Scheduling set for validation of specific installation

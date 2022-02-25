@@ -123,6 +123,9 @@ sub run {
         results_dir => 'img_proof_results'
     );
 
+    # Because the IP address of instance might change during img_proof due to the hard-reboot, we need to re-add the ssh public keys
+    assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
+
     upload_logs($img_proof->{logfile});
     parse_extra_log(IPA => $img_proof->{results});
     assert_script_run('rm -rf img_proof_results');

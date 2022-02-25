@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Installation and basic tests of exporters for SLES4SAP monitoring
-# Maintainer: Loic Devulder <ldevulder@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'sles4sap';
 use testapi;

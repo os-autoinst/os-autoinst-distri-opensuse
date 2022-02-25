@@ -30,9 +30,11 @@ sub run {
 
     # Install as many as SELinux related packages
     my @pkgs = (
-        'selinux-tools', 'libselinux-devel', 'libselinux1', 'python3-selinux', 'libsepol1', 'libsepol-devel',
-        'libsemanage1', 'libsemanage-devel', 'checkpolicy', 'mcstrans', 'restorecond', 'setools-console',
-        'setools-devel', 'setools-java', 'setools-libs', 'setools-tcl', 'policycoreutils-python-utils'
+        'selinux-tools', 'libselinux-devel', 'libselinux1', 'python3-selinux',
+        'libsepol1', 'libsepol-devel', 'libsemanage1', 'libsemanage-devel',
+        'checkpolicy', 'mcstrans', 'restorecond', 'setools-console',
+        'setools-devel', 'setools-java', 'setools-libs', 'setools-tcl',
+        'policycoreutils-python-utils'
     );
     foreach my $pkg (@pkgs) {
         my $results = script_run("zypper --non-interactive se $pkg");
@@ -51,12 +53,23 @@ sub run {
     # For sle15 and sle15+ "selinux-policy-*" pkgs will not be released
     # NOTE: have to install "selinux-policy-minimum-*" pkg due to this bug: bsc#1108949
     # Install policy packages separately due to this bug: bsc#1177675
-    if (is_sle('>=15')) {
+    if (is_sle('>=15-sp4')) {
+        my @files = (
+            'selinux-policy-20220124-150400.121.1.noarch.rpm',
+            'selinux-policy-minimum-20220124-150400.121.1.noarch.rpm',
+            'selinux-policy-devel-20220124-150400.121.1.noarch.rpm'
+        );
+        foreach my $file (@files) {
+            assert_script_run 'wget --quiet ' . data_url("selinux/$file");
+            assert_script_run("rpm -ivhU --nosignature --nodeps --noplugins $file");
+        }
+    }
+    elsif (is_sle('>=15') && is_sle('<15-sp4')) {
         my @files
           = ('selinux-policy-20200219-3.6.noarch.rpm', 'selinux-policy-minimum-20200219-3.6.noarch.rpm', 'selinux-policy-devel-20200219-3.20.noarch.rpm');
         foreach my $file (@files) {
             assert_script_run 'wget --quiet ' . data_url("selinux/$file");
-            assert_script_run("rpm -ivh --nosignature --nodeps --noplugins $file");
+            assert_script_run("rpm -ivhU --nosignature --nodeps --noplugins $file");
         }
     }
     elsif (!is_sle && !is_leap) {
@@ -64,7 +77,8 @@ sub run {
         foreach my $file (@files) {
             zypper_call("in $file");
         }
-    } else {
+    }
+    else {
         zypper_call('in selinux-policy-minimum');
     }
 

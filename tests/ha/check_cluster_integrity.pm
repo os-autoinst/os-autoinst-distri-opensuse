@@ -5,18 +5,17 @@
 
 # Package: pacemaker-cli
 # Summary: Check cluster integrity
-# Maintainer: Christian Lanig <clanig@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Christian Lanig <clanig@suse.com>
 
 use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
-use lockapi;
 use hacluster;
-use utils 'systemctl';
 
 sub run {
     select_console 'root-console';
+    sleep 120;
     # Check for the state of the whole cluster
     check_cluster_state;
 }

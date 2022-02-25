@@ -5,7 +5,7 @@
 
 # Package: lvm2-lockd crmsh csync2 lvm2
 # Summary: Workarounds after upgrade from cluster with clvmd into lvmlockd only systems
-# Maintainer: Alvaro Carvajal <acarvajal@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.com>
 
 use base 'opensusebasetest';
 use strict;

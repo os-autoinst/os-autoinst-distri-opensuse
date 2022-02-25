@@ -22,21 +22,21 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{ch_select_all} = $self->{app}->checkbox({id => 'all'});
+    $self->{chb_select_all} = $self->{app}->checkbox({id => 'all'});
     $self->{btn_ok} = $self->{app}->button({id => 'ok'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    my $is_shown = $self->{ch_select_all}->exist();
+    my $is_shown = $self->{chb_select_all}->exist();
     save_screenshot if $is_shown;
     return $is_shown;
 }
 
 sub select_all {
     my ($self) = @_;
-    return $self->{ch_select_all}->check();
+    return $self->{chb_select_all}->check();
 }
 
 sub press_ok {

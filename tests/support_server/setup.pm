@@ -348,7 +348,7 @@ sub setup_iscsi_server {
     die "detection of disk for iSCSI LUN failed" unless $hdd_lun;
 
     # Needed if a firewall is configured
-    script_run 'yast2 firewall services add zone=EXT service=service:target';
+    script_run 'yast2 firewall services add zone=EXT service=service:target', 200;
 
     # Create the iSCSI LUN
     script_run "parted --align optimal --wipesignatures --script $hdd_lun mklabel gpt";

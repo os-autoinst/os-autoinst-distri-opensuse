@@ -5,18 +5,14 @@
 
 # Summary: Installation of munge package from HPC module and sanity check
 # of this package
-# Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>, soulofdestiny <mgriessmeier@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use base 'hpcbase';
-use strict;
-use warnings;
+use Mojo::Base 'hpcbase', -signatures;
 use testapi;
 use lockapi;
 use utils;
 
-sub run {
-    my $self = shift;
-
+sub run ($self) {
     # Get number of nodes
     my $nodes = get_required_var("CLUSTER_NODES");
 
@@ -46,8 +42,7 @@ sub run {
     barrier_wait('MUNGE_DONE');
 }
 
-sub post_fail_hook {
-    my ($self) = @_;
+sub post_fail_hook ($self) {
     $self->select_serial_terminal;
     $self->upload_service_log('munge');
 }

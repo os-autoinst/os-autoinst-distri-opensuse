@@ -32,6 +32,10 @@ sub run {
 
     select_console 'root-console';
 
+    # On s390x platform, make sure that non-root user has
+    # permissions for $serialdev to get openQA work properly.
+    ensure_serialdev_permissions if (is_s390x);
+
     my $cert_file = '/tmp/server.cert';
     my $key_file = '/tmp/server.key';
     my $tracelog_file = '/tmp/x3270-trace.log';
@@ -83,7 +87,7 @@ sub run {
     send_key "ctrl-c";
     assert_screen 'generic-desktop';
 
-    #Terminate openssl s_server
+    # Terminate openssl s_server
     select_console 'root-console';
     send_key "ctrl-c";
     clear_console;

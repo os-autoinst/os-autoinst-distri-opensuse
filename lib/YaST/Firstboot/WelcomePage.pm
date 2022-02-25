@@ -24,18 +24,18 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    $self->{rt_welcome} = $self->{app}->richtext({id => 'welcome_text'});
+    $self->{rct_welcome} = $self->{app}->richtext({id => 'welcome_text'});
     return $self;
 }
 
 sub get_welcome_text {
     my ($self) = @_;
-    return $self->{rt_welcome}->text();
+    return $self->{rct_welcome}->text();
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{rt_welcome}->exist();
+    return $self->{rct_welcome}->exist();
 }
 
 1;

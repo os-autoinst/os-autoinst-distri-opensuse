@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2021 SUSE LLC
+# Copyright 2019-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Package for rpcbind service tests
@@ -65,13 +65,6 @@ sub check_function {
     assert_script_run("rpcinfo");
     # Wait for updated rpcinfo.
     sleep(5);
-    if (script_run('rpcinfo | grep nfs') != 0) {
-        record_soft_failure('bsc#1193028', "rpcinfo can not get nfs info in time on s390x");
-        for (1 .. 10) {
-            last if (script_run('rpcinfo | grep nfs') == 0);
-            sleep 5;
-        }
-    }
     assert_script_run('rpcinfo | grep nfs');
     assert_script_run('mkdir -p /tmp/nfs');
     assert_script_run('mount -t nfs localhost:/rpcbindtest /tmp/nfs');

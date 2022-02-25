@@ -78,6 +78,7 @@ conditional_schedule:
                 - console/supportutils
                 - console/zziplib
                 - console/vsftpd
+                - console/python310_version_check
                 - network/samba/samba_adcli
     tumbleweed_tests:
         VERSION:
@@ -86,6 +87,7 @@ conditional_schedule:
                 - console/systemd_rpm_macros
                 - console/vsftpd
                 - console/python_flake8
+                - console/python310_version_check
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
@@ -108,6 +110,7 @@ schedule:
     - console/rpm
     - console/slp
     - console/pkcon
+    - console/python_pycairo
     - console/command_not_found
     - console/openssl_alpn
     - console/autoyast_removed
@@ -156,4 +159,5 @@ schedule:
     - console/osinfo_db
     - '{{opensuse_tests}}'
     - '{{tumbleweed_tests}}'
+    - console/tar
     - console/coredump_collect

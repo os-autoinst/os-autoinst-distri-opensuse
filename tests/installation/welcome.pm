@@ -58,16 +58,22 @@ sub switch_keyboard_layout {
 Returns hash which contains shortcuts for the product selection.
 =cut
 sub get_product_shortcuts {
+    # sles4sap does have different shortcuts in different tests at same time
+    #     ppc64le x86_64
+    # Full   u      i
+    # QR     i      p
+    # Online i      t
+    if (check_var('SLE_PRODUCT', 'sles4sap')) {
+        return (sles4sap => is_ppc64le() ? 'u' : 'i') if get_var('ISO') =~ /Full/;
+        return (sles4sap => is_ppc64le() ? 'i' : is_quarterly_iso() ? 'p' : 't') unless get_var('ISO') =~ /Full/;
+    }
     # We got new products in SLE 15 SP1
-    if (is_sle '15-SP1+') {
+    elsif (is_sle '15-SP1+') {
         return (
             sles => (is_ppc64le() || is_s390x()) ? 'u'
             : is_aarch64() ? 's'
             : 'i',
             sled => 'x',
-            sles4sap => is_ppc64le() ? 'i'
-            : (is_sle('15-SP2+') && is_x86_64() && !is_quarterly_iso()) ? 't'
-            : 'p',
             hpc => is_x86_64() ? 'g' : 'u',
             rt => is_x86_64() ? 't' : undef
         );
@@ -101,9 +107,10 @@ sub run {
     # Add tag to check for https://progress.opensuse.org/issues/30823 "test is
     # stuck in linuxrc asking if dhcp should be used"
     push @welcome_tags, 'linuxrc-dhcp-question';
-    # repo key expired bsc#1179654
-    record_soft_failure 'bsc#1179654' if is_sle('=15');
-    push @welcome_tags, 'expired-gpg-key' if is_sle('=15');
+    if (is_sle('=15')) {
+        record_info('bsc#1179654', 'Needs at least libzypp-17.4.0 to avoid validation check failed');
+        push @welcome_tags, 'expired-gpg-key';
+    }
 
     # Process expected pop-up windows and exit when welcome/beta_war is shown or too many iterations
     while ($iterations++ < scalar(@welcome_tags)) {

@@ -6,7 +6,7 @@
 # Package: lvm2 util-linux parted device-mapper
 # Summary: Install HANA via command line. Verify installation with
 # sles4sap/hana_test
-# Maintainer: Alvaro Carvajal <acarvajal@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.com>
 
 use base 'sles4sap';
 use strict;
@@ -228,6 +228,11 @@ sub run {
       "--logpath=$mountpts{hanalog}->{mountpt}/$sid",
       "--sapmnt=$mountpts{hanashared}->{mountpt}";
     push @hdblcm_args, "--pmempath=$pmempath", "--use_pmem" if get_var('NVDIMM');
+    # NOTE: Remove when SAP releases HANA with a fix for bsc#1195133
+    if (get_var('NVDIMM')) {
+        push @hdblcm_args, "--ignore=check_signature_file";
+        record_soft_failure("Workaround for bsc#1195133");
+    }
     my $cmd = join(' ', $hdblcm, @hdblcm_args);
     record_info 'hdblcm command', $cmd;
     assert_script_run $cmd, $tout;

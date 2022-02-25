@@ -29,7 +29,6 @@ schedule:
     - console/system_state
     - console/prepare_test_data
     - console/consoletest_setup
-    - x11/user_gui_login
     - x11/desktop_runner
     - x11/xterm
     - x11/sshxterm

@@ -33,9 +33,9 @@ use constant {
     SEALING_DELAY => 10
 };
 
-# by default persistent journal is set for opensuse, except of leap 15.3+
+# Tumbleweed uses a persistent journal, Leap 15.3+ (except 15.3 AArch64 JeOS) inherits SLE's default
 sub has_default_persistent_journal {
-    return is_opensuse && (!is_leap('15.3+') || check_var('FLAVOR', 'JeOS-for-AArch64'));
+    return is_tumbleweed || (is_leap('=15.3') && check_var('FLAVOR', 'JeOS-for-AArch64'));
 }
 
 # If the daemon is stopped uncleanly, or if the files are found to be corrupted, they are renamed using the ".journal~" suffix
@@ -156,9 +156,12 @@ sub run {
             assert_script_run "rpm -q --conflicts systemd-logger | tee -a /dev/$serialdev | grep syslog";
         }
     } else {
-        script_run("journalctl --boot=-1 | grep 'no persistent journal was found'") or die "Persistent journal should not be enabled by default on SLE!\n";
+        validate_script_output('journalctl --no-pager --boot=-1 2>&1', qr/no persistent journal was found/i) unless is_sle('<15');
         assert_script_run "mkdir -p ${\ PERSISTENT_LOG_DIR }";
         assert_script_run "systemd-tmpfiles --create --prefix ${\ PERSISTENT_LOG_DIR }";
+        # https://bugzilla.suse.com/show_bug.cgi?id=1196637
+        # should be backported to sle15sp3/leap15.3 later
+        assert_script_run 'journalctl --flush' if (is_sle('15-sp4+') || is_leap('15.4+'));
         # test for installed rsyslog and for imuxsock existance
         # rsyslog must be there by design
         assert_script_run 'rpm -q rsyslog';

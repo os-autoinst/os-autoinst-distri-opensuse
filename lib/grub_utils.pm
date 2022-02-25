@@ -28,7 +28,7 @@ Handle grub menu after reboot
       or product is sle, aarch64 and PLYMOUTH_DEBUG is set
 =cut
 sub grub_test {
-    my $timeout = get_var('GRUB_TIMEOUT', 90);
+    my $timeout = get_var('GRUB_TIMEOUT', 200);
 
     handle_installer_medium_bootup();
     workaround_type_encrypted_passphrase;
@@ -76,7 +76,7 @@ sub bug_workaround_bsc1005313 {
     record_soft_failure "Running with plymouth:debug to catch bsc#1005313" if get_var('PLYMOUTH_DEBUG');
     send_key 'e';
     # Move to end of kernel boot parameters line
-    send_key_until_needlematch "linux-line-selected", "down";
+    send_key_until_needlematch "linux-line-selected", "down", 25;
     send_key "end";
 
     assert_screen "linux-line-matched";

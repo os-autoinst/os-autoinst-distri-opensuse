@@ -15,6 +15,7 @@ use testapi;
 use YuiRestClient;
 
 sub run {
+    die 'Module requires YUI_REST_API variable to be set.', unless get_var('YUI_REST_API');
     my $app = YuiRestClient::get_app(installation => 1, timeout => 120, interval => 1);
     my $port = $app->get_port();
     record_info('SERVER', "Used host for libyui: " . $app->get_host());

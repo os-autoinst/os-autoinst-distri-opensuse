@@ -174,25 +174,29 @@ sub add_suseconnect_product {
     $version //= '${VERSION_ID}';
     $arch //= '${CPU}';
     $params //= '';
-    $retry //= 0;    # run SUSEConnect a 2nd time to workaround the gpg error due to missing repo key on 1st run
+    $retry //= 3;    # Times we retry the SUSEConnect command (besides first execution)
+    $timeout //= 300;
 
     # some modules on sle12 use major version e.g. containers module
     my $major_version = '$(echo ${VERSION_ID}|cut -c1-2)';
     $version = $major_version if $name eq 'sle-module-containers' && is_sle('<15');
+    record_info('SCC product', "Activating product $name");
 
-    my $result = script_run("SUSEConnect -p $name/$version/$arch $params", $timeout);
-    if ($result != 0 && $retry) {
-        if ($name =~ /PackageHub/) {
-            record_soft_failure 'bsc#1124318 - Fail to get module repo metadata - running the command again as a workaround';
-
+    my $try_cnt = 0;
+    while ($try_cnt++ <= $retry) {
+        eval { assert_script_run("SUSEConnect -p $name/$version/$arch $params", timeout => $timeout); };
+        if ($@) {
+            record_info('retry', "SUSEConnect failed to activate the module $name. Retrying...");
+            sleep 60 * $try_cnt;    # we wait a bit longer for each retry
         }
-
-        my $fail_message = ($name =~ /PackageHub/ && check_var('BETA', '1')) ? "PackageHub installation might fail in early development" : undef;
-        assert_script_run("SUSEConnect -p $name/$version/$arch $params", $timeout, $fail_message);
-
-    } elsif ($result && !$retry) {
-        die "SUSEConnect failed activating module $name with exit code (see log output): $result.";
+        else {
+            return 1;
+        }
     }
+    if ($name =~ /PackageHub/ && check_var('BETA', '1')) {
+        record_info('INFO', 'PackageHub installation might fail in early development');
+    }
+    die "SUSEConnect failed activating module $name after $retry retries.";
 }
 
 =head2 ssh_add_suseconnect_product
@@ -226,7 +230,7 @@ sub remove_suseconnect_product {
     $version //= scc_version();
     $arch //= get_required_var('ARCH');
     $params //= '';
-    assert_script_run("SUSEConnect -d -p $name/$version/$arch $params", timeout => 150);
+    script_retry("SUSEConnect -d -p $name/$version/$arch $params", retry => 5, delay => 60, timeout => 180);
 }
 
 =head2 cleanup_registration
@@ -260,13 +264,14 @@ sub register_product {
 }
 
 sub register_addons_cmd {
-    my ($addonlist) = @_;
+    my ($addonlist, $retry) = @_;
     $addonlist //= get_var('SCC_ADDONS');
+    $retry //= 0;    # Don't retry by default
     my @addons = grep { defined $_ && $_ } split(/,/, $addonlist);
     if (check_var('DESKTOP', 'gnome') && is_sle('15+')) {
         my $desk = "sle-module-desktop-applications";
         record_info($desk, "Register $desk");
-        add_suseconnect_product($desk, undef, undef, undef, 300, 1);
+        add_suseconnect_product($desk, undef, undef, undef, 300, $retry);
     }
     foreach my $addon (@addons) {
         my $name = get_addon_fullname($addon);
@@ -274,17 +279,17 @@ sub register_addons_cmd {
             record_info($name, "Register $name");
             if (grep(/$name/, @SLE12_MODULES) and is_sle('<15')) {
                 my @ver = split(/\./, scc_version());
-                add_suseconnect_product($name, $ver[0], undef, undef, 300, 1);
+                add_suseconnect_product($name, $ver[0], undef, undef, 300, $retry);
             }
             elsif (grep(/$name/, keys %ADDONS_REGCODE)) {
-                add_suseconnect_product($name, undef, undef, "-r " . $ADDONS_REGCODE{$name}, 300, 1);
+                add_suseconnect_product($name, undef, undef, "-r " . $ADDONS_REGCODE{$name}, 300, $retry);
                 if ($name =~ /we/) {
                     zypper_call("--gpg-auto-import-keys ref");
-                    add_suseconnect_product($name, undef, undef, "-r " . $ADDONS_REGCODE{$name}, 300, 1);
+                    add_suseconnect_product($name, undef, undef, "-r " . $ADDONS_REGCODE{$name}, 300, $retry);
                 }
             }
             else {
-                add_suseconnect_product($name, undef, undef, undef, 300, 1);
+                add_suseconnect_product($name, undef, undef, undef, 300, $retry);
             }
         }
     }
@@ -591,6 +596,10 @@ sub handle_scc_popups {
         push @tags, 'expired-gpg-key' if is_sle('=15');
         while ($counter--) {
             die 'Registration repeated too much. Check if SCC is down.' if ($counter eq 1);
+            if (is_sle('15-SP4+') && (get_var('VIDEOMODE', '') !~ /text|ssh-x/) && !get_var('PUBLISH_HDD_1')) {
+                record_soft_failure('bsc#1191112', 'Resizing window as workaround for YaST content not loading');
+                for (1 .. 2) { send_key 'alt-f10' }
+            }
             assert_screen(\@tags, timeout => 360);
             if (match_has_tag('import-untrusted-gpg-key')) {
                 handle_untrusted_gpg_key;

@@ -22,6 +22,8 @@ our @EXPORT = qw(
   is_container_test
   load_container_tests
   load_host_tests_podman
+  load_3rd_party_image_test
+  load_container_engine_test
 );
 
 sub is_container_test {
@@ -29,7 +31,7 @@ sub is_container_test {
 }
 
 sub is_container_image_test {
-    return get_var('CONTAINERS_UNTESTED_IMAGES', 0);
+    return get_var('CONTAINERS_UNTESTED_IMAGES', 0) || get_var('BCI_TESTS', 0);
 }
 
 sub is_expanded_support_host {
@@ -50,6 +52,22 @@ sub load_image_test {
     loadtest('containers/image', run_args => $args, name => "image_$runtime");
 }
 
+sub load_3rd_party_image_test {
+    my ($runtime) = @_;
+    my $args = OpenQA::Test::RunArgs->new();
+    $args->{runtime} = $runtime;
+
+    loadtest('containers/third_party_images', run_args => $args, name => $runtime . "_3rd_party_images");
+}
+
+sub load_container_engine_test {
+    my ($runtime) = @_;
+    my $args = OpenQA::Test::RunArgs->new();
+    $args->{runtime} = $runtime;
+
+    loadtest('containers/container_engine', run_args => $args, name => $runtime);
+}
+
 sub load_image_tests_podman {
     load_image_test('podman');
 }
@@ -66,19 +84,20 @@ sub load_image_tests_docker {
 sub load_host_tests_podman {
     if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+") || is_sle_micro) {
         # podman package is only available as of 15-SP1
-        loadtest 'containers/podman';
+        load_container_engine_test('podman');
         load_image_test('podman');
-        loadtest 'containers/podman_3rd_party_images';
+        load_3rd_party_image_test('podman');
         loadtest 'containers/podman_firewall';
         loadtest 'containers/buildah' unless is_sle_micro;
-        loadtest 'containers/rootless_podman' unless is_sle('=15-sp1');    # https://github.com/containers/podman/issues/5732#issuecomment-610222293
+        # https://github.com/containers/podman/issues/5732#issuecomment-610222293
+        loadtest 'containers/rootless_podman' unless (is_sle('=15-sp1'));
     }
 }
 
 sub load_host_tests_docker {
-    loadtest 'containers/docker';
+    load_container_engine_test('docker');
     load_image_test('docker');
-    loadtest 'containers/docker_3rd_party_images';
+    load_3rd_party_image_test('docker');
     loadtest 'containers/docker_firewall';
     unless (is_sle("<=15") && is_aarch64) {
         # these 2 packages are not avaiable for <=15 (aarch64 only)
@@ -123,9 +142,16 @@ sub load_container_tests {
 
     foreach (split(',\s*', $runtime)) {
         if (is_container_image_test()) {
-            # Container Image tests
-            load_image_tests_podman() if (/podman/i);
-            load_image_tests_docker() if (/docker/i);
+            if (get_var('BCI_TESTS')) {
+                # External bci-tests pytest suite
+                loadtest 'containers/bci_prepare';
+                loadtest 'containers/bci_test';
+            }
+            else {
+                # Common openQA image tests
+                load_image_tests_podman() if (/podman/i);
+                load_image_tests_docker() if (/docker/i);
+            }
         }
         else {
             # Container Host tests

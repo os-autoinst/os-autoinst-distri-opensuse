@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2021 SUSE LLC
+# Copyright 2017-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Base module for all wicked scenarios
@@ -793,9 +793,11 @@ END_OF_CONTENT_$rand
 sub run_test_shell_script
 {
     my ($self, $title, $script_cmd) = @_;
-    my $output = script_output($script_cmd . '; echo "==COLLECT_EXIT_CODE==$?=="', proceed_on_failure => 1, timeout => 300);
-    my $result = $output =~ m/==COLLECT_EXIT_CODE==0==/ ? 'ok' : 'fail';
-    $self->record_console_test_result($title, $output, result => $result);
+    $self->check_logs(sub {
+            my $output = script_output($script_cmd . '; echo "==COLLECT_EXIT_CODE==$?=="', proceed_on_failure => 1, timeout => 300);
+            my $result = $output =~ m/==COLLECT_EXIT_CODE==0==/ ? 'ok' : 'fail';
+            $self->record_console_test_result($title, $output, result => $result);
+    });
 }
 
 sub record_console_test_result {
@@ -810,8 +812,21 @@ sub record_console_test_result {
     $self->write_resultfile($filename, $content);
 }
 
+sub skip_check_logs_on_post_run {
+    shift->{skip_check_logs_on_post_run} = 1;
+}
+
 sub check_logs {
     my $self = shift;
+    my $code = shift;
+    my $cursor = '';
+
+    if (ref($code) eq 'CODE') {
+        $cursor = script_output(q(journalctl -o export -n 1 | tr -dc '\n|[[:print:]]' |  grep __CURSOR));
+        ($cursor) = ($cursor =~ /^__CURSOR=(.*)$/m);
+        $cursor = "-c '$cursor'";
+        $code->();
+    }
     my @units = qw(wickedd-nanny wickedd-dhcp4 wickedd-dhcp6 wicked wickedd);
     my $default_exclude = 'wickedd=process \d+ has not exited yet; now doing a blocking waitpid';
     $default_exclude .= ',wickedd-dhcp6=Link-local IPv6 address is marked duplicate:';
@@ -830,7 +845,7 @@ sub check_logs {
     @excludes = map { my $v = trim($_); length($v) > 0 ? $v : () } @excludes;
 
     for my $unit (@units) {
-        my $cmd = "journalctl -q -p 3 -x -u $unit";
+        my $cmd = "journalctl $cursor -q -p 3 -x -u $unit";
         for my $exclude (@excludes) {
             my ($unit_match, $regex) = split(/\s*=\s*/, $exclude, 2);
             if ($unit_match =~ /^all$/i || $unit_match eq $unit) {
@@ -909,7 +924,7 @@ sub post_run {
         script_run('kill ' . get_var('WICKED_TCPDUMP_PID'));
         $self->upload_log_file('/tmp/' . $self->{name} . '_tcpdump.pcap');
     }
-    $self->check_logs();
+    $self->check_logs() unless $self->{skip_check_logs_on_post_run};
     $self->check_coredump();
     $self->upload_wicked_logs('post');
 }

@@ -42,26 +42,31 @@ sub set_port {
 
 sub find {
     my ($self, $args) = @_;
+    my $timeout = $args->{timeout} // $self->{timeout};
+    my $interval = $args->{interval} // $self->{interval};
 
     my $uri = YuiRestClient::Http::HttpClient::compose_uri(
         host => $self->{host},
         port => $self->{port},
         path => $self->{api_version} . '/widgets',
-        params => $args
+        params => $args->{filter}
     );
 
     YuiRestClient::Logger->get_instance()->debug('Finding widget by url: ' . $uri);
 
     YuiRestClient::Wait::wait_until(object => sub {
-            my $response = YuiRestClient::Http::HttpClient::http_get($uri);
+            my $response = YuiRestClient::Http::HttpClient::http_get(
+                uri => $uri, add_delay => $timeout);
             return $response->json if $response; },
-        timeout => $self->{timeout},
-        interval => $self->{interval}
+        timeout => $timeout,
+        interval => $interval
     );
 }
 
 sub send_action {
     my ($self, $args) = @_;
+    my $timeout = $args->{timeout} // $self->{timeout};
+    my $interval = $args->{interval} // $self->{interval};
 
     my $uri = YuiRestClient::Http::HttpClient::compose_uri(
         host => $self->{host},
@@ -73,10 +78,11 @@ sub send_action {
     YuiRestClient::Logger->get_instance()->debug('Sending action to widget by url: ' . $uri);
 
     YuiRestClient::Wait::wait_until(object => sub {
-            my $response = YuiRestClient::Http::HttpClient::http_post($uri);
+            my $response = YuiRestClient::Http::HttpClient::http_post(
+                uri => $uri, add_delay => $timeout);
             return $response if $response; },
-        timeout => $self->{timeout},
-        interval => $self->{interval}
+        timeout => $timeout,
+        interval => $interval
     );
 }
 

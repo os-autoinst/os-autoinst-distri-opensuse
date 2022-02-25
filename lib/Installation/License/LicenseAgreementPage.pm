@@ -22,34 +22,34 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->SUPER::init($args);
-    $self->{cb_language} = $self->{app}->combobox($args->{cb_language_filter});
-    $self->{rt_eula} = $self->{app}->richtext($args->{rt_eula_filter});
+    $self->{cmb_language} = $self->{app}->combobox($args->{cmb_language_filter});
+    $self->{rct_eula} = $self->{app}->richtext($args->{rct_eula_filter});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{rt_eula}->exist();
+    return $self->{rct_eula}->exist();
 }
 
 sub get_available_languages {
     my ($self) = @_;
-    return $self->{cb_language}->items();
+    return $self->{cmb_language}->items();
 }
 
 sub get_eula_content {
     my ($self) = @_;
-    return $self->{rt_eula}->text();
+    return $self->{rct_eula}->text();
 }
 
 sub get_selected_language {
     my ($self) = @_;
-    return $self->{cb_language}->value();
+    return $self->{cmb_language}->value();
 }
 
 sub select_language {
     my ($self, $item) = @_;
-    return $self->{cb_language}->select($item);
+    return $self->{cmb_language}->select($item);
 }
 
 1;

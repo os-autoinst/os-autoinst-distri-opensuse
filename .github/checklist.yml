@@ -1,0 +1,7 @@
+paths:
+  "lib/**.pm":
+    - Consider adding or extending unit tests in t/
+  "t/data/test_schedule.out":
+    - Ensure openSUSE/SLE release managers are ok with the change in staging schedule
+  "tests/**.pm":
+    - Consider conducting at least one [verification run](https://github.com/os-autoinst/os-autoinst-distri-opensuse/blob/master/CONTRIBUTING.md#preparing-a-new-pull-request)

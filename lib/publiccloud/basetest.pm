@@ -17,6 +17,7 @@ use publiccloud::ecr;
 use publiccloud::gce;
 use publiccloud::gcr;
 use publiccloud::acr;
+use publiccloud::aks;
 use publiccloud::openstack;
 use strict;
 use warnings;
@@ -65,6 +66,9 @@ sub provider_factory {
                 subscription => get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID'),
                 username => get_var('PUBLIC_CLOUD_USER', 'azureuser')
             );
+        }
+        elsif ($args{service} eq 'AKS') {
+            $provider = publiccloud::aks->new();
         }
         elsif ($args{service} eq 'AVM') {
             $provider = publiccloud::azure->new();

@@ -6,20 +6,16 @@
 # Summary: Ganglia Test - server
 #   Acts as server which gets data from the client and is running the webinterface
 #   to show the metrics for all connected hosts
-# Maintainer: soulofdestiny <mgriessmeier@suse.com>, Anton Pappas <apappas@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 # Tags: https://fate.suse.com/323979
 
-use base 'hpcbase';
-use base 'x11test';
-use strict;
-use warnings;
+use Mojo::Base qw(hpcbase x11test), -signatures;
 use testapi;
 use lockapi;
 use utils;
 use version_utils 'is_sle';
 
-sub run {
-    my $self = shift;
+sub run ($self) {
     # Get number of nodes
     my $nodes = get_required_var("CLUSTER_NODES");
     # Get hostname
@@ -70,8 +66,7 @@ sub run {
     barrier_wait('GANGLIA_SERVER_DONE');
 }
 
-sub post_fail_hook {
-    my ($self) = @_;
+sub post_fail_hook ($self) {
     $self->select_serial_terminal;
     $self->upload_service_log('apache2');
     $self->upload_service_log('gmond');

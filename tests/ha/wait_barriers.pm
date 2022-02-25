@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Wait for support server to initialize the barriers
-# Maintainer: Loic Devulder <ldevulder@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'opensusebasetest';
 use strict;

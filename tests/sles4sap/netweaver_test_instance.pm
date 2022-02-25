@@ -5,7 +5,7 @@
 
 # Summary: Checks NetWeaver installation as performed by sles4sap/netweaver_install
 # Requires: sles4sap/netweaver_install, ENV variables INSTANCE_SID, INSTANCE_TYPE and INSTANCE_ID
-# Maintainer: Alvaro Carvajal <acarvajal@suse.de>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.de>
 
 use base "sles4sap";
 use testapi;

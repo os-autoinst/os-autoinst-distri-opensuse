@@ -147,9 +147,10 @@ sub run {
         push(@needles, 'autoyast-license');
     }
 
-    # repo key expired bsc#1179654
-    record_soft_failure 'bsc#1179654' if is_sle('=15');
-    push @needles, 'expired-gpg-key' if is_sle('=15');
+    if (is_sle('=15')) {
+        record_info('bsc#1179654', 'Needs at least libzypp-17.4.0 to avoid validation check failed');
+        push @needles, 'expired-gpg-key';
+    }
 
     # Push needle 'inst-bootmenu' to ensure boot from hard disk on aarch64
     push(@needles, 'inst-bootmenu') if (is_aarch64 && get_var('UPGRADE'));

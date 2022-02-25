@@ -4,15 +4,12 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Base module for HPC config handling
-# Maintainer: Sebastian Chlad <schlad@suse.de>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
 package hpc::configs;
-use base hpcbase;
-use strict;
-use warnings;
+use Mojo::Base 'hpcbase', -signatures;
 use testapi;
 use utils;
-use Data::Dumper;
 use Storable;
 use Tie::IxHash;
 use version_utils 'is_sle';
@@ -142,8 +139,7 @@ Default slurmdb.conf always set to the latest supported version
 Prepare slurm.conf based on test requirements and settings
 
 =cut
-sub prepare_slurm_conf {
-    my ($self) = @_;
+sub prepare_slurm_conf ($self) {
     my $slurm_conf = get_required_var('SLURM_CONF');
 
     my @cluster_ctl_nodes = $self->master_node_names();
@@ -222,8 +218,7 @@ sub prepare_slurm_conf {
 Prepare slurmdbd.conf based on test requirements and settings
 
 =cut
-sub prepare_slurmdb_conf {
-    my ($self) = @_;
+sub prepare_slurmdb_conf ($self) {
     my @cluster_compute_nodes = $self->slave_node_names();
 
     my $config = << "EOF";

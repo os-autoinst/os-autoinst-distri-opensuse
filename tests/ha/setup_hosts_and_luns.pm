@@ -6,7 +6,7 @@
 # Package: corosync pacemaker
 # Summary: Configure shared NFS mount point and /etc/hosts for HA
 #          tests with no supportserver
-# Maintainer: Alvaro Carvajal <acarvajal@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.com>
 
 use base 'opensusebasetest';
 use strict;

@@ -5,7 +5,7 @@
 
 # Summary: Perform an unattended installation of SAP NetWeaver
 # Requires: ENV variable NW pointing to installation media
-# Maintainer: Alvaro Carvajal <acarvajal@suse.de> / Loic Devulder <ldevulder@suse.de>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.de> / Loic Devulder <ldevulder@suse.de>
 
 use base "sles4sap";
 use testapi;

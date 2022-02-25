@@ -1,4 +1,4 @@
-# Copyright 2017-2021 SUSE LLC
+# Copyright 2017-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 package migration;
@@ -32,6 +32,11 @@ our @EXPORT = qw(
 sub setup_sle {
     select_console 'root-console';
 
+    if (is_ppc64le && is_sle('<=12-sp5')) {
+        record_soft_failure("bsc#1195046", 'ncurses display a wrong checker board character');
+        systemctl('restart systemd-vconsole-setup.service');
+    }
+
     # Stop packagekitd
     if (is_sle('12+')) {
         quit_packagekit;
@@ -47,7 +52,7 @@ sub setup_sle {
 
     # Enable Y2DEBUG for error debugging
     enter_cmd "echo 'export Y2DEBUG=1' >> /etc/bash.bashrc.local";
-    script_run "source /etc/bash.bashrc.local";
+    script_run("source /etc/bash.bashrc.local", die_on_timeout => 0);
 }
 
 sub setup_migration {

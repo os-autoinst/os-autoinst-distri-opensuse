@@ -24,24 +24,24 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    $self->{tb_static_hostname} = $self->{app}->textbox({id => '"HOSTNAME"'});
-    $self->{cb_dhcp_hostname_method} = $self->{app}->combobox({id => '"DHCP_HOSTNAME"'});
+    $self->{txb_static_hostname} = $self->{app}->textbox({id => '"HOSTNAME"'});
+    $self->{cmb_dhcp_hostname_method} = $self->{app}->combobox({id => '"DHCP_HOSTNAME"'});
     return $self;
 }
 
 sub get_static_hostname {
     my ($self) = @_;
-    return $self->{tb_static_hostname}->value();
+    return $self->{txb_static_hostname}->value();
 }
 
 sub get_set_hostname_via_DHCP {
     my ($self) = @_;
-    return $self->{cb_dhcp_hostname_method}->value();
+    return $self->{cmb_dhcp_hostname_method}->value();
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{tb_static_hostname}->exist();
+    return $self->{txb_static_hostname}->exist();
 }
 
 1;

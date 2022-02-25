@@ -29,8 +29,10 @@ sub run {
     my $varsize = script_output "findmnt -rnboSIZE -T/var";
     die "/var did not grow, got $varsize B" unless $varsize > (5 * 1024 * 1024 * 1024);
 
-    # Verify that combustion ran
-    validate_script_output('cat /usr/share/combustion-welcome', qr/Combustion was here/);
+    if (get_var("FIRST_BOOT_CONFIG", "combustion+ignition") =~ /combustion/) {
+        # Verify that combustion ran
+        validate_script_output('cat /usr/share/combustion-welcome', qr/Combustion was here/);
+    }
 }
 
 1;

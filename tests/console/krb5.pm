@@ -14,16 +14,16 @@
 # rckadmind service start, stop, restart, status
 
 use base 'consoletest';
-use utils qw(zypper_call systemctl script_retry);
+use utils qw(zypper_call systemctl);
 use strict;
+use serial_terminal;
 use warnings;
 use testapi;
 
 sub logout_and_verify_shell_availability {
     script_run 'logout', 0;
     # verify shell is ready with simple command
-    # avoid fail due to following command being typed while logout in progress
-    script_retry('w', delay => 2, retry => 5, die_on_timeout => 0);
+    wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
 }
 
 sub run {

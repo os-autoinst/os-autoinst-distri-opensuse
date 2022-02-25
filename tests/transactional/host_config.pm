@@ -20,12 +20,12 @@ sub run {
     select_console 'root-console';
 
     # GRUB Configuration
-    my $disable_grub_timeout = get_var('DISABLE_GRUB_TIMEOUT');
+    my $keep_grub_timeout = get_var('KEEP_GRUB_TIMEOUT');
     my $extrabootparams = get_var('EXTRABOOTPARAMS');
     change_grub_config('=\"[^\"]*', "& $extrabootparams", 'GRUB_CMDLINE_LINUX_DEFAULT') if $extrabootparams;
-    change_grub_config('=.*', '=-1', 'GRUB_TIMEOUT') if $disable_grub_timeout;
+    $keep_grub_timeout or change_grub_config('=.*', '=-1', 'GRUB_TIMEOUT');
 
-    if ($disable_grub_timeout or $extrabootparams) {
+    if (!$keep_grub_timeout or $extrabootparams) {
         record_info('GRUB', script_output('cat /etc/default/grub'));
         assert_script_run('transactional-update grub.cfg');
         process_reboot(trigger => 1);
@@ -35,7 +35,7 @@ sub run {
 }
 
 sub test_flags {
-    return {no_rollback => 1};
+    return {no_rollback => 1, fatal => 1, milestone => 1};
 }
 
 1;

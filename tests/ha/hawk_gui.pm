@@ -5,7 +5,7 @@
 
 # Package: docker MozillaFirefox
 # Summary: check HAWK GUI with the a python+selenium script and firefox
-# Maintainer: Alvaro Carvajal <acarvajal@suse.de>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.com>
 
 use base 'opensusebasetest';
 use strict;

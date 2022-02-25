@@ -53,6 +53,20 @@ our $adminer_dir = "/srv/www/htdocs/adminer/";
 our $testuser = "testuser";
 our $testdir = "testdir";
 
+# $src_dir_name: Source file/directory name
+# $dst_dir_name: Destination file/directory name
+=head2 check_copy_file_dir
+ check_copy_file_dir();
+Check if source file/directory exists and destination file/directory does not exists, then copy
+=cut
+
+sub check_copy_file_dir {
+    my ($src_dir_name, $dst_dir_name) = @_;
+
+    my $ret = script_run("[ -e $src_dir_name ] && [ ! -e $dst_dir_name ] && cp -r $src_dir_name $dst_dir_name");
+    return $ret;
+}
+
 # $prof_dir_tmp: The target temporary directory
 # $type:
 # 0  - Copy only the basic structure of profile directory
@@ -65,6 +79,7 @@ our $testdir = "testdir";
 Prepare apparmor profile directory
 
 =cut
+
 sub aa_tmp_prof_prepare {
     my ($self, $prof_dir_tmp, $type) = @_;
     my $prof_dir = "/etc/apparmor.d";
@@ -72,12 +87,9 @@ sub aa_tmp_prof_prepare {
 
     if ($type == 0) {
         assert_script_run "mkdir $prof_dir_tmp";
-        assert_script_run "cp -r $prof_dir/{tunables,abstractions} $prof_dir_tmp/";
-        if (!(is_sle('<15-SP4') or is_leap('<16.0'))) {    # apparmor >= 3.0
-            assert_script_run "cp -r $prof_dir/abi $prof_dir/disable $prof_dir_tmp/";
-        }
-        if (is_sle('<15') or is_leap('<15.0')) {    # apparmor < 2.8.95
-            assert_script_run "cp -r $prof_dir/program-chunks $prof_dir/disable $prof_dir_tmp/";
+        foreach my $file ("tunables", "abstractions", "abi", "disable", "program-chunks") {
+            # if src_dir/file exists and dst_dir/file does not exists
+            check_copy_file_dir("$prof_dir/$file", "$prof_dir_tmp/$file");
         }
     }
     else {

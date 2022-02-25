@@ -66,8 +66,8 @@ EXTRABOOTPARAMS_BOOT_LOCAL | string | | Boot options applied during the boot pro
 EXTRABOOTPARAMS_DELETE_CHARACTERS | string | | Characters to delete from boot prompt.
 EXTRABOOTPARAMS_DELETE_NEEDLE_TARGET | string | | If specified, go back with the cursor until this needle is matched to delete characters from there. Needs EXTRABOOTPARAMS_BOOT_LOCAL and should be combined with EXTRABOOTPARAMS_DELETE_CHARACTERS.
 EXTRATEST | boolean | false | Enables execution of extra tests, see `load_extra_tests`
+FIRST_BOOT_CONFIG | string | combustion+ignition | The method used for initial configuration of MicroOS images. Possible values are: `combustion`, `ignition`, `combustion+ignition` and `wizard`. For ignition/combustion, the job needs to have a matching HDD attached.
 FLAVOR | string | | Defines flavor of the product under test, e.g. `staging-.-DVD`, `Krypton`, `Argon`, `Gnome-Live`, `DVD`, `Rescue-CD`, etc.
-SALT_FORMULAS_PATH | string | | Used to point to a tarball with relative path to [/data/yast2](https://github.com/os-autoinst/os-autoinst-distri-opensuse/tree/master/data/yast2) which contains all the needed files (top.sls, form.yml, ...) to support provisioning with Salt masterless mode.
 FULLURL | string | | Full url to the factory repo. Is relevant for openSUSE only.
 FULL_LVM_ENCRYPT | boolean | false | Enables/indicates encryption using lvm. boot partition may or not be encrypted, depending on the product default behavior.
 FUNCTION | string | | Specifies SUT's role for MM test suites. E.g. Used to determine which SUT acts as target/server and initiator/client for iscsi test suite
@@ -126,6 +126,7 @@ PERF_KERNEL | boolean | false | Enables kernel performance testing.
 PERF_INSTALL | boolean | false | Enables kernel performance testing installation part.
 PERF_SETUP | boolean | false | Enables kernel performance testing deployment part.
 PERF_RUNCASE | boolean | false | Enables kernel performance testing run case part.
+SALT_FORMULAS_PATH | string | | Used to point to a tarball with relative path to [/data/yast2](https://github.com/os-autoinst/os-autoinst-distri-opensuse/tree/master/data/yast2) which contains all the needed files (top.sls, form.yml, ...) to support provisioning with Salt masterless mode.
 _SECRET_PUBLIC_CLOUD_REST_URL | string | "https://publiccloud.qa.suse.de/vault" | Vault server URL
 _SECRET_PUBLIC_CLOUD_REST_USER | string | "" | Vault server user name
 _SECRET_PUBLIC_CLOUD_REST_PW | string | "" | Vault server user password
@@ -184,6 +185,9 @@ PUBLIC_CLOUD_TTL_OFFSET | integer | 300 | This number + MAX_JOB_TIME equals the 
 PUBLIC_CLOUD_SLES4SAP | boolean | false | If set, sles4sap test module is added to the job.
 PUBLIC_CLOUD_GOOGLE_STORAGE | string | "openqa-storage" | GCP only, Name of storage where we load the system image from.
 PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID | string | "" | Used to create the service account file together with `PUBLIC_CLOUD_AZURE_TENANT_ID`.
+PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY | string | "" | Name for public cloud registry for the container images used on kubernetes tests.
+PUBLIC_CLOUD_K8S_CLUSTER | string | "" | Name for the kubernetes cluster.
+PUBLIC_CLOUD_AZURE_K8S_RESOURCE_GROUP | string | "" | Name for the resource group which is subscribed the kubernetes cluster.
 PUBLIC_CLOUD_VAULT_NAMESPACE | string | "qac" | The Vault server namespace.
 PUBLIC_CLOUD_VAULT_TIMEOUT | integer | 60 | The number of seconds we wait for the Vault server to respond.
 PUBLIC_CLOUD_VAULT_TRIES | integer | 3 | The number of attempts to connect to Vault server.
@@ -195,7 +199,8 @@ QAM_MINIMAL | string | "full" or "small" | Full is adding patterns x11, gnome-ba
 RAIDLEVEL | integer | | Define raid level to be configured. Possible values: 0,1,5,6,10.
 REBOOT_TIMEOUT | integer | 0 | Set and handle reboot timeout available in YaST installer. 0 disables the timeout and needs explicit reboot confirmation.
 REGISTRY | string | docker.io | Registry to pull third-party container images from
-CONTAINER_IMAGE_VERSIONS | string | | List of comma-separated versions from `get_suse_container_urls()` to test in `tests/containers/*_image.pm`
+CONTAINER_IMAGE_VERSIONS | string | | List of comma-separated versions from `get_suse_container_urls()`
+CONTAINER_IMAGE_TO_TEST | string | | Single URL string of a specific container image to test.
 REGRESSION | string | | Define scope of regression testing, including ibus, gnome, documentation and other.
 REMOTE_REPOINST | boolean | | Use linuxrc features to install OS from specified repository (install) while booting installer from DVD (instsys)
 REPO_* | string | | Url pointing to the mirrored repo. REPO_0 contains installation iso.

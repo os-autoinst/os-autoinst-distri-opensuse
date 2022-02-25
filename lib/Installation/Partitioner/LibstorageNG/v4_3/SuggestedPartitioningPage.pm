@@ -21,19 +21,19 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{rtx_summary} = $self->{app}->richtext({id => 'summary'});
+    $self->{rct_summary} = $self->{app}->richtext({id => 'summary'});
     $self->{btn_guided_setup} = $self->{app}->button({id => 'guided'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{rtx_summary}->exist();
+    return $self->{rct_summary}->exist();
 }
 
 sub get_text_summary() {
     my ($self) = @_;
-    return $self->{rtx_summary}->text();
+    return $self->{rct_summary}->text();
 }
 
 sub select_guided_setup {

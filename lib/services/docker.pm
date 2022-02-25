@@ -14,8 +14,7 @@ use utils;
 use strict;
 use warnings;
 use containers::docker;
-use containers::utils qw(basic_container_tests registry_url);
-use containers::container_images 'build_and_run_image';
+use containers::utils 'runtime_smoke_tests';
 
 my $service_type = 'Systemd';
 
@@ -36,14 +35,11 @@ sub full_docker_check {
 
     check_service();
 
-    # Test the connectivity of Docker containers
-    $engine->check_containers_connectivity();
+    # Test the basic functionality
+    runtime_smoke_tests(runtime => $engine);
 
-    # Run basic runtime tests
-    basic_container_tests(runtime => $engine->runtime);
-
-    # Clean container
-    $engine->cleanup_system_host();
+    # Clean container (assert => 0 will skip script_output checks)
+    $engine->cleanup_system_host(assert => 0);
 
     check_service();
 }

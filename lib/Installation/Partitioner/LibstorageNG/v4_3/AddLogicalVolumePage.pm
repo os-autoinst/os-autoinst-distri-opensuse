@@ -25,22 +25,22 @@ sub new {
 sub init {
     my $self = shift;
     $self->SUPER::init();
-    $self->{tb_lv_name} = $self->{app}->textbox({id => '"Y2Partitioner::Dialogs::LvmLvInfo::NameWidget"'});
-    $self->{rb_thin_pool} = $self->{app}->radiobutton({id => 'thin_pool'});
-    $self->{rb_thin_volume} = $self->{app}->radiobutton({id => 'thin'});
+    $self->{txb_lv_name} = $self->{app}->textbox({id => '"Y2Partitioner::Dialogs::LvmLvInfo::NameWidget"'});
+    $self->{rdb_thin_pool} = $self->{app}->radiobutton({id => 'thin_pool'});
+    $self->{rdb_thin_volume} = $self->{app}->radiobutton({id => 'thin'});
     return $self;
 }
 
 sub enter_name {
     my ($self, $lv_name) = @_;
-    return $self->{tb_lv_name}->set($lv_name);
+    return $self->{txb_lv_name}->set($lv_name);
 }
 
 sub select_type {
     my ($self, $type) = @_;
     my %types = (
-        'thin-pool' => $self->{rb_thin_pool},
-        'thin-volume' => $self->{rb_thin_volume}
+        'thin-pool' => $self->{rdb_thin_pool},
+        'thin-volume' => $self->{rdb_thin_volume}
     );
     return $types{$type}->select();
 }

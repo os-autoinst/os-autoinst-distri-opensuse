@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Initialize barriers used in HA cluster tests
-# Maintainer: Loic Devulder <ldevulder@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'opensusebasetest';
 use strict;

@@ -19,14 +19,15 @@ sub run {
 
     $performing_install->get_performing_installation_page();
 
-    # 2750 represents a huge timeout of 5500 seconds for installation to succeed
-    my $timeout = 2750 * get_var('TIMEOUT_SCALE', 1);
-    $performing_install->wait_installation_popup($timeout);
+    my $timeout = 2400 * get_var('TIMEOUT_SCALE', 1);
+    $performing_install->wait_installation_popup({
+            timeout => $timeout,
+            interval => 2,
+            message => 'System reboot popup did not appear'});
 
     assert_matches(qr/The system will reboot now/,
         $performing_install->get_system_reboot_popup()->text(),
         'System reboot popup is not displayed');
-
 }
 
 1;

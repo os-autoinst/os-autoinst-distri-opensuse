@@ -22,13 +22,13 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{pba_total_packages} = $self->{app}->progressbar({id => 'progressTotal'});
+    $self->{prb_total_packages} = $self->{app}->progressbar({id => 'progressTotal'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    my $is_shown = $self->{pba_total_packages}->exist();
+    my $is_shown = $self->{prb_total_packages}->exist();
     save_screenshot if $is_shown;
     return $is_shown;
 }

@@ -6,12 +6,10 @@
 # Summary: HPC_Module: mrsh master
 #    This test is setting up a mrsh scenario according to the testcase
 #    described in FATE
-# Maintainer: soulofdestiny <mgriessmeier@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 # Tags: https://fate.suse.com/321722
 
-use base 'hpcbase';
-use strict;
-use warnings;
+use Mojo::Base 'hpcbase', -signatures;
 use testapi;
 use lockapi;
 use utils;

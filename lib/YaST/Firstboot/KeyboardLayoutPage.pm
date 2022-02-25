@@ -24,18 +24,18 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    $self->{isel_keyboard_layout} = $self->{app}->itemselector({id => 'layout_list'});
+    $self->{its_keyboard_layout} = $self->{app}->itemselector({id => 'layout_list'});
     return $self;
 }
 
 sub get_keyboard_layout {
     my ($self) = @_;
-    return ($self->{isel_keyboard_layout}->selected_items())[0];
+    return ($self->{its_keyboard_layout}->selected_items())[0];
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{isel_keyboard_layout}->exist();
+    return $self->{its_keyboard_layout}->exist();
 }
 
 1;

@@ -6,7 +6,7 @@
 # Package: crmsh corosync-qnetd
 # Summary: Test qdevice/qnetd
 # qdevice/qnetd is a supported feature since 15-SP1
-# Maintainer: Julien Adamek <jadamek@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'opensusebasetest';
 use strict;

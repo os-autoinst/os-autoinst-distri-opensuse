@@ -17,8 +17,13 @@ use kernel 'remove_kernel_packages';
 sub from_repo {
     my ($repo, $pkg) = @_;
 
-    zypper_ar($repo, name => 'change-kernel') if ($repo);
-    zypper_call("in --force-resolution --force --replacefiles --repo change-kernel $pkg");
+    if ($repo) {
+        zypper_ar($repo, name => 'change-kernel');
+        zypper_call("in --force-resolution --force --replacefiles --repo change-kernel $pkg");
+    }
+    else {
+        zypper_call("in --force-resolution --force --replacefiles $pkg");
+    }
 }
 
 sub from_rpm {

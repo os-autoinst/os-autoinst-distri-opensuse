@@ -23,7 +23,7 @@ use containers::common qw(test_container_image is_unreleased_sle);
 
 our @EXPORT = qw(build_with_zypper_docker build_with_sle2docker
   test_opensuse_based_image exec_on_container ensure_container_rpm_updates build_and_run_image
-  test_zypper_on_container test_3rd_party_image upload_3rd_party_images_logs);
+  test_zypper_on_container test_3rd_party_image upload_3rd_party_images_logs test_systemd_install);
 
 =head2 build_and_run_image
 
@@ -163,8 +163,8 @@ sub test_opensuse_based_image {
             my $pretty_version = $version =~ s/-SP/ SP/r;
             my $betaversion = $beta ? '\s\([^)]+\)' : '';
             record_info "Validating", "Validating That $image has $pretty_version on /etc/os-release";
-            # zypper-docker changes the layout of the image
-            validate_script_output("$runtime run --entrypoint /bin/bash $image -c 'grep PRETTY_NAME /etc/os-release' | cut -d= -f2",
+            # zypper-docker changes the layout of the image (Note: We may have images without 'grep')
+            validate_script_output("$runtime run --entrypoint /bin/bash $image -c 'cat /etc/os-release' | grep PRETTY_NAME | cut -d= -f2",
                 sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
 
             # SUSEConnect zypper service is supported only on SLE based image on SLE host
@@ -172,8 +172,8 @@ sub test_opensuse_based_image {
                 # we set --entrypoint specifically to the zypper plugin to avoid bsc#1192941
                 my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect-zypp';
                 validate_script_output("$runtime run --entrypoint $plugin -i $image -v", sub { m/container-suseconnect version .*/ }, timeout => 180);
-                validate_script_output("$runtime run --entrypoint $plugin -i $image lp", sub { m/.*All available products.*/ }, timeout => 180);
-                validate_script_output("$runtime run --entrypoint $plugin -i $image lm", sub { m/.*All available modules.*/ }, timeout => 180);
+                validate_script_output_retry("$runtime run --entrypoint $plugin -i $image lp", sub { m/.*All available products.*/ }, retry => 5, delay => 60, timeout => 300);
+                validate_script_output_retry("$runtime run --entrypoint $plugin -i $image lm", sub { m/.*All available modules.*/ }, retry => 5, delay => 60, timeout => 300);
             }
         } else {
             record_info "non-SLE host", "This host ($host_id) does not support zypper service";
@@ -197,6 +197,7 @@ sub test_opensuse_based_image {
 
 sub test_zypper_on_container {
     my ($runtime, $image) = @_;
+    record_info('zypper tests', 'Basic zypper commands in the container.');
 
     die 'Argument $image not provided!' unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
@@ -204,15 +205,16 @@ sub test_zypper_on_container {
     # Check for bsc#1192941, which affects the docker runtime only - this is just check not softfailure as this won't be fixed.
     # bsc#1192941 states that the entrypoint of a derived image is set in a way, that program arguments are not passed anymore
     # we run 'zypper ls' on a container, and if we detect the zypper usage message, we know that the 'ls' parameter was ignored
-    if ($runtime->runtime eq 'docker' && script_run("docker run --rm -ti $image zypper ls | grep 'Usage:'", timeout => 270) == 0) {
-        record_info('bsc#1192941', 'bsc#1192941 - zypper-docker entrypoint confuses program arguments');
+    if ($runtime->runtime eq 'docker') {
+        my $zypper_output = script_output_retry("docker run --rm -ti $image zypper ls", timeout => 270, delay => 60, retry => 3);
+        record_info('bsc#1192941', 'bsc#1192941 - zypper-docker entrypoint confuses program arguments') if ($zypper_output =~ /Usage:/);
     }
-    validate_script_output("$runtime run -i --entrypoint '' $image zypper lr -s", sub { m/.*Alias.*Name.*Enabled.*GPG.*Refresh.*Service/ }, timeout => 180);
-    script_retry("$runtime run -i --name 'refreshed' --entrypoint '' $image zypper -nv ref", timeout => 300, retry => 3, delay => 60);
+    validate_script_output_retry("$runtime run -i --entrypoint '' $image zypper lr -s", sub { m/.*Alias.*Name.*Enabled.*GPG.*Refresh.*Service/ }, timeout => 180);
+    assert_script_run("$runtime run -t -d --name 'refreshed' --entrypoint '' $image bash", timeout => 300);
+    script_retry("$runtime exec refreshed zypper -nv ref", timeout => 600, retry => 3, delay => 60);
     assert_script_run("$runtime commit refreshed refreshed-image", timeout => 120);
     assert_script_run("$runtime rm -f refreshed");
-    script_retry("$runtime run -i --name 'refreshed-image' --rm --entrypoint '' $image zypper -nv ref", timeout => 300, retry => 3, delay => 60);
-    record_info "The End", "zypper test completed";
+    script_retry("$runtime run -i --rm --entrypoint '' refreshed-image zypper -nv ref", timeout => 300, retry => 3, delay => 60);
 }
 
 sub exec_on_container {
@@ -237,6 +239,23 @@ sub upload_3rd_party_images_logs {
     } else {
         upload_logs("/tmp/$runtime-3rd_party_images_log.txt");
         script_run("rm /tmp/$runtime-3rd_party_images_log.txt");
+    }
+}
+
+sub test_systemd_install {
+    my %args = @_;
+    my $image = $args{image};
+    my $runtime = $args{runtime};
+
+    die 'Argument $image not provided!' unless $image;
+    die 'Argument $runtime not provided!' unless $runtime;
+
+    my ($image_version, $image_sp, $image_id) = get_os_release("$runtime run --entrypoint '' $image");
+    # TW and starting with SLE 15-SP4/Leap15.4 systemd's dependency with udev has been dropped
+    if ($image_id eq 'opensuse-tumbleweed' ||
+        ($image_id eq 'opensuse-leap' && check_version('>=15.4', "$image_version.$image_sp", qr/\d{2}\.\d/)) ||
+        ($image_id eq 'sles' && check_version('>=15-SP4', "$image_version-SP$image_sp", qr/\d{2}-sp\d/))) {
+        assert_script_run "$runtime run $image /bin/bash -c 'zypper al udev && zypper -n in systemd'";
     }
 }
 

@@ -73,10 +73,7 @@ sub run {
     $instance->wait_for_guestregister();
     $args->{my_provider} = $provider;
     $args->{my_instance} = $instance;
-
-    # fetch the instance ssh public key, do not use default $instance->ssh_opts
-    assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
-    $instance->ssh_opts("");
+    $instance->ssh_opts("");    # Clear $instance->ssh_opts which ombit the known hosts file and strict host checking by default
 
     $instance->network_speed_test();
 

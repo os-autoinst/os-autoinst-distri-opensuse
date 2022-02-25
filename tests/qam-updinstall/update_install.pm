@@ -24,6 +24,7 @@ use List::Util qw(first pairmap uniq notall);
 use qam;
 use maintenance_smelt qw(get_packagebins_in_modules get_incident_packages);
 use testapi;
+use version_utils qw(is_sle);
 
 sub has_conflict {
     my $binary = shift;
@@ -48,6 +49,7 @@ sub has_conflict {
         'systemtap-sdt-devel' => 'systemtap-headers',
         libldb2 => 'libldb1',
         'python3-ldb' => 'python-ldb',
+        'chrony-pool-suse' => 'chrony-pool-empty'
     );
     return $conflict{$binary};
 }
@@ -88,6 +90,7 @@ sub run {
     $self->select_serial_terminal;
 
     zypper_call(q{mr -d $(zypper lr | awk -F '|' '/NVIDIA/ {print $2}')}, exitcode => [0, 3]);
+    zypper_call("ar -f http://dist.suse.de/ibs/SUSE/Updates/SLE-Live-Patching/12-SP3/" . get_var('ARCH') . "/update/ sle-module-live-patching:12-SP3::update") if is_sle('=12-SP3');
 
     # Get packages affected by the incident.
     my @packages = get_incident_packages($incident_id);
@@ -190,8 +193,8 @@ sub run {
     }
 
     # Patch binaries already installed.
-    my $ret = zypper_call("in -l -t patch ${patches}|tee zypper.log", exitcode => [0, 8, 102, 103], timeout => 1500);
-    if ($ret == 8 && script_run('grep -Ez "python3(6?)-pip.*(SLES:12-SP5|cloud:12).*conflicts with.*python3(6?)-pip" zypper.log') == 0) {
+    my $ret = zypper_call("in -l -t patch ${patches}", exitcode => [0, 8, 102, 103], log => 'zypper.log', timeout => 1500);
+    if ($ret == 8 && script_run('grep -Ez "python3(6?)-pip.*(SLES:12-SP5|cloud:12).*conflicts with.*python3(6?)-pip" /tmp/zypper.log') == 0) {
         record_soft_failure 'bsc#1195351 - python3 vs python36 in SLE12 SP5 has file conflicts on /usr/bin/pip3';
         zypper_call("in --replacefiles -l -t patch ${patches}", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 1500);
     }

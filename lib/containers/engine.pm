@@ -97,7 +97,7 @@ sub halt_container {
 }
 
 
-=head2 build($dockerfile_path, $container_tag, [%args])
+=head2 build($dockerfile_path, $image_tag, [%args])
 
 Build a container from a Dockerfil.
 C<dockerfile_path> is the directory with the Dockerfile as well as the root of the build context.
@@ -106,12 +106,13 @@ Give C<timeout> if you want to change the timeout passed to C<assert_script_run>
 
 =cut
 sub build {
-    my ($self, $dockerfile_path, $container_tag, %args) = @_;
+    my ($self, $dockerfile_path, $image_tag, %args) = @_;
     die 'wrong number of arguments' if @_ < 3;
-
-    #TODO add build with URL https://docs.docker.com/engine/reference/commandline/build/
-    $self->_engine_assert_script_run("build -f $dockerfile_path/Dockerfile -t $container_tag $dockerfile_path", $args{timeout} // 300);
-    record_info "$container_tag created", "";
+    # Retry the build several times without giving the image name
+    $self->_engine_script_retry("build -f $dockerfile_path/Dockerfile $dockerfile_path", timeout => $args{timeout} // 300, retry => 3, delay => 60);
+    # This is a dummy build, as it's been done previously. This command is just to create a new tag $image_tag
+    $self->_engine_assert_script_run("build -f $dockerfile_path/Dockerfile -t $image_tag $dockerfile_path", $args{timeout} // 300);
+    record_info('Build OK', "Image $image_tag created");
 }
 
 =head2 run_container($image_name, [mode, name, remote, keep_container, timeout, retry, delay])

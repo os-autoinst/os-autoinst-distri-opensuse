@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Perform an horizontal migration from SLES to SLES4SAP
-# Maintainer: Ricardo Branco <rbranco@suse.de>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Ricardo Branco <rbranco@suse.de>
 # Note: This test will pass if the migration from SLES to SLES4SAP is
 #       successful, but as well if the SCC_REGCODE_SLES4SAP var holds
 #       the special value "invalid_key" and the migrate-sles-to-sles4sap

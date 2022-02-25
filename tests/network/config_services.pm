@@ -106,18 +106,9 @@ sub setup_mail_server {
 
     # create test users
     assert_script_run "useradd -m admin";
-    script_run "passwd admin", 5;    # set user's password
-    wait_serial("New password:", 5);    #Step 3
-    enter_cmd("password123");
-    wait_serial("Retype new password:", 5);
-    enter_cmd("password123");
-
+    enter_cmd q(expect -c 'spawn passwd admin;expect "New password:";send password123\n;expect "Retype new password:";send password123\n;expect #');
     assert_script_run "useradd -m nimda";
-    script_run "passwd nimda", 5;    # set user's password
-    wait_serial("New password:", 5);    #Step 3
-    enter_cmd("password123");
-    wait_serial("Retype new password:", 5);
-    enter_cmd("password123");
+    enter_cmd q(expect -c 'spawn passwd nimda;expect "New password:";send password123\n;expect "Retype new password:";send password123\n;expect #');
 
     save_screenshot;
 

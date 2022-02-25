@@ -15,18 +15,18 @@ use warnings;
 sub init {
     my $self = shift;
     $self->SUPER::init();
-    $self->{txt_grub_timeout} = $self->{app}->textbox({id => "\"Bootloader::TimeoutWidget\""});
+    $self->{txb_grub_timeout} = $self->{app}->textbox({id => "\"Bootloader::TimeoutWidget\""});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    $self->{txt_grub_timeout}->exist();
+    $self->{txb_grub_timeout}->exist();
 }
 
 sub set_grub_timeout {
     my ($self, $timeout) = @_;
-    $self->{txt_grub_timeout}->set($timeout);
+    $self->{txb_grub_timeout}->set($timeout);
 }
 
 1;

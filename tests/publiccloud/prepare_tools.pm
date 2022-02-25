@@ -111,11 +111,11 @@ sub run {
     record_info('img-proof', $img_proof_ver);
     set_var('PUBLIC_CLOUD_IMG_PROOF_VER', $img_proof_ver =~ /img-proof, version ([\d\.]+)/);
 
-    my $terraform_version = '0.14.1';
+    my $terraform_version = '1.1.7';
     # Terraform in a container
     my $terraform_wrapper = <<EOT;
 #!/bin/sh
-podman run -v /root/:/root/ --rm --env-host=true -w=\$PWD hashicorp/terraform:$terraform_version \$@
+podman run -v /root/:/root/ --rm --env-host=true -w=\$PWD docker.io/hashicorp/terraform:$terraform_version \$@
 EOT
 
     create_script_file('terraform', '/usr/bin/terraform', $terraform_wrapper);
@@ -125,7 +125,7 @@ EOT
     my $kubectl_version = '1.22';
     my $kubectl_wrapper = <<EOT;
 #!/bin/sh
-podman run -v /root/:/root/ --rm bitnami/kubectl:$kubectl_version \$@
+podman run -v /root/:/root/ --rm docker.io/bitnami/kubectl:$kubectl_version \$@
 EOT
 
     create_script_file('kubectl', '/usr/bin/kubectl', $kubectl_wrapper);
