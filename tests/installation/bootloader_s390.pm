@@ -297,6 +297,8 @@ sub run {
 
     my $exception = $@;
 
+    # add y2start/log output if exception is happening
+    die join("\n", '#', `cat /var/log/YaST2/y2start.log`) if $exception;
     die join("\n", '#' x 67, $exception, '#' x 67) if $exception;
 
     # activate console so we can call wait_serial later
