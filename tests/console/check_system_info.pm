@@ -105,9 +105,31 @@ sub check_python2_dropped {
     record_info('python2 dropped but still can be searched', 'Bug 1196533 - Python2 package still can be searched after migration to SLES15SP4', result => 'fail') if $out;
 }
 
+# SLE-23610: Python3 module
+# test steps:
+# 1) activate the python3 module
+# 2) install the python310 package
+# 3) check python3.10's version which should be 3.10.X
+# 4) check python3's version
+# 5) check python310's lifecycle
+sub check_python3_module {
+    record_info('SLE-23610', 'Check Python3 Module');
+    my $OS_VERSION = script_output("grep VERSION_ID /etc/os-release | cut -c13- | head -c -2");
+    my $ARCH = get_required_var('ARCH');
+    assert_script_run("SUSEConnect -p sle-module-python3/$OS_VERSION/$ARCH");
+    zypper_call("se python310");
+    zypper_call("in python310");
+    assert_script_run("python3.10 --version | grep Python | grep 3.10.");
+    assert_script_run("python3 --version | grep Python | grep 3.6.");
+    assert_script_run("zypper lifecycle python310");
+}
+
 # function to check all the features after migration
 sub check_feature {
-    check_bzr_to_breezy unless get_var('MEDIA_UPGRADE');
+    if (!get_var('MEDIA_UPGRADE')) {
+        check_bzr_to_breezy;
+        check_python3_module;
+    }
     check_python2_dropped;
 }
 
