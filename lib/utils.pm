@@ -576,11 +576,16 @@ sub zypper_call {
         my $msg = "'zypper -n $command' failed with code $ret";
         if ($ret == 104) {
             $msg .= " (ZYPPER_EXIT_INF_CAP_NOT_FOUND)\n\nRelated zypper logs:\n";
-            script_run('tac /var/log/zypper.log | grep -F -m1 -B10000 "Hi, me zypper" | tac | grep \'\(SolverRequester.cc\|THROW\|CAUGHT\)\' > /tmp/z104.txt');
+            script_run('tac /var/log/zypper.log | grep -F -m1 -B100000 "Hi, me zypper" | tac | grep \'\(SolverRequester.cc\|THROW\|CAUGHT\)\' > /tmp/z104.txt');
             $msg .= script_output('cat /tmp/z104.txt');
         }
+        elsif ($ret == 107) {
+            $msg .= " (ZYPPER_EXIT_INF_RPM_SCRIPT_FAILED)\n\nRelated zypper logs:\n";
+            script_run('tac /var/log/zypper.log | grep -F -m1 -B100000 "Hi, me zypper" | tac | grep \'RpmPostTransCollector.cc(executeScripts):.* scriptlet failed, exit status\' > /tmp/z107.txt');
+            $msg .= script_output('cat /tmp/z107.txt') . "\n\n";
+        }
         else {
-            script_run('tac /var/log/zypper.log | grep -F -m1 -B10000 "Hi, me zypper" | tac | grep \'Exception.cc\' > /tmp/zlog.txt');
+            script_run('tac /var/log/zypper.log | grep -F -m1 -B100000 "Hi, me zypper" | tac | grep \'Exception.cc\' > /tmp/zlog.txt');
             $msg .= "\n\nRelated zypper logs:\n";
             $msg .= script_output('cat /tmp/zlog.txt');
         }
