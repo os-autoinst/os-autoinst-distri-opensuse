@@ -53,10 +53,10 @@ sub run {
     # Install policy packages separately due to this bug: bsc#1177675
     if (is_sle('>=15')) {
         my @files
-          = ('selinux-policy-20200219-3.6.noarch.rpm', 'selinux-policy-minimum-20200219-3.6.noarch.rpm', 'selinux-policy-devel-20200219-3.20.noarch.rpm');
+          = ('selinux-policy-20220124-150400.121.1.noarch.rpm', 'selinux-policy-minimum-20220124-150400.121.1.noarch.rpm', 'selinux-policy-devel-20220124-150400.121.1.noarch.rpm');
         foreach my $file (@files) {
             assert_script_run 'wget --quiet ' . data_url("selinux/$file");
-            assert_script_run("rpm -ivh --nosignature --nodeps --noplugins $file");
+            assert_script_run("rpm -ivhU --nosignature --nodeps --noplugins $file");
         }
     }
     elsif (!is_sle && !is_leap) {

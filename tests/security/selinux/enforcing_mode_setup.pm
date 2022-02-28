@@ -1,4 +1,4 @@
-# Copyright 2020 SUSE LLC
+# Copyright 2020-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Setup OS with enforcing mode for follow-up selinux tool testing
@@ -23,8 +23,8 @@ sub run {
 
     # label system
     assert_script_run("semanage boolean --modify --on selinuxuser_execmod");
-    script_run("restorecon -R /", 600);
-    script_run("restorecon -R /*", 600);
+    script_run("restorecon -R /", timeout => 1800, die_on_timeout => 0);
+    script_run("restorecon -R /*", timeout => 1800, die_on_timeout => 0);
 
     # enable enforcing mode from SELinux
     replace_grub_cmdline_settings('security=selinux selinux=1 enforcing=0', 'security=selinux selinux=1 enforcing=1', update_grub => 1);
