@@ -5,7 +5,7 @@
 
 # Summary: Install HANA with SAP Installation Wizard. Verify installation with
 # sles4sap/hana_test
-# Maintainer: Ricardo Branco <rbranco@suse.de>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Ricardo Branco <rbranco@suse.de>
 
 use base 'sles4sap';
 use strict;

@@ -5,7 +5,7 @@
 
 # Package: crmsh
 # Summary: Remove all the resources except stonith/sbd
-# Maintainer: Julien Adamek <jadamek@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'opensusebasetest';
 use strict;

@@ -5,7 +5,7 @@
 
 # Package: yast2-iscsi-client pacemaker-cli
 # Summary: Check cluster status *after* reboot
-# Maintainer: Loic Devulder <ldevulder@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'opensusebasetest';
 use strict;

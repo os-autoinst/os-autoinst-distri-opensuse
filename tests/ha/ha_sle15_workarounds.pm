@@ -5,7 +5,7 @@
 
 # Summary: Add some SLE15 workarounds
 #          Should be removed after SLE15 will be released!
-# Maintainer: Loic Devulder <ldevulder@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'opensusebasetest';
 use strict;

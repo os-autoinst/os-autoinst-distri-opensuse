@@ -6,7 +6,7 @@
 # Package: pacemaker-cts
 # Summary: Execute the pacemaker-cts cluster exerciser to test a whole
 # cluster.
-# Maintainer: Julien Adamek <jadamek@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'opensusebasetest';
 use strict;

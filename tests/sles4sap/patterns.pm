@@ -6,7 +6,7 @@
 # Package: zypper
 # Summary: SAP Pattern test
 # Working both on plain SLE and SLES4SAP products
-# Maintainer: Alvaro Carvajal <acarvajal@suse.de>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.de>
 
 use base "sles4sap";
 use testapi;

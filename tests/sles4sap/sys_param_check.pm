@@ -8,7 +8,7 @@
 #          Some values depend of the hardware configuration.
 #          External robotfw testkit is supplied in the SYS_PARAM_CHECK_TEST setting. Defaults to
 #          qa-css-hq.qa.suse.de/robot.tar.gz.
-# Maintainer: Julien Adamek <jadamek@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base "sles4sap";
 use testapi;

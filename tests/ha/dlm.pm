@@ -5,7 +5,7 @@
 
 # Package: crmsh
 # Summary: Configure DLM in cluster configuration
-# Maintainer: Loic Devulder <ldevulder@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'opensusebasetest';
 use strict;

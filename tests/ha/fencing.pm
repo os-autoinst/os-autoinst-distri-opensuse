@@ -5,7 +5,7 @@
 
 # Package: crmsh
 # Summary: Execute fence command on one of the cluster nodes
-# Maintainer: Loic Devulder <ldevulder@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'opensusebasetest';
 use strict;

@@ -5,7 +5,7 @@
 
 # Package: hawk2 iproute2 netcat-openbsd
 # Summary: Basic check of Hawk Web interface
-# Maintainer: Loic Devulder <ldevulder@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'opensusebasetest';
 use strict;
