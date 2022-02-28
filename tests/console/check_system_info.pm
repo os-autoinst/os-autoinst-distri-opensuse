@@ -98,9 +98,17 @@ sub check_bzr_to_breezy {
     zypper_call("rm bzr", exitcode => [0]);
 }
 
+# SLE-20176 QA: Drop Python 2 (15 SP4)
+# check in the upgraded system to ensure Python2 dropped
+sub check_python2_dropped {
+    my $out = script_output('zypper se python2 | grep python2');
+    record_info('python2 dropped but still can be searched', 'Bug 1196533 - Python2 package still can be searched after migration to SLES15SP4', result => 'fail') if $out;
+}
+
 # function to check all the features after migration
 sub check_feature {
     check_bzr_to_breezy unless get_var('MEDIA_UPGRADE');
+    check_python2_dropped;
 }
 
 sub run {
