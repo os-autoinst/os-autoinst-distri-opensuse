@@ -36,10 +36,6 @@ $needle::cleanuphandler = sub {
     unregister_needle_tags("ENV-VERSION-12-SP3");
     unregister_needle_tags("ENV-VERSION-11-SP4");
     unregister_needle_tags("ENV-12ORLATER-1");
-    unregister_needle_tags("ENV-SP2ORLATER-1");
-    unregister_needle_tags("ENV-SP3ORLATER-1");
-    unregister_needle_tags("ENV-15ORLATER-1");
-    unregister_needle_tags("ENV-15SP1ORLATER-1");
     unregister_needle_tags("ENV-FLAVOR-Server-DVD");
 };
 
