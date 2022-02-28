@@ -107,9 +107,10 @@ sub run {
     # Add tag to check for https://progress.opensuse.org/issues/30823 "test is
     # stuck in linuxrc asking if dhcp should be used"
     push @welcome_tags, 'linuxrc-dhcp-question';
-    # repo key expired bsc#1179654
-    record_soft_failure 'bsc#1179654' if is_sle('=15');
-    push @welcome_tags, 'expired-gpg-key' if is_sle('=15');
+    if (is_sle('=15')) {
+        record_info('bsc#1179654', 'Needs at least libzypp-17.4.0 to avoid validation check failed');
+        push @welcome_tags, 'expired-gpg-key';
+    }
 
     # Process expected pop-up windows and exit when welcome/beta_war is shown or too many iterations
     while ($iterations++ < scalar(@welcome_tags)) {
