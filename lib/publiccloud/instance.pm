@@ -15,6 +15,7 @@ use Mojo::Util 'trim';
 use File::Basename;
 use publiccloud::utils;
 use version_utils;
+use publiccloud::ssh_interactive;
 
 use constant SSH_TIMEOUT => 90;
 
@@ -273,6 +274,11 @@ sub softreboot
 
     my $duration;
 
+    # On TUNNELED test runs, ensure we are not on the publiccloud instance
+    my $prev_console = current_console();
+    my $tunneled = (get_var('TUNNELED', 0) == 1);
+    select_console('tunnel-console') if ($tunneled);
+
     $self->run_ssh_command(cmd => 'sudo shutdown -r +1');
     # skip the one minute waiting
     sleep 60;
@@ -285,6 +291,15 @@ sub softreboot
     my $shutdown_time = time() - $start_time;
     die("Waiting for system down failed!") unless ($shutdown_time < $args{timeout});
     my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time, username => $args{username});
+    # Re-establish tunnel and switch back to previous console if TUNNELED
+    if ($tunneled) {
+        ssh_interactive_tunnel($self);
+        select_console($prev_console) if ($prev_console !~ /tunnel/);
+        # The verbose output is visible only at the tunnel-console -
+        #   it doesn't interfere with tests as it isn't piped to /dev/sshserial
+        script_run('ssh -E /var/tmp/ssh_sut.log -vt sut', timeout => 0);
+    }
+
     return ($shutdown_time, $bootup_time);
 }
 
