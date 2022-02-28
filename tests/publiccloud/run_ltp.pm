@@ -99,9 +99,6 @@ sub run {
         $instance->wait_for_guestregister();
     }
 
-    # Ensure the ssh public key is in the known hosts file for any upcoming connections
-    assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
-
     assert_script_run("cd $root_dir");
     assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o restart_instance.sh');
     assert_script_run('curl ' . data_url('publiccloud/log_instance.sh') . ' -o log_instance.sh');
