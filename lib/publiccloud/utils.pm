@@ -50,11 +50,20 @@ sub select_host_console {
     set_var('TUNNELED', $tunneled) if $tunneled;
 }
 
+# Get the current UTC timestamp as YYYY/mm/dd HH:MM:SS
+sub utc_timestamp {
+    my @weekday = ("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat");
+    my ($sec, $min, $hour, $day, $mon, $year, $wday, $yday, $isdst) = gmtime(time);
+    $year = $year + 1900;
+    return sprintf("%04d/%02d/%02d %02d:%02d:%02d", $year, $mon, $day, $hour, $min, $sec);
+}
+
 sub register_addon {
     my ($remote, $addon) = @_;
     my $arch = get_var('PUBLIC_CLOUD_ARCH') // "x86_64";
     $arch = "aarch64" if ($arch eq "arm64");
-    record_info($addon, "Going to register '$addon' addon");
+    my $timestamp = utc_timestamp();
+    record_info($addon, "Going to register '$addon' addon\nUTC: $timestamp");
     my $cmd_time = time();
     if ($addon =~ /ltss/) {
         ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch, "-r " . get_required_var('SCC_REGCODE_LTSS'));
