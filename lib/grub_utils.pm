@@ -28,7 +28,7 @@ Handle grub menu after reboot
       or product is sle, aarch64 and PLYMOUTH_DEBUG is set
 =cut
 sub grub_test {
-    my $timeout = get_var('GRUB_TIMEOUT', 90);
+    my $timeout = get_var('GRUB_TIMEOUT', 200);
 
     handle_installer_medium_bootup();
     workaround_type_encrypted_passphrase;
