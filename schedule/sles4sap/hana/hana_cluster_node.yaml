@@ -56,6 +56,7 @@ schedule:
   - sles4sap/monitoring_services
   - '{{sap_suse_cluster_connector}}'
   - '{{wmp_check_process}}'
+  - sles4sap/hana_test
   - ha/fencing
   - '{{boot_to_desktop_node01}}'
   - ha/check_after_reboot
