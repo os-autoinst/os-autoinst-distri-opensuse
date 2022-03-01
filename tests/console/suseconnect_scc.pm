@@ -37,12 +37,8 @@ sub run {
     script_retry("$cmd", retry => 5, delay => 60, timeout => 180);
     # Check available extenstions (only present in sle)
     assert_script_run q[SUSEConnect --list-extensions];
-    if (is_sle) {
-        # What has been activated by default
-        assert_script_run q[SUSEConnect --list-extensions | grep -e '\(Activated\)'];
-        assert_script_run 'SUSEConnect --list-extensions | grep "$(echo -en \'    \e\[1mServer Applications Module\')"' unless is_sle('=12-sp5');
-        assert_script_run 'SUSEConnect --list-extensions | grep "$(echo -en \'    \e\[1mWeb and Scripting Module\')"';
-    }
+    # What has been activated by default
+    assert_script_run q[SUSEConnect --list-extensions | grep -e '\(Activated\)'] if is_sle;
 
     # add modules
     register_addons_cmd if $scc_addons;
