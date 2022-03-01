@@ -5,7 +5,7 @@
 
 # Package: samba crmsh ctdb samba-client
 # Summary: Test ctdb resource agent
-# Maintainer: Julien Adamek <jadamek@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'opensusebasetest';
 use strict;

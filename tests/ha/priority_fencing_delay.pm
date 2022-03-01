@@ -5,7 +5,7 @@
 
 # Summary: Test the priority fencing delay feature
 # The node with the master resource must always win the fencing match
-# Maintainer: Julien Adamek <jadamek@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'opensusebasetest';
 use strict;

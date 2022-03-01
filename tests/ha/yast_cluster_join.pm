@@ -5,7 +5,7 @@
 
 # Package: pacemaker csync2
 # Summary: Join a cluster deployed by YaST
-# Maintainer: Julien Adamek <jadamek@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'opensusebasetest';
 use strict;

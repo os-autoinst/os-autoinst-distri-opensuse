@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: saptune testing with mr_test
-# Maintainer: Ricardo Branco <rbranco@suse.de>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Ricardo Branco <rbranco@suse.de>
 
 use base "sles4sap";
 use testapi;

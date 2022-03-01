@@ -6,7 +6,7 @@
 # Package: crmsh
 # Summary: Manage cluster stack
 #          Stop the cluster if pacemaker is active, otherwise start it.
-# Maintainer: Julien Adamek <jadamek@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'consoletest';
 use strict;

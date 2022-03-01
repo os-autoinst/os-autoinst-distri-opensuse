@@ -6,7 +6,7 @@
 # Package: parted lvm2
 # Summary: Try to reclaim some of the space from the system PV which
 #           may be needed for SAP products
-# Maintainer: Loic Devulder <ldevulder@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'sles4sap';
 use strict;

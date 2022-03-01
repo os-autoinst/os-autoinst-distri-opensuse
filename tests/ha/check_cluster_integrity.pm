@@ -5,7 +5,7 @@
 
 # Package: pacemaker-cli
 # Summary: Check cluster integrity
-# Maintainer: Christian Lanig <clanig@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Christian Lanig <clanig@suse.com>
 
 use base 'opensusebasetest';
 use strict;
