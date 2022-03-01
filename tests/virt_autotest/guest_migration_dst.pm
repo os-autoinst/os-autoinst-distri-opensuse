@@ -26,11 +26,6 @@ sub run {
     set_var('DST_PASS', $password);
     bmwqemu::save_vars();
 
-    #workaround from 15-SP4 kernel(v5.14) new behavior
-    #Refer to bsc#1191511 for more details
-    $self->reset_unprivileged_userfaultfd if (is_sle('>=15-SP4') && is_kvm_host);
-
-
     # clean up logs from prevous tests
     script_run('[ -d /var/log/qa/ctcs2/ ] && rm -rf /var/log/qa/ctcs2/');
     script_run('[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/');
@@ -63,15 +58,6 @@ sub run {
 
     #wait for child finish
     wait_for_children;
-}
-
-#Since 15-SP4 kernel(v5.14), default value of unprivileged_userfaultfd sysctl is 0.
-#if unprivileged user want to use userfaultfd syscalls, we just only need to manually
-#reset unprivileged_userfaultfd value is 1 as the workaround on postcopy migration dst
-sub reset_unprivileged_userfaultfd {
-    script_run("sysctl -w vm.unprivileged_userfaultfd=1", 15);
-    script_run("sysctl -a | grep vm.unprivileged_userfaultfd", 15);
-    save_screenshot;
 }
 
 1;
