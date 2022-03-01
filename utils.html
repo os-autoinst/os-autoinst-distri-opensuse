@@ -73,6 +73,7 @@
       <li><a href="#svirt_host_basedir">svirt_host_basedir</a></li>
       <li><a href="#script_retry">script_retry</a></li>
       <li><a href="#script_output_retry">script_output_retry</a></li>
+      <li><a href="#validate_script_output_retry">validate_script_output_retry</a></li>
       <li><a href="#script_run_interactive">script_run_interactive</a></li>
       <li><a href="#create_btrfs_subvolume">create_btrfs_subvolume</a></li>
       <li><a href="#create_raid_loop_device">create_raid_loop_device</a></li>
@@ -547,6 +548,22 @@
 <p>Example:</p>
 
 <pre><code> script_output_retry(&#39;ping -c1 -W1 machine&#39;, retry =&gt; 5);</code></pre>
+
+<h2 id="validate_script_output_retry">validate_script_output_retry</h2>
+
+<pre><code> validate_script_output_retry($cmd, $check, [retry =&gt; $retry], [delay =&gt; $delay], [timeout =&gt; $timeout]);</code></pre>
+
+<p>Repeat command until validate_script_output succeeds or die. Return the output of the command on success.</p>
+
+<p><code>$retry</code> refers to the number of retries and defaults to <code>10</code>.</p>
+
+<p><code>$delay</code> is the time between retries and defaults to <code>30</code>.</p>
+
+<p>If the command doesn&#39;t succeed after <code>$retry</code> retries, this function will die.</p>
+
+<p>Example:</p>
+
+<pre><code> validate_script_output_retry(&#39;ping -c1 -W1 machine&#39;, m/1 packets transmitted/, retry =&gt; 5, delay =&gt; 60);</code></pre>
 
 <h2 id="script_run_interactive">script_run_interactive</h2>
 
