@@ -56,7 +56,7 @@ sub run {
     script_run 'zypper -n in --allow-unsigned-rpm ' . data_url('zypper/pa.rpm');
     script_run 'rm -f /preinstall_fail';
 
-    assert_script_run 'zypper -n in adaptec-firmware adobe-sourcecodepro-fonts alsa-devel apache2 atmel-firmware';
+    assert_script_run 'zypper -n in adaptec-firmware apache2 atmel-firmware';
 
     assert_script_run 'unset ZYPP_SINGLE_RPMTRANS';
 }
