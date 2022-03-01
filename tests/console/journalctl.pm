@@ -156,7 +156,7 @@ sub run {
             assert_script_run "rpm -q --conflicts systemd-logger | tee -a /dev/$serialdev | grep syslog";
         }
     } else {
-        script_run("journalctl --boot=-1 | grep 'no persistent journal was found'") or die "Persistent journal should not be enabled by default on SLE!\n";
+        validate_script_output('journalctl --no-pager --boot=-1', qr/no persistent journal was found/i) unless is_sle('<15');
         assert_script_run "mkdir -p ${\ PERSISTENT_LOG_DIR }";
         assert_script_run "systemd-tmpfiles --create --prefix ${\ PERSISTENT_LOG_DIR }";
         # test for installed rsyslog and for imuxsock existance
