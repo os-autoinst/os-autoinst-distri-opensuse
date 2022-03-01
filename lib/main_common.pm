@@ -1299,7 +1299,8 @@ sub load_x11tests {
     if (xfcestep_is_applicable()) {
         # Midori got dropped from TW
         loadtest "x11/midori" unless (is_staging || is_livesystem || !is_leap("<16.0"));
-        loadtest "x11/ristretto";
+        # Tumbleweed and Leap 15.4+ no longer have ristretto on the Rescue CD
+        loadtest "x11/ristretto" unless (check_var("FLAVOR", "Rescue-CD") && !is_leap("<=15.3"));
     }
     if (gnomestep_is_applicable()) {
         # TODO test on openSUSE https://progress.opensuse.org/issues/31972
