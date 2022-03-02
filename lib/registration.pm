@@ -595,8 +595,10 @@ sub handle_scc_popups {
         push @tags, 'expired-gpg-key' if is_sle('=15');
         while ($counter--) {
             die 'Registration repeated too much. Check if SCC is down.' if ($counter eq 1);
-            record_soft_failure('bsc#1191112', 'Resizing window as workaround for YaST content not loading');
-            for (1 .. 2) { send_key 'alt-f10' }
+            if (is_sle('15-SP4+') && get_var('VIDEOMODE', '') !~ /text|ssh-x/) {
+                record_soft_failure('bsc#1191112', 'Resizing window as workaround for YaST content not loading');
+                for (1 .. 2) { send_key 'alt-f10' }
+            }
             assert_screen(\@tags, timeout => 360);
             if (match_has_tag('import-untrusted-gpg-key')) {
                 handle_untrusted_gpg_key;
