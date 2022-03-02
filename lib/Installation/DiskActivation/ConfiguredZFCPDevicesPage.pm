@@ -17,8 +17,8 @@ sub init {
     $self->SUPER::init($args);
     $self->{btn_filter} = $self->{app}->button({id => 'filter'});
     $self->{btn_add} = $self->{app}->button({id => 'add'});
-    $self->{txt_min_chan} = $self->{app}->textbox({id => 'min_chan'});
-    $self->{txt_max_chan} = $self->{app}->textbox({id => 'max_chan'});
+    $self->{txb_min_chan} = $self->{app}->textbox({id => 'min_chan'});
+    $self->{txb_max_chan} = $self->{app}->textbox({id => 'max_chan'});
     $self->{tbl_devices} = $self->{app}->table({id => 'table'});
     return $self;
 }

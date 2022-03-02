@@ -35,10 +35,10 @@ sub init {
     $self->{btn_add_raid} = $self->{app}->button({id => '"Y2Partitioner::Widgets::MdAddButton"'});
     $self->{btn_accept} = $self->{app}->button({label => 'Accept'});
     $self->{btn_cancel} = $self->{app}->button({id => 'abort'});
-    $self->{menu_bar} = $self->{app}->menucollection({id => 'menu_bar'});
+    $self->{mnc_bar} = $self->{app}->menucollection({id => 'menu_bar'});
     $self->{tbl_devices} = $self->{app}->table({id => '"Y2Partitioner::Widgets::ConfigurableBlkDevicesTable"'});
     $self->{tbl_lvm_devices} = $self->{app}->table({id => '"Y2Partitioner::Widgets::LvmDevicesTable"'});
-    $self->{tree_system_view} = $self->{app}->tree({id => '"Y2Partitioner::Widgets::OverviewTree"'});
+    $self->{tre_system_view} = $self->{app}->tree({id => '"Y2Partitioner::Widgets::OverviewTree"'});
     $self->{btn_add_logical_volume} = $self->{app}->tree({id => '"Y2Partitioner::Widgets::LvmLvAddButton"'});
 
     return $self;
@@ -49,26 +49,26 @@ sub is_shown {
     # Check for menu bar to be existing on Expert Partitioner Page.
     # The menu bar is chosen as the element that allows to identify that Expert Partitioner Page is opened,
     # as the page does not have any unique header.
-    $self->{menu_bar}->exist();
+    $self->{mnc_bar}->exist();
 }
 
 sub open_resize_device {
     my ($self) = @_;
-    $self->{menu_bar}->select('&Device|&Resize...');
+    $self->{mnc_bar}->select('&Device|&Resize...');
     return $self;
 }
 
 sub select_create_partition_table {
     my ($self) = @_;
-    $self->{menu_bar}->select('&Device|Create New &Partition Table...');
+    $self->{mnc_bar}->select('&Device|Create New &Partition Table...');
     return $self;
 }
 
 sub select_item_in_system_view_table {
     my ($self, $item) = @_;
 
-    $self->{tree_system_view}->exist();
-    $self->{tree_system_view}->select($item);
+    $self->{tre_system_view}->exist();
+    $self->{tre_system_view}->select($item);
 
     return $self;
 }
@@ -76,14 +76,14 @@ sub select_item_in_system_view_table {
 sub open_clone_partition_dialog {
     my ($self, $disk) = @_;
 
-    $self->{tree_system_view}->exist();
+    $self->{tre_system_view}->exist();
     $self->select_disk($disk) if $disk;
     # Cloning option is disabled if any partition is selected, so selecting disk
     $self->{tbl_devices}->select(row => 0);
     # This is workaround, because row selection doesn't enable clone item in menu bar
     send_key("end");
     send_key("home");
-    $self->{menu_bar}->select('&Device|&Clone Partitions to Another Device...');
+    $self->{mnc_bar}->select('&Device|&Clone Partitions to Another Device...');
     return $self;
 }
 

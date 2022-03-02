@@ -25,14 +25,14 @@ sub new {
 sub init {
     my $self = shift;
     $self->SUPER::init();
-    $self->{cb_chunk_size} = $self->{app}->combobox({id => '"Y2Partitioner::Dialogs::MdOptions::ChunkSize"'});
+    $self->{cmb_chunk_size} = $self->{app}->combobox({id => '"Y2Partitioner::Dialogs::MdOptions::ChunkSize"'});
 
     return $self;
 }
 
 sub select_chunk_size {
     my ($self, $chunk_size) = @_;
-    $self->{cb_chunk_size}->select($chunk_size);
+    $self->{cmb_chunk_size}->select($chunk_size);
 }
 
 1;

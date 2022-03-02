@@ -22,20 +22,20 @@ sub new {
 sub init {
     my $self = shift;
     $self->{btn_install} = $self->{app}->button({id => 'next'});
-    $self->{txt_overview} = $self->{app}->richtext({id => 'proposal'});
+    $self->{rct_overview} = $self->{app}->richtext({id => 'proposal'});
 
     return $self;
 }
 
 sub get_overview_content {
     my ($self) = @_;
-    return $self->{txt_overview}->text();
+    return $self->{rct_overview}->text();
 }
 
 sub enable_ssh_service {
     my ($self) = @_;
     YuiRestClient::Wait::wait_until(object => sub {
-            $self->{txt_overview}->activate_link('security--enable_sshd');
+            $self->{rct_overview}->activate_link('security--enable_sshd');
             return $self->is_ssh_service_enabled;
     }, message => "'SSH service will be enabled' message is not shown, though SSH service is expected to be enabled.");
 }
@@ -54,7 +54,7 @@ sub is_ssh_port_open {
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{txt_overview}->exist();
+    return $self->{rct_overview}->exist();
 }
 
 sub is_loaded_completely {
@@ -72,24 +72,24 @@ sub is_loaded_completely {
 sub open_ssh_port {
     my ($self) = @_;
     YuiRestClient::Wait::wait_until(object => sub {
-            $self->{txt_overview}->activate_link('security--open_ssh');
+            $self->{rct_overview}->activate_link('security--open_ssh');
             return $self->is_ssh_port_open;
     }, message => "'SSH port will be open' message is not shown, though SSH port is expected to be opened.");
 }
 
 sub access_booting_options {
     my ($self) = @_;
-    $self->{txt_overview}->activate_link('bootloader_stuff');
+    $self->{rct_overview}->activate_link('bootloader_stuff');
 }
 
 sub access_security_options {
     my ($self) = @_;
-    $self->{txt_overview}->activate_link('security');
+    $self->{rct_overview}->activate_link('security');
 }
 
 sub access_ssh_import_options {
     my ($self) = @_;
-    $self->{txt_overview}->activate_link('ssh_import');
+    $self->{rct_overview}->activate_link('ssh_import');
 }
 
 sub press_install {

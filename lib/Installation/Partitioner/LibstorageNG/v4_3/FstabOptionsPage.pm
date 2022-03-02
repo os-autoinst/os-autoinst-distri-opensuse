@@ -23,7 +23,7 @@ sub new {
 sub init {
     my $self = shift;
     $self->{btn_fstab_options} = $self->{app}->button({id => '"Y2Partitioner::Widgets::FstabOptionsButton"'});
-    $self->{cb_mount_by} = $self->{app}->combobox({id => '"Y2Partitioner::Widgets::MountBy"'});
+    $self->{cmb_mount_by} = $self->{app}->combobox({id => '"Y2Partitioner::Widgets::MountBy"'});
     $self->{btn_ok} = $self->{app}->button({id => 'ok'});
     return $self;
 }
@@ -57,12 +57,12 @@ sub press_fstab_options {
 
 sub set_mount_by {
     my ($self, $mount_by) = @_;
-    return $self->{cb_mount_by}->select($mount_by);
+    return $self->{cmb_mount_by}->select($mount_by);
 }
 
 sub check_default_mount_option {
     my ($self, $default) = @_;
-    my $preselected = $self->{cb_mount_by}->value();
+    my $preselected = $self->{cmb_mount_by}->value();
     die "The default mounting option was expected to be $default, but is $preselected" if ($preselected ne $default);
 }
 

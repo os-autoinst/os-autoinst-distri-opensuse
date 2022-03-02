@@ -22,7 +22,7 @@ sub new {
 sub init {
     my ($self) = shift;
     $self->SUPER::init();
-    $self->{tb_size} = $self->{app}->textbox({id => '"Y2Partitioner::Dialogs::BlkDeviceResize::CustomSizeWidget"'});
+    $self->{txb_size} = $self->{app}->textbox({id => '"Y2Partitioner::Dialogs::BlkDeviceResize::CustomSizeWidget"'});
     return $self;
 }
 
