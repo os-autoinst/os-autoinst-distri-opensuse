@@ -1,22 +1,18 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2020 SUSE LLC
+# Copyright 2019-2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Slurm master node
 #    This test is setting up slurm master node and runs tests depending
 #    on the slurm cluster configuration
-# Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
+# Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>, Yiannis Bonatakis <ybonatakis@suse.com>
 
-use base 'hpcbase';
+use Mojo::Base 'hpcbase';
 use base 'hpc::configs';
-use strict;
-use warnings;
 use testapi;
 use lockapi;
 use utils;
-use Data::Dumper;
-use Mojo::JSON;
 use version_utils 'is_sle';
 
 ## TODO: provide better parser for HPC specific tests
@@ -387,7 +383,7 @@ sub t01_ha {
         if ($i == 50) {
             assert_script_run('scontrol takeover');
         }
-        $result = script_run("srun -N $cluster_nodes date");
+        $result = script_run("srun -N $cluster_nodes date", timeout => 90);
         push(@all_results, $result);
     }
 
@@ -417,7 +413,7 @@ sub t02_ha {
             my $pidofslurmctld = script_output('pidof slurmctld');
             script_run("kill $pidofslurmctld");
         }
-        $result = script_run("srun -N $cluster_nodes date -R");
+        $result = script_run("srun -N $cluster_nodes date -R", timeout => 90);
         push(@all_results, $result);
     }
 
