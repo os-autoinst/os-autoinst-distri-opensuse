@@ -204,7 +204,8 @@ sub start_partitioner {
 sub start_vpn_gateway {
     search('vpn');
     assert_and_click 'yast2_control-center_vpn-gateway-client';
-    assert_screen 'yast2-vpn-gateway-client', timeout => 180;
+    record_soft_failure('bsc#1191112', 'Resizing window as workaround for YaST content not loading');
+    send_key_until_needlematch('yast2-vpn-gateway-client', 'alt-f10', 19, 9);
     send_key 'alt-c';
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
