@@ -80,7 +80,8 @@ sub load_host_tests_podman {
         load_3rd_party_image_test('podman');
         loadtest 'containers/podman_firewall';
         loadtest 'containers/buildah' unless is_sle_micro;
-        loadtest 'containers/rootless_podman' unless is_sle('=15-sp1');    # https://github.com/containers/podman/issues/5732#issuecomment-610222293
+        # https://github.com/containers/podman/issues/5732#issuecomment-610222293
+        loadtest 'containers/rootless_podman' unless (is_sle('=15-sp1'));
     }
 }
 
