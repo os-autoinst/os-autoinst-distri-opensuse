@@ -1195,8 +1195,8 @@ sub load_consoletests {
         loadtest "console/puppet";
     }
     # salt in SLE is only available for SLE12 ASMM or SLES15 and variants of
-    # SLES but not SLED
-    if (is_opensuse || (check_var_array('SCC_ADDONS', 'asmm') || is_sle('15+') && !is_desktop)) {
+    # SLES but not SLED. Don't run it on live media, not really useful there.
+    if (!get_var("LIVETEST") && is_opensuse || (check_var_array('SCC_ADDONS', 'asmm') || is_sle('15+') && !is_desktop)) {
         loadtest "console/salt";
     }
     if (!is_staging && (is_x86_64
