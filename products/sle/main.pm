@@ -776,6 +776,9 @@ elsif (get_var('XFSTESTS')) {
     prepare_target;
     if (is_pvm || check_var('ARCH', 's390x')) {
         loadtest 'xfstests/install';
+        unless (check_var('NO_KDUMP', '1')) {
+            loadtest 'xfstests/enable_kdump';
+        }
         loadtest 'xfstests/partition';
         loadtest 'xfstests/run';
         loadtest 'xfstests/generate_report';
@@ -783,7 +786,7 @@ elsif (get_var('XFSTESTS')) {
     else {
         if (check_var('XFSTESTS', 'installation')) {
             loadtest 'xfstests/install';
-            unless (get_var('NO_KDUMP')) {
+            unless (check_var('NO_KDUMP', '1')) {
                 loadtest 'xfstests/enable_kdump';
             }
             if (get_var('XFSTEST_KLP')) {

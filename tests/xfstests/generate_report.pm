@@ -6,7 +6,7 @@
 # Summary: Upload logs and generate junit report
 # - Get xfs status.log from datadir
 # - End log and upload logs (and all subdirs)
-# - Upload kdump logs unless NO_KDUMP is set
+# - Upload kdump logs unless NO_KDUMP is set to 1
 # - Upload system logs
 # - Parse /opt/status.log for PASSED/FAILED/SKIPPED
 # - Generate XML file using parsed results from previous step
@@ -119,8 +119,8 @@ sub run {
     # Upload test logs
     upload_subdirs($LOG_DIR, 1200);
 
-    # Upload kdump logs if not set "NO_KDUMP"
-    unless (get_var('NO_KDUMP')) {
+    # Upload kdump logs if not set "NO_KDUMP=1"
+    unless (check_var('NO_KDUMP', '1')) {
         upload_subdirs($KDUMP_DIR, 1200);
     }
 
