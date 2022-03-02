@@ -2817,6 +2817,7 @@ sub load_extra_tests_syscontainer {
 sub load_extra_tests_kernel {
     loadtest "kernel/module_build";
     loadtest "kernel/tuned";
+    loadtest "kernel/fwupd";
 }
 
 # Scheduling set for validation of specific installation
