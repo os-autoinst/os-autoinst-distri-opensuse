@@ -163,8 +163,8 @@ sub test_opensuse_based_image {
             my $pretty_version = $version =~ s/-SP/ SP/r;
             my $betaversion = $beta ? '\s\([^)]+\)' : '';
             record_info "Validating", "Validating That $image has $pretty_version on /etc/os-release";
-            # zypper-docker changes the layout of the image
-            validate_script_output("$runtime run --entrypoint /bin/bash $image -c 'grep PRETTY_NAME /etc/os-release' | cut -d= -f2",
+            # zypper-docker changes the layout of the image (Note: We may have images without 'grep')
+            validate_script_output("$runtime run --entrypoint /bin/bash $image -c 'cat /etc/os-release' | grep PRETTY_NAME | cut -d= -f2",
                 sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
 
             # SUSEConnect zypper service is supported only on SLE based image on SLE host
