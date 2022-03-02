@@ -196,7 +196,7 @@ sub add_suseconnect_product {
     if ($name =~ /PackageHub/ && check_var('BETA', '1')) {
         record_info('INFO', 'PackageHub installation might fail in early development');
     }
-    die "SUSEConnect failed activating module $name after $$retry retries.";
+    die "SUSEConnect failed activating module $name after $retry retries.";
 }
 
 =head2 ssh_add_suseconnect_product
