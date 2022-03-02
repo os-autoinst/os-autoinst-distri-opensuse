@@ -169,7 +169,7 @@ sub activate_kdump {
     if (is_ppc64le || is_aarch64) {
         send_key('alt-y');
         type_string $memory_kdump;
-        send_key('ret');
+        wait_screen_change(sub { send_key 'ret' }, 10) for (1 .. 2);
         record_soft_failure 'default kdump memory size is too small for ppc64le and aarch64, see bsc#1161421';
         $expect_restart_info = 1;
     }
