@@ -174,7 +174,7 @@ sub add_suseconnect_product {
     $version //= '${VERSION_ID}';
     $arch //= '${CPU}';
     $params //= '';
-    $retry //= 3;    # run SUSEConnect $retry times before failing
+    $retry //= 3;    # Times we retry the SUSEConnect command (besides first execution)
     $timeout //= 300;
 
     # some modules on sle12 use major version e.g. containers module
@@ -183,7 +183,7 @@ sub add_suseconnect_product {
     record_info('SCC product', "Activating product $name");
 
     my $try_cnt = 0;
-    while ($try_cnt++ < $retry) {
+    while ($try_cnt++ <= $retry) {
         eval { assert_script_run("SUSEConnect -p $name/$version/$arch $params", timeout => $timeout); };
         if ($@) {
             record_info('retry', "SUSEConnect failed to activate the module $name. Retrying...");
@@ -264,13 +264,14 @@ sub register_product {
 }
 
 sub register_addons_cmd {
-    my ($addonlist) = @_;
+    my ($addonlist, $retry) = @_;
     $addonlist //= get_var('SCC_ADDONS');
+    $retry //= 0;    # Don't retry by default
     my @addons = grep { defined $_ && $_ } split(/,/, $addonlist);
     if (check_var('DESKTOP', 'gnome') && is_sle('15+')) {
         my $desk = "sle-module-desktop-applications";
         record_info($desk, "Register $desk");
-        add_suseconnect_product($desk, undef, undef, undef, 300, 1);
+        add_suseconnect_product($desk, undef, undef, undef, 300, $retry);
     }
     foreach my $addon (@addons) {
         my $name = get_addon_fullname($addon);
@@ -278,17 +279,17 @@ sub register_addons_cmd {
             record_info($name, "Register $name");
             if (grep(/$name/, @SLE12_MODULES) and is_sle('<15')) {
                 my @ver = split(/\./, scc_version());
-                add_suseconnect_product($name, $ver[0], undef, undef, 300, 1);
+                add_suseconnect_product($name, $ver[0], undef, undef, 300, $retry);
             }
             elsif (grep(/$name/, keys %ADDONS_REGCODE)) {
-                add_suseconnect_product($name, undef, undef, "-r " . $ADDONS_REGCODE{$name}, 300, 1);
+                add_suseconnect_product($name, undef, undef, "-r " . $ADDONS_REGCODE{$name}, 300, $retry);
                 if ($name =~ /we/) {
                     zypper_call("--gpg-auto-import-keys ref");
-                    add_suseconnect_product($name, undef, undef, "-r " . $ADDONS_REGCODE{$name}, 300, 1);
+                    add_suseconnect_product($name, undef, undef, "-r " . $ADDONS_REGCODE{$name}, 300, $retry);
                 }
             }
             else {
-                add_suseconnect_product($name, undef, undef, undef, 300, 1);
+                add_suseconnect_product($name, undef, undef, undef, 300, $retry);
             }
         }
     }
