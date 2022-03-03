@@ -24,6 +24,7 @@ sub run {
     # please unset in job def *SCC_URL* if not required
     my $fake_scc = get_var 'SCC_URL', '';
     $cmd .= ' --url ' . $fake_scc if $fake_scc;
+    my $retries = 5;    # number of retries to run SUSEConnect commands
 
 
     $self->select_serial_terminal;
@@ -34,14 +35,14 @@ sub run {
 
     # There are sporadic failures due to the command timing out, so we increase the timeout
     # and make use of retries to overcome a possible sporadic network issue.
-    script_retry("$cmd", retry => 5, delay => 60, timeout => 180);
+    script_retry("$cmd", retry => $retries, delay => 60, timeout => 180);
     # Check available extenstions (only present in sle)
     assert_script_run q[SUSEConnect --list-extensions];
     # What has been activated by default
     assert_script_run q[SUSEConnect --list-extensions | grep -e '\(Activated\)'] if is_sle;
 
     # add modules
-    register_addons_cmd if $scc_addons;
+    register_addons_cmd($scc_addons, $retries) if $scc_addons;
     # Check that repos actually work
     zypper_call 'refresh';
     zypper_call 'repos --details';
