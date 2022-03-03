@@ -7,3 +7,4 @@ schedule:
     - security/audit/autrace
     - security/audit/ausearch
     - security/audit/aureport
+    - security/audit/aulastlog
