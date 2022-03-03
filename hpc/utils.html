@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/hpc/utils.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#get_mpi_src">get_mpi_src</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/hpc/utils.pm</h1>
+
+<h2 id="get_mpi_src">get_mpi_src</h2>
+
+<pre><code> get_mpi_src();</code></pre>
+
+<p>Returns the source code which is used based on <b>HPC_LIB</b> job variable. The variable indicates the HPC library which the mpi use to compile the source code. if the variable is not set, one of the other MPI implementations will be used(mpich, openmpi, mvapich2).</p>
+
+<p>Returns an array with the mpi compiler and the source code located in /data/hpc</p>
+
+
+</body>
+
+</html>
+
+
