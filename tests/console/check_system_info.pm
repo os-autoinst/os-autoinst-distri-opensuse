@@ -81,6 +81,28 @@ sub check_buildid {
     }
 }
 
+# SLE-21916: change bzr to breezy
+# check in the upgraded sysetem that bzr was repalced by breezy
+# test steps:
+# 1) install the bzr as usaual
+# 2) check the bzr version as usual to make sure it has breezy
+# 3) cleanup by removing the package
+sub check_bzr_to_breezy {
+    record_info('SLE-21916', 'Check bzr to breezy');
+    zypper_call('in bzr');
+
+    assert_script_run('bzr --version');
+    assert_script_run('bzr --version | grep breezy');
+    zypper_call('--no-refresh info breezy');
+
+    zypper_call("rm bzr", exitcode => [0]);
+}
+
+# function to check all the features after migration
+sub check_feature {
+    check_bzr_to_breezy unless get_var('MEDIA_UPGRADE');
+}
+
 sub run {
     select_console('root-console');
     assert_script_run('setterm -blank 0') unless (is_s390x);
@@ -111,6 +133,7 @@ sub run {
         check_addons($myaddons);
         check_product("after");
         check_buildid;
+        check_feature if (is_sle(">=15-SP4") && check_var('INSTALLONLY', '1'));
     }
 }
 
