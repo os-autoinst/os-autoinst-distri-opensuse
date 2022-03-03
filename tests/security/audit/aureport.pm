@@ -3,7 +3,7 @@
 #
 # Summary: Verify the "aureport" utility can generate default audit report and reports with specifc parameters
 # Maintainer: llzhao <llzhao@suse.com>, shawnhao <weixuan.hao@suse.com>
-# Tags: poo#81772 tc#1768552
+# Tags: poo#81772, tc#1768552
 
 use base 'opensusebasetest';
 use strict;
