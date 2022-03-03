@@ -23,6 +23,8 @@ sub run {
     my ($self) = @_;
     mouse_hide(1);
     x11_start_program('xterm');
+    # Repair public key to make sure ssh without password works fine
+    enter_cmd("ssh-keygen -f ~/.ssh/id_rsa -y > ~/.ssh/id_rsa.pub");
     enter_cmd("ssh -o StrictHostKeyChecking=no -XC root\@localhost xterm");
     assert_screen "ssh-second-xterm";
     $self->set_standard_prompt();
