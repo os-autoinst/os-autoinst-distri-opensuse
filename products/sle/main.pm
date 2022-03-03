@@ -773,6 +773,11 @@ elsif (get_var("QA_TESTSUITE")) {
     loadtest "qa_automation/execute_test_run";
 }
 elsif (get_var('XFSTESTS')) {
+    if (get_var('CHANGE_KERNEL_REPO') ||
+        get_var('CHANGE_KERNEL_PKG') ||
+        get_var('ASSET_CHANGE_KERNEL_RPM')) {
+        loadtest 'kernel/change_kernel';
+    }
     prepare_target;
     if (is_pvm || check_var('ARCH', 's390x')) {
         loadtest 'xfstests/install';
