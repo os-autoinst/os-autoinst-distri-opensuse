@@ -1655,11 +1655,12 @@ sub script_output_retry {
     my $timeout = $args{timeout} // 30;
     my $die = $args{die} // 1;
 
-    my $exec = "timeout " . ($timeout - 3) . " $cmd";
+    my $exec = "timeout --foreground " . ($timeout - 3) . " $cmd";
     for (1 .. $retry) {
         my $ret = eval { script_output($exec, timeout => $timeout, proceed_on_failure => 0); };
         return $ret if ($ret);
         sleep $delay;
+        record_info('Retry', 'script_output failed, retrying.');
     }
     die("Waiting for Godot: $cmd") if $die;
 }
