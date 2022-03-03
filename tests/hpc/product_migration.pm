@@ -4,12 +4,10 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Checking ability to migrate from SLE 12 with HPC module to SLE 12 HPC Product
-# Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 # Tags: https://fate.suse.com/326567
 
-use base 'hpcbase';
-use strict;
-use warnings;
+use Mojo::Base 'hpcbase';
 use testapi;
 use utils;
 use registration 'add_suseconnect_product';

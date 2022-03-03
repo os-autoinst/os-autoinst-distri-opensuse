@@ -4,15 +4,12 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Base module for HPC config handling
-# Maintainer: Sebastian Chlad <schlad@suse.de>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
 package hpc::configs;
-use base hpcbase;
-use strict;
-use warnings;
+use Mojo::Base 'hpcbase';
 use testapi;
 use utils;
-use Data::Dumper;
 use Storable;
 use Tie::IxHash;
 use version_utils 'is_sle';

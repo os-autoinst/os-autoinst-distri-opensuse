@@ -4,11 +4,9 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: slurm cluster initialization
-# Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use base 'hpcbase';
-use strict;
-use warnings;
+use Mojo::Base 'hpcbase';
 use testapi;
 use lockapi;
 use utils;

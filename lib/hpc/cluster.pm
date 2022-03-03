@@ -4,12 +4,10 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Base module for HPC cluster provisioning
-# Maintainer: Sebastian Chlad <schlad@suse.de>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
 package hpc::cluster;
-use base hpcbase;
-use strict;
-use warnings;
+use Mojo::Base 'hpcbase';
 use testapi;
 use utils;
 

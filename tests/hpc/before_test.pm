@@ -4,12 +4,9 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary:  Basic preparation before any HPC test
-# Maintainer: Sebastian Chlad <schlad@suse.de>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use base 'hpcbase';
-use base 'hpc::cluster';
-use strict;
-use warnings;
+use Mojo::Base qw(hpcbase hpc::cluster);
 use testapi;
 use utils;
 use lockapi;

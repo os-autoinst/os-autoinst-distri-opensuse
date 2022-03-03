@@ -4,12 +4,10 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Base module for HPC tests
-# Maintainer: Sebastian Chlad <schlad@suse.de>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
 package hpcbase;
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 

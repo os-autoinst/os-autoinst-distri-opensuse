@@ -6,12 +6,9 @@
 # Summary: HPC Slave
 #    This test is setting up an HPC slave node, so that various services
 #    are ready to be used
-# Maintainer: Sebastian Chlad <schlad@suse.de>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use base 'hpcbase';
-use base 'hpc::migration';
-use strict;
-use warnings;
+use Mojo::Base qw(hpcbase hpc::migration);
 use testapi;
 use lockapi;
 use utils;

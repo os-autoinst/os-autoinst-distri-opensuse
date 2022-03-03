@@ -9,11 +9,9 @@
 #
 #    This tests the powerman package from the HPC module
 #
-# Maintainer: Matthias Griessmeier <mgriessmeier@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use base 'hpcbase';
-use strict;
-use warnings;
+use Mojo::Base 'hpcbase';
 use testapi;
 use utils;
 use susedistribution;

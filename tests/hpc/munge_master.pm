@@ -5,11 +5,9 @@
 
 # Summary: Installation of munge package from HPC module and sanity check
 # of this package
-# Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>, soulofdestiny <mgriessmeier@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use base 'hpcbase';
-use strict;
-use warnings;
+use Mojo::Base 'hpcbase';
 use testapi;
 use lockapi;
 use utils;

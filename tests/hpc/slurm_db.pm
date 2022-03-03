@@ -6,12 +6,9 @@
 # Summary: slurm db node
 #    This tests only ensure the proper db is being set for the HPC cluster, so
 #    that the slurm db accounting can be configured
-# Maintainer: Sebastian Chlad <schlad@suse.de>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use base 'hpcbase';
-use base 'hpc::configs';
-use strict;
-use warnings;
+use Mojo::Base qw(hpcbase hpc::configs);
 use testapi;
 use lockapi;
 use utils;

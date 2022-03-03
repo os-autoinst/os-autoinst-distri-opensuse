@@ -5,12 +5,10 @@
 
 # Summary: HPC_Module: slurm slave
 #    This test is setting up a slurm slave and tests if the daemon can start
-# Maintainer: soulofdestiny <mgriessmeier@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 # Tags: https://fate.suse.com/316379, https://progress.opensuse.org/issues/20308
 
-use base 'hpcbase';
-use strict;
-use warnings;
+use Mojo::Base 'hpcbase';
 use testapi;
 use lockapi;
 use utils;

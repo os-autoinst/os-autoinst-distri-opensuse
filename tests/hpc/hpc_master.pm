@@ -10,13 +10,9 @@
 #    set-up is fairly complex, so that NFS shares are mounted, required
 #    database(s) are ready to be used, some data is being populated to
 #    the databases, artificial users are added etc.
-# Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use base 'hpcbase';
-use base 'hpc::configs';
-use base 'hpc::migration';
-use strict;
-use warnings;
+use Mojo::Base qw(hpcbase hpc::configs hpc::migration);
 use testapi;
 use lockapi;
 use utils;

@@ -5,12 +5,10 @@
 
 # Summary: Ganglia Test - client
 #   Acts as client node, which publishes data to the server via gmetric command
-# Maintainer: soulofdestiny <mgriessmeier@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 # Tags: https://fate.suse.com/323979
 
-use base 'hpcbase';
-use strict;
-use warnings;
+use Mojo::Base 'hpcbase';
 use testapi;
 use lockapi;
 use utils;

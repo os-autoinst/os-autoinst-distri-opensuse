@@ -6,13 +6,10 @@
 # Summary: Ganglia Test - server
 #   Acts as server which gets data from the client and is running the webinterface
 #   to show the metrics for all connected hosts
-# Maintainer: soulofdestiny <mgriessmeier@suse.com>, Anton Pappas <apappas@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 # Tags: https://fate.suse.com/323979
 
-use base 'hpcbase';
-use base 'x11test';
-use strict;
-use warnings;
+use Mojo::Base qw(hpcbase x11test);
 use testapi;
 use lockapi;
 use utils;

@@ -6,10 +6,7 @@
 # Summary: openmpi mpirun check
 # Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
 
-use base 'hpcbase';
-use base 'hpc::utils';
-use strict;
-use warnings;
+use Mojo::Base qw(hpcbase hpc::utils);
 use testapi;
 use lockapi;
 use utils;

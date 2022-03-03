@@ -16,12 +16,10 @@
 #   associated database
 # - injected error is correctly recorded
 #
-# Maintainer: Sebastian Chlad <schlad@suse.de>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 # Tags: https://fate.suse.com/318824
 
-use base 'hpcbase';
-use strict;
-use warnings;
+use Mojo::Base 'hpcbase';
 use testapi;
 use Utils::Architectures;
 use utils;

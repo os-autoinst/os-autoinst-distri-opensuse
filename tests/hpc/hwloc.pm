@@ -4,11 +4,9 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Run testsuite included in hwloc sources
-# Maintainer: Thomas Blume <tblume@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use base "consoletest";
-use warnings;
-use strict;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 

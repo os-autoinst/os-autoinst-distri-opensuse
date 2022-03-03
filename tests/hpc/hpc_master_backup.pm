@@ -9,12 +9,9 @@
 #    configured. At the same time it is expected that the HPC cluster
 #    set-up is fairly complex, so that NFS shares are mounted, required
 #    database(s) are ready to be used, artificial users are added etc.
-# Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use base 'hpcbase';
-use base 'hpc::migration';
-use strict;
-use warnings;
+use Mojo::Base qw(hpcbase hpc::migration);
 use testapi;
 use lockapi;
 use utils;

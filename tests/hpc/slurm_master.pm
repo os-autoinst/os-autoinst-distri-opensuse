@@ -6,10 +6,9 @@
 # Summary: Slurm master node
 #    This test is setting up slurm master node and runs tests depending
 #    on the slurm cluster configuration
-# Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>, Yiannis Bonatakis <ybonatakis@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use Mojo::Base 'hpcbase';
-use base 'hpc::configs';
+use Mojo::Base qw(hpcbase hpc::configs);
 use testapi;
 use lockapi;
 use utils;
