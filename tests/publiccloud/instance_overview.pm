@@ -46,11 +46,7 @@ sub run {
     assert_script_run("lsblk");
 
     # Install bzip2 to check for bsc#1165915
-    if (script_run("zypper -n in bzip2") == 8) {
-        record_soft_failure('bsc#1165915');
-        assert_script_run('update-ca-certificates');
-        zypper_call("in bzip2");
-    }
+    zypper_call("in bzip2");
 
     assert_script_run("SUSEConnect --status-text", 300);
     zypper_call("lr -d");
