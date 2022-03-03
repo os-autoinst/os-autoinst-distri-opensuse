@@ -7,14 +7,12 @@
 # of this package
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use Mojo::Base 'hpcbase';
+use Mojo::Base 'hpcbase', -signatures;
 use testapi;
 use lockapi;
 use utils;
 
-sub run {
-    my $self = shift;
-
+sub run ($self) {
     # install munge, wait for master and munge key
     zypper_call('in munge');
     barrier_wait('MUNGE_INSTALLATION_FINISHED');
@@ -28,8 +26,7 @@ sub run {
     barrier_wait('MUNGE_DONE');
 }
 
-sub post_fail_hook {
-    my ($self) = @_;
+sub post_fail_hook ($self) {
     $self->select_serial_terminal;
     $self->upload_service_log('munge');
 }

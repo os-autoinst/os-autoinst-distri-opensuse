@@ -8,16 +8,14 @@
 #    on the slurm cluster configuration
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use Mojo::Base qw(hpcbase hpc::configs);
+use Mojo::Base qw(hpcbase hpc::configs), -signatures;
 use testapi;
 use lockapi;
 use utils;
 use version_utils 'is_sle';
 
 ## TODO: provide better parser for HPC specific tests
-sub validate_result {
-    my ($result) = @_;
-
+sub validate_result ($result) {
     if ($result == 0) {
         return 'PASS';
     } elsif ($result == 1) {
@@ -27,9 +25,7 @@ sub validate_result {
     }
 }
 
-sub generate_results {
-    my ($name, $description, $result) = @_;
-
+sub generate_results ($name, $description, $result) {
     my %results = (
         test => $name,
         description => $description,
@@ -38,8 +34,7 @@ sub generate_results {
     return %results;
 }
 
-sub pars_results {
-    my (@test) = @_;
+sub pars_results (@test) {
     my $file = 'tmpresults.xml';
 
     # check if there are some single test failing
@@ -71,9 +66,7 @@ sub pars_results {
     }
 }
 
-sub run_tests {
-    my ($slurm_conf) = @_;
-
+sub run_tests ($slurm_conf) {
     my $file = 'tmpresults.xml';
     assert_script_run("touch $file");
 
@@ -102,7 +95,7 @@ sub run_tests {
 ## Basic tests: for HPC/slurm cluster ##
 ## 1 master node, 2+ slave nodes      ##
 ########################################
-sub run_basic_tests {
+sub run_basic_tests() {
     my @all_results;
 
     my %test00 = t00_version_check();
@@ -137,7 +130,7 @@ sub run_basic_tests {
     return @all_results;
 }
 
-sub t00_version_check {
+sub t00_version_check() {
     my $description = 'Simple SINFO version print for ease of checking';
 
     my $result = script_output('sinfo --version');
@@ -147,7 +140,7 @@ sub t00_version_check {
     return %results;
 }
 
-sub t01_basic {
+sub t01_basic() {
     my $name = 'Srun check: -w';
     my $description = 'Basic SRUN test with -w option';
 
@@ -157,7 +150,7 @@ sub t01_basic {
     return %results;
 }
 
-sub t02_basic {
+sub t02_basic() {
     my $name = 'Sinfo check';
     my $description = 'Simple SINFO test';
 
@@ -169,7 +162,7 @@ sub t02_basic {
     return %results;
 }
 
-sub t03_basic {
+sub t03_basic() {
     my $name = 'Sbatch test';
     my $description = 'Basic SBATCH test';
     my $sbatch = 'slurm_sbatch.sh';
@@ -188,7 +181,7 @@ sub t03_basic {
     return %results;
 }
 
-sub t04_basic {
+sub t04_basic() {
     my $name = 'Slurm-torque test';
     my $description = 'Basic slurm-torque test. https://fate.suse.com/323998';
     my $pbs = 'slurm_pbs.sh';
@@ -208,7 +201,7 @@ sub t04_basic {
     return %results;
 }
 
-sub t05_basic {
+sub t05_basic() {
     my $name = 'PMIx Support in SLURM';
     my $description = 'Basic check if pmix is present. https://jira.suse.com/browse/SLE-10802';
     my $result = 0;
@@ -221,7 +214,7 @@ sub t05_basic {
     return %results;
 }
 
-sub t06_basic {
+sub t06_basic() {
     my $name = 'Srun check: -N -n';
     my $description = 'Basic SRUN test with -N and -n option';
     my $cluster_nodes = get_required_var('CLUSTER_NODES');
@@ -232,7 +225,7 @@ sub t06_basic {
     return %results;
 }
 
-sub t07_basic {
+sub t07_basic() {
     my $name = 'Srun check: -w';
     my $description = 'Basic SRUN test with -w option on multiple nodes';
     my $cluster_nodes = get_required_var('CLUSTER_NODES');
@@ -244,7 +237,7 @@ sub t07_basic {
     return %results;
 }
 
-sub t08_basic {
+sub t08_basic() {
     my $name = 'pdsh-slurm';
     my $description = 'Basic check of pdsh-slurm over ssh';
     my $result = 0;
@@ -270,7 +263,7 @@ sub t08_basic {
 ## Accounting tests: for HPC/slurm cluster ##
 #############################################
 
-sub run_accounting_tests {
+sub run_accounting_tests() {
     my @all_results;
 
     my %test01 = t01_accounting();
@@ -279,7 +272,7 @@ sub run_accounting_tests {
     return @all_results;
 }
 
-sub t01_accounting {
+sub t01_accounting() {
     my $name = 'Slurm accounting';
     my $description = 'Basic check for slurm accounting cmd';
     my $result = 0;
@@ -359,7 +352,7 @@ sub t01_accounting {
 ## HA tests: for HPC/slurm cluster ##
 #####################################
 
-sub run_ha_tests {
+sub run_ha_tests() {
     my @all_results;
 
     my %test01 = t01_ha();
@@ -371,7 +364,7 @@ sub run_ha_tests {
     return @all_results;
 }
 
-sub t01_ha {
+sub t01_ha() {
     my $name = 'scontrol: slurm ctl fail-over';
     my $description = 'HPC cluster with 2 slurm ctls where one is taking over gracefully';
     my $cluster_nodes = get_required_var('CLUSTER_NODES');
@@ -397,7 +390,7 @@ sub t01_ha {
     return %results;
 }
 
-sub t02_ha {
+sub t02_ha() {
     my $name = 'kill: Slurm ctl fail-over';
     my $description = 'HPC cluster with 2 slurm ctls where one is killed';
     my $cluster_nodes = get_required_var('CLUSTER_NODES');
@@ -431,7 +424,7 @@ sub t02_ha {
 ## Accounting and HA: for HPC/slurm cluster ####
 ################################################
 
-sub run_accounting_ha_tests {
+sub run_accounting_ha_tests() {
     my @all_results;
 
     ##TODO
@@ -444,9 +437,7 @@ sub run_accounting_ha_tests {
 ##          Meant as fast moving tests                ##
 ########################################################
 
-sub extended_hpc_tests {
-    my ($master_ip, $slave_ip) = @_;
-
+sub extended_hpc_tests ($master_ip, $slave_ip) {
     # do all test preparations and setup
     zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);
     # https://progress.opensuse.org/issues/107395 include twopence post scripts error code
@@ -460,8 +451,7 @@ sub extended_hpc_tests {
     parse_extra_log('XUnit', './results/TEST-hpc-test.xml');
 }
 
-sub run {
-    my $self = shift;
+sub run ($self) {
     my $nodes = get_required_var('CLUSTER_NODES');
     my $slurm_conf = get_required_var('SLURM_CONF');
     my $version = get_required_var('VERSION');
@@ -529,12 +519,11 @@ sub run {
     barrier_wait('SLURM_MASTER_RUN_TESTS');
 }
 
-sub test_flags {
+sub test_flags ($self) {
     return {fatal => 1, milestone => 1};
 }
 
-sub post_fail_hook {
-    my ($self) = @_;
+sub post_fail_hook ($self) {
     $self->select_serial_terminal;
     $self->upload_service_log('slurmd');
     $self->upload_service_log('munge');

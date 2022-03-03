@@ -9,14 +9,12 @@
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 # Tags: https://fate.suse.com/324149
 
-use Mojo::Base 'hpcbase';
+use Mojo::Base 'hpcbase', -signatures;
 use testapi;
 use lockapi;
 use utils;
 
-sub run {
-    my $self = shift;
-
+sub run ($self) {
     # Install genders package
     zypper_call('in genders');
 

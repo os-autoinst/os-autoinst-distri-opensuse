@@ -6,12 +6,12 @@
 # Summary: Initialization of barriers for HPC multimachine tests
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use Mojo::Base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest', -signatures;
 use testapi;
 use lockapi;
 use utils;
 
-sub run {
+sub run ($self) {
     # Get number of nodes
     my $nodes = get_required_var('CLUSTER_NODES');
 
@@ -78,7 +78,7 @@ sub run {
     record_info('barriers initialized');
 }
 
-sub test_flags {
+sub test_flags ($self) {
     return {fatal => 1};
 }
 

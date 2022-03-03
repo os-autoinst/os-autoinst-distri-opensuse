@@ -11,14 +11,12 @@
 #
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use Mojo::Base 'hpcbase';
+use Mojo::Base 'hpcbase', -signatures;
 use testapi;
 use utils;
 use susedistribution;
 
-sub run {
-    my $self = shift;
-
+sub run ($self) {
     # install powerman
     zypper_call('in powerman');
 
@@ -58,8 +56,7 @@ EOF
     wait_serial(/.*cannot be handled by power control device.*/);
 }
 
-sub post_fail_hook {
-    my ($self) = @_;
+sub post_fail_hook ($self) {
     $self->select_serial_terminal;
     $self->upload_service_log('powerman');
 }

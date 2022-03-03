@@ -9,14 +9,12 @@
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 # Tags: https://fate.suse.com/321722
 
-use Mojo::Base 'hpcbase';
+use Mojo::Base 'hpcbase', -signatures;
 use testapi;
 use lockapi;
 use utils;
 
-sub run {
-    my $self = shift;
-
+sub run ($self) {
     # make sure that nobody has permissions for $serialdev to get openQA work properly
     assert_script_run("chmod 666 /dev/$serialdev");
 
@@ -35,12 +33,11 @@ sub run {
     barrier_wait("MRSH_MASTER_DONE");
 }
 
-sub test_flags {
+sub test_flags ($self) {
     return {fatal => 1, milestone => 1};
 }
 
-sub post_fail_hook {
-    my ($self) = @_;
+sub post_fail_hook ($self) {
     $self->select_serial_terminal;
     $self->upload_service_log('munge');
     $self->upload_service_log('mrshd');

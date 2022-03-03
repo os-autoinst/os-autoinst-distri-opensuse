@@ -9,14 +9,12 @@
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 # Tags: https://fate.suse.com/321714
 
-use Mojo::Base 'hpcbase';
+use Mojo::Base 'hpcbase', -signatures;
 use testapi;
 use lockapi;
 use utils;
 
-sub run {
-    my $self = shift;
-
+sub run ($self) {
     # Get number of nodes
     my $nodes = get_required_var("CLUSTER_NODES");
 
@@ -40,12 +38,11 @@ sub run {
     barrier_wait("PDSH_SLAVE_DONE");
 }
 
-sub test_flags {
+sub test_flags ($self) {
     return {fatal => 1, milestone => 1};
 }
 
-sub post_fail_hook {
-    my ($self) = @_;
+sub post_fail_hook ($self) {
     $self->select_serial_terminal;
     $self->upload_service_log('mrshd');
     $self->upload_service_log('munge');

@@ -7,13 +7,12 @@
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 # Tags: https://fate.suse.com/326567
 
-use Mojo::Base 'hpcbase';
+use Mojo::Base 'hpcbase', -signatures;
 use testapi;
 use utils;
 use registration 'add_suseconnect_product';
 
-sub run {
-    my $self = shift;
+sub run ($self) {
     my $suseconnect_str = ' -e testing@suse.com -r ';
     my $version = get_required_var('VERSION');
     ## replace SP-X with 12.X as this form is expected by SUSEConnect

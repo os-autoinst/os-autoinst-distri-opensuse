@@ -6,13 +6,12 @@
 # Summary:  Basic preparation before any HPC test
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use Mojo::Base qw(hpcbase hpc::cluster);
+use Mojo::Base qw(hpcbase hpc::cluster), -signatures;
 use testapi;
 use utils;
 use lockapi;
 
-sub run {
-    my ($self) = @_;
+sub run ($self) {
     $self->select_serial_terminal;
 
     # disable packagekitd
@@ -36,7 +35,7 @@ sub run {
     }
 }
 
-sub test_flags {
+sub test_flags ($self) {
     return {fatal => 1, milestone => 1};
 }
 

@@ -8,14 +8,13 @@
 #    that the slurm db accounting can be configured
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use Mojo::Base qw(hpcbase hpc::configs);
+use Mojo::Base qw(hpcbase hpc::configs), -signatures;
 use testapi;
 use lockapi;
 use utils;
 use version_utils 'is_sle';
 
-sub run {
-    my $self = shift;
+sub run ($self) {
     my $hostname = get_required_var("HOSTNAME");
 
     barrier_wait('CLUSTER_PROVISIONED');
@@ -84,12 +83,11 @@ EOF
     barrier_wait("SLURM_MASTER_RUN_TESTS");
 }
 
-sub test_flags {
+sub test_flags ($self) {
     return {fatal => 1, milestone => 1};
 }
 
-sub post_fail_hook {
-    my ($self) = @_;
+sub post_fail_hook ($self) {
     $self->select_serial_terminal;
     $self->upload_service_log('slurmd');
     $self->upload_service_log('munge');

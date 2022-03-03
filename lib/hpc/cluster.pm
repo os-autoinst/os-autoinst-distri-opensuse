@@ -7,7 +7,7 @@
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 package hpc::cluster;
-use Mojo::Base 'hpcbase';
+use Mojo::Base 'hpcbase', -signatures;
 use testapi;
 use utils;
 
@@ -15,8 +15,7 @@ our @EXPORT = qw(
   provision_cluster
 );
 
-sub provision_cluster {
-    my ($self) = @_;
+sub provision_cluster ($self) {
     my $config = << "EOF";
 sed -i '/^DHCLIENT_SET_HOSTNAME.*/c\\DHCLIENT_SET_HOSTNAME="no"' /etc/sysconfig/network/dhcp
 EOF

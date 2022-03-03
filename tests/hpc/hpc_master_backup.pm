@@ -11,13 +11,12 @@
 #    database(s) are ready to be used, artificial users are added etc.
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use Mojo::Base qw(hpcbase hpc::migration);
+use Mojo::Base qw(hpcbase hpc::migration), -signatures;
 use testapi;
 use lockapi;
 use utils;
 
-sub run {
-    my $self = shift;
+sub run ($self) {
     my $nodes = get_required_var("CLUSTER_NODES");
     $self->prepare_user_and_group();
 
@@ -53,12 +52,11 @@ sub run {
     barrier_wait('HPC_MASTER_RUN_TESTS');
 }
 
-sub test_flags {
+sub test_flags ($self) {
     return {fatal => 1, milestone => 1};
 }
 
-sub post_fail_hook {
-    my ($self) = @_;
+sub post_fail_hook ($self) {
     $self->select_serial_terminal;
     $self->upload_service_log('slurmd');
     $self->upload_service_log('munge');
