@@ -10,6 +10,7 @@ use base "virt_feature_test_base";
 use strict;
 use warnings;
 use testapi;
+use utils 'script_retry';
 use version_utils qw(is_sle);
 use set_config_as_glue;
 use virt_autotest::common;
@@ -39,7 +40,7 @@ sub run_test {
         my $nproc = script_output("ssh root\@$guest 'nproc'");
 
         # Bind all NIC IRQs to cpu0 in guest
-        my @nic_irqs_id = split('\n', script_output("ssh root\@$guest \"grep vif /proc/interrupts | cut -d ':' -f1 | sed 's/^ *//'\""));
+        my @nic_irqs_id = split('\n', script_output("ssh root\@$guest \"grep -e vif -e eth /proc/interrupts | cut -d ':' -f1 | sed 's/^ *//'\""));
         foreach my $irq_id (@nic_irqs_id) {
             assert_script_run("ssh root\@$guest \"echo 1 > /proc/irq/$irq_id/smp_affinity\"");
         }
@@ -48,8 +49,9 @@ sub run_test {
             die "Failed to bind NIC IRQs to CPU0" if $_ ne 1;
         }
 
-        # Start the irqbalance.service again
+        # Start irqbalance.service again
         assert_script_run("ssh root\@$guest \"systemctl start irqbalance\"");
+        sleep 30;    #need some time to take effect in some cases
 
         # Check if the SMP affinities are distributed among CPUs
         my @affinities_with_irqbalance = get_irq_affinities_from_guest($guest, @nic_irqs_id);
@@ -74,8 +76,7 @@ sub run_test {
         my @initial_total_irqs_on_cpu = get_nic_irqs_distribution_from_guest($guest, $nproc);
 
         # Generate network load in guest
-        my $ping_url = "download.opensuse.org";
-        assert_script_run("ssh root\@$guest \"ping -f -c 500 $ping_url\"");
+        generate_vif_interrupts_in_guest($guest);
 
         # re-caculate the network interrupts distribution
         # the increased NIC IRQs should be distributed in CPU cores in balance
@@ -83,9 +84,13 @@ sub run_test {
         my @increased_irqs_on_cpu;
         for (my $cpu_id = 0; $cpu_id < $nproc; $cpu_id++) {
             $increased_irqs_on_cpu[$cpu_id] = $total_irqs_on_cpu_after_network_download[$cpu_id] - $initial_total_irqs_on_cpu[$cpu_id];
-            die("The value of network interrupts from download for CPU" . $cpu_id . " is 0") if $increased_irqs_on_cpu[$cpu_id] == 0;
+            #at least a few interrupts on each cpu core
+            if ($increased_irqs_on_cpu[$cpu_id] < 10) {
+                #Please look into the soft failure to identify if it is a product bug or temporary lack of network load coverage
+                record_soft_failure("IRQ are not balanced as the vif interrupts for CPU" . $cpu_id . " is " . $increased_irqs_on_cpu[$cpu_id]);
+            }
         }
-        record_info("NIC IRQs distribution of 'ping $ping_url'", "@increased_irqs_on_cpu");
+        record_info("NIC IRQs distribution on $nproc cpu cores", "@increased_irqs_on_cpu");
     }
 
     restore_xml_changed_guests();
@@ -135,19 +140,13 @@ sub prepare_guest_for_irqbalance {
     #4 or more vcpu is needed
     my $nproc = script_output "virsh vcpucount --config --current $vm_name";
     if ($nproc < 4) {
+        assert_script_run "virsh shutdown $vm_name";
+        if (script_retry("virsh domstate $vm_name | grep 'shut off'", delay => 10, retry => 3, die => 0) ne 0) {
+            script_run("virsh destroy $vm_name");
+        }
         my $changed_xml_dir = "$vm_xml_save_dir/changed_xml";
-        assert_script_run "virsh dumpxml --inactive $vm_name > $vm_name.xml";
-        #save for restore the changed guests after test
-        assert_script_run "cp $vm_name.xml $changed_xml_dir/$vm_name.xml";
-        script_run "virsh destroy $vm_name";
-        assert_script_run "xmlstarlet edit -L -d /domain/vcpu $vm_name.xml";
-        assert_script_run "xmlstarlet edit -L \\
-                               -s /domain -t elem -n vcpu -v 4 \\
-			       -s /domain/vcpu -t attr -n placement -v static \\
-			       $vm_name.xml";
-        script_run "virsh undefine $vm_name" unless (script_run "virsh undefine --nvram $vm_name") == 0;
-        assert_script_run " ! virsh list --all | grep $vm_name";
-        assert_script_run "virsh define $vm_name.xml";
+        assert_script_run "virsh dumpxml $vm_name > $changed_xml_dir/$vm_name.xml";
+        assert_script_run "virt-xml $vm_name --edit --vcpus vcpus=4,maxvcpus=4";
         assert_script_run "virsh start $vm_name";
     }
 
@@ -156,15 +155,30 @@ sub prepare_guest_for_irqbalance {
 
 }
 
+# ping multiple URL to get enough vif interrupts to distribute on multiple IRQs
+sub generate_vif_interrupts_in_guest {
+    my $vm_name = shift;
+
+    #interrupts are handled by different vif IRQs from different sources
+    #and always the same IRQ handle the interrupts from same sources
+    my @ping_url_list = qw(download.opensuse.org 8.8.8.8 xen.org opensuse.org libvirt.org suse.com www.perl.org);
+    my $gateway = script_output("ssh root\@$vm_name \"ip r | grep 'default via' | cut -d ' ' -f3\"");
+    push @ping_url_list, $gateway;
+    foreach my $url (@ping_url_list) {
+        script_run("ssh root\@$vm_name \"ping -f -c 20 $url\"");
+    }
+    save_screenshot;
+}
+
 # return the total NIC IRQs on each CPU core from guest
 sub get_nic_irqs_distribution_from_guest {
     my ($vm_name, $cpu_account) = @_;
 
     my @total_irqs_on_cpu = ();
-    my $irq_output = script_output("ssh root\@$vm_name \"grep vif0 /proc/interrupts\"");
+    my $irq_output = script_output("ssh root\@$vm_name \"grep -e vif -e eth /proc/interrupts\"");
     record_info("NIC IRQs distribution", $irq_output);
     for (my $cpu_id = 0; $cpu_id < $cpu_account; $cpu_id++) {
-        my @irqs_on_one_cpu = split('\n', script_output("ssh root\@$vm_name \"awk '/vif0/{ print \\\$(($cpu_id+2)) }' /proc/interrupts\""));
+        my @irqs_on_one_cpu = split('\n', script_output("ssh root\@$vm_name \"awk '/vif|eth/{ print \\\$(($cpu_id+2)) }' /proc/interrupts\""));
         # sum of IRQs on one cpu core
         for (my $i = 0; $i <= $#irqs_on_one_cpu; $i++) {
             $total_irqs_on_cpu[$cpu_id] += $irqs_on_one_cpu[$i];
@@ -198,7 +212,7 @@ sub post_fail_hook {
         script_run("mkdir -p $log_dir && touch $log_file");
         print_cmd_output_to_file("rpm -q irqbalance", $log_file, $guest);
         print_cmd_output_to_file("systemctl status irqbalance", $log_file, $guest);
-        print_cmd_output_to_file("grep vif0 /proc/interrupts", $log_file, $guest);
+        print_cmd_output_to_file("grep -e vif -e eth /proc/interrupts", $log_file, $guest);
         print_cmd_output_to_file("cat /proc/irq/default_smp_affinity", $log_file, $guest);
         print_cmd_output_to_file("cat /proc/irq/*/smp_affinity", $log_file, $guest);
         #skip post the output of 'irqbalance --debug' because it takes too long(more than 15 minutes)
