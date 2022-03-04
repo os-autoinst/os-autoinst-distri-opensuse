@@ -11,5 +11,5 @@ vars:
   TEST_CONTEXT: 'OpenQA::Test::RunArgs'
 schedule:
   - boot/boot_to_desktop
-  - publiccloud/sles4sap/hana_sr_deployment
-  - publiccloud/sles4sap/hana_sr_stop_primary_db
+  - sles4sap/publiccloud/hana_sr_deployment
+  - sles4sap/publiccloud/hana_sr_stop_primary_db

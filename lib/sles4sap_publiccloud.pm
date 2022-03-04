@@ -14,19 +14,23 @@ use Mojo::Base 'publiccloud::basetest';
 use version_utils 'is_sle';
 use publiccloud::utils;
 use testapi;
+use Storable;
 use Data::Dumper;
 
 our @EXPORT = qw(
     run_cmd
     wait_until_resources_started
     upload_ha_sap_logs
-    is_hana_master
+    get_hana_master
     is_hana_resource_running
     stop_hana
-    register_hana
-    do_takeover
+    start_hana
+    check_takeover
     get_replication_info
     is_hana_online
+    get_hana_topology
+    enable_replication
+    identify_instances
 );
 
 # Global variables
@@ -125,17 +129,48 @@ sub upload_ha_sap_logs {
 }
 
 
-=head2 is_hana_master
-    is_hana_master();
+=head2 get_hana_master()
+    get_hana_master();
 
-Checks if given VM contains HANA master node.
+Checks and returns hostname of HANA master node.
 =cut
-sub is_hana_master {
+sub get_hana_master {
     my ($self) = @_;
-    my $hostname = $self->{my_instance}->{instance_id};
     my $resource_output = $self->run_cmd(cmd => "crm resource status msl_SAPHana_PRD_HDB00", quiet => 1);
-    my $hana_master_node = grep{/Master/ && /$hostname/} split(/\n/, $resource_output);
-    return $hana_master_node;
+    my @master = $resource_output =~ /:\s(\S+)\sMaster/g;
+    if ( scalar @master != 1 ) {
+        diag("Master database not found or command returned abnormal output.\n
+        Check 'crm resource status' command output below:\n");
+        diag($resource_output);
+        die("Master database was not found, check autoinst.log");
+    }
+
+    return join("", @master);
+}
+
+=head2 parse_showattr
+    parse_showattr([hostname => $hostname]);
+    Parses  command output, returns list of hashes containing values for each host.
+    If hostname defined, returns hash with values only for host specified.
+=cut
+sub get_hana_topology {
+    my ($self, %args) = @_;
+    my $hostname = $args{hostname};
+    my @topology;
+    my $cmd = "SAPHanaSR-showAttr | sed -E 's/\\s+/ /g' |grep -E '^(\\S+\\s){13}'";
+    $cmd = $self->run_cmd(cmd => $cmd, quiet => 1);
+    my @cmd_output = split(/\n/, $cmd);
+    my @keys = split(/\s/, $cmd_output[0]);
+    shift @cmd_output;
+
+    while (my $entry = shift(@cmd_output)){
+        my %host_entry;
+        my @host_values = split(/\s/, $entry);
+        @host_entry{@keys} = @host_values;
+        next if (defined($hostname) && $host_entry{Hosts} ne $hostname);
+        push(@topology, \%host_entry);
+    }
+    return \@topology;
 }
 
 =head2 is_hana_online
@@ -151,8 +186,7 @@ sub is_hana_online {
     my $db_status = 0;
 
     while ($db_status != 1) {
-        record_info( $self->get_replication_info()->{online} );
-        $db_status = ($self->get_replication_info()->{online} eq "true") ? 1 : 0;
+        $db_status = 1 if ($self->get_replication_info()->{online} eq "true");
         last if $wait_for_start == 0;
         last if (time - $start_time > $timeout);
         sleep 30;
@@ -226,26 +260,63 @@ sub start_hana{
 }
 
 
-=head2 do_takeover
-    do_takeover();
+=head2 check_takeover
+    check_takeover();
 
-If 'AUTOMATIC_TAKEOVER' parameter is enabled, subroutine will wait for takeover to finish.
-In case parameter is missing there will be an attempt to do the takeover.
+Checks takeover status and waits for finish until successful or reaches timeout.
 =cut
-sub do_takeover {
+# TODO: Check if takeover happened
+sub check_takeover {
     my ($self) = @_;
-    my $primary_hana_status = $self->is_hana_online();
-    die("Database is not offline") if ($primary_hana_status == 1);
+    my $hostname = $self->{my_instance}->{instance_id};
+    my $takeover_complete = 0;
+    my $fenced_hana_status = $self->is_hana_online();
+    die("Fenced database '$hostname' is not offline") if ($fenced_hana_status == 1);
 
-    return $primary_hana_status;
+    while ($takeover_complete == 0) {
+        my $topology = $self->get_hana_topology();
+
+        for my $entry (@$topology) {
+            my %host_entry = %$entry;
+            my $sync_state = $host_entry{sync_state};
+            my $takeover_host = $host_entry{Hosts};
+
+            if ($takeover_host ne $hostname && $sync_state eq "PRIM") {
+                $takeover_complete = 1;
+                record_info("Takeover status:", "Takeover complete to node '$takeover_host'" );
+                last;
+            }
+            sleep 30;
+        }
+    }
+
+    return 1;
 }
 
 =head2 register_hana
     register_hana();
 
 =cut
-sub register_hana {
-    my $cmd = "hdbnsutil -sr_register --name=HDB --remoteHost= --remoteInstance=00 --replicationMode=sync --operationMode=logreplay";
+sub enable_replication {
+    my ($self) = @_;
+    my $hostname = $self->{my_instance}->{instance_id};
+    my $topology_get = $self->get_hana_topology(hostname => $hostname);
+
+    my @topology = @$topology_get;
+
+    record_info("IN:", Dumper($topology_get));
+    record_info("DREF:", Dumper(%$topology_get));
+    record_info("Dump:", Dumper(@topology));
+    my $cmd = "hdbnsutil
+    -sr_register
+    --name=$topology{Hosts}
+    --remoteHost=$topology{remoteHost}
+    --remoteInstance=00
+    --replicationMode=$topology{srmode}
+    --operationMode=$topology{op_mode}";
+
+    record_info('CMD', $cmd);
+    #assert_script_run(cmd => $cmd);
 
 }
 
@@ -261,8 +332,43 @@ sub get_replication_info {
     # Create a hash from hdbnsutil output ,convert to lowercase with underscore instead of space.
     my %out = $output_cmd =~ /^?\s?([\/A-z\s]*\S+):\s(\S+)\n/g;
     %out = map { $_ =~ s/\s/_/g; lc $_} %out;
-    record_info('params_hash', Dumper(\%out) );
     return \%out;
+}
+
+sub identify_instances {
+    my ($self, $run_args) = @_;
+    my $instances_import_path = get_var("INSTANCES_IMPORT");
+    my $instances;
+
+    # TODO: DEPLOYMENT SKIP - REMOVE After done!!!
+    if (defined($instances_import_path) and length($instances_import_path)) {
+        $instances = retrieve($instances_import_path);
+    }
+    else {
+        $instances = $run_args->{instances};
+    }
+
+    # Identify Site A (Master) and Site B
+    foreach my $instance (@$instances) {
+        $self->{my_instance} = $instance;
+        my $instance_id = $instance->{'instance_id'};
+
+        # Skip instances without HANA db
+        next if ($instance_id !~ m/vmhana/);
+
+        my $master_node = $self->get_hana_master();
+        $self->{site_a} = $instance if ($instance_id eq $master_node);
+        $self->{site_b} = $instance if ($instance_id ne $master_node);
+    }
+
+    if ($self->{site_a}->{instance_id} eq "undef" || $self->{site_b}->{instance_id} eq "undef") {
+        die("Failed to identify Hana nodes") ;
+    }
+
+    record_info("Instances", "Detected HANA instances:
+        Site A: $self->{site_a}->{instance_id}
+        Site B: $self->{site_b}->{instance_id}")
+
 }
 
 1;

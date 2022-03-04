@@ -91,7 +91,7 @@ sub run {
                 }
 
                 # Wait for all resources to be up
-                # We need to be sure that the cluster is OK before a fencing test
+                # We need to be sure that the cluster is OK before testing
                 record_info('Cluster type', $cluster_type);
                 $self->wait_until_resources_started(cluster_type => $cluster_type, timeout => $timeout);
             }
