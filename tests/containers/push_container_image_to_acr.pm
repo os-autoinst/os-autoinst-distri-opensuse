@@ -35,11 +35,7 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
-    $self->{provider}->delete_image();
-}
-
-sub post_run_hook {
-    my ($self) = @_;
+    record_info('INFO', "Deleting image $self->tag");
     $self->{provider}->delete_image();
 }
 

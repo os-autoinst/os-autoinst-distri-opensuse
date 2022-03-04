@@ -184,6 +184,9 @@ PUBLIC_CLOUD_TTL_OFFSET | integer | 300 | This number + MAX_JOB_TIME equals the 
 PUBLIC_CLOUD_SLES4SAP | boolean | false | If set, sles4sap test module is added to the job.
 PUBLIC_CLOUD_GOOGLE_STORAGE | string | "openqa-storage" | GCP only, Name of storage where we load the system image from.
 PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID | string | "" | Used to create the service account file together with `PUBLIC_CLOUD_AZURE_TENANT_ID`.
+PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY | string | "" | Name for public cloud registry for the container images used on kubernetes tests.
+PUBLIC_CLOUD_K8S_CLUSTER | string | "" | Name for the kubernetes cluster.
+PUBLIC_CLOUD_AZURE_K8S_RESOURCE_GROUP | string | "" | Name for the resource group which is subscribed the kubernetes cluster.
 PUBLIC_CLOUD_VAULT_NAMESPACE | string | "qac" | The Vault server namespace.
 PUBLIC_CLOUD_VAULT_TIMEOUT | integer | 60 | The number of seconds we wait for the Vault server to respond.
 PUBLIC_CLOUD_VAULT_TRIES | integer | 3 | The number of attempts to connect to Vault server.
