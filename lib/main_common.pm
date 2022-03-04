@@ -2763,6 +2763,10 @@ sub load_hypervisor_tests {
         loadtest "virt_autotest/libvirt_isolated_virtual_network";
     }
 
+    if (check_var('VIRT_PART', 'irqbalance')) {
+        loadtest "virt_autotest/xen_guest_irqbalance";
+    }
+
     if (check_var('VIRT_PART', 'snapshots')) {
         loadtest "virt_autotest/virsh_internal_snapshot";
         loadtest "virt_autotest/virsh_external_snapshot";
