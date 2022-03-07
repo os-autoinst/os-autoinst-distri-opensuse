@@ -15,7 +15,7 @@ use warnings;
 sub init {
     my ($self, $args) = @_;
     $self->SUPER::init($args);
-    $self->{chb_accept_license} = $self->{app}->checkbox($args->{ch_accept_license_filter});
+    $self->{chb_accept_license} = $self->{app}->checkbox($args->{chb_accept_license_filter});
     return $self;
 }
 
