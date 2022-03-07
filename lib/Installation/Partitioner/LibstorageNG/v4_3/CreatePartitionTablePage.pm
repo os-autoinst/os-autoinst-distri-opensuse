@@ -25,14 +25,14 @@ sub new {
 sub init {
     my $self = shift;
     $self->SUPER::init();
-    $self->{rb_msdos_part_table} = $self->{app}->radiobutton({id => '"msdos"'});
-    $self->{rb_gpt_part_table} = $self->{app}->radiobutton({id => '"gpt"'});
+    $self->{rdb_msdos_part_table} = $self->{app}->radiobutton({id => '"msdos"'});
+    $self->{rdb_gpt_part_table} = $self->{app}->radiobutton({id => '"gpt"'});
     return $self;
 }
 
 sub select_partition_table_type {
     my ($self, $table_type) = @_;
-    return ($table_type eq 'msdos') ? $self->{rb_msdos_part_table}->select() : $self->{rb_gpt_part_table}->select();
+    return ($table_type eq 'msdos') ? $self->{rdb_msdos_part_table}->select() : $self->{rdb_gpt_part_table}->select();
 }
 
 1;

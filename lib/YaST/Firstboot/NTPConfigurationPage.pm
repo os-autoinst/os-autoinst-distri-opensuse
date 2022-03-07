@@ -24,13 +24,13 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    $self->{rb_only_manually} = $self->{app}->radiobutton({id => '"never"'});
+    $self->{rdb_only_manually} = $self->{app}->radiobutton({id => '"never"'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{rb_only_manually}->exist();
+    return $self->{rdb_only_manually}->exist();
 }
 
 1;

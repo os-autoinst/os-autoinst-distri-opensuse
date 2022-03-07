@@ -21,19 +21,19 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->{lbl_import_public_ssh_key} = $self->{app}->label({label => 'Import Public SSH Key'});
-    $self->{tb_confirm_password} = $self->{app}->textbox({id => 'pw2'});
-    $self->{tb_password} = $self->{app}->textbox({id => 'pw1'});
+    $self->{txb_confirm_password} = $self->{app}->textbox({id => 'pw2'});
+    $self->{txb_password} = $self->{app}->textbox({id => 'pw1'});
     return $self;
 }
 
 sub enter_password {
     my ($self, $password) = @_;
-    return $self->{tb_password}->set($password);
+    return $self->{txb_password}->set($password);
 }
 
 sub enter_confirm_password {
     my ($self, $password) = @_;
-    return $self->{tb_confirm_password}->set($password);
+    return $self->{txb_confirm_password}->set($password);
 }
 
 sub is_shown {

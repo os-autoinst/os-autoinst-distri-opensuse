@@ -24,18 +24,18 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    $self->{rt_finish_setup} = $self->{app}->richtext({type => 'YRichText'});
+    $self->{rct_finish_setup} = $self->{app}->richtext({type => 'YRichText'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{rt_finish_setup}->exist();
+    return $self->{rct_finish_setup}->exist();
 }
 
 sub get_text {
     my ($self) = @_;
-    return $self->{rt_finish_setup}->text();
+    return $self->{rct_finish_setup}->text();
 }
 
 1;

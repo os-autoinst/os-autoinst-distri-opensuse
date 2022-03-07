@@ -23,23 +23,23 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    $self->{sel_role} = $self->{app}->itemselector({id => 'role_selector'});
+    $self->{its_role} = $self->{app}->itemselector({id => 'role_selector'});
     return $self;
 }
 
 sub get_selected_roles {
     my ($self) = @_;
-    return $self->{sel_role}->selected_items();
+    return $self->{its_role}->selected_items();
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{sel_role}->exist();
+    return $self->{its_role}->exist();
 }
 
 sub select_system_role {
     my ($self, $role) = @_;
-    return $self->{sel_role}->select($role);
+    return $self->{its_role}->select($role);
 }
 
 1;

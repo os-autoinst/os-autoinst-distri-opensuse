@@ -22,8 +22,8 @@ sub new {
 sub init {
     my $self = shift;
     $self->SUPER::init();
-    $self->{tb_pass} = $self->{app}->textbox({id => 'pw1'});
-    $self->{tb_pass_reenter} = $self->{app}->textbox({id => 'pw2'});
+    $self->{txb_pass} = $self->{app}->textbox({id => 'pw1'});
+    $self->{txb_pass_reenter} = $self->{app}->textbox({id => 'pw2'});
     return $self;
 }
 
@@ -36,12 +36,12 @@ sub set_encryption {
 
 sub enter_password {
     my ($self, $password) = @_;
-    return $self->{tb_pass}->set($password);
+    return $self->{txb_pass}->set($password);
 }
 
 sub reenter_password {
     my ($self, $password) = @_;
-    return $self->{tb_pass_reenter}->set($password);
+    return $self->{txb_pass_reenter}->set($password);
 }
 
 1;

@@ -15,24 +15,24 @@ use warnings;
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    $self->{tbx_repo_name} = $self->{app}->textbox({id => 'repo_name'});
-    $self->{tbx_url} = $self->{app}->textbox({id => 'url'});
+    $self->{txb_repo_name} = $self->{app}->textbox({id => 'repo_name'});
+    $self->{txb_url} = $self->{app}->textbox({id => 'url'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{tbx_url}->exist();
+    return $self->{txb_url}->exist();
 }
 
 sub enter_repo_name {
     my ($self, $name) = @_;
-    $self->{tbx_repo_name}->set($name);
+    $self->{txb_repo_name}->set($name);
 }
 
 sub enter_url {
     my ($self, $url) = @_;
-    $self->{tbx_url}->set($url);
+    $self->{txb_url}->set($url);
 }
 
 1;

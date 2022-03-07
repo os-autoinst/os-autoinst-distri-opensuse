@@ -23,30 +23,30 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    $self->{sbox_addons} = $self->{app}->selectionbox({id => 'addon_repos'});
+    $self->{slb_addons} = $self->{app}->selectionbox({id => 'addon_repos'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{sbox_addons}->exist();
+    return $self->{slb_addons}->exist();
 }
 
 sub get_modules {
     my ($self) = @_;
-    return $self->{sbox_addons}->items();
+    return $self->{slb_addons}->items();
 }
 
 sub get_selected_modules {
     my ($self) = @_;
-    return $self->{sbox_addons}->selected_items();
+    return $self->{slb_addons}->selected_items();
 }
 
 sub select_module {
     my ($self, $module) = @_;
     my @modules = $self->get_modules();
     my ($module_full_name) = grep(/$module/i, @modules);
-    return $self->{sbox_addons}->check($module_full_name);
+    return $self->{slb_addons}->check($module_full_name);
 }
 
 sub select_modules {

@@ -17,8 +17,8 @@ sub init {
     $self->SUPER::init();
     $self->{chb_enable_lvm} = $self->{app}->checkbox({id => 'lvm'});
     $self->{chb_enable_disk_encryption} = $self->{app}->checkbox({id => 'encryption'});
-    $self->{tb_password} = $self->{app}->textbox({id => 'password'});
-    $self->{tb_repeat_password} = $self->{app}->textbox({id => 'repeat_password'});
+    $self->{txb_password} = $self->{app}->textbox({id => 'password'});
+    $self->{txb_repeat_password} = $self->{app}->textbox({id => 'repeat_password'});
     return $self;
 }
 
@@ -39,12 +39,12 @@ sub select_enable_disk_encryption {
 
 sub enter_password {
     my ($self, $password) = @_;
-    return $self->{tb_password}->set($password);
+    return $self->{txb_password}->set($password);
 }
 
 sub enter_confirm_password {
     my ($self, $password) = @_;
-    return $self->{tb_repeat_password}->set($password);
+    return $self->{txb_repeat_password}->set($password);
 }
 
 sub is_shown {

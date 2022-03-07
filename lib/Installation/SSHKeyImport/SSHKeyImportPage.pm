@@ -23,27 +23,27 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{cb_import} = $self->{app}->checkbox({id => 'import_ssh_key'});
-    $self->{cb_copy_config} = $self->{app}->checkbox({id => 'copy_config'});
+    $self->{chb_import} = $self->{app}->checkbox({id => 'import_ssh_key'});
+    $self->{chb_copy_config} = $self->{app}->checkbox({id => 'copy_config'});
     $self->{btn_accept} = $self->{app}->button({id => 'accept'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    my $is_shown = $self->{cb_import}->exist();
+    my $is_shown = $self->{chb_import}->exist();
     save_screenshot if $is_shown;
     return $is_shown;
 }
 
 sub enable_ssh_import {
     my ($self) = @_;
-    return $self->{cb_import}->check();
+    return $self->{chb_import}->check();
 }
 
 sub disable_ssh_import {
     my ($self) = @_;
-    return $self->{cb_import}->uncheck();
+    return $self->{chb_import}->uncheck();
 }
 
 sub press_accept {

@@ -16,13 +16,13 @@ sub init {
     my ($self) = @_;
     $self->SUPER::init();
     $self->{cmb_bootloader} = $self->{app}->combobox({id => "\"Bootloader::LoaderTypeWidget\""});
-    $self->{cb_write_to_partition} = $self->{app}->checkbox({id => 'boot'});
-    $self->{cb_bootdev} = $self->{app}->checkbox({id => 'mbr'});
-    $self->{cb_custom_boot} = $self->{app}->checkbox({id => 'custom'});
+    $self->{chb_write_to_partition} = $self->{app}->checkbox({id => 'boot'});
+    $self->{chb_bootdev} = $self->{app}->checkbox({id => 'mbr'});
+    $self->{chb_custom_boot} = $self->{app}->checkbox({id => 'custom'});
     $self->{cmb_mbr_flag} = $self->{app}->combobox({id => '"Bootloader::PMBRWidget"'});
-    $self->{cb_trusted_boot} = $self->{app}->checkbox({id => '"Bootloader::TrustedBootWidget"'});
-    $self->{cb_generic_to_mbr} = $self->{app}->checkbox({id => '"Bootloader::GenericMBRWidget"'});
-    $self->{cb_set_active_flag} = $self->{app}->checkbox({id => '"Bootloader::ActivateWidget"'});
+    $self->{chb_trusted_boot} = $self->{app}->checkbox({id => '"Bootloader::TrustedBootWidget"'});
+    $self->{chb_generic_to_mbr} = $self->{app}->checkbox({id => '"Bootloader::GenericMBRWidget"'});
+    $self->{chb_set_active_flag} = $self->{app}->checkbox({id => '"Bootloader::ActivateWidget"'});
     $self->{tab_boot_loader_settings} = $self->{app}->tab({id => '"CWM::DumbTabPager"'});
     $self->{btn_ok} = $self->{app}->button({id => 'next'});
     $self->{btn_cancel} = $self->{app}->button({id => 'abort'});
@@ -41,22 +41,22 @@ sub get_bootloader_type {
 
 sub get_write_to_mbr {
     my ($self) = @_;
-    return $self->{cb_bootdev}->is_checked();
+    return $self->{chb_bootdev}->is_checked();
 }
 
 sub get_write_to_custom {
     my ($self) = @_;
-    return $self->{cb_custom_boot}->is_checked();
+    return $self->{chb_custom_boot}->is_checked();
 }
 
 sub get_trusted_boot_support {
     my ($self) = @_;
-    return $self->{cb_custom_boot}->is_checked();
+    return $self->{chb_custom_boot}->is_checked();
 }
 
 sub get_write_to_partition {
     my ($self) = @_;
-    return $self->{cb_write_to_partition}->is_checked();
+    return $self->{chb_write_to_partition}->is_checked();
 }
 
 sub get_protective_mbr_flag {
@@ -66,27 +66,27 @@ sub get_protective_mbr_flag {
 
 sub get_set_active_flag {
     my ($self) = @_;
-    return $self->{cb_set_active_flag}->is_checked();
+    return $self->{chb_set_active_flag}->is_checked();
 }
 
 sub get_write_generic_to_mbr {
     my ($self) = @_;
-    return $self->{cb_generic_to_mbr}->is_checked();
+    return $self->{chb_generic_to_mbr}->is_checked();
 }
 
 sub check_write_to_partition {
     my ($self) = @_;
-    $self->{cb_write_to_partition}->check();
+    $self->{chb_write_to_partition}->check();
 }
 
 sub check_write_generic_to_mbr {
     my ($self) = @_;
-    $self->{cb_generic_to_mbr}->check();
+    $self->{chb_generic_to_mbr}->check();
 }
 
 sub uncheck_write_to_mbr {
     my ($self) = @_;
-    $self->{cb_bootdev}->uncheck();
+    $self->{chb_bootdev}->uncheck();
 }
 
 sub switch_to_bootloader_options_tab {
