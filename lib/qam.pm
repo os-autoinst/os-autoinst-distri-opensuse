@@ -18,7 +18,8 @@ use List::Util qw(max);
 use version_utils 'is_sle';
 
 our @EXPORT
-  = qw(capture_state check_automounter is_patch_needed add_test_repositories ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables);
+  = qw(capture_state check_automounter is_patch_needed add_test_repositories disable_test_repositories enable_test_repositories
+  ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables);
 use constant ZYPPER_PACKAGE_COL => 1;
 use constant OLD_ZYPPER_STATUS_COL => 4;
 use constant ZYPPER_STATUS_COL => 5;
@@ -104,6 +105,27 @@ sub add_test_repositories {
     # refresh repositories, inf 106 is accepted because repositories with test
     # can be removed before test start
     zypper_call('ref', timeout => 1400, exitcode => [0, 106]);
+
+    # return the count of repos-1 because counter is increased also on last cycle
+    return --$counter;
+}
+
+sub disable_test_repositories {
+    my $count = scalar(shift);
+
+    record_info 'Disable update repos';
+    for my $i (0 .. $count) {
+        zypper_call("mr -d -G 'TEST_$i'");
+    }
+}
+
+sub enable_test_repositories {
+    my $count = scalar(shift);
+
+    record_info 'Enable update repos';
+    for my $i (0 .. $count) {
+        zypper_call("mr -e -G 'TEST_$i'");
+    }
 }
 
 # Function that will add all test repos to SSH guest

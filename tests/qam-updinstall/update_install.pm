@@ -182,6 +182,8 @@ sub run {
         for my $b (@unsupported) { push(@patch_unsupported, $b) if grep($b eq $_, @conflict_names); }
         %patch_bins = map { $_ => ${bins}{$_} } (@patch_l2, @patch_l3);
 
+        disable_test_repositories($repos_count);
+
         foreach my $b (@patch_l2, @patch_l3) {
             if (zypper_call("se -t package -x $b", exitcode => [0, 104]) eq '104') {
                 push(@new_binaries, $b);
@@ -219,6 +221,8 @@ sub run {
         foreach (keys %patch_bins) {
             $patch_bins{$_}->{old} = get_installed_bin_version($_);
         }
+
+        enable_test_repositories($repos_count);
 
         # Patch binaries already installed.
         record_info 'Install patch', "Install patch $patch";
