@@ -14,11 +14,13 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use Mojo::Util 'trim';
 use Utils::Architectures;
 use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap is_microos is_sle_micro is_released);
 
 our @EXPORT = qw(
   get_opensuse_registry_prefix
+  get_urls_from_var
   get_suse_container_urls
   get_3rd_party_images
 );
@@ -258,6 +260,14 @@ our %images_uri = (
 sub supports_image_arch {
     my ($distri, $version, $arch) = @_;
     (grep { $_ eq $arch } @{$images_uri{$distri}{$version}{available_arch}}) ? 1 : 0;
+}
+
+# Returns a tuple of image urls.
+# If empty, no images available.
+sub get_urls_from_var {
+    my $var = shift;
+    my @urls = split(/,/, trim(get_var($var)));
+    return (\@urls);
 }
 
 # Returns a tuple of image urls and their matching released "stable" counterpart.

@@ -9,19 +9,22 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
-use containers::urls 'get_suse_container_urls';
+use containers::urls qw(get_suse_container_urls get_urls_from_var);
 
 sub run {
     my ($self, $args) = @_;
 
     $self->select_serial_terminal;
 
-    my ($untested_images, $released_images) = get_suse_container_urls();
-
     my $provider = $self->provider_factory(service => 'ECR');
     $self->{provider} = $provider;
 
-    my $image = $untested_images->[0];
+    my $image;
+    unless ($image = get_urls_from_var('CONTAINER_IMAGES_TO_TEST')->[0]) {
+        # Get list of images from CONTAINER_IMAGES_TO_TEST or use the default
+        my ($untested_images, $released_images) = get_suse_container_urls();
+        $image = $untested_images->[0];
+    }
     my $tag = $provider->get_default_tag();
     $self->{tag} = $tag;
 
