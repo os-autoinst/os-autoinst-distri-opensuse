@@ -12,4 +12,5 @@ vars:
 schedule:
   - boot/boot_to_desktop
   - sles4sap/publiccloud/hana_sr_deployment
-  - sles4sap/publiccloud/hana_sr_stop_primary_db
+  - sles4sap/publiccloud/hana_sr_stop_site_A
+  - sles4sap/publiccloud/hana_sr_stop_site_B

@@ -14,7 +14,6 @@ use Mojo::Base 'publiccloud::basetest';
 use version_utils 'is_sle';
 use publiccloud::utils;
 use testapi;
-use Storable;
 use Data::Dumper;
 
 our @EXPORT = qw(
@@ -30,7 +29,7 @@ our @EXPORT = qw(
     is_hana_online
     get_hana_topology
     enable_replication
-    identify_instances
+    cleanup_resource
 );
 
 # Global variables
@@ -168,6 +167,7 @@ sub get_hana_topology {
         my @host_values = split(/\s/, $entry);
         @host_entry{@keys} = @host_values;
         next if (defined($hostname) && $host_entry{Hosts} ne $hostname);
+        return \%host_entry if (defined($hostname) && $host_entry{Hosts} eq $hostname);
         push(@topology, \%host_entry);
     }
     return \@topology;
@@ -205,7 +205,7 @@ sub is_hana_resource_running {
     my $hostname = $self->{my_instance}->{instance_id};
 
     my $resource_output = $self->run_cmd(cmd => "crm resource status msl_SAPHana_PRD_HDB00", quiet => 1);
-    my $node_status = grep{/Masters|Slaves|Started/ && /$hostname/} split(/\n/, $resource_output);
+    my $node_status = grep{/$hostname/} split(/\n/, $resource_output) ? 1 : 0;
     return $node_status;
 }
 
@@ -251,14 +251,37 @@ sub stop_hana {
 =head2 start_hana
     start_hana([timeout => 60]);
 
-Starts hana database using 'HDB start' and waits for resources being started.
+Start HANA DB using "HDB start" command
 
 =cut
 
 sub start_hana{
-    record_info('Not implemented yet')
+    my ($self) = @_;
+    $self->run_cmd(cmd => "HDB start", runas=>"prdadm");
 }
 
+=head2 cleanup_resource
+    cleanup_resource([timeout => 60]);
+
+Cleanup rsource 'msl_SAPHana_PRD_HDB00', wait for DB start automaticlly.
+
+=cut
+
+sub cleanup_resource{
+    my ($self, %args) = @_;
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
+    $self->run_cmd(cmd => "crm resource cleanup msl_SAPHana_PRD_HDB00");
+
+    # Wait for resource to stop
+    my $start_time = time;
+    while (!$self->is_hana_resource_running()) {
+        if (time - $start_time > $timeout){
+            record_info("Cluster status", $self->run_cmd(cmd => $crm_mon_cmd));
+            die("Resource did not start within defined timeout. ($timeout sec).");
+        }
+        sleep 30;
+    }
+}
 
 =head2 check_takeover
     check_takeover();
@@ -300,23 +323,18 @@ sub check_takeover {
 sub enable_replication {
     my ($self) = @_;
     my $hostname = $self->{my_instance}->{instance_id};
-    my $topology_get = $self->get_hana_topology(hostname => $hostname);
+    my $topology_out = $self->get_hana_topology(hostname => $hostname);
+    my %topology = %$topology_out;
 
-    my @topology = @$topology_get;
+    my $cmd = "hdbnsutil -sr_register " .
+    "--name=$topology{Hosts} " .
+    "--remoteHost=$topology{remoteHost} " .
+    "--remoteInstance=00 " .
+    "--replicationMode=$topology{srmode} " .
+    "--operationMode=$topology{op_mode}";
 
-    record_info("IN:", Dumper($topology_get));
-    record_info("DREF:", Dumper(%$topology_get));
-    record_info("Dump:", Dumper(@topology));
-    my $cmd = "hdbnsutil
-    -sr_register
-    --name=$topology{Hosts}
-    --remoteHost=$topology{remoteHost}
-    --remoteInstance=00
-    --replicationMode=$topology{srmode}
-    --operationMode=$topology{op_mode}";
-
-    record_info('CMD', $cmd);
-    #assert_script_run(cmd => $cmd);
+    record_info('CMD Run', $cmd);
+    $self->run_cmd(cmd => $cmd, runas => "prdadm");
 
 }
 
@@ -333,42 +351,6 @@ sub get_replication_info {
     my %out = $output_cmd =~ /^?\s?([\/A-z\s]*\S+):\s(\S+)\n/g;
     %out = map { $_ =~ s/\s/_/g; lc $_} %out;
     return \%out;
-}
-
-sub identify_instances {
-    my ($self, $run_args) = @_;
-    my $instances_import_path = get_var("INSTANCES_IMPORT");
-    my $instances;
-
-    # TODO: DEPLOYMENT SKIP - REMOVE After done!!!
-    if (defined($instances_import_path) and length($instances_import_path)) {
-        $instances = retrieve($instances_import_path);
-    }
-    else {
-        $instances = $run_args->{instances};
-    }
-
-    # Identify Site A (Master) and Site B
-    foreach my $instance (@$instances) {
-        $self->{my_instance} = $instance;
-        my $instance_id = $instance->{'instance_id'};
-
-        # Skip instances without HANA db
-        next if ($instance_id !~ m/vmhana/);
-
-        my $master_node = $self->get_hana_master();
-        $self->{site_a} = $instance if ($instance_id eq $master_node);
-        $self->{site_b} = $instance if ($instance_id ne $master_node);
-    }
-
-    if ($self->{site_a}->{instance_id} eq "undef" || $self->{site_b}->{instance_id} eq "undef") {
-        die("Failed to identify Hana nodes") ;
-    }
-
-    record_info("Instances", "Detected HANA instances:
-        Site A: $self->{site_a}->{instance_id}
-        Site B: $self->{site_b}->{instance_id}")
-
 }
 
 1;

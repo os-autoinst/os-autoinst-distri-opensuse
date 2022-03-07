@@ -30,6 +30,7 @@ sub run {
     my $timeout = 120;
     my @cluster_types = split(',', get_required_var('CLUSTER_TYPES'));
     # TODO: DEPLOYMENT SKIP - REMOVE!!!
+    my $instances_import_path = get_var("INSTANCES_IMPORT");
     my $instances_export_path = get_var("INSTANCES_EXPORT");
     my $skip_deployment = get_var('INSTANCES_IMPORT');
 
@@ -39,6 +40,10 @@ sub run {
     if (defined($skip_deployment) and length($skip_deployment)){
         assert_script_run("ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa");
         copy_ssh_keys();
+        $self->{instances} = $run_args->{instances} = retrieve($instances_import_path);
+        $self->identify_instances();
+        $run_args->{site_a} = $self->{site_a};
+        $run_args->{site_b} = $self->{site_b};
         return;
     }
 
@@ -74,6 +79,11 @@ sub run {
 
     $run_args->{instances} = \@instances_export;
 
+    # adds site_a and site_b into $run_args - will be used by all tests
+    $self->identify_instances();
+    $run_args->{site_a} = $self->{site_a};
+    $run_args->{site_b} = $self->{site_b};
+
     foreach my $instance (@instances) {
         record_info("instance dump", Dumper($instance));
         $self->{my_instance} = $instance;
@@ -98,6 +108,33 @@ sub run {
         }
         record_info("$hostname created")
     }
+}
+
+sub identify_instances {
+    my ($self) = @_;
+    my $instances = $self->{instances};
+
+    # Identify Site A (Master) and Site B
+    foreach my $instance (@$instances) {
+        $self->{my_instance} = $instance;
+        my $instance_id = $instance->{'instance_id'};
+
+        # Skip instances without HANA db
+        next if ($instance_id !~ m/vmhana/);
+
+        my $master_node = $self->get_hana_master();
+        $self->{site_a} = $instance if ($instance_id eq $master_node);
+        $self->{site_b} = $instance if ($instance_id ne $master_node);
+    }
+
+    if ($self->{site_a}->{instance_id} eq "undef" || $self->{site_b}->{instance_id} eq "undef") {
+        die("Failed to identify Hana nodes") ;
+    }
+
+    record_info("Instances:", "Detected HANA instances:
+        Site A: $self->{site_a}->{instance_id}
+        Site B: $self->{site_b}->{instance_id}")
+
 }
 
 =head2 copy_ssh_keys
