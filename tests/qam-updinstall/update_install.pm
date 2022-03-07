@@ -99,12 +99,13 @@ sub run {
     my ($self) = @_;
     my $incident_id = get_required_var('INCIDENT_ID');
     my $repos = get_required_var('INCIDENT_REPO');
-    # Sort binaries into:
     my %installable;    #Binaries already released that can already be installed.
     my @new_binaries;    #Binaries introduced by the update that will be installed after the repos are added.
     my %bins;
 
     $self->select_serial_terminal;
+
+    my $zypper_version = script_output(q(rpm -q zypper|awk -F. '{print$2}'));
 
     zypper_call(q{mr -d $(zypper lr | awk -F '|' '/NVIDIA/ {print $2}')}, exitcode => [0, 3]);
     zypper_call("ar -f http://dist.suse.de/ibs/SUSE/Updates/SLE-Live-Patching/12-SP3/" . get_var('ARCH') . "/update/ sle-module-live-patching:12-SP3::update") if is_sle('=12-SP3');
@@ -184,8 +185,7 @@ sub run {
         foreach my $b (@patch_l2, @patch_l3) {
             if (zypper_call("se -t package -x $b", exitcode => [0, 104]) eq '104') {
                 push(@new_binaries, $b);
-            }
-            else {
+            } else {
                 $installable{$b} = 1;
             }
         }
@@ -201,17 +201,18 @@ sub run {
             if ($installable{$conflict}) {
                 record_info "CONFLICT!", "$package conflicts with $conflict. Skipping $conflict.";
                 delete $installable{$conflict};
-            }
-            else {
+            } else {
                 record_info "CONFLICT!", "$package conflicts with $conflict. Removing $conflict.";
                 zypper_call("rm $conflict", exitcode => [0, 104]);
             }
         }
 
         # Install released version of installable binaries.
+        # Make sure on SLE 15+ zyppper 1.14+ with '--force-resolution --solver-focus Update' patched binaries are installed
+        my $solver_focus = $zypper_version >= 14 ? '--force-resolution --solver-focus Update ' : '';
         if (scalar(keys %installable)) {
             record_info 'Preinstall', 'Install affected packages before update repo is enabled';
-            zypper_call("in -l " . join(' ', keys %installable), exitcode => [0, 102, 103], log => "prepare_$patch.log", timeout => 1500);
+            zypper_call("in -l $solver_focus" . join(' ', keys %installable), exitcode => [0, 102, 103], log => "prepare_$patch.log", timeout => 1500);
         }
 
         # Store the version of the installed binaries before the update.
@@ -239,8 +240,7 @@ sub run {
         foreach (@l3) {
             if ($patch_bins{$_}->{old} eq $patch_bins{$_}->{new} or not $patch_bins{$_}->{new}) {
                 $patch_bins{$_}->{update_status} = 0;
-            }
-            else {
+            } else {
                 $patch_bins{$_}->{update_status} = 1;
             }
         }
