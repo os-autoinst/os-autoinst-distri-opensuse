@@ -18,9 +18,9 @@ sub init {
     my ($self, $args) = @_;
     $self->{LicenseAgreementPage} = Installation::License::LicenseAgreementExplicitPage->new({
             app => YuiRestClient::get_app(),
-            ch_accept_license_filter => {id => '"eula_//usr/share/firstboot/custom"'},
-            cb_language_filter => {id => '"license_language_//usr/share/firstboot/custom"'},
-            rt_eula_filter => {id => '"welcome_text_//usr/share/firstboot/custom"'}});
+            chb_accept_license_filter => {id => '"eula_//usr/share/firstboot/custom"'},
+            cmb_language_filter => {id => '"license_language_//usr/share/firstboot/custom"'},
+            rct_eula_filter => {id => '"welcome_text_//usr/share/firstboot/custom"'}});
     return $self;
 }
 
