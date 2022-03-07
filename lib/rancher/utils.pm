@@ -42,8 +42,6 @@ sub kubectl_basic_test {
     assert_script_run "kubectl get namespaces --all-namespaces -o wide";
     assert_script_run "kubectl get endpoints --all-namespaces -o wide";
     assert_script_run "kubectl get deployments --all-namespaces -o wide";
-    assert_script_run "kubectl get replicasets --all-namespaces -o wide";
-    assert_script_run "kubectl get ingresses --all-namespaces -o wide";
     assert_script_run "kubectl cluster-info";
 }
 

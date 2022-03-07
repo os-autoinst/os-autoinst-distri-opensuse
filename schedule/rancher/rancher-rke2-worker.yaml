@@ -1,0 +1,15 @@
+---
+name: rancher
+description:    >
+    Tests for Rancher rke2 worker in openSUSE
+conditional_schedule:
+  boot:
+    FLAVOR:
+      rancher-rke2:
+        - boot/boot_to_desktop
+      JeOS-rancher-rke2:
+        - installation/bootloader_uefi
+        - jeos/firstrun
+schedule:
+    - '{{boot}}'
+    - rancher/rancher_rke2_worker
