@@ -16,17 +16,15 @@
 #   associated database
 # - injected error is correctly recorded
 #
-# Maintainer: Sebastian Chlad <schlad@suse.de>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 # Tags: https://fate.suse.com/318824
 
-use base 'hpcbase';
-use strict;
-use warnings;
+use Mojo::Base 'hpcbase', -signatures;
 use testapi;
 use Utils::Architectures;
 use utils;
 
-sub inject_error {
+sub inject_error() {
     # Inject some software errors
     script_run('echo 0x9c00410000080f2b > /sys/kernel/debug/mce-inject/status');
     script_run('echo d5a099a9 > /sys/kernel/debug/mce-inject/addr');
@@ -35,9 +33,7 @@ sub inject_error {
     script_run("echo \"sw\" > /sys/kernel/debug/mce-inject/flags");
 }
 
-sub run {
-    my $self = shift;
-
+sub run ($self) {
     # load kernel module
     assert_script_run('modprobe mce-inject') if (is_x86_64 && check_var('VERSION', '15-SP2'));
 
@@ -88,8 +84,7 @@ sub run {
     ##TODO: try to add error injection for ARM
 }
 
-sub post_fail_hook {
-    my ($self) = @_;
+sub post_fail_hook ($self) {
     $self->select_serial_terminal;
     $self->export_logs_basic;
 }

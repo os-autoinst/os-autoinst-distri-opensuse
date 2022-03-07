@@ -6,18 +6,15 @@
 # Summary: HPC_Module: pdsh slave
 #    This test is setting up a pdsh scenario according to the testcase
 #    described in FATE
-# Maintainer: soulofdestiny <mgriessmeier@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 # Tags: https://fate.suse.com/321714
 
-use base 'hpcbase';
-use strict;
-use warnings;
+use Mojo::Base 'hpcbase', -signatures;
 use testapi;
 use lockapi;
 use utils;
 
-sub run {
-    my $self = shift;
+sub run ($self) {
     my $server_hostname = get_required_var("PDSH_MASTER_HOSTNAME");
 
     my $packages_to_install = 'munge pdsh';
@@ -43,12 +40,11 @@ sub run {
     barrier_wait("PDSH_SLAVE_DONE");
 }
 
-sub test_flags {
+sub test_flags ($self) {
     return {fatal => 1, milestone => 1};
 }
 
-sub post_fail_hook {
-    my ($self) = @_;
+sub post_fail_hook ($self) {
     $self->select_serial_terminal;
     upload_logs '/tmp/pdsh.log';
     $self->upload_service_log('munge');

@@ -14,12 +14,9 @@
 #    could be checked before and after online zypper migration.
 #    See: README.migration
 #
-# Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use base 'hpcbase';
-use base 'hpc::migration';
-use strict;
-use warnings;
+use Mojo::Base qw(hpcbase hpc::migration);
 use testapi;
 use lockapi;
 use utils;

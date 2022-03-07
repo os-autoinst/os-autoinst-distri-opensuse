@@ -6,19 +6,15 @@
 # Summary: HPC_Module: genders
 #    This test is setting up a genders scenario according to the testcase
 #    described in FATE 324149
-# Maintainer: Petr Cervinka <pcervinka@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 # Tags: https://fate.suse.com/324149
 
-use base 'hpcbase';
-use strict;
-use warnings;
+use Mojo::Base 'hpcbase', -signatures;
 use testapi;
 use lockapi;
 use utils;
 
-sub run {
-    my $self = shift;
-
+sub run ($self) {
     # Install genders package
     zypper_call('in genders');
 

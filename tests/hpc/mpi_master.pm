@@ -8,15 +8,14 @@
 #     available nodes. Test meant to be run in VMs, so thus using ethernet
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use Mojo::Base qw(hpcbase hpc::utils);
+use Mojo::Base qw(hpcbase hpc::utils), -signatures;
 use testapi;
 use lockapi;
 use utils;
 use registration;
 use version_utils 'is_sle';
 
-sub run {
-    my $self = shift;
+sub run ($self) {
     my $mpi = $self->get_mpi();
     my ($mpi_compiler, $mpi_c) = $self->get_mpi_src();
 
@@ -82,12 +81,11 @@ sub run {
     barrier_wait('MPI_RUN_TEST');
 }
 
-sub test_flags {
+sub test_flags ($self) {
     return {fatal => 1, milestone => 1};
 }
 
-sub post_fail_hook {
-    my $self = shift;
+sub post_fail_hook ($self) {
     upload_logs('/tmp/make.out');
     upload_logs('/tmp/mpirun.out');
     upload_logs('/tmp/mpi_bin.log');

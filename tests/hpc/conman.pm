@@ -9,19 +9,14 @@
 #
 #    This tests the conman package from the HPC module
 #
-# Maintainer: Matthias Griessmeier <mgriessmeier@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
-
-use base 'hpcbase';
-use strict;
-use warnings;
+use Mojo::Base 'hpcbase', -signatures;
 use testapi;
 use utils;
 use susedistribution;
 
-sub run {
-    my $self = shift;
-
+sub run ($self) {
     zypper_call('in conman');
 
     # test with unix domain socket
@@ -68,8 +63,7 @@ sub run {
     send_key 'ctrl-d';
 }
 
-sub post_fail_hook {
-    my ($self) = @_;
+sub post_fail_hook ($self) {
     $self->select_serial_terminal;
     $self->upload_service_log('conmand');
     $self->SUPER::post_fail_hook;
