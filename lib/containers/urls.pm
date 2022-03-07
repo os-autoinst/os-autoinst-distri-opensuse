@@ -21,6 +21,7 @@ use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap is_microos is_sle_
 our @EXPORT = qw(
   get_opensuse_registry_prefix
   get_urls_from_var
+  get_container_test_image
   get_suse_container_urls
   get_3rd_party_images
 );
@@ -329,6 +330,16 @@ sub get_3rd_party_images {
     ) unless (is_aarch64 || check_var('PUBLIC_CLOUD_ARCH', 'arm64'));
 
     return (\@images);
+}
+
+# Get the container image under test defined either in CONTAINER_IMAGE_TO_TEST or the default container for the currently running SLES version
+sub get_container_test_image {
+    my $image = get_var('CONTAINER_IMAGE_TO_TEST', '');
+    return $image if (defined $image && $image ne '');
+
+    # If not defined return the first entry of the default list
+    my ($untested_images, $released_images) = get_suse_container_urls();
+    return $untested_images->[0];
 }
 
 1;

@@ -29,7 +29,7 @@ sub run {
     for my $version (split(/,/, $versions)) {
         my $images_to_test;
         # Get list of images from CONTAINER_IMAGES_TO_TEST or use the default
-        unless ($images_to_test = get_urls_from_var('CONTAINER_IMAGES_TO_TEST')) {
+        unless ($images_to_test = get_urls_from_var('CONTAINER_IMAGE_TO_TEST')) {
             my ($untested_images, $released_images) = get_suse_container_urls(version => $version);
             $images_to_test = check_var('CONTAINERS_UNTESTED_IMAGES', '1') ? $untested_images : $released_images;
         }
