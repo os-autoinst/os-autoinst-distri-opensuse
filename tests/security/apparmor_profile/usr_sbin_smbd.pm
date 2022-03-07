@@ -1,4 +1,4 @@
-# Copyright 2019-2021 SUSE LLC
+# Copyright 2019-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: samba samba-client yast2-samba-client yast2-samba-server nautilus
@@ -173,21 +173,21 @@ sub run {
     # Check if $profile_name is in "enforce" mode
     $self->aa_status_stdout_check($named_profile, "enforce");
 
-    # Restart apparmor, smb
+    # Restart apparmor
     systemctl("restart apparmor");
-    systemctl("restart smb");
     validate_script_output("systemctl is-active apparmor", sub { m/active/ });
 
-    # Cleanup audit log
+    # Cleanup audit log, restart smb
     assert_script_run("echo > $audit_log");
+    systemctl("restart smb");
 
     # Access the shared folder by "Windows Share"
     $self->samba_client_access("$ip");
 
-    # Verify audit log contains no "DENIED" "samba" operations
+    # Verify audit log contains no "DENIED" (etc. "samba/smbd") operations
     my $script_output = script_output("cat $audit_log");
-    if ($script_output =~ m/type=AVC .*apparmor=.*DENIED.* profile=.*smbd.*/sx) {
-        record_info("ERROR", "There are denied change_hat records found in $audit_log", result => 'fail');
+    if ($script_output =~ m/type=AVC .*apparmor=.*DENIED.* profile=.*/sx) {
+        record_info("ERROR", "There are denied records found in $audit_log", result => 'fail');
         $self->result('fail');
     }
 
