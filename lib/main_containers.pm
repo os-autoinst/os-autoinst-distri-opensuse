@@ -30,7 +30,7 @@ sub is_container_test {
 }
 
 sub is_container_image_test {
-    return get_var('CONTAINERS_UNTESTED_IMAGES', 0);
+    return get_var('CONTAINERS_UNTESTED_IMAGES', 0) || get_var('BCI_TESTS', 0);
 }
 
 sub is_expanded_support_host {
@@ -133,9 +133,16 @@ sub load_container_tests {
 
     foreach (split(',\s*', $runtime)) {
         if (is_container_image_test()) {
-            # Container Image tests
-            load_image_tests_podman() if (/podman/i);
-            load_image_tests_docker() if (/docker/i);
+            if (get_var('BCI_TESTS')) {
+                # External bci-tests pytest suite
+                loadtest 'containers/bci_prepare';
+                loadtest 'containers/bci_test';
+            }
+            else {
+                # Common openQA image tests
+                load_image_tests_podman() if (/podman/i);
+                load_image_tests_docker() if (/docker/i);
+            }
         }
         else {
             # Container Host tests
