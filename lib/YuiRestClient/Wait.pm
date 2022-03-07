@@ -4,6 +4,7 @@ package YuiRestClient::Wait;
 use strict;
 use warnings;
 
+use DateTime;
 
 sub wait_until {
     my (%args) = @_;
@@ -11,17 +12,25 @@ sub wait_until {
     $args{interval} //= 1;
     $args{message} //= '';
 
+    my $result;
+    my $error;
+
     die "No object passed to the method" unless $args{object};
 
-    my $counter = abs(int($args{timeout} / $args{interval}));
-    my $result;
-    while (--$counter >= 0) {
+    if ($args{timeout}) {
+        my $end_time = DateTime->now()->clone->add(seconds => $args{timeout});
+        while ($end_time->compare(DateTime->now()) > 0) {
+            eval { $result = $args{object}->() };
+            return $result if $result;
+            sleep($args{interval});
+        }
+        $error = "Timed out: @{[$args{message}]}\n";
+    }
+    else {
         eval { $result = $args{object}->() };
         return $result if $result;
-        sleep($args{interval});
     }
 
-    my $error = "Timed out: @{[$args{message}]}\n";
     $error .= "\n$@" if $@;
     die $error;
 }
