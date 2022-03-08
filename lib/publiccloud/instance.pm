@@ -14,6 +14,7 @@ use Mojo::Base -base;
 use Mojo::Util 'trim';
 use File::Basename;
 use publiccloud::utils;
+use publiccloud::ssh_interactive;
 use version_utils;
 
 use constant SSH_TIMEOUT => 90;
@@ -273,9 +274,17 @@ sub softreboot
 
     my $duration;
 
+    # On TUNNELED test runs, ensure we are not on the publiccloud instance
+    my $prev_console = current_console();
+    # We only need to re-establish the ssh tunnel, if we are in a TUNNELED test run, and if the tunnel is already initialized
+    my $tunneled = get_var('TUNNELED', 0) && get_var("_SSH_TUNNELS_INITIALIZED", 0);
+    if ($tunneled) {
+        select_host_console(force => 1);
+        ssh_interactive_leave();
+    }
+
     $self->run_ssh_command(cmd => 'sudo shutdown -r +1');
-    # skip the one minute waiting
-    sleep 60;
+    sleep 60;    # wait for the +1 in the previous command
     my $start_time = time();
 
     # wait till ssh disappear
@@ -285,6 +294,14 @@ sub softreboot
     my $shutdown_time = time() - $start_time;
     die("Waiting for system down failed!") unless ($shutdown_time < $args{timeout});
     my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time, username => $args{username});
+
+    # Re-establish tunnel and switch back to previous console if TUNNELED
+    if ($tunneled) {
+        ssh_interactive_tunnel($self);
+        die("expect ssh serial device to be active") unless (get_var('SERIALDEV') =~ /ssh/);
+        select_console($prev_console) if ($prev_console !~ /tunnel/);
+    }
+
     return ($shutdown_time, $bootup_time);
 }
 
