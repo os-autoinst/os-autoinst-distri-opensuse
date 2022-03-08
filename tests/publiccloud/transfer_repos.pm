@@ -15,6 +15,7 @@ use testapi;
 use strict;
 use utils;
 use publiccloud::utils "select_host_console";
+use publiccloud::aws_client;
 
 sub run {
     my ($self, $args) = @_;
@@ -33,7 +34,21 @@ sub run {
 
         # Mitigate occasional CSP network problems (especially one CSP is prone to those issues!)
         # Delay of 2 minutes between the tries to give their network some time to recover after a failure
-        script_retry("rsync --timeout=$timeout -uvahP -e ssh ~/repos '$remote:/tmp/repos'", timeout => $timeout + 10, retry => 3, delay => 120);
+
+        my $bucket = get_var("PUBLIC_CLOUD_UPDATE_REPOS_S3_BUCKET", "ilausuch.suse.testbucket");
+        my $key = get_var("PUBLIC_CLOUD_UPDATE_REPOS_S3_KEy", "repos.tgz");
+        
+        my $aws = publiccloud::aws_client->new();
+        $aws->init();
+        my $aws_access_key = $aws->key_id;
+        my $aws_secret_key = $aws->key_secret;
+        
+        $args->{my_instance}->run_ssh_command(cmd => "sudo zypper in -y aws-cli");
+        $args->{my_instance}->run_ssh_command(cmd => "AWS_ACCESS_KEY_ID=$aws_access_key AWS_SECRET_ACCESS_KEY=$aws_secret_key aws s3 cp s3://$bucket/$key /tmp");
+        $args->{my_instance}->run_ssh_command(cmd => "rm -rf /tmp/repos");
+        $args->{my_instance}->run_ssh_command(cmd => "cd /tmp && tar zxvf /tmp/$key");
+        #NOTE: the final structure should  be /tmp/repos
+
         $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec sed -i 's,http://,/tmp/repos/repos/,g' '{}' \\;");
         $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec zypper ar -p10 '{}' \\;");
         $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec echo '{}' \\;");
