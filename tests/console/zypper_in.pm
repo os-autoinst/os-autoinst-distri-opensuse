@@ -69,6 +69,7 @@ sub run {
         }
 
         assert_script_run "zypper -n in --allow-unsigned-rpm $pkgs_to_install";
+        assert_script_run "zypper -n rm hello{1..9}";
 
         assert_script_run 'unset ZYPP_SINGLE_RPMTRANS';
     }
