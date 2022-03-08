@@ -30,12 +30,16 @@ sub try_nfsv2 {
     # Try that NFSv2 is disabled by default
     systemctl 'start nfs-server';
     assert_script_run "cat /proc/fs/nfsd/versions | grep '\\-2'";
-    file_content_replace("/etc/sysconfig/nfs", "MOUNTD_OPTIONS=.*" => "MOUNTD_OPTIONS=\"-V2\"", "NFSD_OPTIONS=.*" => "NFSD_OPTIONS=\"-V2\"");
-    systemctl 'restart nfs-server';
-    assert_script_run "cat /proc/fs/nfsd/versions | grep '+2'";
 
-    # Disable NFSv2 again
-    file_content_replace("/etc/sysconfig/nfs", "MOUNTD_OPTIONS=.*" => "MOUNTD_OPTIONS=\"\"", "NFSD_OPTIONS=.*" => "NFSD_OPTIONS=\"\"");
+    # Stop testing NFSv2 on tumbleweed, support is removed in nfs-utils
+    if (is_sle('15+')) {
+        file_content_replace("/etc/sysconfig/nfs", "MOUNTD_OPTIONS=.*" => "MOUNTD_OPTIONS=\"-V2\"", "NFSD_OPTIONS=.*" => "NFSD_OPTIONS=\"-V2\"");
+        systemctl 'restart nfs-server';
+        assert_script_run "cat /proc/fs/nfsd/versions | grep '+2'";
+
+        # Disable NFSv2 again
+        file_content_replace("/etc/sysconfig/nfs", "MOUNTD_OPTIONS=.*" => "MOUNTD_OPTIONS=\"\"", "NFSD_OPTIONS=.*" => "NFSD_OPTIONS=\"\"");
+    }
     systemctl 'stop nfs-server';
 }
 
