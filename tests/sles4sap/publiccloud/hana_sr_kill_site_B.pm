@@ -20,8 +20,8 @@ sub run {
     # Switch to control Site B (currently PROMOTED)
     $self->{my_instance} = $site_b;
 
-    record_info("Stop DB", "Stopping Site B ('$site_b->{instance_id}')");
-    $self->stop_hana();
+    record_info("Stop DB", "Running 'HDB -kill' on Site B ('$site_b->{instance_id}')");
+    $self->stop_hana(method => "kill");
 
     record_info("Takeover check");
     $self->check_takeover;

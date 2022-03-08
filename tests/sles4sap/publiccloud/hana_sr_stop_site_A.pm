@@ -12,28 +12,27 @@ use publiccloud::utils;
 
 sub run {
     my ($self, $run_args) = @_;
+    $self->{instances} = $run_args->{instances};
     my $site_a = $run_args->{site_a};
 
     $self->select_serial_terminal;
 
-    # Switch to control Site A
+    # Switch to control Site A (currently PROMOTED)
     $self->{my_instance} = $site_a;
 
-    record_info("status", "$self->is_hana_resource_running()");
-    #record_info("Stop DB", "Stopping Site A ('$site_a->{instance_id}')");
-    #$self->stop_hana();
+    record_info("Stop DB", "Stopping Site A ('$site_a->{instance_id}')");
+    $self->stop_hana();
 
-    #record_info("Takeover check");
-    #$self->check_takeover;
+    record_info("Takeover check");
+    $self->check_takeover;
 
-    #record_info("Replication", "Enabling replication on Site A");
-    #$self->enable_replication();
+    record_info("Replication", "Enabling replication on Site A (DEMOTED)");
+    $self->enable_replication();
 
-    #record_info("Site A start");
-    #$self->cleanup_resource();
+    record_info("Site A start");
+    $self->cleanup_resource();
 
     record_info("Done", "Test finished");
-
 
 }
 

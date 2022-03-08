@@ -77,7 +77,7 @@ sub run {
         record_info('NOT exporting data');
     }
 
-    $run_args->{instances} = \@instances_export;
+    $self->{instances} = $run_args->{instances} = \@instances_export;
 
     # adds site_a and site_b into $run_args - will be used by all tests
     $self->identify_instances();
@@ -122,7 +122,9 @@ sub identify_instances {
         # Skip instances without HANA db
         next if ($instance_id !~ m/vmhana/);
 
-        my $master_node = $self->get_hana_master();
+        # Define initial state for both sites
+        # Site A is always PROMOTED after deployment
+        my $master_node = $self->get_promoted_hostname();
         $self->{site_a} = $instance if ($instance_id eq $master_node);
         $self->{site_b} = $instance if ($instance_id ne $master_node);
     }

@@ -20,7 +20,7 @@ our @EXPORT = qw(
     run_cmd
     wait_until_resources_started
     upload_ha_sap_logs
-    get_hana_master
+    get_promoted_hostname
     is_hana_resource_running
     stop_hana
     start_hana
@@ -30,6 +30,8 @@ our @EXPORT = qw(
     get_hana_topology
     enable_replication
     cleanup_resource
+    get_promoted_instance
+    wait_for_sync
 );
 
 # Global variables
@@ -128,12 +130,12 @@ sub upload_ha_sap_logs {
 }
 
 
-=head2 get_hana_master()
-    get_hana_master();
+=head2 get_promoted_hostname()
+    get_promoted_hostname();
 
-Checks and returns hostname of HANA master node.
+Checks and returns hostname of HANA promoted node.
 =cut
-sub get_hana_master {
+sub get_promoted_hostname {
     my ($self) = @_;
     my $resource_output = $self->run_cmd(cmd => "crm resource status msl_SAPHana_PRD_HDB00", quiet => 1);
     my @master = $resource_output =~ /:\s(\S+)\sMaster/g;
@@ -188,7 +190,7 @@ sub is_hana_online {
     while ($db_status != 1) {
         $db_status = 1 if ($self->get_replication_info()->{online} eq "true");
         last if $wait_for_start == 0;
-        last if (time - $start_time > $timeout);
+        die("DB did not start within defined timeout: $timeout s") if (time - $start_time > $timeout);
         sleep 30;
     }
     return $db_status;
@@ -205,7 +207,8 @@ sub is_hana_resource_running {
     my $hostname = $self->{my_instance}->{instance_id};
 
     my $resource_output = $self->run_cmd(cmd => "crm resource status msl_SAPHana_PRD_HDB00", quiet => 1);
-    my $node_status = grep{/$hostname/} split(/\n/, $resource_output) ? 1 : 0;
+    my $node_status = grep /is running on: $hostname/, $resource_output;
+    record_info("Node status", "$hostname: $node_status");
     return $node_status;
 }
 
@@ -229,17 +232,20 @@ sub stop_hana {
     my %commands = (
         "stop"  => "HDB stop",
         "kill"  => "HDB kill -x",
-        "crash" => "proc-sysrq"
+        "crash" => "echo c > /proc/sysrq-trigger"
     );
 
     my $cmd = $commands{$method};
+
+    # wait for data sync before stopping DB
+    $self->wait_for_sync();
 
     record_info("Stopping HANA", "CMD:$cmd");
     $self->run_cmd(cmd => $cmd, runas=>$user , timeout => $timeout);
 
     # Wait for resource to stop
     my $start_time = time;
-    while ($self->is_hana_resource_running()) {
+    while ($self->is_hana_resource_running() == 1) {
         if (time - $start_time > $timeout){
             record_info("Cluster status", $self->run_cmd(cmd => $crm_mon_cmd));
             die("DB stop operation timed out($timeout sec).");
@@ -272,9 +278,9 @@ sub cleanup_resource{
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
     $self->run_cmd(cmd => "crm resource cleanup msl_SAPHana_PRD_HDB00");
 
-    # Wait for resource to stop
+    # Wait for resource to start
     my $start_time = time;
-    while (!$self->is_hana_resource_running()) {
+    while ($self->is_hana_resource_running() == 0) {
         if (time - $start_time > $timeout){
             record_info("Cluster status", $self->run_cmd(cmd => $crm_mon_cmd));
             die("Resource did not start within defined timeout. ($timeout sec).");
@@ -351,6 +357,65 @@ sub get_replication_info {
     my %out = $output_cmd =~ /^?\s?([\/A-z\s]*\S+):\s(\S+)\n/g;
     %out = map { $_ =~ s/\s/_/g; lc $_} %out;
     return \%out;
+}
+
+
+sub get_promoted_instance {
+    my ($self) = @_;
+    my $instances = $self->{instances};
+    my $promoted;
+
+    # Identify Site A (Master) and Site B
+    foreach my $instance (@$instances) {
+        $self->{my_instance} = $instance;
+        my $instance_id = $instance->{'instance_id'};
+
+        # Skip instances without HANA db
+        next if ($instance_id !~ m/vmhana/);
+
+        my $promoted_id = $self->get_promoted_hostname();
+        $promoted = $instance if ($instance_id eq $promoted_id);
+    }
+
+    if ($promoted eq "undef" || !defined($promoted)) {
+        die("Failed to identify Hana 'PROMOTED' node") ;
+    }
+
+    return $promoted;
+}
+
+=head2 wait_for_sync
+    wait_for_sync();
+    Wait for replica site to sync data with primary.
+    Checks "SAPHanaSR-showAttr" output and ensures replica site has "sync_state" "SOK".
+=cut
+sub wait_for_sync {
+    my ($self, %args) = @_;
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
+    my $sok = 0;
+    record_info("Sync wait", "Waiting for data sync between nodes");
+
+    # Check sync status periodically until ok or timeout
+    my $start_time = time;
+
+    while ($sok == 0) {
+        my $topology = $self->get_hana_topology();
+
+        for my $entry (@$topology) {
+            my %entry = %$entry;
+            $sok = 1 if $entry{sync_state} eq "SOK";
+            last if $sok == 1;
+        }
+
+        if (time - $start_time > $timeout){
+            record_info("Cluster status", $self->run_cmd(cmd => $crm_mon_cmd));
+            record_info("Sync FAIL", "Host replication status: " . run_cmd(cmd=>'SAPHanaSR-showAttr'));
+            die("Replication SYNC did not finish within defined timeout. ($timeout sec).");
+        }
+        sleep 30;
+    }
+    record_info("Sync OK", $self->run_cmd(cmd=>"SAPHanaSR-showAttr"));
+    return 1;
 }
 
 1;
