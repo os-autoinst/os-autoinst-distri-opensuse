@@ -20,7 +20,7 @@ sub run {
 
     my $cmd = '"cat", "/etc/os-release"';
 
-    my $image_tag = $self->{provider}->get_default_tag();
+    my $image_tag = get_var("CONTAINER_IMAGES_TO_TEST") // $self->{provider}->get_default_tag();
     $self->{image_tag} = $image_tag;
 
     my $image = $self->{provider}->get_container_image_full_name($image_tag);
