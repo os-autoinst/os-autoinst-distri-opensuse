@@ -6,6 +6,12 @@ locale: en_US.UTF-8
 # set timezone
 timezone: UTC
 
+users:
+ - default
+ - name: bernhard
+   groups: users
+   lock_passwd: false
+
 # set root password and create bernhard user
 chpasswd:
   list: |
