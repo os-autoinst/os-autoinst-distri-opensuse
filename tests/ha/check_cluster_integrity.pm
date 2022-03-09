@@ -11,12 +11,11 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
-use lockapi;
 use hacluster;
-use utils 'systemctl';
 
 sub run {
     select_console 'root-console';
+    sleep 120;
     # Check for the state of the whole cluster
     check_cluster_state;
 }

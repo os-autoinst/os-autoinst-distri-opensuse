@@ -23,7 +23,7 @@ sub run {
     }
     else {
         record_info("Stop cluster", "Cluster is stopping");
-        script_run "crm cluster stop";
+        script_run "crm cluster stop", timeout => 300;
     }
 }
 
