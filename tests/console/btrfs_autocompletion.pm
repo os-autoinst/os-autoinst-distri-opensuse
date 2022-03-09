@@ -38,6 +38,7 @@ sub run {
     # On JeOS 'bash-completion' is not expected to be present. On general
     # SLES installation it is. Thus on JeOS we have to enable it manually.
     if (is_jeos) {
+        record_info('ps', script_output('ps -ef'));
         zypper_call('in bash-completion');
         assert_script_run('source $(rpmquery -l bash-completion | grep bash_completion.sh)');
     }
@@ -58,6 +59,7 @@ sub post_fail_hook {
     my ($self) = @_;
     assert_script_run('rpm -qa > /tmp/rpm_qa.txt');
     upload_logs('/tmp/rpm_qa.txt');
+    upload_logs('/var/log/zypper.log');
     $self->SUPER::post_fail_hook;
 }
 
