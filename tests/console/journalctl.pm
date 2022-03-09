@@ -159,6 +159,9 @@ sub run {
         validate_script_output('journalctl --no-pager --boot=-1 2>&1', qr/no persistent journal was found/i) unless is_sle('<15');
         assert_script_run "mkdir -p ${\ PERSISTENT_LOG_DIR }";
         assert_script_run "systemd-tmpfiles --create --prefix ${\ PERSISTENT_LOG_DIR }";
+        # https://bugzilla.suse.com/show_bug.cgi?id=1196637
+        # should be backported to sle15sp3/leap15.3 later
+        assert_script_run 'journalctl --flush' if (is_sle('15-sp4+') || is_leap('15.4+'));
         # test for installed rsyslog and for imuxsock existance
         # rsyslog must be there by design
         assert_script_run 'rpm -q rsyslog';
