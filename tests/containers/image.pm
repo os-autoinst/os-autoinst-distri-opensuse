@@ -13,7 +13,7 @@ use testapi;
 use utils;
 use containers::common;
 use containers::container_images;
-use containers::urls qw(get_suse_container_urls get_urls_from_var);
+use containers::urls qw(get_suse_container_urls get_container_url_from_var);
 
 sub run {
     my ($self, $args) = @_;
@@ -28,8 +28,8 @@ sub run {
     my $versions = get_var('CONTAINER_IMAGE_VERSIONS', get_required_var('VERSION'));
     for my $version (split(/,/, $versions)) {
         my $images_to_test;
-        # Get list of images from CONTAINER_IMAGES_TO_TEST or use the default
-        unless ($images_to_test = get_urls_from_var('CONTAINER_IMAGES_TO_TEST')) {
+        # Get array of single image from CONTAINER_IMAGES_TO_TEST or from get_suse_container_urls()
+        unless ($images_to_test = get_container_url_from_var('CONTAINER_IMAGE_TO_TEST')) {
             my ($untested_images, $released_images) = get_suse_container_urls(version => $version);
             $images_to_test = check_var('CONTAINERS_UNTESTED_IMAGES', '1') ? $untested_images : $released_images;
         }
