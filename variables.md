@@ -199,7 +199,7 @@ RAIDLEVEL | integer | | Define raid level to be configured. Possible values: 0,1
 REBOOT_TIMEOUT | integer | 0 | Set and handle reboot timeout available in YaST installer. 0 disables the timeout and needs explicit reboot confirmation.
 REGISTRY | string | docker.io | Registry to pull third-party container images from
 CONTAINER_IMAGE_VERSIONS | string | | List of comma-separated versions from `get_suse_container_urls()`
-CONTAINER_IMAGES_TO_TEST | string | | List of comma-separated URLs of a specific container images to test.
+CONTAINER_IMAGE_TO_TEST | string | | Single URL string of a specific container image to test.
 REGRESSION | string | | Define scope of regression testing, including ibus, gnome, documentation and other.
 REMOTE_REPOINST | boolean | | Use linuxrc features to install OS from specified repository (install) while booting installer from DVD (instsys)
 REPO_* | string | | Url pointing to the mirrored repo. REPO_0 contains installation iso.

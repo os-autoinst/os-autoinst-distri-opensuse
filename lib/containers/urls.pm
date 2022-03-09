@@ -20,7 +20,8 @@ use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap is_microos is_sle_
 
 our @EXPORT = qw(
   get_opensuse_registry_prefix
-  get_urls_from_var
+  get_container_image_to_test
+  get_container_url_from_var
   get_suse_container_urls
   get_3rd_party_images
 );
@@ -262,12 +263,12 @@ sub supports_image_arch {
     (grep { $_ eq $arch } @{$images_uri{$distri}{$version}{available_arch}}) ? 1 : 0;
 }
 
-# Returns a tuple of image urls.
-# If empty, no images available.
-sub get_urls_from_var {
+# Returns an array with the contents of the given variable or undef, if the var is not set
+sub get_container_url_from_var {
     my $var = shift;
-    my @urls = split(/,/, trim(get_var($var)));
-    return (\@urls);
+    my @urls = (trim(get_var($var)));
+    # Return undef if empty string
+    return ($urls[0]) ? (\@urls) : undef;
 }
 
 # Returns a tuple of image urls and their matching released "stable" counterpart.
@@ -292,6 +293,16 @@ sub get_suse_container_urls {
 
     return (\@untested_images, \@released_images);
 }
+
+# Get single image from CONTAINER_IMAGE_TO_TEST or untested image from get_suse_container_urls()
+sub get_container_image_to_test {
+    my $images_to_test;
+    unless ($images_to_test = get_container_url_from_var('CONTAINER_IMAGE_TO_TEST')) {
+        ($images_to_test, undef) = get_suse_container_urls();
+    }
+    return $images_to_test->[0];
+}
+
 
 sub get_3rd_party_images {
     my $ex_reg = get_var('REGISTRY', 'docker.io');
