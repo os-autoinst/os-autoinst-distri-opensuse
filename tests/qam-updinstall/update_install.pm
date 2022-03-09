@@ -49,6 +49,7 @@ sub has_conflict {
         'systemtap-sdt-devel' => 'systemtap-headers',
         libldb2 => 'libldb1',
         'python3-ldb' => 'python-ldb',
+        'chrony-pool-suse' => 'chrony-pool-empty'
     );
     return $conflict{$binary};
 }
