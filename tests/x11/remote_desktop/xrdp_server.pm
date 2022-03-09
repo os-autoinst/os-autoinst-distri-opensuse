@@ -96,10 +96,15 @@ sub run {
         # Force restart on gdm to check if the active session number is correct
         assert_and_click "status-bar";
         assert_and_click "power-button";
-        assert_screen([qw(other-users-logged-in-1user other-users-logged-in-2users)]);
+        if (is_sle('>=15-SP4')) {
+            assert_and_click('reboot-click-restart');
+        }
 
-        if (match_has_tag('other-users-logged-in-2users')) {
-            record_soft_failure 'bsc#1116281 GDM didnt behave correctly when the error message Multiple logins are not supported. is triggered';
+        else {
+            assert_screen([qw(other-users-logged-in-1user other-users-logged-in-2users)]);
+            if (match_has_tag('other-users-logged-in-2users')) {
+                record_soft_failure 'bsc#1116281 GDM didnt behave correctly when the error message Multiple logins are not supported. is triggered';
+            }
         }
 
         assert_and_click "force-restart";
