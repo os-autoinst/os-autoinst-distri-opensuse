@@ -12,6 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Utils::Backends 'is_pvm';
 
 sub run {
     my $self = shift;
@@ -22,7 +23,7 @@ sub run {
     systemctl "start fwupd";
 
     # Get all devices that support firmware updates
-    assert_script_run "fwupdmgr get-devices";
+    assert_script_run "fwupdmgr get-devices" unless is_pvm;
     # Gets the configured remotes
     assert_script_run "fwupdmgr get-remotes";
 }
