@@ -1269,8 +1269,7 @@ sub ensure_serialdev_permissions {
     else {
         # when serial getty is started, it changes the group of serialdev from dialout to tty (but doesn't change it back when stopped)
         # let's make sure that both will work
-        # based on bsc#1195620, let's restore file permission to '620'
-        assert_script_run "chmod 620 /dev/$testapi::serialdev && chown $testapi::username /dev/$testapi::serialdev && usermod -a -G tty,dialout,\$(stat -c %G /dev/$testapi::serialdev) $testapi::username";
+        assert_script_run "chown $testapi::username /dev/$testapi::serialdev && usermod -a -G tty,dialout,\$(stat -c %G /dev/$testapi::serialdev) $testapi::username";
     }
 }
 
