@@ -19,7 +19,7 @@ use strict;
 use warnings;
 use testapi;
 use x11utils 'handle_relogin';
-use version_utils 'is_tumbleweed';
+use version_utils 'is_leap';
 
 sub run {
     select_console 'x11';
@@ -59,7 +59,7 @@ sub run {
     assert_script_run("loginctl");
     my $is_wayland = (script_run('loginctl show-session $(loginctl | grep $(whoami) | awk \'{print $1 }\') -p Type | grep wayland') == 0);
     send_key 'alt-f4';
-    if ($is_wayland && !is_tumbleweed) {
+    if ($is_wayland && is_leap('<15.4')) {
         assert_screen 'without_screensharing';
         record_soft_failure 'boo#1137569 - screen sharing not yet supported on wayland';
     } else {
