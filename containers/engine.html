@@ -17,7 +17,7 @@
       <li><a href="#create_container-image-name-cmd">create_container($image, $name, [$cmd])</a></li>
       <li><a href="#start_container-image_name">start_container($image_name)</a></li>
       <li><a href="#halt_container-container_name">halt_container($container_name)</a></li>
-      <li><a href="#build-dockerfile_path-container_tag-args">build($dockerfile_path, $container_tag, [%args])</a></li>
+      <li><a href="#build-dockerfile_path-image_tag-args">build($dockerfile_path, $image_tag, [%args])</a></li>
       <li><a href="#run_container-image_name-mode-name-remote-keep_container-timeout-retry-delay">run_container($image_name, [mode, name, remote, keep_container, timeout, retry, delay])</a></li>
       <li><a href="#pull-image_name-args">pull($image_name, [%args])</a></li>
       <li><a href="#commit">commit</a></li>
@@ -47,7 +47,7 @@
 
 <p>Blocks a container until exits. <code>container_name</code> which runs. https://docs.docker.com/engine/reference/commandline/wait/</p>
 
-<h2 id="build-dockerfile_path-container_tag-args">build($dockerfile_path, $container_tag, [%args])</h2>
+<h2 id="build-dockerfile_path-image_tag-args">build($dockerfile_path, $image_tag, [%args])</h2>
 
 <p>Build a container from a Dockerfil. <code>dockerfile_path</code> is the directory with the Dockerfile as well as the root of the build context. <code>container_tag</code> will be the name of the container. Give <code>timeout</code> if you want to change the timeout passed to <code>assert_script_run</code>. Default for containers is 300.</p>
 
