@@ -251,15 +251,10 @@ sub rmt_wizard {
     my $setup_console = current_console();
 
     # install RMT and mariadb
-    eval {
-        zypper_call 'in rmt-server', log => 'zypper.log';
-    };
-    if ($@ && script_run('grep -E "rmt-server-config.*scriptlet failed" /tmp/zypper.log') == 0) {
+    my $ret = zypper_call('in rmt-server', exitcode => [0, 107], log => 'zypper.log');
+    if (($ret == 107) && (script_run('grep -E "rmt-server-config.*scriptlet failed" /tmp/zypper.log') == 0)) {
         record_soft_failure 'bsc#1195759';
         zypper_call 'in rmt-server';
-    }
-    else {
-        die 'zypper in rmt-server failed';
     }
     zypper_call 'in mariadb';
 
