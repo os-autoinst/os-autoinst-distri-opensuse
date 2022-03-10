@@ -108,6 +108,7 @@ schedule:
     - console/rpm
     - console/slp
     - console/pkcon
+    - console/python_pycairo
     - console/command_not_found
     - console/openssl_alpn
     - console/autoyast_removed
