@@ -156,4 +156,5 @@ schedule:
     - console/osinfo_db
     - '{{opensuse_tests}}'
     - '{{tumbleweed_tests}}'
+    - console/tar
     - console/coredump_collect

@@ -3,7 +3,7 @@
 
 # Package: tar
 # Summary: -  Verify the correct version of tar is in 15-SP4
-#          -  tar + zstd functionality automatic test 
+#          -  tar + zstd functionality automatic test
 # Maintainer: QE Core <qe-core@suse.de>
 
 use base 'consoletest';
