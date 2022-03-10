@@ -75,4 +75,12 @@ sub run {
     }
 }
 
+
+sub post_fail_hook {
+    my $self = shift;
+
+    upload_logs "/var/log/zypper.log";
+    $self->SUPER::post_fail_hook();
+}
+
 1;
