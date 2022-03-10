@@ -56,8 +56,12 @@ sub has_conflict {
         'rust-gdb' => 'cargo',
         'openssl-1_0_0' => 'openssl-1_1',
         'libsamba-errors0' => 'samba-client-libs',
-        rpm => 'rpm-ndb'
-
+        rpm => 'rpm-ndb',
+        'SAPHanaSR-ScaleOut' => 'SAPHanaSR',
+        'SAPHanaSR-ScaleOut-doc' => 'SAPHanaSR-doc',
+        'dapl-devel' => 'dapl-debug-devel',
+        'libdat2-2' => 'dapl-debug-libs',
+        dapl => 'dapl-debug'
     );
     return $conflict{$binary};
 }
