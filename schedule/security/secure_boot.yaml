@@ -1,0 +1,6 @@
+name: secure_boot
+description: >
+    This is used to check if the secure-boot is enabled
+schedule:
+    - boot/boot_to_desktop
+    - security/secure_boot
