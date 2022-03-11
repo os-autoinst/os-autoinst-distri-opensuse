@@ -71,13 +71,13 @@ sub run {
     assert_script_run(qq(sed -i 's/NETCONFIG_FORCE_REPLACE="no"/NETCONFIG_FORCE_REPLACE="yes"/' /etc/sysconfig/network/config));
 
     #Forward server and test lookup
-    my $opensuseip = script_output("dig www.opensuse.org +short");
+    my $opensuseip = script_output("dig www.opensuse.org +short", 300);
     $opensuseip =~ s/.*^(\d+\.\d+\.\d+\.\d+).*/$1/ms;
     $self->cmd_handle("forwarders", "add", ip => "10.0.2.3");
     #disable dnssec validation
     assert_script_run("sed -i 's/#dnssec-validation auto/dnssec-validation no/' /etc/named.conf");
     systemctl("start named.service");
-    validate_script_output('dig @localhost www.opensuse.org +short', sub { /\Q$opensuseip\E/ });
+    validate_script_output('dig @localhost www.opensuse.org +short', sub { /\Q$opensuseip\E/ }, timeout => 300);
 
     assert_script_run("sed -i 's/dnssec-validation no/#dnssec-validation auto/' /etc/named.conf");
     $self->cmd_handle("forwarders", "remove", ip => "10.0.2.3");
