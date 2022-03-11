@@ -48,6 +48,8 @@ sub run {
 
     # Disable bash monitoring, so the output of completed background jobs doesn't confuse openQA
     script_run("set +m");
+    # Fix poo#101256, connection reset by peer
+    assert_script_run 'iptables -I INPUT 1 -m conntrack --ctstate INVALID -j DROP';
 
     # Install or import defined guests
     foreach my $guest (values %virt_autotest::common::guests) {
