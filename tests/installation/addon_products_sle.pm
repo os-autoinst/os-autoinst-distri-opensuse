@@ -252,6 +252,7 @@ sub run {
     }
     send_key $cmd{next};
     wait_still_screen 5;
+    send_key $cmd{next} if check_screen 'addon_product_installation';
 }
 
 1;
