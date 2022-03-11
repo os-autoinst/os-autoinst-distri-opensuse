@@ -1,15 +1,15 @@
-# Copyright 2020 SUSE LLC
+# Copyright 2020-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Summary: PAM tests for pam-config, create, add or delete service
+# Summary: PAM tests for pam-config, create, add or delete services
+#
 # Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#70345, tc#1767580
+# Tags: poo#70345, poo#108096, tc#1767580
 
 use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
-use registration qw(add_suseconnect_product remove_suseconnect_product);
 use utils 'zypper_call';
 use version_utils 'is_sle';
 
@@ -26,27 +26,28 @@ sub run {
         assert_script_run 'ls /etc/pam.d | grep config-backup';
     }
 
-    # Add a new authentication method, add the module to install the "pam_ldap" package
-    if (is_sle) {
-        add_suseconnect_product('sle-module-legacy');
-        zypper_call 'in pam_ldap';
-    } else {
-        zypper_call 'in nss-pam-ldapd';
-    }
-    assert_script_run 'pam-config --add --ldap';
-    assert_script_run 'find /etc/pam.d -type f | grep common | xargs egrep ldap';
-    assert_script_run 'pam-config --add --ldap-debug';
-    assert_script_run 'journalctl | grep ldap';
+    # Add new authentication methods ldap and ssh.
+    # Based on bsc#1196896, pam_ldap is removed on SLE,
+    # so we need skip it on SLE
+    zypper_call('in nss-pam-ldapd') if (!is_sle);
+    zypper_call('in pam_ssh');
 
-    # Delete a method
-    assert_script_run 'pam-config --delete --ldap';
-    assert_script_run 'pam-config --delete --ldap-debug';
-    validate_script_output "find /etc/pam.d -type f | grep common | xargs egrep ldap || echo 'check pass'", sub { m/check pass/ };
+    my @meth_list = ('ssh');
+    push(@meth_list, 'ldap') if (!is_sle);
+    foreach my $meth (@meth_list) {
+        # Add a method
+        assert_script_run "pam-config --add --$meth";
+        assert_script_run "find /etc/pam.d -type f | grep common | xargs egrep $meth";
+        # Delete a method
+        assert_script_run "pam-config --delete --$meth";
+        validate_script_output "find /etc/pam.d -type f | grep common | xargs egrep $meth || echo 'check pass'", sub { m/check pass/ };
+    }
+
+    # Upload logs
     if (is_sle) {
         upload_logs("/var/log/messages");
-        # Tear down, remove the added module
-        remove_suseconnect_product('sle-module-legacy');
-    } else {
+    }
+    else {
         script_run("journalctl --no-pager -o short-precise > /tmp/full_journal.log");
         upload_logs "/tmp/full_journal.log";
     }
