@@ -30,6 +30,10 @@ sub run_test {
 
         #irqbalance test run on sle12sp3+ guest
         next if guest_is_sle($guest, '<=12-sp2');
+        if (guest_is_sle($guest, '=15-sp0')) {
+            record_soft_failure("Skip the test as fix for SLE15 was not requested by customer in bsc#1178477.");
+            next;
+        }
 
         record_info("Test $guest");
         prepare_guest_for_irqbalance($guest);
