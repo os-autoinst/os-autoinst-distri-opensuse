@@ -38,7 +38,6 @@ sub run {
     # On JeOS 'bash-completion' is not expected to be present. On general
     # SLES installation it is. Thus on JeOS we have to enable it manually.
     if (is_jeos) {
-        record_info('ps', script_output('ps -ef'));
         zypper_call('in bash-completion');
         assert_script_run('source $(rpmquery -l bash-completion | grep bash_completion.sh)');
     }
