@@ -30,6 +30,7 @@ use transactional 'process_reboot';
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
+    my $user = $testapi::username;
 
     my $podman = $self->containers_factory('podman');
 
@@ -60,8 +61,6 @@ sub run {
 
     my $image = 'registry.opensuse.org/opensuse/tumbleweed:latest';
 
-    my $user = $testapi::username;
-
     # Some products don't have bernhard pre-defined (e.g. SLE Micro)
     if (script_run("grep $user /etc/passwd") != 0) {
         assert_script_run "useradd -m $user";
@@ -89,22 +88,37 @@ sub run {
     ensure_serialdev_permissions;
     select_console "user-console";
 
-    return if softfail_and_skip_on_bsc1182874();
+    # By default the storage driver is set to btrfs if /var is in btrfs
+    # but if the home partition is not btrfs podman commands will fail with
+    # Error: "/home/bernhard/.local/share/containers/storage/btrfs" is not on a btrfs filesystem
+    if (script_output("podman info 2>&1", proceed_on_failure => 1) =~ m/prerequisites for driver not satisfied/) {
+        record_soft_failure("bsc#1197093 - /home partition is in different filesystem");
+        record_info('partitions', script_output('lsblk -f'));
+        record_info('storage.conf', script_output('cat /etc/containers/storage.conf'));
+        # Create a local storage.conf config for the rootless user
+        assert_script_run("mkdir -p ~/.config/containers");
+        assert_script_run('cp /etc/containers/storage.conf ~/.config/containers/storage.conf');
+        my $file = '~/.config/containers/storage.conf';
+        # Use generic overlay driver which is the most used and works with most filesystems.
+        file_content_replace($file, '^driver.*' => 'driver = "overlay"');
+        # Change default paths since rootless user doesn't have write access to /var/lib and /var/run
+        # Otherwise we would hit this error:
+        #   Error: error creating runtime static files directory: mkdir /var/lib/containers/storage: permission denied
+        file_content_replace($file, '^runroot.*' => 'runroot = "/run/user/1000/containers"');
+        file_content_replace($file, '^graphroot.*' => 'graphroot = "/home/' . $user . '/.local/share/containers/storage"');
+        record_info('local storage.conf', script_output("cat $file"));
+        # Remove container directories from the rootless user created by the main storage.conf.
+        # New directories and files will be created after calling any podman command following
+        # the new configuration in the local storage.conf
+        assert_script_run("rm -rf ~/.local/share/containers/");
+    }
+    assert_script_run('podman info');
 
     test_container_image(image => $image, runtime => $podman);
     build_and_run_image(base => $image, runtime => $podman);
     test_zypper_on_container($podman, $image);
     verify_userid_on_container($image, $subuid_start);
     $podman->cleanup_system_host();
-}
-
-sub softfail_and_skip_on_bsc1182874 {
-    my $alpine = registry_url('alpine');
-    if (script_run("podman run $alpine", timeout => 180) != 0) {
-        record_soft_failure "bsc#1182874 - container fails to run in rootless mode";
-        return 1;
-    }
-    return 0;
 }
 
 sub get_user_subuid {
