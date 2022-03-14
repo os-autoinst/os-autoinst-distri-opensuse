@@ -1335,6 +1335,7 @@ sub load_x11tests {
                 loadtest(is_sle('<15') ? "x11/rhythmbox" : "x11/gnome_music");
                 loadtest "x11/wireshark";
                 loadtest "x11/ImageMagick";
+                loadtest "x11/remote_desktop/screensharing_available" if is_sle("15-sp4+");
                 loadtest "x11/ghostscript";
             }
         }
@@ -1581,7 +1582,7 @@ sub load_extra_tests_desktop {
 
     }
     if (gnomestep_is_applicable()) {
-        loadtest "x11/remote_desktop/vino_screensharing_available";
+        loadtest "x11/remote_desktop/screensharing_available";
     }
     if (get_var("DESKTOP") =~ /kde|gnome/) {
         loadtest "x11/libqt5_qtbase" if (is_sle("12-SP3+") || is_opensuse);
