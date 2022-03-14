@@ -29,7 +29,7 @@ sub run {
 
     # install ipsec-tools and config gateway and static ip on worker
     configure_default_gateway;
-    configure_static_ip($my_static_ip);
+    configure_static_ip(ip => $my_static_ip);
     configure_static_dns(get_host_resolv_conf());
     zypper_call 'in ipsec-tools';
 

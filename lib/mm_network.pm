@@ -46,8 +46,10 @@ sub is_networkmanager {
 }
 
 sub configure_static_ip {
-    my ($ip, $is_nm, $mtu) = @_;
-    $is_nm //= is_networkmanager();
+    my (%args) = @_;
+    my $ip = $args{ip};
+    my $mtu = $args{mtu} // 1458;
+    my $is_nm = $args{is_nm} // is_networkmanager();
     $mtu //= 1458;
 
     if ($is_nm) {
@@ -105,15 +107,15 @@ sub configure_default_gateway {
 }
 
 sub configure_static_dns {
-    my ($conf, $is_nm, $silent) = @_;
-    $is_nm //= is_networkmanager();
-    $silent //= 0;
+    my ($conf, %args) = @_;
+    my $is_nm = $args{is_nm} // is_networkmanager();
+    my $nm_id = $args{nm_id};
+    my $silent = $args{silent} // 0;
 
     my $servers = join(" ", @{$conf->{nameserver}});
 
     if ($is_nm) {
-        my $device = script_output('nmcli -t -f DEVICE c');
-        my $nm_id = script_output('nmcli -t -f NAME c');
+        $nm_id = script_output('nmcli -t -f NAME c | head -n 1') unless ($nm_id);
 
         assert_script_run "nmcli connection modify '$nm_id' ipv4.dns '$servers'";
         assert_script_run "nmcli connection down '$nm_id'";
@@ -213,8 +215,8 @@ sub check_ip_in_subnet {
 sub setup_static_mm_network {
     my $ip = shift;
     my $is_nm = is_networkmanager();
-    configure_static_ip($ip, $is_nm);
-    configure_static_dns(get_host_resolv_conf(), $is_nm);
+    configure_static_ip(ip => $ip, is_nm => $is_nm);
+    configure_static_dns(get_host_resolv_conf(), is_nm => $is_nm);
 }
 
 1;

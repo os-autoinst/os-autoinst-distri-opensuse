@@ -37,7 +37,7 @@ sub setup_static_network {
     $args{ip} //= '10.0.2.15';
     $args{gw} //= testapi::host_ip();
     $args{silent} //= 0;
-    configure_static_dns(get_host_resolv_conf(), undef, $args{silent});
+    configure_static_dns(get_host_resolv_conf(), silent => $args{silent});
     assert_script_run('echo default ' . $args{gw} . ' - - > /etc/sysconfig/network/routes');
     my $iface = iface();
     assert_script_run qq(echo -e "\\nSTARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$args{ip}'">/etc/sysconfig/network/ifcfg-$iface);
