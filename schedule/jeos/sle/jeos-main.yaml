@@ -21,6 +21,10 @@ conditional_schedule:
         UEFI:
             '1':
                 - console/verify_efi_mok
+    udev_dep:
+        VERSION:
+            '15-SP4':
+                - console/systemd_wo_udev
     maintenance:
         FLAVOR:
             'JeOS-for-kvm-and-xen-Updates':
@@ -45,6 +49,7 @@ schedule:
     - console/check_network
     - console/system_state
     - console/consoletest_setup
+    - '{{udev_dep}}'
     - locale/keymap_or_locale
     - console/apache
     - console/dns_srv
