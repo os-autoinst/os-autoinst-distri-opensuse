@@ -87,10 +87,10 @@ sub load_host_tests_podman {
         load_container_engine_test('podman');
         load_image_test('podman');
         load_3rd_party_image_test('podman');
-        loadtest 'containers/podman_firewall';
+        loadtest 'containers/podman_firewall' unless is_openstack;
         loadtest 'containers/buildah' unless is_sle_micro;
         # https://github.com/containers/podman/issues/5732#issuecomment-610222293
-        loadtest 'containers/rootless_podman' unless (is_sle('=15-sp1'));
+        loadtest 'containers/rootless_podman' unless (is_sle('=15-sp1') || is_openstack);
     }
 }
 
@@ -98,7 +98,7 @@ sub load_host_tests_docker {
     load_container_engine_test('docker');
     load_image_test('docker');
     load_3rd_party_image_test('docker');
-    loadtest 'containers/docker_firewall';
+    loadtest 'containers/docker_firewall' unless is_openstack;
     unless (is_sle("<=15") && is_aarch64) {
         # these 2 packages are not avaiable for <=15 (aarch64 only)
         # zypper-docker is not available in factory
@@ -115,7 +115,7 @@ sub load_host_tests_docker {
     # Expected to work for all but JeOS on 15sp4 after
     # https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/13860
     # Disabled on svirt backends (VMWare, Hyper-V and XEN) as the device name might be different than vdX
-    loadtest 'containers/validate_btrfs' if (is_x86_64 and is_qemu);
+    loadtest 'containers/validate_btrfs' if (is_x86_64 and is_qemu and !is_openstack);
 }
 
 sub load_host_tests_containerd_crictl {

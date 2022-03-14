@@ -39,6 +39,7 @@ use constant {
           is_using_system_role
           is_using_system_role_first_flow
           is_public_cloud
+          is_openstack
           is_leap_migration
           requires_role_selection
           check_version
@@ -653,6 +654,16 @@ Returns true if PUBLIC_CLOUD is set to 1
 
 sub is_public_cloud {
     return get_var('PUBLIC_CLOUD');
+}
+
+=head2 is_openstack
+
+Returns true if JEOS_OPENSTACK is set to 1
+
+=cut
+
+sub is_openstack {
+    return get_var('JEOS_OPENSTACK');
 }
 
 =head2 is_leap_migration

@@ -14,7 +14,7 @@ use Utils::Backends;
 use autotest;
 use LTP::WhiteList qw(download_whitelist is_test_disabled);
 use LTP::TestInfo 'testinfo';
-use version_utils 'is_jeos';
+use version_utils qw(is_openstack is_jeos);
 use File::Basename 'basename';
 
 our @EXPORT = qw(
