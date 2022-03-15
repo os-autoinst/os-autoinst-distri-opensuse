@@ -86,8 +86,10 @@ sub install_docker_when_needed {
                 # docker package can be installed
                 zypper_call('in docker', timeout => 300);
 
-                # Restart firewalld if enabled before. Ensure docker can properly interact
-                systemctl 'try-restart firewalld';
+                # Restart firewalld if enabled before. Ensure docker can properly interact (boo#1196801)
+                if (script_run('systemctl is-active firewalld') == 0) {
+                    systemctl 'try-restart firewalld';
+                }
 
                 remove_suseconnect_product('SLES-LTSS') if ($ltss_needed);
             }
