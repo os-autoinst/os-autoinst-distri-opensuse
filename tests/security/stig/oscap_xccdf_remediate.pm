@@ -23,7 +23,7 @@ sub run {
     my $f_report = $stigtest::f_report;
 
     # Verify mitigation mode
-    my $ret = script_run("oscap xccdf eval --profile $profile_ID --remediate --oval-results --report $f_report $f_ssg_sle_ds > $f_stdout 2> $f_stderr", timeout => 300);
+    my $ret = script_run("oscap xccdf eval --profile $profile_ID --remediate --oval-results --report $f_report $f_ssg_sle_ds > $f_stdout 2> $f_stderr", timeout => 600);
     record_info("Return=$ret", "# oscap xccdf eval --profile $profile_ID --remediate\" returns: $ret");
     if ($ret) {
         $self->result('fail');
