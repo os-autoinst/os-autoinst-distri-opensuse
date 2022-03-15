@@ -3,7 +3,8 @@
 Fork the repository and make some changes.
 Once you're done with your changes send a pull request. You have to agree to
 the license. Thanks!
-If you have questions, visit us on irc.freenode.net in #opensuse-factory or
+If you have questions, visit us in #opensuse-factory on irc.libera.chat,
+[Discord](https://discord.gg/opensuse), [Matrix](https://matrix.to/#/#space:opensuse.org) or
 ask on our mailing list opensuse-factory@opensuse.org
 
 ### How to get started
