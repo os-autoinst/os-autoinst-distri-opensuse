@@ -7,8 +7,7 @@
 # Maintainer: qac team <qa-c@suse.de>
 
 package containers::basetest;
-use containers::docker;
-use containers::podman;
+use containers::container_runtime;
 use containers::containerd_crictl;
 use containers::containerd_nerdctl;
 use Mojo::Base 'opensusebasetest';
@@ -18,10 +17,10 @@ sub containers_factory {
     my $engine;
 
     if ($runtime eq 'docker') {
-        $engine = containers::docker->new();
+        $engine = containers::container_runtime->new();
     }
     elsif ($runtime eq 'podman') {
-        $engine = containers::podman->new();
+        $engine = containers::container_runtime->new();
     }
     elsif ($runtime eq 'containerd_crictl') {
         $engine = containers::containerd_crictl->new();

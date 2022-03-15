@@ -13,7 +13,7 @@ use testapi;
 use utils;
 use strict;
 use warnings;
-use containers::docker;
+use containers::container_runtime;
 use containers::utils 'runtime_smoke_tests';
 
 my $service_type = 'Systemd';
@@ -30,8 +30,8 @@ sub full_docker_check {
     my (%hash) = @_;
     my ($stage, $type) = ($hash{stage}, $hash{service_type});
     $service_type = $type;
-    my $engine = containers::docker->new();
-    $engine->init() if ($stage eq 'before');
+    my $engine = containers::container_runtime->new();
+    $engine->init('docker') if ($stage eq 'before');
 
     check_service();
 
