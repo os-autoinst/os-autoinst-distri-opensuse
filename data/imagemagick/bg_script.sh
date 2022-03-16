@@ -188,7 +188,7 @@ convert test.png  -alpha transparent trans_alpha.png
 cme trans_alpha.png 45.png
 
 echo "gradient.jpg"
-convert  -size 100x100 gradient:  gradient.jpg
+convert  -size 100x100 gradient:white-black  gradient.jpg
 cme gradient.jpg 46.jpg
 
 echo "trans_evaluate.png"
@@ -196,7 +196,7 @@ convert test.png  -alpha set -channel A -evaluate set 0 +channel  trans_evaluate
 cme trans_evaluate.png 47.png
 
 echo "gradient_range1.jpg"
-convert -size 100x100  gradient:blue              gradient_range1.jpg
+convert -size 100x100  gradient:blue-white  gradient_range1.jpg
 cme gradient_range1.jpg 48.jpg
 
 echo "trans_threshold.png"
@@ -208,11 +208,11 @@ fi
 cme trans_threshold.png 49.png
 
 echo "gradient_range2.jpg"
-convert -size 100x100  gradient:yellow            gradient_range2.jpg
+convert -size 100x100  gradient:yellow-white    gradient_range2.jpg
 cme gradient_range2.jpg 50.jpg
 
 echo "gradient_range3.jpg"
-convert -size 100x100  gradient:green-yellow      gradient_range3.jpg
+convert -size 100x100  gradient:green-yellow    gradient_range3.jpg
 cme gradient_range3.jpg 51.jpg
 
 echo "gradient_ice-sea.jpg"
@@ -240,7 +240,7 @@ convert -size 10x120  gradient:darkcyan-snow      gradient_snow_scape.jpg
 cme gradient_snow_scape.jpg 57.jpg
 
 echo "rgradient.jpg"
-convert -size 100x100 radial-gradient:  rgradient.jpg
+convert -size 100x100 radial-gradient:white-black  rgradient.jpg
 cme rgradient.jpg 58.jpg
 
 echo "gradient_sunset.jpg"
@@ -248,11 +248,11 @@ convert -size 10x120  gradient:khaki-tomato       gradient_sunset.jpg
 cme gradient_sunset.jpg 59.jpg
 
 echo "rgradient_clip.jpg"
-convert -size 100x60 radial-gradient:  rgradient_clip.jpg
+convert -size 100x60 radial-gradient:white-black  rgradient_clip.jpg
 cme rgradient_clip.jpg 60.jpg
 
 echo "rgradient_crop.jpg"
-convert -size 100x142 radial-gradient:  -gravity center -crop 100x100+0+0 rgradient_crop.jpg
+convert -size 100x142 radial-gradient:white-black  -gravity center -crop 100x100+0+0 rgradient_crop.jpg
 cme rgradient_crop.jpg 61.jpg
 
 echo "rgradient_range1.jpg"
@@ -260,7 +260,7 @@ convert -size 100x100  radial-gradient:blue              rgradient_range1.jpg
 cme rgradient_range1.jpg 62.jpg
 
 echo "rgradient_range2.jpg"
-convert -size 100x100  radial-gradient:yellow            rgradient_range2.jpg
+convert -size 100x100  radial-gradient:yellow-black      rgradient_range2.jpg
 cme rgradient_range2.jpg 63.jpg
 
 echo "rgradient_range3.jpg"
@@ -276,7 +276,7 @@ convert -size 100x100 gradient:none-firebrick gradient_transparent.png
 cme gradient_transparent.png 66.png
 
 echo "gradient_sigmoidal.jpg"
-convert -size 100x100 gradient: -sigmoidal-contrast 6,50%  gradient_sigmoidal.jpg
+convert -size 100x100 gradient:white-black -sigmoidal-contrast 6,50%  gradient_sigmoidal.jpg
 cme gradient_sigmoidal.jpg 67.jpg
 
 echo "gradient_trans_colorize.png"
@@ -284,67 +284,67 @@ convert -size 100x100 gradient:none-black  -fill firebrick -colorize 100% gradie
 cme gradient_trans_colorize.png 68.png
 
 echo "gradient_cosine.jpg"
-convert -size 100x100 gradient: -evaluate cos 0.5 -negate  gradient_cosine.jpg
+convert -size 100x100 gradient:white-black -evaluate cos 0.5 -negate  gradient_cosine.jpg
 cme gradient_cosine.jpg 69.jpg
 
 echo "gradient_peak.jpg"
-convert -size 100x100 gradient: -function Polynomial -4,4,0  gradient_peak.jpg
+convert -size 100x100 gradient:white-black -function Polynomial -4,4,0  gradient_peak.jpg
 cme gradient_peak.jpg 70.jpg
 
 echo "gradient_bands.jpg"
-convert -size 100x100 gradient: -function sinusoid 4,-90   gradient_bands.jpg
+convert -size 100x100 gradient:white-black -function sinusoid 4,-90   gradient_bands.jpg
 cme gradient_bands.jpg 71.jpg
 
 echo "gradient_diagonal.jpg"
-convert -size 142x142 gradient: -rotate -45  -gravity center -crop 100x100+0+0 +repage  gradient_diagonal.jpg
+convert -size 142x142 gradient:white-black -rotate -45  -gravity center -crop 100x100+0+0 +repage  gradient_diagonal.jpg
 cme gradient_diagonal.jpg 72.jpg
 
 echo "gradient_srt.jpg"
-convert -size 100x100 gradient: -distort SRT 60 gradient_srt.jpg
+convert -size 100x100 gradient:white-black -distort SRT 60 gradient_srt.jpg
 cme gradient_srt.jpg 73.jpg
 
 echo "gradient_swirl.jpg"
-convert -size 100x100 gradient: -swirl 180 gradient_swirl.jpg
+convert -size 100x100 gradient:white-black -swirl 180 gradient_swirl.jpg
 cme gradient_swirl.jpg 74.jpg
 
 echo "gradient_trapezoid.jpg"
-convert -size 100x100 gradient: -rotate -90  -distort Perspective '0,0 40,0  99,0 59,0  0,99 -10,99 99,99 109,99'  gradient_trapezoid.jpg
+convert -size 100x100 gradient:white-black -rotate -90  -distort Perspective '0,0 40,0  99,0 59,0  0,99 -10,99 99,99 109,99'  gradient_trapezoid.jpg
 cme gradient_trapezoid.jpg 75.jpg
 
 echo "gradient_arc.jpg"
-convert -size 100x100 gradient: -distort Arc '180 0 50 0'  gradient_arc.jpg
+convert -size 100x100 gradient:white-black -distort Arc '180 0 50 0'  gradient_arc.jpg
 cme gradient_arc.jpg 76.jpg
 
 echo "gradient_circle.jpg"
-convert -size 100x100 gradient: -distort Arc '360 0 50 0'  gradient_circle.jpg
+convert -size 100x100 gradient:white-black -distort Arc '360 0 50 0'  gradient_circle.jpg
 cme gradient_circle.jpg 77.jpg
 
 echo "gradient_angle_even.png"
-convert -size 1x1000 gradient: -rotate 90  -distort Arc '360 -90 50 0' +repage  -gravity center -crop 76x76+0+0 +repage  gradient_angle_even.png
+convert -size 1x1000 gradient:white-black -rotate 90  -distort Arc '360 -90 50 0' +repage  -gravity center -crop 76x76+0+0 +repage  gradient_angle_even.png
 cme gradient_angle_even.png 78.png
 
 echo "gradient_angle_masked.png"
-convert -size 50x1000 gradient: -rotate 90 -alpha set  -virtual-pixel Transparent +distort Polar 49 +repage  -transverse  gradient_angle_masked.png
+convert -size 50x1000 gradient:white-black -rotate 90 -alpha set  -virtual-pixel Transparent +distort Polar 49 +repage  -transverse  gradient_angle_masked.png
 cme gradient_angle_masked.png 79.png
 
 echo "gradient_angle_odd.png"
-convert -size 1x1000 gradient: -rotate 90  +distort Polar '36.5,0,.5,.5' +repage  -transverse  gradient_angle_odd.png
+convert -size 1x1000 gradient:white-black -rotate 90  +distort Polar '36.5,0,.5,.5' +repage  -transverse  gradient_angle_odd.png
 cme gradient_angle_odd.png 80.png
 
 echo "gradient_triangle.jpg"
-convert -size 100x100 radial-gradient:  -background black -wave -28x200 -crop 100x100+0+0 +repage  gradient_triangle.jpg
+convert -size 100x100 radial-gradient:white-black  -background black -wave -28x200 -crop 100x100+0+0 +repage  gradient_triangle.jpg
 cme gradient_triangle.jpg 81.jpg
 
 echo "gradient_bird.jpg"
-convert -size 100x100 radial-gradient:  +distort Polar '49' +repage  gradient_bird.jpg
+convert -size 100x100 radial-gradient:white-black  +distort Polar '49' +repage  gradient_bird.jpg
 cme gradient_bird.jpg 82.jpg
 
 echo "gradient_venetian.jpg"
-convert -size 100x100 gradient: \( +clone +clone \)  -background gray50 -compose ModulusAdd -flatten  gradient_venetian.jpg
+convert -size 100x100 gradient:white-black \( +clone +clone \)  -background gray50 -compose ModulusAdd -flatten  gradient_venetian.jpg
 cme gradient_venetian.jpg 83.jpg
 
 echo "gradient_vent_diag.jpg"
-convert -size 100x100 gradient: \( gradient: -rotate -90 \)  \( -clone 0--1 -clone 0--1 \)  -background gray50 -compose ModulusAdd -flatten  gradient_vent_diag.jpg
+convert -size 100x100 gradient:white-black \( gradient:white-black -rotate -90 \)  \( -clone 0--1 -clone 0--1 \)  -background gray50 -compose ModulusAdd -flatten  gradient_vent_diag.jpg
 cme gradient_vent_diag.jpg 84.jpg
 
 echo "gradient_colormap.jpg"
@@ -352,7 +352,7 @@ convert -size 100x100 gradient:yellow-blue  \( gradient:black-lime -rotate -90 \
 cme gradient_colormap.jpg 85.jpg
 
 echo "gradient_rainbow.jpg"
-convert -size 30x600 xc:red -colorspace HSB  gradient: -compose CopyRed -composite  -colorspace RGB -rotate 90  gradient_rainbow.jpg
+convert -size 30x600 xc:red -colorspace HSB  gradient:white-black -compose CopyRed -composite  -colorspace RGB -rotate 90  gradient_rainbow.jpg
 cme gradient_rainbow.jpg 86.jpg
 
 echo "gradient_hue_polar.png"
@@ -380,7 +380,7 @@ convert \( xc:red xc:blue +append \)  \( xc:yellow xc:cyan +append \) -append  -
 cme gradient_resize4.jpg 92.jpg
 
 echo "gradient_resize5.jpg"
-convert -size 1x2  gradient:  -filter Cubic  -resize 100x100\!    gradient_resize5.jpg
+convert -size 1x2  gradient:white-black  -filter Cubic  -resize 100x100\!    gradient_resize5.jpg
 cme gradient_resize5.jpg 93.jpg
 
 echo "gradient_rs_rainbow.jpg"
@@ -392,11 +392,11 @@ convert -size 600x30 xc:   \( +size xc:gold xc:firebrick +append \)   -fx 'v.p{i
 cme gradient_interpolated.jpg 95.jpg
 
 echo "gradient_clut.jpg"
-convert -size 30x600 gradient: -rotate 90  -interpolate Catrom  \( +size xc:black xc:tomato xc:wheat +append \) -clut  gradient_clut.jpg
+convert -size 30x600 gradient:white-black -rotate 90  -interpolate Catrom  \( +size xc:black xc:tomato xc:wheat +append \) -clut  gradient_clut.jpg
 cme gradient_clut.jpg 96.jpg
 
 echo "gradient_clut_recolored.jpg"
-convert -size 30x600 gradient: -rotate 90  \( +size xc:gold xc:firebrick +append \) -clut  gradient_clut_recolored.jpg
+convert -size 30x600 gradient:white-black -rotate 90  \( +size xc:gold xc:firebrick +append \) -clut  gradient_clut_recolored.jpg
 cme gradient_clut_recolored.jpg 97.jpg
 
 echo "gradient_bilinear.jpg"
@@ -436,6 +436,7 @@ convert -size 100x100 xc: -channel G  -fx '(1-(2*i/w-1)^4)*(1-(2*j/h-1)^4)'  -se
 cme gradient_fx_quad2.gif 106.gif
 
 echo "gradient_fx_angular.gif"
+    echo $val
 convert -size 100x100 xc:  -channel G  -fx '.5 - atan2(j-h/2,w/2-i)/pi/2'  -separate  gradient_fx_angular.gif
 cme gradient_fx_angular.gif 107.gif
 
@@ -508,7 +509,7 @@ convert -size 100x100 xc: -sparse-color  Voronoi  '30,10 red  10,80 blue  70,60 
 cme sparse_voronoi.gif 123.gif
 
 echo "gradient_scale.png"
-convert  -size 1x5 gradient:  -scale 2000% gradient_scale.png
+convert  -size 1x5 gradient:white-black  -scale 2000% gradient_scale.png
 cme gradient_scale.png 124.png
 
 echo "sparse_voronoi_ssampled.png"
@@ -540,7 +541,7 @@ convert -size 100x100 xc: -sparse-color  Voronoi  '30,10 red  10,80 blue  70,60 
 cme sparse_voronoi_gradient.png 131.png
 
 echo "gradient_chopped.png"
-convert -size 1x6 gradient: -chop 0x1 -scale 2000%  gradient_chopped.png
+convert -size 1x6 gradient:white-black -chop 0x1 -scale 2000%  gradient_chopped.png
 cme gradient_chopped.png 132.png
 
 echo "sparse_shepards.png"
@@ -636,7 +637,7 @@ convert plasma_fractal2.jpg  -blur 0x5 -sharpen 0x15 plasma_sharp.jpg
 cme plasma_sharp.jpg 154.jpg
 
 echo "plasma_seeded.jpg"
-convert -size 100x100 -seed 4321  plasma:    plasma_seeded.jpg
+convert -size 100x100 -seed 4321  plasma:white-black    plasma_seeded.jpg
 cme plasma_seeded.jpg 155.jpg
 
 echo "plasma_rnd1.jpg"
