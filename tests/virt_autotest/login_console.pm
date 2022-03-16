@@ -15,7 +15,7 @@ use testapi;
 use Utils::Architectures;
 use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout);
 use ipmi_backend_utils;
-use virt_autotest::utils qw(is_xen_host);
+use virt_autotest::utils qw(is_xen_host check_port_state);
 use IPC::Run;
 
 sub set_ssh_console_timeout_before_use {
@@ -128,7 +128,7 @@ sub login_to_console {
             send_key 'down';
             send_key 'ret';
             #wait sshd up
-            assert_screen('sshd-server-started', 180);
+            die "Can not connect to machine to perform offline upgrade via ssh" unless (check_port_state(get_required_var('SUT_IP'), 22, 10));
             save_screenshot;
             #switch to ssh console
             use_ssh_serial_console;
