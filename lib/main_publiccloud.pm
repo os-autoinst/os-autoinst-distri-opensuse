@@ -13,19 +13,19 @@ use version_utils;
 use main_common qw(loadtest);
 use testapi qw(check_var get_var);
 use Utils::Architectures qw(is_aarch64);
-use main_containers qw(load_3rd_party_image_test);
+use main_containers qw(load_3rd_party_image_test load_container_engine_test);
 
 our @EXPORT = qw(
   load_publiccloud_tests
 );
 
 sub load_podman_tests() {
-    loadtest 'containers/podman';
+    load_container_engine_test('podman');
     load_3rd_party_image_test('podman');
 }
 
 sub load_docker_tests() {
-    loadtest 'containers/docker';
+    load_container_engine_test('docker');
     loadtest 'containers/docker_runc' unless (is_aarch64 && is_sle('<=15'));
     load_3rd_party_image_test('docker');
     loadtest 'containers/registry' unless (is_aarch64 && is_sle('<=15-SP1'));
