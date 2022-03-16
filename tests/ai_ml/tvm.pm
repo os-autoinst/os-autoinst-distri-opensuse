@@ -18,7 +18,7 @@ sub run {
 
     $self->select_serial_terminal;
 
-    zypper_call 'in python3-tvm tvmc python3-onnx python3-Pillow python3-pytest python3-tornado gcc-c++ tensorflow2';
+    zypper_call 'in python3-tvm tvmc python3-onnx python3-Pillow python3-pytest python3-tornado gcc-c++';
 
     select_console 'user-console';
     record_info('AutoTVM');
@@ -28,7 +28,7 @@ sub run {
     # https://tvm.apache.org/docs/tutorials/get_started/tvmc_command_line_driver.html
     # TVMC supports models created with Keras, ONNX, TensorFlow, TFLite and Torch. Use onnx model here.
     record_info('tvmc - no tune');
-    assert_script_run('curl -L -O https://github.com/onnx/models/raw/master/vision/classification/resnet/model/resnet50-v2-7.onnx');
+    assert_script_run('curl -L -O https://media.githubusercontent.com/media/onnx/models/main/vision/classification/resnet/model/resnet50-v2-7.onnx');
     assert_script_run('curl -L -O https://github.com/apache/tvm/raw/b7b69a2d1dbfe7a9cd04ddab2e60f33654419d58/tutorials/get_started/tvmc_command_line_driver.py');
 
     assert_script_run('tvmc compile --target "llvm" --output compiled_module.tar resnet50-v2-7.onnx', timeout => 600);
