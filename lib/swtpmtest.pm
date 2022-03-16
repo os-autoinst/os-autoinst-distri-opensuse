@@ -3,7 +3,7 @@
 #
 # Summary: Base module for swtpm test cases
 # Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#81256, tc#1768671, poo#102849
+# Tags: poo#81256, tc#1768671, poo#102849, poo#108386
 
 package swtpmtest;
 
@@ -79,10 +79,11 @@ sub stop_swtpm_vm {
 }
 
 # Function "swtpm_verify" gets ip address of the vm, and ssh access
-# into it, then check the tpm parameters
+# into it, then check the tpm parameters along with required information
 sub swtpm_verify {
     my $para = shift;
     die "invalid swtpm parameter $para" unless ($guestvm_cfg->{$para});
+    record_info("Current SWTPM device version is: ", "$para");
 
     # Check the vm guest is up via listening to the port 22
     assert_script_run("wget --quiet " . data_url("swtpm/ssh_port_chk_script") . " -P $image_path");
@@ -97,6 +98,10 @@ sub swtpm_verify {
     my $ssh_script = "$image_path/ssh_script";
     my $expect_cmd = $guest_swtpm_ver->{expect_cmd};
     assert_script_run("TPM_CHK_CMD=\"$expect_cmd\" $ssh_script $ip_addr $user $passwd > $result_file");
+
+    # Upload the log files for later debug
+    upload_logs("$result_file");
+
     assert_script_run("grep tpm0 $result_file");
     if ($para eq "swtpm_1") {
         assert_script_run("grep 'TPM 1.2 Version' $result_file");
@@ -105,6 +110,10 @@ sub swtpm_verify {
         assert_script_run("grep tpmrm0 $result_file");
         assert_script_run("grep '0 :' $result_file");    # The "tpm2_pcrread" command will show sha1:0 value
     }
+
+    # Measured boot check
+    # If measured boot works fine, it can record available algorithms and pcrs
+    assert_script_run("cat $result_file | egrep 'AlgorithmId|pcrs'");
 }
 
 1;

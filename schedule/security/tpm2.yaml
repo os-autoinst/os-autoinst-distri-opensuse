@@ -5,6 +5,7 @@ schedule:
     - boot/boot_to_desktop
     - console/consoletest_setup
     - security/tpm2/tpm2_env_setup
+    - security/tpm2/tpm2_measured_boot
     - security/tpm2/tpm2_engine/tpm2_engine_info
     - security/tpm2/tpm2_engine/tpm2_engine_random_data
     - security/tpm2/tpm2_engine/tpm2_engine_rsa_operation
