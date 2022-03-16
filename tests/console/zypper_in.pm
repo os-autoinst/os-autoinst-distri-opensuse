@@ -79,6 +79,7 @@ sub run {
 sub post_fail_hook {
     my $self = shift;
 
+    select_console 'log-console';
     upload_logs "/var/log/zypper.log";
     $self->SUPER::post_fail_hook();
 }
