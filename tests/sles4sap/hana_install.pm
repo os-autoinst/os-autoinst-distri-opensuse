@@ -228,6 +228,11 @@ sub run {
       "--logpath=$mountpts{hanalog}->{mountpt}/$sid",
       "--sapmnt=$mountpts{hanashared}->{mountpt}";
     push @hdblcm_args, "--pmempath=$pmempath", "--use_pmem" if get_var('NVDIMM');
+    # NOTE: Remove when SAP releases HANA with a fix for bsc#1195133
+    if (get_var('NVDIMM')) {
+        push @hdblcm_args, "--ignore=check_signature_file";
+        record_soft_failure("Workaround for bsc#1195133");
+    }
     my $cmd = join(' ', $hdblcm, @hdblcm_args);
     record_info 'hdblcm command', $cmd;
     assert_script_run $cmd, $tout;
