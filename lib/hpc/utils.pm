@@ -40,6 +40,7 @@ Returns an array with the mpi compiler and the source code located in /data/hpc
 =cut
 sub get_mpi_src {
     return ('mpicc', 'simple_mpi.c') unless get_var('HPC_LIB', '');
+    # not a boost lib. but using it we can distiguish between `.c` and `.cpp` source code
     return ('mpic++', 'sample_boost.cpp') if (get_var('HPC_LIB') eq 'boost');
     return ('', 'sample_scipy.py') if (get_var('HPC_LIB') eq 'scipy');
 }
@@ -78,14 +79,7 @@ sub setup_scientific_module {
     my $mpi = get_required_var('MPI');
     assert_script_run("export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/lib64/mpi/gcc/$mpi/lib64/");
 
-    if (get_var('HPC_LIB') eq 'boost') {
-        # ignore it for now as package is not available on sle15sp4
-        # zypper_call("in boost-gnu-hpc") ;
-        # $self->relogin_root;
-        # # TODO: Add MPI_FLAVOR `module load TOOLCHAIN MPI_FLAVOR boost`
-        # assert_script_run('module load gnu boost');
-    }
-    elsif (get_var('HPC_LIB') eq 'scipy') {
+    if (get_var('HPC_LIB') eq 'scipy') {
         zypper_call("in python3-scipy-gnu-hpc");
         #
         assert_script_run("env MPICC=/usr/lib64/mpi/gcc/$mpi/bin/mpicc python3 -m pip install mpi4py");

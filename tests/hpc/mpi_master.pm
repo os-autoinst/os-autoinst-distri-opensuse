@@ -61,7 +61,7 @@ sub run ($self) {
     barrier_wait('MPI_BINARIES_READY');
     my $mpirun_s = hpc::formatter->new();
 
-    unless (get_var('HPC_LIB', '') eq 'boost') {
+    unless ($mpi_bin eq '.cpp') {    # because calls expects minimum 2 nodes
         record_info('INFO', 'Run MPI over single machine');
         assert_script_run($mpirun_s->single_node("/tmp/$mpi_bin | tee /tmp/mpirun.out"));
     }
