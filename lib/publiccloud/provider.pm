@@ -364,12 +364,13 @@ sub terraform_apply {
             q(%SLE_VERSION%) => $sle_version
         );
         upload_logs(TERRAFORM_DIR . "/$cloud_name/terraform.tfvars", failok => 1);
+        script_retry('terraform init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
         assert_script_run("terraform workspace new $resource_group -no-color", $terraform_timeout);
     }
     else {
         assert_script_run('cd ' . TERRAFORM_DIR);
+        script_retry('terraform init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
     }
-    script_retry('terraform init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
 
     my $cmd = 'terraform plan -no-color ';
     if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
