@@ -65,14 +65,16 @@ sub register_addon {
     my $timestamp = utc_timestamp();
     record_info($addon, "Going to register '$addon' addon\nUTC: $timestamp");
     my $cmd_time = time();
+    # ssh_add_suseconnect_product($remote, $name, $version, $arch, $params, $timeout, $retries, $delay)
+    my ($timeout, $retries, $delay) = (300, 3, 120);
     if ($addon =~ /ltss/) {
-        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch, "-r " . get_required_var('SCC_REGCODE_LTSS'));
+        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch, "-r " . get_required_var('SCC_REGCODE_LTSS'), $timeout, $retries, $delay);
     } elsif (is_sle('<15') && $addon =~ /tcm|wsm|contm|asmm|pcm/) {
-        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '`echo ${VERSION} | cut -d- -f1`', $arch);
+        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '`echo ${VERSION} | cut -d- -f1`', $arch, '', $timeout, $retries, $delay);
     } elsif (is_sle('<15') && $addon =~ /sdk|we/) {
-        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch);
+        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch, '', $timeout, $retries, $delay);
     } else {
-        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), undef, $arch);
+        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), undef, $arch, '', $timeout, $retries, $delay);
     }
     record_info('SUSEConnect time', 'The command SUSEConnect -r ' . get_addon_fullname($addon) . ' took ' . (time() - $cmd_time) . ' seconds.');
 }
@@ -85,7 +87,7 @@ sub registercloudguest {
     # in such a case,we need to regsiter against SCC and install registercloudguest with all needed dependencies and then
     # unregister and re-register with registercloudguest
     if ($instance->run_ssh_command(cmd => "sudo which registercloudguest > /dev/null; echo \"registercloudguest\$?\" ", proceed_on_failure => 1) =~ m/registercloudguest1/) {
-        $instance->retry_ssh_command(cmd => "sudo SUSEConnect -r $regcode", timeout => 420, retry => 3);
+        $instance->retry_ssh_command(cmd => "sudo SUSEConnect -r $regcode", timeout => 420, retry => 3, delay => 120);
         register_addon($remote, 'pcm');
         my $install_packages = 'cloud-regionsrv-client';    # contains registercloudguest binary
         if (is_azure()) {
@@ -107,7 +109,7 @@ sub registercloudguest {
     $instance->run_ssh_command(cmd => "sudo rpm -qa cloud-regionsrv-client", proceed_on_failure => 1);
     # Register the system
     my $cmd_time = time();
-    $instance->retry_ssh_command(cmd => "sudo registercloudguest -r $regcode", timeout => 420, retry => 3);
+    $instance->retry_ssh_command(cmd => "sudo registercloudguest -r $regcode", timeout => 420, retry => 3, delay => 120);
     record_info('registercloudguest time', 'The command registercloudguest took ' . (time() - $cmd_time) . ' seconds.');
 }
 
