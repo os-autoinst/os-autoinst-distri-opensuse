@@ -74,14 +74,12 @@ sub run {
 
     # Clamd start timeout sometimes. The default systemd timeout is 90s,
     # override it with a longer duration in runtime.
-    my $runtime_dir = '/run/systemd/system/clamd.service.d';
-    assert_script_run "mkdir -p $runtime_dir";
-    assert_script_run "echo -e \'[Service]\\nTimeoutSec=400\' > $runtime_dir/override.conf";
+    assert_script_run("sed -i '/;User/i TimeoutSec=15min' /usr/lib/systemd/system/clamd.service");
     systemctl('daemon-reload');
 
     # Start the deamons
     script_run("sed -i 's/User vscan/User root/g' /etc/clamd.conf");
-    systemctl('start clamd', timeout => 400);
+    systemctl('start clamd', timeout => 900);
     systemctl('start freshclam');
 
     # Create md5, sha1 and sha256 Hash-based signatures
