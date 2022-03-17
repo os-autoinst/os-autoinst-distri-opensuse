@@ -24,6 +24,7 @@ sub run {
 
     disable_installation_repos;
     add_test_repositories;
+    set_zypp_single_rpmtrans;
     fully_patch_system;
     install_patterns() if (get_var('PATTERNS'));
     deregister_dropped_modules;

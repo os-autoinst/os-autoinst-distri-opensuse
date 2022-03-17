@@ -27,6 +27,7 @@ our @EXPORT = qw(
   check_rollback_system
   reset_consoles_tty
   set_scc_proxy_url
+  set_zypp_single_rpmtrans
 );
 
 sub setup_sle {
@@ -53,6 +54,7 @@ sub setup_sle {
     # Enable Y2DEBUG for error debugging
     enter_cmd "echo 'export Y2DEBUG=1' >> /etc/bash.bashrc.local";
     script_run("source /etc/bash.bashrc.local", die_on_timeout => 0);
+    set_zypp_single_rpmtrans();
 }
 
 sub setup_migration {
@@ -205,6 +207,24 @@ sub set_scc_proxy_url {
         enter_cmd "echo 'url: $u' > /etc/SUSEConnect";
     }
     save_screenshot;
+}
+
+=head2 set_zypp_single_rpmtrans
+    set_zypp_single_rpmtrans();
+
+This function is used for adding ZYPP_SINGLE_RPMTRANS
+if the test case has ZYPP_SINGLE_RPMTRANS setting. this
+feature will enhance the zypper performance.
+
+jira feature https://jira.suse.com/browse/SLE-21973
+zypper single transaction performance enhancement (RFE)
+
+=cut
+
+sub set_zypp_single_rpmtrans {
+
+    assert_script_run 'export ZYPP_SINGLE_RPMTRANS=1 ' if get_var('ZYPP_SINGLE_RPMTRANS');
+
 }
 
 1;
