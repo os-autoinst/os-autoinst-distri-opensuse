@@ -20,17 +20,6 @@
 #     - Send 'alt-d', check for needle 'ERROR-removing-package-details'
 #     - Send 'alt-i', check for needle 'WARNING-ignoring-package-failure'
 #     - Send 'alt-o'
-#   - If LIVECD is defined and needle "screenlock" matches:
-#     - Call "handle_livecd_screenlock"
-#       - Call record_soft_failure 'boo#994044: Kde-Live net installer is interrupted by screenlock'
-#       - Print diag message 'unlocking screenlock with no password in LIVECD mode'
-#       - While "screenlock" needle matches:
-#         - Send 'alt-tab'
-#         - While no "blackscreen" matches:
-#           - Send 'tab'
-#           - Send 'ret'
-#       - Save a screenshot
-#       - Check for a needle: "yast-still-running"
 #   - If needle matches 'additional-packages'
 #     - Send 'alt-i'
 #   - If needle matches 'package-update-found'
@@ -49,28 +38,6 @@ use Utils::Architectures;
 use Utils::Backends;
 use version_utils qw(:VERSION :BACKEND is_sle is_leap is_sle_micro);
 use ipmi_backend_utils;
-
-sub handle_livecd_screenlock {
-    record_soft_failure 'boo#994044: Kde-Live net installer is interrupted by screenlock';
-    diag('unlocking screenlock with no password in LIVECD mode');
-    my $retries = 7;
-    for (1 .. $retries) {
-        # password and unlock button seem to be not in focus so switch to
-        # the only 'window' shown, tab over the empty password field and
-        # confirm unlocking
-        send_key 'alt-tab';
-        if (!match_has_tag('blackscreen')) {
-            send_key 'tab';
-            send_key 'ret';
-        }
-        last unless check_screen([qw(screenlock blackscreen)], 20);
-        die "Failed to unlock screen within multiple retries" if $_ == $retries;
-    }
-    save_screenshot;
-    # can take a long time until the screen unlock happens as the
-    # system is busy installing.
-    assert_screen('yast-still-running', 120);
-}
 
 # Stop countdown and check success by waiting screen change without performing an action
 sub wait_countdown_stop {
@@ -197,10 +164,6 @@ sub run {
             send_key 'alt-i';    # ignore
             assert_screen 'WARNING-ignoring-package-failure';
             send_key 'alt-o';    # ok
-            next;
-        }
-        if (get_var('LIVECD') and (check_screen('screenlock') || check_screen('blackscreen'))) {
-            handle_livecd_screenlock;
             next;
         }
         if (match_has_tag('additional-packages')) {
