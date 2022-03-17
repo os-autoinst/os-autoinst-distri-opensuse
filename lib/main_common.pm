@@ -1110,7 +1110,6 @@ sub load_consoletests {
     loadtest "console/system_state";
     loadtest "console/prepare_test_data";
     loadtest "console/consoletest_setup";
-    loadtest 'console/systemd_wo_udev' if (is_sle('15-sp4+') || is_leap('15.4+') || is_tumbleweed);
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
 
     if (get_var('IBM_TESTS')) {
@@ -1185,6 +1184,7 @@ sub load_consoletests {
         loadtest "jeos/glibc_locale";
         loadtest "jeos/kiwi_templates" unless (is_leap('<15.2'));
     }
+    loadtest 'console/systemd_wo_udev' if (is_sle('15-sp4+') || is_leap('15.4+') || is_tumbleweed);
     loadtest "console/ncurses" if is_leap;
     loadtest "console/yast2_lan" unless is_bridged_networking;
     # no local certificate store
