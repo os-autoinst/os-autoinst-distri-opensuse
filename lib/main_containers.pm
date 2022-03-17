@@ -23,6 +23,7 @@ our @EXPORT = qw(
   load_container_tests
   load_host_tests_podman
   load_3rd_party_image_test
+  load_container_engine_test
 );
 
 sub is_container_test {
@@ -59,6 +60,14 @@ sub load_3rd_party_image_test {
     loadtest('containers/third_party_images', run_args => $args, name => $runtime . "_3rd_party_images");
 }
 
+sub load_container_engine_test {
+    my ($runtime) = @_;
+    my $args = OpenQA::Test::RunArgs->new();
+    $args->{runtime} = $runtime;
+
+    loadtest('containers/container_engine', run_args => $args, name => $runtime);
+}
+
 sub load_image_tests_podman {
     load_image_test('podman');
 }
@@ -75,7 +84,7 @@ sub load_image_tests_docker {
 sub load_host_tests_podman {
     if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+") || is_sle_micro) {
         # podman package is only available as of 15-SP1
-        loadtest 'containers/podman';
+        load_container_engine_test('podman');
         load_image_test('podman');
         load_3rd_party_image_test('podman');
         loadtest 'containers/podman_firewall';
@@ -86,7 +95,7 @@ sub load_host_tests_podman {
 }
 
 sub load_host_tests_docker {
-    loadtest 'containers/docker';
+    load_container_engine_test('docker');
     load_image_test('docker');
     load_3rd_party_image_test('docker');
     loadtest 'containers/docker_firewall';
