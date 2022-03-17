@@ -81,6 +81,25 @@ sub check_buildid {
     }
 }
 
+# SLE-21783: Update nodejs-common for SLE15 SP4
+# check the nodejs16 is releaseed to SLE15 SP3 & SLE15 SP4
+# check the nodejs-common points to nodejs16
+# test steps:
+# 1) install nodejs-common on SLES15SP3 and migrated SLES15SP4 when wsm is available in SCC_ADDONS
+# 2) check nodejs16 is installed together with nodejs-common
+sub check_nodejs_common {
+    record_info('SLE-21783', 'check nodejs-common');
+    zypper_call('in nodejs-common | tee /tmp/install_nodejs.log');
+
+    assert_script_run('grep -E "Installing: nodejs16" /tmp/install_nodejs.log');
+    if ((script_output(q(zypper se -i nodejs | sed -n '/nodejs16 /p' | awk '{print $1}')) !~ /i/) || \
+        (script_output(q(zypper se -i nodejs | sed -n '/nodejs-common/p' | awk '{print $1}')) !~ /i\+/)) {
+        die "Expected package is not installed";
+    }
+
+    zypper_call("rm nodejs-common");
+}
+
 # SLE-21916: change bzr to breezy
 # check in the upgraded sysetem that bzr was repalced by breezy
 # test steps:
@@ -164,6 +183,15 @@ sub run {
         check_product("after");
         check_buildid;
         check_feature if (is_sle(">=15-SP4") && check_var('INSTALLONLY', '1'));
+    }
+
+    # Check feature SLE-21783: Check nodejs-common on SLES15SP3 before migration
+    if (is_sle('>=15-SP3', get_var('ORIGIN_SYSTEM_VERSION')) && get_var('SCC_ADDONS') =~ /wsm/) {
+        check_nodejs_common;
+    }
+    # Check feature SLE-21783: Check nodejs-common on the migrated SLES15SP4
+    if (check_var('VERSION', get_required_var('UPGRADE_TARGET_VERSION')) && get_var('SCC_ADDONS') =~ /wsm/) {
+        check_nodejs_common;
     }
 }
 
