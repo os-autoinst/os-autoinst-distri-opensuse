@@ -11,6 +11,7 @@ package publiccloud::provider;
 use testapi qw(is_serial_terminal :DEFAULT);
 use Mojo::Base -base;
 use publiccloud::instance;
+use publiccloud::utils 'is_azure';
 use Carp;
 use List::Util qw(max);
 use Data::Dumper;
@@ -468,7 +469,8 @@ sub terraform_destroy {
     else {
         assert_script_run('cd ' . TERRAFORM_DIR);
         # Add region variable also to `terraform destroy` (poo#63604) -- needed by AWS.
-        $cmd = sprintf(q(terraform destroy -no-color -auto-approve -var 'region=%s'), $self->provider_client->region);
+        my $azure_args = (is_azure()) ? sprintf("-var 'offer=%s' -var 'sku=%s'", get_var('PUBLIC_CLOUD_AZURE_OFFER'), get_var('PUBLIC_CLOUD_AZURE_SKU')) : undef;
+        $cmd = sprintf(q(terraform destroy -no-color -auto-approve -var 'region=%s' %s), $self->provider_client->region, $azure_args);
     }
     # Retry 3 times with considerable delay. This has been introduced due to poo#95932 (RetryableError)
     # terraform keeps track of the allocated and destroyed resources, so its safe to run this multiple times.
