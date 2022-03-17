@@ -40,7 +40,13 @@ our $mitigations_list =
         "off",
     ],
   };
-
+# Add icelake of vh018 information
+if (get_var('MICRO_ARCHITECTURE', '') =~ /Icelake/) {
+    $mitigations_list->{sysfs}->{off} = 'Not affected';
+    $mitigations_list->{sysfs}->{full} = 'Not affected';
+    $mitigations_list->{sysfs}->{"full,nosmt"} = 'Not affected';
+    $mitigations_list->{sysfs}->{default} = 'Not affected';
+}
 sub new {
     my ($class, $args) = @_;
     #Help constructor distinguishing is our own test object or openQA call
@@ -56,7 +62,6 @@ sub update_list_for_qemu {
     $mitigations_list->{sysfs}->{full} =~ s/SMT vulnerable/SMT Host state unknown/ig;
     $mitigations_list->{sysfs}->{"full,nosmt"} =~ s/SMT disabled/SMT Host state unknown/ig;
     $mitigations_list->{sysfs}->{default} =~ s/SMT vulnerable/SMT Host state unknown/ig;
-    $mitigations_list->{sysfs}->{off} = 'Vulnerable';
     if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/) {
         $mitigations_list->{sysfs}->{off} = 'Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown';
     }
