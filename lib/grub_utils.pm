@@ -76,7 +76,7 @@ sub bug_workaround_bsc1005313 {
     record_soft_failure "Running with plymouth:debug to catch bsc#1005313" if get_var('PLYMOUTH_DEBUG');
     send_key 'e';
     # Move to end of kernel boot parameters line
-    send_key_until_needlematch "linux-line-selected", "down";
+    send_key_until_needlematch "linux-line-selected", "down", 25;
     send_key "end";
 
     assert_screen "linux-line-matched";
