@@ -43,6 +43,12 @@ my %mitigations_list =
     },
     cmdline => ["auto,nosmt", "off", "auto"],
   );
+# Add icelake of vh018 information
+if (get_var('MICRO_ARCHITECTURE') =~ /Icelake/) {
+    $mitigations_list{sysfs}{off}{itlb_multihit} = 'Not affected';
+    $mitigations_list{sysfs}{"auto,nosmt"}{itlb_multihit} = 'Not affected';
+    $mitigations_list{sysfs}{auto}{itlb_multihit} = 'Not affected';
+}
 
 sub run {
     my $self = shift;
