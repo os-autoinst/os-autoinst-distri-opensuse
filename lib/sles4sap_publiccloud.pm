@@ -13,6 +13,7 @@ use warnings FATAL => 'all';
 use Mojo::Base 'publiccloud::basetest';
 use version_utils 'is_sle';
 use publiccloud::utils;
+use publiccloud::instance;
 use testapi;
 use Data::Dumper;
 
@@ -138,6 +139,7 @@ Checks and returns hostname of HANA promoted node.
 sub get_promoted_hostname {
     my ($self) = @_;
     my $resource_output = $self->run_cmd(cmd => "crm resource status msl_SAPHana_PRD_HDB00", quiet => 1);
+    record_info("crm out", $resource_output);
     my @master = $resource_output =~ /:\s(\S+)\sMaster/g;
     if ( scalar @master != 1 ) {
         diag("Master database not found or command returned abnormal output.\n
@@ -227,12 +229,10 @@ sub stop_hana {
     my ($self, %args) = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
     my $method = defined($args{method}) ? $args{method} : 'stop';
-        # Running as prdadm via "su - <user> command"
-    my $user = "prdadm" if ($method eq "stop" or "kill");
     my %commands = (
         "stop"  => "HDB stop",
         "kill"  => "HDB kill -x",
-        "crash" => "echo c > /proc/sysrq-trigger"
+        "crash" => "echo c | sudo tee /proc/sysrq-trigger"
     );
 
     my $cmd = $commands{$method};
@@ -241,7 +241,14 @@ sub stop_hana {
     $self->wait_for_sync();
 
     record_info("Stopping HANA", "CMD:$cmd");
-    $self->run_cmd(cmd => $cmd, runas=>$user , timeout => $timeout);
+    if ($method eq "crash") {
+        # ServerAliveInterval will terminate command since there will be hanging session after crash
+        $args{ssh_opts} = "ServerAliveInterval=10 ServerAliveCountMax=3";
+        $self->run_cmd(cmd => $cmd, timeout => $timeout);
+    }
+    else {
+        $self->run_cmd(cmd => $cmd, runas=>"prdadm" , timeout => $timeout);
+    }
 
     # Wait for resource to stop
     my $start_time = time;
@@ -400,7 +407,6 @@ sub wait_for_sync {
 
     while ($sok == 0) {
         my $topology = $self->get_hana_topology();
-
         for my $entry (@$topology) {
             my %entry = %$entry;
             $sok = 1 if $entry{sync_state} eq "SOK";
@@ -416,6 +422,18 @@ sub wait_for_sync {
     }
     record_info("Sync OK", $self->run_cmd(cmd=>"SAPHanaSR-showAttr"));
     return 1;
+}
+
+
+=head2 start_instance
+    start_instance([online_fail => 0, timeout => 300]);
+    Checks if PC instance offline starts it afterwards.
+    If "online_fail" is defined, test will fail if instance was not shut down previously.
+=cut
+sub start_instance {
+    my ($self, %args) = @_;
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
+    #my $fail_if_online = defined($args{online_fail}) ?
 }
 
 1;

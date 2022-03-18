@@ -61,35 +61,13 @@ sub run {
 
     foreach my $instance (@instances) {
         $self->upload_ha_sap_logs($instance);
-        print(Dumper($instance));
-        push(@instances_export, $instance);
-    }
-
-    # TODO: DEPLOYMENT SKIP - REMOVE!!!
-    print(Dumper(@instances));
-    # Mostly for dev - for reusing deployed instances, load this file.
-    if (defined($instances_export_path) and length($instances_export_path)){
-        record_info('Exporting data', Dumper(@instances_export));
-        record_info('Export path', Dumper($instances_export_path));
-        store(\@instances_export, $instances_export_path);
-    }
-    else{
-        record_info('NOT exporting data');
-    }
-
-    $self->{instances} = $run_args->{instances} = \@instances_export;
-
-    # adds site_a and site_b into $run_args - will be used by all tests
-    $self->identify_instances();
-    $run_args->{site_a} = $self->{site_a};
-    $run_args->{site_b} = $self->{site_b};
-
-    foreach my $instance (@instances) {
         record_info("instance dump", Dumper($instance));
         $self->{my_instance} = $instance;
+
+        push(@instances_export, $instance);
+
         # Get the hostname of the VM, it contains the cluster type
         my $hostname = $self->run_cmd(cmd => 'uname -n', quiet => 1);
-
         foreach my $cluster_type (@cluster_types) {
             # Some actions are done only on the first node of each cluster
             if ($hostname =~ m/${cluster_type}01$/) {
@@ -106,14 +84,43 @@ sub run {
                 $self->wait_until_resources_started(cluster_type => $cluster_type, timeout => $timeout);
             }
         }
-        record_info("$hostname created")
+
+        my $instance_id = $instance->{'instance_id'};
+        # Skip instances without HANA db
+        next if ($instance_id !~ m/vmhana/);
+
+        # Define initial state for both sites
+        # Site A is always PROMOTED after deployment
+        my $master_node = $self->get_promoted_hostname();
+
+        $run_args->{site_a} = $instance if ($instance_id eq $master_node);
+        $run_args->{site_b} = $instance if ($instance_id ne $master_node);
+
+        record_info("Instances:", "Detected HANA instances:
+        Site A: $run_args->{site_a}->{instance_id}
+        Site B: $run_args->{site_b}->{instance_id}");
     }
+
+    # TODO: DEPLOYMENT SKIP - REMOVE!!!
+    record_info("Inst before export", Dumper(@instances));
+    # Mostly for dev - for reusing deployed instances, load this file.
+    if (defined($instances_export_path) and length($instances_export_path)){
+        record_info('Exporting data', Dumper(\@instances_export));
+        record_info('Export path', Dumper($instances_export_path));
+        store(\@instances_export, $instances_export_path);
+    }
+    else{
+        record_info('NOT exporting data');
+    }
+
+    $self->{instances} = $run_args->{instances} = \@instances_export;
 }
 
+
+# Only for skip deployment - remove afterwards
 sub identify_instances {
     my ($self) = @_;
     my $instances = $self->{instances};
-
     # Identify Site A (Master) and Site B
     foreach my $instance (@$instances) {
         $self->{my_instance} = $instance;
@@ -135,7 +142,7 @@ sub identify_instances {
 
     record_info("Instances:", "Detected HANA instances:
         Site A: $self->{site_a}->{instance_id}
-        Site B: $self->{site_b}->{instance_id}")
+        Site B: $self->{site_b}->{instance_id}");
 
 }
 
