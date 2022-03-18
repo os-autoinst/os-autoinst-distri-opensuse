@@ -11,7 +11,14 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
-use hacluster qw(check_cluster_state get_cluster_name get_node_index get_node_number ha_export_logs);
+use hacluster qw(check_cluster_state
+  get_cluster_name
+  get_node_index
+  get_node_number
+  ha_export_logs
+  calculate_sbd_start_delay
+  wait_until_resources_started
+);
 use utils qw(zypper_call);
 use Mojo::JSON qw(encode_json);
 
@@ -38,6 +45,7 @@ sub run {
     # List of things to check
     my @checks = qw(kill-sbd kill-corosync kill-pacemakerd split-brain-iptables);
     my $preflight_start_time = time;
+    my $fencing_start_delay = calculate_sbd_start_delay();
 
     # Loop on each check
     foreach my $check (@checks) {
@@ -62,6 +70,9 @@ sub run {
         }
         if ($node_was_fenced == 1) {
             record_info('WARNING', "The node was fenced while executing '$cmd'");
+            # Wait for fencing delay and resources to start
+            sleep $fencing_start_delay;
+            wait_until_resources_started();
         } else {
             record_info('ERROR', "Failure while executing '$cmd'", result => 'fail') unless (defined $cmd_fails and $cmd_fails == 0);
         }
