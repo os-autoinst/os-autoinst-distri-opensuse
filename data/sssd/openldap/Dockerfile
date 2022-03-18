@@ -1,7 +1,11 @@
 ARG tag
 FROM $tag
 ARG pkgs
-ENV ADDITIONAL_MODULES sle-module-legacy 
+ARG maint_test_repo
+ENV ADDITIONAL_MODULES sle-module-legacy
+COPY add_test_repositories.sh /tmp/add_test_repositories.sh
+RUN chmod +x /tmp/add_test_repositories.sh
+RUN /tmp/add_test_repositories.sh $maint_test_repo
 RUN zypper --gpg-auto-import-keys ref -s
 RUN zypper install -y $pkgs
 COPY --chown=ldap:ldap ldapserver.* slapd.conf /etc/openldap/
