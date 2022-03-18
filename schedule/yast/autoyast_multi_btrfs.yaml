@@ -6,7 +6,7 @@ vars:
   DESKTOP: gnome
   ENCRYPT: 1
   NUMDISKS: '4'
-  QEMURAM: 2048
+  QEMURAM: 3052
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start
