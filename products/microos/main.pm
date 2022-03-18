@@ -36,7 +36,11 @@ sub load_boot_from_dvd_tests {
 
 sub load_boot_from_disk_tests {
     # Preparation for start testing
-    loadtest 'microos/disk_boot';
+    if (check_var("FIRST_BOOT_CONFIG", "wizard")) {
+        loadtest 'jeos/firstrun';
+    } else {
+        loadtest 'microos/disk_boot';
+    }
     loadtest 'installation/system_workarounds' if is_aarch64;
     replace_opensuse_repos_tests if is_repo_replacement_required;
     # ^ runs only outside of stagings, clear repos otherwise

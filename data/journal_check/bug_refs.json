@@ -313,5 +313,12 @@
             "sle": ["15-SP2", "15-SP3"]
         },
         "type": "ignore"
+    },
+    "no-config-drive": {
+        "description": "Timed out waiting for device (/dev/disk/by-label/ignition|/dev/combustion/config)",
+        "products": {
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "ignore"
     }
 }
