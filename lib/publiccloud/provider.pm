@@ -257,9 +257,11 @@ sub create_instances {
     my @vms = $self->terraform_apply(%args);
     foreach my $instance (@vms) {
         record_info("INSTANCE $instance->{instance_id}", Dumper($instance));
-        $instance->wait_for_ssh() if ($args{check_connectivity});
-        # Install server's ssh publicckeys to prevent authenticity interactions
-        assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
+        if ($args{check_connectivity}) {
+            $instance->wait_for_ssh();
+            # Install server's ssh publicckeys to prevent authenticity interactions
+            assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
+        }
     }
     return @vms;
 }

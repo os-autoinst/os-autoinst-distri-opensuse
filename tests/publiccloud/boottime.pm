@@ -297,6 +297,7 @@ sub measure_timings {
     }
 
     $ret->{analyze}->{ssh_access} = $instance->wait_for_ssh(timeout => 300);
+    assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
 
     my ($systemd_analyze, $systemd_blame) = do_systemd_analyze($instance);
     $ret->{analyze}->{$_} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
