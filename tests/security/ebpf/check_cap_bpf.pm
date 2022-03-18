@@ -1,4 +1,4 @@
-# Copyright 2021 SUSE LLC
+# Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test 'CAP_BPF' capability is available:
