@@ -4,7 +4,7 @@
 # Summary: Verify the "autrace" utility traces individual processes in a fashion similar to strace.
 #          The output of autrace is logged to the audit log.
 # Maintainer: llzhao <llzhao@suse.com>, shawnhao <weixuan.hao@suse.com>
-# Tags: poo#81772 tc#1768579
+# Tags: poo#81772, tc#1768579
 
 use base 'opensusebasetest';
 use strict;
@@ -28,13 +28,13 @@ sub run {
 
     select_console 'root-console';
 
-    # Install related packages and start audit service
-    zypper_call('in audit libaudit1');
-    assert_script_run('systemctl start auditd');
-
     # Use autrace to trace an individual process, output will be logged to audit log
-    script_run('autrace /bin/ls /tmp');
-    record_info('autrace_output: ', 'autrace will report error here as expected');
+    my $ret = script_run('autrace /bin/ls /tmp');
+    if ($ret) {
+        record_info('autrace_output: ', 'autrace will report error here as expected');
+    } else {
+        record_info('Error: ', 'autrace should report error here', result => 'fail');
+    }
 
     # Delete all existing rules
     assert_script_run('auditctl -D');
