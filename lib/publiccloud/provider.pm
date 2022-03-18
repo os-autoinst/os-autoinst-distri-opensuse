@@ -472,7 +472,7 @@ sub terraform_destroy {
     else {
         assert_script_run('cd ' . TERRAFORM_DIR);
         # Add region variable also to `terraform destroy` (poo#63604) -- needed by AWS.
-        my $azure_args = (is_azure()) ? sprintf("-var 'offer=%s' -var 'sku=%s'", get_var('PUBLIC_CLOUD_AZURE_OFFER'), get_var('PUBLIC_CLOUD_AZURE_SKU')) : undef;
+        my $azure_args = (is_azure()) ? sprintf("-var 'offer=%s' -var 'sku=%s'", get_var('PUBLIC_CLOUD_AZURE_OFFER'), get_var('PUBLIC_CLOUD_AZURE_SKU')) : '';
         $cmd = sprintf(q(terraform destroy -no-color -auto-approve -var 'region=%s' %s), $self->provider_client->region, $azure_args);
     }
     # Retry 3 times with considerable delay. This has been introduced due to poo#95932 (RetryableError)
