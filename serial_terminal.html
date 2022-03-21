@@ -17,6 +17,7 @@
       <li><a href="#add_serial_console">add_serial_console</a></li>
       <li><a href="#prepare_serial_console">prepare_serial_console</a></li>
       <li><a href="#get_login_message">get_login_message</a></li>
+      <li><a href="#set_serial_prompt">set_serial_prompt</a></li>
       <li><a href="#login">login</a></li>
       <li><a href="#download_file">download_file</a></li>
       <li><a href="#upload_file-upload_file-src-dst-chunk_size-cz-chunk_retry-cr">upload_file upload_file($src, $dst, [, chunk_size =&gt; $cz][, chunk_retry =&gt; $cr]);</a></li>
@@ -43,6 +44,12 @@
 <p>Get login message printed by OS at the end of the boot. Suitable for testing whether boot has been finished:</p>
 
 <p>wait_serial(get_login_message(), 300);</p>
+
+<h2 id="set_serial_prompt">set_serial_prompt</h2>
+
+<pre><code>   set_serial_prompt($user);</code></pre>
+
+<p>Set serial terminal prompt to given string.</p>
 
 <h2 id="login">login</h2>
 
