@@ -1,4 +1,6 @@
 #!/bin/bash
+# Continously read the serial console from a given publiccloud instance
+# Usage: ./log_instance.sh (start|stop) (EC2|AZURE|GCE) <instance_id> <host> [zone]
 
 COMMAND=$1
 PROVIDER=$2
