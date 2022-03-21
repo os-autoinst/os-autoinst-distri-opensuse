@@ -722,11 +722,7 @@ sub ssh_fully_patch_system {
     # first run, possible update of packager -- exit code 103
     my $ret = script_run("ssh $remote 'sudo zypper -n patch --with-interactive -l'", 1500);
     record_info('zypper patch', 'The command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
-    if (is_sle('=12-SP5') && $ret == 8) {
-        record_soft_failure 'bsc#1195351';
-        $ret = script_run("ssh $remote 'sudo zypper -n patch --replacefiles --with-interactive -l'", 1500);
-    }
-    die "Zypper failed with $ret" if ($ret != 0 && $ret != 8 && $ret != 102 && $ret != 103);
+    die "Zypper failed with $ret" if ($ret != 0 && $ret != 102 && $ret != 103);
 
     $cmd_time = time();
     # second run, full system update
