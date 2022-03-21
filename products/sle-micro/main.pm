@@ -73,6 +73,7 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
 return 1 if load_yaml_schedule;
 
 if (is_container_test) {
+    my $run_args = OpenQA::Test::RunArgs->new();
     load_boot_from_disk_tests();
     load_container_tests();
 }

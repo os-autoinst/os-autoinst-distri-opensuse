@@ -46,35 +46,34 @@ sub is_ubuntu_host {
 }
 
 sub load_image_test {
-    my ($runtime) = @_;
-    my $args = OpenQA::Test::RunArgs->new();
-    $args->{runtime} = $runtime;
+    my ($runtime, $run_args) = @_;
+    $run_args->{runtime} = $runtime;
 
-    loadtest('containers/image', run_args => $args, name => "image_$runtime");
+    loadtest('containers/image', run_args => $run_args, name => "image_$runtime");
 }
 
 sub load_3rd_party_image_test {
-    my ($runtime) = @_;
-    my $args = OpenQA::Test::RunArgs->new();
-    $args->{runtime} = $runtime;
+    my ($runtime, $run_args) = @_;
+    $run_args->{runtime} = $runtime;
 
-    loadtest('containers/third_party_images', run_args => $args, name => $runtime . "_3rd_party_images");
+    loadtest('containers/third_party_images', run_args => $run_args, name => $runtime . "_3rd_party_images");
 }
 
 sub load_container_engine_test {
-    my ($runtime) = @_;
-    my $args = OpenQA::Test::RunArgs->new();
-    $args->{runtime} = $runtime;
+    my ($runtime, $run_args) = @_;
+    $run_args->{runtime} = $runtime;
 
-    loadtest('containers/container_engine', run_args => $args, name => $runtime);
+    loadtest('containers/container_engine', run_args => $run_args, name => $runtime);
 }
 
 sub load_image_tests_podman {
-    load_image_test('podman');
+    my ($run_args) = @_;
+    load_image_test('podman', $run_args);
 }
 
 sub load_image_tests_docker {
-    load_image_test('docker');
+    my ($run_args) = @_;
+    load_image_test('docker', $run_args);
     # container_diff package is not avaiable for <=15 in aarch64
     # Also, we don't want to run it on 3rd party hosts
     unless ((is_sle("<=15") and is_aarch64) || get_var('CONTAINERS_NO_SUSE_OS')) {
@@ -83,25 +82,26 @@ sub load_image_tests_docker {
 }
 
 sub load_host_tests_podman {
+    my ($run_args) = @_;
     if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+") || is_sle_micro || is_microos) {
         # podman package is only available as of 15-SP1
-        load_container_engine_test('podman');
-        load_image_test('podman');
-        load_3rd_party_image_test('podman');
+        load_container_engine_test('podman', $run_args);
+        load_image_test('podman', $run_args);
+        load_3rd_party_image_test('podman', $run_args);
         # Firewall is not installed in JeOS OpenStack and MicroOS
         loadtest 'containers/podman_firewall' unless (is_openstack || is_microos);
         # Buildah is not available in SLE Micro and MicroOS
         loadtest 'containers/buildah' unless (is_sle_micro || is_microos);
-
         # https://github.com/containers/podman/issues/5732#issuecomment-610222293
         loadtest 'containers/rootless_podman' unless (is_sle('=15-sp1') || is_openstack);
     }
 }
 
 sub load_host_tests_docker {
-    load_container_engine_test('docker');
-    load_image_test('docker');
-    load_3rd_party_image_test('docker');
+    my ($run_args) = @_;
+    load_container_engine_test('docker', $run_args);
+    load_image_test('docker', $run_args);
+    load_3rd_party_image_test('docker', $run_args);
     # Firewall is not installed in JeOS OpenStack and MicroOS but it is in SLE Micro
     loadtest 'containers/docker_firewall' unless (is_openstack || is_microos);
     unless (is_sle("<=15") && is_aarch64) {
@@ -141,8 +141,8 @@ sub load_host_tests_helm() {
 }
 
 sub load_container_tests {
-    my $args = OpenQA::Test::RunArgs->new();
     my $runtime = get_required_var('CONTAINER_RUNTIME');
+    my $run_args = OpenQA::Test::RunArgs->new();
 
     # Need to boot a qcow except in JeOS, SLEM and MicroOS where the system is booted already
     if (get_var('BOOT_HDD_IMAGE') && !(is_jeos || is_sle_micro || is_microos)) {
@@ -164,14 +164,14 @@ sub load_container_tests {
             }
             else {
                 # Common openQA image tests
-                load_image_tests_podman() if (/podman/i);
-                load_image_tests_docker() if (/docker/i);
+                load_image_tests_podman($run_args) if (/podman/i);
+                load_image_tests_docker($run_args) if (/docker/i);
             }
         }
         else {
             # Container Host tests
-            load_host_tests_podman() if (/podman/i);
-            load_host_tests_docker() if (/docker/i);
+            load_host_tests_podman($run_args) if (/podman/i);
+            load_host_tests_docker($run_args) if (/docker/i);
             load_host_tests_containerd_crictl() if (/containerd_crictl/i);
             load_host_tests_containerd_nerdctl() if (/containerd_nerdctl/i);
             load_host_tests_helm() if (/helm/i);

@@ -19,15 +19,17 @@ our @EXPORT = qw(
   load_publiccloud_tests
 );
 
-sub load_podman_tests() {
-    load_container_engine_test('podman');
-    load_3rd_party_image_test('podman');
+sub load_podman_tests {
+    my ($run_args) = @_;
+    load_container_engine_test('podman', $run_args);
+    load_3rd_party_image_test('podman', $run_args);
 }
 
-sub load_docker_tests() {
-    load_container_engine_test('docker');
+sub load_docker_tests {
+    my ($run_args) = @_;
+    load_container_engine_test('docker', $run_args);
     loadtest 'containers/docker_runc' unless (is_aarch64 && is_sle('<=15'));
-    load_3rd_party_image_test('docker');
+    load_3rd_party_image_test('docker', $run_args);
     loadtest 'containers/registry' unless (is_aarch64 && is_sle('<=15-SP1'));
     loadtest 'containers/zypper_docker' unless (is_aarch64 && is_sle('<=15'));
 }
@@ -50,8 +52,8 @@ sub load_maintenance_publiccloud_tests {
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
             load_publiccloud_consoletests();
         } elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
-            load_podman_tests() if is_sle('>=15-sp1');
-            load_docker_tests();
+            load_podman_tests($args) if (is_sle('>=15-sp1'));
+            load_docker_tests($args);
         } elsif (get_var('PUBLIC_CLOUD_XFS')) {
             loadtest "publiccloud/xfsprepare";
             loadtest "xfstests/run";
@@ -106,8 +108,8 @@ sub load_latest_publiccloud_tests {
             load_publiccloud_consoletests();
         }
         elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
-            load_podman_tests();
-            load_docker_tests();
+            load_podman_tests($args);
+            load_docker_tests($args);
         } elsif (get_var('PUBLIC_CLOUD_XFS')) {
             loadtest "publiccloud/xfsprepare";
             loadtest "xfstests/run";
