@@ -25,6 +25,7 @@ BEGIN {
       download_file
       login
       prepare_serial_console
+      set_serial_prompt
       serial_term_prompt
       upload_file
     );
@@ -87,6 +88,22 @@ sub get_login_message {
       : qr/Welcome to openSUSE Tumbleweed 20.*/;
 }
 
+=head2 set_serial_prompt
+
+   set_serial_prompt($user);
+
+Set serial terminal prompt to given string.
+
+=cut
+sub set_serial_prompt {
+    $serial_term_prompt = shift // '';
+
+    die "Invalid prompt string '$serial_term_prompt'"
+      unless $serial_term_prompt =~ s/\s*$//r;
+    enter_cmd(qq/PS1="$serial_term_prompt"/);
+    wait_serial(qr/PS1="$serial_term_prompt"/);
+}
+
 =head2 login
 
    login($user);
@@ -98,9 +115,8 @@ escape sequences (i.e. a single #) and changes the terminal width.
 sub login {
     die 'Login expects two arguments' unless @_ == 2;
     my $user = shift;
+    my $prompt = shift;
     my $escseq = qr/(\e [\(\[] [\d\w]{1,2})/x;
-
-    $serial_term_prompt = shift;
 
     bmwqemu::log_call;
 
@@ -131,8 +147,7 @@ sub login {
     # Some (older) versions of bash don't take changes to the terminal during runtime into account. Re-exec it.
     enter_cmd('export TERM=dumb; stty cols 2048; exec $SHELL');
     die 'Failed to confirm that shell re-exec was successful' unless wait_serial(qr/$escseq* \w+:~\s\# $escseq* \s*$/x);
-    enter_cmd(qq/PS1="$serial_term_prompt"/);
-    wait_serial(qr/PS1="$serial_term_prompt"/);
+    set_serial_prompt($prompt);
     # TODO: Send 'tput rmam' instead/also
     assert_script_run('export TERM=dumb');
     assert_script_run('echo Logged into $(tty)', timeout => $bmwqemu::default_timeout, result_title => 'vconsole_login');
