@@ -47,7 +47,7 @@ sub run {
     # Check if apache is working when php module is enabled
     # LTSS module test does not have apache2-mod_php72 php72-curl
     # Install apache2-mod_php72 php72-curl for versions smaller than SLE12-SP5, as dependencies for enabling php7 on SLE15+ are fulfilled
-    if (get_var('SCC_ADDONS') != 'ltss' && is_sle('<=12-SP5')) {
+    if (get_var('SCC_ADDONS') !~ /ltss/ && is_sle('<=12-SP5')) {
         zypper_call('in apache2-mod_php72 php72-curl');
     }
 
@@ -60,7 +60,7 @@ sub run {
     assert_script_run 'a2dismod php7';
 
     # In order to avoid future conflicts, apache2-mod_php72 php72-curl and their dependencies are removed
-    if (get_var('SCC_ADDONS') != 'ltss' && is_sle('<=12-SP5')) {
+    if (get_var('SCC_ADDONS') !~ /ltss/ && is_sle('<=12-SP5')) {
         zypper_call('rm --clean-deps apache2-mod_php72 php72-curl');
     }
 
