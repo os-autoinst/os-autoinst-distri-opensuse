@@ -16,7 +16,6 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use containers::common;
-use containers::urls 'get_suse_container_urls';
 
 # Get the total and used GiB of a given btrfs device
 sub _btrfs_fi {

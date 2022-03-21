@@ -20,7 +20,6 @@ use testapi;
 use utils;
 use containers::common;
 use containers::container_images;
-use containers::urls 'get_suse_container_urls';
 use containers::utils 'registry_url';
 use version_utils qw(is_sle is_leap is_jeos is_transactional);
 use power_action_utils 'power_action';
@@ -58,8 +57,6 @@ sub run {
     }
 
     my $image = 'registry.opensuse.org/opensuse/tumbleweed:latest';
-
-    my ($untested_images, $released_images) = get_suse_container_urls();
     my $podman = $self->containers_factory('podman');
 
     my $user = $testapi::username;

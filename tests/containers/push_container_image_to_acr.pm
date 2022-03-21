@@ -9,7 +9,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
-use containers::urls 'get_container_image_to_test';
+use containers::urls 'get_image_uri';
 
 sub run {
     my ($self, $args) = @_;
@@ -18,7 +18,7 @@ sub run {
 
     my $provider = $self->provider_factory(service => 'ACR');
 
-    my $image = get_container_image_to_test();
+    my $image = get_image_uri();
     my $tag = $provider->get_default_tag();
 
     record_info('Pull', "Pulling $image");
