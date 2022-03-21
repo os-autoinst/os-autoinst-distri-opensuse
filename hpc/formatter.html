@@ -1,0 +1,40 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/hpc/formatter.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#single_node">single_node</a></li>
+      <li><a href="#all_nodes">all_nodes</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/hpc/formatter.pm</h1>
+
+<h2 id="single_node">single_node</h2>
+
+<pre><code> single_node($bin);</code></pre>
+
+<p>Prepares and returns the command to run as string for a single host (localhost). <code>bin</code> is required. <code>need_interpreter</code> boolean will tell if the <code>bin</code> is actually a source code where needs invoke _python_ interpreter.</p>
+
+<h2 id="all_nodes">all_nodes</h2>
+
+<pre><code> all_nodes($bin);</code></pre>
+
+<p>Prepares and returns the command to run as string for all the nodes in the cluster. <code>bin</code> is required. <code>need_interpreter</code> boolean will tell if the <code>bin</code> is actually a source code where needs invoke _python_ interpreter. TODO: improve the identification of the <code>bin</code></p>
+
+
+</body>
+
+</html>
+
+

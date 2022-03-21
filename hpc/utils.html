@@ -15,6 +15,8 @@
   <li>
     <ul>
       <li><a href="#get_mpi_src">get_mpi_src</a></li>
+      <li><a href="#relogin_root">relogin_root</a></li>
+      <li><a href="#setup_scientific_module">setup_scientific_module</a></li>
     </ul>
   </li>
 </ul><h1>lib/hpc/utils.pm</h1>
@@ -26,6 +28,18 @@
 <p>Returns the source code which is used based on <b>HPC_LIB</b> job variable. The variable indicates the HPC library which the mpi use to compile the source code. if the variable is not set, one of the other MPI implementations will be used(mpich, openmpi, mvapich2).</p>
 
 <p>Returns an array with the mpi compiler and the source code located in /data/hpc</p>
+
+<h2 id="relogin_root">relogin_root</h2>
+
+<pre><code> relogin_root();</code></pre>
+
+<p>This sub logouts the root user and relogins him from terminal. Useful to rerun configuration scripts after some changes</p>
+
+<h2 id="setup_scientific_module">setup_scientific_module</h2>
+
+<pre><code> setup_scientific_module();</code></pre>
+
+<p>Installs the various scientific HPC libraries and prepares the environment for use <a href="https://documentation.suse.com/sle-hpc/15-SP3/single-html/hpc-guide/#sec-compute-lib">https://documentation.suse.com/sle-hpc/15-SP3/single-html/hpc-guide/#sec-compute-lib</a></p>
 
 
 </body>
