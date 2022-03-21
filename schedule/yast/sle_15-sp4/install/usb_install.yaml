@@ -1,0 +1,20 @@
+name: USBinstall_Online
+description: >
+  Basic installation test with USB boot. Verification that usb repo is enabled
+  after first boot. Test cover Online medium installations.
+vars:
+  DESKTOP: textmode
+  USBBOOT: 1
+  YUI_REST_API: 1
+schedule:
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  grub:
+    - installation/grub_test
+  system_preparation:
+    - console/system_prepare
+    - console/hostname
+    - console/force_scheduled_tasks
+    - shutdown/grub_set_bootargs
+    - console/enable_usb_repo
+    - console/zypper_lr
