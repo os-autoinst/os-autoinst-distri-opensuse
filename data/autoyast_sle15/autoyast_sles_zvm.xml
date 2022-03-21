@@ -20,41 +20,6 @@
   <dasd t="map">
     <devices t="list">
       <listentry t="map">
-        <channel>0.0.0120</channel>
-        <diag t="boolean">false</diag>
-        <format t="boolean">false</format>
-      </listentry>
-      <listentry t="map">
-        <channel>0.0.0190</channel>
-        <diag t="boolean">false</diag>
-        <format t="boolean">false</format>
-      </listentry>
-      <listentry t="map">
-        <channel>0.0.0191</channel>
-        <diag t="boolean">false</diag>
-        <format t="boolean">false</format>
-      </listentry>
-      <listentry t="map">
-        <channel>0.0.019d</channel>
-        <diag t="boolean">false</diag>
-        <format t="boolean">false</format>
-      </listentry>
-      <listentry t="map">
-        <channel>0.0.019e</channel>
-        <diag t="boolean">false</diag>
-        <format t="boolean">false</format>
-      </listentry>
-      <listentry t="map">
-        <channel>0.0.0200</channel>
-        <diag t="boolean">false</diag>
-        <format t="boolean">false</format>
-      </listentry>
-      <listentry t="map">
-        <channel>0.0.ffff</channel>
-        <diag t="boolean">false</diag>
-        <format t="boolean">false</format>
-      </listentry>
-      <listentry t="map">
         <channel>0.0.0150</channel>
         <diag t="boolean">false</diag>
         <format t="boolean">false</format>
@@ -472,12 +437,6 @@
   <host t="map">
     <hosts t="list">
       <hosts_entry t="map">
-        <host_address>10.162.42.101</host_address>
-        <names t="list">
-          <name>s390qa101.qa.suse.de s390qa101</name>
-        </names>
-      </hosts_entry>
-      <hosts_entry t="map">
         <host_address>127.0.0.1</host_address>
         <names t="list">
           <name>localhost</name>
@@ -562,7 +521,6 @@
     </dhcp_options>
     <dns t="map">
       <dhcp_hostname t="boolean">true</dhcp_hostname>
-      <hostname>s390qa101.qa.suse.de</hostname>
       <nameservers t="list">
         <nameserver>10.160.0.1</nameserver>
       </nameservers>
