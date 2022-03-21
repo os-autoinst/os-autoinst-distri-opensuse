@@ -193,11 +193,7 @@ sub run {
     }
 
     # Patch binaries already installed.
-    my $ret = zypper_call("in -l -t patch ${patches}", exitcode => [0, 8, 102, 103], log => 'zypper.log', timeout => 1500);
-    if ($ret == 8 && script_run('grep -Ez "python3(6?)-pip.*(SLES:12-SP5|cloud:12).*conflicts with.*python3(6?)-pip" /tmp/zypper.log') == 0) {
-        record_soft_failure 'bsc#1195351 - python3 vs python36 in SLE12 SP5 has file conflicts on /usr/bin/pip3';
-        zypper_call("in --replacefiles -l -t patch ${patches}", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 1500);
-    }
+    zypper_call("in -l -t patch ${patches}", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 1500);
 
     # Install binaries newly added by the incident.
     if (scalar @new_binaries) {
