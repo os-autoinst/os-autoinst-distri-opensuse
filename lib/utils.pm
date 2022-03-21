@@ -686,13 +686,8 @@ sub fully_patch_system {
     # Repeatedly call zypper patch until it returns something other than 103 (package manager updates)
     my $ret = 1;
     for (1 .. 3) {
-        $ret = zypper_call('patch --with-interactive -l|tee zypper.log', exitcode => [0, 4, 8, 102, 103], timeout => 6000);
+        $ret = zypper_call('patch --with-interactive -l', exitcode => [0, 4, 102, 103], timeout => 6000);
         last if $ret != 103;
-    }
-
-    if ($ret == 8 && script_run('grep -Ez "python3(6?)-pip.*(SLES:12-SP5|cloud:12).*conflicts with.*python3(6?)-pip" zypper.log') == 0) {
-        record_soft_failure 'bsc#1195351 - python3 vs python36 in SLE12 SP5 has file conflicts on /usr/bin/pip3';
-        $ret = zypper_call('patch --replacefiles --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000);
     }
 
     if (($ret == 4) && is_sle('>=12') && is_sle('<15')) {
@@ -722,11 +717,7 @@ sub ssh_fully_patch_system {
     # first run, possible update of packager -- exit code 103
     my $ret = script_run("ssh $remote 'sudo zypper -n patch --with-interactive -l'", 1500);
     record_info('zypper patch', 'The command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
-    if (is_sle('=12-SP5') && $ret == 8) {
-        record_soft_failure 'bsc#1195351 - python3 vs python36 in SLE12 SP5 has file conflicts on /usr/bin/pip3';
-        $ret = script_run("ssh $remote 'sudo zypper -n patch --replacefiles --with-interactive -l'", 1500);
-    }
-    die "Zypper failed with $ret" if ($ret != 0 && $ret != 8 && $ret != 102 && $ret != 103);
+    die "Zypper failed with $ret" if ($ret != 0 && $ret != 102 && $ret != 103);
 
     $cmd_time = time();
     # second run, full system update
