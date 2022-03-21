@@ -76,7 +76,7 @@ sub _test_btrfs_device_mgmt {
     # check if the partition is full
     my ($total, $used) = _btrfs_fi("/var");
     die "partition should be full" unless (int($used) >= int($total * 0.99));
-    die("pull should fail on full partition") if ($rt->pull($container, die => 0) == 0);
+    die("pull should fail on full partition") if ($rt->pull($container, timeout => 600, die => 0) == 0);
     # Increase the amount of available storage by adding the second HDD ('/dev/vdb') to the pool
     assert_script_run "btrfs device add /dev/vdb $dev_path";
     assert_script_run "btrfs fi show $dev_path/btrfs";
@@ -84,7 +84,7 @@ sub _test_btrfs_device_mgmt {
     my $var_blocks_after = script_output('df 2>/dev/null | grep /var | awk \'{print $2;}\'');
     record_info("btrfs blocks", "before adding vdb: $var_blocks\nafter: $var_blocks_after");
     die "available number of block didn't increase" if ($var_blocks >= $var_blocks_after);
-    $rt->pull($container);
+    $rt->pull($container, timeout => 600);
     assert_script_run qq{test \$(ls -t $dev_path/btrfs/subvolumes/ | head -n 1) != \$(cat $btrfs_head)};
 }
 
