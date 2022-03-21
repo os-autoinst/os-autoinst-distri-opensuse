@@ -34,7 +34,7 @@ sub run {
     record_info('Version', script_output('buildah --version'));
 
     record_info('Test', "Pull image $image");
-    assert_script_run("buildah pull $image");
+    assert_script_run("buildah pull $image", timeout => 300);
     validate_script_output('buildah images', sub { /registry.opensuse.org\/opensuse\/tumbleweed/ });
 
     record_info('Test', "Create container from $image");

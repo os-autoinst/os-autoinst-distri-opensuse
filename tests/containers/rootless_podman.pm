@@ -31,6 +31,8 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
+    my $podman = $self->containers_factory('podman');
+
     # Prepare for Podman 3.4.4 and CGroups v2
     if (is_sle('15-SP3+') || is_leap('15.4+')) {
         record_info 'cgroup v2', 'Switching to cgroup v2';
@@ -57,7 +59,6 @@ sub run {
     }
 
     my $image = 'registry.opensuse.org/opensuse/tumbleweed:latest';
-    my $podman = $self->containers_factory('podman');
 
     my $user = $testapi::username;
 
