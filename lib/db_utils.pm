@@ -56,7 +56,7 @@ sub influxdb_push_data {
     my ($url, $db, $data, %args) = @_;
     $args{quiet} //= 1;
     $data = build_influx_query($data);
-    my $cmd = sprintf("curl -i -X POST '%s/write?db=%s' --write-out 'RETURN_CODE:%{response_code}' --data-binary '%s'", $url, $db, $data);
+    my $cmd = sprintf("curl -i -X POST '%s/write?db=%s' --write-out 'RETURN_CODE:%%{response_code}' --data-binary '%s'", $url, $db, $data);
     record_info('curl', $cmd);
     my $output = script_output($cmd, quiet => $args{quiet});
     my ($return_code) = $output =~ /RETURN_CODE:(\d+)/;

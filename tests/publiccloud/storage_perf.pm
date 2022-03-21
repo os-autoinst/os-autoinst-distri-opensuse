@@ -239,7 +239,10 @@ sub run {
                 # we will do anaysis for same load types which we just pushed to db
                 my @load_types = keys %$values;
                 # Change the test module result to 'fail' if deviation in analyze_previous_series() occures
-                $self->{result} = 'fail' if analyze_previous_series(\%influx_read_args, \@load_types) == 1;
+                if (analyze_previous_series(\%influx_read_args, \@load_types) == 1) {
+                    record_info("Possible performance deviation", "The test module detected a possible performance deviation", result => 'fail');
+                    $self->{result} = 'fail';
+                }
             }
             else {
                 record_info('NO DATA', "We need at least 10 test results to analyze " . $href->{name} . "\n");
