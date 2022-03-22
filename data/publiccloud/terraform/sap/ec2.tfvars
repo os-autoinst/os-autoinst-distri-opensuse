@@ -153,9 +153,6 @@ hana_instancetype = "%MACHINE_TYPE%"
 # Custom owner for private AMI
 #hana_os_owner = "amazon"
 
-# Hostname, without the domain part
-name = "hana"
-
 # Enable system replication and HA cluster
 #hana_ha_enabled = true
 

@@ -310,6 +310,8 @@ sub terraform_prepare_env {
         assert_script_run('git config --global http.sslVerify false') if get_var('HA_SAP_GIT_NO_VERIFY');
         assert_script_run('cd ' . TERRAFORM_DIR);
         assert_script_run('git clone --depth 1 --branch ' . get_var('HA_SAP_GIT_TAG', 'master') . ' ' . get_required_var('HA_SAP_GIT_REPO') . ' .');
+        # Workaround for https://github.com/SUSE/ha-sap-terraform-deployments/issues/810
+        assert_script_run('sed -i "/key_name/s/terraform/&$RANDOM/" aws/infrastructure.tf');
         # By default use the default provided Salt formula packages
         assert_script_run('rm -f requirements.yml') unless get_var('HA_SAP_USE_REQUIREMENTS');
         assert_script_run('cd');    # We need to ensure to be in the home directory
