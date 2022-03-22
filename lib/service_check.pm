@@ -263,7 +263,8 @@ sub install_services {
     }
     # On ppc64le, sometime the console font will be distorted into pseudo graphics characters.
     # we need to reset the console font. As it impacted all the console services, added this command to bashrc file
-    systemctl('restart systemd-vconsole-setup.service') if is_ppc64le;
+    assert_script_run('echo /usr/lib/systemd/systemd-vconsole-setup >> /etc/bash.bashrc.local') if is_ppc64le;
+    assert_script_run '. /etc/bash.bashrc.local';
     foreach my $s (sort keys %$service) {
         my $srv_pkg_name = $service->{$s}->{srv_pkg_name};
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
@@ -302,6 +303,11 @@ sub install_services {
             record_info($srv_pkg_name, "failed reason: $@", result => 'fail');
             $srv_check_results{'before_migration'} = 'FAIL';
         }
+    }
+    # Keep the configuration file clean
+    if (is_ppc64le) {
+        assert_script_run("sed -i '\$d' /etc/bash.bashrc.local");
+        assert_script_run '. /etc/bash.bashrc.local';
     }
 }
 
