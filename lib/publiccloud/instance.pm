@@ -190,7 +190,7 @@ sub wait_for_guestregister
             $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
             $out = $self->run_ssh_command(cmd => 'sudo systemctl status guestregister', proceed_on_failure => 1, quiet => 1);
             record_info("guestregister failed", $out, result => 'fail');
-            record_soft_failure("bsc#1195156");
+            record_soft_failure("bsc#1195414");
             return time() - $start_time;
         } elsif ($out eq 'active') {
             $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
