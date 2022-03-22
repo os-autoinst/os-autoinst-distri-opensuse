@@ -140,6 +140,7 @@ sub install_buildah_when_needed {
 sub install_containerd_when_needed {
     my $registry = registry_url();
     zypper_call('in containerd cni-plugins', timeout => 300);
+    zypper_call('in -t pattern apparmor') if is_sle('=15-SP3');
     assert_script_run "curl " . data_url('containers/containerd.toml') . " -o /etc/containerd/config.toml";
     file_content_replace("/etc/containerd/config.toml", REGISTRY => $registry);
     assert_script_run('cat /etc/containerd/config.toml');
