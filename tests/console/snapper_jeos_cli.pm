@@ -47,13 +47,15 @@ sub rollback_and_reboot {
     assert_script_run("snapper list");
     # check whether SUSEConnect --rollback is running executed by rollback-reset-registration
     # this might cause a system management lock by zypper
-    for (my $runs = 0; $runs < 5; $runs++) {
+    for (my $runs = 1; $runs < 11; $runs++) {
         if (script_run('test -f /var/lib/rollback/check-registration') == 1) {
             return 1;
         }
         record_info('ps', script_output('ps -ef'));
+        bmwqemu::diag("SUSEConnect --rollback is still running [$runs/10]");
         sleep 20;
     }
+    die "SUSEConnect --rollback is running longer than expected";
 }
 
 sub run {
