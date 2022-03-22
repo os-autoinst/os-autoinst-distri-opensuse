@@ -47,7 +47,7 @@ sub run {
     assert_script_run("rpm -e $pkgname");
     assert_script_run("! rpm -q $pkgname");
 
-    if (!is_sle('<15-SP4') && !is_leap('<15.4')) {
+    if (!is_sle('<15-SP4') && !is_leap('<15.4') && !check_var('OFFLINE_SUT', '1')) {
         # older releases than 15 don't have the --allow-unsigned-rpm switch
         # also they have issues with this rpms being hashed by something newer than MD5
         # and also this ZYPP_SINGLE_RPMTRANS feature flag is only available as of 15.4
