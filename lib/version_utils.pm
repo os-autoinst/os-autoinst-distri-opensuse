@@ -272,6 +272,9 @@ sub is_leap {
     # Leap and its stagings
     return 0 unless check_var('DISTRI', 'opensuse');
     return 0 unless $version =~ /^\d{2,}\.\d/ || $version =~ /^Jump/;
+    # GNOME-Next is 'mean' as it can be VERSION=42.0, easily to be confused with Leap 42.x
+    # But GNOME-Next is always based on Tumbleweed
+    return 0 if is_gnome_next;
     return 1 unless $query;
 
     # Hacks for staging and HG2G :)
