@@ -49,6 +49,8 @@ sub run {
 
     # Check previously set values + Miscellaneous Settings
     y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 120);
+    record_soft_failure('bsc#1191112', 'Resizing window as workaround for YaST content not loading');
+    send_key_until_needlematch('yast2_security-login-settings', 'alt-f10', 9, 2);
     assert_and_click "yast2_security-login-settings";
     assert_screen "yast2_security-login-attempts";
     # set file permissions to 'secure'
