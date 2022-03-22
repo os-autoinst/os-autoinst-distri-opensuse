@@ -77,6 +77,10 @@ our $thresholds_by_flavor = {
         analyze => $default_azure_BYOS_analyze_thresholds,
         blame => $default_blame_thresholds,
     },
+    'Azure-BYOS-gen2' => {
+        analyze => $default_azure_BYOS_analyze_thresholds,
+        blame => $default_blame_thresholds,
+    },
     'Azure-CHOST-BYOS' => {
         analyze => $default_azure_BYOS_analyze_thresholds,
         blame => $default_blame_thresholds,
@@ -85,7 +89,15 @@ our $thresholds_by_flavor = {
         analyze => $default_azure_analyze_thresholds,
         blame => $default_blame_thresholds,
     },
+    'Azure-Basic-gen2' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame => $default_blame_thresholds,
+    },
     'Azure-Standard' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame => $default_blame_thresholds,
+    },
+    'Azure-Standard-gen2' => {
         analyze => $default_azure_analyze_thresholds,
         blame => $default_blame_thresholds,
     },
