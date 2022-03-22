@@ -58,7 +58,7 @@ sub _exercise_nvme_commands_and_validate_output {
     validate_script_output("nvme id-ns /dev/$nvm_test_data->{nvm_disk} --namespace-id=$nvm_test_data->{nvm_ns}", sub { m/lbaf\s+0\s+:\s+ms:0\s+lbads:9\s+rp:0\s\(in use\)/ });
     # show registers
     my $ret_code = script_run("nvme show-regs -H /dev/$nvm_test_data->{nvm_disk}");
-    record_soft_failure "bsc#1175217 - not permitted shared memory access to get registers" if ($ret_code > 0);
+    record_info "bsc#1175217 - not permitted shared memory access to get registers" if ($ret_code > 0);
 }
 
 sub _issue_read_command_and_compare_with_dd {
