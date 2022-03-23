@@ -2293,7 +2293,7 @@ sub load_security_tests_mmtest {
 sub load_security_tests_apparmor {
     load_security_console_prepare;
 
-    if (check_var('TEST', 'mau-apparmor')) {
+    if (check_var('TEST', 'mau-apparmor') || is_jeos) {
         loadtest "security/apparmor/aa_prepare";
     }
     loadtest "security/apparmor/aa_status";
