@@ -12,6 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use migration;
 use version_utils qw(is_jeos is_desktop_installed is_leap);
 use Utils::Backends 'is_pvm';
 
@@ -60,6 +61,7 @@ sub run {
         }
 
     }
+    set_zypp_single_rpmtrans;
     # starting from 15.3, core binary RPMs was inherited from SLE build directly
     # allowing the vendor change during migration is needed
     # the change below also exists in openSUSE-release package
