@@ -35,15 +35,11 @@ sub provider_factory {
 
         if ($args{service} eq 'ECR') {
             $provider = publiccloud::ecr->new(
-                key_id => get_var('PUBLIC_CLOUD_KEY_ID'),
-                key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
                 region => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1')
             );
         }
         elsif ($args{service} eq 'EKS') {
             $provider = publiccloud::eks->new(
-                key_id => get_var('PUBLIC_CLOUD_KEY_ID'),
-                key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
                 region => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1')
             );
         }
@@ -59,10 +55,7 @@ sub provider_factory {
         $args{service} //= 'AVM';
         if ($args{service} eq 'ACR') {
             $provider = publiccloud::acr->new(
-                key_id => get_var('PUBLIC_CLOUD_KEY_ID'),
-                key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
                 region => get_var('PUBLIC_CLOUD_REGION', 'westeurope'),
-                tenantid => get_var('PUBLIC_CLOUD_AZURE_TENANT_ID'),
                 subscription => get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID'),
                 username => get_var('PUBLIC_CLOUD_USER', 'azureuser')
             );
@@ -83,8 +76,6 @@ sub provider_factory {
                 account => get_var('PUBLIC_CLOUD_GOOGLE_ACCOUNT'),
                 service_acount_name => get_var('PUBLIC_CLOUD_GOOGLE_SERVICE_ACCOUNT'),
                 project_id => get_var('PUBLIC_CLOUD_GOOGLE_PROJECT_ID'),
-                private_key_id => get_var('PUBLIC_CLOUD_KEY_ID'),
-                private_key => get_var('PUBLIC_CLOUD_KEY'),
                 client_id => get_var('PUBLIC_CLOUD_GOOGLE_CLIENT_ID'),
                 region => get_var('PUBLIC_CLOUD_REGION', 'europe-west1-b'),
                 storage_name => get_var('PUBLIC_CLOUD_GOOGLE_STORAGE', 'openqa-storage'),
