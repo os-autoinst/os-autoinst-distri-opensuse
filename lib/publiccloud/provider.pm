@@ -474,8 +474,16 @@ sub terraform_destroy {
     else {
         assert_script_run('cd ' . TERRAFORM_DIR);
         # Add region variable also to `terraform destroy` (poo#63604) -- needed by AWS.
-        my $azure_args = (is_azure()) ? sprintf("-var 'offer=%s' -var 'sku=%s'", get_var('PUBLIC_CLOUD_AZURE_OFFER'), get_var('PUBLIC_CLOUD_AZURE_SKU')) : '';
-        $cmd = sprintf(q(terraform destroy -no-color -auto-approve -var 'region=%s' %s), $self->provider_client->region, $azure_args);
+        $cmd = sprintf(q(terraform destroy -no-color -auto-approve -var 'region=%s'), $self->provider_client->region);
+        # Add image_id, offer and sku on Azure runs, if defined.
+        if (is_azure) {
+            my $image = $self->get_image_id();
+            my $offer = get_var('PUBLIC_CLOUD_AZURE_OFFER');
+            my $sku = get_var('PUBLIC_CLOUD_AZURE_SKU');
+            $cmd .= " -var 'image_id=$image'" if ($image);
+            $cmd .= " -var 'offer=$offer'" if ($offer);
+            $cmd .= " -var 'sku=$sku'" if ($sku);
+        }
     }
     # Retry 3 times with considerable delay. This has been introduced due to poo#95932 (RetryableError)
     # terraform keeps track of the allocated and destroyed resources, so its safe to run this multiple times.
