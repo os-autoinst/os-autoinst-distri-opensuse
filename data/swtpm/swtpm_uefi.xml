@@ -3,9 +3,9 @@
   <uuid>b5049116-80e1-4c6a-9a68-d48e6528c687</uuid>
   <metadata>
   </metadata>
-  <memory unit='KiB'>1048576</memory>
-  <currentMemory unit='KiB'>1048576</currentMemory>
-  <vcpu placement='static'>1</vcpu>
+  <memory unit='KiB'>2097152</memory>
+  <currentMemory unit='KiB'>2097152</currentMemory>
+  <vcpu placement='static'>2</vcpu>
   <os>
     <type arch='x86_64' machine='q35'>hvm</type>
     <loader readonly='yes' type='pflash'>/usr/share/qemu/ovmf-x86_64-code.bin</loader>
