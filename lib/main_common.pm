@@ -118,6 +118,7 @@ our @EXPORT = qw(
   load_extra_tests_y2uitest_gui
   load_extra_tests_kernel
   load_wicked_create_hdd
+  load_jeos_openstack_tests
 );
 
 sub init_main {
@@ -363,6 +364,7 @@ sub default_desktop {
 }
 
 sub load_shutdown_tests {
+    return if is_openstack;
     # Schedule cleanup before shutdown only in cases the HDD will be published
     loadtest("shutdown/cleanup_before_shutdown") if get_var('PUBLISH_HDD_1');
     loadtest "shutdown/shutdown";
@@ -568,47 +570,69 @@ sub load_system_role_tests {
         loadtest "installation/installer_desktopselection";
     }
 }
-sub load_jeos_tests {
-    if (get_var('JEOS_OPENSTACK')) {
-        loadtest 'boot/boot_to_desktop';
-        if (get_var('JEOS_OPENSTACK_UPLOAD_IMG')) {
-            loadtest "publiccloud/upload_image";
-        }
-        elsif (get_var('JEOS_OPENSTACK_CHECK_BOOT')) {
-            loadtest "jeos/openstack_check_boot";
-        }
-    } else {
-        if ((is_arm || is_aarch64) && is_opensuse()) {
-            # Enable jeos-firstboot, due to boo#1020019
-            load_boot_tests();
-            loadtest "jeos/prepare_firstboot";
-        }
-        load_boot_tests();
-        loadtest "jeos/firstrun";
-        loadtest "jeos/record_machine_id";
-        loadtest "console/system_prepare" if is_sle;
-        loadtest "console/force_scheduled_tasks";
-        unless (get_var('INSTALL_LTP')) {
-            loadtest "jeos/grub2_gfxmode";
-            loadtest "jeos/diskusage";
-            loadtest "jeos/build_key";
-            loadtest "console/prjconf_excluded_rpms";
-        }
-        unless (get_var('CONTAINER_RUNTIME')) {
-            loadtest "console/journal_check";
-            loadtest "microos/libzypp_config";
-        }
-        if (is_sle) {
-            loadtest "console/suseconnect_scc";
-            loadtest "jeos/efi_tid" if (get_var('UEFI') && is_sle('=12-sp5'));
-        }
 
-        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
-        replace_opensuse_repos_tests if is_repo_replacement_required;
-        loadtest 'console/verify_efi_mok' if get_var 'CHECK_MOK_IMPORT';
-        # zypper_ref needs to run on jeos-containers. the is_sle is required otherwise is scheduled twice on o3
-        loadtest "console/zypper_ref" if (get_var('CONTAINER_RUNTIME') && is_sle);
+sub load_jeos_openstack_tests {
+    return unless is_openstack;
+    my $args = OpenQA::Test::RunArgs->new();
+
+    loadtest 'boot/boot_to_desktop';
+    if (get_var('JEOS_OPENSTACK_UPLOAD_IMG')) {
+        loadtest "publiccloud/upload_image";
+        return;
+    } else {
+        loadtest "jeos/prepare_openstack", run_args => $args;
+        loadtest 'publiccloud/ssh_interactive_start', run_args => $args;
     }
+
+    loadtest "jeos/record_machine_id";
+    loadtest "console/system_prepare" if is_sle;
+    loadtest "console/force_scheduled_tasks";
+    loadtest "jeos/grub2_gfxmode";
+    loadtest "jeos/build_key";
+    loadtest "console/prjconf_excluded_rpms";
+    unless (get_var('CONTAINER_RUNTIME')) {
+        loadtest "console/journal_check";
+        loadtest "microos/libzypp_config";
+    }
+    loadtest "console/suseconnect_scc" if is_sle;
+
+    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+    replace_opensuse_repos_tests if is_repo_replacement_required;
+    main_containers::load_container_tests();
+    loadtest("publiccloud/ssh_interactive_end", run_args => $args);
+}
+
+sub load_jeos_tests {
+    if ((is_arm || is_aarch64) && is_opensuse()) {
+        # Enable jeos-firstboot, due to boo#1020019
+        load_boot_tests();
+        loadtest "jeos/prepare_firstboot";
+    }
+    load_boot_tests();
+    loadtest "jeos/firstrun";
+    loadtest "jeos/record_machine_id";
+    loadtest "console/system_prepare" if is_sle;
+    loadtest "console/force_scheduled_tasks";
+    unless (get_var('INSTALL_LTP')) {
+        loadtest "jeos/grub2_gfxmode";
+        loadtest "jeos/diskusage" unless is_openstack;
+        loadtest "jeos/build_key";
+        loadtest "console/prjconf_excluded_rpms";
+    }
+    unless (get_var('CONTAINER_RUNTIME')) {
+        loadtest "console/journal_check";
+        loadtest "microos/libzypp_config";
+    }
+    if (is_sle) {
+        loadtest "console/suseconnect_scc";
+        loadtest "jeos/efi_tid" if (get_var('UEFI') && is_sle('=12-sp5'));
+    }
+
+    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+    replace_opensuse_repos_tests if is_repo_replacement_required;
+    loadtest 'console/verify_efi_mok' if get_var 'CHECK_MOK_IMPORT';
+    # zypper_ref needs to run on jeos-containers. the is_sle is required otherwise is scheduled twice on o3
+    loadtest "console/zypper_ref" if (get_var('CONTAINER_RUNTIME') && is_sle);
 }
 
 sub installzdupstep_is_applicable {
