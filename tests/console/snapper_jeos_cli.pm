@@ -53,7 +53,7 @@ sub rollback_and_reboot {
         }
         record_info('ps', script_output('ps -ef'));
         bmwqemu::diag("SUSEConnect --rollback is still running [$runs/10]");
-        sleep 20;
+        sleep 60;
     }
     die "SUSEConnect --rollback is running longer than expected";
 }
