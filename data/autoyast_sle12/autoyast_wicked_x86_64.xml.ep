@@ -33,6 +33,15 @@
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
+      % if ($is_ltss) {
+      <addon>
+        <!-- SUSE Linux Enterprise Server LTSS -->
+        <name>SLES-LTSS</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+        <reg_code><%= $get_var->('SCC_REGCODE_LTSS') %></reg_code>
+      </addon>
+      %}
     </addons>
   </suse_register>
   <partitioning config:type="list">
