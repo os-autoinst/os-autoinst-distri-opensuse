@@ -1,27 +1,16 @@
-#include <mpi.h>
-#include <iostream>
-
 /**
-https://www.boost.org/doc/libs/1_69_0/doc/html/mpi/getting_started.html
+https://www.boost.org/doc/libs/1_78_0/doc/html/mpi/tutorial.html
 **/
+#include <boost/mpi/environment.hpp>
+#include <boost/mpi/communicator.hpp>
+#include <iostream>
+namespace mpi = boost::mpi;
+
 int main(int argc, char* argv[])
 {
-  MPI_Init(&argc, &argv);
-
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (rank == 0) {
-    int value = 17;
-    int result = MPI_Send(&value, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
-    if (result == MPI_SUCCESS)
-      std::cout << "Rank 0 OK!" << std::endl;
-  } else if (rank == 1) {
-    int value;
-    int result = MPI_Recv(&value, 1, MPI_INT, 0, 0, MPI_COMM_WORLD,
-			  MPI_STATUS_IGNORE);
-    if (result == MPI_SUCCESS && value == 17)
-      std::cout << "Rank 1 OK!" << std::endl;
-  }
-  MPI_Finalize();
+  mpi::environment env(argc, argv);
+  mpi::communicator world;
+  std::cout << "I am process " << world.rank() << " of " << world.size()
+	    << "." << std::endl;
   return 0;
 }

@@ -1,0 +1,22 @@
+---
+name: HPC Spack node
+description:    >
+    Schedule multimachine cluster for spack tests
+vars:
+  DESKTOP: textmode
+  BOOT_HDD_IMAGE: 1
+conditional_schedule:
+  bootmenu:
+    ARCH:
+      aarch64:
+  hpctest:
+    HPC:
+      mpi_master:
+        - hpc/spack_master
+      mpi_slave:
+        - hpc/spack_slave
+schedule:
+  - '{{bootmenu}}'
+  - boot/boot_to_desktop
+  - hpc/before_test
+  - '{{hpctest}}'
