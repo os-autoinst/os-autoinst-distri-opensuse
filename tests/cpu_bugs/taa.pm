@@ -41,7 +41,7 @@ our $mitigations_list =
     ],
   };
 # Add icelake of vh018 information
-if (get_var('MICRO_ARCHITECTURE') =~ /Icelake/) {
+if (get_var('MICRO_ARCHITECTURE', '') =~ /Icelake/) {
     $mitigations_list->{sysfs}->{off} = 'Not affected';
     $mitigations_list->{sysfs}->{full} = 'Not affected';
     $mitigations_list->{sysfs}->{"full,nosmt"} = 'Not affected';
