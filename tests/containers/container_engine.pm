@@ -43,7 +43,7 @@ sub run {
     test_seccomp() if ($self->{runtime} eq 'docker');
 
     # Test the connectivity of Docker containers
-    $engine->check_containers_connectivity();
+    check_containers_connectivity($engine);
 
     # Run basic runtime tests
     basic_container_tests(runtime => $self->{runtime});
