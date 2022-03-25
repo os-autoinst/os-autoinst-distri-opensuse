@@ -40,6 +40,8 @@ sub run {
     enter_cmd(get_required_var('RPI_WIFI_PSK'));
 
     assert_screen 'text-logged-in-root';
+    script_run 'clear';
+
     assert_script_run 'ip a';
     assert_script_run('ping -c1 ' . get_required_var('RPI_WIFI_WORKER_IP'));
 }

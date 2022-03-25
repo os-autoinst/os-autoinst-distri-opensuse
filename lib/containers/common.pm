@@ -10,12 +10,12 @@ use warnings;
 use testapi;
 use registration;
 use utils qw(zypper_call systemctl file_content_replace script_retry script_output_retry);
-use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos is_public_cloud get_os_release check_version);
-use containers::utils qw(can_build_sle_base registry_url);
+use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos is_public_cloud get_os_release check_version is_transactional);
+use containers::utils qw(can_build_sle_base registry_url container_ip container_route);
 
 our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed install_containerd_when_needed
-  test_container_runtime test_container_image scc_apply_docker_image_credentials
-  scc_restore_docker_image_credentials install_buildah_when_needed test_rpm_db_backend activate_containers_module);
+  test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials
+  install_buildah_when_needed test_rpm_db_backend activate_containers_module check_containers_connectivity);
 
 
 sub is_unreleased_sle {
@@ -261,6 +261,37 @@ sub test_rpm_db_backend {
     if ($host_distri eq 'opensuse-tumbleweed' || ($host_distri eq 'sles' && check_version('>=15-SP3', "$running_version-SP$sp", qr/\d{2}(?:-sp\d)?/))) {
         validate_script_output "$runtime run $image rpm --eval %_db_backend", sub { m/ndb/ };
     }
+}
+
+sub check_containers_connectivity {
+    my $runtime = shift;
+    record_info "connectivity", "Checking that containers can connect to the host, to each other and outside of the host";
+    my $container_name = 'sut_container';
+
+    # Run container in the background (sleep for 30d because infinite is not supported by sleep in busybox)
+    assert_script_run "$runtime pull " . registry_url('alpine');
+    assert_script_run "$runtime run -id --rm --name $container_name -p 1234:1234 " . registry_url('alpine') . " sleep 30d";
+    my $container_ip = container_ip $container_name, $runtime;
+
+    # Connectivity to host check
+    my $container_route = container_route($container_name, $runtime);
+    assert_script_run "ping -c3 " . $container_route;
+    assert_script_run "$runtime run --rm " . registry_url('alpine') . " ping -c3 " . $container_route;
+
+    # Cross-container connectivity check
+    assert_script_run "ping -c3 " . $container_ip;
+    assert_script_run "$runtime run --rm " . registry_url('alpine') . " ping -c3 " . $container_ip;
+
+    # Outside IP connectivity check
+    script_retry "ping -c3 8.8.8.8", retry => 3, delay => 120;
+    script_retry "$runtime run --rm " . registry_url('alpine') . " ping -c3 8.8.8.8", retry => 3, delay => 120;
+
+    # Outside IP+DNS connectivity check
+    script_retry "ping -c3 google.com", retry => 3, delay => 120;
+    script_retry "$runtime run --rm " . registry_url('alpine') . " ping -c3 google.com", retry => 3, delay => 120;
+
+    # Kill the container running on background
+    assert_script_run "$runtime kill $container_name";
 }
 
 1;

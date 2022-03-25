@@ -34,6 +34,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_sle);
 
 # Setup samba server
 sub samba_server_setup {
@@ -187,8 +188,9 @@ sub run {
     # Verify audit log contains no "DENIED" (etc. "samba/smbd") operations
     my $script_output = script_output("cat $audit_log");
     if ($script_output =~ m/type=AVC .*apparmor=.*DENIED.* profile=.*/sx) {
-        record_info("ERROR", "There are denied records found in $audit_log", result => 'fail');
-        $self->result('fail');
+        record_info("ERROR", "There are denied records found in $audit_log");
+        record_soft_failure('bsc#1196850') if is_sle('=15-SP3');
+        $self->result('fail') unless is_sle('=15-SP3');
     }
 
     # Upload logs for reference
