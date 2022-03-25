@@ -271,6 +271,7 @@ sub softreboot
     my ($self, %args) = @_;
     $args{timeout} //= 600;
     $args{username} //= $self->username();
+    $args{delay} //= 0;
 
     my $duration;
 
@@ -287,6 +288,7 @@ sub softreboot
     sleep 60;    # wait for the +1 in the previous command
     my $start_time = time();
 
+    sleep($args{delay});
     # wait till ssh disappear
     while (($duration = time() - $start_time) < $args{timeout}) {
         last unless (defined($self->wait_for_ssh(timeout => 1, proceed_on_failure => 1, username => $args{username})));
