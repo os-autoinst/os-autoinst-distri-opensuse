@@ -28,27 +28,14 @@ sub init {
 
 sub get_installation_settings_page {
     my ($self) = @_;
-    die "Installation Settings Page is not displayed" unless $self->{InstallationSettingsPage}->is_shown();
     die "Overview content on Installation Settings Page is not loaded completely" unless $self->{InstallationSettingsPage}->is_loaded_completely();
     return $self->{InstallationSettingsPage};
-}
-
-sub wait_for_overview_content_to_be_loaded {
-    my ($self) = @_;
-    YuiRestClient::Wait::wait_until(object => sub {
-            my $overview_content = $self->get_installation_settings_page()->get_overview_content();
-            return ($overview_content =~ m/SSH port will be/);
-    }, timeout => 60, message => "Overview content is not loaded.");
-}
-
-sub enable_ssh_service {
-    my ($self) = @_;
-    $self->get_installation_settings_page()->enable_ssh_service();
 }
 
 sub open_ssh_port {
     my ($self) = @_;
     $self->get_installation_settings_page()->open_ssh_port();
+    $self->get_installation_settings_page()->is_ssh_port_open();
 }
 
 sub access_booting_options {
