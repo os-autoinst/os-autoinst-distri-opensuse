@@ -135,7 +135,6 @@ schedule:
     - console/redis
     - console/rsync
     - console/rust
-    - console/clamav
     - console/shells
     - console/sudo
     - console/dstat
