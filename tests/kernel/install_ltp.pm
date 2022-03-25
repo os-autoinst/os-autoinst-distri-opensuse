@@ -67,7 +67,9 @@ sub install_runtime_dependencies {
       bc
       binutils
       dosfstools
+      e2fsprogs
       evmctl
+      exfat-utils
       fuse-exfat
       kernel-default-extra
       lvm2

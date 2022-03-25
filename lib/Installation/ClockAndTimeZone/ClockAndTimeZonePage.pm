@@ -20,20 +20,20 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{cb_region} = $self->{app}->combobox({id => 'region'});
-    $self->{cb_time_zone} = $self->{app}->combobox({id => 'timezone'});
+    $self->{cmb_region} = $self->{app}->combobox({id => 'region'});
+    $self->{cmb_time_zone} = $self->{app}->combobox({id => 'timezone'});
     $self->{chb_hw_clock} = $self->{app}->checkbox({id => 'hwclock'});
     return $self;
 }
 
 sub get_region {
     my ($self) = @_;
-    return $self->{cb_region}->value();
+    return $self->{cmb_region}->value();
 }
 
 sub get_time_zone {
     my ($self) = @_;
-    return $self->{cb_time_zone}->value();
+    return $self->{cmb_time_zone}->value();
 }
 
 sub is_hw_clock_set_to_UTC {
@@ -43,7 +43,7 @@ sub is_hw_clock_set_to_UTC {
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{cb_time_zone}->exist();
+    return $self->{cmb_time_zone}->exist();
 }
 
 1;

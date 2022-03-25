@@ -27,7 +27,7 @@ sub init {
     $self->SUPER::init();
     $self->{btn_add} = $self->{app}->button({id => 'add'});
     $self->{btn_add_all} = $self->{app}->button({id => 'add_all'});
-    $self->{txtbox_vg_name} = $self->{app}->textbox({id => '"Y2Partitioner::Dialogs::LvmVg::NameWidget"'});
+    $self->{txb_vg_name} = $self->{app}->textbox({id => '"Y2Partitioner::Dialogs::LvmVg::NameWidget"'});
     $self->{tbl_available_devices} = $self->{app}->table({id => '"unselected"'});
     $self->{tbl_selected_devices} = $self->{app}->table({id => '"selected"'});
 
@@ -51,8 +51,8 @@ sub select_available_device {
 
 sub set_volume_group_name {
     my ($self, $vg_name) = @_;
-    $self->{txtbox_vg_name}->exist();
-    return $self->{txtbox_vg_name}->set($vg_name);
+    $self->{txb_vg_name}->exist();
+    return $self->{txb_vg_name}->set($vg_name);
 }
 
 1;

@@ -39,6 +39,7 @@ use constant {
           is_using_system_role
           is_using_system_role_first_flow
           is_public_cloud
+          is_openstack
           is_leap_migration
           requires_role_selection
           check_version
@@ -272,6 +273,9 @@ sub is_leap {
     # Leap and its stagings
     return 0 unless check_var('DISTRI', 'opensuse');
     return 0 unless $version =~ /^\d{2,}\.\d/ || $version =~ /^Jump/;
+    # GNOME-Next is 'mean' as it can be VERSION=42.0, easily to be confused with Leap 42.x
+    # But GNOME-Next is always based on Tumbleweed
+    return 0 if is_gnome_next;
     return 1 unless $query;
 
     # Hacks for staging and HG2G :)
@@ -650,6 +654,16 @@ Returns true if PUBLIC_CLOUD is set to 1
 
 sub is_public_cloud {
     return get_var('PUBLIC_CLOUD');
+}
+
+=head2 is_openstack
+
+Returns true if JEOS_OPENSTACK is set to 1
+
+=cut
+
+sub is_openstack {
+    return get_var('JEOS_OPENSTACK');
 }
 
 =head2 is_leap_migration

@@ -5,7 +5,7 @@
 
 # Package: hsqldb crmsh
 # Summary: Configure HANA-SR cluster
-# Maintainer: Ricardo Branco <rbranco@suse.de>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Ricardo Branco <rbranco@suse.de>
 
 use base "sles4sap";
 use testapi;

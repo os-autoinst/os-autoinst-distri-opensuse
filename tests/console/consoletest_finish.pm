@@ -52,6 +52,12 @@ sub run {
     if (!check_var("DESKTOP", "textmode")) {
         select_console('x11', await_console => 0);
         ensure_unlocked_desktop;
+
+        # system_prepare stops packagekitd while the applet is fetching updates.
+        # This causes an (expected) error notification, which needs to be closed.
+        if (check_screen('packagekit-stopped-notification-close')) {
+            click_lastmatch;
+        }
     }
 }
 

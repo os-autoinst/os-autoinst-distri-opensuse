@@ -737,7 +737,7 @@ sub activate_console {
         }
     }
 
-    $console =~ m/^(\w+)-(console|virtio-terminal|sut-serial|ssh|shell)/;
+    $console =~ m/^(\w+)-(console|virtio-terminal|sut-serial|ssh|shell|serial-ssh)/;
     my ($name, $user, $type) = ($1, $1, $2);
     $name = $user //= '';
     $type //= '';
@@ -837,6 +837,9 @@ sub activate_console {
         handle_password_prompt;
         ensure_user($user);
         assert_screen "text-logged-in-$user", 60;
+    }
+    elsif ($type eq 'serial-ssh') {
+        serial_terminal::set_serial_prompt($user eq 'root' ? '# ' : '$ ');
     }
     else {
         diag 'activate_console called with generic type, no action';

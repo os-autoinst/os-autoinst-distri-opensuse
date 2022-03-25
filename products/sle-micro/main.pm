@@ -19,13 +19,25 @@ my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
 
-unregister_needle_tags('ENV-BACKEND-ipmi');
-unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm');
-unregister_needle_tags('ENV-JEOS-1');
-unregister_needle_tags('ENV-OFW-0');
-unregister_needle_tags('ENV-OFW-1');
-unregister_needle_tags('ENV-PXEBOOT-0');
-unregister_needle_tags('ENV-PXEBOOT-1');
+$needle::cleanuphandler = sub {
+    unregister_needle_tags('ENV-BACKEND-ipmi');
+    unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm');
+    unregister_needle_tags('ENV-JEOS-1');
+    unregister_needle_tags('ENV-OFW-0');
+    unregister_needle_tags('ENV-OFW-1');
+    unregister_needle_tags('ENV-UEFI-1') unless get_var('UEFI');
+    unregister_needle_tags('ENV-PXEBOOT-0');
+    unregister_needle_tags('ENV-PXEBOOT-1');
+    unregister_needle_tags("ENV-DISTRI-sle");
+    unregister_needle_tags("ENV-VERSION-15");
+    unregister_needle_tags("ENV-VERSION-12");
+    unregister_needle_tags("ENV-VERSION-12-SP1");
+    unregister_needle_tags("ENV-VERSION-12-SP2");
+    unregister_needle_tags("ENV-VERSION-12-SP3");
+    unregister_needle_tags("ENV-VERSION-11-SP4");
+    unregister_needle_tags("ENV-12ORLATER-1");
+    unregister_needle_tags("ENV-FLAVOR-Server-DVD");
+};
 
 sub load_boot_from_disk_tests {
     if (is_s390x()) {

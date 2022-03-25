@@ -18,6 +18,11 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
+    # Using packages from gitlab
+    my $repo_link = 'https://gitlab.suse.de/QA-APAC-I/testing/-/raw/master/data/selinux';
+    my $policy_pkg_20220124 = 'selinux-20220124.tgz';
+    my $policy_pkg_20200219 = 'selinux-20200219.tgz';
+
     # Program 'sestatus' can be found in policycoreutils pkgs
     zypper_call("in policycoreutils");
     # Program 'semanage' is in policycoreutils-python-utils pkgs on TW and SLES 15-SP4
@@ -30,9 +35,11 @@ sub run {
 
     # Install as many as SELinux related packages
     my @pkgs = (
-        'selinux-tools', 'libselinux-devel', 'libselinux1', 'python3-selinux', 'libsepol1', 'libsepol-devel',
-        'libsemanage1', 'libsemanage-devel', 'checkpolicy', 'mcstrans', 'restorecond', 'setools-console',
-        'setools-devel', 'setools-java', 'setools-libs', 'setools-tcl', 'policycoreutils-python-utils'
+        'selinux-tools', 'libselinux-devel', 'libselinux1', 'python3-selinux',
+        'libsepol1', 'libsepol-devel', 'libsemanage1', 'libsemanage-devel',
+        'checkpolicy', 'mcstrans', 'restorecond', 'setools-console',
+        'setools-devel', 'setools-java', 'setools-libs', 'setools-tcl',
+        'policycoreutils-python-utils'
     );
     foreach my $pkg (@pkgs) {
         my $results = script_run("zypper --non-interactive se $pkg");
@@ -51,20 +58,25 @@ sub run {
     # For sle15 and sle15+ "selinux-policy-*" pkgs will not be released
     # NOTE: have to install "selinux-policy-minimum-*" pkg due to this bug: bsc#1108949
     # Install policy packages separately due to this bug: bsc#1177675
-    if (is_sle('>=15')) {
-        my @files
-          = ('selinux-policy-20200219-3.6.noarch.rpm', 'selinux-policy-minimum-20200219-3.6.noarch.rpm', 'selinux-policy-devel-20200219-3.20.noarch.rpm');
-        foreach my $file (@files) {
-            assert_script_run 'wget --quiet ' . data_url("selinux/$file");
-            assert_script_run("rpm -ivh --nosignature --nodeps --noplugins $file");
-        }
+    if (is_sle('>=15-sp4')) {
+        # Download and install selinux policy packages
+        assert_script_run("wget --quiet --no-check-certificate $repo_link/$policy_pkg_20220124");
+        assert_script_run("tar -xzf $policy_pkg_20220124");
+        assert_script_run("rpm -ivhU --nosignature --nodeps --noplugins ./selinux*20220124*.rpm", timeout => 120);
+    }
+    elsif (is_sle('>=15') && is_sle('<15-sp4')) {
+        # Download and install selinux policy packages
+        assert_script_run("wget --quiet --no-check-certificate $repo_link/$policy_pkg_20200219");
+        assert_script_run("tar -xzf $policy_pkg_20200219");
+        assert_script_run("rpm -ivhU --nosignature --nodeps --noplugins ./selinux*20200219*.rpm", timeout => 120);
     }
     elsif (!is_sle && !is_leap) {
         my @files = ('selinux-policy', 'selinux-policy-minimum', 'selinux-policy-devel');
         foreach my $file (@files) {
             zypper_call("in $file");
         }
-    } else {
+    }
+    else {
         zypper_call('in selinux-policy-minimum');
     }
 

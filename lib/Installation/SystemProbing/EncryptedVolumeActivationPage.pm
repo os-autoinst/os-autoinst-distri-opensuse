@@ -21,7 +21,7 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->{lbl_vol_activation} = $self->{app}->label({label => 'Encrypted Device'});
-    $self->{tb_password} = $self->{app}->textbox({id => 'password'});
+    $self->{txb_password} = $self->{app}->textbox({id => 'password'});
     $self->{btn_ok} = $self->{app}->button({id => 'accept'});
     $self->{btn_cancel} = $self->{app}->button({id => 'cancel'});
     return $self;
@@ -34,7 +34,7 @@ sub is_shown {
 
 sub enter_password {
     my ($self, $encryption_password) = @_;
-    return $self->{tb_password}->set($encryption_password);
+    return $self->{txb_password}->set($encryption_password);
 }
 
 sub press_ok {

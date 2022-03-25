@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2009-2013 Bernhard M. Wiedemann
-# Copyright 2012-2020 SUSE LLC
+# Copyright 2012-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Handle user name and password entry; check for password security
@@ -23,7 +23,7 @@ use installation_user_settings;
 
 sub run {
     my ($self) = @_;
-    assert_screen 'inst-usersetup';
+    assert_screen 'inst-usersetup', 60;
     if (get_var 'ROOTONLY') {
         send_key 'alt-s';
         assert_screen 'inst-rootonly-selected';

@@ -11,7 +11,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_microos is_selfinstall is_rt);
+use version_utils qw(is_microos is_selfinstall);
 use power_action_utils 'power_action';
 use Utils::Architectures qw(is_aarch64);
 
@@ -43,7 +43,7 @@ sub microos_reboot {
     # No grub bootloader on xen-pv
     # grub2 needle is unreliable (stalls during timeout) - poo#28648
     assert_screen 'grub2', 300;
-    send_key('ret') if get_var('DISABLE_GRUB_TIMEOUT');
+    send_key('ret') unless get_var('KEEP_GRUB_TIMEOUT');
     microos_login;
 }
 

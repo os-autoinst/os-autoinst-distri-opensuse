@@ -5,7 +5,7 @@
 
 # Package: ha-cluster-bootstrap
 # Summary: Remove a node both by its hostname and ip address
-# Maintainer: Julien Adamek <jadamek@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'opensusebasetest';
 use strict;

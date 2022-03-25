@@ -15,11 +15,16 @@ use strict;
 use warnings;
 use testapi;
 use utils 'zypper_call';
+use version_utils qw(is_jeos);
 use services::apparmor;
 
 sub run {
     select_console 'root-console';
     zypper_call 'in -t pattern apparmor';
+    if (is_jeos) {
+        record_info 'JeOS', 'Some packages needed by the tests are not pre-installed by default in JeOS.';
+        zypper_call 'in apparmor-utils screen nscd netpbm';
+    }
     services::apparmor::start_service;
     services::apparmor::enable_service;
 }

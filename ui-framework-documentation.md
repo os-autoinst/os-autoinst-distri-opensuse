@@ -459,6 +459,39 @@ sub edit_proposal {
 
  edit_proposal({is_lvm => 1, has_separate_home => 1});
 ``` 
+
+### Abbreviated prefixes for YuiRestClient widgets
+
+To avoid confusion identifiers that refer to UI widgets should be prefixed with a three-letter abbreviation for the widget followed by an underscore '_'.
+
+**Building rules for prefixes**
+
+* prefixes have the length of 3 letters, all in lower case
+* all letters are consonants, except you have not enough, then take vowels as well (e.g. the Tab widget transforms to 'tab')
+* if a widget name consists of 2 words in CamelCase type style then the first two characters come from the first word, the 3rd character from the second word
+* avoid repetition of the same letter, therefore it is "btn" for Button and not "btt"
+
+Applying the rules above gives us the following prefixes:
+
+| Prefix | Widget | Example     |
+|--------|--------|-------------|
+| btn    | Button | btn_ok      |
+| chb    | CheckBox | chb_autologin |
+| cmb    | ComboBox | cmb_filesystem |
+| its    | ItemSelector | its_keyboard_layout |
+| lbl    | Label   | lbl_warning | 
+| mnc    | MenuCollection | mnc_operation |
+| prb    | ProgressBar | prb_total_packages |
+| rdb     | RadioButton | rdb_skip_registration |
+| rct     | RichText    | rct_welcome |
+| slb   | SelectionBox | slb_addons | 
+| tbl    | Table        | tbl_devices |
+| txb    | TextBox      | txb_maximum_channel | 
+| tre   | Tree         | tre_system_view |
+| tab    | Tab          | tab_boot_loader_settings |
+
+
+
 ## Getting Started
 
 So, basically a new test requires to have at least one package/class per

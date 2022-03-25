@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Configure NetWeaver filesystems
-# Maintainer: Loic Devulder <ldevulder@suse.de>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.de>
 
 use base "sles4sap";
 use testapi;

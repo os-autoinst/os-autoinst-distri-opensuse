@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2021-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: yast2-rmt rmt-server
@@ -34,7 +34,8 @@ sub set_language_to_Chinese {
     x11_start_program('xterm');
     wait_still_screen 2, 2;
     become_root;
-    script_run('yast2 language');
+    script_run('yast2 language', die_on_timeout => 0);
+    assert_screen 'yast2-language', 60;
     send_key_until_needlematch 'yast2-lang-simplified-chinese', 'down', 180;
     send_key 'alt-o';
 

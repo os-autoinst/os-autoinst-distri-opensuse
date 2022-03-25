@@ -5,7 +5,7 @@
 
 # Package: pacemaker-cts
 # Summary: Execute regression tests with pacemaker-cts
-# Maintainer: Julien Adamek <jadamek@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'opensusebasetest';
 use strict;

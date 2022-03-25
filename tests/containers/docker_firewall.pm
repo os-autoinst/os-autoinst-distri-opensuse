@@ -12,6 +12,7 @@ use testapi;
 use utils 'script_retry';
 use version_utils qw(is_sle is_leap);
 use containers::utils qw(registry_url container_ip);
+use containers::common 'check_containers_connectivity';
 use Utils::Systemd 'systemctl';
 
 my $stop_firewall = 0;
@@ -61,7 +62,7 @@ sub run {
     script_retry "docker ps -q | wc -l | grep 0", delay => 5, retry => 12;
 
     # Test the connectivity of Docker containers
-    $engine->check_containers_connectivity();
+    check_containers_connectivity($engine);
 
     # Stop the firewall if it was started by this test module
     if ($stop_firewall == 1) {

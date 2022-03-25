@@ -5,7 +5,7 @@
 
 # Summary: Performed a "forkbomb" test on HANA
 # Requires: sles4sap/wizard_hana_install, ENV variables INSTANCE_SID
-# Maintainer: Ricardo Branco <rbranco@suse.de>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Ricardo Branco <rbranco@suse.de>
 
 use base "sles4sap";
 use testapi;

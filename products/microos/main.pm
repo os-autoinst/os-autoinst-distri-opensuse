@@ -11,6 +11,7 @@ use utils;
 use Utils::Architectures qw(is_aarch64);
 use version_utils qw(is_staging);
 use main_common;
+use main_containers qw(load_container_engine_test);
 
 init_main();
 
@@ -35,7 +36,11 @@ sub load_boot_from_dvd_tests {
 
 sub load_boot_from_disk_tests {
     # Preparation for start testing
-    loadtest 'microos/disk_boot';
+    if (check_var("FIRST_BOOT_CONFIG", "wizard")) {
+        loadtest 'jeos/firstrun';
+    } else {
+        loadtest 'microos/disk_boot';
+    }
     loadtest 'installation/system_workarounds' if is_aarch64;
     replace_opensuse_repos_tests if is_repo_replacement_required;
     # ^ runs only outside of stagings, clear repos otherwise
@@ -67,7 +72,7 @@ sub load_feature_tests {
         my $runtime = get_required_var('CONTAINER_RUNTIME');
         $args->{runtime} = $runtime;
         loadtest 'microos/toolbox';
-        loadtest 'containers/podman';
+        load_container_engine_test('podman');
         loadtest('containers/image', run_args => $args, name => "image_$runtime");
     }
 }

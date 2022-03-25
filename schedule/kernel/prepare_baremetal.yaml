@@ -14,7 +14,7 @@ schedule:
     - installation/addon_products_sle
     - installation/system_role
     - installation/partitioning
-    - installation/partitioning/no_enlarge_swap
+    - '{{no_enlarge_swap}}'
     - installation/partitioning_firstdisk
     - installation/partitioning_finish
     - installation/installer_timezone
@@ -44,3 +44,7 @@ conditional_schedule:
         BACKEND:
             spvm:
                 - installation/bootloader
+    no_enlarge_swap:
+        SYSTEM_ROLE:
+            textmode:
+                - installation/partitioning/no_enlarge_swap

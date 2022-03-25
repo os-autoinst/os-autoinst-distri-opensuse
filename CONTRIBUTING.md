@@ -3,7 +3,8 @@
 Fork the repository and make some changes.
 Once you're done with your changes send a pull request. You have to agree to
 the license. Thanks!
-If you have questions, visit us on irc.freenode.net in #opensuse-factory or
+If you have questions, visit us in #opensuse-factory on irc.libera.chat,
+[Discord](https://discord.gg/opensuse), [Matrix](https://matrix.to/#/#space:opensuse.org) or
 ask on our mailing list opensuse-factory@opensuse.org
 
 ### How to get started
@@ -55,9 +56,6 @@ and additionally the following rules:
 * The test code should use simple perl statements, not overly hacky
   approaches, to encourage contributions by newcomers and test writers which
   are not programmers or perl experts
-* Update the copyright information with the current year and *SUSE LLC* as the
-  legal entity. For new files make sure to only state the year during which
-  the code was written.
 * Use `my ($self) = @_;` for parameter parsing in methods when accessing the
   `$self` object. Do not parse any parameter if you do not need any.
 * [DRY](https://en.wikipedia.org/wiki/Don't_repeat_yourself)

@@ -4,7 +4,9 @@ description:    >
 schedule:
     - '{{bootloader_zkvm}}'
     - boot/boot_to_desktop
+    - security/atsec/setup_atsec_env
     - security/atsec/kvm_check
+    - security/atsec/drng_test_preparation
 conditional_schedule:
     bootloader_zkvm:
         ARCH:

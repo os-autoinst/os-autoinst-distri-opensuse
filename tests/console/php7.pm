@@ -3,7 +3,7 @@
 # Copyright 2017 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: php7 php-json
+# Package: php7 php7-json
 # Summary: Simple PHP7 code hosted locally
 #   This test requires the Web and Scripting module on SLE.
 # - Setup apache2 to use php7 modules
@@ -26,7 +26,7 @@ sub run {
     assert_script_run('grep "PHP Version 7" /tmp/tests-console-php7.txt');
 
     # test function provided by external module (php7-json RPM)
-    zypper_call 'in php-json';
+    zypper_call 'in php7-json';
     assert_script_run('php -r \'echo json_encode(array("foo" => true))."\\n";\' | grep :true');
 
     # test reading file

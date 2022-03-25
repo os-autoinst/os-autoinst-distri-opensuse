@@ -118,6 +118,7 @@ our @EXPORT = qw(
   load_extra_tests_y2uitest_gui
   load_extra_tests_kernel
   load_wicked_create_hdd
+  load_jeos_openstack_tests
 );
 
 sub init_main {
@@ -363,6 +364,7 @@ sub default_desktop {
 }
 
 sub load_shutdown_tests {
+    return if is_openstack;
     # Schedule cleanup before shutdown only in cases the HDD will be published
     loadtest("shutdown/cleanup_before_shutdown") if get_var('PUBLISH_HDD_1');
     loadtest "shutdown/shutdown";
@@ -568,47 +570,69 @@ sub load_system_role_tests {
         loadtest "installation/installer_desktopselection";
     }
 }
-sub load_jeos_tests {
-    if (get_var('JEOS_OPENSTACK')) {
-        loadtest 'boot/boot_to_desktop';
-        if (get_var('JEOS_OPENSTACK_UPLOAD_IMG')) {
-            loadtest "publiccloud/upload_image";
-        }
-        elsif (get_var('JEOS_OPENSTACK_CHECK_BOOT')) {
-            loadtest "jeos/openstack_check_boot";
-        }
-    } else {
-        if ((is_arm || is_aarch64) && is_opensuse()) {
-            # Enable jeos-firstboot, due to boo#1020019
-            load_boot_tests();
-            loadtest "jeos/prepare_firstboot";
-        }
-        load_boot_tests();
-        loadtest "jeos/firstrun";
-        loadtest "jeos/record_machine_id";
-        loadtest "console/system_prepare" if is_sle;
-        loadtest "console/force_scheduled_tasks";
-        unless (get_var('INSTALL_LTP')) {
-            loadtest "jeos/grub2_gfxmode";
-            loadtest "jeos/diskusage";
-            loadtest "jeos/build_key";
-            loadtest "console/prjconf_excluded_rpms";
-        }
-        unless (get_var('CONTAINER_RUNTIME')) {
-            loadtest "console/journal_check";
-            loadtest "microos/libzypp_config";
-        }
-        if (is_sle) {
-            loadtest "console/suseconnect_scc";
-            loadtest "jeos/efi_tid" if (get_var('UEFI') && is_sle('=12-sp5'));
-        }
 
-        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
-        replace_opensuse_repos_tests if is_repo_replacement_required;
-        loadtest 'console/verify_efi_mok' if get_var 'CHECK_MOK_IMPORT';
-        # zypper_ref needs to run on jeos-containers. the is_sle is required otherwise is scheduled twice on o3
-        loadtest "console/zypper_ref" if (get_var('CONTAINER_RUNTIME') && is_sle);
+sub load_jeos_openstack_tests {
+    return unless is_openstack;
+    my $args = OpenQA::Test::RunArgs->new();
+
+    loadtest 'boot/boot_to_desktop';
+    if (get_var('JEOS_OPENSTACK_UPLOAD_IMG')) {
+        loadtest "publiccloud/upload_image";
+        return;
+    } else {
+        loadtest "jeos/prepare_openstack", run_args => $args;
+        loadtest 'publiccloud/ssh_interactive_start', run_args => $args;
     }
+
+    loadtest "jeos/record_machine_id";
+    loadtest "console/system_prepare" if is_sle;
+    loadtest "console/force_scheduled_tasks";
+    loadtest "jeos/grub2_gfxmode";
+    loadtest "jeos/build_key";
+    loadtest "console/prjconf_excluded_rpms";
+    unless (get_var('CONTAINER_RUNTIME')) {
+        loadtest "console/journal_check";
+        loadtest "microos/libzypp_config";
+    }
+    loadtest "console/suseconnect_scc" if is_sle;
+
+    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+    replace_opensuse_repos_tests if is_repo_replacement_required;
+    main_containers::load_container_tests();
+    loadtest("publiccloud/ssh_interactive_end", run_args => $args);
+}
+
+sub load_jeos_tests {
+    if ((is_arm || is_aarch64) && is_opensuse()) {
+        # Enable jeos-firstboot, due to boo#1020019
+        load_boot_tests();
+        loadtest "jeos/prepare_firstboot";
+    }
+    load_boot_tests();
+    loadtest "jeos/firstrun";
+    loadtest "jeos/record_machine_id";
+    loadtest "console/system_prepare" if is_sle;
+    loadtest "console/force_scheduled_tasks";
+    unless (get_var('INSTALL_LTP')) {
+        loadtest "jeos/grub2_gfxmode";
+        loadtest "jeos/diskusage" unless is_openstack;
+        loadtest "jeos/build_key";
+        loadtest "console/prjconf_excluded_rpms";
+    }
+    unless (get_var('CONTAINER_RUNTIME')) {
+        loadtest "console/journal_check";
+        loadtest "microos/libzypp_config";
+    }
+    if (is_sle) {
+        loadtest "console/suseconnect_scc";
+        loadtest "jeos/efi_tid" if (get_var('UEFI') && is_sle('=12-sp5'));
+    }
+
+    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+    replace_opensuse_repos_tests if is_repo_replacement_required;
+    loadtest 'console/verify_efi_mok' if get_var 'CHECK_MOK_IMPORT';
+    # zypper_ref needs to run on jeos-containers. the is_sle is required otherwise is scheduled twice on o3
+    loadtest "console/zypper_ref" if (get_var('CONTAINER_RUNTIME') && is_sle);
 }
 
 sub installzdupstep_is_applicable {
@@ -1089,6 +1113,7 @@ sub load_console_server_tests {
         loadtest "console/php_pcre" if is_sle;
         # TODO test on SLE https://progress.opensuse.org/issues/31972
         loadtest "console/mariadb_odbc" if is_opensuse;
+        loadtest "console/php8" unless is_leap("<15.4") || is_sle("<15-SP4");
         loadtest "console/php7";
         loadtest "console/php7_mysql";
         loadtest "console/php7_postgresql";
@@ -1183,6 +1208,7 @@ sub load_consoletests {
         loadtest "jeos/glibc_locale";
         loadtest "jeos/kiwi_templates" unless (is_leap('<15.2'));
     }
+    loadtest 'console/systemd_wo_udev' if (is_sle('15-sp4+') || is_leap('15.4+') || is_tumbleweed);
     loadtest "console/ncurses" if is_leap;
     loadtest "console/yast2_lan" unless is_bridged_networking;
     # no local certificate store
@@ -1194,8 +1220,8 @@ sub load_consoletests {
         loadtest "console/puppet";
     }
     # salt in SLE is only available for SLE12 ASMM or SLES15 and variants of
-    # SLES but not SLED
-    if (is_opensuse || !is_staging && (check_var_array('SCC_ADDONS', 'asmm') || is_sle('15+') && !is_desktop)) {
+    # SLES but not SLED. Don't run it on live media, not really useful there.
+    if (!get_var("LIVETEST") && is_opensuse || (check_var_array('SCC_ADDONS', 'asmm') || is_sle('15+') && !is_desktop)) {
         loadtest "console/salt";
     }
     if (!is_staging && (is_x86_64
@@ -1251,7 +1277,7 @@ sub load_consoletests {
     if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && is_sle('<15') && !get_var("MEDIA_UPGRADE")) {
         loadtest "feature/feature_console/deregister";
     }
-    loadtest "console/nginx" if ((is_opensuse && !is_staging) || is_sle('15+'));
+    loadtest "console/nginx" if ((is_opensuse && !is_staging) || (is_sle('15+') && !is_desktop));
     loadtest 'console/orphaned_packages_check' if is_jeos || get_var('UPGRADE') || get_var('ZDUP') || !is_sle('<12-SP4');
     loadtest "console/consoletest_finish";
 }
@@ -1298,7 +1324,8 @@ sub load_x11tests {
     if (xfcestep_is_applicable()) {
         # Midori got dropped from TW
         loadtest "x11/midori" unless (is_staging || is_livesystem || !is_leap("<16.0"));
-        loadtest "x11/ristretto";
+        # Tumbleweed and Leap 15.4+ no longer have ristretto on the Rescue CD
+        loadtest "x11/ristretto" unless (check_var("FLAVOR", "Rescue-CD") && !is_leap("<=15.3"));
     }
     if (gnomestep_is_applicable()) {
         # TODO test on openSUSE https://progress.opensuse.org/issues/31972
@@ -2290,7 +2317,7 @@ sub load_security_tests_mmtest {
 sub load_security_tests_apparmor {
     load_security_console_prepare;
 
-    if (check_var('TEST', 'mau-apparmor')) {
+    if (check_var('TEST', 'mau-apparmor') || is_jeos) {
         loadtest "security/apparmor/aa_prepare";
     }
     loadtest "security/apparmor/aa_status";
@@ -2761,6 +2788,10 @@ sub load_hypervisor_tests {
         loadtest "virt_autotest/libvirt_isolated_virtual_network";
     }
 
+    if (check_var('VIRT_PART', 'irqbalance')) {
+        loadtest "virt_autotest/xen_guest_irqbalance";
+    }
+
     if (check_var('VIRT_PART', 'snapshots')) {
         loadtest "virt_autotest/virsh_internal_snapshot";
         loadtest "virt_autotest/virsh_external_snapshot";
@@ -2815,6 +2846,7 @@ sub load_extra_tests_syscontainer {
 sub load_extra_tests_kernel {
     loadtest "kernel/module_build";
     loadtest "kernel/tuned";
+    loadtest "kernel/fwupd";
 }
 
 # Scheduling set for validation of specific installation

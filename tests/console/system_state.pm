@@ -14,13 +14,15 @@ use base "consoletest";
 use testapi;
 use utils;
 use Utils::Backends;
+use Utils::Architectures;
 use strict;
 use warnings;
 
 sub run {
     my ($self) = shift;
     is_ipmi ? use_ssh_serial_console : select_console 'root-console';
-    script_run "mkdir /tmp/system_state";
+    my $timeout = is_s390x ? '90' : '30';
+    script_run("mkdir /tmp/system_state", timeout => $timeout);
     script_run "ps axf > /tmp/system_state/psaxf.log";
     script_run "cat /proc/loadavg > /tmp/system_state/loadavg_consoletest_setup.txt";
     $self->tar_and_upload_log('/tmp/system_state', '/tmp/stats_during_installation.tar.bz2');

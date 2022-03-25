@@ -4,7 +4,7 @@
 # Summary: TPM2 test environment prepare
 #          Install required packages and create user, start the abrmd service
 # Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#64899, poo#103143, poo#105732, tc#1742297, tc#1742298
+# Tags: poo#64899, poo#103143, poo#105732, poo#107908, tc#1742297, tc#1742298
 
 use strict;
 use warnings;
@@ -42,7 +42,7 @@ sub run {
     # tpm2 device, and we can also user TPM emulator.
     # As we use TPM emulator, we should do some modification for tpm2-abrmd service
     # and make it connect to "--tcti=libtss2-tcti-mssim.so"
-    if (get_var('QEMUTPM', 0) != 1 || get_var('QEMUTPM_VER', '') ne '2.0') {
+    if (get_var('QEMUTPM', '') ne 'instance' || get_var('QEMUTPM_VER', '') ne '2.0') {
         assert_script_run("mkdir /etc/systemd/system/tpm2-abrmd.service.d");
         assert_script_run(
             "echo \"\$(cat <<EOF

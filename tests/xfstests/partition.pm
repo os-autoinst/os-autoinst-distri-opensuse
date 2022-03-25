@@ -239,27 +239,34 @@ sub format_with_options {
     # In case to test different mkfs.xfs options
     if ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'reflink_1024') != -1) {
         format_partition($part, $filesystem, options => '-f -m reflink=1,rmapbt=1, -i sparse=1, -b size=1024');
-        script_run("export 'XFS_MKFS_OPTIONS=-m reflink=1,rmapbt=1, -i sparse=1, -b size=1024' >> $CONFIG_FILE");
+        script_run("echo 'export XFS_MKFS_OPTIONS=\"-m reflink=1,rmapbt=1, -i sparse=1, -b size=1024\"' >> $CONFIG_FILE");
     }
     elsif ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'reflink_normapbt') != -1) {
         format_partition($part, $filesystem, options => '-f -m reflink=1,rmapbt=0, -i sparse=1');
-        script_run("export 'XFS_MKFS_OPTIONS=-m reflink=1,rmapbt=0, -i sparse=1' >> $CONFIG_FILE");
+        script_run("echo 'export XFS_MKFS_OPTIONS=\"-m reflink=1,rmapbt=0, -i sparse=1\"' >> $CONFIG_FILE");
     }
     elsif ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'reflink') != -1) {
         format_partition($part, $filesystem, options => '-f -m reflink=1,rmapbt=1, -i sparse=1');
-        script_run("export 'XFS_MKFS_OPTIONS=-m reflink=1,rmapbt=1, -i sparse=1' >> $CONFIG_FILE");
+        script_run("echo 'export XFS_MKFS_OPTIONS=\"-m reflink=1,rmapbt=1, -i sparse=1\"' >> $CONFIG_FILE");
     }
     elsif ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'nocrc_512') != -1) {
         format_partition($part, $filesystem, options => '-f -m crc=0,reflink=0,rmapbt=0, -i sparse=0, -b size=512');
-        script_run("export 'XFS_MKFS_OPTIONS=-m crc=0,reflink=0,rmapbt=0, -i sparse=0, -b size=512' >> $CONFIG_FILE");
+        script_run("echo 'export XFS_MKFS_OPTIONS=\"-m crc=0,reflink=0,rmapbt=0, -i sparse=0, -b size=512\"' >> $CONFIG_FILE");
     }
     elsif ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'nocrc') != -1) {
         format_partition($part, $filesystem, options => '-f -m crc=0,reflink=0,rmapbt=0, -i sparse=0');
-        script_run("export 'XFS_MKFS_OPTIONS=-m crc=0,reflink=0,rmapbt=0, -i sparse=0' >> $CONFIG_FILE");
+        script_run("echo 'export XFS_MKFS_OPTIONS=\"-m crc=0,reflink=0,rmapbt=0, -i sparse=0\"' >> $CONFIG_FILE");
     }
     elsif ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'logdev') != -1) {
         format_partition($part, 'xfs', options => '-f -m crc=1,reflink=0,rmapbt=0, -i sparse=0 -lsize=100m');
-        script_run("export 'XFS_MKFS_OPTIONS=-m crc=1,reflink=0,rmapbt=0, -i sparse=0 -lsize=100m' >> $CONFIG_FILE");
+        script_run("echo 'export XFS_MKFS_OPTIONS=\"-m crc=1,reflink=0,rmapbt=0, -i sparse=0 -lsize=100m\"' >> $CONFIG_FILE");
+    }
+    # In case to test different mkfs.btrfs options
+    # $XFSTEST_MKFS_OPTION: options for mkfs.btrfs
+    # Example of 4k block size: -f -s 4k -n 16k
+    elsif ($filesystem eq 'btrfs' && (my $mkfs_option = get_var('XFSTEST_MKFS_OPTION'))) {
+        format_partition($part, 'btrfs', options => "$mkfs_option");
+        script_run("echo 'export BTRFS_MKFS_OPTIONS=\"$mkfs_option\"' >> $CONFIG_FILE");
     }
     else {
         format_partition($part, $filesystem);

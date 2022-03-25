@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Configure software watchdog
-# Maintainer: Loic Devulder <ldevulder@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'opensusebasetest';
 use strict;

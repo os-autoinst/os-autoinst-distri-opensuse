@@ -23,7 +23,7 @@ sub new {
 sub init {
     my ($self) = shift;
     $self->SUPER::init();
-    $self->{partition_id} = $self->{app}->combobox({id => '"Y2Partitioner::Widgets::PartitionIdComboBox"'});
+    $self->{cmb_partition_id} = $self->{app}->combobox({id => '"Y2Partitioner::Widgets::PartitionIdComboBox"'});
     return $self;
 }
 
@@ -41,7 +41,7 @@ sub select_partition_id {
         'microsoft-reserved' => 'Microsoft Reserved Partition',
         'intel-rst' => 'Intel RST'
     );
-    return $self->{partition_id}->select($partition_ids{$partition_id}) if $partition_ids{$partition_id};
+    return $self->{cmb_partition_id}->select($partition_ids{$partition_id}) if $partition_ids{$partition_id};
     die "Wrong test data provided when selecting partition id.\n" .
       "Avalaible options: linux, linux-swap, linux-lvm, linux-raid, efi, bios-boot, prep-boot, " .
       "windows-data, microsoft-reserved, intel-rst";

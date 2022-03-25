@@ -50,6 +50,9 @@ sub patching_sle {
     # add test repositories and logs the required patches
     add_test_repositories();
 
+    # set zypper single rpmtrans
+    set_zypp_single_rpmtrans();
+
     # Default to fully update unless MINIMAL_UPDATE is set
     if (get_var('MINIMAL_UPDATE')) {
         minimal_patch_system();

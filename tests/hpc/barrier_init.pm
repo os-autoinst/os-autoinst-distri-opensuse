@@ -4,16 +4,14 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Initialization of barriers for HPC multimachine tests
-# Maintainer: Petr Cervinka <pcervinka@suse.com>, Sebastian Chlad <schlad@suse.de>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest', -signatures;
 use testapi;
 use lockapi;
 use utils;
 
-sub run {
+sub run ($self) {
     # Get number of nodes
     my $nodes = get_required_var('CLUSTER_NODES');
 
@@ -80,7 +78,7 @@ sub run {
     record_info('barriers initialized');
 }
 
-sub test_flags {
+sub test_flags ($self) {
     return {fatal => 1};
 }
 

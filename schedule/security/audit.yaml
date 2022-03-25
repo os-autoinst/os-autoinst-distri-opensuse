@@ -4,5 +4,10 @@ description:    >
 schedule:
     - boot/boot_to_desktop
     - console/consoletest_setup
+    - security/audit/auditd
+    - security/audit/auditctl
     - security/audit/autrace
     - security/audit/ausearch
+    - security/audit/aureport
+    - security/audit/aulastlog
+    - security/audit/aulast

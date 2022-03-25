@@ -13,7 +13,7 @@ use testapi;
 use utils;
 use containers::common;
 use containers::container_images;
-use containers::urls 'get_suse_container_urls';
+use containers::urls 'get_image_uri';
 
 sub run {
     my ($self, $args) = @_;
@@ -27,15 +27,14 @@ sub run {
     # We may test either one specific image VERSION or comma-separated CONTAINER_IMAGE_VERSIONS
     my $versions = get_var('CONTAINER_IMAGE_VERSIONS', get_required_var('VERSION'));
     for my $version (split(/,/, $versions)) {
-        my ($untested_images, $released_images) = get_suse_container_urls(version => $version);
-        my $images_to_test = check_var('CONTAINERS_UNTESTED_IMAGES', '1') ? $untested_images : $released_images;
-        for my $iname (@{$images_to_test}) {
-            record_info "IMAGE", "Testing image: $iname";
-            test_container_image(image => $iname, runtime => $engine);
-            test_rpm_db_backend(image => $iname, runtime => $engine);
-            my $beta = $version eq get_var('VERSION') ? get_var('BETA', 0) : 0;
-            test_opensuse_based_image(image => $iname, runtime => $engine, version => $version, beta => $beta);
-        }
+        my $image = get_image_uri(version => $version);
+
+        record_info "IMAGE", "Testing image: $image Version: $version";
+        test_container_image(image => $image, runtime => $engine);
+        test_rpm_db_backend(image => $image, runtime => $engine);
+        test_systemd_install(image => $image, runtime => $engine);
+        my $beta = $version eq get_var('VERSION') ? get_var('BETA', 0) : 0;
+        test_opensuse_based_image(image => $image, runtime => $engine, version => $version, beta => $beta) unless ($image =~ /bci/);
     }
     scc_restore_docker_image_credentials() if ($runtime eq 'docker');
 

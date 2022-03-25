@@ -6,13 +6,9 @@
 # Summary: HPC support node
 #    This tests only ensure the availability of a node which could hold some
 #    supportive services, like for instance required database
-# Maintainer: Sebastian Chlad <schlad@suse.de>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use base 'hpcbase';
-use base 'hpc::configs';
-use base 'hpc::migration';
-use strict;
-use warnings;
+use Mojo::Base qw(hpcbase hpc::configs hpc::migration);
 use testapi;
 use lockapi;
 use utils;

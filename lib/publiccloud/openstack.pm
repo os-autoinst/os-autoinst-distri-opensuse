@@ -15,6 +15,8 @@ use publiccloud::openstack_client;
 
 has ssh_key => undef;
 has ssh_key_name => undef;
+has public_ip => undef;
+has instance_id => undef;
 
 sub init {
     my ($self) = @_;
@@ -54,12 +56,16 @@ sub create_keypair {
 
 sub delete_keypair {
     my $self = shift;
-    my $name = shift || $self->ssh_key_name;
+    return unless $self->{ssh_key_name};
 
-    return unless $name;
+    assert_script_run("openstack keypair delete " . $self->{ssh_key_name});
+    $self->ssh_key_name(undef);
+}
 
-    assert_script_run("openstack keypair delete " . $name);
-    $self->ssh_key(undef);
+sub delete_floating_ip {
+    my $self = shift;
+
+    script_run("openstack server remove floating ip $self->{instance_id} $self->{public_ip}", timeout => 120);
 }
 
 sub upload_img {
@@ -86,7 +92,10 @@ sub terraform_apply {
     my $secgroup = get_var("OPENSTACK_SECGROUP");
     $args{vars}->{keypair} = $keypair;
     $args{vars}->{secgroup} = $secgroup;
-    return $self->SUPER::terraform_apply(%args);
+    my @instances = $self->SUPER::terraform_apply(%args);
+    $self->public_ip($instances[0]->{public_ip});
+    $self->instance_id($instances[0]->{instance_id});
+    return @instances;
 }
 
 sub cleanup {
@@ -94,6 +103,7 @@ sub cleanup {
     $self->terraform_destroy() if ($self->terraform_applied);
     $self->delete_keypair();
     $self->provider_client->cleanup();
+    $self->delete_floating_ip();
 }
 
 1;

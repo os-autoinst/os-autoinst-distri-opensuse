@@ -5,6 +5,7 @@ description:    |
   #REGRESSION_TEST: '1' means regression test part1 include console test. '2'
   # means regression test part2 include x11 test.
   #REGRESSION_389DS: '1' means load 389ds test.
+  #QCOW_GENERATION: '1' means publish qcow after migration; '0' means no need.
 vars:
   DESKTOP: 'gnome'
   BOOT_HDD_IMAGE: 1
@@ -19,16 +20,23 @@ schedule:
   - migration/online_migration/pre_migration
   - '{{migration_method}}'
   - migration/online_migration/post_migration
-  - console/check_upgraded_service
-  - console/system_prepare
-  - console/check_system_info
-  - console/check_network
-  - console/system_state
-  - console/prepare_test_data
-  - console/consoletest_setup
-  - '{{openldap_to_389ds}}'
-  - '{{regression_tests}}'
+  - '{{qcow_generation}}'
 conditional_schedule:
+  qcow_generation:
+    QCOW_GENERATION:
+      0:
+        - console/check_upgraded_service
+        - console/system_prepare
+        - console/check_system_info
+        - console/check_network
+        - console/system_state
+        - console/prepare_test_data
+        - console/consoletest_setup
+        - '{{openldap_to_389ds}}'
+        - '{{regression_tests}}'
+      1:
+        - shutdown/cleanup_before_shutdown
+        - shutdown/shutdown
   remove_ltss:
     REGRESSION_LTSS:
       1:

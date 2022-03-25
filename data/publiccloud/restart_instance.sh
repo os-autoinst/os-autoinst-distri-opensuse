@@ -1,4 +1,6 @@
 #!/bin/bash -e
+# Bash script to forcefully reset a publiccloud VM
+# Usage: ./restart_instance.sh (EC2|AZURE) <instance_id> <host>
 
 check_ssh()
 {

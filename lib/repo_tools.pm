@@ -251,7 +251,11 @@ sub rmt_wizard {
     my $setup_console = current_console();
 
     # install RMT and mariadb
-    zypper_call 'in rmt-server';
+    my $ret = zypper_call('in rmt-server', exitcode => [0, 107], log => 'zypper.log');
+    if (($ret == 107) && (script_run('grep -E "rmt-server-config.*scriptlet failed" /tmp/zypper.log') == 0)) {
+        record_soft_failure 'bsc#1195759';
+        zypper_call 'in rmt-server';
+    }
     zypper_call 'in mariadb';
 
     enter_cmd "yast2 rmt;echo yast2-rmt-wizard-\$? > /dev/$serialdev";

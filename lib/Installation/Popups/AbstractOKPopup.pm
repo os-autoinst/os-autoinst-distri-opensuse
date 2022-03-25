@@ -26,8 +26,8 @@ sub init {
 }
 
 sub is_shown {
-    my ($self) = @_;
-    return $self->{btn_ok}->exist();
+    my ($self, $args) = @_;
+    return $self->{btn_ok}->exist($args);
 }
 
 sub press_ok {

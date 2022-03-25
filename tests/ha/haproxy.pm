@@ -5,7 +5,7 @@
 
 # Package: haproxy apache2 crmsh
 # Summary: Test haproxy resource agent
-# Maintainer: Julien Adamek <jadamek@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'opensusebasetest';
 use strict;

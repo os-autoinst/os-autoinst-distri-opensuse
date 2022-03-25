@@ -77,6 +77,10 @@ our $thresholds_by_flavor = {
         analyze => $default_azure_BYOS_analyze_thresholds,
         blame => $default_blame_thresholds,
     },
+    'Azure-BYOS-gen2' => {
+        analyze => $default_azure_BYOS_analyze_thresholds,
+        blame => $default_blame_thresholds,
+    },
     'Azure-CHOST-BYOS' => {
         analyze => $default_azure_BYOS_analyze_thresholds,
         blame => $default_blame_thresholds,
@@ -85,7 +89,15 @@ our $thresholds_by_flavor = {
         analyze => $default_azure_analyze_thresholds,
         blame => $default_blame_thresholds,
     },
+    'Azure-Basic-gen2' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame => $default_blame_thresholds,
+    },
     'Azure-Standard' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame => $default_blame_thresholds,
+    },
+    'Azure-Standard-gen2' => {
         analyze => $default_azure_analyze_thresholds,
         blame => $default_blame_thresholds,
     },
@@ -297,6 +309,7 @@ sub measure_timings {
     }
 
     $ret->{analyze}->{ssh_access} = $instance->wait_for_ssh(timeout => 300);
+    assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
 
     my ($systemd_analyze, $systemd_blame) = do_systemd_analyze($instance);
     $ret->{analyze}->{$_} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));

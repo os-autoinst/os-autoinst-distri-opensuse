@@ -25,7 +25,7 @@ sub run {
     if (get_var("REGRESSION", '') =~ /vmware/) {
         foreach my $guest (keys %virt_autotest::common::guests) {
             my $ip = script_output(qq(ssh -o StrictHostKeyChecking=no root\@esxi7.qa.suse.cz "vim-cmd vmsvc/get.guest \\`vim-cmd vmsvc/getallvms | grep -w $guest|cut -d ' ' -f1\\`|grep -A 1 hostName|grep ipAddress|cut -d '\\"' -f2"));
-            record_info("$ip");
+            record_info("$guest: $ip");
             assert_script_run(qq(echo "$ip $guest" >> /etc/hosts));
         }
     } else {

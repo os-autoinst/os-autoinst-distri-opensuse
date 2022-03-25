@@ -58,6 +58,7 @@ sub post_fail_hook {
     my ($self) = @_;
     assert_script_run('rpm -qa > /tmp/rpm_qa.txt');
     upload_logs('/tmp/rpm_qa.txt');
+    upload_logs('/var/log/zypper.log');
     $self->SUPER::post_fail_hook;
 }
 

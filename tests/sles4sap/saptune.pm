@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: saptune availability test
-# Maintainer: Alvaro Carvajal <acarvajal@suse.de>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.de>
 
 use base "sles4sap";
 use testapi;

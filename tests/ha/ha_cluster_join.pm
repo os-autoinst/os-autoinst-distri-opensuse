@@ -5,7 +5,7 @@
 
 # Package: chrony ntp corosync-qdevice ha-cluster-bootstrap
 # Summary: Add node to existing cluster
-# Maintainer: Loic Devulder <ldevulder@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'opensusebasetest';
 use strict;

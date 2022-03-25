@@ -24,7 +24,7 @@ sub run {
             assert_screen "upgrade-enter-password";
         }
         type_password();
-        send_key is_sle('<=15-SP4') || is_leap('<=15.4') ?
+        send_key is_sle('<=15-SP4') || is_leap('<15.4') ?
           $cmd{ok} :
           'alt-d';
     }

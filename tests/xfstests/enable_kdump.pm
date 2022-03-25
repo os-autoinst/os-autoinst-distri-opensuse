@@ -23,7 +23,8 @@ use strict;
 use 5.018;
 use warnings;
 use base 'opensusebasetest';
-use utils 'zypper_call';
+use utils;
+use Utils::Backends;
 use power_action_utils 'power_action';
 use kdump_utils;
 use testapi;
@@ -42,6 +43,7 @@ sub run {
 
     # Reboot
     power_action('reboot');
+    reconnect_mgmt_console if is_pvm;
     $self->wait_boot(bootloader_time => 200);
     select_console('root-console');
     die "Failed to enable kdump" unless kdump_is_active;

@@ -11,7 +11,7 @@
 # - Start test from list, write log to file
 # - Collect test log and system logs
 # - Check if SUT crashed, reset if necessary
-# - Save kdump data, unless NO_KDUMP is set
+# - Save kdump data, unless NO_KDUMP is set to 1
 # - Stop heartbeat after last test on list
 # - Collect all logs
 # Maintainer: Yong Sun <yosun@suse.com>
@@ -470,8 +470,8 @@ sub run {
 
         sleep(1);
         select_console('root-console');
-        # Save kdump data to KDUMP_DIR if not set "NO_KDUMP"
-        unless (get_var('NO_KDUMP')) {
+        # Save kdump data to KDUMP_DIR if not set "NO_KDUMP=1"
+        unless (check_var('NO_KDUMP', '1')) {
             unless (save_kdump($test, $KDUMP_DIR, vmcore => 1, kernel => 1, debug => 1)) {
                 # If no kdump data found, write warning to log
                 my $msg = "Warning: $test crashed SUT but has no kdump data";

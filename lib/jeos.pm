@@ -7,13 +7,13 @@ use testapi;
 use utils qw(ensure_serialdev_permissions);
 use power_action_utils qw(power_action);
 use Utils::Backends qw(is_hyperv);
-use version_utils qw(is_sle is_tumbleweed is_leap);
+use version_utils qw(is_sle);
 use bootloader_setup qw(change_grub_config grep_grub_settings grub_mkconfig set_framebuffer_resolution set_extrabootparams_grub_conf);
 
 our @EXPORT = qw(expect_mount_by_uuid set_grub_gfxmode reboot_image);
 
 sub expect_mount_by_uuid {
-    return (is_hyperv || is_sle('>=15-sp2') || is_tumbleweed || is_leap('>=15.2'));
+    return !(!is_hyperv && is_sle('<15-sp2'));
 }
 
 sub reboot_image {

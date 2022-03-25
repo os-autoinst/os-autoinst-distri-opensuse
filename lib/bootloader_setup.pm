@@ -265,6 +265,8 @@ sub boot_local_disk {
 sub boot_into_snapshot {
     send_key_until_needlematch('boot-menu-snapshot', 'down', 10, 5);
     send_key 'ret';
+    # assert needle to make sure grub2 page show up
+    assert_screen('grub2-page', 60);
     # assert needle to avoid send down key early in grub_test_snapshot.
     if (get_var('OFW') || is_pvm || check_var('SLE_PRODUCT', 'hpc')) {
         send_key_until_needlematch('snap-default', 'down', 60, 5);
@@ -720,6 +722,10 @@ sub specific_bootmenu_params {
 
     if (get_var("FIPS_INSTALLATION")) {
         push @params, "fips=1";
+    }
+
+    if (get_var("LUKS2_ENCRYPT")) {
+        push @params, "YAST_LUKS2_AVAILABLE=1";
     }
 
     if (my $kexec_value = get_var("LINUXRC_KEXEC")) {

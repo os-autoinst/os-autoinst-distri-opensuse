@@ -1308,7 +1308,7 @@ errors during logs collection will be ignored, which is usefull for the
 post_fail_hook calls.
 =cut
 sub upload_coredumps {
-    my (%args) = @_;
+    my ($self, %args) = @_;
     my $res = script_run("coredumpctl --no-pager", timeout => 10);
     if (!$res) {
         record_info("COREDUMPS found", "we found coredumps on SUT, attemp to upload");
@@ -1394,6 +1394,19 @@ sub post_fail_hook {
     send_key 'spc';
 
     $self->export_logs;
+
+    if (is_public_cloud() || is_openstack()) {
+        select_host_console(force => 1);
+
+        # Destroy the public cloud instance in case of fatal test failure
+        # Currently there is theoretical chance to call cleanup two times. See details in poo#95780
+        my $flags = $self->test_flags();
+        $self->{run_args}->{my_provider}->cleanup() if ($flags->{fatal});
+
+        # When tunnel-console is used we upload the log
+        my $ssh_sut = '/var/tmp/ssh_sut.log';
+        upload_logs($ssh_sut) unless (script_run("test -f $ssh_sut") != 0);
+    }
 }
 
 sub test_flags {

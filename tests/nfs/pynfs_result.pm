@@ -33,6 +33,9 @@ sub run {
     if ($test eq 'LOCK24' && $message eq
         'OP_LOCK should return NFS4_OK, instead got NFS4ERR_BAD_SEQID') {
         $self->record_soft_failure_result("LOCK24 failure is known, verriding to softfail: bsc#1192211\n\n" . $log);
+    } elsif ($test eq 'RD5a' && is_sle && $is_v4 && $message eq
+        "Reading file /b'exportdir/tree/file' should return NFS4_OK, instead got NFS4ERR_INVAL") {
+        $self->record_soft_failure_result("RD5a failure is known, verriding to softfail: bsc#1195957\n\n" . $log);
     } elsif (($test eq 'SATT15' || $test eq 'WRT18') && $is_v4 && (is_sle('<=15-sp3') or is_leap('<=15.3')) &&
         $message eq 'consecutive SETATTR(mode)\'s don\'t all change change attribute') {
         $self->record_soft_failure_result("$test failure is known, verriding to softfail: bsc#1192210\n\n" . $log);

@@ -9,7 +9,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
-use containers::urls 'get_suse_container_urls';
+use containers::urls 'get_image_uri';
 
 sub run {
     my ($self, $args) = @_;
@@ -17,8 +17,8 @@ sub run {
     $self->select_serial_terminal;
 
     my $provider = $self->provider_factory(service => 'GCR');
-    my ($untested_images, $released_images) = get_suse_container_urls();
-    my $image = $untested_images->[0];
+
+    my $image = get_image_uri();
     my $tag = $provider->get_default_tag();
 
     record_info('Pull', "Pulling $image");

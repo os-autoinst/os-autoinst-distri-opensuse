@@ -4,12 +4,10 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Base module for HPC cluster provisioning
-# Maintainer: Sebastian Chlad <schlad@suse.de>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
 package hpc::cluster;
-use base hpcbase;
-use strict;
-use warnings;
+use Mojo::Base 'hpcbase', -signatures;
 use testapi;
 use utils;
 
@@ -17,8 +15,7 @@ our @EXPORT = qw(
   provision_cluster
 );
 
-sub provision_cluster {
-    my ($self) = @_;
+sub provision_cluster ($self) {
     my $config = << "EOF";
 sed -i '/^DHCLIENT_SET_HOSTNAME.*/c\\DHCLIENT_SET_HOSTNAME="no"' /etc/sysconfig/network/dhcp
 EOF

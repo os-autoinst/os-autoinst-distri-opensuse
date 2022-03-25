@@ -19,8 +19,8 @@ use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap is_microos is_sle_
 
 our @EXPORT = qw(
   get_opensuse_registry_prefix
-  get_suse_container_urls
   get_3rd_party_images
+  get_image_uri
 );
 
 # Returns a string which should be prepended to every pull from registry.opensuse.org.
@@ -48,7 +48,7 @@ sub get_opensuse_registry_prefix {
     }
 }
 
-our %images_uri = (
+our %images_list = (
     sle => {
         '12-SP3' => {
             released => sub { 'registry.suse.com/suse/sles12sp3' },
@@ -257,30 +257,7 @@ our %images_uri = (
 
 sub supports_image_arch {
     my ($distri, $version, $arch) = @_;
-    (grep { $_ eq $arch } @{$images_uri{$distri}{$version}{available_arch}}) ? 1 : 0;
-}
-
-# Returns a tuple of image urls and their matching released "stable" counterpart.
-# If empty, no images available.
-sub get_suse_container_urls {
-    my %args = (
-        version => get_required_var('VERSION'),
-        arch => get_required_var('ARCH'),
-        distri => get_required_var('DISTRI'),
-        @_
-    );
-    my @untested_images = ();
-    my @released_images = ();
-
-    $args{version} =~ s/^Staging:(?<letter>.)$/Tumbleweed/ if is_tumbleweed || is_microos("Tumbleweed");
-    if (supports_image_arch($args{distri}, $args{version}, $args{arch})) {
-        push @untested_images, $images_uri{$args{distri}}{$args{version}}{totest}->($args{arch});
-        push @released_images, $images_uri{$args{distri}}{$args{version}}{released}->($args{arch});
-    } else {
-        die("Unknown combination of distro/arch.");
-    }
-
-    return (\@untested_images, \@released_images);
+    (grep { $_ eq $arch } @{$images_list{$distri}{$version}{available_arch}}) ? 1 : 0;
 }
 
 sub get_3rd_party_images {
@@ -319,6 +296,31 @@ sub get_3rd_party_images {
     ) unless (is_aarch64 || check_var('PUBLIC_CLOUD_ARCH', 'arm64'));
 
     return (\@images);
+}
+
+# Return URI of the container image to be tested. It will:
+# - Be configured by the CONTAINER_IMAGE_TO_TEST variable.
+# - Be configured by the distri, version and arch parameter.
+# - Be determined by the running OS.
+# - Die otherwise.
+sub get_image_uri {
+    my (%args) = @_;
+    $args{version} //= get_required_var('VERSION');
+    $args{arch} //= get_required_var('ARCH');
+    $args{distri} //= get_required_var('DISTRI');
+    $args{released} //= !get_var('CONTAINERS_UNTESTED_IMAGES');
+
+    $args{version} =~ s/^Staging:(?<letter>.)$/Tumbleweed/ if is_tumbleweed || is_microos("Tumbleweed");
+
+    my $url = get_var('CONTAINER_IMAGE_TO_TEST');
+    return $url if ($url);
+
+    my $type = $args{released} ? 'released' : 'totest';
+    if (supports_image_arch($args{distri}, $args{version}, $args{arch})) {
+        return $images_list{$args{distri}}{$args{version}}{$type}->($args{arch});
+    }
+
+    die "Cannot find container image for ($args{distri},$args{version},$args{arch}) or missing CONTAINER_IMAGE_TO_TEST variable.";
 }
 
 1;

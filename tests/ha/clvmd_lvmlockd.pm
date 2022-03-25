@@ -5,7 +5,7 @@
 
 # Package: lvm2-clvm lvm2-cmirrord crmsh
 # Summary: Configure clvmd or lvmlockd
-# Maintainer: Loic Devulder <ldevulder@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'opensusebasetest';
 use strict;

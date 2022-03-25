@@ -24,24 +24,24 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    $self->{cb_keyboard_layout} = $self->{app}->combobox({id => 'keyboard'});
-    $self->{cb_language} = $self->{app}->combobox({id => 'language'});
+    $self->{cmb_keyboard_layout} = $self->{app}->combobox({id => 'keyboard'});
+    $self->{cmb_language} = $self->{app}->combobox({id => 'language'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{cb_language}->exist();
+    return $self->{cmb_language}->exist();
 }
 
 sub get_language {
     my ($self) = @_;
-    return $self->{cb_language}->value();
+    return $self->{cmb_language}->value();
 }
 
 sub get_keyboard_layout {
     my ($self) = @_;
-    return $self->{cb_keyboard_layout}->value();
+    return $self->{cmb_keyboard_layout}->value();
 }
 
 1;

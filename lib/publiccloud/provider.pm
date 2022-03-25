@@ -11,6 +11,7 @@ package publiccloud::provider;
 use testapi qw(is_serial_terminal :DEFAULT);
 use Mojo::Base -base;
 use publiccloud::instance;
+use publiccloud::utils 'is_azure';
 use Carp;
 use List::Util qw(max);
 use Data::Dumper;
@@ -257,7 +258,11 @@ sub create_instances {
     my @vms = $self->terraform_apply(%args);
     foreach my $instance (@vms) {
         record_info("INSTANCE $instance->{instance_id}", Dumper($instance));
-        $instance->wait_for_ssh() if ($args{check_connectivity});
+        if ($args{check_connectivity}) {
+            $instance->wait_for_ssh();
+            # Install server's ssh publicckeys to prevent authenticity interactions
+            assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
+        }
     }
     return @vms;
 }
@@ -305,6 +310,8 @@ sub terraform_prepare_env {
         assert_script_run('git config --global http.sslVerify false') if get_var('HA_SAP_GIT_NO_VERIFY');
         assert_script_run('cd ' . TERRAFORM_DIR);
         assert_script_run('git clone --depth 1 --branch ' . get_var('HA_SAP_GIT_TAG', 'master') . ' ' . get_required_var('HA_SAP_GIT_REPO') . ' .');
+        # Workaround for https://github.com/SUSE/ha-sap-terraform-deployments/issues/810
+        assert_script_run('sed -i "/key_name/s/terraform/&$RANDOM/" aws/infrastructure.tf');
         # By default use the default provided Salt formula packages
         assert_script_run('rm -f requirements.yml') unless get_var('HA_SAP_USE_REQUIREMENTS');
         assert_script_run('cd');    # We need to ensure to be in the home directory
@@ -362,12 +369,13 @@ sub terraform_apply {
             q(%SLE_VERSION%) => $sle_version
         );
         upload_logs(TERRAFORM_DIR . "/$cloud_name/terraform.tfvars", failok => 1);
+        script_retry('terraform init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
         assert_script_run("terraform workspace new $resource_group -no-color", $terraform_timeout);
     }
     else {
         assert_script_run('cd ' . TERRAFORM_DIR);
+        script_retry('terraform init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
     }
-    script_retry('terraform init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
 
     my $cmd = 'terraform plan -no-color ';
     if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
@@ -467,6 +475,15 @@ sub terraform_destroy {
         assert_script_run('cd ' . TERRAFORM_DIR);
         # Add region variable also to `terraform destroy` (poo#63604) -- needed by AWS.
         $cmd = sprintf(q(terraform destroy -no-color -auto-approve -var 'region=%s'), $self->provider_client->region);
+        # Add image_id, offer and sku on Azure runs, if defined.
+        if (is_azure) {
+            my $image = $self->get_image_id();
+            my $offer = get_var('PUBLIC_CLOUD_AZURE_OFFER');
+            my $sku = get_var('PUBLIC_CLOUD_AZURE_SKU');
+            $cmd .= " -var 'image_id=$image'" if ($image);
+            $cmd .= " -var 'offer=$offer'" if ($offer);
+            $cmd .= " -var 'sku=$sku'" if ($sku);
+        }
     }
     # Retry 3 times with considerable delay. This has been introduced due to poo#95932 (RetryableError)
     # terraform keeps track of the allocated and destroyed resources, so its safe to run this multiple times.

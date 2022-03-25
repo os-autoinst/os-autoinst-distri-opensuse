@@ -15,19 +15,19 @@ use parent 'Installation::Popups::AbstractOKPopup';
 sub init {
     my $self = shift;
     $self->SUPER::init();
-    $self->{rtx_warning} = $self->{app}->richtext({type => 'YRichText'});
+    $self->{rct_warning} = $self->{app}->richtext({type => 'YRichText'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
     return $self->SUPER::is_shown() &&
-      $self->{rtx_warning}->exist();
+      $self->{rct_warning}->exist();
 }
 
 sub text {
     my ($self) = @_;
-    return $self->{rtx_warning}->text();
+    return $self->{rct_warning}->text();
 }
 
 1;

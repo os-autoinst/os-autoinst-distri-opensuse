@@ -20,9 +20,9 @@ has tenantid => sub { get_var('PUBLIC_CLOUD_AZURE_TENANT_ID') };
 has region => sub { get_var('PUBLIC_CLOUD_REGION', 'westeurope') };
 has subscription => sub { get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') };
 has username => sub { get_var('PUBLIC_CLOUD_USER', 'azureuser') };
-
+has service => undef;
 has vault => undef;
-has container_registry => sub { get_var('PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY', 'suseqectesting') };
+has container_registry => sub { get_required_var('PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY') };
 
 sub init {
     my ($self) = @_;
@@ -47,7 +47,10 @@ sub az_login {
     #Azure infra need some time to propagate given by Vault credentials
     # Running some verification command does not prove anything because
     # at the beginning failures can happening sporadically
-    sleep(get_var('AZURE_LOGIN_WAIT_SECONDS', 0));
+    if (my $wait_seconds = get_var('AZURE_LOGIN_WAIT_SECONDS')) {
+        record_info("WAIT", "Waiting for Azure credential spreading");
+        sleep($wait_seconds);
+    }
 }
 
 sub vault_create_credentials {

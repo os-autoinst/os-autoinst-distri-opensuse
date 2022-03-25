@@ -42,6 +42,9 @@ END_SCRIPT
     if (!get_var('KEEP_PERSISTENT_NET_RULES') && is_image_backend) {
         script_run('rm -f /etc/udev/rules.d/70-persistent-net.rules');
     }
+    if (!get_var('KEEP_QUIET_BOOT') && check_var('FLAVOR', 'JeOS-for-RaspberryPi')) {
+        assert_script_run('sed -i -e \'s/ quiet$//\' /boot/grub2/grub.cfg');
+    }
 
     prepare_serial_console;
 

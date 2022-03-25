@@ -86,6 +86,7 @@ our @EXPORT = qw(
   install_patterns
   common_service_action
   script_output_retry
+  validate_script_output_retry
   get_secureboot_status
   assert_secureboot_status
   susefirewall2_to_firewalld
@@ -576,11 +577,16 @@ sub zypper_call {
         my $msg = "'zypper -n $command' failed with code $ret";
         if ($ret == 104) {
             $msg .= " (ZYPPER_EXIT_INF_CAP_NOT_FOUND)\n\nRelated zypper logs:\n";
-            script_run('tac /var/log/zypper.log | grep -F -m1 -B10000 "Hi, me zypper" | tac | grep \'\(SolverRequester.cc\|THROW\|CAUGHT\)\' > /tmp/z104.txt');
+            script_run('tac /var/log/zypper.log | grep -F -m1 -B100000 "Hi, me zypper" | tac | grep \'\(SolverRequester.cc\|THROW\|CAUGHT\)\' > /tmp/z104.txt');
             $msg .= script_output('cat /tmp/z104.txt');
         }
+        elsif ($ret == 107) {
+            $msg .= " (ZYPPER_EXIT_INF_RPM_SCRIPT_FAILED)\n\nRelated zypper logs:\n";
+            script_run('tac /var/log/zypper.log | grep -F -m1 -B100000 "Hi, me zypper" | tac | grep \'RpmPostTransCollector.cc(executeScripts):.* scriptlet failed, exit status\' > /tmp/z107.txt');
+            $msg .= script_output('cat /tmp/z107.txt') . "\n\n";
+        }
         else {
-            script_run('tac /var/log/zypper.log | grep -F -m1 -B10000 "Hi, me zypper" | tac | grep \'Exception.cc\' > /tmp/zlog.txt');
+            script_run('tac /var/log/zypper.log | grep -F -m1 -B100000 "Hi, me zypper" | tac | grep \'Exception.cc\' > /tmp/zlog.txt');
             $msg .= "\n\nRelated zypper logs:\n";
             $msg .= script_output('cat /tmp/zlog.txt');
         }
@@ -680,13 +686,8 @@ sub fully_patch_system {
     # Repeatedly call zypper patch until it returns something other than 103 (package manager updates)
     my $ret = 1;
     for (1 .. 3) {
-        $ret = zypper_call('patch --with-interactive -l|tee zypper.log', exitcode => [0, 4, 8, 102, 103], timeout => 6000);
+        $ret = zypper_call('patch --with-interactive -l', exitcode => [0, 4, 102, 103], timeout => 6000);
         last if $ret != 103;
-    }
-
-    if ($ret == 8 && script_run('grep -Ez "python3(6?)-pip.*(SLES:12-SP5|cloud:12).*conflicts with.*python3(6?)-pip" zypper.log') == 0) {
-        record_soft_failure 'bsc#1195351 - python3 vs python36 in SLE12 SP5 has file conflicts on /usr/bin/pip3';
-        $ret = zypper_call('patch --replacefiles --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000);
     }
 
     if (($ret == 4) && is_sle('>=12') && is_sle('<15')) {
@@ -716,11 +717,7 @@ sub ssh_fully_patch_system {
     # first run, possible update of packager -- exit code 103
     my $ret = script_run("ssh $remote 'sudo zypper -n patch --with-interactive -l'", 1500);
     record_info('zypper patch', 'The command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
-    if (is_sle('=12-SP5') && $ret == 8) {
-        record_soft_failure 'bsc#1195351 - python3 vs python36 in SLE12 SP5 has file conflicts on /usr/bin/pip3';
-        $ret = script_run("ssh $remote 'sudo zypper -n patch --replacefiles --with-interactive -l'", 1500);
-    }
-    die "Zypper failed with $ret" if ($ret != 0 && $ret != 8 && $ret != 102 && $ret != 103);
+    die "Zypper failed with $ret" if ($ret != 0 && $ret != 102 && $ret != 103);
 
     $cmd_time = time();
     # second run, full system update
@@ -1263,8 +1260,7 @@ sub ensure_serialdev_permissions {
     else {
         # when serial getty is started, it changes the group of serialdev from dialout to tty (but doesn't change it back when stopped)
         # let's make sure that both will work
-        # based on bsc#1195620, let's restore file permission to '620'
-        assert_script_run "chmod 620 /dev/$testapi::serialdev && chown $testapi::username /dev/$testapi::serialdev && usermod -a -G tty,dialout,\$(stat -c %G /dev/$testapi::serialdev) $testapi::username";
+        assert_script_run "chown $testapi::username /dev/$testapi::serialdev && usermod -a -G tty,dialout,\$(stat -c %G /dev/$testapi::serialdev) $testapi::username";
     }
 }
 
@@ -1649,14 +1645,64 @@ sub script_output_retry {
     my $timeout = $args{timeout} // 30;
     my $die = $args{die} // 1;
 
-    my $exec = "timeout " . ($timeout - 3) . " $cmd";
+    my $exec = "timeout --foreground " . ($timeout - 3) . " $cmd";
     for (1 .. $retry) {
         my $ret = eval { script_output($exec, timeout => $timeout, proceed_on_failure => 0); };
         return $ret if ($ret);
         sleep $delay;
+        record_info('Retry', 'script_output failed, retrying.');
     }
     die("Waiting for Godot: $cmd") if $die;
 }
+
+
+=head2 validate_script_output_retry
+
+ validate_script_output_retry($cmd, $check, [retry => $retry], [delay => $delay], [timeout => $timeout]);
+
+Repeat command until validate_script_output succeeds or die. Return the output of the command on success.
+
+C<$retry> refers to the number of retries and defaults to C<10>.
+
+C<$delay> is the time between retries and defaults to C<30>.
+
+If the command doesn't succeed after C<$retry> retries,
+this function will die.
+
+Example:
+
+ validate_script_output_retry('ping -c1 -W1 machine', m/1 packets transmitted/, retry => 5, delay => 60);
+
+=cut
+sub validate_script_output_retry {
+    my ($cmd, $check, %args) = @_;
+    $args{retry} //= 10;
+    $args{delay} //= 30;
+    $args{timeout} //= 90;
+    $args{proceed_on_failure} //= 1;
+    my $retry = delete $args{retry};
+    my $delay = delete $args{delay};
+    my $timeout = delete $args{timeout};
+    my $ret;
+    my $exec = "timeout --foreground --kill-after 5s ${timeout}s";
+    # Exclamation mark needs to be moved before the timeout command, if present
+    if (substr($cmd, 0, 1) eq "!") {
+        $cmd = substr($cmd, 1);
+        $cmd =~ s/^\s+//;    # left trim spaces after the exclamation mark
+        $exec = "! $exec";
+    }
+    $exec = "$exec $cmd";
+    $timeout += 8;    # timeout for script_run must be larger than for the 'timeout ...' command
+
+    for (1 .. $retry) {
+        eval { $ret = validate_script_output($exec, $check, $timeout, %args); };
+        return $ret if (defined($ret));
+        record_info("Retry", "validate_script_output failed or timed out. Retrying...");
+        sleep $delay;
+    }
+    die("Can't validate output after $retry retries");
+}
+
 
 =head2 script_run_interactive
 
@@ -1759,12 +1805,12 @@ sub create_btrfs_subvolume {
     assert_script_run("rm -fr /tmp/arm64-efi/");
 }
 
-=head2 create_raid_loop_device 
-    
+=head2 create_raid_loop_device
+
  create_raid_loop_device([raid_type => $raid_type], [device_num => $device_num], [file_size => $file_size]);
 
 Create a raid array over loop devices.
-Raid type is C<$raid_type>, using C<$device_num> number of loop device, 
+Raid type is C<$raid_type>, using C<$device_num> number of loop device,
 with the size of each device being C<$file_size> megabytes.
 
 Example to create a RAID C<5> array over C<3> loop devices, C<200> Mb each:

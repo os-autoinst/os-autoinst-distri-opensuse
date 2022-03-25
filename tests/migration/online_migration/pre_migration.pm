@@ -48,6 +48,7 @@ sub remove_kgraft_patch {
 sub run {
     select_console 'root-console';
 
+    set_zypp_single_rpmtrans();
     check_or_install_packages;
 
     # set scc proxy url here to perform online migration via scc proxy

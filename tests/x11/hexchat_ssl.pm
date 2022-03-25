@@ -14,6 +14,39 @@ use warnings;
 use testapi;
 use utils 'zypper_call';
 
+sub irc_login_send_message {
+    my ($name) = @_;
+
+    my @tags = ("$name-connection-complete-dialog", "$name-SASL-only-error");
+    assert_screen \@tags;
+    if (match_has_tag("$name-connection-complete-dialog")) {
+        wait_still_screen;
+        # start to change the channel name
+        assert_and_click "$name-join-channel";
+        assert_screen "$name-join-channel-select";
+        # clear original '#hexchat' channel name
+        wait_still_screen 2;
+        send_key "ctrl-a";
+        send_key "delete";
+        wait_still_screen 2;
+
+        # change name to '#openqa-test_irc_from_openqa' and join this channel
+        enter_cmd "#openqa-test_irc_from_openqa";
+        assert_screen "$name-join-openqa-test_irc_from_openqa";
+        assert_and_click "$name-join-channel-OK";
+
+        # send a test message in IRC channel
+        assert_screen "$name-main-window";
+        enter_cmd "hello, this is openQA running $name with FIPS Enabled!";
+        assert_screen "$name-message-sent-to-channel";
+        enter_cmd "/quit I'll be back";
+        assert_screen "$name-quit";
+    }
+    elsif (match_has_tag("$name-SASL-only-error")) {
+        record_info('SASL required', 'The public IP of the current worker has been blacklisted on Libera, so a SASL connection would be required. https://progress.opensuse.org/issues/66697');
+    }
+}
+
 sub run {
     select_console "root-console";
 
@@ -28,7 +61,9 @@ sub run {
     mouse_set(0, 0);
 
     if (my $url = get_var("XCHAT_URL")) {
-        x11_start_program("$name --url=$url", target_match => "$name-main-window");
+        # Start up hexchat client and try to login into server
+        x11_start_program("$name --url=$url", valid => 0);
+        irc_login_send_message($name);
     }
     else {
         x11_start_program("$name", target_match => "$name-network-select");
@@ -37,31 +72,15 @@ sub run {
         # use ssl for all servers on this network
         assert_and_click "$name-edit-button";
         assert_screen ["$name-use-ssl-button", "$name-ssl-on"];
+        # make sure SSL is enabled
         if (!match_has_tag("$name-ssl-on")) {
             assert_and_click "$name-use-ssl-button";
         }
         assert_and_click "$name-close-button";
-
+        # start connect to server
         assert_and_click "$name-connect-button";
-        assert_screen "$name-connection-complete-dialog";
-        assert_and_click "$name-join-channel";
-
-        assert_screen "$name-join-channel-select";
-        wait_still_screen 2;
-        send_key "ctrl-a";
-        send_key "delete";
-        wait_still_screen 2;
-
-        enter_cmd "#openqa-test_irc_from_openqa";
-        assert_screen "$name-join-openqa-test_irc_from_openqa";
-        assert_and_click "$name-join-channel-OK";
-
+        irc_login_send_message($name);
     }
-    assert_screen "$name-main-window";
-    enter_cmd "hello, this is openQA running $name with FIPS Enabled!";
-    assert_screen "$name-message-sent-to-channel";
-    enter_cmd "/quit I'll be back";
-    assert_screen "$name-quit";
     send_key "alt-f4";
 }
 

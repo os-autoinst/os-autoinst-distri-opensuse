@@ -893,9 +893,9 @@ sub prepare_coredump {
 
 sub check_coredump {
     my $self = shift;
-    return if (script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend)" ]') == 0);
+    return if (script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend | grep wicked )" ]') == 0);
 
-    my @core_pids = split(/\s+/, script_output(q(coredumpctl list --no-pager --no-legend | perl -ne '$_ =~ m/ ([0-9]+) / && print $1 .$/')));
+    my @core_pids = split(/\s+/, script_output(q(coredumpctl list --no-pager --no-legend | grep wicked | perl -ne '$_ =~ m/ ([0-9]+) / && print $1 .$/')));
     for my $pid (@core_pids) {
         my $core;
         if ($self->coredumpctl_has_debug() && script_run('command -v gdb') == 0 && script_run('rpm -q --qf "" wicked-debuginfo') == 0) {

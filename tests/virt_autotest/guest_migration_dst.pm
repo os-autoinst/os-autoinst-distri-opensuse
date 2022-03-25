@@ -26,26 +26,8 @@ sub run {
     set_var('DST_PASS', $password);
     bmwqemu::save_vars();
 
-    #workaround from 15-SP4 kernel(v5.14) new behavior
-    #Refer to bsc#1191511 for more details
-    $self->reset_unprivileged_userfaultfd if (is_sle('>=15-SP4') && is_kvm_host);
-
-    #workaround for weird mount failure
-    $self->workaround_for_reverse_lock("SRC_IP", 3600);
-    my $src_ip = $self->get_var_from_child("SRC_IP");
-    my $src_user = $self->get_var_from_child("SRC_USER");
-    my $src_pass = $self->get_var_from_child("SRC_PASS");
-    my $hypervisor = (is_xen_host) ? 'xen' : 'kvm';
-    my $args = "-d $src_ip -v $hypervisor -u $src_user -p $src_pass";
-    my $pre_test_cmd = "/usr/share/qa/virtautolib/lib/guest_migrate.sh " . $args;
-    enter_cmd("$pre_test_cmd ");
-    save_screenshot;
-    send_key("ctrl-c");
-    save_screenshot;
-    #workaround end
-
     # clean up logs from prevous tests
-    script_run('[ -d /var/log/qa/ctcs2/ ] && rm -rf /var/log/qa/ctcs2/', die_on_timeout => 0);
+    script_run('[ -d /var/log/qa/ctcs2/ ] && rm -rf /var/log/qa/ctcs2/');
     script_run('[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/');
     script_run('[ -d /tmp/prj3_migrate_admin_log/ ] && rm -rf /tmp/prj3_migrate_admin_log/');
 
@@ -58,7 +40,7 @@ sub run {
 
     #upload logs
     my $xen_logs = "";
-    if ($hypervisor =~ /XEN/im) {
+    if (is_xen_host) {
         $xen_logs = "/var/lib/xen/dump /tmp/xl-dmesg.log";
         script_run("xl dmesg > /tmp/xl-dmesg.log");
         #separate the xen logs from other virt logs because it needs to be remained or xen service will fail to start
@@ -76,15 +58,6 @@ sub run {
 
     #wait for child finish
     wait_for_children;
-}
-
-#Since 15-SP4 kernel(v5.14), default value of unprivileged_userfaultfd sysctl is 0.
-#if unprivileged user want to use userfaultfd syscalls, we just only need to manually
-#reset unprivileged_userfaultfd value is 1 as the workaround on postcopy migration dst
-sub reset_unprivileged_userfaultfd {
-    script_run("sysctl -w vm.unprivileged_userfaultfd=1", 15);
-    script_run("sysctl -a | grep vm.unprivileged_userfaultfd", 15);
-    save_screenshot;
 }
 
 1;

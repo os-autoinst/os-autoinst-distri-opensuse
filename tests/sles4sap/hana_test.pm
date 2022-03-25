@@ -3,18 +3,49 @@
 # Copyright 2018 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Checks HANA installation as performed by sles4sap/wizard_hana_install
+# Summary: HANA installation smoke test
 # Requires: sles4sap/wizard_hana_install, ENV variables INSTANCE_SID
-# Maintainer: Ricardo Branco <rbranco@suse.de>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base "sles4sap";
 use strict;
 use warnings;
 use testapi;
 
+sub test_python3 {
+    my ($self) = @_;
+
+    my $output = script_output "python --version";
+    save_screenshot;
+    die "Wrong Python version" unless ($output =~ /Python 3/);
+
+    # The following commands only make sense on a cluster
+    return unless get_var('CLUSTER_NAME');
+
+    # These are the expected return values from each script
+    # They will fail if written in Python 2
+    my %expected_retvals = (
+        "landscapeHostConfiguration.py" => [4],
+        "systemOverview.py" => [0],
+        "systemReplicationStatus.py" => [15]
+    );
+
+    foreach my $script (keys %expected_retvals) {
+        my $retval = script_run "cdpy; python $script", timeout => 300;
+        die "$script failed with $retval" unless (grep { /^$retval$/ } @{$expected_retvals{$script}});
+        save_screenshot;
+    }
+
+    assert_script_run "cdpy; python getParameter.py net_publicname";
+    save_screenshot;
+}
+
 sub run {
     my ($self) = @_;
     my $ps_cmd = $self->set_ps_cmd('HDB');
+
+    # No need to run these tests on the secondary node
+    return if get_var('HA_CLUSTER_JOIN');
 
     $self->select_serial_terminal;
 
@@ -34,8 +65,15 @@ sub run {
     my $sapadm = $self->set_sap_info($sid, $instance_id);
 
     # Test PIDs max, as SAP as some prerequisites on this and change for SAP user
-    $self->test_pids_max;
+    $self->test_pids_max unless get_var('CLUSTER_NAME');
     $self->user_change;
+
+    assert_script_run "HDB info";
+    my $ver_info = script_output 'HDB version';
+    record_info 'HANA Version', $ver_info;
+
+    # Test Python 3 only on HANA >= 2.00.060
+    $self->test_python3 unless ($ver_info =~ /version:\s+2\.00\.0[0-5]/);
 
     # Check HDB with a database query
     my $hdbsql = "hdbsql -j -d $sid -u SYSTEM -i $instance_id -p $sles4sap::instance_password";
@@ -55,15 +93,13 @@ sub run {
         }
     }
 
-    # Do the stop/start tests
-    $self->test_version_info;
-    $self->test_instance_properties;
-    $self->test_stop;
-    $self->test_start;
-
-    assert_script_run "HDB info";
-    my $ver_info = script_output 'HDB version';
-    record_info 'HANA Version', $ver_info;
+    unless (get_var('CLUSTER_NAME')) {
+        # Do the stop/start tests
+        $self->test_version_info;
+        $self->test_instance_properties;
+        $self->test_stop;
+        $self->test_start;
+    }
 
     # Disconnect SAP account
     $self->reset_user_change;

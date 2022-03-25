@@ -89,6 +89,7 @@ sub db_has_data {
 =cut
 sub analyze_previous_series {
     my ($args, $load_types) = @_;
+    my $result = 0;
 
     foreach my $load_type (@$load_types) {
         $args->{load_type} = $load_type;
@@ -97,21 +98,29 @@ sub analyze_previous_series {
         my $last_records_mean = get_mean_from_db($args, " limit 5");
         # getting mean for 5 runs which were before last 5 ( from 6 to 10th)
         my $previous_records_mean = get_mean_from_db($args, " limit 5 offset 5");
+
+        my $generic_message = sprintf("See previous message and http://openqa-perf.qa.suse.de/d/hoRc37HWz/storage-performance?orgId=1&var-os_flavor=%s&var-os_version=%s", $args->{os_flavor}, $args->{os_flavor});
+
         # we do analysis only if we get back some non-zero values
         if (defined($previous_records_mean) && defined($last_records_mean) && $previous_records_mean != 0 && $last_records_mean != 0) {
-            record_info('ANALYZE', "Checking " . $current_load_type);
-            # this formula detect if mean values differs more than 10%
-            if ((abs($previous_records_mean - $last_records_mean) / $previous_records_mean) * 100 > 10) {
-                die sprintf("Anomaly occurred in http://openqa-perf.qa.suse.de/d/hoRc37HWz/storage-performance?orgId=1&var-os_flavor=%s&var-os_version=%s", $args->{os_flavor}, $args->{os_flavor});
+            my $diff_percents = (abs($previous_records_mean - $last_records_mean) / $previous_records_mean) * 100;
+            my $analyze = sprintf("Analyzing: %s\n", $current_load_type);
+            $analyze .= "Comparing mean values of previous 5 entries and last 5 entries.\n";
+            $analyze .= sprintf("Mean of previous 5 entries: %.2f Mean of last 5 entries: %.2f\n", $previous_records_mean, $last_records_mean);
+            $analyze .= sprintf("The difference is: %.2f%%.", $diff_percents);
+            record_info('ANALYZE', $analyze);
+            # This detects if mean values differs more than 10%
+            if ($diff_percents > 10) {
+                record_soft_failure("Deviation occurred. $generic_message");
+                $result = 1;
+            } else {
+                record_info('PASS', "The data looks good. $generic_message");
             }
-            else {
-                record_info('PASS', sprintf("For %s. \n previous mean: %d \n last mean: %d", $current_load_type, $previous_records_mean, $last_records_mean));
-            }
-        }
-        else {
-            record_info('N/A', sprintf("Got previous mean - %d and last mean - %d so anaysis not possible for %s", $previous_records_mean, $last_records_mean, $current_load_type));
+        } else {
+            record_info('N/A', "Analysis not possible $generic_message");
         }
     }
+    return $result;
 }
 
 
@@ -229,7 +238,11 @@ sub run {
             if (db_has_data(%influx_read_args)) {
                 # we will do anaysis for same load types which we just pushed to db
                 my @load_types = keys %$values;
-                analyze_previous_series(\%influx_read_args, \@load_types);
+                # Change the test module result to 'fail' if deviation in analyze_previous_series() occures
+                if (analyze_previous_series(\%influx_read_args, \@load_types) == 1) {
+                    record_info("Possible performance deviation", "The test module detected a possible performance deviation", result => 'fail');
+                    $self->{result} = 'fail';
+                }
             }
             else {
                 record_info('NO DATA', "We need at least 10 test results to analyze " . $href->{name} . "\n");

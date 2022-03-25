@@ -83,7 +83,7 @@ sub upload_ltp_logs
 sub run {
     my ($self, $args) = @_;
     my $arch = check_var('PUBLIC_CLOUD_ARCH', 'arm64') ? 'aarch64' : 'x86_64';
-    my $ltp_repo = get_var('LTP_REPO', 'http://download.opensuse.org/repositories/benchmark:/ltp:/devel/' . generate_version("_") . '/');
+    my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/benchmark:/ltp:/stable/' . generate_version("_") . '/');
     my $provider;
     my $instance;
 
@@ -98,9 +98,6 @@ sub run {
         $instance = $self->{my_instance} = $provider->create_instance();
         $instance->wait_for_guestregister();
     }
-
-    # Ensure the ssh public key is in the known hosts file for any upcoming connections
-    assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
 
     assert_script_run("cd $root_dir");
     assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o restart_instance.sh');

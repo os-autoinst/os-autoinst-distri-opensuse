@@ -47,14 +47,17 @@ our $img_proof_tests = {
     'Azure-BYOS' => $azure_byos,
     'AZURE-BYOS-Updates' => $azure_byos_updates,
     'AZURE-BYOS-Image-Updates' => $azure_byos_updates,
+    'Azure-BYOS-gen2' => $azure_byos,
     'AZURE-BYOS-gen2-Updates' => $azure_byos_updates,
     'AZURE-BYOS-gen2-Image-Updates' => $azure_byos_updates,
     'Azure-Basic' => $azure_on_demand,
+    'Azure-Basic-gen2' => $azure_on_demand,
     'AZURE-Basic-Updates' => $azure_on_demand_updates,
     'AZURE-Basic-Image-Updates' => $azure_on_demand_updates,
     'AZURE-Basic-gen2-Updates' => $azure_on_demand_updates,
     'AZURE-Basic-gen2-Images-Updates' => $azure_on_demand_updates,
     'Azure-Standard' => $azure_on_demand,
+    'Azure-Standard-gen2' => $azure_on_demand,
     'AZURE-Standard-Updates' => $azure_on_demand_updates,
     'AZURE-Standard-Image-Updates' => $azure_on_demand_updates,
     'AZURE-Standard-gen2-Updates' => $azure_on_demand_updates,
@@ -122,6 +125,9 @@ sub run {
         tests => $tests,
         results_dir => 'img_proof_results'
     );
+
+    # Because the IP address of instance might change during img_proof due to the hard-reboot, we need to re-add the ssh public keys
+    assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
 
     upload_logs($img_proof->{logfile});
     parse_extra_log(IPA => $img_proof->{results});

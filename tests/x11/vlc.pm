@@ -15,7 +15,9 @@ sub run {
     x11_start_program('vlc --no-autoscale', target_match => 'vlc-first-time-wizard');
     assert_and_click "vlc-first-time-wizard";
     assert_screen "vlc-main-window";
+    send_key "ctrl-l";
     send_key_until_needlematch("vlc-playlist-empty", "ctrl-l", 3, 60);
+    send_key "ctrl-n";
     send_key_until_needlematch("vlc-network-window", "ctrl-n", 3, 60);
     send_key "backspace";
     type_string autoinst_url . "/data/Big_Buck_Bunny_8_seconds_bird_clip.ogv";
@@ -34,7 +36,7 @@ sub run {
     }
 
     if (!check_var('QEMUVGA', 'cirrus')) {
-        x11_start_program('vlc --no-autoscale --loop data/test.ogv', target_match => 'vlc-playing');
+        x11_start_program('vlc --no-autoscale --loop data/test.ogv', target_match => 'vlc-playing', no_wait => 1);
         assert_and_click 'close_vlc';
     }
 }

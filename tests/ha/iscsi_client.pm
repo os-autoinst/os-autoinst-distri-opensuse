@@ -5,7 +5,7 @@
 
 # Package: yast2-iscsi-client
 # Summary: Configure iSCSI target for HA tests
-# Maintainer: Loic Devulder <ldevulder@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'opensusebasetest';
 use strict;
@@ -59,6 +59,8 @@ sub run {
     wait_still_screen 3;
     send_key 'alt-n';    # Next
 
+    # Sometimes client connection does not work immediately
+    wait_still_screen 10;
     # Select target with internal IP first?
     assert_screen 'iscsi-client-target-list';
     send_key 'alt-e';    # connEct

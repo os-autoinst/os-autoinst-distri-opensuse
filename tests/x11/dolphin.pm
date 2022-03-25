@@ -47,6 +47,7 @@ sub run {
 
     assert_and_click 'dolphin_create_new_text_file';
     mouse_hide();
+    assert_screen 'dolphin_new_text_file_dialog';
     type_string 'empty';
     assert_screen 'dolphin_new_text_file';
     send_key 'ret';

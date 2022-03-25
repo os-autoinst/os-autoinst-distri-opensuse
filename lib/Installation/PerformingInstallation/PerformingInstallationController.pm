@@ -52,11 +52,10 @@ sub get_system_reboot_with_timeout_popup {
 }
 
 sub wait_installation_popup {
-    my ($self, $timeout) = @_;
+    my ($self, $args) = @_;
     YuiRestClient::Wait::wait_until(object => sub {
-            return $self->{AbstractOKPopup}->is_shown();
-        }, timeout => $timeout,
-        message => 'System reboot popup did not appear');
+            $self->{AbstractOKPopup}->is_shown({timeout => 0});
+    }, %$args);
 }
 
 sub confirm_reboot {

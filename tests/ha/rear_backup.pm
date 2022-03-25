@@ -5,7 +5,7 @@
 
 # Package: yast2-rear rear23a
 # Summary: Install ReaR packages and create a ReaR backup on an NFS server
-# Maintainer: Loic Devulder <ldevulder@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
 use base 'rear';
 use strict;

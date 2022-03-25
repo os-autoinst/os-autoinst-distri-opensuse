@@ -15,13 +15,13 @@ use warnings;
 sub init {
     my ($self, $args) = @_;
     $self->SUPER::init($args);
-    $self->{ch_accept_license} = $self->{app}->checkbox($args->{ch_accept_license_filter});
+    $self->{chb_accept_license} = $self->{app}->checkbox($args->{chb_accept_license_filter});
     return $self;
 }
 
 sub check_accept_license {
     my ($self) = @_;
-    return $self->{ch_accept_license}->check();
+    return $self->{chb_accept_license}->check();
 }
 
 1;

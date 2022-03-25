@@ -4,13 +4,11 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Checking if it is possible to install packages in repo with libsolv
-# Maintainer: Sebastian Chlad <schlad@suse.de>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
-use strict;
-use warnings;
 
 sub run {
     my ($self) = @_;

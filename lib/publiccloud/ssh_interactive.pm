@@ -18,7 +18,16 @@ our @ISA = qw(Exporter);
 our @EXPORT = qw(ssh_interactive_tunnel ssh_interactive_leave);
 
 sub ssh_interactive_tunnel {
-    my ($instance) = @_;
+    # Establish the ssh interarctive tunnel to the publiccloud instance.
+    # Optional arguments: 'force => 1' - reestablish tunnel, also if already established.
+
+    my $instance = shift;
+    my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
+    $args{force} //= 0;
+
+    # $serialdev should be always set from os-autoinst/testapi.pm
+    die '$serialdev is not set' if (!defined $serialdev || $serialdev eq '');
+    return if ($args{force} != 1 && get_var('_SSH_TUNNELS_INITIALIZED', 0) == 1);
 
     # Prepare the environment for the SSH tunnel
     my $upload_port = get_required_var('QEMUPORT') + 1;
@@ -32,7 +41,7 @@ sub ssh_interactive_tunnel {
         timeout => 0,
         no_quote => 1,
         ssh_opts => "-yt -R $upload_port:$upload_host:$upload_port",
-        username => 'root'
+        username => 'root',
     );
     sleep 3;
     save_screenshot;

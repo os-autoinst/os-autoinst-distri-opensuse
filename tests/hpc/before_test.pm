@@ -4,18 +4,14 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary:  Basic preparation before any HPC test
-# Maintainer: Sebastian Chlad <schlad@suse.de>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use base 'hpcbase';
-use base 'hpc::cluster';
-use strict;
-use warnings;
+use Mojo::Base qw(hpcbase hpc::cluster), -signatures;
 use testapi;
 use utils;
 use lockapi;
 
-sub run {
-    my ($self) = @_;
+sub run ($self) {
     $self->select_serial_terminal;
 
     # disable packagekitd
@@ -39,7 +35,7 @@ sub run {
     }
 }
 
-sub test_flags {
+sub test_flags ($self) {
     return {fatal => 1, milestone => 1};
 }
 

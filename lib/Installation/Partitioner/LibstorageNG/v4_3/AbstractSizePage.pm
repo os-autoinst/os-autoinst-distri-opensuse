@@ -18,7 +18,7 @@ use YuiRestClient::Wait;
 sub init {
     my $self = shift;
     $self->SUPER::init();
-    $self->{rb_custom_size} = $self->{app}->radiobutton({id => 'custom_size'});
+    $self->{rdb_custom_size} = $self->{app}->radiobutton({id => 'custom_size'});
     return $self;
 }
 
@@ -26,10 +26,10 @@ sub set_custom_size {
     my ($self, $size) = @_;
     if ($size) {
         YuiRestClient::Wait::wait_until(object => sub {
-                return $self->{rb_custom_size}->is_enabled();
+                return $self->{rdb_custom_size}->is_enabled();
         }, message => "Custom size radio button takes too long to be enabled");
-        $self->{rb_custom_size}->select();
-        $self->{tb_size}->set($size);
+        $self->{rdb_custom_size}->select();
+        $self->{txb_size}->set($size);
     }
     $self->press_next();
 }

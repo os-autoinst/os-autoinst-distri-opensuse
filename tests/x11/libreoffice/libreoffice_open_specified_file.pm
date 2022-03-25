@@ -45,6 +45,11 @@ sub run {
         }
         # close document
         send_key "ctrl-f4";
+        wait_still_screen(2);
+        if (check_screen('generic-desktop')) {
+            record_soft_failure 'bsc#1196648';
+            $self->libreoffice_start_program('libreoffice');
+        }
         $i++;
     }
     send_key 'ctrl-q' unless check_screen 'generic-desktop', 0;
