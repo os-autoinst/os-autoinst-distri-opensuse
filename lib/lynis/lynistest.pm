@@ -1,4 +1,4 @@
-# Copyright 2021 SUSE LLC
+# Copyright 2021-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Base module for Lynis test cases
@@ -245,6 +245,9 @@ sub compare_lynis_section_content {
                 if ($str_section_baseline =~ m/$exception/ || $str_section_current =~ m/$exception/) {
                     $str_section_baseline =~ s/$exception//g;
                     $str_section_current =~ s/$exception//g;
+                    # Delete the blank lines in case
+                    chomp @section_baseline;
+                    chomp @section_current;
                     record_info("Warning", "Section contents need to be double checked manually: \"$exception\"");
                 }
             }
@@ -285,11 +288,15 @@ sub compare_lynis_section_content {
         if ($ret) {
             # Filter out some exceptions allowed:
             # "Boot_and_services": "[4C- Checking for password protection[23C [ WARNING ]"
+            # "Boot_and_services": "[8C- serial-getty@hvc0.service:[25C [ UNSAFE ]"
             # "Name services": "[4C- Checking /etc/hosts (hostname)[25C [ SUGGESTION ]"
             # "Kernel: "[4CCPU support: No PAE or NoeXecute supported[15C [ NONE ]"
             # "Initializing_program": "[2C- Program update status... [32C [ WARNING ]"
             # "Networking": "[[4C- Minimal of 2 responsive nameservers^[[20C [ WARNING ]"
+            # "Networking": "[4COpen port 5901 not allowed[31C [ WARNING ]"
             # "Ports and packages": "Using Zypper to find vulnerable packages[17C [ NONE ]"
+            # "File systems": "[2C- Total without nodev:15 noexec:20 nosuid:13 ro or noexec (W^X): 20 of total 47[0C"
+            # "Binary integrity": "[4CNo bad RPATH usage found in 6288 executables[13C [ OK ]"
             my @exceptions = (
                 "Checking for password protection.*WARNING.*",
                 "Checking /etc/hosts .*hostname.*SUGGESTION.*",
@@ -297,7 +304,11 @@ sub compare_lynis_section_content {
                 "Program update status.*WARNING.*",
                 "Minimal of 2 responsive nameservers.*WARNING.*",
                 "Using Zypper to find vulnerable packages.*NONE.*",
-                "Test .* had a long execution: .* seconds"
+                "Test .* had a long execution: .* seconds.*",
+                "getty.*tty.*service.*",
+                "Total without nodev:.* noexec:.* nosuid:.* ro or noexec .*: .* of total.*",
+                "No bad RPATH usage found in.*executables.*OK.*",
+                "Open port .* not allowed.*WARNING.*"
             );
             for my $exception (@exceptions) {
                 if (grep(/$exception/, @section_current)) {
