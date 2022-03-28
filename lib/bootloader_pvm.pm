@@ -104,6 +104,7 @@ sub prepare_pvm_installation {
     specific_bootmenu_params;
     registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
     type_string_slow remote_install_bootmenu_params;
+    type_string_slow " fips=1" if (get_var('FIPS_INSTALLATION'));
     type_string_slow " UPGRADE=1" if (get_var('UPGRADE'));
     send_key 'ret';
 
