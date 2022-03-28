@@ -9,7 +9,7 @@ BEGIN {
 use utils;
 use testapi;
 use main_common;
-use main_containers qw(load_host_tests_podman is_container_test);
+use main_containers qw(load_container_tests is_container_test);
 use version_utils qw(is_released);
 use Utils::Architectures qw(is_s390x);
 
@@ -74,7 +74,7 @@ return 1 if load_yaml_schedule;
 
 if (is_container_test) {
     load_boot_from_disk_tests();
-    load_host_tests_podman();
+    load_container_tests();
 }
 
 1;

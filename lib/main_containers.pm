@@ -22,6 +22,7 @@ our @EXPORT = qw(
   is_container_test
   load_container_tests
   load_host_tests_podman
+  load_image_test
   load_3rd_party_image_test
   load_container_engine_test
 );
@@ -82,13 +83,16 @@ sub load_image_tests_docker {
 }
 
 sub load_host_tests_podman {
-    if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+") || is_sle_micro) {
+    if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+") || is_sle_micro || is_microos) {
         # podman package is only available as of 15-SP1
         load_container_engine_test('podman');
         load_image_test('podman');
         load_3rd_party_image_test('podman');
-        loadtest 'containers/podman_firewall' unless is_openstack;
-        loadtest 'containers/buildah' unless is_sle_micro;
+        # Firewall is not installed in JeOS OpenStack and MicroOS
+        loadtest 'containers/podman_firewall' unless (is_openstack || is_microos);
+        # Buildah is not available in SLE Micro and MicroOS
+        loadtest 'containers/buildah' unless (is_sle_micro || is_microos);
+
         # https://github.com/containers/podman/issues/5732#issuecomment-610222293
         loadtest 'containers/rootless_podman' unless (is_sle('=15-sp1') || is_openstack);
     }
@@ -98,16 +102,18 @@ sub load_host_tests_docker {
     load_container_engine_test('docker');
     load_image_test('docker');
     load_3rd_party_image_test('docker');
-    loadtest 'containers/docker_firewall' unless is_openstack;
+    # Firewall is not installed in JeOS OpenStack and MicroOS but it is in SLE Micro
+    loadtest 'containers/docker_firewall' unless (is_openstack || is_microos);
     unless (is_sle("<=15") && is_aarch64) {
         # these 2 packages are not avaiable for <=15 (aarch64 only)
-        # zypper-docker is not available in factory
-        loadtest 'containers/zypper_docker' unless is_tumbleweed;
+        # zypper-docker is not available in factory and in SLE Micro/MicroOS
+        loadtest 'containers/zypper_docker' unless (is_tumbleweed || is_sle_micro || is_microos);
         loadtest 'containers/docker_runc';
     }
-    unless (check_var('BETA', 1)) {
+    unless (check_var('BETA', 1) || is_sle_micro || is_microos) {
         # These tests use packages from Package Hub, so they are applicable
         # to maintenance jobs or new products after Beta release
+        # PackageHub is not available in SLE Micro | MicroOS
         loadtest 'containers/registry' if is_x86_64;
         loadtest 'containers/docker_compose';
     }
@@ -115,7 +121,9 @@ sub load_host_tests_docker {
     # Expected to work for all but JeOS on 15sp4 after
     # https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/13860
     # Disabled on svirt backends (VMWare, Hyper-V and XEN) as the device name might be different than vdX
-    loadtest 'containers/validate_btrfs' if (is_x86_64 and is_qemu and !is_openstack);
+    if ((is_x86_64 && is_qemu) && !(is_openstack || is_sle_micro || is_microos)) {
+        loadtest 'containers/validate_btrfs';
+    }
 }
 
 sub load_host_tests_containerd_crictl {
@@ -136,14 +144,15 @@ sub load_container_tests {
     my $args = OpenQA::Test::RunArgs->new();
     my $runtime = get_required_var('CONTAINER_RUNTIME');
 
-    if (get_var('BOOT_HDD_IMAGE')) {
+    # Need to boot a qcow except in JeOS, SLEM and MicroOS where the system is booted already
+    if (get_var('BOOT_HDD_IMAGE') && !(is_jeos || is_sle_micro || is_microos)) {
         loadtest 'installation/bootloader_zkvm' if is_s390x;
-        loadtest 'boot/boot_to_desktop' unless is_jeos;
+        loadtest 'boot/boot_to_desktop';
     }
 
-    if (is_container_image_test()) {
+    if (is_container_image_test() && !(is_jeos || is_sle_micro || is_microos)) {
         # Container Image tests common
-        loadtest 'containers/host_configuration' unless (is_jeos);
+        loadtest 'containers/host_configuration';
     }
 
     foreach (split(',\s*', $runtime)) {
@@ -169,5 +178,5 @@ sub load_container_tests {
         }
     }
 
-    loadtest 'console/coredump_collect' unless (is_jeos || get_var('BCI_TESTS'));
+    loadtest 'console/coredump_collect' unless (is_jeos || is_sle_micro || is_microos || get_var('BCI_TESTS'));
 }
