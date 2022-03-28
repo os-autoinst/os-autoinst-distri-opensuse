@@ -137,7 +137,7 @@ sub load_container_tests {
 
     if (is_container_image_test()) {
         # Container Image tests common
-        loadtest 'containers/host_configuration' unless (is_expanded_support_host || is_ubuntu_host || is_jeos);
+        loadtest 'containers/host_configuration' unless (is_jeos);
     }
 
     foreach (split(',\s*', $runtime)) {
