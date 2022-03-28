@@ -32,7 +32,7 @@ sub check_registered_system {
     $pro = 'SLE_' . $pro if ($pro eq 'HPC');
     suseconnect_ls($pro);
     my $ver = $system =~ s/\-SP/./r;
-    script_run("SUSEConnect -s | grep " . $ver);
+    script_run("SUSEConnect -s | grep " . $ver, die_on_timeout => 0);
 }
 
 sub check_registered_addons {
