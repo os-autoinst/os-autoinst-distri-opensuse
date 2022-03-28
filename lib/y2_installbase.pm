@@ -175,7 +175,9 @@ Being in the "select pattern" screen, performs steps needed to move the
 highlight cursor one item down.
 =cut
 sub move_down {
-    my $ret = wait_screen_change { send_key 'down' };
+    my $ret = wait_screen_change(sub {
+            send_key 'down';
+    }, 20);
     workaround_bsc1189550() if (!$workaround_bsc1189550_done && is_sle('>=15-sp3'));
     last if (!$ret);    # down didn't change the screen, so exit here
     check12qtbug if check_var('VERSION', '12');
