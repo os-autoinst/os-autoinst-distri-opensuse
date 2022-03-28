@@ -46,34 +46,28 @@ sub is_ubuntu_host {
 }
 
 sub load_image_test {
-    my ($runtime, $run_args) = @_;
-    $run_args->{runtime} = $runtime;
-
-    loadtest('containers/image', run_args => $run_args, name => "image_$runtime");
+    my ($run_args) = @_;
+    loadtest('containers/image', run_args => $run_args, name => 'image_' . $run_args->{runtime});
 }
 
 sub load_3rd_party_image_test {
-    my ($runtime, $run_args) = @_;
-    $run_args->{runtime} = $runtime;
-
-    loadtest('containers/third_party_images', run_args => $run_args, name => $runtime . "_3rd_party_images");
+    my ($run_args) = @_;
+    loadtest('containers/third_party_images', run_args => $run_args, name => $run_args->{runtime} . '_3rd_party_images');
 }
 
 sub load_container_engine_test {
-    my ($runtime, $run_args) = @_;
-    $run_args->{runtime} = $runtime;
-
-    loadtest('containers/container_engine', run_args => $run_args, name => $runtime);
+    my ($run_args) = @_;
+    loadtest('containers/container_engine', run_args => $run_args, name => $run_args->{runtime});
 }
 
 sub load_image_tests_podman {
     my ($run_args) = @_;
-    load_image_test('podman', $run_args);
+    load_image_test($run_args);
 }
 
 sub load_image_tests_docker {
     my ($run_args) = @_;
-    load_image_test('docker', $run_args);
+    load_image_test($run_args);
     # container_diff package is not avaiable for <=15 in aarch64
     # Also, we don't want to run it on 3rd party hosts
     unless ((is_sle("<=15") and is_aarch64) || get_var('CONTAINERS_NO_SUSE_OS')) {
@@ -85,9 +79,9 @@ sub load_host_tests_podman {
     my ($run_args) = @_;
     if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+") || is_sle_micro || is_microos) {
         # podman package is only available as of 15-SP1
-        load_container_engine_test('podman', $run_args);
-        load_image_test('podman', $run_args);
-        load_3rd_party_image_test('podman', $run_args);
+        load_container_engine_test($run_args);
+        load_image_test($run_args);
+        load_3rd_party_image_test($run_args);
         # Firewall is not installed in JeOS OpenStack and MicroOS
         loadtest 'containers/podman_firewall' unless (is_openstack || is_microos);
         # Buildah is not available in SLE Micro and MicroOS
@@ -99,9 +93,9 @@ sub load_host_tests_podman {
 
 sub load_host_tests_docker {
     my ($run_args) = @_;
-    load_container_engine_test('docker', $run_args);
-    load_image_test('docker', $run_args);
-    load_3rd_party_image_test('docker', $run_args);
+    load_container_engine_test($run_args);
+    load_image_test($run_args);
+    load_3rd_party_image_test($run_args);
     # Firewall is not installed in JeOS OpenStack and MicroOS but it is in SLE Micro
     loadtest 'containers/docker_firewall' unless (is_openstack || is_microos);
     unless (is_sle("<=15") && is_aarch64) {
@@ -142,12 +136,11 @@ sub load_host_tests_helm() {
 
 sub load_container_tests {
     my $runtime = get_required_var('CONTAINER_RUNTIME');
-    my $run_args = OpenQA::Test::RunArgs->new();
 
     # Need to boot a qcow except in JeOS, SLEM and MicroOS where the system is booted already
     if (get_var('BOOT_HDD_IMAGE') && !(is_jeos || is_sle_micro || is_microos)) {
         loadtest 'installation/bootloader_zkvm' if is_s390x;
-        loadtest 'boot/boot_to_desktop';
+        loadtest 'boot/boot_to_desktop' unless is_public_cloud;
     }
 
     if (is_container_image_test() && !(is_jeos || is_sle_micro || is_microos)) {
@@ -156,6 +149,8 @@ sub load_container_tests {
     }
 
     foreach (split(',\s*', $runtime)) {
+        my $run_args = OpenQA::Test::RunArgs->new();
+        $run_args->{runtime} = $_;
         if (is_container_image_test()) {
             if (get_var('BCI_TESTS')) {
                 # External bci-tests pytest suite

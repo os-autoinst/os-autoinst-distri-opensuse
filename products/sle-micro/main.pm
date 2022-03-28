@@ -74,6 +74,7 @@ return 1 if load_yaml_schedule;
 
 if (is_container_test) {
     my $run_args = OpenQA::Test::RunArgs->new();
+    $run_args->{runtime} = 'podman';
     load_boot_from_disk_tests();
     load_container_tests();
 }
