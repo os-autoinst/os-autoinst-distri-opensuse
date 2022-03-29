@@ -126,6 +126,12 @@ sub load_host_tests_containerd_nerdctl {
     loadtest 'containers/containerd_nerdctl';
 }
 
+sub load_host_tests_helm() {
+    if (is_tumbleweed || is_leap) {
+        loadtest "containers/helm";
+    }
+}
+
 sub load_container_tests {
     my $args = OpenQA::Test::RunArgs->new();
     my $runtime = get_required_var('CONTAINER_RUNTIME');
@@ -159,6 +165,7 @@ sub load_container_tests {
             load_host_tests_docker() if (/docker/i);
             load_host_tests_containerd_crictl() if (/containerd_crictl/i);
             load_host_tests_containerd_nerdctl() if (/containerd_nerdctl/i);
+            load_host_tests_helm() if (/helm/i);
         }
     }
 
