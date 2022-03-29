@@ -5,7 +5,7 @@
 
 # Package: docker MozillaFirefox
 # Summary: check HAWK GUI with the a python+selenium script and firefox
-# Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'opensusebasetest';
 use strict;
@@ -16,16 +16,7 @@ use hacluster;
 use x11test;
 use x11utils;
 use version_utils 'is_desktop_installed';
-
-sub install_docker {
-    my $docker_url = "https://download.docker.com/linux/static/stable/x86_64/docker-19.03.5.tgz";
-
-    assert_script_run "curl -s $docker_url | tar zxf - --strip-components 1 -C /usr/bin", 120;
-    # Allow the user to run docker. We can't add him to the docker group without restarting X.
-    # The final colon is to avoid a bash syntax error when assert_script_run() appends a semicolon
-    assert_script_run "/usr/bin/dockerd -G users --insecure-registry registry.suse.de >/dev/null 2>&1 & :";
-}
-
+use utils 'zypper_call';
 
 sub run {
     my ($self) = @_;
@@ -47,14 +38,14 @@ sub run {
     }
 
     select_console 'root-console';
-    install_docker;
+    zypper_call "in podman";
 
     # TODO: Use another namespace using team group name
     # Docker image source in https://github.com/ricardobranco777/hawk_test
     # It will be eventually moved to https://github.com/ClusterLabs/hawk/e2e_test
-    my $docker_image = "registry.opensuse.org/home/rbranco/branches/opensuse/templates/images/15.3/containers/hawk_test:latest";
+    my $image = "registry.opensuse.org/home/rbranco/branches/opensuse/templates/images/15.3/containers/hawk_test:latest";
 
-    assert_script_run("docker pull $docker_image", 240);
+    assert_script_run("podman pull $image", 240);
 
     # Rest of the test needs to be performed on the x11 console, but with the
     # HA_CLUSTER setting that console is not yet activated; newer versions of gdm
@@ -83,9 +74,9 @@ sub run {
     assert_script_run "mkdir -m 1777 $path";
     assert_script_run "xhost +";
     barrier_wait("HAWK_GUI_CPU_TEST_START_$cluster_name");
-    my $docker_cmd = "docker run --rm --name test --ipc=host -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=\$DISPLAY -v \$PWD/$path:/$path ";
-    $docker_cmd .= "$docker_image -b $browser -H $node1 -S $node2 -s $testapi::password -r /$results --virtual-ip $virtual_ip";
-    enter_cmd "$docker_cmd 2>&1 | tee $logs; echo $pyscr-\$PIPESTATUS > $retcode";
+    my $cmd = "podman run --rm --name test --ipc=host -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=\$DISPLAY -v \$PWD/$path:/$path ";
+    $cmd .= "$image -b $browser -H $node1 -S $node2 -s $testapi::password -r /$results --virtual-ip $virtual_ip";
+    enter_cmd "$cmd 2>&1 | tee $logs; echo $pyscr-\$PIPESTATUS > $retcode";
     assert_screen "hawk-$browser", 60;
 
     my $loop_count = 360;    # 30 minutes (360*5)
