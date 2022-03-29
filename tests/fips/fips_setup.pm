@@ -62,10 +62,6 @@ sub run {
         record_info 'Kernel Mode', 'FIPS kernel mode configured!';
     }
 
-    # Record the CPU model information
-    record_info('CPU_info', script_output("cat /proc/cpuinfo | grep '^model' | tail -1"));
-    record_info('CPU_core', script_output("cat /proc/cpuinfo | grep processor | wc -l"));
-
     power_action('reboot', textmode => 1);
     $self->wait_boot(bootloader_time => 200);
 
