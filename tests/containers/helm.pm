@@ -14,6 +14,13 @@ use version_utils qw(is_sle);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use mmapi 'get_current_job_id';
 
+
+sub install_kubectl {
+    my $version = get_var('KUBECTL_VERSION', 'v1.22.2');
+    assert_script_run("curl -LO https://dl.k8s.io/release/$version/bin/linux/amd64/kubectl");
+    assert_script_run("install -c -m 744 ./kubectl /usr/bin/kubectl");
+}
+
 sub run {
     my ($self) = @_;
 
@@ -21,10 +28,19 @@ sub run {
     $self->{deployment_name} = "apache-" . get_current_job_id();
     my $chart = "bitnami/apache";
 
-    zypper_call("in -y jq aws-cli helm kubernetes-client");
+    if (is_sle) {
+        add_suseconnect_product(get_addon_fullname('phub'));
+        add_suseconnect_product(get_addon_fullname('pcm'));
+        zypper_call("in -y jq helm aws-cli");
+        install_kubectl();
+    }
+    else {
+        zypper_call("in -y jq aws-cli helm kubernetes-client");
+    }
 
-    # Check helm version
+    # Check versions
     record_info('Helm version', script_output("helm version"));
+    record_info('AWS', script_output('aws --version'));
 
     # Connection to AWS
     my $provider = $self->provider_factory(service => 'EKS');
