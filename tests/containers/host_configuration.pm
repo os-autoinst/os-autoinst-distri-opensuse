@@ -19,13 +19,13 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
     my $interface;
-    my $update_timeout = 600;
+    my $update_timeout = 1200;
     my ($version, $sp, $host_distri) = get_os_release;
     my $engine = get_required_var('CONTAINER_RUNTIME');
 
     # Update the system to get the latest released state of the hosts.
     # Check routing table is well configured
-    if ($host_distri eq 'sles') {
+    if ($host_distri =~ /sles|opensuse/) {
         zypper_call("--quiet up", timeout => $update_timeout);
         ensure_ca_certificates_suse_installed();
     }
@@ -36,9 +36,9 @@ sub run {
             assert_script_run("apt-get update -qq -y", timeout => $update_timeout);
         } elsif ($host_distri eq 'centos') {
             assert_script_run("dhclient -v");
-            assert_script_run("yum update -y --allowerasing", timeout => $update_timeout);
+            assert_script_run("yum update -q -y --nobest", timeout => $update_timeout);
         } elsif ($host_distri eq 'rhel') {
-            assert_script_run("yum update -y", timeout => $update_timeout);
+            assert_script_run("yum update -q -y", timeout => $update_timeout);
         }
     }
 
@@ -51,7 +51,7 @@ sub run {
 
     # It has been observed that after system update, the ip forwarding doesn't work.
     # Sometimes there is a need to restart the firewall and docker daemon.
-    if ($host_distri eq 'sles') {
+    if ($host_distri =~ /sles|opensuse/) {
         # We can't use opensusebasetest::firewall here because VERSION variable referrs to the container image.
         my $firewall = $version =~ /12/ ? 'SuSEfirewall2' : 'firewalld';
         systemctl("restart $firewall");
@@ -59,7 +59,9 @@ sub run {
     }
 
     # Record podman|docker version
-    record_info($engine, script_output("$engine info"));
+    foreach my $eng (split(',\s*', $engine)) {
+        record_info($eng, script_output("$eng info"));
+    }
 }
 
 sub test_flags {
