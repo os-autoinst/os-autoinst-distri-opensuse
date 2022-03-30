@@ -24,6 +24,12 @@ sub check_or_install_packages {
             record_soft_failure('bsc#1197268', 'suseconnect-ng obsoletes zypper-migration-plugin in leap to sle migration');
             zypper_call('rm zypper-migration-plugin');
             zypper_call "in yast2-registration rollback-helper";
+            if (get_var('LEAP_TECH_PREVIEW_REPO')) {
+                record_info('SLE-23610', 'TechPreview: yast-migration-sle a simplified Leap -> SLE migration');
+                my $tech_preview_repo = get_var('LEAP_TECH_PREVIEW_REPO');
+                zypper_call("ar $tech_preview_repo");
+                zypper_call('in yast2-migration-sle');
+            }
             systemctl 'enable rollback.service';
             systemctl 'start rollback.service';
         } else {
