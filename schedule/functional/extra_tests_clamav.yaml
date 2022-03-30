@@ -1,0 +1,10 @@
+name: extra_tests_clamav
+description:    >
+    Maintainer: QE Core.
+    Extract 'clamav' module from 'extra_tests_textmode' to meet the RAM
+    requirements.
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/clamav
+    - console/coredump_collect

@@ -97,18 +97,6 @@ sub init {
     die("The UserID doesn't have the correct format: $self->{user_id}") unless $self->aws_account_id =~ /^\d{12}$/;
 }
 
-=head2 get_container_registry_prefix
-
-Get the full registry prefix URL (based on the account and region) to push container images on ECR.
-=cut
-
-sub get_container_registry_prefix {
-    my ($self) = @_;
-    my $region = $self->region;
-    my $full_name_prefix = sprintf('%s.dkr.ecr.%s.amazonaws.com', $self->aws_account_id, $region);
-    return $full_name_prefix;
-}
-
 =head2 get_container_image_full_name
 
 Returns the full name of the container image in ECR registry
@@ -117,7 +105,8 @@ C<tag> Tag of the container
 
 sub get_container_image_full_name {
     my ($self, $tag) = @_;
-    my $full_name_prefix = $self->get_container_registry_prefix();
+    my $full_name_prefix = sprintf('%s.dkr.ecr.%s.amazonaws.com', $self->aws_account_id, $self->region);
+
     return "$full_name_prefix/" . $self->container_registry . ":$tag";
 }
 
@@ -128,7 +117,7 @@ Configure the podman to access the cloud provider registry
 
 sub configure_podman {
     my ($self) = @_;
-    my $full_name_prefix = $self->get_container_registry_prefix();
+    my $full_name_prefix = sprintf('%s.dkr.ecr.%s.amazonaws.com', $self->aws_account_id, $self->region);
 
     assert_script_run("aws ecr get-login-password --region "
           . $self->region

@@ -1,6 +1,7 @@
 [Unit]
 Description=Registry proxy
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 WorkingDirectory=/usr/local/bin

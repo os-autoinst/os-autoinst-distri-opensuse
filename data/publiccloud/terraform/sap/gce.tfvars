@@ -321,6 +321,14 @@ drbd_enabled = true
 
 # Each drbd cluster host IP address (sequential order).
 drbd_ips = ["10.0.0.10", "10.0.0.11"]
+# DRBD cluster vip mechanism. This option decides whether to use a load-balancer or routes to forward the traffic to the virtual ip address.
+# Options: "load-balancer" (default), "route"
+#drbd_cluster_vip_mechanism = "load-balancer"
+drbd_cluster_vip_mechanism = "route"
+
+# If the vip mechanism is the load balancer, this IP address must belong to the same subnet as the hana machines
+#drbd_cluster_vip = "10.0.0.22"
+# If the vip_mechanism is the routing system, this IP address must NOT belong to the same subnet range than the hana machines
 drbd_cluster_vip = "10.0.1.201"
 
 # Select DRBD cluster fencing mechanism. 'native' by default
@@ -386,8 +394,14 @@ drbd_cluster_vip = "10.0.1.201"
 # Additional media archives or folders (added in start_dir.cd), relative to netweaver_software_bucket folder
 #netweaver_additional_dvds = ["dvd1", "dvd2"]
 
+# Netweaver cluster vip mechanism. This option decides whether to use a load-balancer or routes to forward the traffic to the virtual ip address.
+# Options: "load-balancer" (default), "route"
+#netweaver_cluster_vip_mechanism = "load-balancer"
 #netweaver_ips = ["10.0.0.20", "10.0.0.21", "10.0.0.22", "10.0.0.23"]
 
+# If "netweaver_cluster_vip_mechanism" is "load-balancer", the ASCS/ERS IP addresses must belong to the same subnet as the netweaver machines
+#netweaver_virtual_ips = ["10.0.0.34", "10.0.0.35", "10.0.1.36", "10.0.1.37"]
+# If "netweaver_cluster_vip_mechanism" is "route", the ALL netweaver IP addresses must NOT belong to the same subnet as the netweaver machines
 #netweaver_virtual_ips = ["10.0.1.25", "10.0.1.26", "10.0.0.27", "10.0.0.28"]
 
 # Netweaver installation configuration

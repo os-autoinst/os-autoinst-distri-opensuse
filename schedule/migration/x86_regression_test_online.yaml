@@ -24,7 +24,6 @@ conditional_schedule:
   qcow_generation:
     QCOW_GENERATION:
       0:
-        - console/check_upgraded_service
         - console/system_prepare
         - console/check_system_info
         - console/check_network

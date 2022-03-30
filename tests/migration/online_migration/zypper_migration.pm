@@ -46,6 +46,8 @@ sub run {
     my $zypper_migration_signing_key = qr/^Do you want to reject the key, trust temporarily, or trust always?[\s\S,]* \[r/m;
     # start migration
     if (is_sle_micro) {
+        # We need to stop and disable apparmor service before migration due to bsc#1197368
+        systemctl('disable --now apparmor.service');
         script_run("(transactional-update migration; echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
     } else {
         my $option = (is_leap_migration) || (get_var("SCC_ADDONS") =~ /phub/) || (get_var("SMT_URL") =~ /smt/) ? " --allow-vendor-change " : " ";
