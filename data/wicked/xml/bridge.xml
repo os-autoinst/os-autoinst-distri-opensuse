@@ -35,6 +35,6 @@
   <name>dummy0</name>
 
   <dummy>
-    <address>42:41:40:3F:3E:3D</address>
+    <address>__macaddr__</address>
   </dummy>
 </interface>

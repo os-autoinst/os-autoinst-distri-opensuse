@@ -3,7 +3,7 @@ STARTMODE='auto'
 
 MACVTAP_DEVICE='iface'
 MACVTAP_MODE='vepa'
-LLADDR='0E:0E:0E:0E:0E:0E'
+LLADDR='__macaddr__'
 
 IPADDR='ip_address/16'
 IPADDR6='fd00:c0de:ba5e:17::18/48'
