@@ -127,7 +127,7 @@ sub load_host_tests_containerd_nerdctl {
 }
 
 sub load_host_tests_helm() {
-    if (is_tumbleweed || is_leap) {
+    if (is_tumbleweed || is_leap || is_sle) {
         loadtest "containers/helm";
     }
 }
