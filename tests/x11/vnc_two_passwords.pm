@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use testapi;
 use x11utils 'ensure_unlocked_desktop';
-use version_utils 'is_sle';
+use version_utils qw(is_sle package_version_cmp);
 use utils;
 
 # Any free display
@@ -99,6 +99,19 @@ sub generate_vnc_events {
     enter_cmd 'exit';
 }
 
+sub configure_vnc_server {
+    # Config done following this guide:
+    # https://github.com/TigerVNC/tigervnc/blob/master/unix/vncserver/HOWTO.md
+    #   1. Add a user mapping
+    assert_script_run("echo -e \'$display=root\n\' >> /etc/tigervnc/vncserver.users");
+    #   2. Configure Xvnc options
+    assert_script_run("echo -e \'session=gnome\ngeometry=1024x768\ndepth=16\' >> /etc/tigervnc/vncserver-config-defaults");
+    #   3. Set VNC password
+    #     Already created in start_vnc_server()
+    #   4. Start the TigerVNC server
+    assert_script_run("systemctl start vncserver\@$display", fail_message => "New version of vncserver is not starting");
+}
+
 sub run {
     record_info 'Setup VNC';
     select_console('root-console');
@@ -145,10 +158,21 @@ sub run {
     send_key "ctrl-c";
     wait_still_screen 2;
 
+    # Check tigervnc version. Test will differ for versions under 1.12
+    my $tigervnc_vers = script_output("rpm -q tigervnc --qf '\%{version}'");
+    my $curr_vers = package_version_cmp($tigervnc_vers, '1.12.0');
     # Start vncserver and check if it is running
-    assert_script_run("vncserver $display -geometry 1024x768 -depth 16", fail_message => "vncserver is not starting");
-    script_run("vncserver -list > /var/tmp/vncserver-list");
-    assert_script_run("grep '$display' /var/tmp/vncserver-list", fail_message => "vncserver is not running");
+    if ($curr_vers < 0) {
+        record_info("TigerVNC version", "TigerVNC version $tigervnc_vers is lesser than 1.12.0");
+        assert_script_run("vncserver $display -geometry 1024x768 -depth 16", fail_message => "vncserver is not starting");
+        script_run("vncserver -list > /var/tmp/vncserver-list");
+        assert_script_run("grep '$display' /var/tmp/vncserver-list", fail_message => "vncserver is not running");
+    }
+    else {
+        record_info("TigerVNC version", "TigerVNC version $tigervnc_vers is greater than of equal to 1.12.0");
+        configure_vnc_server;
+    }
+
     # The needles for the tigervnc test are gnome specific
     if (check_var('DESKTOP', 'gnome')) {
         # Switch to desktop and run vncviewer
@@ -162,7 +186,13 @@ sub run {
         type_string("$wrong_password");
         send_key("ret");
         assert_screen('tigervnc-login-fail');
-        send_key("ret");
+        if ($curr_vers >= 0) {
+            send_key("tab");
+            send_key(" ");
+        }
+        else {
+            send_key("ret");
+        }
         # Test for a sucessfull login. Note: vncviewer remembers the last address, don't type it again
         x11_start_program('vncviewer');
         send_key("ret");
@@ -185,7 +215,12 @@ sub run {
     }
     # Terminate server
     select_console('root-console');
-    assert_script_run("vncserver -kill $display");
+    if ($curr_vers < 0) {
+        assert_script_run("vncserver -kill $display");
+    }
+    else {
+        assert_script_run("systemctl stop vncserver\@$display");
+    }
     # Done
     select_console('x11');
 }
