@@ -169,5 +169,5 @@ sub load_container_tests {
         }
     }
 
-    loadtest 'console/coredump_collect' unless is_jeos;
+    loadtest 'console/coredump_collect' unless (is_jeos || get_var('BCI_TESTS'));
 }
