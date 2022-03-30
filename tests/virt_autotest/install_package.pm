@@ -55,7 +55,7 @@ sub install_package {
     }
     # Temporary workaround to install python2 as it is removed from SLE15SP4
     elsif (is_sle('=15-SP4')) {
-        $dependency_repo = 'http://dist.suse.de/install/SLP/SLE-15-SP4-Module-Desktop-Applications-Snapshot-202203-2/x86_64/DVD1';
+        $dependency_repo = 'http://dist.suse.de/install/SLP/SLE-15-SP4-Module-Desktop-Applications-Snapshot-202203-2/' . lc(get_required_var('ARCH')) . '/DVD1';
         $dependency_rpms = 'python-base';
     }
 
