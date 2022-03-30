@@ -7,6 +7,7 @@ COPY add_test_repositories.sh /tmp/add_test_repositories.sh
 RUN chmod +x /tmp/add_test_repositories.sh
 RUN /tmp/add_test_repositories.sh $maint_test_repo
 RUN zypper --gpg-auto-import-keys ref -s
+RUN zypper update -y
 RUN zypper install -y $pkgs
 COPY --chown=ldap:ldap ldapserver.* slapd.conf /etc/openldap/
 COPY user.ldif /tmp/user.ldif
