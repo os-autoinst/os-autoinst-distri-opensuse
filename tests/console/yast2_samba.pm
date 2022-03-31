@@ -89,7 +89,7 @@ sub setup_yast2_ldap_server {
     send_key $cmd{ok};
 
     record_info 'Setup LDAP', 'Workaround for cert name issue';
-    assert_screen 'yast2_samba-389ds-setup-error-workaround', 90;
+    assert_screen 'yast2_samba-389ds-setup-error-workaround', 180;
     send_key 'ret';
     wait_screen_change { send_key "alt-c" };
     die "'yast2 ldap-server' didn't finish with zero exit code" unless wait_serial("$module_name-0");
