@@ -15,7 +15,7 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use utils;
-use version_utils qw(is_leap is_sle get_os_release);
+use version_utils qw(is_leap is_sle get_os_release is_transactional);
 use containers::common;
 
 sub run {
@@ -49,7 +49,7 @@ sub run {
         test_container_runtime($runc);
 
         # uninstall the tested container runtime
-        zypper_call("rm $runc");
+        zypper_call("rm $runc") unless is_transactional;
     }
 
     # cleanup
