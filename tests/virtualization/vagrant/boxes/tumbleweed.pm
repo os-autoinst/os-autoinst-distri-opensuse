@@ -22,10 +22,10 @@ sub run_test_per_provider {
     run_vagrant_cmd("up $boxname --provider $provider", timeout => 1200);
 
     # test if the box survives a reboot
-    run_vagrant_cmd('halt');
+    run_vagrant_cmd('halt', timeout => 120);
     run_vagrant_cmd("up $boxname", timeout => 1200);
 
-    run_vagrant_cmd("destroy -f $boxname");
+    run_vagrant_cmd("destroy -f $boxname", timeout => 120);
 }
 
 sub run() {
