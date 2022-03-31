@@ -13,26 +13,11 @@ use version_utils;
 use main_common qw(loadtest);
 use testapi qw(check_var get_var);
 use Utils::Architectures qw(is_aarch64);
-use main_containers qw(load_3rd_party_image_test load_container_engine_test);
+use main_containers qw(load_container_tests);
 
 our @EXPORT = qw(
   load_publiccloud_tests
 );
-
-sub load_podman_tests {
-    my ($run_args) = @_;
-    load_container_engine_test($run_args);
-    load_3rd_party_image_test($run_args);
-}
-
-sub load_docker_tests {
-    my ($run_args) = @_;
-    load_container_engine_test($run_args);
-    loadtest 'containers/docker_runc' unless (is_aarch64 && is_sle('<=15'));
-    load_3rd_party_image_test($run_args);
-    loadtest 'containers/registry' unless (is_aarch64 && is_sle('<=15-SP1'));
-    loadtest 'containers/zypper_docker' unless (is_aarch64 && is_sle('<=15'));
-}
 
 sub load_maintenance_publiccloud_tests {
     my $args = OpenQA::Test::RunArgs->new();
@@ -52,8 +37,7 @@ sub load_maintenance_publiccloud_tests {
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
             load_publiccloud_consoletests();
         } elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
-            load_podman_tests($args) if (is_sle('>=15-sp1'));
-            load_docker_tests($args);
+            load_container_tests();
         } elsif (get_var('PUBLIC_CLOUD_XFS')) {
             loadtest "publiccloud/xfsprepare";
             loadtest "xfstests/run";
@@ -108,10 +92,7 @@ sub load_latest_publiccloud_tests {
             load_publiccloud_consoletests();
         }
         elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
-            $args->{runtime} = 'podman';
-            load_podman_tests($args);
-            $args->{runtime} = 'docker';
-            load_docker_tests($args);
+            load_container_tests();
         } elsif (get_var('PUBLIC_CLOUD_XFS')) {
             loadtest "publiccloud/xfsprepare";
             loadtest "xfstests/run";
