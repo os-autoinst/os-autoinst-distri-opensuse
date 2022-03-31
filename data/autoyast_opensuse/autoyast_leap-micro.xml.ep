@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+      <hiddenmenu>false</hiddenmenu>
+    </global>
+  </bootloader>
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+  </general>
+  <software>
+    <products config:type="list">
+      <product>Leap-Micro</product>
+    </products>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <packages config:type="list">
+      <package>grub2</package>
+    </packages>
+    <patterns config:type="list">
+      <pattern>microos-base</pattern>
+      <pattern>microos-container_runtime</pattern>
+      <pattern>microos-selinux</pattern>
+    </patterns>
+  </software>
+  <kdump>
+  <add_crash_kernel config:type="boolean">true</add_crash_kernel>
+  <crash_kernel>191M</crash_kernel>
+  <general>
+    <KDUMP_DUMPFORMAT>compressed</KDUMP_DUMPFORMAT>
+    <KDUMP_DUMPLEVEL>1</KDUMP_DUMPLEVEL>
+  </general>
+</kdump>
+  <users config:type="list">
+    <user>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>nots3cr3t</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>nots3cr3t</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>

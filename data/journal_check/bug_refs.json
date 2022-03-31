@@ -286,6 +286,7 @@
         "description": "health-checker/fail.sh check\" failed|Machine didn't come up correct, do a rollback",
         "products": {
             "sle-micro": [ "5.0", "5.1", "5.2" ],
+            "leap-micro": ["5.2"],
             "microos":  ["Tumbleweed"]
         },
         "type": "ignore"
