@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2022 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,7 +20,7 @@
 
 use Mojo::Base qw(consoletest);
 use XML::LibXML;
-use utils qw(zypper_call ensure_ca_certificates_suse_installed);
+use utils qw(zypper_call script_retry);
 use version_utils qw(get_os_release);
 use containers::common;
 use testapi;
@@ -46,9 +46,10 @@ sub packages_to_install {
             push @packages, ('go1.10', 'skopeo');
         } else {
             # Desktop module is needed for SDK module, which is required for installing go
-            assert_script_run("SUSEConnect -p sle-module-desktop-applications/$version/$arch");
-            assert_script_run("SUSEConnect -p sle-module-development-tools/$version/$arch");
+            script_retry("SUSEConnect -p sle-module-desktop-applications/$version/$arch", delay => 60, retry => 3);
+            script_retry("SUSEConnect -p sle-module-development-tools/$version/$arch", delay => 60, retry => 3);
             push @packages, ('go', 'skopeo');
+
         }
     } else {
         die("Host is not supported for running BCI tests.");
@@ -66,38 +67,21 @@ sub run {
 
     my ($version, $sp, $host_distri) = get_os_release;
 
-    # Our Ubuntu and CentOS images have the SUSE_Trust_Root.crt already installed
-    ensure_ca_certificates_suse_installed unless ($host_distri =~ /ubuntu|centos/);
-
-    if ($engine eq 'podman') {
-        install_podman_when_needed($host_distri);
-        install_buildah_when_needed($host_distri);
-    }
-    elsif ($engine eq 'docker') {
-        install_docker_when_needed($host_distri);
-    }
-    else {
-        die("Runtime $engine not given or not supported");
-    }
-
     record_info('Install', 'Install needed packages');
     my @packages = packages_to_install($version, $sp, $host_distri);
     if ($host_distri eq 'ubuntu') {
-        assert_script_run("apt-get update", timeout => 600);
         foreach my $pkg (@packages) {
             assert_script_run("apt-get -y install $pkg", timeout => 300);
         }
         assert_script_run('pip3 --quiet install --upgrade pip', timeout => 600);
         assert_script_run("pip3 --quiet install tox", timeout => 600);
     } elsif ($host_distri eq 'centos') {
-        assert_script_run("yum update -y --allowerasing", timeout => 600);
         foreach my $pkg (@packages) {
             assert_script_run("yum install -y $pkg", timeout => 300);
         }
         assert_script_run('pip3 --quiet install --upgrade pip', timeout => 600);
         assert_script_run("pip3 --quiet install tox", timeout => 600);
     } elsif ($host_distri eq 'sles') {
-        zypper_call("--quiet up", timeout => 600);
         foreach my $pkg (@packages) {
             zypper_call("--quiet in $pkg", timeout => 300);
         }
@@ -105,9 +89,19 @@ sub run {
         assert_script_run("pip3.6 --quiet install tox --ignore-installed six", timeout => 600);
     }
 
+    # For BCI tests using podman, buildah package is also needed
+    install_buildah_when_needed($host_distri) if ($engine eq 'podman');
+
     record_info('Clone', "Clone BCI tests repository: $bci_tests_repo");
     my $branch = $bci_tests_branch ? "-b $bci_tests_branch" : '';
     assert_script_run("git clone $branch -q --depth 1 $bci_tests_repo");
+
+    # Pull the image in advance
+    if (my $image = get_var('CONTAINER_IMAGE_TO_TEST')) {
+        record_info('IMAGE', $image);
+        script_retry("$engine pull $image", timeout => 300, delay => 60, retry => 3);
+        record_info('Inspect', script_output("$engine inspect $image"));
+    }
 }
 
 sub test_flags {

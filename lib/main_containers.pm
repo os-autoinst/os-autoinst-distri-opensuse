@@ -126,6 +126,12 @@ sub load_host_tests_containerd_nerdctl {
     loadtest 'containers/containerd_nerdctl';
 }
 
+sub load_host_tests_helm() {
+    if (is_tumbleweed || is_leap || is_sle) {
+        loadtest "containers/helm";
+    }
+}
+
 sub load_container_tests {
     my $args = OpenQA::Test::RunArgs->new();
     my $runtime = get_required_var('CONTAINER_RUNTIME');
@@ -137,7 +143,7 @@ sub load_container_tests {
 
     if (is_container_image_test()) {
         # Container Image tests common
-        loadtest 'containers/host_configuration' unless (is_expanded_support_host || is_ubuntu_host || is_jeos);
+        loadtest 'containers/host_configuration' unless (is_jeos);
     }
 
     foreach (split(',\s*', $runtime)) {
@@ -159,8 +165,9 @@ sub load_container_tests {
             load_host_tests_docker() if (/docker/i);
             load_host_tests_containerd_crictl() if (/containerd_crictl/i);
             load_host_tests_containerd_nerdctl() if (/containerd_nerdctl/i);
+            load_host_tests_helm() if (/helm/i);
         }
     }
 
-    loadtest 'console/coredump_collect' unless is_jeos;
+    loadtest 'console/coredump_collect' unless (is_jeos || get_var('BCI_TESTS'));
 }

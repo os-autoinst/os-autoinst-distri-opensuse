@@ -85,16 +85,6 @@ sub configure_podman {
     assert_script_run($login_cmd);
 }
 
-=head2 get_container_registry_prefix
-
-Get the full registry prefix URL (based on the account and region) to push container images on ACR.
-=cut
-
-sub get_container_registry_prefix {
-    my ($self) = @_;
-    return sprintf('%s.azurecr.io', $self->container_registry);
-}
-
 =head2 get_container_image_full_name
 
 Returns the full name of the container image in ACR registry
@@ -103,7 +93,7 @@ C<tag> Tag of the container
 
 sub get_container_image_full_name {
     my ($self, $tag) = @_;
-    my $full_name_prefix = $self->get_container_registry_prefix();
+    my $full_name_prefix = sprintf('%s.azurecr.io', $self->container_registry);
     return "$full_name_prefix/$tag";
 }
 

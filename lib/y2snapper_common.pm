@@ -115,11 +115,11 @@ sub y2snapper_new_snapshot {
     # Have to focus to Snapshots list manually in ncurses
     if ($ncurses) {
         send_key_until_needlematch 'yast2_snapper-focus-in-snapshots', 'tab';
+    } else {
+        # Workaround for bsc#1191112
+        record_soft_failure('bsc#1191112 - When navigating through YaST module screens the next screen appears, but its content is not loaded');
+        send_key 'tab' for (1 .. 10);
     }
-
-    # Workaround for bsc#1191112
-    record_soft_failure('bsc#1191112 - When navigating through YaST module screens the next screen appears, but its content is not loaded');
-    send_key 'tab' for (1 .. 10);
 
     # Make sure the snapshot is listed in the main window
     send_key_until_needlematch([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 'pgdn');

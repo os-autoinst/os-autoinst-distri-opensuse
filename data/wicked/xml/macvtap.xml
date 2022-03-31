@@ -3,7 +3,7 @@
 
   <macvtap>
     <device>iface</device>
-    <address>0e:0e:0e:0e:0e:0e</address>
+    <address>__macaddr__</address>
     <mode>vepa</mode>
   </macvtap>
 

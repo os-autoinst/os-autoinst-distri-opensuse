@@ -19,6 +19,7 @@ use constant {
           is_sle
           is_pre_15
           is_microos
+          is_leap_micro
           is_sle_micro
           is_selfinstall
           is_gnome_next
@@ -224,6 +225,21 @@ sub is_microos {
     else {
         return $flavor eq $filter;    # Specific FLAVOR selector
     }
+}
+
+=head2 is_leap_micro
+
+Check if distribution is openSUSE Leap Micro
+=cut
+sub is_leap_micro {
+    my $query = shift;
+    my $version = shift // get_var('VERSION');
+
+    return 0 unless check_var('DISTRI', 'leap-micro');
+    return 1 unless $query;
+
+    # Version check
+    return check_version($query, $version, qr/\d{1,}\.\d/);
 }
 
 =head2 is_sle_micro

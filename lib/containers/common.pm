@@ -9,8 +9,8 @@ use strict;
 use warnings;
 use testapi;
 use registration;
+use version_utils;
 use utils qw(zypper_call systemctl file_content_replace script_retry script_output_retry);
-use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos is_public_cloud get_os_release check_version is_transactional);
 use containers::utils qw(can_build_sle_base registry_url container_ip container_route);
 
 our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed install_containerd_when_needed
@@ -39,10 +39,8 @@ sub install_podman_when_needed {
     my @pkgs = qw(podman);
     if (script_run("which podman") != 0) {
         if ($host_os eq 'centos') {
-            assert_script_run "dnf -y update", timeout => 900;
-            assert_script_run "dnf -y install @pkgs", timeout => 300;
+            assert_script_run "yum -y install @pkgs --nobest --allowerasing", timeout => 300;
         } elsif ($host_os eq 'ubuntu') {
-            assert_script_run "apt-get update", timeout => 900;
             assert_script_run "apt-get -y install @pkgs", timeout => 300;
         } else {
             # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
@@ -53,6 +51,10 @@ sub install_podman_when_needed {
         }
     }
     record_info('podman', script_output('podman info'));
+    # In Tumbleweed podman containers can't access external network in some cases, e.g. when testing
+    # docker and podman in the same job. We would need to tweak firewalld with some extra configuration.
+    # It's just easier to stop it as we already have a test with podman+firewall
+    systemctl("stop firewalld") if ($host_os =~ 'tumbleweed');
 }
 
 sub install_docker_when_needed {
@@ -68,7 +70,6 @@ sub install_docker_when_needed {
                 # if podman installed use flag "--allowerasing" to solve conflicts
                 assert_script_run "dnf -y install docker-ce --nobest --allowerasing", timeout => 300;
             } elsif ($host_os eq 'ubuntu') {
-                assert_script_run "apt-get update", timeout => 900;
                 # Make sure you are about to install from the Docker repo instead of the default Ubuntu repo
                 assert_script_run "apt-cache policy docker-ce";
                 assert_script_run "apt-get -y install docker-ce", timeout => 300;

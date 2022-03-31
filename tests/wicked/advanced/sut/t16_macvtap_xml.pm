@@ -19,7 +19,7 @@ sub run {
     record_info('Info', 'Create a macvtap interface from wicked XML files');
     my $config = '/etc/wicked/ifconfig/macvtap.xml';
     $self->get_from_data('wicked/xml/macvtap.xml', $config);
-    $self->prepare_check_macvtap($config, $ctx->iface(), $self->get_ip(type => 'macvtap', netmask => 1));
+    $self->prepare_check_macvtap($config, $ctx->iface(), $self->get_ip(type => 'macvtap', netmask => 1), $self->unique_macaddr());
     $self->wicked_command('ifreload', $ctx->iface());
     $self->wicked_command('ifup', 'macvtap1');
     $self->validate_macvtap();

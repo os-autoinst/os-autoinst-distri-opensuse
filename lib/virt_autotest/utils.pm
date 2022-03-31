@@ -22,12 +22,14 @@ use NetAddr::IP;
 use Net::IP qw(:PROC);
 use File::Basename;
 use Utils::Architectures;
+use IO::Socket::INET;
+use Carp;
 
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host
   check_host check_guest print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages
   upload_y2logs ensure_default_net_is_active ensure_guest_started ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks
   remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests is_guest_online wait_guests_shutdown
-  setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host);
+  setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host check_port_state);
 
 # helper function: Trim string
 sub trim {
@@ -565,6 +567,44 @@ EOF
     manage_system_service('syslog', \@myoperations);
     save_screenshot;
     return;
+}
+
+=head2 check_port_state
+
+  check_port_state($dst_machine, $dst_port, $retries, $delay)
+
+Check whether given port is open on remote machine. This subroutine accepts four
+arguments, dst_machine, dst_port, retries and delay, which are fqdn or ip addr 
+of remote machine, port on remote machine, the number of retries and delay value
+respectively. Default retries is 1 and default delay is 30 seconds. dst_machine 
+and dst_port have no default value and test will die if the subroutine is called
+without being passed value to dst_machine or dst_port.The subroutine will return 
+1 if the given port is open on the specified remote machine, otherwise it will 
+return 0.
+
+=cut
+sub check_port_state {
+    my ($dst_machine, $dst_port, $retries, $delay) = @_;
+    $dst_machine //= "";
+    $dst_port //= "";
+    $retries //= 1;
+    $delay //= 30;
+    croak('IP address or FQDN should be provided as argument dst_machine or port number should be given as argument dst_port.') if (($dst_machine eq "") or ($dst_port eq ""));
+
+    my $port_state = 0;
+    foreach (1 .. $retries) {
+        save_screenshot;
+        if (IO::Socket::INET->new(PeerAddr => "$dst_machine", PeerPort => "$dst_port")) {
+            save_screenshot;
+            record_info("Port $dst_port is open", "The port $dst_port is open on machine $dst_machine");
+            $port_state = 1;
+            last;
+        }
+        save_screenshot;
+        sleep $delay if ($_ != $retries);
+    }
+    record_info("Port $dst_port is not open", "The port $dst_port is not open on machine $dst_machine") if ($port_state == 0);
+    return $port_state;
 }
 
 1;

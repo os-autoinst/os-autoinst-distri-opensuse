@@ -60,12 +60,6 @@ sub run {
 
     # Stop the IPSec service
     assert_script_run('ipsec stop');
-
-    # Stop the ipip tunnel
-    assert_script_run('./ipsec_setup_tunnel_toe.sh stop');
-
-    # Delete the ip that we added if arch is s390x
-    assert_script_run("ip addr del $client_ip/24 dev $netdev") if (is_s390x);
 }
 
 1;

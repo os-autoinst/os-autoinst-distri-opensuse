@@ -271,3 +271,4 @@ PUBLIC_CLOUD_VAULT_NAMESPACE | string | "qac" | The Vault server namespace.
 PUBLIC_CLOUD_VAULT_TIMEOUT | integer | 60 | The number of seconds we wait for the Vault server to respond.
 PUBLIC_CLOUD_VAULT_TRIES | integer | 3 | The number of attempts to connect to Vault server.
 PUBLIC_CLOUD_USER | string | "" | The public cloud instance system user.
+PUBLIC_CLOUD_XEN | boolean | false | Indicates if this is a Xen test run.

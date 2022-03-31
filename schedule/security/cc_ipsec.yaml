@@ -30,4 +30,7 @@ conditional_schedule:
             server:
                 - security/cc/ipsec_server
             client:
+                - security/atsec/setup_atsec_env
                 - security/cc/ipsec_client
+                - security/cc/weak_ipsec_ciphers
+                - security/cc/ipsec_cleanup
