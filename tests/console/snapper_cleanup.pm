@@ -23,6 +23,7 @@ use warnings;
 use testapi;
 use utils 'clear_console';
 use List::Util qw(max min);
+use version_utils qw(is_sle);
 
 my $exp_excl_space;
 my $btrfs_fs_usage = 'btrfs filesystem usage / --raw';
@@ -70,6 +71,7 @@ sub snapper_cleanup {
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
+    $self->cron_mock_lastrun() if is_sle('<15');
 
     if (get_var("UPGRADE") || get_var("AUTOUPGRADE") && !get_var("BOOT_TO_SNAPSHOT")) {
         assert_script_run "snapper setup-quota";

@@ -80,6 +80,18 @@ sub snapper_nodbus_restore {
     }
 }
 
+=head2 cron_mock_lastrun
+snapper-0.5 and older is using cron jobs in order to schedule and execute cleanup routines.
+Script /usr/lib/cron/run-crons looks into /etc/cron.{hourly,daily,weekly,monthly} for jobs
+to be executed. The info about last run is stored in /var/spool/cron/lastrun
+By updating the lastrun files timestamps, we make sure those routines won't be executed 
+while tests are running. 
+=cut
+sub cron_mock_lastrun {
+    assert_script_run 'touch /var/spool/cron/lastrun/cron.{hourly,daily,weekly,monthly}';
+    assert_script_run 'ls -al /var/spool/cron/lastrun/cron.{hourly,daily,weekly,monthly}';
+}
+
 sub post_fail_hook {
     my ($self) = shift;
     select_console('log-console');
