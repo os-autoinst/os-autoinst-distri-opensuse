@@ -50,7 +50,7 @@ sub run {
         # configure network
         configure_default_gateway;
         my $node_ip = get_var('NODE_IP');
-        configure_static_ip("$node_ip/24");
+        configure_static_ip(ip => "$node_ip/24");
         configure_static_dns(get_host_resolv_conf());
         # add node entries to /etc/hosts
         my $hosts = <<'EOF';

@@ -56,7 +56,7 @@ sub prepare_mail_server {
         ($ip_addr, $ip_mask) = split(/\//, $mail_server_ip);
         configure_default_gateway;
         configure_static_dns(get_host_resolv_conf());
-        configure_static_ip("$mail_server_ip");
+        configure_static_ip(ip => "$mail_server_ip");
         set_var("MAIL_SERVER_IP", "$mail_server_ip") if not get_var("MAIL_SERVER_IP");
     }
 
@@ -79,7 +79,7 @@ sub prepare_mail_client {
         $mail_client_ip = get_var("MAIL_CLIENT_IP", "10.0.2.20/15");
         configure_default_gateway;
         configure_static_dns(get_host_resolv_conf());
-        configure_static_ip("$mail_client_ip");
+        configure_static_ip(ip => "$mail_client_ip");
 
         # Wait for the mail server ready
         mutex_lock "mail_server";
