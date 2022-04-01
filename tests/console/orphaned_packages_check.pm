@@ -44,8 +44,7 @@ sub compare_orphans_lists {
     # Summary
     record_info('Detected Orphans', to_string @{$args{zypper_orphans}});
     record_info('Orphans whitelisted',
-        $args{whitelist} // 'No orphans whitelisted within the test suite',
-        result => $args{whitelist} ? 'ok' : 'fail'
+        $args{whitelist} // 'No orphans whitelisted within the test suite'
     );
     record_info('Missing',
         @missed_orphans ? to_string @missed_orphans : 'None',
