@@ -118,7 +118,7 @@ sub load_host_tests_docker {
     # Expected to work for all but JeOS on 15sp4 after
     # https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/13860
     # Disabled on svirt backends (VMWare, Hyper-V and XEN) as the device name might be different than vdX
-    if ((is_x86_64 && is_qemu) && !(is_openstack || is_sle_micro || is_microos)) {
+    if ((is_x86_64 && is_qemu) && !(is_public_cloud || is_openstack || is_sle_micro || is_microos)) {
         loadtest 'containers/validate_btrfs';
     }
 }
@@ -177,5 +177,5 @@ sub load_container_tests {
         }
     }
 
-    loadtest 'console/coredump_collect' unless (is_jeos || is_sle_micro || is_microos || get_var('BCI_TESTS'));
+    loadtest 'console/coredump_collect' unless (is_public_cloud || is_jeos || is_sle_micro || is_microos || get_var('BCI_TESTS'));
 }
