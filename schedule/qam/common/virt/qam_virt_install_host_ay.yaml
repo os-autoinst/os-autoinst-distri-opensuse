@@ -1,0 +1,32 @@
+---
+name: qam_virt_install_host
+description:    >
+    Install host OS for virtualization tests.
+schedule:
+  - '{{host_install}}'
+conditional_schedule:
+  host_install:
+    HOST_INSTALL_AUTOYAST:
+      '0':
+        - boot/boot_from_pxe
+        - installation/welcome
+        - installation/accept_license
+        - installation/scc_registration
+        - installation/addon_products_sle
+        - installation/system_role
+        - installation/partitioning
+        - installation/partitioning_firstdisk
+        - installation/partitioning_finish
+        - installation/installer_timezone
+        - installation/user_settings
+        - installation/user_settings_root
+        - installation/resolve_dependency_issues
+        - installation/installation_overview
+        - installation/disable_grub_timeout
+        - installation/start_install
+        - installation/await_install
+        - installation/reboot_after_installation
+      '1':
+        - autoyast/prepare_profile
+        - boot/boot_from_pxe
+        - autoyast/installation
