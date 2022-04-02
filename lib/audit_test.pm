@@ -32,6 +32,7 @@ our @EXPORT = qw(
   prepare_for_test
   upload_audit_test_logs
   rerun_fail_cases
+  parse_kvm_svirt_apparmor_results
 );
 
 our $tmp_dir = '/tmp/';
@@ -218,6 +219,52 @@ sub rerun_fail_cases {
             script_run("./run.bash $case_id", timeout => $rerun_cases{$case_id} // 180);
         }
     }
+}
+
+# The test code kvm_svirt_arrarmor is used by two tests.
+# We need to parse log file to check the results.
+# For kvm svirt apparmor, all test cases should pass.
+# For AppArmor negative test, some cases should fail.
+sub parse_kvm_svirt_apparmor_results {
+    my $test_name = shift;
+    my $log_file = '/tmp/vm-sep/vm-sep-crack.log';
+    assert_script_run("[[ -e $log_file ]]");
+    my $test_results = {};
+    my @fail_cases;
+    my $result = 'ok';
+    my $output = script_output("cat $log_file");
+    my @lines = split(/\n/, $output);
+
+    foreach (@lines) {
+        if ($_ =~ /Number of tests (executed|failed|passed):\s+(\d+)/) {
+            $test_results->{$1} = $2;
+        }
+        if ($_ =~ /(.*):(.*?)FAILED$/) {
+            push @fail_cases, $1;
+        }
+    }
+    if ($test_name eq 'kvm_svirt_apparmor') {
+        $result = 'fail' if ($test_results->{passed} ne $test_results->{executed});
+    }
+
+    if ($test_name eq 'apparmor_negative_test') {
+        my $total_num = $test_results->{passed} + scalar(@fail_cases);
+        $result = 'fail' if ($test_results->{executed} ne $total_num);
+        my $expected_fail_cases = {
+            'Test read access to file /tmp/vm-sep/vm-sep-slave.disk prevented' => 1,
+            'Test write access to file /tmp/vm-sep/vm-sep-slave.disk prevented' => 1,
+            'Children of confined process still confined' => 1
+        };
+        foreach my $fail_case (@fail_cases) {
+            unless ($expected_fail_cases->{$fail_case}) {
+                $result = 'fail';
+                record_info($fail_case, "Case $fail_case should fail as expect.", result => 'fail');
+            }
+        }
+    }
+
+    upload_logs($log_file);
+    return $result;
 }
 
 1;
