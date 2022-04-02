@@ -13,7 +13,7 @@ use warnings;
 use parent "y2_installbase";
 
 use testapi;
-use utils 'assert_screen_with_soft_timeout';
+use utils qw(assert_screen_with_soft_timeout handle_untrusted_gpg_key);
 use version_utils 'is_sle';
 use registration qw(skip_registration assert_registration_screen_present fill_in_registration_data verify_scc investigate_log_empty_license);
 
@@ -23,6 +23,10 @@ sub run {
         record_info('SCC reg.', 'SCC registration');
         assert_registration_screen_present();
         fill_in_registration_data();
+        wait_still_screen();
+        if (is_sle('>=15-SP4') && check_screen('import-untrusted-gpg-key', 5)) {
+            handle_untrusted_gpg_key();
+        }
     }
     else {
         return if check_var('SLE_PRODUCT', 'leanos');

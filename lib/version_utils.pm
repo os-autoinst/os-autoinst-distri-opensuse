@@ -19,6 +19,7 @@ use constant {
           is_sle
           is_pre_15
           is_microos
+          is_leap_micro
           is_sle_micro
           is_selfinstall
           is_gnome_next
@@ -226,6 +227,21 @@ sub is_microos {
     }
 }
 
+=head2 is_leap_micro
+
+Check if distribution is openSUSE Leap Micro
+=cut
+sub is_leap_micro {
+    my $query = shift;
+    my $version = shift // get_var('VERSION');
+
+    return 0 unless check_var('DISTRI', 'leap-micro');
+    return 1 unless $query;
+
+    # Version check
+    return check_version($query, $version, qr/\d{1,}\.\d/);
+}
+
 =head2 is_sle_micro
 
 Check if distribution is SUSE Linux Enterprise Micro
@@ -294,6 +310,7 @@ Returns true if called on opensuse
 sub is_opensuse {
     return 1 if check_var('DISTRI', 'opensuse');
     return 1 if check_var('DISTRI', 'microos');
+    return 1 if check_var('DISTRI', 'leap-micro');
     return 0;
 }
 
@@ -318,7 +335,7 @@ sub is_sle {
 Returns true if called on a transactional server
 =cut
 sub is_transactional {
-    return 1 if (is_microos || is_sle_micro);
+    return 1 if (is_microos || is_sle_micro || is_leap_micro);
     return check_var('SYSTEM_ROLE', 'serverro') || get_var('TRANSACTIONAL_SERVER');
 }
 

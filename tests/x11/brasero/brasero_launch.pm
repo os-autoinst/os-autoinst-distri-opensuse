@@ -18,7 +18,7 @@ use utils;
 use version_utils 'is_sle';
 
 sub run {
-    assert_gui_app('brasero', install => !is_sle, remain => 1);
+    assert_gui_app('brasero', install => !is_sle('<15-SP4'), remain => 1);
 
     # check about window
     send_key 'alt-h';

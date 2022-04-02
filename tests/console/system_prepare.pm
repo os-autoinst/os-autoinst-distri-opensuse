@@ -101,4 +101,11 @@ sub test_flags {
     return {milestone => 1, fatal => 1};
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    assert_script_run 'save_y2logs /tmp/system_prepare-y2logs.tar.bz2';
+    upload_logs '/tmp/system_prepare-y2logs.tar.bz2';
+}
+
 1;

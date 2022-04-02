@@ -4,7 +4,18 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Test HA cluster with cluster-preflight-check
-# Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
+# Test uses 'crm cluster crash_test' command to simulate multiple testcase scenarios:
+# Force kill pacemakerd:
+#   The pacemakerd process gets restarted by systemd. All RAs must stay intact.
+# Force kill corosync
+#   Node gets fenced since other node corosync just ran out of timeout and treat it as a node lost and forms a new membership.
+# Force kill sbd
+#   Node experiences the watchdog fencing.
+# Split brain scenario
+#   Split brain scenario by using iptable rules. Fencing is expected.
+# More detailed explanation can be find in respective result files.
+#
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'opensusebasetest';
 use strict;

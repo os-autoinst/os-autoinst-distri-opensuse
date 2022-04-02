@@ -50,7 +50,7 @@ sub run {
     assert_script_run 'chronyc makestep';
     assert_script_run 'chronyc tracking';
     assert_script_run 'chronyc activity';
-    assert_script_run 'chronyc waitsync 60 0.01', 610;
+    assert_script_run 'chronyc waitsync 120 0.5', 1210;
 }
 
 sub post_checks {

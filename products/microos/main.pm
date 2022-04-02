@@ -11,7 +11,7 @@ use utils;
 use Utils::Architectures qw(is_aarch64);
 use version_utils qw(is_staging);
 use main_common;
-use main_containers qw(load_container_engine_test);
+use main_containers qw(load_container_tests);
 
 init_main();
 
@@ -68,12 +68,8 @@ sub load_feature_tests {
         loadtest 'console/kubeadm';
     }
     elsif (check_var 'SYSTEM_ROLE', 'container-host') {
-        my $args = OpenQA::Test::RunArgs->new();
-        my $runtime = get_required_var('CONTAINER_RUNTIME');
-        $args->{runtime} = $runtime;
         loadtest 'microos/toolbox';
-        load_container_engine_test('podman');
-        loadtest('containers/image', run_args => $args, name => "image_$runtime");
+        load_container_tests();
     }
 }
 

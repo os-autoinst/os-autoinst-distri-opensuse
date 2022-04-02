@@ -26,10 +26,10 @@ sub run {
     $self->select_serial_terminal;
     zypper_call "in yast2-network";
     my $type = is_sle('>15') ? 'type=vlan' : '';
-    validate_script_output "yast lan add name=vlan50 ethdevice=eth0 $type 2>&1", sub { m/Virtual/ || m/vlan50/ }, timeout => 60;
-    validate_script_output 'yast lan show id=1 2>&1', sub { m/vlan50/ };
-    validate_script_output 'yast lan edit id=1 bootproto=dhcp 2>&1', sub { m/IP address assigned using DHCP/ || m/Configured with dhcp/ }, 60;
-    assert_script_run 'yast lan delete id=1 2>&1';
-    validate_script_output 'yast lan list 2>&1', sub { !m/Virtual/ && !m/vlan50/ };
+    validate_script_output_retry "yast lan add name=vlan50 ethdevice=eth0 $type 2>&1", sub { m/Virtual/ || m/vlan50/ }, timeout => 120;
+    validate_script_output_retry 'yast lan show id=1 2>&1', sub { m/vlan50/ }, timeout => 120;
+    validate_script_output_retry 'yast lan edit id=1 bootproto=dhcp 2>&1', sub { m/IP address assigned using DHCP/ || m/Configured with dhcp/ }, timeout => 120;
+    assert_script_run 'yast lan delete id=1 2>&1', timeout => 120;
+    validate_script_output_retry 'yast lan list 2>&1', sub { !m/Virtual/ && !m/vlan50/ }, timeout => 120;
 }
 1;

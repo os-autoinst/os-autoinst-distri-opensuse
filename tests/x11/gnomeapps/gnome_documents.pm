@@ -12,9 +12,10 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
-    assert_gui_app('gnome-documents');
+    assert_gui_app('gnome-documents', install => is_sle('>=15-SP4'));
 }
 
 1;

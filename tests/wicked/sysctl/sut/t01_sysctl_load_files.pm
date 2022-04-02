@@ -17,8 +17,8 @@ use Mojo::Util qw(trim);
 
 our $wicked_show_config = 'wicked --log-level debug --debug all  show-config all';
 our @sysctl_d = qw(
-  /run/sysctl.d
   /etc/sysctl.d
+  /run/sysctl.d
   /usr/local/lib/sysctl.d
   /usr/lib/sysctl.d
   /lib/sysctl.d

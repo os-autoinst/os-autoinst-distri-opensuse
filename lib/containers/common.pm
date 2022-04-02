@@ -12,6 +12,7 @@ use registration;
 use version_utils;
 use utils qw(zypper_call systemctl file_content_replace script_retry script_output_retry);
 use containers::utils qw(can_build_sle_base registry_url container_ip container_route);
+use transactional qw(trup_call check_reboot_changes);
 
 our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed install_containerd_when_needed
   test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials
@@ -59,41 +60,41 @@ sub install_podman_when_needed {
 
 sub install_docker_when_needed {
     my $host_os = shift;
-
-    if (is_microos || is_sle_micro) {
-        # Docker should be pre-installed in MicroOS
-        die 'Docker is not pre-installed.' if zypper_call('se -x --provides -i docker');
-    } else {
-        if (script_run("which docker") != 0) {
-            if ($host_os eq 'centos') {
-                assert_script_run "dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo";
-                # if podman installed use flag "--allowerasing" to solve conflicts
-                assert_script_run "dnf -y install docker-ce --nobest --allowerasing", timeout => 300;
-            } elsif ($host_os eq 'ubuntu') {
-                # Make sure you are about to install from the Docker repo instead of the default Ubuntu repo
-                assert_script_run "apt-cache policy docker-ce";
-                assert_script_run "apt-get -y install docker-ce", timeout => 300;
-            } else {
+    if (script_run("which docker") != 0) {
+        my $ltss_needed = 0;
+        if (is_transactional) {
+            select_console 'root-console';
+            trup_call("pkg install docker");
+            check_reboot_changes;
+        } elsif ($host_os eq 'centos') {
+            assert_script_run "dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo";
+            # if podman installed use flag "--allowerasing" to solve conflicts
+            assert_script_run "dnf -y install docker-ce --nobest --allowerasing", timeout => 300;
+        } elsif ($host_os eq 'ubuntu') {
+            # Make sure you are about to install from the Docker repo instead of the default Ubuntu repo
+            assert_script_run "apt-cache policy docker-ce";
+            assert_script_run "apt-get -y install docker-ce", timeout => 300;
+        } else {
+            if ($host_os =~ 'sles') {
                 # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
-                activate_containers_module if $host_os =~ 'sles';
+                activate_containers_module;
 
                 # Temporarly enable LTSS product on LTSS systems where it is not present
-                my $ltss_needed = 0;
                 if (get_var('SCC_REGCODE_LTSS') && script_run('test -f /etc/products.d/SLES-LTSS.prod') != 0) {
                     add_suseconnect_product('SLES-LTSS', undef, undef, '-r ' . get_var('SCC_REGCODE_LTSS'), 150);
                     $ltss_needed = 1;
                 }
-
-                # docker package can be installed
-                zypper_call('in docker', timeout => 300);
-
-                # Restart firewalld if enabled before. Ensure docker can properly interact (boo#1196801)
-                if (script_run('systemctl is-active firewalld') == 0) {
-                    systemctl 'try-restart firewalld';
-                }
-
-                remove_suseconnect_product('SLES-LTSS') if ($ltss_needed);
             }
+
+            # docker package can be installed
+            zypper_call('in docker', timeout => 300);
+
+            # Restart firewalld if enabled before. Ensure docker can properly interact (boo#1196801)
+            if (script_run('systemctl is-active firewalld') == 0) {
+                systemctl 'try-restart firewalld';
+            }
+
+            remove_suseconnect_product('SLES-LTSS') if $ltss_needed;
         }
     }
 
@@ -153,9 +154,20 @@ sub test_container_runtime {
     my $runc = shift;
     die "You must define the runtime!" unless $runc;
 
-    # installation of runtime
+    # Installation of runtime
     record_info 'Test #1', 'Test: Installation';
-    zypper_call("in $runc");
+    if (script_run("which $runc") != 0) {
+        if (is_transactional) {
+            select_console 'root-console';
+            trup_call("pkg install $runc");
+            check_reboot_changes;
+        } else {
+            zypper_call("in $runc");
+        }
+    } else {
+        record_info('INFO', "$runc is already installed on the system.");
+    }
+    record_info("$runc", script_output("$runc -v"));
 
     # create the OCI specification and verify that the template has been created
     record_info 'Test #2', 'Test: OCI Specification';

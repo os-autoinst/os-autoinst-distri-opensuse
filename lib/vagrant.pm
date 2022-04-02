@@ -32,8 +32,17 @@ sub run_vagrant_cmd {
     my ($cmd, %args) = @_;
 
     my $logfile = 'vagrant_cmd.log';
-    my $ret = script_run("VAGRANT_LOG=DEBUG vagrant $cmd 2> $logfile", %args);
+    local $@;
+    my $ret = eval {
+        return script_run("VAGRANT_LOG=DEBUG vagrant $cmd 2> $logfile", %args);
+    };
     return undef if $ret == 0;
-    upload_logs($logfile);
-    die "'vagrant $cmd' failed with $ret";
+    if (!$ret) {
+        upload_logs($logfile);
+
+        if ($@) {
+            die $@;
+        }
+        die "'vagrant $cmd' failed with $ret";
+    }
 }

@@ -58,6 +58,7 @@
         "description": "Failed unmounting \/\\S+\\.|-- Reboot --|pam_systemd.*Failed to release session",
         "products": {
             "sle-micro": [ "5.0", "5.1", "5.2" ],
+            "leap-micro": [ "5.2" ],
             "microos":  ["Tumbleweed"]
         },
         "type": "ignore"
@@ -66,6 +67,7 @@
         "description": ".*rpcbind.*cannot(.*open file.*rpcbind.xdr.*|.*open file.*portmap.xdr.*|.*save any registration.*)",
         "products": {
             "sle-micro": [ "5.0", "5.1", "5.2" ],
+            "leap-micro": ["5.2"],
             "microos":  ["Tumbleweed"]
         },
         "type": "bug"
@@ -74,6 +76,7 @@
         "description": ".*rpc\\.statd.*Failed to open directory sm.*|.*Failed to stat \/var\/lib\/nfs\/sm: No such file or directory",
         "products": {
             "sle-micro": [ "5.0", "5.1", "5.2"],
+            "leap-micro": ["5.2"],
             "microos":  ["Tumbleweed"]
         },
         "type": "bug"
@@ -89,7 +92,8 @@
     "bsc#1194903": {
         "description": "Failed to start One time configuration for iscsid.service",
         "products": {
-            "sle-micro": [ "5.2" ]
+            "sle-micro": [ "5.2" ],
+            "leap-micro": [ "5.2" ]
         },
         "type": "bug"
     },
@@ -282,6 +286,7 @@
         "description": "health-checker/fail.sh check\" failed|Machine didn't come up correct, do a rollback",
         "products": {
             "sle-micro": [ "5.0", "5.1", "5.2" ],
+            "leap-micro": ["5.2"],
             "microos":  ["Tumbleweed"]
         },
         "type": "ignore"
