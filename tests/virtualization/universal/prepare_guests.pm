@@ -20,6 +20,10 @@ sub run {
     my $self = shift;
     # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
     $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
+    # Clean up VMs if any. This makes it possable to reinstall VMs.
+    systemctl("restart libvirtd");
+    assert_script_run('for i in $(virsh list --name|grep sles);do virsh destroy $i;done');
+    assert_script_run('for i in $(virsh list --name --inactive); do virsh undefine $i --remove-all-storage;done');
 
     # Ensure additional package is installed
     zypper_call '-t in libvirt-client iputils nmap supportutils xmlstarlet';
