@@ -116,7 +116,7 @@ sub check_python3_module {
     record_info('SLE-23610', 'Check Python3 Module');
     my $OS_VERSION = script_output("grep VERSION_ID /etc/os-release | cut -c13- | head -c -2");
     my $ARCH = get_required_var('ARCH');
-    assert_script_run("SUSEConnect -p sle-module-python3/$OS_VERSION/$ARCH");
+    assert_script_run("SUSEConnect -p sle-module-python3/$OS_VERSION/$ARCH", timeout => 180);
     zypper_call("se python310");
     zypper_call("in python310");
     assert_script_run("python3.10 --version | grep Python | grep 3.10.");
