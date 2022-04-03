@@ -54,8 +54,8 @@ sub run {
     if ($host_distri =~ /sles|opensuse/) {
         # We can't use opensusebasetest::firewall here because VERSION variable referrs to the container image.
         my $firewall = $version =~ /12/ ? 'SuSEfirewall2' : 'firewalld';
-        systemctl("restart $firewall");
         systemctl("restart docker") if ($engine =~ 'docker');
+        systemctl("restart $firewall");
     }
 
     # Record podman|docker version
