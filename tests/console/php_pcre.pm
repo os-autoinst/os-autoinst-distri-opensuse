@@ -31,7 +31,16 @@ sub run {
     assert_script_run "./test_pcrecpp";
     save_screenshot;
 
-    my $php = (is_leap('<15.0') || is_sle('<15')) ? 'php5' : 'php7';
+    my $php = '';
+    if (is_leap('<15.0') || is_sle('<15')) {
+        $php = 'php5';
+    }
+    elsif (is_leap("<15.4") || is_sle("<15-SP4")) {
+        $php = 'php7';
+    }
+    else {
+        $php = 'php8';
+    }
     zypper_call("in $php");
     assert_script_run "php simple.php | grep 'matches'";
     save_screenshot;

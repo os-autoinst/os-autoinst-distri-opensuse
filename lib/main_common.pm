@@ -1110,20 +1110,26 @@ sub load_console_server_tests {
     loadtest "console/apache";
     loadtest "console/dns_srv";
     loadtest "console/postgresql_server" unless (is_leap('<15.0'));
-    # TODO test on openSUSE https://progress.opensuse.org/issues/31972
     if (is_sle('12-SP1+')) {    # shibboleth-sp not available on SLES 12 GA
         loadtest "console/shibboleth";
     }
     if (!is_staging && (is_opensuse || get_var('ADDONS', '') =~ /wsm/ || get_var('SCC_ADDONS', '') =~ /wsm/)) {
-        # TODO test on openSUSE https://progress.opensuse.org/issues/31972
-        loadtest "console/php_pcre" if is_sle;
-        # TODO test on SLE https://progress.opensuse.org/issues/31972
+        loadtest "console/php_pcre";
+        # TODO test on SLE https://progress.opensuse.org/issues/31972 
         loadtest "console/mariadb_odbc" if is_opensuse;
-        loadtest "console/php8" unless is_leap("<15.4") || is_sle("<15-SP4");
-        loadtest "console/php7";
-        loadtest "console/php7_mysql";
-        loadtest "console/php7_postgresql";
-        loadtest "console/php7_timezone";
+        if (is_leap("<15.4") || is_sle("<15-SP4")) {
+            loadtest "console/php7";
+            loadtest "console/php7_mysql";
+            loadtest "console/php7_postgresql";
+            loadtest "console/php7_timezone";
+        }
+        else {
+            loadtest "console/php7" unless is_sle;
+            loadtest "console/php8";
+            loadtest "console/php8_mysql";
+            loadtest "console/php8_postgresql";
+            loadtest "console/php8_timezone";
+        }
     }
     # TODO test on openSUSE https://progress.opensuse.org/issues/31972
     loadtest "console/apache_ssl" if is_sle;
