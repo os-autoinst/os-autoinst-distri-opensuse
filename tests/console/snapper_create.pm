@@ -19,6 +19,7 @@ use warnings;
 use base 'btrfs_test';
 use testapi;
 use utils;
+use version_utils qw(is_sle);
 
 # In many cases script output returns not only script execution results
 # but other data which was written to serial device. We have to ensure
@@ -56,6 +57,7 @@ sub get_last_snap_number {
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
+    $self->cron_mock_lastrun() if is_sle('<15');
 
     my @snapper_cmd = "snapper create";
     my @snap_numbers;
