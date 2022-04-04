@@ -26,6 +26,8 @@
       <li><a href="#get_master_ip">get_master_ip</a></li>
       <li><a href="#get_slave_ip">get_slave_ip</a></li>
       <li><a href="#prepare_user_and_group">prepare_user_and_group</a></li>
+      <li><a href="#prepare_spack_env">prepare_spack_env</a></li>
+      <li><a href="#uninstall_spack_module">uninstall_spack_module</a></li>
     </ul>
   </li>
 </ul><h1>lib/hpcbase.pm</h1>
@@ -77,6 +79,20 @@
 <h2 id="prepare_user_and_group">prepare_user_and_group</h2>
 
 <p>Creating slurm user and group with some pre-defined ID</p>
+
+<h2 id="prepare_spack_env">prepare_spack_env</h2>
+
+<pre><code>  prepare_spack_env($mpi)</code></pre>
+
+<p>After install spack and HPC <code>mpi</code> required packages, prepares env variables. The HPC packages (*-gnu-hpc) use an installation path that is separate from the rest and can be exported via a network file system.</p>
+
+<p>After <code>prepare_spack_env</code> run, <code>spack</code> should be ready to build entire tool stack, downloading and installing all bits required for whatever package or compiler.</p>
+
+<h2 id="uninstall_spack_module">uninstall_spack_module</h2>
+
+<pre><code>  uninstall_spack_module($module)</code></pre>
+
+<p>Unload and uninstall <code>module</code> from spack stack</p>
 
 
 </body>
