@@ -42,9 +42,6 @@ sub run {
         }
     }
 
-    # Make sure we can access internet and DNS works
-    script_retry('ping -c 3 www.google.com');
-
     # Install engines in case they are not installed
     install_docker_when_needed($host_distri) if ($engine =~ 'docker');
     install_podman_when_needed($host_distri) if ($engine =~ 'podman');
