@@ -252,6 +252,18 @@ our %images_list = (
             },
             available_arch => ['x86_64', 'aarch64', 'arm']
         }
+    },
+    'leap-micro' => {
+        '15.2' => {
+            released => sub { 'registry.opensuse.org/opensuse/leap:15.2' },
+            totest => sub { },
+            available_arch => ['x86_64', 'aarch64']
+        },
+        '15.3' => {
+            released => sub { 'registry.opensuse.org/opensuse/leap:15.3' },
+            totest => sub { },
+            available_arch => ['x86_64', 'aarch64']
+        }
     }
 );
 
