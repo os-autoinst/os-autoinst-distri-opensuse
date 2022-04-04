@@ -118,10 +118,7 @@ sub run {
 }
 
 sub test_flags {
-    return {
-        fatal => 1,
-        no_rollback => 1
-    };
+    return {no_rollback => 1};
 }
 
 1;
