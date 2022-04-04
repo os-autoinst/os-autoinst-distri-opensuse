@@ -77,8 +77,8 @@ sub load_image_tests_docker {
 
 sub load_host_tests_podman {
     my ($run_args) = @_;
-    if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+") || is_sle_micro || is_microos) {
-        # podman package is only available as of 15-SP1
+    # podman package is only available as of 15-SP1
+    unless (is_sle("<15-sp1")) {
         load_container_engine_test($run_args);
         # In Public Cloud we don't have internal resources
         load_image_test($run_args) unless is_public_cloud;
@@ -86,7 +86,7 @@ sub load_host_tests_podman {
         # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
         loadtest 'containers/podman_firewall' unless (is_public_cloud || is_openstack || is_microos);
         # Buildah is not available in SLE Micro and MicroOS
-        loadtest 'containers/buildah' unless (is_sle_micro || is_microos);
+        loadtest 'containers/buildah' unless (is_sle_micro || is_microos || is_leap_micro);
         # https://github.com/containers/podman/issues/5732#issuecomment-610222293
         # exclude rootless poman on public cloud because of cgroups2 special settings
         loadtest 'containers/rootless_podman' unless (is_sle('=15-sp1') || is_openstack || is_public_cloud);
@@ -104,10 +104,10 @@ sub load_host_tests_docker {
     unless (is_sle("<=15") && is_aarch64) {
         # these 2 packages are not avaiable for <=15 (aarch64 only)
         # zypper-docker is not available in factory and in SLE Micro/MicroOS
-        loadtest 'containers/zypper_docker' unless (is_tumbleweed || is_sle_micro || is_microos);
+        loadtest 'containers/zypper_docker' unless (is_tumbleweed || is_sle_micro || is_microos || is_leap_micro);
         loadtest 'containers/docker_runc';
     }
-    unless (check_var('BETA', 1) || is_sle_micro || is_microos) {
+    unless (check_var('BETA', 1) || is_sle_micro || is_microos || is_leap_micro) {
         # These tests use packages from Package Hub, so they are applicable
         # to maintenance jobs or new products after Beta release
         # PackageHub is not available in SLE Micro | MicroOS
@@ -118,7 +118,7 @@ sub load_host_tests_docker {
     # Expected to work for all but JeOS on 15sp4 after
     # https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/13860
     # Disabled on svirt backends (VMWare, Hyper-V and XEN) as the device name might be different than vdX
-    if ((is_x86_64 && is_qemu) && !(is_public_cloud || is_openstack || is_sle_micro || is_microos)) {
+    if ((is_x86_64 && is_qemu) && !(is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro)) {
         loadtest 'containers/validate_btrfs';
     }
 }
@@ -141,13 +141,13 @@ sub load_container_tests {
     my $runtime = get_required_var('CONTAINER_RUNTIME');
 
     # Need to boot a qcow except in JeOS, SLEM and MicroOS where the system is booted already
-    if (get_var('BOOT_HDD_IMAGE') && !(is_jeos || is_sle_micro || is_microos)) {
+    if (get_var('BOOT_HDD_IMAGE') && !(is_jeos || is_sle_micro || is_microos || is_leap_micro)) {
         loadtest 'installation/bootloader_zkvm' if is_s390x;
         # On Public Cloud we're already booted in the SUT
         loadtest 'boot/boot_to_desktop' unless is_public_cloud;
     }
 
-    if (is_container_image_test() && !(is_jeos || is_sle_micro || is_microos)) {
+    if (is_container_image_test() && !(is_jeos || is_sle_micro || is_microos || is_leap_micro)) {
         # Container Image tests common
         loadtest 'containers/host_configuration';
     }
@@ -177,5 +177,5 @@ sub load_container_tests {
         }
     }
 
-    loadtest 'console/coredump_collect' unless (is_public_cloud || is_jeos || is_sle_micro || is_microos || get_var('BCI_TESTS'));
+    loadtest 'console/coredump_collect' unless (is_public_cloud || is_jeos || is_sle_micro || is_microos || is_leap_micro || get_var('BCI_TESTS'));
 }
