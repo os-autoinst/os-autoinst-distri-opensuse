@@ -177,7 +177,7 @@
     "bsc#1188215": {
         "description": "Failed to start Create missing directories from rpmdb",
         "products": {
-            "sle-micro": [ "5.1" ]
+            "sle-micro": [ "5.0", "5.1" ]
         },
         "type": "bug"
     },
