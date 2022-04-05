@@ -120,7 +120,7 @@ if systemctl is-active wickedd >& /dev/null; then
     systemctl status wicked | cat
     echo "starting wicked ... "
     # wicked ifup might terminate with setup-in-progress (rc=162), so check the link manually
-    wicked --debug ifup wlan1 --timeout 60 > wicked.log 2>&1 || true
+    wicked --log-level debug --debug all ifup wlan1 --timeout 90 2>&1 | tee wicked.log || true
     sleep 30
     wicked ifstatus wlan1 | grep 'link' | grep 'state up\|state device-up'
 else
