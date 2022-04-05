@@ -184,6 +184,20 @@ sub run {
     verify_mounts unless is_leap('<15.2') && is_aarch64;
 }
 
+sub post_run_hook {
+    my $self = shift;
+    $self->save_and_upload_log('journalctl -b 0', '/tmp/journal.log');
+    $self->save_and_upload_log('journalctl -b 0 -p warning', '/tmp/journal_warnings.log');
+    $self->save_and_upload_log('wicked show-xml', '/tmp/show-xml.log');
+    $self->save_and_upload_log('wicked show-config', '/tmp/show-config.log');
+    script_run('tar -zcf /tmp/etc_sysconfig.tar.gz /etc/sysconfig');
+    upload_logs "/tmp/etc_sysconfig.tar.gz";
+    script_run('tar -zcf /tmp/etc_wicked.tar.gz /etc/wicked');
+    upload_logs "/tmp/etc_wicked.tar.gz";
+    script_run('tar -zcf /tmp/run_wicked.tar.gz /run/wicked');
+    upload_logs "/tmp/run_wicked.tar.gz";
+}
+
 sub test_flags {
     return {fatal => 1};
 }
