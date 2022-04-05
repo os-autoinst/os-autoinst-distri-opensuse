@@ -2,7 +2,7 @@
 
 Tests the functionality of `wpa_supplicant` by creating a virtual wifi network using the [mac80211_hwsim](https://wireless.wiki.kernel.org/en/users/Drivers/mac80211_hwsim) kernel module and network namespace separation.
 
-This archive works also as a standalone test for ``wpa_supplicant`
+This also works as a standalone test for `wpa_supplicant`.
 
 ## Usage
 
@@ -33,14 +33,4 @@ The last line says, everything went fine.
 
 ## Requirements
 
-    zypper install wpa_supplicant hostapd iw dnsmasq unzip
-
-# Copyright 
-
-Copyright 2020 SUSE LLC
-SPDX-License-Identifier: FSFAP
-
-## Author
-
-Felix Niederwanger <felix.niederwanger@suse.de>
-
+    zypper install wpa_supplicant hostapd iw dnsmasq unzip dhcp-client

@@ -114,15 +114,20 @@ echo 'start dnsmasq' >>hostapd.com
 if systemctl is-active wickedd >& /dev/null; then
     echo "use wicked"
     cp ifcfg-wlan1-dhcp /etc/sysconfig/network/ifcfg-wlan1
-    echo "Restarting wicked ... "
-    systemctl restart wicked
-    sleep 20
-    systemctl status wicked | cat
-    echo "starting wicked ... "
-    # wicked ifup might terminate with setup-in-progress (rc=162), so check the link manually
-    wicked --log-level debug --debug all ifup wlan1 --timeout 90 2>&1 | tee wicked.log || true
-    sleep 30
-    wicked ifstatus wlan1 | grep 'link' | grep 'state up\|state device-up'
+    systemctl reload wicked
+#    # wicked ifup might terminate with 162 (setup-in-progress), so check the link manually below using ifstatus
+    wicked --log-level debug --debug all ifup wlan1 --timeout $timeout 2>&1 | tee wicked.log || true
+#    # Wait until wlan1 is configured
+    timeout=$(($timeout+30))
+    until wicked ifstatus wlan1
+    do
+    	timeout=$(($timeout-1))
+    	if [[ $timeout -lt 1 ]]; then
+    		echo "wicked timeout"
+    		exit 1
+    	fi
+    	sleep 1
+    done
 else
     echo "use dhclient"
     touch dhclient.lease
