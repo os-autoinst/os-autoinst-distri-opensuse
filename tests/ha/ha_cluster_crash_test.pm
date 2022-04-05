@@ -56,17 +56,21 @@ sub run {
     # List of things to check
     my @checks = qw(kill-sbd kill-corosync kill-pacemakerd split-brain-iptables);
     my $preflight_start_time = time;
-    my $fencing_start_delay = calculate_sbd_start_delay();
+    # Start delay after fencing to prevent node joining cluster too quickly
+    my $start_delay_after_fencing = calculate_sbd_start_delay();
 
     # Loop on each check
     foreach my $check (@checks) {
-        # Execute the command
-        my $cmd = "crm cluster crash_test --${check} --force";
-        record_info("${check}", "Executing ${cmd}");
-        my $cmd_fails = script_run "${cmd}";
-        #record_info('ERROR', "Failure while executing '$cmd'", result => 'fail') unless (defined $cmd_fails and $cmd_fails == 0);
+        # reset fencing status form previous loop
+        $node_was_fenced = 0;
 
-        # All the commands leads to a reboot of the node
+        # Execute the command
+        my $cmd = "crm cluster crash_test --$check --force";
+        record_info($check, "Executing $cmd");
+        my $cmd_fails = script_run($cmd, die_on_timeout => 0);
+
+        # Killing pacemaker should result in service restart
+        # All remaining commands lead to a reboot of the node
         my $loop_count = bmwqemu::scale_timeout(15);    # Wait 1 minute (15*4) maximum, can be scaled with SCALE_TIMEOUT
         while (1) {
             last if ($loop_count-- <= 0);
@@ -74,17 +78,30 @@ sub run {
                 # Wait for boot and reconnect to root console
                 $self->wait_boot;
                 $self->select_serial_terminal;
+                # Wait for fencing delay and resources to start
+                sleep $start_delay_after_fencing;
+                wait_until_resources_started();
                 $node_was_fenced = 1;
                 last;
             }
             sleep 4;
         }
-        if ($node_was_fenced == 1) {
+
+        if ($check eq "kill-pacemakerd") {
+            if ($node_was_fenced) {
+                record_info('ERROR', "Failure while executing '$cmd'. Killing pacemaker should not trigger fencing", result => 'fail');
+            }
+            else {
+                record_info('INFO', "Executing '$cmd' did not trigger fencing (expected behavior).");
+            }
+            next;
+        }
+
+        # remaining checks should trigger fencing
+        if ($node_was_fenced) {
             record_info('WARNING', "The node was fenced while executing '$cmd'");
-            # Wait for fencing delay and resources to start
-            sleep $fencing_start_delay;
-            wait_until_resources_started();
-        } else {
+        }
+        else {
             record_info('ERROR', "Failure while executing '$cmd'", result => 'fail') unless (defined $cmd_fails and $cmd_fails == 0);
         }
     }
