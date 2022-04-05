@@ -19,7 +19,7 @@ use version_utils qw(is_sle is_public_cloud);
 use publiccloud::ssh_interactive;
 use registration;
 
-our @EXPORT = qw(select_host_console is_byos is_ondemand is_ec2 is_azure is_gce registercloudguest register_addon register_openstack);
+our @EXPORT = qw(select_host_console is_byos is_ondemand is_ec2 is_azure is_gce registercloudguest register_addon deregister_addon register_openstack);
 
 # Select console on the test host, if force is set, the interactive session will
 # be destroyed. If called in TUNNELED environment, this function die.
@@ -77,6 +77,27 @@ sub register_addon {
         ssh_add_suseconnect_product($remote, get_addon_fullname($addon), undef, $arch, '', $timeout, $retries, $delay);
     }
     record_info('SUSEConnect time', 'The command SUSEConnect -r ' . get_addon_fullname($addon) . ' took ' . (time() - $cmd_time) . ' seconds.');
+}
+
+sub deregister_addon {
+    my ($remote, $addon) = @_;
+    my $arch = get_var('PUBLIC_CLOUD_ARCH', 'x86_64');
+    $arch = "aarch64" if ($arch eq "arm64");
+    my $timestamp = utc_timestamp();
+    record_info($addon, "Going to deregister '$addon' addon\nUTC: $timestamp");
+    my $cmd_time = time();
+    my ($timeout, $retries, $delay) = (300, 3, 120);
+    if ($addon =~ /ltss/) {
+        # ssh_remove_suseconnect_product($remote, $name, $version, $arch, $params, $timeout, $retries, $delay)
+        ssh_remove_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch, "-r " . get_required_var('SCC_REGCODE_LTSS'), $timeout, $retries, $delay);
+    } elsif (is_sle('<15') && $addon =~ /tcm|wsm|contm|asmm|pcm/) {
+        ssh_remove_suseconnect_product($remote, get_addon_fullname($addon), '`echo ${VERSION} | cut -d- -f1`', $arch, '', $timeout, $retries, $delay);
+    } elsif (is_sle('<15') && $addon =~ /sdk|we/) {
+        ssh_remove_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch, '', $timeout, $retries, $delay);
+    } else {
+        ssh_remove_suseconnect_product($remote, get_addon_fullname($addon), undef, $arch, '', $timeout, $retries, $delay);
+    }
+    record_info('SUSEConnect time', 'The command SUSEConnect -d ' . get_addon_fullname($addon) . ' took ' . (time() - $cmd_time) . ' seconds.');
 }
 
 sub registercloudguest {

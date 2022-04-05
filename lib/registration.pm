@@ -18,6 +18,7 @@ our @EXPORT = qw(
   add_suseconnect_product
   ssh_add_suseconnect_product
   remove_suseconnect_product
+  ssh_remove_suseconnect_product
   cleanup_registration
   register_product
   assert_registration_screen_present
@@ -231,6 +232,22 @@ sub remove_suseconnect_product {
     $arch //= get_required_var('ARCH');
     $params //= '';
     script_retry("SUSEConnect -d -p $name/$version/$arch $params", retry => 5, delay => 60, timeout => 180);
+}
+
+=head2 ssh_remove_suseconnect_product
+
+    ssh_remove_suseconnect_product($name, [$version, [$arch, [$params]]]);
+
+Wrapper for SUSEConnect -d $name over ssh.
+=cut
+sub ssh_remove_suseconnect_product {
+    my ($remote, $name, $version, $arch, $params) = @_;
+    assert_script_run "sftp $remote:/etc/os-release /tmp/os-release";
+    assert_script_run 'source /tmp/os-release';
+    $version //= scc_version();
+    $arch //= get_required_var('arch');
+    $params //= '';
+    script_retry("ssh $remote sudo SUSEConnect -d -p $name/$version/$arch $params", retry => 5, delay => 60, timeout => 180);
 }
 
 =head2 cleanup_registration
