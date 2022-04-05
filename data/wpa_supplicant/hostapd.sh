@@ -1,6 +1,4 @@
-#!/bin/bash
-
-set -e
+#!/bin/bash -e
 
 # Give the other shell some time to transfer up to the wifi_master namespace
 sleep 5
@@ -24,7 +22,7 @@ echo "dnsmasq is up."
 
 # Wait for termination signal
 timeout 30s grep -q 'terminate' <(tail -f hostapd.com)
-kill $hostapd_pid
+kill $hostapd_pid 2>/dev/null || true
 echo 'ok' >> hostapd.com
 sleep 1
 exit 0

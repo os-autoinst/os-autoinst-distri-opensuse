@@ -30,11 +30,12 @@ sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    zypper_call 'in wpa_supplicant hostapd iw dnsmasq unzip';
+    zypper_call 'in wpa_supplicant hostapd iw dnsmasq unzip dhcp-client';
     assert_script_run 'cd $(mktemp -d)';
     assert_script_run('curl -L -s ' . data_url('wpa_supplicant') . ' | cpio --make-directories --extract && cd data');
     $self->adopt_apparmor;
-    assert_script_run('bash -x ./wpa_supplicant_test.sh 2>&1 | tee wpa-supplicant_test.txt', timeout => 600);
+    script_run('./wpa_supplicant_test.sh 2>&1 | tee wpa-supplicant_test.txt', timeout => 600);
+    validate_script_output("cat wpa-supplicant_test.txt", qr/WPA_SUPPLICANT_TEST: PASSED/);
 }
 
 sub adopt_apparmor {
