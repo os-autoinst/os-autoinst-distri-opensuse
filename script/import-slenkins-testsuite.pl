@@ -51,28 +51,28 @@ my $template_node = pp(
 sub parse_channels {
     my ($repo_var) = @_;
     my $repo;
-    my $family = "SLE_12_SP3";
+    my $family        = "SLE_12_SP3";
     my $channels_file = "/etc/slenkins/channels.conf";
 
-    my $xml = XML::Simple->new;
+    my $xml  = XML::Simple->new;
     my $data = $xml->XMLin($channels_file);
 
     my %repo_table = (
-        UPDATES => "Updates",
-        DEBUG => "Debug",
-        QA => "QA",
-        QAHEAD => "QAHead",
-        HA => "HA",
-        HAUPDATES => "HAUpdates",
-        HAFACTORY => "HAFactory",
-        GALAXY => "Galaxy",
-        RUBYEXTENSIONS => "RubyExtensions",
+        UPDATES          => "Updates",
+        DEBUG            => "Debug",
+        QA               => "QA",
+        QAHEAD           => "QAHead",
+        HA               => "HA",
+        HAUPDATES        => "HAUpdates",
+        HAFACTORY        => "HAFactory",
+        GALAXY           => "Galaxy",
+        RUBYEXTENSIONS   => "RubyExtensions",
         NETWORKUTILITIES => "NetworkUtilities",
-        SALT => "Salt",
-        HPC => "HPC",
+        SALT             => "Salt",
+        HPC              => "HPC",
     );
 
-    my $channel_name = $repo_table{$repo_var};
+    my $channel_name  = $repo_table{$repo_var};
     my $channel_array = $data->{channel}{$channel_name}{repo};
 
     foreach (@$channel_array) {
@@ -104,13 +104,13 @@ sub parse_node_file {
         $line =~ s/\$\{PROJECT_NAME\}/$project_name/g;
 
         if ($line =~ /^node\s+([^\s]+)$/) {
-            $node = $1;
-            $network = undef;
+            $node         = $1;
+            $network      = undef;
             $nodes{$node} = {install => [], repos => [], disks => []};
         }
         elsif ($line =~ /^network\s+([^\s]+)$/) {
-            $network = $1;
-            $node = undef;
+            $network            = $1;
+            $node               = undef;
             $networks{$network} = {};
         }
         elsif ($line =~ /^install\s/) {
@@ -125,7 +125,7 @@ sub parse_node_file {
         }
         elsif ($line =~ /^subnet\s/ || $line =~ /^dhcp\s/ || $line =~ /^gateway\s/) {
             my ($param, $value) = split(/\s+/, $line);
-            $value = 0 if $value eq 'no';
+            $value                        = 0      if $value eq 'no';
             $networks{$network}->{$param} = $value if defined $network;
         }
         elsif ($line =~ /(^repository|^repo)\s+\$\{CHANNEL_(.*)_.*\}$/) {
@@ -164,25 +164,25 @@ sub gen_testsuites {
         push @node_net, 'fixed' unless grep { $_ eq 'fixed' } @node_net;
         push @suites,
           {
-            name => "slenkins-${project_name}-${node}",
+            name     => "slenkins-${project_name}-${node}",
             settings => [
                 eval $template_node,
-                {key => "SLENKINS_NODE", value => "$node"},
+                {key => "SLENKINS_NODE",    value => "$node"},
                 {key => "SLENKINS_INSTALL", value => join(',', sort @{$nodes->{$node}{install}})},
-                {key => "NETWORKS", value => join(',', @node_net)},
-                {key => "FOREIGN_REPOS", value => join(',', sort @{$nodes->{$node}{repos}})},
-                {key => "NUMDISKS", value => 1 + scalar(@{$nodes->{$node}{disks}})},
+                {key => "NETWORKS",         value => join(',', @node_net)},
+                {key => "FOREIGN_REPOS",    value => join(',', sort @{$nodes->{$node}{repos}})},
+                {key => "NUMDISKS",         value => 1 + scalar(@{$nodes->{$node}{disks}})},
             ],
           };
     }
 
     my $control = {
-        name => "slenkins-${project_name}-control",
+        name     => "slenkins-${project_name}-control",
         settings => [
             eval $template_control,
-            {key => "SLENKINS_NODE", value => "control"},
+            {key => "SLENKINS_NODE",    value => "control"},
             {key => "SLENKINS_CONTROL", value => $control_pkg},
-            {key => "PARALLEL_WITH", value => join(',', sort map { "slenkins-${project_name}-" . $_ } keys %$nodes)},
+            {key => "PARALLEL_WITH",    value => join(',', sort map { "slenkins-${project_name}-" . $_ } keys %$nodes)},
         ],
     };
     ## use critic (ProhibitStringyEval)
@@ -213,7 +213,7 @@ sub import_node_file {
         my $abs_path = abs_path($fn) || $fn;
         if ($abs_path =~ /var\/lib\/slenkins\/([^\/]+)\/([^\/]+)\/nodes/) {
             $project_name = $1;
-            $control_pkg = "$1-$2";
+            $control_pkg  = "$1-$2";
         }
         else {
             print STDERR "Can't guess project name from path $abs_path\n";
@@ -227,13 +227,13 @@ sub import_node_file {
             @{$json->{JobTemplates}},
             {
                 group_name => "Slenkins",
-                machine => {name => "64bit"},
-                prio => 60,
-                product => {
-                    arch => "x86_64",
-                    distri => "sle",
-                    flavor => "Server-DVD",
-                    group => "sle-12-SP3-Server-DVD",
+                machine    => {name => "64bit"},
+                prio       => 60,
+                product    => {
+                    arch    => "x86_64",
+                    distri  => "sle",
+                    flavor  => "Server-DVD",
+                    group   => "sle-12-SP3-Server-DVD",
                     version => "12-SP3",
                 },
                 test_suite => {name => $ts->{name}},
