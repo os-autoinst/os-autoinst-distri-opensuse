@@ -2118,8 +2118,7 @@ sub assert_secureboot_status {
 }
 
 sub susefirewall2_to_firewalld {
-    my $timeout = 360;
-    $timeout = 1200 if is_aarch64;
+    my $timeout = (is_aarch64 || is_ppc64le) ? '1200' : '360'; 
     assert_script_run('susefirewall2-to-firewalld -c', timeout => $timeout);
     assert_script_run('firewall-cmd --permanent --zone=external --add-service=vnc-server', timeout => 60);
     # On some platforms such as Aarch64, the 'firewalld restart'
