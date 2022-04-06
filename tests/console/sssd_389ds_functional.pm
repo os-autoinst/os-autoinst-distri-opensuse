@@ -36,7 +36,7 @@ sub run {
     zypper_call("in sssd sssd-ldap openldap2-client sshpass $docker");
 
     #For released sle versions use sle15sp3 base image by default. For developing sle use corresponding image in registry.suse.de
-    my $pkgs = "systemd systemd-sysvinit 389-ds openssl";
+    my $pkgs = "awk systemd systemd-sysvinit 389-ds openssl";
     my $tag = "";
     if (is_opensuse) {
         $tag = (is_tumbleweed) ? "registry.opensuse.org/opensuse/tumbleweed" : "registry.opensuse.org/opensuse/leap";
