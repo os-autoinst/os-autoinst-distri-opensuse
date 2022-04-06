@@ -26,7 +26,7 @@ sub run {
     # See https://bugzilla.opensuse.org/show_bug.cgi?id=1185529 for the reason behind this test
     # and https://gcc.gnu.org/onlinedocs/jit/intro/tutorial02.html for the test template.
     if (is_tumbleweed) {
-        zypper_call 'in gcc libgccjit0 libgccjit0-devel-gcc11';
+        zypper_call 'in gcc libgccjit-devel';
         assert_script_run 'curl -v -o gcc-jit.c ' . data_url('gcc/gcc-jit.c');
         assert_script_run 'gcc gcc-jit.c -o gcc-jit -lgccjit';
         validate_script_output './gcc-jit', sub { m/result: 25/ };
