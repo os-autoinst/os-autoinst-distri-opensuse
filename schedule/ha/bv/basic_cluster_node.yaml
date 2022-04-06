@@ -67,6 +67,7 @@ schedule:
   - '{{boot_to_desktop_node01}}'
   - ha/check_after_reboot
   - '{{remove_node}}'
+  - '{{graceful_shutdown}}'
   - ha/check_logs
 conditional_schedule:
   cluster_setup:
@@ -92,3 +93,7 @@ conditional_schedule:
     HA_REMOVE_NODE:
       1:
         - ha/remove_node
+  graceful_shutdown:
+    HA_GRACEFUL_SHUTDOWN:
+      1:
+        - ha/graceful_shutdown
