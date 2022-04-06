@@ -34,7 +34,6 @@ our @EXPORT = qw(
   turn_off_gnome_show_banner
   untick_welcome_on_next_startup
   start_root_shell_in_xterm
-  workaround_boo1170586
   handle_gnome_activities
 );
 
@@ -488,18 +487,6 @@ sub untick_welcome_on_next_startup {
     }
 }
 
-=head2 workaround_broken_opensuse_welcome_window
-
- workaround_broken_opensuse_welcome_window();
-
-Kill broken opensuse-welcome window and restart it properly to workaround boo#1170586.
-
-=cut
-sub workaround_broken_opensuse_welcome_window {
-    x11_start_program('killall /usr/bin/opensuse-welcome', target_match => 'generic-desktop');
-    x11_start_program('opensuse-welcome');
-}
-
 =head2 handle_welcome_screen
 
  handle_welcome_screen([timeout => $timeout]);
@@ -513,7 +500,6 @@ sub handle_welcome_screen {
     my (%args) = @_;
     assert_screen([qw(opensuse-welcome opensuse-welcome-gnome40-activities)], $args{timeout});
     send_key 'esc' if match_has_tag('opensuse-welcome-gnome40-activities');
-    workaround_broken_opensuse_welcome_window() if match_has_tag("opensuse-welcome-boo1169203");
     untick_welcome_on_next_startup;
 }
 
