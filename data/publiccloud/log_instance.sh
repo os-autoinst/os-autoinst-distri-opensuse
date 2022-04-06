@@ -121,6 +121,22 @@ azure_stop_log()
     fi
 }
 
+openstack_start_log()
+{
+    read_unique_counter
+    set +e
+    openstack server start "$INSTANCE_ID" > "${OUTPUT_DIR}/$CNT""_boot_log_start.txt" 2>&1
+    set -e
+}
+
+openstack_stop_log()
+{
+    read_unique_counter
+    set +e
+    openstack server stop "$INSTANCE_ID" > "${OUTPUT_DIR}/$CNT""_boot_log_start.txt" 2>&1
+    set -e
+}
+
 read_unique_counter()
 {
     CNT=$(printf "%03d" "$(cat "$CNT_FILE" 2> /dev/null)")
@@ -163,6 +179,9 @@ case $PROVIDER in
         ;;
     GCE)
         gce_"${COMMAND}"_log
+        ;;
+    OPENSTACK)
+        openstack_"${COMMAND}"_log
         ;;
     *)
         echo "Unknown provider $PROVIDER given";
