@@ -59,6 +59,9 @@ case $PROVIDER in
     GCE)
         gcloud compute instances reset "$INSTANCE_ID" --zone "$ZONE"
         ;;
+    OPENSTACK)
+        openstack server reboot "$INSTANCE_ID"
+        ;;
     *)
         echo "Unknown provider $PROVIDER given";
         exit 2;

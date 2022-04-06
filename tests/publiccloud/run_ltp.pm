@@ -19,6 +19,7 @@ use Mojo::File;
 use Mojo::JSON;
 use publiccloud::utils;
 use Data::Dumper;
+use version_utils;
 
 our $root_dir = '/root';
 
@@ -96,7 +97,7 @@ sub run {
     } else {
         $provider = $self->provider_factory();
         $instance = $self->{my_instance} = $provider->create_instance();
-        $instance->wait_for_guestregister();
+        $instance->wait_for_guestregister() unless is_openstack;
     }
 
     assert_script_run("cd $root_dir");
@@ -106,6 +107,7 @@ sub run {
     assert_script_run('chmod +x log_instance.sh');
 
     registercloudguest($instance) if (is_byos() && !$qam);
+    register_openstack($instance) if is_openstack;
     # in repo with LTP rpm is internal we need to manually upload package to VM
     if (get_var('LTP_RPM_MANUAL_UPLOAD')) {
         my $ltp_rpm = get_ltp_rpm($ltp_repo);

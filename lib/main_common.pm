@@ -581,6 +581,12 @@ sub load_jeos_openstack_tests {
         return;
     } else {
         loadtest "jeos/prepare_openstack", run_args => $args;
+    }
+
+    if (get_var('LTP_COMMAND_FILE')) {
+        loadtest 'publiccloud/run_ltp';
+        return;
+    } else {
         loadtest 'publiccloud/ssh_interactive_start', run_args => $args;
     }
 

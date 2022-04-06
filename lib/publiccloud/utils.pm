@@ -19,7 +19,7 @@ use version_utils qw(is_sle is_public_cloud);
 use publiccloud::ssh_interactive;
 use registration;
 
-our @EXPORT = qw(select_host_console is_byos is_ondemand is_ec2 is_azure is_gce registercloudguest register_addon);
+our @EXPORT = qw(select_host_console is_byos is_ondemand is_ec2 is_azure is_gce registercloudguest register_addon register_openstack);
 
 # Select console on the test host, if force is set, the interactive session will
 # be destroyed. If called in TUNNELED environment, this function die.
@@ -111,6 +111,17 @@ sub registercloudguest {
     my $cmd_time = time();
     $instance->retry_ssh_command(cmd => "sudo registercloudguest -r $regcode", timeout => 420, retry => 3, delay => 120);
     record_info('registercloudguest time', 'The command registercloudguest took ' . (time() - $cmd_time) . ' seconds.');
+}
+
+sub register_openstack {
+    my $instance = shift;
+
+    my $regcode = get_required_var 'SCC_REGCODE';
+    my $fake_scc = get_var 'SCC_URL', '';
+
+    my $cmd = "sudo SUSEConnect -r $regcode";
+    $cmd .= " --url $fake_scc" if $fake_scc;
+    $instance->run_ssh_command(cmd => $cmd, timeout => 700, retry => 5);
 }
 
 # Check if we are a BYOS test run
