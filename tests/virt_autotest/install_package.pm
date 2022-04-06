@@ -53,11 +53,6 @@ sub install_package {
         $dependency_repo = 'http://download.suse.de/ibs/SUSE:/SLE-15:/GA/standard/';
         $dependency_rpms = 'bridge-utils';
     }
-    # Temporary workaround to install python2 as it is removed from SLE15SP4
-    elsif (is_sle('=15-SP4')) {
-        $dependency_repo = 'http://dist.suse.de/install/SLP/SLE-15-SP4-Module-Desktop-Applications-Snapshot-202203-2/' . lc(get_required_var('ARCH')) . '/DVD1';
-        $dependency_rpms = 'python-base';
-    }
 
     if ($dependency_repo) {
         if (is_s390x) {
