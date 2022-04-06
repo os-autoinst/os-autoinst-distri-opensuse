@@ -132,8 +132,14 @@ sub load_host_tests_containerd_nerdctl {
 }
 
 sub load_host_tests_helm() {
-    if (is_tumbleweed || is_leap || is_sle) {
-        loadtest "containers/helm";
+    if (is_sle('15-sp3+')) {
+        loadtest "containers/helm_eks";
+        loadtest "containers/helm_k3s";
+    } elsif (is_opensuse) {
+        loadtest "containers/helm_k3s";
+    }
+    else {
+        die("Helm test not supported on this host");
     }
 }
 

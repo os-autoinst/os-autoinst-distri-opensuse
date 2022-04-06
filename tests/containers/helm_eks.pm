@@ -3,7 +3,14 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Test deploy a helm chart
+# Summary: Test deploy a helm chart using a Public Cloud Kubernetes environment EKS
+# - install kubectl and helm
+# - test helm repo add, update, search and show all
+# - add bitnami repo
+# - test helm install with apache helm chart
+# - test helm list
+# - check the correct deployment of the helm chart
+# - cleanup system (helm)
 #
 # Maintainer: qa-c team <qa-c@suse.de>
 
@@ -13,13 +20,7 @@ use utils qw(zypper_call script_retry);
 use version_utils qw(is_sle);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use mmapi 'get_current_job_id';
-
-
-sub install_kubectl {
-    my $version = get_var('KUBECTL_VERSION', 'v1.22.2');
-    assert_script_run("curl -LO https://dl.k8s.io/release/$version/bin/linux/amd64/kubectl");
-    assert_script_run("install -c -m 744 ./kubectl /usr/bin/kubectl");
-}
+use containers::k8s;
 
 sub run {
     my ($self) = @_;
@@ -28,15 +29,10 @@ sub run {
     $self->{deployment_name} = "apache-" . get_current_job_id();
     my $chart = "bitnami/apache";
 
-    if (is_sle) {
-        add_suseconnect_product(get_addon_fullname('phub'));
-        add_suseconnect_product(get_addon_fullname('pcm'));
-        zypper_call("in -y jq helm aws-cli");
-        install_kubectl();
-    }
-    else {
-        zypper_call("in -y jq aws-cli helm kubernetes-client");
-    }
+    install_kubectl();
+    install_helm();
+    add_suseconnect_product(get_addon_fullname('pcm')) if (is_sle);
+    zypper_call("in -y jq aws-cli");
 
     # Check versions
     record_info('Helm version', script_output("helm version"));
@@ -68,7 +64,7 @@ sub run {
     assert_script_run("kubectl describe services/$self->{deployment_name}");
 
     # Test
-    enter_cmd("kubectl port-forward  services/$self->{deployment_name} 10001:80 &");
+    enter_cmd("kubectl port-forward services/$self->{deployment_name} 10001:80 &");
     script_retry("curl http://localhost:10001", delay => 30, retry => 5);
 
     # Destroy the chart
