@@ -49,7 +49,7 @@ sub install_kubectl {
 }
 
 sub install_helm {
-    add_suseconnect_product(get_addon_fullname('phub')) if is_sle('15-sp3+');
+    add_suseconnect_product(get_addon_fullname('phub')) if is_sle('15-sp4+');
     zypper_call("in helm");
 }
 
