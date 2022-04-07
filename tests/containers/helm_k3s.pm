@@ -24,7 +24,6 @@ sub run {
     my ($self) = @_;
 
     $self->select_serial_terminal;
-    $self->{rancher_name} = "rancher-" . get_current_job_id();
     $self->{deployment_name} = "apache-" . get_current_job_id();
     my $chart = "bitnami/apache";
 
@@ -43,7 +42,7 @@ sub run {
     assert_script_run("helm list");
 
     # Wait for deployment
-    assert_script_run("kubectl rollout status deployment/$self->{deployment_name}");
+    script_retry("kubectl rollout status deployment/$self->{deployment_name}", delay => 30, retry => 5);
     assert_script_run("kubectl describe deployment/$self->{deployment_name}");
     assert_script_run("kubectl get pods | grep $self->{deployment_name}");
     assert_script_run("kubectl describe services/$self->{deployment_name}");
