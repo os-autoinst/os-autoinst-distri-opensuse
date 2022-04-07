@@ -13,6 +13,7 @@ use Utils::Architectures;
 use utils;
 use version_utils "is_sle";
 use registration qw(cleanup_registration register_product add_suseconnect_product);
+use Utils::Backends 'is_pvm';
 
 sub repo_cleanup {
     cleanup_registration;
@@ -43,6 +44,9 @@ sub run {
             repo_cleanup;
             # Base system registration
             register_product;
+
+            # For FIPS tests on powerVM, we may need add desktop repo to enable x11 access
+            add_suseconnect_product('sle-module-desktop-applications') if (get_var("FIPS_ENABLED") && is_pvm);
 
             # WE addon registration (according to the conditions)
             if (get_var("SECTEST_REQUIRE_WE") && is_x86_64) {

@@ -2180,6 +2180,7 @@ sub load_security_console_prepare {
     loadtest "security/test_repo_setup" if (get_var("SECURITY_TEST") =~ /^crypt_/ && !is_opensuse);
     loadtest "fips/fips_setup" if (get_var("FIPS_ENABLED"));
     loadtest "console/openssl_alpn" if (get_var("FIPS_ENABLED") && get_var("JEOS"));
+    loadtest "console/yast2_vnc" if (get_var("FIPS_ENABLED") && is_pvm);
 }
 
 # The function name load_security_tests_crypt_* is to avoid confusing

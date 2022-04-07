@@ -8,15 +8,17 @@
 #          Global mode - setup fips=1 in kernel command line
 #
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tags: poo#39071, poo#105591, poo#105999
+# Tags: poo#39071, poo#105591, poo#105999, poo#109133
 
+use base 'opensusebasetest';
 use strict;
 use warnings;
 use base "consoletest";
 use testapi;
-use utils qw(quit_packagekit zypper_call);
+use utils qw(quit_packagekit zypper_call reconnect_mgmt_console);
 use bootloader_setup "add_grub_cmdline_settings";
 use power_action_utils "power_action";
+use Utils::Backends 'is_pvm';
 
 sub run {
     my ($self) = @_;
@@ -63,7 +65,8 @@ sub run {
     }
 
     power_action('reboot', textmode => 1);
-    $self->wait_boot(bootloader_time => 200);
+    reconnect_mgmt_console if is_pvm;
+    $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 300);
 
     # Workaround to resolve console switch issue
     $self->select_serial_terminal;
