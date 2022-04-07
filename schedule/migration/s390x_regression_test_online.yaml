@@ -27,6 +27,7 @@ conditional_schedule:
       0:
         - console/check_upgraded_service
         - console/system_prepare
+        - console/check_os_release
         - console/check_system_info
         - console/check_network
         - console/system_state

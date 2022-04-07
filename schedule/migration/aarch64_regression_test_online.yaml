@@ -25,6 +25,7 @@ conditional_schedule:
     QCOW_GENERATION:
       0:
         - console/system_prepare
+        - console/check_os_release
         - console/check_system_info
         - console/check_network
         - console/system_state
