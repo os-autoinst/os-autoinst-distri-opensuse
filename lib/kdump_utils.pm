@@ -351,7 +351,7 @@ sub check_function {
 
     if ($args{test_type} eq 'function') {
         # Check, that vmcore exists, otherwise fail
-        assert_script_run('ls -lah /var/crash/*/vmcore');
+        assert_script_run('ls -lah /var/crash/*/vmcore', 180);
         my $vmlinux = (is_sle("<16") || is_leap("<16.0")) ? '/boot/vmlinux-$(uname -r)*' : '/usr/lib/modules/$(uname -r)/vmlinux*';
         my $crash_cmd = "echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` $vmlinux";
         validate_script_output "$crash_cmd", sub { m/PANIC:\s([^\s]+)/ }, 800;
