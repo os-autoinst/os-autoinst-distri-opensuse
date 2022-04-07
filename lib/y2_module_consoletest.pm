@@ -17,7 +17,7 @@ sub yast2_console_exec {
     $y2_start .= (defined($args{yast2_opts})) ?
       $args{yast2_opts} . ' ' . $args{yast2_module} :
       $args{yast2_module};
-    $y2_start .= " \"$args{args}\"" if (defined($args{args}));
+    $y2_start .= " $args{args}" if (defined($args{args}));
     $y2_start .= ';';
     # poo#40715: Hyper-V 2012 R2 serial console is unstable (a Hyper-V product bug)
     # and is in many cases loosing the 15th character, so e.g. instead of the expected
