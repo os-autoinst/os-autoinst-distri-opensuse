@@ -21,7 +21,7 @@ sub run {
     $self->select_serial_terminal;
 
     my %checker = ();
-    $checker{VERSION} = get_required_var('VERSION');
+    $checker{VERSION} = get_var("TARGET_VERSION", get_required_var("VERSION"));
     $checker{VERSION_ID} = $checker{VERSION};
 
     if (is_sle) {
