@@ -33,7 +33,9 @@ sub packages_to_install {
     my @packages = ('git-core', 'python3', 'gcc');
     if ($host_distri eq 'ubuntu') {
         push @packages, ('python3-dev', 'python3-pip', 'golang');
-    } elsif ($host_distri eq 'centos') {
+    } elsif ($host_distri eq 'rhel' && $version > 7) {
+        push @packages, ('platform-python-devel', 'python3-pip', 'golang');
+    } elsif ($host_distri =~ /centos|rhel/) {
         push @packages, ('python3-devel', 'python3-pip', 'golang');
     } elsif ($host_distri eq 'sles') {
         my $version = "$version.$sp";
@@ -49,8 +51,9 @@ sub packages_to_install {
             script_retry("SUSEConnect -p sle-module-desktop-applications/$version/$arch", delay => 60, retry => 3);
             script_retry("SUSEConnect -p sle-module-development-tools/$version/$arch", delay => 60, retry => 3);
             push @packages, ('go', 'skopeo');
-
         }
+    } elsif ($host_distri =~ /opensuse/) {
+        push @packages, qw(python3-devel go skopeo);
     } else {
         die("Host is not supported for running BCI tests.");
     }
@@ -75,18 +78,20 @@ sub run {
         }
         assert_script_run('pip3 --quiet install --upgrade pip', timeout => 600);
         assert_script_run("pip3 --quiet install tox", timeout => 600);
-    } elsif ($host_distri eq 'centos') {
+    } elsif ($host_distri =~ /centos|rhel/) {
         foreach my $pkg (@packages) {
             assert_script_run("yum install -y $pkg", timeout => 300);
         }
         assert_script_run('pip3 --quiet install --upgrade pip', timeout => 600);
         assert_script_run("pip3 --quiet install tox", timeout => 600);
-    } elsif ($host_distri eq 'sles') {
+    } elsif ($host_distri =~ /sles|opensuse/) {
         foreach my $pkg (@packages) {
             zypper_call("--quiet in $pkg", timeout => 300);
         }
         assert_script_run('pip3.6 --quiet install --upgrade pip', timeout => 600);
         assert_script_run("pip3.6 --quiet install tox --ignore-installed six", timeout => 600);
+    } else {
+        die "Unexpected distribution ($host_distri) has been used";
     }
 
     # For BCI tests using podman, buildah package is also needed

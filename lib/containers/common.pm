@@ -127,6 +127,9 @@ sub install_buildah_when_needed {
         } elsif ($host_os eq 'ubuntu') {
             assert_script_run "apt-get update", timeout => 900;
             assert_script_run "apt-get -y install buildah", timeout => 300;
+        } elsif ($host_os eq 'rhel') {
+            assert_script_run('yum update -y', timeout => 300);
+            assert_script_run('yum install -y buildah', timeout => 300);
         } else {
             activate_containers_module if $host_os =~ 'sle';
             zypper_call('in buildah', timeout => 300);
