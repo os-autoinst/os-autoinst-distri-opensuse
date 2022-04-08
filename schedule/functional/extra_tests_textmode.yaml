@@ -56,7 +56,6 @@ conditional_schedule:
                 - appgeo/gdal
                 - console/rabbitmq
                 - console/rails
-                - console/php_pcre
                 - console/openqa_review
                 - console/zbar
                 - console/a2ps
