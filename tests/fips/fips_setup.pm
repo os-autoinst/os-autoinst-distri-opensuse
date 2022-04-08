@@ -65,8 +65,13 @@ sub run {
     }
 
     power_action('reboot', textmode => 1);
-    reconnect_mgmt_console if is_pvm;
-    $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 300);
+    if (is_pvm) {
+        reconnect_mgmt_console;
+        $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 300);
+    }
+    else {
+        $self->wait_boot(bootloader_time => 200);
+    }
 
     # Workaround to resolve console switch issue
     $self->select_serial_terminal;
