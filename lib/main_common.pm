@@ -1115,7 +1115,7 @@ sub load_console_server_tests {
     }
     if (!is_staging && (is_opensuse || get_var('ADDONS', '') =~ /wsm/ || get_var('SCC_ADDONS', '') =~ /wsm/)) {
         loadtest "console/php_pcre";
-        # TODO test on SLE https://progress.opensuse.org/issues/31972 
+        # TODO test on SLE https://progress.opensuse.org/issues/31972
         loadtest "console/mariadb_odbc" if is_opensuse;
         if (is_leap("<15.4") || is_sle("<15-SP4")) {
             loadtest "console/php7";
