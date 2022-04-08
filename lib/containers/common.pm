@@ -45,7 +45,7 @@ sub install_podman_when_needed {
             assert_script_run "apt-get -y install @pkgs", timeout => 300;
         } else {
             # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
-            activate_containers_module if $host_os =~ 'sles';
+            activate_containers_module if $host_os =~ 'sle';
             push(@pkgs, 'podman-cni-config') if is_jeos();
             push(@pkgs, 'apparmor-parser') if is_leap("=15.1");    # bsc#1123387
             zypper_call "in @pkgs";
@@ -75,7 +75,7 @@ sub install_docker_when_needed {
             assert_script_run "apt-cache policy docker-ce";
             assert_script_run "apt-get -y install docker-ce", timeout => 300;
         } else {
-            if ($host_os =~ 'sles') {
+            if ($host_os =~ 'sle') {
                 # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
                 activate_containers_module;
 
@@ -128,7 +128,7 @@ sub install_buildah_when_needed {
             assert_script_run "apt-get update", timeout => 900;
             assert_script_run "apt-get -y install buildah", timeout => 300;
         } else {
-            activate_containers_module if $host_os =~ 'sles';
+            activate_containers_module if $host_os =~ 'sle';
             zypper_call('in buildah', timeout => 300);
         }
     }
