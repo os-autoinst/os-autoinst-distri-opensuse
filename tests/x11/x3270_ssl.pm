@@ -8,7 +8,7 @@
 # Summary: x3270 for SSL support testing, with openssl s_server running on local system
 #
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tags: poo#65570, poo#65615, poo#89005, poo#106504
+# Tags: poo#65570, poo#65615, poo#89005, poo#106504, poo#109566
 
 use base "x11test";
 use strict;
@@ -85,7 +85,7 @@ sub run {
     send_key "ctrl-c";
     send_key "alt-tab";
     send_key "ctrl-c";
-    assert_screen 'generic-desktop';
+    assert_screen 'x3270_ssl_desktop';
 
     # Terminate openssl s_server
     select_console 'root-console';
