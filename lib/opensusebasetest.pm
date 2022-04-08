@@ -1172,7 +1172,7 @@ sub wait_boot {
         $self->handle_pxeboot(bootloader_time => $bootloader_time, pxemenu => 'pxe-custom-kernel', pxeselect => 'pxe-custom-kernel-selected');
     }
     else {
-        assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600) if (uses_qa_net_hardware() || get_var("PXEBOOT"));
+        assert_screen([qw(virttest-pxe-menu qa-net-selection qa-net-selection-uefi prague-pxe-menu pxe-menu)], 600) if (uses_qa_net_hardware() || get_var("PXEBOOT"));
         $self->handle_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
         # part of soft failure bsc#1118456
         if (get_var('UEFI') && is_hyperv) {

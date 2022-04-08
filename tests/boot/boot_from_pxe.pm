@@ -19,6 +19,7 @@ use utils qw(type_string_slow enter_cmd_slow);
 use Utils::Backends;
 use Utils::Architectures;
 use version_utils qw(is_upgrade is_sle);
+use ipmi_backend_utils 'set_pxe_boot';
 
 sub run {
     my ($image_path, $image_name, $cmdline);
@@ -31,6 +32,8 @@ sub run {
         resume_vm();
     }
 
+    set_pxe_boot if get_var('UEFI_PXE_BOOT');
+
     if (is_ipmi) {
         if (is_remote_backend && is_aarch64 && get_var('IPMI_HW') eq 'thunderx') {
             select_console 'sol', await_console => 1;
@@ -41,10 +44,10 @@ sub run {
             select_console 'sol', await_console => 0;
         }
     }
-    if (!check_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600)) {    # nocheck: old code, should be updated
+    if (!check_screen([qw(virttest-pxe-menu qa-net-selection qa-net-selection-uefi prague-pxe-menu pxe-menu)], 600)) {    # nocheck: old code, should be updated
         ipmi_backend_utils::ipmitool 'chassis power reset';
     }
-    assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600);
+    assert_screen([qw(virttest-pxe-menu qa-net-selection qa-net-selection-uefi prague-pxe-menu pxe-menu)], 600);
 
     # boot bare-metal/IPMI machine
     if (is_ipmi && get_var('BOOT_IPMI_SYSTEM')) {
@@ -60,7 +63,10 @@ sub run {
 
         $image_path = get_var("HOST_IMG_URL");
     }
-    elsif (match_has_tag("qa-net-selection")) {
+    # the tags, 'qa-net-selection' & 'qa-net-selection-uefi', are expected to be used
+    # in the needles for UEFI boot menu in QA-NET, though they are treated differently here
+    # because 'qa-net-selection' is widely used
+    elsif (match_has_tag("qa-net-selection") or match_has_tag("qa-net-selection-uefi")) {
         if (check_var("INSTALL_TO_OTHERS", 1)) {
             $image_name = get_var("REPO_0_TO_INSTALL");
         }
@@ -72,7 +78,7 @@ sub run {
         $openqa_url = 'http://' . $openqa_url unless $openqa_url =~ /http:\/\//;
         my $repo = $openqa_url . "/assets/repo/${image_name}";
         my $key_used = '';
-        if (is_remote_backend && is_aarch64 && is_supported_suse_domain) {
+        if ((is_remote_backend && is_aarch64 && is_supported_suse_domain) or match_has_tag("qa-net-selection-uefi")) {
             $key_used = 'c';
             send_key 'down';
         }
@@ -93,6 +99,7 @@ sub run {
             my $path_prefix = "auto/openqa/repo";
             $path_prefix = "/mnt/openqa/repo" if (!is_orthos_machine);
             my $path = "${path_prefix}/${image_name}/boot/${arch}";
+            $path .= "/loader" if is_x86_64 && !is_orthos_machine;
             $image_path = "linux $path/linux install=$repo";
         }
 
@@ -187,7 +194,11 @@ sub run {
             if (match_has_tag("orthos-grub-boot-linux") or match_has_tag("qa-net-grub-boot-linux")) {
                 my $image_name = eval { check_var("INSTALL_TO_OTHERS", 1) ? get_var("REPO_0_TO_INSTALL") : get_var("REPO_0") };
                 my $args = "initrd auto/openqa/repo/${image_name}/boot/${arch}/initrd";
-                $args = "initrd /mnt/openqa/repo/${image_name}/boot/${arch}/initrd" if (!is_orthos_machine);
+                if (!is_orthos_machine) {
+                    $args = "initrd /mnt/openqa/repo/${image_name}/boot/${arch}";
+                    $args .= "/loader" if is_x86_64;
+                    $args .= "/initrd";
+                }
                 type_string_slow $args;
                 send_key 'ret';
                 #Detect orthos-grub-boot-initrd and qa-net-grub-boot-initrd for aarch64 in orthos and openQA networks respectively

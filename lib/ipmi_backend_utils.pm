@@ -264,6 +264,21 @@ sub adjust_for_ipmi_xen {
     }
 }
 
+# Set boot from pxe via ipmitool
+sub set_pxe_boot {
+    while (1) {
+        my $stdout = ipmitool('chassis bootparam get 5');
+        if ($stdout =~ m/Boot Flag Valid[\d\D]*Force PXE/) {
+            record_info("Current boot device is PXE", "Current boot device is $stdout");
+            last;
+        }
+        diag "setting boot device to pxe";
+        my $options = get_var('IPXE_UEFI') ? 'options=efiboot' : '';
+        ipmitool("chassis bootdev pxe ${options}");
+        sleep(3);
+    }
+}
+
 sub set_pxe_efiboot {
     my ($root_prefix) = @_;
     $root_prefix = "/" if (!defined $root_prefix) || ($root_prefix eq "");

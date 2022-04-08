@@ -44,17 +44,6 @@ sub poweron_host {
     }
 }
 
-sub set_pxe_boot {
-    while (1) {
-        my $stdout = ipmitool('chassis bootparam get 5');
-        last if $stdout =~ m/Boot Flag Valid[\d\D]*Force PXE/;
-        diag "setting boot device to pxe";
-        my $options = get_var('IPXE_UEFI') ? 'options=efiboot' : '';
-        ipmitool("chassis bootdev pxe ${options}");
-        sleep(3);
-    }
-}
-
 sub set_bootscript {
     my $host = get_required_var('SUT_IP');
     my $ip = inet_ntoa(inet_aton($host));
