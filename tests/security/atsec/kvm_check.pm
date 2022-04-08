@@ -25,6 +25,13 @@ sub run {
     my $file = 'kvm_check_network.xml';
     assert_script_run 'wget --quiet ' . data_url("atsec/$file");
 
+    # Check if the 'default' already exists, if yes, then undefine it
+    my $exists_default_info = script_output('virsh net-list --all | grep default', proceed_on_failure => 1);
+    if ($exists_default_info =~ /default\s+(\S+)\s+(\S+)\s+(\S+)/) {
+        assert_script_run('virsh net-destroy default') if ($1 eq 'active');
+        assert_script_run('virsh net-undefine default');
+    }
+
     # Define network by parsing xml file
     assert_script_run("virsh net-define $file");
 
