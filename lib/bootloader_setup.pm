@@ -65,6 +65,7 @@ our @EXPORT = qw(
   mimic_user_to_import
   tianocore_disable_secureboot
   prepare_disks
+  get_scsi_id
 );
 
 our $zkvm_img_path = "/var/lib/libvirt/images";
@@ -227,6 +228,22 @@ sub boot_grub_item {
     grub_key_enter;
 }
 
+sub get_scsi_id {
+    my $sid;
+    type_string_very_slow "devalias";
+    send_key 'ret';
+    save_screenshot;
+    my $file = './serial0';
+    open(my $fh, '<', $file) or die $!;
+    while (my $line = <$fh>) {
+        if ($line =~ /^disk : \/pci/) {
+            $sid = ($line =~ m/scsi@(\d+)/)[0];
+            last;
+        }
+    }
+    close($fh);
+    return $sid;
+}
 
 sub boot_local_disk {
     if (get_var('OFW')) {
@@ -249,7 +266,7 @@ sub boot_local_disk {
         if (match_has_tag 'inst-slof') {
             diag 'specifying local disk for boot from slof';
             my $slof = 5;
-            $slof += 1 if get_var('VIRTIO_CONSOLE');
+            $slof = get_scsi_id if (get_var('VIRTIO_CONSOLE'));
             type_string_very_slow "boot /pci\t/sc\t$slof";
             save_screenshot;
         }
