@@ -12,7 +12,7 @@ use Exporter;
 use utils;
 use version_utils;
 use main_common qw(loadtest boot_hdd_image);
-use testapi qw(check_var get_required_var get_var);
+use testapi qw(check_var get_required_var get_var set_var);
 use Utils::Architectures;
 use Utils::Backends;
 use strict;
@@ -58,6 +58,11 @@ sub load_3rd_party_image_test {
 sub load_container_engine_test {
     my ($run_args) = @_;
     loadtest('containers/container_engine', run_args => $run_args, name => $run_args->{runtime});
+}
+
+sub load_container_helm {
+    my ($run_args, $backend) = @_;
+    loadtest('containers/helm', run_args => $run_args, name => $run_args->{runtime} . "_" . $backend);
 }
 
 sub load_image_tests_podman {
@@ -131,15 +136,21 @@ sub load_host_tests_containerd_nerdctl {
     loadtest 'containers/containerd_nerdctl';
 }
 
-sub load_host_tests_helm() {
+sub load_host_tests_helm {
+    my ($run_args) = @_;
+    my $backends = undef;
+
     if (is_sle('15-sp3+')) {
-        loadtest "containers/helm_eks";
-        loadtest "containers/helm_k3s";
+        $backends = get_var("HELM_K8S_BACKEND", "EKS,AKS,K3S");
     } elsif (is_opensuse) {
-        loadtest "containers/helm_k3s";
+        $backends = get_var("HELM_K8S_BACKEND", "K3S");
+    } else {
+        die("Helm backend not supported on this host");
     }
-    else {
-        die("Helm test not supported on this host");
+
+    foreach (split(',\s*', $backends)) {
+        push @{$run_args->{backends}}, $_;
+        load_container_helm($run_args, $_);
     }
 }
 
@@ -182,7 +193,7 @@ sub load_container_tests {
             load_host_tests_docker($run_args) if (/docker/i);
             load_host_tests_containerd_crictl() if (/containerd_crictl/i);
             load_host_tests_containerd_nerdctl() if (/containerd_nerdctl/i);
-            load_host_tests_helm() if (/helm/i);
+            load_host_tests_helm($run_args) if (/helm/i);
         }
     }
 
