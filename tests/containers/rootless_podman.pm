@@ -139,7 +139,7 @@ sub verify_userid_on_container {
         record_soft_failure "bsc#1182428 - Issue with nsenter from podman-top";
     } else {
         validate_script_output "podman top $cid user huser", sub { /bernhard\s+bernhard/ };
-        validate_script_output "podman top $cid capeff", sub { /setuid/i };
+        validate_script_output "podman top $cid capeff", sub { /none/ };
     }
 
     ## Check if uid change within the container works as desired
