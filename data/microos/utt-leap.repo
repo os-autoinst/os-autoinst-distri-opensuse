@@ -1,0 +1,7 @@
+[openSUSE_Maintenance_17456]
+name=openSUSE:Maintenance:17456 (openSUSE_Leap_15.3_Update)
+type=rpm-md
+baseurl=https://download.opensuse.org/repositories/openSUSE:/Maintenance:/17456/openSUSE_Leap_15.3_Update/
+gpgcheck=1
+gpgkey=https://download.opensuse.org/repositories/openSUSE:/Maintenance:/17456/openSUSE_Leap_15.3_Update/repodata/repomd.xml.key
+enabled=1
