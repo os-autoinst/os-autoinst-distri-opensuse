@@ -183,7 +183,7 @@ sub run {
     registercloudguest($instance) if is_byos();
     $instance->run_ssh_command(cmd => 'sudo zypper --gpg-auto-import-keys -q in -y fio', timeout => 600);
 
-    my $block_device = '/dev/' . $instance->run_ssh_command(cmd => 'lsblk -n -l --output NAME,MOUNTPOINT | sort | tail -n1');
+    my $block_device = '/dev/' . $instance->run_ssh_command(cmd => 'lsblk -n -l --output NAME,MOUNTPOINT | grep -v sr0 | sort | tail -n1');
     record_info('dev', "Block device under test: $block_device");
 
     for my $href (@scenario) {
