@@ -85,6 +85,7 @@
         "description": "Failed to transition into init label 'system_u:system_r:init_t:s0'",
         "products": {
             "sle-micro": [ "5.0", "5.1", "5.2" ],
+            "leap-micro": [ "5.2" ],
             "microos":  ["Tumbleweed"]
         },
         "type": "bug"

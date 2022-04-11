@@ -24,6 +24,11 @@ conditional_schedule:
     ENABLE_SELINUX:
       '1':
         - installation/enable_selinux
+  scc_registration:
+    DISTRI:
+      'sle-micro':
+        - installation/accept_license
+        - installation/scc_registration
   kvm:
     ARCH:
       # nested kvm is not yet implemented on ARM and kvm not supported on ppc64le
@@ -34,8 +39,7 @@ conditional_schedule:
 schedule:
   - installation/bootloader_start
   - installation/welcome
-  - installation/accept_license
-  - installation/scc_registration
+  - '{{scc_registration}}'
   - installation/ntp_config_settings
   - installation/user_settings_root
   - installation/resolve_dependency_issues
