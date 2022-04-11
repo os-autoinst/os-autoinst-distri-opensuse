@@ -237,7 +237,7 @@ sub prepare_spack_env {
     $self->relogin_root;
     assert_script_run 'source /etc/profile.d/lmod.sh';
     assert_script_run 'module load gnu $mpi';
-    assert_script_run '/usr/lib/spack/run-find-external.sh';
+    assert_script_run '/usr/lib/spack/run-find-external.sh', timeout => 300;
     assert_script_run 'source /usr/share/spack/setup-env.sh';
 }
 

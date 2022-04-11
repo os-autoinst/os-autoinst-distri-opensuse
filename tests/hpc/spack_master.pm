@@ -21,8 +21,8 @@ sub run ($self) {
     my $cluster_nodes = join(',', @cluster_nodes);
     $self->prepare_spack_env($mpi);
     record_info 'spack', script_output 'zypper -q info spack';
-    record_info 'boost spec', script_output 'spack spec boost';
-    assert_script_run "spack install boost+mpi^$mpi", timeout => 3600;
+    record_info 'boost spec', script_output('spack spec boost', timeout => 360);
+    assert_script_run "spack install boost+mpi^$mpi", timeout => 12000;
     assert_script_run 'spack load boost';
     record_info 'boost info', script_output 'spack info boost';
 
