@@ -14,6 +14,10 @@ use warnings;
 use testapi;
 use utils;
 
+# Prevent lost characters due to temporary unresponsiveness of chromium address bar.
+# See https://progress.opensuse.org/issues/109737 for details
+sub enter_address { enter_cmd @_, max_interval => utils::SLOW_TYPING_SPEED }
+
 sub run {
     select_console 'x11';
     mouse_hide;
@@ -28,18 +32,18 @@ sub run {
     # Additional waiting to prevent unready address bar
     # https://progress.opensuse.org/issues/36304
     assert_screen 'chromium-highlighted-urlbar';
-    enter_cmd "chrome://version ";
+    enter_address('chrome://version ');
     assert_screen 'chromium-about';
 
     send_key 'ctrl-l';
     assert_screen 'chromium-highlighted-urlbar';
-    enter_cmd "https://html5test.opensuse.org";
+    enter_address('https://html5test.opensuse.org');
     assert_screen 'chromium-html-test', 90;
 
     # check a site with different ssl configuration (boo#1144625)
     send_key 'ctrl-l';
     assert_screen 'chromium-highlighted-urlbar';
-    enter_cmd("https://upload.wikimedia.org/wikipedia/commons/d/d0/OpenSUSE_Logo.svg");
+    enter_address('https://upload.wikimedia.org/wikipedia/commons/d/d0/OpenSUSE_Logo.svg');
     assert_screen 'chromium-opensuse-logo', 90;
     send_key 'alt-f4';
 }
