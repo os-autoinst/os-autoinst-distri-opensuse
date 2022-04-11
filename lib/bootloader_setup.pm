@@ -619,6 +619,8 @@ sub select_bootmenu_more {
     send_key_until_needlematch($tag, get_var('OFW') ? 'up' : 'down', 10, 3);
     # Redirect linuxrc logs to console when booting from menu: "boot linux system"
     push @params, get_linuxrc_boot_params if get_var('LINUXRC_BOOT');
+    # Make sure to use the correct repo for testing
+    push(@params, "install=" . get_netboot_mirror) if (get_var("NETBOOT") && $tag =~ /rescue/);
     if (get_var('UEFI')) {
         send_key 'e';
         send_key 'down' for (1 .. 4);
