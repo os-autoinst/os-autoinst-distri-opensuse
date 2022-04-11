@@ -13,10 +13,11 @@ use warnings;
 use testapi;
 use utils;
 use x11utils 'handle_welcome_screen';
+use version_utils 'is_upgrade';
 
 sub run {
     # In case of upgrade scenario, check if opensuse_welcome window has been already deactivated from startup
-    if (get_var('UPGRADE')) {
+    if (is_upgrade) {
         my @tags = qw(generic-desktop opensuse-welcome);
         push(@tags, qw(gnome-activities opensuse-welcome-gnome40-activities)) if check_var('DESKTOP', 'gnome');
         assert_screen \@tags;
