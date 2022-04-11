@@ -14,6 +14,8 @@ vars:
   MIGRATION_METHOD: 'zypper'
   ONLINE_MIGRATION: '1'
   ORIGINAL_TARGET_VERSION: '%VERSION%'
+  # disable virtio-rng-pci device to prevent device naming changes
+  QEMU_VIRTIO_RNG: '0'
   SCC_REGISTER: 'installation'
   TIMEOUT_SCALE: '2'
   UPGRADE_TARGET_VERSION: '%VERSION%'
