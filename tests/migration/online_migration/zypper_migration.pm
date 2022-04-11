@@ -149,8 +149,6 @@ sub run {
         $out = wait_serial($migration_checks, $timeout);
     }
 
-    check_migrated_version unless is_sle_micro;
-
     select_console('root-console', await_console => 0);
     # wait long time for snapper to settle down
     assert_screen 'root-console', 600;
