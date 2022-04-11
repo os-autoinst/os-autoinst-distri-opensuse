@@ -19,8 +19,7 @@ sub run {
     validate_script_output('mokutil --sb-state', sub { m/SecureBoot enabled/ });
 
     validate_script_output('cat /sys/kernel/security/lockdown', sub { /\[integrity\]/ });
-    my $result = script_run('dd if=/dev/mem count=1');
-    if (!$result) {
+    if (script_run('dd if=/dev/mem count=1') == 0) {
         die('lockdown is NOT enabled');
     }
 }
