@@ -36,7 +36,6 @@ schedule:
   - installation/performing_installation/stop_timeout_system_reboot_now
   - installation/logs_from_installation_system
   - installation/performing_installation/confirm_reboot
-  - installation/performing_installation/reconnect_after_reboot
   - installation/handle_reboot
   - installation/first_boot
   - console/validate_zfcp
