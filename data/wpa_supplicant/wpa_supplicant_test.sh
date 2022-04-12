@@ -35,7 +35,6 @@ function GREP {
 ## ==== Prepare environment ================================================= ##
 set -o pipefail
 trap cleanup EXIT
-set -e
 prepare
 
 
@@ -76,6 +75,9 @@ GREP "FBI Surveillance Van 4" wifi_scan.txt
 echo "OK"
 
 echo "Connecting to open wifi networks ... "
+wpa_cli -i wlan1 reconfigure
+wpa_cli -i wlan1 reassociate
+sleep 20
 wpa_cli -i wlan1 status > status.txt
 GREP "ssid=FBI Surveillance Van 4" status.txt
 GREP "wpa_state=COMPLETED" status.txt
