@@ -52,7 +52,15 @@ sub run {
 
     # We need start openldap to kick out date base file which stored in directory
     assert_script_run "mkdir /tmp/ldap-sssdtest";
+    if (is_tumbleweed) {
+        assert_script_run "sed -i -e '/cachesize/d' ./slapd.conf";
+        assert_script_run "sed -i -e 's/hdb/mdb/g' ./slapd.conf";
+        # for openqa debug
+        permit_root_ssh;
+    }
+    assert_script_run "cat ./slapd.conf";
     assert_script_run "slapd -h 'ldap:///' -f slapd.conf";
+
     assert_script_run "ldapadd -x -D 'cn=root,dc=ldapdom,dc=net' -wpass -f db.ldif";
     assert_script_run "killall slapd";
     assert_script_run "ps -aux | grep slapd";
@@ -73,7 +81,11 @@ sub run {
     assert_script_run "slaptest -f slapd.conf -F ./slapd.d";
 
     # Check migration tools
-    assert_script_run "openldap_to_ds --confirm localhost ./slapd.d ./db.ldif";
+    $self->tar_and_upload_log('./slapd.d', 'slapd.d.tar.bz2');
+    upload_logs("./db.ldif", timeout => 100);
+    upload_logs("./slapd.conf", timeout => 100);
+    assert_script_run "openldap_to_ds -v --confirm localhost ./slapd.d ./db.ldif > ldap2dslog";
+    upload_logs("./ldap2dslog", timeout => 100);
     assert_script_run "ldapmodify -H ldap://localhost -x -D 'cn=Directory Manager' -w $password -f aci.ldif";
 
     # Check refint and unique plugins status
@@ -86,6 +98,7 @@ sub run {
     assert_script_run "dsconf localhost plugin memberof show";
     assert_script_run "systemctl restart dirsrv\@localhost";
     assert_script_run "dsconf localhost plugin memberof fixup dc=ldapdom,dc=net -f '(objectClass=*)'";
+    validate_script_output("dsconf localhost plugin memberof show", sub { m/nsslapd-pluginEnabled: on/ });
 
     # Restart sssd make sure re-detect backend
     systemctl("restart sssd");
