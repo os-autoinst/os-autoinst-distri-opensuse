@@ -14,6 +14,8 @@ vars:
   MAX_JOB_TIME: '14400'
   ORIGINAL_TARGET_VERSION: '%VERSION%'
   PATCH: '1'
+  # disable virtio-rng-pci device to prevent device naming changes
+  QEMU_VIRTIO_RNG: '0'
   TERMINATE_AFTER_JOBS_DONE: '1'
   TIMEOUT_SCALE: '2'
   UPGRADE: '1'
