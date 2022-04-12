@@ -24,12 +24,16 @@ conditional_schedule:
     ENABLE_SELINUX:
       '1':
         - installation/enable_selinux
+  scc_registration:
+    DISTRI:
+      'sle-micro':
+        - installation/accept_license
+        - installation/scc_registration
 
 schedule:
   - installation/bootloader_start
   - installation/welcome
-  - installation/accept_license
-  - installation/scc_registration
+  - '{{scc_registration}}'
   - installation/ntp_config_settings
   - installation/user_settings_root
   - installation/resolve_dependency_issues
