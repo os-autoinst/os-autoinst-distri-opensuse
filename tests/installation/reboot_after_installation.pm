@@ -64,7 +64,7 @@ sub run {
     if (get_var('USE_SUPPORT_SERVER') && get_var('USE_SUPPORT_SERVER_PXE_CUSTOMKERNEL')) {
         # "Press ESC for boot menu"
         # Expected: match in about 5 seconds
-        assert_screen("initboot_ESC_prompt", 10);
+        assert_screen("initboot_ESC_prompt");
         send_key "esc";
 
         # Expected: the BIOS boot menu featuring a netboot entry
