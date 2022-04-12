@@ -9,7 +9,7 @@
 # - Download testfiles from autoinst_url
 # - Compile C++t test code and run test
 # - Save screenshot
-# - Install php5 or 7 depending on distro
+# - Install php? depending on distro
 # - Run some php tests using pcre
 # - Run "grep -qP '^VERSI(O?)N' /etc/os-release"
 # - Cleanup test files
@@ -42,10 +42,10 @@ sub run {
         $php = 'php8';
     }
     zypper_call("in $php");
-    assert_script_run "php simple.php | grep 'matches'";
+    assert_script_run "$php simple.php | grep 'matches'";
     save_screenshot;
 
-    assert_script_run "php complex.php | grep 'domain name is: php.net'";
+    assert_script_run "$php complex.php | grep 'domain name is: php.net'";
     save_screenshot;
 
     assert_script_run "grep -qP '^VERSI(O?)N' /etc/os-release";

@@ -1,41 +1,51 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2020 SUSE LLC
+# Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: php7-mysql mysql sudo
-# Summary: PHP7 code that interacts locally with MySQL
+# Package: php8-mysql mysql sudo
+# Summary: PHP8 code that interacts locally with MySQL
 #   This tests creates a MySQL database and inserts an element. Then,
 #   PHP reads the elements and writes a new one in the database. If
 #   all succeed, the test passes.
 #
 #   The test requires the Web and Scripting module on SLE
-# - Setup apache to use php7 modules
-# - Install php7-mysql mysql sud
+# - Setup apache to use php8 modules
+# - Install php8-mysql mysql sud
 # - Restart mysql service
 # - Create a test database
 # - Insert a element "can you read this?"
 # - Grab a php test file from datadir, test it with curl in apache
 # - Run select manually to check for the element
 # - Drop created database
-# Maintainer: Ondřej Súkup <osukup@suse.cz>
-
+# Maintainer: QE Core <qe-core@suse.com>
 
 use base "consoletest";
 use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_leap);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use apachetest;
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
-    setup_apache2(mode => 'PHP7');
+
+    my $php = '';
+    if (is_leap('<15.0') || is_sle('<15')) {
+        $php = 'php5';
+    }
+    elsif (is_leap("<15.4") || is_sle("<15-SP4")) {
+        $php = 'php7';
+    }
+    else {
+        $php = 'php8';
+    }
+    setup_apache2(mode => uc($php));
     # install requirements
-    zypper_call "in php7-mysql mysql sudo";
+    zypper_call "in $php-mysql mysql sudo";
 
     systemctl 'restart mysql', timeout => 300;
 

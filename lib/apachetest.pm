@@ -50,13 +50,15 @@ sub setup_apache2 {
         push @packages, qw(apache2-mod_nss mozilla-nss-tools expect);
     }
 
-    if ($mode eq "PHP7") {
+    if ($mode eq "PHP5") {
+        push @packages, qw(apache2-mod_php5 php5);
+        zypper_call("rm -u apache2-mod_php{7,8} php{7,8}", exitcode => [0, 104]);
+    }
+    elsif ($mode eq "PHP7") {
         push @packages, qw(apache2-mod_php7 php7);
-        push @packages, qw(php7-cli) unless (is_sle("<15-SP4") || is_leap("<15.4"));
         zypper_call("rm -u apache2-mod_php{5,8} php{5,8}", exitcode => [0, 104]);
     }
-
-    if ($mode eq "PHP8") {
+    elsif ($mode eq "PHP8") {
         push @packages, qw(apache2-mod_php8 php8-cli);
         zypper_call("rm -u apache2-mod_php{5,7} php{5,7}", exitcode => [0, 104]);
     }
@@ -65,15 +67,18 @@ sub setup_apache2 {
     my $timeout = is_aarch64 ? 1200 : 300;
     zypper_call("--no-gpg-checks in @packages", timeout => $timeout);
 
-    # Enable php7
-    if ($mode eq "PHP7") {
+    # Enable php5
+    if ($mode eq "PHP5") {
+        assert_script_run 'a2enmod -d php7';
+        assert_script_run 'a2enmod -d php8';
+        assert_script_run 'a2enmod php5';
+    } # Enable php7
+    elsif ($mode eq "PHP7") {
         assert_script_run 'a2enmod -d php5';
         assert_script_run 'a2enmod -d php8';
         assert_script_run 'a2enmod php7';
-    }
-
-    # Enable php8
-    if ($mode eq "PHP8") {
+    } # Enable php8
+    elsif ($mode eq "PHP8") {
         assert_script_run 'a2enmod -d php5';
         assert_script_run 'a2enmod -d php7';
         assert_script_run 'a2enmod php8';
