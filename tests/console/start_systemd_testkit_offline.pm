@@ -18,11 +18,12 @@ use base 'consoletest';
 use testapi;
 use utils;
 use Mojo::JSON qw(encode_json);
+use version_utils qw(is_sle);
 use strict;
 use warnings;
 
 my $log = '/tmp/systemd_run.log';
-my $testdir = '/usr/lib/systemd/test/SAP';
+my $testdir = '/usr/lib/test/external/';
 
 sub run {
     my ($self) = @_;
@@ -42,7 +43,7 @@ sub run {
     # Run the test and save the logs and results
     # systemd_run.sh will fail with a non-zero retval if any of the sub-tests
     # fail. We ignore it to parse the individual results from the log
-    my $out = script_output "su - abcadm -c '$testdir/systemd_run.sh' 2>&1 | tee $log", $wait, proceed_on_failure => 0;
+    my $out = script_output "su - abcadm -c '$testdir/systemd_run.sh' 2>&1 | tee $log", $wait, proceed_on_failure => 1;
     record_info("END", "Testsuite excecution finished");
     record_info("TEST LOG", "$out");
     assert_script_run(qq{(ping -c4 build.suse.de && exit 1 || exit 0 )});
@@ -84,11 +85,22 @@ sub parse_results_from_output {
             # Test block end has been reached. Record results
 
             if ($outcome eq 'failed') {
-                my $openQA_result = $self->record_testresult('fail');
+                my ($openQA_result, $softfail_result);
+                if ($error_line =~ /problems.*hostagent.service/) {
+                    $openQA_result = $self->record_testresult('softfail');
+                    $softfail_result = 119565;
+                } elsif ($error_line =~ /invalid.*version.*249.*expected.*234.*/ && is_sle("=15-SP4")) {
+                    $openQA_result = $self->record_testresult('softfail');
+                    $softfail_result = 1198455;
+                } else {
+                    $openQA_result = $self->record_testresult('fail');
+                    $softfail_result = 0;
+                }
                 my $openQA_filename = $self->next_resultname('txt');
                 $openQA_result->{title} = $testunit;
                 $openQA_result->{text} = $openQA_filename;
-                $self->write_resultfile($openQA_filename, "# Failure:\n$error_line\n");
+                ($softfail_result) ? $self->write_resultfile($openQA_filename, "# Softfail bsc#$softfail_result:\n$error_line\n") :
+                  $self->write_resultfile($openQA_filename, "# Failure:\n$error_line\n");
                 $self->{dents}++;
             }
 

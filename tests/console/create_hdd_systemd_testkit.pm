@@ -15,7 +15,7 @@ use base "consoletest";
 use testapi;
 use utils;
 
-my $testdir = '/usr/lib/systemd/test/SAP/';
+my $testdir = '/usr/lib/test/external/';
 
 sub run {
     my ($self) = @_;
