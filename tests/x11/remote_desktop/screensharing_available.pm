@@ -1,7 +1,7 @@
 # Copyright 2018-2019 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Package: gnome-control-center vino systemd
+# Package: gnome-control-center vino systemd gnome-remote-desktop
 # Summary: Test if the Screen Sharing GNOME Desktop functionality works
 #   We currently need to install vino package for that
 # - Launch "gnome-control-center sharing"
@@ -19,14 +19,13 @@ use strict;
 use warnings;
 use testapi;
 use x11utils 'handle_relogin';
-use version_utils 'is_leap';
+use version_utils qw(is_leap is_sle);
 
 sub run {
     select_console 'x11';
 
     # Run the gnome-control-center - the sharing section
     x11_start_program "gnome-control-center sharing", target_match => 'vino_screensharing_available-gnome-control-center-sharing';
-
     # Always check the common sharing functionality is enabled
     if (check_screen 'disabled_sharing') {
         assert_and_click 'disabled_sharing';
@@ -37,16 +36,13 @@ sub run {
     if (match_has_tag 'without_screensharing') {
         record_info 'vino missing', 'After the installation the screen sharing is not available - vino is missing and we need to install it now.';
         send_key 'ctrl-q';
-
         # Install the vino package which is probably the case of missing screen sharing option
         ensure_installed 'vino';
-
         # Log of and back in to ensure the vino feature gets enabled
         handle_relogin;
 
         # Run the gnome-control-center to ensure the same state as we were while entering this if block
         x11_start_program "gnome-control-center sharing", target_match => 'vino_screensharing_available-gnome-control-center-sharing';
-
         # Always check the common sharing functionality is enabled
         if (check_screen 'disabled_sharing') {
             assert_and_click 'disabled_sharing';
@@ -64,7 +60,7 @@ sub run {
         record_soft_failure 'boo#1137569 - screen sharing not yet supported on wayland';
     } else {
         assert_screen 'with_screensharing';
-        record_info 'vino present', 'Vino and the screen sharing are present';
+        is_sle("15-sp4+") ? record_info('gnome-remote-desktop present and the screen sharing are present') : record_info('vino present', 'Vino and the screen sharing are present');
     }
     send_key 'ctrl-q';
 }
