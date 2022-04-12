@@ -9,6 +9,7 @@ schedule:
     - security/atsec/drng_test_preparation
     - security/atsec/dbus_services_exposure
     - security/atsec/dbus_fuzzer
+    - security/atsec/syscall_thrasher
 conditional_schedule:
     bootloader_zkvm:
         ARCH:
