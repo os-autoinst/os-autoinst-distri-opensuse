@@ -18,6 +18,7 @@ use registration 'registration_bootloader_cmdline';
 use data_integrity_utils 'verify_checksum';
 use File::Basename;
 use network_utils qw(genmac);
+use bootloader_setup;
 
 sub vmware_set_permanent_boot_device {
     return unless is_vmware;
@@ -294,6 +295,7 @@ sub run {
         $cmdline .= 'textmode=1 ' if check_var('VIDEOMODE', 'text');
         $cmdline .= 'rescue=1 ' if is_installcheck || is_rescuesystem;
         $cmdline .= get_var('EXTRABOOTPARAMS') . ' ' if get_var('EXTRABOOTPARAMS');
+        $cmdline .= ' ' . join(' ', autoyast_boot_params) if (get_var('AUTOYAST'));
         $cmdline .= registration_bootloader_cmdline . ' ' if check_var('SCC_REGISTER', 'installation');
         enter_cmd "export pty=`virsh dumpxml $name | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`";
         enter_cmd "echo \$pty";
