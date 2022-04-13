@@ -13,6 +13,8 @@ vars:
   MAX_JOB_TIME: '14400'
   MIGRATION_METHOD: zypper
   ONLINE_MIGRATION: '1'
+  # disable virtio-rng-pci device to prevent device naming changes
+  QEMU_VIRTIO_RNG: '0'
   SCC_ADDONS: ha
   SCC_PROXY_URL: '%SCC_URL%'
   SCC_REGISTER: installation
