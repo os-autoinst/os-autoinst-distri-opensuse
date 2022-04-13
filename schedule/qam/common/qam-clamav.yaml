@@ -1,7 +1,7 @@
-name: extra_tests_clamav
+name: qam-clamav
 description:    >
-    Maintainer: QE Core.
-    Extract 'clamav' module from 'extra_tests_textmode' to meet the RAM
+    Maintainer: qe-core <qe-core@suse.de>
+    Extract 'clamav' module from 'mau-extratests1' to meet the RAM
     requirements.
 schedule:
     - installation/bootloader_start
