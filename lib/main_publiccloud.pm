@@ -149,10 +149,11 @@ sub load_publiccloud_tests {
     }
     else {
         loadtest 'boot/boot_to_desktop';
-        if (check_var('PUBLIC_CLOUD_DOWNLOAD_TESTREPO', 1)) {
+        if (get_var('PUBLIC_CLOUD_MIGRATION')) {
+            loadtest('publiccloud/migration');
+        } elsif (check_var('PUBLIC_CLOUD_DOWNLOAD_TESTREPO', 1)) {
             load_publiccloud_download_repos();
-        }
-        elsif (get_var('PUBLIC_CLOUD_QAM')) {
+        } elsif (get_var('PUBLIC_CLOUD_QAM')) {
             load_maintenance_publiccloud_tests();
         } else {
             load_latest_publiccloud_tests();
