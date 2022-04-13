@@ -1,0 +1,16 @@
+[general]
+apiurl = https://api.suse.de
+build-jobs = 7
+
+[https://api.suse.de]
+user = TAGIBSUSER
+pass = TAGSECRET
+email = openqa_container_bot@suse.com
+aliases = ibs
+trusted_prj=SUSE:SLE-11:SP2 SUSE:SLE-11:GA SUSE:SLE-11-SP3:GA SUSE:SLE-11-SP1:GA SUSE:SLE-11-SP1:Update SUSE:SLE-11:Update SUSE:SLE-11-SP2:GA SUSE:SLE-11-SP2:Update SUSE:SLE-11-SP3:Update SUSE:Factory:Head SUSE:SLE-10-SP2:GA SUSE:SLE-10-SP2:Update SUSE:SLE-10-SP4:GA SUSE:SLE-10-SP3:Update SUSE:SLE-10-SP3:GA SUSE:SLE-10-SP2:Update:Test SUSE:SLE-12:GA SUSE:SLE-12:Update SUSE:SLE-12-SP1:GA SUSE:SLE-11-SP4:GA openSUSE.org:openSUSE:Factory SUSE:SLE-12-SP2:Update openSUSE.org:openSUSE:Tumbleweed
+
+[https://api.opensuse.org]
+user = TAGIBSUSER
+pass = TAGSECRET
+email = openqa_container_bot@suse.com
+aliases = obs
