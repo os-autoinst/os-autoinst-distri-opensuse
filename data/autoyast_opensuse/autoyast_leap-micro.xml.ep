@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <add-on>
+    <add_on_products config:type="list">
+      <listentry>
+        <alias>repo-main</alias>
+        <media_url><![CDATA[https://download.opensuse.org/distribution/leap-micro/5.2/product/repo/Leap-Micro-<%= $get_var->('VERSION') %>-<%= $get_var->('ARCH') %>-Media/]]></media_url>
+        <name>Leap Micro Main Repository</name>
+      </listentry>
+    </add_on_products>
+  </add-on>
   <bootloader>
     <global>
       <timeout config:type="integer">-1</timeout>
