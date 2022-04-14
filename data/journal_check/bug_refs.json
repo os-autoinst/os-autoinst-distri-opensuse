@@ -338,7 +338,8 @@
     "boo#1196335": {
         "description": "Failed to start Load kdump kernel and initrd",
         "products": {
-            "opensuse": ["Tumbleweed"]
+            "opensuse": ["Tumbleweed"],
+            "microos":  ["Tumbleweed"]
         },
         "type": "ignore"
     }
