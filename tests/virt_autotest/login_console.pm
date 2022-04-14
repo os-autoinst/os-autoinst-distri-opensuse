@@ -123,7 +123,6 @@ sub login_to_console {
         save_screenshot;
         #offline upgrade requires upgrading offline during reboot while online doesn't
         if (check_var('offline_upgrade', 'yes')) {
-            $timeout = 600;
             #boot to upgrade menuentry
             send_key 'down';
             send_key 'ret';
@@ -142,9 +141,26 @@ sub login_to_console {
             send_key 'ret';
             #leave ssh console and switch to sol console
             switch_from_ssh_to_sol_console(reset_console_flag => 'on');
-            #grub may not showup after upgrade because default GRUB_TERMINAL setting
-            #when fixed in separate PR, will uncomment following line
-            #assert_screen([qw(grub2 grub1)], 120);
+            save_screenshot;
+            send_key 'ret';
+            #wait grub2 boot menu after first stage upgrade
+            assert_screen('grub2', 300);
+            #wait sshd up after first stage upgrade
+            die "Can not connect to machine to perform offline upgrade second stage via ssh" unless (check_port_state(get_required_var('SUT_IP'), 22, 20));
+            save_screenshot;
+            #switch to ssh console
+            use_ssh_serial_console;
+            save_screenshot;
+            #start second stage upgrade
+            enter_cmd("DISPLAY= yast.ssh");
+            save_screenshot;
+            #wait for second stage upgrade completion
+            assert_screen('yast2-second-stage-done', 300);
+            #leave ssh console and switch to sol console
+            switch_from_ssh_to_sol_console(reset_console_flag => 'on');
+            save_screenshot;
+            send_key 'ret';
+            save_screenshot;
         }
         #setup vars
         set_var("reboot_for_upgrade_step", undef);
