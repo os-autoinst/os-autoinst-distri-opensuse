@@ -78,10 +78,10 @@ sub run {
         my $ret = script_run("timeout $bci_timeout tox -e $env -- -n auto --reruns 3 --reruns-delay 10", timeout => ($bci_timeout + 3));
         if ($ret == 124) {
             # man timeout: If  the command times out, and --preserve-status is not set, then exit with status 124.
-            record_soft_failure("The command <tox -e $env> timed out.");
+            record_info("tox timeout", "The command <tox -e $env> timed out.", result => 'fail');
             $error_count += 1;
         } elsif ($ret != 0) {
-            record_soft_failure("The command <tox -e $env> failed.");
+            record_info("tox failed", "The command <tox -e $env> failed.", result => 'fail');
             $error_count += 1;
         } else {
             record_info('PASSED');

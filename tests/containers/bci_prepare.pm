@@ -21,10 +21,10 @@
 use Mojo::Base qw(consoletest);
 use XML::LibXML;
 use utils qw(zypper_call script_retry);
-use version_utils qw(get_os_release);
+use version_utils qw(get_os_release is_sle);
+use registration qw(add_suseconnect_product get_addon_fullname);
 use containers::common;
 use testapi;
-
 
 sub packages_to_install {
     my ($version, $sp, $host_distri) = @_;
@@ -44,16 +44,19 @@ sub packages_to_install {
             push @packages, 'python36-pip';
         } elsif ($version eq '15.0') {
             # On SLES15 go needs to be installed from packagehub. On later SLES it comes from the SDK module
-            assert_script_run("SUSEConnect -p PackageHub/15/$arch");
+            add_suseconnect_product(get_addon_fullname('phub'));
             push @packages, ('go1.10', 'skopeo');
         } else {
             # Desktop module is needed for SDK module, which is required for installing go
-            script_retry("SUSEConnect -p sle-module-desktop-applications/$version/$arch", delay => 60, retry => 3);
-            script_retry("SUSEConnect -p sle-module-development-tools/$version/$arch", delay => 60, retry => 3);
-            push @packages, ('go', 'skopeo');
+            add_suseconnect_product(get_addon_fullname('desktop'));
+            add_suseconnect_product(get_addon_fullname('sdk'));
+            # tox and pytest are in the PackageHub Repository and some dependencies are in the publiccloud module (bsc#1198490)
+            add_suseconnect_product(get_addon_fullname('phub'));
+            add_suseconnect_product(get_addon_fullname('pcm'));
+            push @packages, qw(go skopeo python3-tox python3-pytest);
         }
     } elsif ($host_distri =~ /opensuse/) {
-        push @packages, qw(python3-devel go skopeo);
+        push @packages, qw(python3-devel python3-tox python3-pytest go skopeo);
     } else {
         die("Host is not supported for running BCI tests.");
     }
@@ -88,11 +91,16 @@ sub run {
         foreach my $pkg (@packages) {
             zypper_call("--quiet in $pkg", timeout => 300);
         }
-        assert_script_run('pip3.6 --quiet install --upgrade pip', timeout => 600);
-        assert_script_run("pip3.6 --quiet install tox --ignore-installed six", timeout => 600);
+        # tox installation via pip is only required on older SLES versions
+        if (is_sle("<=15", "$version.$sp")) {
+            assert_script_run('pip3.6 --quiet install --upgrade pip', timeout => 600);
+            assert_script_run("pip3.6 --quiet install tox --ignore-installed six", timeout => 600);
+        }
     } else {
         die "Unexpected distribution ($host_distri) has been used";
     }
+    # Ensure tox is installed properly
+    assert_script_run('tox --version');
 
     # For BCI tests using podman, buildah package is also needed
     install_buildah_when_needed($host_distri) if ($engine eq 'podman');
