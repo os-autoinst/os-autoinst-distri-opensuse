@@ -57,6 +57,18 @@ EOF
         );
         assert_script_run("cat $egg_file");
 
+        # The gpg binary does not call libgcrypt directly to generate keys.
+        # gpg instead calls into a running "gpg-agent"
+        # which is launched during GNOME session start to let it create the key.
+        # This gpg-agent does NOT see your environment variable,
+        # but it would see the FIPS global indicator
+        # either /proc/sys/crypto/fips:enabled or /etc/gcrypt/fips_enabled.
+        # You can disable the gpg-agent before the test by running:
+        # gpgconf --kill gpg-agent
+        #
+        # Refer to bug #1198135.
+        assert_script_run("gpgconf --kill gpg-agent");
+
         script_run("gpg2 -vv --batch --full-generate-key $egg_file &> /dev/$serialdev; echo gpg-finished-\$? >/dev/$serialdev", 0);
     }
     else {
