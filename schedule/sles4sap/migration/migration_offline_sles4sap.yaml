@@ -13,6 +13,8 @@ vars:
   PATCH: '1'
   UPGRADE: '1'
   ORIGINAL_TARGET_VERSION: '%VERSION%'
+  # disable virtio-rng-pci device to prevent device naming changes
+  QEMU_VIRTIO_RNG: '0'
   UPGRADE_TARGET_VERSION: '%VERSION%'
   HDDVERSION: '%ORIGIN_SYSTEM_VERSION%'
   BOOTFROM: d
