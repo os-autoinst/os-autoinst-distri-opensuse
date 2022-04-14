@@ -13,7 +13,7 @@ use utils;
 sub run ($self) {
     my $mpi = $self->get_mpi();
     $self->prepare_spack_env($mpi);
-    assert_script_run "spack install boost+mpi^$mpi", timeout => 3600;
+    assert_script_run "spack install boost+mpi^$mpi", timeout => 12000;
     assert_script_run 'spack load boost';
 
     record_info 'boost info', script_output 'spack info boost';
