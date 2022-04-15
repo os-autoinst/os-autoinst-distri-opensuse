@@ -3,7 +3,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Base module for audit-test test cases
+# Summary: Base module for ATSEC test cases
 # Maintainer: xiaojing.liu <xiaojing.liu@suse.com>
 
 package atsec_test;
