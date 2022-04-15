@@ -25,7 +25,7 @@ sub load_maintenance_publiccloud_tests {
     loadtest "publiccloud/download_repos";
     loadtest "publiccloud/prepare_instance", run_args => $args;
     loadtest "publiccloud/registercloudguest", run_args => $args;
-    loadtest "publiccloud/register_system", run_args => $args;
+    loadtest "publiccloud/register_addons", run_args => $args;
     loadtest "publiccloud/transfer_repos", run_args => $args;
     loadtest "publiccloud/patch_and_reboot", run_args => $args;
     if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
@@ -88,7 +88,7 @@ sub load_latest_publiccloud_tests {
         my $args = OpenQA::Test::RunArgs->new();
         loadtest "publiccloud/prepare_instance", run_args => $args;
         loadtest "publiccloud/registercloudguest", run_args => $args;
-        loadtest "publiccloud/register_system", run_args => $args;
+        loadtest "publiccloud/register_addons", run_args => $args;
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
             load_publiccloud_consoletests();

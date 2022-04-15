@@ -27,8 +27,7 @@ sub run {
     # Create $instance to make the code easier to read
     my $instance = $args->{my_instance};
 
-    my $regcode = (is_byos()) ? get_required_var('SCC_REGCODE') : undef;
-    my $regcode_param = ($regcode) ? "-r $regcode" : '';
+    my $regcode_param = (is_byos()) ? "-r " . get_required_var('SCC_REGCODE') : '';
 
     select_host_console();    # select console on the host, not the PC instance
 
