@@ -8,7 +8,7 @@
       <gfxmode>auto</gfxmode>
       <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
-      <serial>serial --unit=1 --speed=115200 --parity=no</serial>
+      <serial>serial --speed=115200 --unit=<%= $get_var->('SERIALDEV') =~ s/ttyS//r %> --word=8 --parity=no --stop=1</serial>
       <terminal>serial</terminal>
       <timeout config:type="integer">10</timeout>
       <trusted_grub>false</trusted_grub>

@@ -46,15 +46,14 @@
       <gfxmode>auto</gfxmode>
       <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
-      <serial>serial --unit=1 --speed=115200 --parity=no</serial>
+      <serial>serial --speed=115200 --unit=<%= $get_var->('SERIALDEV') =~ s/ttyS//r %> --word=8 --parity=no --stop=1</serial>
       <timeout config:type="integer">10</timeout>
       <trusted_grub>false</trusted_grub>
       <xen_append>splash=silent quiet console=<%= $get_var->('SERIALDEV') %>,115200</xen_append>
+      <terminal>console</terminal>
       % if ($check_var->('VERSION', '15')) {
-      <terminal>serial</terminal>
       <xen_kernel_append>dom0_max_vcpus=4 dom0_mem=8192M,max:8192M vga=gfx-1024x768x16 loglvl=all guest_loglvl=all</xen_kernel_append>
       % } else {
-      <terminal>console serial</terminal>
       <xen_kernel_append>dom0_max_vcpus=4 vga=gfx-1024x768x16 loglvl=all guest_loglvl=all</xen_kernel_append>
       % }
     </global>
