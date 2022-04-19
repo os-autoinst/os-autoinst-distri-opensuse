@@ -94,9 +94,10 @@ sub check_nodejs_common {
     zypper_call('in nodejs-common | tee /tmp/install_nodejs.log');
 
     assert_script_run('grep -E "Installing: nodejs16" /tmp/install_nodejs.log');
-    my $ret_s1 = script_output(q(zypper se -i nodejs | sed -n '/nodejs16 /p' | awk '{print $1}'));
-    my $ret_s2 = script_output(q(zypper se -i nodejs | sed -n '/nodejs-common/p' | awk '{print $1}'));
-    die "Expected package is not installed" if ('i' ne "$ret_s1" || 'i+' ne "$ret_s2");
+    script_run('zypper se -i nodejs');
+    my $ret_s1 = script_output(q(zypper se -i nodejs | grep package | grep nodejs16 | awk -F\| '{print $1}'));
+    my $ret_s2 = script_output(q(zypper se -i nodejs | grep package | grep nodejs-common| awk -F\| '{print $1}'));
+    die "Expected package is not installed. ret_s1=$ret_s1' and ret_s2=$ret_s2'" if ('i' ne "$ret_s1" || 'i+' ne "$ret_s2");
 
     zypper_call("rm nodejs-common");
     assert_script_run('rm /tmp/install_nodejs.log');
@@ -189,7 +190,9 @@ sub run {
 
     # feature SLE-21783
     # Check nodejs-common on SLES15SP3+ before and after migration
-    if (get_var('SCC_ADDONS') =~ /wsm/ && is_sle('>=15-SP3') && !get_var('MEDIA_UPGRADE')) {
+    # We just check nodejs_common for sle15-sp3+ and wsm module was registered
+    my $ret = script_run("SUSEConnect --status-text|grep -A3 -E 'Web and Scripting Module' | grep -qE '^\\s+Registered'");
+    if (is_sle('>=15-SP3') && ($ret == 0)) {
         check_nodejs_common;
     }
 }
