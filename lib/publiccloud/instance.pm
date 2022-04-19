@@ -231,6 +231,10 @@ sub check_guestregister {
             die('/etc/zypp/credentials.d/ is not empty');
         }
 
+        if (is_azure() && $self->run_ssh_command(cmd => 'sudo systemctl is-enabled regionsrv-enabler-azure.timer', proceed_on_failure => 1) !~ /enabled/) {
+            die('regionsrv-enabler-azure.timer is not enabled');
+        }
+
         if ($self->run_ssh_command(cmd => 'sudo stat --printf="%s" /var/log/cloudregister', proceed_on_failure => 1) != 0) {
             die('/var/log/cloudregister is not empty');
         }
@@ -250,10 +254,6 @@ sub check_guestregister {
         if ($self->run_ssh_command(cmd => 'sudo stat --printf="%s" /var/log/cloudregister', proceed_on_failure => 1) == 0) {
             die('/var/log/cloudregister is empty');
         }
-    }
-
-    if (is_azure() && $self->run_ssh_command(cmd => 'sudo systemctl is-enabled regionsrv-enabler-azure.timer', proceed_on_failure => 1) !~ /enabled/) {
-        die('regionsrv-enabler-azure.timer is not enabled');
     }
 }
 
