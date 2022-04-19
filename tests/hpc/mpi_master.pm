@@ -23,13 +23,10 @@ sub run ($self) {
     my @cluster_nodes = $self->cluster_names();
     my $cluster_nodes = join(',', @cluster_nodes);
 
-    ## adding required sdk and gcc
-    if (is_sle '>=15') {
-        add_suseconnect_product('sle-module-development-tools');
-    }
-
-    zypper_call("in $mpi $mpi-devel gcc gcc-c++ python3-devel");
-
+    zypper_call("in $mpi-gnu-hpc $mpi-gnu-hpc-devel python3-devel");
+    my $need_restart = $self->setup_scientific_module(); record_info "$need_restart";
+    $self->relogin_root if $need_restart;
+    assert_script_run "module load gnu $mpi";
     barrier_wait('CLUSTER_PROVISIONED');
     ## all nodes should be able to ssh to each other, as MPIs requires so
     $self->generate_and_distribute_ssh();
@@ -38,17 +35,11 @@ sub run ($self) {
     $self->check_nodes_availability();
 
     record_info('INFO', script_output('cat /proc/cpuinfo'));
-    # re-export as the user is re-logged in
-    assert_script_run("export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/lib64/mpi/gcc/$mpi/lib64/");
-    $self->setup_scientific_module();
     my $hostname = get_var('HOSTNAME', 'susetest');
     record_info "hostname", "$hostname";
-    assert_script_run "hostnamectl status|grep $hostname";
-    assert_script_run("export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/lib64/mpi/gcc/$mpi/lib64/");
-
+    assert_script_run "hostnamectl status | grep $hostname";
     assert_script_run("wget --quiet " . data_url("hpc/$mpi_c") . " -O /tmp/$mpi_c");
-    assert_script_run("/usr/lib64/mpi/gcc/$mpi/bin/$mpi_compiler /tmp/$mpi_c -o /tmp/$mpi_bin | tee /tmp/make.out") if $mpi_compiler;
-
+    assert_script_run("$mpi_compiler /tmp/$mpi_c -o /tmp/$mpi_bin | tee /tmp/make.out") if $mpi_compiler;
 
     # python code is not compiled. *mpi_bin* is expected as a compiled binary. if compilation was not
     # invoked return source code (ex: sample_scipy.py).
