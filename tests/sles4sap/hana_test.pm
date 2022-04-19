@@ -53,10 +53,18 @@ sub run {
     # NOTE: done here because AutoYaST part is not HANA specific
     $self->upload_hana_install_log if get_var('AUTOYAST');
 
-    # Check the memory/disk configuration
+    # Check the memory/disk configuration. Determine first whether HANA
+    # filesystems are mounted via NFS
     assert_script_run 'clear ; free -m';
-    assert_script_run 'lvs -ao +devices vg_hana';
-    assert_script_run 'df -k | grep vg_hana';
+    my $hana_fs_type = script_output q@awk '/data|log|shared/ {print $3}' /etc/fstab | sort -u@;
+    if ($hana_fs_type =~ /nfs/) {
+        assert_script_run 'mount | grep nfs';
+        assert_script_run q@df -k $(awk '/nfs/ {print $2}' /etc/fstab)@;
+    }
+    else {
+        assert_script_run 'lvs -ao +devices vg_hana';
+        assert_script_run 'df -k | grep vg_hana';
+    }
     save_screenshot;
 
     # The SAP Admin was set in sles4sap/wizard_hana_install
@@ -77,11 +85,14 @@ sub run {
 
     # Check HDB with a database query
     my $hdbsql = "hdbsql -j -d $sid -u SYSTEM -i $instance_id -p $sles4sap::instance_password";
-    my $output = script_output "$hdbsql 'SELECT * FROM DUMMY'";
-    die "hdbsql: failed to query the dummy table\n\n$output" unless ($output =~ /1 row selected/);
+    my $output;
+    unless (get_var('SKIP_HANADB_QUERY')) {
+        $output = script_output "$hdbsql 'SELECT * FROM DUMMY'";
+        die "hdbsql: failed to query the dummy table\n\n$output" unless ($output =~ /1 row selected/);
+    }
 
-    # Run NVDIMM tests if in that scenario
-    if (get_var('NVDIMM')) {
+    # Run NVDIMM tests if in that scenario and we can test with hdbsql
+    if (get_var('NVDIMM') and !get_var('SKIP_HANADB_QUERY')) {
         $output = script_output "$hdbsql \"SELECT * FROM M_INIFILE_CONTENTS where file_name = 'global.ini' and section = 'persistence' and key = 'basepath_persistent_memory_volumes'\"";
         my $pmempath = get_var('HANA_PMEM_BASEPATH', "/hana/pmem/$sid");
         my $nvddevs = get_var('NVDIMM_NAMESPACES_TOTAL', 2);
