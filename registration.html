@@ -18,6 +18,7 @@
       <li><a href="#add_suseconnect_product">add_suseconnect_product</a></li>
       <li><a href="#ssh_add_suseconnect_product">ssh_add_suseconnect_product</a></li>
       <li><a href="#remove_suseconnect_product">remove_suseconnect_product</a></li>
+      <li><a href="#ssh_remove_suseconnect_product">ssh_remove_suseconnect_product</a></li>
       <li><a href="#cleanup_registration">cleanup_registration</a></li>
       <li><a href="#register_product">register_product</a></li>
     </ul>
@@ -47,6 +48,12 @@
 <pre><code>    remove_suseconnect_product($name, [$version, [$arch, [$params]]]);</code></pre>
 
 <p>Wrapper for SUSEConnect -d $name.</p>
+
+<h2 id="ssh_remove_suseconnect_product">ssh_remove_suseconnect_product</h2>
+
+<pre><code>    ssh_remove_suseconnect_product($name, [$version, [$arch, [$params]]]);</code></pre>
+
+<p>Wrapper for SUSEConnect -d $name over ssh.</p>
 
 <h2 id="cleanup_registration">cleanup_registration</h2>
 
