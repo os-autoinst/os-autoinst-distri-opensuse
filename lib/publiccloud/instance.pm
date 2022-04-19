@@ -16,6 +16,7 @@ use File::Basename;
 use publiccloud::utils;
 use publiccloud::ssh_interactive qw(ssh_interactive_tunnel ssh_interactive_leave);
 use version_utils;
+use utils;
 
 use constant SSH_TIMEOUT => 90;
 
@@ -103,6 +104,8 @@ With C<<ssh_opts=>'...'>> you can overwrite all default ops which are in
 C<<$instance->ssh_opts>>.
 Use argument C<username> to specify a different username then
 C<<$instance->username()>>.
+
+This function is deprecated. Please use ssh_script_retry instead.
 =cut
 
 sub retry_ssh_command {
@@ -120,6 +123,94 @@ sub retry_ssh_command {
         sleep($delay);
     }
     die "Waiting for Godot: " . $cmd;
+}
+
+# Auxilliary function to prepare the ssh command that runs any command on the PC instance
+sub _prepare_ssh_cmd {
+    my ($self, %args) = @_;
+    die('No command defined') unless ($args{cmd});
+    $args{ssh_opts} //= $self->ssh_opts() . " -i '" . $self->ssh_key . "'";
+    $args{username} //= $self->username();
+    $args{timeout} //= SSH_TIMEOUT;
+
+    my $cmd = $args{cmd};
+    unless ($args{no_quote}) {
+        $cmd =~ s/'/\'/g;    # Espace ' character
+        $cmd = "\$'$cmd'";
+    }
+
+    my $ssh_cmd = sprintf('ssh %s "%s@%s" -- %s', $args{ssh_opts}, $args{username}, $self->public_ip, $cmd);
+    #$ssh_cmd = "timeout $args{timeout} $ssh_cmd" if ($args{timeout} > 0);
+    return $ssh_cmd;
+}
+
+=head2 ssh_script_run
+
+    ssh_script_run($cmd [, timeout => $timeout] [, fail_message => $fail_message] [,quiet => $quiet] [,ssh_opts => $ssh_opts] [,username => $username])
+
+Runs a command C<cmd> via ssh on the publiccloud instance and returns the return code.
+=cut
+
+sub ssh_script_run {
+    my $self = shift;
+    my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
+    my $ssh_cmd = $self->_prepare_ssh_cmd(%args);
+    delete($args{cmd});
+    delete($args{ssh_opts});
+    delete($args{username});
+    return script_run($ssh_cmd, %args);
+}
+
+=head2 ssh_assert_script_run
+
+    ssh_assert_script_run($cmd [, timeout => $timeout] [, fail_message => $fail_message] [,quiet => $quiet] [,ssh_opts => $ssh_opts] [,username => $username])
+
+Runs a command C<cmd> via ssh on the publiccloud instance and die, unless it returns zero.
+=cut
+
+sub ssh_assert_script_run {
+    my $self = shift;
+    my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
+    my $ssh_cmd = $self->_prepare_ssh_cmd(%args);
+    delete($args{cmd});
+    delete($args{ssh_opts});
+    delete($args{username});
+    assert_script_run($ssh_cmd, %args);
+}
+
+=head2 ssh_script_output
+
+    ssh_script_output($script [, $wait, type_command => 1, proceed_on_failure => 1] [,quiet => $quiet] [,ssh_opts => $ssh_opts] [,username => $username])
+
+Executing script inside SUT with bash -eo and directs stdout (but not stderr!) to the serial console and
+returns the output if the script exits with 0. Otherwise the test is set to failed.
+=cut
+
+sub ssh_script_output {
+    my $self = shift;
+    my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
+    my $ssh_cmd = $self->_prepare_ssh_cmd(%args);
+    delete($args{cmd});
+    delete($args{ssh_opts});
+    delete($args{username});
+    return script_output($ssh_cmd, %args);
+}
+
+=head2 ssh_script_retry
+
+    ssh_script_retry($cmd, [expect => $expect], [retry => $retry], [delay => $delay], [timeout => $timeout], [die => $die] [,ssh_opts => $ssh_opts] [,username => $username])
+
+Repeat command until expected result or timeout.
+=cut
+
+sub ssh_script_retry {
+    my $self = shift;
+    my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
+    my $ssh_cmd = $self->_prepare_ssh_cmd(%args);
+    delete($args{cmd});
+    delete($args{ssh_opts});
+    delete($args{username});
+    return script_retry($ssh_cmd, %args);
 }
 
 =head2 scp

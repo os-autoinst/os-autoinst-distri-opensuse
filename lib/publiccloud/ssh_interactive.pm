@@ -32,7 +32,7 @@ sub ssh_interactive_tunnel {
     my $upload_port = get_required_var('QEMUPORT') + 1;
     my $upload_host = testapi::host_ip();
 
-    $instance->run_ssh_command(
+    $instance->ssh_script_run(
         # Create /dev/sshserial fifo on remote and tail|tee it to /dev/$serialdev on local
         #   timeout => switches to script_run instead of script_output to be used so the test will not wait for the command to end
         #   tunnel the worker port (for downloading from data/ and uploading assets / logs
