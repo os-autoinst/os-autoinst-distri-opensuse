@@ -24,7 +24,7 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_tumbleweed);
 
 
 sub undo_redo_once {
@@ -49,6 +49,7 @@ sub run {
     assert_and_click 'gnote-back2allnotes';
     assert_and_dclick 'gnote-new-note-matched';
     $self->undo_redo_once;
+    assert_and_click 'close-new-note1' if (is_tumbleweed || is_sle('>=15-SP4'));
 
     #clean: remove the created new note
     $self->cleanup_gnote('gnote-new-note-matched');
