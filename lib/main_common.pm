@@ -574,7 +574,7 @@ sub load_system_role_tests {
 sub load_jeos_openstack_tests {
     return unless is_openstack;
     my $args = OpenQA::Test::RunArgs->new();
-
+    loadtest "jeos/image_info";
     loadtest 'boot/boot_to_desktop';
     if (get_var('JEOS_OPENSTACK_UPLOAD_IMG')) {
         loadtest "publiccloud/upload_image";
@@ -609,6 +609,7 @@ sub load_jeos_openstack_tests {
 }
 
 sub load_jeos_tests {
+    loadtest "jeos/image_info";
     if ((is_arm || is_aarch64) && is_opensuse()) {
         # Enable jeos-firstboot, due to boo#1020019
         load_boot_tests();

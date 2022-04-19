@@ -2,6 +2,7 @@
 description: 'Main RPi test suite. Maintainer: dheidler.'
 name: 'jeos-main@aarch64 ( qemu )'
 schedule:
+  - jeos/image_info
   - jeos/firstrun
   - jeos/record_machine_id
   - console/system_prepare

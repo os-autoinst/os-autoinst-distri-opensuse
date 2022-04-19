@@ -30,6 +30,7 @@ conditional_schedule:
             'JeOS-for-kvm-and-xen-Updates':
                 - qa_automation/patch_and_reboot
 schedule:
+    - jeos/image_info
     - '{{bootloader}}'
     - jeos/firstrun
     - jeos/record_machine_id
