@@ -112,13 +112,14 @@ sub run {
     } else {
         $provider = $self->provider_factory();
         $instance = $provider->create_instance();
+
+        $instance->wait_for_guestregister() if is_ondemand();
+        $instance->check_guestregister();
     }
     if ($tests eq "default") {
         $tests = $img_proof_tests->{$flavor};
         die("Missing img_proof tests for $flavor - plz change img_proof.pm") unless $tests;
     }
-
-    $instance->wait_for_guestregister() if is_ondemand();
 
     my $img_proof = $provider->img_proof(
         instance => $instance,
