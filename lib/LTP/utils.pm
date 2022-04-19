@@ -12,7 +12,7 @@ use warnings;
 use testapi;
 use Utils::Backends;
 use autotest;
-use LTP::WhiteList qw(download_whitelist is_test_disabled);
+use LTP::WhiteList;
 use LTP::TestInfo 'testinfo';
 use version_utils qw(is_openstack is_jeos);
 use File::Basename 'basename';
@@ -35,11 +35,11 @@ sub loadtest_kernel {
 }
 
 sub loadtest_runltp {
-    my ($name, $tinfo) = @_;
+    my ($name, $tinfo, $whitelist) = @_;
     my %env = %{$tinfo->test_result_export->{environment}};
     $env{retval} = 'none';
 
-    if (is_test_disabled(\%env, $tinfo->runfile, $name)) {
+    if ($whitelist->is_test_disabled(\%env, $tinfo->runfile, $name)) {
         bmwqemu::diag("skipping $name (disabled by LTP_KNOWN_ISSUES)");
         return;
     }
@@ -146,8 +146,6 @@ sub init_ltp_tests {
     my $cmd_file = shift;
     my $is_network = $cmd_file =~ m/^\s*(net|net_stress)\./;
     my $is_ima = $cmd_file =~ m/^ima$/i;
-
-    download_whitelist;
 
     script_run('ps axf') if ($is_network || $is_ima);
 
@@ -287,31 +285,34 @@ sub schedule_tests {
 
 sub parse_openposix_runfile {
     my ($name, $cmds, $cmd_pattern, $cmd_exclude, $test_result_export, $suffix) = @_;
+    my $whitelist = LTP::WhiteList->new();
 
     for my $line (@$cmds) {
         chomp($line);
         if ($line =~ m/$cmd_pattern/ && !($line =~ m/$cmd_exclude/)) {
             my $test = {name => basename($line, '.run-test') . $suffix, command => $line};
             my $tinfo = testinfo($test_result_export, test => $test, runfile => $name);
-            loadtest_runltp($test->{name}, $tinfo);
+
+            loadtest_runltp($test->{name}, $tinfo, $whitelist);
         }
     }
 }
 
 sub parse_runtest_file {
     my ($name, $cmds, $cmd_pattern, $cmd_exclude, $test_result_export, $suffix) = @_;
+    my $whitelist = LTP::WhiteList->new();
 
     for my $line (@$cmds) {
         next if ($line =~ /(^#)|(^$)/);
 
         #Command format is "<name> <command> [<args>...] [#<comment>]"
-        if ($line =~ /^\s* ([\w-]+) \s+ (\S.+) #?/gx) {
-            next if (is_svirt && ($1 eq 'dnsmasq' || $1 eq 'dhcpd'));    # poo#33850
-            my $test = {name => $1 . $suffix, command => $2};
-            my $tinfo = testinfo($test_result_export, test => $test, runfile => $name);
-            if ($test->{name} =~ m/$cmd_pattern/ && !($test->{name} =~ m/$cmd_exclude/)) {
-                loadtest_runltp($test->{name}, $tinfo);
-            }
+        next if ($line !~ /^\s* ([\w-]+) \s+ (\S.+) #?/gx);
+        next if (is_svirt && ($1 eq 'dnsmasq' || $1 eq 'dhcpd'));    # poo#33850
+        my $test = {name => $1 . $suffix, command => $2};
+        my $tinfo = testinfo($test_result_export, test => $test, runfile => $name);
+
+        if ($test->{name} =~ m/$cmd_pattern/ && !($test->{name} =~ m/$cmd_exclude/)) {
+            loadtest_runltp($test->{name}, $tinfo, $whitelist);
         }
     }
 }
