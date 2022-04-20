@@ -34,7 +34,7 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
-use mm_network qw(configure_default_gateway configure_static_ip configure_static_dns get_host_resolv_conf parse_network_configuration);
+use mm_network;
 use utils 'zypper_call';
 use Utils::Systemd 'disable_and_stop_service';
 use version_utils qw(is_sle);
@@ -45,39 +45,39 @@ my $SRV_IP = '10.0.2.102';
 my $SRV_PORT = '80';
 my $CLI_IP = '10.0.3.102';
 
-sub set_ip {
-    my ($ip, $nic) = @_;
-    script_run "arping -w 1 -I $nic $ip";    # check for duplicate IP
-    assert_script_run "echo -e \"STARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$ip/24'\\nMTU='1458'\" > /etc/sysconfig/network/ifcfg-$nic";
-    assert_script_run "rcnetwork restart";
-    assert_script_run "ip addr";
-}
-
 sub configure_machines {
     my ($self, $hostname, $net0, $net1) = @_;
 
     # Configure static network, disable firewall
     disable_and_stop_service($self->firewall);
     disable_and_stop_service('apparmor', ignore_failure => 1);
-    configure_default_gateway;
+
+    my $is_nm = is_networkmanager();
 
     if ($hostname eq "firewall") {
         record_info 'Setting up Firewall machine';
-        set_ip($FW_EXT_IP, $net0);
-        set_ip($FW_INT_IP, $net1);
+        configure_static_ip(ip => "$FW_EXT_IP/24", device => $net0, is_nm => $is_nm);
+        configure_static_ip(ip => "$FW_INT_IP/24", device => $net1, is_nm => $is_nm);
+        configure_default_gateway(is_nm => $is_nm, device => $net0);
+        configure_static_dns(get_host_resolv_conf(), is_nm => $is_nm);
         assert_script_run("sysctl -w net.ipv4.ip_forward=1");
-
+        restart_networking(is_nm => $is_nm);
     } elsif ($hostname eq "server") {
         record_info 'Setting up Server machine';
-        set_ip($SRV_IP, $net0);
+        configure_static_ip(ip => "$SRV_IP/24", device => $net0, is_nm => $is_nm);
+        configure_default_gateway(is_nm => $is_nm, device => $net0);
+        configure_static_dns(get_host_resolv_conf(), is_nm => $is_nm);
+        restart_networking(is_nm => $is_nm);
         assert_script_run("ip route add 10.0.3.0/24 via $FW_EXT_IP");
-
+        assert_script_run("ip route show");
     } elsif ($hostname eq "client") {
         record_info 'Setting up Client machine';
-        set_ip($CLI_IP, $net0);
+        configure_static_ip(ip => "$CLI_IP/24", device => $net0, is_nm => $is_nm);
+        configure_static_dns(get_host_resolv_conf(), is_nm => $is_nm);
+        restart_networking(is_nm => $is_nm);
         assert_script_run("ip route add default via $FW_INT_IP");
+        assert_script_run("ip route show");
     }
-    configure_static_dns(get_host_resolv_conf());
 }
 
 sub start_webserver {

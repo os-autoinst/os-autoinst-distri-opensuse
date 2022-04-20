@@ -17,6 +17,7 @@ sub run {
     configure_default_gateway;
     configure_static_ip(ip => '10.0.2.1/24');
     configure_static_dns(get_host_resolv_conf());
+    restart_networking();
 
     script_output("
         zypper -n --no-gpg-checks ar '" . get_var('SLENKINS_TESTSUITES_REPO') . "' slenkins_testsuites

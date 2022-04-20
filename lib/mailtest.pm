@@ -58,6 +58,7 @@ sub prepare_mail_server {
         configure_static_dns(get_host_resolv_conf());
         configure_static_ip(ip => "$mail_server_ip");
         set_var("MAIL_SERVER_IP", "$mail_server_ip") if not get_var("MAIL_SERVER_IP");
+        restart_networking();
     }
 
     set_var("MAIL_SERVER_NAME", "$mail_server_name") if not get_var("MAIL_SERVER_NAME");
@@ -80,6 +81,7 @@ sub prepare_mail_client {
         configure_default_gateway;
         configure_static_dns(get_host_resolv_conf());
         configure_static_ip(ip => "$mail_client_ip");
+        restart_networking();
 
         # Wait for the mail server ready
         mutex_lock "mail_server";
