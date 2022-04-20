@@ -54,8 +54,8 @@ sub open_powershell_as_admin {
         wait_screen_change { assert_and_click('window-max') };
         assert_screen 'windows_server_powershel_opened', 30;
     } else {
-        send_key_until_needlematch ['user-account-ctl-hidden', 'user-acount-ctl-allow-make-changes'], 'shift-a';
-        assert_screen(['user-account-ctl-hidden', 'user-acount-ctl-allow-make-changes'], 120);
+        send_key 'shift-a';
+        assert_screen(['user-account-ctl-hidden', 'user-acount-ctl-allow-make-changes'], 240);
         mouse_set(500, 500);
         assert_and_click 'user-account-ctl-hidden' if match_has_tag('user-account-ctl-hidden');
         assert_and_click 'user-acount-ctl-yes';

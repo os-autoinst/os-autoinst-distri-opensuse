@@ -54,6 +54,7 @@ sub run {
         );
         $self->run_in_powershell(
             cmd => 'Import-Certificate -FilePath ' . $cert_file_path . ' -CertStoreLocation ' . $ms_cert_store . ' -Verbose',
+            timeout => 120
         );
     } else {
         # a) Open the image file in Explorer
@@ -101,7 +102,7 @@ sub run {
         );
         $self->run_in_powershell(
             cmd => "Invoke-WebRequest -Uri $ms_kernel_link -O C:\\kernel.msi  -UseBasicParsing",
-            timeout => 300
+            timeout => 420
         );
     }
 
