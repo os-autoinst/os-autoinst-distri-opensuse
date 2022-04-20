@@ -33,6 +33,17 @@ sub run {
         assert_screen 'partitioning-ext4_root-btrfs_home';
         send_key 'alt-n';
     }
+    elsif (check_var('PARTITION_EDIT', 'ext4_xfs')) {
+        send_key 'alt-g';
+        send_key 'alt-n';
+        send_key 'down';
+        send_key 'alt-f';
+        type_string 'ext4';
+        send_key 'alt-i';
+        send_key 'x';
+        assert_screen 'partitioning-ext4_root-xfs_home';
+        send_key 'alt-n';
+    }
 
     # Storage NG introduces a new partitioning dialog. We detect this
     # by the existence of the "Guided Setup" button and set the
