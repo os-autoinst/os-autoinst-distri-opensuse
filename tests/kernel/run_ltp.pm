@@ -16,7 +16,7 @@ use Time::HiRes qw(clock_gettime CLOCK_MONOTONIC);
 use serial_terminal;
 use Mojo::File 'path';
 use Mojo::JSON;
-use LTP::WhiteList 'override_known_failures';
+use LTP::WhiteList;
 require bmwqemu;
 
 sub start_result {
@@ -350,8 +350,10 @@ sub run_post_fail {
 
     $self->fail_if_running();
 
-    if ($self->{ltp_tinfo} and get_var('LTP_KNOWN_ISSUES') and $self->{result} eq 'fail') {
-        override_known_failures($self, $self->{ltp_env}, $self->{ltp_tinfo}->runfile, $self->{ltp_tinfo}->test->{name});
+    if ($self->{ltp_tinfo} and $self->{result} eq 'fail') {
+        my $whitelist = LTP::WhiteList->new();
+
+        $whitelist->override_known_failures($self, $self->{ltp_env}, $self->{ltp_tinfo}->runfile, $self->{ltp_tinfo}->test->{name});
     }
 
     if ($msg =~ qr/died/) {
