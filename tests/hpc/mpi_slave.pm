@@ -15,9 +15,10 @@ sub run ($self) {
     my $mpi = $self->get_mpi();
 
     # python3-devel is used to install and compile /mpi4py/ deps when HPC_LIB eq scipy
-    zypper_call("in $mpi $mpi-devel gcc gcc-c++ python3-devel");
-    $self->setup_scientific_module();
-    assert_script_run("export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/lib64/mpi/gcc/$mpi/lib64/");
+    zypper_call("in $mpi-gnu-hpc $mpi-gnu-hpc-devel python3-devel");
+    my $need_restart = $self->setup_scientific_module();
+    $self->relogin_root if $need_restart;
+    assert_script_run "module load gnu $mpi";
     barrier_wait('CLUSTER_PROVISIONED');
     barrier_wait('MPI_SETUP_READY');
     barrier_wait('MPI_BINARIES_READY');
