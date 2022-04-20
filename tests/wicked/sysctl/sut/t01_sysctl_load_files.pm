@@ -138,7 +138,7 @@ sub run {
     my ($self, $ctx) = @_;
     $self->select_serial_terminal();
 
-    return if $self->skip_by_wicked_version('>=0.6.68');
+    return if $self->skip_by_wicked_version('>=0.6.69');
 
     record_info('sysctl.d', script_output("ls -R @sysctl_d", proceed_on_failure => 1));
 
