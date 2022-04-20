@@ -17,6 +17,16 @@ conditional_schedule:
                 - console/yast2_lan_device_settings
             x86_64:
                 - console/yast2_lan_device_settings
+    snmp:
+        MACHINE:
+            64bit:
+                - network/snmp
+            aarch64:
+                - network/snmp
+            ppc64le:
+                - network/snmp
+            s390x-kvm-sle12:
+                - network/snmp
     update_repos:
         VERSION:
             'Tumbleweed':
@@ -56,7 +66,6 @@ conditional_schedule:
                 - appgeo/gdal
                 - console/rabbitmq
                 - console/rails
-                - console/php_pcre
                 - console/openqa_review
                 - console/zbar
                 - console/a2ps
@@ -126,7 +135,7 @@ schedule:
     - console/sqlite3
     - console/sysctl
     - console/sysstat
-    - network/snmp
+    - '{{snmp}}'
     - console/curl_ipv6
     - console/wget_ipv6
     - console/ca_certificates_mozilla

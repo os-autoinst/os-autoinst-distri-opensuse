@@ -35,6 +35,7 @@ sub run {
     x11_start_program('designer-qt5');
     wait_still_screen 3;
     assert_and_click("designer-qt5-start");
+    wait_still_screen 3;
     assert_screen("designer-qt5-main");
     wait_screen_change { send_key "ctrl-r" };    # run the design preview
     assert_screen("designer-qt5-preview");

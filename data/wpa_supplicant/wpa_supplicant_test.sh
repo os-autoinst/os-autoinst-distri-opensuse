@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 
 function prepare() {
 	modprobe mac80211_hwsim radios=2
@@ -18,7 +18,7 @@ function cleanup() {
 	rm -f wifi_scan.txt networks.txt status.txt hostapd.com dnsmasq.log dhclinet.log dhclient.pid dhclient.lease
 	rm -f /etc/sysconfig/network/ifcfg-wlan1
 	wpa_cli -i wlan1 terminate >/dev/null 2>/dev/null
-	ip netns pids wifi_master | xargs kill
+	ip netns pids wifi_master | xargs kill 2> /dev/null || true        # Don't display error messages, as they are misleading
 	ip netns del wifi_master
 }
 
@@ -33,8 +33,8 @@ function GREP {
 }
 
 ## ==== Prepare environment ================================================= ##
+set -o pipefail
 trap cleanup EXIT
-set -e
 prepare
 
 
@@ -75,6 +75,9 @@ GREP "FBI Surveillance Van 4" wifi_scan.txt
 echo "OK"
 
 echo "Connecting to open wifi networks ... "
+wpa_cli -i wlan1 reconfigure
+wpa_cli -i wlan1 reassociate
+sleep 20
 wpa_cli -i wlan1 status > status.txt
 GREP "ssid=FBI Surveillance Van 4" status.txt
 GREP "wpa_state=COMPLETED" status.txt
@@ -113,12 +116,20 @@ echo 'start dnsmasq' >>hostapd.com
 if systemctl is-active wickedd >& /dev/null; then
     echo "use wicked"
     cp ifcfg-wlan1-dhcp /etc/sysconfig/network/ifcfg-wlan1
-    echo "Restarting wicked ... "
-    systemctl restart wicked
-    sleep 20
-    systemctl status wicked
-    echo "starting wicked ... "
-    wicked --debug all ifup wlan1 --timeout 60 > wicked.log 2>&1
+    systemctl reload wicked
+#    # wicked ifup might terminate with 162 (setup-in-progress), so check the link manually below using ifstatus
+    wicked --log-level debug --debug all ifup wlan1 --timeout $timeout 2>&1 | tee wicked.log || true
+#    # Wait until wlan1 is configured
+    timeout=$(($timeout+30))
+    until wicked ifstatus wlan1
+    do
+    	timeout=$(($timeout-1))
+    	if [[ $timeout -lt 1 ]]; then
+    		echo "wicked timeout"
+    		exit 1
+    	fi
+    	sleep 1
+    done
 else
     echo "use dhclient"
     touch dhclient.lease
@@ -145,4 +156,5 @@ timeout 10s grep -q 'ok' <(tail -f hostapd.com) || echo "hostapd not exited clea
 echo -e "\n\n"
 echo "[Info] ignore the 'rfkill: Cannot get wiphy information' warnings"
 echo -e "\n"
+echo "WPA_SUPPLICANT_TEST: PASSED"           # Cookie for openQA script
 echo "[ OK ] wpa_supplicant regression test completed successfully"

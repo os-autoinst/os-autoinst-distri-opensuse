@@ -72,23 +72,24 @@ sub relogin_root {
 Installs the various scientific HPC libraries and prepares the environment for use
 L<https://documentation.suse.com/sle-hpc/15-SP3/single-html/hpc-guide/#sec-compute-lib>
 
+When subroutine returns immediately returns 1 to indicate that no relogin has occurred.
+
 =cut
 sub setup_scientific_module {
     my ($self) = @_;
-    return unless get_var('HPC_LIB', '');
+    return 1 unless get_var('HPC_LIB', '');
     my $mpi = get_required_var('MPI');
-    assert_script_run("export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/lib64/mpi/gcc/$mpi/lib64/");
 
     if (get_var('HPC_LIB') eq 'scipy') {
         zypper_call("in python3-scipy-gnu-hpc");
-        #
-        assert_script_run("env MPICC=/usr/lib64/mpi/gcc/$mpi/bin/mpicc python3 -m pip install mpi4py");
+        assert_script_run("env MPICC=mpicc python3 -m pip install mpi4py");
 
         # Make sure that env is updated. This will run scripts like 'source /usr/share/lmod/lmod/init/bash'
         $self->relogin_root;
         # TODO smoke checks? (ex /MODULEPATH/)
         assert_script_run('module load gnu python3-scipy');
     }
+    return 0;
 }
 
 1;

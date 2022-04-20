@@ -23,6 +23,7 @@ use utils qw(get_netboot_mirror type_string_slow enter_cmd_slow);
 use version_utils 'is_upgrade';
 use Utils::Backends;
 use YuiRestClient;
+use ntlm_auth;
 
 our @EXPORT = qw(
   boot_pvm
@@ -98,11 +99,13 @@ sub prepare_pvm_installation {
     my $mirror = get_netboot_mirror;
     my $mntpoint = "mnt/openqa/repo/$repo/boot/ppc64le";
     assert_screen "pvm-grub-command-line-fresh-prompt", no_wait => 1;
-    type_string_slow "linux $mntpoint/linux vga=normal install=$mirror ";
+
+    my $ntlm_p = get_var('NTLM_AUTH_INSTALL') ? $ntlm_auth::ntlm_proxy : '';
+    type_string_slow "linux $mntpoint/linux vga=normal $ntlm_p install=$mirror ";
     bootmenu_default_params;
     bootmenu_network_source;
     specific_bootmenu_params;
-    registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
+    registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless get_var('NTLM_AUTH_INSTALL');
     type_string_slow remote_install_bootmenu_params;
     type_string_slow " fips=1" if (get_var('FIPS_INSTALLATION'));
     type_string_slow " UPGRADE=1" if (get_var('UPGRADE'));

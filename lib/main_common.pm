@@ -581,6 +581,12 @@ sub load_jeos_openstack_tests {
         return;
     } else {
         loadtest "jeos/prepare_openstack", run_args => $args;
+    }
+
+    if (get_var('LTP_COMMAND_FILE')) {
+        loadtest 'publiccloud/run_ltp';
+        return;
+    } else {
         loadtest 'publiccloud/ssh_interactive_start', run_args => $args;
     }
 
@@ -1104,20 +1110,26 @@ sub load_console_server_tests {
     loadtest "console/apache";
     loadtest "console/dns_srv";
     loadtest "console/postgresql_server" unless (is_leap('<15.0'));
-    # TODO test on openSUSE https://progress.opensuse.org/issues/31972
     if (is_sle('12-SP1+')) {    # shibboleth-sp not available on SLES 12 GA
         loadtest "console/shibboleth";
     }
     if (!is_staging && (is_opensuse || get_var('ADDONS', '') =~ /wsm/ || get_var('SCC_ADDONS', '') =~ /wsm/)) {
-        # TODO test on openSUSE https://progress.opensuse.org/issues/31972
-        loadtest "console/php_pcre" if is_sle;
+        loadtest "console/php_pcre";
         # TODO test on SLE https://progress.opensuse.org/issues/31972
         loadtest "console/mariadb_odbc" if is_opensuse;
-        loadtest "console/php8" unless is_leap("<15.4") || is_sle("<15-SP4");
-        loadtest "console/php7";
-        loadtest "console/php7_mysql";
-        loadtest "console/php7_postgresql";
-        loadtest "console/php7_timezone";
+        if (is_leap("<15.4") || is_sle("<15-SP4")) {
+            loadtest "console/php7";
+            loadtest "console/php7_mysql";
+            loadtest "console/php7_postgresql";
+            loadtest "console/php7_timezone";
+        }
+        else {
+            loadtest "console/php7" unless is_sle;
+            loadtest "console/php8";
+            loadtest "console/php8_mysql";
+            loadtest "console/php8_postgresql";
+            loadtest "console/php8_timezone";
+        }
     }
     # TODO test on openSUSE https://progress.opensuse.org/issues/31972
     loadtest "console/apache_ssl" if is_sle;
@@ -1180,7 +1192,6 @@ sub load_consoletests {
         loadtest "console/x_vt";
     }
     loadtest "console/zypper_lr";
-    loadtest "console/check_system_info" if (is_sle && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE')));
     # Enable installation repo from the usb, unless we boot from USB, but don't use it
     # for the installation, like in case of LiveCDs and when using http/smb/ftp mirror
     if (check_var('USBBOOT', 1) && !(is_jeos || is_livecd) && !get_var('NETBOOT')) {
@@ -1335,6 +1346,7 @@ sub load_x11tests {
                 loadtest(is_sle('<15') ? "x11/rhythmbox" : "x11/gnome_music");
                 loadtest "x11/wireshark";
                 loadtest "x11/ImageMagick";
+                loadtest "x11/remote_desktop/screensharing_available" if is_sle("15-sp4+");
                 loadtest "x11/ghostscript";
             }
         }
@@ -1581,7 +1593,7 @@ sub load_extra_tests_desktop {
 
     }
     if (gnomestep_is_applicable()) {
-        loadtest "x11/remote_desktop/vino_screensharing_available";
+        loadtest "x11/remote_desktop/screensharing_available";
     }
     if (get_var("DESKTOP") =~ /kde|gnome/) {
         loadtest "x11/libqt5_qtbase" if (is_sle("12-SP3+") || is_opensuse);
@@ -2174,6 +2186,7 @@ sub load_security_console_prepare {
     loadtest "security/test_repo_setup" if (get_var("SECURITY_TEST") =~ /^crypt_/ && !is_opensuse);
     loadtest "fips/fips_setup" if (get_var("FIPS_ENABLED"));
     loadtest "console/openssl_alpn" if (get_var("FIPS_ENABLED") && get_var("JEOS"));
+    loadtest "console/yast2_vnc" if (get_var("FIPS_ENABLED") && is_pvm);
 }
 
 # The function name load_security_tests_crypt_* is to avoid confusing
@@ -2428,6 +2441,7 @@ sub load_security_tests_cc_audit_test {
     loadtest 'security/cc/fail_safe';
     loadtest 'security/cc/ip_eb_tables';
     loadtest 'security/cc/kvm_svirt_apparmor';
+    loadtest 'security/cc/apparmor_negative_test';
 
     # Some audit tests must be run in selinux enabled mode. so load selinux setup here
     # Setup environment for cc testing: SELinux setup

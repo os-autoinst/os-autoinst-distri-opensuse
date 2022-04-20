@@ -12,6 +12,7 @@ use testapi;
 use version_utils qw(is_sle is_leap);
 use utils 'assert_and_click_until_screen_change';
 use Utils::Architectures;
+use Utils::Backends 'is_pvm';
 
 our @EXPORT = qw(
   desktop_runner_hotkey
@@ -34,7 +35,6 @@ our @EXPORT = qw(
   turn_off_gnome_show_banner
   untick_welcome_on_next_startup
   start_root_shell_in_xterm
-  workaround_boo1170586
   handle_gnome_activities
 );
 
@@ -78,12 +78,21 @@ sub ensure_unlocked_desktop {
         my @tags = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system guest-disabled-display oh-no-something-has-gone-wrong);
         push(@tags, 'blackscreen') if get_var("DESKTOP") =~ /minimalx|xfce/;    # Only xscreensaver and xfce have a blackscreen as screenlock
         push(@tags, 'gnome-activities') if check_var('DESKTOP', 'gnome');
-        assert_screen \@tags, no_wait => 1;
+        push(@tags, 'gnome-activities') if (!check_var('DESKTOP', 'gnome') && get_var("FIPS_ENABLED") && is_pvm);
+        # For PowerVM x11 access in FIPS mode, we can connect it via vnc even in textmode
+        # Add some wait time for PowerVM due to performance issue
+        my $timeout = is_pvm ? '120' : '30';
+        assert_screen(\@tags, timeout => $timeout, no_wait => 1);
         # Starting with GNOME 40, upon login, the activities screen is open (assuming the
         # user will want to start something. For openQA, we simply press 'esc' to close
         # it again and really end up on the desktop
         if (match_has_tag('gnome-activities')) {
             send_key 'esc';
+            # Send the key 'esc' again on PowerVM setup to make sure it can switch to generic desktop
+            if (get_var("FIPS_ENABLED") && is_pvm) {
+                send_key 'esc';
+                wait_still_screen 5;
+            }
             @tags = grep { !/gnome-activities/ } @tags;
         }
         if (match_has_tag 'oh-no-something-has-gone-wrong') {
@@ -488,18 +497,6 @@ sub untick_welcome_on_next_startup {
     }
 }
 
-=head2 workaround_broken_opensuse_welcome_window
-
- workaround_broken_opensuse_welcome_window();
-
-Kill broken opensuse-welcome window and restart it properly to workaround boo#1170586.
-
-=cut
-sub workaround_broken_opensuse_welcome_window {
-    x11_start_program('killall /usr/bin/opensuse-welcome', target_match => 'generic-desktop');
-    x11_start_program('opensuse-welcome');
-}
-
 =head2 handle_welcome_screen
 
  handle_welcome_screen([timeout => $timeout]);
@@ -511,9 +508,8 @@ Also handle workarounds when needed.
 =cut
 sub handle_welcome_screen {
     my (%args) = @_;
-    assert_screen([qw(opensuse-welcome opensuse-welcome-boo1169203 opensuse-welcome-gnome40-activities)], $args{timeout});
+    assert_screen([qw(opensuse-welcome opensuse-welcome-gnome40-activities)], $args{timeout});
     send_key 'esc' if match_has_tag('opensuse-welcome-gnome40-activities');
-    workaround_broken_opensuse_welcome_window() if match_has_tag("opensuse-welcome-boo1169203");
     untick_welcome_on_next_startup;
 }
 

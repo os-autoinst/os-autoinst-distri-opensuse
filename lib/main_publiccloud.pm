@@ -13,31 +13,19 @@ use version_utils;
 use main_common qw(loadtest);
 use testapi qw(check_var get_var);
 use Utils::Architectures qw(is_aarch64);
-use main_containers qw(load_3rd_party_image_test load_container_engine_test);
+use main_containers qw(load_container_tests);
 
 our @EXPORT = qw(
   load_publiccloud_tests
 );
-
-sub load_podman_tests() {
-    load_container_engine_test('podman');
-    load_3rd_party_image_test('podman');
-}
-
-sub load_docker_tests() {
-    load_container_engine_test('docker');
-    loadtest 'containers/docker_runc' unless (is_aarch64 && is_sle('<=15'));
-    load_3rd_party_image_test('docker');
-    loadtest 'containers/registry' unless (is_aarch64 && is_sle('<=15-SP1'));
-    loadtest 'containers/zypper_docker' unless (is_aarch64 && is_sle('<=15'));
-}
 
 sub load_maintenance_publiccloud_tests {
     my $args = OpenQA::Test::RunArgs->new();
 
     loadtest "publiccloud/download_repos";
     loadtest "publiccloud/prepare_instance", run_args => $args;
-    loadtest "publiccloud/register_system", run_args => $args;
+    loadtest "publiccloud/registercloudguest", run_args => $args;
+    loadtest "publiccloud/register_addons", run_args => $args;
     loadtest "publiccloud/transfer_repos", run_args => $args;
     loadtest "publiccloud/patch_and_reboot", run_args => $args;
     if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
@@ -50,8 +38,7 @@ sub load_maintenance_publiccloud_tests {
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
             load_publiccloud_consoletests();
         } elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
-            load_podman_tests() if is_sle('>=15-sp1');
-            load_docker_tests();
+            load_container_tests();
         } elsif (get_var('PUBLIC_CLOUD_XFS')) {
             loadtest "publiccloud/xfsprepare";
             loadtest "xfstests/run";
@@ -100,14 +87,14 @@ sub load_latest_publiccloud_tests {
     elsif (get_var('PUBLIC_CLOUD_CONSOLE_TESTS') || get_var('PUBLIC_CLOUD_CONTAINERS')) {
         my $args = OpenQA::Test::RunArgs->new();
         loadtest "publiccloud/prepare_instance", run_args => $args;
-        loadtest "publiccloud/register_system", run_args => $args;
+        loadtest "publiccloud/registercloudguest", run_args => $args;
+        loadtest "publiccloud/register_addons", run_args => $args;
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
             load_publiccloud_consoletests();
         }
         elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
-            load_podman_tests();
-            load_docker_tests();
+            load_container_tests();
         } elsif (get_var('PUBLIC_CLOUD_XFS')) {
             loadtest "publiccloud/xfsprepare";
             loadtest "xfstests/run";
@@ -164,10 +151,11 @@ sub load_publiccloud_tests {
     }
     else {
         loadtest 'boot/boot_to_desktop';
-        if (check_var('PUBLIC_CLOUD_DOWNLOAD_TESTREPO', 1)) {
+        if (get_var('PUBLIC_CLOUD_MIGRATION')) {
+            loadtest('publiccloud/migration');
+        } elsif (check_var('PUBLIC_CLOUD_DOWNLOAD_TESTREPO', 1)) {
             load_publiccloud_download_repos();
-        }
-        elsif (get_var('PUBLIC_CLOUD_QAM')) {
+        } elsif (get_var('PUBLIC_CLOUD_QAM')) {
             load_maintenance_publiccloud_tests();
         } else {
             load_latest_publiccloud_tests();

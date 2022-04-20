@@ -36,7 +36,7 @@ use version_utils qw(is_sle is_leap);
 sub run {
     select_console 'root-console';
 
-    script_run("zypper lr -d | tee /dev/$serialdev");
+    script_run("zypper lr -d | tee /dev/$serialdev", timeout => 180);
     my $pkgname = get_var('PACKAGETOINSTALL');
     if (!$pkgname) {
         $pkgname = 'x3270' if check_var('DISTRI', 'sle');
@@ -52,14 +52,14 @@ sub run {
         # also they have issues with this rpms being hashed by something newer than MD5
         # and also this ZYPP_SINGLE_RPMTRANS feature flag is only available as of 15.4
         assert_script_run 'touch /preinstall_fail';
-        my $r = script_run 'zypper -n in --allow-unsigned-rpm ' . data_url('zypper/hello0.rpm');
+        my $r = script_run 'zypper -n in --allow-unsigned-rpm ' . data_url('zypper/hello0.rpm'), timeout => 180;
         die "Unexpected zypper exit code $r - expected 8" unless (defined($r) && ($r == 8));
         assert_script_run 'rm -f /preinstall_fail';
 
         assert_script_run 'export ZYPP_SINGLE_RPMTRANS=1';
 
         assert_script_run 'touch /preinstall_fail';
-        $r = script_run 'zypper -n in --allow-unsigned-rpm ' . data_url('zypper/hello0.rpm');
+        $r = script_run 'zypper -n in --allow-unsigned-rpm ' . data_url('zypper/hello0.rpm'), timeout => 180;
         die "Unexpected zypper exit code $r - expected 8" unless (defined($r) && ($r == 8));
         assert_script_run 'rm -f /preinstall_fail';
 
@@ -68,8 +68,8 @@ sub run {
             $pkgs_to_install .= ' ' . data_url("zypper/hello$_.rpm");
         }
 
-        assert_script_run "zypper -n in --allow-unsigned-rpm $pkgs_to_install";
-        assert_script_run "zypper -n rm hello{1..9}";
+        zypper_call "-n in --allow-unsigned-rpm $pkgs_to_install";
+        zypper_call "-n rm hello{1..9}";
 
         assert_script_run 'unset ZYPP_SINGLE_RPMTRANS';
     }

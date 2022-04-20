@@ -19,7 +19,7 @@ use transactional;
 
 sub check_migrated_version {
     # check if the migration success or not by checking the /etc/os-release file with the VERSION
-    my $target_version = get_var("VERSION");
+    my $target_version = get_var("TARGET_VERSION", get_required_var("VERSION"));
     assert_script_run("grep VERSION= /etc/os-release | grep $target_version");
 }
 
@@ -66,9 +66,9 @@ sub run {
     while ($out) {
         diag "out=$out";
         if ($out =~ $zypper_migration_target) {
-            my $version = get_var("VERSION");
-            $version =~ s/-/ /;
-            if ($out =~ /(\d+)\s+\|\s?SUSE Linux Enterprise.*?$version/m) {
+            my $target_version = get_var("TARGET_VERSION", get_required_var("VERSION"));
+            $target_version =~ s/-/ /;
+            if ($out =~ /(\d+)\s+\|\s?SUSE Linux Enterprise.*?$target_version/m) {
                 send_key "$1";
             }
             else {
@@ -148,8 +148,6 @@ sub run {
         }
         $out = wait_serial($migration_checks, $timeout);
     }
-
-    check_migrated_version unless is_sle_micro;
 
     select_console('root-console', await_console => 0);
     # wait long time for snapper to settle down

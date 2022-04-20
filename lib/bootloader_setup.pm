@@ -273,11 +273,11 @@ sub boot_into_snapshot {
     }
     # in upgrade/migration scenario, we want to boot from snapshot 1 before migration.
     if ((get_var('UPGRADE') && !get_var('ONLINE_MIGRATION', 0)) || get_var('ZDUP')) {
-        send_key_until_needlematch('snap-before-update', 'down', 40, 5);
+        send_key_until_needlematch('snap-before-update', 'down', 60, 5);
         save_screenshot;
     }
     # in an online migration
-    send_key_until_needlematch('snap-before-migration', 'down', 40, 5) if (get_var('ONLINE_MIGRATION'));
+    send_key_until_needlematch('snap-before-migration', 'down', 60, 5) if (get_var('ONLINE_MIGRATION'));
     save_screenshot;
     send_key 'ret';
     # avoid timeout for booting to HDD
@@ -619,6 +619,8 @@ sub select_bootmenu_more {
     send_key_until_needlematch($tag, get_var('OFW') ? 'up' : 'down', 10, 3);
     # Redirect linuxrc logs to console when booting from menu: "boot linux system"
     push @params, get_linuxrc_boot_params if get_var('LINUXRC_BOOT');
+    # Make sure to use the correct repo for testing
+    push(@params, "install=" . get_netboot_mirror) if (get_var("NETBOOT") && $tag =~ /rescue/);
     if (get_var('UEFI')) {
         send_key 'e';
         send_key 'down' for (1 .. 4);

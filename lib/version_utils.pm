@@ -310,6 +310,7 @@ Returns true if called on opensuse
 sub is_opensuse {
     return 1 if check_var('DISTRI', 'opensuse');
     return 1 if check_var('DISTRI', 'microos');
+    return 1 if check_var('DISTRI', 'leap-micro');
     return 0;
 }
 
@@ -334,7 +335,7 @@ sub is_sle {
 Returns true if called on a transactional server
 =cut
 sub is_transactional {
-    return 1 if (is_microos || is_sle_micro);
+    return 1 if (is_microos || is_sle_micro || is_leap_micro);
     return check_var('SYSTEM_ROLE', 'serverro') || get_var('TRANSACTIONAL_SERVER');
 }
 

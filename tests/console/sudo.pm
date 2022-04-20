@@ -33,14 +33,14 @@ sub sudo_with_pw {
         sleep 2;
     }
     else {
-        assert_script_run "expect -c '${env}spawn $command;expect \"password\";send \"$password\\r\";interact'$grep";
+        assert_script_run("expect -c '${env}spawn $command;expect \"password\";send \"$password\\r\";interact'$grep", timeout => $args{timeout});
     }
 }
 
 sub test_sudoers {
     my ($sudo_password) = @_;
     assert_script_run 'sudo journalctl -n10 --no-pager';
-    sudo_with_pw 'sudo zypper -n in -f yast2', password => $sudo_password;
+    sudo_with_pw 'sudo zypper -n in -f yast2', password => $sudo_password, timeout => 300;
 }
 
 sub run {

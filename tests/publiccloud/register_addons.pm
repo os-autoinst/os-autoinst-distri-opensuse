@@ -4,7 +4,8 @@
 # SPDX-License-Identifier: FSFAP
 
 # Package: cloud-regionsrv-client
-# Summary: Register the remote system
+# Summary: Register addons in the remote system
+#   Registration is in registercloudguest test module
 #
 # Maintainer: <qa-c@suse.de>
 
@@ -25,16 +26,11 @@ sub run {
 
     select_host_console();    # select console on the host, not the PC instance
 
-    # The OnDemand (PAYG) images should be registered
-    # automatically by the guestregister.service
-    if (!is_ondemand()) {
-        my @addons = split(/,/, get_var('SCC_ADDONS', ''));
-        my $remote = $args->{my_instance}->username . '@' . $args->{my_instance}->public_ip;
-        registercloudguest($args->{my_instance});
-        for my $addon (@addons) {
-            next if ($addon =~ /^\s+$/);
-            register_addon($remote, $addon);
-        }
+    my @addons = split(/,/, get_var('SCC_ADDONS', ''));
+    my $remote = $args->{my_instance}->username . '@' . $args->{my_instance}->public_ip;
+    for my $addon (@addons) {
+        next if ($addon =~ /^\s+$/);
+        register_addon($remote, $addon);
     }
     record_info('repos (lr)', $args->{my_instance}->run_ssh_command(cmd => "sudo zypper lr"));
     record_info('repos (ls)', $args->{my_instance}->run_ssh_command(cmd => "sudo zypper ls"));

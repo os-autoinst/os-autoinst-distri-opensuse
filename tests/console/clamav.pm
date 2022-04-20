@@ -12,6 +12,11 @@
 # - check that clamscan is able to recognize an EICAR virus pdf, txt and zip format
 # - check that clamdscan is able to recognize an EICAR virus pdf, txt and zip format
 #
+# NOTE: As the vendor states, clamav needs at least 2GB of RAM to work smooth.
+# To avoid interference and overload the openQA, the test is extracted from its
+# original location and executed on its own dedicated test suites, qam-clamav
+# for maintenance and extra_tests_clamav in functional.
+#
 # Maintainer: Ben Chou <bchou@suse.com>
 # Tags: TC1595169, poo#46880, poo#65375, poo#80182
 

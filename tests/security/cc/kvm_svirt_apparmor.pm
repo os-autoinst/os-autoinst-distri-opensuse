@@ -13,7 +13,7 @@ use warnings;
 use testapi;
 use utils;
 use Mojo::File 'path';
-use audit_test 'prepare_for_test';
+use audit_test qw(prepare_for_test parse_kvm_svirt_apparmor_results);
 
 sub run {
     my ($self) = shift;
@@ -32,21 +32,8 @@ sub run {
     assert_script_run('cd tests/');
     assert_script_run('./vm-sep');
 
-    # There is no baseline file, so we need to check the test result by parse log file
-    # in /tmp/vm-sep/vm-sep-crack.log
-    my $log_file = '/tmp/vm-sep/vm-sep-crack.log';
-    assert_script_run("[[ -e $log_file ]]");
-    my $test_results = {};
-    my $output = script_output("cat $log_file");
-    my @lines = split(/\n/, $output);
-    foreach (@lines) {
-        if ($_ =~ /Number of tests (executed|failed|passed):\s+(\d+)/) {
-            $test_results->{$1} = $2;
-        }
-    }
-    $self->result('fail') if ($test_results->{passed} ne $test_results->{executed});
-
-    upload_logs($log_file);
+    my $result = parse_kvm_svirt_apparmor_results('kvm_svirt_apparmor');
+    $self->result($result);
 }
 
 1;

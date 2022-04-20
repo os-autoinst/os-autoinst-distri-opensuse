@@ -176,6 +176,7 @@ sub run {
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance(use_extra_disk => {size => $disk_size, type => $disk_type});
     $instance->wait_for_guestregister();
+    $instance->check_guestregister();
 
     $tags->{os_kernel_release} = $instance->run_ssh_command(cmd => 'uname -r');
     $tags->{os_kernel_version} = $instance->run_ssh_command(cmd => 'uname -v');
@@ -183,7 +184,7 @@ sub run {
     registercloudguest($instance) if is_byos();
     $instance->run_ssh_command(cmd => 'sudo zypper --gpg-auto-import-keys -q in -y fio', timeout => 600);
 
-    my $block_device = '/dev/' . $instance->run_ssh_command(cmd => 'lsblk -n -l --output NAME,MOUNTPOINT | sort | tail -n1');
+    my $block_device = '/dev/' . $instance->run_ssh_command(cmd => 'lsblk -n -l --output NAME,MOUNTPOINT | grep -v sr0 | sort | tail -n1');
     record_info('dev', "Block device under test: $block_device");
 
     for my $href (@scenario) {

@@ -13,13 +13,7 @@ use warnings;
 use utils;
 use testapi;
 use x11utils qw(ensure_unlocked_desktop turn_off_kde_screensaver);
-
-# Check if running kernel is the last installed
-sub kernel_updated {
-    select_console "root-console";
-    my $current = script_output "uname -r | cut -d'-' -f1,2";
-    return script_run "rpm -q --last kernel-default | head -1 | grep $current";
-}
+use power_action_utils qw(power_action);
 
 # Update with Plasma applet for software updates using PackageKit
 sub run {
@@ -88,12 +82,12 @@ sub run {
         send_key("alt-f4");
     }
 
-    if (kernel_updated) {
-        enter_cmd "reboot";
+    if (check_screen "updates_installed-restart") {
+        assert_screen_change {
+            assert_and_click_until_screen_change "plasma-updates_installed-restart"
+        }
+        power_action 'reboot', {observe => 1};
         $self->wait_boot;
-    }
-    else {
-        select_console "x11";
     }
 }
 

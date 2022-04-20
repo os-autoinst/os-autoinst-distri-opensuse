@@ -10,6 +10,8 @@ vars:
   DESKTOP: 'textmode'
   HA_CLUSTER: '1'
   QEMU_DISABLE_SNAPSHOTS: '1'
+  # disable virtio-rng-pci device to prevent device naming changes
+  QEMU_VIRTIO_RNG: '0'
   TIMEOUT_SCALE: '2'
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
   # HDD_1, UEFI_PFLASH_VARS

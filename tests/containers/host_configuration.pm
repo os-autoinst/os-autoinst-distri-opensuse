@@ -42,20 +42,15 @@ sub run {
         }
     }
 
-    # Make sure we can access internet and DNS works
-    script_retry('ping -c 3 www.google.com');
-
     # Install engines in case they are not installed
     install_docker_when_needed($host_distri) if ($engine =~ 'docker');
     install_podman_when_needed($host_distri) if ($engine =~ 'podman');
 
     # It has been observed that after system update, the ip forwarding doesn't work.
-    # Sometimes there is a need to restart the firewall and docker daemon.
-    if ($host_distri =~ /sles|opensuse/) {
-        # We can't use opensusebasetest::firewall here because VERSION variable referrs to the container image.
-        my $firewall = $version =~ /12/ ? 'SuSEfirewall2' : 'firewalld';
-        systemctl("restart $firewall");
+    # In Leap 15.3 there is a need to restart the firewall and docker daemon.
+    if ($host_distri eq 'opensuse-leap' && $version eq '15' && $sp eq '3') {
         systemctl("restart docker") if ($engine =~ 'docker');
+        systemctl("restart firewalld");
     }
 
     # Record podman|docker version

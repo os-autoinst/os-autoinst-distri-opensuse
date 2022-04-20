@@ -7,7 +7,7 @@
 #          '# Verify re-enable unprivileged eBPF temporarily using "systemctl"'
 #          '# Verify re-enable unprivileged eBPF temporarily using status file'
 #          '# Verify re-enable unprivileged eBPF persistently using config file'
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: llzhao <llzhao@suse.com> Starry Wang <starry.wang@suse.com>
 # Tags: poo#103932, tc#1769831, poo#108302
 
 use base 'opensusebasetest';
@@ -80,27 +80,12 @@ sub run {
     assert_script_run("echo -n 1 > $f_unpriv_bpf_disabled");
     $self->privileged_bpf_check;
 
-    # Install gcc compiler
-    assert_script_run('zypper -n in gcc', timeout => 300);
-    # Switch to common user, download and compile the C test code
-    select_console 'user-console';
-    assert_script_run('cd /tmp');
-    assert_script_run('wget ' . autoinst_url . '/data/ebpf/bpf_test.c');
-    assert_script_run('gcc -o bpf_test bpf_test.c');
-
-    # bpf system call failed with 'Operation not permitted' on unprivileged users
-    validate_script_output('./bpf_test', sub { m/BPF: Operation not permitted/ });
-    # bpf system call should be successful on privileged users
-    become_root;
-    assert_script_run('cd /tmp');
-    validate_script_output('./bpf_test', sub { m/BPF: Success/ });
-
     # Reboot, verify the eBPF status: should be disabled again
     $self->reboot_and_check('2');
 
     # Re-enable unprivileged eBPF persistently
     assert_script_run("echo 'kernel.unprivileged_bpf_disabled = 0' >> $sysctl_conf");
-    # Verify the eBPF status: should be enabled unprivileged eBPF
+    # Verify the eBPF status: should be disabled unprivileged eBPF
     validate_script_output("cat $f_unpriv_bpf_disabled", sub { m/2/ });
 
     # Reboot, verify the eBPF status: should be enabled unprivileged eBPF

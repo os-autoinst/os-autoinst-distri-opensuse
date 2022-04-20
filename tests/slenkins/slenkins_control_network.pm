@@ -15,7 +15,7 @@ use mm_network;
 
 sub run {
     configure_default_gateway;
-    configure_static_ip('10.0.2.1/24');
+    configure_static_ip(ip => '10.0.2.1/24');
     configure_static_dns(get_host_resolv_conf());
 
     script_output("

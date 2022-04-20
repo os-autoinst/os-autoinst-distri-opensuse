@@ -15,9 +15,13 @@ use testapi;
 use utils;
 use registration 'add_suseconnect_product';
 use yast2_shortcuts qw($is_older_product %remote_admin %firewall_settings %firewall_details $confirm);
+use Utils::Backends 'is_pvm';
 
 sub configure_remote_admin {
-    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'remote');
+    # Force ncurses mode on powerVM setup to skip ssh forwarding x11 console
+    my %params = (yast2_module => 'remote');
+    $params{yast2_opts} = '--ncurses' if (get_var("FIPS_ENABLED") && is_pvm);
+    my $module_name = y2_module_consoletest::yast2_console_exec(%params);
     # Remote Administration Settings
     assert_screen 'yast2_vnc_remote_administration';
     send_key $remote_admin{allow_remote_admin_with_session};
@@ -39,6 +43,8 @@ sub configure_remote_admin {
     assert_screen 'yast2_vnc_warning_text';
     send_key $cmd{ok};
     wait_serial("$module_name-0", 60) || die "'yast2 remote' didn't finish";
+    # Restart display-manager service to make the changes take effect for powerVM x11 access in FIPs test
+    systemctl('restart display-manager') if (get_var("FIPS_ENABLED") && is_pvm);
 }
 
 sub check_service_listening {

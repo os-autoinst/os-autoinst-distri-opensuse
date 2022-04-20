@@ -23,13 +23,14 @@ use warnings;
 use testapi;
 use utils 'clear_console';
 use List::Util qw(max min);
+use version_utils qw(is_sle);
 
 my $exp_excl_space;
 my $btrfs_fs_usage = 'btrfs filesystem usage / --raw';
 
 sub get_space {
     my ($script) = @_;
-    my $script_output = script_output($script);
+    my $script_output = script_output($script, timeout => 120);
     return $script_output;
 }
 
@@ -37,7 +38,7 @@ sub snapper_cleanup {
     my ($scratch_size_gb, $scratchfile_mb) = @_;
     my $snaps_numb = "snapper list | grep number | wc -l";
 
-    script_run($btrfs_fs_usage);
+    script_run($btrfs_fs_usage, 120);
     # we want to fill up disk enough so that snapper cleanup triggers
     my $fill_space = "dd if=/dev/urandom of=data bs=1M count=$scratchfile_mb";
     my $snap_create = "snapper create --cleanup number --command '$fill_space'";
@@ -52,7 +53,7 @@ sub snapper_cleanup {
     assert_script_run("btrfs qgroup show -pcre /");
     assert_script_run("snapper list");
     clear_console;
-    script_run($btrfs_fs_usage);
+    script_run($btrfs_fs_usage, 120);
     # Get actual exclusive disk space to verify exclusive disk space is taken into account
     my $qgroup_excl_space = get_space("btrfs qgroup show  / --raw | grep 1/0 | awk -F ' ' '{print\$3}'");
     if ($qgroup_excl_space > $exp_excl_space) {
@@ -70,6 +71,7 @@ sub snapper_cleanup {
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
+    $self->cron_mock_lastrun() if is_sle('<15');
 
     if (get_var("UPGRADE") || get_var("AUTOUPGRADE") && !get_var("BOOT_TO_SNAPSHOT")) {
         assert_script_run "snapper setup-quota";
@@ -134,7 +136,7 @@ sub run {
     assert_script_run("snapper set-config NUMBER_LIMIT=0; snapper cleanup number; rm -fv data", 300);
     assert_script_run("snapper set-config NUMBER_LIMIT=$number_limit_pre NUMBER_MIN_AGE=$number_min_age_pre");
     assert_script_run("snapper get-config; snapper ls");    # final report
-    assert_script_run("$btrfs_fs_usage");    # final report
+    assert_script_run("$btrfs_fs_usage", 120);    # final report
 }
 
 1;

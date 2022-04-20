@@ -57,6 +57,14 @@ EOF
         );
         assert_script_run("cat $egg_file");
 
+        # Kill gpg-agent service when executing gpg2 command in case gpg-agent
+        # does NOT see current environment variable: LIBGCRYPT_FORCE_FIPS_MODE=1
+        # when gpg version > 2.1
+        # Refer to bug #1198135
+        if (get_var('FIPS_ENV_MODE')) {
+            assert_script_run('gpgconf --kill gpg-agent');
+        }
+
         script_run("gpg2 -vv --batch --full-generate-key $egg_file &> /dev/$serialdev; echo gpg-finished-\$? >/dev/$serialdev", 0);
     }
     else {

@@ -14,11 +14,12 @@ use utils;
 use repo_tools 'generate_version';
 use Mojo::UserAgent;
 use LTP::utils qw(get_ltproot get_ltp_version_file);
-use LTP::WhiteList qw(download_whitelist find_whitelist_testsuite find_whitelist_entry list_skipped_tests override_known_failures);
+use LTP::WhiteList;
 use Mojo::File;
 use Mojo::JSON;
 use publiccloud::utils;
 use Data::Dumper;
+use version_utils;
 
 our $root_dir = '/root';
 
@@ -60,13 +61,12 @@ sub upload_ltp_logs
 
         my $ltp_log = Mojo::JSON::decode_json($log_file->slurp());
         my $parser = OpenQA::Parser::Format::LTP->new()->load($log_file->to_string);
+        my %ltp_log_results = map { $_->{test_fqn} => $_->{test} } @{$ltp_log->{results}};
+        my $whitelist = LTP::WhiteList->new();
 
-        if (find_whitelist_testsuite($ltp_testsuite)) {
-            my %ltp_log_results = map { $_->{test_fqn} => $_->{test} } @{$ltp_log->{results}};
-            for my $result (@{$parser->results()}) {
-                if (override_known_failures($self, {%{$self->{ltp_env}}, retval => $ltp_log_results{$result->{test_fqn}}->{retval}}, $ltp_testsuite, $result->{test_fqn})) {
-                    $result->{result} = 'softfail';
-                }
+        for my $result (@{$parser->results()}) {
+            if ($whitelist->override_known_failures($self, {%{$self->{ltp_env}}, retval => $ltp_log_results{$result->{test_fqn}}->{retval}}, $ltp_testsuite, $result->{test_fqn})) {
+                $result->{result} = 'softfail';
             }
         }
 
@@ -96,7 +96,10 @@ sub run {
     } else {
         $provider = $self->provider_factory();
         $instance = $self->{my_instance} = $provider->create_instance();
-        $instance->wait_for_guestregister();
+        unless (is_openstack) {
+            $instance->wait_for_guestregister();
+            $instance->check_guestregister();
+        }
     }
 
     assert_script_run("cd $root_dir");
@@ -106,6 +109,7 @@ sub run {
     assert_script_run('chmod +x log_instance.sh');
 
     registercloudguest($instance) if (is_byos() && !$qam);
+    register_openstack($instance) if is_openstack;
     # in repo with LTP rpm is internal we need to manually upload package to VM
     if (get_var('LTP_RPM_MANUAL_UPLOAD')) {
         my $ltp_rpm = get_ltp_rpm($ltp_repo);
@@ -121,14 +125,14 @@ sub run {
         $instance->run_ssh_command(cmd => 'sudo zypper -n in ltp', timeout => 600);
     }
 
-    download_whitelist();
     my $ltp_env = gen_ltp_env($instance);
     $self->{ltp_env} = $ltp_env;
 
     # Use lib/LTP/WhiteList module to exclude tests
     if (get_var('LTP_KNOWN_ISSUES')) {
+        my $whitelist = LTP::WhiteList->new();
         my $exclude = get_var('LTP_COMMAND_EXCLUDE', '');
-        my @skipped_tests = list_skipped_tests($ltp_env, get_required_var('LTP_COMMAND_FILE'));
+        my @skipped_tests = $whitelist->list_skipped_tests($ltp_env, get_required_var('LTP_COMMAND_FILE'));
         if (@skipped_tests) {
             $exclude .= '|' if (length($exclude) > 0);
             $exclude .= '^(' . join('|', @skipped_tests) . ')$';

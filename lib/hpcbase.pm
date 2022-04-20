@@ -219,4 +219,38 @@ sub prepare_user_and_group {
     assert_script_run('useradd -u 7777 -g 7777 slurm');
 }
 
+=head2 prepare_spack_env
+
+  prepare_spack_env($mpi)
+
+After install spack and HPC C<mpi> required packages, prepares env
+variables. The HPC packages (*-gnu-hpc) use an installation path that is separate
+from the rest and can be exported via a network file system.
+
+After C<prepare_spack_env> run, C<spack> should be ready to build entire tool stack,
+downloading and installing all bits required for whatever package or compiler.
+=cut
+sub prepare_spack_env {
+    my ($self, $mpi) = @_;
+    $mpi //= 'mpich';
+    zypper_call "in spack $mpi-gnu-hpc $mpi-gnu-hpc-devel";
+    $self->relogin_root;
+    assert_script_run 'module load gnu $mpi';
+    assert_script_run 'source /usr/share/spack/setup-env.sh';
+}
+
+=head2 uninstall_spack_module
+
+  uninstall_spack_module($module)
+
+Unload and uninstall C<module> from spack stack
+=cut
+sub uninstall_spack_module {
+    my ($self, $module) = @_;
+    die 'uninstall_spack_module requires a module name' unless $module;
+    assert_script_run("spack unload $module");
+    script_run('module av');
+    assert_script_run("spack uninstall -y $module");
+    assert_script_run("spack find $module | grep 'No package matches the query'");
+}
 1;

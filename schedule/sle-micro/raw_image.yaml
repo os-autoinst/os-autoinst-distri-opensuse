@@ -32,10 +32,15 @@ conditional_schedule:
     FLAVOR:
       'MicroOS-Image-RT':
         - rt/rt_is_realtime
+  ECSAnywhere:
+    FLAVOR:
+      'ECS-Anywhere':
+        - containers/ecs_anywhere
 
 schedule:
   - '{{boot}}'
   - transactional/host_config
+  - '{{ECSAnywhere}}'
   - '{{rt}}'
   - '{{registration}}'
   - '{{maintenance}}'

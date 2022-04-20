@@ -14,11 +14,11 @@ use Utils::Backends;
 use utils;
 use transactional qw(trup_call check_reboot_changes);
 use Utils::Architectures;
-use version_utils qw(is_sle_micro is_transactional);
+use version_utils qw(is_sle_micro is_leap_micro is_transactional);
 
 # 'patterns-microos-kvm_host' is required for SUMA client use case
 sub is_qemu_preinstalled {
-    if (is_sle_micro) {
+    if (is_sle_micro || is_leap_micro) {
         assert_script_run('rpm -q patterns-microos-kvm_host');
         return 1;
     }

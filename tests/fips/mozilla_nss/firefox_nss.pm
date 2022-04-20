@@ -17,7 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use utils qw(zypper_call package_upgrade_check);
+use utils qw(zypper_call package_upgrade_check clear_console);
 use Utils::Architectures;
 use version_utils 'is_sle';
 
@@ -85,7 +85,7 @@ sub run {
         my $mozilla_nss_ver = script_output("rpm -q --qf '%{version}\n' mozilla-nss");
         record_info('mozilla-nss version', "Version of Current package: $mozilla_nss_ver");
     }
-
+    clear_console;
     select_console 'x11';
     x11_start_program('firefox https://html5test.opensuse.org', target_match => 'firefox-html-test', match_timeout => 360);
 
@@ -95,7 +95,8 @@ sub run {
     # Search "Passwords" section
     if ($firefox_version >= 91) {
         type_string "Use a primary", timeout => 2;
-    } else {
+    }
+    else {
         type_string "Use a master", timeout => 2;
     }
     assert_and_click("firefox-master-password-checkbox");

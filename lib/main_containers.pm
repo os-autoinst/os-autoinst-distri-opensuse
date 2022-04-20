@@ -22,6 +22,7 @@ our @EXPORT = qw(
   is_container_test
   load_container_tests
   load_host_tests_podman
+  load_image_test
   load_3rd_party_image_test
   load_container_engine_test
 );
@@ -45,35 +46,28 @@ sub is_ubuntu_host {
 }
 
 sub load_image_test {
-    my ($runtime) = @_;
-    my $args = OpenQA::Test::RunArgs->new();
-    $args->{runtime} = $runtime;
-
-    loadtest('containers/image', run_args => $args, name => "image_$runtime");
+    my ($run_args) = @_;
+    loadtest('containers/image', run_args => $run_args, name => 'image_' . $run_args->{runtime});
 }
 
 sub load_3rd_party_image_test {
-    my ($runtime) = @_;
-    my $args = OpenQA::Test::RunArgs->new();
-    $args->{runtime} = $runtime;
-
-    loadtest('containers/third_party_images', run_args => $args, name => $runtime . "_3rd_party_images");
+    my ($run_args) = @_;
+    loadtest('containers/third_party_images', run_args => $run_args, name => $run_args->{runtime} . '_3rd_party_images');
 }
 
 sub load_container_engine_test {
-    my ($runtime) = @_;
-    my $args = OpenQA::Test::RunArgs->new();
-    $args->{runtime} = $runtime;
-
-    loadtest('containers/container_engine', run_args => $args, name => $runtime);
+    my ($run_args) = @_;
+    loadtest('containers/container_engine', run_args => $run_args, name => $run_args->{runtime});
 }
 
 sub load_image_tests_podman {
-    load_image_test('podman');
+    my ($run_args) = @_;
+    load_image_test($run_args);
 }
 
 sub load_image_tests_docker {
-    load_image_test('docker');
+    my ($run_args) = @_;
+    load_image_test($run_args);
     # container_diff package is not avaiable for <=15 in aarch64
     # Also, we don't want to run it on 3rd party hosts
     unless ((is_sle("<=15") and is_aarch64) || get_var('CONTAINERS_NO_SUSE_OS')) {
@@ -82,40 +76,51 @@ sub load_image_tests_docker {
 }
 
 sub load_host_tests_podman {
-    if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+") || is_sle_micro) {
-        # podman package is only available as of 15-SP1
-        load_container_engine_test('podman');
-        load_image_test('podman');
-        load_3rd_party_image_test('podman');
-        loadtest 'containers/podman_firewall' unless is_openstack;
-        loadtest 'containers/buildah' unless is_sle_micro;
+    my ($run_args) = @_;
+    # podman package is only available as of 15-SP1
+    unless (is_sle("<15-sp1")) {
+        load_container_engine_test($run_args);
+        # In Public Cloud we don't have internal resources
+        load_image_test($run_args) unless is_public_cloud;
+        load_3rd_party_image_test($run_args);
+        # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
+        loadtest 'containers/podman_firewall' unless (is_public_cloud || is_openstack || is_microos);
+        # Buildah is not available in SLE Micro and MicroOS
+        loadtest 'containers/buildah' unless (is_sle_micro || is_microos || is_leap_micro);
         # https://github.com/containers/podman/issues/5732#issuecomment-610222293
-        loadtest 'containers/rootless_podman' unless (is_sle('=15-sp1') || is_openstack);
+        # exclude rootless poman on public cloud because of cgroups2 special settings
+        loadtest 'containers/rootless_podman' unless (is_sle('=15-sp1') || is_openstack || is_public_cloud);
     }
 }
 
 sub load_host_tests_docker {
-    load_container_engine_test('docker');
-    load_image_test('docker');
-    load_3rd_party_image_test('docker');
-    loadtest 'containers/docker_firewall' unless is_openstack;
+    my ($run_args) = @_;
+    load_container_engine_test($run_args);
+    # In Public Cloud we don't have internal resources
+    load_image_test($run_args) unless is_public_cloud;
+    load_3rd_party_image_test($run_args);
+    # Firewall is not installed in Public Cloud, JeOS OpenStack and MicroOS but it is in SLE Micro
+    loadtest 'containers/docker_firewall' unless (is_public_cloud || is_openstack || is_microos);
     unless (is_sle("<=15") && is_aarch64) {
         # these 2 packages are not avaiable for <=15 (aarch64 only)
-        # zypper-docker is not available in factory
-        loadtest 'containers/zypper_docker' unless is_tumbleweed;
+        # zypper-docker is not available in factory and in SLE Micro/MicroOS
+        loadtest 'containers/zypper_docker' unless (is_tumbleweed || is_sle_micro || is_microos || is_leap_micro);
         loadtest 'containers/docker_runc';
     }
-    unless (check_var('BETA', 1)) {
+    unless (check_var('BETA', 1) || is_sle_micro || is_microos || is_leap_micro) {
         # These tests use packages from Package Hub, so they are applicable
         # to maintenance jobs or new products after Beta release
+        # PackageHub is not available in SLE Micro | MicroOS
         loadtest 'containers/registry' if is_x86_64;
-        loadtest 'containers/docker_compose';
+        loadtest 'containers/docker_compose' unless is_public_cloud;
     }
     # works currently only for x86_64, more are coming (poo#103977)
     # Expected to work for all but JeOS on 15sp4 after
     # https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/13860
     # Disabled on svirt backends (VMWare, Hyper-V and XEN) as the device name might be different than vdX
-    loadtest 'containers/validate_btrfs' if (is_x86_64 and is_qemu and !is_openstack);
+    if ((is_x86_64 && is_qemu) && !(is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro)) {
+        loadtest 'containers/validate_btrfs';
+    }
 }
 
 sub load_host_tests_containerd_crictl {
@@ -127,26 +132,35 @@ sub load_host_tests_containerd_nerdctl {
 }
 
 sub load_host_tests_helm() {
-    if (is_tumbleweed || is_leap || is_sle) {
-        loadtest "containers/helm";
+    if (is_sle('15-sp3+')) {
+        loadtest "containers/helm_eks";
+        loadtest "containers/helm_k3s";
+    } elsif (is_opensuse) {
+        loadtest "containers/helm_k3s";
+    }
+    else {
+        die("Helm test not supported on this host");
     }
 }
 
 sub load_container_tests {
-    my $args = OpenQA::Test::RunArgs->new();
     my $runtime = get_required_var('CONTAINER_RUNTIME');
 
-    if (get_var('BOOT_HDD_IMAGE')) {
+    # Need to boot a qcow except in JeOS, SLEM and MicroOS where the system is booted already
+    if (get_var('BOOT_HDD_IMAGE') && !(is_jeos || is_sle_micro || is_microos || is_leap_micro)) {
         loadtest 'installation/bootloader_zkvm' if is_s390x;
-        loadtest 'boot/boot_to_desktop' unless is_jeos;
+        # On Public Cloud we're already booted in the SUT
+        loadtest 'boot/boot_to_desktop' unless is_public_cloud;
     }
 
-    if (is_container_image_test()) {
+    if (is_container_image_test() && !(is_jeos || is_sle_micro || is_microos || is_leap_micro)) {
         # Container Image tests common
-        loadtest 'containers/host_configuration' unless (is_jeos);
+        loadtest 'containers/host_configuration';
     }
 
     foreach (split(',\s*', $runtime)) {
+        my $run_args = OpenQA::Test::RunArgs->new();
+        $run_args->{runtime} = $_;
         if (is_container_image_test()) {
             if (get_var('BCI_TESTS')) {
                 # External bci-tests pytest suite
@@ -155,19 +169,19 @@ sub load_container_tests {
             }
             else {
                 # Common openQA image tests
-                load_image_tests_podman() if (/podman/i);
-                load_image_tests_docker() if (/docker/i);
+                load_image_tests_podman($run_args) if (/podman/i);
+                load_image_tests_docker($run_args) if (/docker/i);
             }
         }
         else {
             # Container Host tests
-            load_host_tests_podman() if (/podman/i);
-            load_host_tests_docker() if (/docker/i);
+            load_host_tests_podman($run_args) if (/podman/i);
+            load_host_tests_docker($run_args) if (/docker/i);
             load_host_tests_containerd_crictl() if (/containerd_crictl/i);
             load_host_tests_containerd_nerdctl() if (/containerd_nerdctl/i);
             load_host_tests_helm() if (/helm/i);
         }
     }
 
-    loadtest 'console/coredump_collect' unless (is_jeos || get_var('BCI_TESTS'));
+    loadtest 'console/coredump_collect' unless (is_public_cloud || is_jeos || is_sle_micro || is_microos || is_leap_micro || get_var('BCI_TESTS'));
 }

@@ -164,10 +164,11 @@ sub switch_to_wicked {
     assert_script_run('rm -f /etc/NetworkManager/system-connections/*');
     systemctl("restart NetworkManager");
     assert_script_run("nmcli connection add type ethernet con-name $iface ifname $iface ip4 $ip gw4 10.0.2.2");
-    configure_static_dns(get_host_resolv_conf());
+    configure_static_dns(get_host_resolv_conf(), is_nm => 1, nm_id => $iface);
     assert_script_run("nmcli con up $iface ifname $iface");
     record_info('devices', script_output('nmcli device status'));
     record_info('ip a', script_output('ip a'));
+    record_info('ip r', script_output('ip r'));
     record_info('nameserver', script_output('cat /etc/resolv.conf'));
     assert_script_run('ping -c 5 10.0.2.2');
     zypper_call("in wicked", timeout => 400);

@@ -6,7 +6,6 @@
 
 package LTP::WhiteList;
 
-use base Exporter;
 use strict;
 use warnings;
 use testapi;
@@ -19,23 +18,28 @@ use Mojo::UserAgent;
 use Mojo::File 'path';
 use YAML::PP;
 
-our @EXPORT = qw(
-  download_whitelist
-  find_whitelist_testsuite
-  find_whitelist_entry
-  override_known_failures
-  is_test_disabled
-  list_skipped_tests
-);
+sub new {
+    my $class = shift;
+    my $self = bless({}, $class);
+    my $path = get_var('LTP_KNOWN_ISSUES_LOCAL');
 
-sub download_whitelist {
+    if (!defined($path) && get_var('LTP_KNOWN_ISSUES')) {
+        $path = _download_whitelist();
+    }
+
+    $self->{whitelist} = _load_whitelist_file($path) if $path;
+    $self->{whitelist} ||= {};
+    return $self;
+}
+
+sub _download_whitelist {
     my $path = get_var('LTP_KNOWN_ISSUES');
     return undef unless defined($path);
 
     my $res = Mojo::UserAgent->new->get($path)->result;
     unless ($res->is_success) {
         record_info("File not downloaded!", $res->message, result => 'softfail');
-        set_var('LTP_KNOWN_ISSUES_LOCAL', undef);
+        set_var('LTP_KNOWN_ISSUES_LOCAL', '');
         return;
     }
 
@@ -47,12 +51,13 @@ sub download_whitelist {
     copy($lfile, "ulogs/$basename");
 
     set_var('LTP_KNOWN_ISSUES_LOCAL', $lfile);
+    return $lfile;
 }
 
 sub find_whitelist_entry {
-    my ($env, $suite, $test) = @_;
+    my ($self, $env, $suite, $test) = @_;
 
-    $suite = find_whitelist_testsuite($suite);
+    $suite = $self->{whitelist}->{$suite};
     return undef unless ($suite);
 
     my @issues;
@@ -66,14 +71,14 @@ sub find_whitelist_entry {
     }
 
     foreach my $cond (@issues) {
-        return $cond if (whitelist_entry_match($cond, $env));
+        return $cond if (_whitelist_entry_match($cond, $env));
     }
 
     return undef;
 }
 
 sub override_known_failures {
-    my ($self, $env, $suite, $test) = @_;
+    my ($self, $testmod, $env, $suite, $testname) = @_;
     my $entry;
 
     if ($env->{retval} && ref($env->{retval}) eq 'ARRAY') {
@@ -84,12 +89,12 @@ sub override_known_failures {
         @retvals = (0) unless (@retvals);
 
         for my $retval (@retvals) {
-            my $tmp = find_whitelist_entry({%$env, retval => $retval}, $suite, $test);
+            my $tmp = $self->find_whitelist_entry({%$env, retval => $retval}, $suite, $testname);
             return 0 unless ($tmp);
             $entry //= $tmp;
         }
     } else {
-        $entry = find_whitelist_entry($env, $suite, $test);
+        $entry = $self->find_whitelist_entry($env, $suite, $testname);
     }
 
     return 0 unless defined($entry);
@@ -98,7 +103,7 @@ sub override_known_failures {
         my $info = bugzilla_buginfo($entry->{bugzilla});
 
         if (!defined($info) || !exists $info->{bug_status}) {
-            $self->record_resultfile('Bugzilla error',
+            $testmod->record_resultfile('Bugzilla error',
                 "Failed to query bug #$entry->{bugzilla} status",
                 result => 'fail');
             return;
@@ -107,32 +112,30 @@ sub override_known_failures {
         my $status = lc $info->{bug_status};
 
         if ($status eq 'resolved' || $status eq 'verified') {
-            $self->record_resultfile('Bug closed',
+            $testmod->record_resultfile('Bug closed',
                 "Bug #$entry->{bugzilla} is closed, ignoring whitelist entry",
                 result => 'fail');
             return;
         }
     }
 
-    my $msg = "Failure in LTP:$suite:$test is known, overriding to softfail";
+    my $msg = "Failure in LTP:$suite:$testname is known, overriding to softfail";
     bmwqemu::diag($msg);
-    $self->{result} = 'softfail';
-    $self->record_soft_failure_result(join("\n", $msg, ($entry->{message} // ())));
+    $testmod->{result} = 'softfail';
+    $testmod->record_soft_failure_result(join("\n", $msg, ($entry->{message} // ())));
     return 1;
 }
 
 sub is_test_disabled {
-    my $entry = find_whitelist_entry(@_);
+    my $self = shift;
+    my $entry = $self->find_whitelist_entry(@_);
 
     return 1 if defined($entry) && exists $entry->{skip} && $entry->{skip};
     return 0;
 }
 
-sub find_whitelist_testsuite {
-    my ($suite) = @_;
-    my $issues;
-
-    my $path = get_var('LTP_KNOWN_ISSUES_LOCAL');
+sub _load_whitelist_file {
+    my $path = shift;
     return undef unless defined($path) and -e $path;
 
     # YAML::PP can handle both JSON and YAML
@@ -143,28 +146,25 @@ sub find_whitelist_testsuite {
 
     # YAML::PP cannot handle BOM => remove it
     $content =~ s/^\x{FEFF}//;
-
-    $issues = $yp->load_string($content);
-
-    return undef unless $issues;
-    return $issues->{$suite};
+    return $yp->load_string($content);
 }
 
 sub list_skipped_tests {
-    my ($env, $suite) = @_;
+    my ($self, $env, $suite) = @_;
     my @skipped_tests;
-    $suite = find_whitelist_testsuite($suite);
+
+    $suite = $self->{whitelist}->{$suite};
     return @skipped_tests unless ($suite);
     return @skipped_tests if (ref($suite) eq 'ARRAY');
 
     for my $test (keys(%$suite)) {
-        my @entrys = grep { $_->{skip} && whitelist_entry_match($_, $env) } @{$suite->{$test}};
+        my @entrys = grep { $_->{skip} && _whitelist_entry_match($_, $env) } @{$suite->{$test}};
         push @skipped_tests, $test if @entrys;
     }
     return @skipped_tests;
 }
 
-sub whitelist_entry_match
+sub _whitelist_entry_match
 {
     my ($entry, $env) = @_;
     my @attributes = qw(product ltp_version revision arch kernel backend retval flavor);

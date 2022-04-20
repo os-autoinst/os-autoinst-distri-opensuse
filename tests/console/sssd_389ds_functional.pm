@@ -36,7 +36,7 @@ sub run {
     zypper_call("in sssd sssd-ldap openldap2-client sshpass $docker");
 
     #For released sle versions use sle15sp3 base image by default. For developing sle use corresponding image in registry.suse.de
-    my $pkgs = "systemd systemd-sysvinit 389-ds openssl";
+    my $pkgs = "awk systemd systemd-sysvinit 389-ds openssl";
     my $tag = "";
     if (is_opensuse) {
         $tag = (is_tumbleweed) ? "registry.opensuse.org/opensuse/tumbleweed" : "registry.opensuse.org/opensuse/leap";
@@ -53,8 +53,8 @@ sub run {
     assert_script_run("mkdir /tmp/sssd && cd /tmp/sssd");
     assert_script_run("curl " . "--remote-name-all " . data_url("sssd/398-ds/{user_389.ldif,access.ldif,Dockerfile_$docker,instance_389.inf}"));
     assert_script_run(qq($docker build -t ds389_image --build-arg tag="$tag" --build-arg pkgs="$pkgs" -f Dockerfile_$docker .), timeout => 600);
-    assert_script_run("$docker run -itd --name ds389_container --hostname ldapserver --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --restart=always ds389_image") if ($docker eq "docker");
-    assert_script_run("$docker run -itd --name ds389_container --hostname ldapserver ds389_image") if ($docker eq "podman");
+    assert_script_run("$docker run -itd --shm-size=256m --name ds389_container --hostname ldapserver --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --restart=always ds389_image") if ($docker eq "docker");
+    assert_script_run("$docker run -itd --shm-size=256m --name ds389_container --hostname ldapserver ds389_image") if ($docker eq "podman");
     assert_script_run("$docker exec ds389_container sed -n '/ldapserver/p' /etc/hosts >> /etc/hosts");
     assert_script_run("$docker exec ds389_container dscreate from-file /tmp/instance_389.inf");
     assert_script_run('ldapadd -x -H ldap://ldapserver -D "cn=Directory Manager" -w opensuse -f user_389.ldif');
