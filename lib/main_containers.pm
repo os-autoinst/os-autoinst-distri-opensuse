@@ -172,6 +172,9 @@ sub load_container_tests {
                 load_image_tests_podman($run_args) if (/podman/i);
                 load_image_tests_docker($run_args) if (/docker/i);
             }
+        } elsif (get_var('REPO_BCI')) {
+            loadtest 'containers/host_configuration';
+            loadtest 'containers/bci_repo';
         }
         else {
             # Container Host tests
