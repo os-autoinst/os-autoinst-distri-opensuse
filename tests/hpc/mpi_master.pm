@@ -24,7 +24,7 @@ sub run ($self) {
     my $cluster_nodes = join(',', @cluster_nodes);
 
     zypper_call("in $mpi-gnu-hpc $mpi-gnu-hpc-devel python3-devel");
-    my $need_restart = $self->setup_scientific_module(); record_info "$need_restart";
+    my $need_restart = $self->setup_scientific_module();
     $self->relogin_root if $need_restart;
     assert_script_run "module load gnu $mpi";
     barrier_wait('CLUSTER_PROVISIONED');
