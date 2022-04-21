@@ -1,4 +1,6 @@
 ---
+# Note: This YAML schedule is deprecated and will be removed soon.
+
 name: publiccloud-smoketest
 description: |
   Basic smoketests on public cloud instances
@@ -15,14 +17,22 @@ conditional_schedule:
     PUBLIC_CLOUD_INSTANCE_TYPE:
       'Standard_L8s_v2':
         - publiccloud/az_l8s_nvme
+  download_repos:
+    PUBLIC_CLOUD_QAM:
+      '1':
+        - publiccloud/download_repos
+  transfer_repos:
+    PUBLIC_CLOUD_QAM:
+      '1':
+        - publiccloud/transfer_repos
 
 schedule:
   - boot/boot_to_desktop
-  - publiccloud/download_repos
+  - '{{download_repos}}'
   - publiccloud/prepare_instance
   - publiccloud/registercloudguest
   - publiccloud/register_addons
-  - publiccloud/transfer_repos
+  - '{{transfer_repos}}'
   - publiccloud/patch_and_reboot
   - publiccloud/ssh_interactive_start
   - publiccloud/instance_overview
