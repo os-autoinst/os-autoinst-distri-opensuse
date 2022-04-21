@@ -27,6 +27,7 @@ sub run ($self) {
     my $need_restart = $self->setup_scientific_module();
     $self->relogin_root if $need_restart;
     assert_script_run "module load gnu $mpi";
+    script_run "module av";
     barrier_wait('CLUSTER_PROVISIONED');
     ## all nodes should be able to ssh to each other, as MPIs requires so
     $self->generate_and_distribute_ssh();
