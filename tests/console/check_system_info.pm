@@ -34,6 +34,7 @@ sub check_addons {
         record_info("$addon module fullname: ", $name);
         $name = "sle-product-we" if (($name =~ /sle-we/) && !get_var("MEDIA_UPGRADE") && is_sle('15+'));
         $name = "SLE-Module-DevTools" if (($name =~ /development/) && !get_var("MEDIA_UPGRADE"));
+        $name =~ s/sle-module-//g if (is_sle('=15-sp3') && ($name =~ /sle-module-/));
         my $out = script_output("zypper lr | grep -i $name", 200, proceed_on_failure => 1);
         die "zypper lr command output does not include $name" if ($out eq '');
     }
@@ -201,6 +202,10 @@ sub post_fail_hook {
     my $self = shift;
     upload_logs '/tmp/zypperlr.txt';
     $self->SUPER::post_fail_hook;
+}
+
+sub test_flags {
+    return {fatal => 0};
 }
 
 1;
