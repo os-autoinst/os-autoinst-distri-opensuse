@@ -39,14 +39,9 @@ sub run {
 
         # Wait until client reports that, after it properly got its system
         # disk, heavy I/O is now about to begin (see start_install.pm).
-        mutex_wait("client_pkginstall_start", $jobid_client);
         assert_script_run("/usr/local/bin/multipath_flaky_luns.sh", 30);
         $meddler_pid = script_output("/bin/cat \"$meddler_pidfile\"", 30);
         record_info("Meddling", "Client system disk: LUN meddling started. PID: $meddler_pid");
-
-        # Keep going until client reports that it is through package
-        # installation and is about to reboot (see await_install.pm)
-        mutex_wait("client_pkginstall_done", $jobid_client);
 
         # Restore the multipaths and report (cf. support_server/flaky_mp_iscsi.pm)
         script_run("kill -INT $meddler_pid");

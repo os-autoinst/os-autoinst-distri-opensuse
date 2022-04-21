@@ -127,12 +127,6 @@ sub run {
             }
         }
     }
-    if (get_var('USE_SUPPORT_SERVER') && get_var('USE_SUPPORT_SERVER_REPORT_PKGINSTALL')) {
-        my $jobid_server = (get_parents())->[0] or die "USE_SUPPORT_SERVER_REPORT_PKGINSTALL set, but no parent supportserver job found";
-        # notify the supportserver about current status (e.g.: meddle_multipaths.pm)
-        mutex_create("client_pkginstall_start", $jobid_server);
-        record_info("Disk I/O", "Mutex \"client_pkginstall_start\" created");
-    }
 }
 
 1;
