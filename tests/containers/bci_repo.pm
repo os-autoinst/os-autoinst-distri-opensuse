@@ -36,11 +36,10 @@ sub container_exec {
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-
-    my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
     my $bci_repo = get_required_var('REPO_BCI');
 
     # download and start a BCI container
+    my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
     record_info('IMAGE', $image);
     script_retry("podman pull $image", timeout => 300, delay => 60, retry => 3);
     record_info('Inspect', script_output("podman inspect $image"));
@@ -56,9 +55,11 @@ sub run {
         container_exec($container, "zypper -q -s 11 pa --orphaned | tee -a repo.org", timeout => 600);
         # remove container-suseconnect, in order to install the Cloud patterns
         container_exec($container, 'zypper -n rm container-suseconnect', timeout => 180);
+        # refresh services in order to remove container-suseconnect-zypp orphaned services
+        container_exec($container, 'zypper refs');
         # remove SLE_BCI repo pointing to official update servers and add SUT repo
         container_exec($container, 'zypper rr 1');
-        container_exec($container, "zypper ar $bci_repo BCI_TEST");
+        container_exec($container, "zypper ar http://openqa.suse.de/assets/repo/$bci_repo BCI_TEST");
         container_exec($container, 'zypper ref', timeout => 180);
         container_exec($container, 'zypper lr -d');
         record_info("Patterns", join(', ', @{$patterns->[$i]}));
