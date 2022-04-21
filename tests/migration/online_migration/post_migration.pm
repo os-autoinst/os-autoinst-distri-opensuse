@@ -15,6 +15,7 @@ use utils;
 use version_utils qw(is_desktop_installed is_sles4sap is_sle);
 use qam qw(add_test_repositories remove_test_repositories);
 use x11utils 'ensure_unlocked_desktop';
+use migration 'disable_kernel_multiversion';
 
 sub run {
     select_console 'root-console';
@@ -35,6 +36,12 @@ sub run {
     }
     diag "SUSEConnect --status-text: $out";
     assert_script_run "SUSEConnect --status-text | grep -v 'Not Registered'" unless get_var('MEDIA_UPGRADE');
+
+    # enable multiversion for kernel-default based on bsc#1097111, for migration continuous cases only
+    if (get_var('FLAVOR', '') =~ /Continuous-Migration/) {
+        record_soft_failure 'bsc#1097111 - File conflict of SLE12 SP3 and SLE15 kernel';
+        disable_kernel_multiversion;
+    }
 
     add_maintenance_repos() if (get_var('MAINT_TEST_REPO'));
 
