@@ -18,6 +18,8 @@ sub run ($self) {
     zypper_call("in $mpi-gnu-hpc $mpi-gnu-hpc-devel python3-devel");
     my $need_restart = $self->setup_scientific_module();
     $self->relogin_root if $need_restart;
+    # for <15-SP2 the openmpi2 module is named simply openmpi
+    $mpi = 'openmpi' if ($mpi =~ /openmpi2/);
     assert_script_run "module load gnu $mpi";
     barrier_wait('CLUSTER_PROVISIONED');
     barrier_wait('MPI_SETUP_READY');
