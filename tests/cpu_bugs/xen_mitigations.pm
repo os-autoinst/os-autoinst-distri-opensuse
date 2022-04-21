@@ -97,7 +97,7 @@ my $xpti_domu_false = {"domu=false" => {
 my $spec_ctrl_no = {no => {
         default => {
             #expection string. If it doesn't appear go die
-            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS- SSBD-.*, Other:$',
+            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS- STIBP- SSBD-.*, Other:$',
 'Support for HVM VMs: MD_CLEAR', 'Support for PV VMs: MD_CLEAR', '^(XEN)   XPTI (64-bit PV only): Dom0 disabled, DomU disabled (with PCID)$', '^(XEN)   PV L1TF shadowing: Dom0 disabled, DomU disabled$']},
             #unexpection string. If it appears go die.
             unexpected => {'xl dmesg' => ['']}
@@ -106,7 +106,7 @@ my $spec_ctrl_no = {no => {
 };
 my $spec_ctrl_no_xen = {"no-xen" => {
         default => {
-            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS- SSBD-.*, Other:$']},
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS- STIBP- SSBD-.*, Other:$']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
@@ -141,14 +141,14 @@ my $spec_ctrl_hvm_0 = {"hvm=0" => {
 };
 my $spec_ctrl_msr_sc_on = {"msr-sc=on" => {
         default => {
-            expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR', 'Support for PV VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
+            expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR', 'Support for PV VMs: MSR_SPEC_CTRL EAGER_FPU MD_CLEAR']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_msr_sc_off = {"msr-sc=off" => {
         default => {
-            expected => {'xl dmesg' => ['Support for HVM VMs: RSB EAGER_FPU MD_CLEAR', 'Support for PV VMs: RSB EAGER_FPU MD_CLEAR']},
+            expected => {'xl dmesg' => ['Support for HVM VMs: RSB EAGER_FPU MD_CLEAR', 'Support for PV VMs: EAGER_FPU MD_CLEAR']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
@@ -184,7 +184,7 @@ my $spec_ctrl_md_clear_on = {"md-clear=on" => {
 };
 my $spec_ctrl_bti_thunk_retp_for_intel = {"bti-thunk=retpoline" => {
         default => {
-            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk RETPOLINE, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
+            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk RETPOLINE, SPEC_CTRL: IBRS+ STIBP- SSBD-.*, Other:']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
@@ -198,49 +198,49 @@ my $spec_ctrl_bti_thunk_retp_for_amd = {"bti-thunk=lfence" => {
 };
 my $spec_ctrl_bti_thunk_jmp = {"bti-thunk=jmp" => {
         default => {
-            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
+            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS+ STIBP- SSBD-.*, Other:']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_ibrs_off = {"ibrs=off" => {
         default => {
-            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS- SSBD-.*, Other:']},
+            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS- STIBP- SSBD-.*, Other:']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_ibrs_on = {"ibrs=on" => {
         default => {
-            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
+            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS+ STIBP- SSBD-.*, Other:']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_ibpb_off = {"ibpb=off" => {
         default => {
-            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:']},
+            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. STIBP- SSBD-.*, Other:']},
             unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:.*IBPB']}
         }
     }
 };
 my $spec_ctrl_ibpb_on = {"ibpb=on" => {
         default => {
-            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: IBPB']},
+            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. STIBP- SSBD-.*, Other: IBPB']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_ssbd_off = {"ssbd=off" => {
         default => {
-            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:']},
+            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. STIBP- SSBD-.*, Other:']},
             unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD\+.*(TSX|).*, Other:']}
         }
     }
 };
 my $spec_ctrl_ssbd_on = {"ssbd=on" => {
         default => {
-            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD+.*, Other:']},
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. STIBP- SSBD+.*, Other:']},
             unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:']}
         }
     }
@@ -268,14 +268,14 @@ my $spec_ctrl_l1d_flsh_off = {"l1d-flush=off" => {
 };
 my $spec_ctrl_l1d_flsh_on = {"l1d-flush=on" => {
         default => {
-            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: .*L1D_FLUSH']},
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. STIBP- SSBD-.*, Other: .*L1D_FLUSH']},
             unexpected => {},
         }
     }
 };
 my $spec_ctrl_branch_harden_on = {"branch-harden=on" => {
         default => {
-            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: .*BRANCH_HARDEN']},
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. STIBP- SSBD-.*, Other: .*BRANCH_HARDEN']},
             unexpected => {},
         }
     }
