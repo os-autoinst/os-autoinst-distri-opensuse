@@ -14,7 +14,7 @@ use testapi qw(get_var get_required_var);
 has mpirun => sub {
     my ($self) = shift;
     my $mpi = get_required_var('MPI');
-    $self->mpirun("/usr/lib64/mpi/gcc/$mpi/bin/mpirun");
+    $self->mpirun("mpirun");
     my @mpirun_args = ('-print-all-exitcodes');
     ## openmpi requires non-root usr to run program or special flag '--allow-run-as-root'
     push @mpirun_args, '--allow-run-as-root ' if $mpi =~ m/openmpi/;
