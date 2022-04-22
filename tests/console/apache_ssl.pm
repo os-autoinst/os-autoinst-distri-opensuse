@@ -18,8 +18,7 @@ use utils 'clear_console';
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
-    clear_console;
+    select_console 'root-console';
     setup_apache2(mode => 'SSL');
 }
 
