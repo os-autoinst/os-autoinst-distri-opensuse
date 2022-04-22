@@ -38,6 +38,8 @@ sub run {
     wait_screen_change { send_key 'esc' };
     #close the note "Start Here"
     wait_screen_change { send_key 'ctrl-w' } if is_sle('<15');
+    assert_and_click 'close-start-here' if (is_tumbleweed || is_sle('>=15-SP4'));
+    assert_and_click 'close-new-note1' if (is_tumbleweed || is_sle('>=15-SP4'));
     $self->cleanup_gnote('gnote-new-note-matched');
 }
 

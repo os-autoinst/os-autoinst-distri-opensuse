@@ -23,6 +23,7 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use version_utils qw(is_sle is_tumbleweed);
 
 
 sub run {
@@ -42,6 +43,7 @@ sub run {
     send_key "ctrl-s";    #strikeline off
     send_key "ctrl-i";    #italic off
     assert_screen 'gnote-edit-format', 5;
+    assert_and_click 'close-new-note1' if (is_tumbleweed || is_sle('>=15-SP4'));
 
     $self->cleanup_gnote('gnote-new-note-matched');
 }

@@ -16,7 +16,7 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_tumbleweed);
 
 
 sub run {
@@ -27,6 +27,7 @@ sub run {
     send_key "up";
     send_key "up";
     enter_cmd "new title-opensuse";
+    assert_and_click 'close-new-note-title' if (is_tumbleweed || is_sle('>=15-SP4'));
     $self->cleanup_gnote('gnote-new-note-title-matched');
 }
 

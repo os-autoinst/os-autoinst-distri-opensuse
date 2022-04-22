@@ -16,10 +16,10 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils 'is_tumbleweed';
+use version_utils qw(is_tumbleweed is_sle);
 
 sub run {
-    if (is_tumbleweed) {
+    if (is_tumbleweed || is_sle('>=15-sp4')) {
         select_console('root-console');
         quit_packagekit;
         zypper_call('in gnote');
