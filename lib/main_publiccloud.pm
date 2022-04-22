@@ -62,7 +62,7 @@ sub load_publiccloud_consoletests {
     loadtest 'console/journalctl';
     loadtest 'console/procps';
     loadtest 'console/suse_module_tools';
-    loadtest 'console/libgcrypt';
+    loadtest 'console/libgcrypt' unless is_sle '=12-SP4';
 }
 
 sub load_latest_publiccloud_tests {
