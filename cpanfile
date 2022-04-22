@@ -43,6 +43,7 @@ requires 'Term::ANSIColor', '2.01';
 requires 'Test::Assert';
 requires 'Tie::IxHash';
 requires 'Time::HiRes';
+requires 'WWW::Curl';
 requires 'XML::LibXML';
 requires 'XML::Simple';
 requires 'XML::Writer';
