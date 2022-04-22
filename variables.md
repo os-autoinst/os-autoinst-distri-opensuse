@@ -122,6 +122,7 @@ NFSCLIENT | boolean | false | Indicates/enables nfs client in `console/yast2_nfs
 NFSSERVER | boolean | false | Indicates/enables nfs server in `console/yast2_nfs_server`.
 NICEVIDEO |||
 NICTYPE_USER_OPTIONS | string | | `hostname=myguest` causes a fake DHCP hostname 'myguest' provided to SUT. It is used as expected hostname if `EXPECTED_INSTALL_HOSTNAME` is not set.
+NO_ADD_MAINT_TEST_REPOS | boolean | true |  Do not add again (and duplicate) repositories that were already added during install
 NOAUTOLOGIN | boolean | false | Indicates disabled auto login.
 NOIMAGES |||
 NOLOGS | boolean | false | Do not collect logs if set to true. Handy during development.

@@ -84,9 +84,15 @@ sub add_test_repositories {
     # please be sure that the PATCH_TEST_REPO is empty.
     @repos = split(',', $oldrepo) if ($oldrepo);
 
-    for my $var (@repos) {
-        zypper_call("--no-gpg-checks ar -f $gpg -n 'TEST_$counter' $var 'TEST_$counter'");
-        $counter++;
+    if (get_var("NO_ADD_MAINT_TEST_REPOS")) {
+        # If we don't want to add again (and duplicate) repositories that were already added during install,
+        # we still need to disable gpg check for all repositories.
+        zypper_call('--gpg-auto-import-keys ref', timeout => 1400, exitcode => [0, 106]);
+    } else {
+        for my $var (@repos) {
+            zypper_call("--no-gpg-checks ar -f $gpg -n 'TEST_$counter' $var 'TEST_$counter'");
+            $counter++;
+        }
     }
 
     if (is_sle('=12-SP2')) {

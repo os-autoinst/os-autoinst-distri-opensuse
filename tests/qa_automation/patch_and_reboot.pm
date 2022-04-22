@@ -56,7 +56,9 @@ sub run {
 
     my $suffix = is_jeos ? '-base' : '';
     assert_script_run("rpm -ql --changelog kernel-default$suffix > /tmp/kernel_changelog.log");
+    zypper_call("lr -u", log => 'repos_list.txt');
     upload_logs('/tmp/kernel_changelog.log');
+    upload_logs('/tmp/repos_list.txt');
 
     # DESKTOP can be gnome, but patch is happening in shell, thus always force reboot in shell
     power_action('reboot', textmode => 1);
