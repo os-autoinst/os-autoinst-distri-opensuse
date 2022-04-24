@@ -7,6 +7,8 @@ schedule:
     - security/atsec/setup_atsec_env
     - security/atsec/kvm_check
     - security/atsec/drng_test_preparation
+    - security/atsec/dbus_services_exposure
+    - security/atsec/dbus_fuzzer
 conditional_schedule:
     bootloader_zkvm:
         ARCH:

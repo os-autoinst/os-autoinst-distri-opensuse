@@ -12,6 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use atsec_test;
 
 sub run {
     my ($self) = shift;
@@ -28,7 +29,7 @@ sub run {
     my $file_tar = $file_name . 'tar';
     assert_script_run("wget --no-check-certificate $code_path -O /tmp/$file_tar");
     assert_script_run("tar -xvf /tmp/$file_tar -C /tmp/");
-    assert_script_run("mv /tmp/$file_name /usr/local/atsec");
+    assert_script_run("mv /tmp/$file_name $atsec_test::code_dir");
 }
 
 sub test_flags {
