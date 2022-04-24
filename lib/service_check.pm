@@ -29,6 +29,7 @@ use nfs_common;
 use services::registered_addons;
 use services::hpcpackage_remain;
 use services::ntpd;
+use services::nodejs;
 use services::cups;
 use services::rpcbind;
 use services::users;
@@ -149,6 +150,12 @@ our $default_services = {
         srv_proc_name => 'nfs',
         support_ver => $support_ver_def,
         service_check_func => \&check_y2_nfs_func
+    },
+    nodejs => {
+        srv_pkg_name => 'nodejs',
+        srv_proc_name => 'nodejs',
+        support_ver => '>=15-SP3',
+        service_check_func => \&services::nodejs::full_nodejs_check
     },
     rpcbind => {
         srv_pkg_name => 'rpcbind',
