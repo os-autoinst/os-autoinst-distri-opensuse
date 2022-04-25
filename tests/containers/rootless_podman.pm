@@ -35,7 +35,7 @@ sub run {
     my $podman = $self->containers_factory('podman');
 
     # Prepare for Podman 3.4.4 and CGroups v2
-    if (is_sle('15-SP3+') || is_leap('15.4+')) {
+    if (is_sle('15-SP3+') || is_leap('15.3+')) {
         record_info 'cgroup v2', 'Switching to cgroup v2';
         assert_script_run "usermod -a -G systemd-journal $testapi::username";
         if (is_transactional) {
