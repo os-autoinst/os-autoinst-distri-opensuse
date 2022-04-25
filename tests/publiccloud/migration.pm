@@ -27,6 +27,7 @@ sub run {
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance();
     $instance->wait_for_guestregister();
+    registercloudguest($instance) if is_byos();
 
     record_info('INFO', $target_version);
 
