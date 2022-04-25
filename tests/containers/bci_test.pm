@@ -17,6 +17,7 @@
 use Mojo::Base qw(consoletest);
 use XML::LibXML;
 use testapi;
+use File::Basename;
 
 our $test_envs = get_var('BCI_TEST_ENVS', 'base,init,dotnet,python,node,go,multistage');
 
@@ -63,10 +64,12 @@ sub run {
 
     my $engine = get_required_var('CONTAINER_RUNTIME');
     my $bci_devel_repo = get_var('BCI_DEVEL_REPO');
+    my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
     my $bci_timeout = get_var('BCI_TIMEOUT', 1200);
 
     record_info('Run', "Starting the tests for the following environments:\n$test_envs");
-    assert_script_run('cd bci-tests');
+    my $bci_dir = fileparse($bci_tests_repo, qr/\.[^.]*/);
+    assert_script_run("cd $bci_dir");
     assert_script_run("export TOX_PARALLEL_NO_SPINNER=1");
     assert_script_run("export CONTAINER_RUNTIME=$engine");
     assert_script_run("export BCI_DEVEL_REPO=$bci_devel_repo") if $bci_devel_repo;
