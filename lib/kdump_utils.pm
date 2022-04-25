@@ -379,6 +379,27 @@ sub check_function {
     }
 }
 
+# for bsc#1199326, we need to check if ~/bernhard/.ssh/id_rsa was not
+# affected after kdump_and_crash.
+sub check_ssh_files {
+    # if file ~bernhard/.ssh/id_rsa missing or zero size
+    # we need to recreate the ssh key.
+    my $ret = script_run('! test -s ~bernhard/.ssh/id_rsa');
+    if ($ret == 0) {
+        record_soft_failure('bsc#1199326 - After kdump and crash the ssh configure files truns zero or gone');
+        my $user = $testapi::username;
+        assert_script_run("rm -f ~/.ssh/id_rsa");
+        assert_script_run('ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa');
+        assert_script_run("mkdir -pv ~/.ssh ~$user/.ssh");
+        assert_script_run("cp ~/.ssh/id_rsa ~$user/.ssh/id_rsa");
+        assert_script_run("touch ~{,$user}/.ssh/{authorized_keys,known_hosts}");
+        assert_script_run("chmod 600 ~{,$user}/.ssh/*");
+        assert_script_run("chown -R bernhard ~$user/.ssh");
+        assert_script_run("cat ~/.ssh/id_rsa.pub | tee -a ~{,$user}/.ssh/authorized_keys");
+        assert_script_run("ssh-keyscan localhost 127.0.0.1 ::1 | tee -a ~{,$user}/.ssh/known_hosts");
+    }
+}
+
 #
 # Check kdump service before and after migration,
 # parameter $stage is 'before' or 'after' of a system migration stage.
@@ -396,6 +417,10 @@ sub full_kdump_check {
 
     if ($stage ne 'before') {
         ensure_serialdev_permissions;
+    }
+    # We need to check bsc#1199326 after kdump_and_crash
+    if ($stage eq 'after') {
+        check_ssh_files();
     }
 }
 
