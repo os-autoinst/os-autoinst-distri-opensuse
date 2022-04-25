@@ -21,6 +21,7 @@ sub run {
 
     # Install tool packages
     zypper_call('in wget');
+    zypper_call('in gcc make');
 
     # Download the test scripts
     my $code_path = get_required_var('CODE_PATH');

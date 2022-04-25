@@ -22,7 +22,7 @@ sub run {
     select_console 'root-console';
 
     # Install the required packages
-    zypper_call('in glib2-devel libffi-devel gcc make');
+    zypper_call('in glib2-devel libffi-devel');
 
     # Compile
     assert_script_run("cd $atsec_test::code_dir/pentest/dfuzzer-master/src");

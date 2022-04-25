@@ -18,9 +18,6 @@ sub run {
 
     select_console 'root-console';
 
-    # Install the required packages
-    zypper_call('in gcc');
-
     # Complile thrash.c
     my $exe_file = 'thrash';
     assert_script_run('cd /usr/local/atsec');
