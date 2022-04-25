@@ -19,7 +19,7 @@ use version_utils qw(is_sle is_public_cloud);
 use publiccloud::ssh_interactive;
 use registration;
 
-our @EXPORT = qw(select_host_console is_byos is_ondemand is_ec2 is_azure is_gce registercloudguest register_addon deregister_addon register_openstack);
+our @EXPORT = qw(select_host_console is_byos is_ondemand is_ec2 is_azure is_gce registercloudguest register_addon deregister_addon register_openstack is_chost);
 
 # Select console on the test host, if force is set, the interactive session will
 # be destroyed. If called in TUNNELED environment, this function die.
@@ -170,6 +170,10 @@ sub is_azure() {
 # Check if we are on an GCP test run
 sub is_gce() {
     return is_public_cloud && check_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
+}
+
+sub is_chost() {
+    return is_public_cloud && get_var('FLAVOR') =~ 'CHOST';
 }
 
 1;

@@ -219,6 +219,11 @@ https://github.com/SUSE-Enceladus/cloud-regionsrv-client/blob/master/integration
 sub check_guestregister {
     my ($self) = @_;
 
+    if (is_chost()) {
+        record_info('SKIP CHECK', 'Not checking guestregister as it is not installed on CHOST images');
+        return 0;
+    }
+
     if (is_byos) {
         if ($self->run_ssh_command(cmd => 'sudo zypper lr', proceed_on_failure => 1) !~ /No repositories defined/gm) {
             die 'The BYOS instance should be unregistered and report "Warning: No repositories defined.".';
