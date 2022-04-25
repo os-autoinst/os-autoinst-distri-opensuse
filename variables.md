@@ -184,6 +184,8 @@ XDMUSED | boolean | false | Indicates availability of xdm.
 XFS_MKFS_OPTIONS | string | | Define additional mkfs parameters. Used only in publiccloud test runs.
 XFS_TEST_DEVICE | string | | Define the device used for xfs tests. Used only in publiccloud test runs.
 XFS_TESTS_REFLINK | boolean | false | If set to true, the mkfsoption for using reflink will be added. Used only in publiccloud test runs.
+YAML_SCHEDULE_DEFAULT | string | | Defines default yaml file to be overriden by test suite schedule.
+YAML_SCHEDULE_FLOWS | string | | Defines a comma-separated values representing additional flows which overrides steps on the schedule specified in YAML_SCHEDULE_DEFAULT.
 YAML_SCHEDULE | string | | Defines yaml file containing test suite schedule.
 YAML_TEST_DATA | string | | Defines yaml file containing test data.
 YUI_LOG_LEVEL | string | debug | Allows changing log level for YuiRestClient::Logger. Available options are: debug, info, warning, error, fatal.

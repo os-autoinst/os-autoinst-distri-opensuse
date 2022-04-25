@@ -1,0 +1,4 @@
+---
+# Update virsh config to boot from HD
+virsh_boot_hdd:
+  - installation/performing_installation/update_virsh_config_to_boot_from_hd

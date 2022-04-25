@@ -23,9 +23,15 @@ properties:
     - type: 'null'  # Some files have a description without a value
 
   schedule:
-    type: array
-    items:
-      type: string
+    oneOf:
+      - type: array
+        items:
+          type: string
+      - type: object
+        items:
+          type: array
+          items:
+            type: string
 
   vars:
     type: object

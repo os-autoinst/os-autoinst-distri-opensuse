@@ -1,0 +1,7 @@
+---
+# Register Desktop Applications Module in Extension and Module Selection
+# Select SLES with GNOME in System Role
+extension_module_selection:
+  - installation/module_registration/register_module_desktop
+system_role:
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
