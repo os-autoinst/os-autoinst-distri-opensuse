@@ -193,6 +193,14 @@ sub run {
         }
         else {
             assert_and_click('before-select-product-' . $product);
+            if (!check_screen('select-product-' . $product)) {
+                if (check_var('VIDEOMODE', 'ssh-x') && is_ppc64le) {
+                    # on ssh-X we need to wait for some popups to go away on ppc64le
+                    record_info('Note:', 'X-Forwarding via SSH is very slow on ppc64le. Retrying selection.');
+                    wait_still_screen(stilltime => 20, timeout => 100);
+                    assert_and_click('before-select-product-' . $product);
+                }
+            }
         }
         assert_screen('select-product-' . $product);
     }
