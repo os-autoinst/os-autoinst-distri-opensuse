@@ -114,7 +114,6 @@ sub run {
         $instance = $provider->create_instance();
 
         $instance->wait_for_guestregister() if is_ondemand();
-        $instance->check_guestregister();
     }
     if ($tests eq "default") {
         $tests = $img_proof_tests->{$flavor};

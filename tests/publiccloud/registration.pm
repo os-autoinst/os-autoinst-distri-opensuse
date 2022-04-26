@@ -26,14 +26,8 @@ sub run {
 
     select_host_console();    # select console on the host, not the PC instance
 
-    my @addons = split(/,/, get_var('SCC_ADDONS', ''));
-    my $remote = $args->{my_instance}->username . '@' . $args->{my_instance}->public_ip;
-    for my $addon (@addons) {
-        next if ($addon =~ /^\s+$/);
-        register_addon($remote, $addon);
-    }
-    record_info('repos (lr)', $args->{my_instance}->run_ssh_command(cmd => "sudo zypper lr"));
-    record_info('repos (ls)', $args->{my_instance}->run_ssh_command(cmd => "sudo zypper ls"));
+    registercloudguest($args->{my_instance});
+    register_addons_in_pc($args->{my_instance});
 }
 
 sub post_fail_hook {
