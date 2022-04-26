@@ -583,14 +583,14 @@ sub check_instance_state {
         # Exit if instance is not running anymore
         last if (($output =~ /GRAY/) && ($uc_state eq 'GRAY'));
 
-        if (($output =~ /GREEN/) && ($uc_state eq 'GREEN')) {
+        if ((($output =~ /GREEN/) && ($uc_state eq 'GREEN')) || ($uc_state eq 'GRAY')) {
             $output = script_output "sapcontrol -nr $instance -function GetProcessList | egrep -i ^[a-z]", proceed_on_failure => 1;
             die "sapcontrol: GetProcessList: command failed" unless ($output =~ /GetProcessList[\r\n]+OK/);
 
             my $failing_services = 0;
             for my $line (split(/\n/, $output)) {
                 next if ($line =~ /GetProcessList|OK|^name/);
-                $failing_services++ if ($line !~ /GREEN/);
+                $failing_services++ if ($line !~ /$uc_state/);
             }
             last unless $failing_services;
         }
