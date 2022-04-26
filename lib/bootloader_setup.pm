@@ -489,7 +489,7 @@ sub bootmenu_default_params {
         push @params, get_hyperv_fb_video_resolution;
         push @params, 'namescheme=by-label' unless is_jeos or is_microos;
     }
-    type_boot_parameters(" @params ");
+    type_boot_parameters(" @params ") if @params;
     return @params;
 }
 
@@ -515,7 +515,7 @@ sub bootmenu_network_source {
                 # Ignore certificate validation
                 push @params, 'ssl.certs=0' if (get_var('SKIP_CERT_VALIDATION'));
                 # As we use boot options, no extra action is required
-                type_boot_parameters(" @params ");
+                type_boot_parameters(" @params ") if @params;
                 return @params;
             }
 
@@ -526,14 +526,14 @@ sub bootmenu_network_source {
                 # Specifies the installation system to use, e.g. from where to load installer
                 my $arch = get_var('ARCH');
                 push @params, "instsys=disk:/boot/$arch/root";
-                type_boot_parameters(" @params ");
+                type_boot_parameters(" @params ") if @params;
                 return @params;
             }
 
             select_installation_source({m_protocol => $m_protocol, m_mirror => $m_mirror});
         }
     }
-    type_boot_parameters(" @params ");
+    type_boot_parameters(" @params ") if @params;
     return @params;
 }
 
@@ -546,7 +546,7 @@ sub bootmenu_remote_target {
         push @params, "nameserver=" . join(",", @$dns);
         push @params, ("$remote=1", "${remote}password=$password");
     }
-    type_boot_parameters(" @params ");
+    type_boot_parameters(" @params ") if @params;
     return @params;
 }
 
@@ -631,13 +631,13 @@ sub select_bootmenu_more {
         push @params, 'console=tty1' if get_var('MACHINE') =~ /aarch64|aarch32/;
         # Hyper-V defaults to 1280x1024, we need to fix it here
         push @params, get_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
-        type_boot_parameters(" @params ");
+        type_boot_parameters(" @params ") if @params;
         save_screenshot;
         send_key 'f10';
     }
     else {
         push @params, get_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
-        type_boot_parameters(" @params ");
+        type_boot_parameters(" @params ") if @params;
         save_screenshot;
         send_key 'ret';
     }
