@@ -22,18 +22,15 @@ sub test_python3 {
     # The following commands only make sense on a cluster
     return unless get_var('CLUSTER_NAME');
 
-    # These are the expected return values from each script
-    # They will fail if written in Python 2
-    my %expected_retvals = (
-        "landscapeHostConfiguration.py" => [4],
-        "systemOverview.py" => [0],
-        "systemReplicationStatus.py" => [15]
+    # Check these scripts
+    my @scripts = (
+        "landscapeHostConfiguration.py",
+        "systemOverview.py",
+        "systemReplicationStatus.py"
     );
 
-    foreach my $script (keys %expected_retvals) {
-        my $retval = script_run "cdpy; python $script", timeout => 300;
-        die "$script failed with $retval" unless (grep { /^$retval$/ } @{$expected_retvals{$script}});
-        save_screenshot;
+    foreach my $script (@scripts) {
+        assert_script_run "cdpy; PYTHONDONTWRITEBYTECODE=1 python -m py_compile $script";
     }
 
     assert_script_run "cdpy; python getParameter.py net_publicname";
