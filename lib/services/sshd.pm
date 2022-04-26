@@ -68,6 +68,7 @@ sub ssh_basic_check {
     # Check that the daemons listens on right addresses/ports
     check_sshd_port();
     # create a new user to test sshd
+    script_run("userdel -rf $ssh_testman");
     assert_script_run("useradd -m $ssh_testman");
     assert_script_run("echo $changepwd | chpasswd");
     assert_script_run("usermod -aG \$(stat -c %G /dev/$serialdev) $ssh_testman");
