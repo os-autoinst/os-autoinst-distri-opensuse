@@ -16,6 +16,7 @@ use publiccloud::utils "select_host_console";
 
 sub run {
     my ($self, $args) = @_;
+    die "tunnel-console requires the TUNELLED=1 setting" unless (get_var("TUNNELED"));
 
     # Only initialize tunnels, if not previously done
     if (!get_var('_SSH_TUNNELS_INITIALIZED', 0)) {

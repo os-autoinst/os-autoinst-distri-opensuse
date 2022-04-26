@@ -20,6 +20,7 @@ use version_utils;
 use constant SSH_TIMEOUT => 90;
 
 has instance_id => undef;    # unique CSP instance id
+has resource_id => undef;    # randomized resource id for all resources (e.g. resource group and storage account)
 has public_ip => undef;    # public IP of instance
 has username => undef;    # username for ssh connection
 has ssh_key => undef;    # path to ssh-key for connection
