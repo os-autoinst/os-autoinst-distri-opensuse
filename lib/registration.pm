@@ -867,7 +867,7 @@ sub scc_deregistration {
         quit_packagekit;
         wait_for_purge_kernels;
         assert_script_run('SUSEConnect --version');
-        if (get_var('UPGRADE_TARGET_VERSION') == '15-SP3') {
+        if (get_var('UPGRADE_TARGET_VERSION') == '15-SP3' && is_sle('15+')) {
             # Workaround for bsc#1189543, need register python2 before de-register system
             record_soft_failure 'bsc#1189543 - Stale python2 module blocks de-registration after system migration';
             add_suseconnect_product('sle-module-python2');
