@@ -20,7 +20,7 @@ sub run {
     select_console 'root-console';
 
     # Install the required packages
-    zypper_call('in gcc libopenssl-devel libgcrypt-devel');
+    zypper_call('in libopenssl-devel libgcrypt-devel');
 
     my $test_dir = '/root/eval/drng';
     # Complile gather_random_data
