@@ -54,7 +54,7 @@ sub run {
         script_run("(zypper migration $option; echo ZYPPER-DONE) |& tee /dev/$serialdev", 0);
     }
     # migration process take long time
-    my $timeout = 7200;
+    my $timeout = (is_leap_migration && (check_var('DESKTOP', 'kde'))) ? 10800 : 7200;
     my $migration_checks = [
         $zypper_migration_bsc1184347, $zypper_migration_bsc1196114,
         $zypper_migration_target, $zypper_disable_repos, $zypper_continue, $zypper_migration_done,
