@@ -32,6 +32,7 @@ sub config_service {
 }
 
 sub enable_service {
+    script_run('systemctl is-enabled cups');
     common_service_action 'cups', $service_type, 'enable';
 }
 
@@ -105,8 +106,12 @@ sub check_function {
 
     # Remove printers
     record_info "lpadmin -x", "Removing printers";
-    assert_script_run "lpadmin -x $_" foreach (qw(printer_tmp printer_null));
+    foreach (qw(printer_tmp printer_null)) {
+        assert_script_run "lpadmin -x $_";
+        script_run "lpstat -p $_ -l";
+    }
     validate_script_output('lpstat -p -d -o 2>&1 || test $? -eq 1', sub { m/No destinations added/ }, timeout => 120);
+
 }
 
 # check apache service before and after migration
@@ -124,6 +129,14 @@ sub full_cups_check {
     check_service();
     check_function();
     check_service();
+    if ($stage eq 'after') {
+        script_run('systemctl disable cups');
+        script_run('systemctl stop cups');
+        script_run('systemctl disable cups-browsed');
+        script_run(q('grep printer_null `find /etc/cups/`'));
+        script_run(q('grep printer_tmp `find /etc/cups/`'));
+        script_run(q('rm /etc/cups/printers.conf*'));
+    }
 }
 
 1;

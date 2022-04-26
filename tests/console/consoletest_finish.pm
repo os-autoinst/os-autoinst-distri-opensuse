@@ -22,6 +22,7 @@ use utils;
 use strict;
 use warnings;
 use x11utils 'ensure_unlocked_desktop';
+use version_utils 'is_upgrade';
 
 sub run {
     my $self = shift;
@@ -43,6 +44,9 @@ sub run {
     $console->reset;
 
     $console = select_console 'user-console';
+    # In migration tests sometimes the notification was stil on,
+    # we need to close it.
+    enter_cmd "gsettings set org.gnome.desktop.notifications show-banners false" if is_upgrade;
     enter_cmd "exit";    # logout
     $console->reset;
     wait_still_screen(2);
