@@ -100,4 +100,9 @@ sub full_pkgcompare_check {
     }
 }
 
+sub hpcpkg_cleanup {
+    # De-register python2 module after unexpected failure happened
+    remove_suseconnect_product('sle-module-python2') if (get_var('DROPPED_MODULES', '') =~ /python2/);
+}
+
 1;
