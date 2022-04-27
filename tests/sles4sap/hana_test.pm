@@ -19,19 +19,10 @@ sub test_python3 {
     save_screenshot;
     die "Wrong Python version" unless ($output =~ /Python 3/);
 
-    # The following commands only make sense on a cluster
+    assert_script_run "cdpy && chmod u+w . && python -m compileall *.py";
+
+    # The following command only makes sense on a cluster
     return unless get_var('CLUSTER_NAME');
-
-    # Check these scripts
-    my @scripts = (
-        "landscapeHostConfiguration.py",
-        "systemOverview.py",
-        "systemReplicationStatus.py"
-    );
-
-    foreach my $script (@scripts) {
-        assert_script_run "cdpy; PYTHONDONTWRITEBYTECODE=1 python -m py_compile $script";
-    }
 
     assert_script_run "cdpy; python getParameter.py net_publicname";
     save_screenshot;
