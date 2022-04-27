@@ -51,7 +51,7 @@ The 230V AC to 5V DC power adapters have been omitted in this graphic for better
 
 # Setup
 
-We are using a setup without the usb gadget method but using the [https://shop.linux-automation.com/usb_sd_mux-D02-R01-V02-C00](USB SD-Mux) and the `usbsdmux` cli tool. For now Samsung sdcards (EVO Plus 32GB) worked fine with that hardware but SanDisk sdcards didn't.
+We are using a setup without the usb gadget method but using the [USB SD-Mux](https://shop.linux-automation.com/usb_sd_mux-D02-R01-V02-C00) and the `usbsdmux` cli tool. For now Samsung sdcards (EVO Plus 32GB) worked fine with that hardware but SanDisk sdcards didn't.
 We have a usb-ttl serial adapters and Shelly Plug S wifi power plugs for power cycling the RPi SUT.
 That one has the advantage that it doesn't enforce using the vendor cloud for operation.
 
