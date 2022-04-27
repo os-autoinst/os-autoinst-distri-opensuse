@@ -19,12 +19,27 @@ use Mojo::Base qw(consoletest);
 use testapi;
 use utils;
 
-my $patterns = [
-    [qw(Amazon_Web_Services Amazon_Web_Services_Instance_Init Amazon_Web_Services_Instance_Tools Amazon_Web_Services_Tools)],
-    [qw(Google_Cloud_Platform Google_Cloud_Platform_Instance_Init Google_Cloud_Platform_Instance_Tools Google_Cloud_Platform_Tools)],
-    [qw(Microsoft_Azure Microsoft_Azure_Instance_Init Microsoft_Azure_Instance_Tools Microsoft_Azure_Tools)],
-    [qw(OpenStack OpenStack_Instance_Init OpenStack_Instance_Tools OpenStack_Tools)],
-    [qw(apparmor base devel_basis documentation enhanced_base fips ofed sw_management)]
+my $tdata = [
+    {
+        patterns => [qw(Amazon_Web_Services_Instance_Init Amazon_Web_Services_Instance_Tools Amazon_Web_Services_Tools)],
+        packages => [qw(cloud-init aws-cli cloud-regionsrv-client-plugin-ec2 regionServiceClientConfigEC2)]
+    },
+    {
+        patterns => [qw(Google_Cloud_Platform_Instance_Init Google_Cloud_Platform_Instance_Tools Google_Cloud_Platform_Tools)],
+        packages => [qw(google-guest-agent cloud-regionsrv-client-plugin-gce regionServiceClientConfigGCE regionServiceClientConfigGCE)]
+    },
+    {
+        patterns => [qw(Microsoft_Azure_Instance_Init Microsoft_Azure_Instance_Tools Microsoft_Azure_Tools)],
+        packages => [qw(python-azure-agent cloud-regionsrv-client-plugin-azure regionServiceClientConfigAzure azure-cli)]
+    },
+    {
+        patterns => [qw(OpenStack_Instance_Init OpenStack_Instance_Tools OpenStack_Tools)],
+        packages => [qw(cloud-init python3-heat-cfntools python3-susepubliccloudinfo)]
+    },
+    {
+        patterns => [qw(apparmor base devel_basis documentation enhanced_base fips ofed sw_management)],
+        packages => [qw(apparmor-parser kbd gcc e2fsprogs openssh-fips rdma-core zypper)]
+    }
 ];
 
 sub container_exec {
@@ -44,7 +59,7 @@ sub run {
     script_retry("podman pull $image", timeout => 300, delay => 60, retry => 3);
     record_info('Inspect', script_output("podman inspect $image"));
 
-    for (my $i = 0; $i < (scalar @$patterns); $i++) {
+    for (my $i = 0; $i < (scalar @$tdata); $i++) {
         my $container = "bci-repo-tester$i";
 
         assert_script_run("podman run --name $container -dt $image");
@@ -62,12 +77,13 @@ sub run {
         container_exec($container, "zypper ar http://openqa.suse.de/assets/repo/$bci_repo BCI_TEST");
         container_exec($container, 'zypper ref', timeout => 180);
         container_exec($container, 'zypper lr -d');
-        record_info("Patterns", join(', ', @{$patterns->[$i]}));
+        record_info("Patterns", join(', ', @{$tdata->[$i]->{patterns}}));
         container_exec($container, 'zypper search -t pattern', timeout => 180);
-        container_exec($container, "zypper -n in -t pattern @{$patterns->[$i]}", timeout => 600);
+        container_exec($container, "zypper -n in -t pattern @{$tdata->[$i]->{patterns}}", timeout => 600);
         container_exec($container, "zypper -q -s 11 pa --orphaned | grep -v sles-release| tee -a repo.test", timeout => 600);
         container_exec($container, 'sed -i "s/ \+/ /g" repo.{org,test}', timeout => 600);
         container_exec($container, "diff repo.org repo.test", timeout => 600);
+        container_exec($container, "rpm -q @{$tdata->[$i]->{packages}}", timeout => 600);
     }
 }
 
