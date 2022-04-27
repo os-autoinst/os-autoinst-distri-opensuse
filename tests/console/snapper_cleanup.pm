@@ -52,7 +52,7 @@ sub snapper_cleanup {
     script_run "echo There are `$snaps_numb` snapshots AFTER cleanup";
     assert_script_run("btrfs qgroup show -pcre /");
     assert_script_run("snapper list");
-    clear_console;
+    clear_console unless testapi::is_serial_terminal();
     script_run($btrfs_fs_usage, 120);
     # Get actual exclusive disk space to verify exclusive disk space is taken into account
     my $qgroup_excl_space = get_space("btrfs qgroup show  / --raw | grep 1/0 | awk -F ' ' '{print\$3}'");
