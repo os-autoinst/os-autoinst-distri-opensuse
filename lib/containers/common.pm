@@ -17,8 +17,8 @@ use Mojo::JSON;
 
 our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed install_containerd_when_needed
   test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials
-  install_buildah_when_needed test_rpm_db_backend activate_containers_module check_containers_connectivity);
-
+  install_buildah_when_needed test_rpm_db_backend activate_containers_module check_containers_connectivity
+  test_search_registry);
 
 sub is_unreleased_sle {
     # If "SCC_URL" is set, it means we are in not-released SLE host and it points to proxy SCC url
@@ -223,6 +223,22 @@ sub test_container_runtime {
 
     # remove the configuration file
     assert_script_run("rm config.json");
+}
+
+sub test_search_registry {
+    my $engine = shift;
+    my @registries = qw(docker.io);
+    push @registries, qw(registry.opensuse.org registry.suse.com) if ($engine eq 'podman');
+
+    foreach my $rlink (@registries) {
+        record_info("URL", "Scanning: $rlink");
+        my $res = script_run(sprintf(qq[set -o pipefail; %s search %s/busybox --format="{{.Name}}" |& tee ./out], $engine, $rlink));
+        if (script_run('grep "requested access to the resource is denied" ./out') == 0) {
+            record_soft_failure("bsc#1178214 Podman search doesn't work with SUSE Registry");
+            record_soft_failure("bsc#1198974 [sle15sp1,sle15sp2] podman search wrong return code") if ($res != 125);
+        }
+        die 'Unexpected error during search!' if ($res && $res != 125);
+    }
 }
 
 # Test a given image. Takes the image and container runtime (docker or podman) as arguments
