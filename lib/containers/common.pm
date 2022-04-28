@@ -13,7 +13,6 @@ use version_utils;
 use utils qw(zypper_call systemctl file_content_replace script_retry script_output_retry);
 use containers::utils qw(can_build_sle_base registry_url container_ip container_route);
 use transactional qw(trup_call check_reboot_changes);
-use Mojo::JSON;
 
 our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed install_containerd_when_needed
   test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials
@@ -26,17 +25,10 @@ sub is_unreleased_sle {
 }
 
 sub activate_containers_module {
-    my $json = Mojo::JSON::decode_json(script_output_retry('SUSEConnect -s', timeout => 240, retry => 3, delay => 60));
-    my ($not_registered, $version, $arch);
-    foreach (@$json) {
-        if ($_->{identifier} =~ 'sle-module-containers' && $_->{status} =~ 'Not Registered') {
-            $not_registered = 1;
-            $version = $_->{version};
-            $arch = $_->{arch};
-            last;
-        }
+    my ($running_version, $sp, $host_distri) = get_os_release;
+    if (script_run('zypper lr | grep SLE-Module-Containers') != 0) {
+        $running_version eq '12' ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
     }
-    add_suseconnect_product("sle-module-containers", $version, $arch) if ($not_registered);
     record_info('SUSEConnect', script_output_retry('SUSEConnect --status-text', timeout => 240, retry => 3, delay => 60));
 }
 
