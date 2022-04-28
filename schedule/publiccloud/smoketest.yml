@@ -30,8 +30,7 @@ schedule:
   - boot/boot_to_desktop
   - '{{download_repos}}'
   - publiccloud/prepare_instance
-  - publiccloud/registercloudguest
-  - publiccloud/register_addons
+  - publiccloud/registration
   - '{{transfer_repos}}'
   - publiccloud/patch_and_reboot
   - publiccloud/ssh_interactive_start
