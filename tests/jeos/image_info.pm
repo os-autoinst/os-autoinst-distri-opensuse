@@ -76,8 +76,7 @@ sub run {
     my $influxdb_server = get_var('INFLUXDB_SERVER');
     my $influxdb_user = get_var('_SECRET_INFLUXDB_USER');
     my $influxdb_pwd = get_var('_SECRET_INFLUXDB_PWD');
-    #return unless (get_var('CASEDIR') || $influxdb_server || $influxdb_user || $influxdb_pwd); #this should remain before merging
-    return unless ($influxdb_server || $influxdb_user || $influxdb_pwd);    # remove CASEDIR condition to allow running VR before merging
+    return if (get_var('CASEDIR') || !($influxdb_server || $influxdb_user || $influxdb_pwd));
 
     my $job_url;
     my $openqa_host = get_required_var('OPENQA_HOSTNAME');
