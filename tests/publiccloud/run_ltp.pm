@@ -98,7 +98,6 @@ sub run {
         $instance = $self->{my_instance} = $provider->create_instance();
         unless (is_openstack) {
             $instance->wait_for_guestregister();
-            $instance->check_guestregister();
         }
     }
 

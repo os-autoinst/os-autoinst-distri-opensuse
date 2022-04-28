@@ -19,7 +19,7 @@ use version_utils qw(is_sle is_public_cloud);
 use publiccloud::ssh_interactive;
 use registration;
 
-our @EXPORT = qw(select_host_console is_byos is_ondemand is_ec2 is_azure is_gce registercloudguest register_addon deregister_addon register_openstack);
+our @EXPORT = qw(select_host_console is_byos is_ondemand is_ec2 is_azure is_gce registercloudguest register_addon deregister_addon register_openstack is_container_host register_addons_in_pc);
 
 # Select console on the test host, if force is set, the interactive session will
 # be destroyed. If called in TUNNELED environment, this function die.
@@ -134,6 +134,18 @@ sub registercloudguest {
     record_info('registercloudguest time', 'The command registercloudguest took ' . (time() - $cmd_time) . ' seconds.');
 }
 
+sub register_addons_in_pc {
+    my ($instance) = @_;
+    my @addons = split(/,/, get_var('SCC_ADDONS', ''));
+    my $remote = $instance->username . '@' . $instance->public_ip;
+    for my $addon (@addons) {
+        next if ($addon =~ /^\s+$/);
+        register_addon($remote, $addon);
+    }
+    record_info('repos (lr)', $instance->run_ssh_command(cmd => "sudo zypper lr"));
+    record_info('repos (ls)', $instance->run_ssh_command(cmd => "sudo zypper ls"));
+}
+
 sub register_openstack {
     my $instance = shift;
 
@@ -170,6 +182,10 @@ sub is_azure() {
 # Check if we are on an GCP test run
 sub is_gce() {
     return is_public_cloud && check_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
+}
+
+sub is_container_host() {
+    return is_public_cloud && get_var('FLAVOR') =~ 'CHOST';
 }
 
 1;

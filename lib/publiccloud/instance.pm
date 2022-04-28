@@ -209,55 +209,6 @@ sub wait_for_guestregister
     die('guestregister didn\'t end in expected timeout=' . $args{timeout});
 }
 
-=head2 check_guestregister
-
-    check_guestregister();
-
-Check that the registration state of newly created guest match our requirements.
-https://github.com/SUSE-Enceladus/cloud-regionsrv-client/blob/master/integration_test-process.txt
-=cut
-sub check_guestregister {
-    my ($self) = @_;
-
-    if (is_byos) {
-        if ($self->run_ssh_command(cmd => 'sudo zypper lr', proceed_on_failure => 1) !~ /No repositories defined/gm) {
-            die 'The BYOS instance should be unregistered and report "Warning: No repositories defined.".';
-        }
-
-        if ($self->run_ssh_command(cmd => 'sudo systemctl is-enabled guestregister.service', proceed_on_failure => 1) !~ /disabled/) {
-            die('guestregister.service is not disabled');
-        }
-
-        if ($self->run_ssh_command(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l', proceed_on_failure => 1) != 0) {
-            die('/etc/zypp/credentials.d/ is not empty');
-        }
-
-        if (is_azure() && $self->run_ssh_command(cmd => 'sudo systemctl is-enabled regionsrv-enabler-azure.timer', proceed_on_failure => 1) !~ /enabled/) {
-            die('regionsrv-enabler-azure.timer is not enabled');
-        }
-
-        if ($self->run_ssh_command(cmd => 'sudo stat --printf="%s" /var/log/cloudregister', proceed_on_failure => 1) != 0) {
-            die('/var/log/cloudregister is not empty');
-        }
-    } else {
-        if ($self->run_ssh_command(cmd => 'sudo zypper lr | wc -l', proceed_on_failure => 1, timeout => 360) < 5) {
-            die 'The list of zypper repositories is too short.';
-        }
-
-        if ($self->run_ssh_command(cmd => 'sudo systemctl is-enabled guestregister.service', proceed_on_failure => 1) !~ /enabled/) {
-            die('guestregister.service is not enabled');
-        }
-
-        if ($self->run_ssh_command(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l', proceed_on_failure => 1) == 0) {
-            die('/etc/zypp/credentials.d/ is empty');
-        }
-
-        if ($self->run_ssh_command(cmd => 'sudo stat --printf="%s" /var/log/cloudregister', proceed_on_failure => 1) == 0) {
-            die('/var/log/cloudregister is empty');
-        }
-    }
-}
-
 =head2 wait_for_ssh
 
     wait_for_ssh([timeout => 600] [, proceed_on_failure => 0])
