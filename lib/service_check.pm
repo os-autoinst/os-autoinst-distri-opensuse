@@ -86,7 +86,8 @@ our $default_services = {
         srv_pkg_name => 'hpcpackage_remain',
         srv_proc_name => 'hpcpackage_remain',
         support_ver => $support_ver_ge15,
-        service_check_func => \&services::hpcpackage_remain::full_pkgcompare_check
+        service_check_func => \&services::hpcpackage_remain::full_pkgcompare_check,
+        service_cleanup_func => \&services::hpcpackage_remain::hpcpkg_cleanup
     },
     registered_addons => {
         srv_pkg_name => 'registered_addons',
