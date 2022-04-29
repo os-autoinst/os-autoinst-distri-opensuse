@@ -88,6 +88,14 @@ By updating the lastrun files timestamps, we make sure those routines won't be e
 while tests are running. 
 =cut
 sub cron_mock_lastrun {
+    my $tries = 5;
+    while (script_run(q/ps aux | grep '[s]napper'/) == 0 && $tries > 0) {
+        sleep 30;
+        bmwqemu::diag('Snapper is running in the background...');
+        $tries--;
+    }
+    $tries or bmwqemu::diag('Snapper might be still running in the background');
+
     assert_script_run 'touch /var/spool/cron/lastrun/cron.{hourly,daily,weekly,monthly}';
     assert_script_run 'ls -al /var/spool/cron/lastrun/cron.{hourly,daily,weekly,monthly}';
 }
