@@ -611,6 +611,7 @@ sub load_virt_guest_install_tests {
         loadtest "virt_autotest/unified_guest_installation";
         loadtest "virt_autotest/set_config_as_glue";
         loadtest "virt_autotest/uefi_guest_verification" if get_var("VIRT_UEFI_GUEST_INSTALL");
+        loadtest "virt_autotest/sev_es_guest_verification" if get_var("VIRT_SEV_ES_GUEST_INSTALL");
     }
     else {
         loadtest "virt_autotest/guest_installation_run";

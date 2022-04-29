@@ -25,12 +25,11 @@ use Utils::Architectures;
 use IO::Socket::INET;
 use Carp;
 
-our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host
-  check_host check_guest print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs
-  ensure_default_net_is_active ensure_guest_started ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks remove_additional_nic
-  collect_virt_system_logs shutdown_guests wait_guest_online start_guests is_guest_online wait_guests_shutdown setup_common_ssh_config
-  add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host check_port_state subscribe_extensions_and_modules
-  download_script download_script_and_execute);
+our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host check_host check_guest
+  print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs ensure_default_net_is_active ensure_guest_started
+  ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests
+  is_guest_online wait_guests_shutdown setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host
+  check_port_state subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest);
 
 # helper function: Trim string
 sub trim {
@@ -685,6 +684,33 @@ sub subscribe_extensions_and_modules {
     $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
     record_info("Subscription status on $args{dst_machine}", script_output($cmd));
     return $ret;
+}
+
+=head2 is_sev_es_guest
+
+  is_sev_es_guest($guest_name)
+
+Check whether a guest is sev-es, sev only or not sev/sev-es guest by searching
+whether sev-es or sev word is available in its name. The only argument for the
+subroutine is guest_name. It returns sev-es or sev if either is found in guest
+name, otherwise it returns 0.
+
+=cut
+
+sub is_sev_es_guest {
+    my ($guest_name) = @_;
+    $guest_name //= '';
+    croak('Arugment guest_name should not be empty') if ($guest_name eq '');
+
+    $guest_name =~ /(sev-es|sev)/img;
+    if ($1 ne '') {
+        record_info("$guest_name is $1 guest", "Guest $guest_name is a $1 enabled guest judging by its name.");
+        return $1;
+    }
+    else {
+        record_info("$guest_name is not sev(es) guest", "Guest $guest_name is not a sev or sev-es enabled guest judging by its name.");
+        return 'notsev';
+    }
 }
 
 1;
