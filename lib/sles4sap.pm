@@ -399,7 +399,7 @@ sub test_pids_max {
     my $rc1 = script_run "grep -qx max /tmp/pids-max";
     # nproc should be set to "unlimited" in /etc/security/limits.d/99-sapsys.conf
     # Check that nproc * 2 + 1 >= threads-max
-    assert_script_run "systemd-run --slice user -qt su - $sapadmin -c 'ulimit -u' -s /bin/bash | tr -d '\\r' > /tmp/nproc";
+    assert_script_run "systemd-run --slice user -qt su - $sapadmin -c 'ulimit -u' -s /bin/bash | tail -n 1 | tr -d '\\r' > /tmp/nproc";
     assert_script_run "cat /tmp/nproc ; sysctl -n kernel.threads-max";
     my $rc2 = script_run "[[ \$(( \$(< /tmp/nproc) * 2 + 1)) -ge \$(sysctl -n kernel.threads-max) ]]";
     record_soft_failure "bsc#1031355" if ($rc1 or $rc2);
@@ -583,14 +583,14 @@ sub check_instance_state {
         # Exit if instance is not running anymore
         last if (($output =~ /GRAY/) && ($uc_state eq 'GRAY'));
 
-        if (($output =~ /GREEN/) && ($uc_state eq 'GREEN')) {
+        if ((($output =~ /GREEN/) && ($uc_state eq 'GREEN')) || ($uc_state eq 'GRAY')) {
             $output = script_output "sapcontrol -nr $instance -function GetProcessList | egrep -i ^[a-z]", proceed_on_failure => 1;
             die "sapcontrol: GetProcessList: command failed" unless ($output =~ /GetProcessList[\r\n]+OK/);
 
             my $failing_services = 0;
             for my $line (split(/\n/, $output)) {
                 next if ($line =~ /GetProcessList|OK|^name/);
-                $failing_services++ if ($line !~ /GREEN/);
+                $failing_services++ if ($line !~ /$uc_state/);
             }
             last unless $failing_services;
         }
