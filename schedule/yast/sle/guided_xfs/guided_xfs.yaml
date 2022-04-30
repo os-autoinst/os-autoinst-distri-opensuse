@@ -1,0 +1,16 @@
+---
+name:           guided_xfs
+description:    >
+  Guided Partitioning installation with xfs filesystem.
+vars:
+  YUI_REST_API: 1
+schedule:
+  guided_filesystem:
+    - installation/partitioning/guided_setup/select_filesystem_option_xfs
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_validation:
+    - console/validate_partition_table_via_blkid
+    - console/validate_blockdevices
+    - console/validate_free_space
+    - console/validate_read_write
