@@ -31,7 +31,7 @@ use Utils::Architectures;
 use utils;
 use mm_network;
 use mm_tests;
-use opensusebasetest 'firewall';
+use opensusebasetest qw(firewall select_serial_terminal);
 use registration 'scc_version';
 use iscsi;
 use version_utils 'is_opensuse';
@@ -283,10 +283,13 @@ sub setup_ntp_server {
 sub setup_xvnc_server {
     return if $xvnc_server_set;
 
+    my $self = shift;
+
     if (check_var('REMOTE_DESKTOP_TYPE', 'persistent_vnc')) {
         zypper_call('ar http://openqa.suse.de/assets/repo/fixed/SLE-12-SP3-Server-DVD-x86_64-GM-DVD1/ sles12sp3dvd1_repo');
         zypper_call('ref');
     }
+    select_console 'root-console';
     script_run("yast remote; echo yast-remote-status-\$? > /dev/$serialdev", 0);
     assert_screen 'xvnc_server_configuration';
     if (check_var('REMOTE_DESKTOP_TYPE', 'one_time_vnc')) {
@@ -308,7 +311,7 @@ sub setup_xvnc_server {
     assert_script_run 'yast2 firewall services add zone=EXT service=service:vnc-server';
     systemctl('restart display-manager');
     assert_screen 'displaymanager';
-    select_console 'root-console';
+    opensusebasetest::select_serial_terminal();
 
     $xvnc_server_set = 1;
 }
@@ -316,22 +319,27 @@ sub setup_xvnc_server {
 sub setup_xdmcp_server {
     return if $xdmcp_server_set;
 
+    my $self = shift;
+
     if (check_var('REMOTE_DESKTOP_TYPE', 'xdmcp_xdm')) {
         assert_script_run "sed -i -e 's|^DISPLAYMANAGER=.*|DISPLAYMANAGER=\"xdm\"|' /etc/sysconfig/displaymanager";
         assert_script_run "sed -i -e 's|^DEFAULT_WM=.*|DEFAULT_WM=\"icewm\"|' /etc/sysconfig/windowmanager";
     }
+    select_console 'root-console';
     assert_script_run 'yast2 firewall services add zone=EXT service=service:xdmcp';
     assert_script_run "sed -i -e 's|^DISPLAYMANAGER_REMOTE_ACCESS=.*|DISPLAYMANAGER_REMOTE_ACCESS=\"yes\"|' /etc/sysconfig/displaymanager";
     assert_script_run "sed -i -e 's|^\\[xdmcp\\]|\\[xdmcp\\]\\nMaxSessions=2|' /etc/gdm/custom.conf";
     systemctl('restart display-manager');
     assert_screen 'displaymanager';
-    select_console 'root-console';
+    opensusebasetest::select_serial_terminal();
 
     $xdmcp_server_set = 1;
 }
 
 sub setup_iscsi_server {
     return if $iscsi_server_set;
+
+    my $self = shift;
 
     # If no LUN number is specified we must die!
     my $num_luns = get_required_var('NUMLUNS');
@@ -360,6 +368,7 @@ sub setup_iscsi_server {
         script_run "parted --script $hdd_lun mkpart primary ${start}MiB ${size}MiB";
     }
 
+    select_console 'root-console';
     # The easiest way (really!?) to configure LIO is with YaST
     # Code grab and adapted from tests/iscsi/iscsi_server.pm
     script_run("yast2 iscsi-lio-server; echo yast2-iscsi-lio-server-status-\$? > /dev/$serialdev", 0);
@@ -430,7 +439,7 @@ sub setup_iscsi_server {
                        -e '/\\/generate_node_acls\$/s/^echo 0/echo 1/'      \\
                        -e '/\\/authentication\$/s/^echo 1/echo 0/' /etc/target/lio_setup.sh";
     systemctl('enable --now target');
-    select_console 'root-console';
+    opensusebasetest::select_serial_terminal();
 
     $iscsi_server_set = 1;
 }
@@ -522,11 +531,8 @@ sub setup_mariadb_server {
 
     # Enter mysql command to grant the access privileges to root
     enter_cmd_slow "mysql";
-    assert_screen 'mariadb-monitor-opened';
     enter_cmd_slow "SELECT User, Host FROM mysql.user WHERE Host <> \'localhost\';";
-    assert_screen 'mariadb-user-host';
     enter_cmd_slow "GRANT ALL PRIVILEGES ON *.* TO \'root\'@\'$ip\' IDENTIFIED BY \'$passwd\' WITH GRANT OPTION;";
-    assert_screen 'mariadb-grant-ok';
     enter_cmd_slow "quit";
     wait_still_screen 2;
     systemctl('restart mysql');
@@ -557,6 +563,9 @@ sub setup_nfs_server {
 }
 
 sub run {
+    my $self = shift;
+    opensusebasetest::select_serial_terminal();
+
     # Persist DHCP configuration for VMware & HyperV virtualization smoketests
     unless (is_vmware_virtualization || is_hyperv_virtualization) {
         configure_static_network('10.0.2.1/24');
@@ -609,7 +618,7 @@ sub run {
     }
 
     if (exists $server_roles{xvnc}) {
-        setup_xvnc_server();
+        setup_xvnc_server($self);
     }
 
     if (exists $server_roles{ssh}) {
@@ -617,11 +626,11 @@ sub run {
     }
 
     if (exists $server_roles{xdmcp}) {
-        setup_xdmcp_server();
+        setup_xdmcp_server($self);
     }
 
     if (exists $server_roles{iscsi}) {
-        setup_iscsi_server();
+        setup_iscsi_server($self);
     }
     if (exists $server_roles{iscsi_tgt}) {
         setup_iscsi_tgt_server();
