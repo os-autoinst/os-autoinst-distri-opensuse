@@ -66,12 +66,16 @@ sub run {
     my $bci_devel_repo = get_var('BCI_DEVEL_REPO');
     my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
     my $bci_timeout = get_var('BCI_TIMEOUT', 1200);
+    my $version = get_required_var('VERSION');
 
     record_info('Run', "Starting the tests for the following environments:\n$test_envs");
     my $bci_dir = fileparse($bci_tests_repo, qr/\.[^.]*/);
     assert_script_run("cd $bci_dir");
     assert_script_run("export TOX_PARALLEL_NO_SPINNER=1");
     assert_script_run("export CONTAINER_RUNTIME=$engine");
+    $version =~ s/-SP/./g;
+    assert_script_run("export OS_VERSION=$version");
+    assert_script_run("export TARGET=ibs-cr");
     assert_script_run("export BCI_DEVEL_REPO=$bci_devel_repo") if $bci_devel_repo;
 
     # Run the tests for each environment
