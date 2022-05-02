@@ -609,13 +609,13 @@ sub load_jeos_openstack_tests {
 }
 
 sub load_jeos_tests {
-    loadtest "jeos/image_info";
     if ((is_arm || is_aarch64) && is_opensuse()) {
         # Enable jeos-firstboot, due to boo#1020019
         load_boot_tests();
         loadtest "jeos/prepare_firstboot";
     }
     load_boot_tests();
+    loadtest "jeos/image_info";
     loadtest "jeos/firstrun";
     loadtest "jeos/record_machine_id";
     loadtest "console/system_prepare" if is_sle;
