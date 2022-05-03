@@ -244,7 +244,7 @@ systemctl enable --now bluetooth
 ```
 
 ## Workaround for insufficient RAM
-As the images are not stored to the sdcard of the worker host (it would wear down the sdcard too fast) the images should be stored in RAM, which reflected in the above configuration (/dev/shm/). While this works fine with a single worker instance, 4GB of RAM is not sufficient for three worker instances. So as a workaround I'm using an NFS share, which is obviously not very fast (especially as the image is copied from the osd NFS share to that new NFS share).
+As the images are not stored to the sdcard of the worker host (it would wear down the sdcard too fast) the images should be stored in RAM, which is reflected in the above configuration (/dev/shm/). While this works fine with a single worker instance, 4GB of RAM is not sufficient for three worker instances. So as a workaround I'm using an NFS share, which is obviously not very fast (especially as the image is copied from the osd NFS share to that new NFS share).
 
 ### NFS Server
 On the server write to `/etc/exports`:
