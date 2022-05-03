@@ -232,8 +232,7 @@ sub restart_networking {
         assert_script_run 'nmcli networking off';
         assert_script_run 'nmcli networking on';
     } else {
-        assert_script_run 'wicked ifdown all';
-        assert_script_run 'wicked ifup all';
+        assert_script_run 'rcnetwork restart';
     }
 
     record_info('network cfg', script_output('ip address show; echo; ip route show; echo; grep -v "^#" /etc/resolv.conf', proceed_on_failure => 1));
