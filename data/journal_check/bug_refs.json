@@ -316,7 +316,7 @@
             "sle-micro": [ "5.0", "5.1", "5.2" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3", "15.4"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4"]
         },
         "type": "ignore"
     },
@@ -342,5 +342,12 @@
             "microos":  ["Tumbleweed"]
         },
         "type": "ignore"
+    },
+    "bsc#1199163": {
+        "description": "Directory '.*.hdmi' with parent 'vc4-hdmi.* already present",
+        "products": {
+            "sle": ["15-SP3", "15-SP4"]
+        },
+        "type": "bug"
     }
 }
