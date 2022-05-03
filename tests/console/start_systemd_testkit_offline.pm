@@ -85,22 +85,20 @@ sub parse_results_from_output {
             # Test block end has been reached. Record results
 
             if ($outcome eq 'failed') {
-                my ($openQA_result, $softfail_result);
-                if ($error_line =~ /problems.*hostagent.service/) {
-                    $openQA_result = $self->record_testresult('softfail');
-                    $softfail_result = 119565;
-                } elsif ($error_line =~ /invalid.*version.*249.*expected.*234.*/ && is_sle("=15-SP4")) {
-                    $openQA_result = $self->record_testresult('softfail');
-                    $softfail_result = 1198455;
-                } else {
-                    $openQA_result = $self->record_testresult('fail');
-                    $softfail_result = 0;
-                }
+                # In case you need to add soft failure, use the following commented code as a guide
+                #my ($openQA_result, $softfail_result);
+                #if ($error_line =~ /problems.*hostagent.service/) {
+                #   $openQA_result = $self->record_testresult('softfail');
+                #   $softfail_result = 119565;
+                #} else {
+                my $openQA_result = $self->record_testresult('fail');
+                #$softfail_result = 0;
+                #}
                 my $openQA_filename = $self->next_resultname('txt');
                 $openQA_result->{title} = $testunit;
                 $openQA_result->{text} = $openQA_filename;
-                ($softfail_result) ? $self->write_resultfile($openQA_filename, "# Softfail bsc#$softfail_result:\n$error_line\n") :
-                  $self->write_resultfile($openQA_filename, "# Failure:\n$error_line\n");
+                #($softfail_result) ? $self->write_resultfile($openQA_filename, "# Softfail bsc#$softfail_result:\n$error_line\n") :
+                $self->write_resultfile($openQA_filename, "# Failure:\n$error_line\n");
                 $self->{dents}++;
             }
 
