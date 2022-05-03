@@ -1,3 +1,13 @@
+# SUSE's openQA tests
+#
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: HANA SR - Kill database on site A
+# Stop database on Site A by killing all processes.
+# Do takeover do Site B
+#
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use strict;
 use warnings FATAL => 'all';
