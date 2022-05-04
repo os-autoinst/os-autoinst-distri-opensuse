@@ -35,7 +35,7 @@ sub compare_orphans_lists {
     # A trailing or leading whitespace introduced along the path has to be removed
     # Usually it can happen in ssh like consoles (e.g. tunnel-console)
     # Input array items will be modified inside grep
-    my @missed_orphans = grep(s/\s+//g, @{$args{zypper_orphans}});
+    my @missed_orphans = map { s/^\s+|\s+$//gr } @{$args{zypper_orphans}};
     if ($args{whitelist}) {
         # Remove duplicate packages from the whitelist
         my %wl = map { $_ => 1 } (split(',', $args{whitelist}));
