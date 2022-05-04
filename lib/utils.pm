@@ -807,7 +807,10 @@ anymore for storage-ng.
 sub workaround_type_encrypted_passphrase {
     # nothing to do if the boot partition is not encrypted in FULL_LVM_ENCRYPT
     return unless is_boot_encrypted();
-    record_soft_failure 'workaround https://fate.suse.com/320901' if is_sle('12-SP4+');
+    record_info(
+        "LUKS pass", "Workaround for 'Provide kernel interface to pass LUKS password from bootloader'.\n" .
+          'For further info, please, see https://fate.suse.com/320901, https://jira.suse.com/browse/SLE-2941, ' .
+          'https://jira.suse.com/browse/SLE-3976') if is_sle('12-SP4+');
     unlock_if_encrypted;
 }
 
