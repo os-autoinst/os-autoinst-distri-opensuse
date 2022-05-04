@@ -941,11 +941,11 @@ sub configure_static_ip_nm {
     # Dynamic get network interface names
     my $niName = script_output("ls /sys/class/net | grep ^e", type_command => 1);
     chomp $niName;
-    configure_default_gateway;
+    # Add new NetworkManager connection with static IP address and default route
     assert_script_run "nmcli connection add type ethernet con-name wired ifname '$niName' ip4 '$ip' gw4 10.0.2.2";
+    configure_static_dns(get_host_resolv_conf(), nm_id => 'wired', is_nm => 1);
     assert_script_run "nmcli device disconnect '$niName'";
     assert_script_run "nmcli connection up wired ifname '$niName'";
-    configure_static_dns(get_host_resolv_conf());
     enter_cmd "exit";
     wait_screen_change { send_key 'alt-f4' };
 }
