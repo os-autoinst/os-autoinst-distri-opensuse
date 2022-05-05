@@ -17,7 +17,6 @@ schedule:
 - x11/firefox/firefox_extensions
 - x11/firefox/firefox_appearance
 - x11/firefox/firefox_passwd
-- x11/firefox/firefox_html5
 - x11/firefox/firefox_developertool
 - x11/firefox/firefox_ssl
 - x11/firefox/firefox_emaillink
