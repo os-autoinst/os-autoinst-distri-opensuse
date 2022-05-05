@@ -1,0 +1,33 @@
+name:          prepare_baremetal_tumbleweed
+description:    >
+  Universal installation schedule to prepare bare metal using IPXE or
+  prepare PowerVM for tumbleweed
+vars:
+  DESKTOP: textmode
+schedule:
+  - '{{boot}}'
+  - installation/welcome
+  - installation/online_repos
+  - installation/installation_mode
+  - installation/logpackages
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/handle_reboot
+  - installation/first_boot
+conditional_schedule:
+  boot:
+    IPXE:
+      1:
+        - installation/ipxe_install
+    BACKEND:
+      spvm:
+        - installation/bootloader
