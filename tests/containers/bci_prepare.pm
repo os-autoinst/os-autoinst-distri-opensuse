@@ -44,7 +44,7 @@ sub packages_to_install {
             push @packages, 'python36-pip';
         } elsif ($version eq '15.0') {
             # On SLES15 go needs to be installed from packagehub. On later SLES it comes from the SDK module
-            assert_script_run("SUSEConnect -p PackageHub/15/$arch");
+            script_retry("SUSEConnect -p PackageHub/15/$arch", delay => 60, retry => 3);
             push @packages, ('go1.10', 'skopeo');
         } else {
             # Desktop module is needed for SDK module, which is required for installing go
@@ -74,7 +74,7 @@ sub run {
     my @packages = packages_to_install($version, $sp, $host_distri);
     if ($host_distri eq 'ubuntu') {
         foreach my $pkg (@packages) {
-            assert_script_run("apt-get -y install $pkg", timeout => 300);
+            script_retry("apt-get -y install $pkg", timeout => 300, delay => 60, retry => 5);
         }
         assert_script_run('pip3 --quiet install --upgrade pip', timeout => 600);
         assert_script_run("pip3 --quiet install tox", timeout => 600);
