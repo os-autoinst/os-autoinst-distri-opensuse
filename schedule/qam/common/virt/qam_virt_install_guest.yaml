@@ -5,14 +5,6 @@ description:    >
 schedule:
   - virt_autotest/login_console
   - virtualization/universal/prepare_guests
-  - virtualization/universal/ssh_hypervisor_init
   - virtualization/universal/waitfor_guests
-  - virtualization/universal/ssh_guests_init
-  - virtualization/universal/register_guests
-  - virtualization/universal/upgrade_guests
-  - virtualization/universal/patch_guests
-  - virtualization/universal/patch_and_reboot
-  - virt_autotest/login_console
-  - virtualization/universal/list_guests
   - virtualization/universal/kernel
   - virtualization/universal/finish

@@ -128,7 +128,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp3PV => {
             name => 'sles15sp3PV',
             autoyast => 'autoyast_xen/sles15sp3PV_PRG.xml',
-            extra_params => '--os-variant sles12',
+            extra_params => '--os-variant sle15-unknown',
             macaddress => '52:54:00:78:73:b1',
             ip => '192.168.122.117',
             distro => 'SLE_15',
@@ -138,7 +138,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp3HVM => {
             name => 'sles15sp3HVM',
             autoyast => 'autoyast_xen/sles15sp3HVM_PRG.xml',
-            extra_params => '--os-variant sles12',
+            extra_params => '--os-variant sle15-unknown',
             macaddress => '52:54:00:78:73:b2',
             ip => '192.168.122.118',
             distro => 'SLE_15',
@@ -165,6 +165,24 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.114/24,192.168.122.1,192.168.122.1"',
         },
+        sles15sp4PV => {
+            name => 'sles15sp4PV',
+            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
+            macaddress => '52:54:00:78:73:a5',
+            ip => '192.168.122.110',
+            distro => 'SLE_15_SP4',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
+            linuxrc => 'ifcfg="eth0=192.168.122.110/24,192.168.122.1,192.168.122.1"'
+        },
+        sles15sp4HVM => {
+            name => 'sles15sp4HVM',
+            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
+            macaddress => '52:54:00:78:73:a6',
+            ip => '192.168.122.108',
+            distro => 'SLE_15_SP4',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
+            linuxrc => 'ifcfg="eth0=192.168.122.108/24,192.168.122.1,192.168.122.1"'
+        }
     );
 
     delete($guests{sles12sp3HVM}) if (!is_sle('=12-SP3'));
@@ -207,7 +225,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp1 => {
             name => 'sles15sp1',
             autoyast => 'autoyast_kvm/sles15sp1_PRG.xml',
-            extra_params => '--os-variant sles12',    # problems after kernel upgrade
+            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
             macaddress => '52:54:00:78:73:ab',
             ip => '192.168.122.111',
             distro => 'SLE_15',
@@ -217,7 +235,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp2 => {
             name => 'sles15sp2',
             autoyast => 'autoyast_kvm/sles15sp2_PRG.xml',
-            extra_params => '--os-variant sles12',    # problems after kernel upgrade (originally sle15sp2)
+            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade (originally sle15sp2)
             macaddress => '52:54:00:78:73:af',
             ip => '192.168.122.115',
             distro => 'SLE_15',
@@ -227,7 +245,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp3 => {
             name => 'sles15sp3',
             autoyast => 'autoyast_kvm/sles15sp3_PRG.xml',
-            extra_params => '--os-variant sles12',
+            extra_params => '--os-variant sle15-unknown',
             macaddress => '52:54:00:78:73:b1',
             ip => '192.168.122.117',
             distro => 'SLE_15',
@@ -244,6 +262,15 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.113/24,192.168.122.1,192.168.122.1"',
         },
+        sles15sp4 => {
+            name => 'sles15sp4',
+            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
+            macaddress => '52:54:00:78:73:a6',
+            ip => '192.168.122.108',
+            distro => 'SLE_15',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
+            linuxrc => 'ifcfg="eth0=192.168.122.108/24,192.168.122.1,192.168.122.1"'
+        }
     );
 } elsif (get_var("REGRESSION", '') =~ /vmware/) {
     %guests = (
