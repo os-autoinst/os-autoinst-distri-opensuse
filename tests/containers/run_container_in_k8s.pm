@@ -39,6 +39,13 @@ spec:
       - name: main
         image: $image
         command: [ $cmd ]
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: 256Mi
+          requests:
+            cpu: "0.1"
+            memory: 128Mi
       restartPolicy: Never
   backoffLimit: 4
 EOT
