@@ -199,7 +199,7 @@ sub create_guest {
 
         # Run unattended installation for selected guest
         my ($autoyastURL, $diskformat, $virtinstall);
-        $autoyastURL = data_url($autoyast);
+        $autoyastURL = $autoyast;
         $diskformat = get_var("VIRT_QEMU_DISK_FORMAT") // "qcow2";
 
         assert_script_run "qemu-img create -f $diskformat /var/lib/libvirt/images/xen/$name.$diskformat 20G", 180;
@@ -267,7 +267,7 @@ sub ensure_online {
     my ($guest, %args) = @_;
 
     my $hypervisor = $args{HYPERVISOR} // "192.168.122.1";
-    my $dns_host = $args{DNS_TEST_HOST} // "suse.de";
+    my $dns_host = $args{DNS_TEST_HOST} // "www.suse.com";
     my $skip_ssh = $args{skip_ssh} // 0;
     my $skip_network = $args{skip_network} // 0;
     my $skip_ping = $args{skip_ping} // 0;
