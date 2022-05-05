@@ -31,6 +31,8 @@ sub run {
         assert_script_run('du -sh ~/repos');
         my $timeout = 2400;
 
+        $args->{my_instance}->run_ssh_command(cmd => "wchich rsync || sudo zypper -n in rsync");
+
         # Mitigate occasional CSP network problems (especially one CSP is prone to those issues!)
         # Delay of 2 minutes between the tries to give their network some time to recover after a failure
         script_retry("rsync --timeout=$timeout -uvahP -e ssh ~/repos '$remote:/tmp/repos'", timeout => $timeout + 10, retry => 3, delay => 120);
