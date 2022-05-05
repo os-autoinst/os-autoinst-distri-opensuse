@@ -105,7 +105,7 @@ sub run {
     $self->prepare_profile('HANA');
 
     # Copy media
-    my $tout = get_var('HANA_INSTALLATION_TIMEOUT', 2700);    # Timeout for HANA installation commands. Defaults to NW's timeout times 2
+    my $tout = get_var('HANA_INSTALLATION_TIMEOUT', 3600);    # Timeout for HANA installation commands.
     $self->copy_media($proto, $path, $tout, '/sapinst');
 
     # Mount points information: use the same paths and minimum sizes as the wizard (based on RAM size)
