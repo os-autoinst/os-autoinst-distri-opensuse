@@ -11,7 +11,7 @@
 #          - connect to a website using https (retry multiple times in case of failure)
 #
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>, Ben Chou <bchou@suse.com>
-# Tags: poo#106011
+# Tags: poo#106011, poo#109840
 
 use base "consoletest";
 use testapi;
@@ -19,6 +19,7 @@ use strict;
 use warnings;
 use utils qw(clear_console ensure_serialdev_permissions);
 use Utils::Architectures;
+use Utils::Backends;
 
 # test for bug https://bugzilla.novell.com/show_bug.cgi?id=598574
 sub run {
@@ -28,8 +29,8 @@ sub run {
     # Please refer to bsc#1195620
     ensure_serialdev_permissions if (is_s390x);
 
-    # Switch to user console
-    select_console 'user-console';
+    # Switch to user console: exclude ipmi backends as under non-root user session the $serialdev can not be found
+    select_console 'user-console' if (!is_ipmi);
 
     # arbitrary number of retries
     my $max_retries = 7;
