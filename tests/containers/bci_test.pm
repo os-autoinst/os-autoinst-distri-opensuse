@@ -18,6 +18,7 @@ use Mojo::Base qw(consoletest);
 use XML::LibXML;
 use testapi;
 use File::Basename;
+use utils qw(script_retry);
 
 our $test_envs = get_var('BCI_TEST_ENVS', 'base,init,dotnet,python,node,go,multistage');
 our $error_count = 0;
@@ -92,7 +93,7 @@ sub run {
 
     record_info('Run', "Starting the tests for the following environments:\n$test_envs");
     my $bci_dir = fileparse($bci_tests_repo, qr/\.[^.]*/);
-    assert_script_run("cd $bci_dir");
+    script_retry("cd $bci_dir", timeout => 300, delay => 60, retry => 3);
     assert_script_run("export TOX_PARALLEL_NO_SPINNER=1");
     assert_script_run("export CONTAINER_RUNTIME=$engine");
     $version =~ s/-SP/./g;
