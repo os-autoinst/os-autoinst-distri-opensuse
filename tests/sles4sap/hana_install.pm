@@ -105,7 +105,7 @@ sub run {
     $self->prepare_profile('HANA');
 
     # Copy media
-    my $tout = get_var('HANA_INSTALLATION_TIMEOUT', 3600);    # Timeout for HANA installation commands.
+    my $tout = get_var('HANA_INSTALLATION_TIMEOUT', 2700);    # Timeout for HANA installation commands.
     $self->copy_media($proto, $path, $tout, '/sapinst');
 
     # Mount points information: use the same paths and minimum sizes as the wizard (based on RAM size)
@@ -211,7 +211,7 @@ sub run {
     # hdblcm is used for installation, verify if it exists
     my $hdblcm = '/sapinst/' . get_var('HANA_HDBLCM', "DATA_UNITS/HDB_SERVER_LINUX_" . uc(get_required_var('ARCH')) . "/hdblcm");
     die "hdblcm is not in [$hdblcm]. Set HANA_HDBLCM to the appropiate relative path. Example: DATA_UNITS/HDB_SERVER_LINUX_X86_64/hdblcm"
-      if (script_run "ls $hdblcm");
+      if (script_run "ls $hdblcm /sapinst/hdblcm");
 
     # Install hana
     my @hdblcm_args = qw(--autostart=n --shell=/bin/sh --workergroup=default --system_usage=custom --batch

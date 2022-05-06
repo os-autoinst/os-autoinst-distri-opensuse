@@ -21,7 +21,7 @@ use power_action_utils qw(power_action);
 use Utils::Backends;
 use registration qw(add_suseconnect_product);
 use version_utils qw(is_sle);
-use utils qw(zypper_call);
+use utils qw(zypper_call script_retry);
 use Utils::Systemd qw(systemctl);
 
 our @EXPORT = qw(
@@ -329,11 +329,6 @@ Copies installation media in SUT from the share identified by B<$proto> and
 B<$path> into the target directory B<$target>. B<$timeout> specifies how long
 to wait for the copy to complete.
 
-After installation files are copied, this method will also verify the existence
-of a F<checksum.md5sum> file in the target directory and use it to check for the
-integrity of the copied files. This test can be skipped by setting to a
-true value the B<DISABLE_CHECKSUM> setting in the test.
-
 The method will croak if any of the commands sent to SUT fail.
 
 =cut
@@ -347,26 +342,10 @@ sub copy_media {
     assert_script_run "mkdir $target";
     assert_script_run "mount -t $proto -o ro $path $mnt_path";
     $media_path = $mnt_path if script_run "[[ -d $media_path ]]";    # Check if specific ARCH subdir exists
-    assert_script_run "cp -ax $media_path/. $target/", $nettout;
+    script_retry ("rsync --archive --checksum $rsync_server:$media_path/. $target/", timeout =>$nettout, delay => 60, retry => 3);
 
-    # Go back to target directory and umount the share, as we don't need it anymore
+    # Unmount the share, as we don't need it anymore
     assert_script_run "umount $mnt_path";
-
-    return 1 if get_var('DISABLE_CHECKSUM');
-
-    # Save current directory and go to target path for checking the files
-    my $current_dir = script_output 'pwd';
-    type_string "cd $target\n";
-
-    # Then verify everything was copied correctly
-    # NOTE: checksum is generated with this command: "find . -type f -exec md5sum {} \; > checksums.md5sum"
-    my $chksum_file = 'checksum.md5sum';
-    # We can't check the checksum file itself as well as the clustered NFS share part
-    assert_script_run "sed -i -e '/$chksum_file\$/d' -e '/\\/nfs_share/d' $chksum_file";
-    assert_script_run "md5sum -c --quiet $chksum_file", $nettout;
-
-    # Back to previous directory
-    type_string "cd $current_dir\n";
 }
 
 =head2 add_hostname_to_hosts
