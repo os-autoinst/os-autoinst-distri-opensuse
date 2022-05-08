@@ -574,7 +574,6 @@ sub load_system_role_tests {
 sub load_jeos_openstack_tests {
     return unless is_openstack;
     my $args = OpenQA::Test::RunArgs->new();
-    loadtest "jeos/image_info";
     loadtest 'boot/boot_to_desktop';
     if (get_var('JEOS_OPENSTACK_UPLOAD_IMG')) {
         loadtest "publiccloud/upload_image";
@@ -589,7 +588,7 @@ sub load_jeos_openstack_tests {
     } else {
         loadtest 'publiccloud/ssh_interactive_start', run_args => $args;
     }
-
+    loadtest "jeos/image_info";
     loadtest "jeos/record_machine_id";
     loadtest "console/system_prepare" if is_sle;
     loadtest "console/force_scheduled_tasks";
@@ -615,8 +614,8 @@ sub load_jeos_tests {
         loadtest "jeos/prepare_firstboot";
     }
     load_boot_tests();
-    loadtest "jeos/image_info";
     loadtest "jeos/firstrun";
+    loadtest "jeos/image_info";
     loadtest "jeos/record_machine_id";
     loadtest "console/system_prepare" if is_sle;
     loadtest "console/force_scheduled_tasks";
