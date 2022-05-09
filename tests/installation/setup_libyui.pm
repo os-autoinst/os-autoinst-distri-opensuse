@@ -28,6 +28,9 @@ sub run {
                 $cmd = 'TERM=linux ';
             }
         }
+        if (check_var('VIDEOMODE', 'ssh-x')) {
+            $cmd .= 'QT_XCB_GL_INTEGRATION=none ';
+        }
         $cmd .= YuiRestClient::get_yui_params_string($port) . " yast.ssh";
         enter_cmd($cmd);
     }

@@ -3,30 +3,38 @@ description:    >
   Conduct an installation using ssh with X-Forwarding.
   Might only be effective for zVM and powerVM
 vars:
+  YUI_REST_API: 1
   DESKTOP: textmode
-  PATTERNS: minimal,base
   VIDEOMODE: ssh-x
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
-  # Required on zVM
+  - installation/setup_libyui
+  - installation/access_beta_distribution
+  - installation/ensure_installer_fullscreen
+  - installation/product_selection/install_SLES
+  - installation/licensing/accept_license
+    # Required on zVM
   - '{{disk_activation}}'
-  - installation/scc_registration
-  - installation/addon_products_sle
-  - installation/system_role
-  - installation/partitioning
-  - installation/partitioning_finish
-  - installation/installer_timezone
-  - installation/user_settings
-  - installation/user_settings_root
-  - installation/select_patterns
-  - installation/installation_overview
-  - installation/disable_grub_timeout
-  - installation/start_install
-  - installation/await_install
+  - installation/registration/register_via_scc
+  - installation/module_registration/skip_module_registration
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_text_mode
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup/accept_default_part_scheme
+  - installation/partitioning/guided_setup/accept_default_fs_options
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
+  - installation/installation_settings/validate_ssh_service_enabled
+  - installation/installation_settings/open_ssh_port
+  - installation/installation_settings/validate_default_target
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
+  - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
-  - installation/reboot_after_installation
+  - installation/performing_installation/confirm_reboot
   - installation/handle_reboot
   - installation/first_boot
   - installation/validation/validate_sshd_reachable
@@ -35,4 +43,6 @@ conditional_schedule:
   disk_activation:
     BACKEND:
       s390x:
-        - installation/disk_activation
+        - installation/disk_activation/select_configure_dasd_disks
+        - installation/disk_activation/configure_dasd
+        - installation/disk_activation/finish_disk_activation
