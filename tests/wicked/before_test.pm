@@ -58,6 +58,7 @@ sub run {
     systemctl('is-active wicked');
 
     $self->download_data_dir();
+    $self->prepare_coredump();
 
     my $package_list = 'openvpn';
     $package_list .= ' tcpdump' if get_var('WICKED_TCPDUMP');
@@ -138,7 +139,6 @@ sub run {
             $package_list .= ' ndisc6';
         }
         wicked::wlan::prepare_packages() if (check_var('WICKED', 'wlan'));
-        $self->prepare_coredump();
 
         $package_list .= ' openvswitch iputils';
         $package_list .= ' libteam-tools libteamdctl0 ' if check_var('WICKED', 'advanced') || check_var('WICKED', 'aggregate');
