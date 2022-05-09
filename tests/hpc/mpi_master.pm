@@ -27,7 +27,7 @@ sub run ($self) {
     my $need_restart = $self->setup_scientific_module();
     $self->relogin_root if $need_restart;
     # for <15-SP2 the openmpi2 module is named simply openmpi
-    $mpi = 'openmpi' if ($mpi =~ /openmpi2/);
+    $mpi = 'openmpi' if ($mpi =~ /openmpi2|openmpi3|openmpi4/);
     assert_script_run "module load gnu $mpi";
     script_run "module av";
     barrier_wait('CLUSTER_PROVISIONED');
