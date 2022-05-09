@@ -117,6 +117,7 @@ sub post_fail_hook {
         record_info('azuremetadata', $self->{instance}->run_ssh_command(cmd => "sudo /usr/bin/azuremetadata --api latest --subscriptionId --billingTag --attestedData --signature --xml"));
     }
     $self->SUPER::post_fail_hook;
+    registercloudguest($self->{instance});
 }
 
 sub test_flags {
