@@ -894,9 +894,14 @@ sub coredumpctl_has_debug {
     return check_version('>=249', $self->{systemd_ver});
 }
 
+sub install_coredump {
+    zypper_call('--quiet in systemd-coredump') if (script_run('command -v coredumpctl') != 0);
+}
+
 sub prepare_coredump {
     my $self = shift;
-    zypper_call('--quiet in systemd-coredump') if (script_run('command -v coredumpctl') != 0);
+
+    install_coredump;
     zypper_call('--quiet in gdb', exitcode => [104, 0]) if ($self->coredumpctl_has_debug());
 
     if (script_run('sysctl kernel.core_pattern | grep systemd-coredump') != 0) {
@@ -915,6 +920,8 @@ sub prepare_coredump {
 
 sub check_coredump {
     my $self = shift;
+
+    install_coredump;
     return if (script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend | grep wicked )" ]') == 0);
 
     my @core_pids = split(/\s+/, script_output(q(coredumpctl list --no-pager --no-legend | grep wicked | perl -ne '$_ =~ m/ ([0-9]+) / && print $1 .$/')));
