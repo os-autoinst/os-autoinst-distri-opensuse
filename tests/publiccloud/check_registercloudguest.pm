@@ -18,6 +18,7 @@ use testapi;
 use strict;
 use utils;
 use publiccloud::utils;
+use publiccloud::ssh_interactive 'select_host_console';
 use version_utils 'is_sle';
 
 sub run {
@@ -129,7 +130,7 @@ sub post_fail_hook {
 }
 
 sub test_flags {
-    return {fatal => 0};
+    return {fatal => 0, publiccloud_multi_module => 1};
 }
 
 1;

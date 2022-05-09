@@ -22,6 +22,7 @@ use main_common 'opensuse_welcome_applicable';
 use isotovideo;
 use IO::Socket::INET;
 use x11utils qw(handle_login ensure_unlocked_desktop handle_additional_polkit_windows);
+use publiccloud::ssh_interactive 'select_host_console';
 
 # Base class for all openSUSE tests
 
@@ -1430,11 +1431,10 @@ sub post_fail_hook {
 
     $self->export_logs;
 
-    if (is_public_cloud() || is_openstack()) {
+    if ((is_public_cloud() || is_openstack()) && $self->{run_args}->{my_provider}) {
         select_host_console(force => 1);
 
         # Destroy the public cloud instance in case of fatal test failure
-        # Currently there is theoretical chance to call cleanup two times. See details in poo#95780
         my $flags = $self->test_flags();
         $self->{run_args}->{my_provider}->cleanup() if ($flags->{fatal});
 
@@ -1445,7 +1445,8 @@ sub post_fail_hook {
 }
 
 sub test_flags {
-    return get_var('PUBLIC_CLOUD') ? {no_rollback => 1} : {};
+    # no_rollback is needed for ssh-tunnel and fatal must be explicitly defined
+    return get_var('PUBLIC_CLOUD') ? {no_rollback => 1, fatal => 0} : {};
 }
 
 1;

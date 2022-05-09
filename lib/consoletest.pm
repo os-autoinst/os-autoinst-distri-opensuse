@@ -9,7 +9,6 @@ use warnings;
 use testapi;
 use known_bugs;
 use version_utils qw(is_public_cloud is_openstack);
-use publiccloud::utils 'select_host_console';
 
 =head1 consoletest
 
@@ -65,10 +64,6 @@ sub use_wicked_network_manager {
     assert_script_run "systemctl start wickedd.service";
     assert_script_run "systemctl start wicked.service";
     assert_script_run qq{systemctl status wickedd.service | grep \"active \(running\)\"};
-}
-
-sub test_flags {
-    return get_var('PUBLIC_CLOUD') ? {no_rollback => 1} : {};
 }
 
 1;

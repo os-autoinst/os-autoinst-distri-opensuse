@@ -40,7 +40,7 @@ sub load_maintenance_publiccloud_tests {
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         loadtest "publiccloud/instance_overview" unless get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS');
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
-            load_publiccloud_consoletests();
+            load_publiccloud_consoletests($args);
         } elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
             load_container_tests();
         } elsif (get_var('PUBLIC_CLOUD_XFS')) {
@@ -60,6 +60,8 @@ sub load_maintenance_publiccloud_tests {
 }
 
 sub load_publiccloud_consoletests {
+    my ($run_args) = @_;
+    # Please pass the $run_args to fatal test modules
     loadtest 'console/cleanup_qam_testrepos' unless get_var('PUBLIC_CLOUD_QAM');
     loadtest 'console/openvswitch';
     loadtest 'console/rpm';
@@ -106,7 +108,7 @@ sub load_latest_publiccloud_tests {
         }
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
-            load_publiccloud_consoletests();
+            load_publiccloud_consoletests($args);
         }
         elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
             load_container_tests();

@@ -17,7 +17,6 @@ use testapi;
 use mmapi 'get_current_job_id';
 use utils qw(zypper_call script_retry);
 use version_utils 'is_sle';
-use publiccloud::utils "select_host_console";
 
 sub run {
     my ($self, $args) = @_;

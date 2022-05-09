@@ -9,7 +9,7 @@
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use utils;
-use publiccloud::utils "select_host_console";
+use publiccloud::ssh_interactive "select_host_console";
 
 sub run {
     my ($self, $args) = @_;
