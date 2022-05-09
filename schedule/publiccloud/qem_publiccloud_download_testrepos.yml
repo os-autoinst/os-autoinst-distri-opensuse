@@ -1,9 +1,0 @@
----
-name: qem_publiccloud_download_testrepos
-description: |
-  Download QAM test repositories to local the helper openQA instance.
-  Those updates will later on be transferred to the PC instance.
-schedule:
-  - boot/boot_to_desktop
-  - publiccloud/download_repos
-  - shutdown/shutdown
