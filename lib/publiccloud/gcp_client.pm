@@ -21,8 +21,8 @@ has storage_name => sub { get_var('PUBLIC_CLOUD_GOOGLE_STORAGE', 'openqa-storage
 has project_id => sub { get_var('PUBLIC_CLOUD_GOOGLE_PROJECT_ID') };
 has account => sub { get_var('PUBLIC_CLOUD_GOOGLE_ACCOUNT') };
 has service_acount_name => sub { get_var('PUBLIC_CLOUD_GOOGLE_SERVICE_ACCOUNT') };
-has private_key_id => sub { get_var('PUBLIC_CLOUD_KEY_ID') };
-has private_key => sub { get_var('PUBLIC_CLOUD_KEY') };
+has private_key_id => undef;
+has private_key => undef;
 has client_id => sub { get_var('PUBLIC_CLOUD_GOOGLE_CLIENT_ID') };
 has gcr_zone => sub { get_var('PUBLIC_CLOUD_GCR_ZONE', 'eu.gcr.io') };
 has region => sub { get_var('PUBLIC_CLOUD_REGION', 'europe-west1-b') };
@@ -49,7 +49,7 @@ sub vault_gcp_roles {
 
 =head2
 
-A service account in GCP can only have up to 10 keys assigned. With this we 
+A service account in GCP can only have up to 10 keys assigned. With this we
 reach our paralel openqa jobs quite fast.
 To have more keys available, we create 4 service accounts and select randomly
 one. If this fails, the next call of C<get_next_vault_role()> will retrieve

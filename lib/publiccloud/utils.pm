@@ -19,7 +19,21 @@ use version_utils qw(is_sle is_public_cloud);
 use publiccloud::ssh_interactive;
 use registration;
 
-our @EXPORT = qw(select_host_console is_byos is_ondemand is_ec2 is_azure is_gce registercloudguest register_addon deregister_addon register_openstack is_container_host register_addons_in_pc);
+our @EXPORT = qw(
+  deregister_addon
+  define_secret_variable
+  is_byos
+  is_ondemand
+  is_ec2
+  is_azure
+  is_gce
+  is_container_host
+  registercloudguest
+  register_addon
+  register_openstack
+  register_addons_in_pc
+  select_host_console
+);
 
 # Select console on the test host, if force is set, the interactive session will
 # be destroyed. If called in TUNNELED environment, this function die.
@@ -186,6 +200,14 @@ sub is_gce() {
 
 sub is_container_host() {
     return is_public_cloud && get_var('FLAVOR') =~ 'CHOST';
+}
+
+sub define_secret_variable {
+    my ($var_name, $var_value) = @_;
+    script_run("set -a");
+    script_run("read -sp \"enter value: \" $var_name", 0);
+    type_password($var_value . "\n");
+    script_run("set +a");
 }
 
 1;

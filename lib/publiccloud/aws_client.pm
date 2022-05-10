@@ -11,11 +11,12 @@ package publiccloud::aws_client;
 use Mojo::Base -base;
 use testapi;
 use publiccloud::vault;
+use publiccloud::utils;
 
 use constant CREDENTIALS_FILE => '/root/amazon_credentials';
 
-has key_id => sub { get_var('PUBLIC_CLOUD_KEY_ID') };
-has key_secret => sub { get_var('PUBLIC_CLOUD_KEY_SECRET') };
+has key_id => undef;
+has key_secret => undef;
 has security_token => undef;
 has region => sub { get_var('PUBLIC_CLOUD_REGION', 'eu-central-1') };
 has vault => undef;
@@ -38,6 +39,7 @@ sub vault_create_credentials {
           = $self->vault->api('/v1/' . get_required_var('PUBLIC_CLOUD_VAULT_NAMESPACE') . $path, method => 'post');
         $data = $res->{data};
         $self->security_token($data->{security_token});
+        define_secret_variable("AWS_SESSION_TOKEN", $self->security_token);
         die('Failed to retrieve token') unless (defined($self->security_token));
     } else {
         die('Invalid service: ' . $self->service);
@@ -76,10 +78,9 @@ sub init {
         $self->vault_create_credentials();
     }
 
-    assert_script_run("export AWS_ACCESS_KEY_ID=" . $self->key_id);
-    assert_script_run("export AWS_SECRET_ACCESS_KEY=" . $self->key_secret);
-    assert_script_run('export AWS_SESSION_TOKEN="' . $self->security_token . '"') if (defined($self->security_token));
     assert_script_run('export AWS_DEFAULT_REGION="' . $self->region . '"');
+    define_secret_variable("AWS_ACCESS_KEY_ID", $self->key_id);
+    define_secret_variable("AWS_SECRET_ACCESS_KEY", $self->key_secret);
 
     die('Credentials are invalid') unless ($self->_check_credentials());
 

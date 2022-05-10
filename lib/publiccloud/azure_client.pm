@@ -12,13 +12,13 @@ use Mojo::Base -base;
 use testapi;
 use utils;
 use publiccloud::vault;
+use publiccloud::utils;
 
-has key_id => sub { get_var('PUBLIC_CLOUD_KEY_ID') };
-has key_secret => sub { get_var('PUBLIC_CLOUD_KEY_SECRET') };
+has key_id => undef;
+has key_secret => undef;
 has subscription => sub { get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') };
-has tenantid => sub { get_var('PUBLIC_CLOUD_AZURE_TENANT_ID') };
+has tenantid => undef;
 has region => sub { get_var('PUBLIC_CLOUD_REGION', 'westeurope') };
-has subscription => sub { get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') };
 has username => sub { get_var('PUBLIC_CLOUD_USER', 'azureuser') };
 has service => undef;
 has vault => undef;
@@ -28,19 +28,18 @@ sub init {
     my ($self) = @_;
     $self->vault(publiccloud::vault->new());
     $self->vault_create_credentials() unless ($self->key_id);
+    define_secret_variable("ARM_SUBSCRIPTION_ID", $self->subscription);
+    define_secret_variable("ARM_CLIENT_ID", $self->key_id);
+    define_secret_variable("ARM_CLIENT_SECRET", $self->key_secret);
+    define_secret_variable("ARM_TENANT_ID", $self->tenantid);
+    define_secret_variable("ARM_TEST_LOCATION", $self->region);
     $self->az_login();
-    assert_script_run("az account set --subscription " . $self->subscription);
-    assert_script_run("export ARM_SUBSCRIPTION_ID=" . $self->subscription);
-    assert_script_run("export ARM_CLIENT_ID=" . $self->key_id);
-    assert_script_run("export ARM_CLIENT_SECRET=" . $self->key_secret);
-    assert_script_run('export ARM_TENANT_ID="' . $self->tenantid . '"');
-    assert_script_run('export ARM_ENVIRONMENT="public"');
-    assert_script_run('export ARM_TEST_LOCATION="' . $self->region . '"');
+    assert_script_run("az account set --subscription \$ARM_SUBSCRIPTION_ID");
 }
 
 sub az_login {
     my ($self) = @_;
-    my $login_cmd = sprintf(q(while ! az login --service-principal -u '%s' -p '%s' -t '%s'; do sleep 10; done),
+    my $login_cmd = sprintf(q(while ! az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET -t $ARM_TENANT_ID; do sleep 10; done),
         $self->key_id, $self->key_secret, $self->tenantid);
 
     assert_script_run($login_cmd, timeout => 5 * 60);
