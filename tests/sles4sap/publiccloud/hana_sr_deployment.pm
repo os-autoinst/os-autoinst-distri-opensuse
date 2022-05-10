@@ -1,11 +1,11 @@
 # SUSE's openQA tests
 #
-# Copyright SUSE LLC
+# Copyright 2019 SUSE LLC
 # SPDX-License-Identifier: FSFAP
-# Maintainer: QE-SAP <qe-sap@suse.de>
 
-# Summary: Deploy SAP Hana cluster with system replication and verify working cluster.
-
+# Package: ha-cluster-bootstrap
+# Summary: Remove a node both by its hostname and ip address
+# Maintainer: Julien Adamek <jadamek@suse.com>
 
 use strict;
 use warnings;
