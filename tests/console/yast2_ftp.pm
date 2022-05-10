@@ -74,11 +74,6 @@ sub run {
     # install vsftps
     zypper_call("in vsftpd yast2-ftp-server", timeout => 180);
 
-    if (is_sle('>=15')) {
-        zypper_call("in yast2-users", timeout => 180);
-        record_soft_failure 'bsc#1132116';
-    }
-
     # clear any existing vsftpd leftover configs:
     script_run("rm /etc/vsftpd.conf");
     assert_script_run("rm -f /etc/vsftpd.pem");    #-f to not trigger error if file does not exist
