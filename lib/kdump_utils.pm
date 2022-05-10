@@ -167,10 +167,12 @@ sub activate_kdump {
     }
     # ppcl64e and aarch64 needs increased kdump memory bsc#1161421
     if (is_ppc64le || is_aarch64) {
-        send_key('alt-y');
-        type_string $memory_kdump;
-        wait_screen_change(sub { send_key 'ret' }, 10) for (1 .. 2);
-        record_soft_failure 'default kdump memory size is too small for ppc64le and aarch64, see bsc#1161421';
+        if (is_sle('<15-sp4')) {
+            send_key('alt-y');
+            type_string $memory_kdump;
+            wait_screen_change(sub { send_key 'ret' }, 10) for (1 .. 2);
+            record_soft_failure 'default kdump memory size is too small for ppc64le and aarch64, see bsc#1161421';
+        }
         $expect_restart_info = 1;
     }
     # enable and verify fadump settings
