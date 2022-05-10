@@ -261,8 +261,9 @@ sub handle_login {
     my $mykey = check_var('DESKTOP', 'gnome') ? 'esc' : 'shift';
     send_key_until_needlematch('displaymanager', $mykey, 30, 3);
     if (get_var('ROOTONLY')) {
+        # we now use this tag to support login as root
         if (check_screen 'displaymanager-username-notlisted', 10) {
-            record_soft_failure 'bgo#731320/boo#1047262 "not listed" Login screen for root user is not intuitive';
+            record_info 'bgo#731320/boo#1047262 "not listed" Login screen for root user is not intuitive';
             assert_and_click 'displaymanager-username-notlisted';
             wait_still_screen 3;
         }
