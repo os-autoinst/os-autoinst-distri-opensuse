@@ -1,4 +1,4 @@
-name:           sle_micro_raw_image
+name:           sle_micro_selfinstall_image
 description:    >
     Maintainer: jalausuch@suse.com, qa-c@suse.de.
     SUSE Linux Enterprise Micro tests
@@ -15,10 +15,15 @@ conditional_schedule:
     ENABLE_SELINUX:
       '1':
         - transactional/enable_selinux
+  rt:
+    FLAVOR:
+      'Default-RT-SelfInstall':
+        - rt/rt_is_realtime
 schedule:
   - installation/bootloader_uefi
   - microos/selfinstall
   - transactional/host_config
+  - '{{rt}}'
   - '{{registration}}'
   - '{{maintenance}}'
   - '{{selinux}}'
