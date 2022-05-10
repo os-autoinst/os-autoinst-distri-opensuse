@@ -44,7 +44,7 @@ sub check_bsc1142979 {
     my $grep_cmd = script_run("grep -i $bsc_dir /etc/exports");
     if ($grep_cmd != 0) {
         my $ret_val = script_run("yast nfs-server delete mountpoint=$bsc_dir");
-        if ($ret_val == 0 || $ret_val == 16) {
+        if ($ret_val == 0) {
             record_soft_failure "Nfs-server bug: bsc#1142979 - Remove a mount directory that does not exist return value error"; }
     }
 }
