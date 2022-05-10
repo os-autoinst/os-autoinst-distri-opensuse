@@ -60,7 +60,6 @@ sub run {
     }
 
     # restores all configs
-    record_soft_failure('bsc#1151426: stop nfs client service.') if (script_run('systemctl is-active nfs.service') != 0);
     assert_script_run("yast nfs-server delete mountpoint=$servdir; yast nfs-server stop");
     assert_script_run("rm -fr $tmpdir01 $tmpdir02 $servdir");
 }
