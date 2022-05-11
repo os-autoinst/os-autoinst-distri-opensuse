@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     azurerm = {
-      version = "= 2.56.0"
+      version = "= 3.5.0"
       source = "hashicorp/azurerm"
     }
     random = {
@@ -138,7 +138,7 @@ resource "azurerm_network_interface" "openqa-nic" {
     ip_configuration {
         name                          = "${element(random_id.service.*.hex, count.index)}-nic-config"
         subnet_id                     = azurerm_subnet.openqa-subnet.id
-        private_ip_address_allocation = "dynamic"
+        private_ip_address_allocation = "Dynamic"
         public_ip_address_id          = element(azurerm_public_ip.openqa-publicip.*.id, count.index)
     }
 }
