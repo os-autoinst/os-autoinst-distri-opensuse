@@ -50,7 +50,8 @@ sub has_conflict {
         libldb2 => 'libldb1',
         'python3-ldb' => 'python-ldb',
         'chrony-pool-suse' => 'chrony-pool-empty',
-        libGLwM1 => 'libGLw1'
+        libGLwM1 => 'libGLw1',
+        libiterm1 => 'terminfo-iterm'
     );
     return $conflict{$binary};
 }
