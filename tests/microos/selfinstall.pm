@@ -11,6 +11,9 @@ use testapi;
 use microos "microos_login";
 
 sub run {
+    my ($self) = @_;
+    assert_screen 'selfinstall-screen', 180;
+    send_key 'down' unless check_screen 'selfinstall-select-drive';
     assert_screen 'selfinstall-select-drive';
     send_key 'ret';
     assert_screen 'slem-selfinstall-overwrite-drive';
