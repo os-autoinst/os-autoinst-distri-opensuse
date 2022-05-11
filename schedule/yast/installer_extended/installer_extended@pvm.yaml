@@ -17,7 +17,6 @@ schedule:
   - installation/bootloader_start
   - installation/setup_libyui
   - installation/validate_beta_message
-  - installation/access_beta_distribution
   - installation/product_selection/install_SLES
   - installation/licensing/verify_license_translations
   - installation/licensing/verify_license_has_to_be_accepted
