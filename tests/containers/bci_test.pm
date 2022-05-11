@@ -18,6 +18,7 @@ use Mojo::Base qw(consoletest);
 use XML::LibXML;
 use testapi;
 use File::Basename;
+use Utils::Architectures qw(is_ppc64le);
 
 our $test_envs = get_var('BCI_TEST_ENVS', 'base,init,dotnet,python,node,go,multistage');
 our $error_count = 0;
@@ -92,6 +93,8 @@ sub run {
 
     record_info('Run', "Starting the tests for the following environments:\n$test_envs");
     my $bci_dir = fileparse($bci_tests_repo, qr/\.[^.]*/);
+    # Sometimes ppc64le are still running type_string 'cd' command from select_serial_terminal and fail to run cd BCI-tests
+    sleep 60 if is_ppc64le;
     assert_script_run("cd $bci_dir");
     assert_script_run("export TOX_PARALLEL_NO_SPINNER=1");
     assert_script_run("export CONTAINER_RUNTIME=$engine");
