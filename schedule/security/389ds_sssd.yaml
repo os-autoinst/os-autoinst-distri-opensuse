@@ -5,8 +5,13 @@ schedule:
     - boot/boot_to_desktop
     - console/consoletest_setup
     - network/setup_multimachine
+    - '{{fips_setup}}'
     - '{{tls_389ds}}'
 conditional_schedule:
+    fips_setup:
+        FIPS_ENABLED:
+            1:
+                - fips/fips_setup
     tls_389ds:
         HOSTNAME:
             server:
