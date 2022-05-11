@@ -20,21 +20,19 @@ sub init {
     my ($self, $service) = @_;
     die('The service must be specified') if (!$service);
 
-    my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
-
-    if ($provider eq 'EC2') {
+    if ($service eq 'EKS') {
         $self->provider_client(
             publiccloud::aws_client->new(
                 service => $service
             ));
     }
-    elsif ($provider eq 'GCE') {
+    elsif ($service eq 'GKE') {
         $self->provider_client(
             publiccloud::gcp_client->new(
                 service => $service
             ));
     }
-    elsif ($provider eq 'AZURE') {
+    elsif ($service eq 'AKS') {
         $self->provider_client(
             publiccloud::azure_client->new(
                 service => $service
@@ -43,7 +41,6 @@ sub init {
     else {
         die("Invalid provider");
     }
-
 
     $self->provider_client->init();
 }
