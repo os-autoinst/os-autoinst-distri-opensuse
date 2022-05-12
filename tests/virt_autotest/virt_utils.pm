@@ -27,7 +27,7 @@ use virt_autotest::utils;
 use version_utils qw(is_sle get_os_release);
 
 our @EXPORT
-  = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk get_guest_list remove_vm download_guest_assets restore_downloaded_guests is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type recreate_guests perform_guest_restart collect_host_and_guest_logs cleanup_host_and_guest_logs monitor_guest_console start_monitor_guest_console stop_monitor_guest_console is_developing_sles is_registered_sles);
+  = qw(enable_debug_logging update_guest_configurations_with_daily_build locate_sourcefile get_repo_0_prefix repl_repo_in_sourcefile repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk get_guest_list remove_vm download_guest_assets restore_downloaded_guests is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type recreate_guests perform_guest_restart collect_host_and_guest_logs cleanup_host_and_guest_logs monitor_guest_console start_monitor_guest_console stop_monitor_guest_console is_developing_sles is_registered_sles);
 
 sub enable_debug_logging {
 
@@ -86,6 +86,20 @@ sub get_version_for_daily_build_guest {
     return $version;
 }
 
+sub locate_sourcefile {
+    my $location = script_output("perl /usr/share/qa/tools/location_detect_impl.pl", 60);
+    $location =~ s/[\r\n]+$//;
+    return $location;
+}
+
+sub get_repo_0_prefix {
+    # Get customized repo location from REPO_0_PREFIX and append missing forward slash to the end
+    my $repo_0_prefix = get_var("REPO_0_PREFIX", "");
+    $repo_0_prefix .= '/' unless $repo_0_prefix =~ /\/$/;
+    $repo_0_prefix = ($repo_0_prefix ne "/" ? $repo_0_prefix : "http://openqa.suse.de/assets/repo/");
+    return $repo_0_prefix;
+}
+
 sub repl_repo_in_sourcefile {
     # Replace the daily build repo as guest installation resource in source file (like source.cn; source.de ..)
     my $verorig = "source.http.sles-" . get_version_for_daily_build_guest . "-64";
@@ -93,8 +107,7 @@ sub repl_repo_in_sourcefile {
     if (get_var("REPO_0")) {
         my $location = '';
         if (!is_s390x) {
-            $location = script_output("perl /usr/share/qa/tools/location_detect_impl.pl", 60);
-            $location =~ s/[\r\n]+$//;
+            $location = locate_sourcefile;
         }
         else {
             #S390x LPAR just be only located at DE now.
@@ -103,7 +116,7 @@ sub repl_repo_in_sourcefile {
             $location = 'de';
         }
         my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . "$location";
-        my $newrepo = "http://openqa.suse.de/assets/repo/" . get_var("REPO_0");
+        my $newrepo = get_repo_0_prefix . get_var("REPO_0");
         # for sles15sp2+, install host with Online installer, while install guest with Full installer
         $newrepo =~ s/-Online-/-Full-/ if ($verorig =~ /15-sp[2-9]/i);
         my $shell_cmd
@@ -122,6 +135,7 @@ sub repl_repo_in_sourcefile {
     }
     save_screenshot;
 }
+
 # Replace module repos configured in sources.* with openqa daily build repos
 sub repl_module_in_sourcefile {
     my $version = get_version_for_daily_build_guest;
@@ -134,7 +148,7 @@ sub repl_module_in_sourcefile {
     my $replaced_item = get_required_var('ARCH') . ".$replaced_orig";
     $version =~ s/-sp0//;
     $version = uc($version);
-    my $daily_build_module = "http://openqa.suse.de/assets/repo/";
+    my $daily_build_module = get_repo_0_prefix;
     # for sles15sp2+, install host with Online installer, while install guest with Full installer
     if ($version =~ /15-SP[2-9]/) {
         $daily_build_module .= get_var("REPO_0") . "/Module-\\2/";
@@ -143,7 +157,7 @@ sub repl_module_in_sourcefile {
     else {
         $daily_build_module .= "SLE-${version}-Module-\\2-POOL-" . get_required_var('ARCH') . "-Build" . get_required_var('BUILD') . "-Media1/";
     }
-    my $source_file = "/usr/share/qa/virtautolib/data/sources.*";
+    my $source_file = "/usr/share/qa/virtautolib/data/sources." . locate_sourcefile;
     my $command = "sed -ri 's#^(${replaced_item}).*\$#\\1$daily_build_module#g' $source_file";
     print "Debug: the command to execute is:\n$command \n";
     if (is_s390x) {
