@@ -74,7 +74,7 @@ sub verify_checksum {
             next;
         }
         if ($checksum eq $digest) {
-            diag("$image OK", "$image_path: OK");
+            diag("$image OK\n$image_path: OK");
         } else {
             $error .= "SHA256 checksum does not match for $image:\n\tCalculated: $digest\n\tExpected:   $checksum\n";
         }
