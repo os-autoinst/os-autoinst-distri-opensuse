@@ -20,19 +20,19 @@ sub init {
     my ($self, $service) = @_;
     die('The service must be specified') if (!$service);
 
-    if ($service eq 'EKS') {
+    if ($service =~ /ECR|EKS/) {
         $self->provider_client(
             publiccloud::aws_client->new(
                 service => $service
             ));
     }
-    elsif ($service eq 'GKE') {
+    elsif ($service =~ /GCR|GKE/) {
         $self->provider_client(
             publiccloud::gcp_client->new(
                 service => $service
             ));
     }
-    elsif ($service eq 'AKS') {
+    elsif ($service =~ /ACR|AKS/) {
         $self->provider_client(
             publiccloud::azure_client->new(
                 service => $service
