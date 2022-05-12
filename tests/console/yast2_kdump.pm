@@ -27,7 +27,7 @@ sub run {
     zypper_call('in yast2-kdump');
 
     # Kdump configuration with YaST module
-    kdump_utils::activate_kdump;
+    kdump_utils::activate_kdump(increase_kdump_memory => 0);
 
     # check service (without restarting)
     systemctl('is-enabled kdump');
