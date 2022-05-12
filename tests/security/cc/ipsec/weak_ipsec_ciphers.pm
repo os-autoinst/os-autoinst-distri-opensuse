@@ -3,7 +3,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Run ATSec ' Weak IPsec ciphers' case
+# Summary: Run ATSec 'Weak IPsec ciphers' case
 # Maintainer: Liu Xiaojing <xiaojing.liu@suse.com>
 # Tags: poo#101226
 
@@ -33,7 +33,7 @@ sub run {
         }
     }
 
-    mutex_create('IPSEC_CLEINT_DONE');
+    mutex_create('WEAK_IPSEC_CIPHERS_DONE');
 
     # Parse the log file to check if the failure reason is expected
     my $log_file = 'ccc-ipsec-eval-weak.log';

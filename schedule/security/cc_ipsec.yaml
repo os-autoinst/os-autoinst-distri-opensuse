@@ -34,4 +34,5 @@ conditional_schedule:
             client:
                 - security/cc/ipsec/ipsec_client
                 - security/cc/ipsec/weak_ipsec_ciphers
+                - security/cc/ipsec/ipsec_ciphers
                 - security/cc/ipsec/ipsec_certificate
