@@ -55,7 +55,7 @@ sub run {
             script_run("echo 'Downloading $maintrepo ...' >> ~/repos/qem_download_status.txt");
             my ($parent) = $maintrepo =~ 'https?://(.*)$';
             my ($domain) = $parent =~ '^([a-zA-Z.]*)';
-            $ret = script_run "wget --no-clobber -r -R 'robots.txt,*.ico,*.png,*.gif,*.css,*.js,*.htm*' --domains $domain --no-parent $parent $maintrepo", timeout => 600;
+            $ret = script_run "wget --no-clobber -r -R 'robots.txt,*.ico,*.png,*.gif,*.css,*.js,*.htm*' --reject-regex='s390x\\/|ppc64le\\/|kernel*debuginfo*.rpm|src\\/' --domains $domain --no-parent $maintrepo/", timeout => 600;
             if ($ret !~ /0|8/) {
                 # softfailure, if repo doesn't exist (anymore). This is required for cloning jobs, because the original test repos could be empty already
                 record_soft_failure("Download failed (rc=$ret):\n$maintrepo");
@@ -78,18 +78,34 @@ sub run {
         my $check_empty_repos = get_var('PUBLIC_CLOUD_IGNORE_EMPTY_REPO', 0) == 0;
         die "No test repositories" if ($check_empty_repos && $count == 0);
 
-        my $size = script_output("du -hs ~/repos");
-        record_info("Repo size", "Total repositories size: $size");
         assert_script_run("echo 'Download completed' >> ~/repos/qem_download_status.txt");
         upload_logs('/tmp/repos.list.txt');
         upload_logs('qem_download_status.txt');
         # Failsafe 2: Ensure the repos are not empty (i.e. size >= 100 kB)
-        $size = script_output('du -s ~/repos | awk \'{print$1}\'');
+        my $size = script_output('du -s ~/repos | awk \'{print$1}\'');
         die "Empty test repositories" if ($check_empty_repos && $size < 100);
     }
+
+    my $total_size = script_output("du -hs ~/repos");
+    record_info("Repo size", "Total repositories size: $total_size");
+    my $rpm_list = script_output("find ./ -name '*.rpm' -exec du -h '{}' \\; | sort -h");
+    record_info("RPM list", "RPM list: $rpm_list");
+
     # The maintenance *.repo files all point to download.suse.de, but we are using dist.suse.de, so we need to rename the directory
     assert_script_run("if [ -d ~/repos/dist.suse.de ]; then mv ~/repos/dist.suse.de ~/repos/download.suse.de; fi");
     assert_script_run("cd");
+}
+
+sub post_fail_hook {
+    # Do not use `script_run` or `script_output` as the disk might be full
+    ## cat > /tmp/scriptH69A2.sh << 'EOT_H69A2'; echo H69A2-$?-
+    #> du -s ~/repos
+    #> EOT_H69A2
+    #bash: cannot create temp file for here-document: No space left on device
+    #H69A2-1-
+    assert_script_run("du -hs ~/repos || true");
+    assert_script_run("find ~/repos/ -name '*.rpm' -exec du -h '{}' \\; | sort -h || true");
+    assert_script_run("df -h");
 }
 
 sub test_flags {
