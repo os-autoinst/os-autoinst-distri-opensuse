@@ -55,7 +55,7 @@ sub run {
             zypper_call 'rm btrfsprogs';
         }
         zypper_call '--no-gpg-checks ar -f ' . get_var('BTRFS_PROGS_REPO') . ' filesystems';
-        zypper_call '--gpg-auto-import-keys ref';
+        zypper_call '--gpg-auto-import-keys ref -r filesystems';
         zypper_call "in -r filesystems $btrfs_package_name";
         zypper_call 'rr filesystems';
         set_var('WORK_DIR', '/opt/btrfs-progs-tests');
