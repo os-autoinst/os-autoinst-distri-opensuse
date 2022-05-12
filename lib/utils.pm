@@ -1495,11 +1495,9 @@ sub reconnect_mgmt_console {
     elsif (is_x86_64) {
         if (is_ipmi) {
             select_console 'sol', await_console => 0;
-            if (!get_var('IPXE')) {
-                assert_screen([qw(qa-net-selection prague-pxe-menu grub2)], 300);
-                # boot to hard disk is default
-                send_key 'ret';
-            }
+            assert_screen([qw(qa-net-selection prague-pxe-menu grub2)], 300);
+            # boot to hard disk is default
+            send_key 'ret';
         }
     }
     elsif (is_aarch64) {
