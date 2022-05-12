@@ -13,10 +13,15 @@ vars:
   EXIT_AFTER_START_INSTALL: '1'
   EXTRABOOTPARAMS: Y2STRICTTEXTDOMAIN=1
   YUI_REST_API: 1
+conditional_schedule:
+  access_beta_distribution:
+    BETA:
+      1:
+        - installation/validate_beta_message
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_message
+  - '{{access_beta_distribution}}'
   - installation/product_selection/install_SLES
   - installation/licensing/verify_license_translations
   - installation/licensing/verify_license_has_to_be_accepted
