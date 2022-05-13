@@ -1,0 +1,17 @@
+---
+name: trento 
+description: |
+  Run Trento tests on public cloud instances:
+    - TODO: write a proper description
+    - deploy
+    - test
+    - destroy
+vars:
+    TRENTO_TEST_REGISTRY:''
+    TRENTO_DEPLOY_SCRIPTS_REPO:''
+    TEST_CONTEXT: 'OpenQA::Test::RunArgs'
+schedule:
+  - boot/boot_to_desktop
+  - sles4sap/trento/setup_jumphost
+  - sles4sap/trento/deploy_trento
+  - sles4sap/trento/test_trento_web
