@@ -56,7 +56,7 @@ sub run {
         mutex_wait('AUDIT_REMOTE_SERVER_READY');
 
         # Run test cases
-        run_testcase('audit-remote', (timeout => 3600, skip_prepare => 1));
+        run_testcase('audit-remote', (timeout => 4500, skip_prepare => 1));
 
         # The 4th and 5th may fail because the audit log is gerenated slowly in server, we need to rerun it again
         assert_script_run('./run.bash 4', timeout => 300) if (script_run('egrep "[4].*FAIL" rollup.log') == 0);
