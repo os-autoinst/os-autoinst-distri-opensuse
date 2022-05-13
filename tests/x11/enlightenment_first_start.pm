@@ -41,7 +41,6 @@ sub run {
     }
     assert_and_click "enlightenment_assistant_next";
     if (get_required_var('ARCH') =~ /86/ || is_aarch64 || is_arm) {
-        assert_and_click 'enlightenment_acpid_missing';
         my $retry = 0;
         while ($retry < 5) {
             assert_screen [qw(enlightenment_generic_desktop enlightenment_acpid_missing)];
