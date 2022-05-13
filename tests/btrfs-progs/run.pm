@@ -111,7 +111,7 @@ sub run {
             # Add test status to STATUS_LOG file
             log_add(STATUS_LOG, "$category-$test", $status, $delta);
         }
-        set_var('SOFT_FAILURE', 1) if (@tests == 1) && ($status == 'SKIPPED');
+        set_var('SOFT_FAILURE', 1) if (@tests == 1) && ($status eq 'SKIPPED');
     }
 }
 
