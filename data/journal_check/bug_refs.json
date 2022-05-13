@@ -327,6 +327,13 @@
         },
         "type": "ignore"
     },
+    "dmi-firmware-failed": {
+        "description": "kernel: dmi: Firmware registration failed",
+        "products": {
+            "sle": ["12-SP5"]
+        },
+        "type": "ignore"
+    },
     "bsc#1187591": {
         "description": "hibernation: the secret key is invalid",
         "products": {
