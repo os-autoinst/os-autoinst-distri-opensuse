@@ -32,7 +32,12 @@ sub run {
 	  "-v";
     assert_script_run($cmd_00_040, 360);
    
-    assert_script_run("./trento_acr_azure.sh -g $resource_group -n $acr_name -v", 180);
+    my $trento_acr_azure_cmd = "./trento_acr_azure.sh ".
+          "-g $resource_group ".
+          "-n $acr_name ".
+          "-r registry.suse.com/trento/trento-server ".
+          "-v";
+    assert_script_run($trento_acr_azure_cmd, 180);
     my $machine_ip = script_output("az vm show -d -g $resource_group -n $machine_name --query \"publicIps\" -o tsv");
     my $acr_server = script_output("az acr list -g $resource_group --query \"[0].loginServer\" -o tsv");
     my $acr_username = script_output("az acr credential show -n $acr_name --query username -o tsv");
@@ -42,12 +47,12 @@ sub run {
 	  "-k /root/.ssh/id_rsa ".
 	  "-u cloudadmin ".
 	  "-c 3.8.2 ".
-	  "-p \$(pwd) ".
+	  '-p $(pwd) '.
 	  "-r $acr_server/helm/trento-server ".
 	  "-s $acr_username ".
-	  "-w \$(az acr credential show -n $acr_name --query 'passwords[0].value' -o tsv) ".
+	  '-w $(az acr credential show -n '.$acr_name." --query 'passwords[0].value' -o tsv) ".
 	  "-v";
-    assert_script_run($cmd_01_010, 180);
+    assert_script_run($cmd_01_010, 240);
 }
 
 sub cleanup {
