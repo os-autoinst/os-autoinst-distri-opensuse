@@ -33,7 +33,7 @@ sub run {
         if ($host_distri eq 'ubuntu') {
             # Sometimes, the host doesn't get an IP automatically via dhcp, we need force it just in case
             assert_script_run("dhclient -v");
-            assert_script_run("apt-get update -qq -y", timeout => $update_timeout);
+            script_retry("apt-get update -qq -y", timeout => $update_timeout);
         } elsif ($host_distri eq 'centos') {
             assert_script_run("dhclient -v");
             assert_script_run("yum update -q -y --nobest", timeout => $update_timeout);

@@ -47,7 +47,7 @@ sub install_podman_when_needed {
         if ($host_os eq 'centos') {
             assert_script_run "yum -y install @pkgs --nobest --allowerasing", timeout => 300;
         } elsif ($host_os eq 'ubuntu') {
-            assert_script_run "apt-get -y install @pkgs", timeout => 300;
+            script_retry("apt-get -y install @pkgs", timeout => 300);
         } else {
             # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
             activate_containers_module if $host_os =~ 'sle';
@@ -78,7 +78,7 @@ sub install_docker_when_needed {
         } elsif ($host_os eq 'ubuntu') {
             # Make sure you are about to install from the Docker repo instead of the default Ubuntu repo
             assert_script_run "apt-cache policy docker-ce";
-            assert_script_run "apt-get -y install docker-ce", timeout => 300;
+            script_retry("apt-get -y install docker-ce", timeout => 300);
         } else {
             if ($host_os =~ 'sle') {
                 # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
@@ -130,8 +130,8 @@ sub install_buildah_when_needed {
             assert_script_run "dnf -y update", timeout => 900;
             assert_script_run "dnf -y install buildah", timeout => 300;
         } elsif ($host_os eq 'ubuntu') {
-            assert_script_run "apt-get update", timeout => 900;
-            assert_script_run "apt-get -y install buildah", timeout => 300;
+            script_retry("apt-get update", timeout => 900);
+            script_retry("apt-get -y install buildah", timeout => 300);
         } elsif ($host_os eq 'rhel') {
             assert_script_run('yum update -y', timeout => 300);
             assert_script_run('yum install -y buildah', timeout => 300);

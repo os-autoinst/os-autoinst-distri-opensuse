@@ -74,7 +74,7 @@ sub run {
     my @packages = packages_to_install($version, $sp, $host_distri);
     if ($host_distri eq 'ubuntu') {
         foreach my $pkg (@packages) {
-            script_retry("apt-get -y install $pkg", timeout => 300, delay => 60, retry => 5);
+            script_retry("apt-get -y install $pkg", timeout => 300);
         }
         assert_script_run('pip3 --quiet install --upgrade pip', timeout => 600);
         assert_script_run("pip3 --quiet install tox", timeout => 600);
