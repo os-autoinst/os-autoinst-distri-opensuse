@@ -249,35 +249,30 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     %guests = (
         sles12sp2 => {
             name => 'sles12sp2',
-            ip => 'vm-sle12-sp2-a60.qam.suse.de',
         },
         sles12sp3 => {
             name => 'sles12sp3',
-            ip => 'd153.qam.suse.de',
         },
         sles12sp4 => {
             name => 'sles12sp4',
-            ip => 'd370.qam.suse.de',
         },
         sles12sp5 => {
             name => 'sles12sp5',
-            ip => 'd388.qam.suse.de',
         },
         sles15 => {
             name => 'sles15',
-            ip => 'd294.qam.suse.de',
         },
         sles15sp1 => {
             name => 'sles15sp1',
-            ip => 'd208.qam.suse.de',
         },
         sles15sp2 => {
             name => 'sles15sp2',
-            ip => 'd192.qam.suse.de',
         },
         sles15sp3 => {
             name => 'sles15sp3',
-            ip => 'd215.qam.suse.de',
+        },
+        sles15sp4 => {
+            name => 'sles15sp4',
         },
     );
 
@@ -322,6 +317,10 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp3 => {
             name => 'sles15sp3',
             ip => 'win2k19-sle15-SP3.qa.suse.cz',
+        },
+        sles15sp4 => {
+            name => 'sles15sp4',
+            ip => 'win2k19-sle15-SP4.qa.suse.cz',
         },
     );
 
