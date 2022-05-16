@@ -3,8 +3,8 @@
 #
 # Summary: Luks1 decrypt with ssh
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#81780, tc#1768639
+# Maintainer: rfan1 <richard.fan@suse.com> Starry Wang <starry.wang@suse.com>
+# Tags: poo#81780, tc#1768639, poo#110953
 
 use strict;
 use warnings;
@@ -33,20 +33,23 @@ sub run {
 
     # ssh to the server and unlock the boot partiton
     enter_cmd('ssh -i /root/.ssh/id_rsa root@10.0.2.101');
+    wait_still_screen(1);
     save_screenshot;
 
-    # We need add some sleep here to make sure each command can get return
-    sleep 5;
+    # We need wait a few seconds here to make sure each command can get return
+    wait_still_screen(5);
     send_key 'up';
     save_screenshot;
-    sleep 5;
+    wait_still_screen(5);
     send_key 'ret';
-    sleep 5;
+    wait_still_screen(5);
     save_screenshot;
     enter_cmd("$testapi::password");
-    sleep 5;
-    enter_cmd('exit');
-    sleep 5;
+    wait_still_screen(5);
+    save_screenshot;
+    # exit from ssh session if it is not closed by remote host
+    enter_cmd('exit') unless check_screen('ssh_connection_closed_by_remote_host');
+    wait_still_screen(5);
     save_screenshot;
     reset_consoles;
 }

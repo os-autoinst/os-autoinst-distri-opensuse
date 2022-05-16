@@ -3,8 +3,8 @@
 #
 # Summary: Luks1 decrypt with ssh
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#107488, tc#1769799
+# Maintainer: rfan1 <richard.fan@suse.com> Starry Wang <starry.wang@suse.com>
+# Tags: poo#107488, tc#1769799, poo#110953
 
 use strict;
 use warnings;
@@ -45,7 +45,7 @@ sub run {
     wait_for_children;
 
     # Make sure the boot is unlocked and server should be up
-    assert_screen('displaymanager', 200);
+    assert_screen([qw(generic-desktop opensuse-welcome displaymanager)], 200);
 
     # Double confirm the boot partiton is encrypted
     select_console('root-console');
