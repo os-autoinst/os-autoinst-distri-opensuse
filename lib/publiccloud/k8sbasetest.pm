@@ -14,6 +14,7 @@ use testapi;
 use warnings;
 use strict;
 use utils qw(random_string);
+use containers::k8s qw(install_kubectl);
 
 =head2 init
 
@@ -26,19 +27,7 @@ sub init {
     $self->provider_factory(service => $service);
 
     $self->select_serial_terminal;
-    $self->install_kubectl();
-}
-
-=head2 install_kubectl
-
-Install kubectl from the k8s page
-=cut
-sub install_kubectl {
-    my $version = get_var('PUBLICCLOUD_KUBECTL_VERSION', 'v1.22.2');
-    assert_script_run("curl -LO https://dl.k8s.io/release/$version/bin/linux/amd64/kubectl");
-    assert_script_run("chmod a+x kubectl");
-    assert_script_run("rm /usr/bin/kubectl");
-    assert_script_run("mv kubectl /usr/bin/kubectl");
+    install_kubectl();
 }
 
 =head2 apply_manifest
