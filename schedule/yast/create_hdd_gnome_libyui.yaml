@@ -23,6 +23,9 @@ conditional_schedule:
     ARCH:
       s390x:
         - shutdown/svirt_upload_assets
+    VIRSH_VMM_FAMILY:
+      xen:
+        - shutdown/svirt_upload_assets
 test_data:
   install_packages:
     - libyui-rest-api
