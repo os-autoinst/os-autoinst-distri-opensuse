@@ -7,22 +7,22 @@
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base qw(hpcbase hpc::utils), -signatures;
-use testapi;
 use lockapi;
 use utils;
 
 sub run ($self) {
     my $mpi = $self->get_mpi();
-
-    # python3-devel is used to install and compile /mpi4py/ deps when HPC_LIB eq scipy
-    zypper_call("in $mpi-gnu-hpc $mpi-gnu-hpc-devel python3-devel");
-    my $need_restart = $self->setup_scientific_module();
-    $self->relogin_root if $need_restart;
-    # for <15-SP2 the openmpi2 module is named simply openmpi
-    $mpi = 'openmpi' if ($mpi =~ /openmpi2|openmpi3|openmpi4/);
-    assert_script_run "module load gnu $mpi";
+    my $exports_path = '/home/bernhard/bin';
+    # Install required HPC dependencies on the nodes act as compute nodes
+    my @hpc_deps = ('libucp0');
+    push @hpc_deps, 'libhwloc15' if $mpi =~ m/mpich/;
+    push @hpc_deps, ('libfabric1', 'libpsm2') if $mpi =~ m/openmpi/;
+    push @hpc_deps, ('libibmad5') if $mpi =~ m/mvapich2/;
+    zypper_call("in @hpc_deps");
     barrier_wait('CLUSTER_PROVISIONED');
     barrier_wait('MPI_SETUP_READY');
+    $self->mount_nfs_exports($exports_path);
+
     barrier_wait('MPI_BINARIES_READY');
     barrier_wait('MPI_RUN_TEST');
 }

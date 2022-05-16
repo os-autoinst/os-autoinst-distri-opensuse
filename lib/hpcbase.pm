@@ -253,4 +253,38 @@ sub uninstall_spack_module {
     assert_script_run("spack uninstall -y $module");
     assert_script_run("spack find $module | grep 'No package matches the query'");
 }
+
+=head2 setup_nfs_server
+
+Prepare a nfs server on the so called management node of the HPC setup.
+Exports the path of the *-gnu-hpc installed libraries
+and the directory with the binaries, which compute nodes will share.
+C<exports> points to the location in the filesystem where the source code
+and the binaries are located.
+
+=cut
+sub setup_nfs_server {
+    my ($self, $exports) = @_;
+    zypper_call 'in nfs-kernel-server';
+    assert_script_run "echo $exports *(rw,no_root_squash,sync,no_subtree_check) >> /etc/exports";
+    assert_script_run "echo /usr/lib/hpc *(ro,no_root_squash,sync,no_subtree_check) >> /etc/exports";
+    assert_script_run 'exportfs -a';
+    systemctl 'enable --now nfs-server';
+}
+
+=head2 mount_nfs_exports
+
+Make the HPC libraries and the location of the binaries available to the so called
+compute nodes, from the management one.
+C<exports> should be the location which nfs server exports the source code and the binaries.
+
+=cut
+sub mount_nfs_exports {
+    my ($self, $exports) = @_;
+    zypper_call 'in nfs-client';
+    assert_script_run "mount master-node00:$exports $exports";
+    assert_script_run 'mkdir /usr/lib/hpc';
+    assert_script_run 'mount master-node00:/usr/lib/hpc /usr/lib/hpc';
+}
+
 1;
