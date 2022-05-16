@@ -115,7 +115,7 @@ sub post_fail_hook {
 }
 
 sub test_flags {
-    return {fatal => 1, milestone => 1};
+    return {milestone => 1};
 }
 
 1;
