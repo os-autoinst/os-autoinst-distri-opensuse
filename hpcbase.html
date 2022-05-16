@@ -28,6 +28,8 @@
       <li><a href="#prepare_user_and_group">prepare_user_and_group</a></li>
       <li><a href="#prepare_spack_env">prepare_spack_env</a></li>
       <li><a href="#uninstall_spack_module">uninstall_spack_module</a></li>
+      <li><a href="#setup_nfs_server">setup_nfs_server</a></li>
+      <li><a href="#mount_nfs_exports">mount_nfs_exports</a></li>
     </ul>
   </li>
 </ul><h1>lib/hpcbase.pm</h1>
@@ -93,6 +95,14 @@
 <pre><code>  uninstall_spack_module($module)</code></pre>
 
 <p>Unload and uninstall <code>module</code> from spack stack</p>
+
+<h2 id="setup_nfs_server">setup_nfs_server</h2>
+
+<p>Prepare a nfs server on the so called management node of the HPC setup. Exports the path of the *-gnu-hpc installed libraries and the directory with the binaries, which compute nodes will share. <code>exports</code> points to the location in the filesystem where the source code and the binaries are located.</p>
+
+<h2 id="mount_nfs_exports">mount_nfs_exports</h2>
+
+<p>Make the HPC libraries and the location of the binaries available to the so called compute nodes, from the management one. <code>exports</code> should be the location which nfs server exports the source code and the binaries.</p>
 
 
 </body>
