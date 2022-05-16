@@ -80,7 +80,7 @@ sub run {
         assert_script_run("pip3 --quiet install tox", timeout => 600);
     } elsif ($host_distri =~ /centos|rhel/) {
         foreach my $pkg (@packages) {
-            assert_script_run("yum install -y $pkg", timeout => 300);
+            script_retry("yum install -y $pkg", timeout => 300);
         }
         assert_script_run('pip3 --quiet install --upgrade pip', timeout => 600);
         assert_script_run("pip3 --quiet install tox", timeout => 600);
