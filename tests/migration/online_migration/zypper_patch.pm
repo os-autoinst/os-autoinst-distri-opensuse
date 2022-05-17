@@ -26,6 +26,9 @@ sub run {
     add_test_repositories;
     set_zypp_single_rpmtrans;
     fully_patch_system;
+    # Sometimes update package 'polkit' will cause GDM restart, so after
+    # update patches we'd better to select_console to make test robust.
+    select_console 'root-console';
     install_patterns() if (get_var('PATTERNS'));
     deregister_dropped_modules;
     # disable multiversion for kernel-default based on bsc#1097111, for migration continuous cases only
