@@ -20,6 +20,8 @@ sub init {
     my ($self, $service) = @_;
     die('The service must be specified') if (!$service);
 
+    record_info("K8S Service", $service);
+
     if ($service =~ /ECR|EKS/) {
         $self->provider_client(
             publiccloud::aws_client->new(
