@@ -44,7 +44,7 @@ sub run ($self) {
 
     $self->setup_nfs_server($exports_path);
     barrier_wait('MPI_SETUP_READY');
-    assert_script_run("$mpi_compiler $exports_path/$mpi_c -o $exports_path/$mpi_bin | tee /tmp/make.out") if $mpi_compiler;
+    assert_script_run("$mpi_compiler $exports_path/$mpi_c -o $exports_path/$mpi_bin") if $mpi_compiler;
 
     # python code is not compiled. *mpi_bin* is expected as a compiled binary. if compilation was not
     # invoked return source code (ex: sample_scipy.py).
@@ -55,7 +55,7 @@ sub run ($self) {
 
     unless ($mpi_bin eq '.cpp') {    # because calls expects minimum 2 nodes
         record_info('INFO', 'Run MPI over single machine');
-        assert_script_run($mpirun_s->single_node("$exports_path/$mpi_bin | tee /tmp/mpirun.out"));
+        assert_script_run($mpirun_s->single_node("$exports_path/$mpi_bin"));
     }
 
     record_info('INFO', 'Run MPI over several nodes');
@@ -74,7 +74,7 @@ sub run ($self) {
             die("echo $return - not expected errorcode");
         }
     } else {
-        assert_script_run($mpirun_s->all_nodes("$exports_path/$mpi_bin | tee /tmp/mpirun.out"));
+        assert_script_run($mpirun_s->all_nodes("$exports_path/$mpi_bin"));
     }
 
     barrier_wait('MPI_RUN_TEST');
@@ -85,8 +85,6 @@ sub test_flags ($self) {
 }
 
 sub post_fail_hook ($self) {
-    upload_logs('/tmp/make.out');
-    upload_logs('/tmp/mpirun.out');
     upload_logs('/tmp/mpi_bin.log');
     $self->export_logs();
 }
