@@ -11,6 +11,7 @@ package publiccloud::gcp_client;
 use Mojo::Base -base;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 use publiccloud::vault;
 use Mojo::Util qw(b64_decode);
 use Mojo::JSON 'decode_json';
@@ -37,7 +38,7 @@ sub init {
 
     $self->create_credentials_file();
     assert_script_run('source ~/.bashrc');
-    assert_script_run('ntpdate -s time.google.com');
+    (is_sle('=15-SP4')) ? assert_script_run("chronyd -q 'pool time.google.com iburst'") : assert_script_run('ntpdate -s time.google.com');
     assert_script_run('gcloud config set account ' . $self->account);
     assert_script_run(
         'gcloud auth activate-service-account --key-file=' . CREDENTIALS_FILE . ' --project=' . $self->project_id);

@@ -13,7 +13,7 @@
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use mmapi 'get_current_job_id';
-use utils 'zypper_call';
+use utils qw(zypper_call script_retry);
 use version_utils 'is_sle';
 use registration qw(add_suseconnect_product get_addon_fullname);
 use publiccloud::utils "select_host_console";
