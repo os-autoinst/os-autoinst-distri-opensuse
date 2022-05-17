@@ -141,8 +141,12 @@ sub handle_warning_install_os_prober {
 
 # use yast2 kdump to enable the kdump service
 sub activate_kdump {
+    my (%args) = @_;
+    # increase kdump memory when bsc#1161421 applies
+    my $increase_kdump_memory = $args{increase_kdump_memory} // 1;
     # restart info will appear only when change has been done
     my $expect_restart_info = 0;
+
     # get kdump memory size bsc#1161421
     my $memory_total = script_output('kdumptool  calibrate | awk \'/Total:/ {print $2}\'');
     my $memory_kdump = $memory_total >= 2048 ? 1024 : 320;
@@ -167,7 +171,7 @@ sub activate_kdump {
     }
     # ppcl64e and aarch64 needs increased kdump memory bsc#1161421
     if (is_ppc64le || is_aarch64) {
-        if (is_sle('<15-sp4')) {
+        if ($increase_kdump_memory) {
             send_key('alt-y');
             type_string $memory_kdump;
             wait_screen_change(sub { send_key 'ret' }, 10) for (1 .. 2);
