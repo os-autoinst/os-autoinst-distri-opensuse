@@ -37,10 +37,11 @@ sub run {
           "-n $acr_name ".
           "-r registry.suse.com/trento/trento-server ".
           "-v";
-    assert_script_run($trento_acr_azure_cmd, 180);
+    assert_script_run($trento_acr_azure_cmd, 360);
     my $machine_ip = script_output("az vm show -d -g $resource_group -n $machine_name --query \"publicIps\" -o tsv");
     my $acr_server = script_output("az acr list -g $resource_group --query \"[0].loginServer\" -o tsv");
     my $acr_username = script_output("az acr credential show -n $acr_name --query username -o tsv");
+    my $acr_secret = script_output("az acr credential show -n $acr_name --query 'passwords[0].value' -o tsv");
    
     my $cmd_01_010 = "./01.010-trento_server_installation_premium_v.sh ".
           "-i $machine_ip ".
@@ -48,19 +49,21 @@ sub run {
 	  "-u cloudadmin ".
 	  "-c 3.8.2 ".
 	  '-p $(pwd) '.
-	  "-r $acr_server/helm/trento-server ".
+	  "-r $acr_server/trento/trento-server ".
 	  "-s $acr_username ".
 	  '-w $(az acr credential show -n '.$acr_name." --query 'passwords[0].value' -o tsv) ".
 	  "-v";
-    assert_script_run($cmd_01_010, 240);
+    assert_script_run($cmd_01_010, 600);
 }
 
-sub cleanup {
-	my $job_id = get_current_job_id();
-	my $resource_group = "openqa-cli-test-rg-$job_id";
-	my $machine_name = "openqa-cli-test-vm-$job_id";
+sub post_fail_hook {
+    my ($self) = @_;
+    my $job_id = get_current_job_id();
+    my $resource_group = "openqa-cli-test-rg-$job_id";
+    my $machine_name = "openqa-cli-test-vm-$job_id";
 
-	assert_script_run("az group delete --resource-group $resource_group --yes", 180);
+    assert_script_run("az group delete --resource-group $resource_group --yes", 180);
+    $self->SUPER::post_fail_hook;
 }
 
 1;

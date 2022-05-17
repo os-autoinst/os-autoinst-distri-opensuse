@@ -15,8 +15,10 @@ sub run {
     #########################
     # Install needed tools
     if (script_run("which helm") != 0) {
-        assert_script_run("curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash");
+        assert_script_run("DESIRED_VERSION=3.8.2 curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash");
     }
+    assert_script_run("helm version");
+
     # If 'az' is preinstalled, we test that version
     if (script_run("which az") != 0) {
 	add_suseconnect_product(get_addon_fullname('pcm'), (is_sle('=12-sp5') ? '12' : undef));

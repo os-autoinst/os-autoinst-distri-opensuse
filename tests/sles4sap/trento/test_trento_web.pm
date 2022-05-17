@@ -14,9 +14,9 @@ sub run {
     
     my $resource_group = "openqa-cli-test-rg-$job_id";
     my $machine_name = "openqa-cli-test-vm-$job_id";
-    my $machine_ip = assert_script_run("az vm show -d -g $resource_group -n $machine_name --query \"publicIps\" -o tsv");
-    assert_script_run("curl -k  https://$machine_ip/");
+    my $machine_ip = script_output("az vm show -d -g $resource_group -n $machine_name --query \"publicIps\" -o tsv", 180);
 
+    assert_script_run("curl -k  http://" . $machine_ip . "/");
 }
 
 sub cleanup {
