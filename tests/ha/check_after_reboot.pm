@@ -68,8 +68,17 @@ sub run {
         assert_screen 'iscsi-client-overview-service-tab', $default_timeout;
         send_key 'alt-v';
         wait_still_screen 3;
-        assert_screen 'iscsi-client-target-connected', $default_timeout;
-        send_key 'alt-c';
+        assert_screen 'iscsi-client-target-list', $default_timeout;
+
+        if (!check_screen('iscsi-client-target-connected')) {
+            # Connects target manually if not automatic
+            send_key 'alt-e';
+            assert_screen 'iscsi-client-target-startup';
+            send_key 'alt-n';
+            assert_screen 'iscsi-client-target-connected', $default_timeout;
+        }
+
+        send_key 'alt-o';
         wait_still_screen 3;
         wait_serial('yast2-iscsi-client-status-0', 90) || die "'yast2 iscsi-client' didn't finish";
         assert_screen 'root-console', $default_timeout;
