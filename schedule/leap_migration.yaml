@@ -1,0 +1,4 @@
+name:           Leap migration tests
+schedule:
+  - installation/setup_zdup
+  - shutdown/shutdown

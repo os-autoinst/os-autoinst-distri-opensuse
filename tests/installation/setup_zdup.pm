@@ -42,7 +42,7 @@ sub run {
         if (get_var('HDDVERSION', '') !~ /13.1/) {
             if (script_run("mount | grep ' / ' | grep btrfs") == 0) {
                 # Create a snapshot only when btrfs is used (some images do not use btrfs)
-                assert_script_run "snapper create --type pre --cleanup-algorithm=number --print-number --userdata important=yes --description 'b_zdup migration'";
+                #    assert_script_run "snapper create --type pre --cleanup-algorithm=number --print-number --userdata important=yes --description 'b_zdup migration'";
             }
         }
 
@@ -62,7 +62,7 @@ sub run {
             zypper_call 'update', timeout => 7200;
         }
 
-        if (!is_jeos) {
+        if (is_jeos) {
             # Remove the --force when this is fixed:
             # https://bugzilla.redhat.com/show_bug.cgi?id=1075131
             systemctl 'set-default --force multi-user.target';
@@ -77,13 +77,13 @@ sub run {
         }
 
     }
-    set_zypp_single_rpmtrans;
+    #set_zypp_single_rpmtrans;
     # starting from 15.3, core binary RPMs was inherited from SLE build directly
     # allowing the vendor change during migration is needed
     # the change below also exists in openSUSE-release package
     if (is_leap('>15.2')) {
-        assert_script_run "mkdir -p /etc/zypp/vendors.d";
-        assert_script_run "echo -e \"[main]\nvendors=openSUSE,SUSE,SUSE LLC\n\" > /etc/zypp/vendors.d/00-openSUSE.conf";
+        #   assert_script_run "mkdir -p /etc/zypp/vendors.d";
+        #ssert_script_run "echo -e \"[main]\nvendors=openSUSE,SUSE,SUSE LLC\n\" > /etc/zypp/vendors.d/00-openSUSE.conf";
         clear_console;
     }
 
