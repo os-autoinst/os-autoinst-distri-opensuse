@@ -46,6 +46,22 @@ sub run {
             }
         }
 
+        # udpate the system to the latest packages
+        # should update the oldest currenly supported system
+        if (is_leap) {
+        #        if (is_leap('15.3+')) {
+            zypper_call 'rr --all';
+            my $nr = 1;
+            foreach my $r (split(/,/, get_var('ZDUPREPOS'))) {
+                zypper_call("--no-gpg-checks ar \"$r\" repo$nr");
+                $nr++;
+            }
+
+            script_run 'zypper lr --url';
+            zypper_call 'refresh';
+            zypper_call 'update', timeout => 7200;
+        }
+
         if (!is_jeos) {
             # Remove the --force when this is fixed:
             # https://bugzilla.redhat.com/show_bug.cgi?id=1075131
