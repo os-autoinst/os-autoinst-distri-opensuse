@@ -34,10 +34,11 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
+use mmapi 'wait_for_children';
 use mm_network;
-use utils 'zypper_call';
-use Utils::Systemd 'disable_and_stop_service';
-use version_utils qw(is_sle);
+use utils qw(zypper_call script_retry);
+use Utils::Systemd qw(disable_and_stop_service systemctl);
+use version_utils 'is_sle';
 
 my $FW_EXT_IP = '10.0.2.101';
 my $FW_INT_IP = '10.0.3.101';
@@ -87,11 +88,8 @@ sub start_webserver {
     zypper_call('in apache2');
     assert_script_run('mkdir /srv/www/htdocs/mysite');
     assert_script_run('echo "mySecretInformation" > /srv/www/htdocs/mysite/hostedfile.txt');
-
-    assert_script_run('echo "<VirtualHost *:80>" >> /etc/apache2/conf.d/mysite.conf');
-    assert_script_run('echo "  DocumentRoot /srv/www/htdocs/mysite" >> /etc/apache2/conf.d/mysite.conf');
-    assert_script_run('echo "</VirtualHost>" >> /etc/apache2/conf.d/mysite.conf');
-    assert_script_run('systemctl restart apache2');
+    assert_script_run "curl " . data_url('firewalld_policy_objectsmysite.conf') . " -o /etc/apache2/conf.d/mysite.conf";
+    systemctl('restart apache2');
 }
 
 sub check_result {
@@ -190,7 +188,12 @@ sub run {
     configure_machines($self, $hostname, $net0, $net1);
     barrier_wait 'CONFIGURATION_DONE';
 
+    # Check the Internet connectivity - it may take a moment
+    script_retry('ping -c3 google.com', retry => 12, delay => 5, die => 0);
+
+
     if ($hostname eq "server" || $hostname eq "client") {
+        # Install and start webserver
         start_webserver();
     }
     barrier_wait 'SERVER_READY';
@@ -207,6 +210,8 @@ sub run {
     # This test expects Cli->Srv communication to work, but not vice-versa
     connection_test($hostname, 0, 0, 4, 1);
     barrier_wait 'CONNECTION_TEST_2_DONE';
+
+    wait_for_children() if ($hostname eq "firewall");
 }
 
 1;
