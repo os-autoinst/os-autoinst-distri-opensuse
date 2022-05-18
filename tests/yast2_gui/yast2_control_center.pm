@@ -325,10 +325,10 @@ sub run {
         # see bsc#1062331, sound is not added to the yast2 pattern
         ensure_installed 'yast2-boot-server yast2-sound';
     }
-    elsif (is_tumbleweed) {
+    elsif (is_tumbleweed || is_leap('>15.3')) {
         record_soft_failure('bsc#1182125', "yast2-online-update-frontend is not pre-installed on TW");
         ensure_installed('yast2-online-update-frontend');
-        record_soft_failure('bsc#1182241', "yast2-vpn is not pre-installed on TW");
+        record_soft_failure('bsc#1182241', "yast2-vpn is not pre-installed on TW and Leap");
         ensure_installed('yast2-vpn yast2-sudo yast2-tune yast2-kdump');
     }
     y2_module_guitest::launch_yast2_module_x11('', target_match => 'yast2-control-center-ui', match_timeout => 180);
