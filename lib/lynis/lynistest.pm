@@ -286,6 +286,8 @@ sub compare_lynis_section_content {
         $s_new = "\\[.*$s_lynis.*\\]";
         $ret = grep(/$s_new/, @section_current);
         if ($ret) {
+            $result = "softfail";
+
             # Filter out some exceptions allowed:
             # "Boot_and_services": "[4C- Checking for password protection[23C [ WARNING ]"
             # "Boot_and_services": "[8C- serial-getty@hvc0.service:[25C [ UNSAFE ]"
@@ -297,6 +299,8 @@ sub compare_lynis_section_content {
             # "Ports and packages": "Using Zypper to find vulnerable packages[17C [ NONE ]"
             # "File systems": "[2C- Total without nodev:15 noexec:20 nosuid:13 ro or noexec (W^X): 20 of total 47[0C"
             # "Binary integrity": "[4CNo bad RPATH usage found in 6288 executables[13C [ OK ]"
+            # "Cryptography": "[2C- HW RNG & rngd[44C [ YES ]"
+            # "Security_frameworks": "Found 96 unconfined processes"
             my @exceptions = (
                 "Checking for password protection.*WARNING.*",
                 "Checking /etc/hosts .*hostname.*SUGGESTION.*",
@@ -308,17 +312,23 @@ sub compare_lynis_section_content {
                 "getty.*tty.*service.*",
                 "Total without nodev:.* noexec:.* nosuid:.* ro or noexec .*: .* of total.*",
                 "No bad RPATH usage found in.*executables.*OK.*",
-                "Open port .* not allowed.*WARNING.*"
+                "Open port .* not allowed.*WARNING.*",
+                "HW RNG .* rngd.*",
+                "Found .* unconfined processes"
             );
             for my $exception (@exceptions) {
                 if (grep(/$exception/, @section_current)) {
                     $result = "ok";
-                    return $result;
+                    # NOTE: do *NOT* return at here otherwise following checks for
+                    # "Settings" "LYNIS_ERROR" and "LYNIS_WARNING" will not be done
+                    # then test case will be fake "PASS" and poo/bug will be missed:
+                    # return $result;
                 }
             }
 
-            $result = "softfail";
-            record_soft_failure("poo#91383, found $ret [ $s_lynis ] in current output");
+            if ($result == "softfail") {
+                record_soft_failure("poo#91383, found $ret [ $s_lynis ] in current output");
+            }
         }
     }
 

@@ -1,5 +1,5 @@
 
-[ Lynis 3.0.6 ]
+[ Lynis 3.0.7 ]
 
 ################################################################################
   Lynis comes with ABSOLUTELY NO WARRANTY. This is free software, and you are
@@ -17,11 +17,11 @@
 [2C- Checking profiles...[37C [ DONE ]
 
   ---------------------------------------------------
-  Program version:           3.0.6
+  Program version:           3.0.7
   Operating system:          Linux
   Operating system name:     openSUSE
-  Operating system version:  20211129
-  Kernel version:            5.15.5
+  Operating system version:  20220508
+  Kernel version:            5.17.4
   Hardware platform:         x86_64
   Hostname:                  susetest
   ---------------------------------------------------
@@ -69,10 +69,10 @@
 [8C- appstream-sync-cache.service:[22C [ MEDIUM ]
 [8C- auditd.service:[36C [ EXPOSED ]
 [8C- avahi-daemon.service:[30C [ UNSAFE ]
-[8C- chronyd.service:[35C [ EXPOSED ]
+[8C- chronyd.service:[35C [ PROTECTED ]
 [8C- colord.service:[36C [ EXPOSED ]
 [8C- cron.service:[38C [ UNSAFE ]
-[8C- cups.service:[38C [ UNSAFE ]
+[8C- cups.service:[38C [ EXPOSED ]
 [8C- dbus.service:[38C [ UNSAFE ]
 [8C- display-manager.service:[27C [ UNSAFE ]
 [8C- dm-event.service:[34C [ UNSAFE ]
@@ -80,6 +80,10 @@
 [8C- firewalld.service:[33C [ UNSAFE ]
 [8C- fwupd.service:[37C [ MEDIUM ]
 [8C- getty@tty1.service:[32C [ UNSAFE ]
+[8C- getty@tty2.service:[32C [ UNSAFE ]
+[8C- getty@tty3.service:[32C [ UNSAFE ]
+[8C- getty@tty4.service:[32C [ UNSAFE ]
+[8C- getty@tty5.service:[32C [ UNSAFE ]
 [8C- getty@tty6.service:[32C [ UNSAFE ]
 [8C- getty@tty7.service:[32C [ UNSAFE ]
 [8C- gpm.service:[39C [ EXPOSED ]
@@ -91,22 +95,22 @@
 [8C- pcscd.service:[37C [ EXPOSED ]
 [8C- plymouth-start.service:[28C [ UNSAFE ]
 [8C- polkit.service:[36C [ UNSAFE ]
-[8C- postfix.service:[35C [ UNSAFE ]
+[8C- postfix.service:[35C [ MEDIUM ]
 [8C- power-profiles-daemon.service:[21C [ EXPOSED ]
-[8C- rc-local.service:[34C [ UNSAFE ]
 [8C- rescue.service:[36C [ UNSAFE ]
+[8C- rng-tools.service:[33C [ MEDIUM ]
 [8C- rtkit-daemon.service:[30C [ MEDIUM ]
 [8C- serial-getty@hvc0.service:[25C [ UNSAFE ]
 [8C- serial-getty@ttyAMA0.service:[22C [ UNSAFE ]
 [8C- serial-getty@ttyS0.service:[24C [ UNSAFE ]
 [8C- serial-getty@ttyS1.service:[24C [ UNSAFE ]
 [8C- serial-getty@ttyS2.service:[24C [ UNSAFE ]
+[8C- serial-getty@ttysclp0.service:[21C [ UNSAFE ]
 [8C- smartd.service:[36C [ EXPOSED ]
 [8C- snapperd.service:[34C [ MEDIUM ]
 [8C- sshd.service:[38C [ UNSAFE ]
 [8C- systemd-ask-password-console.service:[14C [ UNSAFE ]
 [8C- systemd-ask-password-plymouth.service:[13C [ UNSAFE ]
-[8C- systemd-initctl.service:[27C [ UNSAFE ]
 [8C- systemd-journald.service:[26C [ PROTECTED ]
 [8C- systemd-logind.service:[28C [ PROTECTED ]
 [8C- systemd-rfkill.service:[28C [ UNSAFE ]
@@ -117,7 +121,7 @@
 [8C- upower.service:[36C [ PROTECTED ]
 [8C- user@0.service:[36C [ UNSAFE ]
 [8C- user@1000.service:[33C [ UNSAFE ]
-[8C- wpa_supplicant.service:[28C [ UNSAFE ]
+[8C- wpa_supplicant.service:[28C [ EXPOSED ]
 
 [+] Kernel
 ------------------------------------
@@ -127,14 +131,14 @@
 [2C- Checking kernel version and release[22C [ DONE ]
 [2C- Checking kernel type[37C [ DONE ]
 [2C- Checking loaded kernel modules[27C [ DONE ]
-[6CFound 86 active modules[32C
+[6CFound 98 active modules[32C
 [2C- Checking Linux kernel configuration file[17C [ FOUND ]
 [2C- Checking default I/O kernel scheduler[20C [ NOT FOUND ]
 [2C- Checking core dumps configuration[24C
 [4C- configuration in systemd conf files[20C [ DEFAULT ]
 [4C- configuration in etc/profile[27C [ DEFAULT ]
-[4C- 'hard' configuration in security/limits.conf[11C [ DEFAULT ]
-[4C- 'soft' configuration in security/limits.conf[11C [ DEFAULT ]
+[4C- 'hard' configuration in /usr/etc/security/limits.conf[2C [ DEFAULT ]
+[4C- 'soft' configuration in /usr/etc/security/limits.conf[2C [ DEFAULT ]
 [4C- Checking setuid core dumps configuration[15C [ DISABLED ]
 [2C- Check if reboot is needed[32C [ YES ]
 
@@ -205,11 +209,8 @@
 [2C- Mount options of /run[36C [ HARDENED ]
 [2C- Mount options of /tmp[36C [ PARTIALLY HARDENED ]
 [2C- Mount options of /var[36C [ NON DEFAULT ]
-[2C- Total without nodev:14 noexec:20 nosuid:12 ro or noexec (W^X): 19 of total 33[0C
+[2C- Total without nodev:14 noexec:21 nosuid:12 ro or noexec (W^X): 20 of total 34[0C
 [2C- Disable kernel support of some filesystems[15C
-[4C- Module cramfs is blacklisted[27C [ OK ]
-[4C- Module freevxfs is blacklisted[25C [ OK ]
-[4C- Module hfs is blacklisted[30C [ OK ]
 
 [+] USB Devices
 ------------------------------------
@@ -244,10 +245,10 @@
 [4C- Searching RPM package manager[26C [ FOUND ]
 [6C- Querying RPM package manager[25C
 
-  [WARNING]: Test PKGS-7308 had a long execution: 23.399025 seconds
+  [WARNING]: Test PKGS-7308 had a long execution: 21.389411 seconds
 
 
-  [WARNING]: Test PKGS-7328 had a long execution: 12.376914 seconds
+  [WARNING]: Test PKGS-7328 had a long execution: 10.586753 seconds
 
 [2C- Using Zypper to find vulnerable packages[17C [ NONE ]
 [2C- Checking package audit tool[30C [ INSTALLED ]
@@ -266,7 +267,7 @@
 [2C- Getting listening ports (TCP/UDP)[24C [ DONE ]
 [2C- Checking promiscuous interfaces[26C [ OK ]
 [2C- Checking waiting connections[29C [ OK ]
-[2C- Checking status DHCP client[30C [ RUNNING ]
+[2C- Checking status DHCP client[30C
 [2C- Checking for ARP monitoring software[21C [ NOT FOUND ]
 [2C- Uncommon network protocols[31C [ 0 ]
 
@@ -287,7 +288,7 @@
 ------------------------------------
 [2C- Checking iptables kernel module[26C [ FOUND ]
 [4C- Checking iptables policies of chains[19C [ FOUND ]
-[4C- Checking for empty ruleset[29C [ WARNING ]
+[4C- Checking for empty ruleset[29C [ OK ]
 [4C- Checking for unused rules[30C [ OK ]
 [2C- Checking host based firewall[29C [ ACTIVE ]
 
@@ -415,7 +416,7 @@
 [2C- Checking accounting information[26C [ NOT FOUND ]
 [2C- Checking sysstat accounting data[25C [ NOT FOUND ]
 [2C- Checking auditd[42C [ ENABLED ]
-[4C- Checking audit rules[35C [ SUGGESTION ]
+[4C- Checking audit rules[35C [ OK ]
 [4C- Checking audit configuration file[22C [ OK ]
 [4C- Checking auditd log file[31C [ FOUND ]
 
@@ -429,8 +430,8 @@
 [2C- Checking for expired SSL certificates [0/3][14C [ NONE ]
 [2C- Found 0 encrypted and 1 unencrypted swap devices in use.[1C [ OK ]
 [2C- Kernel entropy is sufficient[29C [ YES ]
-[2C- HW RNG & rngd[44C [ NO ]
-[2C- SW prng[50C [ YES ]
+[2C- HW RNG & rngd[44C [ YES ]
+[2C- SW prng[50C [ NO ]
 [2C- MOR variable not found[35C [ WEAK ]
 
 [+] Virtualization
@@ -443,7 +444,7 @@
 ------------------------------------
 [2C- Checking presence AppArmor[31C [ FOUND ]
 [4C- Checking AppArmor status[31C [ ENABLED ]
-[8CFound 95 unconfined processes[24C
+[8CFound 101 unconfined processes[23C
 [2C- Checking presence SELinux[32C [ NOT FOUND ]
 [2C- Checking presence TOMOYO Linux[27C [ NOT FOUND ]
 [2C- Checking presence grsecurity[29C [ NOT FOUND ]
@@ -464,11 +465,12 @@
 
 [+] Software: Malware
 ------------------------------------
+[2C- Malware software components[30C [ NOT FOUND ]
 
 [+] File Permissions
 ------------------------------------
 [2C- Starting file permissions check[26C
-[4CFile: /boot/grub2/grub.cfg[31C [ SUGGESTION ]
+[4CFile: /boot/grub2/grub.cfg[31C [ OK ]
 [4CFile: /etc/cron.deny[37C [ OK ]
 [4CFile: /etc/crontab[39C [ OK ]
 [4CFile: /etc/group[41C [ OK ]
@@ -548,15 +550,16 @@
 
   [WARNING]: Deprecated function used (logtext)
 
-[4CWarning: Package power-profiles-daemon-0.10.1-2.1.x86_64 installs an unknown D-BUS autostart/system service: net.hadess.PowerProfiles.conf[0C [ WARNING ]
-[4CWarning: Package iio-sensor-proxy-3.3-1.1.x86_64 installs an unknown D-BUS autostart/system service: net.hadess.SensorProxy.conf[0C [ WARNING ]
-[4CWarning: Package power-profiles-daemon-0.10.1-2.1.x86_64 installs an unknown D-BUS autostart/system service: net.hadess.PowerProfiles.service[0C [ WARNING ]
-[4CWarning: Package bluez-5.62-1.3.x86_64 installs an unknown D-BUS autostart/system service: org.bluez.service[0C [ WARNING ]
-[4CWarning: Package flatpak-1.12.2-1.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.Flatpak.SystemHelper.service[0C [ WARNING ]
-[4CWarning: Package bolt-0.9.1-2.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.bolt.service[0C [ WARNING ]
-[4CWarning: Package fwupd-1.6.4-1.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.fwupd.service[0C [ WARNING ]
-[4CWarning: Package systemd-249.7-1.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.timesync1.service[0C [ WARNING ]
-[4CWarning: Package snapper-0.9.0-7.1.x86_64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
+[4CWarning: Package power-profiles-daemon-0.11-1.1.x86_64 installs an unknown D-BUS autostart/system service: net.hadess.PowerProfiles.conf[0C [ WARNING ]
+[4CWarning: Package iio-sensor-proxy-3.3-1.3.x86_64 installs an unknown D-BUS autostart/system service: net.hadess.SensorProxy.conf[0C [ WARNING ]
+[4CWarning: Package power-profiles-daemon-0.11-1.1.x86_64 installs an unknown D-BUS autostart/system service: net.hadess.PowerProfiles.service[0C [ WARNING ]
+[4CWarning: Package bluez-5.64-2.1.x86_64 installs an unknown D-BUS autostart/system service: org.bluez.service[0C [ WARNING ]
+[4CWarning: Package flatpak-1.12.7-1.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.Flatpak.SystemHelper.service[0C [ WARNING ]
+[4CWarning: Package bolt-0.9.2-1.2.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.bolt.service[0C [ WARNING ]
+[4CWarning: Package fwupd-1.7.7-1.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.fwupd.service[0C [ WARNING ]
+[4CWarning: Package NetworkManager-1.36.4-2.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.nm_priv_helper.service[0C [ WARNING ]
+[4CWarning: Package systemd-250.4-5.2.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.timesync1.service[0C [ WARNING ]
+[4CWarning: Package snapper-0.10.2-1.1.x86_64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
 
   [WARNING]: Deprecated function used (wait_for_keypress)
 
@@ -583,7 +586,7 @@
 
   [WARNING]: Deprecated function used (logtext)
 
-[4CNo bad RPATH usage found in 8179 executables[13C [ OK ]
+[4CNo bad RPATH usage found in 8107 executables[13C [ OK ]
 
   [WARNING]: Deprecated function used (wait_for_keypress)
 
@@ -591,7 +594,7 @@
 [+] File systems
 ------------------------------------
 
-  [WARNING]: Test BINARY-1000 had a long execution: 62.374736 seconds
+  [WARNING]: Test BINARY-1000 had a long execution: 54.304202 seconds
 
 [2C- Starting look-up of symlinks in /tmp...[18C
 
@@ -645,7 +648,7 @@
 
 ================================================================================
 
-  -[ Lynis 3.0.6 Results ]-
+  -[ Lynis 3.0.7 Results ]-
 
   Warnings (3):
   ----------------------------
@@ -659,11 +662,8 @@
   ! iptables module(s) loaded, but no rules active [FIRE-4512] 
       https://cisofy.com/lynis/controls/FIRE-4512/
 
-  Suggestions (42):
+  Suggestions (40):
   ----------------------------
-  * This release is more than 4 months old. Check the website or GitHub to see if there is an update available. [LYNIS] 
-      https://cisofy.com/lynis/controls/LYNIS/
-
   * Set a password on GRUB boot loader to prevent altering boot configuration (e.g. boot in single user mode without password) [BOOT-5122] 
       https://cisofy.com/lynis/controls/BOOT-5122/
 
@@ -671,7 +671,7 @@
     - Details  : Run '/usr/bin/systemd-analyze security SERVICE' for each service
       https://cisofy.com/lynis/controls/BOOT-5264/
 
-  * If not required, consider explicit disabling of core dump in /etc/security/limits.conf file [KRNL-5820] 
+  * If not required, consider explicit disabling of core dump in /usr/etc/security/limits.conf file [KRNL-5820] 
       https://cisofy.com/lynis/controls/KRNL-5820/
 
   * Check PAM configuration, add rounds if applicable and expire passwords to encrypt with new values [AUTH-9229] 
@@ -778,9 +778,6 @@
   * Enable sysstat to collect accounting (no results) [ACCT-9626] 
       https://cisofy.com/lynis/controls/ACCT-9626/
 
-  * Audit daemon is enabled with an empty ruleset. Disable the daemon or define rules [ACCT-9630] 
-      https://cisofy.com/lynis/controls/ACCT-9630/
-
   * Install a file integrity tool to monitor changes to critical and sensitive files [FINT-4350] 
       https://cisofy.com/lynis/controls/FINT-4350/
 
@@ -815,7 +812,7 @@
   Lynis security scan details:
 
   Hardening index : 81 [################    ]
-  Tests performed : 264
+  Tests performed : 265
   Plugins enabled : 0
 
   Components:
@@ -845,7 +842,7 @@
 
 ================================================================================
 
-  Lynis 3.0.6
+  Lynis 3.0.7
 
   Auditing, system hardening, and compliance for UNIX-based systems
   (Linux, macOS, BSD, and others)
