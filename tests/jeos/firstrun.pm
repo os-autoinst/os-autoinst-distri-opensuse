@@ -10,7 +10,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle is_tumbleweed is_leap is_opensuse);
+use version_utils qw(is_sle is_tumbleweed is_leap is_opensuse is_microos);
 use Utils::Architectures;
 use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
@@ -87,7 +87,7 @@ sub run {
         # Without this 'ret' sometimes won't get to the dialog
         wait_still_screen;
         send_key 'ret';
-    } elsif ((is_opensuse && !is_x86_64) || is_sle('=12-sp5')) {
+    } elsif ((is_opensuse && !is_microos && !is_x86_64) || is_sle('=12-sp5')) {
         assert_screen 'jeos-locale', 300;
         send_key_until_needlematch "jeos-system-locale-$lang", $locale_key{$lang}, 50;
         send_key 'ret';
