@@ -41,7 +41,7 @@ sub run {
     enter_cmd('get f1.txt');
 
     # Upload file to server
-    enter_cmd('put f2.txt'); 
+    enter_cmd('put f2.txt');
     enter_cmd('exit');
 
     # Check if file has been downloaded
