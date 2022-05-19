@@ -21,6 +21,13 @@ sub run {
     enter_cmd "susetesting";
     assert_screen "$gnuhealth-module_configuration_wizard_start";
     send_key $gnuhealth_34 ? 'ret' : 'alt-o';
+    # gnuhealth 4.0 introduced a new language configuration screen; gnuhealth 4.x exists since leap 15.4
+    if (!is_leap('<15.4')) {
+        assert_screen "$gnuhealth-configure-language";
+        send_key 'alt-l';
+        assert_screen "$gnuhealth-module_configuration_wizard-next_step";
+        send_key 'alt-n';
+    }
     assert_screen "$gnuhealth-module_configuration_wizard-add_users-welcome";
     send_key $gnuhealth_34 ? 'ret' : 'alt-o';
     assert_screen "$gnuhealth-module_configuration_wizard-add_users_dialog";
