@@ -7,8 +7,9 @@ description: |
     - test
     - destroy
 vars:
-    TRENTO_TEST_REGISTRY:''
+    TRENTO_TEST_REGISTRY: 'registry.suse.com/trento/trento-runner'
     TRENTO_DEPLOY_SCRIPTS_REPO: 'gitlab.suse.de/qa-css/trento'
+    TRENTO_HELM_VERSION: '3.8.2'
     TEST_CONTEXT: 'OpenQA::Test::RunArgs'
 schedule:
   - boot/boot_to_desktop

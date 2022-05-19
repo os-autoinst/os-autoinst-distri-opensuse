@@ -15,8 +15,11 @@ sub run {
     
     #########################
     # Install needed tools
+    my $helm_ver = get_var('TRENTO_HELM_VERSION', '3.8.2');
     if (script_run('which helm') != 0) {
-        assert_script_run("DESIRED_VERSION=3.8.2 curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash");
+        assert_script_run('curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3');
+        assert_script_run('chmod 700 get_helm.sh');
+        assert_script_run('DESIRED_VERSION="v'.$helm_ver.'" ./get_helm.sh');
     }
     assert_script_run("helm version");
 
