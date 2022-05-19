@@ -39,7 +39,7 @@ sub check_db {
     }
 
     # CASEDIR var is always set, and if when no specified, the value is "sle" for OSD and "opensuse" for O3
-    return if (get_required_var('CASEDIR') !~ m/^sle$|^opensuse$/);
+    return 0 if (get_required_var('CASEDIR') !~ m/^sle$|^opensuse$/);
 
     my $openqa_host = get_required_var('OPENQA_HOSTNAME');
     if ($openqa_host =~ /openqa1-opensuse|openqa.opensuse.org/) {    # O3 hostname
@@ -177,8 +177,9 @@ sub run {
     }
 
     # Get the size of different file types
-    unless (is_openstack) {
-        my $btrfs_summary = script_output('btrfs filesystem df --mbytes --si /');
+    # This step applies to BTRFS images. For simplicity, others images will be skipped.
+    my $btrfs_summary = script_output('btrfs filesystem df --mbytes --si /', proceed_on_failure => 1);
+    if ($btrfs_summary !~ /ERROR|command not found/) {
         record_info('btrfs', "$btrfs_summary");
         my ($data) = $btrfs_summary =~ /Data.*/g;
         my ($data_mb) = $data =~ /(\d+\.\d+)/g;
