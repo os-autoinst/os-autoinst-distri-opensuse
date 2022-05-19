@@ -1,0 +1,16 @@
+name: autoyast_create_hdd_x86_64_uefi
+description:    >
+  Test performs autoyast installation to generate qcow images for security tests
+vars:
+  AUTOYAST: create_hdd/create_hdd_%DESKTOP%_%ARCH%_uefi.xml
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/first_boot
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
