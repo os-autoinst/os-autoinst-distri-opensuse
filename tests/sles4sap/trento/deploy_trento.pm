@@ -23,10 +23,11 @@ sub run {
     enter_cmd "cd test";
     ###########################
     # Run the Trento deployment
+    my $vm_image = get_var('TRENTO_VM_IMAGE', 'SUSE:sles-sap-15-sp3-byos:gen2:latest');
     my $cmd_00_040 =  "./00.040-trento_vm_server_deploy_azure.sh ".
           "-g $resource_group ".
 	  "-s $machine_name ".
-	  "-i SUSE:sles-sap-15-sp3-byos:gen2:latest ".
+	  "-i $vm_image".
 	  "-a cloudadmin ".
 	  "-k /root/.ssh/id_rsa.pub ".
 	  "-v";
