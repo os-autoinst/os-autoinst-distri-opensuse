@@ -31,8 +31,8 @@ conditional_schedule:
                 - qa_automation/patch_and_reboot
 schedule:
     - '{{bootloader}}'
-    - jeos/image_info
     - jeos/firstrun
+    - jeos/image_info
     - jeos/record_machine_id
     - console/system_prepare
     - console/force_scheduled_tasks
