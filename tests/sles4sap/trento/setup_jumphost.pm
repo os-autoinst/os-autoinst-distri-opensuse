@@ -6,6 +6,7 @@ use utils 'zypper_call';
 use version_utils 'is_sle';
 use registration qw(add_suseconnect_product get_addon_fullname);
 
+use constant GITLAB_CLONE_LOG => '/tmp/gitlab_clone.log';
 sub run {
     my ($self, $args) = @_;
     $self->select_serial_terminal;
@@ -14,13 +15,13 @@ sub run {
     
     #########################
     # Install needed tools
-    if (script_run("which helm") != 0) {
+    if (script_run('which helm') != 0) {
         assert_script_run("DESIRED_VERSION=3.8.2 curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash");
     }
     assert_script_run("helm version");
 
     # If 'az' is preinstalled, we test that version
-    if (script_run("which az") != 0) {
+    if (script_run('which az') != 0) {
 	add_suseconnect_product(get_addon_fullname('pcm'), (is_sle('=12-sp5') ? '12' : undef));
 	add_suseconnect_product(get_addon_fullname('phub')) if is_sle('=12-sp5');
 	zypper_call('in azure-cli jq python3-susepubliccloudinfo');
@@ -37,10 +38,10 @@ sub run {
         $gitlab_token =  get_var('TRENTO_GITLAB_TOKEN');
     }
     my $gitlab_clone_cmd = 'https://git:' . $gitlab_token  . '@' . $gitlab_repo;
-    enter_cmd "mkdir test && cd test";
-    assert_script_run("git clone $gitlab_clone_cmd .");
+    enter_cmd 'mkdir ${HOME}/test && cd ${HOME}/test';
+    assert_script_run("git clone $gitlab_clone_cmd . | tee " . GITLAB_CLONE_LOG);
     if (get_var 'TRENTO_GITLAB_BRANCH') {
-        assert_script_run("git checkout " . get_var('TRENTO_GITLAB_BRANCH'))
+	assert_script_run("git checkout " . get_var('TRENTO_GITLAB_BRANCH'));
     }
  
     ######################
@@ -50,7 +51,5 @@ sub run {
     #sleep 600;
 }
 
-sub cleanup {
-}
 
 1;
