@@ -31,7 +31,8 @@ my $test_passwd = 'pw_test';
 sub switch_boot_menu {
     my $switch = shift;
 
-    if (get_var('UEFI')) {
+    # UEFI item is available only from 15-SP4
+    if (get_var('UEFI') && (!is_sle('<15-SP4'))) {
         assert_screen("grub_uefi_firmware_menu_entry", timeout => 90);
         send_key_until_needlematch("grub_auth_boot_menu_entry", "down", 5, 2) if $switch;
     }
