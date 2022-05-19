@@ -64,7 +64,7 @@ expect {
     assert_script_run("mkdir -p $ftp_file_path");
     assert_script_run("chown $user:users $ftp_file_path");
 
-    # New user needs access to ttyS0
+    # Default permission is 620 and new user is unable to execute command, changed to 666 since ftpuser needs access to ttyS0
     assert_script_run("chmod 666 /dev/$serialdev");
 
     # Create a file

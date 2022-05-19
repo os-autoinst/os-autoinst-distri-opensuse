@@ -17,7 +17,7 @@ sub run {
 
     select_console 'root-console';
 
-    # Create a file
+    # Change to ftpuser for downloading and uploading
     enter_cmd("su - $user");
 
     # Download a file with various ssl methods
