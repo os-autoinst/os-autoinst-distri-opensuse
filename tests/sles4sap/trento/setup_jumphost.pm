@@ -7,6 +7,9 @@ use version_utils 'is_sle';
 use registration qw(add_suseconnect_product get_addon_fullname);
 
 use constant GITLAB_CLONE_LOG => '/tmp/gitlab_clone.log';
+use constant PODMAN_PULL_LOG => '/tmp/podman_pull.log';
+
+
 sub run {
     my ($self, $args) = @_;
     $self->select_serial_terminal;
@@ -16,6 +19,8 @@ sub run {
     #########################
     # Install needed tools
     my $helm_ver = get_var('TRENTO_HELM_VERSION', '3.8.2');
+    my $cypress_ver = get_var('TRENTO_CYPRESS_VERSION', '3.4.0');
+
     if (script_run('which helm') != 0) {
         assert_script_run('curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3');
         assert_script_run('chmod 700 get_helm.sh');
@@ -31,6 +36,12 @@ sub run {
     }
     assert_script_run('az --version');
 
+    if (script_run('which podman') != 0) {
+	zypper_call('in podman');
+    }
+    assert_script_run('podman --version');
+    assert_script_run('podman info --debug');
+    
     #########################################
     # Get the code for the Trento deployment
     my $gitlab_repo = get_var('TRENTO_GITLAB_REPO', 'gitlab.suse.de/qa-css/trento');
@@ -46,6 +57,11 @@ sub run {
     if (get_var 'TRENTO_GITLAB_BRANCH') {
 	assert_script_run("git checkout " . get_var('TRENTO_GITLAB_BRANCH'));
     }
+
+    # Pull in advance the cypress container
+    my $cypress_image = 'docker.io/cypress/included';
+    assert_script_run('podman search --list-tags '.$cypress_image);
+    assert_script_run('podman pull --quiet '.$cypress_image.':'.$cypress_ver, 900);
  
     ######################
     # az login
