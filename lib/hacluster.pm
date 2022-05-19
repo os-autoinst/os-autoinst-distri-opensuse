@@ -598,7 +598,7 @@ sub ha_export_logs {
 
     # supportconfig
     script_run "supportconfig -g -B $clustername", 300;
-    upload_logs("/var/log/nts_$clustername.tgz", failok => 1);
+    upload_logs("/var/log/scc_$clustername.tgz", failok => 1);
 
     # pacemaker cts log
     upload_logs($cts_log, failok => 1) if (get_var('PACEMAKER_CTS_TEST_ROLE'));
