@@ -292,10 +292,10 @@ sub get_3rd_party_images {
     # - poo#72124 Ubuntu image (occasionally) fails on s390x.
     # - CentOS image not available on s390x.
     push @images, (
-        "registry.access.redhat.com/ubi9-beta/ubi",
-        "registry.access.redhat.com/ubi9-beta/ubi-minimal",
-        "registry.access.redhat.com/ubi9-beta/ubi-micro",
-        "registry.access.redhat.com/ubi9-beta/ubi-init",
+        "registry.access.redhat.com/ubi9/ubi",
+        "registry.access.redhat.com/ubi9/ubi-minimal",
+        "registry.access.redhat.com/ubi9/ubi-micro",
+        "registry.access.redhat.com/ubi9/ubi-init",
         "$ex_reg/library/ubuntu",
         "$ex_reg/library/centos"
     ) unless (is_s390x || is_ppc64le);
