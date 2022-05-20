@@ -15,10 +15,11 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
-use utils qw(quit_packagekit zypper_call reconnect_mgmt_console);
+use utils qw(quit_packagekit zypper_call reconnect_mgmt_console package_upgrade_check);
 use bootloader_setup "add_grub_cmdline_settings";
 use power_action_utils "power_action";
 use Utils::Backends 'is_pvm';
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
@@ -62,6 +63,21 @@ sub run {
         zypper_call('in -t pattern fips');
         add_grub_cmdline_settings('fips=1', update_grub => 1);
         record_info 'Kernel Mode', 'FIPS kernel mode configured!';
+    }
+
+    # Check if hmac related packages are installed when sle >= 15-sp4
+    # Refer to poo #110707
+    if (is_sle('>=15-sp4')) {
+        my $pkg_list = {
+            'libcryptsetup12-hmac' => '2.4.3',
+            'libsoftokn3-hmac' => '3.68.3',
+            'libgnutls30-hmac' => '3.7.3',
+            'libfreebl3-hmac' => '3.68.3',
+            'libopenssl1_1-hmac' => '1.1.1l',
+            'libgcrypt20-hmac' => '1.9.4'
+        };
+        zypper_call("in " . join(' ', keys %$pkg_list));
+        package_upgrade_check($pkg_list);
     }
 
     power_action('reboot', textmode => 1);
