@@ -21,6 +21,9 @@ sub run {
     my $original_audit = "/var/log/audit/audit.log";
     my $audit_log = "/var/log/audit/audit.txt";
     my $audit_log_short = "/var/log/audit/audit.short.txt";
+    # On 15-SP3 the first 500 lines do not contain the needed messages, therefore we
+    # have to use the full log when testing audit2allow.
+    my $audit_log_test = is_sle('=15-SP3') ? "$original_audit" : "$audit_log_short";
 
     $self->select_serial_terminal;
 
@@ -32,7 +35,7 @@ sub run {
     validate_script_output("audit2allow -i $audit_log", sub { m/allow\ .*_t\ .*;.*/sx });
     assert_script_run("tail -n 500 $audit_log > $audit_log_short");
     validate_script_output(
-        "audit2allow -w -i $audit_log_short",
+        "audit2allow -w -i $audit_log_test",
         sub {
             m/
 	    type=.*AVC.*denied.*
@@ -46,7 +49,7 @@ sub run {
 
     # create an SELinux module, make this policy package active, check the new added module
     validate_script_output(
-        "cat $audit_log_short | audit2allow -M $test_module",
+        "cat $audit_log_test | audit2allow -M $test_module",
         sub {
             m/
             To\ make\ this\ policy\ package\ active,\ execute:.*
@@ -82,15 +85,17 @@ sub run {
     # as suggested in bsc#1196116: Run it once without -R and check for allow,
     # then run it with -R again and check if you see calls to interfaces (need to check
     # if the second one is stable enough)
+
     validate_script_output(
-        "audit2allow -i $audit_log_short",
+        "audit2allow -i $audit_log_test",
         sub {
             m/
             .*#=============.*==============.*
             .*allow.*/sx
         }, 600);
+
     validate_script_output(
-        "audit2allow -R -i $audit_log_short",
+        "audit2allow -R -i $audit_log_test",
         sub {
             m/
             .*require\ \{.*
