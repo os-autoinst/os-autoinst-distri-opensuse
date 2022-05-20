@@ -295,7 +295,9 @@ sub get_3rd_party_images {
         "registry.access.redhat.com/ubi9/ubi",
         "registry.access.redhat.com/ubi9/ubi-minimal",
         "registry.access.redhat.com/ubi9/ubi-micro",
-        "registry.access.redhat.com/ubi9/ubi-init",
+        "registry.access.redhat.com/ubi9/ubi-init"
+    ) unless (is_s390x || is_ppc64le || is_opensuse);    # XXX Quick fix: On openSUSE workers we don't have support for x86-64-v2 and we should fix this soon
+    push @images, (
         "$ex_reg/library/ubuntu",
         "$ex_reg/library/centos"
     ) unless (is_s390x || is_ppc64le);
