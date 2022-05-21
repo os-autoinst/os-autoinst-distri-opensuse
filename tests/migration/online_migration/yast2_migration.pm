@@ -207,12 +207,12 @@ sub run {
         }
     }
     assert_screen [qw(yast2-migration-installupdate yast2_migration-license-agreement)], 600;
-    if (match_has_tag 'yast2-migration-installupdate', 150) {    # Not all cases have install update message.
+    if (match_has_tag 'yast2-migration-installupdate') {    # Not all cases have install update message.
         send_key 'alt-y';
         assert_screen 'yast2_migration-license-agreement', 60;
         yast2_migration_handle_license_agreement;
     }
-    if (match_has_tag 'yast2_migration-license-agreement', 150) {
+    if (match_has_tag 'yast2_migration-license-agreement') {
         yast2_migration_handle_license_agreement;
     }
     assert_screen 'yast2-migration-proposal', 60;
