@@ -13,7 +13,7 @@ use warnings;
 
 use base 'Exporter';
 use Exporter;
-use testapi qw(check_var get_var);
+use testapi qw(check_var get_var script_output);
 
 use constant {
     ARCH => [
@@ -22,6 +22,7 @@ use constant {
           is_i586
           is_i686
           is_x86_64
+          is_x86_64_v2
           is_aarch64
           is_arm
           is_ppc64le
@@ -82,6 +83,22 @@ Returns C<check_var('x86_64')>.
 =cut
 sub is_x86_64 {
     return check_var('ARCH', 'x86_64');
+}
+
+=head2 is_x86_64_v2
+
+ is_x86_64_v2();
+
+Returns C<check_var('is_x86_64_v2')>.
+
+=cut
+sub is_x86_64_v2 {
+    return 0 unless is_x86_64;
+    my $cpu_flags = script_output('lscpu | grep -i flags');
+    foreach my $flag (qw(cx16 lahf popcnt sse4_1 sse4_2 ssse3)) {
+        return 0 if ($cpu_flags !~ /$flag/);
+    }
+    return 1;
 }
 
 =head2 is_aarch64
