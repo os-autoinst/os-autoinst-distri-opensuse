@@ -11,6 +11,7 @@ schedule:
     - security/atsec/dbus_fuzzer
     - security/atsec/syscall_thrasher
     - security/atsec/netlink_message
+    - security/atsec/chrony_pid_file
 conditional_schedule:
     bootloader_zkvm:
         ARCH:
