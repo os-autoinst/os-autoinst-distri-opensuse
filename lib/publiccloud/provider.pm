@@ -358,7 +358,7 @@ sub terraform_apply {
         my $sle_version = get_var('FORCED_DEPLOY_REPO_VERSION') ? get_var('FORCED_DEPLOY_REPO_VERSION') : get_var('VERSION');
         $sle_version =~ s/-/_/g;
         my $ha_sap_repo = get_var('HA_SAP_REPO') ? get_var('HA_SAP_REPO') . '/SLE_' . $sle_version : '';
-        my $suffix = sprintf("%08x", rand(0xffffffff));
+        my $suffix = sprintf("%04x", rand(0xffff));
         file_content_replace('terraform.tfvars',
             q(%MACHINE_TYPE%) => $instance_type,
             q(%REGION%) => $self->provider_client->region,
@@ -372,7 +372,7 @@ sub terraform_apply {
         );
         upload_logs(TERRAFORM_DIR . "/$cloud_name/terraform.tfvars", failok => 1);
         script_retry('terraform init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
-        assert_script_run("terraform workspace new ${resource_group}-${suffix} -no-color", $terraform_timeout);
+        assert_script_run("terraform workspace new ${resource_group}${suffix} -no-color", $terraform_timeout);
     }
     else {
         assert_script_run('cd ' . TERRAFORM_DIR);
