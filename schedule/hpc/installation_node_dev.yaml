@@ -20,6 +20,8 @@ conditional_schedule:
     VERSION:
       15-SP4:
         - installation/user_settings_root
+      15-SP2:
+        - installation/user_settings_root
   systemrole_dev:
     HPC:
       installation_dev:
