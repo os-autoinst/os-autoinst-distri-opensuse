@@ -4,15 +4,18 @@ use strict;
 use testapi;
 use mmapi 'get_current_job_id';
 
+use constant TRENTO_AZ_PREFIX  => 'openqa-trento';
+use constant TRENTO_AZ_ACR_PREFIX  => 'openqatrentoacr';
+
 sub run {
     my ($self, $args) = @_;
     $self->select_serial_terminal;
     my $job_id = get_current_job_id();
     
-    my $resource_group = "openqa-cli-test-rg-$job_id";
-    my $machine_name = "openqa-cli-test-vm-$job_id";
+    my $resource_group = TRENTO_AZ_PREFIX . "-rg-$job_id";
+    my $machine_name = TRENTO_AZ_PREFIX . "-vm-$job_id";
     # Parameter 'registry_name' must conform to the following pattern: '^[a-zA-Z0-9]*$'.
-    my $acr_name = "openqaclitestacr$job_id";
+    my $acr_name = TRENTO_AZ_ACR_PREFIX . "$job_id";
     # my $openqa_ttl = get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300);
     # my $created_by = get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm');
     # my $tags = "openqa-cli-test-tag=$job_id openqa_created_by=$created_by openqa_ttl=$openqa_ttl";
@@ -63,8 +66,7 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     my $job_id = get_current_job_id();
-    my $resource_group = "openqa-cli-test-rg-$job_id";
-    my $machine_name = "openqa-cli-test-vm-$job_id";
+    my $resource_group = TRENTO_AZ_PREFIX . "-rg-$job_id";
 
     assert_script_run("az group delete --resource-group $resource_group --yes", 180);
     $self->SUPER::post_fail_hook;
