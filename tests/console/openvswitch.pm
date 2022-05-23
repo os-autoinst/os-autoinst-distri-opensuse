@@ -3,7 +3,7 @@
 # Copyright 2016-2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: openvswitch-switch iputils
+# Package: openvswitch iputils
 # Summary: Basic openvswitch test
 #
 #   This test does the following
@@ -26,7 +26,7 @@ sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    zypper_call('in openvswitch-switch iputils', timeout => 300);
+    zypper_call('in openvswitch iputils', timeout => 300);
 
     # Start the openvswitch daemon
     systemctl 'start openvswitch', timeout => 200;
