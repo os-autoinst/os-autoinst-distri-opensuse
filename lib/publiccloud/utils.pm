@@ -10,6 +10,9 @@ package publiccloud::utils;
 
 use base Exporter;
 use Exporter;
+use Mojo::UserAgent;
+use Mojo::URL;
+use Mojo::JSON 'encode_json';
 
 use strict;
 use warnings;
@@ -214,17 +217,22 @@ sub define_secret_variable {
 # Get credentials from the Public Cloud micro service, which requires user
 # and password. The resulting json will be stored in a file.
 sub get_credentials {
-    my ($output_file) = @_;
+    my ($output_json) = @_;
     my $url = get_required_var('PUBLIC_CLOUD_CREDENTIALS_URL');
     my $user = get_required_var('_SECRET_PUBLIC_CLOUD_CREDENTIALS_USER');
     my $pwd = get_required_var('_SECRET_PUBLIC_CLOUD_CREDENTIALS_PASS');
-    $output_file //= '/root/credentials.json';
-    # Store user/pwd in a file to be used by the curl command
-    script_run('read -s creds', 0);
-    type_password("-u $user:$pwd\n");
-    assert_script_run('echo $creds > /root/curl_creds');
-    # Dump output to the given file
-    assert_script_run("curl -K /root/curl_creds -f $url -o $output_file");
+    my $url_auth = Mojo::URL->new($url)->userinfo("$user:$pwd");
+    my $ua = Mojo::UserAgent->new;
+    $ua->insecure(1);
+    my $tx = $ua->get($url_auth);
+    die("Fetching CSP credentials failed: " . $tx->result->message) unless eval { $tx->result->is_success };
+    my $data_structure = $tx->res->json;
+    if ($output_json) {
+        # Note: tmp files are job-specific files in the pool directory on the worker and get cleaned up after job execution
+        save_tmp_file('creds.json', encode_json($data_structure));
+        assert_script_run('curl ' . autoinst_url . '/files/creds.json -o ' . $output_json);
+    }
+    return $data_structure;
 }
 
 1;

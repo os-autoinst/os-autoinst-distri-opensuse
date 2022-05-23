@@ -36,9 +36,9 @@ sub init {
     my ($self) = @_;
     # For now we support Vault and the credentials-microservice. Vault will be removed after a certain transition period
     if (get_var('PUBLIC_CLOUD_CREDENTIALS_URL')) {
-        get_credentials(CREDENTIALS_FILE);
-        $self->project_id(script_output('cat ' . CREDENTIALS_FILE . " | jq -r '.project_id'"));
-        $self->account(script_output('cat ' . CREDENTIALS_FILE . " | jq -r '.client_id'"));
+        my $data = get_credentials(CREDENTIALS_FILE);
+        $self->project_id($data->{project_id});
+        $self->account($data->{client_id});
     } else {
         $self->vault(publiccloud::vault->new());
         $self->create_credentials_file();
