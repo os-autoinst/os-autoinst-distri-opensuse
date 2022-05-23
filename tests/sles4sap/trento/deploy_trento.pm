@@ -20,14 +20,14 @@ sub run {
     # Configure default location and create Resource group
     # assert_script_run("az configure --defaults location=southeastasia");
    
-    enter_cmd "cd test";
+    enter_cmd "cd /root/test";
     ###########################
     # Run the Trento deployment
     my $vm_image = get_var('TRENTO_VM_IMAGE', 'SUSE:sles-sap-15-sp3-byos:gen2:latest');
     my $cmd_00_040 =  "./00.040-trento_vm_server_deploy_azure.sh ".
           "-g $resource_group ".
 	  "-s $machine_name ".
-	  "-i $vm_image".
+	  "-i $vm_image ".
 	  "-a cloudadmin ".
 	  "-k /root/.ssh/id_rsa.pub ".
 	  "-v";
@@ -44,6 +44,9 @@ sub run {
     my $acr_username = script_output("az acr credential show -n $acr_name --query username -o tsv");
     my $acr_secret = script_output("az acr credential show -n $acr_name --query 'passwords[0].value' -o tsv");
    
+    # Check what registry has been created by  trento_acr_azure_cmd 
+    assert_script_run("az acr repository list -n $acr_name");
+  
     my $cmd_01_010 = "./01.010-trento_server_installation_premium_v.sh ".
           "-i $machine_ip ".
 	  "-k /root/.ssh/id_rsa ".

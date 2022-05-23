@@ -1,0 +1,18 @@
+---
+name: trento 
+description: |
+  Run Trento test sequence to generate a JumpHost image:
+    - TODO: write a proper description
+    - deploy
+    - test
+    - destroy
+vars:
+    TRENTO_DEPLOY_SCRIPTS_REPO: 'gitlab.suse.de/qa-css/trento'
+    TRENTO_HELM_VERSION: '3.8.2'
+    TRENTO_CYPRESS_VERSION: '3.4.0'
+    TEST_CONTEXT: 'OpenQA::Test::RunArgs'
+schedule:
+  - boot/boot_to_desktop
+  - sles4sap/trento/setup_jumphost
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

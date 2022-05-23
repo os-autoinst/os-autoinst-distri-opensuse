@@ -3,9 +3,8 @@ use base 'consoletest';
 use strict;
 use testapi;
 use mmapi 'get_current_job_id';
-use utils 'zypper_call';
-use version_utils 'is_sle';
-use registration qw(add_suseconnect_product get_addon_fullname);
+
+use constant CYPRESS_LOG_DIR  => '/root/result';
 
 sub run {
     my ($self, $args) = @_;
@@ -15,13 +14,8 @@ sub run {
     my $resource_group = "openqa-cli-test-rg-$job_id";
     my $machine_name = "openqa-cli-test-vm-$job_id";
     
-    # check if VM is still there :-)
-    assert_script_run("az vm list -g $resource_group --query \"[].name\"  -o tsv", 180);
     
     my $machine_ip = script_output("az vm show -d -g $resource_group -n $machine_name --query \"publicIps\" -o tsv", 180);
-
-    # test if the web page is reachable on http
-    assert_script_run("curl -k  http://" . $machine_ip . "/");
 
     my $ssh_remote_cmd = "ssh" .
         " -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR" .
@@ -34,29 +28,35 @@ sub run {
 	"|base64 --decode";
     my $trento_web_password = script_output($trento_web_password_cmd);
     
-    my $cypress_log_dir = "/root/result";
     my $cypress_test_dir = "/root/test/test";
     enter_cmd "cd " . $cypress_test_dir;
-    assert_script_run("./cypress.env.py -u http://" . $machine_name . " -p " . $trento_web_password);
+    assert_script_run("./cypress.env.py -u http://" . $machine_ip . " -p " . $trento_web_password . " -f Premium");
     enter_cmd "cat cypress.env.json";
 
-    enter_cmd "mkdir " . $cypress_log_dir;
+    assert_script_run "mkdir " . CYPRESS_LOG_DIR;
+    my $cypress_ver = get_var('TRENTO_CYPRESS_VERSION', '3.4.0');
     my $cypress_run_cmd = "podman run -it ".
-       "-v $cypress_log_dir:/results ".
+       "-v ".CYPRESS_LOG_DIR.":/results ".
        "-v $cypress_test_dir:/e2e -w /e2e ".
-       "docker.io/cypress/included:3.4.0";
-    enter_cmd $cypress_run_cmd;
-    enter_cmd "ls -lai " . $cypress_log_dir;
-    enter_cmd "cat $cypress_log_dir/*.xml";
-
+       '-e "DEBUG=cypress:*" '.
+       '--entrypoint=\'["/bin/sh", "-c",  "/usr/local/bin/cypress run 2>/results/log.txt"]\' '. 
+       'docker.io/cypress/included:'.$cypress_ver.
+       ' || echo "Podman exit:$?"';
+    assert_script_run($cypress_run_cmd,600);
 }
 
-sub cleanup {
-	my $job_id = get_current_job_id();
-	my $resource_group = "openqa-cli-test-rg-$job_id";
-	my $machine_name = "openqa-cli-test-vm-$job_id";
+sub post_fail_hook {
+    my ($self) = @_;
+    my $job_id = get_current_job_id();
+    my $resource_group = "openqa-cli-test-rg-$job_id";
+    assert_script_run("az group delete --resource-group $resource_group --yes", 600);
+    sleep 60;
+    script_output('find '.CYPRESS_LOG_DIR.' -type f');
+    my $cypress_output = script_output('find '.CYPRESS_LOG_DIR.' -type f |grep -E "\.(xml|mp4|txt|png)"');
+    my @cypress_log_files = split(/\n/, $cypress_output);
+    upload_logs($_) for @cypress_log_files;
 
-	assert_script_run("az group delete --resource-group $resource_group --yes", 180);
+    $self->SUPER::post_fail_hook;
 }
 
 1;
