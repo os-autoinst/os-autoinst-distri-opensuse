@@ -10,20 +10,22 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_sle);
 
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
 
     # Get ds file and profile ID, etc.
-    my $f_ssg_sle_ds = $stigtest::f_ssg_sle_ds;
-    my $profile_ID = $stigtest::profile_ID;
+    my $f_ssg_ds = is_sle ? $stigtest::f_ssg_sle_ds : $stigtest::f_ssg_tw_ds;
+    my $profile_ID = is_sle ? $stigtest::profile_ID_sle : $stigtest::profile_ID_tw;
     my $f_stdout = $stigtest::f_stdout;
     my $f_stderr = $stigtest::f_stderr;
     my $f_report = $stigtest::f_report;
 
+    select_console 'root-console';
+
     # Verify mitigation mode
-    my $ret = script_run("oscap xccdf eval --profile $profile_ID --remediate --oval-results --report $f_report $f_ssg_sle_ds > $f_stdout 2> $f_stderr", timeout => 600);
+    my $ret = script_run("oscap xccdf eval --profile $profile_ID --remediate --oval-results --report $f_report $f_ssg_ds > $f_stdout 2> $f_stderr", timeout => 600);
     record_info("Return=$ret", "# oscap xccdf eval --profile $profile_ID --remediate\" returns: $ret");
     if ($ret) {
         $self->result('fail');

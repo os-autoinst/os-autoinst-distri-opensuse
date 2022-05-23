@@ -13,6 +13,7 @@ use utils;
 use bootloader_setup qw(add_grub_cmdline_settings);
 use power_action_utils 'power_action';
 use Utils::Backends 'is_pvm';
+use version_utils qw(is_sle);
 
 sub run {
     my ($self) = @_;
@@ -26,14 +27,14 @@ sub run {
     select_console 'root-console';
 
     # Get ds file and profile ID
-    my $f_ssg_sle_ds = $stigtest::f_ssg_sle_ds;
-    my $profile_ID = $stigtest::profile_ID;
+    my $f_ssg_ds = is_sle ? $stigtest::f_ssg_sle_ds : $stigtest::f_ssg_tw_ds;
+    my $profile_ID = is_sle ? $stigtest::profile_ID_sle : $stigtest::profile_ID_tw;
     my $f_stdout = $stigtest::f_stdout;
     my $f_stderr = $stigtest::f_stderr;
     my $f_report = $stigtest::f_report;
 
     # Verify detection mode with remote
-    my $ret = script_run("oscap xccdf eval --profile $profile_ID --oval-results --fetch-remote-resources --report $f_report $f_ssg_sle_ds > $f_stdout 2> $f_stderr", timeout => 3000);
+    my $ret = script_run("oscap xccdf eval --profile $profile_ID --oval-results --fetch-remote-resources --report $f_report $f_ssg_ds > $f_stdout 2> $f_stderr", timeout => 3000);
     record_info("Return=$ret", "# oscap xccdf eval --fetch-remote-resources --profile $profile_ID\" returns: $ret");
     if ($ret == 137) {
         record_info('bsc#1194724');
