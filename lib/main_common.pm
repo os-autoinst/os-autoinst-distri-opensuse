@@ -2440,6 +2440,7 @@ sub load_security_tests_cc_audit_test {
     loadtest 'security/cc/fail_safe';
     loadtest 'security/cc/ip_eb_tables';
     loadtest 'security/cc/kvm_svirt_apparmor';
+    loadtest 'security/cc/extended_apparmor_interface_trace_test';
     loadtest 'security/cc/apparmor_negative_test';
 
     # Some audit tests must be run in selinux enabled mode. so load selinux setup here
