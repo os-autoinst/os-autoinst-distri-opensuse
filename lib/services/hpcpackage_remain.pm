@@ -38,7 +38,8 @@ sub install_pkg {
     my $version = get_var('HDDVERSION');
     # Install all 'library wrappers' (packages matching -hpc, not having a version number with '_' after their name)
     record_soft_failure('bsc#1194917', "openQA test fails : nothing provides 'gcc9' needed by the to be installed gnu9-compilers-hpc-devel-1.4-3.14.3.noarch");
-    my @pkginstall = split('\n', script_output q[zypper search -r SLE-Module-HPC] . $version . q[-Pool -r SLE-Module-HPC] . $version . q[-Updates | cut -d '|' -f 2 | sed -e 's/ *//g' | grep -E '.*-hpc.*' | grep -vE 'system|module|suse' | grep -vE 'gnu9|gnu10|gnu11' |  grep -vE '.*_[[:digit:]]+_[[:digit:]]+.*gnu|.*_[[:digit:]]+_[[:digit:]]+.*-hpc' | grep -vE '.*-static$' | grep -vE '.*hpc-macros.*'], proceed_on_failure => 1, timeout => 180);
+    my $module_list_p = script_output q[zypper search -r SLE-Module-HPC] . $version . q[-Pool -r SLE-Module-HPC] . $version . q[-Updates | cut -d '|' -f 2 | sed -e 's/ *//g' | grep -E '.*-hpc.*' | grep -vE 'system|module|suse' | grep -vE 'gnu9|gnu10|gnu11' | grep -vE '.*_[[:digit:]]+_[[:digit:]]+.*gnu|.*_[[:digit:]]+_[[:digit:]]+.*-hpc' | grep -vE '.*-static$' | grep -vE '.*hpc-macros.*'], proceed_on_failure => 1, timeout => 180;
+    my @pkginstall = split('\n', $module_list_p);
     # on x86 zypper will print out the Shell debug information, we need exclude it.
     @pkginstall = grep { !/LMOD_SH_DBG_ON/ } @pkginstall;
     zypper_call("in " . join(' ', @pkginstall), timeout => 1800);
