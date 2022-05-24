@@ -55,7 +55,15 @@ sub run ($self) {
 
     unless ($mpi_bin eq '.cpp') {    # because calls expects minimum 2 nodes
         record_info('INFO', 'Run MPI over single machine');
-        assert_script_run($mpirun_s->single_node("$exports_path/$mpi_bin"));
+        if ($mpi eq 'mvapich2') {
+            # mvapich2/2.2 known issue
+            my $return = script_run("set -o pipefail;" . $mpirun_s->single_node("$exports_path/$mpi_bin |& tee /tmp/mpi_bin.log"), timeout => 120);
+            if (script_run('grep \'invalid error code ffffffff\' /tmp/mpi_bin.log') == 0) {
+                record_soft_failure('bsc#1199811 known problem on single core on mvapich2/2.2');
+            }
+        } else {
+            assert_script_run($mpirun_s->single_node("$exports_path/$mpi_bin"));
+        }
     }
 
     record_info('INFO', 'Run MPI over several nodes');
@@ -68,6 +76,10 @@ sub run ($self) {
             # process running (on master return 139, on slave return 255)
             if (script_run('grep \'Caught error: Segmentation fault (signal 11)\' /tmp/mpi_bin.log') == 0) {
                 record_soft_failure('bsc#1144000 MVAPICH2: segfault while executing without ib_uverbs loaded');
+            }
+        } elsif ($return == 136) {
+            if (script_run('grep \'Caught error: Floating point exception (signal 8)\' /tmp/mpi_bin.log') == 0) {
+                record_soft_failure('bsc#1175679 Floating point exception should be fixed on mvapich2/2.3.4');
             }
         } else {
             ##TODO: condider more rebust handling of various errors
