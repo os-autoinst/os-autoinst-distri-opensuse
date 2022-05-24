@@ -10,6 +10,7 @@ use Mojo::Base qw(hpcbase hpc::utils), -signatures;
 use lockapi;
 use utils;
 use version_utils 'is_sle';
+use Utils::Architectures;
 
 sub run ($self) {
     my $mpi = $self->get_mpi();
@@ -19,6 +20,7 @@ sub run ($self) {
     if (is_sle('>=15-SP3')) {
         push @hpc_deps, 'libhwloc15' if $mpi =~ m/mpich/;
         push @hpc_deps, ('libfabric1', 'libpsm2') if $mpi =~ m/openmpi/;
+        pop @hpc_deps if (is_aarch64 && $mpi =~ m/openmpi/);
     } else {
         push @hpc_deps, 'libpciaccess0' if $mpi =~ m/mpich/;
         push @hpc_deps, 'libfabric1' if $mpi =~ m/openmpi/;
