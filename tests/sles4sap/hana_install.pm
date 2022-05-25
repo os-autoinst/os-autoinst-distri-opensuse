@@ -6,7 +6,7 @@
 # Package: lvm2 util-linux parted device-mapper
 # Summary: Install HANA via command line. Verify installation with
 # sles4sap/hana_test
-# Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'sles4sap';
 use strict;
@@ -88,6 +88,7 @@ sub run {
     my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
     my $sid = get_required_var('INSTANCE_SID');
     my $instid = get_required_var('INSTANCE_ID');
+    my $tout = get_var('HANA_INSTALLATION_TIMEOUT', 3600);    # Timeout for HANA installation commands.
 
     $self->select_serial_terminal;
     my $RAM = $self->get_total_mem();
@@ -104,9 +105,8 @@ sub run {
     # This installs HANA. Start by configuring the appropiate SAP profile
     $self->prepare_profile('HANA');
 
-    # Copy media
-    my $tout = get_var('HANA_INSTALLATION_TIMEOUT', 3600);    # Timeout for HANA installation commands.
-    $self->copy_media($proto, $path, $tout, '/sapinst');
+    # Mount media
+    $self->mount_media($proto, $path, '/sapinst');
 
     # Mount points information: use the same paths and minimum sizes as the wizard (based on RAM size)
     my $full_size = ceil($RAM / 1024);    # Use the ceil value of RAM in GB
