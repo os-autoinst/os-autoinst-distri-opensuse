@@ -34,8 +34,16 @@ sub run {
     # by default in newer releases, we can workaroud it by install this package
     # manually
     if (script_run("ls $tss_home") != 0) {
-        record_soft_failure("bsc#1193305, the home directory of user $tss_user is not created, install 'system-user-tss' as a workaround");
-        zypper_call("in system-user-tss");
+        # The package is only present on SLE >= 15.sp3, so for the previous versions
+        # we have to create the user manually.
+        if (is_sle('>=15-SP3')) {
+            record_info("bsc#1193305, the home directory of user $tss_user is not created, install 'system-user-tss' as a workaround");
+            zypper_call("in system-user-tss");
+        } else {
+            record_info("Due to bsc#1193305, the home directory of user $tss_user must be manually created.");
+            assert_script_run("mkdir $tss_home && chmod 0750 $tss_home");
+            assert_script_run("chown $tss_user:$tss_user $tss_home");
+        }
     }
 
     # We can use swtpm device during our test with qemu backend to simulate "real"
