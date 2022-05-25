@@ -23,7 +23,7 @@
       <li><a href="#get_total_mem">get_total_mem</a></li>
       <li><a href="#is_saptune_installed">is_saptune_installed</a></li>
       <li><a href="#prepare_profile">prepare_profile</a></li>
-      <li><a href="#copy_media">copy_media</a></li>
+      <li><a href="#mount_media">mount_media</a></li>
       <li><a href="#add_hostname_to_hosts">add_hostname_to_hosts</a></li>
       <li><a href="#test_pids_max">test_pids_max</a></li>
       <li><a href="#test_forkbomb">test_forkbomb</a></li>
@@ -105,15 +105,11 @@
 
 <p>Configures with <b>saptune</b> (if available in SUT) or <b>sapconf</b> the SUT according to a profile passed as argument. <b>$profile</b> must be either <b>HANA</b> or <b>NETWEAVER</b>. Croaks on failure.</p>
 
-<h2 id="copy_media">copy_media</h2>
+<h2 id="mount_media">mount_media</h2>
 
-<pre><code> $self-&gt;copy_media( $proto, $path, $timeout, $target );</code></pre>
+<pre><code> $self-&gt;mount_media( $proto, $path, $target );</code></pre>
 
-<p>Copies installation media in SUT from the share identified by <b>$proto</b> and <b>$path</b> into the target directory <b>$target</b>. <b>$timeout</b> specifies how long to wait for the copy to complete.</p>
-
-<p>After installation files are copied, this method will also verify the existence of a <i>checksum.md5sum</i> file in the target directory and use it to check for the integrity of the copied files. This test can be skipped by setting to a true value the <b>DISABLE_CHECKSUM</b> setting in the test.</p>
-
-<p>The method will croak if any of the commands sent to SUT fail.</p>
+<p>Mount installation media in SUT from the share identified by <b>$proto</b> and <b>$path</b> into the target directory <b>$target</b>.</p>
 
 <h2 id="add_hostname_to_hosts">add_hostname_to_hosts</h2>
 
