@@ -22,6 +22,7 @@ use registration;
 our @EXPORT = qw(
   deregister_addon
   define_secret_variable
+  get_credentials
   is_byos
   is_ondemand
   is_ec2
@@ -208,6 +209,22 @@ sub define_secret_variable {
     script_run("read -sp \"enter value: \" $var_name", 0);
     type_password($var_value . "\n");
     script_run("set +a");
+}
+
+# Get credentials from the Public Cloud micro service, which requires user
+# and password. The resulting json will be stored in a file.
+sub get_credentials {
+    my ($output_file) = @_;
+    my $url = get_required_var('PUBLIC_CLOUD_CREDENTIALS_URL');
+    my $user = get_required_var('_SECRET_PUBLIC_CLOUD_CREDENTIALS_USER');
+    my $pwd = get_required_var('_SECRET_PUBLIC_CLOUD_CREDENTIALS_PASS');
+    $output_file //= '/root/credentials.json';
+    # Store user/pwd in a file to be used by the curl command
+    script_run('read -s creds', 0);
+    type_password("-u $user:$pwd\n");
+    assert_script_run('echo $creds > /root/curl_creds');
+    # Dump output to the given file
+    assert_script_run("curl -K /root/curl_creds -f $url -o $output_file");
 }
 
 1;

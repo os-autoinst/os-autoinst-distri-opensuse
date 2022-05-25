@@ -13,6 +13,7 @@ use testapi;
 use utils;
 use version_utils 'is_sle';
 use publiccloud::vault;
+use publiccloud::utils;
 use Mojo::Util qw(b64_decode);
 use Mojo::JSON 'decode_json';
 
@@ -33,10 +34,15 @@ has vault => undef;
 
 sub init {
     my ($self) = @_;
-
-    $self->vault(publiccloud::vault->new());
-
-    $self->create_credentials_file();
+    # For now we support Vault and the credentials-microservice. Vault will be removed after a certain transition period
+    if (get_var('PUBLIC_CLOUD_CREDENTIALS_URL')) {
+        get_credentials(CREDENTIALS_FILE);
+        $self->project_id(script_output('cat ' . CREDENTIALS_FILE . " | jq -r '.project_id'"));
+        $self->account(script_output('cat ' . CREDENTIALS_FILE . " | jq -r '.client_id'"));
+    } else {
+        $self->vault(publiccloud::vault->new());
+        $self->create_credentials_file();
+    }
     assert_script_run('source ~/.bashrc');
     (is_sle('=15-SP4')) ? assert_script_run("chronyd -q 'pool time.google.com iburst'") : assert_script_run('ntpdate -s time.google.com');
     assert_script_run('gcloud config set account ' . $self->account);
@@ -141,7 +147,7 @@ sub configure_podman {
 
 sub cleanup {
     my ($self) = @_;
-    $self->vault->revoke();
+    $self->vault->revoke() unless (get_var('PUBLIC_CLOUD_CREDENTIALS_URL'));
 }
 
 1;
