@@ -5,7 +5,7 @@
 
 # Summary: Perform an unattended installation of SAP NetWeaver
 # Requires: ENV variable NW pointing to installation media
-# Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.de> / Loic Devulder <ldevulder@suse.de>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base "sles4sap";
 use testapi;
@@ -44,8 +44,8 @@ sub run {
     # SAP profile and solution are configured in the system
     $self->prepare_profile('NETWEAVER');
 
-    # Copy media
-    $self->copy_media($proto, $path, $timeout, '/sapinst');
+    # Mount media
+    $self->mount_media($proto, $path, '/sapinst');
 
     # Define a valid hostname/IP address in /etc/hosts, but not in HA
     $self->add_hostname_to_hosts if (!get_var('HA_CLUSTER'));
