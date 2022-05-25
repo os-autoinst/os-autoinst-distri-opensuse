@@ -13,6 +13,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 our @EXPORT = qw(
   start_swtpm_vm
@@ -111,9 +112,12 @@ sub swtpm_verify {
         assert_script_run("grep '0 :' $result_file");    # The "tpm2_pcrread" command will show sha1:0 value
     }
 
-    # Measured boot check
-    # If measured boot works fine, it can record available algorithms and pcrs
-    assert_script_run("cat $result_file | egrep 'AlgorithmId|pcrs'");
+    # Due to bsc#1199864, the following works only on SLE >= 15-SP4
+    if (!is_sle('<15-SP4')) {
+        # Measured boot check
+        # If measured boot works fine, it can record available algorithms and pcrs
+        assert_script_run("cat $result_file | egrep 'AlgorithmId|pcrs'");
+    }
 }
 
 1;
