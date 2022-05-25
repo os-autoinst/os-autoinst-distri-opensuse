@@ -18,7 +18,7 @@ use utils qw(zypper_call script_retry);
 use version_utils qw(is_sle);
 use registration qw(add_suseconnect_product get_addon_fullname);
 
-our @EXPORT = qw(install_k3s uninstall_k3s install_kubectl install_helm);
+our @EXPORT = qw(install_k3s uninstall_k3s install_kubectl install_helm install_oc);
 
 sub install_k3s {
     assert_script_run("curl -sfL https://get.k3s.io | sh -");
@@ -49,4 +49,12 @@ sub install_helm {
     zypper_call("in helm");
 }
 
+sub install_oc {
+    my $url = get_required_var('CONTAINER_OC_BINARY_URL');
+    assert_script_run("wget --no-check-certificate $url");
+    $url =~ m|([^/]+)/?$|;
+    assert_script_run("tar zxvf $1");
+    assert_script_run('mv oc /usr/local/bin');
+    assert_script_run('oc');
+}
 1;
