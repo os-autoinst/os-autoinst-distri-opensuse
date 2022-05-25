@@ -26,8 +26,16 @@ has container_registry => sub { get_required_var('PUBLIC_CLOUD_CONTAINER_IMAGES_
 
 sub init {
     my ($self) = @_;
-    $self->vault(publiccloud::vault->new());
-    $self->vault_create_credentials() unless ($self->key_id);
+    if (get_var('PUBLIC_CLOUD_CREDENTIALS_URL')) {
+        my $data = get_credentials();
+        $self->subscription($data->{subscription_id});
+        $self->key_id($data->{client_id});
+        $self->key_secret($data->{client_secret});
+        $self->tenantid($data->{tenant_id});
+    } else {
+        $self->vault(publiccloud::vault->new());
+        $self->vault_create_credentials() unless ($self->key_id);
+    }
     define_secret_variable("ARM_SUBSCRIPTION_ID", $self->subscription);
     define_secret_variable("ARM_CLIENT_ID", $self->key_id);
     define_secret_variable("ARM_CLIENT_SECRET", $self->key_secret);
@@ -46,7 +54,9 @@ sub az_login {
     #Azure infra need some time to propagate given by Vault credentials
     # Running some verification command does not prove anything because
     # at the beginning failures can happening sporadically
-    if (my $wait_seconds = get_var('AZURE_LOGIN_WAIT_SECONDS')) {
+    # not needed with static credentials, this section shall be removed after the account migration
+    my $wait_seconds = get_var('AZURE_LOGIN_WAIT_SECONDS');
+    if ($wait_seconds && !get_var('PUBLIC_CLOUD_CREDENTIALS_URL')) {
         record_info("WAIT", "Waiting for Azure credential spreading");
         sleep($wait_seconds);
     }
@@ -100,6 +110,7 @@ sub get_container_image_full_name {
 sub cleanup {
     my ($self) = @_;
     $self->vault->revoke();
+    $self->vault->revoke() unless (get_var('PUBLIC_CLOUD_CREDENTIALS_URL'));
 }
 
 1;
