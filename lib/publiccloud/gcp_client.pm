@@ -16,6 +16,7 @@ use publiccloud::vault;
 use publiccloud::utils;
 use Mojo::Util qw(b64_decode);
 use Mojo::JSON 'decode_json';
+use mmapi 'get_current_job_id';
 
 use constant CREDENTIALS_FILE => '/root/google_credentials.json';
 
@@ -121,7 +122,7 @@ Get the full registry prefix URL for any containers image registry of ECR based 
 
 sub get_container_registry_prefix {
     my ($self) = @_;
-    return sprintf($self->gcr_zone . '/suse-sle-qa', $self->project_id);
+    return $self->gcr_zone . '/' . $self->project_id;
 }
 
 =head2 get_container_image_full_name
@@ -132,7 +133,7 @@ Get the full name for a container image in ECR registry
 sub get_container_image_full_name {
     my ($self, $tag) = @_;
     my $full_name_prefix = $self->get_container_registry_prefix();
-    return "$full_name_prefix/$tag:latest";
+    return "$full_name_prefix/$tag" . get_current_job_id() . ":latest";
 }
 
 =head2 configure_podman

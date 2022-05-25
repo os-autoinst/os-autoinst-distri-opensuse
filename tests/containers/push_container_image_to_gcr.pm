@@ -40,7 +40,6 @@ sub post_fail_hook {
 
 sub post_run_hook {
     my ($self) = @_;
-    $self->{provider}->delete_image();
 }
 
 sub test_flags {
