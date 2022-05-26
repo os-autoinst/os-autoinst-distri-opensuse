@@ -48,7 +48,7 @@ sub run {
     my $openqa_ttl = get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300);
     my $created_by = get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm');
     my $labels = "openqa-cli-test-label=$job_id,openqa_created_by=$created_by,openqa_ttl=$openqa_ttl";
-    my $metadata = 'ssh-keys=susetest:$(cat ~/.ssh/id_rsa.pub) susetest';
+    my $metadata = 'ssh-keys=susetest:$(cat ~/.ssh/id_rsa.pub | sed "s/[[:blank:]]*$//") susetest';
     my $create_instance = "gcloud compute instances create $machine_name --image-family=sles-15 --image-project=suse-cloud";
     $create_instance .= " --machine-type=e2-micro --labels='$labels' --metadata=\"$metadata\"";
     assert_script_run($create_instance, 600);
@@ -56,7 +56,7 @@ sub run {
 
     # Check that the machine is reachable via ssh
     my $ip_address = script_output("gcloud compute instances describe $machine_name --format='get(networkInterfaces[0].accessConfigs[0].natIP)'", 90);
-    script_retry("ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no susetest\@$ip_address hostnamectl", 90, delay => 15, retry => 12);
+    script_retry("ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no susetest\@$ip_address hostnamectl", timeout => 90, delay => 15, retry => 12);
 }
 
 sub cleanup {
