@@ -299,3 +299,5 @@ PUBLIC_CLOUD_XEN | boolean | false | Indicates if this is a Xen test run.
 PUBLIC_CLOUD_STORAGE_ACCOUNT | string | "" | Storage account used e.g. for custom disk and container images
 PUBLIC_CLOUD_TERRAFORM_FILE | string | "" | If defined, use this terraform file (from the `data/` directory) instead the CSP default
 TERRAFORM_TIMEOUT | integer | 1800 | Set timeout for terraform actions
+PUBLIC_CLOUD_INSTANCE_IP | string | "" | If defined, no instance will be created and this IP will be used to connect to
+_SECRET_PUBLIC_CLOUD_INSTANCE_SSH_KEY | string | "" | The `~/.ssh/id_rsa` existing key allowed by `PUBLIC_CLOUD_INSTANCE_IP` instance
