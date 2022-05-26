@@ -220,7 +220,7 @@ sub get_credentials {
     my ($output_json) = @_;
     my $url = get_required_var('PUBLIC_CLOUD_CREDENTIALS_URL');
     my $user = get_required_var('_SECRET_PUBLIC_CLOUD_CREDENTIALS_USER');
-    my $pwd = get_required_var('_SECRET_PUBLIC_CLOUD_CREDENTIALS_PASS');
+    my $pwd = get_required_var('_SECRET_PUBLIC_CLOUD_CREDENTIALS_PWD');
     my $url_auth = Mojo::URL->new($url)->userinfo("$user:$pwd");
     my $ua = Mojo::UserAgent->new;
     $ua->insecure(1);
