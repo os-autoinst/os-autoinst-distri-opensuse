@@ -7,13 +7,12 @@
 # Summary: Snapshot creation and rollback on JeOS
 # Maintainer: Ciprian Cret <ccret@suse.com>
 
-use base 'consoletest';
+use Mojo::Base qw(consoletest);
 use testapi;
 use Utils::Architectures;
 use utils;
-use strict;
-use warnings;
 use power_action_utils qw(power_action);
+use Utils::Systemd qw(systemctl);
 
 sub check_package
 {
@@ -52,7 +51,8 @@ sub rollback_and_reboot {
             return 1;
         }
         record_info('ps', script_output('ps -ef'));
-        bmwqemu::diag("SUSEConnect --rollback is still running [$runs/10]");
+        systemctl 'status rollback.service';
+        bmwqemu::diag("SUSEConnect --rollback is still running, or failing [$runs/10]");
         sleep 60;
     }
     die "SUSEConnect --rollback is running longer than expected";
