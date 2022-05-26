@@ -64,9 +64,10 @@ sub run_tox_cmd {
     my ($self, $env) = @_;
     my $bci_marker = get_var('BCI_IMAGE_MARKER');
     my $bci_timeout = get_var('BCI_TIMEOUT', 1200);
+    my $bci_reruns = get_var('BCI_RERUNS', 3);
     my $cmd = "tox -e $env -- -n auto";
     $cmd .= " -k $bci_marker" if $bci_marker;
-    $cmd .= " --reruns 3 --reruns-delay 10";
+    $cmd .= " --reruns  $bci_reruns --reruns-delay 10";
     record_info("tox", "Running command: $cmd");
     my $ret = script_run("timeout $bci_timeout $cmd", timeout => ($bci_timeout + 3));
     if ($ret == 124) {
