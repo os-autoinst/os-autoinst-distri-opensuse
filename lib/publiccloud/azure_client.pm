@@ -109,7 +109,6 @@ sub get_container_image_full_name {
 
 sub cleanup {
     my ($self) = @_;
-    $self->vault->revoke();
     $self->vault->revoke() unless (get_var('PUBLIC_CLOUD_CREDENTIALS_URL'));
 }
 
