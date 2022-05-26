@@ -28,7 +28,7 @@ sub run {
     if (script_run("which gcloud") != 0) {
         zypper_call 'in ntp' unless is_sle '=15-SP4';
         # We don't currently package 'gcloud' so we download the binary from upstream
-        my $url = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-385.0.0-linux-x86_64.tar.gz";
+        my $url = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-387.0.0-linux-x86_64.tar.gz";
         assert_script_run "curl $url -o google-cloud-sdk.tar.gz";
         assert_script_run "tar xvf google-cloud-sdk.tar.gz";
         assert_script_run "google-cloud-sdk/install.sh --quiet --usage-reporting false --command-completion true";
