@@ -257,7 +257,7 @@ sub create_instances {
 
     my @vms = $self->terraform_apply(%args);
     foreach my $instance (@vms) {
-        record_info("INSTANCE $instance->{instance_id}", Dumper($instance));
+        record_info("INSTANCE", $instance->{instance_id});
         if ($args{check_connectivity}) {
             $instance->wait_for_ssh();
             # Install server's ssh publicckeys to prevent authenticity interactions
