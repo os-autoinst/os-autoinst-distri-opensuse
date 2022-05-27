@@ -5,7 +5,7 @@
 
 # Summary: Install HANA with SAP Installation Wizard. Verify installation with
 # sles4sap/hana_test
-# Maintainer: QE-SAP <qe-sap@suse.de>, Ricardo Branco <rbranco@suse.de>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use base 'sles4sap';
 use strict;
@@ -64,7 +64,6 @@ sub run {
     type_string_slow "$path", wait_still_screen => 1;
     save_screenshot;
     send_key $cmd{next};
-    assert_screen 'sap-wizard-copying-media', 120;
     assert_screen 'sap-wizard-supplement-medium', $timeout;    # We need to wait for the files to be copied
     send_key $cmd{next};
     if (package_version_cmp($wizard_package_version, '4.3.0') <= 0) {
