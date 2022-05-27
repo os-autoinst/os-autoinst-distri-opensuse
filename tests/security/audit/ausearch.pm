@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     my $tmp_output = '/tmp/out';
@@ -46,8 +47,11 @@ sub run {
     # Search for an event based on the given event ID
     validate_script_output("ausearch --event $event_id", sub { m/$event_id/ });
 
-    # Search for events based on a specific CPU architecture
-    validate_script_output("ausearch -i --arch x86_64", sub { m/arch=x86_64/ });
+    # On 15-SP3 and lower, there may not be messages that contain 'x86_64'
+    if (!is_sle('<=15-SP3')) {
+        # Search for events based on a specific CPU architecture
+        validate_script_output("ausearch -i --arch x86_64", sub { m/arch=x86_64/ });
+    }
 }
 
 1;
