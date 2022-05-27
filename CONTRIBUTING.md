@@ -23,7 +23,8 @@ Upon setting up a new openQA instance, it's also necessary to install some aditi
 for which there are two ways:
 
 * In case you're using cpanm (with or without local::lib, or others), from within the working copy: call `cpanm -n --mirror http://no.where/ --installdeps . `
-* In case you're using openSUSE: `zypper in os-autoinst-distri-opensuse-deps`
+* In case you're using openSUSE: `zypper in os-autoinst-distri-opensuse-deps perl-JSON-Validator gnu_parallel`
+* For linting YAML, you need the openSUSE package `python3-yamllint` or install `yamllint` via pip
 
 #### Relevant documentation
 
