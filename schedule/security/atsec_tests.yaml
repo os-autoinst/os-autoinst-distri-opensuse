@@ -8,6 +8,7 @@ schedule:
     - security/atsec/kvm_check
     - security/atsec/drng_test_preparation
     - security/atsec/dbus_services_exposure
+    - security/atsec/check_undocumented_security_programs
     - security/atsec/dbus_fuzzer
     - security/atsec/syscall_thrasher
     - security/atsec/netlink_message
