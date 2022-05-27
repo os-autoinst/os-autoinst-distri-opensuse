@@ -8,7 +8,7 @@
 #          In fips mode, testing strongswan
 #
 # Maintainer: Liu Xiaojing <xiaojing.liu@suse.com>
-# Tags: poo#108620, tc#1769974
+# Tags: poo#108620, tc#1769974, poo#111581
 
 use base 'consoletest';
 use testapi;
@@ -41,6 +41,14 @@ sub run {
             record_info("$pkg", "The version of $pkg is lower than expected", result => 'softfail');
         }
     }
+
+    # Integrate hkdf function test
+    # POO: https://progress.opensuse.org/issues/111581
+    validate_script_output('rpm -q strongswan --changelog', sub { m/bsc#1195919/ });
+    assert_script_run('openssl pkeyutl -kdf HKDF -kdflen 48 -pkeyopt md:SHA256 -pkeyopt key:ff -pkeyopt salt:ff -hexdump');
+    assert_script_run('openssl pkeyutl -kdf HKDF -kdflen 48 -pkeyopt md:SHA256 -pkeyopt key:ff -pkeyopt salt:ff -pkeyopt mode:EXTRACT_ONLY -hexdump');
+    assert_script_run('openssl pkeyutl -kdf HKDF -kdflen 48 -pkeyopt md:SHA256 -pkeyopt key:ff -pkeyopt salt:ff -pkeyopt mode:EXTRACT_AND_EXPAND -hexdump');
+    assert_script_run('openssl pkeyutl -kdf HKDF -kdflen 48 -pkeyopt md:SHA256 -pkeyopt info:ff -pkeyopt key:ff -pkeyopt mode:EXPAND_ONLY -hexdump');
 
     # Workaround for bsc#1184144
     record_info('The next two steps are workaround for bsc#1184144');
