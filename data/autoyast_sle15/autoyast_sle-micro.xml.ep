@@ -21,7 +21,7 @@
   </general>
   <software>
     <products config:type="list">
-      <product>SUSE-MicroOS</product>
+      <product>SLE-Micro</product>
     </products>
     <install_recommended config:type="boolean">true</install_recommended>
     <packages config:type="list">
