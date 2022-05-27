@@ -108,6 +108,8 @@ sub samba_client_access {
         type_string("$testdir");
         assert_screen("nautilus-sharedir-selected");
         send_key "ret";
+    } else {
+        record_soft_failure("bsc#1199860 for 15-SP3: Unable to mount Windows share: Invalid argument.");
     }
 
     # Input password for samb user
