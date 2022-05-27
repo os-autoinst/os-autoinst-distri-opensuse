@@ -1,5 +1,5 @@
 ---
-name: trento 
+name: trento
 description: |
   Run Trento tests on public cloud instances:
     - TODO: write a proper description
@@ -10,12 +10,11 @@ vars:
     TRENTO_TEST_REGISTRY: 'registry.suse.com/trento/trento-runner'
     TRENTO_DEPLOY_SCRIPTS_REPO: 'gitlab.suse.de/qa-css/trento'
     TRENTO_VM_IMAGE: 'SUSE:sles-sap-15-sp3-byos:gen2:latest'
-    TRENTO_HELM_VERSION: '3.8.2'
     TRENTO_CYPRESS_VERSION: '3.4.0'
     TEST_CONTEXT: 'OpenQA::Test::RunArgs'
 schedule:
-  - boot/boot_to_desktop
-  - sles4sap/trento/init_jumphost
-  - sles4sap/trento/deploy_trento
-  - sles4sap/trento/test_trento_deploy
-  - sles4sap/trento/test_trento_web
+    - boot/boot_to_desktop
+    - sles4sap/trento/init_jumphost
+    - sles4sap/trento/deploy_trento
+    - sles4sap/trento/test_trento_deploy
+    - sles4sap/trento/test_trento_web
