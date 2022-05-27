@@ -141,14 +141,14 @@ my $spec_ctrl_hvm_0 = {"hvm=0" => {
 };
 my $spec_ctrl_msr_sc_on = {"msr-sc=on" => {
         default => {
-            expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR', 'Support for PV VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
+            expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR', 'Support for PV VMs: MSR_SPEC_CTRL EAGER_FPU MD_CLEAR']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_msr_sc_off = {"msr-sc=off" => {
         default => {
-            expected => {'xl dmesg' => ['Support for HVM VMs: RSB EAGER_FPU MD_CLEAR', 'Support for PV VMs: RSB EAGER_FPU MD_CLEAR']},
+            expected => {'xl dmesg' => ['Support for HVM VMs: RSB EAGER_FPU MD_CLEAR', 'Support for PV VMs: EAGER_FPU MD_CLEAR']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
