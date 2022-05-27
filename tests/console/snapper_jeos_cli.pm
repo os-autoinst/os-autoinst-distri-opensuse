@@ -51,7 +51,7 @@ sub rollback_and_reboot {
             return 1;
         }
         record_info('ps', script_output('ps -ef'));
-        systemctl 'status rollback.service';
+        script_run('systemctl --no-pager --full status rollback.service');
         bmwqemu::diag("SUSEConnect --rollback is still running, or failing [$runs/10]");
         sleep 60;
     }
