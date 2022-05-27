@@ -12,6 +12,7 @@ schedule:
     - security/atsec/syscall_thrasher
     - security/atsec/netlink_message
     - security/atsec/chrony_pid_file
+    - security/atsec/permission_settings
 conditional_schedule:
     bootloader_zkvm:
         ARCH:
