@@ -14,6 +14,7 @@ use utils;
 use lockapi;
 
 sub run ($self) {
+    set_var('SPACK', '1');
     my $mpi = $self->get_mpi();
     my ($mpi_compiler, $mpi_c) = $self->get_mpi_src();
     my $mpi_bin = 'mpi_bin';
@@ -25,12 +26,9 @@ sub run ($self) {
     assert_script_run "spack install boost+mpi^$mpi", timeout => 12000;
     assert_script_run 'spack load boost';
     record_info 'boost info', script_output 'spack info boost';
-
     barrier_wait('CLUSTER_PROVISIONED');
     ## all nodes should be able to ssh to each other, as MPIs requires so
     $self->generate_and_distribute_ssh();
-
-    barrier_wait('MPI_SETUP_READY');
     $self->check_nodes_availability();
 
     record_info('INFO', script_output('cat /proc/cpuinfo'));
@@ -39,23 +37,21 @@ sub run ($self) {
     record_info "hostname", "$hostname";
     assert_script_run "hostnamectl status|grep $hostname";
 
-    assert_script_run("wget --quiet " . data_url("hpc/$mpi_c") . " -O /tmp/$mpi_c");
-    assert_script_run("$mpi_compiler /tmp/$mpi_c -o /tmp/$mpi_bin -l boost_mpi -I \${BOOST_ROOT}/include/ -L \${BOOST_ROOT}/lib 2>&1 > /tmp/make.out");
+    my $exports_path = '/home/bernhard/bin';
+    assert_script_run("wget --quiet " . data_url("hpc/$mpi_c") . " -O $exports_path/$mpi_c");
+    $self->setup_nfs_server($exports_path);
+    barrier_wait('MPI_SETUP_READY');
 
-    ## distribute the binary
-    foreach (@cluster_nodes) {
-        assert_script_run("scp -o StrictHostKeyChecking=no /tmp/$mpi_bin root\@$_\:/tmp/$mpi_bin");
-    }
-
+    assert_script_run("$mpi_compiler $exports_path/$mpi_c -o $exports_path/$mpi_bin -l boost_mpi -I \${BOOST_ROOT}/include/ -L \${BOOST_ROOT}/lib 2>&1 > /tmp/make.out");
     barrier_wait('MPI_BINARIES_READY');
 
     # Testing compiled code
     record_info('INFO', 'Run MPI over single machine');
-    assert_script_run("mpirun /tmp/$mpi_bin");
+    assert_script_run("mpirun $exports_path/$mpi_bin");
 
     record_info('INFO', 'Run MPI over several nodes');
     my $nodes = join(',', @cluster_nodes);
-    assert_script_run("mpirun -n 2 --host $nodes /tmp/$mpi_bin");
+    assert_script_run("mpirun -n 2 --host $nodes $exports_path/$mpi_bin");
     barrier_wait('MPI_RUN_TEST');
 }
 

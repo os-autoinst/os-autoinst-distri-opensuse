@@ -268,6 +268,7 @@ sub setup_nfs_server {
     zypper_call 'in nfs-kernel-server';
     assert_script_run "echo $exports *(rw,no_root_squash,sync,no_subtree_check) >> /etc/exports";
     assert_script_run "echo /usr/lib/hpc *(ro,no_root_squash,sync,no_subtree_check) >> /etc/exports";
+    assert_script_run "echo /opt/spack *(ro,no_root_squash,sync,no_subtree_check) >> /etc/exports" if get_var('SPACK');
     assert_script_run 'exportfs -a';
     systemctl 'enable --now nfs-server';
 }
@@ -285,6 +286,7 @@ sub mount_nfs_exports {
     assert_script_run "mount master-node00:$exports $exports";
     assert_script_run 'mkdir /usr/lib/hpc';
     assert_script_run 'mount master-node00:/usr/lib/hpc /usr/lib/hpc';
+    assert_script_run 'mount master-node00:/opt/spack /opt/spack' if get_var('SPACK');
 }
 
 1;
