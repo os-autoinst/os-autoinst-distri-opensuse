@@ -24,6 +24,7 @@ use registration qw(add_suseconnect_product);
 use version_utils qw(is_sle);
 use utils qw(zypper_call);
 use Utils::Systemd qw(systemctl);
+use Exporter 'import';
 
 our @EXPORT = qw(
   $instance_password
