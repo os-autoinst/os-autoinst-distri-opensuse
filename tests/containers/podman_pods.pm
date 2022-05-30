@@ -20,7 +20,7 @@ sub run {
     my $podman = $self->containers_factory('podman');
 
     record_info('Prep', 'Get kube yaml');
-    assert_script_run("wget " . data_url("containers/hello-kubic.yaml") . " -O hello-kubic.yaml");
+    assert_script_run('curl ' . data_url('containers/hello-kubic.yaml') . ' -o hello-kubic.yaml');
 
     record_info('Test', 'Create hello-kubic pod');
     assert_script_run('podman play kube hello-kubic.yaml');
