@@ -9,6 +9,7 @@
 # Maintainer: Michael Moese <mmoese@suse.de>, Nick Singer <nsinger@suse.de>, ybonatakis <ybonatakis@suse.com>
 
 use Mojo::Base qw(opensusebasetest);
+use Utils::Backends;
 use testapi;
 use utils;
 use power_action_utils 'power_action';
@@ -38,7 +39,6 @@ sub upload_ibtest_logs {
 
 sub ibtest_slave {
     my $self = shift;
-    zypper_call('in iputils python');
     barrier_wait('IBTEST_BEGIN');
     barrier_wait('IBTEST_DONE');
     $self->upload_ibtest_logs;
@@ -75,11 +75,6 @@ sub ibtest_master {
     $args = $args . "--mpi $mpi_flavours " if $mpi_flavours;
     $args = $args . "--ipoib $ipoib_modes " if $ipoib_modes;
 
-    # do all test preparations and setup
-    zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);
-    zypper_ar(get_required_var('SCIENCE_HPC_REPO'), no_gpg_check => 1, priority => 50) if get_var('SCIENCE_HPC_REPO', '');
-
-    zypper_call('in git-core twopence-shell-client bc iputils python', exitcode => [0, 65, 107]);
 
     # pull in the testsuite
     assert_script_run("git clone $hpc_testing --branch $hpc_testing_branch");
@@ -108,20 +103,14 @@ sub run {
 
     $self->select_serial_terminal;
 
-    # unload firewall. MPI- and libfabric-tests require too many open ports
-    systemctl("stop " . opensusebasetest::firewall);
-
     # wait for both machines to boot up before we continue
     barrier_wait('IBTEST_SETUP');
 
-    # create a ssh key if we don't have one
-    script_run('[ ! -f /root/.ssh/id_rsa ] && ssh-keygen -b 2048 -t rsa -q -N "" -f /root/.ssh/id_rsa');
     # distribute the ssh key to the machines
     exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no root\@$master");
     script_run("/usr/bin/clear");
     exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no root\@$slave");
     script_run("/usr/bin/clear");
-
 
     if ($role eq 'IBTEST_MASTER') {
         $self->ibtest_master;
