@@ -88,6 +88,7 @@ sub load_host_tests_podman {
         # In Public Cloud we don't have internal resources
         load_image_test($run_args) unless is_public_cloud;
         load_3rd_party_image_test($run_args);
+        loadtest 'containers/podman_pods';
         # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
         loadtest 'containers/podman_firewall' unless (is_public_cloud || is_openstack || is_microos);
         # Buildah is not available in SLE Micro and MicroOS
