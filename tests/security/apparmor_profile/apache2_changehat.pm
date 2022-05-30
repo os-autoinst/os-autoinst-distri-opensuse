@@ -153,8 +153,13 @@ sub run {
     my @check_list = ('file_receive', 'open', 'signal', 'mknod');
     foreach my $check_point (@check_list) {
         if ($script_output =~ m/type=AVC .*apparmor=.*DENIED.* operation=.*$check_point.* profile=.*httpd-prefork.*/sx) {
-            record_info("ERROR", "There are denied $check_point records found in $audit_log", result => 'fail');
-            $self->result('fail');
+            if (!is_sle('<=15-SP3')) {
+                record_info("ERROR", "There are denied $check_point records found in $audit_log", result => 'fail');
+                $self->result('fail');
+            }
+            else {
+                record_soft_failure('bsc#1191684', 'Apparmor profile test case "apache2_changehat" found some "DENIED" audit records');
+            }
         }
     }
 
