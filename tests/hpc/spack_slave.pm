@@ -9,8 +9,6 @@ use Mojo::Base qw(hpcbase hpc::utils), -signatures;
 use testapi;
 use lockapi;
 use utils;
-use Utils::Architectures;
-use version_utils 'is_sle';
 
 sub run ($self) {
     my $mpi = $self->get_mpi();
@@ -18,17 +16,7 @@ sub run ($self) {
     set_var('SPACK', '1');
     zypper_call "in spack";
     $self->relogin_root;
-    #$self->prepare_spack_env($mpi);
-    my @hpc_deps = ('libucp0');
-    if (is_sle('>=15-SP3')) {
-        push @hpc_deps, 'libhwloc15' if $mpi =~ m/mpich/;
-        push @hpc_deps, ('libfabric1', 'libpsm2') if $mpi =~ m/openmpi/;
-        pop @hpc_deps if (is_aarch64 && $mpi =~ m/openmpi/);
-    } else {
-        push @hpc_deps, 'libpciaccess0' if $mpi =~ m/mpich/;
-        push @hpc_deps, 'libfabric1' if $mpi =~ m/openmpi/;
-    }
-    push @hpc_deps, ('libibmad5') if $mpi =~ m/mvapich2/;
+    my @hpc_deps = $self->get_compute_nodes_deps($mpi);
     zypper_call("in @hpc_deps");
 
     barrier_wait('CLUSTER_PROVISIONED');
@@ -37,7 +25,7 @@ sub run ($self) {
     $self->mount_nfs_exports($exports_path);
     assert_script_run "source /usr/share/spack/setup-env.sh";
     # Once the /opt/spack is mounted `boost` should be available
-    script_run "module av";
+    #script_run "module av";
     record_info 'boost info', script_output 'spack info boost';
     barrier_wait('MPI_BINARIES_READY');
     barrier_wait('MPI_RUN_TEST');

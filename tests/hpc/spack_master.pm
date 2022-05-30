@@ -70,7 +70,7 @@ sub post_fail_hook ($self) {
     my $compiler_ver = script_output("gcc --version | grep -E '\\b[0-9]+\.[0-9]+\.[0-9]+\$' | awk '{print \$4}'");
     my $arch = get_var('ARCH');
     my $node = script_output('hostname');
-    $self->tar_and_upload_log("/opt/spack/linux-sle_hpc15-$arch/gcc-$compiler_ver", "/tmp/spack_$node.tar.bz2");
+    $self->tar_and_upload_log("/opt/spack/linux-sle_hpc15-$arch/gcc-$compiler_ver", "/tmp/spack_$node.tar.bz2", timeout => 360);
     upload_logs('/tmp/make.out');
     $self->export_logs();
 }
