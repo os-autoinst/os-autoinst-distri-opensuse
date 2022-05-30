@@ -24,11 +24,4 @@ sub run {
     my $provider = $self->provider_factory();
 }
 
-sub post_fail_hook {
-    my ($self) = shift;
-    # $self->select_serial_terminal;
-    #upload_logs(GITLAB_CLONE_LOG);
-    $self->SUPER::post_fail_hook;
-}
-
 1;

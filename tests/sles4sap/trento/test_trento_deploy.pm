@@ -14,6 +14,7 @@ use constant TRENTO_AZ_PREFIX => 'openqa-trento';
 
 sub run {
     my ($self) = @_;
+    die "Only AZURE deployment supported for the moment" unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
     $self->select_serial_terminal;
     my $job_id = get_current_job_id();
 

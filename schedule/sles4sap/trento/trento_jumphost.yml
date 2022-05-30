@@ -2,10 +2,9 @@
 name: trento
 description: |
   Run Trento test sequence to generate a JumpHost image:
-    - TODO: write a proper description
-    - deploy
-    - test
-    - destroy
+    - Install all needed test resources needed to the JumpHost during the test
+    - Install all tools like az cli, helm
+    - Pull all needed conteiners like Cypress/include
 vars:
     TRENTO_DEPLOY_SCRIPTS_REPO: 'gitlab.suse.de/qa-css/trento'
     TRENTO_HELM_VERSION: '3.8.2'
