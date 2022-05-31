@@ -40,6 +40,7 @@ sub run {
         record_info('Cleanup', 'Stop pods');
         assert_script_run('podman play kube --down hello-kubic.yaml');
     }
+    $podman->cleanup_system_host();
 }
 
 1;
