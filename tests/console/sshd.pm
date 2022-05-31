@@ -47,7 +47,7 @@ sub run {
         systemctl('stop ' . $self->firewall);
     }
 
-    # Restart sshd and check it's status
+    #  Restart sshd and check it's status
     my $ret = systemctl('restart sshd', ignore_failure => 1);
     my $fips_enabled = script_output('cat /proc/sys/crypto/fips_enabled', proceed_on_failure => 1) eq '1';
 
