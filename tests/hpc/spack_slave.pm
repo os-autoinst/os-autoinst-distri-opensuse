@@ -12,13 +12,21 @@ use utils;
 
 sub run ($self) {
     my $mpi = $self->get_mpi();
-    $self->prepare_spack_env($mpi);
-    assert_script_run "spack install boost+mpi^$mpi", timeout => 12000;
-    assert_script_run 'spack load boost';
+    my $exports_path = '/home/bernhard/bin';
+    set_var('SPACK', '1');
+    zypper_call "in spack";
+    $self->relogin_root;
+    my @hpc_deps = $self->get_compute_nodes_deps($mpi);
+    zypper_call("in @hpc_deps");
 
-    record_info 'boost info', script_output 'spack info boost';
     barrier_wait('CLUSTER_PROVISIONED');
     barrier_wait('MPI_SETUP_READY');
+
+    $self->mount_nfs_exports($exports_path);
+    assert_script_run "source /usr/share/spack/setup-env.sh";
+    # Once the /opt/spack is mounted `boost` should be available
+    #script_run "module av";
+    record_info 'boost info', script_output 'spack info boost';
     barrier_wait('MPI_BINARIES_READY');
     barrier_wait('MPI_RUN_TEST');
 }
@@ -27,9 +35,7 @@ sub test_flags ($self) {
     return {fatal => 1, milestone => 1};
 }
 
-sub post_run_hook ($self) {
-    $self->uninstall_spack_module('boost');
-}
+sub post_run_hook ($self) { }
 
 sub post_fail_hook ($self) {
     # Upload all the modules.

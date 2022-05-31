@@ -9,23 +9,12 @@
 use Mojo::Base qw(hpcbase hpc::utils), -signatures;
 use lockapi;
 use utils;
-use version_utils 'is_sle';
-use Utils::Architectures;
 
 sub run ($self) {
     my $mpi = $self->get_mpi();
     my $exports_path = '/home/bernhard/bin';
     # Install required HPC dependencies on the nodes act as compute nodes
-    my @hpc_deps = ('libucp0');
-    if (is_sle('>=15-SP3')) {
-        push @hpc_deps, 'libhwloc15' if $mpi =~ m/mpich/;
-        push @hpc_deps, ('libfabric1', 'libpsm2') if $mpi =~ m/openmpi/;
-        pop @hpc_deps if (is_aarch64 && $mpi =~ m/openmpi/);
-    } else {
-        push @hpc_deps, 'libpciaccess0' if $mpi =~ m/mpich/;
-        push @hpc_deps, 'libfabric1' if $mpi =~ m/openmpi/;
-    }
-    push @hpc_deps, ('libibmad5') if $mpi =~ m/mvapich2/;
+    my @hpc_deps = $self->get_compute_nodes_deps($mpi);
     zypper_call("in @hpc_deps");
     barrier_wait('CLUSTER_PROVISIONED');
     barrier_wait('MPI_SETUP_READY');

@@ -10,6 +10,8 @@ package hpcbase;
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
+use Utils::Architectures;
+use version_utils 'is_sle';
 
 =head2 enable_and_start
 
@@ -249,9 +251,33 @@ sub uninstall_spack_module {
     my ($self, $module) = @_;
     die 'uninstall_spack_module requires a module name' unless $module;
     assert_script_run("spack unload $module");
-    script_run('module av');
-    assert_script_run("spack uninstall -y $module");
+    script_run('module av', timeout => 120);
+    assert_script_run("spack uninstall -y $module", timeout => 360);
     assert_script_run("spack find $module | grep 'No package matches the query'");
+}
+
+=head2 get_compute_nodes_deps
+
+  get_compute_nodes_deps($mpi)
+
+This function is used to select dependencies packages which are required to be installed
+on HPC compute nodes in order to run code against particular C<mpi> implementation.
+C<get_compute_nodes_deps> returns an array of packages
+=cut
+sub get_compute_nodes_deps {
+    my ($self, $mpi) = @_;
+    die "missing C<mpi> parameter" unless $mpi;
+    my @deps = ('libucp0');
+    if (is_sle('>=15-SP3')) {
+        push @deps, 'libhwloc15' if $mpi =~ m/mpich/;
+        push @deps, ('libfabric1', 'libpsm2') if $mpi =~ m/openmpi/;
+        pop @deps if (is_aarch64 && $mpi =~ m/openmpi/);
+    } else {
+        push @deps, 'libpciaccess0' if $mpi =~ m/mpich/;
+        push @deps, 'libfabric1' if $mpi =~ m/openmpi/;
+    }
+    push @deps, ('libibmad5') if $mpi =~ m/mvapich2/;
+    return @deps;
 }
 
 =head2 setup_nfs_server
@@ -268,6 +294,7 @@ sub setup_nfs_server {
     zypper_call 'in nfs-kernel-server';
     assert_script_run "echo $exports *(rw,no_root_squash,sync,no_subtree_check) >> /etc/exports";
     assert_script_run "echo /usr/lib/hpc *(ro,no_root_squash,sync,no_subtree_check) >> /etc/exports";
+    assert_script_run "echo /opt/spack *(ro,no_root_squash,sync,no_subtree_check) >> /etc/exports" if get_var('SPACK');
     assert_script_run 'exportfs -a';
     systemctl 'enable --now nfs-server';
 }
@@ -285,6 +312,7 @@ sub mount_nfs_exports {
     assert_script_run "mount master-node00:$exports $exports";
     assert_script_run 'mkdir /usr/lib/hpc';
     assert_script_run 'mount master-node00:/usr/lib/hpc /usr/lib/hpc';
+    assert_script_run 'mount master-node00:/opt/spack /opt/spack' if get_var('SPACK');
 }
 
 1;
