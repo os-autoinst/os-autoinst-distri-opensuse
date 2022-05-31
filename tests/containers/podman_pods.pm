@@ -12,7 +12,7 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
-use utils;
+use version_utils qw(is_sle is_opensuse);
 
 sub run {
     my ($self, $args) = @_;
@@ -29,8 +29,17 @@ sub run {
     record_info('pod ps', script_output('podman pod ps'));
     assert_script_run('podman pod ps | grep "Running" | wc -l | grep -q 3');
 
-    record_info('Cleanup', 'Stop pods');
-    assert_script_run('podman play kube --down hello-kubic.yaml');
+    record_info('Test', 'Killing one pod');
+    assert_script_run('podman pod stop $(podman pod ps -q | head -n1)');
+
+    record_info('Test', 'Confirm one pod has been killed');
+    assert_script_run('podman pod ps | grep "Running" | wc -l | grep -q 2');
+    assert_script_run('podman pod ps | grep "Exited" | wc -l | grep -q 1');
+
+    if (is_sle('15-SP3+') || is_opensuse()) {
+        record_info('Cleanup', 'Stop pods');
+        assert_script_run('podman play kube --down hello-kubic.yaml');
+    }
 }
 
 1;
