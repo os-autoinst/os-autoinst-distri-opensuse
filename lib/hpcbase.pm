@@ -147,11 +147,11 @@ Generates and distributes ssh keys across all cluster nodes
 
 =cut
 sub generate_and_distribute_ssh {
-    my ($self) = @_;
-    my @cluster_nodes = cluster_names();
+    my ($self, $user) = @_;
+    my @slave_nodes = slave_node_names();
     assert_script_run('ssh-keygen -b 2048 -t rsa -q -N "" -f ~/.ssh/id_rsa');
-    foreach (@cluster_nodes) {
-        exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no root\@$_");
+    foreach (@slave_nodes) {
+        exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no $user\@$_");
     }
 }
 
@@ -309,10 +309,10 @@ C<exports> should be the location which nfs server exports the source code and t
 sub mount_nfs_exports {
     my ($self, $exports) = @_;
     zypper_call 'in nfs-client';
-    assert_script_run "mount master-node00:$exports $exports";
+    assert_script_run "mount master-node00:$exports $exports", timeout => 120;
     assert_script_run 'mkdir /usr/lib/hpc';
-    assert_script_run 'mount master-node00:/usr/lib/hpc /usr/lib/hpc';
-    assert_script_run 'mount master-node00:/opt/spack /opt/spack' if get_var('SPACK');
+    assert_script_run 'mount master-node00:/usr/lib/hpc /usr/lib/hpc', timeout => 120;
+    assert_script_run 'mount master-node00:/opt/spack /opt/spack', timeout => 120 if get_var('SPACK');
 }
 
 1;

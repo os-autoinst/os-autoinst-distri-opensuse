@@ -27,13 +27,16 @@ sub run ($self) {
     zypper_call("in $mpi-gnu-hpc $mpi-gnu-hpc-devel python3-devel");
     my $need_restart = $self->setup_scientific_module();
     $self->relogin_root if $need_restart;
+    $self->setup_nfs_server($exports_path);
+
+    type_string('pkill -u root');
+    $self->select_serial_terminal(0);
     # for <15-SP2 the openmpi2 module is named simply openmpi
     $mpi = 'openmpi' if ($mpi =~ /openmpi2|openmpi3|openmpi4/);
-    assert_script_run "module load gnu $mpi";
-    script_run "module av";
+
     barrier_wait('CLUSTER_PROVISIONED');
     ## all nodes should be able to ssh to each other, as MPIs requires so
-    $self->generate_and_distribute_ssh();
+    $self->generate_and_distribute_ssh($testapi::username);
     $self->check_nodes_availability();
 
     record_info('INFO', script_output('cat /proc/cpuinfo'));
@@ -42,7 +45,17 @@ sub run ($self) {
     assert_script_run "hostnamectl status | grep $hostname";
     assert_script_run("wget --quiet " . data_url("hpc/$mpi_c") . " -O $exports_path/$mpi_c");
 
-    $self->setup_nfs_server($exports_path);
+    # I need to restart the nfs-server for some reason otherwise the compute nodes
+    # cannot mount directories
+    select_console('root-console');
+    systemctl 'restart nfs-server';
+    # And login as normal user to run the tests
+    type_string('pkill -u root');
+    $self->select_serial_terminal(0);
+    # load mpi after all the relogins
+    assert_script_run "module load gnu $mpi";
+    script_run "module av";
+
     barrier_wait('MPI_SETUP_READY');
     assert_script_run("$mpi_compiler $exports_path/$mpi_c -o $exports_path/$mpi_bin") if $mpi_compiler;
 
@@ -62,7 +75,7 @@ sub run ($self) {
                 record_soft_failure('bsc#1199811 known problem on single core on mvapich2/2.2');
             }
         } else {
-            assert_script_run($mpirun_s->single_node("$exports_path/$mpi_bin"));
+            assert_script_run($mpirun_s->single_node("$exports_path/$mpi_bin"), timeout => 120);
         }
     }
 
@@ -86,7 +99,7 @@ sub run ($self) {
             die("echo $return - not expected errorcode");
         }
     } else {
-        assert_script_run($mpirun_s->all_nodes("$exports_path/$mpi_bin"));
+        assert_script_run($mpirun_s->all_nodes("$exports_path/$mpi_bin"), timeout => 120);
     }
 
     barrier_wait('MPI_RUN_TEST');
