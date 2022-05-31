@@ -21,7 +21,7 @@ sub check_or_install_packages {
     if (get_var("FULL_UPDATE") || get_var("MINIMAL_UPDATE")) {
         if (is_leap_migration) {
             # https://bugzilla.suse.com/show_bug.cgi?id=1197268#c2
-            record_soft_failure('bsc#1197268', 'suseconnect-ng obsoletes zypper-migration-plugin in leap to sle migration');
+            record_soft_failure('bsc#1197268 - suseconnect-ng obsoletes zypper-migration-plugin in leap to sle migration');
             zypper_call('rm zypper-migration-plugin');
             zypper_call "in yast2-registration rollback-helper";
             if (get_var('LEAP_TECH_PREVIEW_REPO')) {

@@ -35,7 +35,7 @@ sub setup_sle {
     select_console 'root-console';
 
     if (is_ppc64le && is_sle('<=12-sp5')) {
-        record_soft_failure("bsc#1195046", 'ncurses display a wrong checker board character');
+        record_soft_failure('bsc#1195046 - ncurses display a wrong checker board character');
         systemctl('restart systemd-vconsole-setup.service');
     }
 

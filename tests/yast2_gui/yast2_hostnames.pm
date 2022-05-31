@@ -31,7 +31,7 @@ sub run {
     clear_console;
     select_console 'x11';
     y2_module_guitest::launch_yast2_module_x11($module, match_timeout => 90);
-    record_soft_failure('bsc#1191112', 'Resizing window as workaround for YaST content not loading');
+    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
     send_key_until_needlematch('yast2_hostnames_added', 'alt-f10', 9, 2);
     assert_and_click "yast2_hostnames_added";
     send_key 'alt-i';

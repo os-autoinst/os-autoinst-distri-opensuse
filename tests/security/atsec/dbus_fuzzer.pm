@@ -75,7 +75,7 @@ sub run {
         next if $test_result{$dbus};
 
         if ($dbus eq 'org.freedesktop.login1') {
-            record_soft_failure('poo#110071', 'We do NOT test org.freedesktop.login1 due to poo#110071');
+            record_soft_failure('poo#110071 - We do NOT test org.freedesktop.login1 due to poo#110071');
             $test_result{$dbus} = 'softfail';
             next;
         }

@@ -27,19 +27,19 @@ sub new {
 }
 
 sub press_add {
-    record_soft_failure('bsc#1191112', 'Resizing window as workaround for YaST content not loading');
+    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
     send_key_until_needlematch(OVERVIEW_TAB, 'alt-f10', 9, 2);
     send_key('alt-a');
 }
 
 sub press_edit {
-    record_soft_failure('bsc#1191112', 'Resizing window as workaround for YaST content not loading');
+    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
     send_key_until_needlematch(OVERVIEW_TAB, 'alt-f10', 9, 2);
     send_key('alt-i');
 }
 
 sub press_delete {
-    record_soft_failure('bsc#1191112', 'Resizing window as workaround for YaST content not loading');
+    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
     send_key_until_needlematch(OVERVIEW_TAB, 'alt-f10', 9, 2);
     send_key('alt-t');
 }
@@ -68,7 +68,7 @@ sub select_device {
 }
 
 sub press_ok {
-    record_soft_failure('bsc#1191112', 'Resizing window as workaround for YaST content not loading');
+    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
     send_key_until_needlematch(OVERVIEW_TAB, 'alt-f10', 9, 2);
     send_key('alt-o');
 }

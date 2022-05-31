@@ -69,7 +69,7 @@ sub check_suseconnect {
             my $iden = $_->{identifier};
             my $status = $_->{status};
             if ($iden eq 'sle-module-packagehub-subpackages') {
-                record_soft_failure('bsc#1176901', "openQA test fails in system_prepare - 'sle-module-packagehub-subpackages' is not registered ");
+                record_soft_failure('bsc#1176901 - openQA test fails in system_prepare - \'sle-module-packagehub-subpackages\' is not registered ');
                 next;
             }
             push(@addons, $iden);
