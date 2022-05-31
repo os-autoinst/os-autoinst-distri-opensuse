@@ -59,7 +59,7 @@ sub handle_installer_medium_bootup {
     return unless (check_var("BOOTFROM", "d") || (get_var('UEFI') && get_var('USBBOOT')));
     assert_screen 'inst-bootmenu', 180;
 
-    if (check_var("BOOTFROM", "d") && check_var("AUTOUPGRADE") && check_var("PATCH")) {
+    if (check_var("BOOTFROM", "d") && get_var('AUTOUPGRADE') && get_var('PATCH')) {
         assert_screen 'grub2';
     }
 
