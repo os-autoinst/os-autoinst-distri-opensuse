@@ -618,7 +618,7 @@ sub handle_scc_popups {
                 && (get_var("DESKTOP") !~ /textmode/)
                 && (get_var('REMOTE_CONTROLLER') !~ /vnc/)
                 && !(get_var('PUBLISH_HDD_1') || check_var('SLE_PRODUCT', 'hpc'))) {
-                record_soft_failure('bsc#1191112', 'Resizing window as workaround for YaST content not loading');
+                record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
                 for (1 .. 2) { send_key 'alt-f10' }
             }
             assert_screen(\@tags, timeout => 360);

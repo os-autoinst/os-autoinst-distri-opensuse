@@ -26,7 +26,7 @@ sub select_device_type {
         bond => 'alt-o',
         vlan => 'alt-v'
     };
-    record_soft_failure('bsc#1191112', 'Resizing window as workaround for YaST content not loading');
+    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
     send_key_until_needlematch(DEVICE_TYPE_DIALOG, 'alt-f10', 9, 2);
     send_key $shortcut->{$device};
 }

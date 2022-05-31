@@ -65,7 +65,7 @@ sub nis_server_configuration {
     assert_screen 'nis-server-server-maps-setup-finished';
     send_key $cmd{next};
     # NIS Server Query Hosts
-    record_soft_failure('bsc#1191112', 'Resizing window as workaround for YaST content not loading');
+    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
     send_key_until_needlematch('nis-server-query-hosts-setup', 'alt-f10', 9, 2);
     send_key 'alt-a';    # add
     assert_screen 'nis-server-network-conf-popup';

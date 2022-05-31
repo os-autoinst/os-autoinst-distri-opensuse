@@ -62,7 +62,7 @@ sub initiator_discovered_targets_tab {
     send_key "alt-i";
     my $target_ip_only = (split('/', $test_data->{target_conf}->{ip}))[0];
     type_string_slow_extended $target_ip_only;
-    record_soft_failure('bsc#1191112', 'Resizing window as workaround for YaST content not loading');
+    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
     send_key_until_needlematch('iscsi-initiator-discovered-IP-adress', 'alt-f10', 9, 2);
     # next and press connect button
     send_key "alt-n";
@@ -87,7 +87,7 @@ sub initiator_discovered_targets_tab {
 sub initiator_connected_targets_tab {
     # go to discovered targets tab
     send_key "alt-d";
-    record_soft_failure('bsc#1191112', 'Resizing window as workaround for YaST content not loading');
+    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
     send_key_until_needlematch('iscsi-initiator-discovered-targets', 'alt-f10', 9, 2);
     # go to connected targets tab
     send_key "alt-n";
