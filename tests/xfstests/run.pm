@@ -471,7 +471,7 @@ sub run {
         };
         # If SUT didn't reboot for some reason, force reset
         if ($@) {
-            power('reset', keepconsole => is_pvm);
+            power_action('reset', keepconsole => is_pvm);
             reconnect_mgmt_console if is_pvm;
             $self->wait_boot;
         }
