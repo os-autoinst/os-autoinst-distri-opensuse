@@ -170,7 +170,8 @@ sub activate_kdump {
         $expect_restart_info = 1;
     }
     # ppcl64e and aarch64 needs increased kdump memory bsc#1161421
-    if (is_ppc64le || is_aarch64) {
+    # migration regression test cases need increase kdump memory since lot of services start
+    if (is_ppc64le || is_aarch64 || get_var('FLAVOR') =~ /Regression/) {
         if ($increase_kdump_memory) {
             send_key('alt-y');
             type_string $memory_kdump;
