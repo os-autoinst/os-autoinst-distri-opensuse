@@ -1229,8 +1229,11 @@ sub remount_tmp_if_ro {
 
  select_serial_terminal($root);
 
-Select most suitable text console with root user. The choice is made by
-BACKEND and other variables.
+Select most suitable text console. The optional parameter C<root> controls
+whether the console will have root privileges or not. Passing any value that
+evaluates to true will select a root console (default). Passing any value that
+evaluates to false will select unprivileged user console.
+The choice is made by BACKEND and other variables.
 
 Purpose of this wrapper is to avoid if/else conditions when selecting console.
 
@@ -1239,7 +1242,7 @@ default when parameter not specified) or prefer non-root user if available.
 
 Variables affecting behavior:
 C<VIRTIO_CONSOLE>=0 disables virtio console (use {root,user}-console instead
-of the default {root-,}virtio-terminal)
+of the default {root-,user-}virtio-terminal)
 NOTE: virtio console is enabled by default (C<VIRTIO_CONSOLE>=1).
 For ppc64le it requires to call prepare_serial_console() to before first use
 (used in console/system_prepare and shutdown/cleanup_before_shutdown modules)
@@ -1269,7 +1272,7 @@ sub select_serial_terminal {
         if (check_var('VIRTIO_CONSOLE', 0)) {
             $console = $root ? 'root-console' : 'user-console';
         } else {
-            $console = $root ? 'root-virtio-terminal' : 'virtio-terminal';
+            $console = $root ? 'root-virtio-terminal' : 'user-virtio-terminal';
         }
     } elsif (get_var('SUT_IP')) {
         $console = $root ? 'root-serial-ssh' : 'user-serial-ssh';

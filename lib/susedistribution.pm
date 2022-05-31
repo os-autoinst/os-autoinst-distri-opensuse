@@ -410,6 +410,7 @@ sub init_consoles {
 
     if (is_qemu) {
         $self->add_console('root-virtio-terminal', 'virtio-terminal', {});
+        $self->add_console('user-virtio-terminal', 'virtio-terminal', {});
         for (my $num = 1; $num < get_var('VIRTIO_CONSOLE_NUM', 1); $num++) {
             $self->add_console('root-virtio-terminal' . $num, 'virtio-terminal', {socked_path => cwd() . '/virtio_console' . $num});
         }
@@ -796,6 +797,7 @@ sub activate_console {
         }
     }
     elsif ($type =~ /^(virtio-terminal|sut-serial)$/) {
+        $self->{serial_term_prompt} = $user eq 'root' ? '# ' : '> ';
         serial_terminal::login($user, $self->{serial_term_prompt});
     }
     elsif ($console eq 'novalink-ssh') {
@@ -890,7 +892,7 @@ sub console_selected {
     }
     $args{await_console} //= 1;
     $args{tags} //= $console;
-    $args{ignore} //= qr{sut|root-virtio-terminal|root-sut-serial|iucvconn|svirt|root-ssh|hyperv-intermediary|serial-ssh};
+    $args{ignore} //= qr{sut|user-virtio-terminal|root-virtio-terminal|root-sut-serial|iucvconn|svirt|root-ssh|hyperv-intermediary|serial-ssh};
     $args{timeout} //= 30;
 
     if ($args{tags} =~ $args{ignore} || !$args{await_console} || (get_var('FLAVOR') eq 'WSL')) {
