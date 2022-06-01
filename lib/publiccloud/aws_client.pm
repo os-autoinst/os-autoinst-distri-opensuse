@@ -73,7 +73,11 @@ sub init {
 
     $self->service("EC2") unless (defined($self->service));
 
-    if (!defined($self->key_id) || !defined($self->key_secret)) {
+    if (get_var('PUBLIC_CLOUD_CREDENTIALS_URL')) {
+        my $data = get_credentials();
+        $self->key_id($data->{access_key_id});
+        $self->key_secret($data->{secret_access_key});
+    } elsif (!defined($self->key_id) || !defined($self->key_secret)) {
         $self->vault(publiccloud::vault->new());
         $self->vault_create_credentials();
     }
