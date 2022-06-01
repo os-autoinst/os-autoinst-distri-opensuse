@@ -1,5 +1,5 @@
 name: atsec_tests
-description:    >
+description: >
     This is for ATSec tests
 schedule:
     - '{{bootloader_zkvm}}'
@@ -13,8 +13,15 @@ schedule:
     - security/atsec/netlink_message
     - security/atsec/chrony_pid_file
     - security/atsec/permission_settings
+    - '{{check_processor_vulnerability_mitigations}}'
 conditional_schedule:
     bootloader_zkvm:
         ARCH:
             s390x:
                 - installation/bootloader_zkvm
+    check_processor_vulnerability_mitigations:
+        ARCH:
+            x86_64:
+                - security/atsec/check_processor_vulnerability_mitigations
+            aarch64:
+                - security/atsec/check_processor_vulnerability_mitigations
