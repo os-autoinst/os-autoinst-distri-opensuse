@@ -37,7 +37,7 @@ sub run {
     my $unexpected = 'wicked';
     my $reason = 'networking';
 
-    if (is_jeos) {
+    if (is_jeos && (is_sle || is_leap)) {
         $expected = 'wicked';
         $unexpected = 'NetworkManager';
         $reason = 'JeOS';
