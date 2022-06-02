@@ -16,7 +16,7 @@ use Config::Tiny;
 use Utils::Architectures;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
-use x11utils qw(select_user_gnome handle_gnome_activities);
+use x11utils qw(select_user_gnome start_root_shell_in_xterm handle_gnome_activities);
 use POSIX 'strftime';
 use mm_network;
 
@@ -514,6 +514,33 @@ sub setup_mail_account {
     }
     # Μake sure the welcome window is maximized
     send_key_until_needlematch 'evolution_mail-max-window', 'super-up', 3, 3;
+}
+
+# Use AutoConfig file for firefox to predefine some user values
+# https://support.mozilla.org/en-US/kb/customizing-firefox-using-autoconfig
+sub prepare_firefox_autoconfig {
+    my ($self) = @_;
+    start_root_shell_in_xterm;
+
+    # Enable AutoConfig by pointing to a cfg file
+    type_string(q{cat <<EOF > $(rpm --eval %_libdir)/firefox/defaults/pref/autoconfig.js
+pref("general.config.filename", "firefox.cfg");
+pref("general.config.obscure_value", 0);
+EOF
+});
+    # Create AutoConfig cfg file
+    type_string(q{cat <<EOF > $(rpm --eval %_libdir)/firefox/firefox.cfg
+// Mandatory comment
+// https://firefox-source-docs.mozilla.org/browser/components/newtab/content-src/asrouter/docs/first-run.html
+pref("browser.aboutwelcome.enabled", false);
+pref("browser.startup.upgradeDialog.enabled", false);
+pref("privacy.restrict3rdpartystorage.rollout.enabledByDefault", false);
+EOF
+});
+
+    save_screenshot;
+    # Close the xterm with root shell
+    enter_cmd "killall xterm";
 }
 
 # start clean firefox with one suse.com tab, visit pages which trigger pop-up so they will not pop again

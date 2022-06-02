@@ -21,6 +21,7 @@ use version_utils 'is_tumbleweed';
 sub run() {
     my ($self) = shift;
 
+    $self->prepare_firefox_autoconfig;
     $self->start_firefox;
     wait_still_screen;
     send_key('alt');
