@@ -174,8 +174,7 @@ sub _parse_results_with_diff_baseline {
     my ($name, $result, $msg, $flag) = @_;
     my $softfail_tests = {
         s390x => {
-            ssh04 => 'Test case ssh04 fails in s390x is a known issue, see poo#99096',
-            iptables_SETSOCKOPT => 'bsc#1192324'
+            ssh04 => 'Test case ssh04 fails in s390x is a known issue, see poo#99096'
         }
     };
     if ($result eq 'PASS') {
