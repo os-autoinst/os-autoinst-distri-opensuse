@@ -5,7 +5,7 @@
 #
 # Summary: Remote Login: Windows access openSUSE/SLE over RDP
 # Maintainer: GraceWang <gwang@suse.com>
-# Tags: tc#1610388
+# Tags: tc#1610388 poo#109091
 
 use Mojo::Base qw(windowsbasetest);
 use testapi;
@@ -32,6 +32,9 @@ sub run {
     $self->run_in_powershell(cmd => 'Get-NetIPAddress -InterfaceAlias $a.name', tags => 'win-remote-desktop');
     $self->run_in_powershell(cmd => 'New-NetIPAddress -InterfaceAlias $a.name -IPAddress 10.0.2.18 -PrefixLength 24 -DefaultGateway 10.0.2.2 -Confirm:$false', tags => 'win-remote-desktop');
     approve_network_popup;
+    # We may miss some characters due to type command too fast after network popup, so wait several seconds as a workaround
+    # See poo#109091
+    wait_still_screen 3;
     $self->run_in_powershell(cmd => 'Set-DnsClientServerAddress -InterfaceAlias $a.name -ServerAddresses ("10.67.0.2") -Confirm:$false', tags => 'win-remote-desktop');
     enter_cmd('exit');
     assert_screen 'windows-desktop';
