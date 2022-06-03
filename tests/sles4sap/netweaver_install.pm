@@ -92,6 +92,8 @@ sub run {
         assert_script_run "grep -q 'Cannot stop instance.*ASCS' /sapinst/unattended/sapinst.log";
     }
 
+    $self->upload_nw_install_log;
+
     # Synchronize with other nodes
     if (get_var('HA_CLUSTER') && is_node(1)) {
         my $cluster_name = get_cluster_name;
