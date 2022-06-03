@@ -131,7 +131,7 @@ sub configure_podman {
 
 sub cleanup {
     my ($self) = @_;
-    $self->vault->revoke();
+    $self->vault->revoke() unless (get_var('PUBLIC_CLOUD_CREDENTIALS_URL'));
 }
 
 1;
