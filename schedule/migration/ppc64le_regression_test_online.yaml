@@ -33,7 +33,7 @@ conditional_schedule:
         - console/system_state
         - console/prepare_test_data
         - console/consoletest_setup
-        - '{{check_upgraded_service}}'
+        - console/check_upgraded_service
         - '{{openldap_to_389ds}}'
         - '{{regression_tests}}'
         - boot/grub_test_snapshot
@@ -42,10 +42,6 @@ conditional_schedule:
       1:
         - shutdown/cleanup_before_shutdown
         - shutdown/shutdown
-  check_upgraded_service:
-    REGRESSION_SERVICE:
-      1:
-        - console/check_upgraded_service
   install_service:
     REGRESSION_SERVICE:
       1:
