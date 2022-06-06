@@ -347,7 +347,7 @@ sub check_function {
         reconnect_mgmt_console if is_pvm;
     }
     else {
-        power_action('reboot', observe => 1, keepconsole => 1);
+        power_action('reboot', textmode => 1, observe => 1, keepconsole => 1);
     }
     unlock_if_encrypted;
     # Wait for system's reboot; more time for Hyper-V as it's slow.
@@ -416,7 +416,7 @@ sub full_kdump_check {
     select_console 'root-console';
 
     if ($stage eq 'before') {
-        configure_service(test_type => $stage);
+        configure_service(test_type => $stage, yast_interface => 'cli');
     }
     check_function();
 
