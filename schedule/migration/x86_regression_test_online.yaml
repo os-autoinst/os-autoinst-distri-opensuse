@@ -24,6 +24,7 @@ conditional_schedule:
   qcow_generation:
     QCOW_GENERATION:
       0:
+        - console/check_upgraded_service
         - console/system_prepare
         - console/check_os_release
         - console/check_system_info
@@ -61,7 +62,6 @@ conditional_schedule:
   regression_tests:
     REGRESSION_TEST:
       1:
-        - console/check_upgraded_service
         - locale/keymap_or_locale
         - console/supportutils
         - console/force_scheduled_tasks
