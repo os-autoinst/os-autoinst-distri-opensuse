@@ -102,7 +102,7 @@ sub push_container_image {
     my $full_name = $self->get_container_image_full_name($tag);
 
     assert_script_run("podman tag $image $full_name");
-    assert_script_run("podman push --remove-signatures $full_name", 180);
+    assert_script_run("podman push --remove-signatures $full_name", 300);
 
     return $full_name;
 }

@@ -60,7 +60,7 @@ Wait until the job is complete
 =cut
 sub wait_for_job_complete {
     my ($self, $job) = @_;
-    assert_script_run("kubectl wait --for=condition=complete --timeout=60s job/$job");
+    assert_script_run("kubectl wait --for=condition=complete --timeout=300s job/$job");
 }
 
 =head2 validate_log

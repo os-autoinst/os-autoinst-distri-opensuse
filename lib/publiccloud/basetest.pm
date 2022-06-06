@@ -15,6 +15,7 @@ use publiccloud::ec2;
 use publiccloud::eks;
 use publiccloud::ecr;
 use publiccloud::gce;
+use publiccloud::gke;
 use publiccloud::gcr;
 use publiccloud::acr;
 use publiccloud::aks;
@@ -72,15 +73,10 @@ sub provider_factory {
     elsif ($args{provider} eq 'GCE') {
         $args{service} //= 'GCE';
         if ($args{service} eq 'GCR') {
-            $provider = publiccloud::gcr->new(
-                account => get_var('PUBLIC_CLOUD_GOOGLE_ACCOUNT'),
-                service_acount_name => get_var('PUBLIC_CLOUD_GOOGLE_SERVICE_ACCOUNT'),
-                project_id => get_var('PUBLIC_CLOUD_GOOGLE_PROJECT_ID'),
-                client_id => get_var('PUBLIC_CLOUD_GOOGLE_CLIENT_ID'),
-                region => get_var('PUBLIC_CLOUD_REGION', 'europe-west1-b'),
-                storage_name => get_var('PUBLIC_CLOUD_GOOGLE_STORAGE', 'openqa-storage'),
-                username => get_var('PUBLIC_CLOUD_USER', 'susetest')
-            );
+            $provider = publiccloud::gcr->new();
+        }
+        elsif ($args{service} eq 'GKE') {
+            $provider = publiccloud::gke->new();
         }
         elsif ($args{service} eq 'GCE') {
             $provider = publiccloud::gce->new();
