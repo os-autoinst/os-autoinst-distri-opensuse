@@ -77,9 +77,8 @@ sub run {
     install_helm();
 
     # Add repo, search and show values
-    assert_script_run(
-        "helm repo add bitnami https://charts.bitnami.com/bitnami");
-    assert_script_run("helm repo update");
+    assert_script_run("helm repo add bitnami https://charts.bitnami.com/bitnami", 180);
+    assert_script_run("helm repo update", 180);
     assert_script_run("helm search repo apache");
     assert_script_run("helm show all $chart");
 
