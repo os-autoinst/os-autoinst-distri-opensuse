@@ -17,8 +17,8 @@ use utils;
 # characters, likely due to some auto-completion feature.
 # See https://progress.opensuse.org/issues/109737 for details
 sub type_address ($string) {
-    type_string substr($string, 0, 3), @_, max_interval => utils::SLOW_TYPING_SPEED;
-    enter_cmd substr($string, 3), @_;
+    type_string substr($string, 0, 10), @_, max_interval => utils::SLOW_TYPING_SPEED;
+    enter_cmd substr($string, 10), @_;
 }
 
 sub run {
