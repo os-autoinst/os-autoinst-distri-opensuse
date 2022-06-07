@@ -277,9 +277,9 @@ sub get_3rd_party_images {
     my @images = (
         "registry.opensuse.org/opensuse/leap",
         "registry.opensuse.org/opensuse/tumbleweed",
-        "$ex_reg/library/alpine",
-        "$ex_reg/library/debian",
-        "$ex_reg/library/fedora",
+        "$ex_reg/alpine",
+        "$ex_reg/debian",
+        "$ex_reg/fedora",
         "registry.access.redhat.com/ubi8/ubi",
         "registry.access.redhat.com/ubi8/ubi-minimal",
         "registry.access.redhat.com/ubi8/ubi-micro",
@@ -300,8 +300,8 @@ sub get_3rd_party_images {
     # - poo#72124 Ubuntu image (occasionally) fails on s390x.
     # - CentOS image not available on s390x.
     push @images, (
-        "$ex_reg/library/ubuntu",
-        "$ex_reg/library/centos"
+        "$ex_reg/ubuntu",
+        "$ex_reg/centos"
     ) unless (is_s390x || is_ppc64le);
 
     # RedHat UBI7 images are not built for aarch64

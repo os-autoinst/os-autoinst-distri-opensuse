@@ -27,7 +27,6 @@ sub configure_insecure_registries {
 
     assert_script_run "curl " . data_url('containers/registries.conf') . " -o /etc/containers/registries.conf";
     assert_script_run "chmod 644 /etc/containers/registries.conf";
-    file_content_replace("/etc/containers/registries.conf", REGISTRY => $registry);
 }
 
 1;

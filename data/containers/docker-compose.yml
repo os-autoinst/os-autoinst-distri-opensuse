@@ -3,7 +3,7 @@ services:
 
   nginx:
     # The REGISTRY is variable and will be replaced
-    image: REGISTRY/library/nginx
+    image: REGISTRY/nginx
     networks:
       - backend
     volumes:
@@ -12,7 +12,7 @@ services:
 
   haproxy:
     # The REGISTRY is variable and will be replaced
-    image: REGISTRY/library/haproxy
+    image: REGISTRY/haproxy
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     ports:

@@ -60,7 +60,7 @@ sub run {
     assert_script_run("curl -O " . data_url("containers/docker-compose.yml"));
     assert_script_run("curl -O " . data_url("containers/haproxy.cfg"));
 
-    file_content_replace("docker-compose.yml", REGISTRY => get_var('REGISTRY', 'docker.io'));
+    file_content_replace("docker-compose.yml", REGISTRY => get_var('REGISTRY', 'docker.io/library'));
     assert_script_run 'docker-compose pull', 600;
 
     # Start all containers in background

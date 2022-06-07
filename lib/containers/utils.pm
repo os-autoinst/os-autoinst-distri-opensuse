@@ -73,7 +73,7 @@ sub registry_url {
     # Images from docker.io registry are listed without the 'docker.io/library/'
     # Images from custom registry are listed with the 'server/library/'
     # We also filter images the same way they are listed.
-    my $repo = ($registry =~ /docker\.io/) ? "" : "$registry/library";
+    my $repo = ($registry =~ /docker\.io/) ? "" : $registry;
     return $registry unless $container_name;
     return sprintf("%s/%s", $repo, $container_name) unless $version_tag;
     return sprintf("%s/%s:%s", $repo, $container_name, $version_tag);
