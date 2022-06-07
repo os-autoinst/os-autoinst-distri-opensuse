@@ -68,24 +68,21 @@ move from rescue to default target, logs us out. Die if DBus is active at this p
 it means that DBus got activated somehow, thus invalidated `snapper --no-dbus` testing.
 =cut
 sub snapper_nodbus_restore {
-    if (script_run('systemctl is-active dbus')) {
-        script_run('systemctl default', 0);
-        my $tty = get_root_console_tty;
-        assert_screen "tty$tty-selected", 300;
-        reset_consoles;
-        select_console 'root-console';
-    }
-    else {
-        die 'DBus service ought not to be active (but is)';
-    }
+    my $ret = script_run('systemctl is-active dbus', timeout => 300, die_on_timeout => 1);
+    die 'DBus service should be inactive, but it is active' if ($ret == 0);
+    script_run('systemctl default', timeout => 600, die_on_timeout => 0);
+    my $tty = get_root_console_tty;
+    assert_screen "tty$tty-selected", 600;
+    reset_consoles;
+    select_console 'root-console';
 }
 
 =head2 cron_mock_lastrun
 snapper-0.5 and older is using cron jobs in order to schedule and execute cleanup routines.
 Script /usr/lib/cron/run-crons looks into /etc/cron.{hourly,daily,weekly,monthly} for jobs
 to be executed. The info about last run is stored in /var/spool/cron/lastrun
-By updating the lastrun files timestamps, we make sure those routines won't be executed 
-while tests are running. 
+By updating the lastrun files timestamps, we make sure those routines won't be executed
+while tests are running.
 =cut
 sub cron_mock_lastrun {
     my $tries = 5;
