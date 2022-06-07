@@ -133,7 +133,7 @@
     "bsc#1190662": {
         "description": "/etc/udev/rules.d/41-qeth-.*Failed to write ATTR",
         "products": {
-            "sle-micro": [ "5.1", "5.2" ]
+            "sle-micro": [ "5.1", "5.2", "5.3" ]
         },
         "type": "bug"
     },
@@ -171,7 +171,7 @@
     "bsc#1032323": {
         "description": "Initialization of hypfs failed|The hardware system does not support hypfs",
         "products": {
-            "sle-micro": [ "5.1", "5.2" ]
+            "sle-micro": [ "5.1", "5.2", "5.3" ]
         },
         "type": "bug"
     },
@@ -294,7 +294,7 @@
     "health-check": {
         "description": "health-checker/fail.sh check\" failed|Machine didn't come up correct, do a rollback",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2" ],
+            "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
             "leap-micro": ["5.2"],
             "microos":  ["Tumbleweed"]
         },
@@ -313,7 +313,7 @@
     "ssh-connection-close-by-remote": {
         "description": "error: kex_exchange_identification: Connection closed by remote host",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2" ],
+            "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3", "15.4"],
             "microos":  ["Tumbleweed"],
             "sle": ["15-SP2", "15-SP3", "15-SP4"]
