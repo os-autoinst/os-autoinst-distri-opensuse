@@ -893,10 +893,10 @@ elsif (get_var("VIRT_AUTOTEST")) {
         }
         loadtest "virt_autotest/reboot_and_wait_up_upgrade";
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
-            loadtest "virt_autotest/setup_xen_serial_console";
+            loadtest "virt_autotest/setup_xen_grub";
         }
         else {
-            loadtest "virt_autotest/setup_kvm_serial_console";
+            loadtest "virt_autotest/setup_kvm_grub";
         }
         loadtest "virt_autotest/reboot_and_wait_up_normal";
         loadtest "virt_autotest/host_upgrade_step3_run";

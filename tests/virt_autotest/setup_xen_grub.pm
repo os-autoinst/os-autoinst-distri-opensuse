@@ -13,7 +13,7 @@ use base "virt_autotest_base";
 use ipmi_backend_utils;
 
 sub run {
-    set_serial_console_on_vh('', '', 'xen') if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen"));
+    set_grub_on_vh('', '', 'xen') if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen"));
 }
 
 sub test_flags {

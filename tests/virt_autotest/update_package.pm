@@ -50,8 +50,8 @@ sub run {
     #workaroud: skip update package for registered aarch64 tests and because there are conflicts on sles15sp2 XEN
     $self->update_package() unless (is_registered_sles && is_aarch64);
     unless ((is_registered_sles && is_aarch64) || is_s390x) {
-        set_serial_console_on_vh('', '', 'xen') if is_xen_host;
-        set_serial_console_on_vh('', '', 'kvm') if is_kvm_host;
+        set_grub_on_vh('', '', 'xen') if is_xen_host;
+        set_grub_on_vh('', '', 'kvm') if is_kvm_host;
     }
     update_guest_configurations_with_daily_build();
 
