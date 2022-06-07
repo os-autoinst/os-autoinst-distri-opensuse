@@ -21,12 +21,17 @@ use testapi;
 use strict;
 use warnings;
 use utils;
+use version_utils qw(is_sle);
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    zypper_call('in openvswitch iputils', timeout => 300);
+    my $pkg_name = 'openvswitch';
+    # package openvswitch-switch still exist for sle12-sp2
+    $pkg_name = 'openvswitch-switch' if is_sle('=12-sp2');
+
+    zypper_call("in $pkg_name iputils", timeout => 300);
 
     # Start the openvswitch daemon
     systemctl 'start openvswitch', timeout => 200;
