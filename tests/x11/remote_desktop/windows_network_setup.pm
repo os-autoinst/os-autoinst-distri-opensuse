@@ -18,6 +18,10 @@ sub approve_network_popup {
         assert_and_click 'network-discover-yes';
         wait_screen_change(sub { send_key 'ret' }, 10);
     }
+    # We may miss some characters due to type command too fast after network popup
+    # so wait several seconds as a workaround
+    # See poo#109091
+    wait_still_screen 3;
 }
 
 sub run {
