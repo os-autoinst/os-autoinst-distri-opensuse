@@ -34,22 +34,12 @@ sub run {
     assert_script_run "export PATH=\"\$(pwd):\$PATH\"";
     assert_script_run "wget --quiet " . data_url('selenium/selenium_html5.py') . " -O selenium_html5.py";
 
-    # run selenium script, parse results and upload logs
-    assert_script_run "python3 selenium_html5.py >&1 | tee selenium_output.txt ", timeout => 120;
-    my $res = script_output("cat selenium_output.txt");
-    my @errs = ();
-    foreach my $line (split(/\n/, $res)) {
-        if (index($line, 'FAIL') != -1) {
-            my ($match) = $line =~ /\[\[ ( (?:(?!\]\]).)* ) \]\]/x;
-            push(@errs, $match);
-        }
-    }
-    upload_logs('geckodriver.log', log_name => 'html5-geckodriver-log.txt');
+    # run selenium tests
+    script_run 'python3 selenium_html5.py >&1 | tee selenium_output.txt', timeout => 120;
+    # upload results and logs and conclude test
+    upload_logs('geckodriver.log', log_name => 'html5-geckodriver-log.txt', failok => 1);
     upload_logs('selenium_output.txt', log_name => 'html5-selenium-results.txt');
+    assert_script_run 'EXP="TESTS OK" ; FAIL="$(tail -n 1 selenium_output.txt)" ; [ "$EXP" == "$FAIL" ]', fail_message => 'Test failed: check "html5-selenium-results" log for details.';
     assert_script_run 'cd .. && rm -rf temp_selenium';
-    if (@errs) {
-        my $errors = join(" | ", @errs);
-        die "$errors";
-    }
 }
 1;
