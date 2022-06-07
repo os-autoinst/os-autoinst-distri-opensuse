@@ -1,0 +1,32 @@
+name: postgresql_ssl
+description:    >
+    postgresql ssl connection test.
+schedule:
+    - '{{bootloader}}'
+    - boot/boot_to_desktop
+    - '{{setup_multimachine}}'
+    - '{{fips_setup}}'
+    - '{{postgresql_ssl}}'
+conditional_schedule:
+    bootloader:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
+            ppc64le:
+                - installation/bootloader
+    setup_multimachine:
+        ARCH:
+            aarch64:
+                - network/setup_multimachine
+            x86_64:
+                - network/setup_multimachine
+    fips_setup:
+        FIPS_ENABLED:
+            1:
+                - fips/fips_setup
+    postgresql_ssl:
+        HOSTNAME:
+            server:
+                - security/postgresql_ssl/postgresql_ssl_server
+            client:
+                - security/postgresql_ssl/postgresql_ssl_client
