@@ -30,7 +30,7 @@ sub post_execute_script_configuration {
 
     #online upgrade actually
     if (is_remote_backend && is_aarch64 && is_installed_equal_upgrade_major_release) {
-        set_serial_console_on_vh('', '', 'kvm');
+        set_grub_on_vh('', '', 'kvm');
         set_pxe_efiboot('');
     }
 }

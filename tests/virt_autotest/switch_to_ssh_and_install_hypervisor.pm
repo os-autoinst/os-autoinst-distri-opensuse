@@ -50,7 +50,7 @@ sub run {
     my $hypervisor = is_kvm_host ? 'kvm' : 'xen';
     zypper_call('--gpg-auto-import-keys ref');
     zypper_call("in -t pattern ${hypervisor}_server ${hypervisor}_tools", 1800);
-    set_serial_console_on_vh('', '', $hypervisor);
+    set_grub_on_vh('', '', $hypervisor);
     systemctl 'enable libvirtd', ignore_failure => 1;
 
     virt_autotest::utils::install_default_packages();
