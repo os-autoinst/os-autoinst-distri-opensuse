@@ -21,7 +21,7 @@ While most of the setup is similar, there are some key differences:
 │                           │  USB   │  └───────┘ │
 │                           ├───────►│ USB SD-Mux ├─┐ µSD   ┌────────────────┐         ┌─────────────────┐
 │         piworker          │        └────────────┘ └──────►│                │   5V    │ WLAN Power Plug │
-│     Raspberry Pi 4(00)    │      USB UART Adapter         │ Raspberry Pi 4 ├────────►│  Shelly Plug S  │
+│      Raspberry Pi 4B      │      USB UART Adapter         │ Raspberry Pi 4 ├────────►│  Shelly Plug S  │
 │                           ├──────────────────────────────►│                │         └─────────────────┘
 │ ┌───────────────────────┐ │                               └────────────────┘
 │ │ openQA-worker WLAN AP │ │        ┌──┬───────┬─┐
@@ -229,18 +229,29 @@ firewall-cmd --reload
 ```
 
 ## Bluetooth configuration
-Write to `/etc/bluetooth/main.conf`:
+Write to `/etc/systemd/system/bluetooth-config.service`:
 ```
-[Policy]
-AutoEnable=true
-[General]
-DiscoverableTimeout = 0
-Name = openQA-worker
+[Unit]
+Description=Configure bluetooth
+After=bluetooth.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bluetoothctl power on
+ExecStart=/usr/bin/bluetoothctl system-alias openQA-worker
+ExecStart=/usr/bin/bluetoothctl discoverable-timeout 0
+ExecStart=/usr/bin/bluetoothctl discoverable on
+ExecStart=/usr/bin/bluetoothctl show
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
 ```
 
 Enable bluetooth:
 ```
 systemctl enable --now bluetooth
+systemctl enable --now bluetooth-config
 ```
 
 ## Workaround for insufficient RAM
