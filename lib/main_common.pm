@@ -2436,6 +2436,10 @@ sub load_security_tests_cc_audit_test {
     # Such as: download code branch; install needed packages
     loadtest 'security/cc/cc_audit_test_setup';
 
+    # For s390x, we enable root ssh when installing system, so we need to
+    # disable root ssh login, because this is a requirement for cc testing.
+    loadtest 'security/cc/disable_root_ssh' if (is_s390x);
+
     # Run test cases of 'audit-test' test suite which do NOT need SELinux env
     loadtest 'security/cc/audit_tools';
     loadtest 'security/cc/fail_safe';
@@ -2444,11 +2448,21 @@ sub load_security_tests_cc_audit_test {
     loadtest 'security/cc/extended_apparmor_interface_trace_test';
     loadtest 'security/cc/apparmor_negative_test';
 
+    # For s390x, we should enable root ssh before rebooting, otherwise, the automation test
+    # will fail on can't login the system.
+    if (is_s390x) {
+        my $root_ssh_switch = OpenQA::Test::RunArgs->new();
+        $root_ssh_switch->{option} = 'yes';
+        loadtest('security/cc/disable_root_ssh', name => 'enable_root_ssh', run_args => $root_ssh_switch);
+    }
     # Some audit tests must be run in selinux enabled mode. so load selinux setup here
     # Setup environment for cc testing: SELinux setup
     # Such as: set up SELinux with permissive mode and specific policy type
     loadtest 'security/selinux/selinux_setup';
     loadtest 'security/cc/cc_selinux_setup';
+
+    # When system reboot, we need to disable root ssh for following tests
+    loadtest 'security/cc/disable_root_ssh' if (is_s390x);
 
     # Run test cases of 'audit-test' test suite which do need SELinux env
     # Please add these test cases here: poo#93441

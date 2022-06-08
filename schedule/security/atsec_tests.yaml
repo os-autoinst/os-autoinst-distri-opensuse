@@ -5,6 +5,7 @@ schedule:
     - '{{bootloader_zkvm}}'
     - boot/boot_to_desktop
     - security/atsec/setup_atsec_env
+    - '{{disable_root_ssh}}'
     - security/atsec/kvm_check
     - security/atsec/drng_test_preparation
     - security/atsec/dbus_services_exposure
@@ -26,3 +27,7 @@ conditional_schedule:
                 - security/atsec/check_processor_vulnerability_mitigations
             aarch64:
                 - security/atsec/check_processor_vulnerability_mitigations
+    disable_root_ssh:
+        ARCH:
+            s390x:
+                - security/cc/disable_root_ssh

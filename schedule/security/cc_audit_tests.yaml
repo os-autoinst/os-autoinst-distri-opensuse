@@ -5,11 +5,12 @@ schedule:
     - '{{bootloader_zkvm}}'
     - boot/boot_to_desktop
     - security/cc/cc_audit_test_setup
+    - security/cc/trustedprograms
+    - '{{disable_root_ssh}}'
     - security/cc/filter
     - security/cc/syscalls
     - security/cc/polkit_tests
     - security/cc/audit_trail_protection
-    - security/cc/trustedprograms
     - security/selinux/selinux_setup
     - security/cc/libpam
 conditional_schedule:
@@ -17,3 +18,7 @@ conditional_schedule:
         ARCH:
             s390x:
                 - installation/bootloader_zkvm
+    disable_root_ssh:
+        ARCH:
+            s390x:
+                - security/cc/disable_root_ssh
