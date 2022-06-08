@@ -21,8 +21,8 @@ sub init {
 
     record_info('AKS', "Setting up credentials");
 
-    my $cluster = get_var("PUBLIC_CLOUD_K8S_CLUSTER", "suseqectesting");
-    my $resource_group = get_var("PUBLIC_CLOUD_AZURE_K8S_RESOURCE_GROUP", "suse-qec-testing");
+    my $cluster = get_var("PUBLIC_CLOUD_K8S_CLUSTER", "suse-qec-testing");
+    my $resource_group = get_var("PUBLIC_CLOUD_AZURE_K8S_RESOURCE_GROUP", "openqa-upload");
     assert_script_run("az aks get-credentials --resource-group $resource_group --name $cluster", 120);
 }
 
