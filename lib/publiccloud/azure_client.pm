@@ -87,10 +87,8 @@ Configure the podman to access the cloud provider registry
 sub configure_podman {
     my ($self) = @_;
 
-    my $login_cmd = sprintf(q(while ! az acr login --name '%s' -u '%s' -p '%s'; do sleep 10; done),
-        $self->container_registry, $self->key_id, $self->key_secret);
-    assert_script_run($login_cmd);
-    $login_cmd = sprintf(q(podman login %s.azurecr.io), $self->container_registry);
+    my $login_cmd = sprintf(q(while ! az acr login --name '%s'; do sleep 10; done),
+        $self->container_registry);
     assert_script_run($login_cmd);
 }
 
