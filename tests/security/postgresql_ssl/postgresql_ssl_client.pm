@@ -5,7 +5,7 @@
 #
 # Summary: The client side of postgresql ssl connection test.
 # Maintainer: Starry Wang <starry.wang@suse.com> Ben Chou <bchou@suse.com>
-# Tags: poo#110233, tc#1769967
+# Tags: poo#110233, tc#1769967, poo#112094
 
 use base 'consoletest';
 use strict;
@@ -25,7 +25,7 @@ sub run {
     # We don't run setup_multimachine in s390x, but we need to know the server and client's
     # ip address, so we add a known ip to NETDEV
     my $netdev = get_var('NETDEV', 'eth0');
-    assert_script_run("ip addr add $server_ip/24 dev $netdev") if (is_s390x);
+    assert_script_run("ip addr add $client_ip/24 dev $netdev") if (is_s390x);
     systemctl("stop firewalld");
 
     zypper_call('in postgresql');
