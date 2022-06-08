@@ -1,0 +1,17 @@
+---
+name: trento
+description: |
+  Run Trento test sequence to generate a JumpHost image:
+    - Install all needed test resources needed to the JumpHost during the test
+    - Install all tools like az cli, helm
+    - Pull all needed conteiners like Cypress/include
+vars:
+    TRENTO_DEPLOY_SCRIPTS_REPO: 'gitlab.suse.de/qa-css/trento'
+    TRENTO_HELM_VERSION: '3.8.2'
+    TRENTO_CYPRESS_VERSION: '3.4.0'
+    TEST_CONTEXT: 'OpenQA::Test::RunArgs'
+schedule:
+    - boot/boot_to_desktop
+    - sles4sap/trento/setup_jumphost
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown
