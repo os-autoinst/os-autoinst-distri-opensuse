@@ -19,8 +19,10 @@ sub init {
     my ($self, %args) = @_;
     $self->SUPER::init("EKS");
 
-    my $cluster = get_var("PUBLIC_CLOUD_K8S_CLUSTER", "qe-c-testing-2");
-    assert_script_run("aws eks update-kubeconfig --name $cluster", 120);
+    my $cluster = get_var("PUBLIC_CLOUD_K8S_CLUSTER", "qe-c-openqa");
+    my $region = get_var("PUBLIC_CLOUD_ZONE", "eu-central-1");
+    assert_script_run("aws eks update-kubeconfig --name $cluster --region $region", 120);
+    assert_script_run("kubectl get nodes");
 }
 
 =head2 delete_container_image

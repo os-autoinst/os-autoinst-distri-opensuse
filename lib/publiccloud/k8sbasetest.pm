@@ -23,11 +23,11 @@ Prepare the provider and install kubectl
 sub init {
     my ($self) = @_;
 
-    my $service = $self->get_k8s_service_name();
-    $self->provider_factory(service => $service);
-
     $self->select_serial_terminal;
     install_kubectl();
+
+    my $service = $self->get_k8s_service_name();
+    $self->provider_factory(service => $service);
 }
 
 =head2 apply_manifest
