@@ -60,7 +60,11 @@ sub run {
     assert_script_run("curl -O " . data_url("containers/docker-compose.yml"));
     assert_script_run("curl -O " . data_url("containers/haproxy.cfg"));
 
-    file_content_replace("docker-compose.yml", REGISTRY => get_var('REGISTRY', 'docker.io'));
+    my $registry = get_var('REGISTRY', 'docker.io');
+    file_content_replace("docker-compose.yml", REGISTRY => $registry);
+    # Pull images in advance to avoid Rate exceeded issues
+    script_retry("docker pull $registry/library/nginx", retry => 3, timeout => 300);
+    script_retry("docker pull $registry/library/haproxy", retry => 3, timeout => 300);
     assert_script_run 'docker-compose pull', 600;
 
     # Start all containers in background

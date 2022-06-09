@@ -33,12 +33,11 @@ sub run {
     }
 
     # cni-podman0 interface is created when running the first container
-    assert_script_run "podman pull " . registry_url('alpine');
+    script_retry "podman pull " . registry_url('alpine'), retry => 3, delay => 120;
     assert_script_run "podman run --rm " . registry_url('alpine');
     validate_script_output('ip a s cni-podman0', sub { /,UP/ });
 
     # Run container in the background
-    assert_script_run "podman pull " . registry_url('alpine');
     assert_script_run "podman run -id --rm --name $container_name -p 1234:1234 " . registry_url('alpine') . " sleep 30d";
 
     # Cheking rules of specific running container

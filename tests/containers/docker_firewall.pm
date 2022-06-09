@@ -50,6 +50,7 @@ sub run {
     validate_script_output "iptables -L DOCKER-USER -nvx --line-numbers", sub { /1.+all.+0\.0\.0\.0\/0\s+0\.0\.0\.0\/0/ };
 
     # Run container in the background
+    script_retry "docker pull " . registry_url('alpine'), retry => 3, delay => 120;
     assert_script_run "docker run -id --rm --name $container_name -p 1234:1234 " . registry_url('alpine') . " sleep 30d";
     my $container_ip = container_ip($container_name, 'docker');
 

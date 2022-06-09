@@ -136,14 +136,14 @@ sub basic_container_tests {
 
     #   - pull minimalistic alpine image of declared version using tag
     #   - https://store.docker.com/images/alpine
-    assert_script_run("$runtime image pull $alpine", timeout => 300);
+    script_retry("$runtime image pull $alpine", timeout => 300);
     #   - pull typical docker demo image without tag. Should be latest.
     #   - https://store.docker.com/images/hello-world
-    assert_script_run("$runtime image pull $hello_world", timeout => 300);
+    script_retry("$runtime image pull $hello_world", timeout => 300);
     #   - pull image of last released version of openSUSE Leap
-    assert_script_run("$runtime image pull $leap", timeout => 600);
+    script_retry("$runtime image pull $leap", timeout => 600);
     #   - pull image of openSUSE Tumbleweed
-    assert_script_run("$runtime image pull $tumbleweed", timeout => 600);
+    script_retry("$runtime image pull $tumbleweed", timeout => 600);
 
     # All images can be listed
     assert_script_run("$runtime image ls");
