@@ -12,13 +12,16 @@ use utils;
 
 sub run ($self) {
     my $mpi = $self->get_mpi();
-    my $exports_path = '/home/bernhard/bin';
+    my %exports_path = (
+        bin => '/home/bernhard/bin',
+        hpc_lib => '/usr/lib/hpc',
+    );
     # Install required HPC dependencies on the nodes act as compute nodes
     my @hpc_deps = $self->get_compute_nodes_deps($mpi);
     zypper_call("in @hpc_deps");
     barrier_wait('CLUSTER_PROVISIONED');
     barrier_wait('MPI_SETUP_READY');
-    $self->mount_nfs_exports($exports_path);
+    $self->mount_nfs_exports(\%exports_path);
 
     barrier_wait('MPI_BINARIES_READY');
     barrier_wait('MPI_RUN_TEST');

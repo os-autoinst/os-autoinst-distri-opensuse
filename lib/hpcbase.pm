@@ -143,15 +143,21 @@ sub distribute_slurm_conf {
 
 =head2 generate_and_distribute_ssh
 
-Generates and distributes ssh keys across all cluster nodes
+     generate_and_distribute_ssh($user)
+
+Generates and distributes ssh keys across compute nodes. C<user> by default is set
+to B<root> user unless another value is passed to the parameters.
+C<user> is used to determine the user on the remote machine where the ssh_id will
+be copied.
 
 =cut
 sub generate_and_distribute_ssh {
-    my ($self) = @_;
-    my @cluster_nodes = cluster_names();
+    my ($self, $user) = @_;
+    $user //= 'root';
+    my @slave_nodes = slave_node_names();
     assert_script_run('ssh-keygen -b 2048 -t rsa -q -N "" -f ~/.ssh/id_rsa');
-    foreach (@cluster_nodes) {
-        exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no root\@$_");
+    foreach (@slave_nodes) {
+        exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no $user\@$_");
     }
 }
 
@@ -236,9 +242,14 @@ sub prepare_spack_env {
     my ($self, $mpi) = @_;
     $mpi //= 'mpich';
     zypper_call "in spack $mpi-gnu-hpc $mpi-gnu-hpc-devel";
-    $self->relogin_root;
-    assert_script_run 'module load gnu $mpi';
+    type_string('pkill -u root');    # this kills sshd
+    $self->select_serial_terminal(0);
+    assert_script_run 'module load gnu $mpi';    ## TODO
     assert_script_run 'source /usr/share/spack/setup-env.sh';
+    record_info 'spack', script_output 'zypper -q info spack';
+    record_info 'boost spec', script_output('spack spec boost', timeout => 360);
+    assert_script_run "spack install boost+mpi^$mpi", timeout => 12000;
+    assert_script_run 'spack load boost';
 }
 
 =head2 uninstall_spack_module
@@ -283,18 +294,18 @@ sub get_compute_nodes_deps {
 =head2 setup_nfs_server
 
 Prepare a nfs server on the so called management node of the HPC setup.
-Exports the path of the *-gnu-hpc installed libraries
-and the directory with the binaries, which compute nodes will share.
-C<exports> points to the location in the filesystem where the source code
-and the binaries are located.
+The management node in a minimal setup should provide the directories
+of *-gnu-hpc installed libraries and the directory with the binaries.
 
+C<exports> takes a hash reference with the paths which NFS should make
+available to the compute nodes in order to run MPI software.
 =cut
 sub setup_nfs_server {
     my ($self, $exports) = @_;
     zypper_call 'in nfs-kernel-server';
-    assert_script_run "echo $exports *(rw,no_root_squash,sync,no_subtree_check) >> /etc/exports";
-    assert_script_run "echo /usr/lib/hpc *(ro,no_root_squash,sync,no_subtree_check) >> /etc/exports";
-    assert_script_run "echo /opt/spack *(ro,no_root_squash,sync,no_subtree_check) >> /etc/exports" if get_var('SPACK');
+    foreach my $dir (values %$exports) {
+        assert_script_run "echo $dir *(rw,no_root_squash,sync,no_subtree_check) >> /etc/exports";
+    }
     assert_script_run 'exportfs -a';
     systemctl 'enable --now nfs-server';
 }
@@ -303,16 +314,16 @@ sub setup_nfs_server {
 
 Make the HPC libraries and the location of the binaries available to the so called
 compute nodes, from the management one.
-C<exports> should be the location which nfs server exports the source code and the binaries.
-
+C<exports> takes a hash reference with the paths which the management node share in order to
+run the MPI binaries
 =cut
 sub mount_nfs_exports {
     my ($self, $exports) = @_;
     zypper_call 'in nfs-client';
-    assert_script_run "mount master-node00:$exports $exports";
-    assert_script_run 'mkdir /usr/lib/hpc';
-    assert_script_run 'mount master-node00:/usr/lib/hpc /usr/lib/hpc';
-    assert_script_run 'mount master-node00:/opt/spack /opt/spack' if get_var('SPACK');
+    foreach my $dir (values %$exports) {
+        assert_script_run "mkdir -p $dir" unless script_run("test -f $dir", quiet => 1) == 0;
+        assert_script_run "mount master-node00:$dir $dir", timeout => 120;
+    }
 }
 
 1;
