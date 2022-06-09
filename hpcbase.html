@@ -61,7 +61,9 @@
 
 <h2 id="generate_and_distribute_ssh">generate_and_distribute_ssh</h2>
 
-<p>Generates and distributes ssh keys across all cluster nodes</p>
+<pre><code>     generate_and_distribute_ssh($user)</code></pre>
+
+<p>Generates and distributes ssh keys across compute nodes. <code>user</code> by default is set to <b>root</b> user unless another value is passed to the parameters. <code>user</code> is used to determine the user on the remote machine where the ssh_id will be copied.</p>
 
 <h2 id="check_nodes_availability">check_nodes_availability</h2>
 
@@ -105,11 +107,13 @@
 
 <h2 id="setup_nfs_server">setup_nfs_server</h2>
 
-<p>Prepare a nfs server on the so called management node of the HPC setup. Exports the path of the *-gnu-hpc installed libraries and the directory with the binaries, which compute nodes will share. <code>exports</code> points to the location in the filesystem where the source code and the binaries are located.</p>
+<p>Prepare a nfs server on the so called management node of the HPC setup. The management node in a minimal setup should provide the directories of *-gnu-hpc installed libraries and the directory with the binaries.</p>
+
+<p><code>exports</code> takes a hash reference with the paths which NFS should make available to the compute nodes in order to run MPI software.</p>
 
 <h2 id="mount_nfs_exports">mount_nfs_exports</h2>
 
-<p>Make the HPC libraries and the location of the binaries available to the so called compute nodes, from the management one. <code>exports</code> should be the location which nfs server exports the source code and the binaries.</p>
+<p>Make the HPC libraries and the location of the binaries available to the so called compute nodes, from the management one. <code>exports</code> takes a hash reference with the paths which the management node share in order to run the MPI binaries</p>
 
 
 </body>
