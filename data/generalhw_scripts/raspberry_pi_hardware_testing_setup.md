@@ -92,6 +92,13 @@ Add to `/etc/fstab`:
 openqa.suse.de:/var/lib/openqa/share /var/lib/openqa/share nfs noauto,nofail,retry=30,ro,x-systemd.automount,x-systemd.device-timeout=10m,x-systemd.mount-timeout=30m  0 0
 ```
 
+## Use tmpfs for pool directory (to extend sdcard lifetime if you have enough RAM)
+
+Add to `/etc/fstab`:
+```
+tmpfs /var/lib/openqa/pool tmpfs defaults 0 0
+```
+
 ## Create worker configuration
 
 Add to `/etc/openqa/workers.ini`:
