@@ -172,11 +172,7 @@ sub compare_run_log {
 #
 sub _parse_results_with_diff_baseline {
     my ($name, $result, $msg, $flag) = @_;
-    my $softfail_tests = {
-        s390x => {
-            ssh04 => 'Test case ssh04 fails in s390x is a known issue, see poo#99096'
-        }
-    };
+    my $softfail_tests = {};
     if ($result eq 'PASS') {
         record_soft_failure($msg);
         $flag = 'softfail' if ($flag ne 'fail');
