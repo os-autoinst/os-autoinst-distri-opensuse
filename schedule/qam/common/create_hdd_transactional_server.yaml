@@ -5,22 +5,16 @@ description: >
     root filesystem to provide atomic, automatic updates of a
     system without interfering with the running system.
 vars:
-    SCC_ADDONS: tsm
+    DEPENDENCY_RESOLVER_FLAG: 1
+    DESKTOP: textmode
+    PATTERNS: base,minimal
     HDDSIZEGB: 40
-conditional_schedule:
-    kernel_cmd_parameters:
-        BACKEND:
-            pvm_hmc:
-            - installation/edit_optional_kernel_cmd_parameters
-    shutdown_svirt:
-        BACKEND:
-            svirt:
-            - shutdown/svirt_upload_assets
 schedule:
     - installation/bootloader_start
     - installation/welcome
     - installation/accept_license
     - installation/scc_registration
+    - installation/add_update_test_repo
     - installation/addon_products_sle
     - installation/system_role
     - installation/partitioning
@@ -29,8 +23,8 @@ schedule:
     - installation/user_settings
     - installation/user_settings_root
     - installation/resolve_dependency_issues
+    - installation/select_patterns
     - installation/installation_overview
-    - "{{kernel_cmd_parameters}}"
     - installation/disable_grub_timeout
     - installation/start_install
     - installation/await_install
@@ -44,4 +38,3 @@ schedule:
     - shutdown/grub_set_bootargs
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
-    - "{{shutdown_svirt}}"
