@@ -21,7 +21,7 @@ While most of the setup is similar, there are some key differences:
 │                           │  USB   │  └───────┘ │
 │                           ├───────►│ USB SD-Mux ├─┐ µSD   ┌────────────────┐         ┌─────────────────┐
 │         piworker          │        └────────────┘ └──────►│                │   5V    │ WLAN Power Plug │
-│     Raspberry Pi 4(00)    │      USB UART Adapter         │ Raspberry Pi 4 ├────────►│  Shelly Plug S  │
+│      Raspberry Pi 4B      │      USB UART Adapter         │ Raspberry Pi 4 ├────────►│  Shelly Plug S  │
 │                           ├──────────────────────────────►│                │         └─────────────────┘
 │ ┌───────────────────────┐ │                               └────────────────┘
 │ │ openQA-worker WLAN AP │ │        ┌──┬───────┬─┐
@@ -92,6 +92,13 @@ Add to `/etc/fstab`:
 openqa.suse.de:/var/lib/openqa/share /var/lib/openqa/share nfs noauto,nofail,retry=30,ro,x-systemd.automount,x-systemd.device-timeout=10m,x-systemd.mount-timeout=30m  0 0
 ```
 
+## Use tmpfs for pool directory (to extend sdcard lifetime if you have enough RAM)
+
+Add to `/etc/fstab`:
+```
+tmpfs /var/lib/openqa/pool tmpfs defaults 0 0
+```
+
 ## Create worker configuration
 
 Add to `/etc/openqa/workers.ini`:
@@ -125,14 +132,9 @@ In the configuration above the sdmux devices (the control as well as the block d
 Workaround for https://progress.opensuse.org/issues/105855: openqa-worker will fail if it starts before NTP sync is done (on non-RTC hosts) so auto-restart worker and try to wait for time-sync.target.
 Write to `/etc/systemd/system/openqa-worker@.service.d/override.conf`:
 ```
-[Unit]
-Wants=time-sync.target
-After=time-sync.target
- 
 [Service]
-Restart=on-failure
-# Allow ntp daemon to sync
-ExecStartPre=sleep 30s
+Restart=always
+RestartSec=10s
 ```
 
 Enable the worker:
@@ -229,18 +231,29 @@ firewall-cmd --reload
 ```
 
 ## Bluetooth configuration
-Write to `/etc/bluetooth/main.conf`:
+Write to `/etc/systemd/system/bluetooth-config.service`:
 ```
-[Policy]
-AutoEnable=true
-[General]
-DiscoverableTimeout = 0
-Name = openQA-worker
+[Unit]
+Description=Configure bluetooth
+After=bluetooth.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bluetoothctl power on
+ExecStart=/usr/bin/bluetoothctl system-alias openQA-worker
+ExecStart=/usr/bin/bluetoothctl discoverable-timeout 0
+ExecStart=/usr/bin/bluetoothctl discoverable on
+ExecStart=/usr/bin/bluetoothctl show
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
 ```
 
 Enable bluetooth:
 ```
 systemctl enable --now bluetooth
+systemctl enable --now bluetooth-config
 ```
 
 ## Workaround for insufficient RAM
