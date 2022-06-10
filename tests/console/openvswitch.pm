@@ -3,7 +3,7 @@
 # Copyright 2016-2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: openvswitch-switch iputils
+# Package: openvswitch iputils
 # Summary: Basic openvswitch test
 #
 #   This test does the following
@@ -21,12 +21,17 @@ use testapi;
 use strict;
 use warnings;
 use utils;
+use version_utils qw(is_sle);
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    zypper_call('in openvswitch-switch iputils', timeout => 300);
+    my $pkg_name = 'openvswitch';
+    # package openvswitch-switch still exist for sle12-sp2
+    $pkg_name = 'openvswitch-switch' if is_sle('=12-sp2');
+
+    zypper_call("in $pkg_name iputils", timeout => 300);
 
     # Start the openvswitch daemon
     systemctl 'start openvswitch', timeout => 200;
