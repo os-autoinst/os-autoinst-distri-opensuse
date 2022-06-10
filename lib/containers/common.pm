@@ -306,7 +306,7 @@ sub check_containers_connectivity {
     my $container_name = 'sut_container';
 
     # Run container in the background (sleep for 30d because infinite is not supported by sleep in busybox)
-    assert_script_run "$runtime pull " . registry_url('alpine');
+    script_retry "$runtime pull " . registry_url('alpine'), retry => 3, delay => 120;
     assert_script_run "$runtime run -id --rm --name $container_name -p 1234:1234 " . registry_url('alpine') . " sleep 30d";
     my $container_ip = container_ip $container_name, $runtime;
 
