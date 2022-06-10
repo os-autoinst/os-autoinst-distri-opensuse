@@ -64,7 +64,7 @@
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Web-Scripting/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
-      % unless ($check_var->('VERSION', '15')) {
+      % unless ($check_var->('VERSION', '15-SP4')) {
       <listentry>
         <name>sle-module-python2:<%= $get_var->('VERSION') %>::pool</name>
         <alias>sle-module-python2:<%= $get_var->('VERSION') %>::pool</alias>
