@@ -1,0 +1,19 @@
+name: ecryptfs
+description:    >
+    This is for ecryptfs test
+schedule:
+    - '{{bootloader}}'
+    - boot/boot_to_desktop
+    - '{{fips_setup}}'
+    - security/ecryptfs/ecryptfs
+conditional_schedule:
+    bootloader:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
+            ppc64le:
+                - installation/bootloader
+    fips_setup:
+        FIPS_ENABLED:
+            1:
+                - fips/fips_setup
