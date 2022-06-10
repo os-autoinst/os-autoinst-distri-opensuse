@@ -48,6 +48,7 @@ use constant {
           get_os_release
           check_os_release
           package_version_cmp
+          get_version_id
         )
     ],
     BACKEND => [
@@ -778,4 +779,24 @@ Returns true if called in quaterly iso testing
 =cut
 sub is_quarterly_iso {
     return 1 if get_var('FLAVOR', '') =~ /QR/;
+}
+
+=head2 get_version_id
+
+  get_version_id(dst_machine => 'machine')
+
+Get SLES version from VERSION_ID in /etc/os-release. This subroutine also supports
+performing query on remote machine if dst_machine is given specific ip address or
+fqdn text of the remote machine. The default location that contains VERSION_ID is
+file /etc/os-release if nothing else is passed in to argument verid_file.
+
+=cut
+sub get_version_id {
+    my (%args) = @_;
+    $args{dst_machine} //= 'localhost';
+    $args{verid_file} //= '/etc/os-release';
+
+    my $cmd = "cat $args{verid_file} | grep VERSION_ID | grep -Eo \"[[:digit:]]{1,}\\.[[:digit:]]{1,}\"";
+    $cmd = "ssh root\@$args{dst_machine} " . "$cmd" if ($args{dst_machine} ne 'localhost');
+    return script_output($cmd);
 }
