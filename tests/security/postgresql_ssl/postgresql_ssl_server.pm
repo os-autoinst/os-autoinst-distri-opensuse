@@ -5,7 +5,7 @@
 #
 # Summary: The server side of postgresql ssl connection test.
 # Maintainer: Starry Wang <starry.wang@suse.com> Ben Chou <bchou@suse.com>
-# Tags: poo#110233, tc#1769967
+# Tags: poo#110233, tc#1769967, poo#112094
 
 use base 'consoletest';
 use strict;
@@ -62,8 +62,9 @@ sub run {
     save_screenshot;
 
     # Setup configuration
-    assert_script_run "echo \"hostssl all all $client_ip/32 trust\" >> $pg_hba_config";
+    assert_script_run "echo \"hostssl all all $client_ip/24 trust\" >> $pg_hba_config";
     assert_script_run "echo \"ssl = on\nlisten_addresses = '*'\" >> $pg_config";
+    assert_script_run "echo \"ssl_cert_file = 'server.crt'\" >> $pg_config";
     systemctl('restart postgresql');
 
     # Check the server status
