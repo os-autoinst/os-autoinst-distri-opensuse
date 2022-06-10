@@ -132,14 +132,9 @@ In the configuration above the sdmux devices (the control as well as the block d
 Workaround for https://progress.opensuse.org/issues/105855: openqa-worker will fail if it starts before NTP sync is done (on non-RTC hosts) so auto-restart worker and try to wait for time-sync.target.
 Write to `/etc/systemd/system/openqa-worker@.service.d/override.conf`:
 ```
-[Unit]
-Wants=time-sync.target
-After=time-sync.target
- 
 [Service]
-Restart=on-failure
-# Allow ntp daemon to sync
-ExecStartPre=sleep 30s
+Restart=always
+RestartSec=10s
 ```
 
 Enable the worker:
