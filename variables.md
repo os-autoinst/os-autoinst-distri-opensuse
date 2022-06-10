@@ -58,10 +58,8 @@ DVD |||
 ENCRYPT | boolean | false | Enables or indicates encryption of the disks. Can be combined with `FULL_LVM_ENCRYPT`, `ENCRYPT_CANCEL_EXISTING`, `ENCRYPT_ACTIVATE_EXISTING` and `UNENCRYPTED_BOOT`.
 ENCRYPT_CANCEL_EXISTING | boolean | false | Used to cancel activation of the encrypted partitions |
 SOFTLOCKUP_PANIC_DISABLED | boolean | false | Disables panicking on softlockup, provides a stack trace once a softlockup has been detected (see POO#50345)
-ETC_PASSWD | string | | Sets content for /etc/passwd, can be used to mimic existing users. Is used to test import of existing users on backends which
-have no shapshoting support (powerVM, zVM). Should be used together with `ENCRYPT_ACTIVATE_EXISTING` and `ETC_SHADOW`.
-ETC_SHADOW | string | | Sets content for /etc/shadow, can be used to mimic existing users. Is used to test import of existing users on backends which
-have no shapshoting support (powerVM, zVM). Should be used together with `ENCRYPT_ACTIVATE_EXISTING` and `ETC_PASSWD`.
+ETC_PASSWD | string | | Sets content for /etc/passwd, can be used to mimic existing users. Is used to test import of existing users on backends which have no shapshoting support (powerVM, zVM). Should be used together with `ENCRYPT_ACTIVATE_EXISTING` and `ETC_SHADOW`.
+ETC_SHADOW | string | | Sets content for /etc/shadow, can be used to mimic existing users. Is used to test import of existing users on backends which have no shapshoting support (powerVM, zVM). Should be used together with `ENCRYPT_ACTIVATE_EXISTING` and `ETC_PASSWD`.
 EVERGREEN |||
 EXIT_AFTER_START_INSTALL | boolean | false | Indicates that test suite will be finished after `installation/start_install` test module. So that all the test modules after this one will not be scheduled and executed.
 EXPECTED_INSTALL_HOSTNAME | string | | Contains expected hostname YaST installer got from the environment (DHCP, 'hostname=', as a kernel cmd line argument)
@@ -115,6 +113,7 @@ MIRROR_{protocol} | string | | Specify source address
 MOK_VERBOSITY | boolean | false | Enable verbosity feature of shim. Requires preinstalled `mokutil`.
 MOZILLATEST |||
 NAME | string | | Name of the test run including distribution, build, machine name and job id.
+NAMESERVER | string | | Can be used to specify a name server's IP or FQDN.
 NET | boolean | false | Indicates net installation.
 NETBOOT | boolean | false | Indicates net boot.
 NETDEV | string | | Network device to be used when adding interface on zKVM.
