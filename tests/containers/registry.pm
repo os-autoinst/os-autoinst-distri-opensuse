@@ -64,8 +64,9 @@ sub run {
 
     # Install and check that it's running
     add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1) if is_sle(">=15");
-    zypper_call 'se -v docker-distribution-registry';
-    zypper_call 'in docker-distribution-registry';
+    my $pkg = is_tumbleweed ? 'distribution-registry' : 'docker-distribution-registry';
+    zypper_call "se -v $pkg";
+    zypper_call "in $pkg";
     systemctl '--now enable registry';
     systemctl 'status registry';
 
