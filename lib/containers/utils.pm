@@ -83,7 +83,7 @@ sub registry_url {
 sub runtime_smoke_tests {
     my %args = @_;
     my $runtime = $args{runtime};
-    my $image = $args{image} // registry_url('alpine', '3.6');
+    my $image = $args{image} // registry_url('alpine', 'latest');
 
     record_info('Smoke', "Smoke test running image: $image on runtime: $runtime.");
 
@@ -125,7 +125,7 @@ sub basic_container_tests {
     my %args = @_;
     my $runtime = $args{runtime};
     die "You must define the runtime!" unless $runtime;
-    my $alpine_image_version = '3.6';
+    my $alpine_image_version = 'latest';
     my $alpine = registry_url('alpine', $alpine_image_version);
     my $hello_world = registry_url('hello-world');
     my $leap = "registry.opensuse.org/opensuse/leap";
