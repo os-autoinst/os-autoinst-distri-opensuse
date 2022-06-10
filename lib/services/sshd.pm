@@ -111,12 +111,12 @@ sub ssh_basic_check {
     # Add a workaround about bsc#1193275 in FIPS test
     my $output_4242 = script_output("ssh-keyscan -p 4242 localhost >> ~/.ssh/known_hosts", proceed_on_failure => 1);
     if ($output_4242 =~ /choose_kex: unsupported KEX method curve25519-sha256/) {
-        record_soft_failure('bsc#1193275 - Currently the curve25519 is not FIPS approved');
+        record_info('bsc#1193275 - Currently the curve25519 is not FIPS approved');
     }
 
     my $output_5252 = script_output("ssh-keyscan -p 5252 localhost >> ~/.ssh/known_hosts", proceed_on_failure => 1);
     if ($output_5252 =~ /choose_kex: unsupported KEX method curve25519-sha256/) {
-        record_soft_failure('bsc#1193275 - Currently the curve25519 is not FIPS approved');
+        record_info('bsc#1193275 - Currently the curve25519 is not FIPS approved');
     }
 
     # Connect to forwarded ports
