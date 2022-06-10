@@ -27,7 +27,7 @@ has container_registry => sub { get_required_var('PUBLIC_CLOUD_CONTAINER_IMAGES_
 sub init {
     my ($self) = @_;
     if (get_var('PUBLIC_CLOUD_CREDENTIALS_URL')) {
-        my $data = get_credentials();
+        my $data = get_credentials('azure.json');
         $self->subscription($data->{subscription_id});
         $self->key_id($data->{client_id});
         $self->key_secret($data->{client_secret});
