@@ -16,7 +16,9 @@ use Utils::Architectures;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+
+    # In CC testing, the root login will be disabled, so we need to use select_console
+    is_s390x() ? select_console 'root-console' : $self->select_serial_terminal;
 
     # Using packages from gitlab
     my $repo_link = 'https://gitlab.suse.de/QA-APAC-I/testing/-/raw/master/data/selinux';

@@ -8,6 +8,7 @@ schedule:
     - '{{setup_multimachine}}'
     - security/cc/cc_audit_test_setup
     - security/atsec/setup_atsec_env
+    - '{{disable_root_ssh}}'
     - '{{cc_ipsec}}'
 conditional_schedule:
     bootloader_zkvm:
@@ -36,3 +37,7 @@ conditional_schedule:
                 - security/cc/ipsec/weak_ipsec_ciphers
                 - security/cc/ipsec/ipsec_ciphers
                 - security/cc/ipsec/ipsec_certificate
+    disable_root_ssh:
+        ARCH:
+            s390x:
+                - security/cc/disable_root_ssh
