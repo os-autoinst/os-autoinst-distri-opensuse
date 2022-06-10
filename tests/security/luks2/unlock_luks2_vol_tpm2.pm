@@ -4,17 +4,18 @@
 # Summary: Unlocking LUKS volumes with TPM2
 #
 # Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#107488, tc#1769799
+# Tags: poo#107488, tc#1769799, poo#112241
 
 use strict;
 use warnings;
 use base 'consoletest';
 use base 'opensusebasetest';
 use testapi;
-use utils 'zypper_call';
+use utils qw(quit_packagekit zypper_call);
 
 sub run {
     select_console 'root-console';
+    quit_packagekit;
     zypper_call('in expect');
 
     # Get the partition of the root volume
