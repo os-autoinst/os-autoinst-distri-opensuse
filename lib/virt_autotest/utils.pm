@@ -26,10 +26,10 @@ use IO::Socket::INET;
 use Carp;
 
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host
-  check_host check_guest print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages
-  upload_y2logs ensure_default_net_is_active ensure_guest_started ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks
-  remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests is_guest_online wait_guests_shutdown
-  setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host check_port_state);
+  check_host check_guest print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs
+  ensure_default_net_is_active ensure_guest_started ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks remove_additional_nic
+  collect_virt_system_logs shutdown_guests wait_guest_online start_guests is_guest_online wait_guests_shutdown setup_common_ssh_config
+  add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host check_port_state subscribe_extensions_and_modules);
 
 # helper function: Trim string
 sub trim {
@@ -605,6 +605,53 @@ sub check_port_state {
     }
     record_info("Port $dst_port is not open", "The port $dst_port is not open on machine $dst_machine") if ($port_state == 0);
     return $port_state;
+}
+
+=head2 subscribe_extensions_and_modules
+
+  subscribe_extensions_and_modules(dst_machine => $machine, activate => 1/0, reg_exts => $exts)
+
+Any available extensions and modules listed out by SUSEConnect --list-extensions
+that do not require additional regcode can be subscribe directly by using command
+SUSEConnect -p [extension or module]. Subscription is to be performed on localhost
+by default if argument dst_machine is not given any other address, and successful
+access to dst_machine via ssh should be guaranteed in advance if dst_machine points 
+to a remote machine. Deactivation is also supported if argument activate is given 
+0 explicitly. Multiple extensions or modules can be passed in as a single string 
+separated by space to argument reg_exts to be subscribed one by one.
+
+=cut
+sub subscribe_extensions_and_modules {
+    my (%args) = @_;
+    $args{dst_machine} //= 'localhost';
+    $args{activate} //= 1;
+    $args{reg_exts} //= '';
+    croak('Nothing to be subscribed. Please pass something to argument reg_exts.') if ($args{reg_exts} eq '');
+
+    my $cmd = '';
+    $cmd = "SUSEConnect -l";
+    $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
+    my $ret = script_run($cmd);
+    save_screenshot;
+    unless ($ret == 0) {
+        record_info("Base product not registered or no extensions/modules available.", script_output($cmd, proceed_on_failure => 1));
+        return $ret;
+    }
+
+    $ret = 0;
+    my @to_be_subscribed = split(/ /, $args{reg_exts});
+    my $version_id = version_utils::get_version_id(dst_machine => "$args{dst_machine}");
+    foreach (@to_be_subscribed) {
+        $cmd = "-p $_/" . $version_id . "/" . get_required_var("ARCH");
+        $cmd = ($args{activate} != 0 ? "SUSEConnect " : "SUSEConnect -d ") . $cmd;
+        $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
+        $ret |= script_run($cmd, timeout => 120);
+        save_screenshot;
+    }
+    $cmd = "SUSEConnect --status-text";
+    $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
+    record_info("Subscription status on $args{dst_machine}", script_output($cmd));
+    return $ret;
 }
 
 1;
