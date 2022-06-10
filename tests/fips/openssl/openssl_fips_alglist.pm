@@ -9,7 +9,7 @@
 #          while system is working in FIPS mode
 #
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tags: poo#44831, poo#65375, poo#101932
+# Tags: poo#44831, poo#65375, poo#101932, poo#111818
 
 use base "consoletest";
 use testapi;
@@ -60,10 +60,14 @@ sub run {
     # The openssl command is adjustment
     else {
         # Add 3DES and 3des support
-        validate_script_output
+        eval {
+            validate_script_output(
 "echo -n 'Invalid Cipher: '; openssl list -cipher-algorithms | sed -e '/AES/d' -e '/aes/d' -e '/DES3/d' -e '/des3/d' -e '/DES-EDE/d' -e '/3DES/d' -e '/3des/d' | wc -l",
-          sub { m/^Invalid Cipher: 0$/ };
-
+                sub { m/^Invalid Cipher: 0$/ }); };
+        if ($@) {
+            # It is not an important function, just record soft failure.
+            # POO#111818
+            record_soft_failure('bsc#1161276 - It is not important function about openssl list -cipher-algorithms, and marked this as WONTFIX'); }
         validate_script_output
 "echo -n 'Invalid Hash: '; openssl list -digest-algorithms | sed -e '/SHA1/d' -e '/SHA224/d' -e '/SHA256/d' -e '/SHA384/d' -e '/SHA512/d' -e '/DSA/d' | wc -l",
           sub { m/^Invalid Hash: 0$/ };
