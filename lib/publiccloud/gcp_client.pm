@@ -36,8 +36,8 @@ has vault => undef;
 sub init {
     my ($self) = @_;
     # For now we support Vault and the credentials-microservice. Vault will be removed after a certain transition period
-    if (get_var('PUBLIC_CLOUD_CREDENTIALS_URL')) {
-        my $data = get_credentials(CREDENTIALS_FILE);
+    if (my $url = get_var('PUBLIC_CLOUD_CREDENTIALS_URL_GCP')) {
+        my $data = get_credentials($url, CREDENTIALS_FILE);
         $self->project_id($data->{project_id});
         $self->account($data->{client_id});
     } else {

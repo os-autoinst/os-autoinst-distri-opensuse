@@ -73,8 +73,8 @@ sub init {
 
     $self->service("EC2") unless (defined($self->service));
 
-    if (get_var('PUBLIC_CLOUD_CREDENTIALS_URL')) {
-        my $data = get_credentials();
+    if (my $url = get_var('PUBLIC_CLOUD_CREDENTIALS_URL_AWS')) {
+        my $data = get_credentials($url);
         $self->key_id($data->{access_key_id});
         $self->key_secret($data->{secret_access_key});
     } elsif (!defined($self->key_id) || !defined($self->key_secret)) {
