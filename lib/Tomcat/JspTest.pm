@@ -259,7 +259,7 @@ sub form() {
     for (1 .. 2) { send_key('ret'); }
 
     if (check_screen('tomcat-click-save-login', 60)) {
-        assert_and_click('tomcat-click-save-login', TIMEOUT);
+        assert_and_click('tomcat-click-save-login', timeout=> TIMEOUT);
     }
 
     send_key('tab');
