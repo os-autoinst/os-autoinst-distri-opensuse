@@ -45,7 +45,7 @@ our %EXPORT_TAGS = (
 
  is_s390x();
 
-Returns C<check_var('s390x')>.
+Returns C<check_var('ARCH', 's390x')>.
 
 =cut
 sub is_s390x {
@@ -56,7 +56,7 @@ sub is_s390x {
 
  is_i586();
 
-Returns C<check_var('is_i586')>.
+Returns C<check_var('ARCH', 'is_i586')>.
 
 =cut
 sub is_i586 {
@@ -67,7 +67,7 @@ sub is_i586 {
 
  is_i686();
 
-Returns C<check_var('is_i686')>.
+Returns C<check_var('ARCH', 'is_i686')>.
 
 =cut
 sub is_i686 {
@@ -78,7 +78,7 @@ sub is_i686 {
 
  is_x86_64();
 
-Returns C<check_var('x86_64')>.
+Returns C<check_var('ARCH', 'x86_64')>.
 
 =cut
 sub is_x86_64 {
@@ -89,7 +89,7 @@ sub is_x86_64 {
 
  is_x86_64_v2();
 
-Returns C<check_var('is_x86_64_v2')>.
+Returns C<check_var('ARCH', 'is_x86_64_v2')>.
 
 =cut
 sub is_x86_64_v2 {
@@ -105,7 +105,7 @@ sub is_x86_64_v2 {
 
  is_aarch64();
 
-Returns C<check_var('aarch64')>.
+Returns C<check_var('ARCH', 'aarch64')>.
 
 =cut
 sub is_aarch64 {
@@ -127,7 +127,7 @@ sub is_arm {
 
  is_ppc64le();
 
-Returns C<check_var('ppc64le')>.
+Returns C<check_var('ARCH', 'ppc64le')>.
 
 =cut
 sub is_ppc64le {
@@ -138,7 +138,7 @@ sub is_ppc64le {
 
  is_ppc64();
 
- Returns C<check_var('ppc64')>.
+ Returns C<check_var('ARCH', 'ppc64')>.
 
 =cut
 sub is_ppc64 {
