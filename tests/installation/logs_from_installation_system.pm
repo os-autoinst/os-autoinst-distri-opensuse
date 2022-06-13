@@ -43,6 +43,18 @@ sub run {
         assert_script_run('umount /mnt');
     }
 
+    # Due to bsc#1198190, in fips + encrypt mode, If this system
+    # has a separate boot partition, it is REQUIRED to add
+    # "boot=/dev/sda1" (use the correct path to your boot partition)
+    # or fips will fail and the system may not boot
+    if (get_var('FIPS_INSTALLATION') && get_var('ENCRYPT') && get_var('UNENCRYPTED_BOOT')) {
+        my $stor_inst = "/var/log/YaST2/storage-inst/*committed.yml";
+        my $boot_hd = script_output("cat $stor_inst | grep -B4 'mount_point: \"/boot\"' | grep name | awk -F \\\" '{print \$2}'");
+        assert_script_run("mount $boot_hd /mnt");
+        assert_script_run("sed -i -e \"s#fips=1#boot=$boot_hd fips=1#g\" /mnt/grub2/grub.cfg");
+        assert_script_run('umount /mnt');
+    }
+
     # check for right boot-device on s390x (zVM, DASD ONLY)
     if (is_backend_s390x && !check_var('S390_DISK', 'ZFCP')) {
         if (script_run("lsreipl | grep $dasd_path")) {
