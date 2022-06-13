@@ -158,7 +158,7 @@ sub run {
                 $self->result('fail');
             }
             else {
-                record_soft_failure('bsc#1191684', 'Apparmor profile test case "apache2_changehat" found some "DENIED" audit records');
+                record_soft_failure('bsc#1191684 - Apparmor profile test case "apache2_changehat" found some "DENIED" audit records');
             }
         }
     }

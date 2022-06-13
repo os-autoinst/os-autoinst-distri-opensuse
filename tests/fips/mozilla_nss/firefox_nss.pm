@@ -170,7 +170,7 @@ sub run {
 
         # Add max_interval while type password and extend time of click needle match
         type_string($fips_password, max_interval => 2);
-        assert_and_click("firefox-enter-password-OK" => 120);
+        assert_and_click('firefox-enter-password-OK', timeout => 120);
         wait_still_screen 10;
 
         # Add a condition to avoid the password missed input
