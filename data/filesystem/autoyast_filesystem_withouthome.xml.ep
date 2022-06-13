@@ -6,7 +6,7 @@
     <email/>
     <reg_code>{{SCC_REGCODE}}</reg_code>
     <install_updates config:type="boolean">true</install_updates>
-    % unless ($check_var->('FLAVOR', '') =~ /-Updates$|-Incidents/) {
+    % unless ($get_var->('FLAVOR') =~ /-Updates$|-Incidents/) {
     <reg_server>{{SCC_URL}}</reg_server>
     % }
     <addons config:type="list">
