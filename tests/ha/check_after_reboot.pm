@@ -27,6 +27,9 @@ sub run {
     $timeout_scale = 2 if ($timeout_scale < 2);
     set_var('TIMEOUT_SCALE', $timeout_scale) unless (is_x86_64);
 
+    #sleep 120;
+    #record_info "sleep 120";
+
     # Check cluster state *after* reboot
     barrier_wait("CHECK_AFTER_REBOOT_BEGIN_${cluster_name}_NODE${node_index}");
 
@@ -40,6 +43,11 @@ sub run {
     # in that case
     select_console 'root-console' if (get_var('HDDVERSION'));
 
+    #     my $ip = get_var('IP');
+    # my $netdev = get_var('NETDEV', 'eth0');
+    # assert_script_run("ip addr add $ip/24 dev $netdev");
+    #assert_script_run("ip addr");
+ 
     # Remove iptable rules in node 1 when testing qnetd/qdevice in multicast
     assert_script_run "iptables -F && iptables -X" if (is_node(1) && check_var('QDEVICE_TEST_ROLE', 'client') && !get_var('HA_UNICAST'));
 

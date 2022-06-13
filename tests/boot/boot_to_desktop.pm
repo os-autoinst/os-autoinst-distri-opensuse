@@ -20,6 +20,11 @@ use version_utils qw(is_upgrade is_sles4sap is_sle);
 
 sub run {
     my ($self) = @_;
+
+    # sleep 300;
+    #record_info "sleep 300";
+
+
     $self->{in_boot_desktop} = 1;
     # We have tests that boot from HDD and wait for DVD boot menu's timeout, so
     # the timeout here must cover it. UEFI DVD adds some 60 seconds on top.
@@ -51,6 +56,11 @@ sub run {
     else {
         $self->wait_boot(bootloader_time => $timeout, nologin => $nologin, ready_time => $ready_time);
     }
+    select_console 'root-console';
+    my $ip = get_var('IP');
+     my $netdev = get_var('NETDEV', 'eth0');
+     assert_script_run("ip addr add $ip/24 dev $netdev");
+     assert_script_run("systemctl restart pacemaker");
 }
 
 sub test_flags {

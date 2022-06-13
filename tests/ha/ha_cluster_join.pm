@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2018 SUSE LLC
+# Copyright 2016-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: chrony ntp corosync-qdevice ha-cluster-bootstrap
@@ -52,7 +52,7 @@ sub run {
     assert_script_run "ping -c1 $node_to_join";
     # Status redirection is not needed if running on serial terminal
     my $redirection = is_serial_terminal() ? '' : "> /dev/$serialdev";
-    enter_cmd "ha-cluster-join -yc $node_to_join ; echo ha-cluster-join-finished-\$? $redirection";
+    enter_cmd "ha-cluster-join -yc $node_to_join ; echo ha-cluster-join-finished-\$? $redirection", timeout => $join_timeout;
     wait_for_password_prompt(needle => 'ha-cluster-join-password', timeout => $join_timeout);
     type_password;
     send_key 'ret';
@@ -66,7 +66,7 @@ sub run {
         sleep bmwqemu::scale_timeout(3);
         # Attempt to start pacemaker in case this was what failed during join
         # This is needed so ha-cluster-remove works
-        assert_script_run 'systemctl start pacemaker';
+        assert_script_run 'systemctl start pacemaker', $join_timeout;
         assert_script_run 'ha-cluster-remove -F -y -c $(hostname)';
         assert_script_run "ha-cluster-join -yc $node_to_join", $join_timeout;
     }

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2020 SUSE LLC
+# Copyright 2016-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Functions for HA Cluster tests
@@ -88,10 +88,10 @@ Extension (HA or HAE) tests.
 
 =cut
 our $crm_mon_cmd = 'crm_mon -R -r -n -N -1';
-our $softdog_timeout = bmwqemu::scale_timeout(60);
+our $softdog_timeout = bmwqemu::scale_timeout(120);
 our $prev_console;
-our $join_timeout = bmwqemu::scale_timeout(60);
-our $default_timeout = bmwqemu::scale_timeout(30);
+our $join_timeout = bmwqemu::scale_timeout(120);
+our $default_timeout = bmwqemu::scale_timeout(90);
 
 # Private functions
 sub _just_the_ip {
@@ -416,7 +416,7 @@ sub ensure_resource_running {
     my $starttime = time;
     my $ret = undef;
 
-    while ($ret = script_run("grep -E -q '$regex' <(crm resource status $rsc)", $default_timeout)) {
+    while ($ret = script_run("grep -E -q '$regex' <(crm resource status $rsc)", $join_timeout)) {
         my $timerun = time - $starttime;
         if ($timerun < $default_timeout) {
             sleep 5;

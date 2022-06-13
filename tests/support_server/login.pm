@@ -15,6 +15,9 @@ use version_utils qw(is_desktop_installed is_tumbleweed);
 sub run {
     my ($self) = @_;
     my $timeout = (is_tumbleweed) ? 180 : 80;
+
+    #resume_vm() if (get_var('DELAYED_START'));
+
     # we have some tests that waits for dvd boot menu timeout and boot from hdd
     # - the timeout here must cover it
     $self->wait_boot(bootloader_time => $timeout, textmode => !is_desktop_installed);
