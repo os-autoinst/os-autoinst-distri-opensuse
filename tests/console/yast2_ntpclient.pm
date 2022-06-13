@@ -123,6 +123,7 @@ sub run {
 
     # close it with OK
     my $ntp_client_needle = check_var('USE_SUPPORT_SERVER', 1) ? 'support_server' : 'public';
+
     # send_key_until_needlematch "yast2_ntp-client_${ntp_client_needle}_ntp_server_added", "alt-o", 3, 5;
     if (check_var('USE_SUPPORT_SERVER', 1)) {
         send_key_until_needlematch "yast2_ntp-client_${ntp_client_needle}_ntp_server_added", "alt-o", 3, 5;
