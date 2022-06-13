@@ -8,7 +8,7 @@ description: |
 vars:
     TRENTO_DEPLOY_SCRIPTS_REPO: 'gitlab.suse.de/qa-css/trento'
     TRENTO_HELM_VERSION: '3.8.2'
-    TRENTO_CYPRESS_VERSION: '3.4.0'
+    TRENTO_CYPRESS_VERSION: '4.4.0'
     TEST_CONTEXT: 'OpenQA::Test::RunArgs'
 schedule:
     - boot/boot_to_desktop

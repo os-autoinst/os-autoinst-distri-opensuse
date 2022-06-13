@@ -78,7 +78,7 @@ sub run {
     assert_script_run("git clone $gitlab_clone_cmd . | tee " . GITLAB_CLONE_LOG);
 
     # Cypress.io installation
-    my $cypress_ver = get_var('TRENTO_CYPRESS_VERSION', '3.4.0');
+    my $cypress_ver = get_var('TRENTO_CYPRESS_VERSION', '4.4.0');
     cypress_install_container($cypress_ver);
 }
 
