@@ -117,26 +117,26 @@ sub cluster_names {
 
 =head2 distribute_munge_key
 
-Distributes munge kyes across all cluster nodes
+Distributes munge keys across all compute nodes of the cluster
 
 =cut
 sub distribute_munge_key {
     my ($self) = @_;
-    my @cluster_nodes = cluster_names();
-    foreach (@cluster_nodes) {
+    my @compute_nodes = slave_node_names();
+    foreach (@compute_nodes) {
         script_run("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@$_:/etc/munge/munge.key");
     }
 }
 
 =head2 distribute_slurm_conf
 
-Distributes slurm config across all cluster nodes
+Distributes slurm config across all compute nodes of the cluster
 
 =cut
 sub distribute_slurm_conf {
     my ($self) = @_;
-    my @cluster_nodes = cluster_names();
-    foreach (@cluster_nodes) {
+    my @compute_nodes = slave_node_names();
+    foreach (@compute_nodes) {
         script_run("scp -o StrictHostKeyChecking=no /etc/slurm/slurm.conf root\@$_:/etc/slurm/slurm.conf");
     }
 }
