@@ -88,6 +88,7 @@
                 </services>
                 <ports config:type="list">
                     <port>22/tcp</port>
+                    <port>30000-50000/tcp</port>
                 </ports>
             </zone>
         </zones>
@@ -210,6 +211,17 @@
 cd /etc/zypp/repos.d
 sed -i 's/enabled=1/enabled=0/' $(ls|grep -i nvidia)
 zypper lr
+
+% if ( $get_var->('VERSION') =~ /15-SP[34]/ ) {
+    # Regarding rpm lock see Q9@ https://documentation.suse.com/de-de/sles/15-SP1/html/SLES-all/app-ay-faq.html
+    # quote : "during the post-script phase, YaST still has an exclusive lock on the RPM database."
+    # the package cannot be installed the autoyast way, because of the changing package name (eg libyui-rest-api15)
+    # only zypper allows to install "by capability".
+    mv /var/run/zypp.pid /var/run/zypp.sav
+    zypper -n in libyui-rest-api
+    mv /var/run/zypp.sav /var/run/zypp.pid
+% }
+
 exit 0
 
 ]]></source>
