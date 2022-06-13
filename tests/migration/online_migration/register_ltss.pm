@@ -25,7 +25,7 @@ sub run {
     if (grep $_ eq 'ltss', @scc_addons) {
         my $os_sp_version = get_var("HDDVERSION");
         $os_sp_version =~ s/-/_/g;
-        add_suseconnect_product("SLES-LTSS", undef, undef, "-r " . get_var("SCC_REGCODE_LTSS_$os_sp_version", 300, 0));
+        add_suseconnect_product("SLES-LTSS", undef, undef, "-r " . get_var("SCC_REGCODE_LTSS_$os_sp_version"), 300, 0);
     }
 }
 
