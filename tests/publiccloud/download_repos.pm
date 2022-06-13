@@ -86,7 +86,7 @@ sub run {
         die "Empty test repositories" if ($check_empty_repos && $size < 100);
     }
 
-    my $total_size = script_output("du -hs ~/repos");
+    my $total_size = script_output("du -hs ~/repos", proceed_on_failure => 1);
     record_info("Repo size", "Total repositories size: $total_size");
     my $rpm_list = script_output("find ./ -name '*.rpm' -exec du -h '{}' \\; | sort -h");
     record_info("RPM list", "RPM list: $rpm_list");
