@@ -44,7 +44,7 @@ sub init {
         $self->vault(publiccloud::vault->new());
         $self->create_credentials_file();
     }
-    assert_script_run('source ~/.bashrc');
+    assert_script_run("export GOOGLE_APPLICATION_CREDENTIALS=" . CREDENTIALS_FILE);
     (is_sle('=15-SP4')) ? assert_script_run("chronyd -q 'pool time.google.com iburst'") : assert_script_run('ntpdate -s time.google.com');
     assert_script_run('gcloud config set account ' . $self->account);
     assert_script_run(
