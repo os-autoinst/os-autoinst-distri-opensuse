@@ -1,0 +1,47 @@
+name:           create_migrated_hdd_offline.yaml
+description:    |
+  This is for creating migrated hdd for regression test.
+  #REGRESSION_SERVICE: '1' means support service check test. '0' means doesn't
+  #support service check test, normally set '0' for package media test.
+vars:
+  DESKTOP: 'gnome'
+  BOOT_HDD_IMAGE: 1
+  ORIGIN_SYSTEM_VERSION: '%HDDVERSION%'
+  UPGRADE_TARGET_VERSION: '%VERSION%'
+  BOOTFROM: 'd'
+schedule:
+  - migration/version_switch_origin_system
+  - boot/boot_to_desktop
+  - update/patch_sle
+  - migration/record_disk_info
+  - '{{install_service}}'
+  - migration/reboot_to_upgrade
+  - migration/version_switch_upgrade_target
+  - installation/isosize
+  - installation/bootloader
+  - installation/welcome
+  - installation/upgrade_select
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - migration/post_upgrade
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/zypper_lr
+  - console/check_os_release
+  - console/check_system_info
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+conditional_schedule:
+  install_service:
+    REGRESSION_SERVICE:
+      1:
+        - installation/install_service

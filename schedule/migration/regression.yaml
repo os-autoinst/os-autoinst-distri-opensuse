@@ -1,0 +1,75 @@
+name:           regression.yaml
+description:    |
+  This is for migration regression test.
+  #support service check test, normally set '0' for package media test.
+vars:
+  DESKTOP: 'gnome'
+  BOOT_HDD_IMAGE: 1
+  ORIGIN_SYSTEM_VERSION: '%HDDVERSION%'
+  UPGRADE_TARGET_VERSION: '%VERSION%'
+  BOOTFROM: 'd'
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/check_migration_features
+  - console/check_network
+  - console/system_state
+  - console/prepare_test_data
+  - console/check_upgraded_service
+  - migration/openldap_to_389ds
+# - boot/grub_test_snapshot
+  - locale/keymap_or_locale
+  - console/supportutils
+  - console/force_scheduled_tasks
+  - console/textinfo
+  - console/hostname
+  - console/upgrade_snapshots
+  - console/x_vt
+  - console/pam
+  - console/btrfsmaintenance
+  - console/java
+  - console/cpio
+  - console/zypper_ref
+  - console/ncurses
+  - console/yast2_lan
+  - console/curl_https
+  - console/salt
+  - console/glibc_sanity
+  - console/glibc_tunables
+  - console/zypper_in
+  - console/zypper_log
+  - console/yast2_i
+  - console/yast2_bootloader
+  - console/vim
+  - console/firewall_enabled
+  - console/krb5
+  - console/sshd
+  - console/ssh_cleanup
+  - console/mtab
+  - console/upgrade_snapshots
+  - console/zypper_lifecycle
+  - console/orphaned_packages_check
+  - console/consoletest_finish
+  - x11/desktop_runner
+  - x11/xterm
+  - x11/sshxterm
+  - x11/gnome_control_center
+  - x11/gnome_terminal
+  - x11/gedit
+  - x11/firefox
+  - x11/tomcat
+  - x11/eog
+  - x11/gnome_music
+  - x11/wireshark
+  - x11/ImageMagick
+  - x11/ghostscript
+  - x11/ooffice
+  - x11/oomath
+  - x11/oocalc
+  - x11/yast2_snapper
+  - x11/glxgears
+  - x11/nautilus
+  - x11/evolution
+  - x11/desktop_mainmenu
+  - x11/reboot_gnome
+  - shutdown/shutdown
