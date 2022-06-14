@@ -4,9 +4,10 @@
 # Summary: Trento test
 # Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
 
+use strict;
+use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use base 'consoletest';
-use strict;
 use testapi;
 use base 'trento';
 
@@ -22,7 +23,7 @@ sub run {
     enter_cmd "cd /root/test";
 
     # Run the Trento deployment
-    my $vm_image = get_var('TRENTO_VM_IMAGE', 'SUSE:sles-sap-15-sp3-byos:gen2:latest');
+    my $vm_image = get_var(TRENTO_VM_IMAGE => 'SUSE:sles-sap-15-sp3-byos:gen2:latest');
     my $deploy_script_log = 'script_00.040.txt';
     my $deploy_script_run = './';
     my $cmd_00_040 = 'set -o pipefail ; ' . $deploy_script_run . "00.040-trento_vm_server_deploy_azure.sh " .
@@ -35,7 +36,7 @@ sub run {
     assert_script_run($cmd_00_040, 360);
     upload_logs($deploy_script_log);
 
-    my $trento_registry_chart = get_var('TRENTO_REGISTRY_CHART', 'registry.suse.com/trento/trento-server');
+    my $trento_registry_chart = get_var(TRENTO_REGISTRY_CHART => 'registry.suse.com/trento/trento-server');
     $deploy_script_log = 'script_trento_acr_azure.log.txt';
     my $trento_acr_azure_cmd = 'set -o pipefail ; ' . $deploy_script_run . "trento_acr_azure.sh " .
       "-g $resource_group " .
@@ -73,7 +74,7 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
 
-    $self->k8s_logs(('web', 'runner'));
+    $self->k8s_logs(qw(web runner));
     $self->az_delete_group;
 
     $self->SUPER::post_fail_hook;
