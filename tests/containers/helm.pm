@@ -49,18 +49,16 @@ sub run {
         # Configure the public cloud kubernetes
         if ($k8s_backend eq "EKS") {
             add_suseconnect_product(get_addon_fullname('pcm')) if is_sle;
-            zypper_call("in jq aws-cli");
+            zypper_call("in jq aws-cli", timeout => 300);
 
-            $provider = publiccloud::eks->new(
-                region => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1')
-            );
+            $provider = publiccloud::eks->new();
         }
         elsif ($k8s_backend eq 'AKS') {
             add_suseconnect_product(get_addon_fullname('pcm'),
                 (is_sle('=12-sp5') ? '12' : undef));
             add_suseconnect_product(get_addon_fullname('phub'))
               if is_sle('=12-sp5');
-            zypper_call('in jq azure-cli');
+            zypper_call('in jq azure-cli', timeout => 300);
 
             $provider = publiccloud::aks->new();
         }
