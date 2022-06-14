@@ -21,7 +21,8 @@ sub run {
     select_console('user-console');
     assert_script_run('cargo new testproject');
     assert_script_run(qq(echo 'uuid = "0.8"' >> testproject/Cargo.toml));
-    assert_script_run('cargo run --manifest-path testproject/Cargo.toml');
+    validate_script_output("cargo run --manifest-path testproject/Cargo.toml",
+        sub { m/Hello, world!/ }, timeout => 300);
 }
 
 1;
