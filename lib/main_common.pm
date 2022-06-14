@@ -43,6 +43,7 @@ our @EXPORT = qw(
   is_desktop
   is_kernel_test
   is_ltp_test
+  is_systemd_test
   is_livesystem
   is_memtest
   is_memtest
@@ -119,6 +120,7 @@ our @EXPORT = qw(
   load_extra_tests_kernel
   load_wicked_create_hdd
   load_jeos_openstack_tests
+  load_upstream_systemd_tests
 );
 
 sub init_main {
@@ -270,6 +272,10 @@ sub is_kernel_test {
         || get_var('TRINITY')
         || get_var('NUMA_IRQBALANCE')
         || get_var('TUNED'));
+}
+
+sub is_systemd_test {
+    return get_var('SYSTEMD_TESTSUITE');
 }
 
 # Isolate the loading of LTP tests because they often rely on newer features
@@ -617,9 +623,8 @@ sub load_jeos_tests {
     loadtest "jeos/firstrun";
     loadtest "jeos/image_info";
     loadtest "jeos/record_machine_id";
-    loadtest "console/system_prepare" if is_sle;
     loadtest "console/force_scheduled_tasks";
-    unless (get_var('INSTALL_LTP')) {
+    unless (get_var('INSTALL_LTP') || get_var('SYSTEMD_TESTSUITE')) {
         loadtest "jeos/grub2_gfxmode";
         loadtest "jeos/diskusage" unless is_openstack;
         loadtest "jeos/build_key";
@@ -3275,6 +3280,10 @@ sub load_nfs_tests {
     loadtest "nfs/install";
     loadtest "nfs/run";
     loadtest "nfs/generate_report";
+}
+
+sub load_upstream_systemd_tests {
+    loadtest 'systemd_testsuite/prepare_systemd_and_testsuite';
 }
 
 1;
