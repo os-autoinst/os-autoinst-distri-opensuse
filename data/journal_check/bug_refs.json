@@ -57,7 +57,7 @@
     "bsc#1126272": {
         "description": "Failed unmounting \/\\S+\\.|-- Reboot --|pam_systemd.*Failed to release session",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2" ],
+            "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
             "leap-micro": [ "5.2" ],
             "microos":  ["Tumbleweed"]
         },
@@ -66,7 +66,7 @@
     "bsc#1022525|bsc#1177461": {
         "description": ".*rpcbind.*cannot(.*open file.*rpcbind.xdr.*|.*open file.*portmap.xdr.*|.*save any registration.*)",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2" ],
+            "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
             "leap-micro": ["5.2"],
             "microos":  ["Tumbleweed"]
         },
@@ -84,7 +84,7 @@
     "bsc#1182500": {
         "description": "Failed to transition into init label 'system_u:system_r:init_t:s0'",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2" ],
+            "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
             "leap-micro": [ "5.2" ],
             "microos":  ["Tumbleweed"]
         },
@@ -93,7 +93,7 @@
     "bsc#1194903": {
         "description": "Failed to start One time configuration for iscsid.service",
         "products": {
-            "sle-micro": [ "5.2" ],
+            "sle-micro": [ "5.2", "5.3" ],
             "leap-micro": [ "5.2" ]
         },
         "type": "bug"
@@ -101,7 +101,7 @@
     "bsc#1178033": {
         "description": "kernel: ITS@0x8080000: Unable to locate ITS domain handle",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2" ],
+            "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
             "sle": ["15-SP2", "15-SP3", "15-SP4"]
