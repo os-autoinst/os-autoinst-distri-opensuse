@@ -1,0 +1,191 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Trento test lib</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Methods">Methods</a>
+        <ul>
+          <li><a href="#get_resource_group">get_resource_group</a></li>
+          <li><a href="#get_vm_name">get_vm_name</a></li>
+          <li><a href="#get_acr_name">get_acr_name</a></li>
+          <li><a href="#az_get_vm_ip">az_get_vm_ip</a></li>
+          <li><a href="#az_delete_group">az_delete_group</a></li>
+          <li><a href="#az_vm_ssh_cmd">az_vm_ssh_cmd</a></li>
+          <li><a href="#k8s_logs">k8s_logs</a></li>
+          <li><a href="#podman_self_check">podman_self_check</a></li>
+          <li><a href="#cypress_install_container">cypress_install_container</a></li>
+          <li><a href="#cypress_log_upload">cypress_log_upload</a></li>
+          <li><a href="#cypress_exec">cypress_exec</a></li>
+          <li><a href="#cypress_test_exec">cypress_test_exec</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul><h1>lib/trento.pm</h1>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Trento test lib</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright 2017-2020 SUSE LLC SPDX-License-Identifier: FSFAP</p>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>QE SAP &lt;qe-sap@suse.de&gt;</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Package with common methods and default or constant values for Trento tests</p>
+
+<h2 id="Methods">Methods</h2>
+
+<h3 id="get_resource_group">get_resource_group</h3>
+
+<p>Return a string to be used as cloud resource group. It contains the JobId</p>
+
+<h3 id="get_vm_name">get_vm_name</h3>
+
+<p>Return a string to be used as cloud VM name. It contains the JobId</p>
+
+<h3 id="get_acr_name">get_acr_name</h3>
+
+<p>Return a string to be used as cloud ACR name. It contains the JobId</p>
+
+<h3 id="az_get_vm_ip">az_get_vm_ip</h3>
+
+<p>Return the running VM public IP</p>
+
+<h3 id="az_delete_group">az_delete_group</h3>
+
+<p>Delete the resource group associated to this JobID and all its content</p>
+
+<h3 id="az_vm_ssh_cmd">az_vm_ssh_cmd</h3>
+
+<p>Compose <i>ssh</i> command for remote execution on the VM machine. The function optionally accept the VM public IP. If not provided, the IP is calculated on the fly with an <i>az</i> query, take care that is a time consuming <i>az</i> query.</p>
+
+<dl>
+
+<dt id="CMD_ARG---String-of-the-command-to-be-executed-remotely"><b>CMD_ARG</b> - String of the command to be executed remotely</dt>
+<dd>
+
+</dd>
+<dt id="VM_IP_ARG---Public-IP-of-the-remote-machine-where-to-execute-the-command"><b>VM_IP_ARG</b> - Public IP of the remote machine where to execute the command</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="k8s_logs">k8s_logs</h3>
+
+<p>Get all relevant info out from the cluster</p>
+
+<dl>
+
+<dt id="CMD_ARG---String-of-the-command-to-be-executed-remotely1"><b>CMD_ARG</b> - String of the command to be executed remotely</dt>
+<dd>
+
+</dd>
+<dt id="VM_IP_ARG---Public-IP-of-the-remote-machine-where-to-execute-the-command1"><b>VM_IP_ARG</b> - Public IP of the remote machine where to execute the command</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="podman_self_check">podman_self_check</h3>
+
+<p>Perform some generic checks related to the podman installation itself and the relevant parameters of the current machine environment.</p>
+
+<h3 id="cypress_install_container">cypress_install_container</h3>
+
+<p>Prepare whatever is needed to run cypress tests using container</p>
+
+<dl>
+
+<dt id="CYPRESS_VER---String-used-as-tag-for-the-cypress-included-image"><b>CYPRESS_VER</b> - String used as tag for the cypress/included image.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="cypress_log_upload">cypress_log_upload</h3>
+
+<p>Upload to openQA the relevant logs</p>
+
+<dl>
+
+<dt id="LOG_FILTER---List-of-strings.-List-of-file-extensions-dot-needed"><b>LOG_FILTER</b> - List of strings. List of file extensions (dot needed)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="cypress_exec">cypress_exec</h3>
+
+<p>Execute a cypress command within the container</p>
+
+<dl>
+
+<dt id="CYPRESS_TEST_DIR---String-of-the-path-where-the-cypress-Trento-code-is-available.-It-is-the-test-folder-within-the-path-used-by-setup_jumphost"><b>CYPRESS_TEST_DIR</b> - String of the path where the cypress Trento code is available. It is the <i>test</i> folder within the path used by <a>setup_jumphost</a></dt>
+<dd>
+
+</dd>
+<dt id="CMD---String-of-cmd-to-be-used-as-main-argument-for-the-cypress-executable-call"><b>CMD</b> - String of cmd to be used as main argument for the cypress executable call.</dt>
+<dd>
+
+</dd>
+<dt id="TIMEOUT---Integer-used-as-timeout-for-the-cypress-command-execution"><b>TIMEOUT</b> - Integer used as timeout for the cypress command execution</dt>
+<dd>
+
+</dd>
+<dt id="LOG_PREFIX---String-of-the-command-to-be-executed-remotely"><b>LOG_PREFIX</b> - String of the command to be executed remotely</dt>
+<dd>
+
+</dd>
+<dt id="FAILOK---Integer-boolean-value.-0:test-marked-as-failure-if-the-podman-cypress-return-not-0-exit-code.-1:all-not-0-podman-cypress-exit-code-are-ignored.-SoftFail-reported"><b>FAILOK</b> - Integer boolean value. 0:test marked as failure if the podman/cypress return not 0 exit code. 1:all not 0 podman/cypress exit code are ignored. SoftFail reported.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="cypress_test_exec">cypress_test_exec</h3>
+
+<p>Execute a set of cypress tests. Execute, one by one, all tests in all .js files in the provided folder.</p>
+
+<dl>
+
+<dt id="CYPRESS_TEST_DIR---String-of-the-path-where-the-cypress-Trento-code-is-available.-It-is-the-test-folder-within-the-path-used-by-setup_jumphost1"><b>CYPRESS_TEST_DIR</b> - String of the path where the cypress Trento code is available. It is the <i>test</i> folder within the path used by <a>setup_jumphost</a></dt>
+<dd>
+
+</dd>
+<dt id="TEST_TAG---String-of-the-test-subfolder-within-cypress_test_dir-cypress-integration-Also-used-as-tag-for-each-test-result-file"><b>TEST_TAG</b> - String of the test subfolder within <i>$cypress_test_dir/cypress/integration</i> Also used as tag for each test result file</dt>
+<dd>
+
+</dd>
+<dt id="TIMEOUT---Integer-used-as-timeout-for-the-internal-cypress_exec-call"><b>TIMEOUT</b> - Integer used as timeout for the internal <a>cypress_exec</a> call</dt>
+<dd>
+
+</dd>
+</dl>
+
+
+</body>
+
+</html>
+
+
