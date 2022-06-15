@@ -53,7 +53,8 @@ sub has_conflict {
         libGLwM1 => 'libGLw1',
         libiterm1 => 'terminfo-iterm',
         rust => 'rls',
-        'rust-gdb' => 'cargo'
+        'rust-gdb' => 'cargo',
+        'openssl-1_0_0' => 'openssl-1_1'
 
     );
     return $conflict{$binary};
