@@ -30,7 +30,7 @@ sub packages_to_install {
     my ($version, $sp, $host_distri) = @_;
     my $arch = get_required_var('ARCH');
     # common packages
-    my @packages = ('git-core', 'python3', 'gcc');
+    my @packages = ('git-core', 'python3', 'gcc', 'jq');
     if ($host_distri eq 'ubuntu') {
         push @packages, ('python3-dev', 'python3-pip', 'golang');
     } elsif ($host_distri eq 'rhel' && $version > 7) {
@@ -106,6 +106,14 @@ sub run {
         record_info('IMAGE', $image);
         script_retry("$engine pull $image", timeout => 300, delay => 60, retry => 3);
         record_info('Inspect', script_output("$engine inspect $image"));
+
+        my $build = get_var('CONTAINER_IMAGE_BUILD');
+        if ($build && $build ne 'UNKNOWN') {
+            record_info('BUILD#', "CONTAINER_IMAGE_BUILD=$build");
+            my $reference = script_output(qq($engine inspect --type image $image | jq -r '.[0].Config.Labels."org.opensuse.reference"'));
+            record_info('image ref', "org.opensuse.reference: $reference");
+            die('Miss match in image build number. The image build number is different than the one triggered by the container bot!') if ($reference !~ /$build$/);
+        }
     }
 }
 
