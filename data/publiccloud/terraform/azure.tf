@@ -56,6 +56,10 @@ variable "create-extra-disk" {
 }
 
 variable "storage-account" {
+    # Note: Don't delete the default value!!!
+    # Not all of our `terraform destroy` calls pass this variable and neither is it necessary.
+    # However removing the default value might cause `terraform destroy` to fail in corner cases,
+    # resulting effectively in leaking resources due to failed cleanups.
     default="openqa"
 }
 
@@ -152,7 +156,7 @@ resource "azurerm_image" "image" {
     os_disk {
         os_type = "Linux"
         os_state = "Generalized"
-        blob_uri = "https://openqa.blob.core.windows.net/sle-images/${var.image_id}"
+        blob_uri = "https://${var.storage-account}.blob.core.windows.net/sle-images/${var.image_id}"
         size_gb = 30
     }
 }

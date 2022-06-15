@@ -17,8 +17,8 @@ use utils qw(script_output_retry);
 use publiccloud::azure_client;
 
 has resource_group => 'openqa-upload';
-# TODO: Remote 'openqa' once the deprecated Azure account is removed
-has storage_account => get_var('PUBLIC_CLOUD_CREDENTIALS_URL') ? 'eisleqaopenqa' : 'openqa';
+# Note: Remove the default 'openqa' once the deprecated account will be removed.
+has storage_account => get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'openqa');
 has container => 'sle-images';
 has lease_id => undef;
 has vault => undef;
