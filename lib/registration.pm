@@ -107,10 +107,6 @@ sub is_module {
 sub accept_addons_license {
     my (@scc_addons) = @_;
 
-    # Trap the 'missing license file on media' issue
-    # Needle is configured as a workaround, so a soft-fail will be shown
-    send_key 'alt-s' if check_screen('license-insert-disc-issue', 30);
-
     # To check the current state of licenses in the product one can conduct
     # the following steps, e.g. for SLE15:
     #   isc co SUSE:SLE-15:GA 000product
