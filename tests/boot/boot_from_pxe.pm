@@ -13,12 +13,12 @@ use strict;
 use warnings;
 use lockapi;
 use testapi;
-use bootloader_setup qw(bootmenu_default_params specific_bootmenu_params prepare_disks);
+use bootloader_setup qw(bootmenu_default_params specific_bootmenu_params prepare_disks sync_time);
 use registration 'registration_bootloader_cmdline';
 use utils qw(type_string_slow enter_cmd_slow);
 use Utils::Backends;
 use Utils::Architectures;
-use version_utils 'is_upgrade';
+use version_utils qw(is_upgrade is_sle);
 
 sub run {
     my ($image_path, $image_name, $cmdline);
@@ -194,6 +194,7 @@ sub run {
                 assert_screen $ssh_vnc_tag, $ssh_vnc_wait_time;
             }
         }
+        sync_time if is_sle('15+');
         if (!is_upgrade && !get_var('KEEP_DISKS')) {
             prepare_disks;
         }
