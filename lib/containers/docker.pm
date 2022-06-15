@@ -26,12 +26,12 @@ sub configure_insecure_registries {
     my $registry = registry_url();
     # The debug output is messing with terminal in migration tests
     my $debug = (get_var('UPGRADE')) ? 'false' : 'true';
-    # Allow our internal 'insecure' registry
-    assert_script_run(
-'echo "{ \"debug\": ' . $debug . ', \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\", \"' . $registry . '\"] }" > /etc/docker/daemon.json');
-    assert_script_run('cat /etc/docker/daemon.json');
+    # Allow our internal 'insecure' registry only if REGISTRY variable is set
+    my $str = '{ \"debug\": ' . $debug;
+    $str .= get_var('REGISTRY') ? ', \"insecure-registries\" : [\"' . $registry . '\"] }' : '}';
+    my $config = script_output("echo $str | tee /etc/docker/daemon.json");
+    record_info('daemon.json', $config);
     systemctl('restart docker');
-    record_info "setup $self->runtime", "deamon.json ready";
 }
 
 1;
