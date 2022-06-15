@@ -4,7 +4,6 @@ description:    >
 schedule:
   - installation/bootloader_s390
   - installation/welcome
-  - installation/accept_license
   - installation/disk_activation
   - installation/scc_registration
   - installation/addon_products_sle

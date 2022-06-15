@@ -72,9 +72,6 @@ use constant {
           is_transactional
           is_livecd
           is_quarterly_iso
-          has_product_selection
-          has_license_on_welcome_screen
-          has_license_to_accept
           uses_qa_net_hardware
           has_test_issues
         )
@@ -536,68 +533,6 @@ If there is only one role, there is no selection offered
 sub requires_role_selection {
     # Applies to Krypton and Argon based on Leap 15.1+
     return !is_krypton_argon;
-}
-
-=head2 has_product_selection
-
-    has_product_selection;
-
-Identify cases when Installer has to show Product Selection screen.
-
-Starting with SLE 15, all products are distributed using one medium, and Product
-to install has to be chosen explicitly.
-
-Though, there are some exceptions (like s390x on Sle15 SP0) when there is only
-one Product, so that License agreement is shown directly, skipping the Product
-selection step. Also, Product Selection screen is not shown during upgrade.
-on SLE 15+, zVM preparation test shouldn't show Product Selection screen.
-
-Returns true (1) if Product Selection step has to be shown for the certain
-configuration, otherwise returns false (0).
-=cut
-sub has_product_selection {
-    # Product selection behavior changed for s390 on 15-SP4, so now there's only a single product
-    # and there's no need for the installer to request anything, however for QU this might change
-    # following PR should be used as a reference for when product selection changes again in the
-    # future
-    # https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/13880
-    my $does_not_have = is_sle('>=15-SP4') && check_var('FLAVOR', 'Full') && is_s390x();
-    if (is_sle('15+') && !get_var('UPGRADE')) {
-        return 0 if $does_not_have;
-        return (is_sle('>=15-SP1') || !is_s390x()) && !get_var('BASE_VERSION');
-    }
-}
-
-=head2 has_license_on_welcome_screen
-
-    has_license_on_welcome_screen;
-
-Identify cases when License Agreement has to be shown on Welcome screen and should be accepted there.
-
-Returns true (1) if License Agreement has to be shown on Welcome screen for the certain
-configuration, otherwise returns false (0).
-
-=cut
-sub has_license_on_welcome_screen {
-    return 1 if is_sle_micro;
-    if (get_var('HASLICENSE')) {
-        return 1 if (
-            ((is_sle('>=15-SP1') && get_var('BASE_VERSION') && !get_var('UPGRADE')) && is_s390x())
-            || is_sle('<15')
-            || (is_sle('=15') && is_s390x())
-            || (is_sle('>=15-SP4') && check_var('FLAVOR', 'Full') && is_s390x() && !get_var('UPGRADE'))
-        );
-    }
-
-    return 0;
-}
-
-=head2 has_license_to_accept
-
-Returns true if the system has a license that needs to be accepted
-=cut
-sub has_license_to_accept {
-    return has_license_on_welcome_screen || has_product_selection;
 }
 
 =head2 uses_qa_net_hardware

@@ -9,7 +9,6 @@ schedule:
   - '{{isosize}}'
   - installation/bootloader_start
   - installation/welcome
-  - installation/accept_license
   # Called only on BACKEND: s390x
   - '{{disk_activation}}'
   - installation/scc_registration

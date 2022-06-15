@@ -16,7 +16,6 @@ vars:
 schedule:
   - installation/ipxe_install
   - installation/welcome
-  - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
