@@ -798,6 +798,7 @@ sub get_addon_fullname {
         tcm => is_sle('15+') ? 'sle-module-development-tools' : 'sle-module-toolchain',
         wsm => 'sle-module-web-scripting',
         python2 => 'sle-module-python2',
+        python3 => 'sle-module-python3',
         phub => 'PackageHub',
         tsm => 'sle-module-transactional-server',
         espos => 'ESPOS',
