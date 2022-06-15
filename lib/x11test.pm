@@ -995,6 +995,10 @@ sub check_desktop_runner {
     x11_start_program('true', target_match => 'generic-desktop', no_wait => 1);
 }
 
+sub disable_key_repeat {
+    x11_start_program('xset -r', target_match => 'generic-desktop', no_wait => 1);
+}
+
 # Start one of the libreoffice components, close any first-run dialogs
 sub libreoffice_start_program {
     my ($self, $program) = @_;
