@@ -33,6 +33,7 @@
       <li><a href="#create_encrypted_part">create_encrypted_part</a></li>
       <li><a href="#mimic_user_to_import">mimic_user_to_import</a></li>
       <li><a href="#prepare_disks">prepare_disks</a></li>
+      <li><a href="#sync_time">sync_time</a></li>
     </ul>
   </li>
 </ul><h1>lib/bootloader_setup.pm</h1>
@@ -186,6 +187,12 @@
 <pre><code>    prepare_disks</code></pre>
 
 <p>Wipe existing disks and create encrypted partitions if needed for the test. Is handy for the bare metal setups and LPARs where we can have traces of previous installation.</p>
+
+<h2 id="sync_time">sync_time</h2>
+
+<pre><code>    sync_time</code></pre>
+
+<p>Sync system time, time offset can cause problems e.g. certificate is not yet valid</p>
 
 
 </body>
