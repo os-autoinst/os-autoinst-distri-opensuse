@@ -278,4 +278,5 @@ PUBLIC_CLOUD_NAMESPACE | string | "" | The Public Cloud Namespace name that will
 PUBLIC_CLOUD_USER | string | "" | The public cloud instance system user.
 PUBLIC_CLOUD_XEN | boolean | false | Indicates if this is a Xen test run.
 PUBLIC_CLOUD_TERRAFORM_FILE | string | "" | If defined, use this terraform file (from the `data/` directory) instead the CSP default
+PUBLIC_CLOUD_AZURE_STORAGE_ACCOUNT | string | "eisleqaopenqa" | Defines which storage account for Azure shall be used
 TERRAFORM_TIMEOUT | integer | 1800 | Set timeout for terraform actions
