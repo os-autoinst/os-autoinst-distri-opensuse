@@ -66,6 +66,7 @@ our @EXPORT = qw(
   tianocore_disable_secureboot
   prepare_disks
   get_scsi_id
+  sync_time
 );
 
 our $zkvm_img_path = "/var/lib/libvirt/images";
@@ -1434,6 +1435,22 @@ sub prepare_disks {
         }
     }
     script_run "lsblk";
+}
+
+=head2 sync_time
+
+    sync_time
+
+Sync system time, time offset can cause problems e.g. certificate is not yet valid
+
+=cut
+sub sync_time {
+    # sync system time before installation
+    select_console('install-shell');
+
+    script_run 'chronyd';
+    script_run 'chronyc makestep';
+    script_run 'date';
 }
 
 1;
