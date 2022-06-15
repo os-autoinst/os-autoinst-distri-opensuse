@@ -43,6 +43,7 @@ tests/console/mtab.pm
 tests/console/orphaned_packages_check.pm
 tests/console/consoletest_finish.pm
 tests/x11/desktop_runner.pm
+tests/x11/setup.pm
 tests/x11/xterm.pm
 tests/locale/keymap_or_locale_x11.pm
 tests/x11/sshxterm.pm

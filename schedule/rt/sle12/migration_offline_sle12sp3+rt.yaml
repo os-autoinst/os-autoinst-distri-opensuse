@@ -54,6 +54,7 @@ schedule:
   - console/orphaned_packages_check
   - console/consoletest_finish
   - x11/desktop_runner
+  - x11/setup
   - x11/xterm
   - locale/keymap_or_locale_x11
   - x11/sshxterm
