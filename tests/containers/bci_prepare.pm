@@ -41,6 +41,8 @@ sub packages_to_install {
         my $version = "$version.$sp";
         push @packages, 'python3-devel';
         if ($version eq "12.5") {
+            # PackageHub is needed for jq
+            script_retry("SUSEConnect -p PackageHub/12.5/$arch", delay => 60, retry => 3);
             push @packages, 'python36-pip';
         } elsif ($version eq '15.0') {
             # On SLES15 go needs to be installed from packagehub. On later SLES it comes from the SDK module
