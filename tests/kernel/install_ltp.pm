@@ -262,7 +262,7 @@ sub get_default_pkg {
     my @packages;
 
     if (is_sle && is_released) {
-        push @packages, 'qa_test_ltp';
+        push @packages, is_sle('15-SP4+') ? 'ltp-stable' : 'qa_test_ltp';
         # temporarily disabled due to package conflict with qa_test_ltp
         #push @packages, 'qa_test_ltp-32bit' if is_x86_64;
     } else {
