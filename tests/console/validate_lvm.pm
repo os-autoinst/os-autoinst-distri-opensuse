@@ -92,7 +92,7 @@ sub run {
         foreach my $dev (@{$drives}) {
             $i = 1;
             foreach my $child (@{get_children($dev)}) {
-                assert_script_run("parted $dev->{name} align-check optimal $i");
+                assert_script_run("parted -s $dev->{name} align-check optimal $i");
                 $i++;
             }
         }

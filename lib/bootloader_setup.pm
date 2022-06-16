@@ -1430,7 +1430,7 @@ sub prepare_disks {
             }
         }
         else {
-            script_run "parted /dev/$d mklabel gpt";
+            script_run "parted -s /dev/$d mklabel gpt";
             script_run "sync";
         }
     }
