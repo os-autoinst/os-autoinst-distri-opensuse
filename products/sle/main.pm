@@ -477,7 +477,7 @@ sub load_online_migration_tests {
     if (is_sle && (get_var('FLAVOR') =~ /Migration/) && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE'))) {
         loadtest "console/check_system_info";
     }
-    loadtest 'installation/install_service' if (is_sle && !is_desktop && !get_var('INSTALLONLY'));
+    loadtest 'installation/install_service' if (get_var('FORCE_INSTALL_SERVICE') || (is_sle && !is_desktop && !get_var('INSTALLONLY')));
     loadtest "migration/version_switch_upgrade_target";
     loadtest "migration/online_migration/pre_migration";
     if (get_var("LOCK_PACKAGE")) {

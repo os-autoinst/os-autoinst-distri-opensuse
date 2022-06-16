@@ -13,6 +13,9 @@ use power_action_utils 'power_action';
 use utils;
 
 sub run {
+    select_console 'root-console';
+    script_run('cat /etc/os-release');
+    select_console 'x11';
     power_action('poweroff');
 }
 

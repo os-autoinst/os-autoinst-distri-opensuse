@@ -24,13 +24,13 @@ sub run {
     }
 
     install_services($default_services)
-      if is_sle
-      && !is_desktop
-      && !is_sles4sap
-      && !is_hyperv
-      && !get_var('MEDIA_UPGRADE')
-      && !get_var('ZDUP')
-      && !get_var('INSTALLONLY');
+      if get_var('FORCE_INSTALL_SERVICE') || (is_sle
+        && !is_desktop
+        && !is_sles4sap
+        && !is_hyperv
+        && !get_var('MEDIA_UPGRADE')
+        && !get_var('ZDUP')
+        && !get_var('INSTALLONLY'));
 
     if ($srv_check_results{'before_migration'} eq 'FAIL') {
         record_info("Summary", "failed", result => 'fail');
