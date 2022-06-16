@@ -5,7 +5,7 @@
 #
 # Summary: Setup Apache2 with SSL enabled and test libserf by using SVN.
 # Maintainer: Starry Wang <starry.wang@suse.com> Ben Chou <bchou@suse.com>
-# Tags: poo#110434, tc#1769948
+# Tags: poo#110434, tc#1769948, poo#112550
 
 use base 'consoletest';
 use strict;
@@ -20,7 +20,7 @@ sub run {
     select_console('root-console');
 
     # Setup Apache2 server with SSL enabled
-    zypper_call('in apache2 subversion-server');
+    zypper_call('in apache2 subversion-server openssl');
     # Activate the SSL Module
     assert_script_run('a2enmod ssl');
     assert_script_run('echo "127.0.0.1 example-ssl.com" > /etc/hosts');
