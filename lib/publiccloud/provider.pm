@@ -387,6 +387,12 @@ sub terraform_apply {
             $cmd .= sprintf(q(-var '%s=%s' ), $key, escape_single_quote($value));
         }
         $cmd .= "-var 'image_id=" . $image . "' " if ($image);
+        if (is_azure) {
+            # `storage-account` is only present in our Azure terraform profile
+            # Note: Remove the default 'openqa' once the deprecated account will be removed.
+            my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'openqa');
+            $cmd .= "-var 'storage-account=$storage_account' " if ($storage_account);
+        }
         $cmd .= "-var 'instance_count=" . $args{count} . "' ";
         $cmd .= "-var 'type=" . $instance_type . "' ";
         $cmd .= "-var 'region=" . $self->provider_client->region . "' ";
@@ -485,9 +491,11 @@ sub terraform_destroy {
             my $image = $self->get_image_id();
             my $offer = get_var('PUBLIC_CLOUD_AZURE_OFFER');
             my $sku = get_var('PUBLIC_CLOUD_AZURE_SKU');
+            my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT');
             $cmd .= " -var 'image_id=$image'" if ($image);
             $cmd .= " -var 'offer=$offer'" if ($offer);
             $cmd .= " -var 'sku=$sku'" if ($sku);
+            $cmd .= " -var 'storage-account=$storage_account'" if ($storage_account);
         }
     }
     # Retry 3 times with considerable delay. This has been introduced due to poo#95932 (RetryableError)
