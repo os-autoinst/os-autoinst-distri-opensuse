@@ -53,17 +53,17 @@
 
 <h2 id="distribute_munge_key">distribute_munge_key</h2>
 
-<p>Distributes munge keys across all compute nodes of the cluster</p>
+<p>Distributes munge keys across all compute nodes of the cluster. This should usually be called from the master node. If a replica master node is expected, key should be also be copied in it too.</p>
 
 <h2 id="distribute_slurm_conf">distribute_slurm_conf</h2>
 
-<p>Distributes slurm config across all compute nodes of the cluster</p>
+<p>Distributes slurm config across all compute nodes of the cluster This should usually be called from the master node. If a replica master node is expected, config file should be also be copied in it too.</p>
 
 <h2 id="generate_and_distribute_ssh">generate_and_distribute_ssh</h2>
 
 <pre><code>     generate_and_distribute_ssh($user)</code></pre>
 
-<p>Generates and distributes ssh keys across compute nodes. <code>user</code> by default is set to <b>root</b> user unless another value is passed to the parameters. <code>user</code> is used to determine the user on the remote machine where the ssh_id will be copied.</p>
+<p>Generates and distributes ssh keys across compute nodes. <code>user</code> by default is set to <b>root</b> user unless another value is passed to the parameters. <code>user</code> is used to determine the user on the remote machine where the ssh_id will be copied. This should usually be called from the master node. If a replica master node is expected, the ssh keys should be also be distributed in it too.</p>
 
 <h2 id="check_nodes_availability">check_nodes_availability</h2>
 
