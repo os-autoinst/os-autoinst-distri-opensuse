@@ -40,10 +40,19 @@ sub run {
     assert_script_run("aws ec2 import-key-pair --key-name '$ssh_key' --public-key-material fileb://~/.ssh/id_rsa.pub");
 
     my $machine_name = "openqa-cli-test-vm-$job_id";
+    my $security_group_name = "openqa-cli-test-sg-$job_id";
     my $openqa_ttl = get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300);
     my $created_by = get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm');
     my $tag = "{Key=openqa-cli-test-tag,Value=$job_id},{Key=openqa_created_by,Value=$created_by},{Key=openqa_ttl,Value=$openqa_ttl}";
-    my $run_instances = "aws ec2 run-instances --image-id $image_id --count 1 --instance-type t2.micro --key-name $ssh_key";
+
+    my $create_security_group = "aws ec2 create-security-group --group-name $security_group_name --description 'aws_cli openqa test security group'";
+    $create_security_group .= " --tag-specifications 'ResourceType=security-group,Tags=[$tag]'";
+    assert_script_run($create_security_group, 180);
+    my $security_group_id = script_output("aws ec2 describe-security-groups --filters Name=group-name,Values=$security_group_name --query 'SecurityGroups[*].GroupId' --output=text", 180);
+    my $worker_public_ip = script_output('curl -q http://checkip.amazonaws.com');
+    assert_script_run("aws ec2 authorize-security-group-ingress --group-id $security_group_id --protocol tcp --port 22 --cidr $worker_public_ip/32");
+
+    my $run_instances = "aws ec2 run-instances --image-id $image_id --count 1 --security-group-ids $security_group_id --instance-type t2.micro --key-name $ssh_key";
     $run_instances .= " --tag-specifications 'ResourceType=instance,Tags=[$tag]' 'ResourceType=volume,Tags=[$tag]'";
     assert_script_run($run_instances, 240);
     assert_script_run("aws ec2 describe-instances --filters 'Name=tag:openqa-cli-test-tag,Values=$job_id'", 90);
@@ -60,10 +69,13 @@ sub run {
 sub cleanup {
     my $job_id = get_current_job_id();
     my $instance_id = script_output("aws ec2 describe-instances --filters 'Name=tag:openqa-cli-test-tag,Values=$job_id' --output=text --query 'Reservations[*].Instances[*].InstanceId'", 90);
+    my $security_group_name = "openqa-cli-test-sg-$job_id";
     record_info("InstanceId", "InstanceId: " . $instance_id);
     assert_script_run("aws ec2 terminate-instances --instance-ids $instance_id", 240);
     my $ssh_key = "openqa-cli-test-key-$job_id";
     assert_script_run "aws ec2 delete-key-pair --key-name $ssh_key";
+    # The security group can be deleted only after the instance is terminated which takes a moment
+    script_retry "aws ec2 delete-security-group --group-name $security_group_name", delay => 15, retry => 12;
 }
 
 sub test_flags {
