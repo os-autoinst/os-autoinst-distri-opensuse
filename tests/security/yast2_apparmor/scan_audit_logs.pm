@@ -3,7 +3,7 @@
 #
 # Summary: Test "# yast2 apparmor" can scan audit logs
 # Maintainer: llzhao <llzhao@suse.com>
-# Tags: poo#67933, tc#1741266
+# Tags: poo#67933, tc#1741266, poo#103341
 
 use base 'apparmortest';
 use strict;
@@ -34,6 +34,7 @@ sub run {
     # Enter "Scan Audit logs" and check there should no records
     assert_and_click("AppArmor-Scan-Audit-logs", timeout => 120);
     assert_and_click("AppArmor-Launch", timeout => 60);
+    wait_still_screen(5);
     if (!check_screen("AppArmor-Scan-Audit-logs-no-records")) {
         assert_and_click("AppArmor-Launch", timeout => 60);
         record_soft_failure("bsc#1190292, add workaround to click 'Launch' again");
@@ -66,6 +67,7 @@ sub run {
     # Enter "Scan Audit logs" and check there should have records
     assert_and_click("AppArmor-Scan-Audit-logs", timeout => 120);
     assert_and_click("AppArmor-Launch", timeout => 60);
+    wait_still_screen(5);
     if (!check_screen("AppArmor-Scan-Audit-logs-scan-records")) {
         assert_and_click("AppArmor-Launch", timeout => 60);
         record_soft_failure("bsc#1190292, add workaround to click 'Launch' again");
@@ -96,13 +98,10 @@ sub run {
     send_key "alt-a";
     send_key_until_needlematch("AppArmor-Scan-Audit-logs-abort", "tab", 2, 2);
     send_key "alt-n";
-    mouse_click("right");
     assert_screen("AppArmor-Scan-Audit-logs-allow");
 
     # Save changes
     send_key "alt-s";
-    mouse_click("right");
-    assert_and_click("AppArmor-Scan-Audit-logs-save");
     assert_screen("AppArmor-Scan-Audit-logs-saved");
     send_key "alt-o";
 

@@ -5,7 +5,7 @@
 #          also verify Bug 1172040 - YaST2 apparmor profile creation:
 #          "View profile" does nothing
 # Maintainer: llzhao <llzhao@suse.com>
-# Tags: poo#70537, tc#1741266
+# Tags: poo#70537, tc#1741266, poo#103341
 
 use base 'apparmortest';
 use strict;
@@ -43,6 +43,7 @@ sub run {
     send_key_until_needlematch("AppArmor-Chose-a-program-to-generate-a-profile", "alt-n", 30, 3);
     type_string("$test_file");
     assert_and_click("AppArmor-Chose-a-program-to-generate-a-profile-Open", timeout => 60);
+    wait_still_screen(5);
     if (!check_screen("AppArmor-generate-a-profile-Error")) {
         assert_and_click("AppArmor-Chose-a-program-to-generate-a-profile-Open", timeout => 60);
         record_soft_failure("bsc#1190295, add workaround to click 'Open' again");
@@ -63,6 +64,7 @@ sub run {
     assert_screen("AppArmor-Chose-a-program-to-generate-a-profile");
     type_string("$test_file_bk");
     assert_and_click("AppArmor-Chose-a-program-to-generate-a-profile-Open", timeout => 60);
+    wait_still_screen(5);
     if (!check_screen("AppArmor-Scan-system-log")) {
         assert_and_click("AppArmor-Chose-a-program-to-generate-a-profile-Open", timeout => 60);
         record_soft_failure("bsc#1190295, add workaround to click 'Open' again");
@@ -87,12 +89,12 @@ sub run {
     assert_screen("AppArmor-Chose-a-program-to-generate-a-profile");
     type_string("$test_file_vsftpd");
     assert_and_click("AppArmor-Chose-a-program-to-generate-a-profile-Open", timeout => 60);
+    wait_still_screen(5);
     if (!check_screen("AppArmor-Inactive-local-profile")) {
         assert_and_click("AppArmor-Chose-a-program-to-generate-a-profile-Open", timeout => 60);
         record_soft_failure("bsc#1190295, add workaround to click 'Open' again");
         send_key "tab";
     }
-    mouse_click("right");
     send_key_until_needlematch("AppArmor-Inactive-local-profile", "tab", 2, 2);
     send_key "tab";
 
@@ -103,13 +105,20 @@ sub run {
     send_key_until_needlematch("AppArmor-Inactive-local-profile", "tab", 2, 2);
     # Check "Use Profile"
     send_key "alt-u";
-    mouse_click("right");
     assert_screen("AppArmor-Scan-system-log");
     # Exit "yast2 apparmor"
     wait_screen_change { send_key "alt-f" };
 
     # Exit x11 and turn to console
+    # Close the yast2 apparmor window
+    save_screenshot;
     send_key "alt-f4";
+    wait_still_screen(5);
+
+    # Close the second xterm window
+    save_screenshot;
+    send_key "alt-f4";
+
     assert_screen("generic-desktop");
     select_console("root-console");
     send_key "ctrl-c";
