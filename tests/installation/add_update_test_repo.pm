@@ -38,7 +38,10 @@ sub run() {
         type_string $maintrepo;
         advance_installer_window('addon-products');
         # if more repos to come, add more
-        send_key_until_needlematch('addon-menu-active', 'alt-a', 11, 2) if @repos;
+        if (@repos) {
+            send_key 'alt-a';
+            send_key_until_needlematch('addon-menu-active', 'alt-a', 11, 2);
+        }
     }
 }
 
