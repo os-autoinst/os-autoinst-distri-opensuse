@@ -50,6 +50,7 @@ sub add_logical_volume {
     send_key("alt-t");
     wait_still_screen 1;
     send_key "alt-s";
+    send_key "ctrl-a";
     wait_screen_change { type_string "400MiB" };
     wait_screen_change { send_key "alt-n" };
     send_key "$role";
