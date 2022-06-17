@@ -18,14 +18,14 @@ sub run {
 
     $self->select_serial_terminal;
 
-    record_info('net.ipv4.ping_group_range', script_output('sysctl net.ipv4.ping_group_range'));
-    record_info('aaa_base', script_output('rpm -qi aaa_base'));
     record_info('KERNEL VERSION', script_output('uname -a'));
-    record_info('sysctl', script_output('sysctl -V'));
-    record_info('procps', script_output('rpm -qi procps'));
+    record_info('net.ipv4.ping_group_range', script_output('sysctl net.ipv4.ping_group_range'));
+    record_info('ping', script_output('ping -V'));
 
     my $kernel_pkg = is_jeos ? 'kernel-default-base' : 'kernel-default';
-    record_info('KERNEL DEFAULT PKG', script_output("rpm -qi $kernel_pkg", proceed_on_failure => 1));
+    foreach my $pkg ($kernel_pkg, 'aaa_base', 'iputils', 'procps', 'systemd') {
+        record_info($pkg, script_output("rpm -qi $pkg", proceed_on_failure => 1));
+    }
 
     my $ifname = script_output('ip -6 link |grep "^[0-9]:" |grep -v lo: | head -1 | awk "{print \$2}" | sed s/://');
     my $addr = script_output("ip -6 addr show $ifname | grep 'scope link' | head -1 | awk '{ print \$2 }' | cut -d/ -f1");
