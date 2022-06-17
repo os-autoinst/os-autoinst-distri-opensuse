@@ -16,7 +16,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
-use utils qw(zypper_call script_retry);
+use utils qw(zypper_call script_retry gcloud_install);
 use version_utils qw(is_sle);
 use mmapi 'get_current_job_id';
 use registration qw(add_suseconnect_product get_addon_fullname);
@@ -27,6 +27,7 @@ sub run {
 
     # We either test various cloud clusters or local k3s
     my $k8s_backend = shift(@{$run_args->{backends}});
+
     record_info("K8s engine", $k8s_backend);
 
     my $is_k3s = $k8s_backend eq 'K3S';
@@ -63,7 +64,15 @@ sub run {
             $provider = publiccloud::aks->new();
         }
         elsif ($k8s_backend eq 'GKE') {
-            die('GKE is not implemented yet');
+            add_suseconnect_product(get_addon_fullname('pcm')) if is_sle;
+            gcloud_install();
+
+            # package needed by init():
+            (is_sle('=15-SP4')) ? 
+               assert_script_run('zypper in -y chrony') : 
+               assert_script_run('zypper in -y ntp');
+
+            $provider = publiccloud::gke->new();
         }
         else {
             die('Unknown service given');
