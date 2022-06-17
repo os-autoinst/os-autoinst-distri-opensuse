@@ -52,6 +52,7 @@ schedule:
     - console/consoletest_setup
     - '{{udev_dep}}'
     - locale/keymap_or_locale
+    - console/ping
     - console/apache
     - console/dns_srv
     - console/postgresql_server
