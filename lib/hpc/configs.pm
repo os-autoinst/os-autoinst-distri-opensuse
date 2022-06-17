@@ -78,7 +78,6 @@ Default slurm.conf always set to the latest supported version
     SchedulerType => 'sched/backfill',
     "\#SchedulerAuth" => '',
     "\#SelectType" => '',
-    FastSchedule => '1',
     "\#PriorityType" => '',
     "\#PriorityDecayHalfLife" => '',
     "\#PriorityUsageResetPeriod" => '',
@@ -136,7 +135,9 @@ Default slurmdb.conf always set to the latest supported version
 
 =head2
 
-Prepare slurm.conf based on test requirements and settings
+Prepare slurm.conf based on test requirements and settings. This
+should usually be called from the master node and then get distributed
+among the nodes of the cluster.
 
 =cut
 sub prepare_slurm_conf ($self) {
@@ -149,7 +150,7 @@ sub prepare_slurm_conf ($self) {
 
     $slurm_config{NODES}{NodeName} = "$cluster_ctl_nodes,$cluster_compute_nodes";
     $slurm_config{PARTITION}{Nodes} = "$cluster_ctl_nodes,$cluster_compute_nodes";
-    $slurm_config{SlurmctldHost} = "$cluster_ctl_nodes[0]";
+    $slurm_config{SlurmctldHost} = get_var('HOSTNAME');
     $slurm_config{SlurmctldDebug} = 'debug5';
 
     if (($slurm_conf eq 'accounting') or ($slurm_conf eq 'nfs_db')) {

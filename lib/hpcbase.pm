@@ -117,13 +117,20 @@ sub cluster_names {
 
 =head2 distribute_munge_key
 
-Distributes munge keys across all compute nodes of the cluster
+Distributes munge keys across all compute nodes of the cluster.
+This should usually be called from the master node. If a replica
+master node is expected, key should be also be copied in it too.
 
 =cut
 sub distribute_munge_key {
     my ($self) = @_;
-    my @compute_nodes = slave_node_names();
-    foreach (@compute_nodes) {
+    my @cluster_nodes = slave_node_names();
+    my @master_nodes = master_node_names();
+    if (scalar @master_nodes > 1) {
+        my @backup_master = grep { $_ ne get_var('HOSTNAME') } @master_nodes;
+        push @cluster_nodes, @backup_master;
+    }
+    foreach (@cluster_nodes) {
         script_run("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@$_:/etc/munge/munge.key");
     }
 }
@@ -131,12 +138,19 @@ sub distribute_munge_key {
 =head2 distribute_slurm_conf
 
 Distributes slurm config across all compute nodes of the cluster
+This should usually be called from the master node. If a replica
+master node is expected, config file should be also be copied in it too.
 
 =cut
 sub distribute_slurm_conf {
     my ($self) = @_;
-    my @compute_nodes = slave_node_names();
-    foreach (@compute_nodes) {
+    my @cluster_nodes = slave_node_names();
+    my @master_nodes = master_node_names();
+    if (scalar @master_nodes > 1) {
+        my @backup_master = grep { $_ ne get_var('HOSTNAME') } @master_nodes;
+        push @cluster_nodes, @backup_master;
+    }
+    foreach (@cluster_nodes) {
         script_run("scp -o StrictHostKeyChecking=no /etc/slurm/slurm.conf root\@$_:/etc/slurm/slurm.conf");
     }
 }
@@ -148,15 +162,21 @@ sub distribute_slurm_conf {
 Generates and distributes ssh keys across compute nodes. C<user> by default is set
 to B<root> user unless another value is passed to the parameters.
 C<user> is used to determine the user on the remote machine where the ssh_id will
-be copied.
+be copied. This should usually be called from the master node. If a replica
+master node is expected, the ssh keys should be also be distributed in it too.
 
 =cut
 sub generate_and_distribute_ssh {
     my ($self, $user) = @_;
     $user //= 'root';
-    my @slave_nodes = slave_node_names();
+    my @cluster_nodes = slave_node_names();
+    my @master_nodes = master_node_names();
+    if (scalar @master_nodes > 1) {
+        my @backup_master = grep { $_ ne get_var('HOSTNAME') } @master_nodes;
+        push @cluster_nodes, @backup_master;
+    }
     assert_script_run('ssh-keygen -b 2048 -t rsa -q -N "" -f ~/.ssh/id_rsa');
-    foreach (@slave_nodes) {
+    foreach (@cluster_nodes) {
         exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no $user\@$_");
     }
 }
