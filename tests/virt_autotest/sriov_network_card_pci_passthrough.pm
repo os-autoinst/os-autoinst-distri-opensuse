@@ -399,16 +399,10 @@ sub save_network_device_status_logs {
     #list domain interface
     print_cmd_output_to_file("virsh domiflist $vm", $log_file);
 
-    #save udev rules from guest
-    print_cmd_output_to_file("ls -l /etc/udev/rules.d/70-persistent-net.rules", $log_file, $vm);
-    if ((script_run "ssh root\@$vm 'ls /etc/udev/rules.d/70-persistent-net.rules'") == 0) {
-        print_cmd_output_to_file("cat /etc/udev/rules.d/70-persistent-net.rules", $log_file, $vm);
-    }
-
-    #list pci devices in guest
-    print_cmd_output_to_file("lspci", $log_file, $vm);
-    print_cmd_output_to_file("ip a", $log_file, $vm);
-    print_cmd_output_to_file("lsmod", $log_file, $vm) if is_xen_host;
+    #logging device information in guest
+    my $debug_script = "sriov_network_guest_logging.sh";
+    download_script(machine => $vm, script_name => $debug_script) if (${test_step} eq "1-initial");
+    script_run("ssh root\@$vm \"~/$debug_script\" >> $log_file 2>&1");
 
     script_run "mv $log_file $log_dir/${vm}_${test_step}_network_device_status.txt";
 

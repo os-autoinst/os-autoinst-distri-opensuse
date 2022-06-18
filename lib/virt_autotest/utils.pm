@@ -29,7 +29,8 @@ our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest i
   check_host check_guest print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs
   ensure_default_net_is_active ensure_guest_started ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks remove_additional_nic
   collect_virt_system_logs shutdown_guests wait_guest_online start_guests is_guest_online wait_guests_shutdown setup_common_ssh_config
-  add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host check_port_state subscribe_extensions_and_modules);
+  add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host check_port_state subscribe_extensions_and_modules
+  download_script download_script_and_execute);
 
 # helper function: Trim string
 sub trim {
@@ -134,6 +135,35 @@ sub print_cmd_output_to_file {
     $cmd = "ssh root\@$machine \"" . $cmd . "\"" if $machine;
     script_run "echo -e \"\n# $cmd\" >> $file";
     script_run "$cmd >> $file";
+}
+
+sub download_script_and_execute {
+    my (%args) = @_;
+    $args{output_file} //= "$args{script_name}.log";
+    $args{machine} //= 'localhost';
+
+    download_script(script_name => $args{script_name}, script_url => $args{script_url}, machine => $args{machine});
+    my $cmd = "~/$args{script_name}";
+    $cmd = "ssh root\@$args{machine} " . "\"$cmd\"" if ($args{machine} ne 'localhost');
+    script_run("$cmd >> $args{output_file} 2>&1");
+}
+
+sub download_script {
+    my (%args) = @_;
+    $args{script_name} //= '';
+    $args{script_url} //= data_url("virt_autotest/$args{script_name}");
+    $args{machine} //= 'localhost';
+
+    my $cmd = "curl -s -o ~/$args{script_name} $args{script_url}";
+    $cmd = "ssh root\@$args{machine} " . "\"$cmd\"" if ($args{machine} ne 'localhost');
+    my $ret = script_run($cmd);
+    unless ($ret == 0) {
+        record_soft_failure("Failed to download $args{script_name} from $args{script_url}!");
+        return $ret;
+    }
+    $cmd = "chmod +x ~/$args{script_name}";
+    $cmd = "ssh root\@$args{machine} " . "\"$cmd\"" if ($args{machine} ne 'localhost');
+    script_run($cmd);
 }
 
 sub ssh_setup {
