@@ -45,7 +45,7 @@ sub load_common_tests {
 
 sub load_transactional_tests {
     loadtest 'transactional/host_config';
-    loadtest 'transactional/enable_selinux' if get_var('ENABLE_SELINUX');
+    loadtest 'transactional/enable_selinux';
     loadtest 'transactional/trup_smoke';
     loadtest 'transactional/filesystem_ro' if is_transactional;
     loadtest 'transactional/transactional_update';
