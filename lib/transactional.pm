@@ -17,7 +17,7 @@ use warnings;
 use testapi;
 use microos 'microos_reboot';
 use power_action_utils qw(power_action prepare_system_shutdown);
-use version_utils qw(is_opensuse is_microos is_sle_micro is_leap_micro is_sle);
+use version_utils;
 use utils 'reconnect_mgmt_console';
 use Utils::Backends;
 use Utils::Architectures;
@@ -37,7 +37,7 @@ sub get_utt_packages {
     # SLE and SUSE MicroOS need an additional repo for testing
     if (is_sle || is_sle_micro) {
         assert_script_run 'curl -O ' . data_url("microos/utt.repo");
-    } elsif (is_leap_micro) {
+    } elsif (is_leap_micro || is_alp) {
         assert_script_run 'curl -o utt.repo ' . data_url("microos/utt-leap.repo");
     }
 
