@@ -10,7 +10,7 @@ use utils;
 use testapi;
 use main_common;
 use main_containers qw(load_container_tests is_container_test);
-use version_utils qw(is_released);
+use version_utils qw(is_transactional);
 use Utils::Architectures qw(is_s390x);
 
 init_main();
@@ -47,7 +47,7 @@ sub load_transactional_tests {
     loadtest 'transactional/host_config';
     loadtest 'transactional/enable_selinux' if get_var('ENABLE_SELINUX');
     loadtest 'transactional/trup_smoke';
-    loadtest 'transactional/filesystem_ro';
+    loadtest 'transactional/filesystem_ro' if is_transactional;
     loadtest 'transactional/transactional_update';
     loadtest 'transactional/rebootmgr';
     loadtest 'transactional/health_check';
