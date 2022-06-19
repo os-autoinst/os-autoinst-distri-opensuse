@@ -35,6 +35,8 @@ sub load_selfinstall_boot_tests {
 }
 
 sub load_common_tests {
+    loadtest 'transactional/host_config';
+    loadtest 'transactional/enable_selinux';
     loadtest 'microos/networking';
     loadtest 'microos/libzypp_config';
     loadtest 'microos/image_checks';
@@ -44,8 +46,6 @@ sub load_common_tests {
 }
 
 sub load_transactional_tests {
-    loadtest 'transactional/host_config';
-    loadtest 'transactional/enable_selinux';
     loadtest 'transactional/trup_smoke';
     loadtest 'transactional/filesystem_ro' if is_transactional;
     loadtest 'transactional/transactional_update';
