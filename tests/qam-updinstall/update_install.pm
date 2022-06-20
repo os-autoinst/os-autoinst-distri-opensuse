@@ -51,7 +51,11 @@ sub has_conflict {
         'python3-ldb' => 'python-ldb',
         'chrony-pool-suse' => 'chrony-pool-empty',
         libGLwM1 => 'libGLw1',
-        libiterm1 => 'terminfo-iterm'
+        libiterm1 => 'terminfo-iterm',
+        rust => 'rls',
+        'rust-gdb' => 'cargo',
+        'openssl-1_0_0' => 'openssl-1_1'
+
     );
     return $conflict{$binary};
 }
