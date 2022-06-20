@@ -98,12 +98,14 @@ sub run {
     send_key_until_needlematch "jeos-keylayout-$lang", $keylayout_key{$lang}, 30;
     send_key 'ret';
 
-    # Accept license
-    unless (is_leap('<15.2')) {
-        foreach my $license_needle (qw(jeos-license jeos-doyouaccept)) {
-            assert_screen $license_needle;
-            send_key 'ret';
-        }
+    # Show license
+    assert_screen 'jeos-license';
+    send_key 'ret';
+
+    # Accept EULA if required
+    unless (is_tumbleweed || is_microos) {
+        assert_screen 'jeos-doyouaccept';
+        send_key 'ret';
     }
 
     # Select timezone
