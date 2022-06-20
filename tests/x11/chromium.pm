@@ -14,6 +14,8 @@ use utils;
 
 sub type_address ($string) {
     send_key 'ctrl-l';    # select text in address bar
+                          # wait for the urlbar to be in a consistent state
+    assert_screen 'chromium-highlighted-urlbar';
     enter_cmd($string);
 }
 
@@ -25,6 +27,7 @@ sub run {
     # avoid async keyring popups
     # allow key input before rendering is done, see poo#109737 for details
     x11_start_program('chromium --password-store=basic --allow-pre-commit-input', target_match => 'chromium-main-window', match_timeout => 50);
+    wait_screen_change { send_key 'esc' };    # get rid of popup (or abort loading)
 
     type_address('chrome://version');
     assert_screen 'chromium-about';
