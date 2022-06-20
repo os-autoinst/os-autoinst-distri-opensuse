@@ -87,6 +87,7 @@ sub run {
     }
     clear_console;
     select_console 'x11';
+    return record_soft_failure('bsc#1200325 - firefox_nss can no longer open https webpages in FIPS Mode') if (is_sle('=15-sp4') && get_var('FIPS_ENABLED'));
     x11_start_program('firefox https://html5test.opensuse.org', target_match => 'firefox-html-test', match_timeout => 360);
 
     # Firefox Preferences
