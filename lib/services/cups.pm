@@ -21,22 +21,26 @@ sub install_service {
 }
 
 sub config_service {
+    my $conf = '/etc/cups/cups-files.conf';
     if ($service_type eq 'Systemd') {
-        script_run 'echo FileDevice Yes >> /etc/cups/cups-files.conf';
+        script_run "echo FileDevice Yes >> $conf";
         validate_script_output 'cupsd -t', sub { m/is OK/ };
     } else {
+        $conf = '/etc/cups/cupsd.conf';
         # Allow new printers to be added using device URIs "file:/filename"
-        script_run 'echo FileDevice Yes >> /etc/cups/cupsd.conf';
+        script_run "echo FileDevice Yes >> $conf";
         assert_script_run 'cupsd';
     }
+
+    record_info('cups-files', script_output("cat $conf"));
 }
 
 sub enable_service {
     common_service_action 'cups', $service_type, 'enable';
 }
 
-sub start_service {
-    common_service_action 'cups', $service_type, 'start';
+sub restart_service {
+    common_service_action 'cups', $service_type, 'restart';
 }
 
 # check service is running and enabled
@@ -119,7 +123,7 @@ sub full_cups_check {
         install_service();
         config_service();
         enable_service();
-        start_service();
+        restart_service();
     }
     check_service();
     check_function();
