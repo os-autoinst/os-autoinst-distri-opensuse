@@ -228,6 +228,14 @@
         },
         "type": "ignore"
     },
+    "bsc#1188238": {
+        "description": "Bluetooth: hci0: command 0x0c03 tx timeout|Bluetooth: hci0: BCM: Reset failed (-110)",
+        "products": {
+            "sle-micro": [ "5.0", "5.1" ],
+            "opensuse": ["Tumbleweed", "15.2", "15.3"]
+        },
+        "type": "ignore"
+    },
     "apci-bridge": {
         "description": "fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge|PCI: System does not support PCI",
         "products": {
