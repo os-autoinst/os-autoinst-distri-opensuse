@@ -27,12 +27,11 @@ sub run {
     my ($self, $args) = @_;
     select_host_console();    # select console on the host, not the PC instance
 
-    # Skip maintenance updates. This is useful for debug runs
-    my $skip_mu = get_var('PUBLIC_CLOUD_SKIP_MU', 0);
 
-    # Trigger to skip the download to speed up verification runs
-    if ($skip_mu) {
+    if (get_var('PUBLIC_CLOUD_SKIP_MU')) {
+        # Skip maintenance updates. This is useful for debug runs
         record_info('Skip download', 'Skipping maintenance update download (triggered by setting)');
+        return;
     } else {
         # Skip if we already downloaded the repos
         if (get_repo_status() == 1) {
