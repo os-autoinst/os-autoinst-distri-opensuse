@@ -1,0 +1,15 @@
+name: sssd_389ds_functional_fips
+description:    >
+    This is for sssd_389ds_functional_fips test
+schedule:
+    - '{{bootloader}}'
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - security/test_repo_setup
+    - fips/fips_setup
+    - console/sssd_389ds_functional
+conditional_schedule:
+    bootloader:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
