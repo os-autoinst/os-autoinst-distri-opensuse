@@ -388,9 +388,8 @@ sub terraform_apply {
         }
         $cmd .= "-var 'image_id=" . $image . "' " if ($image);
         if (is_azure) {
-            # `storage-account` is only present in our Azure terraform profile
-            # Note: Remove the default 'openqa' once the deprecated account will be removed.
-            my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'openqa');
+            # Note: Only the default Azure terraform profiles contains the 'storage-account' variable
+            my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT');
             $cmd .= "-var 'storage-account=$storage_account' " if ($storage_account);
         }
         $cmd .= "-var 'instance_count=" . $args{count} . "' ";
