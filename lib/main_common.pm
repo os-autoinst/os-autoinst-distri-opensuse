@@ -894,7 +894,7 @@ sub load_inst_tests {
     if (get_var('ENCRYPT_CANCEL_EXISTING') || get_var('ENCRYPT_ACTIVATE_EXISTING')) {
         loadtest "installation/encrypted_volume_activation";
     }
-    if (is_sle('<15-SP4') && get_var('MULTIPATH') or get_var('MULTIPATH_CONFIRM')) {
+    if (!is_sle('15-SP4+') && get_var('MULTIPATH') or get_var('MULTIPATH_CONFIRM')) {
         loadtest "installation/multipath";
     }
     if (is_opensuse && noupdatestep_is_applicable() && !is_livecd) {
