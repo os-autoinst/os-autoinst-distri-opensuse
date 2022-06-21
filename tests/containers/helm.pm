@@ -69,8 +69,8 @@ sub run {
 
             # package needed by init():
             (is_sle('=15-SP4')) ? 
-               assert_script_run('zypper in -y chrony') : 
-               assert_script_run('zypper in -y ntp');
+               zypper_call("in chrony", timeout => 300): 
+               zypper_call("in ntp", timeout => 300);
 
             $provider = publiccloud::gke->new();
         }

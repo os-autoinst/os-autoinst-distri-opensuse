@@ -2251,7 +2251,7 @@ sub gcloud_install {
     my $dir = $args{dir} || 'google-cloud-sdk';
     my $timeout = $args{timeout} || 700;
 
-    assert_script_run("zypper -n in curl tar gzip", $timeout);
+    zypper_call("in curl tar gzip", $timeout);
     assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
     assert_script_run("curl $url | bash", $timeout);
 
