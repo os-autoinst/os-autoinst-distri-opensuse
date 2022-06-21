@@ -59,7 +59,8 @@
         "products": {
             "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
             "leap-micro": [ "5.2" ],
-            "microos":  ["Tumbleweed"]
+            "microos":  ["Tumbleweed"],
+            "alp":  ["0.1"]
         },
         "type": "ignore"
     },
@@ -86,7 +87,8 @@
         "products": {
             "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
             "leap-micro": [ "5.2" ],
-            "microos":  ["Tumbleweed"]
+            "microos":  ["Tumbleweed"],
+            "alp":  ["0.1"]
         },
         "type": "bug"
     },
@@ -296,7 +298,8 @@
         "products": {
             "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
             "leap-micro": ["5.2"],
-            "microos":  ["Tumbleweed"]
+            "microos":  ["Tumbleweed"],
+            "alp":  ["0.1"]
         },
         "type": "ignore"
     },

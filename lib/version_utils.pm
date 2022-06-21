@@ -21,6 +21,7 @@ use constant {
           is_microos
           is_leap_micro
           is_sle_micro
+          is_alp
           is_selfinstall
           is_gnome_next
           is_jeos
@@ -257,6 +258,21 @@ sub is_sle_micro {
     return check_version($query, $version, qr/\d{1,}\.\d/);
 }
 
+=head2 is_alp
+
+Check if distribution is ALP
+=cut
+sub is_alp {
+    my $query = shift;
+    my $version = shift // get_var('VERSION');
+
+    return 0 unless check_var('DISTRI', 'alp');
+    return 1 unless $query;
+
+    # Version check
+    return check_version($query, $version, qr/\d{1,}\.\d/);
+}
+
 =head2 is_selfinstall
 
 Check if SLEM is in flavor of self installable iso
@@ -311,6 +327,7 @@ sub is_opensuse {
     return 1 if check_var('DISTRI', 'opensuse');
     return 1 if check_var('DISTRI', 'microos');
     return 1 if check_var('DISTRI', 'leap-micro');
+    return 1 if check_var('DISTRI', 'alp');
     return 0;
 }
 
@@ -336,6 +353,7 @@ Returns true if called on a transactional server
 =cut
 sub is_transactional {
     return 1 if (is_microos || is_sle_micro || is_leap_micro);
+    return 1 if (is_alp && get_var('FLAVOR') !~ /NonTransactional/);
     return check_var('SYSTEM_ROLE', 'serverro') || get_var('TRANSACTIONAL_SERVER');
 }
 

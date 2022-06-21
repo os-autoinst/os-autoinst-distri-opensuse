@@ -13,8 +13,10 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use transactional qw(process_reboot);
+use transactional qw(process_reboot trup_call check_reboot_changes);
 use bootloader_setup qw(change_grub_config);
+use version_utils qw(is_alp is_transactional);
+use utils qw(zypper_call);
 
 sub run {
     select_console 'root-console';
@@ -30,8 +32,15 @@ sub run {
         assert_script_run('transactional-update grub.cfg');
         process_reboot(trigger => 1);
     }
-
-    # Placeholder for other configurations we might need (not related to grub)
+    if (is_alp) {
+        record_info('Packages', 'Install needed packages to run the tests');
+        if (is_transactional) {
+            trup_call('pkg install tar', timeout => 300);
+            check_reboot_changes;
+        } else {
+            zypper_call('in tar');
+        }
+    }
 }
 
 sub test_flags {
