@@ -138,4 +138,22 @@ sub post_fail_hook {
     save_screenshot;
 }
 
+sub install_wsl2_kernel {
+    my $self = shift;
+    my $ms_kernel_link = 'https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi';
+
+    # Download the WSL kernel and install it
+    $self->run_in_powershell(
+        cmd => "Invoke-WebRequest -Uri $ms_kernel_link -O C:\\kernel.msi  -UseBasicParsing",
+        timeout => 300
+    );
+    $self->run_in_powershell(
+        cmd => q{ii C:\\kernel.msi},
+        code => sub {
+            assert_and_click 'wsl2-install-kernel-start', timeout => 60;
+            assert_and_click 'wsl2-install-kernel-finished', timeout => 60;
+        }
+    );
+}
+
 1;

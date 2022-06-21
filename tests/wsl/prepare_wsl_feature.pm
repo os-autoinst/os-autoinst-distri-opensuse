@@ -94,15 +94,10 @@ sub run {
         cmd => $powershell_cmds->{enable_wsl_feature}->{wsl},
         timeout => 120
     );
-
     if (get_var('WSL2')) {
         $self->run_in_powershell(
             cmd => $powershell_cmds->{enable_wsl_feature}->{vm_platform},
             timeout => 120
-        );
-        $self->run_in_powershell(
-            cmd => "Invoke-WebRequest -Uri $ms_kernel_link -O C:\\kernel.msi  -UseBasicParsing",
-            timeout => 420
         );
     }
 
@@ -112,15 +107,7 @@ sub run {
     # 5) Install Linux in WSL
     if (get_var('WSL2')) {
         $self->open_powershell_as_admin;
-        $self->run_in_powershell(
-            cmd => q{ii C:\\kernel.msi},
-            code => sub {
-                assert_screen 'wsl2-install-kernel-start';
-                send_key 'ret';
-                assert_screen 'wsl2-install-kernel-finished';
-                send_key 'ret';
-            }
-        );
+        $self->install_wsl2_kernel;
         $self->run_in_powershell(
             cmd => q{wsl --set-default-version 2}
         );
