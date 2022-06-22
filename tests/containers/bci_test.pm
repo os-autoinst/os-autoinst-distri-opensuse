@@ -56,7 +56,7 @@ sub parse_logs {
     }
     $dom->toFile(hashed_string('result.xml'), 1);
     # Download file from host pool to the instance
-    assert_script_run('curl ' . autoinst_url('/files/result.xml') . ' -o /tmp/result.txt');
+    assert_script_run('curl -s ' . autoinst_url('/files/result.xml') . ' -o /tmp/result.txt');
     parse_extra_log('XUnit', '/tmp/result.txt');
 }
 

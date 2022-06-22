@@ -44,7 +44,7 @@ sub install_podman_when_needed {
     my $host_os = shift;
     my @pkgs = qw(podman);
     if (script_run("which podman") != 0) {
-        if ($host_os eq 'centos') {
+        if ($host_os =~ /centos|rhel/) {
             script_retry "yum -y install @pkgs --nobest --allowerasing", timeout => 300;
         } elsif ($host_os eq 'ubuntu') {
             script_retry("apt-get -y install @pkgs", timeout => 300);
