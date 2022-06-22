@@ -60,7 +60,7 @@ variable "storage-account" {
     # Not all of our `terraform destroy` calls pass this variable and neither is it necessary.
     # However removing the default value might cause `terraform destroy` to fail in corner cases,
     # resulting effectively in leaking resources due to failed cleanups.
-    default="openqa"
+    default="eisleqaopenqa"
 }
 
 variable "tags" {
