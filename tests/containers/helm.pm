@@ -16,11 +16,12 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
-use utils qw(zypper_call script_retry gcloud_install);
+use utils qw(zypper_call script_retry);
 use version_utils qw(is_sle);
 use mmapi 'get_current_job_id';
 use registration qw(add_suseconnect_product get_addon_fullname);
 use containers::k8s;
+use publiccloud::utils qw(gcloud_install);
 
 sub run {
     my ($self, $run_args) = @_;
@@ -68,9 +69,9 @@ sub run {
             gcloud_install();
 
             # package needed by init():
-            (is_sle('=15-SP4')) ? 
-               zypper_call("in chrony", timeout => 300): 
-               zypper_call("in ntp", timeout => 300);
+            (is_sle('=15-SP4'))
+              ? zypper_call("in chrony", timeout => 300)
+              : zypper_call("in ntp", timeout => 300);
 
             $provider = publiccloud::gke->new();
         }
@@ -84,7 +85,8 @@ sub run {
     install_helm();
 
     # Add repo, search and show values
-    assert_script_run("helm repo add bitnami https://charts.bitnami.com/bitnami", 180);
+    assert_script_run(
+        "helm repo add bitnami https://charts.bitnami.com/bitnami", 180);
     assert_script_run("helm repo update", 180);
     assert_script_run("helm search repo apache");
     assert_script_run("helm show all $chart");

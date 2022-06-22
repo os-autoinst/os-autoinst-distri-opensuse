@@ -94,7 +94,6 @@ our @EXPORT = qw(
   permit_root_ssh_in_sol
   cleanup_disk_space
   package_upgrade_check
-  gcloud_install
 );
 
 =head1 SYNOPSIS
@@ -2232,33 +2231,5 @@ sub package_upgrade_check {
         }
     }
 }
-
-=head2 gcloud_install
-    gcloud_install();
-
-This function is used to install the gcloud CLI 
-for the GKE Google Cloud.
-
-From $url we get the full package and install in $dir local folder,
-that is supposed to be a subdir of the root user home /root.
-The Defaults are availeble for a simple call without parameters.
-
-=cut
-
-sub gcloud_install {
-    my %args = @_;
-    my $url = $args{url} || 'sdk.cloud.google.com';
-    my $dir = $args{dir} || 'google-cloud-sdk';
-    my $timeout = $args{timeout} || 700;
-
-    zypper_call("in curl tar gzip", $timeout);
-    assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
-    assert_script_run("curl $url | bash", $timeout);
-
-    assert_script_run("echo . /root/$dir/completion.bash.inc >> ~/.bashrc");
-    assert_script_run("echo . /root/$dir/path.bash.inc >> ~/.bashrc");
-    record_info('GCE', script_output('source ~/.bashrc && gcloud version'));
-}
-
 
 1;
