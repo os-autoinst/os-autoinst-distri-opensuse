@@ -178,6 +178,7 @@ sub ensure_unlocked_desktop {
                 send_key 'esc';    # end screenlock
                 diag("Screen lock present");
             };
+            next;    # Go directly to assert_screen, skip wait_still_screen (and don't collect $200)
         }
         wait_still_screen 1;    # slow down loop
     }
