@@ -230,6 +230,7 @@ In this case the build of the base image is not going to work as it lacks the re
 The call should return false if the test is run on a non-sle host.
 
 =cut
+
 sub can_build_sle_base {
     # script_run returns 0 if true, but true is 1 on perl
     my $has_sle_registration = !script_run("test -e /etc/zypp/credentials.d/SCCcredentials");

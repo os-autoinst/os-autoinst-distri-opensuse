@@ -30,6 +30,7 @@ sub init {
 
 Clean a container image from the GCR
 =cut
+
 sub delete_container_image {
     my ($self, $tag) = @_;
 

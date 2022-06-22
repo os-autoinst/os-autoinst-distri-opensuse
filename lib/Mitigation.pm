@@ -78,6 +78,7 @@ To reboot and waiting system back and login it.
 This could support IPMI and QEMU backend.
 C<$timeout> in seconds.
 =cut
+
 sub reboot_and_wait {
     my ($self, $timeout) = @_;
     if (is_ipmi) {

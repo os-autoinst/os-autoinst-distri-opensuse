@@ -37,6 +37,7 @@ object.
 Due to https://github.com/Azure/azure-cli/issues/9903 we need to strip all
 color codes from that string first.
 =cut
+
 sub decode_azure_json {
     return decode_json(colorstrip(shift));
 }
@@ -282,6 +283,7 @@ sub start_instance
 Extract resource group and vm name from full instance id which looks like
 C</subscriptions/c011786b-59d7-4817-880c-7cd8a6ca4b19/resourceGroups/openqa-suse-de-1ec3f5a05b7c0712/providers/Microsoft.Compute/virtualMachines/openqa-suse-de-1ec3f5a05b7c0712>
 =cut
+
 sub parse_instance_id
 {
     my ($self, $instance) = @_;

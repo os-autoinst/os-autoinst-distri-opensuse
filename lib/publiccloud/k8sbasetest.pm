@@ -20,6 +20,7 @@ use containers::k8s qw(install_kubectl);
 
 Prepare the provider and install kubectl
 =cut
+
 sub init {
     my ($self) = @_;
 
@@ -34,6 +35,7 @@ sub init {
 
 Apply a kubernetes manifest
 =cut
+
 sub apply_manifest {
     my ($self, $manifest) = @_;
 
@@ -49,6 +51,7 @@ sub apply_manifest {
 
 Find pods using kubectl queries
 =cut
+
 sub find_pods {
     my ($self, $query) = @_;
     return script_output("kubectl get pods --no-headers -l $query -o custom-columns=':metadata.name'");
@@ -58,6 +61,7 @@ sub find_pods {
 
 Wait until the job is complete
 =cut
+
 sub wait_for_job_complete {
     my ($self, $job) = @_;
     assert_script_run("kubectl wait --for=condition=complete --timeout=300s job/$job");
@@ -67,6 +71,7 @@ sub wait_for_job_complete {
 
 Validates that the logs contains a text
 =cut
+
 sub validate_log {
     my ($self, $pod, $text) = @_;
     validate_script_output("kubectl logs $pod 2>&1", qr/$text/);
@@ -77,6 +82,7 @@ sub validate_log {
 
 Returns the name for the kubernetes service
 =cut
+
 sub get_k8s_service_name {
     my ($self) = @_;
 

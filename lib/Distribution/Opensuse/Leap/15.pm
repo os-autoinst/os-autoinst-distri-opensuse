@@ -24,6 +24,7 @@ Returns controller for license agreement which differs from SLE due to
 openSUSE use a different UI flow to accept the default license.
 
 =cut
+
 sub get_firstboot_license_agreement {
     return Installation::License::Opensuse::Firstboot::LicenseAgreementController->new();
 }

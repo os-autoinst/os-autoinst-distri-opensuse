@@ -32,6 +32,7 @@ my $autofs_sys_conf_file = '/etc/sysconfig/autofs';
 Set up an autofs server by using scripts
 
 =cut
+
 sub setup_autofs_server {
     my (%args) = @_;
     my $grep_output = script_output("grep '#+dir' $args{autofs_conf_file}");
@@ -53,6 +54,7 @@ sub setup_autofs_server {
 Check autofs service by starting and stopping service
 
 =cut
+
 sub check_autofs_service {
     common_service_action 'autofs', $service_type, 'start';
     common_service_action 'autofs', $service_type, 'is-active';
@@ -67,6 +69,7 @@ sub check_autofs_service {
 
 Install autofs package
 =cut
+
 sub install_service {
     zypper_call 'in autofs';
 }
@@ -77,6 +80,7 @@ sub install_service {
 
 Enable service autofs
 =cut
+
 sub enable_service {
     common_service_action 'autofs', $service_type, 'enable';
 }
@@ -87,6 +91,7 @@ sub enable_service {
 
 Start service autofs
 =cut
+
 sub start_service {
     common_service_action 'autofs', $service_type, 'start';
 }
@@ -97,6 +102,7 @@ sub start_service {
 
 Check service autofs
 =cut
+
 sub check_service {
     common_service_action 'autofs', $service_type, 'is-enabled';
     common_service_action 'autofs', $service_type, 'is-active';
@@ -112,6 +118,7 @@ The argument C<$stage> has the value C<function>, some iso and autofs related rp
 Also C<check_autofs_service()> will be called.
 
 =cut
+
 sub configure_service {
     my ($stage) = @_;
     $stage //= '';
@@ -146,6 +153,7 @@ sub configure_service {
 
 Check iso which is mounted to test directory
 =cut
+
 sub check_function {
     # We don't check autofs function for sles11sp4
     return if ($service_type eq 'SystemV');
@@ -197,6 +205,7 @@ Run checks of autofs by call following functions:
 =back
 
 =cut
+
 sub full_autofs_check {
     my (%hash) = @_;
     my ($stage, $type) = ($hash{stage}, $hash{service_type});

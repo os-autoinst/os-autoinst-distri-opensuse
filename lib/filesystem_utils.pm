@@ -41,6 +41,7 @@ our @EXPORT = qw(
 Format number and unit from KB, MB, GB, TB to MB
 
 =cut
+
 sub str_to_mb {
     my $str = shift;
     if ($str =~ /(\d+(\.\d+)?)K/) {
@@ -68,6 +69,7 @@ Print partition  of device B<dev> in unit B<unit>.
 By default B<unit> is expressed in MB.
 
 =cut
+
 sub parted_print {
     my (%args) = @_;
     my $dev = $args{dev};
@@ -83,6 +85,7 @@ sub parted_print {
 Get partition number by given device partition start and end
 
 =cut
+
 sub partition_num_by_start_end {
     my ($dev, $start, $end) = @_;
     my $output = parted_print(dev => $dev);
@@ -99,6 +102,7 @@ Get the first parition number by given device and partition/FS type. e.g. extend
 Return -1 when not find
 
 =cut
+
 sub partition_num_by_type {
     my ($dev, $type) = @_;
     my $output = parted_print(dev => $dev);
@@ -119,6 +123,7 @@ perform the operation, get all information (start, end, size) about the bigest f
 Return a hash containing start, end and size
 
 =cut
+
 sub free_space {
     my (%args) = @_;
     my $dev = $args{dev};
@@ -147,6 +152,7 @@ sub free_space {
 Get partition by mountpoint, e.g. give /home get /dev/sda3
 
 =cut
+
 sub mountpoint_to_partition {
     my $mountpoint = shift;
     my $output = script_output('mount');
@@ -165,6 +171,7 @@ sub mountpoint_to_partition {
 Get partition table information by giving device
 
 =cut
+
 sub partition_table {
     my $dev = shift;
     my $output = parted_print(dev => $dev);
@@ -183,6 +190,7 @@ Get partition table information of giving device using blkid
 (for example, minimal role does not install parted)
 
 =cut
+
 sub get_partition_table_via_blkid {
     my $dev = shift;
     return (split(/\"/, script_output("blkid $dev")))[-1];
@@ -194,6 +202,7 @@ Create a new partition by giving device, partition type and partition size
 part_type (extended|logical|primary)
 
 =cut
+
 sub create_partition {
     my ($dev, $part_type, $size) = @_;
     my ($part_start, $part_end);
@@ -234,6 +243,7 @@ sub create_partition {
 Remove a partition by given partition name, e.g /dev/sdb5
 
 =cut
+
 sub remove_partition {
     my $part = shift;
     my ($dev, $num);
@@ -258,6 +268,7 @@ sub remove_partition {
 Format partition to target filesystem. The optional value C<$options> is '-f' as default.
 
 =cut
+
 sub format_partition {
     my ($part, $filesystem, %args) = @_;
     my $options;
@@ -279,6 +290,7 @@ Returns the value of the "df -h" output in given column, for a given partition
   df_command([partition=>$partition , column=> $column])
 
 =cut
+
 sub df_command {
     my $args = shift;
     return script_output("df -h $args->{partition} | awk \'NR==2 {print \$$args->{column}}\'");
@@ -291,6 +303,7 @@ Return the value of the defined partition size
   get_partition_size($partition)
 
 =cut
+
 sub get_partition_size {
     my $partition = shift;
     return df_command({partition => $partition, column => '2'});
@@ -303,6 +316,7 @@ Returns the value of used space of the defined partition
   get_used_partition_space($partition)
 
 =cut
+
 sub get_used_partition_space {
     my $partition = shift;
     return df_command({partition => $partition, column => '5'});
@@ -442,6 +456,7 @@ used contains new MOUNTPOINTS column including all subvolumes mountpoints or not
 Returns string with all found errors.
 
 =cut
+
 sub validate_lsblk {
     my (%args) = @_;
     my $dev = $args{device};

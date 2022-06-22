@@ -22,6 +22,7 @@ C<consoletest> - Base class for all console tests
 Method executed when run() finishes.
 
 =cut
+
 sub post_run_hook {
     my ($self) = @_;
 
@@ -37,6 +38,7 @@ sub post_run_hook {
 Method executed when run() finishes and the module has result => 'fail'
 
 =cut
+
 sub post_fail_hook {
     my ($self) = @_;
     $self->SUPER::post_fail_hook;
@@ -56,6 +58,7 @@ sub post_fail_hook {
 switch network manager to wicked.
 
 =cut
+
 sub use_wicked_network_manager {
     assert_script_run "systemctl disable NetworkManager --now";
     assert_script_run "systemctl enable --force wicked --now";

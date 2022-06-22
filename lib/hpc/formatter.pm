@@ -33,6 +33,7 @@ C<bin> is required. C<need_interpreter> boolean will tell if the C<bin>
 is actually a source code where needs invoke _python_ interpreter.
 
 =cut
+
 sub single_node ($self, $bin) {
     #my ($self, $bin) = @_;
     die unless $bin;
@@ -52,6 +53,7 @@ a source code where needs invoke _python_ interpreter.
 TODO: improve the identification of the C<bin>
 
 =cut
+
 sub all_nodes ($self, $bin) {
     #my ($self, $bin) = @_;
     die unless $bin;

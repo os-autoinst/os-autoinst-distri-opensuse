@@ -38,6 +38,7 @@ will be used(mpich, openmpi, mvapich2).
 Returns an array with the mpi compiler and the source code located in /data/hpc
 
 =cut
+
 sub get_mpi_src {
     return ('mpicc', 'simple_mpi.c') unless get_var('HPC_LIB', '');
     # not a boost lib. but using it we can distiguish between `.c` and `.cpp` source code
@@ -53,6 +54,7 @@ This sub logouts the root user and relogins him from terminal.
 Useful to rerun configuration scripts after some changes
 
 =cut
+
 sub relogin_root {
     my $self = shift;
     record_info 'relogin', 'user needs to logout and login back to trigger scripts which set env variales and others';
@@ -75,6 +77,7 @@ L<https://documentation.suse.com/sle-hpc/15-SP3/single-html/hpc-guide/#sec-compu
 When subroutine returns immediately returns 1 to indicate that no relogin has occurred.
 
 =cut
+
 sub setup_scientific_module {
     my ($self) = @_;
     return 1 unless get_var('HPC_LIB', '');

@@ -140,6 +140,7 @@ should usually be called from the master node and then get distributed
 among the nodes of the cluster.
 
 =cut
+
 sub prepare_slurm_conf ($self) {
     my $slurm_conf = get_required_var('SLURM_CONF');
 
@@ -219,6 +220,7 @@ sub prepare_slurm_conf ($self) {
 Prepare slurmdbd.conf based on test requirements and settings
 
 =cut
+
 sub prepare_slurmdb_conf ($self) {
     my @cluster_compute_nodes = $self->slave_node_names();
 

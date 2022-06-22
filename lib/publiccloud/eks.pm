@@ -29,6 +29,7 @@ sub init {
 
 Clean a container image from the ECR
 =cut
+
 sub delete_container_image {
     my ($self, $tag) = @_;
 

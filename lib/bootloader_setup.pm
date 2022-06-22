@@ -104,6 +104,7 @@ grub entries with C<GRUB_PARAM='ima_policy=tcb'> and calling add_custom_grub_ent
 And of course the new entries have C<ima_policy=tcb> added to kernel parameters.
 
 =cut
+
 sub add_custom_grub_entries {
     my @grub_params = split(/\s*;\s*/, trim(get_var('GRUB_PARAM', '')));
     return unless $#grub_params >= 0;
@@ -207,6 +208,7 @@ Boot the default kernel recovery mode (selected in the "Advanced options ..."):
     boot_grub_item(2, 2);
 
 =cut
+
 sub boot_grub_item {
     my ($menu1, $menu2) = @_;
     $menu1 //= 3;
@@ -442,6 +444,7 @@ Returns array of strings C<@params> with linurc boot options to enable logging t
 console, enable core dumps and set debug level for logging.
 
 =cut
+
 sub get_linuxrc_boot_params {
     my @params;
     push @params, "linuxrc.log=/dev/$serialdev";
@@ -1138,6 +1141,7 @@ sub ensure_shim_import {
 
 Search for C<$pattern> in /etc/default/grub, return 1 if found.
 =cut
+
 sub grep_grub_settings {
     die((caller(0))[3] . ' expects 1 arguments') unless @_ == 1;
     my $pattern = shift;
@@ -1151,6 +1155,7 @@ sub grep_grub_settings {
 Search for C<$pattern> in grub cmdline variable (usually
 GRUB_CMDLINE_LINUX_DEFAULT) in /etc/default/grub, return 1 if found.
 =cut
+
 sub grep_grub_cmdline_settings {
     my ($pattern, $search) = @_;
     $search //= get_cmdline_var();
@@ -1167,6 +1172,7 @@ C<$search> meant to be for changing only particular line for sed,
 C<$modifiers> for sed replacement, e.g. "g".
 C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.
 =cut
+
 sub change_grub_config {
     die((caller(0))[3] . ' expects from 3 to 5 arguments') unless (@_ >= 3 && @_ <= 5);
     my ($old, $new, $search, $modifiers, $update_grub) = @_;
@@ -1192,6 +1198,7 @@ Add C<$add> into /etc/default/grub, using sed.
 C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.
 C<$search> if set, bypass default grub cmdline variable.
 =cut
+
 sub add_grub_cmdline_settings {
     my $add = shift;
     my %args = testapi::compat_args(
@@ -1214,6 +1221,7 @@ sub add_grub_cmdline_settings {
 Add C<$add> into /etc/default/grub, using sed.
 C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.
 =cut
+
 sub add_grub_xen_cmdline_settings {
     my ($add, $update_grub) = @_;
     add_grub_cmdline_settings($add, $update_grub, "GRUB_CMDLINE_XEN_DEFAULT");
@@ -1227,6 +1235,7 @@ Replace C<$old> with C<$new> in /etc/default/grub, using sed.
 C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.
 C<$search> if set, bypass default grub cmdline variable.
 =cut
+
 sub replace_grub_cmdline_settings {
     my $old = shift;
     my $new = shift;
@@ -1250,6 +1259,7 @@ sub replace_grub_cmdline_settings {
 Replace C<$old> with C<$new> in /etc/default/grub, using sed.
 C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.
 =cut
+
 sub replace_grub_xen_cmdline_settings {
     my ($old, $new, $update_grub) = @_;
     replace_grub_cmdline_settings($old, $new, $update_grub, "GRUB_CMDLINE_XEN_DEFAULT");
@@ -1262,6 +1272,7 @@ sub replace_grub_xen_cmdline_settings {
 Remove C<$remove> from /etc/default/grub (using sed) and regenerate /boot/grub2/grub.cfg.
 Search line C<$search> from /etc/default/grub (use for sed).
 =cut
+
 sub remove_grub_cmdline_settings {
     my ($remove, $search) = @_;
     replace_grub_cmdline_settings('[[:blank:]]*' . $remove . '[[:blank:]]*', " ", "g", $search);
@@ -1273,6 +1284,7 @@ sub remove_grub_cmdline_settings {
 
 Remove C<$remove> from /etc/default/grub (using sed) and regenerate /boot/grub2/grub.cfg.
 =cut
+
 sub remove_grub_xen_cmdline_settings {
     my $remove = shift;
     remove_grub_cmdline_settings($remove, "GRUB_CMDLINE_XEN_DEFAULT");
@@ -1285,6 +1297,7 @@ sub remove_grub_xen_cmdline_settings {
 
 Regenerate /boot/grub2/grub.cfg with grub2-mkconfig.
 =cut
+
 sub grub_mkconfig {
     my $config = shift;
     $config //= GRUB_CFG_FILE;
@@ -1298,6 +1311,7 @@ sub grub_mkconfig {
 Get default grub cmdline variable:
 GRUB_CMDLINE_LINUX for JeOS, GRUB_CMDLINE_LINUX_DEFAULT for the rest.
 =cut
+
 sub get_cmdline_var {
     my $label = is_jeos() ? 'GRUB_CMDLINE_LINUX' : 'GRUB_CMDLINE_LINUX_DEFAULT';
     return "^${label}=";
@@ -1375,6 +1389,7 @@ Method accepts C<disk> to define the device to work with, C<passwd> and C<shadow
 store content of the /etc/passwd and /etc/shadow files accordingly.
 
 =cut
+
 sub mimic_user_to_import {
     my (%args) = @_;
     my $disk = $args{disk};
@@ -1411,6 +1426,7 @@ Is handy for the bare metal setups and LPARs where we can have traces of
 previous installation.
 
 =cut
+
 sub prepare_disks {
     # Delete partition table before starting installation
     select_console('install-shell');
@@ -1444,6 +1460,7 @@ sub prepare_disks {
 Sync system time, time offset can cause problems e.g. certificate is not yet valid
 
 =cut
+
 sub sync_time {
     # sync system time before installation
     select_console('install-shell');

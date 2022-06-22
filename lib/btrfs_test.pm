@@ -21,6 +21,7 @@ Returns disk without a partition table for filesystem experiments.
 Sets the test variable C<PLAYGROUNDDISK>, on first invocation of
 the function.
 =cut
+
 sub set_playground_disk {
     unless (get_var('PLAYGROUNDDISK')) {
         my $vd = 'vd';    # KVM
@@ -48,6 +49,7 @@ In `snapper --no-dbus` test we need DBus to be disabled on SLES12SP3 and Leap 42
 systemd allows DBus to be disabled. On Tumbleweed this is not possible and the simplest
 way to get DBus-less environment is to enter rescue.target via systemctl.
 =cut
+
 sub snapper_nodbus_setup {
     my ($self) = @_;
     if (script_run('! systemctl is-active dbus')) {
@@ -69,6 +71,7 @@ Restore environment to default.target. Console root-console has to be reset, bec
 move from rescue to default target, logs us out. Die if DBus is active at this point,
 it means that DBus got activated somehow, thus invalidated `snapper --no-dbus` testing.
 =cut
+
 sub snapper_nodbus_restore {
     my $ret = script_run('systemctl is-active dbus', timeout => 300, die_on_timeout => 1);
     die 'DBus service should be inactive, but it is active' if ($ret == 0);
@@ -97,6 +100,7 @@ to be executed. The info about last run is stored in /var/spool/cron/lastrun
 By updating the lastrun files timestamps, we make sure those routines won't be executed
 while tests are running.
 =cut
+
 sub cron_mock_lastrun {
     my $tries = 5;
     while (script_run(q/ps aux | grep '[s]napper'/) == 0 && $tries > 0) {

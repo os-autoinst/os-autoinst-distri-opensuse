@@ -950,6 +950,7 @@ or calculated:
 "corosync_token + corosync_consensus + SBD_WATCHDOG_TIMEOUT * 2"
 Variables 'corosync_token' and 'corosync_consensus' are converted to seconds.
 =cut
+
 sub calculate_sbd_start_delay {
     my %params;
     my $default_wait = 35 * get_var('TIMEOUT_SCALE', 1);

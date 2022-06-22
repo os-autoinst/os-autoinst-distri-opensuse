@@ -28,6 +28,7 @@ Create an email account in Thunderbird.
 C<$proto> can be C<pop> or C<imap>.
 C<$account> can be C<internal_account_A> or C<internal_account_B> or C<internal_account_C> or C<internal_account_D>.
 =cut
+
 sub tb_setup_account {
     my $hostname = get_var('HOSTNAME') // '';
     my ($self, $proto, $account) = @_;
@@ -189,6 +190,7 @@ C<$proto> can be C<pop> or C<imap>.
 C<$account> can be C<internal_account_A> or C<internal_account_B> or C<internal_account_C> or C<internal_account_D>.
 Returns email subject.
 =cut
+
 sub tb_send_message {
     my $hostname = get_var('HOSTNAME') // '';
     my ($self, $proto, $account) = @_;
@@ -235,6 +237,7 @@ sub tb_send_message {
 Check for new emails.
 C<$mail_search> may be an email subject to search for.
 =cut
+
 sub tb_check_email {
     my ($self, $mail_search) = @_;
 

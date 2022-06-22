@@ -31,6 +31,7 @@ Also doing test ping to 10.0.2.2 to check that network is alive
 Set DNS server defined via required variable C<STATIC_DNS_SERVER>
 
 =cut
+
 sub setup_static_network {
     my (%args) = @_;
     # Set default values
@@ -54,6 +55,7 @@ sub setup_static_network {
 Return first NIC which is not loopback
 
 =cut
+
 sub iface {
     my ($quantity) = @_;
     $quantity ||= 1;
@@ -66,6 +68,7 @@ sub iface {
 
 Returns if can ping worker host gateway
 =cut
+
 sub can_upload_logs {
     my ($gw) = @_;
     $gw ||= testapi::host_ip();
@@ -87,6 +90,7 @@ in case skiped '10.0.2.15/24' will be used as fallback.
 
 C<gw> => allowing to specify default gateway. Fallback to worker IP in case nothing specified.
 =cut
+
 sub recover_network {
     my (%args) = @_;
 
@@ -116,6 +120,7 @@ sub recover_network {
 Return if ifconfig exists.
 
 =cut
+
 sub ifc_exists {
     my ($ifc) = @_;
     return !script_run('ip link show dev ' . $ifc);
@@ -128,6 +133,7 @@ sub ifc_exists {
 Return only if network status is UP.
 
 =cut
+
 sub ifc_is_up {
     my ($ifc) = @_;
     return !script_run("ip link show dev $ifc | grep 'state UP'");

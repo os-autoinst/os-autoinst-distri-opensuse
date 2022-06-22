@@ -33,6 +33,7 @@ Returns image digest. Image path C<$image_path> is the parameter which is used t
 Digest retrieval is platform-specific depends.
 
 =cut
+
 sub get_image_digest {
     my ($image_path) = shift;
 
@@ -59,6 +60,7 @@ Directory path C<$dir_path> is the parameter which is a part of image path '$ima
 Returns error message in case of failure, empty string in case of success.
 
 =cut
+
 sub verify_checksum {
     my ($dir_path) = shift;
     my $error = '';

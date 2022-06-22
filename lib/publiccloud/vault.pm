@@ -19,6 +19,7 @@ has lease_id => undef;
 
 Retry n times the execution of a function.
 =cut
+
 sub retry {
     my ($self, $code, %args) = @_;
     my $max_tries = max(1, get_var('PUBLIC_CLOUD_VAULT_TRIES', $args{max_tries} // 3));
@@ -42,6 +43,7 @@ Login to vault using C<_SECRET_PUBLIC_CLOUD_REST_USER> and
 C<_SECRET_PUBLIC_CLOUD_REST_PW>. The retrieved TOKEN is stored in this
 instance and used for further C<publiccloud::provider::api()> calls.
 =cut
+
 sub __login {
     my ($self) = @_;
     my $url = get_required_var('_SECRET_PUBLIC_CLOUD_REST_URL');
@@ -66,6 +68,7 @@ sub __login {
 
 Wrapper arround C<<$self->login()>> to have retry capability.
 =cut
+
 sub login {
     my $self = shift;
     return $self->retry(
@@ -81,6 +84,7 @@ Invoke a vault API call. It use _SECRET_PUBLIC_CLOUD_REST_URL as base
 url.
 Depending on the method (get|post) you can pass additional data as json.
 =cut
+
 sub __api {
     my ($self, $path, %args) = @_;
     my $method = $args{method} // 'get';
@@ -119,6 +123,7 @@ sub __api {
 
 Wrapper around C<<$self->api()>> to get retry capability.
 =cut
+
 sub api {
     my ($self, $path, %args) = @_;
     my $max_tries = delete($args{max_tries}) // 3;
@@ -141,6 +146,7 @@ azure secret engine.
 It prepend C<'/v1/' + $NAMESPACE> to the given path before sending the request.
 It stores lease_id and also adjust the token-live-time.
 =cut
+
 sub get_secrets {
     my ($self, $path, %args) = @_;
     my $res = $self->api('/v1/' . get_var('PUBLIC_CLOUD_VAULT_NAMESPACE', '') . $path, method => 'get', %args);
@@ -158,6 +164,7 @@ sub get_secrets {
 
 Revoke a previous retrieved credential
 =cut
+
 sub revoke {
     my ($self) = @_;
 

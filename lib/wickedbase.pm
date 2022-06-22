@@ -40,6 +40,7 @@ The mandatory parameter C<iface> specifies the interface which action will be ex
 This function saves the command and the stdout and stderr to a file to be uploaded later.
 
 =cut
+
 sub wicked_command {
     my ($self, $action, $iface) = @_;
     my $serial_log = '/tmp/wicked_serial.log';
@@ -59,6 +60,7 @@ sub wicked_command {
 
 Return the current installed wicked version
 =cut
+
 sub get_wicked_version {
     my $v = script_output(q(rpm -qa 'wicked' --qf '%{VERSION}\n'));
     die("Unable to get wicked version '$v'") unless $v =~ /^\d+\.\d+\.\d+$/;
@@ -70,6 +72,7 @@ sub get_wicked_version {
     check_wicked_version('>=0.6.66')
 
 =cut
+
 sub check_wicked_version {
     my ($self, $query) = @_;
     return 1 if get_var('WICKED_SKIP_VERSION_CHECK', 0);
@@ -104,6 +107,7 @@ The optinal argument C<iface> allows to print the output of the command 'ip addr
 With no arguments, it will check that wicked.service and wickedd.service are up.
 
 =cut
+
 sub assert_wicked_state {
     my ($self, %args) = @_;
     systemctl('is-active wicked.service', expect_false => $args{wicked_client_down});
@@ -216,6 +220,7 @@ Gets the IP of a given interface by C<ifc>.
 The parameter C<ip_version> chould be one of the values 'v4' or 'v6'.
 
 =cut
+
 sub get_current_ip {
     my ($self, $ifc, %args) = @_;
     $args{ip_version} //= 'v4';
@@ -233,6 +238,7 @@ sub get_current_ip {
 Download all files from data/wicked into WICKED_DATA_DIR.
 This method is used by before_test.pm.
 =cut
+
 sub download_data_dir {
     assert_script_run("mkdir -p '" . WICKED_DATA_DIR . "'");
     assert_script_run("(cd '" . WICKED_DATA_DIR . "'; curl -L -v " . autoinst_url . "/data/wicked > wicked.data && cpio -id < wicked.data && mv data wicked && rm wicked.data)");
@@ -248,6 +254,7 @@ If the parameter C<add_suffix> is set to 1, it will append 'ref' or 'sut' at the
 If the parameter C<executable> is set to 1, it will grant execution permissions to the file.
 
 =cut
+
 sub get_from_data {
     my ($self, $source, $target, %args) = @_;
 
@@ -267,6 +274,7 @@ IP could be specified directly via C<ip> or using C<type> variable. In case of C
 it will be bypassed to C<get_remote_ip> function to get IP by label.
 If ping fails, command die unless you specify C<proceed_on_failure>.
 =cut
+
 sub ping_with_timeout {
     my ($self, %args) = @_;
     $args{ip_version} //= 'v4';
@@ -316,6 +324,7 @@ The mandatory parameter C<type> determines if it will configure a TUN device or 
 The interface will be brought up using a wicked command.
 
 =cut
+
 sub setup_tuntap {
     my ($self, $config, $type, $iface) = @_;
     my $local_ip = $self->get_ip(type => $type);
@@ -334,6 +343,7 @@ will be replaced with the corresponding IPs. The mandatory parameter C<type> sho
 The interface will be brought up using a wicked command.
 
 =cut
+
 sub setup_tunnel {
     my ($self, $config, $type, $iface) = @_;
     my $local_ip = $self->get_ip(type => 'host');
@@ -352,6 +362,7 @@ The parameter C<type> determines the interface to be configured and C<mode> the 
 Supported tunnels in this function are GRE, SIT, IPIP, TUN.
 
 =cut
+
 sub create_tunnel_with_commands {
     my ($self, $type, $mode, $sub_mask) = @_;
     my $local_ip = $self->get_ip(type => 'host');
@@ -393,6 +404,7 @@ dummy interface using the config file given by this parameter.
 C<command> determines the wicked command to bring up/down the interface
 
 =cut
+
 sub setup_bridge {
     my ($self, $config, $dummy, $command) = @_;
     my $local_ip = $self->get_ip(type => 'host');
@@ -414,6 +426,7 @@ sub setup_bridge {
 Setups the openvpn client using the interface given by C<device>
 
 =cut
+
 sub setup_openvpn_client {
     my ($self, $device) = @_;
     my $openvpn_client = '/etc/openvpn/client.conf';
@@ -430,6 +443,7 @@ It returns FAILED or PASSED if the ping to the remote IP of a certain interface 
 The parameter C<ip_version> chould be one of the values 'v4' or 'v6'.
 
 =cut
+
 sub get_test_result {
     my ($self, $type, $ip_version) = @_;
     my $timeout = "60";
@@ -451,6 +465,7 @@ not throw and error. On failing we only put a C<<record_info(result => fail)>>
 
     $self->upload_log_file($src [, $dst]);
 =cut
+
 sub upload_log_file {
     my ($self, $src, $dst) = @_;
     $dst //= basename($src);
@@ -481,6 +496,7 @@ This function is normally called before and after a test is executed, the parame
 to the file name to be uploaded. Normally 'pre' or 'post', but could be any string.
 
 =cut
+
 sub upload_wicked_logs {
     my ($self, $prefix) = @_;
     my $dir_name = $self->{name} . '_' . $prefix;
@@ -514,6 +530,7 @@ sub upload_wicked_logs {
 Used to syncronize the wicked tests for SUT and REF creating the corresponding mutex locks.
 
 =cut
+
 sub do_barrier {
     my ($self, $type) = @_;
     my $barrier_name = 'test_' . $self->{name} . '_' . $type;
@@ -528,6 +545,7 @@ Creating VLAN using only ip commands. Getting ip alias name for wickedbase::get_
 function
 
 =cut
+
 sub setup_vlan {
     my ($self, $ip_type) = @_;
     my $iface = iface();
@@ -653,6 +671,7 @@ After succesfully service start will create mutex with C<$mutex>
 which can be used by parallel test to catch this event
 
 =cut
+
 sub sync_start_of {
     my ($self, $service, $mutex, $tries) = @_;
     $tries //= 12;
@@ -776,6 +795,7 @@ it try to lookup a member function with the given c<name> and replace the string
 with return value
 
 =cut
+
 sub write_cfg {
     my ($self, $filename, $content, %args) = @_;
     my ($filename_orig, $content_orig);

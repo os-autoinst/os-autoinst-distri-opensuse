@@ -107,6 +107,7 @@ sub aa_tmp_prof_prepare {
 Verify that program can start with temporary profiles and then restore to the enforce status with normal profiles
 
 =cut
+
 sub aa_tmp_prof_verify {
     my ($self, $prof_dir_tmp, $prog) = @_;
 
@@ -127,6 +128,7 @@ sub aa_tmp_prof_verify {
 Remove appamor temporary profiles
 
 =cut
+
 sub aa_tmp_prof_clean {
     my ($self, $prof_dir_tmp) = @_;
 
@@ -142,6 +144,7 @@ sub aa_tmp_prof_clean {
 Get the named profile for an executable program
 
 =cut
+
 sub get_named_profile {
     my ($self, $profile_name) = @_;
 
@@ -158,6 +161,7 @@ sub get_named_profile {
 
 Check the output of aa-status: if a given profile belongs to a given mode
 =cut
+
 sub aa_status_stdout_check {
     my ($self, $profile_name, $profile_mode) = @_;
 
@@ -175,6 +179,7 @@ sub aa_status_stdout_check {
 Fetch ip details
 
 =cut
+
 sub ip_fetch {
     # "# hostname -i/-I" can not work in some cases
     my $ip = script_output("ip -4 -f inet -o a | grep -E \'eth0|ens\' | sed -n 's/\.*inet \\([0-9.]\\+\\)\.*/\\1/p'");
@@ -204,6 +209,7 @@ Set up mail server with Postfix and Dovecot:
 =back
 
 =cut
+
 sub setup_mail_server_postfix_dovecot {
     my ($self) = @_;
     my $ip = "";
@@ -754,6 +760,7 @@ sub create_log_content_is_special {
 Upload mail warn, err and info logs for reference
 
 =cut
+
 sub upload_logs_mail {
     # Upload mail warn, err and info logs for reference
     if (script_run("! [[ -e $mail_err_log ]]")) {
@@ -774,6 +781,7 @@ sub upload_logs_mail {
 Restart auditd and apparmor in root-console
 
 =cut
+
 sub pre_run_hook {
     my ($self) = @_;
 
@@ -790,6 +798,7 @@ sub pre_run_hook {
 Run post_fail_hook and upload audit logs
 
 =cut
+
 sub post_fail_hook {
     my ($self) = shift;
 

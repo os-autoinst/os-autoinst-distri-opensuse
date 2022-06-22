@@ -29,6 +29,7 @@ sub init {
 =head2 delete_image
 Delete a ECR image
 =cut
+
 sub delete_image {
     my ($self, $tag) = @_;
     assert_script_run(

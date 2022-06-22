@@ -583,6 +583,7 @@ without being passed value to dst_machine or dst_port.The subroutine will return
 return 0.
 
 =cut
+
 sub check_port_state {
     my ($dst_machine, $dst_port, $retries, $delay) = @_;
     $dst_machine //= "";
@@ -621,6 +622,7 @@ to a remote machine. Deactivation is also supported if argument activate is give
 separated by space to argument reg_exts to be subscribed one by one.
 
 =cut
+
 sub subscribe_extensions_and_modules {
     my (%args) = @_;
     $args{dst_machine} //= 'localhost';

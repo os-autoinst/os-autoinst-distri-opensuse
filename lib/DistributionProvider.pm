@@ -30,6 +30,7 @@ Returns the certain distribution depending on the version of the product.
 If there is no matched version, then returns Tumbleweed as the default one.
 
 =cut
+
 sub provide {
     return Distribution::Sle::15_current->new() if is_sle('>=15-sp3');
     return Distribution::Sle::15sp2->new() if is_sle('>15');

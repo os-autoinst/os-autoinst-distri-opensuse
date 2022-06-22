@@ -32,6 +32,7 @@ C<y2_installbase> - Base class for Yast installer related functionality
 After making changes in the "software selection" screen, accepts any 3rd party
 license.
 =cut
+
 sub accept3rdparty {
     my ($self) = @_;
     #Third party licenses sometimes appear
@@ -52,6 +53,7 @@ sub accept3rdparty {
 
 After making changes in the "pattern selection" screen, accepts changes.
 =cut
+
 sub accept_changes {
     my ($self) = @_;
     if (check_var('VIDEOMODE', 'text')) {
@@ -72,6 +74,7 @@ The function compares the actual systemd target with the expected one
 
 C<$expected_target> - systemd target that is expected and need to be validated.
 =cut
+
 sub validate_default_target {
     my ($self, $expected_target) = @_;
     select_console 'install-shell';
@@ -94,6 +97,7 @@ sub validate_default_target {
 Being in the "search packages" screen, performs steps needed to go back to
 overview page accepting automatic changes changes and 3rd party licenses.
 =cut
+
 sub back_to_overview_from_packages {
     my ($self) = @_;
     wait_screen_change { send_key 'alt-a' };    # accept
@@ -109,6 +113,7 @@ sub back_to_overview_from_packages {
 
 Being in the "select pattern" screen, workaround a known bug of Yast using QT.
 =cut
+
 sub check12qtbug {
     if (check_screen('pattern-too-low', 5)) {
         assert_and_click('pattern-too-low', timeout => 1);
@@ -122,6 +127,7 @@ sub check12qtbug {
 Performs steps needed to go from the "installation overview" screen to the
 "pattern selection" screen.
 =cut
+
 sub go_to_patterns {
     my ($self) = @_;
     $self->deal_with_dependency_issues();
@@ -159,6 +165,7 @@ sub go_to_patterns {
 Performs steps needed to go from the "pattern selection" screen to
 "search packages" screen.
 =cut
+
 sub go_to_search_packages {
     my ($self) = @_;
     send_key 'alt-d';    # details button
@@ -174,6 +181,7 @@ sub go_to_search_packages {
 Being in the "select pattern" screen, performs steps needed to move the
 highlight cursor one item down.
 =cut
+
 sub move_down {
     my $ret = wait_screen_change { send_key 'down' };
     workaround_bsc1189550() if (!$workaround_bsc1189550_done && is_sle('>=15-sp3'));
@@ -191,6 +199,7 @@ Possible values for PATTERNS
   PATTERNS=all (to select all of them)
   PATTERNS=default,web,-x11,-gnome (to keep the default but add web and remove x11 and gnome)
 =cut
+
 sub process_patterns {
     my ($self) = @_;
     if (get_required_var('PATTERNS')) {
@@ -211,6 +220,7 @@ sub process_patterns {
 Being in the "search package" screen, performs steps needed to search for
 C<$package_name>
 =cut
+
 sub search_package {
     my ($self, $package_name) = @_;
     assert_and_click 'packages-search-field-selected';
@@ -227,6 +237,7 @@ sub search_package {
 Being in the "select pattern" screen, performs steps needed to select all
 available patterns.
 =cut
+
 sub select_all_patterns_by_menu {
     my ($self) = @_;
     # Ensure mouse on certain pattern then right click
@@ -250,6 +261,7 @@ sub select_all_patterns_by_menu {
 
 Deselect patterns from already selected ones.
 =cut
+
 sub deselect_pattern {
     my ($self) = @_;
     my %patterns;    # set of patterns to be processed
@@ -275,6 +287,7 @@ You can pass
   PATTERNS=default,web,-x11,-gnome to keep the default but add web and remove
   x11 and gnome
 =cut
+
 sub select_specific_patterns_by_iteration {
     my %patterns;    # set of patterns to be processed
                      # fill with variable values
@@ -347,6 +360,7 @@ checkbox (C<$action>) of the pattern matching one of the given C<$needles>.
 Example
   switch_selection(action => 'select', needles => ['current-pattern-selected']);
 =cut
+
 sub switch_selection {
     my (%args) = @_;
     my $action = $args{action};
@@ -366,6 +380,7 @@ Being in the "search package" screen, and showing a list of found packages,
 performs steps needed to toogle the checkbox of C<$package_name>.
 The C<$operation> can be '+' or 'minus'.
 =cut
+
 sub toogle_package {
     my ($self, $package_name, $operation) = @_;
     send_key_until_needlematch "packages-$package_name-selected", 'down', 60;

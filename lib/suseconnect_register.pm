@@ -32,6 +32,7 @@ our @EXPORT = qw(suseconnect_registration command_register is_module assert_modu
 Register base prodcut and extensions without reg code
 
 =cut
+
 sub suseconnect_registration {
     my $product_version = get_required_var('VERSION');
 
@@ -57,6 +58,7 @@ The variables used for registion are product version C<$version>, extension name
 Precompile regexes, handle zdup migration and resolve potential conflict by zypper for extension or just register a bare system
 
 =cut
+
 sub command_register {
     my ($version, $addon, $addon_regcode) = @_;
     my $arch = get_required_var("ARCH");

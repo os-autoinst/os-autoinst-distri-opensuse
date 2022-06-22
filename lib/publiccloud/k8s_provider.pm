@@ -96,6 +96,7 @@ in the local registry. And the tag (name) in the public cloud
 containers repository Retrieves the full name of the uploaded 
 image or die.
 =cut
+
 sub push_container_image {
     my ($self, $image, $tag) = @_;
 

@@ -52,6 +52,7 @@ Example of data:
         values => { io_reads' => 1337, io_writes => 1338 }
     }
 =cut
+
 sub influxdb_push_data {
     my ($url, $db, $data, %args) = @_;
     $args{quiet} //= 1;
@@ -72,6 +73,7 @@ SELECT query for given DB.
 returns json with results of SELECT query.
 
 =cut
+
 sub influxdb_read_data {
     my ($url_base, $db, $query) = @_;
     my $ua = Mojo::UserAgent->new();

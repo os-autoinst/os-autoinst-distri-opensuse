@@ -22,6 +22,7 @@ see C<_add_partition>.
 $args->{raid_level} defines wanted raid level.
 
 =cut
+
 sub add_raid();
 
 =head2 accept_changes_and_press_next
@@ -31,6 +32,7 @@ sub add_raid();
 Accept partitioning setup and proceed to the next page.
 
 =cut
+
 sub accept_changes_and_press_next();
 
 =head2 run_expert_partitioner
@@ -40,6 +42,7 @@ sub accept_changes_and_press_next();
 Open Expert Partitioner with existing partitions.
 
 =cut
+
 sub run_expert_partitioner();
 
 =head2 add_partition_on_gpt_disk
@@ -52,6 +55,7 @@ $args->{partition}`contains hash reference with parameters for the partition,
 see C<_add_partition>.
 
 =cut
+
 sub add_partition_on_gpt_disk();
 
 =head2 _finish_partition_creation
@@ -62,6 +66,7 @@ Method finished partitioning, has different implementation in libstorage and
 libstorage-ng
 
 =cut
+
 sub _finish_partition_creation();
 
 sub _set_partition_size {
