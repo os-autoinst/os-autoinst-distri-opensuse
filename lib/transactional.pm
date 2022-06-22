@@ -83,6 +83,10 @@ sub process_reboot {
             reconnect_mgmt_console(timeout => 500) unless $args{automated_rollback};
         }
         if (!is_s390x && $args{expected_grub}) {
+            if (is_aarch64 && check_screen('tianocore-mainmenu', 30)) {
+                # Use firmware boot manager of aarch64 to boot HDD, when needed
+                opensusebasetest::handle_uefi_boot_disk_workaround();
+            }
             # Replace by wait_boot if possible
             assert_screen 'grub2', 150;
             wait_screen_change { send_key 'ret' };
