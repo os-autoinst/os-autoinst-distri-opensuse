@@ -21,10 +21,6 @@ spec:
         env:
         # - name: MESSAGE
         #   value: I haven't specified a message yet
-        - name: NODE_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
         - name: POD_NAME
           valueFrom:
             fieldRef:
