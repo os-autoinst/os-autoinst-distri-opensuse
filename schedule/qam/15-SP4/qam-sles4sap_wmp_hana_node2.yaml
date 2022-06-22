@@ -1,0 +1,44 @@
+---
+name: qam-sles4sap_wmp_hana_node2
+description: >
+  SAP HANA and HanaSR test on SLES for SAP Applications with Workload Memory Protection
+vars:
+  AUTOMATED_REGISTER: 'false'
+  BOOT_HDD_IMAGE: '1'
+  DM_NEEDS_USERNAME: '1'
+  HA_CLUSTER: '1'
+  HA_CLUSTER_JOIN: '%CLUSTER_NAME%-node01'
+  HDDSIZEGB_2: '131'
+  HDD_SCC_REGISTERED: '1'
+  HOSTNAME: '%CLUSTER_NAME%-node02'
+  INSTANCE_ID: '00'
+  INSTANCE_IP_CIDR: '10.0.2.200/24'
+  INSTANCE_SID: HA1
+  INSTANCE_TYPE: HDB
+  NUMDISKS: '2'
+  QEMU_DISABLE_SNAPSHOTS: '1'
+  TIMEOUT_SCALE: '3'
+  USE_SUPPORT_SERVER: '1'
+  VIRTIO_CONSOLE: '0'
+  WMP_TEST_REPO: 'https://gitlab.suse.de/lpalovsky/wmp_basic_tests/-/archive/master/wmp_basic_tests-master.tgz'
+schedule:
+  - boot/boot_to_desktop
+  - ha/wait_barriers
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/hostname
+  - ha/ha_sle15_workarounds
+  - ha/firewall_disable
+  - ha/iscsi_client
+  - ha/watchdog
+  - sles4sap/patterns
+  - sles4sap/hana_install
+  - sles4sap/wmp_setup
+  - ha/ha_cluster_join
+  - sles4sap/hana_cluster
+  - sles4sap/wmp_check_process
+  - ha/fencing
+  - ha/check_after_reboot
+  - ha/check_logs
+  - sles4sap/wmp_check_process

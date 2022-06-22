@@ -1,0 +1,42 @@
+name:           qam-create_hdd_sles4sap_gnome
+description:    >
+  Create an up-to-date sles4sap qcow2 image.
+schedule:
+  - installation/isosize
+  - installation/bootloader
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - '{{update_test_repo}}'
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/sles4sap_product_installation_mode
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/hostname_inst
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - '{{patch_and_reboot}}'
+  - console/hostname
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+conditional_schedule:
+  update_test_repo:
+    QAM_INCI:
+      1:
+        - installation/add_update_test_repo
+  patch_and_reboot:
+    FLAVOR:
+      SAP-DVD-Updates:
+        - qa_automation/patch_and_reboot
