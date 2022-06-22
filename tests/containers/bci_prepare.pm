@@ -106,7 +106,7 @@ sub run {
     # Pull the image in advance
     if (my $image = get_var('CONTAINER_IMAGE_TO_TEST')) {
         record_info('IMAGE', $image);
-        script_retry("$engine pull $image", timeout => 300, delay => 60, retry => 3);
+        script_retry("$engine pull -q $image", timeout => 300, delay => 60, retry => 3);
         record_info('Inspect', script_output("$engine inspect $image"));
 
         my $build = get_var('CONTAINER_IMAGE_BUILD');
