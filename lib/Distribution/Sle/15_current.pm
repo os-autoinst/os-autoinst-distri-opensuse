@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2021 SUSE LLC
+# Copyright 2019-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: The class represents current (i.e. latest) Sle15 distribution and
@@ -26,6 +26,7 @@ use Installation::AddOnProduct::AddOnProductController;
 use Installation::RepositoryURL::RepositoryURLController;
 use Installation::AddOnProductInstallation::AddOnProductInstallationController;
 use Installation::SystemRole::Sle::SystemRoleController;
+use Installation::ModuleRegistration::ModuleRegCodeController;
 
 =head2 get_license_agreement
 
@@ -52,6 +53,10 @@ sub get_registration {
 
 sub get_module_registration {
     return Installation::ModuleRegistration::ModuleRegistrationController->new();
+}
+
+sub get_module_regcode {
+    return Installation::ModuleRegistration::ModuleRegCodeController->new();
 }
 
 sub get_module_selection {

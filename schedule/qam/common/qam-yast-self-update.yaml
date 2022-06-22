@@ -30,4 +30,3 @@ conditional_schedule:
       uefi:
         - console/consoletest_setup
         - console/verify_efi_mok
-...

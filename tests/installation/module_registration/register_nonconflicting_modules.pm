@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Register non-conflicting modules along with preselected modules
@@ -22,8 +22,8 @@ use strict;
 use warnings;
 
 sub run {
-    $testapi::distri->get_module_registration()->register_modules(
-        [qw(containers desktop development legacy web)]);
+    $testapi::distri->get_module_registration()->register_extension_and_modules(
+        [qw(contm desktop sdk legacy script)]);
 }
 
 1;
