@@ -9,7 +9,6 @@ schedule:
   - support_server/setup
   - remote/remote_controller
   - installation/welcome
-  - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role

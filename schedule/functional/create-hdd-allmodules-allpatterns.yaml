@@ -16,7 +16,6 @@ conditional_schedule:
 schedule:
     - installation/bootloader_start
     - installation/welcome
-    - installation/accept_license
     - '{{disk_activation}}'
     - installation/scc_registration
     - installation/addon_products_sle

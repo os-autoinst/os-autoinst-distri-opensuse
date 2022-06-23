@@ -13,7 +13,6 @@ vars:
 schedule:
   - installation/bootloader
   - installation/welcome
-  - installation/accept_license
   - installation/scc_registration
   - '{{multipath}}'
   - '{{sles4sap12_product}}'

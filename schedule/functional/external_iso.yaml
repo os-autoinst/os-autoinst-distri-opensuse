@@ -15,7 +15,6 @@ conditional_schedule:
     license_scc_addon:
         DISTRI:
             sle:
-                - installation/accept_license
                 - installation/scc_registration
                 - installation/addon_products_sle
     repos_mode_logpackages:

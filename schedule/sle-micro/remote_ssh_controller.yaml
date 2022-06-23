@@ -9,7 +9,6 @@ conditional_schedule:
   modules:
     DISTRI:
       'sle-micro':
-        - installation/accept_license
         - installation/scc_registration
       'microos':
         - installation/online_repos

@@ -10,7 +10,6 @@ conditional_schedule:
       '0':
         - boot/boot_from_pxe
         - installation/welcome
-        - installation/accept_license
         - installation/scc_registration
         - installation/addon_products_sle
         - installation/system_role

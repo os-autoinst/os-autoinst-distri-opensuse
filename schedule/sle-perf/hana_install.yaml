@@ -6,7 +6,6 @@ description: >
 schedule:
   - '{{pxe_bootloader}}'
   - installation/welcome
-  - installation/accept_license
   - '{{scc_registration}}'
   - installation/addon_products_sle
   - installation/system_role

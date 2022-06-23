@@ -12,7 +12,6 @@ vars:
 schedule:
     - installation/bootloader_start
     - installation/welcome
-    - installation/accept_license
     - installation/scc_registration
     - installation/add_update_test_repo
     - installation/addon_products_sle

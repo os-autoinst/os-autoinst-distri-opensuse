@@ -15,7 +15,6 @@ conditional_schedule:
 schedule:
   - installation/bootloader_start
   - installation/welcome
-  - installation/accept_license
   - installation/disk_activation
   - installation/scc_registration
   - installation/ntp_config_settings

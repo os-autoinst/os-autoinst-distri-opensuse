@@ -9,7 +9,6 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/welcome
-  - installation/accept_license
   - installation/network_configuration
   - installation/scc_registration
   - installation/addon_products_sle

@@ -8,7 +8,6 @@ description: >
 schedule:
   - installation/bootloader_start
   - installation/welcome
-  - installation/accept_license
   - installation/scc_registration
   - '{{sles4sap_product_installation_mode_sle12}}'
   - '{{update_test_repo}}'
