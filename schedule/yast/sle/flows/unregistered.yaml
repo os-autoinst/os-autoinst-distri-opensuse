@@ -1,0 +1,8 @@
+---
+# skip registration for FULL media testing
+registration:
+ - installation/registration/skip_registration
+extension_module_selection:
+ - installation/module_selection/skip_module_selection
+add_on_product:
+ - installation/add_on_product_installation/accept_add_on_installation
