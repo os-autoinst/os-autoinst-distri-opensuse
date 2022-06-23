@@ -5,7 +5,7 @@ description:  >
 
 conditional_schedule:
   install_WSL:
-    INSTALL_FROM:
+    WSL_INSTALL_FROM:
       'msstore':
         - wsl/install_from_MSStore
       'build':
