@@ -66,6 +66,7 @@
       <li><a href="#has_test_issues">has_test_issues</a></li>
       <li><a href="#package_version_cmp">package_version_cmp</a></li>
       <li><a href="#is_quarterly_iso">is_quarterly_iso</a></li>
+      <li><a href="#get_version_id">get_version_id</a></li>
     </ul>
   </li>
   <li><a href="#POD-ERRORS">POD ERRORS</a></li>
@@ -323,19 +324,25 @@
 
 <p>Returns true if called in quaterly iso testing</p>
 
+<h2 id="get_version_id">get_version_id</h2>
+
+<pre><code>  get_version_id(dst_machine =&gt; &#39;machine&#39;)</code></pre>
+
+<p>Get SLES version from VERSION_ID in /etc/os-release. This subroutine also supports performing query on remote machine if dst_machine is given specific ip address or fqdn text of the remote machine. The default location that contains VERSION_ID is file /etc/os-release if nothing else is passed in to argument verid_file.</p>
+
 <h1 id="POD-ERRORS">POD ERRORS</h1>
 
 <p>Hey! <b>The above document had some coding errors, which are explained below:</b></p>
 
 <dl>
 
-<dt id="Around-line-655">Around line 655:</dt>
+<dt id="Around-line-656">Around line 656:</dt>
 <dd>
 
 <p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
 
 </dd>
-<dt id="Around-line-685">Around line 685:</dt>
+<dt id="Around-line-686">Around line 686:</dt>
 <dd>
 
 <p>You forgot a &#39;=back&#39; before &#39;=head2&#39;</p>
