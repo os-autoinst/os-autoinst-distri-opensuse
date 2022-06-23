@@ -1,0 +1,25 @@
+name: fips_install_separate_boot
+description:    >
+  Test performs autoyast installation in fips mode with separate boot partition
+conditional_schedule:
+  svirt_upload_assets:
+    ARCH:
+      s390x:
+        - shutdown/svirt_upload_assets
+vars:
+  DESKTOP: textmode
+  HDDSIZEGB: '40'
+  FIPS_INSTALLATION: '1'
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/first_boot
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - fips/fips_install_separate_boot_verify
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+  - '{{svirt_upload_assets}}'
