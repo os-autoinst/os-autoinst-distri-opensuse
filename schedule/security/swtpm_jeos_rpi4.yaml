@@ -1,0 +1,12 @@
+name: swtpm_jeos_rpi4
+description:    >
+    Test swtpm on RPi4 with JeOS
+schedule:
+    - jeos/prepare_firstboot
+    - jeos/firstrun
+    - console/consoletest_setup
+    - update/zypper_clear_repos
+    - console/zypper_ar
+    - console/zypper_ref
+    - security/swtpm/swtpm_env_setup
+    - security/swtpm/swtpm_verify

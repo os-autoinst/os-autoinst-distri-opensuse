@@ -3,10 +3,11 @@ set -euo pipefail
 
 ip_addr=""
 for (( i = 0; i < 200; i++ )); do
-    ip_addr=`ip n | awk ' /192\\.168/ {print $1}'`
+    # The default network of libvirt is 192.168.122.*
+    ip_addr=`ip n | awk ' /192\\.168\\.122/ {print $1}'`
     if [[ -n "$ip_addr" ]] && nc -zvw2 $ip_addr 22 2>/dev/null; then
-         echo "the vm's ssh port is online"
-         exit 0
+        echo "the vm's ssh port is online"
+        exit 0
     else
         echo "the vm's ssh service is offline, loop to check"
         sleep 1
