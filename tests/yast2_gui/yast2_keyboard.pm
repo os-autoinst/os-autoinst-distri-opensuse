@@ -60,7 +60,8 @@ sub run {
 
     # 4. simulate german keystrokes to switch back us keymap
     send_key "alt-f2";
-    wait_screen_change { type_string "xdg/su /c |&sbin&zast2 kezboard|" };
+    assert_screen('desktop-runner');
+    type_string("xdg/su /c |&sbin&zast2 kezboard|");
     send_key_until_needlematch('root-auth-dialog', 'ret', 3, 3);
     wait_still_screen 2;
     type_password;
