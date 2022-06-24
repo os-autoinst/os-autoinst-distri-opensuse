@@ -14,7 +14,7 @@ sub run {
     my ($self) = @_;
     my $winget_version = 'v.1.3.1611';
     my $winget_url = 'https://github.com/microsoft/winget-cli/releases/download/' . $winget_version . '/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle';
-    my $WSL_version = get_required_var "VERSION";
+    my $WSL_version = get_required_var "WSL_VERSION";
     assert_screen 'windows-desktop';
     $self->open_powershell_as_admin;
     # Enable Windows features WSL and VM platform
