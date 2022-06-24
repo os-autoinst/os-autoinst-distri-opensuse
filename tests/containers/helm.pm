@@ -69,9 +69,8 @@ sub run {
             gcloud_install();
 
             # package needed by init():
-            (is_sle('=15-SP4'))
-              ? zypper_call("in chrony", timeout => 300)
-              : zypper_call("in ntp", timeout => 300);
+            my $pkg = is_sle('=15-SP4') ? "in chrony" : "in ntp";
+            zypper_call($pkg, timeout => 300);
 
             $provider = publiccloud::gke->new();
         }
