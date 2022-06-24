@@ -2262,6 +2262,15 @@ sub load_security_tests_crypt_firefox {
     loadtest "fips/mozilla_nss/firefox_nss" if get_var('FIPS_ENABLED');
 }
 
+sub load_security_tests_crypt_openjdk {
+    load_security_console_prepare;
+
+    if (get_var('FIPS_ENABLED')) {
+        loadtest "fips/openjdk/openjdk_fips";
+        loadtest "fips/openjdk/openjdk_ssh";
+    }
+}
+
 sub load_security_tests_crypt_tool {
     load_security_console_prepare;
 
@@ -2662,7 +2671,7 @@ sub load_mitigation_tests {
 
 sub load_security_tests {
     my @security_tests = qw(
-      fips_setup crypt_core crypt_web crypt_kernel crypt_x11 crypt_firefox crypt_tool
+      fips_setup crypt_core crypt_web crypt_kernel crypt_x11 crypt_firefox crypt_tool crypt_openjdk
       crypt_libtool crypt_krb5kdc crypt_krb5server crypt_krb5client
       ipsec mmtest
       apparmor apparmor_profile yast2_apparmor yast2_users selinux
