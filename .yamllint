@@ -11,3 +11,4 @@ rules:
   colons:
     # Ignore spaces after colons
     max-spaces-after: -1
+  truthy: disable
