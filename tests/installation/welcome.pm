@@ -105,7 +105,7 @@ sub run {
     # Add tag for untrusted-ca-cert with SMT
     push @welcome_tags, 'untrusted-ca-cert' if (get_var('SMT_URL') || get_var('SLP_RMT_INSTALL'));
     # Add tag for sle15 upgrade mode, where product list should NOT be shown
-    push @welcome_tags, 'inst-welcome-no-product-list' if is_sle('15+') and get_var('UPGRADE');
+    push @welcome_tags, 'inst-welcome-no-product-list' if (is_sle('15+') and get_var('UPGRADE') || is_sle_micro);
     # Add tag to check for https://progress.opensuse.org/issues/30823 "test is
     # stuck in linuxrc asking if dhcp should be used"
     push @welcome_tags, 'linuxrc-dhcp-question';
@@ -178,9 +178,9 @@ sub run {
         assert_screen('inst-welcome');
     }
 
-    my $has_license_on_welcome_screen = is_sle() &&
+    my $has_license_on_welcome_screen = (is_sle() || is_sle_micro()) &&
       match_has_tag('license-agreement');
-    my $has_product_selection = is_sle() &&
+    my $has_product_selection = (is_sle() || is_sle_micro()) &&
       !match_has_tag('inst-welcome-no-product-list');
 
     mouse_hide;
