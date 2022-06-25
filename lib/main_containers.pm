@@ -155,8 +155,21 @@ sub load_host_tests_helm {
     }
 }
 
+sub update_host {
+    # Method used to update the non-sle hosts, booting
+    # the existing qcow2 and publish a new qcow2
+    loadtest 'boot/boot_to_desktop';
+    loadtest 'containers/update_host';
+    loadtest 'shutdown/shutdown';
+}
+
 sub load_container_tests {
     my $runtime = get_required_var('CONTAINER_RUNTIME');
+
+    if (get_var('CONTAINER_UPDATE_HOST')) {
+        update_host();
+        return;
+    }
 
     # Need to boot a qcow except in JeOS, SLEM and MicroOS where the system is booted already
     if (get_var('BOOT_HDD_IMAGE') && !(is_jeos || is_sle_micro || is_microos || is_leap_micro)) {
