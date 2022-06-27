@@ -20,8 +20,13 @@ sub run {
 
     $self->select_serial_terminal;
     # Install required software
-    zypper_call('in tensorflow2-lite python3-Pillow python3-numpy');
-    my $ret = zypper_call('in  python3-tensorflow ', exitcode => [0, 4, 104]);
+    my $ret;
+    if (is_leap) {
+        zypper_call('in tensorflow2-lite python3-Pillow python3-numpy');
+        $ret = zypper_call('in  python3-tensorflow ', exitcode => [0, 4, 104]);
+    } else {
+        zypper_call('in tensorflow-lite python3-Pillow python3-numpy');
+    }
 
     select_console('user-console');
     # Perform tests in a separate folder
@@ -30,7 +35,7 @@ sub run {
     # Extract model and labels
     assert_script_run('unzip ~/data/ai_ml/models/mobilenet_v1_1.0_224_quant_and_labels.zip');
 
-    my $result = script_output("python3 ~/data/ai_ml/label_image.py --image ~/data/ai_ml/images/White_shark.jpg --model_file mobilenet_v1_1.0_224_quant.tflite --label_file labels_mobilenet_quant_v1_224.txt | tee /dev/$serialdev | head -n1", proceed_on_failure => 1);
+    my $result = script_output("python3 ~/data/ai_ml/label_image_tflite.py --image ~/data/ai_ml/images/White_shark.jpg --model_file mobilenet_v1_1.0_224_quant.tflite --label_file labels_mobilenet_quant_v1_224.txt | tee /dev/$serialdev | head -n1", proceed_on_failure => 1);
     record_info("TEST LOG", "$result");
 
     if ($result !~ /great white shark/) {
