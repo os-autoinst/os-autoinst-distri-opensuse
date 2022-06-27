@@ -37,6 +37,7 @@ our @EXPORT = qw(
   register_openstack
   register_addons_in_pc
   select_host_console
+  gcloud_install
 );
 
 # Select console on the test host, if force is set, the interactive session will
@@ -236,6 +237,36 @@ sub get_credentials {
         assert_script_run('curl ' . autoinst_url . '/files/creds.json -o ' . $output_json);
     }
     return $data_structure;
+}
+
+=head2 gcloud_install
+    gcloud_install($url, $dir, $timeout)
+
+This function is used to install the gcloud CLI 
+for the GKE Google Cloud.
+
+From $url we get the full package and install it
+in $dir local folder as a subdir of /root.
+Defaults are available for a simple call without parameters:
+    gcloud_install()
+
+=cut
+
+sub gcloud_install {
+    my %args = @_;
+    my $url = $args{url} || 'sdk.cloud.google.com';
+    my $dir = $args{dir} || 'google-cloud-sdk';
+    my $timeout = $args{timeout} || 700;
+
+    zypper_call("in curl tar gzip", $timeout);
+
+    assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
+    assert_script_run("curl $url | bash", $timeout);
+    assert_script_run("echo . /root/$dir/completion.bash.inc >> ~/.bashrc");
+    assert_script_run("echo . /root/$dir/path.bash.inc >> ~/.bashrc");
+    assert_script_run("source ~/.bashrc");
+
+    record_info('GCE', script_output('gcloud version'));
 }
 
 1;

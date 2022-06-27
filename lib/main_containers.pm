@@ -142,7 +142,7 @@ sub load_host_tests_helm {
     my $backends = undef;
 
     if (is_sle('15-sp3+')) {
-        $backends = get_var("HELM_K8S_BACKEND", "EKS,AKS,K3S");
+        $backends = get_var("HELM_K8S_BACKEND", "GKE,EKS,AKS,K3S");
     } elsif (is_opensuse) {
         $backends = get_var("HELM_K8S_BACKEND", "K3S");
     } else {
