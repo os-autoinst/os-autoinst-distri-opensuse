@@ -43,6 +43,7 @@ our $serial_term_prompt;
 Adds $console to /etc/securetty (unless already in file), enables systemd
 service and start it. It requires selecting root console before.
 =cut
+
 sub add_serial_console {
     my ($console) = @_;
     my $service = 'serial-getty@' . $console;
@@ -80,6 +81,7 @@ Suitable for testing whether boot has been finished:
 
 wait_serial(get_login_message(), 300);
 =cut
+
 sub get_login_message {
     my $arch = get_required_var("ARCH");
     return is_sle() ? qr/Welcome to SUSE Linux Enterprise .*\($arch\)/
@@ -95,6 +97,7 @@ sub get_login_message {
 Set serial terminal prompt to given string.
 
 =cut
+
 sub set_serial_prompt {
     $serial_term_prompt = shift // '';
 
@@ -112,6 +115,7 @@ Enters root's name and password to login. Also sets the prompt to something stat
 escape sequences (i.e. a single #) and changes the terminal width.
 
 =cut
+
 sub login {
     die 'Login expects two arguments' unless @_ == 2;
     my $user = shift;
@@ -168,6 +172,7 @@ times, before giving up.
 To overwrite destination use C<force>.
 This function die on any failure.
 =cut
+
 sub download_file {
     my ($src, $dst, %opts) = @_;
     $opts{chunk_size} //= 1024 * 2;
@@ -221,6 +226,7 @@ The file is placed in the C<ulogs/> directory of the worker.
 
 This function die on any failure.
 =cut
+
 sub upload_file {
     my ($src, $dst, %opts) = @_;
     my $chunk_size = $opts{chunk_size} //= 1024 * 2;

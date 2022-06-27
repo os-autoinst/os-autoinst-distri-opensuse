@@ -153,6 +153,7 @@ sub accept_addons_license {
 Helper for parsing SLE RC version into integer. It replaces SLE version
 in format X-SPY into X.Y.
 =cut
+
 sub scc_version {
     my $version = shift;
     $version //= get_required_var('VERSION');
@@ -165,6 +166,7 @@ sub scc_version {
 
 Wrapper for SUSEConnect -p $name.
 =cut
+
 sub add_suseconnect_product {
     my ($name, $version, $arch, $params, $timeout, $retry) = @_;
     assert_script_run 'source /etc/os-release';
@@ -202,6 +204,7 @@ sub add_suseconnect_product {
 
 Wrapper for SUSEConnect -p $name  over ssh.
 =cut
+
 sub ssh_add_suseconnect_product {
     my ($remote, $name, $version, $arch, $params, $timeout, $retries, $delay) = @_;
     assert_script_run "sftp $remote:/etc/os-release /tmp/os-release";
@@ -222,6 +225,7 @@ sub ssh_add_suseconnect_product {
 
 Wrapper for SUSEConnect -d $name.
 =cut
+
 sub remove_suseconnect_product {
     my ($name, $version, $arch, $params) = @_;
     $version //= scc_version();
@@ -236,6 +240,7 @@ sub remove_suseconnect_product {
 
 Wrapper for SUSEConnect -d $name over ssh.
 =cut
+
 sub ssh_remove_suseconnect_product {
     my ($remote, $name, $version, $arch, $params) = @_;
     assert_script_run "sftp $remote:/etc/os-release /tmp/os-release";
@@ -253,6 +258,7 @@ sub ssh_remove_suseconnect_product {
 Wrapper for SUSEConnect --cleanup. Resets proxy SCC url if job has SCC_URL
 variable set.
 =cut
+
 sub cleanup_registration {
     # Remove registration from the system
     assert_script_run 'SUSEConnect --cleanup';
@@ -268,6 +274,7 @@ sub cleanup_registration {
 Wrapper for SUSEConnect -r <regcode>. Requires SCC_REGCODE variable.
 SUSEConnect --url with SMT/RMT server.
 =cut
+
 sub register_product {
     if (get_var('SMT_URL')) {
         assert_script_run('SUSEConnect --url ' . get_var('SMT_URL') . ' ' . uc(get_var('SLE_PRODUCT')) . '/' . scc_version(get_var('HDDVERSION')) . '/' . get_var('ARCH'), 200);

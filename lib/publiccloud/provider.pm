@@ -35,6 +35,7 @@ has provider_client => undef;
 Needs provider specific credentials, e.g. key_id, key_secret, region.
 
 =cut
+
 sub init {
     my ($self) = @_;
     $self->create_ssh_key();
@@ -45,6 +46,7 @@ sub init {
 Does the conversion between C<PUBLIC_CLOUD_PROVIDER> and Terraform providers name.
 
 =cut
+
 sub conv_openqa_tf_name {
     # Check https://github.com/SUSE/ha-sap-terraform-deployments/issues/177 for more information
     my $cloud_provider = lc get_var('PUBLIC_CLOUD_PROVIDER');
@@ -58,6 +60,7 @@ sub conv_openqa_tf_name {
 Retrieves the image-id by given image C<name>.
 
 =cut
+
 sub find_img {
     die('find_image() isn\'t implemented');
 }
@@ -73,6 +76,7 @@ on GCE at the momment.
 Retrieves the image-id after upload or die.
 
 =cut
+
 sub upload_image {
     die('find_image() isn\'t implemented');
 }
@@ -95,6 +99,7 @@ Call img-proof tool and retrieves a hashref as result. Do not die if img-proof c
   };
 
 =cut
+
 sub img_proof {
     die('img_proof() isn\'t implemented');
 }
@@ -104,6 +109,7 @@ sub img_proof {
 Parse the output from img-proof command and retrieves instance-id, ip and logfile names.
 
 =cut
+
 sub parse_img_proof_output {
     my ($self, $output) = @_;
     my $ret = {};
@@ -146,6 +152,7 @@ sub parse_img_proof_output {
 Creates an ssh keypair in a given file path by $args{ssh_private_key_file}
 
 =cut
+
 sub create_ssh_key {
     my ($self, %args) = @_;
     $args{ssh_private_key_file} //= '/root/.ssh/id_rsa';
@@ -160,6 +167,7 @@ sub create_ssh_key {
 called by childs within img-proof function
 
 =cut
+
 sub run_img_proof {
     my ($self, %args) = @_;
     die('Must provide an instance object') if (!$args{instance});
@@ -213,6 +221,7 @@ The given C<$img_url> is optional, if not present it retrieves from
 PUBLIC_CLOUD_IMAGE_LOCATION.
 If PUBLIC_CLOUD_IMAGE_ID is set, then this value will be used
 =cut
+
 sub get_image_id {
     my ($self, $img_url) = @_;
     my $predefined_id = get_var('PUBLIC_CLOUD_IMAGE_ID');
@@ -237,6 +246,7 @@ C<instance_type> defines the flavor of the instance. If not specified, it will l
                      from PUBLIC_CLOUD_INSTANCE_TYPE.
 
 =cut
+
 sub create_instance {
     return (shift->create_instances(@_))[0];
 }
@@ -251,6 +261,7 @@ C<instance_type> defines the flavor of the instance. If not specified, it will l
                      from PUBLIC_CLOUD_INSTANCE_TYPE.
 
 =cut
+
 sub create_instances {
     my ($self, %args) = @_;
     $args{check_connectivity} //= 1;
@@ -277,6 +288,7 @@ The working directory is always the terraform directory, where the statefile
 and the *.tf is placed.
 
 =cut
+
 sub on_terraform_apply_timeout {
 }
 
@@ -290,6 +302,7 @@ The working directory is always the terraform directory, where the statefile
 and the *.tf is placed.
 
 =cut
+
 sub on_terraform_destroy_timeout {
 }
 
@@ -298,6 +311,7 @@ sub on_terraform_destroy_timeout {
 This method is used to initialize the terraform environment.
 it is executed only once, guareded by `terraform_env_prepared` member.
 =cut
+
 sub terraform_prepare_env {
     my ($self) = @_;
     return if $self->terraform_env_prepared;
@@ -329,6 +343,7 @@ sub terraform_prepare_env {
 Calls terraform tool and applies the corresponding configuration .tf file
 
 =cut
+
 sub terraform_apply {
     my ($self, %args) = @_;
     my @instances;
@@ -470,6 +485,7 @@ sub terraform_apply {
 Destroys the current terraform deployment
 
 =cut
+
 sub terraform_destroy {
     my ($self) = @_;
     # Do not destroy if terraform has not been applied or the environment doesn't exist
@@ -524,6 +540,7 @@ sub terraform_destroy {
 Build the tags parameter for terraform. It is a single depth json like
 c<{"key": "value"}> where c<value> must be a string.
 =cut
+
 sub terraform_param_tags
 {
     my ($self) = @_;
@@ -547,6 +564,7 @@ sub escape_single_quote {
 This method is called called after each test on failure or success.
 
 =cut
+
 sub cleanup {
     my ($self) = @_;
     $self->terraform_destroy();
@@ -558,6 +576,7 @@ sub cleanup {
 This function implements a provider specifc stop call for a given instance.
 
 =cut
+
 sub stop_instance
 {
     die('stop_instance() isn\'t implemented');
@@ -568,6 +587,7 @@ sub stop_instance
 This function implements a provider specifc start call for a given instance.
 
 =cut
+
 sub start_instance
 {
     die('start_instance() isn\'t implemented');
@@ -578,6 +598,7 @@ sub start_instance
 This function implements a provider specifc get_state call for a given instance.
 
 =cut
+
 sub get_state_from_instance
 {
     die('get_state_from_instance() isn\'t implemented');

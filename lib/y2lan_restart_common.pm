@@ -54,6 +54,7 @@ my $query_pattern_for_restart = "shutting down|ifdown all|Stopping wicked";
 Initialize yast2 lan. Stop firewalld. Ensure firewalld is stopped. Enable DEBUG. Clear journal.
 
 =cut
+
 sub initialize_y2lan
 {
     start_root_shell_in_xterm();
@@ -82,6 +83,7 @@ Open yast2 lan module, expecting Overview tab and select first device.
 Accept warning for Networkmanager controls network device.
 
 =cut
+
 sub open_network_settings {
     $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'lan', extra_vars => get_var('YUI_PARAMS'));
     # 'Global Options' tab is opened after accepting the warning on the systems
@@ -105,6 +107,7 @@ sub open_network_settings {
 Close network settings checking for return code 0 on serial line.
 
 =cut
+
 sub close_network_settings {
     wait_still_screen 1, 1;
     send_key 'alt-o';
@@ -134,6 +137,7 @@ sub close_network_settings {
 Check network status for device, test connection and DNS. Print journal.log on screen if C<$expected_status> is restart.
 
 =cut
+
 sub check_network_status {
     my ($expected_status, $device) = @_;
     $expected_status //= 'no_restart_or_reload';
@@ -173,6 +177,7 @@ Checks state of the device using ip command, receives keys C<device> which conta
 device name and C<state> which contains expected state of the device.
 
 =cut
+
 sub check_device_state {
     my ($args) = @_;
     assert_script_run "ip -s link show @{ [ $args->{device} ] } | grep -i 'state @{ [ $args->{state} ] }'";    # check if provided device is up and running
@@ -197,6 +202,7 @@ Verify network configurations for: device name, network status, workaround or no
 Check network status C<$expected_status>, C<$workaround> if C<$no_network_check> is defined
 
 =cut
+
 sub verify_network_configuration {
     my ($fn, $expected_status, $dev_name, $workaround, $no_network_check) = @_;
     open_network_settings;
@@ -217,6 +223,7 @@ Validate /etc/hosts entries for ip, fqdn, host.
 Run record_soft_failure for bsc#1115644 if C<$args> has not been found in /etc/hosts and print /etc/hosts.
 
 =cut
+
 sub validate_etc_hosts_entry {
     my (%args) = @_;
 
@@ -232,6 +239,7 @@ sub validate_etc_hosts_entry {
 Manually configure network settings or set it to DHCP. C<$args> can be static, ip, mask, fqdn
 
 =cut
+
 sub set_network {
     my (%args) = @_;
 
@@ -286,6 +294,7 @@ Check update of /etc/hosts. In order to target bugs bsc#1115644 and bsc#1052042,
 =back
 
 =cut
+
 sub check_etc_hosts_update {
 
     my $ip = '192.168.122.10';
@@ -325,6 +334,7 @@ Handle Networkmanager controls the network configurations.
 Confirm if a warning popup for Networkmanager controls networking.
 
 =cut
+
 sub handle_Networkmanager_controlled {
     assert_screen 'Networkmanager_controlled', 300;
     send_key "ret";    # confirm networkmanager popup
@@ -344,6 +354,7 @@ sub handle_Networkmanager_controlled {
 Handle DHCP popup, confirm for DHCP popup.
 
 =cut
+
 sub handle_dhcp_popup {
     if (match_has_tag('dhcp-popup')) {
         wait_screen_change { send_key 'alt-o' };
@@ -357,6 +368,7 @@ sub handle_dhcp_popup {
 Open yast2 routing
 
 =cut
+
 sub open_yast2_routing {
     $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'routing');
     assert_screen "yast2_routing", 120;
@@ -372,6 +384,7 @@ C<$should_conflict> 1 means conflict is expected or 0 otherwise
 Open routing module and enable or disable ip_forwarding
 
 =cut
+
 sub change_ipforward {
     my %options = @_;
     open_yast2_routing();
@@ -392,6 +405,7 @@ Open yast2 lan, run handle_dhcp_popup() and install and check firewalld
 If network is controlled by Networkmanager, don't change any network settings.
 
 =cut
+
 sub open_yast2_lan {
     my $is_nm = !script_run('systemctl is-active NetworkManager');    # Revert boolean because of bash vs perl's return code.
 
@@ -420,6 +434,7 @@ sub open_yast2_lan {
 Close yast2 lan configuration and check that it is closed successfully
 
 =cut
+
 sub close_yast2_lan {
     my ($tag) = @_;
     if ($tag eq '') {
@@ -438,6 +453,7 @@ Makes space for better readability of the console and clears journal.log,
 so that the existing logs will not interfere with the new ones.
 
 =cut
+
 sub clear_journal_log {
     enter_cmd "\n";
     assert_script_run '> journal.log';
@@ -455,6 +471,7 @@ It is used to be sure, that all the yast2 lan windows are closed, so that all
 further actions in xterm can be made.
 
 =cut
+
 sub wait_for_xterm_to_be_visible {
     assert_screen 'yast2_closed_xterm_visible', 120;
 }
@@ -467,6 +484,7 @@ The function kills all the instances of xterm terminal to clear desktop for
 further tests.
 
 =cut
+
 sub close_xterm {
     enter_cmd "killall xterm";
 }

@@ -18,6 +18,7 @@ use version_utils 'is_sle';
 Enables and starts given systemd service
 
 =cut
+
 sub enable_and_start {
     my ($self, $arg) = @_;
     systemctl("enable $arg");
@@ -62,6 +63,7 @@ in config preparation, munge key distribution, etc.
 The naming follows general pattern of master-slave
 
 =cut
+
 sub master_node_names {
     my ($self) = @_;
     my $master_nodes = get_required_var("MASTER_NODES");
@@ -82,6 +84,7 @@ instance in config preparation, munge key distribution, etc.
 The naming follows general pattern of master-slave
 
 =cut
+
 sub slave_node_names {
     my ($self) = @_;
     my $master_nodes = get_required_var("MASTER_NODES");
@@ -102,6 +105,7 @@ sub slave_node_names {
 Prepare all node names, so those names could be reused
 
 =cut
+
 sub cluster_names {
     my ($self) = @_;
     my @cluster_names;
@@ -122,6 +126,7 @@ This should usually be called from the master node. If a replica
 master node is expected, key should be also be copied in it too.
 
 =cut
+
 sub distribute_munge_key {
     my ($self) = @_;
     my @cluster_nodes = slave_node_names();
@@ -142,6 +147,7 @@ This should usually be called from the master node. If a replica
 master node is expected, config file should be also be copied in it too.
 
 =cut
+
 sub distribute_slurm_conf {
     my ($self) = @_;
     my @cluster_nodes = slave_node_names();
@@ -166,6 +172,7 @@ be copied. This should usually be called from the master node. If a replica
 master node is expected, the ssh keys should be also be distributed in it too.
 
 =cut
+
 sub generate_and_distribute_ssh {
     my ($self, $user) = @_;
     $user //= 'root';
@@ -186,6 +193,7 @@ sub generate_and_distribute_ssh {
 Checks if all listed HPC cluster nodes are available (ping)
 
 =cut
+
 sub check_nodes_availability {
     my ($self) = @_;
     my @cluster_nodes = cluster_names();
@@ -199,6 +207,7 @@ sub check_nodes_availability {
 Ensure correct dir is created, and correct NFS dir is mounted on SUT
 
 =cut
+
 sub mount_nfs {
     my ($self) = @_;
     zypper_call('in nfs-client rpcbind');
@@ -215,6 +224,7 @@ sub mount_nfs {
 Check the IP of the master node
 
 =cut
+
 sub get_master_ip {
     my ($self) = @_;
 
@@ -228,6 +238,7 @@ sub get_master_ip {
 Check the IP of the slave node
 
 =cut
+
 sub get_slave_ip {
     my ($self) = @_;
 
@@ -241,6 +252,7 @@ sub get_slave_ip {
 Creating slurm user and group with some pre-defined ID
 
 =cut
+
 sub prepare_user_and_group {
     my ($self) = @_;
     assert_script_run('groupadd slurm -g 7777');
@@ -258,6 +270,7 @@ from the rest and can be exported via a network file system.
 After C<prepare_spack_env> run, C<spack> should be ready to build entire tool stack,
 downloading and installing all bits required for whatever package or compiler.
 =cut
+
 sub prepare_spack_env {
     my ($self, $mpi) = @_;
     $mpi //= 'mpich';
@@ -278,6 +291,7 @@ sub prepare_spack_env {
 
 Unload and uninstall C<module> from spack stack
 =cut
+
 sub uninstall_spack_module {
     my ($self, $module) = @_;
     die 'uninstall_spack_module requires a module name' unless $module;
@@ -295,6 +309,7 @@ This function is used to select dependencies packages which are required to be i
 on HPC compute nodes in order to run code against particular C<mpi> implementation.
 C<get_compute_nodes_deps> returns an array of packages
 =cut
+
 sub get_compute_nodes_deps {
     my ($self, $mpi) = @_;
     die "missing C<mpi> parameter" unless $mpi;
@@ -320,6 +335,7 @@ of *-gnu-hpc installed libraries and the directory with the binaries.
 C<exports> takes a hash reference with the paths which NFS should make
 available to the compute nodes in order to run MPI software.
 =cut
+
 sub setup_nfs_server {
     my ($self, $exports) = @_;
     zypper_call 'in nfs-kernel-server';
@@ -337,6 +353,7 @@ compute nodes, from the management one.
 C<exports> takes a hash reference with the paths which the management node share in order to
 run the MPI binaries
 =cut
+
 sub mount_nfs_exports {
     my ($self, $exports) = @_;
     zypper_call 'in nfs-client';

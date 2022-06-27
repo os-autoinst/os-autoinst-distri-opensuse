@@ -33,6 +33,7 @@ Possible values for C<$mode> are: SSL, NSS, NSSFIPS, PHP7 and PHP8
  setup_apache2(mode => 'SSL');
 
 =cut
+
 sub setup_apache2 {
     my %args = @_;
     my $mode = uc $args{mode} || "";
@@ -163,6 +164,7 @@ sub setup_apache2 {
 Set up a postgres data base
 
 =cut
+
 sub setup_pgsqldb {
     # without changing current working directory we get:
     # 'could not change directory to "/root": Permission denied'
@@ -183,6 +185,7 @@ sub setup_pgsqldb {
 Destroy a postgres data base
 
 =cut
+
 sub destroy_pgsqldb {
     assert_script_run 'pushd /tmp';
 
@@ -221,6 +224,7 @@ Set up a postgres database and configure for:
 =back
 
 =cut
+
 sub test_pgsql {
     # configuration so that PHP can access PostgreSQL
     # setup password
@@ -365,6 +369,7 @@ EOF
 Create the 'openQAdb' database with table 'test' and insert one element
 
 =cut
+
 sub test_mysql {
     # create the 'openQAdb' database with table 'test' and insert one element 'can php read this?'
     my $setup_openQAdb = "CREATE DATABASE openQAdb; USE openQAdb; " .

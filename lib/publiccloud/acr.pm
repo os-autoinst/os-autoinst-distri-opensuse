@@ -32,6 +32,7 @@ sub init {
 =head2 delete_image
 Delete a ACR image
 =cut
+
 sub delete_image {
     my ($self, $tag) = @_;
     $tag //= $self->get_default_tag();

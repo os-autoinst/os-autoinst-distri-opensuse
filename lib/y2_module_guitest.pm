@@ -37,6 +37,7 @@ Optional C<$match_timeout> can be specified as a timeout on the C<assert_screen>
 C<$maximize_window> option allows to maximize application window using shortcut.
 
 =cut
+
 sub launch_yast2_module_x11 {
     my ($module, %args) = @_;
     $module //= '';

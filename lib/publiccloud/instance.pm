@@ -46,6 +46,7 @@ Use argument C<username> to specify a different username then
 C<<$instance->username()>>.
 Use argument C<rc_only> to only check for the return code of the command.
 =cut
+
 sub run_ssh_command {
     my $self = shift;
     my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
@@ -103,6 +104,7 @@ C<<$instance->ssh_opts>>.
 Use argument C<username> to specify a different username then
 C<<$instance->username()>>.
 =cut
+
 sub retry_ssh_command {
     my $self = shift;
     my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
@@ -129,6 +131,7 @@ C<remote:> is replaced with the IP from this instance. E.g. a call to copy
 the file I</var/log/cloudregister> to I</tmp> looks like:
 C<<<$instance->scp('remote:/var/log/cloudregister', '/tmp');>>>
 =cut
+
 sub scp {
     my ($self, $from, $to, %args) = @_;
     $args{timeout} //= SSH_TIMEOUT;
@@ -150,6 +153,7 @@ sub scp {
 Upload a file from this instance to openqa using L<upload_logs()>.
 If the file doesn't exists on the instance, B<no> error is thrown.
 =cut
+
 sub upload_log {
     my ($self, $remote_file, %args) = @_;
 
@@ -171,6 +175,7 @@ If guestregister will not finish within C<timeout> seconds, job dies.
 In case of BYOS images we checking that service is inactive and quit
 Returns the time needed to wait for the guestregister to complete.
 =cut
+
 sub wait_for_guestregister
 {
     my ($self, %args) = @_;
@@ -215,6 +220,7 @@ sub wait_for_guestregister
 
 Check if the SSH port of the instance is reachable and open.
 =cut
+
 sub wait_for_ssh
 {
     my ($self, %args) = @_;
@@ -268,6 +274,7 @@ Does a softreboot of the instance by running the command C<shutdown -r>.
 Return an array of two values, first one is the time till the instance isn't
 reachable anymore. The second one is the estimated bootup time.
 =cut
+
 sub softreboot
 {
     my ($self, %args) = @_;
@@ -313,6 +320,7 @@ sub softreboot
 
 Stop the instance using the CSP api calls.
 =cut
+
 sub stop
 {
     my $self = shift;
@@ -326,6 +334,7 @@ sub stop
 Start the instance and check SSH connectivity. Return the number of seconds
 till the SSH port was available.
 =cut
+
 sub start
 {
     my ($self, %args) = @_;
@@ -339,6 +348,7 @@ sub start
 
 Get the status of the instance using the CSP api calls.
 =cut
+
 sub get_state
 {
     my $self = shift;
@@ -351,6 +361,7 @@ sub get_state
 
 Test the network speed.
 =cut
+
 sub network_speed_test() {
     my ($self, %args) = @_;
     # Curl stats output format

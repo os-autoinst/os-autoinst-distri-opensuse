@@ -19,6 +19,7 @@ Select Current Configuration on Snapshots screen
 C<$ncurses> is used to check if it is ncurses.
 
 =cut
+
 sub y2snapper_select_current_conf {
     my ($self, $ncurses) = @_;
     $ncurses //= 0;
@@ -43,6 +44,7 @@ Close snapper module
 C<$ncurses> is used to check if it is ncurses.
 
 =cut
+
 sub y2snapper_close_snapper_module {
     my ($self, $ncurses) = @_;
     $ncurses //= 0;
@@ -64,6 +66,7 @@ Setup another snapper config for /test (creating previously a subvolume for it)
 It allows to have more control over diffs amongs snapshots.
 
 =cut
+
 sub y2snapper_adding_new_snapper_conf {
     assert_script_run("btrfs subvolume create /test");
     assert_script_run("snapper -c test create-config /test");
@@ -79,6 +82,7 @@ sub y2snapper_adding_new_snapper_conf {
 Helper to create a snapper snapshot. C<$name> is the name of snapshot.
 
 =cut
+
 sub y2snapper_create_snapshot {
     my $self = shift;
     my $name = shift || "Awesome Snapshot";
@@ -102,6 +106,7 @@ Create a new snapshot.
 C<$ncurses> is used to check if it is ncurses. In ncurses it needs to focus to snapshots list manually.
 
 =cut
+
 sub y2snapper_new_snapshot {
     my ($self, $ncurses) = @_;
     $ncurses //= 0;
@@ -134,6 +139,7 @@ Performs any modification in filesystem and at least include some change
 under /test, which is the subvolume for testing.
 
 =cut
+
 sub y2snapper_apply_filesystem_changes {
     assert_script_run('echo "hello world in snapper conf /root" > /hello_root.txt');
     assert_script_run('echo "hello world in snapper conf /test" > /test/hello_test.txt');
@@ -148,6 +154,7 @@ Show changes of snapshot and delete it.
 Use C<$ncurses> to check if it is ncurses. Select in ncurses the first subvolume (root) in the tree and expand it.
 
 =cut
+
 sub y2snapper_show_changes_and_delete {
     my ($self, $ncurses) = @_;
     $ncurses //= 0;
@@ -193,6 +200,7 @@ C<$module_name> is YaST2 module yast2-snapper.
 Quit yast2-snapper and clean up the test data.
 
 =cut
+
 sub y2snapper_clean_and_quit {
     my ($self, $module_name, $ncurses) = @_;
 
@@ -228,6 +236,7 @@ sub y2snapper_clean_and_quit {
 Analyse failure and upload logs.
 
 =cut
+
 sub y2snapper_failure_analysis {
     my ($self) = @_;
     # snapper actions can put the system under quite some load so we want to

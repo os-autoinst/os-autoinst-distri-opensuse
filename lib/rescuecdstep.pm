@@ -16,6 +16,7 @@ use warnings;
 Return test flag fatal => 1
 
 =cut
+
 sub test_flags {
     return {fatal => 1};
 }

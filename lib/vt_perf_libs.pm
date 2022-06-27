@@ -24,6 +24,7 @@ Downlaod git repo.
 C<$git_branch_name> Branch name in string.
 C<$git_repo_url> URL in string.
 =cut
+
 sub prepare_git_repo {
     my ($git_branch_name, $git_repo_url) = @_;
     #Prepare mitigations-testsuite.git
@@ -45,6 +46,7 @@ It would be used in Dom0, kvm hypervisor, baremetal.
 C<$git_branch_name> Branch name in string.
 C<$git_repo_url> URL in string.
 =cut
+
 sub switch_to_linux_default_enable {
     my $self = shift;
     my $ret = script_run("grep \"mitigations=off\" /proc/cmdline");
@@ -77,6 +79,7 @@ It would be used in Dom0, kvm hypervisor, baremetal.
 C<$git_branch_name> Branch name in string.
 C<$git_repo_url> URL in string.
 =cut
+
 sub switch_to_xen_default_enable {
     my $self = shift;
     my $reboot = 0;

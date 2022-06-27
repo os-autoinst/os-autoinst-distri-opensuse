@@ -79,6 +79,7 @@ C<xpc> - XPathContext object for the parsed xml,
 C<xpath> - XPath to the target node
 
 =cut
+
 sub find_nodes {
     my (%args) = @_;
     my $nodeset = $args{xpc}->findnodes($args{xpath});

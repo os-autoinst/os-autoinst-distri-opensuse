@@ -27,6 +27,7 @@ Handle grub menu after reboot
     - Enable plymouth debug if product if GRUB_KERNEL_OPTION_APPEND is set,
       or product is sle, aarch64 and PLYMOUTH_DEBUG is set
 =cut
+
 sub grub_test {
     my $timeout = get_var('GRUB_TIMEOUT', 200);
 
@@ -55,6 +56,7 @@ sub grub_test {
 
 Due to pre-installation setup, qemu boot order is always booting from CD-ROM.
 =cut
+
 sub handle_installer_medium_bootup {
     return unless (check_var("BOOTFROM", "d") || (get_var('UEFI') && get_var('USBBOOT')));
     assert_screen 'inst-bootmenu', 180;

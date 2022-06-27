@@ -35,6 +35,7 @@ our @EXPORT = qw(
 This sub reads the output of F</etc/crypttab> and returns C<%crypttab> reference with its data.
 Check https://www.freedesktop.org/software/systemd/man/crypttab.html for more info about parsing 
 =cut
+
 sub parse_devices_in_crypttab {
     my @lines = split(/\n/, script_output("cat /etc/crypttab"));
     my $crypttab = {};
@@ -63,6 +64,7 @@ sub parse_devices_in_crypttab {
 
 returns the C<$status> of the encrypted device. If no encrypted device found it returns a reference to an empty anonymous hash.
 =cut
+
 sub parse_cryptsetup_status {
     my ($dev) = @_;
     my @lines = split(/\n/, script_output("cryptsetup status $dev", proceed_on_failure => 1));
@@ -86,6 +88,7 @@ sub parse_cryptsetup_status {
 
 Verify the existence of F</etc/crypttab> file.
 =cut
+
 sub verify_crypttab_file_existence {
     record_info("crypttab file", "Verify the existence of /etc/crypttab file");
     assert_script_run("test -f /etc/crypttab", fail_message => "No /etc/crypttab found");
@@ -106,6 +109,7 @@ sub verify_crypttab_file_existence {
 =back
 
 =cut
+
 sub verify_number_of_encrypted_devices {
     my ($expected_number, $actual_number) = @_;
     record_info("devices number", "Verify number of encrypted devices");
@@ -129,6 +133,7 @@ sub verify_number_of_encrypted_devices {
 =back
 
 =cut
+
 sub verify_cryptsetup_message {
     my ($expected_message, $actual_message) = @_;
     record_info("Assert volumes status", "Verify crypted volume status based on test_data expectations");
@@ -150,6 +155,7 @@ sub verify_cryptsetup_message {
 
 =back
 =cut
+
 sub verify_cryptsetup_properties {
     my ($expected_properties, $actual_properties) = @_;
     record_info("params", "Verify parameters, that are set for crypted volumes");
@@ -181,6 +187,7 @@ Where C<%args> expects the following parameters:
 
 Validates that the device is an encrypted one and tests the backup of the keyslot info.
 =cut
+
 sub verify_restoring_luks_backups {
     my (%args) = @_;
     my $mapped_dev_path = $args{encrypted_device_path};
@@ -210,6 +217,7 @@ sub verify_restoring_luks_backups {
 =back
 
 =cut
+
 sub verify_locked_encrypted_partition {
     my $enc_disk_part = shift;
     my @lines = split(/\n/, script_output("lsblk -l -n /dev/$enc_disk_part"));

@@ -75,6 +75,7 @@ Package with common methods and default or constant  values for Trento tests
 Return a string to be used as cloud resource group.
 It contains the JobId
 =cut
+
 sub get_resource_group {
     my $job_id = get_current_job_id();
     return TRENTO_AZ_PREFIX . "-rg-$job_id";
@@ -85,6 +86,7 @@ sub get_resource_group {
 Return a string to be used as cloud VM name.
 It contains the JobId
 =cut
+
 sub get_vm_name {
     my $job_id = get_current_job_id();
     return TRENTO_AZ_PREFIX . "-vm-$job_id";
@@ -95,6 +97,7 @@ sub get_vm_name {
 Return a string to be used as cloud ACR name.
 It contains the JobId
 =cut
+
 sub get_acr_name {
     return TRENTO_AZ_ACR_PREFIX . get_current_job_id();
 }
@@ -103,6 +106,7 @@ sub get_acr_name {
 
 Return the running VM public IP
 =cut
+
 sub az_get_vm_ip {
     my $az_cmd = 'az vm show -d ' .
       '-g ' . get_resource_group() . ' ' .
@@ -116,6 +120,7 @@ sub az_get_vm_ip {
 
 Delete the resource group associated to this JobID and all its content
 =cut
+
 sub az_delete_group {
     script_run('echo "Delete all resources"');
     my $az_cmd = 'az group delete ' .
@@ -139,6 +144,7 @@ take care that is a time consuming I<az> query.
 
 =back
 =cut
+
 sub az_vm_ssh_cmd {
     my ($self, $cmd_arg, $vm_ip_arg) = @_;
     record_info('REMOTE', "cmd:$cmd_arg");
@@ -164,6 +170,7 @@ Get all relevant info out from the cluster
 
 =back
 =cut
+
 sub k8s_logs {
     my $self = shift;
     my (@pods_list) = @_;
@@ -204,6 +211,7 @@ sub k8s_logs {
 Perform some generic checks related to the podman installation itself
 and the relevant parameters of the current machine environment.
 =cut
+
 sub podman_self_check {
     record_info('PODMAN', 'Check podman');
     assert_script_run('which podman');
@@ -224,6 +232,7 @@ Prepare whatever is needed to run cypress tests using container
 
 =back
 =cut
+
 sub cypress_install_container {
     my ($self, $cypress_ver) = @_;
     podman_self_check();
@@ -254,6 +263,7 @@ Upload to openQA the relevant logs
 
 =back
 =cut
+
 sub cypress_log_upload {
     my ($self, @log_filter) = @_;
     my $find_cmd = 'find ' . CYPRESS_LOG_DIR . ' -type f \( -iname \*' . join(' -o -iname \*', @log_filter) . ' \)';
@@ -282,6 +292,7 @@ return not 0 exit code. 1:all not 0 podman/cypress exit code are ignored. SoftFa
 
 =back
 =cut
+
 sub cypress_exec {
     my ($self, $cypress_test_dir, $cmd, $timeout, $log_prefix, $failok) = @_;
     my $ret = 0;
@@ -333,6 +344,7 @@ Also used as tag for each test result file
 
 =back
 =cut
+
 sub cypress_test_exec {
     my ($self, $cypress_test_dir, $test_tag, $timeout) = @_;
     my $ret = 0;

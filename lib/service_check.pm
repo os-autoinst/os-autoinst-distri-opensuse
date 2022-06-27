@@ -256,6 +256,7 @@ registered_addons, susefirewall, ntp, chrony, postfix, apache, dhcpd, bind, snmp
 Check service before migration, zypper install service package, enable, start and check service status
 
 =cut
+
 sub install_services {
     my ($service) = @_;
     opensusebasetest::select_serial_terminal() if (get_var('SEL_SERIAL_CONSOLE'));
@@ -327,6 +328,7 @@ sub install_services {
 check service status after migration
 
 =cut
+
 sub check_services {
     my ($service) = @_;
     foreach my $s (sort keys %$service) {

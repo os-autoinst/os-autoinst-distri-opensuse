@@ -59,6 +59,7 @@ Setup tunnel(s) over SSH based on an openSSH configuration configuring a
 "jumpbox" including forwarding a port for remote log uploading.
 
 =cut
+
 sub setup_ssh_tunnels {
     my ($self) = @_;
     return if get_var('_SSH_TUNNELS_INITIALIZED');

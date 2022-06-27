@@ -23,6 +23,7 @@ Then setup a static network by C<configure_static_network(%args{ip})>.
 C<%args> is a list with possible keys like {message} or {ip}.
 
 =cut
+
 sub prepare_xterm_and_setup_static_network {
     my %args = @_;
     die "Static network configuration failed, no IP specified!\n" unless defined($args{ip});

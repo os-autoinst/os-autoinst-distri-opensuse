@@ -54,6 +54,7 @@ Returns true if running on a scenario that expects storage-ng.
 We got changes to the storage-ng UI in SLE 15 SP1, Leap 15.1 and TW
 
 =cut
+
 sub is_storage_ng_newui {
     return is_storage_ng && (
         is_sle('15-SP1+')
@@ -71,6 +72,7 @@ Despite the name it does not check if it is run on a storage ng system,
 so be careful here
 
 =cut
+
 sub wipe_existing_partitions_storage_ng {
     send_key_until_needlematch "expert-partitioner-hard-disks", 'right';
     wait_still_screen 2;
@@ -93,6 +95,7 @@ C<$table_type> can be 'GPT' or 'MSDOS' and is optional.
 This function creates a new partitioning setup from scratch.
 
 =cut
+
 sub create_new_partition_table {
     my ($table_type) = shift // (is_storage_ng) ? 'GPT' : 'MSDOS';
     my %table_type_hotkey = (
@@ -156,6 +159,7 @@ sub create_new_partition_table {
 Set mount point and volume label. C<$mount> is mount point.
 
 =cut
+
 sub mount_device {
     my ($mount) = shift;
     send_key 'alt-o';
@@ -187,6 +191,7 @@ Example:
  set_patition_size(size => '100')
 
 =cut
+
 sub set_partition_size {
     my (%args) = @_;
     assert_screen 'partition-size';
@@ -212,6 +217,7 @@ Method assumes that correct disk is already selected.
 Select Maximum size by default
 
 =cut
+
 sub resize_partition {
     my (%args) = @_;
     if (is_storage_ng_newui) {
@@ -236,6 +242,7 @@ sub resize_partition {
 Adds a partition with the given parameters to the partitioning table.
 
 =cut
+
 sub addpart {
     my (%args) = @_;
     assert_screen 'expert-partitioner';
@@ -305,6 +312,7 @@ Example:
  addvg(name => 'vg-system', add_all_pvs => 1);
 
 =cut
+
 sub addvg {
     my (%args) = @_;
 
@@ -341,6 +349,7 @@ sub addvg {
 Add a LVM logical volume.
 
 =cut
+
 sub addlv {
     my (%args) = @_;
 
@@ -405,6 +414,7 @@ Add a boot partition based on architecture.
 C<$part_size> is the size of partition.
 
 =cut
+
 sub addboot {
     my $part_size = shift;
     my %default_boot_sizes = (
@@ -445,6 +455,7 @@ The device should be [sv]da, other devices will be unselected. [sv]da device wil
 force-selected at the end if needed (in some cases [sv]da is at the end of the list).
 
 =cut
+
 sub select_first_hard_disk {
     # Try to handle most of the device type
     my @tags = 'existing-partitions';
@@ -489,6 +500,7 @@ sub select_first_hard_disk {
 Enable encryption in guided setup during installation.
 
 =cut
+
 sub enable_encryption_guided_setup {
     my $self = shift;
     send_key $cmd{encryptdisk};
@@ -512,6 +524,7 @@ sub enable_encryption_guided_setup {
 Only works on storage-ng and is being called by C<take_first_disk>.
 
 =cut
+
 sub take_first_disk_storage_ng {
     my (%args) = @_;
     return unless is_storage_ng;
@@ -574,6 +587,7 @@ Example:
  take_first_disk(iscsi => 1);
 
 =cut
+
 sub take_first_disk
 {
     my (%args) = @_;

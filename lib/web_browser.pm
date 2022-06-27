@@ -35,6 +35,7 @@ our @EXPORT = qw(
 Setup test envs: register PackageHub and check FIPS pattern installed
 
 =cut
+
 sub setup_web_browser_env {
     my $ret = 0;
 
@@ -64,6 +65,7 @@ $browser: The name of text based web browser: w3m/links/lynx
 $options: command line options
 
 =cut
+
 sub run_web_browser_text_based {
     my ($browser, $options) = @_;
 

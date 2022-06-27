@@ -59,6 +59,7 @@ C<cmd> can be anything you want to run in the container, similar to C<run>. for
 instance: C<docker create -it tumbleweed bash>
 
 =cut
+
 sub create_container {
     my ($self) = shift;
     my %args = (
@@ -77,6 +78,7 @@ sub create_container {
 Starts container named C<image_name>.
 
 =cut
+
 sub start_container {
     my ($self, $image_name) = @_;
     $self->_engine_assert_script_run("container start $image_name");
@@ -90,6 +92,7 @@ C<container_name> which runs.
 https://docs.docker.com/engine/reference/commandline/wait/
 
 =cut
+
 sub halt_container {
     my ($self, $container_name) = @_;
     $self->_engine_assert_script_run("wait $container_name");
@@ -105,6 +108,7 @@ C<container_tag> will be the name of the container.
 Give C<timeout> if you want to change the timeout passed to C<assert_script_run>. Default for containers is 300.
 
 =cut
+
 sub build {
     my ($self, $dockerfile_path, $image_tag, %args) = @_;
     die 'wrong number of arguments' if @_ < 3;
@@ -130,6 +134,7 @@ if C<retry> is given, the command is being repeated the given amount of times on
 If C<delay> is given, this defines the number of seconds between retries
 
 =cut
+
 sub run_container {
     my ($self, $image_name, %args) = @_;
     die 'image name or id is required' unless $image_name;
@@ -162,6 +167,7 @@ where C<image_name> can be the name or id of the image.
 C<args> passes parameters to C<script_run>
 
 =cut
+
 sub pull {
     my ($self, $image_name, %args) = @_;
     if (my $rc = $self->_engine_script_run("image inspect --format='{{.RepoTags}}' $image_name | grep '$image_name'") == 0) {
@@ -177,6 +183,7 @@ sub pull {
 Save a existing container as a new image in the local registry
 
 =cut
+
 sub commit {
     my ($self, $mycontainer, $new_image_name, %args) = @_;
     $self->_engine_assert_script_run("commit $mycontainer $new_image_name", timeout => $args{timeout});
@@ -187,6 +194,7 @@ sub commit {
 Return an array ref of the images
 
 =cut
+
 sub enum_images {
     my ($self) = shift;
     my $images_s = $self->_engine_script_output("images -q");
@@ -200,6 +208,7 @@ sub enum_images {
 Return an array ref of the containers
 
 =cut
+
 sub enum_containers {
     my ($self) = shift;
     my $containers_s = $self->_engine_script_output("container ls -q");
@@ -213,6 +222,7 @@ sub enum_containers {
 Returns an array ref with the names of the images.
 
 =cut
+
 sub get_images_by_repo_name {
     my ($self) = @_;
     my $repo_images = $self->_engine_script_output("images --format '{{.Repository}}'", timeout => 120);
@@ -226,6 +236,7 @@ Assert a C<property> against given expected C<value> if C<value> is given.
 Otherwise it prints the output of info.
 
 =cut
+
 sub info {
     my ($self, %args) = shift;
     my $property = $args{property} ? qq(--format '{{.$args{property}}}') : '';
@@ -240,6 +251,7 @@ C<container> the running container.
 C<filename> file the logs are written to.
 
 =cut
+
 sub get_container_logs {
     my ($self, $container, $filename) = @_;
     $self->_engine_assert_script_run("container logs $container | tee $filename");
@@ -250,6 +262,7 @@ sub get_container_logs {
 Remove a image from the pool.
 
 =cut
+
 sub remove_image {
     my ($self, $image_name) = @_;
     $self->_engine_assert_script_run("rmi -f $image_name");
@@ -262,6 +275,7 @@ C<container_name> is the container name to be removed. Required argument.
 C<assert> Is an optional boolean for asserting that the call is successful. If false the method returns the return value of the call.
 
 =cut
+
 sub remove_container {
     my ($self, $container_name, %args) = @_;
     my $assert = $args{assert} // 1;
@@ -277,6 +291,7 @@ sub remove_container {
 Returns true if host contains C<img> or false.
 
 =cut
+
 sub check_image_in_host {
     my ($self, $img) = @_;
     grep { $img eq $_ } @{$self->enum_images()};
@@ -290,6 +305,7 @@ insecure registries.
 Implementation is subject to the subclass.
 
 =cut
+
 sub configure_insecure_registries {
     return;
 }
@@ -300,6 +316,7 @@ Remove containers and then all the images respectively.
 Asserts that everything was cleaned up unless c<assert> is set to 0.
 
 =cut
+
 sub cleanup_system_host {
     my ($self, $assert) = @_;
     $assert //= 1;

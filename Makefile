@@ -56,6 +56,10 @@ test-compile: check-links
 test-compile-changed: os-autoinst/
 	export PERL5LIB=${PERL5LIB_} ; for f in `git diff --name-only | grep '.pm'` ; do perl -c $$f 2>&1 | grep -v " OK$$" && exit 2; done ; true
 
+.PHONY: test_pod_whitespace_rule
+test_pod_whitespace_rule:
+	tools/check_pod_whitespace_rule
+
 .PHONY: test-yaml-valid
 test-yaml-valid:
 	$(eval YAMLS=$(shell sh -c "git ls-files schedule/ test_data/ | grep '\\.ya\?ml$$'"))
@@ -107,7 +111,7 @@ test-spec:
 	tools/update_spec --check
 
 .PHONY: test-static
-test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-files test-unused-modules-changed test-soft_failure-no-reference test-spec test-invalid-syntax test-code-style test-metadata
+test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-files test-unused-modules-changed test-soft_failure-no-reference test-spec test-invalid-syntax test-code-style test-metadata test_pod_whitespace_rule
 
 .PHONY: test
 ifeq ($(TESTS),compile)
