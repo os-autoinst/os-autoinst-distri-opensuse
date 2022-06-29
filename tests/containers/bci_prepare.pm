@@ -22,6 +22,7 @@ use Mojo::Base qw(consoletest);
 use XML::LibXML;
 use utils qw(zypper_call script_retry);
 use version_utils qw(get_os_release);
+use db_utils qw(push_image_data_to_db);
 use containers::common;
 use testapi;
 
@@ -108,7 +109,6 @@ sub run {
         record_info('IMAGE', $image);
         script_retry("$engine pull -q $image", timeout => 300, delay => 60, retry => 3);
         record_info('Inspect', script_output("$engine inspect $image"));
-
         my $build = get_var('CONTAINER_IMAGE_BUILD');
         if ($build && $build ne 'UNKNOWN') {
             record_info('BUILD#', "CONTAINER_IMAGE_BUILD=$build");
@@ -116,6 +116,13 @@ sub run {
             record_info('image ref', "org.opensuse.reference: $reference");
             die('Miss match in image build number. The image build number is different than the one triggered by the container bot!') if ($reference !~ /$build$/);
         }
+        if (get_var('IMAGE_STORE_DATA')) {
+            my $size_b = script_output("$engine inspect --format \"{{.VirtualSize}}\" $image");
+            my $size_mb = $size_b / 1000000;
+            record_info('Size', $size_mb);
+            push_image_data_to_db('containers', $image, $size_mb, flavor => get_required_var('BCI_IMAGE_MARKER'), type => 'VirtualSize');
+        }
+
     }
 }
 

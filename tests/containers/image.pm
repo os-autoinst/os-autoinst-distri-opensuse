@@ -13,7 +13,8 @@ use testapi;
 use utils;
 use containers::common;
 use containers::container_images;
-use containers::urls 'get_image_uri';
+use containers::urls qw(get_image_uri);
+use db_utils qw(push_image_data_to_db);
 
 sub run {
     my ($self, $args) = @_;
@@ -28,6 +29,14 @@ sub run {
     my $versions = get_var('CONTAINER_IMAGE_VERSIONS', get_required_var('VERSION'));
     for my $version (split(/,/, $versions)) {
         my $image = get_image_uri(version => $version);
+
+        if (get_var('IMAGE_STORE_DATA')) {
+            # If wanted, push image information to the DB
+            script_retry("$runtime pull -q $image", timeout => 300, delay => 60, retry => 3);
+            my $size_b = script_output("$engine inspect --format \"{{.VirtualSize}}\" $image");
+            my $size_mb = $size_b / 1000000;
+            push_image_data_to_db('containers', $image, $size_mb, flavor => 'base', type => 'VirtualSize');
+        }
 
         record_info "IMAGE", "Testing image: $image Version: $version";
         test_container_image(image => $image, runtime => $engine);
