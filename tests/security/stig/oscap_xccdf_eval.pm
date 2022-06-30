@@ -10,20 +10,21 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_sle);
 
 sub run {
     my ($self) = @_;
     select_console 'root-console';
 
     # Get ds file and profile ID
-    my $f_ssg_sle_ds = $stigtest::f_ssg_sle_ds;
-    my $profile_ID = $stigtest::profile_ID;
+    my $profile_ID = is_sle ? $stigtest::profile_ID_sle : $stigtest::profile_ID_tw;
+    my $f_ssg_ds = is_sle ? $stigtest::f_ssg_sle_ds : $stigtest::f_ssg_tw_ds;
     my $f_stdout = $stigtest::f_stdout;
     my $f_stderr = $stigtest::f_stderr;
     my $f_report = $stigtest::f_report;
 
     # Verify detection mode
-    my $ret = script_run("oscap xccdf eval --profile $profile_ID --oval-results --report $f_report $f_ssg_sle_ds > $f_stdout 2> $f_stderr", timeout => 300);
+    my $ret = script_run("oscap xccdf eval --profile $profile_ID --oval-results --report $f_report $f_ssg_ds > $f_stdout 2> $f_stderr", timeout => 300);
     if ($ret == 0) {
         record_info('PASS');
     } elsif ($ret == 1 || $ret == 2) {

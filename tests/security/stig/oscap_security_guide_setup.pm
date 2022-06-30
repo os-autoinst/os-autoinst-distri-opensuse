@@ -10,6 +10,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_sle);
 
 sub run {
     my ($self) = @_;
@@ -26,9 +27,9 @@ sub run {
     $self->set_ds_file();
 
     # Check the ds file information for reference
-    my $f_ssg_sle_ds = $stigtest::f_ssg_sle_ds;
-    $out = script_output("oscap info $f_ssg_sle_ds");
-    record_info("Info", "\"# oscap info $f_ssg_sle_ds\" returns: $out");
+    my $f_ssg_ds = is_sle ? $stigtest::f_ssg_sle_ds : $stigtest::f_ssg_tw_ds;
+    $out = script_output("oscap info $f_ssg_ds");
+    record_info("Info", "\"# oscap info $f_ssg_ds\" returns: $out");
 }
 
 sub test_flags {
