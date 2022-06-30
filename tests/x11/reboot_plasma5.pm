@@ -22,6 +22,8 @@ sub run {
     # modules
     # https://progress.opensuse.org/issues/30805
     $self->check_desktop_runner;
+    # also prevent key repetition errors
+    $self->disable_key_repeat;
 }
 
 sub test_flags {

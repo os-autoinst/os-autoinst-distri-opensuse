@@ -1315,6 +1315,7 @@ sub load_x11tests {
     }
     # first module after login or startup to check prerequisites
     loadtest "x11/desktop_runner";
+    loadtest "x11/setup";
     if (xfcestep_is_applicable()) {
         loadtest "x11/xfce4_terminal";
     }

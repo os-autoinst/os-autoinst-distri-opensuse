@@ -30,6 +30,7 @@ schedule:
     - console/prepare_test_data
     - console/consoletest_setup
     - x11/desktop_runner
+    - x11/setup
     - x11/xterm
     - x11/sshxterm
     - x11/gnome_control_center

@@ -42,6 +42,7 @@ schedule:
   - console/consoletest_finish
   - x11/user_gui_login
   - x11/desktop_runner
+  - x11/setup
   - x11/xterm
   - locale/keymap_or_locale_x11
   - x11/sshxterm
