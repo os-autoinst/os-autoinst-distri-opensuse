@@ -16,6 +16,7 @@
     <ul>
       <li><a href="#influxdb_push_data">influxdb_push_data</a></li>
       <li><a href="#influxdb_read_data">influxdb_read_data</a></li>
+      <li><a href="#push_image_data_to_db">push_image_data_to_db</a></li>
     </ul>
   </li>
 </ul><h1>lib/db_utils.pm</h1>
@@ -33,6 +34,10 @@
 <p>Builds an Influx DB query and read data from specified database with <code>url_base</code> and <code>db</code> for the Influx DB name. <code>query</code> contains SELECT query for given DB.</p>
 
 <p>returns json with results of SELECT query.</p>
+
+<h2 id="push_image_data_to_db">push_image_data_to_db</h2>
+
+<p>Pushes data to specified with <code>url</code> and <code>db</code> for the Postgres DB name using curl.</p>
 
 
 </body>
