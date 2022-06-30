@@ -21,7 +21,9 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 our @EXPORT = qw(install_k3s uninstall_k3s install_kubectl install_helm install_oc);
 
 sub install_k3s {
-    assert_script_run("curl -sfL https://get.k3s.io | sh -");
+    my $k3s_version = get_var("CONTAINERS_K3S_VERSION", "v1.23.6+k3s1");
+    record_info('k3s', $k3s_version);
+    assert_script_run("curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=$k3s_version sh -");
     enter_cmd("k3s server &");
     script_retry("test -e /etc/rancher/k3s/k3s.yaml", delay => 20, retry => 10);
     assert_script_run("k3s kubectl get node");
@@ -46,6 +48,7 @@ sub install_kubectl {
 
 sub install_helm {
     zypper_call("in helm");
+    record_info('helm', script_output("helm version"));
 }
 
 sub install_oc {
