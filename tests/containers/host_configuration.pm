@@ -14,7 +14,6 @@ use testapi;
 use utils;
 use version_utils qw(check_os_release get_os_release is_sle);
 use containers::common;
-use power_action_utils 'power_action';
 
 sub run {
     my ($self) = @_;
@@ -40,11 +39,6 @@ sub run {
             script_retry("yum update -q -y --nobest", timeout => $update_timeout);
         } elsif ($host_distri eq 'rhel') {
             script_retry("yum update -q -y", timeout => $update_timeout);
-
-            # This is just a workaround and should be removed after we upgrade the RHEL image
-            power_action('reboot');
-            sleep 180;
-            $self->select_serial_terminal;
         }
     }
 
