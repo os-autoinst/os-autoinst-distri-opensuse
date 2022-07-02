@@ -19,6 +19,7 @@ use strict;
 use warnings;
 use testapi;
 use Utils::Systemd 'systemctl';
+use version_utils qw(is_sle);
 
 #****************************** SLERT default setup ******************************#
 # The default values for sched_rt_period_us (1000000 or 1s) and
@@ -75,8 +76,8 @@ sub run {
             "min prio -> $sched_settings->{$sched_type}->{min}\nmax prio -> $sched_settings->{$sched_type}->{max}"
         );
     }
-
-    record_info('sched_features', script_output q{cat /sys/kernel/debug/sched_features});
+    my $sched_features = is_sle("15-sp4+") ? '/sys/kernel/debug/sched/features' : '/sys/kernel/debug/sched_features';
+    record_info('sched_features', script_output "cat ${sched_features}");
 
     # RealtimeKit is a D-Bus system service that changes the scheduling policy of user processes/threads to SCHED_RR on request
     # It is intended to be used as a secure mechanism to allow real-time scheduling to be used by normal user processes.
