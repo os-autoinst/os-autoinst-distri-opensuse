@@ -16,6 +16,13 @@ use version_utils qw(get_os_release);
 use power_action_utils qw(power_action);
 use testapi;
 
+sub disable_selinux {
+    if (script_run('selinuxenabled') == 0) {
+        record_info('Info', 'Disable SELinux');
+        assert_script_run("sed -i 's/^SELINUX=.*\$/SELINUX=disabled/' /etc/selinux/config");
+    }
+}
+
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
@@ -32,6 +39,7 @@ sub run {
         script_retry("yum update -y --nobest", timeout => $update_timeout);
     } elsif ($host_distri eq 'rhel') {
         script_retry("yum update -y", timeout => $update_timeout);
+        $self->disable_selinux();
     } else {
         die("Host OS not supported");
     }
