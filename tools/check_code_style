@@ -31,5 +31,5 @@ fail() {
     exit 1
 }
 
-git grep -P 'check_screen.*00(?!.*nocheck:)' || exit 0
+git --no-pager grep -P 'check_screen.*00(?!.*nocheck:)' || exit 0
 fail "See https://github.com/os-autoinst/os-autoinst-distri-opensuse/blob/master/CONTRIBUTING.md#coding-style for more details"
