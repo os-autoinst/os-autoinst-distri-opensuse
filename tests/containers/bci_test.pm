@@ -33,13 +33,15 @@ sub parse_logs {
     my $root = $dom->createElement('testsuites');
     $dom->setDocumentElement($root);
 
-    record_info('Files', script_output('ls -lh'));
+    my $result_files = script_output('ls | grep junit');
+    record_info('Files', $result_files);
     # Dump xml contents to a location where we can access later using data_url
-    $test_envs = "all,$test_envs";
-    for my $env (split(/,/, $test_envs)) {
+    for my $file (split(/\n/, $result_files)) {
         my $log_file;
+        (my $env = $file) =~ s/.xml//;
+        ($env) =~ s/.*_//;
         eval {
-            $log_file = upload_logs('junit_' . $env . '.xml');
+            $log_file = upload_logs($file);
         };
         if ($@) {
             record_info('Skip', "Skipping results for $env. $@");
@@ -107,6 +109,9 @@ sub run {
 
     # Run common tests from test_all.py
     $self->run_tox_cmd('all');
+
+    # Run metadata tests when needed
+    $self->run_tox_cmd('metadata') if get_var('BCI_TEST_METADATA');
 
     # Run environment specific tests
     for my $env (split(/,/, $test_envs)) {
