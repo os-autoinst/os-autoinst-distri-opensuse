@@ -200,6 +200,9 @@ sub load_container_tests {
         } elsif (get_var('REPO_BCI')) {
             loadtest 'containers/host_configuration';
             loadtest 'containers/bci_repo';
+        } elsif (get_var('KUBECTL_CLUSTER')) {
+            # kubectl test runs
+            loadtest 'containers/kubectl';
         }
         else {
             # Container Host tests
