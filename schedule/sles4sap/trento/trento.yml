@@ -13,6 +13,8 @@ vars:
     TRENTO_VM_IMAGE: 'SUSE:sles-sap-15-sp3-byos:gen2:latest'
     TRENTO_CYPRESS_VERSION: '4.4.0'
     PUBLIC_CLOUD_PROVIDER: 'AZURE'
+    PUBLIC_CLOUD_CREDENTIALS_URL: 'https://publiccloud-ng.qa.suse.de/secrets'
+    PUBLIC_CLOUD_NAMESPACE: 'sapha'
     TEST_CONTEXT: 'OpenQA::Test::RunArgs'
 schedule:
     - boot/boot_to_desktop
