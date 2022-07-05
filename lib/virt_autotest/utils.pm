@@ -209,6 +209,7 @@ sub ssh_copy_id {
 
 sub create_guest {
     my ($guest, $method) = @_;
+    my $v_type = $guest->{name} =~ /HVM/ ? "-v" : "";
 
     my $name = $guest->{name};
     my $location = $guest->{location};
@@ -238,7 +239,7 @@ sub create_guest {
 
         $extra_args = "$linuxrc autoyast=$autoyastURL $extra_args";
         $extra_args = trim($extra_args);
-        $virtinstall = "virt-install $extra_params --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
+        $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
         $virtinstall .= " --disk /var/lib/libvirt/images/xen/$name.$diskformat --noautoconsole";
         $virtinstall .= " --network network=default,mac=$macaddress --autostart --location=$location --wait -1";
         $virtinstall .= " --events on_reboot=$on_reboot" unless ($on_reboot eq '');
