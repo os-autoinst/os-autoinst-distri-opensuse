@@ -94,9 +94,7 @@ sub upload_machine_definitions {
 
 sub run {
     my $self = shift;
-    # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
-    $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
-
+    select_console('root-console');
     # Fill the current pairs of hostname & address into /etc/hosts file
     assert_script_run 'virsh list --all';
     add_guest_to_hosts $_, $virt_autotest::common::guests{$_}->{ip} foreach (keys %virt_autotest::common::guests);
