@@ -53,11 +53,15 @@
       <listentry>
         <media_url>http://download.suse.de/ibs/SUSE:/CA/{{CA_STR}}/</media_url>
       </listentry>
-    % for my $repo (@$repos) {
+    % unless ($check_var->('PATCH_WITH_ZYPPER', '1')) {
+     % my $n =0;
+     % for my $repo (@$repos) {
       <listentry>
         <media_url><%= $repo %></media_url>
+        <alias>TEST_<%= $n++ %></alias>
       </listentry>
-      % }
+     % }
+    % }
     </add_on_products>
   </add-on>
   <bootloader>
@@ -79,7 +83,7 @@
     <ask-list config:type="list"/>
     <mode>
       <confirm config:type="boolean">false</confirm>
-      <final_reboot config:type="boolean">true</final_reboot>
+      <!--final_reboot config:type="boolean">true</final_reboot-->
     </mode>
     <proposals config:type="list"/>
     <signature-handling>
@@ -254,7 +258,6 @@
     <patterns config:type="list">
       <pattern>base</pattern>
       <pattern>enhanced_base</pattern>
-      <pattern>apparmor</pattern>
     </patterns>
   </software>
   <ssh_import>

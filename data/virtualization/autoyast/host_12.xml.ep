@@ -74,15 +74,19 @@
     </addons>
     %}
   </suse_register>
+    % unless ($check_var->('PATCH_WITH_ZYPPER', '1')) {
   <add-on>
     <add_on_products config:type="list">
+      % my $n =0;
       % for my $repo (@$repos) {
       <listentry>
         <media_url><%= $repo %></media_url>
+        <alias>TEST_<%= $n++ %></alias>
       </listentry>
       % }
     </add_on_products>
   </add-on>
+    % }
   <firewall>
     <enable_firewall config:type="boolean">false</enable_firewall>
     <start_firewall config:type="boolean">false</start_firewall>
@@ -122,6 +126,9 @@
   </networking>
   <partitioning config:type="list">
     <drive>
+      % if ($check_var->('IPMI_HW', 'supermicro')) {
+      <device>/dev/sda</device>
+      % }
       <disklabel>msdos</disklabel>
       <enable_snapshots config:type="boolean">false</enable_snapshots>
       <initialize config:type="boolean">true</initialize>

@@ -2,9 +2,14 @@
 #
 # Copyright 2019-2020 SUSE LLC
 # SPDX-License-Identifier: FSFAP
-
-# Package: libvirt-client iputils nmap xen-tools
+#
 # Summary: Installation of HVM and PV guests
+#
+# PATCH_WITH_ZYPPER: switching between zypper and autoyast install.
+# UPDATE_PACKAGE: check if the MU package is installed from testing repo.
+# PATCH_WITH_ZYPPER and UPDATE_PACKAGE are not defined in settings. They
+# should be specified on command line when scheduling tests.
+#
 # Maintainer: Pavel Dostál <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>
 
 use base 'consoletest';
@@ -43,7 +48,9 @@ sub create_profile {
     my $vars = {
         vm_name => $vm_name,
         ltss_code => $ltss_products{$version},
-        repos => [split(/,/, $incident_repos)]
+        repos => [split(/,/, $incident_repos)],
+        check_var => \&check_var,
+        get_var => \&get_required_var
     };
     my $output = Mojo::Template->new(vars => 1)->render($profile, $vars);
     save_tmp_file("$vm_name.xml", $output);
@@ -61,6 +68,7 @@ sub run {
     systemctl("restart libvirtd");
     assert_script_run('for i in $(virsh list --name|grep sles);do virsh destroy $i;done');
     assert_script_run('for i in $(virsh list --name --inactive); do virsh undefine $i --remove-all-storage;done');
+    script_run("[ -f /root/.ssh/known_hosts ] && > /root/.ssh/known_hosts");
     script_run 'rm -rf guests_ip';
 
 
@@ -100,10 +108,6 @@ sub run {
             die "Unsupported method '$method' for guest $guest";
         }
     }
-
-    script_run 'history -a';
-    assert_script_run('cat ~/virt-install*', 30);
-    script_run('xl dmesg |grep -i "fail\|error" |grep -vi Loglevel') if (is_xen_host());
 }
 
 sub post_fail_hook {

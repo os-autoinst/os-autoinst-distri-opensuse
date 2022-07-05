@@ -6,5 +6,24 @@ schedule:
   - virt_autotest/login_console
   - virtualization/universal/prepare_guests
   - virtualization/universal/waitfor_guests
+  - '{{patch_host_guest_zypper}}'
   - virtualization/universal/kernel
   - virtualization/universal/finish
+conditional_schedule:
+  patch_host_guest_zypper:
+    PATCH_WITH_ZYPPER:
+      '1':
+        - virtualization/universal/patch_and_reboot
+        - '{{after_restart_host_libvirtd}}'
+  after_restart_host_libvirtd:
+    UPDATE_PACKAGE:
+      'kernel-default':
+        - virt_autotest/login_console
+        - virtualization/universal/list_guests
+        - virtualization/universal/patch_guests
+      'xen':
+        - virt_autotest/login_console
+        - virtualization/universal/list_guests
+      'qemu':
+        - virt_autotest/login_console
+        - virtualization/universal/list_guests
