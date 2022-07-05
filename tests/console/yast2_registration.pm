@@ -1,21 +1,21 @@
 # SUSE's openQA tests
 #
-# Copyright 2019 SUSE LLC
+# Copyright 2019-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: yast2-registration
-# Summary: check if an unregistered system can be registered and if
+# Summary: check if a registered system can be re-registered and if
 #          enabling and disabling extensions correctly work.
 # - Install yast2-registration
-# - Cleanup registration (SUSEConnect --cleanup)
 # - Launch yast2 registration
+# - Re-register system
 # - Fill email and registration code (using system variables)
 # - Enable web and scripting modules
 # - Accept license agreement
 # - Accept install summary
 # - Accept automatic changes
 # - Wait for installation report
-# - Check registration status by checking output of "SUSEConnect --status-text"
+# - Check registration status
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
 use base "opensusebasetest";
@@ -61,15 +61,18 @@ sub run {
 
     zypper_call "in yast2-registration";
 
-    cleanup_registration;
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'registration');
-    assert_screen([qw(yast2_registration-overview yast2_registration-registration-page)]);
-
-    send_key "alt-e" if (match_has_tag "yast2_registration-overview");
+    assert_screen 'yast2_registration-overview';
+    send_key "alt-e";
+    assert_screen 'yast2_registration-registration-page-registered';
     register_system_and_add_extension;
     wait_serial("$module_name-0", 200) || die "'yast2 $module_name' didn't finish";
 
-    assert_script_run "SUSEConnect --status-text |grep -A3 -E 'SUSE Linux Enterprise Server|Web and Scripting Module' | grep -qE '^\\s+Registered'";
+    # Check via YaST if the system is already registered
+    $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'registration');
+    assert_screen 'yast2_registration-overview';
+    send_key "alt-s";
+    assert_screen 'yast2_registration-extension-registration';
 }
 
 1;
