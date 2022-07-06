@@ -54,7 +54,8 @@ sub has_conflict {
         libiterm1 => 'terminfo-iterm',
         rust => 'rls',
         'rust-gdb' => 'cargo',
-        'openssl-1_0_0' => 'openssl-1_1'
+        'openssl-1_0_0' => 'openssl-1_1',
+        'libsamba-errors0' => 'samba-client-libs'
 
     );
     return $conflict{$binary};
