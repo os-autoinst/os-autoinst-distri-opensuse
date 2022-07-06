@@ -38,7 +38,7 @@ my $tdata = [
     },
     {
         patterns => [qw(apparmor base devel_basis documentation enhanced_base fips ofed sw_management)],
-        packages => [qw(apparmor-parser kbd gcc e2fsprogs openssh-fips rdma-core zypper)]
+        packages => [qw(apparmor-parser kbd gcc e2fsprogs dracut-fips rdma-core zypper)]
     }
 ];
 
