@@ -137,7 +137,7 @@ sub samba_client_access {
     assert_and_click("nautilus-open-menu");
     assert_and_click("nautilus-new-folder");
     assert_screen("nautilus-folder-name-input-box");
-    type_string("sub-testdir", wait_screen_changes => 10);
+    type_string("sub-testdir", wait_screen_change => 10);
     send_key "ret";
     send_key_until_needlematch("nautilus-sharedir-delete", "delete", 5, 2);
     send_key "ret";
