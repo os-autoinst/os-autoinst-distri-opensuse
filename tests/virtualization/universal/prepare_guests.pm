@@ -58,6 +58,7 @@ sub run {
     systemctl("restart libvirtd");
     assert_script_run('for i in $(virsh list --name|grep sles);do virsh destroy $i;done');
     assert_script_run('for i in $(virsh list --name --inactive); do virsh undefine $i --remove-all-storage;done');
+    script_run 'rm guests_log';
 
 
     # Ensure additional package is installed

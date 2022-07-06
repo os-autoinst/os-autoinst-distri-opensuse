@@ -102,15 +102,12 @@ sub run {
     add_guest_to_hosts $_, $virt_autotest::common::guests{$_}->{ip} foreach (keys %virt_autotest::common::guests);
     assert_script_run "cat /etc/hosts";
 
-    # Wait for guests to finish installation
-    # script_run("wait", timeout => 1200);
-    # script_retry("! ps x | grep -v 'grep' | grep 'virt-install'", retry => 120, delay => 10);
-    # Unfortunately this doesn't cover the second step of the installation, where ssh is available
-    my $sleep_delay = 1200;
-    $sleep_delay = 2400 if (is_xen_host);    # XEN has more guests
-    sleep($sleep_delay);    # XXX Get rid of this sleep!
-    wait_guest_online($_, 120) foreach (keys %virt_autotest::common::guests);
-    record_info("guests installed", "Guest installation completed");
+    # Wait for guests to announce that installation is complete
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        script_retry("cat guests_log | grep $guest", retry => 40, delay => 60);
+        record_info("$guest installed", "Guest installation completed");
+    }
+    record_info("All guests installed", "Guest installation completed");
 
     # Adding the PCI bridges requires the guests to be shutdown
     record_info("shutdown guests", "Shutting down all guests");
