@@ -16,7 +16,7 @@ sub type_address ($string) {
     send_key 'ctrl-l';    # select text in address bar
                           # wait for the urlbar to be in a consistent state
     assert_screen 'chromium-highlighted-urlbar';
-    enter_cmd($string);
+    enter_cmd($string, wait_screen_change => 1, no_wait => 1);
 }
 
 sub run {
