@@ -23,6 +23,12 @@ While most of the setup is similar, there are some key differences:
 │         piworker          │        └────────────┘ └──────►│                │   5V    │ WLAN Power Plug │
 │      Raspberry Pi 4B      │      USB UART Adapter         │ Raspberry Pi 4 ├────────►│  Shelly Plug S  │
 │                           ├──────────────────────────────►│                │         └─────────────────┘
+│                           │                               │                │   SPI   ┌─────────────────┐
+│                           │  USB  ┌──────────────┐  HDMI  │                ├────────►│  LetsTrust TPM  │
+│                           ├──────►│ HDMI Grabber │───────►│                │         └─────────────────┘
+│                           │       └──────────────┘        │                │   I2C   ┌─────────────────┐
+│                           │                               │                ├────────►│    DS3231 RTC   │
+│                           │                               │                │         └─────────────────┘
 │ ┌───────────────────────┐ │                               └────────────────┘
 │ │ openQA-worker WLAN AP │ │        ┌──┬───────┬─┐
 │ └───────────────────────┘ │        │  │SD-Card│ │
