@@ -103,11 +103,14 @@ sub push_image_data_to_db {
     my $db_ip = get_var('POSTGRES_IP');
     my $db_port = get_var('POSTGRES_PORT', '5444');
     my $token = get_var('_SECRET_DATABASE_PWD');
-    unless ($token || $db_ip) {
-        record_info('INFO', 'Missing variable POSTGRES_IP or _SECRET_DATABASE_PWD.');
+    unless ($db_ip) {
+        record_soft_failure("poo#113120 - Missing variable POSTGRES_IP. Can't push data to DB.");
         return 0;
     }
-
+    unless ($token) {
+        record_soft_failure("poo#113120 - Missing variable _SECRET_DATABASE_PWD. Can't push data to DB.");
+        return 0;
+    }
     script_run("read -s pg_pwd", 0);
     type_password("-H \"Authorization: Bearer $token\"\n");
     assert_script_run('echo $pg_pwd > /etc/postgres_conf');
