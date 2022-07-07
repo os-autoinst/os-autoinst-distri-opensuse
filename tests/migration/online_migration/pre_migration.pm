@@ -35,7 +35,10 @@ sub check_or_install_packages {
         } else {
             # if system is fully updated or even minimal patch applied,
             # all necessary packages for online migration should be installed
-            assert_script_run("rpm -q $_") foreach qw(yast2-migration zypper-migration-plugin rollback-helper);
+            # and zypper-migration-plugin was obsoleted since 15sp4.
+            my @pkgs = qw(yast2-migration rollback-helper);
+            push @pkgs, "zypper-migration-plugin" if is_sle('<15-SP4', get_var('ORIGIN_SYSTEM_VERSION'));
+            assert_script_run("rpm -q $_") foreach @pkgs;
         }
     } else {
         # install necessary packages for online migration if system is not updated
