@@ -65,6 +65,8 @@ conditional_schedule:
         - installation/system_role
       15-SP3:
         - installation/system_role
+      15-SP4:
+        - installation/system_role
   sles4sap_product_installation_mode:
     SYSTEM_ROLE:
       default:
