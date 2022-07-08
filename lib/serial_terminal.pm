@@ -59,20 +59,37 @@ sub add_serial_console {
     prepare_serial_console();
 
 Wrapper for add_serial_console.
+
+Configure serial consoles for virtio support (root-virtio-terminal and
+user-virtio-terminal).
+
+NOTE: if test plans to use more consoles via VIRTIO_CONSOLE_NUM, it have to
+call add_serial_console() with proper console name (beware different number
+for ppc64le).
 =cut
 
 sub prepare_serial_console {
-    # Configure serial consoles for virtio support
-    # poo#18860 Enable console on hvc0 on SLES < 12-SP2
-    # poo#44699 Enable console on hvc1 to fix login issues on ppc64le
+    record_info('getty before', script_output('systemctl | grep serial-getty'));
+
     if (!check_var('VIRTIO_CONSOLE', 0)) {
+        my $console = 'hvc1';
+
+        # poo#18860 Enable console on hvc0 on SLES < 12-SP2 (root-virtio-terminal)
         if (is_sle('<12-SP2') && !is_s390x) {
             add_serial_console('hvc0');
         }
+        # poo#44699 Enable console on hvc1 to fix login issues on ppc64le
+        # (root-virtio-terminal)
         elsif (get_var('OFW')) {
             add_serial_console('hvc1');
+            $console = 'hvc2';
         }
+
+        # user-virtio-terminal
+        add_serial_console($console);
     }
+
+    record_info('getty after', script_output('systemctl | grep serial-getty'));
 }
 
 =head2 get_login_message

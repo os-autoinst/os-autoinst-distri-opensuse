@@ -5,7 +5,7 @@
 
 # Summary: Execute SUT changes which should be permanent
 # - Grant permissions on serial device
-# - Add hvc0/hvc1 to /etc/securetty
+# - Add hvc0/hvc1 and hvc1/hvc2 to /etc/securetty
 # - Register modules if SCC_ADDONS, MEDIA_UPGRADE and in Regression flavor
 # are defined
 # - If system is vmware, set resolution to 1024x768 (and write to grub)

@@ -993,7 +993,7 @@ sub pre_run_hook {
     wait_serial($coninfo, undef, 0, no_regex => 1);
     send_key 'ret';
     if ($self->{name} eq 'before_test' && get_var('VIRTIO_CONSOLE_NUM', 1) > 1) {
-        my $serial_terminal = is_ppc64le ? 'hvc2' : 'hvc1';
+        my $serial_terminal = is_ppc64le ? 'hvc3' : 'hvc2';
         add_serial_console($serial_terminal);
     }
     if ($self->{name} ne 'before_test' && get_var('WICKED_TCPDUMP')) {
