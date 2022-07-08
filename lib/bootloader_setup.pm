@@ -964,8 +964,31 @@ sub tianocore_disable_secureboot {
     $basetest->wait_grub;
 }
 
+sub tianocore_ensure_xga_resolution {
+    assert_screen 'tianocore-mainmenu';
+    send_key_until_needlematch 'tianocore-devicemanager', 'down';
+    send_key 'ret';
+    assert_screen 'tianocore-devicemanager-select-secure-boot';
+    send_key_until_needlematch 'tianocore-devicemanager-select-ovmf-platform', 'down';
+    send_key 'ret';
+    assert_screen 'tianocore-ovmf-settings-select-resolution';
+    send_key 'ret';
+    send_key_until_needlematch 'tianocore-ovmf-settings-select-resolution-1024x768-popup', 'down';
+    send_key 'ret';
+    assert_screen 'tianocore-ovmf-settings-select-resolution-1024x768';
+    send_key 'f10';
+    assert_screen 'tianocore-ovmf-save-settings';
+    send_key 'y';
+    assert_screen 'tianocore-ovmf-settings-select-resolution-1024x768';
+    send_key 'esc';
+    assert_screen 'tianocore-devicemanager-select-ovmf-platform';
+    send_key 'esc';
+    assert_screen 'tianocore-devicemanager';
+}
+
 sub tianocore_select_bootloader {
     tianocore_enter_menu;
+    tianocore_ensure_xga_resolution if check_var('QEMUVGA', 'qxl');
     send_key_until_needlematch('tianocore-bootmanager', 'down', 5, 5);
     send_key 'ret';
 }
