@@ -21,8 +21,9 @@ sub run {
 
     # Current TVM does not support python 3.10, the default python3 in Tumbleweed, so force python 3.8
     my $python_interpreter = is_tumbleweed() ? 'python3.8' : 'python3';
+    my $pythonsuffix = is_tumbleweed() ? '38' : '3';
 
-    zypper_call 'in tvmc python3-onnx python3-Pillow python3-pytest python3-tornado gcc-c++';
+    zypper_call "in tvmc python$pythonsuffix-pytest python$pythonsuffix-tornado gcc-c++";
 
     select_console 'user-console';
     record_info('AutoTVM');
