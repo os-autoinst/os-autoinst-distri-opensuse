@@ -11,6 +11,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use utils 'zypper_call';
 use version_utils qw(is_jeos is_sle);
 
 sub run {
@@ -18,14 +19,18 @@ sub run {
 
     $self->select_serial_terminal;
 
+    zypper_call('in iputils libcap-progs');
+
     record_info('KERNEL VERSION', script_output('uname -a'));
     record_info('net.ipv4.ping_group_range', script_output('sysctl net.ipv4.ping_group_range'));
     record_info('ping', script_output('ping -V'));
 
     my $kernel_pkg = is_jeos ? 'kernel-default-base' : 'kernel-default';
-    foreach my $pkg ($kernel_pkg, 'aaa_base', 'iputils', 'procps', 'systemd') {
+    foreach my $pkg ($kernel_pkg, 'aaa_base', 'iputils', 'permissions', 'procps', 'systemd') {
         record_info($pkg, script_output("rpm -qi $pkg", proceed_on_failure => 1));
     }
+
+    record_info('getcap', script_output('getcap $(which ping)', proceed_on_failure => 1));
 
     my $ifname = script_output('ip -6 link |grep "^[0-9]:" |grep -v lo: | head -1 | awk "{print \$2}" | sed s/://');
     my $addr = script_output("ip -6 addr show $ifname | grep 'scope link' | head -1 | awk '{ print \$2 }' | cut -d/ -f1");
