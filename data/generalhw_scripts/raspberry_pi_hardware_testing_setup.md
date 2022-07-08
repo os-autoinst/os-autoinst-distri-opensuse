@@ -28,14 +28,18 @@ While most of the setup is similar, there are some key differences:
 │                           ├──────►│ HDMI Grabber │───────►│                │         └─────────────────┘
 │                           │       └──────────────┘        │                │   I2C   ┌─────────────────┐
 │                           │                               │                ├────────►│    DS3231 RTC   │
-│                           │                               │                │         └─────────────────┘
-│ ┌───────────────────────┐ │                               └────────────────┘
-│ │ openQA-worker WLAN AP │ │        ┌──┬───────┬─┐
-│ └───────────────────────┘ │        │  │SD-Card│ │
-│                           │  USB   │  └───────┘ │
-│ ┌───────────────────────┐ ├───────►│ USB SD-Mux ├─┐ µSD   ┌──────────────────┐       ┌─────────────────┐
-│ │ openQA-worker BT      │ │        └────────────┘ └──────►│                  │  5V   │ WLAN Power Plug │
-│ └───────────────────────┘ │      USB UART Adapter         │ Raspberry Pi 3B+ ├──────►│  Shelly Plug S  │
+│                           │  WIFI ┌──────────────┐  USB   │                │         └─────────────────┘
+│                           ├──────►│ RPi Pico Kbd │───────►│                │
+│ ┌───────────────────────┐ │       │   Emulator   │        │                │
+│ │ openQA-worker WLAN AP │ │       └──────────────┘        │                │
+│ └───────────────────────┘ │                               │                │
+│                           │                               └────────────────┘
+│ ┌───────────────────────┐ │        ┌──┬───────┬─┐
+│ │ openQA-worker BT      │ │        │  │SD-Card│ │
+│ └───────────────────────┘ │  USB   │  └───────┘ │
+│                           ├───────►│ USB SD-Mux ├─┐ µSD   ┌──────────────────┐       ┌─────────────────┐
+│                           │        └────────────┘ └──────►│                  │  5V   │ WLAN Power Plug │
+│                           │      USB UART Adapter         │ Raspberry Pi 3B+ ├──────►│  Shelly Plug S  │
 │                           ├──────────────────────────────►│                  │       └─────────────────┘
 │                           │                               └──────────────────┘
 │                           │        ┌──┬───────┬─┐
@@ -54,6 +58,7 @@ All Raspberries are connected to the QA Network via Ethernet cable.
 The Shelly Plugs are connected to the piworker directly via WLAN (`openQA-worker`) using the AP on that device.
 The SUTs are connecting to that WLAN Network during the openQA test as well as searching for Bluetooth devices during the test to check wireless connectivity.
 The 230V AC to 5V DC power adapters have been omitted in this graphic for better overview.
+The code of the Rpi Pico Keyboard Emulator can be found [here](https://github.com/os-autoinst/os-autoinst-distri-opensuse/tree/master/data/generalhw_scripts/rpi_pico_w_keyboard).
 
 # Setup
 
@@ -136,6 +141,9 @@ GENERAL_HW_SOL_ARGS = serial/by-path/platform-fd500000.pcie-pci-0000:01:00.0-usb
 
 SUT_IP = <INSERT RASPBERRY SUT IP HERE AS CONFIGURED IN NETWORK DHCP SERVER>
 WORKER_CLASS = generalhw_RPi4
+
+GENERAL_HW_VIDEO_STREAM_URL = /dev/v4l/by-path/platform-fd500000.pcie-pci-0000:01:00.0-usb-0:1.2.2:1.0-video-index0
+GENERAL_HW_KEYBOARD_URL = http://192.168.7.21/cmd
 ```
 
 In the configuration above the sdmux devices (the control as well as the block device node) are added by serial number, so they will just work on any usb port. The USB UART adapters don't have a serial number so they are added by path which means that they can be distinguished reliably only as long as they are always connected to the same usb port (this is also true for the usb hub they are connected to).

@@ -23,6 +23,18 @@ sub run {
 
     my $is_generalhw_via_ssh = is_generalhw && !defined(get_var('GENERAL_HW_VNC_IP'));
 
+    if (get_var('GENERAL_HW_VIDEO_STREAM_URL')) {
+        # capture boot sequence and wait for login prompt on raw HDMI output
+        select_console('sut');
+        assert_screen('linux-login', 200);
+        if (get_var('GENERAL_HW_KEYBOARD_URL')) {
+            enter_cmd("root", wait_still_screen => 5);
+            enter_cmd(is_sle() ? "$testapi::password" : "$default_password", wait_still_screen => 5);
+            assert_screen('text-logged-in-root');
+        }
+    }
+
+
     if ($is_generalhw_via_ssh) {
         # Run jeos-firstboot manually and do not reboot as we use SSH
         $reboot_for_jeos_firstboot = 0;
