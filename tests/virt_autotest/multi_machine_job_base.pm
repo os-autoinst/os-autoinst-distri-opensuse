@@ -11,8 +11,10 @@ use base "virt_autotest_base";
 use strict;
 use warnings;
 use testapi;
+use utils;
 use mmapi;
 use Data::Dumper;
+use Carp;
 
 sub get_var_from_parent {
     my ($self, $var) = @_;
@@ -82,6 +84,14 @@ sub workaround_for_reverse_lock {
         $try_times++;
     }
 
+}
+
+sub setup_passwordless_ssh_login {
+    my ($self, $ip_addr) = @_;
+
+    croak("Missing ssh host ip!") unless $ip_addr;
+    assert_script_run('ssh-keygen -b 2048 -t rsa -q -N "" -f ~/.ssh/id_rsa <<< y');
+    exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa.pub root\@$ip_addr");
 }
 
 1;
