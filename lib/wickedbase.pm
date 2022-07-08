@@ -858,17 +858,22 @@ sub skip_check_logs_on_post_run {
     shift->{skip_check_logs_on_post_run} = 1;
 }
 
+sub get_log_cursor {
+    my $cursor = script_output(q(journalctl -o export -n 1 | tr -dc '\n|[[:print:]]' |  grep __CURSOR));
+    ($cursor) = ($cursor =~ /^__CURSOR=(.*)$/m);
+    return $cursor;
+}
+
 sub check_logs {
     my $self = shift;
     my $code = shift;
-    my $cursor = '';
+    my $cursor = $self->{pre_run_log_cursor} // '';
 
     if (ref($code) eq 'CODE') {
-        $cursor = script_output(q(journalctl -o export -n 1 | tr -dc '\n|[[:print:]]' |  grep __CURSOR));
-        ($cursor) = ($cursor =~ /^__CURSOR=(.*)$/m);
-        $cursor = "-c '$cursor'";
+        $cursor = $self->get_log_cursor();
         $code->();
     }
+    $cursor = "-c '$cursor'" if (length($cursor) > 0);
     my @units = qw(wickedd-nanny wickedd-dhcp4 wickedd-dhcp6 wicked wickedd);
     my $default_exclude = 'wickedd=process \d+ has not exited yet; now doing a blocking waitpid';
     $default_exclude .= ',wickedd-dhcp6=Link-local IPv6 address is marked duplicate:';
@@ -995,6 +1000,7 @@ sub pre_run_hook {
         set_var('WICKED_TCPDUMP_PID', script_output('echo $CHECK_TCPDUMP_PID'));
     }
     $self->upload_wicked_logs('pre');
+    $self->{pre_run_log_cursor} = $self->get_log_cursor() if ($self->{name} ne 'before_test');
     $self->SUPER::pre_run_hook;
     $self->do_barrier('pre_run');
 }
