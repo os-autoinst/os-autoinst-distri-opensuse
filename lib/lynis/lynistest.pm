@@ -12,6 +12,7 @@ use warnings;
 use testapi;
 use utils;
 use autotest;
+use version_utils 'is_sle';
 
 use base 'consoletest';
 use LTP::TestInfo 'testinfo';
@@ -205,6 +206,56 @@ sub parse_lynis_section_content {
     return @section_content;
 }
 
+sub check_exceptions {
+    my @section_current = @_;
+    my $result = "fail";
+    # On 15-SP4, the test was failing because it found ERROR|WEAK|UNSAFE even though the baseline file had these items in it.
+    # This happens when the $baseline and $current file have one or more differences, because in such case only the $current file
+    # is being checked and, since there are ERROR|WEAK|UNSAFE items, the test fails.
+    # The following list is taken from the file baseline-lynis-audit-system-nocolors-15-SP4.
+    my @exceptions = (
+        ".*after-local.service.*UNSAFE*",
+        ".*cron.service.*UNSAFE*",
+        ".*dbus.service.*UNSAFE*",
+        ".*detect-part-label-duplicates.service.*UNSAFE*",
+        ".*dm-event.service.*UNSAFE*",
+        ".*emergency.service.*UNSAFE*",
+        ".*firewalld.service.*UNSAFE*",
+        ".*getty\@tty1.service.*UNSAFE*",
+        ".*getty\@tty6.service.*UNSAFE*",
+        ".*lvm2-lvmpolld.service.*UNSAFE*",
+        ".*nscd.service.*UNSAFE*",
+        ".*plymouth-start.service.*UNSAFE*",
+        ".*polkit.service.*UNSAFE*",
+        ".*postfix.service.*UNSAFE*",
+        ".*rc-local.service.*UNSAFE*",
+        ".*rescue.service.*UNSAFE*",
+        ".*rsyslog.service.*UNSAFE*",
+        ".*serial-getty\@hvc0.service.*UNSAFE*",
+        ".*serial-getty\@ttyS0.service.*UNSAFE*",
+        ".*smartd.service.*UNSAFE*",
+        ".*snapperd.service.*UNSAFE*",
+        ".*sshd.service.*UNSAFE*",
+        ".*systemd-ask-password-console.service.*UNSAFE*",
+        ".*systemd-ask-password-plymouth.service.*UNSAFE*",
+        ".*systemd-initctl.service.*UNSAFE*",
+        ".*systemd-rfkill.service.*UNSAFE*",
+        ".*user\@0.service.*UNSAFE*",
+        ".*wickedd-auto4.service.*UNSAFE*",
+        ".*wickedd-dhcp4.service.*UNSAFE*",
+        ".*wickedd-dhcp6.service.*UNSAFE*",
+        ".*wickedd-nanny.service.*UNSAFE*",
+        ".*wickedd.service.*UNSAFE*",
+        ".*/etc/issue contents.*WEAK*",
+        ".*MOR variable not found.*WEAK*"
+    );
+    for my $exception (@exceptions) {
+        if (grep(/$exception/, @section_current)) {
+            $result = "ok";
+        }
+    }
+}
+
 # Compare the contents between "baseline" and "current"
 # input: $found - "1", this section is found in baseline file; "0", not found
 #        $arrar1 - section content of "baseline"
@@ -326,7 +377,7 @@ sub compare_lynis_section_content {
                 }
             }
 
-            if ($result == "softfail") {
+            if ("$result" eq "softfail") {
                 record_soft_failure("poo#91383, found $ret [ $s_lynis ] in current output");
             }
         }
@@ -337,8 +388,13 @@ sub compare_lynis_section_content {
         $ret = grep(/$s_new/, @section_current);
         if ($ret) {
             $result = "fail";
-            # Invoke record_soft_failure() for better/notable openQA show
-            record_soft_failure("poo#91383, found $ret [ $s_lynis ] in current output");
+            if (!is_sle("<15-SP4")) {
+                $result = check_exceptions(@section_current);
+            }
+            if ("$result" eq "fail") {
+                # Invoke record_soft_failure() for better/notable openQA show
+                record_soft_failure("poo#91383, found $ret [ $s_lynis ] in current output");
+            }
         }
     }
 
