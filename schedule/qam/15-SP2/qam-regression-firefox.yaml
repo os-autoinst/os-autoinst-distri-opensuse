@@ -6,7 +6,8 @@ schedule:
 - x11/disable_screensaver
 - x11/firefox/firefox_smoke
 - x11/firefox/firefox_urlsprotocols
-- x11/firefox/firefox_downloading
+# https://progress.opensuse.org/issues/113435
+# - x11/firefox/firefox_downloading
 - x11/firefox/firefox_changesaving
 - x11/firefox/firefox_fullscreen
 - x11/firefox/firefox_localfiles
