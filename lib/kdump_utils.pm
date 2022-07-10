@@ -221,6 +221,8 @@ sub activate_kdump_cli {
 
 # Deactivate kdump using yast command line interface
 sub deactivate_kdump_cli {
+    # Solution to poo113351. Avoid to use needles to solve this case.
+    zypper_call("--gpg-auto-import-keys ref");
     # Disable the crashkernel option from the kernel grub cmdline
     assert_script_run('yast kdump startup disable alloc_mem=0', 180);
     # Disable the kdump service at boot time
