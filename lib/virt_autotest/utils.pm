@@ -420,11 +420,23 @@ sub is_guest_online {
 }
 
 # wait_guest_online($guest, [$timeout]) waits until the given guests is online by probing for an open ssh port
+# If [$state_check] is not zero, guest state checking will be performed to ensure it is in running state and retry
 sub wait_guest_online {
     my $guest = shift;
     my $retries = shift // 300;
+    my $state_check = shift // 0;
     # Wait until guest is reachable via ssh
-    script_retry("nmap $guest -PN -p ssh | grep open", delay => 1, retry => $retries);
+    if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 1, retry => $retries, die => 0) != 0) {
+        # Ensure guest is running
+        if (($state_check != 0) and (script_run("virsh list --name --state-running | grep $guest") != 0)) {
+            script_run("virsh destroy $guest");
+            assert_script_run("virsh start $guest");
+            script_retry("nmap $guest -PN -p ssh | grep open", delay => 1, retry => $retries);
+        }
+        else {
+            die "Guest $guest ssh service is not up and running";
+        }
+    }
 }
 
 # Shutdown all guests and wait until they are shutdown
@@ -442,10 +454,10 @@ sub wait_guests_shutdown {
     # Note: Domain-0 is for xen only, but it does not hurt to exclude this also in kvm runs.
     # Firstly wait for guest shutdown for a while, turn it off forcibly using "virsh destroy" if timed-out.
     # Then wait for guest shutdown again with default "die => 1".
-    if (script_retry("! virsh list | grep -v Domain-0 | grep running", delay => 1, retry => $retries, die => 0) ne '0') {
+    if (script_retry("! virsh list | grep -v Domain-0 | grep running", timeout => 60, delay => 1, retry => $retries, die => 0) != 0) {
         script_run("virsh destroy $_") foreach (keys %virt_autotest::common::guests);
     }
-    script_retry("! virsh list | grep -v Domain-0 | grep running", delay => 1, retry => $retries);
+    script_retry("! virsh list | grep -v Domain-0 | grep running", timeout => 60, delay => 1, retry => $retries);
 }
 
 # Start all guests and wait until they are online

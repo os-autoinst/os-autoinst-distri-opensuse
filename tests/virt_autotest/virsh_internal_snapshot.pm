@@ -22,6 +22,10 @@ sub run_test {
     return unless is_kvm_host;
 
     foreach my $guest (keys %virt_autotest::common::guests) {
+        if (virt_autotest::utils::is_sev_es_guest($guest) ne 'notsev') {
+            record_info "Skip internal snapshot on $guest", "SEV/SEV-ES guest $guest does not support internal snapshot";
+            next;
+        }
         my $type = check_guest_disk_type($guest);
         next if ($type == 1);
         record_info "virsh-snapshot", "Cleaning in case of rerun";

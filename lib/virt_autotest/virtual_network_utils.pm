@@ -122,7 +122,7 @@ sub test_network_interface {
         # Wait until guest's primary interface is back up
         script_retry("ping -c3 $guest", delay => 6, retry => 30);
         # Activate guest's secondary (tested) interface
-        script_retry("ssh root\@$guest ifup $nic", delay => 5, retry => 4);
+        script_retry("ssh root\@$guest ifup $nic", delay => 10, retry => 20, timeout => 120);
     }
 
     # See obtained IP addresses
@@ -248,7 +248,7 @@ sub restore_guests {
     foreach (@vm_hostnames_array)
     {
         script_run("virsh destroy $_");
-        script_run("virsh undefine $_");
+        script_run("virsh undefine $_ || virsh undefine $_ --keep-nvram");
         script_run("virsh define /tmp/$_.xml");
     }
 }
@@ -319,7 +319,7 @@ sub get_active_pool_and_available_space {
     # get some debug info about storage pool
     script_run 'virsh pool-list --details';
     # ensure the available disk space size for active pool
-    my $active_pool = script_output("virsh pool-list --persistent | grep active | awk '{print \$1}'");
+    my $active_pool = script_output("virsh pool-list --persistent | grep -iv nvram | grep active | awk '{print \$1}'");
     my $available_size = script_output("virsh pool-info $active_pool | grep ^Available | awk '{print \$2}'");
     my $pool_unit = script_output("virsh pool-info $active_pool | grep ^Available | awk '{print \$3}'");
     # default available pool unit as GiB

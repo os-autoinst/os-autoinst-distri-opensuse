@@ -67,7 +67,10 @@ sub run_test {
     }
 
     foreach my $guest (keys %virt_autotest::common::guests) {
-
+        if (virt_autotest::utils::is_sev_es_guest($guest) ne 'notsev') {
+            record_info("Skip SR-IOV test on $guest", "SEV/SEV-ES guest $guest does not support SR-IOV");
+            next;
+        }
         record_info("Test $guest");
         prepare_guest_for_sriov_passthrough($guest);
         save_network_device_status_logs($log_dir, $guest, "1-initial");
@@ -263,8 +266,8 @@ sub prepare_guest_for_sriov_passthrough {
             }
         }
 
-        #try undefine with --nvram firstly in case of uefi guest
-        script_run "virsh undefine $vm" unless (script_run "virsh undefine --nvram $vm") == 0;
+        #try undefine with --keep-nvram if undefine fails on uefi guest
+        script_run "virsh undefine $vm || virsh undefine $vm --keep-nvram";
         assert_script_run(" ! virsh list --all | grep $vm");
         assert_script_run "virsh define $vm.xml";
         assert_script_run "virsh start $vm";

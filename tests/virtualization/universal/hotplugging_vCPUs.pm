@@ -47,7 +47,7 @@ sub test_add_vcpu {
         } else {
             # bsc#1191737 Get the wrong vcpu number for 15-SP4 guest via nproc tool
             my $nproc = (is_kvm_host && $guest =~ m/sles-15-sp4-64/i) ? 'nproc --all' : 'nproc';
-            script_retry("ssh root\@$guest $nproc | grep 3", delay => 60, retry => 3, timeout => 60);
+            script_retry("ssh root\@$guest $nproc | grep 3", delay => 60, retry => 10, timeout => 60);
         }
         # Reset CPU count to two
         die "Resetting vcpus failed" unless (set_vcpus($guest, 2));
@@ -74,7 +74,12 @@ sub run_test {
 
     # Hotplugging of vCPUs
     record_info("CPU", "Changing the number of CPUs available");
+
     foreach my $guest (keys %virt_autotest::common::guests) {
+        if (virt_autotest::utils::is_sev_es_guest($guest) ne 'notsev') {
+            record_info "Skip hotplugging vCPU on $guest", "SEV/SEV-ES guest $guest does not support hotplugging vCPU";
+            next;
+        }
         if ($guest eq "sles12sp3PV") {
             record_soft_failure("Skipping vcpu hotplugging on $guest due to bsc#1187341");
         } else {

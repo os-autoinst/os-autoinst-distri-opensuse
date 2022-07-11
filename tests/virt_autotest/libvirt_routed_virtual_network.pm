@@ -48,8 +48,8 @@ sub run_test {
         #There will be two guests in two different routed networks so then the
         #host can route their traffic to confirm libvirt routed network
         assert_script_run("virsh dumpxml $guest > $guest.clone");
-        assert_script_run("virsh destroy $guest");
-        assert_script_run("virsh undefine $guest");
+        assert_script_run("virsh destroy $guest || (virsh list --state-shutoff | grep $guest)");
+        assert_script_run("virsh undefine $guest || virsh undefine $guest --keep-nvram");
         assert_script_run("virsh define $guest.clone");
         assert_script_run("rm -rf $guest.clone");
         assert_script_run("virt-clone -o $guest -n $guest.clone -f /var/lib/libvirt/images/$guest.clone");
@@ -96,7 +96,7 @@ sub run_test {
 
         script_run "sed -i '/ $guest.clone /d' /etc/hosts";
         assert_script_run("virsh destroy $guest.clone");
-        assert_script_run("virsh undefine $guest.clone");
+        assert_script_run("virsh undefine $guest.clone || virsh undefine $guest.clone --keep-nvram");
         assert_script_run("rm -rf /var/lib/libvirt/images/$guest.clone");
     }
     #Destroy ROUTED NETWORK
