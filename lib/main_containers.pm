@@ -32,7 +32,7 @@ sub is_container_test {
 }
 
 sub is_container_image_test {
-    return get_var('CONTAINERS_UNTESTED_IMAGES', 0) || get_var('BCI_TESTS', 0);
+    return get_var('CONTAINERS_UNTESTED_IMAGES', 0) || get_var('BCI_TESTS', 0) || get_var('CONTAINER_IMAGE_TO_TEST', 0);
 }
 
 sub is_expanded_support_host {
@@ -155,11 +155,15 @@ sub load_host_tests_helm {
     }
 }
 
-sub update_host {
-    # Method used to update the non-sle hosts, booting
+sub update_host_and_publish_hdd {
+    # Method used to update pre-installed host images, booting
     # the existing qcow2 and publish a new qcow2
-    loadtest 'boot/boot_to_desktop';
-    loadtest 'containers/update_host';
+    unless (is_sle_micro) {
+        # boot tests and updates are handled already by products/sle-micro/main.pm
+        # we only need to shutdown the VM before publishing the HDD
+        loadtest 'boot/boot_to_desktop';
+        loadtest 'containers/update_host';
+    }
     loadtest 'shutdown/shutdown';
 }
 
@@ -167,7 +171,7 @@ sub load_container_tests {
     my $runtime = get_required_var('CONTAINER_RUNTIME');
 
     if (get_var('CONTAINER_UPDATE_HOST')) {
-        update_host();
+        update_host_and_publish_hdd();
         return;
     }
 
@@ -191,8 +195,10 @@ sub load_container_tests {
                 # External bci-tests pytest suite
                 loadtest 'containers/bci_prepare';
                 loadtest 'containers/bci_test';
-            }
-            else {
+            } elsif (is_sle_micro) {
+                # Test toolbox image updates
+                loadtest 'microos/toolbox';
+            } else {
                 # Common openQA image tests
                 load_image_tests_podman($run_args) if (/podman/i);
                 load_image_tests_docker($run_args) if (/docker/i);

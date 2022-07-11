@@ -39,6 +39,20 @@ sub run {
     select_console 'root-console';
     $self->create_user;
 
+    my $toolbox_image_to_test = get_var('CONTAINER_IMAGE_TO_TEST');
+
+    if ($toolbox_image_to_test) {
+        # We need to extract the registry from the full image uri, e.g.
+        # From registry.suse.de/suse/sle-15-sp3/update/products/microos51/update/cr/images/suse/sle-micro/5.1/toolbox:latest
+        # registry = registry.suse.de
+        # $image = suse/sle-15-sp3/update/products/microos51/update/cr/images/suse/sle-micro/5.1/toolbox:latest
+        (my $registry = $toolbox_image_to_test) =~ s/\/.*//;
+        (my $image = $toolbox_image_to_test) =~ s/^[^\/]*\///;
+        assert_script_run "echo REGISTRY=$registry > /etc/toolboxrc";
+        assert_script_run "echo IMAGE=$image >> /etc/toolboxrc";
+        record_info('toolboxrc', script_output('cat /etc/toolboxrc'));
+    }
+
     # Display help
     assert_script_run 'toolbox -h';
 
@@ -76,25 +90,28 @@ sub run {
     # Back to root
     select_console 'root-console';
 
-    record_info 'Test', 'Pulling toolbox image from different registry';
-    # Switch default registries for openSUSE MicroOS and SLE Micro
-    if (is_sle_micro) {
-        assert_script_run 'echo -e "REGISTRY=registry.opensuse.org\nIMAGE=opensuse/toolbox" > ~/.toolboxrc';
-        validate_script_output 'toolbox -r cat /etc/os-release', sub { m/opensuse/ }, timeout => 180;
-    } else {
-        assert_script_run 'echo -e "REGISTRY=registry.suse.com\nIMAGE=suse/sle-micro/5.0/toolbox" > ~/.toolboxrc';
-        validate_script_output 'toolbox -r cat /etc/os-release', sub { m/sles/ }, timeout => 180;
+    unless ($toolbox_image_to_test) {
+        # This test doesn't make sense if we are testing a specific image
+        record_info 'Test', 'Pulling toolbox image from different registry';
+        # Switch default registries for openSUSE MicroOS and SLE Micro
+        if (is_sle_micro) {
+            assert_script_run 'echo -e "REGISTRY=registry.opensuse.org\nIMAGE=opensuse/toolbox" > ~/.toolboxrc';
+            validate_script_output 'toolbox -r cat /etc/os-release', sub { m/opensuse/ }, timeout => 180;
+        } else {
+            assert_script_run 'echo -e "REGISTRY=registry.suse.com\nIMAGE=suse/sle-micro/5.0/toolbox" > ~/.toolboxrc';
+            validate_script_output 'toolbox -r cat /etc/os-release', sub { m/sles/ }, timeout => 180;
+        }
+        assert_script_run 'podman rm toolbox-root';
+        assert_script_run 'rm ~/.toolboxrc';
     }
-    assert_script_run 'podman rm toolbox-root';
-    assert_script_run 'rm ~/.toolboxrc';
 
     record_info 'Test', 'Zypper tests';
     assert_script_run 'toolbox create -r -c devel';
     if (!validate_script_output 'toolbox list', sub { m/devel/ }, timeout => 180, proceed_on_failure => 1) {
         record_info('ISSUE', 'https://github.com/kubic-project/microos-toolbox/issues/23');
     }
-    script_run 'toolbox run -c devel -- zypper lr';    # this command will fail in SLE Micro toolbox as there are no repos
-    assert_script_run 'toolbox run -c devel -- zypper -n in python3', timeout => 180 unless is_sle_micro;
+    assert_script_run 'toolbox run -c devel -- zypper lr';
+    assert_script_run 'toolbox run -c devel -- zypper -n in python3', timeout => 180;
     assert_script_run 'podman rm devel';
 
     cleanup;
