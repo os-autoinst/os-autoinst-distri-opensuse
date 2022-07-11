@@ -194,7 +194,7 @@ sub run {
         # A single changing digit is only a minor change, overide default
         # similarity level considered a screen change
         my $minor_change_similarity = 55;
-        while ($counter-- and wait_countdown_stop(3, $minor_change_similarity)) {
+        while ($counter-- and wait_countdown_stop(1, $minor_change_similarity)) {
             record_info('workaround', "While trying to stop countdown we saw a screen change, retrying up to $counter times more");
         }
     }
