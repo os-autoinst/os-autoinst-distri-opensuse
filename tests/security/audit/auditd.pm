@@ -10,6 +10,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
@@ -19,8 +20,10 @@ sub run {
         zypper_call('in audit libaudit1');
     }
 
-    # Check auditd status by default on a clean new VM
-    systemctl('is-active auditd');
+    if (!is_sle("<=12-SP5")) {
+        # Check auditd status by default on a clean new VM
+        systemctl('is-active auditd');
+    }
 
     # Stop auditd
     systemctl('stop auditd');
