@@ -28,6 +28,8 @@ sub run {
 
     select_console 'root-console';
 
+    script_run("chmod 600 $audit_log");
+
     # Use autrace to trace an individual process, output will be logged to audit log
     my $ret = script_run('autrace /bin/ls /tmp');
     if ($ret) {
