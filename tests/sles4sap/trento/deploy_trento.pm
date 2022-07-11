@@ -40,6 +40,7 @@ sub run {
     my $trento_registry_chart = get_var(TRENTO_REGISTRY_CHART => 'registry.suse.com/trento/trento-server');
     my $cfg_json = 'config_images_gen.json';
     my @imgs = qw(WEB RUNNER);
+    # take care of TRENTO_VERSION variable too
     if (get_var("TRENTO_REGISTRY_IMAGE_$imgs[0]") || get_var("TRENTO_REGISTRY_IMAGE_$imgs[1]")) {
         my $cfg_helper_cmd = './trento_deploy/config_helper.py' .
           " -o $cfg_json" .
