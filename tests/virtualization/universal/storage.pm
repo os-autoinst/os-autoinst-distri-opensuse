@@ -1,6 +1,6 @@
 # XEN regression tests
 #
-# Copyright 2019 SUSE LLC
+# Copyright 2019-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: libvirt-client
@@ -8,6 +8,7 @@
 # Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>, Jan Baier <jbaier@suse.cz>
 
 use base "virt_feature_test_base";
+use virt_autotest::virtual_storage_utils;
 use virt_autotest::common;
 use virt_autotest::utils;
 use strict;
@@ -17,6 +18,7 @@ use utils;
 use virt_utils;
 use version_utils;
 
+our $dir_pool_name = 'testing';
 sub run_test {
     my ($self) = @_;
 
@@ -24,65 +26,32 @@ sub run_test {
     foreach (keys %virt_autotest::common::guests) {
         start_guests() unless is_guest_online($_);
     }
-    assert_script_run "mkdir -p /pool_testing";
-    script_run "virsh pool-destroy testing";
-    script_run "virsh vol-delete --pool testing $_-storage" foreach (keys %virt_autotest::common::guests);
-    script_run "virsh vol-delete --pool testing $_-clone" foreach (keys %virt_autotest::common::guests);
-    script_run "virsh pool-undefine testing";
-    # Ensure the new pool directory is empty
-    script_run('rm -f /pool_testing/*');
+    ## Prepare Virtualization Dir Storage Pool source
+    prepare_dir_storage_pool_source($dir_pool_name);
 
     record_info "Pool define";
-    assert_script_run "virsh pool-define-as testing dir - - - - '/pool_testing'";
+    assert_script_run "virsh pool-define-as $dir_pool_name dir - - - - '/pool_testing'";
 
-    record_info "Pool list";
-    assert_script_run "virsh pool-list --all | grep testing";
+    ## Basic Dir Storage Management
+    my $dir_vol_size = '100M';
+    my $dir_vol_resize = '200M';
+    virt_storage_management($dir_pool_name, size => $dir_vol_size, dir => 1, resize => $dir_vol_resize);
 
-    record_info "Pool build";
-    assert_script_run "virsh pool-build testing";
+    ## Cleanup
+    # Destroy the Dir storage pool
+    destroy_virt_storage_pool($dir_pool_name);
+}
 
-    record_info "Pool start";
-    assert_script_run "virsh pool-start testing";
-
-    record_info "Pool autostart";
-    assert_script_run "virsh pool-autostart testing";
-
-    record_info "Pool info";
-    assert_script_run "virsh pool-info testing";
-
-    record_info "Create";
-    assert_script_run("virsh vol-create-as testing $_-storage 100M", 120) foreach (keys %virt_autotest::common::guests);
-
-    record_info "Listing";
-    assert_script_run("ls /pool_testing/", 120) foreach (keys %virt_autotest::common::guests);
-    assert_script_run("virsh vol-list testing | grep $_-storage", 120) foreach (keys %virt_autotest::common::guests);
-
-    record_info "Info";
-    assert_script_run("virsh vol-info --pool testing $_-storage", 120) foreach (keys %virt_autotest::common::guests);
-
-    record_info "Dump XML";
-    assert_script_run("virsh vol-dumpxml --pool testing $_-storage", 120) foreach (keys %virt_autotest::common::guests);
-
-    record_info "Resize";
-    assert_script_run("virsh vol-resize --pool testing $_-storage 200M", 120) foreach (keys %virt_autotest::common::guests);
-
-    record_info "Attached";
-    my $target = (is_xen_host) ? "xvdx" : "vdx";
-    assert_script_run("virsh attach-disk --domain $_ --source `virsh vol-path --pool testing $_-storage` --target $target", 120) foreach (keys %virt_autotest::common::guests);
-    assert_script_run("virsh detach-disk $_ $target", 120) foreach (keys %virt_autotest::common::guests);
-
-    record_info "Clone";
-    assert_script_run("virsh vol-clone --pool testing $_-storage $_-clone", 120) foreach (keys %virt_autotest::common::guests);
-    assert_script_run("virsh vol-info --pool testing $_-clone", 120) foreach (keys %virt_autotest::common::guests);
-
-    record_info "Remove";
-    assert_script_run("virsh vol-delete --pool testing $_-clone", 120) foreach (keys %virt_autotest::common::guests);
-    assert_script_run("virsh vol-delete --pool testing $_-storage", 120) foreach (keys %virt_autotest::common::guests);
-
-    record_info "Pool destroy";
-    assert_script_run "virsh pool-destroy testing";
-    assert_script_run "virsh pool-delete testing";
-    assert_script_run "virsh pool-undefine testing";
+# Prepare Virtualization Dir Storage Pool source
+sub prepare_dir_storage_pool_source {
+    my $dir_pool_name = shift;
+    assert_script_run "mkdir -p /pool_testing";
+    script_run "virsh pool-destroy $dir_pool_name";
+    script_run "virsh vol-delete --pool $dir_pool_name $_-storage" foreach (keys %virt_autotest::common::guests);
+    script_run "virsh vol-delete --pool $dir_pool_name $_-clone" foreach (keys %virt_autotest::common::guests);
+    script_run "virsh pool-undefine $dir_pool_name";
+    # Ensure the new pool directory is empty
+    script_run('rm -f /pool_testing/*');
 }
 
 1;
