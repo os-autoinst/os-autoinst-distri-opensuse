@@ -626,7 +626,10 @@ sub load_virt_feature_tests {
         loadtest 'virtualization/universal/hotplugging_memory';
         loadtest 'virtualization/universal/hotplugging_cleanup';
     }
-    loadtest "virtualization/universal/storage" if get_var("ENABLE_STORAGE");
+    if (get_var("ENABLE_STORAGE")) {
+        loadtest "virtualization/universal/storage";
+        loadtest "virt_autotest/libvirt_extend_storage_lvm";
+    }
     if (get_var("ENABLE_SNAPSHOT")) {
         loadtest "virt_autotest/virsh_internal_snapshot";
         loadtest "virt_autotest/virsh_external_snapshot";
