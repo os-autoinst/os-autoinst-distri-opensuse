@@ -33,7 +33,8 @@ sub run {
 
     # Extract pid from output log
     script_run("tail -1 $tmp_output > $tmp_backup");
-    script_run("cat $tmp_backup | cut -d '=' -f 9 > $tmp_output");
+    my $cut_index = is_sle('<=12-SP5') ? 7 : 9;
+    script_run("cat $tmp_backup | cut -d '=' -f $cut_index > $tmp_output");
     my $pid = script_output("cat $tmp_output | cut -d ' ' -f 1");
 
     # Search for an event matching the given process ID
