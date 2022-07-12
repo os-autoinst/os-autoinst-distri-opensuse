@@ -166,6 +166,11 @@ sub run {
     send_key 'ret';
     save_screenshot;
 
+    # If the remote repo doesn't exist, the machine will silently boot
+    # from disk.
+    die 'PXE boot failed, installation repository likely does not exist'
+      if (check_screen('pxe-kernel-not-found', timeout => 5));
+
     if (is_ipmi && !get_var('AUTOYAST')) {
         my $ssh_vnc_wait_time = 420;
         my $ssh_vnc_tag = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
