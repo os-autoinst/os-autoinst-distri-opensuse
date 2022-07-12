@@ -1,6 +1,6 @@
 # SLE12 online migration tests
 #
-# Copyright 2016 SUSE LLC
+# Copyright 2016-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: btrfsprogs zypper
@@ -12,12 +12,14 @@ use strict;
 use warnings;
 use testapi;
 use Utils::Architectures;
+use Utils::Backends;
 use utils;
 use migration;
 use version_utils;
 use x11utils 'turn_off_gnome_show_banner';
 
 sub check_or_install_packages {
+    assert_script_run('modprobe nvram') if is_pvm_hmc;
     if (get_var("FULL_UPDATE") || get_var("MINIMAL_UPDATE")) {
         if (is_leap_migration) {
             # https://bugzilla.suse.com/show_bug.cgi?id=1197268#c2
