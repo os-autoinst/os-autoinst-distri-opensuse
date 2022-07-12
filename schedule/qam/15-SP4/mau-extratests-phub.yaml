@@ -10,7 +10,7 @@ schedule:
   - '{{sle15_x86_64}}'
   # - console/python_flake8 Removed because of bsc#1198893
   - console/vmstat
-  # - sysauth/sssd Remove because of poo#113279
+  - console/sssd_389ds_functional
   - console/coredump_collect
 conditional_schedule:
   sle15_x86_64:
