@@ -203,6 +203,7 @@ sub k8s_logs {
             }
         }
     }
+    $self->az_vm_ssh_cmd('kubectl exec --stdin --tty deploy/trento-server-runner /usr/bin/trento-runner version', $machine_ip);
     script_run('ls -lai *.txt', 180);
 }
 

@@ -202,6 +202,19 @@ ZYPPER_WHITELISTED_ORPHANS | string | empty | Whitelist expected orphaned packag
 PUBLIC_CLOUD_CONTAINER_IMAGES_REPO | string | | The Container images repository in CSP
 PREPARE_TEST_DATA_TIMEOUT | integer | 300 | Download assets in the prepare_test_data module timeout
 ZFS_REPOSITORY | string | | Optional repository used to test zfs from
+TRENTO_HELM_VERSION | string | 3.8.2 | Helm version of the JumpHost
+TRENTO_CYPRESS_VERSION | string | 4.4.0 | used as tag for the docker.io/cypress/included registry
+TRENTO_VM_IMAGE | string | SUSE:sles-sap-15-sp3-byos:gen2:latest | used as --image parameter during the Azure VM creation
+TRENTO_VERSION | string | (implicit 1.0.0) | Optional. Used as reference version string for the installed Trento
+TRENTO_REGISTRY_CHART | string | registry.suse.com/trento/trento-server | Helm chart registry
+TRENTO_REGISTRY_CHART_VERSION | string |  | Optional. Tag for the chart image
+TRENTO_REGISTRY_IMAGE_RUNNER | string |  | Optional. Overwrite the trento-runner image in the helm chart
+TRENTO_REGISTRY_IMAGE_RUNNER_VERSION | string |  | Optional. Version tag for the trento-runner image
+TRENTO_REGISTRY_IMAGE_WEB | string |  | Optional. Overwrite the trento-web image in the helm chart
+TRENTO_REGISTRY_IMAGE_WEB_VERSION | string |  | Optional. Version tag for the trento-web image
+TRENTO_GITLAB_REPO | string | gitlab.suse.de/qa-css/trento | Repository for the deployment scripts
+TRENTO_GITLAB_BRANCH | string | master | Branch to use in the deployment script repository
+
 
 ### Publiccloud specific variables
 

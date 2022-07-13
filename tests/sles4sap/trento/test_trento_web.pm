@@ -27,9 +27,16 @@ sub run {
 
     my $cypress_test_dir = "/root/test/test";
     enter_cmd "cd " . $cypress_test_dir;
-    assert_script_run("./cypress.env.py -u http://" . $machine_ip . " -p " . $trento_web_password . " -f Premium");
+    my $cypress_env_cmd = './cypress.env.py' .
+      " -u http://$machine_ip" .
+      " -p $trento_web_password" .
+      ' -f Premium';
+    if (get_var("TRENTO_VERSION")) {
+        $cypress_env_cmd .= ' --trento-version ' . get_var("TRENTO_VERSION");
+    }
+    assert_script_run($cypress_env_cmd);
     assert_script_run('cat cypress.env.json');
-
+    upload_logs('cypress.env.json');
     assert_script_run "mkdir " . $self->CYPRESS_LOG_DIR;
 
     #  Cypress verify: cypress.io self check about the framework installation
