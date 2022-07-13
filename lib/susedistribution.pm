@@ -299,6 +299,8 @@ sub x11_start_program {
     for (1 .. 3) {
         push @target, check_var('DESKTOP', 'kde') ? 'desktop-runner-plasma-suggestions' : 'desktop-runner-border';
         assert_screen([@target], $args{match_timeout}, no_wait => $args{match_no_wait});
+        # ensure that app is focused
+        click_lastmatch(mousehide => 1) if check_var('DESKTOP', 'gnome');
         last unless match_has_tag('desktop-runner-border') || match_has_tag('desktop-runner-plasma-suggestions');
         wait_screen_change {
             send_key 'ret';
