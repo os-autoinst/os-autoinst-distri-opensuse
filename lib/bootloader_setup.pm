@@ -973,22 +973,25 @@ sub tianocore_ensure_xga_resolution {
     send_key 'ret';
     assert_screen 'tianocore-ovmf-settings-select-resolution';
     send_key 'ret';
-    send_key_until_needlematch 'tianocore-ovmf-settings-select-resolution-1024x768-popup', 'down';
+    send_key_until_needlematch 'tianocore-ovmf-settings-select-resolution-800x600-popup', 'down';
     send_key 'ret';
-    assert_screen 'tianocore-ovmf-settings-select-resolution-1024x768';
+    assert_screen 'tianocore-ovmf-settings-select-resolution-800x600';
     send_key 'f10';
     assert_screen 'tianocore-ovmf-save-settings';
     send_key 'y';
-    assert_screen 'tianocore-ovmf-settings-select-resolution-1024x768';
+    assert_screen 'tianocore-ovmf-settings-select-resolution-800x600';
     send_key 'esc';
     assert_screen 'tianocore-devicemanager-select-ovmf-platform';
     send_key 'esc';
     assert_screen 'tianocore-devicemanager';
+    send_key_until_needlematch 'tianocore-select-reset', 'down';
+    wait_screen_change { send_key "ret" };
 }
 
 sub tianocore_select_bootloader {
     tianocore_enter_menu;
     tianocore_ensure_xga_resolution if check_var('QEMUVGA', 'qxl');
+    tianocore_enter_menu;
     send_key_until_needlematch('tianocore-bootmanager', 'down', 5, 5);
     send_key 'ret';
 }
