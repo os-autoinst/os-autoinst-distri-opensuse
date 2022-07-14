@@ -272,6 +272,7 @@ PUBLIC_CLOUD_REGION | string | "" | The region to use. (default-azure: westeurop
 PUBLIC_CLOUD_RESOURCE_GROUP | string | "qashapopenqa" | Allows to specify resource group name on SLES4SAP PC tests.
 PUBLIC_CLOUD_RESOURCE_NAME | string | "openqa-vm" | The name we use when creating our VM.
 PUBLIC_CLOUD_SKIP_MU | boolean | false | Debug variable used to run test without maintenance updates repository being applied.
+PUBLIC_CLOUD_REDOWNLOAD_MU | boolean | false | Debug variable used to redownload the maintenance repositories (as they might be downloaded by parent test)
 PUBLIC_CLOUD_GOOGLE_ACCOUNT | string | "" | GCE only, used to specify the account id.
 PUBLIC_CLOUD_GOOGLE_SERVICE_ACCOUNT | string | "" | GCE only, used to specify the service account.
 PUBLIC_CLOUD_AZURE_TENANT_ID | string | "" | Used to create the service account file together with `PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID`.
