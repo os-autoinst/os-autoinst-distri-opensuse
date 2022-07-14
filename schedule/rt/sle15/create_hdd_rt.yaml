@@ -30,7 +30,6 @@ schedule:
     - console/system_prepare
     - console/check_network
     - console/system_state
-    - console/prepare_test_data
     - console/consoletest_setup
     - rt/add_repositories
     - console/install_rt_kernel
