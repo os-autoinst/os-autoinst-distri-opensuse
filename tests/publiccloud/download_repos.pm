@@ -33,6 +33,10 @@ sub run {
         record_info('Skip download', 'Skipping maintenance update download (triggered by setting)');
         return;
     } else {
+        # Remove the ~/repos so they can be redownloaded
+        if (get_var('PUBLIC_CLOUD_REDOWNLOAD_MU')) {
+            script_run("rm -rf ~/repos");
+        }
         # Skip if we already downloaded the repos
         if (get_repo_status() == 1) {
             record_info("Downloaded", "Skipping download because the repositories have been already downloaded");
