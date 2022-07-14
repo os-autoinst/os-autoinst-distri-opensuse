@@ -6,7 +6,6 @@ vars:
   AUTOYAST: autoyast_sle15/autoyast_rt.xml
 schedule:
   - autoyast/prepare_profile
-  - installation/isosize
   - installation/bootloader_start
   - autoyast/installation
   - autoyast/console

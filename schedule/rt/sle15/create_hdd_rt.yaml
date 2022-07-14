@@ -7,7 +7,6 @@ vars:
     DESKTOP: textmode
     SCC_ADDONS: sdk
 schedule:
-    - installation/isosize
     - installation/bootloader
     - installation/welcome
     - installation/accept_license

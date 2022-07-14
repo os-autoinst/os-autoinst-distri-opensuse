@@ -2,7 +2,6 @@
 description: 'Maintainer: thehejik; upgrade from SLERT12 SP3 to SLERT 12 SP4'
 name: 'online-migration-slert15spnext@64bit ( qemu )'
 schedule:
-  - installation/isosize
   - installation/bootloader
   - installation/welcome
   - installation/upgrade_select
