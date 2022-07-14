@@ -103,9 +103,9 @@ sub run {
     assert_script_run "cat /etc/hosts";
 
     # Wait for guests to announce that installation is complete
-    script_retry("cat guests_log", retry => 40, delay => 60);
+    script_retry("test -d guests_ip", retry => 30, delay => 60);
     foreach my $guest (keys %virt_autotest::common::guests) {
-        script_retry("cat guests_log | grep $guest", retry => 10, delay => 60);
+        script_retry("test -f guests_ip/$guest", retry => 10, delay => 60);
         record_info("$guest installed", "Guest installation completed");
     }
     record_info("All guests installed", "Guest installation completed");

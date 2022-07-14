@@ -315,61 +315,12 @@
 <![CDATA[
 #!/bin/bash
 mkdir -p -m 700 /root/.ssh
-cat >> /root/.ssh/id_rsa<< EOF
------BEGIN OPENSSH PRIVATE KEY-----
-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
------END OPENSSH PRIVATE KEY-----
-EOF
-chmod 600 /root/.ssh/id_rsa
-echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC0XMR9r8NNr58+8BmbD+CyTQd9iQqiIYjY45gViEql0+R5rahWHQBxuSAxkJbPMLudym1ffdS3+ODuBVO8nHABZ7eGaPZJQQTO0Y2bpJXCis/0GxPUD94EJ+NI/4/qzpyuw5CbfO2MazXeF38mBRO/ceZ54ZIkZMuqTHq5kp+rhq2KyUBxum9tWC7uHh0JFCoRro28uRSgNn3uVSMe1pAihdqwlZ6CaDwfN/3+aEqDTz/e/E41AKJjDx7DaCO6alKbkn2V8D2althjnB7ZtKNsYfkiQ6V9qu9lEtgeFQeEZJklWPbq+CYLcvr7Fys8M56AANqBza5Kc8a7ALZZNEbrbbmsCy+avS/Ptft7LXNjDfNTUXQ+NRDNHtvc9UmHOx9cdokgU54hxAfxv8K2scvaWeBQJHAu76oNMrnGxKIMdNBH0ZbNudSgLlHV9Z/PIYYXN7XxHcJuIg9hjo2ryUdPdRA4KGaeZN9rXnr088qJUtDJj0MBaRSCZtq5zWaJyUk=' > /root/.ssh/id_rsa.pub
-cat >> /root/.ssh/config << EOF
-StrictHostKeyChecking no
-HostKeyAlgorithms ssh-rsa
-PreferredAuthentications publickey
-EOF
-cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
-chmod 600 /root/.ssh/id_rsa /root/.ssh/authorized_keys /root/.ssh/config
+echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC0XMR9r8NNr58+8BmbD+CyTQd9iQqiIYjY45gViEql0+R5rahWHQBxuSAxkJbPMLudym1ffdS3+ODuBVO8nHABZ7eGaPZJQQTO0Y2bpJXCis/0GxPUD94EJ+NI/4/qzpyuw5CbfO2MazXeF38mBRO/ceZ54ZIkZMuqTHq5kp+rhq2KyUBxum9tWC7uHh0JFCoRro28uRSgNn3uVSMe1pAihdqwlZ6CaDwfN/3+aEqDTz/e/E41AKJjDx7DaCO6alKbkn2V8D2althjnB7ZtKNsYfkiQ6V9qu9lEtgeFQeEZJklWPbq+CYLcvr7Fys8M56AANqBza5Kc8a7ALZZNEbrbbmsCy+avS/Ptft7LXNjDfNTUXQ+NRDNHtvc9UmHOx9cdokgU54hxAfxv8K2scvaWeBQJHAu76oNMrnGxKIMdNBH0ZbNudSgLlHV9Z/PIYYXN7XxHcJuIg9hjo2ryUdPdRA4KGaeZN9rXnr088qJUtDJj0MBaRSCZtq5zWaJyUk=' >> /root/.ssh/authorized_keys
+chmod 600 /root/.ssh/authorized_key
 touch /etc/init.d/after.local && chmod +x /etc/init.d/after.local
 echo "#!/bin/bash
-host=\$(hostname)
-ip=\$(ip -br a | grep eth0)
-date=\$(date +'%H:%M:%S')
-ssh 192.168.122.1 \"echo '\$host \$ip \$date' >> /root/guests_log\"" > /etc/init.d/after.local
+ip -br a | grep eth0 | awk '{print /$3}' | cut -d'/' -f1  > /root/$(hostname)
+curl -k -u root:{{PASS}} -T /root/$(hostname) sftp://192.168.122.1/root/guests_ip/ --ftp-create-dirs" > /etc/init.d/after.local
 ]]></source>
 </script>
 </post-scripts>

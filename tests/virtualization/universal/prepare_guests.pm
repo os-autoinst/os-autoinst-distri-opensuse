@@ -34,6 +34,7 @@ sub create_profile {
     $profile =~ s/\{\{IP\}\}/$ip/g;
     $profile =~ s/\{\{VERSION\}\}/$version/g;
     $profile =~ s/\{\{CA_STR\}\}/$ca_str/g;
+    $profile =~ s/\{\{PASS\}\}/$testapi::password/g;
     my $host_os_version = get_var('DISTRI') . "s" . lc(get_var('VERSION') =~ s/-//r);
     my $incident_repos = "";
     $incident_repos = get_var('INCIDENT_REPO', '') if ($vm_name eq $host_os_version || $vm_name eq "${host_os_version}PV" || $vm_name eq "${host_os_version}HVM");
@@ -58,7 +59,7 @@ sub run {
     systemctl("restart libvirtd");
     assert_script_run('for i in $(virsh list --name|grep sles);do virsh destroy $i;done');
     assert_script_run('for i in $(virsh list --name --inactive); do virsh undefine $i --remove-all-storage;done');
-    script_run 'rm guests_log';
+    script_run 'rm -rf guests_ip';
 
 
     # Ensure additional package is installed
