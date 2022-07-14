@@ -32,7 +32,7 @@ sub is_container_test {
 }
 
 sub is_container_image_test {
-    return get_var('CONTAINERS_UNTESTED_IMAGES', 0) || get_var('BCI_TESTS', 0) || get_var('CONTAINER_IMAGE_TO_TEST', 0);
+    return get_var('CONTAINERS_UNTESTED_IMAGES', 0) || get_var('BCI_TESTS', 0);
 }
 
 sub is_expanded_support_host {
