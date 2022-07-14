@@ -123,11 +123,16 @@ sub upload_img {
     assert_script_run('az storage blob upload --max-connections 4 --account-name '
           . $storage_account . ' --account-key ' . $key . ' --container-name ' . $self->container
           . ' --type page --file ' . $file . ' --name ' . $img_name, timeout => 60 * 60 * 2);
-    assert_script_run('az disk create --resource-group ' . $self->resource_group . ' --name ' . $disk_name
-          . ' --source https://' . $storage_account . '.blob.core.windows.net/' . $self->container . '/' . $img_name);
 
-    assert_script_run('az image create --resource-group ' . $self->resource_group . ' --name ' . $img_name
-          . ' --os-type Linux --source=' . $disk_name);
+    my $cmd = 'az disk create --resource-group ' . $self->resource_group . ' --name ' . $disk_name
+      . ' --source https://' . $storage_account . '.blob.core.windows.net/' . $self->container . '/' . $img_name;
+    $cmd .= " --location " . get_var('PUBLIC_CLOUD_REGION') if (get_var('PUBLIC_CLOUD_REGION'));
+    assert_script_run($cmd);
+
+    $cmd = 'az image create --resource-group ' . $self->resource_group . ' --name ' . $img_name
+      . ' --os-type Linux --source=' . $disk_name;
+    $cmd .= " --location " . get_var('PUBLIC_CLOUD_REGION') if (get_var('PUBLIC_CLOUD_REGION'));
+    assert_script_run($cmd);
 
     return $img_name;
 }
