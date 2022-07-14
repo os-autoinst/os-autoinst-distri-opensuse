@@ -29,7 +29,7 @@ my $webui_hostname = get_var('WEBUI_HOSTNAME');
 my $nfs_hostname = get_var('NFS_HOSTNAME');
 my $qemu_worker_class = get_var('QEMU_WORKER_CLASS');
 #Set IPMI2QEMU_PKGS to custom packages installation
-my $zypper_add_pkgs = get_var('IPMI2QEMU_PKGS', 'openQA-worker,perl-DBIx-Class-DeploymentHandler,perl-YAML-Tiny,perl-Test-Assert,perl-JSON,perl-XML-Simple,perl-DateTime');
+my $zypper_add_pkgs = get_var('IPMI2QEMU_PKGS', 'openQA-worker,perl-DBIx-Class-DeploymentHandler,perl-YAML-Tiny,perl-Test-Assert,perl-JSON,perl-XML-Simple,perl-DateTime,perl-Path-Tiny');
 sub run {
     my $self = shift;
     my $current_dist;
@@ -42,32 +42,30 @@ sub run {
     } else {
         ($sles_running_version, $sles_running_sp) = get_os_release();
     }
-    if ($sles_running_sp gt '0') {
-        $current_dist = sprintf("SLE_%s_SP%s", $sles_running_version, $sles_running_sp);
-    } else {
+    if ($sles_running_sp eq '0') {
         $current_dist = sprintf("SLE_%s", $sles_running_version);
+    } else {
+        $current_dist = sprintf("SLE_%s_SP%s", $sles_running_version, $sles_running_sp);
     }
     die "Fail to get SLES release version" unless $current_dist;
     zypper_call("rr devel_languages_perl devel_openQA devel_openQA_SLE-$sles_running_version");
-    zypper_call("ar http://download.opensuse.org/repositories/devel:/languages:/perl/$current_dist/devel:languages:perl.repo");
-    zypper_call("ar http://download.opensuse.org/repositories/devel:/openQA/$current_dist/devel:openQA.repo");
-    zypper_call("ar http://download.opensuse.org/repositories/devel:/openQA:/SLE-$sles_running_version/$current_dist/devel:openQA:SLE-$sles_running_version.repo");
+    zypper_ar("http://download.opensuse.org/repositories/devel:/languages:/perl/$current_dist/devel:languages:perl.repo", no_gpg_check => 1);
+    zypper_ar("http://download.opensuse.org/repositories/devel:/openQA/$current_dist/devel:openQA.repo", no_gpg_check => 1);
+    zypper_ar("http://download.opensuse.org/repositories/devel:/openQA:/SLE-$sles_running_version/$current_dist/devel:openQA:SLE-$sles_running_version.repo", no_gpg_check => 1);
     zypper_call('--gpg-auto-import-keys ref');
-    zypper_call('dup --auto-agree-with-licenses');
+    zypper_call('dup --auto-agree-with-licenses', timeout => 1800);
     #Convert comma to space for zypper in
     #$zypper_add_pkgs =~ s/,/ /g;
     for my $pkg (split /,/, $zypper_add_pkgs) {
         my $retry = 6;
         for (1 .. $retry) {
             my $ret = zypper_call("in $pkg", exitcode => [0, 8]);
-            if ($ret == 0) {
-                last;
-            }
-            else {
+            if ($ret ne 0) {
                 zypper_call('--gpg-auto-import-keys ref');
+                die("Install package failure: zypper in $pkg with retcode $ret") if $retry == $_;
                 next;
             }
-            die("Install package failure: zypper in $pkg with retcode $ret") if $retry == $_;
+            last;
         }
     }
     zypper_call('in --replacefiles perl-DBD-SQLite');
@@ -102,9 +100,9 @@ sub run {
           . ' -o /etc/openqa/client.conf',
         60
     );
-    script_run('systemctl start openqa-worker-cacheservice-minion');
-    script_run('systemctl start openqa-worker-cacheservice');
-    script_run('systemctl start openqa-worker@{1..8}');
+    assert_script_run('systemctl start openqa-worker-cacheservice-minion');
+    assert_script_run('systemctl start openqa-worker-cacheservice');
+    assert_script_run('systemctl start openqa-worker@{1..8}');
 }
 
 #There will collect a lot of information that I don't need it.
