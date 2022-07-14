@@ -74,7 +74,6 @@ sub run {
     if (script_run q|egrep 'BOOT_IMAGE=/boot/vmlinuz-.*-[[:digit:]]-rt' /proc/cmdline|) {
         power_action('reboot', textmode => 1);
         select_kernel('rt');
-        assert_screen 'generic-desktop';
         $self->select_serial_terminal;
     }
 
