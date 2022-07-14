@@ -31,7 +31,7 @@ sub use_search_feature {
     my ($self, $string_to_search) = @_;
     return unless ($string_to_search);
 
-    send_key_until_needlematch 'windows-search-bar', 'super-s';
+    send_key_until_needlematch "windows-search-bar", 'super-s';
     wait_still_screen stilltime => 2, timeout => 15;
     type_string "$string_to_search ", max_interval => 100, wait_still_screen => 0.5;
 }
@@ -46,7 +46,8 @@ sub select_windows_in_grub2 {
 
 sub open_powershell_as_admin {
     my ($self, %args) = @_;
-    send_key_until_needlematch 'quick-features-menu', 'super-x';
+
+    send_key_until_needlematch "windows-quick-features-menu", 'super-x';
     wait_still_screen stilltime => 2, timeout => 15;
     #If using windows server, and logged with Administrator, only open powershell
     if (get_var('QAM_WINDOWS_SERVER')) {
@@ -55,14 +56,20 @@ sub open_powershell_as_admin {
         assert_screen 'windows_server_powershel_opened', 30;
     } else {
         send_key 'shift-a';
-        assert_screen(['user-account-ctl-hidden', 'user-acount-ctl-allow-make-changes'], 240);
+        assert_screen(["windows-user-account-ctl-hidden", "windows-user-acount-ctl-allow-make-changes"], 240);
         mouse_set(500, 500);
-        assert_and_click 'user-account-ctl-hidden' if match_has_tag('user-account-ctl-hidden');
-        assert_and_click 'user-acount-ctl-yes';
+        assert_and_click "windows-user-account-ctl-hidden" if match_has_tag("windows-user-account-ctl-hidden");
+        assert_and_click "windows-user-acount-ctl-yes";
         mouse_hide();
         wait_still_screen stilltime => 2, timeout => 15;
-        assert_screen 'powershell-as-admin-window', 240;
-        assert_and_click 'window-max';
+        if (check_var('VERSION', '11')) {
+            # Screen resolution differs in Win11 and the max. button is out of
+            # sight, so we dclick on the window bar to maximize
+            assert_and_dclick 'powershell-as-admin-window';
+        } else {
+            assert_screen 'powershell-as-admin-window', 240;
+            assert_and_click 'window-max';
+        }
         sleep 3;
         _setup_serial_device unless (exists $args{no_serial});
     }
