@@ -26,7 +26,8 @@ sub run {
     if (script_run("which az") != 0) {
         add_suseconnect_product(get_addon_fullname('pcm'), (is_sle('=12-sp5') ? '12' : undef));
         add_suseconnect_product(get_addon_fullname('phub')) if is_sle('=12-sp5');
-        zypper_call('in azure-cli jq python3-susepubliccloudinfo');
+        # bsc#1201870c1 - please remove python3-azure-mgmt-resource
+        zypper_call('in azure-cli jq python3-susepubliccloudinfo python3-azure-mgmt-resource');
     }
     assert_script_run('az version');
 
@@ -45,7 +46,8 @@ sub run {
     assert_script_run("az group create -n $resource_group --tags '$tags'");
 
     # Pint - command line tool to query pint.suse.com to get the current image name
-    my $image_name = script_output("pint microsoft images --active --json | jq -r '.images[] | select( (.urn | contains(\"sles-15-sp3:gen2\")) and (.state == \"active\") and (.environment == \"PublicAzure\")).urn'");
+    my $image_name = script_output(qq/pint microsoft images --active --json | jq -r '[.images[] | select( .urn | contains("sles-15-sp4:gen2") )][0].urn'/);
+    die("The pint query output is empty.") unless ($image_name);
     record_info("PINT", "Pint query: " . $image_name);
 
     # VM creation
