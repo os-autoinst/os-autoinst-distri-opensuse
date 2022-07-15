@@ -32,7 +32,7 @@ sub is_container_test {
 }
 
 sub is_container_image_test {
-    return get_var('CONTAINERS_UNTESTED_IMAGES', 0) || get_var('BCI_TESTS', 0);
+    return get_var('CONTAINERS_UNTESTED_IMAGES', 0) || get_var('BCI_TESTS', 0) || get_var('CONTAINER_SLEM_RANCHER', 0);
 }
 
 sub is_expanded_support_host {
@@ -186,6 +186,11 @@ sub load_container_tests {
         # Container Image tests common
         loadtest 'containers/host_configuration';
         loadtest 'containers/bci_prepare' if (get_var('BCI_TESTS'));
+    }
+
+    if (get_var('CONTAINER_SLEM_RANCHER')) {
+        loadtest 'containers/slem_rancher';
+        return;
     }
 
     foreach (split(',\s*', $runtime)) {
