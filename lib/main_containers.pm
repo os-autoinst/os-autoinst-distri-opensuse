@@ -185,6 +185,7 @@ sub load_container_tests {
     if (is_container_image_test() && !(is_jeos || is_sle_micro || is_microos || is_leap_micro)) {
         # Container Image tests common
         loadtest 'containers/host_configuration';
+        loadtest 'containers/bci_prepare' if (get_var('BCI_TESTS'));
     }
 
     foreach (split(',\s*', $runtime)) {
@@ -192,9 +193,9 @@ sub load_container_tests {
         $run_args->{runtime} = $_;
         if (is_container_image_test()) {
             if (get_var('BCI_TESTS')) {
-                # External bci-tests pytest suite
-                loadtest 'containers/bci_prepare';
                 loadtest 'containers/bci_test';
+                # For Base image we also run traditional image.pm test
+                load_image_test($run_args) if (is_sle(">=15-SP3") && check_var('BCI_TEST_ENVS', 'base'));
             } elsif (is_sle_micro) {
                 # Test toolbox image updates
                 loadtest 'microos/toolbox';
