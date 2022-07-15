@@ -206,14 +206,14 @@ sub load_container_tests {
         } elsif (get_var('REPO_BCI')) {
             loadtest 'containers/host_configuration';
             loadtest 'containers/bci_repo';
-        }
-        else {
+        } else {
             # Container Host tests
             loadtest 'microos/toolbox' if (/podman/i && (is_sle_micro || is_microos || is_leap_micro));
             load_host_tests_podman($run_args) if (/podman/i);
             load_host_tests_docker($run_args) if (/docker/i);
             load_host_tests_containerd_crictl() if (/containerd_crictl/i);
             load_host_tests_containerd_nerdctl() if (/containerd_nerdctl/i);
+            loadtest('containers/kubectl') if (/kubectl/i);
             load_host_tests_helm($run_args) if (/helm/i);
         }
     }

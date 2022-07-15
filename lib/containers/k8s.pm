@@ -21,27 +21,42 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 our @EXPORT = qw(install_k3s uninstall_k3s install_kubectl install_helm install_oc);
 
 sub install_k3s {
-    my $k3s_version = get_var("CONTAINERS_K3S_VERSION", "v1.23.6+k3s1");
-    record_info('k3s', $k3s_version);
-    assert_script_run("curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=$k3s_version sh -");
-    enter_cmd("k3s server &");
+  # Apply additional options. For more information see https://rancher.com/docs/k3s/latest/en/installation/install-options/#options-for-installation-with-script
+    my $k3s_version = get_var("CONTAINERS_K3S_VERSION");
+    if ($k3s_version) {
+        record_info('k3s', $k3s_version);
+        assert_script_run("export INSTALL_K3S_VERSION=$k3s_version");
+    }
+    assert_script_run("export INSTALL_K3S_SYMLINK=" . get_var('K3S_SYMLINK')) if (get_var('K3S_SYMLINK'));
+    assert_script_run("export INSTALL_K3S_BIN_DIR=" . get_var('K3S_BIN_DIR')) if (get_var('K3S_BIN_DIR'));
+    assert_script_run("export INSTALL_K3S_CHANNEL=" . get_var('K3S_CHANNEL')) if (get_var('K3S_CHANNEL'));
+    assert_script_run("curl -sfL https://get.k3s.io | sh -");
+    # Note: The install script starts a k3s-server by default, unless INSTALL_K3S_SKIP_START is set to true
+    sleep(20);    # Wait one iteration interval before checking because the server needs some time to boot-up
     script_retry("test -e /etc/rancher/k3s/k3s.yaml", delay => 20, retry => 10);
+    assert_script_run('systemctl is-active k3s');
     assert_script_run("k3s kubectl get node");
-    script_run("mkdir \$HOME/.kube");
-    script_run("rm \$HOME/.kube/config");
-    assert_script_run("ln -s /etc/rancher/k3s/k3s.yaml \$HOME/.kube/config");
+    script_run("mkdir -p ~/.kube");
+    script_run("rm -f ~/.kube/config");
+    assert_script_run("ln -s /etc/rancher/k3s/k3s.yaml ~/.kube/config");
 }
 
 sub uninstall_k3s {
-    assert_script_run("rm \$HOME/.kube/config");
+    assert_script_run("rm -f ~/.kube/config");
     assert_script_run("/usr/local/bin/k3s-uninstall.sh");
 }
 
 sub install_kubectl {
     if (is_sle) {
-        zypper_call("in kubernetes1.18-client");
-    }
-    else {
+        # kubectl is in the container module
+        add_suseconnect_product(get_addon_fullname('contm'));
+        # SLES-15SP2+ ships a specific kubernetes client version. Older versions hold a version-independent kubernetes-client package.
+        if (is_sle(">15-SP1")) {
+            zypper_call("in kubernetes1.18-client");
+        } else {
+            zypper_call("in kubernetes-client");
+        }
+    } else {
         zypper_call("in kubernetes-client");
     }
 }
