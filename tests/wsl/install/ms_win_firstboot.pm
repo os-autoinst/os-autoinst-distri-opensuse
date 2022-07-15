@@ -22,7 +22,7 @@ sub run {
 
     # Win11 checks for updates and reboots here so there's need for timeout
     assert_and_click('windows-device-name', timeout => 300)
-      if (check_var('VERSION', '11'));
+      if (check_var("WIN_VERSION", "11"));
 
     # Network setup takes ages
     assert_screen 'windows-account-setup', 360;
@@ -31,7 +31,7 @@ sub run {
     assert_and_click 'windows-next';
 
     # To select an offline account in Win11 requires an intermediate step
-    if (check_var 'VERSION', '11') {
+    if (check_var "WIN_VERSION", "11") {
         assert_and_click('windows-signin-options', timeout => 300);
     }
     else {
@@ -69,7 +69,7 @@ sub run {
     my @privacy_menu =
       split(',', get_required_var('WIN_INSTALL_PRIVACY_NEEDLES'));
     foreach my $tag (@privacy_menu) {
-        my $version_privacy_needles_scroll = (check_var('VERSION', '11')) ? 3 : 4;
+        my $version_privacy_needles_scroll = (check_var("WIN_VERSION", "11")) ? 3 : 4;
         send_key('pgdn') if (++$count % $version_privacy_needles_scroll == 0);
         assert_and_click $tag;
         wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;

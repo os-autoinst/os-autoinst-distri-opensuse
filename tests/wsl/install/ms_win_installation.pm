@@ -33,7 +33,7 @@ sub run {
     # This test works onlywith CDMODEL=ide-cd due to windows missing scsi drivers which are installed via scsi iso
     assert_screen 'windows-setup', 300;
     send_key 'alt-n';    # next
-    prepare_win11 if (get_var('VERSION') == '11');
+    prepare_win11 if (check_var('WIN_VERSION', '11'));
 
     save_screenshot;
     send_key 'alt-i';    # install Now
