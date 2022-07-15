@@ -2068,6 +2068,7 @@ sub load_x11_webbrowser {
     loadtest "x11/firefox/firefox_extensions";
     loadtest "x11/firefox/firefox_appearance";
     loadtest "x11/firefox/firefox_passwd";
+    loadtest "x11/firefox/firefox_html5";
     loadtest "x11/firefox/firefox_developertool";
     loadtest "x11/firefox/firefox_ssl";
     loadtest "x11/firefox/firefox_emaillink";
