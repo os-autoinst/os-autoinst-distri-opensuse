@@ -1,9 +1,10 @@
----
-name: autoyast_rt
+name: rt-product-gnome-autoyast
 description: >
+  Autoyast schedule to prepare SLERT image with gnome.
 vars:
   AUTOYAST_PREPARE_PROFILE: 1
   AUTOYAST: autoyast_sle15/autoyast_rt.xml
+  DESKTOP: gnome
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start
