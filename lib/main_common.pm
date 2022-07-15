@@ -498,7 +498,8 @@ sub load_autoyast_tests {
     return loadtest "locale/keymap_or_locale" if get_var('INSTALL_KEYBOARD_LAYOUT');
     loadtest("autoyast/console");
     loadtest("autoyast/login");
-    loadtest("autoyast/wicked");
+    # Wicked is the default on Leap and SLE < 16 only
+    loadtest("autoyast/wicked") if (is_sle("<16") || is_leap("<16.0"));
     loadtest('autoyast/' . get_var("AUTOYAST_VERIFY_MODULE")) if get_var("AUTOYAST_VERIFY_MODULE");
     if (get_var("SUPPORT_SERVER_GENERATOR")) {
         loadtest("support_server/configure");
