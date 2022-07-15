@@ -1,0 +1,40 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/ipmi_backend_utils.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#enable_sev_in_kernel">enable_sev_in_kernel</a></li>
+      <li><a href="#add_kernel_options">add_kernel_options</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/ipmi_backend_utils.pm</h1>
+
+<h2 id="enable_sev_in_kernel">enable_sev_in_kernel</h2>
+
+<pre><code>  enable_sev_in_kernel(dst_machine =&gt; $dst_machine, root_dir =&gt; $root_dir)</code></pre>
+
+<p>Enable SEV in the kernel, because it is disabled by default. This is done by putting the following onto the kernel command line: mem_encrypt=on kvm_amd.sev=1. To make the changes persistent, append the above to the variable holding parameters of the kernel command line in /etc/default/grub to preserve SEV settings across reboots: $ cat /etc/default/grub ... GRUB_CMDLINE_LINUX=&quot;... mem_encrypt=on kvm_amd.sev=1&quot; ... mem_encrypt=on turns on the SME memory encryption feature on the host which protects against the physical attack on the hypervisor memory. The kvm_amd.sev parameter actually enables SEV in the kvm module. This subroutine receives only two arguments, the dst_machine is the host on which operations will be performed, the root_dir is the partition on which grub files reside. If these two arguments are not given any values, operations will be performed on localhost and &#39;/&#39; partition. This subroutine calls add_kernel_options to do the actual kernel options adding work.</p>
+
+<h2 id="add_kernel_options">add_kernel_options</h2>
+
+<pre><code>  add_kernel_options(dst_machine =&gt; $dst_machine, root_dir =&gt; $root_dir, kernel_opts =&gt; $options)</code></pre>
+
+<p>Adding additional kernel options onto kernel command line in grub config file and also GRUB_CMDLINE_LINUX_DEFAULT line in default grub config file. This subroutine receives only four arguments, dst_machine is the host on which operations will be performed, root_dir is the partition on which grub files reside, kernel_opts holds a single text string this is composed of kernel options separated by spaces, and the grub_to_change indicates whether grub.cfg or default grub will be changed to have the kernel_opts, including 1(Default value. Both grub.cfg and default grub will be changed), 2(Only the grub.cfg will be changed, 3(Only the default grub will be changed), and all the other values are invalid. If there are no values passed in to dst_machine and root_dir, operations will be performed on localhost and root &#39;/&#39; partition by default. Almost all regular kernel options can be passed in directly without modification except for very extreme cases in which very special characters should be treated specially and even escaped before being used.</p>
+
+
+</body>
+
+</html>
+
+
