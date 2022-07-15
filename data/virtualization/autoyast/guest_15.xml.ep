@@ -320,7 +320,7 @@ chmod 600 /root/.ssh/authorized_key
 touch /etc/init.d/after.local && chmod +x /etc/init.d/after.local
 echo "#!/bin/bash
 ip -br a | grep eth0 | awk '{print /$3}' | cut -d'/' -f1  > /root/$(hostname)
-curl -k -u root:{{PASS}} -T /root/$(hostname) sftp://192.168.122.1/root/guests_ip/ --ftp-create-dirs" > /etc/init.d/after.local
+curl -k -u root:{{PASS}} -T /root/$(hostname) sftp://{{SUT_IP}}/root/guests_ip/ --ftp-create-dirs" > /etc/init.d/after.local
 ]]></source>
 </script>
 </post-scripts>

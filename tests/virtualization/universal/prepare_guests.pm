@@ -25,6 +25,7 @@ sub create_profile {
     my $scc_code = get_required_var("SCC_REGCODE");
     my %ltss_products = @{get_var_array("LTSS_REGCODES_SECRET")};
     my $ca_str = "SLE_" . $version =~ s/\./_SP/r;
+    my $sut_ip = get_required_var("SUT_IP");
     record_info("$ca_str");
     my $profile = get_test_data($path);
     $profile =~ s/\{\{GUEST\}\}/$vm_name/g;
@@ -35,6 +36,7 @@ sub create_profile {
     $profile =~ s/\{\{VERSION\}\}/$version/g;
     $profile =~ s/\{\{CA_STR\}\}/$ca_str/g;
     $profile =~ s/\{\{PASS\}\}/$testapi::password/g;
+    $profile =~ s/\{\{SUT_IP\}\}/$sut_ip/g;
     my $host_os_version = get_var('DISTRI') . "s" . lc(get_var('VERSION') =~ s/-//r);
     my $incident_repos = "";
     $incident_repos = get_var('INCIDENT_REPO', '') if ($vm_name eq $host_os_version || $vm_name eq "${host_os_version}PV" || $vm_name eq "${host_os_version}HVM");
