@@ -1,7 +1,7 @@
 ---
 name: create_hdd_hpc_textmode
 description:    >
-     Maintainer: schlad
+     Maintainer: qe-kernel
      Rudimentary installation scenario for creating qcow2
      required by other HPC tests
 vars:
@@ -17,10 +17,19 @@ conditional_schedule:
         - installation/bootloader_uefi
       x86_64:
         - installation/bootloader
+  add_update_test_repo:
+    FLAVOR:
+      Server-DVD-HPC-Incidents:
+        - installation/add_update_test_repo
+  patch_and_reboot_inci:
+    FLAVOR:
+      Server-DVD-HPC-Incidents:
+        - qa_automation/patch_and_reboot
 schedule:
   - '{{bootloader}}'
   - installation/welcome
   - installation/scc_registration
+  - '{{add_update_test_repo}}'
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
@@ -42,6 +51,7 @@ schedule:
   - installation/first_boot
   - console/hostname
   - console/system_prepare
+  - '{{patch_and_reboot_inci}}'
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
