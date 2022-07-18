@@ -7,7 +7,6 @@ vars:
     DESKTOP: textmode
     SCC_ADDONS: sdk
 schedule:
-    - installation/isosize
     - installation/bootloader
     - installation/welcome
     - installation/scc_registration
@@ -30,7 +29,6 @@ schedule:
     - console/system_prepare
     - console/check_network
     - console/system_state
-    - console/prepare_test_data
     - console/consoletest_setup
     - rt/add_repositories
     - console/install_rt_kernel

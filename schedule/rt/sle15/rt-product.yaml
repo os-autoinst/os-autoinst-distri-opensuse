@@ -4,7 +4,6 @@ name: 'rt-product@64bit ( qemu )'
 vars:
   EXTRABOOTPARAMS: startshell=1
 schedule:
-  - installation/isosize
   - installation/bootloader
   - rt/add_product
   - installation/welcome

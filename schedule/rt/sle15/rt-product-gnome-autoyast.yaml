@@ -1,23 +1,18 @@
----
-name: autoyast_rt
+name: rt-product-gnome-autoyast
 description: >
+  Autoyast schedule to prepare SLERT image with gnome.
 vars:
   AUTOYAST_PREPARE_PROFILE: 1
   AUTOYAST: autoyast_sle15/autoyast_rt.xml
+  DESKTOP: gnome
 schedule:
   - autoyast/prepare_profile
-  - installation/isosize
   - installation/bootloader_start
   - autoyast/installation
-  - autoyast/console
-  - autoyast/login
-  - autoyast/wicked
-  - autoyast/repos
-  - autoyast/clone
-  - autoyast/logs
-  - autoyast/autoyast_reboot
-  - installation/grub_test
   - installation/first_boot
   - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown

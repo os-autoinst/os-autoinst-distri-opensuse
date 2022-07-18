@@ -29,7 +29,6 @@ sub select_kernel {
         assert_screen 'displaymanager-password-prompt', no_wait => 1;
         type_password;
         send_key 'ret';
-        assert_screen 'generic-desktop';
     }
 }
 

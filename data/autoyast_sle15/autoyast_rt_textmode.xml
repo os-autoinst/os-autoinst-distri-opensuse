@@ -43,16 +43,16 @@
     <add_on_products config:type="list">
       <listentry>
         <media_url>http://download.suse.de/ibs/SUSE:/SLE-15-SP4:/Update:/Products:/SLERT/standard/</media_url>
-        <alias>SLE_RT_IBS_REPO</alias>
-        <product>SLE_RT_TEST</product>
+        <alias>REPO_MODULE_RT</alias>
+        <product>Module-RT-POOL</product>
         <product_dir>/</product_dir>
         <priority config:type="integer">85</priority>
         <name>Latest RT packages from IBS</name>
         <confirm_license config:type="boolean">false</confirm_license>
         <ask_on_error config:type="boolean">false</ask_on_error>
-	  </listentry>
+      </listentry>
       <listentry>
-        <media_url>http://openqa.suse.de/assets/repo/SLE-15-SP4-Module-RT-POOL-x86_64-CURRENT/</media_url>
+        <media_url>http://openqa.suse.de/assets/repo/SLE-15-SP4-Module-RT-POOL-x86_64-CURRENT</media_url>
         <alias>SLE_RT_OPENQA</alias>
         <product>SLE_RT_TEST_OPENQA</product>
         <product_dir>/</product_dir>
@@ -60,8 +60,8 @@
         <name>Latest RT packages from IBS2</name>
         <confirm_license config:type="boolean">false</confirm_license>
         <ask_on_error config:type="boolean">false</ask_on_error>
-	  </listentry>
-	</add_on_products>
+      </listentry>
+    </add_on_products>
   </add-on>
   <!-- END OF HACK!!!-->
   <general>
@@ -105,7 +105,7 @@
     <!-- END OF HACK!!!-->
     </products>
     <install_recommended config:type="boolean">true</install_recommended>
-    <kernel>kernel-rt</kernel>
+    <!--kernel>kernel-rt</kernel-->
     <packages config:type="list">
       <package>sle-module-server-applications-release</package>
       <package>sle-module-development-tools-release</package>
@@ -115,13 +115,9 @@
       <pattern>apparmor</pattern>
       <pattern>base</pattern>
       <pattern>basesystem</pattern>
-      <pattern>documentation</pattern>
-      <pattern>enhanced_base</pattern>
-      <pattern>gnome_basic</pattern>
-      <pattern>gnome_basis</pattern>
+      <!--pattern>documentation</pattern-->
+      <!--pattern>enhanced_base</pattern-->
       <pattern>minimal_base</pattern>
-      <pattern>x11</pattern>
-      <pattern>x11_enhanced</pattern>
       <!-- HACK!!!-->
       <pattern>rt_sles</pattern>
       <!-- END OF HACK!!!-->
@@ -137,8 +133,6 @@
       <gid>100</gid>
       <home>/home/bernhard</home>
       <password_settings>
-        <expire/>
-        <flag/>
         <inact>-1</inact>
         <max>99999</max>
         <min>0</min>
@@ -146,7 +140,7 @@
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>1000</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA</user_password>
       <username>bernhard</username>
     </user>
     <user>
@@ -155,8 +149,6 @@
       <gid>0</gid>
       <home>/root</home>
       <password_settings>
-        <expire/>
-        <flag/>
         <inact/>
         <max/>
         <min/>
@@ -164,7 +156,7 @@
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>0</uid>
-      <user_password>nots3cr3t</user_password>
+      <user_password>$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA</user_password>
       <username>root</username>
     </user>
   </users>
