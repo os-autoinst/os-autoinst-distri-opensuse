@@ -67,7 +67,8 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    my $engine = get_required_var('CONTAINER_RUNTIME');
+    # CONTAINER_RUNTIME can be "docker", "podman" or both "podman,docker"
+    my $engines = get_required_var('CONTAINER_RUNTIME');
     my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
     my $bci_tests_branch = get_var('BCI_TESTS_BRANCH');
 
@@ -98,15 +99,25 @@ sub run {
     }
 
     # For BCI tests using podman, buildah package is also needed
-    install_buildah_when_needed($host_distri) if ($engine eq 'podman');
+    install_buildah_when_needed($host_distri) if ($engines =~ /podman/);
 
     record_info('Clone', "Clone BCI tests repository: $bci_tests_repo");
     my $branch = $bci_tests_branch ? "-b $bci_tests_branch" : '';
-    assert_script_run("git clone $branch -q --depth 1 $bci_tests_repo");
+    assert_script_run("git clone $branch -q --depth 1 $bci_tests_repo /root/BCI-tests");
 
     # Pull the image in advance
     if (my $image = get_var('CONTAINER_IMAGE_TO_TEST')) {
         record_info('IMAGE', $image);
+        # If $engines are multiple (e.g. CONTAINER_RUNTIME=podman,docker), we just pick one of them for this check
+        # as this module is executed only once.
+        my $engine;
+        if ($engines =~ /podman/) {
+            $engine = 'podman';
+        } elsif ($engines =~ /docker/) {
+            $engine = 'docker';
+        } else {
+            die('No valid container engines defined in CONTAINER_RUNTIME variable!');
+        }
         script_retry("$engine pull -q $image", timeout => 300, delay => 60, retry => 3);
         record_info('Inspect', script_output("$engine inspect $image"));
         my $build = get_var('CONTAINER_IMAGE_BUILD');
