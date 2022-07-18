@@ -10,7 +10,6 @@ schedule:
   - '{{sle15_x86_64}}'
   - console/python_flake8
   - console/vmstat
-  - console/sssd_389ds_functional
   - console/coredump_collect
 conditional_schedule:
   sle15_x86_64:
