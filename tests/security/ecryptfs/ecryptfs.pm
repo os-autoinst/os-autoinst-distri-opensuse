@@ -45,8 +45,9 @@ sub ecryptfs_mount {
     validate_script_output('mount | grep -m 1 ecryptfs', sub { m/\/root\/private/ });
     # The testfile should be readable and writable
     assert_script_run('cd private && touch testfile && echo Hello > testfile && grep Hello testfile && cd ..');
-    # The testfile should be an encrypted file
-    validate_script_output('file .private/testfile', sub { m/data/ });
+    # Check that testfile is a binary. This fails if file is plain-text (therefore decrypted)
+    assert_script_run("perl -E 'exit((-B \$ARGV[0])?0:1);' .private/testfile");
+
     assert_script_run('umount -l private');
     validate_script_output('ls -1 private/ | wc -l', sub { m/0/ });
 
