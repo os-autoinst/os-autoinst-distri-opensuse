@@ -10,11 +10,17 @@ schedule:
   - '{{sle15_x86_64}}'
   - console/python_flake8
   - console/vmstat
-  - console/sssd_openldap_functional
+  - '{{sssd_openldap_functional}}'
   - console/coredump_collect
 conditional_schedule:
   sle15_x86_64:
     ARCH:
       x86_64:
         - console/wpa_supplicant
+  sssd_openldap_functional:
+    ARCH:
+      x86_64:
+        - console/sssd_openldap_functional
+      s390x:
+        - console/sssd_openldap_functional
 ...
