@@ -1,0 +1,38 @@
+name:           ibtest-slave-tumbleweed
+description:    >
+    The slave node for the infiniband testsuite (hpc-testing)
+vars:
+    DESKTOP: textmode
+    EVEL_TOOLS_REPO: https://download.opensuse.org/repositories/devel:/tools/openSUSE_Tumbleweed/devel:tools.repo
+    IBTESTS: 1
+    IBTEST_GITBRANCH: master
+    IBTEST_GITTREE: https://github.com/SUSE/hpc-testing.git
+    IBTEST_IP1: 10.162.2.93
+    IBTEST_IP2: 10.162.2.94
+    IBTEST_ROLE: IBTEST_SLAVE
+    ROOTONLY: 1
+    SCC_ADDONS: sdk
+schedule:
+    - installation/ipxe_install
+    - installation/welcome
+    - installation/online_repos
+    - installation/installation_mode
+    - installation/logpackages
+    - installation/system_role
+    - installation/partitioning
+    - installation/partitioning_finish
+    - installation/installer_timezone
+    - installation/user_settings
+    - installation/user_settings_root
+    - installation/resolve_dependency_issues
+    - installation/installation_overview
+    - installation/disable_grub_timeout
+    - installation/start_install
+    - installation/await_install
+    - installation/logs_from_installation_system
+    - installation/reboot_after_installation
+    - installation/handle_reboot
+    - installation/first_boot
+    - kernel/ibtests_prepare
+    - installation/handle_reboot
+    - kernel/ibtests
