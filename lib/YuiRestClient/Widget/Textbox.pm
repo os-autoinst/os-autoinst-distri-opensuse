@@ -30,7 +30,7 @@ YuiRestClient::Widget::Textbox - handle text boxes
 
 =head1 COPYRIGHT
 
-Copyright © 2020 SUSE LLC
+Copyright 2020 SUSE LLC
 
 SPDX-License-Identifier: FSFAP
 

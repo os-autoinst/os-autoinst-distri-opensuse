@@ -40,7 +40,7 @@ YuiRestClient::Widget::CheckBox - handle checkboxes
 
 =head1 COPYRIGHT
 
-Copyright © 2020 SUSE LLC
+Copyright 2020 SUSE LLC
 
 SPDX-License-Identifier: FSFAP
 
