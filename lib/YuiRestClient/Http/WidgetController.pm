@@ -98,7 +98,7 @@ YuiRestClient::Http::WidgetController - Class to communicate with the REST serve
 
 =head1 COPYRIGHT
 
-Copyright © 2020 SUSE LLC
+Copyright 2020 SUSE LLC
 
 SPDX-License-Identifier: FSFAP
 

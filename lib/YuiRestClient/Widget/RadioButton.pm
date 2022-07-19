@@ -37,7 +37,7 @@ YuiRestClient::Widget::RadioButton - Handle radio buttons
 
 =head1 COPYRIGHT
 
-Copyright © 2020 SUSE LLC
+Copyright 2020 SUSE LLC
 
 SPDX-License-Identifier: FSFAP
 

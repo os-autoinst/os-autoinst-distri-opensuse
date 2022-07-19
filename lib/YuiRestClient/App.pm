@@ -193,7 +193,7 @@ YuiRestClient::App - Class to create a UI widget object
 
 =head1 COPYRIGHT
 
-Copyright © 2021 SUSE LLC
+Copyright 2021 SUSE LLC
 
 SPDX-License-Identifier: FSFAP
 
