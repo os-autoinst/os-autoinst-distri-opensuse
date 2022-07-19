@@ -22,6 +22,7 @@ use Data::Dumper;
 use version_utils;
 
 our $root_dir = '/root';
+our $ltp_package = 'ltp-stable';
 
 sub get_ltp_rpm
 {
@@ -121,7 +122,7 @@ sub run {
     }
     else {
         $instance->run_ssh_command(cmd => 'sudo zypper -n addrepo -fG ' . $ltp_repo . ' ltp_repo', timeout => 600);
-        $instance->run_ssh_command(cmd => 'sudo zypper -n in ltp', timeout => 600);
+        $instance->run_ssh_command(cmd => "sudo zypper -n in $ltp_package", timeout => 600);
     }
 
     my $ltp_env = gen_ltp_env($instance);
@@ -189,7 +190,7 @@ sub gen_ltp_env {
         kernel => $instance->run_ssh_command(cmd => 'uname -r'),
         backend => get_required_var('BACKEND'),
         flavor => get_required_var('FLAVOR'),
-        ltp_version => $instance->run_ssh_command(cmd => q(rpm -q --qf '%{VERSION}\n' ltp)),
+        ltp_version => $instance->run_ssh_command(cmd => "rpm -q --qf '%{VERSION}\n' $ltp_package"),
     };
 
     record_info("LTP Environment", Dumper($environment));
