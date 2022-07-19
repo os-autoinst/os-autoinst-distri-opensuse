@@ -44,4 +44,5 @@ schedule:
     - installation/handle_reboot
     - installation/first_boot
     - kernel/build_git_kernel
+    - kernel/ibtests_prepare
     - kernel/ibtests
