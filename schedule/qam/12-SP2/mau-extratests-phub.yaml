@@ -8,6 +8,5 @@ schedule:
   - console/add_phub_extension
   - console/python_scientific
   - console/vmstat
-  - console/sssd_openldap_functional
   - console/coredump_collect
 ...
