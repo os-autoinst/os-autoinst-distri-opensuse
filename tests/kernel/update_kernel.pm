@@ -195,66 +195,30 @@ sub override_shim {
 }
 
 sub install_lock_kernel {
-    my $version = shift;
-    # version numbers can be 'out of sync'
-    my $numbering_exception = {
-        'kernel-source' => {
-            '4.4.59-92.17.3' => '4.4.59-92.17.2',
-            '4.4.114-94.11.3' => '4.4.114-94.11.2',
-            '4.4.126-94.22.1' => '4.4.126-94.22.2',
-            '4.4.178-94.91.2' => '4.4.178-94.91.1',
-            '4.4.180-94.164.3' => '4.4.180-94.164.2',
-            '4.12.14-150.14.2' => '4.12.14-150.14.1',
-            '5.3.18-24.67.3' => '5.3.18-24.67.2',
-            '5.3.18-24.75.3' => '5.3.18-24.75.2',
-            '5.3.18-24.83.2' => '5.3.18-24.83.1',
-        },
-        'kernel-macros' => {
-            '4.4.59-92.17.3' => '4.4.59-92.17.2',
-            '4.4.114-94.11.3' => '4.4.114-94.11.2',
-            '4.4.126-94.22.1' => '4.4.126-94.22.2',
-            '4.4.178-94.91.2' => '4.4.178-94.91.1',
-            '4.4.180-94.164.3' => '4.4.180-94.164.2',
-            '4.12.14-150.14.2' => '4.12.14-150.14.1',
-            '5.3.18-24.67.3' => '5.3.18-24.67.2',
-            '5.3.18-24.75.3' => '5.3.18-24.75.2',
-            '5.3.18-24.83.2' => '5.3.18-24.83.1',
-        },
-        'kernel-devel' => {
-            '4.4.59-92.17.3' => '4.4.59-92.17.2',
-            '4.4.114-94.11.3' => '4.4.114-94.11.2',
-            '4.4.126-94.22.1' => '4.4.126-94.22.2',
-            '4.4.178-94.91.2' => '4.4.178-94.91.1',
-            '4.4.180-94.164.3' => '4.4.180-94.164.2',
-            '4.12.14-150.14.2' => '4.12.14-150.14.1',
-            '5.3.18-24.67.3' => '5.3.18-24.67.2',
-            '5.3.18-24.75.3' => '5.3.18-24.75.2',
-            '5.3.18-24.83.2' => '5.3.18-24.83.1',
-        }};
+    my $kernel_version = shift;
+    my $src_version = shift;
 
     # Pre-Boothole (CVE 2020-10713) kernel compatibility workaround.
     # Machines with SecureBoot enabled will refuse to boot old kernels
     # with latest shim. Downgrade shim to allow livepatch tests to boot.
     if (get_var('SECUREBOOT') && get_var('KGRAFT')) {
-        override_shim($version);
+        override_shim($kernel_version);
     }
 
     # remove all kernel related packages from system
     my @packages = remove_kernel_packages();
-
     my @lpackages = @packages;
+    my %packver = (
+        'kernel-devel' => $src_version,
+        'kernel-macros' => $src_version,
+        'kernel-source' => $src_version
+    );
 
-    push @packages, "kernel-devel" if is_sle('12+');
+    push @packages, "kernel-devel";
 
-    # extend list of packages with $version + workaround exceptions
+    # add explicit version to each package
     foreach my $package (@packages) {
-        my $l_v = $version;
-        for my $k (grep { $_ eq $package } keys %{$numbering_exception}) {
-            for my $kk (keys %{$numbering_exception->{$k}}) {
-                $l_v = $numbering_exception->{$k}->{$kk} if $version eq $kk;
-            }
-        }
-        $package =~ s/$/-$l_v/;
+        $package .= '-' . ($packver{$package} // $kernel_version);
     }
 
     # install and lock needed kernel
@@ -297,9 +261,11 @@ sub prepare_kgraft {
 
     fully_patch_system;
 
-    my $kversion = zypper_search(q(-s -x kernel-default));
-    my $wanted_version = right_kversion($kversion, $incident_klp_pkg);
-    install_lock_kernel($wanted_version);
+    my $verlist = zypper_search(q(-s -x kernel-default));
+    my $kernel_version = right_kversion($verlist, $incident_klp_pkg);
+    $verlist = zypper_search(q(-s -x kernel-source));
+    my $src_version = right_kversion($verlist, $incident_klp_pkg);
+    install_lock_kernel($kernel_version, $src_version);
 
     install_klp_product;
 
