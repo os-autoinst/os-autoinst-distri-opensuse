@@ -5,3 +5,5 @@ description:    >
 schedule:
   - boot/boot_to_desktop
   - rt/prepare_migration
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
