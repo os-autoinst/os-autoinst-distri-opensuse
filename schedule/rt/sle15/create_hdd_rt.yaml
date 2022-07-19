@@ -3,7 +3,6 @@ name: create_hdd_rt
 description:    >
     Prepare image with internal RT repositories.
 vars:
-    SYSTEM_ROLE: minimal
     DESKTOP: textmode
     SCC_ADDONS: sdk
 schedule:
