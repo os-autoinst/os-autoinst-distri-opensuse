@@ -1,5 +1,6 @@
-name: Leaked Secrets Scan on Commits
+name: Leaked Secrets Scan
 on:
+  pull_request:
   push:
     branches: [ "master" ]
 jobs:
