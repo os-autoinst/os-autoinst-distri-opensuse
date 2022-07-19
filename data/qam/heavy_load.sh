@@ -10,11 +10,9 @@ if ! rpm -q "ltp-stable" ; then
 fi
 
 # Copy syscalls runtest file and use only new file
-cp /opt/ltp/runtest/syscalls /opt/ltp/runtest/syscalls.klp
-# disable add_key02 test - on most kernels causes panic
-sed  -i '/\n/!N;/\n.*\n/!N;/\n.*\n.*add_key02/{$d;N;N;d};P;D' /opt/ltp/runtest/syscalls.klp
-# kernel 4.4.92 ppc64le panicked with this tes
-sed  -i '/\n/!N;/\n.*\n/!N;/\n.*\n.*add_key04/{$d;N;N;d};P;D' /opt/ltp/runtest/syscalls.klp
+# Disable add_key* tests (may cause crashes on older kernels)
+# Disable tests which load custom kernel modules
+grep -v 'module\|add_key' /opt/ltp/runtest/syscalls >/opt/ltp/runtest/syscalls.klp
 
 # LTP: the syscalls tests
 screen -S LTP_syscalls     -L -d -m  sh -c 'yes | /opt/ltp/runltp  -f syscalls.klp'
