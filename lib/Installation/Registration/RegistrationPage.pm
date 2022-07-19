@@ -12,20 +12,14 @@ use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
-sub new {
-    my ($class, $args) = @_;
-    my $self = bless {
-        app => $args->{app}
-    }, $class;
-    return $self->init();
-}
-
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
     $self->{rdb_skip_registration} = $self->{app}->radiobutton({id => 'skip_registration'});
     $self->{txb_email} = $self->{app}->textbox({id => 'email'});
     $self->{txb_reg_code} = $self->{app}->textbox({id => 'reg_code'});
+    $self->{rdb_rmt_server} = $self->{app}->radiobutton({id => 'register_local'});
+    $self->{cmb_local_url} = $self->{app}->combobox({id => 'custom_url'});
     return $self;
 }
 
@@ -47,6 +41,16 @@ sub select_skip_registration {
 sub enter_reg_code {
     my ($self, $reg_code) = @_;
     return $self->{txb_reg_code}->set($reg_code);
+}
+
+sub select_rmt_registration {
+    my ($self) = @_;
+    $self->{rdb_rmt_server}->select();
+}
+
+sub enter_local_server {
+    my ($self, $server) = @_;
+    return $self->{cmb_local_url}->set($server);
 }
 
 1;

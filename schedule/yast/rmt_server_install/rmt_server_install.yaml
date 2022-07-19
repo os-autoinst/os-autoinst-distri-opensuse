@@ -1,0 +1,47 @@
+---
+name:           rmt_server_install
+description:    >
+  Perform an installation using rmt server for registration,
+  handling the subsequent trust&import popup and validating
+  repo urls after installation. This test case would not work
+  in Product validation when it is not a Milestone build.
+  RMT server is only synchronized pulling new updates of
+  packages for builds that are marked as milestones, so in
+  any normal snapshots we will be testing packages from the
+  previous milestone from that build.
+vars:
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/product_selection/install_SLES
+  - installation/licensing/accept_license
+  - installation/registration/register_via_rmt
+  - installation/registration/rmt_registration_trust_import
+  - installation/registration/enable_online_repos
+  - installation/module_registration/register_nonconflicting_modules
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
+  - installation/installation_settings/validate_default_target
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
+  - installation/performing_installation/perform_installation
+  - installation/logs_from_installation_system
+  - installation/performing_installation/confirm_reboot
+  - installation/handle_reboot
+  - installation/first_boot
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/validate_repos
+test_data:
+  repos:
+    - uri: '%RMT_SERVER%/repo/SUSE/Products/SLE-Module-Basesystem/%VERSION%/%ARCH%/product/?credentials=Basesystem_Module_%VERSION%'
+    - uri: '%RMT_SERVER%/repo/SUSE/Updates/SLE-Module-Basesystem/%VERSION%/%ARCH%/update/?credentials=Basesystem_Module_%VERSION%'
+    - uri: '%RMT_SERVER%/repo/SUSE/Products/SLE-Module-Containers/%VERSION%/%ARCH%/product/?credentials=Containers_Module_%VERSION%'
+    - uri: '%RMT_SERVER%/repo/SUSE/Products/SLE-Module-Desktop-Applications/%VERSION%/%ARCH%/product/?credentials=Desktop_Applications_Module_%VERSION%'
+    - uri: '%RMT_SERVER%/repo/SUSE/Products/SLE-Module-Server-Applications/%VERSION%/%ARCH%/product/?credentials=Server_Applications_Module_%VERSION%'

@@ -135,6 +135,7 @@ PERF_KERNEL | boolean | false | Enables kernel performance testing.
 PERF_INSTALL | boolean | false | Enables kernel performance testing installation part.
 PERF_SETUP | boolean | false | Enables kernel performance testing deployment part.
 PERF_RUNCASE | boolean | false | Enables kernel performance testing run case part.
+RMT_SERVER | string | Local server to be used in RMT registration. 
 SALT_FORMULAS_PATH | string | | Used to point to a tarball with relative path to [/data/yast2](https://github.com/os-autoinst/os-autoinst-distri-opensuse/tree/master/data/yast2) which contains all the needed files (top.sls, form.yml, ...) to support provisioning with Salt masterless mode.
 PKGMGR_ACTION_AT_EXIT | string | "" | Set the default behavior of the package manager when package installation has finished. Possible actions are: close, restart, summary. If PKGMGR_ACTION_AT_EXIT is not set in openQA, test module will read the default value from /etc/sysconfig/yast2.
 PXE_PRODUCT_NAME | string | false | Defines image name for PXE booting

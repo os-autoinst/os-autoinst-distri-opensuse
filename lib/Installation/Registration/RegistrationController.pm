@@ -12,6 +12,7 @@ use strict;
 use warnings;
 use Installation::Registration::RegistrationPage;
 use Installation::Popups::YesNoPopup;
+use Installation::Popups::ImportPopup;
 use YuiRestClient;
 
 sub new {
@@ -26,6 +27,8 @@ sub init {
     $self->{UseUpdateReposPopup} = Installation::Popups::YesNoPopup->new({
             app => YuiRestClient::get_app()});
     $self->{SkipRegistrationPopup} = Installation::Popups::OKPopup->new({
+            app => YuiRestClient::get_app()});
+    $self->{ImportPopup} = Installation::Popups::ImportPopup->new({
             app => YuiRestClient::get_app()});
     return $self;
 }
@@ -48,10 +51,23 @@ sub get_skip_registration_popup {
     return $self->{SkipRegistrationPopup};
 }
 
+sub get_import_popup {
+    my ($self) = @_;
+    die "Popup for Trust&Import is not displayed" unless $self->{ImportPopup}->is_shown();
+    return $self->{ImportPopup};
+}
+
 sub register_via_scc {
     my ($self, $args) = @_;
     $self->get_registration_page->enter_email($args->{email}) if $args->{email};
     $self->get_registration_page->enter_reg_code($args->{reg_code});
+    $self->get_registration_page->press_next();
+}
+
+sub register_via_rmt {
+    my ($self, $args) = @_;
+    $self->get_registration_page->select_rmt_registration();
+    $self->get_registration_page->enter_local_server($args->{server});
     $self->get_registration_page->press_next();
 }
 
@@ -65,6 +81,11 @@ sub skip_registration {
 sub enable_update_repositories {
     my ($self) = @_;
     $self->get_enable_update_repositories_popup()->press_yes();
+}
+
+sub trust_and_import {
+    my ($self) = @_;
+    $self->get_import_popup()->press_import();
 }
 
 1;
