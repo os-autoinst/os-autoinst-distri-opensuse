@@ -1,4 +1,4 @@
-name:           virt-guest-installation
+name:           tumbleweed-virt-guest-install-tests
 description:    >
     Maintainer: jcao@suse.com
     Virtualization guest installation tests including extended feature tests schedule
@@ -16,7 +16,7 @@ conditional_schedule:
     install_and_bootup:
         DO_NOT_INSTALL_HOST:
             0:
-                - '{{bootup}}'
+                - installation/ipxe_install
                 - installation/welcome
                 - installation/online_repos
                 - installation/installation_mode
@@ -65,9 +65,3 @@ conditional_schedule:
         ENABLE_STORAGE:
             1:
                 - virtualization/universal/storage
-    bootup:
-        IPXE:
-            1:
-                - installation/ipxe_install
-            0:
-                - boot/boot_from_pxe

@@ -14,7 +14,7 @@ use utils;
 use testapi;
 use bmwqemu;
 use ipmi_backend_utils;
-use version_utils 'is_upgrade';
+use version_utils qw(is_upgrade is_tumbleweed);
 use bootloader_setup 'prepare_disks';
 use Utils::Architectures;
 
@@ -131,26 +131,43 @@ END_BOOTSCRIPT
     diag "$response->{status} $response->{reason}\n";
 }
 
+
 sub run {
     my $self = shift;
 
     poweroff_host;
 
-    #virtualization tests use a static ipxe configuration file
-    set_bootscript unless get_var('VIRT_AUTOTEST');
+    #virtualization tests use a static ipxe configuration file in O3
+    set_bootscript unless get_var('VIRT_AUTOTEST') && is_tumbleweed;
 
     set_pxe_boot;
 
     poweron_host;
 
+    select_console 'sol', await_console => 0;
+
+    #use ipxe bootloader in O3
+    #it is static menu and choose the TW entry to start installation
+    if (get_var('VIRT_AUTOTEST') && is_tumbleweed) {
+        ipmitool('chassis power reset') unless check_screen([qw(o3-ipxe-menu ipxe-boot-failure)], 180);
+        assert_screen('o3-ipxe-menu', 300);
+        send_key 't';
+        assert_screen([qw(load-linux-kernel load-initrd)], 240);
+        #loading initrd spend much time(fg. 10-15 minutes to Beijing SUT)
+        assert_screen([qw(start-tw-install)], 360);
+        assert_screen([qw(network-config-created loading-installation-system)], 60);
+        wait_still_screen(stilltime => 30, similarity_level => 60, timeout => 120);
+        save_screenshot;
+    }
+
     # when we don't use autoyast, we need to also load the right test modules to perform the remote installation
     if (get_var('AUTOYAST')) {
-        select_console 'sol', await_console => 0;
         # make sure to wait for a while befor changing the boot device again, in order to not change it too early
         sleep 120;
     } else {
-        select_console 'sol', await_console => 0;
         my $ssh_vnc_wait_time = 1500;
+        #for TW virtualization test, 15 minutes is enough to load installation system, 75 minutes is too long
+        $ssh_vnc_wait_time = 300 if get_var('VIRT_AUTOTEST') && is_tumbleweed;
         my $ssh_vnc_tag = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
         my @tags = ($ssh_vnc_tag);
         if (check_screen(\@tags, $ssh_vnc_wait_time)) {
