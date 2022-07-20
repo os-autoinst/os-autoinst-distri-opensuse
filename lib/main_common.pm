@@ -2709,7 +2709,13 @@ sub load_security_tests {
 sub load_system_prepare_tests {
     loadtest 'console/system_prepare' unless is_opensuse;
     loadtest 'ses/install_ses' if check_var_array('ADDONS', 'ses') || check_var_array('SCC_ADDONS', 'ses');
-    loadtest 'qa_automation/patch_and_reboot' if (is_updates_tests and !get_var("USER_SPACE_TESTSUITES"));
+    if (is_updates_tests and !get_var("USER_SPACE_TESTSUITES")) {
+        if (is_transactional) {
+            loadtest 'transactional/install_updates';
+        } else {
+            loadtest 'qa_automation/patch_and_reboot';
+        }
+    }
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
     loadtest 'console/hostname' unless is_bridged_networking;
     loadtest 'console/install_rt_kernel' if check_var('SLE_PRODUCT', 'SLERT');
@@ -2935,7 +2941,7 @@ sub load_common_opensuse_sle_tests {
     load_create_hdd_tests if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) && !get_var('PUBLIC_CLOUD');
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
     load_installation_validation_tests if get_var('INSTALLATION_VALIDATION');
-    load_transactional_role_tests if is_transactional && (get_var('ARCH') !~ /ppc64|s390/);
+    load_transactional_role_tests if is_transactional && (get_var('ARCH') !~ /ppc64|s390/) && !get_var('INSTALLONLY');
 }
 
 sub load_ssh_key_import_tests {
@@ -3155,7 +3161,7 @@ sub updates_is_applicable {
     return 0 if get_var('INSTALLONLY') || get_var('BOOT_TO_SNAPSHOT') || get_var('DUALBOOT');
     # After upgrading using only the DVD, packages not on the DVD can be
     # updated in the installed system with online repos.
-    return 0 if get_var('UPGRADE') && !check_var('FLAVOR', 'DVD');
+    return 0 if get_var('UPGRADE') && !(check_var('FLAVOR', 'DVD') || check_var('FLAVOR', 'DVD-Updates'));
 
     return 1;
 }
