@@ -128,7 +128,7 @@
   </networking>
   <users config:type="list">
     <user>
-      <encrypted config:type="boolean">false</encrypted>
+      <encrypted config:type="boolean">true</encrypted>
       <fullname>Bernhard M. Wiedemann</fullname>
       <gid>100</gid>
       <home>/home/bernhard</home>
@@ -144,7 +144,7 @@
       <username>bernhard</username>
     </user>
     <user>
-      <encrypted config:type="boolean">false</encrypted>
+      <encrypted config:type="boolean">true</encrypted>
       <fullname>root</fullname>
       <gid>0</gid>
       <home>/root</home>
@@ -156,7 +156,7 @@
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>0</uid>
-      <user_password>$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA</user_password>
+      <user_password>$6$gdDHoMtVLjs4CCzf$2tSvAdgvqrKo84pA59bEjZRh7IGMfv4u0Yl4hrRzPgFPWLd8RXWdn/boT7yM3K3BlTk57qyR0TZ/nMb9rlpzx1</user_password>
       <username>root</username>
     </user>
   </users>
