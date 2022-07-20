@@ -177,7 +177,7 @@ bastion_enabled = false
 # If custom uris are enabled public information will be omitted
 # Custom sles4sap image
 #sles4sap_uri = "/path/to/your/image"
-sles4sap_uri = "https://openqa.blob.core.windows.net/sle-images/%SLE_IMAGE%"
+sles4sap_uri = "https://eisleqasapopenqa.blob.core.windows.net/sle-images/%SLE_IMAGE%"
 
 # Public OS images
 # BYOS example
@@ -274,7 +274,7 @@ hana_master_password = "Linux1234"
 
 # Custom iscsi server image
 #iscsi_srv_uri = "/path/to/your/iscsi/image"
-iscsi_srv_uri = "https://openqa.blob.core.windows.net/sle-images/%SLE_IMAGE%"
+iscsi_srv_uri = "https://eisleqasapopenqa.blob.core.windows.net/sle-images/%SLE_IMAGE%"
 
 # Public image usage for iSCSI. BYOS example
 #iscsi_os_image = "SUSE:sles-sap-15-sp2-byos:gen2:latest"
@@ -308,7 +308,7 @@ iscsi_srv_uri = "https://openqa.blob.core.windows.net/sle-images/%SLE_IMAGE%"
 
 # Custom drbd nodes image
 #drbd_image_uri = "/path/to/your/monitoring/image"
-drbd_image_uri = "https://openqa.blob.core.windows.net/sle-images/%SLE_IMAGE%"
+drbd_image_uri = "https://eisleqasapopenqa.blob.core.windows.net/sle-images/%SLE_IMAGE%"
 
 # Public image usage for the DRBD machines. BYOS example
 #drbd_os_image = "SUSE:sles-sap-15-sp2-byos:gen2:latest"
