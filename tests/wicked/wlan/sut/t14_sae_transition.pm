@@ -24,20 +24,20 @@ has ssid => 'Virtual WiFi SAE Secured';
 has psk => 'TopSecretWifiPassphrase!';
 
 has hostapd_conf => q(
-		ctrl_interface=/var/run/hostapd
-		interface={{ref_ifc}}
-		driver=nl80211
-		country_code=DE
-		hw_mode=g
-		channel=5
-		ieee80211n=1
-		ssid={{ssid}}
-		ieee80211w=1
-		wpa=2
-		wpa_key_mgmt=SAE WPA-PSK
-		wpa_pairwise=CCMP
-		group_cipher=CCMP
-		wpa_passphrase={{psk}}
+        ctrl_interface=/var/run/hostapd
+        interface={{ref_ifc}}
+        driver=nl80211
+        country_code=DE
+        hw_mode=g
+        channel=5
+        ieee80211n=1
+        ssid={{ssid}}
+        ieee80211w=1
+        wpa=2
+        wpa_key_mgmt=SAE WPA-PSK
+        wpa_pairwise=CCMP
+        group_cipher=CCMP
+        wpa_passphrase={{psk}}
 );
 
 has ifcfg_wlan => sub { [
@@ -45,35 +45,48 @@ has ifcfg_wlan => sub { [
         BOOTPROTO='dhcp'
         STARTMODE='auto'
 
-		WIRELESS_AUTH_MODE='wpa2-personal'
-		WIRELESS_ESSID='{{ssid}}'
-		WIRELESS_WPA_PSK='{{psk}}'
+        WIRELESS_ESSID='{{ssid}}'
+        WIRELESS_WPA_PSK='{{psk}}'
     ),
         q(
         BOOTPROTO='dhcp'
         STARTMODE='auto'
 
-		WIRELESS_AUTH_MODE='wpa2-personal'
         WIRELESS_PMF=required
-		WIRELESS_ESSID='{{ssid}}'
-		WIRELESS_WPA_PSK='{{psk}}'
+        WIRELESS_ESSID='{{ssid}}'
+        WIRELESS_WPA_PSK='{{psk}}'
     ),
         q(
         BOOTPROTO='dhcp'
         STARTMODE='auto'
 
-		WIRELESS_AUTH_MODE='wpa3-personal'
         WIRELESS_PMF=disabled
-		WIRELESS_ESSID='{{ssid}}'
-		WIRELESS_WPA_PSK='{{psk}}'
+        WIRELESS_ESSID='{{ssid}}'
+        WIRELESS_WPA_PSK='{{psk}}'
     ),
         q(
         BOOTPROTO='dhcp'
         STARTMODE='auto'
 
-		WIRELESS_AUTH_MODE='wpa3-personal'
-		WIRELESS_ESSID='{{ssid}}'
-		WIRELESS_WPA_PSK='{{psk}}'
+        WIRELESS_KEY_MGMT=WPA-PSK
+        WIRELESS_ESSID='{{ssid}}'
+        WIRELESS_WPA_PSK='{{psk}}'
+    ),
+        q(
+        BOOTPROTO='dhcp'
+        STARTMODE='auto'
+
+        WIRELESS_KEY_MGMT=SAE
+        WIRELESS_ESSID='{{ssid}}'
+        WIRELESS_WPA_PSK='{{psk}}'
+    ),
+        q(
+        BOOTPROTO='dhcp'
+        STARTMODE='auto'
+
+        WIRELESS_KEY_MGMT='SAE WPA-PSK'
+        WIRELESS_ESSID='{{ssid}}'
+        WIRELESS_WPA_PSK='{{psk}}'
     )
 ] };
 
