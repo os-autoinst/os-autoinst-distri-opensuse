@@ -19,12 +19,11 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(quit_packagekit zypper_call);
-use version_utils qw(is_sle is_leap is_opensuse);
+use version_utils qw(is_sle is_leap is_opensuse is_transactional);
 use registration qw(add_suseconnect_product remove_suseconnect_product);
 use main_common qw(is_updates_tests is_migration_tests);
-use transactional 'check_reboot_changes';
+use transactional qw(check_reboot_changes trup_call);
 
-my $transactional = get_var('TRANSACTIONAL_SERVER');
 my $arch = get_var('ARCH');
 # Transform the format of the version, e.g. from 15-SP3 to 15.3
 my $version = get_var('VERSION');
@@ -36,23 +35,25 @@ sub run {
     # Make sure that PackageKit is not running
     quit_packagekit;
     # if !QAM test suite then register Legacy module
-    if ($transactional == 1) {
-        assert_script_run("transactional-update register -p sle-module-legacy/$version_id/$arch");
+    if (is_sle && !(is_updates_tests || is_migration_tests)) {
+        if (is_transactional) {
+            trup_call("register -p sle-module-legacy/$version_id/$arch");
+        } else {
+            add_suseconnect_product('sle-module-legacy');
+        }
     }
-    else {
-        (is_updates_tests || is_opensuse || is_migration_tests) || add_suseconnect_product('sle-module-legacy');
-    }
-    # Supported Java versions for sle15sp2
+
+    # Supported Java versions for sle15sp1+ and sle12sp5
     # https://www.suse.com/releasenotes/x86_64/SUSE-SLES/15-SP2/#development-java-versions
+    # https://www.suse.com/releasenotes/x86_64/SUSE-SLES/12-SP5/index.html#TechInfo.Java
     # java-11-openjdk                   -> Basesystem
     # java-10-openjdk & java-1_8_0-ibm  -> Legacy
     my $cmd = 'install --auto-agree-with-licenses ';
-    $cmd .= (is_sle('15+') || is_leap) ? 'java-11-openjdk* java-1_*' : 'java-*';
-    $cmd = 'transactional-update --continue pkg install --auto-agree-with-licenses --no-confirm java-*' if (check_var('TRANSACTIONAL_SERVER', '1'));
+    $cmd .= (is_sle('15+') || is_sle('=12-SP5') || is_leap) ? 'java-11-openjdk* java-1_*' : 'java-*';
 
-    if (check_var('TRANSACTIONAL_SERVER', '1')) {
+    if (is_transactional) {
         select_console 'root-console';
-        assert_script_run("$cmd", 2000);
+        trup_call("--continue pkg $cmd", 2000);
         check_reboot_changes;
         reset_consoles;
         select_console('root-console', 200);
@@ -63,17 +64,13 @@ sub run {
     }
     assert_script_run 'wget --quiet ' . data_url('console/test_java.sh');
     assert_script_run 'chmod +x test_java.sh';
-    if (check_var('TRANSACTIONAL_SERVER', '1')) {
-        assert_script_run './test_java.sh --transactional-server';
-    }
-    else {
-        assert_script_run("./test_java.sh", timeout => 180);
-    }
+    assert_script_run('./test_java.sh' . (is_transactional ? ' --transactional-server' : ''), timeout => 180);
+
     # if !QAM test suite then cleanup test suite environment
     unless (is_updates_tests || is_opensuse || is_migration_tests) {
-        if ($transactional == 1) {
-            assert_script_run("transactional-update register -d -p sle-module-legacy/$version_id/$arch");
-            (script_run 'rpm -qa | grep java-1_') || (script_run 'transactional-update pkg remove --no-confirm java-1_*');
+        if (is_transactional) {
+            trup_call("register -d -p sle-module-legacy/$version_id/$arch");
+            (script_run 'rpm -qa | grep java-1_') || trup_call('pkg remove --no-confirm java-1_*');
         }
         else {
             remove_suseconnect_product('sle-module-legacy');
