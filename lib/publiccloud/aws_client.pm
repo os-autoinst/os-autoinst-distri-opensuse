@@ -13,8 +13,6 @@ use testapi;
 use publiccloud::vault;
 use publiccloud::utils;
 
-use constant CREDENTIALS_FILE => '/root/amazon_credentials';
-
 has key_id => undef;
 has key_secret => undef;
 has security_token => undef;
@@ -75,8 +73,13 @@ sub init {
 
     if (get_var('PUBLIC_CLOUD_CREDENTIALS_URL')) {
         my $data = get_credentials('aws.json');
-        $self->key_id($data->{access_key_id});
-        $self->key_secret($data->{secret_access_key});
+        if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
+            $self->key_id($data->{access_key});
+            $self->key_secret($data->{secret_key});
+        } else {
+            $self->key_id($data->{access_key_id});
+            $self->key_secret($data->{secret_access_key});
+        }
     } elsif (!defined($self->key_id) || !defined($self->key_secret)) {
         $self->vault(publiccloud::vault->new());
         $self->vault_create_credentials();
@@ -87,14 +90,6 @@ sub init {
     define_secret_variable("AWS_SECRET_ACCESS_KEY", $self->key_secret);
 
     die('Credentials are invalid') unless ($self->_check_credentials());
-
-    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
-        my $credentials_file
-          = "[default]" . $/ . 'aws_access_key_id=' . $self->key_id . $/ . 'aws_secret_access_key=' . $self->key_secret;
-
-        save_tmp_file(CREDENTIALS_FILE, $credentials_file);
-        assert_script_run('curl -O ' . autoinst_url . "/files/" . CREDENTIALS_FILE);
-    }
 
     # AWS STS is the secure token service, which is used for those credentials
     $self->aws_account_id(script_output("aws sts get-caller-identity | jq -r '.Account'"));
