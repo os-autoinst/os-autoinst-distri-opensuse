@@ -20,6 +20,7 @@ use publiccloud::gcr;
 use publiccloud::acr;
 use publiccloud::aks;
 use publiccloud::openstack;
+use publiccloud::noprovider;
 use strict;
 use warnings;
 
@@ -31,7 +32,10 @@ sub provider_factory {
 
     $args{provider} //= get_required_var('PUBLIC_CLOUD_PROVIDER');
 
-    if ($args{provider} eq 'EC2') {
+    if (get_var('PUBLIC_CLOUD_INSTANCE_IP')) {
+        $provider = publiccloud::noprovider->new();
+    }
+    elsif ($args{provider} eq 'EC2') {
         $args{service} //= 'EC2';
 
         if ($args{service} eq 'ECR') {
