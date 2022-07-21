@@ -1,4 +1,6 @@
-name: Deploy
+name: Deploy documentation
+permissions:
+  pages: write
 
 on:
   push:
