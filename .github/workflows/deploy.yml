@@ -1,6 +1,6 @@
 name: Deploy documentation
 permissions:
-  pages: write
+  contents: write
 
 on:
   push:
