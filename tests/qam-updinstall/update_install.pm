@@ -70,15 +70,17 @@ sub has_conflict {
 sub get_patch {
     my ($incident_id, $repos) = @_;
     $repos =~ tr/,/ /;
-    my $patches = script_output("zypper patches -r $repos | awk -F '|' '/$incident_id/ { printf \$2 }'", type_command => 1);
-    $patches =~ s/\r//g;
+    my $patches = script_output("zypper patches -r $repos | awk -F '|' '/$incident_id/ { print\$2 }'|uniq|tr '\n' ' '");
     return $patches;
 }
 
 sub get_installed_bin_version {
     my $name = $_[0];
+    # if there are multiple versions installed, store oldest installed version when looking for old, opposite for new
+    my $age = $_[1];
+    $age = $age eq 'old' ? 'head' : 'tail';
     if (not script_run("rpm -q $name")) {
-        return script_output "rpm -q --queryformat '%{VERSION}-%{RELEASE}' $name";
+        return script_output "rpm -q --queryformat '%{VERSION}-%{RELEASE}\\n' $name|$age -n1", proceed_on_failure => 1;
     } else {
         return 0;
     }
@@ -161,7 +163,7 @@ sub run {
 
         # Make a list of the conflicting binaries in this patch.
         my @conflict_names = uniq pairmap {
-            map { $_ =~ /(^\s+(?<with_ext>\S*)(\.\S* <))|^\s+(?<no_ext>\S*)/; $+{with_ext} // $+{no_ext} } @patchinfo[$a .. $b] } @ranges;
+            map { $_ =~ /(^\s+(?<with_ext>\S*)(\.(?!src)\S* <))|^\s+(?<no_ext>\S*)/; $+{with_ext} // $+{no_ext} } @patchinfo[$a .. $b] } @ranges;
         print "Conflict names: @conflict_names\n";
 
         # Get the l3 released binaries. Only installed binaries can conflict.
@@ -221,7 +223,7 @@ sub run {
 
         # Store the version of the installed binaries before the update.
         foreach (keys %patch_bins) {
-            $patch_bins{$_}->{old} = get_installed_bin_version($_);
+            $patch_bins{$_}->{old} = get_installed_bin_version($_, 'old');
         }
 
         enable_test_repositories($repos_count);
@@ -240,7 +242,7 @@ sub run {
         # installed, check the version again and based on that determine if the
         # update was succesfull.
         foreach (keys %patch_bins) {
-            $patch_bins{$_}->{new} = get_installed_bin_version($_);
+            $patch_bins{$_}->{new} = get_installed_bin_version($_, 'new');
         }
         my $l3_results = "L3 binaries must always be updated.\n";
         foreach (@l3) {
@@ -265,6 +267,16 @@ sub run {
 
         record_soft_failure 'poo#67357 Some L3 binaries were not updated.' if scalar(grep { !$patch_bins{$_}->{update_status} } @patch_l3);
         record_soft_failure 'poo#67357 Some L2 binaries were not installed.' if scalar(grep { !$patch_bins{$_}->{update_status} } @patch_l2);
+
+        disable_test_repositories($repos_count);
+        record_info 'Uninstall patch', "Uninstall patch $patch";
+        # update repos are disabled, zypper dup will downgrade packages from patch
+        zypper_call('dup', exitcode => [0, 8]);
+        # remove patched packages with multiple versions installed e.g. kernel-source
+        foreach (@patch_l3, @patch_l2) {
+            zypper_call("rm $_-\$(zypper se -si $_|awk 'END{print\$7}')", exitcode => [0, 104]) if script_output("rpm -q $_|wc -l", proceed_on_failure => 1) >= 2;
+        }
+        enable_test_repositories($repos_count);
     }
 
     # merge logs from all patches into one which is testreport template expecting
