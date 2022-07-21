@@ -55,7 +55,8 @@ sub has_conflict {
         rust => 'rls',
         'rust-gdb' => 'cargo',
         'openssl-1_0_0' => 'openssl-1_1',
-        'libsamba-errors0' => 'samba-client-libs'
+        'libsamba-errors0' => 'samba-client-libs',
+        rpm => 'rpm-ndb'
 
     );
     return $conflict{$binary};
