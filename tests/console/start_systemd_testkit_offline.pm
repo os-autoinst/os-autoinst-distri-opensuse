@@ -21,6 +21,7 @@ use Mojo::JSON qw(encode_json);
 use version_utils qw(is_sle);
 use strict;
 use warnings;
+use Utils::Logging;
 
 my $log = '/tmp/systemd_run.log';
 my $testdir = '/usr/lib/test/external/';
@@ -122,6 +123,8 @@ sub upload_systemdlib_tests_logs {
     my ($self) = @_;
     my $out = script_output('journalctl --no-pager -axb -o short-precise');
     record_info("JOURNAL", "$out");
+    my $filename = "start_external_testkit_offline.log";
+    save_ulog($out, $filename);
 }
 
 1;
