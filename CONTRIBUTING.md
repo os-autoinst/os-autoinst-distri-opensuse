@@ -129,8 +129,9 @@ if (match_has_tag('yast2_missing_package')) {
 
 ### Preparing a new Pull Request
 * All code needs to be tidy, for this use `make prepare` the first time you
-  set up your local environment, use `make tidy` or `tools/tidy` locally to
-  ensure your new code adheres to our coding style.
+  set up your local environment, use `make tidy` before commiting your changes,
+  ensure your new code adheres to our coding style or use `make tidy-full` if
+  you have already few commits.
 * Every pull request is tested by our CI system for different perl versions,
   if something fails, run `make test` (don't forget to `make prepare` if your setup is new)
   but the CI results are available too, in case they need to be investigated further
