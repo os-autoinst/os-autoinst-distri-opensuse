@@ -203,6 +203,8 @@ sub run {
             if ($installable{$conflict}) {
                 record_info "CONFLICT!", "$package conflicts with $conflict. Skipping $conflict.";
                 delete $installable{$conflict};
+                @patch_l3 = grep !/$conflict/, @patch_l3;
+                @patch_l2 = grep !/$conflict/, @patch_l2;
             } else {
                 record_info "CONFLICT!", "$package conflicts with $conflict. Removing $conflict.";
                 zypper_call("rm $conflict", exitcode => [0, 104]);
