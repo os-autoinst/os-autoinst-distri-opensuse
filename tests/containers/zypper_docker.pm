@@ -24,7 +24,7 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
     my $docker = $self->containers_factory('docker');
-
+    record_info("INFO", "Dummy change");
     # install zypper-docker and verify installation
     zypper_call('in zypper-docker');
     validate_script_output("zypper-docker -h", sub { m/zypper-docker - Patching Docker images safely/ }, 180);
