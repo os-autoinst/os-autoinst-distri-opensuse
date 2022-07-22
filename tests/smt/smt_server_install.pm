@@ -160,10 +160,16 @@ sub run {
     validate_script_output "smt-repos -o", sub { m/SLES12-SP5-Updates/ };
     validate_script_output "smt-repos -o", sub { m/SLES12-SP5-Pool/ };
 
-    assert_script_run "smt-mirror", 16000;
+    assert_script_run "smt-mirror --logfile /var/log/smt/smt-mirror.log", 16000;
 
     assert_script_run "df -h";
     save_screenshot;
+
+    #We need double confirm the mirroring procedure succeeds without any error,
+    #please refer to bsc#1201738 for more detail information
+    assert_script_run "sync";
+    assert_script_run "tail -2 /var/log/smt/smt-mirror.log | grep 'Errors:                   : 0'";
+
     select_console "x11";
 }
 
