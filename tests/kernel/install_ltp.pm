@@ -147,7 +147,14 @@ sub install_build_dependencies {
       libopenssl-devel
       make
     );
-    push @deps, is_rt ? 'kernel-rt-devel' : 'kernel-default-devel';
+
+    if (is_rt) {
+        push @deps, 'kernel-rt-devel';
+    }
+    elsif (!get_var('KGRAFT')) {
+        push @deps, 'kernel-default-devel';
+    }
+
     zypper_call('-t in ' . join(' ', @deps));
 
     my @maybe_deps = qw(
