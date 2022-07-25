@@ -108,20 +108,21 @@ sub run {
     if (get_var('WSL2')) {
         $self->open_powershell_as_admin;
         $self->install_wsl2_kernel;
+        $self->run_in_powershell(
+            cmd => q{wsl --set-default-version 2}
+        );
+        $self->run_in_powershell(
+            cmd => q{$port.close()},
+            code => sub { }
+        );
     } else {
         $self->open_powershell_as_admin(no_serial => 1);
-        $self->run_in_powershell(
-            cmd => "wsl --set-default-version 1",
-            code => sub { }
-        ) if (check_var("WIN_VERSION", "11"));
     }
 
     $self->run_in_powershell(
         cmd => qq{ii C:\\$wsl_appx_filename},
         code => sub {
-            assert_screen(['install-linux-in-wsl', 'install-linux-in-wsl-background'], timeout => 120);
-            assert_and_click 'install-linux-in-wsl-background' if (match_has_tag 'install-linux-in-wsl-background');
-            assert_and_click 'install-linux-in-wsl';
+            assert_and_click 'install-linux-in-wsl', timeout => 120;
         }
     );
 }

@@ -62,14 +62,12 @@ sub open_powershell_as_admin {
         assert_and_click "windows-user-acount-ctl-yes";
         mouse_hide();
         wait_still_screen stilltime => 2, timeout => 15;
-        if (check_var("WIN_VERSION", "11")) {
+        if (check_var('VERSION', '11')) {
             # Screen resolution differs in Win11 and the max. button is out of
-            # sight, so we right-click on the window bar to maximize
-            assert_and_click 'powershell-as-admin-window', button => 'right', timeout => 240;
-            save_screenshot;
-            assert_and_click 'powershell-max-window-right-click';
+            # sight, so we dclick on the window bar to maximize
+            assert_and_dclick 'powershell-as-admin-window';
         } else {
-            assert_screen 'powershell-as-admin-window', timeout => 240;
+            assert_screen 'powershell-as-admin-window', 240;
             assert_and_click 'window-max';
         }
         sleep 3;
@@ -162,9 +160,6 @@ sub install_wsl2_kernel {
             assert_and_click 'wsl2-install-kernel-start', timeout => 60;
             assert_and_click 'wsl2-install-kernel-finished', timeout => 60;
         }
-    );
-    $self->run_in_powershell(
-        cmd => q{wsl --set-default-version 2}
     );
 }
 
