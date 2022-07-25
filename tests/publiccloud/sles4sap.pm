@@ -163,7 +163,7 @@ sub fence_node {
 
 sub run {
     my ($self) = @_;
-    my $timeout = bmwqemu::scale_timeout(480);
+    my $timeout = bmwqemu::scale_timeout(600);
     my @cluster_types = split(',', get_required_var('CLUSTER_TYPES'));
 
     $self->select_serial_terminal;
