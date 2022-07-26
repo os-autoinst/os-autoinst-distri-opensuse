@@ -367,5 +367,12 @@
             "sle": ["15-SP3", "15-SP4"]
         },
         "type": "bug"
+    },
+    "boo#1196618": {
+        "description": "error -110 whilst initialising SD card",
+        "products": {
+            "opensuse": ["Tumbleweed", "15.4"]
+        },
+        "type": "bug"
     }
 }
