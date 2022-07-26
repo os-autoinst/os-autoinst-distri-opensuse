@@ -10,57 +10,18 @@
 #   the lock-in imposed by alternative offerings.
 #
 #   This module is used to test BCI repository and BCI container images.
-#   It makes the call to tox to run the different test environments and
-#   parses the resulting JUnit logs at the end.
+#   It makes the call to tox to run the different test environments defined
+#   in the variable BCI_TEST_ENVS.
 # Maintainer: qa-c team <qa-c@suse.de>
 
 use Mojo::Base qw(consoletest);
 use XML::LibXML;
 use testapi;
 use File::Basename;
-use Utils::Architectures qw(is_ppc64le);
+use utils qw(systemctl);
+use version_utils qw(get_os_release);
 
-our $test_envs = get_var('BCI_TEST_ENVS', 'base,init,dotnet,python,node,go,multistage');
-our $error_count = 0;
-
-sub parse_logs {
-    my $self = @_;
-
-    # bci-tests produce separate XUnit results files for each environment.
-    # We need tp merge all together into a single xml file that will
-    # be used by OpenQA to represent the results in "External results"
-    my $dom = XML::LibXML::Document->new('1.0', 'utf-8');
-    my $root = $dom->createElement('testsuites');
-    $dom->setDocumentElement($root);
-
-    my $result_files = script_output('ls | grep junit');
-    record_info('Files', $result_files);
-    # Dump xml contents to a location where we can access later using data_url
-    for my $file (split(/\n/, $result_files)) {
-        my $log_file;
-        (my $env = $file) =~ s/.xml//;
-        ($env) =~ s/.*_//;
-        eval {
-            $log_file = upload_logs($file);
-        };
-        if ($@) {
-            record_info('Skip', "Skipping results for $env. $@");
-        } else {
-            record_info('Parse', $log_file);
-            my $dom = XML::LibXML->load_xml(location => "ulogs/$log_file");
-            for my $node ($dom->findnodes('//testsuite')) {
-                # Replace default attribute name "pytest" by its env name
-                $node->{name} =~ s/pytest/$env/;
-                # Append test results to the resulting xml file
-                $root->appendChild($node);
-            }
-        }
-    }
-    $dom->toFile(hashed_string('result.xml'), 1);
-    # Download file from host pool to the instance
-    assert_script_run('curl -s ' . autoinst_url('/files/result.xml') . ' -o /tmp/result.txt');
-    parse_extra_log('XUnit', '/tmp/result.txt');
-}
+my $error_count;
 
 sub run_tox_cmd {
     my ($self, $env) = @_;
@@ -83,23 +44,47 @@ sub run_tox_cmd {
     } else {
         record_info('PASSED');
     }
+    # Rename resulting junit file because it will be overwritten if we run
+    # the same tox command later with another container engine. This way,
+    # we will be able to parse the results for both container engines tox runs.
+    # e.g. junit_python.xml -> junit_python_podman.xml
+    # We use script_run because the file might not exist if tox timed out or other
+    # unexpected error.
+    script_run('mv junit_' . $env . '.xml junit_' . $env . '_${CONTAINER_RUNTIME}.xml');
 }
 
+sub reset_engines {
+    my ($self, $current_engine) = @_;
+    my ($version, $sp, $host_distri) = get_os_release;
+    my $sp_version = "$version.$sp";
+    if ($sp_version =~ /15.3|15.4/) {
+        # This workaround is only needed in SLE 15-SP3 and 15-SP4 (and Leap 15.3 and 15.4)
+        # where we need to restart docker and firewalld before running podman, otherwise
+        # the podman containers won't have access to the outside world.
+        my $engines = get_required_var('CONTAINER_RUNTIME');
+        if ($engines =~ /docker/ && $host_distri =~ /sles|opensuse/ && $host_distri =~ /sles|opensuse/) {
+            ($current_engine eq 'podman') ? systemctl("stop docker") : systemctl("start docker");
+            script_run('systemctl --no-pager restart firewalld');
+        }
+    }
+}
 
 sub run {
-    my ($self) = @_;
+    my ($self, $args) = @_;
     $self->select_serial_terminal;
 
-    my $engine = get_required_var('CONTAINER_RUNTIME');
+    $error_count = 0;
+
+    my $engine = $args->{runtime};
     my $bci_devel_repo = get_var('BCI_DEVEL_REPO');
     my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
     my $version = get_required_var('VERSION');
+    my $test_envs = get_required_var('BCI_TEST_ENVS');
+
+    $self->reset_engines($engine);
 
     record_info('Run', "Starting the tests for the following environments:\n$test_envs");
-    my $bci_dir = fileparse($bci_tests_repo, qr/\.[^.]*/);
-    # Sometimes ppc64le are still running type_string 'cd' command from select_serial_terminal and fail to run cd BCI-tests
-    sleep 60 if is_ppc64le;
-    assert_script_run("cd $bci_dir");
+    assert_script_run("cd /root/BCI-tests");
     assert_script_run("export TOX_PARALLEL_NO_SPINNER=1");
     assert_script_run("export CONTAINER_RUNTIME=$engine");
     $version =~ s/-SP/./g;
@@ -118,14 +103,13 @@ sub run {
         $self->run_tox_cmd($env);
     }
 
-    $self->parse_logs();
 
     # Mark the job as failed if any of the tests failed
     die("$error_count tests failed.") if ($error_count > 0);
 }
 
 sub test_flags {
-    return {fatal => 1, milestone => 1};
+    return {fatal => 0, no_rollback => 1};
 }
 
 1;
