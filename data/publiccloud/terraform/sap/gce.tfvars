@@ -308,7 +308,7 @@ hana_master_password = "Linux1234"
 ########################
 
 # Enable drbd cluster
-drbd_enabled = true
+drbd_enabled = false
 
 #drbd_machine_type = "n1-standard-4"
 
