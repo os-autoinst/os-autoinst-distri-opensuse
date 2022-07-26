@@ -16,6 +16,7 @@
     <ul>
       <li><a href="#check_port_state">check_port_state</a></li>
       <li><a href="#subscribe_extensions_and_modules">subscribe_extensions_and_modules</a></li>
+      <li><a href="#is_sev_es_guest">is_sev_es_guest</a></li>
     </ul>
   </li>
 </ul><h1>lib/virt_autotest/utils.pm</h1>
@@ -31,6 +32,12 @@
 <pre><code>  subscribe_extensions_and_modules(dst_machine =&gt; $machine, activate =&gt; 1/0, reg_exts =&gt; $exts)</code></pre>
 
 <p>Any available extensions and modules listed out by SUSEConnect --list-extensions that do not require additional regcode can be subscribe directly by using command SUSEConnect -p [extension or module]. Subscription is to be performed on localhost by default if argument dst_machine is not given any other address, and successful access to dst_machine via ssh should be guaranteed in advance if dst_machine points to a remote machine. Deactivation is also supported if argument activate is given 0 explicitly. Multiple extensions or modules can be passed in as a single string separated by space to argument reg_exts to be subscribed one by one.</p>
+
+<h2 id="is_sev_es_guest">is_sev_es_guest</h2>
+
+<pre><code>  is_sev_es_guest($guest_name)</code></pre>
+
+<p>Check whether a guest is sev-es, sev only or not sev/sev-es guest by searching whether sev-es or sev word is available in its name. The only argument for the subroutine is guest_name. It returns sev-es or sev if either is found in guest name, otherwise it returns 0.</p>
 
 
 </body>

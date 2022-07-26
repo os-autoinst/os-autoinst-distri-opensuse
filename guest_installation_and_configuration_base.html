@@ -1,0 +1,55 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/guest_installation_and_configuration_base.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#config_guest_memory">config_guest_memory</a></li>
+      <li><a href="#config_guest_security">config_guest_security</a></li>
+      <li><a href="#config_guest_controller">config_guest_controller</a></li>
+      <li><a href="#config_guest_rng">config_guest_rng</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/guest_installation_and_configuration_base.pm</h1>
+
+<h2 id="config_guest_memory">config_guest_memory</h2>
+
+<pre><code>  config_guest_memory($self [, guest_memory =&gt; &#39;memory&#39;] [, guest_memballoon =&gt; &#39;memballoon&#39;]
+  [, guest_memdev =&gt; &#39;memdev&#39;] [, guest_memtune =&gt; &#39;memtune&#39;] [, guest_memorybacking =&gt; &#39;memorybacking&#39;])</code></pre>
+
+<p>Configure [guest_memory_options]. User can still change [guest_memory],[guest_memballoon], [guest_memdev], [guest_memtune] and [guest_memorybacking] by passing non-empty arguments using hash. If installation already passes, modify_guest_params will be called to modify [guest_memory], [guest_memballoon], [guest_memdev], [guest_memtune] and [guest_memorybacking] using already modified [guest_memory_options].</p>
+
+<h2 id="config_guest_security">config_guest_security</h2>
+
+<pre><code>  config_guest_security($self [, guest_seclabel =&gt; &#39;seclabel&#39;] [, guest_launchsecurity =&gt; &#39;launchsecurity&#39;])</code></pre>
+
+<p>Configure [guest_security_options]. User can still change [guest_security] and [guest_launchsecurity] by passing non-empty arguments using hash. If installation already passes, modify_guest_params will be called to modify guest_security] and [guest_launchsecurity] using already modified [guest_security_options].</p>
+
+<h2 id="config_guest_controller">config_guest_controller</h2>
+
+<pre><code>  config_guest_controller($self [, guest_controller =&gt; &#39;controller&#39;])</code></pre>
+
+<p>Configure [guest_controller_options]. User can still change [guest_controller] by passing non-empty arguments using hash. [guest_controller] can have more than one type controller which should be separated by hash symbol, for example, &quot;controller1 _config#controller2_config#controller3_config&quot;. Then it will be splitted and passed to individual &quot;--controller&quot; argument to form [guest_controller_options] = &quot;--controller controller1_config --controller controller2_config --controller controller3_config&quot;. If installation already passes, modify_guest_params will be called to modify [guest_controller] using already modified [guest_controller_options].</p>
+
+<h2 id="config_guest_rng">config_guest_rng</h2>
+
+<pre><code>  config_guest_rng($self [, guest_rng =&gt; &#39;rng&#39;])</code></pre>
+
+<p>Configure [guest_rng_options]. User can still change [guest_rng] by passing non-empty arguments using hash. If installations already passes, modify_guest_params will be called to modify [guest_rng] using already modified [guest_rng_options].</p>
+
+
+</body>
+
+</html>
+
+
