@@ -10,6 +10,7 @@ use testapi;
 use known_bugs;
 use version_utils qw(is_public_cloud is_openstack);
 use publiccloud::utils 'select_host_console';
+use utils;
 
 =head1 consoletest
 
@@ -60,6 +61,7 @@ switch network manager to wicked.
 =cut
 
 sub use_wicked_network_manager {
+    zypper_call("in wicked");
     assert_script_run "systemctl disable NetworkManager --now";
     assert_script_run "systemctl enable --force wicked --now";
     assert_script_run "systemctl start wickedd.service";
