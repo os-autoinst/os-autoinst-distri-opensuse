@@ -12,7 +12,7 @@ use Mojo::Util 'trim';
 use Data::Dumper;
 use testapi;
 use db_utils;
-use publiccloud::utils qw(select_host_console);
+use publiccloud::ssh_interactive qw(select_host_console);
 
 our $default_analyze_thresholds = {
     # First boot after provisioning

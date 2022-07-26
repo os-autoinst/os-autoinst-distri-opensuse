@@ -14,7 +14,7 @@ use Mojo::Base -base;
 use Mojo::Util 'trim';
 use File::Basename;
 use publiccloud::utils;
-use publiccloud::ssh_interactive;
+use publiccloud::ssh_interactive qw(ssh_interactive_tunnel ssh_interactive_leave);
 use version_utils;
 
 use constant SSH_TIMEOUT => 90;

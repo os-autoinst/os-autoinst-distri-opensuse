@@ -19,7 +19,6 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_public_cloud);
-use publiccloud::ssh_interactive;
 use registration;
 
 our @EXPORT = qw(
@@ -36,38 +35,8 @@ our @EXPORT = qw(
   register_addon
   register_openstack
   register_addons_in_pc
-  select_host_console
   gcloud_install
 );
-
-# Select console on the test host, if force is set, the interactive session will
-# be destroyed. If called in TUNNELED environment, this function die.
-#
-# select_host_console(force => 1)
-#
-sub select_host_console {
-    my (%args) = @_;
-    $args{force} //= 0;
-    my $tunneled = get_var('TUNNELED');
-
-    if ($tunneled && check_var('_SSH_TUNNELS_INITIALIZED', 1)) {
-        die("Called select_host_console but we are in TUNNELED mode") unless ($args{force});
-
-        opensusebasetest::select_serial_terminal();
-        ssh_interactive_leave();
-
-        select_console('tunnel-console', await_console => 0);
-        send_key 'ctrl-c';
-        send_key 'ret';
-
-        set_var('_SSH_TUNNELS_INITIALIZED', 0);
-        opensusebasetest::clear_and_verify_console();
-        save_screenshot;
-    }
-    set_var('TUNNELED', 0) if $tunneled;
-    opensusebasetest::select_serial_terminal();
-    set_var('TUNNELED', $tunneled) if $tunneled;
-}
 
 # Get the current UTC timestamp as YYYY/mm/dd HH:MM:SS
 sub utc_timestamp {

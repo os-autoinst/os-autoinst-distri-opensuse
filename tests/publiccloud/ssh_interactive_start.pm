@@ -8,15 +8,16 @@
 #
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 
-use Mojo::Base 'publiccloud::ssh_interactive_init';
-use publiccloud::ssh_interactive;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
-use publiccloud::utils "select_host_console";
+use publiccloud::ssh_interactive "ssh_interactive_tunnel";
 
 sub run {
     my ($self, $args) = @_;
     die "tunnel-console requires the TUNELLED=1 setting" unless (get_var("TUNNELED"));
+
+    $self->{provider} = $args->{my_provider};    # required for cleanup
 
     # Only initialize tunnels, if not previously done
     if (!get_var('_SSH_TUNNELS_INITIALIZED', 0)) {
@@ -50,6 +51,10 @@ sub run {
     $self->select_serial_terminal();
     assert_script_run('test -e /dev/' . get_var('SERIALDEV'));
     assert_script_run('test $(id -un) == "root"');
+}
+
+sub test_flags {
+    return {fatal => 1, publiccloud_multi_module => 1};
 }
 
 1;

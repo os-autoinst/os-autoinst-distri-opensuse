@@ -13,7 +13,7 @@ use warnings;
 use testapi;
 use strict;
 use utils;
-use publiccloud::utils "select_host_console";
+use publiccloud::ssh_interactive "select_host_console";
 
 # Get the status of the update repos
 # 0 = no repo, 1 = repos already downloaded, 2 = repos downloading

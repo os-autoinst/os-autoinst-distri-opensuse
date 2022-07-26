@@ -9,7 +9,8 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
-use publiccloud::utils qw(is_byos select_host_console);
+use publiccloud::utils 'is_byos';
+use publiccloud::ssh_interactive 'select_host_console';
 use utils qw(zypper_call systemctl);
 
 sub run {
