@@ -155,6 +155,20 @@ sub load_host_tests_helm {
     }
 }
 
+sub load_image_tests_in_k8s {
+    my ($run_args) = @_;
+    my $providers = undef;
+
+    $providers = get_var("PUBLIC_CLOUD_PROVIDER", "GCE,EC2,AZURE");
+
+    foreach (split(',\s*', $providers)) {
+        push @{$run_args->{provider}}, $_;
+        loadtest('containers/push_container_image_to_pc', run_args => $run_args, name => "push_container_image_to_" . $_);
+        push @{$run_args->{provider}}, $_;
+        loadtest('containers/run_container_in_k8s', run_args => $run_args, name => "run_container_in_k8s_" . $_);
+    }
+}
+
 sub update_host_and_publish_hdd {
     # Method used to update pre-installed host images, booting
     # the existing qcow2 and publish a new qcow2
@@ -182,7 +196,7 @@ sub load_container_tests {
         loadtest 'boot/boot_to_desktop' unless is_public_cloud;
     }
 
-    if (is_container_image_test() && !(is_jeos || is_sle_micro || is_microos || is_leap_micro)) {
+    if (is_container_image_test() && !(is_jeos || is_sle_micro || is_microos || is_leap_micro) && $runtime ne "k8s") {
         # Container Image tests common
         loadtest 'containers/host_configuration';
         loadtest 'containers/bci_prepare' if (get_var('BCI_TESTS'));
@@ -208,6 +222,7 @@ sub load_container_tests {
                 # Common openQA image tests
                 load_image_tests_podman($run_args) if (/podman/i);
                 load_image_tests_docker($run_args) if (/docker/i);
+                load_image_tests_in_k8s($run_args) if (/k8s/i);
             }
         } elsif (get_var('REPO_BCI')) {
             loadtest 'containers/host_configuration';
