@@ -314,7 +314,7 @@ drbd_image_uri = "https://eisleqasapopenqa.blob.core.windows.net/sle-images/%SLE
 #drbd_os_image = "SUSE:sles-sap-15-sp2-byos:gen2:latest"
 
 # Enable drbd cluster
-drbd_enabled = true
+drbd_enabled = false
 
 # Each drbd cluster host IP address (sequential order). If it's not set the addresses will be auto generated from the provided vnet address range
 drbd_ips = ["10.74.1.21", "10.74.1.22"]
