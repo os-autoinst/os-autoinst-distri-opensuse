@@ -16,7 +16,7 @@ use Tomcat::Utils;
 use version_utils 'is_sle';
 
 # allow a 60 second timeout for asserting needles
-use constant TIMEOUT => 60;
+use constant TIMEOUT => 90;
 
 # test all JSP examples
 sub test_all_examples() {
