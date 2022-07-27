@@ -102,6 +102,8 @@ sub run {
     validate_script_output('kubectl describe deployments/nginx-deployment | grep Replicas', sub { $_ =~ m/5 desired.*5 total/ });
     # Scale in
     assert_script_run('kubectl scale --replicas=2 deployments/nginx-deployment');
+    # When scaling healthy cluster in the deployment condition is always available even when more than specified amount of replicas still exist
+    validate_script_output_retry('kubectl get events | grep ScalingReplicaSet | tail -n1', qr/Scaled down replica set nginx-deployment-.*to 2/, retry => 6, delay => 20, timeout => 10);
     assert_script_run('kubectl wait deployment nginx-deployment --for condition=available --timeout=300s', timeout => 330);
     validate_script_output('kubectl describe deployments/nginx-deployment | grep Replicas', sub { $_ =~ m/2 desired.*2 total/ });
     # Test the port-forwarding and the webserver
