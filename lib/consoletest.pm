@@ -9,7 +9,6 @@ use warnings;
 use testapi;
 use known_bugs;
 use version_utils qw(is_public_cloud is_openstack);
-use publiccloud::utils 'select_host_console';
 use utils;
 
 =head1 consoletest
