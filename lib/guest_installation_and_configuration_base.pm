@@ -36,6 +36,7 @@ use utils;
 use virt_utils;
 use virt_autotest::utils;
 use version_utils;
+use Utils::Systemd 'disable_and_stop_service';
 
 #%guest_params contains all parameters will be used for virtual machine creation, installation and configuration.
 #All parameters before those end with 'options' can be included in guest params xml file and used as guest instance configuration file.
@@ -96,7 +97,8 @@ our %guest_params = (
                              #It stores the final guest ip address obtained from ip discovery
     'guest_ipaddr_static' => '',    #This indicates whether guest uses static ip address(true or false), not virt-install argument
     'guest_graphics' => '',    #virt-install --graphics [guest_graphics]
-    'guest_controller' => '',    #TODO            #virt-install --controller [guest_controller]
+    'guest_controller' => '',  # virt-install --controller [guest_controller].More than one controller can be passed to guest, they should be separated by hash.
+                               # For example, "controller1#controller2#controller3" which will be splitted later and passed to individual --controller argument.
     'guest_input' => '',    #TODO            #virt-install --input [guest_input]
     'guest_serial' => '',    #virt-install --serial [guest_serial]
     'guest_parallel' => '',    #TODO            #virt-install --parallel [guest_parallel]
@@ -109,20 +111,20 @@ our %guest_params = (
     'guest_video' => '',    #virt-install --video [guest_video]
     'guest_smartcard' => '',    #TODO            #virt-install --smartcard [guest_smartcard]
     'guest_redirdev' => '',    #TODO            #virt-install --redirdev [guest_redirdev]
-    'guest_memballoon' => '',    #TODO            #virt-install --memballoon [guest_memballoon]
+    'guest_memballoon' => '',    # virt-install --memballoon [guest_memballoon]
     'guest_tpm' => '',    #TODO            #virt-install --tpm [guest_tpm]
-    'guest_rng' => '',    #TODO            #virt-install --rng [guest_rng]
+    'guest_rng' => '',    # virt-install --rng [guest_rng]
     'guest_panic' => '',    #TODO            #virt-install --panic [guest_panic]
-    'guest_memdev' => '',    #TODO            #virt-install --memdev [guest_memdev]
+    'guest_memdev' => '',    # virt-install --memdev [guest_memdev]
     'guest_vsock' => '',    #TODO            #virt-install --vsock [guest_vsock]
     'guest_iommu' => '',    #TODO            #virt-install --iommu [guest_iommu]
     'guest_iothreads' => '',    #TODO            #virt-install --iothreads [guest_iothreads]
-    'guest_seclabel' => '',    #TODO            #virt-install --seclabel [guest_seclabel]
+    'guest_seclabel' => '',    # virt-install --seclabel [guest_seclabel]
     'guest_keywrap' => '',    #TODO            #virt-install --keywrap [guest_keywrap]
     'guest_cputune' => '',    #TODO            #virt-install --cputune [guest_cputune]
-    'guest_memtune' => '',    #TODO            #virt-install --memtune [guest_memtune]
+    'guest_memtune' => '',    # virt-install --memtune [guest_memtune]
     'guest_blkiotune' => '',    #TODO            #virt-install --blkiotune [guest_blkiotune]
-    'guest_memorybacking' => '',    #TODO            #virt-install --memorybacking [guest_memorybacking]
+    'guest_memorybacking' => '',    # virt-install --memorybacking [guest_memorybacking]
     'guest_features' => '',    #virt-install --features [guest_features]
     'guest_clock' => '',    #TODO            #virt-install --clock [guest_clock]
     'guest_power_management' => '',    #virt-install --pm [guest_power_management]
@@ -130,7 +132,7 @@ our %guest_params = (
     'guest_resource' => '',    #TODO            #virt-install --resource [guest_resource]
     'guest_sysinfo' => '',    #TODO            #virt-install --sysinfo [guest_sysinfo]
     'guest_qemu_command' => '',    #virt-install --qemu-commandline [guest_qemu_command]
-    'guest_launchsecurity' => '',    #TODO            #virt-install --launchSecurity [guest_launchsecurity]
+    'guest_launchsecurity' => '',    # virt-install --launchSecurity [guest_launchsecurity]
     'guest_autostart' => '',    #TODO            #virt-install --[guest_autostart(autostart or empty)]
     'guest_transient' => '',    #TODO            #virt-install --[guest_transient(transient or empty)]
     'guest_destroy_on_exit' => '',    #TODO            #virt-install --[guest_destroy_on_exit(true or false)]
@@ -165,7 +167,8 @@ our %guest_params = (
     'guest_virt_options' => '',    #[guest_virt_options] = "--connect [host_hypervisor_uri] --virt-type [host_virt_type] --[guest_virt_type]"
     'guest_platform_options' => '',    #[guest_platform_options] = "--arch [guest_arch] --machine [guest_machine_type]"
     'guest_name_options' => '',    #[guest_name_options] = "--name [guest_name]"
-    'guest_memory_options' => '',    #[guest_memory_options] = "--memory [guest_memory]"
+    'guest_memory_options' => '',    # [guest_memory_options] = "--memory [guest_memory] --memballoon [guest_memballoon] --memdev [guest_memdev]
+                                     # --memtune [guest_memtune] --memorybacking [guest_memorybacking]"
     'guest_vcpus_options' => '',    #[guest_vcpus_options] = "--vcpus [guest_vcpus]"
     'guest_cpumodel_options' => '',    #[guest_cpumodel_options] = "--cpu [guest_cpumodel]"
     'guest_metadata_options' => '',    #[guest_metadata_options] = "--metadata [guest_metadata]"
@@ -188,6 +191,9 @@ our %guest_params = (
     'guest_power_management_options' => '',    #[guest_power_management_options] = "--pm [guest_power_management]"
     'guest_events_options' => '',    #[guest_events_options] = "--events [guest_events]"
     'guest_qemu_command_options' => '',    #[guest_qemu_command_options] = "--qemu-commandline [guest_qemu_command]"
+    'guest_security_options' => '',    # [guest_security_options] = "--seclabel [guest_seclabel] --launchSecurity [guest_launchsecurity]"
+    'guest_controller_options' => '',    # [guest_controller_options] = "--controller [guest_controller#1] --controller [guest_controller#2]"
+    'guest_rng_options' => '',    # [guest_rng_options] = "--rng [guest_rng]"
     'virt_install_command_line' => '',    #This is the complete virt-install command line which is composed of above parameters end with 'options'
     'virt_install_command_line_dryrun' => '',    #This is [virt_install_command_line] appended with --dry-run
     'host_ipaddr' => '',    #This is get_required_var('SUT_IP')
@@ -352,13 +358,14 @@ sub prepare_common_environment {
     $self->reveal_myself;
     if ($common_environment_prepared eq 'false') {
         $self->clean_up_all_guests;
+        disable_and_stop_service('named.service', ignore_failure => 1);
         script_run("rm -f -r $common_log_folder");
         assert_script_run("mkdir -p $common_log_folder");
         my @stuff_to_backup = ('/root/.ssh/config', '/etc/ssh/ssh_config');
         virt_autotest::utils::backup_file(\@stuff_to_backup);
         script_run("rm -f -r /root/.ssh/config");
         virt_autotest::utils::setup_common_ssh_config('/root/.ssh/config');
-        script_run("sed -irn \'s/^.*IdentityFile.*\$/#&/\' /etc/ssh/ssh_config");
+        script_run("sed -i -r -n \'s/^.*IdentityFile.*\$/#&/\' /etc/ssh/ssh_config");
         enable_debug_logging;
         virt_autotest::utils::setup_rsyslog_host($common_log_folder);
         my $_packages_to_check = 'wget curl screen dnsmasq xmlstarlet yast2-schema python3 nmap';
@@ -454,8 +461,19 @@ sub config_guest_vcpus {
     return $self;
 }
 
-#Configure [guest_memory_options].User can still change [guest_memory] by passing non-empty arguments using hash.
-#If installations already passes,modify_guest_params will be called to modify [guest_memory] using already modified [guest_memory_options].
+=head2 config_guest_memory
+
+  config_guest_memory($self [, guest_memory => 'memory'] [, guest_memballoon => 'memballoon']
+  [, guest_memdev => 'memdev'] [, guest_memtune => 'memtune'] [, guest_memorybacking => 'memorybacking'])
+
+Configure [guest_memory_options]. User can still change [guest_memory],[guest_memballoon],
+[guest_memdev], [guest_memtune] and [guest_memorybacking] by passing non-empty arguments 
+using hash. If installation already passes, modify_guest_params will be called to modify 
+[guest_memory], [guest_memballoon], [guest_memdev], [guest_memtune] and [guest_memorybacking] 
+using already modified [guest_memory_options].
+
+=cut
+
 sub config_guest_memory {
     my $self = shift;
 
@@ -464,6 +482,10 @@ sub config_guest_memory {
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
     $self->{guest_memory} = 2048 if ($self->{guest_memory} eq '');
     $self->{guest_memory_options} = "--memory $self->{guest_memory}";
+    $self->{guest_memory_options} .= " --memballoon $self->{guest_memballoon}" if ($self->{guest_memballoon} ne '');
+    $self->{guest_memory_options} .= " --memdev $self->{guest_memdev}" if ($self->{guest_memdev} ne '');
+    $self->{guest_memory_options} .= " --memtune $self->{guest_memtune}" if ($self->{guest_memtune} ne '');
+    $self->{guest_memory_options} .= " --memorybacking $self->{guest_memorybacking}" if ($self->{guest_memorybacking} ne '');
     $self->modify_guest_params($self->{guest_name}, 'guest_memory_options') if (($self->{guest_installation_result} eq 'PASSED') and ($_current_memory_options ne $self->{guest_memory_options}));
     return $self;
 }
@@ -641,6 +663,79 @@ sub config_guest_qemu_command {
     return $self;
 }
 
+=head2 config_guest_security
+
+  config_guest_security($self [, guest_seclabel => 'seclabel'] [, guest_launchsecurity => 'launchsecurity'])
+
+Configure [guest_security_options]. User can still change [guest_security] and
+[guest_launchsecurity] by passing non-empty arguments using hash. If installation
+already passes, modify_guest_params will be called to modify guest_security] and
+[guest_launchsecurity] using already modified [guest_security_options].
+
+=cut
+
+sub config_guest_security {
+    my $self = shift;
+
+    $self->reveal_myself;
+    my $_current_security_options = $self->{guest_security_options};
+    $self->config_guest_params(@_) if (scalar(@_) gt 0);
+    $self->{guest_security_options} = "--seclabel $self->{guest_seclabel}" if ($self->{guest_seclabel} ne '');
+    $self->{guest_security_options} .= " --launchSecurity $self->{guest_launchsecurity}" if ($self->{guest_launchsecurity} ne '');
+    $self->modify_guest_params($self->{guest_name}, 'guest_security_options') if (($self->{guest_installation_result} eq 'PASSED') and ($_current_security_options ne $self->{guest_security_options}));
+    return $self;
+}
+
+=head2 config_guest_controller
+
+  config_guest_controller($self [, guest_controller => 'controller'])
+
+Configure [guest_controller_options]. User can still change [guest_controller] by
+passing non-empty arguments using hash. [guest_controller] can have more than one
+type controller which should be separated by hash symbol, for example, "controller1
+_config#controller2_config#controller3_config". Then it will be splitted and passed 
+to individual "--controller" argument to form [guest_controller_options] = "--controller
+controller1_config --controller controller2_config --controller controller3_config". 
+If installation already passes, modify_guest_params will be called to modify
+[guest_controller] using already modified [guest_controller_options].
+
+=cut
+
+sub config_guest_controller {
+    my $self = shift;
+
+    $self->reveal_myself;
+    my $_current_controller_options = $self->{guest_controller_options};
+    $self->config_guest_params(@_) if (scalar(@_) gt 0);
+    if ($self->{guest_controller} ne '') {
+        my @_guest_controller = split(/#/, $self->{guest_controller});
+        $self->{guest_controller_options} = $self->{guest_controller_options} . "--controller $_ " foreach (@_guest_controller);
+        $self->modify_guest_params($self->{guest_name}, 'guest_controller_options') if (($self->{guest_installation_result} eq 'PASSED') and ($_current_controller_options ne $self->{guest_controller_options}));
+    }
+    return $self;
+}
+
+=head2 config_guest_rng
+
+  config_guest_rng($self [, guest_rng => 'rng'])
+
+Configure [guest_rng_options]. User can still change [guest_rng] by passing 
+non-empty arguments using hash. If installations already passes, modify_guest_params 
+will be called to modify [guest_rng] using already modified [guest_rng_options].
+
+=cut
+
+sub config_guest_rng {
+    my $self = shift;
+
+    $self->reveal_myself;
+    my $_current_rng_options = $self->{guest_rng_options};
+    $self->config_guest_params(@_) if (scalar(@_) gt 0);
+    $self->{guest_rng_options} = "--rng $self->{guest_rng}" if ($self->{guest_rng} ne '');
+    $self->modify_guest_params($self->{guest_name}, 'guest_rng_options') if (($self->{guest_installation_result} eq 'PASSED') and ($_current_rng_options ne $self->{guest_rng_options}));
+    return $self;
+}
+
 #Configure [guest_storage_options].User can still change [guest_storage_type],[guest_storage_size],[guest_storage_format],[guest_storage_label],[guest_storage_path]
 #and [guest_storage_others] by passing non-empty arguments using hash.If installations already passes,modify_guest_params will be called to modify [guest_storage_type],
 #[guest_storage_size],[guest_storage_format],[guest_storage_path] and [guest_storage_others] using already modified [guest_storage_options].
@@ -718,6 +813,7 @@ sub config_guest_network_selection {
         $self->config_guest_network_bridge($self->{guest_network_device}, $self->{guest_netaddr}, $self->{guest_domain_name});
         $self->config_guest_network_bridge_policy($self->{guest_network_device});
         $self->{guest_network_selection_options} = "--network=bridge=$self->{guest_network_device},mac=$self->{guest_macaddr}";
+        $self->{guest_network_selection_options} .= ",$self->{guest_network_others}" if ($self->{guest_network_others} ne '');
     }
     return $self;
 }
@@ -863,8 +959,8 @@ sub config_guest_network_bridge_services {
     $_detect_signature = script_output("cat /etc/resolv.conf | grep \"#Modified by guest_installation_and_configuration_base module\"", proceed_on_failure => 1);
     my $_detect_name_server = script_output("cat /etc/resolv.conf | grep \"nameserver $_guest_network_ipaddr_gw\"", proceed_on_failure => 1);
     my $_detect_domain_name = script_output("cat /etc/resolv.conf | grep $self->{guest_domain_name}", proceed_on_failure => 1);
-    assert_script_run("awk -v dnsvar=$_guest_network_ipaddr_gw \'done != 1 && /^nameserver.*\$/ { print \"nameserver \"dnsvar\"\\n\"; done=1 } 1\' /etc/resolv.conf > /etc/resolv.conf.tmp") if ($_detect_name_server eq '');
-    assert_script_run("sed -ir \'/^search/ s/\$/ $self->{guest_domain_name}/\' /etc/resolv.conf.tmp") if ($_detect_domain_name eq '');
+    assert_script_run("awk -v dnsvar=$_guest_network_ipaddr_gw \'done != 1 && /^nameserver.*\$/ { print \"nameserver \"dnsvar\"\"; done=1 } 1\' /etc/resolv.conf > /etc/resolv.conf.tmp") if ($_detect_name_server eq '');
+    assert_script_run("sed -i -r \'/^search/ s/\$/ $self->{guest_domain_name}/\' /etc/resolv.conf.tmp") if ($_detect_domain_name eq '');
     if ($_detect_signature eq '') {
         assert_script_run("cp /etc/resolv.conf /etc/resolv_backup.conf && mv /etc/resolv.conf.tmp /etc/resolv.conf");
         assert_script_run("echo \'#Modified by guest_installation_and_configuration_base module\' >> /etc/resolv.conf");
@@ -874,7 +970,11 @@ sub config_guest_network_bridge_services {
     my $_guest_network_ipaddr_gw_transformed = $_guest_network_ipaddr_gw;
     $_guest_network_ipaddr_gw_transformed =~ s/\./_/g;
     my $_dnsmasq_log = "$common_log_folder/dnsmasq_listen_address_$_guest_network_ipaddr_gw_transformed" . '_log';
-    my $_dnsmasq_command = "/usr/sbin/dnsmasq --bind-dynamic --listen-address=$_guest_network_ipaddr_gw --bogus-priv --domain-needed --expand-hosts --dhcp-range=$_guest_network_ipaddr_start,$_guest_network_ipaddr_end,$_guest_network_mask,8h --interface=$_guest_network_device --dhcp-authoritative --no-negcache --dhcp-option=option:router,$_guest_network_ipaddr_gw --log-queries --local=/$self->{guest_domain_name}/ --domain=$self->{guest_domain_name} --log-dhcp --dhcp-fqdn --dhcp-sequential-ip --dhcp-client-update --dns-loop-detect --no-daemon --server=/$self->{guest_domain_name}/$_guest_network_ipaddr_gw --server=/$_guest_network_ipaddr_rev/$_guest_network_ipaddr_gw";
+    my $_dnsmasq_command = "/usr/sbin/dnsmasq --bind-dynamic --listen-address=$_guest_network_ipaddr_gw --bogus-priv --domain-needed --expand-hosts "
+      . "--dhcp-range=$_guest_network_ipaddr_start,$_guest_network_ipaddr_end,$_guest_network_mask,8h --interface=$_guest_network_device "
+      . "--dhcp-authoritative --no-negcache --dhcp-option=option:router,$_guest_network_ipaddr_gw --log-queries --local=/$self->{guest_domain_name}/ "
+      . "--domain=$self->{guest_domain_name} --log-dhcp --dhcp-fqdn --dhcp-sequential-ip --dhcp-client-update --dns-loop-detect --no-daemon "
+      . "--server=/$self->{guest_domain_name}/$_guest_network_ipaddr_gw --server=/$_guest_network_ipaddr_rev/$_guest_network_ipaddr_gw";
     my $_retry_counter = 5;
     #Use grep instead of pgrep to avoid that the latter's case-insensitive search option might not be supported by some obsolete operating systems.
     while (($_retry_counter gt 0) and (script_output("ps ax | grep -i \"$_dnsmasq_command\" | grep -v grep | awk \'{print \$1}\'", proceed_on_failure => 1) eq '')) {
@@ -1254,6 +1354,9 @@ sub prepare_guest_installation {
     $self->config_guest_features;
     $self->config_guest_xpath;
     $self->config_guest_qemu_command;
+    $self->config_guest_security;
+    $self->config_guest_controller;
+    $self->config_guest_rng;
     $self->config_guest_storage;
     $self->config_guest_network_selection;
     $self->config_guest_installation_method;
@@ -1270,7 +1373,13 @@ sub start_guest_installation {
         record_info("Guest $self->{guest_name} installation has not started due to some errors", "Bad luck !");
         return $self;
     }
-    $self->{virt_install_command_line} = "virt-install $self->{guest_virt_options} $self->{guest_platform_options} $self->{guest_name_options} $self->{guest_vcpus_options} $self->{guest_memory_options} $self->{guest_cpumodel_options} $self->{guest_metadata_options} $self->{guest_os_variant_options} $self->{guest_boot_options} $self->{guest_storage_options} $self->{guest_network_selection_options} $self->{guest_installation_method_options} $self->{guest_installation_extra_args_options} $self->{guest_graphics_and_video_options} $self->{guest_serial_options} $self->{guest_console_options} $self->{guest_features_options} $self->{guest_events_options} $self->{guest_power_management_options} $self->{guest_qemu_command_options} $self->{guest_xpath_options} --debug";
+    $self->{virt_install_command_line} = "virt-install $self->{guest_virt_options} $self->{guest_platform_options} $self->{guest_name_options} "
+      . "$self->{guest_vcpus_options} $self->{guest_memory_options} $self->{guest_cpumodel_options} $self->{guest_metadata_options} "
+      . "$self->{guest_os_variant_options} $self->{guest_boot_options} $self->{guest_storage_options} $self->{guest_network_selection_options} "
+      . "$self->{guest_installation_method_options} $self->{guest_installation_extra_args_options} $self->{guest_graphics_and_video_options} "
+      . "$self->{guest_serial_options} $self->{guest_console_options} $self->{guest_features_options} $self->{guest_events_options} "
+      . "$self->{guest_power_management_options} $self->{guest_qemu_command_options} $self->{guest_xpath_options} $self->{guest_security_options} "
+      . "$self->{guest_controller_options} $self->{guest_rng_options} --debug";
     $self->{virt_install_command_line_dryrun} = $self->{virt_install_command_line} . " --dry-run";
     $self->print_guest_params;
 

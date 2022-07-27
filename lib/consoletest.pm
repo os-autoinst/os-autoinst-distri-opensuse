@@ -69,8 +69,4 @@ sub use_wicked_network_manager {
     assert_script_run qq{systemctl status wickedd.service | grep \"active \(running\)\"};
 }
 
-sub test_flags {
-    return get_var('PUBLIC_CLOUD') ? {no_rollback => 1} : {};
-}
-
 1;

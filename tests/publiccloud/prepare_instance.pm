@@ -10,7 +10,7 @@
 # Maintainer: <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
-use publiccloud::utils "select_host_console";
+use publiccloud::ssh_interactive "select_host_console";
 use testapi;
 use utils;
 

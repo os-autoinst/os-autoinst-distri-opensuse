@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use publiccloud::utils "select_host_console";
+use publiccloud::ssh_interactive "select_host_console";
 
 # Mount directory for the NFS test
 my $az_nfs_dir = "/mount/nfsdata";

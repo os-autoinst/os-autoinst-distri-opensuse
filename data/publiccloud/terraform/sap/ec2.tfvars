@@ -276,7 +276,7 @@ hana_master_password = "Linux1234"
 
 # netweaver will use AWS efs for nfs share by default, unless drbd is enabled
 # Enable drbd cluster
-drbd_enabled = true
+drbd_enabled = false
 
 #drbd_instancetype = "t2.micro"
 

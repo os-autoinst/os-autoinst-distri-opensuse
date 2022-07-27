@@ -17,7 +17,6 @@ use testapi;
 use strict;
 use utils;
 use publiccloud::utils;
-use publiccloud::ssh_interactive;
 
 sub run {
     my ($self, $args) = @_;
