@@ -193,7 +193,7 @@ hana_cluster_vip = "10.0.1.200"
 
 # Select HANA cluster fencing mechanism. 'native' by default
 # Find more information in `doc/fencing.md` documentation page
-#hana_cluster_fencing_mechanism = "sbd"
+hana_cluster_fencing_mechanism = "%FENCING_MECHANISM%"
 
 # Enable Active/Active HANA setup (read-only access in the secondary instance)
 #hana_active_active = true

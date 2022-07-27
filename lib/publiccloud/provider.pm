@@ -374,6 +374,7 @@ sub terraform_apply {
         $sle_version =~ s/-/_/g;
         my $ha_sap_repo = get_var('HA_SAP_REPO') ? get_var('HA_SAP_REPO') . '/SLE_' . $sle_version : '';
         my $suffix = sprintf("%04x", rand(0xffff));
+        my $fencing_mechanism = get_var('FENCING_MECHANISM', 'sbd');
         file_content_replace('terraform.tfvars',
             q(%MACHINE_TYPE%) => $instance_type,
             q(%REGION%) => $self->provider_client->region,
@@ -383,7 +384,8 @@ sub terraform_apply {
             q(%STORAGE_ACCOUNT_NAME%) => $storage_account_name,
             q(%STORAGE_ACCOUNT_KEY%) => $storage_account_key,
             q(%HA_SAP_REPO%) => $ha_sap_repo,
-            q(%SLE_VERSION%) => $sle_version
+            q(%SLE_VERSION%) => $sle_version,
+            q(%FENCING_MECHANISM%) => $fencing_mechanism
         );
         upload_logs(TERRAFORM_DIR . "/$cloud_name/terraform.tfvars", failok => 1);
         script_retry('terraform init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
