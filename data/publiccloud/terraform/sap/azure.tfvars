@@ -265,6 +265,9 @@ hana_master_password = "Linux1234"
 # Cost optimized scenario
 #scenario_type = "cost-optimized"
 
+# fencing mechanism for HANA cluster (Options: sbd [default], native)
+hana_cluster_fencing_mechanism = "%FENCING_MECHANISM%"
+
 #######################
 # SBD related variables
 #######################
