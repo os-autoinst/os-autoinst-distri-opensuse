@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: bci-repo test
@@ -42,16 +42,36 @@ my $tdata = [
     }
 ];
 
+my @pkg_regex = ('kernel-default', 'yast', 'gnome-desktop', 'qemu-kvm');
+
 sub container_exec {
     my $container = shift;
     my $cmd = shift;
     assert_script_run(qq[podman exec $container /bin/sh -c '$cmd'], @_);
 }
 
+sub prepare_repo {
+    my $container = shift;
+    my $bci_repo = get_required_var('REPO_BCI');
+    container_exec($container, 'zypper ref', timeout => 180);
+    container_exec($container, 'zypper lr -d');
+    container_exec($container, "zypper -q -s 11 pa --orphaned | tee -a repo.org", timeout => 600);
+    # remove container-suseconnect to not get packages from registered SLE host
+    container_exec($container, 'zypper -n rm container-suseconnect', timeout => 180);
+    # refresh services in order to remove container-suseconnect-zypp orphaned services
+    container_exec($container, 'zypper refs');
+    # remove SLE_BCI repo pointing to official update servers and add SUT repo
+    container_exec($container, 'zypper rr SLE_BCI');
+    container_exec($container, "zypper ar http://openqa.suse.de/assets/repo/$bci_repo BCI_TEST");
+    container_exec($container, 'zypper ref', timeout => 180);
+    container_exec($container, 'zypper lr -d');
+}
+
+my $errors = 0;
+
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-    my $bci_repo = get_required_var('REPO_BCI');
 
     # download and start a BCI container
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
@@ -59,36 +79,44 @@ sub run {
     script_retry("podman pull $image", timeout => 300, delay => 60, retry => 3);
     record_info('Inspect', script_output("podman inspect $image"));
 
+    record_info('TEST', 'Test that the repo does not contain certain packages such as kernel, yast, desktop, kvm, etc...');
+    my $container = "bci-repo-tester_pkgs";
+    assert_script_run("podman run --name $container -dt $image");
+    prepare_repo($container);
+    foreach my $pkg (@pkg_regex) {
+        my $result = script_run(qq[podman exec $container /bin/sh -c 'zypper se $pkg'], die_on_timeout => 1);
+        if ($result == 0) {
+            # Fail if pkg is present in the repo.
+            record_soft_failure("poo#109822 - Package $pkg should not be present in BCI-repo!");
+            $errors += 1;
+        }
+    }
+
+    record_info('TEST', 'Testing patterns and packages can be installed.');
     for (my $i = 0; $i < (scalar @$tdata); $i++) {
         my $container = "bci-repo-tester$i";
-
         assert_script_run("podman run --name $container -dt $image");
-        # query default setup
-        container_exec($container, 'zypper ref', timeout => 180);
-        container_exec($container, 'zypper lr -d');
+        prepare_repo($container);
+        my @patterns = @{$tdata->[$i]->{patterns}};
+        record_info("Patterns", join(', ', @patterns));
         container_exec($container, 'zypper search -t pattern', timeout => 180);
-        container_exec($container, "zypper -q -s 11 pa --orphaned | tee -a repo.org", timeout => 600);
-        # remove container-suseconnect, in order to install the Cloud patterns
-        container_exec($container, 'zypper -n rm container-suseconnect', timeout => 180);
-        # refresh services in order to remove container-suseconnect-zypp orphaned services
-        container_exec($container, 'zypper refs');
-        # remove SLE_BCI repo pointing to official update servers and add SUT repo
-        container_exec($container, 'zypper rr 1');
-        container_exec($container, "zypper ar http://openqa.suse.de/assets/repo/$bci_repo BCI_TEST");
-        container_exec($container, 'zypper ref', timeout => 180);
-        container_exec($container, 'zypper lr -d');
-        record_info("Patterns", join(', ', @{$tdata->[$i]->{patterns}}));
-        container_exec($container, 'zypper search -t pattern', timeout => 180);
-        container_exec($container, "zypper -n in -t pattern @{$tdata->[$i]->{patterns}}", timeout => 600);
+        my $result = script_run(qq[podman exec $container /bin/sh -c 'zypper -n in -t pattern @patterns'], die_on_timeout => 1, timeout => 600);
+        if ($result != 0) {
+            record_soft_failure("poo#109822 - There was an error installing the following patterns: @patterns");
+            $errors += 1;
+            next;
+        }
         container_exec($container, "zypper -q -s 11 pa --orphaned | grep -v sles-release| tee -a repo.test", timeout => 600);
         container_exec($container, 'sed -i "s/ \+/ /g" repo.{org,test}', timeout => 600);
         container_exec($container, "diff repo.org repo.test", timeout => 600);
         container_exec($container, "rpm -q @{$tdata->[$i]->{packages}}", timeout => 600);
     }
+
+    die("Some tests failed.") if ($errors > 0);
 }
 
 sub test_flags {
-    return {fatal => 1, milestone => 1};
+    return {fatal => 1};
 }
 
 1;
