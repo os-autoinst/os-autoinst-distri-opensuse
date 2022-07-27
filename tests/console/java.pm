@@ -53,10 +53,10 @@ sub run {
 
     if (is_transactional) {
         select_console 'root-console';
-        trup_call("--continue pkg $cmd", 2000);
+        trup_call("--continue pkg $cmd", timeout => 2000);
         check_reboot_changes;
         reset_consoles;
-        select_console('root-console', 200);
+        select_console 'root-console';
     }
     else {
         zypper_call($cmd, timeout => 2000);
