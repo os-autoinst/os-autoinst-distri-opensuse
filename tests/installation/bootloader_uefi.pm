@@ -92,6 +92,10 @@ sub run {
         send_key "ret";
         assert_screen "bootloader-grub2", $bootloader_timeout;
     }
+    if (is_selfinstall) {
+        send_key "down";
+        send_key "ret";
+    }
     if (get_var('DISABLE_SECUREBOOT') && (get_var('BACKEND') eq 'qemu')) {
         $self->tianocore_disable_secureboot;
     }
@@ -116,14 +120,15 @@ sub run {
         if (get_var("PROMO") || get_var('LIVETEST') || get_var('LIVECD')) {
             send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 3);
         }
-        elsif (!is_jeos && !is_microos('VMX')) {
+        elsif (!is_jeos && !is_microos('VMX') && !is_selfinstall) {
             send_key_until_needlematch('inst-oninstallation', 'down', 10, 0.5);
         }
     }
 
-    uefi_bootmenu_params;
-    bootmenu_default_params;
     unless (is_selfinstall) {
+        uefi_bootmenu_params;
+        bootmenu_default_params;
+
         bootmenu_remote_target;
         specific_bootmenu_params unless is_microos || is_jeos;
 
