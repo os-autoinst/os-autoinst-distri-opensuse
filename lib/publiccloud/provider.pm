@@ -11,7 +11,7 @@ package publiccloud::provider;
 use testapi qw(is_serial_terminal :DEFAULT);
 use Mojo::Base -base;
 use publiccloud::instance;
-use publiccloud::utils 'is_azure';
+use publiccloud::utils qw(is_azure is_gce);
 use Carp;
 use List::Util qw(max);
 use Data::Dumper;
@@ -374,7 +374,7 @@ sub terraform_apply {
         $sle_version =~ s/-/_/g;
         my $ha_sap_repo = get_var('HA_SAP_REPO') ? get_var('HA_SAP_REPO') . '/SLE_' . $sle_version : '';
         my $suffix = sprintf("%04x", rand(0xffff));
-        my $fencing_mechanism = get_var('FENCING_MECHANISM', 'sbd');
+        my $fencing_mechanism = get_var('FENCING_MECHANISM', is_gce ? 'native' : 'sbd');
         file_content_replace('terraform.tfvars',
             q(%MACHINE_TYPE%) => $instance_type,
             q(%REGION%) => $self->provider_client->region,
