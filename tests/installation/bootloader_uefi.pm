@@ -95,9 +95,6 @@ sub run {
     if (get_var('DISABLE_SECUREBOOT') && (get_var('BACKEND') eq 'qemu')) {
         $self->tianocore_disable_secureboot;
     }
-    if (get_var("QEMUVGA") && get_var("QEMUVGA") ne "cirrus") {
-        sleep 5;
-    }
     if ((get_var("ZDUP") && !is_jeos) || (get_var('ONLINE_MIGRATION') && check_var('BOOTFROM', 'd'))) {
         # 'eject_cd' is broken ATM (at least on aarch64), so select HDD from menu - poo#47303
         # Check we are booting the ISO
