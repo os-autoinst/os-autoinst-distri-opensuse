@@ -17,7 +17,7 @@ use LTP::utils qw(get_ltproot get_ltp_version_file);
 use LTP::WhiteList;
 use Mojo::File;
 use Mojo::JSON;
-use publiccloud::utils 'is_byos';
+use publiccloud::utils qw(is_byos registercloudguest register_openstack);
 use publiccloud::ssh_interactive 'select_host_console';
 use Data::Dumper;
 use version_utils;
