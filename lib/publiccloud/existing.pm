@@ -10,7 +10,6 @@
 package publiccloud::existing;
 use Mojo::Base -base;
 use testapi;
-use publiccloud::vault;
 use publiccloud::utils;
 
 has username => undef;

@@ -10,43 +10,16 @@
 package publiccloud::aws_client;
 use Mojo::Base -base;
 use testapi;
-use publiccloud::vault;
 use publiccloud::utils;
 
 has key_id => undef;
 has key_secret => undef;
 has security_token => undef;
 has region => sub { get_var('PUBLIC_CLOUD_REGION', 'eu-central-1') };
-has vault => undef;
 has aws_account_id => undef;
 has service => undef;
 has container_registry => sub { get_var("PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY", 'suse-qec-testing') };
 has username => sub { get_var('PUBLIC_CLOUD_USER', 'ec2-user') };
-
-sub vault_create_credentials {
-    my ($self) = @_;
-    my $data = undef;
-
-    if ($self->service =~ /ECR|EC2/) {
-        record_info('INFO', 'Get credentials from VAULT server.');
-        $data = $self->vault->get_secrets('/aws/creds/openqa-role');
-    } elsif ($self->service eq "EKS") {
-        record_info('INFO', 'Get credentials from VAULT server for EKS');
-        my $path = '/aws/sts/openqa-role-eks';
-        my $res
-          = $self->vault->api('/v1/' . get_required_var('PUBLIC_CLOUD_VAULT_NAMESPACE') . $path, method => 'post');
-        $data = $res->{data};
-        $self->security_token($data->{security_token});
-        define_secret_variable("AWS_SESSION_TOKEN", $self->security_token);
-        die('Failed to retrieve token') unless (defined($self->security_token));
-    } else {
-        die('Invalid service: ' . $self->service);
-    }
-
-    die('Failed to retrieve key') unless (defined($data->{access_key}) && defined($data->{secret_key}));
-    $self->key_id($data->{access_key});
-    $self->key_secret($data->{secret_key});
-}
 
 sub _check_credentials {
     my ($self) = @_;
@@ -71,18 +44,13 @@ sub init {
 
     $self->service("EC2") unless (defined($self->service));
 
-    if (get_var('PUBLIC_CLOUD_CREDENTIALS_URL')) {
-        my $data = get_credentials('aws.json');
-        if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
-            $self->key_id($data->{access_key});
-            $self->key_secret($data->{secret_key});
-        } else {
-            $self->key_id($data->{access_key_id});
-            $self->key_secret($data->{secret_access_key});
-        }
-    } elsif (!defined($self->key_id) || !defined($self->key_secret)) {
-        $self->vault(publiccloud::vault->new());
-        $self->vault_create_credentials();
+    my $data = get_credentials('aws.json');
+    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
+        $self->key_id($data->{access_key});
+        $self->key_secret($data->{secret_key});
+    } else {
+        $self->key_id($data->{access_key_id});
+        $self->key_secret($data->{secret_access_key});
     }
 
     assert_script_run('export AWS_DEFAULT_REGION="' . $self->region . '"');
@@ -126,7 +94,6 @@ sub configure_podman {
 
 sub cleanup {
     my ($self) = @_;
-    $self->vault->revoke() unless (get_var('PUBLIC_CLOUD_CREDENTIALS_URL'));
 }
 
 1;
