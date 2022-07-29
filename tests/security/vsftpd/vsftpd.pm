@@ -12,8 +12,11 @@ use testapi;
 use utils;
 
 sub run {
-    my $ftp_file_path = '/srv/ftp/ftpuser/files';
+    my $ftp_users_path = '/srv/ftp/users';
+    my $ftp_served_dir = 'served';
+    my $ftp_received_dir = 'received';
     my $user = 'ftpuser';
+    my $pwd = 'susetesting';
 
     select_console 'root-console';
 
@@ -21,15 +24,14 @@ sub run {
     enter_cmd("su - $user");
 
     # Download a file with various ssl methods
-    assert_script_run('curl -v -k --ssl ftp://ftpuser:test@localhost/files/f1.txt -o f1.txt');
+    assert_script_run("curl -v -k --ssl ftp://$user:$pwd\@localhost/served/f1.txt -o $ftp_users_path/$user/$ftp_received_dir/f1.txt");
 
     # Upload a file
-    assert_script_run("cp $ftp_file_path/f1.txt $ftp_file_path/f2.txt");
-    assert_script_run("curl -v -k --ssl ftp://ftpuser:test\@localhost/files/ -T $ftp_file_path/f2.txt");
-}
+    assert_script_run("curl -v -k --ssl ftp://$user:$pwd\@localhost/served/f2.txt -T $ftp_users_path/$user/$ftp_received_dir/f1.txt");
 
-sub test_flags {
-    return {always_rollback => 1};
+    # Clean console for next test
+    enter_cmd('exit');
+    enter_cmd('cd && clear');
 }
 
 1;
