@@ -44,6 +44,9 @@ sub samba_sssd_install {
     script_run('echo NETCONFIG_DNS_STATIC_SERVERS="' . $AD_ip . '" >> /etc/sysconfig/network/config');
     assert_script_run('netconfig update -f');
 
+    record_info('Check the DNS config file');
+    script_run('cat /etc/resolv.conf');
+
     script_run('dig srv _kerberos._tcp.geeko.com');
     script_run('dig srv _ldap._tcp.geeko.com');
 }
@@ -118,7 +121,7 @@ sub run {
     samba_sssd_install;
 
     #Join the Active Directory
-    assert_script_run "expect kinit.exp";
+    script_retry("expect kinit.exp", retry => 3, timeout => 120, die => 1);
 
     # Retrying the adcli join is needed, probably due to https://bugs.freedesktop.org/show_bug.cgi?id=55487
     if (script_retry('adcli join -v -W --domain geeko.com -U Administrator -C', delay => 10, retry => 15, timeout => 60, die => 0) != 0) {
