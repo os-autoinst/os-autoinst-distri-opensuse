@@ -124,6 +124,12 @@ sub run {
             assert_and_click 'install-linux-in-wsl';
         }
     );
+
+    record_info 'Port close', 'Closing serial port...';
+    $self->run_in_powershell(
+        cmd => q{$port.close()},
+        code => sub { }
+    );
 }
 
 1;
