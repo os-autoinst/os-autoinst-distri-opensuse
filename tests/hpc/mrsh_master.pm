@@ -62,6 +62,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = @_;
+    $self->destroy_test_barriers();
     $self->select_serial_terminal;
     $self->upload_service_log('munge');
 }

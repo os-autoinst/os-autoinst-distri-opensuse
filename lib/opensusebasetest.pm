@@ -95,7 +95,8 @@ Afterwards a screenshot will be created if C<$screenshot> is set.
 sub save_and_upload_log {
     my ($self, $cmd, $file, $args) = @_;
     script_run("$cmd | tee $file", $args->{timeout});
-    upload_logs($file, failok => 1) unless $args->{noupload};
+    my $lname = $args->{logname} ? $args->{logname} : '';
+    upload_logs($file, failok => 1, log_name => $lname) unless $args->{noupload};
     save_screenshot if $args->{screenshot};
 }
 

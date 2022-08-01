@@ -38,5 +38,6 @@ sub run ($self) {
 sub test_flags ($self) {
     return {fatal => 1, milestone => 1};
 }
+sub post_run_hook ($self) { }
 
 1;

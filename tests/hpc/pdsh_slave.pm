@@ -45,6 +45,7 @@ sub test_flags ($self) {
 }
 
 sub post_fail_hook ($self) {
+    $self->destroy_test_barriers();
     $self->select_serial_terminal;
     upload_logs '/tmp/pdsh.log';
     $self->upload_service_log('munge');

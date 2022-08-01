@@ -43,6 +43,7 @@ sub test_flags ($self) {
 }
 
 sub post_fail_hook ($self) {
+    $self->destroy_test_barriers();
     $self->select_serial_terminal;
     $self->upload_service_log('mrshd');
     $self->upload_service_log('munge');

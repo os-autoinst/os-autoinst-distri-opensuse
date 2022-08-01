@@ -26,6 +26,7 @@ sub run ($self) {
         bin => '/home/bernhard/bin',
         hpc_lib => '/usr/lib/hpc',
     );
+
     zypper_call("in $mpi-gnu-hpc $mpi-gnu-hpc-devel python3-devel");
     my $need_restart = $self->setup_scientific_module();
     $self->relogin_root if $need_restart;
@@ -64,7 +65,6 @@ sub run ($self) {
     # python code is not compiled. *mpi_bin* is expected as a compiled binary. if compilation was not
     # invoked return source code (ex: sample_scipy.py).
     $mpi_bin = ($mpi_compiler) ? $mpi_bin : $mpi_c;
-
     barrier_wait('MPI_BINARIES_READY');
     my $mpirun_s = hpc::formatter->new();
 
@@ -103,7 +103,6 @@ sub run ($self) {
     } else {
         assert_script_run($mpirun_s->all_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
     }
-
     barrier_wait('MPI_RUN_TEST');
 }
 
@@ -112,7 +111,7 @@ sub test_flags ($self) {
 }
 
 sub post_fail_hook ($self) {
-    upload_logs('/tmp/mpi_bin.log');
+    $self->destroy_test_barriers();
     $self->export_logs();
 }
 
