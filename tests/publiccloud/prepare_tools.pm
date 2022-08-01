@@ -125,7 +125,9 @@ EOT
     my $kubectl_version = '1.22';
     my $kubectl_wrapper = <<EOT;
 #!/bin/sh
-podman run -v /root/:/root/ --rm docker.io/bitnami/kubectl:$kubectl_version \$@
+mkdir -p ~/.kube
+touch ~/.kube/config
+podman run -v ~/.kube/config:/.kube/config -v ~:/root -v /tmp:/tmp --workdir /root --userns keep-id --rm docker.io/bitnami/kubectl:$kubectl_version \$@
 EOT
 
     create_script_file('kubectl', '/usr/bin/kubectl', $kubectl_wrapper);
