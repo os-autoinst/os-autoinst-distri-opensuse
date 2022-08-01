@@ -33,11 +33,11 @@ check-links: tools/tidy tools/lib/ os-autoinst/
 
 .PHONY: check-links
 tidy-check: check-links
-	tools/tidy --check
+	tools/tidy --check -- -q
 
 .PHONY: tidy
 tidy: tools/tidy
-	$< --only-changed
+	$< --only-changed -q
 	@echo "[make] Tidy called over modified/new files only. For a full run use make tidy-full"
 
 .PHONY: tidy-full

@@ -10,3 +10,6 @@ jobs:
     - uses: actions/checkout@v2
     - name: Run isotovideo tests
       run: make test-isotovideo
+    - name: Error in isotovideo
+      if: ${{ failure() }}
+      run: echo 'isotovideo failed, something modified the default schedule or the output; run locally to find out more.' && exit 1
