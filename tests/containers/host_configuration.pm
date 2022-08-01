@@ -47,8 +47,8 @@ sub run {
     install_podman_when_needed($host_distri) if ($engine =~ 'podman');
 
     # It has been observed that after system update, the ip forwarding doesn't work.
-    # In Leap 15.3 there is a need to restart the firewall and docker daemon.
-    if ($host_distri eq 'opensuse-leap' && $version eq '15' && $sp eq '3') {
+    # In 15.3/15.4 there is a need to restart the firewall and docker daemon.
+    if ($host_distri =~ /sles|opensuse-leap/ && $version eq '15' && $sp =~ /3|4/) {
         systemctl("restart docker") if ($engine =~ 'docker');
         systemctl("restart firewalld");
     }
