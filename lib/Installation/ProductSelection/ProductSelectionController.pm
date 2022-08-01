@@ -12,6 +12,7 @@ use warnings;
 use YuiRestClient;
 use Installation::ProductSelection::ProductSelectionPage;
 use Installation::Popups::OKPopup;
+use Installation::ProductSelection::AdditionalProductPage;
 
 sub new {
     my ($class, $args) = @_;
@@ -22,6 +23,7 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->{ProductSelectionPage} = Installation::ProductSelection::ProductSelectionPage->new({app => YuiRestClient::get_app()});
+    $self->{AdditionalProductPage} = Installation::ProductSelection::AdditionalProductPage->new({app => YuiRestClient::get_app()});
     $self->{AccessBetaDistributionPopup} = Installation::Popups::OKPopup->new({app => YuiRestClient::get_app()});
     return $self;
 }
@@ -30,6 +32,12 @@ sub get_product_selection_page {
     my ($self) = @_;
     die 'Product Selection page is not displayed' unless $self->{ProductSelectionPage}->is_shown();
     return $self->{ProductSelectionPage};
+}
+
+sub get_additional_product_page {
+    my ($self) = @_;
+    die 'Additional Product page is not displayed' unless $self->{AdditionalProductPage}->is_shown();
+    return $self->{AdditionalProductPage};
 }
 
 sub get_access_beta_distribution_popup {
@@ -47,6 +55,11 @@ sub install_product {
 sub access_beta_distribution {
     my ($self) = @_;
     $self->get_access_beta_distribution_popup()->press_ok();
+}
+
+sub add_selected_products {
+    my ($self) = @_;
+    $self->get_additional_product_page()->press_add();
 }
 
 1;
