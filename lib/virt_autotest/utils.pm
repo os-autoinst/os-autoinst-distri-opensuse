@@ -232,14 +232,14 @@ sub create_guest {
         $autoyastURL = $autoyast;
         $diskformat = get_var("VIRT_QEMU_DISK_FORMAT") // "qcow2";
 
-        assert_script_run "qemu-img create -f $diskformat /var/lib/libvirt/images/xen/$name.$diskformat 20G", 180;
-        assert_script_run "sync", 180;
-        script_run "qemu-img info /var/lib/libvirt/images/xen/$name.$diskformat";
+        # assert_script_run "qemu-img create -f $diskformat /var/lib/libvirt/images/xen/$name.$diskformat 20G", 180;
+        # assert_script_run "sync", 180;
+        # script_run "qemu-img info /var/lib/libvirt/images/xen/$name.$diskformat";
 
         $extra_args = "$linuxrc autoyast=$autoyastURL $extra_args";
         $extra_args = trim($extra_args);
         $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
-        $virtinstall .= " --disk /var/lib/libvirt/images/xen/$name.$diskformat --noautoconsole";
+        $virtinstall .= " --disk path=/var/lib/libvirt/images/xen/$name.$diskformat,size=20,format=qcow2,bus=virtio,sparse --noautoconsole";
         $virtinstall .= " --network network=default,mac=$macaddress --autostart --location=$location --wait -1";
         $virtinstall .= " --events on_reboot=$on_reboot" unless ($on_reboot eq '');
         $virtinstall .= " --extra-args '$extra_args'" unless ($extra_args eq '');
