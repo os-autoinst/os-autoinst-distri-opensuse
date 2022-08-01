@@ -74,6 +74,8 @@ sub run {
     assert_script_run 'umount /mnt';
 
     wait_for_children;
+
+    $self->save_and_upload_log("journalctl --no-pager -u nfs-server -o short-precise", "journal_nfs_server.log");
 }
 
 1;
