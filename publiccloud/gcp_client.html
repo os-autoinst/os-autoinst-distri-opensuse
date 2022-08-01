@@ -14,17 +14,12 @@
 <ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
   <li>
     <ul>
-      <li><a href="#"></a></li>
       <li><a href="#get_container_registry_prefix">get_container_registry_prefix</a></li>
       <li><a href="#get_container_image_full_name">get_container_image_full_name</a></li>
       <li><a href="#configure_podman">configure_podman</a></li>
     </ul>
   </li>
 </ul><h1>lib/publiccloud/gcp_client.pm</h1>
-
-<h2 id=""></h2>
-
-<p>A service account in GCP can only have up to 10 keys assigned. With this we reach our paralel openqa jobs quite fast. To have more keys available, we create 4 service accounts and select randomly one. If this fails, the next call of <code>get_next_vault_role()</code> will retrieve the next.</p>
 
 <h2 id="get_container_registry_prefix">get_container_registry_prefix</h2>
 
