@@ -102,7 +102,6 @@ sub run {
     }
 
     # TODO: DEPLOYMENT SKIP - REMOVE!!!
-    record_info("Inst before export", Dumper(@instances));
     # Mostly for dev - for reusing deployed instances, load this file.
     if (defined($instances_export_path) and length($instances_export_path)){
         record_info('Exporting data', Dumper(\@instances_export));
