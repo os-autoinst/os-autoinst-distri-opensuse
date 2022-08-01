@@ -19,7 +19,6 @@ use publiccloud::azure_client;
 has resource_group => 'openqa-upload';
 has container => 'sle-images';
 has lease_id => undef;
-has vault => undef;
 
 sub init {
     my ($self) = @_;

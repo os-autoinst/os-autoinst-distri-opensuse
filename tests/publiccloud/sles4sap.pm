@@ -234,10 +234,6 @@ Logs are uploaded at the end.
 
 If set, this test module is added to the job.
 
-=head2 PUBLIC_CLOUD_VAULT_NAMESPACE
-
-Set the needed namespace, e.g. B<qa-shap>.
-
 =head2 CLUSTER_TYPES
 
 Set the type of cluster that have to be analyzed (example: "drbd hana").
