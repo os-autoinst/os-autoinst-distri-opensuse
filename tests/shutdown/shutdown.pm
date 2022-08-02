@@ -13,6 +13,9 @@ use power_action_utils 'power_action';
 use utils;
 
 sub run {
+    my $self = shift;
+    select_console('root-console');
+    systemctl 'list-timers --all';
     power_action('poweroff');
 }
 
