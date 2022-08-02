@@ -1,0 +1,3 @@
+The job {{ .Release.Name }} has been successfully deployed in {{ .Release.Namespace }} namespace.
+Have a lot of fun...
+

@@ -35,6 +35,8 @@ sub install_k3s {
     sleep(20);    # Wait one iteration interval before checking because the server needs some time to boot-up
     script_retry("test -e /etc/rancher/k3s/k3s.yaml", delay => 20, retry => 10);
     assert_script_run('systemctl is-active k3s');
+    assert_script_run('k3s -v');
+    assert_script_run('uname -a');
     assert_script_run("k3s kubectl get node");
     script_run("mkdir -p ~/.kube");
     script_run("rm -f ~/.kube/config");
