@@ -47,18 +47,23 @@ sub uninstall_k3s {
 }
 
 sub install_kubectl {
-    if (is_sle) {
-        # kubectl is in the container module
-        add_suseconnect_product(get_addon_fullname('contm'));
-        # SLES-15SP2+ ships a specific kubernetes client version. Older versions hold a version-independent kubernetes-client package.
-        if (is_sle(">15-SP1")) {
-            zypper_call("in kubernetes1.18-client");
+    if (script_run("which kubectl") != 0) {
+        if (is_sle) {
+            # kubectl is in the container module
+            add_suseconnect_product(get_addon_fullname('contm'));
+            # SLES-15SP2+ ships a specific kubernetes client version. Older versions hold a version-independent kubernetes-client package.
+            if (is_sle(">15-SP1")) {
+                zypper_call("in kubernetes1.18-client");
+            } else {
+                zypper_call("in kubernetes-client");
+            }
         } else {
             zypper_call("in kubernetes-client");
         }
     } else {
-        zypper_call("in kubernetes-client");
+        record_info('kubectl preinstalled', 'The kubectl package is already installed.');
     }
+    record_info('kubectl version', script_output('kubectl version', proceed_on_failure => 1));
 }
 
 sub install_helm {
