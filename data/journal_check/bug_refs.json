@@ -374,5 +374,12 @@
             "opensuse": ["Tumbleweed", "15.4"]
         },
         "type": "bug"
+    },
+    "bsc#1200490": {
+        "description": "Unable to open /dev/kvm: No such file or directory",
+        "products": {
+            "sle-micro": [ "5.3" ]
+        },
+        "type": "ignore"
     }
 }
