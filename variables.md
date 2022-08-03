@@ -93,6 +93,7 @@ K3S_SYMLINK | string | | Can be 'skip' or 'force'. Skips the installation of k3s
 K3S_BIN_DIR | string | | If defined, install k3s to this provided directory instead of `/usr/local/bin/`
 K3S_CHANNEL | string | | Set the release channel to pick the k3s version from. Options include "stable", "latest" and "testing"
 KUBECTL_CLUSTER | string | | Defines the cluster used to test `kubectl`. Currently only `k3s` is supported.
+KUBECTL_VERSION | string | v1.22.12 | Defines the kubectl version.
 KEEP_DISKS | boolean | false | Prevents disks wiping for remote backends without snaphots support, e.g. ipmi, powerVM, zVM
 KEEP_ONLINE_REPOS | boolean | false | openSUSE specific variable, not to replace original repos in the installed system with snapshot mirrors which are not yet published.
 KEEP_PERSISTENT_NET_RULES | boolean | false | Keep udev rules 70-persistent-net.rules, which are deleted on backends with image support (qemu, svirt) by default.

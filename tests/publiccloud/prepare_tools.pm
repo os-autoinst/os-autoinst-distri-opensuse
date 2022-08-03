@@ -122,15 +122,11 @@ EOT
     record_info('Terraform', script_output('terraform -version'));
 
     # Kubectl in a container
-    my $kubectl_version = '1.22';
-    my $kubectl_wrapper = <<EOT;
-#!/bin/sh
-mkdir -p ~/.kube
-touch ~/.kube/config
-podman run -v ~/.kube/config:/.kube/config -v ~:/root -v /tmp:/tmp --workdir /root --userns keep-id --rm docker.io/bitnami/kubectl:$kubectl_version \$@
-EOT
-
-    create_script_file('kubectl', '/usr/bin/kubectl', $kubectl_wrapper);
+    my $kubectl_version = get_var('KUBECTL_VERSION', 'v1.22.12');
+    assert_script_run("curl -Lo /usr/bin/kubectl https://dl.k8s.io/release/$kubectl_version/bin/linux/amd64/kubectl");
+    assert_script_run("curl -Lo /usr/bin/kubectl.sha256 https://dl.k8s.io/$kubectl_version/bin/linux/amd64/kubectl.sha256");
+    assert_script_run('echo "$(cat /usr/bin/kubectl.sha256)  /usr/bin/kubectl" | sha256sum --check');
+    assert_script_run('chmod +x /usr/bin/kubectl');
     record_info('kubectl', script_output('kubectl version --client=true'));
 
     select_console 'root-console';

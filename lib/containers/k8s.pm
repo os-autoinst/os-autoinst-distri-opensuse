@@ -63,7 +63,7 @@ sub install_kubectl {
     } else {
         record_info('kubectl preinstalled', 'The kubectl package is already installed.');
     }
-    record_info('kubectl version', script_output('kubectl version', proceed_on_failure => 1));
+    record_info('kubectl version', script_output('kubectl version --client'));
 }
 
 sub install_helm {
