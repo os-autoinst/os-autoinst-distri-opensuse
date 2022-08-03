@@ -38,6 +38,7 @@ schedule:
   - installation/handle_reboot
   - installation/first_boot
   - console/validate_zfcp
+  - console/validate_zfcp_multipath
     #  Unscheduling due to poo#99267
     #  - console/validate_multipath
 test_data:
