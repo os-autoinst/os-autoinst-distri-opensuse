@@ -298,6 +298,16 @@ sub prepare_kgraft {
     return $incident_klp_pkg;
 }
 
+sub downgrade_kernel {
+    my $kver = shift;
+
+    fully_patch_system;
+
+    my $kernel_version = find_version('kernel-default', $kver);
+    my $src_version = find_version('kernel-source', $kver);
+    install_lock_kernel($kernel_version, $src_version);
+}
+
 sub find_version {
     my ($packname, $version_fragment) = @_;
     my $verlist = zypper_search("-s -x -t package $packname");
@@ -416,6 +426,14 @@ sub run {
 
     add_extra_customer_repositories;
 
+    if (get_var('KERNEL_VERSION')) {
+        downgrade_kernel(get_var('KERNEL_VERSION'));
+        check_kernel_package('kernel-default');
+        power_action('reboot', textmode => 1);
+        $self->wait_boot if get_var('LTP_BAREMETAL');
+        return;
+    }
+
     my $repo = get_var('KOTD_REPO');
     my $incident_id = undef;
     my $kernel_package = get_kernel_flavor;
@@ -517,6 +535,10 @@ because there is never any kernel-azure package in the pool repository.
 When KERNEL_BASE variable evaluates to true, the job should test the
 alternative minimal kernel. Uninstall kernel-default and install
 kernel-default-base instead. Then update kernel as in the default case.
+
+=head2 KERNEL_VERSION
+
+Install the kernel version set in this variable instead of the latest update.
 
 =head2 KOTD_REPO
 
