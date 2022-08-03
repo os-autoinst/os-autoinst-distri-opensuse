@@ -421,6 +421,7 @@ sub run {
         loadtest_kernel 'boot_ltp';
     } elsif ($cmd_file) {
         assert_secureboot_status(1) if get_var('SECUREBOOT');
+        prepare_ltp_env() if (is_sle('<12'));
         init_ltp_tests($cmd_file);
         schedule_tests($cmd_file);
     }
