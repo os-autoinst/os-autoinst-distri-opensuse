@@ -29,6 +29,8 @@ sub run {
         '(wickedd-d.*IPv6.*:\d+)',    # wickedd-dhcp6
         '(sshd.*:22 \(LISTEN\))',    # The ssh server
         '(master.*localhost:25 \(LISTEN\))',    # /usr/lib/postfix/bin//master
+        '(sshd.*s390kvm.*openqaworker.*\(ESTABLISHED\))',    # ssh connection s390x
+        '(systemd.*:5901 \(LISTEN\))',    # vnc on s390x
         '(sshd.*\(ESTABLISHED\))');    # ssh connection to test system
 
     my $regex = join('|', @expected_listen_ports);
