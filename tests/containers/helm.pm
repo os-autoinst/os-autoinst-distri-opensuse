@@ -98,8 +98,7 @@ sub run {
     assert_script_run("helm uninstall helm-test-$job_id");
 
     assert_script_run("kubectl config set-context --current --namespace=default");
-    # github.com/k3s-io/k3s#5946 - The kubectl delete namespace helm-ns-413 command freezes and does nothing
-    script_run("kubectl delete namespace helm-ns-$job_id") unless ($is_k3s);
+    script_run("kubectl delete namespace helm-ns-$job_id");
 
     # Add repo, search and show values
     assert_script_run(
