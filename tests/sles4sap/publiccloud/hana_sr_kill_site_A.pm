@@ -20,6 +20,10 @@ use Mojo::File qw(path);
 use sles4sap_publiccloud;
 use publiccloud::utils;
 
+sub test_flags {
+    return {fatal => 1};
+}
+
 sub run {
     my ($self, $run_args) = @_;
     $self->{instances} = $run_args->{instances};

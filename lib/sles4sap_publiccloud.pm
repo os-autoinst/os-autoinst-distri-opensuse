@@ -15,6 +15,7 @@ use version_utils 'is_sle';
 use publiccloud::utils;
 use publiccloud::instance;
 use testapi;
+use List::MoreUtils qw(uniq);
 use Data::Dumper;
 
 our @EXPORT = qw(
@@ -151,31 +152,33 @@ sub get_promoted_hostname {
     return join("", @master);
 }
 
-=head2 parse_showattr
-    parse_showattr([hostname => $hostname]);
+=head2 get_hana_topology
+    get_hana_topology([hostname => $hostname]);
     Parses  command output, returns list of hashes containing values for each host.
     If hostname defined, returns hash with values only for host specified.
 =cut
 sub get_hana_topology {
     my ($self, %args) = @_;
-    my $hostname = $args{hostname};
     my @topology;
-    my $cmd = "SAPHanaSR-showAttr | sed -E 's/\\s+/ /g' |grep -E '^(\\S+\\s){13}'";
-    $cmd = $self->run_cmd(cmd => $cmd, quiet => 1);
-    my @cmd_output = split(/\n/, $cmd);
-    my @keys = split(/\s/, $cmd_output[0]);
-    shift @cmd_output;
+    my $hostname = $args{hostname};
+    my $cmd_out = $self->run_cmd(cmd => "SAPHanaSR-showAttr --format=script", quiet => 1);
+    record_info("cmd_out", $cmd_out);
+    my @all_parameters = map { if (/^Hosts/) {s,Hosts/,,; s,",,g; $_} else { () } } split("\n", $cmd_out);
+    my @all_hosts = uniq map { (split("/", $_))[0] } @all_parameters;
 
-    while (my $entry = shift(@cmd_output)){
-        my %host_entry;
-        my @host_values = split(/\s/, $entry);
-        @host_entry{@keys} = @host_values;
-        next if (defined($hostname) && $host_entry{Hosts} ne $hostname);
-        return \%host_entry if (defined($hostname) && $host_entry{Hosts} eq $hostname);
-        push(@topology, \%host_entry);
+    for my $host (@all_hosts) {
+        my %host_parameters = map { my($node, $parameter, $value) = split(/[\/=]/, $_);
+            if ($host eq $node) {($parameter, $value)} else { () } } @all_parameters;
+        push(@topology, \%host_parameters);
+
+        if (defined($hostname) && $hostname eq $host) {
+            return \%host_parameters;
+        }
     }
+
     return \@topology;
 }
+
 
 =head2 is_hana_online
     is_hana_online([timeout => 120, wait_for_start => 'false']);
@@ -315,7 +318,7 @@ sub check_takeover {
         for my $entry (@$topology) {
             my %host_entry = %$entry;
             my $sync_state = $host_entry{sync_state};
-            my $takeover_host = $host_entry{Hosts};
+            my $takeover_host = $host_entry{vhost};
 
             if ($takeover_host ne $hostname && $sync_state eq "PRIM") {
                 $takeover_complete = 1;
@@ -339,8 +342,10 @@ sub enable_replication {
     my $topology_out = $self->get_hana_topology(hostname => $hostname);
     my %topology = %$topology_out;
 
+    record_info("Topology", Dumper($topology_out));
+
     my $cmd = "hdbnsutil -sr_register " .
-    "--name=$topology{Hosts} " .
+    "--name=$topology{vhost} " .
     "--remoteHost=$topology{remoteHost} " .
     "--remoteInstance=00 " .
     "--replicationMode=$topology{srmode} " .
