@@ -47,7 +47,11 @@ sub run {
         die "Failed to parse 'uname -r' output: '$output'";
     }
 
-    install_klp_product() unless get_var('KGRAFT');
+    unless (get_var('KGRAFT')) {
+        zypper_call('ref');
+        install_klp_product();
+    }
+
     my $klp_pkg = find_installed_klp_pkg($kver, $kflavor);
     if (!$klp_pkg) {
         die "No installed kernel livepatch package for current kernel found";
