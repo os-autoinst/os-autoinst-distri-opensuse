@@ -30,7 +30,8 @@ sub install_k3s {
     assert_script_run("export INSTALL_K3S_SYMLINK=" . get_var('K3S_SYMLINK')) if (get_var('K3S_SYMLINK'));
     assert_script_run("export INSTALL_K3S_BIN_DIR=" . get_var('K3S_BIN_DIR')) if (get_var('K3S_BIN_DIR'));
     assert_script_run("export INSTALL_K3S_CHANNEL=" . get_var('K3S_CHANNEL')) if (get_var('K3S_CHANNEL'));
-    assert_script_run("curl -sfL https://get.k3s.io | sh -");
+    # github.com/k3s-io/k3s#5946 - The kubectl delete namespace helm-ns-413 command freezes and does nothing
+    assert_script_run("curl -sfL https://get.k3s.io | sh -s - --disable=metrics-server");
     # Note: The install script starts a k3s-server by default, unless INSTALL_K3S_SKIP_START is set to true
     sleep(20);    # Wait one iteration interval before checking because the server needs some time to boot-up
     script_retry("test -e /etc/rancher/k3s/k3s.yaml", delay => 20, retry => 10);
