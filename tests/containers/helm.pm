@@ -25,6 +25,7 @@ use publiccloud::utils qw(gcloud_install);
 
 sub run {
     my ($self, $run_args) = @_;
+    my $job_id = get_current_job_id();
 
     # We either test various cloud clusters or local k3s
     my $k8s_backend = shift(@{$run_args->{backends}});
@@ -35,7 +36,6 @@ sub run {
     $self->{is_k3s} = $is_k3s;
 
     $self->select_serial_terminal;
-    $self->{deployment_name} = "apache-" . get_current_job_id();
     my $chart = "bitnami/apache";
 
     record_info("Chart name", $chart);
@@ -83,6 +83,24 @@ sub run {
 
     install_helm();
 
+    assert_script_run('curl --create-dir -vo ~/helm-test/Chart.yaml ' . data_url('containers/helm-test/') . 'Chart.yaml');
+    assert_script_run('curl --create-dir -vo ~/helm-test/values.yaml ' . data_url('containers/helm-test/') . 'values.yaml');
+    assert_script_run('curl --create-dir -vo ~/helm-test/templates/job.yaml ' . data_url('containers/helm-test/templates/') . 'job.yaml');
+    assert_script_run('curl --create-dir -vo ~/helm-test/templates/NOTES.txt ' . data_url('containers/helm-test/templates/') . 'NOTES.txt');
+
+    assert_script_run("kubectl create namespace helm-ns-$job_id");
+    assert_script_run("kubectl config set-context --current --namespace=helm-ns-$job_id");
+
+    assert_script_run("helm install helm-test-$job_id ~/helm-test/ --values ~/helm-test/values.yaml --set job_id=$job_id");
+    assert_script_run("helm list");
+    my $pod = script_output('kubectl get pods -o name --no-headers=true | grep helm-test-$job_id');
+    script_retry("kubectl logs $pod | grep 'SUSE'", retry => 12, delay => 15);
+    assert_script_run("helm uninstall helm-test-$job_id");
+
+    assert_script_run("kubectl config set-context --current --namespace=default");
+    # github.com/k3s-io/k3s#5946 - The kubectl delete namespace helm-ns-413 command freezes and does nothing
+    script_run("kubectl delete namespace helm-ns-$job_id") unless ($is_k3s);
+
     # Add repo, search and show values
     assert_script_run(
         "helm repo add bitnami https://charts.bitnami.com/bitnami", 180);
@@ -90,34 +108,18 @@ sub run {
     assert_script_run("helm search repo apache");
     assert_script_run("helm show all $chart");
 
-    # Install apache
-    assert_script_run("helm install $self->{deployment_name} $chart");
-    assert_script_run("helm list");
-
-    # Wait for deployment
-    script_retry(
-        "kubectl rollout status deployment/$self->{deployment_name}",
-        delay => 30,
-        retry => 10
-    );
-    assert_script_run("kubectl describe deployment/$self->{deployment_name}");
-    assert_script_run("kubectl get pods | grep $self->{deployment_name}");
-    assert_script_run("kubectl describe services/$self->{deployment_name}");
-
-    # Test
-    my $port = int(rand(100)) + 10000;
-    enter_cmd(
-        "kubectl port-forward  services/$self->{deployment_name} $port:80 &");
-    script_retry("curl http://localhost:$port", delay => 30, retry => 5);
-
-    # Destroy the chart and k3s
-    assert_script_run("helm delete $self->{deployment_name}");
     uninstall_k3s() if $is_k3s;
 }
 
 sub post_fail_hook {
     my ($self) = @_;
-    script_run("helm delete $self->{deployment_name}");
+    my $job_id = get_current_job_id();
+
+    script_run("helm uninstall helm-test-$job_id");
+
+    script_run("kubectl config set-context --current --namespace=default");
+    script_run("kubectl delete namespace helm-ns-$job_id");
+
     uninstall_k3s() if $self->{is_k3s};
 }
 
