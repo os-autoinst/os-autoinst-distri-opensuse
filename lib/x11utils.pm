@@ -36,6 +36,7 @@ our @EXPORT = qw(
   untick_welcome_on_next_startup
   start_root_shell_in_xterm
   handle_gnome_activities
+  set_gnome_strict_focus_window
 );
 
 =head1 X11_UTILS
@@ -489,6 +490,18 @@ sub turn_off_screensaver {
 # turn off the gnome deskop's notification
 sub turn_off_gnome_show_banner {
     script_run 'gsettings set org.gnome.desktop.notifications show-banners false';
+}
+
+=head2 set_gnome_strict_focus_window
+
+ set_gnome_strict_focus_window();
+
+Change the default focus of windows from smart to strict in GNOME
+
+=cut
+
+sub set_gnome_strict_focus_window {
+    script_run "sudo -u $testapi::username gsettings set org.gnome.desktop.wm.preferences focus-new-windows 'strict'";
 }
 
 =head2 untick_welcome_on_next_startup
