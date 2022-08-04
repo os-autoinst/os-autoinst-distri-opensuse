@@ -20,7 +20,7 @@ has tenantid => undef;
 has region => sub { get_var('PUBLIC_CLOUD_REGION', 'westeurope') };
 has username => sub { get_var('PUBLIC_CLOUD_USER', 'azureuser') };
 has service => undef;
-has container_registry => sub { get_required_var('PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY') };
+has container_registry => sub { get_var('PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY', 'suseqectesting') };
 
 sub init {
     my ($self) = @_;

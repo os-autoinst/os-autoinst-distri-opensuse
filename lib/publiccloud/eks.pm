@@ -22,6 +22,7 @@ sub init {
     my $cluster = get_var("PUBLIC_CLOUD_K8S_CLUSTER", "qe-c-openqa");
     my $region = get_var("PUBLIC_CLOUD_ZONE", "eu-central-1");
     assert_script_run("aws eks update-kubeconfig --name $cluster --region $region", 120);
+    script_run("kubectl config get-contexts");
     assert_script_run("kubectl get nodes");
 }
 
