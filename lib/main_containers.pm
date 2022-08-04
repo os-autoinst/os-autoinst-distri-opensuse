@@ -142,9 +142,9 @@ sub load_host_tests_helm {
     my $backends = undef;
 
     if (is_sle('15-sp3+')) {
-        $backends = get_var("HELM_K8S_BACKEND", "GKE,EKS,AKS,K3S");
+        $backends = get_var("PUBLIC_CLOUD_PROVIDER", "GCE,EC2,AZURE,K3S");
     } elsif (is_opensuse) {
-        $backends = get_var("HELM_K8S_BACKEND", "K3S");
+        $backends = get_var("PUBLIC_CLOUD_PROVIDER", "K3S");
     } else {
         die("Helm backend not supported on this host");
     }

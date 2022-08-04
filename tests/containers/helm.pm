@@ -49,13 +49,13 @@ sub run {
         my $provider;
 
         # Configure the public cloud kubernetes
-        if ($k8s_backend eq "EKS") {
+        if ($k8s_backend eq "EC2") {
             add_suseconnect_product(get_addon_fullname('pcm')) if is_sle;
             zypper_call("in jq aws-cli", timeout => 300);
 
             $provider = publiccloud::eks->new();
         }
-        elsif ($k8s_backend eq 'AKS') {
+        elsif ($k8s_backend eq 'AZURE') {
             add_suseconnect_product(get_addon_fullname('pcm'),
                 (is_sle('=12-sp5') ? '12' : undef));
             add_suseconnect_product(get_addon_fullname('phub'))
@@ -64,7 +64,7 @@ sub run {
 
             $provider = publiccloud::aks->new();
         }
-        elsif ($k8s_backend eq 'GKE') {
+        elsif ($k8s_backend eq 'GCE') {
             add_suseconnect_product(get_addon_fullname('pcm')) if is_sle;
             gcloud_install();
 
