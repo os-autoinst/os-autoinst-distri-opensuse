@@ -1,15 +1,15 @@
 bcrypt==3.2.2
-boto3==1.24.43
-botocore==1.27.43
+boto3==1.23.10
+botocore==1.26.10
 cffi==1.15.1
 cryptography==37.0.4
 ec2imgutils==10.0.1
-jmespath==1.0.1
+jmespath==0.10.0
 paramiko==2.11.0
 pycparser==2.21
 PyNaCl==1.5.0
 python-dateutil==2.8.2
-s3transfer==0.6.0
+s3transfer==0.5.2
 six==1.16.0
 urllib3==1.26.11
 
