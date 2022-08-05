@@ -178,7 +178,9 @@ sub update_host_and_publish_hdd {
         loadtest 'boot/boot_to_desktop';
         loadtest 'containers/update_host';
     }
+    loadtest 'shutdown/cleanup_before_shutdown' if is_s390x;
     loadtest 'shutdown/shutdown';
+    loadtest 'shutdown/svirt_upload_assets' if is_s390x;
 }
 
 sub load_container_tests {
