@@ -47,32 +47,33 @@ sub select_windows_in_grub2 {
 sub open_powershell_as_admin {
     my ($self, %args) = @_;
 
-    send_key_until_needlematch "windows-quick-features-menu", 'super-x';
-    wait_still_screen stilltime => 2, timeout => 15;
     #If using windows server, and logged with Administrator, only open powershell
     if (get_var('QAM_WINDOWS_SERVER')) {
-        send_key 'shift-a';
+        send_key_until_needlematch 'windows-quick-features-menu', 'super-x';
+        wait_screen_change { send_key('shift-a') };
         wait_screen_change { assert_and_click('window-max') };
-        assert_screen 'windows_server_powershel_opened', 30;
+        assert_screen 'windows_server_powershell_opened', 30;
     } else {
-        send_key 'shift-a';
+        if (check_var('WIN_VERSION', '10')) {
+            send_key_until_needlematch 'windows-quick-features-menu', 'super-x';
+            wait_screen_change { send_key('shift-a') };
+        } elsif (check_var('WIN_VERSION', '11')) {
+            # In Win11 there's need to launch PowerShell from "Run command", as
+            # "Quick features menu" fails sometimes.
+            send_key_until_needlematch 'run-command-window', 'super-r';
+            wait_screen_change { type_string 'Powershell' };
+            # Ctrl+Shift+Return launchs command as Admin
+            send_key 'ctrl-shift-ret';
+        } else {
+            die("WIN_VERSION variable does not match '10' neither '11'!");
+        }
         assert_screen(["windows-user-account-ctl-hidden", "windows-user-acount-ctl-allow-make-changes"], 240);
-        mouse_set(500, 500);
         assert_and_click "windows-user-account-ctl-hidden" if match_has_tag("windows-user-account-ctl-hidden");
         assert_and_click "windows-user-acount-ctl-yes";
-        mouse_hide();
-        wait_still_screen stilltime => 2, timeout => 15;
-        if (check_var("WIN_VERSION", "11")) {
-            # Screen resolution differs in Win11 and the max. button is out of
-            # sight, so we right-click on the window bar to maximize
-            assert_and_click 'powershell-as-admin-window', button => 'right', timeout => 240;
-            save_screenshot;
-            assert_and_click 'powershell-max-window-right-click';
-        } else {
-            assert_screen 'powershell-as-admin-window', timeout => 240;
-            assert_and_click 'window-max';
-        }
-        sleep 3;
+        wait_still_screen stilltime => 3, timeout => 12;
+        assert_screen 'powershell-as-admin-window', timeout => 240;
+        assert_and_click 'window-max';
+        wait_still_screen stilltime => 3, timeout => 12;
         _setup_serial_device unless (exists $args{no_serial});
     }
 }
@@ -95,7 +96,7 @@ sub run_in_powershell {
     } else {
         type_string ';$port.WriteLine(\'' . $rc_hash . '\' + $?)', max_interval => 125;
         wait_screen_change(sub { send_key 'ret' }, 10);
-        wait_serial("${rc_hash}True", timeout => (exists $args{timeout}) ? $args{timeout} : 30) or
+        wait_serial("${rc_hash}True", timeout => (exists $args{timeout}) ? $args{timeout} : 60) or
           die "Expected string (${rc_hash}True) was not found on serial";
     }
 }
@@ -118,12 +119,10 @@ sub reboot_or_shutdown {
 sub wait_boot_windows {
     # Reset the consoles: there is no user logged in anywhere
     reset_consoles;
-
     assert_screen 'windows-screensaver', 600;
     send_key_until_needlematch 'windows-login', 'esc';
     type_password;
     send_key 'ret';    # press shutdown button
-
     assert_screen 'windows-desktop', 240;
 }
 

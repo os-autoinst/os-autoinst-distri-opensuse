@@ -62,7 +62,8 @@ sub run {
             assert_screen [('install-winget-wsl', 'install-winget-background-wsl')];
             assert_and_click 'install-winget-background-wsl' if (match_has_tag('install-winget-background-wsl'));
             assert_and_click 'install-winget-wsl';
-            assert_screen 'install-winget-wsl-finish', timeout => 600;
+            # Winget installation sometimes gets stuck at 16% for a long time
+            assert_screen 'install-winget-wsl-finish', timeout => 720;
             assert_screen(['background-winget-install', 'foreground-winget-install']);
             if (match_has_tag 'foreground-winget-install') {
                 assert_and_click 'foreground-winget-install';
@@ -78,12 +79,23 @@ sub run {
     $self->run_in_powershell(
         cmd => 'winget install --accept-package-agreements --accept-source-agreements "' . $WSL_version . '"',
         code => sub {
-            assert_screen 'install-SUSE-WSL-finish', timeout => 600;
+            assert_screen 'install-SUSE-WSL-finish', timeout => 720;
         }
     );
 
+    # Reboot WSL to prevent error 0x80370109 that happens sometimes
+    $self->run_in_powershell(
+        cmd => 'wsl --shutdown',
+    );
+
+    record_info 'Port close', 'Closing serial port...';
+    $self->run_in_powershell(
+        cmd => q{$port.close()},
+        code => sub { }
+    );
+
     $self->use_search_feature(get_var('WSL_VERSION'));
-    send_key 'ret';
+    assert_and_click 'SUSE-wsl-search';
 }
 
 1;

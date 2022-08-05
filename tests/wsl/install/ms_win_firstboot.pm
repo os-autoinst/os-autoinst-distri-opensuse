@@ -143,6 +143,17 @@ sub run {
           q{New-Item -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\UserProfileEngagement' -Name ScoobeSystemSettingEnabled -Value 0 -Type DWORD}
     );
 
+    # Disables "Let's finish setting up your device" screen in Windows 11, which
+    # pops up in boot every 3 days
+    $self->run_in_powershell(
+        cmd => 'reg add HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager /v SubscribedContent-310093Enabled /t REG_DWORD /d 0'
+    ) if check_var('WIN_VERSION', '11');
+
+    # Disables web search in Start menu
+    $self->run_in_powershell(
+        cmd => 'reg add HKEY_CURRENT_USER\Policies\Microsoft\Windows\Explorer /v DisableSearchBoxSuggestions /t REG_DWORD /d 1'
+    );
+
     # poweroff
     $self->reboot_or_shutdown();
 }
