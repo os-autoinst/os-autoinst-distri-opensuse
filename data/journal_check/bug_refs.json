@@ -381,5 +381,12 @@
             "sle-micro": [ "5.3" ]
         },
         "type": "ignore"
+    },
+    "bsc#1202014": {
+        "description": "NetworkManager.*failed due to unexpected return value -1 by waitpid",
+        "products": {
+            "sle-micro": [ "5.3" ]
+        },
+        "type": "bug"
     }
 }
