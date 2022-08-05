@@ -14,6 +14,7 @@ use testapi;
 use version_utils qw(is_microos is_selfinstall);
 use power_action_utils 'power_action';
 use Utils::Architectures qw(is_aarch64);
+use Utils::Backends qw(is_ipmi);
 
 our @EXPORT = qw(microos_reboot microos_login);
 
@@ -40,6 +41,8 @@ sub microos_reboot {
     my $trigger = shift // 0;
     power_action('reboot', observe => !$trigger, keepconsole => 1);
 
+    # sol console has to be selected for ipmi backend before asserting grub needle.
+    select_console 'sol', await_console => 0 if is_ipmi();
     # No grub bootloader on xen-pv
     # grub2 needle is unreliable (stalls during timeout) - poo#28648
     assert_screen 'grub2', 300;

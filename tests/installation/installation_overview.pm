@@ -23,7 +23,15 @@ use Test::Assert ':all';
 sub ensure_ssh_unblocked {
     if (!get_var('UPGRADE') && is_remote_backend) {
 
-        send_key_until_needlematch [qw(ssh-blocked ssh-open)], 'tab', 26;
+        # ssh section is not shown up directly in text mode. Navigate into
+        # installation overview frame and hitting down button to get there.
+        if (check_var('VIDEOMODE', 'text')) {
+            send_key_until_needlematch 'installation-settings-overview-selected', 'tab', 25;
+            send_key_until_needlematch [qw(ssh-blocked ssh-open)], 'down', 60;
+        }
+        else {
+            send_key_until_needlematch [qw(ssh-blocked ssh-open)], 'tab', 25;
+        }
         if (match_has_tag 'ssh-blocked') {
             if (check_var('VIDEOMODE', 'text')) {
                 send_key 'alt-c';
