@@ -16,7 +16,7 @@ use base 'consoletest';
 use testapi;
 use utils;
 use zypper;
-use version_utils qw(is_sle is_leap);
+use version_utils 'is_sle';
 use serial_terminal 'prepare_serial_console';
 use bootloader_setup qw(change_grub_config grub_mkconfig);
 use registration;
@@ -25,18 +25,12 @@ use List::MoreUtils 'uniq';
 use migration 'disable_kernel_multiversion';
 use strict;
 use warnings;
-use x11utils qw(set_gnome_strict_focus_window);
 
 sub run {
     my ($self) = @_;
     select_console 'root-console';
 
     ensure_serialdev_permissions;
-
-    if (is_leap && check_var('DESKTOP', 'gnome')) {
-        record_soft_failure 'boo#1202103 GNOME: lost window focus';
-        set_gnome_strict_focus_window;
-    }
 
     prepare_serial_console;
 
