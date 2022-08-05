@@ -76,4 +76,6 @@ if (is_container_test) {
     load_container_tests();
 }
 
+loadtest 'shutdown/svirt_upload_assets' if (is_s390x && get_var('PUBLISH_HDD_1'));
+
 1;
