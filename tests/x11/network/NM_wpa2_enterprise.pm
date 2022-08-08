@@ -63,16 +63,7 @@ sub enter_NM_credentials {
         assert_screen 'network_manager-wpa2_authentication';
     }
 
-    # When we land at the credentials dialog, nothing has focus.
-    # The first tab results in focusing the first input field.
-    # But since we want the dropdown field one above, we have
-    # to go up by pressing "Shift+Tab".
-
-    send_key 'tab';
-    send_key 'shift-tab';
-
-    # then we open the dropdown
-    send_key 'spc';
+    assert_and_click 'network_manager-authentication';
     # and select 'Protected EAP (PEAP)'
     send_key_until_needlematch('network_manager-peap_selected', 'down');
     send_key 'ret';
