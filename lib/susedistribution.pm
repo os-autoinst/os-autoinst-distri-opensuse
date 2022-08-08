@@ -298,7 +298,16 @@ sub x11_start_program {
     my @target = ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match};
     for (1 .. 3) {
         push @target, check_var('DESKTOP', 'kde') ? 'desktop-runner-plasma-suggestions' : 'desktop-runner-border';
-        assert_screen([@target], $args{match_timeout}, no_wait => $args{match_no_wait});
+        my $match = assert_screen([@target], $args{match_timeout}, no_wait => $args{match_no_wait});
+        # workaround for lost focus in GNOME
+        # bsc#1202103 - [Build 20220803-2] GNOME: lost window focus
+        if ($program eq 'xterm') {
+            foreach my $property (@{$match->{needle}->{properties}}) {
+                if ($property->{name} eq 'workaround') {
+                    click_lastmatch();
+                }
+            }
+        }
         last unless match_has_tag('desktop-runner-border') || match_has_tag('desktop-runner-plasma-suggestions');
         wait_screen_change {
             send_key 'ret';
