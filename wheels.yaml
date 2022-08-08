@@ -1,0 +1,3 @@
+version: v0.1
+wheels:
+  - os-autoinst/os-autoinst-distri-opensuse/functional-wheel-launcher
