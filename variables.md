@@ -170,6 +170,9 @@ SPLITUSR | boolean | false | Enables `installation/partitioning_splitusr` test m
 SUSEMIRROR | string | | Mirror url of the installation medium.
 SYSAUTHTEST | boolean | false | Enable system authentication test (`sysauth/sssd`)
 SYSCTL_IPV6_DISABLED | boolean | undef | Set automatically in samba_adcli tests when ipv6 is disabled
+SYSTEMD_NSPAWN | boolean | 1 | Run systemd upstream tests in nspawn container rather than qemu
+SYSTEMD_TESTSUITE | boolean | undef | Enable schedule of systemd upstream tests
+SYSTEMD_UNIFIED_CGROUP | string | "yes", "no", "hybrid", "default" | systemd currently supports 3 (unified,legacy,hybrid) cgroups configurations
 TEST | string | | Name of the test suite.
 TEST_CONTEXT | string | | Defines the class name to be used as the context instance of the test. This is used in the scheduler to pass the `run_args` into the loadtest function. If it is not given it will be undef.
 TOGGLEHOME | boolean | false | Changes the state of partitioning to have or not to have separate home partition in the proposal.

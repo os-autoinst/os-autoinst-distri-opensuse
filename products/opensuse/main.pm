@@ -262,7 +262,6 @@ if (is_jeos) {
     load_jeos_tests();
 }
 
-
 if (is_kernel_test()) {
     load_kernel_tests();
 }
@@ -374,12 +373,17 @@ else {
         return 1 if load_default_tests;
     }
 
+    if (is_systemd_test()) {
+        load_upstream_systemd_tests();
+    }
+
     unless (install_online_updates()
         || load_qam_install_tests()
         || load_extra_tests()
         || load_virtualization_tests()
         || load_otherDE_tests()
-        || load_slenkins_tests())
+        || load_slenkins_tests()
+        || is_systemd_test())
     {
         loadtest "console/system_prepare";
         load_system_update_tests();
