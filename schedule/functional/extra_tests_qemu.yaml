@@ -21,3 +21,4 @@ schedule:
     - qemu/qemu
     - '{{kvm}}'
     - '{{user}}'
+    - console/zypper_log_packages
