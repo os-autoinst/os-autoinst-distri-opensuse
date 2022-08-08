@@ -675,7 +675,7 @@ if (is_jeos) {
 if (is_kernel_test()) {
     load_kernel_tests();
 }
-if (is_systemd_test()) {
+elsif (is_systemd_test()) {
     unless (is_jeos()) {
         boot_hdd_image;
     }
