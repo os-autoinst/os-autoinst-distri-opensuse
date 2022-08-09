@@ -221,6 +221,10 @@ sub install_lock_kernel {
         $package .= '-' . ($packver{$package} // $kernel_version);
     }
 
+    # Workaround for kgraft installation issue due to Retbleed mitigations
+    push @packages, 'crash-kmp-default-7.2.1_k4.12.14_122.124'
+      if is_sle('=12-SP5');
+
     # install and lock needed kernel
     zypper_call("in " . join(' ', @packages), exitcode => [0, 102, 103, 104], timeout => 1400);
     zypper_call("al " . join(' ', @lpackages));
