@@ -254,7 +254,7 @@ sub test_container_image {
     # Images from custom registry are listed with the '$registry/library/'
     $image =~ s/^docker\.io\/library\///;
 
-    my $smoketest = qq[/bin/sh -c '/bin/uname -r; /bin/echo "Heartbeat from $image";ps'];
+    my $smoketest = qq[/bin/sh -c '/bin/uname -r; /bin/echo "Heartbeat from $image"'];
 
     $runtime->pull($image, timeout => 420);
     $runtime->check_image_in_host($image);
