@@ -285,7 +285,11 @@ sub find_version {
     $version_fragment =~ s/\./\\./g;
 
     for my $item (@$verlist) {
-        return $$item{version} if $$item{version} =~ qr/^$version_fragment\./;
+        if ($$item{version} =~ qr/^$version_fragment\./) {
+            die "$packname-$version_arg is retracted."
+              if $$item{status} =~ m/^.R/;
+            return $$item{version};
+        }
     }
 
     die "$packname-$version_arg not found in repositories.";
