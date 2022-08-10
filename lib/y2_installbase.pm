@@ -383,6 +383,9 @@ The C<$operation> can be '+' or 'minus'.
 
 sub toggle_package {
     my ($self, $package_name, $operation) = @_;
+    # When coming from search_packages, the search might not be completed yet,
+    # give it some time.
+    check_screen "packages-$package_name-selected", 60;
     send_key_until_needlematch "packages-$package_name-selected", 'down', 60;
     wait_screen_change { send_key "$operation" };
     wait_still_screen 2;
