@@ -102,6 +102,7 @@ our @EXPORT = qw(
   load_zdup_tests
   logcurrentenv
   map_incidents_to_repo
+  join_incidents_to_repo
   need_clear_repos
   noupdatestep_is_applicable
   opensuse_welcome_applicable
@@ -792,6 +793,22 @@ sub map_incidents_to_repo {
     # do not start with ','
     $ret =~ s/^,//s;
     return $ret;
+}
+
+sub join_incidents_to_repo {
+    my ($incidents) = @_;
+    my @repos;
+
+    for my $k (keys %$incidents) {
+        next unless $incidents->{$k};
+        for my $i (split(/,/, $incidents->{$k})) {
+            if ($i) {
+                push @repos, $i;
+            }
+        }
+    }
+
+    return join(',', @repos);
 }
 
 our %valueranges = (
