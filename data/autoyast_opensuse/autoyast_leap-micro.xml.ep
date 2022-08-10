@@ -5,7 +5,7 @@
     <add_on_products config:type="list">
       <listentry>
         <alias>repo-main</alias>
-        <media_url><![CDATA[https://download.opensuse.org/distribution/leap-micro/5.2/product/repo/Leap-Micro-<%= $get_var->('VERSION') %>-<%= $get_var->('ARCH') %>-Media/]]></media_url>
+        <media_url><![CDATA[https://download.opensuse.org/distribution/leap-micro/<%= $get_var->('VERSION') %>/product/repo/Leap-Micro-<%= $get_var->('VERSION') %>-<%= $get_var->('ARCH') %>-Media/]]></media_url>
         <name>Leap Micro Main Repository</name>
       </listentry>
     </add_on_products>
