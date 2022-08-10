@@ -1,0 +1,28 @@
+name: 'TruffleHog OSS'
+description: 'Scan Github Actions with TruffleHog'
+
+inputs:
+  path:
+    description: Repository path
+    required: true
+  base:
+    description: Start scanning from here (usually main branch).
+    required: true
+  head:
+    description: Scan commits until here (usually dev branch).
+    required: false
+branding:
+  icon: "shield"
+  color: "green"
+runs:
+  using: "docker"
+  image: "docker://ghcr.io/trufflesecurity/trufflehog:latest"
+  args:
+    - git
+    - file://${{ inputs.path }}
+    - --since-commit
+    - ${{ inputs.base }}
+    - --branch
+    - ${{ inputs.head }}
+    - --fail
+    - --debug
