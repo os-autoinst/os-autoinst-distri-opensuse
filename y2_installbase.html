@@ -28,7 +28,7 @@
       <li><a href="#deselect_pattern">deselect_pattern</a></li>
       <li><a href="#select_specific_patterns_by_iteration">select_specific_patterns_by_iteration</a></li>
       <li><a href="#switch_selection">switch_selection</a></li>
-      <li><a href="#toogle_package">toogle_package</a></li>
+      <li><a href="#toggle_package">toggle_package</a></li>
     </ul>
   </li>
 </ul><h1>lib/y2_installbase.pm</h1>
@@ -123,11 +123,11 @@
 
 <p>Being in the &quot;select pattern&quot; screen, performs steps needed to switch the checkbox (<code>$action</code>) of the pattern matching one of the given <code>$needles</code>. Example switch_selection(action =&gt; &#39;select&#39;, needles =&gt; [&#39;current-pattern-selected&#39;]);</p>
 
-<h2 id="toogle_package">toogle_package</h2>
+<h2 id="toggle_package">toggle_package</h2>
 
-<pre><code>    toogle_package($package_name, $operation);</code></pre>
+<pre><code>    toggle_package($package_name, $operation);</code></pre>
 
-<p>Being in the &quot;search package&quot; screen, and showing a list of found packages, performs steps needed to toogle the checkbox of <code>$package_name</code>. The <code>$operation</code> can be &#39;+&#39; or &#39;minus&#39;.</p>
+<p>Being in the &quot;search package&quot; screen, and showing a list of found packages, performs steps needed to toggle the checkbox of <code>$package_name</code>. The <code>$operation</code> can be &#39;+&#39; or &#39;minus&#39;.</p>
 
 
 </body>
