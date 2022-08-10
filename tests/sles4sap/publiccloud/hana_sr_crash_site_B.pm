@@ -36,7 +36,7 @@ sub run {
 
     record_info("Stop DB", "Running 'proc-systrigger' on Site B ('$site_b->{instance_id}')");
     $self->stop_hana(method => "crash");
-
+    return();
     record_info("Takeover check");
     $self->check_takeover;
 

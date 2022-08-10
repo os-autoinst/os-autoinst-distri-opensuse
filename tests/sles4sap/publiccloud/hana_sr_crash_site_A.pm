@@ -38,6 +38,7 @@ sub run {
     $self->stop_hana(method => "crash");
 
     record_info("Takeover check");
+    return();
     $self->check_takeover;
 
     record_info("Replication", "Enabling replication on Site A (DEMOTED)");

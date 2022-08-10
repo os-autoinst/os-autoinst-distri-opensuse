@@ -235,7 +235,7 @@ sub stop_hana {
     my %commands = (
         "stop"  => "HDB stop",
         "kill"  => "HDB kill -x",
-        "crash" => "echo c | sudo tee /proc/sysrq-trigger"
+        "crash" => "sync; echo b | tee /proc/sysrq-trigger > /dev/null &"
     );
 
     my $cmd = $commands{$method};
@@ -245,9 +245,11 @@ sub stop_hana {
 
     record_info("Stopping HANA", "CMD:$cmd");
     if ($method eq "crash") {
-        # ServerAliveInterval will terminate command since there will be hanging session after crash
-        $args{ssh_opts} = "ServerAliveInterval=10 ServerAliveCountMax=3";
-        $self->run_cmd(cmd => $cmd, timeout => $timeout);
+        $self->{my_instance}->run_ssh_command(cmd => "sudo $cmd", timeout => "0", %args);
+        #$self->run_cmd(cmd => $cmd, timeout => $timeout);
+        sleep 30;
+        $self->{my_instance}->wait_for_ssh();
+        return();
     }
     else {
         $self->run_cmd(cmd => $cmd, runas=>"prdadm" , timeout => $timeout);
@@ -427,18 +429,6 @@ sub wait_for_sync {
     }
     record_info("Sync OK", $self->run_cmd(cmd=>"SAPHanaSR-showAttr"));
     return 1;
-}
-
-
-=head2 start_instance
-    start_instance([online_fail => 0, timeout => 300]);
-    Checks if PC instance offline starts it afterwards.
-    If "online_fail" is defined, test will fail if instance was not shut down previously.
-=cut
-sub start_instance {
-    my ($self, %args) = @_;
-    my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
-    #my $fail_if_online = defined($args{online_fail}) ?
 }
 
 1;
