@@ -372,16 +372,16 @@ sub switch_selection {
     assert_screen $needles, 8;
 }
 
-=head2 toogle_package
+=head2 toggle_package
 
-    toogle_package($package_name, $operation);
+    toggle_package($package_name, $operation);
 
 Being in the "search package" screen, and showing a list of found packages,
-performs steps needed to toogle the checkbox of C<$package_name>.
+performs steps needed to toggle the checkbox of C<$package_name>.
 The C<$operation> can be '+' or 'minus'.
 =cut
 
-sub toogle_package {
+sub toggle_package {
     my ($self, $package_name, $operation) = @_;
     send_key_until_needlematch "packages-$package_name-selected", 'down', 60;
     wait_screen_change { send_key "$operation" };
