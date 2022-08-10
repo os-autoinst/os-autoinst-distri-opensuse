@@ -43,7 +43,7 @@ sub run {
 
     # Function to check if the output either has no resources or has at least two lines
     # Two lines because one line is the header and the following lines are the data rows
-    validate_script_output("kubectl cluster-info", qr/Kubernetes control plane/);
+    validate_script_output("kubectl cluster-info", qr/Kubernetes .* is running at /);
     record_info('Testing: get/smoketest', 'State tests (get commands)');
     # Check for default namespaces to be present
     validate_script_output("kubectl get namespaces", qr/default/);
