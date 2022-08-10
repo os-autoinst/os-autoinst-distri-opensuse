@@ -21,6 +21,7 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 our @EXPORT = qw(install_k3s uninstall_k3s install_kubectl install_helm install_oc);
 
 sub install_k3s {
+    zypper_call('in apparmor-parser') if (is_sle('=15-sp1'));
   # Apply additional options. For more information see https://rancher.com/docs/k3s/latest/en/installation/install-options/#options-for-installation-with-script
     my $k3s_version = get_var("CONTAINERS_K3S_VERSION");
     if ($k3s_version) {
