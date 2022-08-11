@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/bash -e
 # COPY and RUN this script in a container image, to:
-# create a python virtualenv named as $1,
+# create a python virtualenv named as test_$1,
 # pip install the modules provided as parameters from $2 on,
 # collect the resulting dependencies in a resource_$1.txt file
 # copy the txt in a common dir.
@@ -12,16 +12,22 @@
 
 echo $0 $*
 
+MINPAR=2
 # parameters check
-[ $# -lt 3 ] && exit 1
+if [ $# -lt $MINPAR ]
+then
+    echo "Parameters missing in $@"
+    exit 1
+fi
 
 # create venv
-CLOUD=$1
-FILE=$2
+VENV_CLOUD=test_$1
 
-virtualenv test_$CLOUD; 
+RESOURCE_FILE=resources_$1.txt
 
-cd test_$CLOUD; 
+virtualenv $VENV_CLOUD; 
+
+cd $VENV_CLOUD; 
 
 # activate venv
 source bin/activate;
@@ -30,20 +36,23 @@ source bin/activate;
 python3 --version
 pip --version
 
+shift 1 # remove 1 used param from $@
+
 # install the modules
-shift 2 # remove 2 used param
 pip install $@
 
-# install result
-[ $? -ne 0 ] && exit 2
-
 # collect the resulting modules and versions
-pip freeze > $FILE; 
+pip freeze > $RESOURCE_FILE; 
 
 #deact. venv
 deactivate
 
 # copy file in parent dir
-cp $FILE .. 
+cp $RESOURCE_FILE .. 
 
-cd ..
+# file exists and size>0
+if [ ! -s ../$RESOURCE_FILE ]
+then
+    echo "Resource file $(pwd)/../$RESOURCE_FILE error"
+    exit 2
+fi
