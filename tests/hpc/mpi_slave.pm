@@ -31,6 +31,9 @@ sub test_flags ($self) {
     return {fatal => 1, milestone => 1};
 }
 
-sub post_fail_hook ($self) { }
+sub post_fail_hook ($self) {
+    $self->destroy_test_barriers();
+    $self->export_logs();
+}
 
 1;

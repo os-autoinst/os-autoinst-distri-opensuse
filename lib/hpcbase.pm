@@ -12,6 +12,7 @@ use testapi;
 use utils;
 use Utils::Architectures;
 use version_utils 'is_sle';
+use lockapi;
 
 =head2 enable_and_start
 
@@ -26,14 +27,83 @@ sub enable_and_start {
 }
 
 sub upload_service_log {
-    my ($self, $service_name) = @_;
+    my ($self, $service_name, $args) = @_;
     script_run("journalctl -u $service_name -o short-precise > /tmp/$service_name");
     script_run("cat /tmp/$service_name");
-    upload_logs("/tmp/$service_name", failok => 1);
+    upload_logs("/tmp/$service_name", failok => 1, log_name => $args->{log_name});
+}
+
+our %log_files = (
+    loadavg => {cmd => 'cat /proc/loadavg', logfile => 'loadavg.txt'},
+    psaxf => {cmd => 'ps axf', logfile => 'psaxf.log'},
+    journal => {cmd => 'journalctl -o short-precise', logfile => 'journal.log'},
+    dmesg => {cmd => 'dmesg', logfile => 'dmesg.txt'}
+);
+
+sub destroy_test_barriers {
+    my ($self) = @_;
+    if (check_var('HPC', 'slurm_master') || check_var('HPC', 'slurm_master_backup') || check_var('HPC', 'slurm_slave')) {
+        barrier_destroy('CLUSTER_PROVISIONED');
+        barrier_destroy('SLURM_MASTER_SERVICE_ENABLED');
+        barrier_destroy('SLURM_SLAVE_SERVICE_ENABLED');
+        barrier_destroy('SLURM_SETUP_DONE');
+        barrier_destroy('SLURM_MASTER_RUN_TESTS');
+        barrier_destroy('SLURM_SETUP_DBD');
+    }
+    elsif (check_var('HPC', 'mrsh_master') || check_var('HPC', 'mrsh_slave')) {
+        barrier_destroy('MRSH_INSTALLATION_FINISHED');
+        barrier_destroy('MRSH_KEY_COPIED');
+        barrier_destroy('MRSH_MUNGE_ENABLED');
+        barrier_destroy('SLAVE_MRLOGIN_STARTED');
+        barrier_destroy('MRSH_MASTER_DONE');
+    }
+    elsif (check_var('HPC', 'munge_master') || check_var('HPC', 'munge_slave')) {
+        barrier_destroy('MUNGE_INSTALLATION_FINISHED');
+        barrier_destroy('MUNGE_KEY_COPIED');
+        barrier_destroy('MUNGE_SERVICE_ENABLED');
+        barrier_destroy('MUNGE_DONE');
+    }
+    elsif (check_var('HPC', 'pdsh_master') || check_var('HPC', 'pdsh_slave')) {
+        barrier_destroy('PDSH_INSTALLATION_FINISHED');
+        barrier_destroy('PDSH_KEY_COPIED');
+        barrier_destroy('PDSH_MUNGE_ENABLED');
+        barrier_destroy('MRSH_SOCKET_STARTED');
+        barrier_destroy('PDSH_SLAVE_DONE');
+    }
+    elsif (check_var('HPC', 'ganglia_server') || check_var('HPC', 'ganglia_client')) {
+        barrier_destroy('GANGLIA_INSTALLED');
+        barrier_destroy('GANGLIA_SERVER_DONE');
+        barrier_destroy('GANGLIA_CLIENT_DONE');
+        barrier_destroy('GANGLIA_GMETAD_STARTED');
+        barrier_destroy('GANGLIA_GMOND_STARTED');
+    }
+    elsif (check_var('HPC', 'mpi_master') || check_var('HPC', 'mpi_slave')) {
+        barrier_destroy('CLUSTER_PROVISIONED');
+        barrier_destroy('MPI_SETUP_READY');
+        barrier_destroy('MPI_BINARIES_READY');
+        barrier_destroy('MPI_RUN_TEST');
+    }
+}
+
+sub post_run_hook {
+    my ($self) = @_;
+    select_console('log-console');
+    my $hname = get_required_var('HOSTNAME');
+    my $nodes = get_required_var('CLUSTER_NODES');
+    foreach (keys %log_files) {
+        $self->save_and_upload_log($log_files{$_}{cmd}, "/tmp/$hname-" . $log_files{$_}{logfile}, {screenshot => 1});
+    }
+    $self->upload_service_log("wicked");
+    if ($hname =~ /master/) {
+        upload_logs('/var/log/zypper.log');
+        upload_logs('/tmp/mpi_bin.log')
+          if (check_var('HPC', 'mpi_master') && script_run(qq{test -e /tmp/mpi_bin.log}) == 0);
+    }
 }
 
 sub post_fail_hook {
     my ($self) = @_;
+    $self->destroy_test_barriers();
     $self->select_serial_terminal;
     script_run("SUSEConnect --status-text");
     script_run("journalctl -o short-precise > /tmp/journal.log");

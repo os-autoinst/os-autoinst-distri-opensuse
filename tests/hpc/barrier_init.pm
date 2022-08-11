@@ -14,7 +14,7 @@ use utils;
 sub run ($self) {
     # Get number of nodes
     my $nodes = get_required_var('CLUSTER_NODES');
-
+    record_info("#barriers", $nodes);
     # Initialize barriers
     if (check_var('HPC', 'slurm')) {
         barrier_create('CLUSTER_PROVISIONED', $nodes);
