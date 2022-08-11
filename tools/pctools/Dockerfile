@@ -26,7 +26,7 @@ ARG ENVOPS=opstk
 ARG PIPOPS="openstacksdk python-openstackclient typing-extensions importlib-metadata importlib-resources colorama"
 
 # create the internal container's environment
-RUN cat /etc/os-release; mkdir $WKDIR; pip install virtualenv; echo Pre-virtualenv; python3 --version; pip --version
+RUN cat /etc/os-release && mkdir $WKDIR && pip install virtualenv && echo Pre-virtualenv && python3 --version && pip --version
 
 WORKDIR $WKDIR
 
