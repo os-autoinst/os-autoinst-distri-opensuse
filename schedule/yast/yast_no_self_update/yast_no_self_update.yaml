@@ -11,6 +11,7 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
+  - installation/access_beta_distribution
   - installation/product_selection/install_SLES
   - installation/validate_no_self_update
   - installation/licensing/accept_license

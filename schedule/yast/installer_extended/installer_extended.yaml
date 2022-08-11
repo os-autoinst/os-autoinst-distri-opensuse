@@ -18,6 +18,7 @@ conditional_schedule:
     BETA:
       1:
         - installation/validate_beta_message
+        - installation/access_beta_distribution
 schedule:
   - installation/isosize
   - installation/data_integrity

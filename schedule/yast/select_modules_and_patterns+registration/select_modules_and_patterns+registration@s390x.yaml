@@ -17,6 +17,7 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
+  - installation/access_beta_distribution
   - installation/licensing/accept_license
   - installation/registration/skip_registration
   - installation/module_selection/select_nonconflicting_modules
