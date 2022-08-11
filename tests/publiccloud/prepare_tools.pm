@@ -154,4 +154,8 @@ Activate this test module by setting this variable.
 The URL to the cloud:tools repo (optional).
 (e.g. http://download.opensuse.org/repositories/Cloud:/Tools/openSUSE_Tumbleweed/Cloud:Tools.repo)
 
+=head2 README
+
+For more information see the README.md file in /var/lib/openqa/share/tests/opensuse/tools/pctools
+
 =cut
