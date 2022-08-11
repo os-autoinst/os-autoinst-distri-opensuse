@@ -36,7 +36,8 @@ use utils;
 use virt_utils;
 use virt_autotest::utils;
 use version_utils;
-use Utils::Systemd 'disable_and_stop_service';
+use Utils::Systemd;
+use mm_network;
 
 #%guest_params contains all parameters will be used for virtual machine creation, installation and configuration.
 #All parameters before those end with 'options' can be included in guest params xml file and used as guest instance configuration file.
@@ -215,7 +216,7 @@ our %guest_params = (
 );
 
 our $AUTOLOAD;
-our $common_log_folder = '/tmp/guest_installation_and_configuration';
+our $common_log_folder = '/var/log/guest_installation_and_configuration';
 our $common_environment_prepared = 'false';
 
 #Any subroutine calls this subroutine announces its identity and it is being executed
@@ -367,17 +368,35 @@ sub prepare_common_environment {
         virt_autotest::utils::setup_common_ssh_config('/root/.ssh/config');
         script_run("sed -i -r -n \'s/^.*IdentityFile.*\$/#&/\' /etc/ssh/ssh_config");
         enable_debug_logging;
+        $self->prepare_non_transactional_environment;
+        $common_environment_prepared = 'true';
+        diag("Common environment preparation is done now.");
+    }
+    else {
+        diag("Common environment preparation had already been done.");
+    }
+    return $self;
+}
+
+=head2 prepare_non_transactional_environment
+
+  prepare_non_transactional_environment($self)
+
+Do preparation on non-transactional server.
+
+=cut
+
+sub prepare_non_transactional_environment {
+    my $self = shift;
+
+    $self->reveal_myself;
+    if (!is_transactional) {
         virt_autotest::utils::setup_rsyslog_host($common_log_folder);
         my $_packages_to_check = 'wget curl screen dnsmasq xmlstarlet yast2-schema python3 nmap';
         zypper_call("install -y $_packages_to_check");
         my $_patterns_to_check = 'kvm_server kvm_tools';
         $_patterns_to_check = 'xen_server xen_tools' if ($self->{host_virt_type} eq 'xen');
         zypper_call("install -y -t pattern $_patterns_to_check");
-        $common_environment_prepared = 'true';
-        diag("Common environment preparation is done now.");
-    }
-    else {
-        diag("Common environment preparation had already been done.");
     }
     return $self;
 }
@@ -850,42 +869,235 @@ sub config_guest_network_bridge {
     return $self;
 }
 
-#Write ethernet device config file to /etc/sysconfig/network/ifcfg-*.Please refer to https://github.com/openSUSE/sysconfig/blob/master/config/ifcfg.template for config file content.
-#If $_ipaddr given is empty, it means there is no associated specific ip address to this interface which might be attached to another bridge interface or will not be assigned one
-#ip address from dhcp, so set $_ipaddr to '0.0.0.0'.If $_ipaddr given is non-empty but not in ip address format,for example,'host-default',it means the interface will not use a ip
-#address from pre-defined subnet and will automically accept dhcp ip address from public facing host network.
+=head2 write_guest_network_bridge_device_config
+
+  write_guest_network_bridge_device_config($self, _name => $_name [, 
+  _ipaddr => $_ipaddr, _bootproto => $_bootproto, _startmode => $_startmode, 
+  _zone => $_zone, _bridge_type => $_bridge_type, _bridge_ports => $_bridge_ports, 
+  _bridge_stp => $_bridge_stp, _bridge_forwarddelay => $_bridge_forwarddelay])
+
+Write network device settings to conventional /etc/sysconfig/network/ifcfg-* or 
+/etc/NetworkManager/system-connections/*.nmconnection depends on whether system
+network is managed by NetworkManager or not. The supported arguments are listed
+out as below:
+$_ipaddr: IP address/mask length pair of the interface
+$_name: Identifier of the interface
+$_bootproto: DHCP automatic or manual configuration, 'static', 'dhcp' or 'none'
+$_startmode: Auto start up or connection: 'auto', 'manual' or 'off'
+$_zone: The trust level of this network connection
+$_bridge_type: 'master' or 'slave' to indicate master or slave interface
+$_bridge_port: Specify interface's master or slave interface name
+$_bridge_stp: 'on' or 'off' to turn stp on or off
+$_bridge_forwarddelay: The stp forwarding delay in seconds
+If $_ipaddr given is empty, it means there is no associated specific ip address 
+to this interface which might be attached to another bridge interface or will not 
+be assigned one ip address from dhcp, so set $_ipaddr to '0.0.0.0'.If $_ipaddr 
+given is non-empty but not in ip address format,for example, 'host-default',it 
+means the interface will not use a ip address from pre-defined subnet and will 
+automically accept dhcp ip address from public facing host network.
+
+=cut
+
 sub write_guest_network_bridge_device_config {
-    my ($self, $_ipaddr, $_name, $_bootproto, $_startmode, $_zone, $_bridge, $_bridge_ports, $_bridge_stp, $_bridge_forwarddelay) = @_;
+    my ($self, %args) = @_;
 
     $self->reveal_myself;
-    $_ipaddr //= '0.0.0.0';
-    $_name //= '';
-    $_bootproto //= 'dhcp';
-    $_startmode //= 'auto';
-    $_zone //= '';
-    $_bridge //= '';
-    $_bridge_ports //= '';
-    $_bridge_stp //= 'off';
-    $_bridge_forwarddelay //= '15';
-    script_run("cp /etc/sysconfig/network/ifcfg-$_name /etc/sysconfig/network/backup-ifcfg-$_name");
-    script_run("cp /etc/sysconfig/network/backup-ifcfg-$_name $common_log_folder");
-    my $_bridge_device_config_file = '/etc/sysconfig/network/ifcfg-' . $_name;
-    $_ipaddr = '0.0.0.0' if ($_ipaddr eq '');
-    $_ipaddr = '' if (!($_ipaddr =~ /\d+\.\d+\.\d+\.\d+/));
+    $args{_ipaddr} //= '0.0.0.0';
+    $args{_name} //= '';
+    $args{_bootproto} //= 'dhcp';
+    $args{_startmode} //= 'auto';
+    $args{_zone} //= '';
+    $args{_bridge_type} //= 'master';
+    $args{_bridge_port} //= '';
+    $args{_bridge_stp} //= 'off';
+    $args{_bridge_forwarddelay} //= '15';
+    croak("Interface name must be given otherwise network bridge device config can not be generated.") if ($args{_name} eq '');
+
+    $args{_ipaddr} = '0.0.0.0' if ($args{_ipaddr} eq '');
+    $args{_ipaddr} = '' if (!($args{_ipaddr} =~ /\d+\.\d+\.\d+\.\d+/));
+    if (is_networkmanager) {
+        $self->write_guest_network_bridge_device_nmconnection(%args);
+    }
+    else {
+        $self->write_guest_network_bridge_device_ifcfg(%args);
+    }
+    return $self;
+}
+
+=head2 write_guest_network_bridge_device_ifcfg
+
+  write_guest_network_bridge_device_ifcfg($self, _name => $_name [, 
+  _ipaddr => $_ipaddr, _name => $_name, _bootproto => $_bootproto, 
+  _startmode => $_startmode, _zone => $_zone, _bridge_type => $_bridge_type, 
+  _bridge_ports => $_bridge_ports, _bridge_stp => $_bridge_stp, 
+  _bridge_forwarddelay => $_bridge_forwarddelay])
+
+Write bridge device config file to /etc/sysconfig/network/ifcfg-*. Please refer 
+to https://github.com/openSUSE/sysconfig/blob/master/config/ifcfg.template for 
+config file content. 
+
+=cut
+
+sub write_guest_network_bridge_device_ifcfg {
+    my ($self, %args) = @_;
+
+    $self->reveal_myself;
+    script_run("cp /etc/sysconfig/network/ifcfg-$args{_name} /etc/sysconfig/network/backup-ifcfg-$args{_name}");
+    script_run("cp /etc/sysconfig/network/backup-ifcfg-$args{_name} $common_log_folder");
+    my $_bridge_device_config_file = '/etc/sysconfig/network/ifcfg-' . $args{_name};
+    my $_is_bridge = ($args{_bridge_type} eq 'master' ? 'yes' : 'no');
     type_string("cat > $_bridge_device_config_file <<EOF
-IPADDR=\'$_ipaddr\'
-NAME=\'$_name\'
-BOOTPROTO=\'$_bootproto\'
-STARTMODE=\'$_startmode\'
-ZONE=\'$_zone\'
-BRIDGE=\'$_bridge\'
-BRIDGE_PORTS=\'$_bridge_ports\'
-BRIDGE_STP=\'$_bridge_stp\'
-BRIDGE_FORWARDDELAY=\'$_bridge_forwarddelay\'
+IPADDR=\'$args{_ipaddr}\'
+NAME=\'$args{_name}\'
+BOOTPROTO=\'$args{_bootproto}\'
+STARTMODE=\'$args{_startmode}\'
+ZONE=\'$args{_zone}\'
+BRIDGE=\'$_is_bridge\'
+BRIDGE_PORTS=\'$args{_bridge_port}\'
+BRIDGE_STP=\'$args{_bridge_stp}\'
+BRIDGE_FORWARDDELAY=\'$args{_bridge_forwarddelay}\'
 EOF
 ");
     script_run("cp $_bridge_device_config_file $common_log_folder");
-    record_info("Network device $_name config $_bridge_device_config_file", script_output("cat $_bridge_device_config_file", proceed_on_failure => 0));
+    record_info("Network device $args{_name} config $_bridge_device_config_file", script_output("cat $_bridge_device_config_file", proceed_on_failure => 0));
+    return $self;
+}
+
+=head2 write_guest_network_bridge_device_nmconnection
+  
+  write_guest_network_bridge_device_nmconnection($self, _name => $_name [, 
+  _ipaddr => $_ipaddr, _name => $_name, _bootproto => $_bootproto, 
+  _startmode => $_startmode, _zone => $_zone, _bridge_type => $_bridge_type, 
+  _bridge_ports => $_bridge_ports, _bridge_stp => $_bridge_stp, 
+  _bridge_forwarddelay => $_bridge_forwarddelay])
+
+Write bridge device config file to /etc/NetworkManager/system-connections/*. NM
+settings are a little bit different from ifcfg settings, but there are definite
+mapping between them. So translation from well-known and default ifcfg settings
+to NM settings is necessary. Please refer to nm-settings explanation as below:
+https://developer-old.gnome.org/NetworkManager/stable/nm-settings-keyfile.html
+
+=cut
+
+sub write_guest_network_bridge_device_nmconnection {
+    my ($self, %args) = @_;
+
+    $self->reveal_myself;
+    my $_configmethod = ($args{_bootproto} eq 'dhcp' ? 'auto' : 'manual');
+    my $_autoconnect = ($args{_startmode} eq 'auto' ? 'true' : 'false');
+    $args{_bridge_stp} = ($args{_bridge_stp} eq 'on' ? 'true' : 'false');
+    script_run("cp /etc/NetworkManager/system-connections/$args{_name}.nmconnection /etc/NetworkManager/system-connections/backup-$args{_name}.nmconnection");
+    script_run("cp /etc/NetworkManager/system-connections/backup-$args{_name}.nmconnection $common_log_folder");
+    my $_bridge_device_config_file = '/etc/NetworkManager/system-connections/' . $args{_name} . ".nmconnection";
+
+    if ($args{_bridge_type} eq 'master') {
+        type_string("cat > $_bridge_device_config_file <<EOF
+[connection]
+autoconnect=$_autoconnect
+id=$args{_name}
+permissions=
+interface-name=$args{_name}
+type=bridge
+zone=$args{_zone}
+[ipv4]
+method=$_configmethod
+address1=$args{_ipaddr}
+[bridge]
+stp=$args{_bridge_stp}
+forward-delay=$args{_bridge_forwarddelay}
+EOF
+");
+    }
+    elsif ($args{_bridge_type} eq 'slave') {
+        my $_interfacetype = "";
+        if (script_run("nmcli connection show $args{_name}") == 0) {
+            $_interfacetype = script_output("nmcli connection show $args{_name} | grep connection.type | awk \'{print \$2}\'", proceed_on_failure => 0);
+        }
+        else {
+            my $_interfacename = script_output("nmcli -f NAME,DEVICE connection show | grep $args{_name}", proceed_on_failure => 0);
+            $_interfacename =~ s/\s*$args{_name}\s*$//;
+            $_interfacetype = script_output("nmcli connection show \"$_interfacename\" | grep connection.type | awk \'{print \$2}\'", proceed_on_failure => 0);
+        }
+        type_string("cat > $_bridge_device_config_file <<EOF
+[connection]
+autoconnect=$_autoconnect
+id=$args{_name}
+permissions=
+interface-name=$args{_name}
+type=$_interfacetype
+zone=$args{_zone}
+slave-type=bridge
+master=$args{_bridge_port}
+[ipv4]
+method=$_configmethod
+address1=$args{_ipaddr}
+EOF
+");
+    }
+    script_run("chmod 700 $_bridge_device_config_file && cp $_bridge_device_config_file $common_log_folder");
+    script_retry("nmcli connection load $_bridge_device_config_file", retry => 3, die => 0);
+    record_info("Network device $args{_name} config $_bridge_device_config_file", script_output("cat $_bridge_device_config_file", proceed_on_failure => 0));
+    return $self;
+}
+
+=head2 activate_guest_network_bridge_device
+
+  activate_guest_network_bridge_device($self, _bridge_name => $_bridge_name)
+
+Activate guest network bridge device by using wicked or NetworkManager depends on
+system configuration. And also validate whether activation is successful or not.
+
+=cut
+
+sub activate_guest_network_bridge_device {
+    my ($self, %args) = @_;
+
+    $self->reveal_myself;
+    $args{_host_device} //= '';
+    $args{_bridge_device} //= '';
+    croak("Bridge device name must be given otherwise activation can not be done.") if ($args{_bridge_device} eq '');
+    my $_detect_active_route = '';
+    my $_detect_inactive_route = '';
+    if ($self->{guest_netaddr} ne 'host-default') {
+        if (is_networkmanager) {
+            script_retry("nmcli connection up $args{_bridge_device}", retry => 3, die => 0);
+        }
+        else {
+            my $_bridge_device_config_file = '/etc/sysconfig/network/ifcfg-' . $args{_bridge_device};
+            if (is_opensuse) {
+                # NIC in openSUSE TW guest is unable to get the IP from its network configration file with 'wicked ifup' or 'ifup'
+                # Not sure if it is a bug yet. This is just a temporary solution.
+                my $_bridge_ipaddr = script_output("grep IPADDR $_bridge_device_config_file | cut -d \"'\" -f2");
+                script_retry("ip link add $args{_bridge_device} type bridge; ip addr flush dev $args{_bridge_device}", retry => 3, die => 0);
+                script_retry("ip addr add $_bridge_ipaddr dev $args{_bridge_device} && ip link set $args{_bridge_device} up", retry => 3, die => 0);
+            }
+            else {
+                script_retry("wicked ifup $_bridge_device_config_file $args{_bridge_device}", retry => 3, die => 0);
+            }
+        }
+        $_detect_active_route = script_output("ip route show | grep -i $args{_bridge_device}", proceed_on_failure => 1);
+    }
+    else {
+        if (is_networkmanager) {
+            script_retry("nmcli connection up $args{_bridge_device}", timeout => 60, delay => 15, retry => 3, die => 0);
+            script_retry("nmcli connection up $args{_host_device}", timeout => 60, delay => 15, retry => 3, die => 0);
+        }
+        else {
+            script_retry("systemctl restart network", timeout => 60, delay => 15, retry => 3, die => 0);
+        }
+        type_string("reset\n");
+        select_console('root-ssh') if (!(check_screen('text-logged-in-root')));
+        $_detect_active_route = script_output("ip route show default | grep -i $args{_bridge_device}", proceed_on_failure => 1);
+        $_detect_inactive_route = script_output("ip route show default | grep -i $args{_host_device}", proceed_on_failure => 1);
+    }
+
+    if (($_detect_active_route ne '') and ($_detect_inactive_route eq '')) {
+        record_info("Successfully setup bridge device $self->{guest_network_device} to be used by $self->{guest_name}.", script_output("ip addr show;ip route show"));
+    }
+    else {
+        record_info("Failed to setup bridge device $self->{guest_network_device} to be used by $self->{guest_name}.Mark guest $self->{guest_name} installation as FAILED", script_output("ip addr show;ip route show"));
+        $self->record_guest_installation_result('FAILED');
+    }
     return $self;
 }
 
@@ -903,35 +1115,14 @@ sub config_guest_network_bridge_device {
         my $_detect_active_route = '';
         my $_detect_inactive_route = '';
         if ($self->{guest_netaddr} ne 'host-default') {
-            $self->write_guest_network_bridge_device_config($_bridge_network, $_bridge_device, 'static', 'auto', '', 'yes');
-            my $_bridge_device_config_file = '/etc/sysconfig/network/ifcfg-' . $_bridge_device;
-            if (is_opensuse) {
-                #NIC in openSUSE TW guest is unable to get the IP from its network configration file with 'wicked ifup' or 'ifup'
-                #Not sure if it is a bug yet. This is just a temporary solution.
-                my $_bridge_ipaddr = script_output("grep IPADDR $_bridge_device_config_file | cut -d \"'\" -f2");
-                script_retry("ip link add $_bridge_device type bridge && ip addr add $_bridge_ipaddr dev $_bridge_device && ip link set $_bridge_device up", retry => 3, die => 0);
-            }
-            else {
-                script_retry("wicked ifup $_bridge_device_config_file $_bridge_device", retry => 3, die => 0);
-            }
-            $_detect_active_route = script_output("ip route show | grep -i $_bridge_device", proceed_on_failure => 1);
+            $self->write_guest_network_bridge_device_config(_ipaddr => $_bridge_network, _name => $_bridge_device, _bootproto => 'static', _bridge_type => 'master');
+            $self->activate_guest_network_bridge_device(_bridge_device => $_bridge_device);
         }
         else {
             my $_host_default_network_interface = script_output("ip route show default | grep -i dhcp | grep -vE br[[:digit:]]+ | head -1 | awk \'{print \$5}\'");
-            $self->write_guest_network_bridge_device_config($_bridge_network, $_bridge_device, 'dhcp', 'auto', '', 'yes', $_host_default_network_interface);
-            $self->write_guest_network_bridge_device_config('', $_host_default_network_interface, 'none');
-            script_retry("systemctl restart network", timeout => 60, delay => 15, retry => 3, die => 0);
-            type_string("reset\n");
-            select_console('root-ssh') if (!(check_screen('text-logged-in-root')));
-            $_detect_active_route = script_output("ip route show default | grep -i $_bridge_device", proceed_on_failure => 1);
-            $_detect_inactive_route = script_output("ip route show default | grep -i $_host_default_network_interface", proceed_on_failure => 1);
-        }
-        if (($_detect_active_route ne '') and ($_detect_inactive_route eq '')) {
-            record_info("Successfully setup bridge device $self->{guest_network_device} to be used by $self->{guest_name}.", script_output("ip addr show;ip route show"));
-        }
-        else {
-            record_info("Failed to setup bridge device $self->{guest_network_device} to be used by $self->{guest_name}.Mark guest $self->{guest_name} installation as FAILED", script_output("ip addr show;ip route show"));
-            $self->record_guest_installation_result('FAILED');
+            $self->write_guest_network_bridge_device_config(_ipaddr => $_bridge_network, _name => $_bridge_device, _bootproto => 'dhcp', _bridge_type => 'master', _bridge_port => $_host_default_network_interface);
+            $self->write_guest_network_bridge_device_config(_ipaddr => '', _name => $_host_default_network_interface, _bootproto => 'none', _bridge_type => 'slave', _bridge_port => $_bridge_device);
+            $self->activate_guest_network_bridge_device(_host_device => $_host_default_network_interface, _bridge_device => $_bridge_device);
         }
     }
     else {
@@ -991,13 +1182,7 @@ sub config_guest_network_bridge_services {
     }
     else {
         record_info("DHCP and DNS services had already been running on $self->{guest_network_device} which is ready for use", "The command used is ((nohup $_dnsmasq_command  &>$_dnsmasq_log) &)");
-        if (script_output("cat $common_log_folder/root_cron_job | grep -i \"$_dnsmasq_command\"", proceed_on_failure => 1) eq '') {
-            type_string("cat >> $common_log_folder/root_cron_job <<EOF
-\@reboot ((nohup $_dnsmasq_command  &>$_dnsmasq_log) &)
-EOF
-");
-            script_run("crontab $common_log_folder/root_cron_job;crontab -l");
-        }
+        $self->schedule_tasks_on_boot(_task => "(nohup $_dnsmasq_command  &>$_dnsmasq_log) &");
     }
     return $self;
 }
@@ -1011,7 +1196,7 @@ sub config_guest_network_bridge_policy {
     my @_default_route_devices = split(/\n/, script_output("ip route show default | grep -i dhcp | awk \'{print \$5}\'", proceed_on_failure => 0));
     my $_iptables_default_route_devices = '';
     $_iptables_default_route_devices = "iptables --table nat --append POSTROUTING --out-interface $_ -j MASQUERADE\n" . $_iptables_default_route_devices foreach (@_default_route_devices);
-    my $_network_policy_config_file = '/tmp/network_policy_bridge_device_' . $_guest_network_device . '_default_route_device';
+    my $_network_policy_config_file = "$common_log_folder/network_policy_bridge_device_" . $_guest_network_device . "_default_route_device";
     $_network_policy_config_file = $_network_policy_config_file . '_' . $_ foreach (@_default_route_devices);
     $_network_policy_config_file = $_network_policy_config_file . '.sh';
     type_string("cat > $_network_policy_config_file <<EOF
@@ -1029,6 +1214,7 @@ systemctl stop firewalld
 systemctl disable firewalld
 systemctl stop apparmor
 systemctl disable apparmor
+sed -i -r \'s/^SELINUX=.*\$/SELINUX=disabled/g\' /etc/selinux/config
 systemctl stop named
 systemctl disable named
 systemctl stop dhcpd
@@ -1042,6 +1228,7 @@ iptables -X
 $_iptables_default_route_devices
 iptables --append FORWARD --in-interface $_guest_network_device -j ACCEPT
 sysctl -w net.ipv4.ip_forward=1
+sysctl -w net.ipv4.conf.all.forwarding=1
 sysctl -w net.ipv6.conf.all.forwarding=1
 iptables-save > $self->{guest_log_folder}/iptables_after_modification_by_$self->{guest_name}
 EOF
@@ -1049,15 +1236,112 @@ EOF
     assert_script_run("chmod 777 $_network_policy_config_file");
     record_info("Network policy config file", script_output("cat $_network_policy_config_file", proceed_on_failure => 0));
     script_run("$_network_policy_config_file", timeout => 60);
-    if (script_output("cat $common_log_folder/root_cron_job | grep -i $_network_policy_config_file", proceed_on_failure => 1) eq '') {
+    $self->schedule_tasks_on_boot(_task => "$_network_policy_config_file");
+    return $self;
+}
+
+=head2 schedule_tasks_on_boot
+
+  schedule_tasks_on_boot($self, _task => $task)
+
+Schedule tasks to be executed on system boot up, please refer to these documents:
+https://docs.oracle.com/en/learn/oracle-linux-crontab/ for using crontab utility
+and https://linuxconfig.org/how-to-schedule-tasks-with-systemd-timers-in-linux for 
+for using systemd service and timer. In order to schedule a task successfully, the
+_task argument should not be empty.
+
+=cut
+
+sub schedule_tasks_on_boot {
+    my ($self, %args) = @_;
+
+    $self->reveal_myself;
+    $args{_task} //= '';
+
+    croak("Jobs to be scheduled should have _task arguments set.") if ($args{_task} eq '');
+    if (script_run('systemctl is-active cron.service') != 0) {
+        $self->schedule_tasks_on_boot_systemd(%args);
+    }
+    else {
+        $self->schedule_tasks_on_boot_crontab(%args);
+    }
+    return $self;
+}
+
+=head2 schedule_tasks_on_boot_crontab
+
+  schedule_tasks_on_boot_crontab($self, _task => $task)
+
+Schedule tasks on system boot up by using crontab utility.
+
+=cut
+
+sub schedule_tasks_on_boot_crontab {
+    my ($self, %args) = @_;
+
+    $self->reveal_myself;
+    $args{_task} = "($args{_task})" if $args{_task} =~ /\s*&\s*$/;
+    if (script_output("cat $common_log_folder/root_cron_job | grep -i \"$args{_task}\"", proceed_on_failure => 1) eq '') {
         type_string("cat >> $common_log_folder/root_cron_job <<EOF
-\@reboot $_network_policy_config_file
+\@reboot $args{_task}
 EOF
 ");
         script_run("crontab $common_log_folder/root_cron_job;crontab -l");
     }
     return $self;
 }
+
+
+
+=head2 schedule_tasks_on_boot_systemd
+
+  schedule_tasks_on_boot_systemd($self, _task => $task)
+
+Schedule tasks on system boot up by using systemd service and timer.
+
+=cut
+
+sub schedule_tasks_on_boot_systemd {
+    my ($self, %args) = @_;
+
+    $self->reveal_myself;
+    $args{_task} =~ s/\s*&\s*$//;
+    my $_systemd_unit_path = "/etc/systemd/system";
+    my $_systemd_unit_name = "stubnetwork";
+    if (script_output("cat $common_log_folder/root_systemd_job | grep -i \"$args{_task}\"", proceed_on_failure => 1) eq '') {
+        assert_script_run("echo -e \"$args{_task}\\n\$(cat $common_log_folder/root_systemd_job)\" > $common_log_folder/root_systemd_job");
+        assert_script_run("chmod 755 $common_log_folder/root_systemd_job");
+        if (script_output("systemctl list-timers | grep $_systemd_unit_name", proceed_on_failure => 1) eq '') {
+            type_string("cat > $_systemd_unit_path/$_systemd_unit_name.service <<EOF
+[Unit]
+Description=Bridge DHCP and DNS Services without Blockage
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash $common_log_folder/root_systemd_job
+EOF
+");
+            type_string("cat > $_systemd_unit_path/$_systemd_unit_name.timer <<EOF
+[Unit]
+Description=Bridge DHCP and DNS services without Blockage
+
+[Timer]
+Unit=stubnetwork.service
+OnBootSec=10
+
+[Install]
+WantedBy=timers.target
+EOF
+");
+            script_run("cp $_systemd_unit_path/$_systemd_unit_name* $common_log_folder");
+        }
+        disable_and_stop_service("$_systemd_unit_name.timer", ignore_failure => 1);
+        systemctl("enable $_systemd_unit_name.timer", ignore_failure => 1);
+        systemctl("status $_systemd_unit_name.timer", ignore_failure => 1);
+    }
+    return $self;
+}
+
 
 #Configure [guest_installation_method_options].User can still change [guest_installation_method],[guest_installation_media],[guest_build],[guest_version],[guest_version_major],
 #[guest_version_minor],[guest_installation_fine_grained] and [guest_autoconsole] by passing non-empty arguments using hash.Call config_guest_installation_media to set correct
@@ -1156,6 +1440,12 @@ sub config_guest_installation_extra_args {
         $self->{guest_installation_extra_args_options} = $self->{guest_installation_extra_args_options} . "--extra-args \"$_\" " foreach (@_guest_installation_extra_args);
         $self->{guest_installation_extra_args_options} = $self->{guest_installation_extra_args_options} . "--extra-args \"ip=$self->{guest_ipaddr}\"" if (($self->{guest_ipaddr_static} eq 'true') and ($self->{guest_ipaddr} ne ''));
     }
+
+    if (is_transactional and $self->{guest_os_name} eq 'slem') {
+        record_soft_failure("bsc#1202405 - SLE Micro 5.3 media can not be successfully loaded automatically for virtual machine installation");
+        $self->{guest_installation_extra_args_options} = $self->{guest_installation_extra_args_options} . "--extra-args \"install=$self->{guest_installation_media}\"";
+    }
+
     if (($self->{guest_installation_automation} ne '') and ($self->{guest_installation_automation_file} ne '')) {
         $self->config_guest_installation_automation;
         $self->{guest_installation_extra_args_options} = "$self->{guest_installation_extra_args_options} $self->{guest_installation_automation_options}" if ($self->{guest_installation_automation_options} ne '');
@@ -1163,6 +1453,7 @@ sub config_guest_installation_extra_args {
     else {
         record_info("Skip installation automation configuration for guest $self->{guest_name}", "It has no guest_installation_automation or no guest_installation_automation_file configured.Skip config_guest_installation_automation.");
     }
+
     return $self;
 }
 
@@ -1421,7 +1712,7 @@ sub get_guest_installation_session {
     my $installation_tty = script_output("tty | awk -F\"/\" 'BEGIN { OFS=\"-\" } {print \$3,\$4}\'", proceed_on_failure => 1);
     #Use grep instead of pgrep to avoid that the latter's case-insensitive search option might not be supported by some obsolete operating systems.
     my $installation_pid = script_output("ps ax | grep -i \"SCREEN -t $self->{guest_name}\" | grep -v grep | awk \'{print \$1}\'", proceed_on_failure => 1);
-    $self->{guest_installation_session} = ($installation_pid eq '' ? '' : $installation_pid . ".$installation_tty." . $self->{host_name});
+    $self->{guest_installation_session} = ($installation_pid eq '' ? '' : $installation_pid . ".$installation_tty." . (split(/\./, $self->{host_name}))[0]);
     record_info("Guest $self->{guest_name} installation screen process info", "$self->{guest_name} $self->{guest_installation_session}");
     return $self;
 }
