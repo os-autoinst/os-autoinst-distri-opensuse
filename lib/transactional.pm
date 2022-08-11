@@ -15,6 +15,8 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use utils;
+use Carp;
 use microos 'microos_reboot';
 use power_action_utils qw(power_action prepare_system_shutdown);
 use version_utils;
@@ -30,6 +32,9 @@ our @EXPORT = qw(
   trup_install
   trup_shell
   get_utt_packages
+  enter_trup_shell
+  exit_trup_shell_and_reboot
+  reboot_on_changes
 );
 
 # Download files needed for transactional update tests
@@ -233,3 +238,66 @@ sub ensure_rollback_service_not_running {
         $output =~ '^(start|running)$' ? sleep 10 : last;
     }
 }
+
+=head2 enter_trup_shell
+
+  enter_trup_shell(global_options => $global_options, shell_options => $shell_options)
+
+Enter into transactional update shell by entering command on transactional server:
+transactional-update $global_options shell $shell_options. The two arguments for
+this subroutine, global_options and shell_options, are all text strings that are
+composed of space separated options for transactional-update and shell respectively.
+
+=cut
+
+sub enter_trup_shell {
+    my (%args) = @_;
+
+    $args{global_options} //= '';
+    $args{shell_options} //= '';
+    enter_cmd("transactional-update $args{global_options} shell $args{shell_options}; echo trup_shell-status-\$? > /dev/$serialdev");
+    wait_still_screen;
+    assert_script_run("uname -a");
+}
+
+=head2 exit_trup_shell_and_reboot
+
+  exit_trup_shell_and_reboot()
+
+Quit transactional update shell by entering exit. Check if any changes that request
+reboot to take effect. This subroutine should be used together with enter_trup_shell.
+
+=cut
+
+sub exit_trup_shell_and_reboot {
+    enter_cmd("exit");
+    wait_serial('trup_shell-status-0') || croak("transactional-update shell did not finish");
+    wait_still_screen;
+    reboot_on_changes();
+}
+
+=head2 reboot_on_changes
+
+  reboot_on_changes
+
+Check whether new snapshot is generated and reboot into this new snapshot if there
+are changes happened.
+
+=cut
+
+sub reboot_on_changes {
+    # Compare currently mounted and default subvolume
+    my $mountedsubvol = script_output("mount | grep 'on / ' | egrep -o 'subvolid=[0-9]*' | cut -d'=' -f2", proceed_on_failure => 0);
+    my $defaultsubvol = script_output("btrfs su get-default / | cut -d' ' -f2", proceed_on_failure => 0);
+    my $has_change = abs(int($defaultsubvol) - int($mountedsubvol));
+
+    if ($has_change) {
+        # Reboot into new snapshot
+        process_reboot(trigger => 1);
+    }
+    else {
+        record_info("No reboot needed", "Reboot saved because there are no changes happened and no new snapshot generated");
+    }
+}
+
+1;

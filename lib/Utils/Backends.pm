@@ -47,6 +47,8 @@ use constant {
           unset_sshserial_dev
           use_ssh_serial_console
           set_ssh_console_timeout
+          save_serial_console
+          get_serial_console
         )
     ]
 };
@@ -58,7 +60,20 @@ our %EXPORT_TAGS = (
     BACKEND => (BACKEND)
 );
 
+sub save_serial_console {
+    my $serialconsole = get_var('SERIALCONSOLE', '');
+    return if ($serialconsole ne '');
+    $serialconsole = get_var('SERIALDEV', 'ttyS1');
+    set_var('SERIALCONSOLE', $serialconsole);
+    bmwqemu::save_vars();
+}
+
+sub get_serial_console {
+    return get_var('SERIALCONSOLE', get_var('SERIALDEV', 'ttyS1'));
+}
+
 sub set_sshserial_dev {
+    save_serial_console();
     $serialdev = 'sshserial';
     set_var('SERIALDEV', $serialdev);
     bmwqemu::save_vars();

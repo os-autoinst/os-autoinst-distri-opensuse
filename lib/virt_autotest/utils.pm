@@ -679,11 +679,10 @@ sub subscribe_extensions_and_modules {
 
     $ret = 0;
     my @to_be_subscribed = split(/ /, $args{reg_exts});
-    my $version_id = version_utils::get_version_id(dst_machine => "$args{dst_machine}");
     foreach (@to_be_subscribed) {
-        $cmd = "-p $_/" . $version_id . "/" . get_required_var("ARCH");
+        $cmd = "-p " . "\$(SUSEConnect -l | grep -o \"\\b$_\\/.*\\/.*\\b\")";
         $cmd = ($args{activate} != 0 ? "SUSEConnect " : "SUSEConnect -d ") . $cmd;
-        $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
+        $cmd = "ssh root\@$args{dst_machine} " . "\'$cmd\'" if ($args{dst_machine} ne 'localhost');
         $ret |= script_run($cmd, timeout => 120);
         save_screenshot;
     }
