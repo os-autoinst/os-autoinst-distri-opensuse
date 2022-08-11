@@ -163,6 +163,9 @@ sub boot_hmc_pvm {
     record_info("Details", "See the next screen to get details on $hmc_machine_name");
     enter_cmd "lslic -m $hmc_machine_name -t syspower | sed 's/,/\\n/g'";
 
+    # Fail the job when a lpar is not available
+    die 'The managed system is not available' if check_screen('lpar_manage_status_unavailable', 3);
+
     # detach possibly attached terminals - might be left over
     enter_cmd "rmvterm -m $hmc_machine_name --id $lpar_id && echo 'DONE'";
     assert_screen 'pvm-vterm-closed';
