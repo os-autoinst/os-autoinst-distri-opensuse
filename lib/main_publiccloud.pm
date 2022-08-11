@@ -36,6 +36,8 @@ sub load_maintenance_publiccloud_tests {
         loadtest("publiccloud/img_proof", run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_LTP')) {
         loadtest('publiccloud/run_ltp', run_args => $args);
+    } elsif (get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME')) {
+        loadtest("publiccloud/boottime", run_args => $args);
     } else {
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         loadtest "publiccloud/instance_overview" unless get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS');
