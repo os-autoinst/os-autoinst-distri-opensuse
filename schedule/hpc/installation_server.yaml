@@ -22,6 +22,8 @@ conditional_schedule:
         - installation/user_settings_root
       15-SP4:
         - installation/user_settings_root
+      15-SP5:
+        - installation/user_settings_root
   add_update_test_repo:
     FLAVOR:
       Server-DVD-HPC-Incidents:
