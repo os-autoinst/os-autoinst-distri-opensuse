@@ -41,12 +41,10 @@ sub change_desktop {
         for (1 .. 4) {
             wait_screen_change { send_key 'up'; };
         }
-        send_key 'ret';
+        wait_screen_change { send_key 'ret'; };
     }
-    # Give it some time to process the 'ret'
-    if (!check_screen('patterns-list-selected', 10)) {
-        send_key_until_needlematch 'patterns-list-selected', 'tab', 10, 2;
-    }
+
+    send_key_until_needlematch 'patterns-list-selected', 'tab', 10, 2;
 
     if (is_sle('<=12-SP1') && get_var("REGRESSION", '') =~ /xen|kvm|qemu/) {
         assert_and_click 'gnome_logo';
