@@ -32,8 +32,6 @@ conditional_schedule:
                 - installation/start_install
                 - installation/await_install
                 - installation/reboot_after_installation
-                - boot/reconnect_mgmt_console
-                - installation/first_boot
     reboot:
         DO_NOT_INSTALL_HOST:
             0:

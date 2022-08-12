@@ -43,40 +43,17 @@ sub switch_from_ssh_to_sol_console {
     save_screenshot;
 }
 
-my $grub_ver;
+my $grub_ver = "grub2";
 
 sub get_dom0_serialdev {
-    my $root_dir = shift;
-    $root_dir //= '/';
-
     my $dom0_serialdev;
-
-    script_run("clear");
-    script_run("cat ${root_dir}/etc/SuSE-release || cat ${root_dir}/etc/os-release");
-    save_screenshot;
-    assert_screen([qw(on_host_sles_12_sp2_or_above on_host_lower_than_sles_12_sp2)]);
-
     if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
-        if (match_has_tag("on_host_sles_12_sp2_or_above")) {
-            $dom0_serialdev = "hvc0";
-        }
-        elsif (match_has_tag("on_host_lower_than_sles_12_sp2")) {
-            $dom0_serialdev = "xvc0";
-        }
+        $dom0_serialdev = "hvc0";
     }
     else {
         $dom0_serialdev = get_var("LINUX_CONSOLE_OVERRIDE", "ttyS1");
     }
-
-    if (match_has_tag("grub1")) {
-        $grub_ver = "grub1";
-    }
-    else {
-        $grub_ver = "grub2";
-    }
-
-    enter_cmd("echo \"Debug info: hypervisor serial dev should be $dom0_serialdev. Grub version is $grub_ver.\"");
-
+    enter_cmd("echo \"Debug info: hypervisor serial dev should be $dom0_serialdev.\"");
     return $dom0_serialdev;
 }
 
@@ -364,7 +341,7 @@ sub set_grub_on_vh {
     }
 
     #set up xen serial console
-    my $ipmi_console = get_dom0_serialdev("$root_dir");
+    my $ipmi_console = get_dom0_serialdev();
     if (${virt_type} eq "xen" || ${virt_type} eq "kvm") { setup_console_in_grub($ipmi_console, $root_dir, $virt_type); }
     else { die "Host Hypervisor is not xen or kvm"; }
 
