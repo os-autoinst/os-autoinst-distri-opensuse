@@ -38,8 +38,20 @@ sub run {
         # Delay of 2 minutes between the tries to give their network some time to recover after a failure
         script_retry("rsync --timeout=$timeout -uvahP -e ssh ~/repos '$remote:/tmp/repos'", timeout => $timeout + 10, retry => 3, delay => 120);
         $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec sed -i 's,http://,/tmp/repos/repos/,g' '{}' \\;");
-        $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec zypper ar -p10 '{}' \\;");
-        $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec echo '{}' \\;");
+
+        $args->{my_instance}->run_ssh_command(cmd => "ls -al /tmp/repos");
+        # Only register repositories in _TEST_ISSUES, so that we can also select individual issues without creating the underlying image again
+        my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
+        for my $maintrepo (@repos) {
+            if ($maintrepo =~ 'https?://download.suse.de/.*/(?<incident>[0-9]+)/') {
+                my $incident = $+{incident};
+                my $dir = "/tmp/repos/download.suse.de/ibs/SUSE:/Maintenance:/$incident";
+
+                $args->{my_instance}->run_ssh_command(cmd => "sudo find '/tmp/repos/repos/download.suse.de/ibs/SUSE:/Maintenance:/$incident' -name '*.repo' -exec zypper ar -p10 '{}' \\;");
+                $args->{my_instance}->run_ssh_command(cmd => "sudo find '/tmp/repos/repos/download.suse.de/ibs/SUSE:/Maintenance:/$incident' -name '*.repo' -exec echo '{}' \\;");
+            }
+
+        }
 
         $args->{my_instance}->run_ssh_command(cmd => "zypper lr -P");
     }
