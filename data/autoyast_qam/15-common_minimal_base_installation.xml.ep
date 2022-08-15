@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email><%= $get_var->('SCC_EMAIL') %></email>
+    <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    % if (keys %$addons) {
+    <addons config:type="list">
+      % while (my ($key, $addon) = each (%$addons)) {
+      <addon>
+        <name><%= $addon->{name} %></name>
+        <version><%= $addon->{version} %></version>
+        <arch><%= $addon->{arch} %></arch>
+        % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sles')) {
+        <reg_code><%= $get_var->('SCC_REGCODE_WE') %></reg_code>
+        % }
+        % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sled')) {
+        <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
+        % }
+        % if ($key eq 'rt') {
+        <reg_code><%= $get_var->('SCC_REGCODE_RT') %></reg_code>
+        % }
+        % if ($key eq 'ltss') {
+        <reg_code><%= $get_var->('SCC_REGCODE_LTSS') %></reg_code>
+        % }
+      </addon>
+      % }
+    </addons>
+    %}
+  </suse_register>
+  <add-on>
+    <add_on_products config:type="list">
+      % for my $repo (@$repos) {
+      <listentry>
+        <media_url><%= $repo %></media_url>
+      </listentry>
+      % }
+    </add_on_products>
+  </add-on>
+  % if ($check_var->('ARCH', 's390x')) {
+  <bootloader>
+    <global>
+      <append>hvc_iucv=8 TERM=dumb resume=/dev/disk/by-path/ccw-0.0.0000-part3 crashkernel=163M</append>
+      <gfxmode>auto</gfxmode>
+      <hiddenmenu>false</hiddenmenu>
+      <os_prober>false</os_prober>
+      <terminal>console</terminal>
+      <timeout config:type="integer">8</timeout>
+      <trusted_grub>false</trusted_grub>
+      <xen_append>crashkernel=163M</xen_append>
+      <xen_kernel_append>crashkernel=163M\&lt;4G</xen_kernel_append>
+    </global>
+    <loader_type>grub2</loader_type>
+  </bootloader>
+  <dasd>
+    <devices config:type="list"/>
+    <format_unformatted config:type="boolean">false</format_unformatted>
+  </dasd>
+  <deploy_image>
+    <image_installation config:type="boolean">false</image_installation>
+  </deploy_image>
+  <general>
+    <ask-list config:type="list"/>
+    <cio_ignore config:type="boolean">false</cio_ignore>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+  </general>
+  <partitioning config:type="list">
+    <drive>
+      <device>/dev/disk/by-path/ccw-0.0.0000</device>
+      <disklabel>gpt</disklabel>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">ext2</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>acl,user_xattr</fstopt>
+          <mount>/boot/zipl</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+          <partition_type>primary</partition_type>
+          <resize config:type="boolean">false</resize>
+          <size>300M</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>/</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">2</partition_nr>
+          <partition_type>primary</partition_type>
+          <resize config:type="boolean">false</resize>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>swap</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">130</partition_id>
+          <partition_nr config:type="integer">3</partition_nr>
+          <partition_type>primary</partition_type>
+          <resize config:type="boolean">false</resize>
+          <size>2G</size>
+        </partition>
+      </partitions>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <networking>
+    <dhcp_options>
+      <dhclient_client_id/>
+      <dhclient_hostname_option>AUTO</dhclient_hostname_option>
+    </dhcp_options>
+    <dns>
+      <dhcp_hostname config:type="boolean">true</dhcp_hostname>
+      <hostname>susetest</hostname>
+      <nameservers config:type="list">
+        <nameserver>10.160.0.1</nameserver>
+      </nameservers>
+      <resolv_conf_policy>auto</resolv_conf_policy>
+      <searchlist config:type="list">
+        <search>suse.de</search>
+      </searchlist>
+      <write_hostname config:type="boolean">false</write_hostname>
+    </dns>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <name>eth0</name>
+        <startmode>auto</startmode>
+        <zone>public</zone>
+      </interface>
+      <interface>
+        <bootproto>static</bootproto>
+        <device>lo</device>
+        <ipaddr>127.0.0.1</ipaddr>
+        <netmask>255.0.0.0</netmask>
+        <network>127.0.0.0</network>
+        <prefixlen>8</prefixlen>
+        <startmode>nfsroot</startmode>
+        <usercontrol>no</usercontrol>
+      </interface>
+  </interfaces>
+    <ipv6 config:type="boolean">true</ipv6>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+    <managed config:type="boolean">false</managed>
+    <routing>
+      <ipv4_forward config:type="boolean">false</ipv4_forward>
+      <ipv6_forward config:type="boolean">false</ipv6_forward>
+      <routes config:type="list">
+        <route>
+          <destination>default</destination>
+          <device>eth0</device>
+          <gateway>10.161.159.254</gateway>
+          <netmask>-</netmask>
+        </route>
+      </routes>
+    </routing>
+    <s390-devices config:type="list">
+      <listentry>
+        <chanids>   </chanids>
+        <type/>
+      </listentry>
+      <listentry>
+        <chanids>   </chanids>
+        <type/>
+      </listentry>
+    </s390-devices>
+  </networking>
+  % }
+  % unless ($check_var->('ARCH', 's390x')) {
+  <bootloader>
+    <global>
+      <timeout config:type="integer">45</timeout>
+    </global>
+  </bootloader>
+  <general>
+    <mode>
+      % if ($check_var->('BACKEND', 'ipmi') or $check_var->('BACKEND', 'svirt')) {
+      <final_reboot config:type="boolean">true</final_reboot>
+      % }
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+    <signature-handling>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+  </general>
+  <partitioning config:type="list">
+  <drive>
+    <initialize config:type="boolean">true</initialize>
+    <use>all</use>
+    </drive>
+  </partitioning>
+  <networking>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <dhclient_set_default_route>yes</dhclient_set_default_route>
+        <startmode>auto</startmode>
+      </interface>
+    </interfaces>
+  </networking>
+  % }
+  <firewall>
+    <enable_firewall config:type="boolean">true</enable_firewall>
+    <start_firewall config:type="boolean">true</start_firewall>
+    <zones config:type="list">
+      <zone>
+        <name>public</name>
+        <interfaces config:type="list">
+          <interface>eth0</interface>
+        </interfaces>
+        <services config:type="list">
+          % if ($check_var->('ARCH', 's390x')) {
+          <service>vnc-server</service>
+          % }
+          <service>ssh</service>
+        </services>
+        <ports config:type="list">
+          <port>22/tcp</port>
+        </ports>
+      </zone>
+    </zones>
+  </firewall>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <keyboard>
+    <keyboard_values>
+      <delay/>
+      <discaps config:type="boolean">false</discaps>
+      <numlock>bios</numlock>
+      <rate/>
+    </keyboard_values>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages/>
+  </language>
+  <ntp-client>
+    <ntp_policy>auto</ntp_policy>
+  </ntp-client>
+  <software>
+    <products config:type="list">
+      <product><%= uc $get_var->('SLE_PRODUCT') %></product>
+    </products>
+    % if ($get_var->('SCC_ADDONS') =~ m/\brt\b/) {
+    <kernel>kernel-rt</kernel>
+    % }
+    % if ($check_var->('VERSION', '15-SP3') or $check_var->('VERSION', '15-SP4')) {
+    <packages config:type="list">
+      <package>openssh</package>
+      <package>firewalld</package>
+    </packages>
+    % }
+    <patterns config:type="list">
+      % for my $pattern (@$patterns) {
+      <pattern><%= $pattern %></pattern>
+      % }
+    </patterns>
+  </software>
+  <services-manager>
+    % if ($check_var->('DESKTOP', 'gnome')) {
+    <default_target>graphical</default_target>
+    % }
+    % if ($check_var->('DESKTOP', 'textmode')) {
+    <default_target>multi-user</default_target>
+    % }
+    <services>
+      <disable config:type="list"/>
+      <enable config:type="list">
+        <service>sshd</service>
+      </enable>
+    </services>
+  </services-manager>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>Europe/Berlin</timezone>
+  </timezone>
+  <users config:type="list">
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <gid>100</gid>
+      <home>/home/bernhard</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact>-1</inact>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>1000</uid>
+      <user_password>nots3cr3t</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>nots3cr3t</user_password>
+      <username>root</username>
+    </user>
+  </users>
+  <scripts>
+    <post-scripts config:type="list">
+      <script>
+        <filename>post.sh</filename>
+        <interpreter>shell</interpreter>
+        <source><![CDATA[
+#!/bin/sh
+# zypper process is locked by some ruby process, modify the repo file
+cd /etc/zypp/repos.d
+sed -i 's/enabled=1/enabled=0/' $(ls|grep -i nvidia)
+zypper lr
+exit 0
+
+]]></source>
+      </script>
+    </post-scripts>
+  </scripts>
+</profile>
