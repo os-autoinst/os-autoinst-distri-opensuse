@@ -13,3 +13,4 @@ schedule:
     - transactional/transactional_update
     - transactional/rebootmgr
     - transactional/health_check
+    - console/zypper_log_packages

@@ -588,6 +588,31 @@ sub zypper_call {
         }
         last;
     }
+
+    # log all install and remove actions for later use by tests/console/zypper_log_packages.pm
+    my @packages = split(" ", $command);
+    for (my $i = 0; $i < scalar(@packages); $i++) {
+        if ($packages[$i] eq "--root" || $packages[$i] eq "-R") {
+            splice(@packages, $i, 2);
+        }
+    }
+    @packages = grep(/^[^-]/, @packages);
+    my $zypper_action = shift(@packages);
+    $zypper_action = "install" if ($zypper_action eq "in");
+    $zypper_action = "remove" if ($zypper_action eq "rm");
+    if ($zypper_action =~ m/^(install|remove)$/) {
+        push(@{$testapi::distri->{zypper_packages}}, {
+                raw_command => $command,
+                action => $zypper_action,
+                packages => \@packages,
+                return_code => $ret,
+                test => {
+                    module => $autotest::current_test->{name},
+                    category => $autotest::current_test->{category}
+                }
+        });
+    }
+
     upload_logs("/tmp/$log") if $log;
 
     unless (grep { $_ == $ret } @$allow_exit_codes) {
