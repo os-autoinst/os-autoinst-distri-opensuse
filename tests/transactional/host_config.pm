@@ -16,7 +16,7 @@ use testapi;
 use transactional qw(process_reboot trup_call check_reboot_changes);
 use bootloader_setup qw(change_grub_config);
 use version_utils qw(is_alp is_transactional);
-use utils qw(zypper_call);
+use utils qw(zypper_call ensure_ca_certificates_suse_installed);
 
 sub run {
     select_console 'root-console';
@@ -30,6 +30,7 @@ sub run {
     if (!$keep_grub_timeout or $extrabootparams) {
         record_info('GRUB', script_output('cat /etc/default/grub'));
         assert_script_run('transactional-update grub.cfg');
+        ensure_ca_certificates_suse_installed if get_var('HOST_VERSION');
         process_reboot(trigger => 1);
     }
     if (is_alp) {
