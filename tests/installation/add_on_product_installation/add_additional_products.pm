@@ -12,7 +12,7 @@ use strict;
 use warnings;
 
 sub run {
-    $testapi::distri->get_product_selection()->add_selected_products();
+    $testapi::distri->get_add_on_product()->add_selected_products();
 }
 
 1;
