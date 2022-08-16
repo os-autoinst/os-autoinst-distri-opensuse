@@ -1546,8 +1546,8 @@ sub config_guest_installation_automation {
         $self->{guest_installation_automation_options} = "--extra-args \"inst.ks=$self->{guest_installation_automation_file}\"";
         $self->{guest_installation_automation_options} = "--extra-args \"ks=$self->{guest_installation_automation_file}\"" if (($self->{guest_os_name} =~ /oraclelinux/im) and ($self->{guest_version_major} lt 7));
     }
-    if (script_run("curl -sSf $self->{guest_installation_automation_file} > /dev/null") ne 0) {
-        record_info("Guest $self->{guest_name} unattended installation file hosted on local host can not be reached", "Mark guest installation as FAILED. The unattended installation file url is $self->{guest_installation_automation_file}");
+    if (script_retry("curl -sSf $self->{guest_installation_automation_file} > /dev/null") ne 0) {
+        record_info("Guest $self->{guest_name} unattended installation file hosted on local host can not be reached", "Mark guest installation as FAILED. The unattended installation file url is $self->{guest_installation_automation_file}", result => 'softfail');
         $self->record_guest_installation_result('FAILED');
     }
     return $self;
