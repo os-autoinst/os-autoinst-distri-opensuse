@@ -70,6 +70,7 @@ sub configure_machines {
         configure_static_dns(get_host_resolv_conf(), is_nm => $is_nm);
         restart_networking(is_nm => $is_nm);
         assert_script_run("ip route add 10.0.3.0/24 via $FW_EXT_IP");
+        assert_script_run("ip route add 10.0.2.2 dev $net0");
         assert_script_run("ip route show");
     } elsif ($hostname eq "client") {
         record_info 'Setting up Client machine';
@@ -77,6 +78,7 @@ sub configure_machines {
         configure_static_dns(get_host_resolv_conf(), is_nm => $is_nm);
         restart_networking(is_nm => $is_nm);
         assert_script_run("ip route add default via $FW_INT_IP");
+        assert_script_run("ip route add 10.0.2.2 dev $net0");
         assert_script_run("ip route show");
     }
 }
