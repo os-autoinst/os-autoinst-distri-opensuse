@@ -67,6 +67,12 @@
       <listentry>
         <media_url>http://download.suse.de/ibs/SUSE:/CA/{{CA_STR}}/</media_url>
       </listentry>
+    % if ($vm_name =~ /sles12sp3/) {
+      <listentry>
+        <media_url>http://updates.nue.suse.com/download/SUSE/Updates/SLE-SERVER/12-SP3-LTSS-TERADATA/x86_64/update/</media_url>
+        <alias>SLES12-SP3-LTSS-TERADATA</alias>
+      </listentry>
+    % }
     % unless ($check_var->('PATCH_WITH_ZYPPER', '1')) {
       % my $n =0;
       % for my $repo (@$repos) {
