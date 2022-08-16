@@ -120,6 +120,9 @@ sub run {
                     'The following \d+ packages? (are|is) going to be reinstalled:')) {
                 push(@installed_packages, split(/\s+/, $+{packages})) if ($zypper_in_output =~ m/(?s)($reg(?<packages>.*?))(?:\r*\n){2}/);
             }
+            for my $pkg ('wicked', 'wicked-service') {
+                die("Missing installation of package $pkg!") unless grep { $_ eq $pkg } @installed_packages;
+            }
             record_info('INSTALLED', join("\n", @installed_packages));
             my @zypper_ps_progs = split(/\s+/, script_output('zypper ps  --print "%s"', qr/^\s*$/));
             for my $ps_prog (@zypper_ps_progs) {
