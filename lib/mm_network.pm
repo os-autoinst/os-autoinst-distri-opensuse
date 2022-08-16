@@ -231,6 +231,8 @@ sub restart_networking {
     if ($is_nm) {
         assert_script_run 'nmcli networking off';
         assert_script_run 'nmcli networking on';
+        # Wait until the connections are configured
+        assert_script_run 'nmcli networking connectivity check';
     } else {
         assert_script_run 'rcnetwork restart';
     }
