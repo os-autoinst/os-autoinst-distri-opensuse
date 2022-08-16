@@ -18,27 +18,41 @@ use virt_autotest::common;
 #use virt_autotest::kernel;
 use virt_autotest::utils;
 
+sub reboot_guest {
+    my $guest = shift;
+    record_info("Rebooting $guest");
+    if (get_var("KVM") || get_var("XEN")) {
+        script_run("rm /tmp/guests_ip/$guest");
+        script_run("virsh shutdown $guest");
+        script_retry("virsh domstate $guest|grep 'shut off'", retry => 5);
+        script_run("virsh start $guest");
+        script_retry("test -f /tmp/guests_ip/$guest", retry => 5, delay => 60);
+    } else {
+        script_run("ssh root\@$guest reboot || true", timeout => 10);
+        wait_guest_online($guest);
+    }
+}
+
 sub run {
     my ($self) = @_;
     select_console('root-console');
+    my @guests = keys %virt_autotest::common::guests;
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
     my $host_os_version = get_var('DISTRI') . "s" . lc(get_var('VERSION') =~ s/-//r);
-    foreach my $guest (keys %virt_autotest::common::guests) {
-        if ($guest =~ /$host_os_version/) {
+    foreach my $guest (@guests) {
+        if ($guest eq $host_os_version || $guest eq "${host_os_version}PV" || $guest eq "${host_os_version}HVM") {
             if (check_var('PATCH_WITH_ZYPPER', '1')) {
                 assert_script_run("ssh root\@$guest dmesg --level=emerg,crit,alert,err -tx|sort -o /tmp/${guest}_dmesg_err_before.txt");
                 record_info("Patching $guest");
                 ssh_add_test_repositories "$guest";
                 ssh_fully_patch_system "$guest";
-
-                record_info("Rebooting $guest");
-                script_run("ssh root\@$guest reboot || true", timeout => 10);
-                wait_guest_online($guest);
+                reboot_guest($guest);
                 assert_script_run("ssh root\@$guest dmesg --level=emerg,crit,alert,err -tx|sort|comm -23 - /tmp/${guest}_dmesg_err_before.txt > /tmp/${guest}_dmesg_err.txt");
             } else {
                 assert_script_run("ssh root\@$guest dmesg --level=emerg,crit,alert,err > /tmp/${guest}_dmesg_err.txt");
             }
             if (my $pkg = get_var("UPDATE_PACKAGE")) {
+                script_retry("ssh root\@$guest ! systemctl is-active purge-kernels.service", retry => 5);
                 validate_script_output("ssh root\@$guest zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s });
             }
             if (script_run("[[ -s /tmp/${guest}_dmesg_err.txt ]]") == 0) {
