@@ -45,7 +45,7 @@ sub run {
     send_key "g";
 
     # 2. Switch keymap from us to german
-    send_key_until_needlematch("yast2_keyboard-layout-german", "down");
+    send_key_until_needlematch("yast2_keyboard-layout-german", "down") unless check_screen("yast2_keyboard-layout-german", 30);
     wait_screen_change { send_key $accept_keybind };
     assert_screen "generic-desktop", timeout => 90;
 
