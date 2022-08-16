@@ -74,9 +74,16 @@
     </addons>
     %}
   </suse_register>
-    % unless ($check_var->('PATCH_WITH_ZYPPER', '1')) {
   <add-on>
     <add_on_products config:type="list">
+      % if ($check_var->('VERSION', '12-SP3')) {
+      <listentry>
+        <media_url>http://updates.nue.suse.com/download/SUSE/Updates/SLE-SERVER/12-SP3-LTSS-TERADATA/x86_64/update/</media_url>
+        <!--media_url>http://dist.suse.de/updates/SUSE/Updates/SLE-SERVER/12-SP3-LTSS-TERADATA/x86_64/update/</media_url-->
+        <alias>SLES12-SP3-LTSS-TERADATA</alias>
+      </listentry>
+      % }
+    % unless ($check_var->('PATCH_WITH_ZYPPER', '1')) {
       % my $n =0;
       % for my $repo (@$repos) {
       <listentry>
@@ -84,9 +91,9 @@
         <alias>TEST_<%= $n++ %></alias>
       </listentry>
       % }
+    % }
     </add_on_products>
   </add-on>
-    % }
   <firewall>
     <enable_firewall config:type="boolean">false</enable_firewall>
     <start_firewall config:type="boolean">false</start_firewall>

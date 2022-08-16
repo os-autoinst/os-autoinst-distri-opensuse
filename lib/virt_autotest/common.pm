@@ -25,26 +25,6 @@ use version_utils 'is_sle';
 our %guests = ();
 if (get_var("REGRESSION", '') =~ /xen/) {
     %guests = (
-        sles12sp3PV => {
-            name => 'sles12sp3PV',
-            autoyast => 'autoyast_xen/sles12sp3PV_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sles12sp3',
-            macaddress => '52:54:00:78:73:a1',
-            ip => '192.168.122.106',
-            distro => 'SLE_12_SP3',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
-            linuxrc => 'ifcfg="eth0=192.168.122.106/24,192.168.122.1,192.168.122.1"',
-        },
-        sles12sp3HVM => {
-            name => 'sles12sp3HVM',
-            autoyast => 'autoyast_xen/sles12sp3HVM_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sles12sp3',
-            macaddress => '52:54:00:78:73:a2',
-            ip => '192.168.122.105',
-            distro => 'SLE_12_SP3',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
-            linuxrc => 'ifcfg="eth0=192.168.122.105/24,192.168.122.1,192.168.122.1"',
-        },
         sles15PV => {
             name => 'sles15PV',
             autoyast => 'autoyast_xen/sles15PV_PRG.xml',
@@ -185,7 +165,6 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         }
     );
 
-    delete($guests{sles12sp3HVM}) if (!is_sle('=12-SP3'));
     delete($guests{sles12sp4PV}) if (!is_sle('=12-SP4'));
     delete($guests{sles12sp5HVM}) if (!is_sle('=12-SP5'));
     delete($guests{sles15PV}) if (!is_sle('=15'));
@@ -303,7 +282,6 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
     );
 
-    delete($guests{sles12sp2}) if (!is_sle('=12-SP2'));
     delete($guests{sles12sp3}) if (!is_sle('=12-SP3'));
     delete($guests{sles12sp4}) if (!is_sle('=12-SP4'));
     delete($guests{sles12sp5}) if (!is_sle('=12-SP5'));
@@ -352,7 +330,6 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
     );
 
-    delete($guests{sles12sp2}) if (!is_sle('=12-SP2'));
     delete($guests{sles12sp3}) if (!is_sle('=12-SP3'));
     delete($guests{sles12sp4}) if (!is_sle('=12-SP4'));
     delete($guests{sles12sp5}) if (!is_sle('=12-SP5'));
