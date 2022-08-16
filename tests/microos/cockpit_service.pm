@@ -12,6 +12,8 @@ use warnings;
 use testapi;
 use transactional;
 use utils qw(systemctl);
+use mm_network qw(is_networkmanager);
+use version_utils qw(is_microos is_sle_micro is_leap_micro);
 
 sub run {
     my ($self) = @_;
@@ -20,9 +22,28 @@ sub run {
 
     # Install cockpit if needed, this is needed for DVD flavor where
     # Cockpit pattern is not selected during install
+    my @pkgs = ();
+
     if (script_run('rpm -q cockpit') != 0) {
         record_info('TEST', 'Installing Cockpit...');
-        trup_call('pkg install cockpit');
+        push @pkgs, 'cockpit';
+    }
+
+    if (is_networkmanager && (script_run('rpm -q cockpit-networkmanager') != 0)) {
+        push @pkgs, 'cockpit-networkmanager';
+    }
+
+    if (!is_microos && (script_run('rpm -q cockpit-wicked') != 0)) {
+        push @pkgs, 'cockpit-wicked';
+    }
+
+    unless (is_sle_micro('<5.2') || is_leap_micro('<5.2')) {
+        push @pkgs, qw(cockpit-machines cockpit-tukit);
+    }
+
+    if (@pkgs) {
+        record_info('TEST', 'Installing Cockpit\'s Modules...');
+        trup_call("pkg install @pkgs");
         check_reboot_changes;
     }
 
