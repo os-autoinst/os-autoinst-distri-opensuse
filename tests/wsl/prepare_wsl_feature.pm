@@ -116,6 +116,12 @@ sub run {
         ) if (check_var("WIN_VERSION", "11"));
     }
 
+    record_info 'Port close', 'Closing serial port...';
+    $self->run_in_powershell(
+        cmd => q{$port.close()},
+        code => sub { }
+    );
+
     $self->run_in_powershell(
         cmd => qq{ii C:\\$wsl_appx_filename},
         code => sub {
@@ -123,12 +129,6 @@ sub run {
             assert_and_click 'install-linux-in-wsl-background' if (match_has_tag 'install-linux-in-wsl-background');
             assert_and_click 'install-linux-in-wsl';
         }
-    );
-
-    record_info 'Port close', 'Closing serial port...';
-    $self->run_in_powershell(
-        cmd => q{$port.close()},
-        code => sub { }
     );
 }
 
