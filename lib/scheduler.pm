@@ -73,7 +73,6 @@ sub parse_schedule {
               $additional_flows->{$k}->@*
               : $default_flow->{$k}->@*;
         }
-        diag($ypp->dump_string(\@scheduled));
     }
     # schedule contains a list of test modules
     else {
