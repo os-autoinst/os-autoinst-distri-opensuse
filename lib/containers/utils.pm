@@ -187,7 +187,7 @@ sub basic_container_tests {
     assert_script_run("$runtime container commit $container_name tw:saved", 240);
 
     # Network is working inside of the containers
-    my $output = script_output("$runtime container run tw:saved curl -I google.de");
+    my $output = script_output("$runtime container run tw:saved curl -sI google.de");
     die("network is not working inside of the container tw:saved") unless ($output =~ m{Location: http://www\.google\.de/});
 
     # Using an init process as PID 1

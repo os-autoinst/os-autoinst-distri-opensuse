@@ -3,6 +3,7 @@
 FROM baseimage_var
 
 RUN zypper -n in apache2 && zypper clean -a
+RUN echo 'ServerName AppacheInContainer' >> /etc/apache2/httpd.conf
 
 # set a directory for the app
 WORKDIR /srv/www/htdocs/

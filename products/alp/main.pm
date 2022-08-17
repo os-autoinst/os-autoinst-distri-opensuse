@@ -64,6 +64,7 @@ if (get_var('BOOT_HDD_IMAGE')) {
 
 load_common_tests;
 load_transactional_tests;
+load_container_tests();
 
 loadtest 'console/journal_check';
 loadtest 'shutdown/shutdown';
