@@ -29,7 +29,9 @@ sub run {
     zypper_call("in policycoreutils");
     # Program 'semanage' is in policycoreutils-python-utils pkgs on TW and SLES 15-SP4
     if (is_tumbleweed || is_sle('>=15-SP4')) {
-        zypper_call('in policycoreutils-python-utils');
+        record_soft_failure 'bsc#1200649' if is_sle('=15-SP4');
+        my $solver = is_sle('=15-SP4') ? '--force-resolution --solver-focus Update' : '';
+        zypper_call("in $solver policycoreutils-python-utils");
     }
     if (!is_sle('>=15')) {
         assert_script_run('zypper -n in policycoreutils-python');
