@@ -591,8 +591,27 @@ sub zypper_call {
 
     # log all install and remove actions for later use by tests/console/zypper_log_packages.pm
     my @packages = split(" ", $command);
+    my $dry_run = 0;
     for (my $i = 0; $i < scalar(@packages); $i++) {
         if ($packages[$i] eq "--root" || $packages[$i] eq "-R") {
+            splice(@packages, $i, 2);
+        }
+        elsif ($packages[$i] eq "--name" || $packages[$i] eq "-n") {
+            splice(@packages, $i, 2);
+        }
+        elsif ($packages[$i] eq "--from") {
+            splice(@packages, $i, 2);
+        }
+        elsif ($packages[$i] eq "--repo" || $packages[$i] eq "-r") {
+            splice(@packages, $i, 2);
+        }
+        elsif ($packages[$i] eq "--download") {
+            splice(@packages, $i, 2);
+        }
+        elsif ($packages[$i] eq "--dry-run" || $packages[$i] eq "--download-only" || $packages[$i] eq '-d') {
+            $dry_run = 1;
+        }
+        elsif ($packages[$i] eq "--solver-focus") {
             splice(@packages, $i, 2);
         }
     }
@@ -600,7 +619,7 @@ sub zypper_call {
     my $zypper_action = shift(@packages);
     $zypper_action = "install" if ($zypper_action eq "in");
     $zypper_action = "remove" if ($zypper_action eq "rm");
-    if ($zypper_action =~ m/^(install|remove)$/) {
+    if ($zypper_action =~ m/^(install|remove)$/ && !$dry_run) {
         push(@{$testapi::distri->{zypper_packages}}, {
                 raw_command => $command,
                 action => $zypper_action,
