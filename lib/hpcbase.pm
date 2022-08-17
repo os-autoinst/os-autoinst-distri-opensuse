@@ -88,8 +88,7 @@ sub destroy_test_barriers {
 sub post_run_hook {
     my ($self) = @_;
     select_console('log-console');
-    my $hname = get_required_var('HOSTNAME');
-    my $nodes = get_required_var('CLUSTER_NODES');
+    my $hname = get_var('HOSTNAME', 'susetest');
     foreach (keys %log_files) {
         $self->save_and_upload_log($log_files{$_}{cmd}, "/tmp/$hname-" . $log_files{$_}{logfile}, {screenshot => 1});
     }
