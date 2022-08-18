@@ -70,9 +70,7 @@ sub run {
     wait_still_screen 10;
     send_key "alt-k";
     wait_still_screen 2;
-    send_key "e";
-    send_key "n" if is_sle("15-SP2+");
-    send_key_until_needlematch("yast2_keyboard-layout-us", "down");
+    send_key_until_needlematch("yast2_keyboard-layout-us", "e");
     send_key $accept_keybind;
     assert_screen "generic-desktop", timeout => 90;
 
