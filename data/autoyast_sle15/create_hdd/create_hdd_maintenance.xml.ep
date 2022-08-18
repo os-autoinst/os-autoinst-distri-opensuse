@@ -31,16 +31,16 @@
         %}
     </suse_register>
     <add-on>
-        <add_on_products config:type="list">
+        <add_on_others config:type="list">
             % for my $repo (@$repos) {
             % my ($repo_id, $addon) = $repo =~ (/(\d+)\/(.*)\//);
-            <listentry>
-                <media_url><%= $repo %></media_url>
-		        <name><%= $addon . "_" . $repo_id %></name>
-		        <alias><%= $addon . "_" . $repo_id %></alias>
-            </listentry>
-            % }
-        </add_on_products>
+        <listentry>
+        <media_url><%= $repo %></media_url>
+            <name><%= $addon . "_" . $repo_id %></name>
+            <alias><%= $addon . "_" . $repo_id %></alias>
+        </listentry>
+        %}
+        </add_on_others>
     </add-on>
     <bootloader>
         <global>
@@ -135,14 +135,18 @@
         <products config:type="list">
             <product><%= uc $get_var->('SLE_PRODUCT') %></product>
         </products>
-        % if ($get_var->('SCC_ADDONS') =~ m/\brt\b/) {
-        <kernel>kernel-rt</kernel>
-        % }
         <patterns config:type="list">
             % for my $pattern (@$patterns) {
             <pattern><%= $pattern %></pattern>
             % }
         </patterns>
+        <!-- Workaround for bsc#1202234: [addon]-release packages are missing after autoyast installation. -->
+        <packages config:type="list">
+        % foreach (values %$addons) {
+            <package><%= $_->{name} %>-release</package>
+        % }
+        </packages>
+        <!-- end of workaround -->
     </software>
     <services-manager>
         % if ($check_var->('DESKTOP', 'gnome')) {
