@@ -40,11 +40,12 @@ sub run {
     }
 
     my $ua = Mojo::UserAgent->new;
-    my $res = $ua->post(autoinst_url("/uploadlog/zypper_packages.json") => form => {
+    my $url = autoinst_url("/uploadlog/zypper_packages.json", undef, {inside_sut => 0});
+    my $res = $ua->post($url => form => {
             upload => {content => to_json($zypper_packages)},
             uname => "zypper_packages.json"
     })->result;
-    record_info('zypper_packages.json', 'zypper_packages.json was uploaded via worker', result => ($res->is_success) ? 'ok' : 'fail');
+    record_info('zypper_packages.json', "zypper_packages.json was uploaded via worker to $url", result => ($res->is_success) ? 'ok' : 'fail');
 }
 
 1;
