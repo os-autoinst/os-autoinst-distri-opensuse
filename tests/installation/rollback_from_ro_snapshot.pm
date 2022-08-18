@@ -48,7 +48,8 @@ sub run {
     reset_consoles;
     $self->wait_boot;
     select_console 'root-console';
-    assert_script_run("systemctl poweroff");
+    script_run("systemctl poweroff");
+    assert_shutdown;
 }
 
 sub test_flags {
