@@ -76,8 +76,8 @@ sub find_img {
 
 sub get_storage_account_keys {
     my ($self, $storage_account) = @_;
-    my $output = script_output("az storage account keys list --resource-group "
-          . $self->resource_group . " --account-name " . $storage_account);
+    my $cmd = "az storage account keys list --resource-group " . $self->resource_group . " --account-name " . $storage_account;
+    my $output = script_output("echo \"\n $cmd\" > /dev/$serialdev; " . $cmd . " 2>/dev/$serialdev");
     my $json = decode_azure_json($output);
     my $key = undef;
     if (@{$json} > 0) {
