@@ -716,14 +716,14 @@ sub firefox_preferences {
 sub exit_firefox_common {
     # Exit
     send_key 'ctrl-q';
-    wait_still_screen 1, 2;
+    wait_still_screen 3, 6;
     send_key_until_needlematch([qw(firefox-save-and-quit xterm-left-open xterm-without-focus)], "alt-f4", 6, 30);
     if (match_has_tag 'firefox-save-and-quit') {
         # confirm "save&quit"
         send_key "ret";
     }
     # wait a sec because xterm-without-focus can match while firefox is being closed
-    wait_still_screen 2;
+    wait_still_screen 3, 6;
     assert_screen [qw(xterm-left-open xterm-without-focus)];
     if (match_has_tag 'xterm-without-focus') {
         # focus it
