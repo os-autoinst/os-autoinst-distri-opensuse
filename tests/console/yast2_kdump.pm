@@ -26,6 +26,9 @@ sub run {
     add_suseconnect_product('sle-module-development-tools');
     zypper_call('in yast2-kdump');
 
+    # kdump is no longer a dependency of yast2-kdump
+    zypper_call('in kdump');
+
     # Kdump configuration with YaST module
     kdump_utils::activate_kdump(increase_kdump_memory => 0);
 
