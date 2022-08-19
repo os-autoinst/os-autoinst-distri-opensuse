@@ -87,4 +87,32 @@ subtest 'parse_yaml_test_schedule_recursive_conditional' => sub {
     ok $modules[3] eq 'bar/test3', "Basic scheduling";
 };
 
+subtest 'merge default schedules with flows and individual schedules' => sub {
+    use scheduler;
+    use testapi 'set_var';
+
+    # positive unit tests
+
+    my $schedule = $ypp->load_file(dirname(__FILE__) . '/data/test_schedule_based_on_default.yaml');
+    my @modules;
+    set_var('YAML_SCHEDULE_DEFAULT', '/t/data/flows/default.yaml');
+    set_var('YAML_SCHEDULE_FLOWS', 'flow_a');
+    @modules = scheduler::parse_schedule($schedule);
+    my @expected = ('flow_a_foo', 'flow_a_bar', 'individual_step_3');
+    ok(eq_array(\@modules, \@expected), "Merge default with flows and schedule");
+    set_var('YAML_SCHEDULE_FLOWS', 'flow_b');
+    @modules = scheduler::parse_schedule($schedule);
+    @expected = ('flow_b_foo', 'flow_b_bar', 'individual_step_3');
+    ok(eq_array(\@modules, \@expected), "Merge default with flows and schedule");
+    set_var('YAML_SCHEDULE_FLOWS', 'flow_a,flow_b');    # flow_b should win
+    @modules = scheduler::parse_schedule($schedule);
+    ok(eq_array(\@modules, \@expected), "Merge default with flows and schedule");
+    set_var('YAML_SCHEDULE_FLOWS', 'flow_b,flow_a');    # flow_a should win
+    @modules = scheduler::parse_schedule($schedule);
+    @expected = ('flow_a_foo', 'flow_a_bar', 'individual_step_3');
+    ok(eq_array(\@modules, \@expected), "Merge default with flows and schedule");
+
+
+};
+
 done_testing;

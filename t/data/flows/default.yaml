@@ -1,0 +1,7 @@
+---
+# minimal default file
+phase_1:
+  - step_1
+phase_2: []
+phase_3:
+  - step_3
