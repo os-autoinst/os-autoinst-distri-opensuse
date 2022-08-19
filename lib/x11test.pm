@@ -717,7 +717,7 @@ sub exit_firefox_common {
     # Exit
     send_key 'ctrl-q';
     wait_still_screen 1, 2;
-    send_key_until_needlematch([qw(firefox-save-and-quit xterm-left-open xterm-without-focus)], "alt-f4", 3, 30);
+    send_key_until_needlematch([qw(firefox-save-and-quit xterm-left-open xterm-without-focus)], "alt-f4", 6, 30);
     if (match_has_tag 'firefox-save-and-quit') {
         # confirm "save&quit"
         send_key "ret";
