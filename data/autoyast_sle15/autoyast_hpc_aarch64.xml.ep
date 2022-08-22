@@ -112,9 +112,7 @@
       <package>sle-module-hpc-release</package>
       % unless ($check_var->('VERSION', '15-SP4') or $check_var->('VERSION', '15-SP5')) {
       <package>sle-module-python2-release</package>
-      % } else {
-      <package>sle-module-python3-release</package>
-      }
+      % }
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
