@@ -1,0 +1,33 @@
+---
+name: autoyast_create_hdd_textmode
+description:    >
+     Maintainer: qe-kernel
+     Rudimentary installation scenario for creating qcow2
+     required by other HPC tests
+vars:
+  DESKTOP: textmode
+  INSTALLONLY: 1
+  PATTERNS: base,minimal,apparmor
+  SLE_PRODUCT: hpc
+  HDDSIZEGB: 30
+  AUTOYAST: autoyast_sle15/hpc/create_hdd_textmode_%ARCH%.xml.ep
+conditional_schedule:
+  patch_and_reboot_inci:
+    FLAVOR:
+      Server-DVD-HPC-Incidents:
+        - autoyast/autoyast_reboot
+        - installation/grub_test
+        - installation/first_boot
+        - qa_automation/patch_and_reboot
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/first_boot
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - '{{patch_and_reboot_inci}}'
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
