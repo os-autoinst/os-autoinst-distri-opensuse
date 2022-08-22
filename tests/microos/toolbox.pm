@@ -23,7 +23,7 @@ sub cleanup {
 }
 
 sub create_user {
-    assert_script_run "useradd -m $user ";
+    assert_script_run "useradd -m $user " if (!check_var('FIRST_BOOT_CONFIG', 'wizard'));
     assert_script_run "echo '$user:$password' | chpasswd";
 
     # Make sure user has access to tty group
