@@ -63,12 +63,7 @@ sub run {
     # 0755 and all files have 0644 pemmission.
     # For some reason the system will change the permission on /var/cache/zypp/{solv,raw}
     # files. this cause the zypper lifecycle failed when building cache for non-root user.
-    script_run('rm -fr /var/cache/zypp/solv /var/cache/zypp/solv');
-    script_run('rm -fr /var/cache/zypp/raw /var/cache/zypp/raw');
-
-    # We add 'zypper ref' here to download and preparse the metadata of packages,
-    # which will make the following 'zypper lifecycle' runs faster.
-    script_run('zypper refresh', 300);
+    assert_script_run('chmod -R u+rwX,og+rX /var/cache/zypp');
 
     select_console 'user-console';
     my $overview = script_output('zypper lifecycle', 600);
