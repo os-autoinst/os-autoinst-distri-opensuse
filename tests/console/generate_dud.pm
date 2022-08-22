@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2020 SUSE LLC
+# Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: mkdud
@@ -13,8 +13,9 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
+use XML::Writer;
 use utils qw(zypper_call);
-use autoyast qw(expand_variables);
+use autoyast qw(expand_variables generate_xml);
 use registration qw(add_suseconnect_product get_addon_fullname);
 
 sub run {
@@ -23,7 +24,8 @@ sub run {
     my $xml = 'add_on_products.xml';
     my $dud = get_required_var('DUD');
 
-    my $content = expand_variables(get_test_data($xml));
+    my $repos = get_var('MAINT_TEST_REPO', '');
+    my $content = ($repos eq '') ? expand_variables(get_test_data($xml)) : generate_xml($repos);
     save_tmp_file($xml, $content);
     add_suseconnect_product(get_addon_fullname('phub'));
     zypper_call('in mkdud');
@@ -31,6 +33,7 @@ sub run {
     assert_script_run("mkdud --create $dud --dist sle15 " .
           "--install instsys,repo --obs-keys --name 'Update' inst-sys");
     upload_asset($dud);
+    upload_logs("inst-sys/$xml");
 }
 
 1;

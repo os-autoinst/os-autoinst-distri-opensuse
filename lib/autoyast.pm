@@ -43,6 +43,7 @@ our @EXPORT = qw(
   validate_autoyast_profile
   get_test_data_files
   prepare_ay_file
+  generate_xml
 );
 
 =head2 expand_patterns
@@ -835,6 +836,67 @@ sub prepare_ay_file {
     $profile = expand_variables($profile);
     upload_profile(profile => $profile, path => $path);
     return $path;
+}
+
+=head2 generate_xml
+
+  generate_xml(addons => $addons)
+
+Get maintenance updates addons
+Generate one xml file
+Get values from MAINT_TEST_REPO
+Return string with xml format
+
+  $addons is maintenance updates URL
+
+=cut
+
+sub generate_xml {
+    my ($addons) = @_;
+
+    # Generate addon products xml file
+    my $writer = XML::Writer->new(
+        DATA_MODE => 'true',
+        DATA_INDENT => 2,
+        OUTPUT => "self"
+    );
+    $writer->startTag(
+        "add_on_products",
+        xmlns => "http://www.suse.com/1.0/yast2ns",
+        "xmlns:config" => "http://www.suse.com/1.0/configns"
+    );
+    $writer->startTag("product_items", "config:type" => "list");
+    for my $addon (split(/,/, $addons)) {
+        my ($repo_id, $repo) = $addon =~ (/^\S+\/(\d+)\/(\S+)\/$/);
+        my $name = join '_', ($repo, $repo_id);
+        $writer->startTag("product_item");
+        $writer->startTag("url");
+        $writer->characters($addon);
+        $writer->endTag("url");
+        $writer->startTag("name");
+        $writer->characters($name);
+        $writer->endTag("name");
+        $writer->startTag("alias");
+        $writer->characters($name);
+        $writer->endTag("alias");
+        $writer->startTag("priority", "config:type" => "integer");
+        $writer->characters("50");
+        $writer->endTag("priority");
+        $writer->startTag("ask_user", "config:type" => "boolean");
+        $writer->characters("true");
+        $writer->endTag("ask_user");
+        $writer->startTag("selected", "config:type" => "boolean");
+        $writer->characters("true");
+        $writer->endTag("selected");
+        $writer->startTag("check_name", "config:type" => "boolean");
+        $writer->characters("true");
+        $writer->endTag("check_name");
+        $writer->endTag("product_item");
+    }
+    $writer->endTag("product_items");
+    $writer->endTag("add_on_products");
+    $writer->end();
+    return $writer->to_string;
 }
 
 1;
