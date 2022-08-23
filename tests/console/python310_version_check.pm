@@ -17,6 +17,7 @@ use warnings;
 use testapi;
 use version_utils;
 use utils "zypper_call";
+use registration "add_suseconnect_product";
 
 sub run {
     my $self = shift;
@@ -28,8 +29,7 @@ sub run {
             # Factory default Python3 version for SLE15-SP4 should be 3.6
             die("Python default version differs from 3.6");
         }
-        my $arch = get_var('ARCH');
-        assert_script_run("SUSEConnect -p sle-module-python3/15.4/$arch");
+        add_suseconnect_product('sle-module-python3');
     }
 
     my @python310_results = split "\n", script_output("zypper se python310 | awk -F \'|\' \'/python310/ {gsub(\" \", \"\"); print \$2}\'");
