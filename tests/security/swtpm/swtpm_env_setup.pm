@@ -83,7 +83,10 @@ sub run {
     if (get_var('HDD_SWTPM_LEGACY')) {
         my $hdd_swtpm_legacy = get_required_var('HDD_SWTPM_LEGACY');
         my $sample_file = 'swtpm/swtpm_legacy.xml';
-        assert_script_run("wget -c -P $image_path $openqa_url/assets/hdd/$hdd_swtpm_legacy", 900);
+        # Since this randomly fails, we retry 10 times each time adding a delay before failing and exiting.
+        my $times = 10;
+        ($times-- && sleep 60) while (script_run("wget -c -P $image_path $openqa_url/assets/hdd/$hdd_swtpm_legacy", 900) != 0 && $times);
+        die "Couldn't download $image_path $openqa_url/assets/hdd/$hdd_swtpm_legacy" unless $times;
         assert_script_run("mv $image_path/$hdd_swtpm_legacy $image_path/$legacy_image");
         assert_script_run("wget --quiet " . data_url($sample_file) . " -P $image_path");
     }
