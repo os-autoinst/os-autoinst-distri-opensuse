@@ -12,6 +12,7 @@ use testapi;
 use base 'consoletest';
 use utils qw(clear_console ensure_serialdev_permissions);
 use Utils::Architectures;
+use version_utils;
 
 sub run {
     select_console 'root-console';
@@ -23,14 +24,21 @@ sub run {
     validate_script_output "id $user | grep $group || echo 'check pass'", sub { m/check pass/ };
 
     # Modify the PAM configuration files
+    my $su_file_tw = '';
+    my $sul_file_tw = '';
     my $su_file = '/etc/pam.d/su';
-    my $su_file_bak = '/tmp/su';
     my $sul_file = '/etc/pam.d/su-l';
+    if (is_sle || is_leap) {
+        $su_file_tw = '/usr/etc/pam.d/su';
+        $sul_file_tw = '/usr/etc/pam.d/su-l';
+    } else {
+        $su_file_tw = '/usr/lib/pam.d/su';
+        $sul_file_tw = '/usr/lib/pam.d/su-l';
+    }
+    my $su_file_bak = '/tmp/su';
     my $sul_file_bak = '/tmp/su-l';
     my $ret_su = script_run("[[ -e $su_file ]]");
     my $ret_sul = script_run("[[ -e $sul_file ]]");
-    my $su_file_tw = '/usr/etc/pam.d/su';
-    my $sul_file_tw = '/usr/etc/pam.d/su-l';
     if ($ret_su != 0) {
         script_run "cp $su_file_tw $su_file";
     }
