@@ -57,6 +57,11 @@ sub destroy_test_barriers {
         barrier_destroy('SLAVE_MRLOGIN_STARTED');
         barrier_destroy('MRSH_MASTER_DONE');
     }
+    elsif (check_var('HPC', 'dolly_master') || check_var('HPC', 'dolly_slave')) {
+        barrier_destroy('DOLLY_INSTALLATION_FINISHED');
+        barrier_destroy('DOLLY_SERVER_READY');
+        barrier_destroy('DOLLY_DONE');
+    }
     elsif (check_var('HPC', 'munge_master') || check_var('HPC', 'munge_slave')) {
         barrier_destroy('MUNGE_INSTALLATION_FINISHED');
         barrier_destroy('MUNGE_KEY_COPIED');
