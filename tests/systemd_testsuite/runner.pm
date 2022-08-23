@@ -34,7 +34,7 @@ sub run {
 
     $self->select_serial_terminal();
 
-    assert_script_run(build_cmd('clean', $args));
+    assert_script_run(build_cmd('clean', $args), timeout => 180);
     my $out = script_output(build_cmd('setup', $args), 240);
 
     if ($out =~ $logs) {
