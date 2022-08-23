@@ -66,13 +66,13 @@ sub run {
     record_info 'Snapshot created', 'booting the system into created snapshot';
     power_action('reboot', keepconsole => 1);
     $self->wait_grub(bootloader_time => 250);
-    send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
+    send_key_until_needlematch("boot-menu-snapshot", 'down', 11, 5);
     send_key 'ret';
     $self->{in_wait_boot} = 0;
     # On slow VMs we press down key before snapshots list is on screen
     wait_screen_change { assert_screen 'boot-menu-snapshots-list' };
 
-    send_key_until_needlematch("snap-bootloader-comment", 'down', 10, 5);
+    send_key_until_needlematch("snap-bootloader-comment", 'down', 11, 5);
     save_screenshot;
     wait_screen_change { send_key 'ret' };
 

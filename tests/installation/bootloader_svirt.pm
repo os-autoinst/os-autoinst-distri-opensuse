@@ -28,9 +28,9 @@ sub vmware_set_permanent_boot_device {
     send_key 'ret' && return unless $boot_device;
     # Enter menu with available boot devices
     send_key 'f2';
-    send_key_until_needlematch('vmware_bios_boot_tab', 'right', 10, 2);
-    send_key_until_needlematch("vmware_bios_boot_${boot_device}", 'down', 5);
-    send_key_until_needlematch("vmware_bios_boot_top_${boot_device}", '+', 5);
+    send_key_until_needlematch('vmware_bios_boot_tab', 'right', 11, 2);
+    send_key_until_needlematch("vmware_bios_boot_${boot_device}", 'down', 6);
+    send_key_until_needlematch("vmware_bios_boot_top_${boot_device}", '+', 6);
     send_key 'f10';
     assert_screen('vmware_bios_boot_confirm');
     send_key 'ret';

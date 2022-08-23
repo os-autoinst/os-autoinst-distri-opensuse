@@ -44,7 +44,7 @@ sub run {
 
     $self->firefox_preferences;
     assert_and_click('firefox-passwd-security');
-    send_key_until_needlematch('firefox-primary-passwd-selected', 'alt-shift-u', 3, 1);
+    send_key_until_needlematch('firefox-primary-passwd-selected', 'alt-shift-u', 4, 1);
     send_key 'spc';
     assert_screen('firefox-passwd-master_setting');
     type_string $masterpw, 150;
@@ -74,13 +74,13 @@ sub run {
 
     $self->firefox_preferences;
     assert_and_click('firefox-passwd-security');
-    send_key_until_needlematch 'firefox-saved-logins-button', 'alt-shift-l', 5, 1;
+    send_key_until_needlematch 'firefox-saved-logins-button', 'alt-shift-l', 6, 1;
     wait_still_screen 3;
     send_key 'spc';
     assert_screen('firefox-passwd-saved');
     assert_and_click('firefox-saved-logins-remove');
     send_key 'spc';
-    send_key_until_needlematch('firefox-passwd-auto_filled', 'ctrl-w', 3, 2);
+    send_key_until_needlematch('firefox-passwd-auto_filled', 'ctrl-w', 4, 2);
     send_key 'f5';
     assert_screen('firefox-passwd-removed');
 

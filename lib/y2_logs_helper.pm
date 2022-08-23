@@ -118,14 +118,14 @@ sub verify_license_translations {
         wait_screen_change { send_key 'alt-l' };
         # in textmode only arrow navigation is possible
         if (get_var('VIDEOMODE') =~ 'text') {
-            send_key_until_needlematch("license-language-selected-english-us", 'up', 60);
+            send_key_until_needlematch("license-language-selected-english-us", 'up', 61);
             send_key 'ret';
         }
         else {
             assert_and_click "license-language-selected-$current_lang";
         }
         wait_screen_change { type_string(substr($lang, 0, 1)) } unless (check_var('VIDEOMODE', 'text'));
-        send_key_until_needlematch("license-language-selected-dropbox-$lang", 'down', 60);
+        send_key_until_needlematch("license-language-selected-dropbox-$lang", 'down', 61);
         if (is_s390x()) {
             record_soft_failure('bsc#1172738 - "Next" button is triggered, even though it is not in focus while selecting language on License Agreement screen on s390x');
             assert_and_click("license-language-selected-dropbox-$lang");

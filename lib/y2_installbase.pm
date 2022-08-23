@@ -386,7 +386,7 @@ sub toggle_package {
     # When coming from search_packages, the search might not be completed yet,
     # give it some time.
     check_screen "packages-$package_name-selected", 60;
-    send_key_until_needlematch "packages-$package_name-selected", 'down', 60;
+    send_key_until_needlematch "packages-$package_name-selected", 'down', 61;
     wait_screen_change { send_key "$operation" };
     wait_still_screen 2;
     save_screenshot;

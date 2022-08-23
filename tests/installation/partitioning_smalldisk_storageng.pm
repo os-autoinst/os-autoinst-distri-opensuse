@@ -98,7 +98,7 @@ sub run {
             assert_screen 'partition-scheme';
         }
     }
-    send_key_until_needlematch 'after-partitioning', $cmd{next}, 10, 3;
+    send_key_until_needlematch 'after-partitioning', $cmd{next}, 11, 3;
 }
 
 1;

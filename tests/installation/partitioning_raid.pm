@@ -84,7 +84,7 @@ sub addpart {
     else {
         # poo#35134 Sporadic synchronization failure resulted in incorrect choice of partition type
         # add partition screen was not refreshing fast enough
-        send_key_until_needlematch 'partition-selected-raid-type', 'down', 20, 3;
+        send_key_until_needlematch 'partition-selected-raid-type', 'down', 21, 3;
     }
     send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
 }

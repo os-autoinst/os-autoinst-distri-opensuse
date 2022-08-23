@@ -35,7 +35,7 @@ sub select_partition {
     send_key 'tab';
     for (1 ... 100) {
         send_key 'down';
-        send_key_until_needlematch("expert-partitioner-label", "right", 50, 1);
+        send_key_until_needlematch("expert-partitioner-label", "right", 51, 1);
         if (check_screen $partition_needle_name, 2) {
             last;
         }
@@ -49,8 +49,7 @@ sub format_partition {
     wait_still_screen 3;
     send_key 'ret';
     send_key(is_storage_ng() ? 'alt-f' : 'alt-s');
-    send_key_until_needlematch("expert-partitioner-$filesystem",
-        "down", 20, 1);
+    send_key_until_needlematch("expert-partitioner-$filesystem", "down", 21, 1);
     send_key 'ret';
 }
 

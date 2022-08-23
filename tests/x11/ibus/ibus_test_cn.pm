@@ -17,7 +17,7 @@ use utils;
 sub test_cn {
     x11_start_program('gedit');
     hold_key 'super';
-    send_key_until_needlematch 'ibus_switch_cn', 'spc', 6;
+    send_key_until_needlematch 'ibus_switch_cn', 'spc', 7;
     release_key 'super';
 
     wait_still_screen(3);
@@ -26,7 +26,7 @@ sub test_cn {
     assert_screen 'ibus_cn_nihao';
 
     hold_key 'super';
-    send_key_until_needlematch 'ibus_switch_en', 'spc', 6;
+    send_key_until_needlematch 'ibus_switch_en', 'spc', 7;
     release_key 'super';
 
     send_key 'alt-f4';

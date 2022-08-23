@@ -37,7 +37,7 @@ sub select_tab {
 sub select_bridged_device_in_list {
     assert_screen(BRIDGED_DEVICES_TAB);
     record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-    send_key_until_needlematch(BRIDGED_DEVICE_CHECKBOX_UNCHECKED, 'alt-f10', 9, 2);
+    send_key_until_needlematch(BRIDGED_DEVICE_CHECKBOX_UNCHECKED, 'alt-f10', 10, 2);
     assert_and_click(BRIDGED_DEVICE_CHECKBOX_UNCHECKED);
 }
 

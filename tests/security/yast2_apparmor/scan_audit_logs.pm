@@ -76,27 +76,27 @@ sub run {
 
     # Audit the entry
     send_key "alt-u";
-    send_key_until_needlematch("AppArmor-Scan-Audit-logs-audit", "tab", 2, 2);
+    send_key_until_needlematch("AppArmor-Scan-Audit-logs-audit", "tab", 3, 2);
     send_key "alt-u";
-    send_key_until_needlematch("AppArmor-Scan-Audit-logs-scan-records", "tab", 2, 2);
+    send_key_until_needlematch("AppArmor-Scan-Audit-logs-scan-records", "tab", 3, 2);
 
     # Allow the entry
     send_key "alt-a";
-    send_key_until_needlematch("AppArmor-Scan-Audit-logs-allow", "tab", 2, 2);
+    send_key_until_needlematch("AppArmor-Scan-Audit-logs-allow", "tab", 3, 2);
 
     # View changes
     send_key "alt-v";
-    send_key_until_needlematch("AppArmor-Scan-Audit-logs-view-changes", "tab", 2, 2);
+    send_key_until_needlematch("AppArmor-Scan-Audit-logs-view-changes", "tab", 3, 2);
     send_key "alt-o";
 
     # View changes b/w clean profile
     send_key "alt-i";
-    send_key_until_needlematch("AppArmor-Scan-Audit-logs-view-changes-clean-profile", "tab", 2, 2);
+    send_key_until_needlematch("AppArmor-Scan-Audit-logs-view-changes-clean-profile", "tab", 3, 2);
     send_key "alt-o";
 
     # Abort: no
     send_key "alt-a";
-    send_key_until_needlematch("AppArmor-Scan-Audit-logs-abort", "tab", 2, 2);
+    send_key_until_needlematch("AppArmor-Scan-Audit-logs-abort", "tab", 3, 2);
     send_key "alt-n";
     assert_screen("AppArmor-Scan-Audit-logs-allow");
 

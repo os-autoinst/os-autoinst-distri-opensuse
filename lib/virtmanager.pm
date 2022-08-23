@@ -656,7 +656,7 @@ sub select_guest {
         } else {
             assert_and_click("virt-manager_list-arrowdown", clicktime => 10) for (1 .. 5);    # Go down so we will see every guest unselected on the way up
         }
-        send_key_until_needlematch("virt-manager_list-$guest", 'up', 20, 3);
+        send_key_until_needlematch("virt-manager_list-$guest", 'up', 21, 3);
     }
     assert_and_click "virt-manager_list-$guest";
     send_key 'ret';

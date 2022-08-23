@@ -45,7 +45,7 @@ sub run {
         assert_and_click_until_screen_change('firefox-extensions-add-to-firefox', 5, 5);
     }
     else {
-        send_key_until_needlematch 'firefox-extensions-flagfox', 'f5', 5, 5;
+        send_key_until_needlematch 'firefox-extensions-flagfox', 'f5', 6, 5;
         assert_and_click 'firefox-extensions-flagfox', timeout => 60;
         wait_still_screen 3;
         assert_and_click_until_screen_change('firefox-extensions-add-to-firefox', 5, 5);
@@ -55,9 +55,9 @@ sub run {
     assert_and_click 'firefox-extensions-added', timeout => 60;
     assert_and_click 'firefox-extensions-flagfox-tab', timeout => 60;
     # close the flagfox relase notes tab and flagfox search tab
-    send_key_until_needlematch 'firefox-addons-plugins', 'ctrl-w', 3, 3;
+    send_key_until_needlematch 'firefox-addons-plugins', 'ctrl-w', 4, 3;
     # refresh the page to see addon buttons
-    send_key_until_needlematch 'firefox-extensions-flagfox_installed', 'f5', 5, 5;
+    send_key_until_needlematch 'firefox-extensions-flagfox_installed', 'f5', 6, 5;
 
     send_key "alt-1";
     $self->firefox_open_url('opensuse.org');

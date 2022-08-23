@@ -16,9 +16,9 @@ sub run {
     assert_and_click "vlc-first-time-wizard";
     assert_screen "vlc-main-window";
     send_key "ctrl-l";
-    send_key_until_needlematch("vlc-playlist-empty", "ctrl-l", 3, 60);
+    send_key_until_needlematch("vlc-playlist-empty", "ctrl-l", 4, 60);
     send_key "ctrl-n";
-    send_key_until_needlematch("vlc-network-window", "ctrl-n", 3, 60);
+    send_key_until_needlematch("vlc-network-window", "ctrl-n", 4, 60);
     send_key "backspace";
     type_string autoinst_url . "/data/Big_Buck_Bunny_8_seconds_bird_clip.ogv";
     assert_screen "url_check", 90;

@@ -17,7 +17,7 @@ sub run {
     ensure_installed("gimp");
     x11_start_program('gimp', match_timeout => 60);
     # sometimes send_key "alt-f4" doesn't work reliable, so repeat it and exit
-    send_key_until_needlematch 'generic-desktop', "alt-f4", 5, 5;
+    send_key_until_needlematch 'generic-desktop', "alt-f4", 6, 5;
 }
 
 1;

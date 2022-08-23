@@ -123,7 +123,7 @@ sub run {
 
     # close it with OK
     my $ntp_client_needle = check_var('USE_SUPPORT_SERVER', 1) ? 'support_server' : 'public';
-    send_key_until_needlematch "yast2_ntp-client_${ntp_client_needle}_ntp_server_added", "alt-o", 3, 5;
+    send_key_until_needlematch "yast2_ntp-client_${ntp_client_needle}_ntp_server_added", "alt-o", 4, 5;
 
     if (!$is_chronyd) {
         # now check display log and save log

@@ -24,7 +24,7 @@ sub run {
     $self->connect_slave($ipmi_machine);
     $self->restart_host($ipmi_machine);
     assert_screen "proxy_virttest-pxe", 300;
-    send_key_until_needlematch "proxy_virttest-pxe-edit-prompt", "esc", 10, 5;
+    send_key_until_needlematch "proxy_virttest-pxe-edit-prompt", "esc", 11, 5;
     wait_still_screen 5;
     # Execute installation command on pxe management cmd console
     my $type_speed = 20;

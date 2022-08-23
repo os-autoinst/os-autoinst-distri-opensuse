@@ -26,7 +26,7 @@ sub microos_login {
         # FreeRDP is not sending 'Ctrl' as part of 'Ctrl-Alt-Fx', 'Alt-Fx' is fine though.
         my $key = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 'alt-f2' : 'ctrl-alt-f2';
         # First attempts to select tty2 are ignored - bsc#1035968
-        send_key_until_needlematch 'tty2-selected', $key, 10, 30;
+        send_key_until_needlematch 'tty2-selected', $key, 11, 30;
     }
 
     select_console 'root-console';

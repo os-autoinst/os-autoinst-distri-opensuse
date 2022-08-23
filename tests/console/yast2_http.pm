@@ -70,7 +70,7 @@ sub run {
                                           # Sometimes we don't get to the next page after first key press
                                           # As part of poo#20668 we introduce this workaround to have reliable tests
                                           # Go to http server wizard (4/5)--virtual hosts and check page (4/5 )is open
-    send_key_until_needlematch 'http_add_host', $cmd{next}, 2, 3;
+    send_key_until_needlematch 'http_add_host', $cmd{next}, 3, 3;
     wait_still_screen 1;
     send_key 'alt-a';
     assert_screen 'http_new_host_info';    # check new host information page got open to edit

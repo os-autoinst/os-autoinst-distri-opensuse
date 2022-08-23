@@ -17,7 +17,7 @@ use utils;
 sub test_jp {
     x11_start_program('gedit');
     hold_key('super');
-    send_key_until_needlematch 'ibus_switch_jp', 'spc', 6;
+    send_key_until_needlematch 'ibus_switch_jp', 'spc', 7;
     release_key('super');
 
     wait_still_screen(3);
@@ -26,7 +26,7 @@ sub test_jp {
     assert_screen 'ibus_jp_hi';
 
     hold_key 'super';
-    send_key_until_needlematch 'ibus_switch_en', 'spc', 6;
+    send_key_until_needlematch 'ibus_switch_en', 'spc', 7;
     release_key 'super';
 
     send_key 'alt-f4';

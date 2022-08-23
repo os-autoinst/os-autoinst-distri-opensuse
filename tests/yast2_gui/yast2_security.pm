@@ -42,7 +42,7 @@ sub run {
     assert_and_click "yast2_security-pwd-settings";
     if (is_sle('15-SP4+')) {
         record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-        send_key_until_needlematch('yast2_security-check-min-pwd-len-and-exp-days', 'alt-f10', 9, 2);
+        send_key_until_needlematch('yast2_security-check-min-pwd-len-and-exp-days', 'alt-f10', 10, 2);
     }
     assert_screen "yast2_security-check-min-pwd-len-and-exp-days";
     assert_and_click "yast2_security-login-settings";
@@ -56,7 +56,7 @@ sub run {
     y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 120);
     if (is_sle('15-SP4+')) {
         record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-        send_key_until_needlematch('yast2_security-login-settings', 'alt-f10', 9, 2);
+        send_key_until_needlematch('yast2_security-login-settings', 'alt-f10', 10, 2);
     }
     assert_and_click "yast2_security-login-settings";
     assert_screen "yast2_security-login-attempts";
@@ -71,7 +71,7 @@ sub run {
     assert_and_click "yast2_security-misc-settings";
     if (is_sle('15-SP4+')) {
         record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-        send_key_until_needlematch('yast2_security-file-perms-secure', 'alt-f10', 9, 2);
+        send_key_until_needlematch('yast2_security-file-perms-secure', 'alt-f10', 10, 2);
     }
     assert_screen "yast2_security-file-perms-secure";
     wait_screen_change { send_key "alt-o" };

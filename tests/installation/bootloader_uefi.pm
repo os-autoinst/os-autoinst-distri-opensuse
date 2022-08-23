@@ -58,7 +58,7 @@ sub run {
         # Skip workaround on specific scenaio which call this module after migration
         if (!check_screen('bootloader-grub2', 0, no_wait => 1)) {
             tianocore_select_bootloader;
-            send_key_until_needlematch("ovmf-boot-HDD", 'down', 5, 1);
+            send_key_until_needlematch("ovmf-boot-HDD", 'down', 6, 1);
             send_key "ret";
             return;
         }
@@ -71,7 +71,7 @@ sub run {
 
     if (get_var('DUALBOOT')) {
         tianocore_select_bootloader;
-        send_key_until_needlematch('tianocore-bootmanager-dvd', 'down', 5, 5);
+        send_key_until_needlematch('tianocore-bootmanager-dvd', 'down', 6, 5);
         send_key "ret";
     }
 
@@ -110,14 +110,14 @@ sub run {
 
     if (get_var("UPGRADE")) {
         # random magic numbers
-        send_key_until_needlematch('inst-onupgrade', 'down', 10, 3);
+        send_key_until_needlematch('inst-onupgrade', 'down', 11, 3);
     }
     else {
         if (get_var("PROMO") || get_var('LIVETEST') || get_var('LIVECD')) {
-            send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 3);
+            send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 11, 3);
         }
         elsif (!is_jeos && !is_microos('VMX')) {
-            send_key_until_needlematch('inst-oninstallation', 'down', 10, 0.5);
+            send_key_until_needlematch('inst-oninstallation', 'down', 11, 0.5);
         }
     }
 

@@ -60,7 +60,7 @@ sub run {
     send_key_until_needlematch 'sap-wizard-proto-' . $proto . '-selected', 'down';
     send_key 'ret' if check_var('DESKTOP', 'textmode');
     send_key 'alt-p';
-    send_key_until_needlematch 'sap-wizard-inst-master-empty', 'backspace', 30 if check_var('DESKTOP', 'textmode');
+    send_key_until_needlematch 'sap-wizard-inst-master-empty', 'backspace', 31 if check_var('DESKTOP', 'textmode');
     type_string_slow "$path", wait_still_screen => 1;
     save_screenshot;
     send_key $cmd{next};

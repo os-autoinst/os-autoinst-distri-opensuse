@@ -25,11 +25,11 @@ sub run() {
     $self->start_firefox;
     wait_still_screen;
     send_key('alt');
-    send_key_until_needlematch('firefox-top-bar-highlighted', 'alt-h', 4, 10);
+    send_key_until_needlematch('firefox-top-bar-highlighted', 'alt-h', 5, 10);
     send_key('alt-h');
     wait_still_screen;
     assert_screen('firefox-help-menu');
-    send_key_until_needlematch('test-firefox-3', 'a', 9, 6);
+    send_key_until_needlematch('test-firefox-3', 'a', 10, 6);
 
     # close About
     send_key "alt-f4";
@@ -40,11 +40,11 @@ sub run() {
     if (match_has_tag 'not-responding') {
         record_soft_failure "firefox is not responding, see boo#1174857";
         # confirm "save&quit"
-        send_key_until_needlematch('generic-desktop', 'ret', 9, 6);
+        send_key_until_needlematch('generic-desktop', 'ret', 10, 6);
     }
     elsif (match_has_tag 'firefox-save-and-quit') {
         # confirm "save&quit"
-        send_key_until_needlematch('generic-desktop', 'ret', 9, 6);
+        send_key_until_needlematch('generic-desktop', 'ret', 10, 6);
     }
 }
 

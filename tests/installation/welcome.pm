@@ -34,7 +34,7 @@ sub switch_keyboard_layout {
     my $keyboard_layout = get_var('INSTALL_KEYBOARD_LAYOUT');
     # for instance, select france and test "querty"
     send_key 'alt-k';    # Keyboard Layout
-    send_key_until_needlematch("keyboard-layout-$keyboard_layout", 'down', 60);
+    send_key_until_needlematch("keyboard-layout-$keyboard_layout", 'down', 61);
     if (check_var('DESKTOP', 'textmode')) {
         send_key 'ret';
         assert_screen "keyboard-layout-$keyboard_layout-selected";
@@ -47,7 +47,7 @@ sub switch_keyboard_layout {
     assert_screen "keyboard-test-$keyboard_layout";
     # Select back default keyboard layout
     send_key 'alt-k';
-    send_key_until_needlematch("keyboard-layout", 'up', 60);
+    send_key_until_needlematch("keyboard-layout", 'up', 61);
     wait_screen_change { send_key 'ret' } if (check_var('DESKTOP', 'textmode'));
 }
 

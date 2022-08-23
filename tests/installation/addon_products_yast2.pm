@@ -66,8 +66,8 @@ sub run {
                 wait_screen_change { send_key 'alt-v' };    # DVD
                 send_key $cmd{next};
                 assert_screen 'dvd-selector', 3;
-                send_key_until_needlematch 'addon-dvd-list', 'tab', 5;    # jump into addon list
-                send_key_until_needlematch "addon-dvd-sr$sr_number", 'down', 10;    # select addon in list
+                send_key_until_needlematch 'addon-dvd-list', 'tab', 6;    # jump into addon list
+                send_key_until_needlematch "addon-dvd-sr$sr_number", 'down', 11;    # select addon in list
                 send_key 'alt-o';    # continue
             }
             if (check_screen('import-untrusted-gpg-key', 10)) {    # workaround untrusted key pop-up, record soft fail and trust it
@@ -86,7 +86,7 @@ sub run {
             wait_screen_change { send_key 'alt-a' };    # yes, agree
             send_key $cmd{next};
             assert_screen 'addon-yast2-patterns';
-            send_key_until_needlematch 'addon-yast2-view-selected', 'alt-v', 10;
+            send_key_until_needlematch 'addon-yast2-view-selected', 'alt-v', 11;
             send_key 'spc';    # open view menu
             wait_screen_change { send_key 'alt-r' };
             wait_screen_change { send_key 'alt-r' };    # go to repositories
