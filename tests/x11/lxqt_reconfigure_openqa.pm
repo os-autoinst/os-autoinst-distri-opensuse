@@ -20,7 +20,7 @@ sub run {
 
     # LXQt uses sddm as window manager, which has the user preselected
     set_var('DISPLAYMANAGER', 'sddm');
-    # sddm asks straoght for PW with only one user; there is no need to type the username
+    # sddm asks straight for PW with only one user; there is no need to type the username
     set_var('DM_NEEDS_USERNAME', 0);
 
     $self->result('ok');
