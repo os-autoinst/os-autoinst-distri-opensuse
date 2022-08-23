@@ -97,32 +97,24 @@ sub samba_client_access {
     # Connect to samba server
     assert_and_click("nautilus-other-locations");
     send_key_until_needlematch("nautilus-connect-to-server", 'tab', 20, 2);
-    my $smb_str = is_sle('>=15-SP3') ? "smb://$testuser:$pw\@$ip/$testdir" : "smb://$ip";
-    type_string("$smb_str");
+    type_string("smb://$ip");
     send_key "ret";
     wait_still_screen(2);
 
-    # bug happens on 15-SP3 and 15-SP4
-    if (!is_sle('>=15-SP3')) {
-        # Search the shared dir
-        send_key_until_needlematch("nautilus-sharedir-search", 'ctrl-f', 5, 2);
-        type_string("$testdir");
-        assert_screen("nautilus-sharedir-selected");
-        send_key "ret";
-    } else {
-        record_soft_failure("bsc#1199860 for 15-SP3/SP4: Unable to mount Windows share: Invalid argument.");
-    }
+    # Search the shared dir
+    send_key_until_needlematch("nautilus-sharedir-search", 'ctrl-f', 5, 2);
+    type_string("$testdir");
+    assert_screen("nautilus-sharedir-selected");
+    send_key "ret";
 
     # Input password for samb user
     assert_screen("nautilus-selected-sharedir-access-passwd");
-    if (!is_sle('>=15-SP3')) {
-        send_key_until_needlematch("nautilus-registered-user-login", 'down', 5, 2);
-        send_key "tab";
-        send_key "ctrl-a";
-        send_key "delete";
-        type_string("$testuser");
-        send_key "ret";
-    }
+    send_key_until_needlematch("nautilus-registered-user-login", 'down', 5, 2);
+    send_key "tab";
+    send_key "ctrl-a";
+    send_key "delete";
+    type_string("$testuser");
+    send_key "ret";
     send_key "ctrl-a";
     send_key "delete";
     type_string("WORKGROUP");
