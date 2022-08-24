@@ -10,7 +10,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle is_tumbleweed is_leap is_opensuse is_microos);
+use version_utils qw(is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro);
 use Utils::Architectures;
 use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
@@ -119,7 +119,7 @@ sub run {
         send_key 'ret';
     }
 
-    if (is_sle) {
+    if (is_sle || is_sle_micro) {
         assert_screen 'jeos-please-register';
         send_key 'ret';
 
