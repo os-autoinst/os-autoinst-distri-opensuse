@@ -129,6 +129,9 @@ EOT
     assert_script_run('chmod +x /usr/bin/kubectl');
     record_info('kubectl', script_output('kubectl version --client=true'));
 
+    # Remove persistent net rules, necessary to boot the x86_64 image in the aarch64 test runs
+    assert_script_run('rm /etc/udev/rules.d/70-persistent-net.rules');
+
     select_console 'root-console';
 }
 
