@@ -44,6 +44,11 @@ sub run ($self) {
         barrier_create('MRSH_SOCKET_STARTED', $nodes);
         barrier_create('PDSH_SLAVE_DONE', $nodes);
     }
+    elsif (check_var('HPC', 'dolly')) {
+        barrier_create('DOLLY_INSTALLATION_FINISHED', $nodes);
+        barrier_create('DOLLY_SERVER_READY', $nodes);
+        barrier_create('DOLLY_DONE', $nodes);
+    }
     elsif (check_var('HPC', 'ganglia')) {
         barrier_create('GANGLIA_INSTALLED', $nodes);
         barrier_create('GANGLIA_SERVER_DONE', $nodes);
