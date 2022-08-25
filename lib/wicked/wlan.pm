@@ -189,6 +189,8 @@ sub prepare_phys {
         die("Failed to get netns dummy pid") unless ($output =~ m/BACKGROUND_PROCESS:-(\d+)-/);
         $cmd_set_netns = 'iw phy ' . $self->ref_phy . ' set netns ' . $1;
     }
+    # Delay namespace setup of wlan device to avoid wickedd-nanny error message
+    assert_script_run('sleep 3');
     assert_script_run($cmd_set_netns);
 
     assert_script_run('iw dev');
