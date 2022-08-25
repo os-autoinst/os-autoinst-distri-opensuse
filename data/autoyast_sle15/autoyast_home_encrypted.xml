@@ -115,4 +115,20 @@
         <pattern>gnome_x11</pattern>
         </patterns>
     </software>
+    <scripts>
+    <init-scripts config:type="list">
+      <script>
+        <filename>init.sh</filename>
+        <source><![CDATA[
+#!/bin/sh
+# zypper process is locked by some ruby process, modify the repo file
+cd /etc/zypp/repos.d
+sed -i 's/enabled=1/enabled=0/' $(ls|grep -i nvidia)
+zypper lr
+exit 0
+
+]]></source>
+      </script>
+    </init-scripts>
+  </scripts>
 </profile>
