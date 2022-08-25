@@ -43,6 +43,7 @@ tests/console/mtab.pm
 tests/console/orphaned_packages_check.pm
 tests/console/consoletest_finish.pm
 tests/x11/desktop_runner.pm
+tests/x11/setup.pm
 tests/x11/xterm.pm
 tests/locale/keymap_or_locale_x11.pm
 tests/x11/sshxterm.pm
@@ -60,4 +61,5 @@ tests/x11/kate.pm
 tests/x11/amarok.pm
 tests/x11/kontact.pm
 tests/x11/reboot_plasma5.pm
+tests/console/zypper_log_packages.pm
 tests/shutdown/shutdown.pm

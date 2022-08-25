@@ -101,15 +101,17 @@ sub run {
         # Get test list
         my @tests = get_test_list($category);
 
+        my $status;
         for my $test (@tests) {
             # Run test and wait for it to finish
             my $begin = time();
-            my $status = test_run($category, $test);
+            $status = test_run($category, $test);
             my $delta = time() - $begin;
 
             # Add test status to STATUS_LOG file
             log_add(STATUS_LOG, "$category-$test", $status, $delta);
         }
+        set_var('SOFT_FAILURE', 1) if (@tests == 1) && ($status eq 'SKIPPED');
     }
 }
 

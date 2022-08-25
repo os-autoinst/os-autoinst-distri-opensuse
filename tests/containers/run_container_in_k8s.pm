@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Push a container image to the public cloud container registry
 #
@@ -15,8 +11,15 @@ use Mojo::Base 'publiccloud::k8sbasetest';
 use testapi;
 
 sub run {
-    my ($self) = @_;
-    $self->SUPER::init();
+    my ($self, $run_args) = @_;
+    if ($run_args->{provider}) {
+        my $provider = shift(@{$run_args->{provider}});
+        my $service = $self->get_k8s_service_name($provider);
+        $self->SUPER::init(provider => $provider, service => $service);
+    }
+    else {
+        $self->SUPER::init();
+    }
 
     my $cmd = '"cat", "/etc/os-release"';
 
@@ -39,6 +42,13 @@ spec:
       - name: main
         image: $image
         command: [ $cmd ]
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: 256Mi
+          requests:
+            cpu: "0.1"
+            memory: 128Mi
       restartPolicy: Never
   backoffLimit: 4
 EOT
@@ -67,6 +77,10 @@ sub post_fail_hook {
 sub post_run_hook {
     my ($self) = @_;
     $self->cleanup();
+}
+
+sub test_flags {
+    return {fatal => 0};
 }
 
 1;

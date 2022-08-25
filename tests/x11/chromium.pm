@@ -8,11 +8,17 @@
 # Summary: Basic test of chromium visiting an html-test
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test', -signatures;
 use testapi;
 use utils;
+
+sub type_address ($string) {
+    send_key 'ctrl-l';    # select text in address bar
+                          # wait for the urlbar to be in a consistent state
+    assert_screen 'chromium-highlighted-urlbar';
+    # type individual characters only as the screen changes to avoid losing input
+    enter_cmd($string, wait_screen_change => 1);
+}
 
 sub run {
     select_console 'x11';
@@ -20,26 +26,18 @@ sub run {
     ensure_installed 'chromium';
 
     # avoid async keyring popups
-    x11_start_program('chromium --password-store=basic', target_match => 'chromium-main-window', match_timeout => 50);
-
+    # allow key input before rendering is done, see poo#109737 for details
+    x11_start_program('chromium --password-store=basic --allow-pre-commit-input', target_match => 'chromium-main-window', match_timeout => 50);
     wait_screen_change { send_key 'esc' };    # get rid of popup (or abort loading)
-    send_key 'ctrl-l';    # select text in address bar
 
-    # Additional waiting to prevent unready address bar
-    # https://progress.opensuse.org/issues/36304
-    assert_screen 'chromium-highlighted-urlbar';
-    enter_cmd "chrome://version ";
+    type_address('chrome://version');
     assert_screen 'chromium-about';
 
-    send_key 'ctrl-l';
-    assert_screen 'chromium-highlighted-urlbar';
-    enter_cmd "https://html5test.opensuse.org";
+    type_address('https://html5test.opensuse.org');
     assert_screen 'chromium-html-test', 90;
 
     # check a site with different ssl configuration (boo#1144625)
-    send_key 'ctrl-l';
-    assert_screen 'chromium-highlighted-urlbar';
-    enter_cmd("https://upload.wikimedia.org/wikipedia/commons/d/d0/OpenSUSE_Logo.svg");
+    type_address('https://upload.wikimedia.org/wikipedia/commons/d/d0/OpenSUSE_Logo.svg');
     assert_screen 'chromium-opensuse-logo', 90;
     send_key 'alt-f4';
 }

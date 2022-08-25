@@ -44,13 +44,16 @@ sub load_boot_from_disk_tests {
         loadtest 'installation/bootloader_start';
         loadtest 'boot/boot_to_desktop';
     } else {
-        loadtest 'microos/disk_boot';
+        if (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
+            loadtest 'jeos/firstrun';
+        } else {
+            loadtest 'microos/disk_boot';
+        }
     }
     loadtest 'transactional/host_config';
     loadtest 'console/suseconnect_scc' if check_var('SCC_REGISTER', 'installation');
     loadtest 'transactional/enable_selinux' if get_var('ENABLE_SELINUX');
     loadtest 'transactional/install_updates' if is_released;
-    loadtest 'microos/toolbox';
 }
 
 # Handle updates from repos defined in OS_TEST_TEMPLATE combined with the list

@@ -77,7 +77,7 @@ YuiRestClient::Widget::Base - base class for all UI objects
 
 =head1 COPYRIGHT
 
-Copyright © 2021 SUSE LLC
+Copyright 2021 SUSE LLC
 
 SPDX-License-Identifier: FSFAP
 

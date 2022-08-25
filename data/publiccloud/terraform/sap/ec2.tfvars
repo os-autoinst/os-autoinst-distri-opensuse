@@ -208,7 +208,7 @@ hana_cluster_vip = "192.168.1.10"
 
 # Select HANA cluster fencing mechanism. 'native' by default
 # Find more information in `doc/fencing.md` documentation page
-#hana_cluster_fencing_mechanism = "sbd"
+hana_cluster_fencing_mechanism = "%FENCING_MECHANISM%"
 
 # Enable Active/Active HANA setup (read-only access in the secondary instance)
 #hana_active_active = true
@@ -276,7 +276,7 @@ hana_master_password = "Linux1234"
 
 # netweaver will use AWS efs for nfs share by default, unless drbd is enabled
 # Enable drbd cluster
-drbd_enabled = true
+drbd_enabled = false
 
 #drbd_instancetype = "t2.micro"
 

@@ -6,7 +6,7 @@
 # Package: pacemaker-cli crmsh csync2
 # Summary: Test public cloud SLES4SAP images
 #
-# Maintainer: Loic Devulder <ldevulder@suse.de>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
@@ -163,7 +163,7 @@ sub fence_node {
 
 sub run {
     my ($self) = @_;
-    my $timeout = 120;
+    my $timeout = bmwqemu::scale_timeout(900);
     my @cluster_types = split(',', get_required_var('CLUSTER_TYPES'));
 
     $self->select_serial_terminal;
@@ -233,10 +233,6 @@ Logs are uploaded at the end.
 =head2 PUBLIC_CLOUD_SLES4SAP
 
 If set, this test module is added to the job.
-
-=head2 PUBLIC_CLOUD_VAULT_NAMESPACE
-
-Set the needed namespace, e.g. B<qa-shap>.
 
 =head2 CLUSTER_TYPES
 

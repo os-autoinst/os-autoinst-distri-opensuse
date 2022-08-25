@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
-use version_utils qw(is_staging is_opensuse is_leap is_sle is_sle_micro is_leap_micro);
+use version_utils qw(is_staging is_opensuse is_leap is_sle is_sle_micro is_leap_micro is_alp);
 use transactional;
 use utils;
 
@@ -77,8 +77,8 @@ sub run {
     unless (is_opensuse && is_staging) {
         record_info 'Update #1', 'Add repository and update - snapshot #2';
         # Leap Micro misses the gpg key for openSUSE:Maintenance space
-        my $no_gpg_check = is_leap_micro ? '-G' : '';
-        zypper_call "ar $no_gpg_check utt.repo" if (is_sle || is_sle_micro || is_leap_micro);
+        my $no_gpg_check = (is_leap_micro || is_alp) ? '-G' : '';
+        zypper_call "ar $no_gpg_check utt.repo" if (is_sle || is_sle_micro || is_leap_micro || is_alp);
         # openSUSE MicroOS does not need additional repo as UTT package is already available
         trup_call 'cleanup up', timeout => 300;
         check_reboot_changes;

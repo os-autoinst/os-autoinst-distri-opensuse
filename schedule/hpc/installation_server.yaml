@@ -1,7 +1,7 @@
 ---
 name: hpc_installation_server
 description:    >
-     Maintainer: schlad
+     Maintainer: qe-kernel
      Installation scenario with HPC system role hpc-server.
 vars:
   DESKTOP: textmode
@@ -22,12 +22,22 @@ conditional_schedule:
         - installation/user_settings_root
       15-SP4:
         - installation/user_settings_root
+      15-SP5:
+        - installation/user_settings_root
+  add_update_test_repo:
+    FLAVOR:
+      Server-DVD-HPC-Incidents:
+        - installation/add_update_test_repo
+  patch_and_reboot_inci:
+    FLAVOR:
+      Server-DVD-HPC-Incidents:
+        - qa_automation/patch_and_reboot
 schedule:
   - installation/isosize
   - '{{bootloader}}'
   - installation/welcome
-  - installation/accept_license
   - installation/scc_registration
+  - '{{add_update_test_repo}}'
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
@@ -48,6 +58,7 @@ schedule:
   - installation/first_boot
   - console/hostname
   - console/system_prepare
+  - '{{patch_and_reboot_inci}}'
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown

@@ -20,7 +20,8 @@ use Mojo::Base 'wicked::wlan';
 use testapi;
 
 has ssid => 'Virtual WiFi PSK Secured';
-has psk => 'TopSecretWifiPassphrase!';
+has passphrase => 'TopSecretWifiPassphrase!';
+has psk => 'f290774662f06380035ccb4730dc6894fd851b2f07f9258461cbb512ff041292';
 
 has hostapd_conf => q(
     ctrl_interface=/var/run/hostapd
@@ -34,7 +35,7 @@ has hostapd_conf => q(
     wpa=3
     wpa_key_mgmt=WPA-PSK
     wpa_pairwise=TKIP CCMP
-    wpa_passphrase={{psk}}
+    wpa_passphrase={{passphrase}}
     beacon_int=100
     auth_algs=3
 );
@@ -47,7 +48,7 @@ has ifcfg_wlan => sub { [
         WIRELESS_MODE='Managed'
         WIRELESS_AUTH_MODE='psk'
         WIRELESS_ESSID='{{ssid}}'
-        WIRELESS_WPA_PSK='{{psk}}'
+        WIRELESS_WPA_PSK='{{passphrase}}'
     ),
         q(
         BOOTPROTO='dhcp'
@@ -55,14 +56,15 @@ has ifcfg_wlan => sub { [
 
         WIRELESS_AUTH_MODE='psk'
         WIRELESS_ESSID='{{ssid}}'
-        WIRELESS_WPA_PSK='{{psk}}'
+        WIRELESS_WPA_PSK='{{passphrase}}'
     ),
         {
-            wicked_version => '>=0.6.66',
+            wicked_version => '>=0.6.69',
             config => q(
             BOOTPROTO='dhcp'
             STARTMODE='auto'
 
+            WIRELESS_AUTH_MODE='psk'
             WIRELESS_ESSID='{{ssid}}'
             WIRELESS_WPA_PSK='{{psk}}'
         )
@@ -74,7 +76,17 @@ has ifcfg_wlan => sub { [
             STARTMODE='auto'
 
             WIRELESS_ESSID='{{ssid}}'
-            WIRELESS_WPA_PSK='{{psk}}'
+            WIRELESS_WPA_PSK='{{passphrase}}'
+        )
+        },
+        {
+            wicked_version => '>=0.6.66',
+            config => q(
+            BOOTPROTO='dhcp'
+            STARTMODE='auto'
+
+            WIRELESS_ESSID='{{ssid}}'
+            WIRELESS_WPA_PSK='{{passphrase}}'
             WIRELESS_CIPHER_PAIRWISE='CCMP'
         )
         },
@@ -85,7 +97,7 @@ has ifcfg_wlan => sub { [
             STARTMODE='auto'
 
             WIRELESS_ESSID='{{ssid}}'
-            WIRELESS_WPA_PSK='{{psk}}'
+            WIRELESS_WPA_PSK='{{passphrase}}'
             WIRELESS_CIPHER_PAIRWISE='TKIP'
         )
         },
@@ -96,7 +108,7 @@ has ifcfg_wlan => sub { [
             STARTMODE='auto'
 
             WIRELESS_ESSID='{{ssid}}'
-            WIRELESS_WPA_PSK='{{psk}}'
+            WIRELESS_WPA_PSK='{{passphrase}}'
             WIRELESS_CIPHER_PAIRWISE='TKIP CCMP'
         )
         }

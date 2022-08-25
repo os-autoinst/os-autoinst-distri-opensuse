@@ -21,11 +21,6 @@ use testapi;
 sub run {
     my $self = shift;
 
-    # get version of libreoffice
-    x11_start_program('xterm');
-    my $old_version = script_output('zypper se -i -s -x libreoffice|grep 6.4.5', proceed_on_failure => 1);
-    send_key 'alt-f4';
-
     # Open LibreOffice
     $self->libreoffice_start_program('oowriter');
 
@@ -37,26 +32,12 @@ sub run {
     send_key 'right';
     assert_and_click 'ooffice-writer-tools-run-macros';
 
-    if ($old_version) {
-        # navigate to the python samples item
-        assert_screen 'ooffice-writer-mymacros';
-        send_key 'down';
-        assert_and_click 'ooffice-writer-libreofficemacros';
-        wait_still_screen(2);
-        enter_cmd 'py';
-
-        assert_and_click 'ooffice-python-samples';
-        wait_still_screen(2);
-        send_key_until_needlematch 'ooffice-table-sample', 'down', 5, 1;
-    }
-    else {
-        # navigate to the Table sample item
-        assert_screen 'ooffice-writer-mymacros';
-        assert_and_click 'ooffice-writer-libreofficemacros';
-        wait_still_screen(2);
-        type_string "table\n";
-        assert_screen 'ooffice-table-sample';
-    }
+    # navigate to the Table sample item
+    assert_screen 'ooffice-writer-mymacros';
+    assert_and_click 'ooffice-writer-libreofficemacros';
+    wait_still_screen(2);
+    type_string "table\n";
+    assert_screen 'ooffice-table-sample';
     send_key 'tab';
 
     # run create table

@@ -1,0 +1,9 @@
+---
+name: luks1_decrypt_ssh_client
+description: >
+    ssh decrypt luks1 partition on client
+schedule:
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - network/setup_multimachine
+    - security/luks1/unlock_via_ssh_client

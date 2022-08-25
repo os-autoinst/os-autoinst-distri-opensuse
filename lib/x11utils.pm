@@ -54,6 +54,7 @@ Returns the hotkey for the desktop runner according to the used
 desktop
 
 =cut
+
 sub desktop_runner_hotkey { check_var('DESKTOP', 'minimalx') ? 'super-spc' : 'alt-f2' }
 
 
@@ -66,6 +67,7 @@ screen lock is necessary when switch back to x11
 all possible options should be handled within loop to get unlocked desktop
 
 =cut
+
 sub ensure_unlocked_desktop {
     my $counter = 10;
 
@@ -178,6 +180,7 @@ sub ensure_unlocked_desktop {
                 send_key 'esc';    # end screenlock
                 diag("Screen lock present");
             };
+            next;    # Go directly to assert_screen, skip wait_still_screen (and don't collect $200)
         }
         wait_still_screen 1;    # slow down loop
     }
@@ -190,6 +193,7 @@ sub ensure_unlocked_desktop {
 C<tag> can contain a needle name and is optional, it defaults to yast2-windowborder
 
 =cut
+
 sub ensure_fullscreen {
     my (%args) = @_;
     $args{tag} //= 'yast2-windowborder';
@@ -248,6 +252,7 @@ Example:
   handle_login('user1', 1);
 
 =cut
+
 sub handle_login {
     my ($myuser, $user_selected, $mypwd) = @_;
     $myuser //= $username;
@@ -261,8 +266,9 @@ sub handle_login {
     my $mykey = check_var('DESKTOP', 'gnome') ? 'esc' : 'shift';
     send_key_until_needlematch('displaymanager', $mykey, 30, 3);
     if (get_var('ROOTONLY')) {
+        # we now use this tag to support login as root
         if (check_screen 'displaymanager-username-notlisted', 10) {
-            record_soft_failure 'bgo#731320/boo#1047262 "not listed" Login screen for root user is not intuitive';
+            record_info 'bgo#731320/boo#1047262 "not listed" Login screen for root user is not intuitive';
             assert_and_click 'displaymanager-username-notlisted';
             wait_still_screen 3;
         }
@@ -302,6 +308,7 @@ sub handle_login {
 Handles the logout from the desktop
 
 =cut
+
 sub handle_logout {
     # hide mouse for clean logout needles
     mouse_hide();
@@ -325,6 +332,7 @@ sub handle_logout {
 First logs out and the log in via C<handle_logout()> and C<handle_login()>
 
 =cut
+
 sub handle_relogin {
     handle_logout;
     handle_login;
@@ -339,6 +347,7 @@ C<$myuser> specifies the username to switch to.
 If not set, it will default to C<$username>.
 
 =cut
+
 sub select_user_gnome {
     my ($myuser) = @_;
     $myuser //= $username;
@@ -369,6 +378,7 @@ sub select_user_gnome {
 Turns off the Plasma desktop screen energy saving.
 
 =cut
+
 sub turn_off_plasma_screen_energysaver {
     x11_start_program('kcmshell5 powerdevilprofilesconfig', target_match => [qw(kde-energysaver-enabled energysaver-disabled)]);
     assert_and_click 'kde-disable-energysaver' if match_has_tag('kde-energysaver-enabled');
@@ -385,6 +395,7 @@ sub turn_off_plasma_screen_energysaver {
 Turns off the Plasma desktop screenlocker.
 
 =cut
+
 sub turn_off_plasma_screenlocker {
     x11_start_program('kcmshell5 screenlocker', target_match => [qw(kde-screenlock-enabled screenlock-disabled)]);
     assert_and_click 'kde-disable-screenlock' if match_has_tag('kde-screenlock-enabled');
@@ -403,6 +414,7 @@ desktop. Call before tests that are not providing input for a long time, to
 prevent needles from failing.
 
 =cut
+
 sub turn_off_kde_screensaver {
     turn_off_plasma_screenlocker;
     turn_off_plasma_screen_energysaver;
@@ -415,6 +427,7 @@ sub turn_off_kde_screensaver {
 Disable screensaver in gnome. To be called from a command prompt, for example an xterm window.
 
 =cut
+
 sub turn_off_gnome_screensaver {
     script_run 'gsettings set org.gnome.desktop.session idle-delay 0', die_on_timeout => 0, timeout => 90;
 }
@@ -427,6 +440,7 @@ Disable screensaver in gnome for gdm. The function should be run under root. To 
 a command prompt, for example an xterm window.
 
 =cut
+
 sub turn_off_gnome_screensaver_for_gdm {
     script_run 'sudo -u gdm dbus-launch gsettings set org.gnome.desktop.session idle-delay 0';
 }
@@ -439,6 +453,7 @@ Disable screensaver in gnome for running gdm. The function should be run under r
 from a command prompt, for example an xterm window.
 
 =cut
+
 sub turn_off_gnome_screensaver_for_running_gdm {
     script_run 'su gdm -s /bin/bash -c "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u gdm)/bus gsettings set org.gnome.desktop.session idle-delay 0"';
 }
@@ -450,6 +465,7 @@ sub turn_off_gnome_screensaver_for_running_gdm {
 Disable suspend in gnome. To be called from a command prompt, for example an xterm window.
 
 =cut
+
 sub turn_off_gnome_suspend {
     script_run 'gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type \'nothing\'';
 }
@@ -461,6 +477,7 @@ sub turn_off_gnome_suspend {
 Turns off the screensaver depending on desktop environment
 
 =cut
+
 sub turn_off_screensaver {
     return turn_off_kde_screensaver if check_var('DESKTOP', 'kde');
     die "Unsupported desktop '" . get_var('DESKTOP', '') . "'" unless check_var('DESKTOP', 'gnome');
@@ -481,6 +498,7 @@ sub turn_off_gnome_show_banner {
 untick welcome page on next startup.
 
 =cut
+
 sub untick_welcome_on_next_startup {
     # Untick box - (Retries may be needed: poo#56024)
     for my $retry (1 .. 5) {
@@ -506,6 +524,7 @@ Disable auto-launch on next boot and close application.
 Also handle workarounds when needed.
 
 =cut
+
 sub handle_welcome_screen {
     my (%args) = @_;
     assert_screen([qw(opensuse-welcome opensuse-welcome-gnome40-activities)], $args{timeout});
@@ -520,6 +539,7 @@ sub handle_welcome_screen {
 Start a root shell in xterm.
 
 =cut
+
 sub start_root_shell_in_xterm {
     select_console 'x11';
     x11_start_program("xterm -geometry 155x50+5+5", target_match => 'xterm');
@@ -536,6 +556,7 @@ sub start_root_shell_in_xterm {
 
 handle_gnome_activities
 =cut
+
 sub handle_gnome_activities {
     my @tags = 'generic-desktop';
     my $timeout = 600;

@@ -16,7 +16,7 @@ use version_utils qw(is_sle);
 use virt_utils;
 use utils;
 use Utils::Backends 'is_remote_backend';
-use virt_autotest::utils qw(is_xen_host);
+use virt_autotest::utils qw(is_xen_host subscribe_extensions_and_modules);
 
 sub install_package {
 
@@ -102,6 +102,8 @@ sub install_package {
     ###Install required package for window guest installation on xen host
     if (get_var('GUEST_LIST') =~ /^win-.*/ && (is_xen_host)) { zypper_call '--no-refresh --no-gpg-checks in mkisofs' }
 
+    #Subscribing packagehub from SLE 15-SP4 onwards that enables access to many useful software tools
+    virt_autotest::utils::subscribe_extensions_and_modules(reg_exts => 'PackageHub') if (is_sle('>=15-sp4') and !is_s390x);
 }
 
 sub run {

@@ -1,0 +1,37 @@
+---
+name: ncurses_interactive_installation
+description: '|
+
+  Testsuite maintained at https://gitlab.suse.de/qa-maintenance/qam-openqa-yml.
+  Interactive installation with ncurses (textmode).'
+schedule:
+  - installation/isosize
+  - installation/bootloader
+  - installation/welcome
+  - installation/scc_registration
+  - installation/add_update_test_repo
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - console/installation_snapshots
+  - console/zypper_lr
+  - console/zypper_ref
+  - console/ncurses
+  - update/zypper_up
+  - console/zypper_lifecycle
+  - console/orphaned_packages_check
+  - console/consoletest_finish

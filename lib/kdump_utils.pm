@@ -141,8 +141,12 @@ sub handle_warning_install_os_prober {
 
 # use yast2 kdump to enable the kdump service
 sub activate_kdump {
+    my (%args) = @_;
+    # increase kdump memory when bsc#1161421 applies
+    my $increase_kdump_memory = $args{increase_kdump_memory} // 1;
     # restart info will appear only when change has been done
     my $expect_restart_info = 0;
+
     # get kdump memory size bsc#1161421
     my $memory_total = script_output('kdumptool  calibrate | awk \'/Total:/ {print $2}\'');
     my $memory_kdump = $memory_total >= 2048 ? 1024 : 320;
@@ -166,11 +170,14 @@ sub activate_kdump {
         $expect_restart_info = 1;
     }
     # ppcl64e and aarch64 needs increased kdump memory bsc#1161421
-    if (is_ppc64le || is_aarch64) {
-        send_key('alt-y');
-        type_string $memory_kdump;
-        wait_screen_change(sub { send_key 'ret' }, 10) for (1 .. 2);
-        record_soft_failure 'default kdump memory size is too small for ppc64le and aarch64, see bsc#1161421';
+    # migration regression test cases need increase kdump memory since lot of services start
+    if (is_ppc64le || is_aarch64 || get_var('FLAVOR') =~ /Regression/) {
+        if ($increase_kdump_memory) {
+            send_key('alt-y');
+            type_string $memory_kdump;
+            wait_screen_change(sub { send_key 'ret' }, 10) for (1 .. 2);
+            record_soft_failure 'default kdump memory size is too small for ppc64le and aarch64, see bsc#1161421';
+        }
         $expect_restart_info = 1;
     }
     # enable and verify fadump settings
@@ -207,13 +214,15 @@ sub activate_kdump_cli {
     record_info('CRASH MEMORY', $crash_memory);
     assert_script_run("yast kdump startup enable alloc_mem=${crash_memory}", 180);
     # Enable firmware assisted dump if needed
-    assert_script_run('yast2 kdump fadump enable', 180) if check_var('FADUMP');
+    assert_script_run('yast2 kdump fadump enable', 180) if get_var('FADUMP');
     assert_script_run('yast kdump show', 180);
     systemctl('enable kdump');
 }
 
 # Deactivate kdump using yast command line interface
 sub deactivate_kdump_cli {
+    # Solution to poo113351. Avoid to use needles to solve this case.
+    zypper_call("--gpg-auto-import-keys ref");
     # Disable the crashkernel option from the kernel grub cmdline
     assert_script_run('yast kdump startup disable alloc_mem=0', 180);
     # Disable the kdump service at boot time
@@ -340,7 +349,7 @@ sub check_function {
         reconnect_mgmt_console if is_pvm;
     }
     else {
-        power_action('reboot', observe => 1, keepconsole => 1);
+        power_action('reboot', textmode => 1, observe => 1, keepconsole => 1);
     }
     unlock_if_encrypted;
     # Wait for system's reboot; more time for Hyper-V as it's slow.
@@ -377,6 +386,27 @@ sub check_function {
     }
 }
 
+# for bsc#1199326, we need to check if ~/bernhard/.ssh/id_rsa was not
+# affected after kdump_and_crash.
+sub check_ssh_files {
+    # if file ~bernhard/.ssh/id_rsa missing or zero size
+    # we need to recreate the ssh key.
+    my $ret = script_run('! test -s ~bernhard/.ssh/id_rsa');
+    if ($ret == 0) {
+        record_soft_failure('bsc#1199326 - After kdump and crash the ssh configure files truns zero or gone');
+        my $user = $testapi::username;
+        assert_script_run("rm -f ~/.ssh/id_rsa");
+        assert_script_run('ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa');
+        assert_script_run("mkdir -pv ~/.ssh ~$user/.ssh");
+        assert_script_run("cp ~/.ssh/id_rsa ~$user/.ssh/id_rsa");
+        assert_script_run("touch ~{,$user}/.ssh/{authorized_keys,known_hosts}");
+        assert_script_run("chmod 600 ~{,$user}/.ssh/*");
+        assert_script_run("chown -R bernhard ~$user/.ssh");
+        assert_script_run("cat ~/.ssh/id_rsa.pub | tee -a ~{,$user}/.ssh/authorized_keys");
+        assert_script_run("ssh-keyscan localhost 127.0.0.1 ::1 | tee -a ~{,$user}/.ssh/known_hosts");
+    }
+}
+
 #
 # Check kdump service before and after migration,
 # parameter $stage is 'before' or 'after' of a system migration stage.
@@ -388,12 +418,16 @@ sub full_kdump_check {
     select_console 'root-console';
 
     if ($stage eq 'before') {
-        configure_service(test_type => $stage);
+        configure_service(test_type => $stage, yast_interface => 'cli');
     }
     check_function();
 
     if ($stage ne 'before') {
         ensure_serialdev_permissions;
+    }
+    # We need to check bsc#1199326 after kdump_and_crash
+    if ($stage eq 'after') {
+        check_ssh_files();
     }
 }
 

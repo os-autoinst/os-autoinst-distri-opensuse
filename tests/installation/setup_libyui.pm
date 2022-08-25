@@ -1,4 +1,4 @@
-# Copyright 2020-2021 SUSE LLC
+# Copyright 2020-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Module to set up the environment for using libyui REST API with the
@@ -13,8 +13,10 @@ use Utils::Backends;
 use Utils::Architectures;
 use testapi;
 use YuiRestClient;
+use version_utils qw(is_sle is_leap);
 
 sub run {
+    die 'Leap 15.2 and below and SLE 15-SP2 and below do not have libyui-REST, exit now.' if (is_leap('<=15.2') || is_sle('<=15-SP2'));
     die 'Module requires YUI_REST_API variable to be set.', unless get_var('YUI_REST_API');
     my $app = YuiRestClient::get_app(installation => 1, timeout => 120, interval => 1);
     my $port = $app->get_port();
@@ -27,6 +29,9 @@ sub run {
             if (is_svirt) {
                 $cmd = 'TERM=linux ';
             }
+        }
+        if (check_var('VIDEOMODE', 'ssh-x')) {
+            $cmd .= 'QT_XCB_GL_INTEGRATION=none ';
         }
         $cmd .= YuiRestClient::get_yui_params_string($port) . " yast.ssh";
         enter_cmd($cmd);

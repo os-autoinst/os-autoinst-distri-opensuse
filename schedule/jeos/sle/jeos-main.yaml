@@ -32,6 +32,7 @@ conditional_schedule:
 schedule:
     - '{{bootloader}}'
     - jeos/firstrun
+    - jeos/image_info
     - jeos/record_machine_id
     - console/system_prepare
     - console/force_scheduled_tasks
@@ -51,6 +52,7 @@ schedule:
     - console/consoletest_setup
     - '{{udev_dep}}'
     - locale/keymap_or_locale
+    - console/ping
     - console/apache
     - console/dns_srv
     - console/postgresql_server

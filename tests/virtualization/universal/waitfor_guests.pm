@@ -94,22 +94,19 @@ sub upload_machine_definitions {
 
 sub run {
     my $self = shift;
-    # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
-    $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
-
+    select_console('root-console');
     # Fill the current pairs of hostname & address into /etc/hosts file
     assert_script_run 'virsh list --all';
     add_guest_to_hosts $_, $virt_autotest::common::guests{$_}->{ip} foreach (keys %virt_autotest::common::guests);
     assert_script_run "cat /etc/hosts";
 
-    # Wait for guests to finish installation
-    # script_run("wait", timeout => 1200);
-    # script_retry("! ps x | grep -v 'grep' | grep 'virt-install'", retry => 120, delay => 10);
-    # Unfortunately this doesn't cover the second step of the installation, where ssh is available
-    my $sleep_delay = 1200;
-    $sleep_delay = 1800 if (is_xen_host);    # XEN has more guests
-    sleep($sleep_delay);    # XXX Get rid of this sleep!
-    record_info("guests installed", "Guest installation completed");
+    # Wait for guests to announce that installation is complete
+    script_retry("test -d /tmp/guests_ip", retry => 15, delay => 120);
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        script_retry("test -f /tmp/guests_ip/$guest", retry => 20, delay => 120);
+        record_info("$guest installed", "Guest installation completed");
+    }
+    record_info("All guests installed", "Guest installation completed");
 
     # Adding the PCI bridges requires the guests to be shutdown
     record_info("shutdown guests", "Shutting down all guests");

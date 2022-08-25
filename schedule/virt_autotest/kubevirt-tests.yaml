@@ -1,0 +1,45 @@
+name:           kubevirt-tests
+description:    >
+    Maintainer: nan.zhang@suse.com
+    Kubevirt server & agent node installation and test modules
+vars:
+    SCC_ADDONS: contm,sdk,legacy
+    OPT_KERNEL_PARAMS: hugepagesz=2M hugepages=64
+schedule:
+    - '{{barrier_setup}}'
+    - '{{installation_with_kernel_params}}'
+    - '{{kubevirt_tests}}'
+conditional_schedule:
+    barrier_setup:
+        TEST_SUITE_NAME:
+            kubevirt-tests-server:
+                - virt_autotest/kubevirt_barriers
+    installation_with_kernel_params:
+        WITH_SLE_INSTALL:
+            1:
+                - boot/boot_from_pxe
+                - installation/welcome
+                - installation/scc_registration
+                - installation/addon_products_sle
+                - installation/system_role
+                - installation/partitioning
+                - installation/partitioning_finish
+                - installation/installer_timezone
+                - installation/user_settings
+                - installation/user_settings_root
+                - installation/resolve_dependency_issues
+                - installation/installation_overview
+                - installation/disable_grub_timeout
+                - installation/disable_grub_graphics
+                - installation/edit_optional_kernel_cmd_parameters
+                - installation/start_install
+                - installation/await_install
+                - installation/logs_from_installation_system
+                - installation/reboot_after_installation
+                - virt_autotest/login_console
+    kubevirt_tests:
+        TEST_SUITE_NAME:
+            kubevirt-tests-server:
+                - virt_autotest/kubevirt_tests_server
+            kubevirt-tests-agent:
+                - virt_autotest/kubevirt_tests_agent

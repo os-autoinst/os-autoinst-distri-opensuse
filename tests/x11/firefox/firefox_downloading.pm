@@ -10,7 +10,7 @@
 # firefox
 # - Open firefox preferences, change download to "Always ask you where to save
 # files"
-# - Open url "http://mirrors.kernel.org/opensuse/distribution/leap/15.1/iso/openSUSE-Leap-15.1-DVD-x86_64.iso"
+# - Open url "http://mirrors.kernel.org/opensuse/distribution/leap/15.4/iso/openSUSE-Leap-15.4-DVD-x86_64-Media.iso"
 # - Show download window
 # - Pause download
 # - Resume download and check
@@ -19,8 +19,8 @@
 # - Cancel download and remove from history
 # - Open firefox preferences, change download to save files by default
 # - Open
-# url"http://mirrors.kernel.org/opensuse/distribution/leap/15.1/iso/openSUSE-Leap-15.1-DVD-x86_64.iso"
-# and "http://mirrors.kernel.org/opensuse/distribution/leap/42.3/iso/openSUSE-Leap-42.3-DVD-x86_64.iso"
+# url "http://mirrors.kernel.org/opensuse/distribution/leap/15.3/iso/openSUSE-Leap-15.3-3-DVD-aarch64-Media.iso"
+# and "http://mirrors.kernel.org/opensuse/distribution/leap/15.3/iso/openSUSE-Leap-15.3-3-DVD-x86_64-Media.iso"
 # - Open download library and check both downloads running
 # - Cancel both downloads
 # - Exit firefox
@@ -33,8 +33,8 @@ use base "x11test";
 use testapi;
 use version_utils 'is_sle';
 
-my $dl_link_01 = "http://mirrors.kernel.org/opensuse/distribution/leap/15.1/iso/openSUSE-Leap-15.1-DVD-x86_64.iso";
-my $dl_link_02 = "http://mirrors.kernel.org/opensuse/distribution/leap/15.2/iso/openSUSE-Leap-15.2-DVD-x86_64.iso";
+my $dl_link_01 = "http://mirrors.kernel.org/opensuse/distribution/leap/15.3/iso/openSUSE-Leap-15.3-3-DVD-aarch64-Media.iso";
+my $dl_link_02 = "http://mirrors.kernel.org/opensuse/distribution/leap/15.3/iso/openSUSE-Leap-15.3-3-DVD-x86_64-Media.iso";
 
 sub dl_location_switch {
     my ($self, $tg) = @_;

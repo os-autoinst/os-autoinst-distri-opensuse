@@ -33,12 +33,12 @@ sub run {
         if ($host_distri eq 'ubuntu') {
             # Sometimes, the host doesn't get an IP automatically via dhcp, we need force it just in case
             assert_script_run("dhclient -v");
-            assert_script_run("apt-get update -qq -y", timeout => $update_timeout);
+            script_retry("apt-get update -qq -y", timeout => $update_timeout);
         } elsif ($host_distri eq 'centos') {
             assert_script_run("dhclient -v");
-            assert_script_run("yum update -q -y --nobest", timeout => $update_timeout);
+            script_retry("yum update -q -y --nobest", timeout => $update_timeout);
         } elsif ($host_distri eq 'rhel') {
-            assert_script_run("yum update -q -y", timeout => $update_timeout);
+            script_retry("yum update -q -y", timeout => $update_timeout);
         }
     }
 
@@ -47,8 +47,8 @@ sub run {
     install_podman_when_needed($host_distri) if ($engine =~ 'podman');
 
     # It has been observed that after system update, the ip forwarding doesn't work.
-    # In Leap 15.3 there is a need to restart the firewall and docker daemon.
-    if ($host_distri eq 'opensuse-leap' && $version eq '15' && $sp eq '3') {
+    # In 15.3/15.4 there is a need to restart the firewall and docker daemon.
+    if ($host_distri =~ /sles|opensuse-leap/ && $version eq '15' && $sp =~ /3|4/) {
         systemctl("restart docker") if ($engine =~ 'docker');
         systemctl("restart firewalld");
     }

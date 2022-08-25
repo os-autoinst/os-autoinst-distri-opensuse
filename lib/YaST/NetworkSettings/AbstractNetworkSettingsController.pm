@@ -60,6 +60,7 @@ The function just adds the device, but does not save the changes by closing
 Network Settings Dialog.
 
 =cut
+
 sub add_bridged_device();
 
 =head2 add_bond_slave
@@ -72,6 +73,7 @@ The function just adds the device, but does not save the changes by closing
 Network Settings Dialog.
 
 =cut
+
 sub add_bond_slave();
 
 =head2 add_vlan_device
@@ -84,6 +86,7 @@ The function just adds the device, but does not save the changes by closing
 Network Settings Dialog.
 
 =cut
+
 sub add_vlan_device();
 
 =head2 view_bridged_device_without_editing
@@ -94,6 +97,7 @@ Open already created Bridged Device for editing, view its settings, do not
 change any settings and close the Edit Dialog.
 
 =cut
+
 sub view_bridged_device_without_editing();
 
 =head2 view_bond_slave_without_editing
@@ -104,6 +108,7 @@ Open already created Bond Slave Device for editing, view its settings, do not
 change any settings and close the Edit Dialog.
 
 =cut
+
 sub view_bond_slave_without_editing();
 
 sub delete_bridged_device {

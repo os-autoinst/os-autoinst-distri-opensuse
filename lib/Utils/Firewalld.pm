@@ -21,6 +21,7 @@ Adds tcp C<$port> to C<$zone> of permanent configuration. Port can be a single p
 number or a range of ports e.g. 3000-5000
 
 =cut
+
 sub add_port_to_zone {
     my ($args) = @_;
     assert_script_run("firewall-cmd --zone=$args->{zone} --add-port=$args->{port}/tcp --permanent");

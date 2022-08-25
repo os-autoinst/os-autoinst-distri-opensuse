@@ -19,7 +19,7 @@ sub run {
     select_console 'root-console';
 
     # Install the required packages
-    zypper_call('in libvirt wget');
+    zypper_call('in libvirt');
 
     # Upload the network xml file
     my $file = 'kvm_check_network.xml';

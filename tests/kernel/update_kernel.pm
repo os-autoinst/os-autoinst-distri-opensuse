@@ -1,12 +1,11 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2021 SUSE LLC
+# Copyright 2017-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Package: kernel-azure kernel-devel dracut kmod-compat qa_lib_ctcs2 qa_test_ltp
-# qa_test_newburn kernel-default
+# Package: kernel-azure kernel-devel dracut kmod-compat kernel-default
 # Summary: This module installs maint update under test for kernel/kgraft to ltp work image
-# Maintainer: Ondřej Súkup osukup@suse.cz
+# Maintainer: QE Kernel <kernel-qa@suse.de>
 
 use 5.018;
 use warnings;
@@ -196,64 +195,35 @@ sub override_shim {
 }
 
 sub install_lock_kernel {
-    my $version = shift;
-    # version numbers can be 'out of sync'
-    my $numbering_exception = {
-        'kernel-source' => {
-            '4.4.59-92.17.3' => '4.4.59-92.17.2',
-            '4.4.114-94.11.3' => '4.4.114-94.11.2',
-            '4.4.126-94.22.1' => '4.4.126-94.22.2',
-            '4.4.178-94.91.2' => '4.4.178-94.91.1',
-            '4.12.14-150.14.2' => '4.12.14-150.14.1',
-            '5.3.18-24.67.3' => '5.3.18-24.67.2',
-            '5.3.18-24.75.3' => '5.3.18-24.75.2',
-            '5.3.18-24.83.2' => '5.3.18-24.83.1',
-        },
-        'kernel-macros' => {
-            '4.4.59-92.17.3' => '4.4.59-92.17.2',
-            '4.4.114-94.11.3' => '4.4.114-94.11.2',
-            '4.4.126-94.22.1' => '4.4.126-94.22.2',
-            '4.4.178-94.91.2' => '4.4.178-94.91.1',
-            '4.12.14-150.14.2' => '4.12.14-150.14.1',
-            '5.3.18-24.67.3' => '5.3.18-24.67.2',
-            '5.3.18-24.75.3' => '5.3.18-24.75.2',
-            '5.3.18-24.83.2' => '5.3.18-24.83.1',
-        },
-        'kernel-devel' => {
-            '4.4.59-92.17.3' => '4.4.59-92.17.2',
-            '4.4.114-94.11.3' => '4.4.114-94.11.2',
-            '4.4.126-94.22.1' => '4.4.126-94.22.2',
-            '4.4.178-94.91.2' => '4.4.178-94.91.1',
-            '4.12.14-150.14.2' => '4.12.14-150.14.1',
-            '5.3.18-24.67.3' => '5.3.18-24.67.2',
-            '5.3.18-24.75.3' => '5.3.18-24.75.2',
-            '5.3.18-24.83.2' => '5.3.18-24.83.1',
-        }};
+    my $kernel_version = shift;
+    my $src_version = shift;
 
     # Pre-Boothole (CVE 2020-10713) kernel compatibility workaround.
     # Machines with SecureBoot enabled will refuse to boot old kernels
     # with latest shim. Downgrade shim to allow livepatch tests to boot.
     if (get_var('SECUREBOOT') && get_var('KGRAFT')) {
-        override_shim($version);
+        override_shim($kernel_version);
     }
 
     # remove all kernel related packages from system
     my @packages = remove_kernel_packages();
-
     my @lpackages = @packages;
+    my %packver = (
+        'kernel-devel' => $src_version,
+        'kernel-macros' => $src_version,
+        'kernel-source' => $src_version
+    );
 
-    push @packages, "kernel-devel" if is_sle('12+');
+    push @packages, "kernel-devel";
 
-    # extend list of packages with $version + workaround exceptions
+    # add explicit version to each package
     foreach my $package (@packages) {
-        my $l_v = $version;
-        for my $k (grep { $_ eq $package } keys %{$numbering_exception}) {
-            for my $kk (keys %{$numbering_exception->{$k}}) {
-                $l_v = $numbering_exception->{$k}->{$kk} if $version eq $kk;
-            }
-        }
-        $package =~ s/$/-$l_v/;
+        $package .= '-' . ($packver{$package} // $kernel_version);
     }
+
+    # Workaround for kgraft installation issue due to Retbleed mitigations
+    push @packages, 'crash-kmp-default-7.2.1_k4.12.14_122.124'
+      if is_sle('=12-SP5');
 
     # install and lock needed kernel
     zypper_call("in " . join(' ', @packages), exitcode => [0, 102, 103, 104], timeout => 1400);
@@ -295,9 +265,9 @@ sub prepare_kgraft {
 
     fully_patch_system;
 
-    my $kversion = zypper_search(q(-s -x kernel-default));
-    my $wanted_version = right_kversion($kversion, $incident_klp_pkg);
-    install_lock_kernel($wanted_version);
+    my $kernel_version = find_version('kernel-default', $$incident_klp_pkg{kver});
+    my $src_version = find_version('kernel-source', $$incident_klp_pkg{kver});
+    install_lock_kernel($kernel_version, $src_version);
 
     install_klp_product;
 
@@ -311,16 +281,22 @@ sub prepare_kgraft {
     return $incident_klp_pkg;
 }
 
-sub right_kversion {
-    my ($kversion, $incident_klp_pkg) = @_;
-    my $kver_fragment = $$incident_klp_pkg{kver};
-    $kver_fragment =~ s/\./\\./g;
+sub find_version {
+    my ($packname, $version_fragment) = @_;
+    my $verlist = zypper_search("-s -x -t package $packname");
+    my $version_arg = $version_fragment;
 
-    for my $item (@$kversion) {
-        return $$item{version} if $$item{version} =~ qr/^$kver_fragment\./;
+    $version_fragment =~ s/\./\\./g;
+
+    for my $item (@$verlist) {
+        if ($$item{version} =~ qr/^$version_fragment\./) {
+            die "$packname-$version_arg is retracted."
+              if $$item{status} =~ m/^.R/;
+            return $$item{version};
+        }
     }
 
-    die "Kernel $kver_fragment not found in repositories.";
+    die "$packname-$version_arg not found in repositories.";
 }
 
 sub update_kgraft {
@@ -357,8 +333,7 @@ sub update_kgraft {
 
         #kill HEAVY-LOAD scripts
         script_run("screen -S LTP_syscalls -X quit");
-        script_run("screen -S newburn_KCOMPILE -X quit");
-        script_run("rm -Rf /var/log/qa");
+        script_run("screen -S LTP_aiodio_part4 -X quit");
 
         script_run(qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\\n" | sort -t '-' > /tmp/rpmlist.after});
         upload_logs('/tmp/rpmlist.after');
@@ -392,6 +367,8 @@ sub boot_to_console {
     select_console('sol', await_console => 0) if is_ipmi;
     $self->wait_boot;
     $self->select_serial_terminal;
+    assert_script_run('echo 1 >/sys/module/printk/parameters/ignore_loglevel')
+      unless is_sle('<12');
 }
 
 sub run {
@@ -428,13 +405,13 @@ sub run {
         if (!check_var('REMOVE_KGRAFT', '1')) {
             # dependencies for heavy load script
             add_qa_head_repo;
-            zypper_call("in qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
+            zypper_call("in ltp-stable");
 
             # update kgraft patch under heavy load
             update_kgraft($incident_klp_pkg, $repo, $incident_id);
 
             zypper_call("rr qa-head");
-            zypper_call("rm qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
+            zypper_call("rm ltp-stable");
 
             verify_klp_pkg_patch_is_active($incident_klp_pkg);
         }

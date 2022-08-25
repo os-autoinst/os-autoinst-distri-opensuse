@@ -1,0 +1,22 @@
+---
+name:           guided_ext4
+description:    >
+  Guided Partitioning installation with ext4 filesystem.
+vars:
+  FILESYSTEM: ext4
+  YUI_REST_API: 1
+schedule:
+  guided_filesystem:
+    - installation/partitioning/guided_setup/select_filesystem_option_ext4
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_validation:
+    - console/validate_partition_table_via_blkid
+    - console/validate_blockdevices
+    - console/validate_free_space
+    - console/validate_read_write
+test_data:
+  guided_partitioning:
+    filesystem_options:
+      root_filesystem_type: ext4
+  <<: !include test_data/yast/ext4/ext4_xen.yaml

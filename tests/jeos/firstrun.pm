@@ -10,7 +10,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle is_tumbleweed is_leap is_opensuse);
+use version_utils qw(is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro);
 use Utils::Architectures;
 use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
@@ -87,7 +87,7 @@ sub run {
         # Without this 'ret' sometimes won't get to the dialog
         wait_still_screen;
         send_key 'ret';
-    } elsif ((is_opensuse && !is_x86_64) || is_sle('=12-sp5')) {
+    } elsif ((is_opensuse && !is_microos && !is_x86_64) || is_sle('=12-sp5')) {
         assert_screen 'jeos-locale', 300;
         send_key_until_needlematch "jeos-system-locale-$lang", $locale_key{$lang}, 50;
         send_key 'ret';
@@ -98,12 +98,14 @@ sub run {
     send_key_until_needlematch "jeos-keylayout-$lang", $keylayout_key{$lang}, 30;
     send_key 'ret';
 
-    # Accept license
-    unless (is_leap('<15.2')) {
-        foreach my $license_needle (qw(jeos-license jeos-doyouaccept)) {
-            assert_screen $license_needle;
-            send_key 'ret';
-        }
+    # Show license
+    assert_screen 'jeos-license';
+    send_key 'ret';
+
+    # Accept EULA if required
+    unless (is_tumbleweed || is_microos) {
+        assert_screen 'jeos-doyouaccept';
+        send_key 'ret';
     }
 
     # Select timezone
@@ -117,7 +119,7 @@ sub run {
         send_key 'ret';
     }
 
-    if (is_sle) {
+    if (is_sle || is_sle_micro) {
         assert_screen 'jeos-please-register';
         send_key 'ret';
 

@@ -1,0 +1,61 @@
+---
+name: mau-extratests-yast2ui
+description: '|
+
+  Testsuite maintained at https://gitlab.suse.de/qa-maintenance/qam-openqa-yml. Run
+  YaST2 GUI tests'
+schedule:
+  - boot/boot_to_desktop
+  - console/setup_libyui_running_system
+  - console/system_prepare
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - yast2_gui/yast2_bootloader
+  - yast2_gui/yast2_security
+  - yast2_gui/yast2_keyboard
+  - yast2_gui/yast2_instserver
+  - yast2_gui/yast2_expert_partitioner
+  - console/coredump_collect
+vars:
+  YUI_REST_API: 1
+test_data:
+  disks:
+    - name: vdb
+      partitions:
+        - name: vdb1
+          size: 200MiB
+          formatting_options:
+            should_format: 1
+            filesystem: ext4
+          encrypt_device: 1
+        - name: vdb1
+          size: 170MiB
+  lvm:
+    volume_groups:
+    - name: vgtest
+      devices:
+        - /dev/vdb
+      logical_volumes:
+        - name: lv1
+          size: 400MiB
+          formatting_options:
+            should_format: 1
+            filesystem: xfs
+        - name: lv2
+          size: 400MiB
+          formatting_options:
+            should_format: 1
+            filesystem: ext4
+          encrypt_device: 1
+        - name: lv3
+          size: 400MiB
+          formatting_options:
+            should_format: 1
+            filesystem: btrfs
+          encrypt_device: 1
+        - name: lv4
+          size: 400MiB
+          formatting_options:
+            should_format: 1
+            filesystem: xfs
+          encrypt_device: 1

@@ -34,7 +34,7 @@ sub run {
     services::cups::install_service();
     services::cups::config_service();
     services::cups::enable_service();
-    services::cups::start_service();
+    services::cups::restart_service();
     services::cups::check_service();
     services::cups::check_function();
 

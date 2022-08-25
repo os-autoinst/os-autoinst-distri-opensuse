@@ -53,6 +53,9 @@ sub run {
     # Once more test the basic functionality
     runtime_smoke_tests(runtime => $engine);
 
+    # Smoke test for engine search
+    test_search_registry($engine);
+
     # Clean the container host
     $engine->cleanup_system_host();
 }

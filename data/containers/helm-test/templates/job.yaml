@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}-job"
+spec:
+  template:
+    spec:
+      containers:
+      - image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.imagePullPolicy }}
+        name: helm-test-{{ .Values.job_id }}
+        command: [ "cat", "/etc/os-release" ]
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: 256Mi
+          requests:
+            cpu: "0.1"
+            memory: 128Mi
+      restartPolicy: Never
+  backoffLimit: 4

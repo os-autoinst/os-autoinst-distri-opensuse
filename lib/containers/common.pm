@@ -13,11 +13,12 @@ use version_utils;
 use utils qw(zypper_call systemctl file_content_replace script_retry script_output_retry);
 use containers::utils qw(can_build_sle_base registry_url container_ip container_route);
 use transactional qw(trup_call check_reboot_changes);
+use Mojo::JSON;
 
 our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed install_containerd_when_needed
   test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials
-  install_buildah_when_needed test_rpm_db_backend activate_containers_module check_containers_connectivity);
-
+  install_buildah_when_needed test_rpm_db_backend activate_containers_module check_containers_connectivity
+  test_search_registry);
 
 sub is_unreleased_sle {
     # If "SCC_URL" is set, it means we are in not-released SLE host and it points to proxy SCC url
@@ -25,13 +26,17 @@ sub is_unreleased_sle {
 }
 
 sub activate_containers_module {
+    my $registered = 0;
+    my $json = Mojo::JSON::decode_json(script_output_retry('SUSEConnect -s', timeout => 240, retry => 3, delay => 60));
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $suseconnect = script_output_retry('SUSEConnect --status-text', timeout => 240, retry => 3, delay => 60);
-    if ($suseconnect !~ m/Containers/) {
-        $running_version eq '12' ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
-        $suseconnect = script_output_retry('SUSEConnect --status-text', timeout => 240, retry => 3, delay => 60);
+    foreach (@$json) {
+        if ($_->{identifier} =~ 'sle-module-containers' && $_->{status} =~ '^Registered') {
+            $registered = 1;
+            last;
+        }
     }
-    record_info('SUSEConnect', $suseconnect);
+    add_suseconnect_product('sle-module-containers') unless ($registered);
+    record_info('SUSEConnect', script_output_retry('SUSEConnect --status-text', timeout => 240, retry => 3, delay => 60));
 }
 
 
@@ -39,10 +44,10 @@ sub install_podman_when_needed {
     my $host_os = shift;
     my @pkgs = qw(podman);
     if (script_run("which podman") != 0) {
-        if ($host_os eq 'centos') {
-            assert_script_run "yum -y install @pkgs --nobest --allowerasing", timeout => 300;
+        if ($host_os =~ /centos|rhel/) {
+            script_retry "yum -y install @pkgs --nobest --allowerasing", timeout => 300;
         } elsif ($host_os eq 'ubuntu') {
-            assert_script_run "apt-get -y install @pkgs", timeout => 300;
+            script_retry("apt-get -y install @pkgs", timeout => 300);
         } else {
             # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
             activate_containers_module if $host_os =~ 'sle';
@@ -73,7 +78,7 @@ sub install_docker_when_needed {
         } elsif ($host_os eq 'ubuntu') {
             # Make sure you are about to install from the Docker repo instead of the default Ubuntu repo
             assert_script_run "apt-cache policy docker-ce";
-            assert_script_run "apt-get -y install docker-ce", timeout => 300;
+            script_retry("apt-get -y install docker-ce", timeout => 300);
         } else {
             if ($host_os =~ 'sle') {
                 # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
@@ -106,7 +111,7 @@ sub install_docker_when_needed {
         # Check for docker start timeout, bsc#1187479
         if (script_run('journalctl -e | grep "timeout waiting for containerd to start"') == 0) {
             # Retry one more time
-            record_soft_failure("bsc#1187479");
+            record_soft_failure("bsc#1187479 - docker start infrequently times out waiting for containerd");
             sleep(120);    # give background services time to complete to prevent another failure
             systemctl('start docker');
         } else {
@@ -125,11 +130,11 @@ sub install_buildah_when_needed {
             assert_script_run "dnf -y update", timeout => 900;
             assert_script_run "dnf -y install buildah", timeout => 300;
         } elsif ($host_os eq 'ubuntu') {
-            assert_script_run "apt-get update", timeout => 900;
-            assert_script_run "apt-get -y install buildah", timeout => 300;
+            script_retry("apt-get update", timeout => 900);
+            script_retry("apt-get -y install buildah", timeout => 300);
         } elsif ($host_os eq 'rhel') {
-            assert_script_run('yum update -y', timeout => 300);
-            assert_script_run('yum install -y buildah', timeout => 300);
+            script_retry('yum update -y', timeout => 300);
+            script_retry('yum install -y buildah', timeout => 300);
         } else {
             activate_containers_module if $host_os =~ 'sle';
             zypper_call('in buildah', timeout => 300);
@@ -219,6 +224,22 @@ sub test_container_runtime {
     assert_script_run("rm config.json");
 }
 
+sub test_search_registry {
+    my $engine = shift;
+    my @registries = qw(docker.io);
+    push @registries, qw(registry.opensuse.org registry.suse.com) if ($engine eq 'podman');
+
+    foreach my $rlink (@registries) {
+        record_info("URL", "Scanning: $rlink");
+        my $res = script_run(sprintf(qq[set -o pipefail; %s search %s/busybox --format="{{.Name}}" |& tee ./out], $engine, $rlink));
+        if (script_run('grep "requested access to the resource is denied" ./out') == 0) {
+            record_soft_failure("bsc#1178214 Podman search doesn't work with SUSE Registry");
+            record_soft_failure("bsc#1198974 [sle15sp1,sle15sp2] podman search wrong return code") if ($res != 125);
+        }
+        die 'Unexpected error during search!' if ($res && $res != 125);
+    }
+}
+
 # Test a given image. Takes the image and container runtime (docker or podman) as arguments
 sub test_container_image {
     my %args = @_;
@@ -233,7 +254,7 @@ sub test_container_image {
     # Images from custom registry are listed with the '$registry/library/'
     $image =~ s/^docker\.io\/library\///;
 
-    my $smoketest = qq[/bin/sh -c '/bin/uname -r; /bin/echo "Heartbeat from $image"; ps'];
+    my $smoketest = qq[/bin/sh -c '/bin/uname -r; /bin/echo "Heartbeat from $image"'];
 
     $runtime->pull($image, timeout => 420);
     $runtime->check_image_in_host($image);
@@ -285,7 +306,7 @@ sub check_containers_connectivity {
     my $container_name = 'sut_container';
 
     # Run container in the background (sleep for 30d because infinite is not supported by sleep in busybox)
-    assert_script_run "$runtime pull " . registry_url('alpine');
+    script_retry "$runtime pull " . registry_url('alpine'), retry => 3, delay => 120;
     assert_script_run "$runtime run -id --rm --name $container_name -p 1234:1234 " . registry_url('alpine') . " sleep 30d";
     my $container_ip = container_ip $container_name, $runtime;
 

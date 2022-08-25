@@ -65,6 +65,8 @@ our @EXPORT = qw(
   mimic_user_to_import
   tianocore_disable_secureboot
   prepare_disks
+  get_scsi_id
+  sync_time
 );
 
 our $zkvm_img_path = "/var/lib/libvirt/images";
@@ -102,6 +104,7 @@ grub entries with C<GRUB_PARAM='ima_policy=tcb'> and calling add_custom_grub_ent
 And of course the new entries have C<ima_policy=tcb> added to kernel parameters.
 
 =cut
+
 sub add_custom_grub_entries {
     my @grub_params = split(/\s*;\s*/, trim(get_var('GRUB_PARAM', '')));
     return unless $#grub_params >= 0;
@@ -205,6 +208,7 @@ Boot the default kernel recovery mode (selected in the "Advanced options ..."):
     boot_grub_item(2, 2);
 
 =cut
+
 sub boot_grub_item {
     my ($menu1, $menu2) = @_;
     $menu1 //= 3;
@@ -227,6 +231,22 @@ sub boot_grub_item {
     grub_key_enter;
 }
 
+sub get_scsi_id {
+    my $sid;
+    type_string_very_slow "devalias";
+    send_key 'ret';
+    save_screenshot;
+    my $file = './serial0';
+    open(my $fh, '<', $file) or die $!;
+    while (my $line = <$fh>) {
+        if ($line =~ /^disk : \/pci/) {
+            $sid = ($line =~ m/scsi@(\d+)/)[0];
+            last;
+        }
+    }
+    close($fh);
+    return $sid;
+}
 
 sub boot_local_disk {
     if (get_var('OFW')) {
@@ -249,7 +269,7 @@ sub boot_local_disk {
         if (match_has_tag 'inst-slof') {
             diag 'specifying local disk for boot from slof';
             my $slof = 5;
-            $slof += 1 if get_var('VIRTIO_CONSOLE');
+            $slof = get_scsi_id if (get_var('VIRTIO_CONSOLE'));
             type_string_very_slow "boot /pci\t/sc\t$slof";
             save_screenshot;
         }
@@ -424,6 +444,7 @@ Returns array of strings C<@params> with linurc boot options to enable logging t
 console, enable core dumps and set debug level for logging.
 
 =cut
+
 sub get_linuxrc_boot_params {
     my @params;
     push @params, "linuxrc.log=/dev/$serialdev";
@@ -489,7 +510,7 @@ sub bootmenu_default_params {
         push @params, get_hyperv_fb_video_resolution;
         push @params, 'namescheme=by-label' unless is_jeos or is_microos;
     }
-    type_boot_parameters(" @params ");
+    type_boot_parameters(" @params ") if @params;
     return @params;
 }
 
@@ -515,7 +536,7 @@ sub bootmenu_network_source {
                 # Ignore certificate validation
                 push @params, 'ssl.certs=0' if (get_var('SKIP_CERT_VALIDATION'));
                 # As we use boot options, no extra action is required
-                type_boot_parameters(" @params ");
+                type_boot_parameters(" @params ") if @params;
                 return @params;
             }
 
@@ -526,14 +547,14 @@ sub bootmenu_network_source {
                 # Specifies the installation system to use, e.g. from where to load installer
                 my $arch = get_var('ARCH');
                 push @params, "instsys=disk:/boot/$arch/root";
-                type_boot_parameters(" @params ");
+                type_boot_parameters(" @params ") if @params;
                 return @params;
             }
 
             select_installation_source({m_protocol => $m_protocol, m_mirror => $m_mirror});
         }
     }
-    type_boot_parameters(" @params ");
+    type_boot_parameters(" @params ") if @params;
     return @params;
 }
 
@@ -546,7 +567,7 @@ sub bootmenu_remote_target {
         push @params, "nameserver=" . join(",", @$dns);
         push @params, ("$remote=1", "${remote}password=$password");
     }
-    type_boot_parameters(" @params ");
+    type_boot_parameters(" @params ") if @params;
     return @params;
 }
 
@@ -631,13 +652,13 @@ sub select_bootmenu_more {
         push @params, 'console=tty1' if get_var('MACHINE') =~ /aarch64|aarch32/;
         # Hyper-V defaults to 1280x1024, we need to fix it here
         push @params, get_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
-        type_boot_parameters(" @params ");
+        type_boot_parameters(" @params ") if @params;
         save_screenshot;
         send_key 'f10';
     }
     else {
         push @params, get_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
-        type_boot_parameters(" @params ");
+        type_boot_parameters(" @params ") if @params;
         save_screenshot;
         send_key 'ret';
     }
@@ -943,7 +964,33 @@ sub tianocore_disable_secureboot {
     $basetest->wait_grub;
 }
 
+sub tianocore_ensure_xga_resolution {
+    assert_screen 'tianocore-mainmenu';
+    send_key_until_needlematch 'tianocore-devicemanager', 'down';
+    send_key 'ret';
+    assert_screen 'tianocore-devicemanager-select-secure-boot';
+    send_key_until_needlematch 'tianocore-devicemanager-select-ovmf-platform', 'down';
+    send_key 'ret';
+    assert_screen 'tianocore-ovmf-settings-select-resolution';
+    send_key 'ret';
+    send_key_until_needlematch 'tianocore-ovmf-settings-select-resolution-800x600-popup', 'down';
+    send_key 'ret';
+    assert_screen 'tianocore-ovmf-settings-select-resolution-800x600';
+    send_key 'f10';
+    assert_screen 'tianocore-ovmf-save-settings';
+    send_key 'y';
+    assert_screen 'tianocore-ovmf-settings-select-resolution-800x600';
+    send_key 'esc';
+    assert_screen 'tianocore-devicemanager-select-ovmf-platform';
+    send_key 'esc';
+    assert_screen 'tianocore-devicemanager';
+    send_key_until_needlematch 'tianocore-select-reset', 'down';
+    wait_screen_change { send_key "ret" };
+}
+
 sub tianocore_select_bootloader {
+    tianocore_enter_menu;
+    tianocore_ensure_xga_resolution if check_var('QEMUVGA', 'qxl');
     tianocore_enter_menu;
     send_key_until_needlematch('tianocore-bootmanager', 'down', 5, 5);
     send_key 'ret';
@@ -1120,6 +1167,7 @@ sub ensure_shim_import {
 
 Search for C<$pattern> in /etc/default/grub, return 1 if found.
 =cut
+
 sub grep_grub_settings {
     die((caller(0))[3] . ' expects 1 arguments') unless @_ == 1;
     my $pattern = shift;
@@ -1133,6 +1181,7 @@ sub grep_grub_settings {
 Search for C<$pattern> in grub cmdline variable (usually
 GRUB_CMDLINE_LINUX_DEFAULT) in /etc/default/grub, return 1 if found.
 =cut
+
 sub grep_grub_cmdline_settings {
     my ($pattern, $search) = @_;
     $search //= get_cmdline_var();
@@ -1149,6 +1198,7 @@ C<$search> meant to be for changing only particular line for sed,
 C<$modifiers> for sed replacement, e.g. "g".
 C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.
 =cut
+
 sub change_grub_config {
     die((caller(0))[3] . ' expects from 3 to 5 arguments') unless (@_ >= 3 && @_ <= 5);
     my ($old, $new, $search, $modifiers, $update_grub) = @_;
@@ -1174,6 +1224,7 @@ Add C<$add> into /etc/default/grub, using sed.
 C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.
 C<$search> if set, bypass default grub cmdline variable.
 =cut
+
 sub add_grub_cmdline_settings {
     my $add = shift;
     my %args = testapi::compat_args(
@@ -1196,6 +1247,7 @@ sub add_grub_cmdline_settings {
 Add C<$add> into /etc/default/grub, using sed.
 C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.
 =cut
+
 sub add_grub_xen_cmdline_settings {
     my ($add, $update_grub) = @_;
     add_grub_cmdline_settings($add, $update_grub, "GRUB_CMDLINE_XEN_DEFAULT");
@@ -1209,6 +1261,7 @@ Replace C<$old> with C<$new> in /etc/default/grub, using sed.
 C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.
 C<$search> if set, bypass default grub cmdline variable.
 =cut
+
 sub replace_grub_cmdline_settings {
     my $old = shift;
     my $new = shift;
@@ -1232,6 +1285,7 @@ sub replace_grub_cmdline_settings {
 Replace C<$old> with C<$new> in /etc/default/grub, using sed.
 C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.
 =cut
+
 sub replace_grub_xen_cmdline_settings {
     my ($old, $new, $update_grub) = @_;
     replace_grub_cmdline_settings($old, $new, $update_grub, "GRUB_CMDLINE_XEN_DEFAULT");
@@ -1244,6 +1298,7 @@ sub replace_grub_xen_cmdline_settings {
 Remove C<$remove> from /etc/default/grub (using sed) and regenerate /boot/grub2/grub.cfg.
 Search line C<$search> from /etc/default/grub (use for sed).
 =cut
+
 sub remove_grub_cmdline_settings {
     my ($remove, $search) = @_;
     replace_grub_cmdline_settings('[[:blank:]]*' . $remove . '[[:blank:]]*', " ", "g", $search);
@@ -1255,6 +1310,7 @@ sub remove_grub_cmdline_settings {
 
 Remove C<$remove> from /etc/default/grub (using sed) and regenerate /boot/grub2/grub.cfg.
 =cut
+
 sub remove_grub_xen_cmdline_settings {
     my $remove = shift;
     remove_grub_cmdline_settings($remove, "GRUB_CMDLINE_XEN_DEFAULT");
@@ -1267,6 +1323,7 @@ sub remove_grub_xen_cmdline_settings {
 
 Regenerate /boot/grub2/grub.cfg with grub2-mkconfig.
 =cut
+
 sub grub_mkconfig {
     my $config = shift;
     $config //= GRUB_CFG_FILE;
@@ -1280,6 +1337,7 @@ sub grub_mkconfig {
 Get default grub cmdline variable:
 GRUB_CMDLINE_LINUX for JeOS, GRUB_CMDLINE_LINUX_DEFAULT for the rest.
 =cut
+
 sub get_cmdline_var {
     my $label = is_jeos() ? 'GRUB_CMDLINE_LINUX' : 'GRUB_CMDLINE_LINUX_DEFAULT';
     return "^${label}=";
@@ -1357,6 +1415,7 @@ Method accepts C<disk> to define the device to work with, C<passwd> and C<shadow
 store content of the /etc/passwd and /etc/shadow files accordingly.
 
 =cut
+
 sub mimic_user_to_import {
     my (%args) = @_;
     my $disk = $args{disk};
@@ -1393,6 +1452,7 @@ Is handy for the bare metal setups and LPARs where we can have traces of
 previous installation.
 
 =cut
+
 sub prepare_disks {
     # Delete partition table before starting installation
     select_console('install-shell');
@@ -1412,11 +1472,28 @@ sub prepare_disks {
             }
         }
         else {
-            script_run "parted /dev/$d mklabel gpt";
+            script_run "parted -s /dev/$d mklabel gpt";
             script_run "sync";
         }
     }
     script_run "lsblk";
+}
+
+=head2 sync_time
+
+    sync_time
+
+Sync system time, time offset can cause problems e.g. certificate is not yet valid
+
+=cut
+
+sub sync_time {
+    # sync system time before installation
+    select_console('install-shell');
+
+    script_run 'chronyd';
+    script_run 'chronyc makestep';
+    script_run 'date';
 }
 
 1;

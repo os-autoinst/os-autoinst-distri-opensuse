@@ -19,7 +19,7 @@ schedule:
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
   - installation/module_registration/register_module_desktop
-  - installation/dud_addon
+  - installation/add_on_product_installation/add_additional_products
   - installation/add_on_product_installation/accept_add_on_installation
   - installation/system_role/accept_selected_role_SLES_with_GNOME
   - installation/partitioning/accept_proposed_layout

@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     azurerm = {
-      version = "= 2.56.0"
+      version = "= 3.5.0"
       source = "hashicorp/azurerm"
     }
     random = {
@@ -56,7 +56,11 @@ variable "create-extra-disk" {
 }
 
 variable "storage-account" {
-    default="openqa"
+    # Note: Don't delete the default value!!!
+    # Not all of our `terraform destroy` calls pass this variable and neither is it necessary.
+    # However removing the default value might cause `terraform destroy` to fail in corner cases,
+    # resulting effectively in leaking resources due to failed cleanups.
+    default="eisleqaopenqa"
 }
 
 variable "tags" {
@@ -138,7 +142,7 @@ resource "azurerm_network_interface" "openqa-nic" {
     ip_configuration {
         name                          = "${element(random_id.service.*.hex, count.index)}-nic-config"
         subnet_id                     = azurerm_subnet.openqa-subnet.id
-        private_ip_address_allocation = "dynamic"
+        private_ip_address_allocation = "Dynamic"
         public_ip_address_id          = element(azurerm_public_ip.openqa-publicip.*.id, count.index)
     }
 }
@@ -152,7 +156,7 @@ resource "azurerm_image" "image" {
     os_disk {
         os_type = "Linux"
         os_state = "Generalized"
-        blob_uri = "https://openqa.blob.core.windows.net/sle-images/${var.image_id}"
+        blob_uri = "https://${var.storage-account}.blob.core.windows.net/sle-images/${var.image_id}"
         size_gb = 30
     }
 }

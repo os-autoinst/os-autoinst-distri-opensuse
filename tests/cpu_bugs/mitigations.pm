@@ -129,7 +129,7 @@ sub run {
                 print "$item is vulnerabilities, but unable to get sysfs define on nosmt, try auto";
                 $mitigations_list{sysfs}->{'auto,nosmt'}->{$item} = $mitigations_list{sysfs}->{auto}->{$item};
                 if ($item eq 'spectre_v2') {
-                    $mitigations_list{sysfs}->{'auto,nosmt'}->{$item} = "Mitigation: Full generic retpoline,.*IBPB: conditional, IBRS_FW*";
+                    $mitigations_list{sysfs}->{'auto,nosmt'}->{$item} = "Mitigation: Retpolines,.*IBPB: conditional, IBRS_FW*";
                 }
             }
             if (is_qemu) {
@@ -150,7 +150,7 @@ sub run {
                     $mitigations_list{sysfs}->{default}->{spec_store_bypass} = $mitigations_list{sysfs}->{auto}->{spec_store_bypass};
                 }
                 if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/ && $item eq 'spectre_v2') {
-                    $mitigations_list{sysfs}->{auto}->{spectre_v2} = 'Mitigation: Full generic retpoline, STIBP: disabled, RSB filling';
+                    $mitigations_list{sysfs}->{auto}->{spectre_v2} = 'Mitigation: Retpolines, STIBP: disabled, RSB filling';
                     $mitigations_list{sysfs}->{'auto,nosmt'}->{spectre_v2} = $mitigations_list{sysfs}->{auto}->{spectre_v2};
                     $mitigations_list{sysfs}->{off}->{spectre_v2} = 'Vulnerable, STIBP: disabled';
                 }

@@ -22,6 +22,7 @@ use main_common 'opensuse_welcome_applicable';
 use isotovideo;
 use IO::Socket::INET;
 use x11utils qw(handle_login ensure_unlocked_desktop handle_additional_polkit_windows);
+use publiccloud::ssh_interactive 'select_host_console';
 
 # Base class for all openSUSE tests
 
@@ -43,6 +44,7 @@ Clear the console and ensure that it really got cleared
 using a needle.
 
 =cut
+
 sub clear_and_verify_console {
     my ($self) = @_;
 
@@ -59,6 +61,7 @@ Test modules (or their intermediate base classes) may overwrite
 this method, must call this baseclass method from the overwriting method.
 
 =cut
+
 sub pre_run_hook {
     my ($self) = @_;
     clear_started_systemd_services();
@@ -74,6 +77,7 @@ Test modules (or their intermediate base classes) may overwrite
 this method.
 
 =cut
+
 sub post_run_hook {
     my ($self) = @_;
     # overloaded in x11 and console
@@ -88,10 +92,12 @@ The C<$timeout> parameter specifies how long C<$cmd> may run.
 When C<$cmd> returns, the output file will be uploaded to openQA unless C<$noupload> is set.
 Afterwards a screenshot will be created if C<$screenshot> is set.
 =cut
+
 sub save_and_upload_log {
     my ($self, $cmd, $file, $args) = @_;
     script_run("$cmd | tee $file", $args->{timeout});
-    upload_logs($file, failok => 1) unless $args->{noupload};
+    my $lname = $args->{logname} ? $args->{logname} : '';
+    upload_logs($file, failok => 1, log_name => $lname) unless $args->{noupload};
     save_screenshot if $args->{screenshot};
 }
 
@@ -106,6 +112,7 @@ When C<tar> returns, the output file will be uploaded to openQA unless C<$nouplo
 Afterwards a screenshot will be created if C<$screenshot> is set.
 
 =cut
+
 sub tar_and_upload_log {
     my ($self, $sources, $dest, $args) = @_;
     script_run("tar -jcv -f $dest $sources", $args->{timeout});
@@ -120,6 +127,7 @@ sub tar_and_upload_log {
 Saves the journal of the systemd unit C<$unit> to C<journal_$unit.log> and uploads it to openQA.
 
 =cut
+
 sub save_and_upload_systemd_unit_log {
     my ($self, $unit) = @_;
     $self->save_and_upload_log("journalctl --no-pager -u $unit -o short-precise", "journal_$unit.log");
@@ -135,6 +143,7 @@ if such jobs are running, providing a hint why test timed out.
 This method will create a softfail if such a problem is detected.
 
 =cut
+
 sub detect_bsc_1063638 {
     # Detect bsc#1063638
     record_soft_failure 'bsc#1063638' if (script_run('ps x | grep "btrfs-\(scrub\|balance\|trim\)"') == 0);
@@ -150,6 +159,7 @@ output of rpmverify.
 The files will be uploaded as a single tarball called C<problem_detection_logs.tar.xz>.
 
 =cut
+
 sub problem_detection {
     my $self = shift;
 
@@ -232,6 +242,7 @@ Inspect the YaST2 logfile checking for known issues. logs_path can be a director
 e.g. /tmp. In that case the function will parse /tmp/var/log/YaST2/y2logs* files.
 
 =cut
+
 sub investigate_yast2_failure {
     my ($self, %args) = @_;
     my $logs_path = $args{logs_path} . '/var/log/YaST2';
@@ -421,6 +432,7 @@ Upload healthcheck logs that make sense for any failure.
 This includes C<cpu>, C<memory> and C<fdisk>.
 
 =cut
+
 sub export_healthcheck_basic {
 
     my $cmd = <<'EOF';
@@ -455,6 +467,7 @@ Upload logs that make sense for any failure.
 This includes C</proc/loadavg>, C<ps axf>, complete journal since last boot, C<dmesg> and C</etc/sysconfig>.
 
 =cut
+
 sub export_logs_basic {
     my ($self) = @_;
     $self->save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg.txt', {screenshot => 1});
@@ -477,6 +490,7 @@ that react very slow due to high background load or high memory consumption.
 This should be especially useful in C<post_fail_hook> implementations.
 
 =cut
+
 sub select_log_console { select_console('log-console', timeout => 180, @_) }
 
 =head2 export_logs
@@ -486,6 +500,7 @@ sub select_log_console { select_console('log-console', timeout => 180, @_) }
 This method will call several other log gathering methods from this class.
 
 =cut
+
 sub export_logs {
     my ($self) = shift;
     select_log_console;
@@ -520,6 +535,7 @@ Upload logs related to system locale settings.
 This includes C<locale>, C<localectl> and C</etc/vconsole.conf>.
 
 =cut
+
 sub export_logs_locale {
     my ($self) = shift;
     $self->save_and_upload_log('locale', '/tmp/locale.log');
@@ -534,6 +550,7 @@ sub export_logs_locale {
 Upload C</var/log/pk_backend_zypp>.
 
 =cut
+
 sub upload_packagekit_logs {
     my ($self) = @_;
     upload_logs '/var/log/pk_backend_zypp';
@@ -546,6 +563,7 @@ sub upload_packagekit_logs {
 Upload C</tmp/solverTestCase.tar.bz2>.
 
 =cut
+
 sub upload_solvertestcase_logs {
     my $ret = script_run("zypper -n patch --debug-solver --with-interactive -l");
     # if zypper was not found, we just skip upload solverTestCase.tar.bz2
@@ -561,6 +579,7 @@ sub upload_solvertestcase_logs {
 Set a simple reproducible prompt for easier needle matching without hostname.
 
 =cut
+
 sub set_standard_prompt {
     my ($self, $user) = @_;
     $testapi::distri->set_standard_prompt($user);
@@ -573,6 +592,7 @@ sub set_standard_prompt {
 Upload several KDE, GNOME, X11, GDM and SDDM related logs and configs.
 
 =cut
+
 sub export_logs_desktop {
     my ($self) = @_;
     select_log_console;
@@ -620,6 +640,7 @@ Our aarch64 setup fails to boot properly from an installed hard disk so
 point the firmware boot manager to the right file.
 
 =cut
+
 sub handle_uefi_boot_disk_workaround {
     my ($self) = @_;
     record_info 'workaround', 'Manually selecting boot entry, see bsc#1022064 for details';
@@ -637,7 +658,7 @@ sub handle_uefi_boot_disk_workaround {
     save_screenshot;
     wait_screen_change { send_key 'ret' };
     # <sles> or <opensuse>
-    send_key_until_needlematch 'tianocore-select_opensuse_or_sles', 'up';
+    send_key_until_needlematch [qw(tianocore-select_opensuse_or_sles tianocore-select_boot)], 'up';
     save_screenshot;
     wait_screen_change { send_key 'ret' };
     # efi file, first check shim.efi exist or not
@@ -655,7 +676,7 @@ sub handle_uefi_boot_disk_workaround {
     if ($shim_efi_found == 1) {
         wait_screen_change { send_key 'ret' };
     } else {
-        send_key_until_needlematch 'tianocore-select_grubaa64_efi', 'up';
+        send_key_until_needlematch [qw(tianocore-select_grubaa64_efi tianocore-select_bootaa64_efi)], 'up';
         wait_screen_change { send_key 'ret' };
     }
 }
@@ -668,6 +689,7 @@ Makes sure the bootloader appears. Returns successfully when reached the bootloa
 C<$bootloader_time> in seconds. Set C<$in_grub> to 1 when the
 SUT is already expected to be within the grub menu.
 =cut
+
 sub wait_grub {
     my ($self, %args) = @_;
     my $bootloader_time = $args{bootloader_time} // 100;
@@ -762,6 +784,7 @@ sub wait_grub {
 
 When bootloader appears, make sure to boot from local disk when it is on aarch64.
 =cut
+
 sub wait_grub_to_boot_on_local_disk {
     # assuming the cursor is on 'installation' by default and 'boot from
     # harddisk' is above
@@ -890,6 +913,7 @@ Handle a textmode PXE bootloader menu by means of two needle tags:
 C<$pxemenu> to match the initial menu, C<$pxeselect> to match the
 menu with the desired entry selected.
 =cut
+
 sub handle_pxeboot {
     my ($self, %args) = @_;
     my $bootloader_time = $args{bootloader_time};
@@ -1017,6 +1041,7 @@ before.  The time waiting for the system to be fully booted can be configured
 with C<$ready_time> in seconds. C<$forcenologin> makes this function
 behave as if the env var NOAUTOLOGIN was set.
 =cut
+
 sub wait_boot_past_bootloader {
     my ($self, %args) = @_;
     my $textmode = $args{textmode};
@@ -1113,6 +1138,7 @@ SUT is already expected to be within the grub menu. C<wait_boot> continues
 from there. C<$forcenologin> makes this function behave as if
 the env var NOAUTOLOGIN was set.
 =cut
+
 sub wait_boot {
     my ($self, %args) = @_;
     my $bootloader_time = $args{bootloader_time} // ((is_pvm || is_ipmi) ? 300 : 100);
@@ -1182,6 +1208,7 @@ If C<$slow> is set, the typing will be very slow.
 If C<$cmd> is set, the text will be prefixed by an C<echo> command.
 
 =cut
+
 sub enter_test_text {
     my ($self, $name, %args) = @_;
     $name //= 'your program';
@@ -1207,6 +1234,7 @@ Return the default expected firewall implementation depending on the product
 under test, the version and if the SUT is an upgrade.
 
 =cut
+
 sub firewall {
     my $old_product_versions = is_sle('<15') || is_leap('<15.0');
     my $upgrade_from_susefirewall = is_upgrade && get_var('HDD_1') =~ /\b(1[123]|42)[\.-]/;
@@ -1221,6 +1249,7 @@ Mounts /tmp to shared memory if not possible to write to tmp.
 For example, save_y2logs creates temporary files there.
 
 =cut
+
 sub remount_tmp_if_ro {
     script_run 'touch /tmp/test_ro || mount -t tmpfs /dev/shm /tmp';
 }
@@ -1229,8 +1258,11 @@ sub remount_tmp_if_ro {
 
  select_serial_terminal($root);
 
-Select most suitable text console with root user. The choice is made by
-BACKEND and other variables.
+Select most suitable text console. The optional parameter C<root> controls
+whether the console will have root privileges or not. Passing any value that
+evaluates to true will select a root console (default). Passing any value that
+evaluates to false will select unprivileged user console.
+The choice is made by BACKEND and other variables.
 
 Purpose of this wrapper is to avoid if/else conditions when selecting console.
 
@@ -1239,7 +1271,7 @@ default when parameter not specified) or prefer non-root user if available.
 
 Variables affecting behavior:
 C<VIRTIO_CONSOLE>=0 disables virtio console (use {root,user}-console instead
-of the default {root-,}virtio-terminal)
+of the default {root-,user-}virtio-terminal)
 NOTE: virtio console is enabled by default (C<VIRTIO_CONSOLE>=1).
 For ppc64le it requires to call prepare_serial_console() to before first use
 (used in console/system_prepare and shutdown/cleanup_before_shutdown modules)
@@ -1258,6 +1290,7 @@ On ikvm|ipmi|spvm|pvm_hmc it's expected, that use_ssh_serial_console() has been 
 (done via activate_console()) therefore SERIALDEV has been set and we can
 use root-ssh console directly.
 =cut
+
 sub select_serial_terminal {
     my ($self, $root) = @_;
     $root //= 1;
@@ -1269,7 +1302,7 @@ sub select_serial_terminal {
         if (check_var('VIRTIO_CONSOLE', 0)) {
             $console = $root ? 'root-console' : 'user-console';
         } else {
-            $console = $root ? 'root-virtio-terminal' : 'virtio-terminal';
+            $console = $root ? 'root-virtio-terminal' : 'user-virtio-terminal';
         }
     } elsif (get_var('SUT_IP')) {
         $console = $root ? 'root-serial-ssh' : 'user-serial-ssh';
@@ -1296,6 +1329,7 @@ sub select_serial_terminal {
 Select most suitable text console with non-root user.
 The choice is made by BACKEND and other variables.
 =cut
+
 sub select_user_serial_terminal {
     select_serial_terminal(0);
 }
@@ -1308,9 +1342,10 @@ Upload all coredumps to logs. In case `proceed_on_failure` key is set to true,
 errors during logs collection will be ignored, which is usefull for the
 post_fail_hook calls.
 =cut
+
 sub upload_coredumps {
     my ($self, %args) = @_;
-    my $res = script_run("coredumpctl --no-pager", timeout => 10);
+    my $res = script_run('coredumpctl --no-pager');
     if (!$res) {
         record_info("COREDUMPS found", "we found coredumps on SUT, attemp to upload");
         script_run("coredumpctl info --no-pager | tee coredump-info.log");
@@ -1334,6 +1369,7 @@ this method to export certain specific logfiles and call the
 base method using C<$self-E<gt>SUPER::post_fail_hook;> at the end.
 
 =cut
+
 sub post_fail_hook {
     my ($self) = @_;
     return if is_serial_terminal();    # unless VIRTIO_CONSOLE=0 nothing below make sense
@@ -1396,11 +1432,10 @@ sub post_fail_hook {
 
     $self->export_logs;
 
-    if (is_public_cloud() || is_openstack()) {
+    if ((is_public_cloud() || is_openstack()) && $self->{run_args}->{my_provider}) {
         select_host_console(force => 1);
 
         # Destroy the public cloud instance in case of fatal test failure
-        # Currently there is theoretical chance to call cleanup two times. See details in poo#95780
         my $flags = $self->test_flags();
         $self->{run_args}->{my_provider}->cleanup() if ($flags->{fatal});
 
@@ -1411,7 +1446,8 @@ sub post_fail_hook {
 }
 
 sub test_flags {
-    return get_var('PUBLIC_CLOUD') ? {no_rollback => 1} : {};
+    # no_rollback is needed for ssh-tunnel and fatal must be explicitly defined
+    return get_var('PUBLIC_CLOUD') ? {no_rollback => 1, fatal => 0} : {};
 }
 
 1;

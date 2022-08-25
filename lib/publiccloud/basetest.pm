@@ -15,10 +15,12 @@ use publiccloud::ec2;
 use publiccloud::eks;
 use publiccloud::ecr;
 use publiccloud::gce;
+use publiccloud::gke;
 use publiccloud::gcr;
 use publiccloud::acr;
 use publiccloud::aks;
 use publiccloud::openstack;
+use publiccloud::noprovider;
 use strict;
 use warnings;
 
@@ -30,20 +32,19 @@ sub provider_factory {
 
     $args{provider} //= get_required_var('PUBLIC_CLOUD_PROVIDER');
 
-    if ($args{provider} eq 'EC2') {
+    if (get_var('PUBLIC_CLOUD_INSTANCE_IP')) {
+        $provider = publiccloud::noprovider->new();
+    }
+    elsif ($args{provider} eq 'EC2') {
         $args{service} //= 'EC2';
 
         if ($args{service} eq 'ECR') {
             $provider = publiccloud::ecr->new(
-                key_id => get_var('PUBLIC_CLOUD_KEY_ID'),
-                key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
                 region => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1')
             );
         }
         elsif ($args{service} eq 'EKS') {
             $provider = publiccloud::eks->new(
-                key_id => get_var('PUBLIC_CLOUD_KEY_ID'),
-                key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
                 region => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1')
             );
         }
@@ -59,10 +60,7 @@ sub provider_factory {
         $args{service} //= 'AVM';
         if ($args{service} eq 'ACR') {
             $provider = publiccloud::acr->new(
-                key_id => get_var('PUBLIC_CLOUD_KEY_ID'),
-                key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
                 region => get_var('PUBLIC_CLOUD_REGION', 'westeurope'),
-                tenantid => get_var('PUBLIC_CLOUD_AZURE_TENANT_ID'),
                 subscription => get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID'),
                 username => get_var('PUBLIC_CLOUD_USER', 'azureuser')
             );
@@ -79,17 +77,10 @@ sub provider_factory {
     elsif ($args{provider} eq 'GCE') {
         $args{service} //= 'GCE';
         if ($args{service} eq 'GCR') {
-            $provider = publiccloud::gcr->new(
-                account => get_var('PUBLIC_CLOUD_GOOGLE_ACCOUNT'),
-                service_acount_name => get_var('PUBLIC_CLOUD_GOOGLE_SERVICE_ACCOUNT'),
-                project_id => get_var('PUBLIC_CLOUD_GOOGLE_PROJECT_ID'),
-                private_key_id => get_var('PUBLIC_CLOUD_KEY_ID'),
-                private_key => get_var('PUBLIC_CLOUD_KEY'),
-                client_id => get_var('PUBLIC_CLOUD_GOOGLE_CLIENT_ID'),
-                region => get_var('PUBLIC_CLOUD_REGION', 'europe-west1-b'),
-                storage_name => get_var('PUBLIC_CLOUD_GOOGLE_STORAGE', 'openqa-storage'),
-                username => get_var('PUBLIC_CLOUD_USER', 'susetest')
-            );
+            $provider = publiccloud::gcr->new();
+        }
+        elsif ($args{service} eq 'GKE') {
+            $provider = publiccloud::gke->new();
         }
         elsif ($args{service} eq 'GCE') {
             $provider = publiccloud::gce->new();

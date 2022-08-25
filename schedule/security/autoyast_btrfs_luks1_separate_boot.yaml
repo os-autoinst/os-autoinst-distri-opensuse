@@ -1,0 +1,22 @@
+---
+name: autoyast_btrfs_luks1_separate_boot
+description: >
+  SLE15SP4+ with luks1 encrypt with separate boot
+vars:
+  AUTOYAST_PREPARE_PROFILE: 1
+  AUTOYAST: autoyast_sle15/autoyast_btrfs_luks1_separate_boot.xml
+  DESKTOP: gnome
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/handle_reboot
+  - installation/boot_encrypt
+  - installation/first_boot
+  - autoyast/console
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/shutdown
+test_data:
+  <<: !include test_data/yast/autoyast/profiles/btrfs.yaml

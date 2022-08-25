@@ -73,7 +73,7 @@ sub run {
             send_key "alt-y";    # select dynamic address option
             send_key "alt-n";    # next
             assert_screen 'dynamic-ip-address-set';
-            close_yast2_lan();
+            close_yast2_lan('yast2-ncurses-closed');
 
             # verify that dynamic IP address has been set
             assert_script_run "ip r s | grep dhcp";

@@ -14,8 +14,8 @@ use testapi qw(get_var get_required_var);
 has mpirun => sub {
     my ($self) = shift;
     my $mpi = get_required_var('MPI');
-    $self->mpirun("/usr/lib64/mpi/gcc/$mpi/bin/mpirun");
-    my @mpirun_args = ('-print-all-exitcodes');
+    $self->mpirun("mpirun");
+    my @mpirun_args;
     ## openmpi requires non-root usr to run program or special flag '--allow-run-as-root'
     push @mpirun_args, '--allow-run-as-root ' if $mpi =~ m/openmpi/;
     (@mpirun_args == 0) ? $self->mpirun :
@@ -33,6 +33,7 @@ C<bin> is required. C<need_interpreter> boolean will tell if the C<bin>
 is actually a source code where needs invoke _python_ interpreter.
 
 =cut
+
 sub single_node ($self, $bin) {
     #my ($self, $bin) = @_;
     die unless $bin;
@@ -52,6 +53,7 @@ a source code where needs invoke _python_ interpreter.
 TODO: improve the identification of the C<bin>
 
 =cut
+
 sub all_nodes ($self, $bin) {
     #my ($self, $bin) = @_;
     die unless $bin;

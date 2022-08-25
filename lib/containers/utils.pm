@@ -187,7 +187,7 @@ sub basic_container_tests {
     assert_script_run("$runtime container commit $container_name tw:saved", 240);
 
     # Network is working inside of the containers
-    my $output = script_output("$runtime container run tw:saved curl -I google.de");
+    my $output = script_output("$runtime container run tw:saved curl -sI google.de");
     die("network is not working inside of the container tw:saved") unless ($output =~ m{Location: http://www\.google\.de/});
 
     # Using an init process as PID 1
@@ -230,6 +230,7 @@ In this case the build of the base image is not going to work as it lacks the re
 The call should return false if the test is run on a non-sle host.
 
 =cut
+
 sub can_build_sle_base {
     # script_run returns 0 if true, but true is 1 on perl
     my $has_sle_registration = !script_run("test -e /etc/zypp/credentials.d/SCCcredentials");

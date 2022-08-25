@@ -29,6 +29,7 @@ use nfs_common;
 use services::registered_addons;
 use services::hpcpackage_remain;
 use services::ntpd;
+use services::nodejs;
 use services::cups;
 use services::rpcbind;
 use services::users;
@@ -85,7 +86,8 @@ our $default_services = {
         srv_pkg_name => 'hpcpackage_remain',
         srv_proc_name => 'hpcpackage_remain',
         support_ver => $support_ver_ge15,
-        service_check_func => \&services::hpcpackage_remain::full_pkgcompare_check
+        service_check_func => \&services::hpcpackage_remain::full_pkgcompare_check,
+        service_cleanup_func => \&services::hpcpackage_remain::hpcpkg_cleanup
     },
     registered_addons => {
         srv_pkg_name => 'registered_addons',
@@ -149,6 +151,12 @@ our $default_services = {
         srv_proc_name => 'nfs',
         support_ver => $support_ver_def,
         service_check_func => \&check_y2_nfs_func
+    },
+    nodejs => {
+        srv_pkg_name => 'nodejs',
+        srv_proc_name => 'nodejs',
+        support_ver => '>=15-SP3',
+        service_check_func => \&services::nodejs::full_nodejs_check
     },
     rpcbind => {
         srv_pkg_name => 'rpcbind',
@@ -248,8 +256,10 @@ registered_addons, susefirewall, ntp, chrony, postfix, apache, dhcpd, bind, snmp
 Check service before migration, zypper install service package, enable, start and check service status
 
 =cut
+
 sub install_services {
     my ($service) = @_;
+    opensusebasetest::select_serial_terminal() if (get_var('SEL_SERIAL_CONSOLE'));
     # turn off lmod shell debug information
     assert_script_run('echo export LMOD_SH_DBG_ON=1 >> /etc/bash.bashrc.local');
     # turn off screen saver
@@ -318,6 +328,7 @@ sub install_services {
 check service status after migration
 
 =cut
+
 sub check_services {
     my ($service) = @_;
     foreach my $s (sort keys %$service) {

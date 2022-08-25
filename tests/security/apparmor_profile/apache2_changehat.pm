@@ -36,7 +36,7 @@
 #   $audit_log" and fail test.
 # - upload /var/log/apache2/error_log and audit.log
 # Maintainer: llzhao <llzhao@suse.com>
-# Tags: poo#48773, tc#1695946
+# Tags: poo#48773, tc#1695946, poo#111036
 
 
 use base apparmortest;
@@ -148,6 +148,19 @@ sub run {
     if ($script_output =~ m/type=AVC .*apparmor=.*DENIED.* operation=.*profile_replace.* profile=.*httpd-prefork.*adminer.*/sx) {
         record_info("ERROR", "There are denied profile_replace records found in $audit_log", result => 'fail');
         $self->result('fail');
+    }
+    # Due to bsc#1191684, add following check points as well
+    my @check_list = ('file_receive', 'open', 'signal', 'mknod');
+    foreach my $check_point (@check_list) {
+        if ($script_output =~ m/type=AVC .*apparmor=.*DENIED.* operation=.*$check_point.* profile=.*httpd-prefork.*/sx) {
+            if (is_sle('>15-SP4')) {
+                record_info("ERROR", "There are denied $check_point records found in $audit_log", result => 'fail');
+                $self->result('fail');
+            }
+            else {
+                record_soft_failure('bsc#1191684 - Apparmor profile test case "apache2_changehat" found some "DENIED" audit records');
+            }
+        }
     }
 
     # Upload logs for reference

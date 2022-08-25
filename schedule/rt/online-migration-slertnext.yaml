@@ -1,9 +1,11 @@
----
-description: 'Maintainer: thehejik; upgrade from SLERT12 SP3 to SLERT 12 SP4'
-name: 'online-migration-slert15spnext@64bit ( qemu )'
+name:           'online-migration-slert15spnext@64bit ( qemu )'
+description:    >
+  Upgrade from SLERT15 SP3 to SLERT 15 SP4.
+vars:
+  EXTRABOOTPARAMS: startshell=1
 schedule:
-  - installation/isosize
   - installation/bootloader
+  - rt/add_product
   - installation/welcome
   - installation/upgrade_select
   - installation/scc_registration
@@ -15,6 +17,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/exit_startshell
   - installation/grub_test
   - installation/first_boot
   - migration/post_upgrade
@@ -52,6 +55,7 @@ schedule:
   - console/orphaned_packages_check
   - console/consoletest_finish
   - x11/desktop_runner
+  - x11/setup
   - x11/xterm
   - locale/keymap_or_locale_x11
   - x11/sshxterm

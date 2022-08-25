@@ -36,9 +36,9 @@ sub _download_whitelist {
     my $path = get_var('LTP_KNOWN_ISSUES');
     return undef unless defined($path);
 
-    my $res = Mojo::UserAgent->new->get($path)->result;
+    my $res = Mojo::UserAgent->new(max_redirects => 5)->get($path)->result;
     unless ($res->is_success) {
-        record_info("File not downloaded!", $res->message, result => 'softfail');
+        record_info("$path not downloaded!", $res->message, result => 'softfail');
         set_var('LTP_KNOWN_ISSUES_LOCAL', '');
         return;
     }

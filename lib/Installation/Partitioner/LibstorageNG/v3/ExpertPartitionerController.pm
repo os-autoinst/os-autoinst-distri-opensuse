@@ -49,6 +49,7 @@ Expected values are [existing|current].
 if none is given the existing partiotion is used as deault.
 
 =cut
+
 sub run_expert_partitioner {
     my ($self, $option) = @_;
     $option //= 'existing';

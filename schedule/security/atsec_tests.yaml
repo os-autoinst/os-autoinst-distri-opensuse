@@ -1,14 +1,34 @@
 name: atsec_tests
-description:    >
+description: >
     This is for ATSec tests
 schedule:
     - '{{bootloader_zkvm}}'
     - boot/boot_to_desktop
     - security/atsec/setup_atsec_env
+    - '{{disable_root_ssh}}'
+    - security/atsec/accessible_network_interface
     - security/atsec/kvm_check
     - security/atsec/drng_test_preparation
+    - security/atsec/dbus_services_exposure
+    - security/atsec/check_undocumented_security_programs
+    - security/atsec/dbus_fuzzer
+    - security/atsec/syscall_thrasher
+    - security/atsec/netlink_message
+    - security/atsec/chrony_pid_file
+    - security/atsec/permission_settings
+    - '{{check_processor_vulnerability_mitigations}}'
 conditional_schedule:
     bootloader_zkvm:
         ARCH:
             s390x:
                 - installation/bootloader_zkvm
+    check_processor_vulnerability_mitigations:
+        ARCH:
+            x86_64:
+                - security/atsec/check_processor_vulnerability_mitigations
+            aarch64:
+                - security/atsec/check_processor_vulnerability_mitigations
+    disable_root_ssh:
+        ARCH:
+            s390x:
+                - security/cc/disable_root_ssh

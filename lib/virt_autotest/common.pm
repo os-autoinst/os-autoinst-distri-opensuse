@@ -25,26 +25,6 @@ use version_utils 'is_sle';
 our %guests = ();
 if (get_var("REGRESSION", '') =~ /xen/) {
     %guests = (
-        sles12sp3PV => {
-            name => 'sles12sp3PV',
-            autoyast => 'autoyast_xen/sles12sp3PV_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sles12sp3',
-            macaddress => '52:54:00:78:73:a1',
-            ip => '192.168.122.106',
-            distro => 'SLE_12_SP3',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
-            linuxrc => 'ifcfg="eth0=192.168.122.106/24,192.168.122.1,192.168.122.1"',
-        },
-        sles12sp3HVM => {
-            name => 'sles12sp3HVM',
-            autoyast => 'autoyast_xen/sles12sp3HVM_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sles12sp3',
-            macaddress => '52:54:00:78:73:a2',
-            ip => '192.168.122.105',
-            distro => 'SLE_12_SP3',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
-            linuxrc => 'ifcfg="eth0=192.168.122.105/24,192.168.122.1,192.168.122.1"',
-        },
         sles15PV => {
             name => 'sles15PV',
             autoyast => 'autoyast_xen/sles15PV_PRG.xml',
@@ -128,7 +108,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp3PV => {
             name => 'sles15sp3PV',
             autoyast => 'autoyast_xen/sles15sp3PV_PRG.xml',
-            extra_params => '--os-variant sles12',
+            extra_params => '--os-variant sle15-unknown',
             macaddress => '52:54:00:78:73:b1',
             ip => '192.168.122.117',
             distro => 'SLE_15',
@@ -138,7 +118,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp3HVM => {
             name => 'sles15sp3HVM',
             autoyast => 'autoyast_xen/sles15sp3HVM_PRG.xml',
-            extra_params => '--os-variant sles12',
+            extra_params => '--os-variant sle15-unknown',
             macaddress => '52:54:00:78:73:b2',
             ip => '192.168.122.118',
             distro => 'SLE_15',
@@ -165,9 +145,26 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.114/24,192.168.122.1,192.168.122.1"',
         },
+        sles15sp4PV => {
+            name => 'sles15sp4PV',
+            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
+            macaddress => '52:54:00:78:73:a5',
+            ip => '192.168.122.110',
+            distro => 'SLE_15_SP4',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
+            linuxrc => 'ifcfg="eth0=192.168.122.110/24,192.168.122.1,192.168.122.1"'
+        },
+        sles15sp4HVM => {
+            name => 'sles15sp4HVM',
+            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
+            macaddress => '52:54:00:78:73:a6',
+            ip => '192.168.122.108',
+            distro => 'SLE_15_SP4',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
+            linuxrc => 'ifcfg="eth0=192.168.122.108/24,192.168.122.1,192.168.122.1"'
+        }
     );
 
-    delete($guests{sles12sp3HVM}) if (!is_sle('=12-SP3'));
     delete($guests{sles12sp4PV}) if (!is_sle('=12-SP4'));
     delete($guests{sles12sp5HVM}) if (!is_sle('=12-SP5'));
     delete($guests{sles15PV}) if (!is_sle('=15'));
@@ -207,7 +204,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp1 => {
             name => 'sles15sp1',
             autoyast => 'autoyast_kvm/sles15sp1_PRG.xml',
-            extra_params => '--os-variant sles12',    # problems after kernel upgrade
+            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
             macaddress => '52:54:00:78:73:ab',
             ip => '192.168.122.111',
             distro => 'SLE_15',
@@ -217,7 +214,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp2 => {
             name => 'sles15sp2',
             autoyast => 'autoyast_kvm/sles15sp2_PRG.xml',
-            extra_params => '--os-variant sles12',    # problems after kernel upgrade (originally sle15sp2)
+            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade (originally sle15sp2)
             macaddress => '52:54:00:78:73:af',
             ip => '192.168.122.115',
             distro => 'SLE_15',
@@ -227,7 +224,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp3 => {
             name => 'sles15sp3',
             autoyast => 'autoyast_kvm/sles15sp3_PRG.xml',
-            extra_params => '--os-variant sles12',
+            extra_params => '--os-variant sle15-unknown',
             macaddress => '52:54:00:78:73:b1',
             ip => '192.168.122.117',
             distro => 'SLE_15',
@@ -244,44 +241,47 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.113/24,192.168.122.1,192.168.122.1"',
         },
+        sles15sp4 => {
+            name => 'sles15sp4',
+            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
+            macaddress => '52:54:00:78:73:a6',
+            ip => '192.168.122.108',
+            distro => 'SLE_15',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
+            linuxrc => 'ifcfg="eth0=192.168.122.108/24,192.168.122.1,192.168.122.1"'
+        }
     );
 } elsif (get_var("REGRESSION", '') =~ /vmware/) {
     %guests = (
         sles12sp2 => {
             name => 'sles12sp2',
-            ip => 'vm-sle12-sp2-a60.qam.suse.de',
         },
         sles12sp3 => {
             name => 'sles12sp3',
-            ip => 'd153.qam.suse.de',
         },
         sles12sp4 => {
             name => 'sles12sp4',
-            ip => 'd370.qam.suse.de',
         },
         sles12sp5 => {
             name => 'sles12sp5',
-            ip => 'd388.qam.suse.de',
         },
         sles15 => {
             name => 'sles15',
-            ip => 'd294.qam.suse.de',
         },
         sles15sp1 => {
             name => 'sles15sp1',
-            ip => 'd208.qam.suse.de',
         },
         sles15sp2 => {
             name => 'sles15sp2',
-            ip => 'd192.qam.suse.de',
         },
         sles15sp3 => {
             name => 'sles15sp3',
-            ip => 'd215.qam.suse.de',
+        },
+        sles15sp4 => {
+            name => 'sles15sp4',
         },
     );
 
-    delete($guests{sles12sp2}) if (!is_sle('=12-SP2'));
     delete($guests{sles12sp3}) if (!is_sle('=12-SP3'));
     delete($guests{sles12sp4}) if (!is_sle('=12-SP4'));
     delete($guests{sles12sp5}) if (!is_sle('=12-SP5'));
@@ -289,6 +289,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     delete($guests{sles15sp1}) if (!is_sle('=15-SP1'));
     delete($guests{sles15sp2}) if (!is_sle('=15-SP2'));
     delete($guests{sles15sp3}) if (!is_sle('=15-SP3'));
+    delete($guests{sles15sp4}) if (!is_sle('=15-SP4'));
 } elsif (get_var("REGRESSION", '') =~ /hyperv/) {
     %guests = (
         sles12sp3 => {
@@ -323,9 +324,12 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             name => 'sles15sp3',
             ip => 'win2k19-sle15-SP3.qa.suse.cz',
         },
+        sles15sp4 => {
+            name => 'sles15sp4',
+            ip => 'win2k19-sle15-SP4.qa.suse.cz',
+        },
     );
 
-    delete($guests{sles12sp2}) if (!is_sle('=12-SP2'));
     delete($guests{sles12sp3}) if (!is_sle('=12-SP3'));
     delete($guests{sles12sp4}) if (!is_sle('=12-SP4'));
     delete($guests{sles12sp5}) if (!is_sle('=12-SP5'));
@@ -333,6 +337,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     delete($guests{sles15sp1}) if (!is_sle('=15-SP1'));
     delete($guests{sles15sp2}) if (!is_sle('=15-SP2'));
     delete($guests{sles15sp3}) if (!is_sle('=15-SP3'));
+    delete($guests{sles15sp4}) if (!is_sle('=15-SP4'));
 } else {
     %guests = ();
 }

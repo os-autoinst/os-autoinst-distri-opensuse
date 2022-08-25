@@ -16,7 +16,7 @@ use Tomcat::Utils;
 use version_utils 'is_sle';
 
 # allow a 60 second timeout for asserting needles
-use constant TIMEOUT => 60;
+use constant TIMEOUT => 90;
 
 # test all JSP examples
 sub test_all_examples() {
@@ -259,7 +259,7 @@ sub form() {
     for (1 .. 2) { send_key('ret'); }
 
     if (check_screen('tomcat-click-save-login', 60)) {
-        assert_and_click('tomcat-click-save-login', TIMEOUT);
+        assert_and_click('tomcat-click-save-login', timeout => TIMEOUT);
     }
 
     send_key('tab');

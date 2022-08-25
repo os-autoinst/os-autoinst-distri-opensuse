@@ -309,7 +309,7 @@ my $mitigations_auto_on_pv_haswell = {"mitigations=auto" => {
         default => {
             expected => {
                 'cat /proc/cmdline' => ['mitigations=auto'],
-'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Full generic retpoline, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
+'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Retpolines, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Unknown.*XEN PV detected, hypervisor mitigation required'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
                 'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
@@ -323,7 +323,7 @@ my $mitigations_auto_on_pv = {"mitigations=auto" => {
         default => {
             expected => {
                 'cat /proc/cmdline' => ['mitigations=auto'],
-'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Full generic retpoline, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
+'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Retpolines, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Unknown.*XEN PV detected, hypervisor mitigation required'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
                 'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
@@ -336,7 +336,7 @@ my $mitigations_auto_on_hvm = {"mitigations=auto" => {
         default => {
             expected => {
                 'cat /proc/cmdline' => ['mitigations=auto'],
-                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Full generic retpoline, IBPB: conditional, IBRS_FW, RSB filling'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Retpolines, IBPB: conditional, IBRS_FW, RSB filling'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Mitigation: PTI'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
                 'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
@@ -350,7 +350,7 @@ my $mitigations_auto_on_hvm_haswell = {"mitigations=auto" => {
         default => {
             expected => {
                 'cat /proc/cmdline' => ['mitigations=auto'],
-                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Full generic retpoline, IBPB: conditional, IBRS_FW, RSB filling'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Retpolines, IBPB: conditional, IBRS_FW, RSB filling'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Mitigation: PTI'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
                 'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
@@ -363,7 +363,7 @@ my $mitigations_on_on_pv = {"mitigations=on" => {
         default => {
             expected => {
                 'cat /proc/cmdline' => ['mitigations=on'],
-'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Full generic retpoline, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
+'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Retpolines, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Unknown.*XEN PV detected, hypervisor mitigation required'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
                 'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
@@ -377,7 +377,7 @@ my $mitigations_on_on_pv_haswell = {"mitigations=on" => {
         default => {
             expected => {
                 'cat /proc/cmdline' => ['mitigations=on'],
-'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Full generic retpoline, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
+'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Retpolines, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Unknown.*XEN PV detected, hypervisor mitigation required'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
                 'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
@@ -391,7 +391,7 @@ my $mitigations_on_on_hvm = {"mitigations=on" => {
         default => {
             expected => {
                 'cat /proc/cmdline' => ['mitigations=on'],
-                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Full generic retpoline, IBPB: conditional, IBRS_FW, RSB filling'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Retpolines, IBPB: conditional, IBRS_FW, RSB filling'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Mitigation: PTI'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
                 'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
@@ -405,7 +405,7 @@ my $mitigations_on_on_hvm_haswell = {"mitigations=on" => {
         default => {
             expected => {
                 'cat /proc/cmdline' => ['mitigations=on'],
-                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Full generic retpoline, IBPB: conditional, IBRS_FW, RSB filling'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Retpolines, IBPB: conditional, IBRS_FW, RSB filling'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Mitigation: PTI'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
                 'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
@@ -566,7 +566,7 @@ sub install_domu {
               . " --vcpu=2"
               . " --vnc"
               . " --events on_reboot=destroy"
-              . " --serial pty", timeout => 3600);
+              . " --serial pty", timeout => 5400);
     }
     # Check if the DomU is up
     script_run("virsh start \"${domu_name}\"");

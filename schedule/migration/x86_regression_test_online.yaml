@@ -24,9 +24,11 @@ conditional_schedule:
   qcow_generation:
     QCOW_GENERATION:
       0:
+        - console/check_upgraded_service
         - console/system_prepare
         - console/check_os_release
         - console/check_system_info
+        - console/check_migration_features
         - console/check_network
         - console/system_state
         - console/prepare_test_data
@@ -60,7 +62,6 @@ conditional_schedule:
   regression_tests:
     REGRESSION_TEST:
       1:
-        - console/check_upgraded_service
         - locale/keymap_or_locale
         - console/supportutils
         - console/force_scheduled_tasks
@@ -100,6 +101,7 @@ conditional_schedule:
       2:
         - console/consoletest_finish
         - x11/desktop_runner
+        - x11/setup
         - x11/xterm
         - locale/keymap_or_locale_x11
         - x11/sshxterm

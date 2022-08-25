@@ -17,7 +17,8 @@ use hacluster;
 
 sub run {
     # Exit of this module if 'tag=drbd_passive' and if we are in a maintenance update not related to drbd
-    return 1 if (read_tag eq 'drbd_passive' and is_not_maintenance_update('drbd'));
+    my $tag = read_tag;
+    return 1 if (($tag eq 'drbd_passive' and is_not_maintenance_update('drbd')) or $tag eq 'skip_fs_test');
 
     my $cluster_name = get_cluster_name;
     my $node = get_hostname;
@@ -28,16 +29,16 @@ sub run {
     my $fs_opts = '-F -N 16';    # Force the filesystem creation and allows 16 nodes
 
     # This Filesystem test can be called multiple time
-    if (read_tag eq 'cluster_md') {
+    if ($tag eq 'cluster_md') {
         $resource = 'cluster_md';
     }
-    elsif (read_tag eq 'drbd_passive') {
+    elsif ($tag eq 'drbd_passive') {
         $resource = 'drbd_passive';
         $fs_lun = '/dev/drbd_passive' if is_node(1);
         $fs_type = 'xfs';
         $fs_opts = '-f';
     }
-    elsif (read_tag eq 'drbd_active') {
+    elsif ($tag eq 'drbd_active') {
         $resource = 'drbd_active';
     }
     else {

@@ -87,6 +87,7 @@ sub run {
     }
     clear_console;
     select_console 'x11';
+    return record_soft_failure('bsc#1200325 - firefox_nss can no longer open https webpages in FIPS Mode') if (is_sle('=15-sp4') && get_var('FIPS_ENABLED'));
     x11_start_program('firefox https://html5test.opensuse.org', target_match => 'firefox-html-test', match_timeout => 360);
 
     # Firefox Preferences
@@ -170,7 +171,7 @@ sub run {
 
         # Add max_interval while type password and extend time of click needle match
         type_string($fips_password, max_interval => 2);
-        assert_and_click("firefox-enter-password-OK" => 120);
+        assert_and_click('firefox-enter-password-OK', timeout => 120);
         wait_still_screen 10;
 
         # Add a condition to avoid the password missed input

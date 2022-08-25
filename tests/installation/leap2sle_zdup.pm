@@ -15,7 +15,7 @@ use warnings;
 use testapi;
 use utils;
 use registration;
-use version_utils 'is_desktop_installed';
+use version_utils qw(is_desktop_installed is_leap);
 use power_action_utils 'power_action';
 
 sub run {
@@ -34,7 +34,8 @@ sub run {
 
     systemctl 'set-default --force multi-user.target';
     fully_patch_system();
-    zypper_call 'in SUSEConnect';
+    # SUSEConnect is obsoleted and provided by suseconnect-ng from 15.4
+    zypper_call 'in SUSEConnect' if is_leap("<=15.3");
     my $version = get_var("VERSION");
     $version =~ s/\-SP/./;
     add_suseconnect_product("SLES", $version, get_var("ARCH"), " -r " . get_var("SCC_REGCODE"), 300, 1);

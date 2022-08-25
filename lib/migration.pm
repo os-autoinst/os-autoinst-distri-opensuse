@@ -23,6 +23,7 @@ our @EXPORT = qw(
   register_system_in_textmode
   deregister_dropped_modules
   disable_installation_repos
+  disable_kernel_multiversion
   record_disk_info
   check_rollback_system
   reset_consoles_tty
@@ -34,7 +35,7 @@ sub setup_sle {
     select_console 'root-console';
 
     if (is_ppc64le && is_sle('<=12-sp5')) {
-        record_soft_failure("bsc#1195046", 'ncurses display a wrong checker board character');
+        record_soft_failure('bsc#1195046 - ncurses display a wrong checker board character');
         systemctl('restart systemd-vconsole-setup.service');
     }
 
@@ -141,6 +142,13 @@ sub disable_installation_repos {
     else {
         zypper_call "mr -d -l";
     }
+}
+
+# Based on bsc#1097111, need to disable kernel multiversion before migration, and enable it after migration
+# https://documentation.suse.com/sles/15-SP3/html/SLES-all/cha-update-preparation.html#sec-update-preparation-multiversion
+sub disable_kernel_multiversion {
+    my $sed_para = check_var('VERSION', get_var('ORIGIN_SYSTEM_VERSION')) ? 's/^multiversion/#multiversion/g' : 's/^#multiversion/multiversion/g';
+    script_run("sed -i $sed_para /etc/zypp/zypp.conf");
 }
 
 # Record disk info to help debug diskspace exhausted

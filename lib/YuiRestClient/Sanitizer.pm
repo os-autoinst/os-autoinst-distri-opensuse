@@ -23,7 +23,7 @@ YuiRestClient::Sanitizer - remove '&' from labels
 
 =head1 COPYRIGHT
 
-Copyright © 2021 SUSE LLC
+Copyright 2021 SUSE LLC
 
 SPDX-License-Identifier: FSFAP
 

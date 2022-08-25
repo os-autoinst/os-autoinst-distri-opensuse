@@ -7,3 +7,4 @@ schedule:
     - boot/boot_to_desktop
     - console/dracut
     - console/coredump_collect
+    - console/zypper_log_packages

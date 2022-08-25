@@ -29,6 +29,7 @@ our @EXPORT = qw(change_service_configuration verify_service_configuration);
 Verify service configuration: status. This will just verify C<assert_screen> for C<yast2_ncurses_service_$status>.
 
 =cut
+
 sub verify_service_configuration {
     my (%args) = @_;
     my $status = $args{status};
@@ -42,6 +43,7 @@ sub verify_service_configuration {
 Modify service configuration: "after writing" and/or "after reboot" steps
 
 =cut
+
 sub change_service_configuration {
     my (%args) = @_;
     my $after_writing_ref = $args{after_writing};
@@ -63,6 +65,7 @@ C<$step_conf_ref> is used together with 'keys' as a reference for C<$action>. It
 C<$action> is a part of C<needle_selection> which is used for needle match.
 
 =cut
+
 sub change_service_configuration_step {
     my ($step_name, $step_conf_ref) = @_;
     my ($action) = keys %$step_conf_ref;

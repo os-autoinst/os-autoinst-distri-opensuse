@@ -27,9 +27,14 @@ conditional_schedule:
     FLAVOR:
       'MicroOS-Image-Updates':
         - transactional/install_updates
+  rebuild_initrd:
+    ARCH:
+      's390x':
+        - microos/rebuild_initrd
 schedule:
   - '{{boot}}'
   - transactional/host_config
+  - '{{rebuild_initrd}}'
   - '{{registration}}'
   - '{{maintenance}}'
   - qemu/info

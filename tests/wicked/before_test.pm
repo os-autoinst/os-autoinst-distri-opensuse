@@ -58,6 +58,7 @@ sub run {
     systemctl('is-active wicked');
 
     $self->download_data_dir();
+    $self->prepare_coredump();
 
     my $package_list = 'openvpn';
     $package_list .= ' tcpdump' if get_var('WICKED_TCPDUMP');
@@ -119,6 +120,9 @@ sub run {
                     'The following \d+ packages? (are|is) going to be reinstalled:')) {
                 push(@installed_packages, split(/\s+/, $+{packages})) if ($zypper_in_output =~ m/(?s)($reg(?<packages>.*?))(?:\r*\n){2}/);
             }
+            for my $pkg ('wicked', 'wicked-service') {
+                die("Missing installation of package $pkg!") unless grep { $_ eq $pkg } @installed_packages;
+            }
             record_info('INSTALLED', join("\n", @installed_packages));
             my @zypper_ps_progs = split(/\s+/, script_output('zypper ps  --print "%s"', qr/^\s*$/));
             for my $ps_prog (@zypper_ps_progs) {
@@ -137,7 +141,6 @@ sub run {
             $package_list .= ' ndisc6';
         }
         wicked::wlan::prepare_packages() if (check_var('WICKED', 'wlan'));
-        $self->prepare_coredump();
 
         $package_list .= ' openvswitch iputils';
         $package_list .= ' libteam-tools libteamdctl0 ' if check_var('WICKED', 'advanced') || check_var('WICKED', 'aggregate');

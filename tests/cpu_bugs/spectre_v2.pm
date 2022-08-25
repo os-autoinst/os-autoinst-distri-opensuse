@@ -21,7 +21,7 @@ use Mitigation;
 
 my $eibrs_string_on = "Mitigation: Enhanced IBRS, IBPB: always-on, RSB filling";
 my $eibrs_string_default = "Mitigation: Enhanced IBRS, IBPB: conditional, RSB filling";
-my $retpoline_string = "Mitigation: Full generic retpoline,";
+my $retpoline_string = "Mitigation: Retpolines,";
 
 our %mitigations_list =
   (
@@ -35,7 +35,7 @@ our %mitigations_list =
         on => "${retpoline_string}.*IBPB: always-on, IBRS_FW, STIBP: forced.*",
         off => "Vulnerable,.*IBPB: disabled,.*STIBP: disabled",
         auto => "${retpoline_string}.*IBPB: conditional, IBRS_FW, STIBP: conditional,.*",
-        retpoline => "Mitigation: Full generic retpoline.*",
+        retpoline => "Mitigation: Retpolines.*",
         default => "",
     },
     cmdline => [

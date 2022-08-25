@@ -20,21 +20,21 @@ sub init {
     my ($self, $service) = @_;
     die('The service must be specified') if (!$service);
 
-    my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    record_info("K8S Service", $service);
 
-    if ($provider eq 'EC2') {
+    if ($service =~ /ECR|EKS/) {
         $self->provider_client(
             publiccloud::aws_client->new(
                 service => $service
             ));
     }
-    elsif ($provider eq 'GCE') {
+    elsif ($service =~ /GCR|GKE/) {
         $self->provider_client(
             publiccloud::gcp_client->new(
                 service => $service
             ));
     }
-    elsif ($provider eq 'AZURE') {
+    elsif ($service =~ /ACR|AKS/) {
         $self->provider_client(
             publiccloud::azure_client->new(
                 service => $service
@@ -43,7 +43,6 @@ sub init {
     else {
         die("Invalid provider");
     }
-
 
     $self->provider_client->init();
 }
@@ -97,13 +96,14 @@ in the local registry. And the tag (name) in the public cloud
 containers repository Retrieves the full name of the uploaded 
 image or die.
 =cut
+
 sub push_container_image {
     my ($self, $image, $tag) = @_;
 
     my $full_name = $self->get_container_image_full_name($tag);
 
     assert_script_run("podman tag $image $full_name");
-    assert_script_run("podman push --remove-signatures $full_name", 180);
+    assert_script_run("podman push --remove-signatures $full_name", 300);
 
     return $full_name;
 }

@@ -62,16 +62,14 @@ sub change_pwd {
     wait_still_screen;
     type_password;
     wait_still_screen;
-    send_key "alt-n";
+    assert_and_click "new-password";
     wait_still_screen;
     type_string $newpwd;
     wait_still_screen;
-    send_key 'tab';
+    assert_and_click "confirm-new-password";
     wait_still_screen;
     type_string $newpwd;
-    assert_screen "actived-change-password";
-    wait_still_screen;
-    send_key "alt-a";
+    assert_and_click "actived-change-password";
     assert_screen "users-settings", 60;
 }
 
@@ -81,12 +79,11 @@ sub add_user {
     type_string $newUser;
     assert_screen("input-username-test");
     assert_and_click "set-password-option";
-    send_key "alt-p";
+    assert_and_click "set-newuser-password";
     type_string $pwd4newUser;
-    send_key 'tab';
+    assert_and_click "confirm-newuser-password";
     type_string $pwd4newUser;
-    assert_screen "actived-add-user";
-    send_key "alt-a";
+    assert_and_click "actived-add-user";
     assert_screen "users-settings", 60;
     send_key "alt-f4";
 }

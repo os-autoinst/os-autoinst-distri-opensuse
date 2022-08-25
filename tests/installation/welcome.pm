@@ -73,6 +73,7 @@ sub get_product_shortcuts {
         return (
             sles => (is_ppc64le() || is_s390x()) ? 'u'
             : is_aarch64() ? 's'
+            : ((is_sle '15-SP4+') && (get_var('ISO') =~ /Full/)) ? 's'
             : 'i',
             sled => 'x',
             hpc => is_x86_64() ? 'g' : 'u',
@@ -104,7 +105,7 @@ sub run {
     # Add tag for untrusted-ca-cert with SMT
     push @welcome_tags, 'untrusted-ca-cert' if (get_var('SMT_URL') || get_var('SLP_RMT_INSTALL'));
     # Add tag for sle15 upgrade mode, where product list should NOT be shown
-    push @welcome_tags, 'inst-welcome-no-product-list' if is_sle('15+') and get_var('UPGRADE');
+    push @welcome_tags, 'inst-welcome-no-product-list' if (is_sle('15+') and get_var('UPGRADE') || is_sle_micro);
     # Add tag to check for https://progress.opensuse.org/issues/30823 "test is
     # stuck in linuxrc asking if dhcp should be used"
     push @welcome_tags, 'linuxrc-dhcp-question';
@@ -176,14 +177,19 @@ sub run {
     else {
         assert_screen('inst-welcome');
     }
+
+    my $has_license_on_welcome_screen = (is_sle() || is_sle_micro()) &&
+      match_has_tag('license-agreement');
+    my $has_product_selection = (is_sle() || is_sle_micro()) &&
+      !match_has_tag('inst-welcome-no-product-list');
+
     mouse_hide;
     wait_still_screen(3);
 
 
     # license+lang +product (on sle15)
     # On sle 15 license is on different screen, here select the product
-    # see has_product_selection in case the screen fails again in the future
-    if (has_product_selection) {
+    if ($has_product_selection) {
         assert_screen('select-product');
         my $product = get_required_var('SLE_PRODUCT');
         if (check_var('VIDEOMODE', 'text')) {
@@ -214,7 +220,20 @@ sub run {
     }
 
     switch_keyboard_layout if get_var('INSTALL_KEYBOARD_LAYOUT');
-    send_key $cmd{next} unless has_license_on_welcome_screen;
+    send_key $cmd{next} unless $has_license_on_welcome_screen;
+
+    if ($has_license_on_welcome_screen || $has_product_selection) {
+        assert_screen('license-agreement', 120);
+
+        # optional checks for the extended installation
+        if (get_var('INSTALLER_EXTENDED_TEST')) {
+            $self->verify_license_has_to_be_accepted;
+            $self->verify_license_translations;
+        }
+
+        $self->accept_license;
+        send_key $cmd{next};
+    }
 }
 
 1;

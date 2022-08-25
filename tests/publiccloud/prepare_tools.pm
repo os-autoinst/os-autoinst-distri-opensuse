@@ -122,14 +122,15 @@ EOT
     record_info('Terraform', script_output('terraform -version'));
 
     # Kubectl in a container
-    my $kubectl_version = '1.22';
-    my $kubectl_wrapper = <<EOT;
-#!/bin/sh
-podman run -v /root/:/root/ --rm docker.io/bitnami/kubectl:$kubectl_version \$@
-EOT
-
-    create_script_file('kubectl', '/usr/bin/kubectl', $kubectl_wrapper);
+    my $kubectl_version = get_var('KUBECTL_VERSION', 'v1.22.12');
+    assert_script_run("curl -Lo /usr/bin/kubectl https://dl.k8s.io/release/$kubectl_version/bin/linux/amd64/kubectl");
+    assert_script_run("curl -Lo /usr/bin/kubectl.sha256 https://dl.k8s.io/$kubectl_version/bin/linux/amd64/kubectl.sha256");
+    assert_script_run('echo "$(cat /usr/bin/kubectl.sha256)  /usr/bin/kubectl" | sha256sum --check');
+    assert_script_run('chmod +x /usr/bin/kubectl');
     record_info('kubectl', script_output('kubectl version --client=true'));
+
+    # Remove persistent net rules, necessary to boot the x86_64 image in the aarch64 test runs
+    assert_script_run('rm /etc/udev/rules.d/70-persistent-net.rules');
 
     select_console 'root-console';
 }
@@ -155,5 +156,9 @@ Activate this test module by setting this variable.
 
 The URL to the cloud:tools repo (optional).
 (e.g. http://download.opensuse.org/repositories/Cloud:/Tools/openSUSE_Tumbleweed/Cloud:Tools.repo)
+
+=head2 README
+
+For more information see the README.md file in /var/lib/openqa/share/tests/opensuse/tools/pctools
 
 =cut

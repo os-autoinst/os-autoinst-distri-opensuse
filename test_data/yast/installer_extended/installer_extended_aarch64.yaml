@@ -3,9 +3,9 @@ license:
   language: English (US)
   translations:
     - language: Czech
-      text: Licenční smlouva společnosti
+      text: Licenční smlouva s koncovým uživatelem
     - language: English (US)
-      text: End User License Agreement
+      text: End User License Agreement for SUSE Products
     - language: French
       text: Contrat de licence utilisateur final
     - language: German
@@ -13,19 +13,19 @@ license:
     - language: Italian
       text: Contratto di licenza
     - language: Japanese
-      text: 版ソフトウェア
+      text: エンドユーザ使用許諾契約
     - language: Korean
-      text: 소프트웨어
+      text: SUSE 제품에 관한
     - language: Portuguese (Brazilian)
       text: Contrato de Licença para Usuário Final
     - language: Russian
       text: Лицензионное соглашение
     - language: Simplified Chinese
-      text: 软件的
+      text: SUSE 产品
     - language: Spanish
       text: Acuerdo de licencia de usuario final
     - language: Traditional Chinese
-      text: 版軟體的
+      text: 最終使用者授權合約
 beta_text: 'You are accessing our Beta Distribution'
 modules:
   - sle-ha

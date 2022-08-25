@@ -1,0 +1,34 @@
+---
+name:           guided_btrfs
+description:    >
+  Guided Partitioning installation with btrfs filesystem.
+vars:
+  FILESYSTEM: btrfs
+  HDDSIZEGB: 40
+  YUI_REST_API: 1
+schedule:
+  system_preparation:
+    - console/system_prepare
+    - console/force_scheduled_tasks
+  system_validation:
+    - console/hibernation_disabled
+    - console/validate_product_installed_SLES
+    - console/verify_separate_home
+    - console/validate_partition_table_via_blkid
+    - console/validate_blockdevices
+test_data:
+  <<: !include test_data/yast/btrfs/btrfs_sle_libstorage.yaml
+  disks:
+  - name: sda
+    table_type: gpt
+    partitions:
+    - name: sda2
+      formatting_options:
+        filesystem: btrfs
+      mounting_options:
+        mount_point: /
+    - name: sda3
+      formatting_options:
+        filesystem: xfs
+      mounting_options:
+        mount_point: /home

@@ -13,6 +13,7 @@ use warnings;
 use testapi;
 use utils;
 use base 'opensusebasetest';
+use version_utils qw(is_sle);
 
 our @EXPORT = qw(
   $profile_ID
@@ -32,9 +33,11 @@ our $f_report = 'report.html';
 
 # Set default value for 'scap-security-guide' ds file
 our $f_ssg_sle_ds = '/usr/share/xml/scap/ssg/content/ssg-sle12-ds.xml';
+our $f_ssg_tw_ds = '/usr/share/xml/scap/ssg/content/ssg-opensuse-ds.xml';
 
 # Profile ID
-our $profile_ID = 'xccdf_org.ssgproject.content_profile_stig';
+our $profile_ID_sle = 'xccdf_org.ssgproject.content_profile_stig';
+our $profile_ID_tw = 'xccdf_org.ssgproject.content_profile_standard';
 
 # The OS status of remediation: '0', not remediatd; '1', remediated
 our $remediated = 0;
@@ -43,7 +46,8 @@ our $remediated = 0;
 sub set_ds_file {
     # Set the ds file for separate product, e.g.,
     # for SLE15 the ds file is "ssg-sle15-ds.xml";
-    # for SLE12 the ds file is "ssg-sle12-ds.xml"
+    # for SLE12 the ds file is "ssg-sle12-ds.xml";
+    # for Tumbleweed the ds file is "ssg-opensuse-ds.xml"
     my $version = get_required_var('VERSION') =~ s/([0-9]+).*/$1/r;
     $f_ssg_sle_ds = '/usr/share/xml/scap/ssg/content/ssg-sle' . "$version" . '-ds.xml';
 }
@@ -51,7 +55,12 @@ sub set_ds_file {
 sub upload_logs_reports
 {
     # Upload logs & ouputs for reference
-    my $files = script_output('ls | grep "^ssg-sle.*.xml"');
+    my $files;
+    if (is_sle) {
+        $files = script_output('ls | grep "^ssg-sle.*.xml"');
+    } else {
+        $files = script_output('ls | grep "^ssg-opensuse.*.xml"');
+    }
     foreach my $file (split("\n", $files)) {
         upload_logs("$file");
     }

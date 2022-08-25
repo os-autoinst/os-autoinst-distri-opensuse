@@ -61,7 +61,7 @@ sub run {
     assert_script_run "host www.suse.com";
     select_console 'x11', await_console => 0;
     wait_still_screen 2;
-    assert_and_click("wireshark-dns-response-list", TIMEOUT);
+    assert_and_click("wireshark-dns-response-list", timeout => TIMEOUT);
     assert_and_click "wireshark-dns-response-details";
     send_key "right";
     send_key_until_needlematch "wireshark-dns-response-details-answers", "down";

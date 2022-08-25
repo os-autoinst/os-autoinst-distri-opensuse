@@ -67,6 +67,7 @@ sub run ($self) {
 }
 
 sub post_fail_hook ($self) {
+    $self->destroy_test_barriers();
     $self->select_serial_terminal;
     $self->upload_service_log('apache2');
     $self->upload_service_log('gmond');

@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Base module for swtpm test cases
-# Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#81256, tc#1768671, poo#102849, poo#108386
+# Maintainer: rfan1 <richard.fan@suse.com> Starry Wang <starry.wang@suse.com>
+# Tags: poo#81256, tc#1768671, poo#102849, poo#108386, poo#100512
 
 package swtpmtest;
 
@@ -13,6 +13,8 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
+use Utils::Architectures;
 
 our @EXPORT = qw(
   start_swtpm_vm
@@ -35,11 +37,11 @@ my $guestvm_cfg = {
 };
 
 my $sample_cfg = {
-    uefi => {vm_name => 'vm-swtpm-uefi', sample_file => 'swtpm_uefi.xml'},
-    legacy => {vm_name => 'vm-swtpm-legacy', sample_file => 'swtpm_legacy.xml'},
+    uefi => {vm_name => 'vm-swtpm-uefi', sample_file => 'swtpm_uefi'},
+    legacy => {vm_name => 'vm-swtpm-legacy', sample_file => 'swtpm_legacy'},
 };
 
-# Function "start_swtpm_vm" starts a vm via libvirt "virsh" commands,
+# Function "start_swtpm_vm" starts a vm via libvirt "virsh" commands
 # sample xml file and vm image file are pre-configured
 sub start_swtpm_vm {
     my ($swtpm_ver, $swtpm_vm_type) = @_;
@@ -53,6 +55,7 @@ sub start_swtpm_vm {
     my $sample_xml = $guest_mode->{sample_file};
     my $guest_xml = $guest_swtpm_ver->{xml_file};
     my $swtpm_type = $guest_swtpm_ver->{version};
+    $sample_xml .= is_aarch64 ? '_aarch64.xml' : '.xml';
     assert_script_run("cd $image_path");
     assert_script_run("cp $sample_xml $guest_xml->{$swtpm_vm_type}");
     assert_script_run(
@@ -91,8 +94,8 @@ sub swtpm_verify {
 
     # Login to the vm and run the commands to check tpm device
     my $user = 'root';
-    my $passwd = $testapi::password;
-    my $ip_addr = script_output("ip n | awk '/192\\.168/ {print \$1}'");
+    my $passwd = 'nots3cr3t';
+    my $ip_addr = script_output("ip n | awk '/192\\.168\\.122/ {print \$1}'");
     my $guest_swtpm_ver = $guestvm_cfg->{$para};
     my $result_file = "/tmp/$para";
     my $ssh_script = "$image_path/ssh_script";
@@ -111,9 +114,12 @@ sub swtpm_verify {
         assert_script_run("grep '0 :' $result_file");    # The "tpm2_pcrread" command will show sha1:0 value
     }
 
-    # Measured boot check
-    # If measured boot works fine, it can record available algorithms and pcrs
-    assert_script_run("cat $result_file | egrep 'AlgorithmId|pcrs'");
+    # Due to bsc#1199864, the following works only on SLE >= 15-SP4
+    if (!is_sle('<15-SP4')) {
+        # Measured boot check
+        # If measured boot works fine, it can record available algorithms and pcrs
+        assert_script_run("cat $result_file | egrep 'AlgorithmId|pcrs'");
+    }
 }
 
 1;

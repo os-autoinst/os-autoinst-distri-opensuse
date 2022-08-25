@@ -3,7 +3,7 @@
 myname="$(basename "$0")"
 kernel_dflt="client/vmlinuz"
 kernelargs_dflt=\
-"initrd=client/initrd splash=off video=1024x768-16 plymouth.ignore-serial-consoles console=ttyS0 console=tty quiet mitigations=auto"
+"initrd=client/initrd splash=off video=1024x768-16 plymouth.ignore-serial-consoles console=ttyS0 console=tty verbose mitigations=auto"
 
 if ! [ -f /usr/share/syslinux/pxelinux.0 ] ; then
 	# On a properly generated supportserver this should never happen, of course.

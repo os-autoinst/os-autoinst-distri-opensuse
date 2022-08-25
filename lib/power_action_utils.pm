@@ -45,6 +45,7 @@ and assign console('svirt') with C<stop_serial_grab>.
 $vnc_console get required variable 'SVIRT_VNC_CONSOLE' before assignment.
 
 =cut
+
 sub prepare_system_shutdown {
     # kill the ssh connection before triggering reboot
     console('root-ssh')->kill_ssh if get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/;
@@ -75,6 +76,7 @@ Reboot from Gnome Desktop and handle authentification scenarios during shutdown.
 Run C<prepare_system_shutdown> if shutdown needs authentification.
 
 =cut
+
 sub reboot_x11 {
     my ($self) = @_;
     wait_still_screen;
@@ -125,6 +127,7 @@ Handle each desktop differently for kde, gnome, xfce, lxde, lxqt, enlightenment,
 Work around issue with CD-ROM pop-up: bsc#1137230 and make sure that s390 SUT shutdown correctly.
 
 =cut
+
 sub poweroff_x11 {
     my ($self) = @_;
     wait_still_screen;
@@ -222,6 +225,7 @@ Handle a potential failure on a live CD related to boo#993885 that the reboot
 action from a desktop session does not work and we are stuck on the desktop.
 
 =cut
+
 sub handle_livecd_reboot_failure {
     mouse_hide;
     wait_still_screen;
@@ -249,6 +253,7 @@ console, that is 'root-console' for textmode, 'x11' otherwise. The actual execut
 for textmode or with GUI commands otherwise unless explicitly overridden by setting C<$textmode> to either 0 or 1.
 
 =cut
+
 sub power_action {
     my ($action, %args) = @_;
     $args{observe} //= 0;
@@ -272,7 +277,7 @@ sub power_action {
         }
         elsif ($action eq 'poweroff') {
             if (is_backend_s390x) {
-                record_soft_failure('poo#58127 - Temporary workaround, because shutdown module is marked as failed on s390x backend when shutting down from GUI.');
+                record_info('poo#114439', 'Temporary workaround, because shutdown module is marked as failed on s390x backend when shutting down from GUI.');
                 select_console 'root-console';
                 enter_cmd "$action";
             }
@@ -409,6 +414,7 @@ Example:
  assert_shutdown_with_soft_timeout({timeout => 300, soft_timeout => 60, bugref => 'bsc#123456'});
 
 =cut
+
 sub assert_shutdown_with_soft_timeout {
     my ($args) = @_;
     $args->{timeout} //= is_s390x ? 600 : get_var('DEBUG_SHUTDOWN') ? 180 : 60;
@@ -424,5 +430,3 @@ sub assert_shutdown_with_soft_timeout {
     }
     assert_shutdown($args->{timeout} - $args->{soft_timeout});
 }
-
-

@@ -1,0 +1,16 @@
+config setup
+    strictcrlpolicy=no
+
+conn %default
+    ikelifetime=60m
+    keylife=20m
+    rekeymargin=3m
+    keyingtries=1
+    keyexchange=ikev2
+
+conn host-host
+    auto=route
+    left=%LOCAL_IP%
+    leftcert=%HOST_CERT_PEM%
+    right=%REMOTE_IP%
+    rightid="C=CN, O=SUSEQA, CN=%HOST%"

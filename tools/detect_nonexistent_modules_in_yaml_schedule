@@ -22,14 +22,33 @@ sub parse_modules_in_schedule {
     my ($schedule_file_path) = @_;
 
     my $root_project_dir = dirname(__FILE__) . '/../';
-    my $include          = YAML::PP::Schema::Include->new(paths => ($root_project_dir));
-    my $ypp              = YAML::PP->new(schema => ['Core', $include, 'Merge']);
+    my $include = YAML::PP::Schema::Include->new(paths => ($root_project_dir));
+    my $ypp = YAML::PP->new(schema => ['Core', $include, 'Merge']);
     $include->yp($ypp);
     my $schedule = $ypp->load_file($schedule_file_path);
 
     my @scheduled;
-    for my $module (@{$schedule->{schedule}}) {
-        push(@scheduled, parse_schedule_module($schedule, $module));
+    # schedule file containing a list of modules
+    if (ref $schedule->{schedule} eq 'ARRAY') {
+        for my $module (@{$schedule->{schedule}}) {
+            push(@scheduled, parse_schedule_module($schedule, $module));
+        }
+    }
+    # schedule file containing keys which contain list of modules
+    elsif (ref $schedule->{schedule} eq 'HASH') {
+        for my $k (%{$schedule->{schedule}}) {
+            for my $module (@{$schedule->{schedule}{$k}}) {
+                push(@scheduled, parse_schedule_module($schedule, $module));
+            }
+        }
+    }
+    # schedule default/flow file containing keys which contain list of modules
+    elsif (ref $schedule eq 'HASH') {
+        for my $k (%{$schedule}) {
+            for my $module (@{$schedule->{$k}}) {
+                push(@scheduled, parse_schedule_module($schedule, $module));
+            }
+        }
     }
     return @scheduled;
 }

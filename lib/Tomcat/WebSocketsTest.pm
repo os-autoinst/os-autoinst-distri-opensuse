@@ -15,14 +15,14 @@ use utils;
 use Tomcat::Utils;
 
 # allow a 60 second timeout for asserting needles
-use constant TIMEOUT => 60;
+use constant TIMEOUT => 90;
 
 # test all WebSocket examples
 sub test_all_examples() {
     my ($self) = shift;
 
     # array with example test function and number of tabs required to select the example
-    my @websocket_examples = ([\&echo, 1], [\&chat, 1], [\&snake, 1], [\&drawboard, 1]);
+    my @websocket_examples = ([\&echo, 1], [\&chat, 1], [\&snake, 1]);
 
     # access the tomcat websocket examples page
     $self->firefox_open_url('localhost:8080/examples/websocket');
@@ -59,17 +59,6 @@ sub snake() {
     send_key('right');
     send_key('down');
     assert_screen('tomcat-snake-example', TIMEOUT);
-}
-
-# test multiplayer drawboard example
-sub drawboard() {
-    assert_screen('tomcat-multiplayer-drawboard-example', TIMEOUT);
-    assert_and_click('tomcat-multiplayer-drawboard-example-focus');
-    send_key('pgdn');
-    assert_and_click('tomcat-multiplayer-drawboard-example-thickness');
-    send_key('pgup');
-    assert_and_click('tomcat-multiplayer-drawboard-example-draw');
-    assert_screen('tomcat-multiplayer-drawboard-example-result', TIMEOUT);
 }
 
 1;

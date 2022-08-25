@@ -10,6 +10,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     my $audit_log = '/var/log/audit/audit.log';
@@ -46,17 +47,41 @@ sub run {
         record_info('Error: ', 'AVC reports counted in default report do not match the counts in AVC reports', result => 'fail');
     }
 
+    my $report_log = '/tmp/aureport.txt';
     # Generate report about users
-    validate_script_output('aureport -u', sub { m/User ID/ });
+    if (is_sle('=15-SP2')) {
+        # There may be no users to list on 15-SP2, and in this case the command returns 1
+        # even though it actually was successfully executed.
+        script_run("echo '' > $report_log");
+        script_run("aureport -u > $report_log");
+        validate_script_output("cat $report_log", sub { m/User ID/ });
+    } else {
+        validate_script_output('aureport -u', sub { m/User ID/ });
+    }
 
     # Generate report about processes
     validate_script_output('aureport -p', sub { m/Process ID/ });
 
     # Generate report about executable
-    validate_script_output('aureport -x', sub { m/Executable/ });
-
+    if (is_sle('=15-SP2')) {
+        # There may be no users to list on 15-SP2, and in this case the command returns 1
+        # even though it actually was successfully executed.
+        script_run("echo '' > $report_log");
+        script_run("aureport -x > $report_log");
+        validate_script_output("cat $report_log", sub { m/Executable/ });
+    } else {
+        validate_script_output('aureport -x', sub { m/Executable/ });
+    }
     # Generate report about terminal
-    validate_script_output('aureport -tm', sub { m/Terminal/ });
+    if (is_sle('=15-SP2')) {
+        # There may be no users to list on 15-SP2, and in this case the command returns 1
+        # even though it actually was successfully executed.
+        script_run("echo '' > $report_log");
+        script_run("aureport -tm > $report_log");
+        validate_script_output("cat $report_log", sub { m/Terminal/ });
+    } else {
+        validate_script_output('aureport -tm', sub { m/Terminal/ });
+    }
 
     # Generate report about long time range
     validate_script_output('aureport -t', sub { m/Log Time Range/ });

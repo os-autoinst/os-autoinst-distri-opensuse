@@ -13,6 +13,7 @@
 	- [2. Enable scheduler in settings](#2-enable-scheduler-in-settings)
 	- [3. Enable scheduler in main file](#3-enable-scheduler-in-main-file)
 	- [4. Use different schedules for the same scenario](#4-use-different-schedules-for-the-same-scenario)
+	- [5. Use YAML_SCHEDULE_DEFAULT and YAML_SCHEDULE_FLOWS along with YAML schedule](#5-use-default-flow-to-yaml-schedule)
 - [Other uses](#other-uses)
 
 ## Introduction
@@ -339,6 +340,90 @@ scenarios:
 And on top of that you can use aliases to avoid duplication. For more details, check output
 [official documentation of openQA](http://open.qa/docs/)
 
+### 5. Use YAML_SCHEDULE_DEFAULT and YAML_SCHEDULE_FLOWS to YAML schedule
+
+
+We have 3 variables to help YAML scheduler to avoid conditional schedule and repetition. They are YAML_SCHEDULE_DEFAULT, YAML_SCHEDULE_FLOWS, YAML_SCHEDULE. We have the possibility to combine these 3 variables to customize your loading modules, but individually they don't solve the problem, in particular YAML_SCHEDULE doesn't.
+
+Please be noted that conditional schedule does not work when scheduler is using DEFAULT and FLOWS. And flows are optional, you can have a default and on top the yaml schedule and not use flows.
+
+YAML_SCHEDULE_DEFAULT should point to a "default"(product defaults + testing defaults) schedule that has sections.  You can find them in schedule/yast/sle/flows/default.yaml. Sections can have "normal yaml schedule lines" or an empty list which act as a hook where you can have more granularity when overwriting (indicated by "[]").
+
+```yaml
+# Default ordered sequence of steps to be optionally overwritten for this product
+bootloader:
+  - installation/bootloader_start
+setup_libyui:
+  - installation/setup_libyui
+access_beta: []
+product_selection:
+  - installation/product_selection/install_SLES
+license_agreement:
+  - installation/licensing/accept_license
+
+```
+
+YAML_SCHEDULE_FLOW is a comma-separated list of "flow" modules. like schedule/yast/sle/flows
+
+Example: desktop.yaml:
+```yaml
+---
+# Register Desktop Applications Module in Extension and Module Selection
+# Select SLES with GNOME in System Role
+extension_module_selection:
+  - installation/module_registration/register_module_desktop
+system_role:
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
+```
+So, in default.yaml we have
+
+```yaml
+extension_module_selection:
+  - installation/module_registration/skip_module_registration
+```
+And when applying the "flow" desktop.yaml, this will be replaced by:
+
+```yaml
+extension_module_selection:
+  - installation/module_registration/register_module_desktop
+```
+General rule is: 
+Every list of modules under a key (e.g extension_module_selection) in the flow will overwrite the corresponding list in "default".
+When all flows are applied, we finally apply on top (overwriting default+flows) "YAML_SCHEDULE" which then defines the individual test modules for the test suite.
+
+Example: guided_ext4/ext4.yaml:
+```yaml
+name:           guided_ext4
+description:    >
+  Guided Partitioning installation with ext4 filesystem.
+vars:
+  FILESYSTEM: ext4
+  YUI_REST_API: 1
+schedule:
+  guided_filesystem:
+    - installation/partitioning/guided_setup/select_filesystem_option_ext4
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_validation:
+    - console/validate_partition_table_via_blkid
+    - console/validate_blockdevices
+    - console/validate_free_space
+test_data:
+  guided_partitioning:
+    filesystem_options:
+      root_filesystem_type: ext4
+  <<: !include test_data/yast/ext4/ext4.yaml
+```
+
+When combining the three layers
+YAML_SCHEDULE_DEFAULT (the default)
+YAML_SCHEDULE_FLOWS   (overwrite the above)
+YAML_SCHEDULE         (overwrite the above)
+We end up with a final yaml schedule that should not look different from what we're used so far.
+YAML_SCHEDULE_DEFAULT is usually defined in the job group, the defaults, YAML_SCHEDULE_FLOW and YAML_SCHEDULE are defined in the job group on test suite level.
+
+And last, please take care of the difference between job groups and the YAML schedule . For they are all stored in schedule directory. Job groups are a layer above that control what tests are executed in what way for specific platform/product combinations, which were controlled by YAML schedule.
+
 ## Other uses
 
-Even if you don't intend to migrate your scenario right now, you can play with it for debugging proposes. Instead of relying in the complex path of execution that main.pm creates, if you just need to put some test in some particular order, perhaps a new scenario you just created, you can speed up your development using this approach.
+Even if you don't intend to migrate your scenario right now, you can play with it for debugging purposes. Instead of relying in the complex path of execution that main.pm creates, if you just need to put some test in some particular order, perhaps a new scenario you just created, you can speed up your development using this approach.

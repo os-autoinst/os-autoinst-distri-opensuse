@@ -22,6 +22,8 @@ conditional_schedule:
         - hpc/genders
       rasdaemon:
         - hpc/rasdaemon
+      trilinos:
+        - hpc/trilinos
       hpc_migration:
         - hpc/hpc_migration
 schedule:

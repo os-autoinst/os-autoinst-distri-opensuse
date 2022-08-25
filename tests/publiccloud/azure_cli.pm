@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
+# Copyright 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,10 +13,9 @@
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use mmapi 'get_current_job_id';
-use utils 'zypper_call';
+use utils qw(zypper_call script_retry);
 use version_utils 'is_sle';
 use registration qw(add_suseconnect_product get_addon_fullname);
-use publiccloud::utils "select_host_console";
 
 sub run {
     my ($self, $args) = @_;
@@ -27,13 +26,13 @@ sub run {
     if (script_run("which az") != 0) {
         add_suseconnect_product(get_addon_fullname('pcm'), (is_sle('=12-sp5') ? '12' : undef));
         add_suseconnect_product(get_addon_fullname('phub')) if is_sle('=12-sp5');
-        zypper_call('in azure-cli jq python3-susepubliccloudinfo');
+        # bsc#1201870c1 - please remove python3-azure-mgmt-resource
+        zypper_call('in azure-cli jq python3-susepubliccloudinfo python3-azure-mgmt-resource');
     }
-    assert_script_run('az --version');
+    assert_script_run('az version');
 
     set_var 'PUBLIC_CLOUD_PROVIDER' => 'AZURE';
     my $provider = $self->provider_factory();
-    sleep 600;
 
     my $resource_group = "openqa-cli-test-rg-$job_id";
     my $machine_name = "openqa-cli-test-vm-$job_id";
@@ -47,13 +46,18 @@ sub run {
     assert_script_run("az group create -n $resource_group --tags '$tags'");
 
     # Pint - command line tool to query pint.suse.com to get the current image name
-    my $image_name = script_output("pint microsoft images --active --json | jq -r '.images[] | select( (.urn | contains(\"sles-15-sp3:gen2\")) and (.state == \"active\") and (.environment == \"PublicAzure\")).urn'");
+    my $image_name = script_output(qq/pint microsoft images --active --json | jq -r '[.images[] | select( .urn | contains("sles-15-sp4:gen2") )][0].urn'/);
+    die("The pint query output is empty.") unless ($image_name);
     record_info("PINT", "Pint query: " . $image_name);
 
     # VM creation
     my $vm_create = "az vm create --resource-group $resource_group --name $machine_name --public-ip-sku Standard --tags '$tags'";
     $vm_create .= " --image $image_name --size Standard_B1ms --admin-username azureuser --ssh-key-values ~/.ssh/id_rsa.pub";
-    assert_script_run($vm_create, 600);
+    my $output = script_output($vm_create, timeout => 600, proceed_on_failure => 1);
+    if ($output =~ /ValidationError.*object has no attribute/) {
+        record_soft_failure('bsc#1191482 - Failed to start/stop vms with azure cli');
+        return;
+    }
 
     assert_script_run("az vm get-instance-view -g $resource_group -n $machine_name");
     assert_script_run("az vm list-ip-addresses -g $resource_group -n $machine_name");
@@ -76,4 +80,3 @@ sub test_flags {
 }
 
 1;
-

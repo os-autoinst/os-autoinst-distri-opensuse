@@ -19,6 +19,8 @@ class TestPassRequestHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
         self.wfile.write(CONTENT.encode("UTF-8"))
+    def log_request(self, format, *args):
+        return
 
 
 # Main program routine: Setup and run the webserver

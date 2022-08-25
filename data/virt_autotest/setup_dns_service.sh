@@ -141,6 +141,14 @@ for vmguest in ${vm_guestnames_array[@]};do
         echo -e ${vm_hash_forward_ipaddr[${vm_hash_index}]}
 done
 
+#Remove existing vm guests records in /etc/hosts to avoid conflicts
+vm_name2ip_mapping_file="/etc/hosts"
+for vmguest in ${vm_guestnames_array[@]};do
+        sed -i "/[[:space:]]\{1,\}${vmguest}[[:space:]]\{0,\}.*$/d;/[[:space:]]\{1,\}${vmguest}\..*$/d" ${vm_name2ip_mapping_file}
+done
+echo -e "${vm_name2ip_mapping_file} file content after tidy-up:\n" | tee -a ${setup_log_file}
+cat ${vm_name2ip_mapping_file} |  tee -a ${setup_log_file}
+
 #Populate dns forward zone records by using vm_hash_forward_ipaddr generated
 dns_forward_zone_file="/var/lib/named/${dns_domain_forward}.zone"
 dns_reverse_zone_file="/var/lib/named/${dns_domain_reverse}.zone"

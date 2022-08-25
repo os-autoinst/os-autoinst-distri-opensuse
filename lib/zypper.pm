@@ -28,6 +28,7 @@ so we need wait the zypper processes in background to finish and release the
 lock so that we can run a new zypper for our test.
 
 =cut
+
 sub wait_quit_zypper {
     # sometimes the zypper processes already in quit process but can't pgrep, we
     # need wait several seconds for them to finish deactivate.

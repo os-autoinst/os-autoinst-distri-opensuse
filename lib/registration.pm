@@ -107,10 +107,6 @@ sub is_module {
 sub accept_addons_license {
     my (@scc_addons) = @_;
 
-    # Trap the 'missing license file on media' issue
-    # Needle is configured as a workaround, so a soft-fail will be shown
-    send_key 'alt-s' if check_screen('license-insert-disc-issue', 30);
-
     # To check the current state of licenses in the product one can conduct
     # the following steps, e.g. for SLE15:
     #   isc co SUSE:SLE-15:GA 000product
@@ -157,6 +153,7 @@ sub accept_addons_license {
 Helper for parsing SLE RC version into integer. It replaces SLE version
 in format X-SPY into X.Y.
 =cut
+
 sub scc_version {
     my $version = shift;
     $version //= get_required_var('VERSION');
@@ -169,6 +166,7 @@ sub scc_version {
 
 Wrapper for SUSEConnect -p $name.
 =cut
+
 sub add_suseconnect_product {
     my ($name, $version, $arch, $params, $timeout, $retry) = @_;
     assert_script_run 'source /etc/os-release';
@@ -206,6 +204,7 @@ sub add_suseconnect_product {
 
 Wrapper for SUSEConnect -p $name  over ssh.
 =cut
+
 sub ssh_add_suseconnect_product {
     my ($remote, $name, $version, $arch, $params, $timeout, $retries, $delay) = @_;
     assert_script_run "sftp $remote:/etc/os-release /tmp/os-release";
@@ -226,6 +225,7 @@ sub ssh_add_suseconnect_product {
 
 Wrapper for SUSEConnect -d $name.
 =cut
+
 sub remove_suseconnect_product {
     my ($name, $version, $arch, $params) = @_;
     $version //= scc_version();
@@ -240,6 +240,7 @@ sub remove_suseconnect_product {
 
 Wrapper for SUSEConnect -d $name over ssh.
 =cut
+
 sub ssh_remove_suseconnect_product {
     my ($remote, $name, $version, $arch, $params) = @_;
     assert_script_run "sftp $remote:/etc/os-release /tmp/os-release";
@@ -257,6 +258,7 @@ sub ssh_remove_suseconnect_product {
 Wrapper for SUSEConnect --cleanup. Resets proxy SCC url if job has SCC_URL
 variable set.
 =cut
+
 sub cleanup_registration {
     # Remove registration from the system
     assert_script_run 'SUSEConnect --cleanup';
@@ -272,6 +274,7 @@ sub cleanup_registration {
 Wrapper for SUSEConnect -r <regcode>. Requires SCC_REGCODE variable.
 SUSEConnect --url with SMT/RMT server.
 =cut
+
 sub register_product {
     if (get_var('SMT_URL')) {
         assert_script_run('SUSEConnect --url ' . get_var('SMT_URL') . ' ' . uc(get_var('SLE_PRODUCT')) . '/' . scc_version(get_var('HDDVERSION')) . '/' . get_var('ARCH'), 200);
@@ -613,8 +616,12 @@ sub handle_scc_popups {
         push @tags, 'expired-gpg-key' if is_sle('=15');
         while ($counter--) {
             die 'Registration repeated too much. Check if SCC is down.' if ($counter eq 1);
-            if (is_sle('15-SP4+') && (get_var('VIDEOMODE', '') !~ /text|ssh-x/) && !(get_var('PUBLISH_HDD_1') || check_var('SLE_PRODUCT', 'hpc'))) {
-                record_soft_failure('bsc#1191112', 'Resizing window as workaround for YaST content not loading');
+            if (is_sle('15-SP4+')
+                && (get_var('VIDEOMODE', '') !~ /text|ssh-x/)
+                && (get_var("DESKTOP") !~ /textmode/)
+                && (get_var('REMOTE_CONTROLLER') !~ /vnc/)
+                && !(get_var('PUBLISH_HDD_1') || check_var('SLE_PRODUCT', 'hpc'))) {
+                record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
                 for (1 .. 2) { send_key 'alt-f10' }
             }
             assert_screen(\@tags, timeout => 360);
@@ -798,6 +805,7 @@ sub get_addon_fullname {
         tcm => is_sle('15+') ? 'sle-module-development-tools' : 'sle-module-toolchain',
         wsm => 'sle-module-web-scripting',
         python2 => 'sle-module-python2',
+        python3 => 'sle-module-python3',
         phub => 'PackageHub',
         tsm => 'sle-module-transactional-server',
         espos => 'ESPOS',
@@ -867,6 +875,11 @@ sub scc_deregistration {
         quit_packagekit;
         wait_for_purge_kernels;
         assert_script_run('SUSEConnect --version');
+        if ((check_var('UPGRADE_TARGET_VERSION', '15-SP3')) && (is_sle('15-SP1+'))) {
+            # Workaround for bsc#1189543, need register python2 before de-register system
+            record_soft_failure 'bsc#1189543 - Stale python2 module blocks de-registration after system migration';
+            add_suseconnect_product('sle-module-python2');
+        }
         my $deregister_ret = script_run('SUSEConnect --de-register --debug > /tmp/SUSEConnect.debug 2>&1', 300);
         if (defined $deregister_ret and $deregister_ret == 104) {
             # https://bugzilla.suse.com/show_bug.cgi?id=1119512

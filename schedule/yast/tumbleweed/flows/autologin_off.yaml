@@ -1,0 +1,5 @@
+---
+# Set non-Automatic Login and type default simple password in Local User
+local_user:
+  - installation/authentication/disable_autologin
+  - installation/authentication/default_user_simple_pwd

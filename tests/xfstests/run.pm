@@ -324,6 +324,13 @@ sub dump_btrfs_img {
     script_run($cmd);
 }
 
+# Log: Raw dump from SCRATCH_DEV via dd
+sub raw_dump {
+    my ($category, $num) = @_;
+    my $dev = get_var('XFSTESTS_SCRATCH_DEV') ? get_var('XFSTESTS_SCRATCH_DEV') : (split(/ /, get_var("XFSTESTS_SCRATCH_DEV_POOL")))[0];
+    assert_script_run("umount $dev;dd if=$dev of=$LOG_DIR/$category/$num.raw bs=512 count=1000");
+}
+
 # Log: Collect fs runtime status for XFS, Btrfs and Ext4
 sub collect_fs_status {
     my ($category, $num) = @_;
@@ -451,6 +458,7 @@ sub run {
                 collect_fs_status($category, $num);
                 if (get_var('BTRFS_DUMP', 0) && (check_var 'XFSTESTS', 'btrfs')) { dump_btrfs_img($category, $num); }
             }
+            if (get_var('RAW_DUMP', 0)) { raw_dump($category, $num); }
             next;
         }
 
@@ -463,7 +471,7 @@ sub run {
         };
         # If SUT didn't reboot for some reason, force reset
         if ($@) {
-            power('reset', keepconsole => is_pvm);
+            power_action('reset', keepconsole => is_pvm);
             reconnect_mgmt_console if is_pvm;
             $self->wait_boot;
         }

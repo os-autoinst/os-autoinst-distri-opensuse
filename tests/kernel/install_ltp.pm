@@ -19,7 +19,7 @@ use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use upload_system_log;
-use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumbleweed);
+use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumbleweed is_rt);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use LTP::utils;
@@ -59,6 +59,7 @@ sub install_runtime_dependencies {
     # kernel-default-extra are only for SLE (in WE)
     # net-tools-deprecated are not available for SLE15
     # ntfsprogs are for SLE in WE, openSUSE has it in default repository
+    # others aren't mandatory to fail whole test when missing
     my @maybe_deps = qw(
       acl
       apparmor-parser
@@ -79,6 +80,7 @@ sub install_runtime_dependencies {
       numactl
       psmisc
       quota
+      squashfs
       sssd-tools
       sudo
       tpm-tools
@@ -143,11 +145,18 @@ sub install_build_dependencies {
       flex
       gcc
       git-core
-      kernel-default-devel
       libaio-devel
       libopenssl-devel
       make
     );
+
+    if (is_rt) {
+        push @deps, 'kernel-rt-devel';
+    }
+    elsif (!get_var('KGRAFT')) {
+        push @deps, 'kernel-default-devel';
+    }
+
     zypper_call('-t in ' . join(' ', @deps));
 
     my @maybe_deps = qw(
@@ -183,8 +192,8 @@ sub prepare_ltp_git {
     my $url = get_var('LTP_GIT_URL', 'https://github.com/linux-test-project/ltp');
     my $rel = get_var('LTP_RELEASE');
     my $prefix = get_ltproot();
-    my $configure = "./configure --with-open-posix-testsuite --with-realtime-testsuite --prefix=$prefix";
-    my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS', '');
+    my $configure = "./configure --prefix=$prefix";
+    my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS', '--with-open-posix-testsuite --with-realtime-testsuite');
 
     $rel = "-b $rel" if ($rel);
 
@@ -262,9 +271,8 @@ sub get_default_pkg {
     my @packages;
 
     if (is_sle && is_released) {
-        push @packages, 'qa_test_ltp';
-        # temporarily disabled due to package conflict with qa_test_ltp
-        #push @packages, 'qa_test_ltp-32bit' if is_x86_64;
+        push @packages, 'ltp-stable';
+        push @packages, 'ltp-stable-32bit' if is_x86_64;
     } else {
         push @packages, 'ltp';
         push @packages, 'ltp-32bit' if is_x86_64 && !is_jeos;
@@ -358,7 +366,8 @@ sub run {
 
     # check kGraft if KGRAFT=1
     if (check_var("KGRAFT", '1') && !check_var('REMOVE_KGRAFT', '1')) {
-        assert_script_run("uname -v | grep -E '(/kGraft-|/lp-)'");
+        my $lp_tag = is_sle('>=15-sp4') ? 'lp' : 'lp-';
+        assert_script_run("uname -v | grep -E '(/kGraft-|/${lp_tag})'");
     }
 
     upload_logs('/boot/config-$(uname -r)', failok => 1);
@@ -367,7 +376,7 @@ sub run {
 
     if ($inst_ltp =~ /git/i) {
         install_build_dependencies;
-        install_runtime_dependencies;    # install pidstat (sysstat)
+        install_runtime_dependencies;
 
         # bsc#1024050 - Watch for Zombies
         script_run('(pidstat -p ALL 1 > /tmp/pidstat.txt &)');
@@ -414,6 +423,7 @@ sub run {
         loadtest_kernel 'boot_ltp';
     } elsif ($cmd_file) {
         assert_secureboot_status(1) if get_var('SECUREBOOT');
+        prepare_ltp_env() if (is_sle('<12'));
         init_ltp_tests($cmd_file);
         schedule_tests($cmd_file);
     }

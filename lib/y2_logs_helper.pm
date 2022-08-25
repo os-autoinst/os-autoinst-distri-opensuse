@@ -154,6 +154,7 @@ Uploads autoyast profile used for the installation, as well as modified profile,
 in case feature to modify the profile dynamically was used.
 Non existing files will be ignored.
 =cut
+
 sub upload_autoyast_profile {
     # Upload autoyast profile if file exists
     if (script_run('test -e /tmp/profile/autoinst.xml') == 0) {
@@ -177,6 +178,7 @@ sub upload_autoyast_profile {
 Uploads autoyast schema files shipped in the distribution as a tarball.
 If expected directory doesn't exist, no attempt to upload logs occurs.
 =cut
+
 sub upload_autoyast_schema {
     my ($self) = @_;
     my $xml_schema_path = "/usr/share/YaST2/schema/autoyast/rng";

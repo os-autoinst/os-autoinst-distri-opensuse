@@ -25,11 +25,11 @@ use Utils::Architectures;
 use IO::Socket::INET;
 use Carp;
 
-our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host
-  check_host check_guest print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages
-  upload_y2logs ensure_default_net_is_active ensure_guest_started ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks
-  remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests is_guest_online wait_guests_shutdown
-  setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host check_port_state);
+our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host check_host check_guest
+  print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs ensure_default_net_is_active ensure_guest_started
+  ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests
+  is_guest_online wait_guests_shutdown setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host
+  check_port_state subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest);
 
 # helper function: Trim string
 sub trim {
@@ -136,6 +136,35 @@ sub print_cmd_output_to_file {
     script_run "$cmd >> $file";
 }
 
+sub download_script_and_execute {
+    my (%args) = @_;
+    $args{output_file} //= "$args{script_name}.log";
+    $args{machine} //= 'localhost';
+
+    download_script(script_name => $args{script_name}, script_url => $args{script_url}, machine => $args{machine});
+    my $cmd = "~/$args{script_name}";
+    $cmd = "ssh root\@$args{machine} " . "\"$cmd\"" if ($args{machine} ne 'localhost');
+    script_run("$cmd >> $args{output_file} 2>&1");
+}
+
+sub download_script {
+    my (%args) = @_;
+    $args{script_name} //= '';
+    $args{script_url} //= data_url("virt_autotest/$args{script_name}");
+    $args{machine} //= 'localhost';
+
+    my $cmd = "curl -s -o ~/$args{script_name} $args{script_url}";
+    $cmd = "ssh root\@$args{machine} " . "\"$cmd\"" if ($args{machine} ne 'localhost');
+    my $ret = script_run($cmd);
+    unless ($ret == 0) {
+        record_soft_failure("Failed to download $args{script_name} from $args{script_url}!");
+        return $ret;
+    }
+    $cmd = "chmod +x ~/$args{script_name}";
+    $cmd = "ssh root\@$args{machine} " . "\"$cmd\"" if ($args{machine} ne 'localhost');
+    script_run($cmd);
+}
+
 sub ssh_setup {
     my $default_ssh_key = (!(get_var('VIRT_AUTOTEST'))) ? "/root/.ssh/id_rsa" : "/var/testvirt.net/.ssh/id_rsa";
     my $dt = DateTime->now;
@@ -179,6 +208,7 @@ sub ssh_copy_id {
 
 sub create_guest {
     my ($guest, $method) = @_;
+    my $v_type = $guest->{name} =~ /HVM/ ? "-v" : "";
 
     my $name = $guest->{name};
     my $location = $guest->{location};
@@ -199,17 +229,12 @@ sub create_guest {
 
         # Run unattended installation for selected guest
         my ($autoyastURL, $diskformat, $virtinstall);
-        $autoyastURL = data_url($autoyast);
+        $autoyastURL = $autoyast;
         $diskformat = get_var("VIRT_QEMU_DISK_FORMAT") // "qcow2";
-
-        assert_script_run "qemu-img create -f $diskformat /var/lib/libvirt/images/xen/$name.$diskformat 20G", 180;
-        assert_script_run "sync", 180;
-        script_run "qemu-img info /var/lib/libvirt/images/xen/$name.$diskformat";
-
         $extra_args = "$linuxrc autoyast=$autoyastURL $extra_args";
         $extra_args = trim($extra_args);
-        $virtinstall = "virt-install $extra_params --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
-        $virtinstall .= " --disk /var/lib/libvirt/images/xen/$name.$diskformat --noautoconsole";
+        $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
+        $virtinstall .= " --disk path=/var/lib/libvirt/images/$name.$diskformat,size=20,format=$diskformat --noautoconsole";
         $virtinstall .= " --network network=default,mac=$macaddress --autostart --location=$location --wait -1";
         $virtinstall .= " --events on_reboot=$on_reboot" unless ($on_reboot eq '');
         $virtinstall .= " --extra-args '$extra_args'" unless ($extra_args eq '');
@@ -267,7 +292,7 @@ sub ensure_online {
     my ($guest, %args) = @_;
 
     my $hypervisor = $args{HYPERVISOR} // "192.168.122.1";
-    my $dns_host = $args{DNS_TEST_HOST} // "suse.de";
+    my $dns_host = $args{DNS_TEST_HOST} // "www.suse.com";
     my $skip_ssh = $args{skip_ssh} // 0;
     my $skip_network = $args{skip_network} // 0;
     my $skip_ping = $args{skip_ping} // 0;
@@ -583,6 +608,7 @@ without being passed value to dst_machine or dst_port.The subroutine will return
 return 0.
 
 =cut
+
 sub check_port_state {
     my ($dst_machine, $dst_port, $retries, $delay) = @_;
     $dst_machine //= "";
@@ -605,6 +631,81 @@ sub check_port_state {
     }
     record_info("Port $dst_port is not open", "The port $dst_port is not open on machine $dst_machine") if ($port_state == 0);
     return $port_state;
+}
+
+=head2 subscribe_extensions_and_modules
+
+  subscribe_extensions_and_modules(dst_machine => $machine, activate => 1/0, reg_exts => $exts)
+
+Any available extensions and modules listed out by SUSEConnect --list-extensions
+that do not require additional regcode can be subscribe directly by using command
+SUSEConnect -p [extension or module]. Subscription is to be performed on localhost
+by default if argument dst_machine is not given any other address, and successful
+access to dst_machine via ssh should be guaranteed in advance if dst_machine points 
+to a remote machine. Deactivation is also supported if argument activate is given 
+0 explicitly. Multiple extensions or modules can be passed in as a single string 
+separated by space to argument reg_exts to be subscribed one by one.
+
+=cut
+
+sub subscribe_extensions_and_modules {
+    my (%args) = @_;
+    $args{dst_machine} //= 'localhost';
+    $args{activate} //= 1;
+    $args{reg_exts} //= '';
+    croak('Nothing to be subscribed. Please pass something to argument reg_exts.') if ($args{reg_exts} eq '');
+
+    my $cmd = '';
+    $cmd = "SUSEConnect -l";
+    $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
+    my $ret = script_run($cmd);
+    save_screenshot;
+    unless ($ret == 0) {
+        record_info("Base product not registered or no extensions/modules available.", script_output($cmd, proceed_on_failure => 1));
+        return $ret;
+    }
+
+    $ret = 0;
+    my @to_be_subscribed = split(/ /, $args{reg_exts});
+    my $version_id = version_utils::get_version_id(dst_machine => "$args{dst_machine}");
+    foreach (@to_be_subscribed) {
+        $cmd = "-p $_/" . $version_id . "/" . get_required_var("ARCH");
+        $cmd = ($args{activate} != 0 ? "SUSEConnect " : "SUSEConnect -d ") . $cmd;
+        $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
+        $ret |= script_run($cmd, timeout => 120);
+        save_screenshot;
+    }
+    $cmd = "SUSEConnect --status-text";
+    $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
+    record_info("Subscription status on $args{dst_machine}", script_output($cmd));
+    return $ret;
+}
+
+=head2 is_sev_es_guest
+
+  is_sev_es_guest($guest_name)
+
+Check whether a guest is sev-es, sev only or not sev/sev-es guest by searching
+whether sev-es or sev word is available in its name. The only argument for the
+subroutine is guest_name. It returns sev-es or sev if either is found in guest
+name, otherwise it returns 0.
+
+=cut
+
+sub is_sev_es_guest {
+    my ($guest_name) = @_;
+    $guest_name //= '';
+    croak('Arugment guest_name should not be empty') if ($guest_name eq '');
+
+    $guest_name =~ /(sev-es|sev)/img;
+    if ($1 ne '') {
+        record_info("$guest_name is $1 guest", "Guest $guest_name is a $1 enabled guest judging by its name.");
+        return $1;
+    }
+    else {
+        record_info("$guest_name is not sev(es) guest", "Guest $guest_name is not a sev or sev-es enabled guest judging by its name.");
+        return 'notsev';
+    }
 }
 
 1;

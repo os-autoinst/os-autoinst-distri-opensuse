@@ -16,7 +16,9 @@ use Utils::Architectures;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+
+    # In CC testing, the root login will be disabled, so we need to use select_console
+    is_s390x() ? select_console 'root-console' : $self->select_serial_terminal;
 
     # Using packages from gitlab
     my $repo_link = 'https://gitlab.suse.de/QA-APAC-I/testing/-/raw/master/data/selinux';
@@ -27,7 +29,9 @@ sub run {
     zypper_call("in policycoreutils");
     # Program 'semanage' is in policycoreutils-python-utils pkgs on TW and SLES 15-SP4
     if (is_tumbleweed || is_sle('>=15-SP4')) {
-        zypper_call('in policycoreutils-python-utils');
+        record_soft_failure 'bsc#1200649' if is_sle('=15-SP4');
+        my $solver = is_sle('=15-SP4') ? '--force-resolution --solver-focus Update' : '';
+        zypper_call("in $solver policycoreutils-python-utils");
     }
     if (!is_sle('>=15')) {
         assert_script_run('zypper -n in policycoreutils-python');

@@ -22,7 +22,6 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/welcome
-  - installation/accept_license
   - '{{multipath_on_full_medium}}'
   # for some odd reason multipath is on different positions
   # in the installation depending on the medium

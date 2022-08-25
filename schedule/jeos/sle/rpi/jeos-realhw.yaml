@@ -11,6 +11,7 @@ schedule:
   - console/suseconnect_scc
   - jeos/rpi_wifi
   - jeos/rpi_bluetooth
+  - console/journal_check
   - console/consoletest_setup
   - console/salt
   - console/nginx

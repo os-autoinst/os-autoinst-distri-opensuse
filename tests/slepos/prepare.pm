@@ -68,6 +68,7 @@ sub run {
         configure_default_gateway;
         configure_static_ip(ip => get_var('MY_ADDR') . "/24");
         configure_static_dns(get_host_resolv_conf());
+        restart_networking();
     }
     else {
         # on standalone image server with qemu network we don't have to wait

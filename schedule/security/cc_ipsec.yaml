@@ -1,5 +1,5 @@
 name: cc_ipsec
-description:    >
+description: >
     This is for ipsec test in CC system role
 schedule:
     - '{{bootloader_zkvm}}'
@@ -7,6 +7,8 @@ schedule:
     - '{{remove_bridge_network}}'
     - '{{setup_multimachine}}'
     - security/cc/cc_audit_test_setup
+    - security/atsec/setup_atsec_env
+    - '{{disable_root_ssh}}'
     - '{{cc_ipsec}}'
 conditional_schedule:
     bootloader_zkvm:
@@ -28,9 +30,14 @@ conditional_schedule:
     cc_ipsec:
         HOSTNAME:
             server:
-                - security/cc/ipsec_server
+                - security/cc/ipsec/ipsec_server
+                - security/cc/ipsec/ipsec_certificate
             client:
-                - security/atsec/setup_atsec_env
-                - security/cc/ipsec_client
-                - security/cc/weak_ipsec_ciphers
-                - security/cc/ipsec_cleanup
+                - security/cc/ipsec/ipsec_client
+                - security/cc/ipsec/weak_ipsec_ciphers
+                - security/cc/ipsec/ipsec_ciphers
+                - security/cc/ipsec/ipsec_certificate
+    disable_root_ssh:
+        ARCH:
+            s390x:
+                - security/cc/disable_root_ssh

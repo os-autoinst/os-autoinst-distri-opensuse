@@ -24,6 +24,7 @@ sub run {
     # We have tests that boot from HDD and wait for DVD boot menu's timeout, so
     # the timeout here must cover it. UEFI DVD adds some 60 seconds on top.
     my $timeout = get_var('UEFI') ? 140 : 80;
+    my $ready_time = get_var('USE_SUPPORT_SERVER_PXE_CUSTOMKERNEL') ? 900 : 500;
     # Increase timeout on ipmi bare metal backend, firmware initialization takes
     # a lot of time
     $timeout += 300 if is_ipmi;
@@ -48,7 +49,7 @@ sub run {
         wait_serial('Welcome to SUSE Linux', $timeout) || die "System did not boot in $timeout seconds.";
     }
     else {
-        $self->wait_boot(bootloader_time => $timeout, nologin => $nologin);
+        $self->wait_boot(bootloader_time => $timeout, nologin => $nologin, ready_time => $ready_time);
     }
 }
 

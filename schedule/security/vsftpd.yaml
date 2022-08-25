@@ -1,0 +1,9 @@
+name: vsftpd
+description:    >
+    Testing vsftpd and lftp with ssl enabled
+schedule:
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - security/vsftpd/vsftpd_setup
+    - security/vsftpd/vsftpd
+    - security/vsftpd/lftp

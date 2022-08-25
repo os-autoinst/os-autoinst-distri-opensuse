@@ -6,3 +6,4 @@ schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
     - network/firewalld_policy_objects
+    - shutdown/shutdown

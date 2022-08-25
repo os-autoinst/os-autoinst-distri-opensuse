@@ -17,7 +17,7 @@ use version_utils 'is_sle';
 use registration;
 
 # allow a 60 second timeout for asserting needles
-use constant TIMEOUT => 60;
+use constant TIMEOUT => 90;
 
 # Use keyboard to browse the examples faster
 sub browse_with_keyboard {

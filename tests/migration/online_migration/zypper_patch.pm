@@ -26,8 +26,17 @@ sub run {
     add_test_repositories;
     set_zypp_single_rpmtrans;
     fully_patch_system;
+    # Sometimes update package 'polkit' will cause GDM restart, so after
+    # update patches we'd better to select_console to make test robust.
+    select_console 'root-console';
     install_patterns() if (get_var('PATTERNS'));
     deregister_dropped_modules;
+    # disable multiversion for kernel-default based on bsc#1097111, for migration continuous cases only
+    if (get_var('FLAVOR', '') =~ /Continuous-Migration/) {
+        record_soft_failure 'bsc#1097111 - File conflict of SLE12 SP3 and SLE15 kernel';
+        disable_kernel_multiversion;
+    }
+
     cleanup_disk_space if get_var('REMOVE_SNAPSHOTS');
     power_action('reboot', keepconsole => 1, textmode => 1);
     reconnect_mgmt_console if is_pvm;

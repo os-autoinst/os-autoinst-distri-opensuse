@@ -129,7 +129,7 @@ sub samba_client_access {
     assert_and_click("nautilus-open-menu");
     assert_and_click("nautilus-new-folder");
     assert_screen("nautilus-folder-name-input-box");
-    type_string("sub-testdir", wait_screen_changes => 10);
+    type_string("sub-testdir", wait_screen_change => 10);
     send_key "ret";
     send_key_until_needlematch("nautilus-sharedir-delete", "delete", 5, 2);
     send_key "ret";
@@ -189,8 +189,8 @@ sub run {
     my $script_output = script_output("cat $audit_log");
     if ($script_output =~ m/type=AVC .*apparmor=.*DENIED.* profile=.*/sx) {
         record_info("ERROR", "There are denied records found in $audit_log");
-        record_soft_failure('bsc#1196850') if is_sle('=15-SP3');
-        $self->result('fail') unless is_sle('=15-SP3');
+        record_soft_failure('bsc#1196850') if is_sle('>=15-SP3');
+        $self->result('fail') unless is_sle('>=15-SP3');
     }
 
     # Upload logs for reference

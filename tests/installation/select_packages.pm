@@ -35,7 +35,7 @@ sub run {
             $operation = '+';
         }
         $self->search_package($package_name);
-        $self->toogle_package($package_name, $operation);
+        $self->toggle_package($package_name, $operation);
     }
     $self->back_to_overview_from_packages();
 
@@ -45,7 +45,7 @@ sub run {
         $self->go_to_search_packages();
         # this will only work for one blocker package: grub2
         $self->search_package('grub2');
-        $self->toogle_package('grub2', 'minus');
+        $self->toggle_package('grub2', 'minus');
         wait_screen_change { send_key 'alt-a' };    # accept
         assert_screen('automatic-changes');
         send_key 'alt-o';
@@ -65,7 +65,7 @@ sub run {
         $self->go_to_search_packages();
         for my $package_name (split(/,/, $blocker_packages)) {
             $self->search_package($package_name);
-            $self->toogle_package($package_name, '+');
+            $self->toggle_package($package_name, '+');
         }
         $self->back_to_overview_from_packages();
 

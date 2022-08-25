@@ -9,3 +9,4 @@ schedule:
     - gnuhealth/gnuhealth_client_install
     - gnuhealth/gnuhealth_client_preconfigure
     - gnuhealth/gnuhealth_client_first_time
+    - console/zypper_log_packages

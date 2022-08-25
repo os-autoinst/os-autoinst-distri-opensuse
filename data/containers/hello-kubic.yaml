@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-kubic
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: hello-kubic
+  template:
+    metadata:
+      labels:
+        app: hello-kubic
+    spec:
+      containers:
+      - name: hello-kubic
+        image: registry.opensuse.org/kubic/hello-kubic:latest
+        ports:
+        - containerPort: 8080
+        imagePullPolicy: Always
+        env:
+        # - name: MESSAGE
+        #   value: I haven't specified a message yet
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name

@@ -289,13 +289,17 @@ sub get_3rd_party_images {
     #     on z13: "Fatal glibc error: CPU lacks VXE support (z14 or later required)".
     # - ubi9 images require power9+ machine.
     #     on Power8: "Fatal glibc error: CPU lacks ISA 3.00 support (POWER9 or later required)"
+    # - ubi9 images require x86_64-v2, which needs certain cpu flags
+    push @images, (
+        "registry.access.redhat.com/ubi9/ubi",
+        "registry.access.redhat.com/ubi9/ubi-minimal",
+        "registry.access.redhat.com/ubi9/ubi-micro",
+        "registry.access.redhat.com/ubi9/ubi-init"
+    ) unless (is_s390x || is_ppc64le || !is_x86_64_v2);
+
     # - poo#72124 Ubuntu image (occasionally) fails on s390x.
     # - CentOS image not available on s390x.
     push @images, (
-        "registry.access.redhat.com/ubi9-beta/ubi",
-        "registry.access.redhat.com/ubi9-beta/ubi-minimal",
-        "registry.access.redhat.com/ubi9-beta/ubi-micro",
-        "registry.access.redhat.com/ubi9-beta/ubi-init",
         "$ex_reg/library/ubuntu",
         "$ex_reg/library/centos"
     ) unless (is_s390x || is_ppc64le);

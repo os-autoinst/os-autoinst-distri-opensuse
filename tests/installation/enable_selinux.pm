@@ -25,7 +25,7 @@ sub run {
     }
     else {
         # Select section booting on Installation Settings overview (video mode)
-        send_key_until_needlematch 'security-section-selected', 'tab';
+        send_key_until_needlematch 'security-section-selected', 'tab', 30, 2;
         send_key 'ret';
     }
 

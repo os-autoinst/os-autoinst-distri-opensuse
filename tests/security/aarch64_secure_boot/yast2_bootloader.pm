@@ -23,6 +23,14 @@ sub run {
     # ROM, it will change the bootloader file from shim.efi to
     # grubaa64.efi
     select_console("root-console");
+
+    # On the maintenance job group, we need to install yast2-bootloader, since
+    # it's not present in the created ISO.
+    my $parent_job = get_var('START_AFTER_TEST');
+    if ($parent_job eq "mru-install-minimal-with-addons_security_uefi") {
+        zypper_call("in yast2-bootloader");
+    }
+
     enter_cmd("yast2 bootloader");
     assert_screen("yast2-bootloder-GRUB2-for-EFI");
     send_key_until_needlematch("yast2_bootloader-Secureboot-Support", "tab", 6, 2);

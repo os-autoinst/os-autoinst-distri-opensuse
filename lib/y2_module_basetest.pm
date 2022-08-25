@@ -38,6 +38,7 @@ C<extra_vars> extends the variables that can be used. C<extra_vars> expects a st
 ex: with_yast_env_variables("foo=bar");
 
 =cut
+
 sub with_yast_env_variables {
     my ($extra_vars) = shift // '';
     return "Y2DEBUG=1 ZYPP_MEDIA_CURL_DEBUG=1 Y2STRICTTEXTDOMAIN=1 $extra_vars";
@@ -50,6 +51,7 @@ sub with_yast_env_variables {
 openSUSE desktop roles have network manager as default except for older Leap versions.
 
 =cut
+
 sub is_network_manager_default {
     return 0 if !is_opensuse;
     return 0 if is_leap('<=15.0');
@@ -63,6 +65,7 @@ sub is_network_manager_default {
 Click on Continue when appears info indicating that network interfaces are controlled by Network Manager
 
 =cut
+
 sub continue_info_network_manager_default {
     if (is_network_manager_default) {
         assert_screen 'yast2-lan-warning-network-manager';
@@ -77,6 +80,7 @@ sub continue_info_network_manager_default {
 Click on OK when appears a warning indicating that network interfaces are controlled by Network Manager.
 
 =cut
+
 sub accept_warning_network_manager_default {
     assert_screen 'yast2-lan-warning-network-manager';
     send_key $cmd{ok};
@@ -96,6 +100,7 @@ C<module> module to wait for exit.
 C<timeout> timeout to wait on the serial.
 
 =cut
+
 sub wait_for_exit {
     my %args = @_;
     $args{timeout} //= 60;

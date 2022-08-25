@@ -1,0 +1,6 @@
+---
+# VNC connection to SUT (the 'sut' console) is terminated via svirt backend on XEN and s390x
+# and it is required to re-connect *after* the restart, otherwise the job end up with stalled
+# VNC connection.
+reconnect_svirt:
+  - installation/performing_installation/reconnect_after_reboot

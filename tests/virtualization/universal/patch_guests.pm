@@ -14,68 +14,55 @@ use testapi;
 use qam 'ssh_add_test_repositories';
 use utils;
 use virt_autotest::common;
-use version_utils;
-use virt_autotest::kernel;
+#use version_utils;
+#use virt_autotest::kernel;
 use virt_autotest::utils;
 
-sub run {
-    my ($self) = @_;
-    # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
-    $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
-
-    my $kernel_log = '/tmp/guests_kernel_results.txt';
-    my ($host_running_version, $host_running_sp) = get_os_release();
-    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
-
-    my $found_guest = 0;    # guest where update needs to be installed has been found
-    assert_script_run qq(echo -e "Guests before and after patching:" > $kernel_log);
-    assert_script_run qq(echo -e "\\n\\nBefore:" >> $kernel_log);
-    record_info "BEFORE", "This phase is BEFORE the patching";
-    foreach my $guest (keys %virt_autotest::common::guests) {
-        record_info "$guest", "Probing the guest, adding test repositories and patching the system";
-        ensure_online($guest, skip_ping => (is_hyperv_virtualization || is_vmware_virtualization));
-
-        my ($guest_running_version, $guest_running_sp) = get_os_release("ssh root\@$guest");
-
-        # If we're on support server we have available only guests for upgrade
-        # If we test also the hypervizor we upgrade only guests with matching version
-        if (get_var('SUPPORT_SERVER') || ($host_running_version == $guest_running_version && $host_running_sp == $guest_running_sp)) {
-            ssh_add_test_repositories "$guest";
-
-            assert_script_run "ssh root\@$guest rpm -qa > /tmp/rpm-qa-$guest-before.txt", 600;
-            upload_logs("/tmp/rpm-qa-$guest-before.txt");
-
-            check_virt_kernel(target => $guest, suffix => '-before', log_file => $kernel_log);
-
-            ssh_fully_patch_system "$guest";
-            $found_guest = 1;
-        }
-
-        record_info("REBOOT", "Rebooting $guest");
+sub reboot_guest {
+    my $guest = shift;
+    record_info("Rebooting $guest");
+    if (get_var("KVM") || get_var("XEN")) {
+        script_run("rm /tmp/guests_ip/$guest");
+        script_run("virsh shutdown $guest");
+        script_retry("virsh domstate $guest|grep 'shut off'", retry => 5);
+        script_run("virsh start $guest");
+        script_retry("test -f /tmp/guests_ip/$guest", retry => 5, delay => 60);
+    } else {
         script_run("ssh root\@$guest reboot || true", timeout => 10);
         wait_guest_online($guest);
     }
+}
 
-    # Warning, if guest which should be updated has not been found
-    record_soft_failure("Didn't found matching guest for update install:\n$host_running_version $host_running_sp") unless ($found_guest);
-    wait_guest_online($_) foreach (keys %virt_autotest::common::guests);
-
-    assert_script_run qq(echo -e "\\n\\nAfter:" >> $kernel_log);
-    record_info "AFTER", "This phase is AFTER the patching";
-    foreach my $guest (keys %virt_autotest::common::guests) {
-        if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 12, die => 0) != 0) {
-            record_soft_failure "Reboot on $guest failed";
-            unless (is_vmware_virtualization || is_hyperv_virtualization) {
-                script_run "virsh destroy $guest", 90;
-                assert_script_run "virsh start $guest", 60;
+sub run {
+    my ($self) = @_;
+    select_console('root-console');
+    my @guests = keys %virt_autotest::common::guests;
+    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
+    my $host_os_version = get_var('DISTRI') . "s" . lc(get_var('VERSION') =~ s/-//r);
+    foreach my $guest (@guests) {
+        if ($guest eq $host_os_version || $guest eq "${host_os_version}PV" || $guest eq "${host_os_version}HVM") {
+            if (check_var('PATCH_WITH_ZYPPER', '1')) {
+                assert_script_run("ssh root\@$guest dmesg --level=emerg,crit,alert,err -tx|sort -o /tmp/${guest}_dmesg_err_before.txt");
+                record_info("Patching $guest");
+                ssh_add_test_repositories "$guest";
+                ssh_fully_patch_system "$guest";
+                reboot_guest($guest);
+                assert_script_run("ssh root\@$guest dmesg --level=emerg,crit,alert,err -tx|sort|comm -23 - /tmp/${guest}_dmesg_err_before.txt > /tmp/${guest}_dmesg_err.txt");
+            } else {
+                assert_script_run("ssh root\@$guest dmesg --level=emerg,crit,alert,err > /tmp/${guest}_dmesg_err.txt");
             }
-        }
-        wait_guest_online($guest);
+            if (my $pkg = get_var("UPDATE_PACKAGE")) {
+                script_retry("ssh root\@$guest ! systemctl is-active purge-kernels.service", retry => 5);
+                validate_script_output("ssh root\@$guest zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s });
+            }
+            if (script_run("[[ -s /tmp/${guest}_dmesg_err.txt ]]") == 0) {
+                upload_logs("/tmp/${guest}_dmesg_err_before.txt") if (script_run("[[ -s /tmp/${guest}_dmesg_err_before.txt ]]") == 0); #in case err can't filtered out automatically
+                upload_logs("/tmp/${guest}_dmesg_err.txt");
+                record_soft_failure "The /tmp/${guest}_dmesg_err.txt needs to be checked manually! poo#55555";
+                assert_script_run("cat /tmp/${guest}_dmesg_err.txt");
+            }
 
-        check_virt_kernel(target => $guest, suffix => '-after', log_file => $kernel_log);
-        upload_logs($kernel_log);
-        assert_script_run "ssh root\@$guest rpm -qa > /tmp/rpm-qa-$guest-after.txt", 600;
-        upload_logs("/tmp/rpm-qa-$guest-after.txt");
+        }
     }
 }
 

@@ -17,7 +17,7 @@ export SPECNAME=sssd.localdb
 test_suite_start 'Use SSSD with a local user database'
 
 test_case 'Start SSSD'
-sssd -f -c sssd.conf || test_fatal 'Failed to start SSSD'
+sssd --logger=files -c sssd.conf || test_fatal 'Failed to start SSSD'
 test_ok
 
 test_case 'Add users'

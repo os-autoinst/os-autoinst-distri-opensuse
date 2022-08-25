@@ -55,6 +55,8 @@ sub run {
     my $xml = generateXML($tc_result);
     assert_script_run("echo \'$xml\' > " . JUNIT_FILE);
     parse_junit_log JUNIT_FILE;
+
+    record_soft_failure "poo#110137 - Mark SKIPPED as soft failure" if check_var('SOFT_FAILURE', 1);
 }
 
 1;

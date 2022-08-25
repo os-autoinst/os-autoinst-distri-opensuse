@@ -37,9 +37,9 @@ sub register_module {
     $self->get_module_registration_page()->press_next();
 }
 
-sub register_modules {
+sub register_extension_and_modules {
     my ($self, $modules) = @_;
-    $self->get_module_registration_page()->register_modules($modules);
+    $self->get_module_registration_page()->register_extension_and_modules($modules);
     $self->get_module_registration_page()->press_next();
 }
 

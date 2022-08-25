@@ -16,6 +16,7 @@ use utils qw(zypper_call);
 use testapi;
 
 has wicked_version => undef;
+has need_key_mgmt => undef;
 has eap_user => 'tester';
 has eap_password => 'test1234';
 has ca_cert => '/etc/raddb/certs/ca.pem';
@@ -188,6 +189,8 @@ sub prepare_phys {
         die("Failed to get netns dummy pid") unless ($output =~ m/BACKGROUND_PROCESS:-(\d+)-/);
         $cmd_set_netns = 'iw phy ' . $self->ref_phy . ' set netns ' . $1;
     }
+    # Delay namespace setup of wlan device to avoid wickedd-nanny error message
+    assert_script_run('sleep 3');
     assert_script_run($cmd_set_netns);
 
     assert_script_run('iw dev');
@@ -259,6 +262,46 @@ sub hostapd_can_wep {
     $self->write_cfg('/tmp/check_wep.conf', 'wep_key0=123456789a');
     my $s = script_output('hostapd /tmp/check_wep.conf', proceed_on_failure => 1);
     return $s !~ m/unknown configuration item 'wep_key0'/i;
+}
+
+sub is_hostapd_supporting_key_mgmt {
+    my ($self, $key_mgmt) = @_;
+
+    $self->write_cfg('/tmp/check_key_mgmt.conf', 'wpa_key_mgmt=' . $key_mgmt);
+    my $s = script_output('hostapd /tmp/check_key_mgmt.conf', proceed_on_failure => 1);
+    return $s !~ m/invalid key_mgmt/i;
+}
+
+sub is_wpa_supplicant_supporting_key_mgmt {
+    my ($self, $key_mgmt) = @_;
+    $self->write_cfg('/tmp/check_key_mgmt.conf', <<EOT);
+        network={
+            ssid=this-produce-a-ssid-parsing-error
+            key_mgmt=$key_mgmt
+        }
+EOT
+    my $s = script_output('wpa_supplicant -c/tmp/check_key_mgmt.conf -i ' . $self->sut_ifc, proceed_on_failure => 1);
+    return $s !~ m/invalid key_mgmt/i;
+}
+
+sub skip_by_supported_key_mgmt {
+    my ($self) = @_;
+    return 0 unless $self->need_key_mgmt;
+
+    if (!$self->is_hostapd_supporting_key_mgmt($self->need_key_mgmt)) {
+        record_info('SKIP', 'Skip test - hostapd does not support wpa_key_mgmt=' . $self->need_key_mgmt,
+            result => 'softfail');
+        $self->result('skip');
+        return 1;
+    }
+    if (!$self->is_wpa_supplicant_supporting_key_mgmt($self->need_key_mgmt)) {
+        record_info('SKIP', 'Skip test - wpa_supplicant does not support key_mgmt=' . $self->need_key_mgmt,
+            result => 'softfail');
+        $self->result('skip');
+        return 1;
+    }
+
+    return 0;
 }
 
 sub hostapd_start {
@@ -349,6 +392,7 @@ sub run {
     my $self = shift;
     $self->select_serial_terminal;
     return if ($self->skip_by_wicked_version());
+    return if ($self->skip_by_supported_key_mgmt());
 
     $self->setup_ref();
 

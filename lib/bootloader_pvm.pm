@@ -36,6 +36,7 @@ our @EXPORT = qw(
 Get into SMS menu for booting from net.
 
 =cut
+
 sub get_into_net_boot {
     assert_screen 'pvm-bootmenu';
 
@@ -74,6 +75,7 @@ sub get_into_net_boot {
 Handle the boot and installation preperation process of PVM LPARs after the hypervisor specific actions to power them on is done
 
 =cut
+
 sub prepare_pvm_installation {
     my ($boot_attempt) = @_;
     $boot_attempt //= 1;
@@ -161,6 +163,9 @@ sub boot_hmc_pvm {
     record_info("Details", "See the next screen to get details on $hmc_machine_name");
     enter_cmd "lslic -m $hmc_machine_name -t syspower | sed 's/,/\\n/g'";
 
+    # Fail the job when a lpar is not available
+    die 'The managed system is not available' if check_screen('lpar_manage_status_unavailable', 3);
+
     # detach possibly attached terminals - might be left over
     enter_cmd "rmvterm -m $hmc_machine_name --id $lpar_id && echo 'DONE'";
     assert_screen 'pvm-vterm-closed';
@@ -198,6 +203,7 @@ sub boot_hmc_pvm {
 Boot from spvm backend via novalink and switch to installation console (ssh or vnc).
 
 =cut
+
 sub boot_spvm {
     my $lpar_id = get_required_var('NOVALINK_LPAR_ID');
     my $novalink = select_console 'novalink-ssh';

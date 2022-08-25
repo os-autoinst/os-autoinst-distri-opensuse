@@ -40,6 +40,7 @@ use testapi qw(send_key %cmd assert_screen check_screen check_var click_lastmatc
 
 Class constructor
 =cut
+
 sub new {
     my ($class) = @_;
     my $self = $class->SUPER::new(@_);
@@ -52,6 +53,7 @@ sub new {
 
 Types the password in a password prompt
 =cut
+
 sub handle_password_prompt {
     my ($console) = @_;
     $console //= '';
@@ -74,6 +76,7 @@ sub handle_password_prompt {
 
 TODO needs to be documented
 =cut
+
 sub init {
     my ($self) = @_;
 
@@ -86,6 +89,7 @@ sub init {
 
 TODO needs to be documented
 =cut
+
 sub init_cmd {
     my ($self) = @_;
 
@@ -181,6 +185,7 @@ sub init_cmd {
 
 Starts the desktop runner for C<x11_start_program>
 =cut
+
 sub init_desktop_runner {
     my ($program, $timeout) = @_;
     $timeout //= 30;
@@ -264,6 +269,7 @@ we keep the old check for the runner border.
 
 This method is overwriting the base method in os-autoinst.
 =cut
+
 sub x11_start_program {
     my ($self, $program, %args) = @_;
     my $timeout = $args{timeout};
@@ -315,6 +321,7 @@ sub _ensure_installed_zypper_fallback {
 
 Ensure that a package is installed
 =cut
+
 sub ensure_installed {
     my ($self, $pkgs, %args) = @_;
     my $pkglist = ref $pkgs eq 'ARRAY' ? join ' ', @$pkgs : $pkgs;
@@ -334,6 +341,7 @@ sub ensure_installed {
 
 Execute the given command as sudo
 =cut
+
 sub script_sudo {
     my ($self, $prog, $wait) = @_;
 
@@ -362,6 +370,7 @@ sub script_sudo {
 C<$user> and C<os_type> affect prompt sign. C<skip_set_standard_prompt> options
 skip the entire routine.
 =cut
+
 sub set_standard_prompt {
     my ($self, $user, %args) = @_;
     return if $args{skip_set_standard_prompt} || !get_var('SET_CUSTOM_PROMPT');
@@ -382,6 +391,7 @@ sub set_standard_prompt {
 
 Log in as root in the current console
 =cut
+
 sub become_root {
     my ($self) = @_;
 
@@ -399,6 +409,7 @@ sub become_root {
 
 Initialize the consoles needed during our tests
 =cut
+
 sub init_consoles {
     my ($self) = @_;
 
@@ -410,6 +421,7 @@ sub init_consoles {
 
     if (is_qemu) {
         $self->add_console('root-virtio-terminal', 'virtio-terminal', {});
+        $self->add_console('user-virtio-terminal', 'virtio-terminal', {});
         for (my $num = 1; $num < get_var('VIRTIO_CONSOLE_NUM', 1); $num++) {
             $self->add_console('root-virtio-terminal' . $num, 'virtio-terminal', {socked_path => cwd() . '/virtio_console' . $num});
         }
@@ -640,6 +652,7 @@ sub init_consoles {
 
 Make sure the right user is logged in, e.g. when using remote shells
 =cut
+
 sub ensure_user {
     my ($user) = @_;
     enter_cmd(sprintf('test "$(id -un)" == "%s" || su - "%s"', $user, $user)) if $user ne 'root';
@@ -660,6 +673,7 @@ test variable C<CONSOLE_JUST_ACTIVATED> works as a mutually exclusive lock.
 
 Requires C<console> name, an actual VT number C<nr> is optional.
 =cut
+
 sub hyperv_console_switch {
     my ($self, $console, $nr) = @_;
 
@@ -691,6 +705,7 @@ sub hyperv_console_switch {
 
 Return console VT number with regards to it's name.
 =cut
+
 sub console_nr {
     my ($console) = @_;
     $console =~ m/^(\w+)-(console|virtio-terminal|sut-serial|ssh|shell)/;
@@ -718,6 +733,7 @@ Option C<ensure_tty_selected> ensures TTY is selected.
 C<timeout> is set on the internal C<assert_screen> call and can be set to
 configure a timeout value different than default.
 =cut
+
 sub activate_console {
     my ($self, $console, %args) = @_;
 
@@ -796,6 +812,7 @@ sub activate_console {
         }
     }
     elsif ($type =~ /^(virtio-terminal|sut-serial)$/) {
+        $self->{serial_term_prompt} = $user eq 'root' ? '# ' : '> ';
         serial_terminal::login($user, $self->{serial_term_prompt});
     }
     elsif ($console eq 'novalink-ssh') {
@@ -880,6 +897,7 @@ known uncheckable consoles are already ignored.
 C<timeout> is set on the internal C<assert_screen> call and can be set to
 configure a timeout value different than default.
 =cut
+
 sub console_selected {
     my ($self, $console, %args) = @_;
     if ((exists $testapi::testapi_console_proxies{'root-ssh'}) && $console =~ m/^(root-console|install-shell|log-console)$/) {
@@ -890,7 +908,7 @@ sub console_selected {
     }
     $args{await_console} //= 1;
     $args{tags} //= $console;
-    $args{ignore} //= qr{sut|root-virtio-terminal|root-sut-serial|iucvconn|svirt|root-ssh|hyperv-intermediary|serial-ssh};
+    $args{ignore} //= qr{sut|user-virtio-terminal|root-virtio-terminal|root-sut-serial|iucvconn|svirt|root-ssh|hyperv-intermediary|serial-ssh};
     $args{timeout} //= 30;
 
     if ($args{tags} =~ $args{ignore} || !$args{await_console} || (get_var('FLAVOR') eq 'WSL')) {

@@ -1,4 +1,4 @@
-# Copyright 2019-2021 SUSE LLC
+# Copyright 2019-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 package scheduler;
@@ -14,16 +14,18 @@ use testapi qw(get_var set_var diag);
 use main_common 'loadtest';
 use YAML::PP;
 use YAML::PP::Schema::Include;
-use Data::Dumper;
+use YAML::PP::Common 'PRESERVE_ORDER';
 
 our @EXPORT = qw(load_yaml_schedule get_test_suite_data);
 
 my $test_suite_data;
 my $root_project_dir = dirname(__FILE__) . '/../';
 my $include = YAML::PP::Schema::Include->new(paths => ($root_project_dir));
-my $ypp = YAML::PP->new(schema => ['Core', $include, 'Merge']);
+my $ypp = YAML::PP->new(
+    schema => ['Core', $include, 'Merge'],
+    preserve => PRESERVE_ORDER
+);
 $include->yp($ypp);
-$Data::Dumper::Terse = 1;
 
 sub parse_vars {
     my ($schedule) = shift;
@@ -32,18 +34,53 @@ sub parse_vars {
         $value =~ s/%(.*?)%/get_var($1)/eg;
         $vars{$var} = $value;
     }
-    my $varlog = Dumper(\%vars);
-    diag("parse_vars (variables parsed from YAML schedule): " . $varlog);
+    diag('parse_vars (variables parsed from YAML schedule):');
+    diag($ypp->dump_string(\%vars));
     return %vars;
 }
 
 sub parse_schedule {
     my ($schedule) = shift;
     my @scheduled;
-    for my $module (@{$schedule->{schedule}}) {
-        push(@scheduled, parse_schedule_module($schedule, $module));
 
+    # schedule contains keys and is based on a list of files representing schedule flows
+    if (ref $schedule->{schedule} eq 'HASH') {
+        my $default_path = get_var('YAML_SCHEDULE_DEFAULT');
+        die "openQA setting 'YAML_SCHEDULE_DEFAULT' should be provided when using keys to be overriden " .
+          "instead of a list of test modules." unless $default_path;
+        my $default_flow = $ypp->load_file($root_project_dir . $default_path);
+
+        my $additional_flows = {};
+        if (my @flows = split(/,/, get_var('YAML_SCHEDULE_FLOWS', ''))) {
+            # all flows are expected to be in the same path than the default.yaml
+            my (undef, $flows_path, undef) = fileparse($default_path, '.yaml');
+
+            # merge flows
+            for my $flow (@flows) {
+                # latest flow has priority over previous processed flows
+                $additional_flows = {
+                    %{$additional_flows},
+                    %{$ypp->load_file($root_project_dir . $flows_path . $flow . '.yaml')}
+                };
+            }
+        }
+        # schedule flow has priority over previous processed flows
+        $additional_flows = {%{$additional_flows}, %{$schedule->{schedule}}};
+
+        # create the final list of test modules
+        for my $k (keys %$default_flow) {
+            push @scheduled, exists $additional_flows->{$k} ?
+              $additional_flows->{$k}->@*
+              : $default_flow->{$k}->@*;
+        }
     }
+    # schedule contains a list of test modules
+    else {
+        for my $module (@{$schedule->{schedule}}) {
+            push(@scheduled, parse_schedule_module($schedule, $module));
+        }
+    }
+    diag($ypp->dump_string(\@scheduled));
     return @scheduled;
 }
 
@@ -116,9 +153,8 @@ sub parse_test_suite_data {
         $test_suite_data = {%$test_suite_data, %{$include_yaml}};
     }
     expand_test_data_vars($test_suite_data);
-    my $out = Dumper($test_suite_data);
-    chomp($out);
-    diag("parse_test_suite_data (data parsed from YAML test_data): $out");
+    diag('parse_test_suite_data (data parsed from YAML test_data):');
+    diag($ypp->dump_string($test_suite_data));
 }
 
 =head2 load_yaml_schedule
@@ -129,12 +165,12 @@ Parse variables and test modules from a yaml file representing a test suite to b
 
 sub load_yaml_schedule {
     if (my $yamlfile = get_var('YAML_SCHEDULE')) {
-        my $schedule = $ypp->load_file($root_project_dir . $yamlfile);
-        my %schedule_vars = parse_vars($schedule);
+        my $schedule_file = $ypp->load_file($root_project_dir . $yamlfile);
+        my %schedule_vars = parse_vars($schedule_file);
         my $test_context_instance = undef;
         while (my ($var, $value) = each %schedule_vars) { set_var($var, $value) }
-        my @schedule_modules = parse_schedule($schedule);
-        parse_test_suite_data($schedule);
+        my @schedule_modules = parse_schedule($schedule_file);
+        parse_test_suite_data($schedule_file);
         $test_context_instance = get_var('TEST_CONTEXT')->new() if defined get_var('TEST_CONTEXT');
         loadtest($_, run_args => $test_context_instance) for (@schedule_modules);
         return 1;

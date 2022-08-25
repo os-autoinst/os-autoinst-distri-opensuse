@@ -26,7 +26,6 @@ conditional_schedule:
         - console/yast2_tftp
         - console/yast2_proxy
         - console/yast2_vnc
-        - console/yast2_nis
         - console/yast2_http
         - console/yast2_ftp
         - console/yast2_apparmor

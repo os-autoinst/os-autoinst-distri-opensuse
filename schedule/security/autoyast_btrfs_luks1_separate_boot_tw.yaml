@@ -1,0 +1,21 @@
+---
+name: autoyast_btrfs_luks1_separate_boot
+description: >
+  Tumbleweed with luks1 encrypt with separate boot
+vars:
+  AUTOYAST: autoyast_opensuse/autoyast_btrfs_luks1_separate_boot.xml
+  DESKTOP: gnome
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/handle_reboot
+  - installation/boot_encrypt
+  - installation/first_boot
+  - autoyast/console
+  - console/system_prepare
+  - console/zypper_ar
+  - console/zypper_ref
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/shutdown

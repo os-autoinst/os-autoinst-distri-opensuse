@@ -13,7 +13,7 @@ use warnings;
 
 use base 'Exporter';
 use Exporter;
-use testapi qw(check_var get_var);
+use testapi qw(check_var get_var script_output);
 
 use constant {
     ARCH => [
@@ -22,6 +22,7 @@ use constant {
           is_i586
           is_i686
           is_x86_64
+          is_x86_64_v2
           is_aarch64
           is_arm
           is_ppc64le
@@ -44,9 +45,10 @@ our %EXPORT_TAGS = (
 
  is_s390x();
 
-Returns C<check_var('s390x')>.
+Returns C<check_var('ARCH', 's390x')>.
 
 =cut
+
 sub is_s390x {
     return check_var('ARCH', 's390x');
 }
@@ -55,9 +57,10 @@ sub is_s390x {
 
  is_i586();
 
-Returns C<check_var('is_i586')>.
+Returns C<check_var('ARCH', 'is_i586')>.
 
 =cut
+
 sub is_i586 {
     return check_var('ARCH', 'i586');
 }
@@ -66,9 +69,10 @@ sub is_i586 {
 
  is_i686();
 
-Returns C<check_var('is_i686')>.
+Returns C<check_var('ARCH', 'is_i686')>.
 
 =cut
+
 sub is_i686 {
     return check_var('ARCH', 'i686');
 }
@@ -77,20 +81,39 @@ sub is_i686 {
 
  is_x86_64();
 
-Returns C<check_var('x86_64')>.
+Returns C<check_var('ARCH', 'x86_64')>.
 
 =cut
+
 sub is_x86_64 {
     return check_var('ARCH', 'x86_64');
+}
+
+=head2 is_x86_64_v2
+
+ is_x86_64_v2();
+
+Returns C<check_var('ARCH', 'is_x86_64_v2')>.
+
+=cut
+
+sub is_x86_64_v2 {
+    return 0 unless is_x86_64;
+    my $cpu_flags = script_output('lscpu | grep -i flags');
+    foreach my $flag (qw(cx16 lahf popcnt sse4_1 sse4_2 ssse3)) {
+        return 0 if ($cpu_flags !~ /$flag/);
+    }
+    return 1;
 }
 
 =head2 is_aarch64
 
  is_aarch64();
 
-Returns C<check_var('aarch64')>.
+Returns C<check_var('ARCH', 'aarch64')>.
 
 =cut
+
 sub is_aarch64 {
     return check_var('ARCH', 'aarch64');
 }
@@ -102,6 +125,7 @@ sub is_aarch64 {
 Returns C<get_var('ARCH') =~ /arm/>.
 
 =cut
+
 sub is_arm {
     return (get_var('ARCH') =~ /arm/);    # Can match arm, armv7, armv7l, armv7hl, ...
 }
@@ -110,9 +134,10 @@ sub is_arm {
 
  is_ppc64le();
 
-Returns C<check_var('ppc64le')>.
+Returns C<check_var('ARCH', 'ppc64le')>.
 
 =cut
+
 sub is_ppc64le {
     return check_var('ARCH', 'ppc64le');
 }
@@ -121,9 +146,10 @@ sub is_ppc64le {
 
  is_ppc64();
 
- Returns C<check_var('ppc64')>.
+ Returns C<check_var('ARCH', 'ppc64')>.
 
 =cut
+
 sub is_ppc64 {
     return check_var('ARCH', 'ppc64');
 }
@@ -135,6 +161,7 @@ sub is_ppc64 {
 Returns C<true if machine FQDN has arch.suse.de suffix>.
 
 =cut
+
 sub is_orthos_machine {
     my $sut_fqdn = get_var('SUT_IP', 'nosutip');
     return 1 if $sut_fqdn =~ /(arch\.suse\.de)/im;
@@ -148,6 +175,7 @@ sub is_orthos_machine {
 Returns C<true if machine FQDN has qa.suse.de, qa2.suse.asia or arch.suse.de suffix>.
 
 =cut
+
 sub is_supported_suse_domain {
     my $sut_fqdn = get_var('SUT_IP', 'nosutip');
     return 1 if $sut_fqdn =~ /(arch\.suse\.de|qa2\.suse\.asia|qa\.suse\.de)/im;

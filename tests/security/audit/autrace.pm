@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub get_pid {
     # Call this fuction to extract pid from autrace output in command line
@@ -27,6 +28,11 @@ sub run {
     my $tmp_output = '/tmp/out';
 
     select_console 'root-console';
+
+    if (is_sle("<=12-SP5")) {
+        # on 12-SP5 and lower, the file may have incorrect permission thus causing the test to fail.
+        script_run("chmod 600 $audit_log");
+    }
 
     # Use autrace to trace an individual process, output will be logged to audit log
     my $ret = script_run('autrace /bin/ls /tmp');

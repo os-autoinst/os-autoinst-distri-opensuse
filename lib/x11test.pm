@@ -16,7 +16,7 @@ use Config::Tiny;
 use Utils::Architectures;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
-use x11utils qw(select_user_gnome handle_gnome_activities);
+use x11utils qw(select_user_gnome start_root_shell_in_xterm handle_gnome_activities);
 use POSIX 'strftime';
 use mm_network;
 
@@ -516,6 +516,33 @@ sub setup_mail_account {
     send_key_until_needlematch 'evolution_mail-max-window', 'super-up', 3, 3;
 }
 
+# Use AutoConfig file for firefox to predefine some user values
+# https://support.mozilla.org/en-US/kb/customizing-firefox-using-autoconfig
+sub prepare_firefox_autoconfig {
+    my ($self) = @_;
+    start_root_shell_in_xterm;
+
+    # Enable AutoConfig by pointing to a cfg file
+    type_string(q{cat <<EOF > $(rpm --eval %_libdir)/firefox/defaults/pref/autoconfig.js
+pref("general.config.filename", "firefox.cfg");
+pref("general.config.obscure_value", 0);
+EOF
+});
+    # Create AutoConfig cfg file
+    type_string(q{cat <<EOF > $(rpm --eval %_libdir)/firefox/firefox.cfg
+// Mandatory comment
+// https://firefox-source-docs.mozilla.org/browser/components/newtab/content-src/asrouter/docs/first-run.html
+pref("browser.aboutwelcome.enabled", false);
+pref("browser.startup.upgradeDialog.enabled", false);
+pref("privacy.restrict3rdpartystorage.rollout.enabledByDefault", false);
+EOF
+});
+
+    save_screenshot;
+    # Close the xterm with root shell
+    enter_cmd "killall xterm";
+}
+
 # start clean firefox with one suse.com tab, visit pages which trigger pop-up so they will not pop again
 # .mozilla is stored as .mozilla_first_run to be reference profile for following tests
 sub start_clean_firefox {
@@ -689,14 +716,14 @@ sub firefox_preferences {
 sub exit_firefox_common {
     # Exit
     send_key 'ctrl-q';
-    wait_still_screen 1, 2;
-    send_key_until_needlematch([qw(firefox-save-and-quit xterm-left-open xterm-without-focus)], "alt-f4", 3, 30);
+    wait_still_screen 3, 6;
+    send_key_until_needlematch([qw(firefox-save-and-quit xterm-left-open xterm-without-focus)], "alt-f4", 6, 30);
     if (match_has_tag 'firefox-save-and-quit') {
         # confirm "save&quit"
         send_key "ret";
     }
     # wait a sec because xterm-without-focus can match while firefox is being closed
-    wait_still_screen 2;
+    wait_still_screen 3, 6;
     assert_screen [qw(xterm-left-open xterm-without-focus)];
     if (match_has_tag 'xterm-without-focus') {
         # focus it
@@ -941,11 +968,11 @@ sub configure_static_ip_nm {
     # Dynamic get network interface names
     my $niName = script_output("ls /sys/class/net | grep ^e", type_command => 1);
     chomp $niName;
-    configure_default_gateway;
+    # Add new NetworkManager connection with static IP address and default route
     assert_script_run "nmcli connection add type ethernet con-name wired ifname '$niName' ip4 '$ip' gw4 10.0.2.2";
+    configure_static_dns(get_host_resolv_conf(), nm_id => 'wired', is_nm => 1);
     assert_script_run "nmcli device disconnect '$niName'";
     assert_script_run "nmcli connection up wired ifname '$niName'";
-    configure_static_dns(get_host_resolv_conf());
     enter_cmd "exit";
     wait_screen_change { send_key 'alt-f4' };
 }
@@ -966,6 +993,10 @@ sub configure_xdmcp_firewall {
 
 sub check_desktop_runner {
     x11_start_program('true', target_match => 'generic-desktop', no_wait => 1);
+}
+
+sub disable_key_repeat {
+    x11_start_program('xset -r', target_match => 'generic-desktop', no_wait => 1);
 }
 
 # Start one of the libreoffice components, close any first-run dialogs

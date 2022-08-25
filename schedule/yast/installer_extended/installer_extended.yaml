@@ -13,13 +13,18 @@ vars:
   EXIT_AFTER_START_INSTALL: '1'
   EXTRABOOTPARAMS: Y2STRICTTEXTDOMAIN=1
   YUI_REST_API: 1
+conditional_schedule:
+  access_beta_distribution:
+    BETA:
+      1:
+        - installation/validate_beta_message
+        - installation/access_beta_distribution
 schedule:
   - installation/isosize
   - installation/data_integrity
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_message
-  - installation/access_beta_distribution
+  - '{{access_beta_distribution}}'
   - installation/language_keyboard/switch_keyboard_layout
   - installation/product_selection/install_SLES
   - installation/licensing/verify_license_translations
@@ -45,9 +50,9 @@ test_data:
     language: English (US)
     translations:
       - language: Czech
-        text: Licenční smlouva společnosti
+        text: Licenční smlouva s koncovým uživatelem
       - language: English (US)
-        text: End User License Agreement
+        text: End User License Agreement for SUSE Products
       - language: French
         text: Contrat de licence utilisateur final
       - language: German
@@ -55,19 +60,19 @@ test_data:
       - language: Italian
         text: Contratto di licenza
       - language: Japanese
-        text: 版ソフトウェア
+        text: エンドユーザ使用許諾契約
       - language: Korean
-        text: 소프트웨어
+        text: SUSE 제품에 관한
       - language: Portuguese (Brazilian)
         text: Contrato de Licença para Usuário Final
       - language: Russian
         text: Лицензионное соглашение
       - language: Simplified Chinese
-        text: 软件的
+        text: SUSE 产品
       - language: Spanish
         text: Acuerdo de licencia de usuario final
       - language: Traditional Chinese
-        text: 版軟體的
+        text: 最終使用者授權合約
   beta_text: 'You are accessing our Beta Distribution'
   modules:
     - sle-ha

@@ -27,7 +27,6 @@ conditional_schedule:
   scc_registration:
     DISTRI:
       'sle-micro':
-        - installation/accept_license
         - installation/scc_registration
   kvm:
     ARCH:

@@ -2,11 +2,13 @@
 name: qam-regression-firefox
 schedule:
 - boot/boot_to_desktop
+- console/prepare_test_data
 - x11/window_system
 - x11/disable_screensaver
 - x11/firefox/firefox_smoke
 - x11/firefox/firefox_urlsprotocols
-- x11/firefox/firefox_downloading
+# https://progress.opensuse.org/issues/113435
+# - x11/firefox/firefox_downloading
 - x11/firefox/firefox_changesaving
 - x11/firefox/firefox_fullscreen
 - x11/firefox/firefox_localfiles

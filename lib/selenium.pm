@@ -58,6 +58,7 @@ Usage:
   my $driver = selenium_driver;
   ...
 =cut
+
 sub add_chromium_repos {
     my $ret = zypper_call("se chromedriver", exitcode => [0, 104]);
     if ($ret == 104) {

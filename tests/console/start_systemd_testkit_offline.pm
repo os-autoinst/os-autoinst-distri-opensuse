@@ -21,6 +21,7 @@ use Mojo::JSON qw(encode_json);
 use version_utils qw(is_sle);
 use strict;
 use warnings;
+use Utils::Logging;
 
 my $log = '/tmp/systemd_run.log';
 my $testdir = '/usr/lib/test/external/';
@@ -85,22 +86,20 @@ sub parse_results_from_output {
             # Test block end has been reached. Record results
 
             if ($outcome eq 'failed') {
-                my ($openQA_result, $softfail_result);
-                if ($error_line =~ /problems.*hostagent.service/) {
-                    $openQA_result = $self->record_testresult('softfail');
-                    $softfail_result = 119565;
-                } elsif ($error_line =~ /invalid.*version.*249.*expected.*234.*/ && is_sle("=15-SP4")) {
-                    $openQA_result = $self->record_testresult('softfail');
-                    $softfail_result = 1198455;
-                } else {
-                    $openQA_result = $self->record_testresult('fail');
-                    $softfail_result = 0;
-                }
+                # In case you need to add soft failure, use the following commented code as a guide
+                #my ($openQA_result, $softfail_result);
+                #if ($error_line =~ /problems.*hostagent.service/) {
+                #   $openQA_result = $self->record_testresult('softfail');
+                #   $softfail_result = 119565;
+                #} else {
+                my $openQA_result = $self->record_testresult('fail');
+                #$softfail_result = 0;
+                #}
                 my $openQA_filename = $self->next_resultname('txt');
                 $openQA_result->{title} = $testunit;
                 $openQA_result->{text} = $openQA_filename;
-                ($softfail_result) ? $self->write_resultfile($openQA_filename, "# Softfail bsc#$softfail_result:\n$error_line\n") :
-                  $self->write_resultfile($openQA_filename, "# Failure:\n$error_line\n");
+                #($softfail_result) ? $self->write_resultfile($openQA_filename, "# Softfail bsc#$softfail_result:\n$error_line\n") :
+                $self->write_resultfile($openQA_filename, "# Failure:\n$error_line\n");
                 $self->{dents}++;
             }
 
@@ -124,6 +123,8 @@ sub upload_systemdlib_tests_logs {
     my ($self) = @_;
     my $out = script_output('journalctl --no-pager -axb -o short-precise');
     record_info("JOURNAL", "$out");
+    my $filename = "start_external_testkit_offline.log";
+    save_ulog($out, $filename);
 }
 
 1;

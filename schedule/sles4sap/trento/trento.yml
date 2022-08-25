@@ -1,0 +1,24 @@
+---
+name: trento
+description: |
+  Run Trento tests on public cloud instances:
+    - Test to deploy and test a Trento app
+    - Deploy on Azure: Trento and a SAP landscape and bond them together
+    - Test interacting with the web interface using Cypress
+    - Destroy all Azure resources related to the Trento app and other utility like ACR
+vars:
+    TRENTO_REGISTRY_CHART: 'registry.suse.com/trento/trento-runner'
+    TRENTO_REGISTRY_CHART_VERSION: '1.0.0'
+    TRENTO_DEPLOY_SCRIPTS_REPO: 'gitlab.suse.de/qa-css/trento'
+    TRENTO_VM_IMAGE: 'SUSE:sles-sap-15-sp3-byos:gen2:latest'
+    TRENTO_CYPRESS_VERSION: '4.4.0'
+    PUBLIC_CLOUD_PROVIDER: 'AZURE'
+    PUBLIC_CLOUD_CREDENTIALS_URL: 'https://publiccloud-ng.qa.suse.de/secrets'
+    PUBLIC_CLOUD_NAMESPACE: 'sapha'
+    TEST_CONTEXT: 'OpenQA::Test::RunArgs'
+schedule:
+    - boot/boot_to_desktop
+    - sles4sap/trento/init_jumphost
+    - sles4sap/trento/deploy_trento
+    - sles4sap/trento/test_trento_deploy
+    - sles4sap/trento/test_trento_web

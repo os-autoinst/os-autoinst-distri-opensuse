@@ -10,7 +10,7 @@
 # Maintainer: <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
-use publiccloud::utils "select_host_console";
+use publiccloud::ssh_interactive "select_host_console";
 use testapi;
 use utils;
 
@@ -40,7 +40,7 @@ sub prepare_ssh_tunnel {
     $instance->run_ssh_command(sprintf("sudo install -o root -g root -m 0644 /home/%s/.ssh/authorized_keys /root/.ssh/", $instance->{username}));
 
     # Create remote user and set him a password
-    $instance->run_ssh_command("sudo useradd -m $testapi::username");
+    $instance->run_ssh_command("test -d /home/$testapi::username || sudo useradd -m $testapi::username");
     $instance->run_ssh_command(qq(echo -e "$testapi::password\\n$testapi::password" | sudo passwd $testapi::username));
 
     # Copy SSH settings for remote user
@@ -71,7 +71,6 @@ sub run {
     $instance_args{use_extra_disk} = {size => $additional_disk_size, type => $additional_disk_type} if ($additional_disk_size > 0);
     my $instance = $provider->create_instance(%instance_args);
     $instance->wait_for_guestregister();
-    $instance->check_guestregister();
     $args->{my_provider} = $provider;
     $args->{my_instance} = $instance;
     $instance->ssh_opts("");    # Clear $instance->ssh_opts which ombit the known hosts file and strict host checking by default

@@ -24,7 +24,7 @@ YuiRestClient::Widget::Label - Handle YLabel, YLabel_Heading
 
 =head1 COPYRIGHT
 
-Copyright © 2020 SUSE LLC
+Copyright 2020 SUSE LLC
 
 SPDX-License-Identifier: FSFAP
 

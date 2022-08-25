@@ -22,8 +22,6 @@ use y2_module_consoletest;
 
 sub setup_nis_client {
     my $server_ip = shift;
-    assert_screen 'nis-client-install-missing-package';
-    send_key 'alt-i';    # install missing ypbind rpm
     assert_screen 'nis-client-configuration', 120;
     send_key 'alt-u';    # use NIS radio button
     wait_still_screen 4;

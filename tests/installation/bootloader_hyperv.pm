@@ -97,6 +97,8 @@ sub run {
             for my $isopath ("iso", "iso\\fixed") {
                 # Copy ISO from NFS share to local cache on Hyper-V in 'network-restartable' mode
                 my $basenameiso = basename($iso);
+                # Using sha256sum to judge whether file is used by other job process.
+                hyperv_cmd_with_retry("if exist $root\\cache\\$basenameiso ( sha256sum $root\\cache\\$basenameiso )", {msgs => ('Permission denied')});
                 last
                   unless hyperv_cmd("if not exist $root\\cache\\$basenameiso ( copy /Z /Y $root_nfs\\$isopath\\$basenameiso $root\\cache\\ )",
                     {ignore_return_code => 1});

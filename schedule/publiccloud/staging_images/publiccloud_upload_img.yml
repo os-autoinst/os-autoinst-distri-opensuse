@@ -1,8 +1,0 @@
----
-name: publiccloud_upload_img
-description: |
-  Upload a public-cloud image to the CSP. How the image gets uploaded depends on
-  the CSP. If the image already exists, the upload gets skipped.Maintainer: cfamullaconrad@suse.com
-schedule:
-  - boot/boot_to_desktop
-  - publiccloud/upload_image

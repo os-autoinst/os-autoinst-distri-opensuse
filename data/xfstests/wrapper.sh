@@ -2,11 +2,14 @@
 XFSTESTS_DIR='/opt/xfstests'
 PROG="$XFSTESTS_DIR/check"
 SCRIPT_DIR=$(realpath $(dirname "$0"))
-FSTYPE=${2:-'xfs'}
+if [ "$#" -gt 2 ]; then
+    INJECT_LINE=$2
+    INJECT_CODE=$3
+fi
 
 function usage()
 {
-    echo "Usage: $0 TEST [FILESYSTEM TYPE]"
+    echo "Usage: $0 TEST [INJECT_LINE(for debug)] [INJECT_CODE(for debug)]"
 }
 
 function unset_vars()
@@ -42,8 +45,18 @@ function parse_result()
     return 11
 }
 
+# Inject code into subtests, could use in debugging
+# 1 - Subtests to inject
+# 2 - Line to inject
+# 3 - Inject code
+function inject_code()
+{
+    echo "DEBUG Mode: inject code ($3) into $1 line $2. Beware the output may not match after inject."
+    sed -i "$2i$3" $XFSTESTS_DIR/tests/$1
+}
+
 # Check for cmdline arguments
-if [ "$#" -lt 1 -o "$#" -gt 2 ]; then
+if [ "$#" -lt 1 ]; then
     usage
     exit 255
 fi
@@ -70,6 +83,10 @@ if [[ -f "$HOME/.xfstests" ]]; then
 fi
 
 pushd "$XFSTESTS_DIR" &> /dev/null
+
+if [ "$#" -gt 2 ]; then
+    inject_code "$1" $INJECT_LINE "$INJECT_CODE"
+fi
 
 # Run test
 log_file="/tmp/xfstests-$(echo "$1" | tr '/' '_').tmp"

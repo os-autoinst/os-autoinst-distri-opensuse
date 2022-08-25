@@ -34,6 +34,7 @@ sub check_addons {
         record_info("$addon module fullname: ", $name);
         $name = "sle-product-we" if (($name =~ /sle-we/) && !get_var("MEDIA_UPGRADE") && is_sle('15+'));
         $name = "SLE-Module-DevTools" if (($name =~ /development/) && !get_var("MEDIA_UPGRADE"));
+        $name =~ s/sle-module-//g if (is_sle('=15-sp3') && ($name =~ /sle-module-/));
         my $out = script_output("zypper lr | grep -i $name", 200, proceed_on_failure => 1);
         die "zypper lr command output does not include $name" if ($out eq '');
     }
@@ -81,80 +82,6 @@ sub check_buildid {
     }
 }
 
-# SLE-21783: Update nodejs-common for SLE15 SP4
-# check the nodejs16 is releaseed to SLE15 SP3 & SLE15 SP4
-# check the nodejs-common points to nodejs16
-# test steps:
-# 1) install nodejs-common on SLES15SP3 and migrated SLES15SP4 when wsm is available in SCC_ADDONS
-# 2) check nodejs16 is installed together with nodejs-common
-sub check_nodejs_common {
-    record_info('SLE-21783', 'check nodejs-common');
-    # first we check if it's been installed, if so remove it
-    zypper_call('rm nodejs-common') if (script_run('rpm -q nodejs-common') == 0);
-    zypper_call('in nodejs-common | tee /tmp/install_nodejs.log');
-
-    assert_script_run('grep -E "Installing: nodejs16" /tmp/install_nodejs.log');
-    script_run('zypper se -i nodejs');
-    my $ret_s1 = script_output(q(zypper se -i nodejs | grep package | grep nodejs16 | awk -F\| '{print $1}'));
-    my $ret_s2 = script_output(q(zypper se -i nodejs | grep package | grep nodejs-common| awk -F\| '{print $1}'));
-    die "Expected package is not installed. ret_s1=$ret_s1' and ret_s2=$ret_s2'" if ('i' ne "$ret_s1" || 'i+' ne "$ret_s2");
-
-    zypper_call("rm nodejs-common");
-    assert_script_run('rm /tmp/install_nodejs.log');
-}
-
-# SLE-21916: change bzr to breezy
-# check in the upgraded sysetem that bzr was repalced by breezy
-# test steps:
-# 1) install the bzr as usaual
-# 2) check the bzr version as usual to make sure it has breezy
-# 3) cleanup by removing the package
-sub check_bzr_to_breezy {
-    record_info('SLE-21916', 'Check bzr to breezy');
-    zypper_call('in bzr');
-
-    assert_script_run('bzr --version');
-    assert_script_run('bzr --version | grep breezy');
-    zypper_call('--no-refresh info breezy');
-
-    zypper_call("rm bzr", exitcode => [0]);
-}
-
-# SLE-20176 QA: Drop Python 2 (15 SP4)
-# check in the upgraded system to ensure Python2 dropped
-sub check_python2_dropped {
-    my $out = script_output('zypper se python2 | grep python2', proceed_on_failure => 1);
-    record_info('python2 dropped but still can be searched', 'Bug 1196533 - Python2 package still can be searched after migration to SLES15SP4', result => 'fail') if $out;
-}
-
-# SLE-23610: Python3 module
-# test steps:
-# 1) activate the python3 module
-# 2) install the python310 package
-# 3) check python3.10's version which should be 3.10.X
-# 4) check python3's version
-# 5) check python310's lifecycle
-sub check_python3_module {
-    record_info('SLE-23610', 'Check Python3 Module');
-    my $OS_VERSION = script_output("grep VERSION_ID /etc/os-release | cut -c13- | head -c -2");
-    my $ARCH = get_required_var('ARCH');
-    assert_script_run("SUSEConnect -p sle-module-python3/$OS_VERSION/$ARCH", timeout => 180);
-    zypper_call("se python310");
-    zypper_call("in python310");
-    assert_script_run("python3.10 --version | grep Python | grep 3.10.");
-    assert_script_run("python3 --version | grep Python | grep 3.6.");
-    assert_script_run("zypper lifecycle python310");
-}
-
-# function to check all the features after migration
-sub check_feature {
-    if (!get_var('MEDIA_UPGRADE')) {
-        check_bzr_to_breezy;
-        check_python3_module;
-    }
-    check_python2_dropped;
-}
-
 sub run {
     select_console('root-console');
     assert_script_run('setterm -blank 0') unless (is_s390x);
@@ -185,15 +112,6 @@ sub run {
         check_addons($myaddons);
         check_product("after");
         check_buildid;
-        check_feature if (is_sle(">=15-SP4") && check_var('INSTALLONLY', '1'));
-    }
-
-    # feature SLE-21783
-    # Check nodejs-common on SLES15SP3+ before and after migration
-    # We just check nodejs_common for sle15-sp3+ and wsm module was registered
-    my $ret = script_run("SUSEConnect --status-text|grep -A3 -E 'Web and Scripting Module' | grep -qE '^\\s+Registered'");
-    if (is_sle('>=15-SP3') && ($ret == 0)) {
-        check_nodejs_common;
     }
 }
 
@@ -201,6 +119,10 @@ sub post_fail_hook {
     my $self = shift;
     upload_logs '/tmp/zypperlr.txt';
     $self->SUPER::post_fail_hook;
+}
+
+sub test_flags {
+    return {fatal => 0};
 }
 
 1;

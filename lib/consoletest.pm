@@ -9,7 +9,7 @@ use warnings;
 use testapi;
 use known_bugs;
 use version_utils qw(is_public_cloud is_openstack);
-use publiccloud::utils 'select_host_console';
+use utils;
 
 =head1 consoletest
 
@@ -22,6 +22,7 @@ C<consoletest> - Base class for all console tests
 Method executed when run() finishes.
 
 =cut
+
 sub post_run_hook {
     my ($self) = @_;
 
@@ -37,6 +38,7 @@ sub post_run_hook {
 Method executed when run() finishes and the module has result => 'fail'
 
 =cut
+
 sub post_fail_hook {
     my ($self) = @_;
     $self->SUPER::post_fail_hook;
@@ -56,16 +58,14 @@ sub post_fail_hook {
 switch network manager to wicked.
 
 =cut
+
 sub use_wicked_network_manager {
+    zypper_call("in wicked");
     assert_script_run "systemctl disable NetworkManager --now";
     assert_script_run "systemctl enable --force wicked --now";
     assert_script_run "systemctl start wickedd.service";
     assert_script_run "systemctl start wicked.service";
     assert_script_run qq{systemctl status wickedd.service | grep \"active \(running\)\"};
-}
-
-sub test_flags {
-    return get_var('PUBLIC_CLOUD') ? {no_rollback => 1} : {};
 }
 
 1;

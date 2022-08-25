@@ -9,7 +9,7 @@ use Exporter;
 use testapi;
 use version_utils 'is_opensuse';
 
-our @EXPORT = qw(configure_hostname get_host_resolv_conf is_networkmanager
+our @EXPORT = qw(configure_hostname get_host_resolv_conf is_networkmanager restart_networking
   configure_static_ip configure_dhcp configure_default_gateway configure_static_dns
   parse_network_configuration ip_in_subnet check_ip_in_subnet setup_static_mm_network);
 
@@ -42,7 +42,9 @@ sub get_host_resolv_conf {
 }
 
 sub is_networkmanager {
-    return (script_run('readlink /etc/systemd/system/network.service | grep NetworkManager') == 0);
+    my $is_nm = (script_run('readlink /etc/systemd/system/network.service | grep NetworkManager') == 0);
+    record_info('NetworkManager', (($is_nm) ? 'NetworkManager has been detected.' : 'NetworkManager has not been detected.'));
+    return $is_nm;
 }
 
 sub configure_static_ip {
@@ -50,40 +52,33 @@ sub configure_static_ip {
     my $ip = $args{ip};
     my $mtu = $args{mtu} // 1458;
     my $is_nm = $args{is_nm} // is_networkmanager();
+    my $device = $args{device};
     $mtu //= 1458;
 
     if ($is_nm) {
-        my $device = script_output('nmcli -t -f DEVICE c');
-        my $nm_id = script_output('nmcli -t -f NAME c');
+        my $nm_id;
+        my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep '$device' | head -n1");
+        ($device, $nm_id) = split(':', $nm_list);
 
-        assert_script_run "nmcli connection modify '$nm_id' ifname '$device' ip4 $ip gw4 10.0.2.2 ipv4.method manual ";
-        assert_script_run "nmcli connection down '$nm_id'";
-        assert_script_run "nmcli connection up '$nm_id'";
+        record_info('set_ip', "Device: $device\n NM ID: $nm_id\nIP: $ip\nMTU: $mtu");
+
+        assert_script_run "nmcli connection modify '$nm_id' ifname '$device' ip4 $ip ipv4.method manual 802-3-ethernet.mtu $mtu";
     } else {
         # Get MAC address
         my $net_conf = parse_network_configuration();
         my $mac = $net_conf->{fixed}->{mac};
 
         # Get default network adapter name
-        script_run "NIC=`grep $mac /sys/class/net/*/address |cut -d / -f 5`";
-        assert_script_run "echo \$NIC";
+        $device = script_output("grep $mac /sys/class/net/*/address |cut -d / -f 5") unless ($device);
+        record_info('set_ip', "Device: $device\nIP: $ip\nMTU: $mtu");
 
         # check for duplicate IP
         my ($ip_no_mask, $mask) = split('/', $ip);
-        script_run "arping -w 1 -I \$NIC $ip_no_mask";
+        script_run "arping -w 1 -I $device $ip_no_mask";
 
         # Configure the static networking
-        assert_script_run "echo -e \"STARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$ip'\\nMTU='$mtu'\" > /etc/sysconfig/network/ifcfg-\$NIC";
-
-        configure_default_gateway();
-
-        # Restart the networking
-        assert_script_run "rcnetwork restart";
+        assert_script_run "echo -e \"STARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$ip'\\nMTU='$mtu'\" > /etc/sysconfig/network/ifcfg-$device";
     }
-
-    save_screenshot;
-    assert_script_run "ip addr";
-    save_screenshot;
 }
 
 sub configure_dhcp {
@@ -103,7 +98,19 @@ sub configure_dhcp {
 }
 
 sub configure_default_gateway {
-    enter_cmd("echo 'default 10.0.2.2 - -' > /etc/sysconfig/network/routes");
+    my (%args) = @_;
+    my $is_nm = $args{is_nm} // is_networkmanager();
+    my $device = $args{device};
+    if ($is_nm) {
+        my $nm_id;
+        # When $device is not specified grep just does nothing and first connection is selected
+        my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep '$device' | head -n1");
+        ($device, $nm_id) = split(':', $nm_list);
+
+        assert_script_run "nmcli connection modify '$nm_id' ipv4.gateway 10.0.2.2";
+    } else {
+        enter_cmd("echo 'default 10.0.2.2 - -' > /etc/sysconfig/network/routes");
+    }
 }
 
 sub configure_static_dns {
@@ -118,14 +125,10 @@ sub configure_static_dns {
         $nm_id = script_output('nmcli -t -f NAME c | head -n 1') unless ($nm_id);
 
         assert_script_run "nmcli connection modify '$nm_id' ipv4.dns '$servers'";
-        assert_script_run "nmcli connection down '$nm_id'";
-        assert_script_run "nmcli connection up '$nm_id'";
     } else {
         assert_script_run("sed -i -e 's|^NETCONFIG_DNS_STATIC_SERVERS=.*|NETCONFIG_DNS_STATIC_SERVERS=\"$servers\"|' /etc/sysconfig/network/config");
         assert_script_run("netconfig -f update");
     }
-
-    assert_script_run("cat /etc/resolv.conf") unless $silent;
 }
 
 sub parse_network_configuration {
@@ -216,7 +219,25 @@ sub setup_static_mm_network {
     my $ip = shift;
     my $is_nm = is_networkmanager();
     configure_static_ip(ip => $ip, is_nm => $is_nm);
+    configure_default_gateway(is_nm => $is_nm);
     configure_static_dns(get_host_resolv_conf(), is_nm => $is_nm);
+    restart_networking(is_nm => $is_nm);
+}
+
+sub restart_networking {
+    my (%args) = @_;
+    my $is_nm = $args{is_nm} // is_networkmanager();
+
+    if ($is_nm) {
+        assert_script_run 'nmcli networking off';
+        assert_script_run 'nmcli networking on';
+        # Wait until the connections are configured
+        assert_script_run 'nmcli networking connectivity check';
+    } else {
+        assert_script_run 'rcnetwork restart';
+    }
+
+    record_info('network cfg', script_output('ip address show; echo; ip route show; echo; grep -v "^#" /etc/resolv.conf', proceed_on_failure => 1));
 }
 
 1;

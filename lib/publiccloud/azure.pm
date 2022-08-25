@@ -17,10 +17,8 @@ use utils qw(script_output_retry);
 use publiccloud::azure_client;
 
 has resource_group => 'openqa-upload';
-has storage_account => 'openqa';
 has container => 'sle-images';
 has lease_id => undef;
-has vault => undef;
 
 sub init {
     my ($self) = @_;
@@ -38,6 +36,7 @@ object.
 Due to https://github.com/Azure/azure-cli/issues/9903 we need to strip all
 color codes from that string first.
 =cut
+
 sub decode_azure_json {
     return decode_json(colorstrip(shift));
 }
@@ -76,9 +75,9 @@ sub find_img {
 }
 
 sub get_storage_account_keys {
-    my ($self, %args) = @_;
+    my ($self, $storage_account) = @_;
     my $output = script_output("az storage account keys list --resource-group "
-          . $self->resource_group . " --account-name " . $self->storage_account);
+          . $self->resource_group . " --account-name " . $storage_account);
     my $json = decode_azure_json($output);
     my $key = undef;
     if (@{$json} > 0) {
@@ -89,16 +88,15 @@ sub get_storage_account_keys {
 }
 
 sub create_resources {
-    my ($self) = @_;
+    my ($self, $storage_account) = @_;
     my $timeout = 60 * 5;
     record_info('INFO', 'Create resource group ' . $self->resource_group);
     assert_script_run('az group create --name ' . $self->resource_group . ' -l ' . $self->provider_client->region, $timeout);
-    record_info('INFO', 'Create storage account ' . $self->storage_account);
+    record_info('INFO', 'Create storage account ' . $storage_account);
     assert_script_run('az storage account create --resource-group ' . $self->resource_group . ' -l '
-          . $self->provider_client->region . ' --name ' . $self->storage_account . ' --kind Storage --sku Standard_LRS', $timeout);
-    my $key = $self->get_storage_account_keys($self->resource_group, $self->storage_account);
+          . $self->provider_client->region . ' --name ' . $storage_account . ' --kind Storage --sku Standard_LRS', $timeout);
     record_info('INFO', 'Create storage container ' . $self->container);
-    assert_script_run('az storage container create --account-name ' . $self->storage_account
+    assert_script_run('az storage container create --account-name ' . $storage_account
           . ' --name ' . $self->container, $timeout);
 }
 
@@ -113,18 +111,19 @@ sub upload_img {
     my ($img_name) = $file =~ /([^\/]+)$/;
     $img_name =~ s/\.vhdfixed/.vhd/;
     my $disk_name = $img_name;
+    my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'eisleqaopenqa');
 
     my $rg_exist = $self->resource_exist();
 
-    $self->create_resources() if (!$rg_exist);
+    $self->create_resources($storage_account) if (!$rg_exist);
 
-    my $key = $self->get_storage_account_keys();
+    my $key = $self->get_storage_account_keys($storage_account);
 
     assert_script_run('az storage blob upload --max-connections 4 --account-name '
-          . $self->storage_account . ' --account-key ' . $key . ' --container-name ' . $self->container
+          . $storage_account . ' --account-key ' . $key . ' --container-name ' . $self->container
           . ' --type page --file ' . $file . ' --name ' . $img_name, timeout => 60 * 60 * 2);
     assert_script_run('az disk create --resource-group ' . $self->resource_group . ' --name ' . $disk_name
-          . ' --source https://' . $self->storage_account . '.blob.core.windows.net/' . $self->container . '/' . $img_name);
+          . ' --source https://' . $storage_account . '.blob.core.windows.net/' . $self->container . '/' . $img_name);
 
     assert_script_run('az image create --resource-group ' . $self->resource_group . ' --name ' . $img_name
           . ' --os-type Linux --source=' . $disk_name);
@@ -283,6 +282,7 @@ sub start_instance
 Extract resource group and vm name from full instance id which looks like
 C</subscriptions/c011786b-59d7-4817-880c-7cd8a6ca4b19/resourceGroups/openqa-suse-de-1ec3f5a05b7c0712/providers/Microsoft.Compute/virtualMachines/openqa-suse-de-1ec3f5a05b7c0712>
 =cut
+
 sub parse_instance_id
 {
     my ($self, $instance) = @_;

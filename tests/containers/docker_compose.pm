@@ -21,7 +21,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use registration;
 use utils;
-use version_utils qw(is_sle);
+use version_utils qw(is_leap is_sle);
 use containers::common;
 use publiccloud::utils 'is_ondemand';
 
@@ -37,7 +37,13 @@ sub run {
 
     record_info 'Test #1', 'Test: Installation';
 
-    my $ret = zypper_call "in docker-compose", exitcode => [0, 4];
+    my $ret;
+    if (is_sle || is_leap) {
+        $ret = zypper_call "in docker-compose", exitcode => [0, 4];
+    } else {
+        $ret = zypper_call "in docker-compose-switch";
+    }
+
     if ($ret == 4) {
         # https://bugzilla.suse.com/show_bug.cgi?id=1186691#c29
         # Possible outcomes:

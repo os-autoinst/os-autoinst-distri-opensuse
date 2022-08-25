@@ -1,0 +1,23 @@
+name: autoyast_create_hdd_gnome
+description:    >
+  Test performs autoyast installation to generate qcow images used by dependent functional tests.
+conditional_schedule:
+  svirt_upload_assets:
+    ARCH:
+      s390x:
+        - shutdown/svirt_upload_assets
+vars:
+  AUTOYAST: autoyast_sle15/create_hdd/create_hdd_gnome_%ARCH%.xml
+  DESKTOP: gnome
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/first_boot
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+  - '{{svirt_upload_assets}}'

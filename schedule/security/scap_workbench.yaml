@@ -1,0 +1,14 @@
+name: scap_workbench
+description:    >
+    This is for scap_workbench test
+schedule:
+    - '{{bootloader}}'
+    - boot/boot_to_desktop
+    - security/scap_workbench/scap_workbench
+conditional_schedule:
+    bootloader:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
+            ppc64le:
+                - installation/bootloader

@@ -12,13 +12,35 @@ use utils;
 
 sub run ($self) {
     my $mpi = $self->get_mpi();
-    $self->prepare_spack_env($mpi);
-    assert_script_run "spack install boost+mpi^$mpi", timeout => 12000;
-    assert_script_run 'spack load boost';
+    my %exports_path = (
+        bin => '/home/bernhard/bin',
+        spack => '/home/bernhard/spack',
+        hpc_lib => '/usr/lib/hpc',
+        spack_lib => '/opt/spack');
+    zypper_call "in spack";
+    $self->relogin_root;
+    my @hpc_deps = $self->get_compute_nodes_deps($mpi);
+    zypper_call("in @hpc_deps");
 
-    record_info 'boost info', script_output 'spack info boost';
     barrier_wait('CLUSTER_PROVISIONED');
     barrier_wait('MPI_SETUP_READY');
+    $self->mount_nfs_exports(\%exports_path);
+    type_string('pkill -u root');
+    $self->select_serial_terminal(0);
+
+    assert_script_run "source /usr/share/spack/setup-env.sh";
+    # Once the /opt/spack is mounted `boost` should be available
+    record_info 'boost info', script_output 'spack info boost';
+    assert_script_run 'spack load boost';
+    script_run "module av";
+
+    ## TODO: Restart only when is needed, otherwise include a softfail
+    record_info('ssh restart', 'Ensure sshd service is running before mpirun');
+    type_string "sudo systemctl restart sshd\n";
+    sleep 3;
+    type_string("$testapi::password\n");
+    record_info('ssh check', 'Validate sshd service status before mpirun');
+    systemctl 'status sshd';
     barrier_wait('MPI_BINARIES_READY');
     barrier_wait('MPI_RUN_TEST');
 }
@@ -27,9 +49,7 @@ sub test_flags ($self) {
     return {fatal => 1, milestone => 1};
 }
 
-sub post_run_hook ($self) {
-    $self->uninstall_spack_module('boost');
-}
+sub post_run_hook ($self) { }
 
 sub post_fail_hook ($self) {
     # Upload all the modules.

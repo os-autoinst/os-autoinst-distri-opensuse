@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <bootloader>
+    <global>
+      <activate>false</activate>
+      <boot_extended>false</boot_extended>
+      <boot_mbr>true</boot_mbr>
+      <boot_root>true</boot_root>
+      <generic_mbr>false</generic_mbr>
+      <timeout config:type="integer">5</timeout>
+    </global>
+    <loader_type>{{LOADER_TYPE}}</loader_type>
+  </bootloader>
+  <dasd t="map">
+    <devices t="list">
+      <listentry t="map">
+        <channel>0.0.0150</channel>
+        <diag t="boolean">false</diag>
+        <format t="boolean">false</format>
+      </listentry>
+    </devices>
+    <format_unformatted t="boolean">false</format_unformatted>
+  </dasd>
+  <general t="map">
+    <cio_ignore t="boolean">true</cio_ignore>
+    <mode t="map">
+      <confirm t="boolean">false</confirm>
+    </mode>
+  </general>
+  <keyboard>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages>en_US</languages>
+  </language>
+  <partitioning t="list">
+    <drive t="map">
+      <device>/dev/disk/by-path/ccw-0.0.0150</device>
+      <disklabel>dasd</disklabel>
+      <enable_snapshots t="boolean">true</enable_snapshots>
+      <partitions t="list">
+        <partition t="map">
+          <create t="boolean">true</create>
+          <filesystem t="symbol">ext2</filesystem>
+          <format t="boolean">true</format>
+          <fstopt>acl,user_xattr</fstopt>
+          <mount>/boot/zipl</mount>
+          <mountby t="symbol">path</mountby>
+          <partition_id t="integer">131</partition_id>
+          <partition_nr t="integer">1</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>209682432</size>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <filesystem t="symbol">swap</filesystem>
+          <format t="boolean">true</format>
+          <mount>swap</mount>
+          <mountby t="symbol">path</mountby>
+          <partition_id t="integer">131</partition_id>
+          <partition_nr t="integer">2</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>1541455872</size>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <create_subvolumes t="boolean">true</create_subvolumes>
+          <filesystem t="symbol">btrfs</filesystem>
+          <format t="boolean">true</format>
+          <mount>/</mount>
+          <mountby t="symbol">uuid</mountby>
+          <partition_id t="integer">131</partition_id>
+          <partition_nr t="integer">3</partition_nr>
+          <quotas t="boolean">true</quotas>
+          <resize t="boolean">false</resize>
+          <size>20404764672</size>
+          <subvolumes t="list">
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>boot/grub2/s390x-emu</path>
+          </subvolume>
+          <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>home</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>opt</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>srv</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>tmp</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>usr/local</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>var/cache</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>var/crash</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">false</copy_on_write>
+              <path>var/lib/libvirt/images</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>var/lib/machines</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>var/lib/mailman</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">false</copy_on_write>
+              <path>var/lib/mariadb</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">false</copy_on_write>
+              <path>var/lib/mysql</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>var/lib/named</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">false</copy_on_write>
+              <path>var/lib/pgsql</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">false</copy_on_write>
+              <path>var/log</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>var/opt</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>var/spool</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>var/tmp</path>
+            </subvolume>
+          </subvolumes>
+          <subvolumes_prefix>@</subvolumes_prefix>
+        </partition>
+      </partitions>
+      <type t="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <report>
+    <errors>
+      <show config:type="boolean">true</show>
+      <log config:type="boolean">true</log>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <warnings>
+      <show config:type="boolean">true</show>
+      <log config:type="boolean">true</log>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <messages>
+      <show config:type="boolean">true</show>
+      <log config:type="boolean">true</log>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <yesno_messages>
+      <show config:type="boolean">true</show>
+      <log config:type="boolean">true</log>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <software>
+    <products config:type="list">
+        <product>SLES</product>
+    </products>
+  </software>
+  <upgrade>
+    <stop_on_solver_conflict config:type="boolean">true</stop_on_solver_conflict>
+  </upgrade>
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <reg_server>{{SCC_URL}}</reg_server>
+  </suse_register>
+</profile>

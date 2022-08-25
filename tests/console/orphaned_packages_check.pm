@@ -8,9 +8,7 @@
 # Maintainer: QE Core <qe-core@suse.de>
 # Tags: poo#19606
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base qw(consoletest);
 use testapi;
 use utils 'zypper_call';
 use version_utils 'is_upgrade';
@@ -35,16 +33,21 @@ sub compare_orphans_lists {
     # A trailing or leading whitespace introduced along the path has to be removed
     # Usually it can happen in ssh like consoles (e.g. tunnel-console)
     # Input array items will be modified inside grep
-    my @missed_orphans = grep(s/\s+//g, @{$args{zypper_orphans}});
-    if ($args{whitelist}) {
+    my @detected_orphans = map { s/^\s+|\s+$//gr } @{$args{zypper_orphans}};
+    delete $args{zypper_orphans};
+    my @missed_orphans = @detected_orphans;
+
+    my $whitelist = get_var('ZYPPER_WHITELISTED_ORPHANS');
+    if ($whitelist) {
         # Remove duplicate packages from the whitelist
-        my %wl = map { $_ => 1 } (split(',', $args{whitelist}));
-        @missed_orphans = grep { !$wl{$_} } @{$args{zypper_orphans}};
+        my %wl = map { $_ => 1 } (split(',', $whitelist));
+        @missed_orphans = grep { !$wl{$_} } @missed_orphans;
     }
+
     # Summary
-    record_info('Detected Orphans', to_string @{$args{zypper_orphans}});
+    record_info('Detected Orphans', to_string @detected_orphans);
     record_info('Orphans whitelisted',
-        $args{whitelist} // 'No orphans whitelisted within the test suite'
+        $whitelist // 'No orphans whitelisted within the test suite'
     );
     record_info('Missing',
         @missed_orphans ? to_string @missed_orphans : 'None',
@@ -68,8 +71,7 @@ sub run {
          awk -F \| 'NR>2 {print $3}'], proceed_on_failure => 1, timeout => 180);
 
     if (((scalar @orphans) > 0) && !is_offline_upgrade_or_livecd) {
-        compare_orphans_lists(zypper_orphans => \@orphans,
-            whitelist => get_var('ZYPPER_WHITELISTED_ORPHANS')) or
+        compare_orphans_lists(zypper_orphans => \@orphans) or
           die "There have been unexpected orphans detected!";
     }
 }

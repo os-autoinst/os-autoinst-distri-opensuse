@@ -24,9 +24,8 @@ use version_utils;
 use registration 'add_suseconnect_product';
 
 sub run {
-    #my ($self) = @_;
-    #$self->select_serial_terminal;  #uncomment this test will run in serial console
-    select_console("root-console");
+    my ($self) = @_;
+    $self->select_serial_terminal;
     my $docker = "podman";
     if (is_sle) {
         $docker = "docker";

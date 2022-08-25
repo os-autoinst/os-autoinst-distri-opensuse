@@ -49,7 +49,15 @@ sub has_conflict {
         'systemtap-sdt-devel' => 'systemtap-headers',
         libldb2 => 'libldb1',
         'python3-ldb' => 'python-ldb',
-        'chrony-pool-suse' => 'chrony-pool-empty'
+        'chrony-pool-suse' => 'chrony-pool-empty',
+        libGLwM1 => 'libGLw1',
+        libiterm1 => 'terminfo-iterm',
+        rust => 'rls',
+        'rust-gdb' => 'cargo',
+        'openssl-1_0_0' => 'openssl-1_1',
+        'libsamba-errors0' => 'samba-client-libs',
+        rpm => 'rpm-ndb'
+
     );
     return $conflict{$binary};
 }

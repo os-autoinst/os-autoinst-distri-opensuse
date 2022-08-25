@@ -50,6 +50,6 @@ sub run {
 =head2 QA_TEST_KLP_REPO
 
 Git repository for kernel live patching infrastructure tests.
-QA_TEST_KLP_REPO=https://github.com/lpechacek/qa_test_klp.git
+QA_TEST_KLP_REPO=https://github.com/SUSE/qa_test_klp.git
 
 =cut

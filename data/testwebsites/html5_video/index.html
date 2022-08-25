@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<video controls autoplay muted>
+  <source src="video.webm" type="video/webm">
+  <source src="video.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+<div style="background: blue; color: yellow; font-family: sans-serif; font-size: 20px;">Video not started yet</div>
+
+<script>
+let video = document.getElementsByTagName('video')[0];
+let div = document.getElementsByTagName('div')[0];
+video.addEventListener('timeupdate', e => {
+	div.innerHTML = "Pos: " + Math.round(e.target.currentTime) + " seconds" + "<br>Source: " + video.currentSrc;
+});
+</script>
+
+</body>
+</html>

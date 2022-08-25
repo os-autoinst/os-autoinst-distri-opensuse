@@ -58,6 +58,7 @@ schedule:
   - boot/boot_to_desktop
   - console/suseconnect_scc
   - update/zypper_up
+  - migration/online_migration/register_without_ltss
   - console/console_reboot
   - ha/wait_barriers
   - console/system_prepare

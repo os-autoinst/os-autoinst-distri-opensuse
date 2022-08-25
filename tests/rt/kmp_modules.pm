@@ -62,11 +62,6 @@ sub run {
     script_run 'sed -i s\'/^allow_unsupported_modules 0/allow_unsupported_modules 1/\' /etc/modprobe.d/10-unsupported-modules.conf';
 
     # install kmp packages
-    # Add build repo for slert15sp2+
-    if (script_run('zypper lr SLE_RT_IBS_REPO') && is_sle('>15-SP1')) {
-        my $version = get_var('VERSION');
-        zypper_call "ar -f -p 101 http://download.suse.de/ibs/SUSE:/SLE-$version:/Update:/Products:/SLERT/standard SLE_RT_IBS_REPO";
-    }
     zypper_call 'ref';
     zypper_call 'in lttng-tools *-kmp-rt', 500;
 
@@ -74,7 +69,6 @@ sub run {
     if (script_run q|egrep 'BOOT_IMAGE=/boot/vmlinuz-.*-[[:digit:]]-rt' /proc/cmdline|) {
         power_action('reboot', textmode => 1);
         select_kernel('rt');
-        assert_screen 'generic-desktop';
         $self->select_serial_terminal;
     }
 

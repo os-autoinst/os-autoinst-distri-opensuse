@@ -1,0 +1,12 @@
+---
+name: mau-extratests-phub
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/add_phub_extension
+  - console/python_scientific
+  - console/vmstat
+  - console/coredump_collect
+...

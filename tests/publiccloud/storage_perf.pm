@@ -176,7 +176,6 @@ sub run {
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance(use_extra_disk => {size => $disk_size, type => $disk_type});
     $instance->wait_for_guestregister();
-    $instance->check_guestregister();
 
     $tags->{os_kernel_release} = $instance->run_ssh_command(cmd => 'uname -r');
     $tags->{os_kernel_version} = $instance->run_ssh_command(cmd => 'uname -v');

@@ -12,7 +12,8 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use Mojo::File 'path';
 use Mojo::JSON;
-use publiccloud::utils qw(select_host_console is_ondemand);
+use publiccloud::utils 'is_ondemand';
+use publiccloud::ssh_interactive 'select_host_console';
 
 # for not released versions we need to exclude :
 # * test_sles_kernel_version - test checking CONFIG_SUSE_PATCHLEVEL correctness but during chat with kernel devs it was clarified that they don't care about this variable till release
@@ -30,12 +31,12 @@ our $azure_on_demand_updates = 'test_sles,test_sles_on_demand,test_sles_azure';
 our $azure_byos = $test_sles_for_dev . ',test_sles_azure';
 our $azure_on_demand = $test_sles_for_dev . ',' . $test_sles_on_demand_for_dev . ',test_sles_azure';
 
-our $ec2_byos_updates = 'test_sles,test_sles_ec2,test_sles_ec2_byos';
-our $ec2_on_demand_updates = 'test_sles,test_sles_ec2,test_sles_on_demand,test_sles_ec2_on_demand';
+our $ec2_byos_updates = 'test_sles,test_sles_ec2';
+our $ec2_on_demand_updates = 'test_sles,test_sles_ec2,test_sles_on_demand';
 
-our $ec2_byos = $test_sles_for_dev . ',test_sles_ec2,test_sles_ec2_byos';
+our $ec2_byos = $test_sles_for_dev . ',test_sles_ec2';
 our $ec2_byos_chost = $test_sles_for_dev . ',test_sles_ec2';
-our $ec2_on_demand = $test_sles_for_dev . ',test_sles_ec2,' . $test_sles_on_demand_for_dev . ',test_sles_ec2_on_demand';
+our $ec2_on_demand = $test_sles_for_dev . ',test_sles_ec2,' . $test_sles_on_demand_for_dev;
 
 our $gce_byos_updates = 'test_sles,test_sles_gce';
 our $gce_on_demand_updates = 'test_sles,test_update,test_sles_smt_reg,test_sles_guestregister,test_sles_on_demand,test_sles_gce';
@@ -114,7 +115,6 @@ sub run {
         $instance = $provider->create_instance();
 
         $instance->wait_for_guestregister() if is_ondemand();
-        $instance->check_guestregister();
     }
     if ($tests eq "default") {
         $tests = $img_proof_tests->{$flavor};

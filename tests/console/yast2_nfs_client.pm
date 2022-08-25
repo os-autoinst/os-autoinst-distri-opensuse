@@ -27,10 +27,8 @@ use mm_network 'setup_static_mm_network';
 use nfs_common;
 
 sub run {
-    #
-    # Preparation
-    #
-    select_console 'root-console';
+    my ($self) = @_;
+    $self->select_serial_terminal;
 
     # NFSCLIENT defines if the test should be run on multi-machine setup.
     # Otherwise, configure server and client on the single machine.
@@ -58,6 +56,9 @@ sub run {
     # add comments into fstab and save current fstab bsc#429326
     assert_script_run 'sed -i \'5i# test comment\' /etc/fstab';
     assert_script_run 'cat /etc/fstab > fstab_before';
+
+    # From now we need needles
+    select_console 'root-console';
 
     #
     # YaST nfs-client execution
@@ -91,6 +92,9 @@ sub run {
     #
     # Check the result
     #
+
+    # From now we can use serial terminal
+    $self->select_serial_terminal;
 
     mount_export();
     if (get_var('NFSCLIENT')) {

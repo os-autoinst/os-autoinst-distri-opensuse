@@ -1,15 +1,14 @@
 # SUSE's openQA tests
 #
 # Copyright 2009-2013 Bernhard M. Wiedemann
-# Copyright 2012-2021 SUSE LLC
+# Copyright 2012-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: MozillaFirefox
 # Summary: Case#1479221: Firefox: HTML5 Video
 # - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
 # firefox
-# - Open "youtube.com/html5" and check result
-# - Open "youtube.com/watch?v=Z4j5rJQMdOU" and check result
+# - open test html5 video page
 # - Exit firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
@@ -17,29 +16,19 @@ use strict;
 use warnings;
 use base "x11test";
 use testapi;
+use utils;
 
 sub run {
     my ($self) = @_;
     $self->start_firefox_with_profile;
 
-    $self->firefox_open_url('youtube.com/watch?v=Z4j5rJQMdOU');
-    while (check_screen([qw(firefox-youtube-signin firefox-accept-youtube-cookies)], 15)) {
-        if (match_has_tag('firefox-accept-youtube-cookies')) {
-            # get to the accept button with tab and space
-            wait_still_screen(2);
-            send_key_until_needlematch('firefox-accept-youtube-cookies-agree', 'tab', 7, 1);
-            assert_and_click('firefox-accept-youtube-cookies-agree');
-            wait_still_screen(2);
-            next;
-        }
-        elsif (match_has_tag('firefox-youtube-signin')) {
-            assert_and_click('firefox-youtube-signin');
-            wait_still_screen(2);
-            next;
-        }
-        last;
-    }
-    send_key_until_needlematch('firefox-testvideo', 'spc', 15, 5);
+    x11_start_program('xterm');
+    script_run('cd ~/data/testwebsites');
+    enter_cmd('python3 -m http.server 48080 &');
+    assert_script_run 'curl --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40 http://localhost:48080/';
+    $self->firefox_open_url('http://localhost:48080/html5_video');
+    assert_screen('firefox-testvideo');
     $self->exit_firefox;
+    enter_cmd('exit');
 }
 1;

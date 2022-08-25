@@ -23,6 +23,7 @@ our @EXPORT = qw(read_memory_cpu average);
  Returns a list with two array references which maps to amount of idle memory and CPU usage from the vmstat output log file.
 
 =cut
+
 sub read_memory_cpu {
 
     my $file_name = shift;
@@ -39,6 +40,7 @@ sub read_memory_cpu {
  Returns the average of numbers.
 
 =cut
+
 sub average {
     my @a = @_;
     my $size = @a;

@@ -101,6 +101,7 @@ sub logs_from_salt {
 Method executed when run() finishes.
 
 =cut
+
 sub post_run_hook {
     my ($self) = @_;
 
@@ -122,6 +123,7 @@ sub post_run_hook {
 Method executed when run() finishes and the module has result => 'fail'
 
 =cut
+
 sub post_fail_hook {
     my ($self) = shift;
     select_console('log-console');

@@ -166,16 +166,22 @@ sub run {
     my ($gpg_version) = $gpg_version_output =~ /gpg \(GnuPG\) (\S+)/;
     record_info('gpg version', "Version of Current gpg package: $gpg_version");
 
-    # libgcrypt version check
-    my $pkg_list = {libgcrypt20 => '1.9.0'};
+    # Libgcrypt and libgcrypt20-hmac version check
+    # Refer to poo#107509
+    my $pkg_list = {
+        libgcrypt20 => '1.9.0',
+        'libgcrypt20-hmac' => '1.9.0'
+    };
     zypper_call("in " . join(' ', keys %$pkg_list));
 
     if (is_sle('>=15-sp4')) {
         package_upgrade_check($pkg_list);
     }
     else {
-        my $libgcrypt_ver = script_output("rpm -q --qf '%{version}\n' libgcrypt20");
-        record_info('libgcrypt20 version', "Version of Current package: $libgcrypt_ver");
+        foreach my $pkg_name (keys %$pkg_list) {
+            my $pkg_ver = script_output("rpm -q --qf '%{version}\n' $pkg_name");
+            record_info("$pkg_name version", "Version of Current package: $pkg_ver");
+        }
     }
 
     # GPG key generation and basic function testing with differnet key lengths
@@ -183,10 +189,6 @@ sub run {
     foreach my $len ('1024', '2048', '3072', '4096') {
         gpg_test($len, $gpg_version);
     }
-}
-
-sub test_flags {
-    return {fatal => 0};
 }
 
 1;

@@ -33,6 +33,7 @@ Returns image digest. Image path C<$image_path> is the parameter which is used t
 Digest retrieval is platform-specific depends.
 
 =cut
+
 sub get_image_digest {
     my ($image_path) = shift;
 
@@ -59,6 +60,7 @@ Directory path C<$dir_path> is the parameter which is a part of image path '$ima
 Returns error message in case of failure, empty string in case of success.
 
 =cut
+
 sub verify_checksum {
     my ($dir_path) = shift;
     my $error = '';
@@ -74,7 +76,7 @@ sub verify_checksum {
             next;
         }
         if ($checksum eq $digest) {
-            diag("$image OK", "$image_path: OK");
+            diag("$image OK\n$image_path: OK");
         } else {
             $error .= "SHA256 checksum does not match for $image:\n\tCalculated: $digest\n\tExpected:   $checksum\n";
         }

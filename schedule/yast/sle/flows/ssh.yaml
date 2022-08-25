@@ -1,0 +1,6 @@
+---
+# ssh service enabled and ssh port open are required to reconnect to SUT.
+# (management console or svirt)
+security:
+  - installation/installation_settings/validate_ssh_service_enabled
+  - installation/installation_settings/open_ssh_port

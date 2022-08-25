@@ -1,0 +1,335 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email/>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    <addons config:type="list">
+      <addon>
+        <name>sle-module-legacy</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+        <release_type/>
+      </addon>
+      <addon>
+        <name>PackageHub</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+        <release_type/>
+      </addon>
+      <addon>
+        <name>sle-module-basesystem</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+        <release_type/>
+      </addon>
+      <addon>
+        <name>sle-module-server-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+        <release_type/>
+      </addon>
+      <addon>
+        <name>sle-module-desktop-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+        <release_type/>
+      </addon>
+      % if ($ltss_code) {
+      <addon>
+        <name>SLES-LTSS</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+        <release_type/>
+       <reg_code><%= $ltss_code %></reg_code>
+      </addon>
+      % }
+    </addons>
+  </suse_register>
+  <add-on>
+    <add_on_products config:type="list">
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE:/CA/{{CA_STR}}/</media_url>
+      </listentry>
+    % unless ($check_var->('PATCH_WITH_ZYPPER', '1')) {
+     % my $n =0;
+     % for my $repo (@$repos) {
+      <listentry>
+        <media_url><%= $repo %></media_url>
+        <alias>TEST_<%= $n++ %></alias>
+      </listentry>
+     % }
+    % }
+    </add_on_products>
+  </add-on>
+  <bootloader>
+    <global>
+    % if ($vm_name !~ /PV/) {
+      <append>console=ttyS0,115200 console=tty0</append>
+    % }
+      <cpu_mitigations>auto</cpu_mitigations>
+      <gfxmode>auto</gfxmode>
+      <hiddenmenu>false</hiddenmenu>
+      <os_prober>false</os_prober>
+      <terminal>console</terminal>
+      <timeout config:type="integer">8</timeout>
+      <trusted_grub>false</trusted_grub>
+    </global>
+    <loader_type>grub2</loader_type>
+  </bootloader>
+  <general>
+    <ask-list config:type="list"/>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+      <!--final_reboot config:type="boolean">true</final_reboot-->
+    </mode>
+    <proposals config:type="list"/>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">true</accept_verification_failed>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+    <storage>
+      <start_multipath config:type="boolean">false</start_multipath>
+    </storage>
+  </general>
+  <keyboard>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages/>
+  </language>
+  <login_settings/>
+  <networking>
+    <dhcp_options>
+      <dhclient_client_id><%= $vm_name %></dhclient_client_id>
+      <dhclient_hostname_option>AUTO</dhclient_hostname_option>
+    </dhcp_options>
+    <dns>
+      <dhcp_hostname config:type="boolean">false</dhcp_hostname>
+      <hostname><%= $vm_name %></hostname>
+      <resolv_conf_policy>auto</resolv_conf_policy>
+      <write_hostname config:type="boolean">true</write_hostname>
+      <nameservers config:type="list">
+      <nameserver>192.168.122.1</nameserver>
+      </nameservers>
+    </dns>
+    <interfaces config:type="list">
+      <interface>
+      <bootproto>static</bootproto>
+      <device>eth0</device>
+      <ipaddr>{{IP}}</ipaddr>
+      <netmask>255.255.255.0</netmask>
+      <network>192.168.122.0</network>
+      <!-- gateway>192.168.122.1</gateway -->
+      <prefixlen>24</prefixlen>
+      <startmode>auto</startmode>
+      </interface>
+    </interfaces>
+    <ipv6 config:type="boolean">true</ipv6>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+    <managed config:type="boolean">false</managed>
+    <net-udev config:type="list">
+      <rule>
+       <name>eth0</name>
+       <rule>ATTR{address}</rule>
+       <value>{{MAC}}</value>
+      </rule>
+    </net-udev>
+    <routing>
+      <ipv4_forward config:type="boolean">false</ipv4_forward>
+      <ipv6_forward config:type="boolean">false</ipv6_forward>
+      <routes config:type="list">
+        <route>
+          <destination>default</destination>
+          <device>-</device>
+          <gateway>192.168.122.1</gateway>
+          <netmask>-</netmask>
+        </route>
+      </routes>
+    </routing>
+  </networking>
+  <kdump>
+    % if ($vm_name !~ /PV/) {
+    <add_crash_kernel config:type="boolean">true</add_crash_kernel>
+    <crash_kernel config:type="list">
+      <listentry>168M</listentry>
+    </crash_kernel>
+    % } else {
+    <add_crash_kernel config:type="boolean">false</add_crash_kernel>
+    % }
+  </kdump>
+  <ntp-client>
+    <ntp_policy>auto</ntp_policy>
+    <ntp_servers config:type="list">
+      <ntp_server>
+        <address>europe.pool.ntp.org</address>
+        <iburst config:type="boolean">true</iburst>
+        <offline config:type="boolean">false</offline>
+      </ntp_server>
+    </ntp_servers>
+    <ntp_sync>systemd</ntp_sync>
+  </ntp-client>
+  <partitioning config:type="list">
+    <drive>
+    % if ($vm_name =~ /PV|HVM/) {
+      <device>/dev/xvda</device>
+    % } else {
+      <device>/dev/vda</device>
+    % }
+      <disklabel>msdos</disklabel>
+      <enable_snapshots config:type="boolean">false</enable_snapshots>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>/</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+          <size>16G</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>swap</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">130</partition_id>
+          <partition_nr config:type="integer">2</partition_nr>
+          <size>2G</size>
+        </partition>
+      </partitions>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">10</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">10</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">10</timeout>
+    </yesno_messages>
+  </report>
+  <services-manager>
+    <default_target>multi-user</default_target>
+    <services>
+      <disable config:type="list">
+        <service>firewalld</service>
+      </disable>
+      <enable config:type="list">
+        <service>sshd</service>
+      </enable>
+      <on_demand config:type="list"/>
+    </services>
+  </services-manager>
+  <software>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <instsource/>
+    <packages config:type="list">
+      <package>apache2</package>
+    </packages>
+    <products config:type="list">
+      <product>SLES</product>
+    </products>
+    <patterns config:type="list">
+      <pattern>base</pattern>
+      <pattern>enhanced_base</pattern>
+    </patterns>
+  </software>
+  <ssh_import>
+    <copy_config config:type="boolean">false</copy_config>
+    <import config:type="boolean">false</import>
+  </ssh_import>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>UTC</timezone>
+  </timezone>
+  <users config:type="list">
+    <user>
+      <authorized_keys config:type="list"/>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>bernhard</fullname>
+      <gid>100</gid>
+      <home>/home/bernhard</home>
+      <home_btrfs_subvolume config:type="boolean">false</home_btrfs_subvolume>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>1000</uid>
+      <user_password>$6$0bUrc6YvA/qw$h1Z3pzadaxmc/KgcHRSEcYoU1ShVNymoXBaRAQZJ4ozVhTbCvdAMbGQrQAAX7cC9cLRybhsvDio3kBX/IB3xj/</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <authorized_keys config:type="list"/>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <home_btrfs_subvolume config:type="boolean">false</home_btrfs_subvolume>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$6$0bUrc6YvA/qw$h1Z3pzadaxmc/KgcHRSEcYoU1ShVNymoXBaRAQZJ4ozVhTbCvdAMbGQrQAAX7cC9cLRybhsvDio3kBX/IB3xj/</user_password>
+      <username>root</username>
+    </user>
+  </users>
+<scripts>
+<post-scripts config:type="list">
+<script>
+<filename>PU1-cv-users.sh</filename>
+<source>
+<![CDATA[
+#!/bin/bash
+mkdir -p -m 700 /root/.ssh
+echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC0XMR9r8NNr58+8BmbD+CyTQd9iQqiIYjY45gViEql0+R5rahWHQBxuSAxkJbPMLudym1ffdS3+ODuBVO8nHABZ7eGaPZJQQTO0Y2bpJXCis/0GxPUD94EJ+NI/4/qzpyuw5CbfO2MazXeF38mBRO/ceZ54ZIkZMuqTHq5kp+rhq2KyUBxum9tWC7uHh0JFCoRro28uRSgNn3uVSMe1pAihdqwlZ6CaDwfN/3+aEqDTz/e/E41AKJjDx7DaCO6alKbkn2V8D2althjnB7ZtKNsYfkiQ6V9qu9lEtgeFQeEZJklWPbq+CYLcvr7Fys8M56AANqBza5Kc8a7ALZZNEbrbbmsCy+avS/Ptft7LXNjDfNTUXQ+NRDNHtvc9UmHOx9cdokgU54hxAfxv8K2scvaWeBQJHAu76oNMrnGxKIMdNBH0ZbNudSgLlHV9Z/PIYYXN7XxHcJuIg9hjo2ryUdPdRA4KGaeZN9rXnr088qJUtDJj0MBaRSCZtq5zWaJyUk=' >> /root/.ssh/authorized_keys
+chmod 600 /root/.ssh/authorized_key
+cat > /etc/init.d/after.local<< EOF
+#!/bin/sh
+ip a | grep eth0 | grep -Po '(?<=inet )[\d.]+' > /root/$(hostname)
+logger "IP is written into file"
+curl -k -u root:{{PASS}} -T /root/$(hostname) sftp://{{SUT_IP}}/tmp/guests_ip/ --ftp-create-dirs
+exit 0
+EOF
+chmod u+x /etc/init.d/after.local
+]]></source>
+</script>
+</post-scripts>
+</scripts>
+</profile>

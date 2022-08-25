@@ -34,7 +34,7 @@ YuiRestClient::Widget::ItemSelector - handle item selectors
 
 =head1 COPYRIGHT
 
-Copyright © 2021 SUSE LLC
+Copyright 2021 SUSE LLC
 
 SPDX-License-Identifier: FSFAP
 

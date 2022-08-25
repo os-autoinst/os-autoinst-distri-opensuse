@@ -43,6 +43,10 @@ conditional_schedule:
         - hpc/pdsh_master
       pdsh_slave:
         - hpc/pdsh_slave
+      dolly_master:
+        - hpc/dolly_master
+      dolly_slave:
+        - hpc/dolly_slave
       hpc_master:
         - hpc/hpc_master
         - hpc/hpc_migration

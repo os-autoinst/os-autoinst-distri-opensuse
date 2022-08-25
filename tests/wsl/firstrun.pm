@@ -95,7 +95,7 @@ sub register_via_scc {
 
 sub run {
     # WSL installation is in progress
-    assert_screen [qw(yast2-wsl-firstboot-welcome wsl-installing-prompt)], 420;
+    assert_screen [qw(yast2-wsl-firstboot-welcome wsl-installing-prompt)], 480;
 
     if (match_has_tag 'yast2-wsl-firstboot-welcome') {
         assert_and_click 'window-max';
@@ -111,7 +111,7 @@ sub run {
         # Registration
         is_sle && register_via_scc();
         # And done!
-        assert_screen 'wsl-installation-completed', 120;
+        assert_screen 'wsl-installation-completed', 240;
         send_key 'alt-f';
         # Back to CLI
         assert_screen 'wsl-linux-prompt';

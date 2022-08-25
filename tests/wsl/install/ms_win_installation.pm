@@ -14,14 +14,27 @@ use warnings;
 
 use testapi;
 
+sub prepare_win11 {
+    # Change some regedit values to skip system requirements check
+    send_key 'shift-f10';
+    assert_screen 'windows-install-cmd';
+    type_string "reg add HKEY_LOCAL_MACHINE\\SYSTEM\\Setup /v LabConfig\n";
+    type_string "reg add HKEY_LOCAL_MACHINE\\SYSTEM\\Setup\\LabConfig /v BypassTPMCheck /t REG_DWORD /d 1\n";
+    type_string "reg add HKEY_LOCAL_MACHINE\\SYSTEM\\Setup\\LabConfig /v BypassRAMCheck /t REG_DWORD /d 1\n";
+    type_string "reg add HKEY_LOCAL_MACHINE\\SYSTEM\\Setup\\LabConfig /v BypassSecureBootCheck /t REG_DWORD /d 1\n";
+    type_string "exit\n";
+}
+
 sub run {
     if (get_var('UEFI')) {
         assert_screen 'windows-boot';
         send_key 'spc';    # boot from CD or DVD
     }
     # This test works onlywith CDMODEL=ide-cd due to windows missing scsi drivers which are installed via scsi iso
-    assert_screen 'windows-setup', 1000;
+    assert_screen 'windows-setup', 300;
     send_key 'alt-n';    # next
+    prepare_win11 if (check_var('WIN_VERSION', '11'));
+
     save_screenshot;
     send_key 'alt-i';    # install Now
     save_screenshot;

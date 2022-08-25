@@ -35,6 +35,7 @@ Mask it if I<$mask_service> evaluates to true. Default: false
 Raise a failure if I<$ignore_failure> evaluates to true. Default: false
 
 =cut
+
 sub disable_and_stop_service {
     my ($service_name, %args) = @_;
     die "disable_and_stop_service(): no service name given" if ($service_name =~ /^ *$/);
@@ -53,6 +54,7 @@ Wrapper around systemctl call to be able to add some useful options.
 Please note that return code of this function is handle by 'script_run' or
 'assert_script_run' function, and as such, can be different.
 =cut
+
 sub systemctl {
     my ($command, %args) = @_;
     croak "systemctl(): no command specified" if ($command =~ /^ *$/);
@@ -74,6 +76,7 @@ sub systemctl {
 Return list of started systemd services
 
 =cut
+
 sub get_started_systemd_services {
     return keys(%started_systemd_services);
 }
@@ -83,6 +86,7 @@ sub get_started_systemd_services {
 Clear the list of started systemd services
 
 =cut
+
 sub clear_started_systemd_services {
     %started_systemd_services = ();
 }

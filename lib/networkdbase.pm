@@ -22,6 +22,7 @@ use base 'consoletest';
 Run C<$script> in the systemd-nspawn container called C<$machine>.
 
 =cut
+
 sub assert_script_run_container {
     my ($self, $machine, $script) = @_;
     assert_script_run("systemd-run -tM $machine /bin/bash -c \"$script\"");
@@ -34,6 +35,7 @@ sub assert_script_run_container {
 Run C<$script> in the systemd-nspawn container called C<$machine>.
 
 =cut
+
 sub script_run_container {
     my ($self, $machine, $script) = @_;
     return script_run("systemd-run -tM $machine /bin/bash -c \"$script\"");
@@ -46,6 +48,7 @@ sub script_run_container {
 Start the systemd-nspawn container called C<$machine>.
 
 =cut
+
 sub start_nspawn_container {
     my ($self, $machine) = @_;
     assert_script_run("systemctl start systemd-nspawn@" . $machine);
@@ -58,6 +61,7 @@ sub start_nspawn_container {
 Restart the systemd-nspawn container called C<$machine>.
 
 =cut
+
 sub restart_nspawn_container {
     my ($self, $machine) = @_;
     assert_script_run("systemctl stop systemd-nspawn@" . $machine);
@@ -73,6 +77,7 @@ Use C<zypper> to add a repo to the chroot and install (with C<--no-recommends>)
 the packages listed in C<$packages>.
 
 =cut
+
 sub setup_nspawn_container {
     my ($self, $machine, $repo, $packages) = @_;
     my $systemd_nspawn_file = "
@@ -105,6 +110,7 @@ Create a file at path (including filename) C<$file> within the container called 
 with the content C<$content>.
 
 =cut
+
 sub write_container_file {
     my ($self, $machine, $file, $content) = @_;
     my $path = "/var/lib/machines/$machine/$file";
@@ -118,6 +124,7 @@ sub write_container_file {
 Helper function to write a file at path (including filename) C<$file> with the content C<$content>.
 
 =cut
+
 sub write_file {
     my ($self, $file, $content) = @_;
     enter_cmd("cat > $file <<EOF\n$content\nEOF");
@@ -131,6 +138,7 @@ sub write_file {
 Wait until networkd in the container C<$machine> has configured the network interface C<$netif>.
 
 =cut
+
 sub wait_for_networkd {
     my ($self, $machine, $netif) = @_;
     $self->assert_script_run_container($machine, "ip a");
@@ -151,6 +159,7 @@ This works without interacting with the container as logs are
 redirected to the host system journal.
 
 =cut
+
 sub export_container_journal {
     my ($self, $machine) = @_;
 
@@ -165,6 +174,7 @@ sub export_container_journal {
 Upload the logs of all known containers.
 
 =cut
+
 sub post_fail_hook {
     my ($self) = shift;
     select_console('log-console');

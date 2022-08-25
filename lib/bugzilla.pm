@@ -53,6 +53,7 @@ contain only two entries: C<bug_id> and C<error>. It is up to you to handle
 this possibility.
 
 =cut
+
 sub bugzilla_buginfo {
     my $bugid = shift;
     my $url = get_var('BUGZILLA_URL');

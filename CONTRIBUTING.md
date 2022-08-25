@@ -23,7 +23,8 @@ Upon setting up a new openQA instance, it's also necessary to install some aditi
 for which there are two ways:
 
 * In case you're using cpanm (with or without local::lib, or others), from within the working copy: call `cpanm -n --mirror http://no.where/ --installdeps . `
-* In case you're using openSUSE: `zypper in os-autoinst-distri-opensuse-deps`
+* In case you're using openSUSE: `zypper in os-autoinst-distri-opensuse-deps perl-JSON-Validator gnu_parallel`
+* For linting YAML, you need the openSUSE package `python3-yamllint` or install `yamllint` via pip
 
 #### Relevant documentation
 
@@ -128,8 +129,9 @@ if (match_has_tag('yast2_missing_package')) {
 
 ### Preparing a new Pull Request
 * All code needs to be tidy, for this use `make prepare` the first time you
-  set up your local environment, use `make tidy` or `tools/tidy` locally to
-  ensure your new code adheres to our coding style.
+  set up your local environment, use `make tidy` before commiting your changes,
+  ensure your new code adheres to our coding style or use `make tidy-full` if
+  you have already few commits.
 * Every pull request is tested by our CI system for different perl versions,
   if something fails, run `make test` (don't forget to `make prepare` if your setup is new)
   but the CI results are available too, in case they need to be investigated further

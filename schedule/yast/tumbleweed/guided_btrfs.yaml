@@ -1,0 +1,30 @@
+name:           guided_btrfs
+description:    >
+  Guided Partitioning installation with btrfs filesystem.
+vars:
+  FILESYSTEM: btrfs  # Used for log collection in lib/y2_base
+  YUI_REST_API: 1
+schedule:
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_validation:
+    - console/validate_no_cow_attribute
+    - console/verify_no_separate_home
+    - console/validate_subvolumes
+test_data:
+  device: vda
+  table_type: gpt
+  subvolume:
+    cow:
+      - /
+      - /home
+      - /root
+      - /usr/local
+      - /.snapshots
+      - /srv
+      - /opt
+    no_cow:
+      - /var
+  validate_subvolumes:
+    - subvolume: home
+      mount_point: /

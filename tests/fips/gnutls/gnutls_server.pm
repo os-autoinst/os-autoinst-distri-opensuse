@@ -19,6 +19,7 @@ sub run {
 
     # Create test folder
     my $test_dir = "gnutls";
+    assert_script_run "rm -rf $test_dir";
     assert_script_run "mkdir $test_dir && cd $test_dir";
 
     # Add support for X.509.  First we generate a CA

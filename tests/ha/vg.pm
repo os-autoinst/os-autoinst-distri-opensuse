@@ -26,20 +26,21 @@ sub run {
     my $vg_luns = undef;
 
     # This test can be called multiple time
-    if (read_tag eq 'cluster_md') {
+    my $tag = read_tag;
+    if ($tag eq 'cluster_md') {
         $resource = 'cluster_md';
         $vg_luns = '/dev/md*' if is_node(1);
 
         # Use a named RAID in SLE15
         $vg_luns = "/dev/md/$resource" if (is_sle('15+') && is_node(1));
     }
-    elsif (read_tag eq 'drbd_passive') {
+    elsif ($tag eq 'drbd_passive') {
         $resource = 'drbd_passive';
         $vg_luns = "/dev/$resource" if is_node(1);
         $vg_exclusive = 'true';
         $vg_type = '--clustered n';
     }
-    elsif (read_tag eq 'drbd_active') {
+    elsif ($tag eq 'drbd_active') {
         $resource = 'drbd_active';
         $vg_luns = "/dev/$resource" if is_node(1);
     }

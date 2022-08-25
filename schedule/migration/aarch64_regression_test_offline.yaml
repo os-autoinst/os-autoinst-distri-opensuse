@@ -46,6 +46,7 @@ conditional_schedule:
         - console/system_prepare
         - console/check_os_release
         - console/check_system_info
+        - console/check_migration_features
         - console/check_network
         - console/system_state
         - console/prepare_test_data
@@ -112,6 +113,7 @@ conditional_schedule:
       2:
         - console/consoletest_finish
         - x11/desktop_runner
+        - x11/setup
         - x11/xterm
         - locale/keymap_or_locale_x11
         - x11/sshxterm

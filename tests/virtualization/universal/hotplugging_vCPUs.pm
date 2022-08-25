@@ -56,7 +56,7 @@ sub test_add_vcpu {
         if ($guest eq 'sles12sp3PV') {
             sleep(60);    # Bug needs some time to actually be triggered
             if (script_run("virsh list --all | grep $guest | grep running") != 0) {
-                record_soft_failure("bsc#1187341", "$guest changing number of vspus crashes $guest");
+                record_soft_failure("bsc#1187341 - $guest changing number of vspus crashes $guest");
                 script_run("xl dump-core > xl_coredump_$guest.log");
                 upload_logs("xl_coredump_$guest.log");
                 script_run("virsh start $guest");

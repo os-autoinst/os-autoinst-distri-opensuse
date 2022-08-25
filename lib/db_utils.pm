@@ -8,10 +8,12 @@ use base 'Exporter';
 use strict;
 use warnings;
 use testapi;
+use mmapi qw(get_current_job_id);
 
 our @EXPORT = qw(
   influxdb_push_data
   influxdb_read_data
+  push_image_data_to_db
 );
 
 sub build_influx_kv {
@@ -52,6 +54,7 @@ Example of data:
         values => { io_reads' => 1337, io_writes => 1338 }
     }
 =cut
+
 sub influxdb_push_data {
     my ($url, $db, $data, %args) = @_;
     $args{quiet} //= 1;
@@ -72,6 +75,7 @@ SELECT query for given DB.
 returns json with results of SELECT query.
 
 =cut
+
 sub influxdb_read_data {
     my ($url_base, $db, $query) = @_;
     my $ua = Mojo::UserAgent->new();
@@ -83,4 +87,78 @@ sub influxdb_read_data {
         die sprintf("Failed to get data from InfluxDB. \n Response code : %s \n Message: %s \n", $res->code, $res->message);
     }
     return $res->json;
+}
+
+
+
+=head2 push_image_data_to_db
+
+Pushes data to specified with C<url> and C<db> for the Postgres DB name using curl.
+
+=cut
+
+sub push_image_data_to_db {
+    my ($product, $image, $value, %args) = @_;
+    my $db_log = "/tmp/db.log";
+    my $db_ip = get_var('POSTGRES_IP');
+    my $db_port = get_var('POSTGRES_PORT', '5444');
+    my $token = get_var('_SECRET_DATABASE_PWD');
+    unless ($db_ip) {
+        record_soft_failure("poo#113120 - Missing variable POSTGRES_IP. Can't push data to DB.");
+        return 0;
+    }
+    unless ($token) {
+        record_soft_failure("poo#113120 - Missing variable _SECRET_DATABASE_PWD. Can't push data to DB.");
+        return 0;
+    }
+    script_run("read -s pg_pwd", 0);
+    type_password("-H \"Authorization: Bearer $token\"\n");
+    assert_script_run('echo $pg_pwd > /etc/postgres_conf');
+    assert_script_run('echo \'-H "Content-Type: application/json"\' >> /etc/postgres_conf');
+
+
+    my $openqa_host = get_required_var('OPENQA_HOSTNAME');
+    my $job_url;
+    my $job_id = get_current_job_id();
+    if ($openqa_host =~ /openqa1-opensuse|openqa.opensuse.org/) {    # O3 hostname
+        $job_url = 'https://openqa.opensuse.org/tests/' . $job_id;
+    }
+    elsif ($openqa_host =~ /openqa.suse.de/) {    # OSD hostname
+        $job_url = 'https://openqa.suse.de/tests/' . $job_id;
+    } else {
+        $job_url = $openqa_host . '/' . $job_id;
+    }
+    record_info('job_url', $job_url);
+    return 0 unless ($job_url);
+
+    $args{distri} //= get_required_var('DISTRI');
+    $args{version} //= get_required_var('VERSION');
+    $args{arch} //= get_required_var('ARCH');
+    $args{flavor} //= get_required_var('FLAVOR');
+    $args{build} //= get_required_var('BUILD');
+    $args{type} //= '';
+    (my $build = $args{build}) =~ s/\_.*//;    #To remove unneeded strings, e.g. 15.11_init-image -> 15.11
+
+    my $cmd = 'curl -i -K /etc/postgres_conf -X POST http://' . $db_ip . ':' . $db_port . '/size -d \'{';
+    $cmd .= '"product": "' . $product . '", ';
+    $cmd .= '"distri": "' . $args{distri} . '", ';
+    $cmd .= '"version": "' . $args{version} . '", ';
+    $cmd .= '"arch": "' . $args{arch} . '", ';
+    $cmd .= '"flavor": "' . $args{flavor} . '", ';
+    $cmd .= '"build": "' . $build . '", ';
+    $cmd .= '"asset": "' . $image . '", ';
+    $cmd .= '"url": "' . $job_url . '", ';
+    $cmd .= '"type": "' . $args{type} . '", ';
+    $cmd .= '"value": "' . $value . '"}\'';
+    record_info('db cmd', $cmd);
+    script_run("echo '$cmd' | tee -a $db_log");
+    my $cmd_output = script_output("$cmd 2>&1 | tee -a $db_log", proceed_on_failure => 1);
+    # if successful push, it should return 'HTTP/1.1 201 Created'
+    if ($cmd_output =~ /(?=.*201 Created)/) {
+        record_info("DB", "Image data has been successfully pushed to the Database.");
+    } elsif ($cmd_output =~ /(?=.*409 Conflict)/) {
+        record_info("DB", "This image info already exists DB.");
+    } else {
+        record_soft_failure("poo#113120 - There has been a problem pushing data to the DB.");
+    }
 }

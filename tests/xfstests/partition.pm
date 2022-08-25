@@ -210,7 +210,10 @@ sub create_loop_device_by_rootsize {
 
 sub set_config {
     my $self = shift;
-    script_run("echo 'export KEEP_DMESG=yes' >> $CONFIG_FILE");
+    script_run("echo export KEEP_DMESG=yes >> $CONFIG_FILE");
+    if (get_var('XFSTESTS_XFS_REPAIR')) {
+        script_run("echo export TEST_XFS_REPAIR_REBUILD=1 >> $CONFIG_FILE");
+    }
     record_info('Config file', script_output("cat $CONFIG_FILE"));
 }
 

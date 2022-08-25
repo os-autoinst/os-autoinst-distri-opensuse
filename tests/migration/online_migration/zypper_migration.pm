@@ -53,8 +53,9 @@ sub run {
         my $option = (is_leap_migration) || (get_var("SCC_ADDONS") =~ /phub/) || (get_var("SMT_URL") =~ /smt/) ? " --allow-vendor-change " : " ";
         script_run("(zypper migration $option; echo ZYPPER-DONE) |& tee /dev/$serialdev", 0);
     }
-    # migration process take long time
-    my $timeout = 7200;
+    # migration process take long time, and for leap to sle, we need 4 hours for
+    # kde zypper migration.
+    my $timeout = (is_leap_migration) ? 18000 : 7200;
     my $migration_checks = [
         $zypper_migration_bsc1184347, $zypper_migration_bsc1196114,
         $zypper_migration_target, $zypper_disable_repos, $zypper_continue, $zypper_migration_done,

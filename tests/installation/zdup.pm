@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2009-2022 Bernhard M. Wiedemann
 # Copyright 2012-2020 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
@@ -13,6 +13,7 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(OPENQA_FTP_URL zypper_call);
+use Utils::Backends 'is_pvm';
 
 sub run {
     my $self = shift;
@@ -34,6 +35,7 @@ sub run {
     # This is just for reference to know how the network was configured prior to the update
     script_run "ip addr show";
     save_screenshot;
+    assert_script_run('modprobe nvram') if is_pvm;
 
     # Disable all repos, so we do not need to remove one by one
     # beware PackageKit!
@@ -94,6 +96,7 @@ sub run {
 
     my $nr = 1;
     foreach my $r (split(/,/, get_var('ZDUPREPOS', $defaultrepo))) {
+        $r =~ s/^\s+|\s+$//g;
         zypper_call("--no-gpg-checks ar \"$r\" repo$nr");
         $nr++;
     }

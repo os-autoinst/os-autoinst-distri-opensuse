@@ -42,6 +42,7 @@ To add a known bug simply copy and adapt the following line:
 C<push @$serial_failures, {type => soft/hard, message => 'Errormsg', pattern => quotemeta 'ErrorPattern' }>
 
 =cut
+
 sub create_list_of_serial_failures {
     my $serial_failures = [];
 
@@ -86,6 +87,7 @@ type=hard will just emit a soft fail message but the module will do a normal fai
 type=info will message the user but the module will not fail
 
 =cut
+
 sub create_list_of_autoinst_failures {
     my $autoinst_failures = [];
 
@@ -100,6 +102,7 @@ type=soft will force the testmodule result to softfail
 type=hard will just emit a soft fail message but the module will do a normal fail
 
 =cut
+
 sub create_list_of_journal_failures {
     my $journal_failures = [];
 
@@ -112,6 +115,7 @@ Checks the journal for known patterns defined in $journal_failures
 Do not touch unless you know what you're doing
 
 =cut
+
 sub upload_journal {
     my ($file) = @_;
 

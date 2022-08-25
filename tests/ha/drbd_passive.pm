@@ -44,7 +44,11 @@ sub run {
 
     # At this time, we only test DRBD on a 2 nodes cluster
     # And if the cluster has more than 2 nodes, we only use the first 2 nodes
-    return if (!is_node(1) && !is_node(2));
+    if ((!is_node(1) && !is_node(2)) || check_var('TWO_NODES', 'no')) {
+        write_tag('skip_fs_test');
+        record_info 'Skipped - Scenario', 'Test skipped because this job is not running in a two nodes scenario';
+        return;
+    }
 
     # Wait until DRBD test is initialized
     barrier_wait("DRBD_INIT_$cluster_name");

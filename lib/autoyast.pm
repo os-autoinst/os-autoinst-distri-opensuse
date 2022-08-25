@@ -53,6 +53,7 @@ Expand patterns for sle12 and sle15.
 Returns a list of patterns to be installed.
 
 =cut
+
 sub expand_patterns {
     if (get_var('PATTERNS', '') =~ m/^\s*$/) {
         if (is_sle('15+')) {
@@ -134,6 +135,7 @@ my @unversioned_products = qw(asmm contm lgm tcm wsm);
 Return product version from SCC and product name, so-called unversioned products like asmm, contm, lgm, tcm, wsm if product version number lower than 15
 
 =cut
+
 sub get_product_version {
     my ($name) = @_;
     my $version = scc_version(get_var('VERSION', ''));
@@ -147,6 +149,7 @@ sub get_product_version {
 
 Returns hash of all C<SCC_ADDONS> with name, version and architecture.
 =cut
+
 sub expand_addons {
     my %addons;
     my @addons = grep { defined $_ && $_ } split(/,/, get_var('SCC_ADDONS', ''));
@@ -169,6 +172,7 @@ Expand and returns template including autoyast profile and it's varialbes like a
 $profile is the autoyast profile 'autoinst.xml'.
 
 =cut
+
 sub expand_template {
     my ($profile) = @_;
     my $template = Mojo::Template->new(vars => 1);
@@ -194,6 +198,7 @@ sub expand_template {
 Initialize or create a new autoyast profile by 'yast2 clone_system' if doesn't exist and returns the path of autoyast profile
 
 =cut
+
 sub init_autoyast_profile {
     select_console('root-console');
     my $profile_path = '/root/autoinst.xml';
@@ -256,6 +261,7 @@ profile:
 
 
 =cut
+
 sub validate_autoyast_profile {
     my $profile = shift;
 
@@ -283,6 +289,7 @@ sub validate_autoyast_profile {
   In other words, a node is not processable when just needs to be traversed in the YAML.
 
 =cut
+
 sub is_processable {
     my $node = shift;
     return (!ref $node ||
@@ -344,6 +351,7 @@ sub is_processable {
                     label: test_multi_btrfs
 
 =cut
+
 sub has_properties {
     my $node = shift;
     return 0 unless ref $node;
@@ -362,6 +370,7 @@ sub has_properties {
 Based on the properties of the node will create a predicate for the XPATH expression.
 
 =cut
+
 sub create_xpath_predicate {
     my $node = shift;
     my @predicates = ();
@@ -386,6 +395,7 @@ sub create_xpath_predicate {
 Joins a list of intermediate predicates and closes it to create one XPATH predicate.
 
 =cut
+
 sub close_predicate {
     my @predicates = @_;
     return '[' . join(' and ', @predicates) . ']';
@@ -399,6 +409,7 @@ Add XML namespace to the node declared in YAML file to be able to build
 the correct XPATH expression with namespaces.
 
 =cut
+
 sub ns {
     my $node = shift;
     return "ns:$node";
@@ -419,6 +430,7 @@ YAML:  subvolumes:
            - path: var
 
 =cut
+
 sub get_traversable {
     my $node = shift;
     if ((ref $node eq 'HASH')) {
@@ -436,6 +448,7 @@ It will apply the right separator in case direct children nodes (default)
 or any descendant is applied ('' also means ./ for direct children)
 
 =cut
+
 sub get_descendant {
     my $node = shift;
     return ".//" if (ref $node eq 'HASH' && $node->{_descendant});
@@ -449,6 +462,7 @@ sub get_descendant {
 Recursive algorithm to traverse YAML file and create a list of XPATH expressions.
 
 =cut
+
 sub generate_expressions {
     my ($node) = shift;
     # accumulate expressions
@@ -525,6 +539,7 @@ sub generate_expressions {
 Run XPATH expressions. Errors handled are 'no node found' and 'more than one node found'
 
 =cut
+
 sub run_expressions {
     my (%args) = @_;
 
@@ -551,6 +566,7 @@ sub run_expressions {
 Create a report with the errors found and listing all the XPATH expressions executed.
 
 =cut
+
 sub create_report {
     my %args = @_;
 
@@ -573,6 +589,7 @@ sub create_report {
  $path is AutoYaST profile path
 
 =cut
+
 sub detect_profile_directory {
     my (%args) = @_;
     my $profile = $args{profile};
@@ -604,6 +621,7 @@ sub detect_profile_directory {
  $profile is the autoyast profile 'autoinst.xml'.
 
 =cut
+
 sub expand_version {
     my ($profile) = @_;
     if (my $version = scc_version(get_var('VERSION', ''))) {
@@ -621,6 +639,7 @@ sub expand_version {
  $profile is the autoyast profile 'autoinst.xml'.
 
 =cut
+
 sub adjust_network_conf {
     my ($profile) = @_;
     my $hostip;
@@ -644,6 +663,7 @@ sub adjust_network_conf {
  $profile is the autoyast profile 'autoinst.xml'.
 
 =cut
+
 sub expand_variables {
     my ($profile) = @_;
     # Expand other variables
@@ -677,6 +697,7 @@ sub expand_variables {
  using rules and classes.
 
 =cut
+
 sub upload_profile {
     my (%args) = @_;
     my $profile = $args{profile};
@@ -704,6 +725,7 @@ sub upload_profile {
  $profile is the autoyast profile 'autoinst.xml'.
 
 =cut
+
 sub inject_registration {
     my ($profile) = @_;
 
@@ -730,6 +752,7 @@ EOF
  Test if the autoyast profile url is reachable, before the autoyast installation begins.
 
 =cut
+
 sub test_ayp_url {
     my $ayp_url = get_var('AUTOYAST');
     if ($ayp_url =~ /^http/) {
@@ -768,6 +791,7 @@ This could return a reference to an array with content:
   - autoyast_sle15/rule-based_example/classes/general/users.xml
 
 =cut
+
 sub get_test_data_files {
     my ($path) = @_;
     my $casedir_data = get_var('CASEDIR') . '/data/';
@@ -795,6 +819,7 @@ Return new path in case of using AutoYaST templates
  using rules and classes.
 
 =cut
+
 sub prepare_ay_file {
     my ($path) = @_;
 

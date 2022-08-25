@@ -50,7 +50,7 @@ YuiRestClient::Widget::Tree - handle a tree in the UI
 
 =head1 COPYRIGHT
 
-Copyright © 2020 SUSE LLC
+Copyright 2020 SUSE LLC
 
 SPDX-License-Identifier: FSFAP
 

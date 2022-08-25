@@ -40,6 +40,7 @@ The main container runtimes do not need C<buildah> variable in general, unless
 you want to build the image with buildah but run it with $<runtime>
 
 =cut
+
 sub build_and_run_image {
     my %args = @_;
     my $runtime = $args{runtime};

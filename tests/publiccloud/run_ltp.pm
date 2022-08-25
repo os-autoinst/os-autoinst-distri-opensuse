@@ -17,7 +17,8 @@ use LTP::utils qw(get_ltproot get_ltp_version_file);
 use LTP::WhiteList;
 use Mojo::File;
 use Mojo::JSON;
-use publiccloud::utils;
+use publiccloud::utils qw(is_byos registercloudguest register_openstack);
+use publiccloud::ssh_interactive 'select_host_console';
 use Data::Dumper;
 use version_utils;
 
@@ -98,7 +99,6 @@ sub run {
         $instance = $self->{my_instance} = $provider->create_instance();
         unless (is_openstack) {
             $instance->wait_for_guestregister();
-            $instance->check_guestregister();
         }
     }
 
@@ -110,22 +110,12 @@ sub run {
 
     registercloudguest($instance) if (is_byos() && !$qam);
     register_openstack($instance) if is_openstack;
-    # in repo with LTP rpm is internal we need to manually upload package to VM
-    if (get_var('LTP_RPM_MANUAL_UPLOAD')) {
-        my $ltp_rpm = get_ltp_rpm($ltp_repo);
-        my $source_rpm_path = $root_dir . '/' . $ltp_rpm;
-        my $remote_rpm_path = '/tmp/' . $ltp_rpm;
-        record_info('LTP RPM', $ltp_repo . $ltp_rpm);
-        assert_script_run('wget ' . $ltp_repo . $ltp_rpm . ' -O ' . $source_rpm_path);
-        $instance->scp($source_rpm_path, 'remote:' . $remote_rpm_path) if (get_var('LTP_RPM_MANUAL_UPLOAD'));
-        $instance->run_ssh_command(cmd => 'sudo zypper --no-gpg-checks --gpg-auto-import-keys -q in -y ' . $remote_rpm_path, timeout => 600);
-    }
-    else {
-        $instance->run_ssh_command(cmd => 'sudo zypper -n addrepo -fG ' . $ltp_repo . ' ltp_repo', timeout => 600);
-        $instance->run_ssh_command(cmd => 'sudo zypper -n in ltp', timeout => 600);
-    }
 
-    my $ltp_env = gen_ltp_env($instance);
+    $instance->run_ssh_command(cmd => 'sudo zypper -n addrepo -fG ' . $ltp_repo . ' ltp_repo', timeout => 600);
+    my $ltp_pkg = get_var('LTP_PKG', 'ltp-stable');
+    $instance->run_ssh_command(cmd => "sudo zypper -n in $ltp_pkg", timeout => 600);
+
+    my $ltp_env = gen_ltp_env($instance, $ltp_pkg);
     $self->{ltp_env} = $ltp_env;
 
     # Use lib/LTP/WhiteList module to exclude tests
@@ -182,7 +172,7 @@ sub cleanup {
 }
 
 sub gen_ltp_env {
-    my $instance = shift;
+    my ($instance, $ltp_pkg) = @_;
     my $environment = {
         product => get_required_var('DISTRI') . ':' . get_required_var('VERSION'),
         revision => get_required_var('BUILD'),
@@ -190,7 +180,7 @@ sub gen_ltp_env {
         kernel => $instance->run_ssh_command(cmd => 'uname -r'),
         backend => get_required_var('BACKEND'),
         flavor => get_required_var('FLAVOR'),
-        ltp_version => $instance->run_ssh_command(cmd => q(rpm -q --qf '%{VERSION}\n' ltp)),
+        ltp_version => $instance->run_ssh_command(cmd => qq(rpm -q --qf '%{VERSION}\n' $ltp_pkg)),
     };
 
     record_info("LTP Environment", Dumper($environment));

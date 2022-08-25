@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     my $tmp_output = '/tmp/out';
@@ -32,7 +33,8 @@ sub run {
 
     # Extract pid from output log
     script_run("tail -1 $tmp_output > $tmp_backup");
-    script_run("cat $tmp_backup | cut -d '=' -f 9 > $tmp_output");
+    my $cut_index = is_sle('<=12-SP5') ? 7 : 9;
+    script_run("cat $tmp_backup | cut -d '=' -f $cut_index > $tmp_output");
     my $pid = script_output("cat $tmp_output | cut -d ' ' -f 1");
 
     # Search for an event matching the given process ID
@@ -46,8 +48,11 @@ sub run {
     # Search for an event based on the given event ID
     validate_script_output("ausearch --event $event_id", sub { m/$event_id/ });
 
-    # Search for events based on a specific CPU architecture
-    validate_script_output("ausearch -i --arch x86_64", sub { m/arch=x86_64/ });
+    # On 15-SP3 and lower, there may not be messages that contain 'x86_64'
+    if (!is_sle('<=15-SP3')) {
+        # Search for events based on a specific CPU architecture
+        validate_script_output("ausearch -i --arch x86_64", sub { m/arch=x86_64/ });
+    }
 }
 
 1;

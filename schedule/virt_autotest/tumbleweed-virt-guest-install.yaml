@@ -1,0 +1,67 @@
+name:           tumbleweed-virt-guest-install-tests
+description:    >
+    Maintainer: jcao@suse.com
+    Virtualization guest installation tests including extended feature tests schedule
+schedule:
+    - '{{install_and_bootup}}'
+    - virt_autotest/switch_to_ssh_and_install_hypervisor
+    - '{{reboot}}'
+    - '{{install_guest}}'
+    - virt_autotest/set_config_as_glue
+    - '{{virtual_network_test}}'
+    - '{{sriov_network_card_pci_passthrough_test}}'
+    - '{{hotplugging_test}}'
+    - '{{storage_test}}'
+conditional_schedule:
+    install_and_bootup:
+        DO_NOT_INSTALL_HOST:
+            0:
+                - installation/ipxe_install
+                - installation/welcome
+                - installation/online_repos
+                - installation/installation_mode
+                - installation/system_role
+                - installation/partitioning
+                - installation/partitioning_firstdisk
+                - installation/partitioning_finish
+                - installation/installer_timezone
+                - installation/user_settings
+                - installation/resolve_dependency_issues
+                - installation/installation_overview
+                - installation/disable_grub_graphics
+                - installation/start_install
+                - installation/await_install
+                - installation/reboot_after_installation
+                - boot/reconnect_mgmt_console
+                - installation/first_boot
+    reboot:
+        DO_NOT_INSTALL_HOST:
+            0:
+                - virt_autotest/reboot_and_wait_up_normal
+    install_guest:
+        SKIP_GUEST_INSTALL:
+            0:
+                - virt_autotest/unified_guest_installation
+    virtual_network_test:
+        ENABLE_VIR_NET:
+            1:
+                - virt_autotest/libvirt_virtual_network_init
+                - virt_autotest/libvirt_host_bridge_virtual_network
+                - virt_autotest/libvirt_nated_virtual_network
+    sriov_network_card_pci_passthrough_test:
+        ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH:
+            1:
+                - virt_autotest/sriov_network_card_pci_passthrough
+    hotplugging_test:
+        ENABLE_HOTPLUGGING:
+            1:
+                - virtualization/universal/hotplugging_guest_preparation
+                - virtualization/universal/hotplugging_network_interfaces
+                - virtualization/universal/hotplugging_HDD
+                - virtualization/universal/hotplugging_vCPUs
+                - virtualization/universal/hotplugging_memory
+                - virtualization/universal/hotplugging_cleanup
+    storage_test:
+        ENABLE_STORAGE:
+            1:
+                - virtualization/universal/storage

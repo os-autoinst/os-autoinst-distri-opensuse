@@ -1,0 +1,380 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <add-on>
+    <add_on_products config:type="list">
+      % unless ($check_var->('SLE_PRODUCT', 'sled')) {
+      % if ($is_ltss) {
+      <listentry>
+        <name>SLES-LTSS:<%= $get_var->('VERSION') %>::update</name>
+        <alias>SLES-LTSS:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/<%= $get_var->('VERSION') %>-LTSS/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
+      % if (!($check_var->('VERSION', '15') and $check_var->('ARCH', 'aarch64'))) {
+      <listentry>
+        <name>sle-module-containers:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-containers:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Containers/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-containers:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-containers:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Containers/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
+      <listentry>
+        <name>sle-module-legacy:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-legacy:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Legacy/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-legacy:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-legacy:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Legacy/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-public-cloud:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-public-cloud:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Public-Cloud/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-public-cloud:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-public-cloud:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Public-Cloud/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-server-applications:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-server-applications:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Server-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-server-applications:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-server-applications:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Server-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-web-scripting:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-web-scripting:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Web-Scripting/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-web-scripting:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-web-scripting:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Web-Scripting/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
+      % unless ($check_var->('VERSION', '15-SP4')) {
+      <listentry>
+        <name>sle-module-python2:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-python2:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Python2/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-python2:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-python2:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Python2/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
+      % if ($check_var->('ARCH', 'x86_64')) {
+      <listentry>
+        <name>sle-we:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-we:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Product-WE/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-we:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-we:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-WE/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
+      <listentry>
+        <name><%= uc $get_var->('SLE_PRODUCT') %>:<%= $get_var->('VERSION') %>::pool</name>
+        <alias><%= uc $get_var->('SLE_PRODUCT') %>:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Product-<%= uc $get_var->('SLE_PRODUCT') %>/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name><%= uc $get_var->('SLE_PRODUCT') %>:<%= $get_var->('VERSION') %>::update</name>
+        <alias><%= uc $get_var->('SLE_PRODUCT') %>:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-<%= uc $get_var->('SLE_PRODUCT') %>/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-basesystem:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-basesystem:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Basesystem/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-basesystem:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-basesystem:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Basesystem/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-desktop-applications:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-desktop-applications:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Desktop-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-desktop-applications:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-desktop-applications:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Desktop-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-development-tools:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-development-tools:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Development-Tools/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-development-tools:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-development-tools:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Development-Tools/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % if ($check_var->('HA_QAM', '1')) {
+      <listentry>
+        <name>sle-ha:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-ha:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Product-HA/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-ha:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-ha:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-HA/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
+      % if ($check_var->('SAP_QAM', '1')) {
+      <listentry>
+        <name>sle-module-sap-applications:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-sap-applications:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-SAP-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-sap-applications:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-sap-applications:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-SAP-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
+    </add_on_products>
+  </add-on>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+    % if ($check_var->('UEFI', '1')) {
+    <loader_type>grub2-efi</loader_type>
+    % }
+    % unless ($check_var->('UEFI', '1')) {
+    <loader_type>grub2</loader_type>
+    % }
+  </bootloader>
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+  </general>
+  <keyboard>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+  </language>
+  <networking>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <dhclient_set_default_route>yes</dhclient_set_default_route>
+        <startmode>auto</startmode>
+      </interface>
+    </interfaces>
+  </networking>
+  <firewall>
+    <enable_firewall config:type="boolean">true</enable_firewall>
+    <start_firewall config:type="boolean">true</start_firewall>
+    <default_zone>public</default_zone>
+    <zones config:type="list">
+      <zone>
+        <name>public</name>
+        <services config:type="list">
+          <service>ssh</service>
+        </services>
+      </zone>
+    </zones>
+  </firewall>
+  <partitioning config:type="list">
+    <drive>
+      <disklabel>gpt</disklabel>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          % if ($check_var->('ARCH', 'ppc64le')) {
+          <format config:type="boolean">false</format>
+          % }
+          % unless ($check_var->('ARCH', 'ppc64le')) {
+          <format config:type="boolean">true</format>
+          <filesystem config:type="symbol">ext2</filesystem>
+          % }
+          % if ($check_var->('UEFI', '1')) {
+          <filesystem config:type="symbol">vfat</filesystem>
+          % }
+          % if ($check_var->('ARCH', 's390x')) {
+          <mount>/boot/zipl</mount>
+          <fstopt>acl,user_xattr</fstopt>
+          % }
+          % if ($check_var->('UEFI', '1')) {
+          <mount>/boot/efi</mount>
+          <fstopt>umask=0002,utf8=true</fstopt>
+          % }
+          % unless ($check_var->('ARCH', 's390x') or $check_var->('ARCH', 'ppc64le') or $check_var->('UEFI', '1')) {
+          <mount>/boot</mount>
+          % }
+          <mountby config:type="symbol">path</mountby>
+          % if ($check_var->('ARCH', 'ppc64le')) {
+          <partition_id config:type="integer">65</partition_id>
+          % }
+          % unless ($check_var->('ARCH', 'ppc64le') or $check_var->('UEFI', '1')) {
+          <partition_id config:type="integer">131</partition_id>
+          % }
+          % if ($check_var->('UEFI', '1')) {
+          <partition_id config:type="integer">259</partition_id>
+          % }
+          <partition_nr config:type="integer">1</partition_nr>
+          <partition_type>primary</partition_type>
+          <size>500M</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>swap</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">130</partition_id>
+          <partition_nr config:type="integer">2</partition_nr>
+          <partition_type>primary</partition_type>
+          <size>2G</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <format config:type="boolean">true</format>
+          <mount>/</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">3</partition_nr>
+          <partition_type>primary</partition_type>
+          <size>max</size>
+        </partition>
+      </partitions>
+      <pesize/>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  % if ($check_var->('VERSION', '15-SP3')) {
+  <scripts t="map">
+    <init-scripts t="list">
+      <script t="map">
+        <filename>post.sh</filename>
+        <location/>
+        <source><![CDATA[
+#!/bin/sh
+# turn off autorefresh on pool repos
+sed -i 's/autorefresh=1/autorefresh=0/' /etc/zypp/repos.d/*pool*
+
+# enable keeppackages
+sed -i 's/keeppackages=0/keppackages=1/' /etc/zypp/repos.d/*
+
+# delete uselless path=
+sed -i '/^path*/d' /etc/zypp/repos.d/*
+
+# delete default ISO repo
+rm -f /etc/zypp/repos.d/SLE[SD]<%= $get_var->('VERSION') %>*
+
+exit 0
+
+]]></source>
+      </script>
+    </init-scripts>
+  </scripts>
+  % }
+  % unless ($check_var->('VERSION', '15-SP3')) {
+  <scripts>
+    <init-scripts config:type="list">
+      <script>
+        <filename>post.sh</filename>
+        <source><![CDATA[
+#!/bin/sh
+# turn off autorefresh on pool repos
+sed -i 's/autorefresh=1/autorefresh=0/' /etc/zypp/repos.d/*pool*
+
+# enable keeppackages
+sed -i 's/keeppackages=0/keppackages=1/' /etc/zypp/repos.d/*
+
+# delete uselless path=
+sed -i '/^path*/d' /etc/zypp/repos.d/*
+
+# delete default ISO repo
+rm -f /etc/zypp/repos.d/SLE[SD]<%= $get_var->('VERSION') %>*
+
+exit 0
+
+]]></source>
+      </script>
+    </init-scripts>
+  </scripts>
+  % }
+  <services-manager>
+    <default_target>multi-user</default_target>
+    <services>
+      <disable config:type="list"/>
+      <enable config:type="list">
+        <service>sshd</service>
+      </enable>
+    </services>
+  </services-manager>
+  <software>
+    <products config:type="list">
+      <product><%= uc $get_var->('SLE_PRODUCT') %></product>
+    </products>
+    <patterns config:type="list">
+      <pattern>base</pattern>
+      <pattern>enhanced_base</pattern>
+    </patterns>
+  </software>
+  <ssh_import>
+    <copy_config config:type="boolean">false</copy_config>
+    <import config:type="boolean">false</import>
+  </ssh_import>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>Europe/Berlin</timezone>
+  </timezone>
+  <users config:type="list">
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <gid>100</gid>
+      <home>/home/bernhard</home>
+      <shell>/bin/bash</shell>
+      <uid>1000</uid>
+      <user_password>$6$aRWNR0m3XwyS$SIZWimrSUz7YE/0Ji65JvZ9cxMbO66wmqebXqX1ysVV0me0WOVRqYSvfkOOmrFteqRt/lNak2x2Rlfrs6qM2S.</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$6$/UZBxmky.5P7$kALvFZzN.X0s23DuhAsvpXKVBeR3opRtI2O1UklpiuwebAF.JZ9vimjPjK2NxrztY7dg0qoiPxUV1RLE6acnG/</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>

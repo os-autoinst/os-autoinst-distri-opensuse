@@ -103,6 +103,7 @@ schedule:
     - console/prepare_test_data
     - console/consoletest_setup
     - '{{update_repos}}'
+    - console/ping
     - console/orphaned_packages_check
     - console/zypper_lr_validate
     - console/zypper_ref
@@ -169,3 +170,4 @@ schedule:
     - '{{tumbleweed_tests}}'
     - console/tar
     - console/coredump_collect
+    - console/zypper_log_packages

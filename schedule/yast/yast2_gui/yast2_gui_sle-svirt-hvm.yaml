@@ -29,9 +29,6 @@ schedule:
     - x11/yast2_snapper
     - yast2_gui/yast2_hostnames
     - yast2_gui/yast2_network_settings
-    - yast2_gui/yast2_lan_restart_bridge
-    - yast2_gui/yast2_lan_restart_vlan
-    - yast2_gui/yast2_lan_restart_bond
 test_data:
     software:
         patterns:

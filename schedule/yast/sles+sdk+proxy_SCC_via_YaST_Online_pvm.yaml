@@ -1,0 +1,35 @@
+---
+name: sles+sdk+proxy_SCC_via_YaST
+description: >
+  Add add-on via YaST control center directly https://progress.opensuse.org/issues/16402
+vars:
+  DESKTOP: textmode
+  SCC_ADDONS: sdk
+  SCC_REGISTER: yast
+  SYSTEM_ROLE: textmode
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
+  - installation/licensing/accept_license
+  - installation/registration/register_via_scc
+  - installation/module_registration/skip_module_registration
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_text_mode
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
+  - installation/installation_settings/validate_ssh_service_enabled
+  - installation/installation_settings/open_ssh_port
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
+  - installation/performing_installation/perform_installation
+  - installation/logs_from_installation_system
+  - installation/performing_installation/confirm_reboot
+  - installation/handle_reboot
+  - installation/first_boot
+  - installation/addon_products_via_SCC_yast2_ncurses

@@ -1,0 +1,95 @@
+# SUSE's openQA tests
+#
+# Copyright 2022 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: To cache the image locally, pre-pull the existing image using the correct SHA256 digest 
+#          and then assign a tag to it.
+# Maintainer: Nan Zhang <nan.zhang@suse.com>
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubevirt-tests
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-helper
+  namespace: kubevirt-tests
+  labels:
+    kubevirt-tests: "node-helper"
+spec:
+  selector:
+    matchLabels:
+      kubevirt-tests: "node-helper"
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 100%
+  template:
+    metadata:
+      labels:
+        name: node-helper
+        kubevirt-tests: node-helper
+    spec:
+      tolerations:
+      # this toleration is to have the daemonset runnable on master nodes
+      # remove it if your masters can't run pods
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      initContainers:
+      - name: helper
+        image: registry.opensuse.org/opensuse/busybox:latest
+        securityContext:
+          privileged: true
+        env:
+        - name: CTR
+          value: "/var/lib/rancher/rke2/bin/ctr -a /run/k3s/containerd/containerd.sock -n k8s.io"
+        - name: IMAGE1
+          value: "quay.io/kubevirt/fedora-with-test-tooling-container-disk@sha256:965db9b12b4fa9da2fa421a49747ad978e2593e9d4973ac5dc014a8b4207b69d"
+        - name: TAG1
+          value: "quay.io/kubevirt/fedora-with-test-tooling-container-disk:latest"
+        - name: IMAGE2
+          value: "quay.io/kubevirt/alpine-ext-kernel-boot-demo:v0.49.0"
+        - name: TAG2
+          value: "registry:5000/kubevirt/alpine-ext-kernel-boot-demo:devel"
+        volumeMounts:
+        - name: rke2bin
+          mountPath: /var/lib/rancher/rke2/bin
+          readOnly: true
+        - name: containerdsock
+          mountPath: /run/k3s/containerd/containerd.sock
+          readOnly: true
+        command:
+          - /bin/sh
+          - "-euxc"
+          - |
+            test -z "${IMAGE1}" || ${CTR} i pull -k ${IMAGE1}
+            test -z "${TAG1}" || ${CTR} i tag --force ${IMAGE1} ${TAG1}
+            test -z "${IMAGE2}" || ${CTR} i pull -k ${IMAGE2}
+            test -z "${TAG2}" || ${CTR} i tag --force ${IMAGE2} ${TAG2}
+      containers:
+      - name: sleeper
+        image: registry.opensuse.org/opensuse/busybox:latest
+        command:
+          - /bin/sh
+          - "-euxc"
+          - |
+            echo READY > /ready
+            sleep infinity
+        readinessProbe:
+          exec:
+            command: [ "cat", "/ready" ]
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: rke2bin
+        hostPath:
+          path: /var/lib/rancher/rke2/bin
+          type: Directory
+      - name: containerdsock
+        hostPath:
+          path: /run/k3s/containerd/containerd.sock
+          type: Socket

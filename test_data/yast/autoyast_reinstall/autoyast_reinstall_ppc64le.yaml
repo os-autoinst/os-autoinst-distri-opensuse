@@ -1,8 +1,0 @@
-paths:
-  - /var/lib/gdm/.bashrc
-  - /var/lib/empty/.bashrc
-  - /var/lib/polkit/.bashrc
-  - /var/lib/nobody/.bashrc
-  - /var/lib/pulseaudio/.bashrc
-<<: !include test_data/yast/autoyast_reinstall/partitioning_no_home.yaml
-<<: !include test_data/yast/autoyast/profiles/reinstall.yaml

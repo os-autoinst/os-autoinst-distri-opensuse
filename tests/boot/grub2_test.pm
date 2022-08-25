@@ -29,7 +29,7 @@ sub reboot {
 
 sub edit_cmdline {
     send_key 'e';
-    for (1 .. 13) { send_key 'down'; }
+    for (1 .. 12) { send_key 'down'; }
     send_key_until_needlematch 'grub2-edit-linux-line', 'down';
     send_key 'end';
 }

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Functions for SAP tests
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 ## no critic (RequireFilenameMatchesPackage);
 package sles4sap;
@@ -35,7 +36,7 @@ our @EXPORT = qw(
   reset_user_change
   get_total_mem
   prepare_profile
-  copy_media
+  mount_media
   add_hostname_to_hosts
   test_pids_max
   test_forkbomb
@@ -321,52 +322,27 @@ sub prepare_profile {
     }
 }
 
-=head2 copy_media
+=head2 mount_media
 
- $self->copy_media( $proto, $path, $timeout, $target );
+ $self->mount_media( $proto, $path, $target );
 
-Copies installation media in SUT from the share identified by B<$proto> and
-B<$path> into the target directory B<$target>. B<$timeout> specifies how long
-to wait for the copy to complete.
-
-After installation files are copied, this method will also verify the existence
-of a F<checksum.md5sum> file in the target directory and use it to check for the
-integrity of the copied files. This test can be skipped by setting to a
-true value the B<DISABLE_CHECKSUM> setting in the test.
-
-The method will croak if any of the commands sent to SUT fail.
+Mount installation media in SUT from the share identified by B<$proto> and
+B<$path> into the target directory B<$target>.
 
 =cut
 
-sub copy_media {
-    my ($self, $proto, $path, $nettout, $target) = @_;
-
-    # First copy media
+sub mount_media {
+    my ($self, $proto, $path, $target) = @_;
     my $mnt_path = '/mnt';
     my $media_path = "$mnt_path/" . get_required_var('ARCH');
+
     assert_script_run "mkdir $target";
     assert_script_run "mount -t $proto -o ro $path $mnt_path";
     $media_path = $mnt_path if script_run "[[ -d $media_path ]]";    # Check if specific ARCH subdir exists
-    assert_script_run "cp -ax $media_path/. $target/", $nettout;
 
-    # Go back to target directory and umount the share, as we don't need it anymore
-    assert_script_run "umount $mnt_path";
-
-    return 1 if get_var('DISABLE_CHECKSUM');
-
-    # Save current directory and go to target path for checking the files
-    my $current_dir = script_output 'pwd';
-    type_string "cd $target\n";
-
-    # Then verify everything was copied correctly
-    # NOTE: checksum is generated with this command: "find . -type f -exec md5sum {} \; > checksums.md5sum"
-    my $chksum_file = 'checksum.md5sum';
-    # We can't check the checksum file itself as well as the clustered NFS share part
-    assert_script_run "sed -i -e '/$chksum_file\$/d' -e '/\\/nfs_share/d' $chksum_file";
-    assert_script_run "md5sum -c --quiet $chksum_file", $nettout;
-
-    # Back to previous directory
-    type_string "cd $current_dir\n";
+    # Create a overlay to "allow" writes to the readonly filesystem
+    assert_script_run "mkdir /.workdir /.upperdir";
+    assert_script_run "mount -t overlay overlay -o lowerdir=$media_path,upperdir=/.upperdir,workdir=/.workdir $target";
 }
 
 =head2 add_hostname_to_hosts
@@ -399,7 +375,7 @@ sub test_pids_max {
     my $rc1 = script_run "grep -qx max /tmp/pids-max";
     # nproc should be set to "unlimited" in /etc/security/limits.d/99-sapsys.conf
     # Check that nproc * 2 + 1 >= threads-max
-    assert_script_run "systemd-run --slice user -qt su - $sapadmin -c 'ulimit -u' -s /bin/bash | tr -d '\\r' > /tmp/nproc";
+    assert_script_run "systemd-run --slice user -qt su - $sapadmin -c 'ulimit -u' -s /bin/bash | tail -n 1 | tr -d '\\r' > /tmp/nproc";
     assert_script_run "cat /tmp/nproc ; sysctl -n kernel.threads-max";
     my $rc2 = script_run "[[ \$(( \$(< /tmp/nproc) * 2 + 1)) -ge \$(sysctl -n kernel.threads-max) ]]";
     record_soft_failure "bsc#1031355" if ($rc1 or $rc2);
@@ -583,14 +559,14 @@ sub check_instance_state {
         # Exit if instance is not running anymore
         last if (($output =~ /GRAY/) && ($uc_state eq 'GRAY'));
 
-        if (($output =~ /GREEN/) && ($uc_state eq 'GREEN')) {
+        if ((($output =~ /GREEN/) && ($uc_state eq 'GREEN')) || ($uc_state eq 'GRAY')) {
             $output = script_output "sapcontrol -nr $instance -function GetProcessList | egrep -i ^[a-z]", proceed_on_failure => 1;
             die "sapcontrol: GetProcessList: command failed" unless ($output =~ /GetProcessList[\r\n]+OK/);
 
             my $failing_services = 0;
             for my $line (split(/\n/, $output)) {
                 next if ($line =~ /GetProcessList|OK|^name/);
-                $failing_services++ if ($line !~ /GREEN/);
+                $failing_services++ if ($line !~ /$uc_state/);
             }
             last unless $failing_services;
         }

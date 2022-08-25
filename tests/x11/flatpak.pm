@@ -35,9 +35,9 @@ sub run {
     select_console 'x11';
     ensure_unlocked_desktop;
     x11_start_program('flatpak run org.gimp.GIMP', target_match => 'flatpak-gimp');
-    wait_still_screen(3);
+    wait_still_screen(10);
     assert_and_click('flatpak-gimp');
-    wait_still_screen(3);
+    wait_still_screen(10);
 }
 
 1;

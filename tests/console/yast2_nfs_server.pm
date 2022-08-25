@@ -31,14 +31,22 @@ use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     if (get_var('NFSSERVER')) {
         server_configure_network($self);
     }
 
     install_service;
+
+    # From now we need needles
+    select_console 'root-console';
+
     config_service($rw, $ro);
+
+    # From now we can use serial terminal
+    $self->select_serial_terminal;
+
     start_service($rw, $ro);
 
     mutex_create('nfs_ready');
@@ -66,6 +74,8 @@ sub run {
     assert_script_run 'umount /mnt';
 
     wait_for_children;
+
+    $self->save_and_upload_log("journalctl --no-pager -u nfs-server -o short-precise", "journal_nfs_server.log");
 }
 
 1;

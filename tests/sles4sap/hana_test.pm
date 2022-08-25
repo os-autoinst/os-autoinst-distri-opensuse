@@ -19,22 +19,10 @@ sub test_python3 {
     save_screenshot;
     die "Wrong Python version" unless ($output =~ /Python 3/);
 
-    # The following commands only make sense on a cluster
+    assert_script_run "cdpy && chmod u+w . && python -m compileall *.py";
+
+    # The following command only makes sense on a cluster
     return unless get_var('CLUSTER_NAME');
-
-    # These are the expected return values from each script
-    # They will fail if written in Python 2
-    my %expected_retvals = (
-        "landscapeHostConfiguration.py" => [4],
-        "systemOverview.py" => [0],
-        "systemReplicationStatus.py" => [15]
-    );
-
-    foreach my $script (keys %expected_retvals) {
-        my $retval = script_run "cdpy; python $script", timeout => 300;
-        die "$script failed with $retval" unless (grep { /^$retval$/ } @{$expected_retvals{$script}});
-        save_screenshot;
-    }
 
     assert_script_run "cdpy; python getParameter.py net_publicname";
     save_screenshot;
