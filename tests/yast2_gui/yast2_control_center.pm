@@ -254,6 +254,7 @@ sub start_add_system_extensions_or_modules {
 sub start_kernel_dump {
     search('dump');
     assert_and_click 'yast2_control-kernel-kdump';
+    assert_and_click 'yast2_control-install-kdump';
     assert_screen 'yast2_control-center_kernel-kdump-configuration', timeout => 180;
     send_key 'alt-o';    # Press ok
     assert_screen 'yast2-control-center-ui', timeout => 60;
