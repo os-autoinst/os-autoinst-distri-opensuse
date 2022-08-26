@@ -17,16 +17,17 @@ terraform:
 
     # HANA
     hana_cluster_vip: "10.10.1.15"
-    hana_ips: ["10.10.1.11", "10.10.1.12"]
+    #hana_ips: ["10.10.1.16", "10.10.1.17"]
     hana_cluster_fencing_mechanism: "%FENCING_MECHANISM%"
+
     # SBD
     #iscsi_srv_uri: "https://%STORAGE_ACCOUNT_NAME%.blob.core.windows.net/sle-images/%SLE_IMAGE%"
 
 ansible:
   hana_urls:
-    - https://%STORAGE_ACCOUNT_NAME%.blob.core.windows.net/%PUBLIC_CLOUD_RESOURCE_NAME%/installer_sar/hana/SAPCAR
-    - https://%STORAGE_ACCOUNT_NAME%.blob.core.windows.net/%PUBLIC_CLOUD_RESOURCE_NAME%/installer_sar/hana/%HANA_SAR%
-    - https://%STORAGE_ACCOUNT_NAME%.blob.core.windows.net/%PUBLIC_CLOUD_RESOURCE_NAME%/installer_sar/hana/%HANA_CLIENT_SAR%
+    - "%HANA_SAR%"
+    - "%HANA_CLIENT_SAR%"
+    - "%HANA_SAPCAR%"
   create:
     - registration.yaml -e reg_code=%SCC_REGCODE_SLES4SAP% -e email_address=""
     - pre-cluster.yaml

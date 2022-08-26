@@ -13,10 +13,10 @@ schedule:
   - boot/boot_to_desktop
   - sles4sap/publiccloud/hana_sr_deployment
   #- sles4sap/publiccloud/hana_sr_dummy
-  #- sles4sap/publiccloud/hana_sr_stop_site_A
-  #- sles4sap/publiccloud/hana_sr_stop_site_B
-  #- sles4sap/publiccloud/hana_sr_kill_site_A
-  #- sles4sap/publiccloud/hana_sr_kill_site_B
+  - sles4sap/publiccloud/hana_sr_stop_site_A
+  - sles4sap/publiccloud/hana_sr_stop_site_B
+  - sles4sap/publiccloud/hana_sr_kill_site_A
+  - sles4sap/publiccloud/hana_sr_kill_site_B
   #- sles4sap/publiccloud/hana_sr_crash_site_A
   #- sles4sap/publiccloud/hana_sr_crash_site_B
   #- sles4sap/publiccloud/hana_sr_stop_replica

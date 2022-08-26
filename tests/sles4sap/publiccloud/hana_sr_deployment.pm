@@ -14,8 +14,10 @@ use testapi;
 use Mojo::File 'path';
 use sles4sap_publiccloud;
 use publiccloud::utils;
+use qesapdeployment;
 use Data::Dumper;
 use Storable;
+use Mojo::JSON qw(decode_json encode_json);
 
 sub test_flags {
     return {
@@ -25,14 +27,34 @@ sub test_flags {
     };
 }
 
+=head3 qesap_get_variables
+
+    Create a hash of variables and a list of required vars to replace in yaml config.
+    Values are taken either from ones defined in openqa ("value") or ("default") values within this function.
+    Openqa value takes precedence.
+=cut
+sub qesap_get_variables {
+    my %variables;
+    $variables{HANA_SAR} = get_required_var("HANA_SAR");
+    $variables{REGION} = get_required_var("PUBLIC_CLOUD_REGION");
+    $variables{HANA_CLIENT_SAR} = get_required_var("HANA_CLIENT_SAR");
+    $variables{HANA_SAPCAR} = get_required_var("HANA_SAPCAR");
+    $variables{SCC_REGCODE_SLES4SAP} = get_required_var("SCC_REGCODE_SLES4SAP");
+    $variables{STORAGE_ACCOUNT_NAME} = get_var("STORAGE_ACCOUNT_NAME");
+    $variables{STORAGE_ACCOUNT_KEY} = get_var("STORAGE_ACCOUNT_KEY");
+    $variables{PUBLIC_CLOUD_RESOURCE_NAME} = get_var("PUBLIC_CLOUD_RESOURCE_NAME");
+    $variables{FENCING_MECHANISM} = get_var("FENCING_MECHANISM", "sbd");
+
+    return(%variables);
+}
+
 sub run {
     my ($self, $run_args) = @_;
-    my $timeout = 120;
-    my @cluster_types = split(',', get_required_var('CLUSTER_TYPES'));
     # TODO: DEPLOYMENT SKIP - REMOVE!!!
     my $instances_import_path = get_var("INSTANCES_IMPORT");
     my $instances_export_path = get_var("INSTANCES_EXPORT");
     my $skip_deployment = get_var('INSTANCES_IMPORT');
+    my %variables = qesap_get_variables();
 
     $self->select_serial_terminal;
 
@@ -49,45 +71,36 @@ sub run {
 
     my $provider = $self->provider_factory();
 
+    # QESAP deployment
+
     # TODO: DEPLOYMENT SKIP - REMOVE!!!
     if (defined($instances_export_path) and length($instances_export_path)) {
         copy_ssh_keys();
     }
+    if (!get_var("HA_SAP_TERRAFORM_DEPLOYMENT")) {
+        qesap_prepare_env(openqa_variables => \%variables);
+        $provider->{terraform_env_prepared} = 1;
+    }
 
-    my @instances = $provider->create_instances(check_connectivity => 1);
+    my @instances = $provider->create_instances(check_connectivity => 0);
     my @instances_export;
 
-    # Upload all TF/SALT logs first!
+    # Allows to use previous ha-sap-terraform-deployment
+    if (!get_var("HA_SAP_TERRAFORM_DEPLOYMENT")) {
+        qesap_execute(cmd => 'ansible', verbose => 1, timeout => 3600);
+    }
+
+    record_info("Teraform Instances:", Dumper(\@instances));
 
     foreach my $instance (@instances) {
-        $self->upload_ha_sap_logs($instance);
-        record_info("instance dump", Dumper($instance));
         $self->{my_instance} = $instance;
-
         push(@instances_export, $instance);
-
-        # Get the hostname of the VM, it contains the cluster type
-        my $hostname = $self->run_cmd(cmd => 'uname -n', quiet => 1);
-        foreach my $cluster_type (@cluster_types) {
-            # Some actions are done only on the first node of each cluster
-            if ($hostname =~ m/${cluster_type}01$/) {
-                if ($cluster_type eq 'hana') {
-                    # Before doing anything on the cluster we have to wait for the HANA sync to be done
-                    $self->run_cmd(cmd => 'sh -c \'until SAPHanaSR-showAttr | grep -q SOK; do sleep 1; done\'', timeout => $timeout, quiet => 1);
-                    # Show HANA replication state
-                    $self->run_cmd(cmd => 'SAPHanaSR-showAttr');
-                }
-
-                # Wait for all resources to be up
-                # We need to be sure that the cluster is OK before testing
-                record_info('Cluster type', $cluster_type);
-                $self->wait_until_resources_started(cluster_type => $cluster_type, timeout => $timeout);
-            }
-        }
 
         my $instance_id = $instance->{'instance_id'};
         # Skip instances without HANA db
         next if ($instance_id !~ m/vmhana/);
+
+        $self->wait_for_sync();
 
         # Define initial state for both sites
         # Site A is always PROMOTED after deployment
@@ -97,8 +110,8 @@ sub run {
         $run_args->{site_b} = $instance if ($instance_id ne $master_node);
 
         record_info("Instances:", "Detected HANA instances:
-        Site A: $run_args->{site_a}->{instance_id}
-        Site B: $run_args->{site_b}->{instance_id}");
+        Site A: $run_args->{site_a}{instance_id}
+        Site B: $run_args->{site_b}{instance_id}") if ($instance_id eq $master_node);
     }
 
     # TODO: DEPLOYMENT SKIP - REMOVE!!!
@@ -108,11 +121,9 @@ sub run {
         record_info('Export path', Dumper($instances_export_path));
         store(\@instances_export, $instances_export_path);
     }
-    else{
-        record_info('NOT exporting data');
-    }
 
     $self->{instances} = $run_args->{instances} = \@instances_export;
+    record_info("Deployment OK", )
 }
 
 

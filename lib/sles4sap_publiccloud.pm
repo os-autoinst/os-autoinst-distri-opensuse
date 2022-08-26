@@ -21,7 +21,6 @@ use Data::Dumper;
 our @EXPORT = qw(
     run_cmd
     wait_until_resources_started
-    upload_ha_sap_logs
     get_promoted_hostname
     is_hana_resource_running
     stop_hana
@@ -114,24 +113,6 @@ sub wait_until_resources_started {
     }
 }
 
-=head2 upload_ha_sap_logs
-
-    upload_ha_sap_logs($instance):
-
-Upload the HA/SAP logs from instance C<$instance> on the Webui.
-=cut
-sub upload_ha_sap_logs {
-    my ($self, $instance) = @_;
-    my @logfiles = qw(salt-deployment.log salt-os-setup.log salt-pre-deployment.log salt-result.log);
-
-    # Upload logs from public cloud VM
-    $instance->run_ssh_command(cmd => 'sudo chmod o+r /var/log/salt-*');
-    foreach my $file (@logfiles) {
-        $instance->upload_log("/var/log/$file", log_name => "$instance->{instance_id}-$file");
-    }
-}
-
-
 =head2 get_promoted_hostname()
     get_promoted_hostname();
 
@@ -139,7 +120,7 @@ Checks and returns hostname of HANA promoted node.
 =cut
 sub get_promoted_hostname {
     my ($self) = @_;
-    my $resource_output = $self->run_cmd(cmd => "crm resource status msl_SAPHana_PRD_HDB00", quiet => 1);
+    my $resource_output = $self->run_cmd(cmd => "crm resource status msl_SAPHana_HDB_HDB00", quiet => 1);
     record_info("crm out", $resource_output);
     my @master = $resource_output =~ /:\s(\S+)\sMaster/g;
     if ( scalar @master != 1 ) {
@@ -205,13 +186,13 @@ sub is_hana_online {
 =head2 is_hana_resource_running
     is_hana_resource_running([timeout => 60]);
 
-Checks if resource msl_SAPHana_PRD_HDB00 is running on given node.
+Checks if resource msl_SAPHana_HDB_HDB00 is running on given node.
 =cut
 sub is_hana_resource_running {
     my ($self) = @_;
     my $hostname = $self->{my_instance}->{instance_id};
 
-    my $resource_output = $self->run_cmd(cmd => "crm resource status msl_SAPHana_PRD_HDB00", quiet => 1);
+    my $resource_output = $self->run_cmd(cmd => "crm resource status msl_SAPHana_HDB_HDB00", quiet => 1);
     my $node_status = grep /is running on: $hostname/, $resource_output;
     record_info("Node status", "$hostname: $node_status");
     return $node_status;
@@ -252,7 +233,7 @@ sub stop_hana {
         return();
     }
     else {
-        $self->run_cmd(cmd => $cmd, runas=>"prdadm" , timeout => $timeout);
+        $self->run_cmd(cmd => $cmd, runas=>"hdbadm" , timeout => $timeout);
     }
 
     # Wait for resource to stop
@@ -275,20 +256,20 @@ Start HANA DB using "HDB start" command
 
 sub start_hana{
     my ($self) = @_;
-    $self->run_cmd(cmd => "HDB start", runas=>"prdadm");
+    $self->run_cmd(cmd => "HDB start", runas=>"hdbadm");
 }
 
 =head2 cleanup_resource
     cleanup_resource([timeout => 60]);
 
-Cleanup rsource 'msl_SAPHana_PRD_HDB00', wait for DB start automaticlly.
+Cleanup rsource 'msl_SAPHana_HDB_HDB00', wait for DB start automaticlly.
 
 =cut
 
 sub cleanup_resource{
     my ($self, %args) = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
-    $self->run_cmd(cmd => "crm resource cleanup msl_SAPHana_PRD_HDB00");
+    $self->run_cmd(cmd => "crm resource cleanup msl_SAPHana_HDB_HDB00");
 
     # Wait for resource to start
     my $start_time = time;
@@ -354,7 +335,7 @@ sub enable_replication {
     "--operationMode=$topology{op_mode}";
 
     record_info('CMD Run', $cmd);
-    $self->run_cmd(cmd => $cmd, runas => "prdadm");
+    $self->run_cmd(cmd => $cmd, runas => "hdbadm");
 
 }
 
@@ -365,7 +346,7 @@ sub enable_replication {
 =cut
 sub get_replication_info {
     my ($self) = @_;
-    my $output_cmd = $self->run_cmd(cmd => "hdbnsutil -sr_state| grep -E :[^\^]", runas => "prdadm");
+    my $output_cmd = $self->run_cmd(cmd => "hdbnsutil -sr_state| grep -E :[^\^]", runas => "hdbadm");
 
     # Create a hash from hdbnsutil output ,convert to lowercase with underscore instead of space.
     my %out = $output_cmd =~ /^?\s?([\/A-z\s]*\S+):\s(\S+)\n/g;
@@ -416,6 +397,7 @@ sub wait_for_sync {
         my $topology = $self->get_hana_topology();
         for my $entry (@$topology) {
             my %entry = %$entry;
+            next if !exists($entry{sync_state});
             $sok = 1 if $entry{sync_state} eq "SOK";
             last if $sok == 1;
         }
