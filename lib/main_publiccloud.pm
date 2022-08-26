@@ -180,6 +180,8 @@ sub load_publiccloud_tests {
             load_publiccloud_download_repos();
         } elsif (get_var('PUBLIC_CLOUD_QAM')) {
             load_maintenance_publiccloud_tests();
+        } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
+            loadtest('publiccloud/ahb');
         } else {
             load_latest_publiccloud_tests();
         }
