@@ -50,6 +50,7 @@ sub run {
     wait_still_screen 1;
     wait_screen_change { type_string "5" };
     wait_screen_change { send_key "alt-o" };
+    wait_still_screen 3;
 
     # Check previously set values + Miscellaneous Settings
     y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 120);
