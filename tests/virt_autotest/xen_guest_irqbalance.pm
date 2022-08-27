@@ -133,6 +133,7 @@ sub restore_xml_changed_guests {
     foreach my $guest (@changed_guests) {
         remove_vm($guest);
         restore_downloaded_guests($guest, $changed_xml_dir);
+        assert_script_run "virsh start $guest";
     }
 }
 

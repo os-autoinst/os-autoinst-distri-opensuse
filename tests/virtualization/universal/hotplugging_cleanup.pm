@@ -26,6 +26,7 @@ sub run_test {
     # Ensure guests remain in a consistent state also
     shutdown_guests();
     reset_guest($_, $MAC_PREFIX) foreach (keys %virt_autotest::common::guests);
+    start_guests();
 }
 
 sub post_fail_hook {

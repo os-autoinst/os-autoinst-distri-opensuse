@@ -30,7 +30,7 @@ sub run {
 
     # Remove already existing guests to ensure a fresh start (needed for restarting jobs)
     remove_guest $_ foreach (keys %virt_autotest::common::imports);
-    shutdown_guests();    # Shutdown SLES guests as they are not needed here
+    #    shutdown_guests();    # Shutdown SLES guests as they are not needed here
 
     import_guest $_, 'virt-install' foreach (values %virt_autotest::common::imports);
     add_guest_to_hosts $_, $virt_autotest::common::imports{$_}->{ip} foreach (keys %virt_autotest::common::imports);
@@ -53,9 +53,9 @@ sub post_fail_hook {
 }
 
 sub post_run_hook {
-    my $self = shift;
+    #    my $self = shift;
     remove_guest $_ foreach (keys %virt_autotest::common::imports);
-    $self->SUPER::post_run_hook;
+    #    $self->SUPER::post_run_hook;
 }
 
 1;

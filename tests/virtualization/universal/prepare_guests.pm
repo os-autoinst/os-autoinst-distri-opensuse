@@ -19,7 +19,6 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils 'is_sle';
 use File::Copy 'copy';
 use File::Path 'make_path';
 
@@ -83,8 +82,8 @@ sub run {
     #    $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
     select_console('root-console');
     systemctl("restart libvirtd");
-    assert_script_run('for i in $(virsh list --name|grep sles);do virsh destroy $i;done');
-    assert_script_run('for i in $(virsh list --name --inactive); do virsh undefine $i --remove-all-storage;done');
+    assert_script_run('for i in $(virsh list --name|grep -v Domain-0);do virsh destroy $i;done');
+    assert_script_run('for i in $(virsh list --name --inactive); do if [[ $i == win* ]]; then virsh undefine $i; else virsh undefine $i --remove-all-storage; fi; done');
     script_run("[ -f /root/.ssh/known_hosts ] && > /root/.ssh/known_hosts");
     script_run 'rm -rf /tmp/guests_ip';
 

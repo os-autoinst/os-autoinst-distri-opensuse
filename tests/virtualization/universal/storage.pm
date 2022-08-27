@@ -24,7 +24,7 @@ sub run_test {
 
     record_info "Prepare";
     foreach (keys %virt_autotest::common::guests) {
-        start_guests() unless is_guest_online($_);
+        script_run("virsh start '$_'") unless is_guest_online($_);
     }
     ## Prepare Virtualization Dir Storage Pool source
     prepare_dir_storage_pool_source($dir_pool_name);

@@ -1,0 +1,54 @@
+---
+name: qam virtualization tests
+description:    >
+    Tests for virtualization tests
+schedule:
+  - console/login
+  - '{{qam_tests}}'
+  - virtualization/universal/finish
+conditional_schedule:
+  qam_tests:
+    VIRT_PART:
+      'save_and_restore':
+        - virtualization/universal/save_and_restore
+      'networking':
+        - virt_autotest/libvirt_host_bridge_virtual_network
+        - virt_autotest/libvirt_nated_virtual_network
+        - virt_autotest/libvirt_isolated_virtual_network
+      'guest_management':
+        - virtualization/universal/guest_management
+      'snapshots':
+        - virt_autotest/virsh_internal_snapshot
+        - virt_autotest/virsh_external_snapshot
+      'dom_metrics':
+        - virtualization/universal/virsh_stop
+        - virtualization/universal/xl_create
+        - virtualization/universal/dom_install
+        - virtualization/universal/dom_metrics
+        - virtualization/universal/xl_stop
+        - virtualization/universal/virsh_start
+      'final':
+        - virtualization/universal/ssh_final
+        - virtualization/universal/virtmanager_final
+        - virtualization/universal/smoketest
+        - virtualization/universal/stresstest
+        - console/perf
+      'hotplugging':
+        - virtualization/universal/hotplugging_guest_preparation
+        - virtualization/universal/hotplugging_network_interfaces
+        - virtualization/universal/hotplugging_HDD
+        - virtualization/universal/hotplugging_vCPUs
+        - virtualization/universal/hotplugging_memory
+        - virtualization/universal/hotplugging_cleanup
+      'storage':
+        - virtualization/universal/storage
+      'windows':
+        - virtualization/universal/download_image
+        - virtualization/universal/windows
+      'irqbalance':
+        - virt_autotest/xen_guest_irqbalance
+      'virtmanager':
+        - virtualization/universal/virtmanager_init
+        - virtualization/universal/virtmanager_offon
+        - virtualization/universal/virtmanager_add_devices
+        - virtualization/universal/virtmanager_rm_devices
