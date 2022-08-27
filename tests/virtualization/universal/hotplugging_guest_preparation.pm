@@ -21,15 +21,6 @@ use hotplugging_utils;
 # Magic MAC prefix for temporary devices. Must be of the format 'XX:XX:XX:XX'
 my $MAC_PREFIX = '00:16:3f:32';
 
-sub increase_max_memory {
-    my $guest = shift;
-    my $increase = shift // 2048;
-    my $guest_instance = $virt_autotest::common::guests{$guest};
-    my $maxmemory = $guest_instance->{maxmemory} // "4096";
-    $maxmemory += $increase;
-    assert_script_run("virsh setmaxmem $guest $maxmemory" . "M --config");
-}
-
 sub run_test {
     my ($self) = @_;
     my ($sles_running_version, $sles_running_sp) = get_os_release;
@@ -45,10 +36,8 @@ sub run_test {
 
     # Guest preparation
     shutdown_guests();
-    # Increase maximum memory for this test run
-    increase_max_memory($_) foreach (keys %virt_autotest::common::guests);
+    reset_guest($_, $MAC_PREFIX) foreach (keys %virt_autotest::common::guests);
     start_guests();
-
 }
 
 sub post_fail_hook {

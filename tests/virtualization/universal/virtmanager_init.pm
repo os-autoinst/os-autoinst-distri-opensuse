@@ -23,7 +23,6 @@ sub run_test {
     # Ensure additional devices are removed (if present).
     # This is necessary for restarting the virtmanager tests, as we assume the state is clear.
     foreach my $guest (keys %virt_autotest::common::guests) {
-        next if ($guest == "");
         remove_additional_nic($guest, "00:16:3e:32");
         remove_additional_disks($guest);
     }

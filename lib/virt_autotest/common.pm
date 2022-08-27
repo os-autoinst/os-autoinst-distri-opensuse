@@ -253,9 +253,6 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     );
 } elsif (get_var("REGRESSION", '') =~ /vmware/) {
     %guests = (
-        sles12sp2 => {
-            name => 'sles12sp2',
-        },
         sles12sp3 => {
             name => 'sles12sp3',
         },
@@ -295,10 +292,6 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles12sp3 => {
             name => 'sles12sp3',
             ip => 'win2k19-sle12-SP3.qa.suse.cz',
-        },
-        sles12sp2 => {
-            name => 'sles12sp2',
-            ip => 'win2k19-sle12-SP2.qa.suse.cz',
         },
         sles12sp4 => {
             name => 'sles12sp4',
