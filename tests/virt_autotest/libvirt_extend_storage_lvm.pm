@@ -39,7 +39,8 @@ sub run_test {
         start_guests() unless is_guest_online($_);
     }
     ## Prepare Virtualization LVM Storage Pool Source
-    my $lvm_disk = $self->prepare_lvm_storage_pool_source();
+    my ($lvm_disk, $lvm_return) = $self->prepare_lvm_storage_pool_source();
+    return if ($lvm_return == 1);
 
     ## About LVM volume group storage pool management
     # Use an LVM Volume Group (VG) as a storage pool named 'guest_image_lvm'
@@ -61,10 +62,11 @@ sub prepare_lvm_storage_pool_source {
     my ($dev, $lvm_disk_name);
     my @disks = split(/\n/, script_output("lsblk -n -l -o NAME -d -e 7,11"));
     my $scalar = @disks;
+    my $ret = 0;
     #NOTE: Requires at least 2 physical hard disks for LVM Storage test
     if (($scalar eq 1) || get_var('KEEP_DISKS')) {
         record_info("WARNING", "Requires at least 2 physical hard disks for LVM Storage test\n", result => 'softfail');
-        return;
+        $ret = 1;
     }
     # Use a unused hard disk for LVM volumes
     $dev = "/dev/";
@@ -80,7 +82,7 @@ sub prepare_lvm_storage_pool_source {
     ## About LVM volumes management
     # Create a Volume Group (VG) with LVM named 'lvm_vg'
     create_volume_group($lvm_disk_name);
-    return ($lvm_disk_name);
+    return ($lvm_disk_name,$ret);
 }
 
 # Wipe Hard Disk Clean via dd
