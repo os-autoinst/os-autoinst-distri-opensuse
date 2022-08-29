@@ -335,6 +335,8 @@
     "no-config-drive": {
         "description": "Timed out waiting for device (/dev/disk/by-label/ignition|/dev/combustion/config)",
         "products": {
+            "leap-micro": ["5.3"],
+            "sle-micro": ["5.3"],
             "microos":  ["Tumbleweed"]
         },
         "type": "ignore"
