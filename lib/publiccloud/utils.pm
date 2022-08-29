@@ -95,8 +95,8 @@ sub registercloudguest {
     # not all images currently have registercloudguest pre-installed .
     # in such a case,we need to regsiter against SCC and install registercloudguest with all needed dependencies and then
     # unregister and re-register with registercloudguest
-    if ($instance->run_ssh_command(cmd => "sudo which registercloudguest > /dev/null; echo \"registercloudguest\$?\" ", proceed_on_failure => 1) =~ m/registercloudguest1/) {
-        $instance->retry_ssh_command(cmd => "sudo SUSEConnect -r $regcode", timeout => 420, retry => 3, delay => 120);
+    if ($instance->ssh_script_output(cmd => "sudo which registercloudguest > /dev/null; echo \"registercloudguest\$?\" ", proceed_on_failure => 1) =~ m/registercloudguest1/) {
+        $instance->ssh_script_retry(cmd => "sudo SUSEConnect -r $regcode", timeout => 420, retry => 3, delay => 120);
         register_addon($remote, 'pcm');
         my $install_packages = 'cloud-regionsrv-client';    # contains registercloudguest binary
         if (is_azure()) {
@@ -111,14 +111,14 @@ sub registercloudguest {
         else {
             die 'Unexpected provider ' . get_var('PUBLIC_CLOUD_PROVIDER');
         }
-        $instance->run_ssh_command(cmd => "sudo zypper -q -n in $install_packages", timeout => 420);
-        $instance->run_ssh_command(cmd => "sudo registercloudguest --clean");
+        $instance->ssh_assert_script_run(cmd => "sudo zypper -q -n in $install_packages", timeout => 420);
+        $instance->ssh_assert_script_run(cmd => "sudo registercloudguest --clean");
     }
     # Check what version of registercloudguest binary we use
-    $instance->run_ssh_command(cmd => "sudo rpm -qa cloud-regionsrv-client", proceed_on_failure => 1);
+    $instance->ssh_script_run(cmd => "sudo rpm -qa cloud-regionsrv-client");
     # Register the system
     my $cmd_time = time();
-    $instance->retry_ssh_command(cmd => "sudo registercloudguest -r $regcode", timeout => 420, retry => 3, delay => 120);
+    $instance->ssh_script_retry(cmd => "sudo registercloudguest -r $regcode", timeout => 420, retry => 3, delay => 120);
     record_info('registercloudguest time', 'The command registercloudguest took ' . (time() - $cmd_time) . ' seconds.');
 }
 
@@ -142,7 +142,7 @@ sub register_openstack {
 
     my $cmd = "sudo SUSEConnect -r $regcode";
     $cmd .= " --url $fake_scc" if $fake_scc;
-    $instance->run_ssh_command(cmd => $cmd, timeout => 700, retry => 5);
+    $instance->ssh_assert_script_run(cmd => $cmd, timeout => 700, retry => 5);
 }
 
 # Check if we are a BYOS test run
