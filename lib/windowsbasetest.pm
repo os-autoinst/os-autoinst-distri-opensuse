@@ -123,7 +123,10 @@ sub wait_boot_windows {
     send_key_until_needlematch 'windows-login', 'esc';
     type_password;
     send_key 'ret';    # press shutdown button
-    assert_screen 'windows-desktop', 240;
+    assert_screen ['finish-setting', 'windows-desktop'], 240;
+    if (match_has_tag 'finish-setting') {
+        assert_and_click 'finish-setting';
+    }
 }
 
 sub windows_server_login_Administrator {
