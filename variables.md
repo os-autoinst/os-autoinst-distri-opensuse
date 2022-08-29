@@ -298,3 +298,4 @@ PUBLIC_CLOUD_TERRAFORM_FILE | string | "" | If defined, use this terraform file 
 TERRAFORM_TIMEOUT | integer | 1800 | Set timeout for terraform actions
 PUBLIC_CLOUD_INSTANCE_IP | string | "" | If defined, no instance will be created and this IP will be used to connect to
 _SECRET_PUBLIC_CLOUD_INSTANCE_SSH_KEY | string | "" | The `~/.ssh/id_rsa` existing key allowed by `PUBLIC_CLOUD_INSTANCE_IP` instance
+PUBLIC_CLOUD_TERRAFORM_DIR | string | "/root/terraform" | Override default root path to terraform directory
