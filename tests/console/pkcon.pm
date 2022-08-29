@@ -34,7 +34,7 @@ sub run {
     foreach (@command) {
         script_run "pkcon $_";
     }
-    script_run("pkcon install $pkgname --allow-reinstall --allow-downgrade -y");
+    script_run("pkcon install $pkgname --allow-reinstall --allow-downgrade -y", 300);
 
     # restore previous state for packagekit service
     quit_packagekit;
