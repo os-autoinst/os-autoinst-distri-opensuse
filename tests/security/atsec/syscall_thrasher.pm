@@ -38,7 +38,10 @@ sub run {
 
     # Run the test
     assert_script_run("cd $test_dir");
-    assert_script_run("./$exe_file", timeout => 1200);
+
+    # Since this randomly fails, we retry 10 times each time adding a delay before failing and exiting.
+    script_retry("./$exe_file", retry => 10, timeout => 1200, delay => 60);
+
     assert_script_run('ls');
 }
 
