@@ -16,6 +16,10 @@
     <ul>
       <li><a href="#run_ssh_command">run_ssh_command</a></li>
       <li><a href="#retry_ssh_command">retry_ssh_command</a></li>
+      <li><a href="#ssh_script_run">ssh_script_run</a></li>
+      <li><a href="#ssh_assert_script_run">ssh_assert_script_run</a></li>
+      <li><a href="#ssh_script_output">ssh_script_output</a></li>
+      <li><a href="#ssh_script_retry">ssh_script_retry</a></li>
       <li><a href="#scp">scp</a></li>
       <li><a href="#upload_log">upload_log</a></li>
       <li><a href="#wait_for_guestregister">wait_for_guestregister</a></li>
@@ -40,6 +44,32 @@
 <pre><code>    ssh_script_retry(command[, retry =&gt; 3][, delay =&gt; 10][, timeout =&gt; 90][, ssh_opts =&gt;&#39;..&#39;][, username =&gt; &#39;XXX&#39;][, no_quote =&gt; 0]);</code></pre>
 
 <p>Run a <code>command</code> via ssh in the given PC instance until it succeeds or the given number of retries is exhausted and an exception is thrown. Timeout can be set by <code>timeout</code> or 90 sec by default. By default, the command is passed in single quotes to SSH. To avoid quoting use <code>&lt;no_quote=</code>1&gt;&gt;. With <code>&lt;ssh_opts=</code>&#39;...&#39;&gt;&gt; you can overwrite all default ops which are in <code>&lt;$instance-</code>ssh_opts&gt;&gt;. Use argument <code>username</code> to specify a different username then <code>&lt;$instance-</code>username()&gt;&gt;.</p>
+
+<p>This function is deprecated. Please use ssh_script_retry instead.</p>
+
+<h2 id="ssh_script_run">ssh_script_run</h2>
+
+<pre><code>    ssh_script_run($cmd [, timeout =&gt; $timeout] [, fail_message =&gt; $fail_message] [,quiet =&gt; $quiet] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username])</code></pre>
+
+<p>Runs a command <code>cmd</code> via ssh on the publiccloud instance and returns the return code.</p>
+
+<h2 id="ssh_assert_script_run">ssh_assert_script_run</h2>
+
+<pre><code>    ssh_assert_script_run($cmd [, timeout =&gt; $timeout] [, fail_message =&gt; $fail_message] [,quiet =&gt; $quiet] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username])</code></pre>
+
+<p>Runs a command <code>cmd</code> via ssh on the publiccloud instance and die, unless it returns zero.</p>
+
+<h2 id="ssh_script_output">ssh_script_output</h2>
+
+<pre><code>    ssh_script_output($script [, $wait, type_command =&gt; 1, proceed_on_failure =&gt; 1] [,quiet =&gt; $quiet] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username])</code></pre>
+
+<p>Executing script inside SUT with bash -eo and directs stdout (but not stderr!) to the serial console and returns the output if the script exits with 0. Otherwise the test is set to failed.</p>
+
+<h2 id="ssh_script_retry">ssh_script_retry</h2>
+
+<pre><code>    ssh_script_retry($cmd, [expect =&gt; $expect], [retry =&gt; $retry], [delay =&gt; $delay], [timeout =&gt; $timeout], [die =&gt; $die] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username])</code></pre>
+
+<p>Repeat command until expected result or timeout.</p>
 
 <h2 id="scp">scp</h2>
 
