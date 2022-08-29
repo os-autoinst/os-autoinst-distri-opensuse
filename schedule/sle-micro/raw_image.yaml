@@ -49,7 +49,6 @@ conditional_schedule:
 
 schedule:
   - '{{boot}}'
-  - jeos/image_info
   - transactional/host_config
   - '{{ECSAnywhere}}'
   - '{{rt}}'
