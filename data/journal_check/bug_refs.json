@@ -180,7 +180,7 @@
     "bsc#1188215": {
         "description": "Failed to start Create missing directories from rpmdb",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.3" ],
+            "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
             "microos":  ["Tumbleweed"]
         },
         "type": "bug"
