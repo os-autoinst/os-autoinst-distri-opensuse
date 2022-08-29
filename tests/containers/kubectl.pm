@@ -51,7 +51,7 @@ sub run {
     # Check service output
     validate_script_output("kubectl get service --all-namespaces", sub { $_ =~ m/No resources found/ || split(/\n/, $_) > 1; });
     # At least the coredns pod must be present
-    validate_script_output("kubectl get pods --all-namespaces", sub { $_ =~ m/coredns/ });
+    validate_script_output_retry("kubectl get pods --all-namespaces", sub { $_ =~ m/coredns/ });
     # There must be at least one endpoint present
     validate_script_output("kubectl get endpoints", sub { split(/\n/, $_) > 1; });
     # There must be at least the coredns deployment present
@@ -80,8 +80,9 @@ sub run {
 
     ## Test jobs
     record_info('Testing: jobs and pods', 'job and pod test runs');
-    assert_script_run('kubectl create job sayhello --image=busybox:1.28 -- echo "Hello World"');
-    assert_script_run('kubectl create job gimme-date --image=busybox -- date');
+    # The testing.registry must be registered in k8s as private registry and point to REGISTRY variable.
+    assert_script_run("kubectl create job sayhello --image=testing.registry/library/alpine -- echo 'Hello World'");
+    assert_script_run("kubectl create job gimme-date --image=testing.registry/library/busybox -- date");
     validate_script_output("kubectl get jobs --no-headers", qr/sayhello/);
     validate_script_output("kubectl get jobs --no-headers", qr/gimme-date/);
     assert_script_run('kubectl wait jobs/sayhello --for=condition=complete --timeout=300s', timeout => 330);

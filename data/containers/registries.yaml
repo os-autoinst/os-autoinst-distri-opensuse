@@ -1,0 +1,4 @@
+mirrors:
+  testing.registry:
+    endpoint:
+      - "http://REGISTRY"
