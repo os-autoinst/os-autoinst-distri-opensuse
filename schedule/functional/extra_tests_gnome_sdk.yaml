@@ -9,4 +9,3 @@ schedule:
     - console/consoletest_setup
     - x11/libqt5_qtbase
     - console/coredump_collect
-    - console/zypper_log_packages

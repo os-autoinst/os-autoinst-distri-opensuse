@@ -17,4 +17,3 @@ schedule:
     - x11/toolkits/qt5
     - x11/toolkits/swing
     - console/coredump_collect
-    - console/zypper_log_packages

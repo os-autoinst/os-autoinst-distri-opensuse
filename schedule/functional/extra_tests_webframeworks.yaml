@@ -8,4 +8,3 @@ schedule:
     - console/prepare_test_data
     - console/django
     - console/flask
-    - console/zypper_log_packages
