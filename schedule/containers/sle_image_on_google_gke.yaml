@@ -1,8 +1,0 @@
----
-name: sle_image_on_google_gke
-description: |
-  containers on Google Kubernetes Engine test
-schedule:
-  - boot/boot_to_desktop
-  - containers/push_container_image_to_gcr
-  - containers/run_container_in_k8s
