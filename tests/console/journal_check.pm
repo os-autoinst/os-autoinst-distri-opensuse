@@ -53,12 +53,16 @@ sub run {
     $self->select_serial_terminal;
 
     my @journal_output = split(/\n/, script_output("journalctl --no-pager --quiet -p ${\get_var('JOURNAL_LOG_LEVEL', 'err')} -o short-precise"));
+    my @matched_bugs;
 
     # Find lines which matches to the pattern_bug
     foreach my $bug (keys %$bug_pattern) {
         my $buffer = "";
         foreach my $line (@journal_output) {
-            $buffer .= $line . "\n" if ($line =~ /$bug_pattern->{$bug}->{description}/);
+            if ($line =~ /$bug_pattern->{$bug}->{description}/) {
+                $buffer .= $line . "\n";
+                push @matched_bugs, $bug;
+            }
         }
         if ($buffer) {
             if ($bug_pattern->{$bug}->{type} eq 'feature') {
@@ -88,10 +92,17 @@ sub run {
     # Check for failed systemd services and examine them
     # script_run("pkill -SEGV dbus-daemon"); # comment out for a test
     my $failed_services = script_output("systemctl --failed --no-legend --plain --no-pager");
-    foreach my $line (split(/\n/, $failed_services)) {
+  SRV: foreach my $line (split(/\n/, $failed_services)) {
         if ($line =~ /^([\w.-]+)\s.+$/) {
-            my $failed_service_output = script_output("systemctl status $1 -l || true");
-            record_info "$1 failed", $failed_service_output, result => 'fail';
+            my $service = $1;
+            my $failed_service_output = script_output("systemctl status $service -l || true");
+            foreach my $bsc (@matched_bugs) {
+                if ($failed_service_output =~ /$bug_pattern->{$bsc}->{description}/) {
+                    record_soft_failure("Service: $service failed due to $bsc\n$failed_service_output");
+                    next SRV;
+                }
+            }
+            record_info "$service failed", $failed_service_output, result => 'fail';
             $failed = 1;
         }
     }
