@@ -187,7 +187,7 @@ sub run {
             if ($hostname =~ m/${cluster_type}01$/) {
                 if ($cluster_type eq 'hana') {
                     # Before doing anything on the cluster we have to wait for the HANA sync to be done
-                    $self->run_cmd(cmd => 'sh -c \'until SAPHanaSR-showAttr | grep -q SOK; do sleep 1; done\'', timeout => $timeout, quiet => 1);
+                    $self->run_cmd(cmd => 'sh -c "until SAPHanaSR-showAttr | grep -q SOK; do sleep 1; done"', timeout => $timeout, quiet => 1);
                     # Show HANA replication state
                     $self->run_cmd(cmd => 'SAPHanaSR-showAttr');
                 }
