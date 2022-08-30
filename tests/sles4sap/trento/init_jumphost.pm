@@ -8,16 +8,14 @@ use Mojo::Base 'publiccloud::basetest';
 use base 'consoletest';
 use strict;
 use testapi;
+use base 'trento';
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
     # Get the code for the Trento deployment
-    enter_cmd 'cd ${HOME}/test';
-    my $git_branch = get_var('TRENTO_GITLAB_BRANCH', 'master');
-    assert_script_run("git checkout " . $git_branch);
-    assert_script_run("git pull origin " . $git_branch);
+    $self->get_trento_deployment('${HOME}/test');
 
     # az login
     die "Only AZURE deployment supported for the moment" unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
