@@ -65,6 +65,12 @@ conditional_schedule:
       15-SP3:
         - installation/system_role
         - installation/sles4sap_product_installation_mode
+      15-SP4:
+        - installation/system_role
+        - installation/sles4sap_product_installation_mode
+      15-SP5:
+        - installation/system_role
+        - installation/sles4sap_product_installation_mode
   sles4sap12_desktop:
     VERSION:
       12-SP2:
