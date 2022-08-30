@@ -99,7 +99,7 @@ sub run_cmd {
     delete($args{cmd});
     delete($args{title});
     delete($args{timeout});
-    my $out = $self->{my_instance}->ssh_script_output(cmd => "sudo $cmd", timeout => $timeout, %args);
+    my $out = $self->{my_instance}->ssh_script_output(cmd => "sudo $cmd", timeout => $timeout, no_quote => 1, %args);
     record_info("$title output - $self->{my_instance}->{instance_id}", $out) unless ($timeout == 0 or $args{quiet} or $args{rc_only});
     return $out;
 }
