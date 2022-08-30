@@ -14,4 +14,3 @@ schedule:
     - installation/bootloader_start
     - network/setup_multimachine
     - '{{ovs}}'
-    - console/zypper_log_packages

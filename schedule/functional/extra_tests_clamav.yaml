@@ -7,4 +7,3 @@ schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
     - console/clamav
-    - console/zypper_log_packages
