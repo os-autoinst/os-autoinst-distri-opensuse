@@ -318,6 +318,7 @@ sub wait_for_ssh
     $args{timeout} //= 600;
     $args{proceed_on_failure} //= 0;
     $args{username} //= $self->username();
+    $args{public_ip} //= $self->public_ip();
     my $start_time = time();
     my $check_port = 1;
 
@@ -329,6 +330,9 @@ sub wait_for_ssh
             $check_port = 0 if (script_run('nc -vz -w 1 ' . $self->{public_ip} . ' 22', quiet => 1) == 0);
         }
         else {
+            # On boottime test we do hard reboot which may change the instance address
+            script_run("ssh-keyscan $args{public_ip} | tee -a ~/.ssh/known_hosts") if (get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME'));
+
             my $output = $self->run_ssh_command(cmd => 'sudo journalctl -b | grep -E "Reached target (Cloud-init|Default|Main User Target)"', proceed_on_failure => 1, username => $args{username});
             if ($output =~ m/Reached target.*/) {
                 return $duration;
@@ -340,7 +344,8 @@ sub wait_for_ssh
         sleep 1;
     }
 
-    # Debug output: We have ocasional error in 'journalctl -b' - see poo#96464 - this will be removed soon.
+    script_run("ssh  -i /root/.ssh/id_rsa -v $args{username}\@$args{public_ip} true", timeout => 360);
+    # Debug output: We have occasional error in 'journalctl -b' - see poo#96464 - this will be removed soon.
     $self->run_ssh_command(cmd => 'sudo journalctl -b', proceed_on_failure => 1, username => $args{username});
 
     unless ($args{proceed_on_failure}) {
@@ -429,6 +434,7 @@ till the SSH port was available.
 sub start
 {
     my ($self, %args) = @_;
+    $args{timeout} //= 600;
     $self->provider->start_instance($self, @_);
     return $self->wait_for_ssh(timeout => $args{timeout});
 }
