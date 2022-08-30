@@ -9,3 +9,4 @@ schedule:
     - networkd/networkd_vlan
     - networkd/networkd_bridge
     - console/coredump_collect
+    - console/zypper_log_packages
