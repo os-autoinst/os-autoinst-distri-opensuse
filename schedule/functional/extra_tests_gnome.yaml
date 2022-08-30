@@ -68,3 +68,4 @@ schedule:
     - console/check_default_network_manager
     - '{{python_liblouis}}'
     - console/coredump_collect
+    - console/zypper_log_packages

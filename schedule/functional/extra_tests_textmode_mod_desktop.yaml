@@ -19,3 +19,4 @@ schedule:
     - console/consoletest_setup
     - '{{tests_requiring_soundcard}}'
     - console/libvorbis
+    - console/zypper_log_packages

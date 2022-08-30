@@ -12,6 +12,7 @@ schedule:
     - console/vmstat
     - console/sssd_389ds_functional
     - console/coredump_collect
+    - console/zypper_log_packages
 conditional_schedule:
     wpa_supplicant:
         ARCH:

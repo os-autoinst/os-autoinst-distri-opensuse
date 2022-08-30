@@ -1317,6 +1317,7 @@ sub load_consoletests {
     }
     loadtest "console/nginx" if ((is_opensuse && !is_staging) || (is_sle('15+') && !is_desktop));
     loadtest 'console/orphaned_packages_check' if is_jeos || get_var('UPGRADE') || get_var('ZDUP') || !is_sle('<12-SP4');
+    loadtest "console/zypper_log_packages" unless x11tests_is_applicable();
     loadtest "console/consoletest_finish";
 }
 
@@ -1469,6 +1470,7 @@ sub load_x11tests {
             loadtest "x11/reboot_lxde";
         }
     }
+    loadtest "console/zypper_log_packages";
     # Need to skip shutdown to keep backend alive if running rollback tests after migration
     unless (get_var('ROLLBACK_AFTER_MIGRATION')) {
         load_shutdown_tests;
