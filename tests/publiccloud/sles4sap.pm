@@ -29,7 +29,7 @@ sub upload_ha_sap_logs {
     my @logfiles = qw(salt-deployment.log salt-os-setup.log salt-pre-deployment.log salt-result.log);
 
     # Upload logs from public cloud VM
-    $instance->run_ssh_command(cmd => 'sudo chmod o+r /var/log/salt-*');
+    $instance->ssh_script_run(cmd => 'sudo chmod o+r /var/log/salt-*');
     foreach my $file (@logfiles) {
         $instance->upload_log("/var/log/$file", log_name => "$instance->{instance_id}-$file");
     }
@@ -99,7 +99,7 @@ sub run_cmd {
     delete($args{cmd});
     delete($args{title});
     delete($args{timeout});
-    my $out = $self->{my_instance}->run_ssh_command(cmd => "sudo $cmd", timeout => $timeout, %args);
+    my $out = $self->{my_instance}->ssh_script_output(cmd => "sudo $cmd", timeout => $timeout, %args);
     record_info("$title output - $self->{my_instance}->{instance_id}", $out) unless ($timeout == 0 or $args{quiet} or $args{rc_only});
     return $out;
 }
