@@ -65,7 +65,7 @@ sub run {
     assert_screen('plasma-mpris-playing');
 
     # Close firefox again. Can't use exit_firefox_common here as it expects xterm.
-    send_key_until_needlematch([qw(firefox-save-and-quit generic-desktop)], 'alt-f4', 3, 30);
+    send_key_until_needlematch([qw(firefox-save-and-quit generic-desktop)], 'alt-f4', 4, 30);
     if (match_has_tag('firefox-save-and-quit')) {
         # confirm "save&quit"
         send_key('ret');

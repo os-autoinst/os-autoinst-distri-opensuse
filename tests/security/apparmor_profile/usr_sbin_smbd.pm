@@ -51,7 +51,7 @@ sub samba_server_setup {
     send_key "ctrl-a";
     send_key "delete";
     type_string("WORKGROUP");
-    send_key_until_needlematch("samba-server-configuration", 'alt-n', 10, 2);
+    send_key_until_needlematch("samba-server-configuration", 'alt-n', 11, 2);
     send_key "alt-s";
     assert_screen("samba-server-configuration-shares");
     send_key "alt-a";
@@ -96,20 +96,20 @@ sub samba_client_access {
 
     # Connect to samba server
     assert_and_click("nautilus-other-locations");
-    send_key_until_needlematch("nautilus-connect-to-server", 'tab', 20, 2);
+    send_key_until_needlematch("nautilus-connect-to-server", 'tab', 21, 2);
     type_string("smb://$ip");
     send_key "ret";
     wait_still_screen(2);
 
     # Search the shared dir
-    send_key_until_needlematch("nautilus-sharedir-search", 'ctrl-f', 5, 2);
+    send_key_until_needlematch("nautilus-sharedir-search", 'ctrl-f', 6, 2);
     type_string("$testdir");
     assert_screen("nautilus-sharedir-selected");
     send_key "ret";
 
     # Input password for samb user
     assert_screen("nautilus-selected-sharedir-access-passwd");
-    send_key_until_needlematch("nautilus-registered-user-login", 'down', 5, 2);
+    send_key_until_needlematch("nautilus-registered-user-login", 'down', 6, 2);
     send_key "tab";
     send_key "ctrl-a";
     send_key "delete";
@@ -131,7 +131,7 @@ sub samba_client_access {
     assert_screen("nautilus-folder-name-input-box");
     type_string("sub-testdir", wait_screen_change => 10);
     send_key "ret";
-    send_key_until_needlematch("nautilus-sharedir-delete", "delete", 5, 2);
+    send_key_until_needlematch("nautilus-sharedir-delete", "delete", 6, 2);
     send_key "ret";
     assert_screen("nautilus-sharedir-deleted");
 

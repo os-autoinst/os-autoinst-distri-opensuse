@@ -34,7 +34,7 @@ sub switch_boot_menu {
     # UEFI item is available only from 15-SP4
     if (get_var('UEFI') && (!is_sle('<15-SP4'))) {
         assert_screen("grub_uefi_firmware_menu_entry", timeout => 90);
-        send_key_until_needlematch("grub_auth_boot_menu_entry", "down", 5, 2) if $switch;
+        send_key_until_needlematch("grub_auth_boot_menu_entry", "down", 6, 2) if $switch;
     }
     else {
         assert_screen("grub_auth_boot_menu_entry", timeout => 90);
@@ -53,7 +53,7 @@ sub grub_auth_oper {
     }
     elsif ($para eq "maintainer") {
         switch_boot_menu();
-        send_key_until_needlematch("grub_auth_boot_menu_entry_maintainer", "down", 5, 2);
+        send_key_until_needlematch("grub_auth_boot_menu_entry_maintainer", "down", 6, 2);
         send_key("ret");
         assert_screen("grub_auth_maintain_user_login");
         enter_cmd("$maint_user");

@@ -13,7 +13,7 @@ use warnings;
 use testapi;
 
 sub run {
-    send_key_until_needlematch 'ssh-key-import-selected', 'tab', 30, 1;
+    send_key_until_needlematch 'ssh-key-import-selected', 'tab', 31, 1;
     send_key 'ret';
     assert_screen "inst-import-ssh-key";
     if (get_var('SSH_KEY_IMPORT')) {

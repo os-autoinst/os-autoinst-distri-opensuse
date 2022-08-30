@@ -566,7 +566,7 @@ sub adminer_setup {
         check_screen([qw(adminer-login unresponsive-script)], timeout => 300);    # nocheck: old code, should be updated
     }
     if (match_has_tag("unresponsive-script")) {
-        send_key_until_needlematch("adminer-login", 'ret', 5, 5);
+        send_key_until_needlematch("adminer-login", 'ret', 6, 5);
     }
     elsif (match_has_tag("adminer-login")) {
         record_info("Firefox is loading adminer", "adminer login page shows up");
@@ -583,16 +583,16 @@ sub adminer_setup {
     $ret = check_screen("quit-and-close-tabs", timeout => 30);
     if (defined($ret)) {
         # Click the "quit and close tabs" button
-        send_key_until_needlematch("close-button-selected", 'tab', 5, 5);
+        send_key_until_needlematch("close-button-selected", 'tab', 6, 5);
         send_key "ret";
     }
     wait_still_screen(stilltime => 3, timeout => 30);
     # Exit xterm
     if (is_tumbleweed()) {
-        send_key_until_needlematch("generic-desktop", 'alt-f4', 5, 5);
+        send_key_until_needlematch("generic-desktop", 'alt-f4', 6, 5);
     }
     # Send "ret" key in case of any pop up message
-    send_key_until_needlematch("generic-desktop", 'ret', 5, 5);
+    send_key_until_needlematch("generic-desktop", 'ret', 6, 5);
     select_console("root-console");
     send_key "ctrl-c";
     clear_console;
@@ -631,7 +631,7 @@ sub adminer_database_delete {
     assert_and_click("adminer-click-database-test");
     assert_and_click("adminer-click-drop-database-test");
     # Confirm drop
-    send_key_until_needlematch("adminer-database-dropped", 'ret', 10, 1);
+    send_key_until_needlematch("adminer-database-dropped", 'ret', 11, 1);
     # Exit x11 and turn to console
     send_key "alt-f4";
     # Handle exceptions when "Quit and close tabs" in Firefox, the warning FYI:

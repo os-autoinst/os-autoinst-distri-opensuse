@@ -119,7 +119,7 @@ sub test_http_instserver {
     # select sr0
     send_key_and_wait("alt-c", 2);
     send_key_and_wait("alt-s", 2);
-    send_key_until_needlematch("yast2-instserver_sr0dev", "down", 3);
+    send_key_until_needlematch("yast2-instserver_sr0dev", "down", 4);
     send_key_and_wait("alt-n", 2);
     send_key_and_wait("alt-o", 2);
     send_key_until_needlematch([qw(yast2-instserver-ui yast2-instserver-change-media)], 'alt-f10', 21, 30);

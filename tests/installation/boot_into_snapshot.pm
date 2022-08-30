@@ -24,13 +24,13 @@ sub run {
         assert_screen('bootloader', 200);
         send_key 'ret';
         # boot into leap snapshot
-        send_key_until_needlematch('start-bootloader-from-snapshot', 'down', 10, 5);
+        send_key_until_needlematch('start-bootloader-from-snapshot', 'down', 11, 5);
         send_key 'ret';
-        send_key_until_needlematch('snapshot-before-upgrade', 'down', 40, 5);
+        send_key_until_needlematch('snapshot-before-upgrade', 'down', 41, 5);
         send_key 'ret';
         # Wait until the menu for that snapshot is shown
         assert_screen('snapshot-help');
-        send_key_until_needlematch('opensuse-leap', 'down', 10, 5);
+        send_key_until_needlematch('opensuse-leap', 'down', 11, 5);
         send_key 'ret';
         save_screenshot;
         reset_consoles;
@@ -59,4 +59,3 @@ sub post_fail_hook {
 }
 
 1;
-

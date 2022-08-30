@@ -33,10 +33,10 @@ sub run {
 
     enter_cmd("yast2 bootloader");
     assert_screen("yast2-bootloder-GRUB2-for-EFI");
-    send_key_until_needlematch("yast2_bootloader-Secureboot-Support", "tab", 6, 2);
+    send_key_until_needlematch("yast2_bootloader-Secureboot-Support", "tab", 7, 2);
     send_key("ret");
     assert_screen("yast2_bootloader-Secureboot-unselect");
-    send_key_until_needlematch("yast2_bootloader-Secureboot-unselect-ok", "tab", 5, 2);
+    send_key_until_needlematch("yast2_bootloader-Secureboot-unselect-ok", "tab", 6, 2);
     send_key("ret");
     reset_consoles;
 

@@ -35,7 +35,7 @@ sub run {
     # go to advanced button and press it
     send_key "tab";
     send_key 'spc';
-    send_key_until_needlematch 'firefox-ssl-risk-accept-and-continue-button-selected', 'tab', 7, 1;
+    send_key_until_needlematch 'firefox-ssl-risk-accept-and-continue-button-selected', 'tab', 8, 1;
     assert_and_click('firefox-ssl-risk-accept-and-continue-button-selected');
     if (check_screen 'firefox-ssl-addexception', 10) {
         send_key 'alt-c';

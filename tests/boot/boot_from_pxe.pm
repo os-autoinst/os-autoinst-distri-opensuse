@@ -56,7 +56,7 @@ sub run {
     if (match_has_tag("virttest-pxe-menu")) {
         #BeiJing
         # Login to command line of pxe management
-        send_key_until_needlematch "virttest-pxe-edit-prompt", "esc", 60, 1;
+        send_key_until_needlematch "virttest-pxe-edit-prompt", "esc", 61, 1;
 
         $image_path = get_var("HOST_IMG_URL");
     }
@@ -80,7 +80,7 @@ sub run {
             $key_used = 'esc';
         }
         #Detect orthos-grub-boot and qa-net-grub-boot for aarch64 in orthos and openQA networks respectively, and qa-net-boot for x86_64 in openQA network
-        send_key_until_needlematch [qw(qa-net-boot orthos-grub-boot qa-net-grub-boot)], $key_used, 8, 3;
+        send_key_until_needlematch [qw(qa-net-boot orthos-grub-boot qa-net-grub-boot)], $key_used, 9, 3;
         if (match_has_tag("qa-net-boot")) {
             #Nuremberg
             my $path_prefix = "/mnt/openqa/repo";
@@ -100,7 +100,7 @@ sub run {
         $image_path .= "?device=$interface " if (is_ipmi && !get_var('SUT_NETDEVICE_SKIPPED'));
     }
     elsif (match_has_tag('prague-pxe-menu')) {
-        send_key_until_needlematch 'qa-net-boot', 'esc', 8, 3;
+        send_key_until_needlematch 'qa-net-boot', 'esc', 9, 3;
         if (get_var('PXE_ENTRY')) {
             my $entry = get_var('PXE_ENTRY');
             send_key_until_needlematch "pxe-$entry-entry", 'down';

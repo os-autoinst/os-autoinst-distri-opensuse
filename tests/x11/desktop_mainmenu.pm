@@ -34,7 +34,7 @@ sub run {
         mouse_hide(1);
     }
     else {
-        send_key_until_needlematch 'test-desktop_mainmenu-1', 'alt-f1', 5, 10;
+        send_key_until_needlematch 'test-desktop_mainmenu-1', 'alt-f1', 6, 10;
     }
     assert_screen 'test-desktop_mainmenu-1', 20;
 

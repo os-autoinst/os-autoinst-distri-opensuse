@@ -92,7 +92,7 @@ sub prepare_pvm_installation {
     }
     # try 3 times but wait a long time in between - if we're too eager
     # we end with ccc in the prompt
-    send_key_until_needlematch('pvm-grub-command-line', 'c', 3, 5);
+    send_key_until_needlematch('pvm-grub-command-line', 'c', 4, 5);
 
     # clear the prompt (and create an error) in case the above went wrong
     send_key 'ret';

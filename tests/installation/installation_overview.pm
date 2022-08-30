@@ -23,7 +23,7 @@ use Test::Assert ':all';
 sub ensure_ssh_unblocked {
     if (!get_var('UPGRADE') && is_remote_backend) {
 
-        send_key_until_needlematch [qw(ssh-blocked ssh-open)], 'tab', 25;
+        send_key_until_needlematch [qw(ssh-blocked ssh-open)], 'tab', 26;
         if (match_has_tag 'ssh-blocked') {
             if (check_var('VIDEOMODE', 'text')) {
                 send_key 'alt-c';
@@ -35,7 +35,7 @@ sub ensure_ssh_unblocked {
                 send_key 'alt-o';
             }
             else {
-                send_key_until_needlematch 'ssh-blocked-selected', 'tab', 25;
+                send_key_until_needlematch 'ssh-blocked-selected', 'tab', 26;
                 send_key 'ret';
                 send_key_until_needlematch 'ssh-open', 'tab';
             }
@@ -74,7 +74,7 @@ sub check_default_target {
 }
 
 sub set_linux_security_to_none {
-    send_key_until_needlematch 'security-section-selected', 'tab', 25;
+    send_key_until_needlematch 'security-section-selected', 'tab', 26;
     send_key 'ret';
     assert_screen 'security-configuration', 120;
     send_key 'alt-s';

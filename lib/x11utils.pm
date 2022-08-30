@@ -264,7 +264,7 @@ sub handle_login {
     # Previously this pressed esc, but that makes the text field in SDDM lose focus
     # we need send key 'esc' to quit screen saver when desktop is gnome
     my $mykey = check_var('DESKTOP', 'gnome') ? 'esc' : 'shift';
-    send_key_until_needlematch('displaymanager', $mykey, 30, 3);
+    send_key_until_needlematch('displaymanager', $mykey, 31, 3);
     if (get_var('ROOTONLY')) {
         # we now use this tag to support login as root
         if (check_screen 'displaymanager-username-notlisted', 10) {

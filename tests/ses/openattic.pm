@@ -35,7 +35,7 @@ sub run {
         assert_and_click 'firefox-passwd-confirm_remember';
         send_key 'esc';    # get rid of unsecure connection pop-up
         assert_screen 'openattic-dashboard';
-        send_key_until_needlematch 'openattic-health-status-ok', 'f5', 10, 30;
+        send_key_until_needlematch 'openattic-health-status-ok', 'f5', 11, 30;
         barrier_wait {name => 'all_tests_done', check_dead_job => 1};
     }
     else {
@@ -44,4 +44,3 @@ sub run {
 }
 
 1;
-

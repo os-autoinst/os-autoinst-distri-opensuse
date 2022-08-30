@@ -85,7 +85,7 @@ sub dl_menu {
     # sometimes menu does close due high load or some worker hickup, check & open menu again if not present
     for (1 .. 2) {
         wait_still_screen 3, 6;
-        send_key_until_needlematch 'firefox-downloading-menu', 'shift-f10', 3, 3;
+        send_key_until_needlematch 'firefox-downloading-menu', 'shift-f10', 4, 3;
     }
 }
 
@@ -148,7 +148,7 @@ sub run {
 
     dl_menu();
     # clear downloads, sometimes one d does not clear the list
-    send_key_until_needlematch 'firefox-downloading-blank_list', 'd', 3, 3;
+    send_key_until_needlematch 'firefox-downloading-blank_list', 'd', 4, 3;
 
     send_key "alt-f4";
     send_key "spc";

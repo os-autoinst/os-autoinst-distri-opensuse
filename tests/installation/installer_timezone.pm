@@ -21,14 +21,14 @@ sub run {
     assert_screen "inst-timezone", 125 || die 'no timezone';
     # performance ci need install with timezone Asia-beijing
     if (check_var('TIMEZONE', 'beijing')) {
-        send_key_until_needlematch("timezone-Asia", "up", 20, 1);
+        send_key_until_needlematch("timezone-Asia", "up", 21, 1);
         send_key 'tab';
-        send_key_until_needlematch("timezone-beijing", "down", 20, 1);
+        send_key_until_needlematch("timezone-beijing", "down", 21, 1);
     } elsif (check_var('TIMEZONE', 'shanghai')) {
-        send_key_until_needlematch("timezone-Asia", "up", 20, 1);
+        send_key_until_needlematch("timezone-Asia", "up", 21, 1);
         send_key 'tab';
         send_key "end";
-        send_key_until_needlematch("timezone-shanghai", "up", 100, 1);
+        send_key_until_needlematch("timezone-shanghai", "up", 101, 1);
     }
     # Unpredictable hotkey on kde live distri, click button. See bsc#1045798
     if (noupdatestep_is_applicable() && get_var("LIVECD")) {

@@ -93,7 +93,7 @@ sub target_service_tab {
 
 sub config_2way_authentication {
     record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-    send_key_until_needlematch('iscsi-target-modify-acls', 'alt-f10', 9, 2);
+    send_key_until_needlematch('iscsi-target-modify-acls', 'alt-f10', 10, 2);
     send_key 'alt-a';
     assert_screen 'iscsi-target-modify-acls-initiator-popup';
     if (is_sle('>=15')) {

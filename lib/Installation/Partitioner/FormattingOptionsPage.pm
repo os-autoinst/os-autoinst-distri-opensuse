@@ -79,7 +79,7 @@ sub select_partition_id {
     }
     # poo#35134 Sporadic synchronization failure resulted in incorrect choice of partition type
     # add partition screen was not refreshing fast enough
-    send_key_until_needlematch($partition_id_needle, 'up', 20, 5);
+    send_key_until_needlematch($partition_id_needle, 'up', 21, 5);
 }
 
 sub select_filesystem {
@@ -88,7 +88,7 @@ sub select_filesystem {
     assert_screen(FORMATTING_OPTIONS_PAGE);
     send_key($self->{filesystem_shortcut});
     send_key 'end', wait_screen_change => 1;
-    send_key_until_needlematch((sprintf FILESYSTEM_TYPE, $filesystem), 'up', 20, 5);
+    send_key_until_needlematch((sprintf FILESYSTEM_TYPE, $filesystem), 'up', 21, 5);
 }
 
 # Mounting Options

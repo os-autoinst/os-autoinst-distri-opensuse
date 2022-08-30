@@ -48,10 +48,10 @@ sub run {
     # Change timezone to Shanghai
     send_key "alt-s";
     wait_still_screen(2);
-    send_key_until_needlematch('timezone-asia', 'ret', 10, 2);
+    send_key_until_needlematch('timezone-asia', 'ret', 11, 2);
     send_key "right";
     wait_still_screen(2);
-    send_key_until_needlematch("timezone-shanghai", "up", 20, 1);
+    send_key_until_needlematch("timezone-shanghai", "up", 21, 1);
     send_key "ret";
     assert_screen "asia-shanghai-timezone-setup";
     send_key "alt-o";

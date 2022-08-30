@@ -46,7 +46,7 @@ sub tweak_startupapp_menu {
 
     $self->start_gnome_tweak_tool;
     # increase the default timeout - the switching can be slow
-    send_key_until_needlematch "tweak-startapp", "down", 10, 2;
+    send_key_until_needlematch "tweak-startapp", "down", 11, 2;
 }
 
 sub start_dconf {

@@ -40,7 +40,7 @@ sub run {
     # it should be failed
     assert_and_click("AppArmor-Manually-Add-Profile", timeout => 90);
     assert_and_click("AppArmor-Launch", timeout => 60);
-    send_key_until_needlematch("AppArmor-Chose-a-program-to-generate-a-profile", "alt-n", 30, 3);
+    send_key_until_needlematch("AppArmor-Chose-a-program-to-generate-a-profile", "alt-n", 31, 3);
     type_string("$test_file");
     assert_and_click("AppArmor-Chose-a-program-to-generate-a-profile-Open", timeout => 60);
     wait_still_screen(5);
@@ -71,7 +71,7 @@ sub run {
         send_key "tab";
     }
 
-    send_key_until_needlematch("AppArmor-Scan-system-log", "tab", 2, 2);
+    send_key_until_needlematch("AppArmor-Scan-system-log", "tab", 3, 2);
     # Scan systemlog
     send_key "alt-s";
     assert_screen("AppArmor-Scan-system-log");
@@ -95,14 +95,14 @@ sub run {
         record_soft_failure("bsc#1190295, add workaround to click 'Open' again");
         send_key "tab";
     }
-    send_key_until_needlematch("AppArmor-Inactive-local-profile", "tab", 2, 2);
+    send_key_until_needlematch("AppArmor-Inactive-local-profile", "tab", 3, 2);
     send_key "tab";
 
     # Check "View Profile"
     assert_and_click("AppArmor-View-Profile-clickview");
-    send_key_until_needlematch("AppArmor-View-Profile", "tab", 2, 2);
+    send_key_until_needlematch("AppArmor-View-Profile", "tab", 3, 2);
     send_key "alt-o";
-    send_key_until_needlematch("AppArmor-Inactive-local-profile", "tab", 2, 2);
+    send_key_until_needlematch("AppArmor-Inactive-local-profile", "tab", 3, 2);
     # Check "Use Profile"
     send_key "alt-u";
     assert_screen("AppArmor-Scan-system-log");

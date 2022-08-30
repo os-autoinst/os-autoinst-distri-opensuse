@@ -87,7 +87,7 @@ sub reboot_x11 {
             assert_and_click('reboot-power-menu');
             assert_and_click('reboot-click-restart');
         } else {
-            send_key_until_needlematch 'logoutdialog', 'ctrl-alt-delete', 7, 10;    # reboot
+            send_key_until_needlematch 'logoutdialog', 'ctrl-alt-delete', 8, 10;    # reboot
         }
         my $repetitions = assert_and_click_until_screen_change 'logoutdialog-reboot-highlighted';
         record_soft_failure 'poo#19082' if ($repetitions > 0);

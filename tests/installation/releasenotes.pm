@@ -83,7 +83,7 @@ sub run {
         wait_still_screen(2);
         for my $i (@addons) {
             next if grep { $i eq $_ } @no_relnotes;
-            send_key_until_needlematch("release-notes-$i", 'right', 4, 60);
+            send_key_until_needlematch("release-notes-$i", 'right', 5, 60);
             send_key 'left';    # move back to first tab
             send_key 'left';
             send_key 'left';
