@@ -44,6 +44,7 @@ our @EXPORT = qw(
   select_bootmenu_language
   tianocore_enter_menu
   tianocore_select_bootloader
+  tianocore_set_svga_resolution
   tianocore_http_boot
   zkvm_add_disk
   zkvm_add_interface
@@ -964,7 +965,7 @@ sub tianocore_disable_secureboot {
     $basetest->wait_grub;
 }
 
-sub tianocore_ensure_xga_resolution {
+sub tianocore_ensure_svga_resolution {
     assert_screen 'tianocore-mainmenu';
     send_key_until_needlematch 'tianocore-devicemanager', 'down';
     send_key 'ret';
@@ -995,10 +996,15 @@ sub tianocore_ensure_xga_resolution {
 
 sub tianocore_select_bootloader {
     tianocore_enter_menu;
-    tianocore_ensure_xga_resolution if check_var('QEMUVGA', 'qxl');
+    tianocore_ensure_svga_resolution if check_var('QEMUVGA', 'qxl');
     tianocore_enter_menu;
     send_key_until_needlematch('tianocore-bootmanager', 'down', 6, 5);
     send_key 'ret';
+}
+
+sub tianocore_set_svga_resolution {
+    tianocore_enter_menu;
+    tianocore_ensure_svga_resolution;
 }
 
 sub tianocore_http_boot {
