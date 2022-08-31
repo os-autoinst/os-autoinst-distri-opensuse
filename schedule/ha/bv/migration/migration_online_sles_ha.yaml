@@ -17,6 +17,7 @@ vars:
   # disable virtio-rng-pci device to prevent device naming changes
   QEMU_VIRTIO_RNG: '0'
   SCC_REGISTER: 'installation'
+  SCC_PROXY_URL: '%SCC_URL%'
   TIMEOUT_SCALE: '2'
   UPGRADE_TARGET_VERSION: '%VERSION%'
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
