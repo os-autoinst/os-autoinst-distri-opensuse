@@ -51,12 +51,11 @@ sub wait_until_resources_started {
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 60);
 
     # At least one node needs to be online
-    push @cmds, "$crm_mon_cmd | grep -q Node\\ .*\\ online:";
+    push @cmds, "$crm_mon_cmd | grep -q Node.*online:";
 
     # HANA cluster doesn't restart all resources after fencing in some configurations
     if ($args{cluster_type} ne 'hana') {
-        # Some CRM options can only been added on recent versions
-        push @cmds, "$crm_mon_cmd | grep -iq no\\ inactive\\ resources" if is_sle '12-sp3+';
+        push @cmds, "$crm_mon_cmd | grep -iq no.inactive.resources";
         # This code is a little bit complicated, but we have to invert the RC for the while loop
         push @cmds, "$crm_mon_cmd | grep -iq starting && RC=false || RC=true; eval \$RC";
     }
