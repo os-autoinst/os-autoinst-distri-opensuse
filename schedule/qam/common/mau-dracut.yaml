@@ -1,10 +1,38 @@
 ---
-name: mau-systemd
+name: mau-dracut
 schedule:
 - '{{zkvm_boot}}'
 - boot/boot_to_desktop
 - dracut_testsuite/prepare_dracut_and_testsuite
+- dracut_testsuite/test_01_basic
+- dracut_testsuite/test_02_systemd
 - dracut_testsuite/test_03_usr_mount
+- dracut_testsuite/test_04_full_systemd
+- dracut_testsuite/test_10_raid
+- dracut_testsuite/test_11_lvm
+- dracut_testsuite/test_12_raid_deg
+- dracut_testsuite/test_13_enc_raid_lvm
+# - dracut_testsuite/test_14_imsm
+- dracut_testsuite/test_15_btrfsraid
+# - dracut_testsuite/test_16_dmsquash
+- dracut_testsuite/test_17_lvm_thin
+- dracut_testsuite/test_20_nfs
+- dracut_testsuite/test_21_nfs_nm
+- dracut_testsuite/test_30_iscsi
+- dracut_testsuite/test_31_iscsi_nm
+- dracut_testsuite/test_35_iscsi_multi
+- dracut_testsuite/test_36_iscsi_multi_nm
+# - dracut_testsuite/test_40_nbd
+# - dracut_testsuite/test_41_nbd_nm
+- dracut_testsuite/test_50_multinic
+- dracut_testsuite/test_51_multinic_nm
+- dracut_testsuite/test_60_bondbridgevlanifcfg
+# - dracut_testsuite/test_61_bondbridgevlanifcfg_nm
+- dracut_testsuite/test_62_skipcpio
+- dracut_testsuite/test_63_dracut_cpio
+- dracut_testsuite/test_98_getarg
+# - dracut_testsuite/test_99_rpm
+- shutdown/shutdown
 conditional_schedule:
   zkvm_boot:
     ARCH:
