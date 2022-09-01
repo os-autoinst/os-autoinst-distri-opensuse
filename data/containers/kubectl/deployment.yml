@@ -16,7 +16,10 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: nginx
+        # Use custom registry to avoid API rate limits on docker.io
+        # The testing.registry must be registered in k8s
+        # as private registry and point to REGISTRY variable.
+        image: testing.registry/library/nginx
         ports:
         - containerPort: 80
         resources:

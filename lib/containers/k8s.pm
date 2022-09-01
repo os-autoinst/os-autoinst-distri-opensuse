@@ -14,14 +14,16 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use utils qw(zypper_call script_retry);
+use utils qw(zypper_call script_retry file_content_replace);
+use Utils::Systemd qw(systemctl);
+use containers::utils 'registry_url';
 use version_utils qw(is_sle);
 use registration qw(add_suseconnect_product get_addon_fullname);
 
 our @EXPORT = qw(install_k3s uninstall_k3s install_kubectl install_helm install_oc);
 
 sub install_k3s {
-    zypper_call('in apparmor-parser') if (is_sle('=15-sp1'));
+    zypper_call('in apparmor-parser') if (is_sle('>=15-sp1'));
   # Apply additional options. For more information see https://rancher.com/docs/k3s/latest/en/installation/install-options/#options-for-installation-with-script
     my $k3s_version = get_var("CONTAINERS_K3S_VERSION");
     if ($k3s_version) {
@@ -32,11 +34,17 @@ sub install_k3s {
     assert_script_run("export INSTALL_K3S_BIN_DIR=" . get_var('K3S_BIN_DIR')) if (get_var('K3S_BIN_DIR'));
     assert_script_run("export INSTALL_K3S_CHANNEL=" . get_var('K3S_CHANNEL')) if (get_var('K3S_CHANNEL'));
     # github.com/k3s-io/k3s#5946 - The kubectl delete namespace helm-ns-413 command freezes and does nothing
-    assert_script_run("curl -sfL https://get.k3s.io | sh -s - --disable=metrics-server");
     # Note: The install script starts a k3s-server by default, unless INSTALL_K3S_SKIP_START is set to true
-    sleep(20);    # Wait one iteration interval before checking because the server needs some time to boot-up
+    assert_script_run("curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true sh -s - --disable=metrics-server");
+    if (get_var('REGISTRY')) {
+        script_run("mkdir -p /etc/rancher/k3s");
+        my $registry = registry_url();
+        assert_script_run "curl " . data_url('containers/registries.yaml') . " -o /etc/rancher/k3s/registries.yaml";
+        file_content_replace("/etc/rancher/k3s/registries.yaml", REGISTRY => $registry);
+    }
+    systemctl('start k3s');
     script_retry("test -e /etc/rancher/k3s/k3s.yaml", delay => 20, retry => 10);
-    assert_script_run('systemctl is-active k3s');
+    systemctl('is-active k3s');
     assert_script_run('k3s -v');
     assert_script_run('uname -a');
     assert_script_run("k3s kubectl get node");
