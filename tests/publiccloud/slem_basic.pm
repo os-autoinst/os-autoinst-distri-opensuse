@@ -20,14 +20,15 @@ sub run {
     my $provider = $self->provider_factory();
     $provider->{username} = 'suse';
     my $instance = $self->{my_instance} = $provider->create_instance();
+    my $test_package = 'strace';
     $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . get_required_var('SCC_REGCODE'), timeout => 600);
     $instance->run_ssh_command(cmd => 'zypper lr -d', timeout => 600);
     $instance->run_ssh_command(cmd => 'systemctl is-enabled issue-generator');
     $instance->run_ssh_command(cmd => 'systemctl is-enabled transactional-update.timer');
     $instance->run_ssh_command(cmd => 'systemctl is-enabled issue-add-ssh-keys');
-    $instance->run_ssh_command(cmd => 'sudo transactional-update -n pkg install netcat-openbsd', timeout => 600);
+    $instance->run_ssh_command(cmd => 'sudo transactional-update -n pkg install ' . $test_package, timeout => 600);
     $instance->softreboot();
-    $instance->run_ssh_command(cmd => 'rpm -q netcat-openbsd');
+    $instance->run_ssh_command(cmd => 'rpm -q ' . $test_package);
     $instance->run_ssh_command(cmd => '! curl localhost:9090');
     $instance->run_ssh_command(cmd => 'sudo systemctl enable --now cockpit.socket');
     $instance->run_ssh_command(cmd => 'systemctl status cockpit.service | grep inactive');
