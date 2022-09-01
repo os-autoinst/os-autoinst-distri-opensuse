@@ -54,7 +54,7 @@ sub run {
         systemctl 'start mariadb@node2.service';
 
         # Test a regression for broken multi instance
-        assert_script_run '/usr/bin/my_print_defaults mysqld mysqld_multi "node1" --defaults-extra-file=/etc/mynode1.cnf | grep datadir';
+        assert_script_run '/usr/bin/my_print_defaults --defaults-extra-file=/etc/mynode1.cnf mysqld mysqld_multi "node1" | grep datadir';
 
         # Stop the two instances
         cleanup();
