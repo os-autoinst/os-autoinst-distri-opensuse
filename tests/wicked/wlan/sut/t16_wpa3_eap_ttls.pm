@@ -36,7 +36,7 @@ has hostapd_conf => q(
     ieee80211n=1
     auth_algs=3
     wpa=2
-    wpa_key_mgmt=WPA-EAP-SUITE-B-192
+    wpa_key_mgmt=WPA-EAP-SUITE-B WPA-EAP-SUITE-B-192
     rsn_pairwise=CCMP
     group_cipher=CCMP
     ieee80211w=2
@@ -60,7 +60,20 @@ has ifcfg_wlan => sub { [
 
             # Network settings
             WIRELESS_ESSID='{{ssid}}'
-            WIRELESS_AUTH_MODE='wpa3-enterprise'
+            WIRELESS_KEY_MGMT='WPA-EAP-SUITE-B'
+            WIRELESS_EAP_AUTH='pap'
+            WIRELESS_EAP_MODE='TTLS'
+            WIRELESS_CA_CERT='{{ca_cert}}'
+            WIRELESS_WPA_IDENTITY='{{eap_user}}'
+            WIRELESS_WPA_PASSWORD='{{eap_password}}'
+        ),
+        q(
+            BOOTPROTO='dhcp'
+            STARTMODE='auto'
+
+            # Network settings
+            WIRELESS_ESSID='{{ssid}}'
+            WIRELESS_KEY_MGMT='WPA-EAP-SUITE-B-192'
             WIRELESS_EAP_AUTH='pap'
             WIRELESS_EAP_MODE='TTLS'
             WIRELESS_CA_CERT='{{ca_cert}}'

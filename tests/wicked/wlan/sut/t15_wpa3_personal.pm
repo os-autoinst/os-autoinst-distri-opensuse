@@ -40,14 +40,28 @@ has hostapd_conf => q(
         wpa_passphrase={{psk}}
 );
 
-has ifcfg_wlan => q(
+has ifcfg_wlan => sub { [
+        q(
+        # By default, 80211mac_hwsim has SAE capabilities, so autoselection should work
         BOOTPROTO='dhcp'
         STARTMODE='auto'
 
-        WIRELESS_AUTH_MODE='wpa3-personal'
         WIRELESS_ESSID='{{ssid}}'
         WIRELESS_WPA_PSK='{{psk}}'
-);
+    ),
+        q(
+        BOOTPROTO='dhcp'
+        STARTMODE='auto'
+
+        WIRELESS_KEY_MGMT=SAE
+        WIRELESS_CIPHER_GROUP=CCMP
+        WIRELESS_CIPHER_PAIRWISE=CCMP
+        WIRELESS_PMF=required
+        WIRELESS_ESSID='{{ssid}}'
+        WIRELESS_WPA_PSK='{{psk}}'
+    )
+] };
+
 
 
 1;
