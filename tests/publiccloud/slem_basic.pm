@@ -12,16 +12,18 @@ use testapi;
 use publiccloud::utils 'is_byos';
 use publiccloud::ssh_interactive 'select_host_console';
 use utils qw(zypper_call systemctl);
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
 
-    select_host_console();
+    $self->select_serial_terminal();
     my $provider = $self->provider_factory();
     $provider->{username} = 'suse';
     my $instance = $self->{my_instance} = $provider->create_instance();
     my $test_package = 'strace';
-    $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . get_required_var('SCC_REGCODE'), timeout => 600);
+    my $reg_bin = is_sle('>15-sp3') ? 'registercloudguest' : 'SUSEConnect';
+    $instance->run_ssh_command(cmd => sprintf("sudo %s -r %s", $reg_bin, get_required_var('SCC_REGCODE')), timeout => 600);
     $instance->run_ssh_command(cmd => 'zypper lr -d', timeout => 600);
     $instance->run_ssh_command(cmd => 'systemctl is-enabled issue-generator');
     $instance->run_ssh_command(cmd => 'systemctl is-enabled transactional-update.timer');
