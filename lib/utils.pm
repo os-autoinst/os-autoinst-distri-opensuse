@@ -686,7 +686,7 @@ sub fully_patch_system {
     # Repeatedly call zypper patch until it returns something other than 103 (package manager updates)
     my $ret = 1;
     for (1 .. 3) {
-        $ret = zypper_call('patch --with-interactive -l', exitcode => [0, 4, 102, 103], timeout => 6000);
+        $ret = zypper_call('-q patch --with-interactive -l', exitcode => [0, 4, 102, 103], timeout => 6000);
         last if $ret != 103;
     }
 
