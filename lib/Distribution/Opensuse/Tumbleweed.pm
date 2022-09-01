@@ -49,6 +49,7 @@ use YaST::Firstboot::NTPConfigurationController;
 use YaST::Firstboot::WelcomeController;
 use YaST::NetworkSettings::v4_3::NetworkSettingsController;
 use YaST::SystemSettings::SystemSettingsController;
+use YaST::Firewall::FirewallController;
 
 sub get_language_keyboard {
     return Installation::LanguageKeyboard::LanguageKeyboardController->new();
@@ -108,6 +109,10 @@ sub get_firstboot_ntp_configuration {
 
 sub get_firstboot_welcome {
     return YaST::Firstboot::WelcomeController->new();
+}
+
+sub get_firewall {
+    return YaST::Firewall::FirewallController->new();
 }
 
 sub get_navigation {

@@ -22,13 +22,18 @@ schedule:
   - yast2_gui/yast2_bootloader
   - "{{bootcode_options}}"
   - yast2_gui/yast2_datetime
-  - yast2_gui/yast2_firewall
+  - yast2_gui/yast2_firewall_stop_service
+  - yast2_gui/yast2_firewall_start_service
+  - yast2_gui/yast2_firewall_set_default_zone
+  - yast2_gui/yast2_firewall_set_interface
+  - yast2_gui/yast2_firewall_set_service_port
   - yast2_gui/yast2_hostnames
   - yast2_gui/yast2_lang
   - yast2_gui/yast2_network_settings
   - yast2_gui/yast2_software_management
   - yast2_gui/yast2_users
   - yast2_gui/yast2_security
+
 conditional_schedule:
   bootcode_options:
     ARCH:
