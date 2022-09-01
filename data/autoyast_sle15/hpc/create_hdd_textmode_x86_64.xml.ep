@@ -75,7 +75,7 @@
     % } else {
     <install_updates t="boolean">false</install_updates>
     % }
-    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <reg_code>{{SCC_REGCODE_HPC}}</reg_code>
     <reg_server>{{SCC_URL}}</reg_server>
     <slp_discovery t="boolean">false</slp_discovery>
   </suse_register>
@@ -448,7 +448,7 @@
       <package>sle-module-development-tools-release</package>
       <package>sle-module-desktop-applications-release</package>
       <package>sle-module-basesystem-release</package>
-      % unless ($check_var->('VERSION', '15-SP4')) {
+      % unless ($check_var->('VERSION', '15-SP4') || $check_var->('VERSION', '15-SP5')) {
       <package>sle-module-python2-release</package>
       % } else {
       <package>sle-module-python3-release</package>
