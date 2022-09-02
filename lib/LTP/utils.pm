@@ -44,7 +44,7 @@ sub loadtest_runltp {
         return;
     }
 
-    loadtest_kernel('run_ltp', name => $name, run_args => $tinfo);
+    loadtest_kernel('run_ltp_ng', name => $name, run_args => $tinfo);
 }
 
 sub shutdown_ltp {
