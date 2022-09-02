@@ -36,7 +36,7 @@ sub run {
     $instance->run_ssh_command(cmd => 'systemctl status cockpit.service | grep inactive');
     $instance->run_ssh_command(cmd => 'curl http://localhost:9090');
     $instance->run_ssh_command(cmd => 'systemctl status cockpit.service | grep active');
-    $instance->run_ssh_command(cmd => 'sudo transactional-update -n up');
+    $instance->run_ssh_command(cmd => 'sudo transactional-update -n up', timeout => 360);
     $instance->softreboot();
     $instance->run_ssh_command(cmd => 'sudo sestatus | grep disabled');
     $instance->run_ssh_command(cmd => 'sudo transactional-update -n setup-selinux');
