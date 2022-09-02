@@ -39,7 +39,7 @@ sub check_db {
     }
 
     # CASEDIR var is always set, and if when no specified, the value is "sle" for OSD and "opensuse" for O3
-    return 0 if (get_required_var('CASEDIR') !~ m/^sle$|^opensuse$/);
+    return 0 if (get_required_var('CASEDIR') !~ m/^sle$|^opensuse$|^(sle|leap)-micro$/);
 
     my $openqa_host = get_required_var('OPENQA_HOSTNAME');
     if ($openqa_host =~ /openqa1-opensuse|openqa.opensuse.org/) {    # O3 hostname
