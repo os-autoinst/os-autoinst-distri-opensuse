@@ -35,7 +35,7 @@ sub testsuiteinstall {
     zypper_call "ar https://download.suse.de/install/SLP/SLE-15-SP4-Module-Development-Tools-LATEST/x86_64/DVD1/?ssl_verify=no git-repo";
     zypper_call "ar https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/openSUSE_Leap_15.4/?ssl_verify=no kiwi-repo";
     zypper_call "ar https://download.opensuse.org/repositories/devel:/languages:/python:/backports/15.4/?ssl_verify=no kiwi-overlay-repo";
-    
+
     zypper_call "--gpg-auto-import-keys ref";
 
     # use dracut from the repo of the qa package
@@ -53,8 +53,8 @@ sub testsuiteinstall {
         }
 
         if (!check_var('DESKTOP', 'textmode')) {
-	   assert_screen( "displaymanager", 500);
-           send_key "ctrl-alt-f1";
+            assert_screen("displaymanager", 500);
+            send_key "ctrl-alt-f1";
         }
 
         assert_screen('linux-login', 30);
@@ -67,31 +67,31 @@ sub testsuiteinstall {
 sub testsuiterun {
     my ($self, $test_name, $option) = @_;
     my $timeout = get_var('DRACUT_TEST_DEFAULT_TIMEOUT') || 300;
-    
+
     select_console 'root-console';
     assert_script_run "mkdir -p $logs_dir";
     assert_script_run "cd /usr/lib/dracut/test/$test_name";
-  
-    my $NMPREFIX; 
 
-    if ( substr($test_name, -3, 3) eq "-NM" )
-    	{
-		my @test_data = split /-/, $test_name;
-		@test_data[1] = '*';
-		my $test_name_no_numb = join '-', @test_data;
-		$NMPREFIX=substr($test_name_no_numb, 0, -3);    
-	}
- 
-    if ( defined($NMPREFIX) )
+    my $NMPREFIX;
+
+    if (substr($test_name, -3, 3) eq "-NM")
     {
-	    assert_script_run "cd /usr/lib/dracut/test/$NMPREFIX";
-	    assert_script_run "export basedir=/usr/lib/dracut && export testdir=/usr/lib/dracut/test/ && export NM=1 && ./test.sh --setup 2>&1 > $logs_dir/$test_name-setup.log", $timeout;
-	    assert_script_run "export basedir=/usr/lib/dracut && export testdir=/usr/lib/dracut/test/ && export NM=1 && ./test.sh --run 2>&1 > $logs_dir/$test_name-run.log", $timeout;
+        my @test_data = split /-/, $test_name;
+        @test_data[1] = '*';
+        my $test_name_no_numb = join '-', @test_data;
+        $NMPREFIX = substr($test_name_no_numb, 0, -3);
     }
-    else 
+
+    if (defined($NMPREFIX))
     {
-	    assert_script_run "export basedir=/usr/lib/dracut && export testdir=/usr/lib/dracut/test/ && ./test.sh --setup 2>&1 > $logs_dir/$test_name-setup.log", $timeout;
-	    assert_script_run "export basedir=/usr/lib/dracut && export testdir=/usr/lib/dracut/test/ && ./test.sh --run 2>&1 > $logs_dir/$test_name-run.log", $timeout;
+        assert_script_run "cd /usr/lib/dracut/test/$NMPREFIX";
+        assert_script_run "export basedir=/usr/lib/dracut && export testdir=/usr/lib/dracut/test/ && export NM=1 && ./test.sh --setup 2>&1 > $logs_dir/$test_name-setup.log", $timeout;
+        assert_script_run "export basedir=/usr/lib/dracut && export testdir=/usr/lib/dracut/test/ && export NM=1 && ./test.sh --run 2>&1 > $logs_dir/$test_name-run.log", $timeout;
+    }
+    else
+    {
+        assert_script_run "export basedir=/usr/lib/dracut && export testdir=/usr/lib/dracut/test/ && ./test.sh --setup 2>&1 > $logs_dir/$test_name-setup.log", $timeout;
+        assert_script_run "export basedir=/usr/lib/dracut && export testdir=/usr/lib/dracut/test/ && ./test.sh --run 2>&1 > $logs_dir/$test_name-run.log", $timeout;
     }
 
     # Check dracut generation errors
@@ -99,7 +99,7 @@ sub testsuiterun {
     power_action('reboot', textmode => 1);
     wait_still_screen(10, 60);
     if (!check_var('DESKTOP', 'textmode')) {
-        assert_screen( "displaymanager", 500);
+        assert_screen("displaymanager", 500);
         send_key "ctrl-alt-f1";
     }
 
@@ -109,13 +109,13 @@ sub testsuiterun {
     type_password;
     wait_still_screen 3;
     send_key 'ret';
-    
+
     # Clean
     assert_script_run "cd /usr/lib/dracut/test/$test_name";
 
-    if ( defined($NMPREFIX) )
+    if (defined($NMPREFIX))
     {
-	assert_script_run "cd /usr/lib/dracut/test/$NMPREFIX";
+        assert_script_run "cd /usr/lib/dracut/test/$NMPREFIX";
     }
     assert_script_run 'export basedir=/usr/lib/dracut && export testdir=/usr/lib/dracut/test/ && ./test.sh --clean';
 }
