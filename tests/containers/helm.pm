@@ -16,7 +16,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
-use utils qw(zypper_call script_retry);
+use utils qw(zypper_call script_retry script_output_retry);
 use version_utils qw(is_sle);
 use mmapi 'get_current_job_id';
 use registration qw(add_suseconnect_product get_addon_fullname);
@@ -93,7 +93,8 @@ sub run {
 
     assert_script_run("helm install helm-test-$job_id ~/helm-test/ --values ~/helm-test/values.yaml --set job_id=$job_id");
     assert_script_run("helm list");
-    my $pod = script_output('kubectl get pods -o name --no-headers=true | grep helm-test-$job_id');
+
+    my $pod = script_output_retry('kubectl get pods -o name --no-headers=true | grep helm-test-$job_id', retry => 3, delay => 10);
     script_retry("kubectl logs $pod | grep 'SUSE'", retry => 12, delay => 15);
     assert_script_run("helm uninstall helm-test-$job_id");
 
