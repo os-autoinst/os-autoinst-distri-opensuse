@@ -14,7 +14,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use utils qw(zypper_call script_retry file_content_replace);
+use utils qw(zypper_call script_retry file_content_replace validate_script_output_retry);
 use Utils::Systemd qw(systemctl);
 use containers::utils 'registry_url';
 use version_utils qw(is_sle);
@@ -48,6 +48,7 @@ sub install_k3s {
     assert_script_run('k3s -v');
     assert_script_run('uname -a');
     assert_script_run("k3s kubectl get node");
+    validate_script_output_retry("k3s kubectl get node", qr/ Ready /, retry => 6, delay => 15, timeout => 90);
     script_run("mkdir -p ~/.kube");
     script_run("rm -f ~/.kube/config");
     assert_script_run("ln -s /etc/rancher/k3s/k3s.yaml ~/.kube/config");
