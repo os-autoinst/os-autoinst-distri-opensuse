@@ -192,13 +192,15 @@ sub activate_kdump {
         $expect_restart_info = 1;
     }
     send_key('alt-o');
+    # Expect yast2-kdump-restart-info on s390x
+    $expect_restart_info = 1 if (is_s390x && is_sle('15-SP5+'));
     if ($expect_restart_info == 1) {
-        my @tags = qw(yast2-kdump-restart-info os-prober-warning);
+        my @tags = qw(yast2-kdump-restart-info os-prober-warning yast2-kdump-no-restart-info);
         do {
             assert_screen(\@tags, timeout => 180);
             handle_warning_install_os_prober() if match_has_tag('os-prober-warning');
-        } until (match_has_tag('yast2-kdump-restart-info'));
-        send_key('alt-o');
+        } until (match_has_tag('yast2-kdump-restart-info') || match_has_tag('yast2-kdump-no-restart-info'));
+        send_key('alt-o') if match_has_tag('yast2-kdump-restart-info');
     }
     wait_serial("$module_name-0", 240) || die "'yast2 kdump' didn't finish";
 }
