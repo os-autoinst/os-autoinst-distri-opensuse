@@ -25,7 +25,7 @@ sub ensure_ssh_unblocked {
 
         # ssh section is not shown up directly in text mode. Navigate into
         # installation overview frame and hitting down button to get there.
-        if (check_var('VIDEOMODE', 'text')) {
+        if (check_var('VIDEOMODE', 'text') and is_sle_micro()) {
             send_key_until_needlematch 'installation-settings-overview-selected', 'tab', 25;
             send_key_until_needlematch [qw(ssh-blocked ssh-open)], 'down', 60;
         }
