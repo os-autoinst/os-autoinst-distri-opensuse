@@ -41,7 +41,7 @@ sub run {
     my $vm_name_command = "hostname -s";
     my $resource_group = $instance->run_ssh_command(cmd => $resource_group_command);
     my $vm_name = $instance->run_ssh_command(cmd => $vm_name_command);
-    my $curl_command = "curl -s -H Metadata:true --noproxy \"*\" \"azure_endpoint?api-version=$api_version\" | cut -d\, -f5-5  | cut -d\: -f 2";
+    my $curl_command = "curl -s -H Metadata:true --noproxy \"*\" \"$azure_endpoint?api-version=$api_version\" | cut -d\, -f5-5  | cut -d\: -f 2";
     my $license_type = $instance->run_ssh_command(cmd => $curl_command);
     # loop over the different license types
     foreach my $license_type_change (@license_types) {
