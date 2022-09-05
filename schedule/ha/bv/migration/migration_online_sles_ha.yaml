@@ -26,6 +26,7 @@ schedule:
   - migration/version_switch_origin_system
   - '{{bootloader}}'
   - migration/online_migration/online_migration_setup
+  - ha/stop_pacemaker
   - migration/online_migration/register_system
   - migration/online_migration/zypper_patch
   - '{{remove_ltss}}'
