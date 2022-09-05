@@ -21,7 +21,11 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 our @license_types = split(
     ",", get_var('PUBLIC_CLOUD_AHB_LT', 'SLES_BYOS')
 );
-our $api_version = get_var('PUBLIC_CLOUD_AHB_API_VERSION', '2021-02-01');
+our $api_version = get_var('PUBLIC_CLOUD_AZ_API_VERSION', '2021-02-01');
+our $azure_endpoint = get_var(
+    'PUBLIC_CLOUD_AZ_API',
+    'http://169.254.169.254/metadata/instance/compute'
+);
 
 sub run {
     my ($self, $args) = @_;
@@ -33,11 +37,11 @@ sub run {
     $instance->wait_for_guestregister();
     # resource group
     # get instance resource group
-    my $resource_group_command = "curl -s -H Metadata:true --noproxy \"*\" \"http://169.254.169.254/metadata/instance/compute/resourceGroupName?api-version=$api_version&format=text\"";
+    my $resource_group_command = "curl -s -H Metadata:true --noproxy \"*\" \"$azure_endpoint/resourceGroupName?api-version=$api_version&format=text\"";
     my $vm_name_command = "hostname -s";
     my $resource_group = $instance->run_ssh_command(cmd => $resource_group_command);
     my $vm_name = $instance->run_ssh_command(cmd => $vm_name_command);
-    my $curl_command = "curl -s -H Metadata:true --noproxy \"*\" \"http://169.254.169.254/metadata/instance/compute?api-version=$api_version\" | cut -d\, -f5-5  | cut -d\: -f 2";
+    my $curl_command = "curl -s -H Metadata:true --noproxy \"*\" \"azure_endpoint?api-version=$api_version\" | cut -d\, -f5-5  | cut -d\: -f 2";
     my $license_type = $instance->run_ssh_command(cmd => $curl_command);
     # loop over the different license types
     foreach my $license_type_change (@license_types) {
