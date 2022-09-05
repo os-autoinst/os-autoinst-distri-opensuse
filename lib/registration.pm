@@ -44,6 +44,7 @@ our @EXPORT = qw(
   %ADDONS_REGCODE
   @SLE15_ADDONS_WITHOUT_LICENSE
   @SLE12_MODULES
+  @SOFTFAIL_ADDONS
 );
 
 # We already have needles with names which are different we would use here
@@ -95,6 +96,12 @@ our @SLE12_MODULES = qw(
   sle-module-toolchain
   sle-module-web-scripting
   sle-module-public-cloud
+);
+
+our @SOFTFAIL_ADDONS = qw(
+    IBM-POWER-Advance-toolchain
+    IBM-POWER-Adv-Toolchain
+    IBM-Power-tools
 );
 
 # Method to determine if a short name references a module based on what's defined
@@ -810,8 +817,7 @@ sub get_addon_fullname {
         tsm => 'sle-module-transactional-server',
         espos => 'ESPOS',
         nvidia => 'sle-module-NVIDIA-compute',
-        idu => is_sle('15+') ? 'IBM-POWER-Tools' : 'IBM-DLPAR-utils',
-        ids => is_sle('15+') ? 'IBM-POWER-Adv-Toolchain' : 'IBM-DLPAR-SDK',
+        idu => is_sle('15+') ? 'ibm-power-tools' : 'IBM-DLPAR-utils',
     );
     return $product_list{"$addon"};
 }

@@ -14,7 +14,7 @@ use utils;
 use strict;
 use warnings;
 use version_utils 'is_sle';
-use registration 'get_addon_fullname';
+use registration 'get_addon_fullname', '@SOFTFAIL_ADDONS';
 use Mojo::JSON;
 use List::MoreUtils 'uniq';
 
