@@ -60,4 +60,5 @@ schedule:
   - '{{bootmenu}}'
   - boot/boot_to_desktop
   - hpc/before_test
+  - hpc/cpuid
   - '{{hpctest}}'
