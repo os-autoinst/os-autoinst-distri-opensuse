@@ -64,18 +64,16 @@
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Web-Scripting/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
-      % unless ($check_var->('VERSION', '15-SP4')) {
       <listentry>
-        <name>sle-module-python2:<%= $get_var->('VERSION') %>::pool</name>
-        <alias>sle-module-python2:<%= $get_var->('VERSION') %>::pool</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Python2/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+        <name>sle-module-python3:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-python3:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Python3/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
       </listentry>
       <listentry>
-        <name>sle-module-python2:<%= $get_var->('VERSION') %>::update</name>
-        <alias>sle-module-python2:<%= $get_var->('VERSION') %>::update</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Python2/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+        <name>sle-module-python3:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-python3:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Python3/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
-      % }
       % if ($check_var->('ARCH', 'x86_64')) {
       <listentry>
         <name>sle-we:<%= $get_var->('VERSION') %>::pool</name>
