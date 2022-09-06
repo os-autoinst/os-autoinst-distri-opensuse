@@ -96,25 +96,28 @@ sub run {
 
     # Verify if poo#116191 is impacting the job
     my $mdadm_conf = '/etc/mdadm.conf';
-    # Get UUID from the devices. blkdid output for the UUID is different than
-    # the format in /etc/mdadm.conf, so strip all non hex characters from it and
-    # then, split in 4 parts and join with ':', which should produce the format
-    # in /etc/mdadm.conf
-    my $get_uuid_cmd = 'for bd in $(grep ^DEVICE ' . $mdadm_conf . '); do [[ "$bd" == "DEVICE" ]] && continue; ';
-    $get_uuid_cmd .= 'blkid --output export "$bd" | sed -n -e s/[\-:]//g -e /^UUID=/s/^UUID=//p; done | sort -u';
-    my $uuid = script_output $get_uuid_cmd;
-    $uuid = join(':', substr($uuid, 0, 8), substr($uuid, 8, 8), substr($uuid, 16, 8), substr($uuid, 24));
-    die 'MD RAID devices have different UUIDs!' if ($uuid =~ /\n/);
-    my $mdadm_uuid = script_output "sed -r -n -e '/ARRAY/s/.*UUID=([0-9a-z:]+).*/\\1/p' $mdadm_conf";
-    if ($uuid ne $mdadm_uuid) {
-        record_soft_failure 'poo#116191 -- MD RAID UUID is different in /etc/mdadm.conf and cluster_md devices';
-        record_info 'UUID on MD Devices', $uuid;
-        record_info 'mdadm.conf', script_output "cat $mdadm_conf";
-        # Apply workaround in node 1, sync with rest of the cluster and cleanup cluster_md resource
-        if (is_node(1)) {
-            file_content_replace($mdadm_conf, 'UUID=[a-z0-9:]+' => "UUID=$uuid");
-            exec_csync;
-            rsc_cleanup 'cluster_md';
+    $ret = script_run "test -f $mdadm_conf";
+    if (!$ret) {
+        # Get UUID from the devices. blkdid output for the UUID is different than
+        # the format in /etc/mdadm.conf, so strip all non hex characters from it and
+        # then, split in 4 parts and join with ':', which should produce the format
+        # in /etc/mdadm.conf
+        my $get_uuid_cmd = 'for bd in $(grep ^DEVICE ' . $mdadm_conf . '); do [[ "$bd" == "DEVICE" ]] && continue; ';
+        $get_uuid_cmd .= 'blkid --output export "$bd" | sed -n -e s/[\-:]//g -e /^UUID=/s/^UUID=//p; done | sort -u';
+        my $uuid = script_output $get_uuid_cmd;
+        $uuid = join(':', substr($uuid, 0, 8), substr($uuid, 8, 8), substr($uuid, 16, 8), substr($uuid, 24));
+        die 'MD RAID devices have different UUIDs!' if ($uuid =~ /\n/);
+        my $mdadm_uuid = script_output "sed -r -n -e '/ARRAY/s/.*UUID=([0-9a-z:]+).*/\\1/p' $mdadm_conf";
+        if ($uuid ne $mdadm_uuid) {
+            record_soft_failure 'poo#116191 -- MD RAID UUID is different in /etc/mdadm.conf and cluster_md devices';
+            record_info 'UUID on MD Devices', $uuid;
+            record_info 'mdadm.conf', script_output "cat $mdadm_conf";
+            # Apply workaround in node 1, sync with rest of the cluster and cleanup cluster_md resource
+            if (is_node(1)) {
+                file_content_replace($mdadm_conf, 'UUID=[a-z0-9:]+' => "UUID=$uuid");
+                exec_csync;
+                rsc_cleanup 'cluster_md';
+            }
         }
     }
 
