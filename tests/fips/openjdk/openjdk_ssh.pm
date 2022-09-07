@@ -27,11 +27,11 @@ sub run {
     # Wait before typing to avoid typos
     wait_still_screen(5);
 
-    my $JSCH_JAR = get_var("JSCH_JAR", "https://gitlab.suse.de/QA-APAC-I/testing/-/raw/master/data/openjdk/jsch-0.1.55.jar");
+    my $JSCH_JAR = get_var("JSCH_JAR", "https://gitlab.suse.de/qe-security/testing/-/raw/main/data/openjdk/jsch-0.1.55.jar");
     assert_script_run("wget --quiet --no-check-certificate $JSCH_JAR");
     assert_script_run("chmod 777 jsch-0.1.55.jar");
 
-    my $TEST_JAVA = get_var("TEST_JAVA", "https://gitlab.suse.de/QA-APAC-I/testing/-/raw/master/data/openjdk/Shell.java");
+    my $TEST_JAVA = get_var("TEST_JAVA", "https://gitlab.suse.de/qe-security/testing/-/raw/main/data/openjdk/Shell.java");
     assert_script_run("wget --quiet --no-check-certificate $TEST_JAVA");
     assert_script_run("chmod 777 Shell.java");
 

@@ -37,7 +37,7 @@ our @EXPORT = qw(
 
 our $tmp_dir = '/tmp/';
 our $test_dir = get_var('IPSEC_TEST') ? '/usr/local/ipsec' : '/usr/local/eal4_testing';
-our $default_code_base = get_var('IPSEC_TEST') ? 'https://gitlab.suse.de/QA-APAC-I/ipsec/-/archive/main/ipsec-main.tar' : 'https://gitlab.suse.de/security/audit-test-sle15/-/archive/master/audit-test-sle15-master.tar';
+our $default_code_base = get_var('IPSEC_TEST') ? 'https://gitlab.suse.de/qe-security/ipsec/-/archive/main/ipsec-main.tar' : 'https://gitlab.suse.de/security/audit-test-sle15/-/archive/master/audit-test-sle15-master.tar';
 our $code_repo = get_var('CODE_BASE', $default_code_base);
 my @lines = split(/[\/\.]+/, $code_repo);
 our $testfile_tar = $lines[-2];
