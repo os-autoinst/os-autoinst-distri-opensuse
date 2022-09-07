@@ -77,20 +77,21 @@ sub select_host_console {
     if ($tunneled && check_var('_SSH_TUNNELS_INITIALIZED', 1)) {
         die("Called select_host_console but we are in TUNNELED mode") unless ($args{force});
 
-        opensusebasetest::select_serial_terminal();
-        ssh_interactive_leave();
-
         select_console('tunnel-console', await_console => 0);
+        sleep 30;
         send_key 'ctrl-c';
         send_key 'ret';
+
+        ssh_interactive_leave();
 
         set_var('_SSH_TUNNELS_INITIALIZED', 0);
         opensusebasetest::clear_and_verify_console();
         save_screenshot;
+    } else {
+        set_var('TUNNELED', 0) if $tunneled;
+        opensusebasetest::select_serial_terminal();
+        set_var('TUNNELED', $tunneled);
     }
-    set_var('TUNNELED', 0) if $tunneled;
-    opensusebasetest::select_serial_terminal();
-    set_var('TUNNELED', $tunneled) if $tunneled;
 }
 
 1;

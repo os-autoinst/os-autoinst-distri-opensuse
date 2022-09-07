@@ -25,11 +25,20 @@ sub run {
     # Preserve args for post_fail_hook
     $self->{provider} = $args->{my_provider};    # required for cleanup
     $self->{instance} = $args->{my_instance};
+    my $instance = $args->{my_instance};
 
     select_host_console();    # select console on the host, not the PC instance
 
-    registercloudguest($args->{my_instance});
-    register_addons_in_pc($args->{my_instance});
+
+    if (is_slem_on_pc) {
+        # SLEM on PublicCloud is still using SUSEConnect
+        $instance->ssh_assert_script_run("sudo SUSEConnect -r " . get_required_var('SCC_REGCODE'));
+        $instance->ssh_assert_script_run("sudo zypper lr");
+        return;
+    } else {
+        registercloudguest($args->{my_instance});
+        register_addons_in_pc($args->{my_instance});
+    }
 }
 
 sub post_fail_hook {

@@ -18,8 +18,6 @@ use version_utils qw(is_microos is_sle_micro is_leap_micro);
 sub run {
     my ($self) = @_;
 
-    select_console 'root-console';
-
     # Install cockpit if needed, this is needed for DVD flavor where
     # Cockpit pattern is not selected during install
     my @pkgs = ();

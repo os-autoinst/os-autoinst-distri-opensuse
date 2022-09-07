@@ -31,6 +31,7 @@ our @EXPORT = qw(
   is_azure
   is_gce
   is_container_host
+  is_slem_on_pc
   registercloudguest
   register_addon
   register_openstack
@@ -174,6 +175,10 @@ sub is_gce() {
 
 sub is_container_host() {
     return is_public_cloud && get_var('FLAVOR') =~ 'CHOST';
+}
+
+sub is_slem_on_pc() {
+    return is_public_cloud && get_var('FLAVOR') =~ 'Micro';
 }
 
 sub define_secret_variable {

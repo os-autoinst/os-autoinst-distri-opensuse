@@ -14,7 +14,7 @@ use Mojo::Base -base;
 use Mojo::Util 'trim';
 use File::Basename;
 use publiccloud::utils;
-use publiccloud::ssh_interactive qw(ssh_interactive_tunnel ssh_interactive_leave);
+use publiccloud::ssh_interactive qw(ssh_interactive_tunnel ssh_interactive_leave select_host_console);
 use version_utils;
 use utils;
 
@@ -378,13 +378,10 @@ sub softreboot
     my $prev_console = current_console();
     # We only need to re-establish the ssh tunnel, if we are in a TUNNELED test run, and if the tunnel is already initialized
     my $tunneled = get_var('TUNNELED', 0) && get_var("_SSH_TUNNELS_INITIALIZED", 0);
-    if ($tunneled) {
-        select_host_console(force => 1);
-        ssh_interactive_leave();
-    }
+    select_host_console(force => 1) if ($tunneled);
 
-    $self->run_ssh_command(cmd => 'sudo shutdown -r +1');
-    sleep 60;    # wait for the +1 in the previous command
+    $self->ssh_assert_script_run(cmd => 'sudo shutdown -r +1');
+    sleep 60;
     my $start_time = time();
 
     # wait till ssh disappear
@@ -399,7 +396,13 @@ sub softreboot
     if ($tunneled) {
         ssh_interactive_tunnel($self);
         die("expect ssh serial device to be active") unless (get_var('SERIALDEV') =~ /ssh/);
+        # Connect to sut
         select_console($prev_console) if ($prev_console !~ /tunnel/);
+        script_run('ssh -E /var/tmp/ssh_sut.log -vt sut', timeout => 0);
+
+        # Print hostname to check on which host we are
+        record_info("hostname", script_output("hostname"));
+        record_info("uptime", script_output("uptime"));
     }
 
     return ($shutdown_time, $bootup_time);

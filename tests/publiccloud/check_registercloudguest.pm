@@ -34,7 +34,12 @@ sub run {
 
     select_host_console();    # select console on the host, not the PC instance
 
-    if (is_container_host()) {
+    if (is_slem_on_pc) {
+        # SLEM on PublicCloud is still using SUSEConnect
+        $instance->ssh_assert_script_run("sudo SUSEConnect -r " . get_required_var('SCC_REGCODE'));
+        $instance->ssh_assert_script_run("sudo zypper lr");
+        return;
+    } elsif (is_container_host()) {
         # CHOST images don't have registercloudguest pre-installed. To install it we need to register which make it impossible to do
         # all BYOS related checks. So we just regestering system and going further
         registercloudguest($instance);

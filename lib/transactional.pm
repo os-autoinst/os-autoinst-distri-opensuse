@@ -18,6 +18,7 @@ use testapi;
 use microos 'microos_reboot';
 use power_action_utils qw(power_action prepare_system_shutdown);
 use version_utils;
+use publiccloud::instances;
 use utils 'reconnect_mgmt_console';
 use Utils::Backends;
 use Utils::Architectures;
@@ -70,6 +71,17 @@ sub process_reboot {
     $args{expected_grub} //= 1;
 
     handle_first_grub if ($args{automated_rollback});
+
+    # On tunneled instances we need to reboot the attached guest, not the helper VM
+    if (get_var("TUNNELED")) {
+        if (get_var("PUBLIC_CLOUD")) {
+            my $instance = publiccloud::instances::get_instance();
+            $instance->softreboot();
+            return;
+        } else {
+            die "Unsupported TUNNELED instance for rebooting";
+        }
+    }
 
     if (is_microos || is_sle_micro && !is_s390x) {
         microos_reboot $args{trigger};
@@ -151,13 +163,18 @@ sub trup_call {
     my ($cmd, %args) = @_;
     $args{timeout} //= 180;
     $args{exit_code} //= 0;
+    my $tunneled = get_var("TUNNELED");    # Don't pipe stuff to serialterminal in TUNNELED mode
 
     # Always wait for rollback.service to be finished before triggering manually transactional-update
     ensure_rollback_service_not_running();
 
-    my $script = "transactional-update $cmd > /dev/$serialdev";
+    my $script = "transactional-update $cmd";
+    $script .= " > /dev/$serialdev" unless ($tunneled);
     # Only print trup-0- if it's reliably read later (see below)
-    $script .= "; echo trup-\$?- > /dev/$serialdev" unless $cmd =~ /reboot / && $args{exit_code} == 0;
+    unless ($cmd =~ /reboot / && $args{exit_code} == 0) {
+        $script .= "; echo trup-\$?-";
+        $script .= " > /dev/$serialdev" unless ($tunneled);
+    }
     script_run $script, 0;
     if ($cmd =~ /pkg |ptf /) {
         if (wait_serial "Continue?") {

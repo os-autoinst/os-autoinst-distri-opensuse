@@ -14,6 +14,7 @@ use main_common qw(loadtest);
 use testapi qw(check_var get_var);
 use Utils::Architectures qw(is_aarch64);
 use main_containers qw(load_container_tests);
+use publiccloud::utils;
 
 our @EXPORT = qw(
   load_publiccloud_tests
@@ -97,7 +98,7 @@ sub load_latest_publiccloud_tests {
     elsif (get_var('PUBLIC_CLOUD_FIO')) {
         loadtest 'publiccloud/storage_perf';
     }
-    elsif (get_var('PUBLIC_CLOUD_CONSOLE_TESTS') || get_var('PUBLIC_CLOUD_CONTAINERS') || get_var('PUBLIC_CLOUD_SMOKETEST') || get_var('PUBLIC_CLOUD_AZURE_NFS_TEST')) {
+    elsif (get_var('PUBLIC_CLOUD_CONSOLE_TESTS') || get_var('PUBLIC_CLOUD_CONTAINERS') || get_var('PUBLIC_CLOUD_SMOKETEST') || get_var('PUBLIC_CLOUD_AZURE_NFS_TEST') || get_var('PUBLIC_CLOUD_SLEM_TESTS')) {
         my $args = OpenQA::Test::RunArgs->new();
         loadtest "publiccloud/prepare_instance", run_args => $args;
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
@@ -106,6 +107,7 @@ sub load_latest_publiccloud_tests {
         else {
             loadtest("publiccloud/registration", run_args => $args);
         }
+        loadtest("publiccloud/prepare_slem", run_args => $args) if (is_slem_on_pc);
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
             load_publiccloud_consoletests($args);
@@ -123,6 +125,21 @@ sub load_latest_publiccloud_tests {
             loadtest "xfstests/generate_report";
         } elsif (get_var('PUBLIC_CLOUD_AZURE_NFS_TEST')) {
             loadtest("publiccloud/azure_nfs", run_args => $args);
+        } elsif (get_var('PUBLIC_CLOUD_SLEM_TESTS')) {
+            loadtest("transactional/enable_selinux") if (get_var('ENABLE_SELINUX'));
+            loadtest("containers/k3s_cli_check") if (get_var('SLE_MICRO_K3S'));
+            loadtest("microos/networking");
+            loadtest("microos/libzypp_config");
+            #loadtest("microos/image_checks");      # don't make much sense to run on publiccloud
+            loadtest("microos/one_line_checks");
+            loadtest("microos/services_enabled");
+            loadtest("microos/cockpit_service");
+            loadtest("transactional/trup_smoke");
+            loadtest("transactional/filesystem_ro");
+            loadtest("transactional/transactional_update");
+            loadtest("transactional/rebootmgr");
+            loadtest("transactional/health_check");
+            loadtest("console/journal_check");
         }
         loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     }
