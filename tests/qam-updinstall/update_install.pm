@@ -58,6 +58,8 @@ sub has_conflict {
         'openssl-1_0_0' => 'openssl-1_1',
         'libsamba-errors0' => 'samba-client-libs',
         rpm => 'rpm-ndb',
+        # rpm-ndb can't be installed, it will remove rpm and break rpmdb2solv -> zypper
+        'rpm-ndb' => 'rpm-ndb',
         'SAPHanaSR-ScaleOut' => 'SAPHanaSR',
         'SAPHanaSR-ScaleOut-doc' => 'SAPHanaSR-doc',
         'dapl-devel' => 'dapl-debug-devel',
