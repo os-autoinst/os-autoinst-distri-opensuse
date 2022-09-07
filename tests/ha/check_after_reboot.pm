@@ -103,7 +103,7 @@ sub run {
         # then, split in 4 parts and join with ':', which should produce the format
         # in /etc/mdadm.conf
         my $get_uuid_cmd = 'for bd in $(grep ^DEVICE ' . $mdadm_conf . '); do [[ "$bd" == "DEVICE" ]] && continue; ';
-        $get_uuid_cmd .= 'blkid --output export "$bd" | sed -n -e s/[\-:]//g -e /^UUID=/s/^UUID=//p; done | sort -u';
+        $get_uuid_cmd .= 'blkid -o export "$bd" | sed -n -e s/[\-:]//g -e /^UUID=/s/^UUID=//p; done | sort -u';
         my $uuid = script_output $get_uuid_cmd;
         $uuid = join(':', substr($uuid, 0, 8), substr($uuid, 8, 8), substr($uuid, 16, 8), substr($uuid, 24));
         die 'MD RAID devices have different UUIDs!' if ($uuid =~ /\n/);
