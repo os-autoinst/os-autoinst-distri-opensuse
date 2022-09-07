@@ -312,6 +312,13 @@
         },
         "type": "ignore"
     },
+    "health-check": {
+        "description": "health-checker/fail.sh check\" failed|Machine didn't come up correctly, do a rollback",
+        "products": {
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "ignore"
+    },
     "chrony": {
         "description": "chronyd.*Received KoD RATE from|System clock wrong by.*, adjustment started|System clock was stepped by.*",
         "products": {
