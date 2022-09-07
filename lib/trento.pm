@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2020 SUSE LLC
+# Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Functions for Trento tests
@@ -16,7 +16,7 @@ Trento test lib
 
 =head1 COPYRIGHT
 
-Copyright 2017-2020 SUSE LLC
+Copyright 2022 SUSE LLC
 SPDX-License-Identifier: FSFAP
 
 =head1 AUTHORS
@@ -319,8 +319,6 @@ sub k8s_logs {
             }
         }
     }
-    $self->az_vm_ssh_cmd('kubectl exec --stdin --tty deploy/trento-server-runner /usr/bin/trento-runner version', $machine_ip);
-    script_run('ls -lai *.txt', 180);
 }
 
 =head3 podman_self_check
