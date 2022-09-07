@@ -16,44 +16,60 @@ use testapi;
 use utils;
 use susedistribution;
 
+
+our $cfg_file = "/etc/powerman/powerman.conf";
+
+our $dev_caps = sub {
+    my $dev = shift;
+    my %dat;
+    my $dev_file_cnt = script_output("cat /etc/powerman/${dev}.dev");
+    ($dat{$1} = 1) while $dev_file_cnt =~ m/script (.*)\W\S/g;
+    return \%dat;
+};
+
 sub run ($self) {
     # install powerman
     zypper_call('in powerman');
-
+    my $powerman_dev = 'bashfun';
     # Adapt config
-    my $cfg_file = "/etc/powerman/powerman.conf";
     my $hostname = script_output('hostname');
     assert_script_run(
-        "echo \"\$(cat <<EOF
+        "echo \"\$(cat >> $cfg_file <<EOF
 listen \"0.0.0.0:10101\"
-include \"/etc/powerman/bashfun.dev\"
-device \"test\" \"bashfun\" \"/bin/bash |&\"
+include \"/etc/powerman/$powerman_dev.dev\"
+device \"test\" \"$powerman_dev\" \"/bin/bash |&\"
 node \"$hostname\" \"test\" \"1\"
 EOF
-        )\" >> $cfg_file"
+        )\""
     );
-    assert_script_run("cat $cfg_file");
+    record_info("$cfg_file", script_output("cat $cfg_file"));
+    record_info('bashrun specs', script_output("cat /etc/powerman/$powerman_dev.dev"));
+    my $powerman_dev_caps = $dev_caps->($powerman_dev);
+    record_info 'info', $powerman_dev_caps;
 
     # enable and start service
     $self->enable_and_start('powerman');
 
     # list available targets
-    script_run("powerman -l | tee /dev/$serialdev", 0);
-    wait_serial($hostname);
+    validate_script_output("powerman -l", sub { m/$hostname/ });
 
     # check if target can be turned on
     assert_script_run("powerman -1 \$(hostname)");
-    script_run("powerman -Q \$(hostname) | tee /dev/$serialdev", 0);
-    wait_serial(/^on:.*$hostname.*/);
+    validate_script_output("powerman -Q \$(hostname)", sub { /on:\s+$hostname.*/ });
 
     # check if target can be turned off
     assert_script_run("powerman -0 \$(hostname)");
-    script_run("powerman -Q \$(hostname) | tee /dev/$serialdev", 0);
-    wait_serial(/^off:.*$hostname.*/);
+    validate_script_output("powerman -Q \$(hostname)", sub { /off:\s+$hostname.*/ });
 
     # check if command can be handled by power control device
-    script_run("powerman -c \$(hostname) | tee /dev/$serialdev", 0);
-    wait_serial(/.*cannot be handled by power control device.*/);
+    # This depends on the device/driver type.
+    # Power cycle is not supported by *bashfun*.
+    if (exists $$powerman_dev_caps{cycle}) {
+        record_info('skip cycle', 'cycle is supported but check is not implemented');
+        assert_script_run("powerman -c \$(hostname)");
+    } else {
+        validate_script_output("powerman -c \$(hostname)", sub { /.*cannot be handled by power control device.*/ }, proceed_on_failure => 1);
+    }
 }
 
 sub post_fail_hook ($self) {
