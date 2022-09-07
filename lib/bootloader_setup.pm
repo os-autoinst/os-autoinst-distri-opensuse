@@ -971,15 +971,20 @@ sub tianocore_ensure_xga_resolution {
     assert_screen 'tianocore-devicemanager-select-secure-boot';
     send_key_until_needlematch 'tianocore-devicemanager-select-ovmf-platform', 'down';
     send_key 'ret';
-    assert_screen 'tianocore-ovmf-settings-select-resolution';
-    send_key 'ret';
-    send_key_until_needlematch 'tianocore-ovmf-settings-select-resolution-800x600-popup', 'down';
-    send_key 'ret';
-    assert_screen 'tianocore-ovmf-settings-select-resolution-800x600';
-    send_key 'f10';
-    assert_screen 'tianocore-ovmf-save-settings';
-    send_key 'y';
-    assert_screen 'tianocore-ovmf-settings-select-resolution-800x600';
+    assert_screen [qw(tianocore-ovmf-settings-select-resolution-800x600 tianocore-ovmf-settings-select-resolution)];
+
+    # Check resolution and change it if it isn't 800x600
+    unless (match_has_tag 'tianocore-ovmf-settings-select-resolution-800x600') {
+        assert_screen 'tianocore-ovmf-settings-select-resolution';
+        send_key 'ret';
+        send_key_until_needlematch 'tianocore-ovmf-settings-select-resolution-800x600-popup', 'down';
+        send_key 'ret';
+        assert_screen 'tianocore-ovmf-settings-select-resolution-800x600';
+        send_key 'f10';
+        assert_screen 'tianocore-ovmf-save-settings';
+        send_key 'y';
+        assert_screen 'tianocore-ovmf-settings-select-resolution-800x600';
+    }
     send_key 'esc';
     assert_screen 'tianocore-devicemanager-select-ovmf-platform';
     send_key 'esc';
