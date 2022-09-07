@@ -200,6 +200,12 @@ sub activate_kdump {
         } until (match_has_tag('yast2-kdump-restart-info'));
         send_key('alt-o');
     }
+
+    if (check_screen('yast2-kdump-restart-info', 180)) {
+        record_info('bsc#1202629', 'yast2 kdump shows "To apply changes a reboot is necessary" even no changes there');
+        send_key('alt-o');
+    }
+
     wait_serial("$module_name-0", 240) || die "'yast2 kdump' didn't finish";
 }
 
