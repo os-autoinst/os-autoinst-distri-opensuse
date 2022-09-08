@@ -29,7 +29,7 @@ sub run_tox_cmd {
     my $bci_timeout = get_var('BCI_TIMEOUT', 1200);
     my $bci_reruns = get_var('BCI_RERUNS', 3);
     my $bci_reruns_delay = get_var('BCI_RERUNS_DELAY', 10);
-    my $cmd = "tox -e $env -- -n auto";
+    my $cmd = "tox -e $env -- -rx -n auto";
     $cmd .= " -k \"$bci_marker\"" if $bci_marker;
     $cmd .= " --reruns $bci_reruns --reruns-delay $bci_reruns_delay";
     record_info("tox", "Running command: $cmd");
