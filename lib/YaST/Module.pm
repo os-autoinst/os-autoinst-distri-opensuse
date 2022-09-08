@@ -42,7 +42,7 @@ sub open {
         );
     }
     elsif ($ui eq 'qt') {
-        launch_yast2_module_x11($module, extra_vars => get_var('YUI_PARAMS'));
+        launch_yast2_module_x11($module, extra_vars => get_var('YUI_PARAMS'), maximize_window => get_var('MAXIMIZE_WINDOW'));
     }
     else {
         die "Unknown user interface: $ui";
