@@ -37,15 +37,19 @@ This is the documentation for Object Oriented approach used in automated GUI tes
    
 ## Context
 
-**A challenging part of writing tests for various versions of the same product, is that the product changes across 
-versions. However, we may still want to re-use the same modules (and therefore the same [business
-logic](https://en.wikipedia.org/wiki/Business_logic)) and avoid to write different code for each specific case.
-So we end-up dealing with a lot of things like ```if (is_food AND (is_a_banana OR ! is_a_fruit))``` 
-that can be exhausting to  read and maintain as they sum-up over time. This test framework, together with the usage of
-[declarative scheduling](https://github.com/os-autoinst/os-autoinst-distri-opensuse/blob/master/declarative-schedule-doc.md)
-and [external test data](https://github.com/os-autoinst/os-autoinst-distri-opensuse/blob/master/declarative-schedule-doc.md#test_data)
-offers an alternative: the usage of inheritance and interchangeable test data make the code easier to read and maintain
-as the number of specific cases increase, while remaining backward compatible.**
+SUSE Products changes and evolves across versions, and we are expected to write tests for various versions of the same product. However, we may still want to re-use the same [business
+logic](https://en.wikipedia.org/wiki/Business_logic) and avoid to write different code for each specific case.
+
+Throughout the course of the project history, we attempted to solve this issue with many approaches; in the following order:
+
+
+-  The *"naive"* way: leads to dealing with a lot of if-else conditions [*"Spaghetti Code"*](https://en.wikipedia.org/wiki/Spaghetti_code) with things like ```if (is_food AND (is_a_banana OR ! is_a_fruit))``` while it's intuitive to write, and the inner logic of test differentiation is directly modeled in the code, it can be exhausting to read and maintain as the conditions sum-up over time, and therefore should be avoided.
+
+- Passing variables from outside ([external test data](https://github.com/os-autoinst/os-autoinst-distri-opensuse/blob/master/declarative-schedule-doc.md#test_data)): tests are still written in a generic way but with a *Data Driven* design. This solution is simpler than the previous, but still complex, as the number of variable combinations increases exponentially, and leads to increase difficulty on debugging and understanding the control flow of the program. Consider also that OpenQA variables can be defined at many levels: medium, job group, schedule, command line...etc. And by looking at a job result it's not always clear where a variable comes from.
+
+- Very simple modules doing only one specific task, with schedules adapted for each case. Variables (test data) are passed from the test module to some libraries __only if needed__. The schedule is used to handle the various scenarios rather than conditions in the code, and the name of the module accurately describes what it does. As the number of special situations grows, use inheritance and interchangeable test data to simplify the code while maintaining backward compatibility. With the combined usage of [declarative scheduling](https://github.com/os-autoinst/os-autoinst-distri-opensuse/blob/master/declarative-schedule-doc.md) we obtain certain advantages: code is straightforward to write, understand, and debug, while the complexity is partially shifted to the YAML schedule. We accept the trade-off of an increased number of (simple) modules to build and maintain, also because the development work can be evenly distributed across the team.
+
+In the following guide let's explain in detail the last solution.
 
 ## Overview
 

@@ -87,7 +87,7 @@ sub reboot_x11 {
             assert_and_click('reboot-power-menu');
             assert_and_click('reboot-click-restart');
         } else {
-            send_key_until_needlematch 'logoutdialog', 'ctrl-alt-delete', 7, 10;    # reboot
+            send_key_until_needlematch 'logoutdialog', 'ctrl-alt-delete', 8, 10;    # reboot
         }
         my $repetitions = assert_and_click_until_screen_change 'logoutdialog-reboot-highlighted';
         record_soft_failure 'poo#19082' if ($repetitions > 0);
@@ -276,10 +276,17 @@ sub power_action {
             reboot_x11;
         }
         elsif ($action eq 'poweroff') {
-            if (is_backend_s390x) {
-                record_info('poo#114439', 'Temporary workaround, because shutdown module is marked as failed on s390x backend when shutting down from GUI.');
-                select_console 'root-console';
-                enter_cmd "$action";
+            if ((is_s390x || is_backend_s390x) && check_var("DESKTOP", "gnome")) {
+                send_key "ctrl-alt-delete";
+                assert_screen 'logoutdialog', 15;
+                assert_and_click 'gnome-shell_shutdown_btn';
+                if (get_var("SHUTDOWN_NEEDS_AUTH")) {
+                    assert_screen 'shutdown-auth';
+                    type_password;
+                    # we need to take care of test module scheduled after shutdown like 'svirt_upload_assets'
+                    send_key "ret" && return 1 if is_backend_s390x;
+                    send_key "ret" if is_s390x;
+                }
             }
             else {
                 poweroff_x11;

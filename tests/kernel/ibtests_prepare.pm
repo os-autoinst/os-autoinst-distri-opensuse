@@ -17,19 +17,6 @@ use lockapi;
 use version_utils;
 use mmapi;
 
-
-sub permit_root_login {
-    my $self = shift;
-
-    select_console('sol', await_console => 1);
-    type_string "root";
-    wait_screen_change { type_string "\n" };
-    type_password;
-    wait_screen_change { type_string "\n" };
-    permit_root_ssh_in_sol;
-    wait_screen_change { type_string "\n" };
-}
-
 sub run {
     my $self = shift;
     my $master = get_required_var('IBTEST_IP1');
@@ -40,9 +27,9 @@ sub run {
     my $packages_master = $packages . " git-core twopence-shell-client bc";
 
 
-    $self->permit_root_login if is_ipmi;
-
     $self->select_serial_terminal;
+    permit_root_ssh_in_sol;
+
     # unload firewall. MPI- and libfabric-tests require too many open ports
     systemctl("disable --now " . opensusebasetest::firewall);
 

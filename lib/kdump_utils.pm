@@ -73,6 +73,11 @@ sub prepare_for_kdump_sle {
         my $url = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update_debug/";
         zypper_call("--no-gpg-checks ar -f -G $url '12-SP2-LTSS-ERICSSON-Debuginfo-Updates'");
     }
+    if (is_sle('=12-SP3')) {
+        my $arch = get_var('ARCH');
+        my $url = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3-LTSS-TERADATA/$arch/update_debug/";
+        zypper_call("--no-gpg-checks ar -f -G $url '12-SP3-LTSS-TERADATA-Debuginfo-Updates'");
+    }
 
     script_run(q(zypper mr -e $(zypper lr | awk '/Debug/ {print $1}')), 60);
     install_kernel_debuginfo;
@@ -195,6 +200,12 @@ sub activate_kdump {
         } until (match_has_tag('yast2-kdump-restart-info'));
         send_key('alt-o');
     }
+
+    if (check_screen('yast2-kdump-restart-info', 180)) {
+        record_info('bsc#1202629', 'yast2 kdump shows "To apply changes a reboot is necessary" even no changes there');
+        send_key('alt-o');
+    }
+
     wait_serial("$module_name-0", 240) || die "'yast2 kdump' didn't finish";
 }
 

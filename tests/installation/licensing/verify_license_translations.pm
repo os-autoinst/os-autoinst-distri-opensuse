@@ -55,7 +55,7 @@ sub run {
         $license_agreement->select_language($translation->{language});
         $license_agreement_info = $license_agreement->collect_current_license_agreement_info();
         if ($license_agreement_info->{text} !~ /$translation->{text}/) {
-            $errors .= "EULA content for the language: '$translation->{language}' didn't validate. Please, see autoints-log for the detailed content of EULA\n";
+            record_soft_failure("EULA content for the language: '$translation->{language}' didn't validate. See bsc#1203004 for details.\n");
             diag("EULA validation failed:\nExpected:\n$translation->{text}\nActual:\n$license_agreement_info->{text}\n\n");
         }
     }

@@ -72,6 +72,7 @@ sub install_runtime_dependencies {
       evmctl
       exfat-utils
       fuse-exfat
+      ibmtss
       kernel-default-extra
       lvm2
       net-tools

@@ -58,7 +58,7 @@ sub run {
     }
     elsif (check_var('DESKTOP', 'xfce')) {
         # select created user #01
-        send_key_until_needlematch(['user-01-selected', 'user-freetext-input-selected'], 'down', 1, 3);
+        send_key_until_needlematch(['user-01-selected', 'user-freetext-input-selected'], 'down', 2, 3);
         if (match_has_tag 'user-freetext-input-selected') {
             enter_cmd "$user";
         }

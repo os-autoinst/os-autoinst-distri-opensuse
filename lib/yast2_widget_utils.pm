@@ -75,7 +75,7 @@ sub change_service_configuration_step {
 
     send_key $shortcut;
     send_key 'end';
-    send_key_until_needlematch $needle_selection, 'up', 5, 1;
+    send_key_until_needlematch $needle_selection, 'up', 6, 1;
     if (check_var_array('EXTRATEST', 'y2uitest_ncurses')) {
         send_key 'ret';
         assert_screen $needle_check;

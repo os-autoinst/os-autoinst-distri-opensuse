@@ -38,6 +38,10 @@ sub run_test {
     my @vm_hostnames_inactive_array = split(/\n+/, $vm_hostnames_inactive);
 
     foreach my $guest (keys %virt_autotest::common::guests) {
+        if (virt_autotest::utils::is_sev_es_guest($guest) ne 'notsev') {
+            record_info "Skip external snapshot on $guest", "SEV/SEV-ES guest $guest does not support external snapshot";
+            next;
+        }
         my $type = check_guest_disk_type($guest);
         next if ($type == 1);
         record_info "virsh-snapshot", "Creating External Snapshot of guest's disk";

@@ -44,6 +44,11 @@ schedule:
   - shutdown/grub_set_bootargs
   - console/validate_installed_packages
   - console/validate_installed_patterns
-  - console/suseconnect_scc
+  - console/scc_cleanup_reregister
+  - console/install_packages_simple
+  - console/scc_deregistration
+  - console/firewalld_add_port
+  - console/setup_libyui_running_system
+  - x11/addon_products_via_SCC_yast2
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown

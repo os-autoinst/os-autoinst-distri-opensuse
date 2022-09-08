@@ -197,7 +197,7 @@ sub init_desktop_runner {
     if (!check_screen('desktop-runner', $timeout)) {
         record_info('workaround', "desktop-runner does not show up on $hotkey, retrying up to three times (see bsc#978027)");
         send_key 'esc';    # To avoid failing needle on missing 'alt' key - poo#20608
-        send_key_until_needlematch 'desktop-runner', $hotkey, 3, 10;
+        send_key_until_needlematch 'desktop-runner', $hotkey, 4, 10;
     }
     wait_still_screen(2);
     for (my $retries = 10; $retries > 0; $retries--) {
@@ -226,7 +226,7 @@ sub init_desktop_runner {
             # Prepare for next attempt
             send_key 'esc';    # Escape from desktop-runner
             sleep(5);    # Leave some time for the system to recover
-            send_key_until_needlematch 'desktop-runner', $hotkey, 3, 10;
+            send_key_until_needlematch 'desktop-runner', $hotkey, 4, 10;
         } else {
             last;
         }

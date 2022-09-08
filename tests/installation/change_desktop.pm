@@ -24,7 +24,7 @@ sub change_desktop {
         wait_screen_change { send_key 'alt-s'; };
     }
     else {
-        send_key_until_needlematch 'packages-section-selected', 'tab', 10;
+        send_key_until_needlematch 'packages-section-selected', 'tab', 11;
         wait_screen_change { send_key 'ret'; };
     }
 
@@ -44,7 +44,7 @@ sub change_desktop {
         wait_screen_change { send_key 'ret'; };
     }
 
-    send_key_until_needlematch 'patterns-list-selected', 'tab', 10, 2;
+    send_key_until_needlematch 'patterns-list-selected', 'tab', 11, 2;
 
     if (is_sle('<=12-SP1') && get_var("REGRESSION", '') =~ /xen|kvm|qemu/) {
         assert_and_click 'gnome_logo';

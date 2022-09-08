@@ -41,7 +41,7 @@ sub run {
     my $fs = get_var('FILESYSTEM');
     # select filesystem
     send_key 'home';
-    send_key_until_needlematch("filesystem-$fs", 'down', 20, 3);
+    send_key_until_needlematch("filesystem-$fs", 'down', 21, 3);
     send_key 'ret' if check_var('VIDEOMODE', 'text');
 
     assert_screen "$fs-selected";

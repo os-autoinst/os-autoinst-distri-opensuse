@@ -41,7 +41,7 @@ sub run_test {
     my ($sles_running_version, $sles_running_sp) = get_os_release;
 
     record_info "SSH", "Check if guests are online with SSH";
-    wait_guest_online($_) foreach (keys %virt_autotest::common::guests);
+    wait_guest_online($_, 300, 1) foreach (keys %virt_autotest::common::guests);
 
     # Live memory change of guests
     record_info "Memory", "Changing the amount of memory available";

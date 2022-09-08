@@ -18,6 +18,7 @@ sub run {
     # Define the user and password, which are already configured in previous milestone
     my $user = 'suse';
     my $passwd = 'susetesting';
+    my $pam_sshd_tw = '';
     my $pam_login_tw = '';
 
     # Modify the login/sshd files to set the PAM authentication
@@ -25,8 +26,12 @@ sub run {
     my $pam_sshd = '/etc/pam.d/sshd';
     my $pam_sshd_bak = '/tmp/sshd_bak';
     my $pam_login_bak = '/tmp/login_bak';
-    my $pam_sshd_tw = '/usr/etc/pam.d/sshd';
     my $pam_login = '/etc/pam.d/login';
+    if (is_sle || is_leap) {
+        $pam_sshd_tw = '/usr/etc/pam.d/sshd';
+    } else {
+        $pam_sshd_tw = '/usr/lib/pam.d/sshd';
+    }
     if (is_sle || is_leap) {
         $pam_login_tw = '/usr/etc/pam.d/login';
     } else {

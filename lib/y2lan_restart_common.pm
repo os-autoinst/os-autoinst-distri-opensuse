@@ -260,7 +260,7 @@ sub set_network {
             type_string $args{mask};
         }
         send_key 'tab';
-        send_key_until_needlematch('hostname_textfield_empty', 'backspace', 30, 1);
+        send_key_until_needlematch('hostname_textfield_empty', 'backspace', 31, 1);
         type_string $args{fqdn};
         assert_screen 'yast2_lan_static_ip_set';
     }
@@ -440,7 +440,7 @@ sub close_yast2_lan {
     if ($tag eq '') {
         send_key 'alt-o';
     } else {
-        send_key_until_needlematch($tag, 'alt-o', 5, 5);
+        send_key_until_needlematch($tag, 'alt-o', 6, 5);
     }
     wait_serial("$module_name-0", 180) || die "'yast2 lan' didn't finish";
 }

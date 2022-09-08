@@ -223,7 +223,7 @@ sub resize_partition {
     if (is_storage_ng_newui) {
         send_key 'alt-m';
         # start with preconfigured partitions
-        send_key_until_needlematch 'modify-partition-resize', 'down', 5, 3;
+        send_key_until_needlematch 'modify-partition-resize', 'down', 6, 3;
         send_key 'ret';
     }
     else {
@@ -268,7 +268,7 @@ sub addpart {
             send_key((is_storage_ng) ? 'alt-f' : 'alt-s');
             wait_screen_change { send_key 'home' };    # start from the top of the list
             assert_screen(((is_storage_ng) ? 'partition-selected-ext2-type' : 'partition-selected-btrfs-type'), timeout => 10);
-            send_key_until_needlematch "partition-selected-$args{format}-type", 'down', 10, 5;
+            send_key_until_needlematch "partition-selected-$args{format}-type", 'down', 11, 5;
         }
     }
     # Enable snapshots option works only with btrfs
@@ -284,7 +284,7 @@ sub addpart {
             record_soft_failure('bsc#1079399 - Combobox is writable');
             for (1 .. 10) { send_key 'up'; }
         }
-        send_key_until_needlematch "partition-selected-$args{fsid}-type", 'down', 10, 5;
+        send_key_until_needlematch "partition-selected-$args{fsid}-type", 'down', 11, 5;
     }
 
     mount_device $args{mount} if $args{mount};
@@ -546,7 +546,7 @@ sub take_first_disk_storage_ng {
                 send_key 'tab';
             }
             save_screenshot;
-            send_key_until_needlematch 'after-partitioning', $cmd{next}, 10, 3;
+            send_key_until_needlematch 'after-partitioning', $cmd{next}, 11, 3;
             return;
         }
 
@@ -554,7 +554,7 @@ sub take_first_disk_storage_ng {
         assert_screen 'partition-scheme';
     }
     elsif (is_ipmi) {
-        send_key_until_needlematch 'after-partitioning', $cmd{next}, 10, 3;
+        send_key_until_needlematch 'after-partitioning', $cmd{next}, 11, 3;
         return;
     }
 
@@ -564,7 +564,7 @@ sub take_first_disk_storage_ng {
     if (check_var('VIDEOMODE', 'text')) {
         assert_screen 'select-root-filesystem';
         send_key 'alt-f';
-        send_key_until_needlematch 'filesystem-btrfs', 'down', 10, 3;
+        send_key_until_needlematch 'filesystem-btrfs', 'down', 11, 3;
         send_key 'ret';
     }
     else {

@@ -80,9 +80,10 @@ sub run {
             # It takes longer time to show multilple release notes for addons
             assert_screen([qw(release-notes-sle-ok-button release-notes-sle-close-button)], 300);
         }
+        wait_still_screen(2);
         for my $i (@addons) {
             next if grep { $i eq $_ } @no_relnotes;
-            send_key_until_needlematch("release-notes-$i", 'right', 4, 60);
+            send_key_until_needlematch("release-notes-$i", 'right', 5, 60);
             send_key 'left';    # move back to first tab
             send_key 'left';
             send_key 'left';

@@ -645,7 +645,7 @@ sub handle_uefi_boot_disk_workaround {
     my ($self) = @_;
     record_info 'workaround', 'Manually selecting boot entry, see bsc#1022064 for details';
     tianocore_enter_menu;
-    send_key_until_needlematch 'tianocore-boot_maintenance_manager', 'down', 5, 5;
+    send_key_until_needlematch 'tianocore-boot_maintenance_manager', 'down', 6, 5;
     wait_screen_change { send_key 'ret' };
     send_key_until_needlematch 'tianocore-boot_from_file', 'down';
     wait_screen_change { send_key 'ret' };
@@ -764,7 +764,7 @@ sub wait_grub {
     elsif (get_var("LIVETEST")) {
         # prevent if one day booting livesystem is not the first entry of the boot list
         if (!match_has_tag("boot-live-" . get_var("DESKTOP"))) {
-            send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 5);
+            send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 11, 5);
         }
     }
     elsif (match_has_tag('inst-bootmenu')) {
@@ -802,7 +802,7 @@ sub wait_grub_to_boot_on_local_disk {
             type_string "exit";
             wait_screen_change { send_key 'ret' };
             tianocore_select_bootloader;
-            send_key_until_needlematch("ovmf-boot-HDD", 'down', 5, 1);
+            send_key_until_needlematch("ovmf-boot-HDD", 'down', 6, 1);
             send_key "ret";
             return;
         }

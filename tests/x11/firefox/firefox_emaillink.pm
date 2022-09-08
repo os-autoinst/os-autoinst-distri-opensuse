@@ -31,7 +31,7 @@ sub run {
     $self->start_firefox_with_profile;
 
     # Email link
-    send_key_until_needlematch 'firefox-file-menu', 'alt-f', 3, 15;
+    send_key_until_needlematch 'firefox-file-menu', 'alt-f', 4, 15;
     send_key "e";
     assert_screen(['firefox-email_link-welcome', 'firefox-email-mutt', 'firefox-email_link-send'], 90);
     if (match_has_tag('firefox-email-mutt')) {

@@ -157,7 +157,7 @@ sub trup_call {
 
     my $script = "transactional-update $cmd > /dev/$serialdev";
     # Only print trup-0- if it's reliably read later (see below)
-    $script .= "; echo trup-\$?- > /dev/$serialdev" unless $cmd =~ /reboot / && $args{exit_code} == 0;
+    $script .= "; echo trup-\$?- | tee -a /dev/$serialdev" unless $cmd =~ /reboot / && $args{exit_code} == 0;
     script_run $script, 0;
     if ($cmd =~ /pkg |ptf /) {
         if (wait_serial "Continue?") {

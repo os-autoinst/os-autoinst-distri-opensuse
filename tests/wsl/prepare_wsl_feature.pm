@@ -85,7 +85,7 @@ sub run {
         assert_and_click 'finish-button-in-win10';
         assert_screen 'successful-certificate-import';
         # close all opened windows, including powershell
-        send_key_until_needlematch 'powershell-ready-prompt', 'alt-f4', 25, 2;
+        send_key_until_needlematch 'powershell-ready-prompt', 'alt-f4', 26, 2;
     }
 
     # enable WSL & VM platform (WSL2) features

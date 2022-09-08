@@ -308,8 +308,7 @@ sub prepare_profile {
             $self->select_serial_terminal;
             $ret = script_run "saptune solution verify $profile";
         }
-        record_soft_failure("poo#57464: 'saptune solution verify' returned warnings or errors! Please check!")
-          if $ret;
+        record_soft_failure("poo#57464: 'saptune solution verify' returned warnings or errors! Please check!") if ($ret && !is_qemu());
 
         my $output = script_output "saptune daemon status", proceed_on_failure => 1;
         if (!defined $output) {

@@ -106,7 +106,7 @@ sub run {
     # check network interfaces with open port in firewall
     # repeat action as sometimes keys are not triggering action on leap if workers are slow
     if (is_sle('<15') || is_leap('<15.0')) {
-        send_key_until_needlematch 'yast2_proxy_network_interfaces', 'alt-d', 2, 5;
+        send_key_until_needlematch 'yast2_proxy_network_interfaces', 'alt-d', 3, 5;
         wait_still_screen 1;
         send_key 'alt-n';
         wait_still_screen 1;

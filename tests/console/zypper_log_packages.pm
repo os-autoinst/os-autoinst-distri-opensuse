@@ -13,7 +13,7 @@ use warnings;
 use testapi;
 use utils;
 
-use Mojo::UserAgent;
+use Utils::Logging;
 use Mojo::JSON qw(to_json);
 
 sub run {
@@ -25,6 +25,7 @@ sub run {
     # this looks like this:
     # 2022-08-05 12:18:55 <1> athene(13626) [Progress++] progressdata.cc(report):89 {#24|Installing: xosview-1.22-1.10.x86_64} END
     # 2022-08-05 12:19:48 <1> athene(13993) [Progress++] progressdata.cc(report):89 {#21|Removing xosview-1.22-1.10.x86_64} END
+    $zypper_packages->{individual_pkgs} = [];
     while ($individual_pkgs =~ m/\|([A-Z][a-z]*):? ([^}]*)}/g) {
         my $action;
         if ($1 eq "Installing") { $action = "install"; }
@@ -39,12 +40,8 @@ sub run {
         });
     }
 
-    my $ua = Mojo::UserAgent->new;
-    my $res = $ua->post(autoinst_url("/uploadlog/zypper_packages.json") => form => {
-            upload => {content => to_json($zypper_packages)},
-            uname => "zypper_packages.json"
-    })->result;
-    record_info('zypper_packages.json', 'zypper_packages.json was uploaded via worker', result => ($res->is_success) ? 'ok' : 'fail');
+    save_ulog(to_json($zypper_packages), "zypper_packages.json");
+    record_info('zypper_packages.json', "zypper_packages.json was saved via worker", result => 'ok');
 }
 
 1;

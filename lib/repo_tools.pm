@@ -313,7 +313,7 @@ sub rmt_wizard {
     wait_still_screen;
     send_key 'alt-n';
     assert_screen 'yast2_rmt_service_status', 90;
-    send_key_until_needlematch('yast2_rmt_config_summary', 'alt-n', 3, 10);
+    send_key_until_needlematch('yast2_rmt_config_summary', 'alt-n', 4, 10);
     send_key 'alt-f';
     wait_serial("yast2-rmt-wizard-0", 800) || die 'rmt wizard failed, it can be connection issue or credential issue';
 }

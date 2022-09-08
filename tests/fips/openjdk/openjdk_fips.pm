@@ -51,12 +51,12 @@ sub run {
     record_info("FAIL", "Cannot list all crypto providers", result => 'fail') if ($crypto !~ /Listing all JCA Security Providers/);
 
     # Prepare testing data
-    my $JDK_TCHECK = get_var("JDK_TCHECK", "https://gitlab.suse.de/QA-APAC-I/testing/-/raw/master/data/openjdk/Tcheck.java");
+    my $JDK_TCHECK = get_var("JDK_TCHECK", "https://gitlab.suse.de/qe-security/testing/-/raw/main/data/openjdk/Tcheck.java");
     assert_script_run("cd ~;wget --quiet --no-check-certificate $JDK_TCHECK");
     assert_script_run("chmod 777 Tcheck.java");
     assert_script_run("javac Tcheck.java");
     assert_script_run("java Tcheck > result.txt");
-    my $EX_TCHECK = get_var("EX_TCHECK", "https://gitlab.suse.de/QA-APAC-I/testing/-/raw/master/data/openjdk/Tcheck.txt");
+    my $EX_TCHECK = get_var("EX_TCHECK", "https://gitlab.suse.de/qe-security/testing/-/raw/main/data/openjdk/Tcheck.txt");
     assert_script_run("wget --quiet --no-check-certificate $EX_TCHECK");
     my $out = script_output("diff -a Tcheck.txt result.txt");
     record_info("FAIL", "Actually result VS Expected result: $out", result => 'fail') if ($out ne '');

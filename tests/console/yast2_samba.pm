@@ -209,7 +209,7 @@ sub setup_samba_share {
 
     # Identification
     assert_screen 'yast2_samba-server_new-share';
-    send_key_until_needlematch 'yast2_samba-share-name-focused', $actions{name}->{shortcut}, 5;    # ensure responsive
+    send_key_until_needlematch 'yast2_samba-share-name-focused', $actions{name}->{shortcut}, 6;    # ensure responsive
     type_string $actions{name}->{value};
     wait_screen_change { send_key $actions{description}->{shortcut} };
     type_string $actions{description}->{value};

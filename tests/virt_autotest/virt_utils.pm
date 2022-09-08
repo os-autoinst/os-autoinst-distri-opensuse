@@ -407,7 +407,7 @@ sub remove_vm {
         assert_script_run("virsh destroy $vm", 30);
     }
     if ($is_persistent_vm eq "yes") {
-        assert_script_run("virsh undefine $vm", 30);
+        assert_script_run("virsh undefine $vm || virsh undefine $vm --keep-nvram", 30);
     }
 }
 
@@ -653,7 +653,7 @@ sub recreate_guests {
     foreach (@vm_hostnames_array)
     {
         script_run("virsh destroy $_");
-        script_run("virsh undefine $_");
+        script_run("virsh undefine $_ || virsh undefine $_ --keep-nvram");
         script_run("virsh define /$based_guest_dir/$_.xml");
         script_run("virsh start $_");
     }

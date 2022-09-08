@@ -111,7 +111,7 @@ sub tb_setup_account {
                 type_string 'admin';
             }
             assert_and_click 'thunderbird_wizard-retest';
-            send_key_until_needlematch 'thunderbird_wizard-done', 'tab', 15, 1;
+            send_key_until_needlematch 'thunderbird_wizard-done', 'tab', 16, 1;
             assert_and_click 'thunderbird_wizard-done';
             wait_still_screen(2, 4);
             assert_and_click 'thunderbird_SSL_done_config' unless check_screen('thunderbird_confirm_security_exception');
@@ -137,7 +137,7 @@ sub tb_setup_account {
                 type_string 'admin';
             }
             assert_and_click 'thunderbird_wizard-retest';
-            send_key_until_needlematch 'thunderbird_wizard-done', 'tab', 15, 1;
+            send_key_until_needlematch 'thunderbird_wizard-done', 'tab', 16, 1;
             assert_and_click 'thunderbird_wizard-done';
             wait_still_screen(2);
             send_key 'end';    # go to the bottom to see whole button and checkbox
@@ -155,7 +155,7 @@ sub tb_setup_account {
     else {
         # If use multimachine, select correct needles to configure thunderbird.
         if ($hostname eq 'client') {
-            send_key_until_needlematch 'thunderbird_SSL_done_config', 'alt-t', 4, 2;
+            send_key_until_needlematch 'thunderbird_SSL_done_config', 'alt-t', 5, 2;
             wait_still_screen(2);
             assert_and_click "thunderbird_SSL_done_config";
             wait_still_screen(3);
@@ -248,7 +248,7 @@ sub tb_check_email {
     wait_still_screen 2, 3;
     type_string "$mail_search";
     wait_still_screen 2, 3;
-    send_key_until_needlematch "thunderbird_sent-message-received", 'shift-f5', 4, 30;
+    send_key_until_needlematch "thunderbird_sent-message-received", 'shift-f5', 5, 30;
 
     # delete the message
     assert_and_click "thunderbird_select-message";

@@ -1,0 +1,6 @@
+---
+# example flow a
+phase_1:
+  - flow_a_foo
+phase_2: 
+  - flow_a_bar

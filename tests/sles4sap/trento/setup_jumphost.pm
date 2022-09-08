@@ -28,17 +28,19 @@ sub run {
     }
     assert_script_run("helm version");
 
-    # If 'az' is preinstalled, we test that version
+    # If 'az' is pre installed, we test that version
     assert_script_run('az --version');
 
     # Get the code for the Trento deployment
     my $gitlab_repo = get_var(TRENTO_GITLAB_REPO => 'gitlab.suse.de/qa-css/trento');
 
     # The usage of a variable with a different name is to
-    # be able to overwrite the token when triggering manually.
+    # be able to overwrite the token when manually triggering
+    # the setup_jumphost test.
     #
-    # Note: this test is mostly used to create a HDD image; part of it is this cloned repo.
-    # The key is part of the cloned repo itself so TRENTO_GITLAB_TOKEN for the moment
+    # Note: this test is mostly only used to create
+    # a HDD image; part of this test and the qcow2 image is this cloned repo.
+    # The key is part of the cloned repo itself so TRENTO_GITLAB_TOKEN (for the moment)
     # cannot be changed as running init_jumphost
     my $gitlab_token = get_var(TRENTO_GITLAB_TOKEN => get_required_var('_SECRET_TRENTO_GITLAB_TOKEN'));
 
@@ -47,8 +49,7 @@ sub run {
     assert_script_run("git clone $gitlab_clone_cmd . | tee " . GITLAB_CLONE_LOG);
 
     # Cypress.io installation
-    my $cypress_ver = get_var(TRENTO_CYPRESS_VERSION => '4.4.0');
-    $self->cypress_install_container($cypress_ver);
+    $self->cypress_install_container($self->cypress_version);
 }
 
 sub post_fail_hook {

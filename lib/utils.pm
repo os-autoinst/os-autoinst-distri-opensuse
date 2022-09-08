@@ -569,7 +569,13 @@ sub zypper_call {
         if ($ret == 4) {
             if (script_run('grep "Error code.*502" /var/log/zypper.log') == 0) {
                 die 'According to bsc#1070851 zypper should automatically retry internally. Bugfix missing for current product?';
-            } elsif (script_run('grep "Solverrun finished with an ERROR" /var/log/zypper.log') == 0) {
+            }
+            elsif (get_var('WORKAROUND_PREINSTALL_CONFLICT')) {
+                record_soft_failure('poo#113033 Workaround maintenance package preinstall conflict, job cloned with WORKAROUND_PREINSTALL_CONFLICT');
+                script_run q(zypper -n rm $(awk '/conflicts with/ {print$7}' /var/log/zypper.log|uniq));
+                next;
+            }
+            elsif (script_run('grep "Solverrun finished with an ERROR" /var/log/zypper.log') == 0) {
                 my $conflicts = script_output($search_conflicts);
                 record_info("Conflict", $conflicts, result => 'fail');
                 diag "Package conflicts found, not retrying anymore" if $conflicts;
@@ -591,8 +597,27 @@ sub zypper_call {
 
     # log all install and remove actions for later use by tests/console/zypper_log_packages.pm
     my @packages = split(" ", $command);
+    my $dry_run = 0;
     for (my $i = 0; $i < scalar(@packages); $i++) {
         if ($packages[$i] eq "--root" || $packages[$i] eq "-R") {
+            splice(@packages, $i, 2);
+        }
+        elsif ($packages[$i] eq "--name" || $packages[$i] eq "-n") {
+            splice(@packages, $i, 2);
+        }
+        elsif ($packages[$i] eq "--from") {
+            splice(@packages, $i, 2);
+        }
+        elsif ($packages[$i] eq "--repo" || $packages[$i] eq "-r") {
+            splice(@packages, $i, 2);
+        }
+        elsif ($packages[$i] eq "--download") {
+            splice(@packages, $i, 2);
+        }
+        elsif ($packages[$i] eq "--dry-run" || $packages[$i] eq "--download-only" || $packages[$i] eq '-d') {
+            $dry_run = 1;
+        }
+        elsif ($packages[$i] eq "--solver-focus") {
             splice(@packages, $i, 2);
         }
     }
@@ -600,7 +625,7 @@ sub zypper_call {
     my $zypper_action = shift(@packages);
     $zypper_action = "install" if ($zypper_action eq "in");
     $zypper_action = "remove" if ($zypper_action eq "rm");
-    if ($zypper_action =~ m/^(install|remove)$/) {
+    if ($zypper_action =~ m/^(install|remove)$/ && !$dry_run) {
         push(@{$testapi::distri->{zypper_packages}}, {
                 raw_command => $command,
                 action => $zypper_action,

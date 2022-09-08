@@ -17,7 +17,7 @@ use utils;
 sub test_kr {
     x11_start_program('gedit');
     hold_key 'super';
-    send_key_until_needlematch 'ibus_switch_kr', 'spc', 6;
+    send_key_until_needlematch 'ibus_switch_kr', 'spc', 7;
     release_key 'super';
 
     # turn on the hangul mode
@@ -28,7 +28,7 @@ sub test_kr {
     assert_screen 'ibus_kr_hi';
 
     hold_key('super');
-    send_key_until_needlematch 'ibus_switch_en', 'spc', 6;
+    send_key_until_needlematch 'ibus_switch_en', 'spc', 7;
     release_key('super');
 
     send_key 'alt-f4';

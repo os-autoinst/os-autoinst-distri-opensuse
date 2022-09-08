@@ -283,21 +283,21 @@ sub boot_local_disk {
 }
 
 sub boot_into_snapshot {
-    send_key_until_needlematch('boot-menu-snapshot', 'down', 10, 5);
+    send_key_until_needlematch('boot-menu-snapshot', 'down', 11, 5);
     send_key 'ret';
     # assert needle to make sure grub2 page show up
     assert_screen('grub2-page', 60);
     # assert needle to avoid send down key early in grub_test_snapshot.
     if (get_var('OFW') || is_pvm || check_var('SLE_PRODUCT', 'hpc')) {
-        send_key_until_needlematch('snap-default', 'down', 60, 5);
+        send_key_until_needlematch('snap-default', 'down', 61, 5);
     }
     # in upgrade/migration scenario, we want to boot from snapshot 1 before migration.
     if ((get_var('UPGRADE') && !get_var('ONLINE_MIGRATION', 0)) || get_var('ZDUP')) {
-        send_key_until_needlematch('snap-before-update', 'down', 60, 5);
+        send_key_until_needlematch('snap-before-update', 'down', 61, 5);
         save_screenshot;
     }
     # in an online migration
-    send_key_until_needlematch('snap-before-migration', 'down', 60, 5) if (get_var('ONLINE_MIGRATION'));
+    send_key_until_needlematch('snap-before-migration', 'down', 61, 5) if (get_var('ONLINE_MIGRATION'));
     save_screenshot;
     send_key 'ret';
     # avoid timeout for booting to HDD
@@ -322,17 +322,17 @@ sub select_bootmenu_option {
 
     if (get_var('UPGRADE')) {
         # OFW has contralily oriented menu behavior
-        send_key_until_needlematch 'inst-onupgrade', get_var('OFW') ? 'up' : 'down', 10, 5;
+        send_key_until_needlematch 'inst-onupgrade', get_var('OFW') ? 'up' : 'down', 11, 5;
     }
     else {
         if (get_var('PROMO') || get_var('LIVETEST') || get_var('LIVE_INSTALLATION') || get_var('LIVE_UPGRADE')) {
-            send_key_until_needlematch 'boot-live-' . get_var('DESKTOP'), 'down', 10, 5;
+            send_key_until_needlematch 'boot-live-' . get_var('DESKTOP'), 'down', 11, 5;
         }
         elsif (get_var('OFW')) {
-            send_key_until_needlematch 'inst-oninstallation', 'up', 10, 5;
+            send_key_until_needlematch 'inst-oninstallation', 'up', 11, 5;
         }
         elsif (!get_var('JEOS')) {
-            send_key_until_needlematch 'inst-oninstallation', 'down', 10, 5;
+            send_key_until_needlematch 'inst-oninstallation', 'down', 11, 5;
         }
     }
     return 0;
@@ -359,9 +359,9 @@ sub get_bootmenu_console_params {
 sub uefi_bootmenu_params {
     # assume bios+grub+anim already waited in start.sh
     # in grub2 it's tricky to set the screen resolution
-    #send_key_until_needlematch('grub2-enter-edit-mode', 'e', 5, 0.5);
+    #send_key_until_needlematch('grub2-enter-edit-mode', 'e', 6, 0.5);
     (is_jeos)
-      ? send_key_until_needlematch('grub2-enter-edit-mode', 'e', 5, 0.5)
+      ? send_key_until_needlematch('grub2-enter-edit-mode', 'e', 6, 0.5)
       : send_key 'e';
     # Kiwi in TW uses grub2-mkconfig instead of the custom kiwi config
     # Locate gfxpayload parameter and update it
@@ -634,10 +634,10 @@ sub select_bootmenu_more {
 
     # after installation-images 14.210 added a submenu
     if ($more && check_screen 'inst-submenu-more', 0) {
-        send_key_until_needlematch('inst-onmore', get_var('OFW') ? 'up' : 'down', 10, 5);
+        send_key_until_needlematch('inst-onmore', get_var('OFW') ? 'up' : 'down', 11, 5);
         send_key "ret";
     }
-    send_key_until_needlematch($tag, get_var('OFW') ? 'up' : 'down', 10, 3);
+    send_key_until_needlematch($tag, get_var('OFW') ? 'up' : 'down', 11, 3);
     # Redirect linuxrc logs to console when booting from menu: "boot linux system"
     push @params, get_linuxrc_boot_params if get_var('LINUXRC_BOOT');
     # Make sure to use the correct repo for testing
@@ -823,7 +823,7 @@ sub remote_install_bootmenu_params {
 sub select_bootmenu_video_mode {
     if (check_var("VIDEOMODE", "text")) {
         send_key "f3";
-        send_key_until_needlematch("inst-textselected", "up", 5);
+        send_key_until_needlematch("inst-textselected", "up", 6);
         send_key "ret";
         if (match_has_tag("inst-textselected-with_colormenu")) {
             # The video mode menu was enhanced to support various color profiles
@@ -945,11 +945,11 @@ sub tianocore_disable_secureboot {
     enter_cmd "exit";
     assert_screen 'tianocore-mainmenu';
     # Select 'Boot manager' entry
-    send_key_until_needlematch('tianocore-devicemanager', 'down', 5, 5);
+    send_key_until_needlematch('tianocore-devicemanager', 'down', 6, 5);
     send_key 'ret';
-    send_key_until_needlematch('tianocore-devicemanager-sb-conf', 'down', 5, 5);
+    send_key_until_needlematch('tianocore-devicemanager-sb-conf', 'down', 6, 5);
     send_key 'ret';
-    send_key_until_needlematch($neelle_sb_conf_attempt, 'down', 5, 5);
+    send_key_until_needlematch($neelle_sb_conf_attempt, 'down', 6, 5);
     send_key 'spc';
     assert_screen 'tianocore-devicemanager-sb-conf-changed';
     send_key 'ret';
@@ -971,15 +971,20 @@ sub tianocore_ensure_xga_resolution {
     assert_screen 'tianocore-devicemanager-select-secure-boot';
     send_key_until_needlematch 'tianocore-devicemanager-select-ovmf-platform', 'down';
     send_key 'ret';
-    assert_screen 'tianocore-ovmf-settings-select-resolution';
-    send_key 'ret';
-    send_key_until_needlematch 'tianocore-ovmf-settings-select-resolution-800x600-popup', 'down';
-    send_key 'ret';
-    assert_screen 'tianocore-ovmf-settings-select-resolution-800x600';
-    send_key 'f10';
-    assert_screen 'tianocore-ovmf-save-settings';
-    send_key 'y';
-    assert_screen 'tianocore-ovmf-settings-select-resolution-800x600';
+    assert_screen [qw(tianocore-ovmf-settings-select-resolution-800x600 tianocore-ovmf-settings-select-resolution)];
+
+    # Check resolution and change it if it isn't 800x600
+    unless (match_has_tag 'tianocore-ovmf-settings-select-resolution-800x600') {
+        assert_screen 'tianocore-ovmf-settings-select-resolution';
+        send_key 'ret';
+        send_key_until_needlematch 'tianocore-ovmf-settings-select-resolution-800x600-popup', 'down';
+        send_key 'ret';
+        assert_screen 'tianocore-ovmf-settings-select-resolution-800x600';
+        send_key 'f10';
+        assert_screen 'tianocore-ovmf-save-settings';
+        send_key 'y';
+        assert_screen 'tianocore-ovmf-settings-select-resolution-800x600';
+    }
     send_key 'esc';
     assert_screen 'tianocore-devicemanager-select-ovmf-platform';
     send_key 'esc';
@@ -992,25 +997,25 @@ sub tianocore_select_bootloader {
     tianocore_enter_menu;
     tianocore_ensure_xga_resolution if check_var('QEMUVGA', 'qxl');
     tianocore_enter_menu;
-    send_key_until_needlematch('tianocore-bootmanager', 'down', 5, 5);
+    send_key_until_needlematch('tianocore-bootmanager', 'down', 6, 5);
     send_key 'ret';
 }
 
 sub tianocore_http_boot {
     tianocore_enter_menu;
     # Go to Device manager
-    send_key_until_needlematch('tianocore-devicemanager', 'down', 5, 5);
+    send_key_until_needlematch('tianocore-devicemanager', 'down', 6, 5);
     send_key 'ret';
     # In device manager, go to 'Network Device List'
-    send_key_until_needlematch('tianocore-devicemanager-networkdevicelist', 'up', 5, 5);
+    send_key_until_needlematch('tianocore-devicemanager-networkdevicelist', 'up', 6, 5);
     send_key 'ret';
     # In 'Network Device List', go to first MAC addr
     send_key 'ret';
     # Go to 'HTTP Boot Configuration'
-    send_key_until_needlematch('tianocore-devicemanager-networkdevicelist-mac-httpbootconfig', 'up', 5, 5);
+    send_key_until_needlematch('tianocore-devicemanager-networkdevicelist-mac-httpbootconfig', 'up', 6, 5);
     send_key 'ret';
     # Select 'Boot URI'
-    send_key_until_needlematch('tianocore-devicemanager-networkdevicelist-mac-httpbootconfig-booturi', 'up', 5, 5);
+    send_key_until_needlematch('tianocore-devicemanager-networkdevicelist-mac-httpbootconfig-booturi', 'up', 6, 5);
     send_key 'ret';
     # Enter URI (full URI to EFI file)
     my $arch = get_var("ARCH");
@@ -1041,10 +1046,10 @@ sub tianocore_http_boot {
     send_key 'esc';
     send_key 'esc';
     # Select 'Boot manager' entry
-    send_key_until_needlematch('tianocore-bootmanager', 'down', 5, 5);
+    send_key_until_needlematch('tianocore-bootmanager', 'down', 6, 5);
     send_key 'ret';
     # Select 'UEFI Http' entry
-    send_key_until_needlematch('tianocore-bootmanager-uefihttp', 'up', 5, 5);
+    send_key_until_needlematch('tianocore-bootmanager-uefihttp', 'up', 6, 5);
     send_key 'ret';
 }
 
