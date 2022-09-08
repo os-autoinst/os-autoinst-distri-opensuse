@@ -10,6 +10,7 @@ schedule:
   - console/system_prepare
   - console/prepare_test_data
   - console/consoletest_setup
+  - update/zypper_ref_auto_import_keys
   - yast2_gui/yast2_bootloader
   - yast2_gui/yast2_security
   - yast2_gui/yast2_keyboard

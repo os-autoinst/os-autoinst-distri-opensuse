@@ -60,7 +60,7 @@ sub armnn_onnx_test_prepare {
     assert_script_run('pushd armnn/models');
     assert_script_run('wget https://github.com/onnx/models/raw/main/vision/classification/mnist/model/mnist-8.tar.gz -O ~/data/ai_ml/models/mnist.tar.gz');
     assert_script_run("tar xzf ~/data/ai_ml/models/mnist.tar.gz");
-    assert_script_run("cp mnist/model.onnx ./mnist_onnx.onnx");
+    assert_script_run("cp model/model.onnx ./mnist_onnx.onnx");
     assert_script_run('wget https://s3.amazonaws.com/onnx-model-zoo/mobilenet/mobilenetv2-1.0/mobilenetv2-1.0.tar.gz -O ~/data/ai_ml/models/mobilenetv2-1.0.tar.gz');
     assert_script_run("tar xzf ~/data/ai_ml/models/mobilenetv2-1.0.tar.gz");
     assert_script_run("cp mobilenetv2-1.0/mobilenetv2-1.0.onnx ./");

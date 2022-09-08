@@ -401,7 +401,7 @@ sub setup_iscsi_server {
         send_key 'alt-a';
 
         # Send alt-p until LUN path is selected
-        send_key_until_needlematch 'iscsi-target-LUN-path-selected', 'alt-p', 5, 5;
+        send_key_until_needlematch 'iscsi-target-LUN-path-selected', 'alt-p', 6, 5;
         type_string "$hdd_lun$num_lun";
         assert_screen 'iscsi-target-LUN-support-server';
         send_key 'alt-o';

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: The module provides interface to act with Registration page
@@ -25,7 +25,7 @@ sub init {
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{rdb_skip_registration}->exist();
+    return $self->{txb_reg_code}->exist();
 }
 
 sub enter_email {

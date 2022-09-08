@@ -26,7 +26,7 @@ use version_utils qw(is_sle is_leap is_tumbleweed);
 sub run {
     x11_start_program('touch newfile', valid => 0);
     x11_start_program('nautilus');
-    send_key_until_needlematch 'nautilus-newfile-matched', 'right', 15;
+    send_key_until_needlematch 'nautilus-newfile-matched', 'right', 16;
     if (is_sle('15+') || is_leap('15.0+') || is_tumbleweed) {
         assert_and_click('nautilus-newfile-matched', button => 'right');
         record_soft_failure 'boo#1074057 qemu can not properly capture some keys in nautilus under GNOME wayland';

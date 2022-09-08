@@ -1,8 +1,7 @@
-name: Leaked Secrets Scan
+name: WIP. Please Ignore this failure. Leaked Secrets Scan Test
 on:
-  pull_request:
   push:
-    branches: [ "master" ]
+    branches: [ "trufflehog" ]
 jobs:
   TruffleHog:
     runs-on: ubuntu-latest

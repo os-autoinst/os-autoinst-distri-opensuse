@@ -26,7 +26,7 @@ sub run {
     send_key 'ret';
     assert_screen 'gedit-launched';    # should open file newfile
     send_key 'alt-f4';
-    send_key_until_needlematch('generic-desktop', 'alt-f4', 3, 10);
+    send_key_until_needlematch('generic-desktop', 'alt-f4', 4, 10);
 }
 
 1;

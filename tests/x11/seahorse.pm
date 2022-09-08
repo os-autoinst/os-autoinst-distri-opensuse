@@ -51,7 +51,7 @@ sub run {
     assert_screen [qw(seahorse-collecton-is-empty seahorse-default_keyring)];
     if (match_has_tag "seahorse-collecton-is-empty") {
         record_soft_failure 'Missing entries of Passwords, Keys, Certificates, see boo#1175513';
-        send_key_until_needlematch("generic-desktop", "alt-f4", 5, 5);
+        send_key_until_needlematch("generic-desktop", "alt-f4", 6, 5);
     }
     elsif (match_has_tag "seahorse-default_keyring") {
         assert_and_click('seahorse-default_keyring', button => 'right');    # right click the new keyring

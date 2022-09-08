@@ -333,7 +333,7 @@ sub register_addons {
             # skip addons which doesn't need to input scc code
             next unless grep { $addon eq $_ } @addons_with_code;
             if (check_var('VIDEOMODE', 'text')) {
-                send_key_until_needlematch("scc-code-field-$addon", 'tab', 60, 3);
+                send_key_until_needlematch("scc-code-field-$addon", 'tab', 61, 3);
             }
             else {
                 assert_and_click("scc-code-field-$addon", timeout => 240);
@@ -445,7 +445,7 @@ sub process_scc_register_addons {
                 # Uncheck 'Hide Beta Versions'
                 # The workaround with send_key_until_needlematch is added,
                 # because on ppc64le the shortcut key does not reach VM sporadically.
-                send_key_until_needlematch('scc-beta-filter-unchecked', 'alt-i', 3, 5);
+                send_key_until_needlematch('scc-beta-filter-unchecked', 'alt-i', 4, 5);
             }
             else {
                 send_key 'alt-f';    # uncheck 'Filter Out Beta Version'
@@ -696,7 +696,7 @@ sub select_addons_in_textmode {
     my ($addon, $flag) = @_;
     if ($flag) {
         send_key_until_needlematch 'scc-module-area-selected', 'tab';
-        send_key_until_needlematch ["scc-module-$addon", "scc-module-$addon-selected"], 'down', 30, 5;
+        send_key_until_needlematch ["scc-module-$addon", "scc-module-$addon-selected"], 'down', 31, 5;
         if (match_has_tag("scc-module-$addon")) {
             send_key 'spc';
             # After selected/deselected an addon, yast scc would automatically

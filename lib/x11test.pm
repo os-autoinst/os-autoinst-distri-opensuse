@@ -251,12 +251,12 @@ sub check_new_mail_evolution {
     send_key "alt-w";
     send_key "ret";
     wait_still_screen 2;
-    send_key_until_needlematch "evolution_mail_show-all", "down", 5, 1;
+    send_key_until_needlematch "evolution_mail_show-all", "down", 6, 1;
     send_key "ret";
     wait_still_screen(2);
     send_key "alt-n";
     send_key "ret";
-    send_key_until_needlematch "evolution_mail_show-allcount", "down", 5, 1;
+    send_key_until_needlematch "evolution_mail_show-allcount", "down", 6, 1;
     send_key "ret";
     send_key "alt-c";
     type_string "$mail_search";
@@ -432,7 +432,7 @@ sub setup_mail_account {
     # Open Server Type screen.
     send_key "alt-t";
     wait_still_screen(1);
-    send_key_until_needlematch "evolution_wizard-receiving-$proto", "down", 10, 1;
+    send_key_until_needlematch "evolution_wizard-receiving-$proto", "down", 11, 1;
     send_key "alt-s";
     wait_still_screen(1);
     type_string "$mail_recvServer";
@@ -452,7 +452,7 @@ sub setup_mail_account {
     type_string "$mail_user";
     send_key "alt-m";
     wait_still_screen(1);
-    send_key_until_needlematch "evolution_wizard-receiving-ssl", "down", 5, 1;
+    send_key_until_needlematch "evolution_wizard-receiving-ssl", "down", 6, 1;
     $self->evolution_add_self_signed_ca($account);
     assert_screen [qw(evolution_wizard-receiving-opts evolution_wizard-receiving-not-focused)];
     if (match_has_tag 'evolution_wizard-receiving-not-focused') {
@@ -474,7 +474,7 @@ sub setup_mail_account {
     wait_still_screen(2);
     send_key "home";
     wait_still_screen(2);
-    send_key_until_needlematch "evolution_wizard-sending-smtp", "down", 5, 1;
+    send_key_until_needlematch "evolution_wizard-sending-smtp", "down", 6, 1;
     send_key "alt-s";
     type_string "$mail_sendServer";
     wait_still_screen(2, 2);
@@ -488,7 +488,7 @@ sub setup_mail_account {
     send_key "home";
     #change to use mail-server and SSL
     my $encrypt = get_var('QAM_MAIL_EVOLUTION') ? 'TLS' : 'STARTTLS';
-    send_key_until_needlematch "evolution_SSL_wizard-sending-$encrypt", "down", 5, 1;
+    send_key_until_needlematch "evolution_SSL_wizard-sending-$encrypt", "down", 6, 1;
     assert_and_click "evolution_wizard-sending-setauthtype";
     assert_and_click "evolution_wizard-sending-setauthtype_login";
     wait_screen_change { send_key 'alt-n' };
@@ -513,7 +513,7 @@ sub setup_mail_account {
         send_key "ret";
     }
     # Μake sure the welcome window is maximized
-    send_key_until_needlematch 'evolution_mail-max-window', 'super-up', 3, 3;
+    send_key_until_needlematch 'evolution_mail-max-window', 'super-up', 4, 3;
 }
 
 # Use AutoConfig file for firefox to predefine some user values
@@ -705,19 +705,19 @@ sub firefox_open_url {
     }
     enter_cmd_slow "$url";
     wait_still_screen 2, 4;
-    send_key_until_needlematch 'firefox-url-loaded', 'f5', 3, 90;
+    send_key_until_needlematch 'firefox-url-loaded', 'f5', 4, 90;
 }
 
 sub firefox_preferences {
-    send_key_until_needlematch 'firefox-edit-menu', 'alt-e', 5, 5;
-    send_key_until_needlematch 'firefox-preferences', 'n', 5, 5;
+    send_key_until_needlematch 'firefox-edit-menu', 'alt-e', 6, 5;
+    send_key_until_needlematch 'firefox-preferences', 'n', 6, 5;
 }
 
 sub exit_firefox_common {
     # Exit
     send_key 'ctrl-q';
     wait_still_screen 3, 6;
-    send_key_until_needlematch([qw(firefox-save-and-quit xterm-left-open xterm-without-focus)], "alt-f4", 6, 30);
+    send_key_until_needlematch([qw(firefox-save-and-quit xterm-left-open xterm-without-focus)], "alt-f4", 7, 30);
     if (match_has_tag 'firefox-save-and-quit') {
         # confirm "save&quit"
         send_key "ret";
@@ -802,7 +802,7 @@ sub setup_evolution_for_ews {
     assert_screen "test-evolution-1";
     send_key "alt-o";
     assert_screen "evolution_wizard-restore-backup";
-    send_key_until_needlematch("evolution_wizard-identity", "alt-o", 10);
+    send_key_until_needlematch("evolution_wizard-identity", "alt-o", 11);
     wait_screen_change {
         send_key "alt-e";
     };
@@ -824,7 +824,7 @@ sub setup_evolution_for_ews {
     send_key "alt-t";
     wait_still_screen(1);
     send_key "ret";
-    send_key_until_needlematch "evolution_wizard-receiving-ews", "up", 10, 3;
+    send_key_until_needlematch "evolution_wizard-receiving-ews", "up", 11, 3;
     send_key "ret";
     assert_screen "evolution_wizard-ews-prefill";
     send_key "alt-u";
@@ -927,7 +927,7 @@ sub tomboy_logout_and_login {
 
 sub gnote_launch {
     x11_start_program('gnote');
-    send_key_until_needlematch 'gnote-start-here-matched', 'down', 5;
+    send_key_until_needlematch 'gnote-start-here-matched', 'down', 6;
 }
 
 sub gnote_search_and_close {

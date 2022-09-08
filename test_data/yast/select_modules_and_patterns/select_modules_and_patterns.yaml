@@ -18,3 +18,7 @@ software:
 validate_subvolumes:
   - subvolume: home
     mount_point: /
+install_packages:
+  - libyui-rest-api
+port: 30000-50000
+zone: public

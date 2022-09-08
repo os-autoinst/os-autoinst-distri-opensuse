@@ -1,0 +1,31 @@
+---
+name: mau-extratests-desktop
+schedule:
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - x11/disable_screensaver
+  - x11/vnc_two_passwords
+  - x11/user_defined_snapshot
+  - x11/remote_desktop/screensharing_available
+  - x11/libqt5_qtbase
+  - x11/rrdtool_x11
+  - x11/yast2_lan_restart
+  - console/yast2_lan_device_settings
+  - '{{version_specific}}'
+  - console/coredump_collect
+conditional_schedule:
+  version_specific:
+    VERSION:
+      15-SP4:
+        - texlive/latexdiff
+      15-SP3:
+        - texlive/latexdiff
+      15-SP2:
+        - texlive/latexdiff
+      15-SP1:
+        - texlive/latexdiff
+      15:
+        - texlive/latexdiff
+...

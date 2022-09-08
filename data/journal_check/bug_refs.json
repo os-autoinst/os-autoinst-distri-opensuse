@@ -180,7 +180,7 @@
     "bsc#1188215": {
         "description": "Failed to start Create missing directories from rpmdb",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.3" ],
+            "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
             "microos":  ["Tumbleweed"]
         },
         "type": "bug"
@@ -302,13 +302,20 @@
         },
         "type": "ignore"
     },
-    "health-check": {
+    "health-check-typo": {
         "description": "health-checker/fail.sh check\" failed|Machine didn't come up correct, do a rollback",
         "products": {
             "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
             "leap-micro": ["5.2", "5.3"],
             "microos":  ["Tumbleweed"],
             "alp":  ["0.1"]
+        },
+        "type": "ignore"
+    },
+    "health-check": {
+        "description": "health-checker/fail.sh check\" failed|Machine didn't come up correctly, do a rollback",
+        "products": {
+            "microos":  ["Tumbleweed"]
         },
         "type": "ignore"
     },
@@ -335,6 +342,8 @@
     "no-config-drive": {
         "description": "Timed out waiting for device (/dev/disk/by-label/ignition|/dev/combustion/config)",
         "products": {
+            "leap-micro": ["5.3"],
+            "sle-micro": ["5.3"],
             "microos":  ["Tumbleweed"]
         },
         "type": "ignore"

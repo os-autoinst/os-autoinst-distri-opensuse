@@ -30,7 +30,7 @@ sub run {
     send_key "alt-o";
     assert_screen('libreoffice-options-menu', 30);
     assert_and_dclick('liberoffice-options-menu-LiberOfficeWriter');
-    send_key_until_needlematch "liberoffice-mail-Merge", "down", 20, 3;    #find Mail Merge E-mail
+    send_key_until_needlematch "liberoffice-mail-Merge", "down", 21, 3;    #find Mail Merge E-mail
 
     #fill the information and click test_setting button
     send_key "alt-y";

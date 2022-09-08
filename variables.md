@@ -235,6 +235,9 @@ Variable        | Type      | Default value | Details
 PUBLIC_CLOUD | boolean | false | All Public Cloud tests have this variable set to true. Contact: qa-c@suse.de
 PUBLIC_CLOUD_ACCOUNT | string | "" | For GCE will set account via `gcloud config set account ' . $self->account`.
 PUBLIC_CLOUD_ACCNET | boolean | false | If set, az_accelerated_net test module is added to the job.
+PUBLIC_CLOUD_AHB_LT | string | "SLES_BYOS" | For Azure, it specifies the license type to change to (and test).
+PUBLIC_CLOUD_AZ_API | string | "http://169.254.169.254/metadata/instance/compute" | For Azure, it is the metadata API endpoint.
+PUBLIC_CLOUD_AZ_API_VERSION | string | "2021-02-01" | For Azure, it is the API version used whe querying metadata API.
 PUBLIC_CLOUD_HDD2_SIZE | integer | "" | If set, the instance will have an additional disk with the given capacity in GB
 PUBLIC_CLOUD_HDD2_TYPE | string | "" | If PUBLIC_CLOUD_ADDITIONAL_DISK_SIZE is set, this defines the additional disk type (optional). The required value depends on the cloud service provider.
 PUBLIC_CLOUD_ARCH | string | "x86_64" | The architecture of created VM.
@@ -298,3 +301,4 @@ PUBLIC_CLOUD_TERRAFORM_FILE | string | "" | If defined, use this terraform file 
 TERRAFORM_TIMEOUT | integer | 1800 | Set timeout for terraform actions
 PUBLIC_CLOUD_INSTANCE_IP | string | "" | If defined, no instance will be created and this IP will be used to connect to
 _SECRET_PUBLIC_CLOUD_INSTANCE_SSH_KEY | string | "" | The `~/.ssh/id_rsa` existing key allowed by `PUBLIC_CLOUD_INSTANCE_IP` instance
+PUBLIC_CLOUD_TERRAFORM_DIR | string | "/root/terraform" | Override default root path to terraform directory

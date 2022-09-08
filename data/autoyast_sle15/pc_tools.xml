@@ -116,11 +116,6 @@
       <partitions config:type="list">
         <partition>
           <mountby config:type="symbol">device</mountby>
-          <filesystem config:type="symbol">swap</filesystem>
-          <mount>swap</mount>
-        </partition>
-        <partition>
-          <mountby config:type="symbol">device</mountby>
           <filesystem config:type="symbol">ext4</filesystem>
           <mount>/</mount>
         </partition>

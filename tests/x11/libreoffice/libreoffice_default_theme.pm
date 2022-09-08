@@ -35,7 +35,7 @@ sub check_lo_theme {
         send_key "o";
     }
     assert_screen 'ooffice-tools-options';
-    send_key_until_needlematch 'ooffice-tools-options-view', 'down', 5, 2;
+    send_key_until_needlematch 'ooffice-tools-options-view', 'down', 6, 2;
     send_key "esc";
     wait_still_screen 3;
     send_key "ctrl-q";    # Quit LO

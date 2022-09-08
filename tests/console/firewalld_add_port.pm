@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Add ports to zone, as specified in test data, using firewall-cmd.
@@ -19,12 +19,13 @@ use base 'consoletest';
 use warnings;
 use testapi;
 use scheduler 'get_test_suite_data';
-use Utils::Firewalld 'add_port_to_zone';
+use Utils::Firewalld qw(add_port_to_zone reload_firewalld);
 
 sub run {
     my $test_data = get_test_suite_data();
     select_console 'root-console';
     add_port_to_zone({zone => $test_data->{zone}, port => $test_data->{port}});
+    reload_firewalld();
 }
 
 sub test_flags {

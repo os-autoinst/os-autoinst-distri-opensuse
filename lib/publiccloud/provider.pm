@@ -19,7 +19,7 @@ use Mojo::JSON qw(decode_json encode_json);
 use utils qw(file_content_replace script_retry);
 use mmapi;
 
-use constant TERRAFORM_DIR => '/root/terraform';
+use constant TERRAFORM_DIR => get_var('PUBLIC_CLOUD_TERRAFORM_DIR', '/root/terraform');
 use constant TERRAFORM_TIMEOUT => 30 * 60;
 
 has prefix => 'openqa';
@@ -452,14 +452,9 @@ sub terraform_apply {
     my $ips;
     my $resource_id;
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
-        foreach my $vm_type ('cluster_nodes', 'drbd', 'netweaver') {
-            if (is_azure && $vm_type eq 'cluster_nodes') {
-                push @{$vms}, @{$output->{$vm_type . '_name'}->{value}[0]};
-                push @{$ips}, @{$output->{$vm_type . '_public_ip'}->{value}[0]};
-            } else {
-                push @{$vms}, @{$output->{$vm_type . '_name'}->{value}};
-                push @{$ips}, @{$output->{$vm_type . '_public_ip'}->{value}};
-            }
+        foreach my $vm_type ('hana', 'drbd', 'netweaver') {
+            push @{$vms}, @{$output->{$vm_type . '_name'}->{value}};
+            push @{$ips}, @{$output->{$vm_type . '_public_ip'}->{value}};
         }
     } else {
         $vms = $output->{vm_name}->{value};

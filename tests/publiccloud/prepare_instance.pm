@@ -29,23 +29,23 @@ sub prepare_ssh_tunnel {
     assert_script_run("install -o $testapi::username -g users -m 0600 ~/.ssh/* /home/$testapi::username/.ssh/");
 
     # Skip setting root password for img_proof, because it expects the root password to NOT be set
-    $instance->run_ssh_command(qq(echo -e "$testapi::password\\n$testapi::password" | sudo passwd root));
+    $instance->ssh_assert_script_run(qq(echo -e "$testapi::password\\n$testapi::password" | sudo passwd root));
 
     # Permit root passwordless login over SSH
-    $instance->run_ssh_command('sudo sed -i "s/PermitRootLogin no/PermitRootLogin prohibit-password/g" /etc/ssh/sshd_config');
-    $instance->run_ssh_command('sudo systemctl reload sshd');
+    $instance->ssh_assert_script_run('sudo sed -i "s/PermitRootLogin no/PermitRootLogin prohibit-password/g" /etc/ssh/sshd_config');
+    $instance->ssh_assert_script_run('sudo systemctl reload sshd');
 
     # Copy SSH settings for remote root
-    $instance->run_ssh_command('sudo install -o root -g root -m 0700 -dD /root/.ssh');
-    $instance->run_ssh_command(sprintf("sudo install -o root -g root -m 0644 /home/%s/.ssh/authorized_keys /root/.ssh/", $instance->{username}));
+    $instance->ssh_assert_script_run('sudo install -o root -g root -m 0700 -dD /root/.ssh');
+    $instance->ssh_assert_script_run(sprintf("sudo install -o root -g root -m 0644 /home/%s/.ssh/authorized_keys /root/.ssh/", $instance->{username}));
 
     # Create remote user and set him a password
-    $instance->run_ssh_command("test -d /home/$testapi::username || sudo useradd -m $testapi::username");
-    $instance->run_ssh_command(qq(echo -e "$testapi::password\\n$testapi::password" | sudo passwd $testapi::username));
+    $instance->ssh_assert_script_run("test -d /home/$testapi::username || sudo useradd -m $testapi::username");
+    $instance->ssh_assert_script_run(qq(echo -e "$testapi::password\\n$testapi::password" | sudo passwd $testapi::username));
 
     # Copy SSH settings for remote user
-    $instance->run_ssh_command("sudo install -o $testapi::username -g users -m 0700 -dD /home/$testapi::username/.ssh");
-    $instance->run_ssh_command("sudo install -o $testapi::username -g users -m 0644 ~/.ssh/authorized_keys /home/$testapi::username/.ssh/");
+    $instance->ssh_assert_script_run("sudo install -o $testapi::username -g users -m 0700 -dD /home/$testapi::username/.ssh");
+    $instance->ssh_assert_script_run("sudo install -o $testapi::username -g users -m 0644 ~/.ssh/authorized_keys /home/$testapi::username/.ssh/");
 
     # Create log file for ssh tunnel
     my $ssh_sut = '/var/tmp/ssh_sut.log';

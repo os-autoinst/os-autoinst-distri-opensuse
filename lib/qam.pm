@@ -18,7 +18,8 @@ use List::Util qw(max);
 use version_utils 'is_sle';
 
 our @EXPORT
-  = qw(capture_state check_automounter is_patch_needed add_test_repositories ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables);
+  = qw(capture_state check_automounter is_patch_needed add_test_repositories disable_test_repositories enable_test_repositories
+  ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables);
 use constant ZYPPER_PACKAGE_COL => 1;
 use constant OLD_ZYPPER_STATUS_COL => 4;
 use constant ZYPPER_STATUS_COL => 5;
@@ -100,10 +101,35 @@ sub add_test_repositories {
         my $url = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update/";
         zypper_call("--no-gpg-checks ar -f $gpg $url '12-SP2-LTSS-ERICSSON-Updates'");
     }
-
+    if (is_sle('=12-SP3')) {
+        my $arch = get_var('ARCH');
+        my $url = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3-LTSS-TERADATA/$arch/update/";
+        zypper_call("--no-gpg-checks ar -f $gpg $url '12-SP3-LTSS-TERADATA-Updates'");
+    }
     # refresh repositories, inf 106 is accepted because repositories with test
     # can be removed before test start
     zypper_call('ref', timeout => 1400, exitcode => [0, 106]);
+
+    # return the count of repos-1 because counter is increased also on last cycle
+    return --$counter;
+}
+
+sub disable_test_repositories {
+    my $count = scalar(shift);
+
+    record_info 'Disable update repos';
+    for my $i (0 .. $count) {
+        zypper_call("mr -d -G 'TEST_$i'");
+    }
+}
+
+sub enable_test_repositories {
+    my $count = scalar(shift);
+
+    record_info 'Enable update repos';
+    for my $i (0 .. $count) {
+        zypper_call("mr -e -G 'TEST_$i'");
+    }
 }
 
 # Function that will add all test repos to SSH guest
@@ -148,7 +174,7 @@ sub advance_installer_window {
     }
     unless (check_screen "$screenName", 60) {
         my $key = check_screen('cannot-access-installation-media') ? "alt-y" : "$cmd{next}";
-        send_key_until_needlematch $screenName, $key, 5, 60;
+        send_key_until_needlematch $screenName, $key, 6, 60;
         record_soft_failure 'Retry most probably due to network problems poo#52319 or failed next click';
     }
 }

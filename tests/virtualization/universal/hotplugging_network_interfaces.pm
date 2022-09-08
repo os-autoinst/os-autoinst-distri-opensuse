@@ -38,7 +38,7 @@ sub add_virtual_network_interface {
         if (get_var('VIRT_AUTOTEST') && is_kvm_host) {
             $interface_model_option = '--model virtio';
         }
-        script_retry("ssh root\@$guest ip l | grep " . $virt_autotest::common::guests{$guest}->{macaddress}, delay => 60, retry => 3, timeout => 60);
+        script_retry("ssh root\@$guest ip l | grep " . $virt_autotest::common::guests{$guest}->{macaddress}, delay => 60, retry => 10, timeout => 60);
         assert_script_run("virsh domiflist $guest", 90);
         if (try_attach("virsh attach-interface --domain $guest --type bridge ${interface_model_option} --source br0 --mac " . $mac . " --live " . ${persistent_config_option})) {
             assert_script_run("virsh domiflist $guest | grep br0");

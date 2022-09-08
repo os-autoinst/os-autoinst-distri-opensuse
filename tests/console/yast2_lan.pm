@@ -69,7 +69,7 @@ sub run {
         send_key "tab";
         assert_screen 'yast2_lan-set-hostname-via-dhcp-selected';
         send_key 'down';
-        send_key_until_needlematch("yast2_lan-set-hostname-via-dhcp-NO-selected", "up", 5);
+        send_key_until_needlematch("yast2_lan-set-hostname-via-dhcp-NO-selected", "up", 6);
         send_key "ret";
     }
 

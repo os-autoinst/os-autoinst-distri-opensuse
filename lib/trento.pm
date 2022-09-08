@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2020 SUSE LLC
+# Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Functions for Trento tests
@@ -16,7 +16,7 @@ Trento test lib
 
 =head1 COPYRIGHT
 
-Copyright 2017-2020 SUSE LLC
+Copyright 2022 SUSE LLC
 SPDX-License-Identifier: FSFAP
 
 =head1 AUTHORS
@@ -33,18 +33,23 @@ use testapi;
 use mmapi 'get_current_job_id';
 use utils qw(script_retry);
 use File::Basename qw(basename);
+use Mojo::JSON qw(decode_json);
+
 use Exporter 'import';
 
 our @EXPORT = qw(
+  get_trento_deployment
   get_resource_group
   get_vm_name
   get_acr_name
-  az_get_vm_ip
+  get_trento_ip
+  get_trento_password
   VM_USER
   SSH_KEY
   cypress_install_container
   CYPRESS_LOG_DIR
   PODMAN_PULL_LOG
+  cypress_version
   cypress_exec
   cypress_test_exec
   cypress_log_upload
@@ -63,12 +68,96 @@ use constant TRENTO_AZ_PREFIX => 'openqa-trento';
 # Azure does not support dash or underscore in ACR name
 use constant TRENTO_AZ_ACR_PREFIX => 'openqatrentoacr';
 use constant CYPRESS_IMAGE_TAG => 'goofy';
+use constant CYPRESS_IMAGE => 'docker.io/cypress/included';
 
 =head1 DESCRIPTION 
 
-Package with common methods and default or constant  values for Trento tests
+Package with common methods and default or
+constant values for Trento tests
 
 =head2 Methods
+=cut
+
+=head3 get_trento_deployment
+
+Get the set of scripts for the Trento deployment
+=cut
+
+sub get_trento_deployment {
+    my ($self, $work_dir) = @_;
+
+    enter_cmd "cd $work_dir";
+    script_run 'read -s GITLAB_TOKEN', 0;
+    type_password get_var(TRENTO_GITLAB_TOKEN => get_required_var('_SECRET_TRENTO_GITLAB_TOKEN')) . "\n";
+
+    # Script from a release
+    if (get_var('TRENTO_DEPLOY_VER')) {
+
+        # Clean up whatever is present in the indicated working folder
+        # of the qcow2 image, to avoid confusion
+        enter_cmd 'rm -rf *';
+
+        # Get some 'coordinates' from the test settings
+        my $ver = get_var('TRENTO_DEPLOY_VER');
+        my $gitlab_repo = get_var(TRENTO_GITLAB_REPO => 'gitlab.suse.de/qa-css/trento');
+        my @gitlab_url = split('/', $gitlab_repo);
+        my $gitlab_namespace = $gitlab_url[-2];
+        my $gitlab_project = $gitlab_url[-1];
+
+        assert_script_run('echo "PRIVATE-TOKEN: ${GITLAB_TOKEN}" > gitlab_conf');
+        my $curl_cmd = 'curl -s ' .
+          '-H @gitlab_conf';
+        my $gitlab_api = 'https://gitlab.suse.de/api/v4/projects';
+
+        # Get the ID of the requested project
+        my $repo_id_cmd = $curl_cmd .
+          " \"$gitlab_api/$gitlab_namespace%2F$gitlab_project\"";
+        my $repo_output = decode_json(script_output($repo_id_cmd));
+        my $repo_id = $repo_output->{id};
+
+        my $repo_url = "$gitlab_api/$repo_id";
+        my $rel_api_url = "$repo_url/releases/v$ver";
+
+        # Get the file name of the release archive
+        my $ver_artifact_cmd = "basename \$($curl_cmd $rel_api_url " .
+          "| jq -r '.assets.sources[]|select(.format == \"tar.gz\")" .
+          "|.url')";
+        my $ver_artifact = script_output($ver_artifact_cmd);
+
+        # Get the commit ID of the release
+        my $commit_id_cmd = "$curl_cmd $rel_api_url " .
+          "| jq -r .commit.id";
+        my $commit_id = script_output($commit_id_cmd);
+
+        # Download the release archive
+        my $download_api_url = "$repo_url/repository/archive.tar.gz?sha=$commit_id";
+        my $download_cmd = $curl_cmd .
+          " \"$download_api_url\"" .
+          " --output $ver_artifact ";
+        assert_script_run($download_cmd);
+
+        # Extract and test file presence
+        my $tar_cmd = "tar xvf $ver_artifact --strip-components=1";
+        assert_script_run($tar_cmd);
+        enter_cmd 'ls -lai';
+    }
+
+    # Script from Gitlab
+    else {
+        my $git_branch = get_var(TRENTO_GITLAB_BRANCH => 'master');
+
+        # Test that the token in worker.ini and the one in the qcow2 match
+        my $qcow_token_cmd = 'git config --get remote.origin.url' .
+          '|cut -d@ -f1|cut -d: -f3';
+        assert_script_run "QCOW_TOKEN=\"\$($qcow_token_cmd)\"";
+        my $different_tokens = script_run '[[ "$GITLAB_TOKEN" == "$QCOW_TOKEN" ]]';
+        die "Invalid gitlab token" if ($different_tokens);
+
+        # Switch branch and get latest
+        assert_script_run("git checkout $git_branch");
+        assert_script_run("git pull origin $git_branch");
+    }
+}
 
 =head3 get_resource_group
 
@@ -102,18 +191,44 @@ sub get_acr_name {
     return TRENTO_AZ_ACR_PREFIX . get_current_job_id();
 }
 
-=head3 az_get_vm_ip
+=head3 get_trento_ip
 
 Return the running VM public IP
 =cut
 
-sub az_get_vm_ip {
-    my $az_cmd = 'az vm show -d ' .
-      '-g ' . get_resource_group() . ' ' .
-      '-n ' . get_vm_name() . ' ' .
-      '--query "publicIps" ' .
-      '-o tsv';
+sub get_trento_ip {
+    my $machine_ip = get_var('TRENTO_EXT_DEPLOY_IP');
+    return $machine_ip if ($machine_ip);
+    my $az_cmd = 'az vm show -d' .
+      ' -g ' . get_resource_group() .
+      ' -n ' . get_vm_name() .
+      ' --query "publicIps"' .
+      ' -o tsv';
     return script_output($az_cmd, 180);
+}
+
+=head3 get_trento_password
+
+Return the password for the Trento WebUI
+=cut
+
+sub get_trento_password {
+    my $self = shift;
+    my $trento_web_password;
+
+    if (get_var('TRENTO_EXT_DEPLOY_IP')) {
+        $trento_web_password = get_required_var('TRENTO_WEB_PASSWORD');
+    }
+    else {
+        my $machine_ip = get_trento_ip;
+        record_info("TRENTO IP", $machine_ip);
+        my $trento_web_password_cmd = $self->az_vm_ssh_cmd(
+            'kubectl get secret trento-server-web-secret' .
+              " -o jsonpath='{.data.ADMIN_PASSWORD}'" .
+              '|base64 --decode', $machine_ip);
+        $trento_web_password = script_output($trento_web_password_cmd);
+    }
+    return $trento_web_password;
 }
 
 =head3 az_delete_group
@@ -149,12 +264,12 @@ sub az_vm_ssh_cmd {
     my ($self, $cmd_arg, $vm_ip_arg) = @_;
     record_info('REMOTE', "cmd:$cmd_arg");
 
-    # undef comparision operator
-    my $vm_ip = $vm_ip_arg // az_get_vm_ip();
+    # Undef comparison operator
+    $vm_ip_arg //= get_trento_ip();
     return 'ssh' .
       ' -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR' .
       ' -i ' . SSH_KEY . ' ' .
-      VM_USER . '@' . $vm_ip .
+      VM_USER . '@' . $vm_ip_arg .
       ' -- ' . $cmd_arg;
 }
 
@@ -174,37 +289,36 @@ Get all relevant info out from the cluster
 sub k8s_logs {
     my $self = shift;
     my (@pods_list) = @_;
-    my $machine_ip = az_get_vm_ip;
+    my $machine_ip = get_trento_ip;
 
     return unless ($machine_ip);
 
     my $kubectl_pods = script_output($self->az_vm_ssh_cmd('kubectl get pods', $machine_ip), 180);
-    # for each pod that I'm interested to inspect
+
+    # For each pod that I'm interested to inspect
     for my $s (@pods_list) {
-        # for each running pod from 'kubectl get pods'
+        # For each running pod from 'kubectl get pods'
         foreach my $row (split(/\n/, $kubectl_pods)) {
-            # name of the file where we will eventually dump the log
+            # Name of the file where we will eventually dump the log
             my $describe_txt = "pod_describe_$s.txt";
             my $log_txt = "pod_log_$s.txt";
-            # if the running pod is one of the ones I'm interested in...
+            # If the running pod is one of the ones I'm interested in...
             if ($row =~ m/trento-server-$s/) {
-                # extract this pod name
+                # ...extract this pod name
                 my $pod_name = (split /\s/, $row)[0];
 
-                # get the description
+                # ...get the description
                 my $kubectl_describe_cmd = $self->az_vm_ssh_cmd("kubectl describe pods/$pod_name > $describe_txt", $machine_ip);
                 script_run($kubectl_describe_cmd, 180);
                 upload_logs($describe_txt);
 
-                # get the log
+                # ...get the log
                 my $kubectl_logs_cmd = $self->az_vm_ssh_cmd("kubectl logs $pod_name > $log_txt", $machine_ip);
                 script_run($kubectl_logs_cmd, 180);
                 upload_logs($log_txt);
             }
         }
     }
-    $self->az_vm_ssh_cmd('kubectl exec --stdin --tty deploy/trento-server-runner /usr/bin/trento-runner version', $machine_ip);
-    script_run('ls -lai *.txt', 180);
 }
 
 =head3 podman_self_check
@@ -238,16 +352,15 @@ sub cypress_install_container {
     my ($self, $cypress_ver) = @_;
     podman_self_check();
 
-    # list all the available cypress images
-    my $cypress_image = 'docker.io/cypress/included';
-    assert_script_run('podman search --list-tags ' . $cypress_image);
+    # List all the available cypress images
+    assert_script_run('podman search --list-tags ' . CYPRESS_IMAGE);
 
     # Pull in advance the cypress container
     my $podman_pull_cmd = 'time podman ' .
       '--log-level trace ' .
       'pull ' .
       '--quiet ' .
-      $cypress_image . ':' . $cypress_ver .
+      CYPRESS_IMAGE . ':' . $cypress_ver .
       ' | tee ' . PODMAN_PULL_LOG;
     assert_script_run($podman_pull_cmd, 1800);
     assert_script_run('df -h');
@@ -270,6 +383,18 @@ sub cypress_log_upload {
     my $find_cmd = 'find ' . CYPRESS_LOG_DIR . ' -type f \( -iname \*' . join(' -o -iname \*', @log_filter) . ' \)';
 
     upload_logs("$_") for split(/\n/, script_output($find_cmd));
+}
+
+=head3 cypress_exec
+
+Return the cypress.io version to use.
+It could be the default one or one fixed by the user using TRENTO_CYPRESS_VERSION
+
+=cut
+
+sub cypress_version {
+    my $self = shift;
+    return get_var(TRENTO_CYPRESS_VERSION => '9.6.1');
 }
 
 =head3 cypress_exec
@@ -299,10 +424,11 @@ sub cypress_exec {
     my $ret = 0;
 
     record_info('CY EXEC', 'Cypress exec:' . $cmd);
-    my $cypress_ver = get_var(TRENTO_CYPRESS_VERSION => '4.4.0');
-    my $image_name = "docker.io/cypress/included:$cypress_ver";
-    # container is executed with --name to simplify the log retrieve.
+    my $image_name = CYPRESS_IMAGE . ":" . $self->cypress_version;
+
+    # Container is executed with --name to simplify the log retrieve.
     # To do so, we need to rm present container with the same name
+    assert_script_run('podman images');
     script_run('podman rm ' . CYPRESS_IMAGE_TAG . ' || echo "No ' . CYPRESS_IMAGE_TAG . ' to delete"');
     my $cypress_run_cmd = 'podman run ' .
       '-it --name ' . CYPRESS_IMAGE_TAG . ' ' .
@@ -317,7 +443,7 @@ sub cypress_exec {
       ' | tee cypress_' . $log_prefix . '_result.txt';
     $ret = script_run($cypress_run_cmd, $timeout);
     if ($ret != 0) {
-        # look for SIGTERM
+        # Look for SIGTERM
         script_run('podman logs -t ' . CYPRESS_IMAGE_TAG);
         $self->result("fail");
     }
@@ -331,7 +457,7 @@ sub cypress_exec {
 =head3 cypress_test_exec
 
 Execute a set of cypress tests.
-Execute, one by one, all tests in all .js files in the provided folder. 
+Execute, one by one, all tests in all .js files in the provided folder.
 
 =over 3 
 
@@ -353,7 +479,7 @@ sub cypress_test_exec {
     my $test_file_list = script_output("find $cypress_test_dir/cypress/integration/$test_tag -type f -iname \"*.js\"");
 
     for (split(/\n/, $test_file_list)) {
-        # compose the JUnit .xml file name, starting from the .js filename
+        # Compose the JUnit .xml file name, starting from the .js filename
         my $test_filename = basename($_);
         my $test_result = 'test_result_' . $test_tag . '_' . $test_filename;
         $test_result =~ s/js$/xml/;
@@ -363,15 +489,15 @@ sub cypress_test_exec {
           ' --reporter-options \"mochaFile=/results/' . $test_result . ',toConsole=true\"';
         record_info('CY INFO', "test_filename:$test_filename test_result:$test_result test_cmd:$test_cmd");
 
-        # execute the test: force $failok=1 to keep the execution going.
+        # Execute the test: force $failok=1 to keep the execution going.
         # Any cypress test failure will be reported during the XUnit parsing
         $self->cypress_exec($cypress_test_dir, $test_cmd, $timeout, $test_tag, 1);
 
-        # parsing the results
+        # Parse the results
         my $find_cmd = 'find ' . $self->CYPRESS_LOG_DIR . ' -type f -iname "' . $test_result . '"';
         parse_extra_log("XUnit", $_) for split(/\n/, script_output($find_cmd));
 
-        # upload all logs at once
+        # Upload all logs at once
         $self->cypress_log_upload(qw(.txt .mp4));
     }
 }

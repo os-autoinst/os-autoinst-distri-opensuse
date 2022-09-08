@@ -38,7 +38,7 @@ sub grub_test {
     assert_screen('grub2', $timeout);
     stop_grub_timeout;
     boot_into_snapshot if get_var("BOOT_TO_SNAPSHOT");
-    send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5) if get_var('XEN');
+    send_key_until_needlematch("bootmenu-xen-kernel", 'down', 11, 5) if get_var('XEN');
     if ((is_aarch64 && is_sle && get_var('PLYMOUTH_DEBUG'))
         || get_var('GRUB_KERNEL_OPTION_APPEND'))
     {
@@ -78,7 +78,7 @@ sub bug_workaround_bsc1005313 {
     record_soft_failure "Running with plymouth:debug to catch bsc#1005313" if get_var('PLYMOUTH_DEBUG');
     send_key 'e';
     # Move to end of kernel boot parameters line
-    send_key_until_needlematch "linux-line-selected", "down", 25;
+    send_key_until_needlematch "linux-line-selected", "down", 26;
     send_key "end";
 
     assert_screen "linux-line-matched";

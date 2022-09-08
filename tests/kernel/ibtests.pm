@@ -77,12 +77,12 @@ sub ibtest_master {
 
 
     # pull in the testsuite
-    assert_script_run("git clone $hpc_testing --branch $hpc_testing_branch");
+    assert_script_run("git clone $hpc_testing --branch $hpc_testing_branch", timeout => $timeout);
 
     # wait until the two machines under test are ready setting up their local things
     assert_script_run('cd hpc-testing');
     barrier_wait('IBTEST_BEGIN');
-    script_run("./ib-test.sh $args $master $slave", $timeout);
+    script_run("./ib-test.sh $args $master $slave", timeout => $timeout);
     script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
     parse_extra_log('XUnit', '/tmp/results.xml');
 

@@ -259,12 +259,11 @@ hana_ips = ["10.0.0.2", "10.0.0.3"]
 # HANA instance number. It's composed of 2 integers string
 #hana_instance_number = "00"
 # HANA instance master password. It must follow the SAP Password policies
-#hana_master_password = "YourPassword1234"
+hana_master_password = "YourPass1234!"
 # HANA primary site name. Only used if HANA's system replication feature is enabled (hana_ha_enabled to true)
 #hana_primary_site = "Site1"
 # HANA secondary site name. Only used if HANA's system replication feature is enabled (hana_ha_enabled to true)
 #hana_secondary_site = "Site2"
-hana_master_password = "Linux1234"
 
 # Cost optimized scenario
 #scenario_type = "cost-optimized"

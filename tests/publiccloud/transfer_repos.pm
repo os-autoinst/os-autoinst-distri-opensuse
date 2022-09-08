@@ -37,11 +37,11 @@ sub run {
         # Mitigate occasional CSP network problems (especially one CSP is prone to those issues!)
         # Delay of 2 minutes between the tries to give their network some time to recover after a failure
         script_retry("rsync --timeout=$timeout -uvahP -e ssh ~/repos '$remote:/tmp/repos'", timeout => $timeout + 10, retry => 3, delay => 120);
-        $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec sed -i 's,http://,/tmp/repos/repos/,g' '{}' \\;");
-        $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec zypper ar -p10 '{}' \\;");
-        $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec echo '{}' \\;");
+        $args->{my_instance}->ssh_assert_script_run("sudo find /tmp/repos/ -name *.repo -exec sed -i 's,http://,/tmp/repos/repos/,g' '{}' \\;");
+        $args->{my_instance}->ssh_assert_script_run("sudo find /tmp/repos/ -name *.repo -exec zypper ar -p10 '{}' \\;");
+        $args->{my_instance}->ssh_assert_script_run("sudo find /tmp/repos/ -name *.repo -exec echo '{}' \\;");
 
-        $args->{my_instance}->run_ssh_command(cmd => "zypper lr -P");
+        $args->{my_instance}->ssh_assert_script_run("zypper lr -P");
     }
 }
 

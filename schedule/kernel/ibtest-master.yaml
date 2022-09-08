@@ -42,4 +42,5 @@ schedule:
     - installation/handle_reboot
     - installation/first_boot
     - kernel/ibtests_prepare
+    - installation/handle_reboot
     - kernel/ibtests

@@ -76,7 +76,7 @@ sub handle_all_packages_medium {
         next if (skip_package_hub_if_necessary($i));
         push @addons_license_tags, "addon-license-$i" if grep(/^$i$/, @addons_with_license);
         send_key 'home';
-        send_key_until_needlematch ["addon-products-all_packages-$i-highlighted", "addon-products-all_packages-$i-selected"], "down", 30;
+        send_key_until_needlematch ["addon-products-all_packages-$i-highlighted", "addon-products-all_packages-$i-selected"], "down", 31;
         if (match_has_tag("addon-products-all_packages-$i-highlighted")) {
             send_key 'spc';
         } else {
@@ -129,7 +129,7 @@ sub handle_addon {
     }
     send_key 'pgup';
     wait_still_screen 2;
-    send_key_until_needlematch "addon-products-$addon", 'down', 30;
+    send_key_until_needlematch "addon-products-$addon", 'down', 31;
     # modules like SES or RT that are not part of Packages ISO don't have this step
     send_key 'spc' if (is_sle('15+') && $addon !~ /^ses$|^rt$/);
     # Return to top of the list
@@ -175,8 +175,8 @@ sub run {
                 wait_screen_change { send_key 'alt-d' };    # DVD
                 send_key $cmd{next};
                 assert_screen 'dvd-selector';
-                send_key_until_needlematch 'addon-dvd-list', 'tab', 5;    # jump into addon list
-                send_key_until_needlematch "addon-dvd-sr$sr_number", 'down', 10;    # select addon in list
+                send_key_until_needlematch 'addon-dvd-list', 'tab', 6;    # jump into addon list
+                send_key_until_needlematch "addon-dvd-sr$sr_number", 'down', 11;    # select addon in list
                 send_key 'alt-o';    # continue
             }
             handle_addon($addon);
