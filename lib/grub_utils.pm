@@ -61,10 +61,6 @@ sub handle_installer_medium_bootup {
     return unless (check_var("BOOTFROM", "d") || (get_var('UEFI') && get_var('USBBOOT')));
     assert_screen 'inst-bootmenu', 180;
 
-    if (check_var("BOOTFROM", "d") && get_var('AUTOUPGRADE') && get_var('PATCH')) {
-        assert_screen 'grub2';
-    }
-
     # Layout of live is different from installation media
     my $key = is_livecd() ? 'down' : 'up';
     send_key_until_needlematch 'inst-bootmenu-boot-harddisk', $key;
