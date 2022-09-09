@@ -38,6 +38,12 @@ sub run {
     if (!check_screen("AppArmor-Scan-Audit-logs-no-records")) {
         assert_and_click("AppArmor-Launch", timeout => 60);
         record_soft_failure("bsc#1190292, add workaround to click 'Launch' again");
+        #        record_soft_failure(
+        #    "Guest $self->{guest_name} unattended installation file hosted on local host can not be reached",
+        #    "Mark guest installation as FAILED. The unattended installation file url is $self->{guest_installation_automation_file}"
+        #);
+        my $bsc_number = 'bsc2345';
+        record_soft_failure "$bsc_number - Wrong value for";
     }
     assert_screen("AppArmor-Scan-Audit-logs-no-records");
     # Exit "yast2 apparmor"

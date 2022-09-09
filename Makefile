@@ -151,7 +151,7 @@ test-deleted-renamed-referenced-files:
 
 .PHONY: test-soft_failure-no-reference
 test-soft_failure-no-reference:
-	@! git --no-pager grep -E -e 'soft_failure\>.*\;' --and --not -e '([$$0-9a-z]+#[$$0-9a-zA-Z]+|fate.suse.com/[0-9]|\$$[a-z]+)' lib/ tests/
+	@! git --no-pager grep -E -e 'soft_failure\>.*\;' --and --not -e '([$$0-9a-z]+#[$$0-9a-zA-Z]+|fate.suse.com/[0-9])' lib/ tests/
 
 .PHONY: test-invalid-syntax
 test-invalid-syntax:
