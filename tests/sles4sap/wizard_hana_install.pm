@@ -78,12 +78,16 @@ sub run {
     type_password $sles4sap::instance_password;
     wait_screen_change { send_key 'tab' };
     type_password $sles4sap::instance_password;
-    if (is_sle('<15-SP4')) {
-        wait_screen_change { send_key $cmd{ok} };
-    } else {
-        wait_screen_change { send_key $cmd{next} };
+    wait_screen_change { send_key is_sle('<15-SP4') ? $cmd{ok} : $cmd{next} };
+    while (1) {
+        assert_screen ['sap-wizard-profile-ready', 'displaymanager', 'dm-nousers'], 300;
+        if (match_has_tag 'sap-wizard-profile-ready') { last; }
+        else {
+            record_soft_failure 'bsc#1184679 - Crash of Gnome session during wizard_hana_install';
+            # Gnome session crashed. Need to log in again
+            $self->handle_displaymanager_login(ready_time => 60);
+        }
     }
-    assert_screen 'sap-wizard-profile-ready', 300;
     send_key $cmd{next};
 
     while (1) {
