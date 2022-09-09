@@ -29,9 +29,13 @@ sub run_tox_cmd {
     my $bci_timeout = get_var('BCI_TIMEOUT', 1200);
     my $bci_reruns = get_var('BCI_RERUNS', 3);
     my $bci_reruns_delay = get_var('BCI_RERUNS_DELAY', 10);
-    my $cmd = "tox -e $env -- -rx -n auto";
+    my $tox_out = "tox_output.txt";
+    my $cmd = "tox -e $env -- -rxX -n auto";
     $cmd .= " -k \"$bci_marker\"" if $bci_marker;
     $cmd .= " --reruns $bci_reruns --reruns-delay $bci_reruns_delay";
+    $cmd .= "| tee $tox_out";
+    # Cut the tox log from the header onward and filter the text
+    my $cmd_xf = "awk '/short test summary info/{f=1}f' $tox_out | grep XFAIL";
     record_info("tox", "Running command: $cmd");
     my $ret = script_run("timeout $bci_timeout $cmd", timeout => ($bci_timeout + 3));
     if ($ret == 124) {
@@ -39,10 +43,14 @@ sub run_tox_cmd {
         record_soft_failure("The command <tox -e $env> timed out.");
         $error_count += 1;
     } elsif ($ret != 0) {
-        record_soft_failure("The command <tox -e $env> failed.");
+        record_soft_failure("The command <tox -e $env> failed $ret.");
         $error_count += 1;
     } else {
         record_info('PASSED');
+    }
+    my $ret_xf = script_run("$cmd_xf", timeout => ($bci_timeout + 3));
+    if ($ret_xf == 0) {
+        record_soft_failure("The command <tox -e $env> has XFAIL.");
     }
     # Rename resulting junit file because it will be overwritten if we run
     # the same tox command later with another container engine. This way,
