@@ -10,7 +10,7 @@ use strict;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
-use utils 'zypper_call';
+use utils;
 use power_action_utils 'power_action';
 use version_utils 'is_sle';
 
@@ -20,6 +20,7 @@ sub run {
 
     # Install the tpm2.0 related packages
     # and then start the TPM2 Access Broker & Resource Manager
+    quit_packagekit;
     zypper_call("in expect ibmswtpm2 tpm2.0-abrmd tpm2.0-abrmd-devel openssl tpm2-0-tss tpm2-tss-engine tpm2.0-tools");
 
     # Add user tss, tss is the default user to start tpm2.0 service
