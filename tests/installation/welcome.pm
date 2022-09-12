@@ -59,11 +59,13 @@ Returns hash which contains shortcuts for the product selection.
 =cut
 sub get_product_shortcuts {
     # sles4sap does have different shortcuts in different tests at same time
-    #     ppc64le x86_64
-    # Full   u      i
-    # QR     i      p
-    # Online i      t
+    #               ppc64le x86_64
+    # Full              u      i
+    # Full (15-SP5)     i      t
+    # QR                i      p
+    # Online            i      t
     if (check_var('SLE_PRODUCT', 'sles4sap')) {
+        return (sles4sap => is_ppc64le() ? 'i' : 't') if get_var('ISO') =~ /Full/ && is_sle('15-SP5+');
         return (sles4sap => is_ppc64le() ? 'u' : 'i') if get_var('ISO') =~ /Full/;
         return (sles4sap => is_ppc64le() ? 'i' : is_quarterly_iso() ? 'p' : 't') unless get_var('ISO') =~ /Full/;
     }
