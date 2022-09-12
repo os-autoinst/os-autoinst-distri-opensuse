@@ -8,13 +8,14 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
-use registration "scc_deregistration";
+use registration qw(scc_deregistration cleanup_registration);
 
 sub run {
     return unless (get_var('SCC_REGISTER') || get_var('HDD_SCC_REGISTERED'));
 
     select_console 'root-console';
     scc_deregistration;
+    cleanup_registration;
 }
 
 1;
