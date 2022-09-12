@@ -17,6 +17,7 @@ use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends;
 use Mojo::UserAgent;
 use zypper qw(wait_quit_zypper);
+use Storable qw(dclone);
 
 our @EXPORT = qw(
   generate_results
@@ -96,6 +97,8 @@ our @EXPORT = qw(
   permit_root_ssh_in_sol
   cleanup_disk_space
   package_upgrade_check
+  test_case
+  @all_tests_results
 );
 
 =head1 SYNOPSIS
@@ -2413,7 +2416,6 @@ sub pars_results {
     # and if so, make sure the whole testsuite will fail
     my $fail_check = 0;
     for my $i (@test) {
-        record_info "i", $i;
         if ($i->{result} eq 'FAIL') {
             $fail_check++;
         }
@@ -2438,6 +2440,23 @@ sub pars_results {
         script_run("echo \"</testcase>\" >> $xmlfile");
     }
     script_run("echo \"</testsuite>\" >> $xmlfile");
+}
+
+our @all_tests_results;
+
+=head2 test_case
+    test_case($name, $description, $result);
+
+C<test_case> can produce a data_structure which C<pars_results> can utilize.
+Using C<test_case> in an OpenQA module you are able to /name/ and describe
+the whole test as subtasks, in a XUnit format.
+
+=cut
+
+sub test_case {
+    my ($name, $description, $result) = @_;
+    my %results = generate_results($name, $description, $result);
+    push(@all_tests_results, dclone(\%results));
 }
 
 1;
