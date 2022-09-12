@@ -18,7 +18,7 @@ use List::Util qw(max);
 use version_utils 'is_sle';
 
 our @EXPORT
-  = qw(capture_state check_automounter is_patch_needed add_test_repositories disable_test_repositories enable_test_repositories
+  = qw(capture_state check_automounter is_patch_needed add_test_repositories remove_unreleased_updates_repositories disable_test_repositories enable_test_repositories
   ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables);
 use constant ZYPPER_PACKAGE_COL => 1;
 use constant OLD_ZYPPER_STATUS_COL => 4;
