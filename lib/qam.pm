@@ -159,6 +159,8 @@ sub remove_test_repositories {
 
     type_string 'repos=($(zypper lr -e - | grep "name=TEST|baseurl=ftp" | cut -d= -f2)); if [ ${#repos[@]} -ne 0 ]; then zypper rr ${repos[@]}; fi';
     send_key 'ret';
+    type_string 'zypper -n ref';
+    send_key 'ret';
 }
 
 # Function that will remove all unreleased updated repos
