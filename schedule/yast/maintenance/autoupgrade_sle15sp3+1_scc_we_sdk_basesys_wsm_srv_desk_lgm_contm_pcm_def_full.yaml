@@ -6,8 +6,10 @@ schedule:
   - autoyast/prepare_profile
   - migration/version_switch_origin_system
   - boot/boot_to_desktop
+  # - console/scc_deregistration
+  - update/patch_sle
   - console/check_system_info
-  - migration/remove_dropped_modules_packages
+  # - migration/remove_dropped_modules_packages
   - migration/reboot_to_upgrade
   - migration/version_switch_upgrade_target
   - installation/bootloader
