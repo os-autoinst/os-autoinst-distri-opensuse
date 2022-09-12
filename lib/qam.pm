@@ -161,6 +161,13 @@ sub remove_test_repositories {
     send_key 'ret';
 }
 
+# Function that will remove all unreleased updated repos
+sub remove_unreleased_updates_repositories {
+
+    type_string 'repos=($(zypper lr -e - | grep "name=SUSE_Updates" | cut -d= -f2)); if [ ${#repos[@]} -ne 0 ]; then zypper rr ${repos[@]}; fi';
+    send_key 'ret';
+}
+
 sub advance_installer_window {
     my ($screenName) = @_;
     my $build = get_var('BUILD');
