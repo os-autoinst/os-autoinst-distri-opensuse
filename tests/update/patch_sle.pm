@@ -44,6 +44,7 @@ sub patching_sle {
         # Set SCC_PROXY_URL if needed
         set_scc_proxy_url if ((check_var('HDDVERSION', get_var('ORIGINAL_TARGET_VERSION')) && is_upgrade()));
         remove_unreleased_updates_repositories;
+        assert_script_run 'SUSEConnect --cleanup';
         sle_register("register");
         zypper_call('lr -d');
     }
