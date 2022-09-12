@@ -171,7 +171,8 @@ sub sle_register {
                 register_addons_cmd();
             }
             else {
-                yast_scc_registration();
+                # yast_scc_registration();
+                sleep 240;
             }
             # Once SCC registration is done, disable IN_PATCH_SLE so it does not interfere
             # with further calls to accept_addons_license (in upgrade for example)

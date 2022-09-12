@@ -760,9 +760,8 @@ sub yast_scc_registration {
     # timeout in nearly 120 seconds. So we set it to 150. Same
     # for s390 since timeout happen.
     assert_screen('scc-registration', timeout => (is_aarch64 || is_s390x) ? 150 : 90,);
-    sleep 180;
-    # fill_in_registration_data;
-    # wait_serial("$module_name-0", 150) || die "yast scc failed";
+    fill_in_registration_data;
+    wait_serial("$module_name-0", 150) || die "yast scc failed";
     # To check repos validity after registration, call 'validate_repos' as needed
 }
 
