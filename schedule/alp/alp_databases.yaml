@@ -1,0 +1,24 @@
+---
+name: alp_databases
+description: >
+    Maintainer: qe-core@suse.de
+    MariaDB, SQLite, PostgreSQL tests on ALP
+schedule:
+    - microos/disk_boot
+    - transactional/host_config
+    - transactional/enable_selinux
+    - microos/networking
+    - microos/libzypp_config
+    - microos/image_checks
+    - microos/one_line_checks
+    - microos/services_enabled
+    - microos/cockpit_service
+    - console/mariadb_srv
+    - console/sqlite3
+    - console/postgresql_server
+    - transactional/trup_smoke
+    - transactional/transactional_update
+    - transactional/rebootmgr
+    - transactional/health_check
+    - console/journal_check
+    - shutdown/shutdown
