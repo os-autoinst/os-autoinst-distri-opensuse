@@ -35,11 +35,20 @@ use Exporter 'import';
 # Constants
 use constant DEPLOYMENT_DIR => get_var('DEPLOYMENT_DIR', '/root/qe-sap-deployment');
 use constant QESAP_GIT_CLONE_LOG => '/tmp/git_clone.log';
+use constant PIP_INSTALL_LOG => '/tmp/pip_install.log';
+
+# Terraform requirement
+#  terraform/azure/infrastructure.tf  "azurerm_storage_account" "mytfstorageacc"
+# stdiag<PREFID><JOB_ID> can only consist of lowercase letters and numbers,
+# and must be between 3 and 24 characters long
+use constant QESAPDEPLOY_PREFIX => 'qesapdep';
 
 my @log_files = ();
 
 our @EXPORT = qw(
   qesap_create_folder_tree
+  qesap_pip_install
+  qesap_upload_logs
   qesap_get_deployment_code
 );
 
@@ -57,6 +66,42 @@ Create all needed folders
 
 sub qesap_create_folder_tree {
     assert_script_run('mkdir -p ' . DEPLOYMENT_DIR, quiet => 1);
+}
+
+=head3 qesap_pip_install
+
+  Install all Python requirements of the qe-sap-deployment
+
+=cut
+
+sub qesap_pip_install {
+    enter_cmd 'pip config --site set global.progress_bar off';
+    my $pip_ints_cmd = 'pip install --no-color --no-cache-dir ';
+    # Hack to fix an installation conflict. Someone install PyYAML 6.0 and awscli needs an older one
+    push(@log_files, PIP_INSTALL_LOG);
+    assert_script_run($pip_ints_cmd . 'awscli==1.19.48 | tee ' . PIP_INSTALL_LOG, 180);
+    assert_script_run($pip_ints_cmd . '-r ' . DEPLOYMENT_DIR . '/requirements.txt | tee -a ' . PIP_INSTALL_LOG, 180);
+}
+
+=head3 qesap_upload_logs
+
+    collect and upload logs (pip, qesap, tfvars, config.yaml)
+
+=over 2
+
+=item B<QESAPREPO> - String path of the local clone of qe-sap-deployment
+
+=item B<FAILOK> - used as failok for the upload_logs
+
+=back
+=cut
+
+sub qesap_upload_logs {
+    my ($self, $failok) = @_;
+    record_info("Uploading logfiles", join("\n", @log_files));
+    for my $file (@log_files) {
+        upload_logs($file, failok => $failok);
+    }
 }
 
 
