@@ -70,7 +70,7 @@ sub get_host_timestamp {
 
 sub disable_vm_time_synchronization {
     my $vm_name = shift;
-    my $vmx_file = "/vmfs/volumes/datastore1/openQA/$vm_name.vmx";
+    my $vmx_file = "/vmfs/volumes/" . get_required_var('VMWARE_DATASTORE') . "/openQA/$vm_name.vmx";
 
     # Set all time synchronization properties to FALSE
     console('svirt')->run_cmd("sed -ie 's/tools.syncTime.*/tools.syncTime=\"FALSE\"/' $vmx_file", domain => 'sshVMwareServer', wantarray => 1);
