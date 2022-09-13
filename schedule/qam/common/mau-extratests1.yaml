@@ -40,6 +40,10 @@ schedule:
 conditional_schedule:
   version_specific:
     VERSION:
+      15-SP4:
+        - console/golang
+        - console/redis
+        - '{{arch_specific}}'
       15-SP3:
         - console/openssl_nodejs
         - console/golang
