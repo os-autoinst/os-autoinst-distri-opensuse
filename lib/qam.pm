@@ -166,8 +166,8 @@ sub remove_unreleased_updates_repositories {
 
     type_string 'repos=($(zypper lr -e - | grep "name=SUSE_Updates" | cut -d= -f2)); if [ ${#repos[@]} -ne 0 ]; then zypper rr ${repos[@]}; fi';
     send_key 'ret';
-    type_string 'zypper -n ref';
-    send_key 'ret';
+    # type_string 'zypper -n ref';
+    # send_key 'ret';
 }
 
 sub advance_installer_window {
