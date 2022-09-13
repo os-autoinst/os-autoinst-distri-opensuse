@@ -19,13 +19,18 @@ use strict;
 use warnings;
 use testapi;
 use utils 'zypper_call';
-
+use version_utils qw(is_transactional);
+use transactional qw(trup_call check_reboot_changes);
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-
-    zypper_call('install sqlite3 expect perl');
+    if (is_transactional) {
+        trup_call("pkg install sqlite3 expect perl");
+        check_reboot_changes;
+    } else {
+        zypper_call('install sqlite3 expect perl');
+    }
 
     my $archive = "sqlite3-tests.data";
     assert_script_run(
