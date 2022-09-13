@@ -41,7 +41,7 @@ sub run {
     unless (is_opensuse) {
         # As developement_tools are not build for staging, we will attempt to get the package
         # otherwise MODULE_DEVELOPMENT_TOOLS should be used
-        my $uri = get_ftp_uri();
+        my $uri = get_devel_uri();
         zypper_call "ar -c $uri devel-repo";
     }
     zypper_call '--gpg-auto-import-keys ref';
@@ -65,15 +65,16 @@ sub run {
     select_console 'root-console';
 }
 
-sub get_ftp_uri {
+sub get_devel_uri {
     my $devel_repo;
     if (is_staging) {
-        $devel_repo = uc(get_required_var('DISTRI')) . '-' . get_required_var('VERSION') .
-          '-Module-Development-Tools-POOL-' . get_required_var('ARCH') . '-CURRENT-Media1';
+        $devel_repo = 'https://download.suse.de/download/install/SLP/SLE-' . get_required_var('VERSION') .
+          '-Full-LATEST/' . get_required_var('ARCH') . '/CD1/Module-Development-Tools/?ssl_verify=no';
+        return $devel_repo;
     } else {
         $devel_repo = get_required_var(is_sle('>=15') ? get_repo_var_name("MODULE_DEVELOPMENT_TOOLS") : 'REPO_SLE_SDK');
+        return "$utils::OPENQA_FTP_URL/" . $devel_repo;
     }
-    return "$utils::OPENQA_FTP_URL/" . $devel_repo;
 }
 
 sub post_fail_hook {
