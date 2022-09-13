@@ -1,12 +1,12 @@
 # SUSE's openQA tests
 #
-# Copyright 2019 SUSE LLC
+# Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: openssh
 # Summary: This tests will establish the tunnel and enable the SSH interactive console
 #
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: qa-c@suse.de
 
 use Mojo::Base 'consoletest';
 use testapi;
@@ -34,7 +34,11 @@ sub run {
             select_console($setup_console);
             # The verbose output is visible only at the tunnel-console -
             #   it doesn't interfere with tests as it isn't piped to /dev/sshserial
-            script_run('ssh -E /var/tmp/ssh_sut.log -vt sut', timeout => 0);
+            if (get_var("TUNNEL_AUTO_SSH")) {
+                script_run('autossh -M 20002 sut', timeout => 0);
+            } else {
+                script_run('ssh -E /var/tmp/ssh_sut.log -vt sut', timeout => 0);
+            }
         }
     }
     die("expect ssh serial") unless (get_var('SERIALDEV') =~ /ssh/);

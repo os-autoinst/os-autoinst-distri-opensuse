@@ -7,14 +7,14 @@
 # python3-img-proof azure-cli
 # Summary: Install IPA tool
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>, qa-c team <qa-c@suse.de>
+# Maintainer: qa-c team <qa-c@suse.de>
 
 use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
 use utils;
-use registration 'add_suseconnect_product';
+use registration;
 use version_utils qw(is_sle is_opensuse);
 use repo_tools 'generate_version';
 
@@ -71,6 +71,9 @@ sub run {
     ensure_ca_certificates_suse_installed();
 
     # Install prerequesite packages test
+    add_suseconnect_product(get_addon_fullname('phub')) if is_sle();
+    zypper_call('-q in autossh');
+
     zypper_call('-q in python3-pip python3-devel python3-virtualenv python3-img-proof python3-img-proof-tests podman docker jq rsync');
     record_info('python', script_output('python --version'));
     systemctl('enable --now docker');

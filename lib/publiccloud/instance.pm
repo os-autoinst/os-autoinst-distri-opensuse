@@ -1,11 +1,11 @@
 # SUSE's openQA tests
 #
-# Copyright 2018 SUSE LLC
+# Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Base class for public cloud instances
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
+# Maintainer: qa-c@suse.de
 
 package publiccloud::instance;
 use testapi;
@@ -14,6 +14,7 @@ use Mojo::Base -base;
 use Mojo::Util 'trim';
 use File::Basename;
 use publiccloud::utils;
+use Utils::Backends qw(set_sshserial_dev unset_sshserial_dev);
 use publiccloud::ssh_interactive qw(ssh_interactive_tunnel ssh_interactive_leave select_host_console);
 use version_utils;
 use utils;
@@ -374,11 +375,17 @@ sub softreboot
 
     my $duration;
 
-    # On TUNNELED test runs, ensure we are not on the publiccloud instance
     my $prev_console = current_console();
-    # We only need to re-establish the ssh tunnel, if we are in a TUNNELED test run, and if the tunnel is already initialized
+    # On TUNNELED test runs, we might need to re-establish the tunnel
     my $tunneled = get_var('TUNNELED', 0) && get_var("_SSH_TUNNELS_INITIALIZED", 0);
-    select_host_console(force => 1) if ($tunneled);
+    if ($tunneled) {
+        ssh_interactive_leave();
+        select_host_console(force => 1);
+    }
+
+    # TODO: Remove this debug output
+    assert_script_run("hostname");
+    assert_script_run("whoami");
 
     $self->ssh_assert_script_run(cmd => 'sudo shutdown -r +1');
     sleep 60;
@@ -392,18 +399,28 @@ sub softreboot
     die("Waiting for system down failed!") unless ($shutdown_time < $args{timeout});
     my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time, username => $args{username});
 
-    # Re-establish tunnel and switch back to previous console if TUNNELED
-    if ($tunneled) {
+    # Re-establish tunnel and switch back to previous console if needed
+    if (get_var("TUNNEL_AUTO_SSH")) {
+        ssh_interactive_tunnel($self);
+        die("expect ssh serial device to be active") unless (get_var('SERIALDEV') =~ /ssh/);
+        record_info("console", "$prev_console");
+        select_console($prev_console) if ($prev_console !~ /tunnel/);
+    } elsif ($tunneled) {
         ssh_interactive_tunnel($self);
         die("expect ssh serial device to be active") unless (get_var('SERIALDEV') =~ /ssh/);
         # Connect to sut
-        select_console($prev_console) if ($prev_console !~ /tunnel/);
+        select_console('root-console');
         script_run('ssh -E /var/tmp/ssh_sut.log -vt sut', timeout => 0);
-
-        # Print hostname to check on which host we are
-        record_info("hostname", script_output("hostname"));
-        record_info("uptime", script_output("uptime"));
+        select_console('user-console');
+        script_run('ssh -E /var/tmp/ssh_sut.log -vt sut', timeout => 0);
+        sleep(5);
+        record_info("console", "$prev_console");
+        select_console($prev_console) if ($prev_console !~ /tunnel/);
     }
+
+    # Tunnel smoke test: print hostname to check on which host we are
+    record_info("hostname", script_output("hostname"));
+    record_info("uptime", script_output("uptime"));
 
     return ($shutdown_time, $bootup_time);
 }
