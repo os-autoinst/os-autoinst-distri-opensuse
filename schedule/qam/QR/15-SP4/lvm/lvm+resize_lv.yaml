@@ -1,0 +1,52 @@
+---
+name: lvm+resize_root
+description: |
+  Select LVM during installation and try to resize
+  the root LV to span more than 40GB which is selected as default.
+  See  bsc#989976, bsc#1000165
+vars:
+  DESKTOP: textmode
+  HDDSIZEGB: 50
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/product_selection/install_SLES
+  - installation/licensing/accept_license
+  - installation/registration/register_via_scc
+  - installation/module_registration/skip_module_registration
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_text_mode
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup/enable_lvm
+  - installation/partitioning/guided_setup/do_not_propose_separate_home
+  - installation/partitioning/resize_existing_lv
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - console/check_network
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - locale/keymap_or_locale
+  - console/consoletest_finish
+  - console/validate_modify_existing_partition
+test_data:
+  volume_groups:
+    - name: system
+      logical_volumes:
+        - name: root
+          size: 45G
+          formatting_options:
+            filesystem: btrfs
+          mounting_options:
+            mount_point: /
