@@ -174,7 +174,7 @@ sub sle_register {
             }
             else {
                 # yast_scc_registration();
-                YaST::Module::open(module => 'scc', ui => 'qt');
+                YaST::Module::open(module => 'scc', ui => 'ncurses');
                 save_screenshot;
 
                 $testapi::distri->get_registration()->register_via_scc({
