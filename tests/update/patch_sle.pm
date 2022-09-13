@@ -18,6 +18,8 @@ use qam;
 use Utils::Backends 'is_pvm';
 use y2_base;
 
+use YaST::Module;
+
 
 sub patching_sle {
     my ($self) = @_;
@@ -171,7 +173,29 @@ sub sle_register {
                 register_addons_cmd();
             }
             else {
-                yast_scc_registration();
+                # yast_scc_registration();
+                YaST::Module::open(module => 'scc', ui => 'qt');
+                save_screenshot;
+
+                $testapi::distri->get_registration()->register_via_scc({
+                        email => get_var('SCC_EMAIL'),
+                        reg_code => get_var('SCC_REGCODE')});
+                save_screenshot;
+
+                my @scc_addons = split ',', get_var('SCC_ADDONS');
+                $testapi::distri->get_module_registration()->register_extension_and_modules([@scc_addons]);
+                save_screenshot;
+
+                # No libyui-rest-api for advance software selection
+                assert_screen("yast_scc-pkgtoinstall", 100);
+                wait_screen_change {
+                    send_key 'alt-a';
+                };
+                assert_screen("yast_scc-installation-summary", 100);
+
+                $testapi::distri->get_module_registration_installation_report()->press_finish();
+                save_screenshot;
+                
             }
             # Once SCC registration is done, disable IN_PATCH_SLE so it does not interfere
             # with further calls to accept_addons_license (in upgrade for example)

@@ -594,8 +594,7 @@ sub show_development_versions {
 sub fill_in_registration_data {
     fill_in_reg_server() if (!get_var("HDD_SCC_REGISTERED"));
     return if handle_scc_popups();
-    sleep 240;
-    # process_modules();
+    process_modules();
 }
 
 sub handle_scc_popups {
