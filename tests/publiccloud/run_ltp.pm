@@ -48,11 +48,10 @@ sub instance_log_args
 sub upload_ltp_logs
 {
     my ($self) = @_;
-    my $log_file = Mojo::File::path('ulogs/ltp_log.json');
+    my $log_file = Mojo::File::path('ulogs/result.json');
     my $ltp_testsuite = get_required_var('LTP_COMMAND_FILE');
 
-    upload_logs("$root_dir/ltp_log.raw", log_name => 'ltp_log.raw', failok => 1);
-    upload_logs("$root_dir/ltp_log.json", log_name => $log_file->basename, failok => 1);
+    upload_logs("$root_dir/result.json", log_name => $log_file->basename, failok => 1);
 
     return unless -e $log_file->to_string;
 
@@ -130,29 +129,29 @@ sub run {
         }
     }
 
-    my $runltp_ng_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/metan-ucw/runltp-ng.git");
-    my $runltp_ng_branch = get_var("LTP_RUN_NG_BRANCH", "master");
+    my $runltp_ng_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/acerv/runltp-ng.git");
+    my $runltp_ng_branch = get_var("LTP_RUN_NG_BRANCH", "ssh");
     assert_script_run("git clone -q --single-branch -b $runltp_ng_branch --depth 1 $runltp_ng_repo");
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
+    script_run("zypper in python3-paramiko");
 
     my $reset_cmd = $root_dir . '/restart_instance.sh ' . $self->instance_log_args();
     my $log_start_cmd = $root_dir . '/log_instance.sh start ' . $self->instance_log_args();
 
     assert_script_run($log_start_cmd);
 
-    my $cmd = 'perl -I runltp-ng runltp-ng/runltp-ng ';
-    $cmd .= '--logname=ltp_log --verbose ';
-    $cmd .= '--timeout=1200 ';
-    $cmd .= '--run ' . get_required_var('LTP_COMMAND_FILE') . ' ';
-    $cmd .= '--exclude \'' . get_var('LTP_COMMAND_EXCLUDE') . '\' ' if get_var('LTP_COMMAND_EXCLUDE');
-    $cmd .= '--backend=ssh';
+    my $cmd = 'python3 runltp-ng/runltp-ng ';
+    $cmd .= '--json-report=report.json ';
+    $cmd .= '--verbose ';
+    $cmd .= '--suite-timeout=1200 ';
+    $cmd .= '--run-suite ' . get_required_var('LTP_COMMAND_FILE') . ' ';
+    $cmd .= '--skip-tests \'' . get_var('LTP_COMMAND_EXCLUDE') . '\' ' if get_var('LTP_COMMAND_EXCLUDE');
+    $cmd .= '--sut=ssh';
     $cmd .= ':user=' . $instance->username;
     $cmd .= ':key_file=' . $instance->ssh_key;
     $cmd .= ':host=' . $instance->public_ip;
     $cmd .= ':reset_command=\'' . $reset_cmd . '\'';
-    $cmd .= ':ssh_opts=\'-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\' ';
-    $cmd .= '--json_filter=openqa ';
     assert_script_run($cmd, timeout => get_var('LTP_TIMEOUT', 30 * 60));
 }
 
