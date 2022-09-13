@@ -594,7 +594,8 @@ sub show_development_versions {
 sub fill_in_registration_data {
     fill_in_reg_server() if (!get_var("HDD_SCC_REGISTERED"));
     return if handle_scc_popups();
-    process_modules();
+    sleep 240;
+    # process_modules();
 }
 
 sub handle_scc_popups {
@@ -761,6 +762,7 @@ sub yast_scc_registration {
     # for s390 since timeout happen.
     assert_screen('scc-registration', timeout => (is_aarch64 || is_s390x) ? 150 : 90,);
     fill_in_registration_data;
+
     wait_serial("$module_name-0", 150) || die "yast scc failed";
     # To check repos validity after registration, call 'validate_repos' as needed
 }
