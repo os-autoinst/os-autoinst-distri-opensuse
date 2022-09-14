@@ -1,0 +1,18 @@
+---
+name: setup_netweaver_baremetal
+description: >
+  Install Netweaver on a baremetal machine
+vars:
+  GRUB_TIMEOUT: 300
+  INSTANCE_ID: '00'
+  INSTANCE_SID: QAD
+  INSTANCE_TYPE: ASCS
+  NW: nfs://1c119.qa.suse.de/srv/nfs/sap/NW75_CLUSTER
+  ROOTONLY: '1'
+  START_AFTER_TEST: install_sles4sap_baremetal
+schedule:
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - sles4sap/patterns
+  - sles4sap/netweaver_install
+  - sles4sap/netweaver_test_instance

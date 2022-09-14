@@ -1,0 +1,46 @@
+---
+name: install_sles4sap_dvd
+description: >
+  Installation tests for SLES4SAP, use the DVD to boot the installer.
+  Can be used to install sles4sap on baremetal machines using ipxe_install
+vars:
+  DESKTOP: textmode
+  GRUB_TIMEOUT: 300
+  HANA: nfs://1c119.qa.suse.de/srv/nfs/sap/HANA2/SPS04rev46/x86_64
+  INSTANCE_SID: QAD
+  INSTANCE_ID: '00'
+  INSTANCE_TYPE: ASCS
+  NOLOGIN: '1'
+  RECLAIM_ROOT: '1'
+  ROOTONLY: '1'
+  START_AFTER_TEST: setup_netweaver_baremetal
+  WMP_TEST_REPO: https://gitlab.suse.de/lpalovsky/wmp_basic_tests/-/archive/master/wmp_basic_tests-master.tgz
+schedule:
+  - boot/boot_to_desktop
+  - '{{test_sles4sap}}'
+  - '{{scc_deregister}}'
+  - '{{generate_image}}'
+conditional_schedule:
+  sles4sap_product_installation_mode:
+    SYSTEM_ROLE:
+      default:
+        - installation/sles4sap_product_installation_mode
+  test_sles4sap:
+    TEST_SLES4SAP:
+      1:
+        - console/system_prepare
+        - sles4sap/wmp_setup
+        - sles4sap/wmp_check_process
+        - kernel/wmp_simple
+  scc_deregister:
+    SCC_DEREGISTER:
+      1:
+        - console/scc_deregistration
+  generate_image:
+    GENERATE_IMAGE:
+      1:
+        - console/hostname
+        - console/force_scheduled_tasks
+        - shutdown/grub_set_bootargs
+        - shutdown/cleanup_before_shutdown
+        - shutdown/shutdown
