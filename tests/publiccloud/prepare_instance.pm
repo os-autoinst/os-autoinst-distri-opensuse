@@ -61,6 +61,11 @@ sub run {
 
     select_host_console();    # select console on the host, not the PC instance
 
+    # Prevent kernel messages of the helper VM to contaminate the serial console
+    # this is needed on our ext4-based helper VM to avoid kernel messages from overlayfs
+    # to confuse openQA
+    assert_script_run("dmesg -n emerg");
+
     my $additional_disk_size = get_var('PUBLIC_CLOUD_HDD2_SIZE', 0);
     my $additional_disk_type = get_var('PUBLIC_CLOUD_HDD2_TYPE', '');    # Optional variable, also if PUBLIC_CLOUD_HDD2_SIZE is set
 

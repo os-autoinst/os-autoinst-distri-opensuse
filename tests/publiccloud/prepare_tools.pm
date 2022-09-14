@@ -114,11 +114,12 @@ sub run {
     my $terraform_version = '1.1.7';
     # Terraform in a container
     my $terraform_wrapper = <<EOT;
-#!/bin/sh
-podman run -v /root/:/root/ --rm --env-host=true -w=\$PWD docker.io/hashicorp/terraform:$terraform_version \$@
+#!/bin/bash -e
+podman run --rm -w=\$PWD -v /root/:/root/ --env-host=true docker.io/hashicorp/terraform:$terraform_version \$@
 EOT
 
-    create_script_file('terraform', '/usr/bin/terraform', $terraform_wrapper);
+    create_script_file('terraform', '/usr/local/bin/terraform', $terraform_wrapper);
+    validate_script_output("terraform -version", qr/$terraform_version/);
     record_info('Terraform', script_output('terraform -version'));
 
     # Kubectl in a container
