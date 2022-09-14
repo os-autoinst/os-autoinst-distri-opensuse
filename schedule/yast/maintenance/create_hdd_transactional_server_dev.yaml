@@ -1,0 +1,40 @@
+---
+name: create_hdd_transactional_server
+description: >
+    Installation of a Transactional Server which uses a read-only
+    root filesystem to provide atomic, automatic updates of a
+    system without interfering with the running system.
+vars:
+    DESKTOP: textmode
+    HDDSIZEGB: 20
+    DUD_ADDONS: sdk
+    YUI_REST_API: 1
+schedule:
+    - installation/bootloader_start
+    - installation/setup_libyui
+    - installation/product_selection/install_SLES
+    - installation/licensing/accept_license
+    - installation/registration/register_via_scc
+    - installation/module_registration/register_module_transactional
+    - installation/add_on_product_installation/add_additional_products
+    - installation/add_on_product/skip_install_addons
+    - installation/system_role/accept_selected_role_transactional_server
+    - installation/partitioning/accept_proposed_layout
+    - installation/clock_and_timezone/accept_timezone_configuration
+    - installation/authentication/use_same_password_for_root
+    - installation/authentication/default_user_simple_pwd
+    - installation/bootloader_settings/disable_boot_menu_timeout
+    - installation/security/select_security_module_none
+    - installation/launch_installation
+    - installation/confirm_installation
+    - installation/performing_installation/perform_installation
+    - installation/logs_from_installation_system
+    - installation/performing_installation/confirm_reboot
+    - installation/grub_test
+    - installation/first_boot
+    - console/hostname
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - shutdown/grub_set_bootargs
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown
