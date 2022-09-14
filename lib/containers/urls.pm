@@ -105,6 +105,13 @@ our %images_list = (
                 'registry.suse.de/suse/sle-15-sp4/ga/test/images/suse/sle15:15.4';
             },
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
+        },
+        '15-SP5' => {
+            released => sub { },
+            totest => sub {
+                'registry.suse.de/suse/sle-15-sp5/ga/test/containers/suse/sle15:15.5';
+            },
+            available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
         }
     },
     opensuse => {
@@ -169,6 +176,18 @@ our %images_list = (
                 }
             },
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x', 'arm']
+        },
+        '15.5' => {
+            released => sub { },
+            totest => sub {
+                my $arch = shift;
+                if (grep { $_ eq $arch } qw/x86_64 aarch64 ppc64le s390x/) {
+                    'registry.opensuse.org/opensuse/leap/15.5/images/totest/containers/opensuse/leap:15.5';
+                } elsif ($arch eq 'arm') {
+                    'registry.opensuse.org/opensuse/leap/15.5/arm/images/totest/containers/opensuse/leap:15.5';
+                }
+            },
+            available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x', 'arm']
         }
     },
     'sle-micro' => {
@@ -203,6 +222,11 @@ our %images_list = (
             available_arch => ['x86_64', 'aarch64', 's390x']
         },
         '5.2' => {
+            released => sub { 'registry.opensuse.org/opensuse/tumbleweed' },
+            totest => sub { },
+            available_arch => ['x86_64', 'aarch64', 's390x']
+        },
+        '5.3' => {
             released => sub { 'registry.opensuse.org/opensuse/tumbleweed' },
             totest => sub { },
             available_arch => ['x86_64', 'aarch64', 's390x']
@@ -261,6 +285,11 @@ our %images_list = (
         },
         '15.3' => {
             released => sub { 'registry.opensuse.org/opensuse/leap:15.3' },
+            totest => sub { },
+            available_arch => ['x86_64', 'aarch64']
+        },
+        '15.4' => {
+            released => sub { 'registry.opensuse.org/opensuse/leap:15.4' },
             totest => sub { },
             available_arch => ['x86_64', 'aarch64']
         }
