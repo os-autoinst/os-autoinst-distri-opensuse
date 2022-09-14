@@ -15,38 +15,20 @@ vars:
   ADDONS: all-packages
   YUI_REST_API: 1
 schedule:
-  - installation/bootloader_start
-  - installation/setup_libyui
-  - installation/access_beta_distribution
-  - installation/licensing/accept_license
-  - installation/registration/skip_registration
-  - installation/module_selection/select_nonconflicting_modules
-  - installation/add_on_product_installation/accept_add_on_installation
-  - installation/system_role/accept_selected_role_SLES_with_GNOME
-  - installation/partitioning/accept_proposed_layout
-  - installation/clock_and_timezone/accept_timezone_configuration
-  - installation/authentication/use_same_password_for_root
-  - installation/authentication/default_user_simple_pwd
-  - installation/select_patterns
-  - installation/installation_settings/validate_ssh_service_enabled
-  - installation/installation_settings/open_ssh_port
-  - installation/bootloader_settings/disable_boot_menu_timeout
-  - installation/launch_installation
-  - installation/confirm_installation
-  - installation/performing_installation/perform_installation
-  - installation/performing_installation/stop_timeout_system_reboot_now
-  - installation/logs_from_installation_system
-  - installation/performing_installation/confirm_reboot
-  - installation/performing_installation/reconnect_after_reboot
-  - installation/handle_reboot
-  - installation/first_boot
-  - console/hostname
-  - console/system_prepare
-  - console/force_scheduled_tasks
-  - shutdown/grub_set_bootargs
-  - console/validate_installed_packages
-  - console/validate_installed_patterns
-  - console/suseconnect_scc
-  - shutdown/cleanup_before_shutdown
-  - shutdown/shutdown
-  - shutdown/svirt_upload_assets
+  registration:
+    - installation/registration/skip_registration
+  extension_module_selection:
+    - installation/module_selection/select_nonconflicting_modules
+  add_on_product:
+    - installation/add_on_product_installation/accept_add_on_installation
+  system_role:
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
+  software:
+    - installation/select_patterns
+  system_validation:
+    - console/validate_installed_packages
+    - console/validate_installed_patterns
+    - console/suseconnect_scc
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown
+    - shutdown/svirt_upload_assets
