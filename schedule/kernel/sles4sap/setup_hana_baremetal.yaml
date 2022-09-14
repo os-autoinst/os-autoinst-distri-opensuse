@@ -12,6 +12,7 @@ vars:
   INSTANCE_ID: '00'
   INSTANCE_TYPE: HBD
   RECLAIM_ROOT: '1'
+  ROOTONLY: '1'
   START_AFTER_TEST: install_sles4sap_baremetal
 schedule:
   - boot/boot_to_desktop
