@@ -758,8 +758,12 @@ sub fully_patch_system {
 
     # Repeatedly call zypper patch until it returns something other than 103 (package manager updates)
     my $ret = 1;
+    # Add -q to reduce the unnecessary log output.
+    # Reduce the pressure of serial port when running hyperv test with sle15.
+    # poo#115454
+    my $zypp_opt = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? '-q' : '';
     for (1 .. 3) {
-        $ret = zypper_call('patch --with-interactive -l', exitcode => [0, 4, 102, 103], timeout => 6000);
+        $ret = zypper_call("$zypp_opt patch --with-interactive -l", exitcode => [0, 4, 102, 103], timeout => 6000);
         last if $ret != 103;
     }
 
