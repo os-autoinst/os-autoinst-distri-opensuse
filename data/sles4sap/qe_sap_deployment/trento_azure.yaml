@@ -1,0 +1,32 @@
+provider: azure
+apiver: 1
+terraform:
+  variables:
+    # GENERAL VARIABLES #
+    az_region: %REGION%
+    deployment_name: %DEPLOYMENTNAME%
+    os_image: SUSE:sles-sap-15-sp3-byos:gen2:2022.05.05
+    public_key : "~/.ssh/id_rsa.pub"
+    private_key: "~/.ssh/id_rsa"
+
+ansible:
+  hana_urls:
+    - https://sstringerazuresapfilessa.blob.core.windows.net/sapblobs/SAPCAR.EXE
+    - https://sstringerazuresapfilessa.blob.core.windows.net/sapblobs/IMDB_SERVER20_062_0-80002031.SAR
+    - https://sstringerazuresapfilessa.blob.core.windows.net/sapblobs/IMDB_CLIENT20_012_25-80002082.SAR
+  create:
+    - registration.yaml -e reg_code=${REG_CODE}
+    - pre-cluster.yaml
+    - sap-hana-preconfigure.yaml -e use_sapconf=${SAPCONF}
+    - cluster_sbd_prep.yaml
+    - sap-hana-storage.yaml
+    - sap-hana-download-media.yaml
+    - sap-hana-install.yaml
+    - sap-hana-system-replication.yaml
+    - sap-hana-system-replication-hooks.yaml
+    - sap-hana-cluster.yaml
+  destroy:
+    - deregister.yaml
+  variables:
+    REG_CODE: "%SCC_REGCODE_SLES4SAP%"
+    SAPCONF: true
