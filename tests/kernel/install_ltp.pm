@@ -23,6 +23,7 @@ use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumblewee
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use LTP::utils;
+use rpi 'enable_tpm_slb9670';
 
 sub add_we_repo_if_available {
     # opensuse doesn't have extensions
@@ -357,6 +358,8 @@ sub run {
     if (!get_var('KGRAFT') && !get_var('LTP_BAREMETAL') && !is_jeos) {
         $self->wait_boot;
     }
+
+    enable_tpm_slb9670 if (get_var('MACHINE') =~ /RPi/);
 
     $self->select_serial_terminal;
 

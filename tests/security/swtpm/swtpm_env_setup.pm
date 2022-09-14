@@ -14,29 +14,21 @@ use warnings;
 use testapi;
 use utils 'zypper_call';
 use Utils::Architectures;
-use power_action_utils qw(power_action);
+use rpi 'enable_tpm_slb9670';
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal if !(get_var('MACHINE') =~ /RPi4/);
+
+    if (get_var('MACHINE') =~ /RPi4/) {
+        enable_tpm_slb9670;
+    } else {
+        $self->select_serial_terminal;
+    }
+
 
     # Enable TPM on Raspberry Pi 4
     # Refer: https://en.opensuse.org/HCL:Raspberry_Pi3_TPM
-    if (get_var('MACHINE') =~ /RPi4/) {
-        assert_script_run('echo -e "dtparam=spi=on\ndtoverlay=tpm-slb9670" >> /boot/efi/extraconfig.txt');
-        assert_script_run('cat /boot/efi/extraconfig.txt');
-        assert_script_run('echo "tpm_tis_spi" > /etc/modules-load.d/tpm.conf');
-        power_action('reboot', textmode => 1);
-
-        # Add some timeout to wait for reboot
-        sleep(60);
-        # Restore SSH connection
-        reset_consoles;
-        select_console('root-ssh');
-
-        assert_script_run('dmesg | grep tpm');
-        record_info('RPi4 TPM', 'Enabled TPM on Rasperry Pi 4');
-    }
+    enable_tpm_slb9670 if (get_var('MACHINE') =~ /RPi4/);
 
     # Install the required packages for libvirt environment setup,
     # "expect" is used for later remote login test, so install here as well
