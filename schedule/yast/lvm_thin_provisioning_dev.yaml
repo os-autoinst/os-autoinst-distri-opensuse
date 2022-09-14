@@ -11,7 +11,7 @@ schedule:
   - installation/registration/register_via_scc
   - installation/module_registration/register_module_desktop
   - installation/add_on_product_installation/add_additional_products
-  - installation/add_on_product_installation/accept_add_on_installation
+  - installation/add_on_product/skip_install_addons
   - installation/system_role
   - installation/partitioning
   - installation/partitioning/new_partitioning_gpt
