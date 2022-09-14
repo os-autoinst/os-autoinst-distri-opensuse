@@ -12,16 +12,16 @@
 
 =head1 NAME
 
-qe-sap-deployment test lib
+    qe-sap-deployment test lib
 
 =head1 COPYRIGHT
 
-Copyright 2022 SUSE LLC
-SPDX-License-Identifier: FSFAP
+    Copyright 2022 SUSE LLC
+    SPDX-License-Identifier: FSFAP
 
 =head1 AUTHORS
 
-QE SAP <qe-sap@suse.de>
+    QE SAP <qe-sap@suse.de>
 
 =cut
 
@@ -50,6 +50,9 @@ our @EXPORT = qw(
   qesap_pip_install
   qesap_upload_logs
   qesap_get_deployment_code
+  qesap_configure_tfvar
+  qesap_configure_variables
+  qesap_configure_hanamedia
 );
 
 
@@ -139,4 +142,97 @@ sub qesap_get_deployment_code {
 }
 
 
+=head3 qesap_configure_tfvar
+
+Generate a terraform.tfvars from a template.
+
+=over 4
+
+=item B<PROVIDER> - cloud provider, used to select
+                    the right folder in the qe-sap-deploy repo
+
+=item B<REGION> - cloud region where to perform the deployment.
+                  Used for %REGION%
+
+=item B<RESOURCE_GROUP_POSTFIX> - used as deployment_name in tfvars
+
+=item B<OS_VERSION> - string for the OS version to be used for the deployed machine.
+                      Used for %OSVER%
+
+=back
+=cut
+
+sub qesap_configure_tfvar {
+    my ($provider, $region, $resource_group_postfix, $os_version, $ssh_key) = @_;
+    record_info("QESAP TFVARS", "provider:$provider region:$region resource_group_postfix:$resource_group_postfix os_version:$os_version ssh_key:$ssh_key");
+    my $tfvar = DEPLOYMENT_DIR . '/terraform/' . lc($provider) . '/terraform.tfvars';
+    assert_script_run("cp $tfvar.openqa $tfvar");
+    push(@log_files, $tfvar);
+    file_content_replace($tfvar,
+        q(%REGION%) => $region,
+        q(%DEPLOYMENTNAME%) => $resource_group_postfix,
+        q(%OSVER%) => $os_version,
+        q(%SSHKEY%) => $ssh_key
+    );
+    upload_logs($tfvar);
+}
+
+=head3 qesap_configure_variables
+
+Generate the variables.sh loaded by build.sh and destroy.sh
+
+=over 1
+
+=item B<PROVIDER> - cloud provider, used to select
+                    the right folder in the qe-sap-deploy repo
+
+=item B<SAP_REGCODE> - SCC code
+
+=back
+=cut
+
+sub qesap_configure_variables {
+    my ($provider, $sap_regcode) = @_;
+
+    my $variables_sh = DEPLOYMENT_DIR . '/variables.sh';
+
+    # is it a good idea to save variables.sh? as it has the SCC code.
+    push(@log_files, $variables_sh);
+
+    # variables.sh file
+    enter_cmd 'echo "PROVIDER=' . lc($provider) . '" > ' . $variables_sh;
+    enter_cmd "echo \"REG_CODE='$sap_regcode'\" >> $variables_sh";
+    enter_cmd "echo \"EMAIL='testing\@suse.com'\" >> $variables_sh";
+    enter_cmd "echo \"SAPCONF='true'\" >> $variables_sh";
+    enter_cmd "echo \"export REG_CODE EMAIL SAPCONF\" >> $variables_sh";
+    upload_logs($variables_sh);
+}
+
+=head3 qesap_configure_hanamedia
+
+Generate the hana_media.yaml for Ansible
+
+=over 3
+
+=item B<SAPCAR> - blob server url for the SAPCAR
+
+=item B<IMDB_SERVER> - blob server url for the IMDB_SERVER
+
+=item B<IMDB_CLIENT> - blob server url for the IMDB_CLIENT
+
+=back
+=cut
+
+sub qesap_configure_hanamedia {
+    my ($sapcar, $imbd_server, $imbd_cient) = @_;
+    my $media_var = DEPLOYMENT_DIR . '/ansible/playbooks/vars/azure_hana_media.yaml';
+    assert_script_run("cp $media_var.openqa $media_var");
+
+    push(@log_files, $media_var);
+    file_content_replace($media_var,
+        q(%SAPCAR%) => $sapcar,
+        q(%IMDB_SERVER%) => $imbd_server,
+        q(%IMDB_CLIENT%) => $imbd_cient);
+    upload_logs($media_var);
+}
 1;
