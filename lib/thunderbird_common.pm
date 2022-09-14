@@ -53,8 +53,7 @@ sub tb_setup_account {
         send_key 'tab';
         wait_screen_change { type_string "$mail_passwd" };
         wait_still_screen(2, 4);
-        send_key 'tab';
-        send_key 'tab';
+        send_key_until_needlematch('thunderbird_configure_manually', 'tab', 4, 2);
         send_key 'spc';    # configure manually
         wait_still_screen(2, 4);
         save_screenshot;
@@ -73,6 +72,10 @@ sub tb_setup_account {
     }
 
     if ($proto eq 'pop') {
+        # make sure imap icon is on top of the page
+        if (!check_screen 'thunderbird_wizard-imap-selected', 3) {
+            send_key_until_needlematch('thunderbird_wizard_imap_on_top', 'tab');
+        }
         assert_and_click 'thunderbird_wizard-imap-selected';
         assert_and_click 'thunderbird_wizard-imap-pop-open';
         if (is_tumbleweed) {
@@ -96,7 +99,7 @@ sub tb_setup_account {
         # If use multimachine, select correct needles to configure thunderbird.
         if ($hostname eq 'client') {
             send_key 'end';    # go to the bottom to see whole manual configuration
-            if (check_screen 'thunderbird_in-hostname-start-with-dot') {
+            if (check_screen 'thunderbird_in-hostname-start-with-dot', 3) {
                 record_info 'bsc#1191866';
                 # have to edit both hostnames
                 assert_and_click 'thunderbird_in-hostname-start-with-dot';
@@ -110,6 +113,7 @@ sub tb_setup_account {
                 send_key 'ctrl-a';
                 type_string 'admin';
             }
+            send_key_until_needlematch 'thunderbird_wizard-retest', 'tab';
             assert_and_click 'thunderbird_wizard-retest';
             send_key_until_needlematch 'thunderbird_wizard-done', 'tab', 16, 1;
             assert_and_click 'thunderbird_wizard-done';
@@ -117,7 +121,7 @@ sub tb_setup_account {
             assert_and_click 'thunderbird_SSL_done_config' unless check_screen('thunderbird_confirm_security_exception');
             assert_and_click "thunderbird_confirm_security_exception";
             wait_still_screen(2);
-            assert_and_click 'thunderbird_account-processed' if $proto eq 'pop';
+            assert_and_click 'thunderbird_account-processed' if ($proto eq 'pop' && check_screen 'thunderbird_account-processed');
             assert_and_click 'thunderbird_finish';
             assert_and_click "thunderbird_skip-system-integration";
             assert_and_click "thunderbird_get-messages";
@@ -136,6 +140,7 @@ sub tb_setup_account {
                 send_key 'ctrl-a';
                 type_string 'admin';
             }
+            send_key_until_needlematch 'thunderbird_wizard-retest', 'tab';
             assert_and_click 'thunderbird_wizard-retest';
             send_key_until_needlematch 'thunderbird_wizard-done', 'tab', 16, 1;
             assert_and_click 'thunderbird_wizard-done';
@@ -145,7 +150,7 @@ sub tb_setup_account {
             assert_and_click 'thunderbird_I-understand-the-risks';
             assert_and_click 'thunderbird_risks-done';
             wait_still_screen(2);
-            assert_and_click 'thunderbird_account-processed' if $proto eq 'pop';
+            assert_and_click 'thunderbird_account-processed' if ($proto eq 'pop' && check_screen 'thunderbird_account-processed');
             assert_and_click 'thunderbird_finish';
             # skip additional integrations
             assert_and_click "thunderbird_skip-system-integration" if check_screen 'thunderbird_skip-system-integration', 10;
