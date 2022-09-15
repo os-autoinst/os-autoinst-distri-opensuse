@@ -996,7 +996,7 @@ sub tianocore_ensure_svga_resolution {
 
 sub tianocore_select_bootloader {
     tianocore_enter_menu;
-    tianocore_ensure_svga_resolution if check_var('QEMUVGA', 'qxl');
+    tianocore_ensure_svga_resolution if check_var('QEMUVGA', 'qxl') && get_var('UEFI_PFLASH_VARS', '') !~ /800x600/;
     tianocore_enter_menu;
     send_key_until_needlematch('tianocore-bootmanager', 'down', 6, 5);
     send_key 'ret';
