@@ -2,7 +2,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>qe-sap-deployment test lib</title>
+<title>lib/qesapdeployment.pm</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel='stylesheet' href='./style.css' />
 </head>
@@ -17,11 +17,16 @@
   <li><a href="#AUTHORS">AUTHORS</a></li>
   <li><a href="#DESCRIPTION">DESCRIPTION</a>
     <ul>
-      <li><a href="#Methods-head3-qesap_create_folder_tree">Methods =head3 qesap_create_folder_tree</a>
+      <li>
         <ul>
+          <li><a href="#qesap_get_file_paths">qesap_get_file_paths</a></li>
+          <li><a href="#qesap_create_folder_tree">qesap_create_folder_tree</a></li>
           <li><a href="#qesap_pip_install">qesap_pip_install</a></li>
           <li><a href="#qesap_upload_logs">qesap_upload_logs</a></li>
           <li><a href="#qesap_get_deployment_code">qesap_get_deployment_code</a></li>
+          <li><a href="#qesap_yaml_replace">qesap_yaml_replace</a></li>
+          <li><a href="#qesap_execute">qesap_execute</a></li>
+          <li><a href="#qesap_prepare_env">qesap_prepare_env</a></li>
         </ul>
       </li>
     </ul>
@@ -30,23 +35,29 @@
 
 <h1 id="NAME">NAME</h1>
 
-<p>qe-sap-deployment test lib</p>
+<pre><code>    qe-sap-deployment test lib</code></pre>
 
 <h1 id="COPYRIGHT">COPYRIGHT</h1>
 
-<p>Copyright 2022 SUSE LLC SPDX-License-Identifier: FSFAP</p>
+<pre><code>    Copyright 2022 SUSE LLC
+    SPDX-License-Identifier: FSFAP</code></pre>
 
 <h1 id="AUTHORS">AUTHORS</h1>
 
-<p>QE SAP &lt;qe-sap@suse.de&gt;</p>
+<pre><code>    QE SAP &lt;qe-sap@suse.de&gt;</code></pre>
 
 <h1 id="DESCRIPTION">DESCRIPTION</h1>
 
-<p>Package with common methods and default or constant values for qe-sap-deployment</p>
+<pre><code>    Package with common methods and default or constant  values for qe-sap-deployment
+=head2 Methods</code></pre>
 
-<h2 id="Methods-head3-qesap_create_folder_tree">Methods =head3 qesap_create_folder_tree</h2>
+<h3 id="qesap_get_file_paths">qesap_get_file_paths</h3>
 
-<p>Create all needed folders</p>
+<pre><code>    Returns a hash containing file paths for config files</code></pre>
+
+<h3 id="qesap_create_folder_tree">qesap_create_folder_tree</h3>
+
+<pre><code>    Create all needed folders</code></pre>
 
 <h3 id="qesap_pip_install">qesap_pip_install</h3>
 
@@ -54,23 +65,44 @@
 
 <h3 id="qesap_upload_logs">qesap_upload_logs</h3>
 
-<pre><code>    collect and upload logs (pip, qesap, tfvars, config.yaml)</code></pre>
+<pre><code>    qesap_upload_logs([failok=1])
 
-<dl>
-
-<dt id="QESAPREPO---String-path-of-the-local-clone-of-qe-sap-deployment"><b>QESAPREPO</b> - String path of the local clone of qe-sap-deployment</dt>
-<dd>
-
-</dd>
-<dt id="FAILOK---used-as-failok-for-the-upload_logs"><b>FAILOK</b> - used as failok for the upload_logs</dt>
-<dd>
-
-</dd>
-</dl>
+    Collect and upload logs present in @log_files.
+    failok - continue even in case upload fails</code></pre>
 
 <h3 id="qesap_get_deployment_code">qesap_get_deployment_code</h3>
 
-<p>Get the qe-sap-deployment code</p>
+<pre><code>    Get the qe-sap-deployment code</code></pre>
+
+<h3 id="qesap_yaml_replace">qesap_yaml_replace</h3>
+
+<pre><code>    Replaces yaml config file variables with parameters defined by OpenQA testode, yaml template or yaml schedule.
+    Openqa variables need to be added as a hash with key/value pair inside %run_args{openqa_variables}.
+    Example:
+        my %variables;
+        $variables{HANA_SAR} = get_required_var(&quot;HANA_SAR&quot;);
+        $variables{HANA_CLIENT_SAR} = get_required_var(&quot;HANA_CLIENT_SAR&quot;);
+        qesap_yaml_replace(openqa_variables=&gt;\%variables);</code></pre>
+
+<h3 id="qesap_execute">qesap_execute</h3>
+
+<pre><code>    qesap_execute(cmd =&gt; $qesap_script_cmd [, verbose =&gt; 1] );
+
+    Execute qesap glue script commands. Check project documentation for available options:
+    https://github.com/SUSE/qe-sap-deployment</code></pre>
+
+<h3 id="qesap_prepare_env">qesap_prepare_env</h3>
+
+<pre><code>    qesap_prepare_env(variables=&gt;{dict with variables});
+
+    Prepare terraform environment.
+    - creates file structures
+    - pulls git repository
+    - external config files
+    - installs pip requirements and OS packages
+    - generates config files with qesap script
+
+    For variables example see &#39;qesap_yaml_replace&#39;</code></pre>
 
 
 </body>
