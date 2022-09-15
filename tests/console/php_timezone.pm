@@ -30,9 +30,9 @@ sub run {
     #Preparation
     my $self = shift;
     $self->select_serial_terminal;
-    
+
     if (is_leap('<15.0') || is_sle('<15')) {
-        $php = 'php5';
+        $php = 'php';
     }
     elsif (is_leap("<15.4") || is_sle("<15-SP4")) {
         $php = 'php7';

@@ -1,0 +1,51 @@
+---
+name: mau-webserver
+description: Services used in various web server
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/curl_https
+  - console/http_srv
+  - console/dns_srv
+  - console/apache
+  - console/apache_ssl
+  - console/apache_nss
+  - console/postgresql_server
+  - console/mariadb_srv
+  - console/sqlite3
+  - console/php_version
+  - console/php_pcre
+  - console/php_mysql
+  - console/php_postgresql
+  - console/php_timezone
+  - console/flask
+  - '{{ version_specific }}'
+conditional_schedule:
+  version_specific:
+    VERSION:
+      12-SP2:
+        - console/shibboleth
+      12-SP3:
+        - console/shibboleth
+      12-SP4:
+        - console/shibboleth
+      12-SP5:
+        - console/shibboleth
+      15:
+        - console/shibboleth
+        - console/django
+      15-SP1:
+        - console/shibboleth
+        - console/django
+      15-SP2:
+        - console/shibboleth
+        - console/django
+      15-SP3:
+        - console/shibboleth
+        - console/django
+      15-SP4:
+        - console/django
+      tumbleweed:
+        - console/django
+        - console/rails

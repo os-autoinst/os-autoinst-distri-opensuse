@@ -62,9 +62,8 @@ conditional_schedule:
         - console/postgresql_server
         - console/shibboleth
         - console/php_pcre
-        - console/php7
-        - console/php7_mysql
-        - console/php7_postgresql
+        - console/php_mysql
+        - console/php_postgresql
         - console/apache_ssl
         - console/apache_nss
         - console/zypper_lifecycle

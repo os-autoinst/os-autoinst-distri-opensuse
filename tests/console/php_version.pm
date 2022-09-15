@@ -15,35 +15,23 @@ use warnings;
 use utils;
 use testapi;
 use apachetest;
-use version_utils qw(is_leap is_sle);
+use version_utils qw(is_leap is_sle php_version);
+use registration qw(add_suseconnect_product get_addon_fullname);
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
-    
-    if (is_sle) {
-        my $vers = substr(get_var("VERSION"),0,2);
-        my $arch = get_var("ARCH");
-        assert_script_run("SUSEConnect -p sle-module-web-scripting/$vers/$arch");
-    }
 
-    my $php_vers = '';
-    if (is_leap('<15.0') || is_sle('<15')) {
-        $php_vers = '5';
-    }
-    elsif (is_leap("<15.4") || is_sle("<15-SP4")) {
-        $php_vers = '7';
-    }
-    else {
-        $php_vers = '8';
-    }
+    add_suseconnect_product(get_addon_fullname('script'), (is_sle('<15') ? '12' : undef)) if (is_sle('<15-sp4'));
 
-    setup_apache2(mode => uc('php'.$php_vers));
-    assert_script_run('curl http://localhost/index.php | tee /tmp/tests-console-php'.$php_vers.'.txt');
-    assert_script_run('grep "PHP Version '.$php_vers.'" /tmp/tests-console-php'.$php_vers.'.txt');
+    my ($php, $php_pkg, $php_ver) = php_version();
 
-    if (($php_vers eq '5') || ($php_vers eq '7')) {
-        zypper_call 'in php'.$php_vers.'-json';
+    setup_apache2(mode => uc('php' . $php_ver));
+    assert_script_run('curl http://localhost/index.php | tee /tmp/tests-console-php' . $php_ver . '.txt');
+    assert_script_run('grep "PHP Version ' . $php_ver . '" /tmp/tests-console-php' . $php_ver . '.txt');
+
+    if (($php_ver eq '5') || ($php_ver eq '7')) {
+        zypper_call 'in php' . $php_ver . '-json';
         assert_script_run('php -r \'echo json_encode(array("foo" => true))."\\n";\' | grep :true');
     }
     else {

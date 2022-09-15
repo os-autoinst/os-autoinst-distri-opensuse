@@ -41,7 +41,7 @@ sub setup_apache2 {
     my @packages = qw(apache2 /bin/hostname);
 
     # For gensslcert
-    push @packages, 'apache2-utils' if is_tumbleweed;
+    push @packages, 'apache2-utils', 'openssl' if is_tumbleweed;
 
     if (($mode eq "NSS") && get_var("FIPS")) {
         $mode = "NSSFIPS";
@@ -72,12 +72,12 @@ sub setup_apache2 {
         assert_script_run 'a2enmod -d php7';
         assert_script_run 'a2enmod -d php8';
         assert_script_run 'a2enmod php5';
-    } # Enable php7
+    }    # Enable php7
     elsif ($mode eq "PHP7") {
         assert_script_run 'a2enmod -d php5';
         assert_script_run 'a2enmod -d php8';
         assert_script_run 'a2enmod php7';
-    } # Enable php8
+    }    # Enable php8
     elsif ($mode eq "PHP8") {
         assert_script_run 'a2enmod -d php5';
         assert_script_run 'a2enmod -d php7';
@@ -159,6 +159,10 @@ sub setup_apache2 {
 
     if ($mode =~ /PHP/) {
         assert_script_run "curl --no-buffer http://localhost/index.php | grep \"\$(uname -s -n -r -v -m)\"";
+    }
+
+    if ($mode eq "NSS" or $mode eq "NSSFIPS") {
+        assert_script_run 'rm /etc/apache2/vhosts.d/vhost-nss.conf';
     }
 }
 

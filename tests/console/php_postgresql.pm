@@ -36,27 +36,18 @@ use testapi;
 use utils 'zypper_call';
 use apachetest qw(setup_apache2 setup_pgsqldb test_pgsql destroy_pgsqldb postgresql_cleanup);
 use Utils::Systemd 'systemctl';
-use version_utils qw(is_leap is_sle);
+use version_utils qw(is_leap is_sle php_version);
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
-    
+
     # ensure apache2 + php? installed and running
-    my $php = '';
-    if (is_leap('<15.0') || is_sle('<15')) {
-        $php = 'php5';
-    }
-    elsif (is_leap("<15.4") || is_sle("<15-SP4")) {
-        $php = 'php7';
-    }
-    else {
-        $php = 'php8';
-    }
+    my ($php, $php_pkg, $php_ver) = php_version();
     setup_apache2(mode => uc($php));
 
     # install requirements, all postgresql versions to test db upgrade if there are multiple versions
-    zypper_call 'in '.$php.'-pgsql postgresql*-contrib sudo unzip';
+    zypper_call 'in ' . $php . '-pgsql postgresql*-contrib sudo unzip';
 
     # start postgresql service
     systemctl 'start postgresql';
