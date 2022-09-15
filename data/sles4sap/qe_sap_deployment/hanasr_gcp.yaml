@@ -1,0 +1,55 @@
+provider: gcp
+apiver: 1
+terraform:
+  provider: gcp
+  variables:
+    # GENERAL VARIABLES #
+    project: "ei-sle-qa-sap-8469"
+    gcp_credentials_file: "/root/google_credentials.json"
+    region: "%REGION%"
+    ip_cidr_range: "10.0.0.0/24"
+    admin_user: "cloudadmin"
+    reg_code: "%SCC_REGCODE_SLES4SAP%"
+    os_image: "%SLE_IMAGE%"
+    public_key : "~/.ssh/id_rsa.pub"
+    private_key: "~/.ssh/id_rsa"
+
+    # BASTION
+    bastion_enabled: "false"
+
+    # HANA
+    machine_type: "%MACHINE_TYPE%"
+    hana_data_disk_size : "1" # 896GB
+    hana_backup_disk_size: "1" # 128GB
+    hana_cluster_vip_mechanism: "route"
+    hana_cluster_fencing_mechanism: "%FENCING_MECHANISM%"
+    hana_ips: ["10.0.0.2", "10.0.0.3"]
+    # REMOVE FROM TERRAFORM:
+
+    # SBD
+    iscsi_name: "vmiscsi"
+    iscsi_os_image: "%SLE_IMAGE%"
+    iscsi_lun_count: 1
+    iscsi_disk_size: 1
+    machine_type_iscsi_server: "custom-1-2048"
+
+ansible:
+  hana_urls:
+    - "gs://%PUBLIC_CLOUD_RESOURCE_NAME%/inst_sar/hana/SAPCAR"
+    - "gs://%PUBLIC_CLOUD_RESOURCE_NAME%/inst_sar/hana/%HANA_SAR%"
+    - "gs://%PUBLIC_CLOUD_RESOURCE_NAME%/inst_sar/hana/%HANA_CLIENT_SAR%"
+  create:
+    - registration.yaml -e reg_code=%SCC_REGCODE_SLES4SAP% -e email_address=""
+    - pre-cluster.yaml
+    - sap-hana-preconfigure.yaml -e use_sapconf=${SAPCONF}
+    - cluster_sbd_prep.yaml
+    - sap-hana-storage.yaml
+    - sap-hana-download-media.yaml
+    - sap-hana-install.yaml
+    - sap-hana-system-replication.yaml
+    - sap-hana-system-replication-hooks.yaml
+    - sap-hana-cluster.yaml
+  destroy:
+    - deregister.yaml
+  variables:
+    SAPCONF: true

@@ -1,0 +1,39 @@
+provider: 'ec2'
+apiver: 1
+terraform:
+  variables:
+    # GENERAL VARIABLES #
+    aws_region: "%REGION%"
+    admin_user: "cloudadmin"
+    public_key : "~/.ssh/id_rsa.pub"
+    private_key: "~/.ssh/id_rsa"
+    aws_credentials: "/root/amazon_credentials"
+    os_image: "%SLE_IMAGE%"
+    os_owner: "self"
+
+    # HANA
+    hana_ips: ["10.10.1.11", "10.10.1.12"]
+    hana_cluster_fencing_mechanism: "%FENCING_MECHANISM%"
+    hana_cluster_vip: "10.10.1.15"
+    hana_instancetype: "%MACHINE_TYPE%"
+
+ansible:
+  hana_urls:
+    - "s3://%PUBLIC_CLOUD_RESOURCE_NAME%/inst_sar/hana/SAPCAR"
+    - "s3://%PUBLIC_CLOUD_RESOURCE_NAME%/inst_sar/hana/%HANA_SAR%"
+    - "s3://%PUBLIC_CLOUD_RESOURCE_NAME%/inst_sar/hana/%HANA_CLIENT_SAR%"
+  create:
+    - registration.yaml -e reg_code=%SCC_REGCODE_SLES4SAP% -e email_address=""
+    - pre-cluster.yaml
+    - sap-hana-preconfigure.yaml -e use_sapconf=${SAPCONF}
+    - cluster_sbd_prep.yaml
+    - sap-hana-storage.yaml
+    - sap-hana-download-media.yaml
+    - sap-hana-install.yaml
+    - sap-hana-system-replication.yaml
+    - sap-hana-system-replication-hooks.yaml
+    - sap-hana-cluster.yaml
+  destroy:
+    - deregister.yaml
+  variables:
+    SAPCONF: true

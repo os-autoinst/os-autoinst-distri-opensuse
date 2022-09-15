@@ -29,6 +29,7 @@ our @EXPORT = qw(
   reset_consoles_tty
   set_scc_proxy_url
   set_zypp_single_rpmtrans
+  remove_dropped_modules_packages
 );
 
 sub setup_sle {
@@ -129,6 +130,17 @@ sub deregister_dropped_modules {
         @all_addons = grep { $_ ne $name } @all_addons;
     }
     set_var('SCC_ADDONS', join(',', @all_addons));
+}
+
+# This function removes the packages specified with variable DROPPED_MODULES instead of un-registering the modules
+# before migrating: it is enough to just remove the -release package to avoid warnings like "the module
+# cannot be updated".
+sub remove_dropped_modules_packages {
+    my $droplist = get_var('DROPPED_MODULES', '');
+    for my $name (split(/,/, $droplist)) {
+        my $release_package = get_addon_fullname($name) . "-release";
+        zypper_call("rm $release_package");
+    }
 }
 
 # Disable installation repos before online migration

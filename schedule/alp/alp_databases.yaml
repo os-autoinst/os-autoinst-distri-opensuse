@@ -13,7 +13,6 @@ schedule:
     - microos/one_line_checks
     - microos/services_enabled
     - microos/cockpit_service
-    - console/mariadb_srv
     - console/sqlite3
     - console/postgresql_server
     - transactional/trup_smoke

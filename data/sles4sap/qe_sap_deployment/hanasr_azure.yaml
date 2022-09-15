@@ -1,0 +1,44 @@
+provider: 'azure'
+apiver: 1
+terraform:
+  provider: 'azure'
+  variables:
+    # GENERAL VARIABLES #
+    az_region: "%REGION%"
+    admin_user: "cloudadmin"
+    public_key : "~/.ssh/id_rsa.pub"
+    private_key: "~/.ssh/id_rsa"
+    sles4sap_uri: "https://%STORAGE_ACCOUNT_NAME%.blob.core.windows.net/sle-images/%SLE_IMAGE%"
+    storage_account_name: "%STORAGE_ACCOUNT_NAME%"
+    storage_account_key: "%STORAGE_ACCOUNT_KEY%"
+
+    # BASTION
+    bastion_enabled: "false"
+
+    # HANA
+    hana_cluster_vip: "10.10.1.15"
+    hana_ips: ["10.10.1.11", "10.10.1.12"]
+    hana_cluster_fencing_mechanism: "%FENCING_MECHANISM%"
+    # SBD
+    #iscsi_srv_uri: "https://%STORAGE_ACCOUNT_NAME%.blob.core.windows.net/sle-images/%SLE_IMAGE%"
+
+ansible:
+  hana_urls:
+    - https://%STORAGE_ACCOUNT_NAME%.blob.core.windows.net/%PUBLIC_CLOUD_RESOURCE_NAME%/installer_sar/hana/SAPCAR
+    - https://%STORAGE_ACCOUNT_NAME%.blob.core.windows.net/%PUBLIC_CLOUD_RESOURCE_NAME%/installer_sar/hana/%HANA_SAR%
+    - https://%STORAGE_ACCOUNT_NAME%.blob.core.windows.net/%PUBLIC_CLOUD_RESOURCE_NAME%/installer_sar/hana/%HANA_CLIENT_SAR%
+  create:
+    - registration.yaml -e reg_code=%SCC_REGCODE_SLES4SAP% -e email_address=""
+    - pre-cluster.yaml
+    - sap-hana-preconfigure.yaml -e use_sapconf=${SAPCONF}
+    - cluster_sbd_prep.yaml
+    - sap-hana-storage.yaml
+    - sap-hana-download-media.yaml
+    - sap-hana-install.yaml
+    - sap-hana-system-replication.yaml
+    - sap-hana-system-replication-hooks.yaml
+    - sap-hana-cluster.yaml
+  destroy:
+    - deregister.yaml
+  variables:
+    SAPCONF: true
