@@ -34,8 +34,6 @@ sub run_tox_cmd {
     $cmd .= " -k \"$bci_marker\"" if $bci_marker;
     $cmd .= " --reruns $bci_reruns --reruns-delay $bci_reruns_delay";
     $cmd .= "| tee $tox_out";
-    # Cut the tox log from the header onward and filter the text
-    my $cmd_xf = "awk '/short test summary info/{f=1}f' $tox_out | grep XFAIL";
     record_info("tox", "Running command: $cmd");
     my $ret = script_run("timeout $bci_timeout $cmd", timeout => ($bci_timeout + 3));
     if ($ret == 124) {
@@ -48,10 +46,10 @@ sub run_tox_cmd {
     } else {
         record_info('PASSED');
     }
+    # Cut the tox log from the header onward and filter the text
+    my $cmd_xf = "awk '/short test summary info/{f=1}f' $tox_out | grep XFAIL";
     my $ret_xf = script_run("$cmd_xf", timeout => ($bci_timeout + 3));
-    if ($ret_xf == 0) {
-        record_soft_failure("The command <tox -e $env> has XFAIL.");
-    }
+    record_soft_failure("The command <tox -e $env> has softfailures(XFAIL)") if ($ret_xf == 0);
     # Rename resulting junit file because it will be overwritten if we run
     # the same tox command later with another container engine. This way,
     # we will be able to parse the results for both container engines tox runs.
