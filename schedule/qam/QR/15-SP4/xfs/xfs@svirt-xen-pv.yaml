@@ -1,0 +1,37 @@
+---
+name: xfs
+description: >
+  Installation with default parameters, except XFS being selected as filesystem
+  for the root partition. Installation is validated by successful boot and that
+  YaST does not report any issue.
+vars:
+  DESKTOP: gnome
+  FILESYSTEM: xfs
+  YUI_REST_API: 1
+schedule:
+  - installation/isosize
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/welcome
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup
+  - installation/partitioning/accept_proposed_layout
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/first_boot
+  - console/validate_partition_table_via_blkid
+  - console/validate_blockdevices
+  - console/validate_free_space
+  - console/validate_read_write
+test_data:
+  <<: !include test_data/qam/QR/15-SP3/xfs/xfs_partition_svirt-xen.yaml

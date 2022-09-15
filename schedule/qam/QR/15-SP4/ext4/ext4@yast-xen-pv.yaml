@@ -1,0 +1,39 @@
+---
+name:           ext4@yast-xen-pv
+description:    >
+  Test for ext4 filesystem in svirt-xen-pv.
+  Test modules 'grub_disable_timeout' and 'grub_test' in xen-pv are not scheduled
+  due to grub2 doesnt support xfb console.
+vars:
+  DESKTOP: gnome
+  FILESYSTEM: ext4
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/welcome
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup
+  - installation/partitioning/accept_proposed_layout
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/first_boot
+  - console/validate_partition_table_via_blkid
+  - console/validate_blockdevices
+  - console/validate_free_space
+  - console/validate_read_write
+test_data:
+  guided_partitioning:
+    filesystem_options:
+      root_filesystem_type: ext4
+  <<: !include test_data/qam/QR/15-SP3/ext4/ext4_xen.yaml
