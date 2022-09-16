@@ -114,7 +114,6 @@ sub run {
     record_info 'Systemd', 'Verify status of iscsi services and sockets';
     systemctl("is-active iscsid.service");
     systemctl("is-active iscsid.socket");
-    systemctl("is-active iscsiuio.socket");
     if (!is_sle('=12-SP4') && !is_sle('=12-SP5')) {
         systemctl("is-active iscsi.service");
     }
