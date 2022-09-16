@@ -4,6 +4,7 @@ description: First set of CLI extratests
 schedule:
   - installation/bootloader_start
   - boot/boot_to_desktop
+  - console/firewalld
   - console/prepare_test_data
   - console/consoletest_setup
   - console/check_os_release
