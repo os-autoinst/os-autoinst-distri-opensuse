@@ -16,6 +16,7 @@ use utils;
 
 sub run {
     my $self = shift;
+    $self->select_serial_terminal();
     # Get number of nodes
     my $nodes = get_required_var("CLUSTER_NODES");
 

@@ -15,6 +15,7 @@ use utils;
 use version_utils 'is_sle';
 
 sub run ($self) {
+    $self->select_serial_terminal();
     $self->prepare_user_and_group();
 
     # Install slurm

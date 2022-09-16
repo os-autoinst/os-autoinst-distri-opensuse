@@ -15,6 +15,7 @@ use utils;
 use version_utils 'is_sle';
 
 sub run ($self) {
+    $self->select_serial_terminal();
     my $hostname = get_required_var("HOSTNAME");
 
     barrier_wait('CLUSTER_PROVISIONED');
