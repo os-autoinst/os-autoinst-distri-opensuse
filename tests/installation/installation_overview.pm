@@ -30,7 +30,7 @@ sub ensure_ssh_unblocked {
             send_key_until_needlematch [qw(ssh-blocked ssh-open)], 'down', 60;
         }
         else {
-            send_key_until_needlematch [qw(ssh-blocked ssh-open)], 'tab', 25;
+            send_key_until_needlematch [qw(ssh-blocked ssh-open)], 'tab', 60;
         }
         if (match_has_tag 'ssh-blocked') {
             if (check_var('VIDEOMODE', 'text')) {
