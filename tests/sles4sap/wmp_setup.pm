@@ -38,8 +38,9 @@ sub run {
     # Add cgroup capture program to startup profile
     my $sid = get_required_var('INSTANCE_SID');
     my $instance_id = get_required_var('INSTANCE_ID');
+    my $instance_type = get_var('INSTANCE_TYPE', 'HDB');
     my $hostname = get_hostname;
-    my $profile = "/usr/sap/${sid}/SYS/profile/${sid}_HDB${instance_id}_${hostname}";
+    my $profile = "/usr/sap/${sid}/SYS/profile/${sid}_${instance_type}${instance_id}_${hostname}";
     assert_script_run 'echo "# all programs spawned below will be put in dedicated cgroup" >> ' . $profile;
     assert_script_run 'echo "Execute_20 = local /usr/lib/sapwmp/sapwmp-capture -a" >> ' . $profile;
     assert_script_run "tail $profile";
