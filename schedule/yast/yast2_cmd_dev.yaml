@@ -6,10 +6,14 @@ schedule:
   - boot/boot_to_desktop
   - yast2_cmd/yast_rdp
   - yast2_cmd/yast_timezone
+  - '{{yast_keyboard}}'
   - yast2_cmd/yast_ftp_server
   - yast2_cmd/yast_nfs_server
   - yast2_cmd/yast_nfs_client
   - yast2_cmd/yast_tftp_server
+  - '{{yast_dns_server}}'
+  - '{{yast_lan}}'
+  - yast2_cmd/yast_users
   - yast2_cmd/yast_sysconfig
   - '{{yast_lang}}'
 conditional_schedule:
