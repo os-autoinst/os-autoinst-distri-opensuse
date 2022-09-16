@@ -17,6 +17,7 @@ use version_utils 'is_sle';
 use hpc::formatter;
 
 sub run ($self) {
+    $self->select_serial_terminal();
     my $mpi = $self->get_mpi();
     my ($mpi_compiler, $mpi_c) = $self->get_mpi_src();
     my $mpi_bin = 'mpi_bin';

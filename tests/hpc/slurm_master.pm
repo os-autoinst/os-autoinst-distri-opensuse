@@ -452,6 +452,7 @@ sub extended_hpc_tests ($master_ip, $slave_ip) {
 }
 
 sub run ($self) {
+    $self->select_serial_terminal();
     my $nodes = get_required_var('CLUSTER_NODES');
     my $slurm_conf = get_required_var('SLURM_CONF');
     my $version = get_required_var('VERSION');

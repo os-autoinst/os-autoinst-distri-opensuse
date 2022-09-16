@@ -11,6 +11,7 @@ use lockapi;
 use utils;
 
 sub run ($self) {
+    $self->select_serial_terminal();
     my $mpi = $self->get_mpi();
     my %exports_path = (
         bin => '/home/bernhard/bin',

@@ -15,6 +15,7 @@ use lockapi;
 use utils;
 
 sub run ($self) {
+    $self->select_serial_terminal();
     # make sure that nobody has permissions for $serialdev to get openQA work properly
     assert_script_run("chmod 666 /dev/$serialdev");
 
