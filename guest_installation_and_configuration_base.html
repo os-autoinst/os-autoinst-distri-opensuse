@@ -14,13 +14,27 @@
 <ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
   <li>
     <ul>
+      <li><a href="#prepare_non_transactional_environment">prepare_non_transactional_environment</a></li>
       <li><a href="#config_guest_memory">config_guest_memory</a></li>
       <li><a href="#config_guest_security">config_guest_security</a></li>
       <li><a href="#config_guest_controller">config_guest_controller</a></li>
       <li><a href="#config_guest_rng">config_guest_rng</a></li>
+      <li><a href="#write_guest_network_bridge_device_config">write_guest_network_bridge_device_config</a></li>
+      <li><a href="#write_guest_network_bridge_device_ifcfg">write_guest_network_bridge_device_ifcfg</a></li>
+      <li><a href="#write_guest_network_bridge_device_nmconnection">write_guest_network_bridge_device_nmconnection</a></li>
+      <li><a href="#activate_guest_network_bridge_device">activate_guest_network_bridge_device</a></li>
+      <li><a href="#schedule_tasks_on_boot">schedule_tasks_on_boot</a></li>
+      <li><a href="#schedule_tasks_on_boot_crontab">schedule_tasks_on_boot_crontab</a></li>
+      <li><a href="#schedule_tasks_on_boot_systemd">schedule_tasks_on_boot_systemd</a></li>
     </ul>
   </li>
 </ul><h1>lib/guest_installation_and_configuration_base.pm</h1>
+
+<h2 id="prepare_non_transactional_environment">prepare_non_transactional_environment</h2>
+
+<pre><code>  prepare_non_transactional_environment($self)</code></pre>
+
+<p>Do preparation on non-transactional server.</p>
 
 <h2 id="config_guest_memory">config_guest_memory</h2>
 
@@ -46,6 +60,59 @@
 <pre><code>  config_guest_rng($self [, guest_rng =&gt; &#39;rng&#39;])</code></pre>
 
 <p>Configure [guest_rng_options]. User can still change [guest_rng] by passing non-empty arguments using hash. If installations already passes, modify_guest_params will be called to modify [guest_rng] using already modified [guest_rng_options].</p>
+
+<h2 id="write_guest_network_bridge_device_config">write_guest_network_bridge_device_config</h2>
+
+<pre><code>  write_guest_network_bridge_device_config($self, _name =&gt; $_name [, 
+  _ipaddr =&gt; $_ipaddr, _bootproto =&gt; $_bootproto, _startmode =&gt; $_startmode, 
+  _zone =&gt; $_zone, _bridge_type =&gt; $_bridge_type, _bridge_ports =&gt; $_bridge_ports, 
+  _bridge_stp =&gt; $_bridge_stp, _bridge_forwarddelay =&gt; $_bridge_forwarddelay])</code></pre>
+
+<p>Write network device settings to conventional /etc/sysconfig/network/ifcfg-* or /etc/NetworkManager/system-connections/*.nmconnection depends on whether system network is managed by NetworkManager or not. The supported arguments are listed out as below: $_ipaddr: IP address/mask length pair of the interface $_name: Identifier of the interface $_bootproto: DHCP automatic or manual configuration, &#39;static&#39;, &#39;dhcp&#39; or &#39;none&#39; $_startmode: Auto start up or connection: &#39;auto&#39;, &#39;manual&#39; or &#39;off&#39; $_zone: The trust level of this network connection $_bridge_type: &#39;master&#39; or &#39;slave&#39; to indicate master or slave interface $_bridge_port: Specify interface&#39;s master or slave interface name $_bridge_stp: &#39;on&#39; or &#39;off&#39; to turn stp on or off $_bridge_forwarddelay: The stp forwarding delay in seconds If $_ipaddr given is empty, it means there is no associated specific ip address to this interface which might be attached to another bridge interface or will not be assigned one ip address from dhcp, so set $_ipaddr to &#39;0.0.0.0&#39;.If $_ipaddr given is non-empty but not in ip address format,for example, &#39;host-default&#39;,it means the interface will not use a ip address from pre-defined subnet and will automically accept dhcp ip address from public facing host network.</p>
+
+<h2 id="write_guest_network_bridge_device_ifcfg">write_guest_network_bridge_device_ifcfg</h2>
+
+<pre><code>  write_guest_network_bridge_device_ifcfg($self, _name =&gt; $_name [, 
+  _ipaddr =&gt; $_ipaddr, _name =&gt; $_name, _bootproto =&gt; $_bootproto, 
+  _startmode =&gt; $_startmode, _zone =&gt; $_zone, _bridge_type =&gt; $_bridge_type, 
+  _bridge_ports =&gt; $_bridge_ports, _bridge_stp =&gt; $_bridge_stp, 
+  _bridge_forwarddelay =&gt; $_bridge_forwarddelay])</code></pre>
+
+<p>Write bridge device config file to /etc/sysconfig/network/ifcfg-*. Please refer to https://github.com/openSUSE/sysconfig/blob/master/config/ifcfg.template for config file content.</p>
+
+<h2 id="write_guest_network_bridge_device_nmconnection">write_guest_network_bridge_device_nmconnection</h2>
+
+<pre><code>  write_guest_network_bridge_device_nmconnection($self, _name =&gt; $_name [, 
+  _ipaddr =&gt; $_ipaddr, _name =&gt; $_name, _bootproto =&gt; $_bootproto, 
+  _startmode =&gt; $_startmode, _zone =&gt; $_zone, _bridge_type =&gt; $_bridge_type, 
+  _bridge_ports =&gt; $_bridge_ports, _bridge_stp =&gt; $_bridge_stp, 
+  _bridge_forwarddelay =&gt; $_bridge_forwarddelay])</code></pre>
+
+<p>Write bridge device config file to /etc/NetworkManager/system-connections/*. NM settings are a little bit different from ifcfg settings, but there are definite mapping between them. So translation from well-known and default ifcfg settings to NM settings is necessary. Please refer to nm-settings explanation as below: https://developer-old.gnome.org/NetworkManager/stable/nm-settings-keyfile.html</p>
+
+<h2 id="activate_guest_network_bridge_device">activate_guest_network_bridge_device</h2>
+
+<pre><code>  activate_guest_network_bridge_device($self, _bridge_name =&gt; $_bridge_name)</code></pre>
+
+<p>Activate guest network bridge device by using wicked or NetworkManager depends on system configuration. And also validate whether activation is successful or not.</p>
+
+<h2 id="schedule_tasks_on_boot">schedule_tasks_on_boot</h2>
+
+<pre><code>  schedule_tasks_on_boot($self, _task =&gt; $task)</code></pre>
+
+<p>Schedule tasks to be executed on system boot up, please refer to these documents: https://docs.oracle.com/en/learn/oracle-linux-crontab/ for using crontab utility and https://linuxconfig.org/how-to-schedule-tasks-with-systemd-timers-in-linux for for using systemd service and timer. In order to schedule a task successfully, the _task argument should not be empty.</p>
+
+<h2 id="schedule_tasks_on_boot_crontab">schedule_tasks_on_boot_crontab</h2>
+
+<pre><code>  schedule_tasks_on_boot_crontab($self, _task =&gt; $task)</code></pre>
+
+<p>Schedule tasks on system boot up by using crontab utility.</p>
+
+<h2 id="schedule_tasks_on_boot_systemd">schedule_tasks_on_boot_systemd</h2>
+
+<pre><code>  schedule_tasks_on_boot_systemd($self, _task =&gt; $task)</code></pre>
+
+<p>Schedule tasks on system boot up by using systemd service and timer.</p>
 
 
 </body>
