@@ -12,7 +12,6 @@ schedule:
     - microos/image_checks
     - microos/one_line_checks
     - microos/services_enabled
-    - microos/cockpit_service
     - console/sqlite3
     - console/postgresql_server
     - transactional/trup_smoke
