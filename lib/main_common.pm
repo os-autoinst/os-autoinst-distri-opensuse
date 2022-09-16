@@ -2043,7 +2043,7 @@ sub load_x11_gnome {
 sub load_x11_other {
     if (check_var("DESKTOP", "gnome")) {
         loadtest "x11/brasero/brasero_launch";
-        loadtest "x11/gnomeapps/gnome_documents" if (is_sle('<16') || is_leap('<16.0'));
+        loadtest "x11/gnome_documents" if (is_sle('<16') || is_leap('<16.0'));
         loadtest "x11/totem/totem_launch";
         if (is_sle '15+') {
             loadtest "x11/xterm";
