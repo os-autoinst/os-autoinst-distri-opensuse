@@ -1,0 +1,33 @@
+---
+name: autoupgrade_sle15sp4-1_scc_we_sdk_basesys_wsm_srv_desk_lgm_contm_pcm_def_full
+description: >
+  Performs a migration between installed system with unreleased maintenance updates installed, and next release, eg sle15 sp3>sp4
+schedule:
+  - autoyast/prepare_profile
+  - migration/version_switch_origin_system
+  - boot/boot_to_desktop
+  - console/setup_libyui_running_system
+  - update/patch_sle
+  - migration/record_disk_info
+  - migration/reboot_to_upgrade
+  - migration/version_switch_upgrade_target
+  - installation/isosize
+  - installation/bootloader
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - boot/grub_test_snapshot
+  - migration/version_switch_origin_system
+  - boot/snapper_rollback
+test_data:
+  install_packages:
+    - libyui-rest-api
+  port: 30000-50000
+  zone: public
