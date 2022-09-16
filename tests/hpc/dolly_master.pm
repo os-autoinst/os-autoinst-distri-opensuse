@@ -31,7 +31,7 @@ sub run ($self) {
     my $server_hostname = get_required_var("HOSTNAME");
     my @slave_nodes = $self->slave_node_names();
     my $client_hostnames = join(',', @slave_nodes);
-    assert_script_run("dolly -v -S $server_hostname -H $client_hostnames -I $test_dev -O $test_dev");
+    assert_script_run("dolly -v -S $server_hostname -H $client_hostnames -I $test_dev -O $test_dev", timeout => 2400);
     barrier_wait("DOLLY_DONE");
 }
 
