@@ -15,6 +15,7 @@ our $test_dir = "/mnt/test";
 our $test_dev = "/dev/vdb";
 
 sub run ($self) {
+    $self->select_serial_terminal();
     zypper_call("in dolly");
     barrier_wait("DOLLY_INSTALLATION_FINISHED");
     assert_script_run("mkfs.ext4 -v $test_dev");
