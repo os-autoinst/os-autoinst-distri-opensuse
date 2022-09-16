@@ -14,9 +14,4 @@ schedule:
     - microos/services_enabled
     - console/sqlite3
     - console/postgresql_server
-    - transactional/trup_smoke
-    - transactional/transactional_update
-    - transactional/rebootmgr
-    - transactional/health_check
-    - console/journal_check
     - shutdown/shutdown
