@@ -16,7 +16,7 @@ our $test_dev = "/dev/vdb";
 
 sub run ($self) {
     my $nodes = get_required_var("CLUSTER_NODES");
-
+    $self->select_serial_terminal();
     zypper_call('in dolly');
     barrier_wait("DOLLY_INSTALLATION_FINISHED");
 
