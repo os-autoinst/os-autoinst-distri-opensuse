@@ -433,7 +433,9 @@ sub terraform_apply {
     if (get_var('FLAVOR') =~ 'UEFI') {
         $cmd .= "-var 'uefi=true' ";
     }
-
+    if (get_var('PUBLIC_CLOUD_NVIDIA')) {
+        $cmd .= "-var gpu=true ";
+    }
     $cmd .= "-out myplan";
     record_info('TFM cmd', $cmd);
 

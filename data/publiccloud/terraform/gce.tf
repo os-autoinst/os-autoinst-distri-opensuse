@@ -78,6 +78,12 @@ variable "enable_confidential_vm" {
 	default=false
 }
 
+variable "gpu" {
+  description = "Enable and configure node GPUs"
+
+  default = false
+}
+
 resource "random_id" "service" {
     count = var.instance_count
     keepers = {
@@ -91,7 +97,12 @@ resource "google_compute_instance" "openqa" {
     name                         = "${var.name}-${element(random_id.service.*.hex, count.index)}"
     machine_type                 = var.type
     zone                         = var.region
-    
+
+    guest_accelerator {
+      type = "nvidia-tesla-t4"
+      count = var.gpu ? 1 : 0
+    }
+
     confidential_instance_config {
     	enable_confidential_compute = var.enable_confidential_vm ? true : false
     }
