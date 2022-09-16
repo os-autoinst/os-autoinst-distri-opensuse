@@ -42,7 +42,7 @@ sub run {
     my $not_synced = 1;
     {
         do {
-            $not_synced = script_run("journalctl -u yast-timesync | egrep \"Started\|Finished One time sync configured by YaST\"");
+            $not_synced = script_run("journalctl -u yast-timesync | grep -E \"Started\|Finished One time sync configured by YaST\"");
             last unless ($not_synced);
             $uptime = script_output("uptime | cut -c19,20");
             script_run("echo \"Waiting 10 seconds before rechecking logs for One time synchronization\"");

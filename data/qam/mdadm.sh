@@ -77,7 +77,7 @@ function breakdown
   rungrepdebug "/dev/loop42" lsof
 
   # safety, in case we got interrupted halfway through
-  mount | fgrep $tempmnt && umount $tempmnt
+  mount | grep -F $tempmnt && umount $tempmnt
   if [ -e $MD_DEVICE ] ; then mdadm --stop $MD_DEVICE ; fi
   for i in 1 2 3 ; do if losetup $(eval echo \$DEV_$i) >/dev/null 2>&1 ; then run losetup -d $(eval echo \$DEV_$i) ; fi ; done
 
@@ -154,7 +154,7 @@ rungrep "1.(5|49) GiB" fdisk -l $MD_DEVICE
 rungrep "Creating filesystem with" mkfs.ext4 $MD_DEVICE
 
 run mount $MD_DEVICE $tempmnt
-mount | fgrep -q $tempmnt || exit 1
+mount | grep -F -q $tempmnt || exit 1
 
 run dd if=/dev/urandom of=random_data.raw bs=100M count=1
 
@@ -177,7 +177,7 @@ run mdadm --detail --scan >/var/tmp/mdadm.sh.conf
 run mdadm --stop $MD_DEVICE
 run mdadm --assemble --scan --config=/var/tmp/mdadm.sh.conf
 run mount $MD_DEVICE $tempmnt
-mount | fgrep -q $tempmnt || exit 1
+mount | grep -F -q $tempmnt || exit 1
 
 for i in $(seq -w 1 $RANDOM_DATA_COPY_COUNT)
 do
@@ -235,7 +235,7 @@ rungrep "510 MiB" fdisk -l $MD_DEVICE
 rungrep "Creating filesystem with" mkfs.ext4 $MD_DEVICE
 
 run mount $MD_DEVICE $tempmnt
-mount | fgrep -q $tempmnt || exit 1
+mount | grep -F -q $tempmnt || exit 1
 
 run dd if=/dev/urandom of=random_data.raw bs=100M count=1
 
@@ -255,7 +255,7 @@ done
 
 run mdadm $MD_DEVICE --fail $DEV_2
 
-rungrep "clean, degraded" mdadm --detail $MD_DEVICE | fgrep "State :"
+rungrep "clean, degraded" mdadm --detail $MD_DEVICE | grep -F "State :"
 
 rungrep "\[1\]\(F\)" cat /proc/mdstat
 
@@ -310,7 +310,7 @@ done
 
 rungrep "UUU" cat /proc/mdstat
 
-rungrep "clean" mdadm --detail $MD_DEVICE | fgrep "State :"
+rungrep "clean" mdadm --detail $MD_DEVICE | grep -F "State :"
 
 for i in $(seq -w 1 $RANDOM_DATA_COPY_COUNT)
 do
@@ -322,7 +322,7 @@ run mdadm --detail --scan > /var/tmp/mdadm.sh.conf
 run mdadm --stop $MD_DEVICE
 run mdadm --assemble --scan --config=/var/tmp/mdadm.sh.conf
 run mount $MD_DEVICE $tempmnt
-mount | fgrep -q $tempmnt || exit 1
+mount | grep -F -q $tempmnt || exit 1
 
 for i in $(seq -w 1 $RANDOM_DATA_COPY_COUNT)
 do
@@ -380,7 +380,7 @@ rungrep "1020 MiB" fdisk -l $MD_DEVICE
 rungrep "Creating filesystem with" mkfs.ext4 $MD_DEVICE
 
 run mount $MD_DEVICE $tempmnt
-mount | fgrep -q $tempmnt || exit 1
+mount | grep -F -q $tempmnt || exit 1
 
 run dd if=/dev/urandom of=random_data.raw bs=100M count=1
 
@@ -400,7 +400,7 @@ done
 
 run mdadm $MD_DEVICE --fail $DEV_1
 
-rungrep "clean, degraded" mdadm --detail $MD_DEVICE | fgrep "State :"
+rungrep "clean, degraded" mdadm --detail $MD_DEVICE | grep -F "State :"
 
 rungrep "\[0\]\(F\)" cat /proc/mdstat
 
@@ -444,7 +444,7 @@ done
 
 rungrep "UUU" cat /proc/mdstat
 
-rungrep "clean" mdadm --detail $MD_DEVICE | fgrep "State :"
+rungrep "clean" mdadm --detail $MD_DEVICE | grep -F "State :"
 
 for i in $(seq -w 1 $RANDOM_DATA_COPY_COUNT)
 do
@@ -456,7 +456,7 @@ run mdadm --detail --scan > /var/tmp/mdadm.sh.conf
 run mdadm --stop $MD_DEVICE
 run mdadm --assemble --scan --config=/var/tmp/mdadm.sh.conf
 run mount $MD_DEVICE $tempmnt
-mount | fgrep -q $tempmnt || exit 1
+mount | grep -F -q $tempmnt || exit 1
 
 for i in $(seq -w 1 $RANDOM_DATA_COPY_COUNT)
 do

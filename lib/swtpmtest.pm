@@ -118,7 +118,7 @@ sub swtpm_verify {
     if (!is_sle('<15-SP4')) {
         # Measured boot check
         # If measured boot works fine, it can record available algorithms and pcrs
-        assert_script_run("cat $result_file | egrep 'AlgorithmId|pcrs'");
+        assert_script_run("cat $result_file | grep -E 'AlgorithmId|pcrs'");
     }
 }
 

@@ -78,7 +78,7 @@ sub upload_cthon04_log {
         $self->result("fail");
         record_info('Fail', "Basic test failed");
     }
-    if (script_output("egrep ' ok|success' ./result_special_test.txt | wc -l") =~ '7') {
+    if (script_output("grep -E ' ok|success' ./result_special_test.txt | wc -l") =~ '7') {
         record_info('Pass', "Special test pass");
     }
     else {

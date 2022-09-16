@@ -31,9 +31,9 @@ sub get_hana_device_from_system {
     $out = $1;
     my @pvdevs = map { if ($_ =~ s@mapper/@@) { $_ =~ s/\-part\d+$// } else { $_ =~ s/\d+$// } $_ =~ s@^/dev/@@; $_; } split(/,/, $out);
 
-    my $lsblk = q@lsblk -n -l -o NAME -d -e 7,11 | egrep -vw '@ . join('|', @pvdevs) . "'";
+    my $lsblk = q@lsblk -n -l -o NAME -d -e 7,11 | grep -E -vw '@ . join('|', @pvdevs) . "'";
     # lsblk command to probe for devices is different when in multipath scenario
-    $lsblk = q@lsblk -l -o NAME,TYPE -e 7,11 | awk '($2 == "mpath") {print $1}' | sort -u | egrep -vw '@ . join('|', @pvdevs) . "'" if is_multipath();
+    $lsblk = q@lsblk -l -o NAME,TYPE -e 7,11 | awk '($2 == "mpath") {print $1}' | sort -u | grep -E -vw '@ . join('|', @pvdevs) . "'" if is_multipath();
 
     # Probe devices, check its size and filter out the ones that do not meet the disk requirements
     my $devsize = 0;
@@ -41,7 +41,7 @@ sub get_hana_device_from_system {
     my $device;
     my $filter_devices;
     while ($devsize < $disk_requirement) {
-        $out = script_output "echo DEV=\$($lsblk | egrep -vw '$filter_devices' | head -1)";
+        $out = script_output "echo DEV=\$($lsblk | grep -E -vw '$filter_devices' | head -1)";
         die "Could not find a suitable device for HANA installation." unless ($out =~ /DEV=([\w\.]+)$/);
         $device = $1;
         $filter_devices .= "|$device";
@@ -74,12 +74,12 @@ sub get_test_summary {
     $info .= script_output 'basename $(realpath /etc/products.d/baseproduct)';
     $info =~ s/.prod//;
     $info .= "\n";
-    $info .= script_output 'egrep ^VERSION= /etc/os-release';
+    $info .= script_output 'grep -E ^VERSION= /etc/os-release';
     $info =~ s/VERSION=/Version: /;
     $info .= "\nProduct Name: ";
     $info .= script_output q(grep -w summary /etc/products.d/baseproduct | sed -r -e 's@<.?summary>@@g');
     $info .= "\n\nHANA Details:\n\n";
-    $info .= script_output 'egrep "INFO.*SAP HANA Lifecycle Management" /var/tmp/hdblcm.log | cut -d" " -f3,11-';
+    $info .= script_output 'grep -E "INFO.*SAP HANA Lifecycle Management" /var/tmp/hdblcm.log | cut -d" " -f3,11-';
     return $info;
 }
 

@@ -16,7 +16,7 @@ lock_dir=_sh05593
 #     92 -rw-r--r-- shar_testdata/hallo.txt
 #
 MD5SUM=${MD5SUM-md5sum}
-f=`${MD5SUM} --version | egrep '^md5sum .*(core|text)utils'`
+f=`${MD5SUM} --version | grep -E '^md5sum .*(core|text)utils'`
 test -n "${f}" && md5check=true || md5check=false
 ${md5check} || \
   echo 'Note: not verifying md5sums.  Consider installing GNU coreutils.'

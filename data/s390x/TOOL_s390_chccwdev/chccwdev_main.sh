@@ -58,7 +58,7 @@ call_lscss(){
     y="$(lscss -t 3390/0C,1732/01 | wc -l)";
     y="$(( y - 2))";
 
-    if [[ "$(lscss | egrep -i '1732/01|3390/0C' | wc -l)" -eq $y ]]
+    if [[ "$(lscss | grep -E -i '1732/01|3390/0C' | wc -l)" -eq $y ]]
     then
         echo "lscss -t 3390/0C,1732/01"
         sleep 2
@@ -70,7 +70,7 @@ call_lscss(){
 
     y="$(lscss -s -t 3390/0C,1732/01 | wc -l )";
     y="$(( y - 2 ))";
-    x="$(lscss -s | egrep -i '1732/01|3390/0C' | wc -l)";
+    x="$(lscss -s | grep -E -i '1732/01|3390/0C' | wc -l)";
     #x=`expr $x - 2`
 
     if [[ $x -eq $y ]]

@@ -196,7 +196,7 @@ sub _parse_results_with_diff_baseline {
 #
 sub rerun_fail_cases {
     my $fail_case = shift;
-    my $output = script_output('egrep "FAIL|ERROR" rollup.log', proceed_on_failure => 1);
+    my $output = script_output('grep -E "FAIL|ERROR" rollup.log', proceed_on_failure => 1);
     return if ($output eq '');
 
     my @lines = split(/\n/, $output);

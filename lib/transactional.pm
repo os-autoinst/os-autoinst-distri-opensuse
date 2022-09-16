@@ -112,7 +112,7 @@ sub check_reboot_changes {
     my $time = time;
     my $mounted = "mnt-$time";
     my $default = "def-$time";
-    assert_script_run "mount | grep 'on / ' | egrep -o 'subvolid=[0-9]*' | cut -d'=' -f2 > $mounted";
+    assert_script_run "mount | grep 'on / ' | grep -E -o 'subvolid=[0-9]*' | cut -d'=' -f2 > $mounted";
     assert_script_run "btrfs su get-default / | cut -d' ' -f2 > $default";
     my $change_happened = script_run "diff $mounted $default";
 
@@ -287,7 +287,7 @@ are changes happened.
 
 sub reboot_on_changes {
     # Compare currently mounted and default subvolume
-    my $mountedsubvol = script_output("mount | grep 'on / ' | egrep -o 'subvolid=[0-9]*' | cut -d'=' -f2", proceed_on_failure => 0);
+    my $mountedsubvol = script_output("mount | grep 'on / ' | grep -E -o 'subvolid=[0-9]*' | cut -d'=' -f2", proceed_on_failure => 0);
     my $defaultsubvol = script_output("btrfs su get-default / | cut -d' ' -f2", proceed_on_failure => 0);
     my $has_change = abs(int($defaultsubvol) - int($mountedsubvol));
 

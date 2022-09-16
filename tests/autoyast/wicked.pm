@@ -45,7 +45,7 @@ sub run {
         enter_cmd "mkdir /tmp/wicked";
         # enable debugging
         enter_cmd "perl -i -lpe 's{^(WICKED_DEBUG)=.*}{\$1=\"all\"};s{^(WICKED_LOG_LEVEL)=.*}{\$1=\"debug\"}' /etc/sysconfig/network/config";
-        enter_cmd "egrep \"WICKED_DEBUG|WICKED_LOG_LEVEL\" /etc/sysconfig/network/config";
+        enter_cmd "grep -E \"WICKED_DEBUG|WICKED_LOG_LEVEL\" /etc/sysconfig/network/config";
         # restart the daemons
         enter_cmd "systemctl restart wickedd";
         save_screenshot;

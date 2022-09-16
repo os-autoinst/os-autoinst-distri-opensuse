@@ -59,8 +59,8 @@ sub run {
         run_testcase('audit-remote', (timeout => 4500, skip_prepare => 1));
 
         # The 4th and 5th may fail because the audit log is gerenated slowly in server, we need to rerun it again
-        assert_script_run('./run.bash 4', timeout => 300) if (script_run('egrep "[4].*FAIL" rollup.log') == 0);
-        assert_script_run('./run.bash 5', timeout => 300) if (script_run('egrep "[5].*FAIL" rollup.log') == 0);
+        assert_script_run('./run.bash 4', timeout => 300) if (script_run('grep -E "[4].*FAIL" rollup.log') == 0);
+        assert_script_run('./run.bash 5', timeout => 300) if (script_run('grep -E "[5].*FAIL" rollup.log') == 0);
 
         my $result = compare_run_log('audit-remote');
         $self->result($result);

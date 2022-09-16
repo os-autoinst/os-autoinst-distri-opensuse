@@ -37,10 +37,10 @@ sub run {
     foreach my $meth (@meth_list) {
         # Add a method
         assert_script_run "pam-config --add --$meth";
-        assert_script_run "find /etc/pam.d -type f | grep common | xargs egrep $meth";
+        assert_script_run "find /etc/pam.d -type f | grep common | xargs grep -E $meth";
         # Delete a method
         assert_script_run "pam-config --delete --$meth";
-        validate_script_output "find /etc/pam.d -type f | grep common | xargs egrep $meth || echo 'check pass'", sub { m/check pass/ };
+        validate_script_output "find /etc/pam.d -type f | grep common | xargs grep -E $meth || echo 'check pass'", sub { m/check pass/ };
     }
 
     # Upload logs

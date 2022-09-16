@@ -28,7 +28,7 @@ use version_utils 'is_sle';
 sub get_trafficgen_ip {
     my $host1 = get_required_var('NFVTEST_IP1');
     my $host2 = get_required_var('NFVTEST_IP2');
-    my $my_ip = script_output(q(ip -4 addr show eth0 | egrep inet|awk '{print $2}'|cut -d/ -f1));
+    my $my_ip = script_output(q(ip -4 addr show eth0 | grep -E inet|awk '{print $2}'|cut -d/ -f1));
     return $host2 if ($my_ip eq $host1);
     return $host1;
 }

@@ -117,10 +117,10 @@ sub run {
     # find iscsi drive
     my $iscsi_drive = script_output 'lsblk --scsi | grep -i iscsi | awk \'NR==1 {print $1}\'';
     die "No iSCSI drive found!\n" unless ($iscsi_drive);
-    assert_script_run 'ls -l /dev/disk/by-path | egrep -e ' . $iscsi_drive . ' -e ' . $ibft_expected->{target}->{ip_addr} .
+    assert_script_run 'ls -l /dev/disk/by-path | grep -E -e ' . $iscsi_drive . ' -e ' . $ibft_expected->{target}->{ip_addr} .
       ' -e ' . $ibft_expected->{target}->{target_name};
     assert_script_run 'lsblk -o KNAME,MOUNTPOINT,SIZE,RO,TYPE,VENDOR,TRAN,MODE,HCTL,STATE,MAJ:MIN | grep ' . $iscsi_drive;
-    assert_script_run 'lsscsi -cl | egrep -e state=running -ie ' . $ibft_expected->{backstore}->{vendor} . ' -ie ' . $ibft_expected->{backstore}->{model};
+    assert_script_run 'lsscsi -cl | grep -E -e state=running -ie ' . $ibft_expected->{backstore}->{vendor} . ' -ie ' . $ibft_expected->{backstore}->{model};
     assert_script_run 'iscsiadm -m session -P 1|grep -e ' . $ibft_expected->{target}->{target_name} . ' -e ' . $ibft_expected->{target}->{ip_addr} .
       ':' . $ibft_expected->{target}->{port} . ' -e ' . $ibft_expected->{initiator}->{initiator_name} . ' -e ' . $ibft_expected->{ethernet}->{ip_addr};
 

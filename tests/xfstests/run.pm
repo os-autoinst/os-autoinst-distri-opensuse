@@ -319,7 +319,7 @@ sub copy_fsxops {
 sub dump_btrfs_img {
     my ($category, $num) = @_;
     my $cmd = "echo \"no inconsistent error, skip btrfs image dump\"";
-    my $ret = script_output("egrep -m 1 \"filesystem on .+ is inconsistent\" $LOG_DIR/$category/$num");
+    my $ret = script_output("grep -E -m 1 \"filesystem on .+ is inconsistent\" $LOG_DIR/$category/$num");
     if ($ret =~ /filesystem on (.+) is inconsistent/) { $cmd = "umount $1;btrfs-image $1 $LOG_DIR/$category/$num.img"; }
     script_run($cmd);
 }
