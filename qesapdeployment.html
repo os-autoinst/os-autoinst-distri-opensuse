@@ -25,6 +25,9 @@
           <li><a href="#qesap_upload_logs">qesap_upload_logs</a></li>
           <li><a href="#qesap_get_deployment_code">qesap_get_deployment_code</a></li>
           <li><a href="#qesap_yaml_replace">qesap_yaml_replace</a></li>
+          <li><a href="#qesap_configure_tfvar">qesap_configure_tfvar</a></li>
+          <li><a href="#qesap_configure_variables">qesap_configure_variables</a></li>
+          <li><a href="#qesap_configure_hanamedia">qesap_configure_hanamedia</a></li>
           <li><a href="#qesap_execute">qesap_execute</a></li>
           <li><a href="#qesap_prepare_env">qesap_prepare_env</a></li>
         </ul>
@@ -83,6 +86,66 @@
         $variables{HANA_SAR} = get_required_var(&quot;HANA_SAR&quot;);
         $variables{HANA_CLIENT_SAR} = get_required_var(&quot;HANA_CLIENT_SAR&quot;);
         qesap_yaml_replace(openqa_variables=&gt;\%variables);</code></pre>
+
+<h3 id="qesap_configure_tfvar">qesap_configure_tfvar</h3>
+
+<p>Generate a terraform.tfvars from a template.</p>
+
+<dl>
+
+<dt id="PROVIDER---cloud-provider-used-to-select-the-right-folder-in-the-qe-sap-deploy-repo"><b>PROVIDER</b> - cloud provider, used to select the right folder in the qe-sap-deploy repo</dt>
+<dd>
+
+</dd>
+<dt id="REGION---cloud-region-where-to-perform-the-deployment.-Used-for-REGION"><b>REGION</b> - cloud region where to perform the deployment. Used for %REGION%</dt>
+<dd>
+
+</dd>
+<dt id="RESOURCE_GROUP_POSTFIX---used-as-deployment_name-in-tfvars"><b>RESOURCE_GROUP_POSTFIX</b> - used as deployment_name in tfvars</dt>
+<dd>
+
+</dd>
+<dt id="OS_VERSION---string-for-the-OS-version-to-be-used-for-the-deployed-machine.-Used-for-OSVER"><b>OS_VERSION</b> - string for the OS version to be used for the deployed machine. Used for %OSVER%</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_configure_variables">qesap_configure_variables</h3>
+
+<p>Generate the variables.sh loaded by build.sh and destroy.sh</p>
+
+<dl>
+
+<dt id="PROVIDER---cloud-provider-used-to-select-the-right-folder-in-the-qe-sap-deploy-repo1"><b>PROVIDER</b> - cloud provider, used to select the right folder in the qe-sap-deploy repo</dt>
+<dd>
+
+</dd>
+<dt id="SAP_REGCODE---SCC-code"><b>SAP_REGCODE</b> - SCC code</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_configure_hanamedia">qesap_configure_hanamedia</h3>
+
+<p>Generate the hana_media.yaml for Ansible</p>
+
+<dl>
+
+<dt id="SAPCAR---blob-server-url-for-the-SAPCAR"><b>SAPCAR</b> - blob server url for the SAPCAR</dt>
+<dd>
+
+</dd>
+<dt id="IMDB_SERVER---blob-server-url-for-the-IMDB_SERVER"><b>IMDB_SERVER</b> - blob server url for the IMDB_SERVER</dt>
+<dd>
+
+</dd>
+<dt id="IMDB_CLIENT---blob-server-url-for-the-IMDB_CLIENT"><b>IMDB_CLIENT</b> - blob server url for the IMDB_CLIENT</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h3 id="qesap_execute">qesap_execute</h3>
 
