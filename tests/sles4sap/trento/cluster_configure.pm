@@ -1,23 +1,26 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Setup and install more tools in the running jumphost image for qe-sap-deployment
+# Summary: Install needed tools and compose configuration files in the jumphost, for qe-sap-deployment
 # Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
 
 use strict;
 use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
-use qesapdeployment;
+use qesapdeployment 'qesap_upload_logs';
+use base 'trento';
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    # Get the code for the qe-sap-deployment
-    qesap_create_folder_tree();
-    qesap_get_deployment_code();
-    qesap_pip_install();
+    # Init all the PublicCloud gears (ssh keys)
+    my $provider = $self->provider_factory();
+
+    # Setup and configure the qe-sap-deployment
+    $self->config_cluster($provider->provider_client->region);
+
 }
 
 sub post_fail_hook {
