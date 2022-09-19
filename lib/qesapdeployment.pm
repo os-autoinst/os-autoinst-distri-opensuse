@@ -44,7 +44,6 @@ my @log_files = ();
 use constant QESAPDEPLOY_PREFIX => 'qesapdep';
 
 our @EXPORT = qw(
-  qesap_create_folder_tree
   qesap_pip_install
   qesap_upload_logs
   qesap_get_deployment_code
@@ -136,6 +135,7 @@ sub qesap_get_deployment_code {
     record_info("QESAP repo", "Preparing qe-sap-deployment repository");
     qesap_create_folder_tree();
     enter_cmd "cd " . $paths{deployment_dir};
+    push(@log_files, $qesap_git_clone_log);
 
     # Script from a release
     if (get_var('QESAPDEPLOY_VER')) {
@@ -154,7 +154,6 @@ sub qesap_get_deployment_code {
         my $git_branch = get_var('QESAPDEPLOY_GITHUB_BRANCH', 'main');
 
         my $git_clone_cmd = 'git clone --depth 1 --branch ' . $git_branch . ' https://' . $git_repo . ' ' . $paths{deployment_dir};
-        push(@log_files, $qesap_git_clone_log);
         assert_script_run("set -o pipefail ; $git_clone_cmd | tee " . $qesap_git_clone_log, quiet => 1);
     }
     # Add symlinks for different provider directory naming between OpenQA and qesap-deployment
@@ -210,7 +209,7 @@ Generate a terraform.tfvars from a template.
 sub qesap_configure_tfvar {
     my ($provider, $region, $resource_group_postfix, $os_version, $ssh_key) = @_;
     my %paths = qesap_get_file_paths();
-    record_info("QESAP TFVARS", "provider:$provider region:$region resource_group_postfix:$resource_group_postfix os_version:$os_version ssh_key:$ssh_key");
+    record_info("QESAP TFVARS", join("\n", "provider:$provider", "region:$region", "resource_group_postfix:$resource_group_postfix", "os_version:$os_version", "ssh_key:$ssh_key"));
     my $tfvar = $paths{deployment_dir} . '/terraform/' . lc($provider) . '/terraform.tfvars';
     assert_script_run("cp $tfvar.openqa $tfvar");
     push(@log_files, $tfvar);
