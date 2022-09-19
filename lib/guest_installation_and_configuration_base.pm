@@ -313,11 +313,12 @@ sub revise_guest_version_and_build {
     }
 
     if ($self->{guest_build} eq '') {
-        if ((get_var('REPO_0_TO_INSTALL', '') eq '') and ($self->{guest_version} eq lc get_required_var('VERSION'))) {
-            $self->{guest_build} = lc get_required_var('BUILD');
-        }
-        elsif ((get_var('REPO_0_TO_INSTALL', '') ne '') and ($self->{guest_version} eq lc get_required_var('TARGET_DEVELOPING_VERSION'))) {
-            $self->{guest_build} = lc get_required_var('BUILD');
+        if ((!get_var('REPO_0_TO_INSTALL') and ($self->{guest_version} eq lc get_required_var('VERSION'))) or (get_var('REPO_0_TO_INSTALL') and ($self->{guest_version} eq lc get_required_var('TARGET_DEVELOPING_VERSION')))) {
+            # BUILD is not the only parameter to indicate real build numbe of installation media,
+            # for example, openQA SLE Micro group use BUILD_ISO to do this and the BUILD is being
+            # used for grouping all relevant test suites together under the same goup. Thus it is
+            # necessary to have BUILD_ISO here as well to generate correct build number for guest.
+            $self->{guest_build} = lc get_var('BUILD_ISO', get_required_var('BUILD'));
         }
         else {
             $self->{guest_build} = 'gm';
