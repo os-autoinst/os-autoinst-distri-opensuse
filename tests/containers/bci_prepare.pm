@@ -41,6 +41,7 @@ sub packages_to_install {
     } elsif ($host_distri eq 'sles') {
         my $version = "$version.$sp";
         push @packages, 'python3-devel';
+        push @packages, ('python3-devel', 'tar');
         if ($version eq "12.5") {
             # PackageHub is needed for jq
             script_retry("SUSEConnect -p PackageHub/12.5/$arch", delay => 60, retry => 3, timeout => 300);
