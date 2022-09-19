@@ -28,6 +28,8 @@ my $disksize = "100M";    # Size of the test disks
 sub get_repository() {
     if (is_tumbleweed) {
         return 'https://download.opensuse.org/repositories/filesystems/openSUSE_Tumbleweed/filesystems.repo';
+    } elsif (is_leap("=15.5")) {
+        return 'https://download.opensuse.org/repositories/filesystems/15.5/filesystems.repo';
     } elsif (is_leap("=15.4")) {
         return 'https://download.opensuse.org/repositories/filesystems/15.4/filesystems.repo';
     } elsif (is_leap("=15.3")) {
