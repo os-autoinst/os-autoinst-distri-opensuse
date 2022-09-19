@@ -13,10 +13,9 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use transactional qw(process_reboot trup_call check_reboot_changes);
+use transactional qw(process_reboot);
 use bootloader_setup qw(change_grub_config);
-use version_utils qw(is_alp is_transactional);
-use utils qw(zypper_call ensure_ca_certificates_suse_installed);
+use utils qw(ensure_ca_certificates_suse_installed);
 
 sub run {
     select_console 'root-console';
@@ -32,15 +31,6 @@ sub run {
         assert_script_run('transactional-update grub.cfg');
         ensure_ca_certificates_suse_installed if get_var('HOST_VERSION');
         process_reboot(trigger => 1);
-    }
-    if (is_alp) {
-        record_info('Packages', 'Install needed packages to run the tests');
-        if (is_transactional) {
-            trup_call('pkg install tar', timeout => 300);
-            check_reboot_changes;
-        } else {
-            zypper_call('in tar');
-        }
     }
 }
 
