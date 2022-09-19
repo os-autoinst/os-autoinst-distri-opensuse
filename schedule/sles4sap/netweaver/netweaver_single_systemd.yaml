@@ -1,0 +1,21 @@
+---
+name: test_netweaver_systemd
+description: >
+  NetWeaver single node tests for SLES4SAP (including patching and use of systemd).
+vars:
+  BOOTFROM: c
+  BOOT_HDD_IMAGE: '1'
+  INSTANCE_ID: '00'
+  INSTANCE_SID: QAD
+  INSTANCE_TYPE: ASCS
+  NW: nfs://1c119.qa.suse.de/srv/nfs/sap/NW753
+  # Below have to be entered in the OpenQA UI because it doesn't read this YAML
+  # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-%DESKTOP%.qcow2
+schedule:
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - sles4sap/patterns
+  - sles4sap/netweaver_install
+  - sles4sap/netweaver_patch
+  - sles4sap/netweaver_test_systemd
+  - sles4sap/netweaver_test_instance

@@ -164,6 +164,9 @@ sub run {
         barrier_create("ERS_INSTALLED_$cluster_name", $num_nodes);
         barrier_create("NW_CLUSTER_HOSTS_$cluster_name", $num_nodes);
         barrier_create("NW_CLUSTER_INSTALL_$cluster_name", $num_nodes);
+        barrier_create("NW_CLUSTER_PATCH_$cluster_name", $num_nodes);
+        barrier_create("NW_CLUSTER_PATCH_${cluster_name}_before", $num_nodes);
+        barrier_create("NW_CLUSTER_PATCH_${cluster_name}_after", $num_nodes);
         barrier_create("NW_INIT_CONF_$cluster_name", $num_nodes);
         barrier_create("NW_CREATED_CONF_$cluster_name", $num_nodes);
         barrier_create("NW_LOADED_CONF_$cluster_name", $num_nodes);

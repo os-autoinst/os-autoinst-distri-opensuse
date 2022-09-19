@@ -802,6 +802,8 @@ sub upload_nw_install_log {
     $self->save_and_upload_log('ls -alF /sbin/mount*', '/tmp/sbin_mount_ls.log');
     upload_logs('/tmp/check-nw-media', failok => 1);
     upload_logs '/sapinst/unattended/sapinst.log';
+    upload_logs('/sapinst/unattended/sapinst_ASCS.log', failok => 1);
+    upload_logs('/sapinst/unattended/sapinst_ERS.log', failok => 1);
     upload_logs '/sapinst/unattended/sapinst_dev.log';
     upload_logs '/sapinst/unattended/start_dir.cd';
 }
