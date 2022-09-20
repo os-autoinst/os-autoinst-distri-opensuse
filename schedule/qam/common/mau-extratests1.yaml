@@ -4,7 +4,6 @@ description: First set of CLI extratests
 schedule:
   - installation/bootloader_start
   - boot/boot_to_desktop
-  - console/firewalld
   - console/prepare_test_data
   - console/consoletest_setup
   - console/check_os_release
@@ -73,10 +72,19 @@ conditional_schedule:
         - '{{sle15}}'
   sle15:
     VERSION:
+      15-SP4:
+        - console/firewalld
+        - console/lshw
+      15-SP3:
+        - console/firewalld
+        - console/lshw
       15-SP2:
+        - console/firewalld
         - console/lshw
       15-SP1:
+        - console/firewalld
         - console/lshw
       15:
         - console/lshw
+        - console/firewalld
 ...
