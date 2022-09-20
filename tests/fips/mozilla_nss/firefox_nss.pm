@@ -191,7 +191,6 @@ sub run {
 
     # Firefox Preferences
     firefox_preferences;
-
     # Search "Certificates" section
     search_certificates;
 
