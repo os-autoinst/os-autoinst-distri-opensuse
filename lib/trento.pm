@@ -602,7 +602,7 @@ sub cypress_exec {
         $self->result("fail");
     }
     if ($failok) {
-        record_soft_failure("Cypress exit code:$ret at $log_prefix") if ($ret);
+        record_info("Cypress exit code:$ret at $log_prefix", result => 'softfail') if ($ret);
         $ret = 0;
     }
     die "Cypress exec error at '$cmd'" unless ($ret == 0);

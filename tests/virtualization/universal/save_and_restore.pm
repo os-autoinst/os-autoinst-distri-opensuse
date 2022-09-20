@@ -31,7 +31,7 @@ sub run_test {
     record_info "Check", "Check saved states";
     foreach my $guest (keys %virt_autotest::common::guests) {
         if (script_run("virsh list --all | grep $guest | grep shut") != 0) {
-            record_soft_failure "Guest $guest should be shut down now";
+            record_info "Guest $guest should be shut down now", result => 'softfail';
             script_run "virsh destroy $guest", 90;
         }
     }
