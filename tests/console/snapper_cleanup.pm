@@ -60,7 +60,7 @@ sub snapper_cleanup {
         my $msg = "bsc#998360: qgroup 1/0: Exclusive space is above user-defined limit:\n"
           . "$exp_excl_space (expected exclusive disk space) < $qgroup_excl_space (consumed exclusive disk space)";
         if (check_var('VERSION', '12-SP2')) {
-            record_soft_failure $msg;
+            record_info('Softfail', $msg, result => 'softfail');
         }
         else {
             die $msg;

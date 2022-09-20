@@ -39,7 +39,7 @@ sub set_guest_memory {
     my $guestmemory = get_guest_memory($guest);
     # Memory reposts are not precise, we allow for a +/-10% acceptance range
     my $within_tolerance = ($min_memory <= $guestmemory) && ($guestmemory <= $max_memory);
-    record_soft_failure("Set live memory failed - expected $memory but got $guestmemory") unless ($within_tolerance);
+    record_info('Softfail', "Set live memory failed - expected $memory but got $guestmemory", result => 'softfail') unless ($within_tolerance);
 }
 
 # Returns guest memory in MB

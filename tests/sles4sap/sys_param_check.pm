@@ -36,7 +36,7 @@ sub add_softfail {
     my ($module, $os_version, $bsc_number, @parameters) = @_;
     foreach my $parameter (@parameters) {
         if (check_var("VERSION", $os_version) && check_failure($module, $parameter)) {
-            record_soft_failure "$bsc_number - Wrong value for $parameter";
+            record_info('Softfail', "$bsc_number - Wrong value for $parameter", result => 'softfail');
             remove_value($module, $parameter);
         }
     }

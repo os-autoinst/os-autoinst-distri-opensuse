@@ -71,7 +71,7 @@ sub run_test {
         else {
             my $default_affinity = script_output("ssh root\@$guest \"cat /proc/irq/default_smp_affinity\"");
             foreach (@affinities_with_irqbalance) {
-                record_soft_failure("The value of one NIC IRQ smp_affinity, '$_', did not follow the default_smp_affinity, '$default_affinity', with irqbalance enabled.") if $_ ne $default_affinity;
+                record_info('Softfail', "The value of one NIC IRQ smp_affinity, '$_', did not follow the default_smp_affinity, '$default_affinity', with irqbalance enabled.", result => 'softfail') if $_ ne $default_affinity;
             }
         }
 
@@ -90,7 +90,7 @@ sub run_test {
             #at least a few interrupts on each cpu core
             if ($increased_irqs_on_cpu[$cpu_id] < 10) {
                 #Please look into the soft failure to identify if it is a product bug or temporary lack of network load coverage
-                record_soft_failure("IRQ are not balanced as the vif interrupts for CPU" . $cpu_id . " is " . $increased_irqs_on_cpu[$cpu_id]);
+                record_info('Softfail', "IRQ are not balanced as the vif interrupts for CPU" . $cpu_id . " is " . $increased_irqs_on_cpu[$cpu_id], result => 'softfail');
             }
         }
         record_info("NIC IRQs distribution on $nproc cpu cores", "@increased_irqs_on_cpu");
@@ -121,7 +121,7 @@ sub restore_original_guests {
             restore_downloaded_guests($guest, $vm_xml_save_dir);
         }
         else {
-            record_soft_failure "Fail to restore $guest!";
+            record_info('Softfail', "Fail to restore $guest!", result => 'softfail');
         }
     }
 }

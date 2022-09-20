@@ -102,7 +102,7 @@ sub smoketest() {
                 record_info("$name", "$cve ($name) on $go_to_target vulnerable (expensive mitigations disabled by default)");
             } else {
                 # Some failures are OK but we still want to record them
-                record_soft_failure("$cve ($name) vulnerable on $go_to_target") unless ignore_cve_fail($cve, $go_to_target);
+                record_info('Softfail', "$cve ($name) vulnerable on $go_to_target", result => 'softfail') unless ignore_cve_fail($cve, $go_to_target);
                 record_info("$name", "$cve ($name) vulnerable on $go_to_target") if ignore_cve_fail($cve, $go_to_target);
             }
         }
