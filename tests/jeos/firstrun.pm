@@ -122,11 +122,11 @@ sub run {
     if (is_sle || is_sle_micro) {
         assert_screen 'jeos-please-register';
         send_key 'ret';
+    }
 
-        if (is_generalhw) {
-            assert_screen 'jeos-please-configure-wifi';
-            send_key 'n';
-        }
+    if (is_generalhw && (is_tumbleweed || is_sle || is_sle_micro)) {
+        assert_screen 'jeos-please-configure-wifi';
+        send_key 'n';
     }
 
     # Our current Hyper-V host and it's spindles are quite slow. Especially
