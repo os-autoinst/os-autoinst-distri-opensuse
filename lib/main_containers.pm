@@ -238,6 +238,7 @@ sub load_container_tests {
             load_host_tests_containerd_nerdctl() if (/containerd_nerdctl/i);
             loadtest('containers/kubectl') if (/kubectl/i);
             load_host_tests_helm($run_args) if (/helm/i);
+            loadtest 'containers/apptainer' if (/apptainer/i);
         }
     }
     loadtest 'containers/bci_logs' if (get_var('BCI_TESTS'));
