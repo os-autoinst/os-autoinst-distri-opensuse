@@ -35,11 +35,15 @@ sub run {
     sleep 1;
     enter_cmd "license.tar.gz";
 
-    assert_screen('firefox-extcontent-opening', 60);
-
-    send_key "alt-o";
-    sleep 1;
-    send_key "ret";
+    assert_screen ['firefox-extcontent-opening', 'firefox-extcontent-downloaded'], 30;
+    # If firefox does not prompt us with the opening window we need to double click the downloaded file
+    if (match_has_tag 'firefox-extcontent-downloaded') {
+        assert_and_dclick('firefox-extcontent-downloaded');
+    } else {
+        send_key "alt-o";
+        sleep 1;
+        send_key "ret";
+    }
 
     assert_screen(is_sle('15+') ? 'firefox-extcontent-nautils' : 'firefox-extcontent-archive_manager');
 
