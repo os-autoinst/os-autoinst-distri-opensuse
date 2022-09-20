@@ -15,7 +15,7 @@ use Time::HiRes 'sleep';
 use testapi;
 use Utils::Architectures;
 use utils;
-use version_utils qw(is_microos is_sle_micro is_jeos is_leap is_sle is_tumbleweed is_selfinstall);
+use version_utils qw(is_microos is_sle_micro is_jeos is_leap is_sle is_tumbleweed is_selfinstall is_alp is_transactional);
 use mm_network;
 use Utils::Backends;
 
@@ -125,6 +125,12 @@ sub add_custom_grub_entries {
     elsif (is_sle()) {
         $distro = "SLES" . ' \\?' . get_required_var('VERSION');
     }
+    elsif (is_alp()) {
+        $distro = "Adaptable Linux Platform";
+    }
+    elsif (is_sle_micro()) {
+        $distro = "SLE Micro" . ' \\?' . get_required_var('VERSION');
+    }
 
     bmwqemu::diag("Trying to trigger purging old kernels before changing grub menu");
     script_run('/sbin/purge-kernels');
@@ -134,6 +140,8 @@ sub add_custom_grub_entries {
 
     my $section_old = "sed -e '1,/$script_old_esc/d' -e '/$script_old_esc/,\$d' $cfg_old";
     my $cnt_old = script_output("$section_old | grep -c 'menuentry .$distro'");
+
+    my $run_cmd = is_transactional ? 'transactional-update -c -d --quiet run' : '';
 
     my $i = 10;
     foreach my $grub_param (@grub_params) {
@@ -152,11 +160,11 @@ sub add_custom_grub_entries {
         upload_logs(GRUB_CFG_FILE, failok => 1);
 
         my $section_new = "sed -e '1,/$script_new_esc/d' -e '/$script_new_esc/,\$d' " . GRUB_CFG_FILE;
-        my $cnt_new = script_output("$section_new | grep -c 'menuentry .$distro'");
+        my $cnt_new = script_output("$run_cmd $section_new | grep -c 'menuentry .$distro'");
         die("Unexpected number of grub entries: $cnt_new, expected: $cnt_old") if ($cnt_old != $cnt_new);
-        $cnt_new = script_output("grep -c 'menuentry .$distro.*($grub_param)' " . GRUB_CFG_FILE);
+        $cnt_new = script_output("$run_cmd grep -c 'menuentry .$distro.*($grub_param)' " . GRUB_CFG_FILE);
         die("Unexpected number of new grub entries: $cnt_new, expected: " . ($cnt_old)) if ($cnt_old != $cnt_new);
-        $cnt_new = script_output("grep -c -E 'linux.*(/boot|/vmlinu[xz]-).* $grub_param ' " . GRUB_CFG_FILE);
+        $cnt_new = script_output("$run_cmd grep -c -E 'linux.*(/boot|/vmlinu[xz]-).* $grub_param ' " . GRUB_CFG_FILE);
         die("Unexpected number of new grub entries with '$grub_param': $cnt_new, expected: " . ($cnt_old)) if ($cnt_old != $cnt_new);
     }
 }
@@ -1338,7 +1346,8 @@ Regenerate /boot/grub2/grub.cfg with grub2-mkconfig.
 sub grub_mkconfig {
     my $config = shift;
     $config //= GRUB_CFG_FILE;
-    assert_script_run("grub2-mkconfig -o $config");
+    my $grub_update = is_transactional ? 'transactional-update -c grub.cfg' : "grub2-mkconfig -o $config";
+    assert_script_run "${grub_update}";
 }
 
 =head2 get_cmdline_var

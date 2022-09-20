@@ -80,4 +80,9 @@ if (is_container_test) {
     load_container_tests();
 }
 
+if (is_kernel_test()) {
+    load_kernel_tests();
+    return 1;
+}
+
 1;
