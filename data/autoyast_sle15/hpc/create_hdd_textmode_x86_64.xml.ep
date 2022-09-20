@@ -2,57 +2,61 @@
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <suse_register>
-    <addons t="list">
-      <addon t="map">
+    <addons config:type="list">
+      <addon config:type="map">
         <arch>{{ARCH}}</arch>
         <name>sle-module-desktop-applications</name>
         <reg_code/>
         <release_type>nil</release_type>
         <version>{{VERSION}}</version>
       </addon>
-      <addon t="map">
+      <addon config:type="map">
         <arch>{{ARCH}}</arch>
         <name>sle-module-server-applications</name>
         <reg_code/>
         <release_type>nil</release_type>
         <version>{{VERSION}}</version>
       </addon>
-      <addon t="map">
+      <addon config:type="map">
         <arch>{{ARCH}}</arch>
         <name>sle-module-basesystem</name>
         <reg_code/>
         <release_type>nil</release_type>
         <version>{{VERSION}}</version>
       </addon>
-      <addon t="map">
+      <addon config:type="map">
         <arch>{{ARCH}}</arch>
         <name>sle-module-public-cloud</name>
         <reg_code/>
         <release_type>nil</release_type>
         <version>{{VERSION}}</version>
       </addon>
-      <addon t="map">
+      <addon config:type="map">
         <arch>{{ARCH}}</arch>
         <name>sle-module-web-scripting</name>
         <reg_code/>
         <release_type>nil</release_type>
         <version>{{VERSION}}</version>
       </addon>
-      <addon t="map">
+      <addon config:type="map">
         <arch>{{ARCH}}</arch>
+        % unless ($check_var->('VERSION', '15-SP4') || $check_var->('VERSION', '15-SP5')) {
+        <name>sle-module-python2</name>
+        % } else {
         <name>sle-module-python3</name>
+        % }
         <reg_code/>
         <release_type>nil</release_type>
         <version>{{VERSION}}</version>
       </addon>
-      <addon t="map">
+      <addon config:type="map">
         <arch>{{ARCH}}</arch>
         <name>sle-module-development-tools</name>
         <reg_code/>
         <release_type>nil</release_type>
         <version>{{VERSION}}</version>
       </addon>
-      <addon t="map">
+      <addon config:type="map">
         <arch>{{ARCH}}</arch>
         <name>sle-module-hpc</name>
         <reg_code/>
@@ -60,7 +64,7 @@
         <version>{{VERSION}}</version>
       </addon>
       % if ($check_var->('SCC_ADDONS', 'nvidia')) {
-      <addon t="map">
+      <addon config:type="map">
         <arch>{{ARCH}}</arch>
         <name>sle-module-NVIDIA-compute</name>
         <reg_code/>
@@ -69,15 +73,15 @@
       </addon>
       % }
     </addons>
-    <do_registration t="boolean">true</do_registration>
+    <do_registration config:type="boolean">true</do_registration>
     % if ($check_var->('FLAVOR', 'Server-DVD-HPC-Incidents')) {
-    <install_updates t="boolean">true</install_updates>
+    <install_updates config:type="boolean">true</install_updates>
     % } else {
-    <install_updates t="boolean">false</install_updates>
+    <install_updates config:type="boolean">false</install_updates>
     % }
     <reg_code>{{SCC_REGCODE_HPC}}</reg_code>
     <reg_server>{{SCC_URL}}</reg_server>
-    <slp_discovery t="boolean">false</slp_discovery>
+    <slp_discovery config:type="boolean">false</slp_discovery>
   </suse_register>
   <add-on>
     <add_on_products config:type="list">
@@ -91,37 +95,37 @@
       % }
     </add_on_products>
   </add-on>
-  <bootloader t="map">
-    <global t="map">
+  <bootloader config:type="map">
+    <global config:type="map">
       <cpu_mitigations>auto</cpu_mitigations>
       <gfxmode>auto</gfxmode>
       <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
       <secure_boot>true</secure_boot>
       <terminal>gfxterm</terminal>
-      <timeout t="integer">-1</timeout>
+      <timeout config:type="integer">-1</timeout>
       <trusted_grub>false</trusted_grub>
       <update_nvram>true</update_nvram>
       <xen_kernel_append>vga=gfx-1024x768x16 crashkernel=203M\&lt;4G</xen_kernel_append>
     </global>
     <loader_type>grub2</loader_type>
   </bootloader>
-  <firewall t="map">
+  <firewall config:type="map">
     <default_zone>public</default_zone>
-    <enable_firewall t="boolean">true</enable_firewall>
+    <enable_firewall config:type="boolean">true</enable_firewall>
     <log_denied_packets>off</log_denied_packets>
-    <start_firewall t="boolean">true</start_firewall>
-    <zones t="list">
-      <zone t="map">
+    <start_firewall config:type="boolean">true</start_firewall>
+    <zones config:type="list">
+      <zone config:type="map">
         <description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>
-        <interfaces t="list">
+        <interfaces config:type="list">
           <interface>eth0</interface>
         </interfaces>
-        <masquerade t="boolean">false</masquerade>
+        <masquerade config:type="boolean">false</masquerade>
         <name>public</name>
-        <ports t="list"/>
-        <protocols t="list"/>
-        <services t="list">
+        <ports config:type="list"/>
+        <protocols config:type="list"/>
+        <services config:type="list">
           <service>dhcpv6-client</service>
         </services>
         <short>Public</short>
@@ -129,59 +133,59 @@
       </zone>
     </zones>
   </firewall>
-  <general t="map">
-    <mode t="map">
-      <confirm t="boolean">false</confirm>
+  <general config:type="map">
+    <mode config:type="map">
+      <confirm config:type="boolean">false</confirm>
     </mode>
   </general>
-  <groups t="list">
-    <group t="map">
+  <groups config:type="list">
+    <group config:type="map">
       <gid>100</gid>
       <groupname>users</groupname>
       <userlist/>
     </group>
   </groups>
-  <host t="map">
-    <hosts t="list">
-      <hosts_entry t="map">
+  <host config:type="map">
+    <hosts config:type="list">
+      <hosts_entry config:type="map">
         <host_address>127.0.0.1</host_address>
-        <names t="list">
+        <names config:type="list">
           <name>localhost</name>
         </names>
       </hosts_entry>
-      <hosts_entry t="map">
+      <hosts_entry config:type="map">
         <host_address>::1</host_address>
-        <names t="list">
+        <names config:type="list">
           <name>localhost ipv6-localhost ipv6-loopback</name>
         </names>
       </hosts_entry>
-      <hosts_entry t="map">
+      <hosts_entry config:type="map">
         <host_address>fe00::0</host_address>
-        <names t="list">
+        <names config:type="list">
           <name>ipv6-localnet</name>
         </names>
       </hosts_entry>
-      <hosts_entry t="map">
+      <hosts_entry config:type="map">
         <host_address>ff00::0</host_address>
-        <names t="list">
+        <names config:type="list">
           <name>ipv6-mcastprefix</name>
         </names>
       </hosts_entry>
-      <hosts_entry t="map">
+      <hosts_entry config:type="map">
         <host_address>ff02::1</host_address>
-        <names t="list">
+        <names config:type="list">
           <name>ipv6-allnodes</name>
         </names>
       </hosts_entry>
-      <hosts_entry t="map">
+      <hosts_entry config:type="map">
         <host_address>ff02::2</host_address>
-        <names t="list">
+        <names config:type="list">
           <name>ipv6-allrouters</name>
         </names>
       </hosts_entry>
-      <hosts_entry t="map">
+      <hosts_entry config:type="map">
         <host_address>ff02::3</host_address>
-        <names t="list">
+        <names config:type="list">
           <name>ipv6-allhosts</name>
         </names>
       </hosts_entry>
@@ -221,143 +225,143 @@
       <KEXEC_OPTIONS/>
     </general>
   </kdump>
-  <networking t="map">
-    <dhcp_options t="map">
+  <networking config:type="map">
+    <dhcp_options config:type="map">
       <dhclient_client_id/>
       <dhclient_hostname_option>AUTO</dhclient_hostname_option>
     </dhcp_options>
-    <dns t="map">
-      <dhcp_hostname t="boolean">false</dhcp_hostname>
+    <dns config:type="map">
+      <dhcp_hostname config:type="boolean">false</dhcp_hostname>
       <hostname>susetest</hostname>
       <resolv_conf_policy>auto</resolv_conf_policy>
     </dns>
-    <interfaces t="list">
-      <interface t="map">
+    <interfaces config:type="list">
+      <interface config:type="map">
         <bootproto>dhcp</bootproto>
         <name>eth0</name>
         <startmode>auto</startmode>
         <zone>public</zone>
       </interface>
     </interfaces>
-    <ipv6 t="boolean">true</ipv6>
-    <keep_install_network t="boolean">true</keep_install_network>
-    <managed t="boolean">false</managed>
-    <net-udev t="list">
-      <rule t="map">
+    <ipv6 config:type="boolean">true</ipv6>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+    <managed config:type="boolean">false</managed>
+    <net-udev config:type="list">
+      <rule config:type="map">
         <name>eth0</name>
         <rule>KERNELS</rule>
         <value>0000:00:04.0</value>
       </rule>
     </net-udev>
-    <routing t="map">
-      <ipv4_forward t="boolean">false</ipv4_forward>
-      <ipv6_forward t="boolean">false</ipv6_forward>
+    <routing config:type="map">
+      <ipv4_forward config:type="boolean">false</ipv4_forward>
+      <ipv6_forward config:type="boolean">false</ipv6_forward>
     </routing>
   </networking>
-  <nis t="map">
+  <nis config:type="map">
     <netconfig_policy>auto</netconfig_policy>
-    <nis_broadcast t="boolean">false</nis_broadcast>
-    <nis_broken_server t="boolean">false</nis_broken_server>
+    <nis_broadcast config:type="boolean">false</nis_broadcast>
+    <nis_broken_server config:type="boolean">false</nis_broken_server>
     <nis_domain/>
-    <nis_local_only t="boolean">false</nis_local_only>
+    <nis_local_only config:type="boolean">false</nis_local_only>
     <nis_options/>
-    <nis_other_domains t="list"/>
-    <nis_servers t="list"/>
-    <slp_domain t="map"/>
-    <start_autofs t="boolean">false</start_autofs>
-    <start_nis t="boolean">false</start_nis>
+    <nis_other_domains config:type="list"/>
+    <nis_servers config:type="list"/>
+    <slp_domain config:type="map"/>
+    <start_autofs config:type="boolean">false</start_autofs>
+    <start_nis config:type="boolean">false</start_nis>
   </nis>
-  <ntp-client t="map">
+  <ntp-client config:type="map">
     <ntp_policy>auto</ntp_policy>
-    <ntp_servers t="list"/>
+    <ntp_servers config:type="list"/>
     <ntp_sync>manual</ntp_sync>
   </ntp-client>
-  <partitioning t="list">
-    <drive t="map">
+  <partitioning config:type="list">
+    <drive config:type="map">
       <device>/dev/vda</device>
       <disklabel>gpt</disklabel>
-      <enable_snapshots t="boolean">true</enable_snapshots>
-      <partitions t="list">
-        <partition t="map">
-          <create t="boolean">true</create>
-          <format t="boolean">false</format>
-          <partition_id t="integer">263</partition_id>
-          <partition_nr t="integer">1</partition_nr>
-          <resize t="boolean">false</resize>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <partitions config:type="list">
+        <partition config:type="map">
+          <create config:type="boolean">true</create>
+          <format config:type="boolean">false</format>
+          <partition_id config:type="integer">263</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+          <resize config:type="boolean">false</resize>
           <size>8388608</size>
         </partition>
-        <partition t="map">
-          <create t="boolean">true</create>
-          <create_subvolumes t="boolean">true</create_subvolumes>
-          <filesystem t="symbol">btrfs</filesystem>
-          <format t="boolean">true</format>
+        <partition config:type="map">
+          <create config:type="boolean">true</create>
+          <create_subvolumes config:type="boolean">true</create_subvolumes>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <format config:type="boolean">true</format>
           <mount>/</mount>
-          <mountby t="symbol">uuid</mountby>
-          <partition_id t="integer">131</partition_id>
-          <partition_nr t="integer">2</partition_nr>
-          <quotas t="boolean">true</quotas>
-          <resize t="boolean">false</resize>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">2</partition_nr>
+          <quotas config:type="boolean">true</quotas>
+          <resize config:type="boolean">false</resize>
           <size>max</size>
-          <subvolumes t="list">
-            <subvolume t="map">
-              <copy_on_write t="boolean">false</copy_on_write>
+          <subvolumes config:type="list">
+            <subvolume config:type="map">
+              <copy_on_write config:type="boolean">false</copy_on_write>
               <path>var</path>
             </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
+            <subvolume config:type="map">
+              <copy_on_write config:type="boolean">true</copy_on_write>
               <path>usr/local</path>
             </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
+            <subvolume config:type="map">
+              <copy_on_write config:type="boolean">true</copy_on_write>
               <path>tmp</path>
             </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
+            <subvolume config:type="map">
+              <copy_on_write config:type="boolean">true</copy_on_write>
               <path>srv</path>
             </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
+            <subvolume config:type="map">
+              <copy_on_write config:type="boolean">true</copy_on_write>
               <path>root</path>
             </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
+            <subvolume config:type="map">
+              <copy_on_write config:type="boolean">true</copy_on_write>
               <path>opt</path>
             </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
+            <subvolume config:type="map">
+              <copy_on_write config:type="boolean">true</copy_on_write>
               <path>home</path>
             </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
+            <subvolume config:type="map">
+              <copy_on_write config:type="boolean">true</copy_on_write>
               <path>boot/grub2/x86_64-efi</path>
             </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
+            <subvolume config:type="map">
+              <copy_on_write config:type="boolean">true</copy_on_write>
               <path>boot/grub2/i386-pc</path>
             </subvolume>
           </subvolumes>
           <subvolumes_prefix>@</subvolumes_prefix>
         </partition>
-        <partition t="map">
-          <create t="boolean">true</create>
-          <filesystem t="symbol">swap</filesystem>
-          <format t="boolean">true</format>
+        <partition config:type="map">
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
           <mount>swap</mount>
-          <mountby t="symbol">uuid</mountby>
-          <partition_id t="integer">130</partition_id>
-          <partition_nr t="integer">3</partition_nr>
-          <resize t="boolean">false</resize>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">130</partition_id>
+          <partition_nr config:type="integer">3</partition_nr>
+          <resize config:type="boolean">false</resize>
           <size>8%</size>
         </partition>
       </partitions>
-      <type t="symbol">CT_DISK</type>
+      <type config:type="symbol">CT_DISK</type>
       <use>all</use>
     </drive>
   </partitioning>
-  <proxy t="map">
-    <enabled t="boolean">false</enabled>
+  <proxy config:type="map">
+    <enabled config:type="boolean">false</enabled>
   </proxy>
-  <security t="map">
+  <security config:type="map">
     <console_shutdown>reboot</console_shutdown>
     <cracklib_dict_path>/usr/lib/cracklib_dict</cracklib_dict_path>
     <disable_restart_on_update>no</disable_restart_on_update>
@@ -394,14 +398,14 @@
     <userdel_postcmd>/usr/sbin/userdel-post.local</userdel_postcmd>
     <userdel_precmd>/usr/sbin/userdel-pre.local</userdel_precmd>
   </security>
-  <services-manager t="map">
+  <services-manager config:type="map">
     % if ($check_var->('SCC_ADDONS', 'nvidia')) {
     <default_target>graphical</default_target>
     % } else {
     <default_target>multi-user</default_target>
     % }
-    <services t="map">
-      <enable t="list">
+    <services config:type="map">
+      <enable config:type="list">
         <service>YaST2-Firstboot</service>
         <service>YaST2-Second-Stage</service>
         <service>apparmor</service>
@@ -436,10 +440,10 @@
       </enable>
     </services>
   </services-manager>
-  <software t="map">
-    <install_recommended t="boolean">true</install_recommended>
+  <software config:type="map">
+    <install_recommended config:type="boolean">true</install_recommended>
     <instsource/>
-    <packages t="list">
+    <packages config:type="list">
       <package>wicked</package>
       <package>snapper</package>
       <package>sle-module-web-scripting-release</package>
@@ -467,7 +471,7 @@
       <package>autoyast2</package>
       <package>SLE_HPC-release</package>
     </packages>
-    <patterns t="list">
+    <patterns config:type="list">
       <pattern>apparmor</pattern>
       <pattern>base</pattern>
       <pattern>basesystem</pattern>
@@ -477,21 +481,21 @@
       <pattern>x11_yast</pattern>
       % }
     </patterns>
-    <products t="list">
+    <products config:type="list">
       <product>SLE_HPC</product>
     </products>
   </software>
-  <ssh_import t="map">
-    <copy_config t="boolean">false</copy_config>
-    <import t="boolean">false</import>
+  <ssh_import config:type="map">
+    <copy_config config:type="boolean">false</copy_config>
+    <import config:type="boolean">false</import>
   </ssh_import>
-  <tftp-server t="map">
-    <start_tftpd t="boolean">false</start_tftpd>
+  <tftp-server config:type="map">
+    <start_tftpd config:type="boolean">false</start_tftpd>
   </tftp-server>
-  <timezone t="map">
+  <timezone config:type="map">
     <timezone>America/New_York</timezone>
   </timezone>
-  <user_defaults t="map">
+  <user_defaults config:type="map">
     <expire/>
     <group>100</group>
     <home>/home</home>
@@ -499,15 +503,15 @@
     <shell>/bin/bash</shell>
     <umask>022</umask>
   </user_defaults>
-  <users t="list">
-    <user t="map">
-      <authorized_keys t="list"/>
-      <encrypted t="boolean">true</encrypted>
+  <users config:type="list">
+    <user config:type="map">
+      <authorized_keys config:type="list"/>
+      <encrypted config:type="boolean">true</encrypted>
       <fullname>bernhard</fullname>
       <gid>100</gid>
       <home>/home/bernhard</home>
-      <home_btrfs_subvolume t="boolean">false</home_btrfs_subvolume>
-      <password_settings t="map">
+      <home_btrfs_subvolume config:type="boolean">false</home_btrfs_subvolume>
+      <password_settings config:type="map">
         <expire/>
         <flag/>
         <inact/>
@@ -520,14 +524,14 @@
       <user_password>$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/</user_password>
       <username>bernhard</username>
     </user>
-    <user t="map">
-      <authorized_keys t="list"/>
-      <encrypted t="boolean">true</encrypted>
+    <user config:type="map">
+      <authorized_keys config:type="list"/>
+      <encrypted config:type="boolean">true</encrypted>
       <fullname>root</fullname>
       <gid>0</gid>
       <home>/root</home>
-      <home_btrfs_subvolume t="boolean">false</home_btrfs_subvolume>
-      <password_settings t="map">
+      <home_btrfs_subvolume config:type="boolean">false</home_btrfs_subvolume>
+      <password_settings config:type="map">
         <expire/>
         <flag/>
         <inact/>
