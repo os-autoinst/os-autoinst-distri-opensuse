@@ -44,8 +44,8 @@ sub run {
 
     assert_script_run("lsblk");
 
-    # Install bzip2 to check for bsc#1165915
-    zypper_call("in bzip2");
+    # Check for bsc#1165915
+    zypper_call("ref");
 
     assert_script_run("SUSEConnect --status-text", 300);
     zypper_call("lr -d");
