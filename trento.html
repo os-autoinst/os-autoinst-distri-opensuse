@@ -21,10 +21,14 @@
         <ul>
           <li><a href="#get_trento_deployment">get_trento_deployment</a></li>
           <li><a href="#get_resource_group">get_resource_group</a></li>
+          <li><a href="#get_qesap_resource_group">get_qesap_resource_group</a></li>
           <li><a href="#config_cluster">config_cluster</a></li>
+          <li><a href="#deploy_qesap">deploy_qesap</a></li>
+          <li><a href="#destroy_qesap">destroy_qesap</a></li>
           <li><a href="#get_vm_name">get_vm_name</a></li>
           <li><a href="#get_acr_name">get_acr_name</a></li>
           <li><a href="#get_trento_ip">get_trento_ip</a></li>
+          <li><a href="#get_vnet">get_vnet</a></li>
           <li><a href="#get_trento_password">get_trento_password</a></li>
           <li><a href="#az_delete_group">az_delete_group</a></li>
           <li><a href="#az_vm_ssh_cmd">az_vm_ssh_cmd</a></li>
@@ -67,7 +71,19 @@
 
 <p>Return a string to be used as cloud resource group. It contains the JobId</p>
 
+<h3 id="get_qesap_resource_group">get_qesap_resource_group</h3>
+
+<p>Query and return the resource group used by the qe-sap-deployment</p>
+
 <h3 id="config_cluster">config_cluster</h3>
+
+<h3 id="deploy_qesap">deploy_qesap</h3>
+
+<p>Deploy a SAP Landscape using a previously configured qe-sap-deployment</p>
+
+<h3 id="destroy_qesap">destroy_qesap</h3>
+
+<p>Destroy the qe-sap-deployment SAP Landscape</p>
 
 <h3 id="get_vm_name">get_vm_name</h3>
 
@@ -80,6 +96,10 @@
 <h3 id="get_trento_ip">get_trento_ip</h3>
 
 <p>Return the running VM public IP</p>
+
+<h3 id="get_vnet">get_vnet</h3>
+
+<p>Return the output of az network vnet list</p>
 
 <h3 id="get_trento_password">get_trento_password</h3>
 

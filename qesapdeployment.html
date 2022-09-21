@@ -28,6 +28,9 @@
           <li><a href="#qesap_configure_tfvar">qesap_configure_tfvar</a></li>
           <li><a href="#qesap_configure_variables">qesap_configure_variables</a></li>
           <li><a href="#qesap_configure_hanamedia">qesap_configure_hanamedia</a></li>
+          <li><a href="#qesap_sh_deploy">qesap_sh_deploy</a></li>
+          <li><a href="#qesap_sh_deploy1">qesap_sh_deploy</a></li>
+          <li><a href="#qesap_sh_destroy">qesap_sh_destroy</a></li>
           <li><a href="#qesap_execute">qesap_execute</a></li>
           <li><a href="#qesap_prepare_env">qesap_prepare_env</a></li>
         </ul>
@@ -70,8 +73,15 @@
 
 <pre><code>    qesap_upload_logs([failok=1])
 
-    Collect and upload logs present in @log_files.
-    failok - continue even in case upload fails</code></pre>
+    Collect and upload logs present in @log_files.</code></pre>
+
+<dl>
+
+<dt id="FAILOK---used-as-failok-for-the-upload_logs.-continue-even-in-case-upload-fails"><b>FAILOK</b> - used as failok for the upload_logs. continue even in case upload fails</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h3 id="qesap_get_deployment_code">qesap_get_deployment_code</h3>
 
@@ -106,6 +116,10 @@
 
 </dd>
 <dt id="OS_VERSION---string-for-the-OS-version-to-be-used-for-the-deployed-machine.-Used-for-OSVER"><b>OS_VERSION</b> - string for the OS version to be used for the deployed machine. Used for %OSVER%</dt>
+<dd>
+
+</dd>
+<dt id="SSH_KEY---Public-key-needed-in-tfvars"><b>SSH_KEY</b> - Public key needed in tfvars</dt>
 <dd>
 
 </dd>
@@ -146,6 +160,18 @@
 
 </dd>
 </dl>
+
+<h3 id="qesap_sh_deploy">qesap_sh_deploy</h3>
+
+<p>Call qe-sap-deployment .sh scripts and publish all the logs</p>
+
+<h3 id="qesap_sh_deploy1">qesap_sh_deploy</h3>
+
+<p>Call build.sh and publish all the logs</p>
+
+<h3 id="qesap_sh_destroy">qesap_sh_destroy</h3>
+
+<p>Call destroy.sh and publish all the logs</p>
 
 <h3 id="qesap_execute">qesap_execute</h3>
 
