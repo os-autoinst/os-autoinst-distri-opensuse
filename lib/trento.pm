@@ -41,11 +41,15 @@ use Exporter 'import';
 our @EXPORT = qw(
   get_trento_deployment
   get_resource_group
+  get_qesap_resource_group
   config_cluster
   get_vm_name
   get_acr_name
   get_trento_ip
+  get_vnet
   get_trento_password
+  deploy_qesap
+  destroy_qesap
   VM_USER
   SSH_KEY
   cypress_install_container
@@ -170,8 +174,20 @@ It contains the JobId
 =cut
 
 sub get_resource_group {
+    return TRENTO_AZ_PREFIX . '-rg-' . get_current_job_id();
+}
+
+=head3 get_qesap_resource_group
+
+Query and return the resource group used
+by the qe-sap-deployment
+=cut
+
+sub get_qesap_resource_group {
     my $job_id = get_current_job_id();
-    return TRENTO_AZ_PREFIX . "-rg-$job_id";
+    my $result = script_output("az group list --query \"[].name\" -o tsv | grep $job_id | grep " . TRENTO_QESAPDEPLOY_PREFIX);
+    record_info('QESAP RG', "result:$result");
+    return $result;
 }
 
 =head3 config_cluster
@@ -202,6 +218,24 @@ sub config_cluster {
     qesap_configure_hanamedia(get_var('QESAPDEPLOY_SAPCAR'),
         get_var('QESAPDEPLOY_IMDB_SERVER'),
         get_var('QESAPDEPLOY_IMDB_CLIENT'));
+}
+
+=head3 deploy_qesap
+
+Deploy a SAP Landscape using a previously configured qe-sap-deployment
+=cut
+
+sub deploy_qesap {
+    qesap_sh_deploy(SSH_KEY);
+}
+
+=head3 destroy_qesap
+
+Destroy the qe-sap-deployment SAP Landscape
+=cut
+
+sub destroy_qesap {
+    qesap_sh_destroy(SSH_KEY);
 }
 
 =head3 get_vm_name
@@ -238,6 +272,21 @@ sub get_trento_ip {
       ' -n ' . get_vm_name() .
       ' --query "publicIps"' .
       ' -o tsv';
+    return script_output($az_cmd, 180);
+}
+
+=head3 get_vnet
+
+Return the output of az network vnet list
+=cut
+
+sub get_vnet {
+    my ($self, $resource_group) = @_;
+    my $az_cmd = join(' ', 'az', 'network',
+        'vnet', 'list', get_resource_group(),
+        '-g', $resource_group,
+        '--query', '"[0].name"',
+        '-o', 'tsv');
     return script_output($az_cmd, 180);
 }
 

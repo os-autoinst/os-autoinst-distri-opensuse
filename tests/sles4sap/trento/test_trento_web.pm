@@ -1,7 +1,7 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Trento test
+# Summary: Trento test the web interface
 # Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
 
 use strict;
@@ -53,6 +53,8 @@ sub post_fail_hook {
 
     $self->cypress_log_upload(('.txt', '.mp4'));
     parse_extra_log("XUnit", $_) for split(/\n/, script_output('find ' . $self->CYPRESS_LOG_DIR . ' -type f -iname "*.xml"'));
+
+    $self->destroy_qesap();
 
     $self->SUPER::post_fail_hook;
 }

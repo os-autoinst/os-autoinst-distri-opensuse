@@ -1,7 +1,7 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Install needed tools and compose configuration files in the jumphost, for qe-sap-deployment
+# Summary: Destroy SAP Landscape created with qe-sap-deployment
 # Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
 
 use strict;
@@ -14,19 +14,14 @@ use base 'trento';
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-
-    # Init all the PublicCloud gears (ssh keys)
-    my $provider = $self->provider_factory();
-
-    # Setup and configure the qe-sap-deployment
-    $self->config_cluster($provider->provider_client->region);
-
+    $self->destroy_qesap();
 }
 
 sub post_fail_hook {
     my ($self) = shift;
     $self->select_serial_terminal;
     qesap_upload_logs();
+    $self->destroy_qesap();
     $self->SUPER::post_fail_hook;
 }
 
