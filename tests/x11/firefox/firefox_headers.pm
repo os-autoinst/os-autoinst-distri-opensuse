@@ -41,13 +41,9 @@ sub run {
     wait_still_screen 3;
     assert_screen 'firefox-url-loaded';
     assert_and_click('firefox-headers-select-gnu.org');
-    assert_screen('firefox-headers-first_item');
-
-    send_key "shift-f10";
-    #"Edit and Resend"
-    send_key "e";
-
-    assert_screen('firefox-headers-user_agent', 50);
+    # click into the area so we can scrool down
+    assert_and_click('firefox-headers-first_item');
+    send_key_until_needlematch('firefox-headers-user_agent', 'down', 30);
 
     # Exit
     $self->exit_firefox;
