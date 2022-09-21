@@ -1,67 +1,96 @@
 # SUSE's openQA tests
 #
-# Copyright 2019 SUSE LLC
+# Copyright 2019-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Class with helpers related to SSH Interactive mode
 #
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: qa-c@suse.de
 
 package publiccloud::ssh_interactive;
+use testapi qw(is_serial_terminal);
 use base Exporter;
 use testapi;
 use Utils::Backends qw(set_sshserial_dev unset_sshserial_dev);
+use version_utils qw(is_tunneled);
 use strict;
 use warnings;
 
 our @EXPORT = qw(ssh_interactive_tunnel ssh_interactive_leave select_host_console);
 
+# Helper call to activate a console and establish the ssh connection therein
+sub establish_tunnel_console {
+    my ($console) = @_;
+
+    select_console("$console");
+    # Note: Don't use script_run here! The serial terminal is set to /dev/sshserial, so every script_run will time out
+    type_string("\n~.\n", max_interval => 1);    # ensure no previous ssh connection is present
+    enter_cmd("clear");
+    enter_cmd('ssh -t sut');
+    # give the ssh connection some time to settle
+    sleep 5;
+}
+
 sub ssh_interactive_tunnel {
     # Establish the ssh interarctive tunnel to the publiccloud instance.
     # Optional arguments: 'force => 1' - reestablish tunnel, also if already established.
+    #                     'reconnect => 1' - reestablish the tunnel after disconnecting. Use this to re-establish the tunnels after e.g. an instance reboot
 
     my $instance = shift;
-    my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
-    $args{force} //= 0;
+    my %args = testapi::compat_args({force => 0, reconnect => 0}, ['force', 'reconnect'], @_);
 
     # $serialdev should be always set from os-autoinst/testapi.pm
     die '$serialdev is not set' if (!defined $serialdev || $serialdev eq '');
     return if ($args{force} != 1 && get_var('_SSH_TUNNELS_INITIALIZED', 0) == 1);
 
+    my $prev_console = current_console();
+    select_console('tunnel-console') unless ($prev_console =~ /tunnel-console/);
+
     # Prepare the environment for the SSH tunnel
     my $upload_port = get_required_var('QEMUPORT') + 1;
     my $upload_host = testapi::host_ip();
 
-    $instance->ssh_script_run(
-        # Create /dev/sshserial fifo on remote and tail|tee it to /dev/$serialdev on local
-        #   timeout => switches to script_run instead of script_output to be used so the test will not wait for the command to end
-        #   tunnel the worker port (for downloading from data/ and uploading assets / logs
-        cmd => "'rm -rf /dev/sshserial; mkfifo -m a=rwx /dev/sshserial; tail -fn +1 /dev/sshserial' 2>&1 | tee /dev/$serialdev; clear",
-        timeout => 0,
-        no_quote => 1,
-        ssh_opts => "-yt -R $upload_port:$upload_host:$upload_port",
-        username => 'root',
-    );
-    sleep 3;
-    save_screenshot;
+    # Pipe the output of the device fifo to the local serial terminal
+# Note: We run this in a loop so that the ssh tunnel gets automatically re-established after device reboots and such. The sleep helps to avoid unnecessary CPU hogging in case of connection issues
+    background_script_run("while true; do ssh sut -yt -R '$upload_port:$upload_host:$upload_port' 'rm -f /dev/sshserial && mkfifo -m a=rwx /dev/sshserial && tail -fn +1 /dev/sshserial' 2>&1 >/dev/$serialdev; sleep 5; done");
+    # give the ssh connection some time to settle
+    sleep 10;
 
+    # from here onwards, the serial output should be directed to /dev/sshserial instead to /dev/ttyS0
     set_var('SERIALDEV_', $serialdev);
-    set_var('_SSH_TUNNELS_INITIALIZED', 1);
-
-    set_var('AUTOINST_URL_HOSTNAME', 'localhost');
     set_sshserial_dev();
+    set_var('_SSH_TUNNELS_INITIALIZED', 1);
+    set_var('AUTOINST_URL_HOSTNAME', 'localhost');
+
+    # When re-activing the consoles we also need to setup the underlying ssh connections again,
+    # because this only happens the first time the console is activated
+    if ($args{reconnect}) {
+        establish_tunnel_console("root-console");
+        establish_tunnel_console("user-console");
+        establish_tunnel_console("root-virtio-terminal");
+    }
+
+    select_console($prev_console) if ($prev_console !~ /tunnel-console/);
 }
 
 sub ssh_interactive_leave {
-    # Check if the SSH tunnel is still up and leave the SSH interactive session
-    script_run("test -p /dev/sshserial && exit", timeout => 0);
-
-    # Restore the environment to not use the SSH tunnel for upload/download from the worker
-    #set_var('SUT_HOSTNAME',          testapi::host_ip());
-    set_var('AUTOINST_URL_HOSTNAME', testapi::host_ip());
+    my $prev_console = current_console();
+    # Switch to the local console, terminate the ssh tunnel and set the serial device back
+    select_console('tunnel-console') unless ($prev_console =~ /tunnel-console/);
     unset_sshserial_dev();
+    set_var('AUTOINST_URL_HOSTNAME', testapi::host_ip());
 
-    $testapi::distri->set_standard_prompt('root');
+    # Terminate the ssh tunnel.
+    # It can happen that the serial console drops some characters thereby we might need to try this multiple times
+    my $retries = 8;
+    while ($retries-- > 0) {
+        last if (script_run('kill %1', die_on_timeout => 0) == 0);
+    }
+    die "tunnel-console is not terminated" if ($retries <= 0);
+    assert_script_run("true", fail_message => "tunnel-console is not functional");    # additional health check
+
+    select_console($prev_console) if ($prev_console !~ /tunnel-console/);
+    set_var('_SSH_TUNNELS_INITIALIZED', 0);    # set after the last select_console!
 }
 
 # Select console on the test host, if force is set, the interactive session will
@@ -72,25 +101,24 @@ sub ssh_interactive_leave {
 sub select_host_console {
     my (%args) = @_;
     $args{force} //= 0;
-    my $tunneled = get_var('TUNNELED');
+    my $tunneled = is_tunneled;
+    my $tunnels_initialized = $tunneled && get_var('_SSH_TUNNELS_INITIALIZED');
 
-    if ($tunneled && check_var('_SSH_TUNNELS_INITIALIZED', 1)) {
+    if ($tunnels_initialized) {
+        # Note: Because the serial device is set to /dev/sshserial in TUNNELED mode, it does not
+        # make any sense to allow this to pass, unless we would terminate the existing session.
         die("Called select_host_console but we are in TUNNELED mode") unless ($args{force});
 
-        opensusebasetest::select_serial_terminal();
+        select_console('tunnel-console');
         ssh_interactive_leave();
-
-        select_console('tunnel-console', await_console => 0);
-        send_key 'ctrl-c';
-        send_key 'ret';
-
-        set_var('_SSH_TUNNELS_INITIALIZED', 0);
-        opensusebasetest::clear_and_verify_console();
-        save_screenshot;
     }
-    set_var('TUNNELED', 0) if $tunneled;
+    set_var('TUNNELED', 0);
     opensusebasetest::select_serial_terminal();
-    set_var('TUNNELED', $tunneled) if $tunneled;
+    # ssh termination sequence to ensure any ssh connections we're in are terminated
+    type_string("\n~.\n", max_interval => 1);    # ensure no previous ssh connection is present
+    set_var('TUNNELED', $tunneled);
+    record_info("hostname", script_output("hostname"));
+    assert_script_run("true", fail_message => "host console is broken");    # basic health check
 }
 
 1;

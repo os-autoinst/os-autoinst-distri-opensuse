@@ -11,6 +11,7 @@ package publiccloud::provider;
 use testapi qw(is_serial_terminal :DEFAULT);
 use Mojo::Base -base;
 use publiccloud::instance;
+use publiccloud::instances;
 use publiccloud::utils qw(is_azure is_ec2);
 use Carp;
 use List::Util qw(max);
@@ -485,6 +486,7 @@ sub terraform_apply {
         push @instances, $instance;
     }
 
+    publiccloud::instances::set_instances(@instances);
     # Return an ARRAY of objects 'instance'
     return @instances;
 }
