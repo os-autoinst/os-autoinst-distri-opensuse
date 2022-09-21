@@ -216,7 +216,7 @@ sub stop_hana {
     my %commands = (
         "stop"  => "HDB stop",
         "kill"  => "HDB kill -x",
-        "crash" => "sync; echo b | tee /proc/sysrq-trigger > /dev/null &"
+        "crash" => "echo b > /proc/sysrq-trigger &"
     );
 
     my $cmd = $commands{$method};
@@ -226,9 +226,14 @@ sub stop_hana {
 
     record_info("Stopping HANA", "CMD:$cmd");
     if ($method eq "crash") {
-        $self->{my_instance}->run_ssh_command(cmd => "sudo $cmd", timeout => "0", %args);
+        $self->{my_instance}->run_ssh_command(cmd => "sudo su -c sync", timeout => "0", %args);
+        $self->{my_instance}->run_ssh_command(cmd => 'sudo su -c "' . $cmd . '"',
+            timeout => "0",
+            # Try only extending ssh_opts
+            ssh_opts => "-o ServerAliveInterval=2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR",
+            %args);
         #$self->run_cmd(cmd => $cmd, timeout => $timeout);
-        sleep 30;
+        sleep 10;
         $self->{my_instance}->wait_for_ssh();
         return();
     }
