@@ -1,7 +1,7 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Trento test
+# Summary: Deploy a Trento server
 # Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
 
 use strict;

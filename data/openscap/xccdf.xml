@@ -3,6 +3,7 @@
   <status date="2017-10-09">draft</status>
   <title>Hardening SUSE Linux Enterprise</title>
   <platform idref="cpe:/o:suse"/>
+  <platform idref="cpe:/o:opensuse"/>
   <version>1</version>
 
   <Profile id="standard">

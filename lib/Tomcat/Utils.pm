@@ -73,7 +73,7 @@ sub tomcat_manager_test() {
     my ($self) = shift;
 
     $self->firefox_open_url('localhost:8080/manager');
-    send_key_until_needlematch('tomcat-manager-authentication', 'ret');
+    assert_screen('tomcat-manager-authentication', 180);
     type_string('admin');
     send_key('tab');
     type_string('admin');
