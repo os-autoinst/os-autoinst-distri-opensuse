@@ -32,7 +32,6 @@ use warnings;
 use utils 'file_content_replace';
 use testapi;
 use Exporter 'import';
-use Data::Dumper;
 
 
 my @log_files = ();
@@ -50,6 +49,8 @@ our @EXPORT = qw(
   qesap_configure_tfvar
   qesap_configure_variables
   qesap_configure_hanamedia
+  qesap_sh_deploy
+  qesap_sh_destroy
   qesap_prepare_env
   qesap_execute
   qesap_yaml_replace
@@ -108,7 +109,12 @@ sub qesap_pip_install {
     qesap_upload_logs([failok=1])
 
     Collect and upload logs present in @log_files.
-    failok - continue even in case upload fails
+
+=over 1
+
+=item B<FAILOK> - used as failok for the upload_logs. continue even in case upload fails
+
+=back
 =cut
 
 sub qesap_upload_logs {
@@ -190,7 +196,7 @@ sub qesap_yaml_replace {
 
 Generate a terraform.tfvars from a template.
 
-=over 4
+=over 5
 
 =item B<PROVIDER> - cloud provider, used to select
                     the right folder in the qe-sap-deploy repo
@@ -202,6 +208,8 @@ Generate a terraform.tfvars from a template.
 
 =item B<OS_VERSION> - string for the OS version to be used for the deployed machine.
                       Used for %OSVER%
+
+=item B<SSH_KEY> - Public key needed in tfvars
 
 =back
 =cut
@@ -280,6 +288,48 @@ sub qesap_configure_hanamedia {
         q(%IMDB_SERVER%) => $imbd_server,
         q(%IMDB_CLIENT%) => $imbd_cient);
     upload_logs($media_var);
+}
+
+=head3 qesap_sh_deploy
+
+Call qe-sap-deployment .sh scripts and publish all the logs
+
+=cut
+
+sub qesap_sh {
+    my ($ssh_key, $script, $timeout_minutes) = @_;
+    my %paths = qesap_get_file_paths();
+    my $log = "$paths{deployment_dir}/$script" =~ s/.sh/.log.txt/r;
+    enter_cmd "cd $paths{deployment_dir}";
+    my $cmd = 'set -o pipefail ;' .
+      " ./$script -q -k $ssh_key" .
+      "| tee $log";
+    push(@log_files, $log);
+    assert_script_run($cmd, ($timeout_minutes * 60));
+
+    upload_logs($log);
+}
+
+=head3 qesap_sh_deploy
+
+Call build.sh and publish all the logs
+
+=cut
+
+sub qesap_sh_deploy {
+    my ($ssh_key) = @_;
+    qesap_sh($ssh_key, 'build.sh', 45);
+}
+
+=head3 qesap_sh_destroy
+
+Call destroy.sh and publish all the logs
+
+=cut
+
+sub qesap_sh_destroy {
+    my ($ssh_key) = @_;
+    qesap_sh($ssh_key, 'destroy.sh', 15);
 }
 
 =head3 qesap_execute

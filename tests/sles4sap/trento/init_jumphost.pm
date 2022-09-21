@@ -1,7 +1,7 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Trento test
+# Summary: Initialize the Jumphost for a Trento test
 # Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
 
 use Mojo::Base 'publiccloud::basetest';
@@ -15,7 +15,7 @@ sub run {
     $self->select_serial_terminal;
 
     # Get the code for the Trento deployment
-    $self->get_trento_deployment('${HOME}/test');
+    $self->get_trento_deployment('/root/test');
 
     # az login
     die "Only AZURE deployment supported for the moment" unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
