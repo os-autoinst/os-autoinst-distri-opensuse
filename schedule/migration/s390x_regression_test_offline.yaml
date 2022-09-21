@@ -3,9 +3,7 @@ description:    |
   This is for s390x zkvm upgrade regression test.
   #REGRESSION_SERVICE: '1' means support service check test. '0' means doesn't
   #support service check test, normally set '0' for package media test.
-  #REGRESSION_TEST: '1' means regression test part1 include console test. '2'
-  #means regression test part2 include x11 test.
-  #REGRESSION_389DS: '1' means load 389ds test.
+  #REGRESSION_TEST: '1' means load regression test modules after migration.
   #QCOW_GENERATION: '1' means publish qcow after migration; '0' means no need.
 vars:
   DESKTOP: 'gnome'
@@ -44,17 +42,20 @@ conditional_schedule:
         - console/system_prepare
         - console/check_os_release
         - console/check_system_info
-        - console/check_migration_features
+        - '{{check_migration_features}}'
         - console/check_network
         - console/system_state
         - console/prepare_test_data
         - console/consoletest_setup
         - '{{check_upgraded_service}}'
-        - '{{openldap_to_389ds}}'
         - '{{regression_tests}}'
       1:
         - shutdown/cleanup_before_shutdown
         - shutdown/shutdown
+  check_migration_features:
+    MIGRATION_FEATURES:
+      1:
+        - console/check_migration_features
   check_upgraded_service:
     REGRESSION_SERVICE:
       1:
@@ -63,57 +64,20 @@ conditional_schedule:
     REGRESSION_SERVICE:
       1:
         - installation/install_service
-  openldap_to_389ds:
-    REGRESSION_389DS:
-      1:
-        - migration/openldap_to_389ds
   regression_tests:
     REGRESSION_TEST:
       1:
         - locale/keymap_or_locale
-        - console/supportutils
         - console/force_scheduled_tasks
-        - console/textinfo
         - console/hostname
         - console/upgrade_snapshots
         - console/zypper_lr
-        - console/pam
-        - console/btrfsmaintenance
-        - console/cpio
-        - console/java
         - console/check_system_info
         - console/zypper_ref
-        - console/ncurses
-        - console/yast2_lan
-        - console/curl_https
-        - console/salt
-        - console/glibc_tunables
-        - console/zypper_in
-        - console/zypper_log
-        - console/yast2_i
-        - console/yast2_bootloader
         - console/firewall_enabled
-        - console/krb5
-        - console/sshd
-        - console/ssh_cleanup
-        - console/mtab
         - console/zypper_lifecycle
         - console/orphaned_packages_check
-        - console/kdump_and_crash
-        - console/consoletest_finish
-      2:
         - console/consoletest_finish
         - x11/desktop_runner
         - x11/setup
         - x11/xterm
-        - locale/keymap_or_locale_x11
-        - x11/sshxterm
-        - x11/gnome_control_center
-        - x11/gnome_terminal
-        - x11/gedit
-        - x11/firefox
-        - x11/yast2_snapper
-        - x11/glxgears
-        - x11/nautilus
-        - x11/desktop_mainmenu
-        - x11/reboot_gnome
