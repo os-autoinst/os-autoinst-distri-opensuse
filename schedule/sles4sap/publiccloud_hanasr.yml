@@ -20,3 +20,4 @@ schedule:
   #- sles4sap/publiccloud/hana_sr_crash_site_A
   #- sles4sap/publiccloud/hana_sr_crash_site_B
   - sles4sap/publiccloud/hana_sr_stop_replica
+  - sles4sap/publiccloud/hana_sr_kill_replica
