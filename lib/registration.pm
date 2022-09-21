@@ -616,7 +616,7 @@ sub handle_scc_popups {
         push @tags, 'expired-gpg-key' if is_sle('=15');
         while ($counter--) {
             die 'Registration repeated too much. Check if SCC is down.' if ($counter eq 1);
-            if (is_sle('15-SP4+')
+            if (is_sle('=15-SP4')
                 && (get_var('VIDEOMODE', '') !~ /text|ssh-x/)
                 && (get_var("DESKTOP") !~ /textmode/)
                 && (get_var('REMOTE_CONTROLLER') !~ /vnc/)

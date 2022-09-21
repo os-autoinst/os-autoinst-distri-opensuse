@@ -204,8 +204,7 @@ sub start_partitioner {
 sub start_vpn_gateway {
     search('vpn');
     assert_and_click 'yast2_control-center_vpn-gateway-client';
-    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-    send_key_until_needlematch('yast2-vpn-gateway-client', 'alt-f10', 20, 9);
+    assert_screen 'yast2-vpn-gateway-client', timeout => 180;
     send_key 'alt-c';
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
@@ -245,8 +244,7 @@ sub start_hypervisor {
 sub start_add_system_extensions_or_modules {
     search 'system ext';
     assert_and_click 'yast2_control-center_add-system-extensions-or-modules';
-    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-    send_key_until_needlematch('yast2_control-center_registration', 'alt-f10', 10, 2);
+    assert_screen 'yast2_control-center_registration', timeout => 180;
     send_key 'alt-r';
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
@@ -281,8 +279,7 @@ sub start_wake_on_lan {
     assert_and_click 'yast2_control-center_wake-on-lan';
     assert_screen 'yast2_control-center_wake-on-lan_install_wol';
     send_key $cmd{install};    # wol needs to be installed
-    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-    send_key_until_needlematch('yast2_control-center_wake-on-lan_overview', 'alt-f10', 10, 2);
+    assert_screen 'yast2_control-center_wake-on-lan_overview', timeout => 180;
     send_key 'alt-f';
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }

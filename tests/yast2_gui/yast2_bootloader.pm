@@ -45,10 +45,17 @@ sub run {
     type_string '16';
 
     #	default boot section
-    for (1 .. 2) { send_key 'alt-f10' }
+    if (is_sle('=15-SP4')) {
+        for (1 .. 2) { send_key 'alt-f10' }
+    }
     assert_and_click 'yast2-bootloader_default-boot-section';
-    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-    send_key_until_needlematch('yast2-bootloader_default-boot-section_tw', 'alt-f10', 9, 2);
+    if (is_sle('=15-SP4')) {
+        record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
+        send_key_until_needlematch('yast2-bootloader_default-boot-section_tw', 'alt-f10', 9, 2);
+    }
+    else {
+        assert_screen 'yast2-bootloader_default-boot-section_tw';
+    }
     send_key 'esc';    # Close drop down
 
     #	proctect boot loader with password

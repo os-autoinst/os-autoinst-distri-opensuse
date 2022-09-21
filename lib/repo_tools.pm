@@ -266,11 +266,6 @@ sub rmt_wizard {
     zypper_call 'in mariadb';
 
     enter_cmd "yast2 rmt;echo yast2-rmt-wizard-\$? > /dev/$serialdev";
-    # On x11, workaround bsc#1191112 by mouse click or drag the dialog.
-    if (($setup_console =~ /x11/) && (check_var('RMT_TEST', 'rmt_chinese'))) {
-        record_soft_failure('bsc#1191112 - When navigating through YaST module screens the next screen appears, but its content is not loaded');
-        mouse_set(100, 100);
-    }
     assert_screen 'yast2_rmt_registration';
     send_key 'alt-u';
     wait_still_screen(2, 5);
@@ -295,12 +290,6 @@ sub rmt_wizard {
     send_key 'alt-n';
     assert_screen 'yast2_rmt_ssl_CA_password';
     type_password_twice;
-    # On x11, workaround bsc#1191112 by mouse click or drag the dialog.
-    if (($setup_console =~ /x11/) && (check_var('RMT_TEST', 'rmt_chinese'))) {
-        record_soft_failure('bsc#1191112 - When navigating through YaST module screens the next screen appears, but its content is not loaded');
-        wait_still_screen(10, 15);
-        mouse_drag(startx => 480, starty => 50, endx => 485, endy => 50, button => 'left');
-    }
     assert_screen [qw(yast2_rmt_firewall yast2_rmt_firewall_disable)], 50;
     if (match_has_tag('yast2_rmt_firewall')) {
         if (check_var('RMT_TEST', 'rmt_chinese')) {

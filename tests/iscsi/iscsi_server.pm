@@ -92,8 +92,13 @@ sub target_service_tab {
 }
 
 sub config_2way_authentication {
-    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-    send_key_until_needlematch('iscsi-target-modify-acls', 'alt-f10', 10, 2);
+    if (is_sle('=15-SP4')) {
+        record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
+        send_key_until_needlematch('iscsi-target-modify-acls', 'alt-f10', 10, 2);
+    }
+    else {
+        assert_screen 'iscsi-target-modify-acls';
+    }
     send_key 'alt-a';
     assert_screen 'iscsi-target-modify-acls-initiator-popup';
     if (is_sle('>=15')) {

@@ -110,8 +110,13 @@ sub test_http_instserver {
     wait_still_screen 2, 2;
     send_key_and_wait("alt-n", 2);
     send_key_and_wait("alt-a", 2);
-    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-    send_key_until_needlematch('yast2-instserver-repository-conf', 'alt-f10', 9, 2);
+    if (is_sle('=15-SP4')) {
+        record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
+        send_key_until_needlematch('yast2-instserver-repository-conf', 'alt-f10', 9, 2);
+    }
+    else {
+        assert_screen('yast2-instserver-repository-conf');
+    }
     send_key_and_wait("alt-p", 2);
     type_string "instserver";
     wait_still_screen 2, 2;
@@ -122,7 +127,13 @@ sub test_http_instserver {
     send_key_until_needlematch("yast2-instserver_sr0dev", "down", 4);
     send_key_and_wait("alt-n", 2);
     send_key_and_wait("alt-o", 2);
-    send_key_until_needlematch([qw(yast2-instserver-ui yast2-instserver-change-media)], 'alt-f10', 21, 30);
+    if (is_sle('=15-SP4')) {
+        record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
+        send_key_until_needlematch([qw(yast2-instserver-ui yast2-instserver-change-media)], 'alt-f10', 21, 30);
+    }
+    else {
+        assert_screen([qw(yast2-instserver-ui yast2-instserver-change-media)], 300);
+    }
     # skip "insert next cd" on SLE 12.x
     send_key_and_wait("alt-s", 2) if is_sle("<=12-SP5") && match_has_tag('yast2-instserver-change-media');
     assert_screen('yast2-instserver-ui');
