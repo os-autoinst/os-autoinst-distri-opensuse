@@ -1,8 +1,6 @@
-
 use strict;
 use warnings FATAL => 'all';
 use diagnostics;
-use Data::Dumper;
 use testapi;
 use Mojo::Base qw(publiccloud::basetest);
 use Mojo::JSON;

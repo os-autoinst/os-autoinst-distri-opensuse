@@ -199,9 +199,9 @@ sub is_hana_resource_running {
 }
 
 =head2 stop_hana
-    hana_stop_and_wait();
+    stop_hana();
 
-Stops hana database using method specified and waits for resources being stopped.
+Stops hana database using method specified.
 Default method is 'stop = HDB stop'
 Methods available:
   stop = HDB stop
@@ -234,16 +234,6 @@ sub stop_hana {
     }
     else {
         $self->run_cmd(cmd => $cmd, runas=>"hdbadm" , timeout => $timeout);
-    }
-
-    # Wait for resource to stop
-    my $start_time = time;
-    while ($self->is_hana_resource_running() == 1) {
-        if (time - $start_time > $timeout){
-            record_info("Cluster status", $self->run_cmd(cmd => $crm_mon_cmd));
-            die("DB stop operation timed out($timeout sec).");
-        }
-        sleep 30;
     }
 }
 
@@ -367,6 +357,7 @@ sub get_promoted_instance {
 
         # Skip instances without HANA db
         next if ($instance_id !~ m/vmhana/);
+
 
         my $promoted_id = $self->get_promoted_hostname();
         $promoted = $instance if ($instance_id eq $promoted_id);
