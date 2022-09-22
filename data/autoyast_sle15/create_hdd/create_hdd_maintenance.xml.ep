@@ -143,7 +143,7 @@
         <!-- Workaround for bsc#1202234: [addon]-release packages are missing after autoyast installation. -->
         <packages config:type="list">
         % foreach (values %$addons) {
-            <package><%= $_->{name} %>-release</package>
+            <package><%= lc($_->{name}) %>-release</package>
         % }
         </packages>
         <!-- end of workaround -->
