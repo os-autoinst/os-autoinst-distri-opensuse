@@ -49,6 +49,18 @@ sub double_check_xen_role {
     save_screenshot;
 }
 
+#Explanation for parameters introduced to facilitate offline host upgrade:
+#OFFLINE_UPGRADE indicates whether host upgrade is offline which needs reboot
+#the host and upgrade from installation media. Please refer to this document:
+#https://susedoc.github.io/doc-sle/main/single-html/SLES-upgrade/#cha-upgrade-offline
+#UPGRADE_AFTER_REBOOT is used to control whether reboot is followed by host
+#offline upgrade procedure which needs to be treated differently compared with
+#usual reboot and then login.
+#REBOOT_AFTER_UPGRADE is used to control whether current reboot immediately
+#follows upgrade, because certain checks are not suitable for this specific
+#scenario, for example, xen kernel checking should be skipped for this reboot
+#into default kvm environment after upgrading xen host.
+#AFTER_UPGRADE indicates whether the whole upgrade process finishes.
 sub login_to_console {
     my ($self, $timeout, $counter) = @_;
     $timeout //= 5;
@@ -102,8 +114,8 @@ sub login_to_console {
         check_screen([qw(grub2 grub1)], 60);
     }
 
-    if (!get_var("reboot_for_upgrade_step")) {
-        set_var("first_reboot_after_upgrade", "no") if (check_var("first_reboot_after_upgrade", "yes"));
+    if (!get_var('UPGRADE_AFTER_REBOOT')) {
+        set_var('REBOOT_AFTER_UPGRADE', '') if (get_var('REBOOT_AFTER_UPGRADE'));
         if (is_xen_host) {
             #send key 'up' to stop grub timer counting down, to be more robust to select xen
             send_key 'up';
@@ -122,7 +134,7 @@ sub login_to_console {
     else {
         save_screenshot;
         #offline upgrade requires upgrading offline during reboot while online doesn't
-        if (check_var('offline_upgrade', 'yes')) {
+        if (get_var('OFFLINE_UPGRADE')) {
             #boot to upgrade menuentry
             send_key 'down';
             send_key 'ret';
@@ -163,9 +175,9 @@ sub login_to_console {
             save_screenshot;
         }
         #setup vars
-        set_var("reboot_for_upgrade_step", undef);
-        set_var("first_reboot_after_upgrade", "yes");
-        set_var("after_upgrade", "yes");
+        set_var('UPGRADE_AFTER_REBOOT', '');
+        set_var('REBOOT_AFTER_UPGRADE', '1');
+        set_var('AFTER_UPGRADE', '1');
     }
     save_screenshot;
     send_key 'ret';
@@ -184,7 +196,7 @@ sub login_to_console {
     # use console based on ssh to avoid unstable ipmi
     use_ssh_serial_console;
     # double-check xen role for xen host
-    double_check_xen_role if (is_xen_host and (!check_var("first_reboot_after_upgrade", "yes")));
+    double_check_xen_role if (is_xen_host and !get_var('REBOOT_AFTER_UPGRADE'));
 }
 
 sub run {
