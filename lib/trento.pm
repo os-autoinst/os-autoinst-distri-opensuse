@@ -48,8 +48,10 @@ our @EXPORT = qw(
   get_trento_ip
   get_vnet
   get_trento_password
+  deploy_vm
   deploy_qesap
   destroy_qesap
+  install_agent
   VM_USER
   SSH_KEY
   cypress_install_container
@@ -59,6 +61,7 @@ our @EXPORT = qw(
   cypress_exec
   cypress_test_exec
   cypress_log_upload
+  k8s_logs
 );
 
 # Exported constants
@@ -70,6 +73,7 @@ use constant PODMAN_PULL_LOG => '/tmp/podman_pull.log';
 # Lib internal constants
 use constant TRENTO_AZ_PREFIX => 'openqa-trento';
 use constant TRENTO_QESAPDEPLOY_PREFIX => 'qesapdep';
+use constant TRENTO_SCRIPT_RUN => 'set -o pipefail ; ./';
 
 # Parameter 'registry_name' must conform to
 # the following pattern: '^[a-zA-Z0-9]*$'.
@@ -220,6 +224,32 @@ sub config_cluster {
         get_var('QESAPDEPLOY_IMDB_CLIENT'));
 }
 
+=head3 deploy_vm
+
+Deploy the main VM for the Trento application
+Based on 00.040-trento_vm_server_deploy_azure.sh
+=cut
+
+sub deploy_vm {
+    # Run the Trento deployment
+
+    my $script_id = '00.040';
+    my $resource_group = get_resource_group();
+    my $machine_name = get_vm_name();
+    record_info($script_id);
+    my $vm_image = get_var(TRENTO_VM_IMAGE => 'SUSE:sles-sap-15-sp3-byos:gen2:latest');
+    my $deploy_script_log = "script_$script_id.log.txt";
+    my $cmd = join(' ', TRENTO_SCRIPT_RUN . $script_id . '-trento_vm_server_deploy_azure.sh ',
+        '-g', $resource_group,
+        '-s', $machine_name,
+        '-i', $vm_image,
+        '-a', VM_USER,
+        '-k', SSH_KEY . '.pub',
+        '-v', "2>&1|tee $deploy_script_log");
+    assert_script_run($cmd, 360);
+    upload_logs($deploy_script_log);
+}
+
 =head3 deploy_qesap
 
 Deploy a SAP Landscape using a previously configured qe-sap-deployment
@@ -227,6 +257,9 @@ Deploy a SAP Landscape using a previously configured qe-sap-deployment
 
 sub deploy_qesap {
     qesap_sh_deploy(SSH_KEY);
+    my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    enter_cmd "cat $inventory";
+    upload_logs($inventory);
 }
 
 =head3 destroy_qesap
@@ -281,9 +314,9 @@ Return the output of az network vnet list
 =cut
 
 sub get_vnet {
-    my ($self, $resource_group) = @_;
+    my ($resource_group) = @_;
     my $az_cmd = join(' ', 'az', 'network',
-        'vnet', 'list', get_resource_group(),
+        'vnet', 'list',
         '-g', $resource_group,
         '--query', '"[0].name"',
         '-o', 'tsv');
@@ -305,7 +338,7 @@ sub get_trento_password {
     else {
         my $machine_ip = get_trento_ip;
         record_info("TRENTO IP", $machine_ip);
-        my $trento_web_password_cmd = $self->az_vm_ssh_cmd(
+        my $trento_web_password_cmd = az_vm_ssh_cmd(
             'kubectl get secret trento-server-web-secret' .
               " -o jsonpath='{.data.ADMIN_PASSWORD}'" .
               '|base64 --decode', $machine_ip);
@@ -344,7 +377,7 @@ take care that is a time consuming I<az> query.
 =cut
 
 sub az_vm_ssh_cmd {
-    my ($self, $cmd_arg, $vm_ip_arg) = @_;
+    my ($cmd_arg, $vm_ip_arg) = @_;
     record_info('REMOTE', "cmd:$cmd_arg");
 
     # Undef comparison operator
@@ -354,6 +387,45 @@ sub az_vm_ssh_cmd {
       ' -i ' . SSH_KEY . ' ' .
       VM_USER . '@' . $vm_ip_arg .
       ' -- ' . $cmd_arg;
+}
+
+=head3 install_agent
+
+Install trento-agent on all the nodes.
+Installation is performed using ansible.
+
+=over 4
+
+=item B<WORK_DIRECTORY> - Working directory, used to eventually download .rpm
+
+=item B<PLAYBOOK> - Playbook location
+
+=item B<API_KEY> - Api key needed to configure trento-agent
+
+=item B<PRIVATE_IP> - Trento server private IP, used to configure server-url in agent
+
+=back
+=cut
+
+sub install_agent {
+    my ($self, $wd, $playbook_location, $agent_api_key, $priv_ip) = @_;
+    my $local_rpm_arg = '';
+    my $cmd;
+    if (get_var('TRENTO_AGENT_RPM')) {
+        my $package = get_var('TRENTO_AGENT_RPM');
+        my $ibs_location = get_var(TRENTO_AGENT_REPO => 'https://dist.suse.de/ibs/Devel:/SAP:/trento:/factory/SLE_15_SP3/x86_64');
+        $cmd = "curl \"$ibs_location/$package\" --output $wd/$package";
+        assert_script_run($cmd);
+        $local_rpm_arg = " -e agent_rpm=$wd/$package";
+    }
+
+    $cmd = join(' ', 'ansible-playbook', '-vv',
+        '-i', qesap_get_inventory(lc get_required_var('PUBLIC_CLOUD_PROVIDER')),
+        "$playbook_location/trento-agent.yaml",
+        $local_rpm_arg,
+        '-e', "api_key=$agent_api_key",
+        '-e', "trento_private_addr=$priv_ip");
+    assert_script_run($cmd);
 }
 
 =head3 k8s_logs
@@ -370,13 +442,12 @@ Get all relevant info out from the cluster
 =cut
 
 sub k8s_logs {
-    my $self = shift;
     my (@pods_list) = @_;
-    my $machine_ip = get_trento_ip;
+    my $machine_ip = get_trento_ip();
 
     return unless ($machine_ip);
 
-    my $kubectl_pods = script_output($self->az_vm_ssh_cmd('kubectl get pods', $machine_ip), 180);
+    my $kubectl_pods = script_output(az_vm_ssh_cmd('kubectl get pods', $machine_ip), 180);
 
     # For each pod that I'm interested to inspect
     for my $s (@pods_list) {
@@ -391,12 +462,12 @@ sub k8s_logs {
                 my $pod_name = (split /\s/, $row)[0];
 
                 # ...get the description
-                my $kubectl_describe_cmd = $self->az_vm_ssh_cmd("kubectl describe pods/$pod_name > $describe_txt", $machine_ip);
+                my $kubectl_describe_cmd = az_vm_ssh_cmd("kubectl describe pods/$pod_name > $describe_txt", $machine_ip);
                 script_run($kubectl_describe_cmd, 180);
                 upload_logs($describe_txt);
 
                 # ...get the log
-                my $kubectl_logs_cmd = $self->az_vm_ssh_cmd("kubectl logs $pod_name > $log_txt", $machine_ip);
+                my $kubectl_logs_cmd = az_vm_ssh_cmd("kubectl logs $pod_name > $log_txt", $machine_ip);
                 script_run($kubectl_logs_cmd, 180);
                 upload_logs($log_txt);
             }

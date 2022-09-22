@@ -20,30 +20,15 @@ sub run {
     $self->select_serial_terminal;
 
     my $resource_group = $self->get_resource_group;
-    my $machine_name = $self->get_vm_name;
     my $acr_name = $self->get_acr_name;
 
     my $basedir = '/root/test';
     enter_cmd "cd $basedir";
 
+    $self->deploy_vm();
+
     my $script_run = 'set -o pipefail ; ./';
-    # Run the Trento deployment
-
-    my $script_id = '00.040';
-    record_info($script_id);
-    my $vm_image = get_var(TRENTO_VM_IMAGE => 'SUSE:sles-sap-15-sp3-byos:gen2:latest');
-    my $deploy_script_log = "script_$script_id.log.txt";
-    my $cmd = $script_run . $script_id . '-trento_vm_server_deploy_azure.sh ' .
-      " -g $resource_group" .
-      " -s $machine_name" .
-      " -i $vm_image" .
-      ' -a ' . $self->VM_USER .
-      ' -k ' . $self->SSH_KEY . '.pub' .
-      " -v 2>&1|tee $deploy_script_log";
-    assert_script_run($cmd, 360);
-    upload_logs($deploy_script_log);
-
-    $script_id = 'trento_acr_azure';
+    my $script_id = 'trento_acr_azure';
     record_info($script_id);
     my $trento_registry_chart = get_var(TRENTO_REGISTRY_CHART => 'registry.suse.com/trento/trento-server');
     my $cfg_json = 'config_images_gen.json';
@@ -72,10 +57,10 @@ sub run {
         upload_logs($cfg_json);
         $trento_registry_chart = $cfg_json;
     }
-    $deploy_script_log = "script_$script_id.log.txt";
+    my $deploy_script_log = "script_$script_id.log.txt";
     my $trento_cluster_install = "${basedir}/trento_cluster_install.sh";
     my $trento_acr_azure_timeout = 360;
-    $cmd = $script_run . $script_id . '.sh' .
+    my $cmd = $script_run . $script_id . '.sh' .
       " -g $resource_group" .
       " -n $acr_name" .
       " -r $trento_registry_chart";
@@ -121,7 +106,7 @@ sub run {
       "-v 2>&1|tee $deploy_script_log";
     assert_script_run($cmd, 600);
     upload_logs($deploy_script_log);
-    $self->k8s_logs(qw(web runner));
+    trento::k8s_logs(qw(web runner));
 }
 
 sub post_fail_hook {
@@ -130,7 +115,7 @@ sub post_fail_hook {
     my $find_cmd = 'find . -type f -iname "*.log.txt"';
     upload_logs("$_") for split(/\n/, script_output($find_cmd));
 
-    $self->k8s_logs(qw(web runner));
+    trento::k8s_logs(qw(web runner));
     $self->az_delete_group;
 
     $self->SUPER::post_fail_hook;

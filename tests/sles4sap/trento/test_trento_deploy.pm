@@ -26,11 +26,11 @@ sub run {
         assert_script_run("az vm list -g $resource_group --query \"[].name\"  -o tsv", 180);
 
         # get deployed version from the cluster
-        my $kubectl_pods = script_output($self->az_vm_ssh_cmd('kubectl get pods', $machine_ip), 180);
+        my $kubectl_pods = script_output(trento::az_vm_ssh_cmd('kubectl get pods', $machine_ip), 180);
         foreach my $row (split(/\n/, $kubectl_pods)) {
             if ($row =~ m/trento-server-web/) {
                 my $pod_name = (split /\s/, $row)[0];
-                my $trento_ver_cmd = $self->az_vm_ssh_cmd("kubectl exec --stdin $pod_name -- /app/bin/trento version", $machine_ip);
+                my $trento_ver_cmd = trento::az_vm_ssh_cmd("kubectl exec --stdin $pod_name -- /app/bin/trento version", $machine_ip);
                 script_run($trento_ver_cmd, 180);
             }
         }
@@ -52,7 +52,7 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     if (!get_var('TRENTO_EXT_DEPLOY_IP')) {
-        $self->k8s_logs(qw(web runner));
+        trento::k8s_logs(qw(web runner));
         $self->az_delete_group;
     }
     $self->SUPER::post_fail_hook;

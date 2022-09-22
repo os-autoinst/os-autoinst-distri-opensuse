@@ -51,6 +51,7 @@ our @EXPORT = qw(
   qesap_configure_hanamedia
   qesap_sh_deploy
   qesap_sh_destroy
+  qesap_get_inventory
   qesap_prepare_env
   qesap_execute
   qesap_yaml_replace
@@ -70,7 +71,7 @@ our @EXPORT = qw(
 sub qesap_get_file_paths {
     my %paths;
     $paths{qesap_conf_filename} = get_required_var('QESAP_CONFIG_FILE');
-    $paths{deployment_dir} = get_var('DEPLOYMENT_DIR', '/root/qe-sap-deployment');
+    $paths{deployment_dir} = get_var('QESAP_DEPLOYMENT_DIR', get_var('DEPLOYMENT_DIR', '/root/qe-sap-deployment'));
     $paths{terraform_dir} = get_var('PUBLIC_CLOUD_TERRAFORM_DIR', $paths{deployment_dir} . '/terraform/');
     $paths{qesap_conf_trgt} = $paths{deployment_dir} . "/scripts/qesap/" . $paths{qesap_conf_filename};
     return (%paths);
@@ -100,8 +101,8 @@ sub qesap_pip_install {
     # Hack to fix an installation conflict. Someone install PyYAML 6.0 and awscli needs an older one
     push(@log_files, $pip_install_log);
     record_info("QESAP repo", "Installing pip requirements");
-    assert_script_run(join(" ", $pip_ints_cmd, 'awscli==1.19.48 | tee', $pip_install_log), 180);
-    assert_script_run(join(" ", $pip_ints_cmd, '-r', $paths{deployment_dir} . '/requirements.txt | tee -a', $pip_install_log), 180);
+    assert_script_run(join(" ", $pip_ints_cmd, 'awscli==1.19.48 | tee', $pip_install_log), 240);
+    assert_script_run(join(" ", $pip_ints_cmd, '-r', $paths{deployment_dir} . '/requirements.txt | tee -a', $pip_install_log), 240);
 }
 
 =head3 qesap_upload_logs
@@ -160,7 +161,7 @@ sub qesap_get_deployment_code {
         my $git_branch = get_var('QESAPDEPLOY_GITHUB_BRANCH', 'main');
 
         my $git_clone_cmd = 'git clone --depth 1 --branch ' . $git_branch . ' https://' . $git_repo . ' ' . $paths{deployment_dir};
-        assert_script_run("set -o pipefail ; $git_clone_cmd | tee " . $qesap_git_clone_log, quiet => 1);
+        assert_script_run("set -o pipefail ; $git_clone_cmd  2>&1 | tee $qesap_git_clone_log", quiet => 1);
     }
     # Add symlinks for different provider directory naming between OpenQA and qesap-deployment
     assert_script_run("ln -s " . $paths{terraform_dir} . "/aws " . $paths{terraform_dir} . "/ec2");
@@ -290,9 +291,9 @@ sub qesap_configure_hanamedia {
     upload_logs($media_var);
 }
 
-=head3 qesap_sh_deploy
+=head3 qesap_sh
 
-Call qe-sap-deployment .sh scripts and publish all the logs
+Generic handler for any qe-sap-deployment .sh scripts: calls and publish all the logs
 
 =cut
 
@@ -318,6 +319,7 @@ Call build.sh and publish all the logs
 
 sub qesap_sh_deploy {
     my ($ssh_key) = @_;
+    record_info('build.sh');
     qesap_sh($ssh_key, 'build.sh', 45);
 }
 
@@ -329,6 +331,7 @@ Call destroy.sh and publish all the logs
 
 sub qesap_sh_destroy {
     my ($ssh_key) = @_;
+    record_info('destroy.sh');
     qesap_sh($ssh_key, 'destroy.sh', 15);
 }
 
@@ -362,9 +365,20 @@ sub qesap_execute {
     qesap_upload_logs();
 }
 
+=head3 qesap_get_inventory
+
+    Return the path of the generated inventory
+=cut
+
+sub qesap_get_inventory {
+    my ($provider) = @_;
+    my %paths = qesap_get_file_paths();
+    return "$paths{deployment_dir}/terraform/" . lc $provider . '/inventory.yaml';
+}
+
 =head3 qesap_prepare_env
 
-    qesap_prepare_env(variables=>{dict with variables});
+    qesap_prepare_env(variables=>{dict with variables}, provider => 'aws');
 
     Prepare terraform environment.
     - creates file structures
