@@ -27,18 +27,26 @@ sub test_flags {
 sub run {
     my ($self, $run_args) = @_;
     $self->{instances} = $run_args->{instances};
+    my $hana_start_timeout = bmwqemu::scale_timeout(600);
     my $site_b = $run_args->{site_b};
 
     $self->select_serial_terminal;
 
-    # Switch to control Site A (currently PROMOTED)
+    # Switch to control Site B (currently PROMOTED)
     $self->{my_instance} = $site_b;
+    my $cluster_status = $self->run_cmd(cmd=>"crm status");
+    record_info( "Cluster status", $cluster_status );
 
-    record_info("Stop DB", "Running 'proc-systrigger' on Site B ('$site_b->{instance_id}')");
+    # Check initial state: 'site B' = primary mode
+    die("Site B '$site_b->{instance_id}' is NOT in MASTER mode.") if
+        $self->get_promoted_hostname() ne $site_b->{instance_id};
+
+    record_info("Crash OS", "Running 'proc-systrigger' on Site B ('$site_b->{instance_id}')");
     $self->stop_hana(method => "crash");
-    return();
+    $self->{my_instance}->wait_for_ssh(username=>'cloudadmin');
+
     record_info("Takeover check");
-    $self->check_takeover;
+    $self->check_takeover();
 
     record_info("Replication", "Enabling replication on Site B (DEMOTED)");
     $self->enable_replication();

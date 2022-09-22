@@ -342,7 +342,7 @@ sub enable_replication {
 sub get_replication_info {
     my ($self) = @_;
     my $output_cmd = $self->run_cmd(cmd => "hdbnsutil -sr_state| grep -E :[^\^]", runas => "hdbadm");
-
+    record_info("replication info", $output_cmd);
     # Create a hash from hdbnsutil output ,convert to lowercase with underscore instead of space.
     my %out = $output_cmd =~ /^?\s?([\/A-z\s]*\S+):\s(\S+)\n/g;
     %out = map { $_ =~ s/\s/_/g; lc $_} %out;

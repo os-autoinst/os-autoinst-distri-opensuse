@@ -27,19 +27,25 @@ sub test_flags {
 sub run {
     my ($self, $run_args) = @_;
     $self->{instances} = $run_args->{instances};
+    my $hana_start_timeout = bmwqemu::scale_timeout(600);
     my $site_a = $run_args->{site_a};
 
     $self->select_serial_terminal;
 
     # Switch to control Site A (currently PROMOTED)
     $self->{my_instance} = $site_a;
+    my $cluster_status = $self->run_cmd(cmd=>"crm status");
+    record_info( "Cluster status", $cluster_status );
+    # Check initial state: 'site A' = primary mode
+    die("Site A '$site_a->{instance_id}' is NOT in MASTER mode.") if
+        $self->get_promoted_hostname() ne $site_a->{instance_id};
 
     record_info("Stop DB", "Running 'proc-systrigger' on Site A ('$site_a->{instance_id}')");
     $self->stop_hana(method => "crash");
+    $self->{my_instance}->wait_for_ssh(username=>'cloudadmin');
 
     record_info("Takeover check");
-    return();
-    $self->check_takeover;
+    $self->check_takeover();
 
     record_info("Replication", "Enabling replication on Site A (DEMOTED)");
     $self->enable_replication();
