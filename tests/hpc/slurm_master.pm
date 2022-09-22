@@ -14,63 +14,11 @@ use lockapi;
 use utils;
 use version_utils 'is_sle';
 
-## TODO: provide better parser for HPC specific tests
-sub validate_result ($result) {
-    if ($result == 0) {
-        return 'PASS';
-    } elsif ($result == 1) {
-        return 'FAIL';
-    } else {
-        return undef;
-    }
-}
-
-sub generate_results ($name, $description, $result) {
-    my %results = (
-        test => $name,
-        description => $description,
-        result => validate_result($result)
-    );
-    return %results;
-}
-
-sub pars_results (@test) {
-    my $file = 'tmpresults.xml';
-
-    # check if there are some single test failing
-    # and if so, make sure the whole testsuite will fail
-    my $fail_check = 0;
-    for my $i (@test) {
-        if ($i->{result} eq 'FAIL') {
-            $fail_check++;
-        }
-    }
-
-    if ($fail_check > 0) {
-        script_run("echo \"<testsuite name='HPC single tests' errors='1'>\" >> $file");
-    } else {
-        script_run("echo \"<testsuite name='HPC single tests'>\" >> $file");
-    }
-
-    # pars all results and provide expected xml file
-    for my $i (@test) {
-        if ($i->{result} eq 'FAIL') {
-            script_run("echo \"<testcase name='$i->{test}' errors='1'>\" >>  $file");
-        } else {
-            script_run("echo \"<testcase name='$i->{test}'>\" >> $file");
-        }
-        script_run("echo \"<system-out>\" >> $file");
-        script_run("echo $i->{description} >>  $file");
-        script_run("echo \"</system-out>\" >> $file");
-        script_run("echo \"</testcase>\" >> $file");
-    }
-}
+our @all_tests_results;
 
 sub run_tests ($slurm_conf) {
-    my $file = 'tmpresults.xml';
-    assert_script_run("touch $file");
-
-    my @all_tests_results;
+    my $xmlfile = 'testresults.xml';
+    assert_script_run("touch $xmlfile");
 
     # always run basic tests
     push(@all_tests_results, run_basic_tests());
@@ -85,10 +33,8 @@ sub run_tests ($slurm_conf) {
         push(@all_tests_results, run_ha_tests());
     }
 
-    pars_results(@all_tests_results);
-
-    script_run("echo \"</testsuite>\" >> $file");
-    parse_extra_log('XUnit', 'tmpresults.xml');
+    pars_results('HPC slurm tests', $xmlfile, @all_tests_results);
+    parse_extra_log('XUnit', $xmlfile);
 }
 
 ########################################
