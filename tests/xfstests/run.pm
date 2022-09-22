@@ -504,16 +504,17 @@ sub run {
     #Save status log before next step(if run.pm fail will load into a last good snapshot)
     save_tmp_file('status.log', $status_log_content);
     my $local_file = "/tmp/opt_logs.tar.gz";
-    script_run("tar zcvf $local_file --absolute-names /opt/log/");
-    script_run("NUM=0; while [ ! -f $local_file ]; do sleep 20; NUM=\$(( \$NUM + 1 )); if [ \$NUM -gt 10 ]; then break; fi; done");
-    upload_logs $local_file;
+    my $back_pid = background_script_run("tar zcvf $local_file --absolute-names /opt/log/");
+    script_run("wait $back_pid");
+    upload_logs($local_file, failok => 1, timeout => 180);
 }
 
 sub post_fail_hook {
     my ($self) = shift;
     # Collect executed test logs
-    script_run 'tar zcvf /tmp/opt_logs.tar.gz --absolute-names /opt/log/';
-    upload_logs '/tmp/opt_logs.tar.gz';
+    my $back_pid = background_script_run('tar zcvf /tmp/opt_logs.tar.gz --absolute-names /opt/log/');
+    script_run("wait $back_pid");
+    upload_logs('/tmp/opt_logs.tar.gz', failok => 1, timeout => 180);
 }
 
 1;
