@@ -224,7 +224,12 @@ TRENTO_REGISTRY_IMAGE_WEB | string |  | Optional. Overwrite the trento-web image
 TRENTO_REGISTRY_IMAGE_WEB_VERSION | string |  | Optional. Version tag for the trento-web image
 TRENTO_GITLAB_REPO | string | gitlab.suse.de/qa-css/trento | Repository for the deployment scripts
 TRENTO_GITLAB_BRANCH | string | master | Branch to use in the deployment script repository
-
+TRENTO_GITLAB_TOKEN | string | | Force te use of a custom token
+TRENTO_DEPLOY_VER | string | | Force the Trento deployment script to be used from a release
+TRENTO_AGENT_REPO | string | https://dist.suse.de/ibs/Devel:/SAP:/trento:/factory/SLE_15_SP3/x86_64 | Repository where to get the trento-agent installer
+TRENTO_AGENT_RPM | string | | Trento-agent rpm file name
+TRENTO_EXT_DEPLOY_IP | string | | Public IP of a Trento web instance not deployed by openQA
+TRENTO_WEB_PASSWORD | string | | Trento web password for the admin user
 
 ### Publiccloud specific variables
 

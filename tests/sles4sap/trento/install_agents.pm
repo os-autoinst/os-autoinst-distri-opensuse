@@ -15,18 +15,16 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    $self->deploy_qesap();
+    my $wd = '/root/work_dir';
+    enter_cmd "mkdir $wd";
+    my $cmd = '/root/test/trento-server-api-key.sh' .
+      ' -u admin' .
+      ' -p ' . $self->get_trento_password() .
+      ' -i ' . $self->get_trento_ip() .
+      " -d $wd";
+    my $agent_api_key = script_output($cmd);
 
-    my $trento_rg = $self->get_resource_group;
-    my $cluster_rg = $self->get_qesap_resource_group();
-    my $cmd = join(' ',
-        '/root/test/00.050-trento_net_peering_tserver-sap_group.sh',
-        '-s', $trento_rg,
-        '-n', trento::get_vnet($trento_rg),
-        '-t', $cluster_rg,
-        '-a', trento::get_vnet($cluster_rg));
-    record_info('NET PEERING');
-    assert_script_run($cmd, 360);
+    $cmd = $self->install_agent($wd, '/root/test', $agent_api_key, '10.0.0.4');
 }
 
 sub post_fail_hook {
