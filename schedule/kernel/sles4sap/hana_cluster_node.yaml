@@ -1,0 +1,96 @@
+---
+name: hana_cluster_node
+description: >
+  HanaSR Cluster Test. Schedule for all nodes.
+
+  Some settings are required in the job group or test suite for this schedule to work.
+
+  The other settings required in the job group are.
+
+  CLUSTER_INFOS must be defined in the parent job to the name of the cluster, number
+  of nodes and number of LUNs. Example 'hana:2:3'
+  CLUSTER_NAME must be defined for all jobs as a string.
+  NUMDISKS must be defined and set to the total number of disks, usually 2 for a
+  HANA cluster.
+  HDDSIZEGB_2 must be defined and set to the needed size of the HANA disk.
+  HA_CLUSTER_INIT must be defined to yes on the job that initializes the cluster,
+  and to no in the rest of the cluster node jobs.
+  HA_CLUSTER_JOIN must be defined for the rest of the jobs, and it must contain the
+  hostname of the job where HA_CLUSTER_INIT is defined to yes
+  HANA must be defined pointing to the location of the HANA installation masters
+  HOSTNAME must be defined to different hostnames for each node.
+  MAX_JOB_TIME is recommended to be defined as well to a high value (ex. 20000)
+  All jobs with the exception of the parent job must include a PARALLEL_WITH setting
+  referencing the parent job.
+  SLE_PRODUCT must be defined and set to sles4sap.
+  And of course, YAML_SCHEDULE must point to this file.
+vars:
+  BOOT_HDD_IMAGE: '1'
+  USE_SUPPORT_SERVER: '1'
+  HDD_SCC_REGISTERED: '1'
+  VIRTIO_CONSOLE: '0'
+  AUTOMATED_REGISTER: 'false'
+  HA_CLUSTER: '1'
+  INSTANCE_ID: '00'
+  INSTANCE_IP_CIDR: '10.0.2.200/24'
+  INSTANCE_SID: 'HA1'
+  INSTANCE_TYPE: HDB
+  # Below have to be entered in the OpenQA UI because it doesn't read this YAML
+  # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-gnome.qcow2
+schedule:
+  - boot/boot_to_desktop
+  - ha/wait_barriers
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/hostname
+  - ha/ha_sle15_workarounds
+  - ha/firewall_disable
+  - ha/iscsi_client
+  - ha/watchdog
+  - sles4sap/patterns
+  - sles4sap/hana_install
+  - '{{wmp_setup}}'
+  - '{{cluster_setup}}'
+  - sles4sap/hana_cluster
+  - sles4sap/monitoring_services
+  - '{{sap_suse_cluster_connector}}'
+  - '{{wmp_check_process}}'
+  - sles4sap/hana_test
+  - ha/fencing
+  - '{{boot_to_desktop_node01}}'
+  - ha/check_after_reboot
+  - '{{wmp_check_process}}'
+  - ha/fencing
+  - '{{boot_to_desktop_node02}}'
+  - ha/check_after_reboot
+  - '{{wmp_check_process}}'
+  - ha/check_logs
+conditional_schedule:
+  cluster_setup:
+    HA_CLUSTER_INIT:
+      yes:
+        - ha/ha_cluster_init
+      no:
+        - ha/ha_cluster_join
+  sap_suse_cluster_connector:
+    HA_CLUSTER_INIT:
+      yes:
+        - sles4sap/sap_suse_cluster_connector
+  boot_to_desktop_node01:
+    HA_CLUSTER_INIT:
+      yes:
+        - boot/boot_to_desktop
+  boot_to_desktop_node02:
+    HA_CLUSTER_INIT:
+      no:
+        - boot/boot_to_desktop
+  wmp_setup:
+    WMP:
+      1:
+        - sles4sap/wmp_setup
+  wmp_check_process:
+    WMP:
+      1:
+        - sles4sap/wmp_check_process
+        - kernel/wmp_simple
