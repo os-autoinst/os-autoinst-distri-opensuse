@@ -28,10 +28,11 @@
           <li><a href="#qesap_configure_tfvar">qesap_configure_tfvar</a></li>
           <li><a href="#qesap_configure_variables">qesap_configure_variables</a></li>
           <li><a href="#qesap_configure_hanamedia">qesap_configure_hanamedia</a></li>
+          <li><a href="#qesap_sh">qesap_sh</a></li>
           <li><a href="#qesap_sh_deploy">qesap_sh_deploy</a></li>
-          <li><a href="#qesap_sh_deploy1">qesap_sh_deploy</a></li>
           <li><a href="#qesap_sh_destroy">qesap_sh_destroy</a></li>
           <li><a href="#qesap_execute">qesap_execute</a></li>
+          <li><a href="#qesap_get_inventory">qesap_get_inventory</a></li>
           <li><a href="#qesap_prepare_env">qesap_prepare_env</a></li>
         </ul>
       </li>
@@ -161,11 +162,11 @@
 </dd>
 </dl>
 
+<h3 id="qesap_sh">qesap_sh</h3>
+
+<p>Generic handler for any qe-sap-deployment .sh scripts: calls and publish all the logs</p>
+
 <h3 id="qesap_sh_deploy">qesap_sh_deploy</h3>
-
-<p>Call qe-sap-deployment .sh scripts and publish all the logs</p>
-
-<h3 id="qesap_sh_deploy1">qesap_sh_deploy</h3>
 
 <p>Call build.sh and publish all the logs</p>
 
@@ -180,9 +181,13 @@
     Execute qesap glue script commands. Check project documentation for available options:
     https://github.com/SUSE/qe-sap-deployment</code></pre>
 
+<h3 id="qesap_get_inventory">qesap_get_inventory</h3>
+
+<pre><code>    Return the path of the generated inventory</code></pre>
+
 <h3 id="qesap_prepare_env">qesap_prepare_env</h3>
 
-<pre><code>    qesap_prepare_env(variables=&gt;{dict with variables});
+<pre><code>    qesap_prepare_env(variables=&gt;{dict with variables}, provider =&gt; &#39;aws&#39;);
 
     Prepare terraform environment.
     - creates file structures

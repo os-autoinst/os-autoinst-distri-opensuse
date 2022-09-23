@@ -23,6 +23,7 @@
           <li><a href="#get_resource_group">get_resource_group</a></li>
           <li><a href="#get_qesap_resource_group">get_qesap_resource_group</a></li>
           <li><a href="#config_cluster">config_cluster</a></li>
+          <li><a href="#deploy_vm">deploy_vm</a></li>
           <li><a href="#deploy_qesap">deploy_qesap</a></li>
           <li><a href="#destroy_qesap">destroy_qesap</a></li>
           <li><a href="#get_vm_name">get_vm_name</a></li>
@@ -32,6 +33,7 @@
           <li><a href="#get_trento_password">get_trento_password</a></li>
           <li><a href="#az_delete_group">az_delete_group</a></li>
           <li><a href="#az_vm_ssh_cmd">az_vm_ssh_cmd</a></li>
+          <li><a href="#install_agent">install_agent</a></li>
           <li><a href="#k8s_logs">k8s_logs</a></li>
           <li><a href="#podman_self_check">podman_self_check</a></li>
           <li><a href="#cypress_install_container">cypress_install_container</a></li>
@@ -77,6 +79,10 @@
 
 <h3 id="config_cluster">config_cluster</h3>
 
+<h3 id="deploy_vm">deploy_vm</h3>
+
+<p>Deploy the main VM for the Trento application Based on 00.040-trento_vm_server_deploy_azure.sh</p>
+
 <h3 id="deploy_qesap">deploy_qesap</h3>
 
 <p>Deploy a SAP Landscape using a previously configured qe-sap-deployment</p>
@@ -120,6 +126,30 @@
 
 </dd>
 <dt id="VM_IP_ARG---Public-IP-of-the-remote-machine-where-to-execute-the-command"><b>VM_IP_ARG</b> - Public IP of the remote machine where to execute the command</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="install_agent">install_agent</h3>
+
+<p>Install trento-agent on all the nodes. Installation is performed using ansible.</p>
+
+<dl>
+
+<dt id="WORK_DIRECTORY---Working-directory-used-to-eventually-download-.rpm"><b>WORK_DIRECTORY</b> - Working directory, used to eventually download .rpm</dt>
+<dd>
+
+</dd>
+<dt id="PLAYBOOK---Playbook-location"><b>PLAYBOOK</b> - Playbook location</dt>
+<dd>
+
+</dd>
+<dt id="API_KEY---Api-key-needed-to-configure-trento-agent"><b>API_KEY</b> - Api key needed to configure trento-agent</dt>
+<dd>
+
+</dd>
+<dt id="PRIVATE_IP---Trento-server-private-IP-used-to-configure-server-url-in-agent"><b>PRIVATE_IP</b> - Trento server private IP, used to configure server-url in agent</dt>
 <dd>
 
 </dd>
