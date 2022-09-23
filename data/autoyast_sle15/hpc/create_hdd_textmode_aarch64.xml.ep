@@ -38,6 +38,7 @@
         <release_type>nil</release_type>
         <version>{{VERSION}}</version>
       </addon>
+      % unless ($check_var->('VERSION', '15')) {
       <addon config:type="map">
         <arch>{{ARCH}}</arch>
         % unless ($check_var->('VERSION', '15-SP4') || $check_var->('VERSION', '15-SP5')) {
@@ -49,6 +50,7 @@
         <release_type>nil</release_type>
         <version>{{VERSION}}</version>
       </addon>
+      % }
       <addon config:type="map">
         <arch>{{ARCH}}</arch>
         <name>sle-module-development-tools</name>
@@ -412,10 +414,12 @@
       <package>sle-module-development-tools-release</package>
       <package>sle-module-desktop-applications-release</package>
       <package>sle-module-basesystem-release</package>
+      % unless ($check_var->('VERSION', '15')) {
       % unless ($check_var->('VERSION', '15-SP4') || $check_var->('VERSION', '15-SP5')) {
       <package>sle-module-python2-release</package>
       % } else {
       <package>sle-module-python3-release</package>
+      % }
       % }
       % if ($check_var->('SCC_ADDONS', 'nvidia')) {
       <package>sle-module-NVIDIA-compute-release</package>
