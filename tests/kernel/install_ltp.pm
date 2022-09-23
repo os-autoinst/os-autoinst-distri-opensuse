@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2020 SUSE LLC
+# Copyright 2016-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: This module installs the LTP (Linux Test Project) and then reboots.
@@ -19,7 +19,7 @@ use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use upload_system_log;
-use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumbleweed is_rt);
+use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumbleweed is_rt is_transactional is_alp);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use LTP::utils;
@@ -245,7 +245,7 @@ sub add_ltp_repo {
     my $repo = get_var('LTP_REPOSITORY');
 
     if (!$repo) {
-        if (is_sle) {
+        if (is_sle || is_transactional) {
             add_qa_head_repo;
             return;
         }
@@ -286,11 +286,16 @@ sub get_default_pkg {
 sub install_from_repo {
     my @pkgs = split(/\s* \s*/, get_var('LTP_PKG', get_default_pkg));
 
-    zypper_call("in --recommends " . join(' ', @pkgs));
+    if (is_transactional) {
+        assert_script_run("transactional-update -n -c pkg install " . join(' ', @pkgs), 90);
+    } else {
+        zypper_call("in --recommends " . join(' ', @pkgs));
+    }
 
+    my $run_cmd = is_transactional ? 'transactional-update -c -d --quiet run' : '';
     for my $pkg (@pkgs) {
         my $want_32bit = $pkg =~ m/32bit/;
-        record_info("LTP pkg: $pkg", script_output("rpm -qi $pkg | tee "
+        record_info("LTP pkg: $pkg", script_output("$run_cmd rpm -qi $pkg | tee "
                   . get_ltp_version_file($want_32bit)));
         assert_script_run "find " . get_ltproot($want_32bit) .
           q(/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > )
@@ -400,7 +405,11 @@ sub run {
 
     log_versions 1;
 
-    zypper_call('in efivar') if is_sle('12+') || is_opensuse;
+    if (is_alp) {
+        assert_script_run("transactional-update -n -c pkg install efivar", 90);
+    } else {
+        zypper_call('in efivar') if is_sle('12+') || is_opensuse;
+    }
 
     $grub_param .= ' console=hvc0' if (get_var('ARCH') eq 'ppc64le');
     $grub_param .= ' console=ttysclp0' if (get_var('ARCH') eq 's390x');
@@ -408,8 +417,8 @@ sub run {
         add_grub_cmdline_settings($grub_param, update_grub => 1);
     }
 
-    add_custom_grub_entries if (is_sle('12+') || is_opensuse) && !is_jeos;
-    setup_network;
+    add_custom_grub_entries if (is_sle('12+') || is_opensuse || is_transactional) && !is_jeos;
+    setup_network unless is_transactional;
 
     # we don't run LVM tests in 32bit, thus not generating the runtest file
     # for 32 bit packages
@@ -422,7 +431,7 @@ sub run {
 
     # boot_ltp will schedule the tests and shutdown_ltp if there is a command
     # file
-    if (get_var('LTP_INSTALL_REBOOT')) {
+    if (get_var('LTP_INSTALL_REBOOT') || (is_transactional && $cmd_file)) {
         power_action('reboot', textmode => 1) unless is_jeos;
         loadtest_kernel 'boot_ltp';
     } elsif ($cmd_file) {

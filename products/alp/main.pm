@@ -55,6 +55,11 @@ sub load_transactional_tests {
 
 return 1 if load_yaml_schedule;
 
+if (is_kernel_test()) {
+    load_kernel_tests();
+    return 1;
+}
+
 # Handle boot of images
 if (get_var('BOOT_HDD_IMAGE')) {
     load_boot_from_disk_tests;
