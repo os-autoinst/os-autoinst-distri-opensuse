@@ -2,8 +2,9 @@
 #
 # Copyright 2019-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
-
-# Summary: saptune testing with mr_test
+#
+# Summary: The script to be run for testing saptune with 'mr_test'.
+#          Also the main package with common methods and params for running 'mr_test'.
 # Maintainer: QE-SAP <qe-sap@suse.de>, Ricardo Branco <rbranco@suse.de>, llzhao <llzhao@suse.com>
 
 package mr_test_run;
@@ -27,7 +28,9 @@ our @EXPORT = qw(
 
 our $log_file = '/var/log.txt';
 our $results_file = '/var/results.txt';
+# Test result flag for test step
 our $result;
+# Test result flag for test module
 our $result_module;
 
 sub reboot_wait {
