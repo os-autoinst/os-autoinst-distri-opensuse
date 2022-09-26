@@ -24,7 +24,8 @@ my %white_list_for_busctl = (
     'systemd-logind' => 1,
     'wickedd-nanny' => 1,
     'systemd-machine' => 1,
-    libvirtd => 1
+    libvirtd => 1,
+    busctl => 1
 );
 
 sub parse_results {
