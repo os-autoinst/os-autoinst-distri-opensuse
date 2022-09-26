@@ -11,15 +11,15 @@ use base "consoletest";
 use testapi;
 use strict;
 use warnings;
-use utils;
-use version_utils;
-use registration;
+use utils 'zypper_call';
+use version_utils 'is_sle';
+use registration qw(add_suseconnect_product get_addon_fullname);
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    add_suseconnect_product("sle-module-public-cloud", undef, undef, undef, 300, 1) if is_sle;
+    add_suseconnect_product(get_addon_fullname('pcm'), (is_sle('<15') ? '12' : undef)) if is_sle;
 
     zypper_call "in python3-Flask";
 
@@ -30,7 +30,7 @@ sub run {
     assert_script_run 'curl -s http://localhost:5000/ | grep "Hello World"';
     assert_script_run 'kill $!';
 
-    if (!is_sle('<15-SP1')) {
+    if (is_sle('>=15-SP1')) {
         zypper_call "in python3-gunicorn python3-gevent";
 
         record_info 'gunicorn';
@@ -44,11 +44,14 @@ sub run {
         assert_script_run 'kill $!';
     }
 
-    zypper_call "in uwsgi uwsgi-python3";
-    record_info 'uwsgi';
-    assert_script_run '/usr/sbin/uwsgi --plugin python3 --http-socket :7000 --mount /=flask_app:app & sleep 10';
-    assert_script_run 'curl -s http://localhost:7000/ | grep "Hello World"';
-    assert_script_run 'kill $!';
+    # uwsgi is not available on SLE
+    unless (is_sle) {
+        zypper_call "in uwsgi uwsgi-python3";
+        record_info 'uwsgi';
+        assert_script_run '/usr/sbin/uwsgi --plugin python3 --http-socket :7000 --mount /=flask_app:app & sleep 10';
+        assert_script_run 'curl -s http://localhost:7000/ | grep "Hello World"';
+        assert_script_run 'kill $!';
+    }
 
     assert_script_run 'cd -';
 }
