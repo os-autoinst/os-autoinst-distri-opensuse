@@ -37,7 +37,7 @@ sub run {
     validate_script_output('redis-cli get foo', sub { m/bar/ });
     validate_script_output('redis-cli pfselftest', sub { m/OK/ });
     validate_script_output('redis-cli flushdb', sub { m/OK/ });
-    validate_script_output('redis-cli get foo', sub { m/(nil)/ });
+    validate_script_output('redis-cli get foo', sub { chomp; m/(nil)/ });
 
     assert_script_run 'curl -O ' . data_url('console/movies.redis');
     assert_script_run('redis-cli -h localhost -p 6379 < ./movies.redis');
