@@ -178,6 +178,9 @@ sub run_img_proof {
     $args{distro} //= 'sles';
     $args{tests} =~ s/,/ /g;
 
+    my $exclude = $args{exclude} // '';
+    my $beta = $args{beta} // 0;
+
     my $version = script_output('img-proof --version', 300);
     record_info("img-proof version", $version);
 
@@ -195,6 +198,14 @@ sub run_img_proof {
     $cmd .= '-u ' . $args{user} . ' ' if ($args{user});
     $cmd .= '--ssh-private-key-file "' . $args{instance}->ssh_key . '" ';
     $cmd .= '--running-instance-id "' . ($args{running_instance_id} // $args{instance}->instance_id) . '" ';
+    $cmd .= "--beta $beta " if ($beta);
+    if ($exclude) {
+        # Split exclusion tests by command and add them individually
+        for my $excl (split ',', $exclude) {
+            $excl =~ s/^\s+|\s+$//g;    # trim spaces
+            $cmd .= "--exclude $excl ";
+        }
+    }
 
     $cmd .= $args{tests};
     record_info("img-proof cmd", $cmd);
