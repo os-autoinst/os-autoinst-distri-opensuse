@@ -1,8 +1,7 @@
-name: Leaked Secrets Scan Test
+name: WIP. Please Ignore this failure. Leaked Secrets Scan Test
 on:
-  pull_request:
   push:
-    branches: [ "master" ]
+    branches: [ "trufflehog" ]
 jobs:
   TruffleHog:
     runs-on: ubuntu-latest
@@ -12,7 +11,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: TruffleHog OSS
-        uses: trufflesecurity/trufflehog@92f40c20316eca60e22caf82f425459e206b9fea
+        uses: ./.github/actions/trufflehog
         with:
           path: ./
           base: ${{ github.event.repository.default_branch }}
