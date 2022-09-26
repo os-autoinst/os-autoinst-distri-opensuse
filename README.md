@@ -13,7 +13,7 @@ Please, find test variables description [here](https://github.com/os-autoinst/os
 
 For using new mechanism to schedule modules, check [declarative schedule docs](declarative-schedule-doc.md)
 
-In case of adding new test for Installation, please use approach
+In case of adding new test for Installation using the Yast installer, please use approach
 described in the
 [documentation for UI Test Automation Framework](ui-framework-documentation.md)
 
