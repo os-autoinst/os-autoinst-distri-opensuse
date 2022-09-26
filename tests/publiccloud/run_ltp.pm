@@ -51,7 +51,6 @@ sub upload_ltp_logs
     my $log_file = Mojo::File::path('ulogs/result.json');
     my $ltp_testsuite = get_required_var('LTP_COMMAND_FILE');
 
-#    upload_logs("$root_dir/ltp_log.raw", log_name => 'ltp_log.raw', failok => 1);
     upload_logs("$root_dir/result.json", log_name => $log_file->basename, failok => 1);
 
     return unless -e $log_file->to_string;
@@ -142,19 +141,26 @@ sub run {
     assert_script_run($log_start_cmd);
 
     zypper_call("in -y python3-paramiko python3-scp");
- 
+
+    my $ltp_suite_timeout=1200;
+
+    my $sut_opt= '--sut=ssh';
+    $sut_opt .= ':user=' . $instance->username;
+    $sut_opt .= ':sudo=1';
+    $sut_opt .= ':key_file=' . $instance->ssh_key;
+    $sut_opt .= ':host=' . $instance->public_ip;
+    $sut_opt .= ':reset_command=\'' . $reset_cmd . '\'';
+    $sut_opt .= ':hostkey_policy=missing';
+    $sut_opt .= ':known_hosts=/dev/null';
+
     my $cmd = 'python3 runltp-ng/runltp-ng ';
     $cmd .= "--json-report=$root_dir/result.json ";
     $cmd .= '--verbose ';
-    $cmd .= '--suite-timeout=2400 ';
+    $cmd .= '--suite-timeout=' . $ltp_suite_timeout . ' ';
     $cmd .= '--run-suite ' . get_required_var('LTP_COMMAND_FILE') . ' ';
     $cmd .= '--skip-tests \'' . get_var('LTP_COMMAND_EXCLUDE') . '\' ' if get_var('LTP_COMMAND_EXCLUDE');
-    $cmd .= '--sut=ssh';
-    $cmd .= ':user=' . $instance->username;
-    $cmd .= ':sudo=1';
-    $cmd .= ':key_file=' . $instance->ssh_key;
-    $cmd .= ':host=' . $instance->public_ip;
-    $cmd .= ':reset_command=\'' . $reset_cmd . '\'';
+    $cmd .= $sut_opt;
+
     assert_script_run($cmd, timeout => get_var('LTP_TIMEOUT', 30 * 60));
 }
 
