@@ -26,6 +26,7 @@ sub run {
     assert_script_run "a2enmod shib";
     systemctl 'restart apache2';
 
+    script_run "curl --no-buffer http://localhost/Shibboleth.sso/Status";
     assert_script_run "curl --no-buffer http://localhost/Shibboleth.sso/Status | grep 'Cannot connect to shibd process'";
 
     assert_script_run "curl --no-buffer http://localhost/Shibboleth.sso/Session | grep 'A valid session was not found.'";
