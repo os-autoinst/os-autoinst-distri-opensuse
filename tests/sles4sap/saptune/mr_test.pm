@@ -3,7 +3,8 @@
 # Copyright 2019-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: saptune testing with mr_test
+# Summary: saptune testing with mr_test, setup mr_test environments and load mr_test
+#          mr_test repo: https://gitlab.suse.de/qa/mr_test
 # Maintainer: QE-SAP <qe-sap@suse.de>, Ricardo Branco <rbranco@suse.de>, llzhao <llzhao@suse.com>
 
 use base "sles4sap";
