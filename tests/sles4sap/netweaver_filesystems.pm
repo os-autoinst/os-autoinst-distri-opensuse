@@ -32,6 +32,7 @@ sub run {
     assert_script_run "mkfs -t xfs -f \"$lun\"";
     assert_script_run "mkdir -p $sap_dir/${type}${instance_id}";
     assert_script_run "mount \"$lun\" $sap_dir/${type}${instance_id}";
+    assert_script_run "chmod 0777 \"$lun\" $sap_dir/${type}${instance_id}";
 
     # Mount NFS filesystem
     assert_script_run "echo '$path/$arch/nfs_share/sapmnt /sapmnt $proto defaults,bg 0 0' >> /etc/fstab";
