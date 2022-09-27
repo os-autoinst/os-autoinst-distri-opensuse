@@ -24,8 +24,8 @@ use version_utils;
 
 our $root_dir = '/root';
 
-# LTP runtime can be 'python' (new runner) or the default old 'perl' runner
-my $ltp_runtime = get_var('LTP_RUNTIME', 'perl');
+# LTP runtime can be 1 for 'python' (new runner) or 0 for the default old 'perl' runner
+my $ltp_runtime = get_var('LTP_RUNTIME_SWITCH', 0);
 
 sub get_ltp_rpm
 {
@@ -53,7 +53,7 @@ sub upload_ltp_logs
     my ($self) = @_;
     my $log_file;
     my $ltp_testsuite = get_required_var('LTP_COMMAND_FILE');
-    if ($ltp_runtime =~ /^python/i) {
+    if ($ltp_runtime) {
         $log_file = Mojo::File::path('ulogs/result.json');
         upload_logs("$root_dir/result.json", log_name => $log_file->basename, failok => 1);
     } else {
@@ -61,7 +61,6 @@ sub upload_ltp_logs
         $log_file = Mojo::File::path('ulogs/ltp_log.json');
         upload_logs("$root_dir/ltp_log.raw", log_name => 'ltp_log.raw', failok => 1);
         upload_logs("$root_dir/ltp_log.json", log_name => $log_file->basename, failok => 1);
-
     }
 
     return unless -e $log_file->to_string;
@@ -99,7 +98,7 @@ sub run {
     my $provider;
     my $instance;
 
-    record_info('LTP RUNTIME', $ltp_runtime);
+    record_info('LTP RUNTIME', ($ltp_runtime) ? 'python' : 'perl');
 
     select_host_console();
 
@@ -148,7 +147,7 @@ sub run {
     record_info('LTP CLONE REPO', "Repo: " . $runltp_ng_repo . "\nBranch: " . $runltp_ng_branch);
     # Temporary code for ltp_runtime option check, until transition to python will be completed.
     die('Not valid python LTP_RUN_NG_REPO provided')
-      if ($ltp_runtime =~ /^python/i and $runltp_ng_repo =~ /\/metan-ucw\//i);
+      if ($ltp_runtime and $runltp_ng_repo =~ /\/metan-ucw\//i);
     assert_script_run("git clone -q --single-branch -b $runltp_ng_branch --depth 1 $runltp_ng_repo");
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
@@ -160,7 +159,7 @@ sub run {
 
     my $cmd;
 
-    if ($ltp_runtime =~ /^python/i) {
+    if ($ltp_runtime) {
         zypper_call("in -y python3-paramiko python3-scp");
 
         my $sut = ':user=' . $instance->username;
@@ -177,7 +176,7 @@ sub run {
         $cmd .= '--run-suite ' . get_required_var('LTP_COMMAND_FILE') . ' ';
         $cmd .= '--skip-tests \'' . get_var('LTP_COMMAND_EXCLUDE') . '\' ' if get_var('LTP_COMMAND_EXCLUDE');
         $cmd .= '--sut=ssh' . $sut . ' ';
-    } elsif ($ltp_runtime =~ /^perl$/i) {
+    } else {
         # default ltp runtime: perl
         my $backend .= ':user=' . $instance->username;
         $backend .= ':key_file=' . $instance->ssh_key;
@@ -192,8 +191,6 @@ sub run {
         $cmd .= '--exclude \'' . get_var('LTP_COMMAND_EXCLUDE') . '\' ' if get_var('LTP_COMMAND_EXCLUDE');
         $cmd .= '--backend=ssh' . $backend . ' ';
         $cmd .= '--json_filter=openqa ';
-    } else {
-        die('Not supported LTP_RUNTIME provided');
     }
     record_info('LTP START', 'Command launch');
     assert_script_run($cmd, timeout => get_var('LTP_TIMEOUT', 30 * 60));
@@ -252,9 +249,9 @@ This regex is used to exclude tests from command file.
 
 The repo which will be added and is used to install LTP package.
 
-=head2 LTP_RUNTIME
+=head2 LTP_RUNTIME_SWITCH
 
-The language and related environment that will be used to run LTP package.
+Select the language and related environment that will be used to run LTP package.
 See more info in variables.md in the home of this repo.
 
 =head2 LTP_KNOWN_ISSUES
