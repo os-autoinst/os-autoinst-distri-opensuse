@@ -178,7 +178,7 @@ our %images_list = (
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x', 'arm']
         },
         '15.5' => {
-            released => sub { },
+            released => sub { 'registry.opensuse.org/opensuse/leap:15.5' },
             totest => sub {
                 my $arch = shift;
                 if (grep { $_ eq $arch } qw/x86_64 aarch64 ppc64le s390x/) {
