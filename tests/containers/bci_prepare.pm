@@ -67,6 +67,9 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
+    # Wait for any zypper tasks in the background to finish
+    assert_script_run('while pgrep -f zypp; do sleep 1; done', timeout => 300);
+
     # CONTAINER_RUNTIME can be "docker", "podman" or both "podman,docker"
     my $engines = get_required_var('CONTAINER_RUNTIME');
     my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
