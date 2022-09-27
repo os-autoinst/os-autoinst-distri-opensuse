@@ -139,7 +139,7 @@ sub _prepare_ssh_cmd {
         $cmd = "\$'$cmd'";
     }
 
-    my $ssh_cmd = sprintf('ssh %s "%s@%s" -- %s', $args{ssh_opts}, $args{username}, $self->public_ip, $cmd);
+    my $ssh_cmd = sprintf('ssh -t %s "%s@%s" -- %s', $args{ssh_opts}, $args{username}, $self->public_ip, $cmd);
     #$ssh_cmd = "timeout $args{timeout} $ssh_cmd" if ($args{timeout} > 0);
     return $ssh_cmd;
 }
@@ -388,7 +388,7 @@ sub softreboot
         ssh_interactive_leave();
     }
 
-    $self->run_ssh_command(cmd => 'sudo shutdown -r +1');
+    $self->ssh_script_run(cmd => 'sudo shutdown -r +1');
     sleep 60;    # wait for the +1 in the previous command
     my $start_time = time();
 
