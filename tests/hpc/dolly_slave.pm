@@ -24,7 +24,7 @@ sub run ($self) {
     barrier_wait("DOLLY_INSTALLATION_FINISHED");
     assert_script_run("mkfs.ext4 -v $test_dev");
     barrier_wait("DOLLY_SERVER_READY");
-    assert_script_run("dolly -v");
+    assert_script_run("dolly -v", timeout => 1600);    # timeout should be in sync with master_node
     barrier_wait("DOLLY_DONE");
     assert_script_run("mkdir -p $test_dir");
     assert_script_run("mount $test_dev $test_dir");
