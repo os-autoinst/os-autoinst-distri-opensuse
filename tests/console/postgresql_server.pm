@@ -20,13 +20,20 @@ use testapi;
 use utils 'zypper_call';
 use apachetest qw(setup_pgsqldb destroy_pgsqldb test_pgsql postgresql_cleanup);
 use Utils::Systemd 'systemctl';
+use version_utils qw(is_transactional);
+use transactional qw(trup_call check_reboot_changes);
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
-
     # install the postgresql server package
-    zypper_call "in postgresql-server sudo";
+    if (is_transactional) {
+        select_console 'root-console';
+        trup_call("pkg install postgresql-server sudo");
+        check_reboot_changes;
+    } else {
+        $self->select_serial_terminal;
+        zypper_call "in postgresql-server sudo";
+    }
 
     # start the postgresql service
     systemctl 'start postgresql.service', timeout => 200;
