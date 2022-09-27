@@ -124,7 +124,7 @@ sub run {
         send_key 'ret';
     }
 
-    if (is_generalhw && (is_tumbleweed || is_sle || is_sle_micro)) {
+    if (is_generalhw && !is_leap("<15.5")) {
         assert_screen 'jeos-please-configure-wifi';
         send_key 'n';
     }
