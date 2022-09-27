@@ -6,15 +6,18 @@
 # Summary: Test Dolly package duplication block on all nodes, create sha256 for validation
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use Mojo::Base 'hpcbase', -signatures;
+use Mojo::Base qw(hpcbase btrfs_test), -signatures;
 use testapi;
 use lockapi;
 use utils;
 
 our $test_dir = "/mnt/test";
-our $test_dev = "/dev/vdb";
+our $test_dev;
 
 sub run ($self) {
+    $self->set_playground_disk();    # sets PLAYGROUNDDISK variable
+    $test_dev = get_required_var('PLAYGROUNDDISK');
+    record_info 'test_dev', "$test_dev";
     my $nodes = get_required_var("CLUSTER_NODES");
     $self->select_serial_terminal();
     zypper_call('in dolly');

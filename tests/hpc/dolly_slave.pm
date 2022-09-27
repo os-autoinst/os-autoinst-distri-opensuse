@@ -6,16 +6,20 @@
 # Summary: Operates as the client of the dolly server and checks final results
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use Mojo::Base 'hpcbase', -signatures;
+use Mojo::Base qw(hpcbase btrfs_test), -signatures;
 use testapi;
 use lockapi;
 use utils;
 
 our $test_dir = "/mnt/test";
-our $test_dev = "/dev/vdb";
+our $test_dev;
 
 sub run ($self) {
     $self->select_serial_terminal();
+    $self->set_playground_disk();    # sets PLAYGROUNDDISK variable
+    $test_dev = get_required_var('PLAYGROUNDDISK');
+    record_info 'test_dev', "$test_dev";
+
     zypper_call("in dolly");
     barrier_wait("DOLLY_INSTALLATION_FINISHED");
     assert_script_run("mkfs.ext4 -v $test_dev");
