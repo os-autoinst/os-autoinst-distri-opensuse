@@ -181,6 +181,7 @@ sub load_publiccloud_tests {
     else {
         loadtest 'boot/boot_to_desktop';
         if (get_var('PUBLIC_CLOUD_MIGRATION')) {
+            loadtest('publiccloud/upload_image');
             loadtest('publiccloud/migration');
         } elsif (check_var('PUBLIC_CLOUD_DOWNLOAD_TESTREPO', 1)) {
             load_publiccloud_download_repos();
