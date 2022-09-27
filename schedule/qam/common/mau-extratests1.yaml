@@ -87,4 +87,3 @@ conditional_schedule:
       15:
         - console/lshw
         - console/firewalld
-...

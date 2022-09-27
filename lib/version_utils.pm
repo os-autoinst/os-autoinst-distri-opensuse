@@ -49,6 +49,7 @@ use constant {
           check_os_release
           package_version_cmp
           get_version_id
+          php_version
         )
     ],
     BACKEND => [
@@ -845,3 +846,24 @@ sub get_version_id {
     $cmd = "ssh root\@$args{dst_machine} " . "$cmd" if ($args{dst_machine} ne 'localhost');
     return script_output($cmd);
 }
+
+sub php_version {
+    my ($php, $php_pkg, $php_ver);
+    if (is_sle('<15')) {
+        $php = 'php';
+        $php_pkg = 'php5';
+        $php_ver = '5';
+    }
+    elsif (is_leap("<15.4") || is_sle("<15-SP4")) {
+        $php = 'php7';
+        $php_pkg = 'php7';
+        $php_ver = '7';
+    }
+    else {
+        $php = 'php8';
+        $php_pkg = 'php8';
+        $php_ver = '8';
+    }
+    ($php, $php_pkg, $php_ver);
+}
+
