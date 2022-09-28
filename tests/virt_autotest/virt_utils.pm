@@ -394,7 +394,7 @@ sub get_guest_list {
     my $qa_guest_config_file = "/usr/share/qa/virtautolib/data/vm_guest_config_in_vh_update";
     my $hypervisor_type = get_var('SYSTEM_ROLE', '');
     my $guest_list = script_output "source /usr/share/qa/virtautolib/lib/virtlib; get_vms_from_config_file $qa_guest_config_file $guest_pattern $hypervisor_type";
-    record_info("Not found guest pattern $guest_pattern in $qa_guest_config_file", result => 'softfail') if ($guest_list eq '');
+    record_soft_failure("Not found guest pattern $guest_pattern in $qa_guest_config_file") if ($guest_list eq '');
     return $guest_list;
 }
 
@@ -437,7 +437,7 @@ sub download_guest_assets {
             push @available_guests, $guest;
         }
         else {
-            record_info("$vm_disk_url not found!", result => 'softfail');
+            record_soft_failure("$vm_disk_url not found!");
         }
     }
     return 0 unless @available_guests;
@@ -467,7 +467,7 @@ sub download_guest_assets {
         # download vm xml file
         my $rc = script_run("cp $mount_point/$remote_guest_xml_file $vm_xml_dir/$guest.xml", 60);
         if ($rc) {
-            record_info("Failed copying: $mount_point/$remote_guest_xml_file", result => 'softfail');
+            record_soft_failure("Failed copying: $mount_point/$remote_guest_xml_file");
             next;
         }
         script_run("ls -l $vm_xml_dir", 10);
@@ -490,7 +490,7 @@ sub download_guest_assets {
         $rc = script_run("cp $mount_point/$remote_guest_disk $local_guest_image", 300);    #it took 75 seconds copy from vh016 to vh001
         script_run "ls -l $local_guest_image";
         if ($rc) {
-            record_info("Failed to download: $remote_guest_disk", result => 'softfail');
+            record_soft_failure("Failed to download: $remote_guest_disk");
             next;
         }
         $guest_count++;

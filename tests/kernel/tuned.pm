@@ -50,7 +50,7 @@ sub run {
         for (keys %known_errors) {
             if ($error =~ /${known_errors{$_}}/) {
                 my $bugref = $_ =~ s/_/\#/r;
-                record_info "$bugref - ${known_errors{$_}}", result => 'softfail';
+                record_soft_failure "$bugref - ${known_errors{$_}}";
                 last;
             }
             record_info 'unknown error', $error, result => 'fail';

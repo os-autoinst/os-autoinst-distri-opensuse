@@ -61,7 +61,7 @@ sub run {
             $ret = script_run "wget --no-clobber -r -R 'robots.txt,*.ico,*.png,*.gif,*.css,*.js,*.htm*' --reject-regex='s390x\\/|ppc64le\\/|kernel*debuginfo*.rpm|src\\/' --domains $domain --no-parent $maintrepo/", timeout => 600;
             if ($ret !~ /0|8/) {
                 # softfailure, if repo doesn't exist (anymore). This is required for cloning jobs, because the original test repos could be empty already
-                record_info("Download failed (rc=$ret):\n$maintrepo", result => 'softfail');
+                record_soft_failure("Download failed (rc=$ret):\n$maintrepo");
                 script_run("echo 'Download failed for $maintrepo ...' >> ~/repos/qem_download_status.txt");
             } else {
                 assert_script_run("echo -en '\\n" . ('#' x 80) . "\\n# $maintrepo:\\n' >> /tmp/repos.list.txt");
@@ -70,7 +70,7 @@ sub run {
                     assert_script_run(sprintf(q(sed -i '1 s/]/_%s]/' %s/*.repo), random_string(4), $parent));
                     assert_script_run("find $parent >> /tmp/repos.list.txt");
                 } else {
-                    record_info("No .repo file found in $parent. This directory will be removed.", result => 'softfail');
+                    record_soft_failure("No .repo file found in $parent. This directory will be removed.");
                     assert_script_run("echo 'No .repo found for $maintrepo' >> ~/repos/qem_download_status.txt");
                     assert_script_run("rm -rf $parent");
                 }

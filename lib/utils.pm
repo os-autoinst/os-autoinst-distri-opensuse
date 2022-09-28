@@ -1063,7 +1063,7 @@ sub assert_screen_with_soft_timeout {
         die "soft timeout has to be smaller than timeout" unless ($args{soft_timeout} < $args{timeout});
         my $ret = check_screen $mustmatch, $args{soft_timeout};
         return $ret if $ret;
-        record_info("$args{soft_failure_reason}", result => 'softfail');
+        record_soft_failure "$args{soft_failure_reason}";
     }
     return assert_screen $mustmatch, $args{timeout} - $args{soft_timeout};
 }
@@ -2350,7 +2350,7 @@ sub package_upgrade_check {
             die "Error: package $pkg_name is not upgraded yet, please check with developer";
         }
         else {
-            record_info("Warning: package $pkg_name is not upgraded yet", result => 'softfail');
+            record_soft_failure "Warning: package $pkg_name is not upgraded yet";
         }
     }
 }

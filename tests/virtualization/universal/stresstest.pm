@@ -32,7 +32,7 @@ sub run_test {
             script_run("ssh root\@$guest bash -x /var/tmp/stresstest.sh | tee /var/tmp/stresstest-$guest.txt", timeout => 900);
             upload_logs("/var/tmp/stresstest-$guest.txt");
             if (script_run("grep 'OK' /var/tmp/stresstest-$guest.txt", timeout => 300)) {
-                record_info "stresstest failed on $guest", result => 'softfail';
+                record_soft_failure "stresstest failed on $guest";
             }
         } else {
             record_info "sysbench not available on $guest";
