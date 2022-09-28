@@ -2393,8 +2393,8 @@ sub load_security_tests_yast2_apparmor {
 
     loadtest "security/yast2_apparmor/settings_disable_enable_apparmor";
     loadtest "security/yast2_apparmor/settings_toggle_profile_mode";
-    loadtest "security/yast2_apparmor/scan_audit_logs";
-    loadtest "security/yast2_apparmor/manually_add_profile";
+    loadtest "security/yast2_apparmor/scan_audit_logs_ncurses";
+    loadtest "security/yast2_apparmor/manually_add_profile_ncurses";
 }
 
 sub load_security_tests_yast2_users {
