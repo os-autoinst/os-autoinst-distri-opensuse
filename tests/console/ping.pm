@@ -58,7 +58,7 @@ sub run {
         $bug = "bsc#1199927" if is_sle('=15');
 
         if (defined($bug)) {
-            record_soft_failure $bug;
+            record_info $bug, result => 'softfail';
         } else {
             $self->result("fail");
             record_info("Unknown failure on $cmd, maybe related to: bsc#1200617, bsc#1195826, bsc#1196840, bsc#1199918, bsc#1199926, bsc#1199927");

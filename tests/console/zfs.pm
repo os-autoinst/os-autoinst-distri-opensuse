@@ -59,7 +59,7 @@ sub install_zfs {
         $repo = get_repository();
         if (!check_available($repo)) {
             my $msg = "Sorry, zfs repository is not (yet) available for this distribution";
-            record_soft_failure($msg);
+            record_info($msg, result => 'softfail');
             return 0;
         }
     }

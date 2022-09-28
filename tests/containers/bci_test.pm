@@ -38,10 +38,10 @@ sub run_tox_cmd {
     my $ret = script_run("timeout $bci_timeout $cmd", timeout => ($bci_timeout + 3));
     if ($ret == 124) {
         # man timeout: If  the command times out, and --preserve-status is not set, then exit with status 124.
-        record_soft_failure("The command <tox -e $env> timed out.");
+        record_info("The command <tox -e $env> timed out.", result => 'softfail');
         $error_count += 1;
     } elsif ($ret != 0) {
-        record_soft_failure("The command <tox -e $env> failed $ret.");
+        record_info("The command <tox -e $env> failed.", result => 'softfail');
         $error_count += 1;
     } else {
         record_info('PASSED');
@@ -49,7 +49,7 @@ sub run_tox_cmd {
     # Cut the tox log from the header onward and filter the text
     my $cmd_xf = "awk '/short test summary info/{f=1}f' $tox_out | grep XFAIL";
     my $ret_xf = script_run("$cmd_xf", timeout => ($bci_timeout + 3));
-    record_soft_failure("The command <tox -e $env> has softfailures(XFAIL)") if ($ret_xf == 0);
+    record_info("The command <tox -e $env> has softfailures(XFAIL)", result => 'softfail') if ($ret_xf == 0);
     # Rename resulting junit file because it will be overwritten if we run
     # the same tox command later with another container engine. This way,
     # we will be able to parse the results for both container engines tox runs.

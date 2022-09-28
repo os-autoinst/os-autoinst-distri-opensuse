@@ -422,7 +422,7 @@ sub restore_original_guests {
             record_info "Guest $guest is restored.";
         }
         else {
-            record_soft_failure "Fail to restore $guest!";
+            record_info("Fail to restore $guest!", result => 'softfail');
         }
     }
 }

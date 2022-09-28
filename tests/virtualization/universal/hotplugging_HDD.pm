@@ -38,13 +38,13 @@ sub test_add_virtual_disk {
         if (!get_var('VIRT_AUTOTEST')) {
             if (is_kvm_host) {
                 my $lsblk = script_run("ssh root\@$guest lsblk | grep 'vd[b-z]'", 60);
-                record_soft_failure("lsblk failed - please check the output manually") if $lsblk != 0;
+                record_info("lsblk failed - please check the output manually", result => 'softfail') if $lsblk != 0;
             } elsif (is_xen_host) {
                 my $lsblk = script_run("ssh root\@$guest lsblk | grep 'xvd[b-z]'", 60);
-                record_soft_failure("lsblk failed - please check the output manually") if $lsblk != 0;
+                record_info("lsblk failed - please check the output manually", result => 'softfail') if $lsblk != 0;
             } else {
                 my $msg = "Unknown virtualization hosts";
-                record_soft_failure($msg);
+                record_info($msg, result => 'softfail');
             }
         }
         assert_script_run("ssh root\@$guest lsblk");

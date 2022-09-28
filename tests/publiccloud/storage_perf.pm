@@ -111,7 +111,7 @@ sub analyze_previous_series {
             record_info('ANALYZE', $analyze);
             # This detects if mean values differs more than 10%
             if ($diff_percents > 10) {
-                record_soft_failure("Deviation occurred. $generic_message");
+                record_info("Deviation occurred. $generic_message", result => 'softfail');
                 $result = 1;
             } else {
                 record_info('PASS', "The data looks good. $generic_message");
