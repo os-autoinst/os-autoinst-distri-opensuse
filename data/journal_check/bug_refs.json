@@ -209,7 +209,7 @@
     "boo#1193426": {
         "description": "libapparmor.*: Can't create cache directory '/var/cache/apparmor/.*': Read-only file system",
         "products": {
-            "opensuse": ["Tumbleweed", "15.4"]
+            "opensuse": ["Tumbleweed", "15.4", "15.5"]
         },
         "type": "bug"
     },
@@ -333,7 +333,7 @@
         "description": "error: kex_exchange_identification: Connection closed by remote host",
         "products": {
             "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
-            "opensuse": ["Tumbleweed", "15.2", "15.3", "15.4"],
+            "opensuse": ["Tumbleweed", "15.2", "15.3", "15.4", "15.5"],
             "microos":  ["Tumbleweed"],
             "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5"]
         },
