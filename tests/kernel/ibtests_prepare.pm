@@ -37,11 +37,11 @@ sub run {
     script_run('[ ! -f /root/.ssh/id_rsa ] && ssh-keygen -b 2048 -t rsa -q -N "" -f /root/.ssh/id_rsa');
 
 
-    if ($role eq 'IBTEST_MASTER') {
-        zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);
-        zypper_ar(get_required_var('SCIENCE_HPC_REPO'), no_gpg_check => 1, priority => 50) if get_var('SCIENCE_HPC_REPO', '');
-        $packages = $packages_master;
-    }
+    zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);
+    zypper_ar(get_var('SCIENCE_HPC_REPO'), no_gpg_check => 1, priority => 49) if get_var('SCIENCE_HPC_REPO', '');
+    zypper_call("ref");
+    zypper_call("dup --allow-vendor-change");
+    $packages = $packages_master if $role eq 'IBTEST_MASTER';
 
     zypper_call("in $packages", exitcode => [0, 65, 107]);
 
