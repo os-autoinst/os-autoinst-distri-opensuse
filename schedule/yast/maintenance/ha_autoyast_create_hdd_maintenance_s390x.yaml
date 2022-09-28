@@ -1,0 +1,23 @@
+---
+name: ha_autoyast_create_hdd_maintenance_s390x
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_zkvm
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - console/system_prepare
+  - qa_automation/patch_and_reboot
+  - console/hostname
+  - console/force_scheduled_tasks
+  - console/scc_deregistration
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+  - shutdown/svirt_upload_assets
