@@ -433,7 +433,7 @@ sub assert_shutdown_with_soft_timeout {
         my $ret = check_shutdown $args->{soft_timeout};
         return if $ret;
         $args->{soft_failure_reason} //= "$args->{bugref}: Machine didn't shut down within $args->{soft_timeout} sec";
-        record_info("$args->{soft_failure_reason}", result => 'softfail');
+        record_soft_failure "$args->{soft_failure_reason}";
     }
     assert_shutdown($args->{timeout} - $args->{soft_timeout});
 }

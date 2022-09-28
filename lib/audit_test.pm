@@ -174,14 +174,14 @@ sub _parse_results_with_diff_baseline {
     my ($name, $result, $msg, $flag) = @_;
     my $softfail_tests = {};
     if ($result eq 'PASS') {
-        record_info($msg, result => 'softfail');
+        record_soft_failure($msg);
         $flag = 'softfail' if ($flag ne 'fail');
     }
     else {
         my $arch = get_var('ARCH');
         if ($softfail_tests->{$arch}) {
             if (my $reason = $softfail_tests->{$arch}->{$name}) {
-                record_info($msg . "\n" . $reason, result => 'softfail');
+                record_soft_failure($msg . "\n" . $reason);
                 return 'softfail';
             }
         }

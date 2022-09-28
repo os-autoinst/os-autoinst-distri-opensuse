@@ -386,7 +386,7 @@ sub investigate_yast2_failure {
             # Save detected error to indetify if have new regressions
             push @detected_errors, $y2log_error;
             if (my $bug = $y2log_errors{$y2log_error}) {
-                record_info("$bug\n\nDetails:\n$y2log_error_result", result => 'softfail');
+                record_soft_failure("$bug\n\nDetails:\n$y2log_error_result");
                 next;
             }
             $detected_errors_detailed .= "$y2log_error_result\n\n$delimiter\n\n";

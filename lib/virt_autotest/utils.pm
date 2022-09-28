@@ -157,7 +157,7 @@ sub download_script {
     $cmd = "ssh root\@$args{machine} " . "\"$cmd\"" if ($args{machine} ne 'localhost');
     my $ret = script_run($cmd);
     unless ($ret == 0) {
-        record_info("Failed to download $args{script_name} from $args{script_url}!", result => 'softfail');
+        record_soft_failure("Failed to download $args{script_name} from $args{script_url}!");
         return $ret;
     }
     $cmd = "chmod +x ~/$args{script_name}";

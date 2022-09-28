@@ -40,9 +40,9 @@ sub run {
             if ($behav eq "" || $behav eq "fail") {
                 die "Repository $repo is invalid";
             } elsif ($behav eq "softfail") {
-                record_info("repository $repo is invalid", result => 'softfail');
+                record_soft_failure("repository $repo is invalid");
             } elsif ($behav eq "clear") {
-                record_info("removing invalid repository: $repo", result => 'softfail');
+                record_soft_failure("removing invalid repository: $repo");
                 zypper_call("rr '$repo'");
             } elsif ($behav eq "purge") {
                 record_info("removing invalid repository: $repo");

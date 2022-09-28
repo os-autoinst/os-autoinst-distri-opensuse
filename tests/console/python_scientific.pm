@@ -28,7 +28,7 @@ sub run_python_script {
             record_info("scipy-fft", "scipy-fft module not available", result => 'softfail');
         } else {
             my $failmsg = script_output("grep 'Softfail' '$logfile'");
-            record_info("$failmsg", result => 'softfail');
+            record_soft_failure("$failmsg");
         }
     }
 }

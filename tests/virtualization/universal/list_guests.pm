@@ -32,7 +32,7 @@ sub run_test {
             1;
         } or do {
             my $err = $@;
-            record_info("enure_online failed for $guest: $err", result => 'softfail');
+            record_soft_failure("enure_online failed for $guest: $err");
         };
     }
 }
