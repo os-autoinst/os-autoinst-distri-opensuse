@@ -90,8 +90,13 @@ sub run {
              # Therefore we accept a failing return code and check the output instead.
              (
                  # This is the success pattern for newer versions (which succeed on install).
-                 msg_server,.MessageServer,.GREEN,.Running.*[\r\n]+
-                 enserver,.EnqueueServer,.GREEN,.Running.*[\r\n]+
+                 (
+                     enserver,.EnqueueServer,.GREEN,.Running.*[\r\n]+
+                     msg_server,.MessageServer,.GREEN,.Running.*[\r\n]+
+                 ) | (
+                     msg_server,.MessageServer,.GREEN,.Running.*[\r\n]+
+                     enserver,.EnqueueServer,.GREEN,.Running.*[\r\n]+
+                 )
                  .*[\r\n]+
                  .*[\r\n]+
                  Startup.of.instance.${sid}/.*.finished:.\[ACTIVE\]
