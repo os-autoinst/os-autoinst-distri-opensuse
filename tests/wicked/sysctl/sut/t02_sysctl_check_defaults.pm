@@ -77,7 +77,8 @@ EOT
     script_run('systemctl disable --now wickedd', die_on_timeout => 1);
     $self->reboot();
 
-    assert_script_run('ip link add type dummy');
+    assert_script_run('modprobe dummy numdummies=0');
+    assert_script_run('ip link add dummy0 type dummy');
     my $out_native = script_output($cmd);
 
     $self->record_console_test_result("Sysctl Native", $out_native, result => 'ok');
