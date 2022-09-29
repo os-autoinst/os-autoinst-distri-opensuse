@@ -13,7 +13,7 @@ use testapi;
 use transactional;
 use utils qw(systemctl);
 use mm_network qw(is_networkmanager);
-use version_utils qw(is_microos is_sle_micro is_leap_micro);
+use version_utils qw(is_microos is_sle_micro is_leap_micro is_alp);
 
 sub run {
     my ($self) = @_;
@@ -33,7 +33,7 @@ sub run {
         push @pkgs, 'cockpit-networkmanager';
     }
 
-    if (!is_microos && (script_run('rpm -q cockpit-wicked') != 0)) {
+    if (!is_microos && !is_alp && (script_run('rpm -q cockpit-wicked') != 0)) {
         push @pkgs, 'cockpit-wicked';
     }
 
