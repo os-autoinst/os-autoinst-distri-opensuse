@@ -64,6 +64,7 @@ sub has_conflict {
         'SAPHanaSR-ScaleOut-doc' => 'SAPHanaSR-doc',
         'dapl-devel' => 'dapl-debug-devel',
         'libdat2-2' => 'dapl-debug-libs',
+        'libjpeg8-devel' => 'libjpeg62-devel',
         dapl => 'dapl-debug'
     );
     return $conflict{$binary};
