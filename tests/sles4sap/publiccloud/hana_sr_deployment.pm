@@ -19,13 +19,6 @@ use Data::Dumper;
 use Storable;
 use Mojo::JSON qw(decode_json encode_json);
 
-sub test_flags {
-    return {
-        fatal => 1,
-        milestone => 0,
-        publiccloud_multi_module => 1
-    };
-}
 
 =head3 qesap_get_variables
 
@@ -84,7 +77,7 @@ sub run {
 
     my @instances = $provider->create_instances(check_connectivity => 0);
     my @instances_export;
-
+    return;
     # Allows to use previous ha-sap-terraform-deployment
     if (!get_var("HA_SAP_TERRAFORM_DEPLOYMENT")) {
         qesap_execute(cmd => 'ansible', verbose => 1, timeout => 3600);
@@ -167,6 +160,10 @@ sub copy_ssh_keys{
         assert_script_run("curl -f -v " . data_url("sles4sap/$file") . " -o /root/.ssh/$file");
         assert_script_run("chmod 700 /root/.ssh/$file");
     }
+}
+
+sub test_flags {
+    return { fatal => 1, publiccloud_multi_module => 1 };
 }
 
 1;
