@@ -77,7 +77,6 @@ sub run {
 
     my @instances = $provider->create_instances(check_connectivity => 0);
     my @instances_export;
-    return;
     # Allows to use previous ha-sap-terraform-deployment
     if (!get_var("HA_SAP_TERRAFORM_DEPLOYMENT")) {
         qesap_execute(cmd => 'ansible', verbose => 1, timeout => 3600);
