@@ -17,10 +17,9 @@ sub run {
     my $device = 'sda';
     # Find installed OS root device, mount it, and chroot into it
     assert_script_run("for part in /dev/${device}[1-4]; do
-            mount \$part /mnt &&
-            test -e /mnt/etc/default/grub &&
-                break ||
-                umount /mnt
+            echo \$part
+            lsblk
+            mount \$part /mnt \&\& test -e /mnt/etc/default/grub \&\& ls /mnt/etc/default/grub; break || umount /mnt
         done");
     assert_script_run('mount -o bind /dev /mnt/dev');
     assert_script_run('mount -o bind /proc /mnt/proc');
