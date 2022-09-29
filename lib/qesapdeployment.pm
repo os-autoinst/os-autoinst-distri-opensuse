@@ -337,7 +337,11 @@ sub qesap_sh_destroy {
 
 =head3 qesap_execute
 
-    qesap_execute(cmd => $qesap_script_cmd [, verbose => 1] );
+    qesap_execute(cmd => $qesap_script_cmd [, verbose => 1, cmd_options => $cmd_options] );
+    cmd_options - allows to append additional qesap.py commans arguments like "qesap.py terraform -d"
+        Example:
+        qesap_execute(cmd => 'terraform', cmd => '-d') will result in:
+        qesap.py terraform -d
 
     Execute qesap glue script commands. Check project documentation for available options:
     https://github.com/SUSE/qe-sap-deployment
@@ -349,19 +353,20 @@ sub qesap_execute {
 
     my $verbose = $args{verbose} ? "--verbose" : "";
     my %paths = qesap_get_file_paths();
-    my $qesap_cmd = join(" ", $paths{deployment_dir} . "/scripts/qesap/qesap.py", $verbose, "-c", $paths{qesap_conf_trgt}, "-b", $paths{deployment_dir});
     my $exec_log = "/tmp/qesap_exec_" . $args{cmd} . ".log.txt";
+    my $qesap_cmd = join(" ", $paths{deployment_dir} . "/scripts/qesap/qesap.py",
+        $verbose,
+        "-c", $paths{qesap_conf_trgt},
+        "-b", $paths{deployment_dir},
+        $args{cmd},
+        $args{cmd_options},
+        "|& tee -a",
+        $exec_log
+    );
+
     push(@log_files, $exec_log);
-
-    record_info('QESAP exec', 'Executing: \n' . $qesap_cmd . " " . $args{cmd});
-
-    if ($args{timeout}) {
-        assert_script_run(join(" ", $qesap_cmd, $args{cmd}, "2>&1 | tee -a", $exec_log), timeout => $args{timeout});
-    }
-    else {
-        assert_script_run(join(" ", $qesap_cmd, $args{cmd}, "2>&1 | tee -a", $exec_log));
-    }
-
+    record_info("QESAP exec", "Executing: \n" . $qesap_cmd);
+    assert_script_run($qesap_cmd, timeout => $args{timeout});
     qesap_upload_logs();
 }
 
