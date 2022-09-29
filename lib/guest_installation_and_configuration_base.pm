@@ -1444,7 +1444,7 @@ sub config_guest_installation_extra_args {
 
     if (is_transactional and $self->{guest_os_name} eq 'slem') {
         record_soft_failure("bsc#1202405 - SLE Micro 5.3 media can not be successfully loaded automatically for virtual machine installation");
-        $self->{guest_installation_extra_args_options} = $self->{guest_installation_extra_args_options} . "--extra-args \"install=$self->{guest_installation_media}\"";
+        $self->{guest_installation_extra_args_options} = $self->{guest_installation_extra_args_options} . " --extra-args \"install=$self->{guest_installation_media}\"";
     }
 
     if (($self->{guest_installation_automation} ne '') and ($self->{guest_installation_automation_file} ne '')) {
