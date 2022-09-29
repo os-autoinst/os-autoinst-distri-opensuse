@@ -3,7 +3,7 @@ package hana_sr_destroy_all;
 use parent 'Exporter';
 use strict;
 use warnings FATAL => 'all';
-use Mojo::Base 'publiccloud::basetest';
+use base 'publiccloud::basetest';;
 use qesapdeployment;
 use testapi;
 

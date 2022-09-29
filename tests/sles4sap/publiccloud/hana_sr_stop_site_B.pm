@@ -2,7 +2,7 @@ use strict;
 use warnings FATAL => 'all';
 use diagnostics;
 use testapi;
-use Mojo::Base qw(publiccloud::basetest);
+use base 'publiccloud::basetest';;
 use Mojo::JSON;
 use Mojo::File qw(path);
 use sles4sap_publiccloud;

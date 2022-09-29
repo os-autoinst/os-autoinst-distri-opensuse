@@ -9,7 +9,7 @@
 
 use strict;
 use warnings;
-use Mojo::Base 'publiccloud::basetest';
+use base 'publiccloud::basetest';;
 use testapi;
 use Mojo::File 'path';
 use sles4sap_publiccloud;
