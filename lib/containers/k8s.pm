@@ -27,19 +27,25 @@ Installs k3s, checks the instalation and prepare the kube/config
 =cut
 
 sub install_k3s {
-    zypper_call('in apparmor-parser') if (is_sle('>=15-sp1'));
-  # Apply additional options. For more information see https://rancher.com/docs/k3s/latest/en/installation/install-options/#options-for-installation-with-script
-    my $k3s_version = get_var("CONTAINERS_K3S_VERSION");
-    if ($k3s_version) {
-        record_info('k3s', $k3s_version);
-        assert_script_run("export INSTALL_K3S_VERSION=$k3s_version");
+    if (get_var("DISTRI") eq "alp") {
+        assert_script_run('/usr/bin/k3s-install');
     }
-    assert_script_run("export INSTALL_K3S_SYMLINK=" . get_var('K3S_SYMLINK')) if (get_var('K3S_SYMLINK'));
-    assert_script_run("export INSTALL_K3S_BIN_DIR=" . get_var('K3S_BIN_DIR')) if (get_var('K3S_BIN_DIR'));
-    assert_script_run("export INSTALL_K3S_CHANNEL=" . get_var('K3S_CHANNEL')) if (get_var('K3S_CHANNEL'));
-    # github.com/k3s-io/k3s#5946 - The kubectl delete namespace helm-ns-413 command freezes and does nothing
-    # Note: The install script starts a k3s-server by default, unless INSTALL_K3S_SKIP_START is set to true
-    assert_script_run("curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true sh -s - --disable=metrics-server");
+    else {
+        zypper_call('in apparmor-parser') if (is_sle('>=15-sp1'));
+  # Apply additional options. For more information see https://rancher.com/docs/k3s/latest/en/installation/install-options/#options-for-installation-with-script
+        my $k3s_version = get_var("CONTAINERS_K3S_VERSION");
+        if ($k3s_version) {
+            record_info('k3s', $k3s_version);
+            assert_script_run("export INSTALL_K3S_VERSION=$k3s_version");
+        }
+        assert_script_run("export INSTALL_K3S_SYMLINK=" . get_var('K3S_SYMLINK')) if (get_var('K3S_SYMLINK'));
+        assert_script_run("export INSTALL_K3S_BIN_DIR=" . get_var('K3S_BIN_DIR')) if (get_var('K3S_BIN_DIR'));
+        assert_script_run("export INSTALL_K3S_CHANNEL=" . get_var('K3S_CHANNEL')) if (get_var('K3S_CHANNEL'));
+        # github.com/k3s-io/k3s#5946 - The kubectl delete namespace helm-ns-413 command freezes and does nothing
+        # Note: The install script starts a k3s-server by default, unless INSTALL_K3S_SKIP_START is set to true
+        assert_script_run("curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true sh -s - --disable=metrics-server");
+    }
+
     if (get_var('REGISTRY')) {
         script_run("mkdir -p /etc/rancher/k3s");
         my $registry = registry_url();
@@ -56,6 +62,7 @@ sub install_k3s {
     script_run("mkdir -p ~/.kube");
     script_run("rm -f ~/.kube/config");
     assert_script_run("ln -s /etc/rancher/k3s/k3s.yaml ~/.kube/config");
+    record_info('k3s', "k3s installed");
 }
 
 =head2 uninstall_k3s
