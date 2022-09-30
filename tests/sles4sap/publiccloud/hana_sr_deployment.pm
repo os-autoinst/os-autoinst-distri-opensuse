@@ -3,13 +3,11 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
-
 # Summary: Deploy SAP Hana cluster with system replication and verify working cluster.
 
-
+use base 'sles4sap_publiccloud_basetest';
 use strict;
 use warnings;
-use base 'publiccloud::basetest';;
 use testapi;
 use Mojo::File 'path';
 use sles4sap_publiccloud;
@@ -17,8 +15,11 @@ use publiccloud::utils;
 use qesapdeployment;
 use Data::Dumper;
 use Storable;
-use Mojo::JSON qw(decode_json encode_json);
 
+
+sub test_flags {
+    return {fatal => 1, publiccloud_multi_module => 1};
+}
 
 =head3 qesap_get_variables
 
@@ -43,23 +44,28 @@ sub qesap_get_variables {
 
 sub run {
     my ($self, $run_args) = @_;
+    record_info("Flags", Dumper($self->test_flags()));
     # TODO: DEPLOYMENT SKIP - REMOVE!!!
-    my $instances_import_path = get_var("INSTANCES_IMPORT");
-    my $instances_export_path = get_var("INSTANCES_EXPORT");
-    my $skip_deployment = get_var('INSTANCES_IMPORT');
+    my $instances_import_path = get_var("INSTANCES_IMPORT") // undef;
+    my $instances_export_path = get_var("INSTANCES_EXPORT") // undef;
     my %variables = qesap_get_variables();
 
     $self->select_serial_terminal;
 
     # TODO: DEPLOYMENT SKIP - REMOVE!!!
-    if (defined($skip_deployment) and length($skip_deployment)){
+    # Do not cleanup if deployment skip
+    if ($instances_export_path or $instances_import_path){
+        set_var("PUBLIC_CLOUD_NO_CLEANUP", "1");
+        set_var("PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE", "1")
+    };
+    if (defined($instances_import_path)){
         assert_script_run("ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa");
         copy_ssh_keys();
         $self->{instances} = $run_args->{instances} = retrieve($instances_import_path);
         $self->identify_instances();
         $run_args->{site_a} = $self->{site_a};
         $run_args->{site_b} = $self->{site_b};
-        return;
+        return 1;
     }
 
     my $provider = $self->provider_factory();
@@ -67,7 +73,7 @@ sub run {
     # QESAP deployment
 
     # TODO: DEPLOYMENT SKIP - REMOVE!!!
-    if (defined($instances_export_path) and length($instances_export_path)) {
+    if (defined($instances_export_path)) {
         copy_ssh_keys();
     }
     if (!get_var("HA_SAP_TERRAFORM_DEPLOYMENT")) {
@@ -108,14 +114,15 @@ sub run {
 
     # TODO: DEPLOYMENT SKIP - REMOVE!!!
     # Mostly for dev - for reusing deployed instances, load this file.
-    if (defined($instances_export_path) and length($instances_export_path)){
+    if (defined($instances_export_path)){
         record_info('Exporting data', Dumper(\@instances_export));
         record_info('Export path', Dumper($instances_export_path));
         store(\@instances_export, $instances_export_path);
     }
 
     $self->{instances} = $run_args->{instances} = \@instances_export;
-    record_info("Deployment OK", )
+    record_info("Deployment OK", );
+    return 1;
 }
 
 
@@ -145,7 +152,6 @@ sub identify_instances {
     record_info("Instances:", "Detected HANA instances:
         Site A: $self->{site_a}->{instance_id}
         Site B: $self->{site_b}->{instance_id}");
-
 }
 
 =head2 copy_ssh_keys
@@ -159,10 +165,6 @@ sub copy_ssh_keys{
         assert_script_run("curl -f -v " . data_url("sles4sap/$file") . " -o /root/.ssh/$file");
         assert_script_run("chmod 700 /root/.ssh/$file");
     }
-}
-
-sub test_flags {
-    return { fatal => 1, publiccloud_multi_module => 1 };
 }
 
 1;

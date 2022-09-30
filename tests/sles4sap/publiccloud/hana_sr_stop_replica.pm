@@ -1,13 +1,14 @@
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC
+# SPDX-License-Identifier: FSFAP
+# Maintainer: QE-SAP <qe-sap@suse.de>
+# Summary: Deploy SAP Hana cluster with system replication and verify working cluster.
+
+use base 'sles4sap_publiccloud_basetest';
 use strict;
 use warnings FATAL => 'all';
-use diagnostics;
-use Data::Dumper;
 use testapi;
-use base 'publiccloud::basetest';;
-use Mojo::JSON;
-use Mojo::File qw(path);
-use sles4sap_publiccloud;
-use publiccloud::utils;
 
 sub run {
     my ($self, $run_args) = @_;

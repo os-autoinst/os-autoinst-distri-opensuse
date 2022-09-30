@@ -1,14 +1,7 @@
-
+use base 'sles4sap_publiccloud_basetest';
 use strict;
 use warnings FATAL => 'all';
-use diagnostics;
-use Data::Dumper;
 use testapi;
-use base 'publiccloud::basetest';;
-use Mojo::JSON;
-use Mojo::File qw(path);
-use sles4sap_publiccloud;
-use publiccloud::utils;
 
 sub test_flags {
     return {fatal => 1};
