@@ -3,7 +3,7 @@
 #
 # Summary: Basic function check for PAM, and prepare the setup for other
 #          pam tests, e.g., create user, install some packages
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#70345, tc#1767569
 
 use base 'opensusebasetest';

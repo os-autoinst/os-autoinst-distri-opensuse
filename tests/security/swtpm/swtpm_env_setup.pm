@@ -5,7 +5,7 @@
 #          install required packages and download the pre-installed
 #          OS images for later tests, prepare a script for remote
 #          ssh login and execution
-# Maintainer: rfan1 <richard.fan@suse.com> Starry Wang <starry.wang@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#81256, tc#1768671, poo#100512
 
 use base 'opensusebasetest';

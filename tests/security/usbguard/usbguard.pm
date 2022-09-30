@@ -11,7 +11,7 @@
 #          '# usbguard add-user', '# usbguard remove-user',
 #          '# usbguard get-parameter', '# usbguard set-parameter'
 #          '# usbguard generate/list/install/remove rules'
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#102566, tc#1769830
 
 use base 'opensusebasetest';

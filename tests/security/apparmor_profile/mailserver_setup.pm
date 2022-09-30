@@ -8,7 +8,7 @@
 # - Install telnet
 # - Using telnet, send an email through smtp server
 # - Upload mail logs as reference
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#46235, poo#46238, tc#1695947, tc#1695943
 
 use base "apparmortest";

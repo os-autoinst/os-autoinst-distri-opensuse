@@ -4,7 +4,7 @@
 # Package: cryptsetup
 # Summary: Test dm-crypt cipher support with cryptsetup tool. Make sure
 #          unsafe algorithms are not applicable in FIPS or non-FIPS mode.
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#39071
 
 use strict;

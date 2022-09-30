@@ -3,7 +3,7 @@
 #
 # Summary: Verify that if we are "secure booted" that kernel lockdown is enabled
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#109611
 
 use strict;

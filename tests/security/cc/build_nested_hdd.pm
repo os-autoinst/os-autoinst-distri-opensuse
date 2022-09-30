@@ -6,7 +6,7 @@
 #          to simply the tests, we need disable firewalld, clean current
 #          network udev rule, and permit root ssh.
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#97796
 
 use base 'opensusebasetest';

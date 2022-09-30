@@ -3,7 +3,7 @@
 #
 # Summary: Test "#semanage fcontext" command with options
 #          "-D / -a / -m ..." can work
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#65669, tc#1741290
 
 use base "selinuxtest";

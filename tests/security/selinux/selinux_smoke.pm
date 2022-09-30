@@ -6,7 +6,7 @@
 #          no problem with refreshing and updating,
 #          packages should be installed and removed without any problems,
 #          patterns could be installed.
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#40361, tc#1682591
 
 use base 'opensusebasetest';

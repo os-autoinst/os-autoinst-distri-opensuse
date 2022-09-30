@@ -3,7 +3,7 @@
 #
 # Summary: PAM tests for pam-mount, the encrypted volume should be mounted
 #          and unmounted during user login and logout
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#70345, tc#1767581
 
 use base 'opensusebasetest';

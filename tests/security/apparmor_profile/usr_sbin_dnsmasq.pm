@@ -9,7 +9,7 @@
 # - Switch dnsmasq to enforce mode
 # - Check network status of the guest machine(s)
 # - Check audit.log for errors related to dnsmasq
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#103458, tc#1767545
 
 use base 'apparmortest';

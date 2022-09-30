@@ -5,7 +5,7 @@
 #          For tpm2_enginee tests, we need tpm2-abrmd serive active.
 #          We have several test modules, this test module will generate
 #          ramdom data with hex 10.
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#64902, tc#1742298
 
 use strict;

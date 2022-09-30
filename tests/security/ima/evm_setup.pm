@@ -4,7 +4,7 @@
 # Summary: Setup environment for EVM protection testing
 # Note: This case should come after 'ima_setup'
 #
-# Maintainer: llzhao <llzhao@suse.com>, rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 #
 # Tags: poo#53579, poo#100694, poo#102311, poo#102843
 

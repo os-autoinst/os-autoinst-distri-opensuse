@@ -8,7 +8,7 @@
 # installing apparmor pattern.
 # - installs apparmor pattern
 # - starts apparmor service
-# Maintainer: Juraj Hura <jhura@suse.com>
+# Maintainer: QE Security <none@suse.de>
 
 use base "basetest";
 use strict;

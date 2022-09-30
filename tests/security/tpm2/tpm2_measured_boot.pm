@@ -3,7 +3,7 @@
 #
 # Summary: TPM2 measured boot test
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#108386
 
 use strict;

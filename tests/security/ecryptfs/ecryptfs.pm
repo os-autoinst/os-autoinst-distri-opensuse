@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Test all encrypt ciphers of ecryptfs
-# Maintainer: Starry Wang <starry.wang@suse.com> Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#110355
 
 use base 'consoletest';

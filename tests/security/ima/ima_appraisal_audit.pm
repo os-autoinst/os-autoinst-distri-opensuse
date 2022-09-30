@@ -3,7 +3,7 @@
 #
 # Summary: Test audit function for IMA appraisal
 # Note: This case should come after 'ima_appraisal_digital_signatures'
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#49568, poo#92347
 
 use base 'opensusebasetest';

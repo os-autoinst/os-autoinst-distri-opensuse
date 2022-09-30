@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-Later
 #
 # Summary: Compare the baseline before and after remediation, generate a log
-# Maintainer: shawnhao <weixuan.hao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#104944
 
 use base 'opensusebasetest';

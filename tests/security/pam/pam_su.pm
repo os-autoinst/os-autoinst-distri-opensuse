@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: PAM tests for su, su to root should fail if user is not in group "wheel"
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#70345, poo#106020, tc#1167579
 
 use base 'opensusebasetest';

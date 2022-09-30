@@ -3,7 +3,7 @@
 #
 # Summary: Test '# selinuxexeccon' command works,
 #          report process context for command from the current context
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#105202, tc#1769801
 
 use base 'opensusebasetest';

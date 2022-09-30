@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run 'crypto' test case of 'audit-test' test suite
-# Maintainer: llzhao <llzhao@suse.com>, liuxiaojing <xiaojing.liu@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#95485, poo#102693
 
 use base 'consoletest';

@@ -3,7 +3,7 @@
 #
 # Summary: Perform evaluation of oval (Open Vulnerability and Assessment
 #          Language) file
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#36904, tc#1621170
 
 use base 'consoletest';

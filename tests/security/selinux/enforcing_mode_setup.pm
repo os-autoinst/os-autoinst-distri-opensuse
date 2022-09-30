@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Setup OS with enforcing mode for follow-up selinux tool testing
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#64538, tc#1745335
 
 use base 'opensusebasetest';

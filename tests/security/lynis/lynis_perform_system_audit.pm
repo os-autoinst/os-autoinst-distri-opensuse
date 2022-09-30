@@ -3,7 +3,7 @@
 #
 # Summary: Integrate the Lynis scanner into OpenQA: Performs a system audit
 #          and upload related outputs
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#78224, poo#78230, poo#78330
 
 use base 'consoletest';

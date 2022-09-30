@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-Later
 #
 # Summary: Verify the "aulast" can print a list of the last logged-in users
-# Maintainer: llzhao <llzhao@suse.com>, shawnhao <weixuan.hao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#81772, tc#1768581
 
 use base 'opensusebasetest';

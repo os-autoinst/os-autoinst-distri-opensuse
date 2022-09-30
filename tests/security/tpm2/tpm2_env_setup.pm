@@ -3,7 +3,7 @@
 #
 # Summary: TPM2 test environment prepare
 #          Install required packages and create user, start the abrmd service
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#64899, poo#103143, poo#105732, poo#107908, tc#1742297, tc#1742298
 
 use strict;

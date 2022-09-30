@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run mariadb connect to server with '--ssl' parameter test case
-# Maintainer: Starry Wang <starry.wang@suse.com> Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#109154, tc#1767518
 
 use base 'consoletest';

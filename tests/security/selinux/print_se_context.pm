@@ -3,7 +3,7 @@
 #
 # Summary: Test "# ls/id/ps -Z" prints any security context of each
 #          file/dir/user/process.
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#61783, tc#1741282
 
 use base 'opensusebasetest';

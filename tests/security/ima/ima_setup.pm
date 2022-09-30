@@ -3,7 +3,7 @@
 #
 # Summary: Setup environmnet for IMA & EVM testing - import MOK cert,
 #          setup grub boot menu and install necessary ima tools
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#45662
 
 use base "opensusebasetest";

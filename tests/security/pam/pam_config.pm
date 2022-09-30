@@ -3,7 +3,7 @@
 #
 # Summary: PAM tests for pam-config, create, add or delete services
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#70345, poo#108096, tc#1767580
 
 use base 'opensusebasetest';
