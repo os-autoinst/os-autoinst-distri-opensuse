@@ -1,0 +1,9 @@
+name: stunntl fips test
+description: >
+    Update stunnel to 5.59
+schedule:
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - network/setup_multimachine
+    - fips/fips_setup
+    - fips/stunnel
