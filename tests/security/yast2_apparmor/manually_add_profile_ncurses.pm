@@ -90,7 +90,7 @@ sub run {
     send_key("ret");
     wait_still_screen(2);
     wait_screen_change { send_key "ret" };
-    send_key_until_needlematch("yast2_apparmor-change-dir-to-sbin", "down", 7, 2);
+    send_key_until_needlematch("yast2_apparmor-change-dir-to-sbin", "down", 8, 2);
     wait_screen_change { send_key "ret" };
     wait_screen_change { send_key "alt-f" };
     # Delete the filename that's already written and type our filename
