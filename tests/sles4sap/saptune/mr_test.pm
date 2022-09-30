@@ -13,6 +13,7 @@ use Utils::Backends;
 use utils;
 use version_utils 'is_sle';
 use Utils::Architectures;
+use Utils::Systemd qw(systemctl);
 use strict;
 use warnings;
 use mr_test_lib qw(load_mr_tests);
@@ -37,7 +38,10 @@ sub setup {
     quit_packagekit;
     # saptune is not installed by default on SLES4SAP 12 on ppc64le and in textmode profile
     zypper_call "-n in saptune" if ((is_ppc64le() and is_sle('<15')) or check_var('DESKTOP', 'textmode'));
-    zypper_call "in sapconf" if is_sle("<15");
+    if (systemctl("-q is-active sapconf.service", ignore_failure => 1)) {
+        record_soft_failure("bsc#1190787 - sapconf is not started");
+        zypper_call "in sapconf";
+    }
     # Install mr_test dependencies
     # 'zypper_call "-n in python3-rpm"' returns error message:
     #   "There are running programs which still use files and libraries deleted or updated by recent upgrades.
