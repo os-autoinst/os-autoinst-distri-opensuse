@@ -163,6 +163,7 @@
           <format config:type="boolean">true</format>
           <fstopt>umask=0002,utf8=true</fstopt>
           <mount>/boot/efi</mount>
+          <size>512M</size>
         </partition>
         % }
         <partition>
@@ -181,6 +182,7 @@
           <format config:type="boolean">true</format>
           <fstopt>defaults</fstopt>
           <mount>/</mount>
+          <size>max</size>
         </partition>
       </partitions>
       <use>all</use>
