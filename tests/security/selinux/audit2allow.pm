@@ -3,7 +3,7 @@
 #
 # Summary: Test "# audit2allow" command with options
 #          "-a / -i / -w / -R / -M / -r" can work
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#61792, tc#1741285
 
 use base 'opensusebasetest';

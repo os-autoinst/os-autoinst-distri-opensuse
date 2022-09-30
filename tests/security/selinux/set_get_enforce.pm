@@ -5,7 +5,7 @@
 #          # setenforce - modify the mode SELinux is running in
 #          #   - usage:  setenforce [ Enforcing | Permissive | 1 | 0 ]
 #          # getenforce - reports whether SELinux is enforcing, permissive, or disabled
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#105202, tc#1769801
 
 use base 'opensusebasetest';

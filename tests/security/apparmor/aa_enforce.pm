@@ -8,7 +8,7 @@
 # - use aa-status to check if nscd is really disabled
 # - runs aa-enforce on /usr/bin/nscd to enforce mode and check output
 # - runs aa-status and check if nscd is on enforce mode.
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#36877, tc#1621145, poo#81730, tc#1767574
 
 use strict;

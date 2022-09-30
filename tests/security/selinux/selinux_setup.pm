@@ -3,7 +3,7 @@
 #
 # Summary: Setup environment for selinux tests,
 #          check SELinux status by default via 'sestatus/selinuxenabled'
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#40358, poo#105202, tc#1769801
 
 use base 'opensusebasetest';

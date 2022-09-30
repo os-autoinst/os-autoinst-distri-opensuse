@@ -4,7 +4,7 @@
 # Summary: Test "# yast2 apparmor" can manually add profile,
 #          also verify Bug 1172040 - YaST2 apparmor profile creation:
 #          "View profile" does nothing
-# Maintainer: QE Security <none@suse.de> (Slack channel: #discuss-qe-security)
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#70537, tc#1741266, poo#103341
 
 use base 'apparmortest';

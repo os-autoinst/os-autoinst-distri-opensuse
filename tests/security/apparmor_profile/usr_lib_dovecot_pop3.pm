@@ -11,7 +11,7 @@
 # - Restart dovecot
 # - Use telnet and retrieve email using pop3
 # - Check audit.log for existence of errors related to dovecot
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#46238, tc#1695947
 
 use base "apparmortest";

@@ -11,7 +11,7 @@
 #                can access into the corresponding grub menu entry
 #             3) Wrong user/password is not able to access the grub
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#81721, poo#95548, poo#97175, poo#101238, tc#1768659
 
 use base 'opensusebasetest';

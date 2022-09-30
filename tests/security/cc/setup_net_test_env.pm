@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Setup network configuration for netfilter and netfilebt test cases
-# Maintainer: Liu Xiaojing <xiaojing.liu@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#96540 poo#99441, poo#110157, poo#101914
 
 use base 'consoletest';

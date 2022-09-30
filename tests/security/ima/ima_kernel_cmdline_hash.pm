@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test IMA kernel command line for IMA hash
-# Maintainer: llzhao <llzhao@suse.com>, rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#48932, poo#100892
 
 use base "opensusebasetest";

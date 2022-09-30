@@ -5,7 +5,7 @@
 #          we need make sure it can boot up successfully
 #          after disabling the secureboot
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#81712
 
 use base 'opensusebasetest';

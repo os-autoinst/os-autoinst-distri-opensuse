@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: The server side of postgresql ssl connection test.
-# Maintainer: Starry Wang <starry.wang@suse.com> Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#110233, tc#1769967, poo#112094
 
 use base 'consoletest';

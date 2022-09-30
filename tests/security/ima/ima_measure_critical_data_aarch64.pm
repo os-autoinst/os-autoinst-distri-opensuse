@@ -6,7 +6,7 @@
 #          We need check this feature on SLES15SP4 on aarch64 platform
 #          only, IBM will cover other platforms.
 #
-# Maintainer: rfan1 <richrd.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#102707, tc#1769822
 
 use base 'opensusebasetest';

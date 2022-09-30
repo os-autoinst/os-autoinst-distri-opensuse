@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test IMA appraisal using hashes
-# Maintainer: llzhao <llzhao@suse.com>, rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#53579, poo#100694, poo#102311
 
 use base 'opensusebasetest';

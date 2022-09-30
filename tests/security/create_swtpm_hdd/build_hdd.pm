@@ -6,7 +6,7 @@
 #          root access for ssh is enabled along with udev rules.
 #          at the same time, install some required packages.
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#81256, tc#1768671, poo#93835, poo#102933
 
 use base 'opensusebasetest';

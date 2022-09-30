@@ -35,7 +35,7 @@
 #   log: ""ERROR", "There are denied profile_replace records found in
 #   $audit_log" and fail test.
 # - upload /var/log/apache2/error_log and audit.log
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#48773, tc#1695946, poo#111036
 
 

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test "# yast2 apparmor" can scan audit logs
-# Maintainer: QE Security <none@suse.de> (Slack channel: #discuss-qe-security)
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#67933, tc#1741266, poo#103341
 
 use base 'apparmortest';

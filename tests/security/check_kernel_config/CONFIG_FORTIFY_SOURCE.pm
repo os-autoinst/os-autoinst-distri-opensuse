@@ -3,7 +3,7 @@
 #
 # Summary: FORTIFY_SOURCE is very stable in userland, so this can be enabled with little impact in the kernel.
 #          From SLES15SP3, we added this kernel parameter check on all platforms.
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#73498, tc#1768633
 
 use base 'opensusebasetest';

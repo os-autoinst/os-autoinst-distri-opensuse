@@ -6,7 +6,7 @@
 #          Test to create a user on CLI by means of adduser,
 #          change the password using passwd, check it is SHA512 hashed too.
 #          Also verify bsc#1176714 - Password being truncated to 8 characters
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#71740 bsc#1176714
 
 use base apparmortest;

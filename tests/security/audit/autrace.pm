@@ -3,7 +3,7 @@
 #
 # Summary: Verify the "autrace" utility traces individual processes in a fashion similar to strace.
 #          The output of autrace is logged to the audit log.
-# Maintainer: llzhao <llzhao@suse.com>, shawnhao <weixuan.hao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#81772, tc#1768579
 
 use base 'opensusebasetest';

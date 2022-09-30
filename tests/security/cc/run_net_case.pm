@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run 'netfilter' and 'netfilebt' test cases of 'audit-test' test suite
-# Maintainer: Liu Xiaojing <xiaojing.liu@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#96540, poo#97271
 
 use base 'consoletest';

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test SCAP Workbench (scap-workbench) works
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#110256, jsc#SLE-24111, poo#110647
 
 use base 'opensusebasetest';

@@ -26,7 +26,7 @@
 # - Create and delete a test folder inside the share
 # - Switch back to text console
 # - Check audit.log for error messages related to smbd
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#48776, tc#1695952
 
 use base apparmortest;

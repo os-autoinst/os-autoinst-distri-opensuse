@@ -3,7 +3,7 @@
 #
 # Summary: Integrate the Lynis scanner into OpenQA: Checking the "Hardening
 #          index" numerical values should be the same
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#78224, poo#78230
 
 use base 'consoletest';

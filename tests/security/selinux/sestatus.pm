@@ -5,7 +5,7 @@
 
 #
 # Summary: Test 'sestatus/selinuxenabled' commands get the right status of a system running SELinux
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#40358, tc#1682592, poo#105202, tc#1769801
 
 use base 'selinuxtest';

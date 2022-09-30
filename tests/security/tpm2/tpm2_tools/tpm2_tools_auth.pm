@@ -4,7 +4,7 @@
 # Summary: Per TPM2 stack, we would like to add the tpm2-tools tests,
 #          from sles15sp2, update tpm2.0-tools to the stable 4 release
 #          this test module will cover auth tests.
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#64905, poo#105732, tc#1742297
 
 use strict;

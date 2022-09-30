@@ -4,7 +4,7 @@
 # Summary: Test "# chcat" can change file SELinux security category
 #          NOTE: Since we only focus on minimum policy and this cmd is
 #                for "mls", so this case only do some basic testings.
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#66096, tc#1745369
 
 use base "selinuxtest";

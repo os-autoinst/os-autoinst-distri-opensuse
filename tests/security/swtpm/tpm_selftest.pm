@@ -7,7 +7,7 @@
 #          We need only test this feature on aarch64 platform,
 #          However, based on bsc#1193350, test it on x86_64 as
 #          well
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#103644, tc#1769832
 
 use base 'opensusebasetest';

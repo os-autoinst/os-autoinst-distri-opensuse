@@ -9,7 +9,7 @@
 # validates output of command and take a screenshot of each command
 # - Put nscd back in enforce mode
 # - Cleanup temporary directories
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#36880, tc#1621142, poo#81730, tc#1767574
 
 use strict;

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Setup Apache2 with SSL enabled and test libserf by using SVN.
-# Maintainer: Starry Wang <starry.wang@suse.com> Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#110434, tc#1769948, poo#112550
 
 use base 'consoletest';

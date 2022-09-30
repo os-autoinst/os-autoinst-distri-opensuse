@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test 'CAP_BPF' capability is available when 'unprivileged_bpf_disabled=1'
-# Maintainer: llzhao <llzhao@suse.com> Starry Wang <starry.wang@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#103932, tc#1769831, poo#108302
 
 use base 'opensusebasetest';

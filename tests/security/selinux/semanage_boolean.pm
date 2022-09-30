@@ -3,7 +3,7 @@
 #
 # Summary: Test "#semanage boolean" command with options
 #          "-l / -D / -m / -C..." can work
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#64728, tc#1741288
 
 use base 'opensusebasetest';

@@ -3,7 +3,7 @@
 #
 # Summary: Add the keylime package (attestation)
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#106870, tc#1769823
 
 use strict;

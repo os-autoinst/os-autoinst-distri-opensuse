@@ -8,7 +8,7 @@
 # - Run aa-status, check the output for strings about modules/profiles/processes
 #   and verify "aa-status" can "handle profile with name contains '('".
 # and strings enforced, complain, unconfined and loaded.
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: tc#1767574, poo#81727, poo#36874, poo#44912
 
 use base "consoletest";
