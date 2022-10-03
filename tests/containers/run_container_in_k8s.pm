@@ -9,6 +9,7 @@
 
 use Mojo::Base 'publiccloud::k8sbasetest';
 use testapi;
+use containers::k8s qw(apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log);
 
 sub run {
     my ($self, $run_args) = @_;
@@ -47,18 +48,18 @@ spec:
             cpu: "0.5"
             memory: 256Mi
           requests:
-            cpu: "0.1"
+            cpu: "0.1"  
             memory: 128Mi
       restartPolicy: Never
   backoffLimit: 4
 EOT
 
     record_info('Manifest', "Applying manifest:\n$manifest");
-    $self->apply_manifest($manifest);
-    $self->wait_for_job_complete($job_name);
-    my $pod = $self->find_pods("job-name=$job_name");
+    apply_manifest($manifest);
+    wait_for_k8s_job_complete($job_name);
+    my $pod = find_pods("job-name=$job_name");
     record_info('Pod', "Container (POD) successfully created.\n$pod");
-    $self->validate_log($pod, "SUSE Linux Enterprise Server");
+    validate_pod_log($pod, "SUSE Linux Enterprise Server");
     record_info('cmd', "Command `$cmd` successfully executed in the image.");
 }
 
