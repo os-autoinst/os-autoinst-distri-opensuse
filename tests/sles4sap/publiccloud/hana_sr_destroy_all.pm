@@ -19,7 +19,7 @@ sub test_flags {
 }
 
 sub run {
-    record_info("Performing cleanup")
+    record_info("Performing cleanup");
 }
 
 1;

@@ -3,7 +3,7 @@ use strict;
 use warnings FATAL => 'all';
 
 sub test_flags {
-    return {fatal => 1};
+    return {fatal => 1, publiccloud_multi_module => 1};
 }
 
 sub run {

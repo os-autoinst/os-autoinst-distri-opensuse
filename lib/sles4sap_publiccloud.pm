@@ -19,20 +19,20 @@ use List::MoreUtils qw(uniq);
 use Data::Dumper;
 
 our @EXPORT = qw(
-    run_cmd
-    wait_until_resources_started
-    get_promoted_hostname
-    is_hana_resource_running
-    stop_hana
-    start_hana
-    check_takeover
-    get_replication_info
-    is_hana_online
-    get_hana_topology
-    enable_replication
-    cleanup_resource
-    get_promoted_instance
-    wait_for_sync
+  run_cmd
+  wait_until_resources_started
+  get_promoted_hostname
+  is_hana_resource_running
+  stop_hana
+  start_hana
+  check_takeover
+  get_replication_info
+  is_hana_online
+  get_hana_topology
+  enable_replication
+  cleanup_resource
+  get_promoted_instance
+  wait_for_sync
 );
 
 # Global variables
@@ -53,7 +53,7 @@ sub run_cmd {
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 60);
     my $title = $args{title} // $args{cmd};
     $title =~ s/[[:blank:]].+// unless defined $args{title};
-    my $cmd = defined($args{'runas'}) ? "su - $args{'runas'} -c '$args{cmd}'" : "$args{cmd}";
+    my $cmd = defined($args{runas}) ? "su - $args{runas} -c '$args{cmd}'" : "$args{cmd}";
 
     # Without cleaning up variables SSH commands get executed under wrong user
     delete($args{cmd});
@@ -123,7 +123,7 @@ sub get_promoted_hostname {
     my $resource_output = $self->run_cmd(cmd => "crm resource status msl_SAPHana_HDB_HDB00", quiet => 1);
     record_info("crm out", $resource_output);
     my @master = $resource_output =~ /:\s(\S+)\sMaster/g;
-    if ( scalar @master != 1 ) {
+    if (scalar @master != 1) {
         diag("Master database not found or command returned abnormal output.\n
         Check 'crm resource status' command output below:\n");
         diag($resource_output);
@@ -144,12 +144,12 @@ sub get_hana_topology {
     my $hostname = $args{hostname};
     my $cmd_out = $self->run_cmd(cmd => "SAPHanaSR-showAttr --format=script", quiet => 1);
     record_info("cmd_out", $cmd_out);
-    my @all_parameters = map { if (/^Hosts/) {s,Hosts/,,; s,",,g; $_} else { () } } split("\n", $cmd_out);
+    my @all_parameters = map { if (/^Hosts/) { s,Hosts/,,; s,",,g; $_ } else { () } } split("\n", $cmd_out);
     my @all_hosts = uniq map { (split("/", $_))[0] } @all_parameters;
 
     for my $host (@all_hosts) {
-        my %host_parameters = map { my($node, $parameter, $value) = split(/[\/=]/, $_);
-            if ($host eq $node) {($parameter, $value)} else { () } } @all_parameters;
+        my %host_parameters = map { my ($node, $parameter, $value) = split(/[\/=]/, $_);
+            if ($host eq $node) { ($parameter, $value) } else { () } } @all_parameters;
         push(@topology, \%host_parameters);
 
         if (defined($hostname) && $hostname eq $host) {
@@ -214,9 +214,9 @@ sub stop_hana {
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
     my $method = defined($args{method}) ? $args{method} : 'stop';
     my %commands = (
-        "stop"  => "HDB stop",
-        "kill"  => "HDB kill -x",
-        "crash" => "echo b > /proc/sysrq-trigger &"
+        stop => "HDB stop",
+        kill => "HDB kill -x",
+        crash => "echo b > /proc/sysrq-trigger &"
     );
 
     my $cmd = $commands{$method};
@@ -235,10 +235,10 @@ sub stop_hana {
         #$self->run_cmd(cmd => $cmd, timeout => $timeout);
         sleep 10;
         $self->{my_instance}->wait_for_ssh();
-        return();
+        return ();
     }
     else {
-        $self->run_cmd(cmd => $cmd, runas=>"hdbadm" , timeout => $timeout);
+        $self->run_cmd(cmd => $cmd, runas => "hdbadm", timeout => $timeout);
     }
 }
 
@@ -249,9 +249,9 @@ Start HANA DB using "HDB start" command
 
 =cut
 
-sub start_hana{
+sub start_hana {
     my ($self) = @_;
-    $self->run_cmd(cmd => "HDB start", runas=>"hdbadm");
+    $self->run_cmd(cmd => "HDB start", runas => "hdbadm");
 }
 
 =head2 cleanup_resource
@@ -261,7 +261,7 @@ Cleanup rsource 'msl_SAPHana_HDB_HDB00', wait for DB start automaticlly.
 
 =cut
 
-sub cleanup_resource{
+sub cleanup_resource {
     my ($self, %args) = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
     $self->run_cmd(cmd => "crm resource cleanup msl_SAPHana_HDB_HDB00");
@@ -269,7 +269,7 @@ sub cleanup_resource{
     # Wait for resource to start
     my $start_time = time;
     while ($self->is_hana_resource_running() == 0) {
-        if (time - $start_time > $timeout){
+        if (time - $start_time > $timeout) {
             record_info("Cluster status", $self->run_cmd(cmd => $crm_mon_cmd));
             die("Resource did not start within defined timeout. ($timeout sec).");
         }
@@ -300,7 +300,7 @@ sub check_takeover {
 
             if ($takeover_host ne $hostname && $sync_state eq "PRIM") {
                 $takeover_complete = 1;
-                record_info("Takeover status:", "Takeover complete to node '$takeover_host'" );
+                record_info("Takeover status:", "Takeover complete to node '$takeover_host'");
                 last;
             }
             sleep 30;
@@ -323,11 +323,11 @@ sub enable_replication {
     record_info("Topology", Dumper($topology_out));
 
     my $cmd = "hdbnsutil -sr_register " .
-    "--name=$topology{vhost} " .
-    "--remoteHost=$topology{remoteHost} " .
-    "--remoteInstance=00 " .
-    "--replicationMode=$topology{srmode} " .
-    "--operationMode=$topology{op_mode}";
+      "--name=$topology{vhost} " .
+      "--remoteHost=$topology{remoteHost} " .
+      "--remoteInstance=00 " .
+      "--replicationMode=$topology{srmode} " .
+      "--operationMode=$topology{op_mode}";
 
     record_info('CMD Run', $cmd);
     $self->run_cmd(cmd => $cmd, runas => "hdbadm");
@@ -345,7 +345,7 @@ sub get_replication_info {
     record_info("replication info", $output_cmd);
     # Create a hash from hdbnsutil output ,convert to lowercase with underscore instead of space.
     my %out = $output_cmd =~ /^?\s?([\/A-z\s]*\S+):\s(\S+)\n/g;
-    %out = map { $_ =~ s/\s/_/g; lc $_} %out;
+    %out = map { $_ =~ s/\s/_/g; lc $_ } %out;
     return \%out;
 }
 
@@ -369,7 +369,7 @@ sub get_promoted_instance {
     }
 
     if ($promoted eq "undef" || !defined($promoted)) {
-        die("Failed to identify Hana 'PROMOTED' node") ;
+        die("Failed to identify Hana 'PROMOTED' node");
     }
 
     return $promoted;
@@ -398,14 +398,14 @@ sub wait_for_sync {
             last if $sok == 1;
         }
 
-        if (time - $start_time > $timeout){
+        if (time - $start_time > $timeout) {
             record_info("Cluster status", $self->run_cmd(cmd => $crm_mon_cmd));
-            record_info("Sync FAIL", "Host replication status: " . run_cmd(cmd=>'SAPHanaSR-showAttr'));
+            record_info("Sync FAIL", "Host replication status: " . run_cmd(cmd => 'SAPHanaSR-showAttr'));
             die("Replication SYNC did not finish within defined timeout. ($timeout sec).");
         }
         sleep 30;
     }
-    record_info("Sync OK", $self->run_cmd(cmd=>"SAPHanaSR-showAttr"));
+    record_info("Sync OK", $self->run_cmd(cmd => "SAPHanaSR-showAttr"));
     return 1;
 }
 

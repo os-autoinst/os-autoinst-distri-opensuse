@@ -12,7 +12,7 @@ sub cleanup {
     my ($self) = @_;
     die("Cleanup already called") if ($self->{cleanup_called});
     $self->{cleanup_called} = 1;
-    qesap_execute(verbose=>"--verbose", cmd=>"terraform", cmd_options=>"-d", timeout=>600);
+    qesap_execute(verbose => "--verbose", cmd => "terraform", cmd_options => "-d", timeout => 600);
     record_info("Cleanup executed");
 }
 
@@ -25,7 +25,7 @@ sub post_fail_hook {
 sub post_run_hook {
     my ($self) = @_;
     return if ($self->test_flags()->{publiccloud_multi_module})
-        or (get_var("PUBLIC_CLOUD_NO_CLEANUP"));
+      or (get_var("PUBLIC_CLOUD_NO_CLEANUP"));
     $self->cleanup();
 }
 

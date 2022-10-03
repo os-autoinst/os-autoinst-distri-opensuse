@@ -39,7 +39,7 @@ sub qesap_get_variables {
     $variables{PUBLIC_CLOUD_RESOURCE_NAME} = get_var("PUBLIC_CLOUD_RESOURCE_NAME");
     $variables{FENCING_MECHANISM} = get_var("FENCING_MECHANISM", "sbd");
 
-    return(%variables);
+    return (%variables);
 }
 
 sub run {
@@ -54,11 +54,11 @@ sub run {
 
     # TODO: DEPLOYMENT SKIP - REMOVE!!!
     # Do not cleanup if deployment skip
-    if ($instances_export_path or $instances_import_path){
+    if ($instances_export_path or $instances_import_path) {
         set_var("PUBLIC_CLOUD_NO_CLEANUP", "1");
-        set_var("PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE", "1")
-    };
-    if (defined($instances_import_path)){
+        set_var("PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE", "1");
+    }
+    if (defined($instances_import_path)) {
         assert_script_run("ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa");
         copy_ssh_keys();
         $self->{instances} = $run_args->{instances} = retrieve($instances_import_path);
@@ -114,14 +114,14 @@ sub run {
 
     # TODO: DEPLOYMENT SKIP - REMOVE!!!
     # Mostly for dev - for reusing deployed instances, load this file.
-    if (defined($instances_export_path)){
+    if (defined($instances_export_path)) {
         record_info('Exporting data', Dumper(\@instances_export));
         record_info('Export path', Dumper($instances_export_path));
         store(\@instances_export, $instances_export_path);
     }
 
     $self->{instances} = $run_args->{instances} = \@instances_export;
-    record_info("Deployment OK", );
+    record_info("Deployment OK",);
     return 1;
 }
 
@@ -146,7 +146,7 @@ sub identify_instances {
     }
 
     if ($self->{site_a}->{instance_id} eq "undef" || $self->{site_b}->{instance_id} eq "undef") {
-        die("Failed to identify Hana nodes") ;
+        die("Failed to identify Hana nodes");
     }
 
     record_info("Instances:", "Detected HANA instances:
@@ -159,8 +159,8 @@ sub identify_instances {
 Copies static ssh keys stored in /data/sls4sap/. Mostly for development purposes, most probably unsecure.
 
 =cut
-sub copy_ssh_keys{
-    foreach my $file ("id_rsa", "id_rsa.pub"){
+sub copy_ssh_keys {
+    foreach my $file ("id_rsa", "id_rsa.pub") {
         assert_script_run("mkdir -p /root/.ssh");
         assert_script_run("curl -f -v " . data_url("sles4sap/$file") . " -o /root/.ssh/$file");
         assert_script_run("chmod 700 /root/.ssh/$file");

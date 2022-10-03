@@ -15,7 +15,7 @@ use warnings FATAL => 'all';
 use testapi;
 
 sub test_flags {
-    return {fatal => 1};
+    return {fatal => 1, publiccloud_multi_module => 1};
 }
 
 sub run {
@@ -28,16 +28,16 @@ sub run {
 
     # Switch to control Site B (currently PROMOTED)
     $self->{my_instance} = $site_b;
-    my $cluster_status = $self->run_cmd(cmd=>"crm status");
-    record_info( "Cluster status", $cluster_status );
+    my $cluster_status = $self->run_cmd(cmd => "crm status");
+    record_info("Cluster status", $cluster_status);
 
     # Check initial state: 'site B' = primary mode
     die("Site B '$site_b->{instance_id}' is NOT in MASTER mode.") if
-        $self->get_promoted_hostname() ne $site_b->{instance_id};
+      $self->get_promoted_hostname() ne $site_b->{instance_id};
 
     record_info("Crash OS", "Running 'proc-systrigger' on Site B ('$site_b->{instance_id}')");
     $self->stop_hana(method => "crash");
-    $self->{my_instance}->wait_for_ssh(username=>'cloudadmin');
+    $self->{my_instance}->wait_for_ssh(username => 'cloudadmin');
 
     record_info("Takeover check");
     $self->check_takeover();
