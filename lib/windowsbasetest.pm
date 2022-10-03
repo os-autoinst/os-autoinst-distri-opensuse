@@ -170,4 +170,30 @@ sub install_wsl2_kernel {
     );
 }
 
+sub reset_search_bar {
+    my $self = shift;
+
+    # Plan B: download the MS provided script
+    # "https://www.microsoft.com/en-us/download/confirmation.aspx?id=100295"
+
+    # Open the help dialog
+    $self->open_powershell_as_admin;
+    $self->run_in_powershell(
+        cmd => 'msdt.exe -ep WindowsHelp id SearchDiagnostic'
+    );
+    assert_and_click('search-bar-restart-next');
+    assert_and_click('search-bar-restart-choose');
+    assert_and_click('search-bar-restart-next');
+    assert_and_click('search-bar-restart-finish', timeout => 120);
+
+    $self->run_in_powershell(
+        cmd => q{$port.close()},
+        code => sub { }
+    );
+    $self->run_in_powershell(
+        cmd => 'exit',
+        code => sub { }
+    );
+}
+
 1;

@@ -93,9 +93,25 @@ sub run {
         cmd => q{$port.close()},
         code => sub { }
     );
+    $self->run_in_powershell(
+        cmd => 'exit',
+        code => sub { }
+    );
 
+    $self->reset_search_bar;
     $self->use_search_feature(get_var('WSL_VERSION'));
     assert_and_click 'SUSE-wsl-search';
+    # $self->use_search_feature(get_var('WSL_VERSION'));
+    # assert_screen [('SUSE-wsl-search', 'SUSE-wsl-search-failed')];
+    # if (match_has_tag('SUSE-wsl-search')) {
+    #     assert_and_click 'SUSE-wsl-search';
+    # } else {
+    #     # If SUSE WSL does not appear in the search, the best solution seems to
+    #     # be a reboot...
+    #     $self->reset_search_bar;
+    #     $self->use_search_feature(get_var('WSL_VERSION'));
+    #     assert_and_click 'SUSE-wsl-search';
+    # }
 }
 
 1;
