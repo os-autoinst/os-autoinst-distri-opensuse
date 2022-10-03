@@ -74,6 +74,9 @@ sub run {
     # If no, check the user was created successfully
     assert_screen("Yast2-Users-Add-User-Created");
     wait_screen_change { send_key "alt-o" };
+    # Until bsc#1202053 is fixed, we need to send "enter" a couple of times before we can clear the console
+    send_key "ret";
+    send_key "ret";
 
     # Enhence code for stability: avoid time racing
     clear_console;
