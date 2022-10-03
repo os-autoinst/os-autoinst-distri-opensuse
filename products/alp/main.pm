@@ -35,7 +35,6 @@ sub load_selfinstall_boot_tests {
 }
 
 sub load_common_tests {
-    loadtest 'transactional/host_config';
     loadtest 'transactional/enable_selinux';
     loadtest 'microos/networking';
     loadtest 'microos/libzypp_config';
@@ -67,10 +66,17 @@ if (get_var('BOOT_HDD_IMAGE')) {
     load_selfinstall_boot_tests;
 }
 
-load_common_tests;
-load_transactional_tests;
-load_container_tests() if (is_container_test());
+loadtest 'transactional/host_config';
 
+# Unless specified otherwise load standard tests only
+if (is_container_test()) {
+    load_container_tests();
+} else {
+    load_common_tests;
+    load_transactional_tests;
+}
+
+# Enclosing test cases
 loadtest 'console/journal_check';
 loadtest 'shutdown/shutdown';
 
