@@ -95,7 +95,17 @@ sub run {
     );
 
     $self->use_search_feature(get_var('WSL_VERSION'));
-    assert_and_click 'SUSE-wsl-search';
+    assert_screen [('SUSE-wsl-search', 'SUSE-wsl-search-failed')];
+    if (match_has_tag('SUSE-wsl-search')) {
+        assert_and_click 'SUSE-wsl-search';
+    } else {
+        # If SUSE WSL does not appear in the search, the best solution seems to
+        # be a reboot...
+        $self->reboot_or_shutdown(1);
+        $self->wait_boot_windows;
+        $self->use_search_feature(get_var('WSL_VERSION'));
+        assert_and_click 'SUSE-wsl-search';
+    }
 }
 
 1;
