@@ -8,7 +8,7 @@
 # Summary: openssl should only list FIPS approved cryptographic functions
 #          while system is working in FIPS mode
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#44831, poo#65375, poo#101932, poo#111818
 
 use base "consoletest";

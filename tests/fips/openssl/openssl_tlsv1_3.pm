@@ -7,7 +7,7 @@
 #          start to negotiate the TLS 1.3 protocol. However, many packages have their
 #          own settings which override the library defaults and these either have to be
 #          recompiled against openssl 1.1.1 or might even need extra patching.
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#64992, tc#1744100
 
 use base "consoletest";

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: stunnel tests in FIPS mode
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#108608, tc#1769815
 
 use base 'opensusebasetest';

@@ -7,7 +7,7 @@
 #          certificates to secure an intranet website, or
 #          for issuing certificates to clients to allow them
 #          to authenticate to a server
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#88513, tc#1768672
 
 package opensslca;

@@ -12,7 +12,7 @@
 #          3. Check the difference between datebase and file system
 #          4. Modified the file system and run aide check again
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#64364, poo#102032, tc#1744128
 
 use base "consoletest";

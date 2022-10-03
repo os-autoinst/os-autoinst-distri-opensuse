@@ -4,7 +4,7 @@
 # Package: gpg2
 # Summary: Test dirmngr daemon and valid/revoked certificate
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#52430, poo#52937, tc#1729313, poo#65375
 
 use base "consoletest";

@@ -18,7 +18,7 @@
 #
 #          According to openssl wiki, "dss1" digest method is not available in openssl-1.1-x any more
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#47471, poo#48020
 
 use base "consoletest";

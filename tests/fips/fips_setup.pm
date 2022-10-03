@@ -7,7 +7,7 @@
 #          ENV mode - selected by FIPS_ENV_MODE
 #          Global mode - setup fips=1 in kernel command line
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#39071, poo#105591, poo#105999, poo#109133
 
 use base 'opensusebasetest';

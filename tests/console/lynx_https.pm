@@ -5,7 +5,7 @@
 # Summary: Test with "FIPS" installed and enabled, the WWW browser "lynx"
 #          can access https web pages successfully.
 #
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#52292, tc#1621466, poo#65375
 
 use base "consoletest";

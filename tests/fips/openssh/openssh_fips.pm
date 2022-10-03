@@ -13,7 +13,7 @@
 #          algorithm in fips mode, just like blowfish cipher
 #          or MD5 hash.
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: tc#1525228, poo#90458
 
 use base "consoletest";

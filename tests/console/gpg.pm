@@ -16,7 +16,7 @@
 # - Check test file signature
 # - Cleanup
 #
-# Maintainer: Petr Cervinka <pcervinka@suse.com>, Ben Chou <bchou@suse.com>
+# Maintainer: Petr Cervinka <pcervinka@suse.com>, QE Security <none@suse.de>
 # Tags: poo#65375, poo#97685, poo#104556
 
 use base "consoletest";

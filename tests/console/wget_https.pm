@@ -5,7 +5,7 @@
 
 # Package: wget
 # Summary: FIPS: wget
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: tc#1461937
 
 

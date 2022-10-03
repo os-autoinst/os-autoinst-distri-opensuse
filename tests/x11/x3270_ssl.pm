@@ -7,7 +7,7 @@
 # Package: x3270 openssl
 # Summary: x3270 for SSL support testing, with openssl s_server running on local system
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#65570, poo#65615, poo#89005, poo#106504, poo#109566
 
 use base "x11test";

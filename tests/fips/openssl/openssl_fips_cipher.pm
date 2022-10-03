@@ -8,7 +8,7 @@
 #          In fips mode, openssl only works with the FIPS
 #          approved Cihper algorithms: AES and DES3
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#44837
 
 use base "consoletest";
