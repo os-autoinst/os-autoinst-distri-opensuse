@@ -17,6 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use utils 'type_string_slow_extended';
+use version_utils 'is_sle';
 
 sub run {
     select_console 'x11';
