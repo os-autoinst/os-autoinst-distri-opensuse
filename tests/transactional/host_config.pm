@@ -9,13 +9,12 @@
 #
 # Maintainer: Jose Lausuch <jalausuch@suse.com>
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base qw(opensusebasetest);
 use testapi;
 use transactional qw(process_reboot);
 use bootloader_setup qw(change_grub_config);
-use utils qw(ensure_ca_certificates_suse_installed);
+use utils qw(ensure_ca_certificates_suse_installed zypper_call);
+use version_utils qw(is_alp);
 
 sub run {
     select_console 'root-console';
@@ -25,6 +24,13 @@ sub run {
     my $extrabootparams = get_var('EXTRABOOTPARAMS');
     change_grub_config('=\"[^\"]*', "& $extrabootparams", 'GRUB_CMDLINE_LINUX_DEFAULT') if $extrabootparams;
     $keep_grub_timeout or change_grub_config('=.*', '=-1', 'GRUB_TIMEOUT');
+
+    record_info('REPOS', script_output('zypper lr --url', proceed_on_failure => 1));
+
+    if (is_alp) {
+        change_grub_config('=.*', '=1024x768', 'GRUB_GFXMODE=');
+        zypper_call('mr -e ALP-Build');
+    }
 
     if (!$keep_grub_timeout or $extrabootparams) {
         record_info('GRUB', script_output('cat /etc/default/grub'));
