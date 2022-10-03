@@ -5,7 +5,7 @@
 #          We need make sure FIPS is in enabled status;
 #          boot loader should add right boot partition.
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#112028
 
 use base 'opensusebasetest';

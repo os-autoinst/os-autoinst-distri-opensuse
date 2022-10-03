@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Base module for openSCAP test cases
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#37006
 
 package openscaptest;

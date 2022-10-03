@@ -12,7 +12,7 @@
 #          Verify key should be generated,as well as a QR code
 #          No failed messages output
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#102038, poo#107485
 
 use base "consoletest";

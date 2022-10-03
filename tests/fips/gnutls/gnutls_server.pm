@@ -4,7 +4,7 @@
 # Package: gnutls
 # Summary: SLES15SP2 FIPS certification, we need to certify gnutls and libnettle
 #          In this case, will configure GnuTLS server
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#63223, tc#1744099
 
 use base "consoletest";

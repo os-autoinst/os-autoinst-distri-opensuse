@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: common functions for FIPS web browser tests
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 
 package web_browser;
 

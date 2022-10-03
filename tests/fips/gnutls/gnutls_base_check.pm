@@ -5,7 +5,7 @@
 # Summary: SLES15SP2 and SLES15SP4 FIPS certification need to certify gnutls and libnettle
 #          In this case, will do some base check for gnutls
 #
-# Maintainer: rfan1 <richard.fan@suse.com>, Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>, Ben Chou <bchou@suse.com>
 # Tags: poo#63223, poo#102770, tc#1744099
 
 use base 'consoletest';

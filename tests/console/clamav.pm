@@ -17,7 +17,7 @@
 # original location and executed on its own dedicated test suites, qam-clamav
 # for maintenance and extra_tests_clamav in functional.
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: TC1595169, poo#46880, poo#65375, poo#80182
 
 use base "consoletest";

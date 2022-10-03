@@ -10,7 +10,7 @@
 #          - switch to normal user
 #          - connect to a website using https (retry multiple times in case of failure)
 #
-# Maintainer: Dominique Leuenberger <dimstar@opensuse.org>, Ben Chou <bchou@suse.com>
+# Maintainer: Dominique Leuenberger <dimstar@opensuse.org>, QE Security <none@suse.de>
 # Tags: poo#106011, poo#109840
 
 use base "consoletest";

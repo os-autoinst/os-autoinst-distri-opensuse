@@ -10,7 +10,7 @@
 #              or verify signatures using either NSS or OpenSSL for calculating
 #              the hash/signatures.
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#81260, tc#1767540
 
 use base "consoletest";

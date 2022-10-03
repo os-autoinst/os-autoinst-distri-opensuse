@@ -6,7 +6,7 @@
 # Summary: Enable SSL module on Apache2 server
 #          calls setup_apache2 with mode = SSL (lib/apachetest.pm)
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#65375, poo#67309, poo#101782
 
 use base "consoletest";

@@ -12,7 +12,7 @@
 #          test cases for fips verificaton when FIPS_ENABLED is set, like
 #          the cases to verify opessl hash, cipher, or public key algorithms
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#44834, poo#64649, poo#64842, poo#104184
 
 use base "consoletest";

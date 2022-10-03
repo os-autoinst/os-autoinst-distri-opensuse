@@ -7,7 +7,7 @@
 # Summary: FIPS: cryptsetup
 #          Attempt to verify the command of cryptsetup whether can be worked in FIPS mode
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: tc#1528909, poo#101575
 
 

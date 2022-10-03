@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: xca basic tests in FIPS mode
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#104733
 
 use base 'opensusebasetest';

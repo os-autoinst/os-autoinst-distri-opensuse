@@ -9,7 +9,7 @@
 #    Both RC4 and SEED are not approved cipher by FIPS140-2.
 #    In a fips enabled system, it will get a failed result if run curl command
 #    with RC4 and SEED ciphers.
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 
 use base "consoletest";
 use testapi;

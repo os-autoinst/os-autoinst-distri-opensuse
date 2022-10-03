@@ -8,7 +8,7 @@
 # Package: MozillaFirefox
 # Summary: FIPS mozilla-nss test for firefox : firefox_nss
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tag: poo#47018, poo#58079, poo#71458, poo#77140, poo#77143,
 #      poo#80754, poo#104314, poo#104989, poo#105343
 

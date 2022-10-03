@@ -6,7 +6,7 @@
 # Package: python openvswitch
 # Summary: The test to connect openvswitch to openflow with SSL enabled
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: TC1595181, poo#65375, poo#107134
 
 use base "consoletest";
