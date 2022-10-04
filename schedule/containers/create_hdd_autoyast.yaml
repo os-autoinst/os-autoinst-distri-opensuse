@@ -21,6 +21,7 @@ schedule:
     - autoyast/logs
     - autoyast/save_y2logs
     - '{{grub_set_bootargs}}'
+    - containers/install_updates
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
     - '{{svirt_upload_assets}}'
