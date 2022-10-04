@@ -1,0 +1,17 @@
+BootStrap: zypper
+MirrorURL: http://download.opensuse.org/distribution/openSUSE-stable/repo/oss/
+Include: zypper
+
+%post
+    zypper ref
+    zypper -n in cowsay
+
+%environment
+    export LC_ALL=C
+    export PATH=/usr/games:$PATH
+
+%runscript
+    date | cowsay "I love Containers!!"
+
+%labels
+    Author iob
