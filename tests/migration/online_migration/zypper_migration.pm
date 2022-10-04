@@ -47,7 +47,9 @@ sub run {
     # start migration
     if (is_sle_micro) {
         # We need to stop and disable apparmor service before migration due to bsc#1197368
-        systemctl('disable --now apparmor.service');
+        if (script_run('systemctl is-active apparmor.service') == 0) {
+            systemctl('disable --now apparmor.service');
+        }
         script_run("(transactional-update migration; echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
     } else {
         my $option = (is_leap_migration) || (get_var("SCC_ADDONS") =~ /phub/) || (get_var("SMT_URL") =~ /smt/) ? " --allow-vendor-change " : " ";
