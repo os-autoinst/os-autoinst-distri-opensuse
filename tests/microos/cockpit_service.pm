@@ -29,13 +29,19 @@ sub run {
         push @pkgs, 'cockpit';
     }
 
-    if (is_networkmanager && (script_run('rpm -q cockpit-networkmanager') != 0)) {
-        push @pkgs, 'cockpit-networkmanager';
+    if (is_networkmanager) {
+        if (script_run('rpm -q cockpit-networkmanager') != 0) {
+            push @pkgs, 'cockpit-networkmanager';
+        }
+    } else {
+        if (is_microos || is_alp || is_leap_micro('5.3+') || is_sle_micro('5.3+')) {
+            die sprintf('NetworkManager should be used by %s %s', get_var('DISTRI'), get_var('VERSION'));
+        }
+        if (script_run('rpm -q cockpit-wicked') != 0) {
+            push @pkgs, 'cockpit-wicked';
+        }
     }
 
-    if (!is_microos && !is_alp && (script_run('rpm -q cockpit-wicked') != 0)) {
-        push @pkgs, 'cockpit-wicked';
-    }
 
     unless (is_sle_micro('<5.2') || is_leap_micro('<5.2')) {
         push @pkgs, qw(cockpit-machines cockpit-tukit);
