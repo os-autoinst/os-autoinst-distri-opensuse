@@ -21,8 +21,14 @@ sub run {
       ' -u admin' .
       ' -p ' . $self->get_trento_password() .
       ' -i ' . $self->get_trento_ip() .
-      " -d $wd";
-    my $agent_api_key = script_output($cmd);
+      " -d $wd -v";
+    my $agent_api_key;
+    my @lines = split(/\n/, script_output($cmd));
+    foreach my $line (@lines) {
+        if ($line =~ /api_key:(.*)/) {
+            $agent_api_key = $1;
+        }
+    }
 
     $cmd = $self->install_agent($wd, '/root/test', $agent_api_key, '10.0.0.4');
 }

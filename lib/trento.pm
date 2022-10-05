@@ -29,16 +29,18 @@ package trento;
 
 use strict;
 use warnings;
-use testapi;
 use mmapi 'get_current_job_id';
-use utils qw(script_retry);
 use File::Basename qw(basename);
 use Mojo::JSON qw(decode_json);
+use YAML::PP;
+use utils qw(script_retry);
+use testapi;
 use qesapdeployment;
 
 use Exporter 'import';
 
 our @EXPORT = qw(
+  clone_trento_deployment
   get_trento_deployment
   get_resource_group
   get_qesap_resource_group
@@ -52,8 +54,10 @@ our @EXPORT = qw(
   deploy_qesap
   destroy_qesap
   install_agent
+  get_agents_number
   VM_USER
   SSH_KEY
+  cypress_configs
   cypress_install_container
   CYPRESS_LOG_DIR
   PODMAN_PULL_LOG
@@ -74,6 +78,7 @@ use constant PODMAN_PULL_LOG => '/tmp/podman_pull.log';
 use constant TRENTO_AZ_PREFIX => 'openqa-trento';
 use constant TRENTO_QESAPDEPLOY_PREFIX => 'qesapdep';
 use constant TRENTO_SCRIPT_RUN => 'set -o pipefail ; ./';
+use constant GITLAB_CLONE_LOG => '/tmp/gitlab_clone.log';
 
 # Parameter 'registry_name' must conform to
 # the following pattern: '^[a-zA-Z0-9]*$'.
@@ -82,13 +87,35 @@ use constant TRENTO_AZ_ACR_PREFIX => 'openqatrentoacr';
 use constant CYPRESS_IMAGE_TAG => 'goofy';
 use constant CYPRESS_IMAGE => 'docker.io/cypress/included';
 
-=head1 DESCRIPTION 
+=head1 DESCRIPTION
 
 Package with common methods and default or
 constant values for Trento tests
 
 =head2 Methods
 =cut
+
+=hean3 clone_trento_deployment
+
+Clone gitlab.suse.de/qa-css/trento
+=cut
+
+sub clone_trento_deployment {
+    my ($self, $work_dir) = @_;
+    # Get the code for the Trento deployment
+    my $gitlab_repo = get_var(TRENTO_GITLAB_REPO => 'gitlab.suse.de/qa-css/trento');
+
+    # The usage of a variable with a different name is to
+    # be able to overwrite the token when manually triggering
+    # the setup_jumphost test.
+    my $gitlab_token = get_var(TRENTO_GITLAB_TOKEN => get_required_var('_SECRET_TRENTO_GITLAB_TOKEN'));
+
+    my $gitlab_clone_url = 'https://git:' . $gitlab_token . '@' . $gitlab_repo;
+
+    record_info('CLONE', "Clone $gitlab_repo in $work_dir");
+    assert_script_run("cd $work_dir");
+    assert_script_run("git clone $gitlab_clone_url .  2>&1 | tee " . GITLAB_CLONE_LOG);
+}
 
 =head3 get_trento_deployment
 
@@ -117,8 +144,7 @@ sub get_trento_deployment {
         my $gitlab_project = $gitlab_url[-1];
 
         assert_script_run('echo "PRIVATE-TOKEN: ${GITLAB_TOKEN}" > gitlab_conf');
-        my $curl_cmd = 'curl -s ' .
-          '-H @gitlab_conf';
+        my $curl_cmd = 'curl -s -H @gitlab_conf';
         my $gitlab_api = 'https://gitlab.suse.de/api/v4/projects';
 
         # Get the ID of the requested project
@@ -211,7 +237,7 @@ sub config_cluster {
     qesap_configure_tfvar($qesap_provider,
         $region,
         $self->TRENTO_QESAPDEPLOY_PREFIX . get_current_job_id(),
-        get_required_var('QESAPDEPLOY_OS_VER'),
+        get_required_var('TRENTO_CLUSTER_OS_VER'),
         SSH_KEY . '.pub');
 
     # variables.sh file
@@ -300,11 +326,9 @@ Return the running VM public IP
 sub get_trento_ip {
     my $machine_ip = get_var('TRENTO_EXT_DEPLOY_IP');
     return $machine_ip if ($machine_ip);
-    my $az_cmd = 'az vm show -d' .
-      ' -g ' . get_resource_group() .
-      ' -n ' . get_vm_name() .
-      ' --query "publicIps"' .
-      ' -o tsv';
+    my $az_cmd = sprintf 'az vm show -d -g %s -n %s --query "publicIps" -o tsv',
+      get_resource_group(),
+      get_vm_name();
     return script_output($az_cmd, 180);
 }
 
@@ -354,9 +378,7 @@ Delete the resource group associated to this JobID and all its content
 
 sub az_delete_group {
     script_run('echo "Delete all resources"');
-    my $az_cmd = 'az group delete ' .
-      '--resource-group ' . get_resource_group() .
-      ' --yes';
+    my $az_cmd = sprintf 'az group delete --resource-group %s --yes', get_resource_group();
     script_retry($az_cmd, timeout => 600, retry => 5, delay => 60);
 }
 
@@ -428,6 +450,24 @@ sub install_agent {
     assert_script_run($cmd);
 }
 
+=head3 get_agents_number
+
+Get the number of SAP cluster nodes where the trento-agent has been installed
+=cut
+
+sub get_agents_number {
+    my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    my $yp = YAML::PP->new();
+
+    my $inventory_content = script_output("cat $inventory");
+    my $parsed_inventory = $yp->load_string($inventory_content);
+    my $num_hosts = 0;
+    while ((my $key, my $value) = each(%{$parsed_inventory->{all}->{children}})) {
+        $num_hosts += keys %{$value->{hosts}};
+    }
+    return $num_hosts;
+}
+
 =head3 k8s_logs
 
 Get all relevant info out from the cluster
@@ -489,6 +529,35 @@ sub podman_self_check {
     assert_script_run('podman ps');
     assert_script_run('podman images');
     assert_script_run('df -h');
+}
+
+=head3 cypress_configs
+
+Prepare all the configuration files for cypress
+
+=over 1
+
+=item B<CYPRESS_TEST_DIR> - Cypress test code location.
+
+=back
+=cut
+
+sub cypress_configs {
+    my ($cypress_test_dir) = @_;
+
+    my $machine_ip = get_trento_ip();
+    enter_cmd "cd " . $cypress_test_dir;
+    my $cypress_env_cmd = sprintf './cypress.env.py' .
+      ' -u http://%s' .
+      ' -p %s' .
+      ' -f Premium' .
+      ' -n %s' .
+      ' --trento-version %s',
+      $machine_ip, get_trento_password(), get_agents_number(), get_required_var('TRENTO_VERSION');
+
+    assert_script_run($cypress_env_cmd);
+    assert_script_run('cat cypress.env.json');
+    upload_logs('cypress.env.json');
 }
 
 =head3 cypress_install_container
