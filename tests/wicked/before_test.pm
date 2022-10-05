@@ -143,8 +143,11 @@ sub run {
             $package_list .= ' ndisc6';
         }
         if (check_var('WICKED', 'startandstop')) {
-            zypper_call('-q in firewalld', timeout => 400);
-            systemctl('disable --now firewalld');
+            # No firewalld on sles 12-SP5 (bsc#1180116)
+            if (!is_sle('<=12-SP5')) {
+                zypper_call('-q in firewalld', timeout => 400);
+                systemctl('disable --now firewalld');
+            }
         }
         wicked::wlan::prepare_packages() if (check_var('WICKED', 'wlan'));
 

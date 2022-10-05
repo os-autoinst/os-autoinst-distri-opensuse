@@ -11,6 +11,7 @@
 use Mojo::Base 'wickedbase';
 use testapi;
 use Utils::Systemd;
+use version_utils 'is_sle';
 
 has wicked_version => '>=0.6.70';
 
@@ -19,6 +20,12 @@ sub run {
     my $ifc = $ctx->iface();
 
     return if ($self->skip_by_wicked_version());
+
+    # No firewalld on sles 12-SP5 (bsc#1180116)
+    if (is_sle('<=12-SP5')) {
+        $self->result('skip');
+        return;
+    }
 
     systemctl('enable --now firewalld');
 
