@@ -157,7 +157,8 @@ sub run {
     );
 
     # poweroff
-    $self->reboot_or_shutdown;
+    $self->reboot_or_shutdown(1);
+    $self->wait_boot_windows;
 }
 
 1;
