@@ -59,9 +59,9 @@ sub relogin_root {
     my $self = shift;
     record_info 'relogin', 'user needs to logout and login back to trigger scripts which set env variales and others';
 
-    type_string("pkill -u root\n");
+    type_string('pkill -u root', lf => 1);
     record_info "pkill done";
-    $self->wait_boot_textmode(ready_time => 30);
+    $self->wait_boot_textmode(ready_time => 120);
     select_console('root-virtio-terminal');
     # Make sure that sshd is up. (TODO: investigate)
     systemctl('restart sshd');
