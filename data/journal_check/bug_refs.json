@@ -385,10 +385,17 @@
         },
         "type": "bug"
     },
+    "boo#1203899": {
+        "description": "NetworkManager.*kill child process 'helper'.* failed due to unexpected return value -1 by waitpid",
+        "products": {
+            "alp": ["0.1"]
+        },
+        "type": "bug"
+    },
     "bsc#1200490": {
         "description": "Unable to open /dev/kvm: No such file or directory",
         "products": {
-            "sle-micro": [ "5.3" ],
+            "sle-micro": ["5.2", "5.3"],
             "leap-micro": ["5.3"]
         },
         "type": "ignore"
