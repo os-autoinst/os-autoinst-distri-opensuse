@@ -229,7 +229,9 @@ TRENTO_DEPLOY_VER | string | | Force the Trento deployment script to be used fro
 TRENTO_AGENT_REPO | string | https://dist.suse.de/ibs/Devel:/SAP:/trento:/factory/SLE_15_SP3/x86_64 | Repository where to get the trento-agent installer
 TRENTO_AGENT_RPM | string | | Trento-agent rpm file name
 TRENTO_EXT_DEPLOY_IP | string | | Public IP of a Trento web instance not deployed by openQA
-TRENTO_WEB_PASSWORD | string | | Trento web password for the admin user
+TRENTO_WEB_PASSWORD | string | | Trento web password for the admin user. If not provided, random generated one.
+TRENTO_CLUSTER_OS_VER | string | | OS for nodes in SAP cluster.
+
 
 ### Publiccloud specific variables
 
