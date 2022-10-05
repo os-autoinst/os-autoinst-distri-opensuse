@@ -34,8 +34,10 @@
           <li><a href="#az_delete_group">az_delete_group</a></li>
           <li><a href="#az_vm_ssh_cmd">az_vm_ssh_cmd</a></li>
           <li><a href="#install_agent">install_agent</a></li>
+          <li><a href="#get_agents_number">get_agents_number</a></li>
           <li><a href="#k8s_logs">k8s_logs</a></li>
           <li><a href="#podman_self_check">podman_self_check</a></li>
+          <li><a href="#cypress_configs">cypress_configs</a></li>
           <li><a href="#cypress_install_container">cypress_install_container</a></li>
           <li><a href="#cypress_log_upload">cypress_log_upload</a></li>
           <li><a href="#cypress_exec">cypress_exec</a></li>
@@ -45,6 +47,7 @@
       </li>
     </ul>
   </li>
+  <li><a href="#POD-ERRORS">POD ERRORS</a></li>
 </ul><h1>lib/trento.pm</h1>
 
 <h1 id="NAME">NAME</h1>
@@ -64,6 +67,8 @@
 <p>Package with common methods and default or constant values for Trento tests</p>
 
 <h2 id="Methods">Methods</h2>
+
+<p>Clone gitlab.suse.de/qa-css/trento</p>
 
 <h3 id="get_trento_deployment">get_trento_deployment</h3>
 
@@ -155,6 +160,10 @@
 </dd>
 </dl>
 
+<h3 id="get_agents_number">get_agents_number</h3>
+
+<p>Get the number of SAP cluster nodes where the trento-agent has been installed</p>
+
 <h3 id="k8s_logs">k8s_logs</h3>
 
 <p>Get all relevant info out from the cluster</p>
@@ -174,6 +183,18 @@
 <h3 id="podman_self_check">podman_self_check</h3>
 
 <p>Perform some generic checks related to the podman installation itself and the relevant parameters of the current machine environment.</p>
+
+<h3 id="cypress_configs">cypress_configs</h3>
+
+<p>Prepare all the configuration files for cypress</p>
+
+<dl>
+
+<dt id="CYPRESS_TEST_DIR---Cypress-test-code-location"><b>CYPRESS_TEST_DIR</b> - Cypress test code location.</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h3 id="cypress_install_container">cypress_install_container</h3>
 
@@ -247,6 +268,20 @@
 </dd>
 <dt id="TIMEOUT---Integer-used-as-timeout-for-the-internal-cypress_exec-call"><b>TIMEOUT</b> - Integer used as timeout for the internal <a>cypress_exec</a> call</dt>
 <dd>
+
+</dd>
+</dl>
+
+<h1 id="POD-ERRORS">POD ERRORS</h1>
+
+<p>Hey! <b>The above document had some coding errors, which are explained below:</b></p>
+
+<dl>
+
+<dt id="Around-line-98">Around line 98:</dt>
+<dd>
+
+<p>Unknown directive: =hean3</p>
 
 </dd>
 </dl>
