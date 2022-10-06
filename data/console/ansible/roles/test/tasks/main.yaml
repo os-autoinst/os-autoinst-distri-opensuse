@@ -1,0 +1,46 @@
+---
+- name: 
+  ansible.builtin.file:
+    path: /tmp/ansible
+    state: directory
+    mode: '0777'
+
+- name: Prepare /tmp/ansible/uname.txt using builtin.command module
+  command: touch /tmp/ansible/uname.txt
+
+- name: Populate /tmp/ansible/uname.txt using builtin.shell module
+  shell: 'echo "$(uname -r)" > /tmp/ansible/uname.txt'
+
+- name: Add the user 'johnd' with a specific uid and a primary group
+  become: true
+  ansible.builtin.user:
+    name: johnd
+    comment: John Doe
+    uid: 1040
+    generate_ssh_key: yes
+    ssh_key_bits: 4096
+    ssh_key_file: .ssh/id_rsa
+  notify: Create John's README
+  register: user_johnd_created
+
+- name: Link /etc/os-release to /tmp/ansible/os-release
+  become: true
+  file:
+    src: /etc/os-release
+    dest: /tmp/ansible/os-release
+    state: link
+    owner: johnd
+
+- name: Copy static file to /tmp/ansible/static.txt
+  ansible.builtin.copy:
+    src: static.txt
+    dest: /tmp/ansible/static.txt
+  when: user_johnd_created.changed
+
+# In older versions (2.9) we need to call zypper
+# In later we should use community.general.zypper
+- name: Install ed
+  become: true
+  COMMUNITYGENERALzypper:
+    name: ed
+    state: present 

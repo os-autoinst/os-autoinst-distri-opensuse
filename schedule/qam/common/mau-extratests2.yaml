@@ -36,6 +36,8 @@ schedule:
 conditional_schedule:
   version_specific:
     VERSION:
+      15-SP4:
+        - console/ansible
       15-SP3:
         - console/osinfo_db
         - console/ovn
@@ -47,6 +49,7 @@ conditional_schedule:
         - console/openvswitch_ssl
         - network/samba/samba_adcli
         - console/nginx
+        - console/ansible
         - '{{arch_specific}}'
       15-SP2:
         - console/osinfo_db

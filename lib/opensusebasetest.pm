@@ -1331,7 +1331,8 @@ The choice is made by BACKEND and other variables.
 =cut
 
 sub select_user_serial_terminal {
-    select_serial_terminal(0);
+    my ($self) = @_;
+    $self->select_serial_terminal(0);
 }
 
 =head2 upload_coredumps
