@@ -61,7 +61,7 @@ sub relogin_root {
 
     type_string('pkill -u root', lf => 1);
     record_info "pkill done";
-    $self->wait_boot_textmode(ready_time => 120);
+    $self->wait_boot_textmode(ready_time => 180);
     select_console('root-virtio-terminal');
     # Make sure that sshd is up. (TODO: investigate)
     systemctl('restart sshd');
