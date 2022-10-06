@@ -60,7 +60,7 @@
       % } else {
       <append>splash=verbose</append>
       % }
-      <timeout config:type="integer">10</timeout>
+      <timeout config:type="integer">-1</timeout>
     </global>
     % if ($check_var->('ARCH', 'ppc64le') or $check_var->('ARCH', 's390x')) {
     <loader_type>grub2</loader_type>
