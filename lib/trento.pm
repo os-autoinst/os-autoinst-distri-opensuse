@@ -286,8 +286,8 @@ Deploy a SAP Landscape using a previously configured qe-sap-deployment
 =cut
 
 sub deploy_qesap {
-    qesap_execute(cmd => 'terraform', verbose => 1, timeout => 60 * 30);
-    qesap_execute(cmd => 'ansible', verbose => 1, timeout => 60 * 30);
+    qesap_execute(cmd => 'terraform', verbose => 1, timeout => 1800);
+    qesap_execute(cmd => 'ansible', verbose => 1, timeout => 1800);
     my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
     enter_cmd "cat $inventory";
     upload_logs($inventory);
@@ -299,8 +299,8 @@ Destroy the qe-sap-deployment SAP Landscape
 =cut
 
 sub destroy_qesap {
-    qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 60 * 5);
-    qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 60 * 15);
+    qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
+    qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 900);
 }
 
 =head3 get_vm_name

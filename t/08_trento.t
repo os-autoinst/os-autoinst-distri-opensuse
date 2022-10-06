@@ -51,7 +51,7 @@ subtest '[get_vnet] get_vnet has to call az and return a vnet' => sub {
 
     note(join("\n  1C-->  ", @calls));
     like $calls[0], qr/az network vnet list -g GELATOGROUP --query "\[0\]\.name" -o tsv/, 'AZ command';
-    ok $net_name eq $expected_net_name, 'expected_net_name:' . $expected_net_name . ' but get net_name:' . $net_name;
+    is $net_name, $expected_net_name, 'expected_net_name:' . $expected_net_name . ' get net_name:' . $net_name;
 };
 
 subtest '[get_trento_deployment] with TRENTO_DEPLOY_VER' => sub {
