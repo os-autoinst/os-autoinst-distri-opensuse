@@ -704,8 +704,7 @@ sub firefox_open_url {
         }
     }
     enter_cmd_slow "$url";
-    wait_still_screen 2, 4;
-    send_key_until_needlematch 'firefox-url-loaded', 'f5', 4, 90;
+    assert_screen 'firefox-url-loaded', 180;
 }
 
 sub firefox_preferences {
