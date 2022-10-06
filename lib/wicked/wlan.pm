@@ -153,7 +153,7 @@ sub restart_dhcp_server {
     $args{sut_ip} //= $self->sut_ip(bss => $args{bss});
 
     $self->stop_dhcp_server(%args);
-    $self->netns_exec(sprintf('dnsmasq --no-resolv --pid-file=%s --log-facility=%s --log-dhcp --interface=%s --except-interface=lo --bind-interfaces --dhcp-range=%s,static --dhcp-host=%s,%s',
+    $self->netns_exec(sprintf('dnsmasq --no-resolv --pid-file=%s --log-facility=%s --log-dhcp --interface=%s --except-interface=lo --bind-interfaces --dhcp-authoritative --dhcp-range=%s,static --dhcp-host=%s,%s',
             $self->dhcp_pidfile(%args), $self->dhcp_logfile(%args), $args{ref_ifc}, $args{sut_ip}, $self->sut_hw_addr, $args{sut_ip}));
     $self->add_post_log_file($self->dhcp_logfile(%args));
 }
