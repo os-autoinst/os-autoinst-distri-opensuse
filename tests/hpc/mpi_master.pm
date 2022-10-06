@@ -33,7 +33,7 @@ sub run ($self) {
     $self->relogin_root if $need_restart;
     $self->setup_nfs_server(\%exports_path);
 
-    type_string('pkill -u root');
+    type_string('pkill -u root', lf => 1);
     $self->select_serial_terminal(0);
     # for <15-SP2 the openmpi2 module is named simply openmpi
     $mpi = 'openmpi' if ($mpi =~ /openmpi2|openmpi3|openmpi4/);
