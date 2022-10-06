@@ -2,13 +2,11 @@ use strict;
 use warnings;
 use Test::More;
 use Test::Warnings;
+use Test::MockModule;
 use List::Util qw(any);
-
 use testapi qw(set_var);
-
 use trento;
 
-use Test::MockModule;
 my $trento = Test::MockModule->new('trento', no_auto => 1);
 my @calls;
 my @logs;
@@ -83,7 +81,7 @@ subtest '[get_trento_deployment] with TRENTO_DEPLOY_VER' => sub {
     set_var('TRENTO_DEPLOY_VER', $gitlab_ver);
     set_var('_SECRET_TRENTO_GITLAB_TOKEN', $password);
     get_trento_deployment('self', '/tmp');
-    note(join("\n  1C-->  ", @calls));
+    note(join("\n  -->  ", @calls));
     like $recorded_passwords[0], qr/$password/;
     ok any { /curl.*api\/v4\/projects\/$gitlab_prj_id\/repository\/.*sha=$gitlab_sha.*--output $gitlag_tar/ } @calls;
     ok any { /tar.*$gitlag_tar/ } @calls;
