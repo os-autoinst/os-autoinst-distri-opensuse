@@ -9,7 +9,7 @@ BEGIN {
 }
 use utils;
 use Utils::Architectures qw(is_aarch64);
-use version_utils qw(is_staging);
+use version_utils qw(is_staging is_microos);
 use main_common;
 use main_containers qw(load_container_tests);
 
@@ -62,7 +62,8 @@ sub load_feature_tests {
     loadtest 'microos/services_enabled';
     loadtest 'transactional/trup_smoke';
     load_transactional_role_tests;
-    loadtest 'microos/cockpit_service' unless is_staging;
+    # MicroOS -old images use wicked, but cockpit-wicked is no longer supported in TW
+    loadtest 'microos/cockpit_service' unless is_staging || (is_microos('Tumbleweed') && get_var('HDD_1') =~ /-old/);
     loadtest 'console/journal_check';
     if (check_var 'SYSTEM_ROLE', 'kubeadm') {
         loadtest 'console/kubeadm';
