@@ -43,6 +43,7 @@ my @log_files = ();
 use constant QESAPDEPLOY_PREFIX => 'qesapdep';
 
 our @EXPORT = qw(
+  qesap_create_folder_tree
   qesap_pip_install
   qesap_upload_logs
   qesap_get_deployment_code
@@ -72,7 +73,7 @@ sub qesap_get_file_paths {
     my %paths;
     $paths{qesap_conf_filename} = get_required_var('QESAP_CONFIG_FILE');
     $paths{deployment_dir} = get_var('QESAP_DEPLOYMENT_DIR', get_var('DEPLOYMENT_DIR', '/root/qe-sap-deployment'));
-    $paths{terraform_dir} = get_var('PUBLIC_CLOUD_TERRAFORM_DIR', $paths{deployment_dir} . '/terraform/');
+    $paths{terraform_dir} = get_var('PUBLIC_CLOUD_TERRAFORM_DIR', $paths{deployment_dir} . '/terraform');
     $paths{qesap_conf_trgt} = $paths{deployment_dir} . "/scripts/qesap/" . $paths{qesap_conf_filename};
     return (%paths);
 }
@@ -140,7 +141,7 @@ sub qesap_get_deployment_code {
     my %paths = qesap_get_file_paths();
 
     record_info("QESAP repo", "Preparing qe-sap-deployment repository");
-    qesap_create_folder_tree();
+
     enter_cmd "cd " . $paths{deployment_dir};
     push(@log_files, $qesap_git_clone_log);
 
@@ -340,7 +341,7 @@ sub qesap_sh_destroy {
     qesap_execute(cmd => $qesap_script_cmd [, verbose => 1, cmd_options => $cmd_options] );
     cmd_options - allows to append additional qesap.py commans arguments like "qesap.py terraform -d"
         Example:
-        qesap_execute(cmd => 'terraform', cmd => '-d') will result in:
+        qesap_execute(cmd => 'terraform', cmd_options => '-d') will result in:
         qesap.py terraform -d
 
     Execute qesap glue script commands. Check project documentation for available options:
@@ -353,7 +354,8 @@ sub qesap_execute {
 
     my $verbose = $args{verbose} ? "--verbose" : "";
     my %paths = qesap_get_file_paths();
-    my $exec_log = "/tmp/qesap_exec_" . $args{cmd} . ".log.txt";
+    my $exec_log = "/tmp/qesap_exec_$args{cmd}_$args{cmd_options}.log.txt";
+    $exec_log =~ s/[-\s]+/_/g;
     my $qesap_cmd = join(" ", $paths{deployment_dir} . "/scripts/qesap/qesap.py",
         $verbose,
         "-c", $paths{qesap_conf_trgt},
@@ -365,7 +367,7 @@ sub qesap_execute {
     );
 
     push(@log_files, $exec_log);
-    record_info("QESAP exec", "Executing: \n" . $qesap_cmd);
+    record_info('QESAP exec', "Executing: \n$qesap_cmd");
     assert_script_run($qesap_cmd, timeout => $args{timeout});
     qesap_upload_logs();
 }
@@ -398,29 +400,30 @@ sub qesap_get_inventory {
 sub qesap_prepare_env {
     my (%args) = @_;
     my $variables = $args{openqa_variables};
-    my $provider = lc get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my $provider = $args{provider};
     my %paths = qesap_get_file_paths();
     my $tfvars_template = get_var('QESAP_TFVARS_TEMPLATE');
     my $qesap_conf_src = "sles4sap/qe_sap_deployment/" . $paths{qesap_conf_filename};
-    my $curl = "curl -v -L ";
 
+    qesap_create_folder_tree();
     qesap_get_deployment_code();
     qesap_pip_install();
 
     # Copy tfvars template file if defined in parameters
     if (get_var('QESAP_TFVARS_TEMPLATE')) {
         record_info("QESAP tfvars template", "Preparing terraform template: \n" . $tfvars_template);
-        assert_script_run('cd ' . $paths{terraform_dir} . $provider, quiet => 1);
+        assert_script_run('cd ' . $paths{terraform_dir} . '/' . $provider, quiet => 1);
         assert_script_run('cp ' . $tfvars_template . ' terraform.tfvars.template');
     }
 
     record_info("QESAP yaml", "Preparing yaml config file");
-    assert_script_run($curl . data_url($qesap_conf_src) . ' -o ' . $paths{qesap_conf_trgt});
+    assert_script_run('curl -v -L ' . data_url($qesap_conf_src) . ' -o ' . $paths{qesap_conf_trgt});
     qesap_yaml_replace(openqa_variables => $variables);
+    push(@log_files, $paths{qesap_conf_trgt});
 
     record_info("QESAP conf", "Generating tfvars file");
+    push(@log_files, $paths{terraform_dir} . '/' . $provider . "/terraform.tfvars");
     qesap_execute(cmd => 'configure', verbose => 1);
-    push(@log_files, $paths{terraform_dir} . $provider . "/terraform.tfvars");
     qesap_upload_logs();
 }
 
