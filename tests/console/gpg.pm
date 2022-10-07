@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2021 SUSE LLC
+# Copyright 2017-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: gpg2 haveged
@@ -16,7 +16,7 @@
 # - Check test file signature
 # - Cleanup
 #
-# Maintainer: Petr Cervinka <pcervinka@suse.com>, QE Security <none@suse.de>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#65375, poo#97685, poo#104556
 
 use base "consoletest";
