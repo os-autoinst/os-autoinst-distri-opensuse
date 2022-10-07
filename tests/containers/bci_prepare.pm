@@ -125,10 +125,10 @@ sub run {
         record_info('Inspect', script_output("$engine inspect $image"));
         my $build = get_var('CONTAINER_IMAGE_BUILD');
         if ($build && $build ne 'UNKNOWN') {
-            record_info('BUILD#', "CONTAINER_IMAGE_BUILD=$build");
             my $reference = script_output(qq($engine inspect --type image $image | jq -r '.[0].Config.Labels."org.opensuse.reference"'));
-            record_info('image ref', "org.opensuse.reference: $reference");
-            die('Miss match in image build number. The image build number is different than the one triggered by the container bot!') if ($reference !~ /$build$/);
+            # Note: Both lines are aligned, thus the additional space
+            record_info('builds', "CONTAINER_IMAGE_BUILD:  $build\norg.opensuse.reference: $reference");
+            die('Missmatch in image build number. The image build number is different than the one triggered by the container bot!') if ($reference !~ /$build$/);
         }
         if (get_var('IMAGE_STORE_DATA')) {
             my $size_b = script_output("$engine inspect --format \"{{.VirtualSize}}\" $image");

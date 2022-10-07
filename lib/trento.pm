@@ -300,7 +300,7 @@ Destroy the qe-sap-deployment SAP Landscape
 
 sub destroy_qesap {
     qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
-    qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 900);
+    qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1200);
 }
 
 =head3 get_vm_name

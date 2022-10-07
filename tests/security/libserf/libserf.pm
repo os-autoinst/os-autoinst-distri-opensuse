@@ -23,7 +23,7 @@ sub run {
     zypper_call('in apache2 subversion-server openssl');
     # Activate the SSL Module
     assert_script_run('a2enmod ssl');
-    assert_script_run('echo "127.0.0.1 example-ssl.com" > /etc/hosts');
+    assert_script_run('echo "127.0.0.1 example-ssl.com localhost" > /etc/hosts');
     # Prepare certificates
     assert_script_run('gensslcert -n example-ssl.com -e webmaster@example.com');
     my $vhost_ssl_conf_path = '/etc/apache2/vhosts.d/vhost-ssl.conf';
