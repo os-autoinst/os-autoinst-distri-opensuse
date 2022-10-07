@@ -179,7 +179,7 @@
 <pre><code>    qesap_execute(cmd =&gt; $qesap_script_cmd [, verbose =&gt; 1, cmd_options =&gt; $cmd_options] );
     cmd_options - allows to append additional qesap.py commans arguments like &quot;qesap.py terraform -d&quot;
         Example:
-        qesap_execute(cmd =&gt; &#39;terraform&#39;, cmd =&gt; &#39;-d&#39;) will result in:
+        qesap_execute(cmd =&gt; &#39;terraform&#39;, cmd_options =&gt; &#39;-d&#39;) will result in:
         qesap.py terraform -d
 
     Execute qesap glue script commands. Check project documentation for available options:
