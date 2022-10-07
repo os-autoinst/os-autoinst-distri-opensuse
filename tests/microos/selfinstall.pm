@@ -21,6 +21,15 @@ sub run {
     send_key 'ret';
     # Use firmware boot manager of aarch64 to boot HDD
     $self->handle_uefi_boot_disk_workaround if is_aarch64;
+
+    # workaround failed *kexec* execution on UEFI with SecureBoot
+    assert_screen(['failed-to-kexec', 'linux-login-microos'], 150);
+    if (get_var('UEFI') && match_has_tag('failed-to-kexec')) {
+        eject_cd();
+        record_soft_failure('bsc#1203896 - kexec fail in selfinstall with secureboot');
+        send_key 'ret';
+    }
+
     microos_login;
 }
 
