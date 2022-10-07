@@ -11,6 +11,7 @@ use warnings;
 use base 'opensusebasetest';
 use testapi;
 use utils qw(zypper_call systemctl);
+use version_utils qw(is_sle);
 
 sub run {
     my $self = shift;
@@ -19,8 +20,17 @@ sub run {
     # Install keylime packages
     zypper_call('in keylime-config keylime-firewalld keylime-agent keylime-tpm_cert_store keylime-registrar keylime-verifier', timeout => 240);
 
-    # Copy the keylime configuration file to /etc if not there
-    script_run("f=/etc/keylime.conf; [ ! -f \$f ] && cp /usr\$f \$f");
+    # Copy the keylime configuration files to /etc/keylime if not there
+    #  configuration files path changes depending on the product
+    my $agent_cfg_path;
+    if (is_sle "<=15-sp5") {
+        # Copy the keylime configuration file to /etc if not there
+        $agent_cfg_path = "/etc/keylime.conf";
+        script_run("cp -n /usr$agent_cfg_path $agent_cfg_path");
+    } else {
+        script_run("mkdir -p /etc/keylime && cp -n /usr/etc/keylime/*.conf /etc/keylime");
+        $agent_cfg_path = "/etc/keylime/agent.conf";
+    }
 
     # Record the keylime packages' version for reference
     my $pkgs_version = script_output('rpm -qa | grep keylime');
@@ -35,8 +45,8 @@ sub run {
     # As test purpose, we will start keylime agent on single node
     # So setting the 'receive_revocation_ip' and 'registrar_ip' to
     # 127.0.0.1
-    assert_script_run q(sed -i 's/^registrar_ip = <REMOTE_IP>/registrar_ip = 127.0.0.1/' /etc/keylime.conf);
-    assert_script_run q(sed -i 's/^receive_revocation_ip = <REMOTE_IP>/receive_revocation_ip = 127.0.0.1/' /etc/keylime.conf);
+    assert_script_run qq(sed -i 's/^registrar_ip = <REMOTE_IP>/registrar_ip = 127.0.0.1/' $agent_cfg_path);
+    assert_script_run qq(sed -i 's/^receive_revocation_ip = <REMOTE_IP>/receive_revocation_ip = 127.0.0.1/' $agent_cfg_path);
     systemctl('restart keylime_agent.service');
     systemctl('is-active keylime_agent.service');
 }
