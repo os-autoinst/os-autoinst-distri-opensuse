@@ -184,13 +184,17 @@ sub get_trento_deployment {
     else {
         my $git_branch = get_var(TRENTO_GITLAB_BRANCH => 'master');
 
-        # Test that the token in worker.ini and the one in the qcow2 match
-        my $qcow_token_cmd = 'git config --get remote.origin.url' .
-          '|cut -d@ -f1|cut -d: -f3';
-        assert_script_run "QCOW_TOKEN=\"\$($qcow_token_cmd)\"";
-        my $different_tokens = script_run '[[ "$GITLAB_TOKEN" == "$QCOW_TOKEN" ]]';
-        die "Invalid gitlab token" if ($different_tokens);
-
+        if (script_run('git rev-parse --is-inside-work-tree') != 0) {
+            $self->clone_trento_deployment($work_dir);
+        }
+        else {
+            # Test that the token in worker.ini and the one in the qcow2 match
+            my $qcow_token_cmd = 'git config --get remote.origin.url' .
+              '|cut -d@ -f1|cut -d: -f3';
+            assert_script_run "QCOW_TOKEN=\"\$($qcow_token_cmd)\"";
+            my $different_tokens = script_run '[[ "$GITLAB_TOKEN" == "$QCOW_TOKEN" ]]';
+            die "Invalid gitlab token" if ($different_tokens);
+        }
         # Switch branch and get latest
         assert_script_run("git checkout $git_branch");
         assert_script_run("git pull origin $git_branch");
@@ -227,27 +231,27 @@ sub get_qesap_resource_group {
 sub config_cluster {
     my ($self, $region) = @_;
 
+    my $resource_group_postfix = $self->TRENTO_QESAPDEPLOY_PREFIX . get_current_job_id();
+    my $ssh_key_pub = SSH_KEY . '.pub';
+    my $qesap_provider = lc get_required_var('PUBLIC_CLOUD_PROVIDER');
+
     # Get the code for the qe-sap-deployment
+    qesap_create_folder_tree();
     qesap_get_deployment_code();
     qesap_pip_install();
 
-    # tfvars file
-    my $qesap_provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
-
-    qesap_configure_tfvar($qesap_provider,
-        $region,
-        $self->TRENTO_QESAPDEPLOY_PREFIX . get_current_job_id(),
-        get_required_var('TRENTO_CLUSTER_OS_VER'),
-        SSH_KEY . '.pub');
-
-    # variables.sh file
-    qesap_configure_variables($qesap_provider,
-        get_required_var('SCC_REGCODE_SLES4SAP'));
-
-    # Ansible blob file
-    qesap_configure_hanamedia(get_var('QESAPDEPLOY_SAPCAR'),
-        get_var('QESAPDEPLOY_IMDB_SERVER'),
-        get_var('QESAPDEPLOY_IMDB_CLIENT'));
+    my %variables;
+    $variables{PROVIDER} = $qesap_provider;
+    $variables{REGION} = $region;
+    $variables{DEPLOYMENTNAME} = $resource_group_postfix;
+    $variables{TRENTO_CLUSTER_OS_VER} = get_required_var("TRENTO_CLUSTER_OS_VER");
+    $variables{SSH_KEY_PRIV} = SSH_KEY;
+    $variables{SSH_KEY_PUB} = $ssh_key_pub;
+    $variables{SCC_REGCODE_SLES4SAP} = get_required_var('SCC_REGCODE_SLES4SAP');
+    $variables{HANA_SAR} = get_required_var("QESAPDEPLOY_SAPCAR");
+    $variables{HANA_CLIENT_SAR} = get_required_var("QESAPDEPLOY_IMDB_SERVER");
+    $variables{HANA_SAPCAR} = get_required_var("QESAPDEPLOY_IMDB_CLIENT");
+    qesap_prepare_env(openqa_variables => \%variables, provider => $qesap_provider);
 }
 
 =head3 deploy_vm
@@ -282,7 +286,8 @@ Deploy a SAP Landscape using a previously configured qe-sap-deployment
 =cut
 
 sub deploy_qesap {
-    qesap_sh_deploy(SSH_KEY);
+    qesap_execute(cmd => 'terraform', verbose => 1, timeout => 1800);
+    qesap_execute(cmd => 'ansible', verbose => 1, timeout => 1800);
     my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
     enter_cmd "cat $inventory";
     upload_logs($inventory);
@@ -294,7 +299,8 @@ Destroy the qe-sap-deployment SAP Landscape
 =cut
 
 sub destroy_qesap {
-    qesap_sh_destroy(SSH_KEY);
+    qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
+    qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1200);
 }
 
 =head3 get_vm_name
