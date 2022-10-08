@@ -1,0 +1,40 @@
+---
+name: autoyast_create_hdd_leap_update
+description: >
+  Test performs autoyast installation to generate qcow images
+  for leap update tests
+vars:
+  AUTOYAST: autoyast_opensuse/opensuse_leap.xml.ep
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/leap_default_repo
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - '{{opensuse_welcome_gnome}}'
+  - '{{opensuse_welcome_kde}}'
+  - console/system_prepare
+  - console/zypper_add_repos
+  - qa_automation/patch_and_reboot
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+conditional_schedule:
+  opensuse_welcome_gnome:
+    DESKTOP:
+      gnome:
+        - installation/opensuse_welcome
+  opensuse_welcome_kde:
+    DESKTOP:
+      kde:
+        - installation/opensuse_welcome
