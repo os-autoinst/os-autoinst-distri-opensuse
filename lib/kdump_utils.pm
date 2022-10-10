@@ -343,6 +343,7 @@ sub configure_service {
 sub check_function {
     my %args = @_;
     $args{test_type} //= '';
+    my $boot_timeout = is_aarch64 || is_hyperv ? 240 : undef;
 
     my $self = y2_module_consoletest->new();
 
@@ -365,15 +366,15 @@ sub check_function {
         power_action('reboot', textmode => 1, observe => 1, keepconsole => 1);
     }
     unlock_if_encrypted;
-    # Wait for system's reboot; more time for Hyper-V as it's slow.
-    $self->wait_boot(bootloader_time => check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 200 : undef);
+    # Wait for system's reboot; more time for Hyper-V / aarch64 as it's slow.
+    $self->wait_boot(bootloader_time => $boot_timeout);
     select_console 'root-console';
 
     assert_script_run 'find /var/crash/';
 
     if ($args{test_type} eq 'function') {
         # Check, that vmcore exists, otherwise fail
-        assert_script_run('ls -lah /var/crash/*/vmcore', 180);
+        assert_script_run('ls -lah /var/crash/*/vmcore', 240);
         my $vmlinux = (is_sle("<16") || is_leap("<16.0")) ? '/boot/vmlinux-$(uname -r)*' : '/usr/lib/modules/$(uname -r)/vmlinux*';
         my $crash_cmd = "echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` $vmlinux";
         validate_script_output "$crash_cmd", sub { m/PANIC:\s([^\s]+)/ }, 800;
