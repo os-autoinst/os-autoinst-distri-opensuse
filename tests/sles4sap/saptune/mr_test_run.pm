@@ -35,7 +35,10 @@ our $result_module;
 
 sub reboot_wait {
     my ($self) = @_;
-    $self->reboot;
+
+    # Do not reboot if testing in public cloud instance,
+    # reboot will terminate the ssh tunnel
+    $self->reboot if (!get_var('PUBLIC_CLOUD_SLES4SAP'));
 }
 
 sub get_notes {
@@ -534,6 +537,13 @@ sub run {
     wrapup_log_file();
     parse_extra_log(IPA => $results_file);
     upload_logs $log_file;
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+
+    return if get_var('PUBLIC_CLOUD_SLES4SAP');
+    $self->SUPER::post_fail_hook;
 }
 
 1;
