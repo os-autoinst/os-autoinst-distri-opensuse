@@ -51,7 +51,7 @@ sub run {
     }
     assert_and_click 'yast2-bootloader_default-boot-section';
     if (is_sle('=15-SP4')) {
-        record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
+        record_soft_failure('bsc#1204176 - Resizing window as workaround for YaST content not loading');
         send_key_until_needlematch('yast2-bootloader_default-boot-section_tw', 'alt-f10', 9, 2);
     }
     else {

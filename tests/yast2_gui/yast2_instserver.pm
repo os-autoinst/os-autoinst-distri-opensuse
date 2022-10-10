@@ -111,7 +111,7 @@ sub test_http_instserver {
     send_key_and_wait("alt-n", 2);
     send_key_and_wait("alt-a", 2);
     if (is_sle('=15-SP4')) {
-        record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
+        record_soft_failure('bsc#1204176 - Resizing window as workaround for YaST content not loading');
         send_key_until_needlematch('yast2-instserver-repository-conf', 'alt-f10', 9, 2);
     }
     else {
@@ -128,7 +128,7 @@ sub test_http_instserver {
     send_key_and_wait("alt-n", 2);
     send_key_and_wait("alt-o", 2);
     if (is_sle('=15-SP4')) {
-        record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
+        record_soft_failure('bsc#1204176 - Resizing window as workaround for YaST content not loading');
         send_key_until_needlematch([qw(yast2-instserver-ui yast2-instserver-change-media)], 'alt-f10', 21, 30);
     }
     else {

@@ -63,7 +63,7 @@ sub initiator_discovered_targets_tab {
     my $target_ip_only = (split('/', $test_data->{target_conf}->{ip}))[0];
     type_string_slow_extended $target_ip_only;
     if (is_sle('=15-SP4')) {
-        record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
+        record_soft_failure('bsc#1204176 - Resizing window as workaround for YaST content not loading');
         send_key_until_needlematch('iscsi-initiator-discovered-IP-adress', 'alt-f10', 10, 2);
     }
     else {
@@ -93,7 +93,7 @@ sub initiator_connected_targets_tab {
     # go to discovered targets tab
     send_key "alt-d";
     if (is_sle('=15-SP4')) {
-        record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
+        record_soft_failure('bsc#1204176 - Resizing window as workaround for YaST content not loading');
         send_key_until_needlematch('iscsi-initiator-discovered-targets', 'alt-f10', 10, 2);
     }
     else {
