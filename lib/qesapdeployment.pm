@@ -56,6 +56,7 @@ our @EXPORT = qw(
   qesap_prepare_env
   qesap_execute
   qesap_yaml_replace
+  qesap_ansible_cmd
 );
 
 =head1 DESCRIPTION
@@ -425,6 +426,43 @@ sub qesap_prepare_env {
     push(@log_files, $paths{terraform_dir} . '/' . $provider . "/terraform.tfvars");
     qesap_execute(cmd => 'configure', verbose => 1);
     qesap_upload_logs();
+}
+
+=head3 qesap_ansible_cmd
+
+    Use Ansible to run a command remotely on some or all
+    the hosts from the inventory.yaml
+
+    qesap_prepare_env(cmd=>{string}, provider => 'aws');
+
+=over 3
+
+=item B<PROVIDER> - Cloud provider name, used to find the inventory
+
+=item B<CMD> - command to run remotely
+
+=item B<USER> - user on remote host, default to 'cloudadmin'
+
+=item B<FILTER> - filter hosts in the inventory
+
+=back
+=cut
+
+sub qesap_ansible_cmd {
+    my (%args) = @_;
+    die 'Missing mandatory cmd argument' unless $args{cmd};
+    my $inventory = qesap_get_inventory($args{provider});
+    $args{user} ||= 'cloudadmin';
+    $args{filter} ||= 'all';
+
+    my $ansible_cmd = join(' ',
+        'ansible',
+        $args{filter},
+        '-i', $inventory,
+        '-u', $args{user},
+        '-b', '--become-user=root',
+        '-a', "\"$args{cmd}\"");
+    assert_script_run($ansible_cmd);
 }
 
 1;

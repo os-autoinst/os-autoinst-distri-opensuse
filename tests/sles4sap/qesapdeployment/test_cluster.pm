@@ -15,14 +15,11 @@ use constant GIT_CLONE_LOG => '/tmp/git_clone.log';
 sub run {
     my ($self) = @_;
     my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
 
-    my $ansible_args = "-i $inventory -u cloudadmin -b --become-user=root";
-    assert_script_run('ansible all ' . $ansible_args . ' -a "pwd"');
-    assert_script_run('ansible all ' . $ansible_args . ' -a "uname -a"');
-    assert_script_run('ansible all ' . $ansible_args . ' -a "cat /etc/os-release"');
-    assert_script_run('ansible hana ' . $ansible_args . ' -a "ls -lai /hana/"');
-    assert_script_run('ansible vmhana01 ' . $ansible_args . ' -a "crm status"');
-    assert_script_run('ansible vmhana01 ' . $ansible_args . ' -a "crm_mon -R -r -n -N -1"');
+    qesap_ansible_cmd(cmd => $_, provider => $prov, $_) for ('pwd', 'uname -a', 'cat /etc/os-release');
+    qesap_ansible_cmd(cmd => 'ls -lai /hana/', provider => $prov, filter => 'hana');
+    qesap_ansible_cmd(cmd => $_, provider => $prov, filter => 'vmhana01'), for ('crm status', 'crm_mon -R -r -n -N -1');
 }
 
 sub post_fail_hook {
