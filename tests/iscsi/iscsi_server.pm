@@ -93,7 +93,7 @@ sub target_service_tab {
 
 sub config_2way_authentication {
     if (is_sle('=15-SP4')) {
-        record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
+        record_soft_failure('bsc#1204176 - Resizing window as workaround for YaST content not loading');
         send_key_until_needlematch('iscsi-target-modify-acls', 'alt-f10', 10, 2);
     }
     else {
