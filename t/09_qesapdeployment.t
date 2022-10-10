@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::Exception;
 use Test::Warnings;
 use Test::MockModule;
 use List::Util qw(any);
@@ -68,5 +69,30 @@ subtest '[qesap_get_deployment_code] from a release' => sub {
     ok any { /tar.*[xvf]+.*vCORAL\.tar\.gz/ } @calls;
 };
 
+subtest '[qesap_ansible_cmd]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    qesap_ansible_cmd(cmd => 'FINDING', provider => 'OCEAN');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    like $calls[0], qr/ansible.*all.*-i.*ocean\/inventory.yaml.*-u.*cloudadmin.*-b.*--become-user=root.*-a.*"FINDING"/;
+};
+
+subtest '[qesap_ansible_cmd] filter and user' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    qesap_ansible_cmd(cmd => 'FINDING', provider => 'OCEAN', filter => 'NEMO', user => 'DARLA');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    like $calls[0], qr/.*NEMO.*-u.*DARLA/;
+};
+
+subtest '[qesap_ansible_cmd] no cmd' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    dies_ok { qesap_ansible_cmd(provider => 'OCEAN') } "Expected die for missing cmd";
+};
 
 done_testing;
