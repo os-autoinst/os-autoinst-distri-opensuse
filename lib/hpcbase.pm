@@ -272,7 +272,7 @@ sub check_nodes_availability {
     my ($self) = @_;
     my @cluster_nodes = cluster_names();
     foreach (@cluster_nodes) {
-        assert_script_run("ping -c 3 $_");
+        script_sudo("ping -i 5 -c 3 $_");
     }
 }
 
