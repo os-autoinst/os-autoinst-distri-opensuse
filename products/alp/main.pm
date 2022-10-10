@@ -66,6 +66,11 @@ if (get_var('BOOT_HDD_IMAGE')) {
     load_selfinstall_boot_tests;
 }
 
+if (get_var('CONTAINER_RUNTIME') eq 'k3s') {
+    loadtest('containers/run_container_in_k3s');
+    return 1;
+}
+
 loadtest 'transactional/host_config';
 
 # Unless specified otherwise load standard tests only
@@ -79,6 +84,5 @@ if (is_container_test()) {
 # Enclosing test cases
 loadtest 'console/journal_check';
 loadtest 'shutdown/shutdown';
-
 
 1;

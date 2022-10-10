@@ -58,7 +58,6 @@ EOT
     apply_manifest($manifest);
     wait_for_k8s_job_complete($job_name);
     my $pod = find_pods("job-name=$job_name");
-    record_info('Pod', "Container (POD) successfully created.\n$pod");
     validate_pod_log($pod, "SUSE Linux Enterprise Server");
     record_info('cmd', "Command `$cmd` successfully executed in the image.");
 }
