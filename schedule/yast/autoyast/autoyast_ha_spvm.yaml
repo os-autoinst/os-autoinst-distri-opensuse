@@ -1,0 +1,27 @@
+---
+name: create_hdd_ha_spvm
+description: >
+  HA autoYaST installation and publish qcow for ha migration standalone
+  cases for ppc64le only.
+vars:
+  AUTOYAST: autoyast_sle15/create_hdd/create_hdd_ha_ppc64le.xml.ep
+  AUTOYAST_PREPARE_PROFILE: '1'
+  DESKTOP: textmode
+  SYSTEM_ROLE: HA_node
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - update/patch_sle
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
