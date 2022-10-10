@@ -40,7 +40,7 @@ sub run() {
 
     # check that the tomcat web service works
     $self->firefox_open_url('localhost:8080');
-    send_key_until_needlematch('tomcat-succesfully-installed', 'ret');
+    assert_screen('tomcat-succesfully-installed');
 
     # verify that the tomcat manager page works
     Tomcat::Utils->tomcat_manager_test($self);
