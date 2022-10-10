@@ -143,7 +143,7 @@ sub upload_journal {
                 $regexp_matched{$regexp} = 1;
                 my $fail_type = 'softfail';
                 if ($type eq 'hard') {
-                    record_soft_failure $message. "\n\n" . "$line";
+                    record_info('Softfail', $message . "\n\n" . "$line", result => 'softfail');
                 }
                 elsif ($type eq 'soft') {
                     force_soft_failure $message. "\n\n" . "$line";
