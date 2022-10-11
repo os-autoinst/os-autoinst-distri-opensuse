@@ -358,7 +358,7 @@ sub script_sudo {
     enter_cmd "su -c \'$prog\'", max_interval => 125;
     handle_password_prompt unless ($testapi::username eq 'root');
     if ($wait > 0) {
-        if ($prog eq 'bash') {
+        if ($prog =~ /^bash/) {
             return wait_still_screen(4, 8);
         }
         else {
