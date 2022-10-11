@@ -86,6 +86,11 @@ Ensure that `_openqa-worker` will be able to access the usb-serial adapter:
 usermod -a -G dialout _openqa-worker
 ```
 
+Ensure that `_openqa-worker` will be able to access the HDMI grabber:
+```
+usermod -a -G video _openqa-worker
+```
+
 Disable apparmor:
 ```
 systemctl mask apparmor
