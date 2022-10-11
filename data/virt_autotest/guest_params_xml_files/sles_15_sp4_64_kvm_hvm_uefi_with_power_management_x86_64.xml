@@ -88,6 +88,6 @@
     <guest_registration_server></guest_registration_server>
     <guest_registration_username>www@suse.com</guest_registration_username>
     <guest_registration_password></guest_registration_password>
-    <guest_registration_extensions></guest_registration_extensions>
+    <guest_registration_extensions>sle-module-legacy#sle-module-basesystem#sle-module-server-applications#sle-module-desktop-applications#sle-module-web-scripting</guest_registration_extensions>
 </guest>
 

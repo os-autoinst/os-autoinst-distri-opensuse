@@ -1830,7 +1830,7 @@ sub check_guest_installation_result_via_ssh {
     $self->get_guest_ipaddr if (($self->{guest_ipaddr_static} ne 'true') and (!($self->{guest_ipaddr} =~ /^\d+\.\d+\.\d+\.\d+$/im)));
     save_screenshot;
     if ($self->{guest_ipaddr} =~ /^\d+\.\d+\.\d+\.\d+$/im) {
-        $_guest_transient_hostname = script_output("timeout 30 ssh -vvv root\@$self->{guest_ipaddr} hostname", proceed_on_failure => 1);
+        $_guest_transient_hostname = script_output("timeout --kill-after=3 --signal=9 30 ssh -vvv root\@$self->{guest_ipaddr} hostname", proceed_on_failure => 1);
         save_screenshot;
         if ($_guest_transient_hostname ne '') {
             record_info("Guest $self->{guest_name} can be connected via ssh using ip $self->{guest_ipaddr} directly", "So far so good.");

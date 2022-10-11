@@ -1,32 +1,32 @@
 <?xml version="1.0"?>
 <guest>
     <guest_os_name>sles</guest_os_name>
-    <guest_version>15-sp4</guest_version>
+    <guest_version>15-sp5</guest_version>
     <guest_version_major>15</guest_version_major>
-    <guest_version_minor>4</guest_version_minor>
+    <guest_version_minor>5</guest_version_minor>
     <guest_os_word_length>64</guest_os_word_length>
     <guest_build></guest_build>
     <host_hypervisor_uri></host_hypervisor_uri>
-    <host_virt_type>xen</host_virt_type>
+    <host_virt_type>kvm</host_virt_type>
     <guest_virt_type>hvm</guest_virt_type>
     <guest_machine_type></guest_machine_type>
     <guest_arch>x86_64</guest_arch>
     <guest_name></guest_name>
     <guest_domain_name></guest_domain_name>
-    <guest_memory>1024,maxmemory=4096</guest_memory>
-    <guest_vcpus>1,maxvcpus=4</guest_vcpus>
+    <guest_memory>2048,maxmemory=4096</guest_memory>
+    <guest_vcpus>2,maxvcpus=4</guest_vcpus>
     <guest_cpumodel></guest_cpumodel>
     <guest_metadata></guest_metadata>
     <guest_xpath></guest_xpath>
     <guest_installation_automation>autoyast</guest_installation_automation>
-    <guest_installation_automation_file>sles_15_plus_xen_hvm_guest_graphical_x86_64.xml</guest_installation_automation_file>
+    <guest_installation_automation_file>sles_15_plus_kvm_hvm_guest_graphical_x86_64.xml</guest_installation_automation_file>
     <guest_installation_method>location</guest_installation_method>
-    <guest_installation_extra_args>sshd=1#sshpassword=nots3cr3t#console=ttyS0,115200n8#textmode=1#rd.debug#rd.memdebug=4#rd.udev.debug#display=3#ipv4only=1</guest_installation_extra_args>
+    <guest_installation_extra_args>sshd=1#sshpassword=nots3cr3t#console=ttyS0,115200n8#textmode=1#rd.debug#rd.memdebug=4#rd.udev.debug</guest_installation_extra_args>
     <guest_installation_wait></guest_installation_wait>
     <guest_installation_method_others></guest_installation_method_others>
-    <guest_installation_media>http://openqa.suse.de/assets/repo/SLE-15-SP4-Full-x86_64-Build12345-Media1/</guest_installation_media>
+    <guest_installation_media>http://openqa.suse.de/assets/repo/SLE-15-SP5-Full-x86_64-Build12345-Media1</guest_installation_media>
     <guest_installation_fine_grained></guest_installation_fine_grained>
-    <guest_boot_settings>loader=/usr/share/qemu/ovmf-x86_64-ms.bin,loader_type=pflash,loader_ro=yes</guest_boot_settings>
+    <guest_boot_settings>loader=/usr/share/qemu/ovmf-x86_64-ms-code.bin</guest_boot_settings>
     <guest_secure_boot>true</guest_secure_boot>
     <guest_os_variant></guest_os_variant>
     <guest_storage_path></guest_storage_path>
@@ -85,5 +85,9 @@
     <guest_noautoconsole>false</guest_noautoconsole>
     <guest_noreboot></guest_noreboot>
     <guest_default_target>graphical</guest_default_target>
+    <guest_do_registration>true</guest_do_registration>
+    <guest_registration_server></guest_registration_server>
+    <guest_registration_username>www@suse.com</guest_registration_username>
+    <guest_registration_password></guest_registration_password>
+    <guest_registration_extensions>sle-module-legacy#sle-module-basesystem#sle-module-server-applications#sle-module-desktop-applications#sle-module-web-scripting</guest_registration_extensions>
 </guest>
-
