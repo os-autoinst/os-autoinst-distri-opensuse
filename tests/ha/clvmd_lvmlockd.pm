@@ -11,7 +11,7 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use version_utils 'is_sle';
-use utils qw(zypper_call systemctl);
+use utils qw(zypper_call systemctl file_content_replace);
 use testapi;
 use lockapi;
 use hacluster;
@@ -46,11 +46,19 @@ sub run {
     lvm_add_filter('r', '/dev/.\*/by-partuuid/.\*');
     if ($lock_mgr eq 'lvmlockd') {
         # Set use_lvmetad=1, lvmlockd supports lvmetad. Set locking_type=1 for lvmlockd. Enable lvmlockd
-        set_lvm_config($lvm_conf, use_lvmetad => 1, locking_type => 1, use_lvmlockd => 1);
+        file_content_replace($lvm_conf, '# use_lvmlockd' => 'use_lvmlockd');
+        file_content_replace($lvm_conf,
+            '^([[:blank:]]*use_lvmetad[[:blank:]]*=).*' => '\1 1',    # use_lvmetad = 1
+            '^([[:blank:]]*locking_type[[:blank:]]*=).*' => '\1 1',    # locking_type = 1
+            '^([[:blank:]]*use_lvmlockd[[:blank:]]*=).*' => '\1 1',    # use_lvmlockd = 1
+        );
     }
     else {
         # Set use_lvmetad=0, clvmd doesn't support lvmetad. Set locking_type=3 for clvmd
-        set_lvm_config($lvm_conf, use_lvmetad => 0, locking_type => 3);
+        file_content_replace($lvm_conf,
+            '^([[:blank:]]*use_lvmetad[[:blank:]]*=).*' => '\1 0',    # use_lvmetad = 0
+            '^([[:blank:]]*locking_type[[:blank:]]*=).*' => '\1 3',    # locking_type = 3
+        );
         systemctl 'stop lvm2-lvmetad.socket';    # Stop lvmetad
         systemctl 'disable lvm2-lvmetad.socket';    # Disable lvmetad
     }
