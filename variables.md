@@ -108,8 +108,9 @@ LTP_COMMAND_FILE | string | | The LTP test command file (e.g. syscalls, cve)
 LTP_COMMAND_EXCLUDE | string | | This regex is used to exclude tests from LTP command file.
 LTP_KNOWN_ISSUES | string | | Used to specify a url for a json file with well known LTP issues. If an error occur which is listed, then the result is overwritten with softfailure.
 LTP_REPO | string | | The repo which will be added and is used to install LTP package.
-LTP_RUN_NG_BRANCH | string | | Define the branch of the LTP_RUN_NG_REPO.
-LTP_RUN_NG_REPO | string | | Define the runltp-ng repo to be used. Default in publiccloud/run_ltp.pm is the upstream master branch from https://github.com/metan-ucw/runltp-ng.git.
+LTP_RUN_NG_BRANCH | string | master | Define the branch of the LTP_RUN_NG_REPO.
+LTP_RUN_NG_REPO | string | https://github.com/metan-ucw/runltp-ng.git | Define the runltp-ng repo to be used. Default in publiccloud/run_ltp.pm is the upstream master branch from https://github.com/metan-ucw/runltp-ng.git.
+LTP_RUNTIME_SWITCH | boolean | false | Values: true for `python`, false for `perl`. This parameter is temporary and used to run proof and consolidation tests on the new python version of the LTP runltp-ng repository, allowing to switch between the original Perl and the new Python repo versions. **NOTE**: when `python` value set(true), also needed to set: `LTP_RUN_NG_REPO=`*https://github.com/acerv/runltp-ng.git* and `LTP_RUN_NG_BRANCH=`*ssh*.
 LVM | boolean | false | Use lvm for partitioning.
 LVM_THIN_LV | boolean | false | Use thin provisioning logical volumes for partitioning,
 MACHINE | string | | Define machine name which defines worker specific configuration, including WORKER_CLASS.
