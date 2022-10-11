@@ -58,7 +58,8 @@ sub run_developers_tests {
         # Skip results of fate#325548 on SLES4SAP versions before 15
         next if ($summary =~ /fate325548/ and is_sle('<15'));
         if ($summary =~ /Test #(bsc|fate)([0-9]+)/) {
-            record_info('Softfail', "$1#$2", result => 'softfail');
+            my $reference = "$1#$2";
+            record_soft_failure("$reference");
         }
         else {
             record_info $summary, "Test summary: $summary", result => 'fail';
