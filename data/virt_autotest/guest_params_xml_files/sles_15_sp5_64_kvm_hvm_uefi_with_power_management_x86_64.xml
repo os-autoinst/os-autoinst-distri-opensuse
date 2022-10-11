@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <guest>
     <guest_os_name>sles</guest_os_name>
-    <guest_version>15-sp3</guest_version>
+    <guest_version>15-sp5</guest_version>
     <guest_version_major>15</guest_version_major>
-    <guest_version_minor>3</guest_version_minor>
+    <guest_version_minor>5</guest_version_minor>
     <guest_os_word_length>64</guest_os_word_length>
-    <guest_build>gm</guest_build>
+    <guest_build></guest_build>
     <host_hypervisor_uri></host_hypervisor_uri>
     <host_virt_type>kvm</host_virt_type>
     <guest_virt_type>hvm</guest_virt_type>
@@ -24,7 +24,7 @@
     <guest_installation_extra_args>sshd=1#sshpassword=nots3cr3t#console=ttyS0,115200n8#textmode=1</guest_installation_extra_args>
     <guest_installation_wait></guest_installation_wait>
     <guest_installation_method_others></guest_installation_method_others>
-    <guest_installation_media>http://openqa.suse.de/assets/repo/fixed/SLE-15-SP3-Full-x86_64-GM-Media1</guest_installation_media>
+    <guest_installation_media>http://openqa.suse.de/assets/repo/SLE-15-SP5-Full-x86_64-Build12345-Media1</guest_installation_media>
     <guest_installation_fine_grained></guest_installation_fine_grained>
     <guest_boot_settings>loader=/usr/share/qemu/ovmf-x86_64-ms-code.bin</guest_boot_settings>
     <guest_secure_boot>true</guest_secure_boot>
