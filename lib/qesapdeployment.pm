@@ -347,6 +347,7 @@ sub qesap_sh_destroy {
 
     Execute qesap glue script commands. Check project documentation for available options:
     https://github.com/SUSE/qe-sap-deployment
+    Test only returns execution result, failure has to be handled by calling method.
 =cut
 
 sub qesap_execute {
@@ -369,8 +370,9 @@ sub qesap_execute {
 
     push(@log_files, $exec_log);
     record_info('QESAP exec', "Executing: \n$qesap_cmd");
-    assert_script_run($qesap_cmd, timeout => $args{timeout});
+    my $exec_rc = script_run($qesap_cmd, timeout => $args{timeout});
     qesap_upload_logs();
+    return $exec_rc;
 }
 
 =head3 qesap_get_inventory
@@ -396,6 +398,7 @@ sub qesap_get_inventory {
     - generates config files with qesap script
 
     For variables example see 'qesap_yaml_replace'
+    Returns only result, failure handling has to be done by calling method.
 =cut
 
 sub qesap_prepare_env {
@@ -424,8 +427,10 @@ sub qesap_prepare_env {
 
     record_info("QESAP conf", "Generating tfvars file");
     push(@log_files, $paths{terraform_dir} . '/' . $provider . "/terraform.tfvars");
-    qesap_execute(cmd => 'configure', verbose => 1);
+    my $exec_rc = qesap_execute(cmd => 'configure', verbose => 1);
     qesap_upload_logs();
+    die if $exec_rc != 0;
+    return;
 }
 
 =head3 qesap_ansible_cmd
