@@ -63,6 +63,7 @@ sub run {
         $instance->run_ssh_command(cmd => '! sudo SUSEConnect -d');
     } else {
         if ($instance->run_ssh_command(cmd => 'sudo zypper lr | wc -l', proceed_on_failure => 1, timeout => 360) < 5) {
+            record_info('zypper lr', $instance->run_ssh_command(cmd => 'sudo zypper lr', proceed_on_failure => 1));
             die 'The list of zypper repositories is too short.';
         }
 
