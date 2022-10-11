@@ -217,7 +217,8 @@ sub create_guest {
     my $on_reboot = $guest->{on_reboot} // "restart";    # configurable on_reboot policy
     my $extra_params = $guest->{extra_params} // "";    # extra-parameters
     my $memory = $guest->{memory} // "2048";
-    my $maxmemory = $guest->{maxmemory} // $memory + 256;    # use by default just a bit more, so that we don't waste memory but still use the functionality
+    # poo#11786, set maxmemory bigger
+    my $maxmemory = $guest->{maxmemory} // $memory + 1536;    # use by default just a bit more, so that we don't waste memory but still use the functionality
     my $vcpus = $guest->{vcpus} // "2";
     my $maxvcpus = $guest->{maxvcpus} // $vcpus + 1;    # same as for memory, test functionality but don't waste resources
     my $extra_args = get_var("VIRTINSTALL_EXTRA_ARGS", "") . " " . get_var("VIRTINSTALL_EXTRA_ARGS_" . uc($name), "");
