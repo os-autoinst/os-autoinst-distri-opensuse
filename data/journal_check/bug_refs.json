@@ -221,6 +221,13 @@
         },
         "type": "bug"
     },
+    "bsc#1197679": {
+        "description": "route ipv4 0.0.0.0/0 via.*dev eth0#2 type unicast table main scope universe protocol dhcp covered by a ipv4:dhcp lease",
+        "products": {
+            "sle": ["15-SP4", "15-SP5"]
+        },
+        "type": "bug"
+    },
     "bsc#1186742": {
         "description": "Directory '.*.hdmi' with parent 'vc4-hdmi.*' already present",
         "products": {
