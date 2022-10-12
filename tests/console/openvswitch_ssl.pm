@@ -19,7 +19,7 @@ sub run {
     select_console 'root-console';
 
     # Install python here since pox scripts need python
-    zypper_call('in python python-base openvswitch');
+    zypper_call('in python3 python3-base openvswitch');
 
     # Start openvswitch service
     systemctl('start openvswitch');
