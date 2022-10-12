@@ -133,6 +133,7 @@ if (match_has_tag('yast2_missing_package')) {
   jsc#SLE-19640 -> Jira ticket
   Maniphest#T5531
   fate.suse.com/123
+  $reference -> if you have to use a variable to define a reference ticket
   If you don't have a reference ticket, and still want to mark a specific
   step as soft_fail, please use `record_info` with softfail tag:
   record_info($title [, $output] [, result => softfail] [, resultname => $resultname]);
