@@ -30,10 +30,6 @@ has provider_client => undef;
 
 =head1 METHODS
 
-=head2 init
-
-Needs provider specific credentials, e.g. key_id, key_secret, region.
-
 =cut
 
 sub init {

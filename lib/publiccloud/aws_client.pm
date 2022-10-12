@@ -12,9 +12,6 @@ use Mojo::Base -base;
 use testapi;
 use publiccloud::utils;
 
-has key_id => undef;
-has key_secret => undef;
-has security_token => undef;
 has region => sub { get_var('PUBLIC_CLOUD_REGION', 'eu-central-1') };
 has aws_account_id => undef;
 has service => undef;
@@ -45,17 +42,10 @@ sub init {
     $self->service("EC2") unless (defined($self->service));
 
     my $data = get_credentials('aws.json');
-    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
-        $self->key_id($data->{access_key});
-        $self->key_secret($data->{secret_key});
-    } else {
-        $self->key_id($data->{access_key_id});
-        $self->key_secret($data->{secret_access_key});
-    }
 
     assert_script_run('export AWS_DEFAULT_REGION="' . $self->region . '"');
-    define_secret_variable("AWS_ACCESS_KEY_ID", $self->key_id);
-    define_secret_variable("AWS_SECRET_ACCESS_KEY", $self->key_secret);
+    define_secret_variable("AWS_ACCESS_KEY_ID", $data->{access_key_id});
+    define_secret_variable("AWS_SECRET_ACCESS_KEY", $data->{secret_access_key});
 
     die('Credentials are invalid') unless ($self->_check_credentials());
 

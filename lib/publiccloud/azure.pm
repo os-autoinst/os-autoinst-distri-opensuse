@@ -135,20 +135,8 @@ sub img_proof {
     my ($self, %args) = @_;
 
     my $credentials_file = 'azure_credentials.txt';
-    my $credentials = "{" . $/
-      . '"clientId": "' . $self->provider_client->key_id . '", ' . $/
-      . '"clientSecret": "' . $self->provider_client->key_secret . '", ' . $/
-      . '"subscriptionId": "' . $self->provider_client->subscription . '", ' . $/
-      . '"tenantId": "' . $self->provider_client->tenantid . '", ' . $/
-      . '"activeDirectoryEndpointUrl": "https://login.microsoftonline.com", ' . $/
-      . '"resourceManagerEndpointUrl": "https://management.azure.com/", ' . $/
-      . '"activeDirectoryGraphResourceId": "https://graph.windows.net/", ' . $/
-      . '"sqlManagementEndpointUrl": "https://management.core.windows.net:8443/", ' . $/
-      . '"galleryEndpointUrl": "https://gallery.azure.com/", ' . $/
-      . '"managementEndpointUrl": "https://management.core.windows.net/" ' . $/
-      . '}';
 
-    save_tmp_file($credentials_file, $credentials);
+    save_tmp_file($credentials_file, $self->provider_client->credentials_file_content);
     assert_script_run('curl -O ' . autoinst_url . "/files/" . $credentials_file);
 
     $args{credentials_file} = $credentials_file;
