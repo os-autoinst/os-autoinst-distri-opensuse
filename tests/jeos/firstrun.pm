@@ -99,7 +99,12 @@ sub run {
     send_key 'ret';
 
     # Show license
-    assert_screen 'jeos-license';
+    # EULA license applies for sle products that are in GM(C) phase
+    my $license = 'jeos-license';
+    if ((is_sle || is_sle_micro) && !get_var('BETA')) {
+        $license = 'jeos-license-eula';
+    }
+    assert_screen $license;
     send_key 'ret';
 
     # Accept EULA if required
