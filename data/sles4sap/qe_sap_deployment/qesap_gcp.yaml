@@ -2,11 +2,15 @@ provider: "%PROVIDER%"
 apiver: 2
 terraform:
   variables:
-    az_region: "%REGION%"
+    project: "ei-sle-qa-sap-8469"
+    region: "%REGION%"
     deployment_name: "%DEPLOYMENTNAME%"
     os_image: "%QESAP_CLUSTER_OS_VER%"
+    hana_os_major_version: "%QESAP_CLUSTER_OS_VER%"
+    iscsi_os_major_version: "%QESAP_CLUSTER_OS_VER%"
     private_key: "%SSH_KEY_PRIV%"
     public_key: "%SSH_KEY_PUB%"
+    gcp_credentials_file: "/root/google_credentials.json"
 
 ansible:
   hana_urls:

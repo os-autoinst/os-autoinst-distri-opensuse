@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use Test::More;
 use Test::Warnings;
+use Test::Exception;
 use Test::MockModule;
 use List::Util qw(any);
 use testapi qw(set_var);
@@ -155,6 +156,28 @@ END
     note(join("\n -->  ", @calls));
     is $res, 3, 'Number of agents like expected';
     like $calls[0], qr/cat $inv_path/;
+};
+
+subtest '[deploy_qesap] ok' => sub {
+    $trento->redefine(qesap_execute => sub { return 0; });
+    deploy_qesap();
+    ok 1;
+};
+
+subtest '[deploy_qesap] not ok' => sub {
+    $trento->redefine(qesap_execute => sub { return 1; });
+    dies_ok { deploy_qesap() } "Expected die for internal qesap_execute returnin non zero.";
+};
+
+subtest '[destroy_qesap] ok' => sub {
+    $trento->redefine(qesap_execute => sub { return 0; });
+    destroy_qesap();
+    ok 1;
+};
+
+subtest '[destroy_qesap] not ok' => sub {
+    $trento->redefine(qesap_execute => sub { return 1; });
+    dies_ok { destroy_qesap() } "Expected die for internal qesap_execute returnin non zero.";
 };
 
 done_testing;
