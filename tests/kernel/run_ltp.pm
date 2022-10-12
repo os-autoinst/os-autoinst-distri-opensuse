@@ -302,7 +302,7 @@ sub run {
     $self->{ltp_tinfo} = $tinfo;
 
     my $fin_msg = "### TEST $test->{name} COMPLETE >>> ";
-    my $cmd_text = qq($test->{command}; echo "$fin_msg\$?");
+    my $cmd_text = qq($test->{command}; echo "$fin_msg\$?.");
     my $klog_stamp = "echo 'OpenQA::run_ltp.pm: Starting $test->{name}' > /dev/$serialdev";
     my $start_time = thetime();
 
@@ -316,10 +316,10 @@ sub run {
     else {
         enter_cmd("($cmd_text) | tee /dev/$serialdev");
     }
-    my $test_log = wait_serial(qr/$fin_msg\d+/, $timeout, 0, record_output => 1);
+    my $test_log = wait_serial(qr/$fin_msg\d+\./, $timeout, 0, record_output => 1);
     my ($timed_out, $result_export) = $self->record_ltp_result($runfile, $test, $test_log, $fin_msg, thetime() - $start_time, $is_posix);
 
-    if ($test_log =~ qr/$fin_msg(\d+)$/) {
+    if ($test_log =~ qr/$fin_msg(\d+)\.$/) {
         $env{retval} = $1;
     }
 
