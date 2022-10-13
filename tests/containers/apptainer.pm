@@ -14,7 +14,9 @@ use containers::utils qw(registry_url);
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    # Not used of serial_terminal because causes some delays due to wait_serial
+    # failing match on `serial_term_prompt`
+    select_console 'root-console';
     my $image = 'registry.opensuse.org/opensuse/tumbleweed:latest';
     my $registry = registry_url() . "/library";
     record_info('reg', "$registry");
