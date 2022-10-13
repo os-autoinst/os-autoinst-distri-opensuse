@@ -18,8 +18,6 @@ use Mojo::Base 'publiccloud::k8s_provider';
 use testapi;
 use utils;
 
-has security_token => undef;
-
 sub init {
     my ($self, %args) = @_;
     $self->SUPER::init("ECR");

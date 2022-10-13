@@ -13,35 +13,41 @@ use testapi;
 use utils;
 use publiccloud::utils;
 
-has key_id => undef;
-has key_secret => undef;
 has subscription => sub { get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') };
-has tenantid => undef;
 has region => sub { get_var('PUBLIC_CLOUD_REGION', 'westeurope') };
 has username => sub { get_var('PUBLIC_CLOUD_USER', 'azureuser') };
 has service => undef;
+has credentials_file_content => undef;
 has container_registry => sub { get_var('PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY', 'suseqectesting') };
 
 sub init {
     my ($self) = @_;
     my $data = get_credentials('azure.json');
     $self->subscription($data->{subscription_id});
-    $self->key_id($data->{client_id});
-    $self->key_secret($data->{client_secret});
-    $self->tenantid($data->{tenant_id});
     define_secret_variable("ARM_SUBSCRIPTION_ID", $self->subscription);
-    define_secret_variable("ARM_CLIENT_ID", $self->key_id);
-    define_secret_variable("ARM_CLIENT_SECRET", $self->key_secret);
-    define_secret_variable("ARM_TENANT_ID", $self->tenantid);
+    define_secret_variable("ARM_CLIENT_ID", $data->{client_id});
+    define_secret_variable("ARM_CLIENT_SECRET", $data->{client_secret});
+    define_secret_variable("ARM_TENANT_ID", $data->{tenant_id});
     define_secret_variable("ARM_TEST_LOCATION", $self->region);
+    $self->credentials_file_content("{" . $/
+          . '"clientId": "' . $data->{client_id} . '", ' . $/
+          . '"clientSecret": "' . $data->{client_secret} . '", ' . $/
+          . '"subscriptionId": "' . $self->subscription . '", ' . $/
+          . '"tenantId": "' . $data->{tenant_id} . '", ' . $/
+          . '"activeDirectoryEndpointUrl": "https://login.microsoftonline.com", ' . $/
+          . '"resourceManagerEndpointUrl": "https://management.azure.com/", ' . $/
+          . '"activeDirectoryGraphResourceId": "https://graph.windows.net/", ' . $/
+          . '"sqlManagementEndpointUrl": "https://management.core.windows.net:8443/", ' . $/
+          . '"galleryEndpointUrl": "https://gallery.azure.com/", ' . $/
+          . '"managementEndpointUrl": "https://management.core.windows.net/" ' . $/
+          . '}');
     $self->az_login();
     assert_script_run("az account set --subscription \$ARM_SUBSCRIPTION_ID");
 }
 
 sub az_login {
     my ($self) = @_;
-    my $login_cmd = sprintf(q(while ! az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET -t $ARM_TENANT_ID; do sleep 10; done),
-        $self->key_id, $self->key_secret, $self->tenantid);
+    my $login_cmd = "while ! az login --service-principal -u \$ARM_CLIENT_ID -p \$ARM_CLIENT_SECRET -t \$ARM_TENANT_ID; do sleep 10; done";
 
     assert_script_run($login_cmd, timeout => 5 * 60);
 }

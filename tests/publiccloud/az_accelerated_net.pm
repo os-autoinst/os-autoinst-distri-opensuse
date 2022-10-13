@@ -143,20 +143,6 @@ The type of the CSP (e.g. AZURE, EC2)
 The URL where the image gets downloaded from. The name of the image gets extracted
 from this URL.
 
-=head2 PUBLIC_CLOUD_KEY_ID
-
-The CSP credentials key-id to used to access API.
-
-=head2 PUBLIC_CLOUD_KEY_SECRET
-
-The CSP credentials secret used to access API.
-
 =head2 PUBLIC_CLOUD_REGION
 
 The region to use. (default-azure: westeurope, default-ec2: eu-central-1)
-
-=head2 PUBLIC_CLOUD_AZURE_TENANT_ID
-
-This is B<only for azure> and used to create the service account file.
-
-=cut

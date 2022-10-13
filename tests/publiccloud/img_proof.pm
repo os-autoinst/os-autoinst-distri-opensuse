@@ -113,14 +113,6 @@ For ec2 the AMI, e.g. B<ami-067a77ef88a35c1a5>.
 
 The type of the CSP (Cloud service provider).
 
-=head2 PUBLIC_CLOUD_KEY_ID
-
-The CSP credentials key-id to used to access API.
-
-=head2 PUBLIC_CLOUD_KEY_SECRET
-
-The CSP credentials secret used to access API.
-
 =head2 PUBLIC_CLOUD_REGION
 
 The region to use. (default-azure: westeurope, default-ec2: eu-central-1)
@@ -133,10 +125,6 @@ Specify the instance type. Which instance types exists depends on the CSP.
 More infos:
 Azure: https://docs.microsoft.com/en-us/rest/api/compute/virtualmachinesizes/list
 EC2: https://aws.amazon.com/ec2/instance-types/
-
-=head2 PUBLIC_CLOUD_AZURE_TENANT_ID
-
-This is B<only for azure> and used to create the service account file.
 
 =head2 PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID
 
