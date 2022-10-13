@@ -15,7 +15,7 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
-use version_utils "is_upgrade";
+use version_utils qw(is_upgrade is_jeos is_sle is_vmware is_leap is_tumbleweed);
 use Utils::Architectures;
 
 sub run {
@@ -32,6 +32,8 @@ sub run {
         }
         if ($ret == 0) {
             $self->result('ok');
+        } elsif (is_jeos && is_vmware && (is_tumbleweed || is_sle('15-SP4+') || is_leap('15.4+'))) {
+            record_info('Expected', 'Starting with sle15sp4\'s QR1 JeOS vmware image, firewalld is disabled by default');
         }
         else {
             $self->result('fail');
