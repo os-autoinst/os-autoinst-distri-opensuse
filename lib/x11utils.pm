@@ -55,7 +55,7 @@ desktop
 
 =cut
 
-sub desktop_runner_hotkey { check_var('DESKTOP', 'minimalx') ? 'super-spc' : 'alt-f2' }
+sub desktop_runner_hotkey { check_var('DESKTOP', 'minimalx') ? 'ctrl-alt-spc' : 'alt-f2' }
 
 
 =head2
