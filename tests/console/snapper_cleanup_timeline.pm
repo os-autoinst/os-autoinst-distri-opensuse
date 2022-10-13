@@ -65,7 +65,7 @@ sub run {
     # For the particular test, disk_size is in GB, we set block_size to 10M, so (% * GB)/10M = 1
     my $block_number = (100 - $free_limit - $used_disk + 10) * $disk_size;
     record_info("Fill up disk", "Filling up disk to " . (100 - $free_limit + 10) . "%");
-    assert_script_run("dd if=/dev/urandom of=/tmp/blob bs=10M count=$block_number", timeout => 1500,
+    assert_script_run("dd status=progress if=/dev/urandom of=/tmp/blob bs=10M count=$block_number", timeout => 1500,
         fail_message => "Failed to fill up disk space");
     $used_disk = convert2numeric(get_used_partition_space("/"));
     die "Free disk space is more than $free_limit%" if ($used_disk <= 100 - $free_limit);
