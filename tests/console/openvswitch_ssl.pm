@@ -14,12 +14,16 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
 
-    # Install python3 here since pox scripts need python3
-    zypper_call('in python3 python3-base openvswitch');
+    if (is_sle("<=12-SP5")) {
+        zypper_call('in python python-base openvswitch');
+    } else {
+        zypper_call('in python3 python3-base openvswitch');
+    }
 
     # Start openvswitch service
     systemctl('start openvswitch');
@@ -39,8 +43,9 @@ sub run {
     }
 
     # Get pox for openflow test
-    assert_script_run 'wget --quiet ' . data_url('pox-py3.tar.bz2');
-    assert_script_run 'tar jvfx pox-py3.tar.bz2';
+    my $fname = is_sle("<=12-SP5") ? "pox.tar.bz2" : "pox-py3.tar.bz2";
+    assert_script_run 'wget --quiet ' . data_url("$fname");
+    assert_script_run "tar jvfx $fname";
 
     # Setup a simulated open-flow controller with POX
     type_string
