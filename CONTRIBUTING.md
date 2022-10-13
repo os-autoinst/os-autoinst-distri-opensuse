@@ -118,6 +118,8 @@ and additionally the following rules:
   with non-zero timeout to prevent introducing any timing dependant behaviour,
   to save test execution time as well as state more explicitly from the testers
   point of view what are the expected alternatives. For example:
+* Avoid use of egrep and fgrep. The two commands are deprecated, so please use 
+  `grep -E` and `grep -F` respectively.
 
 ```perl
 assert_screen([qw(yast2_console-finished yast2_missing_package)]);
