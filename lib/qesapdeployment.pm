@@ -29,6 +29,7 @@ package qesapdeployment;
 
 use strict;
 use warnings;
+use Carp qw(croak);
 use utils 'file_content_replace';
 use testapi;
 use Exporter 'import';
@@ -47,11 +48,6 @@ our @EXPORT = qw(
   qesap_pip_install
   qesap_upload_logs
   qesap_get_deployment_code
-  qesap_configure_tfvar
-  qesap_configure_variables
-  qesap_configure_hanamedia
-  qesap_sh_deploy
-  qesap_sh_destroy
   qesap_get_inventory
   qesap_prepare_env
   qesap_execute
@@ -124,11 +120,9 @@ sub qesap_upload_logs {
     my (%args) = @_;
     my $failok = $args{failok};
     record_info("Uploading logfiles", join("\n", @log_files));
-    for my $file (@log_files) {
+    while (my $file = pop @log_files) {
         upload_logs($file, failok => $failok);
     }
-    # Remove already uploaded files from arrays
-    @log_files = ();
 }
 
 =head3 qesap_get_deployment_code
@@ -195,148 +189,6 @@ sub qesap_yaml_replace {
     qesap_upload_logs();
 }
 
-=head3 qesap_configure_tfvar
-
-Generate a terraform.tfvars from a template.
-
-=over 5
-
-=item B<PROVIDER> - cloud provider, used to select
-                    the right folder in the qe-sap-deploy repo
-
-=item B<REGION> - cloud region where to perform the deployment.
-                  Used for %REGION%
-
-=item B<RESOURCE_GROUP_POSTFIX> - used as deployment_name in tfvars
-
-=item B<OS_VERSION> - string for the OS version to be used for the deployed machine.
-                      Used for %OSVER%
-
-=item B<SSH_KEY> - Public key needed in tfvars
-
-=back
-=cut
-
-sub qesap_configure_tfvar {
-    my ($provider, $region, $resource_group_postfix, $os_version, $ssh_key) = @_;
-    my %paths = qesap_get_file_paths();
-    record_info("QESAP TFVARS", join("\n", "provider:$provider", "region:$region", "resource_group_postfix:$resource_group_postfix", "os_version:$os_version", "ssh_key:$ssh_key"));
-    my $tfvar = $paths{deployment_dir} . '/terraform/' . lc($provider) . '/terraform.tfvars';
-    assert_script_run("cp $tfvar.openqa $tfvar");
-    push(@log_files, $tfvar);
-    file_content_replace($tfvar,
-        q(%REGION%) => $region,
-        q(%DEPLOYMENTNAME%) => $resource_group_postfix,
-        q(%OSVER%) => $os_version,
-        q(%SSHKEY%) => $ssh_key
-    );
-    upload_logs($tfvar);
-}
-
-=head3 qesap_configure_variables
-
-Generate the variables.sh loaded by build.sh and destroy.sh
-
-=over 1
-
-=item B<PROVIDER> - cloud provider, used to select
-                    the right folder in the qe-sap-deploy repo
-
-=item B<SAP_REGCODE> - SCC code
-
-=back
-=cut
-
-sub qesap_configure_variables {
-    my ($provider, $sap_regcode) = @_;
-    my %paths = qesap_get_file_paths();
-    my $variables_sh = "$paths{deployment_dir}/variables.sh";
-
-    # is it a good idea to save variables.sh? as it has the SCC code.
-    push(@log_files, $variables_sh);
-
-    # variables.sh file
-    enter_cmd 'echo "PROVIDER=' . lc($provider) . '" > ' . $variables_sh;
-    enter_cmd "echo \"REG_CODE='$sap_regcode'\" >> $variables_sh";
-    enter_cmd "echo \"EMAIL='testing\@suse.com'\" >> $variables_sh";
-    enter_cmd "echo \"SAPCONF='true'\" >> $variables_sh";
-    enter_cmd "echo \"export REG_CODE EMAIL SAPCONF\" >> $variables_sh";
-    upload_logs($variables_sh);
-}
-
-=head3 qesap_configure_hanamedia
-
-Generate the hana_media.yaml for Ansible
-
-=over 3
-
-=item B<SAPCAR> - blob server url for the SAPCAR
-
-=item B<IMDB_SERVER> - blob server url for the IMDB_SERVER
-
-=item B<IMDB_CLIENT> - blob server url for the IMDB_CLIENT
-
-=back
-=cut
-
-sub qesap_configure_hanamedia {
-    my ($sapcar, $imbd_server, $imbd_cient) = @_;
-    my %paths = qesap_get_file_paths();
-    my $media_var = "$paths{deployment_dir}/ansible/playbooks/vars/azure_hana_media.yaml";
-    assert_script_run("cp $media_var.openqa $media_var");
-
-    push(@log_files, $media_var);
-    file_content_replace($media_var,
-        q(%SAPCAR%) => $sapcar,
-        q(%IMDB_SERVER%) => $imbd_server,
-        q(%IMDB_CLIENT%) => $imbd_cient);
-    upload_logs($media_var);
-}
-
-=head3 qesap_sh
-
-Generic handler for any qe-sap-deployment .sh scripts: calls and publish all the logs
-
-=cut
-
-sub qesap_sh {
-    my ($ssh_key, $script, $timeout_minutes) = @_;
-    my %paths = qesap_get_file_paths();
-    my $log = "$paths{deployment_dir}/$script" =~ s/.sh/.log.txt/r;
-    enter_cmd "cd $paths{deployment_dir}";
-    my $cmd = 'set -o pipefail ;' .
-      " ./$script -q -k $ssh_key" .
-      "| tee $log";
-    push(@log_files, $log);
-    assert_script_run($cmd, ($timeout_minutes * 60));
-
-    upload_logs($log);
-}
-
-=head3 qesap_sh_deploy
-
-Call build.sh and publish all the logs
-
-=cut
-
-sub qesap_sh_deploy {
-    my ($ssh_key) = @_;
-    record_info('build.sh');
-    qesap_sh($ssh_key, 'build.sh', 45);
-}
-
-=head3 qesap_sh_destroy
-
-Call destroy.sh and publish all the logs
-
-=cut
-
-sub qesap_sh_destroy {
-    my ($ssh_key) = @_;
-    record_info('destroy.sh');
-    qesap_sh($ssh_key, 'destroy.sh', 15);
-}
-
 =head3 qesap_execute
 
     qesap_execute(cmd => $qesap_script_cmd [, verbose => 1, cmd_options => $cmd_options] );
@@ -356,8 +208,13 @@ sub qesap_execute {
 
     my $verbose = $args{verbose} ? "--verbose" : "";
     my %paths = qesap_get_file_paths();
-    my $exec_log = "/tmp/qesap_exec_$args{cmd}_$args{cmd_options}.log.txt";
+    $args{cmd_options} ||= '';
+
+    my $exec_log = "/tmp/qesap_exec_$args{cmd}";
+    $exec_log .= "_$args{cmd_options}" if ($args{cmd_options});
+    $exec_log .= '.log.txt';
     $exec_log =~ s/[-\s]+/_/g;
+
     my $qesap_cmd = join(" ", $paths{deployment_dir} . "/scripts/qesap/qesap.py",
         $verbose,
         "-c", $paths{qesap_conf_trgt},
@@ -455,7 +312,7 @@ sub qesap_prepare_env {
 
 sub qesap_ansible_cmd {
     my (%args) = @_;
-    die 'Missing mandatory cmd argument' unless $args{cmd};
+    croak 'Missing mandatory cmd argument' unless $args{cmd};
     my $inventory = qesap_get_inventory($args{provider});
     $args{user} ||= 'cloudadmin';
     $args{filter} ||= 'all';

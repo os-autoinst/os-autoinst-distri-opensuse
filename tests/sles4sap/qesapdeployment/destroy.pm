@@ -14,8 +14,10 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
-    qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1200);
+    my $ret = qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
+    die "'qesap.py ansible -d' return: $ret" if ($ret);
+    $ret = qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 900);
+    die "'qesap.py terraform -d' return: $ret" if ($ret);
 }
 
 sub post_fail_hook {

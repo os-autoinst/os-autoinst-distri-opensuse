@@ -11,8 +11,10 @@ use testapi;
 use qesapdeployment;
 
 sub run {
-    qesap_execute(cmd => 'terraform', verbose => 1, timeout => 1800);
-    qesap_execute(cmd => 'ansible', verbose => 1, timeout => 1800);
+    my $ret = qesap_execute(cmd => 'terraform', verbose => 1, timeout => 1800);
+    die "'qesap.py terraform' return: $ret" if ($ret);
+    $ret = qesap_execute(cmd => 'ansible', verbose => 1, timeout => 1800);
+    die "'qesap.py ansible' return: $ret" if ($ret);
     my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
     upload_logs($inventory);
 }

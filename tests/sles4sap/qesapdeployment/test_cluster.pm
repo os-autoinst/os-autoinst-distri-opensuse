@@ -9,8 +9,7 @@ use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use qesapdeployment;
-
-use constant GIT_CLONE_LOG => '/tmp/git_clone.log';
+use hacluster '$crm_mon_cmd';
 
 sub run {
     my ($self) = @_;
@@ -19,7 +18,7 @@ sub run {
 
     qesap_ansible_cmd(cmd => $_, provider => $prov, $_) for ('pwd', 'uname -a', 'cat /etc/os-release');
     qesap_ansible_cmd(cmd => 'ls -lai /hana/', provider => $prov, filter => 'hana');
-    qesap_ansible_cmd(cmd => $_, provider => $prov, filter => 'vmhana01'), for ('crm status', 'crm_mon -R -r -n -N -1');
+    qesap_ansible_cmd(cmd => $_, provider => $prov, filter => 'vmhana01'), for ('crm status', $crm_mon_cmd);
 }
 
 sub post_fail_hook {

@@ -52,7 +52,6 @@ subtest '[qesap_get_deployment_code] from default github' => sub {
     set_var('QESAP_DEPLOYMENT_DIR', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok any { /git.*clone.*github.*com\/SUSE\/qe-sap-deployment.*DORY/ } @calls;
-    ok 1;
 };
 
 subtest '[qesap_get_deployment_code] from a release' => sub {
@@ -93,6 +92,53 @@ subtest '[qesap_ansible_cmd] no cmd' => sub {
     my @calls;
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     dies_ok { qesap_ansible_cmd(provider => 'OCEAN') } "Expected die for missing cmd";
+};
+
+subtest '[qesap_execute] simpler call' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my @logs = ();
+    my $expected_res = 0;
+    my $cmd = 'GILL';
+    my $expected_log_name = "qesap_exec_$cmd.log.txt";
+    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
+
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return $expected_res });
+    my $res = qesap_execute(cmd => $cmd);
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok any { /.*qesap.py.*-c.*-b.*$cmd\s+.*tee.*$expected_log_name/ } @calls;
+    ok $res == $expected_res;
+};
+
+subtest '[qesap_execute] cmd_options' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my @logs = ();
+    my $expected_res = 0;
+    my $cmd = 'GILL';
+    my $cmd_options = '--tankgang';
+    my $expected_log_name = 'qesap_exec_' . $cmd . '__tankgang.log.txt';
+    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
+
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; });
+    qesap_execute(cmd => $cmd, cmd_options => $cmd_options);
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok any { /.*$cmd\s+$cmd_options.*tee.*$expected_log_name/ } @calls;
+};
+
+subtest '[qesap_execute] failure' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my @logs = ();
+    my $expected_res = 1;
+    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return $expected_res });
+    my $res = qesap_execute(cmd => 'GILL');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok $res == $expected_res;
 };
 
 done_testing;

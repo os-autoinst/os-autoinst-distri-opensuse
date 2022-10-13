@@ -1,5 +1,5 @@
 provider: "%PROVIDER%"
-apiver: 1
+apiver: 2
 terraform:
   variables:
     az_region: "%REGION%"

@@ -2,11 +2,15 @@ provider: "%PROVIDER%"
 apiver: 2
 terraform:
   variables:
-    az_region: "%REGION%"
+    aws_region: "%REGION%"
     deployment_name: "%DEPLOYMENTNAME%"
     os_image: "%QESAP_CLUSTER_OS_VER%"
+    os_owner: "amazon"
     private_key: "%SSH_KEY_PRIV%"
     public_key: "%SSH_KEY_PUB%"
+    aws_credentials: "/root/amazon_credentials"
+    hana_cluster_fencing_mechanism: "sbd"
+    hana_ha_enabled: "true"
 
 ansible:
   hana_urls:
