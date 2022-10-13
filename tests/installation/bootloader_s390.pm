@@ -194,7 +194,7 @@ EO_frickin_boot_parms
 
     my $output_delim
       = $display_type eq "SSH" || $display_type eq "SSH-X" ? qr/\Q***  run 'yast.ssh' to start the installation  ***\E/
-      : $display_type eq "VNC" ? qr/\Q*** Starting YaST2 ***\E/
+      : $display_type eq "VNC" ? qr/\*\*\* Starting YaST(2|) \*\*\*/
       : die "unknown vars.json:DISPLAY->TYPE <$display_type>";
 
     $r = $s3270->expect_3270(
