@@ -67,6 +67,7 @@ sub run {
     record_info("Fill up disk", "Filling up disk to " . (100 - $free_limit + 10) . "%");
     assert_script_run("dd if=/dev/urandom of=/tmp/blob bs=10M count=$block_number", timeout => 1500,
         fail_message => "Failed to fill up disk space");
+    assert_script_run("sync", timeout => 60, fail_message => "Failed to sync");
     $used_disk = convert2numeric(get_used_partition_space("/"));
     die "Free disk space is more than $free_limit%" if ($used_disk <= 100 - $free_limit);
     assert_script_run("snapper cleanup timeline", fail_message => "Timeline cleanup algorithm failed to run");
