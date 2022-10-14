@@ -88,6 +88,7 @@ sub run {
     assert_script_run('curl --create-dir -vo ~/helm-test/templates/job.yaml ' . data_url('containers/helm-test/templates/') . 'job.yaml');
     assert_script_run('curl --create-dir -vo ~/helm-test/templates/NOTES.txt ' . data_url('containers/helm-test/templates/') . 'NOTES.txt');
 
+    assert_script_run("kubectl get namespaces");
     assert_script_run("kubectl create namespace helm-ns-$job_id");
     assert_script_run("kubectl config set-context --current --namespace=helm-ns-$job_id");
 
