@@ -85,7 +85,7 @@ sub run {
         }
         else {
             # On s390x zKVM we have to process startshell in bootloader
-            wait_serial(' Starting YaST2 ', 300) || die "yast didn't start";
+            wait_serial(' Starting YaST(2|) ', 300) || die "yast didn't start";
             select_console('installation');
         }
     }
