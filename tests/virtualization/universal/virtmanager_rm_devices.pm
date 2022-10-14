@@ -6,7 +6,6 @@
 # Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>
 
 use base "virt_feature_test_base";
-use virt_autotest::common;
 use strict;
 use warnings;
 use testapi;
@@ -15,13 +14,13 @@ use virtmanager;
 
 sub run_test {
     my ($self) = @_;
-
+    my @guests = @{get_var_array("TEST_GUESTS")};
     #x11_start_program 'virt-manager';
     enter_cmd "virt-manager";
 
     establish_connection();
 
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         unless ($guest =~ m/hvm/i) {
             record_info "$guest", "VM $guest will loose it's aditional HV";
 

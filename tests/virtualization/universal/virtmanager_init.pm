@@ -6,7 +6,7 @@
 # Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>
 
 use base "virt_feature_test_base";
-use virt_autotest::common;
+#use virt_autotest::common;
 use virt_autotest::utils;
 use strict;
 use warnings;
@@ -17,12 +17,12 @@ use virtmanager;
 sub run_test {
     my ($self) = @_;
     select_console 'root-console';
-
+    my @guests = @{get_var_array("TEST_GUESTS")};
     zypper_call '-t in virt-manager', exitcode => [0, 4, 102, 103, 106];
 
     # Ensure additional devices are removed (if present).
     # This is necessary for restarting the virtmanager tests, as we assume the state is clear.
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         remove_additional_nic($guest, "00:16:3e:32");
         remove_additional_disks($guest);
     }

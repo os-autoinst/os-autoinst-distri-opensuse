@@ -8,7 +8,7 @@
 # Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>, Jan Baier <jbaier@suse.cz>
 
 use base "virt_feature_test_base";
-use virt_autotest::common;
+#use virt_autotest::common;
 use virt_autotest::utils;
 use strict;
 use warnings;
@@ -68,14 +68,14 @@ sub test_add_vcpu {
 
 sub run_test {
     my ($self) = @_;
-
+    my @guests = @{get_var_array("TEST_GUESTS")};
     record_info "SSH", "Check if guests are online with SSH";
-    wait_guest_online($_) foreach (keys %virt_autotest::common::guests);
+    wait_guest_online($_) foreach (@guests);
 
     # Hotplugging of vCPUs
     record_info("CPU", "Changing the number of CPUs available");
 
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         if (virt_autotest::utils::is_sev_es_guest($guest) ne 'notsev') {
             record_info "Skip hotplugging vCPU on $guest", "SEV/SEV-ES guest $guest does not support hotplugging vCPU";
             next;
@@ -90,11 +90,12 @@ sub run_test {
 
 sub post_fail_hook {
     my ($self) = @_;
+    my @guests = @{get_var_array("TEST_GUESTS")};
 
     # Call parent post_fail_hook to collect logs on failure
     $self->SUPER::post_fail_hook;
     # Ensure guests remain in a consistent state also on failure
-    reset_guest($_, $MAC_PREFIX) foreach (keys %virt_autotest::common::guests);
+    reset_guest($_, $MAC_PREFIX) foreach (@guests);
 }
 
 1;

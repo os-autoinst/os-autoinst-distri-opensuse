@@ -32,7 +32,8 @@ our @EXPORT
 
 # Basic Virtualization Storage Management
 sub virt_storage_management {
-    my ($vstorage_pool_name, %args) = @_;
+    my ($vstorage_pool_name, $vms, %args) = @_;
+    my @guests = @{$vms};
     my $vol_size = $args{size};
     my $timeout = $args{timeout} // 120;
     my $dir = $args{dir} // 0;
@@ -50,29 +51,29 @@ sub virt_storage_management {
     ## Basic Virtualization Storage Volume Management
     # Create a Storage Volume
     record_info "Create a Storage Volume";
-    assert_script_run("virsh vol-create-as $vstorage_pool_name $_-storage $vol_size", $timeout) foreach (keys %virt_autotest::common::guests);
+    assert_script_run("virsh vol-create-as $vstorage_pool_name $_-storage $vol_size", $timeout) foreach (@guests);
     record_info "List Storage Volumes";
-    assert_script_run("virsh vol-list $vstorage_pool_name | grep $_-storage", $timeout) foreach (keys %virt_autotest::common::guests);
+    assert_script_run("virsh vol-list $vstorage_pool_name | grep $_-storage", $timeout) foreach (@guests);
     record_info "Dump Storage Volumes in XML";
-    assert_script_run("virsh vol-dumpxml --pool $vstorage_pool_name $_-storage", $timeout) foreach (keys %virt_autotest::common::guests);
+    assert_script_run("virsh vol-dumpxml --pool $vstorage_pool_name $_-storage", $timeout) foreach (@guests);
     if ($dir == 1) {
         record_info "Resize";
-        assert_script_run("virsh vol-resize --pool testing $_-storage $vol_resize", $timeout) foreach (keys %virt_autotest::common::guests);
+        assert_script_run("virsh vol-resize --pool testing $_-storage $vol_resize", $timeout) foreach (@guests);
     }
     # Attach a Storage Volume to guest system
     record_info "Attached";
     my $target = (is_xen_host) ? "xvdx" : "vdx";
-    assert_script_run("virsh attach-disk --domain $_ --source `virsh vol-path --pool $vstorage_pool_name $_-storage` --target $target", $timeout) foreach (keys %virt_autotest::common::guests);
+    assert_script_run("virsh attach-disk --domain $_ --source `virsh vol-path --pool $vstorage_pool_name $_-storage` --target $target", $timeout) foreach (@guests);
     # Detach a Storage Volume from guest system
     record_info "Detached";
-    assert_script_run("virsh detach-disk $_ $target", $timeout) foreach (keys %virt_autotest::common::guests);
+    assert_script_run("virsh detach-disk $_ $target", $timeout) foreach (@guests);
     record_info "Clone";
-    assert_script_run("virsh vol-clone --pool $vstorage_pool_name $_-storage $_-clone", $timeout) foreach (keys %virt_autotest::common::guests);
-    assert_script_run("virsh vol-info --pool $vstorage_pool_name $_-clone", $timeout) foreach (keys %virt_autotest::common::guests);
+    assert_script_run("virsh vol-clone --pool $vstorage_pool_name $_-storage $_-clone", $timeout) foreach (@guests);
+    assert_script_run("virsh vol-info --pool $vstorage_pool_name $_-clone", $timeout) foreach (@guests);
     # Delete and Remove a Storage Volume from storage pool
     record_info "Remove";
-    assert_script_run("virsh vol-delete --pool $vstorage_pool_name $_-clone", $timeout) foreach (keys %virt_autotest::common::guests);
-    assert_script_run("virsh vol-delete --pool $vstorage_pool_name $_-storage", $timeout) foreach (keys %virt_autotest::common::guests);
+    assert_script_run("virsh vol-delete --pool $vstorage_pool_name $_-clone", $timeout) foreach (@guests);
+    assert_script_run("virsh vol-delete --pool $vstorage_pool_name $_-storage", $timeout) foreach (@guests);
 }
 
 # Destroy Virtualization Storage Pool

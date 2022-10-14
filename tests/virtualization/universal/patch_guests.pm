@@ -36,7 +36,13 @@ sub reboot_guest {
 sub run {
     my ($self) = @_;
     select_console('root-console');
-    my @guests = keys %virt_autotest::common::guests;
+    my @guests;
+    if (get_var("KVM") || get_var("XEN")) {
+        @guests = @{get_var_array("TEST_GUESTS")};
+        start_guests(@guests);
+    } else {
+        @guests = keys %virt_autotest::common::guests;
+    }
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
     my $host_os_version = get_var('DISTRI') . "s" . lc(get_var('VERSION') =~ s/-//r);
     foreach my $guest (@guests) {

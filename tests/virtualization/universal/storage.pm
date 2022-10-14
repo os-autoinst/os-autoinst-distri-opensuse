@@ -9,7 +9,7 @@
 
 use base "virt_feature_test_base";
 use virt_autotest::virtual_storage_utils;
-use virt_autotest::common;
+#use virt_autotest::common;
 use virt_autotest::utils;
 use strict;
 use warnings;
@@ -21,11 +21,8 @@ use version_utils;
 our $dir_pool_name = 'testing';
 sub run_test {
     my ($self) = @_;
-
+    my @guests = @{get_var_array("TEST_GUESTS")};
     record_info "Prepare";
-    foreach (keys %virt_autotest::common::guests) {
-        script_run("virsh start '$_'") unless is_guest_online($_);
-    }
     ## Prepare Virtualization Dir Storage Pool source
     prepare_dir_storage_pool_source($dir_pool_name);
 
@@ -35,7 +32,7 @@ sub run_test {
     ## Basic Dir Storage Management
     my $dir_vol_size = '100M';
     my $dir_vol_resize = '200M';
-    virt_storage_management($dir_pool_name, size => $dir_vol_size, dir => 1, resize => $dir_vol_resize);
+    virt_storage_management($dir_pool_name, \@guests, size => $dir_vol_size, dir => 1, resize => $dir_vol_resize);
 
     ## Cleanup
     # Destroy the Dir storage pool
@@ -45,10 +42,11 @@ sub run_test {
 # Prepare Virtualization Dir Storage Pool source
 sub prepare_dir_storage_pool_source {
     my $dir_pool_name = shift;
+    my @guests = @{get_var_array("TEST_GUESTS")};
     assert_script_run "mkdir -p /pool_testing";
     script_run "virsh pool-destroy $dir_pool_name";
-    script_run "virsh vol-delete --pool $dir_pool_name $_-storage" foreach (keys %virt_autotest::common::guests);
-    script_run "virsh vol-delete --pool $dir_pool_name $_-clone" foreach (keys %virt_autotest::common::guests);
+    script_run "virsh vol-delete --pool $dir_pool_name $_-storage" foreach (@guests);
+    script_run "virsh vol-delete --pool $dir_pool_name $_-clone" foreach (@guests);
     script_run "virsh pool-undefine $dir_pool_name";
     # Ensure the new pool directory is empty
     script_run('rm -f /pool_testing/*');

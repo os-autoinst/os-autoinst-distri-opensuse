@@ -27,7 +27,8 @@ sub run_test {
 
     #Prepare VM HOST SERVER Network Interface Configuration
     #for libvirt virtual network testing
-    virt_autotest::virtual_network_utils::prepare_network($virt_host_bridge, $based_guest_dir);
+    my @guests = @{get_var_array("TEST_GUESTS")};
+    virt_autotest::virtual_network_utils::prepare_network($virt_host_bridge, $based_guest_dir, \@guests);
 
     #Download libvirt host bridge virtual network configuration file
     my $vnet_host_bridge_cfg_name = "vnet_host_bridge.xml";
@@ -43,7 +44,7 @@ sub run_test {
 
     my ($mac, $model, $affecter, $exclusive);
     my $gate = script_output "ip r s | grep 'default via ' | cut -d' ' -f3";
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         record_info "$guest", "HOST BRIDGE NETWORK for $guest";
         ensure_online $guest, skip_network => 1;
 
@@ -73,13 +74,12 @@ sub run_test {
     save_screenshot;
 
     #Restore Network setting after finished HOST BRIDGE NETWORK Test
-    virt_autotest::virtual_network_utils::restore_network($virt_host_bridge, $based_guest_dir);
+    virt_autotest::virtual_network_utils::restore_network($virt_host_bridge, $based_guest_dir, \@guests);
 }
 
 sub post_fail_hook {
     my ($self) = @_;
-
-    $self->SUPER::post_fail_hook;
+    my @guests = @{get_var_array("TEST_GUESTS")};
 
     #Restart libvirtd service
     virt_autotest::utils::restart_libvirtd();
@@ -91,10 +91,12 @@ sub post_fail_hook {
     virt_autotest::virtual_network_utils::restore_standalone();
 
     #Restore Guest systems
-    virt_autotest::virtual_network_utils::restore_guests();
+    virt_autotest::virtual_network_utils::restore_guests(@guests);
 
     #Restore Network setting
-    virt_autotest::virtual_network_utils::restore_network($virt_host_bridge, $based_guest_dir);
+    virt_autotest::virtual_network_utils::restore_network($virt_host_bridge, $based_guest_dir, \@guests);
+    $self->SUPER::post_fail_hook;
+
 }
 
 1;

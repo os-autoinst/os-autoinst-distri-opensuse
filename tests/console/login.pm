@@ -19,5 +19,9 @@ sub run {
     my $self = shift;
     select_console 'root-ssh';
     record_info("console logined");
+    my $guests_str = script_output("echo \$(grep test_guest /etc/hosts|cut -d ' ' -f2)");
+    $guests_str =~ s/ /,/g;
+    set_var("TEST_GUESTS", $guests_str);
+    record_info($guests_str);
 }
 1;

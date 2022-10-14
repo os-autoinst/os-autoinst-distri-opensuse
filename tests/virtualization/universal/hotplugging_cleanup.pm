@@ -8,7 +8,6 @@
 # Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>, Jan Baier <jbaier@suse.cz>
 
 use base "virt_feature_test_base";
-use virt_autotest::common;
 use virt_autotest::utils;
 use strict;
 use warnings;
@@ -22,11 +21,11 @@ my $MAC_PREFIX = '00:16:3f:32';
 
 sub run_test {
     my ($self) = @_;
-
+    my @guests = @{get_var_array("TEST_GUESTS")};
     # Ensure guests remain in a consistent state also
-    shutdown_guests();
-    reset_guest($_, $MAC_PREFIX) foreach (keys %virt_autotest::common::guests);
-    start_guests();
+    shutdown_guests(@guests);
+    reset_guest($_, $MAC_PREFIX) foreach (@guests);
+    start_guests(@guests);
 }
 
 sub post_fail_hook {

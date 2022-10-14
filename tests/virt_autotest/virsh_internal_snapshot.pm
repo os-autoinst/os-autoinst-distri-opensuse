@@ -13,15 +13,14 @@ use testapi;
 use set_config_as_glue;
 use utils;
 use virt_utils;
-use virt_autotest::common;
 use virt_autotest::utils;
 
 sub run_test {
     my ($self) = @_;
     #Snapshots are supported on KVM VM Host Servers only
     return unless is_kvm_host;
-
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    my @guests = @{get_var_array("TEST_GUESTS")};
+    foreach my $guest (@guests) {
         if (virt_autotest::utils::is_sev_es_guest($guest) ne 'notsev') {
             record_info "Skip internal snapshot on $guest", "SEV/SEV-ES guest $guest does not support internal snapshot";
             next;

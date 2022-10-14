@@ -16,7 +16,7 @@ use virt_autotest::virtual_network_utils;
 use virt_autotest::utils;
 use base "virt_feature_test_base";
 use virt_utils;
-use set_config_as_glue;
+#use set_config_as_glue;
 use strict;
 use warnings;
 use testapi;
@@ -26,7 +26,7 @@ use virt_autotest::utils qw(is_xen_host);
 
 sub run_test {
     my ($self) = @_;
-
+    my @guests = @{get_var_array("TEST_GUESTS")};
     if (is_xen_host) {
         #Ensure that there is enough free memory on xen host for virtual network test
         my $MEM = virt_autotest::virtual_network_utils::get_free_mem();
@@ -60,7 +60,7 @@ sub run_test {
     zypper_call '-t in iproute2 iptables iputils bind-utils sshpass nmap';
 
     #Prepare Guests
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         #Archive deployed Guests
         #NOTE: Keep Archive deployed Guests for restore_guests func
         assert_script_run("virsh dumpxml $guest > /tmp/$guest.xml");
@@ -101,8 +101,7 @@ sub run_test {
 
 sub post_fail_hook {
     my ($self) = @_;
-
-    $self->SUPER::post_fail_hook;
+    my @guests = @{get_var_array("TEST_GUESTS")};
 
     #Restart libvirtd service
     virt_autotest::utils::restart_libvirtd();
@@ -114,7 +113,8 @@ sub post_fail_hook {
     virt_autotest::virtual_network_utils::restore_standalone();
 
     #Restore Guest systems
-    virt_autotest::virtual_network_utils::restore_guests();
+    virt_autotest::virtual_network_utils::restore_guests(@guests);
+    $self->SUPER::post_fail_hook;
 }
 
 1;

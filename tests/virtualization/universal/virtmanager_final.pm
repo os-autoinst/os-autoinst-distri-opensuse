@@ -6,7 +6,7 @@
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base "virt_feature_test_base";
-use virt_autotest::common;
+#use virt_autotest::common;
 use strict;
 use warnings;
 use testapi;
@@ -15,6 +15,7 @@ use virtmanager;
 
 sub run_test {
     select_console 'root-console';
+    my @guests = @{get_var_array("TEST_GUESTS")};
     zypper_call '-t in virt-manager', exitcode => [0, 4, 102, 103, 106];
 
     #x11_start_program 'virt-manager';
@@ -22,7 +23,7 @@ sub run_test {
 
     establish_connection();
 
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         record_info "$guest", "VM $guest will be turned off and then on again";
 
         select_guest($guest);

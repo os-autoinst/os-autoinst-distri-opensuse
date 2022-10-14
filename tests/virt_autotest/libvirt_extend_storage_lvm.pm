@@ -21,7 +21,6 @@
 use base "virt_feature_test_base";
 use virt_autotest::virtual_storage_utils;
 use virt_autotest::utils;
-use virt_autotest::common;
 use strict;
 use warnings;
 use testapi;
@@ -33,11 +32,7 @@ our $lvm_vg_name = 'lvm_vg';
 our $lvm_pool_name = 'guest_image_lvm';
 sub run_test {
     my ($self) = @_;
-
-    record_info "Prepare Guest Systems";
-    foreach (keys %virt_autotest::common::guests) {
-        start_guests() unless is_guest_online($_);
-    }
+    my @guests = @{get_var_array("TEST_GUESTS")};
     ## Prepare Virtualization LVM Storage Pool Source
     my $lvm_disk = $self->prepare_lvm_storage_pool_source();
 
@@ -47,7 +42,7 @@ sub run_test {
     assert_script_run "virsh pool-define-as $lvm_pool_name logical --source-name $lvm_vg_name --target /dev/lvm_vg";
     # Basic Virtualization LVM Storage Management
     my $lvm_vol_size = '1G';
-    virt_storage_management($lvm_pool_name, size => $lvm_vol_size);
+    virt_storage_management($lvm_pool_name, \@guests, size => $lvm_vol_size);
 
     ## Cleanup
     # Destroy the LVM volume group storage pool

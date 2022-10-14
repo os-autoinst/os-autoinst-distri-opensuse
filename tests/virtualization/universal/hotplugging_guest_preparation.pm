@@ -8,7 +8,6 @@
 # Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>, Jan Baier <jbaier@suse.cz>
 
 use base "virt_feature_test_base";
-use virt_autotest::common;
 use virt_autotest::utils;
 use strict;
 use warnings;
@@ -23,6 +22,7 @@ my $MAC_PREFIX = '00:16:3f:32';
 
 sub run_test {
     my ($self) = @_;
+    my @guests = @{get_var_array("TEST_GUESTS")};
     my ($sles_running_version, $sles_running_sp) = get_os_release;
 
     if ($sles_running_version eq '15' && get_var("VIRT_AUTOTEST") && !get_var("VIRT_UNIFIED_GUEST_INSTALL")) {
@@ -35,18 +35,18 @@ sub run_test {
     }
 
     # Guest preparation
-    shutdown_guests();
-    reset_guest($_, $MAC_PREFIX) foreach (keys %virt_autotest::common::guests);
-    start_guests();
+    shutdown_guests(@guests);
+    reset_guest($_, $MAC_PREFIX) foreach (@guests);
+    start_guests(@guests);
 }
 
 sub post_fail_hook {
     my ($self) = @_;
-
+    my @guests = @{get_var_array("TEST_GUESTS")};
     # Call parent post_fail_hook to collect logs on failure
     $self->SUPER::post_fail_hook;
     # Ensure guests remain in a consistent state also on failure
-    reset_guest($_, $MAC_PREFIX) foreach (keys %virt_autotest::common::guests);
+    reset_guest($_, $MAC_PREFIX) foreach (@guests);
 }
 
 1;

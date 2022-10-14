@@ -6,21 +6,18 @@
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base "consoletest";
-use virt_autotest::common;
 use virt_autotest::utils;
 use strict;
 use warnings;
 use testapi;
-use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
     select_console 'root-console';
-    select_serial_terminal();
-
+    my @guests = @{get_var_array("TEST_GUESTS")};
     zypper_call '-t in vhostmd', exitcode => [0, 4, 102, 103, 106];
 
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         ensure_online($guest, use_virsh => 0);
         record_info "$guest", "Install vm-dump-metrics on xl-$guest";
         script_retry("ssh root\@$guest 'zypper -n in vm-dump-metrics'", delay => 120, retry => 3);

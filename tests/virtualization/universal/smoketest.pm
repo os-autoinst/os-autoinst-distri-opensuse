@@ -8,7 +8,6 @@
 # Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
 
 use base "virt_feature_test_base";
-use virt_autotest::common;
 use virt_autotest::utils;
 use strict;
 use warnings;
@@ -36,7 +35,7 @@ my %cves = (
 
 sub run_test {
     select_serial_terminal;
-
+    my @guests = @{get_var_array("TEST_GUESTS")};
     # Print latest Kernel version
     script_run('uname -a');
     script_run('dmesg > /var/tmp/dmesg.txt');
@@ -51,7 +50,7 @@ sub run_test {
     script_run('chmod 0755 /var/tmp/spectre-meltdown-checker.sh');
     # Run smoketests on guests
     smoketest('localhost');
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         # This should fix some common issues on the guests. If the procedure fails we still want to go on
         eval {
             ensure_online($guest);

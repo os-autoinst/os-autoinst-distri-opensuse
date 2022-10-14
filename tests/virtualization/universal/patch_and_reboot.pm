@@ -28,9 +28,14 @@ sub run {
     add_test_repositories;
     fully_patch_system;
 
+    my $guests_str = script_output("echo \$(grep test_guest /etc/hosts|cut -d ' ' -f2)");
+    $guests_str =~ s/ /,/g;
+    set_var("TEST_GUESTS", $guests_str);
+    my @guests = @{get_var_array("TEST_GUESTS")};
+
     if (get_var("UPDATE_PACKAGE") =~ /xen|kernel-default|qemu/) {
         script_run("virsh list --all | grep -v Domain-0");
-        script_retry("nmap $_ -PN -p ssh | grep open", delay => 60, retry => 60) foreach (keys %virt_autotest::common::guests);
+        script_retry("nmap $_ -PN -p ssh | grep open", delay => 60, retry => 60) foreach (@guests);
         script_run '( sleep 15 && reboot & )';
         save_screenshot;
         switch_from_ssh_to_sol_console(reset_console_flag => 'on');
@@ -38,7 +43,7 @@ sub run {
         systemctl("restart libvirtd");
         script_run("virsh list --all | grep -v Domain-0");
         # Check that all guests are still running
-        script_retry("nmap $_ -PN -p ssh | grep open", delay => 60, retry => 60) foreach (keys %virt_autotest::common::guests);
+        script_retry("nmap $_ -PN -p ssh | grep open", delay => 60, retry => 60) foreach (@guests);
     }
 }
 sub post_run_hook {

@@ -35,7 +35,7 @@ sub run {
     if (is_sle('>15') && get_var("KVM")) {
         # Adding the PCI bridges requires the guests to be shutdown
         record_info("shutdown guests", "Shutting down all guests");
-        shutdown_guests();
+        shutdown_guests(@guests);
 
         # Add a PCIe root port and a PCIe to PCI bridge for Q35 machine
         if (is_sle('<15-SP4')) {
@@ -44,7 +44,7 @@ sub run {
             assert_script_run("virt-xml $_ --add-device --controller type=pci,model=pcie-to-pci-bridge") foreach (@guests);
         }
         record_info("Starting guests", "Starting all guests");
-        start_guests();
+        start_guests(@guests);
         ensure_online $_, skip_ssh => 1, ping_delay => 45 foreach (@guests);
     }
     assert_script_run('virsh list --all');

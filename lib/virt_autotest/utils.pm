@@ -296,7 +296,8 @@ sub install_default_packages {
 sub ensure_online {
     my ($guest, %args) = @_;
 
-    my $hypervisor = $args{HYPERVISOR} // "192.168.122.1";
+    #    my $hypervisor = $args{HYPERVISOR} // "192.168.122.1";
+    my $hypervisor = $args{HYPERVISOR} // get_required_var('SUT_IP');
     my $dns_host = $args{DNS_TEST_HOST} // "www.suse.com";
     my $skip_ssh = $args{skip_ssh} // 0;
     my $skip_network = $args{skip_network} // 0;
@@ -446,29 +447,34 @@ sub wait_guest_online {
 
 # Shutdown all guests and wait until they are shutdown
 sub shutdown_guests {
+    my @guests = @_;
     ## Reboot the guest to ensure the settings are applied
     # Shutdown and start the guest because some might have the on_reboot=destroy policy still applied
-    script_run("virsh shutdown $_") foreach (keys %virt_autotest::common::guests);
+    script_run("virsh shutdown $_") foreach (@guests);
     # Wait until guests are terminated
-    wait_guests_shutdown();
+    wait_guests_shutdown(@guests);
 }
 
 # wait_guests_shutdown([$timeout]) waits for all guests to be shutdown
 sub wait_guests_shutdown {
+    my @guests = @_;
     my $retries = shift // 240;
     # Note: Domain-0 is for xen only, but it does not hurt to exclude this also in kvm runs.
     # Firstly wait for guest shutdown for a while, turn it off forcibly using "virsh destroy" if timed-out.
     # Then wait for guest shutdown again with default "die => 1".
     if (script_retry("! virsh list | grep -v Domain-0 | grep running", timeout => 60, delay => 1, retry => $retries, die => 0) != 0) {
-        script_run("virsh destroy $_") foreach (keys %virt_autotest::common::guests);
+        script_run("virsh destroy $_") foreach (@guests);
     }
     script_retry("! virsh list | grep -v Domain-0 | grep running", timeout => 60, delay => 1, retry => $retries);
 }
 
 # Start all guests and wait until they are online
 sub start_guests {
-    script_run("virsh start '$_'") foreach (keys %virt_autotest::common::guests);
-    wait_guest_online($_) foreach (keys %virt_autotest::common::guests);
+    my @guests = @_;
+    foreach my $guest (@guests) {
+        script_run("virsh start $guest");
+        wait_guest_online($guest);
+    }
 }
 
 #Add common ssh options to host ssh config file to be used for all ssh connections when host tries to ssh to another host/guest.
@@ -746,11 +752,10 @@ sub restore_downloaded_guests {
 }
 
 sub save_original_guest_xmls {
-    my ($save_dir, @guests) = @_;
+    my ($vms, $save_dir) = @_;
     $save_dir //= "/tmp/download_vm_xml";
-    @guests = keys %virt_autotest::common::guests if @guests == 0;
     assert_script_run "mkdir -p $save_dir" unless script_run("ls $save_dir") == 0;
-    foreach my $guest (@guests) {
+    foreach my $guest (@{$vms}) {
         unless (script_run("ls $save_dir/$guest.xml") == 0) {
             assert_script_run "virsh dumpxml --inactive $guest > $save_dir/$guest.xml";
         }
@@ -758,10 +763,9 @@ sub save_original_guest_xmls {
 }
 
 sub restore_original_guests {
-    my ($save_dir, @guests) = @_;
+    my ($vms, $save_dir) = @_;
     $save_dir //= "/tmp/download_vm_xml";
-    @guests = keys %virt_autotest::common::guests if @guests == 0;
-    foreach my $guest (@guests) {
+    foreach my $guest (@{$vms}) {
         remove_vm($guest);
         if (script_run("ls $save_dir/$guest.xml") == 0) {
             restore_downloaded_guests($guest, $save_dir);

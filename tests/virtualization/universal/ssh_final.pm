@@ -8,13 +8,13 @@
 use base "virt_feature_test_base";
 use strict;
 use warnings;
-use virt_autotest::common;
 use strict;
 use testapi;
 use utils;
 
 sub run_test {
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    my @guests = @{get_var_array("TEST_GUESTS")};
+    foreach my $guest (@guests) {
         record_info "$guest", "Establishing SSH connection to $guest";
         assert_script_run "ping -c3 -W1 $guest";
         assert_script_run "ssh root\@$guest 'hostname -f; uptime'";

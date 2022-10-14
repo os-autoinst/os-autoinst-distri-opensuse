@@ -23,15 +23,15 @@ use strict;
 use warnings;
 use utils;
 use testapi;
-use virt_autotest::common;
 use version_utils qw(is_sle);
-use set_config_as_glue;
+#use set_config_as_glue;
 use virt_autotest::utils;
 use virt_autotest::virtual_network_utils qw(save_guest_ip test_network_interface);
 use virt_utils qw(upload_virt_logs);
 
 sub run_test {
     my $self = shift;
+    my @guests = @{get_var_array("TEST_GUESTS")};
 
     #set up ssh, packages and iommu on host
     prepare_host();
@@ -52,9 +52,9 @@ sub run_test {
     record_info("VFs enabled", "@host_vfs");
 
     #save original guest configuration file in case of restore in post_fail_hook()
-    save_original_guest_xmls();
+    save_original_guest_xmls(\@guests);
 
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         if (virt_autotest::utils::is_sev_es_guest($guest) ne 'notsev') {
             record_info("Skip SR-IOV test on $guest", "SEV/SEV-ES guest $guest does not support SR-IOV");
             next;
@@ -146,7 +146,7 @@ sub run_test {
     upload_virt_logs($log_dir, "logs");
 
     #redefine guest from their original configuration files
-    restore_original_guests();
+    restore_original_guests(\@guests);
 }
 
 
@@ -412,13 +412,15 @@ sub save_network_device_status_logs {
 
 sub post_fail_hook {
     my $self = shift;
+    my @guests = @{get_var_array("TEST_GUESTS")};
 
     diag("Module sriov_network_card_pci_passthrough post fail hook starts.");
     my $log_dir = "/tmp/sriov_pcipassthru";
-    save_network_device_status_logs($log_dir, $_, "post_fail_hook") foreach (keys %virt_autotest::common::guests);
+    save_network_device_status_logs($log_dir, $_, "post_fail_hook") foreach (@guests);
     upload_virt_logs($log_dir, "network_device_status");
-    $self->SUPER::post_fail_hook;
-    restore_original_guests();
+    #    $self->SUPER::post_fail_hook;
+    restore_original_guests(\@guests);
+    start_guests(@guests);
 
 }
 

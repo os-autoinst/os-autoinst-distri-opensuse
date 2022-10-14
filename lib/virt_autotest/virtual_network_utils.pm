@@ -166,7 +166,7 @@ sub download_network_cfg {
 
 sub prepare_network {
     #Confirm the host bridge configuration file
-    my ($virt_host_bridge, $based_guest_dir) = @_;
+    my ($virt_host_bridge, $based_guest_dir, $vms) = @_;
     my $config_path = "/etc/sysconfig/network/ifcfg-$virt_host_bridge";
 
     if (script_run("[[ -f $config_path ]]") != 0) {
@@ -183,17 +183,17 @@ sub prepare_network {
         #Need to reset up environment, included recreate br123 bridege interface for virt_auto test
         restore_standalone();
         #Need to recreate all guests system depned on the above prepare network operation on vm host
-        recreate_guests($based_guest_dir);
+        recreate_guests($based_guest_dir, $vms);
     }
 }
 
 sub restore_network {
-    my ($virt_host_bridge, $based_guest_dir) = @_;
+    my ($virt_host_bridge, $based_guest_dir, $vms) = @_;
     my $network_mark = "/etc/sysconfig/network/ifcfg-$virt_host_bridge.new";
 
     if (script_run("[[ -f $network_mark ]]") == 0) {
         #Restore all defined guest system before restore Network setting on vm host
-        restore_guests();
+        restore_guests(@{$vms});
         assert_script_run("rm -rf /etc/sysconfig/network/ifcfg-$virt_host_bridge*", 60);
         my $wait_script = "180";
         my $bash_script_name = "vm_host_bridge_final.sh";
@@ -207,7 +207,7 @@ sub restore_network {
         restore_standalone();
         #Recreate all defined guest depend on the above restore network operation on vm host
         #And Keep all guest as running status for the following virtual network tests
-        recreate_guests($based_guest_dir);
+        recreate_guests($based_guest_dir, $vms);
     }
 }
 
@@ -245,11 +245,12 @@ sub restart_network {
 }
 
 sub restore_guests {
+    my @guests = @_;
     return if get_var('INCIDENT_ID');    # QAM does not recreate guests every time
-    my $get_vm_hostnames = "virsh list --all | grep -e sles -e opensuse | awk \'{print \$2}\'";
-    my $vm_hostnames = script_output($get_vm_hostnames, 30, type_command => 0, proceed_on_failure => 0);
-    my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
-    foreach (@vm_hostnames_array)
+#    my $get_vm_hostnames = "virsh list --all | grep -e sles -e opensuse | awk \'{print \$2}\'";
+    #    my $vm_hostnames = script_output($get_vm_hostnames, 30, type_command => 0, proceed_on_failure => 0);
+    #    my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
+    foreach (@guests)
     {
         script_run("virsh destroy $_");
         script_run("virsh undefine $_ || virsh undefine $_ --keep-nvram");

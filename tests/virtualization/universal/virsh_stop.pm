@@ -6,7 +6,7 @@
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base "consoletest";
-use virt_autotest::common;
+#use virt_autotest::common;
 use virt_autotest::utils;
 use strict;
 use warnings;
@@ -14,12 +14,13 @@ use testapi;
 use utils;
 
 sub run {
+    my @guests = @{get_var_array("TEST_GUESTS")};
     record_info "POWEROFF", "Shut every guest down";
-    script_run "ssh root\@$_ poweroff" foreach (keys %virt_autotest::common::guests);
-    script_retry "virsh list --all | grep -v Domain-0 | grep running", delay => 3, retry => 60, expect => 1;
+    script_run "ssh root\@$_ poweroff" foreach (@guests);
+    script_retry("virsh domstate $_|grep 'shut off'", delay => 3, retry => 60) foreach (@guests);
 
     record_info "AUTOSTART DISABLE", "Disable autostart for all guests";
-    assert_script_run "virsh autostart --disable $_" foreach (keys %virt_autotest::common::guests);
+    assert_script_run "virsh autostart --disable $_" foreach (@guests);
 
     record_info "LIBVIRTD", "Restart libvirtd and expect all guests to stay down";
     restart_libvirtd;

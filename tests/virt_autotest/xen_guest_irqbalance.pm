@@ -12,21 +12,19 @@ use warnings;
 use testapi;
 use utils 'script_retry';
 use version_utils qw(is_sle);
-use set_config_as_glue;
-use virt_autotest::common;
 use virt_autotest::utils qw(is_kvm_host guest_is_sle wait_guest_online download_script_and_execute remove_vm save_original_guest_xmls restore_downloaded_guests restore_original_guests);
 use virt_utils qw(upload_virt_logs);
 
 our $vm_xml_save_dir = "/tmp/download_vm_xml";
-
 sub run_test {
     my $self = shift;
+    my @guests = @{get_var_array("TEST_GUESTS")};
 
     return if is_kvm_host;
 
-    save_original_guests();
+    save_original_guests(@guests);
 
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
 
         if (guest_is_sle($guest, '=15-sp0')) {
             record_soft_failure("Skip the test as fix for SLE15 was not requested by customer in bsc#1178477.");
@@ -102,8 +100,9 @@ sub run_test {
 
 #save the guest configuration files into a folder
 sub save_original_guests {
+    my @guests = @_;
     my $vm_xml_save_dir = "/tmp/download_vm_xml";
-    save_original_guest_xmls($vm_xml_save_dir);
+    save_original_guest_xmls(\@guests, $vm_xml_save_dir);
     my $changed_xml_dir = "$vm_xml_save_dir/changed_xml";
     script_run("[ -d $changed_xml_dir ] && rm -rf $changed_xml_dir/*");
     script_run("mkdir -p $changed_xml_dir");
@@ -190,18 +189,19 @@ sub get_irq_affinities_from_guest {
 
 sub post_fail_hook {
     my $self = shift;
+    my @guests = @{get_var_array("TEST_GUESTS")};
 
     diag("Module xen_guest_irqbalance post fail hook starts.");
     my $log_dir = "/tmp/irqbalance";
     script_run("[ -d $log_dir ] && rm -rf $log_dir/*; mkdir -p $log_dir");
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         my $log_file = $log_dir . "/$guest" . "_irqbalance_debug";
         my $debug_script = "xen_irqbalance_guest_logging.sh";
         download_script_and_execute($debug_script, machine => $guest, output_file => $log_file);
     }
     upload_virt_logs($log_dir, "irqbalance_debug");
     $self->SUPER::post_fail_hook;
-    restore_original_guests();
+    restore_original_guests(\@guests);
 
 }
 

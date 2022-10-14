@@ -71,7 +71,6 @@ sub get_disk_image_name {
 sub reset_guest {
     my $guest = shift;
     return if $guest == "";
-    my $guest_instance = $virt_autotest::common::guests{$guest};
     my $MAC_PREFIX = $_[1];
 
     ## Network
@@ -83,11 +82,9 @@ sub reset_guest {
     script_run("rm -f $disk_image");
     ## CPU and memory
     set_vcpus($guest, 2);
-    my $memory = $guest_instance->{memory} // "2048";
-    set_guest_memory($guest, $memory);
+    set_guest_memory($guest, 2048);
     # max memory
-    my $maxmemory = $guest_instance->{maxmemory} // "4096";
-    script_run("virsh setmaxmem $_ $maxmemory" . "M --config") foreach (keys %virt_autotest::common::guests);
+    script_run("virsh setmaxmem $guest 4096" . "M --config");
 }
 
 # Try to attach a NIC or disk device and check for bsc1175218

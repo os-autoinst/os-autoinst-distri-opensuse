@@ -22,6 +22,7 @@ use version_utils 'is_sle';
 
 sub run_test {
     my ($self) = @_;
+    my @guests = @{get_var_array("TEST_GUESTS")};
 
     #Download libvirt routed virtual network configuration files
     my $vnet_routed_cfg_name = "vnet_routed.xml";
@@ -42,7 +43,7 @@ sub run_test {
     my $target2 = '192.168.129.1';
     my $gate1 = '192.168.129.1';
     my $gate2 = '192.168.130.1';
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         record_info "$guest", "ROUTED NETWORK for $guest";
         #NOTE
         #There will be two guests in two different routed networks so then the
@@ -107,6 +108,7 @@ sub run_test {
 
 sub post_fail_hook {
     my ($self) = @_;
+    my @guests = @{get_var_array("TEST_GUESTS")};
 
     $self->SUPER::post_fail_hook;
 
@@ -120,7 +122,7 @@ sub post_fail_hook {
     virt_autotest::virtual_network_utils::restore_standalone();
 
     #Restore Guest systems
-    virt_autotest::virtual_network_utils::restore_guests();
+    virt_autotest::virtual_network_utils::restore_guests(@guests);
 }
 
 1;

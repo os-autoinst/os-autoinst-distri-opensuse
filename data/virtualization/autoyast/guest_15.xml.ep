@@ -107,53 +107,13 @@
   </language>
   <login_settings/>
   <networking>
-    <dhcp_options>
-      <dhclient_client_id><%= $vm_name %></dhclient_client_id>
-      <dhclient_hostname_option>AUTO</dhclient_hostname_option>
-    </dhcp_options>
     <dns>
       <dhcp_hostname config:type="boolean">false</dhcp_hostname>
       <hostname><%= $vm_name %></hostname>
-      <resolv_conf_policy>auto</resolv_conf_policy>
       <write_hostname config:type="boolean">true</write_hostname>
-      <nameservers config:type="list">
-      <nameserver>192.168.122.1</nameserver>
-      </nameservers>
     </dns>
-    <interfaces config:type="list">
-      <interface>
-      <bootproto>static</bootproto>
-      <device>eth0</device>
-      <ipaddr>{{IP}}</ipaddr>
-      <netmask>255.255.255.0</netmask>
-      <network>192.168.122.0</network>
-      <!-- gateway>192.168.122.1</gateway -->
-      <prefixlen>24</prefixlen>
-      <startmode>auto</startmode>
-      </interface>
-    </interfaces>
-    <ipv6 config:type="boolean">true</ipv6>
     <keep_install_network config:type="boolean">true</keep_install_network>
     <managed config:type="boolean">false</managed>
-    <net-udev config:type="list">
-      <rule>
-       <name>eth0</name>
-       <rule>ATTR{address}</rule>
-       <value>{{MAC}}</value>
-      </rule>
-    </net-udev>
-    <routing>
-      <ipv4_forward config:type="boolean">false</ipv4_forward>
-      <ipv6_forward config:type="boolean">false</ipv6_forward>
-      <routes config:type="list">
-        <route>
-          <destination>default</destination>
-          <device>-</device>
-          <gateway>192.168.122.1</gateway>
-          <netmask>-</netmask>
-        </route>
-      </routes>
-    </routing>
   </networking>
   <kdump>
     % if ($vm_name !~ /PV/) {

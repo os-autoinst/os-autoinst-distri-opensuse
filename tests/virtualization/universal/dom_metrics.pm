@@ -6,16 +6,15 @@
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base "consoletest";
-use virt_autotest::common;
 use strict;
 use warnings;
 use testapi;
 use utils;
 
 sub run {
+    my @guests = @{get_var_array("TEST_GUESTS")};
     assert_script_run 'vhostmd';
-
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         record_info "$guest", "Obtaining dom0 metrics on xl-$guest";
         assert_script_run "xl block-attach xl-$guest /dev/shm/vhostmd0,,xvdc,ro", 180;
         assert_script_run "ssh root\@$guest 'vm-dump-metrics' | grep 'SUSE LLC'";

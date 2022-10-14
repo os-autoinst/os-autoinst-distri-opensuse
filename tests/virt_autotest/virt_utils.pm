@@ -622,12 +622,12 @@ sub check_guest_disk_type {
 
 #recreate all defined guests
 sub recreate_guests {
-    my $based_guest_dir = shift;
+    my ($based_guest_dir, $vms) = @_;
     return if get_var('INCIDENT_ID');    # QAM does not recreate guests every time
-    my $get_vm_hostnames = "virsh list  --all | grep -e sles -e opensuse | awk \'{print \$2}\'";
-    my $vm_hostnames = script_output($get_vm_hostnames, 30, type_command => 0, proceed_on_failure => 0);
-    my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
-    foreach (@vm_hostnames_array)
+#    my $get_vm_hostnames = "virsh list  --all | grep -e sles -e opensuse | awk \'{print \$2}\'";
+    #    my $vm_hostnames = script_output($get_vm_hostnames, 30, type_command => 0, proceed_on_failure => 0);
+    #    my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
+    foreach (@{$vms})
     {
         script_run("virsh destroy $_");
         script_run("virsh undefine $_ || virsh undefine $_ --keep-nvram");

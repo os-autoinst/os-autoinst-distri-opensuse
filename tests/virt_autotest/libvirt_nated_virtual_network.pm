@@ -22,12 +22,11 @@ use version_utils 'is_sle';
 
 sub run_test {
     my ($self) = @_;
+    my @guests = @{get_var_array("TEST_GUESTS")};
 
     #Download libvirt host bridge virtual network configuration file
     my $vnet_nated_cfg_name = "vnet_nated.xml";
     virt_autotest::virtual_network_utils::download_network_cfg($vnet_nated_cfg_name);
-
-    die "The default(NAT BASED NETWORK) virtual network does not exist" if (script_run('virsh net-list --all | grep default') != 0);
 
     #Create NAT BASED NETWORK
     assert_script_run("virsh net-create vnet_nated.xml");
@@ -37,7 +36,7 @@ sub run_test {
 
     my ($mac, $model, $affecter, $exclusive);
     my $gate = '192.168.128.1';
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         record_info "$guest", "NAT BASED NETWORK for $guest";
         ensure_online $guest, skip_network => 1;
 
@@ -69,8 +68,7 @@ sub run_test {
 
 sub post_fail_hook {
     my ($self) = @_;
-
-    $self->SUPER::post_fail_hook;
+    my @guests = @{get_var_array("TEST_GUESTS")};
 
     #Restart libvirtd service
     virt_autotest::utils::restart_libvirtd();
@@ -85,7 +83,9 @@ sub post_fail_hook {
     virt_autotest::virtual_network_utils::restore_standalone();
 
     #Restore Guest systems
-    virt_autotest::virtual_network_utils::restore_guests();
+    virt_autotest::virtual_network_utils::restore_guests(@guests);
+    $self->SUPER::post_fail_hook;
+
 }
 
 1;

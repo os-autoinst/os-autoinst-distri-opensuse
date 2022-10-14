@@ -8,7 +8,6 @@
 # Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>, Jan Baier <jbaier@suse.cz>
 
 use base "virt_feature_test_base";
-use virt_autotest::common;
 use virt_autotest::utils;
 use strict;
 use warnings;
@@ -55,26 +54,28 @@ sub test_add_virtual_disk {
 
 sub run_test {
     my ($self) = @_;
+    my @guests = @{get_var_array("TEST_GUESTS")};
     my ($sles_running_version, $sles_running_sp) = get_os_release;
 
     record_info "SSH", "Check guests are online with SSH";
-    wait_guest_online($_) foreach (keys %virt_autotest::common::guests);
+    wait_guest_online($_) foreach (@guests);
 
     # Hotplug HDD
     my $lsblk = 0;
     my $disk_format = get_var("QEMU_DISK_FORMAT") // "raw";
     record_info "Disk", "Adding another raw disk";
     assert_script_run "mkdir -p /var/lib/libvirt/images/add/";
-    test_add_virtual_disk($_) foreach (keys %virt_autotest::common::guests);
+    test_add_virtual_disk($_) foreach (@guests);
 }
 
 sub post_fail_hook {
     my ($self) = @_;
+    my @guests = @{get_var_array("TEST_GUESTS")};
 
     # Call parent post_fail_hook to collect logs on failure
     $self->SUPER::post_fail_hook;
     # Ensure guests remain in a consistent state also on failure
-    reset_guest($_, $MAC_PREFIX) foreach (keys %virt_autotest::common::guests);
+    reset_guest($_, $MAC_PREFIX) foreach (@guests);
 }
 
 1;
