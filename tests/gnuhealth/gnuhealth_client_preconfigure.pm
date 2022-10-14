@@ -17,10 +17,12 @@ sub run {
     x11_start_program($gnuhealth);
     assert_and_click "$gnuhealth-manage_profiles";
     # wait for indexing to be done
-    wait_still_screen(3);
+    wait_still_screen(5);
     assert_and_click "$gnuhealth-manage_profiles-add";
+    wait_still_screen(3);
     type_string 'localhost';
     send_key_until_needlematch "$gnuhealth-manage_profiles-host_textfield_selected", 'tab';
+    wait_still_screen(3);
     type_string 'localhost';
     send_key 'tab';
     assert_screen "$gnuhealth-manage_profiles-database_selected";
