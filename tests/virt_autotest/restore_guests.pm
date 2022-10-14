@@ -11,7 +11,8 @@ use strict;
 use warnings;
 use testapi;
 use base "virt_autotest_base";
-use virt_utils qw(get_guest_list remove_vm restore_downloaded_guests);
+use virt_autotest::utils qw(remove_vm restore_downloaded_guests);
+use virt_utils qw(get_guest_list);
 
 sub run {
     my $guest_list = get_guest_list();

@@ -28,7 +28,7 @@ use version_utils qw(is_sle);
 use set_config_as_glue;
 use virt_autotest::utils;
 use virt_autotest::virtual_network_utils qw(save_guest_ip test_network_interface);
-use virt_utils qw(upload_virt_logs remove_vm restore_downloaded_guests);
+use virt_utils qw(upload_virt_logs);
 
 sub run_test {
     my $self = shift;
@@ -43,14 +43,8 @@ sub run_test {
     #get the SR-IOV device BDF and interface
     my @host_pfs;
     @host_pfs = find_sriov_ethernet_devices();
-    if (@host_pfs == ()) {
-        record_info("Error: No SR-IOV ethernet card!", "There are not SR-IOV ethernet devices in the host!", result => 'fail');
-        $self->{test_results}->{host}->{"Error: there are not SR-IOV ethernet devices in the host!"}->{status} = 'FAILED';
-        return 1;
-    }
-    record_info("Find SR-IOV devices", "@host_pfs");
 
-    #get/set nessisary variables for test
+    #get/set necessary variables for test
     my $gateway = script_output "ip r s | grep 'default via' | cut -d ' ' -f3";
 
     # enable 8 vfs for the SR-IOV device on host
@@ -58,13 +52,7 @@ sub run_test {
     record_info("VFs enabled", "@host_vfs");
 
     #save original guest configuration file in case of restore in post_fail_hook()
-    my $downloaded_xml_dir = "/tmp/download_vm_xml";
-    foreach my $guest (keys %virt_autotest::common::guests) {
-        unless (script_run("ls $downloaded_xml_dir/$guest.xml") == 0) {
-            assert_script_run "mkdir -p $downloaded_xml_dir";
-            assert_script_run "virsh dumpxml --inactive $guest > $downloaded_xml_dir/$guest.xml";
-        }
-    }
+    save_original_guest_xmls();
 
     foreach my $guest (keys %virt_autotest::common::guests) {
         if (virt_autotest::utils::is_sev_es_guest($guest) ne 'notsev') {
@@ -187,12 +175,24 @@ sub find_sriov_ethernet_devices {
     my @sriov_devices;
     foreach (@nic_devices) {
         if ((script_run "lspci -v -s $_ | grep -q 'SR-IOV'") == 0) {
-            #only those vfs whose pv can be brought up can be passed through to guest vms
+            # Any VFs can be passed through to guests
+            # But only those VFs whose pv has physical network connection can get an IP from DHCP server
             my $nic = script_output "ls -l /sys/class/net |grep $_ | awk '{print \$9}'";
-            script_run "echo \"BOOTPROTO='none'\" > /etc/sysconfig/network/ifcfg-$nic" unless $nic eq get_var('SUT_NETDEVICE', 'eth0');
-            push @sriov_devices, $_ if (script_run("ifup $nic") == 0);
+            if ($nic eq get_var('SUT_NETDEVICE', 'eth0')) {
+                push @sriov_devices, $_;
+                record_info("Find SR-IOV devices", "$_    $nic");
+            }
+            else {
+                assert_script_run("ip link set $nic up");
+                if (script_output("cat /sys/class/net/$nic/carrier") eq '1') {
+                    push @sriov_devices, $_;
+                    record_info("Find SR-IOV devices", "$_    $nic");
+                }
+            }
         }
     }
+    die "Error: No SR-IOV ethernet card on host!" if @sriov_devices == 0;
+
     return @sriov_devices;
 }
 
@@ -218,7 +218,6 @@ sub enable_vf {
 #set up guest test environment to enable attach VFs
 sub prepare_guest_for_sriov_passthrough {
     my $vm = shift;
-
 
     unless (is_sle('=12-SP5') && (is_kvm_host || (is_fv_guest($vm) && !is_guest_ballooned($vm)))) {
 
@@ -404,27 +403,11 @@ sub save_network_device_status_logs {
 
     #logging device information in guest
     my $debug_script = "sriov_network_guest_logging.sh";
-    download_script(machine => $vm, script_name => $debug_script) if (${test_step} eq "1-initial");
+    download_script($debug_script, machine => $vm) if (${test_step} eq "1-initial");
     script_run("ssh root\@$vm \"~/$debug_script\" >> $log_file 2>&1");
 
     script_run "mv $log_file $log_dir/${vm}_${test_step}_network_device_status.txt";
 
-}
-
-#restore guests for subsequent test modules
-sub restore_original_guests {
-
-    my $downloaded_xml_dir = "/tmp/download_vm_xml";
-    foreach my $guest (keys %virt_autotest::common::guests) {
-        remove_vm($guest);
-        if (script_run("ls $downloaded_xml_dir/$guest.xml") == 0) {
-            restore_downloaded_guests($guest, $downloaded_xml_dir);
-            record_info "Guest $guest is restored.";
-        }
-        else {
-            record_info('Softfail', "Fail to restore $guest!", result => 'softfail');
-        }
-    }
 }
 
 sub post_fail_hook {

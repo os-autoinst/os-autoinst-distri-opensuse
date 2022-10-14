@@ -131,6 +131,10 @@ sub test_network_interface {
     # Show the IP address of secondary (tested) interface
     assert_script_run("ssh root\@$guest ip -o -4 addr list $nic | awk \"{print \\\$4}\" | cut -d/ -f1 | head -n1");
     my $addr = script_output "ssh root\@$guest ip -o -4 addr list $nic | awk \"{print \\\$4}\" | cut -d/ -f1 | head -n1";
+    if ($addr eq "") {
+        assert_script_run "ssh root\@$guest 'ip a'";
+        die "No IP found for $nic in $guest";
+    }
 
     # Route our test via the tested interface
     script_run "ssh root\@$addr '[ `ip r | grep $target | wc -l` -gt 0 ] && ip r del $target'";
