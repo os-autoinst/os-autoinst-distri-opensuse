@@ -15,13 +15,13 @@ use virtmanager;
 
 sub run_test {
     my ($self) = @_;
-
+    my @guests = keys %virt_autotest::common::guests;
     #x11_start_program 'virt-manager';
     enter_cmd "virt-manager";
 
     establish_connection();
 
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         record_info "$guest", "VM $guest will be turned off and then on again";
 
         select_guest($guest);

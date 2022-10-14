@@ -18,7 +18,7 @@ use virt_autotest::utils qw(is_kvm_host guest_is_sle wait_guest_online download_
 use virt_utils qw(upload_virt_logs remove_vm restore_downloaded_guests);
 
 our $vm_xml_save_dir = "/tmp/download_vm_xml";
-
+my @guests = keys %virt_autotest::common::guests;
 sub run_test {
     my $self = shift;
 
@@ -26,7 +26,7 @@ sub run_test {
 
     save_original_guests();
 
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
 
         if (guest_is_sle($guest, '=15-sp0')) {
             record_soft_failure("Skip the test as fix for SLE15 was not requested by customer in bsc#1178477.");
@@ -106,7 +106,7 @@ sub save_original_guests {
     my $changed_xml_dir = "$vm_xml_save_dir/changed_xml";
     script_run("[ -d $changed_xml_dir ] && rm -rf $changed_xml_dir/*");
     script_run("mkdir -p $changed_xml_dir");
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         unless (script_run("ls $vm_xml_save_dir/$guest.xml") == 0) {
             assert_script_run "virsh dumpxml --inactive $guest > $vm_xml_save_dir/$guest.xml";
         }
@@ -115,7 +115,7 @@ sub save_original_guests {
 
 #restore guest from the configuration files in a folder
 sub restore_original_guests {
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         remove_vm($guest);
         if (script_run("ls $vm_xml_save_dir/$guest.xml") == 0) {
             restore_downloaded_guests($guest, $vm_xml_save_dir);
@@ -211,7 +211,7 @@ sub post_fail_hook {
     diag("Module xen_guest_irqbalance post fail hook starts.");
     my $log_dir = "/tmp/irqbalance";
     script_run("[ -d $log_dir ] && rm -rf $log_dir/*; mkdir -p $log_dir");
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         my $log_file = $log_dir . "/$guest" . "_irqbalance_debug";
         my $debug_script = "xen_irqbalance_guest_logging.sh";
         download_script_and_execute(machine => $guest, script_name => $debug_script, output_file => $log_file);

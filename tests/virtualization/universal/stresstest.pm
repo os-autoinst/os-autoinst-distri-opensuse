@@ -19,11 +19,12 @@ sub run_test {
     my $self = shift;
     # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
     $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
+    my @guests = keys %virt_autotest::common::guests;
     # Fetch the test script to local host, before distributing it to the guests
     script_run('curl -v -o /var/tmp/stresstest.sh ' . data_url('virtualization/stresstest.sh'));
     script_run('chmod 0755 /var/tmp/stresstest.sh');
     my ($sles_running_version, $sles_running_sp);
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         # sysbench only available on SLE15+
         ($sles_running_version, $sles_running_sp) = get_os_release("ssh root\@$guest");
         if ($sles_running_version >= 15) {

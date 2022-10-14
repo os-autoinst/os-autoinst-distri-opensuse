@@ -15,6 +15,7 @@ use virtmanager;
 
 sub run_test {
     select_console 'root-console';
+    my @guests = keys %virt_autotest::common::guests;
     zypper_call '-t in virt-manager', exitcode => [0, 4, 102, 103, 106];
 
     #x11_start_program 'virt-manager';
@@ -22,7 +23,7 @@ sub run_test {
 
     establish_connection();
 
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         record_info "$guest", "VM $guest will be turned off and then on again";
 
         select_guest($guest);

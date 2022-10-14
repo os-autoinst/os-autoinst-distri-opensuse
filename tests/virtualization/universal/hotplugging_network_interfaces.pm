@@ -38,7 +38,6 @@ sub add_virtual_network_interface {
         if (get_var('VIRT_AUTOTEST') && is_kvm_host) {
             $interface_model_option = '--model virtio';
         }
-        script_retry("ssh root\@$guest ip l | grep " . $virt_autotest::common::guests{$guest}->{macaddress}, delay => 60, retry => 10, timeout => 60);
         assert_script_run("virsh domiflist $guest", 90);
         if (try_attach("virsh attach-interface --domain $guest --type bridge ${interface_model_option} --source br0 --mac " . $mac . " --live " . ${persistent_config_option})) {
             assert_script_run("virsh domiflist $guest | grep br0");
@@ -54,24 +53,29 @@ sub add_virtual_network_interface {
 
 sub run_test {
     my ($self) = @_;
+    my @guests = keys %virt_autotest::common::guests;
     my ($sles_running_version, $sles_running_sp) = get_os_release;
 
     record_info "SSH", "Check if guests are online with SSH";
-    wait_guest_online($_) foreach (keys %virt_autotest::common::guests);
+    wait_guest_online($_) foreach (@guests);
 
     # Add network interfaces
     my %mac = ();
     record_info "Virtual network", "Adding virtual network interface";
-    $mac{$_} = add_virtual_network_interface($self, $_) foreach (keys %virt_autotest::common::guests);
+    set_var("VIRT_AUTOTEST", "1");
+
+    $mac{$_} = add_virtual_network_interface($self, $_) foreach (@guests);
+    set_var("VIRT_AUTOTEST", "");
 }
 
 sub post_fail_hook {
     my ($self) = @_;
+    my @guests = keys %virt_autotest::common::guests;
 
     # Call parent post_fail_hook to collect logs on failure
     $self->SUPER::post_fail_hook;
     # Ensure guests remain in a consistent state also on failure
-    reset_guest($_, $MAC_PREFIX) foreach (keys %virt_autotest::common::guests);
+    reset_guest($_, $MAC_PREFIX) foreach (@guests);
 }
 
 1;

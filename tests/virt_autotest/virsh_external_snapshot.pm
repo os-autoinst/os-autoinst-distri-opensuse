@@ -21,7 +21,7 @@ sub run_test {
     my ($self) = @_;
     #Snapshots are supported on KVM VM Host Servers only
     return unless is_kvm_host;
-
+    my @guests = keys %virt_autotest::common::guests;
     my $vm_types = "sles|win";
     my $wait_script = "30";
     my $vm_hostnames = script_output("virsh list --all --name", $wait_script, type_command => 0, proceed_on_failure => 0);
@@ -37,7 +37,7 @@ sub run_test {
     my $vm_hostnames_inactive = script_output("virsh list --inactive --name", $wait_script, type_command => 0, proceed_on_failure => 0);
     my @vm_hostnames_inactive_array = split(/\n+/, $vm_hostnames_inactive);
 
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         if (virt_autotest::utils::is_sev_es_guest($guest) ne 'notsev') {
             record_info "Skip external snapshot on $guest", "SEV/SEV-ES guest $guest does not support external snapshot";
             next;

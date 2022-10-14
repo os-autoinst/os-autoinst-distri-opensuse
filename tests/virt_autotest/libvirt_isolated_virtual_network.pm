@@ -22,7 +22,7 @@ use version_utils 'is_sle';
 
 sub run_test {
     my ($self) = @_;
-
+    my @guests = keys %virt_autotest::common::guests;
     #Download libvirt isolated virtual network configuration file
     my $vnet_isolated_cfg_name = "vnet_isolated.xml";
     virt_autotest::virtual_network_utils::download_network_cfg($vnet_isolated_cfg_name);
@@ -35,7 +35,7 @@ sub run_test {
 
     my ($mac, $model, $affecter, $exclusive);
     my $gate = '192.168.127.1';    # This host exists but should not work as a gate in the ISOLATED NETWORK
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         record_info "$guest", "ISOLATED NETWORK for $guest";
         ensure_online $_, skip_network => 1;
 

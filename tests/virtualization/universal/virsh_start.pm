@@ -14,8 +14,9 @@ use testapi;
 use utils;
 
 sub run {
+    my @guests = keys %virt_autotest::common::guests;
     record_info "AUTOSTART ENABLE", "Enable autostart for all guests";
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         if (script_run("virsh autostart $guest", 30) != 0) {
             record_info('Softfail', "Cannot enable autostart on $guest guest", result => 'softfail');
         }
@@ -26,7 +27,7 @@ sub run {
 
 
     # Ensure all guests have network connectivity
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         eval {
             ensure_online($guest);
         } or do {

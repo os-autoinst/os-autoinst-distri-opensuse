@@ -13,24 +13,25 @@ use testapi;
 use utils;
 
 sub run {
+    my @guests = keys %virt_autotest::common::guests;
     record_info "XML", "Export the XML from virsh and convert it into Xen config file";
-    assert_script_run "virsh dumpxml $_ > $_.xml" foreach (keys %virt_autotest::common::guests);
-    assert_script_run "virsh domxml-to-native xen-xl $_.xml > $_.xml.cfg" foreach (keys %virt_autotest::common::guests);
+    assert_script_run "virsh dumpxml $_ > $_.xml" foreach (@guests);
+    assert_script_run "virsh domxml-to-native xen-xl $_.xml > $_.xml.cfg" foreach (@guests);
 
     record_info "Name", "Change the name by adding suffix _xl";
-    assert_script_run "sed -rie 's/(name = \\W)/\\1xl-/gi' $_.xml.cfg" foreach (keys %virt_autotest::common::guests);
-    assert_script_run "cat $_.xml.cfg | grep name" foreach (keys %virt_autotest::common::guests);
+    assert_script_run "sed -rie 's/(name = \\W)/\\1xl-/gi' $_.xml.cfg" foreach (@guests);
+    assert_script_run "cat $_.xml.cfg | grep name" foreach (@guests);
 
     record_info "UUID", "Change the UUID by using f00 as three first characters";
-    assert_script_run "sed -rie 's/(uuid = \\W)(...)/\\1f00/gi' $_.xml.cfg" foreach (keys %virt_autotest::common::guests);
-    assert_script_run "cat $_.xml.cfg | grep uuid" foreach (keys %virt_autotest::common::guests);
+    assert_script_run "sed -rie 's/(uuid = \\W)(...)/\\1f00/gi' $_.xml.cfg" foreach (@guests);
+    assert_script_run "cat $_.xml.cfg | grep uuid" foreach (@guests);
 
     record_info "Start", "Start the new VM";
-    assert_script_run "xl create $_.xml.cfg" foreach (keys %virt_autotest::common::guests);
-    assert_script_run "xl list xl-$_" foreach (keys %virt_autotest::common::guests);
+    assert_script_run "xl create $_.xml.cfg" foreach (@guests);
+    assert_script_run "xl list xl-$_" foreach (@guests);
 
     record_info "SSH", "Test that the new VM listens on SSH";
-    script_retry "nmap $_ -PN -p ssh | grep open", delay => 30, retry => 12 foreach (keys %virt_autotest::common::guests);
+    script_retry "nmap $_ -PN -p ssh | grep open", delay => 30, retry => 12 foreach (@guests);
 
 }
 

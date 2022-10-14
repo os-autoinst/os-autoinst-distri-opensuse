@@ -15,11 +15,11 @@ use utils;
 
 sub run {
     select_console 'root-console';
-    opensusebasetest::select_serial_terminal();
+    my @guests = keys %virt_autotest::common::guests;
 
     zypper_call '-t in vhostmd', exitcode => [0, 4, 102, 103, 106];
 
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         ensure_online($guest, use_virsh => 0);
         record_info "$guest", "Install vm-dump-metrics on xl-$guest";
         script_retry("ssh root\@$guest 'zypper -n in vm-dump-metrics'", delay => 120, retry => 3);

@@ -22,12 +22,11 @@ use version_utils 'is_sle';
 
 sub run_test {
     my ($self) = @_;
+    my @guests = keys %virt_autotest::common::guests;
 
     #Download libvirt host bridge virtual network configuration file
     my $vnet_nated_cfg_name = "vnet_nated.xml";
     virt_autotest::virtual_network_utils::download_network_cfg($vnet_nated_cfg_name);
-
-    die "The default(NAT BASED NETWORK) virtual network does not exist" if (script_run('virsh net-list --all | grep default') != 0);
 
     #Create NAT BASED NETWORK
     assert_script_run("virsh net-create vnet_nated.xml");
@@ -37,7 +36,7 @@ sub run_test {
 
     my ($mac, $model, $affecter, $exclusive);
     my $gate = '192.168.128.1';
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         record_info "$guest", "NAT BASED NETWORK for $guest";
         ensure_online $guest, skip_network => 1;
 

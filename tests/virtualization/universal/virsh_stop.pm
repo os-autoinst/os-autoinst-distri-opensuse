@@ -14,12 +14,13 @@ use testapi;
 use utils;
 
 sub run {
+    my @guests = keys %virt_autotest::common::guests;
     record_info "POWEROFF", "Shut every guest down";
-    script_run "ssh root\@$_ poweroff" foreach (keys %virt_autotest::common::guests);
+    script_run "ssh root\@$_ poweroff" foreach (@guests);
     script_retry "virsh list --all | grep -v Domain-0 | grep running", delay => 3, retry => 60, expect => 1;
 
     record_info "AUTOSTART DISABLE", "Disable autostart for all guests";
-    assert_script_run "virsh autostart --disable $_" foreach (keys %virt_autotest::common::guests);
+    assert_script_run "virsh autostart --disable $_" foreach (@guests);
 
     record_info "LIBVIRTD", "Restart libvirtd and expect all guests to stay down";
     restart_libvirtd;

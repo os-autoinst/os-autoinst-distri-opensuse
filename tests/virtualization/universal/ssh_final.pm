@@ -14,7 +14,8 @@ use testapi;
 use utils;
 
 sub run_test {
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    my @guests = keys %virt_autotest::common::guests;
+    foreach my $guest (@guests) {
         record_info "$guest", "Establishing SSH connection to $guest";
         assert_script_run "ping -c3 -W1 $guest";
         assert_script_run "ssh root\@$guest 'hostname -f; uptime'";

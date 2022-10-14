@@ -28,7 +28,7 @@ use Carp;
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host check_host check_guest
   print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs ensure_default_net_is_active ensure_guest_started
   ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests
-  is_guest_online wait_guests_shutdown setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host
+  is_guest_online setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host
   check_port_state subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest);
 
 # helper function: Trim string
@@ -439,31 +439,22 @@ sub wait_guest_online {
     }
 }
 
-# Shutdown all guests and wait until they are shutdown
+# Shutdown all guests
 sub shutdown_guests {
-    ## Reboot the guest to ensure the settings are applied
-    # Shutdown and start the guest because some might have the on_reboot=destroy policy still applied
-    script_run("virsh shutdown $_") foreach (keys %virt_autotest::common::guests);
-    # Wait until guests are terminated
-    wait_guests_shutdown();
-}
-
-# wait_guests_shutdown([$timeout]) waits for all guests to be shutdown
-sub wait_guests_shutdown {
-    my $retries = shift // 240;
-    # Note: Domain-0 is for xen only, but it does not hurt to exclude this also in kvm runs.
-    # Firstly wait for guest shutdown for a while, turn it off forcibly using "virsh destroy" if timed-out.
-    # Then wait for guest shutdown again with default "die => 1".
-    if (script_retry("! virsh list | grep -v Domain-0 | grep running", timeout => 60, delay => 1, retry => $retries, die => 0) != 0) {
-        script_run("virsh destroy $_") foreach (keys %virt_autotest::common::guests);
+    my @guests = @_;
+    foreach my $guest (@guests) {
+        script_run("virsh shutdown $guest");
+        script_retry("virsh domstate $guest|grep 'shut off'", retry => 5);    #assert if vm fails shutdown
     }
-    script_retry("! virsh list | grep -v Domain-0 | grep running", timeout => 60, delay => 1, retry => $retries);
 }
 
 # Start all guests and wait until they are online
 sub start_guests {
-    script_run("virsh start '$_'") foreach (keys %virt_autotest::common::guests);
-    wait_guest_online($_) foreach (keys %virt_autotest::common::guests);
+    my @guests = @_;
+    foreach my $guest (@guests) {
+        script_run("virsh start $guest");
+        wait_guest_online($guest);
+    }
 }
 
 #Add common ssh options to host ssh config file to be used for all ssh connections when host tries to ssh to another host/guest.

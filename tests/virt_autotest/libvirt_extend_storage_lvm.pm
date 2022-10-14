@@ -33,10 +33,10 @@ our $lvm_vg_name = 'lvm_vg';
 our $lvm_pool_name = 'guest_image_lvm';
 sub run_test {
     my ($self) = @_;
-
+    my @guests = keys %virt_autotest::common::guests;
     record_info "Prepare Guest Systems";
-    foreach (keys %virt_autotest::common::guests) {
-        start_guests() unless is_guest_online($_);
+    foreach (@guests) {
+        assert_script_run("virsh start $_") unless is_guest_online($_);
     }
     ## Prepare Virtualization LVM Storage Pool Source
     my $lvm_disk = $self->prepare_lvm_storage_pool_source();

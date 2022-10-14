@@ -27,6 +27,7 @@ sub run_test {
 
     #Prepare VM HOST SERVER Network Interface Configuration
     #for libvirt virtual network testing
+    my @guests = keys %virt_autotest::common::guests;
     virt_autotest::virtual_network_utils::prepare_network($virt_host_bridge, $based_guest_dir);
 
     #Download libvirt host bridge virtual network configuration file
@@ -43,7 +44,7 @@ sub run_test {
 
     my ($mac, $model, $affecter, $exclusive);
     my $gate = script_output "ip r s | grep 'default via ' | cut -d' ' -f3";
-    foreach my $guest (keys %virt_autotest::common::guests) {
+    foreach my $guest (@guests) {
         record_info "$guest", "HOST BRIDGE NETWORK for $guest";
         ensure_online $guest, skip_network => 1;
 
