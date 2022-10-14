@@ -21,7 +21,7 @@ use Mojo::JSON qw(encode_json);
 use version_utils qw(is_sle);
 use strict;
 use warnings;
-use Logging qw(save_ulog);
+use Utils::Logging;
 
 my $log = '/tmp/systemd_run.log';
 my $testdir = '/usr/lib/test/external/';

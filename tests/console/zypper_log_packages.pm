@@ -13,7 +13,7 @@ use warnings;
 use testapi;
 use utils;
 
-use Logging qw(save_ulog);
+use Utils::Logging;
 use Mojo::JSON qw(to_json);
 
 sub run {
