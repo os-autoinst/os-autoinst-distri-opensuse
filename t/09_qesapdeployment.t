@@ -54,6 +54,36 @@ subtest '[qesap_get_deployment_code] from default github' => sub {
     ok any { /git.*clone.*github.*com\/SUSE\/qe-sap-deployment.*DORY/ } @calls;
 };
 
+subtest '[qesap_get_deployment_code] from fork' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    set_var('QESAP_DEPLOYMENT_DIR', '/DORY');
+    set_var('QESAPDEPLOY_GITHUB_REPO', 'WHALE');
+    qesap_get_deployment_code();
+    set_var('QESAP_DEPLOYMENT_DIR', undef);
+    set_var('QESAPDEPLOY_GITHUB_REPO', undef);
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok any { /git.*clone.*https:\/\/WHALE.*DORY/ } @calls;
+};
+
+subtest '[qesap_get_deployment_code] from branch' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    set_var('QESAP_DEPLOYMENT_DIR', '/DORY');
+    set_var('QESAPDEPLOY_GITHUB_BRANCH', 'TED');
+    qesap_get_deployment_code();
+    set_var('QESAP_DEPLOYMENT_DIR', undef);
+    set_var('QESAPDEPLOY_GITHUB_BRANCH', undef);
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok any { /git.*clone.*--branch.*TED/ } @calls;
+};
+
 subtest '[qesap_get_deployment_code] from a release' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
@@ -61,9 +91,12 @@ subtest '[qesap_get_deployment_code] from a release' => sub {
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     set_var('QESAPDEPLOY_VER', 'CORAL');
+    # set to test that it is ignored
+    set_var('QESAPDEPLOY_GITHUB_REPO', 'WHALE');
     qesap_get_deployment_code();
     note("\n  -->  " . join("\n  -->  ", @calls));
     set_var('QESAPDEPLOY_VER', undef);
+    set_var('QESAPDEPLOY_GITHUB_REPO', undef);
     ok any { /curl.*github.com\/SUSE\/qe-sap-deployment\/archive\/refs\/tags\/vCORAL\.tar\.gz.*-ovCORAL\.tar\.gz/ } @calls;
     ok any { /tar.*[xvf]+.*vCORAL\.tar\.gz/ } @calls;
 };

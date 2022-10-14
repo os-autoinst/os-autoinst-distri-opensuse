@@ -131,7 +131,7 @@ sub qesap_upload_logs {
 =cut
 
 sub qesap_get_deployment_code {
-    my $git_repo = get_var(QESAPDEPLOY_GITHUB_REPO => 'github.com/SUSE/qe-sap-deployment');
+    my $official_repo = 'github.com/SUSE/qe-sap-deployment';
     my $qesap_git_clone_log = '/tmp/git_clone.txt';
     my %paths = qesap_get_file_paths();
 
@@ -144,7 +144,7 @@ sub qesap_get_deployment_code {
     if (get_var('QESAPDEPLOY_VER')) {
         my $ver_artifact = 'v' . get_var('QESAPDEPLOY_VER') . '.tar.gz';
 
-        my $curl_cmd = "curl -v -L https://$git_repo/archive/refs/tags/$ver_artifact -o$ver_artifact";
+        my $curl_cmd = "curl -v -L https://$official_repo/archive/refs/tags/$ver_artifact -o$ver_artifact";
         assert_script_run("set -o pipefail ; $curl_cmd | tee " . $qesap_git_clone_log, quiet => 1);
 
         my $tar_cmd = "tar xvf $ver_artifact --strip-components=1";
@@ -156,6 +156,7 @@ sub qesap_get_deployment_code {
         assert_script_run('git config --global http.sslVerify false', quiet => 1) if get_var('QESAPDEPLOY_GIT_NO_VERIFY');
         my $git_branch = get_var('QESAPDEPLOY_GITHUB_BRANCH', 'main');
 
+        my $git_repo = get_var('QESAPDEPLOY_GITHUB_REPO', $official_repo);
         my $git_clone_cmd = 'git clone --depth 1 --branch ' . $git_branch . ' https://' . $git_repo . ' ' . $paths{deployment_dir};
         assert_script_run("set -o pipefail ; $git_clone_cmd  2>&1 | tee $qesap_git_clone_log", quiet => 1);
     }
