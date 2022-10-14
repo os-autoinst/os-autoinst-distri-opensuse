@@ -14,8 +14,8 @@ use utils 'script_retry';
 use version_utils qw(is_sle);
 use set_config_as_glue;
 use virt_autotest::common;
-use virt_autotest::utils qw(is_kvm_host guest_is_sle wait_guest_online download_script_and_execute);
-use virt_utils qw(upload_virt_logs remove_vm restore_downloaded_guests);
+use virt_autotest::utils qw(is_kvm_host guest_is_sle wait_guest_online download_script_and_execute remove_vm save_original_guest_xmls restore_downloaded_guests restore_original_guests);
+use virt_utils qw(upload_virt_logs);
 
 our $vm_xml_save_dir = "/tmp/download_vm_xml";
 
@@ -102,28 +102,11 @@ sub run_test {
 
 #save the guest configuration files into a folder
 sub save_original_guests {
-    assert_script_run "mkdir -p $vm_xml_save_dir" unless script_run("ls $vm_xml_save_dir") == 0;
+    my $vm_xml_save_dir = "/tmp/download_vm_xml";
+    save_original_guest_xmls($vm_xml_save_dir);
     my $changed_xml_dir = "$vm_xml_save_dir/changed_xml";
     script_run("[ -d $changed_xml_dir ] && rm -rf $changed_xml_dir/*");
     script_run("mkdir -p $changed_xml_dir");
-    foreach my $guest (keys %virt_autotest::common::guests) {
-        unless (script_run("ls $vm_xml_save_dir/$guest.xml") == 0) {
-            assert_script_run "virsh dumpxml --inactive $guest > $vm_xml_save_dir/$guest.xml";
-        }
-    }
-}
-
-#restore guest from the configuration files in a folder
-sub restore_original_guests {
-    foreach my $guest (keys %virt_autotest::common::guests) {
-        remove_vm($guest);
-        if (script_run("ls $vm_xml_save_dir/$guest.xml") == 0) {
-            restore_downloaded_guests($guest, $vm_xml_save_dir);
-        }
-        else {
-            record_info('Softfail', "Fail to restore $guest!", result => 'softfail');
-        }
-    }
 }
 
 #restore guest which xml configuration files were changed in prepare_guest_for_irqbalance()
@@ -214,7 +197,7 @@ sub post_fail_hook {
     foreach my $guest (keys %virt_autotest::common::guests) {
         my $log_file = $log_dir . "/$guest" . "_irqbalance_debug";
         my $debug_script = "xen_irqbalance_guest_logging.sh";
-        download_script_and_execute(machine => $guest, script_name => $debug_script, output_file => $log_file);
+        download_script_and_execute($debug_script, machine => $guest, output_file => $log_file);
     }
     upload_virt_logs($log_dir, "irqbalance_debug");
     $self->SUPER::post_fail_hook;

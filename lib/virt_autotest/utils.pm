@@ -21,14 +21,15 @@ use DateTime;
 use NetAddr::IP;
 use Net::IP qw(:PROC);
 use File::Basename;
+use LWP::Simple 'head';
 use Utils::Architectures;
 use IO::Socket::INET;
 use Carp;
 
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host check_host check_guest
   print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs ensure_default_net_is_active ensure_guest_started
-  ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests
-  is_guest_online wait_guests_shutdown setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host
+  ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests restore_downloaded_guests save_original_guest_xmls restore_original_guests
+  is_guest_online wait_guests_shutdown remove_vm setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host
   check_port_state subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest);
 
 # helper function: Trim string
@@ -137,31 +138,34 @@ sub print_cmd_output_to_file {
 }
 
 sub download_script_and_execute {
-    my (%args) = @_;
+    my ($script_name, %args) = @_;
     $args{output_file} //= "$args{script_name}.log";
     $args{machine} //= 'localhost';
 
-    download_script(script_name => $args{script_name}, script_url => $args{script_url}, machine => $args{machine});
-    my $cmd = "~/$args{script_name}";
+    download_script($script_name, script_url => $args{script_url}, machine => $args{machine});
+    my $cmd = "~/$script_name";
     $cmd = "ssh root\@$args{machine} " . "\"$cmd\"" if ($args{machine} ne 'localhost');
     script_run("$cmd >> $args{output_file} 2>&1");
 }
 
 sub download_script {
-    my (%args) = @_;
-    $args{script_name} //= '';
-    $args{script_url} //= data_url("virt_autotest/$args{script_name}");
-    $args{machine} //= 'localhost';
+    my ($script_name, %args) = @_;
+    my $script_url = $args{script_url} // data_url("virt_autotest/$script_name");
+    my $machine = $args{machine} // 'localhost';
 
-    my $cmd = "curl -s -o ~/$args{script_name} $args{script_url}";
-    $cmd = "ssh root\@$args{machine} " . "\"$cmd\"" if ($args{machine} ne 'localhost');
-    my $ret = script_run($cmd);
-    unless ($ret == 0) {
-        record_info('Softfail', "Failed to download $args{script_name} from $args{script_url}!", result => 'softfail');
-        return $ret;
+    my $cmd = "curl -s -o ~/$script_name $script_url";
+    $cmd = "ssh root\@$machine " . "\"$cmd\"" if ($machine ne 'localhost');
+    unless (script_retry($cmd, retry => 2, die => 0) eq 0) {
+        # Add debug codes as the url only exists in a dynamic openqa URL
+        record_info("URL is not accessible", "$script_url", result => 'fail') unless head($script_url);
+        unless ($machine eq 'localhost') {
+            record_info("machine is not ssh accessible", "$machine", result => 'fail') unless script_run("ssh root\@$machine 'hostname'") == 0;
+            record_info("OSD is unaccessible from $machine", "that means the machine is having problem to access SUSE network", result => 'fail') unless script_run("ssh root\@$machine 'ping openqa.suse.de'") == 0;
+        }
+        die "Failed to download $script_url!";
     }
-    $cmd = "chmod +x ~/$args{script_name}";
-    $cmd = "ssh root\@$args{machine} " . "\"$cmd\"" if ($args{machine} ne 'localhost');
+    $cmd = "chmod +x ~/$script_name";
+    $cmd = "ssh root\@$machine " . "\"$cmd\"" if ($machine ne 'localhost');
     script_run($cmd);
 }
 
@@ -717,6 +721,55 @@ sub is_sev_es_guest {
     else {
         record_info("$guest_name is not sev(es) guest", "Guest $guest_name is not a sev or sev-es enabled guest judging by its name.");
         return 'notsev';
+    }
+}
+
+# remove a vm listed via 'virsh list'
+sub remove_vm {
+    my $vm = shift;
+    my $is_persistent_vm = script_output "virsh dominfo $vm | sed -n '/Persistent:/p' | awk '{print \$2}'";
+    my $vm_state = script_output "virsh domstate $vm";
+    if ($vm_state ne "shut off") {
+        assert_script_run("virsh destroy $vm", 30);
+    }
+    if ($is_persistent_vm eq "yes") {
+        assert_script_run("virsh undefine $vm || virsh undefine $vm --keep-nvram", 30);
+    }
+}
+
+#Start the guest from the downloaded vm xml and vm disk file
+sub restore_downloaded_guests {
+    my ($guest, $vm_xml_dir) = @_;
+    record_info("Guest restored", "$guest");
+    my $vm_xml = "$vm_xml_dir/$guest.xml";
+    assert_script_run("virsh define $vm_xml", 30);
+}
+
+sub save_original_guest_xmls {
+    my ($save_dir, @guests) = @_;
+    $save_dir //= "/tmp/download_vm_xml";
+    @guests = keys %virt_autotest::common::guests if @guests == 0;
+    assert_script_run "mkdir -p $save_dir" unless script_run("ls $save_dir") == 0;
+    foreach my $guest (@guests) {
+        unless (script_run("ls $save_dir/$guest.xml") == 0) {
+            assert_script_run "virsh dumpxml --inactive $guest > $save_dir/$guest.xml";
+        }
+    }
+}
+
+sub restore_original_guests {
+    my ($save_dir, @guests) = @_;
+    $save_dir //= "/tmp/download_vm_xml";
+    @guests = keys %virt_autotest::common::guests if @guests == 0;
+    foreach my $guest (@guests) {
+        remove_vm($guest);
+        if (script_run("ls $save_dir/$guest.xml") == 0) {
+            restore_downloaded_guests($guest, $save_dir);
+            record_info "Guest $guest is restored.";
+        }
+        else {
+            record_info("Fail to restore guest!", "$guest", result => 'softfail');
+        }
     }
 }
 
