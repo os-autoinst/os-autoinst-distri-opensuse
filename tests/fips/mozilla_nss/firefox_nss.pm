@@ -176,7 +176,7 @@ sub run {
 
         # Add a condition to avoid the password missed input
         # Retype password again once the password missed input
-        # The problem frequently happaned in aarch64
+        # The problem frequently happened in aarch64
         if (check_screen("firefox-password-typefield-miss")) {
             record_info("aarch64 type_missing", "Firefox password is missing to input, please refer to bsc#1179749 & poo#105343");
             type_string($fips_password, max_interval => 2);
@@ -187,7 +187,7 @@ sub run {
 
         firefox_crashreporter;
     }
-    assert_screen("firefox-url-loaded", 20);
+    assert_screen("firefox-url-loaded", $waittime);
 
     # Firefox Preferences
     firefox_preferences;
@@ -202,7 +202,7 @@ sub run {
 
     # Close Firefox
     quit_firefox;
-    assert_screen("generic-desktop", 20);
+    assert_screen("generic-desktop", $waittime);
 }
 
 sub test_flags {
