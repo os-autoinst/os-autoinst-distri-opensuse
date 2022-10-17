@@ -69,6 +69,8 @@ sub run {
     validate_script_output "machinectl list", qr/$machine/;
     assert_script_run "machinectl shell $machine /bin/echo foobar | grep foobar";
     assert_script_run 'machinectl shell messagebus@' . $machine . ' /usr/bin/whoami | grep messagebus';
+    # on backend svirt-xen-hvm we have problem with systemd-journald and it requires a restart before checking status
+    assert_script_run "machinectl shell $machine /usr/bin/systemctl restart systemd-journald";
     assert_script_run "machinectl shell $machine /usr/bin/systemctl status systemd-journald | grep -B100 -A100 'active (running)'";
     assert_script_run "machinectl stop test1";
     script_retry 'systemctl status systemd-nspawn@' . $machine, retry => 30, delay => 5, expect => 3;
