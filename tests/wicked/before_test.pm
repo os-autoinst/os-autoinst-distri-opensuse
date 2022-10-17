@@ -42,6 +42,11 @@ sub run {
     }
     record_info('INFO', 'Setting debug level for wicked logs');
     file_content_replace('/etc/sysconfig/network/config', '--sed-modifier' => 'g', '^WICKED_DEBUG=.*' => 'WICKED_DEBUG="all"', '^WICKED_LOG_LEVEL=.*' => 'WICKED_LOG_LEVEL="debug2"');
+    file_content_replace('/etc/systemd/journald.conf', '--debug' => 1,
+        # see: https://github.com/systemd/systemd/commit/f0367da7d1a61ad698a55d17b5c28ddce0dc265a
+        '^#?RateLimitInterval=.*' => 'RateLimitInterval=0',
+        '^#?RateLimitIntervalSec=.*' => 'RateLimitIntervalSec=0',
+        '^#?RateLimitBurst=.*' => 'RateLimitBurst=0');
     #preparing directories for holding config files
     assert_script_run('mkdir -p /data/{static_address,dynamic_address}');
 
