@@ -143,6 +143,13 @@ sub run {
             zypper_ar($repo_url . generate_version('_') . '/', name => 'wicked_maintainers', no_gpg_check => 1, priority => 60);
             $package_list .= ' ndisc6';
         }
+        if (check_var('WICKED', 'startandstop')) {
+            # No firewalld on sles 12-SP5 (bsc#1180116)
+            if (is_sle('>12-SP5')) {
+                zypper_call('-q in firewalld', timeout => 400);
+                systemctl('disable --now firewalld');
+            }
+        }
         wicked::wlan::prepare_packages() if (check_var('WICKED', 'wlan'));
 
         $package_list .= ' openvswitch iputils';
