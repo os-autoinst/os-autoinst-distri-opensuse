@@ -87,8 +87,17 @@ sub get_version_for_daily_build_guest {
 }
 
 sub locate_sourcefile {
-    my $location = script_output("perl /usr/share/qa/tools/location_detect_impl.pl", 60);
-    $location =~ s/[\r\n]+$//;
+    my $location = '';
+    if (!is_s390x) {
+        $location = script_output("perl /usr/share/qa/tools/location_detect_impl.pl", 60);
+        $location =~ s/[\r\n]+$//;
+    }
+    else {
+        #S390x LPAR just be only located at DE now.
+        #No plan move S390x LPAR to the other location.
+        #So, define variable location as "de" for S390x LPAR.
+        $location = 'de';
+    }
     return $location;
 }
 
@@ -105,17 +114,7 @@ sub repl_repo_in_sourcefile {
     my $verorig = "source.http.sles-" . get_version_for_daily_build_guest . "-64";
     my $veritem = is_x86_64 ? $verorig : get_required_var('ARCH') . ".$verorig";
     if (get_var("REPO_0")) {
-        my $location = '';
-        if (!is_s390x) {
-            $location = locate_sourcefile;
-        }
-        else {
-            #S390x LPAR just be only located at DE now.
-            #No plan move S390x LPAR to the other location.
-            #So, define variable location as "de" for S390x LPAR.
-            $location = 'de';
-        }
-        my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . "$location";
+        my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . locate_sourcefile;
         my $newrepo = get_repo_0_prefix . get_var("REPO_0");
         # for sles15sp2+, install host with Online installer, while install guest with Full installer
         $newrepo =~ s/-Online-/-Full-/ if ($verorig =~ /15-sp[2-9]/i);
