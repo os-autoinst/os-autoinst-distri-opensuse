@@ -31,7 +31,7 @@ sub init {
     $self->{rct_item_desktop} = 'sle-module-desktop-applications';
     $self->{rct_item_sdk} = 'sle-module-development-tools';
     $self->{rct_item_legacy} = 'sle-module-legacy';
-    $self->{rct_item_transactional} = 'sle-module-transactional-server';
+    $self->{rct_item_tsm} = 'sle-module-transactional-server';
     $self->{rct_item_script} = 'sle-module-web-scripting';
     $self->{rct_item_python2} = 'sle-module-python2';
     $self->{rct_item_python3} = 'sle-module-python3';
