@@ -62,6 +62,7 @@ sub run {
 
     record_info((is_offline_upgrade_or_livecd) ? 'Upgrade/LiveCD' : 'No upgrade/LiveCD', 'Upgraded or installed from LIVECD can possibly cause orphans');
 
+    zypper_call('in curl') if (script_run('rpm -qi curl') == 1);
     # Orphans are also expected in JeOS without SDK module (jeos-firstboot, jeos-license and live-langset-data)
     # Save the orphaned packages list to one log file and upload the log, so QA can use this log to report bug
     # Filter out zypper warning messages and release or skelcd packages
