@@ -15,7 +15,7 @@
 # - check if journalctl vacuum functions are working
 # - verify FSS log again
 # Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
-#             Sergio Lindo Mansilla <slindomansilla@suse.com>
+#             Martin Loviska <martin.loviska@suse.com>
 # Tags: bsc#1063066 bsc#1171858
 
 use Mojo::Base qw(consoletest);
@@ -26,6 +26,7 @@ use version_utils qw(is_opensuse is_tumbleweed is_sle is_public_cloud is_leap);
 use Utils::Backends qw(is_hyperv);
 use Utils::Architectures;
 use power_action_utils qw(power_action);
+use publiccloud::instances;
 use constant {
     PERSISTENT_LOG_DIR => '/var/log/journal',
     DROPIN_DIR => '/etc/systemd/journald.conf.d',
@@ -79,9 +80,16 @@ sub verify_journal {
 
 sub reboot {
     my ($self) = @_;
-    power_action('reboot', textmode => 1);
-    $self->wait_boot(bootloader_time => 300);
-    $self->select_serial_terminal;
+
+    if (is_public_cloud) {
+        # Reboot on publiccloud needs to happen via their dedicated reboot routine
+        my $instance = publiccloud::instances::get_instance();
+        $instance->softreboot();
+    } else {
+        power_action('reboot', textmode => 1);
+        $self->wait_boot(bootloader_time => 300);
+        $self->select_serial_terminal;
+    }
 }
 
 sub get_current_boot_id {
@@ -175,21 +183,16 @@ sub run {
     assert_test_log_entries(\%log_entries, \@boots);
 
     assert_script_run("date '+%F %T' | tee /var/tmp/reboottime");
-    # Reboot system - public cloud does not handle reboot well atm
-    if (!is_public_cloud) {
-        assert_script_run("echo 'The batman is going to sleep' | systemd-cat -p info -t batman");
-        reboot($self);
-        get_current_boot_id \@boots;
-        my @listed_boots = split('\n', script_output 'journalctl --list-boots');
-        die "journal lists less than 2 boots" if (scalar(@listed_boots) < 2);
-        is_journal_empty('--boot=-1', "journalctl-1.txt");
-        script_retry('journalctl --identifier=batman --boot=-1| grep "The batman is going to sleep"', retry => 5, delay => 2);
-        script_run('echo -e "Reboot time:  `cat /var/tmp/reboottime`\nCurrent time: `date -u \'+%F %T\'`"');
-        die "journalctl after reboot empty" if is_journal_empty('-S "`cat /var/tmp/reboottime`"', "journalctl-after.txt");
-    } else {
-        # TODO: Handle reboots on public cloud
-        record_info("publiccloud", "Public cloud omits rebooting (temporary workaround)");
-    }
+    # Reboot system
+    assert_script_run("echo 'The batman is going to sleep' | systemd-cat -p info -t batman");
+    reboot($self);
+    get_current_boot_id \@boots;
+    my @listed_boots = split('\n', script_output 'journalctl --list-boots');
+    die "journal lists less than 2 boots" if (scalar(@listed_boots) < 2);
+    is_journal_empty('--boot=-1', "journalctl-1.txt");
+    script_retry('journalctl --identifier=batman --boot=-1| grep "The batman is going to sleep"', retry => 5, delay => 2);
+    script_run('echo -e "Reboot time:  `cat /var/tmp/reboottime`\nCurrent time: `date -u \'+%F %T\'`"');
+    die "journalctl after reboot empty" if is_journal_empty('-S "`cat /var/tmp/reboottime`"', "journalctl-after.txt");
     # Basic journalctl tests: Export journalctl with various arguments and ensure they are not empty
     die "journalctl output is empty!" if is_journal_empty('', "journalctl.txt");
     die "journalctl dmesg empty" if is_journal_empty("-k", "journalctl-dmesg.txt");
