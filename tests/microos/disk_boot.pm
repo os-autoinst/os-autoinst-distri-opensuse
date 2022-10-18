@@ -34,4 +34,12 @@ sub test_flags {
     return {fatal => 1};
 }
 
+sub post_fail_hook {
+    assert_screen 'emergency-mode';
+    send_key 'ret';
+    enter_cmd "echo '##### initramfs logs #####'> /dev/$serialdev";
+    script_run "cat /run/initramfs/rdsosreport.txt > /dev/$serialdev ";
+    enter_cmd "echo '##### END #####'> /dev/$serialdev";
+}
+
 1;

@@ -1,0 +1,81 @@
+#!/bin/bash
+# combustion: network
+# Redirect output to the console
+exec > >(exec tee -a /dev/console) 2>&1
+set -eux
+
+#
+### drives and filesystems
+#
+DRIVE='/dev/vdc'
+PART='/dev/vdc1'
+
+# create partition and filesystem on additional drive
+echo "label: gpt" | sfdisk "$DRIVE"
+echo "name=testing_part" | sfdisk /dev/vdc -N1
+
+# label new partition for testing and create labeled ext4
+mkfs.ext4 -L home "$PART"
+
+# mount new partition
+mount -t ext4 "$PART" /home
+
+# DEBUG
+blkid
+lsblk
+
+#
+### users and groups
+# groups
+groupadd --gid 2002 geekos
+
+# users
+echo 'root:$6$eEm2HpuzI7dfE4i7$dbYiTRLhrqVvwryR7zmMEcnrp13IqZ3mzLbsx9EeHAX7849PibGVgX5vdPuaeYYIO7hVfcboI9/JDpGiDZhHf/' | chpasswd -e
+useradd --no-create-home --uid 2002 --gid geekos --groups users HomelessTester
+useradd --create-home --uid 1001 --comment "Bernhard M. Wiedemann" --no-user-group --gid users bernhard
+echo 'bernhard:$6$eEm2HpuzI7dfE4i7$dbYiTRLhrqVvwryR7zmMEcnrp13IqZ3mzLbsx9EeHAX7849PibGVgX5vdPuaeYYIO7hVfcboI9/JDpGiDZhHf/' | chpasswd -e
+
+#
+### files and directories
+#
+echo "cucaracha" > /etc/hostname
+mkdir --mode=0755 /home/bernhard/testdir
+chown bernhard:users /home/bernhard/testdir
+echo "Hello there!" > /home/bernhard/testdir/hello
+chown bernhard:users /home/bernhard/testdir/hello
+chmod 0600 /home/bernhard/testdir/hello
+
+#
+### systemd units
+#
+cat << EOF > /etc/systemd/system/create_test_file.service
+[Unit]
+Description=Just a Test!
+[Service]
+Type=oneshot
+RemainAfterExit=no
+ExecStart=/usr/bin/touch /var/log/flagfile
+[Install]
+WantedBy=multi-user.target
+EOF
+
+cat << EOF > /etc/systemd/system/home.mount
+[Unit]
+Before=local-fs.target
+Requires=systemd-fsck@dev-disk-by\x2dpartlabel-testing_part.service
+After=systemd-fsck@dev-disk-by\x2dpartlabel-testing_part.service
+
+[Mount]
+Where=/home
+What=/dev/disk/by-partlabel/testing_part
+Type=ext4
+
+[Install]
+RequiredBy=local-fs.target
+EOF
+
+systemctl enable sshd.service
+systemctl enable create_test_file.service
+
+echo Combustion was here > /usr/share/combustion-welcome
+curl conncheck.opensuse.org
