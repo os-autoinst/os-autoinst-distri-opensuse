@@ -14,7 +14,7 @@ use strict;
 use warnings;
 
 sub run {
-    $testapi::distri->get_module_registration()->register_module('transactional');
+    $testapi::distri->get_module_registration()->register_module('tsm');
 }
 
 1;
