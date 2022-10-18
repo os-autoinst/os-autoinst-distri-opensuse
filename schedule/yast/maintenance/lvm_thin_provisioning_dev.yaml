@@ -1,0 +1,34 @@
+---
+name: lvm_thin_provisioning_dev
+vars:
+  DUD_ADDONS: sdk
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/product_selection/install_SLES
+  - installation/licensing/accept_license
+  - installation/registration/register_via_scc
+  - installation/module_registration/register_extensions_and_modules
+  - installation/add_on_product_installation/add_additional_products
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
+  - installation/partitioning/new_partitioning_gpt
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
+  - installation/installation_settings/validate_default_target
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
+  - installation/performing_installation/perform_installation
+  - installation/logs_from_installation_system
+  - installation/performing_installation/confirm_reboot
+  - installation/handle_reboot
+  - installation/first_boot
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - console/lvm_thin_check
+...

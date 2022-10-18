@@ -1,0 +1,39 @@
+---
+name: ncurses_interactive_installation
+description: >
+  Interactive installation with ncurses (textmode).
+vars:
+  DUD_ADDONS: sdk
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/product_selection/install_SLES
+  - installation/licensing/accept_license
+  - installation/registration/register_via_scc
+  - installation/module_registration/register_extensions_and_modules
+  - installation/add_on_product_installation/add_additional_products
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/select_role_text_mode
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
+  - installation/installation_settings/validate_default_target
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
+  - installation/performing_installation/perform_installation
+  - installation/logs_from_installation_system
+  - installation/performing_installation/confirm_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - console/installation_snapshots
+  - console/zypper_lr
+  - console/zypper_ref
+  - console/ncurses
+  - update/zypper_up
+  - console/zypper_lifecycle
+  - console/orphaned_packages_check
+  - console/consoletest_finish
