@@ -327,7 +327,7 @@
 
 <p>Setting hostname according input parameter using hostnamectl. Calling <i>reload-or-restart</i> to make sure that network stack will propogate hostname into DHCP/DNS.</p>
 
-<p>If you change hostname using <code>hostnamectl set-hostname</code>, then <code>hostname -f</code> will fail with <i>hostname: Name or service not known</i> also DHCP/DNS don&#39;t know about the changed hostname, you need to send a new DHCP request to update dynamic DNS yast2-network module does On MM test with supportserver restart network to get IP and hostname from DHCP and test the connection with hostname <code>NetworkService.ReloadOrRestart if Stage.normal || !Linuxrc.usessh</code> if hostname is changed via <code>yast2 lan</code>.</p>
+<p>If you change hostname using <code>hostnamectl set-hostname</code>, then <code>hostname -f</code> will fail with <i>hostname: Name or service not known</i> also DHCP/DNS don&#39;t know about the changed hostname, you need to send a new DHCP request to update dynamic DNS yast2-network module does <code>NetworkService.ReloadOrRestart if Stage.normal || !Linuxrc.usessh</code> if hostname is changed via <code>yast2 lan</code>.</p>
 
 <h2 id="assert_and_click_until_screen_change">assert_and_click_until_screen_change</h2>
 
