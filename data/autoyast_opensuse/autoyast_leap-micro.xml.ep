@@ -35,6 +35,9 @@
       <pattern>microos-selinux</pattern>
     </patterns>
   </software>
+  <networking>
+    <managed config:type="boolean">true</managed>
+  </networking>
   <kdump>
   <add_crash_kernel config:type="boolean">true</add_crash_kernel>
   <crash_kernel>191M</crash_kernel>
