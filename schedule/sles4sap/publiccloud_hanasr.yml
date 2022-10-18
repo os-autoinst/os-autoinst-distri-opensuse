@@ -1,0 +1,15 @@
+---
+name: publiccloud_hanasr
+description: |
+  Run HANASR tests on public cloud instances using qe-sap-deployment project:
+    - deploy
+    - test
+    - destroy
+vars:
+  PUBLIC_CLOUD_RESOURCE_GROUP: 'HanaSR'
+  TEST_CONTEXT: 'OpenQA::Test::RunArgs'
+schedule:
+  - boot/boot_to_desktop
+  - sles4sap/publiccloud/qesap_terraform
+  - sles4sap/publiccloud/qesap_ansible
+  - sles4sap/publiccloud/qesap_cleanup
