@@ -1049,6 +1049,15 @@ sub wait_boot_past_bootloader {
     my $nologin = $args{nologin};
     my $forcenologin = $args{forcenologin};
 
+    # Workaround for bsc#1204221 and bsc#1204230
+    if (is_sle('=15-SP5') && check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        # This should only happen on SLE15SP5 and on hyperv
+        record_soft_failure 'workaround bsc#1204221 - Failed to boot at SLES15SP5 with gnome in hyperv 2019' if check_var('DESKTOP', 'gnome');
+        record_soft_failure 'workaround bsc#1204230 - Failed to boot at SLES15SP5 with x server in hyperv 2019' if check_var('DESKTOP', 'textmode');
+        sleep 30;
+        send_key 'esc';
+    }
+
     # On IPMI, when selecting x11 console, we are connecting to the VNC server on the SUT.
     # select_console('x11'); also performs a login, so we should be at generic-desktop.
     my $gnome_ipmi = (is_ipmi && check_var('DESKTOP', 'gnome'));
