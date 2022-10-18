@@ -968,6 +968,8 @@ If you change hostname using C<hostnamectl set-hostname>, then C<hostname -f>
 will fail with I<hostname: Name or service not known> also DHCP/DNS don't know
 about the changed hostname, you need to send a new DHCP request to update
 dynamic DNS yast2-network module does
+On MM test with supportserver restart network to get IP and hostname from DHCP
+and test the connection with hostname
 C<NetworkService.ReloadOrRestart if Stage.normal || !Linuxrc.usessh>
 if hostname is changed via C<yast2 lan>.
 
@@ -978,7 +980,31 @@ sub set_hostname {
     assert_script_run "hostnamectl set-hostname $hostname";
     assert_script_run "hostnamectl status|grep $hostname";
     assert_script_run "uname -n|grep $hostname";
-    systemctl 'status network.service';
+    if (get_var('USE_SUPPORT_SERVER')) {
+        # get hostname of two nodes
+        my ($node1, $node2);
+        my $count = 30;
+        if (get_var('HA_CLUSTER_JOIN')) {    # on node02
+            $node2 = get_var('HOSTNAME');
+            $node1 = $node2;
+            $node2 =~ s/02/01/;
+        }
+        else {
+            $node1 = get_var('HOSTNAME');    # on node01 or client node03
+            $node2 = $node1;
+            $node1 =~ s/0[13]/02/;
+        }
+
+        # restart network and test connection to itself and other node
+        do {
+            die 'At least one of two nodes is not reachable' if $count-- == 0;
+            systemctl 'restart network.service';
+            sleep 2;
+        } while script_run("nc -zvw10 $node1 22 && nc -zvw10 $node2 22", die_on_timeout => 0);
+    }
+    else {
+        systemctl 'status network.service';
+    }
     save_screenshot;
     assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
 }
