@@ -24,6 +24,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_leap php_version);
 use registration qw(add_suseconnect_product get_addon_fullname);
@@ -31,7 +32,7 @@ use apachetest;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my ($php, $php_pkg, $php_ver) = php_version();
     setup_apache2(mode => uc($php));

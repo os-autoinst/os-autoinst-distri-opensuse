@@ -11,6 +11,7 @@
 use Mojo::Base qw(opensusebasetest);
 use Utils::Backends;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
 use lockapi;
@@ -101,7 +102,7 @@ sub run {
     $master = get_required_var('IBTEST_IP1');
     $slave = get_required_var('IBTEST_IP2');
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # wait for both machines to boot up before we continue
     barrier_wait('IBTEST_SETUP');

@@ -9,6 +9,7 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use hacluster;
 use utils 'systemctl';
@@ -32,7 +33,7 @@ sub run {
     # Synchronize the nodes
     barrier_wait "NW_CLUSTER_INSTALL_$cluster_name";
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Stop the NW instance to add it in the cluster stack
     $self->user_change;
@@ -44,7 +45,7 @@ sub run {
     $self->reset_user_change;
 
     # Some file changes are needed for HA
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $profile_file = "/usr/sap/$sid/SYS/profile/${sid}_${type}${instance_id}_${alias}";
 

@@ -18,11 +18,12 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     zypper_call 'in wget unzip';
     assert_script_run 'mkdir -p /tmp/unzip-test/ && pushd /tmp/unzip-test';
 

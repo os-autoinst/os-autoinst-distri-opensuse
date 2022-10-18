@@ -17,6 +17,7 @@ use warnings;
 use base 'opensusebasetest';
 use utils;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use filesystem_utils qw(str_to_mb parted_print partition_num_by_type mountpoint_to_partition
   partition_table create_partition remove_partition format_partition);
 use File::Basename;
@@ -278,7 +279,7 @@ sub format_with_options {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # DO NOT set XFSTESTS_DEVICE if you don't know what's this mean
     # by default we use /home partition spaces for test, and don't need this setting

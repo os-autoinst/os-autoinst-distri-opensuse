@@ -9,6 +9,7 @@
 
 use base "opensusebasetest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use strict;
 use warnings;
@@ -20,7 +21,7 @@ our $trinity_log;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     $trinity_log = script_output("echo ~$testapi::username/trinity.log");
     my $syscall_cnt = 1000000;
 

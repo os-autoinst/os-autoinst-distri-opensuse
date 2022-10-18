@@ -21,6 +21,7 @@ use base "y2_module_consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils qw(zypper_call systemctl script_retry);
 use mm_network 'setup_static_mm_network';
@@ -28,7 +29,7 @@ use nfs_common;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # NFSCLIENT defines if the test should be run on multi-machine setup.
     # Otherwise, configure server and client on the single machine.
@@ -94,7 +95,7 @@ sub run {
     #
 
     # From now we can use serial terminal
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     mount_export();
     if (get_var('NFSCLIENT')) {

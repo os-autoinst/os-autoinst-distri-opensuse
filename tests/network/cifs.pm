@@ -16,6 +16,7 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
 use registration qw(add_suseconnect_product get_addon_fullname);
@@ -43,7 +44,7 @@ sub run {
     my $self = shift;
     my $smb_domain = get_var("CIFS_TEST_DOMAIN") // "currywurst";
     my $smb_remote = get_var("CIFS_TEST_REMOTE") // "currywurst.qam.suse.de";
-    $self->select_serial_terminal;
+    select_serial_terminal;
     add_suseconnect_product(get_addon_fullname('phub')) if is_sle;    # samba-client requires package hub
     my $ret = zypper_call 'in cifs-utils samba-client nmap';
     # Use local samba server, if defined or if defined SMB server is not accessible

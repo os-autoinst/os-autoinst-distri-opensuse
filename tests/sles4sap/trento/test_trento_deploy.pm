@@ -9,6 +9,7 @@ use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(script_retry);
 use base 'trento';
 
@@ -16,7 +17,7 @@ use base 'trento';
 sub run {
     my ($self) = @_;
     die "Only AZURE deployment supported for the moment" unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $machine_ip = $self->get_trento_ip;
     if (!get_var('TRENTO_EXT_DEPLOY_IP')) {

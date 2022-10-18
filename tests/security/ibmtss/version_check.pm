@@ -10,11 +10,12 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call package_upgrade_check);
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Version check
     my $pkg_list = {ibmtss => '1.6.0'};

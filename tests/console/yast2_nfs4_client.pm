@@ -24,13 +24,14 @@ use warnings;
 use utils qw(zypper_call systemctl script_retry);
 use version_utils;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use mm_network;
 use nfs_common;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     setup_static_mm_network('10.0.2.102/24');
 
@@ -81,7 +82,7 @@ sub run {
     yast2_client_exit($module_name);
 
     # From now we can use serial terminal
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     mount_export();
 

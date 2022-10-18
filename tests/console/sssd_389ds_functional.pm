@@ -17,6 +17,7 @@
 package sssd_389ds_functional;
 use base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
@@ -25,7 +26,7 @@ use registration 'add_suseconnect_product';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $docker = "podman";
     if (is_sle) {
         $docker = "docker";

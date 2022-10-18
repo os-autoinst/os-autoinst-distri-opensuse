@@ -11,6 +11,7 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
 use publiccloud::utils;
@@ -18,7 +19,7 @@ use containers::k8s;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     install_kubectl();
     # Record kubectl version and check if the tool itself is healthy

@@ -10,6 +10,7 @@
 
 use Mojo::Base qw(hpcbase hpc::utils), -signatures;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use lockapi;
 
@@ -35,7 +36,7 @@ sub run ($self) {
 
     # And login as normal user to run the tests
     type_string('pkill -u root');
-    $self->select_serial_terminal(0);
+    select_serial_terminal(0);
 
     ## all nodes should be able to ssh to each other, as MPIs requires so
     $self->generate_and_distribute_ssh($testapi::username);

@@ -11,6 +11,7 @@
 
 use Mojo::Base qw(opensusebasetest);
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl);
 use YAML::PP;
 use File::Basename qw(basename);
@@ -286,7 +287,7 @@ sub file_tests {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal();
+    select_serial_terminal();
     load_test_data();
 
     systemd_tests();

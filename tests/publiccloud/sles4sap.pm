@@ -10,6 +10,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Mojo::File 'path';
 use Mojo::JSON;
 use version_utils 'is_sle';
@@ -166,7 +167,7 @@ sub run {
     my $timeout = bmwqemu::scale_timeout(900);
     my @cluster_types = split(',', get_required_var('CLUSTER_TYPES'));
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $provider = $self->provider_factory();
     my @instances = $provider->create_instances(check_connectivity => 1);

@@ -8,6 +8,7 @@
 
 use base "opensusebasetest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use strict;
 use warnings;
@@ -42,7 +43,7 @@ sub run_test {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Arrayss for test specs
     my @tests = ('phy2phy_tput', 'pvp_tput', 'pvvp_tput');

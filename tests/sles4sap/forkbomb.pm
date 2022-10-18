@@ -9,6 +9,7 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use strict;
 use warnings;
@@ -20,7 +21,7 @@ sub run {
     # The first forkbomb can create 3 times as many processes as the second due to unknown bug
     return if is_qemu;
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # The SAP Admin was set in sles4sap/wizard_hana_install
     my $sid = get_required_var('INSTANCE_SID');

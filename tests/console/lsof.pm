@@ -27,12 +27,13 @@
 use base 'consoletest';
 use strict;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use warnings;
 use utils 'zypper_call';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     zypper_call('in netcat lsof psmisc');
     assert_script_run("lsof");
     assert_script_run("lsof -u root");

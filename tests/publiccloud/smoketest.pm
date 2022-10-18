@@ -10,11 +10,12 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Check if systemd completed sucessfully
     assert_script_run 'journalctl -b | grep "Reached target Basic System"';

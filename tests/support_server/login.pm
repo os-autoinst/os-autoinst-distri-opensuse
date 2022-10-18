@@ -9,6 +9,7 @@ use warnings;
 use base 'basetest';
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_desktop_installed is_tumbleweed);
 
@@ -21,7 +22,7 @@ sub run {
 
     # the supportserver image can be different version than the currently tested system
     # so try to login without use of needles
-    $self->select_serial_terminal;
+    select_serial_terminal;
 }
 
 sub test_flags {

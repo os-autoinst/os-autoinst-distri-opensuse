@@ -17,10 +17,11 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub run() {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     assert_script_run 'SUSEConnect --cleanup';
     my $scc_regcode_rt = get_required_var 'SCC_REGCODE_RT';
     assert_script_run "SUSEConnect -r ${scc_regcode_rt}", timeout => 90;

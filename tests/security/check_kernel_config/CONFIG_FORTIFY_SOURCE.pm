@@ -10,11 +10,12 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Check the kernel configuration file to make sure the parameter is enabled by default
     assert_script_run "grep CONFIG_FORTIFY_SOURCE=y /boot/config-`uname -r`";

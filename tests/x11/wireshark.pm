@@ -28,6 +28,7 @@ use strict;
 use warnings;
 use version_utils 'is_sle';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 # allow a TIMEOUT second timeout for asserting needles
@@ -35,7 +36,7 @@ use constant TIMEOUT => 90;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal();
+    select_serial_terminal();
     quit_packagekit;
     zypper_call "in wireshark";
 
@@ -55,7 +56,7 @@ sub run {
     enter_cmd "wireshark -i eth0 -k -Y 'dns.a and dns.qry.name==\"www.suse.com\"' -w /tmp/capture.pcap";
     assert_screen "wireshark-capturing-list";
 
-    $self->select_serial_terminal();
+    select_serial_terminal();
     # Generate the DNS request traffic
     assert_script_run "dig www.suse.com A";
     assert_script_run "host www.suse.com";

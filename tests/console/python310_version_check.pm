@@ -15,13 +15,14 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use version_utils;
 use utils "zypper_call";
 use registration "add_suseconnect_product";
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     if (is_sle('>=15-SP4')) {
         my $python_version = script_output("rpm -q python3 | awk -F \'-\' \'{print \$2}\'");
         if ((package_version_cmp($python_version, "3.6") < 0) ||

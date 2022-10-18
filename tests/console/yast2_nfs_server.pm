@@ -23,6 +23,7 @@ use base "y2_module_consoletest";
 use utils qw(clear_console zypper_call systemctl);
 use version_utils;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use mmapi;
 use mm_network;
@@ -31,7 +32,7 @@ use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     if (get_var('NFSSERVER')) {
         server_configure_network($self);
@@ -45,7 +46,7 @@ sub run {
     config_service($rw, $ro);
 
     # From now we can use serial terminal
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     start_service($rw, $ro);
 

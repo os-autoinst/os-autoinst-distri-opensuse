@@ -14,13 +14,14 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_leap is_sle get_os_release is_transactional);
 use containers::common;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my ($running_version, $sp, $host_distri) = get_os_release;
     my $docker = $self->containers_factory('docker');

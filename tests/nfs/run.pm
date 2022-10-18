@@ -13,6 +13,7 @@ use warnings;
 use base 'opensusebasetest';
 use File::Basename;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
 
@@ -26,7 +27,7 @@ sub pynfs_server_test_all {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     if (get_var("PYNFS")) {
         script_run('cd ~/pynfs');

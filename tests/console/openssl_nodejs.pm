@@ -15,13 +15,14 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use repo_tools 'generate_version';
 
 sub run {
     #Preparation
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $os_version = generate_version();
     assert_script_run 'wget --quiet ' . data_url('console/test_openssl_nodejs.sh');

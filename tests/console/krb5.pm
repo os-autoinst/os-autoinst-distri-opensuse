@@ -19,6 +19,7 @@ use strict;
 use serial_terminal;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub logout_and_verify_shell_availability {
     script_run 'logout', 0;
@@ -28,7 +29,7 @@ sub logout_and_verify_shell_availability {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     zypper_call 'in krb5 krb5-server krb5-client';
 

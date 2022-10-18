@@ -11,12 +11,13 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub dirmngr_daemon {
 
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $myca_dir = "/home/linux/myca";
 

@@ -11,12 +11,13 @@ use bootloader_setup 'replace_grub_cmdline_settings';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use Utils::Backends 'is_pvm';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # make sure SELinux in "permissive" mode
     validate_script_output("sestatus", sub { m/.*Current\ mode:\ .*permissive.*/sx });
@@ -36,7 +37,7 @@ sub run {
     power_action("reboot", textmode => 1);
     reconnect_mgmt_console if is_pvm;
     $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 300);
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     validate_script_output(
         "sestatus",

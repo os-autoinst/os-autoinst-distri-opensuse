@@ -11,12 +11,13 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use registration qw(add_suseconnect_product);
 use zypper qw(wait_quit_zypper);
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Make sure that nothing is using rpm for avoiding lock conflict
     wait_quit_zypper;

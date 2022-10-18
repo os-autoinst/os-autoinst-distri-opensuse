@@ -7,6 +7,7 @@
 
 use Mojo::Base qw(hpcbase hpc::utils), -signatures;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
 
@@ -26,7 +27,7 @@ sub run ($self) {
     barrier_wait('MPI_SETUP_READY');
     $self->mount_nfs_exports(\%exports_path);
     type_string('pkill -u root');
-    $self->select_serial_terminal(0);
+    select_serial_terminal(0);
 
     assert_script_run "source /usr/share/spack/setup-env.sh";
     # Once the /opt/spack is mounted `boost` should be available

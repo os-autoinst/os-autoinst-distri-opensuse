@@ -15,6 +15,7 @@ use base 'x11test';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use x11utils 'ensure_unlocked_desktop';
 use version_utils 'is_sle';
@@ -23,7 +24,7 @@ use registration qw(cleanup_registration register_product add_suseconnect_produc
 sub run {
     if (is_sle('>=15-sp4')) {
         my $self = shift;
-        $self->select_serial_terminal;
+        select_serial_terminal;
         # Activating development-tools module to install libqt5-qttools package
         add_suseconnect_product("sle-module-development-tools");
     }

@@ -14,12 +14,13 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call systemctl package_upgrade_check);
 use Utils::Architectures;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Version check
     my $pkg_list = {'tpm-tools' => '1.3.9.2', trousers => '0.3.15'};

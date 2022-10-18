@@ -13,6 +13,7 @@
 
 use base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use y2_module_guitest;
 use mm_network;
@@ -24,7 +25,7 @@ sub run {
     my $self = shift;
     mutex_wait 'barrier_setup_done';
     barrier_wait 'SETUP_DONE';
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Install openvpn
     zypper_call('in openvpn');

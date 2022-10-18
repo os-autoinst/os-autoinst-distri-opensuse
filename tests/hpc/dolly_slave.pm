@@ -8,6 +8,7 @@
 
 use Mojo::Base qw(hpcbase btrfs_test), -signatures;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
 
@@ -15,7 +16,7 @@ our $test_dir = "/mnt/test";
 our $test_dev;
 
 sub run ($self) {
-    $self->select_serial_terminal();
+    select_serial_terminal();
     $self->set_playground_disk();    # sets PLAYGROUNDDISK variable
     $test_dev = get_required_var('PLAYGROUNDDISK');
     record_info 'test_dev', "$test_dev";

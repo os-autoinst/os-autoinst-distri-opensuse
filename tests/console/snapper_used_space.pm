@@ -16,6 +16,7 @@ use base 'btrfs_test';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 use constant COLUMN_FILTER => "awk -F '|' '{print \$1  \$6}'";    # Filter by columns: # and Used Space
 use constant SUBVOLUME_FILTER => "tail -n4 | sed -n 2,3p | cut -d ' ' -f2";    # Subvolume IDs
@@ -77,7 +78,7 @@ sub query_space_several_snapshot {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     die 'Quota must be enabled on btrfs for this test' if (script_run('snapper get-config | grep QGROUP') != 0);
     ensure_size_displayed;
     query_space_single_snapshot;

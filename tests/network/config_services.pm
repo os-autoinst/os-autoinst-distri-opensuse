@@ -30,6 +30,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use mm_network 'setup_static_mm_network';
 use utils qw(systemctl zypper_call);
@@ -119,7 +120,7 @@ sub setup_mail_server {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $hostname = get_var('HOSTNAME');
     # Get variable SUPPORT_SERVER_ROLES from job settings.
     my @server_roles = split(',|;', lc(get_var("SUPPORT_SERVER_ROLES")));

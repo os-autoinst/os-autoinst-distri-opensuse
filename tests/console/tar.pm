@@ -10,13 +10,14 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle);
 
 sub run {
 
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     assert_script_run "wget --quiet " . data_url('console/tar_test.tar');
     assert_script_run("tar -xvf tar_test.tar");

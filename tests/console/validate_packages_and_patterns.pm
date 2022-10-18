@@ -15,6 +15,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use repo_tools 'verify_software';
 use version_utils qw(is_sle is_jeos);
@@ -67,7 +68,7 @@ sub verify_pattern {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $errors = '';    # Variable to accumulate errors
     for my $name (keys %software) {

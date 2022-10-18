@@ -25,6 +25,7 @@ use List::Util qw(first pairmap uniq notall);
 use qam;
 use maintenance_smelt qw(get_packagebins_in_modules get_incident_packages);
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle);
 
 sub has_conflict {
@@ -108,7 +109,7 @@ sub run {
     my @new_binaries;    #Binaries introduced by the update that will be installed after the repos are added.
     my %bins;
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $zypper_version = script_output(q(rpm -q zypper|awk -F. '{print$2}'));
 

@@ -9,6 +9,7 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_staging is_sle is_upgrade);
 use Utils::Architectures;
 use Utils::Systemd 'systemctl';
@@ -83,7 +84,7 @@ sub verify_sapconf_service {
 sub run {
     my ($self) = @_;
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     assert_script_run("rpm -q sapconf");
 

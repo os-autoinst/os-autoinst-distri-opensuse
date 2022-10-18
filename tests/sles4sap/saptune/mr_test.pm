@@ -9,6 +9,7 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use utils;
 use version_utils 'is_sle';
@@ -33,7 +34,7 @@ sub setup {
 
     my $tarball = get_var('MR_TEST_TARBALL', 'https://gitlab.suse.de/qa/mr_test/-/archive/master/mr_test-master.tar.gz');
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
     # Disable packagekit
     quit_packagekit;
     # saptune is not installed by default on SLES4SAP 12 on ppc64le and in textmode profile

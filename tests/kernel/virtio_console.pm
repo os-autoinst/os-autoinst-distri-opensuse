@@ -10,6 +10,7 @@ use 5.018;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 my $multiline_script = <<'FIN.';
@@ -25,7 +26,7 @@ sub run {
     my $n = get_var('VIRTIO_CONSOLE_TEST_N') || 10;
     $self->wait_boot;
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
     for my $i (0 .. $m) {
         script_run("echo '#$i'");
         script_output(sprintf($multiline_script, $n));

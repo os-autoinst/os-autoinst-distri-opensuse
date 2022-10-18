@@ -11,6 +11,7 @@ package publiccloud::ssh_interactive;
 use testapi qw(is_serial_terminal);
 use base Exporter;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Backends qw(set_sshserial_dev unset_sshserial_dev);
 use version_utils qw(is_tunneled);
 use strict;
@@ -116,7 +117,7 @@ sub select_host_console {
         ssh_interactive_leave();
     }
     set_var('TUNNELED', 0);
-    opensusebasetest::select_serial_terminal();
+    select_serial_terminal();
     # ssh termination sequence to ensure any ssh connections we're in are terminated
     type_string("\n~.\n", max_interval => 1);    # send the ssh termination sequence to ensure no previous ssh connection is present
     set_var('TUNNELED', $tunneled);

@@ -1,4 +1,5 @@
 # SUSE's SLES4SAP openQA tests
+
 #
 # Copyright 2019 SUSE LLC
 # SPDX-License-Identifier: FSFAP
@@ -8,6 +9,7 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'systemctl';
 use hacluster;
 use strict;
@@ -26,7 +28,7 @@ sub run {
     # LUN information is needed after for the HA configuration
     set_var('INSTANCE_LUN', "$lun");
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Create/format/mount local filesystems
     assert_script_run "mkfs -t xfs -f \"$lun\"";

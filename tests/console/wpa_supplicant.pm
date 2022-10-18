@@ -22,13 +22,14 @@
 
 use base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     zypper_call 'in wpa_supplicant hostapd iw dnsmasq unzip dhcp-client';
     assert_script_run 'cd $(mktemp -d)';

@@ -25,6 +25,7 @@ use version_utils qw(get_os_release);
 use db_utils qw(push_image_data_to_db);
 use containers::common;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 
 sub packages_to_install {
@@ -67,7 +68,7 @@ sub packages_to_install {
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Wait for any zypper tasks in the background to finish
     assert_script_run('while pgrep -f zypp; do sleep 1; done', timeout => 300);

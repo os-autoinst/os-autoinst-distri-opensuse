@@ -12,6 +12,7 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 use Utils::Architectures;
 use rpi 'enable_tpm_slb9670';
@@ -22,7 +23,7 @@ sub run {
     if (get_var('MACHINE') =~ /RPi4/) {
         enable_tpm_slb9670;
     } else {
-        $self->select_serial_terminal;
+        select_serial_terminal;
     }
 
 

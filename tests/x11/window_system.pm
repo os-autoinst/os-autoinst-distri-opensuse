@@ -13,10 +13,11 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $session_type = script_output(
         "loginctl show-session \$(loginctl list-sessions | awk '/$testapi::username/ {print \$1};') -p Type | cut -f2 -d=",

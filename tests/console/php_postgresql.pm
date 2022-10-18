@@ -33,6 +33,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 use apachetest qw(setup_apache2 setup_pgsqldb test_pgsql destroy_pgsqldb postgresql_cleanup);
 use Utils::Systemd 'systemctl';
@@ -40,7 +41,7 @@ use version_utils qw(is_leap is_sle php_version);
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # ensure apache2 + php? installed and running
     my ($php, $php_pkg, $php_ver) = php_version();

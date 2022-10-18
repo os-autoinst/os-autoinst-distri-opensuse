@@ -35,6 +35,7 @@ use base 'y2_module_basetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call);
 
 my $tmp_dir = "/my_nfs_tmp";
@@ -51,7 +52,7 @@ sub check_bsc1142979 {
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Make sure nfs-server packages are installed
     zypper_call("in yast2-nfs-server nfs-kernel-server", exitcode => [0, 102, 103]);

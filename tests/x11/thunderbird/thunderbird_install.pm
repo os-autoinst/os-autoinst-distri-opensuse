@@ -15,11 +15,12 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     quit_packagekit;
     zypper_call("in MozillaThunderbird", exitcode => [0, 102, 103]);

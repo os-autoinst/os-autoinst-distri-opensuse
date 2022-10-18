@@ -13,6 +13,7 @@
 
 use Mojo::Base 'wicked::wlan';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(random_string);
 
 has wicked_version => '>=0.6.66';
@@ -62,7 +63,7 @@ has ifcfg_wlan => sub { [
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     return if ($self->skip_by_wicked_version());
 
     $self->setup_ref();

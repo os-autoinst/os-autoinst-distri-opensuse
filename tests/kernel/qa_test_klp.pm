@@ -13,6 +13,7 @@ use File::Basename 'basename';
 
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use registration;
 use version_utils 'is_sle';
@@ -33,7 +34,7 @@ sub run {
     my $dir = basename($git_repo);
     $dir =~ s/\.git$//;
 
-    (is_sle(">12-sp1") || !is_sle) ? $self->select_serial_terminal() : select_console('root-console');
+    (is_sle(">12-sp1") || !is_sle) ? select_serial_terminal() : select_console('root-console');
 
     add_suseconnect_product("sle-sdk") if (is_sle('<12-SP5'));
     zypper_call('in -l autoconf automake gcc git make');

@@ -12,6 +12,7 @@ use warnings;
 use base 'opensusebasetest';
 use Mojo::JSON;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use upload_system_log;
 
 sub display_results {
@@ -100,7 +101,7 @@ sub upload_cthon04_log {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     if (get_var("PYNFS")) {
         $self->display_results();

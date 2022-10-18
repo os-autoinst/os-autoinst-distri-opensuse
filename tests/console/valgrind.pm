@@ -23,6 +23,7 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
 use version_utils "is_sle";
@@ -30,7 +31,7 @@ use version_utils "is_sle";
 sub run {
     # Preparation
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     # development module needed for dependencies, released products are tested with sdk module
     if (is_sle && !main_common::is_updates_tests()) {
         cleanup_registration;

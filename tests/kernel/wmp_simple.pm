@@ -17,6 +17,7 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use Mojo::Util 'trim';
 
@@ -33,7 +34,7 @@ sub run {
     my $instance_id = get_required_var('INSTANCE_ID');
     my $instance_type = get_var('INSTANCE_TYPE', 'HDB');
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     zypper_ar($stressng_repo, no_gpg_check => 1);
     zypper_call("in stress-ng");

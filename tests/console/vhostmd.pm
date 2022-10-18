@@ -17,11 +17,12 @@ use warnings;
 use base 'consoletest';
 use strict;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call);
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal();
+    select_serial_terminal();
     zypper_call 'in libvirt vhostmd';
 
     # start libvirt hypervisor for vhostmd

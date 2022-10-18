@@ -9,6 +9,7 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use utils;
 use version_utils "is_sle";
@@ -24,7 +25,7 @@ sub repo_cleanup {
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Note: Check the ticket in p.o.o for detailed descriptions of the
     #       repository setup logic.

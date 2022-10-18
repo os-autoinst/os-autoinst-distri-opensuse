@@ -14,6 +14,7 @@ use virt_autotest::utils;
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
@@ -21,7 +22,7 @@ sub run {
     # Switch to root console to prevent test issues from the desktop environment
     # See https://progress.opensuse.org/issues/93204
     select_console('root-console');
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Show all guests
     assert_script_run 'virsh list --all';

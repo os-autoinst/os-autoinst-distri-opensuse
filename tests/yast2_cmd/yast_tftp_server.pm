@@ -19,11 +19,12 @@ use base 'y2_module_basetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     zypper_call('in tftp yast2-tftp-server', timeout => 1200);
     assert_script_run 'yast tftp-server directory path=/srv/tftpboot';
     validate_script_output 'yast tftp-server directory list 2>&1', sub { m/tftpboot/ };

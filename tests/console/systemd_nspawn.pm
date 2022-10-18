@@ -9,6 +9,7 @@
 
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use utils;
 use version_utils;
@@ -17,7 +18,7 @@ use warnings;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     zypper_call 'in systemd-container';
 

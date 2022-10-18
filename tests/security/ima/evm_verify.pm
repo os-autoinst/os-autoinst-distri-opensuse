@@ -9,11 +9,12 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $test_app = "/usr/bin/yes";
     my $mok_priv = "/root/certs/key.asc";

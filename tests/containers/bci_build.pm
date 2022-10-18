@@ -21,10 +21,10 @@
 use Mojo::Base qw(consoletest);
 use version_utils qw(get_os_release);
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $engine = get_required_var('CONTAINER_RUNTIME');
     my $bci_devel_repo = get_var('BCI_DEVEL_REPO');
     my $bci_timeout = get_var('BCI_TIMEOUT', 1200);

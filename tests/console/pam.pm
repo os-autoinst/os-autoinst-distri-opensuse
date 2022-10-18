@@ -22,12 +22,13 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     die "This test module is not enabled for openSUSE Leap yet" if is_leap('<15.3');
     my $version = get_required_var('VERSION');

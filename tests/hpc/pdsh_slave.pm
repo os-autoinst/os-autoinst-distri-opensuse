@@ -11,6 +11,7 @@
 
 use Mojo::Base 'hpcbase', -signatures;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
 
@@ -47,7 +48,7 @@ sub test_flags ($self) {
 
 sub post_fail_hook ($self) {
     $self->destroy_test_barriers();
-    $self->select_serial_terminal;
+    select_serial_terminal;
     upload_logs '/tmp/pdsh.log';
     $self->upload_service_log('munge');
 }

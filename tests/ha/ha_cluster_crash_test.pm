@@ -21,6 +21,7 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use hacluster qw(check_cluster_state
   get_cluster_name
@@ -47,7 +48,7 @@ sub run {
     my $node_was_fenced = 0;
 
     # Ensure that the cluster state is correct before executing the checks
-    $self->select_serial_terminal;
+    select_serial_terminal;
     check_cluster_state;
 
     # We have to wait for previous nodes to finish the tests, as they can't be done in parallel without any damages!
@@ -77,7 +78,7 @@ sub run {
             if (check_screen('grub2', 0, no_wait => 1)) {
                 # Wait for boot and reconnect to root console
                 $self->wait_boot;
-                $self->select_serial_terminal;
+                select_serial_terminal;
                 # Wait for fencing delay and resources to start
                 sleep $start_delay_after_fencing;
                 wait_until_resources_started();

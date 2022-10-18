@@ -11,12 +11,13 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call);
 use version_utils qw(is_sle is_opensuse);
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # needed for script_output
     zypper_call 'in curl';

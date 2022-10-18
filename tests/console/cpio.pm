@@ -11,12 +11,13 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
 
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Define the archive formats that will be used
     my @formats = ("bin", "odc", "newc", "crc", "tar", "ustar", "hpbin", "hpodc");

@@ -12,6 +12,7 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
 use publiccloud::utils;
@@ -19,7 +20,7 @@ use containers::k8s qw(install_k3s apply_manifest wait_for_k8s_job_complete find
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $image = get_var("CONTAINER_IMAGE_TO_TEST", "registry.suse.com/bci/bci-base:latest");
 

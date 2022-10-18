@@ -12,6 +12,7 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
@@ -24,7 +25,7 @@ sub run {
         block_device => qr/\s{2}Block device \s+ 254:\d/
     };
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
     record_info('INFO', 'Print lvm setup');
     assert_script_run 'lsblk';
     assert_script_run 'lvmdiskscan';

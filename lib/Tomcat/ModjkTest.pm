@@ -13,6 +13,7 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils 'is_sle';
 use registration;
@@ -21,7 +22,7 @@ use registration;
 # via the package apache2-mod_jk
 sub mod_jk_setup() {
     my $self = shift;
-    $self->select_serial_terminal();
+    select_serial_terminal();
 
     record_info('install and configure apache2 and apache2-mod_jk connector Setup');
     zypper_call('in apache2 apache2-mod_jk');
@@ -33,7 +34,7 @@ sub mod_jk_setup() {
 # Connection from apache2 to tomcat: Functionality test
 sub func_conn_apache2_tomcat() {
     my $self = shift;
-    $self->select_serial_terminal();
+    select_serial_terminal();
     systemctl('stop apache2');
     systemctl('stop tomcat');
     assert_script_run(

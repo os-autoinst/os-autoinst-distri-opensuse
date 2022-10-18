@@ -12,13 +12,14 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings tianocore_disable_secureboot);
 use power_action_utils 'power_action';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $key_dir = '/etc/keys';
     my $userkey_blob = "$key_dir/kmk-user.blob";
@@ -45,7 +46,7 @@ sub run {
     $self->wait_grub(bootloader_time => 200);
     $self->tianocore_disable_secureboot;
     $self->wait_boot(textmode => 1);
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     validate_script_output "cat /sys/kernel/security/evm", sub { m/^1$/ };
 }

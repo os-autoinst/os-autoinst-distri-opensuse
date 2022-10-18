@@ -9,13 +9,14 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call systemctl package_upgrade_check);
 use registration 'add_suseconnect_product';
 use version_utils 'is_sle';
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1) if is_sle;
 
     # Version check

@@ -8,6 +8,7 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use hacluster;
 use strict;
 use warnings;
@@ -44,7 +45,7 @@ sub run {
     # No need to test this cluster specific part if there is no HA
     return unless get_var('HA_CLUSTER');
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Check the version
     my $package_version = script_output "rpm -q --qf '%{VERSION}' sap-suse-cluster-connector";

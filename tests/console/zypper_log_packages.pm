@@ -11,6 +11,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 use Utils::Logging;
@@ -18,7 +19,7 @@ use Mojo::JSON qw(to_json);
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $zypper_packages = {};
     $zypper_packages->{commands} = $testapi::distri->{zypper_packages} // [];
     my $individual_pkgs = script_output('grep "|\(Installing:\|Removing\) .*} END" /var/log/zypper.log', proceed_on_failure => 1);

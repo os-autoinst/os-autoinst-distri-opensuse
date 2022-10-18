@@ -15,13 +15,14 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 use version_utils qw(is_jeos is_sle);
 
 sub run {
     my ($self) = @_;
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
     zypper_call('in iputils libcap-progs sudo');
 
     record_info('KERNEL VERSION', script_output('uname -a'));

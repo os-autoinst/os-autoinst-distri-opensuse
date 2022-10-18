@@ -11,6 +11,7 @@ package selinuxtest;
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use Utils::Backends 'is_pvm';
 use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings);
@@ -108,7 +109,7 @@ sub reboot_and_reconnect {
 sub set_sestatus {
     my ($self, $mode, $type) = @_;
     my $selinux_config_file = '/etc/selinux/config';
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # workaround for 'selinux-auto-relabel' in case: auto relabel then trigger reboot
     my $results = script_run("zypper --non-interactive se selinux-autorelabel");
@@ -132,7 +133,7 @@ sub set_sestatus {
 
     # reboot the vm and reconnect the console
     $self->reboot_and_reconnect(textmode => 1);
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     validate_script_output(
         'sestatus',

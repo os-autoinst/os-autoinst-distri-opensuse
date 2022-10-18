@@ -11,6 +11,7 @@
 
 use base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
@@ -45,7 +46,7 @@ sub run {
 
     mutex_wait 'barrier_setup_done';
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
     barrier_wait 'SETUP_DONE';
 
     my ($vpn_local, $vpn_remote, $remote);

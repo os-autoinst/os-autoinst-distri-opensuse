@@ -10,6 +10,7 @@ use base 'x11test';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
 use mm_network;
@@ -17,7 +18,7 @@ use Utils::Systemd 'disable_and_stop_service';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     # All nodes are online with SSH enabled
     barrier_create('networking_prepared', 3);
     # Master node is ready to accept workers

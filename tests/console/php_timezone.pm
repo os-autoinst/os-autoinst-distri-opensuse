@@ -13,6 +13,7 @@ use strict;
 use warnings;
 use utils;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use apachetest;
 use version_utils qw(is_leap is_sle);
 
@@ -29,7 +30,7 @@ sub compare_time {
 sub run {
     #Preparation
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     if (is_leap('<15.0') || is_sle('<15')) {
         $php = 'php';

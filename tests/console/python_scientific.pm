@@ -12,6 +12,7 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_tumbleweed);
 
@@ -35,7 +36,7 @@ sub run_python_script {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $scipy = is_sle('<15-sp1') ? '' : 'python3-scipy';
     zypper_call "in python3 python3-numpy $scipy";

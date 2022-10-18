@@ -16,12 +16,13 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $test_log_msg = 'Test Log Message FOOBAR123';
     assert_script_run "logger $test_log_msg";

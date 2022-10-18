@@ -22,6 +22,7 @@
 
 use base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils 'zypper_call';
@@ -29,7 +30,7 @@ use Utils::Architectures;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     zypper_call 'in vsftpd expect';
     # export slenkins variables

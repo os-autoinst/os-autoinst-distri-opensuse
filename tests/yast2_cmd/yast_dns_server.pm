@@ -21,6 +21,7 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use List::Util qw(all any);
 use Utils::Systemd 'disable_and_stop_service';
@@ -64,7 +65,7 @@ sub bug1151130_softfail {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     zypper_call("in yast2-dns-server bind", exitcode => [0, 102, 103, 106]);
     zypper_call("in bind-libs", exitcode => [0, 102, 103, 106]) if is_sle('=12-SP2');
     #enables netconfig to always force a replace of modified file to avoid ncurse prompt.

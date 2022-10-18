@@ -13,6 +13,7 @@ use power_action_utils "power_action";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use Utils::Backends 'is_pvm';
 
@@ -21,7 +22,7 @@ sub run {
     my $mode_old = 'Enforcing';
     my $mode_new = 'Permissive';
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Get the current SELinux policy mode
     $mode_old = script_output('getenforce');
@@ -36,7 +37,7 @@ sub run {
     power_action("reboot", textmode => 1);
     reconnect_mgmt_console if is_pvm;
     $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 300);
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Check the mode after reboot, the mode returns to original one
     validate_script_output('getenforce', sub { m/$mode_old/ });
@@ -51,7 +52,7 @@ sub run {
     power_action("reboot", textmode => 1);
     reconnect_mgmt_console if is_pvm;
     $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 300);
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Check the mode after reboot, the mode returns to original one
     validate_script_output('getenforce', sub { m/$mode_old/ });

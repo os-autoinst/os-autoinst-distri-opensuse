@@ -18,6 +18,7 @@
 
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
@@ -25,7 +26,7 @@ use version_utils qw(is_sle);
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $pkg_name = 'openvswitch';
     # package openvswitch-switch still exist for sle12-sp2

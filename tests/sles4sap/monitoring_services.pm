@@ -8,6 +8,7 @@
 
 use base 'sles4sap';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use lockapi;
@@ -189,7 +190,7 @@ sub run {
     my $rsc_id = "${instance_sid}_${instance_type}${instance_id}";
 
     # Make sure that we have an opened terminal
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Configure Exporters
     configure_ha_exporter if get_var('HA_CLUSTER');

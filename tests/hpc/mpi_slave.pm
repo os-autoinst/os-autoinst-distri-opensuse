@@ -9,9 +9,10 @@
 use Mojo::Base qw(hpcbase hpc::utils), -signatures;
 use lockapi;
 use utils;
+use serial_terminal 'select_serial_terminal';
 
 sub run ($self) {
-    $self->select_serial_terminal();
+    select_serial_terminal();
     my $mpi = $self->get_mpi();
     my %exports_path = (
         bin => '/home/bernhard/bin',

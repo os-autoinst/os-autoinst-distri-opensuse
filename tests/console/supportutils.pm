@@ -15,11 +15,12 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use upload_system_log 'upload_supportconfig_log';
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     select_console 'root-console';
     my $options = get_var('SUPPORTCOFIG_OPTIONS', '');
     assert_script_run "rm -rf /var/log/nts_* /var/log/scc_* ||:";

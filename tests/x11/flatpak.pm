@@ -15,13 +15,14 @@ use base 'x11test';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
 use x11utils;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     # Install flatpak and run basic tests
     zypper_call('in flatpak');
     assert_script_run('flatpak --version | grep -i Flatpak');

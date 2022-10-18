@@ -20,11 +20,12 @@ use version_utils qw(is_sle is_leap is_opensuse);
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use version;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     zypper_call 'in sysstat';
     script_run 'rm -rf /var/log/sa/sa*';
     systemctl 'start sysstat.service';

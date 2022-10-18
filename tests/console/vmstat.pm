@@ -14,6 +14,7 @@
 
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use strict;
 use warnings;
@@ -25,7 +26,7 @@ use console::vmstat_utils;
 sub run {
     my ($self) = @_;
     my ($vm, $cpu);
-    $self->select_serial_terminal;
+    select_serial_terminal;
     zypper_call('in procps');
     validate_script_output("vmstat",
         qr/(procs\s-+memory-+\s-+swap-+\s-+io-+\s-+system-+\s-+cpu-+).*(\s+|\d+)+/s);

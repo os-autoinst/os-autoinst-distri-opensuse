@@ -10,6 +10,7 @@ use warnings;
 use base 'opensusebasetest';
 use utils;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 use constant STATUS_LOG => '/opt/status.log';
 
@@ -41,7 +42,7 @@ sub install_dependencies {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Install btrfs-progs
     if (get_var('BTRFS_PROGS_REPO')) {

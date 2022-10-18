@@ -13,6 +13,7 @@
 
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
@@ -20,7 +21,7 @@ use version_utils qw(is_sle is_jeos);
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # installation of docs and manpages is excluded in zypp.conf
     # enable full package installation, and clean up previous apache2 deployment

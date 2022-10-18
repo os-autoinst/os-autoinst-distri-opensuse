@@ -18,6 +18,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(quit_packagekit zypper_call);
 use version_utils qw(is_sle is_leap is_opensuse is_transactional);
 use registration qw(add_suseconnect_product remove_suseconnect_product);
@@ -31,7 +32,7 @@ my $version_id = (split('-', $version))[0] . '.' . (split('P', (split('-', $vers
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     # Make sure that PackageKit is not running
     quit_packagekit;
     # if !QAM test suite then register Legacy module

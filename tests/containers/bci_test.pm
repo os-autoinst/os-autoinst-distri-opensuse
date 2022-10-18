@@ -17,6 +17,7 @@
 use Mojo::Base qw(consoletest);
 use XML::LibXML;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use File::Basename;
 use utils qw(systemctl);
 use version_utils qw(get_os_release);
@@ -77,7 +78,7 @@ sub reset_engines {
 
 sub run {
     my ($self, $args) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     $error_count = 0;
 

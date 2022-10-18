@@ -12,13 +12,14 @@ use base 'sles4sap';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $output = script_output q@parted /dev/sda print free | awk '/Free Space/ {print $3}' | tail -1@;
     $output =~ m/([0-9\.]+)([A-Z])B/i;

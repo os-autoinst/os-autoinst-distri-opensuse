@@ -9,6 +9,7 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use hacluster;
 use utils qw(systemctl file_content_replace);
@@ -29,7 +30,7 @@ sub run {
     # Synchronize the nodes
     barrier_wait "HANA_CLUSTER_INSTALL_$cluster_name";
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $node1 = choose_node(1);
     my $node2 = choose_node(2);

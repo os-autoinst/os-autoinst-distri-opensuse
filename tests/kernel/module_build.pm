@@ -13,11 +13,12 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     zypper_call "in kernel-default-devel";
     # Prepare module sources
     assert_script_run("curl -L -v " . autoinst_url . "/data/kernel/module > module.data && cpio -id < module.data && rm module.data");

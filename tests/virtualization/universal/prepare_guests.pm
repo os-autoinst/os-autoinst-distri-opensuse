@@ -18,6 +18,7 @@ use virt_autotest::utils;
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use File::Copy 'copy';
 use File::Path 'make_path';
@@ -79,7 +80,7 @@ sub gen_osinfo {
 sub run {
     my $self = shift;
     # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
-    #    $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
+    #    select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
     select_console('root-console');
     systemctl("restart libvirtd");
     assert_script_run('for i in $(virsh list --name|grep -v Domain-0);do virsh destroy $i;done');

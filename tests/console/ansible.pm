@@ -16,13 +16,14 @@ use warnings;
 use base "consoletest";
 use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
+use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use utils qw(zypper_call random_string systemctl file_content_replace);
 use version_utils qw(is_sle is_opensuse is_tumbleweed);
 use registration qw(add_suseconnect_product get_addon_fullname);
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # 1. System setup
 
@@ -44,7 +45,7 @@ sub run {
 
     # Logout root and login $testapi::username
     enter_cmd 'exit';
-    $self->select_user_serial_terminal;
+    select_user_serial_terminal;
 
     # Check that we are logged in as $testapi::username
     validate_script_output('whoami', sub { m/$testapi::username/ });
@@ -170,7 +171,7 @@ sub cleanup {
 
     # Reset consoles and log in root
     reset_consoles;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Remove all the directories ansible created
     assert_script_run 'rm -rf ~/ansible_collections/ /tmp/ansible/';

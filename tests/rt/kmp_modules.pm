@@ -14,6 +14,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call clear_console);
 use version_utils qw(is_sle);
 use rt_utils qw(select_kernel);
@@ -52,7 +53,7 @@ sub run_lttng_demo_trace {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Stop packagekit
     systemctl 'mask packagekit.service';
@@ -69,7 +70,7 @@ sub run {
     if (script_run q|grep -E 'BOOT_IMAGE=/boot/vmlinuz-.*-[[:digit:]]-rt' /proc/cmdline|) {
         power_action('reboot', textmode => 1);
         select_kernel('rt');
-        $self->select_serial_terminal;
+        select_serial_terminal;
     }
 
     # switched to RT kernel

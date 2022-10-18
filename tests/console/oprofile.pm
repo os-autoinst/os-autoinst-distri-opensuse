@@ -13,6 +13,7 @@ use strict;
 use warnings;
 use base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle);
 use registration qw(add_suseconnect_product);
@@ -20,7 +21,7 @@ use registration qw(add_suseconnect_product);
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Add required product
     if (is_sle '>=15') {

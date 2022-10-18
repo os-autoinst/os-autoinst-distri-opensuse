@@ -10,12 +10,13 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 use version_utils 'is_sle';
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Create a simple Unix authentication configuration, all backup files will not be deleted
     if (!is_sle) {

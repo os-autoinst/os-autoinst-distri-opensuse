@@ -13,6 +13,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_opensuse);
 use repo_tools 'generate_version';
@@ -61,7 +62,7 @@ sub run {
 
     my $PUBLISH_HDD_1 = get_required_var("PUBLISH_HDD_1");
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     if (my $tools_repo = get_var('PUBLIC_CLOUD_TOOLS_REPO')) {
         for my $repo (split(/\s+/, $tools_repo)) {

@@ -24,6 +24,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use utils;
 use version_utils qw(is_jeos is_opensuse is_sle);
@@ -40,7 +41,7 @@ sub scan_and_parse {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     zypper_call('in clamav vim');
     zypper_call('info clamav');

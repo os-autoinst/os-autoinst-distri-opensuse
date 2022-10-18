@@ -12,13 +12,14 @@
 
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use apachetest;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     setup_apache2(mode => 'SSL');
 
     # List the supported ciphers and make sure TLSV1.3 is there

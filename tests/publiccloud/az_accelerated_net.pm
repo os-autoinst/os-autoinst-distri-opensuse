@@ -12,6 +12,7 @@ use base "publiccloud::basetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use Data::Dumper;
 
@@ -106,7 +107,7 @@ sub run_test {
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $provider = $self->provider_factory();
     my $client = $self->prepare_vm($provider);

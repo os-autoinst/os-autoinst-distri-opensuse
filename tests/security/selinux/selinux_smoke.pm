@@ -13,13 +13,14 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use registration qw(add_suseconnect_product register_product);
 use version_utils qw(is_sle is_tumbleweed);
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # make sure SELinux is "enabled" and in "permissive" mode
     validate_script_output("sestatus", sub { m/SELinux\ status: .*enabled.* Current\ mode: .*permissive/sx });

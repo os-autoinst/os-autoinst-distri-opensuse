@@ -10,6 +10,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use version_utils 'is_opensuse';
 use Mojo::JSON qw(decode_json);
 
@@ -50,7 +51,7 @@ sub run {
     my $self = shift;
     my $bug_pattern = parse_bug_refs();
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my @journal_output = split(/\n/, script_output("journalctl --no-pager --quiet -p ${\get_var('JOURNAL_LOG_LEVEL', 'err')} -o short-precise"));
     my @matched_bugs;

@@ -8,6 +8,7 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use hacluster;
 use strict;
@@ -23,7 +24,7 @@ sub run {
     my $timeout = bmwqemu::scale_timeout(900);    # Time out for NetWeaver's sources related commands
     my $sap_dir = "/usr/sap/$sid";
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     validate_script_output('cat /usr/sap/sapservices', qr/sapstartsrv/, title => 'sapstartsrv');
     validate_script_output('systemctl list-unit-files | grep -i sap', sub { /^(?!SAP..._\d\d.service)/ }, title => 'NO systemd'); # there must be _no_ SAP*.service

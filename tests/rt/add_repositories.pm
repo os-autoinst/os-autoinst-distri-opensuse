@@ -11,11 +11,12 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_ar);
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     # Add repositories if they are requested
     zypper_ar(get_var('REPO_RT_IMAGES'), name => 'repo_rt_images') if get_var('REPO_RT_IMAGES');
     zypper_ar(get_var('REPO_RT_STANDARD'), name => 'repo_rt_standard') if get_var('REPO_RT_STANDARD');

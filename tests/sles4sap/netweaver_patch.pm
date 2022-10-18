@@ -9,6 +9,7 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use hacluster;
 use strict;
@@ -38,7 +39,7 @@ sub run {
         $product_id = 'NW_ERS';
     }
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # The SAP Admin was set in sles4sap/netweaver_install
     $self->set_sap_info(get_required_var('INSTANCE_SID'), get_required_var('INSTANCE_ID'));

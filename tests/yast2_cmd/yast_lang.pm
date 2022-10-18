@@ -12,11 +12,12 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     zypper_call "in yast2-country";
     validate_script_output 'yast language list', sub { m/(.*)de_DE(.*)it_IT(.*)/s };
     assert_script_run 'yast language set lang=de_DE languages=it_IT';

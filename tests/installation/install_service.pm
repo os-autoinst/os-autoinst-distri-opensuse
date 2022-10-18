@@ -9,6 +9,7 @@ use strict;
 use warnings;
 use base 'installbasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'systemctl', 'zypper_call';
 use service_check;
 use version_utils qw(is_hyperv is_sle is_sles4sap);
@@ -17,7 +18,7 @@ use main_common 'is_desktop';
 sub run {
 
     if (get_var('SEL_SERIAL_CONSOLE')) {
-        opensusebasetest::select_serial_terminal();
+        select_serial_terminal();
     }
     else {
         select_console 'root-console';

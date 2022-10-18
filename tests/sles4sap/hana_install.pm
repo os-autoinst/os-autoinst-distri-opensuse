@@ -12,6 +12,7 @@ use base 'sles4sap';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use utils qw(file_content_replace zypper_call);
 use Utils::Systemd 'systemctl';
@@ -90,7 +91,7 @@ sub run {
     my $instid = get_required_var('INSTANCE_ID');
     my $tout = get_var('HANA_INSTALLATION_TIMEOUT', 3600);    # Timeout for HANA installation commands.
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $RAM = $self->get_total_mem();
     die "RAM=$RAM. The SUT needs at least 24G of RAM" if $RAM < 24000;
 

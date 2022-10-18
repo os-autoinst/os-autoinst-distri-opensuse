@@ -14,6 +14,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
@@ -24,7 +25,7 @@ sub run {
     my $numqueues;    # number of NVMe queues, each queue has it's own MSI
     my $fail = 0;
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     $numqueues = script_output('grep -c nvme /proc/interrupts');
     record_info('INFO', "The VM has $numqueues NVMe queues and $numcpu CPUs");
@@ -66,7 +67,7 @@ sub run {
 sub post_fail_hook {
     my $self = shift;
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     script_run('cat /proc/interrupts > /tmp/interrupts.txt');
     upload_logs('/tmp/interrupts.txt');

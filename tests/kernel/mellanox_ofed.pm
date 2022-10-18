@@ -16,13 +16,14 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use utils;
 use version_utils 'is_sle';
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $ofed_url = get_required_var('OFED_URL');
     my $ofed_file_tgz = (split(/\//, $ofed_url))[-1];

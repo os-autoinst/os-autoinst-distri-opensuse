@@ -12,6 +12,7 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use version_utils qw(is_sle);
@@ -49,7 +50,7 @@ sub run {
     my $robot_tar = "robot.tar.gz";
     my $testkit = get_var('SYS_PARAM_CHECK_TEST', "qa-css-hq.qa.suse.de/$robot_tar");
     my $python_bin = is_sle('15+') ? 'python3' : 'python';
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Download and prepare the test environment
     assert_script_run "cd /; curl -f -v \"$testkit\" -o $robot_tar";

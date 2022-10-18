@@ -10,12 +10,13 @@ use strict;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call systemctl);
 use version_utils qw(is_sle);
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Install keylime packages
     zypper_call('in keylime-config keylime-firewalld keylime-agent keylime-tpm_cert_store keylime-registrar keylime-verifier', timeout => 240);

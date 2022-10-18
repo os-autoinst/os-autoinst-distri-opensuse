@@ -10,13 +10,14 @@
 
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use version_utils 'is_sle_micro';
 use strict;
 use warnings;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     record_info('kubectl', script_output('kubectl'));
     record_info('k3s', script_output('k3s'));

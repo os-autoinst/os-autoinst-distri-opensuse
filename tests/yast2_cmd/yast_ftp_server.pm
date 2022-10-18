@@ -55,12 +55,13 @@ use base 'y2_module_basetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     zypper_call 'in yast2-ftp-server';
     zypper_call 'in yast2-users';
 

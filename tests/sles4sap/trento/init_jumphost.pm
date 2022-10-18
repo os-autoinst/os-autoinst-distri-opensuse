@@ -8,11 +8,12 @@ use Mojo::Base 'publiccloud::basetest';
 use base 'consoletest';
 use strict;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use base 'trento';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Get the code for the Trento deployment
     $self->get_trento_deployment('/root/test');

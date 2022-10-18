@@ -10,6 +10,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use db_utils;
 use Mojo::JSON;
@@ -171,7 +172,7 @@ sub run {
         os_kernel_version => undef,
     };
 
-    $self->select_serial_terminal();
+    select_serial_terminal();
 
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance(use_extra_disk => {size => $disk_size, type => $disk_type});

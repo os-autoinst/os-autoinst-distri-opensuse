@@ -25,10 +25,11 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     #create work dir
     assert_script_run "mkdir /tmp/aaa_base_test ; cd /tmp/aaa_base_test; touch test-file.txt ; mkdir test_dir";

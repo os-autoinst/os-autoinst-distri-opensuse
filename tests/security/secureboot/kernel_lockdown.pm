@@ -10,10 +10,11 @@ use strict;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Make sure system is secureboot enabled
     validate_script_output('mokutil --sb-state', sub { m/SecureBoot enabled/ });

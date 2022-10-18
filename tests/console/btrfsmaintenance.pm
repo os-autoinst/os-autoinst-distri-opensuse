@@ -16,6 +16,7 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_leap is_sle);
 
@@ -43,7 +44,7 @@ sub btrfs_service_unavailable {
 sub run {
     # Preparation
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     if (script_run('mount | grep btrfs') != 0) {
         record_info("btrfs-maintenance", "No btrfs volume mounted");

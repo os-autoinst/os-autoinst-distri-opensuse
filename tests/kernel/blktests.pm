@@ -11,6 +11,7 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use repo_tools 'add_qa_head_repo';
 
@@ -27,7 +28,7 @@ sub prepare_blktests_config {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     #below variable exposes blktests options to the openQA testsuite
     #definition, so that it allows flexible ways of re-runing the tests
@@ -80,7 +81,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     $self->export_logs_basic;
     script_run('rpm -qi kernel-default > /tmp/kernel_info');
     upload_logs('/tmp/kernel_info');

@@ -11,12 +11,13 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils 'is_opensuse';
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     record_info('INFO', 'Check environment');
     assert_script_run "env | grep \"SHELL=/bin/bash\"";

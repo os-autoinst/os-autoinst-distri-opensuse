@@ -17,6 +17,7 @@
 
 use base "opensusebasetest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use strict;
 use warnings;
@@ -42,7 +43,7 @@ sub run {
     my $children = get_children();
     my $child_id = (keys %$children)[0];
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
     record_info("INFO", "Install needed packages for NFV tests: OVS, DPKD, QEMU");
     zypper_call('--quiet in git-core openvswitch-switch dpdk dpdk-tools qemu tcpdump', timeout => 60 * 4);
 

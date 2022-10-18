@@ -8,6 +8,7 @@
 
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use services::nginx;
@@ -15,7 +16,7 @@ use utils 'clear_console';
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     services::nginx::install_service();
     services::nginx::enable_service();

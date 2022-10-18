@@ -12,6 +12,7 @@
 
 use Mojo::Base 'wickedbase';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use List::Util qw(uniq);
 use Mojo::File qw(path);
 
@@ -40,7 +41,7 @@ sub get_diff {
 
 sub run {
     my ($self, $ctx) = @_;
-    $self->select_serial_terminal();
+    select_serial_terminal();
 
     return if $self->skip_by_wicked_version('>=0.6.68');
 

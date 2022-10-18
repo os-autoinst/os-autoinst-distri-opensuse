@@ -17,6 +17,7 @@
 
 use Mojo::Base qw(consoletest);
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 my $tdata = [
@@ -71,7 +72,7 @@ my $errors = 0;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # download and start a BCI container
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');

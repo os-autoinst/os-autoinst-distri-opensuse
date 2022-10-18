@@ -11,6 +11,7 @@
 
 use Mojo::Base 'wicked::wlan';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 has wicked_version => '>=0.6.66';
 has stderr_file => '/tmp/wicked_stderr';
@@ -83,7 +84,7 @@ sub check_error {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     return if ($self->skip_by_wicked_version());
 
     for my $config (@{$self->ifcfg_wlan_enabled}) {

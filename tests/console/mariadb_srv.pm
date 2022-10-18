@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle);
 use Utils::Architectures;
@@ -28,7 +29,7 @@ sub cleanup {
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     zypper_call('in mariadb');
     my $mariadb = (is_sle '<15-SP4') ? 'mysql' : 'mariadb';

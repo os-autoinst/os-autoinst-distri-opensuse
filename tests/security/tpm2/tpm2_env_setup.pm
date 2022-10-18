@@ -10,13 +10,14 @@ use strict;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
 use version_utils 'is_sle';
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Install the tpm2.0 related packages
     # and then start the TPM2 Access Broker & Resource Manager

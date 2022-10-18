@@ -19,6 +19,7 @@ use warnings;
 use base 'opensusebasetest';
 use utils;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use repo_tools 'add_qa_head_repo';
 use version_utils qw(is_sle is_leap is_tumbleweed);
 use File::Basename;
@@ -56,7 +57,7 @@ sub collect_version {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Disable PackageKit
     quit_packagekit;

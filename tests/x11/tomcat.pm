@@ -16,6 +16,7 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Tomcat::ServletTest;
 use Tomcat::JspTest;
 use Tomcat::WebSocketsTest;
@@ -80,7 +81,7 @@ sub run() {
     record_info('JSP Testing');
     $jsp_test->test_all_examples($with_modjk);
 
-    $self->select_serial_terminal();
+    select_serial_terminal();
     # Connection from apache2 to tomcat: Functionality test
     Tomcat::ModjkTest->func_conn_apache2_tomcat();
 

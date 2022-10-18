@@ -13,6 +13,7 @@ use warnings;
 use base 'opensusebasetest';
 use utils;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub install_dependencies_pynfs {
     my @deps = qw(
@@ -88,7 +89,7 @@ sub setup_nfs_server {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Disable PackageKit
     quit_packagekit;

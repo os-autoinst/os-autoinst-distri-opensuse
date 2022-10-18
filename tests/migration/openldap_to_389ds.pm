@@ -8,6 +8,7 @@
 
 use base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
@@ -19,7 +20,7 @@ use version_utils;
 sub run {
     my ($self) = @_;
     my $password = $testapi::password;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Install 389-ds and sssd on client
     zypper_call("in 389-ds sssd sssd-tools");

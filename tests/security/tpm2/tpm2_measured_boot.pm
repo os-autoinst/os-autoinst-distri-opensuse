@@ -10,12 +10,13 @@ use strict;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     return unless get_var('QEMUTPM');
 
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Measured boot basic check, in current test logic, it depends on backend qemu and ovmf
     # packages version to check measured boot on VM side. But we have other test modules to

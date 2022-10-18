@@ -10,6 +10,7 @@
 
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
@@ -18,7 +19,7 @@ use bootloader_setup 'tianocore_disable_secureboot';
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Reboot and disable secureboot
     power_action('reboot', textmode => 1);
@@ -27,7 +28,7 @@ sub run {
     $self->wait_boot(textmode => 1);
 
     # Make sure secureboot is disabled
-    $self->select_serial_terminal;
+    select_serial_terminal;
     validate_script_output('mokutil --sb-state', sub { m/SecureBoot disabled/ });
 }
 

@@ -17,6 +17,7 @@
 
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use strict;
 use warnings;
@@ -41,7 +42,7 @@ sub set_data_and_validate {
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     assert_script_run("rpm -q timezone");
 

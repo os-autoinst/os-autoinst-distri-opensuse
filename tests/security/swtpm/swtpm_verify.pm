@@ -12,11 +12,12 @@ use swtpmtest;
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal if !(get_var('MACHINE') =~ /RPi4/);
+    select_serial_terminal if !(get_var('MACHINE') =~ /RPi4/);
     my $vm_type = 'legacy';
     $vm_type = 'uefi' if get_var('HDD_SWTPM_UEFI');
     # aarch64 does not support tpm1.2

@@ -8,6 +8,7 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use Mojo::Util qw(sha1_sum trim);
 use Mojo::File 'path';
@@ -36,7 +37,7 @@ sub run {
     my $size = get_var('VIRTIO_CONSOLE_TEST_FILESIZE') // 200 * 1024;
     my $repeat = 1000;
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # prepare upload directory
     system('mkdir -p ulogs/') == 0 or die('Failed to create ulogs/ directory');

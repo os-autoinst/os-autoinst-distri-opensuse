@@ -11,6 +11,7 @@ package publiccloud::k8sbasetest;
 use Mojo::Base 'publiccloud::basetest';
 use utils 'script_retry';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use warnings;
 use strict;
 use utils qw(random_string);
@@ -24,7 +25,7 @@ Prepare the provider and install kubectl
 sub init {
     my ($self, %args) = @_;
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
     install_kubectl();
 
     $args{provider} //= get_required_var('PUBLIC_CLOUD_PROVIDER');

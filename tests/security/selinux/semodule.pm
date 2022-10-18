@@ -9,13 +9,14 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
     my ($self) = @_;
     my $test_module = "openvpn";
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # test option "-l": list and verify some (not all as it changes often) standard modules
     validate_script_output(

@@ -10,6 +10,7 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_upgrade);
 use main_common 'is_updates_tests';
@@ -21,7 +22,7 @@ sub run {
     my @sappatterns = qw(sap-nw sap-b1 sap-hana);
     my $output = '';
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Disable packagekit
     quit_packagekit;

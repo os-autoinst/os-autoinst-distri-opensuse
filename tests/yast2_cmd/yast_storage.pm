@@ -12,11 +12,12 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     zypper_call "in yast2-storage";
     #    assert_script_run 'yast disk list disks';
     #    assert_script_run 'yast disk list partitions';

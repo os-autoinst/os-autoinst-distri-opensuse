@@ -9,6 +9,7 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'script_retry';
 use containers::utils qw(registry_url container_ip);
 use containers::common 'check_containers_connectivity';
@@ -18,7 +19,7 @@ my $stop_firewall = 0;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $podman = $self->containers_factory('podman');
     my $container_name = 'sut_container';

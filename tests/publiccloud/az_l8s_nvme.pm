@@ -10,6 +10,7 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 # Benchmark the given device with hdparm and fail, if the given threshold [MB/sec] is not reached
@@ -29,7 +30,7 @@ sub benchmark_device {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     die "This test only works on Azure L instances" unless (get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ 'L(8|16|32|48|64|80)s_v2');
 
