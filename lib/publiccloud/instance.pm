@@ -1,11 +1,11 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2022 SUSE LLC
+# Copyright 2018 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Base class for public cloud instances
 #
-# Maintainer: qa-c@suse.de
+# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
 package publiccloud::instance;
 use testapi;
@@ -14,8 +14,7 @@ use Mojo::Base -base;
 use Mojo::Util 'trim';
 use File::Basename;
 use publiccloud::utils;
-use Utils::Backends qw(set_sshserial_dev unset_sshserial_dev);
-use publiccloud::ssh_interactive qw(ssh_interactive_tunnel ssh_interactive_leave select_host_console);
+use publiccloud::ssh_interactive qw(ssh_interactive_tunnel ssh_interactive_leave);
 use version_utils;
 use utils;
 
@@ -380,11 +379,12 @@ sub softreboot
 
     my $duration;
 
+    # On TUNNELED test runs, ensure we are not on the publiccloud instance
     my $prev_console = current_console();
-    # On TUNNELED test runs, we need to re-establish the tunnel
-    my $tunneled = is_tunneled() && get_var("_SSH_TUNNELS_INITIALIZED", 0);
+    # We only need to re-establish the ssh tunnel, if we are in a TUNNELED test run, and if the tunnel is already initialized
+    my $tunneled = get_var('TUNNELED', 0) && get_var("_SSH_TUNNELS_INITIALIZED", 0);
     if ($tunneled) {
-        select_console('tunnel-console', await_console => 0);
+        select_host_console(force => 1);
         ssh_interactive_leave();
     }
 
@@ -400,13 +400,9 @@ sub softreboot
     die("Waiting for system down failed!") unless ($shutdown_time < $args{timeout});
     my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time, username => $args{username});
 
-    # ensure the tunnel-console is healthy, usefuly to early detect possible issues with the serial terminal
-    assert_script_run("true", fail_message => "console is broken");
-
-    # Re-establish tunnel and switch back to previous console if needed
+    # Re-establish tunnel and switch back to previous console if TUNNELED
     if ($tunneled) {
-        record_info("re-establish tunnel", "re-esablishing ssh tunnel");
-        ssh_interactive_tunnel($self, reconnect => 1);
+        ssh_interactive_tunnel($self);
         die("expect ssh serial device to be active") unless (get_var('SERIALDEV') =~ /ssh/);
         select_console($prev_console) if ($prev_console !~ /tunnel/);
     }
