@@ -7,6 +7,7 @@ conditional_schedule:
     ARCH:
       's390x':
         - installation/bootloader_start
+        - '{{wizard}}'
         - boot/boot_to_desktop
       'x86_64':
         - '{{wizard}}'
