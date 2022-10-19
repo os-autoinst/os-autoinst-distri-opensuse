@@ -169,5 +169,6 @@ schedule:
     - '{{opensuse_tests}}'
     - '{{tumbleweed_tests}}'
     - console/tar
+    - console/ansible
     - console/coredump_collect
     - console/zypper_log_packages

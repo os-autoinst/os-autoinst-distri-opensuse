@@ -1,0 +1,7 @@
+---
+- name: Create John's README
+  become: true
+  ansible.builtin.template:
+    src: README.txt.j2
+    dest: /home/johnd/README.txt
+    owner: johnd

@@ -1,0 +1,3 @@
+[all]
+localhost  ansible_connection=ssh
+

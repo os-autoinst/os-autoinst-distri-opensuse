@@ -42,6 +42,7 @@ sub load_common_tests {
     loadtest 'microos/one_line_checks';
     loadtest 'microos/services_enabled';
     loadtest 'microos/cockpit_service';
+    loadtest 'console/ansible';
 }
 
 sub load_transactional_tests {
