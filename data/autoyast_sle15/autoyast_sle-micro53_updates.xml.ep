@@ -9,9 +9,9 @@
   <add-on>
     <add_on_products config:type="list">
       <listentry>
-        <name>SUSE-MicroOS-<%= $get_var->('VERSION') %>-Updates</name>
-        <alias>SUSE-MicroOS-<%= $get_var->('VERSION') %>-Updates</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SUSE-MicroOS/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+        <name>SLE-Micro-<%= $get_var->('VERSION') %>-Updates</name>
+        <alias>SLE-Micro-<%= $get_var->('VERSION') %>-Updates</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Micro/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
     </add_on_products>
   </add-on>
@@ -26,9 +26,12 @@
       <confirm config:type="boolean">false</confirm>
     </mode>
   </general>
+  <networking>
+    <managed config:type="boolean">true</managed>
+  </networking>
   <software>
     <products config:type="list">
-      <product>SUSE-MicroOS</product>
+      <product>SLE-Micro</product>
     </products>
     <install_recommended config:type="boolean">true</install_recommended>
     <packages config:type="list">
