@@ -8,6 +8,10 @@ terraform:
     os_image: "%QESAP_CLUSTER_OS_VER%"
     hana_os_major_version: "%QESAP_CLUSTER_OS_VER%"
     iscsi_os_major_version: "%QESAP_CLUSTER_OS_VER%"
+    monitoring_os_major_version: "%QESAP_CLUSTER_OS_VER%"
+    drdb_os_major_version: "%QESAP_CLUSTER_OS_VER%"
+    netweaver_os_major_version: "%QESAP_CLUSTER_OS_VER%"
+    bastion_os_major_version: "%QESAP_CLUSTER_OS_VER%"
     private_key: "%SSH_KEY_PRIV%"
     public_key: "%SSH_KEY_PUB%"
     gcp_credentials_file: "/root/google_credentials.json"
@@ -17,6 +21,14 @@ ansible:
     - "%HANA_SAR%"
     - "%HANA_CLIENT_SAR%"
     - "%HANA_SAPCAR%"
+  hana_vars:
+    sap_hana_install_software_directory: /hana/shared/install
+    sap_hana_install_master_password: 'DoNotUseThisPassw0rd'
+    sap_hana_install_sid: 'HDB'
+    sap_hana_install_instance_number: '00'
+    sap_domain: "qe-test.example.com"
+    primary_site: 'goofy'
+    secondary_site: 'miky'
   create:
     - registration.yaml -e reg_code=${REG_CODE} -e email_address=${EMAIL}
     - pre-cluster.yaml
