@@ -12,7 +12,6 @@
 use Mojo::Base 'publiccloud::basetest';
 use publiccloud::ssh_interactive "select_host_console";
 use testapi;
-use version_utils;
 use utils;
 
 sub prepare_ssh_tunnel {
@@ -84,7 +83,7 @@ sub run {
     $instance->network_speed_test();
 
     # ssh-tunnel settings
-    prepare_ssh_tunnel($instance) if (is_tunneled());
+    prepare_ssh_tunnel($instance) if (get_var('TUNNELED'));
 }
 
 sub test_flags {

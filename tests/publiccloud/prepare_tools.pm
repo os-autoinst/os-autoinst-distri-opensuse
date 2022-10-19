@@ -7,13 +7,14 @@
 # python3-img-proof azure-cli
 # Summary: Install IPA tool
 #
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>, qa-c team <qa-c@suse.de>
 
 use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
 use utils;
+use registration 'add_suseconnect_product';
 use version_utils qw(is_sle is_opensuse);
 use repo_tools 'generate_version';
 
@@ -58,8 +59,6 @@ EOT
 
 sub run {
     my ($self) = @_;
-
-    my $PUBLISH_HDD_1 = get_required_var("PUBLISH_HDD_1");
 
     $self->select_serial_terminal;
 
@@ -133,9 +132,6 @@ EOT
 
     # Remove persistent net rules, necessary to boot the x86_64 image in the aarch64 test runs
     assert_script_run('rm /etc/udev/rules.d/70-persistent-net.rules');
-
-    # Add marker file for PC tools image
-    assert_script_run("echo -e 'PC tools image\\nHDD: $PUBLISH_HDD_1' > /root/pc_tools_image.txt");
 
     select_console 'root-console';
 }
