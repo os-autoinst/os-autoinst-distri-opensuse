@@ -147,7 +147,7 @@ sub run {
     record_info('LTP CLONE REPO', "Repo: " . $runltp_ng_repo . "\nBranch: " . $runltp_ng_branch);
     # Temporary code for ltp_runtime option check, until transition to python will be completed.
     die('Not valid python LTP_RUN_NG_REPO provided')
-      if ($ltp_runtime and $runltp_ng_repo =~ /\/metan-ucw\//i);
+      if ($ltp_runtime and $runltp_ng_repo =~ /\/metan-ucw\/runltp/i or !$ltp_runtime and $runltp_ng_repo =~ /\/acerv\/runltp/i);
     assert_script_run("git clone -q --single-branch -b $runltp_ng_branch --depth 1 $runltp_ng_repo");
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
@@ -173,6 +173,7 @@ sub run {
         $cmd = 'python3 runltp-ng/runltp-ng ';
         $cmd .= "--json-report=$root_dir/result.json ";
         $cmd .= '--verbose ';
+        $cmd .= '--exec-timeout=1200 ';
         $cmd .= '--run-suite ' . get_required_var('LTP_COMMAND_FILE') . ' ';
         $cmd .= '--skip-tests \'' . get_var('LTP_COMMAND_EXCLUDE') . '\' ' if get_var('LTP_COMMAND_EXCLUDE');
         $cmd .= '--sut=ssh' . $sut . ' ';
@@ -185,7 +186,8 @@ sub run {
         $backend .= ':ssh_opts=\'-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\' ';
 
         $cmd = 'perl -I runltp-ng runltp-ng/runltp-ng ';
-        $cmd .= '--logname=ltp_log --verbose ';
+        $cmd .= '--logname=ltp_log ';
+        $cmd .= '--verbose ';
         $cmd .= '--timeout=1200 ';
         $cmd .= '--run ' . get_required_var('LTP_COMMAND_FILE') . ' ';
         $cmd .= '--exclude \'' . get_var('LTP_COMMAND_EXCLUDE') . '\' ' if get_var('LTP_COMMAND_EXCLUDE');
@@ -194,6 +196,7 @@ sub run {
     }
     record_info('LTP START', 'Command launch');
     assert_script_run($cmd, timeout => get_var('LTP_TIMEOUT', 30 * 60));
+    record_info('LTP END', 'tests done');
 }
 
 
