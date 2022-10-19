@@ -80,6 +80,7 @@ sub add_test_repositories {
     my $oldrepo = get_var('PATCH_TEST_REPO');
     my @repos = split(/,/, get_var('MAINT_TEST_REPO', ''));
     my $gpg = get_var('BUILD') =~ m/^MR:/ ? "-G" : "";
+    my $system_repos = script_output('zypper lr -u');
     # Be carefull. If you have defined both variables, the PATCH_TEST_REPO variable will always
     # have precedence over MAINT_TEST_REPO. So if MAINT_TEST_REPO is required to be installed
     # please be sure that the PATCH_TEST_REPO is empty.
@@ -91,6 +92,8 @@ sub add_test_repositories {
         zypper_call('--gpg-auto-import-keys ref', timeout => 1400, exitcode => [0, 106]);
     } else {
         for my $var (@repos) {
+            # don't add repo when it's already present
+            next if $system_repos =~ /$var/;
             zypper_call("--no-gpg-checks ar -f $gpg -n 'TEST_$counter' $var 'TEST_$counter'");
             $counter++;
         }
