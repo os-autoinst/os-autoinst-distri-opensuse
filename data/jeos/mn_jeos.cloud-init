@@ -23,8 +23,6 @@ chpasswd:
 # (2-3) set it the way jeos-firstboot does
 runcmd:
  - localectl set-keymap us
- - sed -i -e "s/^KEYTABLE=.*/KEYTABLE=\"us\"/" /etc/sysconfig/keyboard
- - sed -i -e "s/^RC_LANG=.*/RC_LANG=\"en_US.UTF-8\"/" /etc/sysconfig/language
 
 system_info:
   distro: sles
