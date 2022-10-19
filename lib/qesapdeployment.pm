@@ -284,7 +284,9 @@ sub qesap_prepare_env {
     push(@log_files, $paths{qesap_conf_trgt});
 
     record_info("QESAP conf", "Generating tfvars file");
-    push(@log_files, $paths{terraform_dir} . '/' . $provider . "/terraform.tfvars");
+    push(@log_files, "$paths{terraform_dir}/$provider/terraform.tfvars");
+    push(@log_files, "$paths{deployment_dir}/ansible/playbooks/vars/hana_media.yaml");
+    push(@log_files, "$paths{deployment_dir}/ansible/playbooks/vars/hana_vars.yaml");
     my $exec_rc = qesap_execute(cmd => 'configure', verbose => 1);
     qesap_upload_logs();
     die if $exec_rc != 0;
