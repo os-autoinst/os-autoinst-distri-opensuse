@@ -3,13 +3,11 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Test WiFi setup with wicked for wpa3 transition
+# Summary: Test WiFi setup with wicked for wpa3-personal only
 #          (WPA-PSK or SAE with DHCP)
-#   - The AP is connfiguered to allow WPA-PSK and SAE connections
-#   - Connect to AP with WPA-PSK
-#   - Connect to AP with WPA-PSK + PMF
-#   - Connect to AP with SAE
-#   - Connect to AP with SAE + PMF
+#   - The AP is connfiguered to allow SAE connections with PMF
+#   - Connect to AP with only SSID and PSK set (autosection)
+#   - Connect to AP with SAE 
 #   - Each connection is checked with data bi-directional traffic
 #
 # Maintainer: cfamullaconrad@suse.com
@@ -41,14 +39,18 @@ has hostapd_conf => q(
 );
 
 has ifcfg_wlan => sub { [
-        q(
-        # By default, 80211mac_hwsim has SAE capabilities, so autoselection should work
-        BOOTPROTO='dhcp'
-        STARTMODE='auto'
+        {
+            config => q(
+            # By default, 80211mac_hwsim has SAE capabilities, so autoselection should work
+            # Do not run with wpa_supplicant <2.10, as SAE isn't propagated via DBus capabilities
+            BOOTPROTO='dhcp'
+            STARTMODE='auto'
 
-        WIRELESS_ESSID='{{ssid}}'
-        WIRELESS_WPA_PSK='{{psk}}'
-    ),
+            WIRELESS_ESSID='{{ssid}}'
+            WIRELESS_WPA_PSK='{{psk}}'
+        ),
+            wpa_supplicant_version => '>=2.10'
+        },
         q(
         BOOTPROTO='dhcp'
         STARTMODE='auto'
