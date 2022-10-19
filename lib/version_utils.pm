@@ -43,6 +43,7 @@ use constant {
           is_public_cloud
           is_openstack
           is_leap_migration
+          is_tunneled
           requires_role_selection
           check_version
           get_os_release
@@ -752,6 +753,15 @@ Returns true if called in a leap to sle migration scenario
 
 sub is_leap_migration {
     return is_upgrade && get_var('ORIGIN_SYSTEM_VERSION') =~ /leap/;
+}
+
+=head2 is_tunneled
+
+Returns true if TUNNELED is set to 1
+=cut
+
+sub is_tunneled {
+    return get_var('TUNNELED', 0);
 }
 
 =head2 has_test_issues
