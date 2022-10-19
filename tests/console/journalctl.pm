@@ -14,8 +14,8 @@
 # - check if redirect to syslog is working (if applicable)
 # - check if journalctl vacuum functions are working
 # - verify FSS log again
-# Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
-#             Sergio Lindo Mansilla <slindomansilla@suse.com>
+# Maintainer: Martin Loviska <mloviska@suse.com>
+#             Felix Niederwanger <felix.niederwanger@suse.de>
 # Tags: bsc#1063066 bsc#1171858
 
 use Mojo::Base qw(consoletest);
@@ -33,9 +33,9 @@ use constant {
     SEALING_DELAY => 10
 };
 
-# Tumbleweed uses a persistent journal, Leap 15.3+ (except 15.3 AArch64 JeOS) inherits SLE's default
+# Tumbleweed uses a persistent journal, Leap 15.4 and later (except AArch64 JeOS) inherits SLE's default
 sub has_default_persistent_journal {
-    return is_tumbleweed || (is_leap('=15.3') && check_var('FLAVOR', 'JeOS-for-AArch64'));
+    return is_tumbleweed || (is_leap('<15.4') && check_var('FLAVOR', 'JeOS-for-AArch64'));
 }
 
 # If the daemon is stopped uncleanly, or if the files are found to be corrupted, they are renamed using the ".journal~" suffix
