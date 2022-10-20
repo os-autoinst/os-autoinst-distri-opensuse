@@ -15,7 +15,6 @@ vars:
     IPXE: 1
     IPXE_HTTPSERVER: http://baremetal-support.qa.suse.de:8080
     IPXE_CONSOLE: ttyS1,115200
-    PACKAGES: rdma-core,rdma-ndd
     PARALLEL_WITH: ibtest-master
     PATTERNS: base,minimal
     SCC_ADDONS: sdk
@@ -31,7 +30,6 @@ schedule:
     - installation/user_settings
     - installation/user_settings_root
     - installation/resolve_dependency_issues
-    - installation/select_packages
     - installation/installation_overview
     - installation/disable_grub_graphics
     - installation/disable_grub_timeout

@@ -17,7 +17,6 @@ vars:
     IPXE_CONSOLE: ttyS1,115200
     KERNEL_GIT_TREE: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
     KERNEL_GIT_BRANCH: for-next
-    PACKAGES: rdma-core,rdma-ndd
     PARALLEL_WITH: ibtest-master
     PATTERNS: base,minimal
     SCC_ADDONS: sdk
@@ -33,7 +32,6 @@ schedule:
     - installation/user_settings
     - installation/user_settings_root
     - installation/resolve_dependency_issues
-    - installation/select_packages
     - installation/installation_overview
     - installation/disable_grub_graphics
     - installation/disable_grub_timeout
