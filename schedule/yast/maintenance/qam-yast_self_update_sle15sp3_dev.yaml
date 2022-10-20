@@ -1,0 +1,10 @@
+---
+name: qam-yast_self_update
+description: installation using self_update as boot parameter
+vars:
+  YUI_REST_API: 1
+schedule:
+  self_update:
+    - installation/validate_self_update
+  add_on_product:
+    - installation/add_on_product/add_maintenance_repos
