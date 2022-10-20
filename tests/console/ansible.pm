@@ -17,24 +17,40 @@ use base "consoletest";
 use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
-use utils qw(zypper_call random_string systemctl file_content_replace);
-use version_utils qw(is_sle is_opensuse is_tumbleweed);
+use utils qw(zypper_call random_string systemctl file_content_replace ensure_serialdev_permissions);
+use version_utils qw(is_sle is_jeos is_opensuse is_tumbleweed is_transactional);
 use registration qw(add_suseconnect_product get_addon_fullname);
+use transactional qw(trup_call check_reboot_changes);
 
 sub run {
     select_serial_terminal;
 
     # 1. System setup
 
-    if (is_sle) {
+    if (is_sle || is_jeos) {
         add_suseconnect_product(get_addon_fullname('phub'));
     }
+
+    # Create user account, if image doesn't already contain user
+    # (which is the case for SLE images that were already prepared by openQA)
+    if (script_run("getent passwd $username") != 0) {
+        assert_script_run "useradd -m $testapi::username";
+        assert_script_run "echo '$testapi::username:$testapi::password' | chpasswd";
+    }
+    ensure_serialdev_permissions;
 
     # Install ansible and ansible-test
     # Install python3-yamllint needed for ansible-test
     #   python3-yamllint is available from 15-SP2
     # Install git needed for ansible-galaxy
-    zypper_call 'in ansible git-core python3-yamllint';
+    if (is_transactional) {
+        select_console 'root-console';
+        trup_call('pkg install ansible git-core python3-selinux');
+        check_reboot_changes;
+        $self->select_serial_terminal();
+    } else {
+        zypper_call 'in ansible git-core python3-yamllint sudo';
+    }
 
     # Start sshd
     systemctl 'start sshd';
@@ -80,7 +96,7 @@ sub run {
     # Check Ansible version
     record_info('ansible --version', script_output('ansible --version'));
 
-    my $hostname = script_output 'hostname';
+    my $hostname = script_output 'hostname -s';
     validate_script_output 'ansible -m setup localhost | grep ansible_hostname', sub { m/$hostname/ };
 
     my $arch = get_var 'ARCH';
@@ -100,12 +116,20 @@ sub run {
     die 'network-engine should be installed!' unless $galaxy_installed =~ m/ansible-network\.network-engine/;
 
     # 4. Ansible playbook testing
+    my $skip_tags;
+    $skip_tags = '--skip-tags zypper' if is_transactional;
 
     # Check that community.general.zypper module is available
     assert_script_run 'ansible-doc -l community.general | grep zypper';
 
+    # Check the version of ansible-community from where we use the zypper module
+    script_run 'ansible-community --version';
+
+    # Check that a transactional system has the necessary files
+    script_run 'ls -la /var/lib/misc/' if is_transactional;
+
     # Check the playbook
-    assert_script_run 'ansible-playbook -i hosts main.yaml --check', timeout => 300;
+    assert_script_run "ansible-playbook -i hosts main.yaml --check $skip_tags", timeout => 300;
 
     # Run the ansible sanity test
     if (script_run('ansible-test')) {
@@ -121,7 +145,7 @@ sub run {
     assert_script_run 'ansible -i hosts all --list-hosts';
 
     # Run the playbook
-    assert_script_run 'ansible-playbook -i hosts main.yaml', timeout => 600;
+    assert_script_run "ansible-playbook -i hosts main.yaml $skip_tags", timeout => 600;
 
     # Test that /tmp/ansible/uname.txt created by ansible has desired content
     my $uname = script_output 'uname -r';
@@ -137,7 +161,7 @@ sub run {
     validate_script_output 'sudo -u johnd cat /home/johnd/README.txt', sub { m/my $arch dynamic kingdom/ };
 
     # Check that Ed - the command line text edit is installed
-    assert_script_run 'which ed';
+    assert_script_run 'which ed' unless is_transactional;
 
     # 6. Ansible Vault
 
@@ -178,7 +202,14 @@ sub cleanup {
     assert_script_run 'rm -rf /etc/sudoers.d/ansible';
 
     # Remove ansible, yamllint and git
-    zypper_call 'rm ansible git-core python3-yamllint ed';
+    if (is_transactional) {
+        select_console 'root-console';
+        trup_call('pkg remove ansible git-core');
+        check_reboot_changes;
+        $self->select_serial_terminal();
+    } else {
+        zypper_call 'rm ansible git-core python3-yamllint ed';
+    }
 }
 
 sub post_run_hook {

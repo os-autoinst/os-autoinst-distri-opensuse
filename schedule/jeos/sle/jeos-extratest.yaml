@@ -60,3 +60,4 @@ schedule:
     - console/dstat
     - console/journalctl
     - console/procps
+    - console/ansible
