@@ -24,7 +24,7 @@ sub is_shown {
     my ($self) = @_;
     # on slower archs like aarch64 the system probing might take longer, so
     # we extend the timeout for this page to appear
-    return $self->{rdb_specify_url}->exist({timeout => 240});
+    return $self->{rdb_specify_url}->exist({timeout => 600});
 }
 
 sub confirm_like_additional_add_on {
