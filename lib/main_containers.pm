@@ -117,7 +117,7 @@ sub load_host_tests_docker {
         # These tests use packages from Package Hub, so they are applicable
         # to maintenance jobs or new products after Beta release
         # PackageHub is not available in SLE Micro | MicroOS
-        loadtest 'containers/registry' if is_x86_64;
+        loadtest 'containers/registry' if (is_x86_64 || is_sle('>=15-sp4'));
         loadtest 'containers/docker_compose' unless is_public_cloud;
     }
     # works currently only for x86_64, more are coming (poo#103977)
