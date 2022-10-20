@@ -1,0 +1,17 @@
+---
+name:           transactional_server_helper_apps_exclude_rebootmgr
+description:    >
+   Test transactional updates with Btrfs and helper applications
+   in a transactional update server.
+vars:
+  BOOT_HDD_IMAGE: 1
+  HDDSIZEGB: 40
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/hostname
+  - transactional/filesystem_ro
+  - transactional/transactional_update
+  - transactional/health_check
