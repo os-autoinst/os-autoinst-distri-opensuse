@@ -255,6 +255,41 @@ sub select_all_patterns_by_menu {
     assert_screen 'inst-overview';
 }
 
+=head2 select_not_install_any_pattern 
+
+    select_not_install_any_pattern() 
+
+Being in the "select pattern" screen, performs steps to not install any
+patterns.
+=cut
+
+sub select_not_install_any_pattern {
+    my ($self) = @_;
+
+    # Ensure mouse on certain pattern then right click
+    assert_and_click("minimal-system", button => 'right');
+    assert_screen 'selection-menu';
+    # select action on all patterns
+    wait_screen_change { send_key 'a'; };
+    # confirm do not install
+    assert_and_click 'all-do-not-install';
+    save_screenshot;
+}
+
+=head2 select_visible_unselected_patterns
+
+    select_visible_unselected_patterns([@patterns])
+
+Being in the "select pattern" screen, performs steps to select visible
+patterns.
+=cut
+
+sub select_visible_unselected_patterns {
+    my ($self, $patterns) = @_;
+
+    assert_and_click("$_-pattern") for ($patterns->@*);
+}
+
 =head2 deselect_pattern
 
     deselect_pattern();
