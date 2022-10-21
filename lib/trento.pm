@@ -235,11 +235,6 @@ sub config_cluster {
     my $ssh_key_pub = SSH_KEY . '.pub';
     my $qesap_provider = lc get_required_var('PUBLIC_CLOUD_PROVIDER');
 
-    # Get the code for the qe-sap-deployment
-    qesap_create_folder_tree();
-    qesap_get_deployment_code();
-    qesap_pip_install();
-
     my %variables;
     $variables{PROVIDER} = $qesap_provider;
     $variables{REGION} = $region;
@@ -445,7 +440,7 @@ sub install_agent {
     if (get_var('TRENTO_AGENT_RPM')) {
         my $package = get_var('TRENTO_AGENT_RPM');
         my $ibs_location = get_var(TRENTO_AGENT_REPO => 'https://dist.suse.de/ibs/Devel:/SAP:/trento:/factory/SLE_15_SP3/x86_64');
-        $cmd = "curl \"$ibs_location/$package\" --output $wd/$package";
+        $cmd = "curl --verbose \"$ibs_location/$package\" --output $wd/$package";
         assert_script_run($cmd);
         $local_rpm_arg = " -e agent_rpm=$wd/$package";
     }
@@ -455,7 +450,8 @@ sub install_agent {
         "$playbook_location/trento-agent.yaml",
         $local_rpm_arg,
         '-e', "api_key=$agent_api_key",
-        '-e', "trento_private_addr=$priv_ip");
+        '-e', "trento_private_addr=$priv_ip",
+        '-e', 'trento_server_pub_key=' . SSH_KEY . '.pub');
     assert_script_run($cmd);
 }
 

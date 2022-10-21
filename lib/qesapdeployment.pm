@@ -283,11 +283,12 @@ sub qesap_prepare_env {
     qesap_yaml_replace(openqa_variables => $variables);
     push(@log_files, $paths{qesap_conf_trgt});
 
-    record_info("QESAP conf", "Generating tfvars file");
+    record_info("QESAP conf", "Generating all terraform and Ansible configuration files");
     push(@log_files, "$paths{terraform_dir}/$provider/terraform.tfvars");
     push(@log_files, "$paths{deployment_dir}/ansible/playbooks/vars/hana_media.yaml");
-    push(@log_files, "$paths{deployment_dir}/ansible/playbooks/vars/hana_vars.yaml");
+    my $hana_vars = "$paths{deployment_dir}/ansible/playbooks/vars/hana_vars.yaml";
     my $exec_rc = qesap_execute(cmd => 'configure', verbose => 1);
+    push(@log_files, $hana_vars) if (script_run("test -e $hana_vars") == 0);
     qesap_upload_logs();
     die if $exec_rc != 0;
     return;
