@@ -17,8 +17,6 @@ use lockapi;
 use mmapi;
 use Test::Assert 'assert_equals';
 
-my $workaround_bsc1189550_done;
-
 =head1 y2_installbase
 
 C<y2_installbase> - Base class for Yast installer related functionality
@@ -183,9 +181,11 @@ highlight cursor one item down.
 =cut
 
 sub move_down {
+    # Sending 'down' twice, followed by 'up', scrolls to the intended item.
+    wait_screen_change { send_key 'down' } if is_sle('>=15-sp3');
     my $ret = wait_screen_change { send_key 'down' };
-    workaround_bsc1189550() if (!$workaround_bsc1189550_done && is_sle('>=15-sp3'));
     last if (!$ret);    # down didn't change the screen, so exit here
+    wait_screen_change { send_key 'up' } if is_sle('>=15-sp3');
     check12qtbug if check_var('VERSION', '12');
 }
 
@@ -623,12 +623,6 @@ sub post_fail_hook {
         # Collect yast2 installer  strace and gbd debug output if is still running
         $self->save_strace_gdb_output;
     }
-}
-
-sub workaround_bsc1189550 {
-    wait_screen_change { send_key 'end' };
-    wait_screen_change { send_key 'home' };
-    $workaround_bsc1189550_done = 1;
 }
 
 # All steps in the installation are 'fatal'.
