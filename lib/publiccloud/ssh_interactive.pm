@@ -80,11 +80,18 @@ sub ssh_interactive_leave {
     unset_sshserial_dev();
     set_var('AUTOINST_URL_HOSTNAME', testapi::host_ip());
 
-    # Terminate the ssh tunnel loop. Send ctrl-c twice to ensure it arrives
-    send_key 'ctrl-c';
-    send_key 'ctrl-c';
-    send_key 'ret';
-    assert_script_run("true", fail_message => "tunnel-console is not functional");    # additional health check
+    # While the tunnel console is active, the serial terminal sometimes swallows characters. To terminate the
+    # ssh tunnel reliably, we repeat the process until it succeeds. A delay between retries is useful to let thinks
+    # cool down after a failed attempt
+    my $retries = 8;
+    while ($retries-- > 0) {
+        send_key 'ctrl-c';
+        send_key 'ctrl-c';
+        send_key 'ret';
+        last if (script_run("true") == 0);
+        sleep 5;    # some cool down after a failed attempt
+    }
+    die "tunnel-console is not functional" if ($retries <= 0);
 
     select_console($prev_console) if ($prev_console !~ /tunnel-console/);
     set_var('_SSH_TUNNELS_INITIALIZED', 0);    # set after the last select_console!
