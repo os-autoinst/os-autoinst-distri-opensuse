@@ -28,7 +28,6 @@ sub logout_and_verify_shell_availability {
 }
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     zypper_call 'in krb5 krb5-server krb5-client';

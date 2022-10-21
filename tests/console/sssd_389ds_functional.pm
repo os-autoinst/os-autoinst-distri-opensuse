@@ -25,7 +25,6 @@ use version_utils;
 use registration 'add_suseconnect_product';
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
     my $docker = "podman";
     if (is_sle) {

@@ -16,7 +16,6 @@ use warnings;
 use utils;
 
 sub run {
-    my ($self) = @_;
     my $instance_type = get_required_var('INSTANCE_TYPE');
     my $instance_id = get_required_var('INSTANCE_ID');
     my $sid = get_required_var('INSTANCE_SID');

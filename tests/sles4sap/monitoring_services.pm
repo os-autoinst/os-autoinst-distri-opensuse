@@ -181,7 +181,6 @@ sub configure_node_exporter {
 }
 
 sub run {
-    my ($self) = @_;
     my $hostname = get_hostname;
     my $cluster_name = get_cluster_name;
     my $instance_sid = get_required_var('INSTANCE_SID');

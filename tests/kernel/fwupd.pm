@@ -16,7 +16,6 @@ use utils;
 use Utils::Backends 'is_pvm';
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     # Install and start fwupd

@@ -17,7 +17,6 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run_test {
-    my $self = shift;
     select_serial_terminal;
 
     ensure_default_net_is_active();

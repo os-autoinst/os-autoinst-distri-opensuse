@@ -19,7 +19,6 @@ use repo_tools 'get_repo_var_name';
 use y2_logs_helper qw(upload_autoyast_profile upload_autoyast_schema);
 
 sub run {
-    my $self = shift;
     select_console 'root-console';
 
     # Install for TW and generate profile

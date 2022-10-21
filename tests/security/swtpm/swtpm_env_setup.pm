@@ -18,8 +18,6 @@ use Utils::Architectures;
 use rpi 'enable_tpm_slb9670';
 
 sub run {
-    my $self = shift;
-
     if (get_var('MACHINE') =~ /RPi4/) {
         enable_tpm_slb9670;
     } else {

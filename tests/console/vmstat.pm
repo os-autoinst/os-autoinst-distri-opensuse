@@ -24,7 +24,6 @@ use List::Util qw(min);
 use console::vmstat_utils;
 
 sub run {
-    my ($self) = @_;
     my ($vm, $cpu);
     select_serial_terminal;
     zypper_call('in procps');

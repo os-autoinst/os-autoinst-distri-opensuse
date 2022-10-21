@@ -58,8 +58,6 @@ EOT
 }
 
 sub run {
-    my ($self) = @_;
-
     my $PUBLISH_HDD_1 = get_required_var("PUBLISH_HDD_1");
 
     select_serial_terminal;

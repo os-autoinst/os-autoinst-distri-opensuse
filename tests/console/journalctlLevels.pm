@@ -17,7 +17,6 @@ use strict;
 use warnings;
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     record_info("INFO", "Logs all level0 severity types");

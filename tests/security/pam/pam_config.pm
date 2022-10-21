@@ -15,7 +15,6 @@ use utils 'zypper_call';
 use version_utils 'is_sle';
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     # Create a simple Unix authentication configuration, all backup files will not be deleted

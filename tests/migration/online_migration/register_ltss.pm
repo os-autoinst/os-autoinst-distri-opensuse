@@ -16,7 +16,6 @@ use registration qw(add_suseconnect_product);
 use zypper qw(wait_quit_zypper);
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
 
     # Make sure that nothing is using rpm for avoiding lock conflict

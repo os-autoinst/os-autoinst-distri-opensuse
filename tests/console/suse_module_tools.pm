@@ -20,7 +20,6 @@ use utils 'zypper_call';
 use version_utils qw(is_sle is_tumbleweed);
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     # Find a random module available on the system

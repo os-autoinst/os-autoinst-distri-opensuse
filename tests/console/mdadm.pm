@@ -18,7 +18,6 @@ use strict;
 use warnings;
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     assert_script_run 'wget ' . data_url('qam/mdadm.sh');

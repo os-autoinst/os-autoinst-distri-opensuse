@@ -16,7 +16,6 @@ use registration qw(register_addons_cmd verify_scc investigate_log_empty_license
 
 sub run {
     return if get_var('HDD_SCC_REGISTERED');
-    my $self = shift;
     my $reg_code = get_required_var 'SCC_REGCODE';
     my $cmd = "SUSEConnect -r $reg_code";
     my $scc_addons = get_var 'SCC_ADDONS', '';

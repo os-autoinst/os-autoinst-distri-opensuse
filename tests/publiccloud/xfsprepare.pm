@@ -130,7 +130,6 @@ sub get_unused_nvme_device {
 }
 
 sub run {
-    my $self = shift;
     my $device = get_var("XFS_TEST_DEVICE", "/dev/sdb");
     my $mnt_xfs = "/mnt/xfstests/xfs";
     my $mnt_scratch = "/mnt/scratch";

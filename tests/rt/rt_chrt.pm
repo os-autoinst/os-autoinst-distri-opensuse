@@ -52,8 +52,6 @@ sub remap_args {
 }
 
 sub run {
-    my $self = shift;
-
     select_serial_terminal;
 
     # Are there any running RT processes ?

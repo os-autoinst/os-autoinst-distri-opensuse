@@ -32,8 +32,6 @@ sub start_wgquick {
 }
 
 sub run {
-    my $self = shift;
-
     if (get_var('IS_MM_SERVER')) {
         barrier_create 'SETUP_DONE', 2;
         barrier_create 'KEY_TRANSFERED', 2;

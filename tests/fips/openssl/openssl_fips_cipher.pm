@@ -20,7 +20,6 @@ use utils;
 use version_utils 'is_sle';
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
     zypper_call 'in openssl';
 

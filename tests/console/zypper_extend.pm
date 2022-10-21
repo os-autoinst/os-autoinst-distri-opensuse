@@ -52,7 +52,6 @@ use utils qw(zypper_call);
 use version_utils qw(is_sle is_leap is_jeos is_tumbleweed);
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     #Search for a package (star

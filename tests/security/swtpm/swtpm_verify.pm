@@ -16,7 +16,6 @@ use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 
 sub run {
-    my $self = shift;
     select_serial_terminal if !(get_var('MACHINE') =~ /RPi4/);
     my $vm_type = 'legacy';
     $vm_type = 'uefi' if get_var('HDD_SWTPM_UEFI');

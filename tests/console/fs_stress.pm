@@ -14,7 +14,6 @@ use warnings;
 use utils;
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
     assert_script_run("lsblk -f");
     assert_script_run("df -h");

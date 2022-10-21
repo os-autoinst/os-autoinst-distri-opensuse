@@ -19,7 +19,6 @@ use serial_terminal 'select_serial_terminal';
 use upload_system_log 'upload_supportconfig_log';
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
     select_console 'root-console';
     my $options = get_var('SUPPORTCOFIG_OPTIONS', '');

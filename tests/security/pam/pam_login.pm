@@ -13,7 +13,6 @@ use serial_terminal 'select_serial_terminal';
 use version_utils;
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     # Define the user and password, which are already configured in previous milestone

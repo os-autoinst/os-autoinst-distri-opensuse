@@ -23,7 +23,6 @@ use utils;
 use version_utils qw(is_leap is_sle php_version);
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
     zypper_call("in gcc-c++ pcre-devel");
     assert_script_run "mkdir pcre_data; cd pcre_data; curl -L -v " . autoinst_url . "/data/pcre > pcre-tests.data && cpio -id < pcre-tests.data && cd data";

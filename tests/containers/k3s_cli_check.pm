@@ -16,7 +16,6 @@ use strict;
 use warnings;
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
 
     record_info('kubectl', script_output('kubectl'));

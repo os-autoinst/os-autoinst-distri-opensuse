@@ -15,7 +15,6 @@ use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call clear_console);
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     # Return when balancing is ineffective on system with a single cpu

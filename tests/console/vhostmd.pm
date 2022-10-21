@@ -21,7 +21,6 @@ use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call);
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal();
     zypper_call 'in libvirt vhostmd';
 

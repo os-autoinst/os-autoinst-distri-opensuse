@@ -16,7 +16,7 @@ use lockapi;
 use utils;
 use version_utils 'is_sle';
 
-sub run ($self) {
+sub run {
     # Get number of nodes
     my $nodes = get_required_var("CLUSTER_NODES");
     # Get hostname

@@ -22,7 +22,6 @@ use version_utils qw(get_os_release);
 use containers::common;
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
     my ($running_version, $sp, $host_distri) = get_os_release;
 

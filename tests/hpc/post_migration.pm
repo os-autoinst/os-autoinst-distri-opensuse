@@ -16,7 +16,7 @@ use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
 
-sub run ($self) {
+sub run {
     my $nodes = get_required_var("CLUSTER_NODES");
 
     record_info('Post migration tests');

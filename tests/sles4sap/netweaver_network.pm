@@ -15,7 +15,6 @@ use strict;
 use warnings;
 
 sub run {
-    my ($self) = @_;
     my $cluster_name = get_cluster_name;
     my $instance_type = get_required_var('INSTANCE_TYPE');
     my ($ip, $netmask) = split '/', get_required_var('INSTANCE_IP_CIDR');

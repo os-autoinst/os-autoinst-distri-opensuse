@@ -17,7 +17,6 @@ use lockapi;
 
 sub run {
     #run on serial console.
-    my $self = shift;
     select_serial_terminal;
 
     #preparing files will be use by client side.

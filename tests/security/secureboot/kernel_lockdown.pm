@@ -13,7 +13,6 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     # Make sure system is secureboot enabled

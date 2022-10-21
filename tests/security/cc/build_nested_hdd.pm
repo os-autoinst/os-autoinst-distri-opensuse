@@ -18,7 +18,6 @@ use utils 'permit_root_ssh';
 use power_action_utils 'power_action';
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     # Modify the grub timeout to 1 second, then OS can autoboot after reset

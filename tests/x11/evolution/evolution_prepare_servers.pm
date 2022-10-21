@@ -24,7 +24,6 @@ use utils;
 use version_utils qw(is_sle is_jeos is_opensuse);
 
 sub run() {
-    my $self = shift;
     select_serial_terminal;
 
     quit_packagekit;

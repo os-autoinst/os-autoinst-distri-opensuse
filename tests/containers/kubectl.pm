@@ -18,7 +18,6 @@ use publiccloud::utils;
 use containers::k8s;
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
 
     install_kubectl();
@@ -130,8 +129,6 @@ sub run {
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
-
     # Try to collect as much information about kubernetes as possible
     script_run('kubectl describe deployments');
     script_run('kubectl describe services');

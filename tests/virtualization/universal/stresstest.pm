@@ -17,7 +17,6 @@ use utils;
 use version_utils;
 
 sub run_test {
-    my $self = shift;
     # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
     select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
     # Fetch the test script to local host, before distributing it to the guests

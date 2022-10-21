@@ -20,7 +20,6 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 
 sub run() {
-    my $self = shift;
     select_serial_terminal;
     assert_script_run 'SUSEConnect --cleanup';
     my $scc_regcode_rt = get_required_var 'SCC_REGCODE_RT';

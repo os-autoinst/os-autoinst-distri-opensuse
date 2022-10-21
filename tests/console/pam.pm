@@ -27,7 +27,6 @@ use utils;
 use version_utils;
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     die "This test module is not enabled for openSUSE Leap yet" if is_leap('<15.3');

@@ -31,7 +31,6 @@ my $version = get_var('VERSION');
 my $version_id = (split('-', $version))[0] . '.' . (split('P', (split('-', $version))[1]))[1];
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
     # Make sure that PackageKit is not running
     quit_packagekit;

@@ -17,7 +17,6 @@ use utils 'zypper_call';
 use version_utils qw(is_tumbleweed is_leap is_sle);
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     # Install the gnutls / libnettle packages (pulled as dependency)

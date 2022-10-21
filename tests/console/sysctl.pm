@@ -16,7 +16,6 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
     assert_script_run 'sysctl -w vm.swappiness=59';
     validate_script_output 'cat /proc/sys/vm/swappiness', sub { m/^59$/ };

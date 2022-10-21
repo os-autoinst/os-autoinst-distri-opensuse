@@ -12,7 +12,6 @@ use serial_terminal 'select_serial_terminal';
 use qesapdeployment;
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
 
     my $ret = qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);

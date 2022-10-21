@@ -28,7 +28,6 @@ use mm_network 'setup_static_mm_network';
 use nfs_common;
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
 
     # NFSCLIENT defines if the test should be run on multi-machine setup.

@@ -29,7 +29,6 @@ sub compare_time {
 
 sub run {
     #Preparation
-    my $self = shift;
     select_serial_terminal;
 
     if (is_leap('<15.0') || is_sle('<15')) {

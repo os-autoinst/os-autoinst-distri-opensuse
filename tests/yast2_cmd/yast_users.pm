@@ -24,7 +24,6 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
     zypper_call("in yast2-users yast2-nis-client ypbind", exitcode => [0, 102, 103, 106]);
 

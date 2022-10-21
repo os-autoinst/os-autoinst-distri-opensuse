@@ -26,7 +26,6 @@ use version_utils qw(is_sle);
 use utils;
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     zypper_call("in mutt", exitcode => [0, 102, 103]);

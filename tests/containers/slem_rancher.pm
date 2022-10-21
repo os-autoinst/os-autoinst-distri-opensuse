@@ -16,7 +16,6 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
 
     my $image = get_var('CONTAINER_IMAGE_TO_TEST', 'registry.suse.de/suse/sle-15-sp3/update/products/microos52/update/cr/totest/images/suse/sle-micro-rancher/5.2:latest');

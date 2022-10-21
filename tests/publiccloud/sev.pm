@@ -22,7 +22,6 @@ sub get_sev_message {
 }
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     # Skip this test run, unless defined to run

@@ -18,7 +18,6 @@ use version_utils "get_os_release";
 use rancher::utils;
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
 
     my ($running_version, $sp, $host_distri) = get_os_release;

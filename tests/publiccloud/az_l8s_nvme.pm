@@ -29,7 +29,6 @@ sub benchmark_device {
 }
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     die "This test only works on Azure L instances" unless (get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ 'L(8|16|32|48|64|80)s_v2');

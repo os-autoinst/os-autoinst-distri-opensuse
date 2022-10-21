@@ -21,7 +21,6 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
     zypper_call "in yast2-country";
     my $timezone = script_output 'yast timezone summary 2>&1 | grep "Current Time Zone" | cut -d: -f2';

@@ -21,7 +21,6 @@ use utils;
 use version_utils;
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     my $test_log_msg = 'Test Log Message FOOBAR123';

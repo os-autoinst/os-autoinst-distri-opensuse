@@ -29,7 +29,6 @@ use utils 'zypper_call';
 use File::Basename 'basename';
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
     my $dir_prefix = '/tmp/';
     my @test_pkgs = map { $dir_prefix . $_ } qw(openqa_rpm_test-1.0-0.noarch.rpm aaa_base.rpm);

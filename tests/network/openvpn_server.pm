@@ -25,7 +25,6 @@ use strict;
 use warnings;
 
 sub run {
-    my $self = shift;
     barrier_create 'SETUP_DONE', 2;
     barrier_create('OPENVPN_STATIC_STARTED', 2);
     barrier_create('OPENVPN_STATIC_FINISHED', 2);

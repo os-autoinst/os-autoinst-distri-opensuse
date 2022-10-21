@@ -17,7 +17,6 @@ use mm_network;
 use Utils::Systemd 'disable_and_stop_service';
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
     # All nodes are online with SSH enabled
     barrier_create('networking_prepared', 3);

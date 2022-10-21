@@ -22,7 +22,6 @@ use utils;
 use Mojo::Util 'trim';
 
 sub run {
-    my $self = shift;
     my $meminfo;
     my $failed;
 

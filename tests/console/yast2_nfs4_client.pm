@@ -30,7 +30,6 @@ use mm_network;
 use nfs_common;
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     setup_static_mm_network('10.0.2.102/24');

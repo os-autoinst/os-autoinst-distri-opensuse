@@ -16,7 +16,6 @@ use utils;
 use power_action_utils 'power_action';
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     # Reinstall btrfsmaintenance pachage

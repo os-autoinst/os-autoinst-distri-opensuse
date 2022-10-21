@@ -16,7 +16,6 @@ use serial_terminal 'select_serial_terminal';
 use utils 'systemctl';
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
     if (systemctl('-q is-active pacemaker', ignore_failure => 1)) {
         record_info("Enable cluster", "Cluster is enabled at boot");

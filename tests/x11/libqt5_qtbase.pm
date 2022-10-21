@@ -23,7 +23,6 @@ use registration qw(cleanup_registration register_product add_suseconnect_produc
 
 sub run {
     if (is_sle('>=15-sp4')) {
-        my $self = shift;
         select_serial_terminal;
         # Activating development-tools module to install libqt5-qttools package
         add_suseconnect_product("sle-module-development-tools");

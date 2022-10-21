@@ -19,7 +19,6 @@ use version_utils;
 use mmapi;
 
 sub run {
-    my $self = shift;
     my $master = get_required_var('IBTEST_IP1');
     my $slave = get_required_var('IBTEST_IP2');
 

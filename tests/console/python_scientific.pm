@@ -35,7 +35,6 @@ sub run_python_script {
 }
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     my $scipy = is_sle('<15-sp1') ? '' : 'python3-scipy';

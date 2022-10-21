@@ -100,14 +100,12 @@ sub update_password {
 }
 
 sub disable_ipv6 {
-    my $self = shift;
     select_serial_terminal;
     assert_script_run("sysctl -w net.ipv6.conf.all.disable_ipv6=1");
     set_var('SYSCTL_IPV6_DISABLED', '1');
 }
 
 sub enable_ipv6 {
-    my $self = shift;
     select_serial_terminal;
     assert_script_run("sysctl -w net.ipv6.conf.all.disable_ipv6=0");
     systemctl('restart network');
@@ -115,10 +113,9 @@ sub enable_ipv6 {
 }
 
 sub run {
-    my $self = shift;
     # select_console 'root-console';
     select_serial_terminal;
-    $self->disable_ipv6;
+    disable_ipv6;
     samba_sssd_install;
 
     #Join the Active Directory

@@ -23,7 +23,6 @@ use strict;
 use warnings;
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     my $file_raw = "hello.txt";

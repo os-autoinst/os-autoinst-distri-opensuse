@@ -13,7 +13,6 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my ($self) = @_;
     my $test_module = "openvpn";
 
     select_serial_terminal;

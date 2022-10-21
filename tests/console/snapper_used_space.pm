@@ -77,7 +77,6 @@ sub query_space_several_snapshot {
 }
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
     die 'Quota must be enabled on btrfs for this test' if (script_run('snapper get-config | grep QGROUP') != 0);
     ensure_size_displayed;

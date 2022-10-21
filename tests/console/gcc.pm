@@ -17,7 +17,6 @@ use utils;
 use version_utils qw(is_tumbleweed);
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     ## Note: Because this test currently only includes the gcc-jit test, the module is scheduled on Tumbleweed only

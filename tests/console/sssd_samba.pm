@@ -23,7 +23,6 @@ use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
     # Install sssd before samba and separately as we need to check, if the
     # libwbclient.so.0 module gets overwritten

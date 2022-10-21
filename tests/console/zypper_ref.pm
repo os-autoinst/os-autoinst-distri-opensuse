@@ -20,7 +20,6 @@ use utils qw(zypper_call zypper_enable_install_dvd);
 use version_utils 'is_sle';
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     zypper_enable_install_dvd;

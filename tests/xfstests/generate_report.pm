@@ -103,7 +103,6 @@ sub analyze_result {
 }
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
     sleep 5;
 

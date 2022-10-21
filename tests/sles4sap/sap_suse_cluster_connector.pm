@@ -35,7 +35,6 @@ sub exec_conn_cmd {
 }
 
 sub run {
-    my ($self) = @_;
     my $instance_type = get_required_var('INSTANCE_TYPE');
     my $instance_id = get_required_var('INSTANCE_ID');
     my $instance_sid = get_required_var('INSTANCE_SID');

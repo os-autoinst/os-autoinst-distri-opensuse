@@ -17,7 +17,6 @@ use version_utils 'is_sle';
 use registration qw(add_suseconnect_product get_addon_fullname);
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
 
     add_suseconnect_product("PackageHub", undef, undef, undef, 300, 1) if is_sle;

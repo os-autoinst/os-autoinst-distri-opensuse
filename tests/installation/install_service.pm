@@ -1,4 +1,3 @@
-
 # Copyright 2019 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -16,7 +15,6 @@ use version_utils qw(is_hyperv is_sle is_sles4sap);
 use main_common 'is_desktop';
 
 sub run {
-
     if (get_var('SEL_SERIAL_CONSOLE')) {
         select_serial_terminal();
     }

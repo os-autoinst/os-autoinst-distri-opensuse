@@ -14,7 +14,6 @@ use version_utils qw(is_sle);
 use registration qw(add_suseconnect_product);
 
 sub run {
-    my ($self) = @_;
     my $test_opts = {
         NO_BUILD => get_var('SYSTEMD_NO_BUILD', 1),
         TEST_PREFER_NSPAWN => get_var('SYSTEMD_NSPAWN', 1),

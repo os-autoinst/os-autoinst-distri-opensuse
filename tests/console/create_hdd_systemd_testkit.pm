@@ -19,7 +19,6 @@ use utils;
 my $testdir = '/usr/lib/test/external/';
 
 sub run {
-    my ($self) = @_;
     my $systemd_suse_url = get_var("EXTERNAL_TESTSUITE_URL");    # Tarball location to do download
     select_serial_terminal;
     assert_script_run("mkdir -p  $testdir");

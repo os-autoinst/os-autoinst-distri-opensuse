@@ -14,8 +14,6 @@ use serial_terminal 'select_serial_terminal';
 
 sub run {
     return unless get_var('QEMUTPM');
-
-    my $self = shift;
     select_serial_terminal;
 
     # Measured boot basic check, in current test logic, it depends on backend qemu and ovmf

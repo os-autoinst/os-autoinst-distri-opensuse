@@ -15,7 +15,6 @@ use base "opensusebasetest";
 use repo_tools qw(add_qa_head_repo add_qa_web_repo);
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
     add_qa_head_repo;
     add_qa_web_repo;

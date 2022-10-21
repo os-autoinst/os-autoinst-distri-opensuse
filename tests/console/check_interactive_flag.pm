@@ -20,7 +20,6 @@ use utils;
 use version_utils;
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     # Get the maintenance updates of the corresponding packages

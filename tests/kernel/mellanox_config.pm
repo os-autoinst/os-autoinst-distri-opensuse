@@ -22,7 +22,6 @@ use ipmi_backend_utils;
 use power_action_utils 'power_action';
 
 sub run {
-    my $self = shift;
     my $protocol = get_var('MLX_PROTOCOL', 2);
 
     # allow to configure SR-IOV and enable virtual functions

@@ -24,7 +24,6 @@ sub repo_cleanup {
 }
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
 
     # Note: Check the ticket in p.o.o for detailed descriptions of the

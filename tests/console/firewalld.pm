@@ -286,7 +286,6 @@ sub test_custom_services {
 }
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     # Check Service State, enable it if necessary, set default zone to public

@@ -17,7 +17,6 @@ use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
     zypper_call 'in ca-certificates-mozilla openssl';
     assert_script_run('echo "x" | openssl s_client -connect static.opensuse.org:443 | grep "Verify return code: 0"');

@@ -19,7 +19,6 @@ use utils qw(zypper_call systemctl package_upgrade_check);
 use Utils::Architectures;
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     # Version check

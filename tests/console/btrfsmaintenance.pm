@@ -43,7 +43,6 @@ sub btrfs_service_unavailable {
 
 sub run {
     # Preparation
-    my $self = shift;
     select_serial_terminal;
 
     if (script_run('mount | grep btrfs') != 0) {

@@ -25,7 +25,6 @@ sub run {
     my $arch = get_required_var("ARCH");
     my $live_reg_code = get_required_var("SCC_REGCODE_LIVE");
 
-    my $self = shift;
     select_serial_terminal;
 
     # Make sure to start with de-registered system. In case the system is not registered this command will fail

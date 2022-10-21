@@ -20,7 +20,6 @@ use version_utils 'is_sle';
 use registration qw(cleanup_registration register_product);
 
 sub run {
-    my ($self) = @_;
     my $regcode = get_required_var('SCC_REGCODE_SLES4SAP');
     my $cmd = '/usr/sbin/Migrate_SLES_to_SLES-for-SAP.sh';
 

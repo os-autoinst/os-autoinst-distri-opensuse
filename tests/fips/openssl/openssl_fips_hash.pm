@@ -23,7 +23,6 @@ use warnings;
 use utils qw(zypper_call);
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
     zypper_call 'in openssl';
 

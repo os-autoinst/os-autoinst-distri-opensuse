@@ -27,7 +27,6 @@ sub prepare_blktests_config {
 }
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     #below variable exposes blktests options to the openQA testsuite

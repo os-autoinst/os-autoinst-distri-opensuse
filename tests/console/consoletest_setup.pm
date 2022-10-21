@@ -28,7 +28,6 @@ use warnings;
 
 
 sub run {
-    my $self = shift;
     my $user = $testapi::username;
     select_serial_terminal;
 

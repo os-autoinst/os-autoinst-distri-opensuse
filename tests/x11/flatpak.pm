@@ -21,7 +21,6 @@ use version_utils;
 use x11utils;
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
     # Install flatpak and run basic tests
     zypper_call('in flatpak');

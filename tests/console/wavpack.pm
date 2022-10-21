@@ -28,7 +28,6 @@ use version_utils 'is_sle';
 use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
     # development module needed for dependencies, released products are tested with sdk module
     if (is_sle() && !main_common::is_updates_tests()) {

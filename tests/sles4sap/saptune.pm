@@ -16,8 +16,6 @@ use strict;
 use warnings;
 
 sub run {
-    my ($self) = @_;
-
     select_serial_terminal;
 
     # Skip test on migration

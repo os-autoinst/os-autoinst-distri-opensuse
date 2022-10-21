@@ -14,7 +14,6 @@ use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call package_upgrade_check);
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     # Version check

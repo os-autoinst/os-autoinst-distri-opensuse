@@ -17,8 +17,6 @@ use utils 'zypper_call';
 use version_utils 'is_sle';
 
 sub run {
-    my $self = shift;
-
     select_console('root-console');
 
     # Install emulated tpm server and git-core

@@ -29,7 +29,6 @@ use Utils::Architectures;
 use services::cups;
 
 sub run {
-    my $self = shift;
     select_serial_terminal unless (is_s390x);
 
     services::cups::install_service();

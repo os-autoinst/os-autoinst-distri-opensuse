@@ -30,7 +30,6 @@ use version_utils "is_sle";
 
 sub run {
     # Preparation
-    my $self = shift;
     select_serial_terminal;
     # development module needed for dependencies, released products are tested with sdk module
     if (is_sle && !main_common::is_updates_tests()) {

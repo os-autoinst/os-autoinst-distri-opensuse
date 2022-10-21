@@ -19,7 +19,6 @@ use registration qw(add_suseconnect_product register_product);
 use version_utils qw(is_sle is_tumbleweed);
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
 
     # make sure SELinux is "enabled" and in "permissive" mode

@@ -18,7 +18,6 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my $self = shift;
     my $numcpu = get_required_var('QEMUCPUS');
     my @interrupts;
     my @irqs;    # number of interrupts by cpu

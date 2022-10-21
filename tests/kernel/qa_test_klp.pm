@@ -19,8 +19,6 @@ use registration;
 use version_utils 'is_sle';
 
 sub run {
-    my $self = shift;
-
     if (get_var('AZURE')) {
         record_info("Azure don't have kGraft/LP infrastructure");
         return;

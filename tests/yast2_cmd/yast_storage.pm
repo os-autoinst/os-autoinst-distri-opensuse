@@ -16,7 +16,6 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
     zypper_call "in yast2-storage";
     #    assert_script_run 'yast disk list disks';

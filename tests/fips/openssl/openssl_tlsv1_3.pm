@@ -18,7 +18,6 @@ use warnings;
 use apachetest;
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
     setup_apache2(mode => 'SSL');
 

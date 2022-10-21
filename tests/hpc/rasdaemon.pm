@@ -51,7 +51,7 @@ sub subtestcase_output ($out, $regex, $description) {
     }
 }
 
-sub run ($self) {
+sub run {
     # load kernel module
     assert_script_run('modprobe mce-inject') if (is_x86_64 && check_var('VERSION', '15-SP2'));
 

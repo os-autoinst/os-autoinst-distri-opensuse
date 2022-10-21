@@ -17,7 +17,6 @@ use utils;
 use version_utils qw(is_sle);
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     # Install udisks2 package. mkisofs and util-linux for support packages

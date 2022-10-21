@@ -20,7 +20,6 @@ use version_utils qw(is_leap is_sle php_version);
 use registration qw(add_suseconnect_product get_addon_fullname);
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     add_suseconnect_product(get_addon_fullname('script'), (is_sle('<15') ? '12' : undef)) if (is_sle('<15-sp4'));

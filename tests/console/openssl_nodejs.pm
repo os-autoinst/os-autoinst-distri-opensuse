@@ -21,7 +21,6 @@ use repo_tools 'generate_version';
 
 sub run {
     #Preparation
-    my $self = shift;
     select_serial_terminal;
 
     my $os_version = generate_version();

@@ -24,7 +24,6 @@ sub test_setup {
 }
 
 sub run {
-    my $self = shift;
     test_setup;
     YaST::Module::open(module => 'scc', ui => 'qt');
     save_screenshot;

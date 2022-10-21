@@ -21,7 +21,6 @@ use utils "zypper_call";
 use registration "add_suseconnect_product";
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
     if (is_sle('>=15-SP4')) {
         my $python_version = script_output("rpm -q python3 | awk -F \'-\' \'{print \$2}\'");

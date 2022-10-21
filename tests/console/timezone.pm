@@ -41,7 +41,6 @@ sub set_data_and_validate {
 }
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
 
     assert_script_run("rpm -q timezone");

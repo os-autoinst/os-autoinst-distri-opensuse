@@ -33,7 +33,6 @@ sub create_test_data
 }
 
 sub run {
-    my $self = shift;
     my $size = get_var('VIRTIO_CONSOLE_TEST_FILESIZE') // 200 * 1024;
     my $repeat = 1000;
 

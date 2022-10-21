@@ -14,7 +14,7 @@ use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
 
-sub run ($self) {
+sub run {
     # Get number of nodes
     my $nodes = get_required_var("CLUSTER_NODES");
     # Get ganglia-server hostname

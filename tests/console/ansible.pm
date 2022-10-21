@@ -22,7 +22,6 @@ use version_utils qw(is_sle is_opensuse is_tumbleweed);
 use registration qw(add_suseconnect_product get_addon_fullname);
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     # 1. System setup
@@ -157,7 +156,6 @@ sub run {
 }
 
 sub cleanup {
-    my $self = shift;
     # Logout $testapi::username
     enter_cmd 'exit';
 
@@ -185,13 +183,13 @@ sub cleanup {
 
 sub post_run_hook {
     my $self = shift;
-    $self->cleanup;
+    cleanup;
     $self->SUPER::post_run_hook;
 }
 
 sub post_fail_hook {
     my $self = shift;
-    $self->cleanup;
+    cleanup;
     $self->SUPER::post_fail_hook;
 }
 

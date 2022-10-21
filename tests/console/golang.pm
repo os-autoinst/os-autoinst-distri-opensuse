@@ -23,7 +23,6 @@ sub mob_test {
 }
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     if (is_sle() && !main_common::is_updates_tests()) {

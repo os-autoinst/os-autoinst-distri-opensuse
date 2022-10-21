@@ -28,7 +28,6 @@ use utils 'zypper_call';
 use version_utils 'is_sle';
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     # script to add missing dependency repos and in second run remove only added products/repos

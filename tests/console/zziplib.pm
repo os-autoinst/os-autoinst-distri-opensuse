@@ -27,7 +27,6 @@ use version_utils 'is_sle';
 
 sub run {
     my $filezip = "files.zip";
-    my $self = shift;
     select_serial_terminal;
 
     # development module needed for dependencies, released products are tested with sdk module

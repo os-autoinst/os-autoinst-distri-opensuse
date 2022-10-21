@@ -210,7 +210,6 @@ sub create_loop_device_by_rootsize {
 }
 
 sub set_config {
-    my $self = shift;
     script_run("echo export KEEP_DMESG=yes >> $CONFIG_FILE");
     if (get_var('XFSTESTS_XFS_REPAIR')) {
         script_run("echo export TEST_XFS_REPAIR_REBUILD=1 >> $CONFIG_FILE");
@@ -278,7 +277,6 @@ sub format_with_options {
 }
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     # DO NOT set XFSTESTS_DEVICE if you don't know what's this mean

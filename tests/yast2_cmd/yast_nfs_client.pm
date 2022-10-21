@@ -23,7 +23,6 @@ use utils qw(systemctl zypper_call);
 use version_utils 'is_sle';
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
     zypper_call("in nfs-client yast2-nfs-client nfs-kernel-server yast2-nfs-server", exitcode => [0, 102, 103, 106]);
 

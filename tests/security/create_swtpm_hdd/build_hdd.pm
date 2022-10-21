@@ -18,7 +18,6 @@ use utils qw(zypper_call permit_root_ssh);
 use power_action_utils 'power_action';
 
 sub run {
-    my $self = shift;
     select_serial_terminal;
 
     # Install tpm and tpm2 related packages, then we can verify the swtpm function

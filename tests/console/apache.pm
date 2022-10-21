@@ -20,7 +20,6 @@ use utils;
 use version_utils qw(is_sle is_jeos);
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
 
     # installation of docs and manpages is excluded in zypp.conf

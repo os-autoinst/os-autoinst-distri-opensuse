@@ -24,7 +24,6 @@ use serial_terminal 'select_serial_terminal';
 my $cpuset_log = '/var/log/cpuset';
 
 sub run {
-    my $self = shift;
     my $cmd_base = 'cset --log ' . $cpuset_log . ' shield ';
 
     select_serial_terminal;

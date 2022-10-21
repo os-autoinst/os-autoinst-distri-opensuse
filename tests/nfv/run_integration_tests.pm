@@ -17,7 +17,6 @@ use utils;
 use mmapi;
 
 sub run {
-    my $self = shift;
     my $vsperf_conf = "/etc/vsperf_ovs.conf";
 
     select_serial_terminal;

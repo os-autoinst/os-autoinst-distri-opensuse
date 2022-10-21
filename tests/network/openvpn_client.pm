@@ -22,7 +22,6 @@ use strict;
 use warnings;
 
 sub run {
-    my $self = shift;
     mutex_wait 'barrier_setup_done';
     barrier_wait 'SETUP_DONE';
     select_serial_terminal;

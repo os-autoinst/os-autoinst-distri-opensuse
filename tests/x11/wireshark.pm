@@ -35,7 +35,6 @@ use utils;
 use constant TIMEOUT => 90;
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal();
     quit_packagekit;
     zypper_call "in wireshark";

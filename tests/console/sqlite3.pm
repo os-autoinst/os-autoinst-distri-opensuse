@@ -23,7 +23,6 @@ use utils 'zypper_call';
 
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
 
     zypper_call('install sqlite3 expect perl');

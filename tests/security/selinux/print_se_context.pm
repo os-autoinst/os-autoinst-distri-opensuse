@@ -14,7 +14,6 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my ($self) = @_;
     my $testfile = "foo";
 
     select_serial_terminal;

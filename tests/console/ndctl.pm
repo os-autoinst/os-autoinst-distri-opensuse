@@ -15,7 +15,6 @@ use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 
 sub run {
-    my $self = shift;
     return unless get_var('NVDIMM');
     select_serial_terminal;
     zypper_call('in ndctl');

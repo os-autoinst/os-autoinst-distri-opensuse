@@ -23,7 +23,6 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my ($self) = @_;
     select_serial_terminal;
     zypper_call('in tftp yast2-tftp-server', timeout => 1200);
     assert_script_run 'yast tftp-server directory path=/srv/tftpboot';
