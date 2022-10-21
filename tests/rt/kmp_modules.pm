@@ -66,7 +66,7 @@ sub run {
     zypper_call 'in lttng-tools *-kmp-rt', 500;
 
     # Reboot in order to select RT kernel
-    if (script_run q|egrep 'BOOT_IMAGE=/boot/vmlinuz-.*-[[:digit:]]-rt' /proc/cmdline|) {
+    if (script_run q|grep -E 'BOOT_IMAGE=/boot/vmlinuz-.*-[[:digit:]]-rt' /proc/cmdline|) {
         power_action('reboot', textmode => 1);
         select_kernel('rt');
         $self->select_serial_terminal;

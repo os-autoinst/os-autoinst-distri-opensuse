@@ -30,7 +30,7 @@ sub run {
 
     # Looking for segfault during the test
     if (script_run '(( $(grep -sR segfault /var/log | wc -l) == 0 ))') {
-        if (script_run '(( $(egrep -sR iscsiadm.+segfault /var/log | wc -l) == 0 ))') {
+        if (script_run '(( $(grep -E -sR iscsiadm.+segfault /var/log | wc -l) == 0 ))') {
             record_soft_failure "bsc#1181052 - segfault on iscsiadm";
         }
         else {

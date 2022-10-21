@@ -64,7 +64,7 @@ sub verify_journal {
         # upstream issue
         # https://github.com/systemd/systemd/issues/17833
         record_soft_failure 'bsc#1171858 - journal corruption: "tag/entry realtime timestamp out of synchronization"';
-    } elsif (defined($fss_key) && (script_run("egrep 'No sealing yet,.*of entries not sealed.' errs") == 0)) {
+    } elsif (defined($fss_key) && (script_run("grep -E 'No sealing yet,.*of entries not sealed.' errs") == 0)) {
         die "Sealing is not working!\n";
         # Check for https://bugzilla.suse.com/show_bug.cgi?id=1178193, a race condition for `journalctl --verify`
     } elsif (script_run("grep 'File corruption detected' errs") == 0) {

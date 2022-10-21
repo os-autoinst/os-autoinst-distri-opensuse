@@ -27,7 +27,7 @@ sub run {
         fail_message => 'LVM config validation failed');
 
     record_info('LVM volume', 'Verify the LVM physical volume(s) exists');
-    assert_script_run('lvmdiskscan -v | egrep "LVM physical volume?$"',
+    assert_script_run('lvmdiskscan -v | grep -E "LVM physical volume?$"',
         fail_message => 'LVM physical volume does not exist.');
 
     record_info('ACTIVE volumes', 'Verify all Logical Volumes are ACTIVE');

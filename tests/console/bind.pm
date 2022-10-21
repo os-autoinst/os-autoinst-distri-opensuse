@@ -94,7 +94,7 @@ sub run {
 
 sub post_fail_hook {
     # print out what tests failed
-    assert_script_run 'egrep "^A|^R" systests.output|grep -B1 FAIL';
+    assert_script_run 'grep -E "^A|^R" systests.output|grep -B1 FAIL';
     upload_logs 'systests.output';
 }
 

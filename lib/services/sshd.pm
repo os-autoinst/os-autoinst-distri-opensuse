@@ -23,8 +23,8 @@ my $ssh_testman_passwd = get_var('PUBLIC_CLOUD') ? random_string(8) : 'let3me2in
 my $changepwd = $ssh_testman . ":" . $ssh_testman_passwd;
 
 sub check_sshd_port {
-    assert_script_run q(ss -pnl4 | egrep 'tcp.*LISTEN.*:22.*sshd');
-    assert_script_run q(ss -pnl6 | egrep 'tcp.*LISTEN.*:22.*sshd');
+    assert_script_run q(ss -pnl4 | grep -E 'tcp.*LISTEN.*:22.*sshd');
+    assert_script_run q(ss -pnl6 | grep -E 'tcp.*LISTEN.*:22.*sshd');
 }
 
 sub check_sshd_service {
@@ -82,7 +82,7 @@ sub ssh_basic_check {
 
     # Check that we are really in the SSH session
     assert_script_run 'echo $SSH_TTY | grep "\/dev\/pts\/"';
-    assert_script_run 'ps ux | egrep ".* \? .* sshd\:"';
+    assert_script_run 'ps ux | grep -E ".* \? .* sshd\:"';
     assert_script_run "whoami | grep $ssh_testman";
     assert_script_run "mkdir .ssh";
 
@@ -105,7 +105,7 @@ sub ssh_basic_check {
     assert_script_run "echo 'sshd.pm: Testing port forwarding' | logger";
     background_script_run "ssh -vNL 4242:localhost:22 $ssh_testman\@localhost 2>/tmp/ssh_log1";
     background_script_run "ssh -vNR 0.0.0.0:5252:localhost:22 $ssh_testman\@localhost 2>/tmp/ssh_log2";
-    assert_script_run 'until ss -tulpn|grep sshd|egrep "4242|5252";do sleep 1;done';
+    assert_script_run 'until ss -tulpn|grep sshd|grep -E "4242|5252";do sleep 1;done';
 
     # Scan public keys on forwarded ports
     # Add a workaround about bsc#1193275 in FIPS test

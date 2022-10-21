@@ -16,10 +16,10 @@ use version_utils qw(is_jeos);
 sub run {
     shift->select_serial_terminal();
     unless (check_var('FLAVOR', 'JeOS-for-AArch64') || check_var('FLAVOR', 'JeOS-for-RPi')) {
-        assert_script_run 'egrep -x "^solver.onlyRequires ?= ?true" /etc/zypp/zypp.conf';
-        assert_script_run 'egrep -x "^rpm.install.excludedocs ?= ?yes" /etc/zypp/zypp.conf';
+        assert_script_run 'grep -E -x "^solver.onlyRequires ?= ?true" /etc/zypp/zypp.conf';
+        assert_script_run 'grep -E -x "^rpm.install.excludedocs ?= ?yes" /etc/zypp/zypp.conf';
     }
-    assert_script_run sprintf('egrep -x "^multiversion ?=%s" /etc/zypp/zypp.conf', is_jeos ? ' ?provides:multiversion\(kernel\)' : '');
+    assert_script_run sprintf('grep -E -x "^multiversion ?=%s" /etc/zypp/zypp.conf', is_jeos ? ' ?provides:multiversion\(kernel\)' : '');
 }
 
 sub post_fail_hook {

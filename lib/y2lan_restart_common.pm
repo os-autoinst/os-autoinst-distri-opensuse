@@ -70,7 +70,7 @@ sub initialize_y2lan
       '(WICKED_LOG_LEVEL).*/\1="info"';    # DEBUG configuration for wicked
     assert_script_run 'sed -i -E \'s/' . $debug_conf . '/\' /etc/sysconfig/network/config';
     assert_script_run 'systemctl restart network';
-    enter_cmd "journalctl -f -o short-precise|egrep -i --line-buffered '$query_pattern_for_restart|Reloaded wicked' > journal.log &";
+    enter_cmd "journalctl -f -o short-precise|grep -E -i --line-buffered '$query_pattern_for_restart|Reloaded wicked' > journal.log &";
     clear_journal_log();
 }
 
@@ -227,7 +227,7 @@ Run record_soft_failure for bsc#1115644 if C<$args> has not been found in /etc/h
 sub validate_etc_hosts_entry {
     my (%args) = @_;
 
-    script_run("egrep \"@{[$args{ip}]}\\s@{[$args{fqdn}]}\\s@{[$args{host}]}\" /etc/hosts", 30)
+    script_run("grep -E \"@{[$args{ip}]}\\s@{[$args{fqdn}]}\\s@{[$args{host}]}\" /etc/hosts", 30)
       && record_soft_failure "bsc#1115644 Expected entry:\n \"@{[$args{ip}]}    @{[$args{fqdn}]} @{[$args{host}]}\" was not found in /etc/hosts";
     script_run "cat /etc/hosts";
 }

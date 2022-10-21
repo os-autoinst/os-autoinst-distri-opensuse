@@ -93,8 +93,8 @@ main(){
   fi
 
   # Get list of each nodejs version found from default repo
-  local NODE_VERSIONS=$(zypper -n search nodejs | egrep -i 'nodejs[0-9]{1,2} ' | cut -d'|' -f 2 | tr -d ' '| tr -d 'nodejs' | sort -h -u)
-  local NODE_LATEST_VERSION=$(zypper -n search nodejs | egrep -i 'nodejs[0-9]{1,2} ' | cut -d'|' -f 2 | tr -d ' '| tr -d 'nodejs' | sort -h -u | tail -n1)
+  local NODE_VERSIONS=$(zypper -n search nodejs | grep -E -i 'nodejs[0-9]{1,2} ' | cut -d'|' -f 2 | tr -d ' '| tr -d 'nodejs' | sort -h -u)
+  local NODE_LATEST_VERSION=$(zypper -n search nodejs | grep -E -i 'nodejs[0-9]{1,2} ' | cut -d'|' -f 2 | tr -d ' '| tr -d 'nodejs' | sort -h -u | tail -n1)
 
   for v in $NODE_VERSIONS; do
     echo "Found node version: $v"

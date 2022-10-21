@@ -78,7 +78,7 @@ sub test_bsc1152598 {
     assert_script_run
 'echo -e "[version]\n# foobar-NOTE=foobar CATEGORY=foobar VERSION=0 DATE=foobar NAME=\" foobar \"\n[block]\nIO_SCHEDULER=foobar, noop, none\n" > /etc/saptune/extra/scheduler-test.conf';
     $self->wrap_script_run('saptune note apply scheduler-test');
-    $self->wrap_script_run("egrep -q '\[(noop|none)\]' /sys/block/sda/queue/scheduler");
+    $self->wrap_script_run("grep -E -q '\[(noop|none)\]' /sys/block/sda/queue/scheduler");
     $self->wrap_script_run("mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_2");
     $self->wrap_script_run("saptune revert all");
 

@@ -48,7 +48,7 @@ sub run {
         assert_script_run 'journalctl -b --no-pager -o short-precise > bsc1129385-check-journal.log';
         my $iscsi_fails = script_run 'grep -q "iscsid: cannot make a connection to" bsc1129385-check-journal.log';
         my $csync_fails = script_run 'grep -q "corosync.service: Failed" bsc1129385-check-journal.log';
-        my $pcmk_fails = script_run 'egrep -q "pacemaker.service.+failed" bsc1129385-check-journal.log';
+        my $pcmk_fails = script_run 'grep -E -q "pacemaker.service.+failed" bsc1129385-check-journal.log';
 
         if (defined $iscsi_fails and $iscsi_fails == 0 and defined $csync_fails
             and $csync_fails == 0 and defined $pcmk_fails and $pcmk_fails == 0)

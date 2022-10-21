@@ -235,7 +235,7 @@ sub run {
     ## Keep previous configuration
     $self->verification('After pbl reinit', $exp_data, sub {
             my $state = !get_var('DISABLE_SECUREBOOT', 0) ? 'yes' : 'no';
-            assert_script_run(q|egrep "SECURE_BOOT=['\"]?| . $state . q|[\"']?" | . SYSCONFIG_BOOTLADER);
+            assert_script_run(q|grep -E "SECURE_BOOT=['\"]?| . $state . q|[\"']?" | . SYSCONFIG_BOOTLADER);
             assert_script_run 'update-bootloader --reinit';
         }
     );

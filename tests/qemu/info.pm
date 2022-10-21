@@ -18,7 +18,7 @@ sub run {
 
     script_run 'lscpu';
     script_run 'uname -a';
-    script_run "egrep -o '(vmx|svm|sie)' /proc/cpuinfo | sort | uniq";
+    script_run "grep -E -o '(vmx|svm|sie)' /proc/cpuinfo | sort | uniq";
     script_run 'lsmod | grep kvm';
 
     if (script_run('stat /dev/kvm') != 0) {

@@ -559,7 +559,7 @@ sub check_instance_state {
         last if (($output =~ /GRAY/) && ($uc_state eq 'GRAY'));
 
         if ((($output =~ /GREEN/) && ($uc_state eq 'GREEN')) || ($uc_state eq 'GRAY')) {
-            $output = script_output "sapcontrol -nr $instance -function GetProcessList | egrep -i ^[a-z]", proceed_on_failure => 1;
+            $output = script_output "sapcontrol -nr $instance -function GetProcessList | grep -E -i ^[a-z]", proceed_on_failure => 1;
             die "sapcontrol: GetProcessList: command failed" unless ($output =~ /GetProcessList[\r\n]+OK/);
 
             my $failing_services = 0;
@@ -739,7 +739,7 @@ sub do_hana_takeover {
         save_state;
         $self->check_replication_state;
         $self->check_hanasr_attr;
-        script_run 'egrep "expected_votes|two_node" /etc/corosync/corosync.conf';
+        script_run 'grep -E "expected_votes|two_node" /etc/corosync/corosync.conf';
         $self->do_hana_sr_register(node => $args{node});
     }
     sleep bmwqemu::scale_timeout(10);
