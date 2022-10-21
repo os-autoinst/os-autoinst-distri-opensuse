@@ -69,6 +69,7 @@ sub change_desktop {
     }
     else {
         if (!check_var('DESKTOP', 'gnome')) {
+            $self->workaround_bsc1189550();
             send_key_until_needlematch 'gnome-selected', 'down';
             send_key ' ';
         }
