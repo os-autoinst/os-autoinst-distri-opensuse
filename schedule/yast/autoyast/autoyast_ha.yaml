@@ -1,0 +1,45 @@
+---
+name: create_hdd_ha
+description: >
+  HA autoYaST installation and publish qcow for ha migration standalone
+  cases.
+vars:
+  AUTOYAST: autoyast_sle15/create_hdd/create_hdd_ha_%ARCH%.xml.ep
+  AUTOYAST_PREPARE_PROFILE: '1'
+  DESKTOP: textmode
+  SYSTEM_ROLE: HA_node
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - '{{handle_reboot}}'
+  - installation/first_boot
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - console/scc_deregistration
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+  - '{{svirt_upload_assets}}'
+
+conditional_schedule:
+  handle_reboot:
+    ARCH:
+      s390x:
+        - installation/handle_reboot
+      x86_64:
+        - installation/grub_test
+      aarch64:
+        - installation/grub_test
+  svirt_upload_assets:
+    ARCH:
+      s390x:
+        - shutdown/svirt_upload_assets
