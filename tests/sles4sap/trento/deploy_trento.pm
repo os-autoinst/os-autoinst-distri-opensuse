@@ -63,6 +63,7 @@ sub run {
     my $cmd = $script_run . $script_id . '.sh' .
       " -g $resource_group" .
       " -n $acr_name" .
+      " -u " . $self->VM_USER .
       " -r $trento_registry_chart";
     if (get_var("TRENTO_REGISTRY_IMAGE_$imgs[0]") || get_var("TRENTO_REGISTRY_IMAGE_$imgs[1]")) {
         $trento_acr_azure_timeout += 240;
