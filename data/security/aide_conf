@@ -1,0 +1,10 @@
+database=file:/var/lib/aide/aide.db
+database_out=file:/var/lib/aide/aide.db.new
+
+verbose=1
+report_url=stdout
+warn_dead_symlinks=yes
+
+CONTENTONLY   = sha1+s
+
+/testdir f CONTENTONLY
