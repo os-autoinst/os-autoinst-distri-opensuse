@@ -57,8 +57,8 @@ Useful to rerun configuration scripts after some changes
 
 sub relogin_root {
     my $self = shift;
-    record_info 'relogin', 'user needs to logout and login back to trigger scripts which set env variales and others';
-
+    record_info 'relogin', 'user needs to logout and login back to trigger scripts which set env variales and others. Switch to root-console';
+    select_console "root-console";
     type_string('pkill -u root', lf => 1);
     record_info "pkill done";
     $self->wait_boot_textmode(ready_time => 180);

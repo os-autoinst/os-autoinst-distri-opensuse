@@ -54,7 +54,7 @@ sub run ($self) {
     select_console('root-console');
     systemctl 'restart nfs-server';
     # And login as normal user to run the tests
-    type_string('pkill -u root');
+    type_string('pkill -u root', lf => 1);
     $self->select_serial_terminal(0);
     # load mpi after all the relogins
     assert_script_run "module load gnu $mpi";
