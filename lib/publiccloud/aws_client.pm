@@ -14,23 +14,17 @@ use publiccloud::utils;
 
 has region => sub { get_var('PUBLIC_CLOUD_REGION', 'eu-central-1') };
 has aws_account_id => undef;
-has service => undef;
 has container_registry => sub { get_var("PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY", 'suse-qec-testing') };
 has username => sub { get_var('PUBLIC_CLOUD_USER', 'ec2-user') };
 
 sub _check_credentials {
     my ($self) = @_;
-    if ($self->service =~ /ECR|EC2/) {
-        my $max_tries = 6;
-        for my $i (1 .. $max_tries) {
-            my $out = script_output('aws ec2 describe-images --dry-run', 300, proceed_on_failure => 1);
-            return 1 if ($out !~ /AuthFailure/m && $out !~ /"aws configure"/m);
-            sleep 30;
-        }
-    } elsif ($self->service eq "EKS") {
-        return 1;
-    } else {
-        die('Invalid service: ' . $self->service);
+
+    my $max_tries = 6;
+    for my $i (1 .. $max_tries) {
+        my $out = script_output('aws ec2 describe-images --dry-run', 300, proceed_on_failure => 1);
+        return 1 if ($out !~ /AuthFailure/m && $out !~ /"aws configure"/m);
+        sleep 30;
     }
 
     return;
@@ -38,8 +32,6 @@ sub _check_credentials {
 
 sub init {
     my ($self, %params) = @_;
-
-    $self->service("EC2") unless (defined($self->service));
 
     my $data = get_credentials('aws.json');
 

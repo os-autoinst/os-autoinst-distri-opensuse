@@ -31,7 +31,7 @@ sub run {
 
     my $image = get_image_uri();
     my $tag = $provider->get_default_tag();
-    $self->{image_tag} = $tag;
+    $self->{image_tag} = $run_args->{image_tag} = $tag;
 
     record_info('Pull', "Pulling $image");
     assert_script_run("podman pull $image", 360);
