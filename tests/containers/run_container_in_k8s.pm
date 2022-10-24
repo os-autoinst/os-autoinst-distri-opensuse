@@ -24,11 +24,9 @@ sub run {
 
     my $cmd = '"cat", "/etc/os-release"';
 
-    my $image_tag = $self->{provider}->get_default_tag();
-    $self->{image_tag} = $image_tag;
-
-    my $image = $self->{provider}->get_container_image_full_name($image_tag);
-    my $job_name = $image_tag =~ s/_/-/gr;
+    $self->{image_tag} = $run_args->{image_tag};
+    my $image = $self->{provider}->get_container_image_full_name($run_args->{image_tag});
+    my $job_name = $run_args->{image_tag} =~ s/_/-/gr;
     $self->{job_name} = $job_name;
 
     my $manifest = <<EOT;
