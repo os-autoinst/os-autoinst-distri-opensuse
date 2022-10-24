@@ -90,7 +90,7 @@ sub run {
 
     # Install config_manager role from ansible-network
     # https://galaxy.ansible.com/ansible-network/config_manager
-    assert_script_run 'ansible-galaxy install ansible-network.config_manager';
+    assert_script_run 'ansible-galaxy install ansible-network.config_manager', timeout => 300;
 
     # Verify that the config_manager is installed
     my $galaxy_installed = script_output 'ansible-galaxy list';
@@ -105,7 +105,7 @@ sub run {
     assert_script_run 'ansible-doc -l community.general | grep zypper';
 
     # Check the playbook
-    assert_script_run 'ansible-playbook -i hosts main.yaml --check';
+    assert_script_run 'ansible-playbook -i hosts main.yaml --check', timeout => 300;
 
     # Run the ansible sanity test
     if (script_run('ansible-test')) {
@@ -121,7 +121,7 @@ sub run {
     assert_script_run 'ansible -i hosts all --list-hosts';
 
     # Run the playbook
-    assert_script_run 'ansible-playbook -i hosts main.yaml';
+    assert_script_run 'ansible-playbook -i hosts main.yaml', timeout => 600;
 
     # Test that /tmp/ansible/uname.txt created by ansible has desired content
     my $uname = script_output 'uname -r';
