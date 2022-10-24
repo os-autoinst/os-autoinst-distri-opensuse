@@ -12,6 +12,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils 'is_sle';
+use serial_terminal 'select_serial_terminal';
 
 sub get_mpi() {
     my $mpi = get_required_var('MPI');
@@ -62,7 +63,8 @@ sub relogin_root {
     type_string('pkill -u root', lf => 1);
     record_info "pkill done";
     $self->wait_boot_textmode(ready_time => 180);
-    select_console('root-virtio-terminal');
+    select_serial_terminal();
+
     # Make sure that sshd is up. (TODO: investigate)
     systemctl('restart sshd');
 }
