@@ -13,9 +13,10 @@ use warnings;
 use testapi;
 use utils;
 use services::ntpd;
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
-    shift->select_serial_terminal;
+    select_serial_terminal;
     services::ntpd::install_service();
     services::ntpd::enable_service();
     services::ntpd::start_service();
