@@ -16,7 +16,6 @@ use publiccloud::utils;
 has subscription => sub { get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') };
 has region => sub { get_var('PUBLIC_CLOUD_REGION', 'westeurope') };
 has username => sub { get_var('PUBLIC_CLOUD_USER', 'azureuser') };
-has service => undef;
 has credentials_file_content => undef;
 has container_registry => sub { get_var('PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY', 'suseqectesting') };
 
