@@ -29,9 +29,15 @@ conditional_schedule:
         FLAVOR:
             'JeOS-for-kvm-and-xen-Updates':
                 - qa_automation/patch_and_reboot
+    wizard:
+        FIRST_BOOT_CONFIG:
+            'wizard':
+                - jeos/firstrun
+            'cloud-init':
+                - installation/first_boot
 schedule:
     - '{{bootloader}}'
-    - jeos/firstrun
+    - '{{wizard}}'
     - jeos/image_info
     - jeos/record_machine_id
     - console/system_prepare
