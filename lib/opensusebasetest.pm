@@ -1068,13 +1068,22 @@ sub wait_boot_past_bootloader {
     my $nologin = $args{nologin};
     my $forcenologin = $args{forcenologin};
 
-    # Workaround for bsc#1204221 and bsc#1204230
-    if (is_sle('=15-SP5') && check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        # This should only happen on SLE15SP5 and on hyperv
-        record_soft_failure 'workaround bsc#1204221 - Failed to boot at SLES15SP5 with gnome in hyperv 2019' if check_var('DESKTOP', 'gnome');
-        record_soft_failure 'workaround bsc#1204230 - Failed to boot at SLES15SP5 with x server in hyperv 2019' if check_var('DESKTOP', 'textmode');
-        sleep 30;
-        send_key 'esc';
+    # Workaround for bsc#1204221, bsc#1204230 and bsc#1203641
+    if (is_sle('=15-SP5') && check_var('VIRSH_VMM_FAMILY', 'hyperv') && check_var('HYPERV_VERSION', '2019') && check_var('FLAVOR', 'Online')) {
+        # This should only happen on SLE15SP5 and on hyperv 2019
+        # This is for legacy workaround.
+        if (!get_var('UEFI')) {
+            record_soft_failure 'workaround bsc#1204221 - Failed to boot at SLES15SP5 with gnome in hyperv 2019' if check_var('DESKTOP', 'gnome');
+            record_soft_failure 'workaround bsc#1204230 - Failed to boot at SLES15SP5 with x server in hyperv 2019' if check_var('DESKTOP', 'textmode');
+            sleep 30;
+            send_key 'esc';
+        }
+        # This is for UEFI workaround.
+        else {
+            record_soft_failure 'workaround bsc#1203641 - Failed to boot after installation on hyperv-2019 UEFI setup' if check_var('DESKTOP', 'gnome');
+            sleep 30;
+            send_key 'esc';
+        }
     }
 
     # On IPMI, when selecting x11 console, we are connecting to the VNC server on the SUT.
