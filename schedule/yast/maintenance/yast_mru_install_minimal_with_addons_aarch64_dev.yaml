@@ -1,0 +1,9 @@
+---
+name: yast_mru_install_minimal_with_addons_aarch64
+vars:
+  PATTERNS: base,enhanced_base
+  YUI_REST_API: 1
+schedule:
+  stop_timeout_system_reboot:
+    - installation/performing_installation/stop_timeout_system_reboot_now
+...

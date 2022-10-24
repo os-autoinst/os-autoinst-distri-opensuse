@@ -1,0 +1,13 @@
+---
+name: yast_mru_install_minimal_with_addons_x86
+vars:
+  PATTERNS: base,enhanced_base
+  YUI_REST_API: 1
+schedule:
+  extension_module_selection:
+    - installation/module_registration/register_extensions_and_modules
+    - installation/module_registration/add_additional_regcodes
+    - installation/module_registration/import_untrusted_gnpupg_key
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+...
