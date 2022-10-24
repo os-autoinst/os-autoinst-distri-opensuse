@@ -103,6 +103,8 @@ sub run {
 
     # Disconnect SAP account
     $self->reset_user_change;
+    # Record whether HANA was started with sapinit or systemd
+    $self->startup_type;
 }
 
 1;

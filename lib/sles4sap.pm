@@ -8,7 +8,7 @@
 
 ## no critic (RequireFilenameMatchesPackage);
 package sles4sap;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 
 use strict;
 use warnings;
@@ -29,6 +29,9 @@ use Utils::Systemd qw(systemctl);
 our @EXPORT = qw(
   $instance_password
   $systemd_cgls_cmd
+  SAPINIT_RE
+  SYSTEMD_RE
+  SYSTEMCTL_UNITS_RE
   ensure_serialdev_permissions_for_sap
   fix_path
   set_ps_cmd
@@ -51,6 +54,7 @@ our @EXPORT = qw(
   do_hana_sr_register
   do_hana_takeover
   install_libopenssl_legacy
+  startup_type
 );
 
 =head1 SYNOPSIS
@@ -67,9 +71,37 @@ our $prev_console;
 our $sapadmin;
 our $sid;
 our $instance;
+our $product;
 our $ps_cmd;
 our $instance_password = get_var('INSTANCE_PASSWORD', 'Qwerty_123');
 our $systemd_cgls_cmd = 'systemd-cgls --no-pager -u SAP.slice';
+
+=head2 SAPINIT_RE & SYSTEMD_RE
+
+    $self->SAPINIT_RE();
+    $self->SAPINIT_RE(qr/some regexp/);
+    $self->SYSTEMD_RE();
+    $self->SYSTEMD_RE(qr/some regexp/);
+
+Set or get a regular expressions to test on the F</usr/sap/sapservices> file
+whether the SAP workload was started via sapinit or systemd.
+
+=cut
+
+has SAPINIT_RE => undef;
+has SYSTEMD_RE => undef;
+
+=head2 SYSTEMCTL_UNITS_RE
+
+    $self->SYSTEMCTL_UNITS_RE();
+    $self->SYSTEMCTL_UNITS_RE(qr/some regexp/);
+
+Set or get a regular expression to test in the output of C<systemctl --list-unit-files>
+whether the SAP workload was started via systemd units.
+
+=cut
+
+has SYSTEMCTL_UNITS_RE => undef;
 
 =head2 ensure_serialdev_permissions_for_sap
 
@@ -138,7 +170,8 @@ sub set_ps_cmd {
 SAP software relies on 2 identifiers, the system id (SID) which is a 3-character
 identifier, and the instance number. This method receives both via positional
 arguments, and sets the internal variables for B<$sid>, B<$instance> and B<$sapadmin>
-accordingly. Returns the value of B<$sapadmin>.
+accordingly. It also sets accessors that depend on B<$sid> and B<$instance>
+as well as the product type. Returns the value of B<$sapadmin>.
 
 =cut 
 
@@ -147,6 +180,13 @@ sub set_sap_info {
     $sid = uc($sid_env);
     $instance = $instance_env;
     $sapadmin = lc($sid_env) . 'adm';
+    $product = get_var('INSTANCE_TYPE', 'HDB');    # Default to HDB as INSTANCE_TYPE is only a required setting in NW tests
+    if (ref($self)) {
+        # Only set RE if called in OO mode
+        $self->SAPINIT_RE(qr|$sid/$product$instance/exe/sapstartsrv|);
+        $self->SYSTEMD_RE(qr|systemctl.+start SAP${sid}_$instance|);
+        $self->SYSTEMCTL_UNITS_RE(qr/SAP${sid}_$instance.service/);
+    }
     return ($sapadmin);
 }
 
@@ -807,6 +847,28 @@ sub upload_nw_install_log {
     upload_logs('/sapinst/unattended/sapinst_ERS.log', failok => 1);
     upload_logs '/sapinst/unattended/sapinst_dev.log';
     upload_logs '/sapinst/unattended/start_dir.cd';
+}
+
+=head2 startup_type
+
+ $self->startup_type();
+
+Record whether the SAP workload was started via sapinit or systemd units.
+
+=cut
+
+sub startup_type {
+    my ($self) = @_;
+    my $out = script_output 'cat /usr/sap/sapservices';
+    my $msg = "Could not determine $product startup method";
+    $msg = "$product is started with sapstartsrv using sapinit" if ($out =~ $self->SAPINIT_RE);
+    $msg = "$product is started with sapstartsrv using systemd units" if ($out =~ $self->SYSTEMD_RE);
+    record_info "$product Startup", "$msg\nsapservices output:\n$out";
+    $out = script_output 'systemctl --no-pager list-unit-files | grep -i sap';
+    if ($out =~ $self->SYSTEMCTL_UNITS_RE) {
+        record_info "$product Systemd", "$product is started using systemd units";
+        record_info 'Systemd Units', $out;
+    }
 }
 
 sub post_run_hook {
