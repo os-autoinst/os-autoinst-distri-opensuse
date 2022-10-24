@@ -88,7 +88,7 @@ sub ssh_interactive_leave {
         send_key 'ctrl-c';
         send_key 'ctrl-c';
         send_key 'ret';
-        last if (script_run("true") == 0);
+        last if (script_run("true", timeout => 5, die_on_timeout => 0) == 0);
         sleep 5;    # some cool down after a failed attempt
     }
     die "tunnel-console is not functional" if ($retries <= 0);
