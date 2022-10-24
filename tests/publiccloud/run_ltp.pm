@@ -51,17 +51,9 @@ sub instance_log_args
 sub upload_ltp_logs
 {
     my ($self) = @_;
-    my $log_file;
     my $ltp_testsuite = get_required_var('LTP_COMMAND_FILE');
-    if ($ltp_runtime) {
-        $log_file = Mojo::File::path('ulogs/result.json');
-        upload_logs("$root_dir/result.json", log_name => $log_file->basename, failok => 1);
-    } else {
-        # default ltp runtime: perl
-        $log_file = Mojo::File::path('ulogs/ltp_log.json');
-        upload_logs("$root_dir/ltp_log.raw", log_name => 'ltp_log.raw', failok => 1);
-        upload_logs("$root_dir/ltp_log.json", log_name => $log_file->basename, failok => 1);
-    }
+    my $log_file = Mojo::File::path('ulogs/result.json');
+    upload_logs("$root_dir/result.json", log_name => $log_file->basename, failok => 1);
 
     return unless -e $log_file->to_string;
 
@@ -97,8 +89,6 @@ sub run {
 
     my $provider;
     my $instance;
-
-    record_info('LTP RUNTIME', ($ltp_runtime) ? 'python' : 'perl');
 
     select_host_console();
 
@@ -142,12 +132,10 @@ sub run {
         }
     }
 
-    my $runltp_ng_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/metan-ucw/runltp-ng.git");
-    my $runltp_ng_branch = get_var("LTP_RUN_NG_BRANCH", "master");
+    my $runltp_ng_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/acerv/runltp-ng.git");
+    my $runltp_ng_branch = get_var("LTP_RUN_NG_BRANCH", "ssh");
     record_info('LTP CLONE REPO', "Repo: " . $runltp_ng_repo . "\nBranch: " . $runltp_ng_branch);
-    # Temporary code for ltp_runtime option check, until transition to python will be completed.
-    die('Not valid python LTP_RUN_NG_REPO provided')
-      if ($ltp_runtime and $runltp_ng_repo =~ /\/metan-ucw\/runltp/i or !$ltp_runtime and $runltp_ng_repo =~ /\/acerv\/runltp/i);
+
     assert_script_run("git clone -q --single-branch -b $runltp_ng_branch --depth 1 $runltp_ng_repo");
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
@@ -157,43 +145,23 @@ sub run {
 
     assert_script_run($log_start_cmd);
 
-    my $cmd;
+    # LTP command line preparation
+    zypper_call("in -y python3-paramiko python3-scp");
+    my $sut = ':user=' . $instance->username;
+    $sut .= ':sudo=1';
+    $sut .= ':key_file=' . $instance->ssh_key;
+    $sut .= ':host=' . $instance->public_ip;
+    $sut .= ':reset_command=\'' . $reset_cmd . '\'';
+    $sut .= ':hostkey_policy=missing';
+    $sut .= ':known_hosts=/dev/null';
 
-    if ($ltp_runtime) {
-        zypper_call("in -y python3-paramiko python3-scp");
-
-        my $sut = ':user=' . $instance->username;
-        $sut .= ':sudo=1';
-        $sut .= ':key_file=' . $instance->ssh_key;
-        $sut .= ':host=' . $instance->public_ip;
-        $sut .= ':reset_command=\'' . $reset_cmd . '\'';
-        $sut .= ':hostkey_policy=missing';
-        $sut .= ':known_hosts=/dev/null';
-
-        $cmd = 'python3 runltp-ng/runltp-ng ';
-        $cmd .= "--json-report=$root_dir/result.json ";
-        $cmd .= '--verbose ';
-        $cmd .= '--exec-timeout=1200 ';
-        $cmd .= '--run-suite ' . get_required_var('LTP_COMMAND_FILE') . ' ';
-        $cmd .= '--skip-tests \'' . get_var('LTP_COMMAND_EXCLUDE') . '\' ' if get_var('LTP_COMMAND_EXCLUDE');
-        $cmd .= '--sut=ssh' . $sut . ' ';
-    } else {
-        # default ltp runtime: perl
-        my $backend .= ':user=' . $instance->username;
-        $backend .= ':key_file=' . $instance->ssh_key;
-        $backend .= ':host=' . $instance->public_ip;
-        $backend .= ':reset_command=\'' . $reset_cmd . '\'';
-        $backend .= ':ssh_opts=\'-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\' ';
-
-        $cmd = 'perl -I runltp-ng runltp-ng/runltp-ng ';
-        $cmd .= '--logname=ltp_log ';
-        $cmd .= '--verbose ';
-        $cmd .= '--timeout=1200 ';
-        $cmd .= '--run ' . get_required_var('LTP_COMMAND_FILE') . ' ';
-        $cmd .= '--exclude \'' . get_var('LTP_COMMAND_EXCLUDE') . '\' ' if get_var('LTP_COMMAND_EXCLUDE');
-        $cmd .= '--backend=ssh' . $backend . ' ';
-        $cmd .= '--json_filter=openqa ';
-    }
+    my $cmd = 'python3 runltp-ng/runltp-ng ';
+    $cmd .= "--json-report=$root_dir/result.json ";
+    $cmd .= '--verbose ';
+    $cmd .= '--exec-timeout=1200 ';
+    $cmd .= '--run-suite ' . get_required_var('LTP_COMMAND_FILE') . ' ';
+    $cmd .= '--skip-tests \'' . get_var('LTP_COMMAND_EXCLUDE') . '\' ' if get_var('LTP_COMMAND_EXCLUDE');
+    $cmd .= '--sut=ssh' . $sut . ' ';
     record_info('LTP START', 'Command launch');
     assert_script_run($cmd, timeout => get_var('LTP_TIMEOUT', 30 * 60));
     record_info('LTP END', 'tests done');
@@ -251,11 +219,6 @@ This regex is used to exclude tests from command file.
 =head2 LTP_REPO
 
 The repo which will be added and is used to install LTP package.
-
-=head2 LTP_RUNTIME_SWITCH
-
-Select the language and related environment that will be used to run LTP package.
-See more info in variables.md in the home of this repo.
 
 =head2 LTP_KNOWN_ISSUES
 
