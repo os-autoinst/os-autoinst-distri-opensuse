@@ -269,6 +269,13 @@ sub boot_local_disk {
         }
         my @tags = qw(inst-slof grub2);
         push @tags, 'encrypted-disk-password-prompt' if (get_var('ENCRYPT'));
+
+        # Workaround for poo#118336
+        if (is_ppc64le && is_qemu) {
+            push @tags, 'linux-login' if check_var('DESKTOP', 'textmode');
+            push @tags, 'displaymanager' if check_var('DESKTOP', 'gnome');
+        }
+
         assert_screen(\@tags);
         if (match_has_tag 'grub2') {
             diag 'already in grub2, returning from boot_local_disk';
@@ -285,6 +292,9 @@ sub boot_local_disk {
         if (match_has_tag 'encrypted-disk-password-prompt') {
             # It is possible to show encrypted prompt directly by pressing 'local' boot-menu
             # Simply return and do enter passphrase operation in checking block of sub wait_boot
+            return;
+        }
+        if (match_has_tag('linux-login') or match_has_tag('displaymanager')) {
             return;
         }
     }
