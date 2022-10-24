@@ -41,8 +41,6 @@
       <li><a href="#enter_test_text">enter_test_text</a></li>
       <li><a href="#firewall">firewall</a></li>
       <li><a href="#remount_tmp_if_ro">remount_tmp_if_ro</a></li>
-      <li><a href="#select_serial_terminal">select_serial_terminal</a></li>
-      <li><a href="#select_user_serial_terminal">select_user_serial_terminal</a></li>
       <li><a href="#upload_coredumps">upload_coredumps</a></li>
       <li><a href="#post_fail_hook">post_fail_hook</a></li>
     </ul>
@@ -214,28 +212,6 @@
 <pre><code> remount_tmp_if_ro();</code></pre>
 
 <p>Mounts /tmp to shared memory if not possible to write to tmp. For example, save_y2logs creates temporary files there.</p>
-
-<h2 id="select_serial_terminal">select_serial_terminal</h2>
-
-<pre><code> select_serial_terminal($root);</code></pre>
-
-<p>Select most suitable text console. The optional parameter <code>root</code> controls whether the console will have root privileges or not. Passing any value that evaluates to true will select a root console (default). Passing any value that evaluates to false will select unprivileged user console. The choice is made by BACKEND and other variables.</p>
-
-<p>Purpose of this wrapper is to avoid if/else conditions when selecting console.</p>
-
-<p>Optional <code>root</code> parameter specifies, whether use root user (<code>root</code>=1, also default when parameter not specified) or prefer non-root user if available.</p>
-
-<p>Variables affecting behavior: <code>VIRTIO_CONSOLE</code>=0 disables virtio console (use {root,user}-console instead of the default {root-,user-}virtio-terminal) NOTE: virtio console is enabled by default (<code>VIRTIO_CONSOLE</code>=1). For ppc64le it requires to call prepare_serial_console() to before first use (used in console/system_prepare and shutdown/cleanup_before_shutdown modules) and console=hvc0 in kernel parameters (add it to autoyast profile or update grub setup manually with add_grub_cmdline_settings()).</p>
-
-<p><code>SERIAL_CONSOLE</code>=0 disables serial console (use {root,user}-console instead of the default {root-,}sut-serial) NOTE: serial console is disabled by default on all but s390x machines (<code>SERIAL_CONSOLE</code>=0), because it&#39;s not working yet on other machines (see poo#55985). For s390x it requires console=ttysclp0 in kernel parameters (add it to autoyast profile or update grub setup manually with add_grub_cmdline_settings()).</p>
-
-<p>On ikvm|ipmi|spvm|pvm_hmc it&#39;s expected, that use_ssh_serial_console() has been called (done via activate_console()) therefore SERIALDEV has been set and we can use root-ssh console directly.</p>
-
-<h2 id="select_user_serial_terminal">select_user_serial_terminal</h2>
-
-<pre><code> select_user_serial_terminal();</code></pre>
-
-<p>Select most suitable text console with non-root user. The choice is made by BACKEND and other variables.</p>
 
 <h2 id="upload_coredumps">upload_coredumps</h2>
 
