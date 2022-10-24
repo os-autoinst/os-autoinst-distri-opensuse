@@ -10,12 +10,12 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle);
 use registration qw(add_suseconnect_product);
 
 sub run {
-    my ($self) = @_;
     my $testfile = "test_file";
     my $test_module = "test_module";
     my $original_audit = "/var/log/audit/audit.log";
@@ -25,7 +25,7 @@ sub run {
     # have to use the full log when testing audit2allow.
     my $audit_log_test = is_sle('=15-SP3') ? "$original_audit" : "$audit_log_short";
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     assert_script_run("systemctl restart auditd");
 

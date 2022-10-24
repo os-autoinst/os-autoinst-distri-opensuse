@@ -14,11 +14,11 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     zypper_call('in sshfs');
     script_run('cd /var/tmp ; mkdir mnt ; sshfs localhost:/ mnt', 0);

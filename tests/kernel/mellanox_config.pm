@@ -15,13 +15,13 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use utils;
 use ipmi_backend_utils;
 use power_action_utils 'power_action';
 
 sub run {
-    my $self = shift;
     my $protocol = get_var('MLX_PROTOCOL', 2);
 
     # allow to configure SR-IOV and enable virtual functions
@@ -37,7 +37,7 @@ sub run {
     # run on a baremetal machine (and thus on IPMI backend)
     return unless is_ipmi;
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # install dependencies
     zypper_call('--quiet in pciutils mstflint', timeout => 200);

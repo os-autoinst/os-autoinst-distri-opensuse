@@ -9,6 +9,7 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use hacluster;
 use strict;
@@ -41,7 +42,7 @@ sub run {
     push @sapoptions, "SAPINST_INPUT_PARAMETERS_URL=$params_file";
     push @sapoptions, "SAPINST_EXECUTE_PRODUCT_ID=$product_id:NW750.HDB.ABAPHA";
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # This installs Netweaver's ASCS. Start by making sure the correct
     # SAP profile and solution are configured in the system

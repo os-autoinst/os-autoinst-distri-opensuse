@@ -13,13 +13,14 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
 use bootloader_setup 'add_grub_cmdline_settings';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Make sure CONFIG_IMA_QUEUE_EARLY_BOOT_KEYS is enabled in our kernel
     my $results = script_run('zcat /proc/config.gz | grep CONFIG_IMA_QUEUE_EARLY_BOOT_KEYS=y');
@@ -33,7 +34,7 @@ sub run {
     # Reboot to make settings work
     power_action('reboot', textmode => 1);
     $self->wait_boot;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Default template ima-buf should be used
     my $meas_file = '/sys/kernel/security/ima/ascii_runtime_measurements';

@@ -16,6 +16,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call script_retry script_output_retry);
 use version_utils qw(is_sle);
 use mmapi 'get_current_job_id';
@@ -35,7 +36,7 @@ sub run {
     my $is_k3s = $k8s_backend eq 'K3S';
     $self->{is_k3s} = $is_k3s;
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $chart = "bitnami/apache";
 
     record_info("Chart name", $chart);

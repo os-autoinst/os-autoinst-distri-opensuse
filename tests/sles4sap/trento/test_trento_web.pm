@@ -9,13 +9,14 @@ use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use base 'trento';
 
 
 sub run {
     my ($self) = @_;
     die "Only AZURE deployment supported for the moment" unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $cypress_test_dir = "/root/test/test";
     enter_cmd "cd " . $cypress_test_dir;

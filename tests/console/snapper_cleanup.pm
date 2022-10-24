@@ -21,6 +21,7 @@ use base 'btrfs_test';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'clear_console';
 use List::Util qw(max min);
 use version_utils qw(is_sle);
@@ -70,7 +71,7 @@ sub snapper_cleanup {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     $self->cron_mock_lastrun() if is_sle('<15');
 
     if (get_var("UPGRADE") || get_var("AUTOUPGRADE") && !get_var("BOOT_TO_SNAPSHOT")) {

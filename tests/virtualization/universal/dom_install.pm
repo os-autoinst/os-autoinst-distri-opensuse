@@ -11,11 +11,12 @@ use virt_autotest::utils;
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
     select_console 'root-console';
-    opensusebasetest::select_serial_terminal();
+    select_serial_terminal();
 
     zypper_call '-t in vhostmd', exitcode => [0, 4, 102, 103, 106];
 

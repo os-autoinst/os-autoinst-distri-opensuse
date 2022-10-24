@@ -12,6 +12,7 @@ use warnings;
 use strict;
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle package_version_cmp);
 use qam;
@@ -366,7 +367,7 @@ sub boot_to_console {
 
     select_console('sol', await_console => 0) if is_ipmi;
     $self->wait_boot;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     assert_script_run('echo 1 >/sys/module/printk/parameters/ignore_loglevel')
       unless is_sle('<12');
 }
@@ -376,7 +377,7 @@ sub run {
 
     if (is_ipmi && get_var('LTP_BAREMETAL')) {
         # System is already booted after installation, just switch terminal
-        $self->select_serial_terminal;
+        select_serial_terminal;
     } else {
         boot_to_console($self);
     }

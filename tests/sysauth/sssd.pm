@@ -26,12 +26,12 @@ use strict;
 use warnings;
 
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 use version_utils qw(is_sle is_opensuse);
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Install test subjects and test scripts
     my @test_subjects = qw(

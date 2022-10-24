@@ -19,6 +19,7 @@
 
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(check_console_font disable_serial_getty);
 use Utils::Backends qw(has_ttys);
 use Utils::Systemd qw(disable_and_stop_service systemctl);
@@ -27,9 +28,8 @@ use warnings;
 
 
 sub run {
-    my $self = shift;
     my $user = $testapi::username;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     systemctl('start sshd');
 

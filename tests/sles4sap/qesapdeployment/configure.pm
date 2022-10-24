@@ -8,12 +8,13 @@ use strict;
 use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use mmapi 'get_current_job_id';
 use qesapdeployment;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Init al the PC gears (ssh keys)
     my $provider = $self->provider_factory();

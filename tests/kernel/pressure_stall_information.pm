@@ -10,6 +10,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use power_action_utils 'power_action';
 use bootloader_setup 'add_grub_cmdline_settings';
 use Utils::Architectures;
@@ -22,7 +23,7 @@ sub boot {
     if (is_s390x()) {
         select_console('root-console');
     } else {
-        $self->select_serial_terminal;
+        select_serial_terminal;
     }
 }
 

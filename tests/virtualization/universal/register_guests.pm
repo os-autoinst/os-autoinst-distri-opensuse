@@ -10,13 +10,13 @@ use virt_autotest::common;
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
 
 sub run_test {
-    my ($self) = @_;
     # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
-    # $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
+    # select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
     select_console 'root-console';
     my %ltss_products = @{get_var_array("LTSS_REGCODES_SECRET")};
 

@@ -10,6 +10,7 @@ use power_action_utils "power_action";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
@@ -19,7 +20,7 @@ sub run {
     my $fcontext_type1 = "etc_t";
     my $fcontext_type2 = "bin_t";
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # create a testing directory/file
     $self->create_test_file("$test_dir", "$test_file");

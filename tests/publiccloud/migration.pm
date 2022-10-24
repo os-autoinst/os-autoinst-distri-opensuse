@@ -14,6 +14,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
@@ -23,7 +24,7 @@ our $target_version = get_required_var('TARGET_VERSION');
 
 sub run {
     my ($self, $args) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance();
     $instance->wait_for_guestregister();

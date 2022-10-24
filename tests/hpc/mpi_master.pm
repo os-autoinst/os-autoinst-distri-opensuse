@@ -10,6 +10,7 @@
 
 use Mojo::Base qw(hpcbase hpc::utils), -signatures;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
 use registration;
@@ -17,7 +18,7 @@ use version_utils 'is_sle';
 use hpc::formatter;
 
 sub run ($self) {
-    $self->select_serial_terminal();
+    select_serial_terminal();
     my $mpi = $self->get_mpi();
     my ($mpi_compiler, $mpi_c) = $self->get_mpi_src();
     my $mpi_bin = 'mpi_bin';
@@ -34,7 +35,7 @@ sub run ($self) {
     $self->setup_nfs_server(\%exports_path);
 
     type_string('pkill -u root', lf => 1);
-    $self->select_serial_terminal(0);
+    select_serial_terminal(0);
     # for <15-SP2 the openmpi2 module is named simply openmpi
     $mpi = 'openmpi' if ($mpi =~ /openmpi2|openmpi3|openmpi4/);
 
@@ -55,7 +56,7 @@ sub run ($self) {
     systemctl 'restart nfs-server';
     # And login as normal user to run the tests
     type_string('pkill -u root', lf => 1);
-    $self->select_serial_terminal(0);
+    select_serial_terminal(0);
     # load mpi after all the relogins
     assert_script_run "module load gnu $mpi";
     script_run "module av";

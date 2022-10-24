@@ -11,6 +11,7 @@ use base "sles4sap";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub test_python3 {
     my ($self) = @_;
@@ -35,7 +36,7 @@ sub run {
     # No need to run these tests on the secondary node
     return if get_var('HA_CLUSTER_JOIN');
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # First, upload the installation logs if we are doing AutoYaST test
     # NOTE: done here because AutoYaST part is not HANA specific

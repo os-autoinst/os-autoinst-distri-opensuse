@@ -8,6 +8,7 @@
 
 use Mojo::Base qw(hpcbase btrfs_test), -signatures;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
 
@@ -19,7 +20,7 @@ sub run ($self) {
     $test_dev = get_required_var('PLAYGROUNDDISK');
     record_info 'test_dev', "$test_dev";
     my $nodes = get_required_var("CLUSTER_NODES");
-    $self->select_serial_terminal();
+    select_serial_terminal();
     zypper_call('in dolly');
     barrier_wait("DOLLY_INSTALLATION_FINISHED");
 

@@ -15,6 +15,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use Utils::Architectures;
 use utils;
@@ -325,8 +326,7 @@ sub validate_repos {
 sub run {
     # ZYPPER_LR is needed for inconsistent migration, test would fail looking for deactivated addon
     set_var 'ZYPPER_LR', 1;
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     validate_repos;
 }
 

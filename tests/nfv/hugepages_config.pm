@@ -9,11 +9,11 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $hugepages = get_required_var('HUGEPAGES');
     my $hugepagesz = get_required_var('HUGEPAGESZ');

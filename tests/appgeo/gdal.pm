@@ -10,12 +10,11 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my ($self) = @_;
-
-    $self->select_serial_terminal;
+    select_serial_terminal;
     zypper_call 'in gdal';
 
     select_console 'user-console';

@@ -13,13 +13,13 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use kdump_utils;
 use version_utils qw(is_sle);
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     prepare_for_kdump();
     zypper_call("in systemtap systemtap-docs kernel-devel systemtap-server");
     script_run('ti=$(ls /lib/modules/ | grep $(uname -r) | grep -oP ".*(?=-default)") && zypper se -i -s kernel-default-devel | grep $ti > vertmp');

@@ -13,6 +13,7 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
 use registration qw(add_suseconnect_product);
@@ -26,8 +27,7 @@ sub build_mt {
 
 sub run {
     #Preparation
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Call macros to make sure they are available
     zypper_call("in systemd-rpm-macros");

@@ -9,6 +9,7 @@
 package hpcbase;
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use Utils::Architectures;
 use version_utils 'is_sle';
@@ -108,7 +109,7 @@ sub post_run_hook {
 sub post_fail_hook {
     my ($self) = @_;
     $self->destroy_test_barriers();
-    $self->select_serial_terminal;
+    select_serial_terminal;
     script_run("SUSEConnect --status-text");
     script_run("journalctl -o short-precise > /tmp/journal.log");
     script_run('cat /tmp/journal.log');
@@ -350,7 +351,7 @@ sub prepare_spack_env {
     $mpi //= 'mpich';
     zypper_call "in spack $mpi-gnu-hpc $mpi-gnu-hpc-devel";
     type_string('pkill -u root');    # this kills sshd
-    $self->select_serial_terminal(0);
+    select_serial_terminal(0);
     assert_script_run 'module load gnu $mpi';    ## TODO
     assert_script_run 'source /usr/share/spack/setup-env.sh';
     record_info 'spack', script_output 'zypper -q info spack';

@@ -10,6 +10,7 @@ use base qw(y2_installbase y2_module_guitest);
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use registration;
 use version_utils qw(is_sle is_leap);
 use x11utils 'turn_off_gnome_screensaver';
@@ -23,7 +24,6 @@ sub test_setup {
 }
 
 sub run {
-    my $self = shift;
     test_setup;
     YaST::Module::open(module => 'scc', ui => 'qt');
     save_screenshot;
@@ -49,7 +49,7 @@ sub run {
 
     assert_screen("generic-desktop", 60);
     # Check that repos actually work
-    $self->select_serial_terminal;
+    select_serial_terminal;
     zypper_call 'refresh';
     zypper_call 'repos --details';
 }

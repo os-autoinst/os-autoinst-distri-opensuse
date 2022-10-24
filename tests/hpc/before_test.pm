@@ -8,11 +8,12 @@
 
 use Mojo::Base qw(hpcbase hpc::cluster), -signatures;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use lockapi;
 
 sub run ($self) {
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # disable packagekitd
     quit_packagekit();

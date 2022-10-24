@@ -10,6 +10,7 @@ use 5.018;
 use warnings;
 use base "opensusebasetest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
 use kernel 'remove_kernel_packages';
@@ -40,7 +41,7 @@ sub run {
     my $pkg = get_var('CHANGE_KERNEL_PKG') || 'kernel-default';
 
     $self->wait_boot;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Avoid conflicts by removing any existing kernels
     remove_kernel_packages();

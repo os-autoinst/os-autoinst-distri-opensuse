@@ -21,6 +21,7 @@ use strict;
 use warnings;
 use utils;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use qam;
 use Utils::Backends 'use_ssh_serial_console';
@@ -31,7 +32,7 @@ use version_utils qw(is_jeos);
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     quit_packagekit unless check_var('DESKTOP', 'textmode');
 

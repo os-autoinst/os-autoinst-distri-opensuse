@@ -12,11 +12,11 @@
 
 use Mojo::Base qw(opensusebasetest);
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use jeos qw(set_grub_gfxmode);
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     set_grub_gfxmode;
 }

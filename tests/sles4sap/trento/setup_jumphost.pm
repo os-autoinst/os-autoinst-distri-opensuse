@@ -9,13 +9,14 @@ use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 use base 'trento';
 
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Install needed tools
     my $helm_ver = get_var(TRENTO_HELM_VERSION => '3.8.2');

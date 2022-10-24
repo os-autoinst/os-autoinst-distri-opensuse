@@ -9,6 +9,7 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'script_retry';
 use version_utils qw(is_sle is_leap);
 use containers::utils qw(registry_url container_ip);
@@ -19,7 +20,7 @@ my $stop_firewall = 0;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $engine = $self->containers_factory('docker');
     my $container_name = 'sut_container';

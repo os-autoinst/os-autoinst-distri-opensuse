@@ -10,10 +10,10 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     # check booted kernel, expected RT
     validate_script_output("uname -v", sub { m/\s{1}PREEMPT(\s{1}|_)RT\s{1}/ });
     # display running RT processes, expected to see FF - SCHED_FIFO or RR - SCHED_RR processes

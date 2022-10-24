@@ -8,6 +8,7 @@
 
 use Mojo::Base qw(systemd_testsuite_test);
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 my $test_hash;
 
@@ -32,7 +33,7 @@ sub run {
     my $marker = " systemd test runner: >>> $args->{test} has finished <<<";
     my $logs = qr[\/var\/tmp\/systemd-test.(\w+)\/];
 
-    $self->select_serial_terminal();
+    select_serial_terminal();
 
     assert_script_run(build_cmd('clean', $args), timeout => 180);
     my $out = script_output(build_cmd('setup', $args), 240);

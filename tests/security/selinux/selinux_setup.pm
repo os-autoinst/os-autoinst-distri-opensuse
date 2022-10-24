@@ -10,6 +10,7 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
 use Utils::Architectures;
@@ -18,7 +19,7 @@ sub run {
     my ($self) = @_;
 
     # In CC testing, the root login will be disabled, so we need to use select_console
-    is_s390x() ? select_console 'root-console' : $self->select_serial_terminal;
+    is_s390x() ? select_console 'root-console' : select_serial_terminal;
 
     # Using packages from gitlab
     my $repo_link = 'https://gitlab.suse.de/qe-security/testing/-/raw/main/data/selinux';

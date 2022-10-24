@@ -13,14 +13,14 @@ use File::Basename;
 use Mojo::JSON qw(encode_json);
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 my $testdir = '/usr/lib/test/external/';
 
 sub run {
-    my ($self) = @_;
     my $systemd_suse_url = get_var("EXTERNAL_TESTSUITE_URL");    # Tarball location to do download
-    $self->select_serial_terminal;
+    select_serial_terminal;
     assert_script_run("mkdir -p  $testdir");
     assert_script_run("wget --no-check-certificate $systemd_suse_url -O $testdir" . basename($systemd_suse_url));
     assert_script_run("ls -l $testdir");

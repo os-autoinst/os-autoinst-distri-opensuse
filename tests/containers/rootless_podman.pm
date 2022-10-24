@@ -17,6 +17,7 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use containers::common;
 use containers::container_images;
@@ -31,7 +32,7 @@ my $bsc1200623 = 0;    # to prevent printing the soft-failure more than once
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $user = $testapi::username;
 
     my $podman = $self->containers_factory('podman');
@@ -49,7 +50,7 @@ sub run {
             power_action('reboot', textmode => 1);
             $self->wait_boot(bootloader_time => 360);
         }
-        $self->select_serial_terminal;
+        select_serial_terminal;
 
         validate_script_output 'cat /proc/cmdline', sub { /systemd\.unified_cgroup_hierarchy=1/ };
         validate_script_output 'podman info', sub { /cgroupVersion: v2/ };
@@ -193,7 +194,7 @@ sub check_bsc1200623() {
 
 sub post_run_hook {
     my $self = shift;
-    $self->select_serial_terminal();
+    select_serial_terminal();
     assert_script_run "setfacl -x u:$testapi::username /etc/zypp/credentials.d/*" if is_sle;
     $self->SUPER::post_run_hook;
 }

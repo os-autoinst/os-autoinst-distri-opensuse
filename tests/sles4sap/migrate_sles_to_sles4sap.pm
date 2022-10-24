@@ -14,16 +14,16 @@ use base 'sles4sap';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils 'is_sle';
 use registration qw(cleanup_registration register_product);
 
 sub run {
-    my ($self) = @_;
     my $regcode = get_required_var('SCC_REGCODE_SLES4SAP');
     my $cmd = '/usr/sbin/Migrate_SLES_to_SLES-for-SAP.sh';
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Clean up and re-register not to affect other job which are sharing same qcow2
     if (is_sle('15+')) {

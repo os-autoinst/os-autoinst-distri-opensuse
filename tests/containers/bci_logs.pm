@@ -15,11 +15,11 @@
 use Mojo::Base 'opensusebasetest';
 use XML::LibXML;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use File::Basename;
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $dom = XML::LibXML::Document->new('1.0', 'utf-8');
     my $root = $dom->createElement('testsuites');

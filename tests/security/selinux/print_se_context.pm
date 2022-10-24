@@ -10,13 +10,13 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my ($self) = @_;
     my $testfile = "foo";
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # print security context of file/dir
     assert_script_run("touch $testfile");

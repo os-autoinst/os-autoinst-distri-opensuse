@@ -10,11 +10,11 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $sample_app = '/usr/bin/yes';
 

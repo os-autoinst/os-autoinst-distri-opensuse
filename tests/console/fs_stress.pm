@@ -8,13 +8,13 @@
 
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     assert_script_run("lsblk -f");
     assert_script_run("df -h");
     assert_script_run("free -h");

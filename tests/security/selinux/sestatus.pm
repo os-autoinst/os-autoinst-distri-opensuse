@@ -12,11 +12,12 @@ use base 'selinuxtest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     $self->set_sestatus('permissive', 'minimum');
 
     # Check SELinux status: 'selinuxenabled' exits with status 0 if SELinux is enabled and 1 if it is not enabled

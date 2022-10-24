@@ -24,6 +24,7 @@ use power_action_utils qw(prepare_system_shutdown power_action);
 
 use qam;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub install_packages {
     my $patch_info = shift;
@@ -86,7 +87,7 @@ sub run {
     my $incident_id = get_required_var('INCIDENT_ID');
     my $repos = get_required_var('INCIDENT_REPO');
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     zypper_call(q{mr -d $(zypper lr | awk -F '|' '/NVIDIA/ {print $2}')}, exitcode => [0, 3]);
 

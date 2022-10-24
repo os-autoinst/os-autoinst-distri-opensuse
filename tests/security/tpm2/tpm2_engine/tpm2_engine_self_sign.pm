@@ -12,10 +12,10 @@ use strict;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Self Signed certificate generate operation
     my $test_dir = "tpm2_engine_self_sign";

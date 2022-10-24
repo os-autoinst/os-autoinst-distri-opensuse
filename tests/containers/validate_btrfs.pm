@@ -15,6 +15,7 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use containers::common;
 
 # Get the total and used GiB of a given btrfs device
@@ -90,7 +91,7 @@ sub _test_btrfs_device_mgmt {
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     die "Module requires two disks to run" unless check_var('NUMDISKS', 2);
     my $docker = $self->containers_factory('docker');
     my $btrfs_dev = '/var/lib/docker';

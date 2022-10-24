@@ -15,6 +15,7 @@
 
 use Mojo::Base qw(opensusebasetest);
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle is_opensuse is_openstack);
 use mmapi qw(get_current_job_id);
 use Cwd;
@@ -102,7 +103,7 @@ sub push_to_influxdb {
 sub run {
     my $self = shift;
     set_var('_QUIET_SCRIPT_CALLS', 1);    # Only show record_info frames.
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $hdd;
     my $image_size;

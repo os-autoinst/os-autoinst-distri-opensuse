@@ -16,13 +16,13 @@
 
 use Mojo::Base qw(consoletest);
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(get_os_release);
 use containers::common;
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my ($running_version, $sp, $host_distri) = get_os_release;
 
     my $image = 'registry.opensuse.org/opensuse/tumbleweed:latest';

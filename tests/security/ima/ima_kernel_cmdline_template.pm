@@ -9,13 +9,14 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings);
 use power_action_utils "power_action";
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $meas_file = "/sys/kernel/security/ima/ascii_runtime_measurements";
     my $part_n = "[a-fA-F0-9]\\{40\\}";
@@ -57,7 +58,7 @@ sub run {
         # Reboot to make settings work
         power_action('reboot', textmode => 1);
         $self->wait_boot;
-        $self->select_serial_terminal;
+        select_serial_terminal;
 
         my $meas_tmpfile = "/tmp/ascii_runtime_measurements-" . @$k{name};
         assert_script_run("cp $meas_file $meas_tmpfile");

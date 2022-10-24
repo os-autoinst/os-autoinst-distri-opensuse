@@ -22,13 +22,14 @@ use base 'btrfs_test';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 my $dest = "/mnt/qg";
 
 # poo#11446
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Set up
     assert_script_run "mkdir $dest";

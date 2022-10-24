@@ -16,6 +16,7 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_tumbleweed is_leap);
 use registration;
@@ -59,7 +60,7 @@ sub registry_push_pull {
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Install and check that it's running
     my $pkg = 'distribution-registry';

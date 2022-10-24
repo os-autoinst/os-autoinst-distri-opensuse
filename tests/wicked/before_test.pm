@@ -11,6 +11,7 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call systemctl file_content_replace zypper_ar ensure_ca_certificates_suse_installed);
 use version_utils 'is_sle';
 use network_utils qw(iface setup_static_network);
@@ -23,7 +24,7 @@ use power_action_utils 'power_action';
 
 sub run {
     my ($self, $ctx) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my @ifaces = split(' ', iface(2));
     my $need_reboot = 0;
     die("Missing at least one interface") unless (@ifaces);
@@ -190,7 +191,7 @@ sub switch_to_wicked {
     systemctl("disable NetworkManager");
     power_action('reboot', textmode => 1);
     $self->wait_boot;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 }
 
 sub test_flags {

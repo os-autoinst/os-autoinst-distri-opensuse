@@ -10,6 +10,7 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use containers::common;
 use containers::urls 'get_3rd_party_images';
@@ -20,7 +21,7 @@ sub run {
     my ($self, $args) = @_;
     $self->{runtime} = $args->{runtime};
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     script_run("echo 'Container base image tests:' > /var/tmp/podman-3rd_party_images_log.txt");
     my $engine = $self->containers_factory($self->{runtime});

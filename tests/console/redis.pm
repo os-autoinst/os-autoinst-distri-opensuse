@@ -16,12 +16,13 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call script_retry validate_script_output_retry);
 use registration qw(add_suseconnect_product get_addon_fullname);
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # install redis package
     zypper_call 'in redis';

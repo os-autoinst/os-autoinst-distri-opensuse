@@ -13,6 +13,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use hacluster qw(get_hostname ha_export_logs pre_run_hook save_state wait_until_resources_started);
 use isotovideo;
@@ -267,7 +268,7 @@ sub prepare_profile {
         my $ret = systemctl('restart systemd-logind.service', ignore_failure => 1);
         die "systemctl restart systemd-logind.service failed with retcode: [$ret]" if $ret;
         if (!defined $ret) {
-            $self->select_serial_terminal;
+            select_serial_terminal;
             systemctl 'restart systemd-logind.service';
         }
     }
@@ -290,13 +291,13 @@ sub prepare_profile {
                 qw(root-console displaymanager displaymanager-password-prompt generic-desktop
                   text-login linux-login started-x-displaymanager-info)
             ], 120);
-        $self->select_serial_terminal unless (match_has_tag 'root-console');
+        select_serial_terminal unless (match_has_tag 'root-console');
     }
     else {
         # If running in DESKTOP=gnome, systemd-logind restart may cause the graphical
         # console to reset and appear in SUD, so need to select 'root-console' again
         # 'root-console' can be re-selected safely even if DESKTOP=textmode
-        $self->select_serial_terminal;
+        select_serial_terminal;
     }
 
     if ($has_saptune) {
@@ -305,7 +306,7 @@ sub prepare_profile {
         if (!defined $ret) {
             # Command timed out. 'saptune daemon start' could have caused the SUT to
             # move out of root-console, so select root-console and try again
-            $self->select_serial_terminal;
+            select_serial_terminal;
             $ret = script_run "saptune solution verify $profile";
         }
         record_soft_failure("poo#57464: 'saptune solution verify' returned warnings or errors! Please check!") if ($ret && !is_qemu());
@@ -314,7 +315,7 @@ sub prepare_profile {
         if (!defined $output) {
             # Command timed out or failed. 'saptune solution verify' could have caused
             # the SUT to move out of root-console, so select root-console and try again
-            $self->select_serial_terminal;
+            select_serial_terminal;
             $output = script_output "saptune daemon status";
         }
         record_info("saptune status", $output);
@@ -674,7 +675,7 @@ sub reboot {
         power_action('reboot', textmode => 1);
         $self->wait_boot(nologin => 1, bootloader_time => 300);
     }
-    $self->select_serial_terminal;
+    select_serial_terminal;
 }
 
 =head2 do_hana_sr_register

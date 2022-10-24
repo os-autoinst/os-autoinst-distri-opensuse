@@ -8,12 +8,12 @@
 
 use Mojo::Base qw(systemd_testsuite_test);
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle);
 use registration qw(add_suseconnect_product);
 
 sub run {
-    my ($self) = @_;
     my $test_opts = {
         NO_BUILD => get_var('SYSTEMD_NO_BUILD', 1),
         TEST_PREFER_NSPAWN => get_var('SYSTEMD_NSPAWN', 1),
@@ -39,7 +39,7 @@ sub run {
       systemd-testsuite
     );
 
-    $self->select_serial_terminal();
+    select_serial_terminal();
 
     if (is_sle) {
         add_suseconnect_product('sle-module-legacy');

@@ -10,6 +10,7 @@
 
 use Mojo::Base qw(hpcbase hpc::configs), -signatures;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
 use version_utils 'is_sle';
@@ -398,7 +399,7 @@ sub extended_hpc_tests ($master_ip, $slave_ip) {
 }
 
 sub run ($self) {
-    $self->select_serial_terminal();
+    select_serial_terminal();
     my $nodes = get_required_var('CLUSTER_NODES');
     my $slurm_conf = get_required_var('SLURM_CONF');
     my $version = get_required_var('VERSION');
@@ -472,7 +473,7 @@ sub test_flags ($self) {
 
 sub post_fail_hook ($self) {
     $self->destroy_test_barriers();
-    $self->select_serial_terminal;
+    select_serial_terminal;
     $self->upload_service_log('slurmd');
     $self->upload_service_log('munge');
     $self->upload_service_log('slurmctld');

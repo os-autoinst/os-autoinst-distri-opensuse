@@ -8,6 +8,7 @@
 
 use base 'sles4sap';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use lockapi;
@@ -180,7 +181,6 @@ sub configure_node_exporter {
 }
 
 sub run {
-    my ($self) = @_;
     my $hostname = get_hostname;
     my $cluster_name = get_cluster_name;
     my $instance_sid = get_required_var('INSTANCE_SID');
@@ -189,7 +189,7 @@ sub run {
     my $rsc_id = "${instance_sid}_${instance_type}${instance_id}";
 
     # Make sure that we have an opened terminal
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Configure Exporters
     configure_ha_exporter if get_var('HA_CLUSTER');

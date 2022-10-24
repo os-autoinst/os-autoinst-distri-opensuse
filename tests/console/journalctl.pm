@@ -21,6 +21,7 @@
 use Mojo::Base qw(consoletest);
 use Date::Parse qw(str2time);
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call script_retry systemctl);
 use version_utils qw(is_opensuse is_tumbleweed is_sle is_public_cloud is_leap);
 use Utils::Backends qw(is_hyperv);
@@ -88,7 +89,7 @@ sub reboot {
     } else {
         power_action('reboot', textmode => 1);
         $self->wait_boot(bootloader_time => 300);
-        $self->select_serial_terminal;
+        select_serial_terminal;
     }
 }
 
@@ -136,7 +137,7 @@ sub rotatelogs_and_verify {
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my %log_entries = (
         info => q{'(Testing, journalctl.pm) We need to call batman'},
         err => q{'(Testing, journalctl.pm) We NEED to call the batman NOW'},

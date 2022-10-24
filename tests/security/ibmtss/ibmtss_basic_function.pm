@@ -12,12 +12,11 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 use version_utils 'is_sle';
 
 sub run {
-    my $self = shift;
-
     select_console('root-console');
 
     # Install emulated tpm server and git-core
@@ -33,7 +32,7 @@ sub run {
     }
 
     # Download the test script, which is imported from link 'https://git.code.sf.net/p/ibmtpm20tss/tssi'
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     assert_script_run('git clone https://git.code.sf.net/p/ibmtpm20tss/tss ibmtpm20tss-tss', timeout => 240);
     assert_script_run('cd ibmtpm20tss-tss/utils');

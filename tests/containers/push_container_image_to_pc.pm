@@ -9,6 +9,7 @@
 
 use Mojo::Base 'publiccloud::k8sbasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use containers::urls 'get_image_uri';
 
 sub run {
@@ -16,7 +17,7 @@ sub run {
     my $provider = undef;
     my $container_registry_service = undef;
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     if (defined $run_args->{provider}) {
         my $public_cloud_provider = shift(@{$run_args->{provider}});

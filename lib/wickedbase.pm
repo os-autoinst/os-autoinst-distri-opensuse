@@ -14,6 +14,7 @@ use Encode qw(encode_utf8);
 use network_utils;
 use lockapi;
 use testapi qw(is_serial_terminal :DEFAULT);
+use serial_terminal 'select_serial_terminal';
 use bmwqemu;
 use serial_terminal;
 use Carp;
@@ -476,7 +477,7 @@ sub upload_log_file {
         upload_file($src, $dst);
     };
     record_info('Failed to upload file', $@, result => 'fail') if ($@);
-    $self->select_serial_terminal;
+    select_serial_terminal;
 }
 
 sub add_post_log_file {
@@ -985,7 +986,7 @@ sub post_run {
 
 sub pre_run_hook {
     my ($self) = @_;
-    $self->select_serial_terminal();
+    select_serial_terminal();
     my $coninfo = '## START: ' . $self->{name};
     wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
     type_string($coninfo);

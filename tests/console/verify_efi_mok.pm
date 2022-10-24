@@ -9,6 +9,7 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call is_efi_boot);
 use version_utils qw(is_leap is_opensuse is_sle is_jeos);
 use Utils::Architectures;
@@ -171,7 +172,7 @@ sub verification {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     is_efi_boot or die "Image did not boot in UEFI mode!\n";
 
     my $pkgs = 'efivar mokutil';

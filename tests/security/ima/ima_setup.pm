@@ -10,13 +10,14 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use bootloader_setup 'add_grub_cmdline_settings';
 use power_action_utils "power_action";
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Add 'iversion' to fstab mount options
     assert_script_run "awk -i inplace '{if(\$3 == \"ext4\") \$4=\$4\",iversion\"; print}' /etc/fstab";
@@ -30,7 +31,7 @@ sub run {
     # Reboot to make settings work
     power_action('reboot', textmode => 1);
     $self->wait_boot;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 }
 
 sub test_flags {

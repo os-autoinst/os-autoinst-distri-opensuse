@@ -9,6 +9,7 @@
 
 use base "opensusebasetest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use strict;
 use warnings;
@@ -16,8 +17,7 @@ use utils;
 use lockapi;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $trex_dir = "/tmp/trex-core";
 

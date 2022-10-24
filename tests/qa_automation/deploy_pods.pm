@@ -10,6 +10,7 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use Mojo::JSON;
 use Mojo::File 'path';
@@ -24,7 +25,7 @@ sub run {
     my $tardata = qx{tar -C "$path" -cjf - test_pods};
     save_tmp_file('test_pods.tar.bz2', $tardata);
     $tardata = undef;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     assert_script_run('pushd /tmp && rm -rf test_pods test_pods.tar.bz2');
     assert_script_run('wget --quiet -O test_pods.tar.bz2 ' . autoinst_url . '/files/test_pods.tar.bz2');
     assert_script_run('tar xjf test_pods.tar.bz2');

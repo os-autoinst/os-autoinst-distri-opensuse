@@ -12,10 +12,11 @@
 
 use Mojo::Base 'hpcbase', -signatures;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
 
-sub run ($self) {
+sub run {
     my $nodes = get_required_var("CLUSTER_NODES");
 
     record_info('Post migration tests');
@@ -31,7 +32,7 @@ sub test_flags {
 }
 
 sub post_fail_hook ($self) {
-    $self->select_serial_terminal;
+    select_serial_terminal;
     $self->upload_service_log('slurmd');
     $self->upload_service_log('munge');
     $self->upload_service_log('slurmctld');

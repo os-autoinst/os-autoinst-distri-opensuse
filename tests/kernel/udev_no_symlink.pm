@@ -10,6 +10,7 @@
 
 use Mojo::Base "opensusebasetest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 use bootloader_setup 'add_grub_cmdline_settings';
 use power_action_utils 'power_action';
@@ -17,7 +18,7 @@ use power_action_utils 'power_action';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Normal SLES installation should not have partitions with name logical or primary
     assert_script_run('test $(grep -r "E:ID_PART_ENTRY_NAME=primary" /run/udev/data | wc -l) -eq 0');
@@ -43,7 +44,7 @@ sub run {
     # Check that no symlinks are created for LABEL primary and warning appear
     power_action('reboot');
     $self->wait_boot;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     assert_script_run('journalctl -u detect-part-label-duplicates.service --no-pager | grep "Warning: a high number of partitions uses"');
     assert_script_run('test $(grep -r "E:ID_PART_ENTRY_NAME=primary" /run/udev/data | wc -l) -eq ' . $num_primary);
     assert_script_run('test $(grep -r "E:ID_PART_ENTRY_NAME=openqapart" /run/udev/data | wc -l) -eq ' . $num_openqapart);
@@ -56,7 +57,7 @@ sub run {
     add_grub_cmdline_settings('udev.no-partlabel-links=1', update_grub => 1);
     power_action('reboot');
     $self->wait_boot;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     assert_script_run('test $(grep -r "E:ID_PART_ENTRY_NAME=primary" /run/udev/data | wc -l) -eq ' . $num_primary);
     assert_script_run('test $(grep -r "E:ID_PART_ENTRY_NAME=openqapart" /run/udev/data | wc -l) -eq ' . $num_openqapart);
     script_run('ls -laR ' . $udev_no_label);

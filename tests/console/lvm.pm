@@ -35,6 +35,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use version_utils;
 use utils 'zypper_call';
@@ -42,7 +43,7 @@ use btrfs_test 'set_playground_disk';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     if (is_s390x) {
         # bring dasd online

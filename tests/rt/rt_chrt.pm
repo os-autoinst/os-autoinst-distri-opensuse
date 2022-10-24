@@ -18,6 +18,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Systemd 'systemctl';
 use version_utils qw(is_sle);
 
@@ -51,9 +52,7 @@ sub remap_args {
 }
 
 sub run {
-    my $self = shift;
-
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Are there any running RT processes ?
     print "List of all running RT processes:\n";

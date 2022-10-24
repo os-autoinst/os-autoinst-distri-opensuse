@@ -11,13 +11,13 @@
 
 use Mojo::Base qw(consoletest);
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(check_os_release get_os_release is_sle);
 use containers::common;
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $interface;
     my $update_timeout = 2400;    # aarch64 takes sometimes 20-30 minutes for completion
     my ($version, $sp, $host_distri) = get_os_release;

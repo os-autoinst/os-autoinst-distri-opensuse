@@ -9,6 +9,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use publiccloud::utils 'is_byos';
 use publiccloud::ssh_interactive 'select_host_console';
 use utils qw(zypper_call systemctl);
@@ -17,7 +18,7 @@ use version_utils 'is_sle';
 sub run {
     my ($self) = @_;
 
-    $self->select_serial_terminal();
+    select_serial_terminal();
     my $provider = $self->provider_factory();
     $provider->{username} = 'suse';
     my $instance = $self->{my_instance} = $provider->create_instance();

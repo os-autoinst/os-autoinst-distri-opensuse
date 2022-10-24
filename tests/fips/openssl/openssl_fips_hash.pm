@@ -17,13 +17,13 @@
 
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils qw(zypper_call);
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     zypper_call 'in openssl';
 
     my $tmp_file = "/tmp/hello.txt";

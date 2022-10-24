@@ -11,6 +11,7 @@
 use Mojo::Base qw(opensusebasetest);
 use Utils::Backends;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
 use lockapi;
@@ -18,7 +19,6 @@ use version_utils;
 use mmapi;
 
 sub run {
-    my $self = shift;
     my $master = get_required_var('IBTEST_IP1');
     my $slave = get_required_var('IBTEST_IP2');
 
@@ -27,7 +27,7 @@ sub run {
     my $packages_master = $packages . " git-core twopence-shell-client bc";
 
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
     permit_root_ssh_in_sol;
 
     # unload firewall. MPI- and libfabric-tests require too many open ports

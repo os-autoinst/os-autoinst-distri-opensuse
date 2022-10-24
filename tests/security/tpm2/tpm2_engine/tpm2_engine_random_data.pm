@@ -12,10 +12,10 @@ use strict;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Random data
     validate_script_output "openssl rand -engine tpm2tss -hex 10  2>&1", sub { m/engine\s\"tpm2tss\"\sset/ };

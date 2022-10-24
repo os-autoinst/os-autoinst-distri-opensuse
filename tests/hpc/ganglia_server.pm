@@ -11,11 +11,12 @@
 
 use Mojo::Base qw(hpcbase x11test), -signatures;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
 use version_utils 'is_sle';
 
-sub run ($self) {
+sub run {
     # Get number of nodes
     my $nodes = get_required_var("CLUSTER_NODES");
     # Get hostname
@@ -68,7 +69,7 @@ sub run ($self) {
 
 sub post_fail_hook ($self) {
     $self->destroy_test_barriers();
-    $self->select_serial_terminal;
+    select_serial_terminal;
     $self->upload_service_log('apache2');
     $self->upload_service_log('gmond');
     $self->upload_service_log('gmetad');

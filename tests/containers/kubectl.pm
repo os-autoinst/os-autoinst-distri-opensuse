@@ -11,14 +11,14 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
 use publiccloud::utils;
 use containers::k8s;
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     install_kubectl();
     # Record kubectl version and check if the tool itself is healthy
@@ -129,8 +129,6 @@ sub run {
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
-
     # Try to collect as much information about kubernetes as possible
     script_run('kubectl describe deployments');
     script_run('kubectl describe services');

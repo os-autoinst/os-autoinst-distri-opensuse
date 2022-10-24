@@ -10,6 +10,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
 use registration;
@@ -22,8 +23,7 @@ sub mob_test {
 }
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     if (is_sle() && !main_common::is_updates_tests()) {
         add_suseconnect_product('sle-module-desktop-applications');

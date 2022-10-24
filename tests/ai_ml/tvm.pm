@@ -10,13 +10,13 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my ($self) = @_;
     my $tvm_tvmc_tune = get_var('TVM_TVMC_TUNE');
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     zypper_call 'in python3-tvm tvmc python3-onnx python3-Pillow python3-pytest python3-tornado gcc-c++';
 

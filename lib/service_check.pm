@@ -16,6 +16,7 @@ package service_check;
 
 use Exporter 'import';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use utils;
 use base 'opensusebasetest';
@@ -259,7 +260,7 @@ Check service before migration, zypper install service package, enable, start an
 
 sub install_services {
     my ($service) = @_;
-    opensusebasetest::select_serial_terminal() if (get_var('SEL_SERIAL_CONSOLE'));
+    select_serial_terminal() if (get_var('SEL_SERIAL_CONSOLE'));
     # turn off lmod shell debug information
     assert_script_run('echo export LMOD_SH_DBG_ON=1 >> /etc/bash.bashrc.local');
     # turn off screen saver

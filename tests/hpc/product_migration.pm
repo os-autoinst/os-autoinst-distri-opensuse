@@ -9,15 +9,16 @@
 
 use Mojo::Base 'hpcbase', -signatures;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use registration 'add_suseconnect_product';
 
-sub run ($self) {
+sub run {
     my $suseconnect_str = ' -e testing@suse.com -r ';
     my $version = get_required_var('VERSION');
     ## replace SP-X with 12.X as this form is expected by SUSEConnect
     $version =~ s/-SP/./;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     script_run('ls -la /etc/products.d/');
     my $out = script_output('SUSEConnect -s', 30, proceed_on_failure => 1);

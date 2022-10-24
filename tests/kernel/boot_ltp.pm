@@ -12,6 +12,7 @@ use 5.018;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use LTP::utils;
 use version_utils qw(is_jeos is_sle);
@@ -36,7 +37,7 @@ sub run {
         $self->wait_boot(ready_time => 1800);
     }
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Debug code for poo#81142
     script_run('gzip -9 </dev/fb0 >framebuffer.dat.gz');

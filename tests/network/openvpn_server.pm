@@ -13,6 +13,7 @@
 
 use base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use y2_module_guitest;
 use mm_network;
@@ -24,7 +25,6 @@ use strict;
 use warnings;
 
 sub run {
-    my $self = shift;
     barrier_create 'SETUP_DONE', 2;
     barrier_create('OPENVPN_STATIC_STARTED', 2);
     barrier_create('OPENVPN_STATIC_FINISHED', 2);
@@ -32,7 +32,7 @@ sub run {
     barrier_create('OPENVPN_CA_FINISHED', 2);
     mutex_create 'barrier_setup_done';
     barrier_wait 'SETUP_DONE';
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Install openvpn, generate static key
     add_qa_head_repo unless is_opensuse();

@@ -21,12 +21,12 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle);
 use utils;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     zypper_call("in mutt", exitcode => [0, 102, 103]);
     zypper_call("in wget", exitcode => [0, 102, 103]);
@@ -76,7 +76,7 @@ sub run {
     script_run 'rm -r ~/Archive';
     save_screenshot;
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
     record_info 'postfix log', 'Check if the mail was really send';
     validate_script_output 'journalctl --no-pager -u postfix', sub { m/postfix\/qmgr.*<nimda\@localhost>/ };
 

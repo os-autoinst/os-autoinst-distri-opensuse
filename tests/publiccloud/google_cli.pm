@@ -14,13 +14,14 @@
 use Mojo::Base 'publiccloud::basetest';
 use registration;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use mmapi 'get_current_job_id';
 use utils qw(zypper_call script_retry);
 use version_utils 'is_sle';
 
 sub run {
     my ($self, $args) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $job_id = get_current_job_id();
 
     # If 'gcloud' is preinstalled, we test that version

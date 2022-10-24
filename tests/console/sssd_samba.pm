@@ -19,11 +19,11 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     # Install sssd before samba and separately as we need to check, if the
     # libwbclient.so.0 module gets overwritten
     zypper_call 'in sssd-wbclient';

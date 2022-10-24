@@ -15,12 +15,12 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Get the maintenance updates of the corresponding packages
     my $result = script_output q(zypper lp -a | awk -F\| '(/libsolv/||/libzypp/||/zypper/||/PackageKit/) && !/zypper-/ { gsub(/ /,""); print $2}');

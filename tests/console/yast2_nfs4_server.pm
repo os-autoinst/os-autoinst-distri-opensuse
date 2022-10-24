@@ -23,6 +23,7 @@ use warnings;
 use utils qw(clear_console zypper_call systemctl);
 use version_utils;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use mmapi;
 use mm_network;
@@ -30,7 +31,7 @@ use nfs_common;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $rw = '/srv/nfs';
     my $ro = '/srv/nfs/ro';

@@ -12,13 +12,13 @@ use base "y2_module_consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle is_opensuse is_staging);
 use utils 'zypper_call';
 use repo_tools 'get_repo_var_name';
 use y2_logs_helper qw(upload_autoyast_profile upload_autoyast_schema);
 
 sub run {
-    my $self = shift;
     select_console 'root-console';
 
     # Install for TW and generate profile
@@ -30,7 +30,7 @@ sub run {
     # Workaround for aarch64, as ncurces UI is not updated properly sometimes
     script_run('clear');
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $ay_profile_path = '/root/autoinst.xml';
     # Replace unitialized email variable - bsc#1015158
     assert_script_run "sed -i \"/server_email/ s/postmaster@/\\0suse.com/\" $ay_profile_path";

@@ -23,12 +23,13 @@ use base "saltbase";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use mm_network 'setup_static_mm_network';
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Install, configure and start the salt minion
     $self->minion_prepare();

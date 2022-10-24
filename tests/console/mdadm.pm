@@ -12,13 +12,13 @@
 
 use base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use version_utils 'is_sle';
 use strict;
 use warnings;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     assert_script_run 'wget ' . data_url('qam/mdadm.sh');
     if (is_sle('<15')) {

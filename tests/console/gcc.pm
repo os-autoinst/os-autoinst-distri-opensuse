@@ -12,12 +12,12 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_tumbleweed);
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     ## Note: Because this test currently only includes the gcc-jit test, the module is scheduled on Tumbleweed only
     ## When extending the test, consider scheduling it on SLES/Leap as well.

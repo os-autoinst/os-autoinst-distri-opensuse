@@ -9,12 +9,12 @@
 
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Switch to the original folder contains the key/password files
     my $test_dir = "gnutls";

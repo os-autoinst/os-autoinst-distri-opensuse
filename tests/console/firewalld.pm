@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call script_retry);
 use version_utils qw(is_sle is_leap is_transactional);
 use transactional qw(trup_call check_reboot_changes);
@@ -285,8 +286,7 @@ sub test_custom_services {
 }
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Check Service State, enable it if necessary, set default zone to public
     pre_test;

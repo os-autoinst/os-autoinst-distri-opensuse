@@ -10,6 +10,7 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle);
 
@@ -21,8 +22,7 @@ sub get_sev_message {
 }
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Skip this test run, unless defined to run
     unless (get_var("PUBLIC_CLOUD_CONFIDENTIAL_VM", 0)) {

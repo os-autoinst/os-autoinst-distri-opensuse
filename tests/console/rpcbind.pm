@@ -16,12 +16,12 @@ use warnings;
 use base 'consoletest';
 use strict;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call);
 use services::rpcbind;
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal();
+    select_serial_terminal();
     services::rpcbind::install_service();
     services::rpcbind::check_install();
     services::rpcbind::config_service();

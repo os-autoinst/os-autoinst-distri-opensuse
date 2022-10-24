@@ -8,12 +8,13 @@ use strict;
 use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use qesapdeployment 'qesap_upload_logs';
 use base 'trento';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $wd = '/root/work_dir';
     enter_cmd "mkdir $wd";
@@ -35,7 +36,7 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     qesap_upload_logs();
     if (!get_var('TRENTO_EXT_DEPLOY_IP')) {
         trento::k8s_logs(qw(web runner));

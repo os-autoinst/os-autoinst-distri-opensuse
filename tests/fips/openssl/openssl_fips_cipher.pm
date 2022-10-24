@@ -13,14 +13,14 @@
 
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
 use version_utils 'is_sle';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     zypper_call 'in openssl';
 
     my $enc_passwd = "pass1234";

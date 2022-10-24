@@ -11,6 +11,7 @@ use base "installbasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
 use version_utils qw(is_desktop_installed is_sles4sap is_leap_migration is_sle_micro);
@@ -175,7 +176,7 @@ sub run {
 
 sub post_fail_hook {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     script_run("pkill zypper");
     upload_logs '/var/log/zypper.log';
     $self->upload_solvertestcase_logs();

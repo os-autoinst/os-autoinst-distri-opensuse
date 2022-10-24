@@ -15,6 +15,7 @@
 
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils qw(zypper_call systemctl script_retry);
@@ -22,7 +23,7 @@ use Utils::Systemd 'disable_and_stop_service';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Let's install slpd
     zypper_call 'in openslp-server';

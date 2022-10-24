@@ -16,11 +16,11 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     #install osdbinfo packages
     zypper_call 'in osinfo-db libosinfo';

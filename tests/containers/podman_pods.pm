@@ -12,11 +12,12 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle is_opensuse);
 
 sub run {
     my ($self, $args) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $podman = $self->containers_factory('podman');
 
     record_info('Prep', 'Get kube yaml');

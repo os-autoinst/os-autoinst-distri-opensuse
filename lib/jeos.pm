@@ -4,6 +4,7 @@
 package jeos;
 use Mojo::Base qw(Exporter);
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(ensure_serialdev_permissions);
 use power_action_utils qw(power_action);
 use Utils::Backends qw(is_hyperv);
@@ -21,7 +22,7 @@ sub reboot_image {
     power_action('reboot', textmode => 1);
     record_info('reboot', $msg);
     $self->wait_boot(bootloader_time => 150);
-    $self->select_serial_terminal;
+    select_serial_terminal;
     ensure_serialdev_permissions;
 }
 

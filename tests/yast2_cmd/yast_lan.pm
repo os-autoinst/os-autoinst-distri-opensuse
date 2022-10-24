@@ -18,12 +18,12 @@ use base 'y2_module_basetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils 'is_sle';
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     zypper_call "in yast2-network";
     my $type = is_sle('>15') ? 'type=vlan' : '';
     validate_script_output_retry "yast lan add name=vlan50 ethdevice=eth0 $type 2>&1", sub { m/Virtual/ || m/vlan50/ }, timeout => 120;

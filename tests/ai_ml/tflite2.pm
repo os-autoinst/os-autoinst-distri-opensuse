@@ -12,13 +12,12 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_opensuse is_leap);
 
 sub run {
-    my ($self) = @_;
-
-    $self->select_serial_terminal;
+    select_serial_terminal;
     # Install required software
     my $ret;
     if (is_leap) {

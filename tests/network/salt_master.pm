@@ -30,6 +30,7 @@ use base "saltbase";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils qw(script_retry zypper_call);
 
@@ -38,7 +39,7 @@ sub run {
     barrier_create('SALT_FINISHED', 2);
     mutex_create 'barrier_setup_done';
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Install, configure and start the salt master
     $self->master_prepare();

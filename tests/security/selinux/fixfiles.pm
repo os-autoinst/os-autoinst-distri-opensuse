@@ -10,13 +10,14 @@ use power_action_utils "power_action";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
     my ($self) = shift;
     my $file_output = $selinuxtest::file_output;
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # test `fixfiles check` can print any incorrect file context labels
     assert_script_run("fixfiles check > $file_output 2>&1", timeout => 300);

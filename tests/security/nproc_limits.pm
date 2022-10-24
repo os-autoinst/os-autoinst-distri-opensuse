@@ -10,11 +10,12 @@ use power_action_utils "power_action";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Check the limits.conf config file
     script_run('test ! -f /etc/security/limits.conf && install /usr/etc/security/limits.conf -t /etc/security');
@@ -28,7 +29,7 @@ sub run {
     # 'systemctl daemon-reexec' does not work here, so we have to reboot
     power_action('reboot', textmode => 1);
     $self->wait_boot;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     validate_script_output "ulimit -u", sub { m/unlimited/ };    # soft limit
     validate_script_output "ulimit -u -H", sub { m/unlimited/ };    # hard limit

@@ -24,6 +24,7 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
 use console::ovs_utils;
@@ -42,7 +43,7 @@ my $dir_cacerts = "/etc/ipsec.d/cacerts/";
 sub run {
 
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     barrier_create('ipsec_done', 2);
     barrier_create('traffic_check_done', 2);

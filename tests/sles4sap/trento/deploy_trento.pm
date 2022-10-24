@@ -9,6 +9,7 @@ use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use base 'trento';
 
 sub run {
@@ -17,7 +18,7 @@ sub run {
         return;
     }
     die "Only AZURE deployment supported for the moment" unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $resource_group = $self->get_resource_group;
     my $acr_name = $self->get_acr_name;

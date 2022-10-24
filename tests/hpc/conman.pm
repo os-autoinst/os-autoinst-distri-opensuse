@@ -13,6 +13,7 @@
 
 use Mojo::Base 'hpcbase', -signatures;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use susedistribution;
 
@@ -64,7 +65,7 @@ sub run ($self) {
 }
 
 sub post_fail_hook ($self) {
-    $self->select_serial_terminal;
+    select_serial_terminal;
     $self->upload_service_log('conmand');
     $self->SUPER::post_fail_hook;
 }

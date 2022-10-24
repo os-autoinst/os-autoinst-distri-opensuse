@@ -13,6 +13,7 @@ use File::Basename 'basename';
 use LWP::Simple 'head';
 
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use registration;
 use utils;
 use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
@@ -366,7 +367,7 @@ sub run {
 
     enable_tpm_slb9670 if (get_var('MACHINE') =~ /RPi/);
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     if (script_output('cat /sys/module/printk/parameters/time') eq 'N') {
         script_run('echo 1 > /sys/module/printk/parameters/time');

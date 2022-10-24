@@ -10,6 +10,7 @@ use warnings;
 use base 'opensusebasetest';
 use File::Basename;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use ctcs2_to_junit;
 use upload_system_log;
 
@@ -36,8 +37,7 @@ sub upload_tarball {
 }
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Finalize status log and upload it
     log_end STATUS_LOG;

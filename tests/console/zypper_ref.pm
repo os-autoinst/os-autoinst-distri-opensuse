@@ -15,12 +15,12 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call zypper_enable_install_dvd);
 use version_utils 'is_sle';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     zypper_enable_install_dvd;
     zypper_call '--gpg-auto-import-keys ref';
