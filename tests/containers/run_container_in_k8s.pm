@@ -15,8 +15,7 @@ sub run {
     my ($self, $run_args) = @_;
     if ($run_args->{provider}) {
         my $provider = shift(@{$run_args->{provider}});
-        my $service = $self->get_k8s_service_name($provider);
-        $self->SUPER::init(provider => $provider, service => $service);
+        $self->SUPER::init(provider => $provider);
     }
     else {
         $self->SUPER::init();
