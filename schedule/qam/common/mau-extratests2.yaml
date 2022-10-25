@@ -41,13 +41,11 @@ conditional_schedule:
         - console/ovn
         - console/firewalld
         - console/libgcrypt
-        - console/valgrind
         - console/zziplib
         - console/journald_fss
         - console/openvswitch_ssl
         - network/samba/samba_adcli
         - console/nginx
-        - console/ansible
         - '{{arch_specific}}'
       15-SP3:
         - console/osinfo_db
