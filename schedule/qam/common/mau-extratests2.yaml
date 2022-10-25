@@ -47,6 +47,7 @@ conditional_schedule:
         - network/samba/samba_adcli
         - console/nginx
         - '{{arch_specific}}'
+        - '{{arch_specific15_sp4}}'
       15-SP3:
         - console/osinfo_db
         - console/ovn
@@ -125,4 +126,9 @@ conditional_schedule:
         - console/journald_fss
       aarch64:
         - console/journald_fss
+  arch_specific15_sp4:
+    ARCH:
+      x86_64:
+        - console/valgrind
+        - console/ansible
 ...
