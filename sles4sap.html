@@ -14,6 +14,8 @@
 <ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
+      <li><a href="#SAPINIT_RE-SYSTEMD_RE">SAPINIT_RE &amp; SYSTEMD_RE</a></li>
+      <li><a href="#SYSTEMCTL_UNITS_RE">SYSTEMCTL_UNITS_RE</a></li>
       <li><a href="#ensure_serialdev_permissions_for_sap">ensure_serialdev_permissions_for_sap</a></li>
       <li><a href="#fix_path">fix_path</a></li>
       <li><a href="#set_ps_cmd">set_ps_cmd</a></li>
@@ -41,6 +43,7 @@
       <li><a href="#install_libopenssl_legacy">install_libopenssl_legacy</a></li>
       <li><a href="#upload_hana_install_log">upload_hana_install_log</a></li>
       <li><a href="#upload_nw_install_log">upload_nw_install_log</a></li>
+      <li><a href="#startup_type">startup_type</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap.pm</h1>
@@ -50,6 +53,22 @@
 <p>Package with common methods and default values for tests on SLES for SAP Applications.</p>
 
 <p>This package inherits from <b>opensusebasetest</b> and should be used as a class.</p>
+
+<h2 id="SAPINIT_RE-SYSTEMD_RE">SAPINIT_RE &amp; SYSTEMD_RE</h2>
+
+<pre><code>    $self-&gt;SAPINIT_RE();
+    $self-&gt;SAPINIT_RE(qr/some regexp/);
+    $self-&gt;SYSTEMD_RE();
+    $self-&gt;SYSTEMD_RE(qr/some regexp/);</code></pre>
+
+<p>Set or get a regular expressions to test on the <i>/usr/sap/sapservices</i> file whether the SAP workload was started via sapinit or systemd.</p>
+
+<h2 id="SYSTEMCTL_UNITS_RE">SYSTEMCTL_UNITS_RE</h2>
+
+<pre><code>    $self-&gt;SYSTEMCTL_UNITS_RE();
+    $self-&gt;SYSTEMCTL_UNITS_RE(qr/some regexp/);</code></pre>
+
+<p>Set or get a regular expression to test in the output of <code>systemctl --list-unit-files</code> whether the SAP workload was started via systemd units.</p>
 
 <h2 id="ensure_serialdev_permissions_for_sap">ensure_serialdev_permissions_for_sap</h2>
 
@@ -73,7 +92,7 @@
 
 <pre><code> $self-&gt;set_sap_info( $SID, $instance_number );</code></pre>
 
-<p>SAP software relies on 2 identifiers, the system id (SID) which is a 3-character identifier, and the instance number. This method receives both via positional arguments, and sets the internal variables for <b>$sid</b>, <b>$instance</b> and <b>$sapadmin</b> accordingly. Returns the value of <b>$sapadmin</b>.</p>
+<p>SAP software relies on 2 identifiers, the system id (SID) which is a 3-character identifier, and the instance number. This method receives both via positional arguments, and sets the internal variables for <b>$sid</b>, <b>$instance</b> and <b>$sapadmin</b> accordingly. It also sets accessors that depend on <b>$sid</b> and <b>$instance</b> as well as the product type. Returns the value of <b>$sapadmin</b>.</p>
 
 <h2 id="user_change">user_change</h2>
 
@@ -224,6 +243,12 @@
 <pre><code> $self-&gt;upload_nw_install_log();</code></pre>
 
 <p>Upload NetWeaver installation logs from SUT.</p>
+
+<h2 id="startup_type">startup_type</h2>
+
+<pre><code> $self-&gt;startup_type();</code></pre>
+
+<p>Record whether the SAP workload was started via sapinit or systemd units.</p>
 
 
 </body>
