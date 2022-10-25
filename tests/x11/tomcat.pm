@@ -89,10 +89,10 @@ sub run() {
     $self->switch_to_desktop();
 
     $self->firefox_open_url('http://localhost');
-    send_key_until_needlematch('tomcat-succesfully-installed', 'ret');
+    assert_screen('tomcat-succesfully-installed');
 
     $self->firefox_open_url('http://localhost:8080');
-    send_key_until_needlematch('tomcat-succesfully-installed', 'ret');
+    assert_screen('tomcat-succesfully-installed');
 
     $self->close_firefox();
     assert_screen('generic-desktop');
