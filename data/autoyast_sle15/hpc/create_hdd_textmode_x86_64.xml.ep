@@ -374,7 +374,9 @@
     <gid_min>1000</gid_min>
     <hibernate_system>active_console</hibernate_system>
     <kernel.sysrq>184</kernel.sysrq>
+    % unless ($check_var->('VERSION', '15-SP3')) {
     <lsm_select>apparmor</lsm_select>
+    % }
     <mandatory_services>secure</mandatory_services>
     <net.ipv4.ip_forward>0</net.ipv4.ip_forward>
     <net.ipv4.tcp_syncookies>0</net.ipv4.tcp_syncookies>
@@ -388,6 +390,9 @@
     <passwd_use_cracklib>yes</passwd_use_cracklib>
     <permission_security>easy</permission_security>
     <run_updatedb_as/>
+    % if ($check_var->('VERSION', '15-SP3')) {
+    <selinux_mode>disabled</selinux_mode>
+    % }
     <smtpd_listen_remote>no</smtpd_listen_remote>
     <sys_gid_max>499</sys_gid_max>
     <sys_gid_min>100</sys_gid_min>
