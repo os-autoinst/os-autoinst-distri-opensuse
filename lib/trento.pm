@@ -66,6 +66,7 @@ our @EXPORT = qw(
   cypress_test_exec
   cypress_log_upload
   k8s_logs
+  trento_support
 );
 
 # Exported constants
@@ -169,7 +170,7 @@ sub get_trento_deployment {
 
         # Download the release archive
         my $download_api_url = "$repo_url/repository/archive.tar.gz?sha=$commit_id";
-        my $download_cmd = $curl_cmd .
+        my $download_cmd = $curl_cmd . ' -f' .
           " \"$download_api_url\"" .
           " --output $ver_artifact ";
         assert_script_run($download_cmd);
@@ -283,7 +284,7 @@ Deploy a SAP Landscape using a previously configured qe-sap-deployment
 sub deploy_qesap {
     my $ret = qesap_execute(cmd => 'terraform', verbose => 1, timeout => 1800);
     die "'qesap.py terraform' return: $ret" if ($ret);
-    $ret = qesap_execute(cmd => 'ansible', verbose => 1, timeout => 1800);
+    $ret = qesap_execute(cmd => 'ansible', verbose => 1, timeout => 3600);
     die "'qesap.py ansible' return: $ret" if ($ret);
     my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
     upload_logs($inventory);
@@ -297,7 +298,7 @@ Destroy the qe-sap-deployment SAP Landscape
 sub destroy_qesap {
     my $ret = qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
     die "'qesap.py ansible -d' return: $ret" if ($ret);
-    $ret = qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 300);
+    $ret = qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 3600);
     die "'qesap.py terraform -d' return: $ret" if ($ret);
 }
 
@@ -440,7 +441,7 @@ sub install_agent {
     if (get_var('TRENTO_AGENT_RPM')) {
         my $package = get_var('TRENTO_AGENT_RPM');
         my $ibs_location = get_var(TRENTO_AGENT_REPO => 'https://dist.suse.de/ibs/Devel:/SAP:/trento:/factory/SLE_15_SP3/x86_64');
-        $cmd = "curl --verbose \"$ibs_location/$package\" --output $wd/$package";
+        $cmd = "curl -f --verbose \"$ibs_location/$package\" --output $wd/$package";
         assert_script_run($cmd);
         $local_rpm_arg = " -e agent_rpm=$wd/$package";
     }
@@ -517,6 +518,41 @@ sub k8s_logs {
                 upload_logs($log_txt);
             }
         }
+    }
+
+    trento_support();
+}
+
+=head3 trento_support
+
+Call trento-support.sh and dump_scenario_from_k8.sh
+and upload the logs
+=cut
+
+sub trento_support {
+    my $machine_ip = get_trento_ip();
+
+    return unless ($machine_ip);
+
+    my $log_dir = 'remote_logs/';
+    enter_cmd "mkdir $log_dir";
+    my $scp_cmd = sprintf 'scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i %s %s@%s',
+      SSH_KEY, VM_USER, $machine_ip;
+    my $cmd = join(' ',
+        'sudo',
+        'KUBECONFIG=/etc/rancher/k3s/k3s.yaml', 'PATH=${PATH}:/home/' . VM_USER . '/bin/',
+        './trento-support.sh',
+        '--output', 'file-tgz',
+        '--collect', 'all');
+    script_run(az_vm_ssh_cmd($cmd, $machine_ip));
+    script_run("$scp_cmd:'*.tar.gz' $log_dir");
+
+
+    my $scenario_name = 'openqa_scenario';
+    script_run(az_vm_ssh_cmd("./dump_scenario_from_k8.sh -n $scenario_name", $machine_ip));
+    script_run("$scp_cmd:'scenarios/$scenario_name/*.json' $log_dir");
+    foreach my $this_file (split("\n", script_output('ls -1 ' . $log_dir . '*.tar.gz ' . $log_dir . '*.json'))) {
+        upload_logs($this_file, failok => 1);
     }
 }
 
