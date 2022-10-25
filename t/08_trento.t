@@ -25,8 +25,9 @@ subtest '[k8s_logs] None of the pods are for any of the required trento-server' 
     # Ask for the log of trento-server-web and trento-server-runner (none of them in the list of running pods)
     k8s_logs(qw(web runner));
 
-    note(join("\n  C-->  ", @calls));
-    note(join("\n  L-->  ", @logs));
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  L-->  " . join("\n  L-->  ", @logs));
+
     like $calls[0], qr/.*kubectl get pods/, 'Start by getting the list of pods';
     ok scalar @calls == 1, sprintf 'Only 1 in place of %d remote commands expected as none of the running pods match with any of the requested pods', scalar @calls;
 };
@@ -45,8 +46,8 @@ subtest '[k8s_logs] Get logs from running pods as it is also required' => sub {
     $trento->redefine(trento_support => sub { return; });
 
     k8s_logs(qw(panino));
-    note(join("\n  C-->  ", @calls));
-    note(join("\n  L-->  ", @logs));
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  L-->  " . join("\n  L-->  ", @logs));
     ok scalar @calls == 3, sprintf '3 in place of %d remote commands expected: 1 to get the list of the pods, 2 to get from the required one all the logs', scalar @calls;
     ok scalar @logs == 2, '2 logs uploaded for each pod';
 };
@@ -61,8 +62,8 @@ subtest '[trento_support]' => sub {
     $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $trento->redefine(upload_logs => sub { push @logs, $_[0]; });
     trento_support();
-    note(join("\n  C-->  ", @calls));
-    note(join("\n  L-->  ", @logs));
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  L-->  " . join("\n  L-->  ", @logs));
     like $calls[0], qr/mkdir.*remote_logs/, 'Create remote_logs local folder';
 
     ok any { /ssh.*trento-support\.sh/ } @calls, 'Run trento-support.sh remotely';
@@ -79,7 +80,8 @@ subtest '[get_vnet] get_vnet has to call az and return a vnet' => sub {
 
     my $net_name = get_vnet(qw(GELATOGROUP));
 
-    note(join("\n  C-->  ", @calls));
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
     like $calls[0], qr/az network vnet list -g GELATOGROUP --query "\[0\]\.name" -o tsv/, 'AZ command';
     is $net_name, $expected_net_name, "expected_net_name:$expected_net_name get net_name:$net_name";
 };
@@ -115,7 +117,10 @@ subtest '[get_trento_deployment] with TRENTO_DEPLOY_VER' => sub {
     set_var('TRENTO_DEPLOY_VER', $gitlab_ver);
     set_var('_SECRET_TRENTO_GITLAB_TOKEN', $password);
     get_trento_deployment('self', '/tmp');
-    note(join("\n  -->  ", @calls));
+    set_var('TRENTO_DEPLOY_VER', undef);
+    set_var('_SECRET_TRENTO_GITLAB_TOKEN', undef);
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
     like $recorded_passwords[0], qr/$password/;
     ok any { /curl.*api\/v4\/projects\/$gitlab_prj_id\/repository\/.*sha=$gitlab_sha.*--output $gitlag_tar/ } @calls;
     ok any { /tar.*$gitlag_tar/ } @calls;
@@ -128,7 +133,8 @@ subtest '[get_trento_ip] check the az command' => sub {
     $trento->redefine(script_output => sub { push @calls, $_[0]; return 'GINGERINO'; });
 
     my $out = get_trento_ip();
-    note(join("\n  1C-->  ", @calls));
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
     is $out, 'GINGERINO', 'get_trento_ip output as expected';
     like $calls[0], qr/az vm show -d -g .*PASTICCINO -n .*PASTICCINO --query "publicIps" -o tsv/;
 };
@@ -149,8 +155,9 @@ subtest '[cypress_configs]' => sub {
     my $ver = '9.8.7';
     set_var('TRENTO_VERSION' => $ver);
     cypress_configs('/FESTA/BANCONE/SPREMUTA');
-    note(join("\n -->  ", @calls));
-    note(join("\n  L-->  ", @logs));
+    set_var('TRENTO_VERSION', undef);
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  L-->  " . join("\n  L-->  ", @logs));
     ok any { /cypress\.env\.py -u .*43\.43\.43\.43 -p SPUMA_DI_TONNO -f Premium -n $nodes --trento-version $ver/ } @calls;
     ok any { /cypress\.env\.json/ } @logs;
 };
@@ -160,12 +167,12 @@ subtest '[get_agents_number]' => sub {
     @calls = ();
 
     my $cloud_provider = 'POLPETTE';
-    set_var('PUBLIC_CLOUD_PROVIDER' => $cloud_provider);
-    set_var('QESAP_CONFIG_FILE' => 'MELANZANE_FRITTE');
+    set_var('PUBLIC_CLOUD_PROVIDER', $cloud_provider);
+    set_var('QESAP_CONFIG_FILE', 'MELANZANE_FRITTE');
 
     my $tmp_folder = '/FESTA';
     note("-->tmp_folder=$tmp_folder");
-    set_var('QESAP_DEPLOYMENT_DIR' => $tmp_folder);
+    set_var('QESAP_DEPLOYMENT_DIR', $tmp_folder);
 
     my $inv_path = "$tmp_folder/terraform/" . lc $cloud_provider . '/inventory.yaml';
     note("-->inv_path=$inv_path");
@@ -195,7 +202,11 @@ END
 
     my $res = get_agents_number();
 
-    note(join("\n -->  ", @calls));
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
+    set_var('QESAP_CONFIG_FILE', undef);
+    set_var('QESAP_DEPLOYMENT_DIR', undef);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
 
     is $res, 3, 'Number of agents like expected';
     like $calls[0], qr/cat $inv_path/;
@@ -207,9 +218,13 @@ subtest '[deploy_qesap] ok' => sub {
     @logs = ();
     $trento->redefine(qesap_execute => sub { return 0; });
     $trento->redefine(upload_logs => sub { push @logs, @_; });
+    $trento->redefine(qesap_get_inventory => sub { return '/PEPERONATA'; });
+
+    set_var('PUBLIC_CLOUD_PROVIDER', 'POLPETTE');
     deploy_qesap();
-    note(join("\n L-->  ", @logs));
-    like $logs[0], qr/.*inventory\.yaml/;
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
+    note("\n  L-->  " . join("\n  L-->  ", @logs));
+    like $logs[0], qr/PEPERONATA/;
 };
 
 subtest '[deploy_qesap] not ok' => sub {
@@ -220,15 +235,177 @@ subtest '[deploy_qesap] not ok' => sub {
 
 subtest '[destroy_qesap] ok' => sub {
     my $trento = Test::MockModule->new('trento', no_auto => 1);
-    $trento->redefine(qesap_execute => sub { return 0; });
+    @calls = ();
+    $trento->redefine(qesap_execute => sub { my (%args) = @_; push @calls, \%args; return 0; });
     destroy_qesap();
-    ok 1;
+
+    ok any { $_->{cmd} eq 'ansible' and $_->{cmd_options} eq '-d' } @calls;
+    ok any { $_->{cmd} eq 'terraform' and $_->{cmd_options} eq '-d' } @calls;
 };
 
 subtest '[destroy_qesap] not ok' => sub {
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     $trento->redefine(qesap_execute => sub { return 1; });
     dies_ok { destroy_qesap() } "Expected die for internal qesap_execute returnin non zero.";
+};
+
+subtest '[deploy_vm]' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+    @logs = ();
+    $trento->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $trento->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(get_resource_group => sub { return 'MINESTRE'; });
+    $trento->redefine(get_vm_name => sub { return 'RIBOLLITA'; });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $trento->redefine(upload_logs => sub { push @logs, @_; });
+    deploy_vm('/CROSTINI');
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  L-->  " . join("\n  L-->  ", @logs));
+    like $calls[0], qr/cd \/CROSTINI/;
+    like $calls[1], qr/.*trento_deploy\.py.*00_040.*MINESTRE.*RIBOLLITA.*script_00\.040\.log\.txt/;
+};
+
+subtest '[deploy_vm] TRENTO_VM_IMAGE to change image' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+    @logs = ();
+    $trento->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $trento->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(get_resource_group => sub { return 'MINESTRE'; });
+    $trento->redefine(get_vm_name => sub { return 'RIBOLLITA'; });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $trento->redefine(upload_logs => sub { push @logs, @_; });
+
+    set_var('TRENTO_VM_IMAGE', 'PARMIGIANA');
+    deploy_vm('/CROSTINI');
+    set_var('TRENTO_VM_IMAGE', undef);
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  L-->  " . join("\n  L-->  ", @logs));
+    like $calls[1], qr/.*-i PARMIGIANA/;
+};
+
+subtest '[trento_acr_azure] official version' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+    @logs = ();
+    $trento->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $trento->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(script_output => sub { push @calls, $_[0]; return 'TOAST'; });
+    $trento->redefine(get_current_job_id => sub { return 'PASTICCINO'; });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $trento->redefine(upload_logs => sub { push @logs, @_; });
+
+    set_var('TRENTO_VM_IMAGE', 'PARMIGIANA');
+    trento_acr_azure('/CROSTINI');
+    set_var('TRENTO_VM_IMAGE', undef);
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  L-->  " . join("\n  L-->  ", @logs));
+    like $calls[0], qr/cd \/CROSTINI/;
+    like $calls[1], qr/.*trento_acr_azure\.sh.*script_trento_acr_azure\.log\.txt/;
+};
+
+subtest '[trento_acr_azure] return' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    $trento->redefine(enter_cmd => sub { });
+    $trento->redefine(assert_script_run => sub { });
+    $trento->redefine(script_output => sub {
+            push @calls, $_[0];
+            # az acr list -g $resource_group --query \"[0].loginServer\" -o tsv
+            if ($_[0] =~ /az acr list/) { return "LOGINSERVER_FRITTO"; }
+            # az acr credential show -n $acr_name --query username -o tsv
+            if ($_[0] =~ /az acr credential show.*username/) { return "USERNAME_LESSO"; }
+            # az acr credential show -n $acr_name --query 'passwords[0].value' -o tsv
+            if ($_[0] =~ /az acr credential show.*passwords/) { return "PASSWORD_ARROSTO"; }
+            return 'BROCCOLI';
+    });
+    $trento->redefine(get_current_job_id => sub { return 'PASTICCINO'; });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $trento->redefine(upload_logs => sub { });
+
+    set_var('TRENTO_VM_IMAGE', 'PARMIGIANA');
+    my %acr = trento_acr_azure('/CROSTINI');
+    set_var('TRENTO_VM_IMAGE', undef);
+
+    like $acr{'trento_cluster_install'}, qr/.*CROSTINI.*/;
+    ok $acr{'acr_server'} eq 'LOGINSERVER_FRITTO';
+    ok $acr{'acr_username'} eq 'USERNAME_LESSO';
+    ok $acr{'acr_secret'} eq 'PASSWORD_ARROSTO';
+};
+
+subtest '[trento_acr_azure] rolling version' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+
+    $trento->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $trento->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(script_output => sub { push @calls, $_[0]; return 'TOAST'; });
+    $trento->redefine(get_current_job_id => sub { return 'PASTICCINO'; });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $trento->redefine(upload_logs => sub { });
+
+    set_var('TRENTO_VM_IMAGE', 'PARMIGIANA');
+    set_var('TRENTO_REGISTRY_IMAGE_WEB', 'CALDARROSTE');
+    my %acr = trento_acr_azure('/CROSTINI');
+    set_var('TRENTO_VM_IMAGE', undef);
+    set_var('TRENTO_REGISTRY_IMAGE_WEB', undef);
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    like $calls[1], qr/.*config_helper\.py.*-o config_images_gen\.json.*--web CALDARROSTE --web-version latest/;
+    like $calls[2], qr/.*trento_acr_azure\.sh.*-r config_images_gen\.json/;
+};
+
+
+subtest '[install_trento] official version' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+    @logs = ();
+
+    $trento->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $trento->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $trento->redefine(get_current_job_id => sub { return 'PASTICCINO'; });
+    $trento->redefine(get_trento_ip => sub { return '42.42.42.42' });
+    $trento->redefine(upload_logs => sub { push @logs, @_; });
+
+    my %acr;
+    $acr{'trento_cluster_install'} = 'GNOCCHI';
+    $acr{'acr_server'} = 'LOGINSERVER_FRITTO';
+    $acr{'acr_username'} = 'USERNAME_LESSO';
+    $acr{'acr_secret'} = 'PASSWORD_ARROSTO';
+
+    install_trento(work_dir => '/CROSTINI', acr => \%acr);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  L-->  " . join("\n  L-->  ", @logs));
+
+    like $calls[0], qr/cd \/CROSTINI/;
+    like $calls[1], qr/.*01\.010-trento_server_installation_premium_v\.sh.*-r LOGINSERVER_FRITTO\/trento\/trento-server -s USERNAME_LESSO -w PASSWORD_ARROSTO.*script_01\.010\.log\.txt/;
+};
+
+subtest '[install_trento] rolling release' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+
+    $trento->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $trento->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $trento->redefine(get_current_job_id => sub { return 'PASTICCINO'; });
+    $trento->redefine(get_trento_ip => sub { return '42.42.42.42' });
+    $trento->redefine(upload_logs => sub { });
+
+    my %acr;
+    $acr{'trento_cluster_install'} = 'GNOCCHI';
+    $acr{'acr_server'} = 'LOGINSERVER_FRITTO';
+    $acr{'acr_username'} = 'USERNAME_LESSO';
+    $acr{'acr_secret'} = 'PASSWORD_ARROSTO';
+
+    set_var('TRENTO_REGISTRY_IMAGE_WEB', 'CALDARROSTE');
+    install_trento(work_dir => '/CROSTINI', acr => \%acr);
+    set_var('TRENTO_REGISTRY_IMAGE_WEB', undef);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
+    like $calls[1], qr/.*-x GNOCCHI/;
 };
 
 done_testing;

@@ -51,6 +51,8 @@ our @EXPORT = qw(
   get_vnet
   get_trento_password
   deploy_vm
+  trento_acr_azure
+  install_trento
   deploy_qesap
   destroy_qesap
   install_agent
@@ -257,22 +259,136 @@ Based on 00.040-trento_vm_server_deploy_azure.sh
 =cut
 
 sub deploy_vm {
-    # Run the Trento deployment
-
+    my ($work_dir) = @_;
+    enter_cmd "cd $work_dir";
     my $script_id = '00.040';
     my $resource_group = get_resource_group();
     my $machine_name = get_vm_name();
     record_info($script_id);
     my $vm_image = get_var(TRENTO_VM_IMAGE => 'SUSE:sles-sap-15-sp3-byos:gen2:latest');
     my $deploy_script_log = "script_$script_id.log.txt";
-    my $cmd = join(' ', TRENTO_SCRIPT_RUN . $script_id . '-trento_vm_server_deploy_azure.sh ',
+    my $cmd = join(' ', TRENTO_SCRIPT_RUN . 'trento_deploy/trento_deploy.py', '--verbose', '00_040',
         '-g', $resource_group,
         '-s', $machine_name,
         '-i', $vm_image,
         '-a', VM_USER,
         '-k', SSH_KEY . '.pub',
-        '-v', "2>&1|tee $deploy_script_log");
+        "2>&1|tee $deploy_script_log");
     assert_script_run($cmd, 360);
+    upload_logs($deploy_script_log);
+}
+
+=head3 trento_acr_azure
+
+Create ACR in Azure and upload from IBS needed images
+Based on trento_acr_azure.sh
+=cut
+
+sub trento_acr_azure {
+    my ($work_dir) = @_;
+    enter_cmd "cd $work_dir";
+    my $script_id = 'trento_acr_azure';
+    my $resource_group = get_resource_group();
+    my $acr_name = get_acr_name();
+    record_info($script_id);
+    my $trento_registry_chart = get_var(TRENTO_REGISTRY_CHART => 'registry.suse.com/trento/trento-server');
+    my $cfg_json = 'config_images_gen.json';
+    my @imgs = qw(WEB RUNNER);
+    # take care of TRENTO_VERSION variable too
+    if (get_var("TRENTO_REGISTRY_IMAGE_$imgs[0]") || get_var("TRENTO_REGISTRY_IMAGE_$imgs[1]")) {
+        my $cfg_helper_cmd = TRENTO_SCRIPT_RUN . 'trento_deploy/config_helper.py' .
+          " -o $cfg_json" .
+          " --chart $trento_registry_chart";
+        if (get_var('TRENTO_REGISTRY_CHART_VERSION')) {
+            $cfg_helper_cmd .= ' --chart-version ' . get_var('TRENTO_REGISTRY_CHART_VERSION');
+        }
+        foreach my $img (@imgs) {
+            if (get_var("TRENTO_REGISTRY_IMAGE_$img")) {
+                $cfg_helper_cmd .= ' --' . lc($img) . ' ' . get_var("TRENTO_REGISTRY_IMAGE_$img") .
+                  ' --' . lc($img) . '-version ';
+                if (get_var("TRENTO_REGISTRY_IMAGE_${img}_VERSION")) {
+                    $cfg_helper_cmd .= get_var("TRENTO_REGISTRY_IMAGE_${img}_VERSION");
+                }
+                else {
+                    $cfg_helper_cmd .= 'latest';
+                }
+            }
+        }
+        assert_script_run($cfg_helper_cmd);
+        upload_logs($cfg_json);
+        $trento_registry_chart = $cfg_json;
+    }
+    my $deploy_script_log = "script_$script_id.log.txt";
+    my $trento_cluster_install = "${work_dir}/trento_cluster_install.sh";
+    my $trento_acr_azure_timeout = 360;
+    my $cmd = TRENTO_SCRIPT_RUN . $script_id . '.sh' .
+      " -g $resource_group" .
+      " -n $acr_name" .
+      " -u " . VM_USER .
+      " -r $trento_registry_chart";
+    if (get_var("TRENTO_REGISTRY_IMAGE_$imgs[0]") || get_var("TRENTO_REGISTRY_IMAGE_$imgs[1]")) {
+        $trento_acr_azure_timeout += 240;
+        $cmd .= " -o $work_dir";
+    }
+    $cmd .= " -v 2>&1|tee $deploy_script_log";
+    assert_script_run($cmd, $trento_acr_azure_timeout);
+    upload_logs($deploy_script_log);
+    if (get_var("TRENTO_REGISTRY_IMAGE_$imgs[0]") || get_var("TRENTO_REGISTRY_IMAGE_$imgs[1]")) {
+        upload_logs($trento_cluster_install);
+    }
+
+    my $acr_server = script_output("az acr list -g $resource_group --query \"[0].loginServer\" -o tsv");
+    my $acr_username = script_output("az acr credential show -n $acr_name --query username -o tsv");
+    my $acr_secret = script_output("az acr credential show -n $acr_name --query 'passwords[0].value' -o tsv");
+
+    # Check what registry has been created by trento_acr_azure
+    assert_script_run("az acr repository list -n $acr_name");
+
+    my %return_values = (
+        trento_cluster_install => $trento_cluster_install,
+        acr_server => $acr_server,
+        acr_username => $acr_username,
+        acr_secret => $acr_secret);
+    return %return_values;
+}
+
+=head3 install_trento
+
+Install Trento on the VM. Based on 01.010-trento_server_installation_premium_v.sh
+=cut
+
+sub install_trento {
+    my (%args) = @_;
+    my $work_dir = $args{work_dir};
+    my $acr = $args{acr};
+
+    enter_cmd "cd $work_dir";
+
+    my $script_id = '01.010';
+    record_info($script_id);
+    my $machine_ip = get_trento_ip();
+    my $deploy_script_log = "script_$script_id.log.txt";
+    my @imgs = qw(WEB RUNNER);
+    my @cmd_list = ();
+    push @cmd_list, TRENTO_SCRIPT_RUN . $script_id . '-trento_server_installation_premium_v.sh';
+    push @cmd_list, ('-i', $machine_ip);
+    push @cmd_list, ('-k', SSH_KEY);
+    push @cmd_list, ('-u', VM_USER);
+    if (get_var('TRENTO_REGISTRY_CHART_VERSION')) {
+        push @cmd_list, ('-c', get_var('TRENTO_REGISTRY_CHART_VERSION'));
+    }
+    if (get_var("TRENTO_REGISTRY_IMAGE_$imgs[0]") || get_var("TRENTO_REGISTRY_IMAGE_$imgs[1]")) {
+        push @cmd_list, ('-x', $acr->{'trento_cluster_install'});
+    }
+    if (get_var('TRENTO_WEB_PASSWORD')) {
+        push @cmd_list, ('-t', get_var('TRENTO_WEB_PASSWORD'));
+    }
+    push @cmd_list, ('-p', '$(pwd)');
+    push @cmd_list, ('-r', $acr->{'acr_server'} . '/trento/trento-server');
+    push @cmd_list, ('-s', $acr->{'acr_username'});
+    push @cmd_list, ('-w', $acr->{'acr_secret'});
+    push @cmd_list, ('-v', '2>&1|tee', $deploy_script_log);
+    assert_script_run(join(' ', @cmd_list), 600);
     upload_logs($deploy_script_log);
 }
 
