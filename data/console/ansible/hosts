@@ -1,3 +1,3 @@
 [all]
-localhost  ansible_connection=ssh ansible_user=ANSIBLEUSER
+localhost  ansible_connection=ssh ansible_user=ANSIBLEUSER ansible_ssh_private_key_file=~/.ssh/ansible_rsa
 

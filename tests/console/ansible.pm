@@ -18,16 +18,21 @@ use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call random_string systemctl file_content_replace ensure_serialdev_permissions);
-use version_utils qw(is_sle is_jeos is_opensuse is_tumbleweed is_transactional);
+use version_utils qw(is_sle is_opensuse is_tumbleweed is_transactional);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use transactional qw(trup_call check_reboot_changes);
+
+# git-core needed by ansible-galaxy
+# sudo is used by ansible to become root
+# python3-yamllint needed by ansible-test
+my $pkgs = 'ansible git-core python3-yamllint sudo';
 
 sub run {
     select_serial_terminal;
 
     # 1. System setup
 
-    if (is_sle || is_jeos) {
+    unless (is_opensuse) {
         add_suseconnect_product(get_addon_fullname('phub'));
     }
 
@@ -39,17 +44,13 @@ sub run {
     }
     ensure_serialdev_permissions;
 
-    # Install ansible and ansible-test
-    # Install python3-yamllint needed for ansible-test
-    #   python3-yamllint is available from 15-SP2
-    # Install git needed for ansible-galaxy
     if (is_transactional) {
         select_console 'root-console';
-        trup_call('pkg install ansible git-core python3-selinux');
+        trup_call("pkg install $pkgs");
         check_reboot_changes;
         select_serial_terminal();
     } else {
-        zypper_call 'in ansible git-core python3-yamllint sudo';
+        zypper_call "in $pkgs";
     }
 
     # Start sshd
@@ -59,21 +60,21 @@ sub run {
     assert_script_run "echo '$testapi::username ALL=(ALL:ALL) NOPASSWD: ALL' | tee -a /etc/sudoers.d/ansible";
 
     # Generate RSA key
-    assert_script_run 'ssh-keygen -b 2048 -t rsa -N "" -f ~/.ssh/id_rsa <<< y';
+    assert_script_run 'ssh-keygen -b 2048 -t rsa -N "" -f ~/.ssh/ansible_rsa';
 
     # Make sure root public key is in the user's authorized_keys file
     assert_script_run("install -o $testapi::username -g users -m 0700 -dD /home/$testapi::username/.ssh");
-    assert_script_run("install -o $testapi::username -g users -m 0644 ~/.ssh/id_rsa.pub /home/$testapi::username/.ssh/authorized_keys");
+    assert_script_run("install -o $testapi::username -g users -m 0644 ~/.ssh/ansible_rsa.pub /home/$testapi::username/.ssh/authorized_keys");
 
 
     # Learn public SSH host keys
     assert_script_run 'ssh-keyscan localhost >> ~/.ssh/known_hosts';
 
     # Check that we can connect to localhost as the user via SSH
-    validate_script_output "ssh $testapi::username\@localhost whoami", sub { m/$testapi::username/ };
+    validate_script_output "ssh -i ~/.ssh/ansible_rsa $testapi::username\@localhost whoami", sub { m/$testapi::username/ };
 
     # Check that the user can use sudo over SSH without password
-    validate_script_output "ssh $testapi::username\@localhost sudo whoami", sub { m/root/ };
+    validate_script_output "ssh -i ~/.ssh/ansible_rsa $testapi::username\@localhost sudo whoami", sub { m/root/ };
 
     # Download data/console/ansible/ directory
     assert_script_run 'curl ' . data_url('console/ansible/') . ' | cpio -id';
@@ -94,7 +95,7 @@ sub run {
     # Check Ansible version
     record_info('ansible --version', script_output('ansible --version'));
 
-    my $hostname = script_output 'hostname -s';
+    my $hostname = script_output(is_sle('=15-sp3') ? 'hostname -s' : 'hostnamectl hostname');
     validate_script_output 'ansible -m setup localhost | grep ansible_hostname', sub { m/$hostname/ };
 
     my $arch = get_var 'ARCH';
@@ -121,10 +122,8 @@ sub run {
     assert_script_run 'ansible-doc -l community.general | grep zypper';
 
     # Check the version of ansible-community from where we use the zypper module
+    # (this command may not be available for older ansible versions )
     script_run 'ansible-community --version';
-
-    # Check that a transactional system has the necessary files
-    script_run 'ls -la /var/lib/misc/' if is_transactional;
 
     # Check the playbook
     assert_script_run "ansible-playbook -i hosts main.yaml --check $skip_tags", timeout => 300;
@@ -184,14 +183,21 @@ sub cleanup {
     # Remove the ansible sudoers file
     assert_script_run 'rm -rf /etc/sudoers.d/ansible';
 
+    # Remove the ansihle_rsa key
+    assert_script_run 'rm -rf ~/.ssh/ansible_rsa*';
+
+    # Remove the johnd user created in the ansible playbook
+    assert_script_run 'userdel -rf johnd';
+
     # Remove ansible, yamllint and git
     if (is_transactional) {
         select_console 'root-console';
-        trup_call('pkg remove ansible git-core');
+        trup_call("pkg remove $pkgs");
         check_reboot_changes;
         select_serial_terminal();
     } else {
-        zypper_call 'rm ansible git-core python3-yamllint ed';
+        # ed has been installed in ansible-playbook
+        zypper_call "rm $pkgs ed";
     }
 }
 
