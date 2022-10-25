@@ -15,7 +15,7 @@ use testapi;
 use Utils::Architectures;
 use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout);
 use ipmi_backend_utils;
-use virt_autotest::utils qw(is_xen_host check_port_state);
+use virt_autotest::utils qw(is_xen_host check_port_state check_host_health);
 use IPC::Run;
 
 sub set_ssh_console_timeout_before_use {
@@ -202,6 +202,7 @@ sub login_to_console {
 sub run {
     my $self = shift;
     $self->login_to_console;
+    check_host_health();
 }
 
 sub post_fail_hook {

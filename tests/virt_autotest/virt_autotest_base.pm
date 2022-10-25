@@ -17,6 +17,7 @@ use XML::Writer;
 use IO::File;
 use virt_utils;
 use Utils::Architectures;
+use virt_autotest::utils;
 use upload_system_log;
 
 sub analyzeResult {
@@ -188,6 +189,8 @@ sub run_test {
         $timeout = 300;
     }
 
+    check_host_health;
+
     my $test_cmd = $self->get_script_run();
     #FOR S390X LPAR
     if (is_s390x) {
@@ -262,6 +265,8 @@ sub post_fail_hook {
 
     $self->post_run_test;
     save_screenshot;
+
+    check_host_health;
 
     if (get_var('VIRT_PRJ1_GUEST_INSTALL')) {
         #collect and upload guest autoyast control files

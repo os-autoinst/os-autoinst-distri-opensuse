@@ -26,7 +26,7 @@ use Utils::Architectures;
 use IO::Socket::INET;
 use Carp;
 
-our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host check_host check_guest
+our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host check_failures_in_journal check_host_health check_guest_health
   print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs ensure_default_net_is_active ensure_guest_started
   ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests restore_downloaded_guests save_original_guest_xmls restore_original_guests
   is_guest_online wait_guests_shutdown remove_vm setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host
@@ -105,23 +105,60 @@ sub is_xen_host {
     return get_var("XEN") || check_var("SYSTEM_ROLE", "xen") || check_var("HOST_HYPERVISOR", "xen") || check_var("REGRESSION", "xen-hypervisor");
 }
 
-#check host to make sure it works well
+#check kernels by grep keywords from journals
+#support x86_64 only
 #welcome everybody to extend this function
-sub check_host {
+sub check_failures_in_journal {
+    return unless is_x86_64;
+    my $machine //= 'localhost';
 
+    my $failures = "";
+    my @warnings = ('Started Process Core Dump', 'Call Trace');
+    foreach my $warn (@warnings) {
+        my $cmd = "journalctl | grep '$warn'";
+        $cmd = "ssh root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
+        $failures .= "\"$warn\" in journals on $machine \n" if script_run($cmd) == 0;
+    }
+    if ($failures) {
+        if (get_var('KNOWN_KERNEL_BUGS')) {
+            record_soft_failure("Found failures: \n" . $failures . "There are known kernel bugs " . get_var('KNOWN_KERNEL_BUGS') . ". Please analyze journal logs to double check if a new bug needs to be opened or it is an old issue. And please add new bugs to KNOWN_KERNEL_BUGS in the form of bsc#555555.");
+        }
+        else {
+            record_soft_failure("Found new failures: Fake bsc#5555(by PR rule)\n" . $failures . "This is an unknown failure which need to be investigated!");
+        }
+    }
+    return $failures;
 }
 
-#check guest to make sure it works well
-#welcome everybody to extend this function
-sub check_guest {
+# Do some basic check to host to see if it is working well
+# Support x86_64 only
+# Return 'pass' and 'fail' if there are or are not failures.
+# Welcome everybody to extend this function
+sub check_host_health {
+    return unless is_x86_64;
+    my $failures = check_failures_in_journal;
+    unless ($failures) {
+        record_info("Healthy host!");
+        return 'pass';
+    }
+    record_info("Unhealthy host", $failures, result => 'fail');
+    return 'fail';
+}
+
+# Do some basic check to specified guest tto see if it is working well
+# Return 'pass' and 'fail' if there are or are not failures.
+# Support x86_64 only
+# Welcome everybody to extend this function
+sub check_guest_health {
+    return unless is_x86_64;
     my $vm = shift;
 
     #check if guest is still alive
     validate_script_output "virsh domstate $vm", sub { /running/ };
-
-    #TODO: other checks like checking journals from guest
-    #need check the oops bug
-
+    my $failures = check_failures_in_journal($vm);
+    return 'fail' if $failures;
+    record_info("Healthy guest!", "$vm looks good so far!");
+    return 'pass';
 }
 
 #ammend the output of the command to an existing log file
@@ -155,7 +192,7 @@ sub download_script {
 
     my $cmd = "curl -s -o ~/$script_name $script_url";
     $cmd = "ssh root\@$machine " . "\"$cmd\"" if ($machine ne 'localhost');
-    unless (script_retry($cmd, retry => 2, die => 0) eq 0) {
+    unless (script_retry($cmd, retry => 2, die => 0) == 0) {
         # Add debug codes as the url only exists in a dynamic openqa URL
         record_info("URL is not accessible", "$script_url", result => 'fail') unless head($script_url);
         unless ($machine eq 'localhost') {
@@ -741,14 +778,13 @@ sub remove_vm {
 sub restore_downloaded_guests {
     my ($guest, $vm_xml_dir) = @_;
     record_info("Guest restored", "$guest");
-    my $vm_xml = "$vm_xml_dir/$guest.xml";
-    assert_script_run("virsh define $vm_xml", 30);
+    assert_script_run("virsh define $vm_xml_dir/$guest.xml", 30);
 }
 
 sub save_original_guest_xmls {
     my ($save_dir, @guests) = @_;
     $save_dir //= "/tmp/download_vm_xml";
-    @guests = keys %virt_autotest::common::guests if @guests == 0;
+    @guests = keys %virt_autotest::common::guests unless @guests;
     assert_script_run "mkdir -p $save_dir" unless script_run("ls $save_dir") == 0;
     foreach my $guest (@guests) {
         unless (script_run("ls $save_dir/$guest.xml") == 0) {

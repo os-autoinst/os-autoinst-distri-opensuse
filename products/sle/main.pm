@@ -925,6 +925,7 @@ elsif (get_var("VIRT_AUTOTEST")) {
     elsif (get_var("VIRT_NEW_GUEST_MIGRATION_DESTINATION")) {
         loadtest "virt_autotest/guest_migration_dst";
     }
+    loadtest "virt_autotest/validate_system_health" unless get_var('DIRECT_CHAINED_VIRT_FEATURE_TEST') || !is_x86_64;
 }
 elsif (get_var("PERF_KERNEL")) {
     if (get_var("PERF_INSTALL")) {

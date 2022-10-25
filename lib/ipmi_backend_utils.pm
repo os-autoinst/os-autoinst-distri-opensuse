@@ -18,8 +18,9 @@ use utils;
 use power_action_utils 'prepare_system_shutdown';
 use Utils::Architectures;
 use Carp;
+use virt_autotest::utils qw(check_port_state);
 
-our @EXPORT = qw(set_grub_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot ipmitool enable_sev_in_kernel add_kernel_options set_grub_terminal_and_timeout);
+our @EXPORT = qw(set_grub_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot ipmitool enable_sev_in_kernel add_kernel_options set_grub_terminal_and_timeout reconnect_when_ssh_console_broken);
 
 #With the new ipmi backend, we only use the root-ssh console when the SUT boot up,
 #and no longer setup the real serial console for either kvm or xen.
@@ -526,6 +527,22 @@ sub set_grub_terminal_and_timeout {
         $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
         record_info("Content of $grub_default_file on $args{dst_machine}", script_output($cmd, proceed_on_failure => 1));
     }
+}
+
+sub reconnect_when_ssh_console_broken {
+
+    # Switch to sol console to check serial console output
+    # It is useful in the case of host crash and reboot
+    record_info("WARN", "ssh connection is broken and switch to SOL console", result => 'fail');
+    select_console 'sol', await_console => 0;
+    # Wait host bootup if it crashes
+    die "Unable to connect machine" unless check_port_state(get_required_var('SUT_IP'), 22, 10);
+    reset_consoles;
+    record_info("switch back to ssh console to collect logs");
+    select_console('root-ssh');
+    script_run("uptime");
+    script_run("ls -l /var/crash/");
+    save_screenshot;
 }
 
 1;
