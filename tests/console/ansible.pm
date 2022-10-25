@@ -16,7 +16,7 @@ use warnings;
 use base "consoletest";
 use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
-use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call random_string systemctl file_content_replace ensure_serialdev_permissions);
 use version_utils qw(is_sle is_jeos is_opensuse is_tumbleweed is_transactional);
 use registration qw(add_suseconnect_product get_addon_fullname);
@@ -47,7 +47,7 @@ sub run {
         select_console 'root-console';
         trup_call('pkg install ansible git-core python3-selinux');
         check_reboot_changes;
-        $self->select_serial_terminal();
+        select_serial_terminal();
     } else {
         zypper_call 'in ansible git-core python3-yamllint sudo';
     }
@@ -58,27 +58,22 @@ sub run {
     # add $testapi::username to sudoers without password
     assert_script_run "echo '$testapi::username ALL=(ALL:ALL) NOPASSWD: ALL' | tee -a /etc/sudoers.d/ansible";
 
-    # Logout root and login $testapi::username
-    enter_cmd 'exit';
-    select_user_serial_terminal;
-
-    # Check that we are logged in as $testapi::username
-    validate_script_output('whoami', sub { m/$testapi::username/ });
-
-    # Check that we have sudo root permissions
-    validate_script_output('sudo whoami', sub { m/root/ });
-
     # Generate RSA key
     assert_script_run 'ssh-keygen -b 2048 -t rsa -N "" -f ~/.ssh/id_rsa <<< y';
 
-    # Make sure our public key is in the authorized_keys file
-    assert_script_run 'cat ~/.ssh/id_rsa.pub | tee -a ~/.ssh/authorized_keys';
+    # Make sure root public key is in the user's authorized_keys file
+    assert_script_run("install -o $testapi::username -g users -m 0700 -dD /home/$testapi::username/.ssh");
+    assert_script_run("install -o $testapi::username -g users -m 0644 ~/.ssh/id_rsa.pub /home/$testapi::username/.ssh/authorized_keys");
+
 
     # Learn public SSH host keys
     assert_script_run 'ssh-keyscan localhost >> ~/.ssh/known_hosts';
 
-    # Check that we can connect to localhost via SSH
-    validate_script_output 'ssh localhost whoami', sub { m/$testapi::username/ };
+    # Check that we can connect to localhost as the user via SSH
+    validate_script_output "ssh $testapi::username\@localhost whoami", sub { m/$testapi::username/ };
+
+    # Check that the user can use sudo over SSH without password
+    validate_script_output "ssh $testapi::username\@localhost sudo whoami", sub { m/root/ };
 
     # Download data/console/ansible/ directory
     assert_script_run 'curl ' . data_url('console/ansible/') . ' | cpio -id';
@@ -87,6 +82,9 @@ sub run {
     assert_script_run "mkdir -p ~/ansible_collections/openqa";
     assert_script_run "mv data ~/ansible_collections/openqa/ansible";
     assert_script_run 'cd ~/ansible_collections/openqa/ansible';
+
+    # Place the right username to ansible_user in the hosts file
+    file_content_replace('hosts', ANSIBLEUSER => $testapi::username);
 
     # Call the zypper module properly (depends on version)
     file_content_replace('roles/test/tasks/main.yaml', COMMUNITYGENERAL => ((is_tumbleweed) ? 'community.general.' : ''));
@@ -180,21 +178,6 @@ sub run {
 }
 
 sub cleanup {
-    # Logout $testapi::username
-    enter_cmd 'exit';
-
-    # Make sure that root console is logged off before we reset the consoles
-    select_console 'root-console';
-    enter_cmd 'exit';
-
-    # Make sure that user console is logged off before we reset the consoles
-    select_console 'user-console';
-    enter_cmd 'exit';
-
-    # Reset consoles and log in root
-    reset_consoles;
-    select_serial_terminal;
-
     # Remove all the directories ansible created
     assert_script_run 'rm -rf ~/ansible_collections/ /tmp/ansible/';
 
@@ -206,7 +189,7 @@ sub cleanup {
         select_console 'root-console';
         trup_call('pkg remove ansible git-core');
         check_reboot_changes;
-        $self->select_serial_terminal();
+        select_serial_terminal();
     } else {
         zypper_call 'rm ansible git-core python3-yamllint ed';
     }
