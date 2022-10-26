@@ -10,7 +10,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle_micro);
+use version_utils qw(is_sle_micro is_leap_micro);
 use Utils::Architectures qw(is_aarch64);
 use microos "microos_login";
 
@@ -22,7 +22,7 @@ sub run {
     # SLEM updated GM images from https://openqa.suse.de/group_overview/377
     # already have disabled grub timeout in order to install updates and reboot
     # therefore *aarch64* images would hang in GRUB2
-    if ((is_sle_micro && get_var('HDD_1') !~ /GM-Updated/) && is_aarch64 && get_var('BOOT_HDD_IMAGE')) {
+    if ((get_var('HDD_1') !~ /GM-Updated/ && (is_sle_micro || is_leap_micro)) && is_aarch64 && get_var('BOOT_HDD_IMAGE')) {
         shift->wait_boot_past_bootloader(textmode => 1, ready_time => 300);
     } else {
         shift->wait_boot(bootloader_time => 300);
