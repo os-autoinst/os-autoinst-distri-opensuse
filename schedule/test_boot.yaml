@@ -1,0 +1,5 @@
+---
+description: 'Filesystem stress test for JeOS. Maintainer: qa-c@suse.de'
+name: 'jeos-fs_stress@64bit-virtio-vga ( qemu )'
+schedule:
+    - installation/bootloader_uefi
