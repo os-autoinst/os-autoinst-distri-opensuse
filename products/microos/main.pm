@@ -65,6 +65,7 @@ sub load_feature_tests {
     # MicroOS -old images use wicked, but cockpit-wicked is no longer supported in TW
     loadtest 'microos/cockpit_service' unless is_staging || (is_microos('Tumbleweed') && get_var('HDD_1') =~ /-old/);
     loadtest 'console/journal_check';
+    loadtest 'console/ansible';
     if (check_var 'SYSTEM_ROLE', 'kubeadm') {
         loadtest 'console/kubeadm';
     }

@@ -29,7 +29,6 @@
     src: /etc/os-release
     dest: /tmp/ansible/os-release
     state: link
-    owner: johnd
 
 - name: Copy static file to /tmp/ansible/static.txt
   ansible.builtin.copy:
@@ -41,6 +40,7 @@
 # In later we should use community.general.zypper
 - name: Install ed
   become: true
+  tags: zypper
   COMMUNITYGENERALzypper:
     name: ed
     state: present 
