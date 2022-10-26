@@ -32,7 +32,7 @@ our @EXPORT
   = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_network
   restore_guests restore_network destroy_vir_network restore_libvirt_default enable_libvirt_log pload_debug_log
   check_guest_status check_guest_module check_guest_ip save_guest_ip test_network_interface hosts_backup
-  hosts_restore get_free_mem get_active_pool_and_available_space);
+  hosts_restore get_free_mem get_active_pool_and_available_space clean_all_virt_networks);
 
 sub check_guest_ip {
     my ($guest, %args) = @_;
@@ -329,6 +329,19 @@ sub get_active_pool_and_available_space {
     # default available pool unit as GiB
     $available_size = ($pool_unit eq "TiB") ? int($available_size * 1024) : int($available_size);
     return ($active_pool, $available_size);
+}
+
+sub clean_all_virt_networks {
+    my $_virt_networks = script_output("virsh net-list --name --all", 30, type_command => 0, proceed_on_failure => 0);
+
+    foreach my $vnet (split(/\n+/, $_virt_networks)) {
+        my $_br = script_output(q@virsh net-dumpxml @ . $vnet . q@|grep -o "bridge name=[^\s]*" | sed  's#bridge name=##'@, type_command => 0, proceed_on_failure => 0);
+        script_run("virsh net-destroy $vnet");
+        assert_script_run("virsh net-undefine $vnet");
+        assert_script_run("if ip a|grep $_br;then ip link del $_br;fi");
+        save_screenshot;
+    }
+    record_info("All existing virtual networks: \n$_virt_networks \nhave been destroy and undefined.", script_output("ip a; ip route show all"));
 }
 
 1;
