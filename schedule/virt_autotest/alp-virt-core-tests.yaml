@@ -1,0 +1,9 @@
+name:           alp-virt-core-tests
+description:    >
+    Maintainer: xlai@suse.com, qe-virt@suse.de
+    ALP virtualization guest installation and virt feature tests schedule
+schedule:
+    - virt_autotest/login_console
+    - virt_autotest/setup_kvm_container
+
+# To be extended
