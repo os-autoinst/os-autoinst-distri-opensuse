@@ -132,6 +132,7 @@ NO_ADD_MAINT_TEST_REPOS | boolean | true |  Do not add again (and duplicate) rep
 NOAUTOLOGIN | boolean | false | Indicates disabled auto login.
 NOIMAGES |||
 NOLOGS | boolean | false | Do not collect logs if set to true. Handy during development.
+NVIDIA_REPO | string | '' | Define the external repo for nvidia driver. Used by `nvidia.pm` module.
 OPT_KERNEL_PARAMS | string | Specify optional kernel command line parameters on bootloader settings page of the installer.
 PERF_KERNEL | boolean | false | Enables kernel performance testing.
 PERF_INSTALL | boolean | false | Enables kernel performance testing installation part.
@@ -296,6 +297,7 @@ PUBLIC_CLOUD_K8S_CLUSTER | string | "" | Name for the kubernetes cluster.
 PUBLIC_CLOUD_AZURE_K8S_RESOURCE_GROUP | string | "" | Name for the resource group which is subscribed the kubernetes cluster.
 PUBLIC_CLOUD_CREDENTIALS_URL | string | "" | Base URL where to get the credentials from. This will be used to compose the full URL together with `PUBLIC_CLOUD_NAMESPACE`.
 PUBLIC_CLOUD_NAMESPACE | string | "" | The Public Cloud Namespace name that will be used to compose the full credentials URL together with `PUBLIC_CLOUD_CREDENTIALS_URL`.
+PUBLIC_CLOUD_NVIDIA | boolean | 0 | If enabled, nvidia module would be scheduled. This variable should be enabled only sle15SP4 and above.
 PUBLIC_CLOUD_USER | string | "" | The public cloud instance system user.
 PUBLIC_CLOUD_XEN | boolean | false | Indicates if this is a Xen test run.
 PUBLIC_CLOUD_STORAGE_ACCOUNT | string | "" | Storage account used e.g. for custom disk and container images
