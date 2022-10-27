@@ -24,7 +24,7 @@ schedule:
   system_role:
     - installation/system_role/accept_selected_role_SLES_with_GNOME
   software:
-    - installation/select_patterns
+    - installation/select_visible_patterns_from_bottom
   system_validation:
     - console/validate_installed_packages
     - console/validate_installed_patterns
