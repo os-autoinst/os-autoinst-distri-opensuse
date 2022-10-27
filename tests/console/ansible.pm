@@ -22,11 +22,6 @@ use version_utils qw(is_sle is_opensuse is_tumbleweed is_transactional);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use transactional qw(trup_call check_reboot_changes);
 
-# git-core needed by ansible-galaxy
-# sudo is used by ansible to become root
-# python3-yamllint needed by ansible-test
-my $pkgs = 'ansible git-core python3-yamllint sudo';
-
 sub run {
     select_serial_terminal;
 
@@ -44,13 +39,17 @@ sub run {
     }
     ensure_serialdev_permissions;
 
+
+    # git-core needed by ansible-galaxy
+    # sudo is used by ansible to become root
+    # python3-yamllint needed by ansible-test
     if (is_transactional) {
         select_console 'root-console';
-        trup_call("pkg install $pkgs");
+        trup_call('pkg install ansible git-core python3-yamllint sudo');
         check_reboot_changes;
         select_serial_terminal();
     } else {
-        zypper_call "in $pkgs";
+        zypper_call 'in ansible git-core python3-yamllint sudo';
     }
 
     # Start sshd
@@ -192,12 +191,12 @@ sub cleanup {
     # Remove ansible, yamllint and git
     if (is_transactional) {
         select_console 'root-console';
-        trup_call("pkg remove $pkgs");
+        trup_call('pkg remove ansible git-core python3-yamllint');
         check_reboot_changes;
         select_serial_terminal();
     } else {
         # ed has been installed in ansible-playbook
-        zypper_call "rm $pkgs ed";
+        zypper_call 'rm ansible git-core python3-yamllint';
     }
 }
 
