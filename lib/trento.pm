@@ -51,6 +51,8 @@ our @EXPORT = qw(
   get_vnet
   get_trento_password
   deploy_vm
+  trento_acr_azure
+  install_trento
   deploy_qesap
   destroy_qesap
   install_agent
@@ -104,12 +106,12 @@ Clone gitlab.suse.de/qa-css/trento
 sub clone_trento_deployment {
     my ($self, $work_dir) = @_;
     # Get the code for the Trento deployment
-    my $gitlab_repo = get_var(TRENTO_GITLAB_REPO => 'gitlab.suse.de/qa-css/trento');
+    my $gitlab_repo = get_var('TRENTO_GITLAB_REPO', 'gitlab.suse.de/qa-css/trento');
 
     # The usage of a variable with a different name is to
     # be able to overwrite the token when manually triggering
     # the setup_jumphost test.
-    my $gitlab_token = get_var(TRENTO_GITLAB_TOKEN => get_required_var('_SECRET_TRENTO_GITLAB_TOKEN'));
+    my $gitlab_token = get_var('TRENTO_GITLAB_TOKEN', get_required_var('_SECRET_TRENTO_GITLAB_TOKEN'));
 
     my $gitlab_clone_url = 'https://git:' . $gitlab_token . '@' . $gitlab_repo;
 
@@ -128,7 +130,7 @@ sub get_trento_deployment {
 
     enter_cmd "cd $work_dir";
     script_run 'read -s GITLAB_TOKEN', 0;
-    type_password get_var(TRENTO_GITLAB_TOKEN => get_required_var('_SECRET_TRENTO_GITLAB_TOKEN')) . "\n";
+    type_password get_var('TRENTO_GITLAB_TOKEN', get_required_var('_SECRET_TRENTO_GITLAB_TOKEN')) . "\n";
 
     # Script from a release
     if (get_var('TRENTO_DEPLOY_VER')) {
@@ -139,7 +141,7 @@ sub get_trento_deployment {
 
         # Get some 'coordinates' from the test settings
         my $ver = get_var('TRENTO_DEPLOY_VER');
-        my $gitlab_repo = get_var(TRENTO_GITLAB_REPO => 'gitlab.suse.de/qa-css/trento');
+        my $gitlab_repo = get_var('TRENTO_GITLAB_REPO', 'gitlab.suse.de/qa-css/trento');
         my @gitlab_url = split('/', $gitlab_repo);
         my $gitlab_namespace = $gitlab_url[-2];
         my $gitlab_project = $gitlab_url[-1];
@@ -183,7 +185,7 @@ sub get_trento_deployment {
 
     # Script from Gitlab
     else {
-        my $git_branch = get_var(TRENTO_GITLAB_BRANCH => 'master');
+        my $git_branch = get_var('TRENTO_GITLAB_BRANCH', 'master');
 
         if (script_run('git rev-parse --is-inside-work-tree') != 0) {
             $self->clone_trento_deployment($work_dir);
@@ -257,22 +259,129 @@ Based on 00.040-trento_vm_server_deploy_azure.sh
 =cut
 
 sub deploy_vm {
-    # Run the Trento deployment
-
+    my ($work_dir) = @_;
+    enter_cmd "cd $work_dir";
     my $script_id = '00.040';
     my $resource_group = get_resource_group();
     my $machine_name = get_vm_name();
     record_info($script_id);
-    my $vm_image = get_var(TRENTO_VM_IMAGE => 'SUSE:sles-sap-15-sp3-byos:gen2:latest');
+    my $vm_image = get_var('TRENTO_VM_IMAGE', 'SUSE:sles-sap-15-sp3-byos:gen2:latest');
     my $deploy_script_log = "script_$script_id.log.txt";
-    my $cmd = join(' ', TRENTO_SCRIPT_RUN . $script_id . '-trento_vm_server_deploy_azure.sh ',
+    my $cmd = join(' ', TRENTO_SCRIPT_RUN . 'trento_deploy/trento_deploy.py', '--verbose', '00_040',
         '-g', $resource_group,
         '-s', $machine_name,
         '-i', $vm_image,
         '-a', VM_USER,
         '-k', SSH_KEY . '.pub',
-        '-v', "2>&1|tee $deploy_script_log");
+        "2>&1|tee $deploy_script_log");
     assert_script_run($cmd, 360);
+    upload_logs($deploy_script_log);
+}
+
+=head3 trento_acr_azure
+
+Create ACR in Azure and upload from IBS needed images
+Based on trento_acr_azure.sh
+=cut
+
+sub trento_acr_azure {
+    my ($work_dir) = @_;
+    enter_cmd "cd $work_dir";
+    my $script_id = 'trento_acr_azure';
+    my $resource_group = get_resource_group();
+    my $acr_name = get_acr_name();
+    record_info($script_id);
+    my $trento_registry_chart = get_var('TRENTO_REGISTRY_CHART', 'registry.suse.com/trento/trento-server');
+    my $cfg_json = 'config_images_gen.json';
+    my @imgs = qw(WEB RUNNER);
+
+    # this setting combination require config_helper.py and trento_cluster_install.sh
+    my $rolling_mode = (get_var("TRENTO_REGISTRY_IMAGE_$imgs[0]") || get_var("TRENTO_REGISTRY_IMAGE_$imgs[1]") || get_var('TRENTO_REGISTRY_CHART_VERSION'));
+
+    my @cfg_helper_cmd = (TRENTO_SCRIPT_RUN . 'trento_deploy/config_helper.py',
+        '-o', $cfg_json,
+        '--chart', $trento_registry_chart);
+    push @cfg_helper_cmd, ('--chart-version', get_var('TRENTO_REGISTRY_CHART_VERSION')) if (get_var('TRENTO_REGISTRY_CHART_VERSION'));
+    foreach my $img (@imgs) {
+        if (get_var("TRENTO_REGISTRY_IMAGE_$img")) {
+            push @cfg_helper_cmd, ('--' . lc($img), get_var("TRENTO_REGISTRY_IMAGE_$img"));
+            push @cfg_helper_cmd, '--' . lc($img) . '-version';
+            push @cfg_helper_cmd, get_var("TRENTO_REGISTRY_IMAGE_${img}_VERSION", 'latest');
+        }
+    }
+    if ($rolling_mode) {
+        assert_script_run(join(' ', @cfg_helper_cmd));
+        upload_logs($cfg_json);
+        $trento_registry_chart = $cfg_json;
+    }
+    my $deploy_script_log = "script_$script_id.log.txt";
+    my $trento_cluster_install = "${work_dir}/trento_cluster_install.sh";
+    my $trento_acr_azure_timeout = 360;
+    my @cmd_list = (TRENTO_SCRIPT_RUN . $script_id . '.sh',
+        '-g', $resource_group,
+        '-n', $acr_name,
+        '-u', VM_USER,
+        '-r', $trento_registry_chart);
+    if ($rolling_mode) {
+        $trento_acr_azure_timeout += 240;
+        push @cmd_list, ('-o', $work_dir);
+    }
+    push @cmd_list, ('-v', '2>&1|tee', $deploy_script_log);
+    assert_script_run(join(' ', @cmd_list), $trento_acr_azure_timeout);
+    upload_logs($deploy_script_log);
+    if ($rolling_mode) {
+        upload_logs($trento_cluster_install);
+    }
+
+    my $acr_server = script_output("az acr list -g $resource_group --query \"[0].loginServer\" -o tsv");
+    my $acr_username = script_output("az acr credential show -n $acr_name --query username -o tsv");
+    my $acr_secret = script_output("az acr credential show -n $acr_name --query 'passwords[0].value' -o tsv");
+
+    # Check what registry has been created by trento_acr_azure
+    assert_script_run("az acr repository list -n $acr_name");
+
+    my %return_values = (
+        trento_cluster_install => $trento_cluster_install,
+        acr_server => $acr_server,
+        acr_username => $acr_username,
+        acr_secret => $acr_secret);
+    return %return_values;
+}
+
+=head3 install_trento
+
+Install Trento on the VM. Based on 01.010-trento_server_installation_premium_v.sh
+=cut
+
+sub install_trento {
+    my (%args) = @_;
+    my $work_dir = $args{work_dir};
+    my $acr = $args{acr};
+
+    enter_cmd "cd $work_dir";
+
+    my $script_id = '01.010';
+    record_info($script_id);
+    my $machine_ip = get_trento_ip();
+    my $deploy_script_log = "script_$script_id.log.txt";
+    my @imgs = qw(WEB RUNNER);
+    my @cmd_list = (TRENTO_SCRIPT_RUN . $script_id . '-trento_server_installation_premium_v.sh',
+        '-i', $machine_ip,
+        '-k', SSH_KEY,
+        '-u', VM_USER);
+
+    push @cmd_list, ('-c', get_var('TRENTO_REGISTRY_CHART_VERSION')) if (get_var('TRENTO_REGISTRY_CHART_VERSION'));
+    if (get_var("TRENTO_REGISTRY_IMAGE_$imgs[0]") || get_var("TRENTO_REGISTRY_IMAGE_$imgs[1]")) {
+        push @cmd_list, ('-x', $acr->{'trento_cluster_install'});
+    }
+    push @cmd_list, ('-t', get_var('TRENTO_WEB_PASSWORD')) if (get_var('TRENTO_WEB_PASSWORD'));
+
+    push @cmd_list, ('-p', '$(pwd)');
+    push @cmd_list, ('-r', $acr->{'acr_server'} . '/trento/trento-server');
+    push @cmd_list, ('-s', $acr->{'acr_username'});
+    push @cmd_list, ('-w', $acr->{'acr_secret'});
+    push @cmd_list, ('-v', '2>&1|tee', $deploy_script_log);
+    assert_script_run(join(' ', @cmd_list), 600);
     upload_logs($deploy_script_log);
 }
 
@@ -440,7 +549,7 @@ sub install_agent {
     my $cmd;
     if (get_var('TRENTO_AGENT_RPM')) {
         my $package = get_var('TRENTO_AGENT_RPM');
-        my $ibs_location = get_var(TRENTO_AGENT_REPO => 'https://dist.suse.de/ibs/Devel:/SAP:/trento:/factory/SLE_15_SP3/x86_64');
+        my $ibs_location = get_var('TRENTO_AGENT_REPO', 'https://dist.suse.de/ibs/Devel:/SAP:/trento:/factory/SLE_15_SP3/x86_64');
         $cmd = "curl -f --verbose \"$ibs_location/$package\" --output $wd/$package";
         assert_script_run($cmd);
         $local_rpm_arg = " -e agent_rpm=$wd/$package";
@@ -658,7 +767,7 @@ It could be the default one or one fixed by the user using TRENTO_CYPRESS_VERSIO
 
 sub cypress_version {
     my $self = shift;
-    return get_var(TRENTO_CYPRESS_VERSION => '9.6.1');
+    return get_var('TRENTO_CYPRESS_VERSION', '9.6.1');
 }
 
 =head3 cypress_exec
