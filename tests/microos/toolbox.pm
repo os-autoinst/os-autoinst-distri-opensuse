@@ -23,8 +23,10 @@ sub cleanup {
 }
 
 sub create_user {
-    assert_script_run "useradd -m $user " if (!check_var('FIRST_BOOT_CONFIG', 'wizard'));
-    assert_script_run "echo '$user:$password' | chpasswd";
+    if (script_run("getent passwd $user") != 0) {
+        assert_script_run "useradd -m $user";
+        assert_script_run "echo '$user:$password' | chpasswd";
+    }
 
     # Make sure user has access to tty group
     my $serial_group = script_output "stat -c %G /dev/$testapi::serialdev";
