@@ -102,12 +102,18 @@ sub add_test_repositories {
     if (is_sle('=12-SP2')) {
         my $arch = get_var('ARCH');
         my $url = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update/";
-        zypper_call("--no-gpg-checks ar -f $gpg $url '12-SP2-LTSS-ERICSSON-Updates'");
+        # don't add repo when it's already present
+        unless ($system_repos =~ /$url/) {
+            zypper_call("--no-gpg-checks ar -f $gpg $url '12-SP2-LTSS-ERICSSON-Updates'");
+        }
     }
     if (is_sle('=12-SP3')) {
         my $arch = get_var('ARCH');
         my $url = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3-LTSS-TERADATA/$arch/update/";
-        zypper_call("--no-gpg-checks ar -f $gpg $url '12-SP3-LTSS-TERADATA-Updates'");
+        # don't add repo when it's already present
+        unless ($system_repos =~ /$url/) {
+            zypper_call("--no-gpg-checks ar -f $gpg $url '12-SP3-LTSS-TERADATA-Updates'");
+        }
     }
     # refresh repositories, inf 106 is accepted because repositories with test
     # can be removed before test start
