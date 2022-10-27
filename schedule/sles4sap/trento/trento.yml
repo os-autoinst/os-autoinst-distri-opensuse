@@ -17,4 +17,4 @@ schedule:
     - sles4sap/trento/cluster_deploy
     - sles4sap/trento/install_agents
     - sles4sap/trento/test_trento_web
-    - sles4sap/trento/cluster_destroy
+    - sles4sap/trento/destroy

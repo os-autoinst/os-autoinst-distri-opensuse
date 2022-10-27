@@ -302,7 +302,8 @@ subtest '[trento_acr_azure] official version' => sub {
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     note("\n  L-->  " . join("\n  L-->  ", @logs));
     like $calls[0], qr/cd \/CROSTINI/;
-    like $calls[1], qr/.*trento_acr_azure\.sh.*script_trento_acr_azure\.log\.txt/;
+    like $calls[1], qr/.*trento_acr_azure\.sh.*-r.*registry\.suse\.com\/trento\/trento-server.*script_trento_acr_azure\.log\.txt/;
+    unlike $calls[1], qr/.*trento_acr_azure\.sh.*-o/;
 };
 
 subtest '[trento_acr_azure] return' => sub {
@@ -333,7 +334,49 @@ subtest '[trento_acr_azure] return' => sub {
     ok $acr{'acr_secret'} eq 'PASSWORD_ARROSTO';
 };
 
-subtest '[trento_acr_azure] rolling version' => sub {
+subtest '[trento_acr_azure] custom registry for chart' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+
+    $trento->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $trento->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(script_output => sub { push @calls, $_[0]; return 'TOAST'; });
+    $trento->redefine(get_current_job_id => sub { return 'PASTICCINO'; });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $trento->redefine(upload_logs => sub { });
+
+    set_var('TRENTO_VM_IMAGE', 'PARMIGIANA');
+    set_var('TRENTO_REGISTRY_CHART', 'CALDARROSTE');
+    my %acr = trento_acr_azure('/CROSTINI');
+    set_var('TRENTO_VM_IMAGE', undef);
+    set_var('TRENTO_REGISTRY_CHART', undef);
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    like $calls[1], qr/.*trento_acr_azure\.sh.*-r CALDARROSTE/;
+    unlike $calls[1], qr/.*trento_acr_azure\.sh.*-o/;
+};
+
+subtest '[trento_acr_azure] custom chart version' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+
+    $trento->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $trento->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(script_output => sub { push @calls, $_[0]; return 'TOAST'; });
+    $trento->redefine(get_current_job_id => sub { return 'PASTICCINO'; });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $trento->redefine(upload_logs => sub { });
+
+    set_var('TRENTO_VM_IMAGE', 'PARMIGIANA');
+    set_var('TRENTO_REGISTRY_CHART_VERSION', '12345');
+    my %acr = trento_acr_azure('/CROSTINI');
+    set_var('TRENTO_VM_IMAGE', undef);
+    set_var('TRENTO_REGISTRY_CHART_VERSION', undef);
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    like $calls[1], qr/.*config_helper\.py.*-o config_images_gen\.json.*--chart registry\.suse\.com\/trento\/trento-server --chart-version 12345/;
+    like $calls[2], qr/.*trento_acr_azure\.sh.*-r config_images_gen\.json.*-o/;
+};
+
+subtest '[trento_acr_azure] custom registry for web' => sub {
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     @calls = ();
 
@@ -351,9 +394,31 @@ subtest '[trento_acr_azure] rolling version' => sub {
     set_var('TRENTO_REGISTRY_IMAGE_WEB', undef);
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     like $calls[1], qr/.*config_helper\.py.*-o config_images_gen\.json.*--web CALDARROSTE --web-version latest/;
-    like $calls[2], qr/.*trento_acr_azure\.sh.*-r config_images_gen\.json/;
+    like $calls[2], qr/.*trento_acr_azure\.sh.*-r config_images_gen\.json.*-o/;
 };
 
+subtest '[trento_acr_azure] custom registry and version for web' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+
+    $trento->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $trento->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(script_output => sub { push @calls, $_[0]; return 'TOAST'; });
+    $trento->redefine(get_current_job_id => sub { return 'PASTICCINO'; });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $trento->redefine(upload_logs => sub { });
+
+    set_var('TRENTO_VM_IMAGE', 'PARMIGIANA');
+    set_var('TRENTO_REGISTRY_IMAGE_WEB', 'CALDARROSTE');
+    set_var('TRENTO_REGISTRY_IMAGE_WEB_VERSION', '12345');
+    my %acr = trento_acr_azure('/CROSTINI');
+    set_var('TRENTO_VM_IMAGE', undef);
+    set_var('TRENTO_REGISTRY_IMAGE_WEB', undef);
+    set_var('TRENTO_REGISTRY_IMAGE_WEB_VERSION', undef);
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    like $calls[1], qr/.*config_helper\.py.*-o config_images_gen\.json.*--web CALDARROSTE --web-version 12345/;
+    like $calls[2], qr/.*trento_acr_azure\.sh.*-r config_images_gen\.json.*-o/;
+};
 
 subtest '[install_trento] official version' => sub {
     my $trento = Test::MockModule->new('trento', no_auto => 1);
