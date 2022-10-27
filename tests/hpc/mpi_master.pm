@@ -16,6 +16,7 @@ use utils;
 use registration;
 use version_utils 'is_sle';
 use hpc::formatter;
+use POSIX 'strftime';
 
 sub run ($self) {
     select_serial_terminal();
@@ -40,6 +41,7 @@ sub run ($self) {
     $mpi = 'openmpi' if ($mpi =~ /openmpi2|openmpi3|openmpi4/);
 
     barrier_wait('CLUSTER_PROVISIONED');
+    record_info 'CLUSTER_PROVISIONED', strftime("\%H:\%M:\%S", localtime);
     ## all nodes should be able to ssh to each other, as MPIs requires so
     $self->generate_and_distribute_ssh($testapi::username);
     $self->check_nodes_availability();
@@ -55,19 +57,22 @@ sub run ($self) {
     select_console('root-console');
     systemctl 'restart nfs-server';
     # And login as normal user to run the tests
-    type_string('pkill -u root', lf => 1);
+    # NOTE: This behaves weird. Need another solution apparently
+    type_string('pkill -u root');
     select_serial_terminal(0);
     # load mpi after all the relogins
     assert_script_run "module load gnu $mpi";
     script_run "module av";
 
     barrier_wait('MPI_SETUP_READY');
+    record_info 'MPI_SETUP_READY', strftime("\%H:\%M:\%S", localtime);
     assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin") if $mpi_compiler;
 
     # python code is not compiled. *mpi_bin* is expected as a compiled binary. if compilation was not
     # invoked return source code (ex: sample_scipy.py).
     $mpi_bin = ($mpi_compiler) ? $mpi_bin : $mpi_c;
     barrier_wait('MPI_BINARIES_READY');
+    record_info 'MPI_BINARIES_READY', strftime("\%H:\%M:\%S", localtime);
     my $mpirun_s = hpc::formatter->new();
 
     unless ($mpi_bin eq '.cpp') {    # because calls expects minimum 2 nodes
@@ -106,6 +111,7 @@ sub run ($self) {
         assert_script_run($mpirun_s->all_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
     }
     barrier_wait('MPI_RUN_TEST');
+    record_info 'MPI_RUN_TEST', strftime("\%H:\%M:\%S", localtime);
 }
 
 sub test_flags ($self) {
