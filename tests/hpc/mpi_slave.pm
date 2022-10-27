@@ -10,6 +10,8 @@ use Mojo::Base qw(hpcbase hpc::utils), -signatures;
 use lockapi;
 use utils;
 use serial_terminal 'select_serial_terminal';
+use testapi qw(record_info);
+use POSIX 'strftime';
 
 sub run ($self) {
     select_serial_terminal();
@@ -22,11 +24,15 @@ sub run ($self) {
     my @hpc_deps = $self->get_compute_nodes_deps($mpi);
     zypper_call("in @hpc_deps");
     barrier_wait('CLUSTER_PROVISIONED');
+    record_info 'CLUSTER_PROVISIONED', strftime("\%H:\%M:\%S", localtime);
     barrier_wait('MPI_SETUP_READY');
+    record_info 'MPI_SETUP_READY', strftime("\%H:\%M:\%S", localtime);
     $self->mount_nfs_exports(\%exports_path);
 
     barrier_wait('MPI_BINARIES_READY');
+    record_info 'MPI_BINARIES_READY', strftime("\%H:\%M:\%S", localtime);
     barrier_wait('MPI_RUN_TEST');
+    record_info 'MPI_RUN_TEST', strftime("\%H:\%M:\%S", localtime);
 }
 
 sub test_flags ($self) {

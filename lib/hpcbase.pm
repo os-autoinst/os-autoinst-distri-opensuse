@@ -432,10 +432,14 @@ run the MPI binaries
 sub mount_nfs_exports {
     my ($self, $exports) = @_;
     zypper_call 'in nfs-client';
+    systemctl "enable --now nfs-client.target";
+    record_info 'nfs-client status', script_output "systemctl status nfs-client.target";
+
     foreach my $dir (values %$exports) {
         assert_script_run "mkdir -p $dir" unless script_run("test -f $dir", quiet => 1) == 0;
         assert_script_run "mount master-node00:$dir $dir", timeout => 120;
     }
+    script_run "test -e /usr/lib/hpc";
 }
 
 1;
