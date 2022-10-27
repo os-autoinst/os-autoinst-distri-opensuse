@@ -85,6 +85,7 @@
   </services-manager>
   <software>
     <packages config:type="list">
+        <package>yast2-migration</package>
     % foreach (values %$addons) {
         <package><%= lc($_->{name}) %>-release</package>
     % }
