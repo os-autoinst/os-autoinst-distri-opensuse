@@ -33,7 +33,7 @@ use ssh_crypto_policy;
 # The test disables the firewall, if true reenable afterwards.
 my $reenable_firewall = 0;
 
-sub run {
+ sub run {
     my $self = shift;
     select_serial_terminal;
 
