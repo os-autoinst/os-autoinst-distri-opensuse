@@ -108,6 +108,11 @@ sub run {
         assert_screen 'local-user-credentials';
         enter_user_details([$realname, undef, $password, $password]);
         send_key 'alt-n';
+        # wsl-gui pattern installation
+        if (is_sle('>15-SP3')) {
+            assert_screen 'wsl-gui-pattern';
+            send_key 'alt-n';
+        }
         # Registration
         is_sle && register_via_scc();
         # And done!
