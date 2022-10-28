@@ -51,8 +51,8 @@ schedule:
   - console/textinfo
   - console/hostname
   - console/installation_snapshots
-# Disabling module till issue#98478 is resolved
-#  - console/x_vt
+  # Disabling module till issue#98478 is resolved
+  # - console/x_vt
   - console/zypper_lr
   - console/zypper_ref
   - console/ncurses

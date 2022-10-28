@@ -30,7 +30,7 @@ schedule:
     - console/consoletest_setup
     - fips/fips_setup
     - console/openssl_alpn
-      #   - fips/openssl/openssl_fips_alglist
+    # - fips/openssl/openssl_fips_alglist
     - fips/openssl/openssl_fips_hash
     - fips/openssl/openssl_fips_cipher
     - fips/openssl/dirmngr_setup

@@ -13,7 +13,7 @@ schedule:
   - installation/ensure_installer_fullscreen
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-    # Required on zVM
+  # Required on zVM
   - '{{disk_activation}}'
   - installation/registration/register_via_scc
   - installation/module_registration/skip_module_registration
