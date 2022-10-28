@@ -21,7 +21,8 @@ jobs:
     - name: Install dependencies
       run: |
         apt-get -y update
-        apt-get -y install yamllint libdbus-1-dev libssh2-1-dev parallel python3-dev python3-yaml python3-jsonschema
+        apt-get -y install libdbus-1-dev libssh2-1-dev parallel python3-dev python3-yaml python3-jsonschema python3-pip
+        pip3 install yamllint
     - name: Setup perl
       env:
         INLINE_PYTHON_EXECUTABLE: /usr/bin/python3
