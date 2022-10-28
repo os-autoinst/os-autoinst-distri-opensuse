@@ -8,7 +8,7 @@ schedule:
     - security/stig/oscap_xccdf_eval
     - security/stig/oscap_xccdf_eval_remote
     - security/stig/oscap_xccdf_remediate
-      # Do evaluate again after remediate
+    # Do evaluate again after remediate
     - security/stig/oscap_xccdf_eval
     - security/stig/baseline_comparison
 conditional_schedule:
