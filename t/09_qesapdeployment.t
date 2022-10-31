@@ -61,10 +61,10 @@ subtest '[qesap_get_deployment_code] from fork' => sub {
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     set_var('QESAP_DEPLOYMENT_DIR', '/DORY');
-    set_var('QESAPDEPLOY_GITHUB_REPO', 'WHALE');
+    set_var('QESAP_INSTALL_GITHUB_REPO', 'WHALE');
     qesap_get_deployment_code();
     set_var('QESAP_DEPLOYMENT_DIR', undef);
-    set_var('QESAPDEPLOY_GITHUB_REPO', undef);
+    set_var('QESAP_INSTALL_GITHUB_REPO', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok any { /git.*clone.*https:\/\/WHALE.*DORY/ } @calls;
 };
@@ -76,10 +76,10 @@ subtest '[qesap_get_deployment_code] from branch' => sub {
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     set_var('QESAP_DEPLOYMENT_DIR', '/DORY');
-    set_var('QESAPDEPLOY_GITHUB_BRANCH', 'TED');
+    set_var('QESAP_INSTALL_GITHUB_BRANCH', 'TED');
     qesap_get_deployment_code();
     set_var('QESAP_DEPLOYMENT_DIR', undef);
-    set_var('QESAPDEPLOY_GITHUB_BRANCH', undef);
+    set_var('QESAP_INSTALL_GITHUB_BRANCH', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok any { /git.*clone.*--branch.*TED/ } @calls;
 };
@@ -90,13 +90,13 @@ subtest '[qesap_get_deployment_code] from a release' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    set_var('QESAPDEPLOY_VER', 'CORAL');
+    set_var('QESAP_INSTALL_VERSION', 'CORAL');
     # set to test that it is ignored
-    set_var('QESAPDEPLOY_GITHUB_REPO', 'WHALE');
+    set_var('QESAP_INSTALL_GITHUB_REPO', 'WHALE');
     qesap_get_deployment_code();
     note("\n  -->  " . join("\n  -->  ", @calls));
-    set_var('QESAPDEPLOY_VER', undef);
-    set_var('QESAPDEPLOY_GITHUB_REPO', undef);
+    set_var('QESAP_INSTALL_VERSION', undef);
+    set_var('QESAP_INSTALL_GITHUB_REPO', undef);
     ok any { /curl.*github.com\/SUSE\/qe-sap-deployment\/archive\/refs\/tags\/vCORAL\.tar\.gz.*-ovCORAL\.tar\.gz/ } @calls;
     ok any { /tar.*[xvf]+.*vCORAL\.tar\.gz/ } @calls;
 };
@@ -172,6 +172,57 @@ subtest '[qesap_execute] failure' => sub {
     my $res = qesap_execute(cmd => 'GILL');
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok $res == $expected_res;
+};
+
+subtest '[qesap_get_nodes_number]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    my $cloud_provider = 'POLPETTE';
+    set_var('PUBLIC_CLOUD_PROVIDER', $cloud_provider);
+    set_var('QESAP_CONFIG_FILE', 'MELANZANE_FRITTE');
+
+    my $tmp_folder = '/FESTA';
+    note("-->tmp_folder=$tmp_folder");
+    set_var('QESAP_DEPLOYMENT_DIR', $tmp_folder);
+
+    my $inv_path = "$tmp_folder/terraform/" . lc $cloud_provider . '/inventory.yaml';
+    note("-->inv_path=$inv_path");
+
+    my $str = <<END;
+all:
+  children:
+    hana:
+      hosts:
+        vmhana01:
+          ansible_host: 1.2.3.4
+          ansible_python_interpreter: /usr/bin/python3
+        vmhana02:
+          ansible_host: 1.2.3.5
+          ansible_python_interpreter: /usr/bin/python3
+
+    iscsi:
+      hosts:
+        vmiscsi01:
+          ansible_host: 1.2.3.6
+          ansible_python_interpreter: /usr/bin/python3
+
+  hosts: null
+END
+
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return $str; });
+
+    my $res = qesap_get_nodes_number();
+
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
+    set_var('QESAP_CONFIG_FILE', undef);
+    set_var('QESAP_DEPLOYMENT_DIR', undef);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
+    is $res, 3, 'Number of agents like expected';
+    like $calls[0], qr/cat $inv_path/;
+
 };
 
 done_testing;

@@ -3,6 +3,7 @@ apiver: 2
 terraform:
   variables:
     project: "ei-sle-qa-sap-8469"
+    bastion_enabled: "false"
     region: "%REGION%"
     deployment_name: "%DEPLOYMENTNAME%"
     os_image: "%QESAP_CLUSTER_OS_VER%"

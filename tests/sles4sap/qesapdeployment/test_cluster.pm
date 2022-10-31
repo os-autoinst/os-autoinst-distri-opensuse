@@ -16,6 +16,8 @@ sub run {
     my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
     my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
 
+    my $chdir = qesap_get_terraform_dir();
+    assert_script_run("terraform -chdir=$chdir output");
     qesap_ansible_cmd(cmd => $_, provider => $prov, $_) for ('pwd', 'uname -a', 'cat /etc/os-release');
     qesap_ansible_cmd(cmd => 'ls -lai /hana/', provider => $prov, filter => 'hana');
     qesap_ansible_cmd(cmd => $_, provider => $prov, filter => 'vmhana01'), for ('crm status', $crm_mon_cmd);
