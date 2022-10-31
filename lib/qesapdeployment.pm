@@ -49,6 +49,8 @@ our @EXPORT = qw(
   qesap_upload_logs
   qesap_get_deployment_code
   qesap_get_inventory
+  qesap_get_nodes_number
+  qesap_get_terraform_dir
   qesap_prepare_env
   qesap_execute
   qesap_yaml_replace
@@ -141,22 +143,21 @@ sub qesap_get_deployment_code {
     push(@log_files, $qesap_git_clone_log);
 
     # Script from a release
-    if (get_var('QESAPDEPLOY_VER')) {
-        my $ver_artifact = 'v' . get_var('QESAPDEPLOY_VER') . '.tar.gz';
+    if (get_var('QESAP_INSTALL_VERSION')) {
+        my $ver_artifact = 'v' . get_var('QESAP_INSTALL_VERSION') . '.tar.gz';
 
-        my $curl_cmd = "curl -v -L https://$official_repo/archive/refs/tags/$ver_artifact -o$ver_artifact";
+        my $curl_cmd = "curl -v -fL https://$official_repo/archive/refs/tags/$ver_artifact -o$ver_artifact";
         assert_script_run("set -o pipefail ; $curl_cmd | tee " . $qesap_git_clone_log, quiet => 1);
 
         my $tar_cmd = "tar xvf $ver_artifact --strip-components=1";
         assert_script_run($tar_cmd);
-        enter_cmd 'ls -lai';
     }
     else {
         # Get the code for the qe-sap-deployment by cloning its repository
-        assert_script_run('git config --global http.sslVerify false', quiet => 1) if get_var('QESAPDEPLOY_GIT_NO_VERIFY');
-        my $git_branch = get_var('QESAPDEPLOY_GITHUB_BRANCH', 'main');
+        assert_script_run('git config --global http.sslVerify false', quiet => 1) if get_var('QESAP_INSTALL_GITHUB_NO_VERIFY');
+        my $git_branch = get_var('QESAP_INSTALL_GITHUB_BRANCH', 'main');
 
-        my $git_repo = get_var('QESAPDEPLOY_GITHUB_REPO', $official_repo);
+        my $git_repo = get_var('QESAP_INSTALL_GITHUB_REPO', $official_repo);
         my $git_clone_cmd = 'git clone --depth 1 --branch ' . $git_branch . ' https://' . $git_repo . ' ' . $paths{deployment_dir};
         assert_script_run("set -o pipefail ; $git_clone_cmd  2>&1 | tee $qesap_git_clone_log", quiet => 1);
     }
@@ -244,6 +245,36 @@ sub qesap_get_inventory {
     return "$paths{deployment_dir}/terraform/" . lc $provider . '/inventory.yaml';
 }
 
+=head3 qesap_get_nodes_number
+
+Get the number of cluster nodes from the inventory.yaml
+=cut
+
+sub qesap_get_nodes_number {
+    my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    my $yp = YAML::PP->new();
+
+    my $inventory_content = script_output("cat $inventory");
+    my $parsed_inventory = $yp->load_string($inventory_content);
+    my $num_hosts = 0;
+    while ((my $key, my $value) = each(%{$parsed_inventory->{all}->{children}})) {
+        $num_hosts += keys %{$value->{hosts}};
+    }
+    return $num_hosts;
+}
+
+=head3 qesap_get_terraform_dir
+
+    Return the path used by the qesap script as -chdir argument for terraform
+    It is useful if test would like to call terraform
+=cut
+
+sub qesap_get_terraform_dir {
+    my ($provider) = @_;
+    my %paths = qesap_get_file_paths();
+    return "$paths{deployment_dir}/terraform/" . lc $provider;
+}
+
 =head3 qesap_prepare_env
 
     qesap_prepare_env(variables=>{dict with variables}, provider => 'aws');
@@ -264,22 +295,14 @@ sub qesap_prepare_env {
     my $variables = $args{openqa_variables};
     my $provider = $args{provider};
     my %paths = qesap_get_file_paths();
-    my $tfvars_template = get_var('QESAP_TFVARS_TEMPLATE');
     my $qesap_conf_src = "sles4sap/qe_sap_deployment/" . $paths{qesap_conf_filename};
 
     qesap_create_folder_tree();
     qesap_get_deployment_code();
     qesap_pip_install();
 
-    # Copy tfvars template file if defined in parameters
-    if (get_var('QESAP_TFVARS_TEMPLATE')) {
-        record_info("QESAP tfvars template", "Preparing terraform template: \n" . $tfvars_template);
-        assert_script_run('cd ' . $paths{terraform_dir} . '/' . $provider, quiet => 1);
-        assert_script_run('cp ' . $tfvars_template . ' terraform.tfvars.template');
-    }
-
     record_info("QESAP yaml", "Preparing yaml config file");
-    assert_script_run('curl -v -L ' . data_url($qesap_conf_src) . ' -o ' . $paths{qesap_conf_trgt});
+    assert_script_run('curl -v -fL ' . data_url($qesap_conf_src) . ' -o ' . $paths{qesap_conf_trgt});
     qesap_yaml_replace(openqa_variables => $variables);
     push(@log_files, $paths{qesap_conf_trgt});
 
@@ -289,7 +312,7 @@ sub qesap_prepare_env {
     my $hana_vars = "$paths{deployment_dir}/ansible/playbooks/vars/hana_vars.yaml";
     my $exec_rc = qesap_execute(cmd => 'configure', verbose => 1);
     push(@log_files, $hana_vars) if (script_run("test -e $hana_vars") == 0);
-    qesap_upload_logs();
+    qesap_upload_logs(failok => 1);
     die if $exec_rc != 0;
     return;
 }

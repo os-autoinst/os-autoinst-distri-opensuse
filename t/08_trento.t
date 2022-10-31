@@ -147,7 +147,7 @@ subtest '[cypress_configs]' => sub {
     $trento->redefine(get_trento_ip => sub { return '43.43.43.43' });
     $trento->redefine(get_trento_password => sub { return 'SPUMA_DI_TONNO'; });
     my $nodes = 42;
-    $trento->redefine(get_agents_number => sub { return $nodes; });
+    $trento->redefine(qesap_get_nodes_number => sub { return $nodes; });
     $trento->redefine(upload_logs => sub { push @logs, @_; });
     # calls to ignore
     $trento->redefine(enter_cmd => sub { return; });
@@ -160,57 +160,6 @@ subtest '[cypress_configs]' => sub {
     note("\n  L-->  " . join("\n  L-->  ", @logs));
     ok any { /cypress\.env\.py -u .*43\.43\.43\.43 -p SPUMA_DI_TONNO -f Premium -n $nodes --trento-version $ver/ } @calls;
     ok any { /cypress\.env\.json/ } @logs;
-};
-
-subtest '[get_agents_number]' => sub {
-    my $trento = Test::MockModule->new('trento', no_auto => 1);
-    @calls = ();
-
-    my $cloud_provider = 'POLPETTE';
-    set_var('PUBLIC_CLOUD_PROVIDER', $cloud_provider);
-    set_var('QESAP_CONFIG_FILE', 'MELANZANE_FRITTE');
-
-    my $tmp_folder = '/FESTA';
-    note("-->tmp_folder=$tmp_folder");
-    set_var('QESAP_DEPLOYMENT_DIR', $tmp_folder);
-
-    my $inv_path = "$tmp_folder/terraform/" . lc $cloud_provider . '/inventory.yaml';
-    note("-->inv_path=$inv_path");
-
-    my $str = <<END;
-all:
-  children:
-    hana:
-      hosts:
-        vmhana01:
-          ansible_host: 1.2.3.4
-          ansible_python_interpreter: /usr/bin/python3
-        vmhana02:
-          ansible_host: 1.2.3.5
-          ansible_python_interpreter: /usr/bin/python3
-
-    iscsi:
-      hosts:
-        vmiscsi01:
-          ansible_host: 1.2.3.6
-          ansible_python_interpreter: /usr/bin/python3
-
-  hosts: null
-END
-
-    $trento->redefine(script_output => sub { push @calls, $_[0]; return $str; });
-
-    my $res = get_agents_number();
-
-    set_var('PUBLIC_CLOUD_PROVIDER', undef);
-    set_var('QESAP_CONFIG_FILE', undef);
-    set_var('QESAP_DEPLOYMENT_DIR', undef);
-
-    note("\n  C-->  " . join("\n  C-->  ", @calls));
-
-    is $res, 3, 'Number of agents like expected';
-    like $calls[0], qr/cat $inv_path/;
-
 };
 
 subtest '[deploy_qesap] ok' => sub {

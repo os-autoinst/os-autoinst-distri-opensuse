@@ -226,13 +226,22 @@ TRENTO_REGISTRY_IMAGE_WEB | string |  | Optional. Overwrite the trento-web image
 TRENTO_REGISTRY_IMAGE_WEB_VERSION | string |  | Optional. Version tag for the trento-web image
 TRENTO_GITLAB_REPO | string | gitlab.suse.de/qa-css/trento | Repository for the deployment scripts
 TRENTO_GITLAB_BRANCH | string | master | Branch to use in the deployment script repository
-TRENTO_GITLAB_TOKEN | string | | Force te use of a custom token
+TRENTO_GITLAB_TOKEN | string | from SECRET_TRENTO_GITLAB_TOKEN | Force the use of a custom token
 TRENTO_DEPLOY_VER | string | | Force the Trento deployment script to be used from a release
 TRENTO_AGENT_REPO | string | https://dist.suse.de/ibs/Devel:/SAP:/trento:/factory/SLE_15_SP3/x86_64 | Repository where to get the trento-agent installer
 TRENTO_AGENT_RPM | string | | Trento-agent rpm file name
 TRENTO_EXT_DEPLOY_IP | string | | Public IP of a Trento web instance not deployed by openQA
 TRENTO_WEB_PASSWORD | string | | Trento web password for the admin user. If not provided, random generated one.
-TRENTO_CLUSTER_OS_VER | string | | OS for nodes in SAP cluster.
+TRENTO_QESAPDEPLOY_CLUSTER_OS_VER | string | | OS for nodes in SAP cluster.
+TRENTO_QESAPDEPLOY_SAPCAR | string | | SAPCAR url for the qe-sap-deployment hana_media.yaml.
+TRENTO_QESAPDEPLOY_IMDB_SERVER | string | | IMDB_SERVER url for the qe-sap-deployment hana_media.yaml.
+TRENTO_QESAPDEPLOY_IMDB_CLIENT | string | | IMDB_CLIENT url for the qe-sap-deployment hana_media.yaml.
+QESAP_CONFIG_FILE | string | | filename (of relative path) of the config YAML file for the qesap.py script, within `sles4sap/qe_sap_deployment/` subfolder in `data`.
+QESAP_DEPLOYMENT_DIR | string | /root/qe-sap-deployment | JumpHost folder where to install the qe-sap-deployment code
+QESAP_INSTALL_VERSION | string | | If configured, test will run with a specific release of qe-sap-deployment code from https://github.com/SUSE/qe-sap-deployment/releases.
+QESAP_INSTALL_GITHUB_REPO | string | github.com/SUSE/qe-sap-deployment | Git repository where to clone from. Ignored if QESAP_VER is configured.
+QESAP_INSTALL_GITHUB_BRANCH | string | | Git branch. Ignored if QESAP_VER is configured.
+QESAP_INSTALL_GITHUB_NO_VERIFY | string | | Configure http.sslVerify false. Ignored if QESAP_VER is configured.
 
 
 ### Publiccloud specific variables

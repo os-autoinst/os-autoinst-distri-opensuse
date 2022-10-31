@@ -56,7 +56,6 @@ our @EXPORT = qw(
   deploy_qesap
   destroy_qesap
   install_agent
-  get_agents_number
   VM_USER
   SSH_KEY
   cypress_configs
@@ -242,13 +241,13 @@ sub config_cluster {
     $variables{PROVIDER} = $qesap_provider;
     $variables{REGION} = $region;
     $variables{DEPLOYMENTNAME} = $resource_group_postfix;
-    $variables{TRENTO_CLUSTER_OS_VER} = get_required_var("TRENTO_CLUSTER_OS_VER");
+    $variables{TRENTO_CLUSTER_OS_VER} = get_required_var("TRENTO_QESAPDEPLOY_CLUSTER_OS_VER");
     $variables{SSH_KEY_PRIV} = SSH_KEY;
     $variables{SSH_KEY_PUB} = $ssh_key_pub;
     $variables{SCC_REGCODE_SLES4SAP} = get_required_var('SCC_REGCODE_SLES4SAP');
-    $variables{HANA_SAR} = get_required_var("QESAPDEPLOY_SAPCAR");
-    $variables{HANA_CLIENT_SAR} = get_required_var("QESAPDEPLOY_IMDB_SERVER");
-    $variables{HANA_SAPCAR} = get_required_var("QESAPDEPLOY_IMDB_CLIENT");
+    $variables{HANA_SAR} = get_required_var("TRENTO_QESAPDEPLOY_SAPCAR");
+    $variables{HANA_CLIENT_SAR} = get_required_var("TRENTO_QESAPDEPLOY_IMDB_CLIENT");
+    $variables{HANA_SAPCAR} = get_required_var("TRENTO_QESAPDEPLOY_IMDB_SERVER");
     qesap_prepare_env(openqa_variables => \%variables, provider => $qesap_provider);
 }
 
@@ -329,9 +328,7 @@ sub trento_acr_azure {
     push @cmd_list, ('-v', '2>&1|tee', $deploy_script_log);
     assert_script_run(join(' ', @cmd_list), $trento_acr_azure_timeout);
     upload_logs($deploy_script_log);
-    if ($rolling_mode) {
-        upload_logs($trento_cluster_install);
-    }
+    upload_logs($trento_cluster_install) if ($rolling_mode);
 
     my $acr_server = script_output("az acr list -g $resource_group --query \"[0].loginServer\" -o tsv");
     my $acr_username = script_output("az acr credential show -n $acr_name --query username -o tsv");
@@ -565,24 +562,6 @@ sub install_agent {
     assert_script_run($cmd);
 }
 
-=head3 get_agents_number
-
-Get the number of SAP cluster nodes where the trento-agent has been installed
-=cut
-
-sub get_agents_number {
-    my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
-    my $yp = YAML::PP->new();
-
-    my $inventory_content = script_output("cat $inventory");
-    my $parsed_inventory = $yp->load_string($inventory_content);
-    my $num_hosts = 0;
-    while ((my $key, my $value) = each(%{$parsed_inventory->{all}->{children}})) {
-        $num_hosts += keys %{$value->{hosts}};
-    }
-    return $num_hosts;
-}
-
 =head3 k8s_logs
 
 Get all relevant info out from the cluster
@@ -703,7 +682,7 @@ sub cypress_configs {
       ' -f Premium' .
       ' -n %s' .
       ' --trento-version %s',
-      $machine_ip, get_trento_password(), get_agents_number(), get_required_var('TRENTO_VERSION');
+      $machine_ip, get_trento_password(), qesap_get_nodes_number(), get_required_var('TRENTO_VERSION');
 
     assert_script_run($cypress_env_cmd);
     assert_script_run('cat cypress.env.json');
