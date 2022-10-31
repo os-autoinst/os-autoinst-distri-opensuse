@@ -36,7 +36,7 @@ sub run {
 
     record_info('installs SLE15-Migration and suse-migration-sle15-activation');
 
-    $instance->run_ssh_command(cmd => "sudo zypper -n in SLES15-Migration suse-migration-sle15-activation");
+    $instance->run_ssh_command(cmd => "sudo zypper -n in SLES15-Migration suse-migration-sle15-activation", timeout => 300);
     record_info('system reboots');
     my ($shutdown_time, $startup_time) = $instance->softreboot(
         timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 400)
