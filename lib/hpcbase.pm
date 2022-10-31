@@ -383,11 +383,21 @@ sub uninstall_spack_module {
 This function is used to select dependencies packages which are required to be installed
 on HPC compute nodes in order to run code against particular C<mpi> implementation.
 C<get_compute_nodes_deps> returns an array of packages
+
+=head2 CAVEATS
+
+Obsolete function. Not in use since sle15sp5
+Used to install dependencies of the HPC modules when the binaries were shared
+through NFS. Changes in openmpi breaks this on SLE15SP5. Need to get updated to
+be functional again. As for now can be used to find those dependencies prior to
+that version.
+
 =cut
 
 sub get_compute_nodes_deps {
     my ($self, $mpi) = @_;
     die "missing C<mpi> parameter" unless $mpi;
+    die "This function is deprecated. Rather install *hpc-gnu package";
     my @deps = ('libucp0');
     if (is_sle('>=15-SP3')) {
         push @deps, 'libhwloc15' if $mpi =~ m/mpich/;
