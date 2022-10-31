@@ -12,6 +12,7 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use Mojo::Base -base;
 use publiccloud::instance;
 use publiccloud::instances;
+use publiccloud::ssh_interactive 'select_host_console';
 use publiccloud::utils qw(is_azure is_ec2);
 use Carp;
 use List::Util qw(max);
@@ -503,6 +504,8 @@ sub terraform_destroy {
     my ($self) = @_;
     # Do not destroy if terraform has not been applied or the environment doesn't exist
     return unless ($self->terraform_applied);
+
+    select_host_console(force => 1);
 
     my $cmd;
     record_info('INFO', 'Removing terraform plan...');
