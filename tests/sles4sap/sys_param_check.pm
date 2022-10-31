@@ -52,6 +52,9 @@ sub run {
     my $python_bin = is_sle('15+') ? 'python3' : 'python';
     select_serial_terminal;
 
+    # regenerate initrd bsc#1204897
+    assert_script_run 'mkinitrd', 180;
+
     # Download and prepare the test environment
     assert_script_run "cd /; curl -f -v \"$testkit\" -o $robot_tar";
     assert_script_run "tar -xzf $robot_tar";
