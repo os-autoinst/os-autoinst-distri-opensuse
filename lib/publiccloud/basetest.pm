@@ -103,7 +103,7 @@ sub provider_factory {
 
 sub cleanup {
     # to be overridden by tests
-    return;
+    return 1;
 }
 
 sub _cleanup {
