@@ -27,6 +27,8 @@
           <li><a href="#qesap_yaml_replace">qesap_yaml_replace</a></li>
           <li><a href="#qesap_execute">qesap_execute</a></li>
           <li><a href="#qesap_get_inventory">qesap_get_inventory</a></li>
+          <li><a href="#qesap_get_nodes_number">qesap_get_nodes_number</a></li>
+          <li><a href="#qesap_get_terraform_dir">qesap_get_terraform_dir</a></li>
           <li><a href="#qesap_prepare_env">qesap_prepare_env</a></li>
           <li><a href="#qesap_ansible_cmd">qesap_ansible_cmd</a></li>
         </ul>
@@ -108,6 +110,15 @@
 <h3 id="qesap_get_inventory">qesap_get_inventory</h3>
 
 <pre><code>    Return the path of the generated inventory</code></pre>
+
+<h3 id="qesap_get_nodes_number">qesap_get_nodes_number</h3>
+
+<p>Get the number of cluster nodes from the inventory.yaml</p>
+
+<h3 id="qesap_get_terraform_dir">qesap_get_terraform_dir</h3>
+
+<pre><code>    Return the path used by the qesap script as -chdir argument for terraform
+    It is useful if test would like to call terraform</code></pre>
 
 <h3 id="qesap_prepare_env">qesap_prepare_env</h3>
 
