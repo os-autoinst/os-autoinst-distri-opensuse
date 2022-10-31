@@ -351,8 +351,10 @@ sub script_sudo {
 
     my $str = time;
     if ($wait > 0) {
-        $prog .= "; echo $str-\$?-" unless $prog eq 'bash';
-        $prog .= " > /dev/$testapi::serialdev" unless is_serial_terminal();
+        unless ($prog =~ /^bash/) {
+            $prog .= "; echo $str-\$?-";
+            $prog .= " > /dev/$testapi::serialdev" unless is_serial_terminal();
+        }
     }
     enter_cmd "clear";    # poo#13710
     enter_cmd "su -c \'$prog\'", max_interval => 125;
