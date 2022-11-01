@@ -74,6 +74,15 @@
         <version>15</version>
       </addon>
       % }
+      % if ($get_var->('SCC_ADDONS') =~ m/ltss/) {
+      <addon config:type="map">
+        <arch>{{ARCH}}</arch>
+        <name>SLE_HPC-LTSS</name>
+        <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
+        <release_type>nil</release_type>
+        <version>{{VERSION}}</version>
+      </addon>
+      % }
     </addons>
     <do_registration config:type="boolean">true</do_registration>
     % if ($check_var->('FLAVOR', 'Server-DVD-HPC-Incidents')) {
