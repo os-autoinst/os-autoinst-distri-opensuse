@@ -20,8 +20,6 @@ use publiccloud::utils;
 
 sub run {
     my ($self, $args) = @_;
-    # Preserve args for post_fail_hook
-    $self->{provider} = $args->{my_provider};
 
     script_run("hostname -f");
     assert_script_run("uname -a");

@@ -16,8 +16,6 @@ use publiccloud::utils;
 
 sub run {
     my ($self, $args) = @_;
-    $self->{provider} = $args->{my_provider};
-
     script_run("cat /etc/os-release");
     zypper_call('--gpg-auto-import-keys addrepo -p 90 ' . get_required_var('NVIDIA_REPO') . ' nvidia_repo');
     zypper_call '--gpg-auto-import-keys ref';

@@ -19,8 +19,6 @@ sub run {
     my ($self, $args) = @_;
     die "tunnel-console requires the TUNELLED=1 setting" unless (is_tunneled());
 
-    $self->{provider} = $args->{my_provider};    # required for cleanup
-
     # Initialize ssh tunnel for the serial device, if not yet happened
     ssh_interactive_tunnel($args->{my_instance}) if (get_var('_SSH_TUNNELS_INITIALIZED', 0) == 0);
     die("expect ssh serial") unless (get_var('SERIALDEV') =~ /ssh/);
