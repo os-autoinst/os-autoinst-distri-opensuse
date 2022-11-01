@@ -30,7 +30,7 @@ schedule:
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
-  - installation/select_patterns
+  - installation/select_visible_patterns_from_bottom
   - installation/installation_settings/validate_ssh_service_enabled
   - installation/installation_settings/open_ssh_port
   - installation/bootloader_settings/disable_boot_menu_timeout
