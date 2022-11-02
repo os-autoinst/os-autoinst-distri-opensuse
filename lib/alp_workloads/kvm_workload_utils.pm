@@ -18,6 +18,7 @@ use Utils::Backends qw(use_ssh_serial_console);
 use ipmi_backend_utils;
 use utils;
 use virt_autotest::virtual_network_utils qw(clean_all_virt_networks);
+use virt_autotest::utils qw(ssh_setup);
 
 our @EXPORT = qw(
   set_ct_engine
@@ -133,7 +134,8 @@ sub exit_kvm_container {
 sub install_tools_within_kvm_container {
     my $_tools_to_install = shift;
 
-    $_tools_to_install //= "openssh hostname gawk supportutils";
+    # The packages needed by guest installation and following tests`
+    $_tools_to_install //= "wget screen xmlstarlet yast2-schema python3 nmap openssh hostname gawk expect supportutils systemd-coredump";
 
     assert_script_run("clear");
     assert_screen('in-libvirtd-container-bash');
@@ -164,6 +166,7 @@ sub setup_kvm_container_from_scratch {
     start_kvm_container;
     enter_kvm_container_sh;
     install_tools_within_kvm_container;
+    ssh_setup('/root/.ssh/id_rsa');
     setup_services_within_kvm_container;
 }
 
