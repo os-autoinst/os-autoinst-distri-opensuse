@@ -201,7 +201,10 @@ sub login_to_console {
 
 sub run {
     my $self = shift;
-    $self->login_to_console;
+    #$self->login_to_console;
+    #TODO: reset this change
+    reset_consoles;
+    use_ssh_serial_console;
 }
 
 sub post_fail_hook {

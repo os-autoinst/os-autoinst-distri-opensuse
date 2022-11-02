@@ -1428,7 +1428,7 @@ sub exec_and_insert_password {
         send_key 'ret';
         assert_screen('password-prompt', 60);
     }
-    if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
+    if (get_var("VIRT_PRJ1_GUEST_INSTALL") || get_var("VIRT_UNIFIED_GUEST_INSTALL")) {
         type_password("novell");
     }
     else {

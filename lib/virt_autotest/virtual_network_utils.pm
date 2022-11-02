@@ -23,7 +23,7 @@ use IO::File;
 use utils 'script_retry';
 use upload_system_log 'upload_supportconfig_log';
 use proxymode;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_alp);
 use virt_autotest_base;
 use virt_autotest::utils;
 use virt_utils;
@@ -342,6 +342,52 @@ sub clean_all_virt_networks {
         save_screenshot;
     }
     record_info("All existing virtual networks: \n$_virt_networks \nhave been destroy and undefined.", script_output("ip a; ip route show all"));
+}
+
+sub setup_vm_simple_dns_with_vnet_ip {
+    my ($_vnet, $_vms) = @_;
+
+    record_info("Going to setup simple DNS in /etc/hosts for vms $_vms, with virtual network `$_vnet` net-dhcp-leases...");
+    
+    my $_dns_file = "/etc/hosts";
+    my $_cmd = '';
+    assert_script_run("virsh net-dhcp-leases $_vnet");
+    save_screenshot;
+
+    if ($_vms eq '') {
+        # Setup all vms
+        assert_script_run("sed -i '1,\$d' $_dns_file");
+        $_cmd = "echo \`virsh net-dhcp-leases $_vnet | sed  '1,2d' | gawk '{print \$5,\$6}' | sed -r 's/\\\/[0-9]+//'\` >> $_dns_file";
+        assert_script_run($_cmd);
+    } else {
+        # Setup given vms
+        foreach my $_vm (split(',', $_vms)) {
+            script_run "sed -i '/ $_vm /d' $_dns_file";
+            my $cmd = "echo \`virsh net-dhcp-leases $_vnet | sed  '1,2d' | grep \"$_vm\" | gawk '{print \$5,\$6}' | sed -r 's/\\\/[0-9]+//'\` >> $_dns_file";
+            assert_script_run($cmd);
+        }
+    }
+    assert_script_run("cat $_dns_file");
+    save_screenshot;
+    record_info("Simple DNS setup in /etc/hosts, with virtual network `$_vnet` net-dhcp-leases is successful!");
+}
+
+sub setup_vm_simple_dns_with_ip {
+    my ($_vm, $_ip) = @_;
+
+    my $_dns_file = '/etc/hosts';
+
+    # Workaround for directly editing file issue: resource busy
+    if (is_alp) {
+        $_dns_file = '/etc/hosts.wip';
+        assert_script_run "cp /etc/hosts $_dns_file";
+    }
+
+    script_run "sed -i '/$_vm/d' $_dns_file";
+    assert_script_run "echo '$_ip $_vm' >> $_dns_file";
+    assert_script_run "cp $_dns_file /etc/hosts" if (is_alp);
+    save_screenshot;
+    record_info("Simple DNS setup in /etc/hosts for $_ip $_vm is successful!", script_output("cat /etc/hosts"));
 }
 
 1;

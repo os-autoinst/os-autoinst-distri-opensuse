@@ -503,7 +503,8 @@ sub init_consoles {
                 hostname => get_required_var('SUT_IP'),
                 password => $testapi::password,
                 username => 'root',
-                serial => 'rm -f /dev/sshserial; mkfifo /dev/sshserial; chmod 666 /dev/sshserial; while true; do cat /dev/sshserial; done',
+                #serial => 'rm -f /dev/sshserial; mkfifo /dev/sshserial; chmod 666 /dev/sshserial; while true; do cat /dev/sshserial; done',
+                serial => 'while true; do cat /dev/sshserial; done',
                 gui => 1
             });
     }
@@ -518,7 +519,8 @@ sub init_consoles {
                 hostname => $hostname,
                 password => $testapi::password,
                 username => 'root',
-                serial => 'rm -f /dev/sshserial; mkfifo /dev/sshserial; chmod 666 /dev/sshserial; tail -fn +1 /dev/sshserial'
+                #serial => 'rm -f /dev/sshserial; mkfifo /dev/sshserial; chmod 666 /dev/sshserial; tail -fn +1 /dev/sshserial'
+                serial => 'tail -fn +1 /dev/sshserial'
             });
 
         $self->add_console(

@@ -5,5 +5,27 @@ description:    >
 schedule:
     - virt_autotest/login_console
     - virt_autotest/setup_kvm_container
+    - "{{install_guest}}"
+conditional_schedule:
+#  bootup_and_install:
+#    DO_NOT_INSTALL_HOST:
+#      0:
+#        - "{{bootup}}"
+#        - installation/welcome
+#        - installation/scc_registration
+#        - installation/ntp_config_settings
+#        - installation/user_settings_root
+#        - installation/resolve_dependency_issues
+#        - installation/select_patterns
+#        - installation/installation_overview
+#        - installation/disable_grub_graphics
+#        - installation/start_install
+#        - installation/await_install
+#        - installation/logs_from_installation_system
+#        - installation/reboot_after_installation
+  install_guest:
+    SKIP_GUEST_INSTALL:
+      0:
+        - virt_autotest/unified_guest_installation
 
 # To be extended

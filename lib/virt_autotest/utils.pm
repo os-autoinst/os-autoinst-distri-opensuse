@@ -40,7 +40,20 @@ sub trim {
 }
 
 sub restart_libvirtd {
-    is_sle '12+' ? systemctl "restart libvirtd", timeout => 180 : assert_script_run "service libvirtd restart", 180;
+    if (is_sle('<12')) {
+        assert_script_run('rclibvirtd restart', 180);
+    }
+    elsif (is_alp) {
+        my $_libvirtd_pid = script_output(q@ps -ef |grep [l]ibvirtd | gawk '{print $2;}'@);
+        my $_libvirtd_cmd = script_output("ps -o command $_libvirtd_pid | tail -1");
+        assert_script_run("kill -9 $_libvirtd_pid");
+        assert_script_run("$_libvirtd_cmd");
+    }
+    else {
+		systemctl("restart libvirtd", timeout => 180);
+    }
+    save_screenshot;
+    record_info("Debug log for libvirtd has been enabled!");
 }
 
 #return 1 if it is a VMware test judging by REGRESSION variable
@@ -170,14 +183,22 @@ sub download_script {
 }
 
 sub ssh_setup {
-    my $default_ssh_key = (!(get_var('VIRT_AUTOTEST'))) ? "/root/.ssh/id_rsa" : "/var/testvirt.net/.ssh/id_rsa";
+    my $default_ssh_key = shift;
+
+    $default_ssh_key //= (!(get_var('VIRT_AUTOTEST'))) ? "/root/.ssh/id_rsa" : "/var/testvirt.net/.ssh/id_rsa";
     my $dt = DateTime->now;
     my $comment = "openqa-" . $dt->mdy . "-" . $dt->hms('-') . get_var('NAME');
     if (script_run("[[ -s $default_ssh_key ]]") != 0) {
         my $default_ssh_key_dir = dirname($default_ssh_key);
         script_run("mkdir -p $default_ssh_key_dir");
         assert_script_run "ssh-keygen -t rsa -P '' -C '$comment' -f $default_ssh_key";
+        record_info("Created ssh rsa key in $default_ssh_key successfully.")
+    } else {
+        record_info("Skip ssh rsa key recreation in $default_ssh_key, which exists.");
     }
+    assert_script_run("ls `dirname $default_ssh_key`");
+    save_screenshot;
+    record_info("Now test is running with user name : " . script_output("whoami"));
 }
 
 sub ssh_copy_id {
@@ -187,7 +208,8 @@ sub ssh_copy_id {
     my $authorized_keys = $args{authorized_keys} // '.ssh/authorized_keys';
     my $scp = $args{scp} // 0;
     my $mode = is_sle('=11-sp4') ? '' : '-f';
-    my $default_ssh_key = (!(get_var('VIRT_AUTOTEST'))) ? "/root/.ssh/id_rsa.pub" : "/var/testvirt.net/.ssh/id_rsa.pub";
+    my $default_ssh_key = $args{default_ssh_key};
+    $default_ssh_key //= (!(get_var('VIRT_AUTOTEST'))) ? "/root/.ssh/id_rsa.pub" : "/var/testvirt.net/.ssh/id_rsa.pub";
     script_retry "nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12;
     assert_script_run "ssh-keyscan $guest >> ~/.ssh/known_hosts";
     if (script_run("ssh -o PreferredAuthentications=publickey -o ControlMaster=no $username\@$guest hostname") != 0) {
