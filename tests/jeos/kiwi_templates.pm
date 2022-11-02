@@ -18,7 +18,7 @@ sub run {
     my $rpm;
     if (is_sle('<15-SP2')) {
         $rpm = 'kiwi-templates-SLES15-JeOS';
-    } elsif (is_leap('<=15.4') || is_sle('<15-SP4') || is_tumbleweed) {
+    } elsif (is_leap('<=15.5') || is_sle('<15-SP4') || is_tumbleweed) {
         $rpm = 'kiwi-templates-JeOS';
     } else {
         $rpm = 'kiwi-templates-Minimal';
