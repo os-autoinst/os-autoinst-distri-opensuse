@@ -20,7 +20,6 @@ sub run {
     my ($self, $args) = @_;
     select_host_console();    # select console on the host, not the PC instance
 
-    $self->{provider} = $args->{my_provider};    # required for cleanup
     my $remote = $args->{my_instance}->username . '@' . $args->{my_instance}->public_ip;
 
     my $cmd_time = time();
