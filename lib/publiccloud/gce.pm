@@ -15,6 +15,7 @@ use Mojo::Util qw(trim);
 use Mojo::JSON 'decode_json';
 use testapi;
 use utils;
+use publiccloud::ssh_interactive 'select_host_console';
 
 sub init {
     my ($self, %params) = @_;
@@ -158,7 +159,16 @@ sub start_instance
 }
 
 sub cleanup {
-    my ($self) = @_;
+    my ($self, $args) = @_;
+
+    select_host_console(force => 1);
+
+    my $region = $self->{provider_client}->{region};
+    my $project = $self->{provider_client}->{project_id};
+    my $instance_id = $args->{my_instance}->{instance_id};
+    assert_script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --zone=$region --port=1 > instance_serial.txt");
+    upload_logs("instance_serial.txt", failok => 1);
+
     $self->SUPER::cleanup();
     $self->provider_client->cleanup();
 }
