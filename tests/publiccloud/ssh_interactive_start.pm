@@ -8,7 +8,7 @@
 #
 # Maintainer: qa-c@suse.de
 
-use Mojo::Base 'consoletest';
+use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
