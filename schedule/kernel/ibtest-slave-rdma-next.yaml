@@ -4,7 +4,6 @@ description:    >
 vars:
     DESKTOP: textmode
     DEVEL_TOOLS_REPO: https://download.opensuse.org/repositories/devel:/tools/SLE_15_SP2/devel:tools.repo
-    GA_REPO: http://dist.suse.de/ibs/SUSE:/SLE-%VERSION%:/GA/standard/SUSE:SLE-%VERSION%:GA.repo
     GRUB_TIMEOUT: 300
     IBTESTS: 1
     IBTEST_GITBRANCH: master
