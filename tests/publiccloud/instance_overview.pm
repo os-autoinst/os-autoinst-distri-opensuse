@@ -10,7 +10,7 @@
 #
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 
-use base 'publiccloud::basetest';
+use base 'consoletest';
 use registration;
 use warnings;
 use testapi;
@@ -69,6 +69,13 @@ sub collect_system_information {
 
 sub test_flags {
     return {fatal => 1};
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    select_host_console(force => 1);
+    # Destroy the public cloud instance
+    $self->{provider}->cleanup();
 }
 
 1;

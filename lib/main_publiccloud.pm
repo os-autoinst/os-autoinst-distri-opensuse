@@ -43,7 +43,7 @@ sub load_maintenance_publiccloud_tests {
         loadtest('publiccloud/ahb');
     } else {
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
-        loadtest("publiccloud/instance_overview", run_args => $args) unless get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS');
+        loadtest "publiccloud/instance_overview" unless get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS');
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
             load_publiccloud_consoletests($args);
         } elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
