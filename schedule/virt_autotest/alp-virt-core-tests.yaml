@@ -5,5 +5,11 @@ description:    >
 schedule:
     - virt_autotest/login_console
     - virt_autotest/setup_kvm_container
+    - "{{install_guest}}"
+conditional_schedule:
+    install_guest:
+        SKIP_GUEST_INSTALL:
+            0:
+                - virt_autotest/unified_guest_installation
 
 # To be extended

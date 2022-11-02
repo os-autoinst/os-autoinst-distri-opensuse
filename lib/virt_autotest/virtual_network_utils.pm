@@ -23,7 +23,7 @@ use IO::File;
 use utils 'script_retry';
 use upload_system_log 'upload_supportconfig_log';
 use proxymode;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_alp);
 use virt_autotest_base;
 use virt_autotest::utils;
 use virt_utils;
@@ -32,7 +32,7 @@ our @EXPORT
   = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_network
   restore_guests restore_network destroy_vir_network restore_libvirt_default enable_libvirt_log pload_debug_log
   check_guest_status check_guest_module check_guest_ip save_guest_ip test_network_interface hosts_backup
-  hosts_restore get_free_mem get_active_pool_and_available_space clean_all_virt_networks);
+  hosts_restore get_free_mem get_active_pool_and_available_space clean_all_virt_networks setup_vm_simple_dns_with_ip);
 
 sub check_guest_ip {
     my ($guest, %args) = @_;
@@ -342,6 +342,24 @@ sub clean_all_virt_networks {
         save_screenshot;
     }
     record_info("All existing virtual networks: \n$_virt_networks \nhave been destroy and undefined.", script_output("ip a; ip route show all"));
+}
+
+sub setup_vm_simple_dns_with_ip {
+    my ($_vm, $_ip) = @_;
+
+    my $_dns_file = '/etc/hosts';
+
+    # Workaround for directly editing file issue: resource busy
+    if (is_alp) {
+        $_dns_file = '/etc/hosts.wip';
+        assert_script_run "cp /etc/hosts $_dns_file";
+    }
+
+    script_run "sed -i '/$_vm/d' $_dns_file";
+    assert_script_run "echo '$_ip $_vm' >> $_dns_file";
+    assert_script_run "cp $_dns_file /etc/hosts" if (is_alp);
+    save_screenshot;
+    record_info("Simple DNS setup in /etc/hosts for $_ip $_vm is successful!", script_output("cat /etc/hosts"));
 }
 
 1;

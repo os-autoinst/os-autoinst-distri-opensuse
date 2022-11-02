@@ -24,7 +24,7 @@ use LWP::Simple 'head';
 use proxymode;
 use version_utils 'is_sle';
 use virt_autotest::utils;
-use version_utils qw(is_sle get_os_release);
+use version_utils qw(is_sle is_alp get_os_release);
 
 our @EXPORT
   = qw(enable_debug_logging update_guest_configurations_with_daily_build locate_sourcefile get_repo_0_prefix repl_repo_in_sourcefile repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk get_guest_list download_guest_assets is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type recreate_guests perform_guest_restart collect_host_and_guest_logs cleanup_host_and_guest_logs monitor_guest_console start_monitor_guest_console stop_monitor_guest_console is_developing_sles is_registered_sles);
@@ -45,7 +45,7 @@ sub enable_debug_logging {
     }
     save_screenshot;
 
-    # enable journal log with prvious reboot
+    # enable journal log with previous reboot
     my $journald_conf_file = "/etc/systemd/journald.conf";
     if (!script_run "ls $journald_conf_file") {
         script_run "sed -i '/^[# ]*Storage *=/{h;s/^[# ]*Storage *=.*\$/Storage=persistent/};\${x;/^\$/{s//Storage=persistent/;H};x}' $journald_conf_file";
@@ -63,12 +63,7 @@ sub enable_debug_logging {
     save_screenshot;
 
     #restart libvirtd to make debug level and coredump take effect
-    if (is_sle('<12')) {
-        script_run 'rclibvirtd restart';
-    }
-    else {
-        script_run 'systemctl restart libvirtd';
-    }
+    virt_autotest::utils::restart_libvirtd;
 }
 
 sub get_version_for_daily_build_guest {
@@ -709,7 +704,7 @@ sub cleanup_host_and_guest_logs {
     $extra_logs_to_cleanup //= '';
 
     #Clean dhcpd and named services up explicity
-    if (get_var('VIRT_AUTOTEST')) {
+    if (get_var('VIRT_AUTOTEST') and !is_alp) {
         script_run("brctl addbr br123;brctl setfd br123 0;ip addr add 192.168.123.1/24 dev br123;ip link set br123 up");
         if (!get_var('VIRT_UNIFIED_GUEST_INSTALL')) {
             my @control_operation = ('restart');

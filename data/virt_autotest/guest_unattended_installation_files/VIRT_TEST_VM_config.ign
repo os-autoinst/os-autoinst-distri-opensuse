@@ -1,0 +1,25 @@
+{
+  "ignition": {
+    "version": "3.0.0"
+  },
+  "passwd": {
+    "users": [
+      {
+        "name": "root",
+        "passwordHash": "$1$YRC3ONRz$6d4zi/2z5Eq72tuFN/cVR0"
+      }
+    ]
+  },
+  "storage": {
+    "files": [
+      {
+        "path": "/etc/ssh/sshd_config",
+        "mode": 420,
+        "overwrite": true,
+        "contents": {
+          "source": "data:text/plain;charset=utf-8;base64,UGVybWl0Um9vdExvZ2luIHllcwpQdWJrZXlBdXRoZW50aWNhdGlvbiB5ZXMKUGFzc3dvcmRBdXRoZW50aWNhdGlvbiB5ZXM="
+        }
+      }
+    ]
+  }
+}
