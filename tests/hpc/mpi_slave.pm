@@ -17,12 +17,9 @@ sub run ($self) {
     select_serial_terminal();
     my $mpi = $self->get_mpi();
     my %exports_path = (
-        bin => '/home/bernhard/bin',
-        hpc_lib => '/usr/lib/hpc',
+        bin => '/home/bernhard/bin'
     );
-    # Install required HPC dependencies on the nodes act as compute nodes
-    my @hpc_deps = $self->get_compute_nodes_deps($mpi);
-    zypper_call("in @hpc_deps");
+    zypper_call("in $mpi-gnu-hpc");
     barrier_wait('CLUSTER_PROVISIONED');
     record_info 'CLUSTER_PROVISIONED', strftime("\%H:\%M:\%S", localtime);
     barrier_wait('MPI_SETUP_READY');
