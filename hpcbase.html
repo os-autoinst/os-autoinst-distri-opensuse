@@ -29,6 +29,7 @@
       <li><a href="#prepare_spack_env">prepare_spack_env</a></li>
       <li><a href="#uninstall_spack_module">uninstall_spack_module</a></li>
       <li><a href="#get_compute_nodes_deps">get_compute_nodes_deps</a></li>
+      <li><a href="#CAVEATS">CAVEATS</a></li>
       <li><a href="#setup_nfs_server">setup_nfs_server</a></li>
       <li><a href="#mount_nfs_exports">mount_nfs_exports</a></li>
     </ul>
@@ -104,6 +105,10 @@
 <pre><code>  get_compute_nodes_deps($mpi)</code></pre>
 
 <p>This function is used to select dependencies packages which are required to be installed on HPC compute nodes in order to run code against particular <code>mpi</code> implementation. <code>get_compute_nodes_deps</code> returns an array of packages</p>
+
+<h2 id="CAVEATS">CAVEATS</h2>
+
+<p>Obsolete function. Not in use since sle15sp5 Used to install dependencies of the HPC modules when the binaries were shared through NFS. Changes in openmpi breaks this on SLE15SP5. Need to get updated to be functional again. As for now can be used to find those dependencies prior to that version.</p>
 
 <h2 id="setup_nfs_server">setup_nfs_server</h2>
 
