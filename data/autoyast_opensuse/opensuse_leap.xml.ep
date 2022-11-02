@@ -1,0 +1,125 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <add-on t="map">
+    <add_on_others t="list">
+      <listentry t="map">
+        <alias>repo-backports-update</alias>
+        <media_url>http://download.opensuse.org/update/leap/<%= $get_var->('VERSION') %>/backports/</media_url>
+        <name>Update repository of openSUSE Backports</name>
+        <priority t="integer">99</priority>
+        <product_dir>/</product_dir>
+      </listentry>
+      <listentry t="map">
+        <alias>repo-non-oss</alias>
+        <media_url>http://download.opensuse.org/distribution/leap/<%= $get_var->('VERSION') %>/repo/non-oss/</media_url>
+        <name>Non-OSS Repository</name>
+        <priority t="integer">99</priority>
+        <product_dir/>
+      </listentry>
+      <listentry t="map">
+        <alias>repo-oss</alias>
+        <media_url>http://download.opensuse.org/distribution/leap/<%= $get_var->('VERSION') %>/repo/oss/</media_url>
+        <name>Main Repository</name>
+        <priority t="integer">99</priority>
+        <product_dir/>
+      </listentry>
+      <listentry t="map">
+        <alias>repo-sle-update</alias>
+        <media_url>http://download.opensuse.org/update/leap/<%= $get_var->('VERSION') %>/sle/</media_url>
+        <name>Update repository with updates from SUSE Linux Enterprise 15</name>
+        <priority t="integer">99</priority>
+        <product_dir>/</product_dir>
+      </listentry>
+      <listentry t="map">
+        <alias>repo-update-non-oss</alias>
+        <media_url>http://download.opensuse.org/update/leap/<%= $get_var->('VERSION') %>/non-oss/</media_url>
+        <name>Update Repository (Non-Oss)</name>
+        <priority t="integer">99</priority>
+        <product_dir/>
+      </listentry>
+      <listentry t="map">
+        <alias>repo-update</alias>
+        <media_url>http://download.opensuse.org/update/leap/<%= $get_var->('VERSION') %>/oss/</media_url>
+        <name>Main Update Repository</name>
+        <priority t="integer">99</priority>
+        <product_dir/>
+      </listentry>
+    </add_on_others>
+  </add-on>
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+  </general>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+    % if ($check_var->('UEFI', '1')) {
+    <loader_type>grub2-efi</loader_type>
+    % }
+  </bootloader>
+  <login_settings>
+    <autologin_user>bernhard</autologin_user>
+  </login_settings>
+  <networking>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+    % if ($check_var->('DESKTOP', 'gnome')) {
+    <managed t="boolean">true</managed>
+    % }
+  </networking>
+  <services-manager>
+    <services>
+      <enable config:type="list">
+        <service>chronyd</service>
+        <service>sshd</service>
+        % if ($check_var->('DESKTOP', 'gnome')) {
+        <service>NetworkManager</service>
+        % }
+      </enable>
+    </services>
+  </services-manager>
+  <software>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <products config:type="list">
+      <product>Leap</product>
+    </products>
+    <packages t="list">
+      <package>chrony</package>
+      % if ($check_var->('DESKTOP', 'gnome')) {
+      <package>NetworkManager</package>
+      % }
+    </packages>
+    <patterns config:type="list">
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      % if ($check_var->('DESKTOP', 'gnome')) {
+      <pattern>gnome</pattern>
+      % }
+      % if ($check_var->('DESKTOP', 'kde')) {
+      <pattern>kde</pattern>
+      % }
+      % if ($check_var->('DESKTOP', 'textmode')) {
+      <pattern>enhanced_base</pattern>
+      <pattern>minimal_base</pattern>
+      % }
+      % if ($check_var->('SYSTEM_ROLE', 'serverro')) {
+      <pattern>transactional_base</pattern>
+      % }
+    </patterns>
+  </software>
+  <users config:type="list">
+    <user>
+      <fullname>bernhard</fullname>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>nots3cr3t</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>nots3cr3t</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>
