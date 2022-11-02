@@ -601,7 +601,6 @@ START_DIRECTLY_AFTER_TEST=default_kernel_spvm
 =head3 install_ltp_baremetal
 
 DESKTOP=textmode
-GA_REPO=http://dist.suse.de/ibs/SUSE:/SLE-%VERSION%:/GA/standard/SUSE:SLE-%VERSION%:GA.repo
 GRUB_PARAM=debug_pagealloc=on;ima_policy=tcb;slub_debug=FZPU
 GRUB_TIMEOUT=300
 INSTALL_LTP=from_repo
