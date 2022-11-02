@@ -20,6 +20,7 @@ use warnings;
 use utils qw(clear_console ensure_serialdev_permissions);
 use Utils::Architectures;
 use Utils::Backends;
+use serial_terminal 'select_serial_terminal';
 
 # test for bug https://bugzilla.novell.com/show_bug.cgi?id=598574
 sub run {
@@ -27,6 +28,7 @@ sub run {
     # On s390x platform, make sure that non-root user has
     # permissions for $serialdev to get openQA work properly.
     # Please refer to bsc#1195620
+    select_serial_terminal;    # Switch to root user at first if not
     ensure_serialdev_permissions if (is_s390x);
 
     # Switch to user console: exclude ipmi backends as under non-root user session the $serialdev can not be found
