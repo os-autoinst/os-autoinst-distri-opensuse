@@ -16,7 +16,9 @@ sub run() {
     setup_vagrant_libvirt();
 
     select_console('root-console');
-    zypper_call("in vagrant-sshfs vagrant-sshfs-testsuite");
+    # vagrant-sshfs' testsuite wants to mount certain folders as the wheel group
+    # => must be present on the system
+    zypper_call("in vagrant-sshfs vagrant-sshfs-testsuite system-group-wheel");
 
     select_console('user-console');
 
