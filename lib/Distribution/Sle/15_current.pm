@@ -28,6 +28,8 @@ use Installation::RepositoryURL::RepositoryURLController;
 use Installation::AddOnProductInstallation::AddOnProductInstallationController;
 use Installation::SystemRole::Sle::SystemRoleController;
 use Installation::ModuleRegistration::ModuleRegCodeController;
+use YaST::DNSServer::Sle::DNSServerController;
+use YaST::DNSServer::Sle::DNSServerSetupController;
 
 =head2 get_license_agreement
 
@@ -82,6 +84,14 @@ sub get_add_on_product_installation {
 
 sub get_system_role_controller() {
     return Installation::SystemRole::Sle::SystemRoleController->new();
+}
+
+sub get_dns_server {
+    return YaST::DNSServer::Sle::DNSServerController->new();
+}
+
+sub get_dns_server_setup {
+    return YaST::DNSServer::Sle::DNSServerSetupController->new();
 }
 
 1;
