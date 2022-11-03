@@ -13,6 +13,7 @@ use Mojo::JSON 'decode_json';
 use testapi;
 use publiccloud::utils "is_byos";
 use publiccloud::aws_client;
+use publiccloud::ssh_interactive 'select_host_console';
 
 has ssh_key => undef;
 has ssh_key_file => undef;
@@ -168,7 +169,17 @@ sub img_proof {
 }
 
 sub cleanup {
-    my ($self) = @_;
+    my ($self, $args) = @_;
+    my $instance_id = $args->{my_instance}->{instance_id};
+
+    select_host_console(force => 1);
+
+    script_run("aws ec2 get-console-output --instance-id $instance_id | jq -r '.Output' > console.txt");
+    upload_logs("console.txt", failok => 1);
+
+    script_run("aws ec2 get-console-screenshot --instance-id $instance_id | jq -r '.ImageData' | base64 --decode > console.jpg");
+    upload_logs("console.jpg", failok => 1);
+
     $self->terraform_destroy() if ($self->terraform_applied);
     $self->delete_keypair();
     $self->provider_client->cleanup();
