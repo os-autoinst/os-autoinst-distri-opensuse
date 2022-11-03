@@ -13,6 +13,7 @@ use warnings;
 use testapi;
 use utils;
 use YaST::Module;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my $self = shift;
@@ -25,7 +26,7 @@ sub run {
     $testapi::distri->get_firewall()->accept_change();
     assert_screen 'generic-desktop';
 
-    $self->select_serial_terminal();
+    select_serial_terminal();
     validate_script_output("firewall-cmd --state", sub { m/91mnot running/ }, proceed_on_failure => 1);
 }
 

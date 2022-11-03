@@ -14,12 +14,13 @@ use testapi;
 use utils;
 use network_utils 'iface';
 use YaST::Module;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my $self = shift;
     my $iface = iface();
 
-    $self->select_serial_terminal();
+    select_serial_terminal();
     validate_script_output("firewall-cmd --get-default-zone", sub { m/public/ }, proceed_on_failure => 1);
     select_console 'x11', await_console => 0;
     YaST::Module::open(module => 'firewall', ui => 'qt');
@@ -31,7 +32,7 @@ sub run {
     save_screenshot;
     $testapi::distri->get_firewall()->accept_change();
     assert_screen 'generic-desktop';
-    $self->select_serial_terminal();
+    select_serial_terminal();
     validate_script_output("firewall-cmd --list-interfaces --zone=trusted", sub { m/$iface/ }, proceed_on_failure => 1);
     validate_script_output("firewall-cmd --get-default-zone", sub { m/trusted/ }, proceed_on_failure => 1);
 

@@ -14,6 +14,7 @@ use testapi;
 use utils;
 use network_utils 'iface';
 use YaST::Module;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my $self = shift;
@@ -28,7 +29,7 @@ sub run {
     save_screenshot;
     $testapi::distri->get_firewall()->accept_change();
     assert_screen 'generic-desktop';
-    $self->select_serial_terminal();
+    select_serial_terminal();
     validate_script_output("firewall-cmd --list-interfaces --zone=$setting{zone}", sub { m/$setting{device}/ }, proceed_on_failure => 1);
 }
 
