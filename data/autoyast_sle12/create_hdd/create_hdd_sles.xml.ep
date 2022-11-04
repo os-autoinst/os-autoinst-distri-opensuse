@@ -26,6 +26,9 @@
                 % }
 		% if ($key eq 'ha') {
                 <reg_code><%= $get_var->('SCC_REGCODE_HA') %></reg_code>
+		% }
+                % if ($key eq 'sles4sap') {
+                <reg_code><%= $get_var->('SCC_REGCODE_SLES4SAP') %></reg_code>
                 % }
             </addon>
             % }
