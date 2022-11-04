@@ -38,9 +38,9 @@ sub run {
 
     # Upload distro_migration.log
     $instance->upload_log("/system-root/var/log/distro_migration.log", failok => 1);
-
-    $instance->run_ssh_command(cmd => "sudo zypper -n in SLES15-Migration suse-migration-sle15-activation", timeout => 300);
-
+    
+    $instance->run_ssh_command(cmd => "sudo zypper -n in SLES15-Migration suse-migration-sle15-activation", timeout => 360);
+ 
     record_info('system reboots');
     my ($shutdown_time, $startup_time) = $instance->softreboot(
         timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 400)
