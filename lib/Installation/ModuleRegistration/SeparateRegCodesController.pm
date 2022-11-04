@@ -7,10 +7,10 @@
 #
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package Installation::ModuleRegistration::ModuleRegCodeController;
+package Installation::ModuleRegistration::SeparateRegCodesController;
 use strict;
 use warnings;
-use Installation::ModuleRegistration::ModuleRegCodePage;
+use Installation::ModuleRegistration::SeparateRegCodesPage;
 use Installation::Popups::ImportUntrustedGnuPGKey;
 use YuiRestClient;
 
@@ -22,15 +22,15 @@ sub new {
 
 sub init {
     my ($self, $args) = @_;
-    $self->{ModuleRegCodePage} = Installation::ModuleRegistration::ModuleRegCodePage->new({app => YuiRestClient::get_app()});
+    $self->{SeparateRegCodesPage} = Installation::ModuleRegistration::SeparateRegCodesPage->new({app => YuiRestClient::get_app()});
     $self->{ImportUntrustedGnuPGKey} = Installation::Popups::ImportUntrustedGnuPGKey->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
 sub get_module_regcode_page {
     my ($self) = @_;
-    die "Extension and Module Registration Codes page" unless $self->{ModuleRegCodePage}->is_shown();
-    return $self->{ModuleRegCodePage};
+    die "Extension and Module Registration Codes page" unless $self->{SeparateRegCodesPage}->is_shown();
+    return $self->{SeparateRegCodesPage};
 }
 
 sub get_untrusted_GPG_popup {
@@ -39,18 +39,22 @@ sub get_untrusted_GPG_popup {
     return $self->{ImportUntrustedGnuPGKey};
 }
 
-sub wait_regcode_page {
+sub wait_registration_common_regcode_finished {
     my ($self, $args) = @_;
     YuiRestClient::Wait::wait_until(object => sub {
-            $self->{ModuleRegCodePage}->is_shown({timeout => 0});
+            $self->{SeparateRegCodesPage}->is_shown({timeout => 0});
     }, %$args);
 }
 
-sub add_separate_registration_code {
-    my ($self, $regcode, $timeout) = @_;
-    $self->wait_regcode_page({timeout => $timeout, interval => 2,
-            message => 'Page to insert module registration code did not appear'});
-    $self->get_module_regcode_page()->set_regcode($regcode);
+sub add_separate_we_registration_code {
+    my ($self, $regcode) = @_;
+    $self->get_module_regcode_page()->set_we_regcode($regcode);
+    $self->get_module_regcode_page()->press_next();
+}
+
+sub add_separate_ha_registration_code {
+    my ($self, $regcode) = @_;
+    $self->get_module_regcode_page()->set_ha_regcode($regcode);
     $self->get_module_regcode_page()->press_next();
 }
 
