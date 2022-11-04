@@ -181,11 +181,15 @@ highlight cursor one item down.
 =cut
 
 sub move_down {
-    # Sending 'down' twice, followed by 'up', scrolls to the intended item.
-    wait_screen_change { send_key 'down' } if is_sle('>=15-sp3');
     my $ret = wait_screen_change { send_key 'down' };
     last if (!$ret);    # down didn't change the screen, so exit here
-    wait_screen_change { send_key 'up' } if is_sle('>=15-sp3');
+    if (is_sle('>=15-sp3')) {
+        # Sending 'down' twice, followed by 'up', scrolls to the intended item.
+        $ret = wait_screen_change { send_key 'down' };
+        # If screen did not change with the second down we are on the last item.
+        # In that case do not press up so that it remains selected.
+        wait_screen_change { send_key 'up' } if $ret;
+    }
     check12qtbug if check_var('VERSION', '12');
 }
 
