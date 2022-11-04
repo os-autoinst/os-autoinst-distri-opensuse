@@ -65,7 +65,6 @@ conditional_schedule:
                 - console/wpa_supplicant
                 - appgeo/gdal
                 - console/rabbitmq
-                - console/rails
                 - console/openqa_review
                 - console/zbar
                 - console/a2ps
