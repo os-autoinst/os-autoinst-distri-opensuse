@@ -74,7 +74,7 @@
         <version>15</version>
       </addon>
       % }
-      % if ($get_var->('SCC_ADDONS') =~ m/ltss/) {
+      % if ($is_ltss) {
       <addon config:type="map">
         <arch>{{ARCH}}</arch>
         <name>SLE_HPC-LTSS</name>
