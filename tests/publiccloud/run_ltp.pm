@@ -24,9 +24,6 @@ use version_utils;
 
 our $root_dir = '/root';
 
-# LTP runtime can be 1 for 'python' (new runner) or 0 for the default old 'perl' runner
-my $ltp_runtime = get_var('LTP_RUNTIME_SWITCH', 0);
-
 sub get_ltp_rpm
 {
     my ($url) = @_;
@@ -133,7 +130,7 @@ sub run {
     }
 
     my $runltp_ng_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/acerv/runltp-ng.git");
-    my $runltp_ng_branch = get_var("LTP_RUN_NG_BRANCH", "ssh");
+    my $runltp_ng_branch = get_var("LTP_RUN_NG_BRANCH", "master");
     record_info('LTP CLONE REPO', "Repo: " . $runltp_ng_repo . "\nBranch: " . $runltp_ng_branch);
 
     assert_script_run("git clone -q --single-branch -b $runltp_ng_branch --depth 1 $runltp_ng_repo");
