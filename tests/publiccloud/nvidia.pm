@@ -27,6 +27,10 @@ sub run {
     assert_script_run("SUSEConnect --status-text", 300);
 }
 
+sub test_flags {
+    return {publiccloud_multi_module => 1};
+}
+
 1;
 
 =head1 Discussion
