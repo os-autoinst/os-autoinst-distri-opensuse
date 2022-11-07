@@ -74,6 +74,10 @@ sub process_reboot {
     $args{automated_rollback} //= 0;
     $args{expected_grub} //= 1;
 
+    # Switch to root-console as we need VNC to check for grub and for login prompt
+    my $prev_console = current_console();
+    select_console 'root-console', await_console => 0;
+
     handle_first_grub if ($args{automated_rollback});
 
     if (is_microos || is_sle_micro && !is_s390x) {
@@ -102,6 +106,9 @@ sub process_reboot {
         select_console 'root-console';
         assert_script_run 'clear';
     }
+
+    # Switch to the previous console
+    select_console $prev_console;
 }
 
 # Reboot if there's a diff between the current FS and the new snapshot
@@ -165,15 +172,16 @@ sub trup_call {
     $script .= "; echo trup-\$?- | tee -a /dev/$serialdev" unless $cmd =~ /reboot / && $args{exit_code} == 0;
     script_run $script, 0;
     if ($cmd =~ /pkg |ptf /) {
-        if (wait_serial "Continue?") {
+        if ($cmd =~ /(^|\s)-\w*n\w* pkg/) {
+            record_info 'non-interactive', 'The transactional-update command is in non-interactive mode';
+        } elsif (wait_serial "Continue?") {
             send_key "ret";
             # Abort update of broken package
             if ($cmd =~ /\bup(date)?\b/ && $args{exit_code} == 1) {
                 die 'Abort dialog not shown' unless wait_serial('Abort');
                 send_key 'ret';
             }
-        }
-        else {
+        } else {
             die "Confirmation dialog not shown";
         }
     }
