@@ -24,11 +24,11 @@ sub run {
     validate_script_output("firewall-cmd --get-default-zone", sub { m/public/ }, proceed_on_failure => 1);
     select_console 'x11', await_console => 0;
     YaST::Module::open(module => 'firewall', ui => 'qt');
-    $testapi::distri->get_firewall()->select_interfaces_page();
+    wait_screen_change(sub { $testapi::distri->get_firewall()->select_interfaces_page() });
     save_screenshot;
-    $testapi::distri->get_firewall()->select_zones_page();
+    wait_screen_change(sub { $testapi::distri->get_firewall()->select_zones_page() });
     save_screenshot;
-    $testapi::distri->get_firewall()->set_default_zone("trusted");
+    wait_screen_change(sub { $testapi::distri->get_firewall()->set_default_zone("trusted") });
     save_screenshot;
     $testapi::distri->get_firewall()->accept_change();
     assert_screen 'generic-desktop';

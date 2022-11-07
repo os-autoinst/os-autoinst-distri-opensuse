@@ -21,7 +21,7 @@ sub run {
     select_console 'x11', await_console => 0;
     YaST::Module::open(module => 'firewall', ui => 'qt');
 
-    $testapi::distri->get_firewall()->stop_firewall();
+    wait_screen_change(sub { $testapi::distri->get_firewall()->stop_firewall() } );
     save_screenshot;
     $testapi::distri->get_firewall()->accept_change();
     assert_screen 'generic-desktop';

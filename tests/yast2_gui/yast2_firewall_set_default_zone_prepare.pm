@@ -22,9 +22,9 @@ sub run {
 
     select_console 'x11', await_console => 0;
     YaST::Module::open(module => 'firewall', ui => 'qt');
-    $testapi::distri->get_firewall()->select_interfaces_page();
+    wait_screen_change(sub { $testapi::distri->get_firewall()->select_interfaces_page() });
     save_screenshot;
-    $testapi::distri->get_firewall()->set_interface_zone($settings{device}, $settings{zone});
+    wait_screen_change(sub { $testapi::distri->get_firewall()->set_interface_zone($settings{device}, $settings{zone}) });
     save_screenshot;
     $testapi::distri->get_firewall()->accept_change();
     assert_screen 'generic-desktop';

@@ -23,11 +23,11 @@ sub run {
 
     select_console 'x11', await_console => 0;
     YaST::Module::open(module => 'firewall', ui => 'qt');
-    $testapi::distri->get_firewall()->select_zone_page($setting{zone});
+    wait_screen_change(sub { $testapi::distri->get_firewall()->select_zone_page($setting{zone}) });
     save_screenshot;
-    $testapi::distri->get_firewall()->add_service($setting{zone}, $setting{service});
+    wait_screen_change(sub { $testapi::distri->get_firewall()->add_service($setting{zone}, $setting{service}) });
     save_screenshot;
-    $testapi::distri->get_firewall()->add_tcp_port($setting{port});
+    wait_screen_change(sub { $testapi::distri->get_firewall()->add_tcp_port($setting{port}) });
     save_screenshot;
     $testapi::distri->get_firewall()->accept_change();
     assert_screen 'generic-desktop';
