@@ -1,6 +1,6 @@
 name:           extra_tests_in_textmode_phub
 description:    >
-    Maintainer: slindomansilla.
+    Maintainer: qe-core
     Extra tests about software in package hub
 schedule:
     - installation/bootloader_start
@@ -11,8 +11,9 @@ schedule:
     - '{{wpa_supplicant}}'
     - console/vmstat
     - console/sssd_389ds_functional
-    - console/coredump_collect
-    - console/zypper_log_packages
+    - console/ansible
+    - console/coredump_collect  # For coredumps during the suite. Please put near end.
+    - console/zypper_log_packages  # Records packages installed in the suite. Please put at end.
 conditional_schedule:
     wpa_supplicant:
         ARCH:
