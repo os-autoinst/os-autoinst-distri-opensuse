@@ -166,7 +166,8 @@ sub cleanup {
     my $region = $self->{provider_client}->{region};
     my $project = $self->{provider_client}->{project_id};
     my $instance_id = $args->{my_instance}->{instance_id};
-    assert_script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --zone=$region --port=1 > instance_serial.txt");
+    # gce provides full serial log, so extended timeout
+    script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --zone=$region --port=1 > instance_serial.txt", timeout => 180);
     upload_logs("instance_serial.txt", failok => 1);
 
     $self->SUPER::cleanup();
