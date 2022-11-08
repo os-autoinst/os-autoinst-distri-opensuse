@@ -67,8 +67,14 @@ sub run {
     # Remove the directory forcibly
     assert_screen 'dolphin_icon_stuff';
     send_key 'shift-delete';
-    assert_screen 'dolphin_force_remove';
-    send_key 'ret';
+    # Only before 22.11 the delete button was focused by default,
+    # click it directly on newer versions.
+    assert_screen([qw(dolphin_force_remove dolphin_force_remove_button)]);
+    if (match_has_tag('dolphin_force_remove_button')) {
+        click_lastmatch;
+    } else {
+        send_key 'ret';
+    }
 
     # Remove the places entry again
     assert_and_click('dolphin_places_stuff', button => 'right');
