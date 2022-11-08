@@ -30,6 +30,7 @@ package qesapdeployment;
 use strict;
 use warnings;
 use Carp qw(croak);
+use YAML::PP;
 use utils 'file_content_replace';
 use testapi;
 use Exporter 'import';
@@ -55,6 +56,7 @@ our @EXPORT = qw(
   qesap_execute
   qesap_yaml_replace
   qesap_ansible_cmd
+  qesap_create_ansible_section
 );
 
 =head1 DESCRIPTION
@@ -73,7 +75,8 @@ sub qesap_get_file_paths {
     $paths{qesap_conf_filename} = get_required_var('QESAP_CONFIG_FILE');
     $paths{deployment_dir} = get_var('QESAP_DEPLOYMENT_DIR', get_var('DEPLOYMENT_DIR', '/root/qe-sap-deployment'));
     $paths{terraform_dir} = get_var('PUBLIC_CLOUD_TERRAFORM_DIR', $paths{deployment_dir} . '/terraform');
-    $paths{qesap_conf_trgt} = $paths{deployment_dir} . "/scripts/qesap/" . $paths{qesap_conf_filename};
+    $paths{qesap_conf_trgt} = $paths{deployment_dir} . '/scripts/qesap/' . $paths{qesap_conf_filename};
+    $paths{qesap_conf_src} = data_url('sles4sap/qe_sap_deployment/' . $paths{qesap_conf_filename});
     return (%paths);
 }
 
@@ -85,6 +88,58 @@ sub qesap_get_file_paths {
 sub qesap_create_folder_tree {
     my %paths = qesap_get_file_paths();
     assert_script_run("mkdir -p $paths{deployment_dir}", quiet => 1);
+}
+
+=head3 qesap_get_variables
+
+    Scans yaml config for '%OPENQA_VARIABLE%' placeholders and searches for values in OpenQA defined variables.
+    Returns hash with openqa variable key/value pairs.
+=cut
+
+sub qesap_get_variables {
+    my %paths = qesap_get_file_paths();
+    my $yaml_file = $paths{'qesap_conf_src'};
+    my %variables;
+    my $grep_cmd = "grep -v '#' | grep -oE %[A-Z0-9_]*% | sed s/%//g";
+    my $cmd = join(" ", "curl -s -fL", $yaml_file, "|", $grep_cmd);
+
+    for my $variable (split(" ", script_output($cmd))) {
+        $variables{$variable} = get_required_var($variable);
+    }
+    return \%variables;
+}
+
+=head3 qesap_create_ansible_section
+
+    Writes "ansible" section into yaml config file.
+    $args{ansible_section} defines section(key) name.
+    $args{section_content} defines content of names section.
+        Example:
+            @playbook_list = ("pre-cluster.yaml", "cluster_sbd_prep.yaml");
+            qesap_create_ansible_section(ansible_section=>'create', section_content=>\@playbook_list);
+
+=cut
+
+sub qesap_create_ansible_section {
+    my (%args) = @_;
+    my $ypp = YAML::PP->new;
+    my $section = $args{ansible_section} // 'no_section_provided';
+    my $content = $args{section_content} // {};
+    my %paths = qesap_get_file_paths();
+    my $yaml_config_path = $paths{qesap_conf_trgt};
+
+    assert_script_run("test -e $yaml_config_path", fail_message => "Yaml config file '$yaml_config_path' does not exist.");
+
+    my $raw_file = script_output("cat $yaml_config_path");
+    my $yaml_data = $ypp->load_string($raw_file);
+
+    $yaml_data->{ansible}{$section} = $content;
+
+    # write into file
+    my $yaml_dumped = $ypp->dump_string($yaml_data);
+    save_tmp_file($paths{qesap_conf_filename}, $yaml_dumped);
+    assert_script_run('curl -v -fL ' . autoinst_url . "/files/" . $paths{qesap_conf_filename} . ' -o ' . $paths{qesap_conf_trgt});
+    return;
 }
 
 =head3 qesap_pip_install
@@ -292,17 +347,20 @@ sub qesap_get_terraform_dir {
 
 sub qesap_prepare_env {
     my (%args) = @_;
-    my $variables = $args{openqa_variables};
+    my $variables = $args{openqa_variables} ? $args{openqa_variables} : qesap_get_variables();
     my $provider = $args{provider};
     my %paths = qesap_get_file_paths();
-    my $qesap_conf_src = "sles4sap/qe_sap_deployment/" . $paths{qesap_conf_filename};
 
-    qesap_create_folder_tree();
-    qesap_get_deployment_code();
-    qesap_pip_install();
+    # Option to skip straight to configuration
+    unless ($args{only_configure}) {
+        qesap_create_folder_tree();
+        qesap_get_deployment_code();
+        qesap_pip_install();
 
-    record_info("QESAP yaml", "Preparing yaml config file");
-    assert_script_run('curl -v -fL ' . data_url($qesap_conf_src) . ' -o ' . $paths{qesap_conf_trgt});
+        record_info("QESAP yaml", "Preparing yaml config file");
+        assert_script_run('curl -v -fL ' . $paths{qesap_conf_src} . ' -o ' . $paths{qesap_conf_trgt});
+    }
+
     qesap_yaml_replace(openqa_variables => $variables);
     push(@log_files, $paths{qesap_conf_trgt});
 
@@ -313,7 +371,7 @@ sub qesap_prepare_env {
     my $exec_rc = qesap_execute(cmd => 'configure', verbose => 1);
     push(@log_files, $hana_vars) if (script_run("test -e $hana_vars") == 0);
     qesap_upload_logs(failok => 1);
-    die if $exec_rc != 0;
+    die("Qesap deployment returned non zero value during 'configure' phase.") if $exec_rc;
     return;
 }
 

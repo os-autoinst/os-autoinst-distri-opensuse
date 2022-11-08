@@ -8,6 +8,10 @@ use List::Util qw(any);
 use testapi 'set_var';
 use qesapdeployment;
 set_var('QESAP_CONFIG_FILE', 'MARLIN');
+set_var('BACKEND', 'qemu');
+set_var('AUTOINST_URL_HOSTNAME', 'praisethesun');
+set_var('QEMUPORT', 9000);
+set_var('JOBTOKEN', "solaire");
 
 subtest '[qesap_get_inventory] upper case' => sub {
     my $inventory_path = qesap_get_inventory('NEMO');
