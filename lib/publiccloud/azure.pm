@@ -15,6 +15,7 @@ use Data::Dumper;
 use testapi qw(is_serial_terminal :DEFAULT);
 use utils qw(script_output_retry);
 use publiccloud::azure_client;
+use publiccloud::ssh_interactive 'select_host_console';
 
 has resource_group => 'openqa-upload';
 has container => 'sle-images';
@@ -286,7 +287,14 @@ This method is called called after each test on failure or success to revoke the
 =cut
 
 sub cleanup {
-    my ($self) = @_;
+    my ($self, $args) = @_;
+    select_host_console(force => 1);
+
+    my $id = $args->{my_instance}->{instance_id};
+
+    script_run("az vm boot-diagnostics get-boot-log --ids $id | jq -r '.' > bootlog.txt");
+    upload_logs("bootlog.txt", failok => 1);
+
     $self->SUPER::cleanup();
     $self->provider_client->cleanup();
 }
