@@ -20,7 +20,7 @@ schedule:
   - console/php_postgresql
   - console/php_timezone
   - console/flask
-  - '{{ version_specific }}'
+  - '{{version_specific}}'
 conditional_schedule:
   version_specific:
     VERSION:
@@ -45,6 +45,8 @@ conditional_schedule:
         - console/shibboleth
         - console/django
       15-SP4:
+        - console/django
+      15-SP5:
         - console/django
       tumbleweed:
         - console/django
