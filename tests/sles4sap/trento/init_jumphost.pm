@@ -9,14 +9,14 @@ use base 'consoletest';
 use strict;
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use base 'trento';
+use trento 'get_trento_deployment';
 
 sub run {
     my ($self) = @_;
     select_serial_terminal;
 
     # Get the code for the Trento deployment
-    $self->get_trento_deployment('/root/test');
+    get_trento_deployment('/root/test');
 
     # az login
     die "Only AZURE deployment supported for the moment" unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');

@@ -10,22 +10,22 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use qesapdeployment 'qesap_upload_logs';
-use base 'trento';
+use trento;
 
 sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    $self->deploy_qesap();
+    deploy_qesap();
 
-    my $trento_rg = $self->get_resource_group;
-    my $cluster_rg = $self->get_qesap_resource_group();
+    my $trento_rg = get_resource_group();
+    my $cluster_rg = get_qesap_resource_group();
     my $cmd = join(' ',
         '/root/test/00.050-trento_net_peering_tserver-sap_group.sh',
         '-s', $trento_rg,
-        '-n', trento::get_vnet($trento_rg),
+        '-n', get_vnet($trento_rg),
         '-t', $cluster_rg,
-        '-a', trento::get_vnet($cluster_rg));
+        '-a', get_vnet($cluster_rg));
     record_info('NET PEERING');
     assert_script_run($cmd, 360);
 }
@@ -35,10 +35,11 @@ sub post_fail_hook {
     select_serial_terminal;
     qesap_upload_logs();
     if (!get_var('TRENTO_EXT_DEPLOY_IP')) {
-        trento::k8s_logs(qw(web runner));
-        $self->az_delete_group;
+        k8s_logs(qw(web runner));
+        trento_support('cluster_deploy');
+        az_delete_group();
     }
-    $self->destroy_qesap();
+    destroy_qesap();
     $self->SUPER::post_fail_hook;
 }
 

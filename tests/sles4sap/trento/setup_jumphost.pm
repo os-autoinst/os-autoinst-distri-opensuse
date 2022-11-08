@@ -11,7 +11,7 @@ use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
-use base 'trento';
+use trento qw(clone_trento_deployment cypress_install_container cypress_version PODMAN_PULL_LOG);
 
 
 sub run {
@@ -38,15 +38,15 @@ sub run {
     # a HDD image; part of this test and the qcow2 image is this cloned repo.
     # The key is part of the cloned repo itself so TRENTO_GITLAB_TOKEN (for the moment)
     # cannot be changed as running init_jumphost
-    $self->clone_trento_deployment($work_dir);
+    clone_trento_deployment($work_dir);
 
     # Cypress.io installation
-    $self->cypress_install_container($self->cypress_version);
+    cypress_install_container(cypress_version());
 }
 
 sub post_fail_hook {
     my ($self) = shift;
-    upload_logs($self->PODMAN_PULL_LOG);
+    upload_logs(PODMAN_PULL_LOG);
     $self->SUPER::post_fail_hook;
 }
 
