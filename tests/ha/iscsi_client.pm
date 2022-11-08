@@ -33,7 +33,16 @@ sub run {
     script_run "cp $mpwwid $mptmp.orig";
 
     # Installation of iSCSI client package(s) if needed
-    zypper_call 'in yast2-iscsi-client';
+    zypper_call 'in --recommends yast2-iscsi-client';
+
+    # open-iscsi & iscsiuio were dropped as dependencies for yast2-iscsi-client. See gh#yast/yast-iscsi-client#121
+    if (script_run('rpm -q open-iscsi iscsiuio')) {
+        # Verify if the recommendation was added to the release notes in SLES 15-SP5
+        my $reln_chk = is_sle('15-SP5+') ? script_run('curl --silent https://www.suse.com/releasenotes/' .
+              get_required_var('ARCH') . '/SUSE-SLES/15-SP5/index.html | grep -q bsc-1204978') : 1;
+        record_soft_failure 'bsc#1204528 bsc#1204978 - Some yast2-iscsi-client dependencies were not installed with --recommends' if $reln_chk;
+        zypper_call 'in open-iscsi iscsiuio';
+    }
 
     # Configuration of iSCSI client
     script_run("yast2 iscsi-client; echo yast2-iscsi-client-status-\$? > /dev/$serialdev", 0);
