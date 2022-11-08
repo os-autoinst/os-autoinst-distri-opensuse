@@ -51,7 +51,7 @@ sub run {
 
     # test either a failing migration or a working one
     if ($regcode eq "invalid_key") {
-        wait_serial("Rolling back to", timeout => 5) || die "$cmd didn't roll back with an invalid key as expected.";
+        wait_serial("Rolling back to", timeout => 20) || die "$cmd didn't roll back with an invalid key as expected.";
         assert_script_run "! test -f /tmp/OK";
     } else {
         assert_script_run "ls /tmp/OK";
