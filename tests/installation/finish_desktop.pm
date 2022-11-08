@@ -4,7 +4,7 @@
 # Copyright 2012-2018 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: move all inst/$DESKTOP.pm into one global 999_finish_desktop and runthe tests from start.pl
+# Summary: move all inst/$DESKTOP.pm into one global 999_finish_desktop and run the tests from start.pl
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
 use base "installbasetest";
@@ -12,6 +12,7 @@ use testapi;
 use strict;
 use warnings;
 use main_common 'opensuse_welcome_applicable';
+use x11utils 'turn_off_plasma_tooltips';
 
 # using this as base class means only run when an install is needed
 sub run {
@@ -33,6 +34,8 @@ sub run {
         @tags = grep { !/gnome-activities/ } @tags;
         assert_screen \@tags, $timeout;
     }
+
+    turn_off_plasma_tooltips();
 }
 
 sub post_fail_hook {

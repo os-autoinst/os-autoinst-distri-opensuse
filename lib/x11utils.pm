@@ -26,6 +26,7 @@ our @EXPORT = qw(
   select_user_gnome
   turn_off_screensaver
   turn_off_kde_screensaver
+  turn_off_plasma_tooltips
   turn_off_plasma_screen_energysaver
   turn_off_plasma_screenlocker
   turn_off_gnome_screensaver
@@ -390,7 +391,7 @@ sub turn_off_plasma_screen_energysaver {
 
 =head2 turn_off_plasma_screenlocker
 
- turnoff_plasma_screenlocker()
+ turn_off_plasma_screenlocker()
 
 Turns off the Plasma desktop screenlocker.
 
@@ -403,6 +404,20 @@ sub turn_off_plasma_screenlocker {
     # Was 'alt-o' before, but does not work in Plasma 5.17 due to kde#411758
     send_key 'ctrl-ret';
     assert_screen 'generic-desktop';
+}
+
+=head2 turn_off_plasma_tooltips
+
+  turn_off_plasma_tooltips()
+
+Disable Plasma tooltips, especially the one triggered by the "Peek Desktop" below the default
+mouse_hide location can break needles and break or slow down matches.
+
+=cut
+
+sub turn_off_plasma_tooltips {
+    x11_start_program('kwriteconfig5 --file plasmarc --group PlasmaToolTips --key Delay -- -1',
+        target_match => 'generic-desktop', no_wait => 1) if check_var('DESKTOP', 'kde');
 }
 
 =head2 turn_off_kde_screensaver
