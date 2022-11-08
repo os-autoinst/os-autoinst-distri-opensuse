@@ -7,6 +7,7 @@ terraform:
     os_image: "%TRENTO_CLUSTER_OS_VER%"
     private_key: "%SSH_KEY_PRIV%"
     public_key: "%SSH_KEY_PUB%"
+    admin_user: "%CLUSTER_USER%"
 
 ansible:
   hana_urls:

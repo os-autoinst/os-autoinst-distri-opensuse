@@ -198,6 +198,7 @@ sub get_trento_deployment {
             die "Invalid gitlab token" if ($different_tokens);
         }
         # Switch branch and get latest
+        assert_script_run("git pull");
         assert_script_run("git checkout $git_branch");
         assert_script_run("git pull origin $git_branch");
     }
@@ -231,9 +232,9 @@ sub get_qesap_resource_group {
 =cut
 
 sub config_cluster {
-    my ($self, $region) = @_;
+    my ($region) = @_;
 
-    my $resource_group_postfix = $self->TRENTO_QESAPDEPLOY_PREFIX . get_current_job_id();
+    my $resource_group_postfix = TRENTO_QESAPDEPLOY_PREFIX . get_current_job_id();
     my $ssh_key_pub = SSH_KEY . '.pub';
     my $qesap_provider = lc get_required_var('PUBLIC_CLOUD_PROVIDER');
 
@@ -242,6 +243,7 @@ sub config_cluster {
     $variables{REGION} = $region;
     $variables{DEPLOYMENTNAME} = $resource_group_postfix;
     $variables{TRENTO_CLUSTER_OS_VER} = get_required_var("TRENTO_QESAPDEPLOY_CLUSTER_OS_VER");
+    $variables{CLUSTER_USER} = VM_USER;
     $variables{SSH_KEY_PRIV} = SSH_KEY;
     $variables{SSH_KEY_PUB} = $ssh_key_pub;
     $variables{SCC_REGCODE_SLES4SAP} = get_required_var('SCC_REGCODE_SLES4SAP');
@@ -531,7 +533,7 @@ Installation is performed using ansible.
 
 =item B<WORK_DIRECTORY> - Working directory, used to eventually download .rpm
 
-=item B<PLAYBOOK> - Playbook location
+=item B<PLAYBOOK_LOCATION> - Path where to find trento-agent.yaml file
 
 =item B<API_KEY> - Api key needed to configure trento-agent
 
@@ -541,7 +543,7 @@ Installation is performed using ansible.
 =cut
 
 sub install_agent {
-    my ($self, $wd, $playbook_location, $agent_api_key, $priv_ip) = @_;
+    my ($wd, $playbook_location, $agent_api_key, $priv_ip) = @_;
     my $local_rpm_arg = '';
     my $cmd;
     if (get_var('TRENTO_AGENT_RPM')) {
@@ -683,7 +685,9 @@ sub cypress_configs {
       ' -n %s' .
       ' --trento-version %s',
       $machine_ip, get_trento_password(), qesap_get_nodes_number(), get_required_var('TRENTO_VERSION');
-
+    if (get_var('TRENTO_AGENT_RPM')) {
+        my $cypress_env_cmd .= ' -a ' . get_var('TRENTO_AGENT_RPM');
+    }
     assert_script_run($cypress_env_cmd);
     assert_script_run('cat cypress.env.json');
     upload_logs('cypress.env.json');

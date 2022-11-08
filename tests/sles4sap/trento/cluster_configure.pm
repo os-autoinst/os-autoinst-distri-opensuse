@@ -20,7 +20,7 @@ sub run {
     my $provider = $self->provider_factory();
 
     # Setup and configure the qe-sap-deployment
-    $self->config_cluster($provider->provider_client->region);
+    trento::config_cluster($provider->provider_client->region);
 
 }
 

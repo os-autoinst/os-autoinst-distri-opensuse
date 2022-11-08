@@ -10,12 +10,12 @@ use Mojo::Base 'publiccloud::basetest';
 use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use qesapdeployment 'qesap_upload_logs';
 use base 'trento';
 
 
 sub run {
     my ($self) = @_;
-    die "Only AZURE deployment supported for the moment" unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
     select_serial_terminal;
 
     my $cypress_test_dir = "/root/test/test";
@@ -38,14 +38,15 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     if (!get_var('TRENTO_EXT_DEPLOY_IP')) {
-        $self->az_delete_group;
+        trento::k8s_logs(qw(web runner));
+        trento::az_delete_group;
     }
 
     $self->cypress_log_upload(('.txt', '.mp4'));
     parse_extra_log("XUnit", $_) for split(/\n/, script_output('find ' . $self->CYPRESS_LOG_DIR . ' -type f -iname "*.xml"'));
 
-    $self->destroy_qesap();
-
+    qesap_upload_logs();
+    trento::destroy_qesap();
     $self->SUPER::post_fail_hook;
 }
 

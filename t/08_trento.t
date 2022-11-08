@@ -422,4 +422,26 @@ subtest '[install_trento] rolling release' => sub {
     like $calls[1], qr/.*-x GNOCCHI/;
 };
 
+subtest '[install_agent]' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+
+    $trento->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(qesap_get_inventory => sub { return '/PEPERONATA'; });
+
+    # $wd, $playbook_location, $agent_api_key, $priv_ip
+    set_var('PUBLIC_CLOUD_PROVIDER', 'POLPETTE');
+    install_agent('/ALICI', '/SARDINE', 'ACCIUGHE', 'FRITTI');
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
+    # Multiple regexp as order does no matter
+    like $calls[0], qr/ansible-playbook/;
+    like $calls[0], qr/.*-i \/PEPERONATA/;
+    like $calls[0], qr/.*\/SARDINE\/trento-agent.yaml/;
+    like $calls[0], qr/.*-e api_key=ACCIUGHE/;
+    like $calls[0], qr/.*-e trento_private_addr=FRITTI -e trento_server_pub_key=.*/;
+};
+
 done_testing;

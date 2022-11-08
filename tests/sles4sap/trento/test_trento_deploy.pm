@@ -10,7 +10,7 @@ use Mojo::Base 'publiccloud::basetest';
 use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils qw(script_retry);
+use utils 'script_retry';
 use base 'trento';
 
 
@@ -21,7 +21,7 @@ sub run {
 
     my $machine_ip = $self->get_trento_ip;
     if (!get_var('TRENTO_EXT_DEPLOY_IP')) {
-        my $resource_group = $self->get_resource_group;
+        my $resource_group = trento::get_resource_group;
 
         # check if VM is still there :-)
         assert_script_run("az vm list -g $resource_group --query \"[].name\"  -o tsv", 180);
@@ -54,7 +54,7 @@ sub post_fail_hook {
     my ($self) = @_;
     if (!get_var('TRENTO_EXT_DEPLOY_IP')) {
         trento::k8s_logs(qw(web runner));
-        $self->az_delete_group;
+        trento::az_delete_group;
     }
     $self->SUPER::post_fail_hook;
 }

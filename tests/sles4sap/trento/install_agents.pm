@@ -21,7 +21,7 @@ sub run {
     my $cmd = '/root/test/trento-server-api-key.sh' .
       ' -u admin' .
       ' -p ' . $self->get_trento_password() .
-      ' -i ' . $self->get_trento_ip() .
+      ' -i ' . trento::get_trento_ip() .
       " -d $wd -v";
     my $agent_api_key;
     my @lines = split(/\n/, script_output($cmd));
@@ -31,7 +31,7 @@ sub run {
         }
     }
 
-    $cmd = $self->install_agent($wd, '/root/test', $agent_api_key, '10.0.0.4');
+    $cmd = trento::install_agent($wd, '/root/test', $agent_api_key, '10.0.0.4');
 }
 
 sub post_fail_hook {
@@ -40,9 +40,9 @@ sub post_fail_hook {
     qesap_upload_logs();
     if (!get_var('TRENTO_EXT_DEPLOY_IP')) {
         trento::k8s_logs(qw(web runner));
-        $self->az_delete_group;
+        trento::az_delete_group;
     }
-    $self->destroy_qesap();
+    trento::destroy_qesap();
     $self->SUPER::post_fail_hook;
 }
 

@@ -20,8 +20,8 @@ sub run {
     die "Only AZURE deployment supported for the moment" unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
     select_serial_terminal;
 
-    my $resource_group = $self->get_resource_group;
-    my $acr_name = $self->get_acr_name;
+    my $resource_group = trento::get_resource_group;
+    my $acr_name = trento::get_acr_name();
     my $basedir = '/root/test';
 
     trento::deploy_vm($basedir);
@@ -38,7 +38,7 @@ sub post_fail_hook {
     upload_logs("$_") for split(/\n/, script_output($find_cmd));
 
     trento::k8s_logs(qw(web runner));
-    $self->az_delete_group;
+    trento::az_delete_group;
 
     $self->SUPER::post_fail_hook;
 }
