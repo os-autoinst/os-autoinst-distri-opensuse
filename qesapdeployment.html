@@ -21,6 +21,8 @@
         <ul>
           <li><a href="#qesap_get_file_paths">qesap_get_file_paths</a></li>
           <li><a href="#qesap_create_folder_tree">qesap_create_folder_tree</a></li>
+          <li><a href="#qesap_get_variables">qesap_get_variables</a></li>
+          <li><a href="#qesap_create_ansible_section">qesap_create_ansible_section</a></li>
           <li><a href="#qesap_pip_install">qesap_pip_install</a></li>
           <li><a href="#qesap_upload_logs">qesap_upload_logs</a></li>
           <li><a href="#qesap_get_deployment_code">qesap_get_deployment_code</a></li>
@@ -62,6 +64,20 @@
 <h3 id="qesap_create_folder_tree">qesap_create_folder_tree</h3>
 
 <pre><code>    Create all needed folders</code></pre>
+
+<h3 id="qesap_get_variables">qesap_get_variables</h3>
+
+<pre><code>    Scans yaml config for &#39;%OPENQA_VARIABLE%&#39; placeholders and searches for values in OpenQA defined variables.
+    Returns hash with openqa variable key/value pairs.</code></pre>
+
+<h3 id="qesap_create_ansible_section">qesap_create_ansible_section</h3>
+
+<pre><code>    Writes &quot;ansible&quot; section into yaml config file.
+    $args{ansible_section} defines section(key) name.
+    $args{section_content} defines content of names section.
+        Example:
+            @playbook_list = (&quot;pre-cluster.yaml&quot;, &quot;cluster_sbd_prep.yaml&quot;);
+            qesap_create_ansible_section(ansible_section=&gt;&#39;create&#39;, section_content=&gt;\@playbook_list);</code></pre>
 
 <h3 id="qesap_pip_install">qesap_pip_install</h3>
 
