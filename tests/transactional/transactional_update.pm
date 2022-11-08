@@ -13,7 +13,7 @@
 
 use strict;
 use warnings;
-use base "opensusebasetest";
+use base "consoletest";
 use testapi;
 use version_utils qw(is_staging is_opensuse is_leap is_sle is_sle_micro is_leap_micro is_alp);
 use transactional;
