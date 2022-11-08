@@ -40,7 +40,7 @@ sub run {
         send_key_until_needlematch 'security-module-selinux', 'up';
         send_key 'ret' if $textmode;
         # Switch it into enforcing mode
-        send_key 'alt-u';
+        send_key is_leap_micro ? 'alt-i' : 'alt-u';
         send_key_until_needlematch 'security-selinux-enforcing', 'down';
         send_key 'ret' if $textmode;
     }
