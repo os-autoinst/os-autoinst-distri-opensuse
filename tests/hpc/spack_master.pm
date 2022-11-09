@@ -20,23 +20,12 @@ sub run ($self) {
     my $mpi_bin = 'mpi_bin';
     my @cluster_nodes = $self->cluster_names();
     my $cluster_nodes = join(',', @cluster_nodes);
+    my %exports_path = (bin => '/home/bernhard/bin');
+    $self->setup_nfs_server(\%exports_path);
     $self->prepare_spack_env($mpi);
-    my %exports_path = (
-        bin => '/home/bernhard/bin',
-        spack => '/home/bernhard/spack',
-        hpc_lib => '/usr/lib/hpc',
-        spack_lib => '/opt/spack'
-    );
 
     record_info 'boost info', script_output 'spack info boost';
     barrier_wait('CLUSTER_PROVISIONED');
-    script_run "pkill -u $testapi::username";
-    select_console('root-console');
-    $self->setup_nfs_server(\%exports_path);
-
-    # And login as normal user to run the tests
-    type_string('pkill -u root');
-    select_serial_terminal(0);
 
     ## all nodes should be able to ssh to each other, as MPIs requires so
     $self->generate_and_distribute_ssh($testapi::username);
