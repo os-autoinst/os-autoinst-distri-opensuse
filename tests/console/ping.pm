@@ -48,7 +48,7 @@ sub run {
         assert_script_run("$sudo $cmd -c2");
     }
 
-    my $cmd = "ping6 -c2 $addr -I$ifname";
+    my $cmd = "ping6 -c2 $addr -I$ifname -v";
     my $rc = script_run("$sudo $cmd -c2");
     if ($rc) {
         my $bug;
