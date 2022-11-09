@@ -11,6 +11,7 @@ use Utils::Architectures;
 use utils;
 use version_utils qw(is_sle is_livecd);
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
+use Utils::Backends;
 
 our @EXPORT = qw(
   grub_test
@@ -31,6 +32,7 @@ Handle grub menu after reboot
 sub grub_test {
     my $timeout = get_var('GRUB_TIMEOUT', 200);
 
+    reconnect_mgmt_console if is_pvm;
     handle_installer_medium_bootup();
     workaround_type_encrypted_passphrase;
     # 60 due to rare slowness e.g. multipath poo#11908
