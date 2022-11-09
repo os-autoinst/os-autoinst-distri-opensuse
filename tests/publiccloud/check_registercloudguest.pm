@@ -122,7 +122,6 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
-    $self->{instance}->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
     if (is_azure()) {
         record_info('azuremetadata', $self->{instance}->run_ssh_command(cmd => "sudo /usr/bin/azuremetadata --api latest --subscriptionId --billingTag --attestedData --signature --xml"));
     }

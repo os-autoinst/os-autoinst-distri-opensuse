@@ -127,7 +127,16 @@ sub _cleanup {
 
 sub post_fail_hook {
     my ($self) = @_;
-    $self->_cleanup() unless $self->{cleanup_called};
+    unless ($self->{cleanup_called}) {
+        my $instance = $self->{run_args}->{my_instance};
+        if ($instance->ssh_script_run(cmd => 'sudo stat --printf="%s" /var/log/cloudregister', proceed_on_failure => 1) != 0) {
+            $instance->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log', failok => 1);
+        }
+        else {
+            bmwqemu::fctwarn("Test failed but cloudregister log is empty so skipping upload");
+        }
+        $self->_cleanup();
+    }
 }
 
 sub post_run_hook {
