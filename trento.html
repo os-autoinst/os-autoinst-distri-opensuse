@@ -42,8 +42,8 @@
           <li><a href="#cypress_configs">cypress_configs</a></li>
           <li><a href="#cypress_install_container">cypress_install_container</a></li>
           <li><a href="#cypress_log_upload">cypress_log_upload</a></li>
+          <li><a href="#cypress_version">cypress_version</a></li>
           <li><a href="#cypress_exec">cypress_exec</a></li>
-          <li><a href="#cypress_exec1">cypress_exec</a></li>
           <li><a href="#cypress_test_exec">cypress_test_exec</a></li>
         </ul>
       </li>
@@ -72,9 +72,25 @@
 
 <p>Clone gitlab.suse.de/qa-css/trento</p>
 
+<dl>
+
+<dt id="WORK_DIR---folder-where-to-clone-the-repo"><b>WORK_DIR</b> - folder where to clone the repo</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h3 id="get_trento_deployment">get_trento_deployment</h3>
 
 <p>Get the set of scripts for the Trento deployment</p>
+
+<dl>
+
+<dt id="WORK_DIR---folder-where-to-clone-the-repo1"><b>WORK_DIR</b> - folder where to clone the repo</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h3 id="get_resource_group">get_resource_group</h3>
 
@@ -86,13 +102,47 @@
 
 <h3 id="config_cluster">config_cluster</h3>
 
+<p>Create a variable map and prepare the qe-sap-deployment using it =over 2</p>
+
+<dl>
+
+<dt id="PROVIDER---CloudProvider-name"><b>PROVIDER</b> - CloudProvider name</dt>
+<dd>
+
+</dd>
+<dt id="REGION---region-for-the-deployment"><b>REGION</b> - region for the deployment</dt>
+<dd>
+
+</dd>
+<dt id="SCC---SCC_REGCODE"><b>SCC</b> - SCC_REGCODE</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h3 id="deploy_vm">deploy_vm</h3>
 
 <p>Deploy the main VM for the Trento application Based on 00.040-trento_vm_server_deploy_azure.sh</p>
 
+<dl>
+
+<dt id="WORK_DIR---folder-where-to-clone-the-repo2"><b>WORK_DIR</b> - folder where to clone the repo</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h3 id="trento_acr_azure">trento_acr_azure</h3>
 
 <p>Create ACR in Azure and upload from IBS needed images Based on trento_acr_azure.sh</p>
+
+<dl>
+
+<dt id="WORK_DIR---folder-where-to-clone-the-repo3"><b>WORK_DIR</b> - folder where to clone the repo</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h3 id="install_trento">install_trento</h3>
 
@@ -120,7 +170,15 @@
 
 <h3 id="get_vnet">get_vnet</h3>
 
-<p>Return the output of az network vnet list</p>
+<p>Return the output of az network vnet list =over 1</p>
+
+<dl>
+
+<dt id="RESOURCE_GROUP---resource-group-name-to-query"><b>RESOURCE_GROUP</b> - resource group name to query</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h3 id="get_trento_password">get_trento_password</h3>
 
@@ -156,7 +214,7 @@
 <dd>
 
 </dd>
-<dt id="PLAYBOOK---Playbook-location"><b>PLAYBOOK</b> - Playbook location</dt>
+<dt id="PLAYBOOK_LOCATION---Path-where-to-find-trento-agent.yaml-file"><b>PLAYBOOK_LOCATION</b> - Path where to find trento-agent.yaml file</dt>
 <dd>
 
 </dd>
@@ -230,11 +288,11 @@
 </dd>
 </dl>
 
-<h3 id="cypress_exec">cypress_exec</h3>
+<h3 id="cypress_version">cypress_version</h3>
 
 <p>Return the cypress.io version to use. It could be the default one or one fixed by the user using TRENTO_CYPRESS_VERSION</p>
 
-<h3 id="cypress_exec1">cypress_exec</h3>
+<h3 id="cypress_exec">cypress_exec</h3>
 
 <p>Execute a cypress command within the container</p>
 
@@ -292,6 +350,18 @@
 <dd>
 
 <p>Unknown directive: =hean3</p>
+
+</dd>
+<dt id="Around-line-247">Around line 247:</dt>
+<dd>
+
+<p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
+
+</dd>
+<dt id="Around-line-489">Around line 489:</dt>
+<dd>
+
+<p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
 
 </dd>
 </dl>
