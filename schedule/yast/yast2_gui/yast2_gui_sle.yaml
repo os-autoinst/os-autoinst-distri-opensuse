@@ -29,7 +29,12 @@ conditional_schedule:
         - yast2_gui/yast2_expert_partitioner
         - yast2_gui/yast2_software_management
         - yast2_gui/yast2_security
-        - yast2_gui/yast2_firewall
+        - yast2_gui/yast2_firewall_stop_service
+        - yast2_gui/yast2_firewall_start_service
+        - yast2_gui/yast2_firewall_set_default_zone_prepare
+        - yast2_gui/yast2_firewall_set_default_zone
+        - yast2_gui/yast2_firewall_set_interface
+        - yast2_gui/yast2_firewall_set_service_port
         - yast2_gui/yast2_bootloader
         - yast2_gui/bootloader/bootcode_options
         - x11/yast2_snapper

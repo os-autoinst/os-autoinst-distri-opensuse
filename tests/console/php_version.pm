@@ -17,12 +17,28 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use apachetest;
 use version_utils qw(is_leap is_sle php_version);
-use registration qw(add_suseconnect_product get_addon_fullname);
+use registration qw(add_suseconnect_product remove_suseconnect_product get_addon_fullname);
 
 sub run {
     select_serial_terminal;
 
     add_suseconnect_product(get_addon_fullname('script'), (is_sle('<15') ? '12' : undef)) if (is_sle('<15-sp4'));
+
+    # On sles15sp5, due to bus#1204824, the package "sle-module-web-scripting-release" is pre-installed,
+    # which tricks SUSEConnect to assume that this module is activated which it isn't, so add below
+    # workaround
+    if (is_sle('=15-SP5')) {
+        if (script_run("suseconnect -l | grep 'Web and Scripting Module'| grep '(Activated)'") == 0) {
+            if (script_run('zypper se php8') == 104) {
+                record_soft_failure 'bsc#1204824 -  php8 packages are not available on sles15sp5';
+                remove_suseconnect_product('sle-module-web-scripting');
+                add_suseconnect_product('sle-module-web-scripting');
+            }
+        }
+        else {
+            add_suseconnect_product('sle-module-web-scripting');
+        }
+    }
 
     my ($php, $php_pkg, $php_ver) = php_version();
 

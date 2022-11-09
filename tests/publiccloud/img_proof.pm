@@ -28,7 +28,6 @@ sub run {
     if (get_var('PUBLIC_CLOUD_QAM')) {
         $instance = $args->{my_instance};
         $provider = $args->{my_provider};
-        $self->{provider} = $args->{my_provider};    # required for cleanup
     } else {
         $provider = $self->provider_factory();
         $instance = $provider->create_instance();

@@ -10,24 +10,24 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use qesapdeployment 'qesap_upload_logs';
-use base 'trento';
+use trento qw(destroy_qesap az_delete_group);
 
 sub run {
     my ($self) = @_;
     select_serial_terminal;
     if (!get_var('TRENTO_EXT_DEPLOY_IP')) {
-        trento::az_delete_group;
+        az_delete_group();
     }
-    trento::destroy_qesap();
+    destroy_qesap();
 }
 
 sub post_fail_hook {
     my ($self) = shift;
     select_serial_terminal;
     qesap_upload_logs();
-    trento::destroy_qesap();
+    destroy_qesap();
     if (!get_var('TRENTO_EXT_DEPLOY_IP')) {
-        trento::az_delete_group;
+        az_delete_group();
     }
     $self->SUPER::post_fail_hook;
 }

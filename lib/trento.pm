@@ -44,9 +44,9 @@ our @EXPORT = qw(
   get_trento_deployment
   get_resource_group
   get_qesap_resource_group
+  az_delete_group
+  az_vm_ssh_cmd
   config_cluster
-  get_vm_name
-  get_acr_name
   get_trento_ip
   get_vnet
   get_trento_password
@@ -100,10 +100,16 @@ constant values for Trento tests
 =hean3 clone_trento_deployment
 
 Clone gitlab.suse.de/qa-css/trento
+
+=over 1
+
+=item B<WORK_DIR> - folder where to clone the repo
+
+=back
 =cut
 
 sub clone_trento_deployment {
-    my ($self, $work_dir) = @_;
+    my ($work_dir) = @_;
     # Get the code for the Trento deployment
     my $gitlab_repo = get_var('TRENTO_GITLAB_REPO', 'gitlab.suse.de/qa-css/trento');
 
@@ -122,10 +128,16 @@ sub clone_trento_deployment {
 =head3 get_trento_deployment
 
 Get the set of scripts for the Trento deployment
+
+=over 1
+
+=item B<WORK_DIR> - folder where to clone the repo
+
+=back
 =cut
 
 sub get_trento_deployment {
-    my ($self, $work_dir) = @_;
+    my ($work_dir) = @_;
 
     enter_cmd "cd $work_dir";
     script_run 'read -s GITLAB_TOKEN', 0;
@@ -187,7 +199,7 @@ sub get_trento_deployment {
         my $git_branch = get_var('TRENTO_GITLAB_BRANCH', 'master');
 
         if (script_run('git rev-parse --is-inside-work-tree') != 0) {
-            $self->clone_trento_deployment($work_dir);
+            clone_trento_deployment($work_dir);
         }
         else {
             # Test that the token in worker.ini and the one in the qcow2 match
@@ -229,14 +241,26 @@ sub get_qesap_resource_group {
 
 =head3 config_cluster
 
+Create a variable map and prepare the qe-sap-deployment using it
+=over 2
+
+=item B<PROVIDER> - CloudProvider name
+
+=item B<REGION> - region for the deployment
+
+=item B<SCC> - SCC_REGCODE
+
+=back
 =cut
 
 sub config_cluster {
-    my ($region) = @_;
+    my ($provider, $region, $scc) = @_;
 
     my $resource_group_postfix = TRENTO_QESAPDEPLOY_PREFIX . get_current_job_id();
     my $ssh_key_pub = SSH_KEY . '.pub';
-    my $qesap_provider = lc get_required_var('PUBLIC_CLOUD_PROVIDER');
+
+    # to match sub-folder name in terraform folder of qe-sap-deployment
+    my $qesap_provider = lc($provider);
 
     my %variables;
     $variables{PROVIDER} = $qesap_provider;
@@ -246,7 +270,7 @@ sub config_cluster {
     $variables{CLUSTER_USER} = VM_USER;
     $variables{SSH_KEY_PRIV} = SSH_KEY;
     $variables{SSH_KEY_PUB} = $ssh_key_pub;
-    $variables{SCC_REGCODE_SLES4SAP} = get_required_var('SCC_REGCODE_SLES4SAP');
+    $variables{SCC_REGCODE_SLES4SAP} = $scc;
     $variables{HANA_SAR} = get_required_var("TRENTO_QESAPDEPLOY_SAPCAR");
     $variables{HANA_CLIENT_SAR} = get_required_var("TRENTO_QESAPDEPLOY_IMDB_CLIENT");
     $variables{HANA_SAPCAR} = get_required_var("TRENTO_QESAPDEPLOY_IMDB_SERVER");
@@ -257,6 +281,12 @@ sub config_cluster {
 
 Deploy the main VM for the Trento application
 Based on 00.040-trento_vm_server_deploy_azure.sh
+
+=over 1
+
+=item B<WORK_DIR> - folder where to clone the repo
+
+=back
 =cut
 
 sub deploy_vm {
@@ -283,6 +313,12 @@ sub deploy_vm {
 
 Create ACR in Azure and upload from IBS needed images
 Based on trento_acr_azure.sh
+
+=over 1
+
+=item B<WORK_DIR> - folder where to clone the repo
+
+=back
 =cut
 
 sub trento_acr_azure {
@@ -448,6 +484,11 @@ sub get_trento_ip {
 =head3 get_vnet
 
 Return the output of az network vnet list
+=over 1
+
+=item B<RESOURCE_GROUP> - resource group name to query
+
+=back
 =cut
 
 sub get_vnet {
@@ -466,7 +507,6 @@ Return the password for the Trento WebUI
 =cut
 
 sub get_trento_password {
-    my $self = shift;
     my $trento_web_password;
 
     if (get_var('TRENTO_EXT_DEPLOY_IP')) {
@@ -490,7 +530,6 @@ Delete the resource group associated to this JobID and all its content
 =cut
 
 sub az_delete_group {
-    script_run('echo "Delete all resources"');
     my $az_cmd = sprintf 'az group delete --resource-group %s --yes', get_resource_group();
     script_retry($az_cmd, timeout => 600, retry => 5, delay => 60);
 }
@@ -517,11 +556,13 @@ sub az_vm_ssh_cmd {
 
     # Undef comparison operator
     $vm_ip_arg //= get_trento_ip();
-    return 'ssh' .
-      ' -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR' .
-      ' -i ' . SSH_KEY . ' ' .
-      VM_USER . '@' . $vm_ip_arg .
-      ' -- ' . $cmd_arg;
+    return join(' ', 'ssh',
+        '-o', 'UserKnownHostsFile=/dev/null',
+        '-o', 'StrictHostKeyChecking=no',
+        '-o', 'LogLevel=ERROR',
+        '-i', SSH_KEY,
+        VM_USER . '@' . $vm_ip_arg,
+        '--', $cmd_arg);
 }
 
 =head3 install_agent
@@ -609,8 +650,6 @@ sub k8s_logs {
             }
         }
     }
-
-    trento_support();
 }
 
 =head3 trento_support
@@ -620,6 +659,7 @@ and upload the logs
 =cut
 
 sub trento_support {
+    my ($scenario) = @_;
     my $machine_ip = get_trento_ip();
 
     return unless ($machine_ip);
@@ -637,8 +677,7 @@ sub trento_support {
     script_run(az_vm_ssh_cmd($cmd, $machine_ip));
     script_run("$scp_cmd:'*.tar.gz' $log_dir");
 
-
-    my $scenario_name = 'openqa_scenario';
+    my $scenario_name = $scenario || 'openqa_scenario';
     script_run(az_vm_ssh_cmd("./dump_scenario_from_k8.sh -n $scenario_name", $machine_ip));
     script_run("$scp_cmd:'scenarios/$scenario_name/*.json' $log_dir");
     foreach my $this_file (split("\n", script_output('ls -1 ' . $log_dir . '*.tar.gz ' . $log_dir . '*.json'))) {
@@ -705,19 +744,19 @@ Prepare whatever is needed to run cypress tests using container
 =cut
 
 sub cypress_install_container {
-    my ($self, $cypress_ver) = @_;
+    my ($cypress_ver) = @_;
     podman_self_check();
 
     # List all the available cypress images
     assert_script_run('podman search --list-tags ' . CYPRESS_IMAGE);
 
     # Pull in advance the cypress container
-    my $podman_pull_cmd = 'time podman ' .
-      '--log-level trace ' .
-      'pull ' .
-      '--quiet ' .
-      CYPRESS_IMAGE . ':' . $cypress_ver .
-      ' | tee ' . PODMAN_PULL_LOG;
+    my $podman_pull_cmd = json(' ', 'time', 'podman',
+        '--log-level', 'trace',
+        'pull',
+        '--quiet',
+        CYPRESS_IMAGE . ':' . $cypress_ver,
+        '|', 'tee', PODMAN_PULL_LOG);
     assert_script_run($podman_pull_cmd, 1800);
     assert_script_run('df -h');
     assert_script_run('podman images');
@@ -735,13 +774,13 @@ Upload to openQA the relevant logs
 =cut
 
 sub cypress_log_upload {
-    my ($self, @log_filter) = @_;
+    my (@log_filter) = @_;
     my $find_cmd = 'find ' . CYPRESS_LOG_DIR . ' -type f \( -iname \*' . join(' -o -iname \*', @log_filter) . ' \)';
 
     upload_logs("$_") for split(/\n/, script_output($find_cmd));
 }
 
-=head3 cypress_exec
+=head3 cypress_version
 
 Return the cypress.io version to use.
 It could be the default one or one fixed by the user using TRENTO_CYPRESS_VERSION
@@ -749,7 +788,6 @@ It could be the default one or one fixed by the user using TRENTO_CYPRESS_VERSIO
 =cut
 
 sub cypress_version {
-    my $self = shift;
     return get_var('TRENTO_CYPRESS_VERSION', '9.6.1');
 }
 
@@ -776,38 +814,35 @@ return not 0 exit code. 1:all not 0 podman/cypress exit code are ignored. SoftFa
 =cut
 
 sub cypress_exec {
-    my ($self, $cypress_test_dir, $cmd, $timeout, $log_prefix, $failok) = @_;
+    my ($cypress_test_dir, $cmd, $timeout, $log_prefix, $failok) = @_;
     my $ret = 0;
 
     record_info('CY EXEC', 'Cypress exec:' . $cmd);
-    my $image_name = CYPRESS_IMAGE . ":" . $self->cypress_version;
+    my $image_name = CYPRESS_IMAGE . ":" . cypress_version();
 
     # Container is executed with --name to simplify the log retrieve.
     # To do so, we need to rm present container with the same name
     assert_script_run('podman images');
     script_run('podman rm ' . CYPRESS_IMAGE_TAG . ' || echo "No ' . CYPRESS_IMAGE_TAG . ' to delete"');
-    my $cypress_run_cmd = 'podman run ' .
-      '-it --name ' . CYPRESS_IMAGE_TAG . ' ' .
-      '-v ' . CYPRESS_LOG_DIR . ':/results ' .
-      "-v $cypress_test_dir:/e2e -w /e2e " .
-      '-e "DEBUG=cypress:*" ' .
-      '--entrypoint=\'[' .
+
+    my $cypress_entry_point = "'[" .
       '"/bin/sh", "-c", ' .
-      '"/usr/local/bin/cypress ' . $cmd .
-      ' 2>/results/cypress_' . $log_prefix . '_log.txt"' .
-      ']\' ' . $image_name .
-      ' | tee cypress_' . $log_prefix . '_result.txt';
+      '"/usr/local/bin/cypress ' . $cmd . ' 2>/results/cypress_' . $log_prefix . '_log.txt"' .
+      "]'";
+    my $cypress_run_cmd = join(' ', 'podman', 'run',
+        '-it', '--name', CYPRESS_IMAGE_TAG,
+        '-v', CYPRESS_LOG_DIR . ':/results',
+        '-v', "$cypress_test_dir:/e2e", '-w', '/e2e',
+        '-e', '"DEBUG=cypress:*"',
+        "--entrypoint=$cypress_entry_point",
+        $image_name,
+        '|', 'tee', 'cypress_' . $log_prefix . '_result.txt');
     $ret = script_run($cypress_run_cmd, $timeout);
     if ($ret != 0) {
         # Look for SIGTERM
         script_run('podman logs -t ' . CYPRESS_IMAGE_TAG);
-        $self->result("fail");
     }
-    if ($failok) {
-        record_info('Softfail', "Cypress exit code:$ret at $log_prefix", result => 'softfail') if ($ret);
-        $ret = 0;
-    }
-    die "Cypress exec error at '$cmd'" unless ($ret == 0);
+    return $ret;
 }
 
 =head3 cypress_test_exec
@@ -829,7 +864,7 @@ Also used as tag for each test result file
 =cut
 
 sub cypress_test_exec {
-    my ($self, $cypress_test_dir, $test_tag, $timeout) = @_;
+    my ($cypress_test_dir, $test_tag, $timeout) = @_;
     my $ret = 0;
 
     my $test_file_list = script_output("find $cypress_test_dir/cypress/integration/$test_tag -type f -iname \"*.js\"");
@@ -847,14 +882,14 @@ sub cypress_test_exec {
 
         # Execute the test: force $failok=1 to keep the execution going.
         # Any cypress test failure will be reported during the XUnit parsing
-        $self->cypress_exec($cypress_test_dir, $test_cmd, $timeout, $test_tag, 1);
+        $ret = cypress_exec($cypress_test_dir, $test_cmd, $timeout, $test_tag, 1);
 
         # Parse the results
-        my $find_cmd = 'find ' . $self->CYPRESS_LOG_DIR . ' -type f -iname "' . $test_result . '"';
+        my $find_cmd = 'find ' . CYPRESS_LOG_DIR . ' -type f -iname "' . $test_result . '"';
         parse_extra_log("XUnit", $_) for split(/\n/, script_output($find_cmd));
 
         # Upload all logs at once
-        $self->cypress_log_upload(qw(.txt .mp4));
+        cypress_log_upload(qw(.txt .mp4));
     }
 }
 

@@ -31,7 +31,7 @@ Base class implementation of distribution class necessary for testapi
 
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
 use testapi qw(send_key %cmd assert_screen check_screen check_var click_lastmatch get_var save_screenshot
-  match_has_tag set_var type_password type_string enter_cmd wait_serial $serialdev
+  match_has_tag set_var type_password type_string enter_cmd wait_serial $serialdev is_serial_terminal
   mouse_hide send_key_until_needlematch record_info record_soft_failure
   wait_still_screen wait_screen_change get_required_var diag);
 
@@ -59,7 +59,11 @@ sub handle_password_prompt {
     $console //= '';
 
     return if get_var("LIVETEST") || get_var('LIVECD');
-    assert_screen("password-prompt", 60);
+    if (is_serial_terminal()) {
+        wait_serial(qr/Password:\s*$/i, timeout => 30);
+    } else {
+        assert_screen("password-prompt", 60);
+    }
     if ($console eq 'hyperv-intermediary') {
         type_string get_required_var('VIRSH_GUEST_PASSWORD');
     }
@@ -347,13 +351,16 @@ sub script_sudo {
 
     my $str = time;
     if ($wait > 0) {
-        $prog = "$prog; echo $str-\$?- > /dev/$testapi::serialdev" unless $prog eq 'bash';
+        unless ($prog =~ /^bash/) {
+            $prog .= "; echo $str-\$?-";
+            $prog .= " > /dev/$testapi::serialdev" unless is_serial_terminal();
+        }
     }
     enter_cmd "clear";    # poo#13710
     enter_cmd "su -c \'$prog\'", max_interval => 125;
     handle_password_prompt unless ($testapi::username eq 'root');
     if ($wait > 0) {
-        if ($prog eq 'bash') {
+        if ($prog =~ /^bash/) {
             return wait_still_screen(4, 8);
         }
         else {

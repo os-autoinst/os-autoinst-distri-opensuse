@@ -36,11 +36,19 @@ sub run {
 
     record_info('installs SLE15-Migration and suse-migration-sle15-activation');
 
-    $instance->run_ssh_command(cmd => "sudo zypper -n in SLES15-Migration suse-migration-sle15-activation");
+    # Upload distro_migration.log
+    $instance->upload_log("/system-root/var/log/distro_migration.log", failok => 1);
+
+    $instance->run_ssh_command(cmd => "sudo zypper -n in SLES15-Migration suse-migration-sle15-activation", timeout => 300);
+
     record_info('system reboots');
     my ($shutdown_time, $startup_time) = $instance->softreboot(
         timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 400)
     );
+
+    # Upload distro_migration.log
+    $instance->upload_log("/var/log/distro_migration.log", failok => 1);
+
     # migration finished and instance rebooted
     record_info('INFO', 'Checking the migration succeed');
 

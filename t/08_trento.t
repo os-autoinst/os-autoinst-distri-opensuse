@@ -66,10 +66,10 @@ subtest '[trento_support]' => sub {
     note("\n  L-->  " . join("\n  L-->  ", @logs));
     like $calls[0], qr/mkdir.*remote_logs/, 'Create remote_logs local folder';
 
-    ok any { /ssh.*trento-support\.sh/ } @calls, 'Run trento-support.sh remotely';
-    ok any { /scp.*\.tar\.gz.*remote_logs/ } @calls, 'scp trento-support.sh output locally';
-    ok any { /ssh.*dump_scenario_from_k8\.sh/ } @calls, 'Run dump_scenario_from_k8.sh remotely';
-    ok any { /scp.*\.json.*remote_logs/ } @calls, 'scp dump_scenario_from_k8.sh output locally';
+    ok((any { /ssh.*trento-support\.sh/ } @calls), 'Run trento-support.sh remotely');
+    ok((any { /scp.*\.tar\.gz.*remote_logs/ } @calls), 'scp trento-support.sh output locally');
+    ok((any { /ssh.*dump_scenario_from_k8\.sh/ } @calls), 'Run dump_scenario_from_k8.sh remotely');
+    ok((any { /scp.*\.json.*remote_logs/ } @calls), 'scp dump_scenario_from_k8.sh output locally');
 };
 
 subtest '[get_vnet] get_vnet has to call az and return a vnet' => sub {
@@ -122,8 +122,30 @@ subtest '[get_trento_deployment] with TRENTO_DEPLOY_VER' => sub {
     note("\n  C-->  " . join("\n  C-->  ", @calls));
 
     like $recorded_passwords[0], qr/$password/;
-    ok any { /curl.*api\/v4\/projects\/$gitlab_prj_id\/repository\/.*sha=$gitlab_sha.*--output $gitlag_tar/ } @calls;
-    ok any { /tar.*$gitlag_tar/ } @calls;
+    ok((any { /curl.*api\/v4\/projects\/$gitlab_prj_id\/repository\/.*sha=$gitlab_sha.*--output $gitlag_tar/ } @calls), '[git api] cmd ok');
+    ok((any { /tar.*$gitlag_tar/ } @calls), '[tar] cmd ok');
+};
+
+subtest '[get_trento_deployment] without TRENTO_DEPLOY_VER' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+
+    my $password = 'MAIONESE';
+    $trento->redefine(type_password => sub { return; });
+    $trento->redefine(assert_script_run => sub { push @calls, $_[0]; return 'PATATINE'; });
+    # calls to be ignored
+    $trento->redefine(enter_cmd => sub { return; });
+    $trento->redefine(script_run => sub {
+            push @calls, $_[0];
+            if ($_[0] =~ /git.*rev-parse/) { return 0; }
+    });
+
+    set_var('_SECRET_TRENTO_GITLAB_TOKEN', $password);
+    get_trento_deployment('self', '/tmp');
+    set_var('_SECRET_TRENTO_GITLAB_TOKEN', undef);
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /git.*pull/ } @calls), '[git pull] cmd is there');
+    ok((any { /git.*checkout.*master/ } @calls), '[git checkout master] cmd is there');
 };
 
 subtest '[get_trento_ip] check the az command' => sub {
@@ -158,8 +180,8 @@ subtest '[cypress_configs]' => sub {
     set_var('TRENTO_VERSION', undef);
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     note("\n  L-->  " . join("\n  L-->  ", @logs));
-    ok any { /cypress\.env\.py -u .*43\.43\.43\.43 -p SPUMA_DI_TONNO -f Premium -n $nodes --trento-version $ver/ } @calls;
-    ok any { /cypress\.env\.json/ } @logs;
+    ok((any { /cypress\.env\.py -u .*43\.43\.43\.43 -p SPUMA_DI_TONNO -f Premium -n $nodes --trento-version $ver/ } @calls), '[cypress.env.py] cmd is ok');
+    ok((any { /cypress\.env\.json/ } @logs), 'Right output json file');
 };
 
 subtest '[deploy_qesap] ok' => sub {
@@ -188,8 +210,8 @@ subtest '[destroy_qesap] ok' => sub {
     $trento->redefine(qesap_execute => sub { my (%args) = @_; push @calls, \%args; return 0; });
     destroy_qesap();
 
-    ok any { $_->{cmd} eq 'ansible' and $_->{cmd_options} eq '-d' } @calls;
-    ok any { $_->{cmd} eq 'terraform' and $_->{cmd_options} eq '-d' } @calls;
+    ok((any { $_->{cmd} eq 'ansible' and $_->{cmd_options} eq '-d' } @calls), 'ansible cmd ok');
+    ok((any { $_->{cmd} eq 'terraform' and $_->{cmd_options} eq '-d' } @calls), 'terraform cmd ok');
 };
 
 subtest '[destroy_qesap] not ok' => sub {
@@ -442,6 +464,53 @@ subtest '[install_agent]' => sub {
     like $calls[0], qr/.*\/SARDINE\/trento-agent.yaml/;
     like $calls[0], qr/.*-e api_key=ACCIUGHE/;
     like $calls[0], qr/.*-e trento_private_addr=FRITTI -e trento_server_pub_key=.*/;
+};
+
+subtest '[clone_trento_deployment] with token from worker.ini' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $trento->redefine(assert_script_run => sub { push @calls, $_[0]; });
+
+    set_var('_SECRET_TRENTO_GITLAB_TOKEN', 'TARTARA');
+    clone_trento_deployment('/FRITTURA_DI_PESCE');
+    set_var('_SECRET_TRENTO_GITLAB_TOKEN', undef);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
+    like $calls[0], qr/cd \/FRITTURA_DI_PESCE/;
+    like $calls[1], qr/git.*clone.*git:TARTARA.*qa-css/;
+};
+
+subtest '[clone_trento_deployment] with custom token' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $trento->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    set_var('TRENTO_GITLAB_TOKEN', 'MAIONESE');
+    set_var('_SECRET_TRENTO_GITLAB_TOKEN', 'TARTARA');
+    clone_trento_deployment('/FRITTURA_DI_PESCE');
+    set_var('TRENTO_GITLAB_TOKEN', undef);
+    set_var('_SECRET_TRENTO_GITLAB_TOKEN', undef);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
+    like $calls[0], qr/cd \/FRITTURA_DI_PESCE/;
+    like $calls[1], qr/git.*clone.*git:MAIONESE.*qa-css/;
+};
+
+subtest '[az_delete_group]' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+
+    $trento->redefine(script_retry => sub { push @calls, $_[0]; });
+    $trento->redefine(get_resource_group => sub { return 'MINESTRE'; });
+
+    az_delete_group();
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    like $calls[0], qr/az group delete --resource-group MINESTRE/;
 };
 
 done_testing;

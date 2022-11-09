@@ -120,8 +120,8 @@ sub _cleanup {
     return if ($flags->{publiccloud_multi_module} && !($self->{result} eq 'fail' && $flags->{fatal}));
     # 2. Job should have PUBLIC_CLOUD_NO_CLEANUP defined and job should have result = 'fail'
     return if ($self->{result} eq 'fail' && get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE'));
-    if ($self->{provider}) {
-        eval { $self->{provider}->cleanup(); } or bmwqemu::fctwarn("provider::cleanup() failed -- $@");
+    if ($self->{run_args} && $self->{run_args}->{my_provider}) {
+        eval { $self->{run_args}->{my_provider}->cleanup($self->{run_args}); } or bmwqemu::fctwarn("provider::cleanup() failed -- $@");
     }
 }
 

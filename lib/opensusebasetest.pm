@@ -793,6 +793,12 @@ sub wait_grub_to_boot_on_local_disk {
     my @tags = qw(grub2 tianocore-mainmenu);
     push @tags, 'encrypted-disk-password-prompt' if (get_var('ENCRYPT'));
 
+    # Workaround for poo#118336
+    if (is_ppc64le && is_qemu) {
+        push @tags, 'linux-login' if check_var('DESKTOP', 'textmode');
+        push @tags, 'displaymanager' if check_var('DESKTOP', 'gnome');
+    }
+
     # Enable boot menu for x86_64 uefi workaround, see bsc#1180080 for details
     if (is_sle && get_required_var('FLAVOR') =~ /Migration/ && is_x86_64 && get_var('UEFI')) {
         if (!check_screen(\@tags, 15)) {
@@ -808,8 +814,12 @@ sub wait_grub_to_boot_on_local_disk {
         }
     }
 
-    # We need to wait more time for aarch64's tianocore-mainmenu
-    (is_aarch64) ? assert_screen(\@tags, 30) : assert_screen(\@tags, 15);
+    # We need to wait more for aarch64's tianocore-mainmenu and for qemu ppc64le
+    if ((is_aarch64) || (is_ppc64le && is_qemu)) {
+        assert_screen(\@tags, 30);
+    } else {
+        assert_screen(\@tags, 15);
+    }
     if (match_has_tag('tianocore-mainmenu')) {
         opensusebasetest::handle_uefi_boot_disk_workaround();
         check_screen('encrypted-disk-password-prompt', 10);
@@ -939,6 +949,19 @@ sub grub_select {
             boot_grub_item($first_menu);
         }
     }
+    elsif (is_ppc64le && is_qemu) {
+        my @tags = qw(grub2);
+
+        # Workaround for poo#118336
+        push @tags, 'linux-login' if check_var('DESKTOP', 'textmode');
+        push @tags, 'displaymanager' if check_var('DESKTOP', 'gnome');
+
+        assert_screen(\@tags);
+
+        if (match_has_tag 'grub2') {
+            send_key 'ret';
+        }
+    }
     elsif (!get_var('S390_ZKVM')) {
         # confirm default choice
         send_key 'ret';
@@ -1049,13 +1072,22 @@ sub wait_boot_past_bootloader {
     my $nologin = $args{nologin};
     my $forcenologin = $args{forcenologin};
 
-    # Workaround for bsc#1204221 and bsc#1204230
-    if (is_sle('=15-SP5') && check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        # This should only happen on SLE15SP5 and on hyperv
-        record_soft_failure 'workaround bsc#1204221 - Failed to boot at SLES15SP5 with gnome in hyperv 2019' if check_var('DESKTOP', 'gnome');
-        record_soft_failure 'workaround bsc#1204230 - Failed to boot at SLES15SP5 with x server in hyperv 2019' if check_var('DESKTOP', 'textmode');
-        sleep 30;
-        send_key 'esc';
+    # Workaround for bsc#1204221, bsc#1204230 and bsc#1203641
+    if (is_sle('=15-SP5') && check_var('VIRSH_VMM_FAMILY', 'hyperv') && check_var('HYPERV_VERSION', '2019') && check_var('FLAVOR', 'Online')) {
+        # This should only happen on SLE15SP5 and on hyperv 2019
+        # This is for legacy workaround.
+        if (!get_var('UEFI')) {
+            record_soft_failure 'workaround bsc#1204221 - Failed to boot at SLES15SP5 with gnome in hyperv 2019' if check_var('DESKTOP', 'gnome');
+            record_soft_failure 'workaround bsc#1204230 - Failed to boot at SLES15SP5 with x server in hyperv 2019' if check_var('DESKTOP', 'textmode');
+            sleep 30;
+            send_key 'esc';
+        }
+        # This is for UEFI workaround.
+        else {
+            record_soft_failure 'workaround bsc#1203641 - Failed to boot after installation on hyperv-2019 UEFI setup' if check_var('DESKTOP', 'gnome');
+            sleep 30;
+            send_key 'esc';
+        }
     }
 
     # On IPMI, when selecting x11 console, we are connecting to the VNC server on the SUT.

@@ -94,7 +94,7 @@ sub run {
     # Check Ansible version
     record_info('ansible --version', script_output('ansible --version'));
 
-    my $hostname = script_output(is_sle('=15-sp3') ? 'hostname -s' : 'hostnamectl hostname');
+    my $hostname = script_output(is_sle('=15-sp3') ? 'hostname -s' : 'hostnamectl hostname | cut -d. -f1');
     validate_script_output 'ansible -m setup localhost | grep ansible_hostname', sub { m/$hostname/ };
 
     my $arch = get_var 'ARCH';

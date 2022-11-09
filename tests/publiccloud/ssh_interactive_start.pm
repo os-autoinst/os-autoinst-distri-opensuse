@@ -8,7 +8,7 @@
 #
 # Maintainer: qa-c@suse.de
 
-use Mojo::Base 'consoletest';
+use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
@@ -18,8 +18,6 @@ use version_utils;
 sub run {
     my ($self, $args) = @_;
     die "tunnel-console requires the TUNELLED=1 setting" unless (is_tunneled());
-
-    $self->{provider} = $args->{my_provider};    # required for cleanup
 
     # Initialize ssh tunnel for the serial device, if not yet happened
     ssh_interactive_tunnel($args->{my_instance}) if (get_var('_SSH_TUNNELS_INITIALIZED', 0) == 0);

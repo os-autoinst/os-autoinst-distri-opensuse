@@ -16,8 +16,6 @@ use publiccloud::utils;
 
 sub run {
     my ($self, $args) = @_;
-    $self->{provider} = $args->{my_provider};
-
     script_run("cat /etc/os-release");
     zypper_call('--gpg-auto-import-keys addrepo -p 90 ' . get_required_var('NVIDIA_REPO') . ' nvidia_repo');
     zypper_call '--gpg-auto-import-keys ref';
@@ -27,6 +25,10 @@ sub run {
     validate_script_output("hwinfo --gfxcard", sub { /nVidia.*Tesla T4/mg });    # depends on terraform setup
     assert_script_run("LD_LIBRARY_PATH=/usr/lib/kernel-firmware-nvidia-gsp /usr/lib/kernel-firmware-nvidia-gsp/nvidia-smi --query");
     assert_script_run("SUSEConnect --status-text", 300);
+}
+
+sub test_flags {
+    return {publiccloud_multi_module => 1};
 }
 
 1;

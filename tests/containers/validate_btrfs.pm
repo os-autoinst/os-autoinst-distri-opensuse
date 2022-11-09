@@ -17,6 +17,13 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use containers::common;
+use btrfs_test qw(set_playground_disk);
+
+my ($root_drive, $play_drive);
+
+sub _find_root_partition {
+    return (split(/\s+/, script_output('df --output=source /')))[-1];
+}
 
 # Get the total and used GiB of a given btrfs device
 sub _btrfs_fi {
@@ -47,7 +54,7 @@ sub _test_btrfs_balancing {
     # use -dusage and -musage to prevent "No space left on device" errors, see https://www.suse.com/support/kb/doc/?id=000019789
     assert_script_run qq(btrfs balance start --full-balance -dusage=0 -musage=0 $dev_path), timeout => 900;
     assert_script_run "btrfs fi show $dev_path/btrfs";
-    validate_script_output "btrfs fi show $dev_path/btrfs", sub { m/devid\s+2.+20.00G.+[0-9]+.\d+G.+\/dev\/vdb/ };
+    validate_script_output "btrfs fi show $dev_path/btrfs", sub { m/devid\s+2.+20.00G.+[0-9]+.\d+G.+$play_drive/ };
 }
 
 sub _test_btrfs_thin_partitioning {
@@ -73,17 +80,19 @@ sub _test_btrfs_device_mgmt {
     # Create file in the container enough to fill the "/var" partition (where the container is located)
     my $fill = int($var_free * 1024 * 0.99);    # df returns the size in KiB
     $rt->run_container('huge_image', keep_container => 1, cmd => "fallocate -l $fill bigfile.txt");
-    validate_script_output "df -h --sync|grep var", sub { m/\/dev\/vda.+\s+(9[7-9]|100)%/ };
+    validate_script_output "df -h --sync|grep var", sub { m@$root_drive\s+.*(9[7-9]|100)%@ };
     # check if the partition is full
     my ($total, $used) = _btrfs_fi("/var");
     die "partition should be full" unless (int($used) >= int($total * 0.99));
     die("pull should fail on full partition") if ($rt->pull($container, timeout => 600, die => 0) == 0);
-    # Increase the amount of available storage by adding the second HDD ('/dev/vdb') to the pool
-    assert_script_run "btrfs device add /dev/vdb $dev_path";
+    # Increase the amount of available storage by adding the second HDD (e.g. '/dev/vdb') to the pool
+    my $second = substr($play_drive, 0, length($play_drive));
+    assert_script_run "btrfs device add $second $dev_path";
     assert_script_run "btrfs fi show $dev_path/btrfs";
-    validate_script_output "lsblk | grep vdb", sub { m/vdb.+[2-9][0-9]G/ };
+    validate_script_output "lsblk --paths --raw --noheadings --nodeps", sub { m/$second.+[2-9][0-9]G/ };
+
     my $var_blocks_after = script_output('df 2>/dev/null | grep /var | awk \'{print $2;}\'');
-    record_info("btrfs blocks", "before adding vdb: $var_blocks\nafter: $var_blocks_after");
+    record_info("btrfs blocks", "before adding $play_drive: $var_blocks\nafter: $var_blocks_after");
     die "available number of block didn't increase" if ($var_blocks >= $var_blocks_after);
     $rt->pull($container, timeout => 600);
     assert_script_run qq{test \$(ls -t $dev_path/btrfs/subvolumes/ | head -n 1) != \$(cat $btrfs_head)};
@@ -93,6 +102,10 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
     die "Module requires two disks to run" unless check_var('NUMDISKS', 2);
+
+    set_playground_disk();
+    $play_drive = get_var('PLAYGROUNDDISK');
+    $root_drive = _find_root_partition();
     my $docker = $self->containers_factory('docker');
     my $btrfs_dev = '/var/lib/docker';
     my $images_to_test = 'registry.opensuse.org/opensuse/leap:15';

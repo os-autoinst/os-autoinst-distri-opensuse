@@ -29,11 +29,11 @@ sub sudo_with_pw {
     my $password = $args{password} //= $testapi::password;
     assert_script_run 'sudo -K';
     if ($command =~ /sudo -i|sudo -s|sudo su/) {
-        enter_cmd "expect -c 'spawn $command;expect \"password\";send \"$password\\r\";interact'";
+        enter_cmd "expect -c 'spawn $command;expect \"password\" {send \"$password\\r\";interact'} default {exit 1}";
         sleep 2;
     }
     else {
-        assert_script_run("expect -c '${env}spawn $command;expect \"password\";send \"$password\\r\";interact'$grep", timeout => $args{timeout});
+        assert_script_run("expect -c '${env}spawn $command;expect \"password\" {send \"$password\\r\";interact} default {exit 1}'$grep", timeout => $args{timeout});
     }
 }
 
@@ -47,6 +47,16 @@ sub run {
     my $test_password = 'Sud0_t3st';
     select_console 'root-console';
     zypper_call 'in sudo expect';
+    select_console 'user-console';
+    # Verify that sudo works with the default configuration.
+    if (is_public_cloud) {
+        # No defaults targetpw (public cloud) -> asks for user PW
+        assert_script_run("expect -c 'spawn sudo id -un;expect \"password for $testapi::username\" {send \"$testapi::password\\r\";interact} default {exit 1}' | grep ^root");
+    } else {
+        # Defaults targetpw -> asks for root PW
+        assert_script_run("expect -c 'spawn sudo id -un;expect \"password for root\" {send \"$testapi::password\\r\";interact} default {exit 1}' | grep ^root");
+    }
+    select_console 'root-console';
     # Prepare a file with content '1' for later IO redirection test
     assert_script_run 'echo 1 >/run/openqa_sudo_test';
     # prepare sudoers and test user

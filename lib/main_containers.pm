@@ -120,11 +120,8 @@ sub load_host_tests_docker {
         loadtest 'containers/registry' if (is_x86_64 || is_sle('>=15-sp4'));
         loadtest 'containers/docker_compose' unless is_public_cloud;
     }
-    # works currently only for x86_64, more are coming (poo#103977)
-    # Expected to work for all but JeOS on 15sp4 after
-    # https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/13860
-    # Disabled on svirt backends (VMWare, Hyper-V and XEN) as the device name might be different than vdX
-    if ((is_x86_64 && is_qemu) && !(is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro)) {
+    # Expected to work anywhere except of real HW backends, PC and Micro
+    unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro) {
         loadtest 'containers/validate_btrfs';
     }
 }
