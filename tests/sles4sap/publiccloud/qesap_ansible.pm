@@ -30,7 +30,7 @@ sub run {
     record_info("FINISHED", "Ansible deployment process finished successfully.");
     return unless $ha_enabled;
 
-    # In canse of Hana/HA deployment, detect initial primary and secondary site location
+    # In case of Hana/HA deployment, detect initial primary and secondary site location
     record_info("HANA chk", "Ansible deployment process finished successfully.");
     foreach my $instance (@$instances) {
         $self->{my_instance} = $instance;
@@ -45,11 +45,10 @@ sub run {
         my $master_node = $self->get_promoted_hostname();
         $run_args->{site_a} = $instance if ($instance_id eq $master_node);
         $run_args->{site_b} = $instance if ($instance_id ne $master_node);
-        record_info("Instances:", "Detected HANA instances:
-        Site A: $run_args->{site_a}{instance_id}
-        Site B: $run_args->{site_b}{instance_id}") if ($instance_id eq $master_node);
     }
-
+    record_info("Instances:", "Detected HANA instances:
+    Site A (PRIMARY): $run_args->{site_a}{instance_id}
+    Site B: $run_args->{site_b}{instance_id}");
     return 1;
 }
 
