@@ -131,8 +131,8 @@ sub run {
         assert_screen 'local-user-credentials';
         enter_user_details([$realname, undef, $password, $password]);
         send_key 'alt-n';
-        # wsl-gui pattern installation (only in SLE15-SP4 by now)
-        wsl_gui_pattern if (is_sle('=15-SP4'));
+        # wsl-gui pattern installation (only in SLE15-SP4+ by now)
+        wsl_gui_pattern if (is_sle('15-SP4+'));
         # Registration
         is_sle && register_via_scc();
         # SLED Workstation license agreement and trust nVidia GPG keys
