@@ -1,0 +1,52 @@
+---
+mds: !include test_data/qam/QR/15-SP4/lvm_raid1/lvm+raid1_mds.yaml
+lvm: !include test_data/qam/QR/15-SP4/lvm_raid1/lvm+raid1_lvm.yaml
+disks:
+  - name: vda
+    partitions:
+      - size: 2mb
+        id: bios-boot
+        role: raw-volume
+      - size: 8000mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid
+  - name: vdb
+    partitions:
+      - size: 2mb
+        id: bios-boot
+        role: raw-volume
+      - size: 8000mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid
+  - name: vdc
+    partitions:
+      - size: 2mb
+        id: bios-boot
+        role: raw-volume
+      - size: 8000mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid
+  - name: vdd
+    partitions:
+      - size: 2mb
+        id: bios-boot
+        role: raw-volume
+      - size: 8000mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid
+raid1:
+  disk_to_fail: /dev/vdd2
+  level: raid1
+  name: /dev/md0

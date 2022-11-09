@@ -1,0 +1,30 @@
+---
+network:
+  network_manager: wicked
+  device: eth0
+  config_files:
+    - path: /etc/sysconfig/network/ifcfg-eth0
+      settings:
+        BOOTPROTO: dhcp
+        STARTMODE: auto
+    - path: /etc/sysconfig/network/dhcp
+      settings:
+        DHCLIENT_SET_HOSTNAME: 'no'
+        DHCLIENT_HOSTNAME_OPTION: AUTO
+        DHCLIENT_SET_DEFAULT_ROUTE: 'yes'
+    - path: /etc/hostname
+      empty: 1
+    - path: /etc/sysconfig/network/config
+      settings:
+        NETCONFIG_DNS_POLICY: auto
+    - path: /proc/sys/net/ipv4/ip_forward
+      entries:
+        - 0
+    - path: /proc/sys/net/ipv6/conf/all/forwarding
+      entries:
+        - 0
+    - path: /etc/sysconfig/network/routes
+      empty: 1
+    - path: /proc/sys/net/ipv6/conf/all/disable_ipv6
+      entries:
+        - 0
