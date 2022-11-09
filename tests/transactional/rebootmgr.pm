@@ -64,10 +64,10 @@ sub check_strategy_maint_window {
     process_reboot(expected_grub => is_pvm() ? 0 : 1);
 
     # Trigger reboot and wait for maintenance window
-    rbm_set_window '+2minutes';
+    rbm_set_window '+2minutes', '1m';
     rbm_call 'reboot';
     rbm_check_status 2;
-    die "System should be rebooting" unless wait_screen_change(undef, 120);
+    die "System should be rebooting" unless wait_screen_change(undef, 180);
     process_reboot;
 
     # Trigger & cancel reboot
