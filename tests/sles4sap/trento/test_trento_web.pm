@@ -10,7 +10,7 @@ use Mojo::Base 'publiccloud::basetest';
 use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use base 'trento';
+use trento qw(destroy_qesap az_delete_group cypress_configs cypress_log_upload cypress_exec cypress_test_exec CYPRESS_LOG_DIR);
 
 
 sub run {
@@ -21,30 +21,32 @@ sub run {
     my $cypress_test_dir = "/root/test/test";
     enter_cmd "cd " . $cypress_test_dir;
 
-    trento::cypress_configs($cypress_test_dir);
-    assert_script_run "mkdir " . $self->CYPRESS_LOG_DIR;
+    cypress_configs($cypress_test_dir);
+    assert_script_run "mkdir " . CYPRESS_LOG_DIR;
 
     #  Cypress verify: cypress.io self check about the framework installation
-    $self->cypress_exec($cypress_test_dir, 'verify', 120, 'verify', 1);
-    $self->cypress_log_upload(('.txt'));
+    cypress_exec($cypress_test_dir, 'verify', 120, 'verify', 1);
+    cypress_log_upload(('.txt'));
 
     # test about first visit: login and eula
-    $self->cypress_test_exec($cypress_test_dir, 'first_visit', 900);
+    cypress_test_exec($cypress_test_dir, 'first_visit', 900);
 
     # all other cypress tests
-    $self->cypress_test_exec($cypress_test_dir, 'all', 900);
+    cypress_test_exec($cypress_test_dir, 'all', 900);
 }
 
 sub post_fail_hook {
     my ($self) = @_;
     if (!get_var('TRENTO_EXT_DEPLOY_IP')) {
-        $self->az_delete_group;
+        k8s_logs(qw(web runner));
+        trento_support('test_trento_web');
+        az_delete_group();
     }
 
-    $self->cypress_log_upload(('.txt', '.mp4'));
-    parse_extra_log("XUnit", $_) for split(/\n/, script_output('find ' . $self->CYPRESS_LOG_DIR . ' -type f -iname "*.xml"'));
+    cypress_log_upload(('.txt', '.mp4'));
+    parse_extra_log("XUnit", $_) for split(/\n/, script_output('find ' . CYPRESS_LOG_DIR . ' -type f -iname "*.xml"'));
 
-    $self->destroy_qesap();
+    destroy_qesap();
 
     $self->SUPER::post_fail_hook;
 }

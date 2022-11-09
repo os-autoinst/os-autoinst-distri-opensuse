@@ -10,7 +10,7 @@ use Mojo::Base 'publiccloud::basetest';
 use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use base 'trento';
+use trento qw(deploy_vm trento_acr_azure install_trento az_delete_group k8s_logs trento_support);
 
 sub run {
     my ($self) = @_;
@@ -20,15 +20,14 @@ sub run {
     die "Only AZURE deployment supported for the moment" unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
     select_serial_terminal;
 
-    my $resource_group = $self->get_resource_group;
-    my $acr_name = $self->get_acr_name;
     my $basedir = '/root/test';
 
-    trento::deploy_vm($basedir);
-    my %acr = trento::trento_acr_azure($basedir);
-    trento::install_trento(work_dir => $basedir, acr => \%acr);
+    deploy_vm($basedir);
+    my %acr = trento_acr_azure($basedir);
+    install_trento(work_dir => $basedir, acr => \%acr);
 
-    trento::k8s_logs(qw(web runner));
+    k8s_logs(qw(web runner));
+    trento_support('deploy_trento');
 }
 
 sub post_fail_hook {
@@ -37,8 +36,9 @@ sub post_fail_hook {
     my $find_cmd = 'find . -type f -iname "*.log.txt"';
     upload_logs("$_") for split(/\n/, script_output($find_cmd));
 
-    trento::k8s_logs(qw(web runner));
-    $self->az_delete_group;
+    k8s_logs(qw(web runner));
+    trento_support('deploy_trento_failure');
+    az_delete_group();
 
     $self->SUPER::post_fail_hook;
 }
