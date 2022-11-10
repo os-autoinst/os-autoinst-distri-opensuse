@@ -1,0 +1,59 @@
+---
+name: migration_offline_sap
+description: >
+  SAP offline migration with netweaver
+vars:
+  NW: 'nfs://1c119.qa.suse.de/srv/nfs/sap/NW75_CLUSTER'
+  INSTANCE_ID: '00'
+  INSTANCE_SID: 'QAD'
+  INSTANCE_TYPE: 'ASCS'
+  SHUTDOWN_NEEDS_AUTH: '0'
+  DM_NEEDS_USERNAME: '1'
+  ROOTONLY: '1'
+schedule:
+  - '{{handle_bootimg}}'
+  - installation/bootloader
+  - installation/welcome
+  - installation/upgrade_select
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - '{{handle_reboot}}'
+  - installation/first_boot
+  - migration/post_upgrade
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/zypper_lr
+  - '{{test_sles4sap}}'
+  - boot/grub_test_snapshot
+  - boot/snapper_rollback
+
+conditional_schedule:
+  handle_bootimg:
+    BACKEND:
+      qemu:
+        - migration/version_switch_origin_system
+        - boot/boot_to_desktop
+        - update/patch_sle
+        - migration/record_disk_info
+        - migration/reboot_to_upgrade
+        - migration/version_switch_upgrade_target
+  handle_reboot:
+    ARCH:
+      ppc64le:
+        - installation/handle_reboot
+      x86_64:
+        - installation/grub_test
+  test_sles4sap:
+    TEST_SLES4SAP:
+      1:
+        - sles4sap/patterns
+        - sles4sap/saptune
+        - sles4sap/netweaver_test_instance
+        - sles4sap/sapconf

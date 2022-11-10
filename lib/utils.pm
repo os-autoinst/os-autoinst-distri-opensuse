@@ -681,7 +681,7 @@ Enables the install DVDs if they were used during the installation.
 sub zypper_enable_install_dvd {
     # If DVD Packages is used we need to (re-)enable the local repos
     # see FATE#325541
-    zypper_call('mr -e -l') if (is_sle('15+') and (get_var('ISO_1', '') =~ /SLE-.*-Packages-.*\.iso/ || check_var('FLAVOR', 'Full')));
+    zypper_call('mr -e -l') if (is_sle('15+') and (get_var('ISO_1', '') =~ /SLE-.*-Packages-.*\.iso/ || check_var('FLAVOR', 'Full') || ((get_required_var('FLAVOR') =~ /Migration/) && get_var('MEDIA_UPGRADE', ''))));
     zypper_call 'ref';
 }
 
