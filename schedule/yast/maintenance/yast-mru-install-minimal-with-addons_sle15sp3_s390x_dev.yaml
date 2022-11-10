@@ -1,0 +1,15 @@
+---
+name: yast-mru-install-minimal-with-addons
+vars:
+  PATTERNS: base,minimal
+  YUI_REST_API: 1
+schedule:
+  additional_products: []
+  add_on_product:
+    - installation/add_on_product/add_maintenance_repos
+    - installation/addon_products_sle
+  system_role: []
+  software:
+    - installation/select_patterns
+  stop_timeout_system_reboot:
+    - installation/performing_installation/stop_timeout_system_reboot_now
