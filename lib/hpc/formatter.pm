@@ -10,6 +10,7 @@ package hpc::formatter;
 use Mojo::Base 'hpcbase', -signatures;
 use hpc::utils;
 use testapi qw(get_var get_required_var);
+use version_utils qw(is_sle);
 
 has mpirun => sub {
     my ($self) = shift;
@@ -18,6 +19,8 @@ has mpirun => sub {
     my @mpirun_args;
     ## openmpi requires non-root usr to run program or special flag '--allow-run-as-root'
     push @mpirun_args, '--allow-run-as-root ' if $mpi =~ m/openmpi/;
+    # avoid openmpi warnings since 3.1.6-150500
+    push @mpirun_args, '--mca btl_base_warn_component_unused 0 ' if is_sle('>=15-SP5');
     (@mpirun_args == 0) ? $self->mpirun :
       sprintf "%s %s", $self->mpirun, join(' ', @mpirun_args);
 };
