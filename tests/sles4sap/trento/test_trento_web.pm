@@ -10,12 +10,12 @@ use Mojo::Base 'publiccloud::basetest';
 use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use trento qw(destroy_qesap az_delete_group cypress_configs cypress_log_upload cypress_exec cypress_test_exec CYPRESS_LOG_DIR);
+use qesapdeployment 'qesap_upload_logs';
+use trento;
 
 
 sub run {
     my ($self) = @_;
-    die "Only AZURE deployment supported for the moment" unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
     select_serial_terminal;
 
     my $cypress_test_dir = "/root/test/test";
@@ -46,6 +46,7 @@ sub post_fail_hook {
     cypress_log_upload(('.txt', '.mp4'));
     parse_extra_log("XUnit", $_) for split(/\n/, script_output('find ' . CYPRESS_LOG_DIR . ' -type f -iname "*.xml"'));
 
+    qesap_upload_logs();
     destroy_qesap();
 
     $self->SUPER::post_fail_hook;

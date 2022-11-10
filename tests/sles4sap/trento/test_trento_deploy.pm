@@ -10,8 +10,9 @@ use Mojo::Base 'publiccloud::basetest';
 use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils qw(script_retry);
-use trento qw(get_trento_ip az_delete_group az_vm_ssh_cmd k8s_logs trento_support get_resource_group);
+use utils 'script_retry';
+use qesapdeployment 'qesap_upload_logs';
+use trento;
 
 
 sub run {
@@ -51,12 +52,14 @@ sub run {
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
+    my ($self) = shift;
+    qesap_upload_logs();
     if (!get_var('TRENTO_EXT_DEPLOY_IP')) {
         k8s_logs(qw(web runner));
         trento_support('test_trento_deploy');
         az_delete_group();
     }
+    destroy_qesap();
     $self->SUPER::post_fail_hook;
 }
 
