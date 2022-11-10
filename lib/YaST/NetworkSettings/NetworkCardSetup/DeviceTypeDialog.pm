@@ -12,6 +12,8 @@ use strict;
 use warnings;
 use testapi;
 use parent 'YaST::NetworkSettings::NetworkCardSetup::NetworkCardSetupWizard';
+use YaST::workarounds;
+use version_utils qw(is_sle);
 
 use constant {
     DEVICE_TYPE_DIALOG => 'yast2_lan_device_type_dialog'
@@ -26,6 +28,7 @@ sub select_device_type {
         bond => 'alt-o',
         vlan => 'alt-v'
     };
+    apply_workaround_bsc1204176(DEVICE_TYPE_DIALOG) if (is_sle('>=15-SP4'));
     assert_screen(DEVICE_TYPE_DIALOG);
     send_key $shortcut->{$device};
 }

@@ -12,6 +12,8 @@ use strict;
 use warnings;
 use testapi;
 use parent 'YaST::NetworkSettings::NetworkCardSetup::NetworkCardSetupWizard';
+use YaST::workarounds;
+use version_utils qw(is_sle);
 
 use constant {
     NETWORK_CARD_SETUP => 'yast2_lan_network_card_setup',
@@ -35,6 +37,7 @@ sub select_tab {
 
 sub select_bond_slave_in_list {
     assert_screen(BOND_SLAVES_TAB);
+    apply_workaround_bsc1204176(BOND_SLAVE_DEVICE_CHECKBOX_UNCHECKED) if (is_sle('>=15-SP4'));
     assert_and_click(BOND_SLAVE_DEVICE_CHECKBOX_UNCHECKED);
 }
 

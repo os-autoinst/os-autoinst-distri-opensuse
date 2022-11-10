@@ -10,6 +10,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils;
+use YaST::workarounds;
 
 =head2 y2snapper_select_current_conf
 
@@ -120,6 +121,9 @@ sub y2snapper_new_snapshot {
     # Have to focus to Snapshots list manually in ncurses
     if ($ncurses) {
         send_key_until_needlematch 'yast2_snapper-focus-in-snapshots', 'tab';
+    }
+    else {
+        apply_workaround_bsc1204176([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)]) if (is_sle('>=15-SP4'));
     }
 
     # Make sure the snapshot is listed in the main window

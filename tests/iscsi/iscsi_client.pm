@@ -62,13 +62,8 @@ sub initiator_discovered_targets_tab {
     send_key "alt-i";
     my $target_ip_only = (split('/', $test_data->{target_conf}->{ip}))[0];
     type_string_slow_extended $target_ip_only;
-    if (is_sle('=15-SP4')) {
-        record_soft_failure('bsc#1204176 - Resizing window as workaround for YaST content not loading');
-        send_key_until_needlematch('iscsi-initiator-discovered-IP-adress', 'alt-f10', 10, 2);
-    }
-    else {
-        assert_screen 'iscsi-initiator-discovered-IP-adress';
-    }
+    apply_workaround_bsc1204176('iscsi-initiator-discovered-IP-adress') if (is_sle('>=15-SP4'));
+    assert_screen 'iscsi-initiator-discovered-IP-adress';
     # next and press connect button
     send_key "alt-n";
     assert_and_click 'iscsi-initiator-connect-button';
@@ -92,13 +87,8 @@ sub initiator_discovered_targets_tab {
 sub initiator_connected_targets_tab {
     # go to discovered targets tab
     send_key "alt-d";
-    if (is_sle('=15-SP4')) {
-        record_soft_failure('bsc#1204176 - Resizing window as workaround for YaST content not loading');
-        send_key_until_needlematch('iscsi-initiator-discovered-targets', 'alt-f10', 10, 2);
-    }
-    else {
-        assert_screen 'iscsi-initiator-discovered-targets';
-    }
+    apply_workaround_bsc1204176('iscsi-initiator-discovered-targets') if (is_sle('>=15-SP4'));
+    assert_screen 'iscsi-initiator-discovered-targets';
     # go to connected targets tab
     send_key "alt-n";
     assert_screen 'iscsi-initiator-connected-targets';
