@@ -45,6 +45,27 @@
         <priority t="integer">99</priority>
         <product_dir/>
       </listentry>
+      <listentry t="map">
+        <alias>repo-debug</alias>
+        <media_url>http://download.opensuse.org/debug/distribution/leap/<%= $get_var->('VERSION') %>/repo/oss/</media_url>
+        <name>Debug Repository</name>
+        <priority t="integer">99</priority>
+        <product_dir/>
+      </listentry>
+      <listentry t="map">
+        <alias>repo-debug-update</alias>
+        <media_url>http://download.opensuse.org/debug/update/leap/<%= $get_var->('VERSION') %>/oss/</media_url>
+        <name>Update Repository (Debug)</name>
+        <priority t="integer">99</priority>
+        <product_dir/>
+      </listentry>
+      <listentry t="map">
+        <alias>repo-sle-debug-update</alias>
+        <media_url>http://download.opensuse.org/debug/update/leap/<%= $get_var->('VERSION') %>/sle/</media_url>
+        <name>Update repository with debuginfo for updates from SUSE Linux Enterprise 15</name>
+        <priority t="integer">99</priority>
+        <product_dir/>
+      </listentry>
     </add_on_others>
   </add-on>
   <general>

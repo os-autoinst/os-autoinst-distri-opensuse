@@ -12,7 +12,6 @@ schedule:
   - autoyast/console
   - autoyast/login
   - autoyast/wicked
-  - autoyast/leap_default_repo
   - autoyast/repos
   - autoyast/clone
   - autoyast/logs
