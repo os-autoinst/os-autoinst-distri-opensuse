@@ -450,10 +450,11 @@ subtest '[install_agent]' => sub {
 
     $trento->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $trento->redefine(qesap_get_inventory => sub { return '/PEPERONATA'; });
+    $trento->redefine(get_trento_private_ip => sub { return 'FRITTI'; });
 
     # $wd, $playbook_location, $agent_api_key, $priv_ip
     set_var('PUBLIC_CLOUD_PROVIDER', 'POLPETTE');
-    install_agent('/ALICI', '/SARDINE', 'ACCIUGHE', 'FRITTI');
+    install_agent('/ALICI', '/SARDINE', 'ACCIUGHE');
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
@@ -464,6 +465,31 @@ subtest '[install_agent]' => sub {
     like $calls[0], qr/.*\/SARDINE\/trento-agent.yaml/;
     like $calls[0], qr/.*-e api_key=ACCIUGHE/;
     like $calls[0], qr/.*-e trento_private_addr=FRITTI -e trento_server_pub_key=.*/;
+};
+
+subtest '[install_agent] download rpm' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+
+    $trento->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(qesap_get_inventory => sub { return '/PEPERONATA'; });
+    $trento->redefine(get_trento_private_ip => sub { return 'FRITTI'; });
+
+    # $wd, $playbook_location, $agent_api_key, $priv_ip
+    set_var('PUBLIC_CLOUD_PROVIDER', 'POLPETTE');
+    set_var('TRENTO_AGENT_RPM', 'NACHOS');
+    install_agent('/ALICI', '/SARDINE', 'ACCIUGHE');
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
+    set_var('TRENTO_AGENT_RPM', undef);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
+    # Multiple regexp as order does no matter so much
+    #curl -f --verbose "https://dist.suse.de/ibs/Devel:/SAP:/trento:/factory/SLE_15_SP3/x86_64/NACHOS" --output /ALICI/NACHOS
+    like $calls[0], qr/curl/;
+    like $calls[0], qr/.*-f /;
+    like $calls[0], qr/.*dist\.suse\.de.*\/NACHOS/;
+    like $calls[0], qr/.*--output \/ALICI\/NACHOS/;
 };
 
 subtest '[clone_trento_deployment] with token from worker.ini' => sub {

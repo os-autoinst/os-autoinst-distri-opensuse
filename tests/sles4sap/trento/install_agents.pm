@@ -31,7 +31,7 @@ sub run {
         }
     }
 
-    $cmd = install_agent($wd, '/root/test', $agent_api_key, '10.0.0.4');
+    $cmd = install_agent($wd, '/root/test', $agent_api_key);
 }
 
 sub post_fail_hook {

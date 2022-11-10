@@ -481,6 +481,18 @@ sub get_trento_ip {
     return script_output($az_cmd, 180);
 }
 
+=head3 get_trento_private_ip
+
+Return the private IP of the Trento instance, needed by the agent configuration
+=cut
+
+sub get_trento_private_ip {
+    my $az_cmd = sprintf 'az vm list -g %s --show-details --query "[?publicIps==\'%s\'].{PrivateIP:privateIps}" -o tsv',
+      get_resource_group(),
+      get_trento_ip();
+    return script_output($az_cmd, 180);
+}
+
 =head3 get_vnet
 
 Return the output of az network vnet list
@@ -570,7 +582,7 @@ sub az_vm_ssh_cmd {
 Install trento-agent on all the nodes.
 Installation is performed using ansible.
 
-=over 4
+=over 3
 
 =item B<WORK_DIRECTORY> - Working directory, used to eventually download .rpm
 
@@ -578,13 +590,11 @@ Installation is performed using ansible.
 
 =item B<API_KEY> - Api key needed to configure trento-agent
 
-=item B<PRIVATE_IP> - Trento server private IP, used to configure server-url in agent
-
 =back
 =cut
 
 sub install_agent {
-    my ($wd, $playbook_location, $agent_api_key, $priv_ip) = @_;
+    my ($wd, $playbook_location, $agent_api_key) = @_;
     my $local_rpm_arg = '';
     my $cmd;
     if (get_var('TRENTO_AGENT_RPM')) {
@@ -594,13 +604,13 @@ sub install_agent {
         assert_script_run($cmd);
         $local_rpm_arg = " -e agent_rpm=$wd/$package";
     }
-
+    my $private_ip = get_trento_private_ip();
     $cmd = join(' ', 'ansible-playbook', '-vv',
         '-i', qesap_get_inventory(lc get_required_var('PUBLIC_CLOUD_PROVIDER')),
         "$playbook_location/trento-agent.yaml",
         $local_rpm_arg,
         '-e', "api_key=$agent_api_key",
-        '-e', "trento_private_addr=$priv_ip",
+        '-e', "trento_private_addr=$private_ip",
         '-e', 'trento_server_pub_key=' . SSH_KEY . '.pub');
     assert_script_run($cmd);
 }

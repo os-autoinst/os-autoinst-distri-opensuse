@@ -9,7 +9,7 @@ use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use qesapdeployment 'qesap_upload_logs';
+use qesapdeployment qw(qesap_upload_logs qesap_get_inventory qesap_ansible_cmd);
 use trento;
 
 sub run {
@@ -28,6 +28,11 @@ sub run {
         '-a', get_vnet($cluster_rg));
     record_info('NET PEERING');
     assert_script_run($cmd, 360);
+
+    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my $inventory = qesap_get_inventory($prov);
+
+    qesap_ansible_cmd(cmd => 'crm status', provider => $prov, filter => $_) for ('vmhana01', 'vmhana02');
 }
 
 sub post_fail_hook {
