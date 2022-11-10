@@ -1,49 +1,45 @@
 ---
-name: yast-mru-install-minimal-with-addons
-vars:
-  PATTERNS: base,minimal
-  YUI_REST_API: 1
-schedule:
+# Default ordered sequence of steps for sle15sp4 with maintenance updates
+bootloader:
   - installation/bootloader_start
+setup_libyui:
   - installation/setup_libyui
-  - '{{installsles}}'
+product_selection:
+  - installation/product_selection/install_SLES
+license_agreement:
   - installation/licensing/accept_license
+registration:
   - installation/registration/register_via_scc
+extension_module_selection:
   - installation/module_registration/register_extensions_and_modules
+add_on_product:
   - installation/add_on_product/add_maintenance_repos
   - installation/addon_products_sle
+suggested_partitioning:
   - installation/partitioning/accept_proposed_layout
+clock_and_timezone:
   - installation/clock_and_timezone/accept_timezone_configuration
+local_user:
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
-  - installation/select_patterns
-  - '{{validate}}'
+software:
+  - installation/select_only_visible_patterns_from_top
+default_systemd_target: []
+booting:
   - installation/bootloader_settings/disable_boot_menu_timeout
-  - installation/installation_overview
-  - installation/disable_grub_timeout
+none_security:
+  - installation/security/select_security_module_none
+installation_settings:
   - installation/launch_installation
+installation:
   - installation/confirm_installation
   - installation/performing_installation/perform_installation
-  - '{{stoptimeout}}'
+stop_timeout_system_reboot: []
+installation_logs:
   - installation/logs_from_installation_system
+confirm_reboot:
   - installation/performing_installation/confirm_reboot
+grub:
   - installation/grub_test
+first_login:
   - installation/first_boot
-conditional_schedule:
-  installsles:
-    ARCH:
-      x86_64:
-        - installation/product_selection/install_SLES
-      aarch64:
-        - installation/product_selection/install_SLES
-  validate:
-    ARCH:
-      x86_64:
-        - installation/installation_settings/validate_default_target
-  stoptimeout:
-    ARCH:
-      aarch64:
-        - installation/performing_installation/stop_timeout_system_reboot_now
-      s390x:
-        - installation/performing_installation/stop_timeout_system_reboot_now
-...

@@ -1,0 +1,10 @@
+---
+name: yast_mru_install_minimal_with_addons_s390x
+vars:
+  PATTERNS: base,enhanced_base
+  YUI_REST_API: 1
+schedule:
+  product_selection: []
+  stop_timeout_system_reboot:
+    - installation/performing_installation/stop_timeout_system_reboot_now
+...

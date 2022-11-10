@@ -12,6 +12,8 @@ schedule:
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
   - installation/module_registration/register_extensions_and_modules
+  - installation/module_registration/add_additional_regcodes
+  - installation/module_registration/import_untrusted_gnpupg_key
   - installation/add_on_product_installation/add_additional_products
   - installation/add_on_product/skip_install_addons
   - installation/system_role/select_role_text_mode
