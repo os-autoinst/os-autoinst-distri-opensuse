@@ -36,6 +36,10 @@ sub run {
     qesap_prepare_env(openqa_variables => \%variables, provider => $qesap_provider);
 }
 
+sub test_flags {
+    return {fatal => 1};
+}
+
 sub post_fail_hook {
     my ($self) = shift;
     qesap_upload_logs();
