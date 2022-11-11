@@ -14,6 +14,7 @@ use publiccloud::ssh_interactive "select_host_console";
 use testapi;
 use version_utils;
 use utils;
+use publiccloud::utils;
 
 sub prepare_ssh_tunnel {
     my $instance = shift;
@@ -86,6 +87,13 @@ sub run {
 
     # ssh-tunnel settings
     prepare_ssh_tunnel($instance) if (is_tunneled());
+
+    # azure images based on sle12-sp{4,5} code streams come with commented entries 'Defaults targetpw' in /etc/sudoers
+    # because the Azure Linux agent creates an entry in /etc/sudoers.d for users without the NOPASSWD flag
+    # this is an exception in comparision with other images
+    if (is_sle('<15') && is_azure) {
+        $instance->ssh_assert_script_run(q(sudo sed -i "/Defaults targetpw/s/^#//" /etc/sudoers));
+    }
 }
 
 sub test_flags {
