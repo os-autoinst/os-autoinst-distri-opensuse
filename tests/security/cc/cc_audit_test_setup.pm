@@ -14,6 +14,7 @@ use testapi;
 use utils;
 use registration 'add_suseconnect_product';
 use audit_test;
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
@@ -34,7 +35,8 @@ sub run {
 
     # Install needed packages/paterns
     zypper_call('in -t pattern devel_basis');
-    zypper_call('in git expect libcap-devel psmisc cryptsetup');
+    my $pkexec_package = is_sle('<15-SP5') ? "polkit" : "pkexec";
+    zypper_call("in git expect libcap-devel psmisc cryptsetup $pkexec_package");
 
     # Install vsftpd
     zypper_call('in vsftpd');
