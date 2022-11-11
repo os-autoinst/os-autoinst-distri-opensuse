@@ -34,6 +34,7 @@ use YAML::PP;
 use utils 'file_content_replace';
 use testapi;
 use Exporter 'import';
+use utils 'zypper_call';
 
 
 my @log_files = ();
@@ -148,16 +149,16 @@ sub qesap_create_ansible_section {
 =cut
 
 sub qesap_pip_install {
-    enter_cmd 'pip config --site set global.progress_bar off';
-    my $pip_ints_cmd = 'pip install --no-color --no-cache-dir ';
+    zypper_call('in python39');
+    enter_cmd 'pip3.9 config --site set global.progress_bar off';
+    my $pip_ints_cmd = 'pip3.9 install --no-color --no-cache-dir ';
     my $pip_install_log = '/tmp/pip_install.txt';
     my %paths = qesap_get_file_paths();
 
-    # Hack to fix an installation conflict. Someone install PyYAML 6.0 and awscli needs an older one
+
     push(@log_files, $pip_install_log);
     record_info("QESAP repo", "Installing pip requirements");
-    assert_script_run(join(" ", $pip_ints_cmd, 'awscli==1.19.48 | tee', $pip_install_log), 240);
-    assert_script_run(join(" ", $pip_ints_cmd, '-r', $paths{deployment_dir} . '/requirements.txt | tee -a', $pip_install_log), 240);
+    assert_script_run(join(" ", $pip_ints_cmd, '-r', $paths{deployment_dir} . '/requirements.txt | tee -a', $pip_install_log), 360);
 }
 
 =head3 qesap_upload_logs
@@ -272,7 +273,7 @@ sub qesap_execute {
     $exec_log .= '.log.txt';
     $exec_log =~ s/[-\s]+/_/g;
 
-    my $qesap_cmd = join(" ", $paths{deployment_dir} . "/scripts/qesap/qesap.py",
+    my $qesap_cmd = join(" ", "python3.9", $paths{deployment_dir} . "/scripts/qesap/qesap.py",
         $verbose,
         "-c", $paths{qesap_conf_trgt},
         "-b", $paths{deployment_dir},
