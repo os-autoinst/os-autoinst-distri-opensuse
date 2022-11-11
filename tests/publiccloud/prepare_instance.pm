@@ -41,7 +41,8 @@ sub prepare_ssh_tunnel {
     $instance->ssh_assert_script_run(sprintf("sudo install -o root -g root -m 0644 /home/%s/.ssh/authorized_keys /root/.ssh/", $instance->{username}));
 
     # Create remote user and set him a password
-    $instance->ssh_assert_script_run("test -d /home/$testapi::username || sudo useradd -m $testapi::username");
+    my $path = (is_sle('>15') && is_sle('<15-SP3')) ? '/usr/sbin/' : '';
+    $instance->ssh_assert_script_run("test -d /home/$testapi::username || sudo ${path}useradd -m $testapi::username");
     $instance->ssh_assert_script_run(qq(echo -e "$testapi::password\\n$testapi::password" | sudo passwd $testapi::username));
 
     # Copy SSH settings for remote user

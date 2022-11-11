@@ -85,7 +85,8 @@ sub run {
         record_soft_failure('bsc#1198815 - Package cloud-regionsrv-client is not installed');
         registercloudguest($instance);
     } else {
-        $instance->run_ssh_command(cmd => 'sudo registercloudguest --clean');
+        my $path = is_sle('>15') && is_sle('<15-SP3') ? '/usr/sbin/' : '';
+        $instance->run_ssh_command(cmd => "sudo ${path}registercloudguest --clean");
         if ($instance->run_ssh_command(cmd => 'sudo zypper lr | wc -l', timeout => 600, proceed_on_failure => 1) > 2) {
             die('The list of zypper repositories is not empty.');
         }
@@ -97,10 +98,10 @@ sub run {
         if (is_byos()) {
             $instance->run_ssh_command(cmd => 'sudo SUSEConnect --version');
             $instance->run_ssh_command(cmd => "sudo SUSEConnect $regcode_param");
-            $instance->run_ssh_command(cmd => 'sudo registercloudguest --clean');
+            $instance->run_ssh_command(cmd => "sudo ${path}registercloudguest --clean");
         }
 
-        $instance->run_ssh_command(cmd => "sudo registercloudguest $regcode_param");
+        $instance->run_ssh_command(cmd => "sudo ${path}registercloudguest $regcode_param");
         if ($instance->run_ssh_command(cmd => 'sudo zypper lr | wc -l', timeout => 600) == 0) {
             die('The list of zypper repositories is empty.');
         }
@@ -108,7 +109,7 @@ sub run {
             die('Directory /etc/zypp/credentials.d/ is empty.');
         }
 
-        $instance->run_ssh_command(cmd => "sudo registercloudguest $regcode_param --force-new");
+        $instance->run_ssh_command(cmd => "sudo ${path}registercloudguest $regcode_param --force-new");
         if ($instance->run_ssh_command(cmd => 'sudo zypper lr | wc -l', timeout => 600) == 0) {
             die('The list of zypper repositories is empty.');
         }

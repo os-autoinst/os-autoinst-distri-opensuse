@@ -92,6 +92,7 @@ sub registercloudguest {
     my ($instance) = @_;
     my $regcode = get_required_var('SCC_REGCODE');
     my $remote = $instance->username . '@' . $instance->public_ip;
+    my $path = is_sle('>15') && is_sle('<15-SP3') ? '/usr/sbin/' : '';
     # not all images currently have registercloudguest pre-installed .
     # in such a case,we need to regsiter against SCC and install registercloudguest with all needed dependencies and then
     # unregister and re-register with registercloudguest
@@ -112,13 +113,13 @@ sub registercloudguest {
             die 'Unexpected provider ' . get_var('PUBLIC_CLOUD_PROVIDER');
         }
         $instance->ssh_assert_script_run(cmd => "sudo zypper -q -n in $install_packages", timeout => 420);
-        $instance->ssh_assert_script_run(cmd => "sudo registercloudguest --clean");
+        $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest --clean");
     }
     # Check what version of registercloudguest binary we use
     $instance->ssh_script_run(cmd => "sudo rpm -qa cloud-regionsrv-client");
     # Register the system
     my $cmd_time = time();
-    $instance->ssh_script_retry(cmd => "sudo registercloudguest -r $regcode", timeout => 420, retry => 3, delay => 120);
+    $instance->ssh_script_retry(cmd => "sudo ${path}registercloudguest -r $regcode", timeout => 420, retry => 3, delay => 120);
     record_info('registercloudguest time', 'The command registercloudguest took ' . (time() - $cmd_time) . ' seconds.');
 }
 
