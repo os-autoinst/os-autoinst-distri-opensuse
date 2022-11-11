@@ -1,0 +1,27 @@
+---
+disks:
+- name: sda
+  table_type: gpt
+  partitions:
+  - name: sda2
+    # Sizes should be preferably expressed in human readable binary units (eg GiB)
+    # for this test suite: we use lsblk in validation modules, which uses human
+    # readable binary unit (*ibits).
+    # part_size is the size we input in partitioner, as we use lsbls output for validation.
+    size: 11G
+    role: raw-volume
+    formatting_options:
+      should_format: 1
+      filesystem: btrfs
+    mounting_options:
+      should_mount: 1
+      mount_point: /
+  - name: sda4
+    size: 2G
+    role: raw-volume
+    formatting_options:
+      should_format: 1
+      filesystem: swap
+    mounting_options:
+      should_mount: 1
+      mount_point: '[SWAP]'

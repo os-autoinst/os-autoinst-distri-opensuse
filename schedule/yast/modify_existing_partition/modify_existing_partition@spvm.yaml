@@ -1,0 +1,22 @@
+---
+name: modify_existing_partition
+description: >
+  Installation where we modify some pre-existing partitions. Must depend on some
+  create_hdd test suite.
+vars:
+  YUI_REST_API: 1
+schedule:
+  suggested_partitioning:
+    - installation/partitioning/modify_existing_partition
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  installation_settings:
+    - installation/installation_settings/validate_ssh_service_enabled
+    - installation/installation_settings/open_ssh_port
+    - installation/launch_installation
+  grub:
+    - installation/handle_reboot
+  system_validation:
+    - console/validate_modify_existing_partition
+test_data:
+  <<: !include test_data/yast/modify_existing_partition/modify_existing_partition.yaml
