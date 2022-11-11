@@ -596,7 +596,7 @@ sub load_jeos_openstack_tests {
     } else {
         loadtest 'publiccloud/ssh_interactive_start', run_args => $args;
     }
-    loadtest "jeos/image_info";
+    #    loadtest "jeos/image_info";
     loadtest "jeos/record_machine_id";
     loadtest "console/system_prepare" if is_sle;
     loadtest "console/force_scheduled_tasks";
@@ -623,7 +623,7 @@ sub load_jeos_tests {
     }
     load_boot_tests();
     loadtest "jeos/firstrun";
-    loadtest "jeos/image_info";
+    #    loadtest "jeos/image_info";
     loadtest "jeos/record_machine_id";
     loadtest "console/force_scheduled_tasks";
     unless (get_var('INSTALL_LTP') || get_var('SYSTEMD_TESTSUITE')) {
