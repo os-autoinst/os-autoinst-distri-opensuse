@@ -19,6 +19,10 @@ sub run {
     upload_logs($inventory);
 }
 
+sub test_flags {
+    return {fatal => 1};
+}
+
 sub post_fail_hook {
     my ($self) = shift;
     qesap_upload_logs();
