@@ -33,7 +33,7 @@ conditional_schedule:
         - microos/rebuild_initrd
 schedule:
   - '{{boot}}'
-    #  - jeos/image_info
+  # - jeos/image_info
   - transactional/host_config
   - '{{rebuild_initrd}}'
   - '{{registration}}'
