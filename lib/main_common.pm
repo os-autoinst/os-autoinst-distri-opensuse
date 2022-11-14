@@ -327,10 +327,10 @@ sub is_updates_test_repo {
 }
 
 sub is_repo_replacement_required {
-    return is_opensuse()    # Is valid scenario onlu for openSUSE
-      && !is_staging()    # Do not have mirrored repos on staging
+    return is_opensuse()    # Is valid scenario only for openSUSE
       && !get_var('KEEP_ONLINE_REPOS')    # Set variable no to replace variables
-      && get_var('SUSEMIRROR')    # Skip if required variable is not set (leap live tests)
+                                          # Skip if there isn't a repo to use (e.g. Leap live tests)
+      && (get_var('SUSEMIRROR') || (is_staging && get_var('ISO_1')))
       && !get_var('ZYPPER_ADD_REPOS')    # Skip if manual repos are specified
       && !get_var('OFFLINE_SUT')    # Do not run if SUT is offine
       && !get_var('ZDUP');    # Do not run on ZDUP as these tests handle repos on their own
@@ -2936,8 +2936,6 @@ sub load_installation_validation_tests {
 
 sub load_transactional_role_tests {
     replace_opensuse_repos_tests if is_repo_replacement_required;
-    # ^ runs only outside of stagings, clear repos otherwise
-    loadtest "update/zypper_clear_repos" if is_staging;
     loadtest 'transactional/filesystem_ro';
     loadtest 'transactional/transactional_update';
     loadtest 'transactional/rebootmgr';
