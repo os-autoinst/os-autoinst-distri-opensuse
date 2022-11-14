@@ -10,7 +10,7 @@
 #   4. Ansible playbook testing
 #   5. Ansible playbook execution
 #   6. Ansible Vault
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: QE Core <qe-core@suse.de>, Pavel Dostál <pdostal@suse.cz>
 
 use warnings;
 use base "consoletest";
@@ -18,9 +18,15 @@ use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call random_string systemctl file_content_replace ensure_serialdev_permissions);
-use version_utils qw(is_sle is_opensuse is_tumbleweed is_transactional);
+use version_utils qw(is_sle is_opensuse is_tumbleweed is_transactional is_microos is_alp);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use transactional qw(trup_call check_reboot_changes);
+
+# git-core needed by ansible-galaxy
+# sudo is used by ansible to become root
+# python3-yamllint needed by ansible-test
+my $pkgs = 'ansible git-core';
+$pkgs .= ' python3-yamllint' unless is_alp;
 
 sub run {
     select_serial_terminal;
@@ -39,17 +45,11 @@ sub run {
     }
     ensure_serialdev_permissions;
 
-
-    # git-core needed by ansible-galaxy
-    # sudo is used by ansible to become root
-    # python3-yamllint needed by ansible-test
     if (is_transactional) {
-        select_console 'root-console';
-        trup_call('pkg install ansible git-core python3-yamllint sudo');
+        trup_call("-n pkg install $pkgs sudo");
         check_reboot_changes;
-        select_serial_terminal();
     } else {
-        zypper_call 'in ansible git-core python3-yamllint sudo';
+        zypper_call "in $pkgs sudo";
     }
 
     # Start sshd
@@ -114,15 +114,17 @@ sub run {
     die 'network-engine should be installed!' unless $galaxy_installed =~ m/ansible-network\.network-engine/;
 
     # 4. Ansible playbook testing
-    my $skip_tags;
-    $skip_tags = '--skip-tags zypper' if is_transactional;
 
     # Check that community.general.zypper module is available
     assert_script_run 'ansible-doc -l community.general | grep zypper';
 
     # Check the version of ansible-community from where we use the zypper module
     # (this command may not be available for older ansible versions )
-    script_run 'ansible-community --version';
+    assert_script_run('ansible-community --version') if (script_run('which ansible-community') == 0);
+
+    # Test the ansible.community.zypper module?
+    # bsc#1204544 - the ansible.community.zypper module does not yet work on ALP
+    my $skip_tags = (is_alp) ? '--skip-tags zypper' : '';
 
     # Check the playbook
     assert_script_run "ansible-playbook -i hosts main.yaml --check $skip_tags", timeout => 300;
@@ -156,8 +158,12 @@ sub run {
     # Test that /home/johnd/README.txt is readable and contains the expanded template
     validate_script_output 'sudo -u johnd cat /home/johnd/README.txt', sub { m/my $arch dynamic kingdom/ };
 
+    # Reboot into new snapshot if we test ansible.community.zypper on transactional system
+    #   we currently don't test ansible.community.zypper on ALP
+    check_reboot_changes if (is_transactional && !is_alp);
+
     # Check that Ed - the command line text edit is installed
-    assert_script_run 'which ed' unless is_transactional;
+    assert_script_run 'which ed' unless (is_alp);
 
     # 6. Ansible Vault
 
@@ -176,6 +182,8 @@ sub run {
 }
 
 sub cleanup {
+    assert_script_run 'cd';
+
     # Remove all the directories ansible created
     assert_script_run 'rm -rf ~/ansible_collections/ /tmp/ansible/';
 
@@ -189,14 +197,13 @@ sub cleanup {
     assert_script_run 'userdel -rf johnd';
 
     # Remove ansible, yamllint and git
+    $pkgs .= ' ed' unless (is_alp);
     if (is_transactional) {
-        select_console 'root-console';
-        trup_call('pkg remove ansible git-core python3-yamllint');
+        trup_call("-n pkg remove $pkgs");
         check_reboot_changes;
-        select_serial_terminal();
     } else {
         # ed has been installed in ansible-playbook
-        zypper_call 'rm ansible git-core python3-yamllint';
+        zypper_call "rm $pkgs";
     }
 }
 
