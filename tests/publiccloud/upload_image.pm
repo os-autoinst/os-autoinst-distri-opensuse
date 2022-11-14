@@ -72,4 +72,4 @@ from this URL.
 
 =head2 PUBLIC_CLOUD_REGION
 
-The region to use. (default-azure: westeurope, default-ec2: eu-central-1, default-gcp: europe-west1)
+The region to use. (default-azure: westeurope, default-ec2: eu-central-1, default-gcp: europe-west1-b)
