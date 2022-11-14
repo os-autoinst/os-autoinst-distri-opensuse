@@ -38,7 +38,7 @@ conditional_schedule:
 schedule:
     - '{{bootloader}}'
     - '{{wizard}}'
-      #    - jeos/image_info
+    # - jeos/image_info
     - jeos/record_machine_id
     - console/system_prepare
     - console/force_scheduled_tasks
