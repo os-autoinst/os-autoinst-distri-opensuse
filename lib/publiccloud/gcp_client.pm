@@ -32,7 +32,7 @@ sub init {
     $self->project_id($data->{project_id});
     $self->account($data->{client_id});
     assert_script_run('source ~/.bashrc');
-    (is_sle('=15-SP4')) ? assert_script_run("chronyd -q 'pool time.google.com iburst'") : assert_script_run('ntpdate -s time.google.com');
+    (is_sle('>15-SP4')) ? assert_script_run("chronyd -q 'pool time.google.com iburst'") : assert_script_run('ntpdate -s time.google.com');
     assert_script_run('gcloud config set account ' . $self->account);
     assert_script_run(
         'gcloud auth activate-service-account --key-file=' . CREDENTIALS_FILE . ' --project=' . $self->project_id);
