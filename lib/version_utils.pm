@@ -103,7 +103,7 @@ Returns true if called on jeos
 =cut
 
 sub is_jeos {
-    return get_var('FLAVOR', '') =~ /^JeOS/;
+    return get_var('FLAVOR', '') =~ /JeOS/;
 }
 
 =head2 is_vmware
