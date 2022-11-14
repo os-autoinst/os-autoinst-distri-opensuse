@@ -35,6 +35,10 @@ sub run {
     qesap_ansible_cmd(cmd => 'crm status', provider => $prov, filter => $_) for ('vmhana01', 'vmhana02');
 }
 
+sub test_flags {
+    return {fatal => 1};
+}
+
 sub post_fail_hook {
     my ($self) = shift;
     select_serial_terminal;

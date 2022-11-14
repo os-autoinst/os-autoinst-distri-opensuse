@@ -242,7 +242,7 @@ sub get_qesap_resource_group {
 =head3 config_cluster
 
 Create a variable map and prepare the qe-sap-deployment using it
-=over 2
+=over 3
 
 =item B<PROVIDER> - CloudProvider name
 
@@ -271,6 +271,12 @@ sub config_cluster {
     $variables{SSH_KEY_PRIV} = SSH_KEY;
     $variables{SSH_KEY_PUB} = $ssh_key_pub;
     $variables{SCC_REGCODE_SLES4SAP} = $scc;
+
+    $variables{HANA_ACCOUNT} = get_required_var("TRENTO_QESAPDEPLOY_HANA_ACCOUNT");
+    $variables{HANA_CONTAINER} = get_required_var("TRENTO_QESAPDEPLOY_HANA_CONTAINER");
+    if (get_var("TRENTO_QESAPDEPLOY_HANA_TOKEN")) {
+        $variables{HANA_TOKEN} = get_required_var("TRENTO_QESAPDEPLOY_HANA_TOKEN");
+    }
     $variables{HANA_SAR} = get_required_var("TRENTO_QESAPDEPLOY_SAPCAR");
     $variables{HANA_CLIENT_SAR} = get_required_var("TRENTO_QESAPDEPLOY_IMDB_CLIENT");
     $variables{HANA_SAPCAR} = get_required_var("TRENTO_QESAPDEPLOY_IMDB_SERVER");

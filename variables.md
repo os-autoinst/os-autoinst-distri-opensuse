@@ -233,9 +233,11 @@ TRENTO_AGENT_RPM | string | | Trento-agent rpm file name
 TRENTO_EXT_DEPLOY_IP | string | | Public IP of a Trento web instance not deployed by openQA
 TRENTO_WEB_PASSWORD | string | | Trento web password for the admin user. If not provided, random generated one.
 TRENTO_QESAPDEPLOY_CLUSTER_OS_VER | string | | OS for nodes in SAP cluster.
-TRENTO_QESAPDEPLOY_SAPCAR | string | | SAPCAR url for the qe-sap-deployment hana_media.yaml.
-TRENTO_QESAPDEPLOY_IMDB_SERVER | string | | IMDB_SERVER url for the qe-sap-deployment hana_media.yaml.
-TRENTO_QESAPDEPLOY_IMDB_CLIENT | string | | IMDB_CLIENT url for the qe-sap-deployment hana_media.yaml.
+TRENTO_QESAPDEPLOY_HANA_ACCOUNT | string | | Account name for the blob server for the qe-sap-deployment hana_media.yaml.
+TRENTO_QESAPDEPLOY_HANA_CONTAINER | string | | Container name for the blob server for the qe-sap-deployment hana_media.yaml.
+TRENTO_QESAPDEPLOY_SAPCAR | string | | SAPCAR executable name for the qe-sap-deployment hana_media.yaml.
+TRENTO_QESAPDEPLOY_IMDB_SERVER | string | | IMDB_SERVER executable name for the qe-sap-deployment hana_media.yaml.
+TRENTO_QESAPDEPLOY_IMDB_CLIENT | string | | IMDB_CLIENT executable name for the qe-sap-deployment hana_media.yaml.
 QESAP_CONFIG_FILE | string | | filename (of relative path) of the config YAML file for the qesap.py script, within `sles4sap/qe_sap_deployment/` subfolder in `data`.
 QESAP_DEPLOYMENT_DIR | string | /root/qe-sap-deployment | JumpHost folder where to install the qe-sap-deployment code
 QESAP_INSTALL_VERSION | string | | If configured, test will run with a specific release of qe-sap-deployment code from https://github.com/SUSE/qe-sap-deployment/releases.

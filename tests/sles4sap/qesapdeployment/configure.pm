@@ -30,6 +30,13 @@ sub run {
     $variables{SSH_KEY_PRIV} = '/root/.ssh/id_rsa';
     $variables{SSH_KEY_PUB} = '/root/.ssh/id_rsa.pub';
     $variables{SCC_REGCODE_SLES4SAP} = get_required_var('SCC_REGCODE_SLES4SAP');
+    $variables{HANA_ACCOUNT} = get_required_var("QESAPDEPLOY_HANA_ACCOUNT");
+    $variables{HANA_CONTAINER} = get_required_var("QESAPDEPLOY_HANA_CONTAINER");
+    if(get_var("QESAPDEPLOY_HANA_TOKEN")) {
+        $variables{HANA_TOKEN} = get_var("QESAPDEPLOY_HANA_TOKEN");
+        # something not escaped in file_content_replace()
+        $variables{HANA_TOKEN} =~ s/\&/\\\&/g;
+    }
     $variables{HANA_SAR} = get_required_var("QESAPDEPLOY_SAPCAR");
     $variables{HANA_CLIENT_SAR} = get_required_var("QESAPDEPLOY_IMDB_SERVER");
     $variables{HANA_SAPCAR} = get_required_var("QESAPDEPLOY_IMDB_CLIENT");
