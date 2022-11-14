@@ -523,13 +523,15 @@ sub prepare_firefox_autoconfig {
     start_root_shell_in_xterm;
 
     # Enable AutoConfig by pointing to a cfg file
-    type_string(q{cat <<EOF > $(rpm --eval %_libdir)/firefox/defaults/pref/autoconfig.js
+    type_string(
+        q{cat <<EOF > $(rpm --eval %_libdir)/firefox/defaults/pref/autoconfig.js
 pref("general.config.filename", "firefox.cfg");
 pref("general.config.obscure_value", 0);
 EOF
 });
     # Create AutoConfig cfg file
-    type_string(q{cat <<EOF > $(rpm --eval %_libdir)/firefox/firefox.cfg
+    type_string(
+        q{cat <<EOF > $(rpm --eval %_libdir)/firefox/firefox.cfg
 // Mandatory comment
 // https://firefox-source-docs.mozilla.org/browser/components/newtab/content-src/asrouter/docs/first-run.html
 pref("browser.aboutwelcome.enabled", false);
@@ -1038,7 +1040,8 @@ sub add_input_resource {
 
     if (is_sle('<=15-sp3') || is_leap('<=15.3')) {
         x11_start_program "gnome-control-center region", target_match => "g-c-c-region-language";
-    } else {
+    }
+    else {
         x11_start_program "gnome-control-center keyboard", target_match => "g-c-c-keyboard";
     }
 
@@ -1049,9 +1052,11 @@ sub add_input_resource {
     assert_and_click "ibus-input-$tag";
     if ($tag eq "japanese") {
         assert_and_dclick 'ibus-input-japanese-kkc';
-    } elsif ($tag eq "chinese") {
+    }
+    elsif ($tag eq "chinese") {
         assert_and_dclick 'ibus-input-chinese-pinyin';
-    } elsif ($tag eq "korean") {
+    }
+    elsif ($tag eq "korean") {
         assert_and_dclick 'ibus-input-korean-hangul';
     }
     assert_screen "ibus-input-added-$tag";
@@ -1059,4 +1064,70 @@ sub add_input_resource {
     assert_screen 'generic-desktop';
 }
 
+sub firefox_print2file_overview {
+    my ($self, $file) = @_;
+
+    # Prepare files for firefox printing
+    x11_start_program('gnome-terminal');
+    if (script_run("test -d ffprint")) {
+        assert_script_run "mkdir ffprint";
+    }
+    script_run "cd ffprint";
+    assert_script_run("wget " . autoinst_url . "/data/x11/firefox/$file");
+
+    if ($file eq "horizframetest") {
+        assert_script_run("wget " . autoinst_url . "/data/x11/firefox/horizframetest_files.tar.xz");
+        assert_script_run("tar xvf horizframetest_files.tar.xz");
+    }
+    elsif ($file eq "vertframetest") {
+        assert_script_run("wget " . autoinst_url . "/data/x11/firefox/vertframetest_files.tar.xz");
+        assert_script_run("tar xvf vertframetest_files.tar.xz");
+    }
+    elsif ($file eq "list") {
+        assert_script_run("wget " . autoinst_url . "/data/x11/firefox/list_files.tar.xz");
+        assert_script_run("tar xvf list_files.tar.xz");
+    }
+    send_key "alt-f4";
+    $self->start_firefox_with_profile;
+    $self->firefox_open_url("/home/$username/ffprint/$file");
+    assert_screen("firefox-print-$file-display");
+    send_key "ctrl-p";
+    assert_and_click("firefox-print-$file-overview");
+}
+
+sub firefox_print {
+    my ($self, $file) = @_;
+
+    # Click the "Save" button on the print overview page
+    assert_and_click("firefox-print2pdf-save");
+
+    # Specify the path and name of output file
+    send_key "ctrl-a";
+    type_string("/home/$username/ffprint/$file-output.pdf");
+
+    # Click save button on the save to destination page
+    assert_and_click("firefox-print-output-save");
+
+    wait_still_screen 5;
+
+    # Close firefox
+    send_key "alt-f4";
+}
+
+sub verify_firefox_print_output {
+    my ($self, $file) = @_;
+
+    # Verify the content and format of output file
+    x11_start_program("evince /home/$username/ffprint/$file-output.pdf", target_match => "evince-$file-output-default");
+    wait_still_screen 2;
+    send_key "alt-f10";    # maximize window
+    assert_screen("evince-$file-output-pdf", 5);
+    send_key "ctrl-w";    # close evince
+}
+
+sub cleanup_firefox_print {
+    assert_script_run "rm -rf /home/$username/ffprint/*";
+    send_key 'ctrl-d';
+    assert_screen 'generic-desktop';
+}
 1;
