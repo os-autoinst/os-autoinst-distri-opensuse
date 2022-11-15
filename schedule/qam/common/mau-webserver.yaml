@@ -21,6 +21,7 @@ schedule:
   - console/php_timezone
   - console/flask
   - '{{version_specific}}'
+  - console/zypper_log_packages
 conditional_schedule:
   version_specific:
     VERSION:
