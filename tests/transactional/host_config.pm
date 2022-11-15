@@ -30,6 +30,8 @@ sub run {
     if (is_alp) {
         change_grub_config('=.*', '=1024x768', 'GRUB_GFXMODE=');
         zypper_call('mr -e ALP-Build');
+
+        add_staging_repos() if (get_var("STAGING"));
     }
 
     if (!$keep_grub_timeout or $extrabootparams) {
@@ -39,6 +41,17 @@ sub run {
         process_reboot(trigger => 1);
     }
 }
+
+
+sub add_staging_repos {
+    my $stage = get_required_var("STAGING");
+
+    # Add staging repository with increased priority over default ones
+    my $repo = "https://download.opensuse.org/repositories/SUSE:/ALP:/Staging:/$stage/images/repo/ALP-0.1-x86_64-Media1/";
+    assert_script_run("zypper ar -p 90 --no-gpgcheck '$repo' 'Staging_$stage'");
+    assert_script_run("zypper --gpg-auto-import-keys ref");
+}
+
 
 sub test_flags {
     return {no_rollback => 1, fatal => 1, milestone => 1};
