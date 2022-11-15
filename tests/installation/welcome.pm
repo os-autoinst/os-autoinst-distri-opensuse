@@ -75,7 +75,6 @@ sub get_product_shortcuts {
         return (
             sles => (is_ppc64le() || is_s390x()) ? 'u'
             : is_aarch64() ? 's'
-            : ((is_sle '15-SP4+') && (get_var('ISO') =~ /Full/)) ? 's'
             : 'i',
             sled => 'x',
             hpc => is_x86_64() ? 'g' : 'u',
