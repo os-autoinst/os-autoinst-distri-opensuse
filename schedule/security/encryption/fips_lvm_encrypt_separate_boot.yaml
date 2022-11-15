@@ -8,39 +8,30 @@ vars:
   ENCRYPT: 1
   FULL_LVM_ENCRYPT: 1
   YUI_REST_API: 1
-conditional_schedule:
-  boot_encrypt_reconnect_mgmt_console:
-    ARCH:
-      s390x:
-        - installation/boot_encrypt
-        - installation/handle_reboot
-  grub_test_boot_encrypt:
-    BACKEND:
-      qemu:
-        - installation/handle_reboot
-        - installation/boot_encrypt
+  MAX_JOB_TIME: '14400'
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
-  - installation/scc_registration
-  - installation/addon_products_sle
-  - installation/system_role
-  - installation/partitioning
+  - installation/product_selection/install_SLES
+  - installation/licensing/accept_license
+  - installation/registration/register_via_scc
+  - installation/module_registration/skip_module_registration
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_text_mode
   - installation/partitioning/new_partitioning_gpt
-  - installation/installer_timezone
-  - installation/hostname_inst
-  - installation/user_settings
-  - installation/user_settings_root
-  - installation/resolve_dependency_issues
-  - installation/installation_overview
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
+  - installation/installation_settings/validate_ssh_service_enabled
+  - installation/installation_settings/open_ssh_port
+  - installation/bootloader_settings/disable_plymouth
   - installation/disable_grub_timeout
   - installation/start_install
-  - installation/await_install
+  - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
-  - installation/reboot_after_installation
-  - '{{boot_encrypt_reconnect_mgmt_console}}'
-  - '{{grub_test_boot_encrypt}}'
+  - installation/performing_installation/confirm_reboot
+  - installation/handle_reboot
+  - installation/boot_encrypt
   - installation/first_boot
   - console/hostname
   - console/system_prepare
