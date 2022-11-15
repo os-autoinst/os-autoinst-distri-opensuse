@@ -1303,7 +1303,10 @@ sub load_consoletests {
         loadtest "feature/feature_console/deregister";
     }
     loadtest "console/nginx" if ((is_opensuse && !is_staging) || (is_sle('15+') && !is_desktop));
-    loadtest 'console/orphaned_packages_check' if is_jeos || get_var('UPGRADE') || get_var('ZDUP') || !is_sle('<12-SP4');
+    # Checking for orphaned packages only really makes sense with the full FTP tree
+    unless (is_staging) {
+        loadtest 'console/orphaned_packages_check' if is_jeos || get_var('UPGRADE') || get_var('ZDUP') || !is_sle('<12-SP4');
+    }
     loadtest "console/zypper_log_packages" unless x11tests_is_applicable();
     loadtest "console/consoletest_finish";
 }
