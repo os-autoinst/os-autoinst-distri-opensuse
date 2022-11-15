@@ -75,7 +75,7 @@ sub load_image_tests_docker {
     load_image_test($run_args);
     # container_diff package is not avaiable for <=15 in aarch64
     # Also, we don't want to run it on 3rd party hosts
-    unless ((is_sle("<=15") and is_aarch64) || get_var('CONTAINERS_NO_SUSE_OS')) {
+    unless ((is_sle("<=15") and is_aarch64) || get_var('CONTAINERS_NO_SUSE_OS') || is_staging) {
         loadtest 'containers/container_diff';
     }
 }
@@ -91,8 +91,8 @@ sub load_host_tests_podman {
         loadtest 'containers/podman_pods';
         # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
         loadtest 'containers/podman_firewall' unless (is_public_cloud || is_openstack || is_microos || is_alp);
-        # Buildah is not available in SLE Micro and MicroOS
-        loadtest 'containers/buildah' unless (is_sle_micro || is_microos || is_leap_micro || is_alp);
+        # Buildah is not available in SLE Micro, MicroOS and staging projects
+        loadtest 'containers/buildah' unless (is_sle_micro || is_microos || is_leap_micro || is_alp || is_staging);
         # https://github.com/containers/podman/issues/5732#issuecomment-610222293
         # exclude rootless poman on public cloud because of cgroups2 special settings
         loadtest 'containers/rootless_podman' unless (is_sle('=15-sp1') || is_openstack || is_public_cloud);
@@ -113,7 +113,7 @@ sub load_host_tests_docker {
         loadtest 'containers/zypper_docker' unless (is_tumbleweed || is_sle_micro || is_microos || is_leap_micro);
         loadtest 'containers/docker_runc';
     }
-    unless (check_var('BETA', 1) || is_sle_micro || is_microos || is_leap_micro) {
+    unless (check_var('BETA', 1) || is_sle_micro || is_microos || is_leap_micro || is_staging) {
         # These tests use packages from Package Hub, so they are applicable
         # to maintenance jobs or new products after Beta release
         # PackageHub is not available in SLE Micro | MicroOS
