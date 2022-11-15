@@ -18,6 +18,7 @@ schedule:
   - installation/bootloader_start
   - installation/setup_libyui
   - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/disk_activation/select_configure_dasd_disks
   - installation/disk_activation/configure_dasd
