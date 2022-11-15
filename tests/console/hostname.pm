@@ -33,7 +33,6 @@ sub run {
     }
 
     set_hostname(get_var('HOSTNAME', 'susetest'));
-    assert_script_run 'zypper lr';
 }
 
 sub test_flags {
