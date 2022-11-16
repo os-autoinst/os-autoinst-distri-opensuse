@@ -60,7 +60,7 @@
             "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
             "leap-micro": [ "5.2", "5.3" ],
             "microos":  ["Tumbleweed"],
-            "alp":  ["0.1"]
+            "alp":  ["0.1", "0.1:S:A", "0.1:S:B"]
         },
         "type": "ignore"
     },
@@ -88,7 +88,7 @@
             "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
             "leap-micro": [ "5.2" ],
             "microos":  ["Tumbleweed"],
-            "alp":  ["0.1"]
+            "alp":  ["0.1", "0.1:S:A", "0.1:S:B"]
         },
         "type": "bug"
     },
@@ -322,7 +322,7 @@
             "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
             "leap-micro": ["5.2", "5.3"],
             "microos":  ["Tumbleweed"],
-            "alp":  ["0.1"]
+            "alp":  ["0.1", "0.1:S:A", "0.1:S:B"]
         },
         "type": "ignore"
     },
@@ -330,7 +330,7 @@
         "description": "health-checker/fail.sh check\" failed|Machine didn't come up correctly, do a rollback",
         "products": {
             "microos":  ["Tumbleweed"],
-            "alp":  ["0.1"]
+            "alp":  ["0.1", "0.1:S:A", "0.1:S:B"]
         },
         "type": "ignore"
     },
@@ -403,7 +403,7 @@
     "boo#1203899": {
         "description": "NetworkManager.*kill child process 'helper'.* failed due to unexpected return value -1 by waitpid",
         "products": {
-            "alp": ["0.1"]
+            "alp":  ["0.1", "0.1:S:A", "0.1:S:B"]
         },
         "type": "bug"
     },
