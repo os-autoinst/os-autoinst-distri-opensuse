@@ -24,7 +24,7 @@ use testapi;
 use lockapi qw(mutex_create mutex_wait);
 use version_utils qw(is_sle is_leap);
 use yast2_widget_utils 'change_service_configuration';
-use utils qw(systemctl type_string_slow_extended);
+use utils qw(systemctl type_string_slow_extended zypper_call);
 use scheduler 'get_test_suite_data';
 use y2_mm_common 'prepare_xterm_and_setup_static_network';
 
@@ -111,6 +111,7 @@ sub initiator_connected_targets_tab {
 
 sub run {
     prepare_xterm_and_setup_static_network(ip => $test_data->{initiator_conf}->{ip}, message => 'Configure MM network - client');
+    zypper_call("in open-iscsi");
     mutex_wait('iscsi_target_ready', undef, 'Target configuration in progress!');
     record_info 'Target Ready!', 'iSCSI target is configured, start initiator configuration';
     my $module_name = y2_module_guitest::launch_yast2_module_x11('iscsi-client', target_match => 'iscsi-client');
