@@ -25,13 +25,14 @@ sub run {
     change_grub_config('=\"[^\"]*', "& $extrabootparams", 'GRUB_CMDLINE_LINUX_DEFAULT') if $extrabootparams;
     $keep_grub_timeout or change_grub_config('=.*', '=-1', 'GRUB_TIMEOUT');
 
-    record_info('REPOS', script_output('zypper lr --url', proceed_on_failure => 1));
+    record_info('REPOS (Default)', script_output('zypper lr --url', proceed_on_failure => 1));
 
     if (is_alp) {
         change_grub_config('=.*', '=1024x768', 'GRUB_GFXMODE=');
         zypper_call('mr -e ALP-Build');
 
         add_staging_repos() if (get_var("STAGING"));
+        record_info('REPOS (all)', script_output('zypper lr --url', proceed_on_failure => 1));
     }
 
     if (!$keep_grub_timeout or $extrabootparams) {
