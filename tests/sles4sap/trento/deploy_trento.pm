@@ -30,6 +30,10 @@ sub run {
     trento_support('deploy_trento');
 }
 
+sub test_flags {
+    return {fatal => 1};
+}
+
 sub post_fail_hook {
     my ($self) = @_;
 

@@ -242,7 +242,7 @@ sub get_qesap_resource_group {
 =head3 config_cluster
 
 Create a variable map and prepare the qe-sap-deployment using it
-=over 2
+=over 3
 
 =item B<PROVIDER> - CloudProvider name
 

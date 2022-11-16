@@ -10,7 +10,7 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use qesapdeployment 'qesap_upload_logs';
-use trento qw(destroy_qesap get_trento_ip get_trento_password az_delete_group install_agent k8s_logs trento_support);
+use trento;
 
 sub run {
     my ($self) = @_;
@@ -32,6 +32,10 @@ sub run {
     }
 
     $cmd = install_agent($wd, '/root/test', $agent_api_key);
+}
+
+sub test_flags {
+    return {fatal => 1};
 }
 
 sub post_fail_hook {
