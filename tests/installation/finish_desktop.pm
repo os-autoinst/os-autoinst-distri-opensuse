@@ -35,7 +35,9 @@ sub run {
         assert_screen \@tags, $timeout;
     }
 
-    turn_off_plasma_tooltips();
+    # This only works with generic-desktop. In the opensuse-welcome case,
+    # the opensuse-welcome module will handle it instead.
+    turn_off_plasma_tooltips if match_has_tag('generic-desktop');
 }
 
 sub post_fail_hook {
