@@ -4,9 +4,9 @@ description:    >
      Maintainer: qe-kernel
      Installation scenario with HPC system role hpc-node and hpc-dev
 vars:
-  DESKTOP: textmode
+  DESKTOP: gnome
   INSTALLONLY: 1
-  PATTERNS: base,minimal,apparmor
+  PATTERNS: default
   SLE_PRODUCT: hpc
   HDDSIZEGB: 30
 conditional_schedule:
