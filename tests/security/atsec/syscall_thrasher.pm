@@ -38,7 +38,7 @@ sub run {
 
     # Run the test
     assert_script_run("cd $test_dir");
-    assert_script_run("./$exe_file", timeout => 1200);
+    assert_script_run("./$exe_file", timeout => 2000);
     assert_script_run('ls');
 }
 
