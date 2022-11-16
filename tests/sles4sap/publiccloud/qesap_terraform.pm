@@ -145,6 +145,8 @@ sub run {
     }
 
     $self->{instances} = $run_args->{instances} = \@instances_export;
+    $self->{instance} = $run_args->{my_instance} = $run_args->{instances}[0];
+    $self->{provider} = $run_args->{my_provider} = $provider;    # Required for cleanup
     record_info("Deployment OK",);
     return 1;
 }
