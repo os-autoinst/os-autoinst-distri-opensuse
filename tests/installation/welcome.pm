@@ -71,10 +71,15 @@ sub get_product_shortcuts {
     }
     # We got new products in SLE 15 SP1
     elsif (is_sle '15-SP1+') {
+        # sles does have different shortcuts in different tests at same time
+        #                x86_64
+        # Full              i
+        # Full (15-SP4)     s
         return (sles => 'u') if (get_var('ISO') =~ /Full/ && is_ppc64le() && get_var('NTLM_AUTH_INSTALL'));
         return (
             sles => (is_ppc64le() || is_s390x()) ? 'u'
             : is_aarch64() ? 's'
+            : ((is_sle '=15-SP4') && (get_var('ISO') =~ /Full/)) ? 's'
             : 'i',
             sled => 'x',
             hpc => is_x86_64() ? 'g' : 'u',
