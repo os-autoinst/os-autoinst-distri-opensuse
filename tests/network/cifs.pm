@@ -42,15 +42,19 @@ sub setup_local_server() {
 
 sub run {
     my $smb_domain = get_var("CIFS_TEST_DOMAIN") // "currywurst";
-    my $smb_remote = get_var("CIFS_TEST_REMOTE") // "currywurst.qam.suse.de";
+    # The test host is only available from the internal openqa.suse.de
+    my $smb_remote = get_var("CIFS_TEST_REMOTE", is_opensuse ? "local" : "currywurst.qam.suse.de");
     select_serial_terminal;
     add_suseconnect_product(get_addon_fullname('phub')) if is_sle;    # samba-client requires package hub
-    my $ret = zypper_call 'in cifs-utils samba-client nmap';
+
     # Use local samba server, if defined or if defined SMB server is not accessible
-    my $is_local = get_var("CIFS_TEST_REMOTE") eq 'local';
+    my $is_local = $smb_remote eq 'local';
+    my $pkgs = "cifs-utils samba-client";
+    $pkgs .= " nmap" unless $is_local;
+    my $ret = zypper_call "in $pkgs";
     if ($is_local || script_run("nmap -p 139,445 $smb_remote | grep open") != 0) {
         my $reason = $is_local ? "defined by CIFS_TEST_REMOTE" : "$smb_remote unreachable";
-        record_info("local samba server", "Using a local samba server (defined by CIFS_TEST_REMOTE)");
+        record_info("local samba server", "Using a local samba server ($reason)");
         setup_local_server();
         $smb_remote = "127.0.0.1";
     }
