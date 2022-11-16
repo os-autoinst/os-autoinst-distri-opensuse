@@ -11,7 +11,7 @@ use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_sle_micro is_microos is_leap is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp);
+use version_utils qw(is_sle_micro is_microos is_leap is_leap_micro is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends;
@@ -891,6 +891,12 @@ anymore for storage-ng.
 sub workaround_type_encrypted_passphrase {
     # nothing to do if the boot partition is not encrypted in FULL_LVM_ENCRYPT
     return unless is_boot_encrypted();
+
+    # With newer grub2 (in TW only currently), entering the passphrase in GRUB2
+    # is enough. The key is passed on during boot, so it's not asked for
+    # a second time.
+    return if !is_leap && !is_sle && !is_leap_micro && !is_sle_micro;
+
     record_info(
         "LUKS pass", "Workaround for 'Provide kernel interface to pass LUKS password from bootloader'.\n" .
           'For further info, please, see https://fate.suse.com/320901, https://jira.suse.com/browse/SLE-2941, ' .
