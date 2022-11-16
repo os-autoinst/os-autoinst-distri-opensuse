@@ -12,7 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use x11utils 'handle_welcome_screen';
+use x11utils qw(handle_welcome_screen turn_off_plasma_tooltips);
 use version_utils 'is_upgrade';
 
 sub run {
@@ -27,6 +27,8 @@ sub run {
     } else {
         handle_welcome_screen;
     }
+
+    turn_off_plasma_tooltips;
 }
 
 sub test_flags {
