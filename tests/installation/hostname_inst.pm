@@ -1,13 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2020 SUSE LLC
+# Copyright 2016-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Assert hostname in YaST Installer is set properly
+# Summary: Assert hostname in YaST Installer is set properly in qemu backend.
 # - Check if hostname matches the one defined on EXPECTED_INSTALL_HOSTNAME or is
 # "install"
 # - Save screenshot
-# Maintainer: Michal Nowak <mnowak@suse.com>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 # Tags: pr#11456, fate#319639
 
 use base 'y2_installbase';
