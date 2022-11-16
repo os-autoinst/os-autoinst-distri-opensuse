@@ -16,9 +16,11 @@
 use strict;
 use warnings;
 use base 'bootbasetest';
+use x11utils 'turn_off_plasma_tooltips';
 
 sub run {
     shift->wait_boot_past_bootloader;
+    turn_off_plasma_tooltips;
 }
 
 sub test_flags {
