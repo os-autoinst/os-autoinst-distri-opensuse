@@ -16,11 +16,14 @@
 use strict;
 use warnings;
 use base 'bootbasetest';
+use testapi;
 use x11utils 'turn_off_plasma_tooltips';
 
 sub run {
     shift->wait_boot_past_bootloader;
-    turn_off_plasma_tooltips;
+    # This only works with generic-desktop. In the opensuse-welcome case,
+    # the opensuse-welcome module will handle it instead.
+    turn_off_plasma_tooltips if match_has_tag('generic-desktop');
 }
 
 sub test_flags {
