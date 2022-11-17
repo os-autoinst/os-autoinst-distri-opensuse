@@ -141,7 +141,7 @@ Find pods using kubectl queries
 
 sub wait_for_k8s_job_complete {
     my ($job) = @_;
-    assert_script_run("kubectl wait --for=condition=complete --timeout=300s job/$job");
+    assert_script_run("kubectl wait --for=condition=complete --timeout=300s job/$job", timeout => 360);
 }
 
 =head2 wait_for_k8s_job_complete
