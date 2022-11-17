@@ -59,14 +59,10 @@ sub create_playbook_section {
     # Cluster related setup
     my @playbook_list;
     my @hana_playbook_list = (
-        "pre-cluster.yaml",
-        "sap-hana-preconfigure.yaml -e use_sapconf=" . set_var_output("USE_SAPCONF", "true"),
-        "cluster_sbd_prep.yaml",
-        "sap-hana-storage.yaml",
-        "sap-hana-download-media.yaml",
-        "sap-hana-install.yaml",
-        "sap-hana-system-replication.yaml",
-        "sap-hana-system-replication-hooks.yaml",
+        "pre-cluster.yaml", "sap-hana-preconfigure.yaml -e use_sapconf=" . set_var_output("USE_SAPCONF", "true"),
+        "cluster_sbd_prep.yaml", "sap-hana-storage.yaml",
+        "sap-hana-download-media.yaml", "sap-hana-install.yaml",
+        "sap-hana-system-replication.yaml", "sap-hana-system-replication-hooks.yaml",
         "sap-hana-cluster.yaml"
     );
 
@@ -141,7 +137,9 @@ sub run {
         $instance->wait_for_ssh();
         # Does not fail for some reason.
         my $real_hostname = $instance->run_ssh_command(cmd => "hostname", username => "cloudadmin");
-        die if ($expected_hostname ne $real_hostname);
+        # We expect hostnames reported by terraform to match the actual hostnames in Azure and GCE
+        die "Expected hostname $expected_hostname is different than actual hostname [$real_hostname]"
+          if ((is_azure || is_gce) && ($expected_hostname ne $real_hostname));
     }
 
     $self->{instances} = $run_args->{instances} = \@instances_export;

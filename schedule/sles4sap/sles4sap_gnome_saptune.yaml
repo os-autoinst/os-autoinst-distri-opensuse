@@ -8,7 +8,6 @@ vars:
   BOOT_HDD_IMAGE: '1'
   TEST_CONTEXT: 'OpenQA::Test::RunArgs'
   NODE_COUNT: '1'
-  QESAP_CONFIG_FILE: 'sles4sap_azure_generic.yaml'
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
   # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-gnome.qcow2
   # START_AFTER_TEST: create_hdd_sles4sap_gnome
