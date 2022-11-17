@@ -1231,7 +1231,7 @@ sub load_consoletests {
     }
     if (is_jeos) {
         loadtest "jeos/glibc_locale";
-        loadtest "jeos/kiwi_templates" unless (is_leap('<15.2'));
+        loadtest "jeos/kiwi_templates" unless (is_leap('<15.2') || is_staging);
     }
     loadtest 'console/systemd_wo_udev' if (is_sle('15-sp4+') || is_leap('15.4+') || is_tumbleweed);
     loadtest "console/ncurses" if is_leap;
