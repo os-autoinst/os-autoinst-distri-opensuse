@@ -14,6 +14,7 @@
 use base "opensusebasetest";
 use strict;
 use warnings;
+use Socket;
 use testapi;
 use Test::Assert 'assert_equals';
 use version_utils qw(is_sle);
@@ -35,7 +36,6 @@ my $ibft_expected = {
         target_name => get_required_var('NBF'),
         flags => 3,
         port => 3260,
-        ip_addr => get_required_var('WORKER_HOSTNAME'),
         chap_type => 0
     },
     acpi_header => {
@@ -112,6 +112,9 @@ sub run {
     my $reg_rx = qr/rxdata_octets:\s+\d+/;
     # Requires NICTYPE=user and backend/qemu.pm code to run
     $ibft_expected->{ethernet}->{mac} = get_required_var('NICMAC');
+
+    my $fqdn = testapi::get_required_var('WORKER_HOSTNAME');
+    $ibft_expected->{target}->{ip_addr} = inet_ntoa(inet_aton($fqdn));
 
     select_console 'root-console';
     # find iscsi drive
