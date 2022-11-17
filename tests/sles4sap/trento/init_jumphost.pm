@@ -23,4 +23,8 @@ sub run {
     my $provider = $self->provider_factory();
 }
 
+sub test_flags {
+    return {fatal => 1};
+}
+
 1;
