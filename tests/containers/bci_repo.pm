@@ -48,23 +48,26 @@ my @pkg_regex = ('kernel-default', 'yast', 'gnome-desktop', 'qemu-kvm');
 sub container_exec {
     my $container = shift;
     my $cmd = shift;
-    assert_script_run(qq[podman exec $container /bin/sh -c '$cmd'], @_);
+    my %args = @_;
+    $args{retry} //= 1;    # Don't retry unless explicitly requested
+
+    script_retry(qq[podman exec $container /bin/sh -c '$cmd'], %args);
 }
 
 sub prepare_repo {
     my $container = shift;
     my $bci_repo = get_required_var('REPO_BCI');
-    container_exec($container, 'zypper ref', timeout => 180);
+    container_exec($container, 'zypper ref', timeout => 180, retry => 3, delay => 120);
     container_exec($container, 'zypper lr -d');
     container_exec($container, "zypper -q -s 11 pa --orphaned | tee -a repo.org", timeout => 600);
     # remove container-suseconnect to not get packages from registered SLE host
     container_exec($container, 'zypper -n rm container-suseconnect', timeout => 180);
     # refresh services in order to remove container-suseconnect-zypp orphaned services
-    container_exec($container, 'zypper refs');
+    container_exec($container, 'zypper refs', retry => 3, delay => 120);
     # remove SLE_BCI repo pointing to official update servers and add SUT repo
     container_exec($container, 'zypper rr SLE_BCI');
     container_exec($container, "zypper ar http://openqa.suse.de/assets/repo/$bci_repo BCI_TEST");
-    container_exec($container, 'zypper ref', timeout => 180);
+    container_exec($container, 'zypper ref', timeout => 180, retry => 3, delay => 120);
     container_exec($container, 'zypper lr -d');
 }
 
@@ -81,10 +84,10 @@ sub run {
 
     record_info('TEST', 'Test that the repo does not contain certain packages such as kernel, yast, desktop, kvm, etc...');
     my $container = "bci-repo-tester_pkgs";
-    assert_script_run("podman run --name $container -dt $image");
+    script_retry("podman run --name $container -dt $image", timeout => 300, retry => 3, delay => 120);
     prepare_repo($container);
     foreach my $pkg (@pkg_regex) {
-        my $result = script_run(qq[podman exec $container /bin/sh -c 'zypper se $pkg'], die_on_timeout => 1);
+        my $result = script_run(qq[podman exec $container /bin/sh -c 'zypper se $pkg'], timeout => 180, die_on_timeout => 1);
         if ($result == 0) {
             # Fail if pkg is present in the repo.
             record_soft_failure("poo#109822 - Package $pkg should not be present in BCI-repo!");
@@ -95,7 +98,7 @@ sub run {
     record_info('TEST', 'Testing patterns and packages can be installed.');
     for (my $i = 0; $i < (scalar @$tdata); $i++) {
         my $container = "bci-repo-tester$i";
-        assert_script_run("podman run --name $container -dt $image");
+        script_retry("podman run --name $container -dt $image", timeout => 300, retry => 3, delay => 120);
         prepare_repo($container);
         my @patterns = @{$tdata->[$i]->{patterns}};
         record_info("Patterns", join(', ', @patterns));
