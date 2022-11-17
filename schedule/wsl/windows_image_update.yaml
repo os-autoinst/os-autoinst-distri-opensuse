@@ -1,5 +1,0 @@
----
-name: windows base image update
-schedule:
-  - wsl/boot_windows
-  - wsl/update_windows
