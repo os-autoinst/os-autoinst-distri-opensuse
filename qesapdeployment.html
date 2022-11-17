@@ -33,6 +33,7 @@
           <li><a href="#qesap_get_terraform_dir">qesap_get_terraform_dir</a></li>
           <li><a href="#qesap_prepare_env">qesap_prepare_env</a></li>
           <li><a href="#qesap_ansible_cmd">qesap_ansible_cmd</a></li>
+          <li><a href="#qesap_ansible_script_output">qesap_ansible_script_output</a></li>
         </ul>
       </li>
     </ul>
@@ -172,6 +173,44 @@
 
 </dd>
 <dt id="FILTER---filter-hosts-in-the-inventory"><b>FILTER</b> - filter hosts in the inventory</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_ansible_script_output">qesap_ansible_script_output</h3>
+
+<pre><code>    Use Ansible to run a command remotely and get the stdout.
+    Command could be executed with elevated privileges
+
+    qesap_ansible_script_output(cmd =&gt; &#39;crm status&#39;, provider =&gt; &#39;aws&#39;, host =&gt; &#39;vmhana01&#39;, root =&gt; 1);
+
+    It uses playbook data/sles4sap/script_output.yaml
+
+    1. ansible-playbook run the playbook
+    2. the playbook executes the command and redirects the output to file, both remotely
+    3. the playbook download the file locally
+    4. the file is read and stored to be returned to the caller</code></pre>
+
+<dl>
+
+<dt id="PROVIDER---Cloud-provider-name-used-to-find-the-inventory1"><b>PROVIDER</b> - Cloud provider name, used to find the inventory</dt>
+<dd>
+
+</dd>
+<dt id="CMD---command-to-run-remotely1"><b>CMD</b> - command to run remotely</dt>
+<dd>
+
+</dd>
+<dt id="HOST---filter-hosts-in-the-inventory"><b>HOST</b> - filter hosts in the inventory</dt>
+<dd>
+
+</dd>
+<dt id="USER---user-on-remote-host-default-to-cloudadmin1"><b>USER</b> - user on remote host, default to &#39;cloudadmin&#39;</dt>
+<dd>
+
+</dd>
+<dt id="ROOT---1-to-enable-remote-execution-with-elevated-user-default-to-0"><b>ROOT</b> - 1 to enable remote execution with elevated user, default to 0</dt>
 <dd>
 
 </dd>
