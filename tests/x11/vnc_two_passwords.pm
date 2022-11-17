@@ -25,6 +25,10 @@ use testapi;
 use x11utils 'ensure_unlocked_desktop';
 use version_utils qw(is_sle package_version_cmp);
 use utils;
+use Utils::Architectures qw(is_aarch64);
+
+# set global timeout, increased for aarch64
+my $timeout = (is_aarch64 && is_sle) ? 90 : 30;
 
 # Any free display
 my $display = ':37';
@@ -95,7 +99,7 @@ sub generate_vnc_events {
     mouse_click;
 
     send_key 'alt-f4';
-    wait_serial('vncviewer-finished') || die 'vncviewer not finished';
+    wait_serial('vncviewer-finished', $timeout) || die 'vncviewer not finished';
     enter_cmd 'exit';
 }
 
@@ -132,15 +136,20 @@ sub run {
         # eg.
         #     xev -display $display -root | tee /tmp/xev_log ; echo xev-finished >/dev/$serialdev
         # will not work
-        # Parentheses are needed to not populate trap to following commands
-        enter_cmd "(trap 'echo xev-finished >/dev/$serialdev' SIGINT; xev -display $display -root | tee /tmp/xev_log) ";
+        # Parentheses are needed to not populate trap to following commands. Add delay time on aarch64 because xev takes longer to finish or even hangs
+        my $delay_time = (is_aarch64 && is_sle) ? 60 : 1;
+        enter_cmd "(trap 'echo xev-finished >/dev/$serialdev' SIGINT; xev -display $display -root | tee /tmp/xev_log); sleep $delay_time; ";
 
         # Repeat with RO/RW password
         generate_vnc_events $opt->{pw};
 
-        # Close xev
+        # Close xev, re-try if needed on aarch64, increase timeout on aarch64 for wait_serial, see poo#119416
         send_key 'ctrl-c';
-        wait_serial('xev-finished') || die 'xev not finished';
+        # give a second chance to quit xev
+        send_key 'ctrl-c' if (is_sle && is_aarch64) && ((check_screen 'need-to-close-again', $timeout) || (check_screen 'need-to-close-again-extra1', $timeout));
+        my $message = 'xev not finished';
+        $message .= ', performance issue on aarch64, see poo#120282 for more details' if (is_sle && is_aarch64);
+        wait_serial('xev-finished', $timeout) || die $message;
 
         # Check if xev recorded events or not - RO/RW mode
         if ($opt->{change}) {
@@ -182,7 +191,7 @@ sub run {
         type_string("$display");
         send_key("ret");
         # We first test for a unsucessfull login
-        assert_screen('tigervnc-desktop-login');
+        assert_screen('tigervnc-desktop-login', $timeout);
         type_string("$wrong_password");
         send_key("ret");
         assert_screen('tigervnc-login-fail');
@@ -194,20 +203,35 @@ sub run {
             send_key("ret");
         }
         # Test for a sucessfull login. Note: vncviewer remembers the last address, don't type it again
+        # sometimes screen is frozen with strange dialog like 'logged-as-priviled-user', there is no way to go further, so repeat these steps
         x11_start_program('vncviewer');
         send_key("ret");
-        assert_screen('tigervnc-desktop-login');
-        type_string("$options[1]->{pw}");
-        send_key("ret");
-        assert_screen('tigervnc-desktop-loggedin');
+        assert_screen([qw(tigervnc-desktop-login logged-as-priviled-user)]);
+        if (match_has_tag 'logged-as-priviled-user') {
+            record_soft_failure('poo#120282');
+            send_key("alt-f4");
+            select_console('root-console');
+            assert_script_run("killall vncviewer");
+            select_console('x11');
+            ensure_unlocked_desktop;
+            x11_start_program('vncviewer');
+            send_key("ret");
+            assert_screen('tigervnc-desktop-loggedin', $timeout);
+            type_string("$options[1]->{pw}");
+            send_key("ret");
+        }
+        else {
+            type_string("$options[1]->{pw}");
+            send_key("ret");
+        }
         save_screenshot();
         send_key("alt-f4");
         x11_start_program('vncviewer');
         send_key("ret");
-        assert_screen('tigervnc-desktop-login');
+        assert_screen('tigervnc-desktop-login', $timeout);
         type_string("$options[0]->{pw}");
         send_key("ret");
-        assert_screen('tigervnc-desktop-loggedin');
+        assert_screen('tigervnc-desktop-loggedin', $timeout);
         save_screenshot();
         send_key("alt-f4");
     } else {
