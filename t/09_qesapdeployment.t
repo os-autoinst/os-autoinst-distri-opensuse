@@ -311,7 +311,99 @@ END
 
     is $res, 3, 'Number of agents like expected';
     like $calls[0], qr/cat.*\/CRUSH/;
+};
 
+subtest '[qesap_ansible_script_output]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(data_url => sub { return '/BRUCE'; });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'patate'; });
+
+    my $cmr_status = qesap_ansible_script_output(cmd => 'SWIM', provider => 'NEMO', host => 'REEF');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /ansible-playbook.*REEF.*"cmd='SWIM'"/ } @calls), 'proper ansible-playbooks command');
+};
+
+
+subtest '[qesap_ansible_script_output] cmd with spaces' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(data_url => sub { return '/BRUCE'; });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'patate'; });
+
+    my $cmr_status = qesap_ansible_script_output(cmd => 'SWIM SWIM SWIM', provider => 'NEMO', host => 'REEF');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /ansible-playbook.*REEF.*"cmd='SWIM SWIM SWIM'"/ } @calls), 'proper ansible-playbooks command');
+};
+
+
+subtest '[qesap_ansible_script_output] download the playbook' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    $qesap->redefine(script_run => sub {
+            push @calls, $_[0];
+            if ($_[0] =~ /test.*-e/) {
+                return 1;
+            }
+            return 0;
+    });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(data_url => sub { return '/BRUCE'; });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'patate'; });
+
+    my $cmr_status = qesap_ansible_script_output(cmd => 'SWIM', provider => 'NEMO', host => 'REEF');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /curl.*BRUCE/ } @calls), 'Playbook download with culr');
+};
+
+subtest '[qesap_ansible_script_output] custom user' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(data_url => sub { return '/BRUCE'; });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'patate'; });
+
+    my $cmr_status = qesap_ansible_script_output(cmd => 'SWIM', provider => 'NEMO', host => 'REEF', user => 'GERALD');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /ansible-playbook.*-u GERALD/ } @calls), 'Custom ansible with user');
+};
+
+subtest '[qesap_ansible_script_output] root' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(data_url => sub { return '/BRUCE'; });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'patate'; });
+
+    my $cmr_status = qesap_ansible_script_output(cmd => 'SWIM', provider => 'NEMO', host => 'REEF', root => 1);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /ansible-playbook.*-b --become-user root/ } @calls), 'Ansible as root');
 };
 
 done_testing;
