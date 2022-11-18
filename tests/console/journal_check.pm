@@ -107,6 +107,13 @@ sub run {
             $failed = 1;
         }
     }
+
+    # upload all content of audit directory
+    if (script_run('test -d /var/log/audit/') == 0) {
+        assert_script_run('tar cvf /tmp/audit.tar  /var/log/audit/*');
+        upload_logs('/tmp/audit.tar');
+    }
+
     $self->result('fail') if $failed;
 }
 
