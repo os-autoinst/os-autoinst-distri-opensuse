@@ -31,7 +31,7 @@
 
 <h2 id="prepare_system_shutdown">prepare_system_shutdown</h2>
 
-<pre><code> prepare_system_shutdown();</code></pre>
+<pre><code>prepare_system_shutdown();</code></pre>
 
 <p>Need to kill ssh connection with backends like ipmi, spvm, pvm_hmc, s390x.</p>
 
@@ -41,7 +41,7 @@
 
 <h2 id="reboot_x11">reboot_x11</h2>
 
-<pre><code> reboot_x11();</code></pre>
+<pre><code>reboot_x11();</code></pre>
 
 <p>Reboot from Gnome Desktop and handle authentification scenarios during shutdown.</p>
 
@@ -57,13 +57,13 @@
 
 <h2 id="handle_livecd_reboot_failure">handle_livecd_reboot_failure</h2>
 
-<pre><code> handle_livecd_reboot_failure();</code></pre>
+<pre><code>handle_livecd_reboot_failure();</code></pre>
 
 <p>Handle a potential failure on a live CD related to boo#993885 that the reboot action from a desktop session does not work and we are stuck on the desktop.</p>
 
 <h2 id="power_action">power_action</h2>
 
-<pre><code> power_action($action [,observe =&gt; $observe] [,keepconsole =&gt; $keepconsole] [,textmode =&gt; $textmode]);</code></pre>
+<pre><code>power_action($action [,observe =&gt; $observe] [,keepconsole =&gt; $keepconsole] [,textmode =&gt; $textmode]);</code></pre>
 
 <p>Executes the selected power action (e.g. poweroff, reboot).</p>
 
@@ -73,7 +73,7 @@
 
 <h2 id="assert_shutdown_and_restore_system">assert_shutdown_and_restore_system</h2>
 
-<pre><code> assert_shutdown_and_restore_system($action, $shutdown_timeout);</code></pre>
+<pre><code>assert_shutdown_and_restore_system($action, $shutdown_timeout);</code></pre>
 
 <p>VNC connection to SUT (the &#39;sut&#39; console) is terminated on Xen via svirt backend and we have to re-connect *after* the restart, otherwise we end up with stalled VNC connection. The tricky part is to know *when* the system is already booting.</p>
 
@@ -81,9 +81,9 @@
 
 <h2 id="assert_shutdown_with_soft_timeout">assert_shutdown_with_soft_timeout</h2>
 
-<pre><code> assert_shutdown_with_soft_timeout([$args]);
+<pre><code>assert_shutdown_with_soft_timeout([$args]);
 
- $args = {[timeout =&gt; $timeout] [,soft_timeout =&gt; $soft_timeout] [,bugref =&gt; $bugref] [,soft_failure_reason =&gt; $soft_failure_reason]}</code></pre>
+$args = {[timeout =&gt; $timeout] [,soft_timeout =&gt; $soft_timeout] [,bugref =&gt; $bugref] [,soft_failure_reason =&gt; $soft_failure_reason]}</code></pre>
 
 <p>Extending assert_shutdown with a soft timeout. When <code>$args-</code>{soft_timeout}&gt; is reached, a soft failure is recorded with the message <code>$args-</code>{soft_failure_reason}&gt;.</p>
 
@@ -95,7 +95,7 @@
 
 <p>Example:</p>
 
-<pre><code> assert_shutdown_with_soft_timeout({timeout =&gt; 300, soft_timeout =&gt; 60, bugref =&gt; &#39;bsc#123456&#39;});</code></pre>
+<pre><code>assert_shutdown_with_soft_timeout({timeout =&gt; 300, soft_timeout =&gt; 60, bugref =&gt; &#39;bsc#123456&#39;});</code></pre>
 
 
 </body>

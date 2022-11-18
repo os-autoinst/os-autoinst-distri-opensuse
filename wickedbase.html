@@ -42,7 +42,7 @@
 
 <h2 id="wicked_command">wicked_command</h2>
 
-<pre><code>  wicked_command($action =&gt; [ifup|ifdown|ifreaload], $iface)</code></pre>
+<pre><code>wicked_command($action =&gt; [ifup|ifdown|ifreaload], $iface)</code></pre>
 
 <p>Executes wicked command given the action on the corresponding interface.</p>
 
@@ -50,18 +50,18 @@
 
 <h2 id="get_wicked_version">get_wicked_version</h2>
 
-<pre><code>    get_wicked_version()</code></pre>
+<pre><code>get_wicked_version()</code></pre>
 
 <p>Return the current installed wicked version</p>
 
 <h2 id="check_wicked_version">check_wicked_version</h2>
 
-<pre><code>    check_wicked_version(&#39;&gt;=0.6.66&#39;)</code></pre>
+<pre><code>check_wicked_version(&#39;&gt;=0.6.66&#39;)</code></pre>
 
 <h2 id="assert_wicked_state">assert_wicked_state</h2>
 
-<pre><code>  assert_wicked_state([wicked_client_down =&gt; 0, interfaces_down =&gt; 0,
-                       wicked_daemon_down =&gt; 0, $ping_ip, $iface])</code></pre>
+<pre><code>assert_wicked_state([wicked_client_down =&gt; 0, interfaces_down =&gt; 0,
+                     wicked_daemon_down =&gt; 0, $ping_ip, $iface])</code></pre>
 
 <p>Check that wicked processes are as expected by input arguments. &#39;Up&#39; by default.</p>
 
@@ -69,13 +69,13 @@
 
 <h2 id="get_remote_ip">get_remote_ip</h2>
 
-<pre><code>  get_remote_ip(type =&gt; $type [, netmask =&gt; 0])</code></pre>
+<pre><code>get_remote_ip(type =&gt; $type [, netmask =&gt; 0])</code></pre>
 
 <p>Calls internally <code>get_ip()</code> and retrieves the corresponding IP of the remote site.</p>
 
 <h2 id="get_ip">get_ip</h2>
 
-<pre><code>  get_ip(type =&gt; [host|gre1|sit1|tunl1|tun1|br0|vlan|vlan_changed] [, is_wicked_ref =&gt; check_var(&#39;IS_WICKED_REF&#39;, &#39;1&#39;), netmask =&gt; 0])</code></pre>
+<pre><code>get_ip(type =&gt; [host|gre1|sit1|tunl1|tun1|br0|vlan|vlan_changed] [, is_wicked_ref =&gt; check_var(&#39;IS_WICKED_REF&#39;, &#39;1&#39;), netmask =&gt; 0])</code></pre>
 
 <p>Retrives IP address as <code>string</code> in IPv4 or IPv6 format and netmask prefix if <code>netmask</code> is set.</p>
 
@@ -83,7 +83,7 @@
 
 <h2 id="get_current_ip">get_current_ip</h2>
 
-<pre><code>  get_current_ip(ifc =&gt; $interface [, ip_version =&gt; &#39;v4&#39;])</code></pre>
+<pre><code>get_current_ip(ifc =&gt; $interface [, ip_version =&gt; &#39;v4&#39;])</code></pre>
 
 <p>Gets the IP of a given interface by <code>ifc</code>.</p>
 
@@ -95,7 +95,7 @@
 
 <h2 id="get_from_data">get_from_data</h2>
 
-<pre><code>  get_from_data($source, $target [, executable =&gt; 0, add_suffix =&gt; 0])</code></pre>
+<pre><code>get_from_data($source, $target [, executable =&gt; 0, add_suffix =&gt; 0])</code></pre>
 
 <p>Downloads to the current VM a file from the data directory given by <code>source</code> and stores it in <code>target</code>.</p>
 
@@ -103,43 +103,43 @@
 
 <h2 id="ping_with_timeout">ping_with_timeout</h2>
 
-<pre><code>  ping_with_timeout(type =&gt; $type[, ip =&gt; $ip, timeout =&gt; 60, ip_version =&gt; &#39;v4&#39;, proceed_on_failure =&gt; 0])</code></pre>
+<pre><code>ping_with_timeout(type =&gt; $type[, ip =&gt; $ip, timeout =&gt; 60, ip_version =&gt; &#39;v4&#39;, proceed_on_failure =&gt; 0])</code></pre>
 
 <p>Pings a given IP with a given <code>timeout</code>. <code>ip_version</code> defines the ping command to be used, &#39;ping&#39; by default and &#39;ping6&#39; for &#39;v6&#39;. IP could be specified directly via <code>ip</code> or using <code>type</code> variable. In case of <code>type</code> variable it will be bypassed to <code>get_remote_ip</code> function to get IP by label. If ping fails, command die unless you specify <code>proceed_on_failure</code>.</p>
 
 <h2 id="setup_tuntap">setup_tuntap</h2>
 
-<pre><code>  setup_tuntap($config, $type =&gt; [tun1|tap1])</code></pre>
+<pre><code>setup_tuntap($config, $type =&gt; [tun1|tap1])</code></pre>
 
 <p>Setups a TUN or TAP interface from a <code>config</code> file with the keywords &#39;local_ip&#39; and &#39;remote_ip&#39; which will be replaced with the corresponding IPs. The mandatory parameter <code>type</code> determines if it will configure a TUN device or a TAP device. The interface will be brought up using a wicked command.</p>
 
 <h2 id="setup_tunnel">setup_tunnel</h2>
 
-<pre><code>  setup_tunnel($config, $type =&gt; [gre1|sit1|tunl1|tun1])</code></pre>
+<pre><code>setup_tunnel($config, $type =&gt; [gre1|sit1|tunl1|tun1])</code></pre>
 
 <p>Setups a tunnel interface from a <code>config</code> file with the keywords &#39;local_ip&#39;, &#39;remote_ip&#39; and &#39;tunnel_ip&#39; which will be replaced with the corresponding IPs. The mandatory parameter <code>type</code> should determine the interface to be configured. The interface will be brought up using a wicked command.</p>
 
 <h2 id="create_tunnel_with_commands">create_tunnel_with_commands</h2>
 
-<pre><code>  create_tunnel_with_commands($type =&gt; [gre1|sit1|tunl1|tun1], $mode =&gt; [gre|sit|ipip|tun], $sub_mask)</code></pre>
+<pre><code>create_tunnel_with_commands($type =&gt; [gre1|sit1|tunl1|tun1], $mode =&gt; [gre|sit|ipip|tun], $sub_mask)</code></pre>
 
 <p>Setups a TUNL interface with IP commands (no wicked commands!). The parameter <code>type</code> determines the interface to be configured and <code>mode</code> the type of tunnel. Supported tunnels in this function are GRE, SIT, IPIP, TUN.</p>
 
 <h2 id="setup_bridge">setup_bridge</h2>
 
-<pre><code>  setup_bridge($config, $command =&gt; [ifup, ifdown, ifreload] [, $dummy])</code></pre>
+<pre><code>setup_bridge($config, $command =&gt; [ifup, ifdown, ifreload] [, $dummy])</code></pre>
 
 <p>Setups a bridge interface from a <code>config</code> file with the keywords &#39;local_ip&#39; which will be replaced with the corresponding IP. If <code>dummy</code> is given, it will also configure the dummy interface using the config file given by this parameter. <code>command</code> determines the wicked command to bring up/down the interface</p>
 
 <h2 id="setup_openvpn_client">setup_openvpn_client</h2>
 
-<pre><code>  setup_openvpn_client($device =&gt; [tun1, tap1])</code></pre>
+<pre><code>setup_openvpn_client($device =&gt; [tun1, tap1])</code></pre>
 
 <p>Setups the openvpn client using the interface given by <code>device</code></p>
 
 <h2 id="get_test_result">get_test_result</h2>
 
-<pre><code>  get_test_result($type, $ip_version =&gt; v4)</code></pre>
+<pre><code>get_test_result($type, $ip_version =&gt; v4)</code></pre>
 
 <p>It returns FAILED or PASSED if the ping to the remote IP of a certain interface type given by <code>type</code> is reachable or not. The parameter <code>ip_version</code> chould be one of the values &#39;v4&#39; or &#39;v6&#39;.</p>
 
@@ -147,35 +147,35 @@
 
 <p>The wicked way of uploading a file using the serial console. This method does not throw and error. On failing we only put a <code>&lt;record_info(result =</code> fail)&gt;&gt;</p>
 
-<pre><code>    $self-&gt;upload_log_file($src [, $dst]);</code></pre>
+<pre><code>$self-&gt;upload_log_file($src [, $dst]);</code></pre>
 
 <h2 id="upload_wicked_logs">upload_wicked_logs</h2>
 
-<pre><code>  upload_wicked_logs($prefix =&gt; [pre|post])</code></pre>
+<pre><code>upload_wicked_logs($prefix =&gt; [pre|post])</code></pre>
 
 <p>Gathers all the needed wicked information and compiles a compressed file that get&#39;s uploaded to the openqa instance. This function is normally called before and after a test is executed, the parameter <code>prefix</code> is used to to be appended to the file name to be uploaded. Normally &#39;pre&#39; or &#39;post&#39;, but could be any string.</p>
 
 <h2 id="do_barrier">do_barrier</h2>
 
-<pre><code>  do_barrier(&lt;barrier_postfix&gt;)</code></pre>
+<pre><code>do_barrier(&lt;barrier_postfix&gt;)</code></pre>
 
 <p>Used to syncronize the wicked tests for SUT and REF creating the corresponding mutex locks.</p>
 
 <h2 id="setup_vlan">setup_vlan</h2>
 
-<pre><code>    setup_vlan($ip_type)</code></pre>
+<pre><code>setup_vlan($ip_type)</code></pre>
 
 <p>Creating VLAN using only ip commands. Getting ip alias name for wickedbase::get_ip function</p>
 
 <h2 id="sync_start_of">sync_start_of</h2>
 
-<pre><code>  sync_start_of($service, $mutex, [,$timeout])</code></pre>
+<pre><code>sync_start_of($service, $mutex, [,$timeout])</code></pre>
 
 <p>Start <code>$service</code> within defined $timeout ( default is 60). After succesfully service start will create mutex with <code>$mutex</code> which can be used by parallel test to catch this event</p>
 
 <h2 id="write_cfg">write_cfg</h2>
 
-<pre><code>  write_cfg($filename, $content[, env =&gt; {}, encode_base64 =&gt; 0 ]);</code></pre>
+<pre><code>write_cfg($filename, $content[, env =&gt; {}, encode_base64 =&gt; 0 ]);</code></pre>
 
 <p>Write all data at once to the file. Replace all ocurance of <code>{{name}}</code>. First lookup is the given c&lt;$env&gt; hash and if it doesn&#39;t exists it try to lookup a member function with the given c&lt;name&gt; and replace the string with return value</p>
 

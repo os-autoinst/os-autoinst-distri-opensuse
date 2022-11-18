@@ -40,30 +40,30 @@
 
 <h1 id="SYNOPSIS">SYNOPSIS</h1>
 
-<pre><code>   $app = YuiRestClient::App-&gt;new({
-            port        =&gt; $port,
-            host        =&gt; $host,
-            api_version =&gt; API_VERSION,
-            timeout     =&gt; $timeout,
-            interval    =&gt; $interval});
-   $app-&gt;get_widget_controller()-&gt;set_host($yuihost);
-   $app-&gt;get_widget_controller()-&gt;set_host($yuiport); 
-   YuiRestClient::get_app()-&gt;check_connection(); 
-   $self-&gt;{btn_guided_setup} = $self-&gt;{app}-&gt;button({id =&gt; &#39;guided&#39;});       
-   $self-&gt;{ch_autologin} = $self-&gt;{app}-&gt;checkbox({id =&gt; &#39;autologin&#39;});
-   $self-&gt;{cb_filesystem}       = $self-&gt;{app}-&gt;combobox({id =&gt; &#39;&quot;Y2Partitioner::Widgets::BlkDeviceFilesystem&quot;&#39;});
-   $self-&gt;{isel_keyboard_layout} = $self-&gt;{app}-&gt;itemselector({id =&gt; &#39;layout_list&#39;});
-   $self-&gt;{lbl_settings_root_part} = $self-&gt;{app}-&gt;label({label =&gt; &#39;Settings for the Root Partition&#39;});
-   $self-&gt;{menu_btn_add} = $self-&gt;{app}-&gt;menucollection({label =&gt; &#39;Add...&#39;});
-   $self-&gt;{rb_operating_system} = $self-&gt;{app}-&gt;radiobutton({id =&gt; &#39;system&#39;});
-   $self-&gt;{txt_overview} = $self-&gt;{app}-&gt;richtext({id =&gt; &#39;proposal&#39;});
-   $self-&gt;{lst_target_disks} = $self-&gt;{app}-&gt;selectionbox({
-            id =&gt; &#39;&quot;Y2Partitioner::Dialogs::PartitionTableClone::DevicesSelector&quot;&#39;
-    });
-   $self-&gt;{tbl_available_devices} = $self-&gt;{app}-&gt;table({id =&gt; &#39;&quot;unselected&quot;&#39;});
-   $self-&gt;{tb_password} = $self-&gt;{app}-&gt;textbox({id =&gt; &#39;pw1&#39;});
-   $self-&gt;{tree_system_view}       = $self-&gt;{app}-&gt;tree({id =&gt; &#39;&quot;Y2Partitioner::Widgets::OverviewTree&quot;&#39;});
-   $self-&gt;{tab_cwm} = $self-&gt;{app}-&gt;tab({id =&gt; &#39;_cwm_tab&#39;});</code></pre>
+<pre><code>$app = YuiRestClient::App-&gt;new({
+         port        =&gt; $port,
+         host        =&gt; $host,
+         api_version =&gt; API_VERSION,
+         timeout     =&gt; $timeout,
+         interval    =&gt; $interval});
+$app-&gt;get_widget_controller()-&gt;set_host($yuihost);
+$app-&gt;get_widget_controller()-&gt;set_host($yuiport); 
+YuiRestClient::get_app()-&gt;check_connection(); 
+$self-&gt;{btn_guided_setup} = $self-&gt;{app}-&gt;button({id =&gt; &#39;guided&#39;});       
+$self-&gt;{ch_autologin} = $self-&gt;{app}-&gt;checkbox({id =&gt; &#39;autologin&#39;});
+$self-&gt;{cb_filesystem}       = $self-&gt;{app}-&gt;combobox({id =&gt; &#39;&quot;Y2Partitioner::Widgets::BlkDeviceFilesystem&quot;&#39;});
+$self-&gt;{isel_keyboard_layout} = $self-&gt;{app}-&gt;itemselector({id =&gt; &#39;layout_list&#39;});
+$self-&gt;{lbl_settings_root_part} = $self-&gt;{app}-&gt;label({label =&gt; &#39;Settings for the Root Partition&#39;});
+$self-&gt;{menu_btn_add} = $self-&gt;{app}-&gt;menucollection({label =&gt; &#39;Add...&#39;});
+$self-&gt;{rb_operating_system} = $self-&gt;{app}-&gt;radiobutton({id =&gt; &#39;system&#39;});
+$self-&gt;{txt_overview} = $self-&gt;{app}-&gt;richtext({id =&gt; &#39;proposal&#39;});
+$self-&gt;{lst_target_disks} = $self-&gt;{app}-&gt;selectionbox({
+         id =&gt; &#39;&quot;Y2Partitioner::Dialogs::PartitionTableClone::DevicesSelector&quot;&#39;
+ });
+$self-&gt;{tbl_available_devices} = $self-&gt;{app}-&gt;table({id =&gt; &#39;&quot;unselected&quot;&#39;});
+$self-&gt;{tb_password} = $self-&gt;{app}-&gt;textbox({id =&gt; &#39;pw1&#39;});
+$self-&gt;{tree_system_view}       = $self-&gt;{app}-&gt;tree({id =&gt; &#39;&quot;Y2Partitioner::Widgets::OverviewTree&quot;&#39;});
+$self-&gt;{tab_cwm} = $self-&gt;{app}-&gt;tab({id =&gt; &#39;_cwm_tab&#39;});</code></pre>
 
 <h1 id="DESCRIPTION">DESCRIPTION</h1>
 

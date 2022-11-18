@@ -56,7 +56,7 @@
 
 <h2 id="img_proof">img_proof</h2>
 
-<pre><code>  img_proof(instance_type =&gt; &lt;string&gt;, cleanup =&gt; &lt;bool&gt;, tests =&gt; &lt;string&gt;, timeout =&gt; &lt;seconds&gt;, results_dir =&gt; &lt;string&gt;, distro =&gt; &lt;string&gt;);</code></pre>
+<pre><code>img_proof(instance_type =&gt; &lt;string&gt;, cleanup =&gt; &lt;bool&gt;, tests =&gt; &lt;string&gt;, timeout =&gt; &lt;seconds&gt;, results_dir =&gt; &lt;string&gt;, distro =&gt; &lt;string&gt;);</code></pre>
 
 <p>Call img-proof tool and retrieves a hashref as result. Do not die if img-proof call exit with error. $result_hash = { instance =&gt; &lt;publiccloud:instance&gt;, # instance object logfile =&gt; &lt;string&gt;, # the pytest logfile results =&gt; &lt;string&gt;, # json results file tests =&gt; &lt;int&gt;, # total number of tests pass =&gt; &lt;int&gt;, # successful tests skip =&gt; &lt;int&gt;, # skipped tests fail =&gt; &lt;int&gt;, # number of failed tests error =&gt; &lt;int&gt;, # number of errors };</p>
 
@@ -74,7 +74,7 @@
 
 <h2 id="get_image_id">get_image_id</h2>
 
-<pre><code>    get_image_id([$img_url]);</code></pre>
+<pre><code>get_image_id([$img_url]);</code></pre>
 
 <p>Retrieves the CSP image id if exists, otherwise exception is thrown. The given <code>$img_url</code> is optional, if not present it retrieves from PUBLIC_CLOUD_IMAGE_LOCATION. If PUBLIC_CLOUD_IMAGE_ID is set, then this value will be used</p>
 

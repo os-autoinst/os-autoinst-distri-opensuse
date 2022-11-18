@@ -50,25 +50,25 @@
 
 <h2 id="expand_patterns">expand_patterns</h2>
 
-<pre><code> expand_patterns();</code></pre>
+<pre><code>expand_patterns();</code></pre>
 
 <p>Expand patterns for sle12 and sle15. Returns a list of patterns to be installed.</p>
 
 <h2 id="get_product_version">get_product_version</h2>
 
-<pre><code> get_product_version();</code></pre>
+<pre><code>get_product_version();</code></pre>
 
 <p>Return product version from SCC and product name, so-called unversioned products like asmm, contm, lgm, tcm, wsm if product version number lower than 15</p>
 
 <h2 id="expand_addons">expand_addons</h2>
 
-<pre><code> expand_addons();</code></pre>
+<pre><code>expand_addons();</code></pre>
 
 <p>Returns hash of all <code>SCC_ADDONS</code> with name, version and architecture.</p>
 
 <h2 id="expand_template">expand_template</h2>
 
-<pre><code> expand_template($profile);</code></pre>
+<pre><code>expand_template($profile);</code></pre>
 
 <p>Expand and returns template including autoyast profile and it&#39;s varialbes like addons, repos, patterns, get_var</p>
 
@@ -76,13 +76,13 @@
 
 <h2 id="init_autoyast_profile">init_autoyast_profile</h2>
 
-<pre><code> init_autoyast_profile();</code></pre>
+<pre><code>init_autoyast_profile();</code></pre>
 
 <p>Initialize or create a new autoyast profile by &#39;yast2 clone_system&#39; if doesn&#39;t exist and returns the path of autoyast profile</p>
 
 <h2 id="validate_autoyast_profile">validate_autoyast_profile</h2>
 
-<pre><code>  validate_autoyast_profile($profile);</code></pre>
+<pre><code>validate_autoyast_profile($profile);</code></pre>
 
 <p>Validate XML AutoYaST profile traversing YAML test data $profile is the root node in the test data</p>
 
@@ -100,88 +100,88 @@
 
 <h2 id="is_processable">is_processable</h2>
 
-<pre><code>    is_processable($node);
+<pre><code>  is_processable($node);
 
-  A node is considered &#39;processable&#39; when:
-   - is a simple key-value pair where value is text:
-     quotas: &#39;true&#39;
-   - has properties:
-     quotas:
-       _t: boolean
-       __text: &#39;true&#39;
-  In other words, a node is not processable when just needs to be traversed in the YAML.</code></pre>
+A node is considered &#39;processable&#39; when:
+ - is a simple key-value pair where value is text:
+   quotas: &#39;true&#39;
+ - has properties:
+   quotas:
+     _t: boolean
+     __text: &#39;true&#39;
+In other words, a node is not processable when just needs to be traversed in the YAML.</code></pre>
 
 <h2 id="has_properties">has_properties</h2>
 
-<pre><code>  has_properties($node);</code></pre>
+<pre><code>has_properties($node);</code></pre>
 
 <p>- A XML node can be specified in YAML along with its attributes from XML: XML: &lt;subvolumes t=&quot;list&quot;&gt; YAML: subvolumes: _t: list XPATH: ns:subvolumes[@t=&#39;list&#39;]</p>
 
 <p>- XPATH functions can be used:</p>
 
-<pre><code>    &#39;count&#39;: when you want to explicitly count the element in a list
-    XML:  &lt;subvolumes t=&quot;list&quot;&gt;
-            &lt;subvolume t=&quot;map&quot;&gt;
-    YAML: subvolumes:
-            __count: 8
-            subvolume:
-                ...
-    XPATH: ns:subvolumes[count(ns:subvolume)=8]
+<pre><code>&#39;count&#39;: when you want to explicitly count the element in a list
+XML:  &lt;subvolumes t=&quot;list&quot;&gt;
+        &lt;subvolume t=&quot;map&quot;&gt;
+YAML: subvolumes:
+        __count: 8
+        subvolume:
+            ...
+XPATH: ns:subvolumes[count(ns:subvolume)=8]
 
-    &#39;text&#39;: when you want to check some attribute and the text itself
-    XML:  &lt;quotas t=&quot;boolean&quot;&gt;true&lt;/quotas&gt;
-    YAML: quotas:
-            _t: boolean
-            __text: true
-    XPATH: ns:quotas[text()=&#39;true&#39; and @t=&#39;boolean&#39;]
+&#39;text&#39;: when you want to check some attribute and the text itself
+XML:  &lt;quotas t=&quot;boolean&quot;&gt;true&lt;/quotas&gt;
+YAML: quotas:
+        _t: boolean
+        __text: true
+XPATH: ns:quotas[text()=&#39;true&#39; and @t=&#39;boolean&#39;]
 
-    &#39;descendant&#39;: by default the algorithm will try to identify an element
-    in a list using direct children, but with this property is it possible to
-    add children which are descendant but not necessarily direct children.
-    It is useful when XML structure are almost exactly the same for different
-    list items and the only difference is found in more deeper descendants,
-    therefore avoiding to return multiple result for an XPATH expression.
+&#39;descendant&#39;: by default the algorithm will try to identify an element
+in a list using direct children, but with this property is it possible to
+add children which are descendant but not necessarily direct children.
+It is useful when XML structure are almost exactly the same for different
+list items and the only difference is found in more deeper descendants,
+therefore avoiding to return multiple result for an XPATH expression.
 
-    YAML:
-            drive:
-            - label:
-                _descendant: any
-                __text: root_multi_btrfs
-                disklabel: none
-                partitions:
-                partition:
-                - filesystem: btrfs
-                    label: root_multi_btrfs
-            - label:
-                _descendant: any
-                __text: test_multi_btrfs
-                disklabel: none
-                partitions:
-                partition:
-                - filesystem: btrfs
-                    label: test_multi_btrfs</code></pre>
+YAML:
+        drive:
+        - label:
+            _descendant: any
+            __text: root_multi_btrfs
+            disklabel: none
+            partitions:
+            partition:
+            - filesystem: btrfs
+                label: root_multi_btrfs
+        - label:
+            _descendant: any
+            __text: test_multi_btrfs
+            disklabel: none
+            partitions:
+            partition:
+            - filesystem: btrfs
+                label: test_multi_btrfs</code></pre>
 
 <h2 id="create_xpath_predicate">create_xpath_predicate</h2>
 
-<pre><code>    create_xpath_predicate($node);</code></pre>
+<pre><code>create_xpath_predicate($node);</code></pre>
 
 <p>Based on the properties of the node will create a predicate for the XPATH expression.</p>
 
 <h2 id="close_predicate">close_predicate</h2>
 
-<pre><code>    close_predicate(@array);</code></pre>
+<pre><code>close_predicate(@array);</code></pre>
 
 <p>Joins a list of intermediate predicates and closes it to create one XPATH predicate.</p>
 
 <h2 id="ns">ns</h2>
 
-<pre><code>    ns($node);</code></pre>
+<pre><code>ns($node);</code></pre>
 
 <p>Add XML namespace to the node declared in YAML file to be able to build the correct XPATH expression with namespaces.</p>
 
 <h2 id="get_traversable">get_traversable</h2>
 
-<pre><code>    get_traversable($node);</code></pre>
+<pre><code>get_traversable($node);</code></pre>
 
 <p>Return the node &#39;traversable&#39; of a node which contains properties, so it returns the key of the hash needed to continue traversing the YAML.</p>
 
@@ -189,86 +189,86 @@
 
 <h2 id="get_descendant">get_descendant</h2>
 
-<pre><code>    get_descendant($node);</code></pre>
+<pre><code>get_descendant($node);</code></pre>
 
 <p>It will apply the right separator in case direct children nodes (default) or any descendant is applied (&#39;&#39; also means ./ for direct children)</p>
 
 <h2 id="generate_expressions">generate_expressions</h2>
 
-<pre><code>    generate_expressions($node);</code></pre>
+<pre><code>generate_expressions($node);</code></pre>
 
 <p>Recursive algorithm to traverse YAML file and create a list of XPATH expressions.</p>
 
 <h2 id="run_expressions">run_expressions</h2>
 
-<pre><code>    run_expressions($args);</code></pre>
+<pre><code>run_expressions($args);</code></pre>
 
 <p>Run XPATH expressions. Errors handled are &#39;no node found&#39; and &#39;more than one node found&#39;</p>
 
 <h2 id="create_report">create_report</h2>
 
-<pre><code>    create_report($args);</code></pre>
+<pre><code>create_report($args);</code></pre>
 
 <p>Create a report with the errors found and listing all the XPATH expressions executed.</p>
 
 <h2 id="detect_profile_directory">detect_profile_directory</h2>
 
-<pre><code> detect_profile_directory(profile =&gt; $profile, path =&gt; $path)
+<pre><code>detect_profile_directory(profile =&gt; $profile, path =&gt; $path)
 
- Try to detect profile directory (autoyast_opensuse/, autoyast_sle{12,15}/, autoyast_sles11/)
- and returns its path.
- TODO: autoyast_{kvm,qam,xen}
+Try to detect profile directory (autoyast_opensuse/, autoyast_sle{12,15}/, autoyast_sles11/)
+and returns its path.
+TODO: autoyast_{kvm,qam,xen}
 
- $profile is the autoyast profile &#39;autoinst.xml&#39;.
- $path is AutoYaST profile path</code></pre>
+$profile is the autoyast profile &#39;autoinst.xml&#39;.
+$path is AutoYaST profile path</code></pre>
 
 <h2 id="expand_version">expand_version</h2>
 
-<pre><code> expand_version($profile);
+<pre><code>expand_version($profile);
 
- Expand VERSION, as e.g. 15-SP1 has to be mapped to 15.1
+Expand VERSION, as e.g. 15-SP1 has to be mapped to 15.1
 
- $profile is the autoyast profile &#39;autoinst.xml&#39;.</code></pre>
+$profile is the autoyast profile &#39;autoinst.xml&#39;.</code></pre>
 
 <h2 id="adjust_network_conf">adjust_network_conf</h2>
 
-<pre><code> adjust_network_conf($profile);
+<pre><code>adjust_network_conf($profile);
 
- For s390x and svirt backends need to adjust network configuration
+For s390x and svirt backends need to adjust network configuration
 
- $profile is the autoyast profile &#39;autoinst.xml&#39;.</code></pre>
+$profile is the autoyast profile &#39;autoinst.xml&#39;.</code></pre>
 
 <h2 id="expand_variables">expand_variables</h2>
 
-<pre><code> expand_variables($profile);
+<pre><code>expand_variables($profile);
 
- Expand variables from job settings which do not require further processing
+Expand variables from job settings which do not require further processing
 
- $profile is the autoyast profile &#39;autoinst.xml&#39;.</code></pre>
+$profile is the autoyast profile &#39;autoinst.xml&#39;.</code></pre>
 
 <h2 id="upload_profile">upload_profile</h2>
 
-<pre><code> upload_profile(profile =&gt; $profile, path =&gt; $path)
+<pre><code>upload_profile(profile =&gt; $profile, path =&gt; $path)
 
- Upload modified profile
- Update path
- Make available profile in job logs
+Upload modified profile
+Update path
+Make available profile in job logs
 
- $profile is the AutoYaST profile &#39;autoinst.xml&#39;
- $path is the path of the AutoYaST profile or one of the xml files when
- using rules and classes.</code></pre>
+$profile is the AutoYaST profile &#39;autoinst.xml&#39;
+$path is the path of the AutoYaST profile or one of the xml files when
+using rules and classes.</code></pre>
 
 <h2 id="inject_registration">inject_registration</h2>
 
-<pre><code> inject_registration($profile);
+<pre><code>inject_registration($profile);
 
- $profile is the autoyast profile &#39;autoinst.xml&#39;.</code></pre>
+$profile is the autoyast profile &#39;autoinst.xml&#39;.</code></pre>
 
 <h2 id="test_ayp_url">test_ayp_url</h2>
 
-<pre><code> test_ayp_url();
+<pre><code>test_ayp_url();
 
- Test if the autoyast profile url is reachable, before the autoyast installation begins.</code></pre>
+Test if the autoyast profile url is reachable, before the autoyast installation begins.</code></pre>
 
 <h2 id="get_test_data_files-get_test_data-dir_relative_path">get_test_data_files get_test_data($dir_relative_path)</h2>
 
@@ -278,20 +278,20 @@
 
 <h2 id="prepare_ay_file">prepare_ay_file</h2>
 
-<pre><code> prepare_ay_file(profile =&gt; $profile, path =&gt; $path)</code></pre>
+<pre><code>prepare_ay_file(profile =&gt; $profile, path =&gt; $path)</code></pre>
 
 <p>Get profile from autoyast template Map version names Get IP address from system variables Get values from SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_REGCODE_HPC SCC_URL ARCH LOADER_TYPE Modify profile with obtained values Return new path in case of using AutoYaST templates</p>
 
-<pre><code> $path is the path of the AutoYaST profile or one of the xml files when
- using rules and classes.</code></pre>
+<pre><code>$path is the path of the AutoYaST profile or one of the xml files when
+using rules and classes.</code></pre>
 
 <h2 id="generate_xml">generate_xml</h2>
 
-<pre><code>  generate_xml(addons =&gt; $addons)</code></pre>
+<pre><code>generate_xml(addons =&gt; $addons)</code></pre>
 
 <p>Get maintenance updates addons Generate one xml file Get values from MAINT_TEST_REPO Return string with xml format</p>
 
-<pre><code>  $addons is maintenance updates URL</code></pre>
+<pre><code>$addons is maintenance updates URL</code></pre>
 
 
 </body>

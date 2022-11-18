@@ -42,16 +42,16 @@
 
 <h1 id="NAME">NAME</h1>
 
-<pre><code>    qe-sap-deployment test lib</code></pre>
+<pre><code>qe-sap-deployment test lib</code></pre>
 
 <h1 id="COPYRIGHT">COPYRIGHT</h1>
 
-<pre><code>    Copyright 2022 SUSE LLC
-    SPDX-License-Identifier: FSFAP</code></pre>
+<pre><code>Copyright 2022 SUSE LLC
+SPDX-License-Identifier: FSFAP</code></pre>
 
 <h1 id="AUTHORS">AUTHORS</h1>
 
-<pre><code>    QE SAP &lt;qe-sap@suse.de&gt;</code></pre>
+<pre><code>QE SAP &lt;qe-sap@suse.de&gt;</code></pre>
 
 <h1 id="DESCRIPTION">DESCRIPTION</h1>
 
@@ -60,35 +60,35 @@
 
 <h3 id="qesap_get_file_paths">qesap_get_file_paths</h3>
 
-<pre><code>    Returns a hash containing file paths for config files</code></pre>
+<pre><code>Returns a hash containing file paths for config files</code></pre>
 
 <h3 id="qesap_create_folder_tree">qesap_create_folder_tree</h3>
 
-<pre><code>    Create all needed folders</code></pre>
+<pre><code>Create all needed folders</code></pre>
 
 <h3 id="qesap_get_variables">qesap_get_variables</h3>
 
-<pre><code>    Scans yaml config for &#39;%OPENQA_VARIABLE%&#39; placeholders and searches for values in OpenQA defined variables.
-    Returns hash with openqa variable key/value pairs.</code></pre>
+<pre><code>Scans yaml config for &#39;%OPENQA_VARIABLE%&#39; placeholders and searches for values in OpenQA defined variables.
+Returns hash with openqa variable key/value pairs.</code></pre>
 
 <h3 id="qesap_create_ansible_section">qesap_create_ansible_section</h3>
 
-<pre><code>    Writes &quot;ansible&quot; section into yaml config file.
-    $args{ansible_section} defines section(key) name.
-    $args{section_content} defines content of names section.
-        Example:
-            @playbook_list = (&quot;pre-cluster.yaml&quot;, &quot;cluster_sbd_prep.yaml&quot;);
-            qesap_create_ansible_section(ansible_section=&gt;&#39;create&#39;, section_content=&gt;\@playbook_list);</code></pre>
+<pre><code>Writes &quot;ansible&quot; section into yaml config file.
+$args{ansible_section} defines section(key) name.
+$args{section_content} defines content of names section.
+    Example:
+        @playbook_list = (&quot;pre-cluster.yaml&quot;, &quot;cluster_sbd_prep.yaml&quot;);
+        qesap_create_ansible_section(ansible_section=&gt;&#39;create&#39;, section_content=&gt;\@playbook_list);</code></pre>
 
 <h3 id="qesap_pip_install">qesap_pip_install</h3>
 
-<pre><code>  Install all Python requirements of the qe-sap-deployment</code></pre>
+<pre><code>Install all Python requirements of the qe-sap-deployment</code></pre>
 
 <h3 id="qesap_upload_logs">qesap_upload_logs</h3>
 
-<pre><code>    qesap_upload_logs([failok=1])
+<pre><code>qesap_upload_logs([failok=1])
 
-    Collect and upload logs present in @log_files.</code></pre>
+Collect and upload logs present in @log_files.</code></pre>
 
 <dl>
 
@@ -100,33 +100,33 @@
 
 <h3 id="qesap_get_deployment_code">qesap_get_deployment_code</h3>
 
-<pre><code>    Get the qe-sap-deployment code</code></pre>
+<pre><code>Get the qe-sap-deployment code</code></pre>
 
 <h3 id="qesap_yaml_replace">qesap_yaml_replace</h3>
 
-<pre><code>    Replaces yaml config file variables with parameters defined by OpenQA testode, yaml template or yaml schedule.
-    Openqa variables need to be added as a hash with key/value pair inside %run_args{openqa_variables}.
-    Example:
-        my %variables;
-        $variables{HANA_SAR} = get_required_var(&quot;HANA_SAR&quot;);
-        $variables{HANA_CLIENT_SAR} = get_required_var(&quot;HANA_CLIENT_SAR&quot;);
-        qesap_yaml_replace(openqa_variables=&gt;\%variables);</code></pre>
+<pre><code>Replaces yaml config file variables with parameters defined by OpenQA testode, yaml template or yaml schedule.
+Openqa variables need to be added as a hash with key/value pair inside %run_args{openqa_variables}.
+Example:
+    my %variables;
+    $variables{HANA_SAR} = get_required_var(&quot;HANA_SAR&quot;);
+    $variables{HANA_CLIENT_SAR} = get_required_var(&quot;HANA_CLIENT_SAR&quot;);
+    qesap_yaml_replace(openqa_variables=&gt;\%variables);</code></pre>
 
 <h3 id="qesap_execute">qesap_execute</h3>
 
-<pre><code>    qesap_execute(cmd =&gt; $qesap_script_cmd [, verbose =&gt; 1, cmd_options =&gt; $cmd_options] );
-    cmd_options - allows to append additional qesap.py commans arguments like &quot;qesap.py terraform -d&quot;
-        Example:
-        qesap_execute(cmd =&gt; &#39;terraform&#39;, cmd_options =&gt; &#39;-d&#39;) will result in:
-        qesap.py terraform -d
+<pre><code>qesap_execute(cmd =&gt; $qesap_script_cmd [, verbose =&gt; 1, cmd_options =&gt; $cmd_options] );
+cmd_options - allows to append additional qesap.py commans arguments like &quot;qesap.py terraform -d&quot;
+    Example:
+    qesap_execute(cmd =&gt; &#39;terraform&#39;, cmd_options =&gt; &#39;-d&#39;) will result in:
+    qesap.py terraform -d
 
-    Execute qesap glue script commands. Check project documentation for available options:
-    https://github.com/SUSE/qe-sap-deployment
-    Test only returns execution result, failure has to be handled by calling method.</code></pre>
+Execute qesap glue script commands. Check project documentation for available options:
+https://github.com/SUSE/qe-sap-deployment
+Test only returns execution result, failure has to be handled by calling method.</code></pre>
 
 <h3 id="qesap_get_inventory">qesap_get_inventory</h3>
 
-<pre><code>    Return the path of the generated inventory</code></pre>
+<pre><code>Return the path of the generated inventory</code></pre>
 
 <h3 id="qesap_get_nodes_number">qesap_get_nodes_number</h3>
 
@@ -134,29 +134,29 @@
 
 <h3 id="qesap_get_terraform_dir">qesap_get_terraform_dir</h3>
 
-<pre><code>    Return the path used by the qesap script as -chdir argument for terraform
-    It is useful if test would like to call terraform</code></pre>
+<pre><code>Return the path used by the qesap script as -chdir argument for terraform
+It is useful if test would like to call terraform</code></pre>
 
 <h3 id="qesap_prepare_env">qesap_prepare_env</h3>
 
-<pre><code>    qesap_prepare_env(variables=&gt;{dict with variables}, provider =&gt; &#39;aws&#39;);
+<pre><code>qesap_prepare_env(variables=&gt;{dict with variables}, provider =&gt; &#39;aws&#39;);
 
-    Prepare terraform environment.
-    - creates file structures
-    - pulls git repository
-    - external config files
-    - installs pip requirements and OS packages
-    - generates config files with qesap script
+Prepare terraform environment.
+- creates file structures
+- pulls git repository
+- external config files
+- installs pip requirements and OS packages
+- generates config files with qesap script
 
-    For variables example see &#39;qesap_yaml_replace&#39;
-    Returns only result, failure handling has to be done by calling method.</code></pre>
+For variables example see &#39;qesap_yaml_replace&#39;
+Returns only result, failure handling has to be done by calling method.</code></pre>
 
 <h3 id="qesap_ansible_cmd">qesap_ansible_cmd</h3>
 
-<pre><code>    Use Ansible to run a command remotely on some or all
-    the hosts from the inventory.yaml
+<pre><code>Use Ansible to run a command remotely on some or all
+the hosts from the inventory.yaml
 
-    qesap_prepare_env(cmd=&gt;{string}, provider =&gt; &#39;aws&#39;);</code></pre>
+qesap_prepare_env(cmd=&gt;{string}, provider =&gt; &#39;aws&#39;);</code></pre>
 
 <dl>
 
@@ -180,17 +180,17 @@
 
 <h3 id="qesap_ansible_script_output">qesap_ansible_script_output</h3>
 
-<pre><code>    Use Ansible to run a command remotely and get the stdout.
-    Command could be executed with elevated privileges
+<pre><code>Use Ansible to run a command remotely and get the stdout.
+Command could be executed with elevated privileges
 
-    qesap_ansible_script_output(cmd =&gt; &#39;crm status&#39;, provider =&gt; &#39;aws&#39;, host =&gt; &#39;vmhana01&#39;, root =&gt; 1);
+qesap_ansible_script_output(cmd =&gt; &#39;crm status&#39;, provider =&gt; &#39;aws&#39;, host =&gt; &#39;vmhana01&#39;, root =&gt; 1);
 
-    It uses playbook data/sles4sap/script_output.yaml
+It uses playbook data/sles4sap/script_output.yaml
 
-    1. ansible-playbook run the playbook
-    2. the playbook executes the command and redirects the output to file, both remotely
-    3. the playbook download the file locally
-    4. the file is read and stored to be returned to the caller</code></pre>
+1. ansible-playbook run the playbook
+2. the playbook executes the command and redirects the output to file, both remotely
+3. the playbook download the file locally
+4. the file is read and stored to be returned to the caller</code></pre>
 
 <dl>
 

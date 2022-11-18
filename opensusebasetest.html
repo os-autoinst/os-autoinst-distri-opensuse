@@ -49,179 +49,179 @@
 
 <h2 id="clear_and_verify_console">clear_and_verify_console</h2>
 
-<pre><code> clear_and_verify_console();</code></pre>
+<pre><code>clear_and_verify_console();</code></pre>
 
 <p>Clear the console and ensure that it really got cleared using a needle.</p>
 
 <h2 id="pre_run_hook">pre_run_hook</h2>
 
-<pre><code> pre_run_hook();</code></pre>
+<pre><code>pre_run_hook();</code></pre>
 
 <p>This method will be called before each module is executed. Test modules (or their intermediate base classes) may overwrite this method, must call this baseclass method from the overwriting method.</p>
 
 <h2 id="post_run_hook">post_run_hook</h2>
 
-<pre><code> post_run_hook();</code></pre>
+<pre><code>post_run_hook();</code></pre>
 
 <p>This method will be called after each module finished. It will <b>not</b> get executed when the test module failed. Test modules (or their intermediate base classes) may overwrite this method.</p>
 
 <h2 id="save_and_upload_log">save_and_upload_log</h2>
 
-<pre><code> save_and_upload_log($cmd, $file [, timeout =&gt; $timeout] [, screenshot =&gt; $screenshot] [, noupload =&gt; $noupload]);</code></pre>
+<pre><code>save_and_upload_log($cmd, $file [, timeout =&gt; $timeout] [, screenshot =&gt; $screenshot] [, noupload =&gt; $noupload]);</code></pre>
 
 <p>Will run <code>$cmd</code> on the SUT (without caring for the return code) and tee the standard output to a file called <code>$file</code>. The <code>$timeout</code> parameter specifies how long <code>$cmd</code> may run. When <code>$cmd</code> returns, the output file will be uploaded to openQA unless <code>$noupload</code> is set. Afterwards a screenshot will be created if <code>$screenshot</code> is set.</p>
 
 <h2 id="tar_and_upload_log">tar_and_upload_log</h2>
 
-<pre><code> tar_and_upload_log($sources, $dest, [, timeout =&gt; $timeout] [, screenshot =&gt; $screenshot] [, noupload =&gt; $noupload]);</code></pre>
+<pre><code>tar_and_upload_log($sources, $dest, [, timeout =&gt; $timeout] [, screenshot =&gt; $screenshot] [, noupload =&gt; $noupload]);</code></pre>
 
 <p>Will create an xz compressed tar archive with filename <code>$dest</code> from the folder(s) listed in <code>$sources</code>. The return code of <code>tar</code> will be ignored. The <code>$timeout</code> parameter specifies how long <code>tar</code> may run. When <code>tar</code> returns, the output file will be uploaded to openQA unless <code>$noupload</code> is set. Afterwards a screenshot will be created if <code>$screenshot</code> is set.</p>
 
 <h2 id="save_and_upload_systemd_unit_log">save_and_upload_systemd_unit_log</h2>
 
-<pre><code> save_and_upload_systemd_unit_log($unit);</code></pre>
+<pre><code>save_and_upload_systemd_unit_log($unit);</code></pre>
 
 <p>Saves the journal of the systemd unit <code>$unit</code> to <code>journal_$unit.log</code> and uploads it to openQA.</p>
 
 <h2 id="detect_bsc_1063638">detect_bsc_1063638</h2>
 
-<pre><code> detect_bsc_1063638();</code></pre>
+<pre><code>detect_bsc_1063638();</code></pre>
 
 <p>Btrfs maintenance jobs lead to the system being unresponsive and affects SUT&#39;s performance. Not to waste time during investigation of the failures, we would like to detect if such jobs are running, providing a hint why test timed out. This method will create a softfail if such a problem is detected.</p>
 
 <h2 id="problem_detection">problem_detection</h2>
 
-<pre><code> problem_detection();</code></pre>
+<pre><code>problem_detection();</code></pre>
 
 <p>This method will upload a number of logs and debugging information. This includes a log with all journal errors, a systemd unit plot and the output of rpmverify. The files will be uploaded as a single tarball called <code>problem_detection_logs.tar.xz</code>.</p>
 
 <h2 id="investigate_yast2_failure">investigate_yast2_failure</h2>
 
-<pre><code> investigate_yast2_failure(logs_path =&gt; $logs_path);</code></pre>
+<pre><code>investigate_yast2_failure(logs_path =&gt; $logs_path);</code></pre>
 
 <p>Inspect the YaST2 logfile checking for known issues. logs_path can be a directory where logs are saved e.g. /tmp. In that case the function will parse /tmp/var/log/YaST2/y2logs* files.</p>
 
 <h2 id="export_healthcheck_basic">export_healthcheck_basic</h2>
 
-<pre><code> export_healthcheck_basic();</code></pre>
+<pre><code>export_healthcheck_basic();</code></pre>
 
 <p>Upload healthcheck logs that make sense for any failure. This includes <code>cpu</code>, <code>memory</code> and <code>fdisk</code>.</p>
 
 <h2 id="export_logs_basic">export_logs_basic</h2>
 
-<pre><code> export_logs_basic();</code></pre>
+<pre><code>export_logs_basic();</code></pre>
 
 <p>Upload logs that make sense for any failure. This includes <code>/proc/loadavg</code>, <code>ps axf</code>, complete journal since last boot, <code>dmesg</code> and <code>/etc/sysconfig</code>.</p>
 
 <h2 id="select_log_console">select_log_console</h2>
 
-<pre><code> select_log_console();</code></pre>
+<pre><code>select_log_console();</code></pre>
 
 <p>Select &#39;log-console&#39; with higher timeout on screen check to even cover systems that react very slow due to high background load or high memory consumption. This should be especially useful in <code>post_fail_hook</code> implementations.</p>
 
 <h2 id="export_logs">export_logs</h2>
 
-<pre><code> export_logs();</code></pre>
+<pre><code>export_logs();</code></pre>
 
 <p>This method will call several other log gathering methods from this class.</p>
 
 <h2 id="export_logs_locale">export_logs_locale</h2>
 
-<pre><code> export_logs_locale();</code></pre>
+<pre><code>export_logs_locale();</code></pre>
 
 <p>Upload logs related to system locale settings. This includes <code>locale</code>, <code>localectl</code> and <code>/etc/vconsole.conf</code>.</p>
 
 <h2 id="upload_packagekit_logs">upload_packagekit_logs</h2>
 
-<pre><code> upload_packagekit_logs();</code></pre>
+<pre><code>upload_packagekit_logs();</code></pre>
 
 <p>Upload <code>/var/log/pk_backend_zypp</code>.</p>
 
 <h2 id="upload_solvertestcase_logs">upload_solvertestcase_logs</h2>
 
-<pre><code> upload_solvertestcase_logs();</code></pre>
+<pre><code>upload_solvertestcase_logs();</code></pre>
 
 <p>Upload <code>/tmp/solverTestCase.tar.bz2</code>.</p>
 
 <h2 id="set_standard_prompt">set_standard_prompt</h2>
 
-<pre><code> set_standard_prompt();</code></pre>
+<pre><code>set_standard_prompt();</code></pre>
 
 <p>Set a simple reproducible prompt for easier needle matching without hostname.</p>
 
 <h2 id="export_logs_desktop">export_logs_desktop</h2>
 
-<pre><code> export_logs_desktop();</code></pre>
+<pre><code>export_logs_desktop();</code></pre>
 
 <p>Upload several KDE, GNOME, X11, GDM and SDDM related logs and configs.</p>
 
 <h2 id="handle_uefi_boot_disk_workaround">handle_uefi_boot_disk_workaround</h2>
 
-<pre><code> handle_uefi_boot_disk_workaround();</code></pre>
+<pre><code>handle_uefi_boot_disk_workaround();</code></pre>
 
 <p>Our aarch64 setup fails to boot properly from an installed hard disk so point the firmware boot manager to the right file.</p>
 
 <h2 id="wait_grub">wait_grub</h2>
 
-<pre><code> wait_grub([bootloader_time =&gt; $bootloader_time] [,in_grub =&gt; $in_grub]);</code></pre>
+<pre><code>wait_grub([bootloader_time =&gt; $bootloader_time] [,in_grub =&gt; $in_grub]);</code></pre>
 
 <p>Makes sure the bootloader appears. Returns successfully when reached the bootloader menu, ready to control it further or continue. The time waiting for the bootloader can be configured with <code>$bootloader_time</code> in seconds. Set <code>$in_grub</code> to 1 when the SUT is already expected to be within the grub menu.</p>
 
 <h2 id="wait_grub_to_boot_on_local_disk">wait_grub_to_boot_on_local_disk</h2>
 
-<pre><code> wait_grub_to_boot_on_local_disk</code></pre>
+<pre><code>wait_grub_to_boot_on_local_disk</code></pre>
 
 <p>When bootloader appears, make sure to boot from local disk when it is on aarch64.</p>
 
 <h2 id="handle_pxeboot">handle_pxeboot</h2>
 
-<pre><code> handle_pxeboot(bootloader_time =&gt; $bootloader_time, pxemenu =&gt; $pxemenu, pxeselect =&gt; $pxeselect);</code></pre>
+<pre><code>handle_pxeboot(bootloader_time =&gt; $bootloader_time, pxemenu =&gt; $pxemenu, pxeselect =&gt; $pxeselect);</code></pre>
 
 <p>Handle a textmode PXE bootloader menu by means of two needle tags: <code>$pxemenu</code> to match the initial menu, <code>$pxeselect</code> to match the menu with the desired entry selected.</p>
 
 <h2 id="wait_boot_past_bootloader">wait_boot_past_bootloader</h2>
 
-<pre><code> wait_boot_past_bootloader([, textmode =&gt; $textmode] [,ready_time =&gt; $ready_time] [, nologin =&gt; $nologin] [, forcenologin =&gt; $forcenologin]);</code></pre>
+<pre><code>wait_boot_past_bootloader([, textmode =&gt; $textmode] [,ready_time =&gt; $ready_time] [, nologin =&gt; $nologin] [, forcenologin =&gt; $forcenologin]);</code></pre>
 
 <p>Waits until the system is booted, every step after the bootloader or bootloader menu. Returns successfully when the system is ready on a login prompt or logged in desktop. Set <code>$textmode</code> to 1 when the text mode login prompt should be expected rather than a desktop or display manager. Expects already unlocked encrypted disks, see <code>wait_boot</code> for handling these in before. The time waiting for the system to be fully booted can be configured with <code>$ready_time</code> in seconds. <code>$forcenologin</code> makes this function behave as if the env var NOAUTOLOGIN was set.</p>
 
 <h2 id="wait_boot">wait_boot</h2>
 
-<pre><code> wait_boot([bootloader_time =&gt; $bootloader_time] [, textmode =&gt; $textmode] [,ready_time =&gt; $ready_time] [,in_grub =&gt; $in_grub] [, nologin =&gt; $nologin] [, forcenologin =&gt; $forcenologin]);</code></pre>
+<pre><code>wait_boot([bootloader_time =&gt; $bootloader_time] [, textmode =&gt; $textmode] [,ready_time =&gt; $ready_time] [,in_grub =&gt; $in_grub] [, nologin =&gt; $nologin] [, forcenologin =&gt; $forcenologin]);</code></pre>
 
 <p>Makes sure the bootloader appears and then boots to desktop or text mode correspondingly. Returns successfully when the system is ready on a login prompt or logged in desktop. Set <code>$textmode</code> to 1 when the text mode login prompt should be expected rather than a desktop or display manager. <code>wait_boot</code> also handles unlocking encrypted disks if needed as well as various exceptions during the boot process. Also, before the bootloader menu or login prompt various architecture or machine specific handlings are in place. The time waiting for the bootloader can be configured with <code>$bootloader_time</code> in seconds as well as the time waiting for the system to be fully booted with <code>$ready_time</code> in seconds. Set <code>$in_grub</code> to 1 when the SUT is already expected to be within the grub menu. <code>wait_boot</code> continues from there. <code>$forcenologin</code> makes this function behave as if the env var NOAUTOLOGIN was set.</p>
 
 <h2 id="enter_test_text">enter_test_text</h2>
 
-<pre><code> enter_test_text($name [, cmd =&gt; $cmd] [, slow =&gt; $slow]);</code></pre>
+<pre><code>enter_test_text($name [, cmd =&gt; $cmd] [, slow =&gt; $slow]);</code></pre>
 
 <p>For testing a text editor or terminal emulator. This will type some newlines and then enter the following text:</p>
 
-<pre><code> If you can see this text $name is working.</code></pre>
+<pre><code>If you can see this text $name is working.</code></pre>
 
 <p><code>$name</code> will default to &quot;<i>your program</i>&quot;. If <code>$slow</code> is set, the typing will be very slow. If <code>$cmd</code> is set, the text will be prefixed by an <code>echo</code> command.</p>
 
 <h2 id="firewall">firewall</h2>
 
-<pre><code> firewall();</code></pre>
+<pre><code>firewall();</code></pre>
 
 <p>Return the default expected firewall implementation depending on the product under test, the version and if the SUT is an upgrade.</p>
 
 <h2 id="remount_tmp_if_ro">remount_tmp_if_ro</h2>
 
-<pre><code> remount_tmp_if_ro();</code></pre>
+<pre><code>remount_tmp_if_ro();</code></pre>
 
 <p>Mounts /tmp to shared memory if not possible to write to tmp. For example, save_y2logs creates temporary files there.</p>
 
 <h2 id="upload_coredumps">upload_coredumps</h2>
 
-<pre><code> upload_coredumps(%args);</code></pre>
+<pre><code>upload_coredumps(%args);</code></pre>
 
 <p>Upload all coredumps to logs. In case `proceed_on_failure` key is set to true, errors during logs collection will be ignored, which is usefull for the post_fail_hook calls.</p>
 
 <h2 id="post_fail_hook">post_fail_hook</h2>
 
-<pre><code> post_fail_hook();</code></pre>
+<pre><code>post_fail_hook();</code></pre>
 
 <p>When the test module fails, this method will be called. It will try to fetch some logs from the SUT. Test modules (or their intermediate base classes) may overwrite this method to export certain specific logfiles and call the base method using <code>$self-&gt;SUPER::post_fail_hook;</code> at the end.</p>
 

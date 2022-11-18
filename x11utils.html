@@ -43,81 +43,81 @@
 
 <h1 id="SYNOPSIS">SYNOPSIS</h1>
 
-<pre><code> use lib::x11utils;</code></pre>
+<pre><code>use lib::x11utils;</code></pre>
 
 <h2 id="desktop_runner_hotkey">desktop_runner_hotkey</h2>
 
-<pre><code> desktop_runner_hotkey();</code></pre>
+<pre><code>desktop_runner_hotkey();</code></pre>
 
 <p>Returns the hotkey for the desktop runner according to the used desktop</p>
 
 <h2 id=""></h2>
 
-<pre><code> ensure_unlocked_desktop();</code></pre>
+<pre><code>ensure_unlocked_desktop();</code></pre>
 
 <p>if stay under tty console for long time, then check screen lock is necessary when switch back to x11 all possible options should be handled within loop to get unlocked desktop</p>
 
 <h2 id="ensure_fullscreen">ensure_fullscreen</h2>
 
-<pre><code> ensure_fullscreen($tag);</code></pre>
+<pre><code>ensure_fullscreen($tag);</code></pre>
 
 <p><code>tag</code> can contain a needle name and is optional, it defaults to yast2-windowborder</p>
 
 <h2 id="handle_login">handle_login</h2>
 
-<pre><code> handle_login($myuser, $user_selected);</code></pre>
+<pre><code>handle_login($myuser, $user_selected);</code></pre>
 
 <p>Log the user in using the displaymanager. When <code>$myuser</code> is set, this user will be used for login. Otherwise the function will default to <code>$username</code>. For displaymanagers (like gnome) where the user needs to be selected from a menu <code>$user_selected</code> tells the function that the desired user has already been selected before this function was called.</p>
 
 <p>Example:</p>
 
-<pre><code>  handle_login(&#39;user1&#39;, 1);</code></pre>
+<pre><code>handle_login(&#39;user1&#39;, 1);</code></pre>
 
 <h2 id="handle_logout">handle_logout</h2>
 
-<pre><code> handle_logout();</code></pre>
+<pre><code>handle_logout();</code></pre>
 
 <p>Handles the logout from the desktop</p>
 
 <h2 id="handle_relogin">handle_relogin</h2>
 
-<pre><code> handle_relogin();</code></pre>
+<pre><code>handle_relogin();</code></pre>
 
 <p>First logs out and the log in via <code>handle_logout()</code> and <code>handle_login()</code></p>
 
 <h2 id="select_user_gnome">select_user_gnome</h2>
 
-<pre><code> select_user_gnome([$myuser]);</code></pre>
+<pre><code>select_user_gnome([$myuser]);</code></pre>
 
 <p>Handle the case when user is not selected in login screen, on gnome. <code>$myuser</code> specifies the username to switch to. If not set, it will default to <code>$username</code>.</p>
 
 <h2 id="turn_off_plasma_screen_energysaver">turn_off_plasma_screen_energysaver</h2>
 
-<pre><code> turn_off_plasma_screen_energysaver()</code></pre>
+<pre><code>turn_off_plasma_screen_energysaver()</code></pre>
 
 <p>Turns off the Plasma desktop screen energy saving.</p>
 
 <h2 id="turn_off_plasma_screenlocker">turn_off_plasma_screenlocker</h2>
 
-<pre><code> turn_off_plasma_screenlocker()</code></pre>
+<pre><code>turn_off_plasma_screenlocker()</code></pre>
 
 <p>Turns off the Plasma desktop screenlocker.</p>
 
 <h2 id="turn_off_plasma_tooltips">turn_off_plasma_tooltips</h2>
 
-<pre><code>  turn_off_plasma_tooltips()</code></pre>
+<pre><code>turn_off_plasma_tooltips()</code></pre>
 
 <p>Disable Plasma tooltips, especially the one triggered by the &quot;Peek Desktop&quot; below the default mouse_hide location can break needles and break or slow down matches.</p>
 
 <h2 id="turn_off_kde_screensaver">turn_off_kde_screensaver</h2>
 
-<pre><code>  turn_off_kde_screensaver()</code></pre>
+<pre><code>turn_off_kde_screensaver()</code></pre>
 
 <p>Prevents screen from being locked or turning black while using the Plasma desktop. Call before tests that are not providing input for a long time, to prevent needles from failing.</p>
 
 <h2 id="turn_off_gnome_screensaver">turn_off_gnome_screensaver</h2>
 
-<pre><code>  turn_off_gnome_screensaver()</code></pre>
+<pre><code>turn_off_gnome_screensaver()</code></pre>
 
 <p>Disable screensaver in gnome. To be called from a command prompt, for example an xterm window.</p>
 
@@ -135,38 +135,38 @@
 
 <h2 id="turn_off_gnome_suspend">turn_off_gnome_suspend</h2>
 
-<pre><code>  turn_off_gnome_suspend()</code></pre>
+<pre><code>turn_off_gnome_suspend()</code></pre>
 
 <p>Disable suspend in gnome. To be called from a command prompt, for example an xterm window.</p>
 
 <h2 id="turn_off_screensaver">turn_off_screensaver</h2>
 
-<pre><code> turn_off_screensaver();</code></pre>
+<pre><code>turn_off_screensaver();</code></pre>
 
 <p>Turns off the screensaver depending on desktop environment</p>
 
 <h2 id="untick_welcome_on_next_startup">untick_welcome_on_next_startup</h2>
 
-<pre><code> untick_welcome_on_next_startup();</code></pre>
+<pre><code>untick_welcome_on_next_startup();</code></pre>
 
 <p>untick welcome page on next startup.</p>
 
 <h2 id="handle_welcome_screen">handle_welcome_screen</h2>
 
-<pre><code> handle_welcome_screen([timeout =&gt; $timeout]);</code></pre>
+<pre><code>handle_welcome_screen([timeout =&gt; $timeout]);</code></pre>
 
 <p>openSUSE Welcome window should be auto-launched. Disable auto-launch on next boot and close application. Also handle workarounds when needed.</p>
 
 <h2 id="start_root_shell_in_xterm">start_root_shell_in_xterm</h2>
 
-<pre><code>    start_root_shell_in_xterm()
-    </code></pre>
+<pre><code> start_root_shell_in_xterm()
+ </code></pre>
 
 <p>Start a root shell in xterm.</p>
 
 <h2 id="handle_gnome_activities">handle_gnome_activities</h2>
 
-<pre><code>    handle_gnome_activities()</code></pre>
+<pre><code>handle_gnome_activities()</code></pre>
 
 <p>handle_gnome_activities</p>
 

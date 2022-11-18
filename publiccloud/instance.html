@@ -35,13 +35,13 @@
 
 <h2 id="run_ssh_command">run_ssh_command</h2>
 
-<pre><code>    run_ssh_command(cmd =&gt; &#39;command&#39;[, timeout =&gt; 90][, ssh_opts =&gt;&#39;..&#39;][, username =&gt; &#39;XXX&#39;][, no_quote =&gt; 0][, rc_only =&gt; 0]);</code></pre>
+<pre><code>run_ssh_command(cmd =&gt; &#39;command&#39;[, timeout =&gt; 90][, ssh_opts =&gt;&#39;..&#39;][, username =&gt; &#39;XXX&#39;][, no_quote =&gt; 0][, rc_only =&gt; 0]);</code></pre>
 
 <p>Runs a command <code>cmd</code> via ssh in the given VM. Retrieves the output. If the command retrieves not zero, a exception is thrown.. Timeout can be set by <code>timeout</code> or 90 sec by default. <code>&lt;proceed_on_failure=</code>1&gt;&gt; allows to proceed with validation when <code>cmd</code> is failing (return non-zero exit code) By default, the command is passed in single quotes to SSH. To avoid quoting use <code>&lt;no_quote=</code>1&gt;&gt;. With <code>&lt;ssh_opts=</code>&#39;...&#39;&gt;&gt; you can overwrite all default ops which are in <code>&lt;$instance-</code>ssh_opts&gt;&gt;. Use argument <code>username</code> to specify a different username then <code>&lt;$instance-</code>username()&gt;&gt;. Use argument <code>rc_only</code> to only check for the return code of the command.</p>
 
 <h2 id="retry_ssh_command">retry_ssh_command</h2>
 
-<pre><code>    ssh_script_retry(command[, retry =&gt; 3][, delay =&gt; 10][, timeout =&gt; 90][, ssh_opts =&gt;&#39;..&#39;][, username =&gt; &#39;XXX&#39;][, no_quote =&gt; 0]);</code></pre>
+<pre><code>ssh_script_retry(command[, retry =&gt; 3][, delay =&gt; 10][, timeout =&gt; 90][, ssh_opts =&gt;&#39;..&#39;][, username =&gt; &#39;XXX&#39;][, no_quote =&gt; 0]);</code></pre>
 
 <p>Run a <code>command</code> via ssh in the given PC instance until it succeeds or the given number of retries is exhausted and an exception is thrown. Timeout can be set by <code>timeout</code> or 90 sec by default. By default, the command is passed in single quotes to SSH. To avoid quoting use <code>&lt;no_quote=</code>1&gt;&gt;. With <code>&lt;ssh_opts=</code>&#39;...&#39;&gt;&gt; you can overwrite all default ops which are in <code>&lt;$instance-</code>ssh_opts&gt;&gt;. Use argument <code>username</code> to specify a different username then <code>&lt;$instance-</code>username()&gt;&gt;.</p>
 
@@ -49,79 +49,79 @@
 
 <h2 id="ssh_script_run">ssh_script_run</h2>
 
-<pre><code>    ssh_script_run($cmd [, timeout =&gt; $timeout] [, fail_message =&gt; $fail_message] [,quiet =&gt; $quiet] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username])</code></pre>
+<pre><code>ssh_script_run($cmd [, timeout =&gt; $timeout] [, fail_message =&gt; $fail_message] [,quiet =&gt; $quiet] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username])</code></pre>
 
 <p>Runs a command <code>cmd</code> via ssh on the publiccloud instance and returns the return code.</p>
 
 <h2 id="ssh_assert_script_run">ssh_assert_script_run</h2>
 
-<pre><code>    ssh_assert_script_run($cmd [, timeout =&gt; $timeout] [, fail_message =&gt; $fail_message] [,quiet =&gt; $quiet] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username])</code></pre>
+<pre><code>ssh_assert_script_run($cmd [, timeout =&gt; $timeout] [, fail_message =&gt; $fail_message] [,quiet =&gt; $quiet] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username])</code></pre>
 
 <p>Runs a command <code>cmd</code> via ssh on the publiccloud instance and die, unless it returns zero.</p>
 
 <h2 id="ssh_script_output">ssh_script_output</h2>
 
-<pre><code>    ssh_script_output($script [, $wait, type_command =&gt; 1, proceed_on_failure =&gt; 1] [,quiet =&gt; $quiet] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username])</code></pre>
+<pre><code>ssh_script_output($script [, $wait, type_command =&gt; 1, proceed_on_failure =&gt; 1] [,quiet =&gt; $quiet] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username])</code></pre>
 
 <p>Executing script inside SUT with bash -eo and directs stdout (but not stderr!) to the serial console and returns the output if the script exits with 0. Otherwise the test is set to failed.</p>
 
 <h2 id="ssh_script_retry">ssh_script_retry</h2>
 
-<pre><code>    ssh_script_retry($cmd, [expect =&gt; $expect], [retry =&gt; $retry], [delay =&gt; $delay], [timeout =&gt; $timeout], [die =&gt; $die] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username])</code></pre>
+<pre><code>ssh_script_retry($cmd, [expect =&gt; $expect], [retry =&gt; $retry], [delay =&gt; $delay], [timeout =&gt; $timeout], [die =&gt; $die] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username])</code></pre>
 
 <p>Repeat command until expected result or timeout.</p>
 
 <h2 id="scp">scp</h2>
 
-<pre><code>    scp($from, $to, timeout =&gt; 90);</code></pre>
+<pre><code>scp($from, $to, timeout =&gt; 90);</code></pre>
 
 <p>Use scp to copy a file from or to this instance. A url starting with <code>remote:</code> is replaced with the IP from this instance. E.g. a call to copy the file <i>/var/log/cloudregister</i> to <i>/tmp</i> looks like: <code>&lt;&lt;$instance-</code>scp(&#39;remote:/var/log/cloudregister&#39;, &#39;/tmp&#39;);&gt;&gt;&gt;</p>
 
 <h2 id="upload_log">upload_log</h2>
 
-<pre><code>    upload_log($filename);</code></pre>
+<pre><code>upload_log($filename);</code></pre>
 
 <p>Upload a file from this instance to openqa using <a>upload_logs()</a>. If the file doesn&#39;t exists on the instance, <b>no</b> error is thrown.</p>
 
 <h2 id="wait_for_guestregister">wait_for_guestregister</h2>
 
-<pre><code>    wait_for_guestregister([timeout =&gt; 300]);</code></pre>
+<pre><code>wait_for_guestregister([timeout =&gt; 300]);</code></pre>
 
 <p>Run command <code>systemctl is-active guestregister</code> on the instance in a loop and wait till guestregister is ready. If guestregister finish with state failed, a soft-failure will be recorded. If guestregister will not finish within <code>timeout</code> seconds, job dies. In case of BYOS images we checking that service is inactive and quit Returns the time needed to wait for the guestregister to complete.</p>
 
 <h2 id="wait_for_ssh">wait_for_ssh</h2>
 
-<pre><code>    wait_for_ssh([timeout =&gt; 600] [, proceed_on_failure =&gt; 0])</code></pre>
+<pre><code>wait_for_ssh([timeout =&gt; 600] [, proceed_on_failure =&gt; 0])</code></pre>
 
 <p>Check if the SSH port of the instance is reachable and open.</p>
 
 <h2 id="softreboot">softreboot</h2>
 
-<pre><code>    ($shutdown_time, $bootup_time) = softreboot([timeout =&gt; 600]);</code></pre>
+<pre><code>($shutdown_time, $bootup_time) = softreboot([timeout =&gt; 600]);</code></pre>
 
 <p>Does a softreboot of the instance by running the command <code>shutdown -r</code>. Return an array of two values, first one is the time till the instance isn&#39;t reachable anymore. The second one is the estimated bootup time.</p>
 
 <h2 id="stop">stop</h2>
 
-<pre><code>    stop();</code></pre>
+<pre><code>stop();</code></pre>
 
 <p>Stop the instance using the CSP api calls.</p>
 
 <h2 id="start">start</h2>
 
-<pre><code>    start([timeout =&gt; ?]);</code></pre>
+<pre><code>start([timeout =&gt; ?]);</code></pre>
 
 <p>Start the instance and check SSH connectivity. Return the number of seconds till the SSH port was available.</p>
 
 <h2 id="get_state">get_state</h2>
 
-<pre><code>    get_state();</code></pre>
+<pre><code>get_state();</code></pre>
 
 <p>Get the status of the instance using the CSP api calls.</p>
 
 <h2 id="network_speed_test">network_speed_test</h2>
 
-<pre><code>    network_speed_test();</code></pre>
+<pre><code>network_speed_test();</code></pre>
 
 <p>Test the network speed.</p>
 

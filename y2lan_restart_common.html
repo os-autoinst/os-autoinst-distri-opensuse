@@ -42,13 +42,13 @@
 
 <h2 id="initialize_y2lan">initialize_y2lan</h2>
 
-<pre><code> initialize_y2lan();</code></pre>
+<pre><code>initialize_y2lan();</code></pre>
 
 <p>Initialize yast2 lan. Stop firewalld. Ensure firewalld is stopped. Enable DEBUG. Clear journal.</p>
 
 <h2 id="open_network_settings">open_network_settings</h2>
 
-<pre><code> open_network_settings();</code></pre>
+<pre><code>open_network_settings();</code></pre>
 
 <p>Open yast2 lan module, expecting Overview tab and select first device.</p>
 
@@ -56,25 +56,25 @@
 
 <h2 id="close_network_settings">close_network_settings</h2>
 
-<pre><code> close_network_settings();</code></pre>
+<pre><code>close_network_settings();</code></pre>
 
 <p>Close network settings checking for return code 0 on serial line.</p>
 
 <h2 id="check_network_status">check_network_status</h2>
 
-<pre><code> check_network_status([$expected_status], [$device]);</code></pre>
+<pre><code>check_network_status([$expected_status], [$device]);</code></pre>
 
 <p>Check network status for device, test connection and DNS. Print journal.log on screen if <code>$expected_status</code> is restart.</p>
 
 <h2 id="check_device_state">check_device_state</h2>
 
-<pre><code> check_device_state($args);</code></pre>
+<pre><code>check_device_state($args);</code></pre>
 
 <p>Checks state of the device using ip command, receives keys <code>device</code> which contains device name and <code>state</code> which contains expected state of the device.</p>
 
 <h2 id="verify_network_configuration">verify_network_configuration</h2>
 
-<pre><code> verify_network_configuration([$fn], [$expected_status], [$dev_name], [$workaround], [$no_network_check]);</code></pre>
+<pre><code>verify_network_configuration([$fn], [$expected_status], [$dev_name], [$workaround], [$no_network_check]);</code></pre>
 
 <p><code>$fn</code> is a reference to the function with the action to be performed.</p>
 
@@ -92,7 +92,7 @@
 
 <h2 id="validate_etc_hosts_entry">validate_etc_hosts_entry</h2>
 
-<pre><code> validate_etc_hosts_entry([$args]);</code></pre>
+<pre><code>validate_etc_hosts_entry([$args]);</code></pre>
 
 <p>Validate /etc/hosts entries for ip, fqdn, host.</p>
 
@@ -100,13 +100,13 @@
 
 <h2 id="set_network">set_network</h2>
 
-<pre><code> set_network([$args]);</code></pre>
+<pre><code>set_network([$args]);</code></pre>
 
 <p>Manually configure network settings or set it to DHCP. <code>$args</code> can be static, ip, mask, fqdn</p>
 
 <h2 id="check_etc_hosts_update">check_etc_hosts_update</h2>
 
-<pre><code> check_etc_hosts_update();</code></pre>
+<pre><code>check_etc_hosts_update();</code></pre>
 
 <p>Check update of /etc/hosts. In order to target bugs bsc#1115644 and bsc#1052042, we want to run steps:</p>
 
@@ -128,25 +128,25 @@
 
 <h2 id="handle_Networkmanager_controlled">handle_Networkmanager_controlled</h2>
 
-<pre><code> handle_Networkmanager_controlled();</code></pre>
+<pre><code>handle_Networkmanager_controlled();</code></pre>
 
 <p>Handle Networkmanager controls the network configurations. Confirm if a warning popup for Networkmanager controls networking.</p>
 
 <h2 id="handle_dhcp_popup">handle_dhcp_popup</h2>
 
-<pre><code> handle_dhcp_popup();</code></pre>
+<pre><code>handle_dhcp_popup();</code></pre>
 
 <p>Handle DHCP popup, confirm for DHCP popup.</p>
 
 <h2 id="open_yast2_routing">open_yast2_routing</h2>
 
-<pre><code> open_yast2_routing();</code></pre>
+<pre><code>open_yast2_routing();</code></pre>
 
 <p>Open yast2 routing</p>
 
 <h2 id="change_ipforward">change_ipforward</h2>
 
-<pre><code> change_ipforward([$state], [$should_conflict]);</code></pre>
+<pre><code>change_ipforward([$state], [$should_conflict]);</code></pre>
 
 <p><code>$state</code> enabled/disabled will used to set the expected needle to match <code>$should_conflict</code> 1 means conflict is expected or 0 otherwise</p>
 
@@ -154,7 +154,7 @@
 
 <h2 id="open_yast2_lan">open_yast2_lan</h2>
 
-<pre><code> open_yast2_lan();</code></pre>
+<pre><code>open_yast2_lan();</code></pre>
 
 <p>Open yast2 lan, run handle_dhcp_popup() and install and check firewalld</p>
 
@@ -162,19 +162,19 @@
 
 <h2 id="close_yast2_lan">close_yast2_lan</h2>
 
-<pre><code> close_yast2_lan();</code></pre>
+<pre><code>close_yast2_lan();</code></pre>
 
 <p>Close yast2 lan configuration and check that it is closed successfully</p>
 
 <h2 id="clear_journal_log">clear_journal_log</h2>
 
-<pre><code> clear_journal_log();</code></pre>
+<pre><code>clear_journal_log();</code></pre>
 
 <p>Makes space for better readability of the console and clears journal.log, so that the existing logs will not interfere with the new ones.</p>
 
 <h2 id="wait_for_xterm_to_be_visible">wait_for_xterm_to_be_visible</h2>
 
-<pre><code> wait_for_xterm_to_be_visible();</code></pre>
+<pre><code>wait_for_xterm_to_be_visible();</code></pre>
 
 <p>The function waits for the already opened xterm to be visible.</p>
 
@@ -184,7 +184,7 @@
 
 <h2 id="close_xterm">close_xterm</h2>
 
-<pre><code> close_xterm();</code></pre>
+<pre><code>close_xterm();</code></pre>
 
 <p>The function kills all the instances of xterm terminal to clear desktop for further tests.</p>
 

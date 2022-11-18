@@ -30,61 +30,61 @@
 
 <h2 id="assert_script_run_container">assert_script_run_container</h2>
 
-<pre><code> assert_script_run_container($machine, $script);</code></pre>
+<pre><code>assert_script_run_container($machine, $script);</code></pre>
 
 <p>Run <code>$script</code> in the systemd-nspawn container called <code>$machine</code>.</p>
 
 <h2 id="script_run_container">script_run_container</h2>
 
-<pre><code> script_run_container($machine, $script);</code></pre>
+<pre><code>script_run_container($machine, $script);</code></pre>
 
 <p>Run <code>$script</code> in the systemd-nspawn container called <code>$machine</code>.</p>
 
 <h2 id="start_nspawn_container">start_nspawn_container</h2>
 
-<pre><code> start_nspawn_container($machine);</code></pre>
+<pre><code>start_nspawn_container($machine);</code></pre>
 
 <p>Start the systemd-nspawn container called <code>$machine</code>.</p>
 
 <h2 id="restart_nspawn_container">restart_nspawn_container</h2>
 
-<pre><code> restart_nspawn_container($machine);</code></pre>
+<pre><code>restart_nspawn_container($machine);</code></pre>
 
 <p>Restart the systemd-nspawn container called <code>$machine</code>.</p>
 
 <h2 id="setup_nspawn_container">setup_nspawn_container</h2>
 
-<pre><code> setup_nspawn_container($machine, $repo, $packages);</code></pre>
+<pre><code>setup_nspawn_container($machine, $repo, $packages);</code></pre>
 
 <p>Create a chroot for a systemd-nspawn container called <code>$machine</code>. Use <code>zypper</code> to add a repo to the chroot and install (with <code>--no-recommends</code>) the packages listed in <code>$packages</code>.</p>
 
 <h2 id="write_container_file">write_container_file</h2>
 
-<pre><code> write_container_file($machine, $file, $content);</code></pre>
+<pre><code>write_container_file($machine, $file, $content);</code></pre>
 
 <p>Create a file at path (including filename) <code>$file</code> within the container called <code>$machine</code> with the content <code>$content</code>.</p>
 
 <h2 id="write_file">write_file</h2>
 
-<pre><code> write_file($file, $content);</code></pre>
+<pre><code>write_file($file, $content);</code></pre>
 
 <p>Helper function to write a file at path (including filename) <code>$file</code> with the content <code>$content</code>.</p>
 
 <h2 id="wait_for_networkd">wait_for_networkd</h2>
 
-<pre><code> wait_for_networkd($machine, $netif);</code></pre>
+<pre><code>wait_for_networkd($machine, $netif);</code></pre>
 
 <p>Wait until networkd in the container <code>$machine</code> has configured the network interface <code>$netif</code>.</p>
 
 <h2 id="export_container_journal">export_container_journal</h2>
 
-<pre><code> export_container_journal($machine);</code></pre>
+<pre><code>export_container_journal($machine);</code></pre>
 
 <p>Get the journal from container <code>$machine</code> and upload it to openQA. This works without interacting with the container as logs are redirected to the host system journal.</p>
 
 <h2 id="post_fail_hook">post_fail_hook</h2>
 
-<pre><code> post_fail_hook();</code></pre>
+<pre><code>post_fail_hook();</code></pre>
 
 <p>Upload the logs of all known containers.</p>
 

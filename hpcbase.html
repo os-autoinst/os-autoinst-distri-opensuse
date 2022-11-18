@@ -62,7 +62,7 @@
 
 <h2 id="generate_and_distribute_ssh">generate_and_distribute_ssh</h2>
 
-<pre><code>     generate_and_distribute_ssh($user)</code></pre>
+<pre><code>generate_and_distribute_ssh($user)</code></pre>
 
 <p>Generates and distributes ssh keys across compute nodes. <code>user</code> by default is set to <b>root</b> user unless another value is passed to the parameters. <code>user</code> is used to determine the user on the remote machine where the ssh_id will be copied. This should usually be called from the master node. If a replica master node is expected, the ssh keys should be also be distributed in it too.</p>
 
@@ -88,7 +88,7 @@
 
 <h2 id="prepare_spack_env">prepare_spack_env</h2>
 
-<pre><code>  prepare_spack_env($mpi)</code></pre>
+<pre><code>prepare_spack_env($mpi)</code></pre>
 
 <p>After install spack and HPC <code>mpi</code> required packages, prepares env variables. The HPC packages (*-gnu-hpc) use an installation path that is separate from the rest and can be exported via a network file system.</p>
 
@@ -96,13 +96,13 @@
 
 <h2 id="uninstall_spack_module">uninstall_spack_module</h2>
 
-<pre><code>  uninstall_spack_module($module)</code></pre>
+<pre><code>uninstall_spack_module($module)</code></pre>
 
 <p>Unload and uninstall <code>module</code> from spack stack</p>
 
 <h2 id="get_compute_nodes_deps">get_compute_nodes_deps</h2>
 
-<pre><code>  get_compute_nodes_deps($mpi)</code></pre>
+<pre><code>get_compute_nodes_deps($mpi)</code></pre>
 
 <p>This function is used to select dependencies packages which are required to be installed on HPC compute nodes in order to run code against particular <code>mpi</code> implementation. <code>get_compute_nodes_deps</code> returns an array of packages</p>
 

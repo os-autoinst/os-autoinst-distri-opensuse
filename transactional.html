@@ -23,19 +23,19 @@
 
 <h2 id="enter_trup_shell">enter_trup_shell</h2>
 
-<pre><code>  enter_trup_shell(global_options =&gt; $global_options, shell_options =&gt; $shell_options)</code></pre>
+<pre><code>enter_trup_shell(global_options =&gt; $global_options, shell_options =&gt; $shell_options)</code></pre>
 
 <p>Enter into transactional update shell by entering command on transactional server: transactional-update $global_options shell $shell_options. The two arguments for this subroutine, global_options and shell_options, are all text strings that are composed of space separated options for transactional-update and shell respectively.</p>
 
 <h2 id="exit_trup_shell_and_reboot">exit_trup_shell_and_reboot</h2>
 
-<pre><code>  exit_trup_shell_and_reboot()</code></pre>
+<pre><code>exit_trup_shell_and_reboot()</code></pre>
 
 <p>Quit transactional update shell by entering exit. Check if any changes that request reboot to take effect. This subroutine should be used together with enter_trup_shell.</p>
 
 <h2 id="reboot_on_changes">reboot_on_changes</h2>
 
-<pre><code>  reboot_on_changes</code></pre>
+<pre><code>reboot_on_changes</code></pre>
 
 <p>Check whether new snapshot is generated and reboot into this new snapshot if there are changes happened.</p>
 

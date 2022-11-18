@@ -25,31 +25,31 @@
 
 <h2 id="add_raid">add_raid</h2>
 
-<pre><code>  add_raid($self, $args);</code></pre>
+<pre><code>add_raid($self, $args);</code></pre>
 
 <p>Create RAID with provided parameters: $args-&gt;{partition}` contains hash reference with parameters for the partition, see <code>_add_partition</code>. $args-&gt;{raid_level} defines wanted raid level.</p>
 
 <h2 id="accept_changes_and_press_next">accept_changes_and_press_next</h2>
 
-<pre><code>  accept_changes_and_press_next($self);</code></pre>
+<pre><code>accept_changes_and_press_next($self);</code></pre>
 
 <p>Accept partitioning setup and proceed to the next page.</p>
 
 <h2 id="run_expert_partitioner">run_expert_partitioner</h2>
 
-<pre><code>  run_expert_partitioner($self);</code></pre>
+<pre><code>run_expert_partitioner($self);</code></pre>
 
 <p>Open Expert Partitioner with existing partitions.</p>
 
 <h2 id="add_partition_on_gpt_disk">add_partition_on_gpt_disk</h2>
 
-<pre><code>  add_partition_on_gpt_disk($self, $args);</code></pre>
+<pre><code>add_partition_on_gpt_disk($self, $args);</code></pre>
 
 <p>Add partition to the disk with gpt partition table. $args-&gt;{disk} contains name of the disk, where partition should be added. $args-&gt;{partition}`contains hash reference with parameters for the partition, see <code>_add_partition</code>.</p>
 
 <h2 id="finish_partition_creation">_finish_partition_creation</h2>
 
-<pre><code>  _finish_partition_creation();</code></pre>
+<pre><code>_finish_partition_creation();</code></pre>
 
 <p>Method finished partitioning, has different implementation in libstorage and libstorage-ng</p>
 

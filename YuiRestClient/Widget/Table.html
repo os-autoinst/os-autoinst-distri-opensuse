@@ -40,7 +40,7 @@
 
 <h1 id="SYNOPSIS">SYNOPSIS</h1>
 
-<pre><code>  $self-&gt;{tbl_available_devices}-&gt;select(value =&gt; $device);</code></pre>
+<pre><code>$self-&gt;{tbl_available_devices}-&gt;select(value =&gt; $device);</code></pre>
 
 <h1 id="DESCRIPTION">DESCRIPTION</h1>
 
@@ -48,37 +48,37 @@
 
 <p>Class representing a table in the UI. It can be YTable.</p>
 
-<pre><code>        {
-          &quot;class&quot;: &quot;YTable&quot;,
-          &quot;columns&quot;: 4,
-          &quot;header&quot;: [
-            &quot;header1&quot;,
-            &quot;header2&quot;,
-            &quot;header3&quot;,
-            &quot;header4&quot;
+<pre><code>{
+  &quot;class&quot;: &quot;YTable&quot;,
+  &quot;columns&quot;: 4,
+  &quot;header&quot;: [
+    &quot;header1&quot;,
+    &quot;header2&quot;,
+    &quot;header3&quot;,
+    &quot;header4&quot;
+  ],
+  &quot;id&quot;: &quot;test_id&quot;,
+  &quot;items&quot;: [
+      {
+          &quot;labels&quot;: [
+             &quot;test.item.1&quot;,
+             &quot;&quot;,
+             &quot;&quot;,
+             &quot;&quot;
           ],
-          &quot;id&quot;: &quot;test_id&quot;,
-          &quot;items&quot;: [
-              {
-                  &quot;labels&quot;: [
-                     &quot;test.item.1&quot;,
-                     &quot;&quot;,
-                     &quot;&quot;,
-                     &quot;&quot;
-                  ],
-                  &quot;selected&quot;: true
-              },
-              {
-                  &quot;labels&quot;: [
-                      &quot;test.item.2&quot;,
-                      &quot;&quot;,
-                      &quot;&quot;,
-                      &quot;&quot;
-                  ]
-              }
-          ],
-          &quot;items_count&quot;: 2
-        }</code></pre>
+          &quot;selected&quot;: true
+      },
+      {
+          &quot;labels&quot;: [
+              &quot;test.item.2&quot;,
+              &quot;&quot;,
+              &quot;&quot;,
+              &quot;&quot;
+          ]
+      }
+  ],
+  &quot;items_count&quot;: 2
+}</code></pre>
 
 <h2 id="Class-and-object-methods">Class and object methods</h2>
 
@@ -103,11 +103,11 @@
 
 <p>Example: Select row with value &quot;test.item.2&quot; for column &quot;header1&quot; in table</p>
 
-<pre><code>  $self-&gt;{table}-&gt;select(value =&gt; &#39;test.item.2&#39;, column =&gt; &#39;header1&#39;);</code></pre>
+<pre><code>$self-&gt;{table}-&gt;select(value =&gt; &#39;test.item.2&#39;, column =&gt; &#39;header1&#39;);</code></pre>
 
 <p>Example: Select row number 3</p>
 
-<pre><code>  $self-&gt;{table}-&gt;select(row =&gt; 3);</code></pre>
+<pre><code>$self-&gt;{table}-&gt;select(row =&gt; 3);</code></pre>
 
 <p><b>header()</b> - returns array with the column names</p>
 
@@ -115,7 +115,7 @@
 
 <p>For the example table above this function would return</p>
 
-<pre><code>  ([&quot;test.item.1&quot;, &quot;&quot;, &quot;&quot;],[&quot;Test.item.2&quot;, &quot;&quot;, &quot;&quot;])</code></pre>
+<pre><code>([&quot;test.item.1&quot;, &quot;&quot;, &quot;&quot;],[&quot;Test.item.2&quot;, &quot;&quot;, &quot;&quot;])</code></pre>
 
 <p><b>get_index($column)</b> - return the index of the column</p>
 

@@ -27,43 +27,43 @@
 
 <h2 id="scc_version">scc_version</h2>
 
-<pre><code>    scc_version([$version]);</code></pre>
+<pre><code>scc_version([$version]);</code></pre>
 
 <p>Helper for parsing SLE RC version into integer. It replaces SLE version in format X-SPY into X.Y.</p>
 
 <h2 id="add_suseconnect_product">add_suseconnect_product</h2>
 
-<pre><code>    add_suseconnect_product($name, [$version, [$arch, [$params]]]);</code></pre>
+<pre><code>add_suseconnect_product($name, [$version, [$arch, [$params]]]);</code></pre>
 
 <p>Wrapper for SUSEConnect -p $name.</p>
 
 <h2 id="ssh_add_suseconnect_product">ssh_add_suseconnect_product</h2>
 
-<pre><code>    ssh_add_suseconnect_product($remote, $name, [$version, [$arch, [$params, [$timeout, [$retries, [$delay]]]]]]);</code></pre>
+<pre><code>ssh_add_suseconnect_product($remote, $name, [$version, [$arch, [$params, [$timeout, [$retries, [$delay]]]]]]);</code></pre>
 
 <p>Wrapper for SUSEConnect -p $name over ssh.</p>
 
 <h2 id="remove_suseconnect_product">remove_suseconnect_product</h2>
 
-<pre><code>    remove_suseconnect_product($name, [$version, [$arch, [$params]]]);</code></pre>
+<pre><code>remove_suseconnect_product($name, [$version, [$arch, [$params]]]);</code></pre>
 
 <p>Wrapper for SUSEConnect -d $name.</p>
 
 <h2 id="ssh_remove_suseconnect_product">ssh_remove_suseconnect_product</h2>
 
-<pre><code>    ssh_remove_suseconnect_product($name, [$version, [$arch, [$params]]]);</code></pre>
+<pre><code>ssh_remove_suseconnect_product($name, [$version, [$arch, [$params]]]);</code></pre>
 
 <p>Wrapper for SUSEConnect -d $name over ssh.</p>
 
 <h2 id="cleanup_registration">cleanup_registration</h2>
 
-<pre><code>    cleanup_registration();</code></pre>
+<pre><code>cleanup_registration();</code></pre>
 
 <p>Wrapper for SUSEConnect --cleanup. Resets proxy SCC url if job has SCC_URL variable set.</p>
 
 <h2 id="register_product">register_product</h2>
 
-<pre><code>    register_product();</code></pre>
+<pre><code>register_product();</code></pre>
 
 <p>Wrapper for SUSEConnect -r &lt;regcode&gt;. Requires SCC_REGCODE variable. SUSEConnect --url with SMT/RMT server.</p>
 

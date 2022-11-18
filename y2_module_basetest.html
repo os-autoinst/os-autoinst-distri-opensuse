@@ -29,31 +29,31 @@
 
 <h2 id="with_yast_env_variables">with_yast_env_variables</h2>
 
-<pre><code> with_yast_env_variables([extra_vars]);</code></pre>
+<pre><code>with_yast_env_variables([extra_vars]);</code></pre>
 
 <p>Set environment variables for yast application. <code>extra_vars</code> extends the variables that can be used. <code>extra_vars</code> expects a string. ex: with_yast_env_variables(&quot;foo=bar&quot;);</p>
 
 <h2 id="is_network_manager_default">is_network_manager_default</h2>
 
-<pre><code> is_network_manager_default();</code></pre>
+<pre><code>is_network_manager_default();</code></pre>
 
 <p>openSUSE desktop roles have network manager as default except for older Leap versions.</p>
 
 <h2 id="continue_info_network_manager_default">continue_info_network_manager_default</h2>
 
-<pre><code> continue_info_network_manager_default();</code></pre>
+<pre><code>continue_info_network_manager_default();</code></pre>
 
 <p>Click on Continue when appears info indicating that network interfaces are controlled by Network Manager</p>
 
 <h2 id="accept_warning_network_manager_default">accept_warning_network_manager_default</h2>
 
-<pre><code> accept_warning_network_manager_default();</code></pre>
+<pre><code>accept_warning_network_manager_default();</code></pre>
 
 <p>Click on OK when appears a warning indicating that network interfaces are controlled by Network Manager.</p>
 
 <h2 id="wait_for_exit">wait_for_exit</h2>
 
-<pre><code> wait_for_exit(module =&gt; $module, timeout =&gt; $timeout);</code></pre>
+<pre><code>wait_for_exit(module =&gt; $module, timeout =&gt; $timeout);</code></pre>
 
 <p>Wait for string yast2-$module-status-0 (which has been previously used to open the module) to appear in the serial output using a timeout in order to ensure that the module exited.</p>
 

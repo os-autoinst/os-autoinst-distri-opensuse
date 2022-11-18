@@ -63,7 +63,7 @@
 
 <h2 id="x11_start_program">x11_start_program</h2>
 
-<pre><code>  x11_start_program($program [, timeout =&gt; $timeout ] [, no_wait =&gt; 0|1 ] [, valid =&gt; 0|1 [, target_match =&gt; $target_match ] [, match_timeout =&gt; $match_timeout ] [, match_no_wait =&gt; 0|1 ] [, match_typed =&gt; 0|1 ]]);</code></pre>
+<pre><code>x11_start_program($program [, timeout =&gt; $timeout ] [, no_wait =&gt; 0|1 ] [, valid =&gt; 0|1 [, target_match =&gt; $target_match ] [, match_timeout =&gt; $match_timeout ] [, match_no_wait =&gt; 0|1 ] [, match_typed =&gt; 0|1 ]]);</code></pre>
 
 <p>Start the program <code>$program</code> in an X11 session using the <i>desktop-runner</i> and looking for a target screen to match.</p>
 
@@ -85,7 +85,7 @@
 
 <h2 id="set_standard_prompt">set_standard_prompt</h2>
 
-<pre><code>  set_standard_prompt([$user] [[, os_type] [, skip_set_standard_prompt]])</code></pre>
+<pre><code>set_standard_prompt([$user] [[, os_type] [, skip_set_standard_prompt]])</code></pre>
 
 <p><code>$user</code> and <code>os_type</code> affect prompt sign. <code>skip_set_standard_prompt</code> options skip the entire routine.</p>
 
@@ -103,7 +103,7 @@
 
 <h2 id="hyperv_console_switch">hyperv_console_switch</h2>
 
-<pre><code>    hyperv_console_switch($console, $nr)</code></pre>
+<pre><code>hyperv_console_switch($console, $nr)</code></pre>
 
 <p>On Hyper-V console switch from one console to another is not possible with the general &#39;Ctrl-Alt-Fx&#39; binding as the combination is lost somewhere in VNC-to-RDP translation. For VT-to-VT switch we use &#39;Alt-Fx&#39; binding, however this is not enough for X11-to-VT switch, which requires the missing &#39;Ctrl&#39;. However, in X11 we can use `chvt` command to do the switch for us.</p>
 
@@ -113,13 +113,13 @@
 
 <h2 id="console_nr">console_nr</h2>
 
-<pre><code>    console_nr($console)</code></pre>
+<pre><code>console_nr($console)</code></pre>
 
 <p>Return console VT number with regards to it&#39;s name.</p>
 
 <h2 id="activate_console">activate_console</h2>
 
-<pre><code>  activate_console($console [, [ensure_tty_selected =&gt; 0|1] [, skip_set_standard_prompt =&gt; 0|1] [, skip_setterm =&gt; 0|1] [, timeout =&gt; $timeout]])</code></pre>
+<pre><code>activate_console($console [, [ensure_tty_selected =&gt; 0|1] [, skip_set_standard_prompt =&gt; 0|1] [, skip_setterm =&gt; 0|1] [, timeout =&gt; $timeout]])</code></pre>
 
 <p>Callback whenever a console is selected for the first time. Accepts arguments provided to select_console().</p>
 
@@ -131,7 +131,7 @@
 
 <h2 id="console_selected">console_selected</h2>
 
-<pre><code>    console_selected($console [, await_console =&gt; $await_console] [, tags =&gt; $tags ] [, ignore =&gt; $ignore ] [, timeout =&gt; $timeout ]);</code></pre>
+<pre><code>console_selected($console [, await_console =&gt; $await_console] [, tags =&gt; $tags ] [, ignore =&gt; $ignore ] [, timeout =&gt; $timeout ]);</code></pre>
 
 <p>Overrides <code>select_console</code> callback from <code>testapi</code>. Waits for console by calling assert_screen on <code>tags</code>, by default the name of the selected console.</p>
 

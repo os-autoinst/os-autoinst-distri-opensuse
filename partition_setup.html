@@ -41,67 +41,67 @@
 
 <h2 id="is_storage_ng_newui">is_storage_ng_newui</h2>
 
-<pre><code> is_storage_ng_newui();</code></pre>
+<pre><code>is_storage_ng_newui();</code></pre>
 
 <p>Returns true if running on a scenario that expects storage-ng. We got changes to the storage-ng UI in SLE 15 SP1, Leap 15.1 and TW</p>
 
 <h2 id="wipe_existing_pastitions_storage_ng">wipe_existing_pastitions_storage_ng</h2>
 
-<pre><code> wipe_existing_pastitions_storage_ng();</code></pre>
+<pre><code>wipe_existing_pastitions_storage_ng();</code></pre>
 
 <p>Deletes all existing partitions in the expert partitioner. Despite the name it does not check if it is run on a storage ng system, so be careful here</p>
 
 <h2 id="create_new_partition_table">create_new_partition_table</h2>
 
-<pre><code> create_new_partition_table($table_type);</code></pre>
+<pre><code>create_new_partition_table($table_type);</code></pre>
 
 <p><code>$table_type</code> can be &#39;GPT&#39; or &#39;MSDOS&#39; and is optional. This function creates a new partitioning setup from scratch.</p>
 
 <h2 id="mount_device">mount_device</h2>
 
-<pre><code> mount_device($mount);</code></pre>
+<pre><code>mount_device($mount);</code></pre>
 
 <p>Set mount point and volume label. <code>$mount</code> is mount point.</p>
 
 <h2 id="set_partition_size">set_partition_size</h2>
 
-<pre><code> set_partition_size([size =&gt; $size]);</code></pre>
+<pre><code>set_partition_size([size =&gt; $size]);</code></pre>
 
 <p>The function can be executed when the SUT is on the yast partitioner panel `Add partition on /dev/xxx -&gt; New Partition Size` to set the <code>$args{size}</code> in megabytes.</p>
 
 <p>Example:</p>
 
-<pre><code> set_patition_size(size =&gt; &#39;100&#39;)</code></pre>
+<pre><code>set_patition_size(size =&gt; &#39;100&#39;)</code></pre>
 
 <h2 id="resize_partition">resize_partition</h2>
 
-<pre><code> resize_partition();</code></pre>
+<pre><code>resize_partition();</code></pre>
 
 <p>Method assumes that correct disk is already selected. Select Maximum size by default</p>
 
 <h2 id="addpart">addpart</h2>
 
-<pre><code> addpart(size =&gt; $size, role =&gt; $role [, format =&gt; $format] [, enable_snapshots =&gt; $enable_snapshots] [, fsid =&gt; $fsid] [, mount =&gt; $mount] [, encrypt =&gt; $encrypt]);</code></pre>
+<pre><code>addpart(size =&gt; $size, role =&gt; $role [, format =&gt; $format] [, enable_snapshots =&gt; $enable_snapshots] [, fsid =&gt; $fsid] [, mount =&gt; $mount] [, encrypt =&gt; $encrypt]);</code></pre>
 
 <p>Adds a partition with the given parameters to the partitioning table.</p>
 
 <h2 id="addvg">addvg</h2>
 
-<pre><code> addvg(name =&gt; $name [, add_all_pvs =&gt; $add_all_pvs]);</code></pre>
+<pre><code>addvg(name =&gt; $name [, add_all_pvs =&gt; $add_all_pvs]);</code></pre>
 
 <p>Add a LVM volume group. Example:</p>
 
-<pre><code> addvg(name =&gt; &#39;vg-system&#39;, add_all_pvs =&gt; 1);</code></pre>
+<pre><code>addvg(name =&gt; &#39;vg-system&#39;, add_all_pvs =&gt; 1);</code></pre>
 
 <h2 id="addlv">addlv</h2>
 
-<pre><code> addlv(vg =&gt; $vg, name =&gt; $name, role =&gt; $role [, size =&gt; $size] [, mount =&gt; $mount] [, [thinpool =&gt; $thinpool] | [thinvolume =&gt; $thinvolume]]);</code></pre>
+<pre><code>addlv(vg =&gt; $vg, name =&gt; $name, role =&gt; $role [, size =&gt; $size] [, mount =&gt; $mount] [, [thinpool =&gt; $thinpool] | [thinvolume =&gt; $thinvolume]]);</code></pre>
 
 <p>Add a LVM logical volume.</p>
 
 <h2 id="addboot">addboot</h2>
 
-<pre><code> addboot($part_size);</code></pre>
+<pre><code>addboot($part_size);</code></pre>
 
 <p>Add a boot partition based on architecture.</p>
 
@@ -109,7 +109,7 @@
 
 <h2 id="select_first_hard_disk">select_first_hard_disk</h2>
 
-<pre><code> select_first_hard_disk();</code></pre>
+<pre><code>select_first_hard_disk();</code></pre>
 
 <p>Select the first hard disk.</p>
 
@@ -117,25 +117,25 @@
 
 <h2 id="enable_encryption_guided_setup">enable_encryption_guided_setup</h2>
 
-<pre><code> enable_encryption_guided_setup();</code></pre>
+<pre><code>enable_encryption_guided_setup();</code></pre>
 
 <p>Enable encryption in guided setup during installation.</p>
 
 <h2 id="take_first_disk_storage_ng">take_first_disk_storage_ng</h2>
 
-<pre><code> take_first_disk_storage_ng();</code></pre>
+<pre><code>take_first_disk_storage_ng();</code></pre>
 
 <p>Only works on storage-ng and is being called by <code>take_first_disk</code>.</p>
 
 <h2 id="take_first_disk">take_first_disk</h2>
 
-<pre><code> take_first_disk([%args]);</code></pre>
+<pre><code>take_first_disk([%args]);</code></pre>
 
 <p>Take the first disk to be partitioned. Take first partition as storage ng if it is <code>is_storage_ng</code>. <code>[%args]</code> is device type.</p>
 
 <p>Example:</p>
 
-<pre><code> take_first_disk(iscsi =&gt; 1);</code></pre>
+<pre><code>take_first_disk(iscsi =&gt; 1);</code></pre>
 
 
 </body>

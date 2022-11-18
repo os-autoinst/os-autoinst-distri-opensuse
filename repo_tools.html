@@ -115,19 +115,19 @@
 
 <h2 id="add_qa_head_repo">add_qa_head_repo</h2>
 
-<pre><code> add_qa_head_repo();</code></pre>
+<pre><code>add_qa_head_repo();</code></pre>
 
 <p>Helper to add QA:HEAD repository repository (usually from IBS). This repository *is* mandatory.</p>
 
 <h2 id="add_qa_web_repo">add_qa_web_repo</h2>
 
-<pre><code> add_qa_web_repo();</code></pre>
+<pre><code>add_qa_web_repo();</code></pre>
 
 <p>Helper to add QA web repository repository. This repository is *not* mandatory.</p>
 
 <h2 id="get_installed_patterns">get_installed_patterns</h2>
 
-<pre><code> get_installed_patterns();</code></pre>
+<pre><code>get_installed_patterns();</code></pre>
 
 <p>Here zypper uses XML as output format for more precise parsing (by using &#39;-x&#39; command parameter). Then the names of patterns are parsed from the XML.</p>
 
@@ -135,25 +135,25 @@
 
 <h2 id="get_repo_var_name">get_repo_var_name</h2>
 
-<pre><code> get_repo_var_name($repo_name);</code></pre>
+<pre><code>get_repo_var_name($repo_name);</code></pre>
 
 <p>This takes something like &quot;MODULE_BASESYSTEM_SOURCE&quot; as parameter <code>$repo_name</code> and returns &quot;REPO_SLE15_SP1_MODULE_BASESYSTEM_SOURCE&quot; when being called on SLE15-SP1.</p>
 
 <h2 id="smt_wizard">smt_wizard</h2>
 
-<pre><code> smt_wizard();</code></pre>
+<pre><code>smt_wizard();</code></pre>
 
 <p>Run smt wizard workflow and to get repository synced with smt server</p>
 
 <h2 id="get_repo_var_name1">get_repo_var_name</h2>
 
-<pre><code> get_repo_var_name();</code></pre>
+<pre><code>get_repo_var_name();</code></pre>
 
 <p>Verify smt mirror function and mirror a tiny released repo from SCC. Hardcode it as SLES12-SP3-Installer-Updates.</p>
 
 <h2 id="type_password_twice">type_password_twice</h2>
 
-<pre><code> type_password_twice();</code></pre>
+<pre><code>type_password_twice();</code></pre>
 
 <p>Type password, TAB, password, ALT+o. This is for use within YaST.</p>
 
@@ -165,67 +165,67 @@
 
 <h2 id="rmt_sync">rmt_sync</h2>
 
-<pre><code> rmt_sync();</code></pre>
+<pre><code>rmt_sync();</code></pre>
 
 <p>Function to sync rmt server</p>
 
 <h2 id="rmt_enable_pro">rmt_enable_pro</h2>
 
-<pre><code> rmt_enable_pro();</code></pre>
+<pre><code>rmt_enable_pro();</code></pre>
 
 <p>Function to enable products</p>
 
 <h2 id="rmt_mirror_repo">rmt_mirror_repo</h2>
 
-<pre><code> rmt_mirror_repo();</code></pre>
+<pre><code>rmt_mirror_repo();</code></pre>
 
 <p>Function to mirror the enabled repository</p>
 
 <h2 id="rmt_list_pro">rmt_list_pro</h2>
 
-<pre><code> rmt_list_pro();</code></pre>
+<pre><code>rmt_list_pro();</code></pre>
 
 <p>Function to list products</p>
 
 <h2 id="rmt_import_data">rmt_import_data</h2>
 
-<pre><code> rmt_import_data($datafile);</code></pre>
+<pre><code>rmt_import_data($datafile);</code></pre>
 
 <p>RMT server import data from one folder which stored RMT export data about available repositories and the mirrored packages <code>$datafile</code> is repository source.</p>
 
 <h2 id="rmt_export_data">rmt_export_data</h2>
 
-<pre><code> rmt_export_data();</code></pre>
+<pre><code>rmt_export_data();</code></pre>
 
 <p>RMT server export data about available repositories and the mirrored packages</p>
 
 <h2 id="prepare_source_repo">prepare_source_repo</h2>
 
-<pre><code> prepare_source_repo($repo_name);</code></pre>
+<pre><code>prepare_source_repo($repo_name);</code></pre>
 
 <p>Prepare SLES or OSS souce repositories</p>
 
 <h2 id="disable_source_repo">disable_source_repo</h2>
 
-<pre><code> disable_source_repo();</code></pre>
+<pre><code>disable_source_repo();</code></pre>
 
 <p>Disable source repositories</p>
 
 <h2 id="generate_version">generate_version</h2>
 
-<pre><code> generate_version($separator);</code></pre>
+<pre><code>generate_version($separator);</code></pre>
 
 <p>Generate SLE or openSUSE versions. <code>$separator</code> is separator used for version number, it will be default to _ if omitted. Example: SLES-12-4, openSUSE_Leap</p>
 
 <h2 id="validate_repo_properties">validate_repo_properties</h2>
 
-<pre><code> validate_repo_properties($args);</code></pre>
+<pre><code>validate_repo_properties($args);</code></pre>
 
 <p>Validates that repo with given search criteria (uri, alias, number) has other properties mathing the expectations. If one of the keys is not provided, that field will NOT be validated. <code>$args</code> should have following keys defined: - <code>Alias</code>: repository alias, optional - <code>Autorefresh</code>: repository Autorefresh property, optional - <code>Enabled</code>: repository Enabled property, optional - <code>Filter</code>: repository search criteria (alias, uri, number), uri is used if not defined - <code>Name</code>: repository name, optional - <code>URI</code>: repository uri, used as a search criteria if no <code>Filter</code> provided.</p>
 
 <h2 id="parse_repo_data">parse_repo_data</h2>
 
-<pre><code> parse_repo_data($repo_identifier);</code></pre>
+<pre><code>parse_repo_data($repo_identifier);</code></pre>
 
 <p>Parses the output of &#39;zypper lr <code>$repo_identifier</code>&#39; command (detailed information about specific repository) and returns it as Hash reference.</p>
 
@@ -235,7 +235,7 @@
 
 <h2 id="verify_software">verify_software</h2>
 
-<pre><code> verify_software(%args);</code></pre>
+<pre><code>verify_software(%args);</code></pre>
 
 <p>Validates that package or pattern is installed, or not installed and/or if package is available in the given repo. returns string with error or empty string in case of matching expectations. <code>%args</code> should have following keys defined: - <code>name</code>: package or pattern name - <code>installed</code>: if set to true, validate that package or pattern is installed - <code>pattern</code>: set to true if is pattern, otherwise validating package - <code>available</code>: if set to true, validate that package or pattern is available in the list of packages with given search criteria, otherwise expect zypper command to fail - <code>repo</code>: Optional, name of the repo where the package should be available. Check is triggered only if <code>available</code> is set to true</p>
 

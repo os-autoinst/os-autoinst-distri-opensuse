@@ -22,7 +22,7 @@
 
 <h2 id="is_checked-args">is_checked(%args)</h2>
 
-<pre><code>    is_checked(checked_needle =&gt; $checked_needle, unchecked_needle =&gt; $unchecked_needle);</code></pre>
+<pre><code>is_checked(checked_needle =&gt; $checked_needle, unchecked_needle =&gt; $unchecked_needle);</code></pre>
 
 <p>The method to verify if the checkbox is checked or not.</p>
 
@@ -34,20 +34,20 @@
 
 <p>Example:</p>
 
-<pre><code>    There is the checkbox with &#39;Test&#39; label.
+<pre><code>There is the checkbox with &#39;Test&#39; label.
 
-    First of all create two needles for it:
-    * in checked state with &#39;checked_test_checkbox&#39; tag;
-    * in unchecked state with &#39;unchecked_test_checkbox&#39; tag.
+First of all create two needles for it:
+* in checked state with &#39;checked_test_checkbox&#39; tag;
+* in unchecked state with &#39;unchecked_test_checkbox&#39; tag.
 
-    Then use the method:
+Then use the method:
 
-    is_checked(checked_needle   =&gt; &#39;checked_test_checkbox&#39;,
-               unchecked_needle =&gt; &#39;unchecked_test_checkbox&#39;);</code></pre>
+is_checked(checked_needle   =&gt; &#39;checked_test_checkbox&#39;,
+           unchecked_needle =&gt; &#39;unchecked_test_checkbox&#39;);</code></pre>
 
 <h2 id="set_state-args">set_state(%args)</h2>
 
-<pre><code>    set_state(state =&gt; $state, shortcut =&gt; $shortcut, needle_postfix =&gt; $needle_postfix);</code></pre>
+<pre><code>set_state(state =&gt; $state, shortcut =&gt; $shortcut, needle_postfix =&gt; $needle_postfix);</code></pre>
 
 <p>The method to set the checkbox to checked or unchecked state, regardless of the current state of the checkbox.</p>
 
@@ -57,18 +57,18 @@
 
 <p>Example:</p>
 
-<pre><code>    There is a checkbox. It is required to test the functionality that it
-    enables and do not care about the default state of the checkbox.
+<pre><code>There is a checkbox. It is required to test the functionality that it
+enables and do not care about the default state of the checkbox.
 
-    Assume, needles for checked/unchecked states already created.
+Assume, needles for checked/unchecked states already created.
 
-    Method usage:
+Method usage:
 
-    set_state(state            =&gt; 1,
-              shortcut         =&gt; &#39;alt-a&#39;,
-              checked_needle   =&gt; &#39;checked_test_checkbox&#39;,
-              unchecked_needle =&gt; &#39;unchecked_test_checkbox&#39;
-    );</code></pre>
+set_state(state            =&gt; 1,
+          shortcut         =&gt; &#39;alt-a&#39;,
+          checked_needle   =&gt; &#39;checked_test_checkbox&#39;,
+          unchecked_needle =&gt; &#39;unchecked_test_checkbox&#39;
+);</code></pre>
 
 
 </body>

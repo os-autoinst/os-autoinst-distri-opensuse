@@ -28,13 +28,13 @@
 
 <h2 id="parse_devices_in_crypttab">parse_devices_in_crypttab</h2>
 
-<pre><code>  parse_devices_in_crypttab();</code></pre>
+<pre><code>parse_devices_in_crypttab();</code></pre>
 
 <p>This sub reads the output of <i>/etc/crypttab</i> and returns <code>%crypttab</code> reference with its data. Check https://www.freedesktop.org/software/systemd/man/crypttab.html for more info about parsing</p>
 
 <h2 id="parse_cryptsetup_status">parse_cryptsetup_status</h2>
 
-<pre><code>  parse_cryptsetup_status($dev);</code></pre>
+<pre><code>parse_cryptsetup_status($dev);</code></pre>
 
 <dl>
 
@@ -48,13 +48,13 @@
 
 <h2 id="verify_crypttab_file_existence">verify_crypttab_file_existence</h2>
 
-<pre><code>  verify_crypttab_file_existence();</code></pre>
+<pre><code>verify_crypttab_file_existence();</code></pre>
 
 <p>Verify the existence of <i>/etc/crypttab</i> file.</p>
 
 <h2 id="verify_number_of_encrypted_devices">verify_number_of_encrypted_devices</h2>
 
-<pre><code>  verify_number_of_encrypted_devices($expected_number, $actual_number);</code></pre>
+<pre><code>verify_number_of_encrypted_devices($expected_number, $actual_number);</code></pre>
 
 <dl>
 
@@ -70,7 +70,7 @@
 
 <h2 id="verify_cryptsetup_message">verify_cryptsetup_message</h2>
 
-<pre><code>  verify_cryptsetup_message($expected_message, $actual_message);</code></pre>
+<pre><code>verify_cryptsetup_message($expected_message, $actual_message);</code></pre>
 
 <dl>
 
@@ -86,7 +86,7 @@
 
 <h2 id="verify_cryptsetup_properties">verify_cryptsetup_properties</h2>
 
-<pre><code>  verify_cryptsetup_properties($expected_properties, $actual_properties);</code></pre>
+<pre><code>verify_cryptsetup_properties($expected_properties, $actual_properties);</code></pre>
 
 <dl>
 
@@ -102,7 +102,7 @@
 
 <h2 id="verify_restoring_luks_backups">verify_restoring_luks_backups</h2>
 
-<pre><code>  verify_restoring_luks_backups(%args);</code></pre>
+<pre><code>verify_restoring_luks_backups(%args);</code></pre>
 
 <p>Where <code>%args</code> expects the following parameters:</p>
 
@@ -126,7 +126,7 @@
 
 <h2 id="verify_locked_encrypted_partition">verify_locked_encrypted_partition</h2>
 
-<pre><code>  verify_locked_encrypted_partition($enc_disk_part);</code></pre>
+<pre><code>verify_locked_encrypted_partition($enc_disk_part);</code></pre>
 
 <dl>
 

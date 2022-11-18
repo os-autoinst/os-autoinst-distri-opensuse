@@ -78,157 +78,157 @@
 
 <h2 id="exec_csync">exec_csync</h2>
 
-<pre><code> exec_csync();</code></pre>
+<pre><code>exec_csync();</code></pre>
 
 <p>Runs <code>csync2 -vxF</code> in the SUT, to sync files from SUT to other nodes in the cluster. Sometimes it is expected that the first call to <code>csync2 -vxF</code> fails, so this method will run the command twice.</p>
 
 <h2 id="add_file_in_csync">add_file_in_csync</h2>
 
-<pre><code> add_file_in_csync( value =&gt; &#39;/path/to/file&#39;, [ conf_file =&gt; &#39;/path/to/csync2.cfg&#39; ] );</code></pre>
+<pre><code>add_file_in_csync( value =&gt; &#39;/path/to/file&#39;, [ conf_file =&gt; &#39;/path/to/csync2.cfg&#39; ] );</code></pre>
 
 <p>Adds <i>/path/to/file</i> to a csync2 configuration file in SUT. Path to add must be passed with the named argument <b>value</b>, while csync2 configuration file can be passed on the named argument <b>conf_file</b> (defaults to <i>/etc/csync2/csync2.cfg</i>). Returns true on success or croaks if command execution fails in SUT.</p>
 
 <h2 id="get_cluster_name">get_cluster_name</h2>
 
-<pre><code> get_cluster_name();</code></pre>
+<pre><code>get_cluster_name();</code></pre>
 
 <p>Returns the cluster name, as defined in the <b>CLUSTER_NAME</b> setting. Croaks if the setting is not defined, as it is a mandatory setting for HA tests.</p>
 
 <h2 id="get_hostname">get_hostname</h2>
 
-<pre><code> get_hostname();</code></pre>
+<pre><code>get_hostname();</code></pre>
 
 <p>Returns the hostname, as defined in the <b>HOSTNAME</b> setting. Croaks if the setting is not defined, as it is a mandatory setting for HA tests.</p>
 
 <h2 id="get_node_to_join">get_node_to_join</h2>
 
-<pre><code> get_node_to_join();</code></pre>
+<pre><code>get_node_to_join();</code></pre>
 
 <p>Returns the hostname of the node to join, as defined in the <b>HA_CLUSTER_JOIN</b> setting. Croaks if the setting is not defined, as this setting is mandatory for all nodes that run <code>ha-cluster-join</code>. As such, avoid scheduling tests that call this method on nodes that would run <code>ha-cluster-init</code> instead.</p>
 
 <h2 id="get_ip">get_ip</h2>
 
-<pre><code> get_ip( $node_hostname );</code></pre>
+<pre><code>get_ip( $node_hostname );</code></pre>
 
 <p>Returns the IP address of a node given its hostname, either by calling the <code>host</code> command in SUT (which in turns would do a DNS query on tests using support server), or by searching for the host entry in SUT&#39;s <i>/etc/hosts</i>. Returns 0 on failure.</p>
 
 <h2 id="get_my_ip">get_my_ip</h2>
 
-<pre><code> get_my_ip();</code></pre>
+<pre><code>get_my_ip();</code></pre>
 
 <p>Returns the IP address of SUT or 0 if the address cannot be determined. Special case of <code>get_ip()</code>.</p>
 
 <h2 id="get_node_number">get_node_number</h2>
 
-<pre><code> get_node_number();</code></pre>
+<pre><code>get_node_number();</code></pre>
 
 <p>Returns the number of nodes configured in the cluster.</p>
 
 <h2 id="get_node_index">get_node_index</h2>
 
-<pre><code> get_node_index();</code></pre>
+<pre><code>get_node_index();</code></pre>
 
 <p>Returns the index number of the SUT. This information is taken from the node hostnames, so be sure to define proper hostnames in the tests settings, for example <b>alpha-node01</b>, <b>alpha-node02</b>, etc.</p>
 
 <h2 id="is_node">is_node</h2>
 
-<pre><code> is_node( $node_number );</code></pre>
+<pre><code>is_node( $node_number );</code></pre>
 
 <p>Checks whether SUT is the node identified by <b>$node_number</b>. Returns true or false. This information is matched against the node hostname, so be sure to define proper hostnames in the tests settings, for example <b>alpha-node01</b>, <b>alpha-node02</b>, etc.</p>
 
 <h2 id="add_to_known_hosts">add_to_known_hosts</h2>
 
-<pre><code> add_to_known_hosts( $host );</code></pre>
+<pre><code>add_to_known_hosts( $host );</code></pre>
 
 <p>Adds <b>$host</b> to the <i>.ssh/known_hosts</i> file of the current user in SUT. Croaks if any of the commands to do so fail.</p>
 
 <h2 id="choose_node">choose_node</h2>
 
-<pre><code> choose_node( $node_number );</code></pre>
+<pre><code>choose_node( $node_number );</code></pre>
 
 <p>Returns the hostname of the node identified by <b>$node_number</b>. This information relies on the node hostnames, so be sure to define proper hostnames in the tests settings, for example <b>alpha-node01</b>, <b>alpha-node02</b>, etc.</p>
 
 <h2 id="save_state">save_state</h2>
 
-<pre><code> save_state();</code></pre>
+<pre><code>save_state();</code></pre>
 
 <p>Prints the cluster configuration and cluster status in SUT, and saves the screenshot.</p>
 
 <h2 id="is_package_installed">is_package_installed</h2>
 
-<pre><code> is_package_installed( $package );</code></pre>
+<pre><code>is_package_installed( $package );</code></pre>
 
 <p>Checks if <b>$package</b> is installed in SUT. Returns true or false.</p>
 
 <h2 id="check_rsc">check_rsc</h2>
 
-<pre><code> check_rsc( $resource );</code></pre>
+<pre><code>check_rsc( $resource );</code></pre>
 
 <p>Checks if cluster resource <b>$resource</b> is configured in the cluster. Returns true or false.</p>
 
 <h2 id="ensure_process_running">ensure_process_running</h2>
 
-<pre><code> ensure_process_running( $process );</code></pre>
+<pre><code>ensure_process_running( $process );</code></pre>
 
 <p>Checks for up to <b>$default_timeout</b> seconds whether process <b>$process</b> is running in SUT. Returns 0 if process is running or croaks on timeout.</p>
 
 <h2 id="ensure_resource_running">ensure_resource_running</h2>
 
-<pre><code> ensure_resource_running( $resource, $regexp );</code></pre>
+<pre><code>ensure_resource_running( $resource, $regexp );</code></pre>
 
 <p>Checks for up to <b>$default_timeout</b> seconds in the output of <code>crm resource status $resource</code> if a resource <b>$resource</b> is configured in the cluster; uses <b>$regexp</b> to check. Returns 0 on success or croaks on timeout.</p>
 
 <h2 id="ensure_dlm_running">ensure_dlm_running</h2>
 
-<pre><code> ensure_dlm_running();</code></pre>
+<pre><code>ensure_dlm_running();</code></pre>
 
 <p>Checks that the <code>dlm</code> resource is running in the cluster, and that its associated process (<b>dlm_controld</b>) is running in SUT. Returns 0 if process is running or croaks on error.</p>
 
 <h2 id="write_tag">write_tag</h2>
 
-<pre><code> write_tag( $tag );</code></pre>
+<pre><code>write_tag( $tag );</code></pre>
 
 <p>Create a cluster-specific file in <i>/tmp/</i> of the SUT with <b>$tag</b> as its content. Returns 0 on success or croaks on failure.</p>
 
 <h2 id="read_tag">read_tag</h2>
 
-<pre><code> read_tag();</code></pre>
+<pre><code>read_tag();</code></pre>
 
 <p>Read the content of the cluster-specific file created in <i>/tmp/</i> with <code>write_tag()</code>. Returns the content of the file or croaks on failure.</p>
 
 <h2 id="block_device_real_path">block_device_real_path</h2>
 
-<pre><code> block_device_real_path( $device );</code></pre>
+<pre><code>block_device_real_path( $device );</code></pre>
 
 <p>Returns the real path of the block device specified by <b>$device</b> as shown by <code>realpath -ePL</code>, or croak on failure.</p>
 
 <h2 id="lvm_add_filter">lvm_add_filter</h2>
 
-<pre><code> lvm_add_filter( $type, $filter );</code></pre>
+<pre><code>lvm_add_filter( $type, $filter );</code></pre>
 
 <p>Add filter <b>$filter</b> of type <b>$type</b> to <i>/etc/lvm/lvm.conf</i>.</p>
 
 <h2 id="lvm_remove_filter">lvm_remove_filter</h2>
 
-<pre><code> lvm_remove_filter( $filter );</code></pre>
+<pre><code>lvm_remove_filter( $filter );</code></pre>
 
 <p>Remove filter <b>$filter</b> from <i>/etc/lvm/lvm.conf</i>.</p>
 
 <h2 id="rsc_cleanup">rsc_cleanup</h2>
 
-<pre><code> rsc_cleanup( $resource );</code></pre>
+<pre><code>rsc_cleanup( $resource );</code></pre>
 
 <p>Execute a <code>crm resource cleanup</code> on the resource identified by <b>$resource</b>.</p>
 
 <h2 id="ha_export_logs">ha_export_logs</h2>
 
-<pre><code> ha_export_logs();</code></pre>
+<pre><code>ha_export_logs();</code></pre>
 
 <p>Upload HA-relevant logs from SUT. These include: crm configuration, cluster bootstrap log, corosync configuration, <b>hb_report</b>, list of installed packages, list of iSCSI devices, <i>/etc/mdadm.conf</i>, support config and <b>y2logs</b>. If available, logs from the <b>HAWK</b> test, from <b>CTS</b> and from <b>HANA</b> are also included.</p>
 
 <h2 id="check_cluster_state">check_cluster_state</h2>
 
-<pre><code> check_cluster_state( [ proceed_on_failure =&gt; 1 ] );</code></pre>
+<pre><code>check_cluster_state( [ proceed_on_failure =&gt; 1 ] );</code></pre>
 
 <p>Check state of the cluster. This will call <b>$crm_mon_cmd</b> to check the current status of the cluster, check for inactive resources and for <span style="white-space: nowrap;">partition with quorum</span> in the output of <b>$crm_mon_cmd</b>, check the reported number of nodes in the output of <code>crm node list</code> and <b>$crm_mon_cmd</b> is the same and run <code>crm_verify -LV</code>.</p>
 
@@ -236,55 +236,55 @@
 
 <h2 id="wait_until_resources_stopped">wait_until_resources_stopped</h2>
 
-<pre><code> wait_until_resources_stopped( [ timeout =&gt; $timeout, minchecks =&gt; $tries ] );</code></pre>
+<pre><code>wait_until_resources_stopped( [ timeout =&gt; $timeout, minchecks =&gt; $tries ] );</code></pre>
 
 <p>Wait for resources to be stopped. Runs <b>$crm_mon_cmd</b> until there are no resources in <b>stopping</b> state or up to <b>$timeout</b> seconds. Timeout must be specified by the named argument <b>timeout</b> (defaults to 120 seconds). This timeout is scaled by the factor specified in the <b>TIMEOUT_SCALE</b> setting. The named argument <b>minchecks</b> (defaults to 3, can be disabled with 0) provides a minimum number of times to check independently of the return status; this helps avoid race conditions where the method checks before the HA stack starts to stop the resources. Croaks on timeout.</p>
 
 <h2 id="wait_until_resources_started">wait_until_resources_started</h2>
 
-<pre><code> wait_until_resources_started( [ timeout =&gt; $timeout ] );</code></pre>
+<pre><code>wait_until_resources_started( [ timeout =&gt; $timeout ] );</code></pre>
 
 <p>Wait for resources to be started. Runs <code>crm cluster wait_for_startup</code> in SUT as well as other verifications on newer versions of SLES (12-SP3+), for up to <b>$timeout</b> seconds for each command. Timeout must be specified by the named argument <b>timeout</b> (defaults to 120 seconds). This timeout is scaled by the factor specified in the <b>TIMEOUT_SCALE</b> setting. Croaks on timeout.</p>
 
 <h2 id="get_lun">get_lun</h2>
 
-<pre><code> get_lun( [ use_once =&gt; $bool ] );</code></pre>
+<pre><code>get_lun( [ use_once =&gt; $bool ] );</code></pre>
 
 <p>Returns a LUN from the LUN list file stored in the support server or in the support NFS share in scenarios without support server. If the named argument <b>use_once</b> is passed and set to true (defaults to true), the returned LUN will be removed from the file, so it will not be selected again. Croaks on failure.</p>
 
 <h2 id="check_device_available">check_device_available</h2>
 
-<pre><code> check_device_available( $device, [ $timeout ] );</code></pre>
+<pre><code>check_device_available( $device, [ $timeout ] );</code></pre>
 
 <p>Checks for the presence of a device in the SUT for up to a defined timeout (defaults to 20 seconds). Returns 0 on success, or croaks on failure.</p>
 
 <h2 id="set_lvm_config">set_lvm_config</h2>
 
-<pre><code> set_lvm_config( $lvm_config_file, [ use_lvmetad =&gt; $val1, locking_type =&gt; $val2, use_lvmlockd =&gt; $val3, ... ] );</code></pre>
+<pre><code>set_lvm_config( $lvm_config_file, [ use_lvmetad =&gt; $val1, locking_type =&gt; $val2, use_lvmlockd =&gt; $val3, ... ] );</code></pre>
 
 <p>Configures the LVM parameters/values pairs passed as a HASH into the LVM configuration file specified by the first argument <b>$lvm_config_file</b>. These LVM parameters are usually <b>use_lvmetad</b>, <b>locking_type</b> and <b>use_lvmlockd</b> but any other existing parameter from the LVM configuration file is also valid. Parameters that do not exist in the LVM configuration file in SUT will be ignored. Returns 0 on success or croaks on failure.</p>
 
 <h2 id="add_lock_mgr">add_lock_mgr</h2>
 
-<pre><code> add_lock_mgr( $lock_manager );</code></pre>
+<pre><code>add_lock_mgr( $lock_manager );</code></pre>
 
 <p>Configures a <b>$lock_manager</b> resource in the cluster configuration on SUT. <b>$lock_mgr</b> usually is either <b>clvmd</b> or <b>lvmlockd</b>, but any other cluster primitive could work as well.</p>
 
 <h2 id="is_not_maintenance_update">is_not_maintenance_update</h2>
 
-<pre><code> is_not_maintenance_update( $package );</code></pre>
+<pre><code>is_not_maintenance_update( $package );</code></pre>
 
 <p>Checks if the package specified in <b>$package</b> is not targeted by a maintenance update. Returns true if the package is not targeted, i.e., package name does not appear in the <b>BUILD</b> setting and the <b>MAINTENANCE</b> setting is active, or false in all other cases.</p>
 
 <h2 id="activate_ntp">activate_ntp</h2>
 
-<pre><code> activate_ntp();</code></pre>
+<pre><code>activate_ntp();</code></pre>
 
 <p>Enables NTP service in SUT.</p>
 
 <h2 id="calculate_sbd_start_delay">calculate_sbd_start_delay</h2>
 
-<pre><code>  calculate_sbd_start_delay();</code></pre>
+<pre><code>calculate_sbd_start_delay();</code></pre>
 
 <p>Calculates start time delay after node is fenced. Prevents cluster failure if fenced node restarts too quickly. Delay time is used either if specified in sbd config variable &quot;SBD_DELAY_START&quot; or calculated: &quot;corosync_token + corosync_consensus + SBD_WATCHDOG_TIMEOUT * 2&quot; Variables &#39;corosync_token&#39; and &#39;corosync_consensus&#39; are converted to seconds.</p>
 

@@ -31,25 +31,25 @@
 
 <h2 id="setup_static_network">setup_static_network</h2>
 
-<pre><code> setup_static_network(ip =&gt; &#39;10.0.2.15&#39;, gw =&gt; &#39;10.0.2.1&#39;);</code></pre>
+<pre><code>setup_static_network(ip =&gt; &#39;10.0.2.15&#39;, gw =&gt; &#39;10.0.2.1&#39;);</code></pre>
 
 <p>Configure static IP on SUT with setting up default GW. Also doing test ping to 10.0.2.2 to check that network is alive Set DNS server defined via required variable <code>STATIC_DNS_SERVER</code></p>
 
 <h2 id="iface">iface</h2>
 
-<pre><code> iface([$quantity]);</code></pre>
+<pre><code>iface([$quantity]);</code></pre>
 
 <p>Return first NIC which is not loopback</p>
 
 <h2 id="can_upload_logs">can_upload_logs</h2>
 
-<pre><code> can_upload_logs([$gw]);</code></pre>
+<pre><code>can_upload_logs([$gw]);</code></pre>
 
 <p>Returns if can ping worker host gateway</p>
 
 <h2 id="recover_network">recover_network</h2>
 
-<pre><code> recover_network([ip =&gt; $ip] [, gw =&gt; $gw]);</code></pre>
+<pre><code>recover_network([ip =&gt; $ip] [, gw =&gt; $gw]);</code></pre>
 
 <p>Recover network with static config if is feasible, returns if can ping GW. Main use case is post_fail_hook, to be able to upload logs.</p>
 
@@ -61,13 +61,13 @@
 
 <h2 id="ifc_exists">ifc_exists</h2>
 
-<pre><code> ifc_exists([$ifc]);</code></pre>
+<pre><code>ifc_exists([$ifc]);</code></pre>
 
 <p>Return if ifconfig exists.</p>
 
 <h2 id="ifc_is_up">ifc_is_up</h2>
 
-<pre><code> ifc_is_up([$ifc]);</code></pre>
+<pre><code>ifc_is_up([$ifc]);</code></pre>
 
 <p>Return only if network status is UP.</p>
 
@@ -75,7 +75,7 @@
 
 <p>Generate custom MAC address. Used for Xen domU testing, to define MAC address once for whole test suite lifecycle.</p>
 
-<pre><code> genmac([&#39;aa:bb:cc&#39;])</code></pre>
+<pre><code>genmac([&#39;aa:bb:cc&#39;])</code></pre>
 
 
 </body>

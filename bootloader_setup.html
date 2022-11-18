@@ -44,23 +44,23 @@
 
 <p>e.g. grub entries before:</p>
 
-<pre><code>    * SLES 15
-    * Advanced options for SLES 15
-    * Start bootloader from a read-only snapshot</code></pre>
+<pre><code>* SLES 15
+* Advanced options for SLES 15
+* Start bootloader from a read-only snapshot</code></pre>
 
 <p>grub entries with <code>GRUB_PARAM=&#39;ima_policy=tcb&#39;</code> and calling add_custom_grub_entries:</p>
 
-<pre><code>    * SLES 15
-    * Advanced options for SLES 15
-    * SLES 15 (ima_policy=tcb)
-    * Advanced options for SLES 15 (ima_policy=tcb)
-    * Start bootloader from a read-only snapshot</code></pre>
+<pre><code>* SLES 15
+* Advanced options for SLES 15
+* SLES 15 (ima_policy=tcb)
+* Advanced options for SLES 15 (ima_policy=tcb)
+* Start bootloader from a read-only snapshot</code></pre>
 
 <p>And of course the new entries have <code>ima_policy=tcb</code> added to kernel parameters.</p>
 
 <h2 id="boot_grub_item">boot_grub_item</h2>
 
-<pre><code>  boot_grub_item([ $menu1, [ $menu2 ] ]);</code></pre>
+<pre><code>boot_grub_item([ $menu1, [ $menu2 ] ]);</code></pre>
 
 <p>Choose custom boot menu entry in grub. <code>$menu1</code> defines which entry to choose in first boot menu, optional <code>$menu2</code> defines which entry to choose in second boot menu (makes sense only when <code>$menu1</code> selects &quot;Advanced options&quot;, otherwise it&#39;s ignored).</p>
 
@@ -70,93 +70,93 @@
 
 <p>Boot kernel with extra parameters (generated with add_custom_grub_entries()) or 3rd option whatever it is other OS:</p>
 
-<pre><code>    boot_grub_item();
-    boot_grub_item(3);</code></pre>
+<pre><code>boot_grub_item();
+boot_grub_item(3);</code></pre>
 
 <p>Boot the default kernel:</p>
 
-<pre><code>    boot_grub_item(1);</code></pre>
+<pre><code>boot_grub_item(1);</code></pre>
 
 <p>Boot the default kernel recovery mode (selected in the &quot;Advanced options ...&quot;):</p>
 
-<pre><code>    boot_grub_item(2, 2);</code></pre>
+<pre><code>boot_grub_item(2, 2);</code></pre>
 
 <h2 id="get_linuxrc_boot_params">get_linuxrc_boot_params</h2>
 
-<pre><code>  get_linuxrc_boot_params();</code></pre>
+<pre><code>get_linuxrc_boot_params();</code></pre>
 
 <p>Returns array of strings <code>@params</code> with linurc boot options to enable logging to the serial console, enable core dumps and set debug level for logging.</p>
 
 <h2 id="grep_grub_settings">grep_grub_settings</h2>
 
-<pre><code>    grep_grub_settings($pattern)</code></pre>
+<pre><code>grep_grub_settings($pattern)</code></pre>
 
 <p>Search for <code>$pattern</code> in /etc/default/grub, return 1 if found.</p>
 
 <h2 id="grep_grub_cmdline_settings">grep_grub_cmdline_settings</h2>
 
-<pre><code>    grep_grub_cmdline_settings($pattern [, $search])</code></pre>
+<pre><code>grep_grub_cmdline_settings($pattern [, $search])</code></pre>
 
 <p>Search for <code>$pattern</code> in grub cmdline variable (usually GRUB_CMDLINE_LINUX_DEFAULT) in /etc/default/grub, return 1 if found.</p>
 
 <h2 id="change_grub_config">change_grub_config</h2>
 
-<pre><code>    change_grub_config($old, $new [, $search ] [, $modifiers ], [, $update_grub ]);</code></pre>
+<pre><code>change_grub_config($old, $new [, $search ] [, $modifiers ], [, $update_grub ]);</code></pre>
 
 <p>Replace <code>$old</code> with <code>$new</code> in /etc/default/grub, using sed. <code>$new</code>, default empty string <code>$search</code> meant to be for changing only particular line for sed, <code>$modifiers</code> for sed replacement, e.g. &quot;g&quot;. <code>$update_grub</code> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.</p>
 
 <h2 id="add_grub_cmdline_settings">add_grub_cmdline_settings</h2>
 
-<pre><code>    add_grub_cmdline_settings($add [, update_grub =&gt; $update_grub] [, search =&gt; $search]);</code></pre>
+<pre><code>add_grub_cmdline_settings($add [, update_grub =&gt; $update_grub] [, search =&gt; $search]);</code></pre>
 
 <p>Add <code>$add</code> into /etc/default/grub, using sed. <code>$update_grub</code> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration. <code>$search</code> if set, bypass default grub cmdline variable.</p>
 
 <h2 id="add_grub_xen_cmdline_settings">add_grub_xen_cmdline_settings</h2>
 
-<pre><code>    add_grub_xen_cmdline_settings($add [, $update_grub ]);</code></pre>
+<pre><code>add_grub_xen_cmdline_settings($add [, $update_grub ]);</code></pre>
 
 <p>Add <code>$add</code> into /etc/default/grub, using sed. <code>$update_grub</code> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.</p>
 
 <h2 id="replace_grub_cmdline_settings">replace_grub_cmdline_settings</h2>
 
-<pre><code>    replace_grub_cmdline_settings($old, $new [, update_grub =&gt; $update_grub] [, search =&gt; $search]);</code></pre>
+<pre><code>replace_grub_cmdline_settings($old, $new [, update_grub =&gt; $update_grub] [, search =&gt; $search]);</code></pre>
 
 <p>Replace <code>$old</code> with <code>$new</code> in /etc/default/grub, using sed. <code>$update_grub</code> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration. <code>$search</code> if set, bypass default grub cmdline variable.</p>
 
 <h2 id="replace_grub_xen_cmdline_settings">replace_grub_xen_cmdline_settings</h2>
 
-<pre><code>    replace_grub_xen_cmdline_settings($old, $new [, $update_grub ]);</code></pre>
+<pre><code>replace_grub_xen_cmdline_settings($old, $new [, $update_grub ]);</code></pre>
 
 <p>Replace <code>$old</code> with <code>$new</code> in /etc/default/grub, using sed. <code>$update_grub</code> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.</p>
 
 <h2 id="remove_grub_cmdline_settings">remove_grub_cmdline_settings</h2>
 
-<pre><code>    remove_grub_cmdline_settings($remove [, $search]);</code></pre>
+<pre><code>remove_grub_cmdline_settings($remove [, $search]);</code></pre>
 
 <p>Remove <code>$remove</code> from /etc/default/grub (using sed) and regenerate /boot/grub2/grub.cfg. Search line <code>$search</code> from /etc/default/grub (use for sed).</p>
 
 <h2 id="remove_grub_xen_cmdline_settings">remove_grub_xen_cmdline_settings</h2>
 
-<pre><code>    remove_grub_xen_cmdline_settings($remove);</code></pre>
+<pre><code>remove_grub_xen_cmdline_settings($remove);</code></pre>
 
 <p>Remove <code>$remove</code> from /etc/default/grub (using sed) and regenerate /boot/grub2/grub.cfg.</p>
 
 <h2 id="grub_mkconfig">grub_mkconfig</h2>
 
-<pre><code>    grub_mkconfig();
-    grub_mkconfig($config);</code></pre>
+<pre><code>grub_mkconfig();
+grub_mkconfig($config);</code></pre>
 
 <p>Regenerate /boot/grub2/grub.cfg with grub2-mkconfig.</p>
 
 <h2 id="get_cmdline_var">get_cmdline_var</h2>
 
-<pre><code>    get_cmdline_var();</code></pre>
+<pre><code>get_cmdline_var();</code></pre>
 
 <p>Get default grub cmdline variable: GRUB_CMDLINE_LINUX for JeOS, GRUB_CMDLINE_LINUX_DEFAULT for the rest.</p>
 
 <h2 id="parse_bootparams_in_serial">parse_bootparams_in_serial</h2>
 
-<pre><code>    parse_bootparams_in_serial();</code></pre>
+<pre><code>parse_bootparams_in_serial();</code></pre>
 
 <p>Parses serail output, searching for &#39;Command line&#39; parameters. Then converts the found parameters to an array of the values.</p>
 
@@ -164,7 +164,7 @@
 
 <h2 id="compare_bootparams">compare_bootparams</h2>
 
-<pre><code>    compare_bootparams(\@array1, \@array2);</code></pre>
+<pre><code>compare_bootparams(\@array1, \@array2);</code></pre>
 
 <p>Compares two arrays of bootparameters passed by array reference and logs the result to openQA using record_info.</p>
 
@@ -172,25 +172,25 @@
 
 <h2 id="create_encrypted_part">create_encrypted_part</h2>
 
-<pre><code>    create_encrypted_part(disk =&gt; $disk, luks_type =&gt; $luks_type);</code></pre>
+<pre><code>create_encrypted_part(disk =&gt; $disk, luks_type =&gt; $luks_type);</code></pre>
 
 <p>Creates gpt partition table on a given disk and creates encrypted partition on it using default luks encryption or specific encryption if provided. It is useful to test encrypted partitions activation in the installer.</p>
 
 <h2 id="mimic_user_to_import">mimic_user_to_import</h2>
 
-<pre><code>    mimic_user_to_import(disk =&gt; $disk, passwd =&gt; $passwd, shadow =&gt; $shadow);</code></pre>
+<pre><code>mimic_user_to_import(disk =&gt; $disk, passwd =&gt; $passwd, shadow =&gt; $shadow);</code></pre>
 
 <p>Creates /etc/passwd and /etc/shadow files to simluate existing users on the encrypted partition disk. Is expected to be used together with create_encrypted_part Can be used to test user import functionality not to chain jobs. Method accepts <code>disk</code> to define the device to work with, <code>passwd</code> and <code>shadow</code> store content of the /etc/passwd and /etc/shadow files accordingly.</p>
 
 <h2 id="prepare_disks">prepare_disks</h2>
 
-<pre><code>    prepare_disks</code></pre>
+<pre><code>prepare_disks</code></pre>
 
 <p>Wipe existing disks and create encrypted partitions if needed for the test. Is handy for the bare metal setups and LPARs where we can have traces of previous installation.</p>
 
 <h2 id="sync_time">sync_time</h2>
 
-<pre><code>    sync_time</code></pre>
+<pre><code>sync_time</code></pre>
 
 <p>Sync system time, time offset can cause problems e.g. certificate is not yet valid</p>
 

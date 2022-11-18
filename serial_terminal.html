@@ -29,19 +29,19 @@
 
 <h2 id="add_serial_console">add_serial_console</h2>
 
-<pre><code>    add_serial_console($console);</code></pre>
+<pre><code>add_serial_console($console);</code></pre>
 
 <p>Adds $console to /etc/securetty (unless already in file), enables systemd service and start it. It requires selecting root console before.</p>
 
 <h2 id="prepare_serial_console">prepare_serial_console</h2>
 
-<pre><code>    prepare_serial_console();</code></pre>
+<pre><code>prepare_serial_console();</code></pre>
 
 <p>Wrapper for add_serial_console.</p>
 
 <h2 id="get_login_message">get_login_message</h2>
 
-<pre><code>   get_login_message();</code></pre>
+<pre><code>get_login_message();</code></pre>
 
 <p>Get login message printed by OS at the end of the boot. Suitable for testing whether boot has been finished:</p>
 
@@ -49,19 +49,19 @@
 
 <h2 id="set_serial_prompt">set_serial_prompt</h2>
 
-<pre><code>   set_serial_prompt($user);</code></pre>
+<pre><code>set_serial_prompt($user);</code></pre>
 
 <p>Set serial terminal prompt to given string.</p>
 
 <h2 id="login">login</h2>
 
-<pre><code>   login($user);</code></pre>
+<pre><code>login($user);</code></pre>
 
 <p>Enters root&#39;s name and password to login. Also sets the prompt to something static without ANSI escape sequences (i.e. a single #) and changes the terminal width.</p>
 
 <h2 id="download_file">download_file</h2>
 
-<pre><code>  download_file($src, $dst [, force =&gt; $force][, chunk_size =&gt; $cz][, chunk_retry =&gt; $cr])</code></pre>
+<pre><code>download_file($src, $dst [, force =&gt; $force][, chunk_size =&gt; $cz][, chunk_retry =&gt; $cr])</code></pre>
 
 <p>Download a file from worker to SUT using the current serial terminal. The file is split into chunks <code>chunk_size</code> and each chunk is verified with checksum. If a chunk fails, the upload will be retried up to <code>chunk_retry</code> times, before giving up. To overwrite destination use <code>force</code>. This function die on any failure.</p>
 
@@ -73,7 +73,7 @@
 
 <h2 id="select_serial_terminal">select_serial_terminal</h2>
 
-<pre><code> select_serial_terminal($root);</code></pre>
+<pre><code>select_serial_terminal($root);</code></pre>
 
 <p>Select most suitable text console. The optional parameter <code>root</code> controls whether the console will have root privileges or not. Passing any value that evaluates to true will select a root console (default). Passing any value that evaluates to false will select unprivileged user console. The choice is made by BACKEND and other variables.</p>
 
@@ -89,7 +89,7 @@
 
 <h2 id="select_user_serial_terminal">select_user_serial_terminal</h2>
 
-<pre><code> select_user_serial_terminal();</code></pre>
+<pre><code>select_user_serial_terminal();</code></pre>
 
 <p>Select most suitable text console with non-root user. The choice is made by BACKEND and other variables.</p>
 

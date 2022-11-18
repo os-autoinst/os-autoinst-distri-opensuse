@@ -41,19 +41,19 @@
 
 <h2 id="accept3rdparty">accept3rdparty</h2>
 
-<pre><code>    accept3rdparty();</code></pre>
+<pre><code>accept3rdparty();</code></pre>
 
 <p>After making changes in the &quot;software selection&quot; screen, accepts any 3rd party license.</p>
 
 <h2 id="accept_changes">accept_changes</h2>
 
-<pre><code>    accept_changes();</code></pre>
+<pre><code>accept_changes();</code></pre>
 
 <p>After making changes in the &quot;pattern selection&quot; screen, accepts changes.</p>
 
 <h2 id="validate_default_target">validate_default_target</h2>
 
-<pre><code>    validate_default_target($expected_target);</code></pre>
+<pre><code>validate_default_target($expected_target);</code></pre>
 
 <p>The function compares the actual systemd target with the expected one (the one that passed as an argument to the function)</p>
 
@@ -61,85 +61,85 @@
 
 <h2 id="back_to_overview_from_packages">back_to_overview_from_packages</h2>
 
-<pre><code>    back_to_overview_from_packages();</code></pre>
+<pre><code>back_to_overview_from_packages();</code></pre>
 
 <p>Being in the &quot;search packages&quot; screen, performs steps needed to go back to overview page accepting automatic changes changes and 3rd party licenses.</p>
 
 <h2 id="check12qtbug">check12qtbug</h2>
 
-<pre><code>    check12qtbug();</code></pre>
+<pre><code>check12qtbug();</code></pre>
 
 <p>Being in the &quot;select pattern&quot; screen, workaround a known bug of Yast using QT.</p>
 
 <h2 id="go_to_patterns">go_to_patterns</h2>
 
-<pre><code>    go_to_patterns();</code></pre>
+<pre><code>go_to_patterns();</code></pre>
 
 <p>Performs steps needed to go from the &quot;installation overview&quot; screen to the &quot;pattern selection&quot; screen.</p>
 
 <h2 id="go_to_search_packages">go_to_search_packages</h2>
 
-<pre><code>    go_to_search_packages();</code></pre>
+<pre><code>go_to_search_packages();</code></pre>
 
 <p>Performs steps needed to go from the &quot;pattern selection&quot; screen to &quot;search packages&quot; screen.</p>
 
 <h2 id="move_down">move_down</h2>
 
-<pre><code>    move_down();</code></pre>
+<pre><code>move_down();</code></pre>
 
 <p>Being in the &quot;select pattern&quot; screen, performs steps needed to move the highlight cursor one item down.</p>
 
 <h2 id="process_patterns">process_patterns</h2>
 
-<pre><code>    process_patterns();</code></pre>
+<pre><code>process_patterns();</code></pre>
 
 <p>Decides to select all patterns or specific patterns based on setting PATTERNS Possible values for PATTERNS PATTERNS=minimal,base PATTERNS=all (to select all of them) PATTERNS=default,web,-x11,-gnome (to keep the default but add web and remove x11 and gnome)</p>
 
 <h2 id="search_package">search_package</h2>
 
-<pre><code>    search_package($package_name);</code></pre>
+<pre><code>search_package($package_name);</code></pre>
 
 <p>Being in the &quot;search package&quot; screen, performs steps needed to search for <code>$package_name</code></p>
 
 <h2 id="select_all_patterns_by_menu">select_all_patterns_by_menu</h2>
 
-<pre><code>    select_all_patterns_by_menu();</code></pre>
+<pre><code>select_all_patterns_by_menu();</code></pre>
 
 <p>Being in the &quot;select pattern&quot; screen, performs steps needed to select all available patterns.</p>
 
 <h2 id="select_not_install_any_pattern">select_not_install_any_pattern</h2>
 
-<pre><code>    select_not_install_any_pattern() </code></pre>
+<pre><code>select_not_install_any_pattern() </code></pre>
 
 <p>Being in the &quot;select pattern&quot; screen, performs steps to not install any patterns.</p>
 
 <h2 id="select_visible_unselected_patterns">select_visible_unselected_patterns</h2>
 
-<pre><code>    select_visible_unselected_patterns([@patterns])</code></pre>
+<pre><code>select_visible_unselected_patterns([@patterns])</code></pre>
 
 <p>Being in the &quot;select pattern&quot; screen, performs steps to select visible patterns.</p>
 
 <h2 id="deselect_pattern">deselect_pattern</h2>
 
-<pre><code>    deselect_pattern();</code></pre>
+<pre><code>deselect_pattern();</code></pre>
 
 <p>Deselect patterns from already selected ones.</p>
 
 <h2 id="select_specific_patterns_by_iteration">select_specific_patterns_by_iteration</h2>
 
-<pre><code>    select_specific_patterns_by_iteration();</code></pre>
+<pre><code>select_specific_patterns_by_iteration();</code></pre>
 
 <p>Being in the &quot;select pattern&quot; screen, performs steps needed to select given patterns. You can pass PATTERNS=minimal,base or PATTERNS=all to select all of them PATTERNS=default,web,-x11,-gnome to keep the default but add web and remove x11 and gnome</p>
 
 <h2 id="switch_selection">switch_selection</h2>
 
-<pre><code>    switch_selection(action =&gt; $action, needles =&gt; ARRAY($needles));</code></pre>
+<pre><code>switch_selection(action =&gt; $action, needles =&gt; ARRAY($needles));</code></pre>
 
 <p>Being in the &quot;select pattern&quot; screen, performs steps needed to switch the checkbox (<code>$action</code>) of the pattern matching one of the given <code>$needles</code>. Example switch_selection(action =&gt; &#39;select&#39;, needles =&gt; [&#39;current-pattern-selected&#39;]);</p>
 
 <h2 id="toggle_package">toggle_package</h2>
 
-<pre><code>    toggle_package($package_name, $operation);</code></pre>
+<pre><code>toggle_package($package_name, $operation);</code></pre>
 
 <p>Being in the &quot;search package&quot; screen, and showing a list of found packages, performs steps needed to toggle the checkbox of <code>$package_name</code>. The <code>$operation</code> can be &#39;+&#39; or &#39;minus&#39;.</p>
 

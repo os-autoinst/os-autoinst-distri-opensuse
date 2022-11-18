@@ -23,19 +23,19 @@
 
 <h2 id="check_port_state">check_port_state</h2>
 
-<pre><code>  check_port_state($dst_machine, $dst_port, $retries, $delay)</code></pre>
+<pre><code>check_port_state($dst_machine, $dst_port, $retries, $delay)</code></pre>
 
 <p>Check whether given port is open on remote machine. This subroutine accepts four arguments, dst_machine, dst_port, retries and delay, which are fqdn or ip addr of remote machine, port on remote machine, the number of retries and delay value respectively. Default retries is 1 and default delay is 30 seconds. dst_machine and dst_port have no default value and test will die if the subroutine is called without being passed value to dst_machine or dst_port.The subroutine will return 1 if the given port is open on the specified remote machine, otherwise it will return 0.</p>
 
 <h2 id="subscribe_extensions_and_modules">subscribe_extensions_and_modules</h2>
 
-<pre><code>  subscribe_extensions_and_modules(dst_machine =&gt; $machine, activate =&gt; 1/0, reg_exts =&gt; $exts)</code></pre>
+<pre><code>subscribe_extensions_and_modules(dst_machine =&gt; $machine, activate =&gt; 1/0, reg_exts =&gt; $exts)</code></pre>
 
 <p>Any available extensions and modules listed out by SUSEConnect --list-extensions that do not require additional regcode can be subscribe directly by using command SUSEConnect -p [extension or module]. Subscription is to be performed on localhost by default if argument dst_machine is not given any other address, and successful access to dst_machine via ssh should be guaranteed in advance if dst_machine points to a remote machine. Deactivation is also supported if argument activate is given 0 explicitly. Multiple extensions or modules can be passed in as a single string separated by space to argument reg_exts to be subscribed one by one.</p>
 
 <h2 id="is_sev_es_guest">is_sev_es_guest</h2>
 
-<pre><code>  is_sev_es_guest($guest_name)</code></pre>
+<pre><code>is_sev_es_guest($guest_name)</code></pre>
 
 <p>Check whether a guest is sev-es, sev only or not sev/sev-es guest by searching whether sev-es or sev word is available in its name. The only argument for the subroutine is guest_name. It returns sev-es or sev if either is found in guest name, otherwise it returns 0.</p>
 
