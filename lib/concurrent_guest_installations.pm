@@ -34,9 +34,9 @@ use File::Basename;
 use testapi;
 use IPC::Run;
 use virt_utils;
-use version_utils qw(is_alp);
+use version_utils;
 use virt_autotest_base;
-use alp_workloads::kvm_workload_utils qw(enter_kvm_container_sh exit_kvm_container);
+use alp_workloads::kvm_workload_utils;
 use XML::Simple;
 use Data::Dumper;
 use LWP;
@@ -200,12 +200,12 @@ sub junit_log_provision {
         $_guest_installations_results->{$_}{stop_run} = ($guest_instances{$_}->{stop_run} eq '' ? time() : $guest_instances{$_}->{stop_run});
         $_guest_installations_results->{$_}{test_time} = strftime("\%Hh\%Mm\%Ss", gmtime($_guest_installations_results->{$_}{stop_run} - $_guest_installations_results->{$_}{start_run}));
     }
-    if (!is_alp) {
+    if (!version_utils::is_alp) {
         $self->{"product_tested_on"} = script_output("cat /etc/issue | grep -io -e \"SUSE.*\$(arch))\" -e \"openSUSE.*[0-9]\"");
     } else {
-        exit_kvm_container;
+        alp_workloads::kvm_workload_utils::exit_kvm_container;
         $self->{"product_tested_on"} = script_output(q@cat /etc/os-release |grep PRETTY_NAME | sed 's/PRETTY_NAME=//'@);
-        enter_kvm_container_sh;
+        alp_workloads::kvm_workload_utils::enter_kvm_container_sh;
     }
     $self->{"product_name"} = ref($self);
     $self->{"package_name"} = ref($self);
@@ -224,10 +224,10 @@ sub check_root_ssh_console {
     $self->reveal_myself;
     assert_script_run("clear");
     save_screenshot;
-    if ((is_alp && !check_screen('in-libvirtd-container-bash')) or (!is_alp and !(check_screen('text-logged-in-root')))) {
+    if ((version_utils::is_alp && !check_screen('in-libvirtd-container-bash')) or (!version_utils::is_alp and !(check_screen('text-logged-in-root')))) {
         reset_consoles;
         select_console('root-ssh');
-        enter_kvm_container_sh if (is_alp);
+        alp_workloads::kvm_workload_utils::enter_kvm_container_sh if (version_utils::is_alp);
     }
 
     return $self;

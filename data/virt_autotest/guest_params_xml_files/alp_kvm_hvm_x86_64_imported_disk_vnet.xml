@@ -26,8 +26,6 @@
     <guest_installation_method_others></guest_installation_method_others>
     <guest_installation_media></guest_installation_media>
     <guest_installation_fine_grained></guest_installation_fine_grained>
-    <!--<guest_boot_settings>loader=/usr/share/qemu/ovmf-x86_64-ms-code.bin</guest_boot_settings>-->
-    <!--<guest_secure_boot>true</guest_secure_boot>-->
     <guest_os_variant>opensusetumbleweed</guest_os_variant>
     <guest_storage_path></guest_storage_path>
     <guest_storage_type>disk</guest_storage_type>
@@ -43,7 +41,6 @@
     <guest_ipaddr_static>false</guest_ipaddr_static>
     <guest_macaddr></guest_macaddr>
     <guest_virtual_network>test-virt-net</guest_virtual_network>
-    <!--<guest_graphics>none</guest_graphics>-->
     <guest_graphics>vnc</guest_graphics>
     <guest_controller></guest_controller>
     <guest_input></guest_input>

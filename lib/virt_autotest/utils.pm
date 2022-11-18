@@ -50,7 +50,7 @@ sub restart_libvirtd {
         assert_script_run("$_libvirtd_cmd");
     }
     else {
-		systemctl("restart libvirtd", timeout => 180);
+        systemctl("restart libvirtd", timeout => 180);
     }
     save_screenshot;
     record_info("Debug log for libvirtd has been enabled!");
@@ -198,7 +198,6 @@ sub ssh_setup {
     }
     assert_script_run("ls `dirname $default_ssh_key`");
     save_screenshot;
-    record_info("Now test is running with user name : " . script_output("whoami"));
 }
 
 sub ssh_copy_id {

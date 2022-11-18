@@ -135,7 +135,7 @@ sub install_tools_within_kvm_container {
     my $_tools_to_install = shift;
 
     # The packages needed by guest installation and following tests`
-    $_tools_to_install //= "expect wget screen xmlstarlet yast2-schema python3 nmap openssh hostname gawk supportutils";
+    $_tools_to_install //= "wget screen xmlstarlet yast2-schema python3 nmap openssh hostname gawk expect supportutils systemd-coredump";
 
     assert_script_run("clear");
     assert_screen('in-libvirtd-container-bash');
@@ -161,7 +161,7 @@ sub setup_services_within_kvm_container {
 }
 
 sub setup_kvm_container_from_scratch {
-    pull_kvm_container_image
+    pull_kvm_container_image;
     config_host_and_kvm_container;
     start_kvm_container;
     enter_kvm_container_sh;

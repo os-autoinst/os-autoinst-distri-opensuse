@@ -32,7 +32,7 @@ our @EXPORT
   = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_network
   restore_guests restore_network destroy_vir_network restore_libvirt_default enable_libvirt_log pload_debug_log
   check_guest_status check_guest_module check_guest_ip save_guest_ip test_network_interface hosts_backup
-  hosts_restore get_free_mem get_active_pool_and_available_space clean_all_virt_networks);
+  hosts_restore get_free_mem get_active_pool_and_available_space clean_all_virt_networks setup_vm_simple_dns_with_ip);
 
 sub check_guest_ip {
     my ($guest, %args) = @_;
@@ -342,34 +342,6 @@ sub clean_all_virt_networks {
         save_screenshot;
     }
     record_info("All existing virtual networks: \n$_virt_networks \nhave been destroy and undefined.", script_output("ip a; ip route show all"));
-}
-
-sub setup_vm_simple_dns_with_vnet_ip {
-    my ($_vnet, $_vms) = @_;
-
-    record_info("Going to setup simple DNS in /etc/hosts for vms $_vms, with virtual network `$_vnet` net-dhcp-leases...");
-    
-    my $_dns_file = "/etc/hosts";
-    my $_cmd = '';
-    assert_script_run("virsh net-dhcp-leases $_vnet");
-    save_screenshot;
-
-    if ($_vms eq '') {
-        # Setup all vms
-        assert_script_run("sed -i '1,\$d' $_dns_file");
-        $_cmd = "echo \`virsh net-dhcp-leases $_vnet | sed  '1,2d' | gawk '{print \$5,\$6}' | sed -r 's/\\\/[0-9]+//'\` >> $_dns_file";
-        assert_script_run($_cmd);
-    } else {
-        # Setup given vms
-        foreach my $_vm (split(',', $_vms)) {
-            script_run "sed -i '/ $_vm /d' $_dns_file";
-            my $cmd = "echo \`virsh net-dhcp-leases $_vnet | sed  '1,2d' | grep \"$_vm\" | gawk '{print \$5,\$6}' | sed -r 's/\\\/[0-9]+//'\` >> $_dns_file";
-            assert_script_run($cmd);
-        }
-    }
-    assert_script_run("cat $_dns_file");
-    save_screenshot;
-    record_info("Simple DNS setup in /etc/hosts, with virtual network `$_vnet` net-dhcp-leases is successful!");
 }
 
 sub setup_vm_simple_dns_with_ip {
