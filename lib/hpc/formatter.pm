@@ -7,9 +7,9 @@
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 package hpc::formatter;
-use Mojo::Base 'hpcbase', -signatures;
-use hpc::utils;
+use Mojo::Base qw(hpcbase hpc::utils), -signatures;
 use testapi qw(get_var get_required_var);
+use version_utils qw(is_sle);
 
 has mpirun => sub {
     my ($self) = shift;
@@ -18,6 +18,9 @@ has mpirun => sub {
     my @mpirun_args;
     ## openmpi requires non-root usr to run program or special flag '--allow-run-as-root'
     push @mpirun_args, '--allow-run-as-root ' if $mpi =~ m/openmpi/;
+    # avoid openmpi3 warnings since 3.1.6-150500.11.3
+    # TODO: map versions with mpi
+    push @mpirun_args, '--mca btl_base_warn_component_unused 0 ' if ($mpi == 'openmpi3' && $self->compare_mpi_versions("$mpi-gnu-hpc", undef, '3.1.6-150500.11.3'));
     (@mpirun_args == 0) ? $self->mpirun :
       sprintf "%s %s", $self->mpirun, join(' ', @mpirun_args);
 };
