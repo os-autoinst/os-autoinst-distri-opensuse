@@ -7,7 +7,7 @@
 # fate#321764
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
-use base "opensusebasetest";
+use base "consoletest";
 use strict;
 use warnings;
 use testapi;

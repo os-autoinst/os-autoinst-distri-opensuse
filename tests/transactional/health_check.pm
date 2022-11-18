@@ -9,7 +9,7 @@
 
 use strict;
 use warnings;
-use base "opensusebasetest";
+use base "consoletest";
 use testapi;
 use utils;
 use transactional qw(process_reboot trup_install trup_shell);

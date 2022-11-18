@@ -7,7 +7,7 @@
 #           operations work and system can properly boot.
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use base "opensusebasetest";
+use base "consoletest";
 use strict;
 use warnings;
 use testapi;

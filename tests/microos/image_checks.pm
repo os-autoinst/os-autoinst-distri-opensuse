@@ -6,7 +6,7 @@
 # Summary: Run simple image specific checks
 # Maintainer: Fabian Vogt <fvogt@suse.de>
 
-use base "opensusebasetest";
+use base "consoletest";
 use strict;
 use warnings;
 use testapi;

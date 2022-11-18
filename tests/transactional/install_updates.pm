@@ -6,7 +6,7 @@
 # Summary: Install Update repos in transactional server
 # Maintainer: qac team <qa-c@suse.de>
 
-use base "opensusebasetest";
+use base "consoletest";
 use strict;
 use warnings;
 use testapi;
