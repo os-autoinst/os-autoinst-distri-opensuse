@@ -1,5 +1,5 @@
 provider: "%PROVIDER%"
-apiver: 2
+apiver: 3
 terraform:
   variables:
     az_region: "%REGION%"
@@ -10,7 +10,10 @@ terraform:
     admin_user: "%CLUSTER_USER%"
 
 ansible:
-  hana_urls:
+  az_storage_account_name: "%HANA_ACCOUNT%"
+  az_container_name:  "%HANA_CONTAINER%"
+  az_sas_token: "%HANA_TOKEN%"
+  hana_media:
     - "%HANA_SAR%"
     - "%HANA_CLIENT_SAR%"
     - "%HANA_SAPCAR%"

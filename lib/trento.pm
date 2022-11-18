@@ -271,6 +271,15 @@ sub config_cluster {
     $variables{SSH_KEY_PRIV} = SSH_KEY;
     $variables{SSH_KEY_PUB} = $ssh_key_pub;
     $variables{SCC_REGCODE_SLES4SAP} = $scc;
+
+    $variables{HANA_ACCOUNT} = get_required_var("TRENTO_QESAPDEPLOY_HANA_ACCOUNT");
+    $variables{HANA_CONTAINER} = get_required_var("TRENTO_QESAPDEPLOY_HANA_CONTAINER");
+    if (get_var("TRENTO_QESAPDEPLOY_HANA_TOKEN")) {
+        $variables{HANA_TOKEN} = get_required_var("TRENTO_QESAPDEPLOY_HANA_TOKEN");
+        # escape needed by 'sed'
+        # but not implemented in file_content_replace() yet poo#120690
+        $variables{HANA_TOKEN} =~ s/\&/\\\&/g;
+    }
     $variables{HANA_SAR} = get_required_var("TRENTO_QESAPDEPLOY_SAPCAR");
     $variables{HANA_CLIENT_SAR} = get_required_var("TRENTO_QESAPDEPLOY_IMDB_CLIENT");
     $variables{HANA_SAPCAR} = get_required_var("TRENTO_QESAPDEPLOY_IMDB_SERVER");
@@ -405,7 +414,12 @@ sub install_trento {
         '-k', SSH_KEY,
         '-u', VM_USER);
 
-    push @cmd_list, ('-c', get_var('TRENTO_REGISTRY_CHART_VERSION')) if (get_var('TRENTO_REGISTRY_CHART_VERSION'));
+    if (get_var('TRENTO_REGISTRY_CHART_VERSION')) {
+        push @cmd_list, ('-c', get_var('TRENTO_REGISTRY_CHART_VERSION'));
+    }
+    elsif (get_var('TRENTO_VERSION')) {
+        push @cmd_list, ('-c', get_var('TRENTO_VERSION'));
+    }
     if (get_var("TRENTO_REGISTRY_IMAGE_$imgs[0]") || get_var("TRENTO_REGISTRY_IMAGE_$imgs[1]")) {
         push @cmd_list, ('-x', $acr->{'trento_cluster_install'});
     }

@@ -46,6 +46,7 @@ subtest '[k8s_logs] Get logs from running pods as it is also required' => sub {
     $trento->redefine(trento_support => sub { return; });
 
     k8s_logs(qw(panino));
+
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     note("\n  L-->  " . join("\n  L-->  ", @logs));
     ok scalar @calls == 3, sprintf '3 in place of %d remote commands expected: 1 to get the list of the pods, 2 to get from the required one all the logs', scalar @calls;
@@ -61,11 +62,13 @@ subtest '[trento_support]' => sub {
     $trento->redefine(get_trento_ip => sub { return '42.42.42.42' });
     $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $trento->redefine(upload_logs => sub { push @logs, $_[0]; });
+
     trento_support();
+
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     note("\n  L-->  " . join("\n  L-->  ", @logs));
-    like $calls[0], qr/mkdir.*remote_logs/, 'Create remote_logs local folder';
 
+    like $calls[0], qr/mkdir.*remote_logs/, 'Create remote_logs local folder';
     ok((any { /ssh.*trento-support\.sh/ } @calls), 'Run trento-support.sh remotely');
     ok((any { /scp.*\.tar\.gz.*remote_logs/ } @calls), 'scp trento-support.sh output locally');
     ok((any { /ssh.*dump_scenario_from_k8\.sh/ } @calls), 'Run dump_scenario_from_k8.sh remotely');
