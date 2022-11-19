@@ -2,11 +2,11 @@
 name: hpc_installation_server
 description:    >
      Maintainer: qe-kernel
-     Installation scenario with HPC system role hpc-server.
+     Installation scenario with HPC system role hpc-server and hpc-node.
 vars:
   DESKTOP: textmode
   INSTALLONLY: 1
-  PATTERNS: base,minimal,apparmor
+  PATTERNS: default
   SLE_PRODUCT: hpc
   HDDSIZEGB: 30
 conditional_schedule:
@@ -16,6 +16,14 @@ conditional_schedule:
         - installation/bootloader_uefi
       x86_64:
         - installation/bootloader
+  hostname_inst:
+    HPC:
+      server:
+        - installation/hostname_inst
+  user_settings:
+    HPC:
+      server:
+        - installation/user_settings
   user_settings_root:
     VERSION:
       15-SP2:
@@ -43,8 +51,8 @@ schedule:
   - installation/partitioning
   - installation/partitioning_finish
   - installation/installer_timezone
-  - installation/hostname_inst
-  - installation/user_settings
+  - '{{hostname_inst}}'
+  - '{{user_settings}}'
   - '{{user_settings_root}}'
   - installation/resolve_dependency_issues
   - installation/select_patterns
