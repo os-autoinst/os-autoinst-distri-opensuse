@@ -13,7 +13,7 @@ use version_utils qw(is_sle);
 
 has mpirun => sub {
     my ($self) = shift;
-    my $mpi = get_required_var('MPI');
+    my $mpi = $self->get_mpi();
     $self->mpirun("mpirun");
     my @mpirun_args;
     ## openmpi requires non-root usr to run program or special flag '--allow-run-as-root'
