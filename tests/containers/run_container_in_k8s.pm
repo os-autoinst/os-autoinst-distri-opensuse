@@ -62,7 +62,7 @@ EOT
 sub cleanup {
     my ($self) = @_;
     record_info('Cleanup', 'Deleting kubectl job and image.');
-    assert_script_run("kubectl delete job " . $self->{job_name});
+    script_run("kubectl delete job --grace-period=0 --force " . $self->{job_name}) if defined $self->{job_name};
     $self->{provider}->delete_container_image($self->{image_tag});
 }
 
