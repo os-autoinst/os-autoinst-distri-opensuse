@@ -48,4 +48,5 @@ test_data:
       - base
       - enhanced_base
       - x11
+      - x11_yast
       - yast2_basis
