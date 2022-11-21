@@ -265,7 +265,7 @@ sub prepare_guest_for_sriov_passthrough {
     #passwordless access to guest
     save_guest_ip($vm, name => "br123");    #get the guest ip via key words in 'virsh domiflist'
 
-    #enable udev debug logs
+    # Enable udev debug logs
     my $udev_conf_file = "/etc/udev/udev.conf";
     if (script_run("ssh root\@$vm \"ls $udev_conf_file\"") == 0) {
         script_run "ssh root\@$vm \"sed -i '/udev_log *=/{h;s/^[# ]*udev_log *=.*\\\$/udev_log=debug/};\\\${x;/^\\\$/{s//udev_log=debug/;H};x}' $udev_conf_file\"";
@@ -278,6 +278,11 @@ sub prepare_guest_for_sriov_passthrough {
         script_run "ssh root\@$vm \"grep Storage $journald_conf_file\"";
         script_run "ssh root\@$vm 'systemctl restart systemd-journald'";
     }
+
+    # Release DHCP client IP before quit
+    my $dhcp_conf_file = "/etc/sysconfig/network/dhcp";
+    assert_script_run "ssh root\@$vm \"sed -i '/^[# ]*DHCLIENT_RELEASE_BEFORE_QUIT *=/{h;s/^[# ]*DHCLIENT_RELEASE_BEFORE_QUIT *=.*\\\$/DHCLIENT_RELEASE_BEFORE_QUIT=\\\"yes\\\"/};\\\${x;/^\\\$/{s//DHCLIENT_RELEASE_BEFORE_QUIT=\\\"yes\\\"/;H};x}' $dhcp_conf_file\"";
+    script_run "ssh root\@$vm \"grep 'DHCLIENT_RELEASE_BEFORE_QUIT' $dhcp_conf_file\"";
 
     check_guest_health($vm);
 
