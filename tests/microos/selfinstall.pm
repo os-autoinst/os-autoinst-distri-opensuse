@@ -23,7 +23,7 @@ sub run {
     $self->handle_uefi_boot_disk_workaround if is_aarch64;
 
     # workaround failed *kexec* execution on UEFI with SecureBoot
-    assert_screen(['failed-to-kexec', 'linux-login-microos'], 150);
+    assert_screen(['failed-to-kexec', 'linux-login-microos'], 240);
     if (get_var('UEFI') && match_has_tag('failed-to-kexec')) {
         eject_cd();
         record_soft_failure('bsc#1203896 - kexec fail in selfinstall with secureboot');
