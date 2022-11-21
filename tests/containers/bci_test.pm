@@ -87,6 +87,7 @@ sub run {
     my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
     my $version = get_required_var('VERSION');
     my $test_envs = get_required_var('BCI_TEST_ENVS');
+    return if ($test_envs eq '-');
 
     $self->reset_engines($engine);
 
