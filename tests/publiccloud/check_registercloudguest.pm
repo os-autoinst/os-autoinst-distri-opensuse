@@ -79,7 +79,8 @@ sub run {
         }
     }
 
-    my $path = is_sle('>15') && is_sle('<15-SP3') ? '/usr/sbin/' : '';
+    # Workaround to set absolute path for sudo commands due to bsc#1205325
+    my $path = is_sle('=15-SP1') ? '/usr/sbin/' : '';
     $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest --clean");
     if ($instance->ssh_script_output(cmd => 'sudo zypper lr | wc -l', timeout => 600) > 2) {
         die('The list of zypper repositories is not empty.');
