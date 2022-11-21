@@ -111,11 +111,6 @@ sub wsl_gui_pattern {
     send_key 'alt-n';
 }
 
-sub trust_nvidia_gpg_keys {
-    assert_screen 'trust_nvidia_gpg_keys', timeout => 300;
-    send_key 'alt-t';
-}
-
 sub run {
     # WSL installation is in progress
     assert_screen [qw(yast2-wsl-firstboot-welcome wsl-installing-prompt)], 480;
@@ -138,7 +133,9 @@ sub run {
         # SLED Workstation license agreement and trust nVidia GPG keys
         if (check_var('SLE_PRODUCT', 'sled')) {
             license;
-            trust_nvidia_gpg_keys;
+            # Nvidia GPG keys screen does not always shows up
+            assert_screen ['wsl-installation-completed', 'trust_nvidia_gpg_keys'], timeout => 240;
+            send_key 'alt-t' if (match_has_tag 'trust_nvidia_gpg_keys');
         }
         # And done!
         assert_screen 'wsl-installation-completed', 240;
