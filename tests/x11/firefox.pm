@@ -17,6 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use version_utils 'is_tumbleweed';
+use Utils::Architectures 'is_s390x';
 
 sub run() {
     my ($self) = shift;
@@ -26,10 +27,16 @@ sub run() {
     wait_still_screen;
     send_key('alt');
     send_key_until_needlematch('firefox-top-bar-highlighted', 'alt-h', 5, 10);
+
     send_key('alt-h');
     wait_still_screen;
     assert_screen('firefox-help-menu');
-    send_key_until_needlematch('test-firefox-3', 'a', 10, 6);
+
+    send_key_until_needlematch([qw(test-firefox-3 test-firefox-s390-discoloration)], 'a', 10, 6);
+    if (match_has_tag 'test-firefox-s390-discoloration') {
+        die "This should only happen on s390x" unless is_s390x;
+        record_soft_failure("bsc#1203578");
+    }
 
     # close About
     send_key "alt-f4";
