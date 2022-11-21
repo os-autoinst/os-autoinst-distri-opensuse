@@ -24,7 +24,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call script_retry systemctl);
 use version_utils qw(is_opensuse is_tumbleweed is_sle is_public_cloud is_leap);
-use Utils::Backends qw(is_hyperv);
+use Utils::Backends qw(is_hyperv is_svirt_except_s390x);
 use Utils::Architectures;
 use power_action_utils qw(power_action);
 use publiccloud::instances;
@@ -87,8 +87,10 @@ sub reboot {
         my $instance = publiccloud::instances::get_instance();
         $instance->softreboot();
     } else {
+        # svirt backend needs much longer for reboot
+        my $timeout = (is_svirt_except_s390x && is_sle) ? 600 : 300;
         power_action('reboot', textmode => 1);
-        $self->wait_boot(bootloader_time => 300);
+        $self->wait_boot(bootloader_time => $timeout);
         select_serial_terminal;
     }
 }
