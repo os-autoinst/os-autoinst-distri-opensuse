@@ -110,7 +110,8 @@ sub is_xen_host {
 #welcome everybody to extend this function
 sub check_failures_in_journal {
     return unless is_x86_64;
-    my $machine //= 'localhost';
+    my $machine = shift;
+    $machine //= 'localhost';
 
     my $failures = "";
     my @warnings = ('Started Process Core Dump', 'Call Trace');
