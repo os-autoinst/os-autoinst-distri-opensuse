@@ -310,7 +310,7 @@
         <source><![CDATA[
 cat >> /etc/libvirt/libvirtd.conf<< EOF
 log_level = 1
-log_filters="1:qemu 3:remote 4:event 3:util.json 3:rpc"
+log_filters="1:qemu 1:libxl 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci"
 log_outputs="1:file:/var/log/libvirt/libvirtd.log"
 EOF
 if [ -e /etc/xen/xl.conf ]; then sed -i '/autoballoon=/ s/.*/autoballoon="off"/' /etc/xen/xl.conf; fi

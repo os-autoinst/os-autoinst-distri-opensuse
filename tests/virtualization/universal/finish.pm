@@ -26,8 +26,6 @@ sub run {
     # Show all guests
     assert_script_run 'virsh list --all';
     script_run 'history -a';
-
-    collect_virt_system_logs();
 }
 
 1;
