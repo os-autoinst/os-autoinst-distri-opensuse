@@ -52,6 +52,7 @@ sub upload_rear_logs {
 sub post_fail_hook {
     my ($self) = @_;
 
+    return if get_var('NOLOGS');
     # We need to be sure that *ALL* consoles are closed, are SUPER:post_fail_hook
     # does not support virtio/serial console yet
     reset_consoles;

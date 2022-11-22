@@ -87,6 +87,7 @@ sub get_keystroke_list {
 # see https://progress.opensuse.org/issues/56636
 sub post_fail_hook {
     my ($self) = shift;
+    return if get_var('NOLOGS');
     select_console('log-console');
     $self->SUPER::post_fail_hook;
 }
