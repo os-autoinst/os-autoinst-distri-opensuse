@@ -33,7 +33,6 @@ conditional_schedule:
         - console/shibboleth
       12-SP5:
         - console/shibboleth
-        - console/nginx
       15:
         - console/shibboleth
         - console/django
