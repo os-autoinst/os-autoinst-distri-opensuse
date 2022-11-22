@@ -285,6 +285,46 @@ sub test_custom_services {
     assert_script_run("rm -rf /etc/firewalld/services/fbsql.xml");
 }
 
+# Test #9 - Add rule to stopped firewall then check that it's applied
+sub test_firewall_offline_cmd {
+    systemctl 'stop firewalld';
+
+    # Allow ports 6000-6100/udp (used normally by https://mosh.org)
+    assert_script_run("firewall-offline-cmd --zone=public --add-port=6000-6100/udp");
+
+    # Test that the above rule is not present in the firewall as it should be offline
+    if (uses_iptables) {
+        assert_script_run("! iptables -C IN_public_allow -p udp --dport 6000:6100 -m conntrack --ctstate NEW -j ACCEPT");
+    } else {
+        assert_script_run("! nft list chain inet firewalld filter_IN_public_allow | grep 6000-6100");
+    }
+
+    systemctl 'start firewalld';
+
+    # Test that the above rule is now present in the firewall as it should be online
+    if (uses_iptables) {
+        script_retry("iptables -C IN_public_allow -p udp --dport 6000:6100 -m conntrack --ctstate NEW -j ACCEPT", delay => 5, retry => 3);
+    } else {
+        script_retry("nft list chain inet firewalld filter_IN_public_allow | grep 6000-6100", delay => 5, retry => 3);
+    }
+
+    systemctl 'stop firewalld';
+
+    # Clean the 6000-6100/udp rule
+    assert_script_run("firewall-offline-cmd --zone=public --remove-port=6000-6100/udp");
+
+    systemctl 'start firewalld';
+
+    # Test that the firewall works but the above rule is not present
+    if (uses_iptables) {
+        script_retry("iptables -L IN_public_allow", delay => 5, retry => 3);
+        assert_script_run("! iptables -C IN_public_allow -p udp --dport 6000:6100 -m conntrack --ctstate NEW -j ACCEPT");
+    } else {
+        script_retry("nft list chain inet firewalld filter_IN_public_allow", delay => 5, retry => 3);
+        assert_script_run("! nft list chain inet firewalld filter_IN_public_allow | grep 6000-6100");
+    }
+}
+
 sub run {
     select_serial_terminal;
 
@@ -314,6 +354,9 @@ sub run {
 
     # Test #8 - Create a custom service
     test_custom_services;
+
+    # Test #9 - Add rule to stopped firewall then check that it's applied
+    test_firewall_offline_cmd;
 }
 
 sub post_fail_hook {
