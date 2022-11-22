@@ -57,7 +57,7 @@
     "bsc#1126272": {
         "description": "Failed unmounting \/\\S+\\.|-- Reboot --|pam_systemd.*Failed to release session",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
+            "sle-micro": [ "5.0", "5.1", "5.2", "5.3" , "5.4"],
             "leap-micro": [ "5.2", "5.3" ],
             "microos":  ["Tumbleweed"],
             "alp":  ["0.1", "0.1:S:A", "0.1:S:B"]
@@ -67,7 +67,7 @@
     "bsc#1022525|bsc#1177461": {
         "description": ".*rpcbind.*cannot(.*open file.*rpcbind.xdr.*|.*open file.*portmap.xdr.*|.*save any registration.*)",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
+            "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" ],
             "leap-micro": ["5.2", "5.3"],
             "microos":  ["Tumbleweed"]
         },
@@ -319,7 +319,7 @@
     "health-check-typo": {
         "description": "health-checker/fail.sh check\" failed|Machine didn't come up correct, do a rollback",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
+            "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" ],
             "leap-micro": ["5.2", "5.3"],
             "microos":  ["Tumbleweed"],
             "alp":  ["0.1", "0.1:S:A", "0.1:S:B"]
@@ -410,7 +410,7 @@
     "bsc#1200490": {
         "description": "Unable to open /dev/kvm: No such file or directory",
         "products": {
-            "sle-micro": ["5.2", "5.3"],
+            "sle-micro": ["5.2", "5.3", "5.4"],
             "leap-micro": ["5.3"]
         },
         "type": "ignore"
