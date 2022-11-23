@@ -42,9 +42,18 @@ sub load_kernel_tests {
             loadtest_kernel 'update_kernel';
         }
         loadtest_kernel 'install_ltp';
+
+        if (get_var('LIBC_LIVEPATCH')) {
+            die 'LTP_COMMAND_FILE and LIBC_LIVEPATCH are mutually exclusive'
+              if get_var('LTP_COMMAND_FILE');
+            loadtest_kernel 'ulp_openposix';
+        }
+
         # If there is a command file then install_ltp schedules boot_ltp which
-        # will schedule shutdown
-        shutdown_ltp() unless get_var('LTP_COMMAND_FILE');
+        # will schedule shutdown. If there is LIBC_LIVEPATCH, shutdown will be
+        # scheduled by ulp_openposix.
+        shutdown_ltp()
+          unless get_var('LTP_COMMAND_FILE') || get_var('LIBC_LIVEPATCH');
     }
     elsif (get_var('LTP_COMMAND_FILE')) {
         if (get_var('INSTALL_KOTD')) {
@@ -99,6 +108,10 @@ sub load_kernel_tests {
     } elsif (get_var('NUMA_IRQBALANCE')) {
         boot_hdd_image();
         loadtest_kernel 'numa_irqbalance';
+    }
+    elsif (get_var('LIBC_LIVEPATCH')) {
+        loadtest_kernel 'boot_ltp';
+        loadtest_kernel 'ulp_openposix';
     }
 
     if (is_svirt && get_var('PUBLISH_HDD_1')) {

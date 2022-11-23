@@ -98,6 +98,7 @@ KEEP_DISKS | boolean | false | Prevents disks wiping for remote backends without
 KEEP_ONLINE_REPOS | boolean | false | openSUSE specific variable, not to replace original repos in the installed system with snapshot mirrors which are not yet published.
 KEEP_PERSISTENT_NET_RULES | boolean | false | Keep udev rules 70-persistent-net.rules, which are deleted on backends with image support (qemu, svirt) by default.
 LAPTOP |||
+LIBC_LIVEPATCH | boolean | false | If set, run userspace livepatching tests
 LINUX_BOOT_IPV6_DISABLE | boolean | false | If set, boots linux kernel with option named "ipv6.disable=1" which disables IPv6 from startup.
 LINUXRC_KEXEC | integer | | linuxrc has the capability to download and run a new kernel and initrd pair from the repository.<br> There are four settings for the kexec option:<br> 0: feature disabled;<br> 1: always restart with kernel/initrd from repository (without bothering to check if it's necessary);<br>2: restart only if needed - that is, if linuxrc detects that the booted initrd is outdated (this is the default);<br>3: like kexec=2 but without user interaction.<br> *More details [here](https://en.opensuse.org/SDB:Linuxrc)*.
 LIVECD | boolean | false | Indicates live image being used.
@@ -180,6 +181,8 @@ TOGGLEHOME | boolean | false | Changes the state of partitioning to have or not 
 TUNNELED | boolean | false | Enables the use of normal consoles like "root-consoles" on a remote SUT while configuring the tunnel in a local "tunnel-console"
 TYPE_BOOT_PARAMS_FAST | boolean | false | When set, forces `bootloader_setup::type_boot_parameters` to use the default typing interval.
 UEFI | boolean | false | Indicates UEFI in the testing environment.
+ULP_THREAD_COUNT | integer | 1000 | Number of threads to create in `ulp_threads` test module.
+ULP_THREAD_SLEEP | integer | 100 | Sleep length after each thread loop iteration in `ulp_threads` module. High thread-to-CPU ratio needs longer sleep length.
 UPGRADE | boolean | false | Indicates upgrade scenario.
 USBBOOT | boolean | false | Indicates booting to the usb device.
 USEIMAGES |||

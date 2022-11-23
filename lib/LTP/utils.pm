@@ -231,7 +231,8 @@ sub read_runfile {
 }
 
 sub schedule_tests {
-    my ($cmd_file) = @_;
+    my ($cmd_file, $suffix) = @_;
+    $suffix //= '';
 
     my $test_result_export = {
         format => 'result_array:v2',
@@ -273,24 +274,38 @@ sub schedule_tests {
         loadtest_kernel 'ltp_init_lvm';
     }
 
-    parse_runfiles($cmd_file, $test_result_export);
+    parse_runfiles($cmd_file, $test_result_export, $suffix);
 
     if (check_var('KGRAFT', 1) && check_var('UNINSTALL_INCIDENT', 1)) {
         loadtest_kernel 'uninstall_incident';
-        parse_runfiles($cmd_file, $test_result_export, '_postun');
+        parse_runfiles($cmd_file, $test_result_export, $suffix . '_postun');
     }
 
-    shutdown_ltp(run_args => testinfo($test_result_export));
+    shutdown_ltp(run_args => testinfo($test_result_export))
+      unless get_var('LIBC_LIVEPATCH');
 }
 
 sub parse_openposix_runfile {
     my ($name, $cmds, $cmd_pattern, $cmd_exclude, $test_result_export, $suffix) = @_;
+    my $ulp_test = get_var('LIBC_LIVEPATCH', 0);
     my $whitelist = LTP::WhiteList->new();
+
+    assert_script_run('export LD_PRELOAD=/usr/lib64/libpulp.so.0')
+      if ($ulp_test);
 
     for my $line (@$cmds) {
         chomp($line);
         if ($line =~ m/$cmd_pattern/ && !($line =~ m/$cmd_exclude/)) {
-            my $test = {name => basename($line, '.run-test') . $suffix, command => $line};
+            my $testname = basename($line, '.run-test') . $suffix;
+
+            # For ULP tests, start all processes in the background immediately
+            # and change the test command to unpause the existing process
+            if ($ulp_test) {
+                my $pid = background_script_run("$line --livepatch");
+                $line = "kill -s SIGUSR1 $pid; wait $pid";
+            }
+
+            my $test = {name => $testname, command => $line};
             my $tinfo = testinfo($test_result_export, test => $test, runfile => $name);
 
             loadtest_runltp($test->{name}, $tinfo, $whitelist);
