@@ -1113,7 +1113,6 @@ else {
         boot_hdd_image;
         if (check_var('HOSTNAME', 'client')) {
             loadtest 'network/setup_multimachine';
-            loadtest 'network/samba/samba_adcli';
         }
         elsif (check_var('HOSTNAME', 'win2k19')) {
             loadtest 'support_server/windows/win2019_boot';

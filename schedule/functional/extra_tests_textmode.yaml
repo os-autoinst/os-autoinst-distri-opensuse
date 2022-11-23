@@ -88,7 +88,6 @@ conditional_schedule:
                 - console/zziplib
                 - console/vsftpd
                 - console/python310_version_check
-                - network/samba/samba_adcli
     tumbleweed_tests:
         VERSION:
             'Tumbleweed':
