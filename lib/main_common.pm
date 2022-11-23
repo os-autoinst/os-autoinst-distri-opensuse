@@ -626,8 +626,9 @@ sub load_jeos_tests {
     #    loadtest "jeos/image_info";
     loadtest "jeos/record_machine_id";
     loadtest "console/force_scheduled_tasks";
+    # this test case also disables grub timeout
+    loadtest "jeos/grub2_gfxmode";
     unless (get_var('INSTALL_LTP') || get_var('SYSTEMD_TESTSUITE')) {
-        loadtest "jeos/grub2_gfxmode";
         loadtest "jeos/diskusage" unless is_openstack;
         loadtest "jeos/build_key";
         loadtest "console/prjconf_excluded_rpms";
