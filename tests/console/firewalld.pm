@@ -60,8 +60,7 @@ sub check_rules {
         assert_script_run("iptables -C IN_public_allow -p tcp --dport 110 -m conntrack --ctstate NEW -j ACCEPT");
         assert_script_run("iptables -C IN_public_allow -p icmp -m conntrack --ctstate NEW -j ACCEPT");
         assert_script_run("iptables -C IN_public_allow -p udp --dport 2000:3000 -m conntrack --ctstate NEW -j ACCEPT");
-    }
-    else {
+    } else {
         assert_script_run("nft list chain inet firewalld filter_IN_public_allow | grep 25");
         assert_script_run("nft list chain inet firewalld filter_IN_public_allow | grep 110");
         if (is_leap("<16.0") || is_sle("<16")) {
@@ -81,8 +80,7 @@ sub start_stop_firewalld {
     # wait until iptables -L can print rules
     if (uses_iptables) {
         script_retry('iptables -L IN_public_allow');
-    }
-    else {
+    } else {
         script_retry('nft list chain inet firewalld filter_IN_public_allow');
     }
 }
@@ -92,8 +90,7 @@ sub collect_in_fwd_rule_count {
     if (uses_iptables) {
         script_run("iptables -L IN_public_allow --line-numbers");
         assert_script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l | tee /tmp/nr_rules.txt");
-    }
-    else {
+    } else {
         script_run("nft list chain inet firewalld filter_IN_public_allow");
         assert_script_run("nft list chain inet firewalld filter_IN_public_allow | wc -l | tee /tmp/nr_in_public.txt");
         if (is_leap("<16.0") || is_sle("<16")) {
@@ -111,8 +108,7 @@ sub verify_in_fwd_rule_count {
     if (uses_iptables) {
         script_run("iptables -L IN_public_allow --line-numbers");
         assert_script_run("test `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules.txt`");
-    }
-    else {
+    } else {
         assert_script_run("test `nft list chain inet firewalld filter_IN_public_allow | wc -l` -eq `cat /tmp/nr_in_public.txt`");
         if (is_leap("<16.0") || is_sle("<16")) {
             script_run("nft list chain inet firewalld filter_FWDI_public");
@@ -204,8 +200,7 @@ sub test_rich_rules {
     if (uses_iptables) {
         assert_script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l | tee /tmp/nr_rules_allow.txt");
         assert_script_run("iptables -L IN_public_deny --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l | tee /tmp/nr_rules_deny.txt");
-    }
-    else {
+    } else {
         assert_script_run("nft list chain inet firewalld filter_IN_public_allow | wc -l | tee /tmp/nr_rules_allow.txt");
         assert_script_run("nft list chain inet firewalld filter_IN_public_deny | wc -l | tee /tmp/nr_rules_deny.txt");
     }
@@ -217,8 +212,7 @@ sub test_rich_rules {
     if (uses_iptables) {
         assert_script_run("iptables -C IN_public_allow -s 192.168.200.0/24 -j ACCEPT");
         assert_script_run("iptables -C IN_public_deny -s 192.168.201.0/24 -j DROP");
-    }
-    else {
+    } else {
         assert_script_run("nft list chain inet firewalld filter_IN_public_allow | grep 192.168.200.0/24");
         assert_script_run("nft list chain inet firewalld filter_IN_public_deny | grep 192.168.201.0/24");
     }
@@ -232,8 +226,7 @@ sub test_rich_rules {
     if (uses_iptables) {
         assert_script_run("test `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_allow.txt`");
         assert_script_run("test `iptables -L IN_public_deny --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_deny.txt`");
-    }
-    else {
+    } else {
         assert_script_run("test `nft list chain inet firewalld filter_IN_public_allow | wc -l` -eq `cat /tmp/nr_rules_allow.txt`");
         assert_script_run("test `nft list chain inet firewalld filter_IN_public_deny | wc -l` -eq `cat /tmp/nr_rules_deny.txt`");
     }
@@ -262,17 +255,14 @@ sub test_timeout_rules {
 
     if (uses_iptables) {
         assert_script_run("iptables -C IN_public_allow -p tcp --dport 25 -m conntrack --ctstate NEW -j ACCEPT");
-    }
-    else {
+    } else {
         assert_script_run("nft list chain inet firewalld filter_IN_public_allow | grep 25");
     }
 
-    assert_script_run("sleep 35");
     if (uses_iptables) {
-        assert_script_run("test `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules.txt`");
-    }
-    else {
-        assert_script_run("test `nft list chain inet firewalld filter_IN_public_allow | wc -l` -eq `cat /tmp/nr_rules.txt`");
+        script_retry("test `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules.txt`", delay => 5, retry => 7);
+    } else {
+        script_retry("test `nft list chain inet firewalld filter_IN_public_allow | wc -l` -eq `cat /tmp/nr_rules.txt`", delay => 5, retry => 7);
     }
 }
 
@@ -283,6 +273,46 @@ sub test_custom_services {
     assert_script_run("firewall-cmd --reload");
     assert_script_run("firewall-cmd --get-services | grep -i fbsql");
     assert_script_run("rm -rf /etc/firewalld/services/fbsql.xml");
+}
+
+# Test #9 - Add rule to stopped firewall then check that it's applied
+sub test_firewall_offline_cmd {
+    systemctl 'stop firewalld';
+
+    # Allow ports 6000-6100/udp (used normally by https://mosh.org)
+    assert_script_run("firewall-offline-cmd --zone=public --add-port=6000-6100/udp");
+
+    # Test that the above rule is not present in the firewall as it should be offline
+    if (uses_iptables) {
+        assert_script_run("! iptables -C IN_public_allow -p udp --dport 6000:6100 -m conntrack --ctstate NEW -j ACCEPT");
+    } else {
+        assert_script_run("! nft list chain inet firewalld filter_IN_public_allow | grep 6000-6100");
+    }
+
+    systemctl 'start firewalld';
+
+    # Test that the above rule is now present in the firewall as it should be online
+    if (uses_iptables) {
+        script_retry("iptables -C IN_public_allow -p udp --dport 6000:6100 -m conntrack --ctstate NEW -j ACCEPT", delay => 5, retry => 3);
+    } else {
+        script_retry("nft list chain inet firewalld filter_IN_public_allow | grep 6000-6100", delay => 5, retry => 3);
+    }
+
+    systemctl 'stop firewalld';
+
+    # Clean the 6000-6100/udp rule
+    assert_script_run("firewall-offline-cmd --zone=public --remove-port=6000-6100/udp");
+
+    systemctl 'start firewalld';
+
+    # Test that the firewall works but the above rule is not present
+    if (uses_iptables) {
+        script_retry("iptables -L IN_public_allow", delay => 5, retry => 3);
+        assert_script_run("! iptables -C IN_public_allow -p udp --dport 6000:6100 -m conntrack --ctstate NEW -j ACCEPT");
+    } else {
+        script_retry("nft list chain inet firewalld filter_IN_public_allow", delay => 5, retry => 3);
+        assert_script_run("! nft list chain inet firewalld filter_IN_public_allow | grep 6000-6100");
+    }
 }
 
 sub run {
@@ -314,6 +344,9 @@ sub run {
 
     # Test #8 - Create a custom service
     test_custom_services;
+
+    # Test #9 - Add rule to stopped firewall then check that it's applied
+    test_firewall_offline_cmd;
 }
 
 sub post_fail_hook {
