@@ -61,6 +61,8 @@ sub test_flags {
 sub add_maintenance_repos {
     set_var('PATCH_TEST_REPO', '');
     add_test_repositories();
+    # avoid reboot during fully_patch_system
+    zypper_call('in pacemaker') if is_sle('=15-sp1');
     fully_patch_system();
 }
 
