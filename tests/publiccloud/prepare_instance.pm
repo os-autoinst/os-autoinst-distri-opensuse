@@ -49,11 +49,27 @@ sub run {
     # ssh-tunnel settings
     prepare_ssh_tunnel($instance) if (is_tunneled());
 
+    apply_workarounds($self, $args, $instance);
+}
+
+sub apply_workarounds {
+    # This subroutine applies all workaround that are needed
+
+    my ($self, $args, $instance) = @_;
+
+    # 1. sudo workaround
     # azure images based on sle12-sp{4,5} code streams come with commented entries 'Defaults targetpw' in /etc/sudoers
     # because the Azure Linux agent creates an entry in /etc/sudoers.d for users without the NOPASSWD flag
     # this is an exception in comparision with other images
     if (is_sle('<15') && is_azure) {
         $instance->ssh_assert_script_run(q(sudo sed -i "/Defaults targetpw/s/^#//" /etc/sudoers));
+    }
+
+    # 2. Workaround for bsc#1205044:
+    # Fix SUSEConnect to version 0.3.32 on SLES 12-SP4 and 12-SP5
+    if (is_sle(">=12-SP4") && is_sle("<=12-SP5")) {
+        record_info("workaround bsc#1205044", "Applying workaround for bsc#1205044");
+        assert_script_run("zypper addlock SUSEConnect=0.3.32");
     }
 }
 
