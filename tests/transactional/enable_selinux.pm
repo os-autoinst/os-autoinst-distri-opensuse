@@ -8,7 +8,7 @@
 #
 # Maintainer: QA-C team <qa-c@suse.de>
 
-use base "opensusebasetest";
+use base "consoletest";
 use strict;
 use warnings;
 use testapi;

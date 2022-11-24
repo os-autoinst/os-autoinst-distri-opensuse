@@ -6,7 +6,7 @@
 # Summary: Boot SelfInstallation image for SLEM
 # Maintainer: QA-C team <qa-c@suse.de>
 
-use Mojo::Base qw(opensusebasetest);
+use Mojo::Base qw(consoletest);
 use testapi;
 use microos "microos_login";
 use Utils::Architectures qw(is_aarch64);

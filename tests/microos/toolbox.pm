@@ -6,7 +6,7 @@
 # Summary: Run simple toolbox tests
 # Maintainer: Jose Lausuch <jalausuch@suse.com>
 
-use base "opensusebasetest";
+use base "consoletest";
 use strict;
 use warnings;
 use testapi;
