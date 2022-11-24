@@ -1,0 +1,31 @@
+---
+name: textmode
+description: |
+  Installation in textmode which selects System Role 'Text Mode'.
+vars:
+  YUI_REST_API: 1
+schedule:
+  system_preparation:
+    - console/system_prepare
+    - console/prepare_test_data
+    - console/consoletest_setup
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_validation:
+    - console/validate_product_installed_SLES
+    - console/verify_network
+    - locale/keymap_or_locale
+    - console/validate_installed_patterns
+    - console/force_scheduled_tasks
+    - console/textinfo
+    - console/orphaned_packages_check
+    - console/consoletest_finish
+test_data:
+  software:
+    patterns:
+      - apparmor
+      - base
+      - enhanced_base
+      - x11
+      - x11_yast
+      - yast2_basis
