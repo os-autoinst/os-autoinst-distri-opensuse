@@ -14,6 +14,7 @@ use warnings;
 use testapi;
 use utils qw(OPENQA_FTP_URL zypper_call);
 use Utils::Backends 'is_pvm';
+use Utils::Logging 'export_logs';
 
 sub run {
     my $self = shift;
@@ -180,7 +181,7 @@ sub run {
 sub post_fail_hook {
     my $self = shift;
     $utils::IN_ZYPPER_CALL = 1;
-    $self->export_logs();
+    export_logs();
 }
 
 1;

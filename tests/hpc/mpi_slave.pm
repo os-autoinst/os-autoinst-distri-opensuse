@@ -10,6 +10,7 @@ use Mojo::Base qw(hpcbase hpc::utils), -signatures;
 use lockapi;
 use utils;
 use serial_terminal 'select_serial_terminal';
+use Utils::Logging 'export_logs';
 use testapi qw(record_info);
 use POSIX 'strftime';
 
@@ -38,7 +39,7 @@ sub test_flags ($self) {
 
 sub post_fail_hook ($self) {
     $self->destroy_test_barriers();
-    $self->export_logs();
+    export_logs();
 }
 
 1;

@@ -23,6 +23,7 @@ use serial_terminal 'select_serial_terminal';
 use utils qw(check_console_font disable_serial_getty);
 use Utils::Backends qw(has_ttys);
 use Utils::Systemd qw(disable_and_stop_service systemctl);
+use Utils::Logging 'export_logs';
 use strict;
 use warnings;
 
@@ -78,7 +79,7 @@ sub run {
 sub post_fail_hook {
     my $self = shift;
     select_console 'log-console', timeout => 180;
-    $self->export_logs();
+    export_logs();
     $self->export_logs_locale();
 }
 

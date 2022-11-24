@@ -12,7 +12,7 @@ use Utils::Architectures;
 
 use version_utils qw(is_microos is_sle);
 use y2_logs_helper 'get_available_compression';
-use utils qw(type_string_slow zypper_call);
+use utils qw(type_string_slow zypper_call remount_tmp_if_ro detect_bsc_1063638);
 use lockapi;
 use mmapi;
 use Test::Assert 'assert_equals';
@@ -616,9 +616,9 @@ sub post_fail_hook {
         # error pop-up and system will reboot, so log collection will fail (see poo#61052)
         $self->SUPER::post_fail_hook unless get_var('AUTOYAST');
         get_to_console;
-        $self->detect_bsc_1063638;
+        detect_bsc_1063638;
         $self->get_ip_address;
-        $self->remount_tmp_if_ro;
+        remount_tmp_if_ro;
         # Avoid collectin logs twice when investigate_yast2_failure() is inteded to hard-fail
         $self->save_upload_y2logs unless get_var('ASSERT_Y2LOGS');
         return if is_microos;

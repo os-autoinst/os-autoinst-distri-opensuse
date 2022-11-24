@@ -12,6 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Utils::Logging 'save_and_upload_log';
 
 # This requires a discoverable bluetooth device in range:
 #===========================
@@ -46,8 +47,8 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
-    $self->save_and_upload_log('dmesg', 'dmesg.log');
-    $self->save_and_upload_log('journalctl -b', 'journal.log');
+    save_and_upload_log('dmesg', 'dmesg.log');
+    save_and_upload_log('journalctl -b', 'journal.log');
 }
 
 1;

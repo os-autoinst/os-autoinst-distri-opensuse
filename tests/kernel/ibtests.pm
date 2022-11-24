@@ -16,6 +16,7 @@ use utils;
 use power_action_utils 'power_action';
 use lockapi;
 use mmapi;
+use Utils::Logging qw(save_and_upload_log save_and_upload_systemd_unit_log);
 
 our $master;
 our $slave;
@@ -23,19 +24,19 @@ our $slave;
 sub upload_ibtest_logs {
     my $self = shift;
 
-    $self->save_and_upload_log('dmesg', '/tmp/dmesg.log', {screenshot => 0});
-    $self->save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
+    save_and_upload_log('dmesg', '/tmp/dmesg.log', {screenshot => 0});
+    save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
 
-    $self->save_and_upload_systemd_unit_log('opensm.service');
-    $self->save_and_upload_systemd_unit_log('srp_daemon.service');
-    $self->save_and_upload_systemd_unit_log('nvmet.service');
-    $self->save_and_upload_systemd_unit_log('nvmf-autoconnect.service');
-    $self->save_and_upload_systemd_unit_log('rdma-hw.service');
-    $self->save_and_upload_systemd_unit_log('rdma-load-modules@infiniband.service');
-    $self->save_and_upload_systemd_unit_log('rdma-load-modules@rdma.service');
-    $self->save_and_upload_systemd_unit_log('rdma-load-modules@roce.service');
-    $self->save_and_upload_systemd_unit_log('rdma-ndd.service');
-    $self->save_and_upload_systemd_unit_log('rdma-sriov.service');
+    save_and_upload_systemd_unit_log('opensm.service');
+    save_and_upload_systemd_unit_log('srp_daemon.service');
+    save_and_upload_systemd_unit_log('nvmet.service');
+    save_and_upload_systemd_unit_log('nvmf-autoconnect.service');
+    save_and_upload_systemd_unit_log('rdma-hw.service');
+    save_and_upload_systemd_unit_log('rdma-load-modules@infiniband.service');
+    save_and_upload_systemd_unit_log('rdma-load-modules@rdma.service');
+    save_and_upload_systemd_unit_log('rdma-load-modules@roce.service');
+    save_and_upload_systemd_unit_log('rdma-ndd.service');
+    save_and_upload_systemd_unit_log('rdma-sriov.service');
 }
 
 sub ibtest_slave {

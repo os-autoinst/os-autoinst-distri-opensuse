@@ -13,6 +13,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Utils::Logging 'save_and_upload_systemd_unit_log';
 
 sub run {
     my $self = shift;
@@ -108,7 +109,7 @@ sub NM_disable_ip {
 sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
-    $self->save_and_upload_systemd_unit_log($_) foreach qw(NetworkManager hostapd);
+    save_and_upload_systemd_unit_log($_) foreach qw(NetworkManager hostapd);
     $self->SUPER::post_fail_hook;
 }
 

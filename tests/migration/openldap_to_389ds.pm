@@ -16,6 +16,7 @@ use lockapi;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use registration qw(add_suseconnect_product);
 use version_utils;
+use Utils::Logging 'tar_and_upload_log';
 
 sub run {
     my ($self) = @_;
@@ -82,7 +83,7 @@ sub run {
     assert_script_run "slaptest -f slapd.conf -F ./slapd.d";
 
     # Check migration tools
-    $self->tar_and_upload_log('./slapd.d', 'slapd.d.tar.bz2');
+    tar_and_upload_log('./slapd.d', 'slapd.d.tar.bz2');
     upload_logs("./db.ldif", timeout => 100);
     upload_logs("./slapd.conf", timeout => 100);
     assert_script_run "openldap_to_ds -v --confirm localhost ./slapd.d ./db.ldif > ldap2dslog";
@@ -114,8 +115,8 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
-    $self->tar_and_upload_log('/var/log/dirsrv', '/tmp/ds389.tar.bz2');
-    $self->tar_and_upload_log('/var/log/sssd', '/tmp/sssd.tar.bz2');
+    tar_and_upload_log('/var/log/dirsrv', '/tmp/ds389.tar.bz2');
+    tar_and_upload_log('/var/log/sssd', '/tmp/sssd.tar.bz2');
     $self->SUPER::post_fail_hook;
 }
 

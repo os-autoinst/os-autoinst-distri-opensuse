@@ -11,6 +11,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use Utils::Logging 'save_and_upload_log';
 
 sub run {
     my ($self) = @_;
@@ -48,7 +49,7 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
-    $self->save_and_upload_log('cat /etc/sysconfig/network/ifcfg-wlan0', 'ifcfg-wlan0.txt');
+    save_and_upload_log('cat /etc/sysconfig/network/ifcfg-wlan0', 'ifcfg-wlan0.txt');
 }
 
 1;

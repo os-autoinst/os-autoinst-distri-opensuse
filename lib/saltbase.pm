@@ -10,7 +10,7 @@ use warnings;
 use testapi;
 use known_bugs;
 
-use utils qw(zypper_call systemctl);
+use utils qw(zypper_call systemctl remount_tmp_if_ro);
 
 sub master_prepare {
     # Install the salt master
@@ -135,8 +135,7 @@ sub post_fail_hook {
     stop();
 
     $self->SUPER::post_fail_hook;
-    $self->remount_tmp_if_ro;
-    $self->export_logs_basic;
+    remount_tmp_if_ro;
 }
 
 1;

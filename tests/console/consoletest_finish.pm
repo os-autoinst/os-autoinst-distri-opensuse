@@ -22,6 +22,7 @@ use utils;
 use strict;
 use warnings;
 use x11utils 'ensure_unlocked_desktop';
+use Utils::Logging 'export_logs';
 
 sub run {
     my $self = shift;
@@ -64,7 +65,7 @@ sub run {
 sub post_fail_hook {
     my $self = shift;
 
-    $self->export_logs();
+    export_logs();
 }
 
 sub test_flags {

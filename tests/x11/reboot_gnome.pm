@@ -35,7 +35,6 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     $self->SUPER::post_fail_hook;
-    $self->export_logs;
 }
 
 sub test_flags {

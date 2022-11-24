@@ -13,6 +13,7 @@
 use Mojo::Base qw(consoletest);
 use testapi;
 use serial_terminal qw(select_serial_terminal);
+use Utils::Logging 'save_and_upload_log';
 
 sub run {
     select_serial_terminal;
@@ -26,7 +27,7 @@ sub post_fail_hook {
     my $self = shift;
     select_console 'log-console';
     upload_logs './excluded_rpms';
-    $self->save_and_upload_log('rpm -qa', '/tmp/rpmquery_all', {screenshot => 1});
+    save_and_upload_log('rpm -qa', '/tmp/rpmquery_all', {screenshot => 1});
 }
 
 1;

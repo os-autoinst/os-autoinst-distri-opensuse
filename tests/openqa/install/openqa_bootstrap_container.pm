@@ -11,7 +11,7 @@ use warnings;
 use base "consoletest";
 use testapi;
 use utils;
-
+use Utils::Logging 'save_and_upload_log';
 
 sub run {
     select_console 'root-console';
@@ -34,7 +34,7 @@ sub test_flags {
 sub post_fail_hook {
     my ($self) = shift;
     $self->SUPER::post_fail_hook;
-    $self->save_and_upload_log("journalctl -M openqa1 -b -o short-precise --no-pager", "journal_container.log", {screenshot => 1});
+    save_and_upload_log("journalctl -M openqa1 -b -o short-precise --no-pager", "journal_container.log", {screenshot => 1});
 }
 
 1;

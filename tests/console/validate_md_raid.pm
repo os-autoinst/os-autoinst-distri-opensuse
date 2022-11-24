@@ -32,7 +32,7 @@ use scheduler 'get_test_suite_data';
 
 use Config::Tiny;
 use Test::Assert ':all';
-
+use Utils::Logging 'save_and_upload_log';
 
 sub run {
     select_console 'root-console';
@@ -57,7 +57,7 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     $self->SUPER::post_fail_hook;
-    $self->save_and_upload_log('mdadm --detail', 'mdadm_output.txt');
+    save_and_upload_log('mdadm --detail', 'mdadm_output.txt');
     upload_logs('/proc/mdstat', failok => 1);
 }
 
