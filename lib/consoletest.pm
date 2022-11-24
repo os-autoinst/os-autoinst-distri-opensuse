@@ -72,7 +72,7 @@ sub record_avc_selinux_alerts {
     my @logged = split(/\n/, script_output('ausearch -m avc -r', proceed_on_failure => 1));
 
     # no new messages are registered
-    if ($avc_record{end} <= $avc_record{start}) {
+    if (scalar @logged <= $avc_record{start}) {
         return;
     }
 
