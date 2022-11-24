@@ -6,7 +6,7 @@
 # Summary: Basic check for cockpit service
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use base "opensusebasetest";
+use base "consoletest";
 use strict;
 use warnings;
 use testapi;

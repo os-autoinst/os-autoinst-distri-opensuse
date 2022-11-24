@@ -36,19 +36,33 @@ conditional_schedule:
       15:
         - console/shibboleth
         - console/django
+        - console/nginx
       15-SP1:
         - console/shibboleth
         - console/django
+        - console/nginx
       15-SP2:
         - console/shibboleth
         - console/django
+        - console/nginx
       15-SP3:
         - console/shibboleth
         - console/django
+        - console/nginx
       15-SP4:
         - console/django
+        - console/nginx
       15-SP5:
         - console/django
+        - console/nginx
       tumbleweed:
         - console/django
         - console/rails
+        - console/nginx
+      15.3:
+        - console/shibboleth
+        - console/django
+        - console/nginx
+      15.4:
+        - console/django
+        - console/nginx

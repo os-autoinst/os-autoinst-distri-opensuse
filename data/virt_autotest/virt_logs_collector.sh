@@ -93,7 +93,7 @@ while { \${retry_times} > 0 } {
          expect -re "~( |\\\])#"
          if { \${extra_logs} == {support_config} } {
             send "rm -f -r \${logs_folder}/*supportconfig*\r"
-            send "supportconfig -y -A -t \${logs_folder} -B guest_\${guest_transformed}_supportconfig_\\\${time_stamp}\r"
+            send "supportconfig -y -A -o AUDIT -t \${logs_folder} -B guest_\${guest_transformed}_supportconfig_\\\${time_stamp}\r"
          }
          if { \${extra_logs} == {sos_report} } {
             send "rm -f -r \${logs_folder}/*sosreport*\r"
@@ -187,8 +187,8 @@ function collect_system_log_and_diagnosis() {
 	   else	   
     	      local time_stamp=`date '+%Y%m%d%H%M%S'`
 	      ${sshpass_ssh_cmd} rm -f -r ${logs_folder}/*supportconfig*
-	      echo -e "${sshpass_ssh_cmd} supportconfig -y -A -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}"
-	      ${sshpass_ssh_cmd} supportconfig -y -A -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}
+	      echo -e "${sshpass_ssh_cmd} supportconfig -y -A -o AUDIT -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}"
+	      ${sshpass_ssh_cmd} supportconfig -y -A -o AUDIT -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}
 	   fi
 	   ret_result=$?
 	   if [[ ${ret_result} -eq 0 ]];then

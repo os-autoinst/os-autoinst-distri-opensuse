@@ -9,7 +9,7 @@
 
 use strict;
 use warnings;
-use base "opensusebasetest";
+use base "consoletest";
 use testapi;
 use transactional qw(rpmver get_utt_packages trup_call);
 use Test::Assert 'assert_equals';

@@ -19,4 +19,10 @@ sub run {
     add_suseconnect_product(get_addon_fullname('phub'));
 }
 
+# Add milestone flag to save setup into the snapshot which
+# packagehub is activated
+sub test_flags {
+    return {milestone => 1};
+}
+
 1;

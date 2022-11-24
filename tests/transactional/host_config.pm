@@ -9,7 +9,7 @@
 #
 # Maintainer: Jose Lausuch <jalausuch@suse.com>
 
-use Mojo::Base qw(opensusebasetest);
+use Mojo::Base qw(consoletest);
 use testapi;
 use transactional qw(process_reboot);
 use bootloader_setup qw(change_grub_config);

@@ -44,7 +44,6 @@ conditional_schedule:
         - console/zziplib
         - console/journald_fss
         - console/openvswitch_ssl
-        - network/samba/samba_adcli
         - console/nginx
         - '{{arch_specific}}'
         - '{{arch_specific15_sp4}}'
@@ -57,7 +56,6 @@ conditional_schedule:
         - console/zziplib
         - console/journald_fss
         - console/openvswitch_ssl
-        - network/samba/samba_adcli
         - console/nginx
         - console/ansible
         - '{{arch_specific}}'
@@ -70,7 +68,6 @@ conditional_schedule:
         - console/zziplib
         - console/journald_fss
         - console/openvswitch_ssl
-        - network/samba/samba_adcli
         - console/nginx
         - '{{arch_specific}}'
       15-SP1:
@@ -80,7 +77,6 @@ conditional_schedule:
         - console/zziplib
         - console/journald_fss
         - console/openvswitch_ssl
-        - network/samba/samba_adcli
         - console/nginx
         - '{{arch_specific}}'
       15:
@@ -90,7 +86,6 @@ conditional_schedule:
         - console/zziplib
         - console/journald_fss
         - console/openvswitch_ssl
-        - network/samba/samba_adcli
         - console/nginx
         - '{{arch_specific}}'
       12-SP5:
@@ -99,20 +94,17 @@ conditional_schedule:
         - console/valgrind
         - console/zziplib
         - console/openvswitch_ssl
-        - network/samba/samba_adcli
         - '{{arch_specific}}'
         - '{{arch_12sp5}}'
       12-SP4:
         - console/osinfo_db
         - console/journald_fss
         - console/openvswitch_ssl
-        - network/samba/samba_adcli
         - '{{arch_specific}}'
       12-SP3:
         - console/osinfo_db
         - console/journald_fss
         - console/openvswitch_ssl
-        - network/samba/samba_adcli
         - '{{arch_specific}}'
       12-SP2:
         - console/journald_fss

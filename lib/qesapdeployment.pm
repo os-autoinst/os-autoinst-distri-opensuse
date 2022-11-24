@@ -57,6 +57,7 @@ our @EXPORT = qw(
   qesap_execute
   qesap_yaml_replace
   qesap_ansible_cmd
+  qesap_ansible_script_output
   qesap_create_ansible_section
 );
 
@@ -102,7 +103,7 @@ sub qesap_get_variables {
     my $yaml_file = $paths{'qesap_conf_src'};
     my %variables;
     my $grep_cmd = "grep -v '#' | grep -oE %[A-Z0-9_]*% | sed s/%//g";
-    my $cmd = join(" ", "curl -s -fL", $yaml_file, "|", $grep_cmd);
+    my $cmd = join(' ', 'curl -s -fL', $yaml_file, '|', $grep_cmd);
 
     for my $variable (split(" ", script_output($cmd))) {
         $variables{$variable} = get_required_var($variable);
@@ -158,7 +159,7 @@ sub qesap_pip_install {
 
     push(@log_files, $pip_install_log);
     record_info("QESAP repo", "Installing pip requirements");
-    assert_script_run(join(" ", $pip_ints_cmd, '-r', $paths{deployment_dir} . '/requirements.txt | tee -a', $pip_install_log), 360);
+    assert_script_run(join(' ', $pip_ints_cmd, '-r', $paths{deployment_dir} . '/requirements.txt | tee -a', $pip_install_log), 360);
 }
 
 =head3 qesap_upload_logs
@@ -273,13 +274,13 @@ sub qesap_execute {
     $exec_log .= '.log.txt';
     $exec_log =~ s/[-\s]+/_/g;
 
-    my $qesap_cmd = join(" ", "python3.9", $paths{deployment_dir} . "/scripts/qesap/qesap.py",
+    my $qesap_cmd = join(' ', 'python3.9', $paths{deployment_dir} . '/scripts/qesap/qesap.py',
         $verbose,
-        "-c", $paths{qesap_conf_trgt},
-        "-b", $paths{deployment_dir},
+        '-c', $paths{qesap_conf_trgt},
+        '-b', $paths{deployment_dir},
         $args{cmd},
         $args{cmd_options},
-        "|& tee -a",
+        '|& tee -a',
         $exec_log
     );
 
@@ -383,7 +384,7 @@ sub qesap_prepare_env {
 
     qesap_prepare_env(cmd=>{string}, provider => 'aws');
 
-=over 3
+=over 4
 
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
@@ -411,6 +412,73 @@ sub qesap_ansible_cmd {
         '-b', '--become-user=root',
         '-a', "\"$args{cmd}\"");
     assert_script_run($ansible_cmd);
+}
+
+
+=head3 qesap_ansible_script_output
+
+    Use Ansible to run a command remotely and get the stdout.
+    Command could be executed with elevated privileges
+
+    qesap_ansible_script_output(cmd => 'crm status', provider => 'aws', host => 'vmhana01', root => 1);
+
+    It uses playbook data/sles4sap/script_output.yaml
+
+    1. ansible-playbook run the playbook
+    2. the playbook executes the command and redirects the output to file, both remotely
+    3. the playbook download the file locally
+    4. the file is read and stored to be returned to the caller
+
+=over 5
+
+=item B<PROVIDER> - Cloud provider name, used to find the inventory
+
+=item B<CMD> - command to run remotely
+
+=item B<HOST> - filter hosts in the inventory
+
+=item B<USER> - user on remote host, default to 'cloudadmin'
+
+=item B<ROOT> - 1 to enable remote execution with elevated user, default to 0
+
+=back
+=cut
+
+sub qesap_ansible_script_output {
+    my (%args) = @_;
+    croak 'Missing mandatory cmd argument' unless $args{cmd};
+    croak 'Missing mandatory host argument' unless $args{host};
+    $args{user} ||= 'cloudadmin';
+    $args{root} ||= 0;
+
+    my $inventory = qesap_get_inventory($args{provider});
+
+    my $pb = 'script_output.yaml';
+    my $local_path = '/tmp/ansible_script_output/';
+    my $local_file = 'testout.txt';
+    my $local_tmp = $local_path . $local_file;
+
+    if (script_run 'test -e script_output.yaml') {
+        my $cmd = join(' ',
+            'curl', '-v', '-fL',
+            data_url("sles4sap/$pb"),
+            '-o', $pb);
+        assert_script_run($cmd);
+    }
+
+    my @ansible_cmd = ('ansible-playbook', '-vvvv', $pb);
+    push @ansible_cmd, ('-l', $args{host}, '-i', $inventory);
+    push @ansible_cmd, ('-u', $args{user});
+    push @ansible_cmd, ('-b', '--become-user', 'root') if ($args{root});
+    push @ansible_cmd, ('-e', qq("cmd='$args{cmd}'"),
+        '-e', "out_path='$local_path'",
+        '-e', "out_file='$local_file'");
+
+    enter_cmd "rm $local_tmp";
+    assert_script_run(join(' ', @ansible_cmd));
+    my $output = script_output("cat $local_tmp");
+    enter_cmd "rm $local_tmp";
+    return $output;
 }
 
 1;

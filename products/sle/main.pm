@@ -925,6 +925,7 @@ elsif (get_var("VIRT_AUTOTEST")) {
     elsif (get_var("VIRT_NEW_GUEST_MIGRATION_DESTINATION")) {
         loadtest "virt_autotest/guest_migration_dst";
     }
+    loadtest "virt_autotest/validate_system_health" unless get_var('DIRECT_CHAINED_VIRT_FEATURE_TEST') || !is_x86_64;
 }
 elsif (get_var("PERF_KERNEL")) {
     if (get_var("PERF_INSTALL")) {
@@ -1112,7 +1113,6 @@ else {
         boot_hdd_image;
         if (check_var('HOSTNAME', 'client')) {
             loadtest 'network/setup_multimachine';
-            loadtest 'network/samba/samba_adcli';
         }
         elsif (check_var('HOSTNAME', 'win2k19')) {
             loadtest 'support_server/windows/win2019_boot';

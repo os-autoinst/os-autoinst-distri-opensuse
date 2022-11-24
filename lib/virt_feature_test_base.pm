@@ -36,6 +36,7 @@ use IO::File;
 use List::Util 'first';
 use testapi;
 use utils;
+use ipmi_backend_utils;
 use virt_utils;
 use virt_autotest::common;
 use virt_autotest::utils;
@@ -48,8 +49,10 @@ sub run_test {
 sub prepare_run_test {
     my $self = shift;
 
-    script_run("rm -f /root/{commands_history,commands_failure}");
+    reconnect_when_ssh_console_broken unless defined(script_run("rm -f /root/{commands_history,commands_failure}", die_on_timeout => 0));
     assert_script_run("history -c");
+
+    check_host_health;
 
     virt_utils::cleanup_host_and_guest_logs;
     virt_utils::start_monitor_guest_console;
@@ -157,7 +160,8 @@ sub post_fail_hook {
     my ($self) = shift;
 
     $self->{"stop_run"} = time();
-    assert_script_run("history -w /root/commands_history");
+    reconnect_when_ssh_console_broken unless defined(script_run("history -w /root/commands_history", die_on_timeout => 0));
+    check_host_health;
     virt_utils::stop_monitor_guest_console() if (!(get_var("TEST", '') =~ /qam/) && (is_xen_host() || is_kvm_host()));
     #(caller(0))[3] can help pass calling subroutine name into called subroutine
     $self->junit_log_provision((caller(0))[3]) if get_var("VIRT_AUTOTEST");

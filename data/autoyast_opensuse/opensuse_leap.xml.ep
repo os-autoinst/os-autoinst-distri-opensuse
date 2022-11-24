@@ -99,6 +99,12 @@
         <service>NetworkManager</service>
         % }
       </enable>
+      <disable config:type="list">
+        % if ($check_var->('SYSTEM_ROLE', 'serverro')) {
+	<!--workaround for bsc#1204180-->      
+        <service>kdump</service>
+        % }
+      </disable>
     </services>
   </services-manager>
   <software>
@@ -110,6 +116,10 @@
       <package>chrony</package>
       % if ($check_var->('DESKTOP', 'gnome')) {
       <package>NetworkManager</package>
+      % }
+      % if ($check_var->('SYSTEM_ROLE', 'serverro')) {
+      <package>transactional-update</package>
+      <package>kdump</package>
       % }
     </packages>
     <patterns config:type="list">
@@ -130,6 +140,91 @@
       % }
     </patterns>
   </software>
+  % if ($check_var->('SYSTEM_ROLE', 'serverro')) {
+  <partitioning t="list">
+    <drive t="map">
+      <device>/dev/vda</device>
+      <disklabel>gpt</disklabel>
+      <enable_snapshots t="boolean">true</enable_snapshots>
+      <partitions t="list">
+        <partition t="map">
+          <create t="boolean">true</create>
+          <format t="boolean">false</format>
+          <partition_id t="integer">263</partition_id>
+          <partition_nr t="integer">1</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>8388608</size>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <create_subvolumes t="boolean">true</create_subvolumes>
+          <filesystem t="symbol">btrfs</filesystem>
+          <format t="boolean">true</format>
+          <fstopt>ro</fstopt>
+          <mount>/</mount>
+          <mountby t="symbol">uuid</mountby>
+          <partition_id t="integer">131</partition_id>
+          <partition_nr t="integer">2</partition_nr>
+          <quotas t="boolean">true</quotas>
+          <resize t="boolean">false</resize>
+          <size>40791703552</size>
+          <subvolumes t="list">
+            <subvolume t="map">
+              <copy_on_write t="boolean">false</copy_on_write>
+              <path>var</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>usr/local</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>tmp</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>srv</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>root</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>opt</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>home</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>boot/grub2/x86_64-efi</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>boot/grub2/i386-pc</path>
+            </subvolume>
+          </subvolumes>
+          <subvolumes_prefix>@</subvolumes_prefix>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <filesystem t="symbol">swap</filesystem>
+          <format t="boolean">true</format>
+          <mount>swap</mount>
+          <mountby t="symbol">uuid</mountby>
+          <partition_id t="integer">130</partition_id>
+          <partition_nr t="integer">3</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>2148515328</size>
+        </partition>
+      </partitions>
+      <type t="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  % }
   <users config:type="list">
     <user>
       <fullname>bernhard</fullname>
@@ -143,4 +238,20 @@
       <username>root</username>
     </user>
   </users>
+  % if ($check_var->('SYSTEM_ROLE', 'serverro')) {
+  <scripts>
+    <post-scripts config:type="list">
+        <script>
+        <filename>disable_kdump.sh</filename>
+        <interpreter>shell</interpreter>
+        <location/>
+        <feedback config:type="boolean">false</feedback>
+        <source><![CDATA[#!/bin/sh
+            # workaround for bsc#1205506
+            systemctl disable kdump
+            ]]></source>
+        </script>
+    </post-scripts>
+  </scripts>
+  % }
 </profile>

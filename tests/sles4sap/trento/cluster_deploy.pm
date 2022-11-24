@@ -32,7 +32,11 @@ sub run {
     my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
     my $inventory = qesap_get_inventory($prov);
 
-    qesap_ansible_cmd(cmd => 'crm status', provider => $prov, filter => $_) for ('vmhana01', 'vmhana02');
+    qesap_ansible_cmd(cmd => 'crm status', provider => $prov, filter => 'vmhana01');
+}
+
+sub test_flags {
+    return {fatal => 1};
 }
 
 sub post_fail_hook {

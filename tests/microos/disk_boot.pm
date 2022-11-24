@@ -6,7 +6,7 @@
 # Summary: Boot from disk and login into MicroOS
 # Maintainer: Panagiotis Georgiadis <pgeorgiadis@suse.com>
 
-use base "opensusebasetest";
+use base "consoletest";
 use strict;
 use warnings;
 use testapi;
