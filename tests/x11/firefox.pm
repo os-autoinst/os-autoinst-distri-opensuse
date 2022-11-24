@@ -16,11 +16,19 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
-use version_utils 'is_tumbleweed';
+use version_utils qw(is_opensuse is_tumbleweed);
 use Utils::Architectures 'is_s390x';
+use serial_terminal 'select_serial_terminal';
 
 sub run() {
     my ($self) = shift;
+
+    # we have sometime issue with firefox crash, export setting of automatic sending of crash report
+    # save the minidump and then force the application to close, see bsc#1205511
+    if (is_opensuse) {
+        select_serial_terminal;
+        assert_script_run('echo -en "MOZ_CRASHREPORTER_AUTO_SUBMIT=1\n MOZ_CRASHREPORTER_SHUTDOWN=1" > ~/.profile');
+    }
 
     $self->prepare_firefox_autoconfig;
     $self->start_firefox;
@@ -39,10 +47,17 @@ sub run() {
     }
 
     # close About
+    # Send crash report manually if automatic sending of crash reprot doesn't work, see bsc#1205511
     send_key "alt-f4";
-    assert_screen 'firefox-html-test';
-
-    send_key "alt-f4";
+    assert_screen([qw(firefox-crash-reporter firefox-html-test)], timeout => 90);
+    if (match_has_tag 'firefox-crash-reporter') {
+        assert_and_click 'send-crashreport';
+        assert_and_click 'quit-firefox';
+        record_soft_failure 'firefox got crashed, sending crash report. see bsc#1205511';
+    }
+    elsif (match_has_tag 'firefox-html-test') {
+        send_key "alt-f4";
+    }
     assert_screen([qw(firefox-save-and-quit generic-desktop not-responding)], timeout => 90);
     if (match_has_tag 'not-responding') {
         record_soft_failure "firefox is not responding, see boo#1174857";
