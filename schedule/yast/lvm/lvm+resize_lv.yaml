@@ -9,38 +9,23 @@ vars:
   HDDSIZEGB: 50
   YUI_REST_API: 1
 schedule:
-  - installation/bootloader_start
-  - installation/setup_libyui
-  - installation/access_beta_distribution
-  - installation/product_selection/install_SLES
-  - installation/licensing/accept_license
-  - installation/registration/register_via_scc
-  - installation/module_registration/skip_module_registration
-  - installation/add_on_product/skip_install_addons
-  - installation/system_role/accept_selected_role_text_mode
-  - installation/partitioning/select_guided_setup
-  - installation/partitioning/guided_setup/enable_lvm
-  - installation/partitioning/guided_setup/do_not_propose_separate_home
-  - installation/partitioning/resize_existing_lv
-  - installation/clock_and_timezone/accept_timezone_configuration
-  - installation/authentication/use_same_password_for_root
-  - installation/authentication/default_user_simple_pwd
-  - installation/installation_settings/validate_default_target
-  - installation/bootloader_settings/disable_boot_menu_timeout
-  - installation/launch_installation
-  - installation/confirm_installation
-  - installation/performing_installation/perform_installation
-  - installation/logs_from_installation_system
-  - installation/performing_installation/confirm_reboot
-  - installation/grub_test
-  - installation/first_boot
-  - console/system_prepare
-  - console/check_network
-  - console/prepare_test_data
-  - console/consoletest_setup
-  - locale/keymap_or_locale
-  - console/consoletest_finish
-  - console/validate_modify_existing_partition
+  guided_partitioning:
+    - installation/partitioning/select_guided_setup
+    - installation/partitioning/guided_setup/enable_lvm
+    - installation/partitioning/guided_setup/do_not_propose_separate_home
+    - installation/partitioning/resize_existing_lv
+  suggested_partitioning: []
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_preparation:
+    - console/system_prepare
+    - console/check_network
+    - console/prepare_test_data
+    - console/consoletest_setup
+  system_validation:
+    - locale/keymap_or_locale
+    - console/consoletest_finish
+    - console/validate_modify_existing_partition
 test_data:
   volume_groups:
     - name: system

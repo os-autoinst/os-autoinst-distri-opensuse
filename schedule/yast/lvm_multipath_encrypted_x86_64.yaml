@@ -1,0 +1,51 @@
+---
+name:           lvm_multipath_encrypted
+description:    >
+  Textmode installation test for encrypted lvm partitioning on multipath with lvm and encryption validation.
+vars:
+  DESKTOP: textmode
+  MULTIPATH: 1
+  LVM: 1
+  ENCRYPT: 1
+  SEPARATE_HOME: 0
+  HDDMODEL: scsi-hd
+  YUI_REST_API: 1
+schedule:
+  multipath:
+    - installation/multipath
+  guided_partitioning:
+    - installation/partitioning/select_guided_setup
+    - installation/partitioning/guided_setup/encrypt_lvm_simple_pwd
+    - installation/partitioning/guided_setup/accept_default_fs_options
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  first_login:
+    - installation/boot_encrypt
+    - installation/first_boot
+  system_preparation:
+    - console/hostname
+    - console/system_prepare
+    - console/force_scheduled_tasks
+  system_validation:
+    - console/validate_multipath
+    - console/validate_lvm
+    - console/validate_encrypt
+    - console/consoletest_finish
+    - shutdown/grub_set_bootargs
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown
+test_data:
+  crypttab:
+    num_devices_encrypted: 1
+  cryptsetup:
+    device_status:
+      message: is active and is in use.
+      properties:
+        type: LUKS1
+        cipher: aes-xts-plain64
+        device: /dev/mapper/0QEMU_QEMU_HARDDISK_hd0-part2
+        key_location: dm-crypt
+        mode: read/write
+  backup_file_info: 'LUKS encrypted file, ver 1 \[aes, xts-plain64, sha256\]'
+  backup_path: '/root/bkp_luks_header_cr_home'
+  <<: !include test_data/yast/multipath.yaml

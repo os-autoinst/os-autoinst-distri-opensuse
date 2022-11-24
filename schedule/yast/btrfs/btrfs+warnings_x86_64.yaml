@@ -1,0 +1,24 @@
+---
+name: btrfs+warnings
+description: >
+  Test suite verifies variety of warning which are expected to be shown when
+  something is missing during manual partitioning using Expert Partitioner.
+  Following warning are verified:
+    - Missing root partition;
+    - Minimal size for the root with btrfs and snapshots
+    - Missing boot partition (bios boot,/boot/zipl/,EFI, prep-boot).
+vars:
+  FILESYSTEM: btrfs
+  YUI_REST_API: 1
+schedule:
+  expert_partitioning:
+    - installation/partitioning/warning/no_root
+    - installation/partitioning/warning/snapshots_small_root
+    - installation/partitioning/warning/no_boot
+    - installation/partitioning/warning/boot_small_for_kernel
+    - installation/partitioning/warning/bios_boot_small_for_bootloader
+    - installation/partitioning/warning/prep_small
+    - installation/partitioning/warning/zipl_small
+    - installation/partitioning/warning/rootfs_small
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target

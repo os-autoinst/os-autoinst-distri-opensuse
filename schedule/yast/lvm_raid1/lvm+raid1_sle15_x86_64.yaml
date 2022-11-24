@@ -1,0 +1,18 @@
+---
+name:           lvm+raid1@64bit
+description:    >
+  Validation of partitioning for raid1 on lvm
+  Installation of RAID1 using expert partitioner.
+vars:
+  RAIDLEVEL: 1
+  LVM: 1
+  YUI_REST_API: 1
+schedule:
+  expert_partitioning:
+    - installation/partitioning/setup_raid1_lvm
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_validation:
+    - console/validate_lvm_raid1
+test_data:
+  <<: !include test_data/yast/lvm_raid1/lvm+raid1.yaml

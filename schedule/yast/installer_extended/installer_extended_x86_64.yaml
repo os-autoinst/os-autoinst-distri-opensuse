@@ -1,0 +1,91 @@
+---
+name: installer_extended
+description: >
+  Test suite performs additional UI checks. As of now following is tested:
+     - Switch keyboard layout and test it (only when is not VNC installation)
+     - License has to be accepted and there is pop-up with a hint.
+     - License translations (except SLE 15 due to missing translations in the
+       beta phase).
+     - Check available and selected by default modules for installation.
+vars:
+  CHECK_PRESELECTED_MODULES: '1'
+  CHECK_RELEASENOTES: '1'
+  EXIT_AFTER_START_INSTALL: '1'
+  EXTRABOOTPARAMS: Y2STRICTTEXTDOMAIN=1
+  YUI_REST_API: 1
+schedule:
+  bootloader:
+    - installation/isosize
+    - installation/data_integrity
+    - installation/bootloader_start
+  product_selection:
+    - installation/language_keyboard/switch_keyboard_layout
+    - installation/product_selection/install_SLES
+  license_agreement:
+    - installation/licensing/verify_license_translations
+    - installation/licensing/verify_license_has_to_be_accepted
+    - installation/licensing/accept_license
+  extension_module_selection:
+    - installation/module_registration/view_development_versions
+    - installation/module_registration/verify_module_registration
+    - installation/module_registration/skip_module_registration
+  clock_and_timezone:
+    - installation/releasenotes
+    - installation/clock_and_timezone/accept_timezone_configuration
+  local_user:
+  - installation/authentication/default_user_simple_pwd
+  - installation/authentication/root_simple_pwd
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  installation_logs: []
+  grub: []
+  first_login: []
+test_data:
+  license:
+    language: English (US)
+    translations:
+      - language: Czech
+        text: Licenční smlouva s koncovým uživatelem
+      - language: English (US)
+        text: End User License Agreement for SUSE Products
+      - language: French
+        text: Contrat de licence utilisateur final
+      - language: German
+        text: Endbenutzer-Lizenzvereinbarung
+      - language: Italian
+        text: Contratto di licenza
+      - language: Japanese
+        text: エンドユーザ使用許諾契約
+      - language: Korean
+        text: SUSE 제품에 관한
+      - language: Portuguese (Brazilian)
+        text: Contrato de Licença para Usuário Final
+      - language: Russian
+        text: Лицензионное соглашение
+      - language: Simplified Chinese
+        text: SUSE 产品
+      - language: Spanish
+        text: Acuerdo de licencia de usuario final
+      - language: Traditional Chinese
+        text: 最終使用者授權合約
+  beta_text: 'You are accessing our Beta Distribution'
+  modules:
+    - sle-ha
+    - sle-module-live-patching
+    - sle-we
+    - sle-module-basesystem
+    - sle-module-certifications
+    - sle-module-containers
+    - sle-module-desktop-applications
+    - sle-module-development-tools
+    - sle-module-legacy
+    - sle-module-public-cloud
+    - sle-module-NVIDIA-compute
+    - sle-module-python3
+    - PackageHub
+    - sle-module-server-applications
+    - sle-module-transactional-server
+    - sle-module-web-scripting
+  registered_modules:
+    - sle-module-basesystem
+    - sle-module-server-applications

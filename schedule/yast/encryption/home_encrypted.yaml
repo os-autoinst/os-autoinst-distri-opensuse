@@ -5,32 +5,18 @@ description: >
 vars:
   YUI_REST_API: 1
 schedule:
-  - installation/bootloader_start
-  - installation/setup_libyui
-  - installation/access_beta_distribution
-  - installation/product_selection/install_SLES
-  - installation/licensing/accept_license
-  - installation/registration/register_via_scc
-  - installation/module_registration/skip_module_registration
-  - installation/add_on_product/skip_install_addons
-  - installation/system_role/accept_selected_role_text_mode
-  - installation/partitioning/edit_proposal_encrypt
-  - installation/clock_and_timezone/accept_timezone_configuration
-  - installation/authentication/use_same_password_for_root
-  - installation/authentication/default_user_simple_pwd
-  - installation/installation_settings/validate_default_target
-  - installation/bootloader_settings/disable_boot_menu_timeout
-  - installation/launch_installation
-  - installation/confirm_installation
-  - installation/performing_installation/perform_installation
-  - installation/logs_from_installation_system
-  - installation/performing_installation/confirm_reboot
-  - installation/grub_test
-  - installation/boot_encrypt
-  - installation/first_boot
-  - console/system_prepare
-  - console/verify_separate_home
-  - console/validate_encrypt
+  suggested_partitioning:
+    - installation/partitioning/edit_proposal_encrypt
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  first_login:
+    - installation/boot_encrypt
+    - installation/first_boot
+  system_preparation:
+    - console/system_prepare
+  system_validation:
+    - console/verify_separate_home
+    - console/validate_encrypt
 test_data:
   crypttab:
     num_devices_encrypted: 1

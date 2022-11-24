@@ -7,30 +7,19 @@ vars:
   ADDONS: all-packages
   YUI_REST_API: 1
 schedule:
-  - boot/boot_to_desktop
-  - x11/ssh_key_check
-  - x11/reboot_and_install
-  - installation/setup_libyui
-  - installation/access_beta_distribution
-  - installation/product_selection/install_SLES
-  - installation/licensing/accept_license
-  - installation/registration/register_via_scc
-  - installation/module_registration/register_module_desktop
-  - installation/add_on_product/skip_install_addons
-  - installation/system_role/accept_selected_role_SLES_with_GNOME
-  - installation/partitioning/accept_proposed_layout
-  - installation/clock_and_timezone/accept_timezone_configuration
-  - installation/authentication/use_same_password_for_root
-  - installation/authentication/default_user_simple_pwd
-  - installation/installation_settings/validate_default_target
-  - installation/bootloader_settings/disable_boot_menu_timeout
-  - installation/ssh_host_key_settings/import_ssh_host_keys
-  - installation/launch_installation
-  - installation/confirm_installation
-  - installation/performing_installation/perform_installation
-  - installation/logs_from_installation_system
-  - installation/reboot_after_installation
-  - installation/grub_test
-  - installation/first_boot
-  - installation/ssh_host_key_settings/verify_ssh_key_imported
-  - shutdown/shutdown
+  bootloader:
+    - boot/boot_to_desktop
+    - x11/ssh_key_check
+    - x11/reboot_and_install
+  extension_module_selection:
+    - installation/module_registration/register_module_desktop
+  system_role:
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  installation_settings:
+    - installation/ssh_host_key_settings/import_ssh_host_keys
+    - installation/launch_installation
+  system_validation:
+    - installation/ssh_host_key_settings/verify_ssh_key_imported
+    - shutdown/shutdown
