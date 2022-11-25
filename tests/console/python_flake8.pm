@@ -16,9 +16,12 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
+use registration 'is_phub_ready';
 
 sub run {
     select_serial_terminal;
+    # Package 'python3-flake8' requires PackageHub is available
+    return unless is_phub_ready();
 
     # Make sure that python-flake8 is installed.
     # On SLE, this requires phub extenstion

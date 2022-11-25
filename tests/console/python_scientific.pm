@@ -15,6 +15,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_tumbleweed);
+use registration 'is_phub_ready';
 
 sub run_python_script {
     my $script = shift;
@@ -36,6 +37,9 @@ sub run_python_script {
 
 sub run {
     select_serial_terminal;
+
+    # Package 'python3-scipy' requires PackageHub is available
+    return unless is_phub_ready();
 
     my $scipy = is_sle('<15-sp1') ? '' : 'python3-scipy';
     zypper_call "in python3 python3-numpy $scipy";

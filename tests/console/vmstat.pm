@@ -19,13 +19,17 @@ use utils;
 use strict;
 use warnings;
 use POSIX;
-use registration qw(add_suseconnect_product get_addon_fullname);
+use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 use List::Util qw(min);
 use console::vmstat_utils;
 
 sub run {
     my ($vm, $cpu);
     select_serial_terminal;
+
+    # Package 'stress-ng' requires PackageHub is available
+    return unless is_phub_ready();
+
     zypper_call('in procps');
     validate_script_output("vmstat",
         qr/(procs\s-+memory-+\s-+swap-+\s-+io-+\s-+system-+\s-+cpu-+).*(\s+|\d+)+/s);
