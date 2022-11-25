@@ -1,5 +1,5 @@
-Testing on real hardware for Raspberry Pi testing
-=================================================
+Testing on real hardware for Raspberry Pi
+=========================================
 
 # Initial notes
 This document is refering to the internal openqa.suse.de (OSD) setup and not to the
