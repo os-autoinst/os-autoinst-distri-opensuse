@@ -103,7 +103,7 @@
     "bsc#1178033": {
         "description": "kernel: ITS@0x8080000: Unable to locate ITS domain handle",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
+            "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
             "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5"]
@@ -135,7 +135,7 @@
     "bsc#1190662": {
         "description": "/etc/udev/rules.d/41-qeth-.*Failed to write ATTR",
         "products": {
-            "sle-micro": [ "5.1", "5.2", "5.3" ]
+            "sle-micro": [ "5.1", "5.2", "5.3", "5.4" ]
         },
         "type": "bug"
     },
@@ -347,7 +347,7 @@
     "ssh-connection-close-by-remote": {
         "description": "error: kex_exchange_identification: Connection closed by remote host",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
+            "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3", "15.4", "15.5"],
             "microos":  ["Tumbleweed"],
             "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5"]
@@ -358,7 +358,7 @@
         "description": "Timed out waiting for device (/dev/disk/by-label/ignition|/dev/combustion/config)",
         "products": {
             "leap-micro": ["5.3"],
-            "sle-micro": ["5.3"],
+            "sle-micro": ["5.3", "5.4"],
             "microos":  ["Tumbleweed"]
         },
         "type": "ignore"
