@@ -260,9 +260,9 @@ sub test_timeout_rules {
     }
 
     if (uses_iptables) {
-        script_retry("test `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules.txt`", delay => 5, retry => 7);
+        script_retry("test `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules.txt`", delay => 5, retry => 10);
     } else {
-        script_retry("test `nft list chain inet firewalld filter_IN_public_allow | wc -l` -eq `cat /tmp/nr_rules.txt`", delay => 5, retry => 7);
+        script_retry("test `nft list chain inet firewalld filter_IN_public_allow | wc -l` -eq `cat /tmp/nr_rules.txt`", delay => 5, retry => 10);
     }
 }
 
