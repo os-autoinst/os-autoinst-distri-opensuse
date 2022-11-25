@@ -1,0 +1,38 @@
+---
+name: select_modules_and_patterns+registration@s390x-zVM
+description: >
+  Full Medium installation that covers the following cases:
+     1. Additional modules enabled using SCC (Legacy, Development Tools,
+        Web and Scripting, Containers, Desktop Applications);
+     2. Yast patterns installed;
+     3. System registration is skipped during installation;
+     4. Installation is validated by successful boot and that YaST does not
+        report any issues;
+     5. Registration is performed on the installed system.
+vars:
+  SCC_REGISTER: console
+  ENABLE_ALL_SCC_MODULES: 1
+  ADDONS: all-packages
+  YUI_REST_API: 1
+schedule:
+  registration:
+    - installation/registration/skip_registration
+  extension_module_selection:
+    - installation/module_selection/select_nonconflicting_modules
+  add_on_product:
+    - installation/add_on_product_installation/accept_add_on_installation
+  system_role:
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
+  software:
+    - installation/select_visible_patterns_from_bottom
+  system_preparation:
+    - console/hostname
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - shutdown/grub_set_bootargs
+  system_validation:
+    - console/validate_installed_packages
+    - console/validate_installed_patterns
+    - console/suseconnect_scc
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown

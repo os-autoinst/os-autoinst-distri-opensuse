@@ -1,54 +1,57 @@
 ---
-name: textmode
-description: |
-  Installation in textmode which selects System Role 'Text Mode'.
-vars:
-  YUI_REST_API: 1
-schedule:
+# Default ordered sequence of steps to be optionally overwritten for this product
+bootloader:
   - installation/bootloader_start
+setup_libyui:
   - installation/setup_libyui
+access_beta:
   - installation/access_beta_distribution
+product_selection:
   - installation/product_selection/install_SLES
+license_agreement:
   - installation/licensing/accept_license
+configure_dasd_disks:
   - installation/disk_activation/select_configure_dasd_disks
   - installation/disk_activation/configure_dasd
   - installation/disk_activation/finish_disk_activation
+registration:
   - installation/registration/register_via_scc
+extension_module_selection:
   - installation/module_registration/skip_module_registration
+add_on_product:
   - installation/add_on_product/skip_install_addons
+add_on_product_installation: []
+system_role:
   - installation/system_role/accept_selected_role_text_mode
+guided_partitioning: []
+suggested_partitioning:
   - installation/partitioning/accept_proposed_layout
+clock_and_timezone:
   - installation/clock_and_timezone/accept_timezone_configuration
+local_user:
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
+software: []
+booting:
+  - installation/bootloader_settings/disable_boot_menu_timeout
+security:
   - installation/installation_settings/validate_ssh_service_enabled
   - installation/installation_settings/open_ssh_port
-  - installation/installation_settings/validate_default_target
-  - installation/bootloader_settings/disable_boot_menu_timeout
+default_systemd_target: []
+installation_settings:
   - installation/launch_installation
+installation:
   - installation/confirm_installation
   - installation/performing_installation/perform_installation
+stop_timeout_system_reboot:
+  - installation/performing_installation/stop_timeout_system_reboot_now
+installation_logs:
   - installation/logs_from_installation_system
+confirm_reboot:
   - installation/performing_installation/confirm_reboot
+grub:
   - installation/handle_reboot
+first_login:
   - installation/first_boot
-  - console/system_prepare
-  - console/prepare_test_data
-  - console/consoletest_setup
-  - console/validate_product_installed_SLES
-  - console/verify_network
-  - locale/keymap_or_locale
-  - console/validate_installed_patterns
-  - console/force_scheduled_tasks
-  - console/textinfo
-  - console/orphaned_packages_check
-  - console/consoletest_finish
-test_data:
-  software:
-    patterns:
-      - apparmor
-      - base
-      - enhanced_base
-      - x11
-      - x11_yast
-      - yast2_basis
+system_preparation: []
+system_validation: []
