@@ -5,20 +5,23 @@
 
 # Summary: This kubevirt test relies on the upstream test code, which is downstreamed as virt-tests.
 #          This is the part running on agent node.
-# Maintainer: Nan Zhang <nan.zhang@suse.com>
+# Maintainer: Nan Zhang <nan.zhang@suse.com> qe-virt@suse.de
 
 use base multi_machine_job_base;
 use strict;
 use warnings;
 use testapi;
 use lockapi;
+use transactional;
 use utils;
+use version_utils qw(is_transactional);
+use Utils::Systemd;
 use Utils::Backends 'use_ssh_serial_console';
 
 sub run {
     my ($self) = shift;
 
-    if (get_required_var('WITH_SLE_INSTALL')) {
+    if (get_required_var('WITH_HOST_INSTALL')) {
         my $sut_ip = get_required_var('SUT_IP');
 
         set_var('AGENT_IP', $sut_ip);
@@ -43,15 +46,17 @@ sub rke2_agent_setup {
     my ($self, $server_ip) = @_;
 
     record_info('Start RKE2 agent setup', '');
-    systemctl('stop apparmor.service');
-    systemctl('stop firewalld.service');
+    unless (is_transactional) {
+        disable_and_stop_service('apparmor.service');
+        disable_and_stop_service('firewalld.service');
+    }
     $self->setup_passwordless_ssh_login($server_ip);
 
-    # Ensure SUSE certificates are installed on the node
+    # rebootmgr has to be turned off as prerequisity for this to work
+    script_run "rebootmgrctl set-strategy off" if (is_transactional);
+    # Check if the package 'ca-certificates-suse' are installed on the node
     ensure_ca_certificates_suse_installed();
-
-    # Install downstream kubevirt packages
-    zypper_call('in -n kubernetes1.18-client') if (script_run('rpmquery kubernetes1.18-client'));
+    transactional::process_reboot(trigger => 1) if (is_transactional);
 
     # RKE2 deployment on agent node
     # Default is to setup service with the latest RKE2 version, the parameter INSTALL_RKE2_VERSION allows to setup with a specified version.
@@ -62,6 +67,10 @@ sub rke2_agent_setup {
     } else {
         assert_script_run('curl -sfL https://get.rke2.io | INSTALL_RKE2_TYPE=agent sh -', timeout => 180);
     }
+
+    # Add kubectl command to $PATH environment varibable
+    my $rke2_bin_path = "export PATH=\$PATH:/opt/rke2/bin:/var/lib/rancher/rke2/bin";
+    assert_script_run("echo '$rke2_bin_path' >> \$HOME/.bashrc; source \$HOME/.bashrc");
 
     # Wait for rke2-server service to be ready
     barrier_wait('rke2_server_start_ready');

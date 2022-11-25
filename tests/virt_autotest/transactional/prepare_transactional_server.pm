@@ -9,7 +9,7 @@
 # only or which need to to performed by leveraging transactional-update command.
 #
 # Maintainer: Wayne Chen <wchen@suse.com> qe-virt@suse.de
-package prepare_transactional_server;
+package transactional::prepare_transactional_server;
 
 use base "opensusebasetest";
 use strict;
@@ -58,9 +58,13 @@ sub prepare_packages {
 
     # Install necessary virtualization client packages
     zypper_call("--non-interactive install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change virt-install libvirt-client libguestfs0 guestfs-tools yast2-schema-micro sshpass");
+    $self->install_additional_pkgs;
+}
+
+sub install_additional_pkgs {
+    my $self = shift;
 
     if (get_var("INSTALL_OTHER_REPOS")) {
-
         # SLE Micro is a lightweight operating system purpose built for containerized
         # and virtualized workloads. It does not provide equally abundant functionality
         # compared with SLES, so it becomes necessary to install some useful utilities
