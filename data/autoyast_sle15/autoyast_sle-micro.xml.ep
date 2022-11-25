@@ -19,6 +19,9 @@
       <confirm config:type="boolean">false</confirm>
     </mode>
   </general>
+  <networking>
+    <managed config:type="boolean">true</managed>
+  </networking>
   <software>
     <products config:type="list">
       <product>SLE-Micro</product>
