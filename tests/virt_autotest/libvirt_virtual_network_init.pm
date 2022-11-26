@@ -10,7 +10,7 @@
 # libvirt_routed_virtual_network
 # libvirt_isolated_virtual_network
 #
-# Maintainer: Leon Guo <xguo@suse.com>
+# Maintainer: Leon Guo <xguo@suse.com>, qe-virt@suse.com
 
 use virt_autotest::virtual_network_utils;
 use virt_autotest::utils;
@@ -71,6 +71,7 @@ sub run_test {
         script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 180);
         save_guest_ip($guest, name => "br123");
         virt_autotest::utils::ssh_copy_id($guest);
+        check_guest_health($guest);
         #Prepare the new guest network interface files for libvirt virtual network
         #for some guests, interfaces are named eth0, eth1, eth2, ...
         #for TW kvm guest, they are enp1s0, enp2s0, enp3s0, ...
