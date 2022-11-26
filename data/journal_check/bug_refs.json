@@ -85,7 +85,7 @@
     "bsc#1182500": {
         "description": "Failed to transition into init label 'system_u:system_r:init_t:s0'",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
+            "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" ],
             "leap-micro": [ "5.2" ],
             "microos":  ["Tumbleweed"],
             "alp":  ["0.1", "0.1:S:A", "0.1:S:B"]
@@ -403,6 +403,7 @@
     "boo#1203899": {
         "description": "NetworkManager.*kill child process 'helper'.* failed due to unexpected return value -1 by waitpid",
         "products": {
+            "sle-micro": ["5.4"],
             "alp":  ["0.1", "0.1:S:A", "0.1:S:B"]
         },
         "type": "bug"
