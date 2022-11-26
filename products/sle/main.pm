@@ -870,7 +870,10 @@ elsif (get_var("VIRT_AUTOTEST")) {
     }
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
         load_virt_guest_install_tests;
-        load_virt_feature_tests if (!(get_var("GUEST_PATTERN") =~ /win/img) && is_x86_64 && !get_var("LTSS"));
+        if (is_x86_64 && !(get_var("GUEST_PATTERN") =~ /win/img) && !get_var("LTSS")) {
+            load_virt_feature_tests;
+            loadtest "virt_autotest/validate_system_health" if get_var("VALIDATE_SYSTEM_HEALTH");
+        }
     }
     #those tests which test extended features, such as hotpluggin, virtual network and SRIOV passthrough etc.
     #they can be seperated from prj1 if needed
@@ -897,16 +900,6 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/reboot_and_wait_up_normal";
         loadtest "virt_autotest/host_upgrade_step3_run";
     }
-    elsif (get_var("VIRT_PRJ3_GUEST_MIGRATION_SOURCE")) {
-        loadtest "virt_autotest/guest_migration_config_virtualization_env";
-        loadtest "virt_autotest/guest_migration_source_nfs_setup";
-        loadtest "virt_autotest/guest_migration_source_install_guest";
-        loadtest "virt_autotest/guest_migration_source_migrate";
-    }
-    elsif (get_var("VIRT_PRJ3_GUEST_MIGRATION_TARGET")) {
-        loadtest "virt_autotest/guest_migration_config_virtualization_env";
-        loadtest "virt_autotest/guest_migration_target_nfs_setup";
-    }
     elsif (get_var("VIRT_PRJ4_GUEST_UPGRADE")) {
         loadtest "virt_autotest/guest_upgrade_run";
     }
@@ -925,7 +918,6 @@ elsif (get_var("VIRT_AUTOTEST")) {
     elsif (get_var("VIRT_NEW_GUEST_MIGRATION_DESTINATION")) {
         loadtest "virt_autotest/guest_migration_dst";
     }
-    loadtest "virt_autotest/validate_system_health" unless get_var('DIRECT_CHAINED_VIRT_FEATURE_TEST') || !is_x86_64;
 }
 elsif (get_var("PERF_KERNEL")) {
     if (get_var("PERF_INSTALL")) {

@@ -136,7 +136,7 @@ sub check_failures_in_journal {
 # Return 'pass' and 'fail' if there are or are not failures.
 # Welcome everybody to extend this function
 sub check_host_health {
-    return unless is_x86_64;
+    return unless is_x86_64 and (is_sle or is_opensuse);
     my $failures = check_failures_in_journal;
     unless ($failures) {
         record_info("Healthy host!");
@@ -151,8 +151,8 @@ sub check_host_health {
 # Support x86_64 only
 # Welcome everybody to extend this function
 sub check_guest_health {
-    return unless is_x86_64;
     my $vm = shift;
+    return unless is_x86_64 and guest_is_sle($vm);
 
     #check if guest is still alive
     validate_script_output "virsh domstate $vm", sub { /running/ };
