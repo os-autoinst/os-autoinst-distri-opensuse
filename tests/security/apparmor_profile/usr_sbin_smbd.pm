@@ -126,7 +126,7 @@ sub samba_client_access {
     assert_screen("nautilus-sharedir-opened");
 
     # Do some operations, e.g., create a test folder then delete it
-    assert_and_click("nautilus-open-menu");
+    assert_and_click('nautilus-sharedir-opened', button => 'right');
     assert_and_click("nautilus-new-folder");
     assert_screen("nautilus-folder-name-input-box");
     type_string("sub-testdir", wait_screen_change => 10);
