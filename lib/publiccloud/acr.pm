@@ -40,7 +40,11 @@ sub delete_image {
 
 sub cleanup() {
     my ($self) = @_;
-    $self->provider_client->cleanup();
+}
+
+sub destroy() {
+    my ($self) = @_;
+    $self->provider_client->destroy();
 }
 
 1;

@@ -283,10 +283,21 @@ sub parse_instance_id
 }
 
 =head2 cleanup
-This method is called called after each test on failure or success to revoke the credentials
+This method is called after each test module to cleanup
 =cut
 
 sub cleanup {
+    my ($self) = @_;
+    $self->SUPER::cleanup();
+    $self->provider_client->cleanup();
+}
+
+
+=head2 destroy
+This method is called called after each test on failure or success to revoke the credentials
+=cut
+
+sub destroy {
     my ($self, $args) = @_;
     select_host_console(force => 1);
 
@@ -295,8 +306,8 @@ sub cleanup {
     script_run("az vm boot-diagnostics get-boot-log --ids $id | jq -r '.' > bootlog.txt");
     upload_logs("bootlog.txt", failok => 1);
 
-    $self->SUPER::cleanup();
-    $self->provider_client->cleanup();
+    $self->SUPER::destroy();
+    $self->provider_client->destroy();
 }
 
 1;

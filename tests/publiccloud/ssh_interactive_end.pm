@@ -16,7 +16,8 @@ use utils;
 sub run {
     my ($self, $args) = @_;
     select_host_console(force => 1);
-    $args->{my_provider}->cleanup($args);
 }
+
+sub test_flags { return {last => 1}; }
 
 1;

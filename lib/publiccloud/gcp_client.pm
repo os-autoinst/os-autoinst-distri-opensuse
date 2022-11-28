@@ -78,4 +78,8 @@ sub cleanup {
     my ($self) = @_;
 }
 
+sub destroy {
+    my ($self) = @_;
+}
+
 1;

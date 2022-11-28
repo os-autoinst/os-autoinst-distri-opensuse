@@ -196,6 +196,11 @@ sub gen_ltp_env {
     return $environment;
 }
 
+sub test_flags {
+    return {last => 1};
+}
+
+
 1;
 
 =head1 Discussion

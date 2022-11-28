@@ -38,6 +38,12 @@ sub delete_container_image {
         "az acr repository delete --yes --name " . $self->provider_client->container_registry . " --image " . $tag);
 }
 
+sub destroy() {
+    my ($self) = @_;
+
+    $self->provider_client->destroy();
+}
+
 sub cleanup() {
     my ($self) = @_;
 

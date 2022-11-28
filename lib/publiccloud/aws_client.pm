@@ -74,6 +74,10 @@ sub configure_podman {
           . " | podman login --username AWS --password-stdin $full_name_prefix");
 }
 
+sub destroy {
+    my ($self) = @_;
+}
+
 sub cleanup {
     my ($self) = @_;
 }

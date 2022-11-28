@@ -98,11 +98,17 @@ sub terraform_apply {
     return @instances;
 }
 
+
 sub cleanup {
+    my ($self) = @_;
+    $self->provider_client->cleanup();
+}
+
+sub destroy {
     my ($self) = @_;
     $self->terraform_destroy() if ($self->terraform_applied);
     $self->delete_keypair();
-    $self->provider_client->cleanup();
+    $self->provider_client->destroy();
     $self->delete_floating_ip();
 }
 

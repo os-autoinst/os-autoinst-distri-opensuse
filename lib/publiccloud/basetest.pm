@@ -103,23 +103,33 @@ sub provider_factory {
 
 sub cleanup {
     # to be overridden by tests
+    # non-destructive cleanup for test module started by post_run_hook
+    # primary for log collection | restore clean state after test module
+    # can and be called after each module run
     return 1;
+}
+
+sub destroy {
+    # to be overridden by tests
+    # destructive routine in post_fail_hook | last module of test
+    return 1;
+}
+
+sub _destroy {
+    my ($self) = @_;
+    # run module overriden destroy
+    eval { $self->destroy(); } or bmwqemu::fctwarn("self::destroy() failed -- $@");
+    # run provider destroy
+    if ($self->{run_args} && $self->{run_args}->{my_provider}) {
+        eval { $self->{run_args}->{my_provider}->destroy($self->{run_args}); } or bmwqemu::fctwarn("provider::destroy() failed -- $@");
+    }
 }
 
 sub _cleanup {
     my ($self) = @_;
-    die("Cleanup called twice!") if ($self->{cleanup_called});
-    $self->{cleanup_called} = 1;
-
+    # run module overriden cleanup
     eval { $self->cleanup(); } or bmwqemu::fctwarn("self::cleanup() failed -- $@");
-
-    my $flags = $self->test_flags();
-    # currently we have two cases when cleanup of image will be skipped:
-    # 1. Calling module needs to have publiccloud_multi_module => 1 test flag
-    # and not have fatal => 1. Job should not have result = 'fail'
-    return if ($flags->{publiccloud_multi_module} && !($self->{result} eq 'fail' && $flags->{fatal}));
-    # 2. Job should have PUBLIC_CLOUD_NO_CLEANUP defined and job should have result = 'fail'
-    return if ($self->{result} eq 'fail' && get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE'));
+    # run provider cleanup
     if ($self->{run_args} && $self->{run_args}->{my_provider}) {
         eval { $self->{run_args}->{my_provider}->cleanup($self->{run_args}); } or bmwqemu::fctwarn("provider::cleanup() failed -- $@");
     }
@@ -127,12 +137,22 @@ sub _cleanup {
 
 sub post_fail_hook {
     my ($self) = @_;
-    $self->_cleanup() unless $self->{cleanup_called};
+    my $flags = $self->test_flags();
+    # run cleanup before destroy
+    $self->_cleanup();
+    # run full destroy if test is marked as fatal
+    # and if PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE isn't defined
+    return if get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE');
+    $self->_destroy() if $flags->{fatal};
 }
 
 sub post_run_hook {
     my ($self) = @_;
-    $self->_cleanup() unless $self->{cleanup_called};
+    my $flags = $self->test_flags();
+    $self->_cleanup();
+    # run destroy if test is marked as last
+    # beware after this pc instance is destroyed
+    $self->_destroy if $flags->{last};
 }
 
 1;

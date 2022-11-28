@@ -62,4 +62,9 @@ sub cleanup {
     # Do nothing with existing instance.
 }
 
+sub destroy {
+    my ($self) = @_;
+    # Do nothing with existing instance.
+}
+
 1;

@@ -40,6 +40,12 @@ sub delete_container_image {
           . $tag);
 }
 
+sub destroy() {
+    my ($self) = @_;
+
+    $self->provider_client->destroy();
+}
+
 sub cleanup() {
     my ($self) = @_;
 

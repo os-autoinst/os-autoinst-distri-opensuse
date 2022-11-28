@@ -575,16 +575,28 @@ sub escape_single_quote {
     return $s;
 }
 
+=head2 destroy
+
+This method is called called after each test on failure or complete testsuite run.
+
+=cut
+
+sub destroy {
+    my ($self) = @_;
+    $self->terraform_destroy();
+    assert_script_run "cd";
+}
+
 =head2 cleanup
 
-This method is called called after each test on failure or success.
+This method is called called after each test module.
 
 =cut
 
 sub cleanup {
     my ($self) = @_;
-    $self->terraform_destroy();
-    assert_script_run "cd";
+    # return true value -> disables warning
+    return 1;
 }
 
 =head2 stop_instance

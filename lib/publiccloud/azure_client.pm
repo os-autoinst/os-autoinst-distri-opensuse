@@ -77,6 +77,10 @@ sub get_container_image_full_name {
 }
 
 
+sub destroy {
+    my ($self) = @_;
+}
+
 sub cleanup {
     my ($self) = @_;
 }

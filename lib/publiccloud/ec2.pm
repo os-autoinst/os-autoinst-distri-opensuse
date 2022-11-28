@@ -177,6 +177,10 @@ sub img_proof {
 }
 
 sub cleanup {
+    my ($self) = @_;
+}
+
+sub destroy {
     my ($self, $args) = @_;
     my $instance_id = $args->{my_instance}->{instance_id};
 
@@ -190,7 +194,7 @@ sub cleanup {
 
     $self->terraform_destroy() if ($self->terraform_applied);
     $self->delete_keypair();
-    $self->provider_client->cleanup();
+    $self->provider_client->destroy();
 }
 
 sub describe_instance
