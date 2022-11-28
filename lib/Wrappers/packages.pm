@@ -9,6 +9,8 @@ use testapi;
 use version_utils 'is_transactional';
 use transactional 'trup_call';
 
+our @EXPORT = "install_package";
+
 sub install_package {
     my $command = $_[0];
     if (is_transactional) {
