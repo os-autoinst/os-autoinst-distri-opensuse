@@ -110,7 +110,7 @@ sub run_test {
         for (my $i = 1; $i < $passthru_vf_count; $i++) {
             plugin_vf_device($guest, $vfs[$i]);
             script_run("cp $vfs[$i]->{host_id}.xml $log_dir");
-            test_network_interface($guest, gate => $gateway, mac => $vfs[$i]->{vm_mac}, net => 'br123') if $i == 1;
+            test_network_interface($guest, gate => $gateway, mac => $vfs[$i]->{vm_mac}, net => 'br123') if $i == 1 && is_xen_host;
             save_network_device_status_logs($log_dir, $guest, $i + 3 . "-after_hotplug_$vfs[$i]->{host_id}");
         }
         check_guest_health($guest);
@@ -278,11 +278,6 @@ sub prepare_guest_for_sriov_passthrough {
         script_run "ssh root\@$vm \"grep Storage $journald_conf_file\"";
         script_run "ssh root\@$vm 'systemctl restart systemd-journald'";
     }
-
-    # Release DHCP client IP before quit
-    my $dhcp_conf_file = "/etc/sysconfig/network/dhcp";
-    assert_script_run "ssh root\@$vm \"sed -i '/^[# ]*DHCLIENT_RELEASE_BEFORE_QUIT *=/{h;s/^[# ]*DHCLIENT_RELEASE_BEFORE_QUIT *=.*\\\$/DHCLIENT_RELEASE_BEFORE_QUIT=\\\"yes\\\"/};\\\${x;/^\\\$/{s//DHCLIENT_RELEASE_BEFORE_QUIT=\\\"yes\\\"/;H};x}' $dhcp_conf_file\"";
-    script_run "ssh root\@$vm \"grep 'DHCLIENT_RELEASE_BEFORE_QUIT' $dhcp_conf_file\"";
 
     check_guest_health($vm);
 
