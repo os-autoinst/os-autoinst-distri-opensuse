@@ -870,7 +870,7 @@ elsif (get_var("VIRT_AUTOTEST")) {
     }
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
         load_virt_guest_install_tests;
-        if (is_x86_64 && !(get_var("GUEST_PATTERN") =~ /win/img) && !get_var("LTSS")) {
+        if (!(get_var('GUEST_PATTERN', '') =~ /win/img) && is_x86_64 && !get_var("LTSS")) {
             load_virt_feature_tests;
             loadtest "virt_autotest/validate_system_health" if get_var("VALIDATE_SYSTEM_HEALTH");
         }
