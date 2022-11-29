@@ -122,10 +122,10 @@ sub monitor_concurrent_guest_installations {
     my $self = shift;
 
     $self->reveal_myself;
-    my $_installation_timeout = 0;
     my $_guest_installations_left = scalar(keys %guest_instances) - scalar(@guest_installations_done);
     my $_guest_installations_not_the_last = 1;
-    while ($_installation_timeout < 3600) {
+    my $_monitor_start_time = time();
+    while (time() - $_monitor_start_time <= 7200) {
         foreach (keys %guest_instances) {
             if ($guest_instances{$_}->{guest_installation_result} eq '') {
                 $guest_instances{$_}->attach_guest_installation_screen if (($_guest_installations_not_the_last ne 0) or ($guest_instances{$_}->{guest_installation_attached} ne 'true'));
@@ -145,7 +145,6 @@ sub monitor_concurrent_guest_installations {
         }
         last if ($_guest_installations_left eq 0);
         sleep 60;
-        $_installation_timeout += 60;
     }
     return $self;
 }
