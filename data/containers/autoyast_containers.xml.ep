@@ -80,7 +80,7 @@
     <keep_install_network config:type="boolean">true</keep_install_network>
     % }
   </networking>
-  % if ($check_var->('VERSION', '15-SP4')) {
+  % if ($check_var->('VERSION', '15-SP4') || $check_var->('VERSION', '15-SP5')) {
   <firewall>
     <enable_firewall config:type="boolean">true</enable_firewall>
     <start_firewall config:type="boolean">true</start_firewall>
