@@ -14,6 +14,7 @@ package network_utils;
 
 use base Exporter;
 use Exporter;
+use Socket;
 
 use strict;
 use warnings;
@@ -72,7 +73,8 @@ Returns if can ping worker host gateway
 sub can_upload_logs {
     my ($gw) = @_;
     $gw ||= testapi::host_ip();
-    return (script_run('ping -c 1 ' . $gw) == 0);
+    my $gw_ip = inet_ntoa(inet_aton($gw));
+    return (script_run('ping -c 1 -W 120 ' . $gw_ip, timeout => 120) == 0);
 }
 
 
