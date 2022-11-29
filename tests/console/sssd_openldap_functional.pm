@@ -45,7 +45,7 @@ sub run {
     assert_script_run("mkdir /tmp/sssd && cd /tmp/sssd");
     assert_script_run("curl -s " . "--remote-name-all " . data_url('sssd/openldap/{user.ldif,slapd.conf,Dockerfile,add_test_repositories.sh}'));
     assert_script_run("curl -s " . "--remote-name-all " . data_url('sssd/openldap/ldapserver.{key,crt,csr}'));
-    assert_script_run(qq(docker build -t openldap2_image --build-arg tag="$tag" --build-arg pkgs="$pkgs" --build-arg maint_test_repo="$maint_test_repo" .), timeout => 600);
+    assert_script_run(qq(docker build -t openldap2_image --build-arg tag="$tag" --build-arg pkgs="$pkgs" --build-arg maint_test_repo="$maint_test_repo" .), timeout => 1200);
     assert_script_run('docker run -itd --name ldap_container --hostname ldapserver --restart=always openldap2_image');
     assert_script_run("docker exec ldap_container sed -n '/ldapserver/p' /etc/hosts >> /etc/hosts");
 
