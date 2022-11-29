@@ -157,15 +157,17 @@ sub test_masquerading {
     record_info 'Masquerading tests', 'Test Rules using Masquerading';
 
     if (uses_iptables) {
-        assert_script_run("iptables -t nat -L --line-numbers");
+        script_run("iptables -t nat -L --line-numbers");
         assert_script_run("iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l | tee /tmp/nr_rules_nat_pre.txt");
         assert_script_run("iptables -t nat -L POST_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l | tee /tmp/nr_rules_nat_post.txt");
     } elsif (is_leap("<16.0") || is_sle("<16")) {
-        assert_script_run("nft list chain ip firewalld");
+        script_run("nft list chain ip firewalld nat_PRE_public_allow");
+        script_run("nft list chain ip firewalld nat_POST_public_allow");
         assert_script_run("nft list chain ip firewalld nat_PRE_public_allow | wc -l | tee /tmp/nr_rules_nat_pre.txt");
         assert_script_run("nft list chain ip firewalld nat_POST_public_allow | wc -l | tee /tmp/nr_rules_nat_post.txt");
     } else {
-        assert_script_run("nft list chain inet firewalld");
+        script_run("nft list chain inet firewalld nat_PRE_public_allow");
+        script_run("nft list chain inet firewalld nat_POST_public_allow");
         assert_script_run("nft list chain inet firewalld nat_PRE_public_allow | wc -l | tee /tmp/nr_rules_nat_pre.txt");
         assert_script_run("nft list chain inet firewalld nat_POST_public_allow | wc -l | tee /tmp/nr_rules_nat_post.txt");
     }
@@ -188,15 +190,17 @@ sub test_masquerading {
     record_info 'Reload default configuration';
     assert_script_run("firewall-cmd --reload");
     if (uses_iptables) {
-        assert_script_run("iptables -t nat -L --line-numbers");
+        script_run("iptables -t nat -L --line-numbers");
         assert_script_run("test `iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_nat_pre.txt`");
         assert_script_run("test `iptables -t nat -L POST_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_nat_post.txt`");
     } elsif (is_leap("<16.0") || is_sle("<16")) {
-        assert_script_run("nft list chain ip firewalld");
+        script_run("nft list chain ip firewalld nat_PRE_public_allow");
+        script_run("nft list chain ip firewalld nat_POST_public_allow");
         assert_script_run("test `nft list chain ip firewalld nat_PRE_public_allow | wc -l` -eq `cat /tmp/nr_rules_nat_pre.txt`");
         assert_script_run("test `nft list chain ip firewalld nat_POST_public_allow | wc -l` -eq `cat /tmp/nr_rules_nat_post.txt`");
     } else {
-        assert_script_run("nft list chain ip firewalld");
+        script_run("nft list chain inet firewalld nat_PRE_public_allow");
+        script_run("nft list chain inet firewalld nat_POST_public_allow");
         assert_script_run("test `nft list chain inet firewalld nat_PRE_public_allow | wc -l` -eq `cat /tmp/nr_rules_nat_pre.txt`");
         assert_script_run("test `nft list chain inet firewalld nat_POST_public_allow | wc -l` -eq `cat /tmp/nr_rules_nat_post.txt`");
     }
@@ -207,11 +211,12 @@ sub test_rich_rules {
     record_info 'Rich rules tests", "Test ipv4 family addresses with rich rules';
 
     if (uses_iptables) {
-        assert_script_run("iptables -L --line-numbers");
+        script_run("iptables -L --line-numbers");
         assert_script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l | tee /tmp/nr_rules_allow.txt");
         assert_script_run("iptables -L IN_public_deny --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l | tee /tmp/nr_rules_deny.txt");
     } else {
-        assert_script_run("nft list chain inet firewalld");
+        script_run("nft list chain inet firewalld filter_IN_public_allow");
+        script_run("nft list chain inet firewalld filter_IN_public_deny");
         assert_script_run("nft list chain inet firewalld filter_IN_public_allow | wc -l | tee /tmp/nr_rules_allow.txt");
         assert_script_run("nft list chain inet firewalld filter_IN_public_deny | wc -l | tee /tmp/nr_rules_deny.txt");
     }
@@ -235,11 +240,12 @@ sub test_rich_rules {
     assert_script_run("firewall-cmd --reload");
 
     if (uses_iptables) {
-        assert_script_run("iptables -L --line-numbers");
+        script_run("iptables -L --line-numbers");
         assert_script_run("test `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_allow.txt`");
         assert_script_run("test `iptables -L IN_public_deny --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_deny.txt`");
     } else {
-        assert_script_run("nft list chain inet firewalld");
+        script_run("nft list chain inet firewalld filter_IN_public_allow");
+        script_run("nft list chain inet firewalld filter_IN_public_deny");
         assert_script_run("test `nft list chain inet firewalld filter_IN_public_allow | wc -l` -eq `cat /tmp/nr_rules_allow.txt`");
         assert_script_run("test `nft list chain inet firewalld filter_IN_public_deny | wc -l` -eq `cat /tmp/nr_rules_deny.txt`");
     }
@@ -260,10 +266,10 @@ sub test_timeout_rules {
     record_info 'Timeout rules tests', 'Create a rule using timeout';
 
     if (uses_iptables) {
-        assert_script_run("iptables -L --line-numbers");
+        script_run("iptables -L --line-numbers");
         assert_script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l | tee /tmp/nr_rules.txt");
     } else {
-        assert_script_run("nft list chain inet firewalld");
+        script_run("nft list chain inet firewalld filter_IN_public_allow");
         assert_script_run("nft list chain inet firewalld filter_IN_public_allow | wc -l | tee /tmp/nr_rules.txt");
     }
 
@@ -277,12 +283,9 @@ sub test_timeout_rules {
 
     if (uses_iptables) {
         script_retry("test `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules.txt`", delay => 5, retry => 10);
-        assert_script_run("iptables -L IN_public_allow --line-numbers");
     } else {
         script_retry("test `nft list chain inet firewalld filter_IN_public_allow | wc -l` -eq `cat /tmp/nr_rules.txt`", delay => 5, retry => 10);
-        assert_script_run("nft list chain inet firewalld");
     }
-
 }
 
 # Test #8 - Create a custom service
@@ -377,7 +380,7 @@ sub post_fail_hook {
 
     # Print the whole firewall ruleset so it can be analyzed
     if (uses_iptables) {
-        assert_script_run("iptables -L --verbose --line-numbers");
+        ssert_script_run("iptables -L --verbose --line-numbers");
         assert_script_run("iptables -L -t nat --verbose --line-numbers");
     } else {
         assert_script_run("nft list ruleset");
