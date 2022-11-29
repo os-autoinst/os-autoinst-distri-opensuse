@@ -31,7 +31,7 @@ jobs:
         echo " requires 'Code::DRY';" >> cpanfile
         echo " requires 'Date::Parse';" >> cpanfile
         echo " requires 'Regexp::Common';" >> cpanfile
-        echo " requires 'Perl::Tidy', '== 20220613';" >> cpanfile
+        echo " requires 'Perl::Tidy', '== 20221112';" >> cpanfile
         make prepare
     - name: Run ${{ matrix.test }} tests
       env:
