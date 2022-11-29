@@ -2299,6 +2299,10 @@ sub load_security_tests_crypt_tool {
     loadtest "console/git";
     loadtest "console/clamav";
     loadtest "console/openvswitch_ssl";
+    loadtest "console/ntp_client";
+    loadtest "console/yast2_ntpclient";
+    loadtest "console/cups";
+    loadtest "console/syslog";
 }
 
 sub load_security_tests_crypt_libtool {
