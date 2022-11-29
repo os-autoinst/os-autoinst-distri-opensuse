@@ -107,14 +107,14 @@ sub run {
     sleep 5;
 
     # Reload uploaded status log back to file
-    script_run('curl -O ' . autoinst_url . "/files/status.log; cat status.log > $STATUS_LOG");
+    script_run('curl -O ' . autoinst_url . "/files/status.log; cat status.log > $STATUS_LOG", 300);
 
     # Reload test logs if check missing
-    script_run("if [ ! -d $LOG_DIR ]; then mkdir -p $LOG_DIR; curl -O " . autoinst_url . '/files/opt_logs.tar.gz; tar zxvfP opt_logs.tar.gz; fi');
+    script_run("if [ ! -d $LOG_DIR ]; then mkdir -p $LOG_DIR; curl -O " . autoinst_url . '/files/opt_logs.tar.gz; tar zxvfP opt_logs.tar.gz; fi', 1200);
 
     # Finalize status log and upload it
     log_end($STATUS_LOG);
-    upload_logs($STATUS_LOG, timeout => 60, log_name => $STATUS_LOG);
+    upload_logs($STATUS_LOG, timeout => 300, log_name => $STATUS_LOG);
 
     # Upload test logs
     upload_subdirs($LOG_DIR, 1200);
