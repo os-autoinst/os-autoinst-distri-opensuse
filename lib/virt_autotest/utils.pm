@@ -774,12 +774,10 @@ sub is_sev_es_guest {
     $guest_name //= '';
     croak('Arugment guest_name should not be empty') if ($guest_name eq '');
 
-    $guest_name =~ /(sev-es|sev)/img;
-    if ($1 ne '') {
+    if ($guest_name =~ /(sev-es|sev)/img) {
         record_info("$guest_name is $1 guest", "Guest $guest_name is a $1 enabled guest judging by its name.");
         return $1;
-    }
-    else {
+    } else {
         record_info("$guest_name is not sev(es) guest", "Guest $guest_name is not a sev or sev-es enabled guest judging by its name.");
         return 'notsev';
     }
