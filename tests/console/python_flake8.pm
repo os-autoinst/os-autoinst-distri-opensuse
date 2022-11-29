@@ -30,7 +30,9 @@ sub run {
 
     # Test case 2: check if flake8 is working as expected
     assert_script_run('curl -O ' . data_url("python/sample.py"));
-    validate_script_output('flake8 --exit-zero sample.py', sub { m/E265 block comment should start with '# '/ && m/F401 'os' imported but unused/ });
+    # If flake8 supports the --color parameter. use it to turn off colored output
+    script_run('flake8 --color=never /tmp/empty_dir && export COLOR="--color=never"');
+    validate_script_output('flake8 $COLOR --exit-zero sample.py', sub { m/E265 block comment should start with '# '/ && m/F401 'os' imported but unused/ });
     script_run('rm sample.py');
     script_run('rmdir /tmp/empty_dir');
 }
