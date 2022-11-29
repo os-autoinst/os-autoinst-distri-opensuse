@@ -26,7 +26,7 @@ sub run {
 
     select_host_console();    # select console on the host, not the PC instance
 
-    registercloudguest($args->{my_instance});
+    registercloudguest($args->{my_instance}) if (is_byos());
     register_addons_in_pc($args->{my_instance});
 }
 

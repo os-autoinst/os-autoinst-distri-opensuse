@@ -91,36 +91,13 @@ sub deregister_addon {
 sub registercloudguest {
     my ($instance) = @_;
     my $regcode = get_required_var('SCC_REGCODE');
-    my $remote = $instance->username . '@' . $instance->public_ip;
     my $path = is_sle('>15') && is_sle('<15-SP3') ? '/usr/sbin/' : '';
-    # not all images currently have registercloudguest pre-installed .
-    # in such a case,we need to regsiter against SCC and install registercloudguest with all needed dependencies and then
-    # unregister and re-register with registercloudguest
-    if ($instance->ssh_script_output(cmd => "sudo which registercloudguest > /dev/null; echo \"registercloudguest\$?\" ", proceed_on_failure => 1) =~ m/registercloudguest1/) {
-        $instance->ssh_script_retry(cmd => "sudo SUSEConnect -r $regcode", timeout => 420, retry => 3, delay => 120);
-        register_addon($remote, 'pcm');
-        my $install_packages = 'cloud-regionsrv-client';    # contains registercloudguest binary
-        if (is_azure()) {
-            $install_packages .= ' cloud-regionsrv-client-plugin-azure regionServiceClientConfigAzure regionServiceCertsAzure';
-        }
-        elsif (is_ec2()) {
-            $install_packages .= ' cloud-regionsrv-client-plugin-ec2 regionServiceClientConfigEC2 regionServiceCertsEC2';
-        }
-        elsif (is_gce()) {
-            $install_packages .= ' cloud-regionsrv-client-plugin-gce regionServiceClientConfigGCE regionServiceCertsGCE';
-        }
-        else {
-            die 'Unexpected provider ' . get_var('PUBLIC_CLOUD_PROVIDER');
-        }
-        $instance->ssh_assert_script_run(cmd => "sudo zypper -q -n in $install_packages", timeout => 420);
-        $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest --clean");
-    }
-    # Check what version of registercloudguest binary we use
-    $instance->ssh_script_run(cmd => "sudo rpm -qa cloud-regionsrv-client");
-    # Register the system
+    my $suseconnect = $path . get_var("PUBLIC_CLOUD_SCC_ENDPOINT", "registercloudguest");
     my $cmd_time = time();
-    $instance->ssh_script_retry(cmd => "sudo ${path}registercloudguest -r $regcode", timeout => 420, retry => 3, delay => 120);
-    record_info('registercloudguest time', 'The command registercloudguest took ' . (time() - $cmd_time) . ' seconds.');
+    # Check what version of registercloudguest binary we use
+    $instance->ssh_script_run(cmd => "rpm -qa cloud-regionsrv-client");
+    $instance->ssh_script_retry(cmd => "sudo $suseconnect -r $regcode", timeout => 420, retry => 3, delay => 120);
+    record_info('registeration time', 'The registration took ' . (time() - $cmd_time) . ' seconds.');
 }
 
 sub register_addons_in_pc {
