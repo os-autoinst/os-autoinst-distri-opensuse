@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/YaST/workarounds.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#Workarounds-for-known-issues">Workarounds for known issues</a>
+    <ul>
+      <li><a href="#apply_workaround_bsc1204176-mustmatch-timeout-timeout-timeout">apply_workaround_bsc1204176 ($mustmatch, [,[$timeout] | timeout =&gt; $timeout] ):</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/YaST/workarounds.pm</h1>
+
+<h1 id="Workarounds-for-known-issues">Workarounds for known issues</h1>
+
+<h2 id="apply_workaround_bsc1204176-mustmatch-timeout-timeout-timeout">apply_workaround_bsc1204176 ($mustmatch, [,[$timeout] | timeout =&gt; $timeout] ):</h2>
+
+<p>Workaround for the screen refresh issue.</p>
+
+<p>First checks if we need to apply the workaround, if the needle matches already no workaround is required.</p>
+
+<p>If the workaround is needed we record a soft failure and apply a &#39;shift-f3&#39; and &#39;esc&#39; sequence that should fix the problem</p>
+
+<p>If the problem still persists (we saw one occasion in the VRs) then we retry with maximazing and shrinking the screen twice by sending &#39;alt-f10&#39; two times.</p>
+
+
+</body>
+
+</html>
+
+
