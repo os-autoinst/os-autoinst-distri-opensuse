@@ -30,6 +30,8 @@ has terraform_applied => 0;
 has resource_name => sub { get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm') };
 has provider_client => undef;
 
+has ssh_key => '/root/.ssh/id_rsa';
+
 =head1 METHODS
 
 =cut
@@ -194,7 +196,7 @@ sub run_img_proof {
     $cmd .= '--access-key-id $AWS_ACCESS_KEY_ID --secret-access-key $AWS_SECRET_ACCESS_KEY ' if (is_ec2());
     $cmd .= "--ssh-key-name '" . $args{key_name} . "' " if ($args{key_name});
     $cmd .= '-u ' . $args{user} . ' ' if ($args{user});
-    $cmd .= '--ssh-private-key-file "' . $args{instance}->ssh_key . '" ';
+    $cmd .= '--ssh-private-key-file "' . $self->ssh_key . '" ';
     $cmd .= '--running-instance-id "' . ($args{running_instance_id} // $args{instance}->instance_id) . '" ';
     $cmd .= "--beta $beta " if ($beta);
     if ($exclude) {
@@ -367,7 +369,6 @@ sub terraform_apply {
     my $instance_type = get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
     my $image = $self->get_image_id();
     my $image_uri = get_var("PUBLIC_CLOUD_IMAGE_URI");
-    my $ssh_private_key_file = '/root/.ssh/id_rsa';
     my $cloud_name = $self->conv_openqa_tf_name;
 
     record_info('WARNING', 'Terraform apply has been run previously.') if ($self->terraform_applied);
@@ -492,7 +493,6 @@ sub terraform_apply {
             resource_id => $resource_id,
             instance_id => @{$vms}[$i],
             username => $self->provider_client->username,
-            ssh_key => $ssh_private_key_file,
             image_id => $image,
             region => $self->provider_client->region,
             type => $instance_type,

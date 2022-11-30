@@ -25,7 +25,6 @@ has instance_id => undef;    # unique CSP instance id
 has resource_id => undef;    # randomized resource id for all resources (e.g. resource group and storage account)
 has public_ip => undef;    # public IP of instance
 has username => undef;    # username for ssh connection
-has ssh_key => undef;    # path to ssh-key for connection
 has image_id => undef;    # image from where the VM is booted
 has type => undef;
 has provider => undef, weak => 1;    # back reference to the provider
@@ -53,7 +52,7 @@ sub run_ssh_command {
     my $self = shift;
     my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
     die('Argument <cmd> missing') unless ($args{cmd});
-    $args{ssh_opts} //= $self->ssh_opts() . " -i '" . $self->ssh_key . "'";
+    $args{ssh_opts} //= $self->ssh_opts() . " -i '" . $self->provider->ssh_key . "'";
     $args{username} //= $self->username();
     $args{timeout} //= SSH_TIMEOUT;
     $args{quiet} //= 1;
@@ -132,7 +131,7 @@ sub retry_ssh_command {
 sub _prepare_ssh_cmd {
     my ($self, %args) = @_;
     die('No command defined') unless ($args{cmd});
-    $args{ssh_opts} //= $self->ssh_opts() . " -i '" . $self->ssh_key . "'";
+    $args{ssh_opts} //= $self->ssh_opts() . " -i '" . $self->provider->ssh_key . "'";
     $args{username} //= $self->username();
     $args{timeout} //= SSH_TIMEOUT;
 
@@ -233,7 +232,7 @@ sub scp {
     $from =~ s/^remote:/$url/;
     $to =~ s/^remote:/$url/;
 
-    my $ssh_cmd = sprintf('scp %s -i "%s" "%s" "%s"', $self->ssh_opts, $self->ssh_key, $from, $to);
+    my $ssh_cmd = sprintf('scp %s -i "%s" "%s" "%s"', $self->ssh_opts, $self->provider->ssh_key, $from, $to);
 
     return script_run($ssh_cmd, %args);
 }
