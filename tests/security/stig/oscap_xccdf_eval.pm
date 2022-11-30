@@ -50,7 +50,8 @@ sub run {
 #        $self->result('fail');
 #    }
     #Verify failed rules
-    $self->validate_result($f_stdout, $eval_match);
+    #$self->validate_result($f_stdout, $eval_match, "txt");
+    validate_script_output "cat $f_stdout", sub { $eval_match }, timeout => 300;
     #Verify number of passed rules
     validate_script_output "grep -o '\bpass\b' $f_stdout | wc -l", sub { m/218/ };
     #Verify number of failed rules
