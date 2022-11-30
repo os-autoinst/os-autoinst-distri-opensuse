@@ -14,6 +14,8 @@ use version_utils qw(is_sle);
 
 sub run {
     my ($self) = @_;
+    my $regex1 = "\bpass\b"
+    my $regex2 = "\bfail\b"
     my $eval_match = 'm/
                     Rule.*content_rule_is_fips_mode_enabled.*Result.*fail.*
                     Rule.*content_rule_partition_for_var_log_audit.*Result.*fail.*
@@ -53,9 +55,9 @@ sub run {
     #$self->validate_result($f_stdout, $eval_match, "txt");
     validate_script_output "cat $f_stdout", sub { $eval_match }, timeout => 300;
     #Verify number of passed rules
-    validate_script_output "grep -o \"\\bpass\\b\" $f_stdout | wc -l", sub { m/218/ };
+    validate_script_output "grep -o '$regex1' $f_stdout | wc -l", sub { m/218/ };
     #Verify number of failed rules
-    validate_script_output "grep -o \"\\bfail\\b\" $f_stdout | wc -l", sub { m/5/ };
+    validate_script_output "grep -o '$regex2' $f_stdout | wc -l", sub { m/5/ };
 
     # Upload logs & ouputs for reference
     $self->upload_logs_reports();
