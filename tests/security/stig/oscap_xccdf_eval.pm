@@ -14,8 +14,8 @@ use version_utils qw(is_sle);
 
 sub run {
     my ($self) = @_;
-    my $regex1 = "\bpass\b"
-    my $regex2 = "\bfail\b"
+    my $regex1 = "\bpass\b";
+    my $regex2 = "\bfail\b";
     my $eval_match = 'm/
                     Rule.*content_rule_is_fips_mode_enabled.*Result.*fail.*
                     Rule.*content_rule_partition_for_var_log_audit.*Result.*fail.*
