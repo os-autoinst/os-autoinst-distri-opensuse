@@ -49,7 +49,7 @@ sub run {
 
     if (@pkgs) {
         record_info('TEST', 'Installing Cockpit\'s Modules...');
-        trup_call("pkg install @pkgs", timeout => 360);
+        trup_call("pkg install @pkgs", timeout => 480);
         check_reboot_changes;
     }
 
