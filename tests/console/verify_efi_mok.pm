@@ -30,7 +30,6 @@ sub get_expected_efi_settings {
     my $settings = {};
     $settings->{label} = is_opensuse() ? lc(get_var('DISTRI')) : 'sles';
     $settings->{mount} = '/boot/efi';
-
     if (!get_var('DISABLE_SECUREBOOT', 0)) {
         $settings->{exec} = '/EFI/' . $settings->{label} . '/shim.efi';
         $settings->{label} .= '-secureboot';
@@ -187,9 +186,9 @@ sub download_kernel_source {
 
 
 sub enable_verbosity {
-    my $self = shift;
+    my ($self, $exp_data) = @_;
     assert_script_run 'mokutil --set-verbosity true';
-    $self->verification('After shim-install', $self->{exp_data}, sub {
+    $self->verification('After shim-install', $exp_data, sub {
             assert_script_run('rpm -q shim');
             assert_script_run('shim-install --config-file=' . GRUB_CFG);
             assert_script_run('grub2-mkconfig -o ' . GRUB_CFG);
@@ -197,53 +196,69 @@ sub enable_verbosity {
     );
 }
 
+sub supports_code_signing {
+    return 0 if is_jeos;
+    return 0 if is_sle('<15-SP4');
+    return 1;
+}
+
 
 sub sign_kernel_module {
-    my $self = shift;
-    $self->verification('Import key to MOK and sign kernel module', $self->{exp_data}, sub {
-            assert_script_run qq(openssl req -new -x509 -newkey rsa:2048 -sha256 -keyout key.asc -out ${\MOCK_CRT} -outform der -nodes -days 444 -addext "extendedKeyUsage=codeSigning" -subj "/CN=MOCK/");
-            # compile and sign a simple kernel module
-            zypper_call "in kernel-devel flex bison libopenssl-devel";
-            download_kernel_source;
-            assert_script_run "pushd /usr/src/linux && make olddefconfig && make scripts && popd";
-            download_file 'Makefile';
-            download_file 'hello.c';
-            assert_script_run "make";
-            # check module not signed, output must be empty
-            validate_script_output "modinfo hello.ko|grep signer:", sub { !$_ }, proceed_on_failure => 1;
-            assert_script_run "/usr/src/linux/scripts/sign-file sha256 key.asc ${\MOCK_CRT} hello.ko";
-            # ensure module is signed now
-            validate_script_output "modinfo hello.ko|grep signer:", qr/MOCK/;
-            # try to insert module before enrolling the key, should give a fail message
-            validate_script_output "insmod hello.ko", qr/Key was rejected by service/, proceed_on_failure => 1;
-            # enroll module into UEFI
+    my ($self, $exp_data) = @_;
+    $self->verification('Import key to MOK and sign kernel module', $exp_data, sub {
+            if (supports_code_signing) {
+                assert_script_run qq(openssl req -new -x509 -newkey rsa:2048 -sha256 -keyout key.asc -out ${\MOCK_CRT} -outform der -nodes -days 444 -addext "extendedKeyUsage=codeSigning" -subj "/CN=MOCK/");
+            } else {
+                assert_script_run 'openssl req -new -x509 -newkey rsa:2048 -sha256 -keyout key.asc -out cert.pem -nodes -days 666 -subj "/CN=MOCK/"';
+                assert_script_run "openssl x509 -in cert.pem -outform der -out ${\MOCK_CRT}";
+            }
+
+            if (supports_code_signing) {
+                # compile and sign a simple kernel module
+                zypper_call "in kernel-devel flex bison libopenssl-devel";
+                download_kernel_source;
+                assert_script_run "pushd /usr/src/linux && make olddefconfig && make scripts && popd";
+                download_file 'Makefile';
+                download_file 'hello.c';
+                assert_script_run "make";
+                # check module not signed, output must be empty
+                validate_script_output "modinfo hello.ko|grep signer:", sub { !$_ }, proceed_on_failure => 1;
+                assert_script_run "/usr/src/linux/scripts/sign-file sha256 key.asc ${\MOCK_CRT} hello.ko";
+                # ensure module is signed now
+                validate_script_output "modinfo hello.ko|grep signer:", qr/MOCK/;
+                # try to insert module before enrolling the key, should give a fail message
+                validate_script_output "insmod hello.ko", qr/Key was rejected by service/, proceed_on_failure => 1;
+            }
+            # enroll key into UEFI
             assert_script_run "mokutil --import ${\MOCK_CRT} --root-pw";
             assert_script_run 'mokutil --list-new';
             set_var('_EXPECT_EFI_MOK_MANAGER', 1);
         },
         sub {
-            # This code is executed after reboot
-            # try to insert module once key is enrolled
-            assert_script_run "insmod hello.ko";
-            # dmesg output should contain 'Hello world.'
-            validate_script_output "dmesg | tail -3", qr/Hello world./s;
+            if (supports_code_signing) {
+                # This code is executed after reboot
+                # try to insert module once key is enrolled
+                assert_script_run "insmod hello.ko";
+                # dmesg output should contain 'Hello world.'
+                validate_script_output "dmesg | tail -3", qr/Hello world./s;
+            }
         }
     );
 }
 sub disable_secureboot {
-    my $self = shift;
-    $self->verification('After grub2-install', $self->{exp_data}, sub {
+    my ($self, $exp_data, $esp_details) = @_;
+    $self->verification('After grub2-install', $exp_data, sub {
             assert_script_run('sed -ie s/SECURE_BOOT=.*/SECURE_BOOT=no/ ' . SYSCONFIG_BOOTLADER);
-            assert_script_run "grub2-install --efi-directory=$self->{esp_details}->{mount} --target=x86_64-efi $self->{esp_details}->{drive}";
+            assert_script_run "grub2-install --efi-directory=$esp_details->{mount} --target=x86_64-efi $esp_details->{drive}";
             assert_script_run('grub2-mkconfig -o ' . GRUB_CFG);
         }
     );
 }
 
 sub restore_prev_config {
-    my $self = shift;
+    my ($self, $exp_data) = @_;
     ## Keep previous configuration
-    $self->verification('After pbl reinit', $self->{exp_data}, sub {
+    $self->verification('After pbl reinit', $exp_data, sub {
             my $state = !get_var('DISABLE_SECUREBOOT', 0) ? 'yes' : 'no';
             assert_script_run(q|grep -E "SECURE_BOOT=['\"]?| . $state . q|[\"']?" | . SYSCONFIG_BOOTLADER);
             assert_script_run 'update-bootloader --reinit';
@@ -261,39 +276,39 @@ sub run {
     $pkgs .= ' pesign' unless get_var('DISABLE_SECUREBOOT', 0);
     zypper_call "in $pkgs";
 
-    $self->{esp_details} = get_esp_info;
+    my $esp_details = get_esp_info;
 
     # run fs check on ESP
-    record_info "ESP", "Partition [$self->{esp_details}->{partition}], \nFilesystem [$self->{esp_details}->{fs}],\nMountPoint [$self->{esp_details}->{mount}]";
-    assert_script_run "umount $self->{esp_details}->{mount}";
-    assert_script_run "fsck.vfat -vV $self->{esp_details}->{partition}";
-    assert_script_run "mount $self->{esp_details}->{mount}";
+    record_info "ESP", "Partition [$esp_details->{partition}], \nFilesystem [$esp_details->{fs}],\nMountPoint [$esp_details->{mount}]";
+    assert_script_run "umount $esp_details->{mount}";
+    assert_script_run "fsck.vfat -vV $esp_details->{partition}";
+    assert_script_run "mount $esp_details->{mount}";
 
     # SUT can boot from removable (firstboot of HDD, ISO, USB bootable medium) or boot entry (non-removable)
     # JeOS always boots firstly from removable, but the boot record will be changed to non-removable by updates
     # Therefore the expected boot for JeOS under development and maintenance updates test slow might be different
     # Installed SUT by YaST2 boots from non-removable by default
-    $self->{exp_data} = get_expected_efi_settings;
+    my $exp_data = get_expected_efi_settings;
     my $booted_from_removable = is_jeos;
     if ($booted_from_removable && is_updates_tests) {
         # Updates got installed, so it might no longer be removable
-        $booted_from_removable = efibootmgr_current_boot()->{label} ne $self->{exp_data}->{label};
+        $booted_from_removable = efibootmgr_current_boot()->{label} ne $exp_data->{label};
     }
 
     ## default efi boot, no restart, but set gfxmode before reboot
-    $self->verification(undef, $booted_from_removable ? undef : $self->{exp_data}, sub {
+    $self->verification(undef, $booted_from_removable ? undef : $exp_data, sub {
             set_grub_gfxmode;
             assert_script_run('grub2-script-check --verbose ' . GRUB_CFG);
         }
     );
     ## Test efi without secure boot
     if (get_var('DISABLE_SECUREBOOT')) {
-        $self->disable_secureboot;
+        $self->disable_secureboot($exp_data, $esp_details);
     } else {
         ## Test efi with secure boot
         # enable verbosity in shim
-        $self->enable_verbosity;
-        $self->sign_kernel_module if get_var('CHECK_MOK_IMPORT');
+        $self->enable_verbosity($exp_data);
+        $self->sign_kernel_module($exp_data) if get_var('CHECK_MOK_IMPORT');
     }
     $self->restore_prev_config;
 
