@@ -34,7 +34,7 @@ sub run {
 
     # Upload logs & ouputs for reference
     # Configure to upload html report
-    set_var('UPLOAD_REPORT_HTML', 1)
+    set_var('UPLOAD_REPORT_HTML', 1);
     $self->upload_logs_reports();
 }
 
