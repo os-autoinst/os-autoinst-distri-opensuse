@@ -33,7 +33,7 @@ Base class implementation of distribution class necessary for testapi
 use testapi qw(send_key %cmd assert_screen check_screen check_var click_lastmatch get_var save_screenshot
   match_has_tag set_var type_password type_string enter_cmd wait_serial $serialdev is_serial_terminal
   mouse_hide send_key_until_needlematch record_info record_soft_failure
-  wait_still_screen wait_screen_change get_required_var diag);
+  wait_still_screen wait_screen_change get_required_var diag hashed_string);
 
 
 =head2 new
@@ -349,7 +349,7 @@ Execute the given command as sudo
 sub script_sudo {
     my ($self, $prog, $wait) = @_;
 
-    my $str = time;
+    my $str = hashed_string("ASS$prog");
     if ($wait > 0) {
         unless ($prog =~ /^bash/) {
             $prog .= "; echo $str-\$?-";
