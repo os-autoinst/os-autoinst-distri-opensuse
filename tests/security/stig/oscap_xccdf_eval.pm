@@ -53,6 +53,8 @@ sub run {
     validate_result($f_stdout, $eval_match);
     #Verify number of passed rules
     validate_script_output "grep -o '\bpass\b' $f_stdout | wc -l", sub { m/218/ };
+    #Verify number of failed rules
+    validate_script_output "grep -o '\bfail\b' $f_stdout | wc -l", sub { m/5/ };
 
     # Upload logs & ouputs for reference
     $self->upload_logs_reports();

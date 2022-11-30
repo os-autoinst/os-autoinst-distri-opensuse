@@ -24,6 +24,7 @@ our @EXPORT = qw(
   $remediated
   set_ds_file
   upload_logs_reports
+  validate_result
 );
 
 # The file names of scap logs and reports
@@ -69,6 +70,21 @@ sub upload_logs_reports
     if (get_var('UPLOAD_REPORT_HTML')) {
         upload_logs("$f_report", timeout => 600) if script_run "! [[ -e $f_report ]]";
     }
+}
+
+sub validate_result {
+    my ($result_file, $match, $file_ext) = @_;
+    $file_ext //= 'xml';
+
+    my $xml_args = '';
+
+    if ($file_ext eq 'xml' || $file_ext eq 'html') {
+        $xml_args = '--html' if $file_ext eq 'html';
+        assert_script_run "xmllint --noout $xml_args $result_file";
+    }
+
+    validate_script_output "cat $result_file", sub { $match }, timeout => 300;
+    upload_logs($result_file);
 }
 
 1;
