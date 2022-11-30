@@ -17,6 +17,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_opensuse is_sle is_leap is_tumbleweed is_storage_ng);
+use YaST::workarounds;
 
 sub search {
     my ($name) = @_;
@@ -56,6 +57,7 @@ sub start_media_check {
     search 'check';
     assert_and_click 'yast2_control-center_media-check';
     wait_still_screen;
+    apply_workaround_bsc1204176('yast2_control-center_media-check_close') if (is_sle('>=15-SP4'));
     assert_screen 'yast2_control-center_media-check_close';
     send_key 'alt-l';
     assert_screen 'yast2-control-center-ui';
@@ -204,6 +206,7 @@ sub start_partitioner {
 sub start_vpn_gateway {
     search('vpn');
     assert_and_click 'yast2_control-center_vpn-gateway-client';
+    apply_workaround_bsc1204176('yast2-vpn-gateway-client', 180) if (is_sle('>=15-SP4'));
     assert_screen 'yast2-vpn-gateway-client', timeout => 180;
     send_key 'alt-c';
     assert_screen 'yast2-control-center-ui', timeout => 60;
@@ -244,6 +247,8 @@ sub start_hypervisor {
 sub start_add_system_extensions_or_modules {
     search 'system ext';
     assert_and_click 'yast2_control-center_add-system-extensions-or-modules';
+    wait_still_screen(5, 10);
+    apply_workaround_bsc1204176('yast2_control-center_registration', 180) if (is_sle('>=15-SP4'));
     assert_screen 'yast2_control-center_registration', timeout => 180;
     send_key 'alt-r';
     assert_screen 'yast2-control-center-ui', timeout => 60;
@@ -279,6 +284,7 @@ sub start_wake_on_lan {
     assert_and_click 'yast2_control-center_wake-on-lan';
     assert_screen 'yast2_control-center_wake-on-lan_install_wol';
     send_key $cmd{install};    # wol needs to be installed
+    apply_workaround_bsc1204176('yast2_control-center_wake-on-lan_overview', 180) if (is_sle('>=15-SP4'));
     assert_screen 'yast2_control-center_wake-on-lan_overview', timeout => 180;
     send_key 'alt-f';
     assert_screen 'yast2-control-center-ui', timeout => 60;
