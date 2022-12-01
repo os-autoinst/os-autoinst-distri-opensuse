@@ -13,6 +13,7 @@ use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call s
 use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro);
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
+use YaST::workarounds;
 
 our @EXPORT = qw(
   add_suseconnect_product
