@@ -15,12 +15,13 @@ use lockapi;
 use utils;
 use mm_tests;
 use mmapi 'wait_for_children';
+use version_utils 'package_version_cmp';
 
 my $hostname = get_var('HOSTNAME');
 # Set vnc password
-my $password = '123456';
+my $message = 'Hello from the server';
 
-sub conf_stunnel_vnc {
+sub conf_stunnel_netcat {
     my $stunnel_config = <<EOF;
 client = no
 chroot = /var/lib/stunnel/
@@ -31,7 +32,7 @@ cert = /etc/stunnel/stunnel.pem
 
 fips =yes
 
-[VNC]
+[NETCAT]
 accept = 15905
 connect = 5905
 EOF
@@ -62,39 +63,22 @@ q(openssl req -new -x509 -newkey rsa:2048 -keyout stunnel.key -days 356 -out stu
         # Copy the certificate to "/etc/stunnel"
         assert_script_run('cp stunnel.pem /etc/stunnel; cd');
         # Configure stunnel file
-        conf_stunnel_vnc;
-        # Start the VNC server
-        assert_script_run('mkdir -p ~/.vnc/');
-        assert_script_run("vncpasswd -f <<<$password > ~/.vnc/passwd");
-        assert_script_run('chmod 0600 ~/.vnc/passwd');
-        assert_script_run('vncserver :5');
-        assert_script_run('ss -tnlp | grep 5905');
+        conf_stunnel_netcat;
         # Add lock for client
         mutex_create('stunnel');
+        # Start the netcat server. Huge timeout b/c will be closed upon client
+        assert_script_run("echo $message|nc -l 127.0.0.1 5905", timeout => 300);
         # Finish job
         wait_for_children;
-        # Clean up
-        assert_script_run('vncserver -kill :5');
-        assert_script_run('rm -rf ~/.vnc/passwd');
     }
     else {
         mutex_wait('stunnel');
         # Copy the certificate from server
         exec_and_insert_password('scp -o StrictHostKeyChecking=no root@10.0.2.101:/etc/stunnel/stunnel.pem /etc/stunnel');
         # Configure stunnel
-        conf_stunnel_vnc;
-        # Turn to x11 and start "xterm"
-        select_console('x11');
-        x11_start_program('xterm');
-        script_run('vncviewer 127.0.0.1:15905', 0);
-        assert_screen('stunnel-vnc-auth');
-        type_string $password;
-        wait_still_screen 2;
-        send_key 'ret';
-        assert_screen('stunnel-server-desktop');
-        send_key 'alt-f4';
-        wait_still_screen 2;
-        send_key 'alt-f4';
+        conf_stunnel_netcat;
+        # huge timeout b/c will be closed upon client
+        validate_script_output 'echo | nc -4nNq 1 127.0.0.1 15905', sub { m/$message/ }, timeout => 300;
     }
 }
 
