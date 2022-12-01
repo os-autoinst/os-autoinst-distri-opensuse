@@ -17,6 +17,7 @@ use utils;
 use version_utils qw(is_transactional);
 use Utils::Systemd;
 use Utils::Backends 'use_ssh_serial_console';
+use Utils::Logging qw(save_and_upload_log save_and_upload_systemd_unit_log);
 
 sub run {
     my ($self) = shift;
@@ -130,9 +131,9 @@ sub post_fail_hook {
     my $self = shift;
 
     select_console 'log-console';
-    $self->save_and_upload_log('dmesg', '/tmp/dmesg.log', {screenshot => 0});
-    $self->save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
-    $self->save_and_upload_systemd_unit_log('rke2-agent.service');
+    save_and_upload_log('dmesg', '/tmp/dmesg.log', {screenshot => 0});
+    save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
+    save_and_upload_systemd_unit_log('rke2-agent.service');
 }
 
 1;

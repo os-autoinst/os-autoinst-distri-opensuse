@@ -18,6 +18,7 @@ use testapi;
 use lockapi;
 use isotovideo;
 use x11utils 'ensure_unlocked_desktop';
+use Utils::Logging 'export_logs';
 
 our @EXPORT = qw(
   $crm_mon_cmd
@@ -898,7 +899,7 @@ sub post_fail_hook {
 
     # Try to save logs as a last resort
     ha_export_logs;
-    $self->export_logs;
+    export_logs;
 }
 
 sub test_flags {

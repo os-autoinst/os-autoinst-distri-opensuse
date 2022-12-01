@@ -19,7 +19,7 @@ use Exporter 'import';
 use strict;
 use warnings;
 use testapi;
-use utils 'show_tasks_in_blocked_state';
+use utils qw(show_tasks_in_blocked_state remount_tmp_if_ro);
 use version_utils qw(is_opensuse is_leap is_tumbleweed);
 
 our @EXPORT = qw(is_network_manager_default
@@ -119,7 +119,7 @@ sub post_fail_hook {
 
     show_tasks_in_blocked_state if ($defer_blocked_task_info);
 
-    $self->remount_tmp_if_ro;
+    remount_tmp_if_ro;
     $self->save_upload_y2logs();
     upload_logs('/var/log/zypper.log', failok => 1);
     $self->save_system_logs();

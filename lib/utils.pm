@@ -98,6 +98,8 @@ our @EXPORT = qw(
   cleanup_disk_space
   package_upgrade_check
   test_case
+  remount_tmp_if_ro
+  detect_bsc_1063638
   @all_tests_results
 );
 
@@ -2457,6 +2459,35 @@ sub test_case {
     my ($name, $description, $result) = @_;
     my %results = generate_results($name, $description, $result);
     push(@all_tests_results, dclone(\%results));
+}
+
+=head2 remount_tmp_if_ro
+
+ remount_tmp_if_ro();
+
+Mounts /tmp to shared memory if not possible to write to tmp.
+For example, save_y2logs creates temporary files there.
+
+=cut
+
+sub remount_tmp_if_ro {
+    script_run 'touch /tmp/test_ro || mount -t tmpfs /dev/shm /tmp';
+}
+
+=head2 detect_bsc_1063638
+
+ detect_bsc_1063638();
+
+Btrfs maintenance jobs lead to the system being unresponsive and affects SUT's performance.
+Not to waste time during investigation of the failures, we would like to detect
+if such jobs are running, providing a hint why test timed out.
+This method will create a softfail if such a problem is detected.
+
+=cut
+
+sub detect_bsc_1063638 {
+    # Detect bsc#1063638
+    record_soft_failure 'bsc#1063638' if (script_run('ps x | grep "btrfs-\(scrub\|balance\|trim\)"') == 0);
 }
 
 1;

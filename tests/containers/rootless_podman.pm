@@ -27,6 +27,7 @@ use power_action_utils 'power_action';
 use bootloader_setup 'add_grub_cmdline_settings';
 use Utils::Architectures;
 use transactional 'process_reboot';
+use Utils::Logging 'save_and_upload_log';
 
 my $bsc1200623 = 0;    # to prevent printing the soft-failure more than once
 
@@ -201,11 +202,11 @@ sub post_run_hook {
 
 sub post_fail_hook {
     my $self = shift;
-    $self->save_and_upload_log('cat /etc/{subuid,subgid}', "/tmp/permissions.txt");
+    save_and_upload_log('cat /etc/{subuid,subgid}', "/tmp/permissions.txt");
     assert_script_run("tar -capf /tmp/proc_files.tar.xz /proc/self");
     upload_logs("/tmp/proc_files.tar.xz");
     if (is_sle) {
-        $self->save_and_upload_log('ls -la /etc/zypp/credentials.d', "/tmp/credentials.d.perm.txt");
+        save_and_upload_log('ls -la /etc/zypp/credentials.d', "/tmp/credentials.d.perm.txt");
         assert_script_run "setfacl -x u:$testapi::username /etc/zypp/credentials.d/*";
     }
     $self->SUPER::post_fail_hook;

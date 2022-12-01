@@ -109,7 +109,6 @@ sub post_fail_hook {
     my ($self) = shift;
     select_console('log-console');
     $self->SUPER::post_fail_hook;
-    $self->export_logs_basic;
 }
 
 1;

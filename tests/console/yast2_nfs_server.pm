@@ -29,6 +29,7 @@ use mmapi;
 use mm_network;
 use nfs_common;
 use version_utils 'is_sle';
+use Utils::Logging 'save_and_upload_log';
 
 sub run {
     my ($self) = @_;
@@ -76,7 +77,7 @@ sub run {
 
     wait_for_children;
 
-    $self->save_and_upload_log("journalctl --no-pager -u nfs-server -o short-precise", "journal_nfs_server.log");
+    save_and_upload_log("journalctl --no-pager -u nfs-server -o short-precise", "journal_nfs_server.log");
 }
 
 1;

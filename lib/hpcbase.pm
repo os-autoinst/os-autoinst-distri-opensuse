@@ -14,6 +14,7 @@ use utils;
 use Utils::Architectures;
 use version_utils 'is_sle';
 use lockapi;
+use Utils::Logging 'save_and_upload_log';
 
 =head2 enable_and_start
 
@@ -96,7 +97,7 @@ sub post_run_hook {
     select_console('log-console');
     my $hname = get_var('HOSTNAME', 'susetest');
     foreach (keys %log_files) {
-        $self->save_and_upload_log($log_files{$_}{cmd}, "/tmp/$hname-" . $log_files{$_}{logfile}, {screenshot => 1});
+        save_and_upload_log($log_files{$_}{cmd}, "/tmp/$hname-" . $log_files{$_}{logfile}, {screenshot => 1});
     }
     $self->upload_service_log("wicked");
     if ($hname =~ /master/) {

@@ -13,6 +13,7 @@ use base "y2_module_consoletest";
 
 use testapi;
 use utils;
+use Utils::Logging 'problem_detection';
 
 sub run {
     my ($self) = @_;
@@ -31,7 +32,7 @@ sub run {
         # softfail when yast2 crashed and throws core dumped message
         # we need logs even after yast2 got crashed
         record_soft_failure "bsc#1049433";
-        $self->problem_detection();
+        problem_detection();
         return;
 
     }
