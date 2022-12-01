@@ -10,7 +10,7 @@
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use publiccloud::utils 'is_byos';
+use publiccloud::utils qw(is_byos registercloudguest);
 use publiccloud::ssh_interactive 'select_host_console';
 use utils qw(zypper_call systemctl);
 use version_utils 'is_sle';
@@ -23,8 +23,7 @@ sub run {
     $provider->{username} = 'suse';
     my $instance = $self->{my_instance} = $provider->create_instance();
     my $test_package = 'strace';
-    my $reg_bin = is_sle('>15-sp3') ? 'registercloudguest' : 'SUSEConnect';
-    $instance->run_ssh_command(cmd => sprintf("sudo %s -r %s", $reg_bin, get_required_var('SCC_REGCODE')), timeout => 600);
+    registercloudguest($instance);
     $instance->run_ssh_command(cmd => 'zypper lr -d', timeout => 600);
     $instance->run_ssh_command(cmd => 'systemctl is-enabled issue-generator');
     $instance->run_ssh_command(cmd => 'systemctl is-enabled transactional-update.timer');
