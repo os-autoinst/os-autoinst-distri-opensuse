@@ -39,11 +39,12 @@ sub run {
     my $tag = "";
     if (is_opensuse) {
         $tag = (is_tumbleweed) ? "registry.opensuse.org/opensuse/tumbleweed" : "registry.opensuse.org/opensuse/leap";
-    } else {
+    }
+    else {
         $tag = 'registry.suse.com/suse/sle15:15.3';
-        if (get_var("SCC_URL") =~ /\Qproxy.scc.suse.de\E/) {
+        if (check_var('BETA', '1')) {
             my ($v, $sp) = split("-SP", get_var("VERSION"));
-            $tag = $sp > 0 ? "registry.suse.de/suse/sle-$v-sp$sp/ga/publish/images/suse/sle$v:$v.$sp" : "registry.suse.de/suse/sle-$v/ga/publish/images/suse/sle$v:$v.0";
+            $tag = $sp > 0 ? "registry.suse.de/suse/sle-$v-sp$sp/ga/images/suse/sle$v:$v.$sp" : "registry.suse.de/suse/sle-$v/ga/images/suse/sle$v:$v.0";
             ensure_ca_certificates_suse_installed;
         }
     }
@@ -51,6 +52,7 @@ sub run {
     #build image, create container, setup 389-ds database and import testing data
     assert_script_run("mkdir /tmp/sssd && cd /tmp/sssd");
     assert_script_run("curl " . "--remote-name-all " . data_url("sssd/398-ds/{user_389.ldif,access.ldif,Dockerfile_$docker,instance_389.inf}"));
+    assert_script_run(qq(sed -i '/gpg-auto-import-keys/i\\RUN zypper rr SLE_BCI' Dockerfile_$docker)) if (check_var('BETA', '1'));
     assert_script_run(qq($docker build -t ds389_image --build-arg tag="$tag" --build-arg pkgs="$pkgs" -f Dockerfile_$docker .), timeout => 600);
     assert_script_run("$docker run -itd --shm-size=256m --name ds389_container --hostname ldapserver --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --restart=always ds389_image") if ($docker eq "docker");
     assert_script_run("$docker run -itd --shm-size=256m --name ds389_container --hostname ldapserver ds389_image") if ($docker eq "podman");
