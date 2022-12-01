@@ -37,6 +37,5 @@ test_data:
         listentry:
           authmethod: None
           iface: default
-          portal: '%WORKER_HOSTNAME%:3260'
           startup: onboot
           target: '%NBF%'
