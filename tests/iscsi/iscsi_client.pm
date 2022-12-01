@@ -27,6 +27,7 @@ use yast2_widget_utils 'change_service_configuration';
 use utils qw(systemctl type_string_slow_extended zypper_call);
 use scheduler 'get_test_suite_data';
 use y2_mm_common 'prepare_xterm_and_setup_static_network';
+use YaST::workarounds;
 use Utils::Logging 'save_and_upload_log';
 
 # load expected test data from yaml
