@@ -234,6 +234,7 @@ sub post_env_info {
             $size_info = $size_info . $_ . "    $size\n";
         }
     }
+    $size_info = $size_info . "PAGE_SIZE    " . script_output("getconf PAGE_SIZE");
     record_info('Size', $size_info);
 }
 
