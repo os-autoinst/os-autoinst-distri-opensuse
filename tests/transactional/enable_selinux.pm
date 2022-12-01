@@ -15,6 +15,7 @@ use testapi;
 use transactional qw(process_reboot);
 use version_utils qw(is_sle_micro);
 use Utils::Systemd qw(systemctl);
+use Utils::Logging 'save_and_upload_log';
 
 sub run {
     select_console 'root-console';
@@ -27,7 +28,7 @@ sub run {
     if (script_run('test -d /sys/fs/selinux && test -e /etc/selinux/config') != 0) {
         assert_script_run('transactional-update setup-selinux');
         upload_logs('/var/log/transactional-update.log');
-        shift->save_and_upload_log('rpm -qa', 'installed_pkgs.txt');
+        save_and_upload_log('rpm -qa', 'installed_pkgs.txt');
         process_reboot(trigger => 1);
     }
 

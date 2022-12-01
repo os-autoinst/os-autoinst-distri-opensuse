@@ -25,6 +25,7 @@ use registration qw(add_suseconnect_product);
 use version_utils qw(is_sle);
 use utils qw(zypper_call);
 use Utils::Systemd qw(systemctl);
+use Utils::Logging 'save_and_upload_log';
 
 our @EXPORT = qw(
   $instance_password
@@ -839,8 +840,8 @@ Upload NetWeaver installation logs from SUT.
 sub upload_nw_install_log {
     my ($self) = @_;
 
-    $self->save_and_upload_log('ls -alF /sapinst/unattended', '/tmp/nw_unattended_ls.log');
-    $self->save_and_upload_log('ls -alF /sbin/mount*', '/tmp/sbin_mount_ls.log');
+    save_and_upload_log('ls -alF /sapinst/unattended', '/tmp/nw_unattended_ls.log');
+    save_and_upload_log('ls -alF /sbin/mount*', '/tmp/sbin_mount_ls.log');
     upload_logs('/tmp/check-nw-media', failok => 1);
     upload_logs '/sapinst/unattended/sapinst.log';
     upload_logs('/sapinst/unattended/sapinst_ASCS.log', failok => 1);

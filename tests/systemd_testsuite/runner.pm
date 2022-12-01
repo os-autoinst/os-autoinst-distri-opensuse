@@ -9,6 +9,7 @@
 use Mojo::Base qw(systemd_testsuite_test);
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use Utils::Logging 'save_and_upload_log';
 
 my $test_hash;
 
@@ -65,7 +66,7 @@ sub post_fail_hook {
     select_console('log-console');
     script_run("xz -9 $lpath");
     upload_logs("$lpath" . '.xz', failok => 1);
-    shift->save_and_upload_log('journalctl -o short-precise --no-pager', "journalctl-host.txt");
+    save_and_upload_log('journalctl -o short-precise --no-pager', "journalctl-host.txt");
 }
 
 1;

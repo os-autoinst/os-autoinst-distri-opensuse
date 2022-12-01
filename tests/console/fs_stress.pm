@@ -12,6 +12,7 @@ use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
+use Utils::Logging 'save_and_upload_log';
 
 sub run {
     select_serial_terminal;
@@ -35,7 +36,7 @@ sub post_fail_hook {
     assert_script_run("lsblk -f");
     assert_script_run("df -h");
     assert_script_run("free -h");
-    $self->save_and_upload_log('cat /tmp/file_copy_*.log', 'file_copy_all.log');
+    save_and_upload_log('cat /tmp/file_copy_*.log', 'file_copy_all.log');
 }
 
 1;

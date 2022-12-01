@@ -32,6 +32,7 @@ sub run {
     my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
     my $inventory = qesap_get_inventory($prov);
 
+    qesap_ansible_cmd(cmd => 'crm cluster wait_for_startup', provider => $prov, filter => 'vmhana01');
     qesap_ansible_cmd(cmd => 'crm status', provider => $prov, filter => 'vmhana01');
 }
 

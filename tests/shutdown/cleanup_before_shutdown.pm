@@ -23,6 +23,7 @@ use serial_terminal 'prepare_serial_console';
 use utils;
 use version_utils;
 use Utils::Backends;
+use Utils::Logging 'save_and_upload_systemd_unit_log';
 
 sub run {
     select_console('root-console');
@@ -77,7 +78,7 @@ END_SCRIPT
 sub post_fail_hook {
     my ($self) = @_;
     $self->SUPER::post_fail_hook;
-    $self->save_and_upload_systemd_unit_log('systemd-journald');
+    save_and_upload_systemd_unit_log('systemd-journald');
 }
 
 1;

@@ -120,7 +120,6 @@ sub post_fail_hook {
     $self->SUPER::post_fail_hook;
 
     upload_logs('/var/log/snapper.log');
-    $self->export_logs;
 }
 
 1;

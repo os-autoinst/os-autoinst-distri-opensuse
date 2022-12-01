@@ -33,6 +33,8 @@ sub run {
 
     # all other cypress tests
     cypress_test_exec($cypress_test_dir, 'all', 900);
+
+    trento_support('test_trento_web');
 }
 
 sub post_fail_hook {

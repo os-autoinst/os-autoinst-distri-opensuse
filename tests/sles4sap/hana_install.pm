@@ -18,6 +18,7 @@ use utils qw(file_content_replace zypper_call);
 use Utils::Systemd 'systemctl';
 use version_utils 'is_sle';
 use POSIX 'ceil';
+use Utils::Logging 'save_and_upload_log';
 
 sub is_multipath {
     return (get_var('MULTIPATH') and (get_var('MULTIPATH_CONFIRM') !~ /\bNO\b/i));
@@ -64,7 +65,7 @@ sub debug_locked_device {
     for ('dmsetup info', 'dmsetup ls', 'mount', 'df -h', 'pvscan', 'vgscan', 'lvscan', 'pvdisplay', 'vgdisplay', 'lvdisplay') {
         my $filename = $_;
         $filename =~ s/[^\w]/_/g;
-        $self->save_and_upload_log($_, "$filename.txt");
+        save_and_upload_log($_, "$filename.txt");
     }
 }
 
@@ -253,8 +254,8 @@ sub run {
 
     # Upload installations logs
     $self->upload_hana_install_log;
-    $self->save_and_upload_log('rpm -qa', 'packages.list');
-    $self->save_and_upload_log('systemctl list-units --all', 'systemd-units.list');
+    save_and_upload_log('rpm -qa', 'packages.list');
+    save_and_upload_log('systemctl list-units --all', 'systemd-units.list');
 
     # Quick check of block/filesystem devices after installation
     assert_script_run 'mount';

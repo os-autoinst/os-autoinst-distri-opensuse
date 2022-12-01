@@ -28,6 +28,7 @@ use utils qw(systemctl type_string_slow_extended zypper_call);
 use scheduler 'get_test_suite_data';
 use y2_mm_common 'prepare_xterm_and_setup_static_network';
 use YaST::workarounds;
+use Utils::Logging 'save_and_upload_log';
 
 # load expected test data from yaml
 # common for both iscsi MM modules
@@ -156,8 +157,8 @@ sub run {
 sub post_fail_hook {
     my $self = shift;
     $self->SUPER::post_fail_hook;
-    $self->save_and_upload_log("iscsiadm --mode session -P 3", "/tmp/iscsi_init_session_data.log");
-    $self->save_and_upload_log("tar czvf /tmp/iscsi_initconf.tar.gz /etc/iscsi/*", "/tmp/iscsi_initconf.tar.gz");
+    save_and_upload_log("iscsiadm --mode session -P 3", "/tmp/iscsi_init_session_data.log");
+    save_and_upload_log("tar czvf /tmp/iscsi_initconf.tar.gz /etc/iscsi/*", "/tmp/iscsi_initconf.tar.gz");
 }
 
 1;

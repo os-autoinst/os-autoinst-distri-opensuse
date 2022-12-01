@@ -15,6 +15,7 @@ use lockapi;
 use utils;
 use registration;
 use version_utils 'is_sle';
+use Utils::Logging 'export_logs';
 use hpc::formatter;
 use POSIX 'strftime';
 
@@ -120,7 +121,7 @@ sub test_flags ($self) {
 
 sub post_fail_hook ($self) {
     $self->destroy_test_barriers();
-    $self->export_logs();
+    export_logs();
 }
 
 1;

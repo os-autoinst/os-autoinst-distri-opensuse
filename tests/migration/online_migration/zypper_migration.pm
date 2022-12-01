@@ -16,6 +16,7 @@ use utils;
 use power_action_utils 'power_action';
 use version_utils qw(is_desktop_installed is_sles4sap is_leap_migration is_sle_micro);
 use Utils::Backends 'is_pvm';
+use Utils::Logging 'upload_solvertestcase_logs';
 use transactional;
 
 sub check_migrated_version {
@@ -179,7 +180,7 @@ sub post_fail_hook {
     select_serial_terminal;
     script_run("pkill zypper");
     upload_logs '/var/log/zypper.log';
-    $self->upload_solvertestcase_logs();
+    upload_solvertestcase_logs();
     $self->SUPER::post_fail_hook;
 }
 

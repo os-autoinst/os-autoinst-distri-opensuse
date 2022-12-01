@@ -12,6 +12,7 @@ use Mojo::Base qw(consoletest);
 use testapi;
 use utils 'zypper_call';
 use version_utils 'is_upgrade';
+use Utils::Logging 'export_logs';
 
 # Performing a DVD/Offline system upgrade cannot update
 # all potential packages already present on the SUT
@@ -81,7 +82,7 @@ sub post_fail_hook {
     my $self = shift;
 
     select_console 'log-console';
-    (script_run q{test -s /tmp/orphaned.log}) ? $self->export_logs() : upload_logs '/tmp/orphaned.log';
+    (script_run q{test -s /tmp/orphaned.log}) ? export_logs() : upload_logs '/tmp/orphaned.log';
     upload_logs '/var/log/zypper.log';
 }
 

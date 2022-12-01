@@ -24,6 +24,7 @@ use Mojo::JSON 'to_json';
 
 use YuiRestClient;
 use YuiRestClient::Logger;
+use Utils::Logging 'save_and_upload_log';
 
 =head1 y2_base
 
@@ -60,7 +61,7 @@ sub save_strace_gdb_output {
 
         my $opt = defined($is_yast_module) ? 'module' : 'installer';
         foreach (@procfs_files) {
-            $self->save_and_upload_log("cat /proc/$yast_pid/$_", "/tmp/yast2-$opt.$_");
+            save_and_upload_log("cat /proc/$yast_pid/$_", "/tmp/yast2-$opt.$_");
         }
         # We enable gdb differently in the installer and in the installed SUT
         my $system_management_locked;
@@ -103,8 +104,8 @@ sub save_system_logs {
     script_run('for run in {1..3}; do echo "RUN: $run"; vmstat; sleep 5; done | tee /tmp/cpu_mem_usage.log');
     upload_logs('/tmp/cpu_mem_usage.log', failok => 1);
 
-    $self->save_and_upload_log('pstree', '/tmp/pstree');
-    $self->save_and_upload_log('ps auxf', '/tmp/ps_auxf');
+    save_and_upload_log('pstree', '/tmp/pstree');
+    save_and_upload_log('ps auxf', '/tmp/ps_auxf');
 }
 
 sub save_upload_y2logs {

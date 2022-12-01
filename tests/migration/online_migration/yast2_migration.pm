@@ -18,6 +18,7 @@ use power_action_utils 'power_action';
 use version_utils qw(is_desktop_installed is_sle);
 use x11utils qw(ensure_unlocked_desktop turn_off_screensaver);
 use Utils::Backends 'is_pvm';
+use Utils::Logging qw(save_and_upload_log export_logs_desktop);
 
 sub yast2_migration_gnome_remote {
     return check_var('MIGRATION_METHOD', 'yast') && check_var('DESKTOP', 'gnome') && get_var('REMOTE_CONNECTION');
@@ -291,8 +292,8 @@ sub post_fail_hook {
     select_console 'log-console';
     $self->save_upload_y2logs;
     set_var('Y2LOGS_UPLOADED', 1);
-    $self->save_and_upload_log('journalctl -b -o short-precise', '/tmp/journal.log', {screenshot => 1});
-    $self->export_logs_desktop;
+    save_and_upload_log('journalctl -b -o short-precise', '/tmp/journal.log', {screenshot => 1});
+    export_logs_desktop;
     $self->SUPER::post_fail_hook;
 }
 
