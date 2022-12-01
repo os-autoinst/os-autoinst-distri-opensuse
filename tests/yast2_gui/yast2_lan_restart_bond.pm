@@ -51,7 +51,8 @@ sub run {
     record_info('bond', 'Verify network is not restarted after saving bond device settings without changes.');
     open_network_settings;
     $network_settings->view_bond_slave_without_editing();
-    $network_settings->save_changes();
+    $network_settings->cancel_changes();
+    $network_settings->accept_all_changes_will_be_lost();
     wait_for_xterm_to_be_visible();
     check_network_status('no_restart_or_reload', 'bond');
 }
