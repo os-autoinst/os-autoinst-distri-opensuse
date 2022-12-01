@@ -55,7 +55,7 @@ sub run {
     #$self->validate_result($f_stdout, $eval_match, "txt");
     validate_script_output "cat $f_stdout", sub { $eval_match }, timeout => 300;
     #Verify number of passed rules
-    validate_script_output (qq{grep -o pass $f_stdout | wc -l, sub { m/218/ }, timeout => 300});
+#    validate_script_output (qq{grep -o pass $f_stdout | wc -l, sub { m/218/ }, timeout => 300});
     #Verify number of failed rules
 #    validate_script_output (qq{"grep -o fail $f_stdout | wc -l", sub { m/5/ }, timeout => 300});
 
