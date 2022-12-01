@@ -89,6 +89,8 @@
       <li><a href="#generate_results-generate_results">generate_results generate_results();</a></li>
       <li><a href="#pars_results-pars_results">pars_results pars_results();</a></li>
       <li><a href="#test_case-test_case-name-description-result">test_case test_case($name, $description, $result);</a></li>
+      <li><a href="#remount_tmp_if_ro">remount_tmp_if_ro</a></li>
+      <li><a href="#detect_bsc_1063638">detect_bsc_1063638</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -662,6 +664,18 @@ zypper_ar(&#39;https://download.opensuse.org/repositories/devel:/kubic/openSUSE_
 <h2 id="test_case-test_case-name-description-result">test_case test_case($name, $description, $result);</h2>
 
 <p><code>test_case</code> can produce a data_structure which <code>pars_results</code> can utilize. Using <code>test_case</code> in an OpenQA module you are able to /name/ and describe the whole test as subtasks, in a XUnit format.</p>
+
+<h2 id="remount_tmp_if_ro">remount_tmp_if_ro</h2>
+
+<pre><code>remount_tmp_if_ro();</code></pre>
+
+<p>Mounts /tmp to shared memory if not possible to write to tmp. For example, save_y2logs creates temporary files there.</p>
+
+<h2 id="detect_bsc_1063638">detect_bsc_1063638</h2>
+
+<pre><code>detect_bsc_1063638();</code></pre>
+
+<p>Btrfs maintenance jobs lead to the system being unresponsive and affects SUT&#39;s performance. Not to waste time during investigation of the failures, we would like to detect if such jobs are running, providing a hint why test timed out. This method will create a softfail if such a problem is detected.</p>
 
 
 </body>

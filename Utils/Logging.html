@@ -14,7 +14,18 @@
 <ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
   <li><a href="#Utils::Logging">Utils::Logging</a>
     <ul>
+      <li><a href="#save_and_upload_log">save_and_upload_log</a></li>
+      <li><a href="#tar_and_upload_log">tar_and_upload_log</a></li>
+      <li><a href="#save_and_upload_systemd_unit_log">save_and_upload_systemd_unit_log</a></li>
       <li><a href="#"></a></li>
+      <li><a href="#export_healthcheck_basic">export_healthcheck_basic</a></li>
+      <li><a href="#select_log_console">select_log_console</a></li>
+      <li><a href="#upload_coredumps">upload_coredumps</a></li>
+      <li><a href="#export_logs">export_logs</a></li>
+      <li><a href="#problem_detection">problem_detection</a></li>
+      <li><a href="#upload_solvertestcase_logs">upload_solvertestcase_logs</a></li>
+      <li><a href="#export_logs_basic">export_logs_basic</a></li>
+      <li><a href="#export_logs_desktop">export_logs_desktop</a></li>
     </ul>
   </li>
 </ul><h1>lib/Utils/Logging.pm</h1>
@@ -22,6 +33,24 @@
 <h1 id="Utils::Logging">Utils::Logging</h1>
 
 <p><code>Utils::Logging</code> - Save logs directly on the worker for offline upload via ulogs</p>
+
+<h2 id="save_and_upload_log">save_and_upload_log</h2>
+
+<pre><code>save_and_upload_log($cmd, $file [, timeout =&gt; $timeout] [, screenshot =&gt; $screenshot] [, noupload =&gt; $noupload]);</code></pre>
+
+<p>Will run <code>$cmd</code> on the SUT (without caring for the return code) and tee the standard output to a file called <code>$file</code>. The <code>$timeout</code> parameter specifies how long <code>$cmd</code> may run. When <code>$cmd</code> returns, the output file will be uploaded to openQA unless <code>$noupload</code> is set. Afterwards a screenshot will be created if <code>$screenshot</code> is set.</p>
+
+<h2 id="tar_and_upload_log">tar_and_upload_log</h2>
+
+<pre><code>tar_and_upload_log($sources, $dest, [, timeout =&gt; $timeout] [, screenshot =&gt; $screenshot] [, noupload =&gt; $noupload]);</code></pre>
+
+<p>Will create an xz compressed tar archive with filename <code>$dest</code> from the folder(s) listed in <code>$sources</code>. The return code of <code>tar</code> will be ignored. The <code>$timeout</code> parameter specifies how long <code>tar</code> may run. When <code>tar</code> returns, the output file will be uploaded to openQA unless <code>$noupload</code> is set. Afterwards a screenshot will be created if <code>$screenshot</code> is set.</p>
+
+<h2 id="save_and_upload_systemd_unit_log">save_and_upload_systemd_unit_log</h2>
+
+<pre><code>save_and_upload_systemd_unit_log($unit);</code></pre>
+
+<p>Saves the journal of the systemd unit <code>$unit</code> to <code>journal_$unit.log</code> and uploads it to openQA.</p>
 
 <h2 id=""></h2>
 
@@ -32,6 +61,54 @@
 <p>example:</p>
 
 <p>$out = script_output(&#39;journalctl --no-pager -axb -o short-precise&#39;); $filename = &quot;my-test.log&quot;;</p>
+
+<h2 id="export_healthcheck_basic">export_healthcheck_basic</h2>
+
+<pre><code>export_healthcheck_basic();</code></pre>
+
+<p>Upload healthcheck logs that make sense for any failure. This includes <code>cpu</code>, <code>memory</code> and <code>fdisk</code>.</p>
+
+<h2 id="select_log_console">select_log_console</h2>
+
+<pre><code>select_log_console();</code></pre>
+
+<p>Select &#39;log-console&#39; with higher timeout on screen check to even cover systems that react very slow due to high background load or high memory consumption. This should be especially useful in <code>post_fail_hook</code> implementations.</p>
+
+<h2 id="upload_coredumps">upload_coredumps</h2>
+
+<pre><code>upload_coredumps(%args);</code></pre>
+
+<p>Upload all coredumps to logs. In case `proceed_on_failure` key is set to true, errors during logs collection will be ignored, which is usefull for the post_fail_hook calls.</p>
+
+<h2 id="export_logs">export_logs</h2>
+
+<pre><code>export_logs();</code></pre>
+
+<p>This method will call several other log gathering methods from this class.</p>
+
+<h2 id="problem_detection">problem_detection</h2>
+
+<pre><code>problem_detection();</code></pre>
+
+<p>This method will upload a number of logs and debugging information. This includes a log with all journal errors, a systemd unit plot and the output of rpmverify. The files will be uploaded as a single tarball called <code>problem_detection_logs.tar.xz</code>.</p>
+
+<h2 id="upload_solvertestcase_logs">upload_solvertestcase_logs</h2>
+
+<pre><code>upload_solvertestcase_logs();</code></pre>
+
+<p>Upload <code>/tmp/solverTestCase.tar.bz2</code>.</p>
+
+<h2 id="export_logs_basic">export_logs_basic</h2>
+
+<pre><code>export_logs_basic();</code></pre>
+
+<p>Upload logs that make sense for any failure. This includes <code>/proc/loadavg</code>, <code>ps axf</code>, complete journal since last boot, <code>dmesg</code> and <code>/etc/sysconfig</code>.</p>
+
+<h2 id="export_logs_desktop">export_logs_desktop</h2>
+
+<pre><code>export_logs_desktop();</code></pre>
+
+<p>Upload several KDE, GNOME, X11, GDM and SDDM related logs and configs.</p>
 
 
 </body>
