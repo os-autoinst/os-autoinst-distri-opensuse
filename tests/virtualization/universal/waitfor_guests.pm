@@ -16,6 +16,18 @@ use testapi;
 use utils;
 use version_utils 'is_sle';
 
+# Open vnc and take screenshot of guests
+sub screenshot_vnc_guests {
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        # Wait for virt-viewer to fully connect and display VNC stream
+        enter_cmd "virt-viewer -f $guest & sleep 21 && killall virt-viewer";
+        sleep 19;
+        record_info "$guest", "$guest screenshot";
+        save_screenshot();
+        sleep 6;
+    }
+}
+
 sub run {
     my $self = shift;
     select_console('root-console');
@@ -53,6 +65,7 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
+    screenshot_vnc_guests();
     collect_virt_system_logs();
     $self->SUPER::post_fail_hook;
 }
