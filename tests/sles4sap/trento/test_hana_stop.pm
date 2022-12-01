@@ -25,7 +25,8 @@ sub run {
 
     qesap_ansible_cmd(cmd => "su - hdbadm -c 'HDB stop'", provider => $prov, filter => 'vmhana02');
 
-    qesap_ansible_cmd(cmd => 'crm status', provider => $prov, filter => 'vmhana01');
+    my $cmr_status = qesap_ansible_script_output(cmd => 'crm status', provider => $prov, host => 'vmhana01', root => 1);
+    record_info("crm status", $cmr_status);
     qesap_ansible_cmd(cmd => 'SAPHanaSR-showAttr', provider => $prov, filter => 'vmhana01');
 
     my $cypress_test_dir = "/root/test/test";
