@@ -51,8 +51,8 @@ sub run {
     wait_still_screen 3;
 
     # Check previously set values + Miscellaneous Settings
-    y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 120) if (is_sle('>=15-SP4'));
-    apply_workaround_bsc1204176('yast2_security-login-settings');
+    y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 120);
+    apply_workaround_bsc1204176('yast2_security-login-settings') if (is_sle('>=15-SP4'));
     assert_and_click "yast2_security-login-settings";
     assert_screen "yast2_security-login-attempts";
     # set file permissions to 'secure'
