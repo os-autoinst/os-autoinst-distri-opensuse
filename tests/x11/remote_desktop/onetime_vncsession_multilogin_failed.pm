@@ -52,7 +52,7 @@ sub run {
     assert_screen 'xvnc-multilogin-refused';
     send_key 'f8';
     assert_screen 'vncviewer-menu';
-    send_key 'x';
+    assert_and_click 'vncviewer-menu-exit';
 
     # Exit the minimized session
     hold_key 'alt';
@@ -61,7 +61,7 @@ sub run {
     assert_screen 'generic-desktop';
     send_key 'f8';
     assert_screen 'vncviewer-menu';
-    send_key 'x';
+    assert_and_click 'vncviewer-menu-exit';
 
     mutex_unlock 'xvnc';
 }
