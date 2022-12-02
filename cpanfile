@@ -54,6 +54,7 @@ requires 'strict';
 requires 'utf8';
 requires 'version';
 requires 'warnings';
+requires 'SemVer';
 
 
 on 'test' => sub {
