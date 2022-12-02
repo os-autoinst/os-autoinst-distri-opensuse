@@ -17,6 +17,7 @@ use testapi;
 
 sub run {
     my ($self) = @_;
+    select_console 'x11';
     $self->test_terminal('xterm');
 }
 
