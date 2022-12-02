@@ -59,7 +59,7 @@ sub run {
 #    my $fail_pattern = "\\bfail\\b";
     my $pass_pattern = "pass";
     my $fail_pattern = "fail";
-    my $pass_count = $self->pattern_count_in_file($f_stdout,$pass_pattern);
+    my $pass_count = $self->pattern_count_in_file($f_stdout);
     my $fail_count = $self->pattern_count_in_file($f_stdout,$fail_pattern);
 #    my $matching_line = script_output("grep -o pass $f_stdout");
     record_info("pass_count=$pass_count", "# pass_count in $f_stdout is $pass_count");
