@@ -83,7 +83,7 @@ sub run {
         record_info("file=$eval_stdout", "Error with if/else while openning file $f_stdout : $!");
     }
 
-    record_info("count=$count", "# pattern $pass_pattern count in file $Seval_stdout is $count");
+    record_info("count=$count", "# pattern $pass_pattern count in file $eval_stdout is $count");
     close($fh);
 #    my $matching_line = script_output("grep -o pass $f_stdout");
 #    record_info("pass_count=$count", "# pass_count in file $f_stdout is $count");
