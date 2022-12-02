@@ -102,7 +102,7 @@ sub pattern_count_in_file {
     }
     record_info("count=$count", "# pattern $pattern count in $file is $count");
     return $count;
-    close($fh)
+    close($fh);
 }
 
 1;
