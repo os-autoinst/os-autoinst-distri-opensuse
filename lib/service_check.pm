@@ -337,7 +337,7 @@ sub check_services {
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
         my $support_ver = $service->{$s}->{support_ver};
         my $service_type = 'Systemd';
-        next unless (($service->{$s}->{before_migration} eq 'PASS') && _is_applicable($srv_pkg_name));
+        next if (defined($service->{$s}->{before_migration}) && ($service->{$s}->{before_migration} eq 'FAIL') || !_is_applicable($srv_pkg_name));
         record_info($srv_pkg_name, "service check after migration");
         eval {
             if (is_sle($support_ver, get_var('ORIGIN_SYSTEM_VERSION'))) {
