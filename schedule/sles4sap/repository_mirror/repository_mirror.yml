@@ -1,0 +1,10 @@
+---
+name: repository_mirror
+description: |
+  Run repository mirror on public cloud instances:
+    - Deploy on Azure: httpd runnig on VM in Azure
+vars:
+    TEST_CONTEXT: 'OpenQA::Test::RunArgs'
+schedule:
+    - boot/boot_to_desktop
+    - sles4sap/repository_mirror/configure
