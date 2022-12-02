@@ -237,6 +237,7 @@ Set up a postgres database and configure for:
 sub test_pgsql {
     # configuration so that PHP can access PostgreSQL
     # setup password
+    assert_script_run 'pushd /tmp';
     enter_cmd "sudo -u postgres psql postgres";
     wait_still_screen(1);
     enter_cmd "\\password postgres";
@@ -269,6 +270,7 @@ sub test_pgsql {
     # add sudo rights to switch postgresql version and run script to determine oldest and latest version
     assert_script_run 'echo "postgres ALL=(root) NOPASSWD: ALL" >>/etc/sudoers';
     assert_script_run "gpasswd -a postgres \$(stat -c %G /dev/$serialdev)";
+    assert_script_run 'sudo chsh postgres -s /bin/bash';
     enter_cmd "su - postgres", wait_still_screen => 1;
     enter_cmd "PS1='# '", wait_still_screen => 1;
     # upgrade db from oldest version to latest version
@@ -369,6 +371,8 @@ EOF
     assert_script_run 'p -d dvdrental -c "SELECT * FROM customer WHERE first_name = \'openQA\'"|grep openQA';
     assert_script_run 'p -d dvdrental -c "SELECT * FROM customer WHERE last_name = \'Davidson\'"|grep Davidson';
     enter_cmd 'exit', wait_still_screen => 3;
+    assert_script_run 'popd';
+
 }
 
 =head2 test_mysql
