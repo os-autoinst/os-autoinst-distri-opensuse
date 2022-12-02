@@ -55,9 +55,15 @@ sub run {
     #$self->validate_result($f_stdout, $eval_match, "txt");
     validate_script_output "cat $f_stdout", sub { $eval_match }, timeout => 300;
     #Verify number of passed rules
-    validate_script_output (qq{grep -o pass $f_stdout | wc -l, sub { m/218/ }, timeout => 300});
+    my $matching_line = script_output("grep -o pass $f_stdout");
+    record_info("grep pass returned =$matching_line");
+
+    script_run("grep -o '\bpass\b' $f_stdout > grep_out_pass", timeout => 100);
+    validate_script_output("cat grep_out_pass | wc -l", sub { m/218/ }, timeout => 100);
+
+    validate_script_output (qq{grep -o '\bpass\b' $f_stdout | wc -l}, sub { m/218/ }, timeout => 300);
     #Verify number of failed rules
-    validate_script_output (qq{"grep -o fail $f_stdout | wc -l", sub { m/5/ }, timeout => 300});
+    validate_script_output (qq{grep -o '\bfail\b' $f_stdout | wc -l}, sub { m/5/ }, timeout => 300);
 
     # Upload logs & ouputs for reference
     $self->upload_logs_reports();
