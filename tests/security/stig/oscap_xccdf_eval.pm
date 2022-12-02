@@ -55,8 +55,10 @@ sub run {
     #$self->validate_result($f_stdout, $eval_match, "txt");
     validate_script_output "cat $f_stdout", sub { $eval_match }, timeout => 300;
     #Verify number of passed rules
-    my $pass_pattern = "\\bpass\\b";
-    my $fail_pattern = "\\bfail\\b";
+#    my $pass_pattern = "\\bpass\\b";
+#    my $fail_pattern = "\\bfail\\b";
+    my $pass_pattern = "pass";
+    my $fail_pattern = "fail";
     my $pass_count = $self->pattern_count_in_file($f_stdout,$pass_pattern);
     my $fail_count = $self->pattern_count_in_file($f_stdout,$fail_pattern);
 #    my $matching_line = script_output("grep -o pass $f_stdout");
