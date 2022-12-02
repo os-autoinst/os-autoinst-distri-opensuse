@@ -25,6 +25,7 @@ our @EXPORT = qw(
   set_ds_file
   upload_logs_reports
   validate_result
+  pattern_count_in_file
 );
 
 # The file names of scap logs and reports
@@ -85,6 +86,21 @@ sub validate_result {
 
     validate_script_output "cat $result_file", sub { $match }, timeout => 300;
     upload_logs($result_file);
+}
+sub pattern_count_in_file {
+    my ($file, $pattern) = @_;
+    my $count = 0;
+    my $fh;
+
+    open($fh, $file);
+
+    while(my $line = <$fh>){
+        if($line =~ /$pattern/){
+        $count ++;
+        }
+    }
+    return $count;
+    close($fh)
 }
 
 1;
