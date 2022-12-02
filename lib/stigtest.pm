@@ -99,7 +99,7 @@ sub pattern_count_in_file {
         $count ++;
         }
     }
-    print "\n Count $count of pattern \"$pattern\" in file $file\n"
+    print "\n Count $count of pattern \"$pattern\" in file $file\n";
     return $count;
     close($fh)
 }
