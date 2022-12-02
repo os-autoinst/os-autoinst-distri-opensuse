@@ -235,6 +235,13 @@
         },
         "type": "bug"
     },
+    "bsc#1204794": {
+        "description": "haveged.service: Main process exited, code=exited, status=1/FAILURE",
+        "products": {
+            "sle": ["15-SP4", "15-SP5"]
+        },
+        "type": "bug"
+    },
     "bsc#1186742": {
         "description": "Directory '.*.hdmi' with parent 'vc4-hdmi.*' already present",
         "products": {
