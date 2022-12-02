@@ -56,6 +56,7 @@ our @EXPORT = qw(
   GRUB_CFG_FILE
   GRUB_DEFAULT_FILE
   add_grub_cmdline_settings
+  add_grub_xen_replace_cmdline_settings
   change_grub_config
   get_cmdline_var
   grep_grub_cmdline_settings
@@ -1280,6 +1281,19 @@ C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and 
 sub add_grub_xen_cmdline_settings {
     my ($add, $update_grub) = @_;
     add_grub_cmdline_settings($add, $update_grub, "GRUB_CMDLINE_XEN_DEFAULT");
+}
+
+=head2 add_grub_xen_replace_cmdline_settings
+
+    add_grub_xen_replace_cmdline_settings($add [, $update_grub ]);
+
+Add C<$add> into /etc/default/grub, using sed.
+C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.
+=cut
+
+sub add_grub_xen_replace_cmdline_settings {
+    my ($add, $update_grub) = @_;
+    add_grub_cmdline_settings($add, update_grub => $update_grub, search => "GRUB_CMDLINE_LINUX_XEN_REPLACE_DEFAULT");
 }
 
 =head2 replace_grub_cmdline_settings
