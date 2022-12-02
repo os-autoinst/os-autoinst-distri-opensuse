@@ -57,13 +57,29 @@ sub run {
     #Verify number of passed rules
 #    my $pass_pattern = "\\bpass\\b";
 #    my $fail_pattern = "\\bfail\\b";
-    my $pass_pattern = "pass";
-    my $fail_pattern = "fail";
-    my $pass_count = $self->pattern_count_in_file($f_stdout);
-    my $fail_count = $self->pattern_count_in_file($f_stdout,$fail_pattern);
+#    my $pass_pattern = "pass";
+#    my $fail_pattern = "fail";
+#    my $pass_count = $self->pattern_count_in_file($f_stdout);
+#    my $fail_count = $self->pattern_count_in_file($f_stdout,$fail_pattern);
+
+
+    my $pass_pattern = "\\bpass\\b";
+    my $count = 0;
+    my $fh;
+
+    open($fh, $f_stdout);
+
+    while(my $line = <$fh>){
+        if($line =~ /$pass_pattern/){
+        $count ++;
+        }
+    }
+    record_info("count=$count", "# pattern $pass_pattern count in file $f_stdout is $count");
+    return $count;
+    close($fh)
 #    my $matching_line = script_output("grep -o pass $f_stdout");
-    record_info("pass_count=$pass_count", "# pass_count in $f_stdout is $pass_count");
-    record_info("fail_count=$fail_count", "# fail_count in $f_stdout is $fail_count");
+    record_info("pass_count=$count", "# pass_count in file $f_stdout is $count");
+ #   record_info("fail_count=$fail_count", "# fail_count in $f_stdout is $fail_count");
 
 #    validate_script_output("cat grep_out_pass | wc -l", sub { m/218/ }, timeout => 100);
 
