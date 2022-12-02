@@ -33,7 +33,7 @@ sub run {
     my $f_report = $stigtest::f_report;
 
     # Verify detection mode
-    my $ret = script_run("oscap xccdf eval --profile $profile_ID --oval-results --report $f_report $f_ssg_ds > $f_stdout 2> $f_stderr", timeout => 300);
+    my $ret = script_run("oscap xccdf eval --profile $profile_ID --oval-results --report $f_report $f_ssg_ds > $f_stdout 2> $f_stderr", timeout => 600);
     record_info("errno=$ret", "# oscap xccdf eval --profile \"$profile_ID\" returns: $ret");
 #    if ($ret == 0) {
 #        record_info('PASS');
