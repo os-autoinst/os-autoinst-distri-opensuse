@@ -73,7 +73,7 @@ sub run {
     }
     else {
         record_info('FAIL');
-        record_info("file=$f_stdout", "Error with if/else while openning file : $!");
+        record_info("file=$f_stdout", "Error with if/else while openning file $f_stdout : $!");
     }
     while(my $line = <$fh>){
         if($line =~ /$pass_pattern/){
