@@ -74,7 +74,7 @@ sub run {
         }
 
     record_info("count=$count", "# pattern $pass_pattern count in file $eval_stdout is $count");
-    close($fh);
+
 #    my $matching_line = script_output("grep -o pass $f_stdout");
 #    record_info("pass_count=$count", "# pass_count in file $f_stdout is $count");
  #   record_info("fail_count=$fail_count", "# fail_count in $f_stdout is $fail_count");
