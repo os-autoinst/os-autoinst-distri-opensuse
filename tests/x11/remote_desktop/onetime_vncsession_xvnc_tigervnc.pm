@@ -51,7 +51,7 @@ sub run {
     # Exit vncviewer
     send_key 'f8';
     assert_screen 'vncviewer-menu';
-    send_key 'x';
+    assert_and_click 'vncviewer-menu-exit';
 
     mutex_unlock 'xvnc';
 }

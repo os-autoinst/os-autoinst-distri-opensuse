@@ -81,7 +81,7 @@ sub run {
     # Exit the vncviewer
     send_key 'f8';
     assert_screen 'vncviewer-menu';
-    send_key 'x';
+    assert_and_click 'vncviewer-menu-exit';
     assert_screen 'generic-desktop';
 
     # Re-login to the previous session
@@ -99,7 +99,7 @@ sub run {
     # Exit the sharing session
     send_key 'f8';
     assert_screen 'vncviewer-menu';
-    send_key 'x';
+    assert_and_click 'vncviewer-menu-exit';
 
     # Terminate the minimized session
     hold_key 'alt';
