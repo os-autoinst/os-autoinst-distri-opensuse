@@ -88,7 +88,7 @@ sub validate_result {
     upload_logs($result_file);
 }
 sub pattern_count_in_file {
-    my ($file, $pattern) = @_;
+    my ($pattern, $file) = @_;
     my $count = 0;
     my $fh;
 
