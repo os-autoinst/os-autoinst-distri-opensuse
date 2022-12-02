@@ -93,18 +93,18 @@ sub pattern_count_in_file {
     my $count = 0;
     my $fh;
 
-    open($fh, $eval_stdout);
-    if (open($fh, $eval_stdout)){
-        record_info("file=$eval_stdout", "# sucuessfully opened file $f_stdout");
+    open($fh, $file);
+    if (open($fh, $file)){
+        record_info("file=$file", "# sucuessfully opened file $f_stdout");
         while(my $line = <$fh>){
-            if($line =~ /$pass_pattern/){
+            if($line =~ /$pattern/){
             $count ++;
             }
         }
     }
     else {
         record_info('FAIL');
-        record_info("file=$eval_stdout", "Error with if/else while openning file $f_stdout : $!");
+        record_info("file=$file", "Error with if/else while openning file $f_stdout : $!");
     }
 
 }
