@@ -68,9 +68,12 @@ sub run {
     my $fh;
 
     open($fh, $f_stdout);
-
+    if (open($fh, $f_stdout)){
+    record_info("file=$f_stdout", "# sucuessfully opened file $f_stdout");
+    }
     while(my $line = <$fh>){
         if($line =~ /$pass_pattern/){
+        print("$line \n");
         $count ++;
         }
     }
