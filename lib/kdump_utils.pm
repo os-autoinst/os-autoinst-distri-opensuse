@@ -213,6 +213,10 @@ sub activate_kdump {
 
 # Activate kdump using yast command line interface
 sub activate_kdump_cli {
+    # Skip configuration, if is kdump already enabled and no special memory settings is required
+    my $status = script_run('yast kdump show 2>&1 | grep "Kdump is disabled"', 180);
+    return if ($status and !get_var('CRASH_MEMORY'));
+
     # Make sure fadump is disabled on PowerVM
     assert_script_run('yast2 kdump fadump disable', 180) if is_pvm;
 
