@@ -50,6 +50,8 @@ use YaST::Firstboot::WelcomeController;
 use YaST::NetworkSettings::v4_3::NetworkSettingsController;
 use YaST::SystemSettings::SystemSettingsController;
 use YaST::Firewall::FirewallController;
+use YaST::DNSServer::DNSServerController;
+use YaST::DNSServer::DNSServerSetupController;
 
 sub get_language_keyboard {
     return Installation::LanguageKeyboard::LanguageKeyboardController->new();
@@ -201,6 +203,14 @@ sub get_ssh_import_settings {
 
 sub get_security_configuration {
     return Installation::SecurityConfiguration::SecurityConfigurationController->new();
+}
+
+sub get_dns_server {
+    return YaST::DNSServer::DNSServerController->new();
+}
+
+sub get_dns_server_setup {
+    return YaST::DNSServer::DNSServerSetupController->new();
 }
 
 1;

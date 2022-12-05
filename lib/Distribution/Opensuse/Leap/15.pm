@@ -17,6 +17,8 @@ use parent 'Distribution::Sle::15_current';
 use Installation::License::Opensuse::Firstboot::LicenseAgreementController;
 use Installation::License::Opensuse::LicenseAgreementController;
 use Installation::SystemRole::SystemRoleController;
+use YaST::DNSServer::Opensuse::DNSServerController;
+use YaST::DNSServer::Opensuse::DNSServerSetupController;
 
 =head2 get_firstboot_license_agreement
 
@@ -35,6 +37,14 @@ sub get_license_agreement {
 
 sub get_system_role_controller {
     return Installation::SystemRole::SystemRoleController->new();
+}
+
+sub get_dns_server {
+    return YaST::DNSServer::Opensuse::DNSServerController->new();
+}
+
+sub get_dns_server_setup {
+    return YaST::DNSServer::Opensuse::DNSServerSetupController->new();
 }
 
 1;
