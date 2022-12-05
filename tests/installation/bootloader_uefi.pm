@@ -43,7 +43,7 @@ use lockapi 'mutex_wait';
 use bootloader_setup;
 use registration;
 use utils;
-use version_utils qw(is_jeos is_microos is_sle is_selfinstall);
+use version_utils qw(is_jeos is_microos is_sle is_selfinstall is_sle_micro);
 
 # hint: press shift-f10 trice for highest debug level
 sub run {
@@ -116,7 +116,7 @@ sub run {
         if (get_var("PROMO") || get_var('LIVETEST') || get_var('LIVECD')) {
             send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 11, 3);
         }
-        elsif (!is_jeos && !is_microos('VMX')) {
+        elsif (!is_jeos && !is_microos('VMX') && !is_sle_micro) {
             send_key_until_needlematch('inst-oninstallation', 'down', 11, 0.5);
         }
     }
