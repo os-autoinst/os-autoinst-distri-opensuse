@@ -19,7 +19,7 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call random_string systemctl file_content_replace ensure_serialdev_permissions);
 use version_utils qw(is_sle is_opensuse is_tumbleweed is_transactional is_microos is_alp);
-use registration qw(add_suseconnect_product get_addon_fullname);
+use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 use transactional qw(trup_call check_reboot_changes);
 
 # git-core needed by ansible-galaxy
@@ -34,6 +34,8 @@ sub run {
     # 1. System setup
 
     unless (is_opensuse) {
+        # Package 'python3-yamllint' and 'ansible' require PackageHub is available
+        return unless is_phub_ready();
         add_suseconnect_product(get_addon_fullname('phub'));
     }
 

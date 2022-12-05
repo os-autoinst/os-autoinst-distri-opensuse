@@ -34,6 +34,7 @@ our @EXPORT = qw(
   get_addon_fullname
   rename_scc_addons
   is_module
+  is_phub_ready
   verify_scc
   investigate_log_empty_license
   register_addons_cmd
@@ -103,6 +104,11 @@ our @SLE12_MODULES = qw(
 sub is_module {
     my $name = shift;
     return defined $SLE15_MODULES{$name};
+}
+
+# Check if Packagehub is available
+sub is_phub_ready {
+    return (check_var('PHUB_READY', '0')) ? 0 : 1;
 }
 
 sub accept_addons_license {

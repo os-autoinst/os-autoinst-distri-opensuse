@@ -22,10 +22,14 @@ use strict;
 use warnings;
 use utils;
 use version_utils;
-use registration 'add_suseconnect_product';
+use registration qw(add_suseconnect_product is_phub_ready);
 
 sub run {
     select_serial_terminal;
+
+    # Package 'sshpass' requires PackageHub is available
+    return unless is_phub_ready();
+
     my $docker = "podman";
     if (is_sle) {
         $docker = "docker";
