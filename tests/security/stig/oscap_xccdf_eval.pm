@@ -55,14 +55,29 @@ sub run {
     #$self->validate_result($f_stdout, $eval_match, "txt");
 
     validate_script_output "cat $f_stdout", sub { $eval_match }, timeout => 300;
-#    assert_script_run "cat $f_stdout > $eval_stdout";
-    my $eval_stdout = script_output "cat $f_stdout";
+    my $data = script_output "cat $f_stdout";
     #Verify number of passed rules
     my $pass_pattern = "\\bpass\\b";
-#    my $fail_pattern = "\\bfail\\b";
+    my $fail_pattern = "\\bfail\\b";
 
-    my $pass_count = $self->pattern_count_in_file($eval_stdout, $pass_pattern);
-    record_info("count=$pass_count", "# pattern $pass_pattern count in file $f_stdout is $pass_count");
+    my $pass_count = 0;
+    my $fail_count = 0;
+
+    print("IN Pattern: $pass_pattern \n");
+    my @lines = split /\n/, $data;
+    foreach my $line (@lines){
+        print("$line \n");
+        if($line =~ /$pass_pattern/){
+        $pass_count ++;
+        }
+        if($line =~ /$fail_pattern/){
+        $fail_count ++;
+        }
+    }
+
+#    my $pass_count = $self->pattern_count_in_file($eval_stdout, $pass_pattern);
+    record_info("Pass count=$pass_count", "# pattern $pass_pattern count in file $f_stdout is $pass_count");
+    record_info("Fail count=$fail_count", "# pattern $fail_pattern count in file $f_stdout is $fail_count");
 #    my $fail_count = $self->pattern_count_in_file($f_stdout,$fail_pattern);
 
 #    my $count = 0;
