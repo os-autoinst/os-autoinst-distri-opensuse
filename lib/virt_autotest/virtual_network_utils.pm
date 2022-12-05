@@ -100,6 +100,9 @@ sub test_network_interface {
 
     save_guest_ip("$guest", name => $net);
 
+    #DEBUG for poo#121351 and poo#121348
+    sleep 300;
+
     # Configure the network interface to use DHCP configuration
     #flag SRIOV test as it need not restart network service
     my $is_sriov_test = "false";
