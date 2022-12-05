@@ -9,6 +9,7 @@ conditional_schedule:
         - installation/bootloader_start
         - boot/boot_to_desktop
       'x86_64':
+        - installation/bootloader_uefi
         - '{{wizard}}'
       'aarch64':
         - '{{wizard}}'
