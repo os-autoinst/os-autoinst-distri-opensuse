@@ -88,25 +88,19 @@ sub validate_result {
     upload_logs($result_file);
 }
 sub pattern_count_in_file {
-    my ($file, $pattern) = @_;
+    my ($data, $pattern) = @_;
     $pattern //= "\\bpass\\b";
     my $count = 0;
-    my $fh;
 
-    open($fh, $file);
-    if (open($fh, $file)){
-        record_info("file=$file", "# sucuessfully opened file $f_stdout");
-        while(my $line = <$fh>){
-            if($line =~ /$pattern/){
-            $count ++;
-            }
+    print("IN Pattern: $pattern \n");
+    my @lines = split /\n/, $data;
+    foreach my $line (@lines){
+        print("$line \n");
+        if($line =~ /$pattern/){
+        $count ++;
         }
     }
-    else {
-        record_info('FAIL');
-        record_info("file=$file", "Error with if/else while openning file $f_stdout : $!");
-    }
-
+    return $count;
 }
 
 1;

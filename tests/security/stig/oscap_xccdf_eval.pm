@@ -54,28 +54,27 @@ sub run {
     #Verify failed rules
     #$self->validate_result($f_stdout, $eval_match, "txt");
 
-###    validate_script_output "cat $f_stdout", sub { $eval_match }, timeout => 300;
+    validate_script_output "cat $f_stdout", sub { $eval_match }, timeout => 300;
 #    assert_script_run "cat $f_stdout > $eval_stdout";
     my $eval_stdout = script_output "cat $f_stdout";
     #Verify number of passed rules
-#    my $pass_pattern = "\\bpass\\b";
+    my $pass_pattern = "\\bpass\\b";
 #    my $fail_pattern = "\\bfail\\b";
-#    my $pass_pattern = "pass";
-#    my $fail_pattern = "fail";
-#    my $pass_count = $self->pattern_count_in_file($f_stdout);
+
+    my $pass_count = $self->pattern_count_in_file($eval_stdout, $pass_pattern);
+    record_info("count=$pass_count", "# pattern $pass_pattern count in file $f_stdout is $count");
 #    my $fail_count = $self->pattern_count_in_file($f_stdout,$fail_pattern);
 
-    my $count = 0;
-    my $pass_pattern = "\\bpass\\b";
+#    my $count = 0;
+#    my $pass_pattern = "\\bpass\\b";
 
-    my @lines = split /\n/, $eval_stdout;
-    foreach my $line (@lines){
-        print("$line \n");
-        if($line =~ /$pass_pattern/){
-        $count ++;
-        }
-    }
-    record_info("count=$count", "# pattern $pass_pattern count in file $eval_stdout is $count");
+#    my @lines = split /\n/, $eval_stdout;
+#    foreach my $line (@lines){
+#        print("$line \n");
+#        if($line =~ /$pass_pattern/){
+#        $count ++;
+#        }
+#    }
 
 #    my $matching_line = script_output("grep -o pass $f_stdout");
 #    record_info("pass_count=$count", "# pass_count in file $f_stdout is $count");
