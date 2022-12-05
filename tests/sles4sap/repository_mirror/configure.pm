@@ -47,7 +47,7 @@ sub run {
     record_info('CLONE', "Clone $gitlab_repo in $work_dir");
     assert_script_run("cd $work_dir");
     #assert_script_run("git clone $gitlab_clone_url .  2>&1 | tee " . GITLAB_CLONE_LOG);
-    assert_script_run("git clone $gitlab_clone_url .  2>&1 | tee /tmp/gitlab_clone.log";
+    assert_script_run("git clone $gitlab_clone_url . 2>&1 | tee /tmp/gitlab_clone.log");
     assert_script_run("ls $work_dir");
     assert_script_run("find ./");
 
