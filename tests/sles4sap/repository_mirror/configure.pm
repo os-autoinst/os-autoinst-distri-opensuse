@@ -32,7 +32,7 @@ sub run {
 #   qesap_prepare_env(openqa_variables => \%variables, provider => $qesap_provider);
 
 # Clone the terraform and ansible files from the gitlab
-    my $work_dir = ¨~/deployement/¨;
+    my $work_dir = '~/deployement/';
     # Get the code for the Trento deployment
     my $gitlab_repo = get_var('GITLAB_REPO', 'gitlab.suse.de/jkohoutek/plan-b');
 
