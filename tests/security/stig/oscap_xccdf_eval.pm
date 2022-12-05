@@ -62,7 +62,7 @@ sub run {
 #    my $fail_pattern = "\\bfail\\b";
 
     my $pass_count = $self->pattern_count_in_file($eval_stdout, $pass_pattern);
-    record_info("count=$pass_count", "# pattern $pass_pattern count in file $f_stdout is $count");
+    record_info("count=$pass_count", "# pattern $pass_pattern count in file $f_stdout is $pass_count");
 #    my $fail_count = $self->pattern_count_in_file($f_stdout,$fail_pattern);
 
 #    my $count = 0;
