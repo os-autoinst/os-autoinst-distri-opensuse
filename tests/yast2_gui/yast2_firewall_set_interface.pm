@@ -18,6 +18,7 @@ use serial_terminal 'select_serial_terminal';
 
 sub run {
     my $self = shift;
+    select_console 'root-console';
     my $iface = iface();
     my %setting = (device => $iface, zone => 'public');
 
@@ -29,8 +30,10 @@ sub run {
     save_screenshot;
     $testapi::distri->get_firewall()->accept_change();
     assert_screen 'generic-desktop';
-    select_serial_terminal();
+    select_console 'root-console';
+    systemctl 'restart firewalld', timeout => 200 if (script_run(("grep 'FlushAllOnReload.*no' /etc/firewalld/firewalld.conf") == 0));
     validate_script_output("firewall-cmd --list-interfaces --zone=$setting{zone}", sub { m/$setting{device}/ }, proceed_on_failure => 1);
+    select_console 'x11', await_console => 0;
 }
 
 1;
