@@ -121,7 +121,7 @@ sub run {
         }
     }
 
-    uefi_bootmenu_params;
+	uefi_bootmenu_params;
     bootmenu_default_params;
     unless (is_selfinstall) {
         bootmenu_remote_target;

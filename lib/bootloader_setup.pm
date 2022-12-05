@@ -404,7 +404,7 @@ sub uefi_bootmenu_params {
         }
     }
     else {
-        if (is_microos && get_var('BOOT_HDD_IMAGE')) {
+        if (is_microos || is_sle_micro && get_var('BOOT_HDD_IMAGE')) {
             # skip healthchecker lines
             for (1 .. 5) { send_key "down"; }
         }
@@ -423,8 +423,8 @@ sub uefi_bootmenu_params {
         }
         sleep 5;
         for (1 .. 4) { send_key "down"; }
-        if (is_microos && get_var('BOOT_HDD_IMAGE')) {
-            for (1 .. 7) { send_key "down"; }
+        if (is_microos || is_sle_micro && get_var('BOOT_HDD_IMAGE')) {
+            for (1 .. 5) { send_key "down"; }
         }
     }
 
