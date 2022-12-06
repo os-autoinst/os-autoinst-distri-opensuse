@@ -18,7 +18,7 @@ use version_utils qw(is_sle);
 sub get_sev_message {
     return "AMD Secure Encrypted Virtualization (SEV) active" if is_sle('=15-SP2');
     # More messages will be added pas a pas, as more versions run this test.
-    return "AMD Memory Encryption Features active";    # Default message
+    return "Memory Encryption Features active";    # Default message
 }
 
 sub run {
