@@ -93,10 +93,12 @@ sub run {
     if (is_byos()) {
         $instance->run_ssh_command(cmd => 'sudo SUSEConnect --version');
         $instance->run_ssh_command(cmd => "sudo SUSEConnect $regcode_param");
-        $instance->run_ssh_command(cmd => "sudo ${path}registercloudguest --clean");
+        # The registercloudguest tool is not yet part of 15-SP5 as the infrastructure is not yet ready for it.
+        $instance->run_ssh_command(cmd => "sudo ${path}registercloudguest --clean") if (get_var('PUBLIC_CLOUD_QAM'));
     }
 
-    $instance->run_ssh_command(cmd => "sudo ${path}registercloudguest $regcode_param");
+    # The registercloudguest tool is not yet part of 15-SP5 as the infrastructure is not yet ready for it.
+    $instance->run_ssh_command(cmd => "sudo ${path}registercloudguest $regcode_param") if (get_var('PUBLIC_CLOUD_QAM'));
     if ($instance->run_ssh_command(cmd => 'sudo zypper lr | wc -l', timeout => 600) == 0) {
         die('The list of zypper repositories is empty.');
     }
@@ -104,12 +106,15 @@ sub run {
         die('Directory /etc/zypp/credentials.d/ is empty.');
     }
 
-    $instance->run_ssh_command(cmd => "sudo ${path}registercloudguest $regcode_param --force-new");
-    if ($instance->run_ssh_command(cmd => 'sudo zypper lr | wc -l', timeout => 600) == 0) {
-        die('The list of zypper repositories is empty.');
-    }
-    if ($instance->run_ssh_command(cmd => 'sudo ls /etc/zypp/credentials.d/* | wc -l') == 0) {
-        die('Directory /etc/zypp/credentials.d/ is empty.');
+    # The registercloudguest tool is not yet part of 15-SP5 as the infrastructure is not yet ready for it.
+    if (get_var('PUBLIC_CLOUD_QAM')) {
+        $instance->run_ssh_command(cmd => "sudo ${path}registercloudguest $regcode_param --force-new");
+        if ($instance->run_ssh_command(cmd => 'sudo zypper lr | wc -l', timeout => 600) == 0) {
+            die('The list of zypper repositories is empty.');
+        }
+        if ($instance->run_ssh_command(cmd => 'sudo ls /etc/zypp/credentials.d/* | wc -l') == 0) {
+            die('Directory /etc/zypp/credentials.d/ is empty.');
+        }
     }
 
     register_addons_in_pc($instance);
