@@ -39,7 +39,7 @@ sub run {
     # The usage of a variable with a different name is to
     # be able to overwrite the token when manually triggering
     # the setup_jumphost test.
-    my $gitlab_token = get_var('GITLAB_TOKEN', get_required_var('_SECRET_GITLAB_TOKEN'));
+#    my $gitlab_token = get_var('GITLAB_TOKEN', get_required_var('_SECRET_GITLAB_TOKEN'));
 
 #    my $gitlab_clone_url = 'https://git:' . $gitlab_token . '@' . $gitlab_repo;
     my $gitlab_clone_url = 'https://' . $gitlab_repo;
