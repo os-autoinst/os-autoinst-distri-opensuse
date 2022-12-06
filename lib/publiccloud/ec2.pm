@@ -108,6 +108,10 @@ sub upload_img {
             'us-east-2-byos' => 'ami-00d3e0231db6eeee3',
             # suse-sles-15-sp4-v20220915-hvm-ssd-x86_64
             'us-east-2' => 'ami-0ca19ecee2be612fc',
+            # suse-sles-15-sp4-v20220915-hvm-ssd-arm64
+            'us-east-1-arm64' => 'ami-05dbc19aca86fdae4',
+            # suse-sles-15-sp4-byos-v20220915-hvm-ssd-arm64
+            'us-east-1-byos-arm64' => 'ami-0e0756f0108a91de8',
         };
 
         my $ami_id_key = $self->provider_client->region;
