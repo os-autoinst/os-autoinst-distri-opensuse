@@ -28,8 +28,8 @@ sub run {
     my $tuned_log = '/var/log/tuned/tuned.log';
     # Already known errors with bug reference
     my %known_errors;
-    $known_errors{bsc_1148789} = 'Executing cpupower error: Error setting perf-bias value on CPU' if is_sle '<15';
-    $known_errors{bsc_1148789} = 'Failed to set energy_perf_bias on cpu' if (is_sle('>=15') || is_tumbleweed);
+    $known_errors{bsc_1148789} = 'Executing cpupower error: Error setting perf-bias value on CPU' if is_sle '<15-sp1';
+    $known_errors{bsc_1148789} = 'Failed to set energy_perf_bias on cpu' if (is_sle('>=15-sp1') || is_tumbleweed);
 
     select_serial_terminal;
     # Install tuned package
