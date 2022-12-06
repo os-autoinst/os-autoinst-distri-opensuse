@@ -54,7 +54,7 @@ sub run {
     # VM creation
     my $vm_create = "az vm create --resource-group $resource_group --name $machine_name --public-ip-sku Standard --tags '$tags'";
     $vm_create .= " --image $image_name --size Standard_B1ms --admin-username azureuser --ssh-key-values ~/.ssh/id_rsa.pub";
-    my $output = script_output($vm_create, timeout => 600, proceed_on_failure => 1);
+    my $output = script_output($vm_create, timeout => 600);
     if ($output =~ /ValidationError.*object has no attribute/) {
         record_soft_failure('bsc#1191482 - Failed to start/stop vms with azure cli');
         return;
