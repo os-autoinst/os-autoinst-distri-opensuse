@@ -1,10 +1,10 @@
 # SUSE's openQA tests
 #
-# Copyright 2020 SUSE LLC
+# Copyright 2020-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: virtualization test utilities.
-# Maintainer: Julie CAO <jcao@suse.com>
+# Maintainer: Julie CAO <jcao@suse.com>, qe-virt@suse.de
 
 package virt_autotest::utils;
 
@@ -355,7 +355,7 @@ sub install_default_packages {
 sub ensure_online {
     my ($guest, %args) = @_;
 
-    my $hypervisor = $args{HYPERVISOR} // "192.168.122.1";
+    my $hypervisor = $args{HYPERVISOR} // " ";
     my $dns_host = $args{DNS_TEST_HOST} // "www.suse.com";
     my $skip_ssh = $args{skip_ssh} // 0;
     my $skip_network = $args{skip_network} // 0;
@@ -363,6 +363,8 @@ sub ensure_online {
     my $ping_delay = $args{ping_delay} // 15;
     my $ping_retry = $args{ping_retry} // 60;
     my $use_virsh = $args{use_virsh} // 1;
+
+    $hypervisor = get_var('VIRT_AUTOTEST') ? "192.168.123.1" : "192.168.122.1";
 
     # Ensure guest is running
     # Only xen/kvm support to reboot guest at the moment
@@ -379,7 +381,7 @@ sub ensure_online {
         }
         unless ($skip_ssh == 1) {
             # Wait for ssh to come up
-            die "$guest does not start ssh" if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12) != 0);
+            die "$guest does not start ssh" if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 12, timeout => 360) != 0);
             die "$guest not ssh-reachable" if (script_run("ssh $guest uname") != 0);
             # Ensure default route is set
             if (script_run("ssh $guest ip r s | grep default") != 0) {

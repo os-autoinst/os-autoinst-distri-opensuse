@@ -1,13 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2020 SUSE LLC
+# Copyright 2019-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Routed virtual network test:
 #    - Create Routed virtual network
 #    - Confirm Routed virtual network
 #    - Destroy Routed virtual network
-# Maintainer: Leon Guo <xguo@suse.com>
+# Maintainer: Leon Guo <xguo@suse.com>, qe-virt@suse.de
 
 use base "virt_feature_test_base";
 use virt_utils;
