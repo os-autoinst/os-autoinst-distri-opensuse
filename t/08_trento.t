@@ -72,7 +72,7 @@ subtest '[trento_support]' => sub {
     ok((any { /ssh.*trento-support\.sh/ } @calls), 'Run trento-support.sh remotely');
     ok((any { /scp.*\.tar\.gz.*remote_logs/ } @calls), 'scp trento-support.sh output locally');
     ok((any { /ssh.*dump_scenario_from_k8\.sh/ } @calls), 'Run dump_scenario_from_k8.sh remotely');
-    ok((any { /scp.*\.json.*remote_logs/ } @calls), 'scp dump_scenario_from_k8.sh output locally');
+    ok((any { /scp.*openqa_scenario\.tar\.gz.*remote_logs/ } @calls), 'scp dump_scenario_from_k8.sh output locally');
 };
 
 subtest '[get_vnet] get_vnet has to call az and return a vnet' => sub {
