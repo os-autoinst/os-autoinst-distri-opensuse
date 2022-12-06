@@ -49,7 +49,7 @@ sub run {
     #assert_script_run("git clone $gitlab_clone_url .  2>&1 | tee " . GITLAB_CLONE_LOG);
     assert_script_run("git clone $gitlab_clone_url . 2>&1 | tee /tmp/gitlab_clone.log");
     assert_script_run("ls $work_dir");
-    assert_script_run("pws");
+    assert_script_run("pwd");
     assert_script_run("find ./");
     assert_script_run("az account list");
 
