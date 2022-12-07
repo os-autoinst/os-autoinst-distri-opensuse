@@ -286,7 +286,8 @@ sub register_product {
     if (get_var('SMT_URL')) {
         assert_script_run('SUSEConnect --url ' . get_var('SMT_URL') . ' ' . uc(get_var('SLE_PRODUCT')) . '/' . scc_version(get_var('HDDVERSION')) . '/' . get_var('ARCH'), 200);
     } else {
-        assert_script_run('SUSEConnect -r ' . get_required_var('SCC_REGCODE'), 200);
+        my $scc_reg_code = is_sles4sap ? get_required_var('SCC_REGCODE_SLES4SAP') : get_required_var('SCC_REGCODE');
+        assert_script_run('SUSEConnect -r ' . $scc_reg_code, 200);
     }
 }
 

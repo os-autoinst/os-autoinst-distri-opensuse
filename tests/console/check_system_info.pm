@@ -49,6 +49,7 @@ sub check_product {
         SLES => 'SLES' . $myver,
         SLED => 'SLED' . $myver,
         SLE_HPC => 'SLE-Product-HPC-' . $myver,
+        SLES4SAP => 'SLE-' . $myver . '-SAP',
         leap => "openSUSE-Leap",
         Media_HPC => $myver . '-HPC',
     );

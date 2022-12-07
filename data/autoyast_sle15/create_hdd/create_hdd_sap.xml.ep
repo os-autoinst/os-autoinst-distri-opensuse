@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <install_updates config:type="boolean">true</install_updates>
+    <slp_discovery t="boolean">false</slp_discovery>
+    <reg_code><%= $get_var->('SCC_REGCODE_SLES4SAP') %></reg_code>
+    <reg_server><%= $get_var->('SCC_URL') %></reg_server>
+    % if (keys %$addons) {
+    <addons config:type="list">
+      % while (my ($key, $addon) = each (%$addons)) {
+      <addon>
+        <name><%= $addon->{name} %></name>
+        <version><%= $addon->{version} %></version>
+        <arch><%= $addon->{arch} %></arch>
+        % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sles')) {
+        <reg_code><%= $get_var->('SCC_REGCODE_WE') %></reg_code>
+        % }
+        % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sled')) {
+        <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
+        % }
+        % if ($key eq 'rt') {
+        <reg_code><%= $get_var->('SCC_REGCODE_RT') %></reg_code>
+        % }
+        % if ($key eq 'ltss') {
+        <reg_code><%= $get_var->('SCC_REGCODE_LTSS') %></reg_code>
+        % }
+        % if ($key eq 'ha') {
+        <reg_code><%= $get_var->('SCC_REGCODE_SLES4SAP') %></reg_code>
+        % }
+      </addon>
+      % }
+      <addon>
+        <name>sle-module-sap-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+    </addons>
+    %}
+  </suse_register>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+    % if ($check_var->('UEFI', '1')) {
+    <loader_type>grub2-efi</loader_type>
+    % }
+    % unless ($check_var->('UEFI', '1')) {
+    <loader_type>grub2</loader_type>
+    % }
+  </bootloader>
+  <general>
+    <mode>
+      % if ($check_var->('BACKEND', 'ipmi') or $check_var->('BACKEND', 'svirt')) {
+      <final_reboot config:type="boolean">true</final_reboot>
+      % }
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+    <signature-handling>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+  </general>
+  <partitioning config:type="list">
+    <drive>
+      <disklabel>gpt</disklabel>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        % if ($check_var->('ARCH', 'aarch64') or $check_var->('UEFI', '1')) {
+        <partition>
+          <mountby config:type="symbol">uuid</mountby>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">vfat</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>umask=0002,utf8=true</fstopt>
+          <mount>/boot/efi</mount>
+          <size>512M</size>
+        </partition>
+        % }
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>swap</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">130</partition_id>
+          <resize config:type="boolean">false</resize>
+          <size>2G</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <create_subvolumes config:type="boolean">true</create_subvolumes>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>/</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <resize config:type="boolean">false</resize>
+          <size>max</size>
+        </partition>
+      </partitions>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <networking>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <dhclient_set_default_route>yes</dhclient_set_default_route>
+        <startmode>auto</startmode>
+      </interface>
+    </interfaces>
+  </networking>
+  <firewall>
+    <enable_firewall config:type="boolean">true</enable_firewall>
+    <start_firewall config:type="boolean">true</start_firewall>
+  </firewall>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <keyboard>
+    <keyboard_values>
+      <delay/>
+      <discaps config:type="boolean">false</discaps>
+      <numlock>bios</numlock>
+      <rate/>
+    </keyboard_values>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages/>
+  </language>
+  <ntp-client>
+    <ntp_policy>auto</ntp_policy>
+  </ntp-client>
+  <software>
+    <products config:type="list">
+      <product>SLES_SAP</product>
+    </products>
+    <packages config:type="list">
+      <!-- Workaround for bsc#1202234: [addon]-release packages are missing after autoyast installation. -->
+      % foreach (values %$addons) {
+      <package><%= lc($_->{name}) %>-release</package>
+      % }
+      <!-- end of workaround -->
+      <package>sle-module-sap-applications-release</package>
+    </packages>
+    <patterns config:type="list">
+      % for my $pattern (@$patterns) {
+      <pattern><%= $pattern %></pattern>
+      % }
+    </patterns>
+  </software>
+  <services-manager>
+    % if ($check_var->('DESKTOP', 'gnome')) {
+    <default_target>graphical</default_target>
+    % }
+    % if ($check_var->('DESKTOP', 'textmode')) {
+    <default_target>multi-user</default_target>
+    % }
+    <services>
+      <disable config:type="list"/>
+      <enable config:type="list">
+        <service>sshd</service>
+      </enable>
+    </services>
+  </services-manager>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>Europe/Berlin</timezone>
+  </timezone>
+  <users config:type="list">
+    % unless ($check_var->('ROOTONLY', '1')) {
+    <user config:type="map">
+      <authorized_keys config:type="list"/>
+      <encrypted config:type="boolean">true</encrypted>
+      % if ($check_var->('ARCH', 'ppc64le')) {
+      <fullname>Bernhard M. Wiedemann</fullname>
+      % }
+      % unless ($check_var->('ARCH', 'ppc64le')) {
+      <fullname>bernhard</fullname>
+      % }
+      <gid>100</gid>
+      <home>/home/bernhard</home>
+      <password_settings config:type="map">
+        <expire/>
+        <flag/>
+        <inact>-1</inact>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>1000</uid>
+      <user_password>$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/</user_password>
+      <username>bernhard</username>
+    </user>
+    % }
+    <user config:type="map">
+      <authorized_keys config:type="list"/>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <password_settings config:type="map">
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$6$gdDHoMtVLjs4CCzf$2tSvAdgvqrKo84pA59bEjZRh7IGMfv4u0Yl4hrRzPgFPWLd8RXWdn/boT7yM3K3BlTk57qyR0TZ/nMb9rlpzx1</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>
