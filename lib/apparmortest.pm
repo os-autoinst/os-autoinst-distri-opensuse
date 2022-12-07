@@ -802,6 +802,7 @@ Run post_fail_hook and upload audit logs
 sub post_fail_hook {
     my ($self) = shift;
 
+    return if get_var('NOLOGS');
     # Exit x11 and turn to console in case
     send_key("alt-f4");
     select_console("root-console");

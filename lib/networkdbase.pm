@@ -177,6 +177,7 @@ Upload the logs of all known containers.
 
 sub post_fail_hook {
     my ($self) = shift;
+    return if get_var('NOLOGS');
     select_console('log-console');
 
     my $machines = script_output("machinectl --no-legend --no-pager | cut -d ' ' -f 1");
