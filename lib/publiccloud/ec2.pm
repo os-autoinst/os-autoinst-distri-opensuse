@@ -37,6 +37,14 @@ sub find_img {
     return;
 }
 
+sub get_default_instance_type {
+    # Returns the default machine family type to be used, based on the public cloud architecture
+
+    my $arch = get_var("PUBLIC_CLOUD_ARCH", "x86_64");
+    return "a1.large" if ($arch eq 'arm64');
+    return "t2.large";
+}
+
 sub create_keypair {
     my ($self, $prefix, $out_file) = @_;
 
@@ -126,9 +134,7 @@ sub upload_img {
     my $img_arch = get_var('PUBLIC_CLOUD_ARCH', 'x86_64');
     my $sec_group = get_var('PUBLIC_CLOUD_EC2_UPLOAD_SECGROUP');
     my $vpc_subnet = get_var('PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET');
-    my @instance_main_type = split(/\./, get_var('PUBLIC_CLOUD_INSTANCE_TYPE'));
-    my $instance_size = get_var('PUBLIC_CLOUD_IMAGE_LOCATION') =~ /-SAP-/ ? 'large' : 'micro';
-    my $instance_type = get_var('PUBLIC_CLOUD_EC2_UPLOAD_INSTANCE_TYPE', "$instance_main_type[0].$instance_size");
+    my $instance_type = get_var('PUBLIC_CLOUD_EC2_UPLOAD_INSTANCE_TYPE', get_default_instance_type());
 
     # ec2uploadimg will fail without this file, but we can have it empty
     # because we passing all needed info via params anyway
