@@ -8,7 +8,7 @@
 # Maintainer: Nan Zhang <nan.zhang@suse.com> qe-virt@suse.de
 
 use base multi_machine_job_base;
-use base transactional::prepare_transactional_server;
+use base prepare_transactional_server;
 use strict;
 use warnings;
 use testapi;
