@@ -22,6 +22,8 @@ conditional_schedule:
         - installation/user_settings_root
       15-SP4:
         - installation/user_settings_root
+      15-SP3:
+        - installation/user_settings_root
       15-SP2:
         - installation/user_settings_root
   systemrole_dev:
