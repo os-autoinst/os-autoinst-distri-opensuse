@@ -120,6 +120,12 @@ sub login_to_console {
             #send key 'up' to stop grub timer counting down, to be more robust to select xen
             send_key 'up';
             save_screenshot;
+            #If sol console is stuck, reconnect it and resend key up
+            if (check_screen 'virttest-bootmenu-xen-kernel-count-down', 1) {
+                reset_consoles;
+                select_console 'sol', await_console => 0;
+                send_key 'up';
+            }
 
             for (1 .. 20) {
                 if ($_ == 10) {
