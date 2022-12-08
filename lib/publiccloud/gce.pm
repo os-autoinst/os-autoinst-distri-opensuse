@@ -51,11 +51,17 @@ sub upload_img {
     # See https://cloud.google.com/sdk/gcloud/reference/compute/images/create for a list of available features
     # SEV_CAPABLE is added because all images from 15-SP2 onwards support SEV
     my $guest_os_features = get_var('PUBLIC_CLOUD_GCE_UPLOAD_GUEST_FEATURES', 'MULTI_IP_SUBNET,UEFI_COMPATIBLE,VIRTIO_SCSI_MULTIQUEUE,SEV_CAPABLE');
+    my $arch = get_var('PUBLIC_CLOUD_ARCH', '');
 
     assert_script_run("gsutil cp '$file' 'gs://$uri'", timeout => 60 * 60);
 
     my $cmd = "gcloud compute images create '$img_name' --source-uri 'gs://$uri'";
     $cmd .= " --guest-os-features '$guest_os_features'" unless (trim($guest_os_features) eq '');
+    if ($arch) {
+        # Acceptable values are ARM64 and X86_64 (case sensitive).
+        # We need to uppercase the value, as we typically use lowercase settings (e.g. arm64)
+        $cmd .= " --architecture=" . uc $arch;
+    }
     assert_script_run($cmd, timeout => 60 * 10);
 
     if (!$self->find_img($file)) {
