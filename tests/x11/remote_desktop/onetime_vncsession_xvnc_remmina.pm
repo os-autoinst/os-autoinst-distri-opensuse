@@ -3,7 +3,7 @@
 # Copyright 2018-2020 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Package: dhcp-client remmina
+# Package: remmina
 # Summary: Remote Login: One-time VNC Session with remmina and xvnc
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1610354
@@ -21,13 +21,6 @@ sub run {
     mutex_lock 'dhcp';
     mutex_unlock 'dhcp';
     mutex_lock 'xvnc';
-
-    # Make sure the client gets the IP address
-    x11_start_program('xterm');
-    become_root;
-    assert_script_run 'dhclient';
-    enter_cmd "exit";
-    send_key 'alt-f4';
 
     # Start Remmina and login the remote server
     x11_start_program('remmina', target_match => 'remmina-launched');

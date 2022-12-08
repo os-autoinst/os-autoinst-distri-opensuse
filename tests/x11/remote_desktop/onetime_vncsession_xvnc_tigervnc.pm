@@ -1,7 +1,7 @@
 # Copyright 2017-2019 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Package: dhcp-client tigervnc gnome-terminal nautilus
+# Package: tigervnc gnome-terminal nautilus
 # Summary: Remote Login: One-time VNC Session with tigervnc and xvnc
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586206
@@ -18,13 +18,6 @@ sub run {
     mutex_lock 'dhcp';
     mutex_unlock 'dhcp';
     mutex_lock 'xvnc';
-
-    # Make sure the client gets the IP address
-    x11_start_program('xterm');
-    become_root;
-    assert_script_run 'dhclient';
-    enter_cmd "exit";
-    send_key 'alt-f4';
 
     # Start vncviewer and login with fullscreen
     x11_start_program('vncviewer', target_match => 'vnc_password_dialog');
