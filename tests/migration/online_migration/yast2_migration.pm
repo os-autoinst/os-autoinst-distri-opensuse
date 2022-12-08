@@ -152,7 +152,8 @@ sub run {
     }
 
     my $migration_cmd = get_var('LEAP_TECH_PREVIEW_REPO') ? 'migration_sle' : 'migration';
-    script_run("yast2 $migration_cmd; echo yast2-migration-done-\$? > /dev/$serialdev", 0);
+    my $yast_cmd = is_pvm ? 'yast' : 'yast2';
+    script_run("$yast_cmd $migration_cmd; echo yast2-migration-done-\$? > /dev/$serialdev", 0);
 
     # yast2 migration would check and install minimal update before migration
     # if the system doesn't perform full update or minimal update
