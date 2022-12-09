@@ -50,7 +50,11 @@ sub upload_ltp_logs
     my ($self) = @_;
     my $ltp_testsuite = get_required_var('LTP_COMMAND_FILE');
     my $log_file = Mojo::File::path('ulogs/result.json');
+    record_info('LTP Logs', 'upload');
     upload_logs("$root_dir/result.json", log_name => $log_file->basename, failok => 1);
+    # debug file in the standart LTP log-dir. structure:
+    assert_script_run("test -f /tmp/runltp.\$USER/latest/debug.log || echo No debug log");
+    upload_logs("/tmp/runltp.\$USER/latest/debug.log", failok => 1);
 
     return unless -e $log_file->to_string;
 
@@ -171,7 +175,6 @@ sub cleanup {
     # Ensure that the ltp script gets killed
     type_string('', terminate_with => 'ETX');
     $self->upload_ltp_logs();
-
     if ($self->{my_instance} && script_run("test -f $root_dir/log_instance.sh") == 0) {
         assert_script_run($root_dir . '/log_instance.sh stop ' . $self->instance_log_args());
         assert_script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
