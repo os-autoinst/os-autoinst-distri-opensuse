@@ -4,37 +4,54 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Library used for SLES4SAP publicccloud deployment and tests
+#
+# Note: Subroutines executing commands on remote host (using "run_cmd" or "run_ssh_command") require
+# to have $self->{my_instance} defined.
+# $self->{my_instance} defines what is the target instance to execute code on. It is acquired from
+# data located in "@instances" and produced by deployment test modules.
+
+package sles4sap_publiccloud;
 
 use base 'publiccloud::basetest';
-package sles4sap_publiccloud;
 use strict;
 use warnings FATAL => 'all';
+use Exporter 'import';
+use publiccloud::utils;
+use publiccloud::provider;
 use testapi;
 use List::MoreUtils qw(uniq);
-use Exporter 'import';
+use utils 'file_content_replace';
 use Carp qw(croak);
 use hacluster '$crm_mon_cmd';
 
 our @EXPORT = qw(
   run_cmd
   get_promoted_hostname
+  is_hana_resource_running
+  stop_hana
+  get_replication_info
+  is_hana_online
   get_hana_topology
   wait_for_sync
+  wait_for_pacemaker
+  cloud_file_content_replace
+  setup_sbd_delay
 );
 
 =head2 run_cmd
     run_cmd(cmd => 'command', [runas => 'user', timeout => 60]);
 
-Runs a command C<cmd> via ssh in the given VM and log the output.
-All commands are executed through C<sudo>.
-If 'runas' defined, command will be executed as specified user,
-otherwise it will be executed as root.
+    Runs a command C<cmd> via ssh in the given VM and log the output.
+    All commands are executed through C<sudo>.
+    If 'runas' defined, command will be executed as specified user,
+    otherwise it will be executed as root.
 
 =cut
 
 sub run_cmd {
     my ($self, %args) = @_;
-    croak('Argument <cmd> missing') unless ($args{cmd});
+    croak("Argument <cmd> missing") unless ($args{cmd});
+    croak("\$self->{my_instance} is not defined. Check module Description for details") unless $self->{my_instance};
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 60);
     my $title = $args{title} // $args{cmd};
     $title =~ s/[[:blank:]].+// unless defined $args{title};
@@ -54,7 +71,7 @@ sub run_cmd {
 =head2 get_promoted_hostname()
     get_promoted_hostname();
 
-Checks and returns hostname of HANA promoted node.
+    Checks and returns hostname of HANA promoted node according to crm shell output.
 =cut
 
 sub get_promoted_hostname {
@@ -78,9 +95,146 @@ sub get_promoted_hostname {
     return join("", @master);
 }
 
+=head2 get_hana_topology
+    get_hana_topology([hostname => $hostname]);
+
+    Parses command output, returns list of hashes containing values for each host.
+    If hostname defined, returns hash with values only for host specified.
+=cut
+
+sub get_hana_topology {
+    my ($self, %args) = @_;
+    my @topology;
+    my $hostname = $args{hostname};
+    my $cmd_out = $self->run_cmd(cmd => "SAPHanaSR-showAttr --format=script", quiet => 1);
+    record_info("cmd_out", $cmd_out);
+    my @all_parameters = map { if (/^Hosts/) { s,Hosts/,,; s,",,g; $_ } else { () } } split("\n", $cmd_out);
+    my @all_hosts = uniq map { (split("/", $_))[0] } @all_parameters;
+
+    for my $host (@all_hosts) {
+        my %host_parameters = map { my ($node, $parameter, $value) = split(/[\/=]/, $_);
+            if ($host eq $node) { ($parameter, $value) } else { () } } @all_parameters;
+        push(@topology, \%host_parameters);
+
+        if (defined($hostname) && $hostname eq $host) {
+            return \%host_parameters;
+        }
+    }
+
+    return \@topology;
+}
+
+=head2 is_hana_online
+    is_hana_online([timeout => 120, wait_for_start => 'false']);
+
+    Check if hana DB is online. Define 'wait_for_start' to wait for DB to start.
+
+=cut
+
+sub is_hana_online {
+    my ($self, %args) = @_;
+    my $wait_for_start = $args{wait_for_start} // 0;
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
+    my $start_time = time;
+    my $consecutive_passes = 0;
+    my $db_status;
+
+    while ($consecutive_passes < 3) {
+        $db_status = $self->get_replication_info()->{online} eq "true" ? 1 : 0;
+        return $db_status unless $wait_for_start;
+
+        # Reset pass counter in case of fail.
+        $consecutive_passes = $db_status ? ++$consecutive_passes : 0;
+        die("DB did not start within defined timeout: $timeout s") if (time - $start_time > $timeout);
+        sleep 10;
+    }
+    return $db_status;
+}
+
+=head2 is_hana_resource_running
+    is_hana_resource_running([timeout => 60]);
+
+    Checks if resource msl_SAPHana_* is running on given node.
+=cut
+
+sub is_hana_resource_running {
+    my ($self) = @_;
+    my $hostname = $self->{my_instance}->{instance_id};
+    my $hana_resource = join("_",
+        "msl",
+        "SAPHana",
+        "HDB",
+        get_required_var("INSTANCE_SID") . get_required_var("INSTANCE_ID"));
+
+    my $resource_output = $self->run_cmd(cmd => "crm resource status " . $hana_resource, quiet => 1);
+    my $node_status = grep /is running on: $hostname/, $resource_output;
+    record_info("Node status", "$hostname: $node_status");
+    return $node_status;
+}
+
+=head2 stop_hana
+    stop_hana([timeout => $timeout, method => $method]);
+
+    Stops HANA database using default or specified method.
+    "stop" - stops database using "HDB stop" command.
+    "kill" - kills database processes using "HDB -kill" command.
+    "crash" - crashes entire os using "/proc-sysrq-trigger" method.
+=cut
+
+sub stop_hana {
+    my ($self, %args) = @_;
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
+    my $method = $args{method} // 'stop';
+    my %commands = (
+        stop => "HDB stop",
+        kill => "HDB kill -x",
+        crash => "echo b > /proc/sysrq-trigger &"
+    );
+
+    croak("HANA stop method '$args{method}' unknown.") unless $commands{$method};
+    my $cmd = $commands{$method};
+
+    # Wait for data sync before stopping DB
+    $self->wait_for_sync();
+
+    record_info("Stopping HANA", "CMD:$cmd");
+    if ($method eq "crash") {
+        # Crash needs to be executed as root and wait for host reboot
+        $self->{my_instance}->run_ssh_command(cmd => "sudo su -c sync", timeout => "0", %args);
+        $self->{my_instance}->run_ssh_command(cmd => 'sudo su -c "' . $cmd . '"',
+            timeout => "0",
+            # Try only extending ssh_opts
+            ssh_opts => "-o ServerAliveInterval=2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR",
+            %args);
+        sleep 10;
+        $self->{my_instance}->wait_for_ssh();
+        return ();
+    }
+    else {
+        $self->run_cmd(cmd => $cmd, runas => get_var("SAP_SIDADM"), timeout => $timeout);
+    }
+}
+
+=head2 get_replication_info
+    get_replication_info();
+
+    Parses "hdbnsutil -sr_state" command output.
+    Returns hash of found values converted to lowercase and replaces spaces to underscores.
+=cut
+
+sub get_replication_info {
+    my ($self) = @_;
+    my $output_cmd = $self->run_cmd(cmd => "hdbnsutil -sr_state| grep -E :[^\^]", runas => get_var("SAP_SIDADM"));
+    record_info("replication info", $output_cmd);
+    # Create a hash from hdbnsutil output, convert to lowercase with underscore instead of space.
+    my %out = $output_cmd =~ /^?\s?([\/A-z\s]*\S+):\s(\S+)\n/g;
+    %out = map { $_ =~ s/\s/_/g; lc $_ } %out;
+    return \%out;
+}
 
 =head2 wait_for_sync
     wait_for_sync();
+
     Wait for replica site to sync data with primary.
     Checks "SAPHanaSR-showAttr" output and ensures replica site has "sync_state" "SOK".
 =cut
@@ -114,33 +268,63 @@ sub wait_for_sync {
     return 1;
 }
 
+=head2 wait_for_pacemaker
+    wait_for_pacemaker([timeout => $timeout]);
 
-=head2 get_hana_topology
-    get_hana_topology([hostname => $hostname]);
-    Parses  command output, returns list of hashes containing values for each host.
-    If hostname defined, returns hash with values only for host specified.
+    Checks status of pacemaker via systemd 'is-active' command an waits for startup.
+
 =cut
 
-sub get_hana_topology {
+sub wait_for_pacemaker {
     my ($self, %args) = @_;
-    my @topology;
-    my $hostname = $args{hostname};
-    my $cmd_out = $self->run_cmd(cmd => "SAPHanaSR-showAttr --format=script", quiet => 1);
-    record_info("cmd_out", $cmd_out);
-    my @all_parameters = map { if (/^Hosts/) { s,Hosts/,,; s,",,g; $_ } else { () } } split("\n", $cmd_out);
-    my @all_hosts = uniq map { (split("/", $_))[0] } @all_parameters;
+    my $start_time = time;
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
+    my $systemd_cmd = "systemctl --no-pager is-active pacemaker";
+    my $pacemaker_state = "";
 
-    for my $host (@all_hosts) {
-        my %host_parameters = map { my ($node, $parameter, $value) = split(/[\/=]/, $_);
-            if ($host eq $node) { ($parameter, $value) } else { () } } @all_parameters;
-        push(@topology, \%host_parameters);
-
-        if (defined($hostname) && $hostname eq $host) {
-            return \%host_parameters;
+    while ($pacemaker_state ne "active") {
+        sleep 15;
+        $pacemaker_state = $self->run_cmd(cmd => $systemd_cmd, proceed_on_failure => 1);
+        if (time - $start_time > $timeout) {
+            record_info("Pacemaker status", $self->run_cmd(cmd => "systemctl --no-pager status pacemaker"));
+            die("Pacemaker did not start within defined timeout");
         }
     }
+    return 1;
+}
 
-    return \@topology;
+=head2 setup_sbd_delay
+     setup_sbd_delay([set_delay => $set_delay]);
+
+     Set (activate or deactivate) SBD_DELAY_start setting in /etc/sysconfig/sbd.
+     Delay is used in case of cluster VM joining cluster too quickly after fencing operation.
+     For more information check sbd man page.
+
+     "no" - do not set and turn off SMD delay time
+     "yes" - sets default SBD value which is calculated from a formula
+     "<number of seconds>" - sets sepcific delay in seconds
+
+=cut
+
+sub setup_sbd_delay() {
+    my ($self, $set_delay) = @_;
+    my $delay = $set_delay || "no";
+    record_info("SBD delay", "Setting SBD delay to: $delay");
+    $self->cloud_file_content_replace('/etc/sysconfig/sbd', '^SBD_DELAY_START=.*', "SBD_DELAY_START=$delay");
+    return 1;
+}
+
+=head2 cloud_file_content_replace
+    cloud_file_content_replace($filename, $search_pattern, $replace_with);
+
+    Replaces file content direct on PC SUT. Similar to lib/utils.pm file_content_replace()
+=cut
+
+sub cloud_file_content_replace() {
+    my ($self, $filename, $search_pattern, $replace_with) = @_;
+    die("Missing input variable") if (!$filename || !$search_pattern || !$replace_with);
+    $self->run_cmd(cmd => sprintf("sed -E 's/%s/%s/g' -i %s", $search_pattern, $replace_with, $filename), quiet => 1);
+    return 1;
 }
 
 1;
