@@ -57,7 +57,7 @@ sub prepare_packages {
     my $self = shift;
 
     # Install necessary virtualization client packages
-    zypper_call("--non-interactive install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change virt-install libvirt-client libguestfs0 guestfs-tools yast2-schema-micro sshpass");
+    zypper_call("--non-interactive install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change virt-install libvirt-client libguestfs0 guestfs-tools yast2-schema-micro");
     $self->install_additional_pkgs;
 }
 

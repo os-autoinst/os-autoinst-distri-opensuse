@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <guest>
     <guest_os_name>slem</guest_os_name>
-    <guest_version>5.3</guest_version>
+    <guest_version>5.4</guest_version>
     <guest_version_major>5</guest_version_major>
-    <guest_version_minor>3</guest_version_minor>
+    <guest_version_minor>4</guest_version_minor>
     <guest_os_word_length>64</guest_os_word_length>
     <guest_build></guest_build>
     <host_hypervisor_uri></host_hypervisor_uri>
@@ -24,7 +24,7 @@
     <guest_installation_extra_args>sshd=1#sshpassword=nots3cr3t#console=ttyS0,115200n8#textmode=1#rd.debug#rd.memdebug=4#rd.udev.debug</guest_installation_extra_args>
     <guest_installation_wait></guest_installation_wait>
     <guest_installation_method_others></guest_installation_method_others>
-    <guest_installation_media>http://openqa.suse.de/assets/repo/SLE-5.3-Micro-POOL-x86_64-Build12345-Media1/</guest_installation_media>
+    <guest_installation_media>http://openqa.suse.de/assets/repo/SLE-5.4-Micro-POOL-x86_64-Build12345-Media1/</guest_installation_media>
     <guest_installation_fine_grained></guest_installation_fine_grained>
     <guest_boot_settings></guest_boot_settings>
     <guest_secure_boot></guest_secure_boot>
