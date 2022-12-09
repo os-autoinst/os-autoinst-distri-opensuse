@@ -9,4 +9,9 @@ schedule:
   - boot/boot_to_desktop
   - console/prepare_test_data
   - console/consoletest_setup
+  - console/yast2_lan
+  - console/yast2_i
+  - console/yast2_bootloader
+  - console/yast2_lan_device_settings
+  - console/yast2_nfs_server
   - console/yast2_kdump
