@@ -19,6 +19,7 @@ schedule:
     - console/verify_separate_home
     - console/validate_partition_table_via_blkid
     - console/validate_blockdevices
+    -something
 test_data:
   subvolume:
     cow:
