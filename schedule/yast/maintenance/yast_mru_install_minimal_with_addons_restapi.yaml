@@ -1,0 +1,14 @@
+---
+name: yast_mru_install_minimal_with_addons_x86
+vars:
+  PATTERNS: base,enhanced_base
+  YUI_REST_API: 1
+schedule:
+  additional_products: []
+  add_on_product:
+    - installation/add_on_product/add_maintenance_repos
+  software:
+    - installation/select_only_visible_patterns_from_top
+  security:
+    - installation/security/select_security_module_none
+...

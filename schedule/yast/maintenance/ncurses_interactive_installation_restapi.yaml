@@ -8,8 +8,6 @@ vars:
 schedule:
   system_role:
     - installation/system_role/select_role_text_mode
-  default_systemd_target:
-    - installation/installation_settings/validate_default_target
   system_preparation:
     - console/system_prepare
   system_validation:

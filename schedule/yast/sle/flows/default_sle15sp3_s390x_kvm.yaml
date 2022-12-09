@@ -1,5 +1,5 @@
 ---
-# Default ordered sequence of steps for sle15sp4 with maintenance updates
+# Default ordered sequence of steps for sle15sp3 with maintenance updates
 bootloader:
   - installation/bootloader_start
 setup_libyui:
@@ -14,7 +14,8 @@ extension_module_selection:
   - installation/module_registration/register_extensions_and_modules
 add_on_product:
   - installation/add_on_product/add_maintenance_repos
-  - installation/addon_products_sle
+system_role:
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
 suggested_partitioning:
   - installation/partitioning/accept_proposed_layout
 clock_and_timezone:
@@ -22,24 +23,23 @@ clock_and_timezone:
 local_user:
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
-software:
-  - installation/select_only_visible_patterns_from_top
-default_systemd_target: []
+software: []
 booting:
   - installation/bootloader_settings/disable_boot_menu_timeout
-none_security:
-  - installation/security/select_security_module_none
 installation_settings:
   - installation/launch_installation
 installation:
   - installation/confirm_installation
   - installation/performing_installation/perform_installation
-stop_timeout_system_reboot: []
+stop_timeout_system_reboot:
+  - installation/performing_installation/stop_timeout_system_reboot_now
 installation_logs:
   - installation/logs_from_installation_system
-confirm_reboot:
+reboot:
   - installation/performing_installation/confirm_reboot
-grub:
-  - installation/grub_test
+  - installation/performing_installation/reconnect_after_reboot
+  - installation/handle_reboot
 first_login:
   - installation/first_boot
+system_preparation: []
+system_validation: []

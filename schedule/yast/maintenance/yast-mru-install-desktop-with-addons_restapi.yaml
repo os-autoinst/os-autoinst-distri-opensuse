@@ -1,8 +1,7 @@
 ---
-name: yast-mru-install_dev
+name: yast-mru-install-desktop-with-addons
 vars:
   DUD_ADDONS: sdk
   YUI_REST_API: 1
 schedule:
   {}
-...
