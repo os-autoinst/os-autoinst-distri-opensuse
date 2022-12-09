@@ -52,6 +52,9 @@ use YaST::SystemSettings::SystemSettingsController;
 use YaST::Firewall::FirewallController;
 use YaST::DNSServer::DNSServerController;
 use YaST::DNSServer::DNSServerSetupController;
+use YaST::Kdump::StartUpPage;
+use YaST::Kdump::FADumpStartUpPage;
+use YaST::RestartInfoPage;
 
 sub get_language_keyboard {
     return Installation::LanguageKeyboard::LanguageKeyboardController->new();
@@ -211,6 +214,20 @@ sub get_dns_server {
 
 sub get_dns_server_setup {
     return YaST::DNSServer::DNSServerSetupController->new();
+}
+
+# Page Object Design only with Pages, not using Controllers
+
+sub get_kdump_startup {
+    return YaST::Kdump::StartUpPage->new({app => YuiRestClient::get_app()});
+}
+
+sub get_kdump_fadump_startup {
+    return YaST::Kdump::FADumpStartUpPage->new({app => YuiRestClient::get_app()});
+}
+
+sub get_restart_info {
+    return YaST::RestartInfoPage->new({app => YuiRestClient::get_app()});
 }
 
 1;

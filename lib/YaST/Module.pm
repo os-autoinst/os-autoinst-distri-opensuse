@@ -47,7 +47,7 @@ sub open {
     else {
         die "Unknown user interface: $ui";
     }
-    YuiRestClient::get_app()->check_connection();
+    YuiRestClient::get_app()->check_connection(timeout => $args{timeout});
 }
 
 =head2 close
