@@ -29,8 +29,11 @@ our @EXPORT = qw(
   get_promoted_hostname
   is_hana_resource_running
   stop_hana
+<<<<<<< HEAD
   start_hana
   check_takeover
+=======
+>>>>>>> 7ffe6cb37... Add secondary instance tests
   get_replication_info
   is_hana_online
   get_hana_topology
@@ -50,6 +53,10 @@ our @EXPORT = qw(
     All commands are executed through C<sudo>.
     If 'runas' defined, command will be executed as specified user,
     otherwise it will be executed as root.
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7ffe6cb37... Add secondary instance tests
 =cut
 
 sub run_cmd {
@@ -132,6 +139,10 @@ sub get_hana_topology {
     is_hana_online([timeout => 120, wait_for_start => 'false']);
 
     Check if hana DB is online. Define 'wait_for_start' to wait for DB to start.
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7ffe6cb37... Add secondary instance tests
 =cut
 
 sub is_hana_online {
@@ -214,6 +225,7 @@ sub stop_hana {
         return ();
     }
     else {
+<<<<<<< HEAD
         $self->run_cmd(cmd => $cmd, runas => get_required_var("SAP_SIDADM"), timeout => $timeout);
     }
 }
@@ -307,6 +319,10 @@ sub enable_replication {
 
     record_info('CMD Run', $cmd);
     $self->run_cmd(cmd => $cmd, runas => get_required_var("SAP_SIDADM"));
+=======
+        $self->run_cmd(cmd => $cmd, runas => get_var("SAP_SIDADM"), timeout => $timeout);
+    }
+>>>>>>> 7ffe6cb37... Add secondary instance tests
 }
 
 =head2 get_replication_info
@@ -318,13 +334,18 @@ sub enable_replication {
 
 sub get_replication_info {
     my ($self) = @_;
+<<<<<<< HEAD
     my $output_cmd = $self->run_cmd(cmd => "hdbnsutil -sr_state| grep -E :[^\^]", runas => get_required_var("SAP_SIDADM"));
+=======
+    my $output_cmd = $self->run_cmd(cmd => "hdbnsutil -sr_state| grep -E :[^\^]", runas => get_var("SAP_SIDADM"));
+>>>>>>> 7ffe6cb37... Add secondary instance tests
     record_info("replication info", $output_cmd);
     # Create a hash from hdbnsutil output, convert to lowercase with underscore instead of space.
     my %out = $output_cmd =~ /^?\s?([\/A-z\s]*\S+):\s(\S+)\n/g;
     %out = map { $_ =~ s/\s/_/g; lc $_ } %out;
     return \%out;
 }
+<<<<<<< HEAD
 
 =head2 get_promoted_instance
     get_promoted_instance();
