@@ -25,6 +25,7 @@
       <li><a href="#is_ppc64">is_ppc64</a></li>
       <li><a href="#is_orthos_machine">is_orthos_machine</a></li>
       <li><a href="#is_supported_suse_domain">is_supported_suse_domain</a></li>
+      <li><a href="#is_zvm">is_zvm</a></li>
     </ul>
   </li>
 </ul><h1>lib/Utils/Architectures.pm</h1>
@@ -98,6 +99,12 @@ Returns C&lt;check_var(&#39;ARCH&#39;, &#39;ppc64&#39;)&gt;.</code></pre>
 <pre><code>is_supported_suse_domain();</code></pre>
 
 <p>Returns <code>true if machine FQDN has qa.suse.de, qa2.suse.asia or arch.suse.de suffix</code>.</p>
+
+<h2 id="is_zvm">is_zvm</h2>
+
+<pre><code>is_zvm();</code></pre>
+
+<p>Returns <code>true if machine is s390x zVM</code>.</p>
 
 
 </body>
