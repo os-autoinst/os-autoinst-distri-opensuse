@@ -8,3 +8,4 @@ vars:
 schedule:
     - boot/boot_to_desktop
     - sles4sap/repository_mirror/configure
+    - sles4sap/repository_mirror/deployment
