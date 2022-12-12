@@ -34,7 +34,7 @@ sub is_regproxy_required {
 }
 
 sub load_config_tests {
-    if (is_microos) {
+    if (is_microos && !is_staging) {
         loadtest 'update/zypper_clear_repos';
         loadtest 'console/zypper_ar';
         loadtest 'console/zypper_ref';
@@ -255,6 +255,11 @@ sub load_tests {
     load_config_tests;
 
     if (is_container_test || check_var('SYSTEM_ROLE', 'container-host')) {
+        if (is_microos) {
+            # MicroOS Container-Host image runs all tests.
+            load_common_tests;
+            load_transactional_tests;
+        }
         load_container_tests;
         # Container tests didn't execute journal check. However, if doing so, there
         # are some errors to be investigated. We need to remove this return;
