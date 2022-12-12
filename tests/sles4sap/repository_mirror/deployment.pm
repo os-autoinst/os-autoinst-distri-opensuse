@@ -30,7 +30,7 @@ sub run {
 #    $variables{SSH_KEY_PUB} = '/root/.ssh/id_rsa.pub';
 
 # Clone the terraform and ansible files from the gitlab
-    my $work_dir = '~/deployment/';
+    my $work_dir = '~/deployment';
     # Get the code for the Trento deployment
 
     # The usage of a variable with a different name is to
@@ -38,7 +38,7 @@ sub run {
     # the setup_jumphost test.
 
     record_info('TERRAFORM', "Terrafrom the public cloud host");
-    assert_script_run("cd $work_dir/apache2/terraform/".lc("$provider"));
+    assert_script_run("cd $work_dir/apache2/terraform/".lc("$PROVIDER"));
     assert_script_run("terraform init 2>&1 | tee /tmp/terraform.log");
     assert_script_run("terraform plan -var-file=configuration.tfvars -out planned_deploy.tfplan -detailed-exitcode  2>&1 | tee /tmp/terraform.log");
     assert_script_run("terraform apply planned_deploy.tfplan -detailed-exitcode  2>&1 | tee /tmp/terraform.log");
@@ -51,7 +51,8 @@ sub run {
     assert_script_run("az network \
                           vnet \
                           list \
-                          --output table");
+                          --output table
+                          ");
 
 
 }
