@@ -665,7 +665,7 @@ sub snapper_is_applicable {
 }
 
 sub chromestep_is_applicable {
-    return is_opensuse && (is_i586 || is_x86_64);
+    return is_opensuse && is_x86_64;
 }
 
 sub chromiumstep_is_applicable {
