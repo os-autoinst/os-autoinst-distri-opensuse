@@ -111,7 +111,7 @@ sub run {
     record_info('img-proof', $img_proof_ver);
     set_var('PUBLIC_CLOUD_IMG_PROOF_VER', $img_proof_ver =~ /img-proof, version ([\d\.]+)/);
 
-    my $terraform_version = '1.1.7';
+    my $terraform_version = '1.3.6';
     # Terraform in a container
     my $terraform_wrapper = <<EOT;
 #!/bin/bash -e
