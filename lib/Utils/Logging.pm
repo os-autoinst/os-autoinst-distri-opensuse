@@ -76,6 +76,13 @@ sub tar_and_upload_log {
 
 Saves the journal of the systemd unit C<$unit> to C<journal_$unit.log> and uploads it to openQA.
 
+=cut
+
+sub save_and_upload_systemd_unit_log {
+    my ($self, $unit) = @_;
+    $self->save_and_upload_log("journalctl --no-pager -u $unit -o short-precise", "journal_$unit.log");
+}
+
 =head2
 
 save_ulog($out $filename);

@@ -125,9 +125,8 @@ sub samba_client_access {
     send_key "ret";
     assert_screen("nautilus-sharedir-opened");
 
-    # Do some operations, e.g., create a test folder then delete it
-    assert_and_click("nautilus-open-menu");
-    assert_and_click("nautilus-new-folder");
+    # Create new folder
+    send_key "shift-ctrl-n";
     assert_screen("nautilus-folder-name-input-box");
     type_string("sub-testdir", wait_screen_change => 10);
     send_key "ret";

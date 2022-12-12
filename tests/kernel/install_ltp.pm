@@ -27,6 +27,7 @@ use LTP::utils;
 use rpi 'enable_tpm_slb9670';
 use bootloader_setup 'add_grub_xen_replace_cmdline_settings';
 use virt_autotest::utils 'is_xen_host';
+use Utils::Backends 'get_serial_console';
 
 sub add_we_repo_if_available {
     # opensuse doesn't have extensions
@@ -425,7 +426,8 @@ sub run {
     if (is_xen_host) {
         my $version = get_var('VERSION');
         assert_script_run("grub2-set-default 'SLES ${version}, with Xen hypervisor'");
-        add_grub_xen_replace_cmdline_settings('console=ttyS1,115200n', update_grub => 1);
+        my $serial_console = get_serial_console;
+        add_grub_xen_replace_cmdline_settings("console=${serial_console},115200n", update_grub => 1);
     }
 
     setup_network unless is_transactional;

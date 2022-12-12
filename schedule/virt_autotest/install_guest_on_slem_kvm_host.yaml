@@ -19,7 +19,7 @@ vars:
 schedule:
   - "{{bootup_and_install}}"
   - virt_autotest/login_console
-  - virt_autotest/transactional/prepare_transactional_server
+  - virt_autotest/prepare_transactional_server
   - "{{install_guest}}"
 conditional_schedule:
   bootup_and_install:

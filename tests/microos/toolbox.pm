@@ -100,7 +100,7 @@ sub run {
             assert_script_run 'echo -e "REGISTRY=registry.opensuse.org\nIMAGE=opensuse/toolbox" > ~/.toolboxrc';
             validate_script_output 'toolbox -r cat /etc/os-release', sub { m/opensuse/ }, timeout => 180;
         } else {
-            assert_script_run 'echo -e "REGISTRY=registry.suse.com\nIMAGE=suse/sle-micro/5.0/toolbox" > ~/.toolboxrc';
+            assert_script_run 'echo -e "REGISTRY=registry.suse.com\nIMAGE=suse/sle-micro/5.3/toolbox" > ~/.toolboxrc';
             validate_script_output 'toolbox -r cat /etc/os-release', sub { m/sles/ }, timeout => 180;
         }
         assert_script_run 'podman rm toolbox-root';

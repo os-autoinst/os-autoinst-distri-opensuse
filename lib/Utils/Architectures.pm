@@ -29,6 +29,7 @@ use constant {
           is_ppc64
           is_orthos_machine
           is_supported_suse_domain
+          is_zvm
         )
     ]
 };
@@ -180,6 +181,18 @@ sub is_supported_suse_domain {
     my $sut_fqdn = get_var('SUT_IP', 'nosutip');
     return 1 if $sut_fqdn =~ /(arch\.suse\.de|qa2\.suse\.asia|qa\.suse\.de)/im;
     return 0;
+}
+
+=head2 is_zvm
+
+ is_zvm();
+
+Returns C<true if machine is s390x zVM>.
+
+=cut
+
+sub is_zvm {
+    return (get_var('MACHINE') =~ /zvm/i);
 }
 
 1;

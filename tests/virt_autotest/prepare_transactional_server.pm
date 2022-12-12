@@ -9,7 +9,7 @@
 # only or which need to to performed by leveraging transactional-update command.
 #
 # Maintainer: Wayne Chen <wchen@suse.com> qe-virt@suse.de
-package transactional::prepare_transactional_server;
+package prepare_transactional_server;
 
 use base "opensusebasetest";
 use strict;

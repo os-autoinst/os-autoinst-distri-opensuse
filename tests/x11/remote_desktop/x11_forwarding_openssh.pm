@@ -1,7 +1,7 @@
 # Copyright 2017 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Package: dhcp-client openssh gedit gnome-control-center
+# Package: openssh gedit gnome-control-center
 # Summary: Remote Login: X11 forwarding over OpenSSH
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586202
@@ -23,11 +23,7 @@ sub run {
     mutex_lock 'ssh';
     mutex_unlock 'ssh';
 
-    # Make sure the client gets the IP address
     x11_start_program('xterm');
-    become_root;
-    assert_script_run 'dhclient';
-    enter_cmd "exit";
 
     # ssh login
     my $str = 'SSH-' . time;

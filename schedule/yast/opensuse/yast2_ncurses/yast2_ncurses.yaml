@@ -25,7 +25,11 @@ schedule:
   - console/yast2_lan_hostname/dhcp_no
   - console/yast2_lan_hostname/dhcp_yes
   - console/yast2_lan_hostname/dhcp_yes_eth
-  - console/yast2_dns_server
+  - console/yast2_dns_server_initial_setup
+  - console/yast2_dns_server_service_inactive_enabled
+  - console/yast2_dns_server_service_active_disabled
+  - console/yast2_dns_server_service_inactive_disabled
+  - console/yast2_dns_server_service_keep_inactive_disabled
   - console/yast2_nfs_client
   - console/yast2_snapper_ncurses
 test_data:

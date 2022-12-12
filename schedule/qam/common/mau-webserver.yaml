@@ -53,7 +53,6 @@ conditional_schedule:
         - console/django
         - console/nginx
       15-SP5:
-        - console/django
         - console/nginx
       tumbleweed:
         - console/django

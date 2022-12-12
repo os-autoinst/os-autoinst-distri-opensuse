@@ -34,6 +34,7 @@ our @EXPORT = qw(
   get_addon_fullname
   rename_scc_addons
   is_module
+  is_phub_ready
   verify_scc
   investigate_log_empty_license
   register_addons_cmd
@@ -103,6 +104,11 @@ our @SLE12_MODULES = qw(
 sub is_module {
     my $name = shift;
     return defined $SLE15_MODULES{$name};
+}
+
+# Check if Packagehub is available
+sub is_phub_ready {
+    return (check_var('PHUB_READY', '0')) ? 0 : 1;
 }
 
 sub accept_addons_license {
@@ -280,7 +286,8 @@ sub register_product {
     if (get_var('SMT_URL')) {
         assert_script_run('SUSEConnect --url ' . get_var('SMT_URL') . ' ' . uc(get_var('SLE_PRODUCT')) . '/' . scc_version(get_var('HDDVERSION')) . '/' . get_var('ARCH'), 200);
     } else {
-        assert_script_run('SUSEConnect -r ' . get_required_var('SCC_REGCODE'), 200);
+        my $scc_reg_code = is_sles4sap ? get_required_var('SCC_REGCODE_SLES4SAP') : get_required_var('SCC_REGCODE');
+        assert_script_run('SUSEConnect -r ' . $scc_reg_code, 200);
     }
 }
 

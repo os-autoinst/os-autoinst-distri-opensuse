@@ -3,7 +3,6 @@ description:    >
     Kdump kernel testing for various architectures with possibility to change crash
     memory using CRASH_MEMORY variable.
 schedule:
-    - installation/bootloader_start
     - boot/boot_to_desktop
     - kernel/kdump
     - shutdown/shutdown

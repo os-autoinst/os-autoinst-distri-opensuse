@@ -48,6 +48,7 @@ Method executed when run() finishes and the module has result => 'fail'
 
 sub post_fail_hook {
     my ($self) = @_;
+    return if get_var('NOLOGS');
     record_avc_selinux_alerts();
     $self->SUPER::post_fail_hook;
     # at this point the instance is shutdown

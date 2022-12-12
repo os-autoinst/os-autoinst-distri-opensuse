@@ -703,8 +703,12 @@ sub trento_support {
 
     my $scenario_name = $scenario || 'openqa_scenario';
     script_run(az_vm_ssh_cmd("./dump_scenario_from_k8.sh -n $scenario_name", $machine_ip));
-    script_run("$scp_cmd:'scenarios/$scenario_name/*.json' $log_dir");
-    foreach my $this_file (split("\n", script_output('ls -1 ' . $log_dir . '*.tar.gz ' . $log_dir . '*.json'))) {
+    script_run(az_vm_ssh_cmd("tar -czvf $scenario_name.tar.gz scenarios/$scenario_name/*.json", $machine_ip));
+    script_run(az_vm_ssh_cmd("rm -rf scenarios/$scenario_name/*.json", $machine_ip));
+    script_run("$scp_cmd:'$scenario_name.tar.gz' $log_dir");
+    script_run(az_vm_ssh_cmd('rm -rf *.tar.gz', $machine_ip));
+
+    foreach my $this_file (split("\n", script_output('ls -1 ' . $log_dir . '*.tar.gz'))) {
         upload_logs($this_file, failok => 1);
     }
 }

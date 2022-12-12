@@ -206,6 +206,11 @@ sub load_container_tests {
         return;
     }
 
+    if ($runtime eq 'k3s') {
+        loadtest 'containers/run_container_in_k3s';
+        return;
+    }
+
     foreach (split(',\s*', $runtime)) {
         my $run_args = OpenQA::Test::RunArgs->new();
         $run_args->{runtime} = $_;

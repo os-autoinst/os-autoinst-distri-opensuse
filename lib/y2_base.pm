@@ -161,6 +161,7 @@ sub upload_widgets_json {
 
 sub post_fail_hook {
     my $self = shift;
+    return if get_var('NOLOGS');
     upload_widgets_json();
     $self->SUPER::post_fail_hook;
 }

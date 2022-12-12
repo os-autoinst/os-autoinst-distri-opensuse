@@ -126,6 +126,7 @@ Method executed when run() finishes and the module has result => 'fail'
 
 sub post_fail_hook {
     my ($self) = shift;
+    return if get_var('NOLOGS');
     select_console('log-console');
 
     # fetch Salt specific logs

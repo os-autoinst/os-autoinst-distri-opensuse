@@ -8,6 +8,7 @@ schedule:
     - console/add_phub_extension
     - console/python_scientific
     - console/python_flake8
+    - console/django
     - '{{wpa_supplicant}}'
     - console/vmstat
     - console/sssd_389ds_functional
