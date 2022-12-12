@@ -38,7 +38,7 @@ sub run {
     # the setup_jumphost test.
 
     record_info('TERRAFORM', "Terrafrom the public cloud host");
-    assert_script_run("cd $work_dir/apache2/terraform/$provider");
+    assert_script_run("cd $work_dir/apache2/terraform/".lc("$provider"));
     assert_script_run("terraform init 2>&1 | tee /tmp/terraform.log");
     assert_script_run("terraform plan -var-file=configuration.tfvars -out planned_deploy.tfplan -detailed-exitcode  2>&1 | tee /tmp/terraform.log");
     assert_script_run("terraform apply planned_deploy.tfplan -detailed-exitcode  2>&1 | tee /tmp/terraform.log");
