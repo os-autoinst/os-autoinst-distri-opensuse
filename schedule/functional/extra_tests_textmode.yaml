@@ -169,4 +169,5 @@ schedule:
     - '{{tumbleweed_tests}}'
     - console/tar
     - console/coredump_collect
+    - console/valgrind
     - console/zypper_log_packages
