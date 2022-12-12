@@ -22,7 +22,7 @@ sub run {
     my $qesap_provider = lc get_required_var('PUBLIC_CLOUD_PROVIDER');
 
     my %variables;
-    $variables{PROVIDER} = $qesap_provider;
+    $variables{PROVIDER} = $qesap_provider; # Beware, this is uppcase
     $variables{REGION} = $provider->provider_client->region;
     $variables{DEPLOYMENT_NAME} = $resource_group_postfix;
     $variables{DEPLOYMENT_OS_VER} = get_required_var("DEPLOYMENT_OS_VER");
@@ -38,7 +38,7 @@ sub run {
     # the setup_jumphost test.
 
     record_info('TERRAFORM', "Terrafrom the public cloud host");
-    assert_script_run("cd $work_dir/apache2/terraform/".lc("$PROVIDER"));
+    assert_script_run("cd $work_dir/apache2/terraform/".lc("$qesap_provider"));
     assert_script_run("terraform init 2>&1 | tee /tmp/terraform.log");
     assert_script_run("terraform plan -var-file=configuration.tfvars -out planned_deploy.tfplan -detailed-exitcode  2>&1 | tee /tmp/terraform.log");
     assert_script_run("terraform apply planned_deploy.tfplan -detailed-exitcode  2>&1 | tee /tmp/terraform.log");
