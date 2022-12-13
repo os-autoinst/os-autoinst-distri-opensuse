@@ -23,12 +23,24 @@ sub new {
 sub init {
     my $self = shift;
     $self->{btn_ok} = $self->{app}->button({id => 'next'});
+    $self->{btn_cancel} = $self->{app}->button({id => 'abort'});
+    $self->{btn_yes} = $self->{app}->button({id => 'yes'});
     return $self;
 }
 
 sub press_ok {
     my ($self) = @_;
     $self->{btn_ok}->click();
+}
+
+sub press_cancel {
+    my ($self) = @_;
+    $self->{btn_cancel}->click();
+}
+
+sub press_yes {
+    my ($self) = @_;
+    $self->{btn_yes}->click();
 }
 
 1;
