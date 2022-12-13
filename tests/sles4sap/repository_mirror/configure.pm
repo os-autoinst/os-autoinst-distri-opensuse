@@ -51,7 +51,7 @@ sub run {
                           curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py ;
                           python3 get-pip.py --user ;
                           python3 -m pip install --user ansible ;
-                        fi");
+                        fi", timeout => 240 );
     record_info('CLONE', "Clone $gitlab_repo in $work_dir");
     assert_script_run("mkdir $work_dir");
     assert_script_run("cd $work_dir");
