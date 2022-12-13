@@ -1,8 +1,8 @@
-# Copyright SUSE LLC
+# Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Configuration steps for qe-sap-deployment
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Summary: Configuration steps for repository mirror
+# Maintainer: QE-SAP <qe-sap@suse.de>, Jan Kohoutek <jan.kohoutek@suse.com>
 
 use strict;
 use warnings;
@@ -41,12 +41,20 @@ sub run {
     assert_script_run("cd $work_dir/apache2/terraform/".lc("$qesap_provider"));
     assert_script_run("terraform init 2>&1 | tee /tmp/terraform.log");
     assert_script_run("terraform plan -var-file=configuration.tfvars -out planned_deploy.tfplan -detailed-exitcode  2>&1 | tee /tmp/terraform.log");
-    assert_script_run("terraform apply planned_deploy.tfplan -detailed-exitcode  2>&1 | tee /tmp/terraform.log");
+    assert_script_run("terraform apply planned_deploy.tfplan 2>&1 | tee /tmp/terraform.log");
     assert_script_run("ls $work_dir");
-    assert_script_run("pwd");
-    assert_script_run("find ./");
-    assert_script_run("az account list -o table");
-    assert_script_run("az group  list list -o table");
+    record_info('ANSIBLE', "SCC registration");
+    assert_script_run("ansible-playbook \
+                        -i ../../ansible/inventory.yaml \
+                        ../../ansible/registration.yaml \
+                        --extra-vars \"$(terraform output --json | jq 'with_entries(.value |= .value)')\"");
+    record_info('ANSIBLE', "Apache 2 install and configure");
+    assert_script_run("ansible-playbook \
+                        -i ../../ansible/inventory.yaml \
+                        ../../ansible/httpd_ibsim_config.yaml \
+                        --extra-vars \"$(terraform output --json | jq 'with_entries(.value |= .value)')\"");
+    assert_script_run("ps -fax | grep httpd");
+    assert_script_run("az group list -o table");
     assert_script_run("az vm list -o table");
     assert_script_run("az network \
                           vnet \
