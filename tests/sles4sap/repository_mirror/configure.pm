@@ -44,7 +44,7 @@ sub run {
 #     my $gitlab_clone_url = 'https://' . $gitlab_repo;
 
     record_info('ENVIROMENT', "Setting up enviroment variables");
-    assert_script_run("export PATH=$PATH:~/.local/bin");
+    assert_script_run("export PATH=\$PATH:~/.local/bin");
     record_info('ANSIBLE', "Installing Ansible");
     assert_script_run("cd ~");
     assert_script_run("if python3 -m pip -V ;
