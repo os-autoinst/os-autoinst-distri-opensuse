@@ -43,6 +43,15 @@ sub run {
     my $gitlab_clone_url = 'https://git:' . $gitlab_token . '@' . $gitlab_repo;
 #     my $gitlab_clone_url = 'https://' . $gitlab_repo;
 
+    record_info('ANSIBLE', "Installing Ansible");
+    assert_script_run("cd ~");
+    assert_script_run("if python3 -m pip -V ;
+                        then python3 -m pip install --user ansible ;
+                        else
+                          curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py ;
+                          python3 get-pip.py --user ;
+                          python3 -m pip install --user ansible ;
+                        fi");
     record_info('CLONE', "Clone $gitlab_repo in $work_dir");
     assert_script_run("mkdir $work_dir");
     assert_script_run("cd $work_dir");
