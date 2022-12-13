@@ -48,7 +48,8 @@ sub init {
 
     assert_script_run('mkdir -p /root/.config/openstack');
     assert_script_run('curl ' . data_url("jeos/clouds.yaml") . ' -o ' . OS_CONFIG_FILE);
-    assert_script_run('curl ' . data_url("jeos/mn_jeos.cloud-init") . ' -o ' . CLOUD_INIT_FILE);
+    my $ci_data = get_var('CI_DATA_FILE', 'jeos/mn_jeos.cloud-init');
+    assert_script_run('curl ' . data_url("$ci_data") . ' -o ' . CLOUD_INIT_FILE);
 
     # terraform complains if the certificate is in /usr/share/pki/trust/anchors/
     #    "Error: Error parsing CA Cert from /usr/share/pki/trust/anchors/SUSE_Trust_Root.crt.pem"
@@ -67,8 +68,24 @@ sub init {
 
     file_content_replace(CLOUD_INIT_FILE, q(%PASSWORD%) => $testapi::password);
 
+    if (get_var('CLOUD_INIT_VERIFICATION')) {
+        file_content_replace(CLOUD_INIT_FILE, q(%SCC_REGCODE%) => get_var('SCC_REGCODE'));
+        file_content_replace(CLOUD_INIT_FILE, q(%SCC_URL%) => sprintf(' --url=%s', get_var('SCC_URL', '')));
+
+        my %pkeys = (rsa => 2048, ecdsa => 521);
+        while (my ($t, $bits) = each(%pkeys)) {
+            assert_script_run(qq[ssh-keygen -t $t -b $bits -N '' -f ~/.ssh/test_ci_$t -C "Tester key $t"]);
+            my @pubkey = script_output("cat ~/.ssh/test_ci_$t.pub");
+            file_content_replace(CLOUD_INIT_FILE, uc("%SSH_PUBK_$t%") => join(' ', @pubkey));
+        }
+    }
+
+    record_info("cloud-init", script_output('cat ' . CLOUD_INIT_FILE));
+
     assert_script_run('chmod 644 ' . OS_CONFIG_FILE);
     assert_script_run('export OS_CLOUD=mycloud');
+    assert_script_run('cat ' . OS_CONFIG_FILE);
+    assert_script_run('cat ' . CLOUD_INIT_FILE);
 
     die('Credentials are invalid') unless ($self->_check_credentials());
 }

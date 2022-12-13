@@ -597,7 +597,14 @@ sub load_jeos_openstack_tests {
     } else {
         loadtest 'publiccloud/ssh_interactive_start', run_args => $args;
     }
-    #    loadtest "jeos/image_info";
+
+    if (get_var('CLOUD_INIT_VERIFICATION')) {
+        loadtest 'jeos/verify_cloudinit', run_args => $args;
+        loadtest("publiccloud/ssh_interactive_end", run_args => $args);
+        return;
+    }
+
+    loadtest "jeos/image_info";
     loadtest "jeos/record_machine_id";
     loadtest "console/system_prepare" if is_sle;
     loadtest "console/force_scheduled_tasks";
@@ -608,7 +615,6 @@ sub load_jeos_openstack_tests {
         loadtest "console/journal_check";
         loadtest "microos/libzypp_config";
     }
-    loadtest "console/suseconnect_scc" if is_sle;
 
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
     replace_opensuse_repos_tests if is_repo_replacement_required;
