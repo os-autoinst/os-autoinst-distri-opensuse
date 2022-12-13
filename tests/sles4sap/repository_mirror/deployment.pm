@@ -44,14 +44,14 @@ sub run {
     assert_script_run("terraform apply planned_deploy.tfplan 2>&1 | tee /tmp/terraform.log", timeout => 300 );
     assert_script_run("ls $work_dir");
     record_info('ANSIBLE', "SCC registration");
-    assert_script_run("ansible-playbook \
-                        -i ../../ansible/inventory.yaml \
-                        ../../ansible/registration.yaml \
+    assert_script_run("ansible-playbook \\
+                        -i ../../ansible/inventory.yaml \\
+                        ../../ansible/registration.yaml \\
                         --extra-vars \"$(terraform output --json | jq 'with_entries(.value |= .value)')\"", timeout => 300 );
     record_info('ANSIBLE', "Apache 2 install and configure");
-    assert_script_run("ansible-playbook \
-                        -i ../../ansible/inventory.yaml \
-                        ../../ansible/httpd_ibsim_config.yaml \
+    assert_script_run("ansible-playbook \\
+                        -i ../../ansible/inventory.yaml \\
+                        ../../ansible/httpd_ibsim_config.yaml \\
                         --extra-vars \"$(terraform output --json | jq 'with_entries(.value |= .value)')\"", timeout => 300 );
     assert_script_run("ps -fax | grep httpd");
     assert_script_run("az group list -o table");
