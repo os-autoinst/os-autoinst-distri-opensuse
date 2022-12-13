@@ -68,6 +68,7 @@ sub has_conflict {
         'libjpeg8-devel' => 'libjpeg62-devel',
         dapl => 'dapl-debug'
     );
+    $conflict{'kernel-default-kgraft'} = 'kernel-default-kgraft' if get_var('BUILD') =~ /kernel/ && check_var('VERSION', '12-SP3');
     return $conflict{$binary};
 }
 
