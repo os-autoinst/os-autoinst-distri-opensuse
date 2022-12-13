@@ -1,8 +1,8 @@
-# Copyright SUSE LLC
+# Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Configuration steps for qe-sap-deployment
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Summary: Configuration steps for repository mirror
+# Maintainer: QE-SAP <qe-sap@suse.de>, Jan Kohoutek <jan.kohoutek@suse.com>
 
 use strict;
 use warnings;
@@ -43,6 +43,8 @@ sub run {
     my $gitlab_clone_url = 'https://git:' . $gitlab_token . '@' . $gitlab_repo;
 #     my $gitlab_clone_url = 'https://' . $gitlab_repo;
 
+    record_info('ENVIROMENT', "Setting up enviroment variables");
+    assert_script_run("export PATH=$PATH:~/.local/bin");
     record_info('ANSIBLE', "Installing Ansible");
     assert_script_run("cd ~");
     assert_script_run("if python3 -m pip -V ;
