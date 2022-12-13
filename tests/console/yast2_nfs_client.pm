@@ -60,6 +60,9 @@ sub run {
     # From now we need needles
     select_console 'root-console';
 
+    # Call systemd-vconsole-setup before accessing virtual consoles to avoid wrong visualization with ncurses
+    assert_script_run '/usr/lib/systemd/systemd-vconsole-setup';
+
     #
     # YaST nfs-client execution
     #
