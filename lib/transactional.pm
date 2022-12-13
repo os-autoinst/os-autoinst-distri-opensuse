@@ -35,6 +35,7 @@ our @EXPORT = qw(
   enter_trup_shell
   exit_trup_shell_and_reboot
   reboot_on_changes
+  record_kernel_audit_messages
 );
 
 # Download files needed for transactional update tests
@@ -82,10 +83,12 @@ sub process_reboot {
 
     if (is_microos || is_sle_micro && !is_s390x) {
         microos_reboot $args{trigger};
+        record_kernel_audit_messages();
     } elsif (is_backend_s390x) {
         prepare_system_shutdown;
         enter_cmd "reboot";
         opensusebasetest::wait_boot(opensusebasetest->new(), bootloader_time => 200);
+        record_kernel_audit_messages();
     } else {
         power_action('reboot', observe => !$args{trigger}, keepconsole => 1);
         if (is_s390x || is_pvm) {
@@ -104,6 +107,7 @@ sub process_reboot {
 
         # Login & clear login needle
         select_console 'root-console';
+        record_kernel_audit_messages();
         assert_script_run 'clear';
     }
 
@@ -129,6 +133,28 @@ sub check_reboot_changes {
 
     # Reboot into new snapshot
     process_reboot(trigger => 1) if $change_happened;
+}
+
+
+
+=head2 record_kernel_audit_messages
+
+Record the SELinux messages before the auditd daemon has been started, if present. If there are no such entries, this function has no effect.
+
+=cut
+
+sub record_kernel_audit_messages {
+    my %args = testapi::compat_args({log_upload => 0}, ['log_upload'], @_);
+    my $output = script_output("journalctl -k | grep 'audit:.*avc:' || true");
+    return unless ($output);    # Don't log anything if there is no output
+    record_info("AVC-k", "Kernel audit messages:\n\n$output", result => 'softfail');
+
+    # Upload the same log and don't fail on errors (supplemental material)
+    if ($args{log_upload}) {
+        script_run("journalctl -k | grep 'audit:.*avc:' > /var/tmp/k-audit.log");
+        upload_logs("/var/tmp/k-audit.log", fail_ok => 1);
+        script_run("rm -f /var/tmp/k-audit.log");
+    }
 }
 
 # Return names and version of packages for transactional-update tests
