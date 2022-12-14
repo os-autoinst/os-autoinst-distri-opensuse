@@ -45,6 +45,8 @@ sub run {
 
     record_info('ENVIROMENT', "Setting up enviroment variables");
     assert_script_run("export PATH=\$PATH:~/.local/bin");
+    assert_script_run("export ANSIBLE_HOST_KEY_CHECKING=False ");
+
     record_info('ANSIBLE', "Installing Ansible");
     assert_script_run("cd ~");
     assert_script_run("if python3 -m pip -V ;
@@ -54,6 +56,7 @@ sub run {
                           python3 get-pip.py --user ;
                           python3 -m pip install --user ansible ;
                         fi", timeout => 240 );
+    
     record_info('CLONE', "Clone $gitlab_repo in $work_dir");
     assert_script_run("mkdir $work_dir");
     assert_script_run("cd $work_dir");
