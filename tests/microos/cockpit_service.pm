@@ -14,11 +14,12 @@ use transactional;
 use utils qw(systemctl);
 use mm_network qw(is_networkmanager);
 use version_utils qw(is_microos is_sle_micro is_leap_micro is_alp);
+use serial_terminal;
 
 sub run {
     my ($self) = @_;
 
-    select_console 'root-console';
+    select_serial_terminal;
 
     # Install cockpit if needed, this is needed for DVD flavor where
     # Cockpit pattern is not selected during install

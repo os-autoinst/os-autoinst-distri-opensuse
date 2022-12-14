@@ -14,6 +14,7 @@ use testapi;
 use transactional;
 use Utils::Architectures qw(is_s390x);
 use version_utils qw(is_sle_micro);
+use serial_terminal;
 
 sub action {
     my ($target, $text, $reboot) = @_;
@@ -26,7 +27,7 @@ sub action {
 sub run {
     my ($self) = @_;
 
-    select_console 'root-console';
+    select_serial_terminal;
 
     if (is_sle_micro && is_s390x) {
         record_soft_failure "bsc#1191863 -  [s390x] Can't reboot after transactional-update bootloader";

@@ -12,9 +12,10 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal;
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
     die 'Should have failed' unless script_run('touch /should_fail');
     assert_script_run "touch /etc/should_succeed";

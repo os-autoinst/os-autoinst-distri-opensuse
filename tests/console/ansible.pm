@@ -48,7 +48,7 @@ sub run {
     ensure_serialdev_permissions;
 
     if (is_transactional) {
-        trup_call("-n pkg install $pkgs sudo");
+        trup_call("pkg install $pkgs sudo");
         check_reboot_changes;
     } else {
         zypper_call "in $pkgs sudo";
@@ -201,7 +201,7 @@ sub cleanup {
     # Remove ansible, yamllint and git
     $pkgs .= ' ed' unless (is_alp);
     if (is_transactional) {
-        trup_call("-n pkg remove $pkgs");
+        trup_call("pkg remove $pkgs");
         check_reboot_changes;
     } else {
         # ed has been installed in ansible-playbook
