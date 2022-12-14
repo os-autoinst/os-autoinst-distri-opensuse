@@ -47,12 +47,12 @@ sub run {
     assert_script_run("ansible-playbook \\
                         -i ../../ansible/inventory.yaml \\
                         ../../ansible/registration.yaml \\
-                        --extra-vars \"$(terraform output --json | jq 'with_entries(.value |= .value)')\"", timeout => 300 );
+                        --extra-vars \"\$(terraform output --json | jq 'with_entries(.value |= .value)')\"", timeout => 300 );
     record_info('ANSIBLE', "Apache 2 install and configure");
     assert_script_run("ansible-playbook \\
                         -i ../../ansible/inventory.yaml \\
                         ../../ansible/httpd_ibsim_config.yaml \\
-                        --extra-vars \"$(terraform output --json | jq 'with_entries(.value |= .value)')\"", timeout => 300 );
+                        --extra-vars \"\$(terraform output --json | jq 'with_entries(.value |= .value)')\"", timeout => 300 );
     assert_script_run("ps -fax | grep httpd");
     assert_script_run("az group list -o table");
     assert_script_run("az vm list -o table");
