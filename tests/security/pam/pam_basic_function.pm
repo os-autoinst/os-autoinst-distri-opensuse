@@ -23,7 +23,7 @@ sub run {
 
     # Make sure all corresponding files are there
     assert_script_run 'ls /etc/pam.d';
-    assert_script_run 'ls /lib64/security';
+    assert_script_run 'ls /lib*/security';
     assert_script_run 'ls /etc/security';
 
     # Make sure the binaries are controlled by PAM
