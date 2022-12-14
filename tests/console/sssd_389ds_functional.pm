@@ -22,21 +22,17 @@ use strict;
 use warnings;
 use utils;
 use version_utils;
-use registration qw(add_suseconnect_product is_phub_ready);
+use registration 'add_suseconnect_product';
 
 sub run {
     select_serial_terminal;
 
-    # Package 'sshpass' requires PackageHub is available
-    return unless is_phub_ready();
-
     my $docker = "podman";
     if (is_sle) {
         $docker = "docker";
-        add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1);
         is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
     }
-    zypper_call("in sssd sssd-ldap openldap2-client sshpass $docker");
+    zypper_call("in sssd sssd-ldap openldap2-client $docker");
 
     #For released sle versions use sle15sp3 base image by default. For developing sle use corresponding image in registry.suse.de
     my $pkgs = "awk systemd systemd-sysvinit 389-ds openssl";
@@ -58,7 +54,9 @@ sub run {
     assert_script_run("curl " . "--remote-name-all " . data_url("sssd/398-ds/{user_389.ldif,access.ldif,Dockerfile_$docker,instance_389.inf}"));
     assert_script_run(qq(sed -i '/gpg-auto-import-keys/i\\RUN zypper rr SLE_BCI' Dockerfile_$docker)) if (check_var('BETA', '1'));
     assert_script_run(qq($docker build -t ds389_image --build-arg tag="$tag" --build-arg pkgs="$pkgs" -f Dockerfile_$docker .), timeout => 600);
-    assert_script_run("$docker run -itd --shm-size=256m --name ds389_container --hostname ldapserver --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --restart=always ds389_image") if ($docker eq "docker");
+    assert_script_run(
+"$docker run -itd --shm-size=256m --name ds389_container --hostname ldapserver --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --restart=always ds389_image"
+    ) if ($docker eq "docker");
     assert_script_run("$docker run -itd --shm-size=256m --name ds389_container --hostname ldapserver ds389_image") if ($docker eq "podman");
     assert_script_run("$docker exec ds389_container sed -n '/ldapserver/p' /etc/hosts >> /etc/hosts");
     assert_script_run("$docker exec ds389_container dscreate from-file /tmp/instance_389.inf");
@@ -78,30 +76,62 @@ sub run {
     validate_script_output("id alice", sub { m/uid=9998\(alice\)/ });
     #remote user authentification test
     assert_script_run("pam-config -a --sss --mkhomedir");
-    validate_script_output('sshpass -p open5use ssh mary@localhost whoami', sub { m/mary/ });
+
+    select_console 'root-console';
+
+    user_test();
     #Change password of remote user
-    assert_script_run('sshpass -p open5use ssh alice@localhost \'echo -e "open5use\nn0vell88\nn0vell88" | passwd\'');
-    validate_script_output('sshpass -p n0vell88 ssh alice@localhost echo "login as new password!"', sub { m/new password/ });
-    validate_script_output('ldapwhoami -x -H ldap://ldapserver -D uid=alice,ou=users,dc=sssdtest,dc=com -w n0vell88', sub { m/alice/ }); #verify password changed in remote 389-ds.
-        #Sudo run a command as another user
+    enter_cmd('ssh -oStrictHostKeyChecking=no alice@localhost', wait_still_screen => 5);
+    enter_cmd('open5use', wait_still_screen => 5);
+    enter_cmd('echo -e "open5use\nn0vell88\nn0vell88" | passwd', wait_still_screen => 1);
+    enter_cmd('exit', wait_still_screen => 1);
+    #verify password changed in remote 389-ds.
+    validate_script_output('ldapwhoami -x -H ldap://ldapserver -D uid=alice,ou=users,dc=sssdtest,dc=com -w n0vell88', sub { m/alice/ });
+    #Sudo run a command as another user
     assert_script_run("sed -i '/Defaults targetpw/s/^/#/' /etc/sudoers");
-    validate_script_output('sshpass -p open5use ssh mary@localhost "echo open5use|sudo -S -l"', sub { m#/usr/bin/cat# });
+    enter_cmd('ssh -oStrictHostKeyChecking=no mary@localhost', wait_still_screen => 5);
+    enter_cmd('open5use', wait_still_screen => 5);
+    enter_cmd('echo open5use|sudo -S -l > /tmp/sudouser', wait_still_screen => 1);
+    enter_cmd('exit', wait_still_screen => 1);
+    validate_script_output('cat /tmp/sudouser', sub { m#/usr/bin/cat# });
     assert_script_run(qq(su -c 'echo "file read only by owner alice" > hello && chmod 600 hello' -l alice));
-    validate_script_output('sshpass -p open5use ssh mary@localhost "echo open5use|sudo -S -u alice /usr/bin/cat /home/alice/hello"', sub { m/file read only by owner alice/ });
+    sudo_user_test();
     #Change back password of remote user
-    assert_script_run('sshpass -p n0vell88 ssh alice@localhost \'echo -e "n0vell88\nopen5use\nopen5use" | passwd\'');
-    validate_script_output('sshpass -p open5use ssh alice@localhost echo "Password changed back!"', sub { m/Password changed back/ });
+    enter_cmd('ssh -oStrictHostKeyChecking=no alice@localhost', wait_still_screen => 5);
+    enter_cmd('n0vell88', wait_still_screen => 5);
+    enter_cmd('echo -e "n0vell88\nopen5use\nopen5use" | passwd', wait_still_screen => 1);
+    enter_cmd('exit', wait_still_screen => 1);
+    enter_cmd('ssh -oStrictHostKeyChecking=no alice@localhost', wait_still_screen => 5);
+    enter_cmd('open5use', wait_still_screen => 5);
+    enter_cmd('echo "Password changed back!" > /tmp/passwdback', wait_still_screen => 1);
+    enter_cmd('exit', wait_still_screen => 1);
+    validate_script_output('cat /tmp/passwdback', sub { m/Password changed back/ });
 
     #offline identity lookup and authentification
     assert_script_run("$docker stop ds389_container") if ($docker eq "docker");
     #offline cached remote user indentity lookup
     validate_script_output("id alice", sub { m/uid=9998\(alice\)/ });
     #offline remote user authentification test
-    validate_script_output('sshpass -p open5use ssh mary@localhost whoami', sub { m/mary/ });
+    user_test();
     #offline sudo run a command as another user
-    validate_script_output('sshpass -p open5use ssh mary@localhost "echo open5use|sudo -S -u alice /usr/bin/cat /home/alice/hello"', sub { m/file read only by owner alice/ });
+    sudo_user_test();
 }
 
+sub user_test {
+    enter_cmd('ssh -oStrictHostKeyChecking=no mary@localhost', wait_still_screen => 5);
+    enter_cmd('open5use', wait_still_screen => 5);
+    enter_cmd('whoami > /tmp/mary', wait_still_screen => 1);
+    enter_cmd('exit', wait_still_screen => 1);
+    validate_script_output('cat /tmp/mary', sub { m/mary/ });
+}
+
+sub sudo_user_test {
+    enter_cmd('ssh -oStrictHostKeyChecking=no mary@localhost', wait_still_screen => 5);
+    enter_cmd('open5use', wait_still_screen => 5);
+    enter_cmd('echo open5use|sudo -S -u alice /usr/bin/cat /home/alice/hello > /tmp/readonly', wait_still_screen => 5);
+    enter_cmd('exit', wait_still_screen => 1);
+    validate_script_output('cat /tmp/readonly', sub { m/file read only by owner alice/ });
+}
 sub test_flags {
     return {always_rollback => 1};
 }
