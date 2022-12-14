@@ -14,12 +14,17 @@
 <ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
   <li>
     <ul>
+      <li><a href="#record_kernel_audit_messages">record_kernel_audit_messages</a></li>
       <li><a href="#enter_trup_shell">enter_trup_shell</a></li>
       <li><a href="#exit_trup_shell_and_reboot">exit_trup_shell_and_reboot</a></li>
       <li><a href="#reboot_on_changes">reboot_on_changes</a></li>
     </ul>
   </li>
 </ul><h1>lib/transactional.pm</h1>
+
+<h2 id="record_kernel_audit_messages">record_kernel_audit_messages</h2>
+
+<p>Record the SELinux messages before the auditd daemon has been started, if present. If there are no such entries, this function has no effect.</p>
 
 <h2 id="enter_trup_shell">enter_trup_shell</h2>
 
