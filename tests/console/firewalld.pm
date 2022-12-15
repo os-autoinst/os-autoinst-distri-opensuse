@@ -266,6 +266,17 @@ sub test_custom_services {
     assert_script_run("rm -rf /etc/firewalld/services/fbsql.xml");
 }
 
+sub test_default_backend {
+    validate_script_output('iptables', sub {
+        if (uses_iptables){
+	   qr/legacy/
+	} else {
+	  record_soft_failure('https://bugzilla.suse.com/show_bug.cgi?id=1206383') if qr/legacy/;
+	  qr/nf_tables/
+	}
+    });
+}
+
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
@@ -296,6 +307,9 @@ sub run {
 
     # Test #8 - Create a custom service
     test_custom_services;
+
+    # Test #9 - Ensure we have the correct backend
+    test_default_backend;
 }
 
 sub post_fail_hook {
