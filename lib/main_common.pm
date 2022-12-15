@@ -2308,37 +2308,6 @@ sub load_security_tests_crypt_libtool {
     loadtest "fips/libtool/liboauth";
 }
 
-sub load_security_tests_crypt_krb5kdc {
-
-    loadtest "console/consoletest_setup";
-    loadtest "fips/fips_setup" if (get_var("FIPS_ENABLED"));
-
-    loadtest "security/krb5/krb5_crypt_prepare";
-    loadtest "security/krb5/krb5_crypt_setup_kdc";
-}
-
-sub load_security_tests_crypt_krb5server {
-
-    loadtest "console/consoletest_setup";
-    loadtest "fips/fips_setup" if (get_var("FIPS_ENABLED"));
-
-    loadtest "security/krb5/krb5_crypt_prepare";
-    loadtest "security/krb5/krb5_crypt_setup_server";
-    loadtest "security/krb5/krb5_crypt_ssh_server";
-    loadtest "security/krb5/krb5_crypt_nfs_server";
-}
-
-sub load_security_tests_crypt_krb5client {
-
-    loadtest "console/consoletest_setup";
-    loadtest "fips/fips_setup" if (get_var("FIPS_ENABLED"));
-
-    loadtest "security/krb5/krb5_crypt_prepare";
-    loadtest "security/krb5/krb5_crypt_setup_client";
-    loadtest "security/krb5/krb5_crypt_ssh_client";
-    loadtest "security/krb5/krb5_crypt_nfs_client";
-}
-
 sub load_security_tests_fips_setup {
     # Setup system into fips mode
     loadtest "fips/fips_setup";
@@ -2437,30 +2406,6 @@ sub load_security_tests_openscap {
     loadtest "security/openscap/oscap_validating";
 }
 
-sub load_security_tests_selinux {
-    # ALWAYS run following tests in sequence because of the dependencies
-    # Setup - install SELinux necessary packages
-    loadtest "security/selinux/selinux_setup";
-    loadtest "security/selinux/sestatus";
-    loadtest "security/selinux/selinux_smoke";
-
-    # Change SELinux from "permissive" mode to "enforcing" mode for testing
-    loadtest "security/selinux/enforcing_mode_setup";
-    # The following test modules must be run after "enforcing_mode_setup"
-    loadtest "security/selinux/semanage_fcontext";
-    loadtest "security/selinux/semanage_boolean";
-    loadtest "security/selinux/fixfiles";
-    loadtest "security/selinux/print_se_context";
-    loadtest "security/selinux/audit2allow";
-    loadtest "security/selinux/semodule";
-    loadtest "security/selinux/setsebool";
-    loadtest "security/selinux/restorecon";
-    loadtest "security/selinux/chcon";
-    loadtest "security/selinux/chcat";
-    loadtest "security/selinux/set_get_enforce";
-    loadtest "security/selinux/selinuxexeccon";
-}
-
 sub load_security_tests_cc_audit_test {
     # Setup environment for cc testing: 'audit-test' test suite setup
     # Such as: download code branch; install needed packages
@@ -2511,35 +2456,6 @@ sub load_security_tests_cc_audit_remote_libvirt {
 
 sub load_security_tests_mok_enroll {
     loadtest "security/mokutil_sign";
-}
-
-sub load_security_tests_ima_measurement {
-    loadtest "security/ima/ima_setup";
-    loadtest "security/ima/ima_measurement";
-    loadtest "security/ima/ima_kernel_cmdline_template";
-    loadtest "security/ima/ima_kernel_cmdline_hash";
-    loadtest "security/ima/ima_measurement_audit";
-}
-
-sub load_security_tests_ima_appraisal {
-    loadtest "security/ima/ima_setup";
-    loadtest "security/ima/ima_appraisal_hashes";
-    loadtest "security/ima/ima_appraisal_digital_signatures";
-    loadtest "security/ima/ima_verify";
-    loadtest "security/ima/ima_appraisal_audit";
-    loadtest "security/ima/evmctl_ima_sign";
-}
-
-sub load_security_tests_evm_protection {
-    loadtest "security/ima/ima_setup";
-    loadtest "security/ima/evm_setup";
-    loadtest "security/ima/evm_protection_hmacs";
-    loadtest "security/ima/evm_protection_digital_signatures";
-    loadtest "security/ima/evm_verify";
-}
-
-sub load_security_tests_system_check {
-    loadtest "security/nproc_limits";
 }
 
 sub load_security_tests_check_kernel_config {
@@ -2689,12 +2605,11 @@ sub load_mitigation_tests {
 sub load_security_tests {
     my @security_tests = qw(
       fips_setup crypt_core crypt_web crypt_kernel crypt_x11 crypt_firefox crypt_tool crypt_openjdk
-      crypt_libtool crypt_krb5kdc crypt_krb5server crypt_krb5client
+      crypt_libtool
       ipsec mmtest
-      apparmor apparmor_profile yast2_apparmor yast2_users selinux
+      apparmor apparmor_profile yast2_apparmor yast2_users
       openscap
-      mok_enroll ima_measurement ima_appraisal evm_protection
-      system_check
+      mok_enroll
       check_kernel_config
       tpm2
       pam

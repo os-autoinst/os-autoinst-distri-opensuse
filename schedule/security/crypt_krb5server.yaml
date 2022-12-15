@@ -1,0 +1,16 @@
+name: crypt_krb5server
+description:    >
+    This is for crypt_krb5server test
+schedule:
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - '{{fips_setup}}'
+    - security/krb5/krb5_crypt_prepare
+    - security/krb5/krb5_crypt_setup_server
+    - security/krb5/krb5_crypt_ssh_server
+    - security/krb5/krb5_crypt_nfs_server
+conditional_schedule:
+    fips_setup:
+        FIPS_ENABLED:
+            1:
+                - fips/fips_setup
