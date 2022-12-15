@@ -10,7 +10,7 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use qesapdeployment 'qesap_upload_logs';
-use trento 'config_cluster';
+use trento 'cluster_config';
 
 sub run {
     my ($self) = @_;
@@ -20,7 +20,7 @@ sub run {
     my $provider = $self->provider_factory();
 
     # Setup and configure the qe-sap-deployment
-    config_cluster(get_required_var('PUBLIC_CLOUD_PROVIDER'), $provider->provider_client->region, get_required_var('SCC_REGCODE_SLES4SAP'));
+    cluster_config(get_required_var('PUBLIC_CLOUD_PROVIDER'), $provider->provider_client->region, get_required_var('SCC_REGCODE_SLES4SAP'));
 
 }
 

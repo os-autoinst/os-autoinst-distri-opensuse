@@ -10,7 +10,7 @@ use Mojo::Base 'publiccloud::basetest';
 use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use trento qw(deploy_vm trento_acr_azure install_trento az_delete_group k8s_logs trento_support);
+use trento;
 
 sub run {
     my ($self) = @_;
