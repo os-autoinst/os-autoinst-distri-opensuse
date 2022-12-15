@@ -1,0 +1,23 @@
+---
+name: remote_ssh_controller
+description: >
+  Multi-machine test using one VM to trigger installation over ssh using ftp
+  mirror, second VM connects over ssh and conducts the installation.
+  Installation is validated by successful boot and that YaST does not report
+  any issue. Installs remote server (parallel job) with ssh.
+vars:
+  YUI_REST_API: 1
+schedule:
+  bootloader:
+    - support_server/login
+    - support_server/setup
+    - remote/remote_controller
+    - installation/bootloader_start
+  extension_module_selection:
+    - installation/module_registration/skip_module_registration
+  add_on_product:
+    - installation/add_on_product/skip_install_addons
+  grub: []
+  first_login: []
+  system_validation:
+    - support_server/wait_children
