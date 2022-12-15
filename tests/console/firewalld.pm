@@ -340,6 +340,17 @@ sub test_firewall_offline_cmd {
     }
 }
 
+sub test_default_backend {
+    validate_script_output('iptables --version', sub {
+            if (uses_iptables) {
+                m/legacy/;
+            } else {
+                record_soft_failure('bsc#1206383') if m/legacy/;
+                m/nf_tables/;
+            }
+    });
+}
+
 sub run {
     select_serial_terminal;
 
@@ -372,6 +383,10 @@ sub run {
 
     # Test #9 - Add rule to stopped firewall then check that it's applied
     test_firewall_offline_cmd;
+
+
+    # Test #10 - Ensure we have the correct backend
+    test_default_backend;
 }
 
 sub post_fail_hook {
