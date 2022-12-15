@@ -1479,7 +1479,7 @@ sub load_extra_tests_y2uitest_ncurses {
         return;
     }
     # start extra yast console tests (self-contained only) from here
-    loadtest "console/yast2_rmt" unless (is_sle('<15-sp1') || is_leap('<15.0'));
+    loadtest "console/yast2_rmt" unless (is_sle('<15-sp1') || is_leap('<15.0') || is_i586);
     loadtest "console/yast2_ntpclient";
     loadtest "console/yast2_tftp";
     # We don't schedule some tests on s390x as they are unstable, see poo#42692

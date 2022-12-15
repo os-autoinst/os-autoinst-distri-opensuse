@@ -84,7 +84,9 @@ sub install_kubectl {
             # kubectl is in the container module
             add_suseconnect_product(get_addon_fullname('contm'));
             # SLES-15SP2+ ships a specific kubernetes client version. Older versions hold a version-independent kubernetes-client package.
-            if (is_sle(">15-SP1")) {
+            if (is_sle(">=15-SP3")) {
+                zypper_call("in kubernetes1.23-client");
+            } elsif (is_sle("=15-SP2")) {
                 zypper_call("in kubernetes1.18-client");
             } else {
                 zypper_call("in kubernetes-client");

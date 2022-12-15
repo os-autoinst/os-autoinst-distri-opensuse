@@ -37,5 +37,7 @@ jobs:
       env:
         TESTS: ${{ matrix.test }}
       run: |
+        # Work around https://github.com/actions/checkout/issues/766
+        git config --global --add safe.directory "$GITHUB_WORKSPACE"
         git fetch origin master
         make test

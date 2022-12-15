@@ -364,7 +364,7 @@ sub run {
         die 'INSTALL_LTP must contain "git" or "repo"';
     }
 
-    if (!get_var('KGRAFT') && !get_var('LTP_BAREMETAL') && !is_jeos) {
+    if (!get_var('KGRAFT') && !get_var('LTP_BAREMETAL') && !is_jeos && !is_alp) {
         $self->wait_boot;
     }
 

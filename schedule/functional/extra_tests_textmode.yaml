@@ -170,4 +170,5 @@ schedule:
     - console/tar
     - console/coredump_collect
     - console/valgrind
+    - console/sssd_389ds_functional
     - console/zypper_log_packages
