@@ -129,8 +129,6 @@ EOT
     my $ansible_core_version = get_var('ANSIBLE_CORE_VERSION');
     my $ansible_install_log = '/tmp/ansible_install.log';
 
-    assert_script_run("curl https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py", timeout => 240);
-    assert_script_run("python3.9 /tmp/get-pip.py", timeout => 240);
     assert_script_run("python3.9 -m pip install --no-input -q --no-color --log $ansible_install_log ansible==$ansible_version", timeout => 240);
     upload_logs("$ansible_install_log", failok => 1);
 
