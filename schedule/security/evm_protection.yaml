@@ -1,0 +1,10 @@
+name: evm_protection
+description:    >
+    Test evm_protection
+schedule:
+    - boot/boot_to_desktop
+    - security/ima/ima_setup
+    - security/ima/evm_setup
+    - security/ima/evm_protection_hmacs
+    - security/ima/evm_protection_digital_signatures
+    - security/ima/evm_verify

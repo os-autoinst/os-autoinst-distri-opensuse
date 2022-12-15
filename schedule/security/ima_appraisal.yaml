@@ -1,0 +1,11 @@
+name: ima_appraisal
+description:    >
+    Test ima_appraisal
+schedule:
+    - boot/boot_to_desktop
+    - security/ima/ima_setup
+    - security/ima/ima_appraisal_hashes
+    - security/ima/ima_appraisal_digital_signatures
+    - security/ima/ima_verify
+    - security/ima/ima_appraisal_audit
+    - security/ima/evmctl_ima_sign
