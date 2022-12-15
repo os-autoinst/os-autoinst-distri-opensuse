@@ -9,7 +9,7 @@ use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use qesapdeployment qw(qesap_upload_logs qesap_get_inventory qesap_ansible_cmd);
+use qesapdeployment qw(qesap_upload_logs qesap_ansible_cmd);
 use trento;
 
 sub run {

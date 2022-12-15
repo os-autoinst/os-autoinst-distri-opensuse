@@ -13,10 +13,10 @@ use qesapdeployment;
 sub run {
     my $ret = qesap_execute(cmd => 'terraform', verbose => 1, timeout => 1800);
     die "'qesap.py terraform' return: $ret" if ($ret);
+    my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    upload_logs($inventory, failok => 1);
     $ret = qesap_execute(cmd => 'ansible', verbose => 1, timeout => 1800);
     die "'qesap.py ansible' return: $ret" if ($ret);
-    my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
-    upload_logs($inventory);
 }
 
 sub test_flags {

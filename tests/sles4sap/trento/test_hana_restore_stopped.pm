@@ -14,15 +14,6 @@ use utils 'script_retry';
 use qesapdeployment;
 use trento;
 
-sub condition {
-    my ($node_a_string, $node_b_string) = @_;
-
-    # New status
-    # vmhana01 DEMOTED     30          online     logreplay vmhana02   4:S:master1:master:worker:master 100   goofy sync   SOK        vmhana01
-    # vmhana02 PROMOTED    1670943910  online     logreplay vmhana01   4:P:master1:master:worker:master 150   miky  sync   PRIM       vmhana02
-    return (($node_a_string =~ m/.*DEMOTED.*SOK/) && ($node_b_string =~ m/.*PROMOTED.*PRIM/));
-}
-
 sub run {
     my ($self) = @_;
     select_serial_terminal;
@@ -44,8 +35,7 @@ sub run {
     qesap_ansible_cmd(cmd => "sudo crm resource refresh rsc_SAPHana_HDB_HDB00 $primary_host",
         provider => $prov,
         filter => $primary_host);
-
-    cluster_wait_status($primary_host, \&condition);
+    cluster_wait_status($primary_host, sub { ((shift =~ m/.+DEMOTED.+SOK/) && (shift =~ m/.+PROMOTED.+PRIM/)); });
 
     trento_support('test_hana_restore_stopped');
 }
