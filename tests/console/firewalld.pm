@@ -340,13 +340,23 @@ sub test_firewall_offline_cmd {
     }
 }
 
+# Test #10 - Verify default backend on 15+ (SLES and Leap)
+#            Factory derived products, should have nf_tables too
 sub test_default_backend {
     validate_script_output('iptables --version', sub {
+            # This could have been done using capture groups too
+            # removing the need for repeating regexes and nesting ifs
+            # let's wait until a new backend is added, before optimizing
             if (uses_iptables) {
-                m/legacy/;
+                # if iptables reports no backend, or legacy backend, we' re using old version of it
+                m/(?:iptables\sv[[:digit:]].+\w)\s?($|(?:.legacy.$))/;
             } else {
-                record_soft_failure('bsc#1206383') if m/legacy/;
-                m/nf_tables/;
+                if (m/(?:iptables\sv[[:digit:]].+\w)\s?($|(?:.legacy.$))/) {
+                    record_soft_failure('bsc#1206383');
+                    return 1;
+                } else {
+                    m/nf_tables/;
+                }
             }
     });
 }
@@ -383,7 +393,6 @@ sub run {
 
     # Test #9 - Add rule to stopped firewall then check that it's applied
     test_firewall_offline_cmd;
-
 
     # Test #10 - Ensure we have the correct backend
     test_default_backend;
