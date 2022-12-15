@@ -11,7 +11,7 @@ use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
-use trento qw(clone_trento_deployment cypress_install_container cypress_version PODMAN_PULL_LOG);
+use trento;
 
 
 sub run {

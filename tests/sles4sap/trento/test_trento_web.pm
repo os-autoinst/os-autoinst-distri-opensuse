@@ -49,7 +49,7 @@ sub post_fail_hook {
     parse_extra_log("XUnit", $_) for split(/\n/, script_output('find ' . CYPRESS_LOG_DIR . ' -type f -iname "*.xml"'));
 
     qesap_upload_logs();
-    destroy_qesap();
+    cluster_destroy();
 
     $self->SUPER::post_fail_hook;
 }
