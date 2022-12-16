@@ -55,7 +55,7 @@
         "type": "feature"
     },
     "bsc#1126272": {
-        "description": "Failed unmounting \/\\S+\\.|-- Reboot --|pam_systemd.*Failed to release session",
+        "description": "Failed unmounting \/\\S+\\.|-- Reboot --|pam_systemd.*Failed to release session|sshd.*Connection reset by peer",
         "products": {
             "sle-micro": [ "5.0", "5.1", "5.2", "5.3" , "5.4"],
             "leap-micro": [ "5.2", "5.3" ],
