@@ -31,7 +31,6 @@ sub run {
     $variables{SSH_KEY_PUB} = '/root/.ssh/id_rsa.pub';
     $variables{SCC_REGCODE_SLES4SAP} = get_required_var('SCC_REGCODE_SLES4SAP');
 
-
     $variables{HANA_ACCOUNT} = get_required_var("QESAPDEPLOY_HANA_ACCOUNT");
     $variables{HANA_CONTAINER} = get_required_var("QESAPDEPLOY_HANA_CONTAINER");
     if (get_var("QESAPDEPLOY_HANA_TOKEN")) {

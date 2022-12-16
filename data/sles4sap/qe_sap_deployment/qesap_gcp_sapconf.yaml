@@ -36,14 +36,13 @@ ansible:
   create:
     - registration.yaml -e reg_code=${REG_CODE} -e email_address=${EMAIL}
     - pre-cluster.yaml
-    - sap-hana-preconfigure.yaml -e "use_sapconf=true"
-    - cluster_sbd_prep.yaml
+    - sap-hana-preconfigure.yaml -e use_sapconf=true
     - sap-hana-storage.yaml
     - sap-hana-download-media.yaml
     - sap-hana-install.yaml
     - sap-hana-system-replication.yaml
     - sap-hana-system-replication-hooks.yaml
-    - sap-hana-cluster.yaml
+    - sap-hana-cluster.yaml -e use_sbd=false
   destroy:
     - deregister.yaml
   variables:
