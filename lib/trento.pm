@@ -361,14 +361,14 @@ sub trento_acr_azure {
     }
     my $deploy_script_log = "script_$script_id.log.txt";
     my $trento_cluster_install = "${work_dir}/trento_cluster_install.sh";
-    my $trento_acr_azure_timeout = 360;
+    my $trento_acr_azure_timeout = bmwqemu::scale_timeout(360);
     my @cmd_list = (TRENTO_SCRIPT_RUN . $script_id . '.sh',
         '-g', $resource_group,
         '-n', $acr_name,
         '-u', VM_USER,
         '-r', $trento_registry_chart);
     if ($rolling_mode) {
-        $trento_acr_azure_timeout += 240;
+        $trento_acr_azure_timeout += bmwqemu::scale_timeout(240);
         push @cmd_list, ('-o', $work_dir);
     }
     push @cmd_list, ('-v', '2>&1|tee', $deploy_script_log);
@@ -439,9 +439,9 @@ Deploy a SAP Landscape using a previously configured qe-sap-deployment
 =cut
 
 sub cluster_deploy {
-    my $ret = qesap_execute(cmd => 'terraform', verbose => 1, timeout => 1800);
+    my $ret = qesap_execute(cmd => 'terraform', verbose => 1, timeout => bmwqemu::scale_timeout(1800));
     die "'qesap.py terraform' return: $ret" if ($ret);
-    $ret = qesap_execute(cmd => 'ansible', verbose => 1, timeout => 3600);
+    $ret = qesap_execute(cmd => 'ansible', verbose => 1, timeout => bmwqemu::scale_timeout(3600));
     die "'qesap.py ansible' return: $ret" if ($ret);
     my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
     upload_logs($inventory);
@@ -453,9 +453,9 @@ Destroy the qe-sap-deployment SAP Landscape
 =cut
 
 sub cluster_destroy {
-    my $ret = qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
+    my $ret = qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => bmwqemu::scale_timeout(300));
     die "'qesap.py ansible -d' return: $ret" if ($ret);
-    $ret = qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 3600);
+    $ret = qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => bmwqemu::scale_timeout(3600));
     die "'qesap.py terraform -d' return: $ret" if ($ret);
 }
 
@@ -556,7 +556,7 @@ Delete the resource group associated to this JobID and all its content
 
 sub az_delete_group {
     my $az_cmd = sprintf 'az group delete --resource-group %s --yes', get_resource_group();
-    script_retry($az_cmd, timeout => 600, retry => 5, delay => 60);
+    script_retry($az_cmd, timeout => bmwqemu::scale_timeout(600), retry => 5, delay => 60);
 }
 
 =head3 az_vm_ssh_cmd
@@ -801,7 +801,7 @@ Remotly run 'SAPHanaSR-showAttr' in a loop on $host, wait output that match in f
 
 sub cluster_wait_status {
     my ($host, $f_status, $timeout) = @_;
-    $timeout //= 300;
+    $timeout //= bmwqemu::scale_timeout(300);
     my $_monitor_start_time = time();
     my $done;
     while ((time() - $_monitor_start_time <= $timeout) && (!$done)) {
@@ -976,6 +976,7 @@ return not 0 exit code. 1:all not 0 podman/cypress exit code are ignored. SoftFa
 
 sub cypress_exec {
     my ($cypress_test_dir, $cmd, $timeout, $log_prefix, $failok) = @_;
+    $timeout //= bmwqemu::scale_timeout(600);
     my $ret = 0;
 
     record_info('CY EXEC', 'Cypress exec:' . $cmd);
@@ -1026,6 +1027,7 @@ Also used as tag for each test result file
 
 sub cypress_test_exec {
     my ($cypress_test_dir, $test_tag, $timeout) = @_;
+    $timeout //= bmwqemu::scale_timeout(600);
     my $ret = 0;
 
     my $test_file_list = script_output("find $cypress_test_dir/cypress/integration/$test_tag -type f -iname \"*.js\"");

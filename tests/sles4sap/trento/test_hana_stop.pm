@@ -14,11 +14,6 @@ use utils 'script_retry';
 use qesapdeployment;
 use trento;
 
-sub condition {
-    my ($node_a_string, $node_b_string) = @_;
-    return (($node_a_string =~ m/.*UNDEFINED.*SFAIL/) && ($node_b_string =~ m/.*PROMOTED.*PRIM/));
-}
-
 sub run {
     my ($self) = @_;
     select_serial_terminal;
@@ -29,12 +24,11 @@ sub run {
 
     # Stop the primary DB
     cluster_hdbadm($primary_host, 'HDB stop');
-
-    cluster_wait_status($primary_host, \&condition);
+    cluster_wait_status($primary_host, sub { ((shift =~ m/.+UNDEFINED.+SFAIL/) && (shift =~ m/.+PROMOTED.+PRIM/)); });
 
     my $cypress_test_dir = "/root/test/test";
     enter_cmd "cd " . $cypress_test_dir;
-    cypress_test_exec($cypress_test_dir, 'stop_primary', 900);
+    cypress_test_exec($cypress_test_dir, 'stop_primary', bmwqemu::scale_timeout(900));
     trento_support('test_hana_stop');
 }
 

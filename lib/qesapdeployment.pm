@@ -156,7 +156,6 @@ sub qesap_pip_install {
     my $pip_install_log = '/tmp/pip_install.txt';
     my %paths = qesap_get_file_paths();
 
-
     push(@log_files, $pip_install_log);
     record_info("QESAP repo", "Installing pip requirements");
     assert_script_run(join(' ', $pip_ints_cmd, '-r', $paths{deployment_dir} . '/requirements.txt | tee -a', $pip_install_log), 360);

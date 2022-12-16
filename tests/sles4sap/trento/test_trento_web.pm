@@ -25,14 +25,14 @@ sub run {
     assert_script_run "mkdir " . CYPRESS_LOG_DIR;
 
     #  Cypress verify: cypress.io self check about the framework installation
-    cypress_exec($cypress_test_dir, 'verify', 120, 'verify', 1);
+    cypress_exec($cypress_test_dir, 'verify', bmwqemu::scale_timeout(120), 'verify', 1);
     cypress_log_upload(('.txt'));
 
     # test about first visit: login and eula
-    cypress_test_exec($cypress_test_dir, 'first_visit', 900);
+    cypress_test_exec($cypress_test_dir, 'first_visit', bmwqemu::scale_timeout(900));
 
     # all other cypress tests
-    cypress_test_exec($cypress_test_dir, 'all', 900);
+    cypress_test_exec($cypress_test_dir, 'all', bmwqemu::scale_timeout(900));
 
     trento_support('test_trento_web');
 }
