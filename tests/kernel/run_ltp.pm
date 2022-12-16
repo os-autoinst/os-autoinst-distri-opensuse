@@ -314,7 +314,7 @@ sub run {
         send_key 'ret';
     }
     else {
-        enter_cmd("($cmd_text) | tee /dev/$serialdev");
+        enter_cmd("($cmd_text) 2>\&1 | tee /dev/$serialdev");
     }
     my $test_log = wait_serial(qr/$fin_msg\d+\./, $timeout, 0, record_output => 1);
     my ($timed_out, $result_export) = $self->record_ltp_result($runfile, $test, $test_log, $fin_msg, thetime() - $start_time, $is_posix);
