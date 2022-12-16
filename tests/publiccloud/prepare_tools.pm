@@ -1,13 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2021 SUSE LLC
+# Copyright 2018-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: python3-pip python3-virtualenv python3-ec2imgutils aws-cli
 # python3-img-proof azure-cli
 # Summary: Install IPA tool
 #
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: qa-c team <qa-c@suse.de>, QE-SAP <qe-sap@suse.de>
 
 use base "opensusebasetest";
 use strict;
@@ -70,7 +70,7 @@ sub run {
 
     ensure_ca_certificates_suse_installed();
 
-    # Install prerequesite packages test
+    # Install prerequisite packages test
     zypper_call('-q in python39-pip python39-devel python3-img-proof python3-img-proof-tests podman docker jq rsync');
     record_info('python', script_output('python --version'));
     systemctl('enable --now docker');
@@ -111,7 +111,7 @@ sub run {
     record_info('img-proof', $img_proof_ver);
     set_var('PUBLIC_CLOUD_IMG_PROOF_VER', $img_proof_ver =~ /img-proof, version ([\d\.]+)/);
 
-    my $terraform_version = '1.3.6';
+    my $terraform_version = get_var('TERRAFORM_VERSION', '1.3.6');
     # Terraform in a container
     my $terraform_wrapper = <<EOT;
 #!/bin/bash -e
@@ -121,6 +121,23 @@ EOT
     create_script_file('terraform', '/usr/local/bin/terraform', $terraform_wrapper);
     validate_script_output("terraform -version", qr/$terraform_version/);
     record_info('Terraform', script_output('terraform -version'));
+
+    # Ansible install with pip
+    # Default version is chosen as low as possible so it run also on SLE12's
+    # ANSIBLE_CORE_VERSION should be set only if the different then default one need to be used
+    my $ansible_version = get_var('ANSIBLE_VERSION', '4.10.0');
+    my $ansible_core_version = get_var('ANSIBLE_CORE_VERSION');
+    my $ansible_install_log = '/tmp/ansible_install.log';
+
+    assert_script_run("python3.9 -m pip install --no-input -q --no-color --log $ansible_install_log ansible==$ansible_version", timeout => 240);
+    upload_logs("$ansible_install_log", failok => 1);
+
+    if (length $ansible_core_version) {
+        my $ansible_core_install_log = "/tmp/ansible_core_install.log";
+        assert_script_run("python3.9 -m pip install --no-input -q --no-color --log $ansible_core_install_log ansible-core==$ansible_core_version", timeout => 240);
+        upload_logs("$ansible_core_install_log", failok => 1);
+    }
+    record_info('Ansible', script_output('ansible --version'));
 
     # Kubectl in a container
     my $kubectl_version = get_var('KUBECTL_VERSION', 'v1.22.12');

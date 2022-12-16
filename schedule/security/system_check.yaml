@@ -1,0 +1,6 @@
+name: system_check
+description:    >
+    Test system_check
+schedule:
+    - boot/boot_to_desktop
+    - security/nproc_limits

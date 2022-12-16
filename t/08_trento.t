@@ -75,18 +75,31 @@ subtest '[trento_support]' => sub {
     ok((any { /scp.*openqa_scenario\.tar\.gz.*remote_logs/ } @calls), 'scp dump_scenario_from_k8.sh output locally');
 };
 
-subtest '[get_vnet] get_vnet has to call az and return a vnet' => sub {
+subtest '[cluster_trento_net_peering] cluster_trento_net_peering has to compose command and call 00.050 script' => sub {
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     @calls = ();
     my $expected_net_name = 'PIZZANET';
-    $trento->redefine(script_output => sub { push @calls, $_[0]; return $expected_net_name; });
+    $trento->redefine(get_resource_group => sub { return 'VALLUTATA'; });
+    $trento->redefine(get_qesap_resource_group => sub { return 'ZUPPA'; });
+    $trento->redefine(get_vnet => sub {
+            push @calls, $_[0];
+            return "PIATTO_DI_VALLUTATA" if ($_[0] =~ /VALLUTATA/);
+            return "PIATTO_DI_ZUPPA" if ($_[0] =~ /ZUPPA/);
+    });
 
-    my $net_name = get_vnet(qw(GELATOGROUP));
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $trento->redefine(assert_script_run => sub { push @calls, $_[0] });
+
+    cluster_trento_net_peering('/CROSTINI');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
 
-    like $calls[0], qr/az network vnet list -g GELATOGROUP --query "\[0\]\.name" -o tsv/, 'AZ command';
-    is $net_name, $expected_net_name, "expected_net_name:$expected_net_name get net_name:$net_name";
+    #/CROSTINI/00.050-trento_net_peering_tserver-sap_group.sh -s VALLUTATA -n PIATTO_DI_VALLUTATA -t ZUPPA -a PIATTO_DI_ZUPPA
+    like $calls[2], qr/\/CROSTINI\/00\.050\-trento_net_peering_tserver-sap_group\.sh/, 'Called script in work dir';
+    like $calls[2], qr/.*-s VALLUTATA/, 'Trento group';
+    like $calls[2], qr/.*-n PIATTO_DI_VALLUTATA/, 'Trento net';
+    like $calls[2], qr/.*-t ZUPPA/, 'Cluster group';
+    like $calls[2], qr/.*-a PIATTO_DI_ZUPPA/, 'Cluster net';
 };
 
 subtest '[get_trento_deployment] with TRENTO_DEPLOY_VER' => sub {
@@ -187,7 +200,7 @@ subtest '[cypress_configs]' => sub {
     ok((any { /cypress\.env\.json/ } @logs), 'Right output json file');
 };
 
-subtest '[deploy_qesap] ok' => sub {
+subtest '[cluster_deploy] ok' => sub {
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     @logs = ();
     $trento->redefine(qesap_execute => sub { return 0; });
@@ -195,32 +208,32 @@ subtest '[deploy_qesap] ok' => sub {
     $trento->redefine(qesap_get_inventory => sub { return '/PEPERONATA'; });
 
     set_var('PUBLIC_CLOUD_PROVIDER', 'POLPETTE');
-    deploy_qesap();
+    cluster_deploy();
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
     note("\n  L-->  " . join("\n  L-->  ", @logs));
     like $logs[0], qr/PEPERONATA/;
 };
 
-subtest '[deploy_qesap] not ok' => sub {
+subtest '[cluster_deploy] not ok' => sub {
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     $trento->redefine(qesap_execute => sub { return 1; });
-    dies_ok { deploy_qesap() } "Expected die for internal qesap_execute returnin non zero.";
+    dies_ok { cluster_deploy() } "Expected die for internal qesap_execute returnin non zero.";
 };
 
-subtest '[destroy_qesap] ok' => sub {
+subtest '[cluster_destroy] ok' => sub {
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     @calls = ();
     $trento->redefine(qesap_execute => sub { my (%args) = @_; push @calls, \%args; return 0; });
-    destroy_qesap();
+    cluster_destroy();
 
     ok((any { $_->{cmd} eq 'ansible' and $_->{cmd_options} eq '-d' } @calls), 'ansible cmd ok');
     ok((any { $_->{cmd} eq 'terraform' and $_->{cmd_options} eq '-d' } @calls), 'terraform cmd ok');
 };
 
-subtest '[destroy_qesap] not ok' => sub {
+subtest '[cluster_destroy] not ok' => sub {
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     $trento->redefine(qesap_execute => sub { return 1; });
-    dies_ok { destroy_qesap() } "Expected die for internal qesap_execute returnin non zero.";
+    dies_ok { cluster_destroy() } "Expected die for internal qesap_execute returnin non zero.";
 };
 
 subtest '[deploy_vm]' => sub {
@@ -447,7 +460,7 @@ subtest '[install_trento] rolling release' => sub {
     like $calls[1], qr/.*-x GNOCCHI/;
 };
 
-subtest '[install_agent]' => sub {
+subtest '[cluster_install_agent]' => sub {
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     @calls = ();
 
@@ -457,7 +470,7 @@ subtest '[install_agent]' => sub {
 
     # $wd, $playbook_location, $agent_api_key, $priv_ip
     set_var('PUBLIC_CLOUD_PROVIDER', 'POLPETTE');
-    install_agent('/ALICI', '/SARDINE', 'ACCIUGHE');
+    cluster_install_agent('/ALICI', '/SARDINE', 'ACCIUGHE');
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
@@ -470,7 +483,7 @@ subtest '[install_agent]' => sub {
     like $calls[0], qr/.*-e trento_private_addr=FRITTI -e trento_server_pub_key=.*/;
 };
 
-subtest '[install_agent] download rpm' => sub {
+subtest '[cluster_install_agent] download rpm' => sub {
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     @calls = ();
 
@@ -481,7 +494,7 @@ subtest '[install_agent] download rpm' => sub {
     # $wd, $playbook_location, $agent_api_key, $priv_ip
     set_var('PUBLIC_CLOUD_PROVIDER', 'POLPETTE');
     set_var('TRENTO_AGENT_RPM', 'NACHOS');
-    install_agent('/ALICI', '/SARDINE', 'ACCIUGHE');
+    cluster_install_agent('/ALICI', '/SARDINE', 'ACCIUGHE');
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
     set_var('TRENTO_AGENT_RPM', undef);
 

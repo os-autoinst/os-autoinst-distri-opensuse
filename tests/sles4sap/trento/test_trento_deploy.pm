@@ -20,25 +20,10 @@ sub run {
     die "Only AZURE deployment supported for the moment" unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
     select_serial_terminal;
 
-    my $machine_ip = get_trento_ip();
-    if (!get_var('TRENTO_EXT_DEPLOY_IP')) {
-        my $resource_group = get_resource_group();
-
-        # check if VM is still there :-)
-        assert_script_run("az vm list -g $resource_group --query \"[].name\"  -o tsv", 180);
-
-        # get deployed version from the cluster
-        my $kubectl_pods = script_output(az_vm_ssh_cmd('kubectl get pods', $machine_ip), 180);
-        foreach my $row (split(/\n/, $kubectl_pods)) {
-            if ($row =~ m/trento-server-web/) {
-                my $pod_name = (split /\s/, $row)[0];
-                my $trento_ver_cmd = az_vm_ssh_cmd("kubectl exec --stdin $pod_name -- /app/bin/trento version", $machine_ip);
-                script_run($trento_ver_cmd, 180);
-            }
-        }
-    }
+    k8s_test();
 
     # test if the web page is reachable on http
+    my $machine_ip = get_trento_ip();
     my $trento_url = "http://$machine_ip/";
     script_run('curl --version');
     assert_script_run('curl -k  ' . $trento_url);
@@ -59,7 +44,7 @@ sub post_fail_hook {
         trento_support('test_trento_deploy');
         az_delete_group();
     }
-    destroy_qesap();
+    cluster_destroy();
     $self->SUPER::post_fail_hook;
 }
 

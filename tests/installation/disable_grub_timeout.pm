@@ -64,6 +64,7 @@ sub run {
     $timeout = "90" if (get_var("REGRESSION", '') =~ /xen|kvm|qemu/);
     type_string $timeout;
 
+    wait_still_screen(1);
     # ncurses uses blocking modal dialog, so press return is needed
     send_key 'ret' if check_var('VIDEOMODE', 'text');
 
