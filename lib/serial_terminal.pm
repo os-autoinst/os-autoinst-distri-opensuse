@@ -339,7 +339,7 @@ sub select_serial_terminal {
         } else {
             $console = $root ? 'root-virtio-terminal' : 'user-virtio-terminal';
         }
-    } elsif (get_var('SUT_IP')) {
+    } elsif (get_var('SUT_IP') || is_backend_s390x) {
         $console = $root ? 'root-serial-ssh' : 'user-serial-ssh';
     } elsif ($backend eq 'svirt') {
         if (check_var('SERIAL_CONSOLE', 0)) {

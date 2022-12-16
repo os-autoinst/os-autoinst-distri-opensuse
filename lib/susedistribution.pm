@@ -569,6 +569,21 @@ sub init_consoles {
             set_var("S390_NETWORK_PARAMS", $s390_params);
 
             ($hostname) = $s390_params =~ /Hostname=(\S+)/;
+
+            # adds serial console for S390_ZKVM
+            # NOTE: adding consoles just at the top of init_consoles() is not enough, otherwise
+            # using just them would fail with:
+            # ::: basetest::runtest: # Test died: Error connecting to <root@192.168.112.9>: Connection refused at /usr/lib/os-autoinst/testapi.pm line 1700.
+            unless (get_var('SUT_IP')) {
+                $self->add_console(
+                    'root-serial-ssh',
+                    'ssh-serial',
+                    {
+                        hostname => $hostname,
+                        password => $testapi::password,
+                        username => 'root'
+                    });
+            }
         }
 
         if (check_var("VIDEOMODE", "text")) {    # adds console for text-based installation on s390x
