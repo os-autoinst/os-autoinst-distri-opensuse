@@ -37,18 +37,17 @@ sub run {
     # be able to overwrite the token when manually triggering
     # the setup_jumphost test.
 
-    record_info('TERRAFORM', "Terrafrom the public cloud host");
     assert_script_run("cd $work_dir/apache2/terraform/".lc("$qesap_provider"));
     assert_script_run("terraform init 2>&1 | tee /tmp/terraform.log", timeout => 300 );
+    record_info('TERRAFORM', script_output("terraform --version");
     assert_script_run("terraform plan -var-file=configuration.tfvars -out planned_deploy.tfplan -detailed-exitcode  2>&1 | tee /tmp/terraform.log", timeout => 300 );
     assert_script_run("terraform apply planned_deploy.tfplan 2>&1 | tee /tmp/terraform.log", timeout => 300 );
-    assert_script_run("ls $work_dir");
-    record_info('ANSIBLE', "SCC registration");
+    record_info('SCC', "SCC registration");
     assert_script_run("ansible-playbook \\
                         -i ../../ansible/inventory.yaml \\
                         ../../ansible/registration.yaml \\
                         --extra-vars \"\$(terraform output --json | jq 'with_entries(.value |= .value)')\"", timeout => 300 );
-    record_info('ANSIBLE', "Apache 2 install and configure");
+    record_info('HTTPD setup', "Apache 2 install and configure");
     assert_script_run("ansible-playbook \\
                         -i ../../ansible/inventory.yaml \\
                         ../../ansible/httpd_ibsim_config.yaml \\
@@ -56,12 +55,7 @@ sub run {
     assert_script_run("ps -fax | grep httpd");
     assert_script_run("az group list -o table");
     assert_script_run("az vm list -o table");
-    assert_script_run("az network \
-                          vnet \
-                          list \
-                          --output table
-                          ");
-
+    assert_script_run("az network vnet list --output table");
 
 }
 

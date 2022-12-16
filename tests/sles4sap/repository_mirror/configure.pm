@@ -43,26 +43,15 @@ sub run {
     my $gitlab_clone_url = 'https://git:' . $gitlab_token . '@' . $gitlab_repo;
 #     my $gitlab_clone_url = 'https://' . $gitlab_repo;
 
-    record_info('ENVIROMENT', "Setting up enviroment variables");
     assert_script_run("export PATH=\$PATH:~/.local/bin");
     assert_script_run("export ANSIBLE_HOST_KEY_CHECKING=False ");
-
-    record_info('ANSIBLE', "Installing Ansible");
-    assert_script_run("cd ~");
-    assert_script_run("if python3 -m pip -V ;
-                        then python3 -m pip install --user ansible ;
-                        else
-                          curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py ;
-                          python3 get-pip.py --user ;
-                          python3 -m pip install --user ansible ;
-                        fi", timeout => 240 );
-    
-    record_info('CLONE', "Clone $gitlab_repo in $work_dir");
-    assert_script_run("mkdir $work_dir");
-    assert_script_run("cd $work_dir");
+    record_info('ENVIROMENT', script_output('export -p |cut -d " " -f 3'));
+    record_info('ANSIBLE', script_output('ansible --version'));
+    assert_script_run("mkdir ~/$work_dir");
+    assert_script_run("cd ~/$work_dir");
     #assert_script_run("git clone $gitlab_clone_url .  2>&1 | tee " . GITLAB_CLONE_LOG);
     assert_script_run("git clone $gitlab_clone_url . 2>&1 | tee /tmp/gitlab_clone.log");
-
+    record_info('GIT', "$gitlab_repo is successfully cloned in the $work_dir");
 }
 
 sub test_flags {
