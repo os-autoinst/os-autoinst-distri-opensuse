@@ -8,7 +8,7 @@ BEGIN {
 }
 use utils;
 use testapi;
-use main_common qw(init_main is_updates_test_repo unregister_needle_tags);
+use main_common qw(init_main is_updates_test_repo unregister_needle_tags map_incidents_to_repo);
 use main_micro_alp;
 
 init_main();

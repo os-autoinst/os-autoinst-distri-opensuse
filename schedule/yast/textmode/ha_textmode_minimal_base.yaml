@@ -1,0 +1,30 @@
+name: ha_textmode_minimal_base
+description: |
+  Installation sles with ha in textmode which selects System Role 'Text Mode'.
+vars:
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
+  - installation/licensing/accept_license
+  - installation/registration/register_via_scc
+  - installation/module_registration/view_development_versions
+  - installation/module_registration/register_extensions_and_modules
+  - installation/module_registration/add_ha_regcode
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/select_role_minimal
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
+  - installation/installation_settings/validate_default_target
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
+  - installation/performing_installation/perform_installation
+  - installation/logs_from_installation_system
+  - installation/performing_installation/confirm_reboot
+  - installation/handle_reboot
+  - installation/first_boot

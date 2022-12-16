@@ -85,6 +85,16 @@ sub save_changes {
     $self->get_action_buttons()->press_ok();
 }
 
+sub cancel_changes {
+    my ($self) = @_;
+    $self->get_action_buttons()->press_cancel();
+}
+
+sub accept_all_changes_will_be_lost {
+    my ($self) = @_;
+    $self->get_action_buttons()->press_yes();
+}
+
 sub proceed_with_current_configuration {
     my ($self) = @_;
     $self->get_overview_tab()->is_shown();

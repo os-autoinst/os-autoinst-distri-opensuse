@@ -26,6 +26,7 @@ sub init {
     $self->{chb_hide_dev_versions} = $self->{app}->checkbox({id => 'filter_devel'});
     $self->{rct_items} = $self->{app}->richtext({id => 'items'});
     $self->{rct_item_we} = 'sle-we';
+    $self->{rct_item_ha} = 'sle-ha';
     $self->{rct_item_base} = 'sle-module-basesystem';
     $self->{rct_item_contm} = 'sle-module-containers';
     $self->{rct_item_desktop} = 'sle-module-desktop-applications';

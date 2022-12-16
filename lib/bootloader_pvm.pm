@@ -65,7 +65,8 @@ sub get_into_net_boot {
     assert_screen 'pvm-bootmenu-boot-exit';
 
     enter_cmd "1";
-    assert_screen ["pvm-grub", "novalink-failed-first-boot"];
+    # download file from tftp server takes sometimes longer, so test could die before matching above needles
+    assert_screen ["pvm-grub", "novalink-failed-first-boot"], 90;
 }
 
 =head2 prepare_pvm_installation
@@ -76,13 +77,12 @@ Handle the boot and installation preperation process of PVM LPARs after the hype
 
 =cut
 
-sub prepare_pvm_installation {
-    my ($boot_attempt) = @_;
-    $boot_attempt //= 1;
+sub reset_lpar_netboot {
     # the grub on powerVM has a rather strange feature that it will boot
     # into the firmware if the lpar was reconfigured in between and the
     # first menu entry was used to enter the command line. So we need to
-    # reset the LPAR manually
+    # reset the LPAR manually, another issue is unable to load initrd or linux kernel,
+    # so in both cases we need to reset LPAR netboot
     if (match_has_tag('novalink-failed-first-boot')) {
         enter_cmd "set-default ibm,fw-nbr-reboots";
         enter_cmd "reset-all";
@@ -90,18 +90,35 @@ sub prepare_pvm_installation {
         send_key '1';
         get_into_net_boot;
     }
+    elsif (match_has_tag('load-initrd-error')) {
+        enter_cmd_slow "exit";
+        enter_cmd_slow "set-default ibm,fw-nbr-reboots";
+        enter_cmd_slow "reset-all";
+        if (check_screen 'no-image-detected', 60) {
+            send_key 'ctrl-C';
+            get_into_net_boot;
+        }
+        # then we have really an issue on setup of pvm and it cannot be workaround this time.
+        die 'No image was detected by firmware, you need check your setup on pvm' if (check_screen 'no-image-detected', 30);
+    }
+}
+
+sub enter_netboot_parameters {
     # try 3 times but wait a long time in between - if we're too eager
     # we end with ccc in the prompt
     send_key_until_needlematch('pvm-grub-command-line', 'c', 4, 5);
 
     # clear the prompt (and create an error) in case the above went wrong
-    send_key 'ret';
+    if (check_screen 'ccc-stays-at-grub-prompt', 10) {
+        wait_still_screen 20;
+        send_key 'ret';
+        enter_cmd_slow 'clear';
+    }
 
+    assert_screen "pvm-grub-command-line-fresh-prompt", no_wait => 1;
     my $repo = get_required_var('REPO_0');
     my $mirror = get_netboot_mirror;
     my $mntpoint = "mnt/openqa/repo/$repo/boot/ppc64le";
-    assert_screen "pvm-grub-command-line-fresh-prompt", no_wait => 1;
-
     my $ntlm_p = get_var('NTLM_AUTH_INSTALL') ? $ntlm_auth::ntlm_proxy : '';
     type_string_slow "linux $mntpoint/linux vga=normal $ntlm_p install=$mirror ";
     bootmenu_default_params;
@@ -112,21 +129,51 @@ sub prepare_pvm_installation {
     type_string_slow " fips=1" if (get_var('FIPS_INSTALLATION'));
     type_string_slow " UPGRADE=1" if (get_var('UPGRADE'));
     send_key 'ret';
-
     assert_screen "pvm-grub-command-line-fresh-prompt", 180, no_wait => 1;    # kernel is downloaded while waiting
     enter_cmd_slow "initrd $mntpoint/initrd";
+}
 
-    assert_screen "pvm-grub-command-line-fresh-prompt", 180, no_wait => 1;    # initrd is downloaded while waiting
-    enter_cmd "boot";
-    save_screenshot;
+sub prepare_pvm_installation {
+    my ($boot_attempt) = @_;
+    $boot_attempt //= 1;
+    reset_lpar_netboot;
+    enter_netboot_parameters;
+    # we have sporadic netwwork issue on power machine 'grenache', mnt directory cannot be accessed, see poo#120570
+    # record_soft_failure if error occurs while loading initrd
+    assert_screen([qw(pvm-grub-command-line-fresh-prompt load-initrd-error)], 180, no_wait => 1);    # initrd is downloaded while waiting
+    if (match_has_tag('load-initrd-error')) {
+        record_soft_failure 'cannot load initrd, sporadic issue, see poo#120570. Re-trying now...';
+        # run some network checks and list $mntpoint before reset_lpar_netboot
+        my $repo = get_required_var('REPO_0');
+        my $mirror = get_netboot_mirror;
+        my $mntpoint = "mnt/openqa/repo/$repo/boot/ppc64le";
+        enter_cmd_slow "clear";
+        enter_cmd_slow "net_ls_addr";
+        enter_cmd_slow "net_ls_cards";
+        enter_cmd_slow "net_nslookup qanet.qa.suse.de";
+        wait_still_screen 10;
+        enter_cmd_slow "ls $mntpoint";
+        wait_still_screen 10;
+        save_screenshot;
+        reset_lpar_netboot;
+        enter_netboot_parameters;
+    }
+    else {
+        enter_cmd "boot";
+        save_screenshot;
+    }
 
-    assert_screen(["pvm-grub-menu", "novalink-successful-first-boot"], 120);
+    # pvm has sometimes extrem performance issue, increase timeout for booting up after enter_netboot_parameters
+    assert_screen(["pvm-grub-menu", "novalink-successful-first-boot", "load-initrd-error"], 700);
     if (match_has_tag "pvm-grub-menu") {
         # During boot pvm-grub menu was seen again
         # Will try to setup linux and initrd again up to 3 times
         $boot_attempt++;
         die "Boot process restarted too many times" if ($boot_attempt > 3);
         return (bootloader_pvm::prepare_pvm_installation $boot_attempt);
+    }
+    elsif (match_has_tag "load-initrd-error") {
+        die 'Still not able to load kernel to boot up. Possible network issue, please check directory $mntpoint';
     }
 
     assert_screen("run-yast-ssh", 300);

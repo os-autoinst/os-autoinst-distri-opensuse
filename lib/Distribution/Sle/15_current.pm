@@ -27,7 +27,7 @@ use Installation::AddOnProduct::AddOnProductController;
 use Installation::RepositoryURL::RepositoryURLController;
 use Installation::AddOnProductInstallation::AddOnProductInstallationController;
 use Installation::SystemRole::Sle::SystemRoleController;
-use Installation::ModuleRegistration::ModuleRegCodeController;
+use Installation::ModuleRegistration::SeparateRegCodesController;
 use YaST::DNSServer::Sle::DNSServerController;
 use YaST::DNSServer::Sle::DNSServerSetupController;
 
@@ -62,8 +62,12 @@ sub get_module_registration_installation_report {
     return Installation::ModuleRegistration::ModuleRegistrationInstallationReportController->new();
 }
 
+sub wait_registration_common_regcode_finished {
+    return Installation::ModuleRegistration::SeparateRegCodesController->new();
+}
+
 sub get_module_regcode {
-    return Installation::ModuleRegistration::ModuleRegCodeController->new();
+    return Installation::ModuleRegistration::SeparateRegCodesController->new();
 }
 
 sub get_module_selection {
