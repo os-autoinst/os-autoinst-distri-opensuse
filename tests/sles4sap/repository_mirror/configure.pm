@@ -26,12 +26,12 @@ sub run {
     $variables{REGION} = $provider->provider_client->region;
     $variables{DEPLOYMENT_NAME} = $resource_group_postfix;
     $variables{DEPLOYMENT_OS_VER} = get_required_var("DEPLOYMENT_OS_VER");
-#    $variables{SSH_KEY_PRIV} = '/root/.ssh/id_rsa';
-#    $variables{SSH_KEY_PUB} = '/root/.ssh/id_rsa.pub';
-#    $variables{SCC_REGCODE_SLES4SAP} = get_required_var('SCC_REGCODE_SLES4SAP');
-#   qesap_prepare_env(openqa_variables => \%variables, provider => $qesap_provider);
+    #    $variables{SSH_KEY_PRIV} = '/root/.ssh/id_rsa';
+    #    $variables{SSH_KEY_PUB} = '/root/.ssh/id_rsa.pub';
+    #    $variables{SCC_REGCODE_SLES4SAP} = get_required_var('SCC_REGCODE_SLES4SAP');
+    #   qesap_prepare_env(openqa_variables => \%variables, provider => $qesap_provider);
 
-# Clone the terraform and ansible files from the gitlab
+    # Clone the terraform and ansible files from the gitlab
     my $work_dir = '~/deployment/';
     # Get the code for the Trento deployment
     my $gitlab_repo = get_var('GITLAB_REPO', 'gitlab.suse.de/jkohoutek/plan-b');
@@ -41,7 +41,7 @@ sub run {
     # the setup_jumphost test.
     my $gitlab_token = get_var('GITLAB_TOKEN', get_required_var('SECRET_GITLAB_TOKEN'));
     my $gitlab_clone_url = 'https://git:' . $gitlab_token . '@' . $gitlab_repo;
-#     my $gitlab_clone_url = 'https://' . $gitlab_repo;
+    #     my $gitlab_clone_url = 'https://' . $gitlab_repo;
 
     assert_script_run("export PATH=\$PATH:~/.local/bin");
     assert_script_run("export ANSIBLE_HOST_KEY_CHECKING=False ");
@@ -60,7 +60,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
- #   qesap_upload_logs();
+    #   qesap_upload_logs();
     $self->SUPER::post_fail_hook;
 }
 

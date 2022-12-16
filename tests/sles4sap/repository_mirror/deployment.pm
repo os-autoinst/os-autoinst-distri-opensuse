@@ -22,14 +22,14 @@ sub run {
     my $qesap_provider = lc get_required_var('PUBLIC_CLOUD_PROVIDER');
 
     my %variables;
-    $variables{PROVIDER} = $qesap_provider; # Beware, this is uppcase
+    $variables{PROVIDER} = $qesap_provider;    # Beware, this is uppcase
     $variables{REGION} = $provider->provider_client->region;
     $variables{DEPLOYMENT_NAME} = $resource_group_postfix;
     $variables{DEPLOYMENT_OS_VER} = get_required_var("DEPLOYMENT_OS_VER");
-#    $variables{SSH_KEY_PRIV} = '/root/.ssh/id_rsa';
-#    $variables{SSH_KEY_PUB} = '/root/.ssh/id_rsa.pub';
+    #    $variables{SSH_KEY_PRIV} = '/root/.ssh/id_rsa';
+    #    $variables{SSH_KEY_PUB} = '/root/.ssh/id_rsa.pub';
 
-# Clone the terraform and ansible files from the gitlab
+    # Clone the terraform and ansible files from the gitlab
     my $work_dir = '~/deployment';
     # Get the code for the Trento deployment
 
@@ -37,21 +37,21 @@ sub run {
     # be able to overwrite the token when manually triggering
     # the setup_jumphost test.
 
-    assert_script_run("cd $work_dir/apache2/terraform/".lc("$qesap_provider"));
-    assert_script_run("terraform init 2>&1 | tee /tmp/terraform.log", timeout => 300 );
-    record_info('TERRAFORM', script_output("terraform --version");
-    assert_script_run("terraform plan -var-file=configuration.tfvars -out planned_deploy.tfplan -detailed-exitcode  2>&1 | tee /tmp/terraform.log", timeout => 300 );
-    assert_script_run("terraform apply planned_deploy.tfplan 2>&1 | tee /tmp/terraform.log", timeout => 300 );
+    assert_script_run("cd $work_dir/apache2/terraform/" . lc("$qesap_provider"));
+    assert_script_run("terraform init 2>&1 | tee /tmp/terraform.log", timeout => 300);
+    record_info('TERRAFORM', script_output("terraform --version"));
+    assert_script_run("terraform plan -var-file=configuration.tfvars -out planned_deploy.tfplan -detailed-exitcode  2>&1 | tee /tmp/terraform.log", timeout => 300);
+    assert_script_run("terraform apply planned_deploy.tfplan 2>&1 | tee /tmp/terraform.log", timeout => 300);
     record_info('SCC', "SCC registration");
     assert_script_run("ansible-playbook \\
                         -i ../../ansible/inventory.yaml \\
                         ../../ansible/registration.yaml \\
-                        --extra-vars \"\$(terraform output --json | jq 'with_entries(.value |= .value)')\"", timeout => 300 );
+                        --extra-vars \"\$(terraform output --json | jq 'with_entries(.value |= .value)')\"", timeout => 300);
     record_info('HTTPD setup', "Apache 2 install and configure");
     assert_script_run("ansible-playbook \\
                         -i ../../ansible/inventory.yaml \\
                         ../../ansible/httpd_ibsim_config.yaml \\
-                        --extra-vars \"\$(terraform output --json | jq 'with_entries(.value |= .value)')\"", timeout => 300 );
+                        --extra-vars \"\$(terraform output --json | jq 'with_entries(.value |= .value)')\"", timeout => 300);
     assert_script_run("ps -fax | grep httpd");
     assert_script_run("az group list -o table");
     assert_script_run("az vm list -o table");
@@ -65,7 +65,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
- #   qesap_upload_logs();
+    #   qesap_upload_logs();
     $self->SUPER::post_fail_hook;
 }
 
