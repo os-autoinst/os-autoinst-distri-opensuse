@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use YuiRestClient;
 use Installation::Popups::OKPopup;
+use decorator;
 
 sub new {
     my ($class, $args) = @_;
@@ -35,6 +36,7 @@ sub get_text {
     $self->get_ok_popup()->text();
 }
 
+wrap(\&accept, \&debug);
 sub accept {
     my ($self) = @_;
     $self->get_ok_popup()->press_ok();
