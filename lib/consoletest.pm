@@ -9,7 +9,6 @@ use warnings;
 use testapi;
 use known_bugs;
 use version_utils qw(is_public_cloud is_openstack);
-use Utils::Logging qw(export_logs_basic export_logs_desktop);
 use utils;
 
 my %avc_record = (
@@ -53,11 +52,6 @@ sub post_fail_hook {
     $self->SUPER::post_fail_hook;
     # at this point the instance is shutdown
     return if (is_public_cloud() || is_openstack());
-    select_console('log-console');
-    remount_tmp_if_ro;
-    export_logs_basic;
-    # Export extra log after failure for further check gdm issue 1127317, also poo#45236 used for tracking action on Openqa
-    export_logs_desktop;
 }
 
 =head2 record_avc_selinux_alerts
