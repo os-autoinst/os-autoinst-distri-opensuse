@@ -13,7 +13,7 @@ use testapi;
 use utils;
 use repo_tools 'generate_version';
 use Mojo::UserAgent;
-use LTP::utils qw(get_ltproot get_ltp_version_file);
+use LTP::utils qw(get_ltproot);
 use LTP::WhiteList;
 use Mojo::File;
 use Mojo::JSON;
