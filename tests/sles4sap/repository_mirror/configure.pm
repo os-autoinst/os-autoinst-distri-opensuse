@@ -52,8 +52,6 @@ sub run {
     #assert_script_run("git clone $gitlab_clone_url .  2>&1 | tee " . GITLAB_CLONE_LOG);
     assert_script_run("git clone $gitlab_clone_url . 2>&1 | tee /tmp/gitlab_clone.log");
     record_info('GIT', "$gitlab_repo is successfully cloned in the $work_dir");
-    assert_script_run("cat $work_dir/keyring.pub | tee -a ~/.ssh/authorized_keys");
-    record_info('GAOLER', "You have 5 minutes, no more!");
 }
 
 sub test_flags {
