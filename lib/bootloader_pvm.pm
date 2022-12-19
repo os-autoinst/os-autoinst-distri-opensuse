@@ -140,7 +140,7 @@ sub prepare_pvm_installation {
     enter_netboot_parameters;
     # we have sporadic netwwork issue on power machine 'grenache', mnt directory cannot be accessed, see poo#120570
     # record_soft_failure if error occurs while loading initrd
-    assert_screen([qw(pvm-grub-command-line-fresh-prompt load-initrd-error)], 180, no_wait => 1);    # initrd is downloaded while waiting
+    assert_screen([qw(pvm-grub-command-line-fresh-prompt load-initrd-error grub-rescue-mode)], 180, no_wait => 1);    # initrd is downloaded while waiting
     if (match_has_tag('load-initrd-error')) {
         record_soft_failure 'cannot load initrd, sporadic issue, see poo#120570. Re-trying now...';
         # run some network checks and list $mntpoint before reset_lpar_netboot
@@ -158,6 +158,14 @@ sub prepare_pvm_installation {
         reset_lpar_netboot;
         enter_netboot_parameters;
     }
+    elsif (match_has_tag('grub-rescue-mode')) {
+        # we have sometimes issue with reading normal.mod, so it ends with grub rescue mode, give a second chance by reboot
+        record_soft_failure 'cannot read normal.mod, sporadic issue, see poo#122143. Reboot now...';
+        enter_cmd_slow "reboot";
+        wait_still_screen;
+        save_screenshot;
+        enter_netboot_parameters;
+    }
     else {
         enter_cmd "boot";
         save_screenshot;
@@ -173,7 +181,7 @@ sub prepare_pvm_installation {
         return (bootloader_pvm::prepare_pvm_installation $boot_attempt);
     }
     elsif (match_has_tag "load-initrd-error") {
-        die 'Still not able to load kernel to boot up. Possible network issue, please check directory $mntpoint';
+        die 'Still not able to load kernel to boot up, see poo#122143. Please check lpar setup and the directory $mntpoint';
     }
 
     assert_screen("run-yast-ssh", 300);
