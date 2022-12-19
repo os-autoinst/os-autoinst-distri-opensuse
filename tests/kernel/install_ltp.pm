@@ -298,7 +298,8 @@ sub install_from_repo {
 
     my $run_cmd = is_transactional ? 'transactional-update -c -d --quiet run' : '';
     for my $pkg (@pkgs) {
-        my $want_32bit = $pkg =~ m/32bit/;
+        my $want_32bit = want_ltp_32bit($pkg);
+
         record_info("LTP pkg: $pkg", script_output("$run_cmd rpm -qi $pkg | tee "
                   . get_ltp_version_file($want_32bit)));
         assert_script_run "find " . get_ltproot($want_32bit) .
