@@ -519,7 +519,7 @@ Set up Web environment for running Adminer by:
 
 =over
 
-=item * use assert_script_run to enable php5 andphp7, restart apache2 and mysql
+=item * use assert_script_run to enable php5, php7 and php8, restart apache2 and mysql
 
 =item * download Adminer and copy it to directory /srv/www/htdocs/adminer/
 
@@ -540,6 +540,9 @@ Set up Web environment for running Adminer by:
 sub adminer_setup {
     assert_script_run("a2enmod php5");
     assert_script_run("a2enmod php7");
+    if (is_tumbleweed()) {
+        assert_script_run("a2enmod php8");
+    }
     assert_script_run("systemctl restart apache2");
     assert_script_run("systemctl restart mysql");
 

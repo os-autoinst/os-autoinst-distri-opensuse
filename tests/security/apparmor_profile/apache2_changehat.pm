@@ -80,7 +80,12 @@ sub run {
         add_suseconnect_product("sle-module-web-scripting", "$version", "$arch", "$params", "$timeout");
         add_suseconnect_product("sle-module-legacy", "$version", "$arch", "$params", "$timeout");
     }
-    zypper_call("in apache2 apache2-mod_apparmor apache2-mod_php7 php7 php7-mysql");
+
+    if (is_tumbleweed()) {
+        zypper_call("in apache2 apache2-mod_apparmor apache2-mod_php8 php8 php8-mysql");
+    } else {
+        zypper_call("in apache2 apache2-mod_apparmor apache2-mod_php7 php7 php7-mysql");
+    }
 
     # Restart apparmor
     systemctl("restart apparmor");
