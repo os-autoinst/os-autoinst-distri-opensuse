@@ -41,7 +41,7 @@ sub run() {
 
     # check that the tomcat web service works
     $self->firefox_open_url('localhost:8080');
-    assert_screen('tomcat-succesfully-installed');
+    assert_screen('tomcat-successfully-installed');
 
     # verify that the tomcat manager page works
     Tomcat::Utils->tomcat_manager_test($self);
@@ -89,10 +89,10 @@ sub run() {
     $self->switch_to_desktop();
 
     $self->firefox_open_url('http://localhost');
-    assert_screen('tomcat-succesfully-installed');
+    assert_screen('tomcat-successfully-installed');
 
     $self->firefox_open_url('http://localhost:8080');
-    assert_screen('tomcat-succesfully-installed');
+    assert_screen('tomcat-successfully-installed');
 
     $self->close_firefox();
     assert_screen('generic-desktop');

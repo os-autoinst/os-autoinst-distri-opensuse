@@ -52,7 +52,7 @@ sub run {
     $self->wait_boot();
     select_serial_terminal;
     record_info('uname', script_output('uname -a'));
-    record_info('relaese', script_output('cat /etc/os-release'));
+    record_info('release', script_output('cat /etc/os-release'));
 }
 
 

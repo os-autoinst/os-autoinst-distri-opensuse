@@ -919,7 +919,7 @@ sub is_boot_encrypted {
     # ppc64le on pre-storage-ng boot was part of encrypted LVM
     return 0 if !get_var('FULL_LVM_ENCRYPT') && !is_storage_ng && !is_ppc64le()
       && !(get_var('ENCRYPT_CANCEL_EXISTING') && get_var('ENCRYPT') && is_aarch64());
-    # SLES 15: we don't have scenarios for cryptlvm which boot partion is unencrypted.
+    # SLES 15: we don't have scenarios for cryptlvm which boot partition is unencrypted.
     return 0 if is_sle('15+') && !get_var('ENCRYPT');
     # If the encrypted disk is "just activated" it does not mean that the
     # installer would propose an encrypted installation again
@@ -963,7 +963,7 @@ sub set_bridged_networking {
  set_hostname($hostname);
 
 Setting hostname according input parameter using hostnamectl.
-Calling I<reload-or-restart> to make sure that network stack will propogate
+Calling I<reload-or-restart> to make sure that network stack will propagate
 hostname into DHCP/DNS.
 
 If you change hostname using C<hostnamectl set-hostname>, then C<hostname -f>
@@ -1453,7 +1453,7 @@ sub exec_and_insert_password {
 Shorten url via schort(s.qa.suse.de)
 This is mainly used for autoyast url shorten to avoid limit of x3270 xedit.
 
-C<$url> is the url to short. C<$wishid> is the prefered short url id.
+C<$url> is the url to short. C<$wishid> is the preferred short url id.
 
 =cut
 
@@ -1481,7 +1481,7 @@ sub _handle_login_not_found {
     my ($str) = @_;
     record_info 'Investigation', 'Expected welcome message not found, investigating bootup log content: ' . $str;
     diag 'Checking for bootloader';
-    record_info 'grub not found', 'WARNING: bootloader grub menue not found' unless $str =~ /GNU GRUB/;
+    record_info 'grub not found', 'WARNING: bootloader grub menu not found' unless $str =~ /GNU GRUB/;
     diag 'Checking for ssh daemon';
     record_info 'ssh not found', 'WARNING: ssh daemon in SUT is not available' unless $str =~ /Started OpenSSH Daemon/;
     diag 'Checking for any welcome message';
@@ -1631,7 +1631,7 @@ sub reconnect_mgmt_console {
 
  show_tasks_in_blocked_state();
 
-Dumps tasks that are in uninterruptable (blocked) state and wait for headline
+Dumps tasks that are in uninterruptible (blocked) state and wait for headline
 of dump.
 
 See L<https://github.com/torvalds/linux/blob/master/Documentation/admin-guide/sysrq.rst>.
@@ -1646,7 +1646,7 @@ sub show_tasks_in_blocked_state {
         # info will be sent to serial tty
         wait_serial(qr/sysrq\s*:\s+show\s+blocked\s+state/i);
 
-        # If the 'An error occured during the installation.' OK popup has popped up,
+        # If the 'An error occurred during the installation.' OK popup has popped up,
         # do not press the 'return' key, because it will result in all ttys logging out.
         send_key 'ret' unless (check_screen 'linuxrc-install-fail');
 
@@ -1847,7 +1847,7 @@ be matched (regex) and the answer with string or key to be typed. for example:
 A "EOS~~~" message followed by return value will be printed as a mark
 for the end of interaction after the command finished running.
 
-If the first argument is C<undef>, only the sencond part will be processed - to
+If the first argument is C<undef>, only the second part will be processed - to
 match output and react. If the second argument is undef, the first part will
 be processed - to run the command without interaction with terminal output.
 This is useful for some situation when you want to do more between inputing
@@ -2110,7 +2110,7 @@ sub get_pattern_list {
         next if ($line !~ m/^\Q$start\E/);
         # filter out the spaces in each filed
         @column = map { s/^\s*|\s*$//gr } split(/\|/, $line);
-        # pkg_name is the 2nd field seperated by '|'
+        # pkg_name is the 2nd field separated by '|'
         $pkg_name = $column[1];
         push @pkg_list, $pkg_name;
     }

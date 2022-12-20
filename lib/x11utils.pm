@@ -501,7 +501,7 @@ sub turn_off_screensaver {
     script_run 'exit', 0;
 }
 
-# turn off the gnome deskop's notification
+# turn off the gnome desktop's notification
 sub turn_off_gnome_show_banner {
     script_run 'gsettings set org.gnome.desktop.notifications show-banners false';
 }

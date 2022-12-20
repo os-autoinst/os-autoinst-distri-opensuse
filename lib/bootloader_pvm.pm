@@ -73,7 +73,7 @@ sub get_into_net_boot {
 
  prepare_pvm_installation();
 
-Handle the boot and installation preperation process of PVM LPARs after the hypervisor specific actions to power them on is done
+Handle the boot and installation preparation process of PVM LPARs after the hypervisor specific actions to power them on is done
 
 =cut
 
@@ -163,7 +163,7 @@ sub prepare_pvm_installation {
         save_screenshot;
     }
 
-    # pvm has sometimes extrem performance issue, increase timeout for booting up after enter_netboot_parameters
+    # pvm has sometimes extreme performance issue, increase timeout for booting up after enter_netboot_parameters
     assert_screen(["pvm-grub-menu", "novalink-successful-first-boot", "load-initrd-error"], 700);
     if (match_has_tag "pvm-grub-menu") {
         # During boot pvm-grub menu was seen again
@@ -232,7 +232,7 @@ sub boot_hmc_pvm {
 
     # don't wait for it, otherwise we miss the menu
     enter_cmd "mkvterm -m $hmc_machine_name --id $lpar_id";
-    # skip further preperations if system is already installed
+    # skip further preparations if system is already installed
     # PowerVM, send "up" key to refresh the serial terminal in case
     # it is already entered into grub2 menu
     if (get_var('BOOT_HDD_IMAGE')) {
@@ -275,7 +275,7 @@ sub boot_spvm {
 
     # don't wait for it, otherwise we miss the menu
     enter_cmd " mkvterm --id $lpar_id";
-    # skip further preperations if system is already installed
+    # skip further preparations if system is already installed
     return if get_var('BOOT_HDD_IMAGE');
     get_into_net_boot;
     prepare_pvm_installation;

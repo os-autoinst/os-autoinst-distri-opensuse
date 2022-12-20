@@ -162,7 +162,7 @@ sub do_power_management_tests {
     my ($vm_id, $vm_ip) = @_;
     my ($powerops, $powerops_ret);
 
-    record_info('Power Manangement Tests');
+    record_info('Power Management Tests');
     select_console('svirt');
 
     record_info('Guest Power Shutdown');

@@ -297,7 +297,7 @@ _qa_check_version () {
 	esac
 
 	if [ -z "$_OPENQA_ENV_VERSION" ]; then
-		_qa_error "qa_check_version(): \$_OPENQA_ENV_VERSION is emtpy"
+		_qa_error "qa_check_version(): \$_OPENQA_ENV_VERSION is empty"
 	elif [ -z "$3" ]; then
 		[ "$_OPENQA_ENV_VERSION" "$1" "$2" ]
 		return

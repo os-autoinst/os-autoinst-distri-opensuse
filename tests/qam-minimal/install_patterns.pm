@@ -5,7 +5,7 @@
 
 
 # Summary: QAM Minimal test in openQA
-#    it prepares minimal instalation, boot it, install tested incident , try
+#    it prepares minimal installation, boot it, install tested incident , try
 #    reboot and update system with all released updates.
 #
 #    with QAM_MINIMAL=full it also installs gnome-basic, base, apparmor and

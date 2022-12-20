@@ -294,13 +294,13 @@ sub setup_samba_trusted_domains {
 
 sub setup_samba_ldap {
     record_info 'Samba Configuration', 'LDAP Settings';
-    my $administratio_dn = is_sle('<15') ? $ldap_directives{dir_manager_dn} . ",$ldap_directives{dir_suffix}" : $ldap_directives{dir_manager_dn};
+    my $administrator_dn = is_sle('<15') ? $ldap_directives{dir_manager_dn} . ",$ldap_directives{dir_suffix}" : $ldap_directives{dir_manager_dn};
     my %actions = (
         ldap => {shortcut => 'alt-l'},
         use_password_backend => {shortcut => 'alt-b'},
         yes => {shortcut => 'alt-y'},
         server_url => {shortcut => 'alt-e', value => 'ldap://localhost:389'},
-        administration_dn => {shortcut => 'alt-a', value => $administratio_dn},
+        administration_dn => {shortcut => 'alt-a', value => $administrator_dn},
         password => {shortcut => 'alt-p', value => $ldap_directives{dir_manager_passwd}},
         password_retry => {shortcut => 'alt-g', value => $ldap_directives{dir_manager_passwd}},
         search_base_dn => {shortcut => 'alt-n', value => $ldap_directives{dn_container}}

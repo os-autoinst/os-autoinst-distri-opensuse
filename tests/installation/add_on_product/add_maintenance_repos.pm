@@ -3,7 +3,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Add new add-ons using maintenance test repo URLs.
+# Summary: Add new add-owns using maintenance test repo URLs.
 #
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 

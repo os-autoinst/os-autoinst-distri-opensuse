@@ -42,7 +42,7 @@ sub run_test {
             }
             assert_screen 'virt-manager_add-storage-xen';
             assert_and_click 'virt-manager_add-hardware-finish';
-            # Live-attaching sometimes failes because of bsc#1172356
+            # Live-attaching sometimes fails because of bsc#1172356
             # the test should not die because of this
             if (check_screen('virt-manager_add-hardware-noliveattach', timeout => 20)) {
                 record_soft_failure("bsc#1172356 Live-attaching disk failed on $guest");
@@ -62,7 +62,7 @@ sub run_test {
                 type_string '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
                 save_screenshot();
                 assert_and_click 'virt-manager_add-hardware-finish';
-                # Live-attaching sometimes failes because of bsc#1172356
+                # Live-attaching sometimes fails because of bsc#1172356
                 # the test should not die because of this
                 if (check_screen('virt-manager_add_network_bsc1172356', timeout => 20)) {
                     record_soft_failure("bsc#1172356 Live-attaching NIC failed on $guest");

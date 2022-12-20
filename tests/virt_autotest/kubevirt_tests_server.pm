@@ -122,7 +122,7 @@ sub rke2_server_setup {
         assert_script_run('curl -sfL https://get.rke2.io | sh -', timeout => 180);
     }
 
-    # Add kubectl command to $PATH environment varibable
+    # Add kubectl command to $PATH environment variable
     my $rke2_bin_path = "export PATH=\$PATH:/opt/rke2/bin:/var/lib/rancher/rke2/bin";
     assert_script_run("echo '$rke2_bin_path' >> \$HOME/.bashrc; source \$HOME/.bashrc");
 

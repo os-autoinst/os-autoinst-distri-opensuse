@@ -162,7 +162,7 @@ sub run {
 
     # when we don't use autoyast, we need to also load the right test modules to perform the remote installation
     if (get_var('AUTOYAST')) {
-        # make sure to wait for a while befor changing the boot device again, in order to not change it too early
+        # make sure to wait for a while before changing the boot device again, in order to not change it too early
         sleep 120;
     } else {
         my $ssh_vnc_wait_time = 1500;

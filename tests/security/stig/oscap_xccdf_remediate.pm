@@ -32,7 +32,7 @@ sub run {
         record_info('bsc#1194676', 'remediation should be succeeded');
     }
 
-    # Upload logs & ouputs for reference
+    # Upload logs & outputs for reference
     $self->upload_logs_reports();
 }
 

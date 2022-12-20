@@ -77,7 +77,7 @@ use constant GRUB_CFG_FILE => "/boot/grub2/grub.cfg";
 use constant GRUB_DEFAULT_FILE => "/etc/default/grub";
 
 # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
-# 'up' also works in textmode and UEFI menues.
+# 'up' also works in textmode and UEFI menus.
 sub stop_grub_timeout {
     send_key 'up';
 }
@@ -1452,7 +1452,7 @@ sub create_encrypted_part {
 
     mimic_user_to_import(disk => $disk, passwd => $passwd, shadow => $shadow);
 
-Creates /etc/passwd and /etc/shadow files to simluate existing users on the
+Creates /etc/passwd and /etc/shadow files to simulate existing users on the
 encrypted partition disk. Is expected to be used together with create_encrypted_part
 Can be used to test user import functionality not to chain jobs.
 Method accepts C<disk> to define the device to work with, C<passwd> and C<shadow>

@@ -47,7 +47,7 @@ sub run() {
     }
 
     # close About
-    # Send crash report manually if automatic sending of crash reprot doesn't work, see bsc#1205511
+    # Send crash report manually if automatic sending of crash report doesn't work, see bsc#1205511
     send_key "alt-f4";
     assert_screen([qw(firefox-crash-reporter firefox-html-test)], timeout => 90);
     if (match_has_tag 'firefox-crash-reporter') {

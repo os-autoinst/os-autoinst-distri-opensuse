@@ -34,7 +34,7 @@ for my $file (@ARGV) {
         pass("$file has valid yaml syntax");
     }
     # Only include yamls related with schedule
-    # No need for cheking schema of yaml files under flows/
+    # No need for checking schema of yaml files under flows/
     # (due to they are simple key which override with no more sctructure)
     if ($file =~ m{schedule/} && $file !~ m{flows/}) {
         my @errors = $validator->validate($data);

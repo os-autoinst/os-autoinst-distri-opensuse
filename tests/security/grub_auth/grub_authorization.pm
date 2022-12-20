@@ -87,7 +87,7 @@ sub run {
     select_console("root-console");
 
     # Check disk name, partition number and fs_type for root file system,
-    # then create a new custom grub config file based on the users/passwords we definded
+    # then create a new custom grub config file based on the users/passwords we defined
     assert_script_run "wget --quiet " . data_url("grub_auth/create_custom_grub.sh");
     assert_script_run "wget --quiet " . data_url("grub_auth/grub_passwd.sh");
     assert_script_run("bash grub_passwd.sh $sup_passwd > /tmp/sup_passwd_hash");

@@ -28,7 +28,7 @@ sub run {
     # is expected to come up.
     assert_screen 'disk-activation-iscsi', 180;
     send_key "alt-i";    # "Configure iSCSI Disks"
-                         # screen "iSCSI Initiator Overwiew", Tab "Service"
+                         # screen "iSCSI Initiator Overview", Tab "Service"
     assert_screen 'iscsi-initiator-service-fs', 180;
     send_key "alt-i";    # go to initiator name field
     wait_still_screen(2, 10);

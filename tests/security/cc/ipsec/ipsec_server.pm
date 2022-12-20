@@ -54,7 +54,7 @@ sub run {
     # Restart the strongswan service
     assert_script_run('systemctl restart strongswan');
 
-    mutex_wait('IPSEC_CLEINT_DONE', (keys %$children)[0]);
+    mutex_wait('IPSEC_CLIENT_DONE', (keys %$children)[0]);
 
     # Stop StrongSWAN
     assert_script_run('systemctl stop strongswan');

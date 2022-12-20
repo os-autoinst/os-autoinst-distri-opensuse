@@ -2,7 +2,7 @@
 name:           yast2_firstboot_custom
 description:    >
   Variant of YaST2 Firstboot module using custom control file. Allows us to test different scenarios,
-  and to see if the yast2-firstboot package remains stable whith an old, potentially deprecated control file.
+  and to see if the yast2-firstboot package remains stable with an old, potentially deprecated control file.
   It also allows to see if we can use custom parameters in /etc/sysconfig/firstboot
 vars:
   YUI_REST_API: 1

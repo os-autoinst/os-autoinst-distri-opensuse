@@ -25,7 +25,7 @@ sub run {
     my $mok_pass = 'suse';
 
     # Not all the options will be tested here, some of them have already
-    # been avaiable in other IMA cases
+    # been available in other IMA cases
 
     # Test -r (--recursive) option
     assert_script_run "mkdir -p $sample_dir/foodir";

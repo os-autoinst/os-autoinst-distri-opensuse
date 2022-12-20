@@ -123,7 +123,7 @@ B<exist()> - check if UI widget exists
 
 Tries to find widget, returns 0 if widget exists.
 
-B<propery($property)> - return JSON property value
+B<property($property)> - return JSON property value
 
 If property does not exist the method will return C<undef>. 
 

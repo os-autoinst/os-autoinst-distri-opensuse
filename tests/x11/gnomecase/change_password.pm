@@ -70,7 +70,7 @@ sub run {
         $self->auto_login_alter;
     }
 
-    #swtich to new added user then switch back
+    #switch to new added user then switch back
     services::users::switch_users();
 
     #restore password to original value

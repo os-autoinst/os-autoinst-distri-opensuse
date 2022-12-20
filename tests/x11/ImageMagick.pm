@@ -6,7 +6,7 @@
 # Package: ImageMagick
 # Summary: Add ImageMagick test
 #    This test creates, displays, and evaluates 200+ images utilizing
-#    various convertion options of ImageMagick.
+#    various conversion options of ImageMagick.
 #
 #    The examined examples were taken from:
 #    https://www.imagemagick.org/Usage/canvas/ (Aug 2016)

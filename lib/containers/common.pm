@@ -84,7 +84,7 @@ sub install_docker_when_needed {
                 # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
                 activate_containers_module;
 
-                # Temporarly enable LTSS product on LTSS systems where it is not present
+                # Temporarily enable LTSS product on LTSS systems where it is not present
                 if (get_var('SCC_REGCODE_LTSS') && script_run('test -f /etc/products.d/SLES-LTSS.prod') != 0) {
                     add_suseconnect_product('SLES-LTSS', undef, undef, '-r ' . get_var('SCC_REGCODE_LTSS'), 150);
                     $ltss_needed = 1;

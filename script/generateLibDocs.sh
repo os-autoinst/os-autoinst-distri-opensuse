@@ -22,7 +22,7 @@ for docfile in $(cd lib ; grep -rs ^=head * | grep .pm | cut -d. -f1 | sort -u) 
     sed -i "s|^</head>|<link rel='stylesheet' href='${stylepath}/style.css' />\n</head>|" docs/${docfile}.html
     sed -i "s|></title>|>lib/${docfile}.pm</title>|" docs/${docfile}.html
     sed -i "s|<ul id=\"index\">|<ul id=\"index\"><li><a href=\"${stylepath}/index.html\"><i>\&lt;= Back to file list</i></a></li>|" docs/${docfile}.html
-    # only replace first occurance
+    # only replace first occurrence
     awk "NR==1,/^<\/ul>/{sub(/^<\/ul>/, \"</ul><h1>lib/${docfile}.pm</h1>\")} 1" docs/${docfile}.html > docs/${docfile}.html.tmp
     mv docs/${docfile}.html.tmp docs/${docfile}.html
 

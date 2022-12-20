@@ -30,7 +30,7 @@ sub file2name {
     $name = lc $file;    # lower case
     $name =~ s/\.tar\.gz$//;    # removes tar.gz
     $name =~ s/\./-/g;
-    $name =~ s/[^-a-z0-9]//g;    # only allowed characteres from Google Cloud
+    $name =~ s/[^-a-z0-9]//g;    # only allowed characters from Google Cloud
     return $name;
 }
 
@@ -110,7 +110,7 @@ sub describe_instance
         sleep 3;
     }
 
-    die("Unable to retrive description of instance $name") unless ($attempts > 0);
+    die("Unable to retrieve description of instance $name") unless ($attempts > 0);
     return $out->[0];
 }
 

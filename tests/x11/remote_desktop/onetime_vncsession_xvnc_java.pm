@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: dhcp-client MozillaFirefox
-# Summary: Remote Login: One-time VNC Session with Jave applet and xvnc
+# Summary: Remote Login: One-time VNC Session with Java applet and xvnc
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586207
 

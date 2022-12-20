@@ -8,7 +8,7 @@
 #   This test does the following
 #    - Installs openvswitch-ipsec, openvswitch-pki and openvswitch-vtep
 #    - Starts the systemd service unit
-#    - Executes IPsec tunneling between two hosts with the following authenitcation
+#    - Executes IPsec tunneling between two hosts with the following authentication
 #    methods:
 #    	* Pre-shared key
 #    	* Self-signed certificate

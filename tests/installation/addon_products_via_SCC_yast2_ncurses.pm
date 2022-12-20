@@ -16,7 +16,7 @@ use version_utils 'is_sle';
 sub run {
     my ($self) = @_;
     select_console('root-console');
-    # Clean up registration in case system was previsouly registered
+    # Clean up registration in case system was previously registered
     cleanup_registration if is_sle('>=15');
     yast_scc_registration(yast2_opts => '--ncurses');
 }

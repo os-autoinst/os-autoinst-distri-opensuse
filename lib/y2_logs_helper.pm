@@ -61,7 +61,7 @@ sub break_dependency {
     return unless check_screen 'dependency-issue', 10;
 
     if (check_var('VIDEOMODE', 'text')) {
-        while (check_screen('dependency-issue-text', 5)) {    # repeat it untill all dependency issues are resolved
+        while (check_screen('dependency-issue-text', 5)) {    # repeat it until all dependency issues are resolved
             wait_screen_change { send_key 'alt-s' };    # Solution
             send_key 'down';    # down to option break dependency
             send_key 'ret';    # select option break dependency

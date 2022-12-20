@@ -148,7 +148,7 @@ sub check_network_status {
         record_soft_failure 'bsc#992113';
     }
     else {
-        assert_script_run 'dig suse.com|grep \'status: NOERROR\'';    # test if conection and DNS is working
+        assert_script_run 'dig suse.com|grep \'status: NOERROR\'';    # test if connection and DNS is working
     }
     assert_script_run 'cat journal.log';    # print journal.log
     my $journal_findings = script_output('cat journal.log');
@@ -317,7 +317,7 @@ sub check_etc_hosts_update {
     # Set back to dhcp
     set_network(fqdn => $fqdn);
 
-    record_info 'Test', 'Set to static from dchp, set FQDN and validate /etc/hosts entry';
+    record_info 'Test', 'Set to static from dhcp, set FQDN and validate /etc/hosts entry';
     $hostname = "test-3";
     $fqdn = $hostname . '.susetest.com';
     set_network(static => 1, fqdn => $fqdn, ip => $ip, mask => $mask);

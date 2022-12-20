@@ -57,7 +57,7 @@ sub run {
     assert_script_run("rmt-cli product enable $test_product");
     assert_script_run("rmt-cli product list | grep $test_product");
 
-    # recover the test enviroment
+    # recover the test environment
     assert_script_run("mv $rmt_conf_bk $rmt_conf");
 
 }

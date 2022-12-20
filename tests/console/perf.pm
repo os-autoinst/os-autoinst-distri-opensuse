@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Package: perf
-# Summary: Test basic perf funcionality
+# Summary: Test basic perf functionality
 # Maintainer: Orestis Nalmpantis <onalmpantis@suse.de>
 
 use base "consoletest";

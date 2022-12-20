@@ -52,7 +52,7 @@ sub run {
       sub { m/Unknown mac type|no matching MAC found/ };
 
     # Verify ssh doesn't support DSA public key in fips mode
-    validate_script_output 'ssh-keygen -t dsa -f ~/.ssh/id_dsa -P "" 2>&1 || true', sub { m/Key type dsa not alowed in FIPS mode/ };
+    validate_script_output 'ssh-keygen -t dsa -f ~/.ssh/id_dsa -P "" 2>&1 || true', sub { m/Key type dsa not allowed in FIPS mode/ };
 
     # Although there is StrictHostKeyChecking=no option, but the fingerprint
     # for localhost was still added into ~/.ssh/known_hosts, which potentially

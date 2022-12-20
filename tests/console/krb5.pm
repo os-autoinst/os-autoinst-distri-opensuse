@@ -10,7 +10,7 @@
 # Setup a kdc (kdc is the Kerberos version 5 Authentication Service and Key Distribution Center)
 # and run following commands: addprinc, getprincs, modprinc, getprinc, delprinc, listpols,
 # addpol, modpol, delpol, getprivs, ktremove.
-# system units tests (restart, stop, start, staus);
+# system units tests (restart, stop, start, status);
 # rckadmind service start, stop, restart, status
 
 use base 'consoletest';

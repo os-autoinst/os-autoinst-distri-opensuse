@@ -58,7 +58,7 @@ sub run {
     # Note: $hostname can be '$(hostname)', so we need to protect with '"'
     assert_script_run "sed -i -e \"s/%HOSTNAME%/$hostname/g\" -e 's/%INSTANCE_ID%/$instance_id/g' -e 's/%INSTANCE_SID%/$sid/g' $params_file";
 
-    # Create an appropiate start_dir.cd file and an unattended installation directory
+    # Create an appropriate start_dir.cd file and an unattended installation directory
     my $cmd = 'cd /sapinst ; ls -1 | grep -xv patch | while read d; do if [ -d "$d" -a ! -h "$d" ]; then echo $d; fi ; done | sed -e "s@^@/sapinst/@" ; cd -';
     assert_script_run 'mkdir -p /sapinst/unattended';
     assert_script_run "($cmd) > /sapinst/unattended/start_dir.cd";
@@ -103,7 +103,7 @@ sub run {
                  Startup.of.instance.${sid}/.*.finished:.\[ACTIVE\]
              ) | (
                  # And for older versions we also allow the ASCS stop error message.
-                 # ASCS00 is intentionally not a var, because this error occours on the other node.
+                 # ASCS00 is intentionally not a var, because this error occurs on the other node.
                  stopInstanceRemote.errno=CJS-20081.*[\r\n]+
                  .*Error.when.stopping.instance.*Cannot.stop.instance.*ASCS00
              )

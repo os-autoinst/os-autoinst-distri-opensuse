@@ -129,7 +129,7 @@ sub run {
             }
             my @zypper_ps_progs = split(/\s+/, script_output('zypper ps  --print "%s"', qr/^\s*$/));
             for my $ps_prog (@zypper_ps_progs) {
-                die("The following programm $ps_prog use deleted files") if grep { /$ps_prog/ } @installed_packages;
+                die("The following program $ps_prog use deleted files") if grep { /$ps_prog/ } @installed_packages;
             }
             record_info("WARNING", "`zypper ps` return following programs:\n" . join("\n", @zypper_ps_progs), result => 'softfail') if @zypper_ps_progs;
             if (my $commit_sha = get_var('WICKED_COMMIT_SHA')) {

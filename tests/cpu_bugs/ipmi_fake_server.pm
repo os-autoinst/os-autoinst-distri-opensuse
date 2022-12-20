@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Create fake server to occupy worker
-# openQA scheduler cannot deal with test suites which on differents workers,
+# openQA scheduler cannot deal with test suites which on different workers,
 # use locking API to workaround test sequence in job group.
 
 # Maintainer: An Long <lan@suse.com>

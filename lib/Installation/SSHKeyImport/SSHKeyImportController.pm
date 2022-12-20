@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces business actions for the
-#          Import SSH Host Keys ad Configruation page
+#          Import SSH Host Keys ad Configuration page
 #          of the installer.
 #
 # Maintainer: QE YaST <qa-sle-yast@suse.de>

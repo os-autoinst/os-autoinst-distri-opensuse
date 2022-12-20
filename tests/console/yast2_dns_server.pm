@@ -54,7 +54,7 @@ sub run {
     }
     send_key $cmd{finish};
 
-    # Verify changes in console. Apply changes is not availaible to check in the gui first,
+    # Verify changes in console. Apply changes is not available to check in the gui first,
     # Service may take a bit to actually start -> acceptable behaviour (boo#1093029)
     assert_screen 'root-console';
     my $times = RETRIES;

@@ -30,7 +30,7 @@ sub run {
     }
 
     # hardware detection and waiting for updates from suse.com can take a while
-    # Add tag 'all-partition' for poo#54050 - Need to show all Partition or the base partition for continous migration from SLE11SP4 won't be shown
+    # Add tag 'all-partition' for poo#54050 - Need to show all Partition or the base partition for continuous migration from SLE11SP4 won't be shown
     assert_screen_with_soft_timeout([qw(select-for-update all-partition)], timeout => 500, soft_timeout => 100, bugref => 'bsc#1028774');
     if (match_has_tag("all-partition")) {
         send_key 'alt-s';

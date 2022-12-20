@@ -44,13 +44,13 @@ sub run {
     assert_script_run 'grep "^Subject: Undelivered Mail Returned to Sender" /var/mail/root';
     assert_script_run 'journalctl -n1000 | grep "unknown user: \"agent_smith\""';
 
-    record_info 'send attachement', 'Send mail with attachment';
+    record_info 'send attachment', 'Send mail with attachment';
     assert_script_run 'echo > /var/mail/root';
     assert_script_run 'dd bs=1024 count=10 if=/dev/urandom of=/tmp/foo';
-    assert_script_run 'date | mail -a /tmp/foo -s "mail with attachement" root';
+    assert_script_run 'date | mail -a /tmp/foo -s "mail with attachment" root';
     assert_script_run 'postqueue -p';
     assert_script_run 'until postqueue -p|grep "Mail queue is empty";do sleep 1;done';
-    assert_script_run 'grep "^Subject: mail with attachement" /var/mail/root';
+    assert_script_run 'grep "^Subject: mail with attachment" /var/mail/root';
     assert_script_run 'echo w1 | mail';
     assert_script_run 'diff foo /tmp/foo';
 

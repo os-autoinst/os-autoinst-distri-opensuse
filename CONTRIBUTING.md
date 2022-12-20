@@ -19,7 +19,7 @@ Redmine project. Look for tickets with [easy] or [easy-hack] tags.
 
 ## How to get this repository working
 
-Upon setting up a new openQA instance, it's also necessary to install some aditional dependencies that are inherent to this repository,
+Upon setting up a new openQA instance, it's also necessary to install some additional dependencies that are inherent to this repository,
 for which there are two ways:
 
 * In case you're using cpanm (with or without local::lib, or others), from within the working copy: call `cpanm -n --mirror http://no.where/ --installdeps . `
@@ -142,7 +142,7 @@ if (match_has_tag('yast2_missing_package')) {
 
 ### Preparing a new Pull Request
 * All code needs to be tidy, for this use `make prepare` the first time you
-  set up your local environment, use `make tidy` before commiting your changes,
+  set up your local environment, use `make tidy` before committing your changes,
   ensure your new code adheres to our coding style or use `make tidy-full` if
   you have already few commits.
 * Every pull request is tested by our CI system for different perl versions,

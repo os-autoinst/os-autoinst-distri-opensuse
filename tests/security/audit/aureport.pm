@@ -1,7 +1,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-Later
 #
-# Summary: Verify the "aureport" utility can generate default audit report and reports with specifc parameters
+# Summary: Verify the "aureport" utility can generate default audit report and reports with specific parameters
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#81772, tc#1768552
 

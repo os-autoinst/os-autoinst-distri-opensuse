@@ -5,7 +5,7 @@
 #
 # Summary: For openSUSE virtualization test only. login in console, install kvm/xen patterns if needed.
 #  - Even if you'd like to run tests without host installation(DO_NOT_INSTALL_HOST=1), this module is still necessary as login console in this module is required.
-#  - This module is added for openSUSE TW because of the difference beteen SLE and TW. Meanwile, login_console, install_package and update_package from SLE are not needed. The reasons are listed below:
+#  - This module is added for openSUSE TW because of the difference between SLE and TW. Meanwile, login_console, install_package and update_package from SLE are not needed. The reasons are listed below:
 #    -- login_console is not called after first boot in host installation in TW because kvm/xen patterns have not been installed at that time. reconnect_mgmt_console and first_boot take care of the login function.
 #    -- have to zypper install kvm/xen patterns in TW.
 #    -- no QA packages have been required any more.

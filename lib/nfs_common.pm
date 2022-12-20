@@ -166,7 +166,7 @@ sub client_common_tests {
 sub check_nfs_ready {
     my ($rw, $ro) = @_;
 
-    assert_script_run "exportfs | grep '${rw}\\|${ro}'";
+    assert_script_run "exports | grep '${rw}\\|${ro}'";
     assert_script_run "cat /etc/exports | tr -d ' \\t\\r' | grep '${rw}\\*(rw,\\|${ro}\\*(ro,'";
     assert_script_run "cat /proc/fs/nfsd/exports";
 
@@ -261,8 +261,8 @@ sub stop_service {
 sub check_service {
     my ($rw, $ro) = @_;
 
-    assert_script_run "exportfs | grep '${rw}'";
-    assert_script_run "exportfs | grep '${ro}'";
+    assert_script_run "exports | grep '${rw}'";
+    assert_script_run "exports | grep '${ro}'";
     assert_script_run "cat /etc/exports | tr -d ' \\t\\r' | grep '${rw}\\*(rw,\\|${ro}\\*(ro,'";
     assert_script_run "cat /proc/fs/nfsd/exports";
     assert_script_run('systemctl is-enabled nfs-server');

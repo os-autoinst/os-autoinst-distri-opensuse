@@ -6,7 +6,7 @@
 
 # Package: openssh
 # Summary: console test pre setup, performing actions required to run tests
-# which are supposed to be reverted e.g. stoping and disabling packagekit and so on
+# which are supposed to be reverted e.g. stopping and disabling packagekit and so on
 # Permanent changes are now executed in system_prepare module
 # - Setup passwordless & questionless ssh login to localhost 127.0.0.1 ::1
 # - Disable/stop serial-getty service

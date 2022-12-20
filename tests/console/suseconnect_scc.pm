@@ -37,7 +37,7 @@ sub run {
     # There are sporadic failures due to the command timing out, so we increase the timeout
     # and make use of retries to overcome a possible sporadic network issue.
     script_retry("$cmd", retry => $retries, delay => $delay, timeout => 180);
-    # Check available extenstions (only present in sle)
+    # Check available extensions (only present in sle)
     my $extensions = script_output_retry("SUSEConnect --list-extensions", retry => $retries, delay => $delay);
     record_info('Extensions', $extensions);
 

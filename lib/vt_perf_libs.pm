@@ -20,7 +20,7 @@ use power_action_utils 'power_action';
 
 	prepare_git_repo($git_branch_name, $git_repo_url);
 
-Downlaod git repo.
+Download git repo.
 C<$git_branch_name> Branch name in string.
 C<$git_repo_url> URL in string.
 =cut
@@ -51,7 +51,7 @@ sub switch_to_linux_default_enable {
     my $self = shift;
     my $ret = script_run("grep \"mitigations=off\" /proc/cmdline");
     if ($ret eq 0) {
-        #Sometime parameter be writen on the line of GRUB_CMDLINE_LINUX
+        #Sometime parameter be written on the line of GRUB_CMDLINE_LINUX
         assert_script_run("sed -i '/GRUB_CMDLINE_LINUX=/s/mitigations=off/ /g' /etc/default/grub");
 
         #This remove can't make sure clean all lines.
@@ -86,7 +86,7 @@ sub switch_to_xen_default_enable {
 
     my $ret = script_run("xl info | grep \"xen_commandline\" | grep \"spec-ctrl=off\"");
     if ($ret eq 0) {
-        #Sometime parameter be writen on the line of GRUB_CMDLINE_LINUX
+        #Sometime parameter be written on the line of GRUB_CMDLINE_LINUX
         assert_script_run("sed -i '/GRUB_CMDLINE_XEN_DEFAULT=/s/spec-ctrl=off/ /g' /etc/default/grub");
 
         remove_xen_grub_cmdline_settings("spec-ctrl=off");
@@ -95,7 +95,7 @@ sub switch_to_xen_default_enable {
     }
     $ret = script_run("grep \"mitigations=off\" /proc/cmdline");
     if ($ret eq 0) {
-        #Sometime parameter be writen on the line of GRUB_CMDLINE_LINUX
+        #Sometime parameter be written on the line of GRUB_CMDLINE_LINUX
         assert_script_run("sed -i '/GRUB_CMDLINE_LINUX=/s/mitigations=off/ /g' /etc/default/grub");
 
         assert_script_run("sed -i '/GRUB_CMDLINE_LINUX_XEN_REPLACE_DEFAULT=/s/mitigations=off/ /g' /etc/default/grub");

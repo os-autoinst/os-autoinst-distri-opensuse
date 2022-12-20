@@ -3,7 +3,7 @@
 # Copyright 2012-2018 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: mitigation_perf: virutalization and vulnerabiluty performance test
+# Summary: mitigation_perf: virtualization and vulnerabiluty performance test
 # Maintainer: xgwang@suse.com
 
 package mitigation_perf;

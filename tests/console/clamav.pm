@@ -68,7 +68,7 @@ sub run {
         assert_script_run("mkswap /var/lib/swap/swapfile");
         assert_script_run("swapon /var/lib/swap/swapfile");
         my $swaps = script_output("cat /proc/swaps");
-        die "Swapfile was not created succesfully" unless ($swaps =~ "swapfile");
+        die "Swapfile was not created successfully" unless ($swaps =~ "swapfile");
     }
 
     # Verify the database
@@ -84,7 +84,7 @@ sub run {
     assert_script_run "echo -e \'[Service]\\nTimeoutSec=400\' > $runtime_dir/override.conf";
     systemctl('daemon-reload');
 
-    # Start the deamons
+    # Start the daemons
     script_run("sed -i 's/User vscan/User root/g' /etc/clamd.conf");
     systemctl('start clamd', timeout => 400);
     systemctl('start freshclam');

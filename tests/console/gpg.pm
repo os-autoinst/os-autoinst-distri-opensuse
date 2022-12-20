@@ -8,7 +8,7 @@
 # - Install haveged if necessary
 # - Generate gpg key pair using pre determined data (using gpg itself or openqa
 #   commands, depending on gpg version)
-# - Check if key lenght is between 2048 and 4096 bits
+# - Check if key length is between 2048 and 4096 bits
 # - Encrypt text file
 # - Decrypt gpg file created
 # - Reload gpg-agent (drop passphrase cache)
@@ -184,7 +184,7 @@ sub run {
         }
     }
 
-    # GPG key generation and basic function testing with differnet key lengths
+    # GPG key generation and basic function testing with different key lengths
     # RSA keys may be between 1024 and 4096 only currently
     foreach my $len ('1024', '2048', '3072', '4096') {
         gpg_test($len, $gpg_version);

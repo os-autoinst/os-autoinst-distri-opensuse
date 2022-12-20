@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Mitigation testcase library provides a class to execute
-# common test steps. Specificaly checkpoint could be done in individual
+# common test steps. Specifically checkpoint could be done in individual
 # test module via override functions in this class, or extend the test.
 #
 # Usage, when you need to testing a mitigation function.
@@ -497,7 +497,7 @@ sub guest_cycle {
     my $total_tc_count_in_ts = 0;
     my $junit_file = "/tmp/" . $gcvm_domain_name . "_mitigation_test_junit.xml";
 
-    # Initialize junit sturcture for hypervisor mitigation test
+    # Initialize junit structure for hypervisor mitigation test
     init_xml(file_name => "$junit_file", testsuites_name => "$testsuites_name");
 
     while (my ($arg, $dict) = each %$hash) {
@@ -507,7 +507,7 @@ sub guest_cycle {
             if ($DEBUG_MODE) {
                 record_info("Debug", "Hypervisor params: " . $arg . "\nTest mode: " . $mode . "\nTestCase:" . $single . "\n", result => 'ok');
             }
-            # check user specified test cases and support mutliple test cases to run, use "," as delimiter
+            # check user specified test cases and support multiple test cases to run, use "," as delimiter
             if ($mode eq 'single') {
                 if (!grep { $_ =~ /$arg/i } split(/,+/, $single)) {
                     next;

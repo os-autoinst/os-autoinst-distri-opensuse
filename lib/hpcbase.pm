@@ -289,7 +289,7 @@ sub mount_nfs {
     zypper_call('in nfs-client rpcbind');
     systemctl('start nfs');
     systemctl('start rpcbind');
-    record_info('show mounts aviable on the supportserver', script_output('showmount -e 10.0.2.1'));
+    record_info('show mounts available on the supportserver', script_output('showmount -e 10.0.2.1'));
     assert_script_run('mkdir -p /shared/slurm');
     assert_script_run('chown -Rcv slurm:slurm /shared/slurm');
     assert_script_run('mount -t nfs -o nfsvers=3 10.0.2.1:/nfs/shared /shared/slurm');
@@ -428,7 +428,7 @@ sub setup_nfs_server {
     foreach my $dir (values %$exports) {
         assert_script_run "echo $dir *(rw,no_root_squash,sync,no_subtree_check) >> /etc/exports";
     }
-    assert_script_run 'exportfs -a';
+    assert_script_run 'exports -a';
     systemctl 'enable --now nfs-server';
 }
 

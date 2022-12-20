@@ -64,8 +64,8 @@ sub initiator_discovered_targets_tab {
     send_key "alt-i";
     my $target_ip_only = (split('/', $test_data->{target_conf}->{ip}))[0];
     type_string_slow_extended $target_ip_only;
-    apply_workaround_bsc1204176('iscsi-initiator-discovered-IP-adress') if (is_sle('>=15-SP4'));
-    assert_screen 'iscsi-initiator-discovered-IP-adress';
+    apply_workaround_bsc1204176('iscsi-initiator-discovered-IP-address') if (is_sle('>=15-SP4'));
+    assert_screen 'iscsi-initiator-discovered-IP-address';
     # next and press connect button
     send_key "alt-n";
     assert_and_click 'iscsi-initiator-connect-button';

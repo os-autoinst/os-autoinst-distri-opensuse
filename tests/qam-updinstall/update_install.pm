@@ -119,7 +119,7 @@ sub run {
     # Extract module name from repo url.
     my @modules = split(/,/, $repos);
     foreach (@modules) {
-        # substitue SLES_SAP for LTSS repo at this point is SAP ESPOS
+        # substitute SLES_SAP for LTSS repo at this point is SAP ESPOS
         $_ =~ s/SAP_(\d+(-SP\d)?)/$1-LTSS/;
         next if s{http.*SUSE_Updates_(.*)/?}{$1};
         die 'Modules regex failed. Modules could not be extracted from repos variable.';
@@ -244,7 +244,7 @@ sub run {
 
         # After the patches have been applied and the new binaries have been
         # installed, check the version again and based on that determine if the
-        # update was succesfull.
+        # update was successful.
         foreach (keys %patch_bins) {
             $patch_bins{$_}->{new} = get_installed_bin_version($_, 'new');
         }

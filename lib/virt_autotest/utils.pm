@@ -175,7 +175,7 @@ sub check_guest_health {
     return 'pass';
 }
 
-#ammend the output of the command to an existing log file
+#amend the output of the command to an existing log file
 #$machine=<guest_ip> to pass guest name or an remote IP if running command in a remote machine
 #default $machine is the current SUT, ie. the host.
 #make sure '$file' is present in current SUT(host), it wastes time to check the file in each call.
@@ -250,7 +250,7 @@ sub ssh_copy_id {
     script_retry "nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12;
     assert_script_run "ssh-keyscan $guest >> ~/.ssh/known_hosts";
     if (script_run("ssh -o PreferredAuthentications=publickey -o ControlMaster=no $username\@$guest hostname") != 0) {
-        # Our client key is not authorized, we have to type password with evry command
+        # Our client key is not authorized, we have to type password with every command
         my $options = "-o PreferredAuthentications=password,keyboard-interactive -o ControlMaster=no";
         unless ($scp == 1) {
             exec_and_insert_password("ssh-copy-id $options $mode -i $default_ssh_key $username\@$guest");
@@ -555,7 +555,7 @@ EOF
     return;
 }
 
-#If certain host or guest is assigned a transient hostname from DNS server in company wide space, so the transient hostname becomes the real hostname to be indentified
+#If certain host or guest is assigned a transient hostname from DNS server in company wide space, so the transient hostname becomes the real hostname to be identified
 #on the network.In order to ensure its good ssh connection using predefined hostname or just a more desired one, add alias to its real hostname in host ssh config.
 sub add_alias_in_ssh_config {
     my ($ssh_config_file, $real_name, $domain_name, $alias_name) = @_;
@@ -582,7 +582,7 @@ EOF
     return;
 }
 
-#Parsed detaild subnet information, including subnet ip address, network mask, network mask length, gateway ip address, start ip address, end ip address and reverse ip address
+#Parsed detailed subnet information, including subnet ip address, network mask, network mask length, gateway ip address, start ip address, end ip address and reverse ip address
 #from ipv4 subnet address given.
 sub parse_subnet_address_ipv4 {
     my $subnet_address = shift;
@@ -601,7 +601,7 @@ sub parse_subnet_address_ipv4 {
 }
 
 #This subroutine receives array reference that contains file or folder name in absolute path form as $backup_target. Then back it up by appending 'backup' and timestamp to its
-#original name. If $destination_folder is given, the file or folder will be backed up in it. Otherwise it will be backed up in the orginal parent folder. For example,
+#original name. If $destination_folder is given, the file or folder will be backed up in it. Otherwise it will be backed up in the original parent folder. For example,
 #my @something_to_be_backed_up = ('file1', 'folder2', 'folder3'); backup_file(\@something_to_be_backed_up) or backup_file(\@something_to_be_backed_up, '/tmp').
 sub backup_file {
     my ($backup_target, $destination_folder) = @_;
@@ -772,7 +772,7 @@ name, otherwise it returns 0.
 sub is_sev_es_guest {
     my ($guest_name) = @_;
     $guest_name //= '';
-    croak('Arugment guest_name should not be empty') if ($guest_name eq '');
+    croak('Argument guest_name should not be empty') if ($guest_name eq '');
 
     $guest_name =~ /(sev-es|sev)/img;
     if ($1 ne '') {

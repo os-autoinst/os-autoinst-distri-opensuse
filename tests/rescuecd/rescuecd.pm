@@ -15,7 +15,7 @@ use testapi;
 sub run {
     assert_screen "rescuecd-desktop", 120;
 
-    # Mount and show the local hard disk contect
+    # Mount and show the local hard disk content
     assert_and_dclick "hd-volume";
     assert_screen "hd-mounted", 6;
 

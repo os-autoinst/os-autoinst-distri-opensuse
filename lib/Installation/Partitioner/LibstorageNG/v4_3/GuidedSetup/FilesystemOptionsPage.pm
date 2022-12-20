@@ -38,7 +38,7 @@ sub select_root_filesystem {
     my $root_fs = $filesystems{$fs};
     return $self->{cmb_root_fs_type}->select($root_fs) if $root_fs;
     die "Wrong test data provided when selecting root file system: $fs \n" .
-      'Avalaible options: ' . join(' ', sort keys %filesystems);
+      'Available options: ' . join(' ', sort keys %filesystems);
 }
 
 sub is_shown {

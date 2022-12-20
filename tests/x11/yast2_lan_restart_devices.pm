@@ -8,7 +8,7 @@
 # - Launch xterm as root, stop firewalld
 # - Put network in debug mode (DEBUG="yes" on /etc/sysconfig/network/config)
 # - Launch yast2 lan
-# - Add a device type brigde (dhcp)
+# - Add a device type bridge (dhcp)
 # - Add a device type bond
 # - Add a device type vlan
 # - Select the device

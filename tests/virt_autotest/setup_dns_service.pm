@@ -3,7 +3,7 @@
 # Copyright ?? 2012-2019 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Setup dns service for virtual machines to have dns compatiable name.
+# Summary: Setup dns service for virtual machines to have dns compatible name.
 # Maintainer: Wayne Chen <wchen@suse.com>
 
 use base "virt_autotest_base";

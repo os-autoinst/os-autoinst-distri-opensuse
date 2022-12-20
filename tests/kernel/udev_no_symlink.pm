@@ -23,7 +23,7 @@ sub run {
     # Normal SLES installation should not have partitions with name logical or primary
     assert_script_run('test $(grep -r "E:ID_PART_ENTRY_NAME=primary" /run/udev/data | wc -l) -eq 0');
     assert_script_run('test $(grep -r "E:ID_PART_ENTRY_NAME=logical" /run/udev/data | wc -l) -eq 0');
-    record_info('OK', 'No partion labels found with name equal to primary|logical');
+    record_info('OK', 'No partition labels found with name equal to primary|logical');
 
     # Prepare HDD
     zypper_call('-q in parted');

@@ -72,7 +72,7 @@ sub run {
     wait_still_screen 10;
     # Select target with internal IP first?
     assert_screen 'iscsi-client-target-list';
-    send_key 'alt-e';    # connEct
+    send_key 'alt-e';    # connect
     assert_screen 'iscsi-client-target-startup';
     send_key_until_needlematch 'iscsi-client-target-startup-manual-selected', 'alt-s';
     send_key_until_needlematch 'iscsi-client-target-startup-automatic-selected', 'down';

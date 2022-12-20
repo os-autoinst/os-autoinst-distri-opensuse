@@ -71,8 +71,8 @@ sub run {
         wait_still_screen stilltime => 3, timeout => 10;
         assert_and_click 'install-certificate-to-local-machine';
         wait_screen_change(sub { send_key 'ret' }, 10);
-        assert_screen 'user-acount-ctl-allow-make-changes', 20;
-        assert_and_click 'user-acount-ctl-yes';
+        assert_screen 'user-account-ctl-allow-make-changes', 20;
+        assert_and_click 'user-account-ctl-yes';
         wait_still_screen stilltime => 3, timeout => 10;
         assert_and_click 'select-custom-store', timeout => 120;
         wait_still_screen stilltime => 1, timeout => 5;

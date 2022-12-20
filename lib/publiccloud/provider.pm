@@ -69,7 +69,7 @@ Upload a image to the CSP. Required parameter is the
 location of the C<image> file.
 UEFI images are supported by giving the optional
 parameter C<type> = 'uefi'. This is only supported
-on GCE at the momment.
+on GCE at the moment.
 
 Retrieves the image-id after upload or die.
 
@@ -162,7 +162,7 @@ sub create_ssh_key {
 
 =head2 run_img_proof
 
-called by childs within img-proof function
+called by children within img-proof function
 
 =cut
 
@@ -318,7 +318,7 @@ sub on_terraform_destroy_timeout {
 =head2 terraform_prepare_env
 
 This method is used to initialize the terraform environment.
-it is executed only once, guareded by `terraform_env_prepared` member.
+it is executed only once, guarded by `terraform_env_prepared` member.
 =cut
 
 sub terraform_prepare_env {
@@ -589,7 +589,7 @@ sub cleanup {
 
 =head2 stop_instance
 
-This function implements a provider specifc stop call for a given instance.
+This function implements a provider specific stop call for a given instance.
 
 =cut
 
@@ -600,7 +600,7 @@ sub stop_instance
 
 =head2 start_instance
 
-This function implements a provider specifc start call for a given instance.
+This function implements a provider specific start call for a given instance.
 
 =cut
 
@@ -611,7 +611,7 @@ sub start_instance
 
 =head2 get_state_from_instance
 
-This function implements a provider specifc get_state call for a given instance.
+This function implements a provider specific get_state call for a given instance.
 
 =cut
 

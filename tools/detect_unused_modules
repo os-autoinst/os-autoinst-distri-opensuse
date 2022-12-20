@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-usage="Detect test modules usage in the schedules, inluding main.pm and yaml schedules.
+usage="Detect test modules usage in the schedules, including main.pm and yaml schedules.
 
 Usage: $(basename "$0") { -a | -m MODULES } | -h
 

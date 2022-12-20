@@ -54,7 +54,7 @@ In the following guide let's explain in detail the last solution.
 ## Overview
 
 The framework proposed here is based on
-[Page Object Desing Pattern](https://www.selenium.dev/documentation/en/guidelines_and_recommendations/page_object_models/),
+[Page Object Design Pattern](https://www.selenium.dev/documentation/en/guidelines_and_recommendations/page_object_models/),
 implemented using ["Old school" object-oriented perl](https://www.perl.com/article/25/2013/5/20/Old-School-Object-Oriented-Perl/)
 with a certain adaptation related to the environment-specific demands.
 
@@ -491,7 +491,7 @@ Applying the rules above gives us the following prefixes:
 | slb   | SelectionBox | slb_addons | 
 | tbl    | Table        | tbl_devices |
 | txb    | TextBox      | txb_maximum_channel | 
-| tre   | Tree         | tre_system_view |
+| tree   | Tree         | tree_system_view |
 | tab    | Tab          | tab_boot_loader_settings |
 
 

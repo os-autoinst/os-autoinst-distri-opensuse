@@ -7,7 +7,7 @@
 # features.
 # Follows the "Factory first" rule. So that the feature first appears in
 # Tumbleweed distribution, and only if it behaves different in Sle15-SP0 then it
-# should be overriden here.
+# should be overridden here.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Distribution::Sle::15sp0;

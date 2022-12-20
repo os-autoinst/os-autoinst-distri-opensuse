@@ -68,7 +68,7 @@ sub run {
 
 sub post_fail_hook {
     select_console('root-console');
-    # tar coredumps and uplad resultinf tar to assests
+    # tar coredumps and upload resultinf tar to assests
     script_run("tar -cf /tmp/core.tar /var/lib/systemd/coredump/*");
     upload_logs("/tmp/core.tar");
     select_console('x11');

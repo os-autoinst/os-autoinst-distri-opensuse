@@ -396,7 +396,7 @@ sub load_svirt_vm_setup_tests {
     set_bridged_networking;
     if (check_var("VIRSH_VMM_FAMILY", "hyperv")) {
         # Loading bootloader_hyperv here when UPGRADE is on (i.e. offline migration is underway)
-        # means loading it for the second time. Which might be apropriate if we want to reconfigure
+        # means loading it for the second time. Which might be appropriate if we want to reconfigure
         # the VM, but currently we don't want to.
         loadtest "installation/bootloader_hyperv" unless get_var('UPGRADE');
     }
@@ -1806,7 +1806,7 @@ sub load_extra_tests {
     # Extra tests are too long, split the test into subtest according to the
     # EXTRATEST variable; old EXTRATEST=1 settings is equivalent to
     # EXTRATEST=zypper,console,opensuse,kdump in textmode or
-    # EXTRATEST=desktop in dektop tests
+    # EXTRATEST=desktop in desktop tests
     foreach my $test_name (split(/,/, get_var('EXTRATEST'))) {
         if (my $test_to_run = main_common->can("load_extra_tests_$test_name")) {
             $test_to_run->();
@@ -1824,7 +1824,7 @@ sub load_rollback_tests {
     # For continuous migration test from SLE11SP4, the filesystem is 'ext3' and btrfs snapshot is not supported.
     # For HPC migration test with 'management server' role, the filesystem is 'xfs', btrfs snapshot is not supported.
     loadtest "boot/grub_test_snapshot" unless check_var('VIRSH_VMM_TYPE', 'linux') || get_var('FILESYSTEM') =~ /ext3|xfs/;
-    # Skip load version switch for online migration and opensuse perfomance test
+    # Skip load version switch for online migration and opensuse performance test
     loadtest "migration/version_switch_origin_system" if (!get_var("ONLINE_MIGRATION") && !(is_opensuse && get_var('SOFTFAIL_BSC1063638') && get_var('ROLLBACK_AFTER_MIGRATION')));
     if (get_var('UPGRADE') || get_var('ZDUP') || (is_opensuse && get_var('SOFTFAIL_BSC1063638') && get_var('ROLLBACK_AFTER_MIGRATION'))) {
         loadtest "boot/snapper_rollback";
@@ -1855,7 +1855,7 @@ sub load_extra_tests_filesystem {
         loadtest "console/btrfsmaintenance";
     }
     if (get_var('NUMDISKS', 0) > 1 && (is_sle('12-sp3+') || is_leap('42.3+') || is_tumbleweed)) {
-        # On JeOS we use kernel-defaul-base and it does not have 'dm-thin-pool'
+        # On JeOS we use kernel-default-base and it does not have 'dm-thin-pool'
         # kernel module required by thin-LVM
         loadtest 'console/snapper_thin_lvm' unless is_jeos;
     }
@@ -2655,7 +2655,7 @@ sub load_system_prepare_tests {
     loadtest 'console/install_rt_kernel' if check_var('SLE_PRODUCT', 'SLERT');
     loadtest 'console/force_scheduled_tasks' unless is_jeos;
     loadtest 'console/check_selinux_fails' if get_var('SELINUX');
-    # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
+    # Remove repos pointing to download.opensuse.org and add snapshot repo from o3
     replace_opensuse_repos_tests if is_repo_replacement_required;
     loadtest 'console/scc_deregistration' if get_var('SCC_DEREGISTER');
     loadtest 'shutdown/grub_set_bootargs';
@@ -2735,8 +2735,8 @@ sub load_hypervisor_tests {
         loadtest 'virtualization/universal/virtmanager_offon';    # Turn all VMs off and then on again
 
         if (is_sle('12-SP3+')) {
-            loadtest 'virtualization/universal/virtmanager_add_devices';    # Add some aditional HV to all VMs
-            loadtest 'virtualization/universal/virtmanager_rm_devices';    # Remove the aditional HV from all VMs
+            loadtest 'virtualization/universal/virtmanager_add_devices';    # Add some additional HV to all VMs
+            loadtest 'virtualization/universal/virtmanager_rm_devices';    # Remove the additional HV from all VMs
         }
     }
 
@@ -2850,7 +2850,7 @@ sub load_installation_validation_tests {
     # - console/verify_no_separate_home.pm: validate if separate /home partition disabled
     # - console/verify_separate_home.pm: validate if separate /home partition enabled
     # - console/validate_lvm_: validate lvm partitioning
-    # - console/validate_encrypt: validate encrypted paritioning
+    # - console/validate_encrypt: validate encrypted partitioning
     # - console/autoyast_smoke: validate autoyast installation
     # - installation/validation/ibft: validate autoyast installation
     # - console/validate_raid: validate raid layout partitioning
@@ -3129,7 +3129,7 @@ sub load_system_update_tests {
     return unless updates_is_applicable();
 
     if (guiupdates_is_applicable() && !$console_updates) {
-        # If we run both console and x11, this method is trigered twice
+        # If we run both console and x11, this method is triggered twice
         # So we don't schedule it for the first time
         if (x11tests_is_applicable()) {
             loadtest "update/prepare_system_for_update_tests";

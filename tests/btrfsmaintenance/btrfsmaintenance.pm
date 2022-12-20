@@ -18,7 +18,7 @@ use power_action_utils 'power_action';
 sub run {
     select_serial_terminal;
 
-    # Reinstall btrfsmaintenance pachage
+    # Reinstall btrfsmaintenance package
     zypper_call 'in -f btrfsmaintenance';
 
     assert_script_run('cd /usr/share/btrfsmaintenance');

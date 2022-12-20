@@ -128,7 +128,7 @@ sub retry_ssh_command {
     die "Waiting for Godot: " . $cmd;
 }
 
-# Auxilliary function to prepare the ssh command that runs any command on the PC instance
+# Auxiliary function to prepare the ssh command that runs any command on the PC instance
 sub _prepare_ssh_cmd {
     my ($self, %args) = @_;
     die('No command defined') unless ($args{cmd});
@@ -138,7 +138,7 @@ sub _prepare_ssh_cmd {
 
     my $cmd = $args{cmd};
     unless ($args{no_quote}) {
-        $cmd =~ s/'/\'/g;    # Espace ' character
+        $cmd =~ s/'/\'/g;    # Escape ' character
         $cmd = "\$'$cmd'";
     }
 
@@ -407,7 +407,7 @@ sub softreboot {
     die("Waiting for system down failed!") unless ($shutdown_time < $args{timeout});
     my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time, username => $args{username});
 
-    # ensure the tunnel-console is healthy, usefuly to early detect possible issues with the serial terminal
+    # ensure the tunnel-console is healthy, usefully to early detect possible issues with the serial terminal
     assert_script_run("true", fail_message => "console is broken");
 
     # Re-establish tunnel and switch back to previous console if needed

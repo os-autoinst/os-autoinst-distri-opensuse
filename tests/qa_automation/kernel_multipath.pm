@@ -27,7 +27,7 @@ use utils;
 use iscsi;
 
 # FIXME: The status queries for qaset (pkg qa_testset_automation) in
-# the subsequent two subs are rather awkward "inofficial" workarounds:
+# the subsequent two subs are rather awkward "unofficial" workarounds:
 # the current qaset API does not seem to offer such queries.
 #
 # A request to implement API commands like, e.g.,

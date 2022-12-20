@@ -9,7 +9,7 @@
 # - Check if vim is installed
 # - Check if vim-data is installed (should not be on JeOS)
 # - Run "vim /etc/passwd"
-# - Check if file is opened correctly (with syntax hightlight)
+# - Check if file is opened correctly (with syntax highlight)
 # - Force exit vim (":q!")
 # Maintainer: QE Core <qe-core@suse.de>
 

@@ -142,7 +142,7 @@ sub run {
     # Do some operations on Adminer web, e.g., log in, select/delete a database
     $self->adminer_database_delete();
 
-    # Verify audit log contains no "DENIED" "adminer" change hat opertions.
+    # Verify audit log contains no "DENIED" "adminer" change hat operations.
     # NOTE: There may have some "DENIED" records but we only interest in
     # "change_hat" and "profile_replace" ones
     my $script_output = script_output("cat $audit_log");

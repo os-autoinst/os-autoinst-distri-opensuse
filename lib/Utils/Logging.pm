@@ -88,7 +88,7 @@ sub save_and_upload_systemd_unit_log {
 save_ulog($out $filename);
 
 Creates a file from a string, the file is then saved in the ulogs directory of the worker running isotovideo. 
-This is particularily useful when the SUT has no network connection.
+This is particularly useful when the SUT has no network connection.
 
 example: 
 
@@ -163,7 +163,7 @@ sub upload_coredumps {
     my (%args) = @_;
     my $res = script_run('coredumpctl --no-pager');
     if (!$res) {
-        record_info("COREDUMPS found", "we found coredumps on SUT, attemp to upload");
+        record_info("COREDUMPS found", "we found coredumps on SUT, attempt to upload");
         script_run("coredumpctl info --no-pager | tee coredump-info.log");
         upload_logs("coredump-info.log", failok => $args{proceed_on_failure});
         my $basedir = '/var/lib/systemd/coredump/';

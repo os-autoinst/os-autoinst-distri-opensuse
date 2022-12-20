@@ -104,7 +104,7 @@ sub run {
     # Install libopenssl1_0_0 for older (<SPS03) HANA versions on SLE15+
     $self->install_libopenssl_legacy($path);
 
-    # This installs HANA. Start by configuring the appropiate SAP profile
+    # This installs HANA. Start by configuring the appropriate SAP profile
     $self->prepare_profile('HANA');
 
     # Mount media
@@ -212,7 +212,7 @@ sub run {
 
     # hdblcm is used for installation, verify if it exists
     my $hdblcm = '/sapinst/' . get_var('HANA_HDBLCM', "DATA_UNITS/HDB_SERVER_LINUX_" . uc(get_required_var('ARCH')) . "/hdblcm");
-    die "hdblcm is not in [$hdblcm]. Set HANA_HDBLCM to the appropiate relative path. Example: DATA_UNITS/HDB_SERVER_LINUX_X86_64/hdblcm"
+    die "hdblcm is not in [$hdblcm]. Set HANA_HDBLCM to the appropriate relative path. Example: DATA_UNITS/HDB_SERVER_LINUX_X86_64/hdblcm"
       if (script_run "ls $hdblcm");
 
     # Install hana

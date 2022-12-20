@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Package: yast2-firewall yast2-http-server apache2 apache2-prefork firewalld
-# Summary: YaST2 Firewall UI test checks verious configurations and settings of firewall
+# Summary: YaST2 Firewall UI test checks various configurations and settings of firewall
 # Make sure yast2 firewall can opened properly. Configurations can be changed and written correctly.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
@@ -40,7 +40,7 @@ sub susefirewall2 {
     assert_and_click("yast2_firewall_service-to-allow");
     assert_and_click("yast2_firewall_service_http");
     send_key "alt-a";
-    assert_screen "yast2_firewall_service_http_addded";
+    assert_screen "yast2_firewall_service_http_added";
 
     #	enter page Broadcast and disable logging broadcast packets
     assert_and_click("yast2_firewall_broadcast");

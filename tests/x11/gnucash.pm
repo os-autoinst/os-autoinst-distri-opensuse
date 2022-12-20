@@ -41,7 +41,7 @@ sub run {
         assert_screen('gnucash');
         # Leave tips windows for GNOME/gtk case
         if (get_var('DESKTOP', '') =~ /gnome|xfce|lxde/) {
-            # LXDE specifc behaviour: After closing one window not the first
+            # LXDE specific behaviour: After closing one window not the first
             # opened gets focussed but the last. Bring the tip window back to
             # focus if it is not
             send_key 'alt-tab' if check_var('DESKTOP', 'lxde');

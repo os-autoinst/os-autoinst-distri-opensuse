@@ -113,7 +113,7 @@ sub parse_ltp_log {
                 $results->{fail}++;
             }
             else {
-                say $fh "Test process returned unkown none zero value ($1).";
+                say $fh "Test process returned unknown none zero value ($1).";
                 $results->{brok}++;
             }
         }
@@ -173,7 +173,7 @@ sub record_ltp_result {
 
     # Top level fields are required for all test suites, unless otherwise
     # stated. Lower level fields can vary between test suites and even
-    # idividual tests.
+    # individual tests.
     my $export_details = {
         # Fully qualified name of the test suite and individual test case
         test_fqn => "LTP:$suite:$test->{name}",
@@ -334,7 +334,7 @@ sub run {
     script_run('vmstat -w');
 }
 
-# Only propogate death don't create it from failure [2]
+# Only propagate death don't create it from failure [2]
 sub run_post_fail {
     my ($self, $msg) = @_;
 
@@ -368,7 +368,7 @@ reported, otherwise a pass.
 
 [2] This overrides the default basetest class behaviour because the LTP tests
     are able to continue after most failures (without reverting to a
-    milestone). We call 'die' inside run() and then propogate it if the
+    milestone). We call 'die' inside run() and then propagate it if the
     failure is more severe and requires either reverting the SUT or aborting
     the tests.
 

@@ -9,7 +9,7 @@
 # - Check if desktop is not locked, unlock if necessary
 # - Turn off screensaver and suspend in gnome if DESKTOP is set to "gnome"
 # - Otherwise, disable xscreensaver
-# - Launch gpk-update-viewer and handle priviledged user warning
+# - Launch gpk-update-viewer and handle privileged user warning
 # - If a update is available, install it
 # - If update matches "PolicyKit" tag, fill password
 # - If asked to reboot after update, reboot system

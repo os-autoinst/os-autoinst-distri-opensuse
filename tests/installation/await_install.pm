@@ -56,7 +56,7 @@ sub _set_timeout {
     # VMware server is also a bit slow, needs to take more time
     ${$timeout} = 3600 if (check_var('VIRSH_VMM_FAMILY', 'vmware'));
 
-    # aarch64 can be particularily slow depending on the hardware
+    # aarch64 can be particularly slow depending on the hardware
     ${$timeout} *= 2 if is_aarch64 && get_var('MAX_JOB_TIME');
     # PPC HMC (Power9) performs very slow in general
     ${$timeout} *= 2 if is_pvm_hmc && get_var('MAX_JOB_TIME');
@@ -85,7 +85,7 @@ sub run {
     my $self = shift;
     # NET isos are slow to install
     # If this timeout needs to be bumped again, we might be having a bigger network problem
-    # or a peformance problem on the installer
+    # or a performance problem on the installer
     my $timeout = (is_s390x || is_ppc64le) ? 2400 : 2000;
 
     # workaround for yast popups and
@@ -191,7 +191,7 @@ sub run {
         # countdown might not be evaluated correctly or in time. In these
         # cases we keep hitting the keys until the countdown stops.
         my $counter = 10;
-        # A single changing digit is only a minor change, overide default
+        # A single changing digit is only a minor change, override default
         # similarity level considered a screen change
         my $minor_change_similarity = 55;
         while ($counter-- and wait_countdown_stop(3, $minor_change_similarity)) {

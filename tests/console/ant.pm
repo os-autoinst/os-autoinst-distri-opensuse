@@ -92,9 +92,9 @@ sub run {
     assert_script_run "echo '$java_hello_world' >> src/test/Hello.java";
     assert_script_run "echo '$build_file_xml' >> build.xml";
 
-    # Check that ant builds succesfully
+    # Check that ant builds successfully
     assert_script_run "ant --noconfig";
-    # Check that ant runs the application succesfully
+    # Check that ant runs the application successfully
     assert_script_run 'ant --noconfig run| grep "Hello World"';
 }
 

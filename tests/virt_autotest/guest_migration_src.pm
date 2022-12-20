@@ -130,7 +130,7 @@ sub run {
     my $upload_log_name = "guest-migration-src-logs";
     $self->{"package_name"} = "Guest Migration Test";
 
-    # clean up logs from prevous tests
+    # clean up logs from previous tests
     script_run('[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/', 30) if !get_var('SKIP_GUEST_INSTALL');
     script_run('[ -d /var/log/qa/ctcs2/ ] && rm -rf /var/log/qa/ctcs2/', 30);
     script_run('[ -d /tmp/prj3_migrate_admin_log/ ] && rm -rf /tmp/prj3_migrate_admin_log/', 30);

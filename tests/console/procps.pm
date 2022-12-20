@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Package: procps
-# Summary: Test procps installation and verify that its tools work as exepected
+# Summary: Test procps installation and verify that its tools work as expected
 # - Install procps
 # - Run free and check
 # - Run pgrep 1 and check

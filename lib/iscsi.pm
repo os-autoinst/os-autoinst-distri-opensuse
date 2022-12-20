@@ -3,7 +3,7 @@
 # Copyright 2018 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Support for iscsi taget creation and iscsi client tools
+# Summary: Support for iscsi target creation and iscsi client tools
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 
 package iscsi;

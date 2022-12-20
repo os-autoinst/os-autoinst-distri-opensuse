@@ -27,7 +27,7 @@ where:
 - aarch64 represents the architecture
 - Online is the Flavor (Online,Full)
 
-The above values are the default, thus `./data/supportserver/autoyast_supportserver_generator_sle15.sh` will procude the same image as the command in the example with the parameters.
+The above values are the default, thus `./data/supportserver/autoyast_supportserver_generator_sle15.sh` will produce the same image as the command in the example with the parameters.
 
 The producing image will have the name based on the arch. i include the creation date to be able to track when it was last updated. for instance
 ```

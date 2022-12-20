@@ -1,7 +1,7 @@
 name: zfcp
 description: >
   Test installation on machine with zfcp multipath disk.
-  Only tests succesful detection of multipath and installation.
+  Only tests successful detection of multipath and installation.
   No functional testing of multipath itself.
 vars:
   DESKTOP: gnome

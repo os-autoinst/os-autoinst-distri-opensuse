@@ -22,7 +22,7 @@ sub run {
     # Install emulated tpm server and git-core
     zypper_call('in ibmswtpm2 git-core');
 
-    # Swith to root console to start tpm server in backaround
+    # Switch to root console to start tpm server in backaround
     my $tpm_spid;
     if (is_sle) {
         $tpm_spid = background_script_run('/usr/lib/ibmtss/tpm_server');

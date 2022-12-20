@@ -3,7 +3,7 @@
 #
 # Summary: Implement & Integrate 389ds + sssd test case into openQA,
 #          This test module covers the server features check before
-#          and after migration, 389ds exsits sles15sp3+
+#          and after migration, 389ds exists sles15sp3+
 #
 # Maintainer: Yutao Wang<yuwang@suse.com>
 

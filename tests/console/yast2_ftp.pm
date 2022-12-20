@@ -120,7 +120,7 @@ sub run {
     wait_screen_change { send_key 'down' };
     wait_screen_change { send_key 'ret' };    # enter page General
     assert_screen 'yast2_tftp_general_selected';
-    assert_screen 'ftp_welcome_mesage';    # check welcome message for add strings
+    assert_screen 'ftp_welcome_message';    # check welcome message for add strings
     send_key 'alt-w';    # select welcome message to edit
     send_key_until_needlematch 'yast2_tftp_empty_welcome_message', 'backspace';    # delete existing welcome strings
     type_string($vsftpd_directives->{ftpd_banner});    # type new welcome text

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Package: xinetd yast2-inetd
-# Summary: yast2_xinetd checks start and stop of verious server components and add or delete server components
+# Summary: yast2_xinetd checks start and stop of various server components and add or delete server components
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use strict;

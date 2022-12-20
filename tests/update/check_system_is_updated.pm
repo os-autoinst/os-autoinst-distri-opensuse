@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Package: PackageKit
-# Summary: Check that no updates are available after they were previoulsy applied
+# Summary: Check that no updates are available after they were previously applied
 # - execute pkcon get-updates and check that the message says 'there are no updates'
 # Maintainer: mkravec <mkravec@suse.com>
 

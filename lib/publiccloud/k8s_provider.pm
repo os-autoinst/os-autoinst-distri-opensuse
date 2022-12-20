@@ -87,7 +87,7 @@ sub configure_podman {
 
 =head2 push_container_image
 
-Upload a container image to the Provider Cotainer registry. 
+Upload a container image to the Provider Container registry. 
 Required parameter is the name of the image, previously stored 
 in the local registry. And the tag (name) in the public cloud 
 containers repository Retrieves the full name of the uploaded 

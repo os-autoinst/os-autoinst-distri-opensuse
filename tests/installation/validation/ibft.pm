@@ -64,14 +64,14 @@ sub is_ibft_boot_flag {
 sub ibft_validation {
     my $self = shift;
     my @domain = qw(ethernet initiator target acpi_header);
-    my $kb_ibft_messsages = q/'iBFT found at|iBFT detected|ibft0: renamed from'/;
+    my $kb_ibft_messages = q/'iBFT found at|iBFT detected|ibft0: renamed from'/;
     my $ibft_grub = {
         CONFIG_ISCSI_IBFT_FIND => 'y',
         CONFIG_ISCSI_IBFT => 'm'
     };
 
     # Check if ibft drivers have been loaded
-    assert_script_run 'dmesg | grep -E ' . $kb_ibft_messsages;
+    assert_script_run 'dmesg | grep -E ' . $kb_ibft_messages;
     # Verify grub entries
     foreach my $entry (keys %{$ibft_grub}) {
         assert_script_run 'grep -r ' . $entry . '=' . $ibft_grub->{$entry} . ' /boot/';

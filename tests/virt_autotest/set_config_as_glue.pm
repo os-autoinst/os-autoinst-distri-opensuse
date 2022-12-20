@@ -14,7 +14,7 @@ use strict;
 use warnings;
 use testapi;
 
-sub fufill_guests_in_setting {
+sub fulfill_guests_in_setting {
     my $wait_script = "30";
     my $vm_types = "sles|win|opensuse|oracle";
     my $get_vm_hostnames = "virsh list --all | grep -E \"${vm_types}\" | awk \'{print \$2}\'";
@@ -28,7 +28,7 @@ sub fufill_guests_in_setting {
 }
 
 sub run {
-    fufill_guests_in_setting;
+    fulfill_guests_in_setting;
 }
 
 1;

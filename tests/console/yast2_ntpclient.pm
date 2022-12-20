@@ -79,7 +79,7 @@ sub run {
     # add a new synchronization
     send_key 'alt-a';
 
-    # check page new sychronization
+    # check page new synchronization
     assert_screen 'yast2_ntp-client_new_synchronization';
 
     # select type of synchronization: server, then go next

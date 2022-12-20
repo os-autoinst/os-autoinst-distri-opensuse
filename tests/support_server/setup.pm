@@ -479,7 +479,7 @@ sub setup_aytests {
     # Get profiles
     git clone --single-branch -b $aytests_repo https://github.com/yast/aytests-tests.git /tmp/ay
     mv -f /tmp/ay/aytests /srv/www/htdocs/
-    # Download apache configuration and cgi script used for dynamically set paramaters expansion
+    # Download apache configuration and cgi script used for dynamically set parameters expansion
     curl -f -v " . autoinst_url . "/data/supportserver/aytests/aytests.conf >/etc/apache2/vhosts.d/aytests.conf
     curl -f -v " . autoinst_url . "/data/supportserver/aytests/aytests.cgi >/srv/www/cgi-bin/aytests
     chmod 755 /srv/www/cgi-bin/aytests
@@ -550,7 +550,7 @@ sub setup_nfs_server {
     assert_script_run("mkdir -p $nfs_mount");
     assert_script_run("chmod 777 $nfs_mount");
     assert_script_run("echo $nfs_mount 10.0.2.2/24\\($nfs_permissions\\) >> /etc/exports");
-    assert_script_run("exportfs -r");
+    assert_script_run("exports -r");
     systemctl("restart nfs-server");
     systemctl("restart rpcbind");
     systemctl("is-active nfs-server -a rpcbind");

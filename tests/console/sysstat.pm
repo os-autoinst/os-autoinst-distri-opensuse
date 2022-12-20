@@ -56,7 +56,7 @@ sub run {
     #run 5 iostat device iterations, we confirm success counting the Devices column spawns
     validate_script_output "iostat 2 5 |grep Device |wc -l", sub { /5/ };
 
-    #mpstat 5 mpstat device iterations, we confirm success couting the summary 'all' column spawns
+    #mpstat 5 mpstat device iterations, we confirm success counting the summary 'all' column spawns
     validate_script_output "mpstat -P ALL 2 5 |grep all |wc -l", sub { /6/ };
 
     #header integrity checks:

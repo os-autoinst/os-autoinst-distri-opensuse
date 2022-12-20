@@ -6,7 +6,7 @@
 # Summary: Use the created hdd and run the external testkits in offline mode.
 # * Go to the directory testdir and untar the external testkits
 # * Ensure that the network is not available
-# * Start the test by running the systemd_pepare.sh
+# * Start the test by running the systemd_prepare.sh
 # * Run the systemd_run.sh and save the result
 # * Make sure that network is still down
 # * Parse the saved result and return the status
@@ -33,7 +33,7 @@ sub run {
     assert_script_run("cd $testdir");
     assert_script_run("tar -zxvf systemd_suse.tgz");
     # Make the Network offline if OFFLIE_SUT is set to 1
-    # To be common criteria compliant, binaries not controlled by SUSE must be excecuted isolated
+    # To be common criteria compliant, binaries not controlled by SUSE must be executed isolated
     # hence the reason to disable the network here, beyond this step, treat the machine as tainted.
     assert_script_run(qq{(ping -c4 build.suse.de && exit 1 || exit 0 )});
     assert_script_run(qq{(ping -c4 8.8.8.8 && exit 1 || exit 0)});
@@ -46,7 +46,7 @@ sub run {
     # systemd_run.sh will fail with a non-zero retval if any of the sub-tests
     # fail. We ignore it to parse the individual results from the log
     my $out = script_output "su - abcadm -c '$testdir/systemd_run.sh' 2>&1 | tee $log", $wait, proceed_on_failure => 1;
-    record_info("END", "Testsuite excecution finished");
+    record_info("END", "Testsuite execution finished");
     record_info("TEST LOG", "$out");
     assert_script_run(qq{(ping -c4 build.suse.de && exit 1 || exit 0 )});
     assert_script_run(qq{(ping -c4 8.8.8.8 && exit 1 || exit 0)});

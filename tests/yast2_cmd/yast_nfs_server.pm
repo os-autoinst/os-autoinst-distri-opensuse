@@ -8,7 +8,7 @@
 #          including add, delete, set and summary.
 
 # - Start the nfs-server service.
-# - Add a directory to export and used exportfs command verify.
+# - Add a directory to export and used exports command verify.
 # - Specifies additional parameters for the NFS server.
 # - Displays a summary of the NFS server configuration.
 # - Restore nfs-server settings and used summary parameter verify.
@@ -22,7 +22,7 @@ Reference:
 https://www.suse.com/documentation/sles-15/singlehtml/book_sle_admin/book_sle_admin.html#id-1.3.3.6.13.6.22
  
 1. Start the nfs-server service.
-2. Add a directory to export and used exportfs command verify.
+2. Add a directory to export and used exports command verify.
 3. Specifies additional parameters for the NFS server.
 4. Displays a summary of the NFS server configuration.
 5. Restore nfs-server settings and used summary parameter verify.
@@ -59,9 +59,9 @@ sub run {
     # 1. Start the nfs-server service
     assert_script_run("yast nfs-server start", fail_message => "yast nfs-server failed when starting nfs-server service");
 
-    # 2. Add a directory to export and used exportfs command verify
+    # 2. Add a directory to export and used exports command verify
     assert_script_run("yast nfs-server add mountpoint=$tmp_dir hosts=*.test.com");
-    validate_script_output("exportfs", sub { m#$tmp_dir\s+\*.test.com# });
+    validate_script_output("exports", sub { m#$tmp_dir\s+\*.test.com# });
 
     # 3. Specifies additional parameters for the NFS server and check sles12sp2-bsc1144221
     my $ret_set = script_run("yast nfs-server set enablev4=yes security=yes");

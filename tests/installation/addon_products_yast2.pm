@@ -51,7 +51,7 @@ sub run {
         my $sr_number = 0;
         for my $addon (split(/,/, get_var('ADDONS'))) {
             $sr_number++;
-            $uc_addon = uc $addon;    # varibale name is upper case
+            $uc_addon = uc $addon;    # variable name is upper case
             assert_screen 'inst-addon';
             if (check_var('SCC_REGISTER', 'network')) {
                 send_key 'alt-u';    # specify url
@@ -105,7 +105,7 @@ sub run {
                     send_key 'alt-o';
                 }
                 if (match_has_tag('addon-installation-pop-up')) {
-                    # Handle reboot reminder pop up to activate new kernel ( pop up in case of RT extention )
+                    # Handle reboot reminder pop up to activate new kernel ( pop up in case of RT extension )
                     $perform_reboot = 1;
                     send_key 'alt-o';
                     # Avoid to match the pop up more than once
@@ -113,10 +113,10 @@ sub run {
                     splice(@needles, $needle_index, 1) unless ($needle_index == -1);
                 }
             } until (match_has_tag('addon-installation-report'));
-            # Installation report, hit Finish button and proceed to SCC registartion
+            # Installation report, hit Finish button and proceed to SCC registration
             send_key 'alt-f';
             assert_screen 'scc-registration';
-            # This part of code should handle registration of the base system and the added extention or module
+            # This part of code should handle registration of the base system and the added extension or module
             # In case of RT testing, registration is not mandatory in test suite(s) executing *YaST2 add-on*
             if (get_var('SCC_REGISTER')) {
                 fill_in_registration_data;

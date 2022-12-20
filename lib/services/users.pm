@@ -69,7 +69,7 @@ sub change_pwd {
     assert_and_click "confirm-new-password";
     wait_still_screen;
     type_string $newpwd;
-    assert_and_click "actived-change-password";
+    assert_and_click "activated-change-password";
     assert_screen "users-settings", 60;
 }
 
@@ -83,12 +83,12 @@ sub add_user {
     type_string $pwd4newUser;
     assert_and_click "confirm-newuser-password";
     type_string $pwd4newUser;
-    assert_and_click "actived-add-user";
+    assert_and_click "activated-add-user";
     assert_screen "users-settings", 60;
     send_key "alt-f4";
 }
 
-# swtich to new added user then switch back
+# switch to new added user then switch back
 sub switch_users {
     switch_user;
     wait_still_screen 5;

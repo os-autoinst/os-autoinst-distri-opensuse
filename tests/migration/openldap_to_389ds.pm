@@ -88,7 +88,7 @@ sub run {
     upload_logs("./slapd.conf", timeout => 100);
     assert_script_run "openldap_to_ds -v --confirm localhost ./slapd.d ./db.ldif > ldap2dslog";
     upload_logs("./ldap2dslog", timeout => 100);
-    assert_script_run "ldapmodify -H ldap://localhost -x -D 'cn=Directory Manager' -w $password -f aci.ldif";
+    assert_script_run "ldapmodify -H ldap://localhost -x -D 'cn=Directory Manager' -w $password -f acpi.ldif";
 
     # Check refint and unique plugins status
     my $out = script_output "dsconf localhost plugin attr-uniq list";

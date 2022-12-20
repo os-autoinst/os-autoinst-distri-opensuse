@@ -22,7 +22,7 @@ sub run {
 
     # This test is to verify that important configuration files are protected
     # against access by unauthorized users. The result shows files that are softlinks
-    # or the random device is allowed exception to the intial result expectation.
+    # or the random device is allowed exception to the initial result expectation.
     foreach my $file (split('\n', $output)) {
         my $file_detail = script_output("readlink $file");
         if ($file_detail !~ /(\/dev\/null|\/dev\/random)/) {

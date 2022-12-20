@@ -43,7 +43,7 @@ sub run {
     die "Snapshots take more than " . $space_limit * 100 . "% of root disk space"
       if ($qgroup_space >= $space_limit * $disk_size);
 
-    # The cleanup timeline algorith will erase timeline snapshots if the free disk space is less than <FREE_LIMIT> %
+    # The cleanup timeline algorithm will erase timeline snapshots if the free disk space is less than <FREE_LIMIT> %
     my $free_limit = $test_data->{snapper_config}->{FREE_LIMIT} * 100;
     record_info("Free > $free_limit%", "Ensure that free disk space is more than $free_limit%. 
 	    Create a snapshot with timeline cleanup algorithm and make sure that it is not erased by the algorithm");

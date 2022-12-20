@@ -42,7 +42,7 @@ sub process_missing_special_partitions {
         process_warning(warning => 'no-efi-boot', key => 'alt-n');
     }
     elsif (is_storage_ng() && is_x86_64) {
-        # Storage-ng has GPT by defaut, so warn about missing bios-boot partition for legacy boot, which is only on x86_64
+        # Storage-ng has GPT by default, so warn about missing bios-boot partition for legacy boot, which is only on x86_64
         process_warning(warning => 'no-bios-boot', key => 'alt-n');
     }
 }

@@ -92,7 +92,7 @@ sub check_function {
     }
 
     # Check logs
-    record_info "access_log", "Access log should containt successful job submits";
+    record_info "access_log", "Access log should contain successful job submits";
     my $check_str = "Send-Document";
     $check_str = "Print-Job" if ($service_type eq 'SystemV');
     assert_script_run 'grep "$check_str successful-ok" /var/log/cups/access_log';

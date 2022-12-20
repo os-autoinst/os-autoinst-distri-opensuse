@@ -181,7 +181,7 @@ sub prepare_packages {
         add_qa_head_repo();
     }
     zypper_call('-q in iw hostapd wpa_supplicant dnsmasq freeradius-server freeradius-server-utils vim');
-    # make sure, we do not run these deamons, as we need to run them in network namespace
+    # make sure, we do not run these daemons, as we need to run them in network namespace
     assert_script_run('systemctl disable --now dnsmasq');
     assert_script_run('systemctl disable --now radiusd');
 }
@@ -215,7 +215,7 @@ sub prepare_freeradius_server {
     assert_script_run(sprintf(q(echo '%s ClearText-Password := "%s"' >> /etc/raddb/users),
             $self->eap_user, $self->eap_password));
     assert_script_run('time (cd /etc/raddb/certs && ./bootstrap)', timeout => 600);
-    assert_script_run(sprintf(q(openssl rsa -in '%s' -out '%s' -passin pass:'%s'),
+    assert_script_run(sprintf(q(openssl rsa -in '%s' -out '%s' -passing pass:'%s'),
             $self->client_key, $self->client_key_no_pass, $self->client_key_password));
 }
 

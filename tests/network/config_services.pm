@@ -5,7 +5,7 @@
 #
 # Package: apache2 openldap2 vsftpd dovecot openssl postfix
 # Summary: Test preparing services to use with multimachine scenarios.
-#  At least confiugre:
+#  At least configure:
 #   - http - A basic http support with apache2
 #   - ldap - A simple openladp with users.
 #   - ftp  - simple ftp server
@@ -22,7 +22,7 @@
 #  Use on test variables settings: SUPPORT_SERVER_ROLES=http,ldap
 #  The firewall was disable and network configuration used was provide by  tests/network/setup_multimachine.pm
 #  This script was based from tests/support_server/setup.pm, but not use serial
-#  console or neddles. This is to facilites to run on all SLES/OPensuse versions.
+#  console or neddles. This is to facilities to run on all SLES/OPensuse versions.
 #
 # Maintainer: Marcelo Martins <mmartins@suse.com>
 

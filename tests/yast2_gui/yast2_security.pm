@@ -8,7 +8,7 @@
 #          correctly by changing some values and verifying that they
 #          have been successfully set.
 # - Launch yast2 security
-# - Access Password Settings, change minimum password lenght to "8", change
+# - Access Password Settings, change minimum password length to "8", change
 # days before expiration warning to "30"
 # - Launch yast2 security and check the values on Password Settings
 # - Access Login Settings and change Delay after Incorrect login attempt to "5"

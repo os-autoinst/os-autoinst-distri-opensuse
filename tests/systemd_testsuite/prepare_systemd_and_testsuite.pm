@@ -50,7 +50,7 @@ sub run {
         zypper_call("ar $repo systemd-tests");
     }
 
-    #install testsuite and dependecies
+    #install testsuite and dependencies
     zypper_call('ref');
     zypper_call("in @pkgs");
 

@@ -104,7 +104,7 @@ The optional parameters C<wicked_client_down> is given normally with C<interface
 to verify that wicked.service process is down.
 The optional argument C<wicked_daemon_down> is given to verify that wickedd.service is down.
 The optional argument C<ping_ip> checks that the IP is reachable.
-The optinal argument C<iface> allows to print the output of the command 'ip address show'.
+The optional argument C<iface> allows to print the output of the command 'ip address show'.
 With no arguments, it will check that wicked.service and wickedd.service are up.
 
 =cut
@@ -157,11 +157,11 @@ sub get_remote_ip {
 
   get_ip(type => [host|gre1|sit1|tunl1|tun1|br0|vlan|vlan_changed] [, is_wicked_ref => check_var('IS_WICKED_REF', '1'), netmask => 0])
 
-Retrives IP address as C<string> in IPv4 or IPv6 format and netmask prefix if C<netmask> is set.
+Retrieves IP address as C<string> in IPv4 or IPv6 format and netmask prefix if C<netmask> is set.
 
 The mandatory parameter C<type> specify the interfaces type.
 If parameter C<netmask> is set, the IP address contains the C</xx> netmask prefix, if specified.
-With C<is_wicked_ref> you can specify which IP address you like to retrives. If C<is_wicked_ref> isn't
+With C<is_wicked_ref> you can specify which IP address you like to retrieves. If C<is_wicked_ref> isn't
 set the job variable C<IS_WICKED_REF> will be used. See also C<get_remote_ip()>.
 
 =cut
@@ -188,7 +188,7 @@ sub get_ip {
         vlan_changed => ['192.0.2.111/24', '192.0.2.110/24'],
         macvtap => ['10.0.2.18/15', '10.0.2.17/15'],
         bond => ['10.0.2.18', '10.0.2.17'],
-        dhcp_2nic => ['10.20.30.', '10.20.30.12'],    # dhcp_2nic in SUT, we don't know the last octect
+        dhcp_2nic => ['10.20.30.', '10.20.30.12'],    # dhcp_2nic in SUT, we don't know the last octet
         second_card => ['10.0.3.11', '10.0.3.12'],
         gateway => ['10.0.2.2', '10.0.2.2'],
         wlan => ['10.6.6.2/24', '10.6.6.1/24'],
@@ -218,7 +218,7 @@ sub get_ip {
 
 Gets the IP of a given interface by C<ifc>.
 
-The parameter C<ip_version> chould be one of the values 'v4' or 'v6'.
+The parameter C<ip_version> should be one of the values 'v4' or 'v6'.
 
 =cut
 
@@ -441,7 +441,7 @@ sub setup_openvpn_client {
   get_test_result($type, $ip_version => v4)
 
 It returns FAILED or PASSED if the ping to the remote IP of a certain interface type given by C<type> is reachable or not.
-The parameter C<ip_version> chould be one of the values 'v4' or 'v6'.
+The parameter C<ip_version> should be one of the values 'v4' or 'v6'.
 
 =cut
 
@@ -528,7 +528,7 @@ sub upload_wicked_logs {
 
   do_barrier(<barrier_postfix>)
 
-Used to syncronize the wicked tests for SUT and REF creating the corresponding mutex locks.
+Used to synchronize the wicked tests for SUT and REF creating the corresponding mutex locks.
 
 =cut
 
@@ -668,7 +668,7 @@ sub check_fail_over {
   sync_start_of($service, $mutex, [,$timeout])
 
 Start C<$service> within defined $timeout ( default is 60).
-After succesfully service start will create mutex with C<$mutex>
+After successfully service start will create mutex with C<$mutex>
 which can be used by parallel test to catch this event
 
 =cut

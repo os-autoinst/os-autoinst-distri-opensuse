@@ -42,7 +42,7 @@ sub run {
 
     assert_script_run "tpm2_createprimary -C o -g sha256 -G ecc -c $context_out $tpm_suffix";
 
-    # tpm2_create(1) - Create a child objec
+    # tpm2_create(1) - Create a child object
     assert_script_run "tpm2_create -C $context_out -G rsa2048:rsaes -u $key_pub -r $key_priv $tpm_suffix";
 
     # tpm2_load(1) - Load both the private and public portions of an object into the TPM

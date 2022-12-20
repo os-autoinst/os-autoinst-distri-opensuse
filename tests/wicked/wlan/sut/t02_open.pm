@@ -19,7 +19,7 @@
 use Mojo::Base 'wicked::wlan';
 use testapi;
 
-has ssid => 'Open Virutal WiFi';
+has ssid => 'Open Virtual WiFi';
 
 has hostapd_conf => q(
     ctrl_interface=/var/run/hostapd

@@ -47,7 +47,7 @@ sub update_package {
 
 sub run {
     my $self = shift;
-    #workaroud: skip update package for registered aarch64 tests and because there are conflicts on sles15sp2 XEN
+    #workaround: skip update package for registered aarch64 tests and because there are conflicts on sles15sp2 XEN
     $self->update_package() unless (is_registered_sles && is_aarch64);
     unless ((is_registered_sles && is_aarch64) || is_s390x) {
         set_grub_on_vh('', '', 'xen') if is_xen_host;

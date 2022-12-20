@@ -30,12 +30,12 @@ sub run {
     my ($self) = @_;
     $self->gnote_start_with_new_note;
     enter_cmd "opensuse";
-    send_key "ctrl-h";    #hightlight on
+    send_key "ctrl-h";    #highlight on
     enter_cmd "opensuse";
     send_key "ctrl-b";    #bold on
     enter_cmd "opensuse";
     send_key "ctrl-b";    #bold off
-    send_key "ctrl-h";    #hightlight off
+    send_key "ctrl-h";    #highlight off
     send_key "ctrl-i";    #italic on
     enter_cmd "opensuse";
     send_key "ctrl-s";    #strikeline on

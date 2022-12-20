@@ -57,7 +57,7 @@ sub run {
     # Add SAP account into haclient group
     assert_script_run "usermod -a -G haclient $sapadm";
 
-    # Removed uneeded(?) profile directory for ERS
+    # Removed unneeded(?) profile directory for ERS
     if ($type eq 'ERS') {
         assert_script_run "rm -rf /usr/sap/$sid/${type}${instance_id}/profile";
         assert_script_run "ln -s /sapmnt/$sid/profile /usr/sap/$sid/${type}${instance_id}/profile";

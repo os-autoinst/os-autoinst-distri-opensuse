@@ -174,7 +174,7 @@ sub run {
     record_info("Checksum", $errors, result => 'fail') if $errors;
 
     # We need to use 'tablet' as a pointer device, i.e. a device
-    # with absolute axis. That needs to be explicitely configured
+    # with absolute axis. That needs to be explicitly configured
     # on KVM and Xen HVM only. VMware and Xen PV add pointer
     # device with absolute axis by default.
     if (($vmm_family eq 'kvm') or ($vmm_family eq 'xen' and $vmm_type eq 'hvm')) {
@@ -265,7 +265,7 @@ sub run {
     else {
         # We can use bridge or network as a base for network interface. Network named 'default'
         # happens to be omnipresent on workstations, bridges (br0, ...) on servers. If both 'default'
-        # network and bridge are defined and active, bridge should be prefered as 'default' network
+        # network and bridge are defined and active, bridge should be preferred as 'default' network
         # does not work.
         if (my $bridges = $svirt->get_cmd_output("virsh iface-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
             $ifacecfg{type} = 'bridge';

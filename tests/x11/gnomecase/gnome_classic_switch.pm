@@ -10,7 +10,7 @@
 # - Close gnome-terminal
 # - Launch xterm and check
 # - Close xterm
-# - Swich back to default session
+# - Switch back to default session
 # - Launch gnome-terminal
 # - Close gnome-terminal
 # - Launch xterm and check

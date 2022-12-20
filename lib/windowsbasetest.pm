@@ -62,14 +62,14 @@ sub open_powershell_as_admin {
             # "Quick features menu" fails sometimes.
             send_key_until_needlematch 'run-command-window', 'super-r';
             wait_screen_change { type_string 'Powershell' };
-            # Ctrl+Shift+Return launchs command as Admin
+            # Ctrl+Shift+Return launches command as Admin
             send_key 'ctrl-shift-ret';
         } else {
             die("WIN_VERSION variable does not match '10' neither '11'!");
         }
-        assert_screen(["windows-user-account-ctl-hidden", "windows-user-acount-ctl-allow-make-changes"], 240);
+        assert_screen(["windows-user-account-ctl-hidden", "windows-user-account-ctl-allow-make-changes"], 240);
         assert_and_click "windows-user-account-ctl-hidden" if match_has_tag("windows-user-account-ctl-hidden");
-        assert_and_click "windows-user-acount-ctl-yes";
+        assert_and_click "windows-user-account-ctl-yes";
         wait_still_screen stilltime => 3, timeout => 12;
         assert_screen 'powershell-as-admin-window', timeout => 240;
         assert_and_click 'window-max';

@@ -14,7 +14,7 @@
 #
 # There is a data structure to store the data that for compare with the data in runtime system.
 # When we found something of unexpection string, we call them go die.
-# When we didn't find something of expection string, we call them go die too.
+# When we didn't find something of exception string, we call them go die too.
 #
 # mitigations_list = {
 #	'<parameter name>' => {
@@ -22,8 +22,8 @@
 #			<secnario1> => {
 #				#determine string.
 #				determine => {'<cmd>' => ['']},
-#				#expection string. If it doesn't appear go die
-#				expected => {'<cmd>' => ['ecpection string1','expection string2']},
+#				#exception string. If it doesn't appear go die
+#				expected => {'<cmd>' => ['ecpection string1','exception string2']},
 #				#unexpection string. If it appears go die.
 #				unexpected => {'<cmd>' => ['unexpection string1']}
 #			}
@@ -543,7 +543,7 @@ my $domu_test_cases_hash_spec_ctrl_no = {pti => $pti,
 
 sub install_domu {
     my $self = @_;
-    my $domu_intall_param = '';
+    my $domu_install_param = '';
     script_run("virsh destroy \"${domu_name}\"");
     script_run("virsh  undefine --remove-all-storage \"${domu_name}\"");
     if (script_run("ls ${domu_imagepool_path} | grep ${domu_name}.disk") ne 0 or
@@ -553,11 +553,11 @@ sub install_domu {
         script_run("qemu-img create -f qcow2 ${domu_imagepool_path}/${domu_name}.disk 20G");
 
         if ($DOMU_TYPE =~ /pv/i) {
-            $domu_intall_param = " -p ";
+            $domu_install_param = " -p ";
         } else {
-            $domu_intall_param = " -v ";
+            $domu_install_param = " -v ";
         }
-        script_run("virt-install --name \"${domu_name}\" ${domu_intall_param} "
+        script_run("virt-install --name \"${domu_name}\" ${domu_install_param} "
               . " --location \"${install_media_url}\""
               . " --extra-args ${extra_domu_kernel_param}"
               . " --disk path=${domu_imagepool_path}/${domu_name}.disk,size=20,format=qcow2"
@@ -592,13 +592,13 @@ sub exec_testcases {
     my $domu_test_cases_hash = {};
     while (my ($hy_param, $hy_value_hash) = each %$hyper_test_cases_hash) {
         while (my ($hy_value, $hy_result_hash) = each %$hy_value_hash) {
-            my $hy_prameter = $hy_param . '=' . $hy_value;
+            my $hy_parameter = $hy_param . '=' . $hy_value;
             if ($hy_value eq "yes" or $hy_value eq "no-xen") {
                 $domu_test_cases_hash = $domu_test_cases_hash_spec_ctrl_default;
             } elsif ($hy_value eq "no") {
                 $domu_test_cases_hash = $domu_test_cases_hash_spec_ctrl_no;
             }
-            if ($hy_test_param and $hy_test_param ne $hy_prameter) {
+            if ($hy_test_param and $hy_test_param ne $hy_parameter) {
                 next;
             }
 
@@ -607,7 +607,7 @@ sub exec_testcases {
                 #$test_mode = 'all';
                 #$test_suite = "mitigations";
                 record_info("Debug",
-                    "Hypervisor param: " . $hy_prameter . "\n"
+                    "Hypervisor param: " . $hy_parameter . "\n"
                       . "Single TestSuite: " . $test_suite . "\n"
                       . "Single TestMode: " . $test_mode . "\n"
                       . "DomU Password: " . $qa_password . "\n"
@@ -615,7 +615,7 @@ sub exec_testcases {
                     result => 'ok');
             } else {
                 # Change hypervisor layer grub parameter
-                bootloader_setup::add_grub_xen_cmdline_settings($hy_prameter, 1);
+                bootloader_setup::add_grub_xen_cmdline_settings($hy_parameter, 1);
                 Mitigation::reboot_and_wait($self, 150);
             }
 
@@ -624,11 +624,11 @@ sub exec_testcases {
             record_info("Info", "Waiting for the vm up to go ahead ", result => 'ok');
             sleep 60;
 
-            Mitigation::guest_cycle($self, $domu_test_cases_hash, $test_suite, $test_mode, $qa_password, $domu_name, $domu_ip_addr, $hy_prameter);
+            Mitigation::guest_cycle($self, $domu_test_cases_hash, $test_suite, $test_mode, $qa_password, $domu_name, $domu_ip_addr, $hy_parameter);
 
             # Restore hypervisor default parameters
             if (!$DEBUG_MODE) {
-                bootloader_setup::remove_grub_xen_cmdline_settings($hy_prameter);
+                bootloader_setup::remove_grub_xen_cmdline_settings($hy_parameter);
                 bootloader_setup::grub_mkconfig();
             }
         }

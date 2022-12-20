@@ -18,7 +18,7 @@ sub run {
 
     select_console 'root-console';
 
-    # Complile thrash.c
+    # Compile thrash.c
     my $exe_file = 'thrash';
     assert_script_run('cd /usr/local/atsec');
     assert_script_run("gcc -o $exe_file thrash.c");

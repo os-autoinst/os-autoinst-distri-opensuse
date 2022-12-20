@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Package: MozillaFirefox
-# Summary: Firefox Case#1479190: Add-ons - Appearance
+# Summary: Firefox Case#1479190: Add-owns - Appearance
 # - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
 # firefox
 # - Open addon manager

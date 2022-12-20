@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Package: NetworkManager
-# Summary: Tests the wpa2-enterprise capabilites of 'hostapd' and 'NetworkManager' based on the setup hwsim_wpa2-enterprise_setup does
+# Summary: Tests the wpa2-enterprise capabilities of 'hostapd' and 'NetworkManager' based on the setup hwsim_wpa2-enterprise_setup does
 # Maintainer: Nick Singer <nsinger@suse.de>
 # Tags: poo#20306
 
@@ -43,7 +43,7 @@ sub run {
 sub connect_to_network {
     # open the wifi widget
     assert_and_click 'gnome_widget';
-    # select 'wifi 1' (The one not beeing ignored by NM)
+    # select 'wifi 1' (The one not being ignored by NM)
     assert_and_click 'gnome_widget-network_selection-click';
     # click on 'select network'
     assert_and_click 'gnome_widget-network_search-click';
@@ -85,7 +85,7 @@ sub enter_NM_credentials {
     send_key 'tab';
     type_string 'franz.nord@example.com';
     send_key 'tab';
-    # and enter the password for this specific user (definded in hostapd config)
+    # and enter the password for this specific user (defined in hostapd config)
     type_password 'nots3cr3t';
 
     # finally click on 'connect'

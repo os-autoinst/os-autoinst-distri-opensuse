@@ -48,7 +48,7 @@ sub run {
     assert_script_run("cp kube_config_cluster.yml ~/.kube/config");
     assert_script_run("chmod 600 ~/.kube/config");
 
-    # Wait untill all workers are visible and Ready. Currently we've 1 master and 2 workers
+    # Wait until all workers are visible and Ready. Currently we've 1 master and 2 workers
     script_retry("[ `kubectl get node | grep ' Ready ' | wc -l` -eq 3 ]", delay => 15, retry => 40);
 
     barrier_wait('cluster_deployed');

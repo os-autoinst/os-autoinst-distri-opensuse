@@ -79,8 +79,8 @@ table ip6 firewall {
     iifname lo accept
 
     # icmp
-    # routers may also want: mld-listener-query, nd-router-solicit
-    icmpv6 type {echo-request,nd-neighbor-solicit} accept
+    # routers may also want: mld-listener-query, and-router-solicit
+    icmpv6 type {echo-request,and-neighbor-solicit} accept
 
     # open tcp ports: sshd (22), httpd (80)
     tcp dport {ssh, http} accept

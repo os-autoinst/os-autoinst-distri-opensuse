@@ -74,7 +74,7 @@ sub functions() {
     send_key('tab');
     type_string('test');
     send_key('ret');
-    assert_screen('tomcat-jsp-fuctions-result', TIMEOUT);
+    assert_screen('tomcat-jsp-functions-result', TIMEOUT);
 }
 
 # test composite expressions example

@@ -41,7 +41,7 @@ sub run {
         wait_quit_zypper;
     }
 
-    # Register the modules after media migration, so it can do regession
+    # Register the modules after media migration, so it can do regression
     if (get_var('MEDIA_UPGRADE') && get_var('DO_REGISTRY')) {
         add_suseconnect_product(uc get_var('SLE_PRODUCT'), undef, undef, "-r " . get_var('SCC_REGCODE') . " --url " . get_var('SCC_URL'), 300, 1);
         if (is_sle('15+') && check_var('SLE_PRODUCT', 'sles')) {

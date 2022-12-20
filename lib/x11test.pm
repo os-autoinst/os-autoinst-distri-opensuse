@@ -230,7 +230,7 @@ END_LOCAL_CONFIG
 }
 
 # check and new mail or meeting for Evolution test cases
-# It need define seraching key words to serach mail box.
+# It need define searching key words to search mail box.
 
 sub check_new_mail_evolution {
     my ($self, $mail_search, $i, $protocol) = @_;
@@ -679,7 +679,7 @@ sub firefox_check_popups {
 
         if (match_has_tag('firefox_trackinfo') or match_has_tag('firefox_readerview_window')) {
             # bsc#1046005 does not seem to affect KDE and as the workaround sometimes results in
-            # accidentially moving the firefox window around, skip it.
+            # accidentally moving the firefox window around, skip it.
             if (!check_var("DESKTOP", "kde")) {
                 # workaround for bsc#1046005
                 assert_and_click 'firefox_titlebar' if check_screen('firefox_titlebar', 2);

@@ -38,7 +38,7 @@ sub init {
     $self->{mnc_bar} = $self->{app}->menucollection({id => 'menu_bar'});
     $self->{tbl_devices} = $self->{app}->table({id => '"Y2Partitioner::Widgets::ConfigurableBlkDevicesTable"'});
     $self->{tbl_lvm_devices} = $self->{app}->table({id => '"Y2Partitioner::Widgets::LvmDevicesTable"'});
-    $self->{tre_system_view} = $self->{app}->tree({id => '"Y2Partitioner::Widgets::OverviewTree"'});
+    $self->{tree_system_view} = $self->{app}->tree({id => '"Y2Partitioner::Widgets::OverviewTree"'});
     $self->{btn_add_logical_volume} = $self->{app}->tree({id => '"Y2Partitioner::Widgets::LvmLvAddButton"'});
 
     return $self;
@@ -67,8 +67,8 @@ sub select_create_partition_table {
 sub select_item_in_system_view_table {
     my ($self, $item) = @_;
 
-    $self->{tre_system_view}->exist();
-    $self->{tre_system_view}->select($item);
+    $self->{tree_system_view}->exist();
+    $self->{tree_system_view}->select($item);
 
     return $self;
 }
@@ -76,7 +76,7 @@ sub select_item_in_system_view_table {
 sub open_clone_partition_dialog {
     my ($self, $disk) = @_;
 
-    $self->{tre_system_view}->exist();
+    $self->{tree_system_view}->exist();
     $self->select_disk($disk) if $disk;
     # Cloning option is disabled if any partition is selected, so selecting disk
     $self->{tbl_devices}->select(row => 0);

@@ -45,7 +45,7 @@ sub run {
         send_key "ret";
     }
 
-    assert_screen(is_sle('15+') ? 'firefox-extcontent-nautils' : 'firefox-extcontent-archive_manager');
+    assert_screen(is_sle('15+') ? 'firefox-extcontent-nautilus' : 'firefox-extcontent-archive_manager');
 
     send_key "ctrl-q";
 

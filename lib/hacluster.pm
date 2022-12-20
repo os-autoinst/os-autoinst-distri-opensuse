@@ -709,7 +709,7 @@ sub wait_until_resources_started {
     push @cmds, "grep -iq 'no inactive resources' <($crm_mon_cmd)" if is_sle '12-sp3+';
     push @cmds, "! (grep -Eioq ':[[:blank:]]*failed|:[[:blank:]]*starting' <($crm_mon_cmd))";
 
-    # Execute each comnmand to validate that the cluster is running
+    # Execute each command to validate that the cluster is running
     # This can takes time, so a loop is a good idea here
     foreach my $cmd (@cmds) {
         # Each command execution has its own timeout, so we need to reset the counter

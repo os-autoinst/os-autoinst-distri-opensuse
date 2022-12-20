@@ -26,7 +26,7 @@ sub run {
     set_var('DST_PASS', $password);
     bmwqemu::save_vars();
 
-    # clean up logs from prevous tests
+    # clean up logs from previous tests
     script_run('[ -d /var/log/qa/ctcs2/ ] && rm -rf /var/log/qa/ctcs2/');
     script_run('[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/');
     script_run('[ -d /tmp/prj3_migrate_admin_log/ ] && rm -rf /tmp/prj3_migrate_admin_log/');

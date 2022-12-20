@@ -102,7 +102,7 @@ sub check_sev_es_on_guest {
 
 Check whether AMD SEV or SEV-ES is enabled and active on the system under test.
 The sev or sev_es parameter under /sys/module/kvm_amd/parameters/ is the most
-authorative indicator that indicates whether the corresponding feature is active,
+authoritative indicator that indicates whether the corresponding feature is active,
 especially on the linux physical host. This subroutine has two named argument. 
 params_to_check which is kvm_amd module parameter, sev or sev_es to be examined.
 Multiple parameters can be passed in as a single string text separated by space.
@@ -137,7 +137,7 @@ sub check_sev_es_parameter {
 
 Check whether AMD SEV or SEV-ES is active on the system under test when it boots
 up by looking into dmesg output. This is not the most authoraive way to be used,
-but it is the only way on some systems, for exmaple, linux virtual machine. This 
+but it is the only way on some systems, for example, linux virtual machine. This 
 subroutine has two named arguments, dst_machine which is ip or fqdn address of 
 the system under test or default value 'localhost', flags_to_check which is SEV
 or SEV-ES flag to be examined. Multiple flags can be passed in as a single string 
@@ -166,7 +166,7 @@ sub check_sev_es_dmesg {
         $cmd1 = "ssh root\@$args{dst_machine} " . "\"$cmd1\"" if ($args{dst_machine} ne 'localhost');
         my $flag_ret = script_retry($cmd1, retry => 30, delay => 10, timeout => 60, die => 0);
         my $flag_status = ($flag_ret == 0 ? 'active' : 'inactive');
-        record_info("Flag $_ $flag_status in dmesg", "AMD flag $_ is currenly $flag_status in dmesg on guest $args{dst_machine}.");
+        record_info("Flag $_ $flag_status in dmesg", "AMD flag $_ is currently $flag_status in dmesg on guest $args{dst_machine}.");
         $ret |= $flag_ret;
     }
     return $ret;

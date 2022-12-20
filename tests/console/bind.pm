@@ -71,7 +71,7 @@ sub run {
     # setup loopback interfaces for testsuite
     assert_script_run 'sh ifconfig.sh up';
     assert_script_run 'ip a';
-    # workaround esp. on aarch64 some test fail occasinally due to low worker performance
+    # workaround esp. on aarch64 some test fail occasionally due to low worker performance
     # if there are failed tests run them again up to 3 times
     eval {
         assert_script_run 'runuser -u bernhard -- sh runall.sh -n', 7000;

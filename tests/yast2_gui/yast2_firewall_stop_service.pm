@@ -3,7 +3,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: YaST2 Firewall UI test checks verious configurations and settings of firewall
+# Summary: YaST2 Firewall UI test checks various configurations and settings of firewall
 # Make sure yast2 firewall can stop properly. Configurations can be changed and written correctly.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 

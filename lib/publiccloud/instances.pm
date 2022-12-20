@@ -12,7 +12,7 @@ use testapi;
 use strict;
 use warnings;
 
-our @instances;    # Package variable containing all instanciated instances for global access without RunArgs
+our @instances;    # Package variable containing all instantiated instances for global access without RunArgs
 
 sub set_instances {
     @instances = @_;

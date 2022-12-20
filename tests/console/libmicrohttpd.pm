@@ -29,7 +29,7 @@ sub run {
     # Start greenbone-security-assistant
     clear_console;
     assert_script_run
-"/usr/sbin/gsad --listen=127.0.0.1 --port=9392 --alisten=127.0.0.1 --aport=9393 --mlisten=127.0.0.1 --mport=9390 --ssl-private-key=/etc/openvas/cert/gsa.key --ssl-certificate=/etc/openvas/cert/gsa.cert &> gsad.log";
+"/usr/sbin/gsad --listen=127.0.0.1 --port=9392 --alisten=127.0.0.1 --aport=9393 --mlisten=127.0.0.1 --import=9390 --ssl-private-key=/etc/openvas/cert/gsa.key --ssl-certificate=/etc/openvas/cert/gsa.cert &> gsad.log";
     upload_logs "/etc/openvas/cert/gsad.log";
 
     # Check login page of Greenbone Security Assistant Web

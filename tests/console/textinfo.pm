@@ -6,7 +6,7 @@
 
 # Summary: Get useful text-based information from the system and upload it as a log.
 #          For more information regarding the collected data, check data/textinfo
-# - Run script /root/data/textinfo, collecting the folling data
+# - Run script /root/data/textinfo, collecting the following data
 #   - Kernel version
 #   - Loaded modules
 #   - Memory information

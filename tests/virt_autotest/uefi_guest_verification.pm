@@ -41,7 +41,7 @@ sub run_test {
         $self->check_guest_pmsuspend_enabled;
     }
     else {
-        record_info("SLES that is eariler than 15 does not support power management functionality with uefi", "Skip check_guest_pmsuspend_enabled");
+        record_info("SLES that is earlier than 15 does not support power management functionality with uefi", "Skip check_guest_pmsuspend_enabled");
     }
     return $self;
 }

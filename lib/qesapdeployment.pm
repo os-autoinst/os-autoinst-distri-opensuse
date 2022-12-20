@@ -254,7 +254,7 @@ sub qesap_yaml_replace {
 =head3 qesap_execute
 
     qesap_execute(cmd => $qesap_script_cmd [, verbose => 1, cmd_options => $cmd_options] );
-    cmd_options - allows to append additional qesap.py commans arguments like "qesap.py terraform -d"
+    cmd_options - allows to append additional qesap.py commands arguments like "qesap.py terraform -d"
         Example:
         qesap_execute(cmd => 'terraform', cmd_options => '-d') will result in:
         qesap.py terraform -d

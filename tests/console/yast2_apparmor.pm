@@ -129,7 +129,7 @@ sub run {
     # close apparmor configuration
     send_key(is_pre_15() ? 'alt-d' : 'alt-f');
 
-    #double check, in rare circunstances its needed to re-send the finish command.
+    #double check, in rare circumstances its needed to re-send the finish command.
     if (match_has_tag 'yast2_apparmor_profile_mode_configuration_toggle') {
         send_key 'alt-f';
     }
@@ -181,7 +181,7 @@ sub run {
         assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit_file_changed';
         send_key 'alt-y';
         # add assert_screen here to check the page of edit profile and workaround the problem
-        # with previous page got showed up for a very short timere the following
+        # with previous page got showed up for a very short timer the following
         assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit';
 
         # close now AppArmor configuration

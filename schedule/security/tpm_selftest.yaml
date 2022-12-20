@@ -1,6 +1,6 @@
-name: Update TrouSerS and tpm-tools
+name: Update TrouSetS and tpm-tools
 description:    >
-    Update TrouSerS and tpm-tools to the latest version
+    Update TrouSetS and tpm-tools to the latest version
 schedule:
     - boot/boot_to_desktop
     - console/consoletest_setup

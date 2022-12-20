@@ -46,7 +46,7 @@ sub parse_schedule {
     # schedule contains keys and is based on a list of files representing schedule flows
     if (ref $schedule->{schedule} eq 'HASH') {
         my $default_path = get_var('YAML_SCHEDULE_DEFAULT');
-        die "openQA setting 'YAML_SCHEDULE_DEFAULT' should be provided when using keys to be overriden " .
+        die "openQA setting 'YAML_SCHEDULE_DEFAULT' should be provided when using keys to be overridden " .
           "instead of a list of test modules." unless $default_path;
         my $default_flow = $ypp->load_file($root_project_dir . $default_path);
 

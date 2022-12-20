@@ -54,7 +54,7 @@ sub set_ds_file {
 
 sub upload_logs_reports
 {
-    # Upload logs & ouputs for reference
+    # Upload logs & outputs for reference
     my $files;
     if (is_sle) {
         $files = script_output('ls | grep "^ssg-sle.*.xml"');

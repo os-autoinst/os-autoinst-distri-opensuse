@@ -28,7 +28,7 @@ our @EXPORT = qw(
 
 =cut
 
-=head2 setup_web_brwoser_env
+=head2 setup_web_browser_env
 
  setup_web_browser_env();
 

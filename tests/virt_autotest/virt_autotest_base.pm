@@ -98,15 +98,15 @@ sub save_test_configuration {
 #This is the subroutine called inside post_execute_script_run. It aims to do configurations have to be done after script
 #execution but before test assertion, for example, modifying boot options, communicating to peer with lock/unlcok and many other
 #things as long as they should be done and need to be done right after test execution or the following test steps may malfunction
-#without them. post_execute_script_configuration should be overriden in individual test modules.
+#without them. post_execute_script_configuration should be overridden in individual test modules.
 sub post_execute_script_configuration {
     diag("You need to override this function post_execute_script_config in your test module");
 }
 
-#This is the subroutine called inside post_execute_script_run. This is introduced to faciliate tests that do not have or not convenient
+#This is the subroutine called inside post_execute_script_run. This is introduced to facilitate tests that do not have or not convenient
 #to use assert pattern,  can not use directly returned output from execute_script_run or needs more customized way to manipuluate results.
-#So individual test modules can also have more control over how their test results should be extracted out, intead of just relying on a
-#singel assert pattern. post_execute_script_assertion needs to be overriden in individual test modules.
+#So individual test modules can also have more control over how their test results should be extracted out, instead of just relying on a
+#single assert pattern. post_execute_script_assertion needs to be overridden in individual test modules.
 sub post_execute_script_assertion {
     diag("You need to override this function post_execute_script_assertion in your test module");
 }

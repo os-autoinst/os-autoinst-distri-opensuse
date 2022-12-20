@@ -1,0 +1,26 @@
+[files]
+extend-exclude = ["data/", "lib/bootloader_setup.pm", "lib/qam.pm", "tests/jeos/glibc_locale.pm"]
+
+[default.extend-words]
+inout = "inout"
+aks= "aks"
+rescuecd = "rescuecd"
+containered = "containered"
+registration = "registration"
+checkd = "checkd"
+parm = "parm"
+parms = "parms"
+BA = "BA"
+tunning = "tunning"
+corss = "corss"
+oder = "oder"
+iterm = "iterm"
+sie = "sie"
+overrided = "overrided"
+hda = "hda"
+n0vell = "n0vell"
+2nd = "2nd"
+
+[default.extend-identifiers]
+NoeXecute = "NoeXecute"
+installe3r4 = "installe3r4"

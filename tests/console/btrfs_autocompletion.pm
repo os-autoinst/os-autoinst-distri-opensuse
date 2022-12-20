@@ -6,7 +6,7 @@
 # Package: bash-completion btrfsprogs
 # Summary: Bash autocompletion for btrfs
 # - Installs bash-completion package in case jeos
-# - Call compare_commands with btrfs commands wth "short" (tabbed) version and
+# - Call compare_commands with btrfs commands with "short" (tabbed) version and
 # compare obtained results
 # - Call "complete" and check for btrfs functions
 # - Run "btrfs inspect-internal min-dev-size / | grep -E '^[0-9]{6,} bytes'" to

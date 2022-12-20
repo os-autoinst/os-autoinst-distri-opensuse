@@ -321,7 +321,7 @@ if (is_sle('15+') && !check_var('SCC_REGISTER', 'installation')) {
 }
 
 # Always register at scc and use the test updates if the Flavor is -Updates.
-# This way we can reuse existant test suites without having to patch their
+# This way we can reuse existent test suites without having to patch their
 # settings
 if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
     my %incidents;
@@ -392,7 +392,7 @@ if (get_var('SUPPORT_SERVER_ROLES', '') =~ /aytest/ && !get_var('AYTESTS_REPO_BR
 }
 
 # Workaround to be able to use create_hdd_hpc_textmode simultaneously in SLE15 and SLE12 SP*
-# and exlude maintenance tests
+# and exclude maintenance tests
 if (check_var('SLE_PRODUCT', 'hpc') && check_var('INSTALLONLY', '1') && is_sle('<15') && !is_updates_tests) {
     set_var('SCC_ADDONS', 'hpcm,wsm');
     set_var('SCC_REGISTER', 'installation');
@@ -483,7 +483,7 @@ sub load_online_migration_tests {
 }
 
 sub load_patching_tests {
-    # Switch to orginal system version for upgrade tests
+    # Switch to original system version for upgrade tests
     if (is_upgrade) {
         # Save HDDVERSION to ORIGIN_SYSTEM_VERSION
         set_var('ORIGIN_SYSTEM_VERSION', get_var('HDDVERSION'));
@@ -822,7 +822,7 @@ elsif (get_var("BTRFSMAINTENANCE")) {
 }
 elsif (get_var("VIRT_AUTOTEST")) {
     if (get_var('REPO_0_TO_INSTALL', '')) {
-        #Before host installation starts, swtich to version REPO_0_TO_INSTALL if it is set
+        #Before host installation starts, switch to version REPO_0_TO_INSTALL if it is set
         #Save VERSION TO TARGET_DEVELOPING_VERSION
         set_var('TARGET_DEVELOPING_VERSION', get_var('VERSION'));
         #Switch to VERSION_TO_INSTALL
@@ -876,7 +876,7 @@ elsif (get_var("VIRT_AUTOTEST")) {
         }
     }
     #those tests which test extended features, such as hotpluggin, virtual network and SRIOV passthrough etc.
-    #they can be seperated from prj1 if needed
+    #they can be separated from prj1 if needed
     elsif (get_var("DIRECT_CHAINED_VIRT_FEATURE_TEST")) {
         loadtest "virt_autotest/restore_guests" if get_var("SKIP_GUEST_INSTALL");
         loadtest "virt_autotest/set_config_as_glue";

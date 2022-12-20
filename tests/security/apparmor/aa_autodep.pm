@@ -39,7 +39,7 @@ sub run {
             \}/sxx
     };
 
-    # Check the test files exist, double check to avoid perfomance issue
+    # Check the test files exist, double check to avoid performance issue
     my $ret = script_run "ls -1 $test_binfiles > tee /dev/$serialdev";
     if ($ret) {
         # If failed try sync and then check again
@@ -59,7 +59,7 @@ sub run {
     );
 
     # Output generated profiles list to serial console
-    # Check the new genrated test files exist, double check to avoid perfomance issue
+    # Check the new generated test files exist, double check to avoid performance issue
     $ret = script_run "ls -1 $aa_tmp_prof/*pam* > tee /dev/$serialdev";
     if ($ret) {
         # If failed then try sync and then check again

@@ -57,7 +57,7 @@ sub run() {
     send_key_until_needlematch 'nis-domain-empty-field', 'backspace';    # clear NIS Domain field if it is prefilled
     type_string "suse.de";
     send_key 'alt-a';
-    #clear suggested NIS server adress
+    #clear suggested NIS server address
     for (1 .. 15) { send_key 'backspace'; }
     wait_screen_change { type_string "10.162.0.1" };
     wait_screen_change { send_key 'alt-p' };    # check Netconfif NIS Policy
@@ -80,7 +80,7 @@ sub run() {
     wait_still_screen;
     assert_screen 'nfs-client-configuration';    # enter NFS configuration
     send_key 'alt-a';    # add nfs settings
-    assert_screen 'nfs-server-hostname';    # check that type string is sucessful
+    assert_screen 'nfs-server-hostname';    # check that type string is successful
     send_key 'alt-n';    # from here enter some configurations...
     type_string "nis.suse.de";
     send_key 'alt-r';

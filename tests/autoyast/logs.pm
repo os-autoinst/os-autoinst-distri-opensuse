@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: autoyast specific log file gathering
-#    - split repos.pm into separater tests
+#    - split repos.pm into separator tests
 #    - changed order of tests, run the specific tests in autoyast_verify
 #      earlier
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>

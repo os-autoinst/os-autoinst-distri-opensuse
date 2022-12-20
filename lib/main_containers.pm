@@ -73,7 +73,7 @@ sub load_image_tests_podman {
 sub load_image_tests_docker {
     my ($run_args) = @_;
     load_image_test($run_args);
-    # container_diff package is not avaiable for <=15 in aarch64
+    # container_diff package is not available for <=15 in aarch64
     # Also, we don't want to run it on 3rd party hosts
     unless ((is_sle("<=15") and is_aarch64) || get_var('CONTAINERS_NO_SUSE_OS') || is_staging) {
         loadtest 'containers/container_diff';
@@ -108,7 +108,7 @@ sub load_host_tests_docker {
     # Firewall is not installed in Public Cloud, JeOS OpenStack and MicroOS but it is in SLE Micro
     loadtest 'containers/docker_firewall' unless (is_public_cloud || is_openstack || is_microos);
     unless (is_sle("<=15") && is_aarch64) {
-        # these 2 packages are not avaiable for <=15 (aarch64 only)
+        # these 2 packages are not available for <=15 (aarch64 only)
         # zypper-docker is not available in factory and in SLE Micro/MicroOS
         loadtest 'containers/zypper_docker' unless (is_tumbleweed || is_sle_micro || is_microos || is_leap_micro);
         loadtest 'containers/docker_runc';

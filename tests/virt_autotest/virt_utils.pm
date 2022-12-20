@@ -34,7 +34,7 @@ sub enable_debug_logging {
     #turn on debug and log filter for libvirtd
     #set log_level = 1 'debug'
     #the size of libvirtd with debug level and without any filter on sles15sp3 xen is over 100G,
-    #which consumes all the disk space. Now get comfirmation from virt developers,
+    #which consumes all the disk space. Now get confirmation from virt developers,
     #log filter is set to store component logs with different levels.
     my $libvirtd_conf_file = "/etc/libvirt/libvirtd.conf";
     if (!script_run "ls $libvirtd_conf_file") {
@@ -288,7 +288,7 @@ sub lpar_cmd {
     $args->{ignore_return_code} ||= 0;
     my $ret = console('svirt')->run_cmd($cmd);
     if ($ret == 0) {
-        record_info('INFO', "Command $cmd run on S390X LPAR: SUCESS");
+        record_info('INFO', "Command $cmd run on S390X LPAR: SUCCESS");
     }
     unless ($args->{ignore_return_code} || !$ret) {
         record_info('INFO', "Command $cmd run on S390X LPAR: FAIL");
@@ -404,7 +404,7 @@ sub download_guest_assets {
 
     # mount the remote NFS location of guest assets
     # OPENQA_URL="localhost" in local openQA instead of the IP, so the line below need to be turned on and set to the webUI IP when you are using local openQA
-    # Tips: Using local openQA, you need "rcnfs-server start & vi /etc/exports; exportfs -r")
+    # Tips: Using local openQA, you need "rcnfs-server start & vi /etc/exports; exports -r")
     # set OPENQA_URL="your_ip" on openQA web UI
     my $openqa_server = get_required_var('OPENQA_URL');
 
@@ -456,7 +456,7 @@ sub download_guest_assets {
 
         # download vm disk files
         my $local_guest_image = script_output "grep '<source file=' $vm_xml_dir/$guest.xml | sed \"s/^\\s*<source file='\\([^']*\\)'.*\$/\\1/\"";
-        # put the downloded xml and disk files in the backup dir directory
+        # put the downloaded xml and disk files in the backup dir directory
         # in case of being flushed up by the NFS workaround from dst job
         if (get_var('VIRT_NEW_GUEST_MIGRATION_SOURCE')) {
             my $backupRootDir = "/tmp/prj3_guest_migration/vm_backup";
@@ -703,7 +703,7 @@ sub cleanup_host_and_guest_logs {
     my ($extra_logs_to_cleanup) = @_;
     $extra_logs_to_cleanup //= '';
 
-    #Clean dhcpd and named services up explicity
+    #Clean dhcpd and named services up explicitly
     if (get_var('VIRT_AUTOTEST') and !is_alp) {
         script_run("brctl addbr br123;brctl setfd br123 0;ip addr add 192.168.123.1/24 dev br123;ip link set br123 up");
         if (!get_var('VIRT_UNIFIED_GUEST_INSTALL')) {

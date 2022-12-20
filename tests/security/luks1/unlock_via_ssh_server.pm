@@ -47,7 +47,7 @@ sub run {
     # Make sure the boot is unlocked and server should be up
     assert_screen([qw(generic-desktop opensuse-welcome displaymanager)], 200);
 
-    # Double confirm the boot partiton is encrypted
+    # Double confirm the boot partition is encrypted
     select_console('root-console');
     assert_script_run('cat /etc/crypttab | grep boot');
 }

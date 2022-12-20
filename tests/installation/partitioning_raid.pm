@@ -153,7 +153,7 @@ sub set_lvm {
     }
 
     assert_screen 'lvmsetupraid';
-    # add all unformated lvm devices
+    # add all unformatted lvm devices
     send_key "alt-d";
 
     # set volume name

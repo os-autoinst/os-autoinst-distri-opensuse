@@ -55,7 +55,7 @@ sub exiv2_info_test {
     my $output_exiv2_info = script_output "exiv2 test.jpg";
     my @exif_infos = keys %exif_expected_output;
 
-    #checks for the expected ouput from exiv2 metadata based on previous capture
+    #checks for the expected output from exiv2 metadata based on previous capture
     for my $exif_info (@exif_infos) {
         die "Missing exiv2 info. Expected: /$exif_expected_output{$exif_info}/ \nGot: /$output_exiv2_info/"
           unless $output_exiv2_info =~ m/$exif_expected_output{$exif_info}/;
@@ -64,7 +64,7 @@ sub exiv2_info_test {
     my @exif_ptinfos = keys %exif_expected_ptoutput;
     my $output_exiv2_ptinfo = script_output "exiv2 -pt test.jpg";
 
-    #checks for the expected ouput from exiv2 -pt command based on previous capture
+    #checks for the expected output from exiv2 -pt command based on previous capture
     for my $exif_ptinfo (@exif_ptinfos) {
         die "Missing exiv2 info. Expected: /$exif_expected_ptoutput{$exif_ptinfo}/ \nGot: /$output_exiv2_ptinfo/"
           unless $output_exiv2_ptinfo =~ m/$exif_expected_ptoutput{$exif_ptinfo}/;

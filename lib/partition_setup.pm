@@ -188,7 +188,7 @@ The function can be executed when the SUT is on the yast partitioner panel
 
 Example:
 
- set_patition_size(size => '100')
+ set_partition_size(size => '100')
 
 =cut
 
@@ -432,7 +432,7 @@ sub addboot {
         addpart(role => 'efi', size => $part_size // $default_boot_sizes{uefi});
     }
     elsif (is_storage_ng && is_x86_64) {
-        # Storage-ng has GPT by defaut, so need bios-boot partition for legacy boot, which is only on x86_64
+        # Storage-ng has GPT by default, so need bios-boot partition for legacy boot, which is only on x86_64
         addpart(role => 'raw', fsid => 'bios-boot', size => $part_size // $default_boot_sizes{bios_boot});
     }
     elsif (is_s390x) {

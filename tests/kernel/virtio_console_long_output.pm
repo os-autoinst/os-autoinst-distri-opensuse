@@ -71,7 +71,7 @@ sub run {
             record_info("FAILED $i", "ORIG: $sha1sum\nFAIL: $sha1sum_2", result => 'fail');
             path('ulogs/failed')->spurt($output);
             record_info('DIFF', scalar(`diff  ulogs/$filename ulogs/failed`)) if (system('diff --help') == 0);
-            die("OUTPUT MISSMATCH");
+            die("OUTPUT MISMATCH");
         }
     }
 }

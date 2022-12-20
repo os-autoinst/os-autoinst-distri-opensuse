@@ -27,7 +27,7 @@ C<use lib::known_bugs>
 
 Allows detection of known errors on the serial console
 
-As we have reocurring problems that can be easily detected on serial level we have decided to detect and show them in opneQA to ease up review and where possible only softfail to not lose the whole test suite
+As we have reoccurring problems that can be easily detected on serial level we have decided to detect and show them in openQA to ease up review and where possible only softfail to not lose the whole test suite
 
 =cut
 

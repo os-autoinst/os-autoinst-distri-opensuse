@@ -32,7 +32,7 @@ sub run {
 
     systemctl 'stop ' . $self->firewall;
 
-    # external smt should enalbe nfs and share a file to simulate a mobile disk
+    # external smt should enable nfs and share a file to simulate a mobile disk
     if (check_var("SMT", "external")) {
         systemctl("enable nfs-server.service");
         systemctl("start nfs-server.service");
@@ -41,7 +41,7 @@ sub run {
         assert_script_run("mkdir -p \/mnt\/Mobile-disk");
         assert_script_run("chmod 777 \/mnt\/Mobile-disk");
         assert_script_run("echo \"\/mnt\/Mobile-disk *(rw,no_root_squash,sync,no_subtree_check,crossmnt,nohide)\" >> \/etc\/exports");
-        assert_script_run("exportfs -ar");
+        assert_script_run("exports -ar");
     }
     else {
         systemctl("enable nfs.service");

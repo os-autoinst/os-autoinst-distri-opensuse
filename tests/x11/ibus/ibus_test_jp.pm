@@ -39,7 +39,7 @@ sub run {
 
     assert_screen "generic-desktop";
 
-    # add Japanses input source
+    # add Japanese input source
     $self->add_input_resource("japanese");
 
     # open gedit and test chinese

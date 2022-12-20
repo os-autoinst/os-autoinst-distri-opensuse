@@ -36,12 +36,12 @@
 #         1) list
 #               command:
 #                   # yast sysconfig list all
-#               expection:
+#               exception:
 #                   XXX_YYY="ZZZ"
 #         2) details
 #               command:
 #                   # yast sysconfig details variable=XXX_YYY$<path of test file>
-#               expection:
+#               exception:
 #                   these items are correct:
 #                       Value: ZZZ
 #                       File: <path of test file>
@@ -50,13 +50,13 @@
 #               command:
 #                   # yast sysconfig set XXX_YYY$<path of test file>=AAA
 #                   # yast sysconfig details variable=XXX_YYY$<path of test file>
-#               expection:
-#                   "details" command get the expection result: AAA
+#               exception:
+#                   "details" command get the exception result: AAA
 #         4) clear
 #               command:
 #                   # yast sysconfig clear variable=XXX_YYY$<path of test file>
 #                   # yast sysconfig details variable=XXX_YYY$<path of test file>
-#               expection:
+#               exception:
 #                   "details" command get a null value.
 
 use base 'y2_module_basetest';
@@ -91,7 +91,7 @@ sub run {
     validate_script_output 'yast sysconfig list all 2>&1', sub { m/XXX_YYY="ZZZ"/; };
 
     # check yast sysconfig details
-    # verify decription, file name, value of the specific variable XXX_YYY.
+    # verify description, file name, value of the specific variable XXX_YYY.
     validate_script_output 'yast sysconfig details variable=XXX_YYY$/etc/sysconfig/my_test_file 2>&1',
       sub { m/testing yast sysconfig/; m!File: /etc/sysconfig/my_test_file!; m/\nValue: ZZZ/; };
 

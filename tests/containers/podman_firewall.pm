@@ -42,7 +42,7 @@ sub run {
     assert_script_run "podman pull " . registry_url('alpine');
     assert_script_run "podman run -id --rm --name $container_name -p 1234:1234 " . registry_url('alpine') . " sleep 30d";
 
-    # Cheking rules of specific running container
+    # Checking rules of specific running container
     validate_script_output("iptables -vn -t nat -L PREROUTING", sub { /CNI-HOSTPORT-DNAT/ });
     validate_script_output("iptables -vn -t nat -L POSTROUTING", sub { /CNI-HOSTPORT-MASQ/ });
 

@@ -32,7 +32,7 @@ sub run {
 
     # The home directory of the daemon user 'tss' may not be created on SLE,
     # However, it is there on TW due to package 'system-user-tss' installation
-    # by default in newer releases, we can workaroud it by install this package
+    # by default in newer releases, we can workaround it by install this package
     # manually
     if (script_run("ls $tss_home") != 0) {
         # The package is only present on SLE >= 15.sp3, so for the previous versions

@@ -277,7 +277,7 @@ sub test_pgsql {
     if (script_run('test $(sudo update-alternatives --list postgresql|wc -l) -gt 1') == 0) {
         assert_script_run 'for v in $(sudo update-alternatives --list postgresql); do rpm -q ${v##*/};done';
         if (script_run('rpm -q postgresql96') == 0) {
-            # due to orderless numbering untill version 94 is gone
+            # due to orderless numbering until version 94 is gone
             my $pg_versions = <<'EOF';
 #!/bin/bash
 PG_VER=$(update-alternatives --list postgresql)
@@ -350,7 +350,7 @@ EOF
         assert_script_run "$analyze";
         assert_script_run './delete_old_cluster.sh';
     }
-    # turn off pager, othwerwise assert_script_run can time out
+    # turn off pager, otherwise assert_script_run can time out
     assert_script_run 'export PAGER=cat';
     assert_script_run 'alias p="psql -E"';
     assert_script_run 'curl -O ' . data_url('console/dvdrental.zip');

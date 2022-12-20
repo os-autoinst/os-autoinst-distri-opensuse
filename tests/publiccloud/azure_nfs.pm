@@ -26,7 +26,7 @@ sub check_nfs_share {
 
     ##  NFS share test: Download some data and check permissions
     # * Download a file, and set the permission to read-only by owner
-    # * Check if the permissiosn are correctly set
+    # * Check if the permissions are correctly set
     # * Check if the default user (azureuser) can not read the file
     # * Check if hard links are working
     # * Check if soft links are working

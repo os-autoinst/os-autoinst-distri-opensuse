@@ -34,7 +34,7 @@ sub run {
         record_soft_failure('jsc#SLE-19640: openssl version is outdated and need to be updated over 1.1.1+ for SLE15-SP4');
     }
 
-    # Seperate the diffrent openssl command usage between SLE12 and SLE15
+    # Separate the different openssl command usage between SLE12 and SLE15
     if (is_sle('<15')) {
         # List message digest algorithms in fips mode
         # only SHA1 and SHA2 (224, 256, 384, 512) are approved in fips mode

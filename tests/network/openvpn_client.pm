@@ -51,7 +51,7 @@ sub run {
     assert_script_run('ip a s tun0');
     assert_script_run('ip a s tun0 | grep "10\.8\.0\.2"');
 
-    # Test the connection when both client and server are rady
+    # Test the connection when both client and server are ready
     barrier_wait 'OPENVPN_STATIC_STARTED';
     assert_script_run("ping -c5 -W1 -I tun0 10.8.0.1");
 

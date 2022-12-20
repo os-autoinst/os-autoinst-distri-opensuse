@@ -24,7 +24,7 @@ our @EXPORT = qw(
 Handle grub menu after reboot
     - Handle grub2 to boot from hard disk (opposed to installation)
     - Handle passphrase for encrypted disks
-    - Handle booting of snapshot or XEN, acconding to BOOT_TO_SNAPSHOT or XEN
+    - Handle booting of snapshot or XEN, according to BOOT_TO_SNAPSHOT or XEN
     - Enable plymouth debug if product if GRUB_KERNEL_OPTION_APPEND is set,
       or product is sle, aarch64 and PLYMOUTH_DEBUG is set
 =cut

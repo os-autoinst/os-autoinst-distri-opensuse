@@ -29,8 +29,8 @@ sub run {
     assert_screen('libreoffice-tool-droplist', 30);
     send_key "alt-o";
     assert_screen('libreoffice-options-menu', 30);
-    assert_and_dclick('liberoffice-options-menu-LiberOfficeWriter');
-    send_key_until_needlematch "liberoffice-mail-Merge", "down", 21, 3;    #find Mail Merge E-mail
+    assert_and_dclick('libreoffice-options-menu-LiberOfficeWriter');
+    send_key_until_needlematch "libreoffice-mail-Merge", "down", 21, 3;    #find Mail Merge E-mail
 
     #fill the information and click test_setting button
     send_key "alt-y";
@@ -59,9 +59,9 @@ sub run {
     #wait_screen_chang {
     #	send_key "alt-e";
     #};
-    assert_screen('liberoffice-mail-Merge', 30);
+    assert_screen('libreoffice-mail-Merge', 30);
     assert_and_click('libreoffice-mail-testsettings');
-    assert_screen('liberoffice-mailmerge-testAccount', 30);
+    assert_screen('libreoffice-mailmerge-testAccount', 30);
     #exit libreoffice
     send_key "alt-c";
     send_key "alt-o";

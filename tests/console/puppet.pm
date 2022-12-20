@@ -20,7 +20,7 @@ sub run {
     if (script_run('zypper se puppet') == 104 && is_sle('15+')) {
         return record_soft_failure 'bsc#1092498 - puppet disappeared from packagehub or was never added';
     }
-    my $output = "puppet cert list --all | grep -woh puppetslave.local > /dev/$serialdev";
+    my $output = "puppet cert list --all | grep -who puppetslave.local > /dev/$serialdev";
     my $puppet_conf = <<"EOF";
 zypper -n in puppet-server puppet
 echo '127.0.0.2 puppetmaster.local puppetslave.local' >> /etc/hosts

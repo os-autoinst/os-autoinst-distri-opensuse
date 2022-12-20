@@ -175,7 +175,7 @@ sub run {
     assert_script_run "echo '$random_password' > ./ranom_password.txt";
     assert_script_run "echo '$random_content' > ./ranom_content.txt";
 
-    # Encrypt the content by the password - store it in propperly formated YAML
+    # Encrypt the content by the password - store it in properly formatted YAML
     assert_script_run 'echo "---" > ./encrypted_content.yaml';
     assert_script_run "cat ./ranom_content.txt | ansible-vault encrypt_string --vault-password-file ./ranom_password.txt --stdin-name random_content | tee -a ./encrypted_content.yaml";
 

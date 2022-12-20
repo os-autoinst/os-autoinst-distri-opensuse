@@ -53,7 +53,7 @@ our $baseline_file = 'baseline_run.log';
 sub run_testcase {
     my ($testcase, %args) = @_;
 
-    # Configure the test enviornment for test
+    # Configure the test environment for test
     prepare_for_test(%args) unless ($args{skip_prepare});
 
     assert_script_run("cd ${testcase}/");

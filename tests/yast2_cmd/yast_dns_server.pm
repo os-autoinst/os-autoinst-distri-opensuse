@@ -105,7 +105,7 @@ sub run {
     #i.e. dnsrecord add zone=example.org query=example.org. type=MX value='10 mail01'
     $self->cmd_handle("dnsrecord", "add", zone => "example.org", query => "subdomain.example.org.", type => "NS", value => "ns1");    #delegated domain
     $self->cmd_handle("dnsrecord", "remove", zone => "example.org", query => "subdomain.example.org.", type => "NS", value => "ns1");
-    $self->cmd_handle("dnsrecord", "add", zone => "example.org", query => "host1", type => "A", value => "192.168.100.3");    #host adress
+    $self->cmd_handle("dnsrecord", "add", zone => "example.org", query => "host1", type => "A", value => "192.168.100.3");    #host address
     $self->cmd_handle("dnsrecord", "remove", zone => "example.org", query => "host1", type => "A", value => "192.168.100.3");
 
     $self->cmd_handle("dnsrecord", "add", zone => "100.168.192.in-addr.arpa", query => "123", type => "PTR", value => "host1");    ##PTR

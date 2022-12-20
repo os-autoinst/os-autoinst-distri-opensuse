@@ -48,7 +48,7 @@ sub select_role {
     );
     return $rb_roles{$role}->select() if $rb_roles{$role};
     die "Wrong test data provided when selecting role.\n" .
-      "Avalaible options: operating-system, data, swap, efi-boot, raw-volume";
+      "Available options: operating-system, data, swap, efi-boot, raw-volume";
 }
 
 1;

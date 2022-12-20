@@ -36,10 +36,10 @@ EOF
     assert_script_run "certtool --generate-self-signed --load-privkey $pri_ca_key --template $ca_tmpl --outfile $pri_ca_out";
 
     # Generate a server certificate
-    my $ser_pri_key = "x509-server-key.pem";
-    my $ser_ca_out = "x509-server.pem";
-    my $ser_tmpl = "server.tmpl";
-    my $ser_tmpl_cont = <<'EOF';
+    my $set_pri_key = "x509-server-key.pem";
+    my $set_ca_out = "x509-server.pem";
+    my $set_tmpl = "server.tmpl";
+    my $set_tmpl_cont = <<'EOF';
 organization = GnuTLS test server
 cn = test.gnutls.org
 tls_www_server
@@ -47,10 +47,10 @@ encryption_key
 signing_key
 dns_name = test.gnutls.org
 EOF
-    assert_script_run "certtool --generate-privkey > $ser_pri_key";
-    assert_script_run "echo '$ser_tmpl_cont' > $ser_tmpl";
+    assert_script_run "certtool --generate-privkey > $set_pri_key";
+    assert_script_run "echo '$set_tmpl_cont' > $set_tmpl";
     assert_script_run
-"certtool --generate-certificate --load-privkey $ser_pri_key --load-ca-certificate $pri_ca_out --load-ca-privkey $pri_ca_key --template $ser_tmpl --outfile $ser_ca_out";
+"certtool --generate-certificate --load-privkey $set_pri_key --load-ca-certificate $pri_ca_out --load-ca-privkey $pri_ca_key --template $set_tmpl --outfile $set_ca_out";
 
     #  Generate a client certificate
     my $cli_pri_key = "x509-client-key.pem";

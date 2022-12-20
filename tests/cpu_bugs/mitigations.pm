@@ -184,7 +184,7 @@ sub run {
                 $mitigations_list{sysfs}->{off}->{$item} = $current_list->{sysfs}->{off};
             }
         } else {
-            die("$item vulnerabilities is unkown");
+            die("$item vulnerabilities is unknown");
         }
     }
 

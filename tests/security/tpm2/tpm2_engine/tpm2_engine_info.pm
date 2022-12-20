@@ -17,7 +17,7 @@ use serial_terminal 'select_serial_terminal';
 sub run {
     select_serial_terminal;
 
-    # Retrieve the Engine informations
+    # Retrieve the Engine information
     validate_script_output "openssl engine -t -c tpm2tss", sub {
         m/
             RSA,\sRAND.*

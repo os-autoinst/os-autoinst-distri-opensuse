@@ -968,7 +968,7 @@ sub investigate_log_empty_license {
             'Empty eula_url',
             "Empty EULA was found in YaST logs (eula_url=\"\") for the following products:\n" .
               "$message\n" .
-              "Please, file Bugzilla ticket agains SCC if license is not properly set.\n" .
+              "Please, file Bugzilla ticket against SCC if license is not properly set.\n" .
               "In case of licence available, check if the asset for the license has been properly synchronized\n" .
               "by taking a look in http://openqa.suse.de/assets/repo/ for the corresponding product/build\n" .
               "and searching for a path ending in \'.license/license.txt\' .Otherwise, please file a Progress ticket.");

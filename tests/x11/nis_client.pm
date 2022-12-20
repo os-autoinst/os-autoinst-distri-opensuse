@@ -48,7 +48,7 @@ sub setup_nis_client {
 
 sub nfs_settings_tab {
     assert_screen 'nis-client-enter-nfs-configuration';
-    send_key 'alt-s';    # nfs configuation button
+    send_key 'alt-s';    # nfs configuration button
     assert_screen 'nis-client-nfs-client-configuration';
     send_key 'alt-s';    # nfs settings tab
     assert_screen 'nis-client-nfs-settings-tab';

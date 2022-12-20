@@ -66,7 +66,7 @@ EOF
     assert_script_run('cat /etc/sysconfig/apache2 | grep APACHE_SERVER_FLAGS=');
     save_screenshot;
 
-    # Setup subversion configration for apache
+    # Setup subversion configuration for apache
     my $svn_conf_file = '/etc/apache2/conf.d/subversion.conf';
     type_string("cat >> $svn_conf_file << EOF
 LoadModule dav_module       /usr/lib64/apache2/mod_dav.so

@@ -6,7 +6,7 @@
 # Package: drbd-utils crmsh
 # Summary: DRBD active/passive OpenQA test
 # Create DRBD device
-# Create crm ressource
+# Create crm resource
 # Check resource migration
 # Check multistate status
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
@@ -215,7 +215,7 @@ sub run {
         check_device_available("/dev/$drbd_rsc");
     }
 
-    # Wait for DRBD resrouce migration to be done
+    # Wait for DRBD resource migration to be done
     barrier_wait("DRBD_MIGRATION_DONE_$cluster_name");
 
     # Check DRBD status
@@ -241,7 +241,7 @@ sub run {
         check_device_available("/dev/$drbd_rsc");
     }
 
-    # Wait for DRBD resrouce migration to be done
+    # Wait for DRBD resource migration to be done
     barrier_wait("DRBD_REVERT_DONE_$cluster_name");
 
     # Check DRBD status

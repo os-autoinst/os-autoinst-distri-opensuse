@@ -3,7 +3,7 @@
 
 =head1 Utils::Architectures
 
-C<Utils::Architectures> - Library for archtectures related functionality
+C<Utils::Architectures> - Library for architectures related functionality
 
 =cut
 

@@ -50,7 +50,7 @@ sub run {
     my ($self) = @_;
 
     # Enabled boot menu for x86_64 uefi. In migration cases we set cdrom as boot index=0
-    # However migration cases need to boot the hard disk and fully pach it which are the
+    # However migration cases need to boot the hard disk and fully patch it which are the
     # testing requirements. So we keep this logic to boot the hard disk directly instead
     # of cdrom boot menu entry
     # Case setting also need BOOT_MENU=1 to support it

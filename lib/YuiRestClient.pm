@@ -232,8 +232,8 @@ B<set_timeout($timeout)> - change timeout value.
 
 B<init_port()> - Determine port for the REST server,
 
-The port number starts at C<YUI_START_PORT>, if C<VNC> is present then ths VNC port number 
-will be added, otherwise the function take a random numer between 0..1000.
+The port number starts at C<YUI_START_PORT>, if C<VNC> is present then this VNC port number 
+will be added, otherwise the function take a random number between 0..1000.
 This function will also set the environment variable. C<YUI_PORT>.
 
 B<init_host()> - Initialize REST server and determine its host address.
@@ -294,7 +294,7 @@ B<YUI_HTTP_REMOTE> - Boolean, if true, then remote connections to the REST serve
 
 B<YUI_LOG_LEVEL> - Log lever lor C<init_logger()>, defaults to 'debug'.
 
-B<YUI_PORT> - Port for REST server, caclulated by C<init_port()>.
+B<YUI_PORT> - Port for REST server, calculated by C<init_port()>.
 
 B<YUI_REST_API> - Boolean that defines if the REST API is present.
 

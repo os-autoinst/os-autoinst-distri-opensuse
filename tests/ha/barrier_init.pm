@@ -191,7 +191,7 @@ sub run {
     # Finish early if running in node 1 instead of supportserver
     return if is_not_supportserver_scenario;
 
-    # For getting informations from iSCSI server
+    # For getting information from iSCSI server
     my $target_iqn = script_output 'lio_node --listtargetnames 2>/dev/null';
     my $target_ip_port = script_output "ls /sys/kernel/config/target/iscsi/${target_iqn}/tpgt_1/np 2>/dev/null";
     my $dev_by_path = '/dev/disk/by-path';

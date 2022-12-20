@@ -104,10 +104,10 @@ sub install_guest_instances {
         $guest_instances{$_}->{guest_installation_attached} = 'true';
         save_screenshot;
         if (!(check_screen([qw(guest-installation-yast2-started guest-installation-anaconda-started linux-login)], timeout => 180 / get_var('TIMEOUT_SCALE', 1)))) {
-            record_info("Failed to detect or guest $guest_instances{$_}->{guest_name} does not have installation window opened", "This might be caused by improper console settings or reboot after installaton finishes. Will continue to monitor its installation progess, so this is not treated as fatal error at the moment.");
+            record_info("Failed to detect or guest $guest_instances{$_}->{guest_name} does not have installation window opened", "This might be caused by improper console settings or reboot after installaton finishes. Will continue to monitor its installation progress, so this is not treated as fatal error at the moment.");
         }
         else {
-            record_info("Guest $guest_instances{$_}->{guest_name} has installation window opened", "Will continue to monitor its installation progess");
+            record_info("Guest $guest_instances{$_}->{guest_name} has installation window opened", "Will continue to monitor its installation progress");
         }
         save_screenshot;
         $guest_instances{$_}->detach_guest_installation_screen;
@@ -119,7 +119,7 @@ sub install_guest_instances {
 #Attach guest installation screen if no [guest_installation_result].
 #Call monitor_guest_installation to monitor its progress.monitor_guest_installation will record result,obtain guest ipaddr,detach screen and etc if there is final result.
 #If [guest_installation_result] has final result,push it into @guest_installations_done,collect_guest_installation_logs_via_ssh if not PASSED and calculate how many guests are left.
-#If no [guest_installation_result], detach current guest and move to next one,or keep curren guest screen if it is the last one left so there is no need to re-attach.
+#If no [guest_installation_result], detach current guest and move to next one,or keep current guest screen if it is the last one left so there is no need to re-attach.
 sub monitor_concurrent_guest_installations {
     my $self = shift;
 

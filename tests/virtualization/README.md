@@ -42,7 +42,7 @@ Declare a virtual net in *tests/virtualization/virtman_virtualnet*:
 ```
 
 
-**Devel** is in progress, some choice has been made to speedup debuging (like restart
+**Devel** is in progress, some choice has been made to speedup debugging (like restart
 everything from a new window, to be sure we can validate a step, even if previous one was
 broken).
 

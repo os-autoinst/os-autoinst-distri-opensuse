@@ -209,7 +209,7 @@ sub enable_vf {
     #as no network break is required anymore(ie. no sol console is needed or no worries about ip/nic change),
     #also modifying SYS PCI allows to enable specified PFs
     foreach my $pf (@pfs) {
-        #enable 7 VFs as all of SR-IOV ethernet cards allow the maxium fv number is beyond 7
+        #enable 7 VFs as all of SR-IOV ethernet cards allow the maximum fv number is beyond 7
         assert_script_run("echo 7 > /sys/bus/pci/devices/0000:$pf/sriov_numvfs");
     }
 
@@ -304,12 +304,12 @@ sub detach_vf_from_host {
 sub plugin_vf_device {
     my ($vm, $vf) = @_;
 
-    #get neccessary device config from host
+    #get necessary device config from host
     my $host_device_xml = script_output "virsh nodedev-dumpxml $vf->{host_id}";
     $host_device_xml =~ /\<domain\>(\w+)\<\/domain\>.*\<bus\>(\w+)\<\/bus\>.*\<slot\>(\w+)\<\/slot\>.*\<function\>(\w+)\<\/function\>/s;
     my ($dev_domain, $dev_bus, $dev_slot, $dev_func) = ($1, $2, $3, $4);
 
-    #'virsh attach-interface' can plug the network device to guest with the BDF in commandline without a seperate device xml file
+    #'virsh attach-interface' can plug the network device to guest with the BDF in commandline without a separate device xml file
     #but the SUSE document use 'virsh attach-device', so the test follows it
     #create the device xml to passthrough to vm
     my $vf_host_addr_xml = "<address type='pci' domain='$dev_domain' bus='$dev_bus' slot='$dev_slot' function='$dev_func'/>";

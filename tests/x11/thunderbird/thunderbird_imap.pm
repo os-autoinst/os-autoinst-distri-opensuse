@@ -8,7 +8,7 @@
 # - Kill thunderbird, erase all config files
 # - Launch thunderbird
 # - Create a imap account
-# - Send and email to the created mail acount
+# - Send and email to the created mail account
 # - Fetch emails, search for the sent email
 # - Check that email was well received, delete the message
 # - Exit thunderbird

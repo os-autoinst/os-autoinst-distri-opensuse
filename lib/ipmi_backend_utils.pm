@@ -62,7 +62,7 @@ sub setup_console_in_grub {
     my ($ipmi_console, $root_dir, $virt_type) = @_;
     $ipmi_console //= $serialdev;
     $root_dir //= '/';
-    #Ther is no default value for $virt_type, which has to be passed into function explicitly.
+    #There is no default value for $virt_type, which has to be passed into function explicitly.
 
     #set grub config file
     my $grub_default_file = "${root_dir}/etc/default/grub";

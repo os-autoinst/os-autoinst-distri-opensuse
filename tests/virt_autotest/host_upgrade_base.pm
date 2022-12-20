@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 package host_upgrade_base;
-# Summary: host_upgrade_base: Geting prefix part of command line for running case host upgrade project.
+# Summary: host_upgrade_base: Getting prefix part of command line for running case host upgrade project.
 # Maintainer: alice <xlai@suse.com>
 
 use strict;

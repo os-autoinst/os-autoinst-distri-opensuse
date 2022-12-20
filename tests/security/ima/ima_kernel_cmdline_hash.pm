@@ -35,7 +35,7 @@ sub run {
     my $algo_modlist = "rmd160 wp512 tgr192";
 
     # On newer kernel, tgr192 algorithms may be removed due to
-    # upsteam commit, then we need skip it, refer to bsc#1191521
+    # upstream commit, then we need skip it, refer to bsc#1191521
     my $results = script_run("zcat /proc/config.gz | grep CONFIG_CRYPTO_TGR192");
     if ($results) {
         for (my $i = 0; $i < scalar(@algo_list); $i++) {

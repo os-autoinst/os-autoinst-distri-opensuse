@@ -50,7 +50,7 @@ sub setup {
     assert_script_run qq{mariadb -u root -e "CREATE DATABASE odbcTEST; USE odbcTEST; CREATE TABLE test
 (id int NOT NULL AUTO_INCREMENT, entry varchar(255) NOT NULL, PRIMARY KEY(id));
 INSERT INTO test (entry) VALUE ('can you read this?');"};
-    # changes mysql password temporarly to "x" becase 'isql' does not support
+    # changes mysql password temporarily to "x" because 'isql' does not support
     # blank password
     assert_script_run qq{mariadb-admin -u root password x};
 

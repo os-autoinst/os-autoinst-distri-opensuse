@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Add a new add-on specifying repo URL, in particular FTP URL for Live Patching.
-# Pre-requisite: one or more add-ons has been added before this one.
+# Pre-requisite: one or more add-owns has been added before this one.
 #
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 

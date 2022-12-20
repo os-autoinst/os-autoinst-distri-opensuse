@@ -43,7 +43,7 @@ sub run_test {
     assert_script_run("test $AVAILABLE_POOL_SIZE -ge $expected_pool_size",
         fail_message => "The SUT needs at least " . $expected_pool_size . "GiB available space of active pool for virtual network test");
 
-    #Need to reset up environemt - br123 for virt_atuo test due to after
+    #Need to reset up environment - br123 for virt_atuo test due to after
     #finished guest installation to trigger cleanup step on sles11sp4 vm hosts
     virt_autotest::virtual_network_utils::restore_standalone() if (is_sle('=11-sp4'));
 

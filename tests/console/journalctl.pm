@@ -171,7 +171,7 @@ sub run {
         # https://bugzilla.suse.com/show_bug.cgi?id=1196637
         # should be backported to sle15sp3/leap15.3 later
         assert_script_run 'journalctl --flush' if (is_sle('15-sp4+') || is_leap('15.4+'));
-        # test for installed rsyslog and for imuxsock existance
+        # test for installed rsyslog and for imuxsock existence
         # rsyslog must be there by design
         assert_script_run 'rpm -q rsyslog';
         assert_script_run 'test -S /run/systemd/journal/syslog';
@@ -219,7 +219,7 @@ sub run {
 
     # Check journal state after reboot to trigger bsc#1171858
     verify_journal();
-    # Note: Detailled error message is "Specifying boot ID or boot offset has no effect, no persistent journal was found."
+    # Note: Detailed error message is "Specifying boot ID or boot offset has no effect, no persistent journal was found."
     # Create virtual serial console for journal redirecting
     if (is_opensuse && !is_leap('>=15.3')) {
         zypper_call 'in socat';

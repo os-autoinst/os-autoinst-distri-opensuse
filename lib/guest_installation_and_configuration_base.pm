@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: This module provides framework and APIs to install virtual
-# machine by using virt-install comman line.It supports configuration
+# machine by using virt-install command line. It supports configuration
 # and modification to virtualation,platform,name,memory,cpu,metadata,
 # xml,installation method,network selection,storage types,boot settings,
 # graphics,videos,consoles,power management and other features of vm.
@@ -67,13 +67,13 @@ our %guest_params = (
     'guest_vcpus' => '',    #virt-install --vcpus [guest_vcpus]
     'guest_cpumodel' => '',    #virt-install --cpu [guest_cpumodel]
     'guest_metadata' => '',    #virt-install --metadata [guest_metadata]
-    'guest_xpath' => '',    #virt-install --xml [guest_xpath].It can contain multiple items seperated by hash key
+    'guest_xpath' => '',    #virt-install --xml [guest_xpath].It can contain multiple items separated by hash key
     'guest_installation_automation' => '', #This indicates whether guest uses autoyast or kickstart installation (autoyast, kickstart or empty), not virt-install argument
     'guest_installation_automation_file' => '', #virt-install --extra-args "autoyast=[guest_installation_automation_file] or inst.ks=[guest_installation_automation_file]"
     'guest_installation_method' => '',    #virt-install --[guest_installation_method(location, cdrom, pxe, import and etc)]
     'guest_installation_method_others' => '',    #virt-install --[guest_installation_method] [guest_installation_method_others] or
                                                  #--[guest_installation_method] [guest_installation_media],[guest_installation_method_others]
-    'guest_installation_extra_args' => '',    #virt-install --extra-args [guest_installation_extra_args].It can contain multiple itmes seperated by hash key
+    'guest_installation_extra_args' => '',    #virt-install --extra-args [guest_installation_extra_args].It can contain multiple items separated by hash key
     'guest_installation_wait' => '',    #virt-install --wait [guest_installation_wait]
     'guest_installation_media' => '',    #virt-install --location [guest_installation_media] or --cdrom [guest_installation_media]
     'guest_installation_fine_grained' => '',    #virt-install --install [guest_installation_fine_grained]
@@ -89,21 +89,21 @@ our %guest_params = (
     'guest_storage_others' => '',  #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
     'guest_network_type' => '',    #This indicates whether guest uses bridge, nat, virtual_network, or other network types, not virt-install argument
     'guest_network_device' => '',    #virt-install --network=bridge=[guest_network_device],mac=[guest_macaddr] (Also can be used with other network type)
-    'guest_network_others' => '',    #virt-install --netowrk=bridge=[guest_network_device],mac=[guest_macaddr],[guest_network_others]
+    'guest_network_others' => '',    #virt-install --network=bridge=[guest_network_device],mac=[guest_macaddr],[guest_network_others]
                                      #(Also can be used with other network type)
     'guest_macaddr' => '',    #virt-install --network=bridge=[guest_network_device],mac=[guest_macaddr] (Also can be used with other network type)
     'guest_virtual_network' => '',    # virt-install --network=network=[guest_virtual_network],mac=[guest_macaddr],[guest_network_others]
     'guest_netaddr' => '', #This indicates the subnet to which guest will be connected. It takes the form ip_address/subnet_mask_length and defaults to 192.168.123.255/24,
         #not virt-install argument. If 'host-default' is given, this indicates guest will use host network and host bridge device that already exists
         #and are connected directly to default gateway, for example, br0. If br0 or any other host bridge devices already conneced to host network that
-        #do not exist, [guest_network_device] wil be configured to connect to host network and used for guest configuration.
+        #do not exist, [guest_network_device] will be configured to connect to host network and used for guest configuration.
         #If [guest_virtual_network] is configured, please ensure [guest_netaddr] matches the subnet of this virtual network.
     'guest_ipaddr' => '',    #virt-install --extra-args "ip=[guest_ipaddr]" if it is a static ip address, otherwise it is not virt-install argument.
                              #It stores the final guest ip address obtained from ip discovery
     'guest_ipaddr_static' => '',    #This indicates whether guest uses static ip address(true or false), not virt-install argument
     'guest_graphics' => '',    #virt-install --graphics [guest_graphics]
     'guest_controller' => '',  # virt-install --controller [guest_controller].More than one controller can be passed to guest, they should be separated by hash.
-                               # For example, "controller1#controller2#controller3" which will be splitted later and passed to individual --controller argument.
+                               # For example, "controller1#controller2#controller3" which will be split later and passed to individual --controller argument.
     'guest_sysinfo' => '',    #virt-install --sysinfo [guest_sysinfo]
     'guest_input' => '',    #TODO            #virt-install --input [guest_input]
     'guest_serial' => '',    #virt-install --serial [guest_serial]
@@ -262,7 +262,7 @@ sub initialize_guest_params {
 #The subroutine can be called mainly in two different ways:
 #Firstly,config_guest_params can be called in another subroutine for example, create which takes a hash/dictionary as argument.
 #my %testhash = ('key1' => 'value1', 'key2' => 'value2', 'key3' => 'value3'),$self->create(%testhash) which calls $self->config_guest_params(@_).
-#Secondly,config_guest_params can also be called direcly, for example,$self->config_guest_params(%testhash).
+#Secondly,config_guest_params can also be called directly, for example,$self->config_guest_params(%testhash).
 #Call revise_guest_version_and_build to correct guest version and build parameters to avoid mismatch if necessary.
 sub config_guest_params {
     my $self = shift;
@@ -320,7 +320,7 @@ sub revise_guest_version_and_build {
 
     if ($self->{guest_build} eq '') {
         if ((!get_var('REPO_0_TO_INSTALL') and ($self->{guest_version} eq lc get_required_var('VERSION'))) or (get_var('REPO_0_TO_INSTALL') and ($self->{guest_version} eq lc get_required_var('TARGET_DEVELOPING_VERSION')))) {
-            # BUILD is not the only parameter to indicate real build numbe of installation media,
+            # BUILD is not the only parameter to indicate real build number of installation media,
             # for example, openQA SLE Micro group use BUILD_ISO to do this and the BUILD is being
             # used for grouping all relevant test suites together under the same goup. Thus it is
             # necessary to have BUILD_ISO here as well to generate correct build number for guest.
@@ -422,7 +422,7 @@ sub clean_up_all_guests {
         }
         save_screenshot;
         # With `import` installation method supported,
-        # storage root path shoud not be cleaned, but to delete potential affecting storage files
+        # storage root path should not be cleaned, but to delete potential affecting storage files
         foreach my $_vm (split(/,/, get_required_var('UNIFIED_GUEST_LIST'))) {
             script_run("rm -f -r /var/lib/libvirt/images/${_vm}.*");
             script_run("rm -f -r $self->{guest_storage_path}/${_vm}.*") if ($self->{guest_storage_path} ne '');
@@ -726,7 +726,7 @@ sub config_guest_security {
 Configure [guest_controller_options]. User can still change [guest_controller] by
 passing non-empty arguments using hash. [guest_controller] can have more than one
 type controller which should be separated by hash symbol, for example, "controller1
-_config#controller2_config#controller3_config". Then it will be splitted and passed 
+_config#controller2_config#controller3_config". Then it will be split and passed 
 to individual "--controller" argument to form [guest_controller_options] = "--controller
 controller1_config --controller controller2_config --controller controller3_config". 
 If installation already passes, modify_guest_params will be called to modify
@@ -798,9 +798,9 @@ sub config_guest_storage {
 #Configure [guest_network_selection_options].User can still change [guest_macaddr],[guest_network_type],[guest_network_device],[guest_ipaddr_static],[guest_ipaddr],[guest_netaddr],and [guest_virtual_network] by passing non-empty arguments using hash.
 #If [guest_network_type] is `bridge`,
 #    Set [guest_network_device] to br0 if it is not given and guest chooses to use host network.Set [guest_network_device]
-#    to br123 and [guest_netaddr] to 192.168.123.255/24 if they are not given and guest does not choose to use host network.After enusre [guest_network_device] and [guest_netaddr]
+#    to br123 and [guest_netaddr] to 192.168.123.255/24 if they are not given and guest does not choose to use host network.After ensure [guest_network_device] and [guest_netaddr]
 #    have non-empty values, reset [guest_network_device] to already active host bridge device connected to host network if user chooses to use host network or intends to use a new
-#    non-existed bridge deivce which is only created and configured to connect to host network if host does not have a active bridge device.Calls config_guest_macaddr to generate
+#    non-existed bridge device which is only created and configured to connect to host network if host does not have a active bridge device.Calls config_guest_macaddr to generate
 #    guest mac address if it has not been set.Calls config_guest_network_bridge to create [guest_network_device] in subnet [guest_netaddr].Turn off firewall/apparmor,loosen iptables
 #    rules and enable forwarding by calling config_guest_network_bridge_policy.
 #
@@ -922,7 +922,7 @@ to this interface which might be attached to another bridge interface or will no
 be assigned one ip address from dhcp, so set $_ipaddr to '0.0.0.0'.If $_ipaddr 
 given is non-empty but not in ip address format,for example, 'host-default',it 
 means the interface will not use a ip address from pre-defined subnet and will 
-automically accept dhcp ip address from public facing host network.
+automatically accept dhcp ip address from public facing host network.
 
 =cut
 
@@ -1093,7 +1093,7 @@ sub activate_guest_network_bridge_device {
         else {
             my $_bridge_device_config_file = '/etc/sysconfig/network/ifcfg-' . $args{_bridge_device};
             if (is_opensuse) {
-                # NIC in openSUSE TW guest is unable to get the IP from its network configration file with 'wicked ifup' or 'ifup'
+                # NIC in openSUSE TW guest is unable to get the IP from its network configuration file with 'wicked ifup' or 'ifup'
                 # Not sure if it is a bug yet. This is just a temporary solution.
                 my $_bridge_ipaddr = script_output("grep IPADDR $_bridge_device_config_file | cut -d \"'\" -f2");
                 script_retry("ip link add $args{_bridge_device} type bridge; ip addr flush dev $args{_bridge_device}", retry => 3, die => 0);
@@ -1498,7 +1498,7 @@ sub config_guest_installation_extra_args {
 #[guest_registration_username],[guest_registration_password],[guest_registration_code],[guest_registration_extensions] and [guest_registration_extensions_codes] which are used in configuring
 #guest installation automation registration.Subroutine config_guest_installation_automation_registration is called to perform this task.Start HTTP server using python3 modules in unattended
 #automation file folder to serve unattended guest installation.Mark guest installation as FAILED if HTTP server can not be started up or unattended installation file is not accessible.
-#Common varaibles are used in guest unattended installation file and to be replaced with actual values.They are common variables that are relevant to guest itself or its attributes,
+#Common variables are used in guest unattended installation file and to be replaced with actual values.They are common variables that are relevant to guest itself or its attributes,
 #so they can be used in any unattended installation files regardless of autoyast or kickstart or others.For example, if you want to set guest ethernet interface mac address somewhere
 #in your customized unattended installation file, put ##Device-MacAddr## there then it will be replaced with the real mac address.The actual kind of automation used matters less here
 #than variables used in the unattended installation file, so keep using standardized common varialbes in unattened installation file will make it come alive automatically regardless of
@@ -1906,7 +1906,7 @@ sub check_guest_installation_result_via_ssh {
 }
 
 #Attach guest installation screen before monitoring guest installation progress:
-#If [guest_installation_session] is not available and no [guest_autoconsole],call do_attach_guest_installation_screen_without_sesssion.
+#If [guest_installation_session] is not available and no [guest_autoconsole],call do_attach_guest_installation_screen_without_session.
 #If [guest_installation_session] is not available and has [guest_autoconsole],call get_guest_installation_session, then attach based on whether installation session is available.
 #If [guest_installation_session] is already available,call do_attach_guest_installation_screen directly.
 sub attach_guest_installation_screen {
@@ -1943,7 +1943,7 @@ sub attach_guest_installation_screen {
 
 #Call do_attach_guest_installation_screen_with_session anyway.Mark [guest_installation_attached] as true if needle 'text-logged-in-root' can not be detected.
 #If fails to attach guest installation screen, [guest_installation_session] may terminate at reboot/shutoff or be in mysterious state or just broken somehow,
-#call do_attach_guest_installation_screen_without_sesssion to re-attach.
+#call do_attach_guest_installation_screen_without_session to re-attach.
 sub do_attach_guest_installation_screen {
     my $self = shift;
 

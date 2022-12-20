@@ -33,7 +33,7 @@ sub run {
     assert_script_run('echo "default ' . $static_ip_ref . ' - -" > /etc/sysconfig/network/routes');
     mutex_wait('dhcpdbasict08');
 
-    # the timeout of 60 is a temporarly solution see: https://progress.opensuse.org/issues/89269#note-4
+    # the timeout of 60 is a temporary solution see: https://progress.opensuse.org/issues/89269#note-4
     $self->wicked_command('ifup --timeout 60', $ctx->iface());
     $self->wicked_command('ifup --timeout 60', $ctx->iface2());
 

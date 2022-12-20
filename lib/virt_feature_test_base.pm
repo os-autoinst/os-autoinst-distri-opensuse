@@ -143,7 +143,7 @@ sub analyzeResult {
         else {
             $uncheckpoint_failure_guest = join(' ', @involved_failure_guest);
         }
-        diag "The accidental failure happended at: $uncheckpoint_failure involves: $uncheckpoint_failure_guest";
+        diag "The accidental failure happened at: $uncheckpoint_failure involves: $uncheckpoint_failure_guest";
         script_run("($uncheckpoint_failure) 2>&1 | tee -a /root/commands_failure", quiet => 1);
         my $uncheckpoint_failure_error = script_output("cat /root/commands_failure", type_command => 0, proceed_on_failure => 1, quiet => 1);
         $self->{test_results}->{$uncheckpoint_failure_guest}->{$uncheckpoint_failure}->{status} = 'FAILED';

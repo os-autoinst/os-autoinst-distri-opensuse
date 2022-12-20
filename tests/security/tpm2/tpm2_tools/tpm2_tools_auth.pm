@@ -22,7 +22,7 @@ sub run {
     my $key_priv = "key.priv";
     my $key_pub = "key.pub";
     my $key_name = "key.name";
-    my $ket_ctx = "key.ctx";
+    my $kept_ctx = "key.ctx";
 
     my $tpm_suffix = '';
     $tpm_suffix = '-T tabrmd' if (get_var('QEMUTPM', 0) != 1 || get_var('QEMUTPM_VER', '') ne '2.0');
@@ -31,8 +31,8 @@ sub run {
     assert_script_run "cd $test_dir";
     assert_script_run "tpm2_createprimary -Q -C o -c $prim_ctx $tpm_suffix";
     assert_script_run "tpm2_create -Q -g sha256 -G aes -u $key_pub -r $key_priv -C $prim_ctx $tpm_suffix";
-    assert_script_run "tpm2_load -C $prim_ctx -u $key_pub -r $key_priv -n $key_name -c $ket_ctx $tpm_suffix";
-    assert_script_run "tpm2_changeauth -c $ket_ctx -C $prim_ctx -r $key_priv newkeyauth $tpm_suffix";
+    assert_script_run "tpm2_load -C $prim_ctx -u $key_pub -r $key_priv -n $key_name -c $kept_ctx $tpm_suffix";
+    assert_script_run "tpm2_changeauth -c $kept_ctx -C $prim_ctx -r $key_priv newkeyauth $tpm_suffix";
     assert_script_run "tpm2_clear $tpm_suffix";
 
     # Modify authorization for a NV Index Requires Extended Session Support

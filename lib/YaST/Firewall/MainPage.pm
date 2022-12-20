@@ -20,29 +20,29 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{tre_overview} = $self->{app}->tree({id => "\"Y2Firewall::Widgets::OverviewTree\""});
+    $self->{tree_overview} = $self->{app}->tree({id => "\"Y2Firewall::Widgets::OverviewTree\""});
     $self->{btn_accept} = $self->{app}->button({id => 'next'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{tre_overview}->exist();
+    return $self->{tree_overview}->exist();
 }
 
 sub select_start_up_page {
     my ($self) = @_;
-    $self->{tre_overview}->select("Start-Up");
+    $self->{tree_overview}->select("Start-Up");
 }
 
 sub select_interfaces_page {
     my ($self) = @_;
-    $self->{tre_overview}->select("Interfaces");
+    $self->{tree_overview}->select("Interfaces");
 }
 
 sub select_zones_page {
     my ($self) = @_;
-    $self->{tre_overview}->select("Zones");
+    $self->{tree_overview}->select("Zones");
 }
 
 sub press_accept {
@@ -52,7 +52,7 @@ sub press_accept {
 
 sub select_zone_page {
     my ($self, $zone) = @_;
-    $self->{tre_overview}->select("Zones|$zone");
+    $self->{tree_overview}->select("Zones|$zone");
 }
 
 1;

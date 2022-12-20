@@ -44,7 +44,7 @@ sub run {
         $php_ver = '5';
     }
     else {
-        record_info("Depedency issue", "Is apache-mod_php installed?");
+        record_info("Dependency issue", "Is apache-mod_php installed?");
         die;
     }
     script_run("a2enmod php$php_ver");

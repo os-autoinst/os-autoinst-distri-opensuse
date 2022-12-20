@@ -41,7 +41,7 @@ sub run {
         $self->result('fail');
     }
 
-    # Upload logs & ouputs for reference
+    # Upload logs & outputs for reference
     $self->upload_logs_reports();
 }
 

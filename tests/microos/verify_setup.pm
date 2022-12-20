@@ -51,7 +51,7 @@ sub systemd_tests {
     if ($units) {
         record_info('systemd', 'Checking system setup');
     } else {
-        record_info('SKIP', 'Skiping systemd tests!');
+        record_info('SKIP', 'Skipping systemd tests!');
         return;
     }
 
@@ -136,7 +136,7 @@ sub user_tests {
     if ($users) {
         record_info('users', 'Checking users setup');
     } else {
-        record_info('SKIP', 'Skiping users tests!');
+        record_info('SKIP', 'Skipping users tests!');
         return;
     }
 
@@ -190,7 +190,7 @@ sub group_tests {
     if ($groups) {
         record_info('groups', 'checking groups setup');
     } else {
-        record_info('SKIP', 'Skiping groups tests!');
+        record_info('SKIP', 'Skipping groups tests!');
         return;
     }
 
@@ -215,7 +215,7 @@ sub directory_tests {
     if ($directories) {
         record_info('directories', 'checking directories setup');
     } else {
-        record_info('SKIP', 'Skiping directories tests!');
+        record_info('SKIP', 'Skipping directories tests!');
         return;
     }
 
@@ -251,7 +251,7 @@ sub file_tests {
     if ($files) {
         record_info('files', 'checking files setup');
     } else {
-        record_info('SKIP', 'Skiping files tests!');
+        record_info('SKIP', 'Skipping files tests!');
         return;
     }
 

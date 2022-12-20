@@ -86,7 +86,7 @@ Main use case is post_fail_hook, to be able to upload logs.
 Accepts following parameters :
 
 C<ip> => allowing to specify certain IP which would be used for recovery
-in case skiped '10.0.2.15/24' will be used as fallback.
+in case skipped '10.0.2.15/24' will be used as fallback.
 
 C<gw> => allowing to specify default gateway. Fallback to worker IP in case nothing specified.
 =cut
@@ -94,7 +94,7 @@ C<gw> => allowing to specify default gateway. Fallback to worker IP in case noth
 sub recover_network {
     my (%args) = @_;
 
-    # We set static setup just to upload logs, so no permament setup
+    # We set static setup just to upload logs, so no permanent setup
     # Set default values
     $args{ip} //= '10.0.2.15/24';
     $args{gw} //= testapi::host_ip();

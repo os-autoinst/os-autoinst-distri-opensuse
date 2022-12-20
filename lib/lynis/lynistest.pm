@@ -47,7 +47,7 @@ our $lynis_baseline_file = get_var("LYNIS_BASELINE_FILE", $lynis_baseline_file_d
 our $lynis_audit_system_current_file = "lynis_audit_system_current_file";
 our $lynis_audit_system_error_file = "lynis_audit_system_error_file";
 
-# Lynix test status mappping with openQA
+# Lynix test status mapping with openQA
 our @lynis_ok = split(/,/, get_var("LYNIS_OK", "OK,DONE,YES"));
 our @lynis_fail = split(/,/, get_var("LYNIS_ERROR", "ERROR,WEAK,UNSAFE"));
 our @lynis_softfail = split(/,/, get_var("LYNIS_WARNING", "WARNING,EXPOSED,NONE,SUGGESTION"));
@@ -82,7 +82,7 @@ sub parse_lynis_section_list {
     return @section_list;
 }
 
-# Rename the section for a eaiser regex matching
+# Rename the section for a easier regex matching
 sub rename_lynis_section {
     my ($section) = @_;
     my @flags;
@@ -247,7 +247,7 @@ sub check_exceptions {
         ".*wickedd-nanny.service.*UNSAFE*",
         ".*wickedd.service.*UNSAFE*",
         ".*/etc/issue contents.*WEAK*",
-        ".*MOR variable not found.*WEAK*"
+        ".*MORE variable not found.*WEAK*"
     );
     for my $exception (@exceptions) {
         if (grep(/$exception/, @section_current)) {

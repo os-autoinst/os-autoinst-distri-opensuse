@@ -21,7 +21,7 @@ sub run_test {
     my %ltss_products = @{get_var_array("LTSS_REGCODES_SECRET")};
 
     foreach my $guest (keys %virt_autotest::common::guests) {
-        record_info "$guest", "Registrating $guest against SMT";
+        record_info "$guest", "Registration $guest against SMT";
         my ($sles_running_version, $sles_running_sp) = get_os_release("ssh root\@$guest");
         my $version_id = $sles_running_sp != 0 ? "$sles_running_version.$sles_running_sp" : $sles_running_version;
         if ($sles_running_version >= 12) {

@@ -136,7 +136,7 @@ sub verify_number_of_encrypted_devices {
 
 sub verify_cryptsetup_message {
     my ($expected_message, $actual_message) = @_;
-    record_info("Assert volumes status", "Verify crypted volume status based on test_data expectations");
+    record_info("Assert volumes status", "Verify encrypted volume status based on test_data expectations");
     assert_matches(qr/$expected_message/, $actual_message,
         "Message of cryptsetup status does not match regex");
 }
@@ -158,7 +158,7 @@ sub verify_cryptsetup_message {
 
 sub verify_cryptsetup_properties {
     my ($expected_properties, $actual_properties) = @_;
-    record_info("params", "Verify parameters, that are set for crypted volumes");
+    record_info("params", "Verify parameters, that are set for encrypted volumes");
     foreach my $property (sort keys %{$expected_properties}) {
         diag("Verifying that expected property $expected_properties->{$property} corresponds to the actual $actual_properties->{$property}");
         assert_equals($expected_properties->{$property}, $actual_properties->{$property},

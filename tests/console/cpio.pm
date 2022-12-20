@@ -43,7 +43,7 @@ sub run {
         my $result = script_output "diff  $testdatadir/topack /tmp/unpacked/$format 2>&1";
         if ($result ne "") {
             assert_script_run "rm -r /tmp/archive /tmp/unpacked";
-            die "An issue occured with format $format";
+            die "An issue occurred with format $format";
         }
     }
 

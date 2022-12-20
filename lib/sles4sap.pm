@@ -480,7 +480,7 @@ sub test_instance_properties {
  $self->test_stop();
 
 Tests with B<sapcontrol> and functions B<Stop> and B<StopService> that the instance
-and services are succesfully stopped. Croaks on failure.
+and services are successfully stopped. Croaks on failure.
 
 =cut
 
@@ -505,7 +505,7 @@ sub test_stop {
  $self->test_start();
 
 Tests with B<sapcontrol> and functions B<Start> and B<StartService> that the instance
-and services are succesfully started. Croaks on failure.
+and services are successfully started. Croaks on failure.
 
 =cut
 

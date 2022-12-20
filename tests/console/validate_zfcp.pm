@@ -5,7 +5,7 @@
 
 # Summary: Validate zfcp in the installed system:
 #          - Verification of FCP devices online
-#          - Verificaiton of FCP devices
+#          - Verification of FCP devices
 #          - Verification of LUNs visible as SCSI devices
 #
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>

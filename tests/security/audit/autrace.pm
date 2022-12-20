@@ -14,7 +14,7 @@ use utils;
 use version_utils 'is_sle';
 
 sub get_pid {
-    # Call this fuction to extract pid from autrace output in command line
+    # Call this function to extract pid from autrace output in command line
     my $tmp_output = '/tmp/out';
     my $tmp_backup = '/tmp/backup';
     script_run("tail -1 $tmp_output > $tmp_backup");

@@ -19,7 +19,7 @@ use utils;
 sub run {
     my $self = shift;
 
-    #Configure Ip adress to Multimachine setup
+    #Configure Ip address to Multimachine setup
     $self->run_in_powershell(cmd => 'ipconfig', tags => 'win-ad-powershell');
     $self->run_in_powershell(cmd => 'Get-NetIPAddress', tags => 'win-ad-powershell');
     $self->run_in_powershell(cmd => 'New-NetIPAddress -InterfaceAlias Ethernet -IPAddress 10.0.2.101 -PrefixLength 24 -DefaultGateway 10.0.2.101', tags => 'win-ad-powershell');
@@ -75,7 +75,7 @@ sub run {
     #Select usertest on Users
     assert_and_click("mmc-geeko-users", button => 'left', dclick => 1);
     assert_and_click("mmc-geekouser-open", button => 'left', dclick => 1);
-    #select Atribute Editor tab, and got to Unix attribts:
+    #select Attribute Editor tab, and got to Unix attribts:
     assert_and_click("mmc-geeko-select-attribute");
     send_key 'shift-end';
     send_key 'pgup';

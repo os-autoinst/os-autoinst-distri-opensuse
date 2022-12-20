@@ -27,7 +27,7 @@ sub run {
     send_key 'tab';
     assert_screen "$gnuhealth-manage_profiles-database_selected";
     type_string 'admin';
-    # back to profiles menue
+    # back to profiles menu
     assert_screen "$gnuhealth-manage_profiles-add", 300;
     send_key 'ret';
     # back to login dialog

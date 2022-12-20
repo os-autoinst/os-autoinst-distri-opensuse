@@ -56,7 +56,7 @@ sub run {
 
     wait_serial "writing new private", 60 || die "openssl req output doesn't match";
 
-    #Workaround for avoiding missing charactors in following commands
+    #Workaround for avoiding missing characters in following commands
     for (1 ... 3) {
         send_key "ret";
     }

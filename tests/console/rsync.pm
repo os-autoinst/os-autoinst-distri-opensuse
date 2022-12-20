@@ -9,7 +9,7 @@
 # - Create two test directories and populate with files, scripts and compressed
 # files
 # - Run "rsync -avzr /tmp/rsync_test_folder_a/ root@localhost:/tmp/rsync_test_folder_b; echo $? > /tmp/rsync_return_code.txt"
-# - Check the operation return code and md5sum from files transfered
+# - Check the operation return code and md5sum from files transferred
 # Maintainer: Ciprian Cret <ccret@suse.com>
 
 

@@ -38,7 +38,7 @@ sub disable_online_repos_explicitly {
 }
 
 sub run {
-    # Online repos are not configurable if no network conneciton is available
+    # Online repos are not configurable if no network connection is available
     return if get_var('OFFLINE_SUT');
     ## Do not enable online repos by default
     ## List possible screens if pop-up is not there as a fallback
@@ -65,7 +65,7 @@ sub run {
     if (get_var('DISABLE_ONLINE_REPOS')) {
         disable_online_repos_explicitly;
     } elsif (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
-        # Acivate online repositories
+        # Activate online repositories
         wait_screen_change { send_key 'alt-y' };
     } else {
         # If click No, step is skipped, which is default behavior

@@ -66,7 +66,7 @@ sub build_and_run_image {
     }
     file_content_replace("$dir/BuildTest/Dockerfile", baseimage_var => $base) if defined $base;
 
-    # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
+    # At least on publiccloud, this image pull can take long and occasionally fails due to network issues
     $builder->build($dir . "/BuildTest", "myapp", (timeout => is_x86_64 ? 600 : 1200));
     assert_script_run("rm -rf $dir");
     script_run("$runtime images");

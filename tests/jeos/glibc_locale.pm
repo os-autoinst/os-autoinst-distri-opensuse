@@ -71,16 +71,16 @@ sub change_locale {
 }
 
 sub test_users_locale {
-    my $rc_lc_udpated = shift;
+    my $rc_lc_updated = shift;
     my $ldd_help_string_expected = shift;
 
-    record_info('Check', "Verifying $rc_lc_udpated->{RC_LANG}");
+    record_info('Check', "Verifying $rc_lc_updated->{RC_LANG}");
     ## Let's repeat the whole user login process again
     reset_consoles;
     select_console('user-console', ensure_tty_selected => 0, skip_setterm => 1);
 
-    assert_script_run("locale | tee -a /dev/$serialdev | grep $rc_lc_udpated->{RC_LANG}",
-        fail_message => "Expected LANG ($rc_lc_udpated->{RC_LANG}) has not been found!");
+    assert_script_run("locale | tee -a /dev/$serialdev | grep $rc_lc_updated->{RC_LANG}",
+        fail_message => "Expected LANG ($rc_lc_updated->{RC_LANG}) has not been found!");
 
     my $ldd_help_string_updated = script_output "ldd --help";
     if ($ldd_help_string_updated =~ /([A-Z]\w+\s.*\w:)/) {

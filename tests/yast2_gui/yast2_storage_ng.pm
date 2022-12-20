@@ -177,7 +177,7 @@ sub run {
     wait_still_screen 1;
     wait_screen_change { send_key "alt-f" };
 
-    # check that the partion is ~170MiB (output is: /dev/vdb1     2048 355477  353430 172.6M 83 Linux)
+    # check that the partition is ~170MiB (output is: /dev/vdb1     2048 355477  353430 172.6M 83 Linux)
     x11_start_program('xterm');
     become_root;
     wait_still_screen 3;

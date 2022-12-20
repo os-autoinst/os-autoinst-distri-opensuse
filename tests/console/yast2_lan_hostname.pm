@@ -36,7 +36,7 @@ sub hostname_via_dhcp {
     send_key $cmd{hostname_dns_tab};
     assert_screen "yast2_lan-hostname-tab";
 
-    # We have different postition for this control
+    # We have different position for this control
     # go to roll-down list
     my $ntab = (is_sle('<=15') || is_leap('<=15.0')) ? 4 : 2;
     for (1 .. $ntab) { send_key 'tab' }

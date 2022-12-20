@@ -368,7 +368,7 @@ C<$datafile> is repository source.
 
 sub rmt_import_data {
     my ($datapath) = @_;
-    # Check import data resource exsited
+    # Check import data resource existed
     assert_script_run("ls $datapath");
     # Import RMT data from test path to new RMT server
     assert_script_run("rmt-cli import data $datapath", 600);
@@ -399,7 +399,7 @@ sub rmt_export_data {
 
  prepare_source_repo($repo_name);
 
-Prepare SLES or OSS souce repositories
+Prepare SLES or OSS source repositories
 
 =cut
 
@@ -499,7 +499,7 @@ sub generate_version {
  validate_repo_properties($args);
 
 Validates that repo with given search criteria (uri, alias, number)
-has other properties mathing the expectations.
+has other properties matching the expectations.
 If one of the keys is not provided, that field will NOT be validated.
 C<$args> should have following keys defined:
 - C<Alias>: repository alias, optional

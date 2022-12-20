@@ -28,7 +28,7 @@ sub run {
     $self->firefox_open_url('opensuse.org');
     assert_screen('firefox-developertool-opensuse');
     send_key 'f12';
-    assert_screen('firefox-developertool-gerneral', 30);
+    assert_screen('firefox-developertool-general', 30);
     assert_and_click "firefox-developertool-click_element";
     assert_screen "firefox-developertool-check_inspector";
     assert_and_click "firefox-developertool-check_element";

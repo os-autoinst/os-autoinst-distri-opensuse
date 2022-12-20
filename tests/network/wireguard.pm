@@ -34,7 +34,7 @@ sub start_wgquick {
 sub run {
     if (get_var('IS_MM_SERVER')) {
         barrier_create 'SETUP_DONE', 2;
-        barrier_create 'KEY_TRANSFERED', 2;
+        barrier_create 'KEY_TRANSFERRED', 2;
         barrier_create 'VPN_ESTABLISHED', 2;
         barrier_create 'IPERF_COMPLETED', 2;
         barrier_create 'WG_QUICK_READY', 2;
@@ -82,7 +82,7 @@ sub run {
     assert_script_run 'test -f ./private';
     assert_script_run 'wg pubkey < ./private | tee ./public';
     exec_and_insert_password("scp -o StrictHostKeyChecking=no ./public root\@$remote:'~/remote'");
-    barrier_wait 'KEY_TRANSFERED';
+    barrier_wait 'KEY_TRANSFERRED';
     assert_script_run 'test -f ./remote';
 
     assert_script_run 'ip link add dev wg0 type wireguard';

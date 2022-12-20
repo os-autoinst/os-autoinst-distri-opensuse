@@ -115,7 +115,7 @@ sub _set_partitioning {
 # by the Libstorage-NG. This forces test to close the "too simple" popup each
 # time.
 # Random strong password would be preferable here, but due to current tests
-# infrastructure there is no simple solution to propogate random strong password
+# infrastructure there is no simple solution to propagate random strong password
 # to another tests that require the password.
 sub _encrypt_with_too_simple_password {
     my ($self) = @_;

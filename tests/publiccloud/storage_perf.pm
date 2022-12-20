@@ -84,7 +84,7 @@ sub db_has_data {
 
     Function which will loop over incoming C<load_types> array
     and calculate the mean of last 5 test results to compare it with 5 test result before that.
-    In such a way we protecting ourselfs from one time failures and trigger the flag only when there is
+    In such a way we protecting ourselves from one time failures and trigger the flag only when there is
     reproducible performance degradation.
 
 =cut
@@ -244,7 +244,7 @@ sub run {
             if (db_has_data(%influx_read_args)) {
                 # we will do anaysis for same load types which we just pushed to db
                 my @load_types = keys %$values;
-                # Change the test module result to 'fail' if deviation in analyze_previous_series() occures
+                # Change the test module result to 'fail' if deviation in analyze_previous_series() occurs
                 if (analyze_previous_series(\%influx_read_args, \@load_types) == 1) {
                     record_info("Possible performance deviation", "The test module detected a possible performance deviation", result => 'fail');
                     $self->{result} = 'fail';
@@ -268,7 +268,7 @@ Test module to run Storage Performance using FIO on publiccloud.
  - Real life: 65% random reads with 8 KB blocks.
        Approximate to real applications with balance between reads and writes.
  - Write Intensive: 90% random writes with 8 KB blocks.
-       See how the disk behaves with intestive block writting.
+       See how the disk behaves with intestive block writing.
  - Max Throughput: 100% sequential reads with big block size.
        Try to reach maximum throughput of the block devices.
 

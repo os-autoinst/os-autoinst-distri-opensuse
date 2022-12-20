@@ -23,7 +23,7 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 our @EXPORT = qw(install_k3s uninstall_k3s install_kubectl install_helm install_oc apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log);
 
 =head2 install_k3s
-Installs k3s, checks the instalation and prepare the kube/config
+Installs k3s, checks the installation and prepare the kube/config
 =cut
 
 sub install_k3s {
@@ -75,7 +75,7 @@ sub uninstall_k3s {
 }
 
 =head2 install_kubectl
-Installs kubectl from the respositories
+Installs kubectl from the repositories
 =cut
 
 sub install_kubectl {

@@ -6,7 +6,7 @@
 # Package: zypper
 # Summary: test for 'zypper lifecycle'
 # - Run "zypper lifecycle" and parse its output for some header and links
-# - Runs a series of checks to determine a suitable package to validade
+# - Runs a series of checks to determine a suitable package to validated
 # lifecycle, else hardcode to "sles-release"
 # - Backup original lifecycle data files (if exists)
 # (/var/lib/lifecycle/data/$prod.lifecycle) and create a new one with

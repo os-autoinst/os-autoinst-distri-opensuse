@@ -11,9 +11,9 @@
 #   * The /ec/fstab is checked that it does not remove comments
 #   * The YaST is used to find and add the NFSv4 mount
 #   * The version is checked so it must be 4 in this case
-#   * The permissons of some exported files are checked
+#   * The permissions of some exported files are checked
 #   * The NFSv4 ACLs are tested as well
-#   * Every forbidden file is tested so no read nor write operations suceed
+#   * Every forbidden file is tested so no read nor write operations succeed
 #   * We download 1GB file and check it's checksum
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 
@@ -43,7 +43,7 @@ sub run {
     assert_script_run 'sed -i \'5i# test comment\' /etc/fstab';
     assert_script_run 'cat /etc/fstab > fstab_before';
 
-    # Fron now we need needles
+    # From now we need needles
     select_console 'root-console';
 
     #

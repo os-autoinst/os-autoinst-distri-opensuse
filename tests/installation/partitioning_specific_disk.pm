@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 #
-# Summary:  Install build on specified parition and format this partition
+# Summary:  Install build on specified partition and format this partition
 # Maintainer: Joyce Na <jna@suse.de>
 
 use base 'y2_installbase';

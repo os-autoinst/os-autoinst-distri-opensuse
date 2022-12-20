@@ -6,13 +6,13 @@
 # Summary: sanity tests of rasdaemon
 #
 # rasdaemon is meant to collect various hardware errors. As such the
-# test for rasdaemon in virtualized env. has very limitted purpose and
+# test for rasdaemon in virtualized env. has very limited purpose and
 # is meant only as a sanity check for the isolated package.
 #
 # Purpose of this test: this simple module provide only the sanity check
 # to see if:
 # - rasdaemon can be installed and started
-# - ras-mc-ctl can be used to retrive basic information from the
+# - ras-mc-ctl can be used to retrieve basic information from the
 #   associated database
 # - injected error is correctly recorded
 #
@@ -107,7 +107,7 @@ sub run {
         my $error_output = script_output('ras-mc-ctl --errors');
         record_info('INFO', $error_output);
 
-        die('No MCE event recored - ' . $error_output)
+        die('No MCE event recorded - ' . $error_output)
           unless ($error_output =~ /MCE events/ && $error_output =~ /status=0x9c00410000080f2b/);
     }
 

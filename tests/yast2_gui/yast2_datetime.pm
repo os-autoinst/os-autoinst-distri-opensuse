@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Package: yast2-country chrony
-# Summary: YaST2 UI test yast2_datetime checks minium settings for clock and time zone
+# Summary: YaST2 UI test yast2_datetime checks minimum settings for clock and time zone
 #    Make sure those yast2 modules can opened properly. We can add more
 #    feature test against each module later, it is ensure it will not crashed
 #    while launching atm.

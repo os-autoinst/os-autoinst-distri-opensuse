@@ -11,7 +11,7 @@
 # - Install novell-groupwise-gwclient
 # - Remove groupwise repository
 # - Save screenshot
-# - Lauch groupwise
+# - Launch groupwise
 # - Exit groupwise
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 

@@ -33,7 +33,7 @@ sub run {
         zypper_call('in -t pattern gcc5');
         zypper_call('up');
 
-        # reboot when runing processes use deleted files after packages update
+        # reboot when running processes use deleted files after packages update
         enter_cmd "zypper ps|grep 'PPID' || echo OK | tee /dev/$serialdev";
         if (!wait_serial("OK", 100)) {
             enter_cmd "shutdown -r now";

@@ -6,7 +6,7 @@
 # Package: sle-module-live-patching SLE-Module-Live-Patching sle-live-patching SLE-Live-Patching
 # Summary: This module installs the kernel livepatching product and
 #          verifies the installation.
-# Maintainer: Nicolai Stange <nstange@suse.de>
+# Maintainer: Nicolai Strange <nstange@suse.de>
 
 use 5.018;
 use warnings;

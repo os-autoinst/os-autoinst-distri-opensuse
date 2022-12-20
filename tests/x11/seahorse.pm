@@ -25,7 +25,7 @@ sub run {
     assert_and_dclick "seahorse-password-keyring";    # Selection: Password keyring
     my @tags = qw(seahorse-name-new-keyring ok_on_top);
     assert_screen \@tags, 60;    # "Add a password keyring; name it"
-                                 # may be with ok buttom on top or bottom of popup
+                                 # may be with ok button on top or bottom of popup
     if (match_has_tag "ok_on_top") {
         record_info 'alt-o ignored', 'poo#42686 so try ret key';
         type_string "Default Keyring";    # Name of the keyring
@@ -48,8 +48,8 @@ sub run {
         type_password;
         send_key "ret";
     }
-    assert_screen [qw(seahorse-collecton-is-empty seahorse-default_keyring)];
-    if (match_has_tag "seahorse-collecton-is-empty") {
+    assert_screen [qw(seahorse-collection-is-empty seahorse-default_keyring)];
+    if (match_has_tag "seahorse-collection-is-empty") {
         record_soft_failure 'Missing entries of Passwords, Keys, Certificates, see boo#1175513';
         send_key_until_needlematch("generic-desktop", "alt-f4", 6, 5);
     }

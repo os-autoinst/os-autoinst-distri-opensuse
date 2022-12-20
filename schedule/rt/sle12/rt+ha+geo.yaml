@@ -1,5 +1,5 @@
 ---
-description: 'Maintaner: thehejik; installation of current SLE with HA+HA-Geo and RT extensions'
+description: 'Maintainer: thehejik; installation of current SLE with HA+HA-Geo and RT extensions'
 name: 'rt+ha+geo@64bit ( qemu )'
 schedule:
   - installation/isosize

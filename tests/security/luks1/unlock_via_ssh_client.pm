@@ -31,7 +31,7 @@ sub run {
     # Make sure the server can be accessed
     assert_script_run('ping -c 5 10.0.2.101');
 
-    # ssh to the server and unlock the boot partiton
+    # ssh to the server and unlock the boot partition
     enter_cmd('ssh -i /root/.ssh/id_rsa root@10.0.2.101');
     wait_still_screen(1);
     save_screenshot;

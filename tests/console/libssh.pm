@@ -5,17 +5,17 @@
 
 # Package: libssh4 libssh2-1
 # Summary: libssh version 1 and version 2 test
-#  Libssh4 or libssh2-1 are used by the following softwares respectively
+#  Libssh4 or libssh2-1 are used by the following software respectively
 #  so they are tested with them.
 #    libssh: curl, libvirt
 #    libssh2: qemu-block-ssh, libvirt
 #  Steps:
 #  * Set up a docker container as one end of client/server test
-#  * Run below commands to connect to sshd deamon.
+#  * Run below commands to connect to sshd daemon.
 #      curl -s sftp://
 #      curl -s scp://
 #      qemu-system-x86_64 -drive file=ssh://
-#  * Run below commands to connect to libvirtd deamon.
+#  * Run below commands to connect to libvirtd daemon.
 #      virsh -c "qemu+libssh://"
 #      virsh -c "qemu+libssh2://"
 #  * It's difficult to clean up libvirt so set test flag to rollback always
@@ -38,7 +38,7 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 
 # Build a custom container image with openssl, curl and virsh installed.
 # The container will be used as client of libssh
-# The variable: dev_image_tag can be used to specify a base image. If the base images is stored in internel
+# The variable: dev_image_tag can be used to specify a base image. If the base images is stored in internal
 # repository i.e. registry.suse.de we assume the host OS is in develping stage. i.e currently sle15sp3:
 # registry.suse.de/suse/sle-15-sp3/update/cr/totest/images/suse/sle15:15.3
 

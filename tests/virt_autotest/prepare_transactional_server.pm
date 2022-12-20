@@ -69,7 +69,7 @@ sub install_additional_pkgs {
         # and virtualized workloads. It does not provide equally abundant functionality
         # compared with SLES, so it becomes necessary to install some useful utilities
         # from SLES repos to facilitate test run. At the same time, ensure it will not
-        # alter SLEM and its features and characteristics. Althought operating system
+        # alter SLEM and its features and characteristics. Although operating system
         # should not prevent user from installing legitimate tools and utilities, it
         # is expected that use of additional packages should be limited to the minimum
         # and their impact should be analyzed beforehand.

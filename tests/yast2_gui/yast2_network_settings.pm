@@ -20,7 +20,7 @@ use version_utils 'is_sle';
 
 sub run {
 
-    # keyboard shorcuts
+    # keyboard shortcuts
     $cmd{global_options_tab} = 'alt-g';
     $cmd{dhcp_client_id} = 'alt-i';
     $cmd{overview_tab} = 'alt-v';

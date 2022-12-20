@@ -76,7 +76,7 @@ sub select_filesystem {
     );
     return $self->{cb_filesystem}->select($filesystems{$filesystem}) if $filesystems{$filesystem};
     die "Wrong test data provided when selecting filesystem.\n" .
-      "Avalaible options: ext2, ext3, ext4, btrfs, fat, xfs, swap, udf";
+      "Available options: ext2, ext3, ext4, btrfs, fat, xfs, swap, udf";
 }
 
 sub enable_snapshots {

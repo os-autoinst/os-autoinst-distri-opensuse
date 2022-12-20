@@ -9,7 +9,7 @@ package qaset_pre_patch_run;
 # This execution is entirely based on qa_automation/qa_run. The test result is simplfied to only show failed testcases
 # triggered by regression in product if it is running with qaset_post_patch_run. It also can be run without qaset_post_patch_run if
 # INDEPENDENT_RUN is set to 1;
-# Using YAML_SCHEDULE to schedule is recommanded to keep flexibility.
+# Using YAML_SCHEDULE to schedule is recommended to keep flexibility.
 # INDEPENDENT_RUN schedule as follows:
 #name: bash
 #vars:
@@ -47,7 +47,7 @@ sub qaset_config {
     my @list = test_run_list();
     return unless @list;
     if (get_var("DISABLE_SUBMIT_QADB")) {
-        # disable submition
+        # disable submission
         assert_script_run("sed -i '/sq_qadb_server_switch Nuremberg/,/already/ {s/^/#/}' /usr/share/qa/qaset/qavm/sq-result.sh");
         assert_script_run(q(sed -i '/clean/aecho wwww >> \${SQ_TEST_SUBMISSION_DIR}/submission-\${_sq_run}.log' /usr/share/qa/qaset/qavm/sq-result.sh));
     }

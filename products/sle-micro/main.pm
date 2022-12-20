@@ -43,7 +43,7 @@ $needle::cleanuphandler = sub {
 # OS_TEST_ISSUES is set by openQABot and metadata repo used in maintenance
 # (https://gitlab.suse.de/qa-maintenance/metadata)
 # OS_TEST_TEMPLATE must be set at openQA job level.
-# The array of repositories will be stored in MAINT_TEST_REPO for futher
+# The array of repositories will be stored in MAINT_TEST_REPO for further
 # installation by the maintenance jobs.
 if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
     my %incidents;

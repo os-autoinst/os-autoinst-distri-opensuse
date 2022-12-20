@@ -17,7 +17,7 @@
 #
 # There is a data structure to store the data that for compare with the data in runtime system.
 # When we found something of unexpection string, we call them go die.
-# When we didn't find something of expection string, we call them go die too.
+# When we didn't find something of exception string, we call them go die too.
 #
 # mitigations_list = {
 #	'<parameter name>' => {
@@ -25,8 +25,8 @@
 #			<secnario1> => {
 #				#determine string.
 #				determine => {'<cmd>' => ['']},
-#				#expection string. If it doesn't appear go die
-#				expected => {'<cmd>' => ['ecpection string1','expection string2']},
+#				#exception string. If it doesn't appear go die
+#				expected => {'<cmd>' => ['ecpection string1','exception string2']},
 #				#unexpection string. If it appears go die.
 #				unexpected => {'<cmd>' => ['unexpection string1']}
 #			}
@@ -96,7 +96,7 @@ my $xpti_domu_false = {"domu=false" => {
 # Test Case for spec_ctrl
 my $spec_ctrl_no = {no => {
         default => {
-            #expection string. If it doesn't appear go die
+            #exception string. If it doesn't appear go die
             expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS- STIBP- SSBD-.*, Other:$',
 'Support for HVM VMs: MD_CLEAR', 'Support for PV VMs: MD_CLEAR', '^(XEN)   XPTI (64-bit PV only): Dom0 disabled, DomU disabled (with PCID)$', '^(XEN)   PV L1TF shadowing: Dom0 disabled, DomU disabled$']},
             #unexpection string. If it appears go die.
@@ -470,13 +470,13 @@ sub do_test {
     # user specify test suites to run, take "," as delimiter
     my $test_suites = get_var("TEST_SUITES", "");
 
-    # Initialize junit sturcture for hypervisor mitigation test
+    # Initialize junit structure for hypervisor mitigation test
     Mitigation::init_xml(file_name => "$junit_file", testsuites_name => "$testsuites_name");
     while (my ($arg, $dict) = each %$hash) {
         $failure_tc_count_in_ts = 0;
         $total_tc_count_in_ts = 0;
 
-        # run user specifed test suite
+        # run user specified test suite
         if ($test_suites and !grep { $_ eq $arg } split(/,+/, $test_suites)) {
             next;
         }

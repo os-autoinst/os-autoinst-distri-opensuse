@@ -39,7 +39,7 @@ sub run {
         assert_script_run "btrfs fi sync /mnt";
     }
     else {
-        die "Unable to parse requiered values from y2log.";
+        die "Unable to parse required values from y2log.";
     }
     select_console('installation');
     send_key "alt-b";

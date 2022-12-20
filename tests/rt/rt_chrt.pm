@@ -8,7 +8,7 @@
 #           3) Execute a new process as rt_tester
 #           4) Add rt atributtes to the process started by rt_tester
 #           5) Increase and Reduce its priority
-#           6) Try to assign unsupported priority values to the running proces
+#           6) Try to assign unsupported priority values to the running process
 #           7) Use rtkit to reset all rt processes
 #           8) Clean up after yourself!
 #           To avoid throttling add more CPUs
@@ -29,7 +29,7 @@ use Utils::Logging qw(export_logs_basic upload_coredumps);
 # SCHED_OTHER (non-RT tasks). These defaults were chosen so that a run-away
 # realtime tasks will not lock up the machine but leave a little time to recover it
 #************************************* EoM ***************************************#
-# Filter out all runnig RT processes,
+# Filter out all running RT processes,
 # expected to see FF - SCHED_FIFO or RR - SCHED_RR processes ( rt-process scheduler policies )
 # TS - SCHED_OTHER is the standard Linux time-sharing scheduler for all threads that do not require real-time mechanisms
 sub snapshot_running_rt_processes {
@@ -90,13 +90,13 @@ sub run {
     assert_script_run "sudo -bu rt_tester 'bash'";
     assert_script_run q{BG_BASH_PID=`ps -U rt_tester | awk 'END{print $1}'`};
 
-    # User *rt_tester* has created a proces with SCHED_OTHER and Priority 0
+    # User *rt_tester* has created a process with SCHED_OTHER and Priority 0
     assert_script_run q{chrt -p $BG_BASH_PID};
 
     foreach (qw(SCHED_RR SCHED_FIFO)) {
         my $scheduler_policy = remap_args($_);
         my $scheduler = $_;
-        # Try to modify *rt_tester's* bash proces with a sequence of valid and invalid priorities
+        # Try to modify *rt_tester's* bash process with a sequence of valid and invalid priorities
         foreach ($sched_settings->{$scheduler}->{min}, 42, 100, -1, $sched_settings->{$scheduler}->{max}) {
             record_info('Change', "Change policy to $scheduler, set priority to $_");
             if ((script_run qq{chrt $scheduler_policy -p $_ \$BG_BASH_PID})

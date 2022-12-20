@@ -43,7 +43,7 @@ def _get_conf(jobid, srv):
 
 
 def _create_template(scheduling, configs, save_to):
-    # there are jobs come back from /test_suites wihtout description
+    # there are jobs come back from /test_suites without description
     if 'description' in configs.keys():
         description = configs['description'].replace('\n', '')
     else:

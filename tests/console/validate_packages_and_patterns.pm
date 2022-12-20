@@ -46,7 +46,7 @@ $software{'update-test-security'} = $software{'update-test-feature'};
 if (is_sle('15+')) {
     $software{'update-test-trivial'} = $software{'update-test-feature'};
 } else {
-    $software{'update-test-trival'} = $software{'update-test-feature'};
+    $software{'update-test-trivial'} = $software{'update-test-feature'};
 }
 
 sub verify_pattern {

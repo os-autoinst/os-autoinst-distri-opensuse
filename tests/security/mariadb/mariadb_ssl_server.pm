@@ -3,7 +3,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Setup mariadb server enviroment and wait client to connect
+# Summary: Setup mariadb server environment and wait client to connect
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#109154, tc#1767518
 

@@ -24,7 +24,7 @@ sub run {
     return unless is_phub_ready();
 
     # Make sure that python-flake8 is installed.
-    # On SLE, this requires phub extenstion
+    # On SLE, this requires phub extension
     zypper_call 'in python3-flake8';
 
     # Test case 1: check if flake8 is functional

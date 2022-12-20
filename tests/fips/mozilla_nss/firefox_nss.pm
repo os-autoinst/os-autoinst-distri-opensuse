@@ -167,7 +167,7 @@ sub run {
     mouse_hide(1);
     enter_cmd("firefox --setDefaultBrowser https://html5test.opensuse.org");
     wait_still_screen 30;
-    if (check_screen("firefox-passowrd-typefield", 120)) {
+    if (check_screen("firefox-password-typefield", 120)) {
 
         # Add max_interval while type password and extend time of click needle match
         type_string($fips_password, timeout => 10, max_interval => 30);

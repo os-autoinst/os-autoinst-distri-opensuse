@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Package: cronie btrfsmaintenance
-# Summary: Avoid suprises later and run scheduled tasks explicitly, be it cron
+# Summary: Avoid surprises later and run scheduled tasks explicitly, be it cron
 #   jobs or systemd timer
 # - Show dmesg output in console during cron run
 # - Settle system load before starting tasks

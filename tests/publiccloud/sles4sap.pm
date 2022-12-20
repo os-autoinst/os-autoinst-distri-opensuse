@@ -62,7 +62,7 @@ sub wait_until_resources_started {
         push @cmds, "$crm_mon_cmd | grep -iq starting && RC=false || RC=true; eval \$RC";
     }
 
-    # Execute each comnmand to validate that the cluster is running
+    # Execute each command to validate that the cluster is running
     # This can takes time, so a loop is a good idea here
     foreach my $cmd (@cmds) {
         # Each command execution has its own timeout, so we need to reset the counter

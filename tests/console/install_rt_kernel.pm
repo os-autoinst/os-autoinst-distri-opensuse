@@ -3,7 +3,7 @@
 # Copyright 2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: remove kernel-default and install kernal-rt
+# Summary: remove kernel-default and install kernel-rt
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "consoletest";

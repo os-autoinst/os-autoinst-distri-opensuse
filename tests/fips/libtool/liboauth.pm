@@ -26,7 +26,7 @@ sub run {
 
     zypper_output();
 
-    # Since we use the functional group qcow2 which is regitered to proxyscc
+    # Since we use the functional group qcow2 which is registered to proxyscc
     # The Source RPM packages are all located in SCC source pool repository
     # Step 1. SUSEConnect -d deregister from proxyscc
     # Step 2. SUSEConnect -r <CODE> to SCC
@@ -43,7 +43,7 @@ sub run {
     # Add Desktop Applications Module
     add_suseconnect_product("sle-module-desktop-applications");
 
-    # Add Devlopment Tool Modules
+    # Add Development Tool Modules
     add_suseconnect_product("sle-module-development-tools");
 
     zypper_output();
@@ -58,7 +58,7 @@ sub run {
 
     # rpm-build is from Development Tools Module 15 SP3 repo
     # Need to register and Install to Devleopment Tool module first
-    # libcurl-devel & libtool need to be installed due to liboauth dependancy
+    # libcurl-devel & libtool need to be installed due to liboauth dependency
     # libopenssl-devel is required to build liboauth
     # zypper in libcurl-devel ( Development files for the curl library)
     # zypper in libtool (A Tool to Build Shared Libraries)

@@ -390,7 +390,7 @@ sub check_threshold_values
     for my $key (keys(%{$thresholds})) {
         my $limit = $thresholds->{$key};
         my $value = $results->{$key};
-        die("Missing measurment $key") unless (defined($value));
+        die("Missing measurement $key") unless (defined($value));
         if ($value > $limit) {
             record_info('ERROR', "$key:$value exceed limit of $limit", result => 'fail');
             $self->result('fail');

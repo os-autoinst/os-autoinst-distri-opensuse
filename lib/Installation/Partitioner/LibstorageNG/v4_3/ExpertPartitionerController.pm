@@ -229,7 +229,7 @@ sub add_partition {
     return $self->add_partition_gpt($args);
 }
 
-# alias function to not break back-compability in test scenarios
+# alias function to not break back-compatibility in test scenarios
 sub add_partition_on_gpt_disk {
     my ($self, $args) = @_;
     $self->add_partition_gpt($args);

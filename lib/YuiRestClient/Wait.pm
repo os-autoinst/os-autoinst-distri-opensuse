@@ -82,7 +82,7 @@ If no object is provided the method will die with an error message.
 
 =item * B<{timeout}> - defines the time to wait in seconds for the trigger to occur. The default is 10.
 
-=item * B<{intervall}> - defines how many seconds to wait before evaluating the object function again. 
+=item * B<{interval}> - defines how many seconds to wait before evaluating the object function again. 
 The default is 1.
 
 =item * B<{message}> - the error message that is used when the method timed out. 

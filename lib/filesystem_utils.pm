@@ -5,7 +5,7 @@
 #
 # Summary: Base module for xfstests
 # - Including some operation(create/remove/format) to partitions
-# - Get free space infomation from storage
+# - Get free space information from storage
 # Maintainer: Yong Sun <yosun@suse.com>
 package filesystem_utils;
 
@@ -98,7 +98,7 @@ sub partition_num_by_start_end {
 
 =head2 partition_num_by_type
 
-Get the first parition number by given device and partition/FS type. e.g. extended, xfs
+Get the first partition number by given device and partition/FS type. e.g. extended, xfs
 Return -1 when not find
 
 =cut

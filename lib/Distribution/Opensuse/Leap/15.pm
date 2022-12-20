@@ -6,7 +6,7 @@
 # Summary: The class represents current (i.e. latest) Leap 15 distribution and
 # provides access to its features.
 # It follows latest SLE 15 and only if it behaves different in Leap 15 then it
-# should be overriden here.
+# should be overridden here.
 #
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 

@@ -43,7 +43,7 @@ sub run {
     $instance->ssh_assert_script_run("sudo tar zxf /tmp/$mr_test_tar --strip-components 1 -C /root/");
     record_info('Copy mr_test code to instance OK');
 
-    # Clear $instance->ssh_opts which ommit the known hosts file and strict host checking by default
+    # Clear $instance->ssh_opts which omit the known hosts file and strict host checking by default
     $instance->ssh_opts('');
     $instance->network_speed_test();
 

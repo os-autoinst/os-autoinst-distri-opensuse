@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: virt-manager
-# Summary: This test removed aditional HV from our VMs
+# Summary: This test removed additional HV from our VMs
 # Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>
 
 use base "virt_feature_test_base";
@@ -23,7 +23,7 @@ sub run_test {
 
     foreach my $guest (keys %virt_autotest::common::guests) {
         unless ($guest =~ m/hvm/i) {
-            record_info "$guest", "VM $guest will loose it's aditional HV";
+            record_info "$guest", "VM $guest will loose it's additional HV";
 
             select_guest($guest);
             detect_login_screen();

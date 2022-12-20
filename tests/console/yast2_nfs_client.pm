@@ -12,7 +12,7 @@
 #   * The 2nd version is just enabled, checked and disabled
 #   * The NFSv3 export is found and added using YaST
 #   * We test mount and umount and we check for the version
-#   * We try to read and write some forbiden files
+#   * We try to read and write some forbidden files
 #   * We download 1GB file and check it's checksum
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 

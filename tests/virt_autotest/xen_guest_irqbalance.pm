@@ -81,7 +81,7 @@ sub run_test {
         # Generate network load in guest
         generate_vif_interrupts_in_guest($guest);
 
-        # re-caculate the network interrupts distribution
+        # re-calculate the network interrupts distribution
         # the increased NIC IRQs should be distributed in CPU cores in balance
         my @total_irqs_on_cpu_after_network_download = get_nic_irqs_distribution_from_guest($guest, $nproc);
         my @increased_irqs_on_cpu;

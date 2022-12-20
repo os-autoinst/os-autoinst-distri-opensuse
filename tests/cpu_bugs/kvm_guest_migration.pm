@@ -98,12 +98,12 @@ sub run {
         systemctl("restart nfs-server.service");
         mutex_create 'nfs_server_ready';
 
-        #waiting for client to finish inital operation
+        #waiting for client to finish initial operation
         mutex_wait('dest_host_ready', $child_id);
 
         #Do migrate
         assert_script_run("mount $source_host:$vm_shares $vm_pool");
-        #Inital task
+        #Initial task
         jobs_done();
 
     }

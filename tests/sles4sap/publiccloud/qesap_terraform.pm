@@ -7,7 +7,7 @@
 # https://github.com/SUSE/qe-sap-deployment
 
 # Available OpenQA parameters:
-# HA_CLUSTER - Enables HA/Hana cluser scenario
+# HA_CLUSTER - Enables HA/Hana cluster scenario
 # NODE_COUNT - number of nodes to deploy. Needs to be >1 for cluster usage.
 # PUBLIC_CLOUD_INSTANCE_TYPE - VM size, sets terraform 'vm_size' parameter
 # USE_SAPCONF - (true/false) set 'false' to use saptune
@@ -118,7 +118,7 @@ sub run {
     my $ansible_playbooks = create_playbook_section();
     my $ansible_hana_vars = create_hana_vars_section();
 
-    # Prepare QESAP deplyoment
+    # Prepare QESAP deployment
     qesap_prepare_env(provider => lc(get_required_var('PUBLIC_CLOUD_PROVIDER')));
     qesap_create_ansible_section(ansible_section => 'create', section_content => $ansible_playbooks) if @$ansible_playbooks;
     qesap_create_ansible_section(ansible_section => 'hana_vars', section_content => $ansible_hana_vars) if %$ansible_hana_vars;

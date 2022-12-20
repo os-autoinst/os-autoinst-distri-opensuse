@@ -55,7 +55,7 @@ sub run {
         assert_screen 'yast2-bootloader_default-boot-section_tw';
     }
 
-    #	proctect boot loader with password
+    #	protect boot loader with password
     assert_and_click 'yast2-bootloader_protect-bootloader-with-password';
     send_key 'alt-p';
     type_string_slow_extended('dummy-password');

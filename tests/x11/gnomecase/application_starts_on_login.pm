@@ -87,7 +87,7 @@ sub alter_status_auto_save_session {
         assert_screen 'dconf-search-bar';
         my $autosavesession = "auto-save-session";
         if (!is_opensuse || !is_aarch64) {
-            # the first occurence is pre-selected on aarch64 openSUSE and '\n' would open the pop-up
+            # the first occurrence is pre-selected on aarch64 openSUSE and '\n' would open the pop-up
             $autosavesession .= "\n";
         }
         type_string "$autosavesession", max_interval => 200;

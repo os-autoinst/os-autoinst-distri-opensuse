@@ -34,7 +34,7 @@ sub set_raid_level {
 sub select_available_devices_table {
     assert_screen(RAID_TYPE_PAGE);
     wait_screen_change { send_key "alt-i"; };    # move to RAID name input field
-    wait_screen_change { send_key "tab"; };    # move to "Avilable Devices" table
+    wait_screen_change { send_key "tab"; };    # move to "Available Devices" table
 }
 
 sub select_devices_from_list {

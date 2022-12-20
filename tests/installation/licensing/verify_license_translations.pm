@@ -15,7 +15,7 @@
 #       text: Привет
 #     - language: Spanish
 #       text: Hola
-#     - language: Ukranian
+#     - language: Ukrainian
 #       text: Привіт
 
 # Maintainer: QE YaST <qa-sle-yast@suse.de>

@@ -32,14 +32,14 @@ sub run {
 
     select_serial_terminal;
     my $ay_profile_path = '/root/autoinst.xml';
-    # Replace unitialized email variable - bsc#1015158
+    # Replace uninitialized email variable - bsc#1015158
     assert_script_run "sed -i \"/server_email/ s/postmaster@/\\0suse.com/\" $ay_profile_path";
 
     # Check and upload profile for chained tests
     upload_asset $ay_profile_path;
 
     unless (is_opensuse) {
-        # As developement_tools are not build for staging, we will attempt to get the package
+        # As development_tools are not build for staging, we will attempt to get the package
         # otherwise MODULE_DEVELOPMENT_TOOLS should be used
         my $uri = get_devel_uri();
         zypper_call "ar -c $uri devel-repo";

@@ -23,7 +23,7 @@ sub run {
     zypper_call('in libopenssl-devel libgcrypt-devel');
 
     my $test_dir = '/root/eval/drng';
-    # Complile gather_random_data
+    # Compile gather_random_data
     my $exe_file = 'gather_random_data';
     assert_script_run("cd $atsec_test::code_dir");
     assert_script_run("gcc -o $exe_file -lcrypto -lssl -lgcrypt gather_random_data.c");

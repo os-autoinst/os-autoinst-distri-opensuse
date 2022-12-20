@@ -1,5 +1,5 @@
 /*
- * extremly trivial usage of bzlib ... just to see if it usable at all
+ * extremely trivial usage of bzlib ... just to see if it usable at all
  * by Frank Seidel <fseidel@suse.de> / 2005-10-06
  */
 

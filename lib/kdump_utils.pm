@@ -292,7 +292,7 @@ sub do_kdump {
 
 #
 # Install debug kernel and use yast2 kdump to enable kdump service.
-# we use $args{test_type} to distingush migration from function check.
+# we use $args{test_type} to distinguish migration from function check.
 #
 # For migration test we just do activate kdump. migration test do
 # not need to run prepare_for_kdump function because it can't get
@@ -411,7 +411,7 @@ sub check_ssh_files {
     # we need to recreate the ssh key.
     my $ret = script_run('! test -s ~bernhard/.ssh/id_rsa');
     if ($ret == 0) {
-        record_soft_failure('bsc#1199326 - After kdump and crash the ssh configure files truns zero or gone');
+        record_soft_failure('bsc#1199326 - After kdump and crash the ssh configure files turns zero or gone');
         my $user = $testapi::username;
         assert_script_run("rm -f ~/.ssh/id_rsa");
         assert_script_run('ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa');

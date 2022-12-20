@@ -71,9 +71,9 @@ sub prepare_system_shutdown {
 
  reboot_x11();
 
-Reboot from Gnome Desktop and handle authentification scenarios during shutdown.
+Reboot from Gnome Desktop and handle authentication scenarios during shutdown.
 
-Run C<prepare_system_shutdown> if shutdown needs authentification.
+Run C<prepare_system_shutdown> if shutdown needs authentication.
 
 =cut
 

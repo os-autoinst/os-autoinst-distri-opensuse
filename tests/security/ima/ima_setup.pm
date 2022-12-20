@@ -1,7 +1,7 @@
 # Copyright 2019 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Summary: Setup environmnet for IMA & EVM testing - import MOK cert,
+# Summary: Setup environment for IMA & EVM testing - import MOK cert,
 #          setup grub boot menu and install necessary ima tools
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#45662

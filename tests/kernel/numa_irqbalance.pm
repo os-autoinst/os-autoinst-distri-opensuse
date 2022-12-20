@@ -40,7 +40,7 @@ sub run {
     @interrupts = split('\n', script_output("grep nvme /proc/interrupts | sed -E -e \'s/[[:blank:]]+/ /g\' | cut -d \' \' -f 3-$fields"));
 
     # ignore the first queue, this should be the admin queue. This doesn't
-    # do too much and propably will only be handled on node 0, so we skip it here.
+    # do too much and probably will only be handled on node 0, so we skip it here.
     for (my $queue = 1; $queue <= $numqueues; $queue++) {
         my @thisqueue = split(' ', $interrupts[$queue]);
         for (my $i = 0; $i <= $numcpu; $i++) {

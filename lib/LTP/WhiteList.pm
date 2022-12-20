@@ -158,8 +158,8 @@ sub list_skipped_tests {
     return @skipped_tests if (ref($suite) eq 'ARRAY');
 
     for my $test (keys(%$suite)) {
-        my @entrys = grep { $_->{skip} && _whitelist_entry_match($_, $env) } @{$suite->{$test}};
-        push @skipped_tests, $test if @entrys;
+        my @entries = grep { $_->{skip} && _whitelist_entry_match($_, $env) } @{$suite->{$test}};
+        push @skipped_tests, $test if @entries;
     }
     return @skipped_tests;
 }

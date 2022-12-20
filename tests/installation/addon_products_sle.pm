@@ -67,7 +67,7 @@ sub handle_all_packages_medium {
 
     # Record the addons to be enabled for debugging
     record_info 'Extension and Module Selection', join(' ', @addons);
-    # Enable the extentions or modules
+    # Enable the extensions or modules
     # Also record the addons which require license agreement
     my @addons_with_license = qw(ha we);
     my @addons_license_tags = ();

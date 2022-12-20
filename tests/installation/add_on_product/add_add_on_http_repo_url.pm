@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Add a new add-on specifying repo URL, in particular HTTP URL for HA.
-# Pre-requisite: no more add-ons has been added before this one.
+# Pre-requisite: no more add-owns has been added before this one.
 #
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 

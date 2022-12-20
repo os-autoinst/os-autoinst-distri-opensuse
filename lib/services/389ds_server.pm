@@ -43,7 +43,7 @@ sub config_service {
     assert_script_run("certutil -D -d $inst_ca_dir -n Server-Cert");
     assert_script_run("certutil -D -d $inst_ca_dir -n Self-Signed-CA");
 
-    # Import new CA files and resart the instance
+    # Import new CA files and restart the instance
     assert_script_run("dsctl localhost tls import-server-key-cert $ca_dir/server.pem $ca_dir/server.key");
     assert_script_run("dsctl localhost tls import-ca $ca_dir/myca.pem myca");
     assert_script_run("cp $ca_dir/myca.pem $inst_ca_dir/ca.crt");

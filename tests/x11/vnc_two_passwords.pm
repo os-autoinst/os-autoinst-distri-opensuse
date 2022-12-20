@@ -190,7 +190,7 @@ sub run {
         x11_start_program('vncviewer');
         type_string("$display");
         send_key("ret");
-        # We first test for a unsucessfull login
+        # We first test for a unsuccessful login
         assert_screen('tigervnc-desktop-login', $timeout);
         type_string("$wrong_password");
         send_key("ret");
@@ -202,7 +202,7 @@ sub run {
         else {
             send_key("ret");
         }
-        # Test for a sucessfull login. Note: vncviewer remembers the last address, don't type it again
+        # Test for a successful login. Note: vncviewer remembers the last address, don't type it again
         # sometimes screen is frozen with strange dialog like 'logged-as-priviled-user', there is no way to go further, so repeat these steps
         x11_start_program('vncviewer');
         send_key("ret");

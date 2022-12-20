@@ -4,13 +4,13 @@
 # Copyright 2012-2018 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Case#1479188: Firefox: Add-ons - Plugins
+# Case#1479188: Firefox: Add-owns - Plugins
 
 # Package: MozillaFirefox
-# Summary: Case#1479188: Firefox: Add-ons - Plugins
+# Summary: Case#1479188: Firefox: Add-owns - Plugins
 # - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
 # firefox
-# - Open Add-Ons screen
+# - Open Add-Owns screen
 # - Click on Plugins and check plugins installed
 # - Open plugins tools option and select "Check for Updates"
 # - Exit firefox

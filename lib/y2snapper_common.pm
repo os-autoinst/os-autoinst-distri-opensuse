@@ -65,7 +65,7 @@ sub y2snapper_close_snapper_module {
  y2snapper_adding_new_snapper_conf();
 
 Setup another snapper config for /test (creating previously a subvolume for it)
-It allows to have more control over diffs amongs snapshots.
+It allows to have more control over diffs among snapshots.
 
 =cut
 

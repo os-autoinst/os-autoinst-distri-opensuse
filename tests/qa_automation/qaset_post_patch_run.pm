@@ -9,7 +9,7 @@ package qaset_post_patch_run;
 #
 # This execution is entirely based on qa_automation/qa_run. The test result is simplfied to only show failed testcases
 # triggered by regression bug. That will satisfy the need for maintenance update test
-# Using YAML_SCHEDULE to schedule is recommanded to keep flexibility.
+# Using YAML_SCHEDULE to schedule is recommended to keep flexibility.
 # qaset_pre_patch_run, patch_and_reboot and qaset_post_patch_run should schedule in order.
 #
 # features:
@@ -86,7 +86,7 @@ do
   id_after=`xml sel -t -v "/testsuites/testsuite[@name=\"$test\"]/testcase[1]/system-err" /tmp/junit.xml|sed -n "s/.*id=\(.*\)/\1/p"`
   qadb_url="http://qadb2.suse.de/qadb/regression.php?ref_submission_id=${id_before}&cand_submission_id=$id_after"
   echo "$qadb_url"
-  xml ed -L -u "/testsuites/testsuite[@name=\"$test\"]/testcase[1]/system-err" -v "Submission comparision between before and after results: $qadb_url" /tmp/junit.xml
+  xml ed -L -u "/testsuites/testsuite[@name=\"$test\"]/testcase[1]/system-err" -v "Submission comparison between before and after results: $qadb_url" /tmp/junit.xml
 done < /tmp/submission_ids_before
 EOT
 

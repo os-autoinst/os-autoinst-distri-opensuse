@@ -85,7 +85,7 @@ sub run {
     send_key 'alt-a';
     type_string 'admin@localhost';    # give admin e-mail
     send_key 'alt-g';    # check change virtual host later
-    assert_screen 'http_ip_addresses';    # check all adresses is selected
+    assert_screen 'http_ip_addresses';    # check all addresses is selected
     send_key 'alt-o';    # close and go back to previous page
     assert_screen 'http_previous_page';    # check the previous page for nex step
     send_key 'alt-n';
@@ -106,7 +106,7 @@ sub run {
     send_key 'alt-p';
     assert_screen 'http_all_details';    # check all details added
     send_key 'alt-n';    # go to page http server wizard (4/5) and confirm with next
-    assert_screen 'http_vitual_host_page';    # check wizard page (4/5)
+    assert_screen 'http_virtual_host_page';    # check wizard page (4/5)
     send_key 'alt-n';    # go to http server wizard (5/5) --summary
     assert_screen 'http_summary';    #confirm we are in step 5/5
 
@@ -125,7 +125,7 @@ sub run {
     check_screen 'http_install_apache2_mods', 60;
     send_key 'alt-i';    # confirm to install apache2_mod_perl, apache2_mod_php, apache2_mod_python
 
-    # if popup, confirm to enable apache2 configuratuion
+    # if popup, confirm to enable apache2 configuration
     if (check_screen('http_enable_apache2', 10)) {
         wait_screen_change { send_key 'alt-o'; };
     }

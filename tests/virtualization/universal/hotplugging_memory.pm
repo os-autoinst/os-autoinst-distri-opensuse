@@ -49,7 +49,7 @@ sub run_test {
 
     # Workaround to drop all live provisions of all vm guests
     if (get_var('VIRT_AUTOTEST') && is_kvm_host && (($sles_running_version eq '12' and $sles_running_sp eq '5') || ($sles_running_version eq '15' and $sles_running_sp eq '1'))) {
-        record_info "Reboot All Guests", "Mis-handling of live and config provisions by other test modules may have negative impact on 12-SP5 and 15-SP1 KVM scenarios due to bsc#1171946. So here is the workaround to drop all live provisions by rebooting all vm guests.";
+        record_info "Reboot All Guests", "Miss-handling of live and config provisions by other test modules may have negative impact on 12-SP5 and 15-SP1 KVM scenarios due to bsc#1171946. So here is the workaround to drop all live provisions by rebooting all vm guests.";
         perform_guest_restart;
     }
 }

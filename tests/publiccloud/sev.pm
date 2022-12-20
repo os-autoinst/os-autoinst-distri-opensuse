@@ -14,7 +14,7 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle);
 
-# Get the version dependend dmesg message for secure virtualization on confidential compute
+# Get the version dependent dmesg message for secure virtualization on confidential compute
 sub get_sev_message {
     return "AMD Secure Encrypted Virtualization (SEV) active" if is_sle('=15-SP2');
     # More messages will be added pas a pas, as more versions run this test.

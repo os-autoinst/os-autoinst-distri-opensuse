@@ -32,7 +32,7 @@ sub get_test_list {
         $test = substr("$test", 0, 3);
     }
 
-    # Genarate blacklist
+    # Generate blacklist
     my @blacklist_cat = map(substr($_, length("$category/")), grep(/$category\//, @blacklist));
     my @blacklist_copy;
     for my $list (@blacklist_cat) {

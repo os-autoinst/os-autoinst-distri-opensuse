@@ -7,7 +7,7 @@
 # installations with vm names and profiles obtained from UNIFIED_GUEST_LIST
 # and UNIFIED_GUEST_PROFILES respectively. There is no restriction on vm names
 # to be used, so any desired vm names can be given to UNIFIED_GUEST_LIST=
-# "vm_name_1,vm_name_2,vm_name_3". Similary,any vm profile names can be
+# "vm_name_1,vm_name_2,vm_name_3". Similarly,any vm profile names can be
 # given to UNIFIED_GUEST_PROFILES,as long as there are corresponding profile
 # files in data/virt_autotest/guest_params_xml_files folder, for example,
 # there should be profile file called vm_profile_1.xml,vm_profile_2.xml

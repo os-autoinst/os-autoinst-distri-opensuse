@@ -18,7 +18,7 @@ sub run {
 
     select_console 'root-console';
 
-    # Complile
+    # Compile
     assert_script_run('cd /usr/local/atsec/pentest/netlink');
     assert_script_run("make");
 

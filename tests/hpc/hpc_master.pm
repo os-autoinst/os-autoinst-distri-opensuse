@@ -72,7 +72,7 @@ sub run ($self) {
     assert_script_run('sinfo -N -l');
     assert_script_run('sinfo  -o \"%P %.10G %N\"');
 
-    ## TODO: Add multi-compontent tests, i.e. mpirun jobs scheduled with slurm
+    ## TODO: Add multi-component tests, i.e. mpirun jobs scheduled with slurm
     # and scheduled by various users AND check if they are recorded well in the db
 
     barrier_wait('HPC_MASTER_RUN_TESTS');

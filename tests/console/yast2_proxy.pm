@@ -232,7 +232,7 @@ sub run {
     wait_still_screen 1;
     send_key 'alt-w';
 
-    # check acces log directory can be browsed and defined
+    # check access log directory can be browsed and defined
     assert_screen 'yast2_proxy_access_log_directory';
     wait_still_screen 1;
     send_key 'alt-c';

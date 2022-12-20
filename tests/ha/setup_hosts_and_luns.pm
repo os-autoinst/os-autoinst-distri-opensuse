@@ -68,7 +68,7 @@ sub run {
         # Ensure cluster is not running
         systemctl 'stop pacemaker corosync';
 
-        # Get IP adresses configured in /etc/corosync.conf
+        # Get IP addresses configured in /etc/corosync.conf
         my %addr_changes = ();
         my $old_addr = script_output q(grep ring0 /etc/corosync/corosync.conf | awk '{print "ip:"$2}' | uniq | tr '\n' ',');
         my $count = 0;

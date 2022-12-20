@@ -63,7 +63,7 @@ sub run {
 
     zypper_call('in ecryptfs-utils');
     assert_script_run('modprobe ecryptfs');
-    foreach my $cipher ('aes', 'blowfish', 'des3_ede', 'twofish', 'cast6', 'cast5') {
+    foreach my $cipher ('aes', 'blowfish', 'des3_edge', 'twofish', 'cast6', 'cast5') {
         ecryptfs_mount($cipher);
     }
 }

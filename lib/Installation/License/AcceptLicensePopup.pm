@@ -3,7 +3,7 @@
 # Copyright 2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Handles pop-up when proceeding without explicitily
+# Summary: Handles pop-up when proceeding without explicitly
 # accepting the license
 #
 # Maintainer: QE YaST <qa-sle-yast@suse.de>

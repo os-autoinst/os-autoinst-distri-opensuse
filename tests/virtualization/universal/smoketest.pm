@@ -44,7 +44,7 @@ sub run_test {
     if (is_kvm_host) {
         # Check if KVM module is enabled
         script_run("lsmod | grep -e 'kvm_intel\|kvm_amd'");
-        record_info('Modules', 'kvm module sucessfully detected');
+        record_info('Modules', 'kvm module successfully detected');
     }
     # Check meltdown/spectre+variants
     script_run('curl -v -o /var/tmp/spectre-meltdown-checker.sh ' . data_url('virtualization/spectre-meltdown-checker.sh'));

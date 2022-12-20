@@ -27,7 +27,7 @@ sub run {
 
     select_console('root-console');
 
-    record_info('Test #1', "Verify the certain subvolumes should have No_COW attibute.");
+    record_info('Test #1', "Verify the certain subvolumes should have No_COW attribute.");
     foreach (@{$test_data->{subvolume}->{no_cow}}) {
         my $lsattr = get_lsattr_for_subvolume($_);
         assert_true($lsattr =~ /No_COW/i,

@@ -29,7 +29,7 @@ sub run {
     die unless (ifc_exists('br0') && ifc_exists('dummy0'));
     my $current_ip = $self->get_current_ip('br0');
     my $expected_ip = $self->get_ip(type => 'br0');
-    die('IP missmatch', 'IP is ' . ($current_ip || 'none') . ' but expected was ' . $expected_ip)
+    die('IP mismatch', 'IP is ' . ($current_ip || 'none') . ' but expected was ' . $expected_ip)
       if (!defined($current_ip) || $current_ip ne $expected_ip);
     die if ($self->get_test_result('br0') eq 'FAILED');
     $self->wicked_command('ifdown', 'all');

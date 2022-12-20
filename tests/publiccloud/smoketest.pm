@@ -16,7 +16,7 @@ use utils;
 sub run {
     select_serial_terminal;
 
-    # Check if systemd completed sucessfully
+    # Check if systemd completed successfully
     assert_script_run 'journalctl -b | grep "Reached target Basic System"';
     # Additional basic commands to verify the instance is healthy
     validate_script_output('echo "ping"', sub { m/ping/ });

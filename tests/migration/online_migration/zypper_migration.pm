@@ -87,7 +87,7 @@ sub run {
             send_key "ret";
         }
         elsif ($out =~ $zypper_migration_bsc1196114) {
-            # another case of migration LTSS to LTSS, when dependensies are in LTSS which is not part of migration
+            # another case of migration LTSS to LTSS, when dependencies are in LTSS which is not part of migration
             record_soft_failure('bsc#1196114');
             send_key 'i';
             send_key 'ret';
@@ -95,7 +95,7 @@ sub run {
         elsif ($out =~ $zypper_migration_bsc1184347) {
             # migration is done, but zypper failed because of the bug
             # LTSS can't be migrated, and there is fix for the bug
-            # othwerwise migration is done, test can continue, libsolv will be updated later
+            # otherwise migration is done, test can continue, libsolv will be updated later
             record_soft_failure('bsc#1184347');
             last;
         }

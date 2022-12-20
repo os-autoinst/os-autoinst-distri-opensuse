@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Add ports to zone, as specified in test data, using firewall-cmd.
-# The ports added can be descriped by a range of ports or a singe port number.
+# The ports added can be described by a range of ports or a singe port number.
 #
 # test_data:
 #   port: 3990-3999

@@ -150,7 +150,7 @@ sub go_to_patterns {
         send_key 'tab';
     }
     # pressing end and home to have selection more visible, and the scrollbar
-    # length is re-caculated
+    # length is re-calculated
     wait_screen_change { send_key 'end' };
     wait_screen_change { send_key 'home' };
     assert_screen 'patterns-list-selected';
@@ -531,7 +531,7 @@ sub deal_with_dependency_issues {
         die 'Dependency problems';
     }
 
-    assert_screen 'dependency-issue-fixed';    # make sure the dependancy issue is fixed now
+    assert_screen 'dependency-issue-fixed';    # make sure the dependency issue is fixed now
     send_key 'alt-a';    # Accept
     sleep 2;
 
@@ -619,7 +619,7 @@ sub post_fail_hook {
         detect_bsc_1063638;
         $self->get_ip_address;
         remount_tmp_if_ro;
-        # Avoid collectin logs twice when investigate_yast2_failure() is inteded to hard-fail
+        # Avoid collection logs twice when investigate_yast2_failure() is intended to hard-fail
         $self->save_upload_y2logs unless get_var('ASSERT_Y2LOGS');
         return if is_microos;
         $self->save_system_logs;

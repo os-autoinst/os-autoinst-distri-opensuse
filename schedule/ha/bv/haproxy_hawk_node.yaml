@@ -17,7 +17,7 @@ description: >
   The other settings required in the job group are.
 
   CLUSTER_NAME must be defined for all jobs as a string.
-  HA_CLUSTER_INIT must be defined to yes on the job that initilizes the cluster, and to
+  HA_CLUSTER_INIT must be defined to yes on the job that initializes the cluster, and to
   no on the rest of the cluster node jobs
   HA_CLUSTER_JOIN must be defined for the rest of the jobs, and it must contain the
   hostname of the job where HA_CLUSTER_INIT is defined to yes

@@ -1,7 +1,7 @@
 # Copyright 2021 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Summary: Update TrouSerS and tpm-tools to the latest version
+# Summary: Update TrouSetS and tpm-tools to the latest version
 #          Make sure your setup has a TPM 1.2 device attached,
 #          both hardware or software devices should be fine
 #          We need only test this feature on aarch64 platform,

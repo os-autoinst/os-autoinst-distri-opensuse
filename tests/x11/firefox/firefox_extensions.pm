@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Package: MozillaFirefox
-# Summary: Case#1479189: Firefox: Add-ons - Extensions
+# Summary: Case#1479189: Firefox: Add-owns - Extensions
 # - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
 # firefox
 # - Open firefox addon manager
@@ -54,7 +54,7 @@ sub run {
     assert_and_click 'firefox-extensions-confirm-add', timeout => 60;
     assert_and_click 'firefox-extensions-added', timeout => 60;
     assert_and_click 'firefox-extensions-flagfox-tab', timeout => 60;
-    # close the flagfox relase notes tab and flagfox search tab
+    # close the flagfox release notes tab and flagfox search tab
     send_key_until_needlematch 'firefox-addons-plugins', 'ctrl-w', 4, 3;
     # refresh the page to see addon buttons
     send_key_until_needlematch 'firefox-extensions-flagfox_installed', 'f5', 6, 5;

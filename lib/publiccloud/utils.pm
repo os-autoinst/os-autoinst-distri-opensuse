@@ -99,7 +99,7 @@ sub registercloudguest {
     # Check what version of registercloudguest binary we use
     $instance->ssh_script_run(cmd => "rpm -qa cloud-regionsrv-client");
     $instance->ssh_script_retry(cmd => "sudo $suseconnect -r $regcode", timeout => 420, retry => 3, delay => 120);
-    record_info('registeration time', 'The registration took ' . (time() - $cmd_time) . ' seconds.');
+    record_info('registration time', 'The registration took ' . (time() - $cmd_time) . ' seconds.');
 }
 
 sub register_addons_in_pc {

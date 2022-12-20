@@ -6,7 +6,7 @@
 
 # Summary: Rework the tests layout.
 # - Wait for a screen change
-# - Send next and wait for partioning resume screen
+# - Send next and wait for partitioning resume screen
 # Maintainer: Alberto Planas <aplanas@suse.com>
 
 use base 'y2_installbase';

@@ -52,7 +52,7 @@ sub upload_ltp_logs
     my $log_file = Mojo::File::path('ulogs/result.json');
     record_info('LTP Logs', 'upload');
     upload_logs("$root_dir/result.json", log_name => $log_file->basename, failok => 1);
-    # debug file in the standart LTP log-dir. structure:
+    # debug file in the standard LTP log-dir. structure:
     assert_script_run("test -f /tmp/runltp.\$USER/latest/debug.log || echo No debug log");
     upload_logs("/tmp/runltp.\$USER/latest/debug.log", failok => 1);
 

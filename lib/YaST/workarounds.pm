@@ -26,7 +26,7 @@ If the workaround is needed we record a soft failure and apply a 'shift-f3'
 and 'esc' sequence that should fix the problem
 
 If the problem still persists (we saw one occasion in the VRs) then we retry
-with maximazing and shrinking the screen twice by sending 'alt-f10' two times. 
+with maximizing and shrinking the screen twice by sending 'alt-f10' two times. 
 
 =cut
 

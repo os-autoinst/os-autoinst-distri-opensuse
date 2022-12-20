@@ -358,7 +358,7 @@ sub run {
     # Test #4 - Masquerading
     test_masquerading;
 
-    # Test #5 - ipv4 adress family with rich rules
+    # Test #5 - ipv4 address family with rich rules
     test_rich_rules;
 
     # Test #6 - Change the default zone
