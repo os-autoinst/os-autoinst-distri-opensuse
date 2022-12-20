@@ -61,8 +61,9 @@ sub run {
         if (defined($bug)) {
             record_info('Softfail', $bug, result => 'softfail');
         } else {
+            record_info("Unknown failure on $cmd, maybe related to: bsc#1200617, bsc#1195826, bsc#1196840, bsc#1199918, bsc#1199926, bsc#1199927",
+                result => 'fail');
             $self->result("fail");
-            record_info("Unknown failure on $cmd, maybe related to: bsc#1200617, bsc#1195826, bsc#1196840, bsc#1199918, bsc#1199926, bsc#1199927");
         }
     }
 }
