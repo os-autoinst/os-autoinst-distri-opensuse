@@ -49,10 +49,11 @@ sub run {
     validate_script_output "tpm2_nvdefine $nv_val -C 0x40000001 -s 32 -a 0x2000A $tpm_suffix", sub { m/nv-index:\s$nv_val/ };
 
     # Display all defined Non-Volatile (NV)s indices
+    # from tpm_tools 5.3+ attribute is output with fixed endianness, so it's displayed in the same way as set in the command
+    # we match both to support also old versions
     validate_script_output "tpm2_nvreadpublic $tpm_suffix", sub {
-        m/
-             value:\s0xA000200.*
-             size:\s32.*/sx
+        m/ value:\s0x(A000200|2000A).*
+           size:\s32.*/sx
     };
 
     # Undefine the nv index
