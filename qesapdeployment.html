@@ -17,7 +17,7 @@
   <li><a href="#AUTHORS">AUTHORS</a></li>
   <li><a href="#DESCRIPTION">DESCRIPTION</a>
     <ul>
-      <li>
+      <li><a href="#Methods">Methods</a>
         <ul>
           <li><a href="#qesap_get_file_paths">qesap_get_file_paths</a></li>
           <li><a href="#qesap_create_folder_tree">qesap_create_folder_tree</a></li>
@@ -34,6 +34,9 @@
           <li><a href="#qesap_prepare_env">qesap_prepare_env</a></li>
           <li><a href="#qesap_ansible_cmd">qesap_ansible_cmd</a></li>
           <li><a href="#qesap_ansible_script_output">qesap_ansible_script_output</a></li>
+          <li><a href="#qesap_create_aws_credentials">qesap_create_aws_credentials</a></li>
+          <li><a href="#qesap_create_aws_config">qesap_create_aws_config</a></li>
+          <li><a href="#qesap_remote_hana_public_ips">qesap_remote_hana_public_ips</a></li>
         </ul>
       </li>
     </ul>
@@ -55,8 +58,9 @@ SPDX-License-Identifier: FSFAP</code></pre>
 
 <h1 id="DESCRIPTION">DESCRIPTION</h1>
 
-<pre><code>    Package with common methods and default or constant  values for qe-sap-deployment
-=head2 Methods</code></pre>
+<pre><code>Package with common methods and default or constant  values for qe-sap-deployment</code></pre>
+
+<h2 id="Methods">Methods</h2>
 
 <h3 id="qesap_get_file_paths">qesap_get_file_paths</h3>
 
@@ -215,6 +219,19 @@ It uses playbook data/sles4sap/script_output.yaml
 
 </dd>
 </dl>
+
+<h3 id="qesap_create_aws_credentials">qesap_create_aws_credentials</h3>
+
+<pre><code>Creates a AWS credentials file as required by QE-SAP Terraform deployment code.</code></pre>
+
+<h3 id="qesap_create_aws_config">qesap_create_aws_config</h3>
+
+<pre><code>Creates a AWS config file in ~/.aws as required by the QE-SAP Terraform &amp; Ansible deployment code.</code></pre>
+
+<h3 id="qesap_remote_hana_public_ips">qesap_remote_hana_public_ips</h3>
+
+<pre><code>Return a list of the public IP addresses of the systems deployed by qesapdeployment, as reported
+by C&lt;terraform output&gt;. Needs to run after C&lt;qesap_execute(cmd =&gt; &#39;terraform&#39;);&gt; call.</code></pre>
 
 
 </body>
