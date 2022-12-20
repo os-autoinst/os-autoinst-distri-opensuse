@@ -27,7 +27,7 @@ sub run {
     cluster_wait_status($primary_host, sub { ((shift =~ m/.+UNDEFINED.+SFAIL/) && (shift =~ m/.+PROMOTED.+PRIM/)); });
 
     my $cypress_test_dir = "/root/test/test";
-    enter_cmd "cd " . $cypress_test_dir;
+    enter_cmd "cd $cypress_test_dir";
     cypress_test_exec($cypress_test_dir, 'stop_primary', bmwqemu::scale_timeout(900));
     trento_support('test_hana_stop');
 }
