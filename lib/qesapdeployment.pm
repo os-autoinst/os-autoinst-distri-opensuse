@@ -30,12 +30,12 @@ package qesapdeployment;
 use strict;
 use warnings;
 use Carp qw(croak);
+use Mojo::JSON qw(decode_json);
 use YAML::PP;
-use utils 'file_content_replace';
+use utils qw(file_content_replace zypper_call);
+use publiccloud::utils qw(get_credentials);
 use testapi;
 use Exporter 'import';
-use utils 'zypper_call';
-
 
 my @log_files = ();
 
@@ -59,11 +59,15 @@ our @EXPORT = qw(
   qesap_ansible_cmd
   qesap_ansible_script_output
   qesap_create_ansible_section
+  qesap_create_aws_credentials
+  qesap_create_aws_config
+  qesap_remote_hana_public_ips
 );
 
 =head1 DESCRIPTION
 
     Package with common methods and default or constant  values for qe-sap-deployment
+
 =head2 Methods
 
 
@@ -370,6 +374,13 @@ sub qesap_prepare_env {
     push(@log_files, "$paths{deployment_dir}/ansible/playbooks/vars/hana_media.yaml");
     my $hana_vars = "$paths{deployment_dir}/ansible/playbooks/vars/hana_vars.yaml";
     my $exec_rc = qesap_execute(cmd => 'configure', verbose => 1);
+
+    if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
+        my $data = get_credentials('aws.json');
+        qesap_create_aws_config();
+        qesap_create_aws_credentials($data->{access_key_id}, $data->{secret_access_key});
+    }
+
     push(@log_files, $hana_vars) if (script_run("test -e $hana_vars") == 0);
     qesap_upload_logs(failok => 1);
     die("Qesap deployment returned non zero value during 'configure' phase.") if $exec_rc;
@@ -478,6 +489,49 @@ sub qesap_ansible_script_output {
     my $output = script_output("cat $local_tmp");
     enter_cmd "rm $local_tmp";
     return $output;
+}
+
+=head3 qesap_create_aws_credentials
+
+    Creates a AWS credentials file as required by QE-SAP Terraform deployment code.
+=cut
+
+sub qesap_create_aws_credentials {
+    my ($key, $secret) = @_;
+    my %paths = qesap_get_file_paths();
+    my $credfile = script_output q|awk -F\" '/aws_credentials/ {print $2}' | . $paths{qesap_conf_trgt};
+    save_tmp_file('credentials', "[default]\naws_access_key_id = $key\naws_secret_access_key = $secret\n");
+    assert_script_run 'mkdir -p ~/.aws';
+    assert_script_run 'curl ' . autoinst_url . "/files/credentials -o $credfile";
+    assert_script_run "cp $credfile ~/.aws/credentials";
+}
+
+=head3 qesap_create_aws_config
+
+    Creates a AWS config file in ~/.aws as required by the QE-SAP Terraform & Ansible deployment code.
+=cut
+
+sub qesap_create_aws_config {
+    my %paths = qesap_get_file_paths();
+    my $region = script_output q|awk -F\" '/aws_region/ {print $2}' | . $paths{qesap_conf_trgt};
+    $region = get_required_var('PUBLIC_CLOUD_REGION') if ($region =~ /^%.+%$/);
+    save_tmp_file('config', "[default]\nregion = $region\n");
+    assert_script_run 'mkdir -p ~/.aws';
+    assert_script_run 'curl ' . autoinst_url . "/files/config -o ~/.aws/config";
+}
+
+=head3 qesap_remote_hana_public_ips
+
+    Return a list of the public IP addresses of the systems deployed by qesapdeployment, as reported
+    by C<terraform output>. Needs to run after C<qesap_execute(cmd => 'terraform');> call.
+
+=cut
+
+sub qesap_remote_hana_public_ips {
+    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my $tfdir = qesap_get_terraform_dir($prov);
+    my $data = decode_json(script_output "terraform -chdir=$tfdir output -json");
+    return @{$data->{hana_public_ip}->{value}};
 }
 
 1;
