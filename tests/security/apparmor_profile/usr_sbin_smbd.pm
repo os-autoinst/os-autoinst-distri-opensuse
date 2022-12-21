@@ -35,6 +35,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle);
+use Utils::Architectures;
 
 # Setup samba server
 sub samba_server_setup {
@@ -126,7 +127,13 @@ sub samba_client_access {
     assert_screen("nautilus-sharedir-opened");
 
     # Create new folder
-    send_key "shift-ctrl-n";
+    if (is_s390x()) {
+        # on s390x the keyboard shortcut doesn't always work, that's why we use needles instead.
+        assert_and_click("nautilus-empty-view-dclick", button => "right");
+        assert_and_click("nautilus-create-folder");
+    } else {
+        send_key "shift-ctrl-n";
+    }
     assert_screen("nautilus-folder-name-input-box");
     type_string("sub-testdir", wait_screen_change => 10);
     send_key "ret";
