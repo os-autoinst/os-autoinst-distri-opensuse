@@ -38,7 +38,7 @@ sub run {
     cluster_wait_status($primary_host, sub { ((shift =~ m/.+DEMOTED.+SOK/) && (shift =~ m/.+PROMOTED.+PRIM/)); });
 
     my $cypress_test_dir = "/root/test/test";
-    enter_cmd "cd " . $cypress_test_dir;
+    enter_cmd "cd $cypress_test_dir";
     cypress_test_exec($cypress_test_dir, 'restore_cluster', bmwqemu::scale_timeout(900));
     trento_support('test_hana_restore_stopped');
 }

@@ -19,7 +19,7 @@ sub run {
     select_serial_terminal;
 
     my $cypress_test_dir = "/root/test/test";
-    enter_cmd "cd " . $cypress_test_dir;
+    enter_cmd "cd $cypress_test_dir";
 
     cypress_configs($cypress_test_dir);
     assert_script_run "mkdir " . CYPRESS_LOG_DIR;

@@ -2,19 +2,13 @@ provider: "%PROVIDER%"
 apiver: 3
 terraform:
   variables:
-    project: "ei-sle-qa-sap-8469"
-    region: "%REGION%"
+    aws_region: "%REGION%"
     deployment_name: "%DEPLOYMENTNAME%"
     os_image: "%QESAP_CLUSTER_OS_VER%"
-    hana_os_major_version: "%QESAP_CLUSTER_OS_VER%"
-    iscsi_os_major_version: "%QESAP_CLUSTER_OS_VER%"
-    monitoring_os_major_version: "%QESAP_CLUSTER_OS_VER%"
-    drdb_os_major_version: "%QESAP_CLUSTER_OS_VER%"
-    netweaver_os_major_version: "%QESAP_CLUSTER_OS_VER%"
-    bastion_os_major_version: "%QESAP_CLUSTER_OS_VER%"
+    os_owner: "amazon"
     private_key: "%SSH_KEY_PRIV%"
     public_key: "%SSH_KEY_PUB%"
-    gcp_credentials_file: "/root/google_credentials.json"
+    aws_credentials: "/root/amazon_credentials"
 
 ansible:
   az_storage_account_name: "%HANA_ACCOUNT%"
@@ -35,7 +29,7 @@ ansible:
   create:
     - registration.yaml -e reg_code=${REG_CODE} -e email_address=${EMAIL}
     - pre-cluster.yaml
-    - sap-hana-preconfigure.yaml
+    - sap-hana-preconfigure.yaml-e use_sapconf=true
     - sap-hana-storage.yaml
     - sap-hana-download-media.yaml
     - sap-hana-install.yaml

@@ -468,7 +468,7 @@ sub qesap_ansible_script_output {
     my $local_file = 'testout.txt';
     my $local_tmp = $local_path . $local_file;
 
-    if (script_run 'test -e script_output.yaml') {
+    if (script_run "test -e $pb") {
         my $cmd = join(' ',
             'curl', '-v', '-fL',
             data_url("sles4sap/$pb"),
