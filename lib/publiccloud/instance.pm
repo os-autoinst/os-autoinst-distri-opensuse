@@ -36,7 +36,7 @@ has ssh_opts => '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o 
     run_ssh_command(cmd => 'command'[, timeout => 90][, ssh_opts =>'..'][, username => 'XXX'][, no_quote => 0][, rc_only => 0]);
 
 Runs a command C<cmd> via ssh in the given VM. Retrieves the output.
-If the command retrieves not zero, a exception is thrown..
+If the command retrieves not zero, an exception is thrown.
 Timeout can be set by C<timeout> or 90 sec by default.
 C<<proceed_on_failure=>1>> allows to proceed with validation when C<cmd> is
 failing (return non-zero exit code)
@@ -79,14 +79,16 @@ sub run_ssh_command {
     if ($args{timeout} == 0) {
         # Run the command and don't wait for it - no output nor returncode here
         script_run($ssh_cmd, %args);
-    } elsif ($rc_only) {
+    }
+    elsif ($rc_only) {
         # Increase the hard timeout for script_run, otherwise our 'timeout $args{timeout} ...' has no effect
         $args{timeout} += 2;
         $args{quiet} = 0;
         $args{die_on_timeout} = 1;
         # Run the command and return only the returncode here
         return script_run($ssh_cmd, %args);
-    } else {
+    }
+    else {
         # Run the command, wait for it and return the output
         return script_output($ssh_cmd, %args);
     }
@@ -231,8 +233,7 @@ sub scp {
     $from =~ s/^remote:/$url/;
     $to =~ s/^remote:/$url/;
 
-    my $ssh_cmd = sprintf('scp %s -i "%s" "%s" "%s"',
-        $self->ssh_opts, $self->ssh_key, $from, $to);
+    my $ssh_cmd = sprintf('scp %s -i "%s" "%s" "%s"', $self->ssh_opts, $self->ssh_key, $from, $to);
 
     return script_run($ssh_cmd, %args);
 }
@@ -267,8 +268,7 @@ In case of BYOS images we checking that service is inactive and quit
 Returns the time needed to wait for the guestregister to complete.
 =cut
 
-sub wait_for_guestregister
-{
+sub wait_for_guestregister {
     my ($self, %args) = @_;
     $args{timeout} //= 300;
     my $start_time = time();
@@ -283,13 +283,15 @@ sub wait_for_guestregister
         if ($out eq 'inactive') {
             $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
             return time() - $start_time;
-        } elsif ($out eq 'failed') {
+        }
+        elsif ($out eq 'failed') {
             $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
             $out = $self->run_ssh_command(cmd => 'sudo systemctl status guestregister', proceed_on_failure => 1, quiet => 1);
             record_info("guestregister failed", $out, result => 'fail');
             record_soft_failure("bsc#1195414");
             return time() - $start_time;
-        } elsif ($out eq 'active') {
+        }
+        elsif ($out eq 'active') {
             $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
             die "guestregister should not be active on BYOS" if (is_byos);
         }
@@ -312,8 +314,7 @@ sub wait_for_guestregister
 Check if the SSH port of the instance is reachable and open.
 =cut
 
-sub wait_for_ssh
-{
+sub wait_for_ssh {
     my ($self, %args) = @_;
     $args{timeout} //= 600;
     $args{proceed_on_failure} //= 0;
@@ -333,7 +334,10 @@ sub wait_for_ssh
             # On boottime test we do hard reboot which may change the instance address
             script_run("ssh-keyscan $args{public_ip} | tee -a ~/.ssh/known_hosts") if (get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME'));
 
-            my $output = $self->run_ssh_command(cmd => 'sudo journalctl -b | grep -E "Reached target (Cloud-init|Default|Main User Target)"', proceed_on_failure => 1, username => $args{username});
+            my $output = $self->run_ssh_command(
+                cmd => 'sudo journalctl -b | grep -E "Reached target (Cloud-init|Default|Main User Target)"',
+                proceed_on_failure => 1,
+                username => $args{username});
             if ($output =~ m/Reached target.*/) {
                 return $duration;
             }
@@ -346,15 +350,20 @@ sub wait_for_ssh
 
     script_run("ssh  -i /root/.ssh/id_rsa -v $args{username}\@$args{public_ip} true", timeout => 360);
     # Debug output: We have occasional error in 'journalctl -b' - see poo#96464 - this will be removed soon.
-    $self->run_ssh_command(cmd => 'sudo journalctl -b', proceed_on_failure => 1, username => $args{username});
+    # Exclude 'mr_test/saptune' test case as it will introduce random softreboot failures.
+    if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
+        $self->run_ssh_command(cmd => 'sudo journalctl -b', proceed_on_failure => 1, username => $args{username}, timeout => 360);
+    }
 
     unless ($args{proceed_on_failure}) {
         my $error_msg;
         if ($check_port) {
-            $error_msg = sprintf("Unable to reach SSH port of instance %s with public IP:%s within %d seconds", $self->{instance_id}, $self->{public_ip}, $args{timeout});
+            $error_msg = sprintf("Unable to reach SSH port of instance %s with public IP:%s within %d seconds", $self->{instance_id}, $self->{public_ip},
+                $args{timeout});
         }
         else {
-            $error_msg = sprintf("Can not reach systemd target on instance %s with public IP:%s within %d seconds", $self->{instance_id}, $self->{public_ip}, $args{timeout});
+            $error_msg = sprintf("Can not reach systemd target on instance %s with public IP:%s within %d seconds",
+                $self->{instance_id}, $self->{public_ip}, $args{timeout});
         }
         croak($error_msg);
     }
@@ -371,8 +380,7 @@ Return an array of two values, first one is the time till the instance isn't
 reachable anymore. The second one is the estimated bootup time.
 =cut
 
-sub softreboot
-{
+sub softreboot {
     my ($self, %args) = @_;
     $args{timeout} //= 600;
     $args{username} //= $self->username();
@@ -420,8 +428,7 @@ sub softreboot
 Stop the instance using the CSP api calls.
 =cut
 
-sub stop
-{
+sub stop {
     my $self = shift;
     $self->provider->stop_instance($self, @_);
 }
@@ -434,8 +441,7 @@ Start the instance and check SSH connectivity. Return the number of seconds
 till the SSH port was available.
 =cut
 
-sub start
-{
+sub start {
     my ($self, %args) = @_;
     $args{timeout} //= 600;
     $self->provider->start_instance($self, @_);
@@ -449,8 +455,7 @@ sub start
 Get the status of the instance using the CSP api calls.
 =cut
 
-sub get_state
-{
+sub get_state {
     my $self = shift;
     return $self->provider->get_state_from_instance($self, @_);
 }
@@ -465,7 +470,8 @@ Test the network speed.
 sub network_speed_test() {
     my ($self, %args) = @_;
     # Curl stats output format
-    my $write_out = 'time_namelookup:\t%{time_namelookup} s\ntime_connect:\t\t%{time_connect} s\ntime_appconnect:\t%{time_appconnect} s\ntime_pretransfer:\t%{time_pretransfer} s\ntime_redirect:\t\t%{time_redirect} s\ntime_starttransfer:\t%{time_starttransfer} s\ntime_total:\t\t%{time_total} s\n';
+    my $write_out
+      = 'time_namelookup:\t%{time_namelookup} s\ntime_connect:\t\t%{time_connect} s\ntime_appconnect:\t%{time_appconnect} s\ntime_pretransfer:\t%{time_pretransfer} s\ntime_redirect:\t\t%{time_redirect} s\ntime_starttransfer:\t%{time_starttransfer} s\ntime_total:\t\t%{time_total} s\n';
     # PC RMT server domain name
     my $rmt_host = "smt-" . lc(get_required_var('PUBLIC_CLOUD_PROVIDER')) . ".susecloud.net";
     my $rmt = $self->run_ssh_command(cmd => "grep \"$rmt_host\" /etc/hosts", proceed_on_failure => 1);
