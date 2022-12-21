@@ -348,6 +348,9 @@ sub store_in_db {
     my ($self, $results) = @_;
     my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI');
     return unless ($url);
+    my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf');
+    my $token = get_required_var('_PUBLIC_CLOUD_PERF_DB_TOKEN');
+    my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
 
     my $tags = {
         instance_type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
@@ -367,7 +370,7 @@ sub store_in_db {
         tags => $tags,
         values => $results->{analyze}
     };
-    influxdb_push_data($url, 'publiccloud', $data);
+    influxdb_push_data($url, $db, $org, $token, $data);
 
     for my $type (qw(first soft hard)) {
         $tags->{boottype} = $type;
@@ -376,7 +379,7 @@ sub store_in_db {
             tags => $tags,
             values => $results->{blame}->{$type}
         };
-        influxdb_push_data($url, 'publiccloud', $data);
+        influxdb_push_data($url, $db, $org, $token, $data);
     }
 }
 
@@ -415,7 +418,7 @@ sub run {
     select_host_console();
 
     my $results = $self->measure_timings($args);
-    $self->store_in_db($results);
+    $self->store_in_db($results) if (check_var('_PUBLIC_CLOUD_PERF_PUSH_DATA', 1));
     $self->check_thresholds($results);
 }
 

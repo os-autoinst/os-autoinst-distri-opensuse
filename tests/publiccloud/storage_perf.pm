@@ -31,7 +31,7 @@ sub get_mean_from_db {
 
     my $query = sprintf("SELECT MEAN(*) FROM (SELECT %s FROM storage WHERE scenario='%s' and os_flavor='%s' and os_version='%s' %s)", $args->{load_type}, $args->{scenario}, $args->{os_flavor}, $args->{os_version}, $limit);
 
-    my $json_res = influxdb_read_data($args->{url}, $args->{db}, $query);
+    my $json_res = influxdb_read_data($args->{url}, $args->{db}, $args->{org}, $args->{token}, $query);
     # when there is no results , "series" section is not returned :
     # { 'results' =>
     #      [{
@@ -71,7 +71,7 @@ sub db_has_data {
 
     my $query = sprintf("SELECT count(*) FROM storage WHERE scenario='%s' and os_flavor='%s' and os_version='%s'", $args{scenario}, $args{os_flavor}, $args{os_version});
 
-    my $json_res = influxdb_read_data($args{url}, $args{db}, $query);
+    my $json_res = influxdb_read_data($args{url}, $args{db}, $args{org}, $args{token}, $query);
     return 0 unless (defined($json_res->{results}->[0]->{series}));
 
     my $series = $json_res->{results}->[0]->{series};
@@ -226,10 +226,15 @@ sub run {
                 tags => $tags,
                 values => $values
             };
-            $data = influxdb_push_data($url, 'publiccloud', $data);
+            my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf');
+            my $token = get_required_var('_PUBLIC_CLOUD_PERF_DB_TOKEN');
+            my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
+            influxdb_push_data($url, $db, $org, $token, $data) if (check_var('_PUBLIC_CLOUD_PERF_PUSH_DATA', 1));
             my %influx_read_args = (
                 url => $url,
-                db => 'publiccloud',
+                db => $db,
+                org => $org,
+                token => $token,
                 scenario => $href->{name},
                 os_flavor => $tags->{os_flavor},
                 os_version => $tags->{os_version}
