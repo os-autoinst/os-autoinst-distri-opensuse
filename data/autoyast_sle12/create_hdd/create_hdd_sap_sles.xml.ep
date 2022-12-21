@@ -3,7 +3,7 @@
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <suse_register>
   <do_registration config:type="boolean">true</do_registration>
-  <reg_code>{{SCC_REGCODE}}</reg_code>
+  <reg_code><%= $get_var->('SCC_REGCODE_SLES4SAP') %></reg_code>
     <install_updates config:type="boolean">true</install_updates>
   </suse_register>
   <bootloader>
@@ -209,6 +209,8 @@
         <service>YaST2-Firstboot</service>
         <service>YaST2-Second-Stage</service>
         <service>getty@tty1</service>
+        <service>sapconf</service>
+        <service>sapinit</service>
       </enable>
     </services>
   </services-manager>
@@ -265,7 +267,6 @@
   <user_defaults>
     <expire/>
     <group>100</group>
-    <groups/>
     <home>/home</home>
     <inactive>-1</inactive>
     <no_groups config:type="boolean">true</no_groups>
@@ -273,6 +274,29 @@
     <skel>/etc/skel</skel>
     <umask>022</umask>
   </user_defaults>
+  <groups config:type="list">
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>1002</gid>
+      <group_password>x</group_password>
+      <groupname>sapsys</groupname>
+      <userlist>qadadm</userlist>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>1000</gid>
+      <group_password>x</group_password>
+      <groupname>saprouter</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>5</gid>
+      <group_password>x</group_password>
+      <groupname>tty</groupname>
+      <userlist>qadadm</userlist>
+    </group>
+  </groups>
   <users config:type="list">
     <user>
       <encrypted config:type="boolean">true</encrypted>
@@ -291,6 +315,60 @@
       <uid>0</uid>
       <user_password>$6$FPZli6dRHjYZ$3bxzkOeXFG1BDzcZFVCAQyqPrErPgFIY2XCMT.sGMZ6Ld1nNUrw2cr0Mxj6V9Hj5G9Mcus/6w5Sd/ZNwwmlV./</user_password>
       <username>root</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>SAP System Administrator</fullname>
+      <gid>1002</gid>
+      <home>/home/qadadm</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/csh</shell>
+      <uid>1001</uid>
+      <user_password>$6$FPZli6dRHjYZ$3bxzkOeXFG1BDzcZFVCAQyqPrErPgFIY2XCMT.sGMZ6Ld1nNUrw2cr0Mxj6V9Hj5G9Mcus/6w5Sd/ZNwwmlV./</user_password>
+      <username>qadadm</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname/>
+      <gid>100</gid>
+      <home>/var/lib/saprouter</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/false</shell>
+      <uid>1000</uid>
+      <user_password>!</user_password>
+      <username>saprouter</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>SAP System Administrator</fullname>
+      <gid>1002</gid>
+      <home>/home/sapadm</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/false</shell>
+      <uid>1002</uid>
+      <user_password>$6$emPnZkjg$.YdCvmDjOXNKXpxzUTeUg41QJoRZnJNd3RkbDPtlMUdcDSnkSKJw3LE70chae5mX4mKuJ5Y.JJ3kjM2KDq8tJ0</user_password>
+      <username>sapadm</username>
     </user>
   </users>
 </profile>

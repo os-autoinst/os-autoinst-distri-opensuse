@@ -1,0 +1,48 @@
+---
+name: sap_autoyast_create_hdd_gnome_netweaver_sle12
+description: '|
+
+  NetWeaver tests for SLES for SAP Applications on a registered
+  system.** VERSION FOR SLE12 - NEEDED FOR UPGRADE TO SLE15+ **PUBLISH_HDD_1 is here
+  to be able to do upgrade tests from a SLE-N version to SLE-N+1 (in case of SLE-12
+  to SLE-15 for example) The image has to be de-registered before the upgrade process.'
+vars:
+  APPTESTS: console/system_prepare,sles4sap/patterns,sles4sap/netweaver_install,sles4sap/netweaver_test_instance
+  AUTOYAST: autoyast_sle12/create_hdd/create_hdd_sap_sles.xml.ep
+  DESKTOP: gnome
+  DM_NEEDS_USERNAME: '1'
+  HDDSIZEGB: '60'
+  INSTALLONLY: '1'
+  INSTANCE_ID: '00'
+  INSTANCE_SID: QAD
+  INSTANCE_TYPE: ASCS
+  PUBLISH_HDD_1: autoyast_SLES-%VERSION%-%ARCH%-SAP-updated.qcow2
+  ROOTONLY: '1'
+  SCC_DEREGISTER: '1'
+  SCC_REGISTER: installation
+  SHUTDOWN_NEEDS_AUTH: '1'
+  SLES4SAP_MODE: sles4sap
+  SLE_PRODUCT: sles4sap
+  _OLD_TIMEOUT_SCALE: '2'
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - sles4sap/netweaver_install
+  - sles4sap/netweaver_test_instance
+  - console/scc_deregistration
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
