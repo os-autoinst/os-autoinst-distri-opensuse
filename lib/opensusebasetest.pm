@@ -24,7 +24,6 @@ use IO::Socket::INET;
 use x11utils qw(handle_login ensure_unlocked_desktop handle_additional_polkit_windows);
 use publiccloud::ssh_interactive 'select_host_console';
 use Utils::Logging qw(save_and_upload_log tar_and_upload_log export_healthcheck_basic select_log_console upload_coredumps export_logs);
-use serial_terminal 'select_serial_terminal';
 
 # Base class for all openSUSE tests
 
@@ -981,30 +980,21 @@ base method using C<$self-E<gt>SUPER::post_fail_hook;> at the end.
 
 sub post_fail_hook {
     my ($self) = @_;
+    return if is_serial_terminal();    # unless VIRTIO_CONSOLE=0 nothing below make sense
 
-    unless (is_serial_terminal()) {
-        show_tasks_in_blocked_state;
-
-        # In case the system is stuck in shutting down or during boot up, press
-        # 'esc' just in case the plymouth splash screen is shown and we can not
-        # see any interesting console logs.
-        send_key 'esc';
-        save_screenshot;
-        # the space prevents the esc from eating up the next alphanumerical
-        # character typed into the console
-        send_key 'spc';
-    }
+    show_tasks_in_blocked_state;
 
     return if (get_var('NOLOGS'));
 
     # Upload basic health check log
-    select_serial_terminal();
+    select_log_console;
     export_healthcheck_basic;
 
     # set by x11_start_program
     if (get_var('IN_X11_START_PROGRAM')) {
         my ($program) = get_var('IN_X11_START_PROGRAM') =~ m/(\S+)/;
         set_var('IN_X11_START_PROGRAM', undef);
+        select_log_console;
         my $r = script_run "which $program";
         if ($r != 0) {
             record_info("no $program", "Could not find '$program' on the system", result => 'fail');
@@ -1012,6 +1002,7 @@ sub post_fail_hook {
     }
 
     if (get_var('FULL_LVM_ENCRYPT') && get_var('LVM_THIN_LV')) {
+        select_console 'root-console';
         my $lvmdump_regex = qr{/root/lvmdump-.*?-\d+\.tgz};
         my $out = script_output('lvmdump', proceed_on_failure => 1);
         if ($out =~ /(?<lvmdump_gzip>$lvmdump_regex)/) {
@@ -1021,6 +1012,7 @@ sub post_fail_hook {
     }
 
     if (get_var('COLLECT_COREDUMPS')) {
+        select_console 'root-console';
         upload_coredumps(proceed_on_failure => 1);
     }
 
@@ -1032,9 +1024,19 @@ sub post_fail_hook {
     }
     # Find out in post-fail-hook if system is I/O-busy, poo#35877
     else {
+        select_log_console;
         my $io_status = script_output("sed -n 's/^.*da / /p' /proc/diskstats | cut -d' ' -f10");
         record_info('System I/O status:', ($io_status =~ /^0$/) ? 'idle' : 'busy');
     }
+
+    # In case the system is stuck in shutting down or during boot up, press
+    # 'esc' just in case the plymouth splash screen is shown and we can not
+    # see any interesting console logs.
+    send_key 'esc';
+    save_screenshot;
+    # the space prevents the esc from eating up the next alphanumerical
+    # character typed into the console
+    send_key 'spc';
 
     export_logs;
 
