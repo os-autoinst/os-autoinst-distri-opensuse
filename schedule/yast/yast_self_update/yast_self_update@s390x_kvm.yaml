@@ -1,0 +1,16 @@
+---
+name: yast_self_update
+description:    >
+  Test suite conducts installation with self-update explicitly enabled. No hard
+  checks are done that the self-updating is really disabled.
+  Installation is validated by successful boot and that YaST does not report
+  any issue.
+vars:
+  INSTALLER_SELF_UPDATE: 'http://openqa.suse.de/assets/repo/%REPO_SLE_PRODUCT_SLES%'
+  YUI_REST_API: 1
+schedule:
+  product_selection:
+    - installation/product_selection/install_SLES
+    - installation/validate_self_update
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
