@@ -31,6 +31,9 @@ sub run {
     elsif (is_jeos) {
         record_info('Loaded JeOS image', 'nothing to do...');
     }
+    elsif (is_backend_s390x) {
+        record_info('s390x backend', 'nothing to do...');
+    }
     else {
         record_info('INFO', 'normal boot or boot with params');
         # during install_ltp, the second boot may take longer than usual
