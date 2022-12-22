@@ -56,6 +56,9 @@ sub run {
         assert_script_run("uname -v | grep -E '(/kGraft-|/${lp_tag})'");
     }
 
+    # module is used by non-LTP tests, i.e. kernel-live-patching
+    return unless (get_var('LTP_COMMAND_FILE'));
+
     prepare_ltp_env;
     init_ltp_tests($cmd_file);
 
