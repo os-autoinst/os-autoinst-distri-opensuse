@@ -7,8 +7,7 @@ use utils qw(systemctl file_content_replace clear_console zypper_call clear_cons
 use Utils::Systemd 'disable_and_stop_service';
 use mm_network;
 use version_utils;
-use Utils::Backends 'is_pvm_hmc';
-
+use Utils::Backends qw(is_pvm_hmc is_spvm);
 
 our @ISA = qw(Exporter);
 our @EXPORT = qw(server_configure_network try_nfsv2 prepare_exports yast_handle_firewall add_shares
@@ -215,7 +214,8 @@ sub config_service {
     try_nfsv2();
 
     prepare_exports($rw, $ro);
-    my $y2_opts = is_pvm_hmc() ? "--ncurses" : "";
+    my $y2_opts = "";
+    $y2_opts = "--ncurses" if (is_pvm_hmc() || is_spvm());
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'nfs-server', yast2_opts => $y2_opts);
 
     yast2_server_initial();

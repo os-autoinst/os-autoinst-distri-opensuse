@@ -18,7 +18,7 @@ use warnings;
 use testapi;
 use Utils::Architectures;
 use utils;
-use Utils::Backends qw(is_hyperv is_pvm_hmc);
+use Utils::Backends qw(is_hyperv is_pvm_hmc is_spvm);
 
 sub run {
     my $self = shift;
@@ -26,7 +26,8 @@ sub run {
 
     # make sure yast2 bootloader module is installed
     zypper_call 'in yast2-bootloader';
-    my $y2_opts = is_pvm_hmc() ? "--ncurses" : "";
+    my $y2_opts = "";
+    $y2_opts = "--ncurses" if (is_pvm_hmc() || is_spvm());
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'bootloader', yast2_opts => $y2_opts);
 
     # YaST2 prompts user to install missing packages found during storage probing.
