@@ -160,6 +160,7 @@ sub run {
     $cmd .= "--json-report=$root_dir/result.json ";
     $cmd .= '--verbose ';
     $cmd .= '--exec-timeout=1200 ';
+    $cmd .= '--suite-timeout=5400 ';
     $cmd .= '--run-suite ' . get_required_var('LTP_COMMAND_FILE') . ' ';
     $cmd .= '--skip-tests \'' . get_var('LTP_COMMAND_EXCLUDE') . '\' ' if get_var('LTP_COMMAND_EXCLUDE');
     $cmd .= '--sut=ssh' . $sut . ' ';
