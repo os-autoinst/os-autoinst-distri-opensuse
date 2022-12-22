@@ -7,7 +7,6 @@ description: '|
   to be able to do upgrade tests from a SLE-N version to SLE-N+1 (in case of SLE-12
   to SLE-15 for example) The image has to be de-registered before the upgrade process.'
 vars:
-  APPTESTS: console/system_prepare,sles4sap/patterns,sles4sap/netweaver_install,sles4sap/netweaver_test_instance
   AUTOYAST: autoyast_sle12/create_hdd/create_hdd_sap_sles.xml.ep
   DESKTOP: gnome
   DM_NEEDS_USERNAME: '1'
