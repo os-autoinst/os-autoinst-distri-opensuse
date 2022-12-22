@@ -20,7 +20,7 @@ use Exporter 'import';
 use testapi;
 use utils 'systemctl';
 use version_utils qw(is_sle is_leap);
-use Utils::Backends 'is_pvm_hmc';
+use Utils::Backends qw(is_pvm_hmc is_spvm);
 use y2_module_basetest qw(accept_warning_network_manager_default is_network_manager_default);
 use y2_module_consoletest;
 use Test::Assert ':all';
@@ -417,7 +417,7 @@ sub open_yast2_lan {
       = ($options{ui} =~ /ncurses/)
       ? "--" . $options{ui}
       : "";
-    $y2_opts = "--ncurses" if is_pvm_hmc();
+    $y2_opts = "--ncurses" if (is_pvm_hmc() || is_spvm());
 
     $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'lan', yast2_opts => $y2_opts);
 
