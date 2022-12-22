@@ -1,0 +1,30 @@
+---
+name:           textmode_installation_minimal_role
+description:    >
+  Full Medium installation that covers the following cases:
+    1. Installation in textmode;
+    2. "Minimal" role is selected;
+    3. Boot to command-line mode;
+    4. Installation is validated by default set of smoke tests.
+vars:
+  YUI_REST_API: 1
+schedule:
+  extension_module_selection:
+    - installation/module_registration/skip_module_registration
+  add_on_product:
+    - installation/add_on_product/skip_install_addons
+  system_role:
+    - installation/system_role/select_role_minimal
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_preparation:
+    - console/system_prepare
+  system_validation:
+    - console/installation_snapshots
+    - console/zypper_lr
+    - console/zypper_ref
+    - console/ncurses
+    - update/zypper_up
+    - console/zypper_lifecycle
+    - console/orphaned_packages_check
+    - console/consoletest_finish

@@ -1,0 +1,24 @@
+---
+name:           skip_registration
+description:    >
+  Skipping registration for SLE 15, as requires network connection.
+  This is default behavior for SLE 12.
+vars:
+  YUI_REST_API: 1
+schedule:
+  registration:
+    - installation/registration/skip_registration
+  extension_module_selection:
+    - installation/module_selection/select_module_desktop
+  system_role:
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_preparation:
+    - console/hostname
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - shutdown/grub_set_bootargs
+  system_validation:
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown
