@@ -87,8 +87,10 @@ sub log_versions {
     script_run("rpm -qi $kernel_pkg > $kernel_pkg_log 2>&1");
     upload_logs($kernel_pkg_log, failok => 1);
 
-    script_run(get_ltproot . "/ver_linux > $ver_linux_log 2>&1");
-    upload_logs($ver_linux_log, failok => 1);
+    if (get_var('LTP_COMMAND_FILE')) {
+        script_run(get_ltproot . "/ver_linux > $ver_linux_log 2>&1");
+        upload_logs($ver_linux_log, failok => 1);
+    }
 
     if ($kernel_config) {
         my $cmd = "echo '# $kernel_config'; echo; ";
@@ -113,7 +115,10 @@ sub log_versions {
     record_info('KERNEL VERSION', script_output('uname -a'));
     record_info('KERNEL DEFAULT PKG', script_output("cat $kernel_pkg_log", proceed_on_failure => 1));
     record_info('KERNEL EXTRA PKG', script_output('rpm -qi kernel-default-extra', proceed_on_failure => 1));
-    record_info('ver_linux', script_output("cat $ver_linux_log", proceed_on_failure => 1));
+
+    if (get_var('LTP_COMMAND_FILE')) {
+        record_info('ver_linux', script_output("cat $ver_linux_log", proceed_on_failure => 1));
+    }
 
     script_run('env');
     script_run('aa-enabled; aa-status');
