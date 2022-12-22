@@ -51,8 +51,8 @@ sub disable_and_stop_service {
 
 Wrapper around systemctl call to be able to add some useful options.
 
-Please note that return code of this function is handle by 'script_run' or
-'assert_script_run' function, and as such, can be different.
+Please note that return code of this function can be handled by either
+'script_run' or 'assert_script_run' function, and as such, can be different.
 =cut
 
 sub systemctl {
