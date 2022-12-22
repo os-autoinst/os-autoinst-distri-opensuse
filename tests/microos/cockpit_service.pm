@@ -49,6 +49,8 @@ sub run {
 
     if (@pkgs) {
         record_info('TEST', 'Installing Cockpit\'s Modules...');
+        # In ALP, we need to refresh the metadata. poo#122029
+        assert_script_run('zypper ref') if is_alp;
         trup_call("pkg install @pkgs", timeout => 480);
         check_reboot_changes;
     }
