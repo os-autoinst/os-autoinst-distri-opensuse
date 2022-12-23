@@ -16,6 +16,7 @@ use LTP::WhiteList;
 use LTP::TestInfo 'testinfo';
 use version_utils qw(is_openstack is_jeos);
 use File::Basename 'basename';
+use Utils::Architectures;
 
 our @EXPORT = qw(
   get_ltproot
@@ -27,6 +28,7 @@ our @EXPORT = qw(
   prepare_ltp_env
   schedule_tests
   shutdown_ltp
+  want_ltp_32bit
 );
 
 sub loadtest_kernel {
@@ -53,10 +55,13 @@ sub shutdown_ltp {
 }
 
 sub want_ltp_32bit {
+    my $pkg = shift // get_var('LTP_PKG');
+
     # TEST_SUITE_NAME is for running 32bit tests (e.g. ltp_syscalls_m32),
     # checking LTP_PKG is for install_ltp.pm which also uses prepare_ltp_env()
     return (get_required_var('TEST_SUITE_NAME') =~ m/[-_]m32$/
-          || get_var('LTP_PKG', '') =~ m/^(ltp|qa_test_ltp)-32bit$/);
+          || $pkg =~ m/-32bit$/
+          || is_32bit);
 }
 
 sub get_ltproot {
@@ -72,7 +77,7 @@ sub get_ltp_openposix_test_list_file {
 }
 
 sub get_ltp_version_file {
-    my $want_32bit = shift // get_required_var('TEST_SUITE_NAME') =~ m/[-_]m32$/;
+    my $want_32bit = shift // want_ltp_32bit;
 
     return get_ltproot($want_32bit) . '/version';
 }
