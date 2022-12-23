@@ -5,7 +5,7 @@
 
 # Package: yast2-registration yast2-migration yast2-add-on
 # Summary: sle12 online migration testsuite
-# Maintainer: yutao <yuwang@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_installbase';
 use strict;

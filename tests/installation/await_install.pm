@@ -25,7 +25,7 @@
 #   - If needle matches 'package-update-found'
 #     - Send 'alt-n'
 #   - Stop reboot timeout where necessary
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

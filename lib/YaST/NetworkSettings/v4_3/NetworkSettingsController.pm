@@ -5,7 +5,7 @@
 
 # Summary: The class introduces business actions for Network Settings Dialog
 # (yast2 lan module) version 4.3, minor differences to v4.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package YaST::NetworkSettings::v4_3::NetworkSettingsController;
 use parent 'YaST::NetworkSettings::v4::NetworkSettingsController';

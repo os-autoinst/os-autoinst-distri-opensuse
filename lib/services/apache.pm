@@ -5,7 +5,7 @@
 
 # Summary: Package for apache2 service tests
 #
-# Maintainer: Huajian Luo <hluo@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package services::apache;
 use base 'opensusebasetest';

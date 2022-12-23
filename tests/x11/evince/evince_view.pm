@@ -12,7 +12,7 @@
 # - Send F5 (presentation mode) and check
 # - Send ESC to exit presentation mode
 # - Close evince
-# Maintainer: Huajian Luo <hluo@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 # Tags: tc#1436026
 
 use base "x11test";

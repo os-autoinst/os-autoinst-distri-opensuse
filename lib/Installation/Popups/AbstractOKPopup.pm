@@ -5,7 +5,7 @@
 
 # Summary: The abstract class introduces methods to handle
 # an abstract OK popup with unknown content.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::Popups::AbstractOKPopup;
 use strict;

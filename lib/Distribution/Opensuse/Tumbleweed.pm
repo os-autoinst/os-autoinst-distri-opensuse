@@ -6,7 +6,7 @@
 # Summary: The class represents Tumbleweed distribution and provides access to
 # its features.
 
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Distribution::Opensuse::Tumbleweed;
 use strict;

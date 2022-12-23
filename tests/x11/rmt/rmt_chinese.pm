@@ -10,7 +10,7 @@
 #           in Chinese.
 #        3. Run rmt-cli sync and ensure the output is in Chinese.
 #
-# Maintainer: Lemon Li <leli@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

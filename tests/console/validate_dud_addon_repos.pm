@@ -7,7 +7,7 @@
 # properly added and enabled. Also, verifies that 'zypper ref' works and all the
 # repositories can be refreshed.
 #
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'consoletest';
 use strict;

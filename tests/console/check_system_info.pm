@@ -4,7 +4,7 @@
 # Package: SUSEConnect
 # Summary: Verify milestone version and display some info.
 # Check product info before and after migration
-# Maintainer: Yutao Wang <yuwang@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
 use strict;

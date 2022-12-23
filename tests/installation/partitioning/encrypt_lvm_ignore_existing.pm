@@ -6,7 +6,7 @@
 # Summary: The test module ignores a partition that was created on previous
 # installation and configures the partition with LVM. Then verifies that the
 # partition is shown in the partitioning list.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use parent 'y2_installbase';
 use strict;

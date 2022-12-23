@@ -8,7 +8,7 @@
 #    Add rmt configuration test and basic configuration via
 #    rmt-wizard, enable repo, check repo at base system, then upgrade
 #    to latest one. It can still work fine.
-# Maintainer: Yutao wang <yuwang@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
 use strict;

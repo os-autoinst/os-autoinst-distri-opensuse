@@ -18,7 +18,7 @@
 #   - Collect network card info
 #   - Compress everything and upload the logs
 #   - Save a screenshot
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

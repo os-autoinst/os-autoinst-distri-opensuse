@@ -3,7 +3,7 @@ files="${@:?"Need files to check as argument"}"
 success=1
 for file in $files; do
     grep -q '# Summary: .\+' $file || (echo "Missing '# Summary: <multi line summary of test>'" in $file && exit 1) || success=0
-    grep -q '# Maintainer: .\+@.\+' $file || (echo "Missing '# Maintainer: <email address>'" in $file && exit 1) || success=0
+    grep -q '# Maintainer: .+(@| at).+' $file || (echo "Missing '# Maintainer: <email address>'" in $file && exit 1) || success=0
     grep -q '# Copyright .\+' $file || (echo "Missing Copyright <year> SUSE LLC" in $file && exit 1) || success=0
 done
 [ $success = 1 ] && echo "SUCCESS" && exit 0

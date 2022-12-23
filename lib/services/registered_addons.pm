@@ -5,7 +5,7 @@
 
 # Summary: Check registered system and addons status
 #
-# Maintainer: Yutao Wang <yuwang@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package services::registered_addons;
 use base 'opensusebasetest';

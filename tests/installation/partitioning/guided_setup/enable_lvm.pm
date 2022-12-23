@@ -3,7 +3,7 @@
 #
 # Summary: The test module enables LVM on Partitioning Scheme Screen of Guided Setup
 # and navigates to the next screen.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use parent 'y2_installbase';
 use strict;

@@ -5,7 +5,7 @@
 #          This test module covers the server features check before
 #          and after migration, 389ds exsits sles15sp3+
 #
-# Maintainer: Yutao Wang<yuwang@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'consoletest';
 use testapi;

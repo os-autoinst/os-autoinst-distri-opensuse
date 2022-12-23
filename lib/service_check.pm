@@ -10,7 +10,7 @@ check service status or service function before and after migration
 # SPDX-License-Identifier: FSFAP
 
 # Summary: check service status before and after migration.
-# Maintainer: GAO WEI <wegao@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package service_check;
 

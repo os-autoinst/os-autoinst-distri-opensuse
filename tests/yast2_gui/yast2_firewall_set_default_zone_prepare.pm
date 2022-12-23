@@ -5,7 +5,7 @@
 
 # Summary: This module should schedule before yast2_firewall_set_default_zone.pm on SLES productor since
 # TW set default zone with iface together but sle not, so we need update iface's zone to trusted zone firstly
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "y2_module_guitest";
 use strict;

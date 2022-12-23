@@ -3,7 +3,7 @@
 #
 # Summary: The test module configures partition encryption with too
 # simple password on Partitioning Scheme Screen of Guided Setup.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use parent 'y2_installbase';
 use strict;

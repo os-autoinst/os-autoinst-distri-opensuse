@@ -7,7 +7,7 @@
 # Package: yast2-firewall yast2-http-server apache2 apache2-prefork firewalld
 # Summary: YaST2 Firewall UI test checks verious configurations and settings of firewall
 # Make sure yast2 firewall can opened properly. Configurations can be changed and written correctly.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "y2_module_guitest";
 use strict;

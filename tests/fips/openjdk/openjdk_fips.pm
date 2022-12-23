@@ -10,7 +10,7 @@
 #          FIPS 140-3: make OpenJDK be able to use the NSS certified crypto
 #          Test case GET "Supported Cipher Suites and list all crypto providers
 # Tags: poo#112034
-# Maintainer: Yutao Wang <yuwang@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
 use strict;

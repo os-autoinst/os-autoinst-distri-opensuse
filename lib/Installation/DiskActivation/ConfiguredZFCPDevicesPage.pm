@@ -5,7 +5,7 @@
 
 # Summary: The module provides interface to the Configured ZFCP dialog
 
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::DiskActivation::ConfiguredZFCPDevicesPage;
 use parent 'Installation::Navigation::NavigationBase';

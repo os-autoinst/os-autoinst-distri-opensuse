@@ -5,7 +5,7 @@
 
 # Summary: The class introduces methods to operate clone partitioning dialog
 # of an expert partitioner.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog;
 use strict;

@@ -7,7 +7,7 @@
 # Summary: Add rmt configuration test
 #    test installation and upgrade with rmt pattern, basic configuration via
 #    rmt-wizard and validation with rmt-cli repos rmt-cli scc sync return value
-# Maintainer: Lemon <leli@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
 use strict;

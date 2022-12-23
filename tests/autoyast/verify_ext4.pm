@@ -8,7 +8,7 @@
 #          * Verify registration (only 15+)
 #          * Verify partitioning: ext4 and swap
 #          * Verify users
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'basetest';
 use strict;

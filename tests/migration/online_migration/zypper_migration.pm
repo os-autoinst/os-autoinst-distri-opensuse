@@ -5,7 +5,7 @@
 
 # Package: zypper, transactional-update
 # Summary: SLE online migration using zypper migration or transactional update
-# Maintainer: yutao <yuwang@suse.com>, <qa-c@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>, <qa-c@suse.de>
 
 use base "installbasetest";
 use strict;

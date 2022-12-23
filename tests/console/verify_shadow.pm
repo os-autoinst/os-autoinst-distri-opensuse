@@ -5,7 +5,7 @@
 #
 # Summary:  Check if all users has some value in the password field
 # (bsc#973639, bsc#974220, bsc#971804 and bsc#965852)
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

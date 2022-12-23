@@ -7,7 +7,7 @@
 #       Just trigger reboot action, afterwards tests will be
 #       incepted by later test modules, such as tests in
 #       load_boot_tests or wait_boot in setup_zdup.pm
-# Maintainer: Wei Gao <wegao@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "opensusebasetest";
 use strict;

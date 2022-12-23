@@ -7,7 +7,7 @@
 # schedule them depending on the environment variables.
 # The solution is implemented to use in declarative scheduling which does not
 # allow to use complex conditions.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package bootloader_start;
 use strict;
