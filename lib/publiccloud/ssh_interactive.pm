@@ -144,6 +144,7 @@ sub prepare_ssh_tunnel {
 
     # Permit root passwordless login over SSH
     $instance->ssh_assert_script_run('sudo sed -i "s/PermitRootLogin no/PermitRootLogin prohibit-password/g" /etc/ssh/sshd_config');
+    $instance->ssh_assert_script_run('sudo sed -iE "/^AllowTcpForwarding/c\AllowTcpForwarding yes" /etc/ssh/sshd_config') if (get_var('FLAVOR') =~ 'EC2' && get_var('FLAVOR') =~ 'Hardened');
     $instance->ssh_assert_script_run('sudo systemctl reload sshd');
 
     # Copy SSH settings for remote root
