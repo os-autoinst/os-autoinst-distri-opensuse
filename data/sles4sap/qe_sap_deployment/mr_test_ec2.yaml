@@ -6,7 +6,7 @@ terraform:
     # GENERAL VARIABLES #
     aws_region: "%PUBLIC_CLOUD_REGION%"
     admin_user: "cloudadmin"
-    public_key : "~/.ssh/id_rsa.pub"
+    public_key: "~/.ssh/id_rsa.pub"
     private_key: "~/.ssh/id_rsa"
     aws_credentials: "/root/amazon_credentials"
     os_image: "%QESAP_CLUSTER_OS_VER%"

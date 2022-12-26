@@ -39,7 +39,7 @@ sub run {
     my @remote_ips = qesap_remote_hana_public_ips;
     record_info 'Remote IPs', join(' - ', @remote_ips);
     foreach my $host (@remote_ips) { wait_for_ssh $host; }
-    $ret = qesap_execute(cmd => 'ansible', verbose => 1, timeout => 1800);
+    $ret = qesap_execute(cmd => 'ansible', verbose => 1, timeout => 3600);
     die "'qesap.py ansible' return: $ret" if ($ret);
 }
 

@@ -499,7 +499,7 @@ sub qesap_ansible_script_output {
 sub qesap_create_aws_credentials {
     my ($key, $secret) = @_;
     my %paths = qesap_get_file_paths();
-    my $credfile = script_output q|awk -F\" '/aws_credentials/ {print $2}' | . $paths{qesap_conf_trgt};
+    my $credfile = script_output q|awk -F ' ' '/aws_credentials/ {print $2}' | . $paths{qesap_conf_trgt};
     save_tmp_file('credentials', "[default]\naws_access_key_id = $key\naws_secret_access_key = $secret\n");
     assert_script_run 'mkdir -p ~/.aws';
     assert_script_run 'curl ' . autoinst_url . "/files/credentials -o $credfile";
@@ -513,7 +513,7 @@ sub qesap_create_aws_credentials {
 
 sub qesap_create_aws_config {
     my %paths = qesap_get_file_paths();
-    my $region = script_output q|awk -F\" '/aws_region/ {print $2}' | . $paths{qesap_conf_trgt};
+    my $region = script_output q|awk -F ' ' '/aws_region/ {print $2}' | . $paths{qesap_conf_trgt};
     $region = get_required_var('PUBLIC_CLOUD_REGION') if ($region =~ /^%.+%$/);
     save_tmp_file('config', "[default]\nregion = $region\n");
     assert_script_run 'mkdir -p ~/.aws';
