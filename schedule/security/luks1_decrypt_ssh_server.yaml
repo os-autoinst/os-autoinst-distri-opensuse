@@ -3,7 +3,6 @@ name:   luks1_decrypt_ssh_server
 description: >
     luks1 decrypt via ssh on server
 schedule:
-    - installation/handle_reboot
     - installation/boot_encrypt
     - installation/first_boot
     - console/consoletest_setup

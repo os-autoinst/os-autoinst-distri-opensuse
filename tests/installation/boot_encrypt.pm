@@ -12,8 +12,9 @@ use strict;
 use warnings;
 use base "installbasetest";
 use utils;
-use testapi qw(check_var get_var record_info);
+use testapi;
 use version_utils qw(is_leap is_sle is_leap_micro is_sle_micro);
+use bootloader_setup qw(stop_grub_timeout);
 
 sub run {
     # With newer grub2 (in TW only currently), entering the passphrase in GRUB2
@@ -22,6 +23,7 @@ sub run {
     return if is_boot_encrypted && !is_leap && !is_sle && !is_leap_micro && !is_sle_micro;
 
     unlock_if_encrypted(check_typed_password => 1);
+    record_info("edw4", "edw");
 }
 
 1;
