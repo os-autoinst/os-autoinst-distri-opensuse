@@ -151,6 +151,7 @@ resource "azurerm_image" "image" {
     name                      = "${azurerm_resource_group.openqa-group.name}-disk1"
     location                  = var.region
     resource_group_name       = azurerm_resource_group.openqa-group.name
+    hyper_v_generation        = var.sku == "gen1" ? "V1" : "V2"
     count = var.image_id != "" ? 1 : 0
 
     os_disk {
