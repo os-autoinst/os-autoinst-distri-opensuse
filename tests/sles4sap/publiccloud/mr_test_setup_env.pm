@@ -9,7 +9,7 @@
 
 use warnings;
 use Mojo::Base 'publiccloud::basetest';
-use publiccloud::ssh_interactive qw(select_host_console prepare_ssh_tunnel);
+use publiccloud::ssh_interactive qw(select_host_console);
 use testapi;
 use Mojo::File 'path';
 use publiccloud::utils;
