@@ -15,7 +15,7 @@ use power_action_utils 'power_action';
 use utils qw(workaround_type_encrypted_passphrase reconnect_mgmt_console);
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot change_grub_config);
 use Utils::Backends 'is_pvm';
-use Utils::Architectures qw(is_aarch64);
+use Utils::Architectures qw(is_aarch64 is_ppc64le);
 
 sub run {
     my $self = shift;
@@ -26,11 +26,13 @@ sub run {
     power_action('reboot', keepconsole => 1, textmode => 1);
     reset_consoles;
     reconnect_mgmt_console if is_pvm;
-    $self->wait_grub(bootloader_time => 250);
-    # To keep the screen at grub page
-    # Refer https://progress.opensuse.org/issues/49040
-    stop_grub_timeout;
-    boot_into_snapshot;
+    unless (is_ppc64le) {
+        $self->wait_grub(bootloader_time => 250);
+        # To keep the screen at grub page
+        # Refer https://progress.opensuse.org/issues/49040
+        stop_grub_timeout;
+        boot_into_snapshot;
+    }
 }
 sub test_flags {
     return {fatal => 1};
