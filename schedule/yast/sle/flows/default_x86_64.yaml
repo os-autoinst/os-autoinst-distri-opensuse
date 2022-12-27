@@ -21,6 +21,7 @@ add_on_product_installation: []
 system_role:
   - installation/system_role/accept_selected_role_text_mode
 guided_partitioning: []
+expert_partitioning: []
 suggested_partitioning:
   - installation/partitioning/accept_proposed_layout
 clock_and_timezone:
