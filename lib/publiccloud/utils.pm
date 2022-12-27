@@ -31,6 +31,7 @@ our @EXPORT = qw(
   is_azure
   is_gce
   is_container_host
+  is_hardened
   registercloudguest
   register_addon
   register_openstack
@@ -155,6 +156,10 @@ sub is_container_host() {
     return is_public_cloud && get_var('FLAVOR') =~ 'CHOST';
 }
 
+sub is_hardened() {
+    return is_public_cloud && get_var('FLAVOR') =~ 'Hardened';
+}
+
 sub define_secret_variable {
     my ($var_name, $var_value) = @_;
     script_run("set -a");
@@ -237,6 +242,7 @@ sub prepare_ssh_tunnel {
     # Permit root passwordless login over SSH
     $instance->ssh_assert_script_run('sudo cat /etc/ssh/sshd_config');
     $instance->ssh_assert_script_run('sudo sed -i "s/PermitRootLogin no/PermitRootLogin prohibit-password/g" /etc/ssh/sshd_config');
+    $instance->ssh_assert_script_run('sudo sed -iE "/^AllowTcpForwarding/c\AllowTcpForwarding yes" /etc/ssh/sshd_config') if (is_hardened());
     $instance->ssh_assert_script_run('sudo systemctl reload sshd');
 
     # Copy SSH settings for remote root
