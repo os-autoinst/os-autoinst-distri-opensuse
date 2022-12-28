@@ -38,7 +38,7 @@ done
 for test in $MODULES ; do
     # Don't check non-existing modules it as it was either renamed or removed
     # also check only for tests in tests/ directory
-    git ls-files "*$test*" | grep -q ^tests/ || continue
+    git ls-files "*$test*" | grep -qE '^tests/.*\.pm' || continue
 
     echo "check $test" >&2
 
