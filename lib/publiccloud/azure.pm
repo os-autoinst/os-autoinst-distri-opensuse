@@ -63,8 +63,9 @@ sub find_img {
     return if (!$self->resource_exist());
 
     ($name) = $name =~ m/([^\/]+)$/;
+    my $sku = (check_var('PUBLIC_CLOUD_AZURE_SKU', 'gen2')) ? 'V2' : 'V1';
     $name =~ s/\.xz$//;
-    $name =~ s/\.vhdfixed$/.vhd/;
+    $name =~ s/\.vhdfixed$/-$sku.vhd/;
     my $json = script_output("az image show --resource-group " . $self->resource_group . " --name $name", 60, proceed_on_failure => 1);
     record_info('INFO', $json);
     my $image;
@@ -110,9 +111,12 @@ sub upload_img {
     }
 
     my ($img_name) = $file =~ /([^\/]+)$/;
-    $img_name =~ s/\.vhdfixed/.vhd/;
+    my $sku = (check_var('PUBLIC_CLOUD_AZURE_SKU', 'gen2')) ? 'V2' : 'V1';
+    $img_name =~ s/\.vhdfixed/-$sku.vhd/;
     my $disk_name = $img_name;
     my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'eisleqaopenqa');
+
+    my $arch = (check_var('PUBLIC_CLOUD_ARCH', 'arm64')) ? 'Arm64' : 'x64';
 
     my $rg_exist = $self->resource_exist();
 
@@ -124,10 +128,11 @@ sub upload_img {
           . $storage_account . ' --account-key ' . $key . ' --container-name ' . $self->container
           . ' --type page --file ' . $file . ' --name ' . $img_name, timeout => 60 * 60 * 2);
     assert_script_run('az disk create --resource-group ' . $self->resource_group . ' --name ' . $disk_name
-          . ' --source https://' . $storage_account . '.blob.core.windows.net/' . $self->container . '/' . $img_name);
+          . ' --source https://' . $storage_account . '.blob.core.windows.net/' . $self->container . '/' . $img_name
+          . ' --hyper-v-generation=' . $sku . ' --architecture=' . $arch);
 
     assert_script_run('az image create --resource-group ' . $self->resource_group . ' --name ' . $img_name
-          . ' --os-type Linux --source=' . $disk_name);
+          . ' --os-type Linux --hyper-v-generation=' . $sku . ' --source=' . $disk_name);
 
     return $img_name;
 }
