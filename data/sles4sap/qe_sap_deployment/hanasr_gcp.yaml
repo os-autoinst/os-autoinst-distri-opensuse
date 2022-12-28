@@ -11,7 +11,7 @@ terraform:
     admin_user: "cloudadmin"
     reg_code: "%SCC_REGCODE_SLES4SAP%"
     os_image: "%SLE_IMAGE%"
-    public_key : "~/.ssh/id_rsa.pub"
+    public_key: "~/.ssh/id_rsa.pub"
     private_key: "~/.ssh/id_rsa"
 
     # BASTION

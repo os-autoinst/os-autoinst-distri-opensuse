@@ -15,7 +15,7 @@ terraform:
     # GENERAL VARIABLES #
     az_region: '%PUBLIC_CLOUD_REGION%'
     admin_user: 'cloudadmin'
-    public_key : '~/.ssh/id_rsa.pub'
+    public_key: '~/.ssh/id_rsa.pub'
     private_key: '~/.ssh/id_rsa'
     sles4sap_uri: 'https://%STORAGE_ACCOUNT_NAME%.blob.core.windows.net/sle-images/%SLE_IMAGE%'
     hana_os_major_version: '%HANA_OS_MAJOR_VERSION%'

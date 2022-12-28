@@ -15,7 +15,7 @@ terraform:
     # GENERAL VARIABLES #
     az_region: '%PUBLIC_CLOUD_REGION%'
     admin_user: 'cloudadmin'
-    public_key : '~/.ssh/id_rsa.pub'
+    public_key: '~/.ssh/id_rsa.pub'
     private_key: '~/.ssh/id_rsa'
     os_image: "%QESAP_CLUSTER_OS_VER%"
 
