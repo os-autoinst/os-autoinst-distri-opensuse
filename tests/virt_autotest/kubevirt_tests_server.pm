@@ -467,7 +467,7 @@ sub upload_test_results {
             upload_logs("$html_dir/$_", log_name => "$_");
         }
 
-        my $openqa_host = get_var('OPENQA_SERVER');
+        my $openqa_host = get_var('OPENQA_URL');
         my $job_id = get_current_job_id();
         record_info('HTML report URL', "http://$openqa_host/tests/$job_id/file/index.html");
     }
