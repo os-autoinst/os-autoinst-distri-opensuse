@@ -26,6 +26,8 @@ subtest 'check_version' => sub {
 
     ok version_utils::check_version($_, '10.5.0-Maria'), "check $_, 15.5" for qw(>10.4.4 10.4+ >=10.4-Maria >10.3.0-MySQL);
     ok !version_utils::check_version($_, '10.5.1'), "check $_, 10.5.1" for qw(=10.4.9 <10.5.0);
+    ok version_utils::check_version('>=10.4', '10.10'), "check that poo#120918 doesn't happen";
+    ok version_utils::check_version('>=10.4', '10.10-mariadb'), "check that poo#120918 doesn't happen";
 };
 
 subtest 'is_microos' => sub {
