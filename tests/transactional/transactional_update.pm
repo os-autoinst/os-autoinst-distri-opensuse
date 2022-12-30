@@ -18,6 +18,7 @@ use testapi;
 use version_utils qw(is_staging is_opensuse is_leap is_sle is_sle_micro is_leap_micro is_alp);
 use transactional;
 use utils;
+use serial_terminal 'select_serial_terminal';
 
 
 =head2 check_package
@@ -59,14 +60,14 @@ sub check_package {
 }
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal();
 
     script_run "rebootmgrctl set-strategy off";
 
     get_utt_packages;
 
     record_info 'Install ptf', 'Install package - snapshot #1';
-    trup_call "ptf install" . rpmver('security');
+    trup_call "-n ptf install" . rpmver('security');
     check_reboot_changes;
     check_package(stage => 'in');
 
@@ -90,7 +91,7 @@ sub run {
 
         # Check that zypper does not return 0 if update was aborted
         record_info 'Broken pkg', 'Install broken package poo#18644 - snapshot #3';
-        trup_call "pkg install" . rpmver('broken');
+        trup_call "-n pkg install" . rpmver('broken');
         check_reboot_changes;
         # Systems with repositories would downgrade on DUP
         if (is_leap) {
@@ -102,13 +103,13 @@ sub run {
     }
 
     record_info 'Remove pkg', 'Remove package - snapshot #4';
-    trup_call 'pkg remove update-test-security';
+    trup_call '-n pkg remove update-test-security';
     check_reboot_changes;
     check_package;
 
     record_info 'Continue', 'Continue modifying an snapshot -snapshots #5 and #6';
-    trup_call "pkg install" . rpmver('feature');
-    trup_call "--continue pkg install" . rpmver('optional');
+    trup_call "-n pkg install" . rpmver('feature');
+    trup_call "-n --continue pkg install" . rpmver('optional');
     check_reboot_changes;
     check_package(stage => 'in', package => 'update-test-feature');
     check_package(stage => 'in', package => 'update-test-optional');

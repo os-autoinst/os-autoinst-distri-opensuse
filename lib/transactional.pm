@@ -198,7 +198,7 @@ sub trup_call {
     $script .= "; echo trup-\$?- | tee -a /dev/$serialdev" unless $cmd =~ /reboot / && $args{exit_code} == 0;
     script_run $script, 0;
     if ($cmd =~ /pkg |ptf /) {
-        if ($cmd =~ /(^|\s)-\w*n\w* pkg/) {
+        if ($cmd =~ /(^|\s)-\w*n\w*( --\w*)* (pkg|ptf)/) {
             record_info 'non-interactive', 'The transactional-update command is in non-interactive mode';
         } elsif (wait_serial "Continue?") {
             send_key "ret";

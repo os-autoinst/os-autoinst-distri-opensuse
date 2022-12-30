@@ -79,6 +79,7 @@ sub check_strategy_maint_window {
 }
 
 sub run {
+    select_console 'root-console';
     get_utt_packages;
 
     record_info 'Instantly', 'Test instant reboot';
