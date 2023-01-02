@@ -1685,6 +1685,7 @@ sub load_extra_tests_geo_desktop {
 }
 
 sub load_extra_tests_console {
+    loadtest "console/ping";
     loadtest "console/check_os_release";
     loadtest "console/orphaned_packages_check";
     loadtest "console/cleanup_qam_testrepos" if has_test_issues;
