@@ -38,10 +38,23 @@ sub run {
     assert_script_run "cat /etc/hosts";
 
     # Wait for guests to announce that installation is complete
-    script_retry("test -d /tmp/guests_ip", retry => 15, delay => 120);
-    foreach my $guest (@guests) {
-        script_retry("test -f /tmp/guests_ip/$guest", retry => 20, delay => 120);
-        record_info("$guest installed", "Guest installation completed");
+    my $retry = 35;
+    my $count = 0;
+    while ($count++ < $retry) {
+        my @wait_guests = ();
+        foreach my $guest (@guests) {
+            if (script_run("test -f /tmp/guests_ip/$guest") ne 0) {
+                push(@wait_guests, $guest);
+            }
+        }
+        # if all guests are install exit the loop
+        last if @wait_guests == 0;
+        sleep 120;
+        # if retry number is reached the test will fail
+        if ($count == $retry) {
+            record_info("Failed: timeout", "Timeout installation for @wait_guests");
+            die;
+        }
     }
     record_info("All guests installed", "Guest installation completed");
     if (is_sle('>15') && get_var("KVM")) {
