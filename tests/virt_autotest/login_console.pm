@@ -116,7 +116,7 @@ sub login_to_console {
 
     if (!get_var('UPGRADE_AFTER_REBOOT')) {
         set_var('REBOOT_AFTER_UPGRADE', '') if (get_var('REBOOT_AFTER_UPGRADE'));
-        if (is_xen_host) {
+        if (is_xen_host && !check_var('XEN_DEFAULT_BOOT_IS_SET', 1)) {
             #send key 'up' to stop grub timer counting down, to be more robust to select xen
             send_key 'up';
             save_screenshot;
