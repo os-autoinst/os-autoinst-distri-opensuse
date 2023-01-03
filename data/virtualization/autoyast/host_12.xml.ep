@@ -386,6 +386,17 @@ chmod 600 /root/.ssh/id_rsa /root/.ssh/authorized_keys /root/.ssh/config
 ]]>
         </source>
       </script>
+   % if ($check_var->('XEN_DEFAULT_BOOT_IS_SET', '1')) {
+      <script>
+        <filename>workround_default_grub_xen.sh</filename>
+        <source><![CDATA[
+    defautl_grub_name=`/usr/bin/grep ^menuentry /boot/grub2/grub.cfg | /usr/bin/cut -d "'" -f2 | /usr/bin/grep "Xen hypervisor"`
+    /usr/sbin/grub2-set-default "$defautl_grub_name"
+    /usr/sbin/grub2-mkconfig -o /boot/grub2/grub.cfg
+]]>
+        </source>
+      </script>
+   % }
     </post-scripts>
   </scripts>
 </profile>
