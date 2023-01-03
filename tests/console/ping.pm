@@ -21,10 +21,11 @@ use version_utils qw(is_jeos is_sle);
 
 sub run {
     my ($self) = @_;
-    my $ping_group_range = script_output('sysctl net.ipv4.ping_group_range');
+    my $ping_group_range;
     my $capability;
 
     select_serial_terminal;
+    $ping_group_range = script_output('sysctl net.ipv4.ping_group_range');
 
     zypper_call('in iputils libcap-progs sudo');
     $capability = script_output('getcap $(which ping)', proceed_on_failure => 1);
