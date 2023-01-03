@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use mmapi 'get_current_job_id';
 use ipmi_backend_utils qw(reconnect_when_ssh_console_broken);
 use Utils::Architectures;
 use virt_autotest::common;
@@ -28,10 +29,13 @@ sub run_test {
     my $self = shift;
     my %health_status = ();
     @health_status{(keys %virt_autotest::common::guests)} = ();
+    my $journal_cursor_file = "/tmp/cursor_" . get_current_job_id();
+    script_run("rm $journal_cursor_file");
     $health_status{host} = check_host_health;
     foreach my $guest (grep { $_ ne 'host' } keys %health_status) {
         script_run("virsh start $guest", die_on_timeout => 0);
         if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 2, retry => 60, die => 0) == 0) {
+            script_run("ssh root\@$guest \"rm $journal_cursor_file\"");
             $health_status{$guest} = check_guest_health($guest);
         }
         else {

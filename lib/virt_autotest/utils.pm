@@ -16,6 +16,7 @@ use warnings;
 use utils;
 use upload_system_log 'upload_supportconfig_log';
 use version_utils;
+use mmapi 'get_current_job_id';
 use testapi;
 use DateTime;
 use NetAddr::IP;
@@ -128,11 +129,12 @@ sub check_failures_in_journal {
 
     my $failures = "";
     my @warnings = ('Started Process Core Dump', 'Call Trace');
-    foreach my $warn (@warnings) {
-        my $cmd = "journalctl | grep '$warn'";
-        $cmd = "ssh root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
-        $failures .= "\"$warn\" in journals on $machine \n" if script_run($cmd) == 0;
-    }
+    my $journal_cursor_file = "/tmp/cursor_" . get_current_job_id();
+    my $cmd = "journalctl --cursor-file $journal_cursor_file | grep";
+    $cmd .= " -e '$_'" foreach (@warnings);
+    $cmd = "ssh root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
+    $failures .= "Coredump or calltrace in journals on $machine \n" if script_run($cmd) == 0;
+
     if ($failures) {
         if (get_var('KNOWN_KERNEL_BUGS')) {
             record_soft_failure("Found failures: \n" . $failures . "There are known kernel bugs " . get_var('KNOWN_KERNEL_BUGS') . ". Please analyze journal logs to double check if a new bug needs to be opened or it is an old issue. And please add new bugs to KNOWN_KERNEL_BUGS in the form of bsc#555555.");
