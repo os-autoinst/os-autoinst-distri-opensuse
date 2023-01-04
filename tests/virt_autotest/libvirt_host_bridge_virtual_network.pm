@@ -70,6 +70,8 @@ sub run_test {
         test_network_interface($guest, mac => $mac, gate => $gate, net => $net);
 
         assert_script_run("virsh detach-interface $guest bridge --mac $mac $exclusive");
+        my $check = script_run("ssh root\@$guest ip l | grep " . $mac, 60);
+        die "Failed to detach bridge interface for guest $guest." if ($check eq 0);
     }
 
     #Destroy HOST BRIDGE NETWORK
