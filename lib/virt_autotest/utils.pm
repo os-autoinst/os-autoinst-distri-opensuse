@@ -26,11 +26,13 @@ use Utils::Architectures;
 use IO::Socket::INET;
 use Carp;
 
-our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host check_failures_in_journal check_host_health check_guest_health
+our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host reset_log_cursor check_failures_in_journal check_host_health check_guest_health
   print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs ensure_default_net_is_active ensure_guest_started
   ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests restore_downloaded_guests save_original_guest_xmls restore_original_guests
   is_guest_online wait_guests_shutdown remove_vm setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host
   check_port_state subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest upload_virt_logs recreate_guests);
+
+my %log_cursors;
 
 # helper function: Trim string
 sub trim {
@@ -118,6 +120,21 @@ sub is_xen_host {
     return get_var("XEN") || check_var("SYSTEM_ROLE", "xen") || check_var("HOST_HYPERVISOR", "xen") || check_var("REGRESSION", "xen-hypervisor");
 }
 
+# Reset journalctl cursor used by check_failures_in_journal() to skip already
+# reported errors. The next health check will rescan all messages since boot.
+# reset_log_cursor($machine) will reset cursor only for given machine
+# reset_log_cursor() will reset cursors for all machines
+sub reset_log_cursor {
+    my $machine = shift;
+
+    if (defined($machine)) {
+        delete $log_cursors{$machine};
+    }
+    else {
+        %log_cursors = ();
+    }
+}
+
 #check kernels by grep keywords from journals
 #support x86_64 only
 #welcome everybody to extend this function
@@ -126,12 +143,19 @@ sub check_failures_in_journal {
     my $machine = shift;
     $machine //= 'localhost';
 
+    my $cursor = $log_cursors{$machine};
+    my $cmd = "journalctl --show-cursor ";
+    $cmd .= defined($cursor) ? "--cursor='$cursor'" : "-b";
+    $cmd = "ssh root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
+
+    my $log = script_output($cmd);
     my $failures = "";
     my @warnings = ('Started Process Core Dump', 'Call Trace');
+
+    $log_cursors{$machine} = $1 if $log =~ m/-- cursor:\s*(\S+)\s*$/i;
+
     foreach my $warn (@warnings) {
-        my $cmd = "journalctl | grep '$warn'";
-        $cmd = "ssh root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
-        $failures .= "\"$warn\" in journals on $machine \n" if script_run($cmd) == 0;
+        $failures .= "\"$warn\" in journals on $machine\n" if $log =~ m/$warn/;
     }
     if ($failures) {
         if (get_var('KNOWN_KERNEL_BUGS')) {
