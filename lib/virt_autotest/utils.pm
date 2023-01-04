@@ -164,6 +164,12 @@ sub check_failures_in_journal {
         else {
             record_soft_failure("Found new failures: Fake bsc#5555(by PR rule)\n" . $failures . "This is an unknown failure which need to be investigated!");
         }
+
+        my $logfile = "/tmp/journalctl-$machine.log";
+
+        script_run("rm -f $logfile");
+        print_cmd_output_to_file('journalctl -b', $logfile, $machine);
+        upload_logs($logfile);
     }
     return $failures;
 }
