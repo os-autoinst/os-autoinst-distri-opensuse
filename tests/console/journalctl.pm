@@ -32,7 +32,7 @@ use constant {
     PERSISTENT_LOG_DIR => '/var/log/journal',
     DROPIN_DIR => '/etc/systemd/journald.conf.d',
     SYSLOG => '/var/log/messages',
-    SEALING_DELAY => 10
+    SEALING_DELAY => 20
 };
 
 # Tumbleweed uses a persistent journal, Leap 15.3+ (except 15.3 AArch64 JeOS) inherits SLE's default
@@ -187,7 +187,7 @@ sub run {
     assert_script_run("echo 'The batman is going to sleep' | systemd-cat -p info -t batman");
     reboot($self);
     get_current_boot_id \@boots;
-    my @listed_boots = split('\n', script_output 'journalctl --list-boots');
+    my @listed_boots = split('\n', script_output('journalctl --list-boots', 200));
     die "journal lists less than 2 boots" if (scalar(@listed_boots) < 2);
     is_journal_empty('--boot=-1', "journalctl-1.txt");
     script_retry('journalctl --identifier=batman --boot=-1| grep "The batman is going to sleep"', retry => 5, delay => 2);
