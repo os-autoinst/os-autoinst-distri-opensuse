@@ -11,6 +11,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use version_utils qw(is_alp);
 
 sub run {
     my $test_module = "openvpn";
@@ -46,15 +47,27 @@ sub run {
     assert_script_run("semodule -lfull | grep -w $test_module", sub { m/100\ $test_module\ .*pp.*/sx });
 
     # test option "-l": list all modules and verify some of them (disabled + enabled)
-    validate_script_output(
-        "semodule -lfull",
-        sub {
-            m/
-            100\ abrt.*pp\ disabled.*
-            100\ apache.*pp.*
-            100\ userdomain.*pp.*
-            100\ zosremote.*pp\ disabled.*/sx
-        });
+    if (is_alp) {
+        validate_script_output(
+            "semodule -lfull",
+            sub {
+                m/
+                100\ abrt.*pp.*
+                100\ apache.*pp.*
+                100\ userdomain.*pp.*
+                100\ zosremote.*pp.*/sx
+            });
+    } else {
+        validate_script_output(
+            "semodule -lfull",
+            sub {
+                m/
+                100\ abrt.*pp\ disabled.*
+                100\ apache.*pp.*
+                100\ userdomain.*pp.*
+                100\ zosremote.*pp\ disabled.*/sx
+            });
+    }
 }
 
 1;

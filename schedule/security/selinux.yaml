@@ -6,8 +6,7 @@ schedule:
     - boot/boot_to_desktop
     - security/selinux/selinux_setup
     - security/selinux/sestatus
-    - security/selinux/selinux_smoke
-    - security/selinux/enforcing_mode_setup
+    - '{{selinux_enforcing}}'
     - security/selinux/semanage_fcontext
     - security/selinux/semanage_boolean
     - security/selinux/fixfiles
@@ -27,3 +26,11 @@ conditional_schedule:
                 - installation/bootloader_zkvm
             ppc64le:
                 - installation/bootloader
+    selinux_enforcing:
+        DISTRI:
+            opensuse:
+                - security/selinux/selinux_smoke
+                - security/selinux/enforcing_mode_setup
+            sle:
+                - security/selinux/selinux_smoke
+                - security/selinux/enforcing_mode_setup

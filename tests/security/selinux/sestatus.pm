@@ -14,11 +14,15 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use version_utils qw(is_alp);
 
 sub run {
     my ($self) = @_;
     select_serial_terminal;
-    $self->set_sestatus('permissive', 'minimum');
+    # ALP is already set to enforcing mode
+    if (!is_alp) {
+        $self->set_sestatus('permissive', 'minimum');
+    }
 
     # Check SELinux status: 'selinuxenabled' exits with status 0 if SELinux is enabled and 1 if it is not enabled
     assert_script_run('selinuxenabled');

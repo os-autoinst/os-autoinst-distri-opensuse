@@ -12,6 +12,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use version_utils qw(is_alp);
 
 sub run {
     my ($self) = shift;
@@ -33,11 +34,18 @@ sub run {
 
     # test `fixfiles verify/check`: to double confirm, there should be nothing to do with $file_name
     my $script_output = script_output("fixfiles verify $file_name", proceed_on_failure => 1);
+    # On ALP, there is always a note about excluded fixfiles directory overlay
+    if (is_alp) {
+        $script_output =~ s/skipping the directory \/var\/lib\/overlay//;
+    }
     if ($script_output) {
         record_info("ERROR", "verify $file_name, it is not well restored: $script_output", result => "fail");
         $self->result("fail");
     }
     $script_output = script_output("fixfiles check $file_name", proceed_on_failure => 1);
+    if (is_alp) {
+        $script_output =~ s/skipping the directory \/var\/lib\/overlay//;
+    }
     if ($script_output) {
         record_info("ERROR", "check $file_name, it is not well restored: $script_output", result => "fail");
         $self->result("fail");
