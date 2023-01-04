@@ -93,6 +93,7 @@ sub load_kernel_tests {
     }
     elsif (get_var('VIRTIO_CONSOLE_TEST')) {
         loadtest_kernel 'virtio_console';
+        loadtest_kernel 'virtio_console_user';
         loadtest_kernel 'virtio_console_long_output';
     }
     elsif (get_var('BLKTESTS')) {
