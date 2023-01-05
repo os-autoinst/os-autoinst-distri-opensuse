@@ -76,7 +76,7 @@ sub run {
         $fail_count ++;
         }
     }
-    pattern_count_in_file($data,$pass_pattern);
+    self->pattern_count_in_file($data,$pass_pattern);
 #    foreach my $line (@lines){
 #        print("$line \n");
 #        if($line =~ /$pass_pattern/){

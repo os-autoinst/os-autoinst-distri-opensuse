@@ -74,9 +74,10 @@ sub upload_logs_reports
 }
 
 sub pattern_count_in_file {
+    ($self, $data, $pattern) = @_;
 #    my $self = $_[0];
-    my $data = $_[0];
-    my $pattern = $_[1];
+#    my $data = $_[1];
+#    my $pattern = $_[2];
     $pattern //= "\\bpass\\b";
     my $count = 0;
 
