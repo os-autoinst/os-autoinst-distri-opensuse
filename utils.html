@@ -91,6 +91,8 @@
       <li><a href="#test_case-test_case-name-description-result">test_case test_case($name, $description, $result);</a></li>
       <li><a href="#remount_tmp_if_ro">remount_tmp_if_ro</a></li>
       <li><a href="#detect_bsc_1063638">detect_bsc_1063638</a></li>
+      <li><a href="#script_start_io">script_start_io</a></li>
+      <li><a href="#script_finish_io">script_finish_io</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -676,6 +678,28 @@ zypper_ar(&#39;https://download.opensuse.org/repositories/devel:/kubic/openSUSE_
 <pre><code>detect_bsc_1063638();</code></pre>
 
 <p>Btrfs maintenance jobs lead to the system being unresponsive and affects SUT&#39;s performance. Not to waste time during investigation of the failures, we would like to detect if such jobs are running, providing a hint why test timed out. This method will create a softfail if such a problem is detected.</p>
+
+<h2 id="script_start_io">script_start_io</h2>
+
+<pre><code>script_start_io($cmd [, %args]);</code></pre>
+
+<p>Start program <code>$cmd</code> in console for interactive input and output. Call <code>script_finish_io()</code> after sending the appropriate exit command to the program. Example usage:</p>
+
+<pre><code>script_start_io(&#39;python3&#39;);
+enter_cmd(&#39;int(&quot;123&quot;)&#39;);
+wait_serial(qr/^123/m) or die &#39;Wrong output&#39;;
+enter_cmd(&#39;int(&quot;123&quot;, 16)&#39;);
+wait_serial(qr/^291/m) or die &#39;Wrong output&#39;;
+enter_cmd(&#39;exit(12)&#39;);
+script_finish_io(exitcode =&gt; [12]);</code></pre>
+
+<p>Set <code>$quiet</code> to avoid recording serial result for the initial command.</p>
+
+<h2 id="script_finish_io">script_finish_io</h2>
+
+<pre><code>script_finish_io([timeout =&gt; $timeout] [, exitcode =&gt; undef]);</code></pre>
+
+<p>Finish interactive session started by <code>script_start_io()</code> and return command exit code. If <code>$exitcodes</code> is set, the command exit code must match one of the values in the given array, otherwise the current test will fail. <code>$timeout</code> controls how long to wait for the interactive command to exit. See <code>script_start_io()</code> for example usage.</p>
 
 
 </body>
