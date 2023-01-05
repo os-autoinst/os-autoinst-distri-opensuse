@@ -14,7 +14,7 @@ use Exporter;
 
 use strict;
 use warnings;
-use testapi;
+use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
 use Carp;
 use microos 'microos_reboot';
@@ -187,40 +187,45 @@ sub rpmver {
 # Optionally skip exit status check in case immediate reboot is expected
 sub trup_call {
     my ($cmd, %args) = @_;
+    my $script = "transactional-update ";
+    my $ret;
+
     $args{timeout} //= 180;
     $args{exit_code} //= 0;
+    $script .= "-n " unless $args{interactive};
+    $script .= $cmd;
 
     # Always wait for rollback.service to be finished before triggering manually transactional-update
     ensure_rollback_service_not_running();
 
-    my $script = "transactional-update $cmd > /dev/$serialdev";
-    # Only print trup-0- if it's reliably read later (see below)
-    $script .= "; echo trup-\$?- | tee -a /dev/$serialdev" unless $cmd =~ /reboot / && $args{exit_code} == 0;
-    script_run $script, 0;
-    if ($cmd =~ /pkg |ptf /) {
-        if ($cmd =~ /(^|\s)-\w*n\w* pkg/) {
-            record_info 'non-interactive', 'The transactional-update command is in non-interactive mode';
-        } elsif (wait_serial "Continue?") {
-            send_key "ret";
-            # Abort update of broken package
-            if ($cmd =~ /\bup(date)?\b/ && $args{exit_code} == 1) {
-                die 'Abort dialog not shown' unless wait_serial('Abort');
-                send_key 'ret';
-            }
-        } else {
-            die "Confirmation dialog not shown";
-        }
-    }
-
-    # If we expect a reboot on success, the trup-0- might not reach the console.
-    # Check for t-u's own output just before the reboot instead.
+    # If we expect a reboot on success, the exit marker might not reach
+    # the console. Check for t-u's own output just before the reboot instead.
     if ($cmd =~ /reboot / && $args{exit_code} == 0) {
-        wait_serial(qr/New default snapshot is/, timeout => $args{timeout}) || die "transactional-update didn't finish";
+        $script .= " >/dev/$serialdev" unless is_serial_terminal;
+        enter_cmd($script);
+        save_screenshot unless is_serial_terminal;
+        wait_serial(qr/New default snapshot is/, timeout => $args{timeout}) or die "transactional-update didn't finish";
         return;
     }
 
-    my $res = wait_serial(qr/trup-\d+-/, timeout => $args{timeout}) || die "transactional-update didn't finish";
-    my $ret = ($res =~ /trup-(\d+)-/)[0];
+    if ($args{interactive} && $cmd =~ /(pkg|ptf|package) /) {
+        script_start_io($script);
+        wait_serial('Continue?', no_regex => 1)
+          or die 'Confirmation dialog not shown';
+        type_string("\n");
+
+        if ($cmd =~ /\bup(date)?\b/ && $args{exit_code} == 1) {
+            die 'Abort dialog not shown' unless wait_serial('Abort');
+            type_string("\n");
+        }
+
+        $ret = script_finish_io(timeout => $args{timeout});
+    }
+    else {
+        $ret = script_run($script, timeout => $args{timeout}, die_on_timeout => 0);
+    }
+
+    die "transactional-update didn't finish" unless defined($ret);
     die "transactional-update returned with $ret, expected $args{exit_code}" unless $ret == $args{exit_code};
 }
 

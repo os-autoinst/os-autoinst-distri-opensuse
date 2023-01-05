@@ -18,6 +18,7 @@ use testapi;
 use version_utils qw(is_staging is_opensuse is_leap is_sle is_sle_micro is_leap_micro is_alp);
 use transactional;
 use utils;
+use serial_terminal;
 
 
 =head2 check_package
@@ -59,7 +60,7 @@ sub check_package {
 }
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
     script_run "rebootmgrctl set-strategy off";
 
@@ -90,7 +91,7 @@ sub run {
 
         # Check that zypper does not return 0 if update was aborted
         record_info 'Broken pkg', 'Install broken package poo#18644 - snapshot #3';
-        trup_call "pkg install" . rpmver('broken');
+        trup_call "pkg install" . rpmver('broken'), interactive => 1;
         check_reboot_changes;
         # Systems with repositories would downgrade on DUP
         if (is_leap) {
