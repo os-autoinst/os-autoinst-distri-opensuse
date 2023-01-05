@@ -374,8 +374,8 @@ sub terraform_apply {
 
     $self->terraform_prepare_env();
 
-    record_info('INFO', "Creating instance $instance_type from $image ...");
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
+        record_info('INFO', "Creating instance $instance_type from $image ...");
         assert_script_run('cd ' . TERRAFORM_DIR . "/$cloud_name");
         my $sap_media = get_required_var('HANA');
         my $sap_regcode = get_required_var('SCC_REGCODE_SLES4SAP');
@@ -403,8 +403,7 @@ sub terraform_apply {
         upload_logs(TERRAFORM_DIR . "/$cloud_name/terraform.tfvars", failok => 1);
         script_retry('terraform init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
         assert_script_run("terraform workspace new ${resource_group}${suffix} -no-color", $terraform_timeout);
-    }
-    else {
+    } else {
         assert_script_run('cd ' . TERRAFORM_DIR);
         script_retry('terraform init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
     }
@@ -421,8 +420,10 @@ sub terraform_apply {
             die "PUBLIC_CLOUD_IMAGE_URI and PUBLIC_CLOUD_IMAGE_ID are mutually exclusive";
         } elsif ($image_uri) {
             $cmd .= "-var 'image_uri=" . $image_uri . "' ";
+            record_info('INFO', "Creating instance $instance_type from $image_uri ...");
         } elsif ($image) {
             $cmd .= "-var 'image_id=" . $image . "' ";
+            record_info('INFO', "Creating instance $instance_type from $image ...");
         }
         if (is_azure) {
             # Note: Only the default Azure terraform profiles contains the 'storage-account' variable
@@ -536,7 +537,7 @@ sub terraform_destroy {
             my $sku = get_var('PUBLIC_CLOUD_AZURE_SKU');
             my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT');
             $cmd .= " -var 'image_id=$image'" if ($image);
-            $cmd .= " -var 'image_uri=$image'" if ($image_uri);
+            $cmd .= " -var 'image_uri=${image_uri}'" if ($image_uri);
             $cmd .= " -var 'offer=$offer'" if ($offer);
             $cmd .= " -var 'sku=$sku'" if ($sku);
             $cmd .= " -var 'storage-account=$storage_account'" if ($storage_account);
