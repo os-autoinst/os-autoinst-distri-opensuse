@@ -73,21 +73,8 @@ sub upload_logs_reports
     }
 }
 
-sub validate_result {
-    my ($result_file, $match, $file_ext) = @_;
-    $file_ext //= 'xml';
-
-    my $xml_args = '';
-
-    if ($file_ext eq 'xml' || $file_ext eq 'html') {
-        $xml_args = '--html' if $file_ext eq 'html';
-        assert_script_run "xmllint --noout $xml_args $result_file";
-    }
-
-    validate_script_output "cat $result_file", sub { $match }, timeout => 300;
-    upload_logs($result_file);
-}
 sub pattern_count_in_file {
+#    my $self = $_[0];
     my $data = $_[0];
     my $pattern = $_[1];
     $pattern //= "\\bpass\\b";

@@ -11,6 +11,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle);
+use stigtest qw(pattern_count_in_file);
 
 sub run {
     my ($self) = @_;
@@ -75,7 +76,7 @@ sub run {
         $fail_count ++;
         }
     }
-    $self->pattern_count_in_file($data,$pass_pattern);
+    pattern_count_in_file($data,$pass_pattern);
 #    foreach my $line (@lines){
 #        print("$line \n");
 #        if($line =~ /$pass_pattern/){
