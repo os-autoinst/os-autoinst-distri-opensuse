@@ -101,6 +101,7 @@ sub pattern_count_in_file {
             $count ++;
         }
     }
+    record_info("Pattern $pattern count=$count", "# pattern $pattern count in data is $count");
     print("pattern_count_in_file returned $count for $pattern");
     return $count;
 }
