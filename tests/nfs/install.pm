@@ -14,6 +14,7 @@ use base 'opensusebasetest';
 use utils;
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use version_utils qw(is_opensuse is_sle);
 
 sub install_dependencies_pynfs {
     my @deps = qw(
@@ -26,6 +27,7 @@ sub install_dependencies_pynfs {
       nfs-client
       nfs-kernel-server
     );
+    push(@deps, 'python310-pyaml') if is_opensuse;
     zypper_call('in ' . join(' ', @deps));
 }
 
@@ -40,6 +42,7 @@ sub install_dependencies_cthon04 {
       libtirpc-devel
       time
     );
+    push(@deps, 'python310-pyaml') if is_opensuse;
     zypper_call('in ' . join(' ', @deps));
 }
 
@@ -48,9 +51,7 @@ sub install_testsuite {
     if (get_var("PYNFS")) {
         my $url = get_var('PYNFS_GIT_URL', 'git://git.linux-nfs.org/projects/bfields/pynfs.git');
         my $rel = get_var('PYNFS_RELEASE');
-
         $rel = "-b $rel" if ($rel);
-
         install_dependencies_pynfs;
         assert_script_run("git clone -q --depth 1 $url $rel && cd ./pynfs");
         assert_script_run('./setup.py build && ./setup.py build_ext --inplace');
@@ -68,7 +69,7 @@ sub setup_nfs_server {
     my $nfsversion = shift;
     assert_script_run('mkdir -p /exportdir && echo \'/exportdir *(rw,no_root_squash,insecure)\' >> /etc/exports');
 
-    my $nfsgrace = get_var('NFS_GRACE_TIME', 15);
+    my $nfsgrace = get_var('NFS_GRACE_TIME', 90);
     assert_script_run("echo 'options lockd nlm_grace_period=$nfsgrace' >> /etc/modprobe.d/lockd.conf && echo 'options lockd nlm_timeout=5' >> /etc/modprobe.d/lockd.conf");
 
     if ($nfsversion == '3') {

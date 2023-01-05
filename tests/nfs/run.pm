@@ -16,20 +16,27 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
+use version_utils 'is_sle';
 
 sub pynfs_server_test_all {
     my $folder = get_required_var('PYNFS');
-
     assert_script_run("cd ./$folder");
     script_run('./testserver.py -v --rundeps --hidepass --json results.json --maketree localhost:/exportdir all', 3600);
 }
 
+sub collect_client_info {
+    if (!is_sle) {
+        record_info('client status', script_output('nfsdclnts'));
+    }
+    record_info('client number', script_output('ls /proc/fs/nfsd/clients/ | wc -w'));
+}
+
 sub run {
     select_serial_terminal;
-
     if (get_var("PYNFS")) {
         script_run('cd ~/pynfs');
         pynfs_server_test_all;
+        collect_client_info;
     }
     elsif (get_var("CTHON04")) {
         script_run('cd ~/cthon04');
