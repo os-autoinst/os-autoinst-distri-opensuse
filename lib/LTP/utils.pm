@@ -14,7 +14,7 @@ use Utils::Backends;
 use autotest;
 use LTP::WhiteList;
 use LTP::TestInfo 'testinfo';
-use version_utils qw(is_openstack is_jeos);
+use version_utils qw(is_jeos is_openstack is_rt);
 use File::Basename 'basename';
 use Utils::Architectures;
 
@@ -84,7 +84,8 @@ sub get_ltp_version_file {
 
 sub log_versions {
     my $report_missing_config = shift;
-    my $kernel_pkg = is_jeos || get_var('KERNEL_BASE') ? 'kernel-default-base' : 'kernel-default';
+    my $kernel_pkg = is_jeos || get_var('KERNEL_BASE') ? 'kernel-default-base' :
+      (is_rt ? 'kernel-rt' : 'kernel-default');
     my $kernel_pkg_log = '/tmp/kernel-pkg.txt';
     my $ver_linux_log = '/tmp/ver_linux_before.txt';
     my $kernel_config = script_output('for f in "/boot/config-$(uname -r)" "/usr/lib/modules/$(uname -r)/config" /proc/config.gz; do if [ -f "$f" ]; then echo "$f"; break; fi; done');
@@ -120,6 +121,8 @@ sub log_versions {
     record_info('KERNEL VERSION', script_output('uname -a'));
     record_info('KERNEL DEFAULT PKG', script_output("cat $kernel_pkg_log", proceed_on_failure => 1));
     record_info('KERNEL EXTRA PKG', script_output('rpm -qi kernel-default-extra', proceed_on_failure => 1));
+
+    record_info('KERNEL pkg', script_output('rpm -qa | grep kernel', proceed_on_failure => 1));
 
     if (get_var('LTP_COMMAND_FILE')) {
         record_info('ver_linux', script_output("cat $ver_linux_log", proceed_on_failure => 1));
