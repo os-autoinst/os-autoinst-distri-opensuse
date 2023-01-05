@@ -93,13 +93,14 @@ sub pattern_count_in_file {
     my $count = 0;
 
     print("IN Pattern: $pattern \n");
-    my @lines = split /\n/, $data;
+    my @lines = split /\n|\r/, $data;
     foreach my $line (@lines){
         print("$line \n");
         if($line =~ /$pattern/){
         $count ++;
         }
     }
+    print("pattern_count_in_file returned $count for $pattern");
     return $count;
 }
 

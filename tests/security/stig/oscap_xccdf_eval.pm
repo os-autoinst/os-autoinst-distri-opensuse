@@ -52,54 +52,43 @@ sub run {
 #        $self->result('fail');
 #    }
     #Verify failed rules
-    #$self->validate_result($f_stdout, $eval_match, "txt");
-
     validate_script_output "cat $f_stdout", sub { $eval_match }, timeout => 300;
     my $data = script_output "cat $f_stdout";
-    #Verify number of passed rules
+    #Verify number of passed and failed rules
     my $pass_pattern = "\\bpass\\b";
     my $fail_pattern = "\\bfail\\b";
+    my @passed_rules;
+    my @failed_rules;
 
     my $pass_count = 0;
     my $fail_count = 0;
 
     print("IN Pattern: $pass_pattern \n");
-    my @lines = split /\n/, $data;
-    foreach my $line (@lines){
-        print("$line \n");
-        if($line =~ /$pass_pattern/){
+    my @lines = split /\n|\r/, $data;
+    for my $i (0 .. $#lines)    {
+        if($lines[$i] =~ /$pass_pattern/){
+        push(@passed_rules, $lines[$i - 4]);
         $pass_count ++;
         }
-        if($line =~ /$fail_pattern/){
+        if($lines[$i] =~ /$fail_pattern/){
+         push(@failed_rules, $lines[$i - 4]);
         $fail_count ++;
         }
     }
 
-#    my $pass_count = $self->pattern_count_in_file($eval_stdout, $pass_pattern);
-    record_info("Pass count=$pass_count", "# pattern $pass_pattern count in file $f_stdout is $pass_count");
-    record_info("Fail count=$fail_count", "# pattern $fail_pattern count in file $f_stdout is $fail_count");
-#    my $fail_count = $self->pattern_count_in_file($f_stdout,$fail_pattern);
-
-#    my $count = 0;
-#    my $pass_pattern = "\\bpass\\b";
-
-#    my @lines = split /\n/, $eval_stdout;
 #    foreach my $line (@lines){
 #        print("$line \n");
 #        if($line =~ /$pass_pattern/){
-#        $count ++;
+#        $pass_count ++;
+#        }
+#        if($line =~ /$fail_pattern/){
+#        $fail_count ++;
 #        }
 #    }
 
-#    my $matching_line = script_output("grep -o pass $f_stdout");
-#    record_info("pass_count=$count", "# pass_count in file $f_stdout is $count");
- #   record_info("fail_count=$fail_count", "# fail_count in $f_stdout is $fail_count");
-
-#    validate_script_output("cat grep_out_pass | wc -l", sub { m/218/ }, timeout => 100);
-
-#    validate_script_output (qq{grep -o \\bpass\\b $f_stdout | wc -l}, sub { m/218/ }, timeout => 300);
-    #Verify number of failed rules
-#    validate_script_output (qq{grep -o \\bfail\\b $f_stdout | wc -l}, sub { m/5/ }, timeout => 300);
+    record_info("Pass count=$pass_count", "# pattern $pass_pattern count in file $f_stdout is $pass_count");
+    record_info("Fail count=$fail_count", "# pattern $fail_pattern count in file $f_stdout is $fail_count");
+#    my $fail_count = $self->pattern_count_in_file($f_stdout,$fail_pattern);
 
     # Upload logs & ouputs for reference
     $self->upload_logs_reports();
