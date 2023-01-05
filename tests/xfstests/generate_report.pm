@@ -107,7 +107,7 @@ sub run {
     sleep 5;
 
     # Reload uploaded status log back to file
-    script_run('curl -O ' . autoinst_url . "/files/status.log; cat status.log > $STATUS_LOG");
+    script_run('curl -O ' . autoinst_url . "/files/status.log; cat status.log > $STATUS_LOG", 300);
 
     # Reload test logs if check missing
     script_run("if [ ! -d $LOG_DIR ]; then mkdir -p $LOG_DIR; curl -O " . autoinst_url . '/files/opt_logs.tar.gz; tar zxvfP opt_logs.tar.gz; fi');
