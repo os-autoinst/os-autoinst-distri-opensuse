@@ -122,6 +122,8 @@ sub log_versions {
     record_info('KERNEL DEFAULT PKG', script_output("cat $kernel_pkg_log", proceed_on_failure => 1));
     record_info('KERNEL EXTRA PKG', script_output('rpm -qi kernel-default-extra', proceed_on_failure => 1));
 
+    record_info('KERNEL pkg', script_output('rpm -qa | grep kernel', proceed_on_failure => 1));
+
     if (get_var('LTP_COMMAND_FILE')) {
         record_info('ver_linux', script_output("cat $ver_linux_log", proceed_on_failure => 1));
     }
