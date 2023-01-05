@@ -88,16 +88,17 @@ sub validate_result {
     upload_logs($result_file);
 }
 sub pattern_count_in_file {
-    my ($data, $pattern) = @_;
+    my $data = $_[0];
+    my $pattern = $_[1];
     $pattern //= "\\bpass\\b";
     my $count = 0;
 
     print("IN Pattern: $pattern \n");
     my @lines = split /\n|\r/, $data;
     foreach my $line (@lines){
-        print("$line \n");
         if($line =~ /$pattern/){
-        $count ++;
+            print("$line \n");
+            $count ++;
         }
     }
     print("pattern_count_in_file returned $count for $pattern");
