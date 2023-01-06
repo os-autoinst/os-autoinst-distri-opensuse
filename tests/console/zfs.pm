@@ -102,7 +102,9 @@ sub cleanup {
 
 sub scrub {
     my $pool = shift;
-    assert_script_run("zpool scrub $pool", timeout => 180);
+    # We may skip scrub operation in case the zpool is currently resilvering.
+    my $in_progress = script_run("zpool status $pool | grep -e 'scan:.*in progress'") == 0;
+    assert_script_run("zpool scrub $pool", timeout => 180) if (!$in_progress);
     # Wait for scrub to finish
     script_retry("zpool status $pool | grep scan | grep -v 'in progress'", delay => 10, retry => 12);
 }
@@ -177,7 +179,7 @@ sub run {
     clear_disk('/var/tmp/tank_a.img');
     assert_script_run('zpool replace tank /var/tmp/tank_a.img');
     scrub('tank');
-    assert_script_run('zpool status tank | grep state | grep ONLINE');
+    script_retry('zpool status tank | grep state | grep ONLINE', delay => 3, retry => 3);
     # Display status for debugging purposes
     script_run('zpool status tank');
 
