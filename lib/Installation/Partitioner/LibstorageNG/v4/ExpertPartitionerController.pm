@@ -8,7 +8,7 @@
 # Libstorage-NG (ver.4) introduces some different shortcuts in comparing to the
 # ver.3. Also RAID creation wizard differs.
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::Partitioner::LibstorageNG::v4::ExpertPartitionerController;
 use strict;

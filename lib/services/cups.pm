@@ -5,7 +5,7 @@
 
 # Summary: Package for cups service tests
 #
-# Maintainer: Jan Baier <jbaier@suse.cz>, Lemon Li <leli@suse.com>
+# Maintainer: Jan Baier <jbaier@suse.cz>, QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package services::cups;
 use base 'opensusebasetest';

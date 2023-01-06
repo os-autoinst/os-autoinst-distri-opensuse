@@ -13,7 +13,7 @@
 # - Push update via ssh
 # - Git clone via https protocol
 # - Clean up
-# Maintainer: Lemon <leli@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
 use strict;

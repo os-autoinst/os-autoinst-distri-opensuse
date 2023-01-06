@@ -9,7 +9,7 @@
 # - Verify labels for all the mount points provided from test data (e.g. "/", "/test");
 # - Verify the number of devices used for multi-device Btrfs filesystems;
 # - Verify devices that are used in multi-device Btrfs filesystems.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

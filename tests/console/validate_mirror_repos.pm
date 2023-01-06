@@ -5,7 +5,7 @@
 
 # Summary: Validate that mirror used for installation is added as a repo in the installed system.
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

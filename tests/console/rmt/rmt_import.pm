@@ -6,7 +6,7 @@
 # Summary: Add rmt configuration test and basic configuration via
 #    rmt-wizard, import RMT data and repos from one folder which
 #    stored RMT export data, then verify the imported data can list
-# Maintainer: Yutao wang <yuwang@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

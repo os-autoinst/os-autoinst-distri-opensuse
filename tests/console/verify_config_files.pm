@@ -13,7 +13,7 @@
 #      entries:
 #        - pool ntp.suse.de iburst
 # See lib/cfg_files_utils.pm
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_module_consoletest';
 use strict;

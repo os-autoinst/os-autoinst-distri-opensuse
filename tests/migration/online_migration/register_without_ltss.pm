@@ -5,7 +5,7 @@
 
 # Package: SUSEConnect zypper yast2-registration
 # Summary: sle12 online migration testsuite
-# Maintainer: Wei Gao <wegao@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "y2_module_consoletest";
 use strict;

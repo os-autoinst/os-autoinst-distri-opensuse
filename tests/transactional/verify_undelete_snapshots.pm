@@ -5,7 +5,7 @@
 
 # Package: snapper
 # Summary: Verify that essential snapshots cannot be deleted, see https://jira.suse.com/browse/SLE-3804
-# Maintainer: QA SLE Functional YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

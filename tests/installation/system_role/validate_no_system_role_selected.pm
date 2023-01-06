@@ -4,7 +4,7 @@
 # Summary: Test module to validate that no system role is pre-selected in
 # openSUSE.
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

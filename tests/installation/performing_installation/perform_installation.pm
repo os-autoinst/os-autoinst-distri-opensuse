@@ -6,7 +6,7 @@
 # Summary: Wait for the installation to be finished successfully.
 # Use TIMEOUT_SCALE so expected installation time can be adjusted
 # for slower architectures.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

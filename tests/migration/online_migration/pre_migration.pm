@@ -5,7 +5,7 @@
 
 # Package: btrfsprogs zypper
 # Summary: sle12 online migration testsuite
-# Maintainer: yutao <yuwang@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
 use strict;

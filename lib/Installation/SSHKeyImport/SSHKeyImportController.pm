@@ -7,7 +7,7 @@
 #          Import SSH Host Keys ad Configruation page
 #          of the installer.
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::SSHKeyImport::SSHKeyImportController;
 use strict;

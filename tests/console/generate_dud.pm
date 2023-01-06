@@ -7,7 +7,7 @@
 # Summary: Generate DUD dynamically using mkdud and xml file where variables
 # are expanded for the corresponding product/build.
 #
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

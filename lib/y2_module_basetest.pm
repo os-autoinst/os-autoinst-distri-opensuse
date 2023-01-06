@@ -9,7 +9,7 @@ This module provides common subroutines for YaST2 modules in graphical and text 
 # SPDX-License-Identifier: FSFAP
 
 # Summary: This module provides common subroutines for YaST2 modules in graphical and text mode
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package y2_module_basetest;
 

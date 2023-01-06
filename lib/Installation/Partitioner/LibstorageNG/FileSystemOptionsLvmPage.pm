@@ -9,7 +9,7 @@
 # File System Options Page, and shortcuts for some similar elements are
 # different too.
 
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::Partitioner::LibstorageNG::FileSystemOptionsLvmPage;
 use strict;

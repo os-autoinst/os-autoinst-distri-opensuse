@@ -5,7 +5,7 @@
 
 # Summary: The class introduces all accessing methods for Bridged Devices Tab in
 #  YaST2 lan module dialog.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package YaST::NetworkSettings::NetworkCardSetup::BridgedDevicesTab;
 use strict;

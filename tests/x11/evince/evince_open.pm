@@ -9,7 +9,7 @@
 # - Launch evince and open test.pdf from datadir
 # - Send ALT-F10 (maximize) and check
 # - Close evince
-# Maintainer: Huajian Luo <hluo@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 # Tags: tc#1436023
 
 use base "x11test";

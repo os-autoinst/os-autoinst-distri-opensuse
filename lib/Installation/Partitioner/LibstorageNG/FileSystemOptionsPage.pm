@@ -6,7 +6,7 @@
 # Summary: The class introduces all accessing methods for File System Options
 # Page in Guided Setup.
 
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::Partitioner::LibstorageNG::FileSystemOptionsPage;
 use strict;
