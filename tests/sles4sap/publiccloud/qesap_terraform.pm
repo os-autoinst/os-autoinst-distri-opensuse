@@ -58,29 +58,36 @@ sub set_var_output {
 sub create_playbook_section {
     # Cluster related setup
     my @playbook_list;
-    my @hana_playbook_list = (
-        "pre-cluster.yaml", "sap-hana-preconfigure.yaml -e use_sapconf=" . set_var_output("USE_SAPCONF", "true"),
-        "cluster_sbd_prep.yaml", "sap-hana-storage.yaml",
-        "sap-hana-download-media.yaml", "sap-hana-install.yaml",
-        "sap-hana-system-replication.yaml", "sap-hana-system-replication-hooks.yaml",
-        "sap-hana-cluster.yaml"
-    );
+    my @hana_playbook_list;
 
-    # Add registration module - "QESAP_SCC_NO_REGISTER" skips scc registration via ansible
+    # Add registration module as first element- "QESAP_SCC_NO_REGISTER" skips scc registration via ansible
     unless (get_var("QESAP_SCC_NO_REGISTER")) {
         my $reg_playbook = "registration.yaml -e reg_code=" . get_required_var("SCC_REGCODE_SLES4SAP") . " -e email_address=''";
         push(@playbook_list, $reg_playbook);
     }
 
-    if ($ha_enabled == 1) {
+
+    # SLES4SAP/HA related playbooks
+    if ($ha_enabled) {
+        push(@hana_playbook_list, "pre-cluster.yaml");
+        push(@hana_playbook_list, "sap-hana-preconfigure.yaml -e use_sapconf=" . set_var_output("USE_SAPCONF", "true"));
+        push(@hana_playbook_list, "cluster_sbd_prep.yaml") if (check_var('FENCING_MECHANISM', 'sbd'));
+        push(@hana_playbook_list, "sap-hana-storage.yaml");
+        push(@hana_playbook_list, "sap-hana-download-media.yaml");
+        push(@hana_playbook_list, "sap-hana-install.yaml");
+        push(@hana_playbook_list, "sap-hana-system-replication.yaml");
+        push(@hana_playbook_list, "sap-hana-system-replication-hooks.yaml");
+        push(@hana_playbook_list, "sap-hana-cluster.yaml");
+
+        # Push whole playbook list
         push(@playbook_list, @hana_playbook_list);
     }
     return (\@playbook_list);
 }
 
-=head2 create_ansible_playbook_list
+=head2 create_hana_vars_section
 
-    Detects HANA/HA scenario from openQA variables and creates "ansible: create:" section in config.yaml file.
+    Detects HANA/HA scenario from openQA variables and creates "terraform: variables:" section in config.yaml file.
 
 =cut
 
