@@ -21,6 +21,8 @@ use utils;
 use publiccloud::utils;
 
 our $target_version = get_required_var('TARGET_VERSION');
+our $version = get_required_var('VERSION');
+our $arch = get_required_var('ARCH');
 
 sub run {
     my ($self, $args) = @_;
@@ -31,8 +33,8 @@ sub run {
     registercloudguest($instance) if is_byos();
 
     if (script_run(q(SUSEConnect --status-text | grep -i 'Successfully registered system'))) {
-        my $version_id=substr($VERSION,0,index($VERSION,'-'));
-        SUSEConnect -p sle-module-public-cloud/$version_id/$ARCH;
+        my $version_id=substr($version,0,index($version,'-'));
+        SUSEConnect -p sle-module-public-cloud/$version_id/$arch;
         assert_script_run('zypper ref', timeout => 180);
         assert_script_run('zypper up', timeout => 180);
     }
