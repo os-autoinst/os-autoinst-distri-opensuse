@@ -294,4 +294,9 @@ sub post_run_hook {
     cleanup();
 }
 
+sub test_flags {
+    # Test is rather intrusive, so to be sure to not disturb the rest of the test run, do a rollback
+    return {always_rollback => 1};
+}
+
 1;
