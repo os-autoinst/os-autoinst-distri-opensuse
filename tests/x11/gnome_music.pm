@@ -10,13 +10,28 @@
 # - Close gnome-music
 # Maintainer: Max Lin <mlin@suse.com>
 
-use base "x11test";
+use base "opensusebasetest";
+use version_utils qw(is_sle is_leap);
 use strict;
 use warnings;
 use testapi;
 use utils;
 
+sub check_bsc1206793 {
+    # Due to bsc#1206793, the test may fail with package version at '41.1-150400.3.3.1'
+    if (is_sle || is_leap) {
+        select_console 'root-console';
+        record_soft_failure 'bsc#1206793, Update breaks gnome-music' if script_output('rpm -q gnome-music') =~ '41.1-150400.3.3.1';
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
 sub run {
+    return if check_bsc1206793;
+    select_console 'x11';
     assert_gui_app('gnome-music', install => 1);
     send_key_until_needlematch("generic-desktop", 'alt-f4', 6, 5);
 }
