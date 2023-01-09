@@ -93,7 +93,7 @@ sub log_versions {
     script_run("rpm -qi $kernel_pkg > $kernel_pkg_log 2>&1");
     upload_logs($kernel_pkg_log, failok => 1);
 
-    if (get_var('LTP_COMMAND_FILE')) {
+    if (get_var('LTP_COMMAND_FILE') || get_var('LIBC_LIVEPATCH')) {
         script_run(get_ltproot . "/ver_linux > $ver_linux_log 2>&1");
         upload_logs($ver_linux_log, failok => 1);
     }
@@ -124,7 +124,7 @@ sub log_versions {
 
     record_info('KERNEL pkg', script_output('rpm -qa | grep kernel', proceed_on_failure => 1));
 
-    if (get_var('LTP_COMMAND_FILE')) {
+    if (get_var('LTP_COMMAND_FILE') || get_var('LIBC_LIVEPATCH')) {
         record_info('ver_linux', script_output("cat $ver_linux_log", proceed_on_failure => 1));
     }
 
