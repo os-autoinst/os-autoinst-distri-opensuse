@@ -35,6 +35,14 @@ variable "image_id" {
     default = ""
 }
 
+variable "image_uri" {
+	default = ""
+}
+
+variable "publisher" {
+	default="SUSE"
+}
+
 variable "offer" {
     default=""
 }
@@ -195,11 +203,11 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
     # disk_size_gb         = 30
   }
 
-  source_image_id =  var.image_id != "" ? azurerm_image.image.0.id : null
+  source_image_id = var.image_uri != "" ? var.image_uri : (var.image_id != "" ? azurerm_image.image.0.id : null)
   dynamic "source_image_reference" {
-    for_each = range(var.image_id != "" ? 0 : 1)
+    for_each = range(var.image_id == "" && var.image_uri == "" ? 1 : 0)
     content {
-      publisher = var.image_id != "" ? "" : "SUSE"
+      publisher = var.image_id != "" ? "" : var.publisher
       offer     = var.image_id != "" ? "" : var.offer
       sku       = var.image_id != "" ? "" : var.sku
       version   = var.image_id != "" ? "" : "latest"

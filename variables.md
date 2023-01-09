@@ -286,6 +286,7 @@ PUBLIC_CLOUD_FIO_SSD_SIZE | string | "100G" | Set the additional disk size for t
 PUBLIC_CLOUD_FORCE_REGISTRATION | boolean | false | If set, tests/publiccloud/registration.pm will register cloud guest
 PUBLIC_CLOUD_IGNORE_EMPTY_REPO | boolean | false | Ignore empty maintenance update repos
 PUBLIC_CLOUD_IMAGE_ID | string | "" | The image ID we start the instance from
+PUBLIC_CLOUD_IMAGE_URI | string | "" | The URI of the image to be used.
 PUBLIC_CLOUD_IMAGE_LOCATION | string | "" | The URL where the image gets downloaded from. The name of the image gets extracted from this URL.
 PUBLIC_CLOUD_IMAGE_PROJECT | string | "" | Google Compute Engine image project
 PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION | string | "" | Defines the image definition for uploading Arm64 images to the image gallery.
