@@ -34,7 +34,7 @@ sub run {
 
     if (script_run(q(SUSEConnect --status-text | grep -i 'Successfully registered system'))) {
         my $version_id=substr($version,0,index($version,'-'));
-        SUSEConnect -p sle-module-public-cloud/$version_id/$arch;
+        script_run("SUSEConnect -p sle-module-public-cloud/$version_id/$arch");
         assert_script_run('zypper ref', timeout => 180);
         assert_script_run('zypper up', timeout => 180);
     }
