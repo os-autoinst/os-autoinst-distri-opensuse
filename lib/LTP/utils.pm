@@ -308,9 +308,9 @@ sub parse_openposix_runfile {
 
     for my $line (@$cmds) {
         chomp($line);
-        if ($line =~ m/$cmd_pattern/ && !($line =~ m/$cmd_exclude/)) {
-            my $testname = basename($line, '.run-test') . $suffix;
+        my $testname = basename($line, '.run-test') . $suffix;
 
+        if ($testname =~ m/$cmd_pattern/ && !($testname =~ m/$cmd_exclude/)) {
             # For ULP tests, start all processes in the background immediately
             # and change the test command to unpause the existing process
             if ($ulp_test) {
