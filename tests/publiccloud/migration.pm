@@ -30,6 +30,13 @@ sub run {
     $instance->wait_for_guestregister();
     registercloudguest($instance) if is_byos();
 
+    if (script_run(q(SUSEConnect --status-text | grep -i 'Successfully registered system'))) {
+        my $version_id=substr($VERSION,0,index($VERSION,'-'));
+        SUSEConnect -p sle-module-public-cloud/$version_id/$ARCH;
+        assert_script_run('zypper ref', timeout => 180);
+        assert_script_run('zypper up', timeout => 180);
+    }
+
     record_info('INFO', $target_version);
 
     sleep 90;    # wait for a bit for zypper to be available
