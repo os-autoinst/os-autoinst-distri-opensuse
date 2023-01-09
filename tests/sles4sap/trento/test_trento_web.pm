@@ -34,14 +34,16 @@ sub run {
     # all other cypress tests
     cypress_test_exec($cypress_test_dir, 'all', bmwqemu::scale_timeout(900));
 
-    trento_support('test_trento_web');
+    trento_support();
+    trento_collect_scenarios('test_trento_web');
 }
 
 sub post_fail_hook {
     my ($self) = @_;
     if (!get_var('TRENTO_EXT_DEPLOY_IP')) {
         k8s_logs(qw(web runner));
-        trento_support('test_trento_web');
+        trento_support();
+        trento_collect_scenarios('test_trento_web_fail');
         az_delete_group();
     }
 

@@ -27,7 +27,7 @@ sub run {
     install_trento(work_dir => $basedir, acr => \%acr);
 
     k8s_logs(qw(web runner));
-    trento_support('deploy_trento');
+    trento_support();
 }
 
 sub test_flags {
@@ -41,7 +41,7 @@ sub post_fail_hook {
     upload_logs("$_") for split(/\n/, script_output($find_cmd));
 
     k8s_logs(qw(web runner));
-    trento_support('deploy_trento_failure');
+    trento_support();
     az_delete_group();
 
     $self->SUPER::post_fail_hook;
