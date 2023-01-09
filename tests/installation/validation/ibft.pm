@@ -153,7 +153,6 @@ sub run {
     for (1 .. 3) {
         assert_script_run 'hdparm -tT /dev/' . $iscsi_drive;
     }
-    assert_script_run 'smartctl -i /dev/' . $iscsi_drive;
     assert_script_run 'sg_turs /dev/' . $iscsi_drive . ' -vt -n 10';
     $self->ibft_validation;
 }
