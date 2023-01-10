@@ -36,7 +36,7 @@ sub run {
         my $version_id=substr($version,0,index($version,'-'));
         script_run("SUSEConnect -p sle-module-public-cloud/$version_id/$arch");
         assert_script_run('zypper ref', timeout => 180);
-        assert_script_run('zypper up', timeout => 400);
+        assert_script_run('zypper -n up', timeout => 200);
     }
 
     record_info('INFO', $target_version);
