@@ -309,7 +309,7 @@ sub reboot {
 
 =head2 select_serial_terminal
 
- select_serial_terminal($root);
+    select_serial_terminal($root[, $prompt]);
 
 Select most suitable text console. The optional parameter C<root> controls
 whether the console will have root privileges or not. Passing any value that
@@ -346,6 +346,7 @@ use root-ssh console directly.
 
 sub select_serial_terminal {
     my $root = shift // 1;
+    my $prompt = shift // ($root ? '# ' : '> ');
 
     my $backend = get_required_var('BACKEND');
     my $console;
@@ -371,12 +372,13 @@ sub select_serial_terminal {
     }
 
     die "No support for backend '$backend', add it" if (!defined $console) || ($console eq '');
+    $testapi::distri->{serial_term_prompt} = $prompt;
     select_console($console);
 }
 
 =head2 select_user_serial_terminal
 
- select_user_serial_terminal();
+    select_user_serial_terminal([$prompt]);
 
 Select most suitable text console with non-root user.
 The choice is made by BACKEND and other variables.
