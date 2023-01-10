@@ -147,7 +147,7 @@ sub check_failures_in_journal {
     my $cursor = $log_cursors{$machine};
     my $cmd = "journalctl --show-cursor ";
     $cmd .= defined($cursor) ? "--cursor='$cursor'" : "-b";
-    $cmd = "ssh root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
+    $cmd = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
 
     my $log = script_output($cmd, type_command => 1, proceed_on_failure => 1);
     my $failures = "";
@@ -156,7 +156,9 @@ sub check_failures_in_journal {
     $log_cursors{$machine} = $1 if $log =~ m/-- cursor:\s*(\S+)\s*$/i;
 
     foreach my $warn (@warnings) {
-        $failures .= "\"$warn\" in journals on $machine\n" if $log =~ m/$warn/;
+        my $cmd = "journalctl | grep '$warn'";
+        $cmd = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
+        $failures .= "\"$warn\" in journals on $machine \n" if script_run("timeout --kill-after=3 --signal=9 120 $cmd") == 0;
     }
     if ($failures) {
         if (get_var('KNOWN_KERNEL_BUGS')) {
@@ -199,7 +201,11 @@ sub check_guest_health {
     return unless is_x86_64 and ($vm =~ /sle|alp/i);
 
     #check if guest is still alive
-    validate_script_output "virsh domstate $vm", sub { /running/ };
+    validate_script_output("virsh domstate $vm", sub { /running/ }, proceed_on_failure => 1) if (script_run("virsh list --all | grep \"$vm \"") == 0);
+    if (is_xen_host and script_run("xl list $vm") == 0) {
+        script_retry("xl list $vm | grep \"\\-b\\-\\-\\-\\-\"", delay => 10, retry => 30, die => 0);
+        validate_script_output("xl list $vm", sub { /-b----/ }, proceed_on_failure => 1);
+    }
     my $failures = check_failures_in_journal($vm);
     return 'fail' if $failures;
     record_info("Healthy guest!", "$vm looks good so far!");
@@ -214,7 +220,7 @@ sub check_guest_health {
 sub print_cmd_output_to_file {
     my ($cmd, $file, $machine) = @_;
 
-    $cmd = "ssh root\@$machine \"" . $cmd . "\"" if $machine;
+    $cmd = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root\@$machine \"" . $cmd . "\"" unless (!$machine or $machine eq 'localhost');
     script_run "echo -e \"\n# $cmd\" >> $file";
     script_run "$cmd >> $file";
 }

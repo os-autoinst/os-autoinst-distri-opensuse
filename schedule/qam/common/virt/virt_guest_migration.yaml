@@ -1,0 +1,20 @@
+---
+name: virt_guest_migration.yaml
+description: |
+  Maintainer: Wayne Chen (wchen@suse.com) qe-virt@suse.de
+  Yaml scheduling file for guest migration test
+schedule:
+  - "{{create_barriers}}"
+  - virt_autotest/login_console
+  - "{{guest_migration}}"
+conditional_schedule:
+  create_barriers:
+    VIRT_NEW_GUEST_MIGRATION_SOURCE:
+      0:
+        - virt_autotest/parallel_guest_migration_barrier
+  guest_migration:
+    VIRT_NEW_GUEST_MIGRATION_SOURCE:
+      1:
+        - virt_autotest/parallel_guest_migration_source
+      0:
+        - virt_autotest/parallel_guest_migration_destination

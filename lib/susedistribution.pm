@@ -518,6 +518,16 @@ sub init_consoles {
                 serial => 'rm -f /dev/sshserial; mkfifo /dev/sshserial; chmod 666 /dev/sshserial; while true; do cat /dev/sshserial; done',
                 gui => 1
             });
+        $self->add_console(
+            'root-ssh-virt',
+            'ssh-xterm',
+            {
+                hostname => get_required_var('SUT_IP'),
+                password => $testapi::password,
+                username => 'root',
+                serial => 'rm -f /dev/virtsshserial; mkfifo /dev/virtsshserial; chmod 666 /dev/virtsshserial; while true; do cat /dev/virtsshserial; done',
+                gui => 1
+            }) if (get_var('VIRT_AUTOTEST', '') or get_var('REGRESSION', ''));
     }
 
     # Use ssh consoles on generalhw, without VNC connection
