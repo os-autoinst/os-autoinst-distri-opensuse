@@ -45,7 +45,7 @@ sub run {
     compare_commands("btrfs device stats ", "btrfs d\tst\t");
     compare_commands("btrfs subvolume get-default ", "btrfs su\tg\t");
     compare_commands("btrfs filesystem usage ", "btrfs fi\tu\t");
-    compare_commands("btrfs inspect-internal min-dev-size ", "btrfs i\tm\t");
+    compare_commands("btrfs inspect-internal min-dev-size ", "btrfs i\tmi\t");
 
     # Check loading of complete function
     assert_script_run "complete | grep '_btrfs btrfs'";
