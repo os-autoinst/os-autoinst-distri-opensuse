@@ -20,7 +20,6 @@ subtest '[k8s_logs] None of the pods are for any of the required trento-server' 
     # ignore them, needed by the production code but not of interest for this test
     $trento->redefine(get_trento_ip => sub { return '42.42.42.42' });
     $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $trento->redefine(trento_support => sub { return; });
 
     # Ask for the log of trento-server-web and trento-server-runner (none of them in the list of running pods)
     k8s_logs(qw(web runner));
@@ -43,7 +42,6 @@ subtest '[k8s_logs] Get logs from running pods as it is also required' => sub {
     $trento->redefine(get_trento_ip => sub { return '42.42.42.42' });
     $trento->redefine(script_run => sub { push @calls, $_[0] if $_[0] =~ m/kubectl/; return 'PATATINE'; });
     $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $trento->redefine(trento_support => sub { return; });
 
     k8s_logs(qw(panino));
 
@@ -71,8 +69,26 @@ subtest '[trento_support]' => sub {
     like $calls[0], qr/mkdir.*remote_logs/, 'Create remote_logs local folder';
     ok((any { /ssh.*trento-support\.sh/ } @calls), 'Run trento-support.sh remotely');
     ok((any { /scp.*\.tar\.gz.*remote_logs/ } @calls), 'scp trento-support.sh output locally');
+};
+
+subtest '[trento_collect_scenarios]' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+    $trento->redefine(enter_cmd => sub { push @calls, $_[0]; return 'PATATINE'; });
+    $trento->redefine(script_run => sub { push @calls, $_[0]; return 'PATATINE'; });
+    $trento->redefine(script_output => sub { push @calls, $_[0]; return 'PATATINE'; });
+    $trento->redefine(get_trento_ip => sub { return '42.42.42.42' });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $trento->redefine(upload_logs => sub { push @logs, $_[0]; });
+
+    trento_collect_scenarios('PANNOCHIE');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  L-->  " . join("\n  L-->  ", @logs));
+
+    like $calls[0], qr/mkdir.*remote_logs/, 'Create remote_logs local folder';
     ok((any { /ssh.*dump_scenario_from_k8\.sh/ } @calls), 'Run dump_scenario_from_k8.sh remotely');
-    ok((any { /scp.*openqa_scenario\.tar\.gz.*remote_logs/ } @calls), 'scp dump_scenario_from_k8.sh output locally');
+    ok((any { /scp.*PANNOCHIE\.photofinish\.tar\.gz.*remote_logs/ } @calls), 'scp dump_scenario_from_k8.sh output locally');
 };
 
 subtest '[cluster_trento_net_peering] cluster_trento_net_peering has to compose command and call 00.050 script' => sub {

@@ -66,6 +66,7 @@ our @EXPORT = qw(
   k8s_logs
   k8s_test
   trento_support
+  trento_collect_scenarios
   trento_api_key
 );
 
@@ -708,9 +709,7 @@ and upload the logs
 =cut
 
 sub trento_support {
-    my ($scenario) = @_;
     my $machine_ip = get_trento_ip();
-
     return unless ($machine_ip);
 
     my $log_dir = 'remote_logs/';
@@ -726,16 +725,40 @@ sub trento_support {
     script_run(az_vm_ssh_cmd($cmd, $machine_ip));
     script_run("$scp_cmd:'*.tar.gz' $log_dir");
 
-    my $scenario_name = $scenario || 'openqa_scenario';
-    script_run(az_vm_ssh_cmd("./dump_scenario_from_k8.sh -n $scenario_name", $machine_ip));
-    script_run(az_vm_ssh_cmd("tar -czvf $scenario_name.tar.gz scenarios/$scenario_name/*.json", $machine_ip));
-    script_run(az_vm_ssh_cmd("rm -rf scenarios/$scenario_name/*.json", $machine_ip));
-    script_run("$scp_cmd:'$scenario_name.tar.gz' $log_dir");
-    script_run(az_vm_ssh_cmd('rm -rf *.tar.gz', $machine_ip));
-
     foreach my $this_file (split("\n", script_output('ls -1 ' . $log_dir . '*.tar.gz'))) {
         upload_logs($this_file, failok => 1);
     }
+    enter_cmd("rm -f $log_dir/*.tar.gz");
+}
+
+=head3 trento_collect_scenarios
+
+Call dump_scenario_from_k8.sh
+and upload the logs
+=cut
+
+sub trento_collect_scenarios {
+    my ($scenario) = @_;
+    my $machine_ip = get_trento_ip();
+
+    return unless ($machine_ip);
+
+    my $log_dir = 'remote_logs/';
+    enter_cmd "mkdir $log_dir";
+    my $scp_cmd = sprintf 'scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i %s %s@%s',
+      SSH_KEY, VM_USER, $machine_ip;
+
+    my $scenario_name = $scenario || 'openqa_scenario';
+    script_run(az_vm_ssh_cmd("./dump_scenario_from_k8.sh -n $scenario_name", $machine_ip));
+    script_run(az_vm_ssh_cmd("tar -czvf $scenario_name.photofinish.tar.gz scenarios/$scenario_name/*.json", $machine_ip));
+    script_run(az_vm_ssh_cmd("rm -rf scenarios/$scenario_name/*.json", $machine_ip));
+    script_run("$scp_cmd:'$scenario_name.photofinish.tar.gz' $log_dir");
+    script_run(az_vm_ssh_cmd('rm -rf *.photofinish.tar.gz', $machine_ip));
+
+    foreach my $this_file (split("\n", script_output('ls -1 ' . $log_dir . '*.photofinish.tar.gz'))) {
+        upload_logs($this_file, failok => 1);
+    }
+    enter_cmd("rm -rf $log_dir/*.photofinish.tar.gz");
 }
 
 =head3 trento_api_key
