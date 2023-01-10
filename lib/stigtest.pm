@@ -78,19 +78,22 @@ sub pattern_count_in_file {
     my $self = $_[0];
     my $data = $_[1];
     my $pattern = $_[2];
+    my @rules;
     $pattern //= "\\bpass\\b";
     my $count = 0;
 
-    print("IN Pattern: $pattern \n");
     my @lines = split /\n|\r/, $data;
-    foreach my $line (@lines){
-        if($line =~ /$pattern/){
-            print("$line \n");
-            $count ++;
+    for my $i ( 0 .. $#lines) {
+        if($lines[$i] =~ /$pattern/){
+        $count ++;
+        push(@rules, $lines[$i - 4]);
         }
     }
-    record_info("Pattern $pattern count=$count", "# pattern $pattern count in data is $count");
-    print("pattern_count_in_file returned $count for $pattern");
+
+    record_info("Pattern $pattern count=$count", "### pattern $pattern count in data is $count. Matched rules:\n @rules");
+#    print("pattern_count_in_file returned $count for $pattern");
+    #returning by reference array of matched rules
+    $_[3] = @rules;
     return $count;
 }
 

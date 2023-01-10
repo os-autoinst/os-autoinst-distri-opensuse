@@ -60,12 +60,14 @@ sub run {
     my $fail_pattern = "\\bfail\\b";
     my @passed_rules;
     my @failed_rules;
+    my @rules;
 
     my $pass_count = 0;
     my $fail_count = 0;
 
     print("IN Pattern: $pass_pattern \n");
     my @lines = split /\n|\r/, $data;
+=pod
     for my $i (0 .. $#lines)    {
         if($lines[$i] =~ /$pass_pattern/){
         push(@passed_rules, $lines[$i - 4]);
@@ -76,7 +78,10 @@ sub run {
         $fail_count ++;
         }
     }
-    $self->pattern_count_in_file($data,$pass_pattern);
+=cut
+
+    $pass_count = $self->pattern_count_in_file($data,$pass_pattern,@passed_rules);
+    $fail_count = $self->pattern_count_in_file($data,$fail_pattern,@failed_rules);
 #    foreach my $line (@lines){
 #        print("$line \n");
 #        if($line =~ /$pass_pattern/){
@@ -87,8 +92,8 @@ sub run {
 #        }
 #    }
 
-    record_info("Pass count=$pass_count", "# pattern $pass_pattern count in file $f_stdout is $pass_count");
-    record_info("Fail count=$fail_count", "# pattern $fail_pattern count in file $f_stdout is $fail_count");
+    record_info("Pass count=$pass_count", "Pattern $pass_pattern count in file $f_stdout is $pass_count. Matched rules: \n @passed_rules");
+    record_info("Fail count=$fail_count", "Pattern $fail_pattern count in file $f_stdout is $fail_count. Matched rules: \n @failed_rules");
 #    my $fail_count = $self->pattern_count_in_file($f_stdout,$fail_pattern);
 
     # Upload logs & ouputs for reference
