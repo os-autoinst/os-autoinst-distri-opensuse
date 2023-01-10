@@ -17,7 +17,7 @@ use utils;
 
 sub run {
     my ($self) = shift;
-    my $test_dir = "/testdir";
+    my $test_dir = "/tmp/testdir";
     my $test_file = "testfile";
     my $test_user = "root";
 

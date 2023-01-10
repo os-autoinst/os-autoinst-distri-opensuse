@@ -15,7 +15,7 @@ use utils;
 
 sub run {
     my ($self) = shift;
-    my $test_dir = "/testdir";
+    my $test_dir = "/tmp/testdir";
     my $test_file = "testfile";
     my $fcontext_type1 = "etc_t";
     my $fcontext_type2 = "bin_t";
