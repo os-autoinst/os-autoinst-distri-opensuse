@@ -16,7 +16,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_microos is_sle_micro is_upgrade is_sle);
+use version_utils qw(is_microos is_sle_micro is_upgrade is_sle is_tumbleweed);
 use Utils::Backends qw(is_remote_backend is_hyperv);
 use Test::Assert ':all';
 
@@ -25,8 +25,14 @@ sub ensure_ssh_unblocked {
 
         # ssh section is not shown up directly in text mode. Navigate into
         # installation overview frame and hitting down button to get there.
-        if (check_var('VIDEOMODE', 'text') and is_sle_micro()) {
-            send_key_until_needlematch 'installation-settings-overview-selected', 'tab', 25;
+        if (check_var('VIDEOMODE', 'text') and (is_sle_micro() or is_tumbleweed)) {
+            if (is_sle_micro) {
+                send_key_until_needlematch 'installation-settings-overview-selected', 'tab', 25;
+            }
+            else {
+                send_key_until_needlematch 'installation-settings-release-notes-selected', 'tab', 25;
+                send_key 'tab';
+            }
             send_key_until_needlematch [qw(ssh-blocked ssh-open)], 'down', 60;
         }
         else {
