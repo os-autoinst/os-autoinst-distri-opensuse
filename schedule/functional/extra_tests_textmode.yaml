@@ -151,7 +151,6 @@ schedule:
     - console/mutt
     - '{{sle_tests}}'
     - console/mdadm
-    - console/journalctl
     - console/systemd_nspawn
     - console/quota
     - console/vhostmd
@@ -167,6 +166,7 @@ schedule:
     - console/osinfo_db
     - '{{opensuse_tests}}'
     - '{{tumbleweed_tests}}'
+    - console/journalctl
     - console/tar
     - console/coredump_collect
     - console/valgrind
