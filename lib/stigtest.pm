@@ -78,7 +78,7 @@ sub pattern_count_in_file {
     my $self = $_[0];
     my $data = $_[1];
     my $pattern = $_[2];
-    my @rules = $_[3];
+    my @rules;
     my $count = 0;
 
     my @lines = split /\n|\r/, $data;
