@@ -645,10 +645,11 @@ sub perform_guest_restart {
 #This subroutine collects desired logs from host and guest, and place them into folder /tmp/virt_logs_residence on host then compress it to /tmp/virt_logs_all.tar.gz
 #Please refer to virt_logs_collector.sh and fetch_logs_from_guest.sh in data/virt_autotest for their detailed functionality, implementation and usage
 sub collect_host_and_guest_logs {
-    my ($guest_wanted, $host_extra_logs, $guest_extra_logs) = @_;
+    my ($guest_wanted, $host_extra_logs, $guest_extra_logs, $log_token) = @_;
     $guest_wanted //= '';
     $host_extra_logs //= '';
     $guest_extra_logs //= '';
+    $log_token //= '';
 
     my $logs_collector_script_url = data_url("virt_autotest/virt_logs_collector.sh");
     script_output("curl -s -o ~/virt_logs_collector.sh $logs_collector_script_url", 180, type_command => 0, proceed_on_failure => 0);
@@ -662,9 +663,9 @@ sub collect_host_and_guest_logs {
     script_output("chmod +x ~/fetch_logs_from_guest.sh && ~/fetch_logs_from_guest.sh -g \"$guest_wanted\" -e \"$guest_extra_logs\"", 1800, type_command => 1, proceed_on_failure => 1);
     save_screenshot;
 
-    upload_logs("/tmp/virt_logs_all.tar.gz");
-    upload_logs("/var/log/virt_logs_collector.log");
-    upload_logs("/var/log/fetch_logs_from_guest.log");
+    upload_logs("/tmp/virt_logs_all.tar.gz", log_name => "virt_logs_all$log_token.tar.gz", timeout => 600);
+    upload_logs("/var/log/virt_logs_collector.log", log_name => "virt_logs_collector$log_token.log");
+    upload_logs("/var/log/fetch_logs_from_guest.log", log_name => "fetch_logs_from_guest$log_token.log");
     save_screenshot;
     script_run("rm -f -r /tmp/virt_logs_all.tar.gz /var/log/virt_logs_collector.log /var/log/fetch_logs_from_guest.log");
     save_screenshot;
