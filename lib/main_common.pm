@@ -2041,6 +2041,7 @@ sub load_x11_other {
             loadtest "x11/gnome_control_center";
             loadtest "x11/gnome_tweak_tool";
             loadtest "x11/seahorse";
+            loadtest "x11/gnome_music";
         }
         loadtest 'x11/flatpak' if (is_opensuse);
     }
