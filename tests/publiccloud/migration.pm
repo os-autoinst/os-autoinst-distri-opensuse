@@ -30,6 +30,7 @@ sub run {
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance();
     $instance->wait_for_guestregister();
+    $instance->ssh_assert_script_run(cmd => "sudo registercloudguest --clean");
     registercloudguest($instance) if is_byos();
 
     if (script_run(q(SUSEConnect --status-text | grep -i 'Successfully registered system'))) {
