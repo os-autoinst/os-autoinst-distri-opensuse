@@ -78,8 +78,7 @@ sub pattern_count_in_file {
     my $self = $_[0];
     my $data = $_[1];
     my $pattern = $_[2];
-    my @rules;
-    $pattern //= "\\bpass\\b";
+    my @rules = $_[3];
     my $count = 0;
 
     my @lines = split /\n|\r/, $data;
@@ -93,7 +92,7 @@ sub pattern_count_in_file {
     record_info("Pattern $pattern count=$count", "### pattern $pattern count in data is $count. Matched rules:\n @rules");
 #    print("pattern_count_in_file returned $count for $pattern");
     #returning by reference array of matched rules
-    $_[3] = @rules;
+    $_[3] = \@rules;
     return $count;
 }
 
