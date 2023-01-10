@@ -34,10 +34,13 @@ sub run {
     registercloudguest($instance) if is_byos();
 
     if (script_run(q(SUSEConnect --status-text | grep -i 'Successfully registered system'))) {
-        script_run("sudo SUSEConnect --status-text")
         my $version_id=substr($version,0,index($version,'-'));
-        script_run("sudo -E SUSEConnect -p sle-module-public-cloud/$version_id/$arch");
+        script_run("sudo SUSEConnect -s");
+        assert_script_run("zypper se migr");
         assert_script_run('sudo zypper ref', timeout => 180);
+        assert_script_run("zypper se migr");
+        script_run("sudo -E SUSEConnect -p sle-module-public-cloud/$version_id/$arch");
+        script_run("sudo SUSEConnect -s");
         assert_script_run('sudo zypper -n up', timeout => 200);
     }
 
