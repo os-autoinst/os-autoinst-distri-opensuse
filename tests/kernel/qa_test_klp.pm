@@ -25,7 +25,12 @@ sub run {
     }
 
     if (script_run('[ -d /lib/modules/$(uname -r)/build ]') != 0) {
-        zypper_call('in -l kernel-devel');
+        if (check_var('SLE_PRODUCT', 'slert')) {
+            zypper_call('in -l kernel-devel-rt');
+        }
+        else {
+            zypper_call('in -l kernel-devel');
+        }
     }
 
     my $git_repo = get_required_var('QA_TEST_KLP_REPO');
