@@ -15,12 +15,15 @@ use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
 
+our $file = 'tmpresults.xml';
+
 sub run ($self) {
     my $server_hostname = get_required_var("PDSH_MASTER_HOSTNAME");
 
     my $packages_to_install = 'munge pdsh';
     $packages_to_install .= ' pdsh-genders' if get_var('PDSH_GENDER_TEST');
-    zypper_call("in $packages_to_install");
+    my $rt = zypper_call("in $packages_to_install");
+    test_case('Install packages', 'pdsh installation', $rt);
     barrier_wait("PDSH_INSTALLATION_FINISHED");
     barrier_wait("PDSH_KEY_COPIED");
 
@@ -36,7 +39,8 @@ sub run ($self) {
 
     $self->switch_user('nobody');
     my $genders_plugin = get_var('PDSH_GENDER_TEST') ? '-g type=genders-test' : '';
-    assert_script_run("pdsh -R mrsh $genders_plugin -w $server_hostname ls / &> /tmp/pdsh.log");
+    $rt = assert_script_run("pdsh -R mrsh $genders_plugin -w $server_hostname ls / &> /tmp/pdsh.log");
+    test_case('Run remotelly mrsh module on the server', 'pdsh remote invocation', $rt);
     assert_script_run("test -s /tmp/pdsh.log");
     upload_logs '/tmp/pdsh.log';
     barrier_wait("PDSH_SLAVE_DONE");
@@ -44,6 +48,12 @@ sub run ($self) {
 
 sub test_flags ($self) {
     return {fatal => 1, milestone => 1};
+}
+
+sub post_run_hook ($self) {
+    pars_results('HPC pdsh tests', $file, @all_tests_results);
+    parse_extra_log('XUnit', $file);
+    $self->SUPER::post_run_hook();
 }
 
 sub post_fail_hook ($self) {
