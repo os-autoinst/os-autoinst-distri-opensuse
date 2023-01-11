@@ -352,7 +352,7 @@ sub test_default_backend {
                 m/(?:iptables\sv[[:digit:]].+\w)\s?($|(?:.legacy.$))/;
             } else {
                 if (m/(?:iptables\sv[[:digit:]].+\w)\s?($|(?:.legacy.$))/) {
-                    record_soft_failure('bsc#1206383');
+                    record_soft_failure('bsc#1206383 - iptables uses legacy backend instead of nftables');
                     return 1;
                 } else {
                     m/nf_tables/;
