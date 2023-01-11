@@ -58,6 +58,8 @@ sub rke2_agent_setup {
     # Check if the package 'ca-certificates-suse' are installed on the node
     ensure_ca_certificates_suse_installed();
     transactional::process_reboot(trigger => 1) if (is_transactional);
+    # Set long host name to avoid x509 server connection issue
+    assert_script_run('hostnamectl set-hostname ' . get_required_var('SUT_IP'));
 
     # RKE2 deployment on agent node
     # Default is to setup service with the latest RKE2 version, the parameter INSTALL_RKE2_VERSION allows to setup with a specified version.
@@ -92,6 +94,7 @@ sub rke2_agent_setup {
 
     assert_script_run("mkdir -p ~/.kube; scp root\@$server_ip:/etc/rancher/rke2/rke2.yaml ~/.kube/config");
     assert_script_run("sed -i 's/127.0.0.1/$server_ip/' ~/.kube/config");
+    assert_script_run('kubectl config view');
     assert_script_run('kubectl get nodes');
     $self->set_cpu_manager_policy();
 
