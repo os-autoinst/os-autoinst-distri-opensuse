@@ -5,7 +5,7 @@
 
 # Summary: The abstract class introduces interface to business actions for they
 # Expert Partitioner.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::Partitioner::AbstractExpertPartitionerController;
 use strict;

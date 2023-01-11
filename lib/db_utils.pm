@@ -40,10 +40,11 @@ sub build_influx_query {
 
 =head2 influxdb_push_data
 
-    influxdb_push_data($url, $db, $data [, quiet => 1])
+    influxdb_push_data($url, $db, $org, $token, $data [, quiet => 1])
 
 Builds an influx-db query and write it to the given database specified with
-C<url> and C<db> for the Influx DB name.
+C<url>, C<org> and C<db> for the Influx DB organization and database name.
+C<token> is used for user authentication.
 C<data> is a hash containing the table name in Influx DB, the tags
 and the values to plot.
 
@@ -56,11 +57,16 @@ Example of data:
 =cut
 
 sub influxdb_push_data {
-    my ($url, $db, $data, %args) = @_;
+    my ($url, $db, $org, $token, $data, %args) = @_;
     $args{quiet} //= 1;
     $data = build_influx_query($data);
-    my $cmd = sprintf("curl -i -X POST '%s/write?db=%s' --write-out 'RETURN_CODE:%%{response_code}' --data-binary '%s'", $url, $db, $data);
-    record_info('curl', $cmd);
+    my $cmd = sprintf("curl -iLk -X POST '$url/api/v2/write?org=$org&bucket=$db' --header 'Authorization: Token $token' --write-out 'RETURN_CODE:%%{response_code}' --data-binary '%s'", $data);
+
+    # Hide the token in the info box
+    my $out = $cmd;
+    $out =~ s/$token/<redacted>/;
+    record_info('curl', $out);
+
     my $output = script_output($cmd, quiet => $args{quiet});
     my ($return_code) = $output =~ /RETURN_CODE:(\d+)/;
     die("Fail to push data into Influx DB:\n$output") unless ($return_code >= 200 && $return_code < 300);
@@ -69,24 +75,35 @@ sub influxdb_push_data {
 =head2 influxdb_read_data
 
 Builds an Influx DB query and read data from specified database
-with C<url_base> and C<db> for the Influx DB name. C<query> contains
-SELECT query for given DB.
+with C<url_base>, C<db> and C<org> for the Influx DB name.
+C<token> contains the access token.
+C<query> contains SELECT query for given DB.
 
 returns json with results of SELECT query.
 
 =cut
 
 sub influxdb_read_data {
-    my ($url_base, $db, $query) = @_;
+    my ($url_base, $db, $org, $token, $query) = @_;
+
     my $ua = Mojo::UserAgent->new();
     $ua->max_redirects(5);
-    my $mojo_url = Mojo::URL->new($url_base . '/query');
-    $mojo_url->query(db => $db, q => $query);
-    my $res = $ua->get($mojo_url)->res;
-    unless ($res && $res->json) {
+
+    my $mojo_url = Mojo::URL->new("$url_base/query");
+    $mojo_url->query(orgID => $org, db => $db, q => $query);
+    my $res = $ua->post($mojo_url => {Authorization => "Token $token", Accept => "application/json", 'Content-type' => "application/json"})->res;
+    if ($res->code != 200) {
         die sprintf("Failed to get data from InfluxDB. \n Response code : %s \n Message: %s \n", $res->code, $res->message);
+    } else {
+        my $json = $res->json;
+        my @results = $json->{results};
+        # Check if we got an error object as reply
+        my $result = $results[0][0];
+        if (defined($result->{error})) {
+            die($result->{error});
+        }
+        return $json;
     }
-    return $res->json;
 }
 
 

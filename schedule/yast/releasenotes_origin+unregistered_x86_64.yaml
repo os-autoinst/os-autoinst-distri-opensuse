@@ -1,0 +1,20 @@
+---
+name: releasenotes_origin+unregistered
+description: >
+  Test fate#323273 - Check the origin (rpm or url) of the showed release notes.
+vars:
+  YUI_REST_API: 1
+schedule:
+  registration:
+    - installation/registration/skip_registration
+  extension_module_selection:
+    - installation/module_selection/select_module_desktop
+  system_role:
+    - installation/release_notes_from_url
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
+  installation:
+    - installation/confirm_installation
+  installation_logs: []
+  confirm_reboot: []
+  grub: []
+  first_login: []

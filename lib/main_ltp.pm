@@ -22,7 +22,8 @@ our @EXPORT_OK = qw(
 );
 
 sub load_kernel_tests {
-    if (get_var('LTP_BAREMETAL') && get_var('INSTALL_LTP')) {
+    if ((get_var('LTP_BAREMETAL') && get_var('INSTALL_LTP')) ||
+        is_backend_s390x) {
         load_kernel_baremetal_tests();
     } else {
         load_bootloader_s390x();

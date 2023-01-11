@@ -5,7 +5,7 @@
 
 # Summary: The module provides interface to act with Module Registration page
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::ModuleRegistration::ModuleRegistrationPage;
 use parent 'Installation::Navigation::NavigationBase';

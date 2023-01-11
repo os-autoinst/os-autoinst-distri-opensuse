@@ -5,7 +5,7 @@
 
 # Summary: Enlarge the YaST window for fullscreen in ssh-X test.
 
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

@@ -6,7 +6,7 @@
 # Summary: The class introduces business actions for License Page
 #          of the installer in openSUSE
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::License::Opensuse::LicenseAgreementController;
 use parent 'Installation::License::AbstractLicenseAgreementController';

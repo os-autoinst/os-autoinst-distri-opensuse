@@ -8,7 +8,7 @@
 # - Enter bootloader configuration option during install (unless is update)
 # - Set grub timeout to "-1" (60 if older than sle12sp1)
 # - Save screenshot
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

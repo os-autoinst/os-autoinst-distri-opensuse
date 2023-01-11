@@ -11,7 +11,7 @@
 #  issue with the live installer has been found and is worked around while
 #  recording a reference to the bug.
 #
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "installbasetest";
 use warnings;

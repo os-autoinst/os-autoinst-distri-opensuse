@@ -48,6 +48,8 @@ sub run {
         # Note: Clear previous qem_download_status.txt file here
         assert_script_run("echo 'Starting download' > ~/repos/qem_download_status.txt");
 
+        # In Incidents there is INCIDENT_REPO instead of MAINT_TEST_REPO
+        # Those two variables contain list of repositories separated by comma
         set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) unless get_var('MAINT_TEST_REPO');
         my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
         assert_script_run('touch /tmp/repos.list.txt');

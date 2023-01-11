@@ -1685,6 +1685,7 @@ sub load_extra_tests_geo_desktop {
 }
 
 sub load_extra_tests_console {
+    loadtest "console/ping";
     loadtest "console/check_os_release";
     loadtest "console/orphaned_packages_check";
     loadtest "console/cleanup_qam_testrepos" if has_test_issues;
@@ -2040,6 +2041,7 @@ sub load_x11_other {
             loadtest "x11/gnome_control_center";
             loadtest "x11/gnome_tweak_tool";
             loadtest "x11/seahorse";
+            loadtest "x11/gnome_music";
         }
         loadtest 'x11/flatpak' if (is_opensuse);
     }
@@ -2654,6 +2656,7 @@ sub load_system_prepare_tests {
     loadtest 'console/install_rt_kernel' if check_var('SLE_PRODUCT', 'SLERT');
     loadtest 'console/force_scheduled_tasks' unless is_jeos;
     loadtest 'console/check_selinux_fails' if get_var('SELINUX');
+    loadtest 'security/cc/ensure_crypto_checks_enabled' if check_var('SYSTEM_ROLE', 'Common_Criteria');
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
     replace_opensuse_repos_tests if is_repo_replacement_required;
     loadtest 'console/scc_deregistration' if get_var('SCC_DEREGISTER');

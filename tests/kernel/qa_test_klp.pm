@@ -25,7 +25,12 @@ sub run {
     }
 
     if (script_run('[ -d /lib/modules/$(uname -r)/build ]') != 0) {
-        zypper_call('in -l kernel-devel');
+        if (check_var('SLE_PRODUCT', 'slert')) {
+            zypper_call('in -l kernel-devel-rt');
+        }
+        else {
+            zypper_call('in -l kernel-devel');
+        }
     }
 
     my $git_repo = get_required_var('QA_TEST_KLP_REPO');
@@ -39,7 +44,10 @@ sub run {
 
     assert_script_run('git config --global http.sslVerify false');
     assert_script_run('git clone ' . $git_repo);
-    assert_script_run("cd $dir && ./run.sh", 2760);
+    assert_script_run("cd $dir");
+    record_info('qa_test_klp', script_output("git show | tee"));
+    record_info('bats', script_output("which bats 2>&1", proceed_on_failure => 1));
+    assert_script_run("./run.sh", 2760);
 }
 
 1;

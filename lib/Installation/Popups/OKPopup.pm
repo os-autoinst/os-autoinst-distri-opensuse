@@ -5,7 +5,7 @@
 
 # Summary: The class introduces methods in Expert Partitioner to handle
 # an OK popup containing the message in YRichText Widget.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::Popups::OKPopup;
 use strict;

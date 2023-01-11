@@ -8,27 +8,11 @@ vars:
   RAIDLEVEL:  '0'
   YUI_REST_API: 1
 schedule:
-  - installation/bootloader_start
-  - installation/setup_libyui
-  - installation/access_beta_distribution
-  - installation/product_selection/install_SLES
-  - installation/licensing/accept_license
-  - installation/registration/skip_registration
-  - installation/module_selection/skip_module_selection
-  - installation/add_on_product_installation/accept_add_on_installation
-  - installation/system_role/select_role_text_mode
-  - installation/partitioning/raid_gpt
-  - installation/clock_and_timezone/accept_timezone_configuration
-  - installation/authentication/use_same_password_for_root
-  - installation/authentication/default_user_simple_pwd
-  - installation/installation_settings/validate_default_target
-  - installation/bootloader_settings/disable_boot_menu_timeout
-  - installation/launch_installation
-  - installation/confirm_installation
-  - installation/performing_installation/perform_installation
-  - installation/logs_from_installation_system
-  - installation/performing_installation/confirm_reboot
-  - installation/grub_test
-  - installation/first_boot
+  registration:
+    - installation/registration/skip_registration
+  system_role:
+    - installation/system_role/select_role_text_mode
+  suggested_partitioning:
+    - installation/partitioning/raid_gpt
 test_data:
   <<: !include test_data/yast/raid/raid0_gpt_bios_boot.yaml

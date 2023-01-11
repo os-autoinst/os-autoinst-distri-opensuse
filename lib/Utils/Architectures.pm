@@ -30,6 +30,7 @@ use constant {
           is_orthos_machine
           is_supported_suse_domain
           is_zvm
+          is_32bit
         )
     ]
 };
@@ -193,6 +194,18 @@ Returns C<true if machine is s390x zVM>.
 
 sub is_zvm {
     return (get_var('MACHINE') =~ /zvm/i);
+}
+
+=head2 is_32bit
+
+ is_32bit();
+
+Returns C<true if machine is 32 bit architecture>.
+
+=cut
+
+sub is_32bit {
+    return is_i586 || is_i686 || is_arm;
 }
 
 1;

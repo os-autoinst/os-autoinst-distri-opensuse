@@ -194,6 +194,7 @@ sub load_transactional_tests {
 
 sub load_network_tests {
     loadtest 'microos/networking';
+    loadtest 'microos/networkmanager';
     loadtest 'microos/libzypp_config';
     # This method is only loaded in ALP
     loadtest 'console/firewalld';

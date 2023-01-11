@@ -5,7 +5,7 @@
 
 # Summary: Handles the pop-up that allows to select users from previous installation.
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::LocalUser::SelectUsersPage;
 use strict;

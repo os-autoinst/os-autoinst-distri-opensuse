@@ -7,7 +7,7 @@
 # Summary: setup one RMT server, sync, enable, mirror and list
 # products. Then export RMT data to one folder. Wait another RMT
 # Server to import those data
-# Maintainer: Yutao Wang <yuwang@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

@@ -8,7 +8,7 @@
 # It follows latest SLE 15 and only if it behaves different in Leap 15 then it
 # should be overriden here.
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Distribution::Opensuse::Leap::15;
 use strict;

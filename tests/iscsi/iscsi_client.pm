@@ -59,6 +59,7 @@ sub initiator_discovered_targets_tab {
     assert_screen 'iscsi-discovered-targets', 120;
     # press discovery button
     send_key "alt-d";
+    wait_still_screen(2);
     assert_screen 'iscsi-discovery';
     # go to IP address field
     send_key "alt-i";
@@ -89,6 +90,7 @@ sub initiator_discovered_targets_tab {
 sub initiator_connected_targets_tab {
     # go to discovered targets tab
     send_key "alt-d";
+    wait_still_screen(2);
     apply_workaround_bsc1204176('iscsi-initiator-discovered-targets') if (is_sle('>=15-SP4'));
     assert_screen 'iscsi-initiator-discovered-targets';
     # go to connected targets tab

@@ -16,7 +16,8 @@ sub run {
     assert_screen('ntp_config_settings');
 
     my $ntp_pool = (is_microos || is_tumbleweed) ? 'opensuse-pool' : 'suse-pool';
-    assert_screen($ntp_pool);
+    # ipmi backend is linked to physical machine which can have ntp ip address offered by dhcp
+    assert_screen($ntp_pool) unless (get_var('BACKEND', '') eq 'ipmi' and check_var('VIDEOMODE', 'text'));
 
     send_key 'alt-n';
 }

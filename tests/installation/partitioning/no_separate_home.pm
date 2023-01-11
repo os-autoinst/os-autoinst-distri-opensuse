@@ -6,7 +6,7 @@
 # Summary: The test module goes through the Suggested Partitioning wizard,
 # keeping all the default values but explicitly disables separate /home
 # partition.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use parent 'y2_installbase';
 use strict;

@@ -7,7 +7,7 @@
 #          on s390x and ppc64le with extra /boot, not on aarch64 because of UEFI
 #          Requirements are different for storage-ng https://github.com/yast/yast-storage-ng/blob/master/doc/boot-requirements.md
 #          With UNENCRYPTED_BOOT set to true, test will have separate /boot partition for all architectures
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_installbase';
 use strict;

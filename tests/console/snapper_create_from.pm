@@ -8,7 +8,7 @@
 # `snapper` is used for creating the snapshots used by transactional-update and
 # not only can create a snapshot of the currently active one, but also has available
 # the option `--from` to branch off a different snapshot.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

@@ -9,7 +9,7 @@
 # Tumbleweed distribution, and only if it behaves different in Sle15 then it
 # should be overriden here.
 
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Distribution::Sle::15_current;
 use strict;

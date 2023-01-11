@@ -5,7 +5,7 @@
 
 # Package: yast2-snapper snapper
 # Summary: yast2 snapper test for ncurses
-# Maintainer: Lemon <leli@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base qw(y2snapper_common y2_module_consoletest);
 

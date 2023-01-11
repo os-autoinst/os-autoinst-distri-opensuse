@@ -10,7 +10,7 @@
 #          FIPS 140-3: make OpenJDK be able to use the NSS certified crypto
 #          Run Java SSH / Client http://www.jcraft.com/jsch/
 # Tags: poo#112034
-# Maintainer: Yutao Wang <yuwang@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "x11test";
 use strict;

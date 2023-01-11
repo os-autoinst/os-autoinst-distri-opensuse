@@ -4,6 +4,7 @@ description:    >
     Tests for virtualization tests
 schedule:
   - console/login
+  - virt_autotest/cleanup_libvirtd_log
   - '{{qam_tests}}'
   - virtualization/universal/finish
 conditional_schedule:

@@ -6,7 +6,7 @@
 # Package: zypper
 # Summary: auto import gpg keys
 # Auto import gpg keys, useful when we re-launch the test suite after the gpg key for maintenance repositories have expired (eg next day after initial run).
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "y2_module_consoletest";
 use strict;

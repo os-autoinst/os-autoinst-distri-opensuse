@@ -10,7 +10,7 @@
 # - Display the exclusive space used by each snapshot
 # - Query the exclusive space when data is included in a single snapshot
 # - Query the exclusive space when data is included in several snapshots (pre- and post-)
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'btrfs_test';
 use strict;

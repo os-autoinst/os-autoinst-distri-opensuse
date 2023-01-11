@@ -6,7 +6,7 @@
 # Package: apparmor-parser patterns-base-apparmor apparmor-utils
 # Summary: Package for apparmor service tests
 #
-# Maintainer: Huajian Luo <hluo@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package services::apparmor;
 use base "apparmortest";

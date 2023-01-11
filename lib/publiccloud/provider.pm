@@ -30,6 +30,8 @@ has terraform_applied => 0;
 has resource_name => sub { get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm') };
 has provider_client => undef;
 
+has ssh_key => '/root/.ssh/id_rsa';
+
 =head1 METHODS
 
 =cut
@@ -194,7 +196,7 @@ sub run_img_proof {
     $cmd .= '--access-key-id $AWS_ACCESS_KEY_ID --secret-access-key $AWS_SECRET_ACCESS_KEY ' if (is_ec2());
     $cmd .= "--ssh-key-name '" . $args{key_name} . "' " if ($args{key_name});
     $cmd .= '-u ' . $args{user} . ' ' if ($args{user});
-    $cmd .= '--ssh-private-key-file "' . $args{instance}->ssh_key . '" ';
+    $cmd .= '--ssh-private-key-file "' . $self->ssh_key . '" ';
     $cmd .= '--running-instance-id "' . ($args{running_instance_id} // $args{instance}->instance_id) . '" ';
     $cmd .= "--beta $beta " if ($beta);
     if ($exclude) {
@@ -235,6 +237,9 @@ sub get_image_id {
     my ($self, $img_url) = @_;
     my $predefined_id = get_var('PUBLIC_CLOUD_IMAGE_ID');
     return $predefined_id if ($predefined_id);
+    # If a URI is given, then no image ID should be determined
+    return '' if (get_var('PUBLIC_CLOUD_IMAGE_URI'));
+    # Determine image ID from image filename
     $img_url //= get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION');
     my ($img_name) = $img_url =~ /([^\/]+)$/;
     $self->{image_cache} //= {};
@@ -363,15 +368,15 @@ sub terraform_apply {
     $args{count} //= '1';
     my $instance_type = get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
     my $image = $self->get_image_id();
-    my $ssh_private_key_file = '/root/.ssh/id_rsa';
+    my $image_uri = get_var("PUBLIC_CLOUD_IMAGE_URI");
     my $cloud_name = $self->conv_openqa_tf_name;
 
     record_info('WARNING', 'Terraform apply has been run previously.') if ($self->terraform_applied);
 
     $self->terraform_prepare_env();
 
-    record_info('INFO', "Creating instance $instance_type from $image ...");
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
+        record_info('INFO', "Creating instance $instance_type from $image ...");
         assert_script_run('cd ' . TERRAFORM_DIR . "/$cloud_name");
         my $sap_media = get_required_var('HANA');
         my $sap_regcode = get_required_var('SCC_REGCODE_SLES4SAP');
@@ -399,8 +404,7 @@ sub terraform_apply {
         upload_logs(TERRAFORM_DIR . "/$cloud_name/terraform.tfvars", failok => 1);
         script_retry('terraform init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
         assert_script_run("terraform workspace new ${resource_group}${suffix} -no-color", $terraform_timeout);
-    }
-    else {
+    } else {
         assert_script_run('cd ' . TERRAFORM_DIR);
         script_retry('terraform init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
     }
@@ -412,7 +416,16 @@ sub terraform_apply {
             my $value = $args{vars}->{$key};
             $cmd .= sprintf(q(-var '%s=%s' ), $key, escape_single_quote($value));
         }
-        $cmd .= "-var 'image_id=" . $image . "' " if ($image);
+        # image_uri and image_id are mutally exclusive
+        if ($image_uri && $image) {
+            die "PUBLIC_CLOUD_IMAGE_URI and PUBLIC_CLOUD_IMAGE_ID are mutually exclusive";
+        } elsif ($image_uri) {
+            $cmd .= "-var 'image_uri=" . $image_uri . "' ";
+            record_info('INFO', "Creating instance $instance_type from $image_uri ...");
+        } elsif ($image) {
+            $cmd .= "-var 'image_id=" . $image . "' ";
+            record_info('INFO', "Creating instance $instance_type from $image ...");
+        }
         if (is_azure) {
             # Note: Only the default Azure terraform profiles contains the 'storage-account' variable
             my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT');
@@ -480,7 +493,6 @@ sub terraform_apply {
             resource_id => $resource_id,
             instance_id => @{$vms}[$i],
             username => $self->provider_client->username,
-            ssh_key => $ssh_private_key_file,
             image_id => $image,
             region => $self->provider_client->region,
             type => $instance_type,
@@ -520,10 +532,12 @@ sub terraform_destroy {
         # Add image_id, offer and sku on Azure runs, if defined.
         if (is_azure) {
             my $image = $self->get_image_id();
+            my $image_uri = get_var('PUBLIC_CLOUD_IMAGE_URI');
             my $offer = get_var('PUBLIC_CLOUD_AZURE_OFFER');
             my $sku = get_var('PUBLIC_CLOUD_AZURE_SKU');
             my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT');
             $cmd .= " -var 'image_id=$image'" if ($image);
+            $cmd .= " -var 'image_uri=${image_uri}'" if ($image_uri);
             $cmd .= " -var 'offer=$offer'" if ($offer);
             $cmd .= " -var 'sku=$sku'" if ($sku);
             $cmd .= " -var 'storage-account=$storage_account'" if ($storage_account);

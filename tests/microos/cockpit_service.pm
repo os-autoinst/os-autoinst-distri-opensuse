@@ -14,11 +14,12 @@ use transactional;
 use utils qw(systemctl);
 use mm_network qw(is_networkmanager);
 use version_utils qw(is_microos is_sle_micro is_leap_micro is_alp);
+use serial_terminal;
 
 sub run {
     my ($self) = @_;
 
-    select_console 'root-console';
+    select_serial_terminal;
 
     # Install cockpit if needed, this is needed for DVD flavor where
     # Cockpit pattern is not selected during install
@@ -49,6 +50,8 @@ sub run {
 
     if (@pkgs) {
         record_info('TEST', 'Installing Cockpit\'s Modules...');
+        # In ALP, we need to refresh the metadata. poo#122029
+        assert_script_run('zypper ref') if is_alp;
         trup_call("pkg install @pkgs", timeout => 480);
         check_reboot_changes;
     }

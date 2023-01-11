@@ -15,7 +15,6 @@ use publiccloud::utils "is_byos";
 use publiccloud::aws_client;
 use publiccloud::ssh_interactive 'select_host_console';
 
-has ssh_key => undef;
 has ssh_key_file => undef;
 
 sub init {

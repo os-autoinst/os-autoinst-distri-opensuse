@@ -33,10 +33,6 @@ sub prepare_repo {
     }
 
     my $repo_args = join(' ', map({ "-r $_" } @repo_names));
-    my $patches = get_patches($incident_id, $repo);
-
-    die "Patch isn't needed" unless $patches;
-
     my $packlist = zypper_search("-st package $repo_args");
 
     if (grep { $$_{name} eq 'glibc-livepatches' } @$packlist) {
@@ -45,6 +41,10 @@ sub prepare_repo {
     }
     elsif (grep { $$_{name} eq 'libpulp0' || $$_{name} eq 'libpulp-tools' } @$packlist) {
         record_info('Tools tests', "Incident $incident_id contains livepatching tools.");
+
+        my $patches = get_patches($incident_id, $repo);
+
+        die "Patch isn't needed" unless $patches;
         $packname = 'openposix-livepatches';
         $repo_args = '';
 

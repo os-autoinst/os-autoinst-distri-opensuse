@@ -82,7 +82,13 @@ sub update_kernel {
     my ($repo, $incident_id) = @_;
 
     fully_patch_system;
-    zypper_call('in kernel-devel') if is_sle('12+');
+
+    if (check_var('SLE_PRODUCT', 'slert')) {
+        zypper_call('in kernel-devel-rt');
+    }
+    elsif (is_sle('12+')) {
+        zypper_call('in kernel-devel');
+    }
 
     my @repos = split(",", $repo);
     while (my ($i, $val) = each(@repos)) {

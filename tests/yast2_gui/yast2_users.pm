@@ -6,7 +6,7 @@
 
 # Package: yast2-users
 # Summary: Test initial startup of users configuration YaST2 module
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "y2_module_guitest";
 use strict;

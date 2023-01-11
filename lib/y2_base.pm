@@ -3,7 +3,7 @@
 # Copyright 2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package y2_base;
 

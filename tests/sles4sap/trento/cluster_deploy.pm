@@ -36,7 +36,7 @@ sub post_fail_hook {
     qesap_upload_logs();
     if (!get_var('TRENTO_EXT_DEPLOY_IP')) {
         k8s_logs(qw(web runner));
-        trento_support('cluster_deploy');
+        trento_support();
         az_delete_group();
     }
     cluster_destroy();

@@ -6,7 +6,7 @@
 # Summary: The class introduces all accessing methods action buttons in yast2 lan YaST module.
 # The buttons in the bottom of the screen that are available across all the pages (e.g. "Next", "Cancel");
 # This is a part of a screen and it has to be included in Network Settings Controller.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package YaST::NetworkSettings::ActionButtons;
 use strict;

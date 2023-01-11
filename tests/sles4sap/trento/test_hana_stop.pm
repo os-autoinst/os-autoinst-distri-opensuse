@@ -27,9 +27,10 @@ sub run {
     cluster_wait_status($primary_host, sub { ((shift =~ m/.+UNDEFINED.+SFAIL/) && (shift =~ m/.+PROMOTED.+PRIM/)); });
 
     my $cypress_test_dir = "/root/test/test";
-    enter_cmd "cd " . $cypress_test_dir;
+    enter_cmd "cd $cypress_test_dir";
     cypress_test_exec($cypress_test_dir, 'stop_primary', bmwqemu::scale_timeout(900));
-    trento_support('test_hana_stop');
+    trento_support();
+    trento_collect_scenarios('test_hana_stop');
 }
 
 sub post_fail_hook {
@@ -37,7 +38,8 @@ sub post_fail_hook {
     qesap_upload_logs();
     if (!get_var('TRENTO_EXT_DEPLOY_IP')) {
         k8s_logs(qw(web runner));
-        trento_support('test_hana_stop');
+        trento_support();
+        trento_collect_scenarios('test_hana_stop_fail');
         az_delete_group();
     }
     cluster_destroy();

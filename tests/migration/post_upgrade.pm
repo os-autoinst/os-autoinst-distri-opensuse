@@ -6,7 +6,7 @@
 # Summary: Actions required after upgrade
 #       Such as:
 #       1) Change the HDDVERSION to UPGRADE_TARGET_VERSION
-# Maintainer: Wei Gao <wegao@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "opensusebasetest";
 use strict;

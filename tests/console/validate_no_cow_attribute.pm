@@ -13,7 +13,7 @@
 #    Requires 'test_data->{subvolume}->{cow}' with the list of subvolumes
 #    to be specified in yaml scheduling file.
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

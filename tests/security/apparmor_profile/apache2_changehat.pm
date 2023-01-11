@@ -44,7 +44,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils qw(is_sle is_leap is_alp is_tumbleweed);
 use registration qw(add_suseconnect_product register_product);
 
 sub run {
@@ -80,7 +80,12 @@ sub run {
         add_suseconnect_product("sle-module-web-scripting", "$version", "$arch", "$params", "$timeout");
         add_suseconnect_product("sle-module-legacy", "$version", "$arch", "$params", "$timeout");
     }
-    zypper_call("in apache2 apache2-mod_apparmor apache2-mod_php7 php7 php7-mysql");
+
+    if (is_sle(">=15-SP4") || is_leap(">15.4") || is_tumbleweed() || is_alp()) {
+        zypper_call("in apache2 apache2-mod_apparmor apache2-mod_php8 php8 php8-mysql");
+    } else {
+        zypper_call("in apache2 apache2-mod_apparmor apache2-mod_php7 php7 php7-mysql");
+    }
 
     # Restart apparmor
     systemctl("restart apparmor");

@@ -13,9 +13,10 @@ use base "sles4sap";
 use testapi;
 use Utils::Backends;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_public_cloud);
 use Utils::Architectures;
 use Mojo::JSON 'encode_json';
+use publiccloud::instances;
 use strict;
 use warnings;
 
@@ -36,9 +37,14 @@ our $result_module;
 sub reboot_wait {
     my ($self) = @_;
 
-    # Do not reboot if testing in public cloud instance,
-    # reboot will terminate the ssh tunnel
-    $self->reboot if (!get_var('PUBLIC_CLOUD_SLES4SAP'));
+    if (is_public_cloud) {
+        # Reboot on publiccloud needs to happen via their dedicated reboot routine
+        my $instance = publiccloud::instances::get_instance();
+        $instance->softreboot(timeout => 1200);
+    }
+    else {
+        $self->reboot;
+    }
 }
 
 sub get_notes {

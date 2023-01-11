@@ -14,7 +14,7 @@
 #   * We test mount and umount and we check for the version
 #   * We try to read and write some forbiden files
 #   * We download 1GB file and check it's checksum
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "y2_module_consoletest";
 

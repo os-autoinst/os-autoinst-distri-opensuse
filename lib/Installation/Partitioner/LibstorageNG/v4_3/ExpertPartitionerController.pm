@@ -8,7 +8,7 @@
 # Libstorage-NG version 4.3 introduces reworked UI which heavily relies on new
 # menu widget bar
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
 use strict;

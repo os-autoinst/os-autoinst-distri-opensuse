@@ -6,7 +6,7 @@
 # Summary: The class introduces business actions for the Performing Installation
 #          Page in the installer.
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::PerformingInstallation::PerformingInstallationController;
 use strict;
