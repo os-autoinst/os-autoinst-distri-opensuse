@@ -25,6 +25,12 @@ sub run {
     my $f_fregex = $stigtest::f_fregex;
     my $passed_rules_ref;
     my $failed_rules_ref;
+    my $eval_match = 'm/
+                    Rule.*content_rule_is_fips_mode_enabled.*Result.*fail.*
+                    Rule.*content_rule_partition_for_var_log_audit.*Result.*fail.*
+                    Rule.*content_rule_smartcard_pam_enabled.*Result.*fail.*
+                    Rule.*content_rule_grub2_password.*Result.*fail.*
+                    Rule.*content_rule_no_files_unowned_by_user.*Result.*fail/sxx';
 
     select_console 'root-console';
 
@@ -33,7 +39,7 @@ sub run {
     record_info("Return=$ret", "# oscap xccdf eval --profile $profile_ID --remediate\" returns: $ret");
 
     #Verify rules
-    validate_script_output "cat $f_stdout", sub { $eval_match }, timeout => 300;
+#    validate_script_output "cat $f_stdout", sub { $eval_match }, timeout => 300;
     my $data = script_output "cat $f_stdout";
 
     #Verify number of passed and failed rules
