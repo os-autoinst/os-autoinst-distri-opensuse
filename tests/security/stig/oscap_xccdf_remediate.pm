@@ -27,7 +27,7 @@ sub run {
     # Verify mitigation mode
     my $ret = script_run("oscap xccdf eval --profile $profile_ID --remediate --oval-results --report $f_report $f_ssg_ds > $f_stdout 2> $f_stderr", timeout => 600);
     record_info("Return=$ret", "# oscap xccdf eval --profile $profile_ID --remediate\" returns: $ret");
-    if ($ret != 0 || $ret != 2) {
+    if ($ret != 0 and $ret != 2) {
         $self->result('fail');
         record_info('bsc#1194676', 'remediation should be succeeded');
     }
