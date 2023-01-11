@@ -10,6 +10,7 @@ use Mojo::Base "consoletest";
 use testapi;
 use utils;
 use transactional;
+use version_utils 'is_alp';
 
 # the below network confiration is used if we use qemu user net
 my $dhcp_server = '10.0.2.2';
@@ -89,14 +90,11 @@ true'
     die 'wrong DNS-Manager is currently used for dnsmasq' if ($RcManager !~ /symlink/ || $mode !~ /dnsmasq/);
     ping_check;
     # systemd-resolved
-    assert_script_run('rm -rf /etc/NetworkManager/conf.d/00-use-dnsmasq.conf');
-    trup_call('pkg install systemd-network');
-    check_reboot_changes;
-    if (script_run('systemctl enable --now systemd-resolved.service') != 0) {
-        record_soft_failure('bsc#1206352  ALP fails to enable service "systemd-resolved.service"');
-        return;
-    }
-    else {
+    # Due to bsc#1206352, we will skip this test coverage on ALP for the time being
+    if (!is_alp) {
+        assert_script_run('rm -rf /etc/NetworkManager/conf.d/00-use-dnsmasq.conf');
+        trup_call('pkg install systemd-network');
+        check_reboot_changes;
         assert_script_run('ln -rsf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf');
         systemctl('restart NetworkManager');
         record_info('with systemd-resolved');
