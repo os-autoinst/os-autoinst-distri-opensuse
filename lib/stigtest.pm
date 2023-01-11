@@ -89,8 +89,6 @@ sub pattern_count_in_file {
         push(@rules, $lines[$i - 4]);
         }
     }
-#    record_info("Pattern $pattern count=$count", "### pattern $pattern count in data is $count. Matched rules:\n @rules");
-
     #Returning by reference array of matched rules
     $_[3] = \@rules;
     return $count;

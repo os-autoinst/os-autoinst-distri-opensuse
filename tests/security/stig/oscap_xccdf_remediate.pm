@@ -21,36 +21,36 @@ sub run {
     my $f_stdout = $stigtest::f_stdout;
     my $f_stderr = $stigtest::f_stderr;
     my $f_report = $stigtest::f_report;
-    my $f_pregex = $stigtest::f_pregex;
-    my $f_fregex = $stigtest::f_fregex;
-    my $passed_rules_ref;
-    my $failed_rules_ref;
-    my $eval_match = 'm/
-                    Rule.*content_rule_is_fips_mode_enabled.*Result.*fail.*
-                    Rule.*content_rule_partition_for_var_log_audit.*Result.*fail.*
-                    Rule.*content_rule_smartcard_pam_enabled.*Result.*fail.*
-                    Rule.*content_rule_grub2_password.*Result.*fail.*
-                    Rule.*content_rule_no_files_unowned_by_user.*Result.*fail/sxx';
 
     select_console 'root-console';
 
     # Verify mitigation mode
     my $ret = script_run("oscap xccdf eval --profile $profile_ID --remediate --oval-results --report $f_report $f_ssg_ds > $f_stdout 2> $f_stderr", timeout => 600);
     record_info("Return=$ret", "# oscap xccdf eval --profile $profile_ID --remediate\" returns: $ret");
-
-    #Verify rules
-#    validate_script_output "cat $f_stdout", sub { $eval_match }, timeout => 300;
-    my $data = script_output "cat $f_stdout";
-
-    #Verify number of passed and failed rules
-    my $pass_count = $self->pattern_count_in_file($data,$f_pregex,$passed_rules_ref);
-    record_info("Pass count=$pass_count", "Pattern $f_pregex count in file $f_stdout is $pass_count. Matched rules: \n @$passed_rules_ref");
-    my $fail_count = $self->pattern_count_in_file($data,$f_fregex,$failed_rules_ref);
-    record_info("Fail count=$fail_count", "Pattern $f_fregex count in file $f_stdout is $fail_count. Matched rules: \n @$failed_rules_ref");
-#    if ($ret) {
-#        $self->result('fail');
-#        record_info('bsc#1194676', 'remediation should be succeeded');
-#    }
+    if ($ret != 0 || $ret != 2) {
+        $self->result('fail');
+        record_info('bsc#1194676', 'remediation should be succeeded');
+    }
+    if ($stigtest::remediated == 0) {
+        $stigtest::remediated = 1;
+        record_info('remediated', 'setting status remediated');
+        }
+=comment
+    OSCAP exit codes from https://github.com/OpenSCAP/openscap/blob/maint-1.3/utils/oscap-tool.h
+    // standard oscap CLI exit statuses
+    enum oscap_exitcode {
+        OSCAP_OK             =   0, // successful exit
+        OSCAP_ERROR          =   1, // an error occurred
+        OSCAP_FAIL           =   2, // a process (e.g. scan or validation) failed
+        OSCAP_ERR_FETCH      =   1, // cold not fetch input file (same as error for now)
+        OSCAP_BADARGS        = 100, // bad commandline arguments
+        OSCAP_BADMODULE      = 101, // unrecognized module
+        OSCAP_UNIMPL_MOD     = 110, // module functionality not implemented
+        OSCAP_UNIMPL         = 111, // functionality not implemented
+        // end of list
+        OSCAP_EXITCODES_END_ = 120  // any code returned shall not be higher than this
+    };
+=cut
 
     # Upload logs & ouputs for reference
     # Configure to upload html report
