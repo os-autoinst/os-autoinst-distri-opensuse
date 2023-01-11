@@ -32,6 +32,8 @@ our @EXPORT = qw(
 our $f_stdout = 'stdout';
 our $f_stderr = 'stderr';
 our $f_report = 'report.html';
+our $f_pregex = '\\bpass\\b';
+our $f_fregex = '\\bfail\\b';
 
 # Set default value for 'scap-security-guide' ds file
 our $f_ssg_sle_ds = '/usr/share/xml/scap/ssg/content/ssg-sle12-ds.xml';
@@ -54,8 +56,7 @@ sub set_ds_file {
     $f_ssg_sle_ds = '/usr/share/xml/scap/ssg/content/ssg-sle' . "$version" . '-ds.xml';
 }
 
-sub upload_logs_reports
-{
+sub upload_logs_reports{
     # Upload logs & ouputs for reference
     my $files;
     if (is_sle) {
@@ -74,7 +75,7 @@ sub upload_logs_reports
 }
 
 sub pattern_count_in_file {
-#    my ($self, $data, $pattern) = @_;
+    #Find count and rules names of matched pattern
     my $self = $_[0];
     my $data = $_[1];
     my $pattern = $_[2];
@@ -88,10 +89,9 @@ sub pattern_count_in_file {
         push(@rules, $lines[$i - 4]);
         }
     }
+#    record_info("Pattern $pattern count=$count", "### pattern $pattern count in data is $count. Matched rules:\n @rules");
 
-    record_info("Pattern $pattern count=$count", "### pattern $pattern count in data is $count. Matched rules:\n @rules");
-#    print("pattern_count_in_file returned $count for $pattern");
-    #returning by reference array of matched rules
+    #Returning by reference array of matched rules
     $_[3] = \@rules;
     return $count;
 }

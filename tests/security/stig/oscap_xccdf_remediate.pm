@@ -21,12 +21,26 @@ sub run {
     my $f_stdout = $stigtest::f_stdout;
     my $f_stderr = $stigtest::f_stderr;
     my $f_report = $stigtest::f_report;
+    my $f_pregex = $stigtest::f_pregex;
+    my $f_fregex = $stigtest::f_fregex;
+    my $passed_rules_ref;
+    my $failed_rules_ref;
 
     select_console 'root-console';
 
     # Verify mitigation mode
     my $ret = script_run("oscap xccdf eval --profile $profile_ID --remediate --oval-results --report $f_report $f_ssg_ds > $f_stdout 2> $f_stderr", timeout => 600);
     record_info("Return=$ret", "# oscap xccdf eval --profile $profile_ID --remediate\" returns: $ret");
+
+    #Verify rules
+    validate_script_output "cat $f_stdout", sub { $eval_match }, timeout => 300;
+    my $data = script_output "cat $f_stdout";
+
+    #Verify number of passed and failed rules
+    my $pass_count = $self->pattern_count_in_file($data,$f_pregex,$passed_rules_ref);
+    record_info("Pass count=$pass_count", "Pattern $f_pregex count in file $f_stdout is $pass_count. Matched rules: \n @$passed_rules_ref");
+    my $fail_count = $self->pattern_count_in_file($data,$f_fregex,$failed_rules_ref);
+    record_info("Fail count=$fail_count", "Pattern $f_fregex count in file $f_stdout is $fail_count. Matched rules: \n @$failed_rules_ref");
 #    if ($ret) {
 #        $self->result('fail');
 #        record_info('bsc#1194676', 'remediation should be succeeded');

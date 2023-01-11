@@ -32,70 +32,42 @@ sub run {
     my $f_stdout = $stigtest::f_stdout;
     my $f_stderr = $stigtest::f_stderr;
     my $f_report = $stigtest::f_report;
+    my $f_pregex = $stigtest::f_pregex;
+    my $f_fregex = $stigtest::f_fregex;
+    my $passed_rules_ref;
+    my $failed_rules_ref;
 
     # Verify detection mode
     my $ret = script_run("oscap xccdf eval --profile $profile_ID --oval-results --report $f_report $f_ssg_ds > $f_stdout 2> $f_stderr", timeout => 600);
     record_info("errno=$ret", "# oscap xccdf eval --profile \"$profile_ID\" returns: $ret");
-#    if ($ret == 0) {
-#        record_info('PASS');
-#    } elsif ($ret == 1 || $ret == 2) {
-#        record_info("errno=$ret", "# oscap xccdf eval --profile \"$profile_ID\" returns: $ret");
-#        # Note: the system is not fully compliant before remediation so some fails are permitted
-#        # For a new installed OS the first time remediate can permit fail
-#        if ($stigtest::remediated == 0) {
-#            $stigtest::remediated = 1;
-#            record_info('non remediated', 'before remediation some fails are permitted');
-#        } else {
-#            $self->result('fail');
-#            record_info('remediated', 'after remediation fails are not permitted');
-#        }
-#    } else {
-#        $self->result('fail');
-#    }
-    #Verify failed rules
+
+    #Verify rules
     validate_script_output "cat $f_stdout", sub { $eval_match }, timeout => 300;
     my $data = script_output "cat $f_stdout";
+
     #Verify number of passed and failed rules
-    my $pass_pattern = "\\bpass\\b";
-    my $fail_pattern = "\\bfail\\b";
-    my @passed_rules;
-    my @failed_rules;
-    my $passed_rules_ref;
-    my $failed_rules_ref;
-
-    my $pass_count = 0;
-    my $fail_count = 0;
-
-    print("IN Pattern: $pass_pattern \n");
-    my @lines = split /\n|\r/, $data;
-=pod
-    for my $i (0 .. $#lines)    {
-        if($lines[$i] =~ /$pass_pattern/){
-        push(@passed_rules, $lines[$i - 4]);
-        $pass_count ++;
+    my $pass_count = $self->pattern_count_in_file($data,$f_pregex,$passed_rules_ref);
+    record_info("Pass count=$pass_count", "Pattern $f_pregex count in file $f_stdout is $pass_count. Matched rules: \n @$passed_rules_ref");
+    my $fail_count = $self->pattern_count_in_file($data,$f_fregex,$failed_rules_ref);
+    record_info("Fail count=$fail_count", "Pattern $f_fregex count in file $f_stdout is $fail_count. Matched rules: \n @$failed_rules_ref");
+=comment
+    if ($ret == 0) {
+        record_info('PASS');
+    } elsif ($ret == 1 || $ret == 2) {
+        record_info("errno=$ret", "# oscap xccdf eval --profile \"$profile_ID\" returns: $ret");
+        # Note: the system is not fully compliant before remediation so some fails are permitted
+        # For a new installed OS the first time remediate can permit fail
+        if ($stigtest::remediated == 0) {
+            $stigtest::remediated = 1;
+            record_info('non remediated', 'before remediation some fails are permitted');
+        } else {
+            $self->result('fail');
+            record_info('remediated', 'after remediation fails are not permitted');
         }
-        if($lines[$i] =~ /$fail_pattern/){
-         push(@failed_rules, $lines[$i - 4]);
-        $fail_count ++;
-        }
+    } else {
+        $self->result('fail');
     }
 =cut
-
-    $pass_count = $self->pattern_count_in_file($data,$pass_pattern,$passed_rules_ref);
-    $fail_count = $self->pattern_count_in_file($data,$fail_pattern,$failed_rules_ref);
-#    foreach my $line (@lines){
-#        print("$line \n");
-#        if($line =~ /$pass_pattern/){
-#        $pass_count ++;
-#        }
-#        if($line =~ /$fail_pattern/){
-#        $fail_count ++;
-#        }
-#    }
-
-    record_info("Pass count=$pass_count", "Pattern $pass_pattern count in file $f_stdout is $pass_count. Matched rules: \n @$passed_rules_ref");
-    record_info("Fail count=$fail_count", "Pattern $fail_pattern count in file $f_stdout is $fail_count. Matched rules: \n @$failed_rules_ref");
-#    my $fail_count = $self->pattern_count_in_file($f_stdout,$fail_pattern);
 
     # Upload logs & ouputs for reference
     $self->upload_logs_reports();
