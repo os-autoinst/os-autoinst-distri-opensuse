@@ -13,6 +13,7 @@ use strict;
 use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use Utils::Architectures 'is_aarch64';
 use version_utils qw(is_sle is_opensuse is_staging);
 use utils 'zypper_call';
 use repo_tools 'get_repo_var_name';
@@ -25,7 +26,8 @@ sub run {
     zypper_call "in autoyast2";
 
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'clone_system');
-    wait_serial("$module_name-0", 360) || die "'yast2 clone_system' didn't finish";
+    my $timeout = is_aarch64 ? 1200 : 360;
+    wait_serial("$module_name-0", $timeout) || die "'yast2 clone_system' didn't finish";
 
     # Workaround for aarch64, as ncurces UI is not updated properly sometimes
     script_run('clear');
