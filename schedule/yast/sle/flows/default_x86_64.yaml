@@ -13,12 +13,14 @@ license_agreement:
 registration:
   - installation/registration/register_via_scc
 extension_module_selection:
-  - installation/module_selection/skip_module_selection
+  - installation/module_registration/skip_module_registration
+additional_products: []
 add_on_product:
-  - installation/add_on_product_installation/accept_add_on_installation
+  - installation/add_on_product/skip_install_addons
 add_on_product_installation: []
 system_role:
   - installation/system_role/accept_selected_role_text_mode
+guided_partitioning: []
 suggested_partitioning:
   - installation/partitioning/accept_proposed_layout
 clock_and_timezone:

@@ -1,6 +1,6 @@
 ---
-name:           skip_registration
-description:    >
+name: skip_registration
+description: >
   Skipping registration for SLE 15, as requires network connection.
   This is default behavior for SLE 12.
 vars:
@@ -10,6 +10,8 @@ schedule:
     - installation/registration/skip_registration
   extension_module_selection:
     - installation/module_selection/select_module_desktop
+  add_on_product:
+    - installation/add_on_product_installation/accept_add_on_installation
   system_role:
     - installation/system_role/accept_selected_role_SLES_with_GNOME
   default_systemd_target:
