@@ -58,6 +58,12 @@ sub add_separate_ha_registration_code {
     $self->get_module_regcode_page()->press_next();
 }
 
+sub add_separate_ltss_registration_code {
+    my ($self, $regcode) = @_;
+    $self->get_module_regcode_page()->set_ltss_regcode($regcode);
+    $self->get_module_regcode_page()->press_next();
+}
+
 sub trust_gnupg_key {
     my ($self) = @_;
     $self->get_untrusted_GPG_popup()->press_trust();
