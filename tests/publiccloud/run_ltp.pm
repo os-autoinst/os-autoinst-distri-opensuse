@@ -150,7 +150,7 @@ sub run {
     zypper_call("in -y python3-paramiko python3-scp");
     my $sut = ':user=' . $instance->username;
     $sut .= ':sudo=1';
-    $sut .= ':key_file=' . $instance->ssh_key;
+    $sut .= ':key_file=' . $instance->provider->ssh_key;
     $sut .= ':host=' . $instance->public_ip;
     $sut .= ':reset_command=\'' . $reset_cmd . '\'';
     $sut .= ':hostkey_policy=missing';
