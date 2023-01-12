@@ -24,9 +24,7 @@ use utils 'script_retry';
 use upload_system_log 'upload_supportconfig_log';
 use proxymode;
 use version_utils qw(is_sle is_alp);
-use virt_autotest_base;
 use virt_autotest::utils;
-use virt_utils;
 
 our @EXPORT
   = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_network
@@ -299,10 +297,10 @@ sub enable_libvirt_log {
 
 sub upload_debug_log {
     script_run("dmesg > /tmp/dmesg.log");
-    virt_autotest_base::upload_virt_logs("/tmp/dmesg.log /var/log/libvirt /var/log/messages", "libvirt-virtual-network-debug-logs");
+    upload_virt_logs("/tmp/dmesg.log /var/log/libvirt /var/log/messages", "libvirt-virtual-network-debug-logs");
     if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
         script_run("xl dmesg > /tmp/xl-dmesg.log");
-        virt_autotest_base::upload_virt_logs("/tmp/dmesg.log /var/log/libvirt /var/log/messages /var/log/xen /var/lib/xen/dump /tmp/xl-dmesg.log", "libvirt-virtual-network-debug-logs");
+        upload_virt_logs("/tmp/dmesg.log /var/log/libvirt /var/log/messages /var/log/xen /var/lib/xen/dump /tmp/xl-dmesg.log", "libvirt-virtual-network-debug-logs");
     }
     upload_system_log::upload_supportconfig_log();
     script_run("rm -rf scc_* nts_*");

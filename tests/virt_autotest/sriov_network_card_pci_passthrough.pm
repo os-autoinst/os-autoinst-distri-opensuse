@@ -27,7 +27,6 @@ use virt_autotest::common;
 use version_utils qw(is_sle);
 use virt_autotest::utils;
 use virt_autotest::virtual_network_utils qw(save_guest_ip test_network_interface);
-use virt_utils qw(upload_virt_logs);
 
 sub run_test {
     my $self = shift;
@@ -146,7 +145,7 @@ sub run_test {
     }
 
     #upload network device related logs
-    upload_virt_logs($log_dir, "logs");
+    virt_autotest::utils::upload_virt_logs($log_dir, "logs");
 
     #redefine guest from their original configuration files
     restore_original_guests();
@@ -417,7 +416,7 @@ sub post_fail_hook {
         save_network_device_status_logs($log_dir, $_, "post_fail_hook");
         script_run("ssh root\@$_ 'dmesg' >> $log_dir/dmesg_$_ 2>&1", die_on_timeout => 0);
     }
-    upload_virt_logs($log_dir, "network_device_status");
+    virt_autotest::utils::upload_virt_logs($log_dir, "network_device_status");
     $self->SUPER::post_fail_hook;
     restore_original_guests();
 

@@ -30,7 +30,7 @@ our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest i
   print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs ensure_default_net_is_active ensure_guest_started
   ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests restore_downloaded_guests save_original_guest_xmls restore_original_guests
   is_guest_online wait_guests_shutdown remove_vm setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host
-  check_port_state subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest);
+  check_port_state subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest upload_virt_logs recreate_guests);
 
 # helper function: Trim string
 sub trim {
@@ -828,6 +828,32 @@ sub restore_original_guests {
         else {
             record_info("Fail to restore guest!", "$guest", result => 'softfail');
         }
+    }
+}
+
+sub upload_virt_logs {
+    my ($log_dir, $compressed_log_name) = @_;
+
+    my $full_compressed_log_name = "/tmp/$compressed_log_name.tar.gz";
+    script_run("tar -czf $full_compressed_log_name $log_dir; rm $log_dir -r", 60);
+    save_screenshot;
+    upload_logs "$full_compressed_log_name";
+    save_screenshot;
+}
+
+#recreate all defined guests
+sub recreate_guests {
+    my $based_guest_dir = shift;
+    return if get_var('INCIDENT_ID');    # QAM does not recreate guests every time
+    my $get_vm_hostnames = "virsh list  --all | grep -e sles -e opensuse -e alp -i | awk \'{print \$2}\'";
+    my $vm_hostnames = script_output($get_vm_hostnames, 30, type_command => 0, proceed_on_failure => 0);
+    my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
+    foreach (@vm_hostnames_array)
+    {
+        script_run("virsh destroy $_");
+        script_run("virsh undefine $_ || virsh undefine $_ --keep-nvram");
+        script_run("virsh define /$based_guest_dir/$_.xml");
+        script_run("virsh start $_");
     }
 }
 
