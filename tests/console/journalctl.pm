@@ -155,6 +155,7 @@ sub run {
         record_soft_failure("bsc#1207042 - Won't enable ntp-wait due to cron issues");
         #assert_script_run("systemctl enable ntp-wait.service");
     } else {
+        assert_script_run("systemctl start chronyd");
         assert_script_run("chronyc waitsync", fail_message => "time synchronization failed");
         assert_script_run("systemctl enable --now chrony-wait.service", fail_message => "error enabling chrony-wait");
     }
