@@ -256,7 +256,7 @@ sub form() {
     assert_screen('tomcat-form-example', TIMEOUT);
     send_key('tab');
     send_key('down');
-    for (1 .. 2) { send_key('ret'); }
+    for (1 .. 5) { send_key('ret'); }
 
     if (check_screen('tomcat-click-save-login', 60)) {
         assert_and_click('tomcat-click-save-login', timeout => TIMEOUT);

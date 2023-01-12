@@ -55,6 +55,9 @@ EOF
 
     # start the tomcat daemon and check that it is running
     systemctl('start tomcat');
+    # sometimes it takes much longer to complete the start, so give a chance to
+    # finish start progress of tomcat before check status
+    wait_still_screen 120;
     systemctl('status tomcat');
 
     # check that tomcat is listening on port 8080
