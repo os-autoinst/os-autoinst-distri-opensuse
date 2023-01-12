@@ -21,7 +21,6 @@ use XML::Writer;
 use IO::File;
 use List::Util 'first';
 use LWP::Simple 'head';
-use proxymode;
 use version_utils 'is_sle';
 use virt_autotest::utils;
 use version_utils qw(is_sle is_alp get_os_release);
