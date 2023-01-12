@@ -39,15 +39,20 @@ sub is_resolved {
 }
 
 sub resolve {
-    my ($self, $json) = @_;
+    my ($self, $json, $args) = @_;
     my ($k, $v) = ($self->{regex}->{k}, $self->{regex}->{v});
-    my @widgets = grep {
-        defined $_->{$k} && YuiRestClient::Sanitizer::sanitize($_->{$k}) =~ $v
-    } @{$json};
-    if (scalar @widgets == 1) {
-        $self->{filter}->{$k} = YuiRestClient::Sanitizer::sanitize($widgets[0]->{$k});
-        $self->{resolved} = 1;
-    }
+    YuiRestClient::Wait::wait_until(object => sub {
+            my @widgets = grep {
+                defined $_->{$k} && YuiRestClient::Sanitizer::sanitize($_->{$k}) =~ $v
+            } @{$json};
+            if (scalar @widgets == 1) {
+                $self->{filter}->{$k} = YuiRestClient::Sanitizer::sanitize($widgets[0]->{$k});
+                $self->{resolved} = 1;
+            }
+        },
+        timeout => $args->{timeout},
+        interval => $args->{interval}
+    );
 }
 
 1;
