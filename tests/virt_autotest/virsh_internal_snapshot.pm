@@ -10,7 +10,6 @@ use base "virt_feature_test_base";
 use strict;
 use warnings;
 use testapi;
-use set_config_as_glue;
 use utils;
 use virt_utils;
 use virt_autotest::common;
