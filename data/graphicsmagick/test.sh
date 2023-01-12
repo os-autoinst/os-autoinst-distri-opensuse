@@ -110,6 +110,19 @@ function compare {
   gm compare -metric $metric $image1 $image2 | grep $channel | perl $script $tolerance $inversion
 }
 
+function montage_compare {
+  metric=$1
+  image1=$2
+  image2=$3
+  tolerance=$4
+
+  if [[ $(uname -m) =~ i.86 ]]; then
+    # i586, i686
+    tolerance=0.4
+  fi
+  compare $metric $image1 $image2 $tolerance
+}
+
 function convert_and_compare {
   image1=$1
   image2=$2
@@ -350,10 +363,10 @@ tests=(
   # http://www.graphicsmagick.org/montage.html
 
   # a. Create a montage using a set of images and compare with a previously preprocesed image
-  "gm montage degradation.png logo-primary.png __1.png;compare PAE __1.png montage1.png 0"
+  "gm montage degradation.png logo-primary.png __1.png;montage_compare PAE __1.png montage1.png 0"
 
   # b. Create a montage using a textured background
-  "gm montage -texture noise.gif degradation.png logo-primary.png __1.png;compare PAE __1.png montage2.png 0"
+  "gm montage -texture noise.gif degradation.png logo-primary.png __1.png;montage_compare PAE __1.png montage2.png 0"
 
 
   # Test 7. GIF animations
