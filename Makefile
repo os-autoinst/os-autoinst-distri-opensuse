@@ -34,7 +34,7 @@ check-links: tools/tidy tools/lib/ os-autoinst/
 
 .PHONY: check-links
 tidy-check: check-links
-	tools/tidy --check
+	tools/tidy --check --quiet
 
 .PHONY: tidy
 tidy: tools/tidy
