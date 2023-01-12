@@ -14,6 +14,7 @@ use testapi;
 use lockapi;
 use mmapi;
 use virt_utils;
+use virt_autotest::utils qw(upload_virt_logs);
 
 sub run {
     my ($self) = @_;
@@ -31,7 +32,7 @@ sub run {
     wait_for_children;
 
     script_run("xl dmesg > /tmp/xl-dmesg.log");
-    virt_utils::upload_virt_logs("/var/log/libvirt /var/log/messages /var/log/xen /var/lib/xen/dump /tmp/xl-dmesg.log", "virt-v2v-xen-src-logs");
+    upload_virt_logs("/var/log/libvirt /var/log/messages /var/log/xen /var/lib/xen/dump /tmp/xl-dmesg.log", "virt-v2v-xen-src-logs");
 }
 
 1;

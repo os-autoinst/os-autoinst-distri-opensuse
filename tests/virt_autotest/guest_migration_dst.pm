@@ -14,7 +14,7 @@ use testapi;
 use lockapi;
 use mmapi;
 use upload_system_log 'upload_supportconfig_log';
-use virt_autotest::utils qw(is_xen_host is_kvm_host);
+use virt_autotest::utils qw(is_xen_host is_kvm_host upload_virt_logs);
 use version_utils 'is_sle';
 
 sub run {
@@ -48,7 +48,7 @@ sub run {
         upload_logs "var_log_xen.tar.gz";
     }
     my $logs = "/var/log/libvirt /var/log/messages $xen_logs";
-    virt_autotest_base::upload_virt_logs($logs, "guest-migration-dst-logs");
+    upload_virt_logs($logs, "guest-migration-dst-logs");
     upload_system_log::upload_supportconfig_log();
     script_run("rm -rf scc_* nts_*");
     save_screenshot;

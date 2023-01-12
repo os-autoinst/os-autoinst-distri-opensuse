@@ -27,7 +27,7 @@ use virt_autotest::utils;
 use version_utils qw(is_sle is_alp get_os_release);
 
 our @EXPORT
-  = qw(enable_debug_logging update_guest_configurations_with_daily_build locate_sourcefile get_repo_0_prefix repl_repo_in_sourcefile repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk get_guest_list download_guest_assets is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type recreate_guests perform_guest_restart collect_host_and_guest_logs cleanup_host_and_guest_logs monitor_guest_console start_monitor_guest_console stop_monitor_guest_console is_developing_sles is_registered_sles);
+  = qw(enable_debug_logging update_guest_configurations_with_daily_build locate_sourcefile get_repo_0_prefix repl_repo_in_sourcefile repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk get_guest_list download_guest_assets is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type perform_guest_restart collect_host_and_guest_logs cleanup_host_and_guest_logs monitor_guest_console start_monitor_guest_console stop_monitor_guest_console is_developing_sles is_registered_sles);
 
 sub enable_debug_logging {
 
@@ -294,16 +294,6 @@ sub lpar_cmd {
         record_info('INFO', "Command $cmd run on S390X LPAR: FAIL");
         die 'Find new failure, please check manually';
     }
-}
-
-sub upload_virt_logs {
-    my ($log_dir, $compressed_log_name) = @_;
-
-    my $full_compressed_log_name = "/tmp/$compressed_log_name.tar.gz";
-    script_run("tar -czf $full_compressed_log_name $log_dir; rm $log_dir -r", 60);
-    save_screenshot;
-    upload_logs "$full_compressed_log_name";
-    save_screenshot;
 }
 
 # Guest xml will be uploaded with name format [generated_name_by_this_func].xml
@@ -612,22 +602,6 @@ sub check_guest_disk_type {
             record_info "INFO", "Start Snapshot test with the guest disk type as $guest_disk_type";
             return 0;
         }
-    }
-}
-
-#recreate all defined guests
-sub recreate_guests {
-    my $based_guest_dir = shift;
-    return if get_var('INCIDENT_ID');    # QAM does not recreate guests every time
-    my $get_vm_hostnames = "virsh list  --all | grep -e sles -e opensuse | awk \'{print \$2}\'";
-    my $vm_hostnames = script_output($get_vm_hostnames, 30, type_command => 0, proceed_on_failure => 0);
-    my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
-    foreach (@vm_hostnames_array)
-    {
-        script_run("virsh destroy $_");
-        script_run("virsh undefine $_ || virsh undefine $_ --keep-nvram");
-        script_run("virsh define /$based_guest_dir/$_.xml");
-        script_run("virsh start $_");
     }
 }
 

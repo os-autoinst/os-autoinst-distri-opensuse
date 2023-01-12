@@ -19,6 +19,7 @@ use virt_utils;
 use Utils::Architectures;
 use virt_autotest::utils;
 use upload_system_log;
+use virt_autotest::utils qw(upload_virt_logs);
 
 sub analyzeResult {
     die "You need to overload analyzeResult in your class";
