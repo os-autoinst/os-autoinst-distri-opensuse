@@ -17,6 +17,7 @@
     <guest_vcpus>2,maxvcpus=4</guest_vcpus>
     <guest_cpumodel>host-model</guest_cpumodel>
     <guest_metadata></guest_metadata>
+    <guest_boot_settings>uefi</guest_boot_settings>
     <guest_xpath></guest_xpath>
     <guest_installation_automation></guest_installation_automation>
     <guest_installation_automation_file></guest_installation_automation_file>

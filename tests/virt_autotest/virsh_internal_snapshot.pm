@@ -25,6 +25,11 @@ sub run_test {
             record_info "Skip internal snapshot on $guest", "SEV/SEV-ES guest $guest does not support internal snapshot";
             next;
         }
+        if (script_output("virsh dumpxml $guest | xmlstarlet sel -t -v ///loader/\@type", proceed_on_failure => 1) eq 'pflash') {
+            record_info("Skip internal snapshot on $guest", "VM with pflash based firmware are not supported to make internal snapshots.");
+            next;
+        }
+
         my $type = check_guest_disk_type($guest);
         next if ($type == 1);
         record_info "virsh-snapshot", "Cleaning in case of rerun";

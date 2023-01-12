@@ -6,10 +6,51 @@ schedule:
     - virt_autotest/login_console
     - virt_autotest/setup_kvm_container
     - "{{install_guest}}"
+    - virt_autotest/set_config_as_glue
+    - '{{uefi_guest_verification}}'
+    - '{{virtual_network_test}}'
+    - '{{hotplugging_test}}'
+    - '{{storage_test}}'
+    - '{{snapshot_test}}'
+    - '{{validate_system_health}}'
 conditional_schedule:
     install_guest:
         SKIP_GUEST_INSTALL:
             0:
                 - virt_autotest/unified_guest_installation
+    uefi_guest_verification:
+        VIRT_UEFI_GUEST_INSTALL:
+            1:
+                - virt_autotest/uefi_guest_verification
+    virtual_network_test:
+        ENABLE_VIR_NET:
+            1:
+                - virt_autotest/libvirt_virtual_network_init
+                - virt_autotest/libvirt_nated_virtual_network
+                - virt_autotest/libvirt_routed_virtual_network
+                - virt_autotest/libvirt_isolated_virtual_network
+    hotplugging_test:
+        ENABLE_HOTPLUGGING:
+            1:
+                - virtualization/universal/hotplugging_guest_preparation
+                - virtualization/universal/hotplugging_network_interfaces
+                - virtualization/universal/hotplugging_HDD
+                - virtualization/universal/hotplugging_vCPUs
+                - virtualization/universal/hotplugging_memory
+                - virtualization/universal/hotplugging_cleanup
+    storage_test:
+        ENABLE_STORAGE:
+            1:
+                - virtualization/universal/storage
+    snapshot_test:
+        ENABLE_SNAPSHOT:
+            1:
+                - virt_autotest/virsh_internal_snapshot
+                - virt_autotest/virsh_external_snapshot
+    validate_system_health:
+        VALIDATE_SYSTEM_HEALTH:
+            1:
+                - virt_autotest/validate_system_health
+
 
 # To be extended

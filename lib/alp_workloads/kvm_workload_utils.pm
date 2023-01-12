@@ -91,7 +91,8 @@ sub config_host_and_kvm_container {
 }
 
 sub cleanup_host_and_kvm_container {
-    assert_script_run("if $ct_engine ps | grep libvirtd; then kvm-container-manage.sh stop;fi");
+    script_run("if $ct_engine ps | grep libvirtd; then kvm-container-manage.sh stop;fi");
+    validate_script_output("$ct_engine ps", sub { $_ !~ 'libvirtd' });
     assert_script_run("if $ct_engine ps --all | grep libvirtd; then kvm-container-manage.sh rm;fi");
     assert_script_run("if which kvm-container-manage.sh;then kvm-container-manage.sh uninstall;fi");
     validate_script_output("$ct_engine ps --all", sub { $_ !~ 'libvirtd' });
@@ -135,7 +136,7 @@ sub install_tools_within_kvm_container {
     my $_tools_to_install = shift;
 
     # The packages needed by guest installation and following tests`
-    $_tools_to_install //= "wget screen xmlstarlet yast2-schema python3 nmap openssh hostname gawk expect supportutils systemd-coredump";
+    $_tools_to_install //= "wget screen xmlstarlet yast2-schema python3 nmap openssh hostname gawk expect supportutils systemd-coredump util-linux-systemd file iputils";
 
     assert_script_run("clear");
     assert_screen('in-libvirtd-container-bash');
