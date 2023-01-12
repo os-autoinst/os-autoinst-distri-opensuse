@@ -35,7 +35,9 @@ sub run {
 
     if (script_run(q(SUSEConnect --status-text | grep -i 'Successfully registered system'))) {
         my $version_id=substr($version,0,index($version,'-'));
-        script_run("sudo SUSEConnect -s");
+        script_run("sudo SUSEConnect --status-text");
+        script_run("sudo SUSEConnect --status");
+        script_run("sudo SUSEConnect --list-extensions");
         assert_script_run("zypper se migr");
         assert_script_run('sudo zypper ref', timeout => 180);
         assert_script_run("zypper se migr");
