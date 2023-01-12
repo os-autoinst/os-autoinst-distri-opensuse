@@ -16,9 +16,14 @@ use Utils::Architectures;
 use virt_autotest::common;
 use virt_autotest::utils qw(start_guests check_host_health check_guest_health);
 use virt_utils qw(collect_host_and_guest_logs);
+use alp_workloads::kvm_workload_utils;
+use version_utils qw(is_alp);
 
 sub prepare_run_test {
-    reconnect_when_ssh_console_broken unless defined(script_run("rm -f /root/{commands_history,commands_failure}", die_on_timeout => 0));
+    unless (defined(script_run("rm -f /root/{commands_history,commands_failure}", die_on_timeout => 0))) {
+        reconnect_when_ssh_console_broken;
+        alp_workloads::kvm_workload_utils::enter_kvm_container_sh if is_alp;
+    }
     script_run("history -c");
 }
 
@@ -59,7 +64,10 @@ sub post_fail_hook {
     my $self = shift;
     diag("Module validate_system_health post fail hook starts.");
     $self->junit_log_provision((caller(0))[3]);
-    reconnect_when_ssh_console_broken unless defined(script_run("history -w /root/commands_history", die_on_timeout => 0));
+    unless (defined(script_run("rm -f /root/{commands_history,commands_failure}", die_on_timeout => 0))) {
+        reconnect_when_ssh_console_broken;
+        alp_workloads::kvm_workload_utils::enter_kvm_container_sh if is_alp;
+    }
     $self->upload_coredumps;
     upload_logs("/var/log/clean_up_virt_logs.log");
     upload_logs("/var/log/guest_console_monitor.log");

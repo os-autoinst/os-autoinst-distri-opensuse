@@ -530,7 +530,6 @@ sub set_grub_terminal_and_timeout {
 }
 
 sub reconnect_when_ssh_console_broken {
-
     # Switch to sol console to check serial console output
     # It is useful in the case of host crash and reboot
     record_info("WARN", "ssh connection is broken and switch to SOL console", result => 'fail');

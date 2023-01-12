@@ -22,7 +22,7 @@ use utils;
 use virt_utils;
 use virt_autotest::common;
 use virt_autotest::utils;
-use version_utils "is_sle";
+use version_utils qw(is_sle is_alp);
 
 sub run_test {
     my $self = shift;
@@ -30,13 +30,22 @@ sub run_test {
     $self->check_guest_bootloader($_) foreach (keys %virt_autotest::common::guests);
     $self->check_guest_bootcurrent($_) foreach (keys %virt_autotest::common::guests);
     if (is_kvm_host) {
-        record_soft_failure("In order to implement pm features, current kvm virtual machine uses uefi firmware that does not support PXE/HTTP boot and secureboot. bsc#1182886 UEFI virtual machine boots with trouble");
+        if (is_sle) {
+            record_soft_failure("In order to implement pm features, current kvm virtual machine uses uefi firmware that does not support PXE/HTTP boot and secureboot. bsc#1182886 UEFI virtual machine boots with trouble");
+        }
+        elsif (is_alp) {
+            # The current default uefi firmware in alp kvm container supports secure boot,
+            # but does not support PXE/HTTP boot, and pm is not well supported either.
+            $self->check_guest_secure_boot($_) foreach (keys %virt_autotest::common::guests);
+        }
         #$self->check_guest_uefi_boot($_) foreach (keys %virt_autotest::common::guests);
-        #$self->check_guest_secure_boot($_) foreach (keys %virt_autotest::common::guests);
+
     }
     else {
         record_soft_failure("UEFI implementation for xen fullvirt uefi virtual machine is incomplete. bsc#1184936 Xen fullvirt lacks of complete support for UEFI");
     }
+
+    # TODO: enable pm check for alp once default uefi firmware supports it well
     if (is_sle('>=15')) {
         $self->check_guest_pmsuspend_enabled;
     }

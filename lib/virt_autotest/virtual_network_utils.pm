@@ -5,7 +5,7 @@
 
 # Summary: virtual_network_utils:
 #          This file provides fundamental utilities for virtual network.
-# Maintainer: Leon Guo <xguo@suse.com>
+# Maintainer: Leon Guo <xguo@suse.com>, qe-virt@suse.de
 
 package virt_autotest::virtual_network_utils;
 
@@ -32,7 +32,7 @@ our @EXPORT
   = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_network
   restore_guests restore_network destroy_vir_network restore_libvirt_default enable_libvirt_log pload_debug_log
   check_guest_status check_guest_module check_guest_ip save_guest_ip test_network_interface hosts_backup
-  hosts_restore get_free_mem get_active_pool_and_available_space clean_all_virt_networks setup_vm_simple_dns_with_ip);
+  hosts_restore get_free_mem get_active_pool_and_available_space clean_all_virt_networks setup_vm_simple_dns_with_ip get_guest_ip_from_vnet_with_mac update_simple_dns_for_all_vm);
 
 sub check_guest_ip {
     my ($guest, %args) = @_;
@@ -44,15 +44,28 @@ sub check_guest_ip {
 
     # ensure guest is still alive
     if (script_output("virsh domstate $guest") eq "running") {
-        script_run "sed -i '/ $guest /d' /etc/hosts";
         my $mac_guest = script_output("virsh domiflist $guest | grep $net | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
-        my $syslog_cmd = "journalctl --no-pager | grep DHCPACK";
-        script_retry "$syslog_cmd | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
-        my $gi_guest = script_output("$syslog_cmd | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
-        assert_script_run "echo '$gi_guest $guest # virtualization' >> /etc/hosts";
+        my $gi_guest = '';
+        if (is_alp) {
+            $gi_guest = get_guest_ip_from_vnet_with_mac($mac_guest, $net);
+        } else {
+            my $syslog_cmd = "journalctl --no-pager | grep DHCPACK";
+            script_retry "$syslog_cmd | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
+            $gi_guest = script_output("$syslog_cmd | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
+        }
+        setup_vm_simple_dns_with_ip($guest, $gi_guest);
         script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 60) if ($guest =~ m/sles-11/i);
         die "Ping $guest failed !" if (script_retry("ping -c5 $guest", delay => 30, retry => 6, timeout => 60) ne 0);
     }
+}
+
+sub get_guest_ip_from_vnet_with_mac {
+    my ($mac, $net) = @_;
+
+    my $cmd = "virsh net-dhcp-leases $net | sed  '1,2d' | grep '$mac'";
+    script_retry($cmd, delay => 3, retry => 20);
+    $cmd .= " | gawk '{print \$5 }' | sed -r 's/\\\/[0-9]+//'";
+    return script_output($cmd);
 }
 
 sub check_guest_module {
@@ -75,13 +88,17 @@ sub save_guest_ip {
 
     # If we don't know guest's address or the address is wrong so the guest is not responding to ICMP
     if (script_run("grep $guest /etc/hosts") != 0 || script_retry("ping -c3 $guest", delay => 6, retry => 30, die => 0) != 0) {
-        script_run "sed -i '/ $guest /d' /etc/hosts";
         assert_script_run "virsh domiflist $guest";
         my $mac_guest = script_output("virsh domiflist $guest | grep $name | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
-        my $syslog_cmd = is_sle('=11-sp4') ? 'grep DHCPACK /var/log/messages' : 'journalctl --no-pager | grep DHCPACK';
-        script_retry "$syslog_cmd | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
-        my $gi_guest = script_output("$syslog_cmd | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
-        assert_script_run "echo '$gi_guest $guest # virtualization' >> /etc/hosts";
+        my $gi_guest = '';
+        if (is_alp) {
+            $gi_guest = get_guest_ip_from_vnet_with_mac($mac_guest, $name);
+        } else {
+            my $syslog_cmd = is_sle('=11-sp4') ? 'grep DHCPACK /var/log/messages' : 'journalctl --no-pager | grep DHCPACK';
+            script_retry "$syslog_cmd | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
+            $gi_guest = script_output("$syslog_cmd | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
+        }
+        setup_vm_simple_dns_with_ip($guest, $gi_guest);
         script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 60) if ($guest =~ m/sles-11/i);
         die "Ping $guest failed !" if (script_retry("ping -c5 $guest", delay => 30, retry => 6, timeout => 60) ne 0);
     }
@@ -96,7 +113,7 @@ sub test_network_interface {
     my $routed = $args{routed} // 0;
     my $target = $args{target} // script_output("dig +short openqa.suse.de");
 
-    check_guest_ip("$guest") if (is_sle('>15') && ($isolated == 1) && get_var('VIRT_AUTOTEST'));
+    check_guest_ip("$guest", net => $net) if ((is_sle('>15') || is_alp) && ($isolated == 1) && get_var('VIRT_AUTOTEST'));
 
     save_guest_ip("$guest", name => $net);
 
@@ -246,7 +263,7 @@ sub restart_network {
 
 sub restore_guests {
     return if get_var('INCIDENT_ID');    # QAM does not recreate guests every time
-    my $get_vm_hostnames = "virsh list --all | grep -e sles -e opensuse | awk \'{print \$2}\'";
+    my $get_vm_hostnames = "virsh list --all | grep -e sles -e opensuse -e alp -i | awk \'{print \$2}\'";
     my $vm_hostnames = script_output($get_vm_hostnames, 30, type_command => 0, proceed_on_failure => 0);
     my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
     foreach (@vm_hostnames_array)
@@ -293,8 +310,8 @@ sub upload_debug_log {
 
 sub check_guest_status {
     my $wait_script = "30";
-    my $vm_types = "sles";
-    my $get_vm_hostnames = "virsh list  --all | grep $vm_types | awk \'{print \$2}\'";
+    my $vm_types = "sles|alp";
+    my $get_vm_hostnames = "virsh list  --all | grep -E \"$vm_types\" -i | awk \'{print \$2}\'";
     my $vm_hostnames = script_output($get_vm_hostnames, $wait_script, type_command => 0, proceed_on_failure => 0);
     my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
     foreach (@vm_hostnames_array) {
@@ -323,7 +340,12 @@ sub get_active_pool_and_available_space {
     # get some debug info about storage pool
     script_run 'virsh pool-list --details';
     # ensure the available disk space size for active pool
-    my $active_pool = script_output("virsh pool-list --persistent | grep -iv nvram | grep active | awk '{print \$1}'");
+    my $active_pool = '';
+    if (is_alp) {
+        $active_pool = script_output("virsh pool-list | grep -ivE \"nvram|boot\" | grep active | awk '{print \$1}'");
+    } else {
+        $active_pool = script_output("virsh pool-list --persistent | grep -iv nvram | grep active | awk '{print \$1}'");
+    }
     my $available_size = script_output("virsh pool-info $active_pool | grep ^Available | awk '{print \$2}'");
     my $pool_unit = script_output("virsh pool-info $active_pool | grep ^Available | awk '{print \$3}'");
     # default available pool unit as GiB
@@ -360,6 +382,14 @@ sub setup_vm_simple_dns_with_ip {
     assert_script_run "cp $_dns_file /etc/hosts" if (is_alp);
     save_screenshot;
     record_info("Simple DNS setup in /etc/hosts for $_ip $_vm is successful!", script_output("cat /etc/hosts"));
+}
+
+sub update_simple_dns_for_all_vm {
+    my $_vnet = shift;
+
+    my $_cmd = "virsh list --all | grep -e sles -e opensuse -e alp -i | awk \'{print \$2}\'";
+    my $_vms = script_output($_cmd, 30, type_command => 0, proceed_on_failure => 0);
+    check_guest_ip("$_", net => $_vnet) foreach (split(/\n+/, $_vms));
 }
 
 1;

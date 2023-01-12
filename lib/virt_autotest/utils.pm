@@ -165,7 +165,7 @@ sub check_host_health {
 # Welcome everybody to extend this function
 sub check_guest_health {
     my $vm = shift;
-    return unless is_x86_64 and guest_is_sle($vm);
+    return unless is_x86_64 and ($vm =~ /sle|alp/i);
 
     #check if guest is still alive
     validate_script_output "virsh domstate $vm", sub { /running/ };
