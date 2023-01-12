@@ -38,6 +38,7 @@ sub init {
     $self->{rct_item_python3} = 'sle-module-python3';
     $self->{rct_item_pcm} = 'sle-module-public-cloud';
     $self->{rct_item_serverapp} = 'sle-module-server-applications';
+    $self->{rct_item_ltss} = 'SLES-LTSS';
     return $self;
 }
 

@@ -12,6 +12,7 @@ registration:
   - installation/registration/register_via_scc
 extension_module_selection:
   - installation/module_registration/register_extensions_and_modules
+  - installation/module_registration/add_ltss_regcode
 add_on_product:
   - installation/add_on_product/add_maintenance_repos
 system_role:

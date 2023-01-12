@@ -18,6 +18,7 @@ sub init {
     $self->{lbl_separate_code} = $self->{app}->label({type => 'YLabel', label => qr/The extension you selected needs a separate registration code/});
     $self->{txb_we_code} = $self->{app}->textbox({id => '"sle-we"'});
     $self->{txb_ha_code} = $self->{app}->textbox({id => '"sle-ha"'});
+    $self->{txb_ltss_code} = $self->{app}->textbox({id => '"SLES-LTSS"'});
     return $self;
 }
 
@@ -34,6 +35,11 @@ sub set_we_regcode {
 sub set_ha_regcode {
     my ($self, $code) = @_;
     $self->{txb_ha_code}->set($code);
+}
+
+sub set_ltss_regcode {
+    my ($self, $code) = @_;
+    $self->{txb_ltss_code}->set($code);
 }
 
 1;

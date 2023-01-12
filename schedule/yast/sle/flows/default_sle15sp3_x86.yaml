@@ -15,8 +15,7 @@ registration:
   - installation/registration/register_via_scc
 extension_module_selection:
   - installation/module_registration/register_extensions_and_modules
-  - installation/module_registration/add_additional_regcodes
-  - installation/module_registration/import_untrusted_gnpupg_key
+  - installation/module_registration/add_ltss_regcode
 add_on_product:
   - installation/add_on_product/skip_install_addons
 system_role:
