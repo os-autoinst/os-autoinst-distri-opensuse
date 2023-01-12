@@ -47,9 +47,9 @@ sub run {
         if ($stigtest::remediated == 0) {
            record_info('non remediated', 'before remediation more rules fails are expected');
            my $pass_count = $self->pattern_count_in_file($data,$f_pregex,$passed_rules_ref);
-           record_info("Passed rules count=$pass_count", "Pattern $f_pregex count in file $f_stdout is $pass_count. Matched rules: \n @$passed_rules_ref");
+           record_info("Passed rules count=$pass_count", "Pattern $f_pregex count in file $f_stdout is $pass_count. Matched rules: \n " . join "\n", @$passed_rules_ref);
            my $fail_count = $self->pattern_count_in_file($data,$f_fregex,$failed_rules_ref);
-           record_info("Failed rules count=$fail_count", "Pattern $f_fregex count in file $f_stdout is $fail_count. Matched rules: \n @$failed_rules_ref");
+           record_info("Failed rules count=$fail_count", "Pattern $f_fregex count in file $f_stdout is $fail_count. Matched rules: \n" . join "\n", @$failed_rules_ref);
         } else {
             record_info('remediated', 'after remediation less rules are failing');
             #Verify remediated rules
@@ -57,12 +57,12 @@ sub run {
 
             #Verify number of passed and failed rules
             my $pass_count = $self->pattern_count_in_file($data,$f_pregex,$passed_rules_ref);
-            record_info("Passed rules count=$pass_count", "Pattern $f_pregex count in file $f_stdout is $pass_count. Matched rules: \n @$passed_rules_ref");
+            record_info("Passed rules count=$pass_count", "Pattern $f_pregex count in file $f_stdout is $pass_count. Matched rules: \n" . join "\n", @$passed_rules_ref);
             if ($pass_count != 210){
                 $self->result('fail');
                 }
             my $fail_count = $self->pattern_count_in_file($data,$f_fregex,$failed_rules_ref);
-            record_info("Failed rules count=$fail_count", "Pattern $f_fregex count in file $f_stdout is $fail_count. Matched rules: \n @$failed_rules_ref");
+            record_info("Failed rules count=$fail_count", "Pattern $f_fregex count in file $f_stdout is $fail_count. Matched rules: \n" . join "\n", @$failed_rules_ref);
             if ($fail_count != 5){
                 $self->result('fail');
                 }
@@ -89,6 +89,7 @@ sub run {
 =cut
 
     # Upload logs & ouputs for reference
+    set_var('UPLOAD_REPORT_HTML', 1);
     $self->upload_logs_reports();
 }
 
