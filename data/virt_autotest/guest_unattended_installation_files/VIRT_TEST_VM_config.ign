@@ -19,7 +19,16 @@
         "contents": {
           "source": "data:text/plain;charset=utf-8;base64,UGVybWl0Um9vdExvZ2luIHllcwpQdWJrZXlBdXRoZW50aWNhdGlvbiB5ZXMKUGFzc3dvcmRBdXRoZW50aWNhdGlvbiB5ZXM="
         }
+      },
+      {
+        "path": "/etc/selinux/config",
+        "mode": 420,
+        "overwrite": true,
+        "contents": {
+          "source": "data:text/plain;charset=utf-8;base64,"
+        }
       }
     ]
   }
 }
+
