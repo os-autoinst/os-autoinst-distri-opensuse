@@ -22,7 +22,6 @@ use XML::Writer;
 use IO::File;
 use utils 'script_retry';
 use upload_system_log 'upload_supportconfig_log';
-use proxymode;
 use version_utils qw(is_sle is_alp);
 use virt_autotest::utils;
 
