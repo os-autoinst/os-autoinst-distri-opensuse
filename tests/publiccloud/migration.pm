@@ -33,6 +33,10 @@ sub run {
     $instance->ssh_assert_script_run(cmd => "sudo registercloudguest --clean");
     registercloudguest($instance) if is_byos();
 
+
+    my $initial_version = $instance->run_ssh_command(cmd => 'sudo cat /etc/os-release');
+    record_info('INFO', $initial_version);
+
     if (script_run(q(SUSEConnect --status-text | grep -i 'Successfully registered system'))) {
         my $version_id=substr($version,0,index($version,'-'));
         script_run("sudo SUSEConnect --status-text");
