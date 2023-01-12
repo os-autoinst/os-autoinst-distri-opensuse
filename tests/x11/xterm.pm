@@ -14,9 +14,17 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use power_action_utils qw(power_action);
+use version_utils qw(is_leap);
 
 sub run {
     my ($self) = @_;
+    # workaround for bsc#1205518
+    if (is_leap) {
+        record_info 'workaround', 'bsc#1205518 - Rebooting the VM to avoid the gnome issue';
+        power_action('reboot', textmode => 1);
+        $self->wait_boot(bootloader_time => 300);
+    }
     select_console 'x11';
     $self->test_terminal('xterm');
 }
