@@ -534,6 +534,7 @@ EOF
         q{cat <<EOF > $(rpm --eval %_libdir)/firefox/firefox.cfg
 // Mandatory comment
 // https://firefox-source-docs.mozilla.org/browser/components/newtab/content-src/asrouter/docs/first-run.html
+pref("app.normandy.enabled", false);
 pref("browser.aboutwelcome.enabled", false);
 pref("browser.startup.upgradeDialog.enabled", false);
 pref("privacy.restrict3rdpartystorage.rollout.enabledByDefault", false);
