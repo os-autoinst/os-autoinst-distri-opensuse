@@ -14,9 +14,9 @@ use version_utils qw(is_sle);
 #use stigtest qw(pattern_count_in_file);
 
 sub run {
-    my ($self) = @_;
-    my $regex1 = "\\bpass\\b";
-    my $regex2 = "\\bfail\\b";
+    my ($self)     = @_;
+    my $regex1     = "\\bpass\\b";
+    my $regex2     = "\\bfail\\b";
     my $eval_match = 'm/
                     Rule.*content_rule_is_fips_mode_enabled.*Result.*fail.*
                     Rule.*content_rule_partition_for_var_log_audit.*Result.*fail.*
@@ -28,12 +28,12 @@ sub run {
 
     # Get ds file and profile ID
     my $profile_ID = is_sle ? $stigtest::profile_ID_sle : $stigtest::profile_ID_tw;
-    my $f_ssg_ds = is_sle ? $stigtest::f_ssg_sle_ds : $stigtest::f_ssg_tw_ds;
-    my $f_stdout = $stigtest::f_stdout;
-    my $f_stderr = $stigtest::f_stderr;
-    my $f_report = $stigtest::f_report;
-    my $f_pregex = $stigtest::f_pregex;
-    my $f_fregex = $stigtest::f_fregex;
+    my $f_ssg_ds   = is_sle ? $stigtest::f_ssg_sle_ds   : $stigtest::f_ssg_tw_ds;
+    my $f_stdout   = $stigtest::f_stdout;
+    my $f_stderr   = $stigtest::f_stderr;
+    my $f_report   = $stigtest::f_report;
+    my $f_pregex   = $stigtest::f_pregex;
+    my $f_fregex   = $stigtest::f_fregex;
     my $passed_rules_ref;
     my $failed_rules_ref;
 
@@ -45,29 +45,47 @@ sub run {
         my $data = script_output "cat $f_stdout";
         # For a new installed OS the first time remediate can permit fail
         if ($stigtest::remediated == 0) {
-           record_info('non remediated', 'before remediation more rules fails are expected');
-           my $pass_count = $self->pattern_count_in_file($data,$f_pregex,$passed_rules_ref);
-           record_info("Passed rules count=$pass_count", "Pattern $f_pregex count in file $f_stdout is $pass_count. Matched rules: \n " . join "\n", @$passed_rules_ref);
-           my $fail_count = $self->pattern_count_in_file($data,$f_fregex,$failed_rules_ref);
-           record_info("Failed rules count=$fail_count", "Pattern $f_fregex count in file $f_stdout is $fail_count. Matched rules: \n" . join "\n", @$failed_rules_ref);
-        } else {
+            record_info('non remediated', 'before remediation more rules fails are expected');
+            my $pass_count = $self->pattern_count_in_file($data, $f_pregex, $passed_rules_ref);
+            record_info(
+                "Passed rules count=$pass_count",
+                "Pattern $f_pregex count in file $f_stdout is $pass_count. Matched rules: \n " . join "\n",
+                @$passed_rules_ref
+            );
+            my $fail_count = $self->pattern_count_in_file($data, $f_fregex, $failed_rules_ref);
+            record_info(
+                "Failed rules count=$fail_count",
+                "Pattern $f_fregex count in file $f_stdout is $fail_count. Matched rules: \n" . join "\n",
+                @$failed_rules_ref
+            );
+        }
+        else {
             record_info('remediated', 'after remediation less rules are failing');
             #Verify remediated rules
             validate_script_output "cat $f_stdout", sub { $eval_match }, timeout => 300;
 
             #Verify number of passed and failed rules
-            my $pass_count = $self->pattern_count_in_file($data,$f_pregex,$passed_rules_ref);
-            record_info("Passed rules count=$pass_count", "Pattern $f_pregex count in file $f_stdout is $pass_count. Matched rules: \n" . join "\n", @$passed_rules_ref);
-            if ($pass_count != 210){
+            my $pass_count = $self->pattern_count_in_file($data, $f_pregex, $passed_rules_ref);
+            record_info(
+                "Passed rules count=$pass_count",
+                "Pattern $f_pregex count in file $f_stdout is $pass_count. Matched rules: \n" . join "\n",
+                @$passed_rules_ref
+            );
+            if ($pass_count != 210) {
                 $self->result('fail');
-                }
-            my $fail_count = $self->pattern_count_in_file($data,$f_fregex,$failed_rules_ref);
-            record_info("Failed rules count=$fail_count", "Pattern $f_fregex count in file $f_stdout is $fail_count. Matched rules: \n" . join "\n", @$failed_rules_ref);
-            if ($fail_count != 5){
-                $self->result('fail');
-                }
             }
-    } else {
+            my $fail_count = $self->pattern_count_in_file($data, $f_fregex, $failed_rules_ref);
+            record_info(
+                "Failed rules count=$fail_count",
+                "Pattern $f_fregex count in file $f_stdout is $fail_count. Matched rules: \n" . join "\n",
+                @$failed_rules_ref
+            );
+            if ($fail_count != 5) {
+                $self->result('fail');
+            }
+        }
+    }
+    else {
         record_info("errno=$ret", "# oscap xccdf eval --profile \"$profile_ID\" returns: $ret");
         $self->result('fail');
     }
