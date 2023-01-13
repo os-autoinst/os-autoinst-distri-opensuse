@@ -215,7 +215,7 @@
     <enabled config:type="boolean">false</enabled>
   </proxy>
   <services-manager config:type="map">
-    <default_target>graphical</default_target>
+    <default_target>multi-user</default_target>
     <services config:type="map">
       <enable config:type="list">
         <service>firewalld</service>
