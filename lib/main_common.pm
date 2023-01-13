@@ -1861,9 +1861,10 @@ sub load_extra_tests_filesystem {
     }
     loadtest 'console/snapper_used_space' if (is_sle('15-SP1+') || (is_opensuse && !is_leap('<15.1')));
     loadtest "console/udisks2" unless (is_sle('<=15-SP2') || get_var('VIRSH_VMM_FAMILY') =~ /xen/);
-    loadtest "console/zfs" if (is_leap(">=15.1") && is_x86_64 && !is_jeos);
     loadtest "network/cifs" if (is_sle('>=15-sp3') || is_opensuse);
     loadtest "network/samba/server" if (is_sle('>=15-sp3') || is_opensuse);
+    # Note: Until the snapshot restoration has been fixed (poo#109929), zfs should be the last test run
+    loadtest "console/zfs" if (is_leap(">=15.1") && is_x86_64 && !is_jeos);
 }
 
 sub get_wicked_tests {
