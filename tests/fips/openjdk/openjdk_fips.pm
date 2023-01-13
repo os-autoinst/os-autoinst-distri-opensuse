@@ -18,6 +18,14 @@ use warnings;
 use testapi;
 use utils;
 
+sub remove_any_installed_java {
+    my @output = grep /java-\d+-openjdk/, split(/\n/, script_output "rpm -qa 'java-*'");
+    return unless scalar @output;    # nothing to remove
+    my $pkgs = join ' ', @output;
+    zypper_call "rm ${pkgs}";
+}
+
+
 sub run {
     my $self = @_;
 
@@ -40,7 +48,10 @@ sub run {
     script_run_interactive("certutil -d /etc/pki/nssdb -N", $interactive_str, 30);
     assert_script_run("chmod og+r /etc/pki/nssdb/*");
 
-    # Install openJDK
+    # ensure there ain't newer JDK before installing jdk11
+    remove_any_installed_java();
+
+    # Install openJDK 11
     zypper_call("in java-11-openjdk java-11-openjdk-devel");
 
     # Simple java crypto test
