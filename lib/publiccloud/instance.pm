@@ -340,7 +340,7 @@ sub wait_for_ssh {
             if ($output =~ m/Reached target.*/) {
                 return $duration;
             }
-            elsif ($output =~ m/Permission denied (publickey).*/) {
+            elsif ($output =~ m/Permission denied \(publickey\).*/) {
                 die "ssh permission denied (pubkey)";
             }
         }
