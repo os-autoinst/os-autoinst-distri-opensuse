@@ -14,17 +14,17 @@ use version_utils qw(is_sle);
 #use stigtest qw(pattern_count_in_file);
 
 sub run {
-    my ($self)     = @_;
+    my ($self) = @_;
     select_console 'root-console';
 
     # Get ds file and profile ID
     my $profile_ID = is_sle ? $stigtest::profile_ID_sle : $stigtest::profile_ID_tw;
-    my $f_ssg_ds   = is_sle ? $stigtest::f_ssg_sle_ds   : $stigtest::f_ssg_tw_ds;
-    my $f_stdout   = $stigtest::f_stdout;
-    my $f_stderr   = $stigtest::f_stderr;
-    my $f_report   = $stigtest::f_report;
-    my $f_pregex   = $stigtest::f_pregex;
-    my $f_fregex   = $stigtest::f_fregex;
+    my $f_ssg_ds = is_sle ? $stigtest::f_ssg_sle_ds : $stigtest::f_ssg_tw_ds;
+    my $f_stdout = $stigtest::f_stdout;
+    my $f_stderr = $stigtest::f_stderr;
+    my $f_report = $stigtest::f_report;
+    my $f_pregex = $stigtest::f_pregex;
+    my $f_fregex = $stigtest::f_fregex;
     my $passed_rules_ref;
     my $failed_rules_ref;
     my $eval_match = 'm/

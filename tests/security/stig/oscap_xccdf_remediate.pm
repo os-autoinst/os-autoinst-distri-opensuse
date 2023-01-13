@@ -16,11 +16,11 @@ sub run {
     my ($self) = @_;
 
     # Get ds file and profile ID, etc.
-    my $f_ssg_ds   = is_sle ? $stigtest::f_ssg_sle_ds   : $stigtest::f_ssg_tw_ds;
+    my $f_ssg_ds = is_sle ? $stigtest::f_ssg_sle_ds : $stigtest::f_ssg_tw_ds;
     my $profile_ID = is_sle ? $stigtest::profile_ID_sle : $stigtest::profile_ID_tw;
-    my $f_stdout   = $stigtest::f_stdout;
-    my $f_stderr   = $stigtest::f_stderr;
-    my $f_report   = $stigtest::f_report;
+    my $f_stdout = $stigtest::f_stdout;
+    my $f_stderr = $stigtest::f_stderr;
+    my $f_report = $stigtest::f_report;
 
     select_console 'root-console';
 

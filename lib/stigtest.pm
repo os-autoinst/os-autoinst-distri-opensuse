@@ -37,11 +37,11 @@ our $f_fregex = '\\bfail\\b';
 
 # Set default value for 'scap-security-guide' ds file
 our $f_ssg_sle_ds = '/usr/share/xml/scap/ssg/content/ssg-sle12-ds.xml';
-our $f_ssg_tw_ds  = '/usr/share/xml/scap/ssg/content/ssg-opensuse-ds.xml';
+our $f_ssg_tw_ds = '/usr/share/xml/scap/ssg/content/ssg-opensuse-ds.xml';
 
 # Profile ID
 our $profile_ID_sle = 'xccdf_org.ssgproject.content_profile_stig';
-our $profile_ID_tw  = 'xccdf_org.ssgproject.content_profile_standard';
+our $profile_ID_tw = 'xccdf_org.ssgproject.content_profile_standard';
 
 # The OS status of remediation: '0', not remediatd; '1', remediated
 our $remediated = 0;
@@ -77,8 +77,8 @@ sub upload_logs_reports {
 
 sub pattern_count_in_file {
     #Find count and rules names of matched pattern
-    my $self    = $_[0];
-    my $data    = $_[1];
+    my $self = $_[0];
+    my $data = $_[1];
     my $pattern = $_[2];
     my @rules;
     my $count = 0;
