@@ -11,7 +11,7 @@ schedule:
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
   - installation/module_registration/register_extensions_and_modules
-  - installation/module_registration/add_ltss_regcode
+  - '{{sles_product}}'
   - installation/add_update_test_repo
   - installation/addon_products_sle
   - installation/system_role
@@ -32,6 +32,13 @@ schedule:
   - installation/first_boot
   - '{{efi}}'
 conditional_schedule:
+  sles_product:
+    VERSION:
+      15-SP3:
+        - installation/module_registration/add_ltss_regcode
+      15-SP4:
+        - installation/module_registration/add_additional_regcodes
+        - installation/module_registration/import_untrusted_gnpupg_key
   efi:
     MACHINE:
       uefi:
