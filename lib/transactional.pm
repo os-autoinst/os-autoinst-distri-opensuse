@@ -14,7 +14,7 @@ use Exporter;
 
 use strict;
 use warnings;
-use testapi;
+use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
 use Carp;
 use microos 'microos_reboot';
@@ -35,6 +35,7 @@ our @EXPORT = qw(
   enter_trup_shell
   exit_trup_shell_and_reboot
   reboot_on_changes
+  record_kernel_audit_messages
 );
 
 # Download files needed for transactional update tests
@@ -82,10 +83,12 @@ sub process_reboot {
 
     if (is_microos || is_sle_micro && !is_s390x) {
         microos_reboot $args{trigger};
+        record_kernel_audit_messages();
     } elsif (is_backend_s390x) {
         prepare_system_shutdown;
         enter_cmd "reboot";
         opensusebasetest::wait_boot(opensusebasetest->new(), bootloader_time => 200);
+        record_kernel_audit_messages();
     } else {
         power_action('reboot', observe => !$args{trigger}, keepconsole => 1);
         if (is_s390x || is_pvm) {
@@ -104,6 +107,7 @@ sub process_reboot {
 
         # Login & clear login needle
         select_console 'root-console';
+        record_kernel_audit_messages();
         assert_script_run 'clear';
     }
 
@@ -129,6 +133,28 @@ sub check_reboot_changes {
 
     # Reboot into new snapshot
     process_reboot(trigger => 1) if $change_happened;
+}
+
+
+
+=head2 record_kernel_audit_messages
+
+Record the SELinux messages before the auditd daemon has been started, if present. If there are no such entries, this function has no effect.
+
+=cut
+
+sub record_kernel_audit_messages {
+    my %args = testapi::compat_args({log_upload => 0}, ['log_upload'], @_);
+    my $output = script_output("journalctl -k | grep 'audit:.*avc:' || true");
+    return unless ($output);    # Don't log anything if there is no output
+    record_info("AVC-k", "Kernel audit messages:\n\n$output", result => 'softfail');
+
+    # Upload the same log and don't fail on errors (supplemental material)
+    if ($args{log_upload}) {
+        script_run("journalctl -k | grep 'audit:.*avc:' > /var/tmp/k-audit.log");
+        upload_logs("/var/tmp/k-audit.log", fail_ok => 1);
+        script_run("rm -f /var/tmp/k-audit.log");
+    }
 }
 
 # Return names and version of packages for transactional-update tests
@@ -161,40 +187,45 @@ sub rpmver {
 # Optionally skip exit status check in case immediate reboot is expected
 sub trup_call {
     my ($cmd, %args) = @_;
+    my $script = "transactional-update ";
+    my $ret;
+
     $args{timeout} //= 180;
     $args{exit_code} //= 0;
+    $script .= "-n " unless $args{interactive};
+    $script .= $cmd;
 
     # Always wait for rollback.service to be finished before triggering manually transactional-update
     ensure_rollback_service_not_running();
 
-    my $script = "transactional-update $cmd > /dev/$serialdev";
-    # Only print trup-0- if it's reliably read later (see below)
-    $script .= "; echo trup-\$?- | tee -a /dev/$serialdev" unless $cmd =~ /reboot / && $args{exit_code} == 0;
-    script_run $script, 0;
-    if ($cmd =~ /pkg |ptf /) {
-        if ($cmd =~ /(^|\s)-\w*n\w* pkg/) {
-            record_info 'non-interactive', 'The transactional-update command is in non-interactive mode';
-        } elsif (wait_serial "Continue?") {
-            send_key "ret";
-            # Abort update of broken package
-            if ($cmd =~ /\bup(date)?\b/ && $args{exit_code} == 1) {
-                die 'Abort dialog not shown' unless wait_serial('Abort');
-                send_key 'ret';
-            }
-        } else {
-            die "Confirmation dialog not shown";
-        }
-    }
-
-    # If we expect a reboot on success, the trup-0- might not reach the console.
-    # Check for t-u's own output just before the reboot instead.
+    # If we expect a reboot on success, the exit marker might not reach
+    # the console. Check for t-u's own output just before the reboot instead.
     if ($cmd =~ /reboot / && $args{exit_code} == 0) {
-        wait_serial(qr/New default snapshot is/, timeout => $args{timeout}) || die "transactional-update didn't finish";
+        $script .= " >/dev/$serialdev" unless is_serial_terminal;
+        enter_cmd($script);
+        save_screenshot unless is_serial_terminal;
+        wait_serial(qr/New default snapshot is/, timeout => $args{timeout}) or die "transactional-update didn't finish";
         return;
     }
 
-    my $res = wait_serial(qr/trup-\d+-/, timeout => $args{timeout}) || die "transactional-update didn't finish";
-    my $ret = ($res =~ /trup-(\d+)-/)[0];
+    if ($args{interactive} && $cmd =~ /(pkg|ptf|package) /) {
+        script_start_io($script);
+        wait_serial('Continue?', no_regex => 1)
+          or die 'Confirmation dialog not shown';
+        type_string("\n");
+
+        if ($cmd =~ /\bup(date)?\b/ && $args{exit_code} == 1) {
+            die 'Abort dialog not shown' unless wait_serial('Abort');
+            type_string("\n");
+        }
+
+        $ret = script_finish_io(timeout => $args{timeout});
+    }
+    else {
+        $ret = script_run($script, timeout => $args{timeout}, die_on_timeout => 0);
+    }
+
+    die "transactional-update didn't finish" unless defined($ret);
     die "transactional-update returned with $ret, expected $args{exit_code}" unless $ret == $args{exit_code};
 }
 

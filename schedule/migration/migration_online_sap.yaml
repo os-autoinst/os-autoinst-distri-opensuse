@@ -1,0 +1,36 @@
+---
+name: migration_online_sap
+description: >
+  SAP online migration with netweaver
+vars:
+  NW: 'nfs://1c119.qa.suse.de/srv/nfs/sap/NW75_CLUSTER'
+  INSTANCE_ID: '00'
+  INSTANCE_SID: 'QAD'
+  INSTANCE_TYPE: 'ASCS'
+  SHUTDOWN_NEEDS_AUTH: '0'
+  DM_NEEDS_USERNAME: '1'
+  ROOTONLY: '1'
+schedule:
+  - migration/version_switch_origin_system
+  - installation/bootloader
+  - migration/online_migration/online_migration_setup
+  - migration/online_migration/register_system
+  - migration/online_migration/zypper_patch
+  - installation/install_service
+  - migration/version_switch_upgrade_target
+  - migration/online_migration/pre_migration
+  - migration/online_migration/zypper_migration
+  - migration/online_migration/post_migration
+  - console/system_prepare
+  - '{{test_sles4sap}}'
+  - boot/grub_test_snapshot
+  - boot/snapper_rollback
+
+conditional_schedule:
+  test_sles4sap:
+    TEST_SLES4SAP:
+      1:
+        - sles4sap/patterns
+        - sles4sap/saptune
+        - sles4sap/netweaver_test_instance
+        - sles4sap/sapconf

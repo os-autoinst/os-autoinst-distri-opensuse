@@ -11,8 +11,9 @@ use utils;
 use main_common qw(boot_hdd_image load_bootloader_s390x load_kernel_baremetal_tests);
 use 5.018;
 use Utils::Backends;
-use version_utils 'is_opensuse';
+use version_utils qw(is_opensuse is_alp);
 use LTP::utils qw(loadtest_kernel shutdown_ltp);
+use main_common 'loadtest';
 # FIXME: Delete the "## no critic (Strict)" line and uncomment "use warnings;"
 # use warnings;
 
@@ -21,7 +22,8 @@ our @EXPORT_OK = qw(
 );
 
 sub load_kernel_tests {
-    if (get_var('LTP_BAREMETAL') && get_var('INSTALL_LTP')) {
+    if ((get_var('LTP_BAREMETAL') && get_var('INSTALL_LTP')) ||
+        is_backend_s390x) {
         load_kernel_baremetal_tests();
     } else {
         load_bootloader_s390x();
@@ -30,6 +32,11 @@ sub load_kernel_tests {
     loadtest_kernel "../installation/bootloader" if is_pvm;
 
     if (get_var('INSTALL_LTP')) {
+        if (is_alp) {
+            loadtest('microos/disk_boot');
+            loadtest('transactional/host_config');
+        }
+
         if (get_var('INSTALL_KOTD')) {
             loadtest_kernel 'install_kotd';
         }
@@ -42,9 +49,18 @@ sub load_kernel_tests {
             loadtest_kernel 'update_kernel';
         }
         loadtest_kernel 'install_ltp';
+
+        if (get_var('LIBC_LIVEPATCH')) {
+            die 'LTP_COMMAND_FILE and LIBC_LIVEPATCH are mutually exclusive'
+              if get_var('LTP_COMMAND_FILE');
+            loadtest_kernel 'ulp_openposix';
+        }
+
         # If there is a command file then install_ltp schedules boot_ltp which
-        # will schedule shutdown
-        shutdown_ltp() unless get_var('LTP_COMMAND_FILE');
+        # will schedule shutdown. If there is LIBC_LIVEPATCH, shutdown will be
+        # scheduled by ulp_openposix.
+        shutdown_ltp()
+          unless get_var('LTP_COMMAND_FILE') || get_var('LIBC_LIVEPATCH');
     }
     elsif (get_var('LTP_COMMAND_FILE')) {
         if (get_var('INSTALL_KOTD')) {
@@ -99,6 +115,10 @@ sub load_kernel_tests {
     } elsif (get_var('NUMA_IRQBALANCE')) {
         boot_hdd_image();
         loadtest_kernel 'numa_irqbalance';
+    }
+    elsif (get_var('LIBC_LIVEPATCH')) {
+        loadtest_kernel 'boot_ltp';
+        loadtest_kernel 'ulp_openposix';
     }
 
     if (is_svirt && get_var('PUBLISH_HDD_1')) {

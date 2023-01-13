@@ -6,7 +6,7 @@
 # Summary: The test module goes through the Suggested Partitioning wizard,
 # keeping all the default values but explicitly disables enlarge swap checkbox.
 #
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>, Dawei Pang <dawei.pang@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>, Dawei Pang <dawei.pang@suse.com>
 
 use parent 'y2_installbase';
 use strict;

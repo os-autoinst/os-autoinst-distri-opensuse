@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap is_tumbleweed);
+use version_utils qw(is_sle is_leap is_tumbleweed is_alp);
 use y2_module_guitest 'launch_yast2_module_x11';
 use x11utils 'turn_off_gnome_screensaver';
 
@@ -519,7 +519,7 @@ Set up Web environment for running Adminer by:
 
 =over
 
-=item * use assert_script_run to enable php5 andphp7, restart apache2 and mysql
+=item * use assert_script_run to enable php7 or php8, restart apache2 and mysql
 
 =item * download Adminer and copy it to directory /srv/www/htdocs/adminer/
 
@@ -538,8 +538,11 @@ Set up Web environment for running Adminer by:
 =cut
 # Set up Web environment for running Adminer
 sub adminer_setup {
-    assert_script_run("a2enmod php5");
-    assert_script_run("a2enmod php7");
+    if (is_sle(">=15-SP4") || is_leap(">15.4") || is_tumbleweed() || is_alp()) {
+        assert_script_run("a2enmod php8");
+    } else {
+        assert_script_run("a2enmod php7");
+    }
     assert_script_run("systemctl restart apache2");
     assert_script_run("systemctl restart mysql");
 
@@ -802,6 +805,7 @@ Run post_fail_hook and upload audit logs
 sub post_fail_hook {
     my ($self) = shift;
 
+    return if get_var('NOLOGS');
     # Exit x11 and turn to console in case
     send_key("alt-f4");
     select_console("root-console");

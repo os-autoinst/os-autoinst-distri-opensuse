@@ -20,7 +20,7 @@
 #   - Handle warning pop ups
 #   - Handle autoyast errors during second stage
 #   - Handle grub to boot on local disk (aarch64)
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

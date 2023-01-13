@@ -1,0 +1,14 @@
+name: crypt_krb5kdc
+description:    >
+    This is for crypt_krb5kdc test
+schedule:
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - '{{fips_setup}}'
+    - security/krb5/krb5_crypt_prepare
+    - security/krb5/krb5_crypt_setup_kdc
+conditional_schedule:
+    fips_setup:
+        FIPS_ENABLED:
+            1:
+                - fips/fips_setup

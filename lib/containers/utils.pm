@@ -132,7 +132,9 @@ sub basic_container_tests {
     my $tumbleweed = "registry.opensuse.org/opensuse/tumbleweed";
 
     # Test search feature
-    validate_script_output("$runtime search --no-trunc --format \"table {{.Name}} {{.Description}}\" tumbleweed", sub { m/Official openSUSE Tumbleweed images/ });
+    validate_script_output("$runtime search --no-trunc --format \"table {{.Name}} {{.Description}}\" tumbleweed", sub { m/Official openSUSE Tumbleweed images/ }, timeout => 200);
+    # This should be conditional based on the needed time, but that's currently not possible.
+    record_info('Softfail', 'Searching registry.suse.com is too slow (https://sd.suse.com/servicedesk/customer/portal/1/SD-106252)');
 
     #   - pull minimalistic alpine image of declared version using tag
     #   - https://store.docker.com/images/alpine

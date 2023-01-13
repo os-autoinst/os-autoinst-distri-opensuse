@@ -6,7 +6,7 @@
 # Summary: The class introduces business actions for Clock and Time Zone
 #          dialog.
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::ClockAndTimeZone::ClockAndTimeZoneController;
 use strict;

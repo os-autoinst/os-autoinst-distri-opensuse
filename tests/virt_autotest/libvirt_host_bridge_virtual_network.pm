@@ -1,13 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2020 SUSE LLC
+# Copyright 2019-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: HOST bridge virtual network test:
 #    - Create HOST bridge virtual network
 #    - Confirm HOST bridge virtual network
 #    - Destroy HOST bridge virtual network
-# Maintainer: Leon Guo <xguo@suse.com>
+# Maintainer: Leon Guo <xguo@suse.com>, qe-virt@suse.de
 
 use base "virt_feature_test_base";
 use virt_utils;
@@ -41,11 +41,15 @@ sub run_test {
     upload_logs "$vnet_host_bridge_cfg_name";
     assert_script_run("rm -rf $vnet_host_bridge_cfg_name");
 
-    my ($mac, $model, $affecter, $exclusive);
+    my ($mac, $model, $affecter, $exclusive, $skip_type);
     my $gate = script_output "ip r s | grep 'default via ' | cut -d' ' -f3";
     foreach my $guest (keys %virt_autotest::common::guests) {
         record_info "$guest", "HOST BRIDGE NETWORK for $guest";
-        ensure_online $guest, skip_network => 1;
+        #Just only 15-SP5 PV guest system have a rebooting problem due to bsc#1206250
+        $skip_type = ($guest =~ m/sles-15-sp5-64-pv-def-net/i) ? 'skip_ping' : 'skip_network';
+        #Ensures the given guests is started and fixes some common network issues
+        ensure_online $guest, $skip_type => 1;
+        save_screenshot;
 
         if (is_sle('=11-sp4') && is_xen_host) {
             $affecter = "--persistent";
@@ -66,6 +70,8 @@ sub run_test {
         test_network_interface($guest, mac => $mac, gate => $gate, net => $net);
 
         assert_script_run("virsh detach-interface $guest bridge --mac $mac $exclusive");
+        my $check = script_run("ssh root\@$guest ip l | grep " . $mac, 60);
+        die "Failed to detach bridge interface for guest $guest." if ($check eq 0);
     }
 
     #Destroy HOST BRIDGE NETWORK

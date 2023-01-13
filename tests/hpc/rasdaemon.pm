@@ -23,6 +23,7 @@ use Mojo::Base 'hpcbase', -signatures;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
+use Utils::Logging 'export_logs_basic';
 use utils;
 
 our $file = 'tmpresults.xml';
@@ -121,7 +122,7 @@ sub post_run_hook ($self) {
 
 sub post_fail_hook ($self) {
     select_serial_terminal;
-    $self->export_logs_basic;
+    export_logs_basic;
 }
 
 1;

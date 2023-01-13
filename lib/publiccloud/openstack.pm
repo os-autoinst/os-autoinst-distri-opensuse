@@ -13,7 +13,6 @@ use Mojo::JSON 'decode_json';
 use testapi;
 use publiccloud::openstack_client;
 
-has ssh_key => undef;
 has ssh_key_name => undef;
 has public_ip => undef;
 has instance_id => undef;

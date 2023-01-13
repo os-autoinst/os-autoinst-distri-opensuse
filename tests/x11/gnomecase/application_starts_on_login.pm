@@ -30,7 +30,7 @@
 # - Close xterm
 # - Call dconf and rollback changes for save session
 
-# Maintainer: xiaojun <xjin@suse.com>
+# Maintainer: Grace Wang <grace.wang@suse.com>
 
 use base "x11test";
 use strict;
@@ -45,8 +45,7 @@ sub tweak_startupapp_menu {
     my ($self) = shift;
 
     $self->start_gnome_tweak_tool;
-    # increase the default timeout - the switching can be slow
-    send_key_until_needlematch "tweak-startapp", "down", 11, 2;
+    assert_and_click "tweak-startapp-menu";
 }
 
 sub start_dconf {

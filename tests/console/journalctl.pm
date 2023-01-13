@@ -145,6 +145,26 @@ sub run {
     );
     my @boots;
 
+    # Ensure the time is correct, otherwise we might run into issues with the persistent journal
+    # See e.g. https://bugzilla.suse.com/show_bug.cgi?id=1182802
+
+    if (is_sle("<15")) {
+        # SLES12 on Publiccloud has ntp enabled by default.
+        if (!is_public_cloud) {
+            # SLE 12 has no chrony by default but uses ntp
+            assert_script_run("ntpdate -b 0.suse.pool.ntp.org", fail_message => "forced time sync failed");
+            assert_script_run("systemctl enable --now ntpd");
+            # We're not enabling ntp-wait until bsc#1207042 is resolved
+            record_soft_failure("bsc#1207042 - Won't enable ntp-wait due to cron issues");
+            #assert_script_run("systemctl enable ntp-wait.service");
+        }
+    } else {
+        assert_script_run("systemctl start chronyd");
+        assert_script_run("chronyc waitsync", fail_message => "time synchronization failed");
+        assert_script_run("systemctl enable --now chrony-wait.service", fail_message => "error enabling chrony-wait");
+    }
+
+
     # create dropin directory for further journal.conf updates if it does not exists
     if (script_run "test -d ${\ DROPIN_DIR }") {
         assert_script_run "mkdir -p ${\ DROPIN_DIR }/";
@@ -165,7 +185,7 @@ sub run {
             assert_script_run "rpm -q --conflicts systemd-logger | tee -a /dev/$serialdev | grep syslog";
         }
     } else {
-        validate_script_output('journalctl --no-pager --boot=-1 2>&1', qr/no persistent journal was found/i) unless is_sle('<15');
+        validate_script_output('journalctl --no-pager --boot=-1 2>&1', qr/no persistent journal was found/i, fail_message => "Persistent journal present where it shouldn't be") unless is_sle('<15');
         assert_script_run "mkdir -p ${\ PERSISTENT_LOG_DIR }";
         assert_script_run "systemd-tmpfiles --create --prefix ${\ PERSISTENT_LOG_DIR }";
         # https://bugzilla.suse.com/show_bug.cgi?id=1196637
@@ -185,10 +205,15 @@ sub run {
 
     assert_script_run("date '+%F %T' | tee /var/tmp/reboottime");
     assert_script_run("echo 'The batman is going to sleep' | systemd-cat -p info -t batman");
+    script_run('journalctl --list-boots');    # Debug output to help identify issues when less than 2 boots are displayed
     reboot($self);
     get_current_boot_id \@boots;
-    my @listed_boots = split('\n', script_output 'journalctl --list-boots');
-    die "journal lists less than 2 boots" if (scalar(@listed_boots) < 2);
+    my $listed_boots = script_output 'journalctl --list-boots';
+    my @listed_boots = split('\n', $listed_boots);
+    if (scalar(@listed_boots) < 2) {
+        record_info("list-boots", $listed_boots);
+        die "journal lists less than 2 boots";
+    }
     is_journal_empty('--boot=-1', "journalctl-1.txt");
     script_retry('journalctl --identifier=batman --boot=-1| grep "The batman is going to sleep"', retry => 5, delay => 2);
     script_run('echo -e "Reboot time:  `cat /var/tmp/reboottime`\nCurrent time: `date -u \'+%F %T\'`"');

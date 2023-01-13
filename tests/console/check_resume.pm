@@ -5,7 +5,7 @@
 
 # Summary: Verify that "resume=" kernel parameter is absent in the list of default parameters on Sle15-SP2
 
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
 use strict;

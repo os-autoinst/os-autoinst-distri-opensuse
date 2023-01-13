@@ -5,7 +5,7 @@
 
 # Summary: Verify that yast2-lan does not crash if there are errors
 # (like typos or duplicates) in one of the ifcfg files.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_module_guitest';
 use strict;

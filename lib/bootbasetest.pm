@@ -27,8 +27,7 @@ sub post_fail_hook {
 
     # crosscheck for text login on tty1
     select_console 'root-console';
-    # collect and upload some stuff
-    $self->export_logs();
+    return if get_var('NOLOGS');
     # call parent's post fail hook
     $self->SUPER::post_fail_hook;
 

@@ -13,20 +13,26 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_public_cloud);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl);
 use strict;
 use warnings;
 use mr_test_lib qw(load_mr_tests);
 use publiccloud::ssh_interactive 'select_host_console';
+use publiccloud::instances;
 
 sub reboot_wait {
     my ($self) = @_;
 
-    # Do not reboot if testing in public cloud instance,
-    # reboot will terminate the ssh tunnel
-    $self->reboot unless get_var('PUBLIC_CLOUD_SLES4SAP');
+    if (is_public_cloud) {
+        # Reboot on publiccloud needs to happen via their dedicated reboot routine
+        my $instance = publiccloud::instances::get_instance();
+        $instance->softreboot(timeout => 1200);
+    }
+    else {
+        $self->reboot;
+    }
 
     # Wait for saptune to tune everything
     my $timeout = 60;

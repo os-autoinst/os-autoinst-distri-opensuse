@@ -1,0 +1,51 @@
+---
+name: create_hdd_sap
+description: >
+  SAP autoYaST installation and publish qcow for SAP migration standalone
+  cases.
+vars:
+  AUTOYAST: autoyast_sle15/create_hdd/create_hdd_sap.xml.ep
+  AUTOYAST_PREPARE_PROFILE: '1'
+  NW: 'nfs://1c119.qa.suse.de/srv/nfs/sap/NW75_CLUSTER'
+  INSTANCE_ID: '00'
+  INSTANCE_SID: 'QAD'
+  INSTANCE_TYPE: 'ASCS'
+  QEMU_VIRTIO_RNG: '0'
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - '{{handle_reboot}}'
+  - '{{test_sles4sap}}'
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - '{{handle_deregistration}}'
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+
+conditional_schedule:
+  handle_reboot:
+    ARCH:
+      x86_64:
+        - autoyast/autoyast_reboot
+        - installation/grub_test
+        - installation/first_boot
+  handle_deregistration:
+    SCC_DEREGISTER:
+      1:
+        - console/scc_deregistration
+  test_sles4sap:
+    TEST_SLES4SAP:
+      1:
+        - console/system_prepare
+        - sles4sap/patterns
+        - sles4sap/netweaver_install
+        - sles4sap/netweaver_test_instance

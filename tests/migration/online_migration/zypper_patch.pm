@@ -5,7 +5,7 @@
 
 # Package: zypper
 # Summary: Fully patch the system before conducting an online migration
-# Maintainer: yutao <yuwang@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
 use strict;

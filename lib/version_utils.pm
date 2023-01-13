@@ -12,6 +12,7 @@ use version 'is_lax';
 use Carp 'croak';
 use Utils::Backends;
 use Utils::Architectures;
+use SemVer;
 
 use constant {
     VERSION => [
@@ -103,7 +104,7 @@ Returns true if called on jeos
 =cut
 
 sub is_jeos {
-    return get_var('FLAVOR', '') =~ /^JeOS/;
+    return get_var('FLAVOR', '') =~ /JeOS/;
 }
 
 =head2 is_vmware
@@ -190,6 +191,12 @@ sub check_version {
         if (is_lax($pv) && is_lax($qv)) {
             $pv = version->declare($pv);
             $qv = version->declare($qv);
+        }
+        elsif (index($pv, "sp") == -1 && index($qv, "sp") == -1) {
+            eval {
+                $pv = SemVer->declare($pv);
+                $qv = SemVer->declare($qv);
+            }
         }
         return $pv ge $qv if $+{plus} || $+{op} eq '>=';
         return $pv le $qv if $+{op} eq '<=';

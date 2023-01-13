@@ -33,7 +33,7 @@ Base class implementation of distribution class necessary for testapi
 use testapi qw(send_key %cmd assert_screen check_screen check_var click_lastmatch get_var save_screenshot
   match_has_tag set_var type_password type_string enter_cmd wait_serial $serialdev is_serial_terminal
   mouse_hide send_key_until_needlematch record_info record_soft_failure
-  wait_still_screen wait_screen_change get_required_var diag);
+  wait_still_screen wait_screen_change get_required_var diag hashed_string);
 
 
 =head2 new
@@ -349,7 +349,7 @@ Execute the given command as sudo
 sub script_sudo {
     my ($self, $prog, $wait) = @_;
 
-    my $str = time;
+    my $str = hashed_string("ASS$prog");
     if ($wait > 0) {
         unless ($prog =~ /^bash/) {
             $prog .= "; echo $str-\$?-";
@@ -569,6 +569,21 @@ sub init_consoles {
             set_var("S390_NETWORK_PARAMS", $s390_params);
 
             ($hostname) = $s390_params =~ /Hostname=(\S+)/;
+
+            # adds serial console for S390_ZKVM
+            # NOTE: adding consoles just at the top of init_consoles() is not enough, otherwise
+            # using just them would fail with:
+            # ::: basetest::runtest: # Test died: Error connecting to <root@192.168.112.9>: Connection refused at /usr/lib/os-autoinst/testapi.pm line 1700.
+            unless (get_var('SUT_IP')) {
+                $self->add_console(
+                    'root-serial-ssh',
+                    'ssh-serial',
+                    {
+                        hostname => $hostname,
+                        password => $testapi::password,
+                        username => 'root'
+                    });
+            }
         }
 
         if (check_var("VIDEOMODE", "text")) {    # adds console for text-based installation on s390x

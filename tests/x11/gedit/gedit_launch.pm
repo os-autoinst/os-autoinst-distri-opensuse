@@ -10,7 +10,7 @@
 # - Close gedit by "close" button
 # - Launch gedit again
 # - Close gedit by CTRL-Q
-# Maintainer: Huajian Luo <hluo@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 # Tags: tc#1436122
 
 use base "x11test";

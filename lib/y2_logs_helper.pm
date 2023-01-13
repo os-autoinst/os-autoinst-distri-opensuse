@@ -8,6 +8,7 @@ use network_utils;
 use utils 'zypper_call';
 use Exporter 'import';
 use Utils::Architectures;
+use Utils::Logging 'tar_and_upload_log';
 
 
 our @EXPORT_OK = qw(
@@ -184,7 +185,7 @@ sub upload_autoyast_schema {
     my $xml_schema_path = "/usr/share/YaST2/schema/autoyast/rng";
     # Upload schema files if directory exists
     if (script_run("test -e $xml_schema_path") == 0) {
-        $self->tar_and_upload_log("$xml_schema_path/*.rng", '/tmp/autoyast_schema.tar.bz2');
+        tar_and_upload_log("$xml_schema_path/*.rng", '/tmp/autoyast_schema.tar.bz2');
     }
 }
 

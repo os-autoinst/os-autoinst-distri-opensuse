@@ -160,7 +160,7 @@ sub check_sev_es_dmesg {
     foreach (@flags) {
         $cmd1 = ($args{dst_machine} eq 'localhost' ? "\"$_( |\$)\"" : "\\\"$_( |\$)\\\"");
         $cmd1 = "grep -i -E -o " . $cmd1;
-        $cmd2 = ($args{dst_machine} eq 'localhost' ? "\"AMD Memory Encryption Features active\"" : "\\\"AMD Memory Encryption Features active\\\"");
+        $cmd2 = ($args{dst_machine} eq 'localhost' ? "\"Memory Encryption Features active\"" : "\\\"Memory Encryption Features active\\\"");
         $cmd2 = "grep -i " . $cmd2;
         $cmd1 = "dmesg | $cmd2 | $cmd1";
         $cmd1 = "ssh root\@$args{dst_machine} " . "\"$cmd1\"" if ($args{dst_machine} ne 'localhost');

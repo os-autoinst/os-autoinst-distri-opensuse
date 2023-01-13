@@ -2,11 +2,11 @@
 name: hpc_installation_node_dev
 description:    >
      Maintainer: qe-kernel
-     Installation scenario with HPC system role hpc-node and hpc-dev
+     Installation scenario with HPC system role hpc-dev
 vars:
-  DESKTOP: textmode
+  DESKTOP: gnome
   INSTALLONLY: 1
-  PATTERNS: base,minimal,apparmor
+  PATTERNS: default
   SLE_PRODUCT: hpc
   HDDSIZEGB: 30
 conditional_schedule:
@@ -21,6 +21,8 @@ conditional_schedule:
       15-SP5:
         - installation/user_settings_root
       15-SP4:
+        - installation/user_settings_root
+      15-SP3:
         - installation/user_settings_root
       15-SP2:
         - installation/user_settings_root

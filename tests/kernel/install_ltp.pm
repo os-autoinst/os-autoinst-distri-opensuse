@@ -25,6 +25,9 @@ use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use LTP::utils;
 use rpi 'enable_tpm_slb9670';
+use bootloader_setup 'add_grub_xen_replace_cmdline_settings';
+use virt_autotest::utils 'is_xen_host';
+use Utils::Backends 'get_serial_console';
 
 sub add_we_repo_if_available {
     # opensuse doesn't have extensions
@@ -295,7 +298,8 @@ sub install_from_repo {
 
     my $run_cmd = is_transactional ? 'transactional-update -c -d --quiet run' : '';
     for my $pkg (@pkgs) {
-        my $want_32bit = $pkg =~ m/32bit/;
+        my $want_32bit = want_ltp_32bit($pkg);
+
         record_info("LTP pkg: $pkg", script_output("$run_cmd rpm -qi $pkg | tee "
                   . get_ltp_version_file($want_32bit)));
         assert_script_run "find " . get_ltproot($want_32bit) .
@@ -361,7 +365,7 @@ sub run {
         die 'INSTALL_LTP must contain "git" or "repo"';
     }
 
-    if (!get_var('KGRAFT') && !get_var('LTP_BAREMETAL') && !is_jeos) {
+    if (!get_var('KGRAFT') && !get_var('LTP_BAREMETAL') && !is_jeos && !is_alp) {
         $self->wait_boot;
     }
 
@@ -419,6 +423,14 @@ sub run {
     }
 
     add_custom_grub_entries if (is_sle('12+') || is_opensuse || is_transactional) && !is_jeos;
+
+    if (is_xen_host) {
+        my $version = get_var('VERSION');
+        assert_script_run("grub2-set-default 'SLES ${version}, with Xen hypervisor'");
+        my $serial_console = get_serial_console;
+        add_grub_xen_replace_cmdline_settings("console=${serial_console},115200n", update_grub => 1);
+    }
+
     setup_network unless is_transactional;
 
     # we don't run LVM tests in 32bit, thus not generating the runtest file

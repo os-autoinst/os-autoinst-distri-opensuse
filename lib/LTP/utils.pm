@@ -14,8 +14,9 @@ use Utils::Backends;
 use autotest;
 use LTP::WhiteList;
 use LTP::TestInfo 'testinfo';
-use version_utils qw(is_openstack is_jeos);
+use version_utils qw(is_jeos is_openstack is_rt);
 use File::Basename 'basename';
+use Utils::Architectures;
 
 our @EXPORT = qw(
   get_ltproot
@@ -27,6 +28,7 @@ our @EXPORT = qw(
   prepare_ltp_env
   schedule_tests
   shutdown_ltp
+  want_ltp_32bit
 );
 
 sub loadtest_kernel {
@@ -53,10 +55,13 @@ sub shutdown_ltp {
 }
 
 sub want_ltp_32bit {
+    my $pkg = shift // get_var('LTP_PKG');
+
     # TEST_SUITE_NAME is for running 32bit tests (e.g. ltp_syscalls_m32),
     # checking LTP_PKG is for install_ltp.pm which also uses prepare_ltp_env()
     return (get_required_var('TEST_SUITE_NAME') =~ m/[-_]m32$/
-          || get_var('LTP_PKG', '') =~ m/^(ltp|qa_test_ltp)-32bit$/);
+          || $pkg =~ m/-32bit$/
+          || is_32bit);
 }
 
 sub get_ltproot {
@@ -72,14 +77,15 @@ sub get_ltp_openposix_test_list_file {
 }
 
 sub get_ltp_version_file {
-    my $want_32bit = shift // get_required_var('TEST_SUITE_NAME') =~ m/[-_]m32$/;
+    my $want_32bit = shift // want_ltp_32bit;
 
     return get_ltproot($want_32bit) . '/version';
 }
 
 sub log_versions {
     my $report_missing_config = shift;
-    my $kernel_pkg = is_jeos || get_var('KERNEL_BASE') ? 'kernel-default-base' : 'kernel-default';
+    my $kernel_pkg = is_jeos || get_var('KERNEL_BASE') ? 'kernel-default-base' :
+      (is_rt ? 'kernel-rt' : 'kernel-default');
     my $kernel_pkg_log = '/tmp/kernel-pkg.txt';
     my $ver_linux_log = '/tmp/ver_linux_before.txt';
     my $kernel_config = script_output('for f in "/boot/config-$(uname -r)" "/usr/lib/modules/$(uname -r)/config" /proc/config.gz; do if [ -f "$f" ]; then echo "$f"; break; fi; done');
@@ -87,8 +93,10 @@ sub log_versions {
     script_run("rpm -qi $kernel_pkg > $kernel_pkg_log 2>&1");
     upload_logs($kernel_pkg_log, failok => 1);
 
-    script_run(get_ltproot . "/ver_linux > $ver_linux_log 2>&1");
-    upload_logs($ver_linux_log, failok => 1);
+    if (get_var('LTP_COMMAND_FILE') || get_var('LIBC_LIVEPATCH')) {
+        script_run(get_ltproot . "/ver_linux > $ver_linux_log 2>&1");
+        upload_logs($ver_linux_log, failok => 1);
+    }
 
     if ($kernel_config) {
         my $cmd = "echo '# $kernel_config'; echo; ";
@@ -113,7 +121,12 @@ sub log_versions {
     record_info('KERNEL VERSION', script_output('uname -a'));
     record_info('KERNEL DEFAULT PKG', script_output("cat $kernel_pkg_log", proceed_on_failure => 1));
     record_info('KERNEL EXTRA PKG', script_output('rpm -qi kernel-default-extra', proceed_on_failure => 1));
-    record_info('ver_linux', script_output("cat $ver_linux_log", proceed_on_failure => 1));
+
+    record_info('KERNEL pkg', script_output('rpm -qa | grep kernel', proceed_on_failure => 1));
+
+    if (get_var('LTP_COMMAND_FILE') || get_var('LIBC_LIVEPATCH')) {
+        record_info('ver_linux', script_output("cat $ver_linux_log", proceed_on_failure => 1));
+    }
 
     script_run('env');
     script_run('aa-enabled; aa-status');
@@ -231,7 +244,8 @@ sub read_runfile {
 }
 
 sub schedule_tests {
-    my ($cmd_file) = @_;
+    my ($cmd_file, $suffix) = @_;
+    $suffix //= '';
 
     my $test_result_export = {
         format => 'result_array:v2',
@@ -273,24 +287,38 @@ sub schedule_tests {
         loadtest_kernel 'ltp_init_lvm';
     }
 
-    parse_runfiles($cmd_file, $test_result_export);
+    parse_runfiles($cmd_file, $test_result_export, $suffix);
 
     if (check_var('KGRAFT', 1) && check_var('UNINSTALL_INCIDENT', 1)) {
         loadtest_kernel 'uninstall_incident';
-        parse_runfiles($cmd_file, $test_result_export, '_postun');
+        parse_runfiles($cmd_file, $test_result_export, $suffix . '_postun');
     }
 
-    shutdown_ltp(run_args => testinfo($test_result_export));
+    shutdown_ltp(run_args => testinfo($test_result_export))
+      unless get_var('LIBC_LIVEPATCH');
 }
 
 sub parse_openposix_runfile {
     my ($name, $cmds, $cmd_pattern, $cmd_exclude, $test_result_export, $suffix) = @_;
+    my $ulp_test = get_var('LIBC_LIVEPATCH', 0);
     my $whitelist = LTP::WhiteList->new();
+
+    assert_script_run('export LD_PRELOAD=/usr/lib64/libpulp.so.0')
+      if ($ulp_test);
 
     for my $line (@$cmds) {
         chomp($line);
-        if ($line =~ m/$cmd_pattern/ && !($line =~ m/$cmd_exclude/)) {
-            my $test = {name => basename($line, '.run-test') . $suffix, command => $line};
+        my $testname = basename($line, '.run-test') . $suffix;
+
+        if ($testname =~ m/$cmd_pattern/ && !($testname =~ m/$cmd_exclude/)) {
+            # For ULP tests, start all processes in the background immediately
+            # and change the test command to unpause the existing process
+            if ($ulp_test) {
+                my $pid = background_script_run("$line --livepatch");
+                $line = "kill -s SIGUSR1 $pid; wait $pid";
+            }
+
+            my $test = {name => $testname, command => $line};
             my $tinfo = testinfo($test_result_export, test => $test, runfile => $name);
 
             loadtest_runltp($test->{name}, $tinfo, $whitelist);

@@ -5,7 +5,7 @@
 
 # Summary: Handles Page in Expert Partitioner for formatting/mounting options
 # for adding a partition when Partition Id is available.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::PartitionIdFormatMountOptionsPage;
 use strict;

@@ -42,22 +42,19 @@ use Exporter 'import';
 our @EXPORT = qw(
   clone_trento_deployment
   get_trento_deployment
-  get_resource_group
-  get_qesap_resource_group
   az_delete_group
-  az_vm_ssh_cmd
-  config_cluster
+  cluster_config
+  cluster_deploy
+  cluster_destroy
+  cluster_install_agent
+  cluster_print_cluster_status
+  cluster_hdbadm
+  cluster_trento_net_peering
+  cluster_wait_status
   get_trento_ip
-  get_vnet
-  get_trento_password
   deploy_vm
   trento_acr_azure
   install_trento
-  deploy_qesap
-  destroy_qesap
-  install_agent
-  VM_USER
-  SSH_KEY
   cypress_configs
   cypress_install_container
   CYPRESS_LOG_DIR
@@ -67,16 +64,19 @@ our @EXPORT = qw(
   cypress_test_exec
   cypress_log_upload
   k8s_logs
+  k8s_test
   trento_support
+  trento_collect_scenarios
+  trento_api_key
 );
 
 # Exported constants
-use constant VM_USER => 'cloudadmin';
-use constant SSH_KEY => '/root/.ssh/id_rsa';
 use constant CYPRESS_LOG_DIR => '/root/result';
 use constant PODMAN_PULL_LOG => '/tmp/podman_pull.log';
 
 # Lib internal constants
+use constant VM_USER => 'cloudadmin';
+use constant SSH_KEY => '/root/.ssh/id_rsa';
 use constant TRENTO_AZ_PREFIX => 'openqa-trento';
 use constant TRENTO_QESAPDEPLOY_PREFIX => 'qesapdep';
 use constant TRENTO_SCRIPT_RUN => 'set -o pipefail ; ./';
@@ -239,10 +239,10 @@ sub get_qesap_resource_group {
     return $result;
 }
 
-=head3 config_cluster
+=head3 cluster_config
 
 Create a variable map and prepare the qe-sap-deployment using it
-=over 2
+=over 3
 
 =item B<PROVIDER> - CloudProvider name
 
@@ -253,7 +253,7 @@ Create a variable map and prepare the qe-sap-deployment using it
 =back
 =cut
 
-sub config_cluster {
+sub cluster_config {
     my ($provider, $region, $scc) = @_;
 
     my $resource_group_postfix = TRENTO_QESAPDEPLOY_PREFIX . get_current_job_id();
@@ -271,6 +271,15 @@ sub config_cluster {
     $variables{SSH_KEY_PRIV} = SSH_KEY;
     $variables{SSH_KEY_PUB} = $ssh_key_pub;
     $variables{SCC_REGCODE_SLES4SAP} = $scc;
+
+    $variables{HANA_ACCOUNT} = get_required_var("TRENTO_QESAPDEPLOY_HANA_ACCOUNT");
+    $variables{HANA_CONTAINER} = get_required_var("TRENTO_QESAPDEPLOY_HANA_CONTAINER");
+    if (get_var("TRENTO_QESAPDEPLOY_HANA_TOKEN")) {
+        $variables{HANA_TOKEN} = get_required_var("TRENTO_QESAPDEPLOY_HANA_TOKEN");
+        # escape needed by 'sed'
+        # but not implemented in file_content_replace() yet poo#120690
+        $variables{HANA_TOKEN} =~ s/\&/\\\&/g;
+    }
     $variables{HANA_SAR} = get_required_var("TRENTO_QESAPDEPLOY_SAPCAR");
     $variables{HANA_CLIENT_SAR} = get_required_var("TRENTO_QESAPDEPLOY_IMDB_CLIENT");
     $variables{HANA_SAPCAR} = get_required_var("TRENTO_QESAPDEPLOY_IMDB_SERVER");
@@ -353,14 +362,14 @@ sub trento_acr_azure {
     }
     my $deploy_script_log = "script_$script_id.log.txt";
     my $trento_cluster_install = "${work_dir}/trento_cluster_install.sh";
-    my $trento_acr_azure_timeout = 360;
+    my $trento_acr_azure_timeout = bmwqemu::scale_timeout(360);
     my @cmd_list = (TRENTO_SCRIPT_RUN . $script_id . '.sh',
         '-g', $resource_group,
         '-n', $acr_name,
         '-u', VM_USER,
         '-r', $trento_registry_chart);
     if ($rolling_mode) {
-        $trento_acr_azure_timeout += 240;
+        $trento_acr_azure_timeout += bmwqemu::scale_timeout(240);
         push @cmd_list, ('-o', $work_dir);
     }
     push @cmd_list, ('-v', '2>&1|tee', $deploy_script_log);
@@ -405,7 +414,12 @@ sub install_trento {
         '-k', SSH_KEY,
         '-u', VM_USER);
 
-    push @cmd_list, ('-c', get_var('TRENTO_REGISTRY_CHART_VERSION')) if (get_var('TRENTO_REGISTRY_CHART_VERSION'));
+    if (get_var('TRENTO_REGISTRY_CHART_VERSION')) {
+        push @cmd_list, ('-c', get_var('TRENTO_REGISTRY_CHART_VERSION'));
+    }
+    elsif (get_var('TRENTO_VERSION')) {
+        push @cmd_list, ('-c', get_var('TRENTO_VERSION'));
+    }
     if (get_var("TRENTO_REGISTRY_IMAGE_$imgs[0]") || get_var("TRENTO_REGISTRY_IMAGE_$imgs[1]")) {
         push @cmd_list, ('-x', $acr->{'trento_cluster_install'});
     }
@@ -420,29 +434,29 @@ sub install_trento {
     upload_logs($deploy_script_log);
 }
 
-=head3 deploy_qesap
+=head3 cluster_deploy
 
 Deploy a SAP Landscape using a previously configured qe-sap-deployment
 =cut
 
-sub deploy_qesap {
-    my $ret = qesap_execute(cmd => 'terraform', verbose => 1, timeout => 1800);
+sub cluster_deploy {
+    my $ret = qesap_execute(cmd => 'terraform', verbose => 1, timeout => bmwqemu::scale_timeout(1800));
     die "'qesap.py terraform' return: $ret" if ($ret);
-    $ret = qesap_execute(cmd => 'ansible', verbose => 1, timeout => 3600);
+    $ret = qesap_execute(cmd => 'ansible', verbose => 1, timeout => bmwqemu::scale_timeout(3600));
     die "'qesap.py ansible' return: $ret" if ($ret);
     my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
     upload_logs($inventory);
 }
 
-=head3 destroy_qesap
+=head3 cluster_destroy
 
 Destroy the qe-sap-deployment SAP Landscape
 =cut
 
-sub destroy_qesap {
-    my $ret = qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
+sub cluster_destroy {
+    my $ret = qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => bmwqemu::scale_timeout(300));
     die "'qesap.py ansible -d' return: $ret" if ($ret);
-    $ret = qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 3600);
+    $ret = qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => bmwqemu::scale_timeout(3600));
     die "'qesap.py terraform -d' return: $ret" if ($ret);
 }
 
@@ -543,7 +557,7 @@ Delete the resource group associated to this JobID and all its content
 
 sub az_delete_group {
     my $az_cmd = sprintf 'az group delete --resource-group %s --yes', get_resource_group();
-    script_retry($az_cmd, timeout => 600, retry => 5, delay => 60);
+    script_retry($az_cmd, timeout => bmwqemu::scale_timeout(600), retry => 5, delay => 60);
 }
 
 =head3 az_vm_ssh_cmd
@@ -577,7 +591,7 @@ sub az_vm_ssh_cmd {
         '--', $cmd_arg);
 }
 
-=head3 install_agent
+=head3 cluster_install_agent
 
 Install trento-agent on all the nodes.
 Installation is performed using ansible.
@@ -593,7 +607,7 @@ Installation is performed using ansible.
 =back
 =cut
 
-sub install_agent {
+sub cluster_install_agent {
     my ($wd, $playbook_location, $agent_api_key) = @_;
     my $local_rpm_arg = '';
     my $cmd;
@@ -662,6 +676,32 @@ sub k8s_logs {
     }
 }
 
+=head3 k8s_test
+
+Test Trento VM and k8s cluster running on it
+
+=cut
+
+sub k8s_test {
+    if (!get_var('TRENTO_EXT_DEPLOY_IP')) {
+        my $machine_ip = get_trento_ip();
+        my $resource_group = get_resource_group();
+
+        # check if VM is still there :-)
+        assert_script_run("az vm list -g $resource_group --query \"[].name\"  -o tsv", 180);
+
+        # get deployed version from the cluster
+        my $kubectl_pods = script_output(az_vm_ssh_cmd('kubectl get pods', $machine_ip), 180);
+        foreach my $row (split(/\n/, $kubectl_pods)) {
+            if ($row =~ m/trento-server-web/) {
+                my $pod_name = (split /\s/, $row)[0];
+                my $trento_ver_cmd = az_vm_ssh_cmd("kubectl exec --stdin $pod_name -- /app/bin/trento version", $machine_ip);
+                script_run($trento_ver_cmd, 180);
+            }
+        }
+    }
+}
+
 =head3 trento_support
 
 Call trento-support.sh and dump_scenario_from_k8.sh
@@ -669,9 +709,7 @@ and upload the logs
 =cut
 
 sub trento_support {
-    my ($scenario) = @_;
     my $machine_ip = get_trento_ip();
-
     return unless ($machine_ip);
 
     my $log_dir = 'remote_logs/';
@@ -687,12 +725,148 @@ sub trento_support {
     script_run(az_vm_ssh_cmd($cmd, $machine_ip));
     script_run("$scp_cmd:'*.tar.gz' $log_dir");
 
-    my $scenario_name = $scenario || 'openqa_scenario';
-    script_run(az_vm_ssh_cmd("./dump_scenario_from_k8.sh -n $scenario_name", $machine_ip));
-    script_run("$scp_cmd:'scenarios/$scenario_name/*.json' $log_dir");
-    foreach my $this_file (split("\n", script_output('ls -1 ' . $log_dir . '*.tar.gz ' . $log_dir . '*.json'))) {
+    foreach my $this_file (split("\n", script_output('ls -1 ' . $log_dir . '*.tar.gz'))) {
         upload_logs($this_file, failok => 1);
     }
+    enter_cmd("rm -f $log_dir/*.tar.gz");
+}
+
+=head3 trento_collect_scenarios
+
+Call dump_scenario_from_k8.sh
+and upload the logs
+=cut
+
+sub trento_collect_scenarios {
+    my ($scenario) = @_;
+    my $machine_ip = get_trento_ip();
+
+    return unless ($machine_ip);
+
+    my $log_dir = 'remote_logs/';
+    enter_cmd "mkdir $log_dir";
+    my $scp_cmd = sprintf 'scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i %s %s@%s',
+      SSH_KEY, VM_USER, $machine_ip;
+
+    my $scenario_name = $scenario || 'openqa_scenario';
+    script_run(az_vm_ssh_cmd("./dump_scenario_from_k8.sh -n $scenario_name", $machine_ip));
+    script_run(az_vm_ssh_cmd("tar -czvf $scenario_name.photofinish.tar.gz scenarios/$scenario_name/*.json", $machine_ip));
+    script_run(az_vm_ssh_cmd("rm -rf scenarios/$scenario_name/*.json", $machine_ip));
+    script_run("$scp_cmd:'$scenario_name.photofinish.tar.gz' $log_dir");
+    script_run(az_vm_ssh_cmd('rm -rf *.photofinish.tar.gz', $machine_ip));
+
+    foreach my $this_file (split("\n", script_output('ls -1 ' . $log_dir . '*.photofinish.tar.gz'))) {
+        upload_logs($this_file, failok => 1);
+    }
+    enter_cmd("rm -rf $log_dir/*.photofinish.tar.gz");
+}
+
+=head3 trento_api_key
+
+Get the api-key from the Trento installation
+=cut
+
+sub trento_api_key {
+    my ($wd, $basedir) = @_;
+    my $cmd = join(' ', $basedir . '/trento-server-api-key.sh',
+        '-u', 'admin',
+        '-p', get_trento_password(),
+        '-i', get_trento_ip(),
+        '-d', $wd, '-v');
+    my $agent_api_key = '';
+    my @lines = split(/\n/, script_output($cmd));
+    foreach my $line (@lines) {
+        if ($line =~ /api_key:(.*)/) {
+            $agent_api_key = $1;
+        }
+    }
+    return $agent_api_key;
+}
+
+=head3 cluster_print_cluster_status
+
+Run `crm status` and `SAPHanaSR-showAttr --format=script`
+on the specified host. Command is executed remotely with
+Ansible and nothing more (no output collected for further processing)
+=cut
+
+sub cluster_print_cluster_status {
+    my ($host) = @_;
+    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    qesap_ansible_cmd(
+        cmd => 'crm status',
+        provider => $prov,
+        filter => $host);
+    qesap_ansible_cmd(cmd => 'SAPHanaSR-showAttr --format=script',
+        provider => $prov,
+        filter => $host);
+}
+
+=head3 cluster_hdbadm
+
+Remotly run on $host as user hdbadm
+=cut
+
+sub cluster_hdbadm {
+    my ($host, $cmd) = @_;
+    # Stop the primary DB
+    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    qesap_ansible_cmd(
+        cmd => "su - hdbadm -c '$cmd'",
+        provider => $prov,
+        filter => $host);
+}
+
+=head3 cluster_wait_status
+
+Remotly run 'SAPHanaSR-showAttr' in a loop on $host, wait output that match in f_status callback test
+=cut
+
+sub cluster_wait_status {
+    my ($host, $f_status, $timeout) = @_;
+    $timeout //= bmwqemu::scale_timeout(300);
+    my $_monitor_start_time = time();
+    my $done;
+    while ((time() - $_monitor_start_time <= $timeout) && (!$done)) {
+        sleep 30;
+        my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
+        my $show_attr = qesap_ansible_script_output(
+            cmd => 'SAPHanaSR-showAttr',
+            provider => $prov,
+            host => $host,
+            root => 1);
+
+        my %status = ();
+        for my $line (split("\n", $show_attr)) {
+            $status{$1} = $line if ($line =~ m/^(vmhana\d+)/);
+        }
+        $done = $f_status->($status{vmhana01}, $status{vmhana02});
+        record_info("SAPHanaSR-showAttr",
+            join("\n\n", "Output : $show_attr",
+                'status{vmhana01} : ' . $status{vmhana01},
+                'status{vmhana02} : ' . $status{vmhana02},
+                "done : $done"));
+    }
+    die "Timeout waiting for the change" if !$done;
+}
+
+=head3 cluster_trento_net_peering
+
+Run 00.050 net peering script
+=cut
+
+sub cluster_trento_net_peering {
+    my ($basedir) = @_;
+    my $trento_rg = get_resource_group();
+    my $cluster_rg = get_qesap_resource_group();
+    my $cmd = join(' ',
+        $basedir . '/00.050-trento_net_peering_tserver-sap_group.sh',
+        '-s', $trento_rg,
+        '-n', get_vnet($trento_rg),
+        '-t', $cluster_rg,
+        '-a', get_vnet($cluster_rg));
+    record_info('NET PEERING');
+    assert_script_run($cmd, 360);
 }
 
 =head3 podman_self_check
@@ -825,6 +999,7 @@ return not 0 exit code. 1:all not 0 podman/cypress exit code are ignored. SoftFa
 
 sub cypress_exec {
     my ($cypress_test_dir, $cmd, $timeout, $log_prefix, $failok) = @_;
+    $timeout //= bmwqemu::scale_timeout(600);
     my $ret = 0;
 
     record_info('CY EXEC', 'Cypress exec:' . $cmd);
@@ -875,6 +1050,7 @@ Also used as tag for each test result file
 
 sub cypress_test_exec {
     my ($cypress_test_dir, $test_tag, $timeout) = @_;
+    $timeout //= bmwqemu::scale_timeout(600);
     my $ret = 0;
 
     my $test_file_list = script_output("find $cypress_test_dir/cypress/integration/$test_tag -type f -iname \"*.js\"");

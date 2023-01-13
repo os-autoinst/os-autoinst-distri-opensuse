@@ -14,6 +14,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use repo_tools 'add_qa_head_repo';
+use Utils::Logging 'export_logs_basic';
 
 sub prepare_blktests_config {
     my ($devices) = @_;
@@ -81,7 +82,7 @@ sub test_flags {
 sub post_fail_hook {
     my ($self) = @_;
     select_serial_terminal;
-    $self->export_logs_basic;
+    export_logs_basic;
     script_run('rpm -qi kernel-default > /tmp/kernel_info');
     upload_logs('/tmp/kernel_info');
 }

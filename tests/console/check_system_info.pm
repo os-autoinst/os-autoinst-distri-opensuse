@@ -4,7 +4,7 @@
 # Package: SUSEConnect
 # Summary: Verify milestone version and display some info.
 # Check product info before and after migration
-# Maintainer: Yutao Wang <yuwang@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
 use strict;
@@ -49,6 +49,7 @@ sub check_product {
         SLES => 'SLES' . $myver,
         SLED => 'SLED' . $myver,
         SLE_HPC => 'SLE-Product-HPC-' . $myver,
+        SLES4SAP => 'SLE-' . $myver . '-SAP',
         leap => "openSUSE-Leap",
         Media_HPC => $myver . '-HPC',
     );

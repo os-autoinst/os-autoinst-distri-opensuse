@@ -6,7 +6,7 @@
 # Summary: Register the system via SCC in the installer with registration
 # code, optional email and enabling update repositories.
 #
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_installbase';
 use strict;

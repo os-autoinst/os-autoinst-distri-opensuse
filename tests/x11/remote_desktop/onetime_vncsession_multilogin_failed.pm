@@ -1,7 +1,7 @@
 # Copyright 2017-2019 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Package: tigervnc dhcp-client
+# Package: tigervnc
 # Summary: Remote Login: One-time VNC Session failed due to a previous graphical session
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586208
@@ -32,13 +32,6 @@ sub run {
     mutex_unlock 'dhcp';
     mutex_lock 'xvnc';
 
-    # Make sure the client gets the IP address
-    x11_start_program('xterm');
-    become_root;
-    assert_script_run 'dhclient';
-    enter_cmd "exit";
-    wait_screen_change { send_key 'alt-f4'; };
-
     # Setup the first remote connection and minimize the vncviewer
     $self->start_vncviewer;
     handle_login;
@@ -52,7 +45,7 @@ sub run {
     assert_screen 'xvnc-multilogin-refused';
     send_key 'f8';
     assert_screen 'vncviewer-menu';
-    send_key 'x';
+    assert_and_click 'vncviewer-menu-exit';
 
     # Exit the minimized session
     hold_key 'alt';
@@ -61,7 +54,7 @@ sub run {
     assert_screen 'generic-desktop';
     send_key 'f8';
     assert_screen 'vncviewer-menu';
-    send_key 'x';
+    assert_and_click 'vncviewer-menu-exit';
 
     mutex_unlock 'xvnc';
 }

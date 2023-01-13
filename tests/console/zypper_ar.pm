@@ -12,6 +12,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use version_utils 'is_staging';
 use utils 'zypper_call';
 
 sub run {
@@ -29,6 +30,12 @@ sub run {
             if ($rc) {
                 ($_ =~ m/^OSS$/) ? die 'Adding OSS repo failed!' : record_info("$_ repo failure", "zypper exited with code $rc");
             }
+        }
+    }
+    elsif (is_staging && get_var('ISO_1')) {
+        # Use the product DVD as repository if not already there
+        if (script_run('grep -qR "baseurl=cd:" /etc/zypp/repos.d/') != 0) {
+            zypper_call 'ar -G cd:/ dvd';
         }
     }
     else {

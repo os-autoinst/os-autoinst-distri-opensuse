@@ -10,18 +10,15 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
+use version_utils qw(is_tumbleweed is_microos);
 
 sub run {
-    assert_screen ['ntp_config_settings', 'kubeadm-settings'];
-    if (check_screen 'kubeadm-ntp-empty') {
-        record_soft_failure 'bsc#1114818';
-    }
+    assert_screen('ntp_config_settings');
 
-    send_key 'alt-t';
-    type_string '0.opensuse.pool.ntp.org';
+    my $ntp_pool = (is_microos || is_tumbleweed) ? 'opensuse-pool' : 'suse-pool';
+    # ipmi backend is linked to physical machine which can have ntp ip address offered by dhcp
+    assert_screen($ntp_pool) unless (get_var('BACKEND', '') eq 'ipmi' and check_var('VIDEOMODE', 'text'));
 
-    sleep 1;
-    save_screenshot;
     send_key 'alt-n';
 }
 

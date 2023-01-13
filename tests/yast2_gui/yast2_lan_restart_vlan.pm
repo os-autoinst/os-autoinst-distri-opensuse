@@ -20,7 +20,7 @@
 #
 # Post-condition:
 # Delete the VLAN device.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_module_guitest';
 use strict;
@@ -51,7 +51,8 @@ sub run {
     record_info('VLAN', 'Verify network is not restarted after saving VLAN device settings without changes.');
     open_network_settings;
     $network_settings->view_vlan_device_without_editing();
-    $network_settings->save_changes();
+    $network_settings->cancel_changes();
+    $network_settings->accept_all_changes_will_be_lost();
     wait_for_xterm_to_be_visible();
     check_network_status('no_restart_or_reload', 'vlan');
 }

@@ -311,7 +311,171 @@ END
 
     is $res, 3, 'Number of agents like expected';
     like $calls[0], qr/cat.*\/CRUSH/;
+};
 
+subtest '[qesap_ansible_script_output]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(data_url => sub { return '/BRUCE'; });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'patate'; });
+
+    my $cmr_status = qesap_ansible_script_output(cmd => 'SWIM', provider => 'NEMO', host => 'REEF');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /ansible-playbook.*REEF.*"cmd='SWIM'"/ } @calls), 'proper ansible-playbooks command');
+};
+
+
+subtest '[qesap_ansible_script_output] cmd with spaces' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(data_url => sub { return '/BRUCE'; });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'patate'; });
+
+    my $cmr_status = qesap_ansible_script_output(cmd => 'SWIM SWIM SWIM', provider => 'NEMO', host => 'REEF');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /ansible-playbook.*REEF.*"cmd='SWIM SWIM SWIM'"/ } @calls), 'proper ansible-playbooks command');
+};
+
+
+subtest '[qesap_ansible_script_output] download the playbook' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    $qesap->redefine(script_run => sub {
+            push @calls, $_[0];
+            if ($_[0] =~ /test.*-e/) {
+                return 1;
+            }
+            return 0;
+    });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(data_url => sub { return '/BRUCE'; });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'patate'; });
+
+    my $cmr_status = qesap_ansible_script_output(cmd => 'SWIM', provider => 'NEMO', host => 'REEF');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /curl.*BRUCE/ } @calls), 'Playbook download with culr');
+};
+
+subtest '[qesap_ansible_script_output] custom user' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(data_url => sub { return '/BRUCE'; });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'patate'; });
+
+    my $cmr_status = qesap_ansible_script_output(cmd => 'SWIM', provider => 'NEMO', host => 'REEF', user => 'GERALD');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /ansible-playbook.*-u GERALD/ } @calls), 'Custom ansible with user');
+};
+
+subtest '[qesap_ansible_script_output] root' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(data_url => sub { return '/BRUCE'; });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'patate'; });
+
+    my $cmr_status = qesap_ansible_script_output(cmd => 'SWIM', provider => 'NEMO', host => 'REEF', root => 1);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /ansible-playbook.*-b --become-user root/ } @calls), 'Ansible as root');
+};
+
+subtest '[qesap_create_aws_credentials]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my @contents;
+
+    $qesap->redefine(script_output => sub { return '/path/to/aws/credentials/file'; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(save_tmp_file => sub { push @contents, @_; });
+    $qesap->redefine(autoinst_url => sub { return 'http://10.0.2.2/tests/'; });
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{qesap_conf_trgt} = '/BRUCE';
+            return (%paths);
+    });
+
+    qesap_create_aws_credentials('MY_KEY', 'MY_SECRET');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  C-->  " . join("\n  C-->  ", @contents));
+    ok((any { qr|mkdir -p ~/\.aws| } @calls), '.aws directory initialized');
+    ok((any { qr|curl.+/files/credentials.+/path/to/aws/credentials/file| } @calls), 'AWS Credentials file downloaded');
+    ok((any { qr|cp /path/to/aws/credentials/file ~/\.aws/credentials| } @calls), 'AWS Credentials copied to ~/.aws/credentials');
+    is $contents[0], 'credentials', "AWS credentials file: credentials is the expected value and got $contents[0]";
+    like $contents[1], qr/aws_access_key_id = MY_KEY/, "Expected key MY_KEY is in the credentials file";
+    like $contents[1], qr/aws_secret_access_key = MY_SECRET/, "Expected secret MY_SECRET is in the credentials file";
+};
+
+subtest '[qesap_create_aws_config]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my @contents;
+
+    $qesap->redefine(script_output => sub { return 'eu-central-1'; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(save_tmp_file => sub { push @contents, @_; });
+    $qesap->redefine(autoinst_url => sub { return 'http://10.0.2.2/tests/'; });
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{qesap_conf_trgt} = '/BRUCE';
+            return (%paths);
+    });
+
+    qesap_create_aws_config();
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  C-->  " . join("\n  C-->  ", @contents));
+    ok((any { qr|mkdir -p ~/\.aws| } @calls), '.aws directory initialized');
+    ok((any { qr|curl.+/files/config.+~/\.aws/config| } @calls), 'AWS Config file downloaded');
+    ok((any { qr/eu-central-1/ } @calls), 'AWS Region matches');
+    is $contents[0], 'config', "AWS config file: config is the expected value and got $contents[0]";
+    like $contents[1], qr/region = eu-central-1/, "Expected region eu-central-1 is in the config file";
+};
+
+subtest '[qesap_remote_hana_public_ips]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    set_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
+
+    $qesap->redefine(qesap_get_terraform_dir => sub { return '/path/to/qesap/terraform/dir'; });
+    $qesap->redefine(script_output => sub { return '{"hana_public_ip":{"value":["10.0.1.1","10.0.1.2"]}}'; });
+
+    my @ips = qesap_remote_hana_public_ips();
+
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
+
+    note("\n  C-->  " . join("\n  C-->  ", @ips));
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { qr/^10.0.1.1$/ } @ips), 'IP 1 matches');
+    ok((any { qr/^10.0.1.2$/ } @ips), 'IP 2 matches');
 };
 
 done_testing;

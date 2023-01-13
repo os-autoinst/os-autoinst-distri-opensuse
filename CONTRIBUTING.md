@@ -61,8 +61,8 @@ and additionally the following rules:
   `$self` object. Do not parse any parameter if you do not need any.
 * [DRY](https://en.wikipedia.org/wiki/Don't_repeat_yourself)
 * Use defined architecture and backend functions defined in
-  'lib/Utils/Architecture.pm' and 'lib/Utils/Backends.pm' for checking specific 
-  ARCH and BACKEND types instead of calling the function calls check_var(). 
+  'lib/Utils/Architectures.pm' and 'lib/Utils/Backends.pm' for checking specific
+  ARCH and BACKEND types instead of calling the function calls `check_var()`.
   If they don't exist, add them.
 * Avoid `sleep()`: Do not use `sleep()` or simulate a sleep-like
   functionality. This introduces the risk of either unnecessarily wasting time

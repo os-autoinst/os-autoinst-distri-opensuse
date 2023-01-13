@@ -116,11 +116,11 @@ sub cron_mock_lastrun {
 
 sub post_fail_hook {
     my ($self) = shift;
+    return if get_var('NOLOGS');
     select_console('log-console');
     $self->SUPER::post_fail_hook;
 
     upload_logs('/var/log/snapper.log');
-    $self->export_logs;
 }
 
 1;

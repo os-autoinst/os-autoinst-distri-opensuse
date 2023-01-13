@@ -7,7 +7,7 @@
 # leap system, install SUSEConnect, Register at SCC to get SLE repo, List and disable all
 # openSUSE repo, add modules need for installation, Migrate installed packages to SLES repo,
 # Remove orphaned packages, reboot the system
-# Maintainer: Yutao Wang <yuwang@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "installbasetest";
 use strict;

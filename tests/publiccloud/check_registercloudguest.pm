@@ -39,81 +39,79 @@ sub run {
         # all BYOS related checks. So we just regestering system and going further
         registercloudguest($instance);
     } elsif (is_byos()) {
-        if ($instance->run_ssh_command(cmd => 'sudo zypper lr', proceed_on_failure => 1) !~ /No repositories defined/gm) {
+        if ($instance->ssh_script_output(cmd => 'sudo zypper lr', proceed_on_failure => 1) !~ /No repositories defined/gm) {
             die 'The BYOS instance should be unregistered and report "Warning: No repositories defined.".';
         }
 
-        if ($instance->run_ssh_command(cmd => 'sudo systemctl is-enabled guestregister.service', proceed_on_failure => 1) !~ /disabled/) {
-            (is_sle('=12-SP4') || is_sle('=15-sp1')) ? record_soft_failure('bsc#1199311 - guestregister.service is not disabled') : die('guestregister.service is not disabled');
+        if ($instance->ssh_script_output(cmd => 'sudo systemctl is-enabled guestregister.service', proceed_on_failure => 1) !~ /disabled/) {
+            die('guestregister.service is not disabled');
         }
 
-        if ($instance->run_ssh_command(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l', proceed_on_failure => 1) != 0) {
-            $instance->run_ssh_command(cmd => 'sudo ls -la /etc/zypp/credentials.d/', proceed_on_failure => 1);
-            (is_sle('=12-SP4') || is_sle('=15-sp1')) ? record_soft_failure('bsc#1199311 - guestregister.service is not disabled') : die('/etc/zypp/credentials.d/ is not empty');
+        if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l') != 0) {
+            $instance->ssh_script_run(cmd => 'sudo ls -la /etc/zypp/credentials.d/');
+            die("/etc/zypp/credentials.d/ is not empty:\n" . $instance->ssh_script_output(cmd => 'sudo ls -la /etc/zypp/credentials.d/'));
         }
 
-        if (is_azure() && $instance->run_ssh_command(cmd => 'sudo systemctl is-enabled regionsrv-enabler-azure.timer', proceed_on_failure => 1) !~ /enabled/) {
+        if (is_azure() && $instance->ssh_assert_script_run(cmd => 'sudo systemctl is-enabled regionsrv-enabler-azure.timer')) {
             die('regionsrv-enabler-azure.timer is not enabled');
         }
 
-        if ($instance->run_ssh_command(cmd => 'sudo stat --printf="%s" /var/log/cloudregister', proceed_on_failure => 1) != 0) {
-            (is_sle('=12-SP4') || is_sle('=15-sp1')) ? record_soft_failure('bsc#1199311 - guestregister.service is not disabled') : die('/var/log/cloudregister is not empty');
+        if ($instance->ssh_script_run(cmd => 'sudo test -s /var/log/cloudregister') == 0) {
+            die('/var/log/cloudregister is not empty');
         }
-        # The `sudo SUSEConnect -d` is not supported on BYOS and should fail.
-        $instance->run_ssh_command(cmd => '! sudo SUSEConnect -d');
+        $instance->ssh_assert_script_run(cmd => '! sudo SUSEConnect -d', fail_message => 'SUSEConnect succeeds but it is not supported should fail on BYOS');
     } else {
-        if ($instance->run_ssh_command(cmd => 'sudo zypper lr | wc -l', proceed_on_failure => 1, timeout => 360) < 5) {
-            record_info('zypper lr', $instance->run_ssh_command(cmd => 'sudo zypper lr', proceed_on_failure => 1));
+        if ($instance->ssh_script_output(cmd => 'sudo zypper lr | wc -l', timeout => 360) < 5) {
+            record_info('zypper lr', $instance->ssh_script_output(cmd => 'sudo zypper lr'));
             die 'The list of zypper repositories is too short.';
         }
 
-        if ($instance->run_ssh_command(cmd => 'sudo systemctl is-enabled guestregister.service', proceed_on_failure => 1) !~ /enabled/) {
+        if ($instance->ssh_script_output(cmd => 'sudo systemctl is-enabled guestregister.service', proceed_on_failure => 1) !~ /enabled/) {
             die('guestregister.service is not enabled');
         }
 
-        if ($instance->run_ssh_command(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l', proceed_on_failure => 1) == 0) {
+        if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l') == 0) {
             die('/etc/zypp/credentials.d/ is empty');
         }
 
-        if ($instance->run_ssh_command(cmd => 'sudo stat --printf="%s" /var/log/cloudregister', proceed_on_failure => 1) == 0) {
+        if ($instance->ssh_script_output(cmd => 'sudo stat --printf="%s" /var/log/cloudregister') == 0) {
             die('/var/log/cloudregister is empty');
         }
     }
 
-    # Test re-registration. Assuming the system has been registered before
-    if (script_run('which registercloudguest') != 0 && (is_sle('=12-SP4') || is_sle('=15-sp1'))) {
-        record_soft_failure('bsc#1198815 - Package cloud-regionsrv-client is not installed');
-        registercloudguest($instance);
-    } else {
-        my $path = is_sle('>15') && is_sle('<15-SP3') ? '/usr/sbin/' : '';
-        $instance->run_ssh_command(cmd => "sudo ${path}registercloudguest --clean");
-        if ($instance->run_ssh_command(cmd => 'sudo zypper lr | wc -l', timeout => 600, proceed_on_failure => 1) > 2) {
-            die('The list of zypper repositories is not empty.');
-        }
-        if ($instance->run_ssh_command(cmd => 'sudo ls /etc/zypp/credentials.d/* | wc -l', proceed_on_failure => 1) != 0) {
-            die('Directory /etc/zypp/credentials.d/ is not empty.');
-        }
+    my $path = is_sle('>15') && is_sle('<15-SP3') ? '/usr/sbin/' : '';
+    $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest --clean");
+    if ($instance->ssh_script_output(cmd => 'sudo zypper lr | wc -l', timeout => 600) > 2) {
+        die('The list of zypper repositories is not empty.');
+    }
+    if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/* | wc -l') != 0) {
+        die('Directory /etc/zypp/credentials.d/ is not empty.');
+    }
 
-        # The SUSEConnect registration should still work on BYOS
-        if (is_byos()) {
-            $instance->run_ssh_command(cmd => 'sudo SUSEConnect --version');
-            $instance->run_ssh_command(cmd => "sudo SUSEConnect $regcode_param");
-            $instance->run_ssh_command(cmd => "sudo ${path}registercloudguest --clean");
-        }
+    # The SUSEConnect registration should still work on BYOS
+    if (is_byos()) {
+        $instance->ssh_assert_script_run(cmd => 'sudo SUSEConnect --version');
+        $instance->ssh_assert_script_run(cmd => "sudo SUSEConnect $regcode_param");
+        # The registercloudguest tool is not yet part of 15-SP5 as the infrastructure is not yet ready for it.
+        $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest --clean") if (get_var('PUBLIC_CLOUD_QAM'));
+    }
 
-        $instance->run_ssh_command(cmd => "sudo ${path}registercloudguest $regcode_param");
-        if ($instance->run_ssh_command(cmd => 'sudo zypper lr | wc -l', timeout => 600) == 0) {
+    # The registercloudguest tool is not yet part of 15-SP5 as the infrastructure is not yet ready for it.
+    $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest $regcode_param") if (get_var('PUBLIC_CLOUD_QAM'));
+    if ($instance->ssh_script_output(cmd => 'sudo zypper lr | wc -l', timeout => 600) == 0) {
+        die('The list of zypper repositories is empty.');
+    }
+    if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/* | wc -l') == 0) {
+        die('Directory /etc/zypp/credentials.d/ is empty.');
+    }
+
+    # The registercloudguest tool is not yet part of 15-SP5 as the infrastructure is not yet ready for it.
+    if (get_var('PUBLIC_CLOUD_QAM')) {
+        $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest $regcode_param --force-new");
+        if ($instance->ssh_script_output(cmd => 'sudo zypper lr | wc -l', timeout => 600) == 0) {
             die('The list of zypper repositories is empty.');
         }
-        if ($instance->run_ssh_command(cmd => 'sudo ls /etc/zypp/credentials.d/* | wc -l') == 0) {
-            die('Directory /etc/zypp/credentials.d/ is empty.');
-        }
-
-        $instance->run_ssh_command(cmd => "sudo ${path}registercloudguest $regcode_param --force-new");
-        if ($instance->run_ssh_command(cmd => 'sudo zypper lr | wc -l', timeout => 600) == 0) {
-            die('The list of zypper repositories is empty.');
-        }
-        if ($instance->run_ssh_command(cmd => 'sudo ls /etc/zypp/credentials.d/* | wc -l') == 0) {
+        if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/* | wc -l') == 0) {
             die('Directory /etc/zypp/credentials.d/ is empty.');
         }
     }

@@ -14,6 +14,7 @@ use testapi;
 use utils;
 use services::ntpd;
 use serial_terminal qw(select_serial_terminal);
+use Utils::Logging 'save_and_upload_log';
 
 sub run {
     select_serial_terminal;
@@ -29,7 +30,7 @@ sub run {
 sub post_fail_hook {
     assert_script_run 'cp /etc/ntp.conf.bkp /etc/ntp.conf' if (script_run('test -f /etc/ntp.conf.bkp') == 0);
     upload_logs '/var/log/ntp';
-    shift->save_and_upload_log('journalctl --no-pager -o short-precise', 'journalctl.txt');
+    save_and_upload_log('journalctl --no-pager -o short-precise', 'journalctl.txt');
 }
 
 sub post_run_hook {

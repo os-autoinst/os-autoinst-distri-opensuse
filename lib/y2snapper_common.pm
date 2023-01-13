@@ -10,6 +10,8 @@ use warnings;
 use testapi;
 use utils;
 use version_utils;
+use YaST::workarounds;
+use Utils::Logging 'export_logs';
 
 =head2 y2snapper_select_current_conf
 
@@ -120,6 +122,9 @@ sub y2snapper_new_snapshot {
     # Have to focus to Snapshots list manually in ncurses
     if ($ncurses) {
         send_key_until_needlematch 'yast2_snapper-focus-in-snapshots', 'tab';
+    }
+    else {
+        apply_workaround_bsc1204176([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)]) if (is_sle('>=15-SP4'));
     }
 
     # Make sure the snapshot is listed in the main window
@@ -244,7 +249,7 @@ sub y2snapper_failure_analysis {
     my $additional_sleep_time = 10;
     sleep $additional_sleep_time;
 
-    $self->export_logs;
+    export_logs;
 
     # Upload y2log for analysis if yast2 snapper fails
     assert_script_run "save_y2logs /tmp/y2logs.tar.bz2";

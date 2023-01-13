@@ -11,26 +11,26 @@ use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'script_retry';
-use qesapdeployment qw(qesap_upload_logs qesap_ansible_cmd);
+use qesapdeployment;
 use trento;
-
 
 sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
-    qesap_ansible_cmd(cmd => 'crm status', provider => $prov, filter => 'vmhana01');
-    qesap_ansible_cmd(cmd => 'SAPHanaSR-showAttr', provider => $prov, filter => 'vmhana01');
+    my $primary_host = 'vmhana01';
 
-    qesap_ansible_cmd(cmd => "su - hdbadm -c 'HDB stop'", provider => $prov, filter => 'vmhana02');
+    cluster_print_cluster_status($primary_host);
 
-    qesap_ansible_cmd(cmd => 'crm status', provider => $prov, filter => 'vmhana01');
-    qesap_ansible_cmd(cmd => 'SAPHanaSR-showAttr', provider => $prov, filter => 'vmhana01');
+    # Stop the primary DB
+    cluster_hdbadm($primary_host, 'HDB stop');
+    cluster_wait_status($primary_host, sub { ((shift =~ m/.+UNDEFINED.+SFAIL/) && (shift =~ m/.+PROMOTED.+PRIM/)); });
 
     my $cypress_test_dir = "/root/test/test";
-    enter_cmd "cd " . $cypress_test_dir;
-    cypress_test_exec($cypress_test_dir, 'stop_primary', 900);
+    enter_cmd "cd $cypress_test_dir";
+    cypress_test_exec($cypress_test_dir, 'stop_primary', bmwqemu::scale_timeout(900));
+    trento_support();
+    trento_collect_scenarios('test_hana_stop');
 }
 
 sub post_fail_hook {
@@ -38,10 +38,11 @@ sub post_fail_hook {
     qesap_upload_logs();
     if (!get_var('TRENTO_EXT_DEPLOY_IP')) {
         k8s_logs(qw(web runner));
-        trento_support('test_trento_deploy');
+        trento_support();
+        trento_collect_scenarios('test_hana_stop_fail');
         az_delete_group();
     }
-    destroy_qesap();
+    cluster_destroy();
     $self->SUPER::post_fail_hook;
 }
 

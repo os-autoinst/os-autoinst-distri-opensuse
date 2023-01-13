@@ -10,7 +10,7 @@ use Mojo::Base 'publiccloud::basetest';
 use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use trento qw(deploy_vm trento_acr_azure install_trento az_delete_group k8s_logs trento_support);
+use trento;
 
 sub run {
     my ($self) = @_;
@@ -27,7 +27,11 @@ sub run {
     install_trento(work_dir => $basedir, acr => \%acr);
 
     k8s_logs(qw(web runner));
-    trento_support('deploy_trento');
+    trento_support();
+}
+
+sub test_flags {
+    return {fatal => 1};
 }
 
 sub post_fail_hook {
@@ -37,7 +41,7 @@ sub post_fail_hook {
     upload_logs("$_") for split(/\n/, script_output($find_cmd));
 
     k8s_logs(qw(web runner));
-    trento_support('deploy_trento_failure');
+    trento_support();
     az_delete_group();
 
     $self->SUPER::post_fail_hook;

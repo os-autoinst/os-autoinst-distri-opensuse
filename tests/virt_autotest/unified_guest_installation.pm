@@ -51,6 +51,7 @@ use strict;
 use warnings;
 use testapi;
 use Carp;
+use virt_autotest::utils qw(check_guest_health);
 
 sub run {
     my $self = shift;
@@ -69,6 +70,7 @@ sub run {
         $store_of_guests{$element}{REG_EXTS_CODES} = $guest_registration_extensions_codes[$index];
     }
     $self->concurrent_guest_installations_run(\%store_of_guests);
+    check_guest_health($_) foreach (@guest_names);
     return $self;
 }
 

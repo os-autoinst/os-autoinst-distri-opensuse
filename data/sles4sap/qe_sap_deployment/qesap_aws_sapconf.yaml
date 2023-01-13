@@ -1,0 +1,43 @@
+provider: "%PROVIDER%"
+apiver: 3
+terraform:
+  variables:
+    aws_region: "%REGION%"
+    deployment_name: "%DEPLOYMENTNAME%"
+    os_image: "%QESAP_CLUSTER_OS_VER%"
+    os_owner: "amazon"
+    private_key: "%SSH_KEY_PRIV%"
+    public_key: "%SSH_KEY_PUB%"
+    aws_credentials: "/root/amazon_credentials"
+
+ansible:
+  az_storage_account_name: "%HANA_ACCOUNT%"
+  az_container_name:  "%HANA_CONTAINER%"
+  az_sas_token: "%HANA_TOKEN%"
+  hana_media:
+    - "%HANA_SAR%"
+    - "%HANA_CLIENT_SAR%"
+    - "%HANA_SAPCAR%"
+  hana_vars:
+    sap_hana_install_software_directory: /hana/shared/install
+    sap_hana_install_master_password: 'DoNotUseThisPassw0rd'
+    sap_hana_install_sid: 'HDB'
+    sap_hana_install_instance_number: '00'
+    sap_domain: "qe-test.example.com"
+    primary_site: 'goofy'
+    secondary_site: 'miky'
+  create:
+    - registration.yaml -e reg_code=${REG_CODE} -e email_address=${EMAIL}
+    - pre-cluster.yaml
+    - sap-hana-preconfigure.yaml -e use_sapconf=true
+    - sap-hana-storage.yaml
+    - sap-hana-download-media.yaml
+    - sap-hana-install.yaml
+    - sap-hana-system-replication.yaml
+    - sap-hana-system-replication-hooks.yaml
+    - sap-hana-cluster.yaml -e use_sbd=false
+  destroy:
+    - deregister.yaml
+  variables:
+    REG_CODE: "%SCC_REGCODE_SLES4SAP%"
+    EMAIL: testing@suse.com

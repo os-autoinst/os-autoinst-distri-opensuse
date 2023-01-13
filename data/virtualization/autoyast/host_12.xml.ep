@@ -310,7 +310,7 @@
         <source><![CDATA[
 cat >> /etc/libvirt/libvirtd.conf<< EOF
 log_level = 1
-log_filters="1:qemu 3:remote 4:event 3:util.json 3:rpc"
+log_filters="1:qemu 1:libxl 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci"
 log_outputs="1:file:/var/log/libvirt/libvirtd.log"
 EOF
 if [ -e /etc/xen/xl.conf ]; then sed -i '/autoballoon=/ s/.*/autoballoon="off"/' /etc/xen/xl.conf; fi
@@ -386,6 +386,17 @@ chmod 600 /root/.ssh/id_rsa /root/.ssh/authorized_keys /root/.ssh/config
 ]]>
         </source>
       </script>
+   % if ($check_var->('XEN_DEFAULT_BOOT_IS_SET', '1')) {
+      <script>
+        <filename>workround_default_grub_xen.sh</filename>
+        <source><![CDATA[
+    defautl_grub_name=`/usr/bin/grep ^menuentry /boot/grub2/grub.cfg | /usr/bin/cut -d "'" -f2 | /usr/bin/grep "Xen hypervisor"`
+    /usr/sbin/grub2-set-default "$defautl_grub_name"
+    /usr/sbin/grub2-mkconfig -o /boot/grub2/grub.cfg
+]]>
+        </source>
+      </script>
+   % }
     </post-scripts>
   </scripts>
 </profile>

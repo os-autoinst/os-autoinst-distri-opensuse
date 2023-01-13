@@ -1,5 +1,5 @@
 provider: "%PROVIDER%"
-apiver: 2
+apiver: 3
 terraform:
   variables:
     aws_region: "%REGION%"
@@ -9,11 +9,12 @@ terraform:
     private_key: "%SSH_KEY_PRIV%"
     public_key: "%SSH_KEY_PUB%"
     aws_credentials: "/root/amazon_credentials"
-    hana_cluster_fencing_mechanism: "sbd"
-    hana_ha_enabled: "true"
 
 ansible:
-  hana_urls:
+  az_storage_account_name: "%HANA_ACCOUNT%"
+  az_container_name:  "%HANA_CONTAINER%"
+  az_sas_token: "%HANA_TOKEN%"
+  hana_media:
     - "%HANA_SAR%"
     - "%HANA_CLIENT_SAR%"
     - "%HANA_SAPCAR%"
@@ -29,13 +30,12 @@ ansible:
     - registration.yaml -e reg_code=${REG_CODE} -e email_address=${EMAIL}
     - pre-cluster.yaml
     - sap-hana-preconfigure.yaml
-    - cluster_sbd_prep.yaml
     - sap-hana-storage.yaml
     - sap-hana-download-media.yaml
     - sap-hana-install.yaml
     - sap-hana-system-replication.yaml
     - sap-hana-system-replication-hooks.yaml
-    - sap-hana-cluster.yaml
+    - sap-hana-cluster.yaml -e use_sbd=false
   destroy:
     - deregister.yaml
   variables:

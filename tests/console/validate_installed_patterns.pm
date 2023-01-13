@@ -6,7 +6,7 @@
 # Summary: Validate installed patterns in the SUT
 # - Reads test data with expectations for patterns
 # - Validates that installed patterns exactly match the expected ones
-# Maintainer: QA SLE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
 use strict;

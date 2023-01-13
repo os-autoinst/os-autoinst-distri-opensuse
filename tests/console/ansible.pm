@@ -19,7 +19,7 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call random_string systemctl file_content_replace ensure_serialdev_permissions);
 use version_utils qw(is_sle is_opensuse is_tumbleweed is_transactional is_microos is_alp);
-use registration qw(add_suseconnect_product get_addon_fullname);
+use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 use transactional qw(trup_call check_reboot_changes);
 
 # git-core needed by ansible-galaxy
@@ -34,6 +34,8 @@ sub run {
     # 1. System setup
 
     unless (is_opensuse) {
+        # Package 'python3-yamllint' and 'ansible' require PackageHub is available
+        return unless is_phub_ready();
         add_suseconnect_product(get_addon_fullname('phub'));
     }
 
@@ -46,7 +48,7 @@ sub run {
     ensure_serialdev_permissions;
 
     if (is_transactional) {
-        trup_call("-n pkg install $pkgs sudo");
+        trup_call("pkg install $pkgs sudo");
         check_reboot_changes;
     } else {
         zypper_call "in $pkgs sudo";
@@ -94,7 +96,7 @@ sub run {
     # Check Ansible version
     record_info('ansible --version', script_output('ansible --version'));
 
-    my $hostname = script_output(is_sle('=15-sp3') ? 'hostname -s' : 'hostnamectl hostname | cut -d. -f1');
+    my $hostname = script_output('hostnamectl --static');
     validate_script_output 'ansible -m setup localhost | grep ansible_hostname', sub { m/$hostname/ };
 
     my $arch = get_var 'ARCH';
@@ -199,7 +201,7 @@ sub cleanup {
     # Remove ansible, yamllint and git
     $pkgs .= ' ed' unless (is_alp);
     if (is_transactional) {
-        trup_call("-n pkg remove $pkgs");
+        trup_call("pkg remove $pkgs");
         check_reboot_changes;
     } else {
         # ed has been installed in ansible-playbook

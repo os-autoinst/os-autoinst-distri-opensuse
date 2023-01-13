@@ -6,13 +6,14 @@
 # Summary: Boot from disk and login into MicroOS
 # Maintainer: Panagiotis Georgiadis <pgeorgiadis@suse.com>
 
-use base "opensusebasetest";
+use base "consoletest";
 use strict;
 use warnings;
 use testapi;
 use version_utils qw(is_sle_micro is_leap_micro);
 use Utils::Architectures qw(is_aarch64);
 use microos "microos_login";
+use transactional "record_kernel_audit_messages";
 
 sub run {
 
@@ -28,6 +29,7 @@ sub run {
         shift->wait_boot(bootloader_time => 300);
     }
     microos_login;
+    record_kernel_audit_messages(log_upload => 1);
 }
 
 sub test_flags {

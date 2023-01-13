@@ -5,12 +5,14 @@
 
 # Summary: The class introduces all accessing methods for Overview Tab in YaST2
 # lan module dialog.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package YaST::NetworkSettings::OverviewTab;
 use strict;
 use warnings;
 use testapi;
+use YaST::workarounds;
+use version_utils qw(is_sle);
 
 use constant {
     OVERVIEW_TAB => 'yast2_lan_overview_tab_selected',
@@ -27,16 +29,19 @@ sub new {
 }
 
 sub press_add {
+    apply_workaround_bsc1204176(OVERVIEW_TAB) if (is_sle('>=15-SP4'));
     assert_screen(OVERVIEW_TAB);
     send_key('alt-a');
 }
 
 sub press_edit {
+    apply_workaround_bsc1204176(OVERVIEW_TAB) if (is_sle('>=15-SP4'));
     assert_screen(OVERVIEW_TAB);
     send_key('alt-i');
 }
 
 sub press_delete {
+    apply_workaround_bsc1204176(OVERVIEW_TAB) if (is_sle('>=15-SP4'));
     assert_screen(OVERVIEW_TAB);
     send_key('alt-t');
 }
@@ -65,9 +70,8 @@ sub select_device {
 }
 
 sub press_ok {
-    assert_screen(OVERVIEW_TAB);
+    apply_workaround_bsc1204176(OVERVIEW_TAB) if (is_sle('>=15-SP4'));
     send_key('alt-o');
 }
-
 
 1;

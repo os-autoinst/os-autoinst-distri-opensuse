@@ -1,0 +1,24 @@
+---
+name: USBinstall
+description: >
+  Basic installation test with USB boot. Verification that usb repo is enabled
+  after first boot. Test covers only Full medium installations.
+vars:
+  USBBOOT: 1
+  YUI_REST_API: 1
+schedule:
+  registration:
+    - installation/registration/skip_registration
+  extension_module_selection:
+    - installation/module_selection/skip_module_selection
+  add_on_product:
+    - installation/add_on_product_installation/accept_add_on_installation
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_preparation:
+    - console/system_prepare
+    - console/hostname
+    - console/force_scheduled_tasks
+  system_validation:
+    - console/enable_usb_repo
+    - console/zypper_lr

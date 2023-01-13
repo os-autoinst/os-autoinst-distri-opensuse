@@ -8,10 +8,8 @@ BEGIN {
 }
 use utils;
 use testapi;
-use main_common;
-use main_containers qw(load_container_tests is_container_test);
-use version_utils qw(is_released);
-use Utils::Architectures qw(is_s390x);
+use main_common qw(init_main is_updates_test_repo unregister_needle_tags map_incidents_to_repo);
+use main_micro_alp;
 
 init_main();
 
@@ -39,22 +37,6 @@ $needle::cleanuphandler = sub {
     unregister_needle_tags("ENV-FLAVOR-Server-DVD");
 };
 
-sub load_boot_from_disk_tests {
-    if (is_s390x()) {
-        loadtest 'installation/bootloader_start';
-        loadtest 'boot/boot_to_desktop';
-    } else {
-        if (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
-            loadtest 'jeos/firstrun';
-        } else {
-            loadtest 'microos/disk_boot';
-        }
-    }
-    loadtest 'transactional/host_config';
-    loadtest 'console/suseconnect_scc' if check_var('SCC_REGISTER', 'installation');
-    loadtest 'transactional/enable_selinux' if get_var('ENABLE_SELINUX');
-    loadtest 'transactional/install_updates' if is_released;
-}
 
 # Handle updates from repos defined in OS_TEST_TEMPLATE combined with the list
 # of issues defined in OS_TEST_ISSUES.
@@ -74,15 +56,6 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
 }
 
 return 1 if load_yaml_schedule;
-
-if (is_container_test) {
-    load_boot_from_disk_tests();
-    load_container_tests();
-}
-
-if (is_kernel_test()) {
-    load_kernel_tests();
-    return 1;
-}
+main_micro_alp::load_tests();
 
 1;

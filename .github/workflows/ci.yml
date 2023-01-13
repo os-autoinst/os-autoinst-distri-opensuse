@@ -31,11 +31,13 @@ jobs:
         echo " requires 'Code::DRY';" >> cpanfile
         echo " requires 'Date::Parse';" >> cpanfile
         echo " requires 'Regexp::Common';" >> cpanfile
-        echo " requires 'Perl::Tidy', '== 20220613';" >> cpanfile
+        echo " requires 'Perl::Tidy', '== 20221112';" >> cpanfile
         make prepare
     - name: Run ${{ matrix.test }} tests
       env:
         TESTS: ${{ matrix.test }}
       run: |
+        # Work around https://github.com/actions/checkout/issues/766
+        git config --global --add safe.directory "$GITHUB_WORKSPACE"
         git fetch origin master
         make test

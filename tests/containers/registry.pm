@@ -66,7 +66,10 @@ sub run {
     my $pkg = 'distribution-registry';
     if (is_sle(">=15-SP4")) {
         activate_containers_module;
-    } elsif (is_sle("<15-SP4")) {
+    } elsif (is_sle("<=15")) {
+        record_info("SKIP", "docker-distribution-registry is not available on this version of SLE");
+        return;
+    } elsif (is_sle(">15")) {
         add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1);
         $pkg = 'docker-distribution-registry';
     } elsif (is_leap("<15.4")) {

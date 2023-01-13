@@ -44,75 +44,68 @@ conditional_schedule:
         - console/zziplib
         - console/journald_fss
         - console/openvswitch_ssl
-        - network/samba/samba_adcli
         - console/nginx
         - '{{arch_specific}}'
         - '{{arch_specific15_sp4}}'
+        - console/valgrind
       15-SP3:
         - console/osinfo_db
         - console/ovn
         - console/firewalld
         - console/libgcrypt
-        - console/valgrind
         - console/zziplib
         - console/journald_fss
         - console/openvswitch_ssl
-        - network/samba/samba_adcli
         - console/nginx
         - console/ansible
         - '{{arch_specific}}'
+        - console/valgrind
       15-SP2:
         - console/osinfo_db
         - console/ovn
         - console/firewalld
         - console/libgcrypt
-        - console/valgrind
         - console/zziplib
         - console/journald_fss
         - console/openvswitch_ssl
-        - network/samba/samba_adcli
         - console/nginx
         - '{{arch_specific}}'
+        - console/valgrind
       15-SP1:
         - console/osinfo_db
         - console/libgcrypt
-        - console/valgrind
         - console/zziplib
         - console/journald_fss
         - console/openvswitch_ssl
-        - network/samba/samba_adcli
         - console/nginx
+        - console/valgrind
         - '{{arch_specific}}'
       15:
         - console/osinfo_db
         - console/libgcrypt
-        - console/valgrind
         - console/zziplib
         - console/journald_fss
         - console/openvswitch_ssl
-        - network/samba/samba_adcli
         - console/nginx
+        - console/valgrind
         - '{{arch_specific}}'
       12-SP5:
         - console/osinfo_db
         - console/libgcrypt
-        - console/valgrind
         - console/zziplib
         - console/openvswitch_ssl
-        - network/samba/samba_adcli
         - '{{arch_specific}}'
+        - console/valgrind
         - '{{arch_12sp5}}'
       12-SP4:
         - console/osinfo_db
         - console/journald_fss
         - console/openvswitch_ssl
-        - network/samba/samba_adcli
         - '{{arch_specific}}'
       12-SP3:
         - console/osinfo_db
         - console/journald_fss
         - console/openvswitch_ssl
-        - network/samba/samba_adcli
         - '{{arch_specific}}'
       12-SP2:
         - console/journald_fss
@@ -129,6 +122,5 @@ conditional_schedule:
   arch_specific15_sp4:
     ARCH:
       x86_64:
-        - console/valgrind
         - console/ansible
 ...

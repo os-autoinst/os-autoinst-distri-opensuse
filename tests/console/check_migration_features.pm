@@ -3,7 +3,7 @@
 #
 # Package: SUSEConnect
 # Summary: Verify migration features on target system.
-# Maintainer: Lemon Li <leli@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
 use strict;

@@ -20,6 +20,7 @@ use testapi;
 use utils 'zypper_call';
 use version_utils qw(is_sle is_leap);
 use yast2_widget_utils 'change_service_configuration';
+use Utils::Logging 'save_and_upload_systemd_unit_log';
 
 sub run {
     select_console 'root-console';
@@ -134,7 +135,7 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
-    $self->save_and_upload_systemd_unit_log('apache2');
+    save_and_upload_systemd_unit_log('apache2');
     $self->SUPER::post_fail_hook;
 }
 

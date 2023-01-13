@@ -1,7 +1,7 @@
 # Copyright 2017-2019 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Package: tigervnc dhcp-client
+# Package: tigervnc
 # Summary: Remote Login: Persistent VNC Session with tigervnc and xvnc
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586209
@@ -47,13 +47,6 @@ sub run {
     mutex_unlock 'dhcp';
     mutex_lock 'xvnc';
 
-    # Make sure the client gets the IP address
-    x11_start_program('xterm');
-    become_root;
-    assert_script_run 'dhclient';
-    enter_cmd "exit";
-    send_key 'alt-f4';
-
     # First time login and configure the visibility
     $self->start_vncviewer;
     handle_login;
@@ -81,7 +74,7 @@ sub run {
     # Exit the vncviewer
     send_key 'f8';
     assert_screen 'vncviewer-menu';
-    send_key 'x';
+    assert_and_click 'vncviewer-menu-exit';
     assert_screen 'generic-desktop';
 
     # Re-login to the previous session
@@ -99,7 +92,7 @@ sub run {
     # Exit the sharing session
     send_key 'f8';
     assert_screen 'vncviewer-menu';
-    send_key 'x';
+    assert_and_click 'vncviewer-menu-exit';
 
     # Terminate the minimized session
     hold_key 'alt';

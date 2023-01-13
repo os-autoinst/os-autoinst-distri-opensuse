@@ -1,0 +1,32 @@
+provider: 'gce'
+apiver: 3
+terraform:
+  variables:
+    project: "ei-sle-qa-sap-8469"
+    region: "%PUBLIC_CLOUD_REGION%"
+    admin_user: "cloudadmin"
+    os_image: "%SLE_IMAGE%"
+    hana_os_major_version: "%HANA_OS_MAJOR_VERSION%"
+    iscsi_os_major_version: "%HANA_OS_MAJOR_VERSION%"
+    monitoring_os_major_version: "%HANA_OS_MAJOR_VERSION%"
+    drdb_os_major_version: "%HANA_OS_MAJOR_VERSION%"
+    netweaver_os_major_version: "%HANA_OS_MAJOR_VERSION%"
+    bastion_os_major_version: "%HANA_OS_MAJOR_VERSION%"
+    private_key: "~/.ssh/id_rsa"
+    public_key: "~/.ssh/id_rsa.pub"
+    gcp_credentials_file: "/root/google_credentials.json"
+
+    # HANA
+    hana_count: '1'
+    hana_ha_enabled: '%HA_CLUSTER%'
+
+ansible:
+  az_storage_account_name: "%HANA_ACCOUNT%"
+  az_container_name:  "%HANA_CONTAINER%"
+  az_sas_token: "%HANA_TOKEN%"
+  hana_media:
+    - "%HANA_SAR%"
+    - "%HANA_CLIENT_SAR%"
+    - "%HANA_SAPCAR%"
+  destroy:
+    - deregister.yaml

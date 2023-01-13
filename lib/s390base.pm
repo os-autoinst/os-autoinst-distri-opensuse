@@ -17,6 +17,7 @@ use testapi;
 use utils;
 use strict;
 use warnings;
+use Utils::Logging qw(tar_and_upload_log export_logs);
 
 =head2 execute_script
 
@@ -42,10 +43,10 @@ Collect and upload logs for investigation. cleanup test suite files.
 
 sub upload_logs_and_cleanup {
     my ($self) = @_;
-    $self->export_logs();
+    export_logs();
 
     my $test_name = get_var('IBM_TESTSET') . get_var('IBM_TESTS');
-    $self->tar_and_upload_log("/root/$test_name/logs/", "/tmp/$test_name.tar.bz2");
+    tar_and_upload_log("/root/$test_name/logs/", "/tmp/$test_name.tar.bz2");
 }
 
 =head2 post_fail_hook

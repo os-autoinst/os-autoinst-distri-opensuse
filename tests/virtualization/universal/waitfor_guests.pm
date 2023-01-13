@@ -16,6 +16,18 @@ use testapi;
 use utils;
 use version_utils 'is_sle';
 
+# Open vnc and take screenshot of guests
+sub screenshot_vnc_guests {
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        # Wait for virt-viewer to fully connect and display VNC stream
+        enter_cmd "virt-viewer -f $guest & sleep 21 && killall virt-viewer";
+        sleep 19;
+        record_info "$guest", "$guest screenshot";
+        save_screenshot();
+        sleep 6;
+    }
+}
+
 sub run {
     my $self = shift;
     select_console('root-console');
@@ -26,10 +38,23 @@ sub run {
     assert_script_run "cat /etc/hosts";
 
     # Wait for guests to announce that installation is complete
-    script_retry("test -d /tmp/guests_ip", retry => 15, delay => 120);
-    foreach my $guest (@guests) {
-        script_retry("test -f /tmp/guests_ip/$guest", retry => 20, delay => 120);
-        record_info("$guest installed", "Guest installation completed");
+    my $retry = 35;
+    my $count = 0;
+    while ($count++ < $retry) {
+        my @wait_guests = ();
+        foreach my $guest (@guests) {
+            if (script_run("test -f /tmp/guests_ip/$guest") ne 0) {
+                push(@wait_guests, $guest);
+            }
+        }
+        # if all guests are install exit the loop
+        last if @wait_guests == 0;
+        sleep 120;
+        # if retry number is reached the test will fail
+        if ($count == $retry) {
+            record_info("Failed: timeout", "Timeout installation for @wait_guests");
+            die;
+        }
     }
     record_info("All guests installed", "Guest installation completed");
     if (is_sle('>15') && get_var("KVM")) {
@@ -53,6 +78,7 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
+    screenshot_vnc_guests();
     collect_virt_system_logs();
     $self->SUPER::post_fail_hook;
 }

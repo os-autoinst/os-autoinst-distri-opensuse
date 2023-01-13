@@ -10,28 +10,23 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use qesapdeployment 'qesap_upload_logs';
-use trento qw(destroy_qesap get_trento_ip get_trento_password az_delete_group install_agent k8s_logs trento_support);
+use trento;
 
 sub run {
     my ($self) = @_;
     select_serial_terminal;
 
+    my $basedir = '/root/test';
     my $wd = '/root/work_dir';
     enter_cmd "mkdir $wd";
-    my $cmd = join(' ', '/root/test/trento-server-api-key.sh',
-        '-u', 'admin',
-        '-p', get_trento_password(),
-        '-i', get_trento_ip(),
-        '-d', $wd, '-v');
-    my $agent_api_key;
-    my @lines = split(/\n/, script_output($cmd));
-    foreach my $line (@lines) {
-        if ($line =~ /api_key:(.*)/) {
-            $agent_api_key = $1;
-        }
-    }
 
-    $cmd = install_agent($wd, '/root/test', $agent_api_key);
+    my $agent_api_key = trento_api_key($wd, $basedir);
+
+    cluster_install_agent($wd, $basedir, $agent_api_key);
+}
+
+sub test_flags {
+    return {fatal => 1};
 }
 
 sub post_fail_hook {
@@ -40,10 +35,11 @@ sub post_fail_hook {
     qesap_upload_logs();
     if (!get_var('TRENTO_EXT_DEPLOY_IP')) {
         k8s_logs(qw(web runner));
-        trento_support('install_agent');
+        trento_support();
+        trento_collect_scenarios('install_agent');
         az_delete_group();
     }
-    destroy_qesap();
+    cluster_destroy();
     $self->SUPER::post_fail_hook;
 }
 

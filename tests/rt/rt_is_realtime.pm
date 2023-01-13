@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use Utils::Logging qw(export_logs_basic upload_coredumps);
 
 sub run {
     select_serial_terminal;
@@ -40,7 +41,7 @@ sub post_fail_hook {
 
     select_console 'log-console';
 
-    $self->export_logs_basic;
+    export_logs_basic;
     $self->upload_coredumps;
 }
 

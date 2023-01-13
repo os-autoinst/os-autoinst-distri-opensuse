@@ -5,20 +5,25 @@
 
 # Summary: This kubevirt test relies on the upstream test code, which is downstreamed as virt-tests.
 #          This is the part running on server node.
-# Maintainer: Nan Zhang <nan.zhang@suse.com>
+# Maintainer: Nan Zhang <nan.zhang@suse.com> qe-virt@suse.de
 
 use base multi_machine_job_base;
+use base prepare_transactional_server;
 use strict;
 use warnings;
 use testapi;
 use lockapi;
+use transactional;
 use utils;
 use mmapi;
+use version_utils qw(is_transactional);
 use File::Basename;
+use Utils::Systemd;
 use Utils::Backends 'use_ssh_serial_console';
+use Utils::Logging qw(save_and_upload_log save_and_upload_systemd_unit_log);
 
 our $if_case_fail;
-my @kubevirt_tests = (
+my @full_tests = (
     'vmi_lifecycle_test',
     'vm_test',
     'vmipreset_test',
@@ -50,11 +55,21 @@ my @kubevirt_tests = (
     'subresource_api_test',
     'virt_control_plane_test'
 );
+my @core_tests = (
+    'vmi_lifecycle_test',
+    'datavolume_test',
+    'container_disk_test',
+    'storage_test',
+    'console_test',
+    'vnc_test',
+    'expose_test',
+    'replicaset_test'
+);
 
 sub run {
     my ($self) = shift;
 
-    if (get_required_var('WITH_SLE_INSTALL')) {
+    if (get_required_var('WITH_HOST_INSTALL')) {
         my $sut_ip = get_required_var('SUT_IP');
 
         set_var('SERVER_IP', $sut_ip);
@@ -67,7 +82,8 @@ sub run {
         record_info('Agent IP', $agent_ip);
 
         $self->rke2_server_setup($agent_ip);
-        $self->install_kubevirt_pkgs_n_deploy_manifests();
+        $self->install_kubevirt_packages();
+        $self->deploy_kubevirt_manifests();
     } else {
         select_console 'sol', await_console => 0;
         use_ssh_serial_console;
@@ -84,15 +100,19 @@ sub rke2_server_setup {
     my ($self, $agent_ip) = @_;
 
     record_info('Start RKE2 server setup', '');
-    systemctl('stop apparmor.service');
-    systemctl('stop firewalld.service');
+    unless (is_transactional) {
+        disable_and_stop_service('apparmor.service');
+        disable_and_stop_service('firewalld.service');
+    }
     $self->setup_passwordless_ssh_login($agent_ip);
 
+    # rebootmgr has to be turned off as prerequisity for this to work
+    script_run('rebootmgrctl set-strategy off') if (is_transactional);
     # Check if the package 'ca-certificates-suse' are installed on the node
     ensure_ca_certificates_suse_installed();
-
-    # Install downstream kubevirt packages
-    zypper_call('in kubernetes1.18-client') if (script_run('rpmquery kubernetes1.18-client'));
+    transactional::process_reboot(trigger => 1) if (is_transactional);
+    # Set long host name to avoid x509 server connection issue
+    assert_script_run('hostnamectl set-hostname ' . get_required_var('SUT_IP'));
 
     # RKE2 deployment on server node
     # Default is to setup service with the latest RKE2 version, the parameter INSTALL_RKE2_VERSION allows to setup with a specified version.
@@ -103,6 +123,10 @@ sub rke2_server_setup {
     } else {
         assert_script_run('curl -sfL https://get.rke2.io | sh -', timeout => 180);
     }
+
+    # Add kubectl command to $PATH environment varibable
+    my $rke2_bin_path = "export PATH=\$PATH:/opt/rke2/bin:/var/lib/rancher/rke2/bin";
+    assert_script_run("echo '$rke2_bin_path' >> \$HOME/.bashrc; source \$HOME/.bashrc");
 
     # For network multus backend testing
     assert_script_run("sed -i '/ExecStart=/s/server\$/server --cni=multus,canal/' /etc/systemd/system/rke2-server.service");
@@ -117,6 +141,7 @@ sub rke2_server_setup {
 
     assert_script_run('mkdir -p ~/.kube');
     assert_script_run('cp /etc/rancher/rke2/rke2.yaml ~/.kube/config');
+    assert_script_run('kubectl config view');
     assert_script_run('kubectl get nodes');
 
     # Create registries ready
@@ -160,34 +185,50 @@ sub check_service_status {
     assert_script_run("! journalctl -u rke2-server | grep \'\"level\":\"error\"\'");
 }
 
-sub install_kubevirt_pkgs_n_deploy_manifests {
+sub install_kubevirt_packages {
     my $self = shift;
-    # Install and deploy required kubevirt packages and manifests
-    my $os_version = get_required_var('VERSION');
+    # Install required kubevirt packages
+    my $os_version = get_var('VERSION');
     my $virt_tests_repo = get_required_var('VIRT_TESTS_REPO');
     my $virt_manifests_repo = get_var('VIRT_MANIFESTS_REPO');
 
-    record_info('Install kubevirt packages and deploy manifests', '');
+    record_info('Install kubevirt packages', '');
     # Development Tools repo for OBS Module, e.g. http://download.suse.de/download/ibs/SUSE/Products/SLE-Module-Development-Tools-OBS/15-SP4/x86_64/product/
     # Development product test repo for SLE official product OSD testing, e.g. http://download.suse.de/ibs/SUSE:/SLE-15-SP4:/GA/standard/
     # Devel test repo, e.g. http://download.suse.de/download/ibs/Devel:/Virt:/SLE-15-SP4/SUSE_SLE-15-SP4_Update_standard/
     # MU product test (SLE official MU channel+incidents)
+    transactional::enter_trup_shell(global_options => '--drop-if-no-change') if (is_transactional);
+    zypper_call("lr -d");
     zypper_call("ar $virt_tests_repo Virt-Tests-Repo");
     zypper_call("ar $virt_manifests_repo Virt-Manifests-Repo") if ($virt_manifests_repo);
     zypper_call("--gpg-auto-import-keys ref");
 
     my $virt_manifests = 'containerized-data-importer-manifests kubevirt-manifests kubevirt-virtctl';
+    my $search_manifests = $virt_manifests =~ s/\s+/\\\|/gr;
 
     if ($virt_manifests_repo) {
         zypper_call("in -f -r Virt-Manifests-Repo $virt_manifests");
     } elsif (script_run("rpmquery $virt_manifests")) {
-        zypper_call("in -f -r SLE-Module-Containers${os_version}-Updates $virt_manifests");
+        if (is_transactional || script_run("zypper se -r SLE-Module-Containers${os_version}-Updates $virt_manifests | grep -w '$search_manifests'")) {
+            zypper_call("in -f $virt_manifests");
+        } else {
+            zypper_call("in -f -r SLE-Module-Containers${os_version}-Updates $virt_manifests");
+        }
     }
     zypper_call("in -f -r Virt-Tests-Repo kubevirt-tests");
-    record_info('Installed kubevirt package version', script_output('rpm -qa |grep -E "virt-test|kubevirt|containerized"'));
+    if (is_transactional) {
+        transactional::exit_trup_shell_and_reboot();
+        assert_script_run('kubectl get nodes');
+    }
+    record_info('Installed kubevirt package version', script_output('rpm -qa |grep -E "containerized|kubevirt|virt-test"'));
+}
 
+sub deploy_kubevirt_manifests {
+    my $self = shift;
+    # Deploy required kubevirt manifests
     my $kubevirt_ver = script_output("rpm -q --qf \%{VERSION} kubevirt-tests");
 
+    record_info('Deploy kubevirt manifests', '');
     assert_script_run("kubectl apply -f /usr/share/cdi/manifests/release/cdi-operator.yaml");
     assert_script_run("kubectl apply -f /usr/share/cdi/manifests/release/cdi-cr.yaml");
     assert_script_run("kubectl -n cdi wait cdis cdi --for condition=available --timeout=30m", timeout => 1800);
@@ -204,10 +245,12 @@ sub install_kubevirt_pkgs_n_deploy_manifests {
     record_info('Remove existing local disks', script_output('[ -d /tmp/hostImages -a -d /mnt/local-storage ] && rm -r /tmp/hostImages /mnt/local-storage', proceed_on_failure => 1));
 
     assert_script_run("kubectl apply -f https://github.com/kubevirt/kubevirt/releases/download/v${kubevirt_ver}/rbac-for-testing.yaml");
+    # Workaround for failure 'MountVolume.SetUp failed for volume "local-storage" : mkdir /mnt/local-storage: read-only file system'
+    assert_script_run('mkdir -p /root/tmp && mount -o bind /root/tmp /mnt') if (is_transactional);
     assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/testing/disks-images-provider.yaml");
 
     my $hostname = script_output('hostname');
-    assert_script_run("wget https://github.com/kubevirt/kubevirt/releases/download/v${kubevirt_ver}/local-block-storage.yaml");
+    assert_script_run("curl -JLO https://github.com/kubevirt/kubevirt/releases/download/v${kubevirt_ver}/local-block-storage.yaml");
     assert_script_run("sed -i 's/node01/$hostname/g' local-block-storage.yaml");
     assert_script_run("kubectl apply -f local-block-storage.yaml");
 
@@ -221,32 +264,48 @@ sub install_kubevirt_pkgs_n_deploy_manifests {
     record_info('List local storage', script_output('ls /mnt/local-storage -R -l'));
     record_info('Check the loop device "loop0"', script_output('losetup /dev/loop0'));
     record_info('Check all loop devices', script_output('losetup -l -a'));
-
-    record_info('Set local storage class', '');
-    my $test_suite_config = '/usr/share/kube-virt/manifests/testing/default-config.json';
-    assert_script_run("sed -i '/storageClassLocal/s/local/local-path/' $test_suite_config");
 }
 
 sub run_virt_tests {
     my $self = shift;
+    my $test_conf;
+    my @kubevirt_tests;
+    my $test_suite_config = '/usr/share/kube-virt/manifests/testing/default-config.json';
 
     record_info('Run kubevirt tests', '');
-    zypper_call('in ant-junit') if (script_run('rpmquery ant-junit'));
+    transactional::enter_trup_shell(global_options => '--drop-if-no-change') if (is_transactional);
+
+    record_info('Set local storage class', '');
+    assert_script_run("sed -i '/storageClassLocal/s/local/local-path/' $test_suite_config");
+
+    if (is_transactional) {
+        # Install required packages perl-CPAN-Changes and ant-junit
+        $self->install_additional_pkgs();
+    } else {
+        zypper_call('in ant-junit') if (script_run('rpmquery ant-junit'));
+    }
 
     # Ensure Config::Tiny module installed
     assert_script_run('cpan install Config::Tiny <<<yes', timeout => 300) if (script_run('cpan -l <<<yes | grep Config::Tiny') == 1);
+
+    transactional::exit_trup_shell_and_reboot() if (is_transactional);
 
     my $result_dir = '/tmp/artifacts';
     record_info('Create artifacts path', $result_dir);
     assert_script_run("mkdir -p $result_dir");
 
     # Run virt-tests command for each go test files
-    my $test_conf = 'kubevirt-tests.conf';
+    if (check_var('KUBEVIRT_TEST', 'full')) {
+        $test_conf = 'full-tests.conf';
+        @kubevirt_tests = @full_tests;
+    } elsif (check_var('KUBEVIRT_TEST', 'core')) {
+        $test_conf = 'core-tests.conf';
+        @kubevirt_tests = @core_tests;
+    }
     my $parser_script = 'config_parser.pl';
     assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$test_conf") . " -o $test_conf");
     assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$parser_script") . " -o $parser_script");
 
-    my $test_suite_config = '/usr/share/kube-virt/manifests/testing/default-config.json';
     my ($go_test, $skip_test, $extra_opt, $params);
     my ($artifacts, $junit_xml, $test_log, $test_cmd, $num_of_skipped);
     my $retry_times = get_var('FAILED_RETRY');
@@ -411,7 +470,7 @@ sub upload_test_results {
             upload_logs("$html_dir/$_", log_name => "$_");
         }
 
-        my $openqa_host = get_var('OPENQA_SERVER');
+        my $openqa_host = get_var('OPENQA_URL');
         my $job_id = get_current_job_id();
         record_info('HTML report URL', "http://$openqa_host/tests/$job_id/file/index.html");
     }
@@ -421,9 +480,9 @@ sub post_fail_hook {
     my $self = shift;
 
     select_console 'log-console';
-    $self->save_and_upload_log('dmesg', '/tmp/dmesg.log', {screenshot => 0});
-    $self->save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
-    $self->save_and_upload_systemd_unit_log('rke2-server.service');
+    save_and_upload_log('dmesg', '/tmp/dmesg.log', {screenshot => 0});
+    save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
+    save_and_upload_systemd_unit_log('rke2-server.service');
 }
 
 1;

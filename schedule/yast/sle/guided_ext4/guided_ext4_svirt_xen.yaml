@@ -6,7 +6,13 @@ vars:
   FILESYSTEM: ext4
   YUI_REST_API: 1
 schedule:
-  guided_filesystem:
+  extension_module_selection:
+    - installation/module_registration/register_module_desktop
+  system_role:
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
+  guided_partitioning:
+    - installation/partitioning/select_guided_setup
+    - installation/partitioning/guided_setup/accept_default_part_scheme
     - installation/partitioning/guided_setup/select_filesystem_option_ext4
   default_systemd_target:
     - installation/installation_settings/validate_default_target

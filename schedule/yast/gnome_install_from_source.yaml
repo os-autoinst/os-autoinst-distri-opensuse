@@ -6,31 +6,23 @@ description: >
   Scenario is thought to use Online medium to boot
   and Full medium for remote repositories.
 vars:
-  DESKTOP: gnome
   NETBOOT: 1
   YUI_REST_API: 1
 schedule:
-  - installation/bootloader_start
-  - installation/setup_libyui
-  - installation/validation/validate_install_repo
-  - installation/access_beta_distribution
-  - installation/product_selection/install_SLES
-  - installation/licensing/accept_license
-  - installation/registration/skip_registration
-  - installation/module_selection/select_module_desktop
-  - installation/add_on_product_installation/accept_add_on_installation
-  - installation/system_role/accept_selected_role_SLES_with_GNOME
-  - installation/partitioning/accept_proposed_layout
-  - installation/clock_and_timezone/accept_timezone_configuration
-  - installation/authentication/use_same_password_for_root
-  - installation/authentication/default_user_simple_pwd
-  - installation/installation_settings/validate_default_target
-  - installation/bootloader_settings/disable_boot_menu_timeout
-  - installation/launch_installation
-  - installation/confirm_installation
-  - installation/performing_installation/perform_installation
-  - installation/logs_from_installation_system
-  - installation/performing_installation/confirm_reboot
-  - installation/grub_test
-  - installation/first_boot
-  - console/validate_mirror_repos
+  access_beta:
+    - installation/access_beta_distribution
+  product_selection:
+    - installation/validation/validate_install_repo
+    - installation/product_selection/install_SLES
+  registration:
+    - installation/registration/skip_registration
+  extension_module_selection:
+    - installation/module_selection/select_module_desktop
+  add_on_product:
+    - installation/add_on_product_installation/accept_add_on_installation
+  system_role:
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_validation:
+    - console/validate_mirror_repos

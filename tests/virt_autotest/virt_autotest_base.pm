@@ -17,6 +17,7 @@ use XML::Writer;
 use IO::File;
 use virt_utils;
 use Utils::Architectures;
+use virt_autotest::utils;
 use upload_system_log;
 
 sub analyzeResult {
@@ -36,6 +37,8 @@ sub generateXML {
     my $skip_nums = 0;
     my $test_time_hours = 0;
     my $test_time_mins = 0;
+    my $time_hours = 0;
+    my $time_mins = 0;
     foreach my $item (keys(%my_hash)) {
         if ($my_hash{$item}->{status} =~ m/PASSED/) {
             $pass_nums += 1;
@@ -49,8 +52,8 @@ sub generateXML {
         }
         my $test_time = eval { $my_hash{$item}->{test_time} ? $my_hash{$item}->{test_time} : '' };
         if ($test_time ne '') {
-            my ($time_hours) = $test_time =~ /^(\d+)m.*s$/i;
-            my ($time_mins) = $test_time =~ /^.*m(\d+)s$/i;
+            $time_hours = $test_time =~ /^(\d+)m.*s$/i;
+            $time_mins = $test_time =~ /^.*m(\d+)s$/i;
             $test_time_hours += $time_hours;
             $test_time_mins += $time_mins;
         }
@@ -187,6 +190,11 @@ sub run_test {
     if (!$timeout) {
         $timeout = 300;
     }
+    $add_junit_log_flag //= 'no';
+    $upload_virt_log_flag //= 'no';
+    $upload_guest_assets_flag //= 'no';
+
+    check_host_health;
 
     my $test_cmd = $self->get_script_run();
     #FOR S390X LPAR
@@ -262,6 +270,8 @@ sub post_fail_hook {
 
     $self->post_run_test;
     save_screenshot;
+
+    check_host_health;
 
     if (get_var('VIRT_PRJ1_GUEST_INSTALL')) {
         #collect and upload guest autoyast control files

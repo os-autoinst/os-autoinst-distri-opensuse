@@ -31,6 +31,9 @@ sub run {
     elsif (is_jeos) {
         record_info('Loaded JeOS image', 'nothing to do...');
     }
+    elsif (is_backend_s390x) {
+        record_info('s390x backend', 'nothing to do...');
+    }
     else {
         record_info('INFO', 'normal boot or boot with params');
         # during install_ltp, the second boot may take longer than usual
@@ -52,6 +55,9 @@ sub run {
         my $lp_tag = is_sle('>=15-sp4') ? 'lp' : 'lp-';
         assert_script_run("uname -v | grep -E '(/kGraft-|/${lp_tag})'");
     }
+
+    # module is used by non-LTP tests, i.e. kernel-live-patching
+    return unless (get_var('LTP_COMMAND_FILE'));
 
     prepare_ltp_env;
     init_ltp_tests($cmd_file);

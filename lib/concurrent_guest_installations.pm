@@ -34,7 +34,9 @@ use File::Basename;
 use testapi;
 use IPC::Run;
 use virt_utils;
+use version_utils;
 use virt_autotest_base;
+use alp_workloads::kvm_workload_utils;
 use XML::Simple;
 use Data::Dumper;
 use LWP;
@@ -101,7 +103,7 @@ sub install_guest_instances {
         }
         $guest_instances{$_}->{guest_installation_attached} = 'true';
         save_screenshot;
-        if (!(check_screen([qw(guest-installation-yast2-started guest-installation-anaconda-started)], timeout => 180 / get_var('TIMEOUT_SCALE', 1)))) {
+        if (!(check_screen([qw(guest-installation-yast2-started guest-installation-anaconda-started linux-login)], timeout => 180 / get_var('TIMEOUT_SCALE', 1)))) {
             record_info("Failed to detect or guest $guest_instances{$_}->{guest_name} does not have installation window opened", "This might be caused by improper console settings or reboot after installaton finishes. Will continue to monitor its installation progess, so this is not treated as fatal error at the moment.");
         }
         else {
@@ -122,10 +124,10 @@ sub monitor_concurrent_guest_installations {
     my $self = shift;
 
     $self->reveal_myself;
-    my $_installation_timeout = 0;
     my $_guest_installations_left = scalar(keys %guest_instances) - scalar(@guest_installations_done);
     my $_guest_installations_not_the_last = 1;
-    while ($_installation_timeout < 3600) {
+    my $_monitor_start_time = time();
+    while (time() - $_monitor_start_time <= 7200) {
         foreach (keys %guest_instances) {
             if ($guest_instances{$_}->{guest_installation_result} eq '') {
                 $guest_instances{$_}->attach_guest_installation_screen if (($_guest_installations_not_the_last ne 0) or ($guest_instances{$_}->{guest_installation_attached} ne 'true'));
@@ -145,7 +147,6 @@ sub monitor_concurrent_guest_installations {
         }
         last if ($_guest_installations_left eq 0);
         sleep 60;
-        $_installation_timeout += 60;
     }
     return $self;
 }
@@ -198,7 +199,13 @@ sub junit_log_provision {
         $_guest_installations_results->{$_}{stop_run} = ($guest_instances{$_}->{stop_run} eq '' ? time() : $guest_instances{$_}->{stop_run});
         $_guest_installations_results->{$_}{test_time} = strftime("\%Hh\%Mm\%Ss", gmtime($_guest_installations_results->{$_}{stop_run} - $_guest_installations_results->{$_}{start_run}));
     }
-    $self->{"product_tested_on"} = script_output("cat /etc/issue | grep -io -e \"SUSE.*\$(arch))\" -e \"openSUSE.*[0-9]\"");
+    if (!version_utils::is_alp) {
+        $self->{"product_tested_on"} = script_output("cat /etc/issue | grep -io -e \"SUSE.*\$(arch))\" -e \"openSUSE.*[0-9]\"");
+    } else {
+        alp_workloads::kvm_workload_utils::exit_kvm_container;
+        $self->{"product_tested_on"} = script_output(q@cat /etc/os-release |grep PRETTY_NAME | sed 's/PRETTY_NAME=//'@);
+        alp_workloads::kvm_workload_utils::enter_kvm_container_sh;
+    }
     $self->{"product_name"} = ref($self);
     $self->{"package_name"} = ref($self);
     my $_guest_installation_xml_results = virt_autotest_base::generateXML($self, $_guest_installations_results);
@@ -209,16 +216,19 @@ sub junit_log_provision {
     return $self;
 }
 
-#Check whether current console is root-ssh console and re-connect if needle 'text-logged-in-root' can not be detected.
+#Check whether current console is root-ssh console of the hypervisor and re-connect if relevant needle can not be detected.
 sub check_root_ssh_console {
     my $self = shift;
 
     $self->reveal_myself;
+    script_run("clear");
     save_screenshot;
-    if (!(check_screen('text-logged-in-root'))) {
+    if ((version_utils::is_alp && !check_screen('in-libvirtd-container-bash')) or (!version_utils::is_alp and !(check_screen('text-logged-in-root')))) {
         reset_consoles;
         select_console('root-ssh');
+        alp_workloads::kvm_workload_utils::enter_kvm_container_sh if (version_utils::is_alp);
     }
+
     return $self;
 }
 
@@ -266,6 +276,7 @@ sub post_fail_hook {
     $self->junit_log_provision((caller(0))[3]);
     $self->SUPER::post_fail_hook;
     $self->save_guest_installations_assets;
+    alp_workloads::kvm_workload_utils::collect_kvm_container_setup_logs if (version_utils::is_alp);
     return $self;
 }
 

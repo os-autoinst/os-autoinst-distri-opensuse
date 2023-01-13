@@ -15,7 +15,7 @@ use testapi;
 use Utils::Architectures;
 use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout);
 use ipmi_backend_utils;
-use virt_autotest::utils qw(is_xen_host check_port_state);
+use virt_autotest::utils qw(is_xen_host check_port_state check_host_health);
 use IPC::Run;
 
 sub set_ssh_console_timeout_before_use {
@@ -116,7 +116,7 @@ sub login_to_console {
 
     if (!get_var('UPGRADE_AFTER_REBOOT')) {
         set_var('REBOOT_AFTER_UPGRADE', '') if (get_var('REBOOT_AFTER_UPGRADE'));
-        if (is_xen_host) {
+        if (is_xen_host && !check_var('XEN_DEFAULT_BOOT_IS_SET', 1)) {
             #send key 'up' to stop grub timer counting down, to be more robust to select xen
             send_key 'up';
             save_screenshot;
@@ -202,6 +202,7 @@ sub login_to_console {
 sub run {
     my $self = shift;
     $self->login_to_console;
+    check_host_health();
 }
 
 sub post_fail_hook {

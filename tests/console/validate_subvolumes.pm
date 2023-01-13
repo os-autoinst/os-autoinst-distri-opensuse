@@ -13,7 +13,7 @@
 #     - subvolume: subvolume2
 #       mount_point: /home
 #
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'consoletest';
 use strict;

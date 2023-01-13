@@ -59,7 +59,6 @@ sub test_flags {
 sub post_fail_hook {
     my $self = shift;
     $self->SUPER::post_fail_hook;
-    $self->export_logs;
 }
 
 1;

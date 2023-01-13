@@ -17,6 +17,7 @@ use Utils::Backends;
 use Utils::Architectures;
 use strict;
 use warnings;
+use Utils::Logging 'tar_and_upload_log';
 
 sub run {
     my ($self) = shift;
@@ -25,7 +26,7 @@ sub run {
     script_run("mkdir /tmp/system_state", timeout => $timeout);
     script_run "ps axf > /tmp/system_state/psaxf.log";
     script_run "cat /proc/loadavg > /tmp/system_state/loadavg_consoletest_setup.txt";
-    $self->tar_and_upload_log('/tmp/system_state', '/tmp/stats_during_installation.tar.bz2');
+    tar_and_upload_log('/tmp/system_state', '/tmp/stats_during_installation.tar.bz2');
 }
 
 1;

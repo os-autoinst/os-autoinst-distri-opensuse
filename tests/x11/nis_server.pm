@@ -20,6 +20,8 @@ use y2_module_guitest '%setup_nis_nfs_x11';
 use x11utils 'turn_off_gnome_screensaver';
 use y2_module_consoletest;
 use scheduler 'get_test_suite_data';
+use YaST::workarounds;
+use version_utils qw(is_sle);
 
 sub setup_verification {
     script_run 'rpcinfo -u localhost ypserv';    # ypserv is running
@@ -54,6 +56,7 @@ sub nis_server_configuration {
     send_key 'alt-o';    # OK
     send_key $cmd{next};
     # NIS Server Maps Setup
+    apply_workaround_bsc1204176('nis-server-server-maps-setup') if (is_sle('>=15-SP4'));
     assert_screen 'nis-server-server-maps-setup';
     send_key 'tab';    # jump to map list
     my $c = 1;    # select all maps

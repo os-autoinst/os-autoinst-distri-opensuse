@@ -31,7 +31,6 @@ schedule:
   - installation/partitioning
   - installation/partitioning/new_partitioning_gpt
   - installation/installer_timezone
-  - installation/hostname_inst
   - installation/user_settings
   - installation/user_settings_root
   - installation/resolve_dependency_issues

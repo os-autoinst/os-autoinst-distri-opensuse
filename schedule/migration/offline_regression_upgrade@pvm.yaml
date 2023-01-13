@@ -1,0 +1,65 @@
+name:  offline_regression_upgrade@pvm
+description:    >
+    This is for powervm upgrade migration
+vars:
+  ORIGIN_SYSTEM_VERSION: '%HDDVERSION%'
+  UPGRADE_TARGET_VERSION: '%VERSION%'
+schedule:
+  - installation/bootloader
+  - installation/welcome
+  - installation/upgrade_select
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/handle_reboot
+  - installation/first_boot
+  - migration/post_upgrade
+  - console/system_prepare
+  - console/check_os_release
+  - console/check_system_info
+  - '{{check_migration_features}}'
+  - console/check_network
+  - console/system_state
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - '{{check_upgraded_service}}'
+  - '{{regression_tests}}'
+  - '{{rollback_after_migration}}'
+conditional_schedule:
+  check_migration_features:
+    MIGRATION_FEATURES:
+      1:
+        - console/check_migration_features
+  check_upgraded_service:
+    REGRESSION_SERVICE:
+      1:
+        - console/check_upgraded_service
+  regression_tests:
+    REGRESSION_TEST:
+      1:
+        - locale/keymap_or_locale
+        - console/force_scheduled_tasks
+        - console/hostname
+        - console/upgrade_snapshots
+        - console/zypper_lr
+        - console/zypper_ref
+        - console/check_system_info
+        - console/firewall_enabled
+        - console/zypper_lifecycle
+        - console/orphaned_packages_check
+        - console/consoletest_finish
+        - x11/desktop_runner
+        - x11/setup
+        - x11/xterm
+  rollback_after_migration:
+    ROLLBACK_AFTER_MIGRATION:
+      1:
+        - boot/grub_test_snapshot
+        - migration/version_switch_origin_system
+        - boot/snapper_rollback

@@ -5,7 +5,7 @@
 
 # Summary: The module provides interface to act with Module Registration page
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::ModuleRegistration::ModuleRegistrationPage;
 use parent 'Installation::Navigation::NavigationBase';
@@ -26,6 +26,7 @@ sub init {
     $self->{chb_hide_dev_versions} = $self->{app}->checkbox({id => 'filter_devel'});
     $self->{rct_items} = $self->{app}->richtext({id => 'items'});
     $self->{rct_item_we} = 'sle-we';
+    $self->{rct_item_ha} = 'sle-ha';
     $self->{rct_item_base} = 'sle-module-basesystem';
     $self->{rct_item_contm} = 'sle-module-containers';
     $self->{rct_item_desktop} = 'sle-module-desktop-applications';
@@ -37,6 +38,7 @@ sub init {
     $self->{rct_item_python3} = 'sle-module-python3';
     $self->{rct_item_pcm} = 'sle-module-public-cloud';
     $self->{rct_item_serverapp} = 'sle-module-server-applications';
+    $self->{rct_item_ltss} = 'SLES-LTSS';
     return $self;
 }
 

@@ -88,7 +88,6 @@ conditional_schedule:
                 - console/zziplib
                 - console/vsftpd
                 - console/python310_version_check
-                - network/samba/samba_adcli
     tumbleweed_tests:
         VERSION:
             'Tumbleweed':
@@ -152,7 +151,6 @@ schedule:
     - console/mutt
     - '{{sle_tests}}'
     - console/mdadm
-    - console/journalctl
     - console/systemd_nspawn
     - console/quota
     - console/vhostmd
@@ -168,6 +166,9 @@ schedule:
     - console/osinfo_db
     - '{{opensuse_tests}}'
     - '{{tumbleweed_tests}}'
+    - console/journalctl
     - console/tar
     - console/coredump_collect
+    - console/valgrind
+    - console/sssd_389ds_functional
     - console/zypper_log_packages

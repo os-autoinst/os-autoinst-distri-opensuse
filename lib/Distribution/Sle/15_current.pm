@@ -9,7 +9,7 @@
 # Tumbleweed distribution, and only if it behaves different in Sle15 then it
 # should be overriden here.
 
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Distribution::Sle::15_current;
 use strict;
@@ -27,7 +27,9 @@ use Installation::AddOnProduct::AddOnProductController;
 use Installation::RepositoryURL::RepositoryURLController;
 use Installation::AddOnProductInstallation::AddOnProductInstallationController;
 use Installation::SystemRole::Sle::SystemRoleController;
-use Installation::ModuleRegistration::ModuleRegCodeController;
+use Installation::ModuleRegistration::SeparateRegCodesController;
+use YaST::DNSServer::Sle::DNSServerController;
+use YaST::DNSServer::Sle::DNSServerSetupController;
 
 =head2 get_license_agreement
 
@@ -60,8 +62,12 @@ sub get_module_registration_installation_report {
     return Installation::ModuleRegistration::ModuleRegistrationInstallationReportController->new();
 }
 
+sub wait_registration_common_regcode_finished {
+    return Installation::ModuleRegistration::SeparateRegCodesController->new();
+}
+
 sub get_module_regcode {
-    return Installation::ModuleRegistration::ModuleRegCodeController->new();
+    return Installation::ModuleRegistration::SeparateRegCodesController->new();
 }
 
 sub get_module_selection {
@@ -82,6 +88,14 @@ sub get_add_on_product_installation {
 
 sub get_system_role_controller() {
     return Installation::SystemRole::Sle::SystemRoleController->new();
+}
+
+sub get_dns_server {
+    return YaST::DNSServer::Sle::DNSServerController->new();
+}
+
+sub get_dns_server_setup {
+    return YaST::DNSServer::Sle::DNSServerSetupController->new();
 }
 
 1;

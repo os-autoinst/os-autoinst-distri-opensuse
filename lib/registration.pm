@@ -13,6 +13,7 @@ use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call s
 use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro);
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
+use YaST::workarounds;
 
 our @EXPORT = qw(
   add_suseconnect_product
@@ -33,6 +34,7 @@ our @EXPORT = qw(
   get_addon_fullname
   rename_scc_addons
   is_module
+  is_phub_ready
   verify_scc
   investigate_log_empty_license
   register_addons_cmd
@@ -102,6 +104,11 @@ our @SLE12_MODULES = qw(
 sub is_module {
     my $name = shift;
     return defined $SLE15_MODULES{$name};
+}
+
+# Check if Packagehub is available
+sub is_phub_ready {
+    return (check_var('PHUB_READY', '0')) ? 0 : 1;
 }
 
 sub accept_addons_license {
@@ -279,7 +286,8 @@ sub register_product {
     if (get_var('SMT_URL')) {
         assert_script_run('SUSEConnect --url ' . get_var('SMT_URL') . ' ' . uc(get_var('SLE_PRODUCT')) . '/' . scc_version(get_var('HDDVERSION')) . '/' . get_var('ARCH'), 200);
     } else {
-        assert_script_run('SUSEConnect -r ' . get_required_var('SCC_REGCODE'), 200);
+        my $scc_reg_code = is_sles4sap ? get_required_var('SCC_REGCODE_SLES4SAP') : get_required_var('SCC_REGCODE');
+        assert_script_run('SUSEConnect -r ' . $scc_reg_code, 200);
     }
 }
 
@@ -616,13 +624,12 @@ sub handle_scc_popups {
         push @tags, 'expired-gpg-key' if is_sle('=15');
         while ($counter--) {
             die 'Registration repeated too much. Check if SCC is down.' if ($counter eq 1);
-            if (is_sle('=15-SP4')
+            if (is_sle('>=15-SP4')
                 && (get_var('VIDEOMODE', '') !~ /text|ssh-x/)
                 && (get_var("DESKTOP") !~ /textmode/)
                 && (get_var('REMOTE_CONTROLLER') !~ /vnc/)
                 && !(get_var('PUBLISH_HDD_1') || check_var('SLE_PRODUCT', 'hpc'))) {
-                record_soft_failure('bsc#1204176 - Resizing window as workaround for YaST content not loading');
-                for (1 .. 2) { send_key 'alt-f10' }
+                apply_workaround_bsc1204176(\@tags, timeout => 360);
             }
             assert_screen(\@tags, timeout => 360);
             if (match_has_tag('import-untrusted-gpg-key')) {

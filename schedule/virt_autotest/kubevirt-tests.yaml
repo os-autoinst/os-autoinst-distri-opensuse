@@ -1,31 +1,24 @@
 name:           kubevirt-tests
 description:    >
-    Maintainer: nan.zhang@suse.com
+    Maintainer: Nan Zhang <nan.zhang@suse.com> qe-virt@suse.de
     Kubevirt server & agent node installation and test modules
-vars:
-    SCC_ADDONS: contm,sdk,legacy
-    OPT_KERNEL_PARAMS: hugepagesz=2M hugepages=64
+vars: {}
 schedule:
     - '{{barrier_setup}}'
-    - '{{installation_with_kernel_params}}'
+    - '{{bootup_and_install}}'
     - '{{kubevirt_tests}}'
 conditional_schedule:
     barrier_setup:
-        TEST_SUITE_NAME:
-            kubevirt-tests-server:
+        SERVICE:
+            rke2-server:
                 - virt_autotest/kubevirt_barriers
-    installation_with_kernel_params:
-        WITH_SLE_INSTALL:
+    bootup_and_install:
+        WITH_HOST_INSTALL:
             1:
-                - boot/boot_from_pxe
+                - '{{bootup}}'
                 - installation/welcome
                 - installation/scc_registration
-                - installation/addon_products_sle
-                - installation/system_role
-                - installation/partitioning
-                - installation/partitioning_finish
-                - installation/installer_timezone
-                - installation/user_settings
+                - '{{sle_settings}}'
                 - installation/user_settings_root
                 - installation/resolve_dependency_issues
                 - installation/installation_overview
@@ -37,9 +30,26 @@ conditional_schedule:
                 - installation/logs_from_installation_system
                 - installation/reboot_after_installation
                 - virt_autotest/login_console
+    bootup:
+        IPXE:
+            1:
+                - installation/ipxe_install
+            0:
+                - boot/boot_from_pxe
+    sle_settings:
+        DISTRI:
+            sle:
+                - installation/addon_products_sle
+                - installation/system_role
+                - installation/partitioning
+                - installation/partitioning_finish
+                - installation/installer_timezone
+                - installation/user_settings
+            sle-micro:
+                - installation/ntp_config_settings
     kubevirt_tests:
-        TEST_SUITE_NAME:
-            kubevirt-tests-server:
+        SERVICE:
+            rke2-server:
                 - virt_autotest/kubevirt_tests_server
-            kubevirt-tests-agent:
+            rke2-agent:
                 - virt_autotest/kubevirt_tests_agent

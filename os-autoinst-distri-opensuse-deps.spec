@@ -61,6 +61,7 @@ Requires:       perl(Selenium::Chrome)
 Requires:       perl(Selenium::Remote::Driver)
 Requires:       perl(Selenium::Remote::WDKeys)
 Requires:       perl(Selenium::Waiter)
+Requires:       perl(SemVer)
 Requires:       perl(Storable)
 Requires:       perl(strict)
 Requires:       perl(Term::ANSIColor)
@@ -79,6 +80,15 @@ Recommends:     os-autoinst-devel
 
 %description
 Metapackage that contains the dependencies of os-autoinst-distri-opensuse.
+
+%package worker
+Summary:        Convenience package pulling in os-autoinst-distri-openSUSE dependencies and the openQA worker
+Group:          Development/Tools/Other
+Requires:       %{name} = %{version}
+Requires:       openQA-worker
+
+%description worker
+Convenience package pulling in os-autoinst-distri-openSUSE dependencies and the openQA worker.
 
 %prep
 

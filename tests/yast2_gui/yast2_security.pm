@@ -22,6 +22,7 @@ use strict;
 use warnings;
 use testapi;
 use version_utils qw(is_sle);
+use YaST::workarounds;
 
 sub run {
     select_console "x11";
@@ -40,10 +41,7 @@ sub run {
     # Check previously set values + Login Settings
     y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 120);
     assert_and_click "yast2_security-pwd-settings";
-    if (is_sle('=15-SP4')) {
-        record_soft_failure('bsc#1204176 - Resizing window as workaround for YaST content not loading');
-        send_key_until_needlematch('yast2_security-check-min-pwd-len-and-exp-days', 'alt-f10', 10, 2);
-    }
+    apply_workaround_bsc1204176('yast2_security-check-min-pwd-len-and-exp-days') if (is_sle('>=15-SP4'));
     assert_screen "yast2_security-check-min-pwd-len-and-exp-days";
     assert_and_click "yast2_security-login-settings";
     send_key "alt-d";
@@ -54,10 +52,7 @@ sub run {
 
     # Check previously set values + Miscellaneous Settings
     y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 120);
-    if (is_sle('=15-SP4')) {
-        record_soft_failure('bsc#1204176 - Resizing window as workaround for YaST content not loading');
-        send_key_until_needlematch('yast2_security-login-settings', 'alt-f10', 10, 2);
-    }
+    apply_workaround_bsc1204176('yast2_security-login-settings') if (is_sle('>=15-SP4'));
     assert_and_click "yast2_security-login-settings";
     assert_screen "yast2_security-login-attempts";
     # set file permissions to 'secure'
@@ -69,10 +64,7 @@ sub run {
     # Check previously set values
     y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 120);
     assert_and_click "yast2_security-misc-settings";
-    if (is_sle('=15-SP4')) {
-        record_soft_failure('bsc#1204176 - Resizing window as workaround for YaST content not loading');
-        send_key_until_needlematch('yast2_security-file-perms-secure', 'alt-f10', 10, 2);
-    }
+    apply_workaround_bsc1204176('yast2_security-file-perms-secure') if (is_sle('>=15-SP4'));
     assert_screen "yast2_security-file-perms-secure";
     wait_screen_change { send_key "alt-o" };
 }

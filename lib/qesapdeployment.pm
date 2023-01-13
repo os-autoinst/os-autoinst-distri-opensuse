@@ -30,12 +30,12 @@ package qesapdeployment;
 use strict;
 use warnings;
 use Carp qw(croak);
+use Mojo::JSON qw(decode_json);
 use YAML::PP;
-use utils 'file_content_replace';
+use utils qw(file_content_replace zypper_call);
+use publiccloud::utils qw(get_credentials);
 use testapi;
 use Exporter 'import';
-use utils 'zypper_call';
-
 
 my @log_files = ();
 
@@ -57,12 +57,17 @@ our @EXPORT = qw(
   qesap_execute
   qesap_yaml_replace
   qesap_ansible_cmd
+  qesap_ansible_script_output
   qesap_create_ansible_section
+  qesap_create_aws_credentials
+  qesap_create_aws_config
+  qesap_remote_hana_public_ips
 );
 
 =head1 DESCRIPTION
 
     Package with common methods and default or constant  values for qe-sap-deployment
+
 =head2 Methods
 
 
@@ -102,7 +107,7 @@ sub qesap_get_variables {
     my $yaml_file = $paths{'qesap_conf_src'};
     my %variables;
     my $grep_cmd = "grep -v '#' | grep -oE %[A-Z0-9_]*% | sed s/%//g";
-    my $cmd = join(" ", "curl -s -fL", $yaml_file, "|", $grep_cmd);
+    my $cmd = join(' ', 'curl -s -fL', $yaml_file, '|', $grep_cmd);
 
     for my $variable (split(" ", script_output($cmd))) {
         $variables{$variable} = get_required_var($variable);
@@ -155,10 +160,9 @@ sub qesap_pip_install {
     my $pip_install_log = '/tmp/pip_install.txt';
     my %paths = qesap_get_file_paths();
 
-
     push(@log_files, $pip_install_log);
     record_info("QESAP repo", "Installing pip requirements");
-    assert_script_run(join(" ", $pip_ints_cmd, '-r', $paths{deployment_dir} . '/requirements.txt | tee -a', $pip_install_log), 360);
+    assert_script_run(join(' ', $pip_ints_cmd, '-r', $paths{deployment_dir} . '/requirements.txt | tee -a', $pip_install_log), 360);
 }
 
 =head3 qesap_upload_logs
@@ -273,13 +277,13 @@ sub qesap_execute {
     $exec_log .= '.log.txt';
     $exec_log =~ s/[-\s]+/_/g;
 
-    my $qesap_cmd = join(" ", "python3.9", $paths{deployment_dir} . "/scripts/qesap/qesap.py",
+    my $qesap_cmd = join(' ', 'python3.9', $paths{deployment_dir} . '/scripts/qesap/qesap.py',
         $verbose,
-        "-c", $paths{qesap_conf_trgt},
-        "-b", $paths{deployment_dir},
+        '-c', $paths{qesap_conf_trgt},
+        '-b', $paths{deployment_dir},
         $args{cmd},
         $args{cmd_options},
-        "|& tee -a",
+        '|& tee -a',
         $exec_log
     );
 
@@ -370,6 +374,13 @@ sub qesap_prepare_env {
     push(@log_files, "$paths{deployment_dir}/ansible/playbooks/vars/hana_media.yaml");
     my $hana_vars = "$paths{deployment_dir}/ansible/playbooks/vars/hana_vars.yaml";
     my $exec_rc = qesap_execute(cmd => 'configure', verbose => 1);
+
+    if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
+        my $data = get_credentials('aws.json');
+        qesap_create_aws_config();
+        qesap_create_aws_credentials($data->{access_key_id}, $data->{secret_access_key});
+    }
+
     push(@log_files, $hana_vars) if (script_run("test -e $hana_vars") == 0);
     qesap_upload_logs(failok => 1);
     die("Qesap deployment returned non zero value during 'configure' phase.") if $exec_rc;
@@ -383,7 +394,7 @@ sub qesap_prepare_env {
 
     qesap_prepare_env(cmd=>{string}, provider => 'aws');
 
-=over 3
+=over 4
 
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
@@ -411,6 +422,116 @@ sub qesap_ansible_cmd {
         '-b', '--become-user=root',
         '-a', "\"$args{cmd}\"");
     assert_script_run($ansible_cmd);
+}
+
+
+=head3 qesap_ansible_script_output
+
+    Use Ansible to run a command remotely and get the stdout.
+    Command could be executed with elevated privileges
+
+    qesap_ansible_script_output(cmd => 'crm status', provider => 'aws', host => 'vmhana01', root => 1);
+
+    It uses playbook data/sles4sap/script_output.yaml
+
+    1. ansible-playbook run the playbook
+    2. the playbook executes the command and redirects the output to file, both remotely
+    3. the playbook download the file locally
+    4. the file is read and stored to be returned to the caller
+
+=over 5
+
+=item B<PROVIDER> - Cloud provider name, used to find the inventory
+
+=item B<CMD> - command to run remotely
+
+=item B<HOST> - filter hosts in the inventory
+
+=item B<USER> - user on remote host, default to 'cloudadmin'
+
+=item B<ROOT> - 1 to enable remote execution with elevated user, default to 0
+
+=back
+=cut
+
+sub qesap_ansible_script_output {
+    my (%args) = @_;
+    croak 'Missing mandatory cmd argument' unless $args{cmd};
+    croak 'Missing mandatory host argument' unless $args{host};
+    $args{user} ||= 'cloudadmin';
+    $args{root} ||= 0;
+
+    my $inventory = qesap_get_inventory($args{provider});
+
+    my $pb = 'script_output.yaml';
+    my $local_path = '/tmp/ansible_script_output/';
+    my $local_file = 'testout.txt';
+    my $local_tmp = $local_path . $local_file;
+
+    if (script_run "test -e $pb") {
+        my $cmd = join(' ',
+            'curl', '-v', '-fL',
+            data_url("sles4sap/$pb"),
+            '-o', $pb);
+        assert_script_run($cmd);
+    }
+
+    my @ansible_cmd = ('ansible-playbook', '-vvvv', $pb);
+    push @ansible_cmd, ('-l', $args{host}, '-i', $inventory);
+    push @ansible_cmd, ('-u', $args{user});
+    push @ansible_cmd, ('-b', '--become-user', 'root') if ($args{root});
+    push @ansible_cmd, ('-e', qq("cmd='$args{cmd}'"),
+        '-e', "out_path='$local_path'",
+        '-e', "out_file='$local_file'");
+
+    enter_cmd "rm $local_tmp";
+    assert_script_run(join(' ', @ansible_cmd));
+    my $output = script_output("cat $local_tmp");
+    enter_cmd "rm $local_tmp";
+    return $output;
+}
+
+=head3 qesap_create_aws_credentials
+
+    Creates a AWS credentials file as required by QE-SAP Terraform deployment code.
+=cut
+
+sub qesap_create_aws_credentials {
+    my ($key, $secret) = @_;
+    my %paths = qesap_get_file_paths();
+    my $credfile = script_output q|awk -F ' ' '/aws_credentials/ {print $2}' | . $paths{qesap_conf_trgt};
+    save_tmp_file('credentials', "[default]\naws_access_key_id = $key\naws_secret_access_key = $secret\n");
+    assert_script_run 'mkdir -p ~/.aws';
+    assert_script_run 'curl ' . autoinst_url . "/files/credentials -o $credfile";
+    assert_script_run "cp $credfile ~/.aws/credentials";
+}
+
+=head3 qesap_create_aws_config
+
+    Creates a AWS config file in ~/.aws as required by the QE-SAP Terraform & Ansible deployment code.
+=cut
+
+sub qesap_create_aws_config {
+    my %paths = qesap_get_file_paths();
+    my $region = script_output q|awk -F ' ' '/aws_region/ {print $2}' | . $paths{qesap_conf_trgt};
+    $region = get_required_var('PUBLIC_CLOUD_REGION') if ($region =~ /^%.+%$/);
+    save_tmp_file('config', "[default]\nregion = $region\n");
+    assert_script_run 'mkdir -p ~/.aws';
+    assert_script_run 'curl ' . autoinst_url . "/files/config -o ~/.aws/config";
+}
+
+=head3 qesap_remote_hana_public_ips
+
+    Return a list of the public IP addresses of the systems deployed by qesapdeployment, as reported
+    by C<terraform output>. Needs to run after C<qesap_execute(cmd => 'terraform');> call.
+
+=cut
+
+sub qesap_remote_hana_public_ips {
+    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my $tfdir = qesap_get_terraform_dir($prov);
+    my $data = decode_json(script_output "terraform -chdir=$tfdir output -json");
+    return @{$data->{hana_public_ip}->{value}};
 }
 
 1;

@@ -29,6 +29,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 use version_utils qw(is_sle is_opensuse);
+use Utils::Logging 'export_logs_basic';
 
 sub run {
     select_serial_terminal;
@@ -90,7 +91,7 @@ sub run {
 
 sub post_fail_hook {
     select_console 'log-console';
-    shift->export_logs_basic;
+    export_logs_basic;
 }
 
 1;

@@ -98,6 +98,10 @@ our @EXPORT = qw(
   cleanup_disk_space
   package_upgrade_check
   test_case
+  remount_tmp_if_ro
+  detect_bsc_1063638
+  script_start_io
+  script_finish_io
   @all_tests_results
 );
 
@@ -681,7 +685,7 @@ Enables the install DVDs if they were used during the installation.
 sub zypper_enable_install_dvd {
     # If DVD Packages is used we need to (re-)enable the local repos
     # see FATE#325541
-    zypper_call('mr -e -l') if (is_sle('15+') and (get_var('ISO_1', '') =~ /SLE-.*-Packages-.*\.iso/ || check_var('FLAVOR', 'Full')));
+    zypper_call('mr -e -l') if (is_sle('15+') and (get_var('ISO_1', '') =~ /SLE-.*-Packages-.*\.iso/ || check_var('FLAVOR', 'Full') || ((get_required_var('FLAVOR') =~ /Migration/) && get_var('MEDIA_UPGRADE', ''))));
     zypper_call 'ref';
 }
 
@@ -1428,7 +1432,7 @@ sub exec_and_insert_password {
         send_key 'ret';
         assert_screen('password-prompt', 60);
     }
-    if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
+    if (get_var("VIRT_PRJ1_GUEST_INSTALL") || get_var("VIRT_UNIFIED_GUEST_INSTALL")) {
         type_password("novell");
     }
     else {
@@ -2457,6 +2461,105 @@ sub test_case {
     my ($name, $description, $result) = @_;
     my %results = generate_results($name, $description, $result);
     push(@all_tests_results, dclone(\%results));
+}
+
+=head2 remount_tmp_if_ro
+
+ remount_tmp_if_ro();
+
+Mounts /tmp to shared memory if not possible to write to tmp.
+For example, save_y2logs creates temporary files there.
+
+=cut
+
+sub remount_tmp_if_ro {
+    script_run 'touch /tmp/test_ro || mount -t tmpfs /dev/shm /tmp';
+}
+
+=head2 detect_bsc_1063638
+
+ detect_bsc_1063638();
+
+Btrfs maintenance jobs lead to the system being unresponsive and affects SUT's performance.
+Not to waste time during investigation of the failures, we would like to detect
+if such jobs are running, providing a hint why test timed out.
+This method will create a softfail if such a problem is detected.
+
+=cut
+
+sub detect_bsc_1063638 {
+    # Detect bsc#1063638
+    record_soft_failure 'bsc#1063638' if (script_run('ps x | grep "btrfs-\(scrub\|balance\|trim\)"') == 0);
+}
+
+=head2 script_start_io
+
+  script_start_io($cmd [, %args]);
+
+Start program C<$cmd> in console for interactive input and output. Call
+C<script_finish_io()> after sending the appropriate exit command
+to the program. Example usage:
+
+  script_start_io('python3');
+  enter_cmd('int("123")');
+  wait_serial(qr/^123/m) or die 'Wrong output';
+  enter_cmd('int("123", 16)');
+  wait_serial(qr/^291/m) or die 'Wrong output';
+  enter_cmd('exit(12)');
+  script_finish_io(exitcode => [12]);
+
+Set C<$quiet> to avoid recording serial result for the initial command.
+
+=cut
+
+sub script_start_io {
+    my ($cmd, %args) = @_;
+
+    my $marker = '; echo sioresult-$?-';
+
+    if (is_serial_terminal) {
+        wait_serial(serial_terminal::serial_term_prompt(), no_regex => 1,
+            quiet => $args{quiet});
+    }
+    else {
+        $cmd .= " >/dev/$serialdev";
+        $marker .= " >/dev/$serialdev";
+    }
+
+    type_string($cmd . $marker);
+    wait_serial($cmd . $marker, no_regex => 1, quiet => $args{quiet})
+      if is_serial_terminal;
+    type_string("\n");
+}
+
+=head2 script_finish_io
+
+  script_finish_io([timeout => $timeout] [, exitcode => undef]);
+
+Finish interactive session started by C<script_start_io()> and return
+command exit code. If C<$exitcodes> is set, the command exit code must
+match one of the values in the given array, otherwise the current test
+will fail. C<$timeout> controls how long to wait for the interactive
+command to exit. See C<script_start_io()> for example usage.
+
+=cut
+
+sub script_finish_io {
+    my %args = @_;
+    my $exit_codes = $args{exitcodes};
+
+    $args{timeout} //= $bmwqemu::default_timeout;
+
+    my $res = wait_serial(qr/sioresult-\d+-/, timeout => $args{timeout},
+        quiet => $args{quiet});
+    return if !defined($exit_codes) && !defined($res);
+    die 'Interactive command failed to exit' unless defined($res);
+
+    $res =~ m/sioresult-(\d+)-/;
+    my $ret = $1;
+    die "Interactive command returned unexpected value $ret"
+      if defined($exit_codes) && !grep { $_ == $ret } @$exit_codes;
+    return $ret;
 }
 
 1;

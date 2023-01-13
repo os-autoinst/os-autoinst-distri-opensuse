@@ -11,6 +11,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use Utils::Logging 'save_and_upload_log';
 
 our @EXPORT = qw(
   upload_rear_logs
@@ -40,7 +41,7 @@ sub upload_rear_logs {
     upload_logs('/etc/rear/local.conf', failok => 1);
 
     # List of block devices
-    $self->save_and_upload_log('lsblk -ipo NAME,KNAME,PKNAME,TRAN,TYPE,FSTYPE,SIZE,MOUNTPOINT', '/tmp/lsblk.log');
+    save_and_upload_log('lsblk -ipo NAME,KNAME,PKNAME,TRAN,TYPE,FSTYPE,SIZE,MOUNTPOINT', '/tmp/lsblk.log');
 
     # Create tarball with logfiles and upload it
     my $logfile = '/tmp/rear-recover-logs.tar.bz2';
@@ -51,6 +52,7 @@ sub upload_rear_logs {
 sub post_fail_hook {
     my ($self) = @_;
 
+    return if get_var('NOLOGS');
     # We need to be sure that *ALL* consoles are closed, are SUPER:post_fail_hook
     # does not support virtio/serial console yet
     reset_consoles;

@@ -13,6 +13,7 @@ use strict;
 use warnings;
 use main_common 'opensuse_welcome_applicable';
 use x11utils 'turn_off_plasma_tooltips';
+use Utils::Logging qw(save_and_upload_log export_logs);
 
 # using this as base class means only run when an install is needed
 sub run {
@@ -43,10 +44,10 @@ sub run {
 sub post_fail_hook {
     my $self = shift;
 
-    $self->export_logs();
+    export_logs();
 
     # Also list branding packages (help to debug desktop branding issues)
-    $self->save_and_upload_log('zypper --no-refresh se *branding*', '/tmp/list_branding_packages.txt', {screenshot => 1});
+    save_and_upload_log('zypper --no-refresh se *branding*', '/tmp/list_branding_packages.txt', {screenshot => 1});
 }
 
 1;

@@ -5,7 +5,7 @@
 
 # Summary: The module provides interface to act with Repository URL.
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::RepositoryURL::RepositoryURLPage;
 use parent 'Installation::Navigation::NavigationBase';

@@ -1,0 +1,34 @@
+---
+name: ha_supportserver
+description: >
+  SupportServer definition for HA tests.
+
+  Some settings are required in the job group or test suite for this schedule to work.
+
+  The other settings required in the job group are.
+
+  CLUSTER_INFOS must be defined in the parent job to the name of the cluster, number
+  of nodes and number of LUNs. Example 'hana:2:3'
+  NUMDISKS must be defined and set to the total number of disks, usually 2 for a
+  iSCSI server.
+  HDDSIZEGB_2 must be defined and set to the needed size of the 2nd disk.
+  NUMLUNS must be defined and set to the needed number of LUNs.
+  MAX_JOB_TIME is recommended to be defined as well to a high value (ex. 20000).
+  All jobs with the exception of the parent job must include a PARALLEL_WITH setting
+  referencing the parent job.
+  SLE_PRODUCT must be defined and set to sles4sap.
+  And of course, YAML_SCHEDULE must point to this file.
+vars:
+  BOOT_HDD_IMAGE: '1'
+  DESKTOP: textmode
+  SUPPORT_SERVER: '1'
+  SUPPORT_SERVER_ROLES: dhcp,dns,ntp,ssh,iscsi
+  VIDEOMODE: text
+  VIRTIO_CONSOLE: '0'
+  # Below have to be entered in the OpenQA UI because it doesn't read this YAML
+  # HDD_1: openqa_support_server_sles12sp3.%ARCH%.qcow2
+schedule:
+  - support_server/login
+  - support_server/setup
+  - ha/barrier_init
+  - support_server/wait_children

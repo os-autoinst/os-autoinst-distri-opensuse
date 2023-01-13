@@ -870,7 +870,10 @@ elsif (get_var("VIRT_AUTOTEST")) {
     }
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
         load_virt_guest_install_tests;
-        load_virt_feature_tests if (!(get_var("GUEST_PATTERN") =~ /win/img) && is_x86_64 && !get_var("LTSS"));
+        if (!(get_var('GUEST_PATTERN', '') =~ /win/img) && is_x86_64 && !get_var("LTSS")) {
+            load_virt_feature_tests;
+            loadtest "virt_autotest/validate_system_health" if get_var("VALIDATE_SYSTEM_HEALTH");
+        }
     }
     #those tests which test extended features, such as hotpluggin, virtual network and SRIOV passthrough etc.
     #they can be seperated from prj1 if needed
@@ -896,16 +899,6 @@ elsif (get_var("VIRT_AUTOTEST")) {
         }
         loadtest "virt_autotest/reboot_and_wait_up_normal";
         loadtest "virt_autotest/host_upgrade_step3_run";
-    }
-    elsif (get_var("VIRT_PRJ3_GUEST_MIGRATION_SOURCE")) {
-        loadtest "virt_autotest/guest_migration_config_virtualization_env";
-        loadtest "virt_autotest/guest_migration_source_nfs_setup";
-        loadtest "virt_autotest/guest_migration_source_install_guest";
-        loadtest "virt_autotest/guest_migration_source_migrate";
-    }
-    elsif (get_var("VIRT_PRJ3_GUEST_MIGRATION_TARGET")) {
-        loadtest "virt_autotest/guest_migration_config_virtualization_env";
-        loadtest "virt_autotest/guest_migration_target_nfs_setup";
     }
     elsif (get_var("VIRT_PRJ4_GUEST_UPGRADE")) {
         loadtest "virt_autotest/guest_upgrade_run";
@@ -1112,7 +1105,6 @@ else {
         boot_hdd_image;
         if (check_var('HOSTNAME', 'client')) {
             loadtest 'network/setup_multimachine';
-            loadtest 'network/samba/samba_adcli';
         }
         elsif (check_var('HOSTNAME', 'win2k19')) {
             loadtest 'support_server/windows/win2019_boot';

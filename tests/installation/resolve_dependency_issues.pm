@@ -9,12 +9,13 @@
 #   - If BREAK_DEPS is set, choose option to break dependencies
 # - Handle license, automatic changes, unsupported packages, errors with
 # patterns.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "y2_installbase";
 use strict;
 use warnings;
 use testapi;
+use Utils::Logging 'upload_solvertestcase_logs';
 
 sub run {
     my ($self) = @_;
@@ -34,7 +35,7 @@ sub run {
 sub post_fail_hook {
     my $self = shift;
     select_console 'root-console';
-    $self->upload_solvertestcase_logs();
+    upload_solvertestcase_logs();
     # workaround to get the y2logs.tar.bz2 at early stage
     script_run "save_y2logs /tmp/y2logs.tar.bz2";
     upload_logs "/tmp/y2logs.tar.bz2";
