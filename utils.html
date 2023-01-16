@@ -93,6 +93,7 @@
       <li><a href="#detect_bsc_1063638">detect_bsc_1063638</a></li>
       <li><a href="#script_start_io">script_start_io</a></li>
       <li><a href="#script_finish_io">script_finish_io</a></li>
+      <li><a href="#handle_screen-handle_screen-needles-handler_map-assert-assert-max_loops-max_loops">handle_screen handle_screen($needles, $handler_map [, assert =&gt; $assert] [, max_loops =&gt; $max_loops] [...]);</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -700,6 +701,16 @@ script_finish_io(exitcode =&gt; [12]);</code></pre>
 <pre><code>script_finish_io([timeout =&gt; $timeout] [, exitcode =&gt; undef]);</code></pre>
 
 <p>Finish interactive session started by <code>script_start_io()</code> and return command exit code. If <code>$exitcodes</code> is set, the command exit code must match one of the values in the given array, otherwise the current test will fail. <code>$timeout</code> controls how long to wait for the interactive command to exit. See <code>script_start_io()</code> for example usage.</p>
+
+<h2 id="handle_screen-handle_screen-needles-handler_map-assert-assert-max_loops-max_loops">handle_screen handle_screen($needles, $handler_map [, assert =&gt; $assert] [, max_loops =&gt; $max_loops] [...]);</h2>
+
+<p>Wait for <code>$needles</code> to appear on screen and then execute the appropriate handler function from <code>$handler_map</code> hash. <code>$needles</code> can be any value accepted by <code>assert_screen()</code> or <code>check_screen()</code>. <code>$assert</code> controls whether failed needle match should trigger test failure (when true, default) or just silently return (when false). <code>$max_loops</code> limits how many needle checks and handler calls can be done (default: count of <code>$needles</code>). Negative <code>$max_loops</code> means unlimited loop count. Any additional keyword arguments will be passed to <code>assert_screen()</code> or <code>check_screen()</code>.</p>
+
+<p><code>$handler_map</code> is a hashref in the format <code>{&quot;needle-tag&quot; =&gt; $handler}</code>. After a successful needle match, all needle tags in <code>$handler_map</code> will be checked and the matching needle must have exactly one of them. It is an error if the needle does not have exactly one handler in <code>$handler_map</code>.</p>
+
+<p><code>handle_screen()</code> will return after <code>$max_loops</code> iterations, or if a handler function returns any value that evaluates to true, or if needle match fails when <code>$assert</code> is false. The return value is the last value returned by a handler function, or undefined if needle match failed.</p>
+
+<p>Note that you may need to set <code>timeout</code> keyword argument if you set <code>$assert</code> to false because <code>check_screen()</code> has <code>$timeout=0</code> by default.</p>
 
 
 </body>
