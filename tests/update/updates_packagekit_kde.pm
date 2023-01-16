@@ -30,7 +30,7 @@ sub run {
                 assert_and_click_until_screen_change("updates_available-tray");
             };
             assert_screen_change {
-                assert_and_click_until_screen_change('updates_click-install');
+                assert_and_click_until_screen_change('updates_click-install', 10, 5);
             };
 
             # Wait until installation is done.
