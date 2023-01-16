@@ -12,7 +12,7 @@ use base "Exporter";
 use Exporter;
 
 use testapi;
-use utils qw(zypper_call);
+use utils qw(zypper_call handle_screen);
 use JSON;
 use List::Util qw(max);
 use version_utils 'is_sle';
@@ -175,15 +175,26 @@ sub advance_installer_window {
     my $build = get_var('BUILD');
 
     send_key $cmd{next};
-    die 'Unable to create repository' if check_screen('unable-to-create-repo', 5);
+    my %handlers;
+
+    $handlers{$screenName} = sub { 1 };
+    $handlers{'unable-to-create-repo'} = sub {
+        die 'Unable to create repository';
+    };
+    $handlers{'cannot-access-installation-media'} = sub {
+        send_key "alt-y";
+        return 0;
+    };
+
     if ($build =~ m/^MR:/) {
-        if (check_screen("import-untrusted-gpg-key", 20)) {
+        $handlers{'import-untrusted-gpg-key'} = sub {
             send_key "alt-t";
-        }
+            return 0;
+        };
     }
-    unless (check_screen "$screenName", 60) {
-        my $key = check_screen('cannot-access-installation-media') ? "alt-y" : "$cmd{next}";
-        send_key_until_needlematch $screenName, $key, 6, 60;
+
+    unless (handle_screen([keys %handlers], \%handlers, assert => 0, timeout => 60)) {
+        send_key_until_needlematch $screenName, $cmd{next}, 6, 60;
         record_soft_failure 'Retry most probably due to network problems poo#52319 or failed next click';
     }
 }

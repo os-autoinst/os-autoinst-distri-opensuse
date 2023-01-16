@@ -102,6 +102,7 @@ our @EXPORT = qw(
   detect_bsc_1063638
   script_start_io
   script_finish_io
+  handle_screen
   @all_tests_results
 );
 
@@ -2560,6 +2561,67 @@ sub script_finish_io {
     die "Interactive command returned unexpected value $ret"
       if defined($exit_codes) && !grep { $_ == $ret } @$exit_codes;
     return $ret;
+}
+
+=head2 handle_screen
+    handle_screen($needles, $handler_map [, assert => $assert] [, max_loops => $max_loops] [...]);
+
+Wait for C<$needles> to appear on screen and then execute the appropriate
+handler function from C<$handler_map> hash. C<$needles> can be any value
+accepted by C<assert_screen()> or C<check_screen()>. C<$assert> controls
+whether failed needle match should trigger test failure (when true, default)
+or just silently return (when false). C<$max_loops> limits how many needle
+checks and handler calls can be done (default: count of C<$needles>). Negative
+C<$max_loops> means unlimited loop count. Any additional keyword arguments
+will be passed to C<assert_screen()> or C<check_screen()>.
+
+C<$handler_map> is a hashref in the format C<{"needle-tag" =E<gt> $handler}>.
+After a successful needle match, all needle tags in C<$handler_map> will be
+checked and the matching needle must have exactly one of them. It is an error
+if the needle does not have exactly one handler in C<$handler_map>.
+
+C<handle_screen()> will return after C<$max_loops> iterations, or if a handler
+function returns any value that evaluates to true, or if needle match fails
+when C<$assert> is false. The return value is the last value returned by
+a handler function, or undefined if needle match failed.
+
+Note that you may need to set C<timeout> keyword argument if you set C<$assert>
+to false because C<check_screen()> has C<$timeout=0> by default.
+=cut
+
+sub handle_screen {
+    my ($needles, $handler_map, %args) = @_;
+    my $assert = $args{assert} // 1;
+    my $max_loops = $args{max_loops} // ref($needles) eq 'ARRAY' ? scalar @$needles : 1;
+    my $exit;
+
+    for my $key (qw(assert max_loops)) {
+        delete $args{$key};
+    }
+
+    while ($max_loops != 0) {
+        $max_loops-- if $max_loops > 0;
+
+        if ($assert) {
+            assert_screen($needles, %args);
+        }
+        else {
+            return unless check_screen($needles, %args);
+        }
+
+        my @callbacks;
+
+        while (my ($key, $handler) = each(%$handler_map)) {
+            push @callbacks, $handler if match_has_tag($key);
+        }
+
+        die 'No handler for matched needle' if !scalar @callbacks;
+        die 'Multiple handlers for matched needle' if 1 < scalar @callbacks;
+        $exit = &{$callbacks[0]}();
+        last if $exit;
+    }
+
+    return $exit;
 }
 
 1;
