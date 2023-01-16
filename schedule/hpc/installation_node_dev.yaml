@@ -4,7 +4,6 @@ description:    >
      Maintainer: qe-kernel
      Installation scenario with HPC system role hpc-dev
 vars:
-  DESKTOP: gnome
   INSTALLONLY: 1
   PATTERNS: default
   SLE_PRODUCT: hpc
