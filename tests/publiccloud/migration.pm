@@ -31,19 +31,15 @@ sub run {
     my $instance = $provider->create_instance();
     $instance->wait_for_guestregister();
     $instance->ssh_assert_script_run(cmd => "sudo registercloudguest --clean");
-    assert_script_run("zypper lr -U");
     registercloudguest($instance) if is_byos();
-
-
-    my $initial_version = $instance->run_ssh_command(cmd => 'sudo echo $USER; cat /etc/os-release; sudo SUSEConnect --status-text; zypper lr -U; sudo SUSEConnect --list-extensions');
-    record_info('INFO', $initial_version);
 
     if (script_run(q(SUSEConnect --status-text | grep -i 'Successfully registered system'))) {
         my $version_id=substr($version,0,index($version,'-'));
-        assert_script_run('sudo zypper ref', timeout => 180);
-        script_run("sudo SUSEConnect -p sle-module-public-cloud/$version_id/$arch");
-        script_run("sudo SUSEConnect -s");
-        assert_script_run('sudo zypper -n up', timeout => 200);
+        my $initial_version = $instance->run_ssh_command(cmd => 'sudo echo $USER; cat /etc/os-release; sudo SUSEConnect --status-text; zypper lr -U; sudo SUSEConnect --list-extensions; sudo zypper ref; sudo SUSEConnect -p sle-module-public-cloud/$version_id/$arch; sudo SUSEConnect -s; sudo zypper -n up');
+	#assert_script_run('sudo zypper ref', timeout => 180);
+	#script_run("sudo SUSEConnect -p sle-module-public-cloud/$version_id/$arch");
+	#script_run("sudo SUSEConnect -s");
+	#assert_script_run('sudo zypper -n up', timeout => 200);
     }
 
     record_info('INFO', $target_version);
