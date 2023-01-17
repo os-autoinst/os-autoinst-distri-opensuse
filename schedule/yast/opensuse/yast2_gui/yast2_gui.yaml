@@ -16,6 +16,7 @@ schedule:
   - console/consoletest_setup
   - console/hostname
   - console/setup_libyui_running_system
+  - x11/disable_screensaver
   - yast2_gui/yast2_system_settings
   - yast2_gui/yast2_control_center
   - x11/yast2_lan_restart
