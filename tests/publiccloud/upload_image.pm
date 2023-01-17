@@ -33,9 +33,9 @@ sub run {
     }
 
     # Download the given image via wget. Note that by default wget retries 20 times before giving up
-    my $cmd = "wget -q --no-check-certificate --retry-connrefused --retry-on-host-error $img_url -O $img_name";
+    my $cmd = "wget -q --server-response --no-check-certificate --retry-connrefused --retry-on-host-error $img_url -O $img_name";
     # A generious timeout is required because downloading up to 30 GB (Azure images) can take more than an hour.
-    my $rc = script_run("$cmd 2>&1 | tee download.txt", timeout => 120 * 60);
+    my $rc = script_run("(set -o pipefail && $cmd 2>&1 | tee download.txt)", timeout => 120 * 60);
     if ($rc != 0) {
         # Check for 404 errors and make them better visible
         upload_logs("download.txt");
