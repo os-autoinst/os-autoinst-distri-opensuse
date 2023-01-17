@@ -31,21 +31,21 @@ sub run {
     my $instance = $provider->create_instance();
     $instance->wait_for_guestregister();
     $instance->ssh_assert_script_run(cmd => "sudo registercloudguest --clean");
+    assert_script_run("zypper lr -U");
     registercloudguest($instance) if is_byos();
 
 
-    my $initial_version = $instance->run_ssh_command(cmd => 'sudo cat /etc/os-release');
+    my $initial_version = $instance->run_ssh_command(cmd => 'sudo echo $USER; cat /etc/os-release');
     record_info('INFO', $initial_version);
 
     if (script_run(q(SUSEConnect --status-text | grep -i 'Successfully registered system'))) {
         my $version_id=substr($version,0,index($version,'-'));
+        assert_script_run("zypper lr -U");
         script_run("sudo SUSEConnect --status-text");
-        script_run("sudo SUSEConnect --status");
         script_run("sudo SUSEConnect --list-extensions");
         assert_script_run("zypper se migr");
         assert_script_run("zypper lr -U");
         assert_script_run('sudo zypper ref', timeout => 180);
-        assert_script_run("zypper se migr");
         script_run("sudo SUSEConnect -p sle-module-public-cloud/$version_id/$arch");
         script_run("sudo SUSEConnect -s");
         assert_script_run('sudo zypper -n up', timeout => 200);
