@@ -10,6 +10,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Utils::Architectures;
 use version_utils qw(is_sle);
 #use stigtest qw(pattern_count_in_file);
 
@@ -27,12 +28,20 @@ sub run {
     my $f_fregex = $stigtest::f_fregex;
     my $passed_rules_ref;
     my $failed_rules_ref;
+    my $n_passed_rules = 210;
+    my $n_failed_rules = 5;
     my $eval_match = 'm/
                     Rule.*content_rule_is_fips_mode_enabled.*Result.*fail.*
                     Rule.*content_rule_partition_for_var_log_audit.*Result.*fail.*
                     Rule.*content_rule_smartcard_pam_enabled.*Result.*fail.*
                     Rule.*content_rule_grub2_password.*Result.*fail.*
                     Rule.*content_rule_no_files_unowned_by_user.*Result.*fail/sxx';
+
+    #Conditional checks
+    if (is_s390x) {
+    $n_passed_rules = 209;
+    $n_failed_rules = 5;
+    }
 
     # Verify detection mode
     my $ret = script_run("oscap xccdf eval --profile $profile_ID --oval-results --report $f_report $f_ssg_ds > $f_stdout 2> $f_stderr", timeout => 600);
@@ -63,22 +72,36 @@ sub run {
 
             #Verify number of passed and failed rules
             my $pass_count = $self->pattern_count_in_file($data, $f_pregex, $passed_rules_ref);
-            record_info(
-                "Passed rules count=$pass_count",
-                "Pattern $f_pregex count in file $f_stdout is $pass_count. Matched rules: \n" . join "\n",
-                @$passed_rules_ref
-            );
-            if ($pass_count != 210) {
+            if ($pass_count != $n_passed_rules) {
                 $self->result('fail');
-            }
+                record_info(
+                    "Failed check of passed rules count",
+                    "Pattern $f_pregex count in file $f_stdout is $pass_count, expected $n_passed_rules. Matched rules: \n" . join "\n",
+                    @$passed_rules_ref
+                );
+             }
+             else {
+                record_info(
+                    "Passed check of passed rules count",
+                    "Pattern $f_pregex count in file $f_stdout is $pass_count. Matched rules: \n" . join "\n",
+                    @$passed_rules_ref
+                );
+             }
             my $fail_count = $self->pattern_count_in_file($data, $f_fregex, $failed_rules_ref);
-            record_info(
-                "Failed rules count=$fail_count",
-                "Pattern $f_fregex count in file $f_stdout is $fail_count. Matched rules: \n" . join "\n",
-                @$failed_rules_ref
-            );
-            if ($fail_count != 5) {
+            if ($fail_count != $n_failed_rules) {
                 $self->result('fail');
+                record_info(
+                    "Failed check of failed rules count",
+                    "Pattern $f_fregex count in file $f_stdout is $fail_count, expected $n_failed_rules. Matched rules: \n" . join "\n",
+                    @$failed_rules_ref
+                );
+             }
+            else {
+                record_info(
+                    "Passed check of failed rules count",
+                    "Pattern $f_fregex count in file $f_stdout is $fail_count. Matched rules: \n" . join "\n",
+                    @$failed_rules_ref
+                );
             }
         }
     }
