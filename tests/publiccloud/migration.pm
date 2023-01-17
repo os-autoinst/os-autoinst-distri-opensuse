@@ -43,6 +43,7 @@ sub run {
         script_run("sudo SUSEConnect --status");
         script_run("sudo SUSEConnect --list-extensions");
         assert_script_run("zypper se migr");
+        assert_script_run("zypper lr -U");
         assert_script_run('sudo zypper ref', timeout => 180);
         assert_script_run("zypper se migr");
         script_run("sudo SUSEConnect -p sle-module-public-cloud/$version_id/$arch");
