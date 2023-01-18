@@ -30,7 +30,7 @@ sub run ($self) {
         bin => '/home/bernhard/bin',
         hpc_lib => '/usr/lib/hpc',
     );
-    script_run("sudo -u $testapi::username mkdir $exports_path{bin}");
+    script_run("sudo -u $testapi::username mkdir -p $exports_path{bin}");
     zypper_call("in $mpi-gnu-hpc $mpi-gnu-hpc-devel python3-devel");
     my $need_restart = $self->setup_scientific_module();
     $self->relogin_root if $need_restart;
