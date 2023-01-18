@@ -382,7 +382,8 @@
         "description": "Failed to start Load kdump kernel and initrd",
         "products": {
             "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"]
+            "microos":  ["Tumbleweed"],
+            "sle-micro": ["5.3"]
         },
         "type": "ignore"
     },
