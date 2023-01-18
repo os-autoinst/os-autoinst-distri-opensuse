@@ -19,7 +19,7 @@ use base 'virt_autotest_base';
 use testapi;
 use ipmi_backend_utils;
 use Utils::Backends qw(use_ssh_serial_console is_remote_backend);
-use utils qw(zypper_call systemctl permit_root_ssh_in_sol);
+use utils qw(zypper_call systemctl permit_root_ssh_in_sol script_retry);
 use virt_autotest::utils qw(is_kvm_host is_xen_host);
 
 sub run {
@@ -49,7 +49,7 @@ sub run {
     die 'Need one of both to be true: is_kvm_host || is_xen_host' unless is_kvm_host || is_xen_host;
     my $hypervisor = is_kvm_host ? 'kvm' : 'xen';
     zypper_call('--gpg-auto-import-keys ref');
-    zypper_call("in -t pattern ${hypervisor}_server ${hypervisor}_tools", 1800);
+    script_retry("zypper -n in -t pattern ${hypervisor}_server ${hypervisor}_tools", timeout => 1800, retry => 5, delay => 10);
     set_grub_on_vh('', '', $hypervisor);
     systemctl 'enable libvirtd', ignore_failure => 1;
 
