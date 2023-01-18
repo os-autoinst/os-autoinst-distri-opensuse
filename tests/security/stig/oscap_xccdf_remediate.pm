@@ -17,8 +17,7 @@ sub run {
 
     # Get ds file and profile ID, etc.
     my $f_ssg_ds = is_sle ? $stigtest::f_ssg_sle_ds : $stigtest::f_ssg_tw_ds;
-    my $profile_ID =
-      is_sle ? $stigtest::profile_ID_sle : $stigtest::profile_ID_tw;
+    my $profile_ID = is_sle ? $stigtest::profile_ID_sle : $stigtest::profile_ID_tw;
     my $f_stdout = $stigtest::f_stdout;
     my $f_stderr = $stigtest::f_stderr;
     my $f_report = $stigtest::f_report;
@@ -26,22 +25,17 @@ sub run {
     select_console 'root-console';
 
     # Verify mitigation mode
-    my $ret = script_run(
-"oscap xccdf eval --profile $profile_ID --remediate --oval-results --report $f_report $f_ssg_ds > $f_stdout 2> $f_stderr",
-        timeout => 600
-    );
-    record_info( "Return=$ret",
-        "# oscap xccdf eval --profile $profile_ID --remediate\" returns: $ret"
-    );
-    if ( $ret != 0 and $ret != 2 ) {
+    my $ret
+      = script_run("oscap xccdf eval --profile $profile_ID --remediate --oval-results --report $f_report $f_ssg_ds > $f_stdout 2> $f_stderr", timeout => 600);
+    record_info("Return=$ret", "# oscap xccdf eval --profile $profile_ID --remediate\" returns: $ret");
+    if ($ret != 0 and $ret != 2) {
         $self->result('fail');
-        record_info( 'bsc#1194676', 'remediation should be succeeded' );
+        record_info('bsc#1194676', 'remediation should be succeeded');
     }
-    if ( $stigtest::remediated == 0 ) {
+    if ($stigtest::remediated == 0) {
         $stigtest::remediated = 1;
-        record_info( 'remediated', 'setting status remediated' );
+        record_info('remediated', 'setting status remediated');
     }
-
 =comment
     OSCAP exit codes from https://github.com/OpenSCAP/openscap/blob/maint-1.3/utils/oscap-tool.h
     // standard oscap CLI exit statuses
@@ -61,14 +55,13 @@ sub run {
 
     # Upload logs & ouputs for reference
     # Configure to upload html report
-    set_var( 'UPLOAD_REPORT_HTML', 1 );
+    set_var('UPLOAD_REPORT_HTML', 1);
     $self->upload_logs_reports();
 }
 
 sub test_flags {
-
     # Do not rollback as next test module will be run on this test environments
-    return { milestone => 1, always_rollback => 0 };
+    return {milestone => 1, always_rollback => 0};
 }
 
 1;

@@ -19,10 +19,10 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    add_grub_cmdline_settings( 'ignore_loglevel', update_grub => 1 );
-    power_action( 'reboot', textmode => 1 );
+    add_grub_cmdline_settings('ignore_loglevel', update_grub => 1);
+    power_action('reboot', textmode => 1);
     reconnect_mgmt_console if is_pvm;
-    $self->wait_boot( textmode => 1 );
+    $self->wait_boot(textmode => 1);
 
     select_console 'root-console';
 
@@ -36,13 +36,13 @@ sub run {
 
     # Verify detection mode with remote
     my $ret = script_run(
-"oscap xccdf eval --profile $profile_ID --oval-results --fetch-remote-resources --report $f_report $f_ssg_ds > $f_stdout 2> $f_stderr",
+        "oscap xccdf eval --profile $profile_ID --oval-results --fetch-remote-resources --report $f_report $f_ssg_ds > $f_stdout 2> $f_stderr",
         timeout => 3000
     );
-    record_info( "Return=$ret",
-"# oscap xccdf eval --fetch-remote-resources --profile $profile_ID\" returns: $ret"
+    record_info("Return=$ret",
+        "# oscap xccdf eval --fetch-remote-resources --profile $profile_ID\" returns: $ret"
     );
-    if ( $ret == 137 ) {
+    if ($ret == 137) {
         record_info('bsc#1194724');
         $self->result('fail');
     }
@@ -52,7 +52,7 @@ sub run {
 }
 
 sub test_flags {
-    return { always_rollback => 1 };
+    return {always_rollback => 1};
 }
 
 1;

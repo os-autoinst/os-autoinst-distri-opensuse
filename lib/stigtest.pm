@@ -36,11 +36,11 @@ our $f_fregex = '\\bfail\\b';
 
 # Set default value for 'scap-security-guide' ds file
 our $f_ssg_sle_ds = '/usr/share/xml/scap/ssg/content/ssg-sle12-ds.xml';
-our $f_ssg_tw_ds  = '/usr/share/xml/scap/ssg/content/ssg-opensuse-ds.xml';
+our $f_ssg_tw_ds = '/usr/share/xml/scap/ssg/content/ssg-opensuse-ds.xml';
 
 # Profile ID
 our $profile_ID_sle = 'xccdf_org.ssgproject.content_profile_stig';
-our $profile_ID_tw  = 'xccdf_org.ssgproject.content_profile_standard';
+our $profile_ID_tw = 'xccdf_org.ssgproject.content_profile_standard';
 
 # The OS status of remediation: '0', not remediatd; '1', remediated
 our $remediated = 0;
@@ -67,13 +67,13 @@ sub upload_logs_reports {
     else {
         $files = script_output('ls | grep "^ssg-opensuse.*.xml"');
     }
-    foreach my $file ( split( "\n", $files ) ) {
+    foreach my $file (split("\n", $files)) {
         upload_logs("$file");
     }
     upload_logs("$f_stdout") if script_run "! [[ -e $f_stdout ]]";
     upload_logs("$f_stderr") if script_run "! [[ -e $f_stderr ]]";
-    if ( get_var('UPLOAD_REPORT_HTML') ) {
-        upload_logs( "$f_report", timeout => 600 )
+    if (get_var('UPLOAD_REPORT_HTML')) {
+        upload_logs("$f_report", timeout => 600)
           if script_run "! [[ -e $f_report ]]";
     }
 }
@@ -81,17 +81,17 @@ sub upload_logs_reports {
 sub pattern_count_in_file {
 
     #Find count and rules names of matched pattern
-    my $self    = $_[0];
-    my $data    = $_[1];
+    my $self = $_[0];
+    my $data = $_[1];
     my $pattern = $_[2];
     my @rules;
     my $count = 0;
 
     my @lines = split /\n|\r/, $data;
-    for my $i ( 0 .. $#lines ) {
-        if ( $lines[$i] =~ /$pattern/ ) {
+    for my $i (0 .. $#lines) {
+        if ($lines[$i] =~ /$pattern/) {
             $count++;
-            push( @rules, $lines[ $i - 4 ] );
+            push(@rules, $lines[$i - 4]);
         }
     }
 
