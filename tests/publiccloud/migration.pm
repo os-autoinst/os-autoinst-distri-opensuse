@@ -35,11 +35,7 @@ sub run {
 
     if (script_run(q(SUSEConnect --status-text | grep -i 'Successfully registered system'))) {
         my $version_id=substr($version,0,index($version,'-'));
-        $instance->run_ssh_command(cmd => "cat /etc/os-release; sudo zypper ref; sudo SUSEConnect -p sle-module-public-cloud/$version_id/$arch; sudo SUSEConnect -s; sudo zypper -n up", timeout => 300);
-	#assert_script_run('sudo zypper ref', timeout => 180);
-	#script_run("sudo SUSEConnect -p sle-module-public-cloud/$version_id/$arch");
-	#script_run("sudo SUSEConnect -s");
-	#assert_script_run('sudo zypper -n up', timeout => 200);
+        $instance->run_ssh_command(cmd => "sudo zypper ref; sudo SUSEConnect -p sle-module-public-cloud/$version_id/$arch; sudo zypper -n up", timeout => 300);
     }
 
     record_info('INFO', $target_version);
