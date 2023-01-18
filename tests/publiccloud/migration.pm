@@ -30,13 +30,14 @@ sub run {
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance();
     $instance->wait_for_guestregister();
-    $instance->ssh_assert_script_run(cmd => "sudo registercloudguest --clean");
     registercloudguest($instance) if is_byos();
 
     #install sle-module-public-cloud after successfuly register cloud
     if(script_run(q(SUSEConnect --status-text | grep -i 'Successfully registered system'))){
        my $version_id = substr($version,0,index($version,'-'));
-       $instance->run_ssh_command(cmd => "sudo zypper ref sudo SUSEConnect -p sle-module-public-cloud/$version_id/$arch sudo zypper -n up", timeout => 300);
+       $instance->run_ssh_command(cmd => "sudo zypper ref", timeout => 300);
+       $instance->run_ssh_command(cmd => "sudo SUSEConnect -p sle-module-public-cloud/$version_id/$arch", timeout => 300);
+       $instance->run_ssh_command(cmd => "sudo zypper -n up", timeout => 300);
     }
 
     record_info('INFO', $target_version);
