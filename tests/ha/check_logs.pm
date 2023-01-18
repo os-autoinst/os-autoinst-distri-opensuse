@@ -29,13 +29,15 @@ sub run {
     ha_export_logs;
 
     # Looking for segfault during the test
-    if (script_run '(( $(grep -sR segfault /var/log | wc -l) == 0 ))') {
-        if (script_run '(( $(grep -E -sR iscsiadm.+segfault /var/log | wc -l) == 0 ))') {
-            record_soft_failure "bsc#1181052 - segfault on iscsiadm";
-        }
-        else {
-            die "segfault detected in the system! Aborting";
-        }
+    if (script_run '(( $(grep -E -sR iscsiadm.+segfault /var/log | wc -l) == 0 ))') {
+        record_soft_failure "bsc#1181052 - segfault on iscsiadm";
+    } else {
+        validate_script_output(
+            'grep -sR --before-context=5 --after-context=15 segfault /var/log || echo "There is no SEGFAULT in the logs."',
+            # there must be _no_ segfault
+            sub { /segfault/ ? 0 : 1 },
+            title => 'segfault?'
+        );
     }
 }
 
