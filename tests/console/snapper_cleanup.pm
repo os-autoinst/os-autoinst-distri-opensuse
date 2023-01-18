@@ -24,7 +24,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'clear_console';
 use List::Util qw(max min);
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_tumbleweed);
 
 my $exp_excl_space;
 my $btrfs_fs_usage = 'btrfs filesystem usage / --raw';
@@ -136,7 +136,10 @@ sub run {
     # tidy up and restore default settings
     assert_script_run("snapper set-config NUMBER_LIMIT=0; snapper cleanup number; rm -fv data", 300);
     assert_script_run("snapper set-config NUMBER_LIMIT=$number_limit_pre NUMBER_MIN_AGE=$number_min_age_pre");
-    assert_script_run("snapper get-config; snapper ls");    # final report
+    assert_script_run("snapper get-config");    # final report
+        # command 'snapper ls' runs timeout or it stucks because of display used space, so we have to disable it on tumbleweed, see poo#122557
+    my $command_args = (is_tumbleweed && check_var('MACHINE', '64bit')) ? '--disable-used-space' : undef;
+    assert_script_run("snapper ls $command_args", 30);
     assert_script_run("$btrfs_fs_usage", 120);    # final report
 }
 
