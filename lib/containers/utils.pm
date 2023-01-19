@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2020-2021 SUSE LLC
+# Copyright 2020-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Basic functions for testing docker
@@ -79,6 +79,50 @@ sub registry_url {
     return sprintf("%s/%s:%s", $repo, $container_name, $version_tag);
 }
 
+sub test_update_cmd {
+    my %args = @_;
+    my $runtime = $args{runtime};
+    my $container = $args{container};
+
+    # podman update was added to v4.3.0
+    if ($runtime eq 'podman') {
+        my $version = script_output "podman version | awk '/^Version:/ { print \$2 }'";
+        if (package_version_cmp($version, '4.3.0') <= 0) {
+            record_info("The update command is not supported on podman $version");
+            return;
+        }
+    } elsif ($runtime ne 'docker') {
+        die "Unknown $runtime";
+    }
+
+    # The default values for these options are 0.
+    # Before adding more options check that they're supported by both podman & docker
+    my @opts = ('cpu-shares', 'memory-swap');
+
+    foreach my $opt (@opts) {
+        # Transform 'cpu-shares' into 'CpuShares'
+        (my $param = $opt) =~ s/^(.)(.*)-(.)(.*)/\u$1$2\u$3$4/;
+
+        my $old_value = script_output "$runtime container inspect -f '{{.HostConfig.$param}}' $container";
+        die "Default for $opt != 0" if ($old_value != 0);
+
+        # 10 is the minimum value for blkio-weight
+        my $try_value = ($opt eq 'memory-swap') ? -1 : 10;
+
+        assert_script_run "$runtime update --$opt $try_value $container";
+
+        my $new_value = script_output "$runtime container inspect -f '{{.HostConfig.$param}}' $container";
+
+        if ($try_value != $new_value) {
+            if ($runtime eq 'podman') {
+                record_soft_failure "bsc#1207401, podman update doesn't work";
+            } else {
+                die "$runtime update failed for $opt: $try_value != $new_value";
+            }
+        }
+    }
+}
+
 # This is simple and universal
 sub runtime_smoke_tests {
     my %args = @_;
@@ -109,6 +153,9 @@ sub runtime_smoke_tests {
 
         # Exec command in running container
         assert_script_run("$runtime exec sleeper echo 'Hello'");
+
+        # Test update command
+        test_update_cmd(runtime => $runtime, container => 'sleeper');
 
         # Stop the container
         assert_script_run("$runtime stop sleeper");
