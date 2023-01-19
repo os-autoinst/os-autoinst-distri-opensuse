@@ -21,6 +21,8 @@ use utils;
 use publiccloud::utils;
 
 our $target_version = get_required_var('TARGET_VERSION');
+our $version        = get_required_var('VERSION');
+our $arch           = get_required_var('ARCH');
 
 sub run {
     my ($self, $args) = @_;
@@ -29,6 +31,14 @@ sub run {
     my $instance = $provider->create_instance();
     $instance->wait_for_guestregister();
     registercloudguest($instance) if is_byos();
+
+    if ( script_run(q(SUSEConnect --status-text | grep -i 'Successfully registered system')) ) {
+        record_info('installs sle-modlue-public-cloud , zypper refresh and update ');
+        my $version_id = substr( $version, 0, index( $version, '-' ) );
+        $instance->run_ssh_command( cmd => 'sudo zypper ref',                                                 timeout => 300 );
+	$instance->run_ssh_command( cmd => 'sudo SUSEConnect -p sle-module-public-cloud/'. $version_id . '/' . $arch, timeout => 300 );
+        $instance->run_ssh_command( cmd => 'sudo zypper -n up',                                               timeout => 300 );
+    }
 
     record_info('INFO', $target_version);
 
