@@ -13,7 +13,6 @@ use Mojo::JSON 'decode_json';
 use testapi;
 use publiccloud::openstack_client;
 
-has ssh_key => undef;
 has ssh_key_name => undef;
 has public_ip => undef;
 has instance_id => undef;
@@ -39,7 +38,7 @@ sub find_img {
 
 sub create_keypair {
     my ($self, $prefix) = @_;
-    return $self->ssh_key if ($self->ssh_key);
+    return $self->ssh_key if ($self->ssh_key and $self->ssh_key_name);
 
     for my $i (0 .. 9) {
         my $key_name = $prefix . "_" . $i;

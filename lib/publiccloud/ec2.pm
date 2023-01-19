@@ -47,7 +47,7 @@ sub get_default_instance_type {
 sub create_keypair {
     my ($self, $prefix, $out_file) = @_;
 
-    return $self->ssh_key if ($self->ssh_key);
+    return $self->ssh_key_file if ($self->ssh_key_file);
 
     for my $i (0 .. 9) {
         my $key_name = $prefix . "_" . $i;
