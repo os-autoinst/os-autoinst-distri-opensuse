@@ -55,6 +55,7 @@ sub post_fail_hook {
     return if (is_public_cloud() || is_openstack());
     select_console('log-console');
     remount_tmp_if_ro;
+    show_tasks_in_blocked_state;
     export_logs_basic;
     # Export extra log after failure for further check gdm issue 1127317, also poo#45236 used for tracking action on Openqa
     export_logs_desktop;

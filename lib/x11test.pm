@@ -19,11 +19,22 @@ use version_utils qw(is_sle is_leap is_tumbleweed);
 use x11utils qw(select_user_gnome start_root_shell_in_xterm handle_gnome_activities);
 use POSIX 'strftime';
 use mm_network;
+use Utils::Logging qw(export_healthcheck_basic select_log_console export_logs_basic export_logs_desktop);
 
 sub post_run_hook {
     my ($self) = @_;
 
     assert_screen('generic-desktop') unless match_has_tag('generic-desktop');
+}
+
+sub post_fail_hook {
+    return if (get_var('NOLOGS'));
+    select_log_console;
+    export_healthcheck_basic;
+    show_tasks_in_blocked_state;
+    export_logs_basic;
+    # Export extra log after failure for further check gdm issue 1127317, also poo#45236 used for tracking action on Openqa
+    export_logs_desktop;
 }
 
 sub dm_login {
