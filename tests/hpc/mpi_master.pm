@@ -36,7 +36,8 @@ sub run ($self) {
     my $prompt = $user_virtio_fixed ? $testapi::username . '@' . get_required_var('HOSTNAME') . ':~> ' : undef;
 
     script_run("sudo -u $testapi::username mkdir -p $exports_path{bin}");
-    zypper_call("in $mpi-gnu-hpc $mpi-gnu-hpc-devel python3-devel");
+    zypper_call("in $mpi-gnu-hpc $mpi-gnu-hpc-devel python3-devel imb-gnu-$mpi-hpc");
+
     my $need_restart = $self->setup_scientific_module();
     $self->relogin_root if $need_restart;
     $self->setup_nfs_server(\%exports_path);
@@ -118,6 +119,10 @@ sub run ($self) {
     }
     barrier_wait('MPI_RUN_TEST');
     record_info 'MPI_RUN_TEST', strftime("\%H:\%M:\%S", localtime);
+
+    record_info 'testing IMB', 'Run all IMB-MPI1 components';
+    my $imb_version = script_output("rpm -q --queryformat '%{VERSION}' imb-gnu-$mpi-hpc");
+    assert_script_run("mpirun -np 4 /usr/lib/hpc/gnu7/$mpi/imb/$imb_version/bin/IMB-MPI1", timeout => 320);
 }
 
 sub test_flags ($self) {
