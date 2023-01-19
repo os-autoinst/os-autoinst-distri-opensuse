@@ -35,10 +35,8 @@ sub run {
     # audit2allow is empty (no denials) on ALP, so create a fake denial for testing purposes for the later commmands
     if (is_alp) {
         script_run("echo 'type=AVC msg=audit(1670248641.102:242): avc:  denied  { read } for  pid=2160 comm=\"useradd\" name=\"run\" dev=\"dm-0\" ino=19939 scontext=unconfined_u:unconfined_r:useradd_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:unlabeled_t:s0 tclass=lnk_file permissive=1' >> $audit_log");
-        validate_script_output("audit2allow -a", sub { m/^\s*$/sx });
-    } else {
-        validate_script_output("audit2allow -a", sub { m/allow\ .*_t\ .*;.*/sx });
     }
+    validate_script_output("audit2allow -a", sub { m/allow\ .*_t\ .*;.*/sx });
     validate_script_output("audit2allow -i $audit_log", sub { m/allow\ .*_t\ .*;.*/sx });
     assert_script_run("tail -n 500 $audit_log > $audit_log_short");
     validate_script_output(
