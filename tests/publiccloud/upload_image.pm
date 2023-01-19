@@ -16,11 +16,12 @@ use publiccloud::ec2;
 use publiccloud::azure;
 use publiccloud::gce;
 use publiccloud::openstack;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = @_;
     # Better use the root-console here so that the download progress can be monitored in openQA
-    select_console("root-console");
+    select_serial_terminal();
 
     my $provider = $self->provider_factory();
 
