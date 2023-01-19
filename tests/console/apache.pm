@@ -135,7 +135,7 @@ sub run {
 
             # Run and test this new environment
             assert_script_run 'httpd2-prefork -f /tmp/prefork/httpd.conf';
-            assert_script_run 'until ps aux|grep wwwrun; do echo waiting for httpd2-prefork pid; done';
+            assert_script_run 'until ps aux|grep wwwrun|grep -E httpd\(2\)?-prefork; do echo waiting for httpd2-prefork pid; done';
             assert_script_run 'ps aux | grep "\-f /tmp/prefork/httpd.conf" | grep httpd2-prefork';
 
             # Run and test the old environment too
