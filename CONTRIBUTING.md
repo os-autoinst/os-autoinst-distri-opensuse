@@ -19,11 +19,26 @@ Redmine project. Look for tickets with [easy] or [easy-hack] tags.
 
 ## How to get this repository working
 
-Upon setting up a new openQA instance, it's also necessary to install some aditional dependencies that are inherent to this repository,
-for which there are two ways:
+Upon setting up a new openQA instance, it's also necessary to install some
+aditional dependencies that are inherent to this repository.
 
-* In case you're using cpanm (with or without local::lib, or others), from within the working copy: call `cpanm -n --mirror http://no.where/ --installdeps . `
-* In case you're using openSUSE: `zypper in os-autoinst-distri-opensuse-deps perl-JSON-Validator gnu_parallel`
+* On openSUSE to install an openQA worker and all dependencies do:
+
+```
+zypper in os-autoinst-distri-opensuse-deps-worker perl-JSON-Validator gnu_parallel
+```
+
+* If you just want to just install the dependencies without the openQA worker:
+
+
+```
+zypper in os-autoinst-distri-opensuse-deps perl-JSON-Validator gnu_parallel
+```
+
+* Otherwise most of the dependencies are available using cpanm (with or without
+local::lib, or others), from within the working copy: call
+`cpanm -n --mirror http://no.where/ --installdeps .`
+
 * For linting YAML, you need the openSUSE package `python3-yamllint` or install `yamllint` via pip
 
 #### Relevant documentation
