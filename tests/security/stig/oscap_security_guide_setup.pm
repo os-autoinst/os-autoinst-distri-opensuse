@@ -29,7 +29,11 @@ sub run {
     # Check the ds file information for reference
     my $f_ssg_ds = is_sle ? $stigtest::f_ssg_sle_ds : $stigtest::f_ssg_tw_ds;
     $out = script_output("oscap info $f_ssg_ds");
-    record_info("Info", "\"# oscap info $f_ssg_ds\" returns: $out");
+    record_info("oscap info", "\"# oscap info $f_ssg_ds\" returns:\n $out");
+
+    # Check the oscap version information for reference
+    $out = script_output("oscap -V");
+    record_info("oscap version", "\"# oscap -V\" returns:\n $out");
 }
 
 sub test_flags {
