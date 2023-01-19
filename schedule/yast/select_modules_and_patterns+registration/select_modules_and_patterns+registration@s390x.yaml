@@ -15,6 +15,7 @@ vars:
   ADDONS: all-packages
   YUI_REST_API: 1
 schedule:
+  product_selection: []
   registration:
     - installation/registration/skip_registration
   extension_module_selection:

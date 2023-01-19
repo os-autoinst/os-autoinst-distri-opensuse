@@ -1,6 +1,6 @@
 ---
-name:           textmode_installation_minimal_role
-description:    >
+name: textmode_installation_minimal_role
+description: >
   Full Medium installation that covers the following cases:
     1. Installation in textmode;
     2. "Minimal" role is selected;
@@ -12,6 +12,7 @@ vars:
   DESKTOP: textmode
   YUI_REST_API: 1
 schedule:
+  product_selection: []
   system_role:
     - installation/system_role/select_role_minimal
   stop_timeout_system_reboot: []
