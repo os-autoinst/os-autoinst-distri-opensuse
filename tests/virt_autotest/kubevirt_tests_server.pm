@@ -159,7 +159,7 @@ true');
 
     # Wait for rke2-agent service to be ready
     my $children = get_children();
-    mutex_wait('RKE2_AGENT_START_READY', (keys %$children)[0]);
+    mutex_wait('rke2_agent_start_ready', (keys %$children)[0]);
 
     assert_script_run("scp /etc/rancher/rke2/registries.yaml root\@$agent_ip:/etc/rancher/rke2/registries.yaml");
 
@@ -170,7 +170,7 @@ true');
     # Restart rke2-server service complete
     barrier_wait('rke2_server_restart_complete');
 
-    mutex_wait('RKE2_AGENT_RESTART_COMPLETE', (keys %$children)[0]);
+    mutex_wait('rke2_agent_restart_complete', (keys %$children)[0]);
 
     script_retry('! kubectl get nodes | grep NotReady', retry => 8, delay => 20, timeout => 180);
     assert_script_run('kubectl get nodes');
@@ -288,7 +288,10 @@ sub run_virt_tests {
     # Ensure Config::Tiny module installed
     assert_script_run('cpan install Config::Tiny <<<yes', timeout => 300) if (script_run('cpan -l <<<yes | grep Config::Tiny') == 1);
 
-    transactional::exit_trup_shell_and_reboot() if (is_transactional);
+    if (is_transactional) {
+        transactional::exit_trup_shell_and_reboot();
+        assert_script_run('mkdir -p /root/tmp && mount -o bind /root/tmp /mnt');
+    }
 
     my $result_dir = '/tmp/artifacts';
     record_info('Create artifacts path', $result_dir);

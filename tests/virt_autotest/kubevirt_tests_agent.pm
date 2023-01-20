@@ -90,7 +90,7 @@ sub rke2_agent_setup {
     $self->check_service_status();
 
     # Start rke2-agent service ready
-    mutex_create('RKE2_AGENT_START_READY');
+    mutex_create('rke2_agent_start_ready');
 
     assert_script_run("mkdir -p ~/.kube; scp root\@$server_ip:/etc/rancher/rke2/rke2.yaml ~/.kube/config");
     assert_script_run("sed -i 's/127.0.0.1/$server_ip/' ~/.kube/config");
@@ -106,8 +106,11 @@ sub rke2_agent_setup {
     $self->check_service_status();
     assert_script_run("grep static /var/lib/kubelet/cpu_manager_state");
 
+    # Workaround for failure 'MountVolume.SetUp failed for volume "local-storage" : mkdir /mnt/local-storage: read-only file system'
+    assert_script_run('mkdir -p /root/tmp && mount -o bind /root/tmp /mnt') if (is_transactional);
+
     # Restart rke2-agent service ready
-    mutex_create('RKE2_AGENT_RESTART_COMPLETE');
+    mutex_create('rke2_agent_restart_complete');
 
     script_retry('! kubectl get nodes | grep NotReady', retry => 8, delay => 20, timeout => 180);
     assert_script_run('kubectl get nodes');
