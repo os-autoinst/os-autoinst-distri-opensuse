@@ -835,9 +835,11 @@ END_OF_CONTENT_$rand
 
 sub run_test_shell_script
 {
-    my ($self, $title, $script_cmd) = @_;
+    my ($self, $title, $script_cmd, %args) = @_;
+    $args{timeout} //= 300;
+
     $self->check_logs(sub {
-            my $output = script_output($script_cmd . '; echo "==COLLECT_EXIT_CODE==$?=="', proceed_on_failure => 1, timeout => 300);
+            my $output = script_output($script_cmd . '; echo "==COLLECT_EXIT_CODE==$?=="', proceed_on_failure => 1, timeout => $args{timeout});
             my $result = $output =~ m/==COLLECT_EXIT_CODE==0==/ ? 'ok' : 'fail';
             $self->record_console_test_result($title, $output, result => $result);
     });

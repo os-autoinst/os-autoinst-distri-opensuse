@@ -10,6 +10,7 @@
 use Mojo::Base 'wickedbase';
 use testapi;
 use Utils::Systemd;
+use Utils::Architectures;
 use version_utils 'is_sle';
 
 has wicked_version => '>=0.6.70';
@@ -17,6 +18,7 @@ has wicked_version => '>=0.6.70';
 sub run {
     my ($self, $ctx) = @_;
     my $ifc = $ctx->iface();
+    my %args;
 
     return if ($self->skip_by_wicked_version());
 
@@ -29,7 +31,9 @@ sub run {
     systemctl('enable --now firewalld');
 
     $self->get_from_data('wicked/test-ext-firewall.sh', '/tmp/test-ext-firewall.sh', executable => 1);
-    $self->run_test_shell_script("ext-firewall $ifc", "time /tmp/test-ext-firewall.sh '$ifc'");
+
+    $args{timeout} = 600 if is_aarch64;
+    $self->run_test_shell_script("ext-firewall $ifc", "time /tmp/test-ext-firewall.sh '$ifc'", %args);
 
     $self->skip_check_logs_on_post_run();
 }
