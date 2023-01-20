@@ -49,7 +49,9 @@ sub press_delete {
 sub select_device {
     my ($self, $device) = @_;
     assert_and_click(NAME_COLUMN);
-    send_key 'home';
+    for my $shot (1 .. 3) {
+        send_key 'home';
+    }
     my $device_needle;
     if ($device eq 'bridge') {
         $device_needle = BRIDGE_DEVICE_IN_LIST;
