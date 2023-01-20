@@ -21,6 +21,7 @@ use utils;
 use publiccloud::utils;
 
 our $target_version = get_required_var('TARGET_VERSION');
+our $not_clean_vm = get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE');
 
 sub run {
     my ($self, $args) = @_;
@@ -43,6 +44,15 @@ sub run {
     $instance->upload_log("/system-root/var/log/distro_migration.log", failok => 1);
 
     $instance->ssh_script_run(cmd => "sudo zypper -n in SLES15-Migration suse-migration-sle15-activation", timeout => 300);
+
+    # Include debug mode
+    if ($not_clean_vm) {
+        $instance->ssh_script_run(cmd => 'sudo touch /etc/sle-migration-service.yml');
+        $instance->ssh_script_run(cmd => 'echo \"verbose_migration: true\" | sudo tee -a /etc/sle-migration-service.yml');
+        $instance->ssh_script_run(cmd => 'echo \"debug: true\" | sudo tee -a /etc/sle-migration-service.yml');
+        $instance->ssh_script_run(cmd => 'sudo cat /etc/sle-migration-service.yml');
+        record_info('INFO', 'created sle-migration-service.yml configuration');
+    }
 
     record_info('system reboots');
     my ($shutdown_time, $startup_time) = $instance->softreboot(
