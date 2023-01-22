@@ -14,10 +14,16 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use version_utils qw(is_leap);
 
 sub run {
     my ($self) = @_;
-    select_console 'x11';
+    # workaround for boo#1205518
+    if (is_leap("=15.4") && check_var('DESKTOP', 'gnome')) {
+        select_console "root-console";
+        assert_script_run('systemctl mask getty@tty2', timeout => 300);
+    }
+    select_console('x11', await_console => 0);
     $self->test_terminal('xterm');
 }
 
