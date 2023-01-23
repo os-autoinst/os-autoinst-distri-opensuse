@@ -75,7 +75,7 @@ sub get_product_shortcuts {
         #                x86_64
         # Full              i
         # Full (15-SP4)     s
-        return (sles => 'u') if (get_var('ISO') =~ /Full/ && is_ppc64le() && get_var('NTLM_AUTH_INSTALL'));
+        return (sles => 's') if (get_var('ISO') =~ /Full/ && is_ppc64le() && get_var('NTLM_AUTH_INSTALL'));
         return (
             sles => (is_ppc64le() || is_s390x()) ? 'u'
             : is_aarch64() ? 's'
