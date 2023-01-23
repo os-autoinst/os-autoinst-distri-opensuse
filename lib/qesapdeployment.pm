@@ -44,6 +44,7 @@ my @log_files = ();
 # stdiag<PREFID><JOB_ID> can only consist of lowercase letters and numbers,
 # and must be between 3 and 24 characters long
 use constant QESAPDEPLOY_PREFIX => 'qesapdep';
+use constant QESAPDEPLOY_VENV => '/tmp/exec_venv';
 
 our @EXPORT = qw(
   qesap_create_folder_tree
@@ -150,11 +151,12 @@ sub qesap_create_ansible_section {
 
 =head3 qesap_pip_install
 
-  Install all Python requirements of the qe-sap-deployment
+  Install all Python requirements of the qe-sap-deployment in a dedicated virtual environment
 =cut
 
 sub qesap_pip_install {
     zypper_call('in python39');
+    assert_script_run("python3.9 -m venv " . QESAPDEPLOY_VENV . " && source " . QESAPDEPLOY_VENV . "/bin/activate");
     enter_cmd 'pip3.9 config --site set global.progress_bar off';
     my $pip_ints_cmd = 'pip3.9 install --no-color --no-cache-dir ';
     my $pip_install_log = '/tmp/pip_install.txt';
@@ -163,6 +165,7 @@ sub qesap_pip_install {
     push(@log_files, $pip_install_log);
     record_info("QESAP repo", "Installing pip requirements");
     assert_script_run(join(' ', $pip_ints_cmd, '-r', $paths{deployment_dir} . '/requirements.txt | tee -a', $pip_install_log), 360);
+    script_run("deactivate");
 }
 
 =head3 qesap_upload_logs
@@ -276,6 +279,8 @@ sub qesap_execute {
     $exec_log .= "_$args{cmd_options}" if ($args{cmd_options});
     $exec_log .= '.log.txt';
     $exec_log =~ s/[-\s]+/_/g;
+    # activate virtual environment
+    script_run("source " . QESAPDEPLOY_VENV . "/bin/activate");
 
     my $qesap_cmd = join(' ', 'python3.9', $paths{deployment_dir} . '/scripts/qesap/qesap.py',
         $verbose,
@@ -291,6 +296,8 @@ sub qesap_execute {
     record_info('QESAP exec', "Executing: \n$qesap_cmd");
     my $exec_rc = script_run($qesap_cmd, timeout => $args{timeout});
     qesap_upload_logs();
+    # deactivate virtual environment
+    script_run("deactivate");
     return $exec_rc;
 }
 
