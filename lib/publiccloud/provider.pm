@@ -250,6 +250,31 @@ sub get_image_id {
     return $image_id;
 }
 
+=head2 get_image_uri
+
+Retrieves the CSP image uri if exists, otherwise exception is thrown.
+This is currently used specifically in Azure so the subroutine will die afterwards.
+=cut
+
+sub get_image_uri {
+    my ($self) = @_;
+    die 'The PUBLIC_CLOUD_IMAGE_URI variable makes sense only for Azure' unless is_azure;
+    my $image_uri = get_var("PUBLIC_CLOUD_IMAGE_URI");
+    if ($image_uri =~ /^auto$/mi) {
+        my $definition = get_required_var('DISTRI') . '-' . get_required_var('FLAVOR') . '-' . get_required_var('VERSION');
+        my $version = $self->calc_img_version();    # PUBLIC_CLOUD_BUILD PUBLIC_CLOUD_BUILD_KIWI
+        my $subscriptions = $self->provider_client->subscription;
+        my $resource_group = $self->resource_group;
+        my $image_gallery = $self->image_gallery;
+        $image_uri = "/subscriptions/$subscriptions/resourceGroups/$resource_group/providers/";
+        $image_uri .= "Microsoft.Compute/galleries/$image_gallery/images/$definition/versions/$version";
+        record_info 'IMAGE_URI', "Calculated IMAGE_URI=$image_uri";
+    } else {
+        record_info 'IMAGE_URI', "Provided IMAGE_URI=$image_uri";
+    }
+    return $image_uri;
+}
+
 =head2 create_instance
 
 Creates an instance on the public cloud provider. Retrieves a publiccloud::instance
@@ -368,7 +393,7 @@ sub terraform_apply {
     $args{count} //= '1';
     my $instance_type = get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
     my $image = $self->get_image_id();
-    my $image_uri = get_var("PUBLIC_CLOUD_IMAGE_URI");
+    my $image_uri = $self->get_image_uri();
     my $cloud_name = $self->conv_openqa_tf_name;
 
     record_info('WARNING', 'Terraform apply has been run previously.') if ($self->terraform_applied);
@@ -532,7 +557,7 @@ sub terraform_destroy {
         # Add image_id, offer and sku on Azure runs, if defined.
         if (is_azure) {
             my $image = $self->get_image_id();
-            my $image_uri = get_var('PUBLIC_CLOUD_IMAGE_URI');
+            my $image_uri = $self->get_image_uri();
             my $offer = get_var('PUBLIC_CLOUD_AZURE_OFFER');
             my $sku = get_var('PUBLIC_CLOUD_AZURE_SKU');
             my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT');
