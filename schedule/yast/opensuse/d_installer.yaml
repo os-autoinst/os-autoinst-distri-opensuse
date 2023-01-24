@@ -1,0 +1,7 @@
+---
+name:           d-installer
+description:    >
+  First D-Installer test
+schedule:
+  - installation/bootloader_start
+  - installation/d_installer_test
