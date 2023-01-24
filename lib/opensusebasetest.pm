@@ -122,6 +122,7 @@ sub investigate_yast2_failure {
         "<3>.*XML.*Argument.*to Read.*is nil" => 'bsc#1170432',
         "<3>.*no[t]? mount" => 'bsc#1092088',    # Detect not mounted partition
         "<3>.*lib/cheetah.rb" => 'bsc#1153749',
+        "<3>.*Invalid path .value." => 'bsc#1180208',
         # The error below will be cleaned up, see https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup
         # Adding reference to trello, detect those in single scenario
         # (build97.1) regressions
