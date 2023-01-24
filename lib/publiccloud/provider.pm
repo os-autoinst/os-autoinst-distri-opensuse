@@ -258,8 +258,8 @@ This is currently used specifically in Azure so the subroutine will die afterwar
 
 sub get_image_uri {
     my ($self) = @_;
-    die 'The PUBLIC_CLOUD_IMAGE_URI variable makes sense only for Azure' unless is_azure;
     my $image_uri = get_var("PUBLIC_CLOUD_IMAGE_URI");
+    die 'The PUBLIC_CLOUD_IMAGE_URI variable makes sense only for Azure' if ($image_uri && !is_azure);
     if ($image_uri =~ /^auto$/mi) {
         my $definition = get_required_var('DISTRI') . '-' . get_required_var('FLAVOR') . '-' . get_required_var('VERSION');
         my $version = $self->calc_img_version();    # PUBLIC_CLOUD_BUILD PUBLIC_CLOUD_BUILD_KIWI
