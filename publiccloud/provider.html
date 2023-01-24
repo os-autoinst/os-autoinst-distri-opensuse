@@ -22,6 +22,7 @@
       <li><a href="#create_ssh_key">create_ssh_key</a></li>
       <li><a href="#run_img_proof">run_img_proof</a></li>
       <li><a href="#get_image_id">get_image_id</a></li>
+      <li><a href="#get_image_uri">get_image_uri</a></li>
       <li><a href="#create_instance">create_instance</a></li>
       <li><a href="#create_instances">create_instances</a></li>
       <li><a href="#on_terraform_apply_timeout">on_terraform_apply_timeout</a></li>
@@ -77,6 +78,10 @@
 <pre><code>get_image_id([$img_url]);</code></pre>
 
 <p>Retrieves the CSP image id if exists, otherwise exception is thrown. The given <code>$img_url</code> is optional, if not present it retrieves from PUBLIC_CLOUD_IMAGE_LOCATION. If PUBLIC_CLOUD_IMAGE_ID is set, then this value will be used</p>
+
+<h2 id="get_image_uri">get_image_uri</h2>
+
+<p>Retrieves the CSP image uri if exists, otherwise exception is thrown. This is currently used specifically in Azure so the subroutine will die afterwards.</p>
 
 <h2 id="create_instance">create_instance</h2>
 
