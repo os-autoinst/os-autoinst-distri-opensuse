@@ -39,6 +39,10 @@
 
 <p>Wrapper for add_serial_console.</p>
 
+<p>Configure serial consoles for virtio support (root-virtio-terminal and user-virtio-terminal).</p>
+
+<p>NOTE: if test plans to use more consoles via VIRTIO_CONSOLE_NUM, it have to call add_serial_console() with proper console name (beware different number for ppc64le).</p>
+
 <h2 id="get_login_message">get_login_message</h2>
 
 <pre><code>get_login_message();</code></pre>
@@ -73,7 +77,7 @@
 
 <h2 id="select_serial_terminal">select_serial_terminal</h2>
 
-<pre><code>select_serial_terminal($root);</code></pre>
+<pre><code>select_serial_terminal($root[, $prompt]);</code></pre>
 
 <p>Select most suitable text console. The optional parameter <code>root</code> controls whether the console will have root privileges or not. Passing any value that evaluates to true will select a root console (default). Passing any value that evaluates to false will select unprivileged user console. The choice is made by BACKEND and other variables.</p>
 
@@ -89,7 +93,7 @@
 
 <h2 id="select_user_serial_terminal">select_user_serial_terminal</h2>
 
-<pre><code>select_user_serial_terminal();</code></pre>
+<pre><code>select_user_serial_terminal([$prompt]);</code></pre>
 
 <p>Select most suitable text console with non-root user. The choice is made by BACKEND and other variables.</p>
 
