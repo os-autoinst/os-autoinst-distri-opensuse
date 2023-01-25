@@ -31,6 +31,8 @@ sub run ($self) {
     record_info 'MPI_BINARIES_READY', strftime("\%H:\%M:\%S", localtime);
     barrier_wait('MPI_RUN_TEST');
     record_info 'MPI_RUN_TEST', strftime("\%H:\%M:\%S", localtime);
+    barrier_wait('IBM_TEST_DONE');
+    record_info 'IBM_TEST_DONE', strftime("\%H:\%M:\%S", localtime);
 }
 
 sub test_flags ($self) {
