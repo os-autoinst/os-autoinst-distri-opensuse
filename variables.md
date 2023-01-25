@@ -225,6 +225,8 @@ TRENTO_REGISTRY_CHART | string | registry.suse.com/trento/trento-server | Helm c
 TRENTO_REGISTRY_CHART_VERSION | string |  | Optional. Tag for the chart image
 TRENTO_REGISTRY_IMAGE_RUNNER | string |  | Optional. Overwrite the trento-runner image in the helm chart
 TRENTO_REGISTRY_IMAGE_RUNNER_VERSION | string |  | Optional. Version tag for the trento-runner image
+TRENTO_REGISTRY_IMAGE_WANDA | string |  | Optional. Overwrite the trento-wanda image in the helm chart
+TRENTO_REGISTRY_IMAGE_WANDA_VERSION | string |  | Optional. Version tag for the trento-wand image
 TRENTO_REGISTRY_IMAGE_WEB | string |  | Optional. Overwrite the trento-web image in the helm chart
 TRENTO_REGISTRY_IMAGE_WEB_VERSION | string |  | Optional. Version tag for the trento-web image
 TRENTO_GITLAB_REPO | string | gitlab.suse.de/qa-css/trento | Repository for the deployment scripts

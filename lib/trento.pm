@@ -339,7 +339,7 @@ sub trento_acr_azure {
     record_info($script_id);
     my $trento_registry_chart = get_var('TRENTO_REGISTRY_CHART', 'registry.suse.com/trento/trento-server');
     my $cfg_json = 'config_images_gen.json';
-    my @imgs = qw(WEB RUNNER);
+    my @imgs = qw(WEB RUNNER WANDA);
 
     # this setting combination require config_helper.py and trento_cluster_install.sh
     my $rolling_mode = (get_var("TRENTO_REGISTRY_IMAGE_$imgs[0]") || get_var("TRENTO_REGISTRY_IMAGE_$imgs[1]") || get_var('TRENTO_REGISTRY_CHART_VERSION'));
