@@ -101,6 +101,10 @@ our $thresholds_by_flavor = {
         analyze => $default_azure_analyze_thresholds,
         blame => $default_blame_thresholds,
     },
+    'Azure-BYOS-ARM' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame => $default_blame_thresholds,
+    },
     'AZURE-Basic-Updates' => {
         analyze => $default_azure_analyze_thresholds,
         blame => $default_blame_thresholds,
