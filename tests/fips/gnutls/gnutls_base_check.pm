@@ -37,7 +37,7 @@ sub run {
     if (!get_var("FIPS_ENV_MODE")) {
         validate_script_output 'gnutls-cli --fips140-mode 2>&1', sub {
             m/
-                library\sis\sin\sFIPS140-2\smode.*/sx
+                library\sis\sin\sFIPS140-[2-3]\smode.*/sx
         };
     }
 
