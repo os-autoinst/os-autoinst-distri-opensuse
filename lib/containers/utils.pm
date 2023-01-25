@@ -88,11 +88,12 @@ sub test_update_cmd {
     if ($runtime eq 'podman') {
         my $version = script_output "podman version | awk '/^Version:/ { print \$2 }'";
         if (package_version_cmp($version, '4.3.0') <= 0) {
-            record_info("The update command is not supported on podman $version");
+            record_info("SKIP", "The update command is not supported on podman $version");
             return;
         }
     } elsif ($runtime ne 'docker') {
-        die "Unknown $runtime";
+        record_info("SKIP", "The update command is not supported on $runtime");
+        return;
     }
 
     # The default values for these options are 0.
