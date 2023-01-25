@@ -8,10 +8,11 @@ use strict;
 use warnings;
 use Exporter 'import';
 use testapi;
+use utils;
 use version_utils;
 
 
-our @EXPORT = qw(apply_workaround_bsc1204176);
+our @EXPORT = qw(apply_workaround_bsc1204176 apply_workaround_bsc1207157);
 
 =head1 Workarounds for known issues
 
@@ -46,6 +47,28 @@ sub apply_workaround_bsc1204176 {
             send_key('alt-f10', wait_screen_change => 1);
         }
     }
+}
+
+=head2 apply_workaround_bsc1207157 ():
+
+Workaround for the iscsi return code issue.
+
+Records a soft failure with a reference to bsc#1207157
+
+Changes the iscsid service file to require and start after the iscsid socket.
+Then reloads systemd, in order to scan for the changed unit.
+
+=cut
+
+sub apply_workaround_bsc1207157 {
+    record_soft_failure('bsc#1207157 - openQA test fails in iscsi_client - launched then no response');
+    my $service_unit = '/usr/lib/systemd/system/iscsid.service';
+    # append the two lines at the end of the [Unit] section of the service file, as specified in bsc#1206132
+    my $cmd = q(awk -i inplace 'BEGIN {c=1}; /^$/ {if (c){print("Requires=iscsid.socket\nAfter=iscsid.socket")} c=0}; {print}' );
+    $cmd .= $service_unit;
+
+    assert_script_run($cmd);
+    systemctl('daemon-reload');
 }
 
 1;
