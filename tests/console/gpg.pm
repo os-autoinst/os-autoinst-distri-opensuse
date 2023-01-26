@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2022 SUSE LLC
+# Copyright 2017-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: gpg2 haveged
@@ -64,6 +64,8 @@ EOF
         if (get_var('FIPS_ENV_MODE')) {
             assert_script_run('gpgconf --kill gpg-agent');
         }
+        # force gpg to use text mode dialog for entering passphrase
+        assert_script_run("echo 'pinentry-program /usr/bin/pinentry-curses' > ~/.gnupg/gpg-agent.conf ; gpg-connect-agent reloadagent /bye");
 
         script_run("gpg2 -vv --batch --full-generate-key $egg_file &> /dev/$serialdev; echo gpg-finished-\$? >/dev/$serialdev", 0);
     }
@@ -147,9 +149,12 @@ EOF
     assert_script_run("test -e $tfile_asc");
     assert_script_run("gpg2 -u $email --verify --verbose $tfile_asc");
 
+    # cleanup
+    assert_script_run("rm -f ~/.gnupg/gpg-agent.conf ; gpg-connect-agent reloadagent /bye");
     # Restore
     assert_script_run("rm -rf $tfile.* $egg_file");
     assert_script_run("rm -rf .gnupg && gpg -K");    # Regenerate default ~/.gnupg
+
 }
 
 sub run {
@@ -184,7 +189,7 @@ sub run {
         }
     }
 
-    # GPG key generation and basic function testing with differnet key lengths
+    # GPG key generation and basic function testing with different key lengths
     # RSA keys may be between 1024 and 4096 only currently
     foreach my $len ('1024', '2048', '3072', '4096') {
         gpg_test($len, $gpg_version);
