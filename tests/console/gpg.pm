@@ -26,7 +26,7 @@ use testapi;
 use Utils::Backends;
 use Utils::Architectures;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_public_cloud);
 use utils qw(zypper_call package_upgrade_check);
 
 sub gpg_test {
@@ -175,7 +175,7 @@ sub run {
     zypper_call("in " . join(' ', keys %$pkg_list));
 
     if (is_sle('>=15-sp4')) {
-        package_upgrade_check($pkg_list);
+        package_upgrade_check($pkg_list) unless (is_public_cloud() && check_var('BETA', '1'));
     }
     else {
         foreach my $pkg_name (keys %$pkg_list) {
