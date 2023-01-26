@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2020 SUSE LLC
+# Copyright 2019-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Initialize testing environment for Libvirt Virtual Networks
@@ -69,8 +69,8 @@ sub run_test {
         upload_logs "/tmp/$guest.xml";
         #Used with attach-detach(hotplugging) interface to confirm all virtual network mode
         #NOTE: Required all guests keep running status
-        #Check that all guests are still running before virtual network tests
-        script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 180);
+        #Ensures the SSH connection and ICMP PING responses is workable for given guest system
+        validate_guest_status($guest);
         save_guest_ip($guest, name => "br123");
         virt_autotest::utils::ssh_copy_id($guest);
         check_guest_health($guest);
