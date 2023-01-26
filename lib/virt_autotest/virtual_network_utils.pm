@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2020 SUSE LLC
+# Copyright 2019-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: virtual_network_utils:
@@ -29,7 +29,8 @@ our @EXPORT
   = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_network
   restore_guests restore_network destroy_vir_network restore_libvirt_default enable_libvirt_log pload_debug_log
   check_guest_status check_guest_module check_guest_ip save_guest_ip test_network_interface hosts_backup
-  hosts_restore get_free_mem get_active_pool_and_available_space clean_all_virt_networks setup_vm_simple_dns_with_ip get_guest_ip_from_vnet_with_mac update_simple_dns_for_all_vm);
+  hosts_restore get_free_mem get_active_pool_and_available_space clean_all_virt_networks setup_vm_simple_dns_with_ip
+  get_guest_ip_from_vnet_with_mac update_simple_dns_for_all_vm validate_guest_status);
 
 sub check_guest_ip {
     my ($guest, %args) = @_;
@@ -387,6 +388,22 @@ sub update_simple_dns_for_all_vm {
     my $_cmd = "virsh list --all | grep -e sles -e opensuse -e alp -i | awk \'{print \$2}\'";
     my $_vms = script_output($_cmd, 30, type_command => 0, proceed_on_failure => 0);
     check_guest_ip("$_", net => $_vnet) foreach (split(/\n+/, $_vms));
+}
+
+sub validate_guest_status {
+    my ($guest, %args) = @_;
+    my $timeout = $args{timeout} // "180";
+    #Ensure the given guest as running status
+    if (script_run("virsh list --all | grep $guest | grep running") ne 0) {
+        assert_script_run "virsh list --all | grep $guest";
+        save_screenshot;
+        die "Error: $guest should keep running, please check manually!";
+    } else {
+        #Ensure the ICMP PING responses for the given guest
+        die "Error: Ping $guest failed, please check manually!" if (script_retry("ping -c5 $guest", delay => 30, retry => 6, timeout => $timeout) ne 0);
+        #Ensure the SSH connection for the given guest
+        die "Error: SSH $guest failed, please check manually!" if (script_retry("nc -zv $guest 22", delay => 30, retry => 6, timeout => $timeout) ne 0);
+    }
 }
 
 1;
