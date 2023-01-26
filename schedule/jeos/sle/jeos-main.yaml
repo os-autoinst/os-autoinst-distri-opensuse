@@ -40,7 +40,6 @@ schedule:
     - '{{wizard}}'
     # - jeos/image_info
     - jeos/record_machine_id
-    - console/system_prepare
     - console/force_scheduled_tasks
     - jeos/grub2_gfxmode
     - jeos/diskusage
