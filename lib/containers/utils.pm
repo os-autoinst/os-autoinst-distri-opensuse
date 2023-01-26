@@ -96,30 +96,23 @@ sub test_update_cmd {
         return;
     }
 
-    # The default values for these options are 0.
-    # Before adding more options check that they're supported by both podman & docker
-    my @opts = ('cpu-shares', 'memory-swap');
+    my $old_value = script_output "$runtime container inspect -f '{{.HostConfig.CpuShares}}' $container";
+    die "Default for cpu-shares != 0" if ($old_value != 0);
 
-    foreach my $opt (@opts) {
-        # Transform 'cpu-shares' into 'CpuShares'
-        (my $param = $opt) =~ s/^(.)(.*)-(.)(.*)/\u$1$2\u$3$4/;
+    my $try_value = 512;
 
-        my $old_value = script_output "$runtime container inspect -f '{{.HostConfig.$param}}' $container";
-        die "Default for $opt != 0" if ($old_value != 0);
+    assert_script_run "$runtime update --cpu-shares $try_value $container";
 
-        # 10 is the minimum value for blkio-weight
-        my $try_value = ($opt eq 'memory-swap') ? -1 : 10;
+    my $new_value = script_output "$runtime container inspect -f '{{.HostConfig.CpuShares}}' $container";
 
-        assert_script_run "$runtime update --$opt $try_value $container";
-
-        my $new_value = script_output "$runtime container inspect -f '{{.HostConfig.$param}}' $container";
-
-        if ($try_value != $new_value) {
-            if ($runtime eq 'podman') {
-                record_soft_failure "bsc#1207401, podman update doesn't work";
-            } else {
-                die "$runtime update failed for $opt: $try_value != $new_value";
-            }
+    if ($try_value != $new_value) {
+        if ($runtime eq 'podman') {
+            # NOTE: Remove block when https://github.com/containers/podman/issues/17187 is solved
+            my $id = script_output "podman container inspect -f '{{.Id}}' $container";
+            my $cpu_weight = "cat /sys/fs/cgroup/machine.slice/libpod-$id.scope/cpu.weight";
+            die "$runtime update failed for cpu-shares: $cpu_weight" if $cpu_weight == 100;
+        } else {
+            die "$runtime update failed for cpu-shares: $try_value != $new_value";
         }
     }
 }
