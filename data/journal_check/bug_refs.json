@@ -383,7 +383,7 @@
         "products": {
             "opensuse": ["Tumbleweed"],
             "microos":  ["Tumbleweed"],
-            "sle-micro": ["5.1", "5.2", "5.3"]
+            "sle-micro": ["5.1", "5.2", "5.3", "5.4"]
         },
         "type": "ignore"
     },
