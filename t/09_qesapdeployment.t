@@ -224,6 +224,8 @@ subtest '[qesap_execute] simple call' => sub {
     my $res = qesap_execute(cmd => $cmd);
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /.*qesap.py.*-c.*-b.*$cmd\s+.*tee.*$expected_log_name/ } @calls), 'qesap.py and log redirection are fine');
+    ok((any { /.*activate/ } @calls), 'virtual environment activated');
+    ok((any { /.*deactivate/ } @calls), 'virtual environment deactivated');
     ok $res == $expected_res;
 };
 
