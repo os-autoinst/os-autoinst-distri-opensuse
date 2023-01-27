@@ -77,6 +77,11 @@ sub prepare_serial_console {
         return;
     }
 
+    unless (is_qemu) {
+        record_info('skip virtio', 'Skipped adding consoles due unsupported backend (only BACKEND=qemu supported)');
+        return;
+    }
+
     record_info('getty before', script_output('systemctl | grep serial-getty'));
 
     my $console = 'hvc1';
