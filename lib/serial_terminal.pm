@@ -69,25 +69,36 @@ for ppc64le).
 =cut
 
 sub prepare_serial_console {
+    # Virtio console is disabled only with VIRTIO_CONSOLE=0 (by default
+    # VIRTIO_CONSOLE is not set which also means that virtio console is
+    # *enabled*).
+    unless (!check_var('VIRTIO_CONSOLE', 0)) {
+        record_info('skip virtio', 'Skipped due to disabled virtio console');
+        return;
+    }
+
+    unless (is_qemu) {
+        record_info('skip virtio', 'Skipped adding consoles due unsupported backend (only BACKEND=qemu supported)');
+        return;
+    }
+
     record_info('getty before', script_output('systemctl | grep serial-getty'));
 
-    if (!check_var('VIRTIO_CONSOLE', 0)) {
-        my $console = 'hvc1';
+    my $console = 'hvc1';
 
-        # poo#18860 Enable console on hvc0 on SLES < 12-SP2 (root-virtio-terminal)
-        if (is_sle('<12-SP2') && !is_s390x) {
-            add_serial_console('hvc0');
-        }
-        # poo#44699 Enable console on hvc1 to fix login issues on ppc64le
-        # (root-virtio-terminal)
-        elsif (get_var('OFW')) {
-            add_serial_console('hvc1');
-            $console = 'hvc2';
-        }
-
-        # user-virtio-terminal
-        add_serial_console($console);
+    # poo#18860 Enable console on hvc0 on SLES < 12-SP2 (root-virtio-terminal)
+    if (is_sle('<12-SP2') && !is_s390x) {
+        add_serial_console('hvc0');
     }
+    # poo#44699 Enable console on hvc1 to fix login issues on ppc64le
+    # (root-virtio-terminal)
+    elsif (get_var('OFW')) {
+        add_serial_console('hvc1');
+        $console = 'hvc2';
+    }
+
+    # user-virtio-terminal
+    add_serial_console($console);
 
     record_info('getty after', script_output('systemctl | grep serial-getty'));
 }
