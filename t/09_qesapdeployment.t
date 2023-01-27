@@ -178,12 +178,13 @@ subtest '[qesap_ansible_cmd]' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(qesap_get_inventory => sub { return '/SIDNEY'; });
 
     qesap_ansible_cmd(cmd => 'FINDING', provider => 'OCEAN');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
-    like $calls[0], qr/ansible.*all.*-i.*SIDNEY.*-u.*cloudadmin.*-b.*--become-user=root.*-a.*"FINDING"/, "Expected ansible command format";
+    ok((any { qr/.*ansible.*all.*-i.*SIDNEY.*-u.*cloudadmin.*-b.*--become-user=root.*-a.*"FINDING".*/ } @calls), "Expected ansible command format");
 };
 
 subtest '[qesap_ansible_cmd] filter and user' => sub {
@@ -191,10 +192,13 @@ subtest '[qesap_ansible_cmd] filter and user' => sub {
     my @calls;
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(qesap_get_inventory => sub { return '/SIDNEY'; });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     qesap_ansible_cmd(cmd => 'FINDING', provider => 'OCEAN', filter => 'NEMO', user => 'DARLA');
     note("\n  -->  " . join("\n  -->  ", @calls));
 
-    like $calls[0], qr/.*NEMO.*-u.*DARLA/, "Expected filter and user in the ansible command format";
+    ok((any { /.*activate/ } @calls), 'virtual environment activated');
+    ok((any { /.*NEMO.*-u.*DARLA.*/ } @calls), "Expected filter and user in the ansible command format");
+    ok((any { /.*deactivate/ } @calls), 'virtual environment deactivated');
 };
 
 subtest '[qesap_ansible_cmd] no cmd' => sub {
