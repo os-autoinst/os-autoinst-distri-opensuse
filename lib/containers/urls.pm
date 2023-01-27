@@ -307,12 +307,16 @@ sub get_3rd_party_images {
         "registry.opensuse.org/opensuse/leap",
         "registry.opensuse.org/opensuse/tumbleweed",
         "$ex_reg/library/alpine",
-        "$ex_reg/library/debian",
+        "$ex_reg/library/debian");
+
+    # Following images are not available on 32-bit arm
+    push @images, (
         "$ex_reg/library/fedora",
         "registry.access.redhat.com/ubi8/ubi",
         "registry.access.redhat.com/ubi8/ubi-minimal",
         "registry.access.redhat.com/ubi8/ubi-micro",
-        "registry.access.redhat.com/ubi8/ubi-init");
+        "registry.access.redhat.com/ubi8/ubi-init"
+    ) unless (is_arm);
 
     # - ubi9 images require z14+ s390x machine, they are not ready in OSD yet.
     #     on z13: "Fatal glibc error: CPU lacks VXE support (z14 or later required)".
@@ -324,21 +328,21 @@ sub get_3rd_party_images {
         "registry.access.redhat.com/ubi9/ubi-minimal",
         "registry.access.redhat.com/ubi9/ubi-micro",
         "registry.access.redhat.com/ubi9/ubi-init"
-    ) unless (is_s390x || is_ppc64le || !is_x86_64_v2);
+    ) unless (is_arm || is_s390x || is_ppc64le || !is_x86_64_v2);
 
     # - poo#72124 Ubuntu image (occasionally) fails on s390x.
     # - CentOS image not available on s390x.
     push @images, (
         "$ex_reg/library/ubuntu",
         "$ex_reg/library/centos"
-    ) unless (is_s390x || is_ppc64le);
+    ) unless (is_arm || is_s390x || is_ppc64le);
 
-    # RedHat UBI7 images are not built for aarch64
+    # RedHat UBI7 images are not built for aarch64 and 32-bit arm
     push @images, (
         "registry.access.redhat.com/ubi7/ubi",
         "registry.access.redhat.com/ubi7/ubi-minimal",
         "registry.access.redhat.com/ubi7/ubi-init"
-    ) unless (is_aarch64 || check_var('PUBLIC_CLOUD_ARCH', 'arm64'));
+    ) unless (is_arm || is_aarch64 || check_var('PUBLIC_CLOUD_ARCH', 'arm64'));
 
     return (\@images);
 }
