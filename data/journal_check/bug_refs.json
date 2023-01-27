@@ -50,7 +50,7 @@
             "sle-micro": [ "5.0", "5.1", "5.2" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "12-SP5"]
+            "sle": ["15-SP1", "15-SP2", "15-SP3", "15-SP4", "12-SP5"]
         },
         "type": "feature"
     },
