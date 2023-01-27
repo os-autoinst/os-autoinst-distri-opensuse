@@ -43,7 +43,7 @@ sub run ($self) {
     $self->setup_nfs_server(\%exports_path);
 
     type_string('pkill -u root', lf => 1) unless $user_virtio_fixed;
-    select_user_serial_terminal($prompt);
+    select_user_serial_terminal();
     # for <15-SP2 the openmpi2 module is named simply openmpi
     $mpi = 'openmpi' if ($mpi =~ /openmpi2|openmpi3|openmpi4/);
 
