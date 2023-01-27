@@ -111,6 +111,7 @@ LTP_KNOWN_ISSUES | string | | Used to specify a url for a json file with well kn
 LTP_REPO | string | | The repo which will be added and is used to install LTP package.
 LTP_RUN_NG_BRANCH | string | master | Define the branch of the LTP_RUN_NG_REPO.
 LTP_RUN_NG_REPO | string | https://github.com/metan-ucw/runltp-ng.git | Define the runltp-ng repo to be used. Default in publiccloud/run_ltp.pm is the upstream master branch from https://github.com/metan-ucw/runltp-ng.git.
+LTP_PC_RUNLTP_ENV | string | empty | Contains eventual internal environment new parameters for `runltp-ng`, defined with the `--env` option, initialized in a column-separated string format: "PAR1=xxx:PAR2=yyy:...". By default it is empty, undefined.
 LVM | boolean | false | Use lvm for partitioning.
 LVM_THIN_LV | boolean | false | Use thin provisioning logical volumes for partitioning,
 MACHINE | string | | Define machine name which defines worker specific configuration, including WORKER_CLASS.

@@ -133,16 +133,19 @@ sub run {
         }
     }
 
-    my $runltp_ng_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/acerv/runltp-ng.git");
+    my $runltp_ng_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/linux-test-project/runltp-ng.git");
     my $runltp_ng_branch = get_var("LTP_RUN_NG_BRANCH", "master");
     record_info('LTP CLONE REPO', "Repo: " . $runltp_ng_repo . "\nBranch: " . $runltp_ng_branch);
 
     assert_script_run("git clone -q --single-branch -b $runltp_ng_branch --depth 1 $runltp_ng_repo");
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
+    record_info('VM Detect', $instance->run_ssh_command(cmd => 'systemd-detect-virt'));
 
     my $reset_cmd = $root_dir . '/restart_instance.sh ' . $self->instance_log_args();
     my $log_start_cmd = $root_dir . '/log_instance.sh start ' . $self->instance_log_args();
+
+    my $env = get_var('LTP_PC_RUNLTP_ENV');
 
     assert_script_run($log_start_cmd);
 
@@ -164,6 +167,7 @@ sub run {
     $cmd .= '--run-suite ' . get_required_var('LTP_COMMAND_FILE') . ' ';
     $cmd .= '--skip-tests \'' . get_var('LTP_COMMAND_EXCLUDE') . '\' ' if get_var('LTP_COMMAND_EXCLUDE');
     $cmd .= '--sut=ssh' . $sut . ' ';
+    $cmd .= '--env ' . $env . ' ' if ($env);
     record_info('LTP START', 'Command launch');
     assert_script_run($cmd, timeout => get_var('LTP_TIMEOUT', 30 * 60));
     record_info('LTP END', 'tests done');
@@ -225,6 +229,12 @@ The repo which will be added and is used to install LTP package.
 
 Used to specify a url for a json file with well known LTP issues. If an error occur
 which is listed, then the result is overwritten with softfailure.
+
+=head2 LTP_PC_RUNLTP_ENV
+
+Contains eventual internal environment new parameters for `runltp-ng` , 
+defined with the `--env` option, initialized in a column-separated string format: 
+"PAR1=xxx:PAR2=yyy:...". By default it is empty, not defined.
 
 =head2 PUBLIC_CLOUD_LTP
 
