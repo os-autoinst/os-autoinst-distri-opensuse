@@ -1,6 +1,6 @@
 # VIRTUAL MACHINE INSTALLATION AND CONFIGURATION BASE MODULE
 #
-# Copyright 2021 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: This module provides framework and APIs to install virtual
@@ -253,7 +253,8 @@ sub initialize_guest_params {
     $self->{$_} //= '' foreach (keys %guest_params);
     $self->{host_ipaddr} = get_required_var('SUT_IP');
     $self->{host_name} = script_output("hostname");
-    $self->{host_domain_name} = script_output("dnsdomainname");
+    # For SUTs with multiple interfaces, `dnsdomainname` sometimes does not work
+    $self->{host_domain_name} = script_output("dnsdomainname", proceed_on_failure => 1);
     $self->{start_run} = time();
     return $self;
 }
@@ -401,9 +402,12 @@ sub prepare_non_transactional_environment {
         virt_autotest::utils::setup_rsyslog_host($common_log_folder);
         my $_packages_to_check = 'wget curl screen dnsmasq xmlstarlet yast2-schema python3 nmap';
         zypper_call("install -y $_packages_to_check");
-        my $_patterns_to_check = 'kvm_server kvm_tools';
-        $_patterns_to_check = 'xen_server xen_tools' if ($self->{host_virt_type} eq 'xen');
-        zypper_call("install -y -t pattern $_patterns_to_check");
+        # There is already the highest version for kvm/xen packages on TW
+        if (is_sle) {
+            my $_patterns_to_check = 'kvm_server kvm_tools';
+            $_patterns_to_check = 'xen_server xen_tools' if ($self->{host_virt_type} eq 'xen');
+            zypper_call("install -y -t pattern $_patterns_to_check");
+        }
     }
     return $self;
 }
@@ -1139,7 +1143,7 @@ sub config_guest_network_bridge_device {
     my $_bridge_network_in_route = shift;
     my $_bridge_device = shift;
     $_bridge_device //= $self->{guest_network_device};
-    if ((script_output("ip route show | grep -o $_bridge_device", proceed_on_failure => 1) eq '') and (script_output("ip route show | grep -o $_bridge_network_in_route", proceed_on_failure => 1) eq '')) {
+    unless ((script_run("ip route show | grep -o $_bridge_device") == 0) or (script_run("ip route show | grep -o $_bridge_network_in_route") == 0)) {
         my $_detect_active_route = '';
         my $_detect_inactive_route = '';
         if ($self->{guest_netaddr} ne 'host-default') {
