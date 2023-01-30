@@ -150,7 +150,7 @@ EOF
     assert_script_run("gpg2 -u $email --verify --verbose $tfile_asc");
 
     # cleanup
-    assert_script_run("rm -f ~/.gnupg/gpg-agent.conf ; gpg-connect-agent reloadagent /bye");
+    assert_script_run("rm -f ~/.gnupg/gpg-agent.conf ; gpg-connect-agent reloadagent /bye") if $gpg_ver ge 2.1;
     # Restore
     assert_script_run("rm -rf $tfile.* $egg_file");
     assert_script_run("rm -rf .gnupg && gpg -K");    # Regenerate default ~/.gnupg
