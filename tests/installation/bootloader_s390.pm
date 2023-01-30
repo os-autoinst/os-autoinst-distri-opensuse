@@ -22,7 +22,7 @@ use English;
 use bootloader_setup;
 use registration;
 use utils 'shorten_url';
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils qw(is_sle is_tumbleweed is_opensuse);
 
 # try to find the 2 longest lines that are below beyond the limit
 # collapsing the lines - we have a limit of 10 lines
@@ -102,14 +102,15 @@ sub prepare_parmfile {
     # Pass autoyast parameter for s390x, shorten the url because of 72 columns limit in x3270 xedit
     # If 'AUTOYAST_PREPARE_PROFILE' is true, shorten url directly, otherwise shorten url with data_url method
     if (get_var('AUTOYAST')) {
+        my $url;
         if (get_var('AUTOYAST_PREPARE_PROFILE')) {
-            $params .= " autoyast=" . shorten_url(get_var('AUTOYAST'));
-            set_var('AUTOYAST', shorten_url(get_var('AUTOYAST')));
+            $url = is_opensuse ? get_var('AUTOYAST') : shorten_url(get_var('AUTOYAST'));
         }
         else {
-            $params .= " autoyast=" . shorten_url(data_url(get_var('AUTOYAST')));
-            set_var('AUTOYAST', shorten_url(data_url(get_var('AUTOYAST'))));
+            $url = is_opensuse ? data_url(get_var('AUTOYAST')) : shorten_url(data_url(get_var('AUTOYAST')));
         }
+        $params .= " autoyast=" . $url;
+        set_var('AUTOYAST', $url);
     }
     return split_lines($params);
 }
@@ -311,7 +312,7 @@ sub run {
     format_dasd if (check_var('FORMAT_DASD', 'pre_install'));
     create_encrypted_part_dasd if get_var('ENCRYPT_ACTIVATE_EXISTING');
 
-    select_console("installation");
+    select_console("installation", timeout => 180);
 
     # We have textmode installation via ssh and the default vnc installation so far
     if (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x')) {
