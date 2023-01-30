@@ -1644,10 +1644,13 @@ See L<https://github.com/torvalds/linux/blob/master/Documentation/admin-guide/sy
 sub show_tasks_in_blocked_state {
     # sending sysrqs doesn't work for svirt
     if (has_ttys) {
+        my $has_logger = script_run('test -x /usr/bin/logger') == 0;
+        script_run('logger "### Beginning of show_tasks_in_blocked_state"') if $has_logger;
         send_key 'alt-sysrq-t';
         send_key 'alt-sysrq-w';
         # info will be sent to serial tty
         wait_serial(qr/sysrq\s*:\s+show\s+blocked\s+state/i);
+        script_run('logger "### End of show_tasks_in_blocked_state"') if $has_logger;
 
         # If the 'An error occured during the installation.' OK popup has popped up,
         # do not press the 'return' key, because it will result in all ttys logging out.
