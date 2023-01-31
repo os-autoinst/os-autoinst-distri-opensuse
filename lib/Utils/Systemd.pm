@@ -60,7 +60,7 @@ sub systemctl {
     croak "systemctl(): no command specified" if ($command =~ /^ *$/);
     my $expect_false = $args{expect_false} ? '! ' : '';
     my @script_params = ("${expect_false}systemctl --no-pager $command", timeout => $args{timeout}, fail_message => $args{fail_message});
-    if ($command =~ /^(re)?start ([^ ]+)/) {
+    if ($command =~ /^(start|restart|enable) ([^ ]+)/) {
         my $unit_name = $2;
         $started_systemd_services{$unit_name} = 1;
     }
