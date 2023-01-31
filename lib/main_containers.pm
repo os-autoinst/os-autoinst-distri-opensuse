@@ -126,6 +126,10 @@ sub load_host_tests_docker {
     }
 }
 
+sub load_host_tests_containerd_rmt {
+    loadtest 'containers/containerd_rmt';
+}
+
 sub load_host_tests_containerd_crictl {
     loadtest 'containers/containerd_crictl';
 }
@@ -238,6 +242,7 @@ sub load_container_tests {
             load_host_tests_docker($run_args) if (/docker/i);
             load_host_tests_containerd_crictl() if (/containerd_crictl/i);
             load_host_tests_containerd_nerdctl() if (/containerd_nerdctl/i);
+            load_host_tests_containerd_rmt() if (/containerd_rmt/i);
             loadtest('containers/kubectl') if (/kubectl/i);
             load_host_tests_helm($run_args) if (/helm/i);
             loadtest 'containers/apptainer' if (/apptainer/i);
