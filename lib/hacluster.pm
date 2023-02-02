@@ -53,6 +53,7 @@ our @EXPORT = qw(
   check_cluster_state
   wait_until_resources_stopped
   wait_until_resources_started
+  wait_for_idle_cluster
   get_lun
   check_device_available
   set_lvm_config
@@ -729,6 +730,30 @@ sub wait_until_resources_started {
 
         # script_run need to be defined to ensure a correct exit code
         _test_var_defined $ret;
+    }
+}
+
+=head2 wait_for_idle_cluster
+
+ wait_for_idle_cluster( [ timeout => $timeout ] );
+
+Use `cs_wait_for_idle` to wait until the cluster is idle before continuing the tests.
+Supply a timeout with the named argument B<timeout> (defaults to 120 seconds). This
+timeout is scaled by the factor specified in the B<TIMEOUT_SCALE> setting. Croaks on
+timeout.
+
+=cut
+
+sub wait_for_idle_cluster {
+    my %args = @_;
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
+    my $outoftime = time() + $timeout;    # Current time plus timeout == time at which timeout will be reached
+    return if script_run 'rpm -q ClusterTools2';    # cs_wait_for_idle only present if ClusterTools2 is installed
+    while (1) {
+        my $out = script_output 'cs_wait_for_idle --sleep 5', $timeout;
+        last if ($out =~ /Cluster state: S_IDLE/);
+        sleep 5;
+        die "Cluster was not idle for $timeout seconds" if (time() >= $outoftime);
     }
 }
 

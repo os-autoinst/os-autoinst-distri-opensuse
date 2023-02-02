@@ -26,6 +26,7 @@ sub exec_conn_cmd {
     my $cmd = $args{cmd};
     $cmd .= " --out $args{log_file}" if ($args{log_file});
 
+    wait_for_idle_cluster;
     assert_script_run("$args{binary} $cmd", timeout => $timeout);
     if ($args{log_file}) {
         my $output = script_output("cat $args{log_file}", proceed_on_failure => 1);
@@ -80,6 +81,8 @@ sub run {
 
     # Wait for the resources to be restarted
     wait_until_resources_started(timeout => 1200);
+    save_state;    # do a check of the cluster with a screenshot
+    assert_script_run 'crm_resource --cleanup';
 
     # Check for the state of the whole cluster
     check_cluster_state;

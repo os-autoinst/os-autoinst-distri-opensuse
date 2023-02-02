@@ -85,6 +85,7 @@ sub run {
         barrier_wait "NW_CREATED_CONF_$cluster_name";
 
         # Upload the configuration into the cluster
+        wait_for_idle_cluster;
         assert_script_run 'crm configure property maintenance-mode=true';
         assert_script_run "crm configure load update $nw_cluster_conf";
         assert_script_run 'crm configure property maintenance-mode=false';
