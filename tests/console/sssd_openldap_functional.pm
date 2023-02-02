@@ -26,6 +26,7 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 
 sub run {
     select_serial_terminal;
+    my $cri = is_sle ? "docker" : "podman";
 
     # Install runtime dependencies
     zypper_call("in sudo nscd");
@@ -34,9 +35,9 @@ sub run {
         add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1);
         is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
     }
-    zypper_call("in sssd sssd-ldap openldap2-client sshpass docker");
-    systemctl('enable --now docker');
-    #Select container base image by specifying variable BASE_IMAGE_TAG. (for sles using sle15sp4 by default)
+    zypper_call("in sssd sssd-ldap openldap2-client sshpass $cri");
+    systemctl("enable --now $cri");
+    # Select container base image by specifying variable BASE_IMAGE_TAG. (for sles using sle15sp3 by default)
     my $pkgs = "openldap2 sudo";
     my $tag = get_var("BASE_IMAGE_TAG");
     my $maint_test_repo = get_var('MAINT_TEST_REPO');
@@ -49,9 +50,9 @@ sub run {
     assert_script_run("mkdir /tmp/sssd && cd /tmp/sssd");
     assert_script_run("curl -s " . "--remote-name-all " . data_url('sssd/openldap/{user.ldif,slapd.conf,Dockerfile,add_test_repositories.sh}'));
     assert_script_run("curl -s " . "--remote-name-all " . data_url('sssd/openldap/ldapserver.{key,crt,csr}'));
-    assert_script_run(qq(docker build -t openldap2_image --build-arg tag="$tag" --build-arg pkgs="$pkgs" --build-arg maint_test_repo="$maint_test_repo" .), timeout => 1200);
-    assert_script_run('docker run -itd --name ldap_container --hostname ldapserver --restart=always openldap2_image');
-    assert_script_run("docker exec ldap_container sed -n '/ldapserver/p' /etc/hosts >> /etc/hosts");
+    assert_script_run(qq($cri build -t openldap2_image --build-arg tag="$tag" --build-arg pkgs="$pkgs" --build-arg maint_test_repo="$maint_test_repo" .), timeout => 1200);
+    assert_script_run("$cri run -itd --name ldap_container --hostname ldapserver --restart=always openldap2_image");
+    assert_script_run("$cri exec ldap_container sed -n '/ldapserver/p' /etc/hosts >> /etc/hosts");
 
     # Configure sssd on the host
     assert_script_run("curl -s " . data_url("sssd/openldap/sssd.conf") . " -o /etc/sssd/sssd.conf");
@@ -81,7 +82,7 @@ sub run {
     assert_script_run('sshpass -p n0vell88 ssh bob@localhost \'echo -e "n0vell88\nopen5use\nopen5use" | passwd\'');
     validate_script_output('sshpass -p open5use ssh bob@localhost echo "Password changed back!"', sub { m/Password changed back/ });
     #offline identity lookup and authentification
-    assert_script_run('docker stop ldap_container');
+    assert_script_run("$cri stop ldap_container");
     #offline cached remote user indentity lookup
     validate_script_output("id bob", sub { m/uid=5009\(bob\)/ });
     #offline remote user authentification test
