@@ -124,19 +124,6 @@ sub kgraft_state {
     my $kver = $1;
     my $module;
 
-    # xen kernel exists only on SLE12 and SLE12SP1
-    if (is_sle('<=12-SP1')) {
-        script_run("lsinitrd /boot/initrd-$kver-xen | grep patch");
-        $module = script_output("lsinitrd /boot/initrd-$kver-xen | awk '/-patch-.*ko\$/ || /livepatch-.*ko\$/ {print \$NF}'");
-
-        if (check_var('REMOVE_KGRAFT', '1')) {
-            die 'Kgraft module exists when it should have been removed' if $module;
-        }
-        else {
-            mod_rpm_info($module);
-        }
-    }
-
     script_run("lsinitrd /boot/initrd-$kver-default | grep patch");
     $module = script_output("lsinitrd /boot/initrd-$kver-default | awk '/-patch-.*ko\$/ || /livepatch-.*ko\$/ {print \$NF}'");
 
