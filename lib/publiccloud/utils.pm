@@ -32,6 +32,7 @@ our @EXPORT = qw(
   is_gce
   is_container_host
   is_hardened
+  is_embargo_update
   registercloudguest
   register_addon
   register_openstack
@@ -160,6 +161,13 @@ sub is_hardened() {
     return is_public_cloud && get_var('FLAVOR') =~ 'Hardened';
 }
 
+sub is_embargo_update {
+    my ($incident) = @_;
+    script_retry("curl -sf https://build.suse.de/attribs/SUSE:Maintenance:$incident -o /tmp/$incident.txt");
+    return 1 if (script_run("grep 'OBS:EmbargoDate' /tmp/$incident.txt") == 0);
+    return 0;
+}
+
 sub define_secret_variable {
     my ($var_name, $var_value) = @_;
     script_run("set -a");
@@ -195,7 +203,7 @@ sub get_credentials {
 =head2 gcloud_install
     gcloud_install($url, $dir, $timeout)
 
-This function is used to install the gcloud CLI 
+This function is used to install the gcloud CLI
 for the GKE Google Cloud.
 
 From $url we get the full package and install it

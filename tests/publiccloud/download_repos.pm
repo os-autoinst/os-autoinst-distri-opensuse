@@ -14,6 +14,7 @@ use testapi;
 use strict;
 use utils;
 use publiccloud::ssh_interactive "select_host_console";
+use publiccloud::utils "is_embargo_update";
 use List::MoreUtils qw(uniq);
 
 # Get the status of the update repos
@@ -62,8 +63,7 @@ sub run {
         for my $maintrepo (@repos) {
             $incident = $1 while $maintrepo =~ /\/Maintenance:\/(\d+)/g;
             die "We did not detect incident number for URL \"$maintrepo\". We detected \"$incident\"" unless $incident =~ /\d+/;
-            script_retry("curl -sf https://build.suse.de/attribs/SUSE:Maintenance:$incident -o /tmp/$incident.txt");
-            if (script_run("grep 'OBS:EmbargoDate' /tmp/$incident.txt") == 0) {
+            if (is_embargo_update($incident)) {
                 record_info("EMBARGOED", "The repository \"$maintrepo\" belongs to embargoed incident number \"$incident\"");
                 script_run("echo 'The repository \"$maintrepo\" belongs to embargoed incident number \"$incident\"'");
                 next;
@@ -133,4 +133,3 @@ sub test_flags {
 }
 
 1;
-
