@@ -120,12 +120,12 @@ sub kgraft_state {
     upload_logs("/tmp/lsboot");
     script_run("cat /tmp/lsboot");
 
-    die "Invalid kernel version string" if script_output("uname -r") !~ m/(^[\d.-]+)-.+/;
-    my $kver = $1;
+    my $kver = script_output("uname -r");
     my $module;
 
-    script_run("lsinitrd /boot/initrd-$kver-default | grep patch");
-    $module = script_output("lsinitrd /boot/initrd-$kver-default | awk '/-patch-.*ko\$/ || /livepatch-.*ko\$/ {print \$NF}'");
+    chomp $kver;
+    script_run("lsinitrd /boot/initrd-$kver | grep patch");
+    $module = script_output("lsinitrd /boot/initrd-$kver | awk '/-patch-.*ko\$/ || /livepatch-.*ko\$/ {print \$NF}'");
 
     if (check_var('REMOVE_KGRAFT', '1')) {
         die 'Kgraft module exists when it should have been removed' if $module;
@@ -208,7 +208,12 @@ sub install_lock_kernel {
         'kernel-source' => $src_version
     );
 
-    push @packages, "kernel-devel";
+    if (check_var('SLE_PRODUCT', 'slert')) {
+        push @packages, "kernel-devel-rt";
+    }
+    else {
+        push @packages, "kernel-devel";
+    }
 
     # add explicit version to each package
     foreach my $package (@packages) {
@@ -240,7 +245,7 @@ sub prepare_kgraft {
 
         foreach my $pkg (@$pkgs) {
             my $cur_klp_pkg = is_klp_pkg($pkg);
-            if ($cur_klp_pkg && $$cur_klp_pkg{kflavor} eq 'default') {
+            if ($cur_klp_pkg) {
                 if ($incident_klp_pkg) {
                     die "Multiple kernel live patch packages found: \"$$incident_klp_pkg{name}-$$incident_klp_pkg{version}\" and \"$$cur_klp_pkg{name}-$$cur_klp_pkg{version}\"";
                 }
@@ -259,8 +264,14 @@ sub prepare_kgraft {
 
     fully_patch_system;
 
-    my $kernel_version = find_version('kernel-default', $$incident_klp_pkg{kver});
-    my $src_version = find_version('kernel-source', $$incident_klp_pkg{kver});
+    my $kernel_name = 'kernel-' . $$incident_klp_pkg{kflavor};
+    my $src_name = 'kernel-source';
+
+    $src_name .= '-' . $$incident_klp_pkg{kflavor}
+      unless $$incident_klp_pkg{kflavor} eq 'default';
+
+    my $kernel_version = find_version($kernel_name, $$incident_klp_pkg{kver});
+    my $src_version = find_version($src_name, $$incident_klp_pkg{kver});
     install_lock_kernel($kernel_version, $src_version);
 
     install_klp_product;
