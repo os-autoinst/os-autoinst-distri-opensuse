@@ -1,0 +1,93 @@
+---
+description: 'Main JeOS test suite. Maintainer: qa-c@suse.de.'
+name: 'jeos-main@64bit-virtio-vga ( qemu )'
+conditional_schedule:
+    bootloader:
+        MACHINE:
+            'svirt-xen-pv':
+                - installation/bootloader_svirt
+            'svirt-xen-hvm':
+                - installation/bootloader_svirt
+                - installation/bootloader_uefi
+            'svirt-hyperv-uefi':
+                - installation/bootloader_hyperv
+            'svirt-hyperv':
+                - installation/bootloader_hyperv
+                - installation/bootloader_uefi
+            'svirt-vmware65':
+                - installation/bootloader_svirt
+                - installation/bootloader_uefi
+    efi:
+        UEFI:
+            '1':
+                - console/verify_efi_mok
+    udev_dep:
+        VERSION:
+            '15-SP4':
+                - console/systemd_wo_udev
+    maintenance:
+        FLAVOR:
+            'JeOS-for-kvm-and-xen-Updates':
+                - qa_automation/patch_and_reboot
+    wizard:
+        FIRST_BOOT_CONFIG:
+            'wizard':
+                - jeos/firstrun
+            'cloud-init':
+                - installation/first_boot
+schedule:
+    - '{{bootloader}}'
+    - '{{wizard}}'
+    # - jeos/image_info
+    - jeos/record_machine_id
+    - console/force_scheduled_tasks
+    - jeos/grub2_gfxmode
+    - jeos/diskusage
+    - jeos/build_key
+    - console/prjconf_excluded_rpms
+    - console/journal_check
+    - console/pam
+    - microos/libzypp_config
+    - console/suseconnect_scc
+    - '{{maintenance}}'
+    - '{{efi}}'
+    - jeos/glibc_locale
+    - console/check_network
+    - console/system_state
+    - console/consoletest_setup
+    - '{{udev_dep}}'
+    - locale/keymap_or_locale
+    - console/ping
+    - console/apache
+    - console/dns_srv
+    - console/postgresql_server
+    - console/shibboleth
+    - console/apache_ssl
+    - console/apache_nss
+    - console/hostname
+    - console/installation_snapshots
+    - console/zypper_lr
+    - console/zypper_ref
+    - console/ncurses
+    - console/yast2_lan
+    - console/curl_https
+    - console/glibc_sanity
+    - update/zypper_up
+    - console/console_reboot
+    - console/zypper_in
+    - console/yast2_i
+    - console/yast2_bootloader
+    - console/vim
+    - console/firewall_enabled
+    - console/gpt_ptable
+    - console/kdump_disabled
+    - console/sshd_running
+    - console/sshd
+    - console/ssh_cleanup
+    - console/mtab
+    - console/mariadb_srv
+    - console/rsync
+    - console/openvswitch
+    - console/zypper_lifecycle
+    - console/orphaned_packages_check
+    - console/consoletest_finish
