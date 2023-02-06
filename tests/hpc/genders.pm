@@ -14,9 +14,12 @@ use testapi;
 use lockapi;
 use utils;
 
+our $file = 'tmpresults.xml';
+
 sub run ($self) {
     # Install genders package
-    zypper_call('in genders');
+    my $rt = zypper_call('in genders');
+    test_case('Installation', 'install genders', $rt);
 
     # Prepare genders file`
     assert_script_run('echo "test1 test=foo" >> /etc/genders');
@@ -40,7 +43,14 @@ sub run ($self) {
     assert_script_run('cat $cfile');
 
     # Compare test files, file must have same content, difference means test failure
-    assert_script_run('diff $tmpfile $cfile');
+    $rt = assert_script_run('diff $tmpfile $cfile');
+    test_case('Compare test files', 'genders smoke test', $rt);
+}
+
+sub post_run_hook ($self) {
+    pars_results('HPC genders tests', $file, @all_tests_results);
+    parse_extra_log('XUnit', $file);
+    $self->SUPER::post_run_hook();
 }
 
 1;
