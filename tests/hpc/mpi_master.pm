@@ -121,9 +121,10 @@ sub run ($self) {
     record_info 'MPI_RUN_TEST', strftime("\%H:\%M:\%S", localtime);
 
     record_info 'testing IMB', 'Run all IMB-MPI1 components';
-    my $imb_version = script_output("rpm -q --queryformat '%{VERSION}' imb-gnu-$mpi-hpc");
+    my $mpi_var_name = get_required_var('MPI');
+    my $imb_version = script_output("rpm -q --queryformat '%{VERSION}' imb-gnu-$mpi_var_name-hpc");
     # Run IMB-MPI1 without args to run the whole set of testings. Mind the timeout if you do so
-    assert_script_run("mpirun -np 4 /usr/lib/hpc/gnu7/$mpi/imb/$imb_version/bin/IMB-MPI1 PingPong");
+    assert_script_run("mpirun -np 4 /usr/lib/hpc/gnu7/$mpi_var_name/imb/$imb_version/bin/IMB-MPI1 PingPong");
     barrier_wait('IBM_TEST_DONE');
 }
 
