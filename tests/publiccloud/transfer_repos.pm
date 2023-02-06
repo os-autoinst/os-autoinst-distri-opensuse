@@ -15,6 +15,7 @@ use testapi;
 use strict;
 use utils;
 use publiccloud::ssh_interactive "select_host_console";
+use publiccloud::utils "is_embargo_update";
 
 sub run {
     my ($self, $args) = @_;
@@ -37,7 +38,15 @@ sub run {
         # Those two variables contain list of repositories separated by comma
         set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) unless get_var('MAINT_TEST_REPO');
 
-        my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
+        # We need to exclude embargoed incidents
+        my @all_repos = split(/,/, get_var('MAINT_TEST_REPO'));
+        my @repos;
+        my $incident;
+        for my $maintrepo (@all_repos) {
+            $incident = $1 while $maintrepo =~ /\/Maintenance:\/(\d+)/g;
+            push(@repos, $maintrepo) unless (is_embargo_update($incident));
+        }
+
         s/http*:\/\/// for @repos;
 
         # Create list of directories for rsync
@@ -62,4 +71,3 @@ sub test_flags {
 }
 
 1;
-
