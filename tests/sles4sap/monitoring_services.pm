@@ -14,7 +14,7 @@ use warnings;
 use lockapi;
 use Utils::Systemd qw(systemctl);
 use utils qw(file_content_replace zypper_call);
-use hacluster qw(add_file_in_csync get_cluster_name get_hostname is_node wait_until_resources_started);
+use hacluster qw(add_file_in_csync get_cluster_name get_hostname is_node wait_until_resources_started wait_for_idle_cluster);
 
 sub configure_ha_exporter {
     my $exporter_name = 'ha_cluster_exporter';
@@ -67,6 +67,7 @@ sub configure_hanadb_exporter {
     $hanadb_exporter_port ||= 9668;
 
     # Add monitoring resource in the HA stack
+    wait_for_idle_cluster;
     if (get_var('HA_CLUSTER') and is_node(1)) {
         my $hanadb_msl = "msl_SAPHana_$args{rsc_id}";
         my $hanadb_exp_rsc = "rsc_exporter_$args{rsc_id}";
@@ -148,6 +149,7 @@ sub configure_sap_host_exporter {
         assert_script_run "crm configure modgroup grp_$args{rsc_id} add $exporter_rsc";
         assert_script_run "crm resource start $exporter_rsc";
         wait_until_resources_started;
+        wait_for_idle_cluster;
 
         # Release the lock
         mutex_unlock 'support_server_ready';

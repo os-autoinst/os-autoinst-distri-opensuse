@@ -52,6 +52,7 @@ our @EXPORT = qw(
   reboot
   check_replication_state
   check_hanasr_attr
+  check_landscape
   do_hana_sr_register
   do_hana_takeover
   install_libopenssl_legacy
@@ -644,7 +645,7 @@ sub check_replication_state {
     my $sapadm = $self->set_sap_info(get_required_var('INSTANCE_SID'), get_required_var('INSTANCE_ID'));
     # Wait by default for 5 minutes
     my $time_to_wait = 300;
-    my $cmd = "su - $sapadm -c 'python2 exe/python_support/systemReplicationStatus.py'";
+    my $cmd = "su - $sapadm -c 'python exe/python_support/systemReplicationStatus.py'";
 
     # Replication check can only be done on PRIMARY node
     my $output = script_output($cmd, proceed_on_failure => 1);
@@ -692,6 +693,24 @@ sub check_hanasr_attr {
     record_info 'SFAIL', "One of the HANA nodes still has SFAIL sync_state after $args{timeout} seconds"
       if ($looptime <= 0 && $out =~ /SFAIL/);
     record_info 'SAPHanaSR-showAttr', $out;
+}
+
+=head2 check_landscape
+
+ $self->check_landscape();
+
+Runs B<lanscapeHostConfiguration.py> and records the information.
+
+=cut
+
+sub check_landscape {
+    my ($self, %args) = @_;
+    my $looptime = bmwqemu::scale_timeout($args{timeout} // 90);
+    my $sapadm = $self->set_sap_info(get_required_var('INSTANCE_SID'), get_required_var('INSTANCE_ID'));
+    # Use proceed_on_failure => 1 on call as landscapeHostConfiguration.py returns non zero value on success
+    my $out = script_output("su - $sapadm -c 'python exe/python_support/landscapeHostConfiguration.py'", proceed_on_failure => 1);
+    record_info 'landscapeHostConfiguration', $out;
+    die 'Overall host status not OK' unless ($out =~ /overall host status: ok/i);
 }
 
 =head2 reboot
@@ -748,7 +767,7 @@ sub do_hana_sr_register {
 
 =head2 do_hana_takeover
 
- $self->do_hana_takeover( node => $node [, manual_takeover => $manual_takeover] [, cluster => $cluster] );
+ $self->do_hana_takeover( node => $node [, manual_takeover => $manual_takeover] [, cluster => $cluster] [, timeout => $timeout] );
 
 Do a takeover/takeback on a HANA cluster.
 
@@ -759,6 +778,8 @@ takeover. Defaults to false.
 
 Set B<$cluster> to true so the method runs also a C<crm resource cleanup>. Defaults to false.
 
+Set B<$timeout> to the amount of seconds the internal calls will wait for. Defaults to 300 seconds.
+
 =cut
 
 sub do_hana_takeover {
@@ -768,16 +789,17 @@ sub do_hana_takeover {
     my $instance_id = get_required_var('INSTANCE_ID');
     my $sid = get_required_var('INSTANCE_SID');
     my $sapadm = $self->set_sap_info($sid, $instance_id);
+    $args{timeout} //= 300;
 
     # Node name is mandatory
     die 'Node name should be set' if !defined $args{node};
 
     # Do the takeover/failback
-    assert_script_run "su - $sapadm -c 'hdbnsutil -sr_takeover'" if defined $args{manual_takeover};
+    assert_script_run "su - $sapadm -c 'hdbnsutil -sr_takeover'" if ($args{manual_takeover});
     my $res = $self->do_hana_sr_register(node => $args{node}, proceed_on_failure => 1);
     if (defined $res && $res != 0) {
         record_info "System not ready", "HANA has not finished starting as master/slave in the HA stack";
-        wait_until_resources_started(timeout => 900);
+        wait_until_resources_started(timeout => ($args{timeout} * 3));
         save_state;
         $self->check_replication_state;
         $self->check_hanasr_attr;
@@ -785,7 +807,10 @@ sub do_hana_takeover {
         $self->do_hana_sr_register(node => $args{node});
     }
     sleep bmwqemu::scale_timeout(10);
-    assert_script_run "crm resource cleanup rsc_SAPHana_${sid}_HDB$instance_id", 300 if defined $args{cluster};
+    if ($args{cluster}) {
+        assert_script_run "crm resource cleanup rsc_SAPHana_${sid}_HDB$instance_id", $args{timeout};
+        assert_script_run 'crm_resource --cleanup', $args{timeout};
+    }
 }
 
 =head2 install_libopenssl_legacy
