@@ -13,6 +13,7 @@ use utils;
 use Mojo::File 'path';
 
 sub download_baseline_log {
+
     # Pass baseline filename & location to this function, download it to local vm and check
     # Parameter: baseline filename
     my $filename = $_[0];
@@ -23,7 +24,7 @@ sub download_baseline_log {
 }
 
 sub run {
-    my $py_script = 'stig/baseline_comparison.py';
+    my $py_script = 'oscap_profiles/baseline_comparison.py';
     my $baseline_orig = 'oscap_xccdf_eval-stdout';
     my $baseline_remediated = 'oscap_xccdf_remediate-stdout';
     my $baseline_comparison = 'baseline_comparison_result';

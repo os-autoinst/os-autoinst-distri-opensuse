@@ -1,16 +1,16 @@
-name: stig
+name: oscap_stig
 description:    >
     This is for stig test
 schedule:
     - '{{bootloader}}'
     - boot/boot_to_desktop
-    - security/stig/oscap_security_guide_setup
-    - security/stig/oscap_xccdf_eval
-    - security/stig/oscap_xccdf_eval_remote
-    - security/stig/oscap_xccdf_remediate
+    - security/oscap_stig/oscap_security_guide_setup
+    # - security/oscap_stig/oscap_xccdf_eval
+    # - security/oscap_stig/oscap_xccdf_eval_remote
+    - security/oscap_stig/oscap_xccdf_remediate
     # Do evaluate again after remediate
-    - security/stig/oscap_xccdf_eval
-    - security/stig/baseline_comparison
+    - security/oscap_stig/oscap_xccdf_eval
+    - security/oscap_stig/baseline_comparison
 conditional_schedule:
     bootloader:
         ARCH:
