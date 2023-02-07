@@ -10,6 +10,10 @@ schedule:
     - installation/partitioning/guided_setup/select_filesystem_option_ext4
   default_systemd_target:
     - installation/installation_settings/validate_default_target
+  extension_module_selection:
+    - installation/module_registration/register_module_desktop
+  system_role:
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
   system_validation:
     - console/validate_partition_table_via_blkid
     - console/validate_blockdevices
