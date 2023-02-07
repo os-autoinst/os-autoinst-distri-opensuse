@@ -65,7 +65,7 @@ sub get_product_shortcuts {
     # QR                i      p
     # Online            i      t
     if (check_var('SLE_PRODUCT', 'sles4sap')) {
-        return (sles4sap => is_ppc64le() ? 'u' : 't') if get_var('ISO') =~ /Full/ && is_sle('15-SP5+');
+        return (sles4sap => is_ppc64le() ? 'i' : 't') if get_var('ISO') =~ /Full/ && is_sle('15-SP5+');
         return (sles4sap => is_ppc64le() ? 'u' : 'i') if get_var('ISO') =~ /Full/;
         return (sles4sap => is_ppc64le() ? 'i' : is_quarterly_iso() ? 'p' : 't') unless get_var('ISO') =~ /Full/;
     }
