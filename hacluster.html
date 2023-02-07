@@ -43,6 +43,7 @@
       <li><a href="#check_cluster_state">check_cluster_state</a></li>
       <li><a href="#wait_until_resources_stopped">wait_until_resources_stopped</a></li>
       <li><a href="#wait_until_resources_started">wait_until_resources_started</a></li>
+      <li><a href="#wait_for_idle_cluster">wait_for_idle_cluster</a></li>
       <li><a href="#get_lun">get_lun</a></li>
       <li><a href="#check_device_available">check_device_available</a></li>
       <li><a href="#set_lvm_config">set_lvm_config</a></li>
@@ -245,6 +246,12 @@
 <pre><code>wait_until_resources_started( [ timeout =&gt; $timeout ] );</code></pre>
 
 <p>Wait for resources to be started. Runs <code>crm cluster wait_for_startup</code> in SUT as well as other verifications on newer versions of SLES (12-SP3+), for up to <b>$timeout</b> seconds for each command. Timeout must be specified by the named argument <b>timeout</b> (defaults to 120 seconds). This timeout is scaled by the factor specified in the <b>TIMEOUT_SCALE</b> setting. Croaks on timeout.</p>
+
+<h2 id="wait_for_idle_cluster">wait_for_idle_cluster</h2>
+
+<pre><code>wait_for_idle_cluster( [ timeout =&gt; $timeout ] );</code></pre>
+
+<p>Use `cs_wait_for_idle` to wait until the cluster is idle before continuing the tests. Supply a timeout with the named argument <b>timeout</b> (defaults to 120 seconds). This timeout is scaled by the factor specified in the <b>TIMEOUT_SCALE</b> setting. Croaks on timeout.</p>
 
 <h2 id="get_lun">get_lun</h2>
 
