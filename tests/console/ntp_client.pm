@@ -50,6 +50,8 @@ sub run {
     assert_script_run 'chronyc makestep';
     assert_script_run 'chronyc tracking';
     assert_script_run 'chronyc activity';
+    assert_script_run 'cat /sys/devices/system/clocksource/clocksource0/available_clocksource';
+    assert_script_run 'cat /sys/devices/system/clocksource/clocksource0/current_clocksource';
     assert_script_run 'chronyc waitsync 120 0.5', 1210;
 }
 
