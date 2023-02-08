@@ -163,18 +163,10 @@ sub init_ltp_tests {
     script_run('ps axf') if ($is_network || $is_ima);
 
     if ($is_network) {
-        # emulate $LTPROOT/testscripts/network.sh
-        assert_script_run('curl ' . data_url("ltp/net.sh") . ' -o net.sh', 60);
-        assert_script_run('chmod 755 net.sh');
-        assert_script_run('. ./net.sh');
-
-        script_run('env');
-
         # Disable IPv4 and IPv6 iptables.
         # Disabling IPv4 is needed for iptables tests (net.tcp_cmds).
         # Disabling IPv6 is needed for ICMPv6 tests (net.ipv6).
-        # This must be done after stopping network service and loading
-        # test_net.sh script.
+        # This must be done after stopping network service.
         my $disable_iptables_script = << 'EOF';
 iptables -P INPUT ACCEPT;
 iptables -P OUTPUT ACCEPT;
@@ -214,11 +206,6 @@ EOF
         script_run('ip netns exec ltp_ns ip addr');
         script_run('ip route');
         script_run('ip -6 route');
-
-        script_run('ping -c 2 $IPV4_LNETWORK.$LHOST_IPV4_HOST');
-        script_run('ping -c 2 $IPV4_RNETWORK.$RHOST_IPV4_HOST');
-        script_run('ping6 -c 2 $IPV6_LNETWORK:$LHOST_IPV6_HOST');
-        script_run('ping6 -c 2 $IPV6_RNETWORK:$RHOST_IPV6_HOST');
     }
 
     # Check and activate hugepages before test execution
@@ -276,6 +263,7 @@ sub schedule_tests {
     $environment->{kernel} = script_output('uname -r');
     $environment->{ltp_version} = script_output("touch $file; cat $file");
     record_info("LTP version", $environment->{ltp_version});
+    record_info("env", script_output('env'));
 
     $test_result_export->{environment} = $environment;
 
