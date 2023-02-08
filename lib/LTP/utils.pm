@@ -276,6 +276,7 @@ sub schedule_tests {
     $environment->{kernel} = script_output('uname -r');
     $environment->{ltp_version} = script_output("touch $file; cat $file");
     record_info("LTP version", $environment->{ltp_version});
+    record_info("env", script_output('env'));
 
     $test_result_export->{environment} = $environment;
 
