@@ -52,7 +52,10 @@ sub run_test {
         assert_script_run("virsh undefine $guest || virsh undefine $guest --keep-nvram");
         assert_script_run("virsh define $guest.clone");
         assert_script_run("rm -rf $guest.clone");
-        assert_script_run("virt-clone -o $guest -n $guest.clone -f /var/lib/libvirt/images/$guest.clone");
+        record_info "Clone a virtual machine from $guest";
+        #setup a timeout value to clone a given guest system,
+        #refer to poo#124107 for more details
+        assert_script_run("virt-clone -o $guest -n $guest.clone -f /var/lib/libvirt/images/$guest.clone", 360);
         assert_script_run("virsh start $guest");
         ensure_online $guest, skip_network => 1;
         assert_script_run("virsh start $guest.clone");
