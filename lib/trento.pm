@@ -935,7 +935,7 @@ sub cypress_install_container {
     assert_script_run('podman search --list-tags ' . CYPRESS_IMAGE);
 
     # Pull in advance the cypress container
-    my $podman_pull_cmd = json(' ', 'time', 'podman',
+    my $podman_pull_cmd = join(' ', 'time', 'podman',
         '--log-level', 'trace',
         'pull',
         '--quiet',
