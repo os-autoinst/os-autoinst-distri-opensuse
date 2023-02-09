@@ -14,12 +14,14 @@
 # - Enable pipefail system-wide
 # - Disable/stop packagekit service
 # - Check console font
+# - Disable autovt@tty2 service for GNOME tests
 
 # Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use version_utils 'is_leap';
 use utils qw(check_console_font disable_serial_getty);
 use Utils::Backends qw(has_ttys);
 use Utils::Systemd qw(disable_and_stop_service systemctl);
@@ -73,6 +75,11 @@ sub run {
     if (has_ttys()) {
         check_console_font;
         script_run '. /etc/bash.bashrc.local';
+    }
+
+    # workaround for boo#1205518, stops getty for tty2 so that it won't compete with gdm
+    if (is_leap(">=15.4") && check_var('DESKTOP', 'gnome')) {
+        assert_script_run('systemctl mask autovt@tty2');
     }
 }
 
