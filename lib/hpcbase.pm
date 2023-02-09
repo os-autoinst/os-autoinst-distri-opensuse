@@ -105,6 +105,8 @@ sub post_run_hook {
         upload_logs('/tmp/mpi_bin.log')
           if (check_var('HPC', 'mpi_master') && script_run(qq{test -e /tmp/mpi_bin.log}) == 0);
     }
+    # Restore serial_console
+    select_serial_terminal if check_var('VIRTIO_CONSOLE', '1');
 }
 
 sub post_fail_hook {
