@@ -44,7 +44,7 @@ sub run {
     }
     zypper_call "in screen $pkgname";
     clear_console;    # clear screen to see that second update does not do any more
-    assert_script_run("rpm -e $pkgname");
+    assert_script_run("rpm -e $pkgname", timeout => $timeout);
     assert_script_run("! rpm -q $pkgname");
 
     if (!is_sle('<15-SP4') && !is_leap('<15.4') && !check_var('OFFLINE_SUT', '1')) {
