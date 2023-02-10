@@ -1,0 +1,27 @@
+---
+description: >
+  Conduct installation with LVM selected during installation using guided setup.
+  In comparison to SLE 12 we register the installation and have system roles
+  wizard screen.
+name: cryptlvm
+vars:
+  DESKTOP: textmode
+  LVM: '1'
+  MAX_JOB_TIME: '14400'
+  OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
+  YUI_REST_API: 1
+schedule:
+  guided_partitioning:
+    - installation/partitioning/select_guided_setup
+    - installation/partitioning/guided_setup/enable_lvm
+    - installation/partitioning/guided_setup/accept_default_fs_options
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_preparation:
+    - console/system_prepare
+  system_validation:
+    - console/validate_lvm
+    - console/zypper_lr
+    - console/zypper_ref
+    - console/zypper_in
+    - console/firewall_enabled

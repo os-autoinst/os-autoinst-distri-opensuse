@@ -1,0 +1,28 @@
+---
+name: lvm-full-encrypt
+description: >
+  Installation with encrypted root and swap logical volumes and encrypted
+  boot partition outside of volume group as plain partition.
+  Partitioning is validated in the booted system after the installation,
+  including check for separate boot partition.
+vars:
+  ENCRYPT: 1
+  FULL_LVM_ENCRYPT: 1
+  MAX_JOB_TIME: '14400'
+  YUI_REST_API: 1
+schedule:
+  suggested_partitioning:
+    - installation/partitioning/new_partitioning_gpt
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  first_login:
+    - installation/boot_encrypt
+    - installation/first_boot
+  system_preparation:
+    - console/hostname
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - shutdown/grub_set_bootargs
+  system_validation:
+    - console/validate_lvm
+    - console/validate_encrypt

@@ -1,26 +1,24 @@
 ---
-name: cryptlvm_iscsi
+name: crypt_no_lvm
 description: >
-  Conducts installation on iSCSI device relying on iBFT with encrypted LVM.
+  Test installation with encrypted partitions but without lvm enabled.
+  This is supported only by storage-ng, hence, do NOT enable test suite on
+  distris without storage-ng.
+  Encrypted installations can take longer, especially on non-x86_64
+  architectures.
 vars:
-  DESKTOP: gnome
   ENCRYPT: 1
-  IBFT: 1
-  LVM: 1
-  NBF: iqn.2016-02.openqa.de:for.openqa
-  NICTYPE: user
+  LVM: 0
+  MAX_JOB_TIME: 14400
   YUI_REST_API: 1
 schedule:
-  disk_activation:
-    - installation/iscsi_configuration
   extension_module_selection:
     - installation/module_registration/register_module_desktop
   system_role:
     - installation/system_role/accept_selected_role_SLES_with_GNOME
   guided_partitioning:
     - installation/partitioning/select_guided_setup
-    - installation/partitioning/guided_setup/select_disks
-    - installation/partitioning/guided_setup/encrypt_lvm_simple_pwd
+    - installation/partitioning/guided_setup/encrypt_simple_pwd
     - installation/partitioning/guided_setup/accept_default_fs_options
   default_systemd_target:
     - installation/installation_settings/validate_default_target
@@ -29,16 +27,7 @@ schedule:
     - installation/first_boot
   system_preparation:
     - console/system_prepare
-    - console/hostname
-    - console/force_scheduled_tasks
   system_validation:
-    - installation/validation/ibft
-    - console/validate_lvm
     - console/validate_encrypt
 test_data:
-  guided_partitioning:
-    disks:
-      - sda
-  crypttab:
-    num_devices_encrypted: 1
-  <<: !include test_data/yast/encryption/default_enc.yaml
+  <<: !include test_data/yast/encryption/encrypt_no_lvm.yaml
