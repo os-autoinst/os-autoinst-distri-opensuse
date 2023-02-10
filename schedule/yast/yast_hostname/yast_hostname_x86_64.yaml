@@ -1,0 +1,20 @@
+---
+name: yast_hostname
+description: >
+  Test suite uses default option to set hostname. Test validates if installation
+  can successfully start in case of usage of these parameters.
+vars:
+  YUI_REST_API: 1
+schedule:
+  local_user: []
+  booting: []
+  clock_and_timezone:
+    - installation/clock_and_timezone/accept_timezone_configuration
+    - installation/hostname_inst
+  default_systemd_target: []
+  installation_settings: []
+  installation: []
+  installation_logs: []
+  confirm_reboot: []
+  grub: []
+  first_login: []

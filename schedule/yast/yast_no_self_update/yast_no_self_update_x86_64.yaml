@@ -1,0 +1,14 @@
+---
+name: yast_no_self_update
+description:    >
+  Test suite conducts installation with self-update explicitly disabled. No
+  hard checks are done that the self-updating is really disabled.
+  Installation is validated by successful boot and that YaST does not report
+  any issue.
+vars:
+  INSTALLER_NO_SELF_UPDATE: 1
+  YUI_REST_API: 1
+schedule:
+  product_selection:
+    - installation/product_selection/install_SLES
+    - installation/validate_no_self_update

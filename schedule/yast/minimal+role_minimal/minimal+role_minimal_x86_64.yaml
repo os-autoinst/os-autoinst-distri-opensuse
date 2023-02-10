@@ -1,0 +1,30 @@
+---
+name: minimal+role_minimal
+description: >
+  SLE 15 specific registered installation with minimal role selected.
+  Installation is validated by successful boot and that YaST does not report
+  any issue.
+vars:
+  YUI_REST_API: 1
+schedule:
+  system_role:
+    - installation/system_role/select_role_minimal
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_preparation:
+    - console/system_prepare
+    - console/consoletest_setup
+  system_validation:
+    - console/zypper_lr
+    - console/zypper_ref
+    - console/zypper_in
+    - console/firewall_enabled
+    - console/ncurses
+    - console/sshd_running
+    - console/sshd
+    - console/verify_default_target
+    - console/validate_partition_table_via_blkid
+    - console/validate_blockdevices
+    - console/validate_installed_packages
+    - console/validate_installed_patterns
+    - console/orphaned_packages_check
