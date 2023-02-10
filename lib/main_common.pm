@@ -2306,6 +2306,8 @@ sub load_security_tests_crypt_tool {
     loadtest "console/ntp_client";
     loadtest "console/cups";
     loadtest "console/syslog";
+    loadtest "x11/evolution/evolution_prepare_servers";
+    loadtest "console/mutt";
 }
 
 sub load_security_tests_crypt_libtool {
