@@ -14,9 +14,9 @@ use testapi;
 
 
 sub run {
-    my ($self) = @_;
+    my ($self, $args) = @_;
     return if get_var("PUBLIC_CLOUD_NO_CLEANUP");
-    $self->cleanup();
+    $self->cleanup($args);
 }
 
 1;

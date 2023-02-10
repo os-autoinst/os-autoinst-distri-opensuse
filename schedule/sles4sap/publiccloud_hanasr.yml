@@ -7,6 +7,7 @@ description: |
     - destroy
 vars:
   PUBLIC_CLOUD_RESOURCE_GROUP: 'hanasr'
+  PUBLIC_CLOUD: '1'
   TEST_CONTEXT: 'OpenQA::Test::RunArgs'
 schedule:
   - boot/boot_to_desktop
