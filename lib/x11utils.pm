@@ -36,6 +36,7 @@ our @EXPORT = qw(
   turn_off_gnome_show_banner
   untick_welcome_on_next_startup
   start_root_shell_in_xterm
+  x11_start_program_xterm
   handle_gnome_activities
 );
 
@@ -563,6 +564,23 @@ sub start_root_shell_in_xterm {
     mouse_set(400, 400);
     mouse_click(['left']);
     become_root;
+}
+
+=head2 x11_start_program_xterm
+
+    x11_start_program_xterm()
+
+Start xterm, if it is not focused, record a soft-failure and focus the xterm window.
+
+=cut
+
+sub x11_start_program_xterm {
+    x11_start_program('xterm', target_match => [qw(xterm xterm-without-focus)]);
+    if (match_has_tag 'xterm-without-focus') {
+        record_soft_failure('poo#111752: xterm is not focused');
+        click_lastmatch;
+        assert_screen 'xterm';
+    }
 }
 
 =head2 handle_gnome_activities
