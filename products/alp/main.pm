@@ -3,6 +3,7 @@ use warnings;
 use needle;
 use File::Basename;
 use scheduler 'load_yaml_schedule';
+use DistributionProvider;
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
 }
@@ -15,7 +16,7 @@ init_main();
 
 my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
-testapi::set_distribution(susedistribution->new());
+testapi::set_distribution(DistributionProvider->provide());
 
 return 1 if load_yaml_schedule;
 main_micro_alp::load_tests();
