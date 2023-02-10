@@ -14,7 +14,7 @@ use parent "y2_installbase";
 
 use testapi;
 use utils qw(assert_screen_with_soft_timeout handle_untrusted_gpg_key);
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_sle_micro);
 use registration qw(skip_registration assert_registration_screen_present fill_in_registration_data verify_scc investigate_log_empty_license);
 
 sub run {
@@ -24,7 +24,7 @@ sub run {
         assert_registration_screen_present();
         fill_in_registration_data();
         wait_still_screen();
-        if (is_sle('>=15-SP4') && check_screen('import-untrusted-gpg-key', 5)) {
+        if ((is_sle('>=15-SP4') || is_sle_micro('5.4+')) && check_screen('import-untrusted-gpg-key', 5)) {
             handle_untrusted_gpg_key();
         }
     }
