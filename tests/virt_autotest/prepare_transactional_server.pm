@@ -34,7 +34,7 @@ sub prepare_in_trup_shell {
     my $self = shift;
 
     transactional::enter_trup_shell(global_options => '--drop-if-no-change');
-    $self->prepare_extensions;
+    #$self->prepare_extensions;
     $self->prepare_packages;
     $self->prepare_bootloader;
     transactional::exit_trup_shell_and_reboot();
