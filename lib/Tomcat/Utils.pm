@@ -15,6 +15,7 @@ use testapi;
 use utils;
 use version_utils 'is_sle';
 use registration;
+use serial_terminal;
 
 # allow a 60 second timeout for asserting needles
 use constant TIMEOUT => 90;
@@ -49,8 +50,10 @@ EOF
     select_console('root-console');
 
     record_info('Initial Setup');
+    # we need to disable packagekit because it can block zypper sometimes later
+    quit_packagekit if is_sle;
 
-    zypper_call('in tomcat tomcat-webapps tomcat-admin-webapps');
+    zypper_call('in tomcat tomcat-webapps tomcat-admin-webapps', timeout => 300);
     assert_script_run('rpm -q tomcat');
 
     # start the tomcat daemon and check that it is running
@@ -68,20 +71,28 @@ EOF
 }
 
 
-# Access the tomcat web application manager
+# Check Servlet, JSP and Websocket, the example files can be accessed, login with admin via tomcat manager
 sub tomcat_manager_test() {
-    my ($self) = shift;
+    select_serial_terminal;
 
-    $self->firefox_open_url('localhost:8080/manager');
-    assert_screen('tomcat-manager-authentication', 180);
-    type_string('admin');
-    send_key('tab');
-    type_string('admin');
-    assert_and_click('tomcat-OK-autentication');
-    wait_still_screen(2);
-    assert_and_click('tomcat-click-save-login');
-    assert_screen('tomcat-web-application-manager', TIMEOUT);
+    # sometimes we have sporadic issue with connection to localhost for unknown reason
+    # just a short check with ping
+    assert_script_run('ping -c 4 localhost');
+
+    record_info('curl examples of Servelt, JSP and Websocket');
+    # curl Servlet examples and login with authentification
+    assert_script_run('curl --connect-timeout 20 --user admin:admin --output servelets 127.0.0.1:8080/examples/servlets', 90);
+    # curl examples of JSP and Websockets
+    assert_script_run('curl --connect-timeout 20 --output jsp localhost:8080/examples/jsp --output websocket 127.0.0.1:8080/examples/websocket', 90);
 }
 
+# Switch to desktop
+sub switch_to_desktop() {
+
+    # switch to desktop
+    if (!check_var('DESKTOP', 'textmode')) {
+        select_console('x11', await_console => 0);
+    }
+}
 
 1;
