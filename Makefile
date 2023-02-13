@@ -63,16 +63,7 @@ test_pod_whitespace_rule:
 
 .PHONY: test-yaml-valid
 test-yaml-valid:
-	$(eval YAMLS=$(shell sh -c "git ls-files schedule/ test_data/ | grep '\\.ya\?ml$$'"))
-	if test -n "$(YAMLS)"; then \
-		export PERL5LIB=${PERL5LIB_} ; echo "$(YAMLS)" | xargs tools/test_yaml_valid ;\
-		else \
-		echo "No yamls modified.";\
-	fi
-	if test -n "$(YAMLS)"; then \
-		which yamllint >/dev/null 2>&1 || echo "Command 'yamllint' not found, can not execute YAML syntax checks";\
-		echo "$(YAMLS)" | xargs yamllint -c .yamllint;\
-	fi
+	tools/check_yaml
 
 .PHONY: test-modules-in-yaml-schedule
 test-modules-in-yaml-schedule:
