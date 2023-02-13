@@ -6,8 +6,6 @@ setup_libyui:
   - installation/setup_libyui
 access_beta:
   - installation/access_beta_distribution
-product_selection:
-  - installation/product_selection/install_SLES
 license_agreement:
   - installation/licensing/accept_license
 configure_dasd_disks:

@@ -10,7 +10,6 @@ vars:
   YUI_REST_API: 1
 schedule:
   product_selection:
-    - installation/product_selection/install_SLES
     - installation/validate_no_self_update
   default_systemd_target:
     - installation/installation_settings/validate_default_target
