@@ -3,8 +3,10 @@ set -eu
 
 n_users="$1"
 
+killall -u user1
+sleep 1
+ps auxf|grep user1
+
 for i in `seq 1 $n_users` ; do
-	num=`printf "%02d" $i`
-	killall -9 -u "user${i}" || true
 	userdel -r "user${i}"
 done
