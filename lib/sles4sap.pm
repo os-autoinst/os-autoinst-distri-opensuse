@@ -679,7 +679,8 @@ returns a non-zero return value.
 
 sub check_hanasr_attr {
     my ($self, %args) = @_;
-    my $looptime = bmwqemu::scale_timeout($args{timeout} // 90);
+    $args{timeout} //= 90;
+    my $looptime = bmwqemu::scale_timeout($args{timeout});
     my $out;
 
     while ($out = script_output 'SAPHanaSR-showAttr') {
