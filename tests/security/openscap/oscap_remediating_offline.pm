@@ -38,7 +38,7 @@ sub run {
     ensure_generated_file($xccdf_result);
     prepare_remediate_validation;
 
-    validate_script_output_retry("oscap xccdf remediate --results $remediate_result $xccdf_result", sub { $remediate_match }, retry => 5, delay => 10);
+    validate_script_output("oscap xccdf remediate --results $remediate_result $xccdf_result", sub { $remediate_match });
     validate_result($remediate_result, $remediate_result_match);
 
     # Verify the remediate action result
