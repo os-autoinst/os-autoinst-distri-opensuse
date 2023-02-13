@@ -46,9 +46,9 @@ schedule:
     - jeos/build_key
     - console/prjconf_excluded_rpms
     - console/journal_check
-    - console/pam
     - microos/libzypp_config
     - console/suseconnect_scc
+    - console/pam
     - '{{maintenance}}'
     - '{{efi}}'
     - jeos/glibc_locale
