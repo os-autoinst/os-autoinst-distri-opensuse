@@ -53,12 +53,11 @@ sub post_fail_hook {
     $self->SUPER::post_fail_hook;
     # at this point the instance is shutdown
     return if (is_public_cloud() || is_openstack());
+    # Remaining log functions are executed in Utils::Logging::export_logs()
+    # called in opensusebasetest::post_fail_hook()
     select_console('log-console');
-    remount_tmp_if_ro;
+    show_oom_info;
     show_tasks_in_blocked_state;
-    export_logs_basic;
-    # Export extra log after failure for further check gdm issue 1127317, also poo#45236 used for tracking action on Openqa
-    export_logs_desktop;
 }
 
 =head2 record_avc_selinux_alerts

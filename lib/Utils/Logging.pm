@@ -17,6 +17,7 @@ use testapi;
 use utils qw(clear_console show_oom_info remount_tmp_if_ro detect_bsc_1063638);
 use Utils::Systemd 'get_started_systemd_services';
 use Mojo::File 'path';
+use serial_terminal 'select_serial_terminal';
 
 our @EXPORT = qw(
   save_and_upload_log
@@ -183,9 +184,7 @@ This method will call several other log gathering methods from this class.
 =cut
 
 sub export_logs {
-    select_log_console();
-    save_screenshot();
-    show_oom_info();
+    select_serial_terminal();
     remount_tmp_if_ro();
     export_logs_basic();
     problem_detection();
@@ -193,8 +192,6 @@ sub export_logs {
     # Just after the setup: let's see the network configuration
     save_and_upload_log("ip addr show", "/tmp/ip-addr-show.log");
     save_and_upload_log("cat /etc/resolv.conf", "/tmp/resolv-conf.log");
-
-    save_screenshot();
 
     export_logs_desktop();
 
@@ -336,8 +333,7 @@ Upload several KDE, GNOME, X11, GDM and SDDM related logs and configs.
 =cut
 
 sub export_logs_desktop {
-    select_log_console;
-    save_screenshot;
+    select_serial_terminal();
 
     if (check_var("DESKTOP", "kde")) {
         if (get_var('PLASMA5')) {
@@ -346,7 +342,7 @@ sub export_logs_desktop {
         else {
             tar_and_upload_log("/home/$username/.kde4/share/config/*rc", '/tmp/kde4_configs.tar.bz2');
         }
-        save_screenshot;
+        #save_screenshot;
     } elsif (check_var("DESKTOP", "gnome")) {
         tar_and_upload_log("/home/$username/.cache/gdm", '/tmp/gdm.tar.bz2');
     }
