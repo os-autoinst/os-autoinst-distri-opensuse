@@ -198,7 +198,7 @@ sub run_img_proof {
     $cmd .= '-u ' . $args{user} . ' ' if ($args{user});
     $cmd .= '--ssh-private-key-file "' . $self->ssh_key . '" ';
     $cmd .= '--running-instance-id "' . ($args{running_instance_id} // $args{instance}->instance_id) . '" ';
-    $cmd .= "--beta $beta " if ($beta);
+    $cmd .= "--beta " if ($beta);
     if ($exclude) {
         # Split exclusion tests by command and add them individually
         for my $excl (split ',', $exclude) {
