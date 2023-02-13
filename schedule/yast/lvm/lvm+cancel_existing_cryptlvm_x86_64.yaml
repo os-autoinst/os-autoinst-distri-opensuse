@@ -15,7 +15,6 @@ schedule:
     - installation/system_role/accept_selected_role_SLES_with_GNOME
   guided_partitioning:
     - installation/partitioning/lvm_ignore_existing
-    - installation/partitioning/accept_proposed_layout
   default_systemd_target:
     - installation/installation_settings/validate_default_target
   first_login:

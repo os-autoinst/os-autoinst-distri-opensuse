@@ -10,6 +10,7 @@ vars:
 schedule:
   expert_partitioning:
     - installation/partitioning/setup_raid1_lvm
+  suggested_partitioning: []
   default_systemd_target:
     - installation/installation_settings/validate_default_target
   system_validation:
