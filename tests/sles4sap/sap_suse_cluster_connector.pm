@@ -26,7 +26,7 @@ sub exec_conn_cmd {
     my $cmd = $args{cmd};
     $cmd .= " --out $args{log_file}" if ($args{log_file});
 
-    wait_for_idle_cluster;
+    wait_for_idle_cluster(timeout => 300);
     assert_script_run("$args{binary} $cmd", timeout => $timeout);
     if ($args{log_file}) {
         my $output = script_output("cat $args{log_file}", proceed_on_failure => 1);
