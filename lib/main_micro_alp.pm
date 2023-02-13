@@ -251,6 +251,8 @@ sub load_tests {
         load_installation_tests;
         # in 10G-disk tests, we don't run more tests
         return if check_var('HDDSIZEGB', '10');
+        # Stop here if we are testing only scc extensions (live, phub, ...) activation
+        return if get_var('SCC_ADDONS');
     }
 
     load_config_tests;
