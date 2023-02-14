@@ -423,5 +423,12 @@
             "sle-micro": [ "5.3" ]
         },
         "type": "bug"
+    },
+    "bsc#1207300": {
+        "description": "virtio_gpu virtio.*drm_plane_enable_fb_damage_clips() not called",
+        "products": {
+            "sle": ["15-SP5"]
+        },
+        "type": "ignore"
     }
 }
