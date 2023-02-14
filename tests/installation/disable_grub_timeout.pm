@@ -16,6 +16,7 @@ use base 'y2_installbase';
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_upgrade);
+use Utils::Architectures;
 
 sub run {
     my ($self) = shift;
@@ -53,7 +54,9 @@ sub run {
     # Depending on an optional button "release notes" we need to press "tab"
     # to go to the first tab
     send_key 'tab' unless match_has_tag 'inst-bootloader-settings-first_tab_highlighted';
-    send_key_until_needlematch 'inst-bootloader-options-highlighted', is_sle('15-SP5+') ? 'alt-t' : 'right';
+
+    my $bootloader_shortcut = (is_x86_64) ? 'alt-r' : 'alt-t';    # Seems now the bootloader shortcut is a different one
+    send_key_until_needlematch 'inst-bootloader-options-highlighted', is_sle('15-SP5+') ? $bootloader_shortcut : 'right';
     assert_screen 'installation-bootloader-options';
     # Select Timeout dropdown box and disable
     send_key 'alt-t';
