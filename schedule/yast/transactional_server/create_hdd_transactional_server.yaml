@@ -12,7 +12,7 @@ schedule:
     - installation/bootloader_start
     - installation/setup_libyui
     - installation/access_beta_distribution
-    - '{{install_sles}}'
+    - installation/product_selection/install_SLES
     - installation/licensing/accept_license
     - installation/registration/register_via_scc
     - installation/module_registration/register_module_transactional
@@ -37,8 +37,3 @@ schedule:
     - shutdown/grub_set_bootargs
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
-conditional_schedule:
-    install_sles:
-        ARCH:
-            aarch64:
-                - installation/product_selection/install_SLES
