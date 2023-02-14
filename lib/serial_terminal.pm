@@ -13,7 +13,7 @@ use autotest;
 use base 'Exporter';
 use Exporter;
 use bmwqemu ();
-use version_utils qw(is_sle is_leap is_sle_micro);
+use version_utils qw(is_sle is_leap is_sle_micro is_openstack);
 use Mojo::Util qw(b64_encode b64_decode sha1_sum trim);
 use Mojo::File 'path';
 use File::Basename;
@@ -79,6 +79,11 @@ sub prepare_serial_console {
 
     unless (is_qemu) {
         record_info('skip virtio', 'Skipped adding consoles due unsupported backend (only BACKEND=qemu supported)');
+        return;
+    }
+
+    if (is_openstack) {
+        record_info('skip virtio', 'Openstack Images do not have hvc consoles');
         return;
     }
 
