@@ -200,9 +200,13 @@ sub init_desktop_runner {
 
     mouse_hide(1);
     if (!check_screen('desktop-runner', $timeout)) {
-        record_info('workaround', "desktop-runner does not show up on $hotkey, retrying up to three times (see bsc#978027)");
-        send_key 'esc';    # To avoid failing needle on missing 'alt' key - poo#20608
-        send_key_until_needlematch 'desktop-runner', $hotkey, 4, 10;
+        record_info('workaround', "desktop-runner does not show up on $hotkey, retrying");
+        # To avoid failing needle on missing 'alt' key - poo#20608
+        send_key 'esc';
+        # It can take some time until KRunner is started
+        my $key_count = is_opensuse && check_var('DESKTOP', 'kde') ? 5 : 4;
+        my $key_timeout = is_opensuse && check_var('DESKTOP', 'kde') ? 20 : 10;
+        send_key_until_needlematch 'desktop-runner', $hotkey, $key_count, $key_timeout;
     }
     wait_still_screen(2);
     for (my $retries = 10; $retries > 0; $retries--) {
