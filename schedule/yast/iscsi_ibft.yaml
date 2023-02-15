@@ -17,7 +17,9 @@ schedule:
     - installation/system_role/accept_selected_role_SLES_with_GNOME
   guided_partitioning:
     - installation/partitioning/select_guided_setup
-    - installation/partitioning_iscsi
+    - installation/partitioning/guided_setup/select_disks
+    - installation/partitioning/guided_setup/accept_default_part_scheme
+    - installation/partitioning/guided_setup/accept_default_fs_options
   default_systemd_target:
     - installation/installation_settings/validate_default_target
   system_preparation:
@@ -27,3 +29,9 @@ schedule:
   system_validation:
     - shutdown/grub_set_bootargs
     - installation/validation/ibft
+test_data:
+  guided_partitioning:
+    disks:
+      - sda
+  unused_disks:
+    - vda
