@@ -849,8 +849,11 @@ sub is_quarterly_iso {
 
 Get SLES version from VERSION_ID in /etc/os-release. This subroutine also supports
 performing query on remote machine if dst_machine is given specific ip address or
-fqdn text of the remote machine. The default location that contains VERSION_ID is
-file /etc/os-release if nothing else is passed in to argument verid_file.
+fqdn text of the remote machine. If C<dst_machine> is given it will run on the remote
+as B<root>. To run it as another user, C<dst_machine> can be also specified as [user@]hostname.
+
+The default location that contains VERSION_ID is file /etc/os-release if nothing else
+is passed in to argument verid_file.
 
 =cut
 
@@ -860,7 +863,13 @@ sub get_version_id {
     $args{verid_file} //= '/etc/os-release';
 
     my $cmd = "cat $args{verid_file} | grep VERSION_ID | grep -Eo \"[[:digit:]]{1,}\\.[[:digit:]]{1,}\"";
-    $cmd = "ssh root\@$args{dst_machine} " . "$cmd" if ($args{dst_machine} ne 'localhost');
+    if ($args{dst_machine} ne 'localhost') {
+        if ($args{dst_machine} =~ /^(\w+)@.+/) {
+            $cmd = "ssh $args{dst_machine} " . "$cmd";
+        } else {
+            $cmd = "ssh root\@$args{dst_machine} " . "$cmd";
+        }
+    }
     return script_output($cmd);
 }
 
