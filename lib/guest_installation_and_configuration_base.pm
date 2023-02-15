@@ -33,6 +33,7 @@ use IO::Scalar;
 use List::Util qw(first);
 use testapi;
 use utils;
+use ipmi_backend_utils qw(reconnect_when_ssh_console_broken);
 use virt_utils;
 use virt_autotest::utils;
 use virt_autotest::virtual_network_utils;
@@ -1734,15 +1735,18 @@ sub start_guest_installation {
     my $_guest_installation_dryrun_log = "$common_log_folder/$self->{guest_name}/$self->{guest_name}" . "_installation_dryrun_log_" . $_start_installation_timestamp;
     my $_guest_installation_log = "$common_log_folder/$self->{guest_name}/$self->{guest_name}" . "_installation_log_" . $_start_installation_timestamp;
     assert_script_run("touch $_guest_installation_log && chmod 777 $_guest_installation_log");
-    if (script_run("set -o pipefail;$self->{virt_install_command_line_dryrun} 2>&1 | tee -a $_guest_installation_dryrun_log", timeout => 600 / get_var('TIMEOUT_SCALE', 1)) ne 0) {
-        record_info("Guest $self->{guest_name} installation dry run failed", "The virt-install command used is $self->{virt_install_command_line_dryrun}");
-        $self->record_guest_installation_result('FAILED');
+    # Dry run always timeout when downloading initrd from download.opensuse.org in O3
+    my $ret = script_run("set -o pipefail; $self->{virt_install_command_line_dryrun} 2>&1 | tee -a $_guest_installation_dryrun_log", timeout => 600 / get_var('TIMEOUT_SCALE', 1), die_on_timeout => 0);
+    save_screenshot;
+    unless (defined(script_run('set +o pipefail', die_on_timeout => 0))) {
+        reconnect_when_ssh_console_broken;
         script_run("set +o pipefail");
-        save_screenshot;
+    }
+    if ($ret ne 0) {
+        record_info("Guest $self->{guest_name} installation dry run failed", "The virt-install command used is $self->{virt_install_command_line_dryrun}", result => 'fail');
+        $self->record_guest_installation_result('FAILED');
         return $self;
     }
-    script_run("set +o pipefail");
-    save_screenshot;
     record_info("Guest $self->{guest_name} installation dry run succeeded", "Going to install by using $self->{virt_install_command_line}");
     #Use "screen" in the most compatible way, screen -t "title (window's name)" -c "screen configuration file" -L(turn on output logging) "command to run".
     #The -Logfile option is only supported by more recent operating systems.
