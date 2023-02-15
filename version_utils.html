@@ -333,7 +333,9 @@
 
 <pre><code>get_version_id(dst_machine =&gt; &#39;machine&#39;)</code></pre>
 
-<p>Get SLES version from VERSION_ID in /etc/os-release. This subroutine also supports performing query on remote machine if dst_machine is given specific ip address or fqdn text of the remote machine. The default location that contains VERSION_ID is file /etc/os-release if nothing else is passed in to argument verid_file.</p>
+<p>Get SLES version from VERSION_ID in /etc/os-release. This subroutine also supports performing query on remote machine if dst_machine is given specific ip address or fqdn text of the remote machine. If <code>dst_machine</code> is given it will run on the remote as <b>root</b>. To run it as another user, <code>dst_machine</code> can be also specified as [user@]hostname.</p>
+
+<p>The default location that contains VERSION_ID is file /etc/os-release if nothing else is passed in to argument verid_file.</p>
 
 <h1 id="POD-ERRORS">POD ERRORS</h1>
 
