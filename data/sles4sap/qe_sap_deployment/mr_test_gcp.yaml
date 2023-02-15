@@ -11,7 +11,6 @@ terraform:
     monitoring_os_major_version: "%HANA_OS_MAJOR_VERSION%"
     drdb_os_major_version: "%HANA_OS_MAJOR_VERSION%"
     netweaver_os_major_version: "%HANA_OS_MAJOR_VERSION%"
-    bastion_os_major_version: "%HANA_OS_MAJOR_VERSION%"
     private_key: "~/.ssh/id_rsa"
     public_key: "~/.ssh/id_rsa.pub"
     gcp_credentials_file: "/root/google_credentials.json"
