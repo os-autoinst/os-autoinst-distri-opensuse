@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use testapi;
 use version_utils qw(is_microos is_sle_micro);
+use Utils::Architectures qw(is_aarch64);
 
 sub run {
     select_console 'root-console';
@@ -23,7 +24,8 @@ sub run {
     die "Disk not bigger than the default size, got $disksize KiB" unless $disksize > (20 * 1024 * 1024);
 
     # Verify that there is no unpartitioned space left
-    validate_script_output("sfdisk --list-free /dev/$disk", qr/Unpartitioned space .* 0 sectors/);
+    my $left_sectors = (is_sle_micro("5.4+") && is_aarch64) ? 2048 : 0;
+    validate_script_output("sfdisk --list-free /dev/$disk", qr/Unpartitioned space .* $left_sectors sectors/);
 
     # Verify that the filesystem mounted at /var grew beyond the default 5GiB
     my $varsize = script_output "findmnt -rnboSIZE -T/var";
