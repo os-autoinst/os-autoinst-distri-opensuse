@@ -3,7 +3,7 @@ set -eu
 
 n_users="$1"
 
-killall -u user1
+killall -u user1 || true
 sleep 1
 ps auxf|grep user1
 
