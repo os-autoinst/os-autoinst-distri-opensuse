@@ -14,6 +14,7 @@ schedule:
   - installation/bootloader_start
   - installation/setup_libyui
   - installation/access_beta_distribution
+  - '{{install_sles}}'
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
   - installation/module_registration/skip_module_registration
@@ -40,3 +41,8 @@ schedule:
   - installation/performing_installation/confirm_reboot
   - installation/handle_reboot
   - installation/first_boot
+conditional_schedule:
+  install_sles:
+    ARCH:
+      aarch64:
+        - installation/product_selection/install_SLES
