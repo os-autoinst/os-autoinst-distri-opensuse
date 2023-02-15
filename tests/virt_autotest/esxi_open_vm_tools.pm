@@ -11,14 +11,32 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use virt_autotest::common;
 use virt_autotest::esxi_utils;
 use Time::Local;
+use Utils::Backends qw(is_qemu is_svirt);
+use version_utils qw(is_sle);
 
-our $VM_POWER_ON = 'Powered on';
-our $VM_POWER_OFF = 'Powered off';
+my $ssh_vm;
+my $scp_vm;
+my $VM_POWER_ON = 'Powered on';
+my $VM_POWER_OFF = 'Powered off';
 
 sub run {
-    my $vm_name = console('svirt')->name;
+    if (is_svirt) {
+        my $vm_name = console('svirt')->name;
+        run_tests($vm_name);
+    }
+    elsif (is_qemu) {
+        my $host_os_ver = get_var('DISTRI') . "s" . lc(get_var('VERSION') =~ s/-//r);
+        foreach my $guest (keys %virt_autotest::common::guests) {
+            run_tests($guest) if ($guest eq $host_os_ver || $guest eq "${host_os_ver}PV" || $guest eq "${host_os_ver}HVM");
+        }
+    }
+}
+
+sub run_tests {
+    my $vm_name = shift;
     my $vm_id = esxi_vm_get_vmid($vm_name);
     my $vm_ip = esxi_vm_public_ip($vm_id);
     chomp($vm_ip);
@@ -29,30 +47,38 @@ sub run {
 
     die "The variable \$vm_id or \$vm_ip cannot be empty." if ($vm_id eq "" || $vm_ip eq "");
 
-    do_sanity_checks();
-    do_power_management_tests($vm_id, $vm_ip);
+    if (is_svirt) {
+        $ssh_vm = "";
+    }
+    elsif (is_qemu) {
+        $ssh_vm = "ssh root\@$vm_name ";
+        $scp_vm = "scp root\@$vm_name";
+    }
+
+    do_sanity_checks($vm_ip);
+    do_power_mgmt_tests($vm_id, $vm_ip);
     do_networking_tests($vm_id, $vm_ip);
     do_clock_sync_tests($vm_name, $vm_id, $vm_ip);
 }
 
 sub do_sanity_checks {
-    assert_script_run('zypper -n in open-vm-tools') if (script_run('rpmquery open-vm-tools'));
+    my $vm_ip = shift;
 
-    assert_script_run("/usr/bin/vmware-checkvm | grep 'good'");
+    assert_script_run($ssh_vm . "rpmquery open-vm-tools || zypper -n in open-vm-tools");
+    assert_script_run($ssh_vm . "/usr/bin/vmware-checkvm | grep 'good'");
 
-    systemctl('status vmtoolsd');
-    systemctl('status vgauthd');
+    assert_script_run($ssh_vm . 'systemctl status vmtoolsd');
+    assert_script_run($ssh_vm . 'systemctl status vgauthd');
+    assert_script_run($ssh_vm . 'systemctl restart vmtoolsd');
 
-    systemctl('restart vmtoolsd');
-    assert_script_run("systemctl status vmtoolsd | grep 'Started open-vm-tools'");
+    assert_script_run($ssh_vm . "systemctl status vmtoolsd | grep 'Started open-vm-tools'");
+    assert_script_run($ssh_vm . "/usr/bin/vmtoolsd -v | grep 'VMware Tools daemon, version'");
 
-    assert_script_run("/usr/bin/vmtoolsd -v | grep 'VMware Tools daemon, version'");
+    assert_script_run($ssh_vm . 'vmware-toolbox-cmd logging level set vmtoolsd message');
+    assert_script_run($ssh_vm . "vmware-toolbox-cmd logging level get vmtoolsd | grep 'vmtoolsd.level = message'");
 
-    assert_script_run('vmware-toolbox-cmd logging level set vmtoolsd message');
-    assert_script_run("vmware-toolbox-cmd logging level get vmtoolsd | grep 'vmtoolsd.level = message'");
-
-    assert_script_run('vmware-toolbox-cmd logging level set vmtoolsd debug');
-    assert_script_run("vmware-toolbox-cmd logging level get vmtoolsd | grep 'vmtoolsd.level = debug'");
+    assert_script_run($ssh_vm . 'vmware-toolbox-cmd logging level set vmtoolsd debug');
+    assert_script_run($ssh_vm . "vmware-toolbox-cmd logging level get vmtoolsd | grep 'vmtoolsd.level = debug'");
 }
 
 sub take_vm_power_ops {
@@ -66,6 +92,8 @@ sub take_vm_power_ops {
         } else {
             return 1;
         }
+    } else {
+        return undef;
     }
 }
 
@@ -77,7 +105,7 @@ sub check_vm_power_state {
 
     if ($powerops_ret) {
         wait_for_vm_network($vm_ip, $if_pingable);
-    } elsif ($powerops_ret == undef) {
+    } elsif (!defined $powerops_ret) {
         return;
     } else {
         die "Not the correct VM state for guest $powerops.";
@@ -91,7 +119,7 @@ sub wait_for_vm_network {
     my $times = shift // 9;    # the number of ping execution
     my $count = shift // 3;    # ping waits for the count
     my $interval = shift // 5;    # wait secs between each ping
-    my $cmd;
+    my ($cmd, $is_nw_up);
 
     # This ping command is used for waiting VM bootup or shutdown
     if ($if_pingable) {
@@ -101,9 +129,15 @@ sub wait_for_vm_network {
     }
 
     # Monitor the networking after bring up/down the VM
-    while ($times && console('svirt')->run_cmd($cmd)) {
+    do {
+        if (is_svirt) {
+            $is_nw_up = console('svirt')->run_cmd($cmd);
+        }
+        elsif (is_qemu) {
+            $is_nw_up = script_run($cmd);
+        }
         $times--;
-    }
+    } while ($times && $is_nw_up);
 }
 
 sub login_vm_console {
@@ -137,16 +171,32 @@ sub get_epoch_time {
 sub init_guest_time {
     my $h_datetime = get_host_timestamp();
     # Get last day of the host time
-    my $last_day = script_output("date -u -d '$h_datetime last day' +'\%F \%T'");
+    my ($last_day, $g_datetime);
+
     # Set the guest time by using the variable $last_day
-    my $g_datetime = script_output("date -u -s '$last_day' +'\%F \%T'");
+    if (is_svirt) {
+        $last_day = script_output("date -u -d '$h_datetime last day' +'\%F \%T'");
+        $g_datetime = script_output("date -u -d '$h_datetime last day' +'\%F \%T'");
+    }
+    elsif (is_qemu) {
+        $last_day = script_output(qq($ssh_vm "date -u -d '$h_datetime last day' +'\%F \%T'"));
+        $g_datetime = script_output(qq($ssh_vm "date -u -s '$last_day' +'\%F \%T'"));
+    }
 
     return $g_datetime;
 }
 
 sub get_diff_seconds {
     my $h_datetime = get_host_timestamp();
-    my $g_datetime = script_output("date -u +'\%F \%T'");
+    my $g_datetime;
+
+    if (is_svirt) {
+        $g_datetime = script_output("date -u +'\%F \%T'");
+    }
+    elsif (is_qemu) {
+        $g_datetime = script_output(qq($ssh_vm "date -u +'\%F \%T'"));
+    }
+
     my $h_timesec = get_epoch_time($h_datetime);
     my $g_timesec = get_epoch_time($g_datetime);
     my $diff_secs = abs(int($g_timesec - $h_timesec));
@@ -158,12 +208,12 @@ sub get_diff_seconds {
     return $diff_secs;
 }
 
-sub do_power_management_tests {
+sub do_power_mgmt_tests {
     my ($vm_id, $vm_ip) = @_;
     my ($powerops, $powerops_ret);
 
     record_info('Power Manangement Tests');
-    select_console('svirt');
+    select_console('svirt') if (is_svirt);
 
     record_info('Guest Power Shutdown');
     $powerops = 'power.shutdown';
@@ -175,8 +225,8 @@ sub do_power_management_tests {
     $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_OFF);
     check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
 
-    record_info('Guest Power Restart');
-    $powerops = 'power.restart';
+    record_info('Guest Power Reboot');
+    $powerops = 'power.reboot';
     $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
     check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
 
@@ -204,11 +254,17 @@ sub do_networking_tests {
     my $vswitch_name = esxi_vm_network_binding($vm_id);
     record_info('VSwitch Name', $vswitch_name);
 
-    login_vm_console();
+    login_vm_console() if (is_svirt);
 
     # Test network via assigned IPv4 address
-    assert_script_run("ping -I $vm_ip -4 -c3 openqa.suse.de");
-    assert_script_run("ping -I $vm_ip -4 -c3 www.suse.com");
+    if (is_sle('15+')) {
+        assert_script_run($ssh_vm . "ping -I $vm_ip -4 -c3 openqa.suse.de");
+        assert_script_run($ssh_vm . "ping -I $vm_ip -4 -c3 www.suse.com");
+    }
+    else {
+        assert_script_run($ssh_vm . "ping -I $vm_ip -c3 openqa.suse.de");
+        assert_script_run($ssh_vm . "ping -I $vm_ip -c3 www.suse.com");
+    }
 }
 
 sub do_clock_sync_tests {
@@ -221,15 +277,15 @@ sub do_clock_sync_tests {
     $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_OFF);
     check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
 
-    select_console('sut') if (current_console() ne 'sut');
+    select_console('sut') if (is_svirt && current_console() ne 'sut');
 
     # Set the last day of host time in guest before enabling timesync service
     $g_init_time = init_guest_time();
     record_info('Guest current time before time sync enabled', $g_init_time);
 
     # Enable timesync service in guest VM
-    if (script_output('vmware-toolbox-cmd timesync status', proceed_on_failure => 1, timeout => 90) eq 'Disabled') {
-        assert_script_run('vmware-toolbox-cmd timesync enable', timeout => 90);
+    if (script_output($ssh_vm . 'vmware-toolbox-cmd timesync status', proceed_on_failure => 1, timeout => 90) eq 'Disabled') {
+        assert_script_run($ssh_vm . 'vmware-toolbox-cmd timesync enable', timeout => 90);
     }
 
     # Check the time difference between host and guest after timesync service enabled
@@ -242,7 +298,7 @@ sub do_clock_sync_tests {
     }
 
     # Disable clock sync tests
-    select_console('svirt');
+    select_console('svirt') if (is_svirt);
 
     $powerops = 'power.shutdown';
     $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
@@ -254,7 +310,7 @@ sub do_clock_sync_tests {
     $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_OFF);
     check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
 
-    login_vm_console();
+    login_vm_console() if (is_svirt);
 
     # Set guest time with a given time which different from host time
     $g_init_time = init_guest_time();
@@ -268,21 +324,49 @@ sub do_clock_sync_tests {
     } else {
         die 'Disabling clock synchronization failed.';
     }
+
+    if (is_qemu) {
+        record_info('Revert VM timesync configs');
+        $powerops = 'power.shutdown';
+        $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
+        check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 0, $VM_POWER_OFF);
+
+        revert_vm_timesync_setting($vm_name);
+
+        $powerops = 'power.on';
+        $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_OFF);
+        check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
+    }
 }
 
 sub post_fail_hook {
     select_console 'log-console';
 
     # Upload open-vm-tools backend service logs
-    upload_logs '/var/log/vmware-network.log';
-    upload_logs '/var/log/vmware-vgauthsvc.log.0';
-    upload_logs '/var/log/vmware-vmsvc-root.log';
-    upload_logs '/var/log/vmware-vmtoolsd-root.log';
+    if (is_svirt) {
+        upload_logs '/var/log/vmware-network.log';
+        upload_logs '/var/log/vmware-vgauthsvc.log.0';
+        upload_logs '/var/log/vmware-vmsvc-root.log';
+        upload_logs '/var/log/vmware-vmtoolsd-root.log';
+    }
+    elsif (is_qemu) {
+        assert_script_run($ssh_vm . "'cat /var/log/vmware-network.log' > vmware-network.log");
+        assert_script_run($ssh_vm . "'cat /var/log/vmware-vgauthsvc.log.0' > vmware-vgauthsvc.log.0");
+        assert_script_run($ssh_vm . "'cat /var/log/vmware-vmsvc-root.log' > vmware-vmsvc-root.log");
+        assert_script_run($ssh_vm . "'cat /var/log/vmware-vmtoolsd-root.log' > vmware-vmtoolsd-root.log");
+
+        upload_logs 'vmware-network.log';
+        upload_logs 'vmware-vgauthsvc.log.0';
+        upload_logs 'vmware-vmsvc-root.log';
+        upload_logs 'vmware-vmtoolsd-root.log';
+    }
 
     # Upload guest diagnostic information
-    if (script_run('/usr/bin/vm-support') == 0) {
-        my $vm_logs_tarball = script_output('ls vm-*.tar.gz');
+    if (script_run($ssh_vm . '/usr/bin/vm-support') == 0) {
+        my $vm_logs_tarball = script_output($ssh_vm . 'ls vm-*.tar.gz');
+        assert_script_run("$scp_vm:~/$vm_logs_tarball .") if (is_qemu);
         upload_logs $vm_logs_tarball;
+        assert_script_run($ssh_vm . "rm ~/$vm_logs_tarball") if (is_qemu);
     }
 }
 

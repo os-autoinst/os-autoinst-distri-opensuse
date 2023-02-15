@@ -20,6 +20,9 @@ sub run {
     select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
     my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
+    # Backup ssh key pairs
+    assert_script_run 'mkdir ~/backup && cp ~/.ssh/* ~/backup';
+
     # Remove old files
     assert_script_run 'rm ~/.ssh/* || true';
 
@@ -45,6 +48,9 @@ sub run {
     my ($sles_running_version, $sles_running_sp) = get_os_release();
     zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_" . $sles_running_version . "/SUSE:CA.repo", exitcode => [0, 4, 102, 103, 106]);
     zypper_call("in ca-certificates-suse", exitcode => [0, 102, 103, 106]);
+
+    # Revert ssh key pairs
+    assert_script_run 'rm -rf ~/.ssh/* && cp -f ~/backup/* ~/.ssh/';
 }
 
 sub test_flags {
