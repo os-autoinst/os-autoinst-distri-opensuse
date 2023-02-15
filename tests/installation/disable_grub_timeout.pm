@@ -55,7 +55,8 @@ sub run {
     # to go to the first tab
     send_key 'tab' unless match_has_tag 'inst-bootloader-settings-first_tab_highlighted';
 
-    my $bootloader_shortcut = (is_x86_64) ? 'alt-r' : 'alt-t';    # Seems now the bootloader shortcut is a different one
+    # Seems like difference between UEFI and Legacy for sle15sp5+.
+    my $bootloader_shortcut = (is_x86_64) ? ((check_var('UEFI', '1')) ? 'alt-t' : 'alt-r') : 'alt-t';    # Seems now the bootloader shortcut is a different one
     send_key_until_needlematch 'inst-bootloader-options-highlighted', is_sle('15-SP5+') ? $bootloader_shortcut : 'right';
     assert_screen 'installation-bootloader-options';
     # Select Timeout dropdown box and disable
