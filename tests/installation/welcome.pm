@@ -77,10 +77,11 @@ sub get_product_shortcuts {
         # Full (15-SP4)     s
         return (sles => 's') if (get_var('ISO') =~ /Full/ && is_ppc64le() && get_var('NTLM_AUTH_INSTALL'));
         return (
-            sles => (is_ppc64le() || is_s390x()) ? 'u'
+            sles => (is_sle '15-SP5+') ? 's'    # for now treat 15-SP5+ as if they would have new shortcuts
+            : (is_ppc64le() || is_s390x()) ? 'u'    # s390 doesn't have a product selection screen for now
             : is_aarch64() ? 's'
             : ((is_sle '=15-SP4') && (get_var('ISO') =~ /Full/)) ? 's'
-            : (is_sle '=15-SP5') ? 's' : 'i',
+            : 'i',
             sled => 'x',
             hpc => is_x86_64() ? 'g' : 'u',
             rt => is_x86_64() ? 't' : undef
