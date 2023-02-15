@@ -35,6 +35,7 @@ conditional_schedule:
                 - jeos/firstrun
             'cloud-init':
                 - installation/first_boot
+                - console/system_prepare
 schedule:
     - '{{bootloader}}'
     - '{{wizard}}'
