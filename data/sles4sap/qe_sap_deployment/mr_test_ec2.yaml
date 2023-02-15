@@ -10,14 +10,12 @@ terraform:
     private_key: "~/.ssh/id_rsa"
     aws_credentials: "/root/amazon_credentials"
     os_image: "%QESAP_CLUSTER_OS_VER%"
-    os_owner: "amazon"
 
     hana_os_major_version: "%VERSION%"
     iscsi_os_major_version: "%VERSION%"
     monitoring_os_major_version: "%VERSION%"
     drdb_os_major_version: "%VERSION%"
     netweaver_os_major_version: "%VERSION%"
-    bastion_os_major_version: "%VERSION%"
 
     # HANA
     hana_cluster_fencing_mechanism: "%FENCING_MECHANISM%"
