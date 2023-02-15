@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_public_cloud);
+use version_utils qw(is_sle is_public_cloud get_version_id);
 use registration;
 
 our @EXPORT = qw(
@@ -65,7 +65,12 @@ sub register_addon {
     } elsif (is_sle('<15') && $addon =~ /sdk|we/) {
         ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch, '', $timeout, $retries, $delay);
     } else {
-        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), undef, $arch, '', $timeout, $retries, $delay);
+        if ($addon =~ /nvidia/i) {
+            (my $version = get_version_id(dst_machine => $remote)) =~ s/^(\d+).*/$1/m;
+            ssh_add_suseconnect_product($remote, get_addon_fullname($addon), $version, $arch, '', $timeout, $retries, $delay);
+        } else {
+            ssh_add_suseconnect_product($remote, get_addon_fullname($addon), undef, $arch, '', $timeout, $retries, $delay);
+        }
     }
     record_info('SUSEConnect time', 'The command SUSEConnect -r ' . get_addon_fullname($addon) . ' took ' . (time() - $cmd_time) . ' seconds.');
 }
@@ -107,6 +112,7 @@ sub register_addons_in_pc {
     my ($instance) = @_;
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
     my $remote = $instance->username . '@' . $instance->public_ip;
+    $instance->ssh_assert_script_run(cmd => "ssh $remote sudo zypper -n --gpg-auto-import-keys ref", timeout => 300);
     for my $addon (@addons) {
         next if ($addon =~ /^\s+$/);
         register_addon($remote, $addon);
