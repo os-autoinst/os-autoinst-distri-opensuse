@@ -428,7 +428,9 @@ sub qesap_ansible_cmd {
         '-u', $args{user},
         '-b', '--become-user=root',
         '-a', "\"$args{cmd}\"");
+    enter_cmd("source " . QESAPDEPLOY_VENV . "/bin/activate");
     assert_script_run($ansible_cmd);
+    enter_cmd("deactivate");
 }
 
 
@@ -492,7 +494,9 @@ sub qesap_ansible_script_output {
         '-e', "out_file='$local_file'");
 
     enter_cmd "rm $local_tmp";
+    enter_cmd("source " . QESAPDEPLOY_VENV . "/bin/activate");    # venv activate
     assert_script_run(join(' ', @ansible_cmd));
+    enter_cmd("deactivate");    #venv deactivate
     my $output = script_output("cat $local_tmp");
     enter_cmd "rm $local_tmp";
     return $output;

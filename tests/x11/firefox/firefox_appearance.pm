@@ -35,6 +35,8 @@ sub run {
         assert_and_click 'firefox-appearance-addto';
         if (check_screen("firefox-appearance-addto-permissions_requested", 10)) {
             assert_and_click "firefox-appearance-addto-permissions_requested";
+            # poo#124095, sporadic issue for matching 'firefox-appearance-installed'
+            wait_still_screen 60;
         }
         last if check_screen 'firefox-appearance-installed', 90;
     }

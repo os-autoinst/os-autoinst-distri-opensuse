@@ -2303,7 +2303,7 @@ sub permit_root_ssh_in_sol {
     my $sshd_config_file = shift;
 
     $sshd_config_file //= "/etc/ssh/sshd_config";
-    enter_cmd("[ `grep \"^PermitRootLogin *yes\" $sshd_config_file | wc -l` -gt 0 ] || (echo 'PermitRootLogin yes' >>$sshd_config_file; systemctl restart sshd)");
+    enter_cmd("[ `grep \"^PermitRootLogin *yes\" $sshd_config_file | wc -l` -gt 0 ] || (echo 'PermitRootLogin yes' >>$sshd_config_file; systemctl restart sshd)", wait_still_screen => 5);
 }
 
 =head2 cleanup_disk_space

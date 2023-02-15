@@ -26,7 +26,7 @@ sub run {
     zypper_call "in autoyast2";
 
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'clone_system');
-    my $timeout = is_aarch64 ? 1200 : 360;
+    my $timeout = is_aarch64 ? 1200 : 720;
     wait_serial("$module_name-0", $timeout) || die "'yast2 clone_system' didn't finish";
 
     # Workaround for aarch64, as ncurces UI is not updated properly sometimes
