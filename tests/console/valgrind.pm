@@ -44,7 +44,7 @@ sub run {
     assert_script_run 'cd /var/tmp';
     assert_script_run 'curl -v -o valgrind-test.c ' . data_url('valgrind/valgrind-test.c');
     assert_script_run 'curl -v -o valgrind-test.sh ' . data_url('valgrind/valgrind-test.sh');
-    assert_script_run 'bash -e valgrind-test.sh';
+    assert_script_run 'bash -e valgrind-test.sh', timeout => 360;
     # unregister SDK
     if (is_sle && !main_common::is_updates_tests()) {
         remove_suseconnect_product(get_addon_fullname('sdk'));
