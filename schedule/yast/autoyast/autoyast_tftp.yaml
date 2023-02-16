@@ -30,7 +30,7 @@ test_data:
     - path: /etc/hosts
       entries:
         - '10.226.154.19\tnew.entry.de h999uz'
-    - path: /etc/chrony.conf
+    - path: /etc/chrony.d/pool.conf
       entries:
         - pool ntp.suse.de iburst
         - driftfile /var/lib/chrony/drift

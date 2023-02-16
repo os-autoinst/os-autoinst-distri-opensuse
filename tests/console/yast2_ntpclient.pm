@@ -165,7 +165,7 @@ sub run {
     script_run('sed -i \'s/^\\(NTPD_FORCE_SYNC_ON_STARTUP=\\).*$/\\1yes/\' /etc/sysconfig/ntp') if (!$is_chronyd);
 
     # Verify that ntp server is added to the config file
-    assert_script_run("grep 'pool $ntp_server' /etc/chrony.conf") if $is_chronyd;
+    assert_script_run("grep 'pool $ntp_server' /etc/chrony.d/pool.conf") if $is_chronyd;
 
     # restart ntp daemon
     systemctl "restart $ntp_service.service";
