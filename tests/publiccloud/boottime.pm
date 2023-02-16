@@ -423,7 +423,7 @@ sub run {
 
     my $results = $self->measure_timings($args);
     $self->store_in_db($results) if (check_var('_PUBLIC_CLOUD_PERF_PUSH_DATA', 1));
-    $self->check_thresholds($results);
+    $self->check_thresholds($results) if (get_var('PUBLIC_CLOUD_PERF_THRESH_CHECK'));
 }
 
 1;

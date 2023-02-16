@@ -301,8 +301,9 @@ PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE | boolean | false | Do not remove the instanc
 PUBLIC_CLOUD_PERF_DB_URI | string | "" | If set, the bootup times get stored in the influx database. (e.g. PUBLIC_CLOUD_PERF_DB_URI=http://publiccloud-ng.qe.suse.de:8086)
 PUBLIC_CLOUD_PERF_DB | string | "perf" | If `PUBLIC_CLOUD_PERF_DB_URI` is defined, this variable defines the bucket in which the performance metrics are stored
 PUBLIC_CLOUD_PERF_DB_ORG | string | "qec" | If `PUBLIC_CLOUD_PERF_DB_URI` is defined, this variable defines the organization in which the performance metrics are stored
-_PUBLIC_CLOUD_PERF_DB_TOKEN | string | "" | | If `PUBLIC_CLOUD_PERF_DB_URI` is defined, this required variable is the access token
+_PUBLIC_CLOUD_PERF_DB_TOKEN | string | "" | If `PUBLIC_CLOUD_PERF_DB_URI` is defined, this required variable is the access token
 _PUBLIC_CLOUD_PERF_PUSH_DATA | boolean | "" | If set to `1`, then the test run will push it's metrics to the InfluxDB. This variable is used as secret variable, so that cloned jobs by default do not push metrics to avoid accidental database contamination.
+PUBLIC_CLOUD_PERF_THRESH_CHECK | boolean | "" | If set to `1` or any not empty value, then the test run will _also_ execute the thresholds check on the collected metrics. By _default_ that check is _Not executed_.
 PUBLIC_CLOUD_PREPARE_TOOLS | boolean | false | Activate prepare_tools test module by setting this variable.
 PUBLIC_CLOUD_GOOGLE_PROJECT_ID | string | "" | GCP only, used to specify the project id.
 PUBLIC_CLOUD_PROVIDER | string | "" | The type of the CSP (e.g. AZURE, EC2, GCE).
