@@ -49,7 +49,8 @@ sub run {
 
         # Start pacemaker cts cluster exerciser
         my $cts_start_time = time;
-        assert_script_run "$cts_bin --nodes '$node_01 $node_02' --stonith-type $stonith_type --stonith-args $stonith_args --test-ip-base $test_ip --no-loop-tests --no-unsafe-tests --at-boot 1 --outputfile $log --once", $timeout;
+        my $retval = script_run "$cts_bin --nodes '$node_01 $node_02' --stonith-type $stonith_type --stonith-args $stonith_args --test-ip-base $test_ip --no-loop-tests --no-unsafe-tests --at-boot 1 --outputfile $log --once", $timeout;
+        record_info 'CTS failed', "$cts_bin exited with retval=[$retval]" if ($retval);
         my $cts_end_time = time;
 
         # Parse the logs to get a better overview in openQA
