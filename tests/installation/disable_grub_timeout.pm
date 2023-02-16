@@ -56,11 +56,15 @@ sub run {
     send_key 'tab' unless match_has_tag 'inst-bootloader-settings-first_tab_highlighted';
 
     # Seems like difference between UEFI and Legacy for sle15sp5+.
+    my $is_textmode = check_var('VIDEOMODE', 'text');    # bsc#1208266 only happens in textmode,
+                                                         # so the workaround is only needed here
+    my $bsc_1208266_needed = is_sle('15-SP5+') && $is_textmode;
+
     my $bootloader_shortcut = (is_x86_64) ?
       ((check_var('UEFI', '1')) ? 'alt-t' : 'alt-r')    # uefi on x86 has different behavior
       : 'alt-t';    # t is the default for non x86
 
-    send_key_until_needlematch 'inst-bootloader-options-highlighted', is_sle('15-SP5+') ? $bootloader_shortcut : 'right';
+    send_key_until_needlematch 'inst-bootloader-options-highlighted', $bsc_1208266_needed ? $bootloader_shortcut : 'right';
     assert_screen 'installation-bootloader-options';
     # Select Timeout dropdown box and disable
     send_key 'alt-t';
