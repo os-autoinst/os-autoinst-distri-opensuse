@@ -29,7 +29,7 @@ my $webui_hostname = get_var('WEBUI_HOSTNAME');
 my $nfs_hostname = get_var('NFS_HOSTNAME');
 my $qemu_worker_class = get_var('QEMU_WORKER_CLASS');
 #Set IPMI2QEMU_PKGS to custom packages installation
-my $zypper_add_pkgs = get_var('IPMI2QEMU_PKGS', 'openQA-worker,perl-DBIx-Class-DeploymentHandler,perl-YAML-Tiny,perl-Test-Assert,perl-JSON,perl-XML-Simple,perl-DateTime,perl-Path-Tiny');
+my $zypper_add_pkgs = get_var('IPMI2QEMU_PKGS', 'openQA-worker,perl-DBIx-Class-DeploymentHandler,perl-YAML-Tiny,perl-Test-Assert,perl-JSON,perl-XML-Simple,perl-DateTime,perl-Path-Tiny,perl-SemVer,perl-NetAddr-IP');
 sub run {
     my $self = shift;
     my $current_dist;
