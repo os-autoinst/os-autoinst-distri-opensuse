@@ -64,13 +64,7 @@ sub run {
     wait_serial("$module_name-0", 200) || die "'yast2 $module_name' didn't finish";
     $self->{in_wait_boot} = 1;
     record_info 'Snapshot created', 'booting the system into created snapshot';
-    if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
-        record_info('workaround for poo#123999');
-        power_action('reboot', textmode => 1, keepconsole => 1);
-    }
-    else {
-        power_action('reboot', keepconsole => 1);
-    }
+    power_action('reboot', keepconsole => 1);
     $self->wait_grub(bootloader_time => 350);
     send_key_until_needlematch("boot-menu-snapshot", 'down', 11, 5);
     send_key 'ret';
