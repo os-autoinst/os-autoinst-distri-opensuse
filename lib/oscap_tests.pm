@@ -142,7 +142,7 @@ sub rules_count_in_file {
     for my $i (0 .. $#lines) {
         for my $j (0 .. $#a_rules) {
             # Check if not getting outside array
-            if ($#lines <= $i + 4) {
+            if ($#lines >= $i + 4) {
                 if ($lines[$i] =~ /$a_rules[$j]/ and $lines[$i + 4] =~ /$pattern/) {
                     $count++;
                     push(@rules, $lines[$i]);
