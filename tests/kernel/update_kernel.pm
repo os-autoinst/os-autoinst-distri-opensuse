@@ -401,8 +401,8 @@ sub run {
         $incident_id = get_required_var('INCIDENT_ID');
     }
 
-    $kernel_package = 'kernel-rt' if check_var('SLE_PRODUCT', 'slert');
     $kernel_package = 'kernel-default-base' if is_sle('=11-SP4');
+    $kernel_package = 'kernel-rt' if check_var('SLE_PRODUCT', 'slert');
 
     if (get_var('KGRAFT')) {
         my $incident_klp_pkg = prepare_kgraft($repo, $incident_id);
