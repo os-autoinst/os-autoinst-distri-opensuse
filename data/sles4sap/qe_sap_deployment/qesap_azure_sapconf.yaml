@@ -7,6 +7,8 @@ terraform:
     os_image: "%QESAP_CLUSTER_OS_VER%"
     private_key: "%SSH_KEY_PRIV%"
     public_key: "%SSH_KEY_PUB%"
+    hana_remote_python: "%ANSIBLE_REMOTE_PYTHON%"
+    iscsi_remote_python: "%ANSIBLE_REMOTE_PYTHON%"
 
 ansible:
   az_storage_account_name: "%HANA_ACCOUNT%"
