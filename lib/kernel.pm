@@ -13,7 +13,14 @@ our @EXPORT_OK = qw(
 );
 
 sub remove_kernel_packages {
-    my @packages = qw(kernel-default kernel-default-devel kernel-macros kernel-source);
+    my @packages;
+
+    if (check_var('SLE_PRODUCT', 'slert')) {
+        @packages = qw(kernel-rt kernel-rt-devel kernel-source-rt);
+    }
+    else {
+        @packages = qw(kernel-default kernel-default-devel kernel-macros kernel-source);
+    }
 
     # SLE12 and SLE12SP1 has xen kernel
     if (is_sle('<=12-SP1')) {
