@@ -1,0 +1,29 @@
+---
+name:           textmode_install@64bit-staging
+description:    >
+  Simple textmode installation with VIDEOMODE text mode and configure machine
+  with 1 cpu and 2 GB RAM, related bug bsc#1207284
+vars:
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
+  - installation/licensing/accept_license
+  - installation/registration/register_via_scc
+  - installation/module_registration/skip_module_registration
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_text_mode
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
+  - installation/performing_installation/perform_installation
+  - installation/logs_from_installation_system
+  - installation/performing_installation/confirm_reboot
+  - installation/grub_test
+  - installation/first_boot
