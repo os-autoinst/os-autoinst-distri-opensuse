@@ -29,7 +29,7 @@ sub run {
 
     record_info("Check server", "Check if the configured time synchronization server is the expected one.");
     my $expected_server = $test_data->{profile}->{'ntp-client'}->{ntp_servers}->{ntp_server}->{address};
-    my $chrony_conf = script_output("cat /etc/chrony.conf");
+    my $chrony_conf = script_output("cat /etc/chrony.d/pool.conf");
     $chrony_conf =~ /(\R|^)pool\s(?<server>\S+)/;
     assert_equals($expected_server, $+{server});
 
