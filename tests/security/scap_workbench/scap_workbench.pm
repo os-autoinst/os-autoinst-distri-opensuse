@@ -29,31 +29,26 @@ sub run {
     select_console('x11');
     x11_start_program('xterm');
 
+    # Load 'SLE15' content if the system is sle, otherwise opensuse
+    my $system = is_sle() ? "sle15" : "opensuse";
+    my $content_to_load = "/usr/share/xml/scap/ssg/content/ssg-$system-ds.xml";
+
     # Start scap-workbench
     record_info('Start scap-workbench');
-    enter_cmd('scap-workbench &');
-    assert_screen('scap-workbench-started', timeout => 120);
-
-    # Load 'SLE15' content if the system is sle
-    if (is_sle()) {
-        record_info('Load SLE15');
-        assert_and_click('scap-workbench-Select-content-to-load');
-        assert_and_click('scap-workbench-Sle15');
-    }
-    assert_and_click('scap-workbench-Load-Content');
-
+    enter_cmd("scap-workbench $content_to_load &");
     # Customize profile
     record_info('Customize profile');
-    assert_and_click('scap-workbench-Customize');
-    assert_and_click('scap-workbench-Customize-Profile-OK');
-    assert_and_click('scap-workbench-Customize-OK');
+    assert_and_click('scap-workbench-Customize', timeout => 180);
+    assert_and_click('scap-workbench-Customize-Profile-OK', timeout => 180);
+    assert_and_click('scap-workbench-Customize-OK', timeout => 180);
 
     # Scan system
     record_info('Scan system');
     assert_and_click('scap-workbench-Scan');
     authentication_required();
+    # SLE file has 3x size so requires more time to scan
     if (is_sle()) {
-        assert_and_click('scap-workbench-Diagnostics-Close', timeout => 300);
+        assert_and_click('scap-workbench-Diagnostics-Close', timeout => 600);
         assert_screen('scap-workbench-Scan-Done');
     }
 
@@ -61,7 +56,7 @@ sub run {
     record_info('Show scan report');
     assert_and_click('scap-workbench-Show-Report');
     # Firefox will be started automatically
-    assert_screen('scap-workbench-OpenSCAP-Evaluation-Report', timeout => 120);
+    assert_screen('scap-workbench-OpenSCAP-Evaluation-Report', timeout => 180);
     assert_and_click('scap-workbench-OpenSCAP-Evaluation-Report-Close');
 
     # Save Results after 'Scan': XCCDF, ARF, HTML
@@ -100,7 +95,7 @@ sub run {
     assert_and_click('scap-workbench-Scan');
     authentication_required();
     if (is_sle()) {
-        assert_and_click('scap-workbench-Diagnostics-Close', timeout => 300);
+        assert_and_click('scap-workbench-Diagnostics-Close', timeout => 600);
         assert_screen('scap-workbench-Scan-Done');
     }
 
@@ -109,7 +104,6 @@ sub run {
 
     # Check the 'Scan' 'report' files are saved: XCCDF, ARF, HTML
     # Check the 'Remediate' files are saved: bash, ansible, puppet
-    my $system = is_sle() ? "sle15" : "opensuse";
     my @files = (
         "ssg-$system-ds-xccdf.results.xml",
         "ssg-$system-ds-arf.xml",
