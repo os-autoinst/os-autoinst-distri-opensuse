@@ -31,6 +31,7 @@ schedule:
   - console/gd
   - console/systemtap
   - console/vsftpd
+  - network/samba/samba_adcli
   - '{{version_specific}}'
   - console/coredump_collect
 conditional_schedule:
