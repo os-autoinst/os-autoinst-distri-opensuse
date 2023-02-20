@@ -16,6 +16,7 @@ schedule:
     - installation/partitioning/guided_setup/select_filesystem_option_ext4
   default_systemd_target:
     - installation/installation_settings/validate_default_target
+  stop_timeout_system_reboot: []
   system_validation:
     - console/validate_partition_table_via_blkid
     - console/validate_blockdevices
