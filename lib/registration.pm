@@ -697,7 +697,9 @@ sub handle_scc_popups {
                 next;
             }
             elsif (match_has_tag("remove-repository")) {
+                wait_still_screen 10;
                 send_key $cmd{next};
+                wait_still_screen 10;
                 next;
             }
             elsif (match_has_tag('leap-to-sle-registrition-finished')) {
