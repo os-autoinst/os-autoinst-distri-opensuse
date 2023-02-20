@@ -87,7 +87,7 @@ conditional_schedule:
                 - console/supportutils
                 - console/zziplib
                 - console/vsftpd
-                - console/python310_version_check
+                - console/python3_new_version_check
     tumbleweed_tests:
         VERSION:
             'Tumbleweed':
@@ -95,7 +95,7 @@ conditional_schedule:
                 - console/systemd_rpm_macros
                 - console/vsftpd
                 - console/python_flake8
-                - console/python310_version_check
+                - console/python3_new_version_check
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
