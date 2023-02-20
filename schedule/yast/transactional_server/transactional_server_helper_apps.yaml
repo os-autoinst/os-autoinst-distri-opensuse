@@ -15,11 +15,4 @@ schedule:
   - transactional/filesystem_ro
   - transactional/transactional_update
   - transactional/rebootmgr
-  - '{{health_check}}'
-conditional_schedule:
-  health_check:
-    BACKEND:
-      qemu:
-        - transactional/health_check
-      svirt:
-        - transactional/health_check
+  - transactional/health_check
