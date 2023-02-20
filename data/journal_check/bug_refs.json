@@ -58,7 +58,7 @@
         "description": "Failed unmounting \/\\S+\\.|-- Reboot --|pam_systemd.*Failed to release session",
         "products": {
             "sle-micro": [ "5.0", "5.1", "5.2", "5.3" , "5.4"],
-            "leap-micro": [ "5.2", "5.3" ],
+            "leap-micro": [ "5.2", "5.3", "5.4" ],
             "microos":  ["Tumbleweed"],
             "alp":  ["0.1", "0.1:S:A", "0.1:S:B"]
         },
@@ -320,7 +320,7 @@
         "description": "health-checker/fail.sh check\" failed|Machine didn't come up correct, do a rollback",
         "products": {
             "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" ],
-            "leap-micro": ["5.2", "5.3"],
+            "leap-micro": ["5.2", "5.3", "5.4"],
             "microos":  ["Tumbleweed"],
             "alp":  ["0.1", "0.1:S:A", "0.1:S:B"]
         },
