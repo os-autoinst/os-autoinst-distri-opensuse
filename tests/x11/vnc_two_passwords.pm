@@ -28,7 +28,7 @@ use utils;
 use Utils::Architectures qw(is_aarch64);
 
 # set global timeout, increased for aarch64
-my $timeout = (is_aarch64 && is_sle) ? 90 : 30;
+my $timeout = (is_aarch64 && is_sle) ? 120 : 30;
 
 # Any free display
 my $display = ':37';
