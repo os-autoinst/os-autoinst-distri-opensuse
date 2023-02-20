@@ -58,20 +58,8 @@ sub switch_keyboard_layout {
 Returns hash which contains shortcuts for the product selection.
 =cut
 sub get_product_shortcuts {
-    # sles4sap does have different shortcuts in different tests at same time
-    #               ppc64le x86_64
-    # Full              u      i
-    # Full (15-SP5)     i      t
-    # QR                i      p
-    # Online            i      t
-    if (check_var('SLE_PRODUCT', 'sles4sap')) {
-        return (sles4sap => is_ppc64le() ? 'i' : 't') if get_var('ISO') =~ /Full/ && is_sle('15-SP5+');
-        return (sles4sap => is_ppc64le() ? 'u' : 'i') if get_var('ISO') =~ /Online/ && is_sle('15-SP5+');
-        return (sles4sap => is_ppc64le() ? 'u' : 'i') if get_var('ISO') =~ /Full/;
-        return (sles4sap => is_ppc64le() ? 'i' : is_quarterly_iso() ? 'p' : 't') unless get_var('ISO') =~ /Full/;
-    }
     # We got new products in SLE 15 SP1
-    elsif (is_sle '15-SP1+') {
+    if (is_sle '15-SP1+') {
         # sles does have different shortcuts in different tests at same time
         #                x86_64
         # Full              i
@@ -92,7 +80,6 @@ sub get_product_shortcuts {
     return (
         sles => 's',
         sled => 'u',
-        sles4sap => is_ppc64le() ? 'u' : 'x',
         hpc => is_x86_64() ? 'x' : 'u',
         rt => is_x86_64() ? 'u' : undef
     );
@@ -201,9 +188,18 @@ sub run {
         assert_screen('select-product');
         my $product = get_required_var('SLE_PRODUCT');
         if (check_var('VIDEOMODE', 'text')) {
-            my %hotkey = get_product_shortcuts();
-            die "No shortcut for the \"$product\" product specified." unless $hotkey{$product};
-            send_key 'alt-' . $hotkey{$product};
+            # kb shortcuts in textmode change on sles4sap "each build" escpecially on pp64le
+            # I guess because of less products then x86_64 and kb shortcuts switch between similar SLES and SAP
+            # https://bugzilla.suse.com/show_bug.cgi?id=1208202#c1
+            if (check_var('SLE_PRODUCT', 'sles4sap')) {
+                send_key_until_needlematch("select-product-$product-highlighted", 'tab', 15);
+                send_key 'spc';
+            }
+            else {
+                my %hotkey = get_product_shortcuts();
+                die "No shortcut for the \"$product\" product specified." unless $hotkey{$product};
+                send_key 'alt-' . $hotkey{$product};
+            }
         }
         else {
             assert_and_click('before-select-product-' . $product);
