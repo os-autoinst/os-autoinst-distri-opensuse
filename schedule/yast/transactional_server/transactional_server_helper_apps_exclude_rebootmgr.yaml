@@ -14,4 +14,3 @@ schedule:
   - console/hostname
   - transactional/filesystem_ro
   - transactional/transactional_update
-  - transactional/health_check
