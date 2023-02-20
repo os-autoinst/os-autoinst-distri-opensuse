@@ -1644,7 +1644,8 @@ See L<https://github.com/torvalds/linux/blob/master/Documentation/admin-guide/sy
 sub show_tasks_in_blocked_state {
     # sending sysrqs doesn't work for svirt
     if (has_ttys) {
-        my $has_logger = script_run('test -x /usr/bin/logger') == 0;
+        # 5 seconds is more than enough to wait.
+        my $has_logger = script_run('test -x /usr/bin/logger', {die_on_timeout => -1, timeout => 5}) == 0;
         script_run('logger "### Beginning of show_tasks_in_blocked_state"') if $has_logger;
         send_key 'alt-sysrq-t';
         send_key 'alt-sysrq-w';
