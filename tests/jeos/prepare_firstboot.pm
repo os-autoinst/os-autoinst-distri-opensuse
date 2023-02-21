@@ -25,6 +25,7 @@ sub run {
 
     if (get_var('GENERAL_HW_VIDEO_STREAM_URL')) {
         # capture boot sequence and wait for login prompt on raw HDMI output
+        record_info 'HDMI begin', 'Test HDMI and USB keyboard';
         select_console('sut');
         assert_screen('linux-login', 200);
         if (get_var('GENERAL_HW_KEYBOARD_URL')) {
@@ -32,6 +33,7 @@ sub run {
             enter_cmd(is_sle() ? "$testapi::password" : "$default_password", wait_still_screen => 5);
             assert_screen('text-logged-in-root');
         }
+        record_info 'HDMI end';
     }
 
 
