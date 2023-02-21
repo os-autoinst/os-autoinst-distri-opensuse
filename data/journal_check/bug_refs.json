@@ -430,5 +430,12 @@
             "sle": ["15-SP5"]
         },
         "type": "ignore"
+    },
+    "no-caching-mode-page-found": {
+        "description": "kernel: sd 0:0:0:0: \[sda\] No Caching mode page found|kernel: sd 0:0:0:0: \[sda\] Assuming drive cache: write through",
+        "products": {
+            "sle": ["15-SP4"]
+        },
+        "type": "ignore"
     }
 }
