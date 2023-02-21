@@ -705,7 +705,6 @@
       <package>libgirepository-1_0-1</package>
       <package>libvmtools0</package>
       <package>open-vm-tools</package>
-      <package>plymouth-dracut</package>
       <package>snapper</package>
       <package>snapper-zypp-plugin</package>
       <package>ucode-amd</package>
