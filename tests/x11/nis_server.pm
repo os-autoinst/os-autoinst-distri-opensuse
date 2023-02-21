@@ -68,7 +68,7 @@ sub nis_server_configuration {
     assert_screen 'nis-server-server-maps-setup-finished';
     send_key $cmd{next};
     # NIS Server Query Hosts
-    assert_screen 'nis-server-query-hosts-setup';
+    apply_workaround_bsc1204176('nis-server-query-hosts-setup') if (is_sle('>=15-SP4'));
     send_key 'alt-a';    # add
     assert_screen 'nis-server-network-conf-popup';
     type_string $setup_nis_nfs_x11{net_mask};
