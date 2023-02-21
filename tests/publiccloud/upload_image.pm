@@ -19,11 +19,12 @@ use publiccloud::openstack;
 use serial_terminal 'select_serial_terminal';
 
 sub run {
-    my ($self) = @_;
+    my ($self, $args) = @_;
     # Better use the root-console here so that the download progress can be monitored in openQA
     select_serial_terminal();
 
     my $provider = $self->provider_factory();
+    $args->{my_provider} = $provider;
 
     my $img_url = get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION');
     my ($img_name) = $img_url =~ /([^\/]+)$/;
