@@ -10,6 +10,7 @@ package main_publiccloud;
 use Mojo::Base 'Exporter';
 use utils;
 use version_utils;
+use publiccloud::utils;
 use main_common qw(loadtest);
 use testapi qw(check_var get_var);
 use Utils::Architectures qw(is_aarch64);
@@ -119,7 +120,7 @@ sub load_latest_publiccloud_tests {
     elsif (&$should_use_runargs()) {
         my $args = OpenQA::Test::RunArgs->new();
         loadtest "publiccloud/prepare_instance", run_args => $args;
-        if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
+        if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS') && !is_container_host()) {
             loadtest("publiccloud/check_registercloudguest", run_args => $args);
         }
         else {
