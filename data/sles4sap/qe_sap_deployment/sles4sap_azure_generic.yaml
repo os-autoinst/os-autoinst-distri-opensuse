@@ -20,8 +20,6 @@ terraform:
     sles4sap_uri: 'https://%STORAGE_ACCOUNT_NAME%.blob.core.windows.net/sle-images/%SLE_IMAGE%'
     os_image: "%PUBLIC_CLOUD_OS_IMAGE%"
     hana_os_major_version: '%HANA_OS_MAJOR_VERSION%'
-    storage_account_name: '%STORAGE_ACCOUNT_NAME%'
-    storage_account_key: '%STORAGE_ACCOUNT_KEY%'
 
     # HANA
     hana_count: '%NODE_COUNT%'
