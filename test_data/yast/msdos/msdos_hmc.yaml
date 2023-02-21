@@ -20,7 +20,7 @@ disks:
           should_mount: 1
           mount_point: /
       - name: sda3
-        size: 11.7G
+        size: max
         role: data
         partition_type: primary
         formatting_options:
