@@ -68,7 +68,7 @@ sub init {
 
     file_content_replace(CLOUD_INIT_FILE, q(%PASSWORD%) => $testapi::password);
 
-    if (get_var('CLOUD_INIT_VERIFICATION')) {
+    if (get_var('CI_VERIFICATION')) {
         file_content_replace(CLOUD_INIT_FILE, q(%SCC_REGCODE%) => get_var('SCC_REGCODE'));
         file_content_replace(CLOUD_INIT_FILE, q(%SCC_URL%) => sprintf(' --url=%s', get_var('SCC_URL', '')));
 
