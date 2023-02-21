@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2022 SUSE LLC
+# Copyright 2019-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: saptune testing with mr_test, setup mr_test environments and load mr_test
@@ -47,8 +47,8 @@ sub setup {
     select_serial_terminal;
     # Disable packagekit
     quit_packagekit;
-    # saptune is not installed by default on SLES4SAP 12 on ppc64le and in textmode profile
-    zypper_call "-n in saptune" if ((is_ppc64le() and is_sle('<15')) or check_var('DESKTOP', 'textmode'));
+    # Install saptune
+    zypper_call "-n in saptune";
     if (systemctl("-q is-active sapconf.service", ignore_failure => 1)) {
         record_soft_failure("bsc#1190787 - sapconf is not started");
         zypper_call "in sapconf";

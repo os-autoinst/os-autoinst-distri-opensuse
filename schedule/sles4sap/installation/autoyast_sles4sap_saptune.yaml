@@ -1,0 +1,25 @@
+---
+name: autoyast_sles4sap_saptune
+description: >
+  AutoYaST installation of SAP saptune.
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_sles4sap_saptune.xml.ep
+  AUTOYAST_PREPARE_PROFILE: '1'
+  AY_EXPAND_VARS: SCC_REGCODE_SLES4SAP
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - console/hostname
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
