@@ -27,6 +27,7 @@ use File::Copy 'copy';
 use File::Find qw(finddepth);
 use File::Path 'make_path';
 use LWP::Simple 'head';
+use Socket;
 
 use xml_utils;
 
@@ -678,6 +679,9 @@ sub expand_variables {
         $profile =~ s/\{\{SALT_FORMULAS_PATH\}\}/$tarfile/g;
     }
     for my $var (@vars) {
+        if ($var eq 'WORKER_IP') {
+            set_var('WORKER_IP', inet_ntoa(inet_aton(get_var 'WORKER_HOSTNAME')));
+        }
         # Skip if value is not defined
         next unless my ($value) = get_var($var);
         $profile =~ s/\{\{$var\}\}/$value/g;

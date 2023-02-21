@@ -7,7 +7,7 @@ description: >
 vars:
   AUTOYAST: autoyast_sle15/autoyast_iscsi_ibft.xml
   # Using it for specifying iscsi portal
-  AY_EXPAND_VARS: WORKER_HOSTNAME,NBF
+  AY_EXPAND_VARS: WORKER_IP,NBF
   DESKTOP: textmode
   IBFT: '1'
   NBF: iqn.2016-02.openqa.de:for.openqa
