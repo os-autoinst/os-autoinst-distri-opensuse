@@ -381,7 +381,7 @@ sub check_function {
         assert_script_run('ls -lah /var/crash/*/vmcore', 240);
         my $vmlinux = (is_sle("<16") || is_leap("<16.0")) ? '/boot/vmlinux-$(uname -r)*' : '/usr/lib/modules/$(uname -r)/vmlinux*';
         my $crash_cmd = "echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` $vmlinux";
-        validate_script_output "$crash_cmd", sub { m/PANIC:\s([^\s]+)/ }, 800;
+        validate_script_output "$crash_cmd", sub { m/PANIC:\s([^\s]+)/ }, is_aarch64 ? 1200 : 800;
     }
     else {
         # migration tests need remove core files before migration start
