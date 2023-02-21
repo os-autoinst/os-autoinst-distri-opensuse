@@ -33,7 +33,7 @@ sub run {
     }
 
     # Test new python3 versions if any
-    my @python_versions = split(/,/, get_var('PYTHON_VERSIONS'), '3.10');
+    my @python_versions = split(/,/, get_var('PYTHON_VERSIONS', '3.10'));
     my $sub_version;
     foreach my $python_version (@python_versions) {
         record_info("python$python_version is tested now");

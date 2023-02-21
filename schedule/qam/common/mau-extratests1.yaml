@@ -43,6 +43,7 @@ conditional_schedule:
       15-SP4:
         - console/golang
         - console/redis
+        - console/python3_new_version_check
         - '{{arch_specific}}'
       15-SP3:
         - console/openssl_nodejs
