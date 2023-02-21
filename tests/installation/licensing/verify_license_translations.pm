@@ -45,14 +45,13 @@ sub run {
 
     my @available_translations = @{$license_agreement_info->{available_languages}};
     foreach my $translation (@{$test_data->{license}->{translations}}) {
-        unless (first { $_ eq $translation->{language} } @available_translations)
-        {
+        my $found_lang = first { /^\Q$translation->{language}\E/ } @available_translations;
+        if (!defined($found_lang)) {
             $errors .= "Language: '$translation->{language}' cannot be found in the list of available EULA translations.\n";
             next;
         }
-
         # Select language and validate translation
-        $license_agreement->select_language($translation->{language});
+        $license_agreement->select_language($found_lang);
         $license_agreement_info = $license_agreement->collect_current_license_agreement_info();
         if ($license_agreement_info->{text} !~ /$translation->{text}/) {
             record_soft_failure("EULA content for the language: '$translation->{language}' didn't validate. See bsc#1203004 for details.\n");
