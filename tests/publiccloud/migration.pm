@@ -26,7 +26,7 @@ our $not_clean_vm = get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE');
 sub run {
     my ($self, $args) = @_;
     select_serial_terminal();
-    my $provider = $self->provider_factory();
+    my $provider = $args->{my_provider};
     my $instance = $provider->create_instance();
     $instance->wait_for_guestregister();
     registercloudguest($instance) if is_byos();
