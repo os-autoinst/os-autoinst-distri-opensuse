@@ -1,16 +1,16 @@
 ---
 disks:
-  - name: vda
+  - name: sda
     table_type: msdos
     allowed_unpartitioned: 0.00GB
     partitions:
-      - name: vda1
+      - name: sda1
         size: 8M
         role: raw-volume
         id: prep-boot
         partition_type: primary
-      - name: vda2
-        size: 9G
+      - name: sda2
+        size: 19.5G
         role: operating-system
         partition_type: primary
         formatting_options:
@@ -19,7 +19,7 @@ disks:
         mounting_options:
           should_mount: 1
           mount_point: /
-      - name: vda3
+      - name: sda3
         size: 9G
         role: data
         partition_type: primary
@@ -29,7 +29,7 @@ disks:
         mounting_options:
           should_mount: 1
           mount_point: /home
-      - name: vda4
+      - name: sda4
         role: swap
         partition_type: primary
         formatting_options:
