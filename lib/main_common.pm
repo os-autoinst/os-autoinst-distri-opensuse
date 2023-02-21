@@ -598,7 +598,7 @@ sub load_jeos_openstack_tests {
         loadtest 'publiccloud/ssh_interactive_start', run_args => $args;
     }
 
-    if (get_var('CLOUD_INIT_VERIFICATION')) {
+    if (get_var('CI_VERIFICATION')) {
         loadtest 'jeos/verify_cloudinit', run_args => $args;
         loadtest("publiccloud/ssh_interactive_end", run_args => $args);
         return;
