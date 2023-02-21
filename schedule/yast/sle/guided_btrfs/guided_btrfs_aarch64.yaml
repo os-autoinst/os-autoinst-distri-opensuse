@@ -17,7 +17,7 @@ schedule:
     - console/system_prepare
     - console/force_scheduled_tasks
   system_validation:
-    - console/hibernation_enabled
+    - console/hibernation_disabled
     - console/validate_product_installed_SLES
     - console/validate_no_cow_attribute
     - console/verify_separate_home
