@@ -69,7 +69,7 @@ sub get_product_shortcuts {
             sles => (is_sle '15-SP5+') ? 's'    # for now treat 15-SP5+ as if they would have new shortcuts
             : (is_ppc64le() || is_s390x()) ? 'u'    # s390 doesn't have a product selection screen for now
             : is_aarch64() ? 's'
-            : ((is_sle '=15-SP4') && (get_var('ISO') =~ /Full/)) ? 'i'
+            : ((is_sle '=15-SP4') && (get_var('ISO') =~ /Full/)) ? 's'
             : 'i',
             sled => 'x',
             hpc => is_x86_64() ? 'g' : 'u',
