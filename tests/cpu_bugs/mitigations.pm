@@ -107,6 +107,9 @@ sub run {
             #auto
             if (exists $current_list->{sysfs}->{auto}) {
                 $mitigations_list{sysfs}->{auto}->{$item} = $current_list->{sysfs}->{auto};
+                if ($item eq 'spectre_v2' && get_var('MICRO_ARCHITECTURE') =~ /Skylake/) {
+                    $mitigations_list{sysfs}->{auto}->{$item} = "Mitigation: IBRS, IBPB: conditional, RSB filling.*";
+                }
             } elsif (exists $current_list->{sysfs}->{flush}) {
                 $mitigations_list{sysfs}->{auto}->{$item} = $current_list->{sysfs}->{flush};
             } elsif (exists $current_list->{sysfs}->{full}) {
@@ -131,12 +134,20 @@ sub run {
                 if ($item eq 'spectre_v2') {
                     $mitigations_list{sysfs}->{'auto,nosmt'}->{$item} = "Mitigation: Retpolines,.*IBPB: conditional, IBRS_FW*";
                 }
+                if (get_var('MICRO_ARCHITECTURE') =~ /Skylake/) {
+                    $mitigations_list{sysfs}->{'auto,nosmt'}->{$item} = "Mitigation: IBRS, IBPB: conditional, RSB filling.*";
+                }
             }
             if (is_qemu) {
                 #spectre_v2
                 if ($item eq 'spectre_v2') {
                     $mitigations_list{sysfs}->{auto}->{'spectre_v2'} =~ s/STIBP: conditional/STIBP: disabled/g;
                     $mitigations_list{sysfs}->{'auto,nosmt'}->{'spectre_v2'} =~ s/STIBP: conditional/STIBP: disabled/g;
+                }
+
+                if (get_var('MACHINE', '') =~ /custom/ && $item eq 'spectre_v2') {
+                    $mitigations_list{sysfs}->{auto}->{'spectre_v2'} = 'Mitigation: Retpolines,.*IBPB: conditional, IBRS_FW*';
+                    $mitigations_list{sysfs}->{'auto,nosmt'}->{'spectre_v2'} = 'Mitigation: Retpolines,.*IBPB: conditional, IBRS_FW*';
                 }
                 #NO-IBRS
                 if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/ && $item eq 'mds') {
