@@ -1,7 +1,11 @@
 ---
 name:           d-installer
 description:    >
-  First D-Installer test
+  First D-installer test
 schedule:
   - installation/bootloader_start
-  - installation/d_installer_test
+  - installation/d_installer/d_installer_start_cli
+  - installation/d_installer/d_installer_cli_setup
+  - installation/d_installer/d_installer_cli_installation
+  - installation/d_installer/d_installer_reboot
+  - installation/first_boot
