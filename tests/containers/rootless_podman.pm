@@ -21,8 +21,8 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use containers::common;
 use containers::container_images;
-use containers::utils 'registry_url';
-use version_utils qw(is_sle is_leap is_jeos is_transactional);
+use containers::utils qw(registry_url get_podman_version);
+use version_utils qw(is_sle is_leap is_jeos is_transactional package_version_cmp);
 use power_action_utils 'power_action';
 use bootloader_setup 'add_grub_cmdline_settings';
 use Utils::Architectures;
@@ -37,6 +37,14 @@ sub run {
     my $user = $testapi::username;
 
     my $podman = $self->containers_factory('podman');
+
+    # add testuser to systemd-journal group to allow non-root
+    # user to access container logs via journald event driver
+    # to avoid flakes w/ Podman <=4.0.0
+    my $podman_version = get_podman_version();
+    if (package_version_cmp($podman_version, '4.0.0') <= 0) {
+        assert_script_run "usermod -a -G systemd-journal $testapi::username";
+    }
 
     # Prepare for Podman 3.4.4 and CGroups v2
     if (is_sle('15-SP3+') || is_leap('15.3+')) {

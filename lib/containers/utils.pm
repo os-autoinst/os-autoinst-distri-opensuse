@@ -21,7 +21,7 @@ use version_utils;
 use Mojo::Util 'trim';
 
 our @EXPORT = qw(test_seccomp runtime_smoke_tests basic_container_tests get_vars
-  can_build_sle_base get_docker_version check_runtime_version
+  can_build_sle_base get_docker_version get_podman_version check_runtime_version
   container_ip container_route registry_url);
 
 sub test_seccomp {
@@ -45,6 +45,10 @@ sub get_docker_version {
     my $v = script_output("docker --version");
     record_info "$v", $v =~ /(\d{2}\.\d{2})/;
     return $v =~ /(\d{2}\.\d{2})/;
+}
+
+sub get_podman_version {
+    return script_output "podman version | awk '/^Version:/ { print \$2 }'";
 }
 
 sub check_runtime_version {
@@ -86,7 +90,7 @@ sub test_update_cmd {
 
     # podman update was added to v4.3.0
     if ($runtime eq 'podman') {
-        my $version = script_output "podman version | awk '/^Version:/ { print \$2 }'";
+        my $version = get_podman_version();
         if (package_version_cmp($version, '4.3.0') <= 0) {
             record_info("SKIP", "The update command is not supported on podman $version");
             return;
