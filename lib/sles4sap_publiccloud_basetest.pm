@@ -27,8 +27,8 @@ sub cleanup {
     for my $command ("ansible", "terraform") {
 
         # Skip cleanup if ansible inventory is not present (deployment could not have been done without it)
-        my $inventory_check_cmd = join(" ", ("test", "-f", qesap_get_inventory()));
-        next if script_run($inventory_check_cmd) == 0;
+        my $inventory_check_cmd = join(" ", ("test", "-f", qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'))));
+        next unless script_run($inventory_check_cmd) == 0;
 
         record_info("Cleanup", "Executing $command cleanup");
         # 3 attempts for both terraform and ansible cleanup
