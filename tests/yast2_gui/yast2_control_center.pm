@@ -342,7 +342,7 @@ sub run {
     start_online_update;
     start_software_repositories;
     start_printer;
-    start_sound;
+    start_sound if is_sle('<=15-sp5') or is_leap('<=15.5');
     start_sysconfig_editor;
     start_partitioner;
     start_vpn_gateway;
