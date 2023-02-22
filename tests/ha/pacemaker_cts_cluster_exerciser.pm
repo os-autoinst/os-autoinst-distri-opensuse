@@ -49,12 +49,17 @@ sub run {
 
         # Start pacemaker cts cluster exerciser
         my $cts_start_time = time;
-        my $retval = script_run "$cts_bin --nodes '$node_01 $node_02' --stonith-type $stonith_type --stonith-args $stonith_args --test-ip-base $test_ip --no-loop-tests --no-unsafe-tests --at-boot 1 --outputfile $log --once", $timeout;
+        my $cmd = join(' ', $cts_bin, '--nodes', "'$node_01 $node_02'",
+            '--stonith-type', $stonith_type, '--stonith-args', $stonith_args,
+            '--test-ip-base', $test_ip, '--no-loop-tests', '--no-unsafe-tests',
+            '--at-boot 1', '--outputfile', $log, '--once');
+        my $retval = script_run $cmd, $timeout;
         record_info 'CTS failed', "$cts_bin exited with retval=[$retval]" if ($retval);
         my $cts_end_time = time;
 
         # Parse the logs to get a better overview in openQA
-        my $output = script_output "awk '(\$5 == \"Test\" && \$6 != \"Summary\") {print}' $log";
+        $cmd = q|awk '($5 == "Test" && $6 != "Summary" && substr($6, length($6), 1) == ":") {print}' | . $log;
+        my $output = script_output $cmd;
 
         my %results;
 
