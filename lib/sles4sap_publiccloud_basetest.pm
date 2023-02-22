@@ -19,16 +19,14 @@ our @EXPORT = qw(cleanup);
 
 
 sub cleanup {
-    my ($self) = @_;
+    my ($self, $args) = @_;
     # Do not run destroy if already executed
     return if ($self->{cleanup_called});
     $self->{cleanup_called} = 1;
 
     for my $command ("ansible", "terraform") {
-
         # Skip cleanup if ansible inventory is not present (deployment could not have been done without it)
-        my $inventory_check_cmd = join(" ", ("test", "-f", qesap_get_inventory()));
-        next if script_run($inventory_check_cmd) == 0;
+        next if (script_run 'test -f ' . qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER')));
 
         record_info("Cleanup", "Executing $command cleanup");
         # 3 attempts for both terraform and ansible cleanup
@@ -47,6 +45,9 @@ sub cleanup {
             $self->{result} = "fail" if $_ == 3 && $cleanup_cmd_rc;
         }
     }
+    $args->{my_provider}->terraform_applied(0) if ((defined $args) &&
+        (ref($args->{my_provider}) =~ /^publiccloud::(azure|ec2|gce)/) &&
+        (defined $self->{result}) && ($self->{result} ne 'fail'));
     record_info("Cleanup finished");
 }
 
