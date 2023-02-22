@@ -206,4 +206,8 @@ sub run {
     return 1;
 }
 
+sub post_fail_hook {
+    qesap_upload_logs();
+}
+
 1;
