@@ -23,6 +23,8 @@ use mmapi 'get_current_job_id';
 use registration qw(add_suseconnect_product get_addon_fullname);
 use containers::k8s;
 use publiccloud::utils qw(gcloud_install);
+use JSON 'decode_json';
+use Date::Parse 'str2time';
 
 sub run {
     my ($self, $run_args) = @_;
@@ -109,6 +111,7 @@ sub run {
     assert_script_run("helm search repo apache");
     assert_script_run("helm show all $chart");
 
+    helm_cleanup() unless $is_k3s;
     uninstall_k3s() if $is_k3s;
 }
 
@@ -121,7 +124,29 @@ sub post_fail_hook {
     script_run("kubectl config set-context --current --namespace=default");
     script_run("kubectl delete namespace helm-ns-$job_id");
 
+    helm_cleanup() unless $self->{is_k3s};
     uninstall_k3s() if $self->{is_k3s};
+}
+
+sub helm_cleanup {
+    diag("helm_cleanup started.");
+    my $namespaces_output = script_output("kubectl get namespaces -o=json");
+    my $namespaces_json = decode_json($namespaces_output);
+    my @namespaces = @{$namespaces_json->{items}};
+    foreach my $item (@namespaces) {
+        next if ($item->{metadata}->{name} !~ /^helm-ns-/);
+        if ($item->{metadata}->{creationTimestamp}) {
+            my $age = time() - str2time($item->{metadata}->{creationTimestamp});
+            if ($age > 10800) {    # 3 hours
+                diag("The namespace $item->{metadata}->{name} is $age seconds old. It will be removed.");
+                script_run("kubectl delete all --all -n " . $item->{metadata}->{name});
+                script_run("kubectl delete namespace " . $item->{metadata}->{name});
+            } else {
+                diag("The namespace $item->{metadata}->{name} is $age seconds old. It will be preserved.");
+            }
+        }
+    }
+    diag("helm_cleanup finished.");
 }
 
 sub test_flags {
