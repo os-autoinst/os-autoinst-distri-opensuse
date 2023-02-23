@@ -79,8 +79,7 @@ sub run {
         }
     }
 
-    my $path = is_sle('>15') && is_sle('<15-SP3') ? '/usr/sbin/' : '';
-    $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest --clean");
+    $instance->ssh_assert_script_run(cmd => "sudo registercloudguest --clean");
     if ($instance->ssh_script_output(cmd => 'sudo zypper lr | wc -l', timeout => 600) > 2) {
         die('The list of zypper repositories is not empty.');
     }
@@ -93,11 +92,11 @@ sub run {
         $instance->ssh_assert_script_run(cmd => 'sudo SUSEConnect --version');
         $instance->ssh_assert_script_run(cmd => "sudo SUSEConnect $regcode_param");
         # The registercloudguest tool is not yet part of 15-SP5 as the infrastructure is not yet ready for it.
-        $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest --clean") if (get_var('PUBLIC_CLOUD_QAM'));
+        $instance->ssh_assert_script_run(cmd => "sudo registercloudguest --clean") if (get_var('PUBLIC_CLOUD_QAM'));
     }
 
     # The registercloudguest tool is not yet part of 15-SP5 as the infrastructure is not yet ready for it.
-    $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest $regcode_param") if (get_var('PUBLIC_CLOUD_QAM'));
+    $instance->ssh_assert_script_run(cmd => "sudo registercloudguest $regcode_param") if (get_var('PUBLIC_CLOUD_QAM'));
     if ($instance->ssh_script_output(cmd => 'sudo zypper lr | wc -l', timeout => 600) == 0) {
         die('The list of zypper repositories is empty.');
     }
@@ -107,7 +106,7 @@ sub run {
 
     # The registercloudguest tool is not yet part of 15-SP5 as the infrastructure is not yet ready for it.
     if (get_var('PUBLIC_CLOUD_QAM')) {
-        $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest $regcode_param --force-new");
+        $instance->ssh_assert_script_run(cmd => "sudo registercloudguest $regcode_param --force-new");
         if ($instance->ssh_script_output(cmd => 'sudo zypper lr | wc -l', timeout => 600) == 0) {
             die('The list of zypper repositories is empty.');
         }
