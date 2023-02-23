@@ -102,7 +102,7 @@ sub run {
     assert_script_run("helm uninstall helm-test-$job_id");
 
     assert_script_run("kubectl config set-context --current --namespace=default");
-    script_run("kubectl delete namespace helm-ns-$job_id");
+    assert_script_run("kubectl delete namespace helm-ns-$job_id");
 
     # Add repo, search and show values
     assert_script_run(
