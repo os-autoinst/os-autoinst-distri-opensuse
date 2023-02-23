@@ -94,7 +94,7 @@ sub target_service_tab {
 
 sub config_2way_authentication {
     if (is_sle('>=15-SP4')) {
-        apply_workaround_bsc1204176('iscsi-target-modify-acls') if (is_sle('>=15-SP4'));
+        apply_workaround_poo124652('iscsi-target-modify-acls') if (is_sle('>=15-SP4'));
     }
     else {
         assert_screen 'iscsi-target-modify-acls';

@@ -56,7 +56,7 @@ sub nis_server_configuration {
     send_key 'alt-o';    # OK
     send_key $cmd{next};
     # NIS Server Maps Setup
-    apply_workaround_bsc1204176('nis-server-server-maps-setup') if (is_sle('>=15-SP4'));
+    apply_workaround_poo124652('nis-server-server-maps-setup') if (is_sle('>=15-SP4'));
     assert_screen 'nis-server-server-maps-setup';
     send_key 'tab';    # jump to map list
     my $c = 1;    # select all maps
@@ -68,7 +68,7 @@ sub nis_server_configuration {
     assert_screen 'nis-server-server-maps-setup-finished';
     send_key $cmd{next};
     # NIS Server Query Hosts
-    apply_workaround_bsc1204176('nis-server-query-hosts-setup') if (is_sle('>=15-SP4'));
+    apply_workaround_poo124652('nis-server-query-hosts-setup') if (is_sle('>=15-SP4'));
     send_key 'alt-a';    # add
     assert_screen 'nis-server-network-conf-popup';
     type_string $setup_nis_nfs_x11{net_mask};

@@ -37,7 +37,7 @@ sub select_tab {
 
 sub select_bond_slave_in_list {
     assert_screen(BOND_SLAVES_TAB);
-    apply_workaround_bsc1204176(BOND_SLAVE_DEVICE_CHECKBOX_UNCHECKED) if (is_sle('>=15-SP4'));
+    apply_workaround_poo124652(BOND_SLAVE_DEVICE_CHECKBOX_UNCHECKED) if (is_sle('>=15-SP4'));
     assert_and_click(BOND_SLAVE_DEVICE_CHECKBOX_UNCHECKED);
 }
 

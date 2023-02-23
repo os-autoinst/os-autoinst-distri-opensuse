@@ -38,7 +38,7 @@ sub select_tab {
 
 sub select_bridged_device_in_list {
     assert_screen(BRIDGED_DEVICES_TAB);
-    apply_workaround_bsc1204176(BRIDGED_DEVICE_CHECKBOX_UNCHECKED) if (is_sle('>=15-SP4'));
+    apply_workaround_poo124652(BRIDGED_DEVICE_CHECKBOX_UNCHECKED) if (is_sle('>=15-SP4'));
     assert_and_click(BRIDGED_DEVICE_CHECKBOX_UNCHECKED);
 }
 

@@ -29,19 +29,19 @@ sub new {
 }
 
 sub press_add {
-    apply_workaround_bsc1204176(OVERVIEW_TAB) if (is_sle('>=15-SP4'));
+    apply_workaround_poo124652(OVERVIEW_TAB) if (is_sle('>=15-SP4'));
     assert_screen(OVERVIEW_TAB);
     send_key('alt-a');
 }
 
 sub press_edit {
-    apply_workaround_bsc1204176(OVERVIEW_TAB) if (is_sle('>=15-SP4'));
+    apply_workaround_poo124652(OVERVIEW_TAB) if (is_sle('>=15-SP4'));
     assert_screen(OVERVIEW_TAB);
     send_key('alt-i');
 }
 
 sub press_delete {
-    apply_workaround_bsc1204176(OVERVIEW_TAB) if (is_sle('>=15-SP4'));
+    apply_workaround_poo124652(OVERVIEW_TAB) if (is_sle('>=15-SP4'));
     assert_screen(OVERVIEW_TAB);
     send_key('alt-t');
 }
@@ -72,7 +72,7 @@ sub select_device {
 }
 
 sub press_ok {
-    apply_workaround_bsc1204176(OVERVIEW_TAB) if (is_sle('>=15-SP4'));
+    apply_workaround_poo124652(OVERVIEW_TAB) if (is_sle('>=15-SP4'));
     send_key('alt-o');
 }
 

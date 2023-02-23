@@ -635,7 +635,7 @@ sub handle_scc_popups {
                 && (get_var("DESKTOP") !~ /textmode/)
                 && (get_var('REMOTE_CONTROLLER') !~ /vnc/)
                 && !(get_var('PUBLISH_HDD_1') || check_var('SLE_PRODUCT', 'hpc'))) {
-                apply_workaround_bsc1204176(\@tags, timeout => 360);
+                apply_workaround_poo124652(\@tags, timeout => 360);
             }
             assert_screen(\@tags, timeout => 360);
             if (match_has_tag('import-untrusted-gpg-key')) {
