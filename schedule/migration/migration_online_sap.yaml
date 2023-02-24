@@ -23,8 +23,6 @@ schedule:
   - migration/online_migration/post_migration
   - console/system_prepare
   - '{{test_sles4sap}}'
-  - boot/grub_test_snapshot
-  - boot/snapper_rollback
 
 conditional_schedule:
   test_sles4sap:
