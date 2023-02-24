@@ -38,9 +38,9 @@ sub run {
     my %instance_args;
     $instance_args{check_connectivity} = 1;
     $instance_args{use_extra_disk} = {size => $additional_disk_size, type => $additional_disk_type} if ($additional_disk_size > 0);
+    $args->{my_provider} = $provider;
     my $instance = $provider->create_instance(%instance_args);
     $instance->wait_for_guestregister();
-    $args->{my_provider} = $provider;
     $args->{my_instance} = $instance;
     $instance->ssh_opts("");    # Clear $instance->ssh_opts which ombit the known hosts file and strict host checking by default
 
