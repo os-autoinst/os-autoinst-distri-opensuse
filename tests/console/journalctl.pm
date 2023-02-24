@@ -160,7 +160,7 @@ sub run {
         }
     } else {
         assert_script_run("systemctl start chronyd");
-        script_retry("chronyc waitsync 60 1 0 5", timeout => 300, retry => 3, die => 1);
+        assert_script_run("chronyc makestep", timeout => 30, fail_message => "chrony time synchronization failed");
         systemctl('enable chrony-wait.service');
     }
 
