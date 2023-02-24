@@ -65,7 +65,7 @@ sub initiator_discovered_targets_tab {
     send_key "alt-i";
     my $target_ip_only = (split('/', $test_data->{target_conf}->{ip}))[0];
     type_string_slow_extended $target_ip_only;
-    apply_workaround_bsc1204176('iscsi-initiator-discovered-IP-adress') if (is_sle('>=15-SP4'));
+    apply_workaround_poo124652('iscsi-initiator-discovered-IP-adress') if (is_sle('>=15-SP4'));
     assert_screen 'iscsi-initiator-discovered-IP-adress';
     # next and press connect button
     send_key "alt-n";
@@ -91,7 +91,7 @@ sub initiator_connected_targets_tab {
     # go to discovered targets tab
     send_key "alt-d";
     wait_still_screen(2);
-    apply_workaround_bsc1204176('iscsi-initiator-discovered-targets') if (is_sle('>=15-SP4'));
+    apply_workaround_poo124652('iscsi-initiator-discovered-targets') if (is_sle('>=15-SP4'));
     assert_screen 'iscsi-initiator-discovered-targets';
     # go to connected targets tab
     send_key "alt-n";

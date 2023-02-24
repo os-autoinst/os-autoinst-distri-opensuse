@@ -12,11 +12,11 @@ use utils;
 use version_utils;
 
 
-our @EXPORT = qw(apply_workaround_bsc1204176 apply_workaround_bsc1207157);
+our @EXPORT = qw(apply_workaround_poo124652 apply_workaround_bsc1207157);
 
 =head1 Workarounds for known issues
 
-=head2 apply_workaround_bsc1204176 ($mustmatch, [,[$timeout] | timeout => $timeout] ):
+=head2 apply_workaround_poo124652 ($mustmatch, [,[$timeout] | timeout => $timeout] ):
 
 Workaround for the screen refresh issue.
 
@@ -31,13 +31,13 @@ with maximazing and shrinking the screen twice by sending 'alt-f10' two times.
 
 =cut
 
-sub apply_workaround_bsc1204176 {
+sub apply_workaround_poo124652 {
     my ($mustmatch) = shift;
     my $timeout;
     $timeout = shift if (@_ % 2);
     my %args = (timeout => $timeout // 0, @_);
     if (!check_screen($mustmatch, %args)) {
-        record_soft_failure('bsc#1204176 - Resizing window as workaround for YaST content not loading');
+        record_info('poo#124652', 'poo#124652 - gtk glitch not showing dialog window decoration on openQA');
         send_key('shift-f3', wait_screen_change => 1);
         send_key('esc', wait_screen_change => 1);
         # in some verification tests this didn't work, so let's check

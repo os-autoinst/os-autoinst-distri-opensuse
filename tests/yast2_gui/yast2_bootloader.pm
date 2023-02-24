@@ -48,7 +48,7 @@ sub run {
 
     #	default boot section
     if (is_sle('>=15-SP4')) {
-        apply_workaround_bsc1204176('yast2-bootloader_default-boot-section') if (is_sle('>=15-SP4'));
+        apply_workaround_poo124652('yast2-bootloader_default-boot-section') if (is_sle('>=15-SP4'));
         assert_and_click 'yast2-bootloader_default-boot-section';
     }
     else {

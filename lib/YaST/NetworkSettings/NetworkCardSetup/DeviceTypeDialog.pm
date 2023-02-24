@@ -28,7 +28,7 @@ sub select_device_type {
         bond => 'alt-o',
         vlan => 'alt-v'
     };
-    apply_workaround_bsc1204176(DEVICE_TYPE_DIALOG) if (is_sle('>=15-SP4'));
+    apply_workaround_poo124652(DEVICE_TYPE_DIALOG) if (is_sle('>=15-SP4'));
     assert_screen(DEVICE_TYPE_DIALOG);
     send_key $shortcut->{$device};
 }
