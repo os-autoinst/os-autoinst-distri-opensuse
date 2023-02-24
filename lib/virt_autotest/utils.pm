@@ -30,7 +30,8 @@ our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest i
   print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs ensure_default_net_is_active ensure_guest_started
   ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests restore_downloaded_guests save_original_guest_xmls restore_original_guests
   is_guest_online wait_guests_shutdown remove_vm setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host
-  check_port_state subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest upload_virt_logs recreate_guests);
+  check_port_state subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest upload_virt_logs recreate_guests
+  download_vm_import_disks);
 
 # helper function: Trim string
 sub trim {
@@ -856,5 +857,44 @@ sub recreate_guests {
         script_run("virsh start $_");
     }
 }
+
+# For vms with imported disks, this function can be used to download the disk from ${OPENQA_URL}/assets/ to SUT.
+sub download_vm_import_disks {
+    my $download_dir = shift;
+
+    $download_dir //= "/var/lib/libvirt/images";
+    my $disks_to_download = get_var("VM_IMPORT_DISK_CONFIG", '');
+
+    if (!$disks_to_download) {
+        record_info "No import disk configured, skip download.";
+        return;
+    } else {
+        record_info "Going to download imported disk...";
+    }
+
+    assert_script_run("mkdir -p $download_dir");
+
+    my $BASE_URL = get_required_var("OPENQA_URL") . "/assets/";
+    foreach my $disk (split(/,/, $disks_to_download)) {
+        my $download_url = $BASE_URL . $disk;
+        die "URL is not accessible: $download_url." unless head($download_url);
+
+        $disk =~ /.*\/([^\/]+)\.([^\/\.]+)$/m;
+        my $output_name = "$1-back.$2";    # example: name.qcow2 => name-back.qcow2
+        my $cmd = "curl -L $download_url -o $download_dir/$output_name";
+        script_retry($cmd, retry => 2, delay => 5, timeout => 600, die => 1);
+        save_screenshot;
+
+        # Check if the downloaded image is good.
+        # `qemu-img check` is fast even for several GB disks.
+        # For download from corect URL, it can detect qcow2/raw format disk errors,
+        assert_script_run("qemu-img check $download_dir/$output_name");
+        save_screenshot;
+        record_info("Disk downloaded successfully for $download_url.");
+    }
+    assert_script_run("ls -latr $download_dir");
+    record_info("All imported disk download is done.");
+}
+
 
 1;

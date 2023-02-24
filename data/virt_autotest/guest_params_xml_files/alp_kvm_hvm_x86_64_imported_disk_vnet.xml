@@ -32,7 +32,7 @@
     <guest_storage_format>qcow2</guest_storage_format>
     <guest_storage_label>gpt</guest_storage_label>
     <guest_storage_size>40</guest_storage_size>
-    <guest_storage_others>backing_store=/var/lib/libvirt/images/ALP-VM.x86_64-0.0.1-kvm-back.qcow2,backing_format=qcow2,bus=virtio,cache=none</guest_storage_others>
+    <guest_storage_others>backing_store=/var/lib/libvirt/images/ALP-VM.x86_64-0.0.1-kvm-Snapshot##guest_build##-back.qcow2,backing_format=qcow2,bus=virtio,cache=none</guest_storage_others>
     <guest_network_type>virtual_network</guest_network_type>
     <guest_network_device>br123</guest_network_device>
     <guest_network_others></guest_network_others>

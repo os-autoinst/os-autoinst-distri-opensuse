@@ -295,8 +295,10 @@ sub config_guest_params {
 
 #Correct [guest_version],[guest_version_major],[guest_version_minor] and [guest_build] if they are not set correctly or mismatch with each other.
 #Set [guest_version] to the developing SLES version if it is not given. Set [guest_version_major] and [guest_version_minor] from [guest_version]
-#it they do not match with [guest_version].Set [guest_build] to get_required_var('BUILD') if it is empty and developing [guest_version], or 'GM'
-#if non-developing [guest_version].This subroutine help make things better and life easier but the end user should always pay attention and use
+#it they do not match with [guest_version].
+#Set [guest_build] to get_required_var('BUILD') if it is empty and developing [guest_version], or 'GM' if non-developing [guest_version].
+#Replace all vm config values which refer to [guest_build] via "##guest_build##".
+#This subroutine help make things better and life easier but the end user should always pay attention and use
 #meaningful and correct guest parameter and profile.
 sub revise_guest_version_and_build {
     my $self = shift;
@@ -331,6 +333,10 @@ sub revise_guest_version_and_build {
         else {
             $self->{guest_build} = 'gm';
         }
+
+        # Replace all guest config values which refer to guest_build via ##guest_build##
+        map { $self->{$_} =~ s/##guest_build##/$self->{guest_build}/g } keys %guest_params;
+
         record_info("Guest $self->{guest_name} does not have guest_build set.Set it to test suite setting BUILD or GM according to guest_version", "Please pay attention ! It is now $self->{guest_build}");
     }
     return $self;
