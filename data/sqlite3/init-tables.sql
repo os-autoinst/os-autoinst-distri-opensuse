@@ -14,19 +14,19 @@ CREATE TABLE director_movie (
 
 CREATE UNIQUE INDEX movie_dirx on director_movie(did,mid);
 
-INSERT INTO director (name) VALUES ("Jim Jarmusch"), ( "Tim Burton");
+INSERT INTO director (name) VALUES ('Jim Jarmusch'), ( 'Tim Burton');
 INSERT INTO director VALUES(3,'Lana Wachowski');
 INSERT INTO director VALUES(4,'Lilly Wachowski');
 INSERT INTO director VALUES(5,'Alejandro González Iñárritu');
 
 INSERT INTO movie (name, year) VALUES
-    ("The Dead Dont Die", 2019),
-    ("Night on Earth", 1991),
-    ("Only Lovers Left Alive", 2013);
+    ('The Dead Dont Die', 2019),
+    ('Night on Earth', 1991),
+    ('Only Lovers Left Alive', 2013);
 INSERT INTO movie (name, year) VALUES
-    ("Ed Wood", 1994),
-    ("Sleepy Hollow", 1999),
-    ("Edward Scissorhands", 1990);
+    ('Ed Wood', 1994),
+    ('Sleepy Hollow', 1999),
+    ('Edward Scissorhands', 1990);
 INSERT INTO movie (name, year)
     VALUES('The Matrix', 1999),
     ('Amores Perros', 2000);
