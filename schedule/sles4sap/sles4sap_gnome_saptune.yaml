@@ -7,7 +7,6 @@ vars:
   BOOTFROM: c
   BOOT_HDD_IMAGE: '1'
   NODE_COUNT: '1'
-  PUBLIC_CLOUD: '1'
   TEST_CONTEXT: 'OpenQA::Test::RunArgs'
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
   # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-gnome.qcow2
