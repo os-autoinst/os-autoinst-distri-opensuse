@@ -19,16 +19,16 @@ schedule:
     - console/validate_blockdevices
 test_data:
   disks:
-  - name: vda
-    table_type: gpt
-    partitions:
-    - name: vda2
-      formatting_options:
-        filesystem: btrfs
-      mounting_options:
-        mount_point: /
-    - name: vda3
-      formatting_options:
-        filesystem: xfs
-      mounting_options:
-        mount_point: /home
+    - name: vda
+      table_type: gpt
+      partitions:
+        - name: vda2
+          formatting_options:
+            filesystem: btrfs
+          mounting_options:
+            mount_point: /
+        - name: vda3
+          formatting_options:
+            filesystem: xfs
+          mounting_options:
+            mount_point: /home
