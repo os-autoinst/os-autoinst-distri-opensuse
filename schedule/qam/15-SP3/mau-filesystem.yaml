@@ -21,6 +21,7 @@ schedule:
 - console/snapper_thin_lvm
 - console/snapper_used_space
 - network/cifs
+- '{{nfs}}'
 - network/samba/server
 - console/udisks2
 - console/coredump_collect
@@ -29,4 +30,8 @@ conditional_schedule:
     ARCH:
       s390x:
         - installation/bootloader_zkvm
+  nfs:
+    ARCH:
+      x86_64:
+        - network/nfs
 ...
