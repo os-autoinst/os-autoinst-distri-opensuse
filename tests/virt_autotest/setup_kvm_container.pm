@@ -12,6 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use alp_workloads::kvm_workload_utils qw(set_kvm_container_image clean_and_resetup_kvm_container collect_kvm_container_setup_logs);
+use virt_autotest::utils qw(download_vm_import_disks);
 
 sub run {
     my $self = shift;
@@ -19,8 +20,8 @@ sub run {
     if (get_var('KVM_WORKLOAD_IMAGE', '')) {
         set_kvm_container_image(get_var('KVM_WORKLOAD_IMAGE'));
     }
-
     clean_and_resetup_kvm_container;
+    download_vm_import_disks;
 }
 
 sub test_flags {
