@@ -16,6 +16,7 @@ schedule:
 - console/btrfs_qgroups
 - console/snapper_cleanup
 - console/btrfs_send_receive
+- console/btrfsmaintenance
 - console/snapper_undochange
 - console/snapper_create
 - console/snapper_thin_lvm
