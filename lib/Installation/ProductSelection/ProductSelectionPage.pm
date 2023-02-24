@@ -34,7 +34,7 @@ sub init {
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{rdb_SLES}->exist({timeout => 300, interval => 10});
+    return $self->{rdb_SLES}->exist();
 }
 
 sub install_product {

@@ -48,7 +48,7 @@ sub property {
 sub find_widgets {
     my ($self, $args) = @_;
 
-    $self->resolve_filter($args) unless $self->{filter}->is_resolved();
+    $self->resolve_filter() unless $self->{filter}->is_resolved();
     return $self->{widget_controller}->find({
             filter => $self->{filter}->get_filter(),
             timeout => $args->{timeout},
@@ -58,17 +58,11 @@ sub find_widgets {
 
 sub resolve_filter {
     my ($self, $args) = @_;
-    my $timeout = $args->{timeout} // $self->{timeout};
-    my $interval = $args->{interval} // $self->{interval};
 
     # get json with widgets according to current filter (which does not include regex)
-    my $json = $self->{widget_controller}->find({
-            filter => $self->{filter}->get_filter(),
-            timeout => $timeout,
-            interval => $interval
-    });
+    my $json = $self->{widget_controller}->find({filter => $self->{filter}->get_filter()});
     # replace regex by found value in the filter
-    $self->{filter}->resolve($json, {timeout => $timeout, interval => $interval});
+    $self->{filter}->resolve($json);
 }
 
 1;
