@@ -163,7 +163,7 @@ resource "azurerm_storage_account_network_rules" "openqa-group" {
   default_action             = "Deny"
   virtual_network_subnet_ids = [azurerm_subnet.openqa-subnet.id]
   // AZURE LIMITATION: After setting Deny, we need to allow this host otherwise we cannot do changes or delete the resources
-  ip_rules = [chomp(data.http.myip.body)]
+  ip_rules = [chomp(data.http.myip.response_body)]
   
   private_link_access {
     endpoint_resource_id     = azurerm_subnet.openqa-subnet.id

@@ -573,6 +573,8 @@ sub terraform_destroy {
             $cmd .= " -var 'storage-account=$storage_account'" if ($storage_account);
         }
     }
+    # Ignore lock to avoid "Error acquiring the state lock"
+    $cmd .= " -lock=false";
     # Retry 3 times with considerable delay. This has been introduced due to poo#95932 (RetryableError)
     # terraform keeps track of the allocated and destroyed resources, so its safe to run this multiple times.
     my $ret = script_retry($cmd, retry => 3, delay => 60, timeout => get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT), die => 0);
