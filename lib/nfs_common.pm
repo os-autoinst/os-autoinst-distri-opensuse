@@ -29,6 +29,18 @@ sub server_configure_network {
 sub try_nfsv2 {
     # Try that NFSv2 is disabled by default
     systemctl 'start nfs-server';
+
+    # Make sure it exists and also print the content as info.
+    assert_script_run 'cat /proc/fs/nfsd/versions', fail_message => 'NFS versions file must exist';
+
+    # It's ok if it's not available in the kernel
+    if (script_run("grep -q '[+-]2' /proc/fs/nfsd/versions") == 1) {
+        record_info('Info', 'NFSv2 not available in the kernel');
+        systemctl 'stop nfs-server';
+        return;
+    }
+
+    # If available, make sure it's disabled by default
     assert_script_run "cat /proc/fs/nfsd/versions | grep '\\-2'";
 
     # Stop testing NFSv2 on tumbleweed, support is removed in nfs-utils
