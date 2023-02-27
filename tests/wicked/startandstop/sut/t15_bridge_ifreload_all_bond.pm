@@ -14,7 +14,7 @@ use Mojo::Base 'wickedbase';
 sub run {
     my ($self, $ctx) = @_;
     $self->get_from_data('wicked/ifreload-3.sh', '/tmp/ifreload-3.sh');
-    my $script_cmd = sprintf(q(bond_slaves='%s' time sh /tmp/ifreload-3.sh), join(" ", $ctx->iface, $ctx->iface2));
+    my $script_cmd = sprintf(q(time bond_slaves='%s' sh /tmp/ifreload-3.sh), join(" ", $ctx->iface, $ctx->iface2));
     $self->run_test_shell_script('ifreload-3', $script_cmd);
 }
 
