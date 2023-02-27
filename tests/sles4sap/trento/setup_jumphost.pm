@@ -41,7 +41,7 @@ sub run {
     clone_trento_deployment($work_dir);
 
     # Cypress.io installation
-    cypress_install_container(cypress_version());
+    cypress_install_container();
 }
 
 sub post_fail_hook {
