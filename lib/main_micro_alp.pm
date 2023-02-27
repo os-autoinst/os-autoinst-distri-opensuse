@@ -209,6 +209,10 @@ sub load_qemu_tests {
     loadtest 'qemu/user' unless (is_sle_micro || is_leap_micro);
 }
 
+sub load_fips_tests {
+    loadtest 'transactional/enable_fips';
+}
+
 sub load_rcshell_tests {
     # Tests before the YaST installation
     loadtest 'microos/rcshell_start';
@@ -274,6 +278,8 @@ sub load_tests {
         loadtest 'microos/verify_setup' unless is_microos;
     } elsif (check_var('EXTRA', 'virtualization')) {
         load_qemu_tests;
+    } elsif (check_var('EXTRA', 'fips')) {
+        load_fips_tests;
     } else {
         load_common_tests;
         load_transactional_tests unless is_zvm;
