@@ -161,7 +161,7 @@ sub post_fail_hook {
     my $self = shift;
     $self->SUPER::post_fail_hook;
     save_and_upload_log("iscsiadm --mode session -P 3", "/tmp/iscsi_init_session_data.log");
-    save_and_upload_log("tar czvf /tmp/iscsi_initconf.tar.gz /etc/iscsi/*", "/tmp/iscsi_initconf.tar.gz");
+    save_and_upload_log("tar czvf /tmp/iscsi_initconf.tar.gz /var/lib/iscsi/*", "/tmp/iscsi_initconf.tar.gz");
 }
 
 1;
