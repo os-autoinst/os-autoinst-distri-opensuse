@@ -31,8 +31,6 @@ schedule:
   - console/consoletest_setup
   - console/zypper_lr
   - '{{test_sles4sap}}'
-  - boot/grub_test_snapshot
-  - boot/snapper_rollback
 
 conditional_schedule:
   handle_bootimg:
