@@ -19,6 +19,7 @@ use warnings;
 
 sub run {
     my @sappatterns = qw(sap-nw sap-b1 sap-hana);
+    $sappatterns[1] =~ s/b1/bone/ if (is_sle('15-SP5+'));
     my $output = '';
 
     select_serial_terminal;
