@@ -22,6 +22,7 @@ use publiccloud::utils;
 
 our $target_version = get_required_var('TARGET_VERSION');
 our $not_clean_vm = get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE');
+our $live_user = get_required_var('PUBLIC_CLOUD_USER'),
 
 sub run {
     my ($self, $args) = @_;
@@ -58,6 +59,18 @@ sub run {
     my ($shutdown_time, $startup_time) = $instance->softreboot(
         timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 400)
     );
+
+
+    # login to public cloud vm using migration user tail migration.log 
+    has container_registry => sub { get_var("PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY", 'suse-qec-testing') };
+    has username => sub { get_var('PUBLIC_CLOUD_USER', 'migration') };
+    $instance->ssh_script_run(cmd => 'hostnamectl');
+    $instance->ssh_script_run(cmd => 'tail -f /system-root/var/log/distro_migration.log');
+
+
+    # revert back to the live user 
+    has container_registry => sub { get_var("PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY", 'suse-qec-testing') };
+    has username => sub { get_var('PUBLIC_CLOUD_USER', $live_user) };
 
     # Upload distro_migration.log
     $instance->upload_log("/var/log/distro_migration.log", failok => 1);
