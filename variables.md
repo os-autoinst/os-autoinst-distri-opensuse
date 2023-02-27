@@ -219,7 +219,7 @@ PUBLIC_CLOUD_CONTAINER_IMAGES_REPO | string | | The Container images repository 
 PREPARE_TEST_DATA_TIMEOUT | integer | 300 | Download assets in the prepare_test_data module timeout
 ZFS_REPOSITORY | string | | Optional repository used to test zfs from
 TRENTO_HELM_VERSION | string | 3.8.2 | Helm version of the JumpHost
-TRENTO_CYPRESS_VERSION | string | 4.4.0 | used as tag for the docker.io/cypress/included registry
+TRENTO_CYPRESS_VERSION | string | 9.6.1 | used as tag for the docker.io/cypress/included registry.
 TRENTO_VM_IMAGE | string | SUSE:sles-sap-15-sp3-byos:gen2:latest | used as --image parameter during the Azure VM creation
 TRENTO_VERSION | string | (implicit 1.0.0) | Optional. Used as reference version string for the installed Trento
 TRENTO_REGISTRY_CHART | string | registry.suse.com/trento/trento-server | Helm chart registry

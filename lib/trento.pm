@@ -59,7 +59,6 @@ our @EXPORT = qw(
   cypress_install_container
   CYPRESS_LOG_DIR
   PODMAN_PULL_LOG
-  cypress_version
   cypress_exec
   cypress_test_exec
   cypress_log_upload
@@ -86,8 +85,12 @@ use constant GITLAB_CLONE_LOG => '/tmp/gitlab_clone.log';
 # the following pattern: '^[a-zA-Z0-9]*$'.
 # Azure does not support dash or underscore in ACR name
 use constant TRENTO_AZ_ACR_PREFIX => 'openqatrentoacr';
+
+# Constants used for cypress image
 use constant CYPRESS_IMAGE_TAG => 'goofy';
 use constant CYPRESS_IMAGE => 'docker.io/cypress/included';
+use constant CYPRESS_DEAFULT_VERSION => '9.6.1';
+
 
 =head1 DESCRIPTION
 
@@ -919,31 +922,26 @@ sub cypress_configs {
 =head3 cypress_install_container
 
 Prepare whatever is needed to run cypress tests using container
-
-=over 1
-
-=item B<CYPRESS_VER> - String used as tag for the cypress/included image.
-
-=back
 =cut
 
 sub cypress_install_container {
-    my ($cypress_ver) = @_;
     podman_self_check();
-
     # List all the available cypress images
-    assert_script_run('podman search --list-tags ' . CYPRESS_IMAGE);
+    script_run('podman search --list-tags ' . CYPRESS_IMAGE);
 
-    # Pull in advance the cypress container
-    my $podman_pull_cmd = join(' ', 'time', 'podman',
-        '--log-level', 'trace',
-        'pull',
-        '--quiet',
-        CYPRESS_IMAGE . ':' . $cypress_ver,
-        '|', 'tee', PODMAN_PULL_LOG);
-    assert_script_run($podman_pull_cmd, 1800);
-    assert_script_run('df -h');
-    assert_script_run('podman images');
+    my $cypress_ver_ref = get_var_array('TRENTO_CYPRESS_VERSION', CYPRESS_DEAFULT_VERSION);
+    foreach my $cypress_ver (@{$cypress_ver_ref}) {
+        # Pull in advance the cypress container
+        my $podman_pull_cmd = join(' ', 'time', 'podman',
+            '--log-level', 'trace',
+            'pull',
+            '--quiet',
+            CYPRESS_IMAGE . ':' . $cypress_ver,
+            '|', 'tee', '-a', PODMAN_PULL_LOG);
+        assert_script_run($podman_pull_cmd, 1800);
+    }
+    script_run('df -h');
+    script_run('podman images');
 }
 
 =head3 cypress_log_upload
@@ -962,17 +960,6 @@ sub cypress_log_upload {
     my $find_cmd = 'find ' . CYPRESS_LOG_DIR . ' -type f \( -iname \*' . join(' -o -iname \*', @log_filter) . ' \)';
 
     upload_logs("$_") for split(/\n/, script_output($find_cmd));
-}
-
-=head3 cypress_version
-
-Return the cypress.io version to use.
-It could be the default one or one fixed by the user using TRENTO_CYPRESS_VERSION
-
-=cut
-
-sub cypress_version {
-    return get_var('TRENTO_CYPRESS_VERSION', '9.6.1');
 }
 
 =head3 cypress_exec
@@ -1003,11 +990,11 @@ sub cypress_exec {
     my $ret = 0;
 
     record_info('CY EXEC', 'Cypress exec:' . $cmd);
-    my $image_name = CYPRESS_IMAGE . ":" . cypress_version();
+    my $image_name = CYPRESS_IMAGE . ":" . get_var('TRENTO_CYPRESS_VERSION', CYPRESS_DEAFULT_VERSION);
 
     # Container is executed with --name to simplify the log retrieve.
     # To do so, we need to rm present container with the same name
-    assert_script_run('podman images');
+    script_run('podman images');
     script_run('podman rm ' . CYPRESS_IMAGE_TAG . ' || echo "No ' . CYPRESS_IMAGE_TAG . ' to delete"');
 
     my $cypress_entry_point = "'[" .
