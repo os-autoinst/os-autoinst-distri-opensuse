@@ -47,11 +47,11 @@ sub grub_test {
         bug_workaround_bsc1005313() unless get_var("BOOT_TO_SNAPSHOT");
     }
     else {
+        # Slow down the command 'return' execution speed to give Hyper-V some response time
+        wait_still_screen 2 if (check_var('VIRSH_VMM_FAMILY', 'hyperv') && get_var('UEFI'));
         # avoid timeout for booting to HDD
         send_key 'ret';
     }
-    # Avoid return key not received occasionally for hyperv-uefi guest at first boot
-    send_key 'ret' if (check_var('VIRSH_VMM_FAMILY', 'hyperv') && get_var('UEFI'));
 }
 
 =head2 handle_installer_medium_bootup
