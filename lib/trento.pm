@@ -1039,18 +1039,26 @@ sub cypress_test_exec {
     my ($cypress_test_dir, $test_tag, $timeout) = @_;
     $timeout //= bmwqemu::scale_timeout(600);
     my $ret = 0;
+    my $cy_test_struct = 'cypress/integration';
+    my @ver_nums = get_var('TRENTO_CYPRESS_VERSION', CYPRESS_DEAFULT_VERSION) =~ /(\d+)\..*/g;
+    $cy_test_struct = 'cypress/e2e' if int($ver_nums[0]) >= 10;
 
-    my $test_file_list = script_output("find $cypress_test_dir/cypress/integration/$test_tag -type f -iname \"*.js\"");
+    my $find_cmd = join(' ',
+        'find',
+        "$cypress_test_dir/$cy_test_struct/$test_tag",
+        '-type', 'f',
+        '-iname', '"*.js"');
+    my $test_file_list = script_output($find_cmd);
 
     for (split(/\n/, $test_file_list)) {
         # Compose the JUnit .xml file name, starting from the .js filename
         my $test_filename = basename($_);
         my $test_result = 'test_result_' . $test_tag . '_' . $test_filename;
         $test_result =~ s/js$/xml/;
-        my $test_cmd = 'run' .
-          ' --spec \"cypress/integration/' . $test_tag . '/' . $test_filename . '\"' .
-          ' --reporter junit' .
-          ' --reporter-options \"mochaFile=/results/' . $test_result . ',toConsole=true\"';
+        my $test_cmd = join(' ', 'run',
+            '--spec', "\"$cy_test_struct/$test_tag/$test_filename\"",
+            '--reporter', 'junit',
+            '--reporter-options', "\"mochaFile=/results/$test_result,toConsole=true\"");
         record_info('CY INFO', "test_filename:$test_filename test_result:$test_result test_cmd:$test_cmd");
 
         # Execute the test: force $failok=1 to keep the execution going.
@@ -1058,7 +1066,11 @@ sub cypress_test_exec {
         $ret = cypress_exec($cypress_test_dir, $test_cmd, $timeout, $test_tag, 1);
 
         # Parse the results
-        my $find_cmd = 'find ' . CYPRESS_LOG_DIR . ' -type f -iname "' . $test_result . '"';
+        $find_cmd = join(' ',
+            'find',
+            CYPRESS_LOG_DIR,
+            '-type', 'f',
+            '-iname', "\"$test_result\"");
         parse_extra_log("XUnit", $_) for split(/\n/, script_output($find_cmd));
 
         # Upload all logs at once
