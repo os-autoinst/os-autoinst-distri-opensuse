@@ -43,7 +43,7 @@ sub install_k3s {
         assert_script_run("export INSTALL_K3S_CHANNEL=" . get_var('K3S_CHANNEL')) if (get_var('K3S_CHANNEL'));
         # github.com/k3s-io/k3s#5946 - The kubectl delete namespace helm-ns-413 command freezes and does nothing
         # Note: The install script starts a k3s-server by default, unless INSTALL_K3S_SKIP_START is set to true
-        assert_script_run("curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true sh -s - --disable=metrics-server");
+        assert_script_run("curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true sh -s - --disable=metrics-server", timeout => 180);
     }
 
     if (get_var('REGISTRY')) {
@@ -143,7 +143,8 @@ Find pods using kubectl queries
 
 sub wait_for_k8s_job_complete {
     my ($job) = @_;
-    assert_script_run("kubectl wait --for=condition=complete --timeout=300s job/$job", timeout => 360);
+    my $cmd = "kubectl wait --for=condition=complete --timeout=300s job/$job";
+    script_retry($cmd, retry => 3, timeout => 360, die => 1);
 }
 
 =head2 wait_for_k8s_job_complete
