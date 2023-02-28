@@ -94,6 +94,7 @@
       <li><a href="#script_start_io">script_start_io</a></li>
       <li><a href="#script_finish_io">script_finish_io</a></li>
       <li><a href="#handle_screen-handle_screen-needles-handler_map-assert-assert-max_loops-max_loops">handle_screen handle_screen($needles, $handler_map [, assert =&gt; $assert] [, max_loops =&gt; $max_loops] [...]);</a></li>
+      <li><a href="#define_secret_variable-define_secret_variable-var_name-var_value-define_secret_variable-sets-a-hidden-environment-variable-without-exposing-it-to-openQA.-This-function-is-useful-to-hide-secrets-from-openQA-by-setting-them-as-an-accessible-environment-variable-but-without-any-traces-in-the-output-terminals.-e.g.-define_secret_variable-SECRET-get_var-_SECRET_VARIABLE-would-store-the-openQA-variable-_SECRET_VARIABLE-into-the-SECRET-environment-variable-which-can-be-used-afterwards-by-using-SECRET">define_secret_variable define_secret_variable($var_name, $var_value); define_secret_variable sets a hidden environment variable without exposing it to openQA. This function is useful to hide secrets from openQA by setting them as an accessible environment variable, but without any traces in the output terminals. e.g. define_secret_variable(&#39;SECRET&#39;, get_var(&#39;_SECRET_VARIABLE&#39;)) would store the openQA variable &#39;_SECRET_VARIABLE&#39; into the &#39;$SECRET&#39; environment variable, which can be used afterwards by using $SECRET.</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -717,6 +718,8 @@ script_finish_io(exitcode =&gt; [12]);</code></pre>
 <p><code>handle_screen()</code> will return after <code>$max_loops</code> iterations, or if a handler function returns any value that evaluates to true, or if needle match fails when <code>$assert</code> is false. The return value is the last value returned by a handler function, or undefined if needle match failed.</p>
 
 <p>Note that you may need to set <code>timeout</code> keyword argument if you set <code>$assert</code> to false because <code>check_screen()</code> has <code>$timeout=0</code> by default.</p>
+
+<h2 id="define_secret_variable-define_secret_variable-var_name-var_value-define_secret_variable-sets-a-hidden-environment-variable-without-exposing-it-to-openQA.-This-function-is-useful-to-hide-secrets-from-openQA-by-setting-them-as-an-accessible-environment-variable-but-without-any-traces-in-the-output-terminals.-e.g.-define_secret_variable-SECRET-get_var-_SECRET_VARIABLE-would-store-the-openQA-variable-_SECRET_VARIABLE-into-the-SECRET-environment-variable-which-can-be-used-afterwards-by-using-SECRET">define_secret_variable define_secret_variable($var_name, $var_value); define_secret_variable sets a hidden environment variable without exposing it to openQA. This function is useful to hide secrets from openQA by setting them as an accessible environment variable, but without any traces in the output terminals. e.g. define_secret_variable(&#39;SECRET&#39;, get_var(&#39;_SECRET_VARIABLE&#39;)) would store the openQA variable &#39;_SECRET_VARIABLE&#39; into the &#39;$SECRET&#39; environment variable, which can be used afterwards by using $SECRET.</h2>
 
 
 </body>
