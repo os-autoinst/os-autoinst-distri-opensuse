@@ -1,0 +1,14 @@
+#!/bin/bash -e
+
+success=1
+YAMLS=$(git ls-files schedule/ test_data/ | grep '.ya\?ml$' | xargs echo)
+
+if test -n "$YAMLS"; then
+    export PERL5LIB=${PERL5LIB_} ; echo "$YAMLS" | xargs tools/test_yaml_valid | grep -Ev "has valid yaml syntax|has valid schema";
+    which yamllint >/dev/null 2>&1 || (echo "Command 'yamllint' not found, can not execute YAML syntax checks" && exit 1) || success=0;
+    echo "$YAMLS" | xargs yamllint -c .yamllint || exit 1 || success=0;
+else
+    echo "No yamls modified.";
+fi
+[ $success = 1 ] && echo "check_yaml SUCCESS" && exit 0
+exit 1
