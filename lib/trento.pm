@@ -768,11 +768,12 @@ Get the api-key from the Trento installation
 
 sub trento_api_key {
     my ($wd, $basedir) = @_;
-    my $cmd = join(' ', $basedir . '/trento-server-api-key.sh',
+    my $cmd = join(' ', $basedir . 'trento_deploy/trento_deploy.py',
+        '--verbose', 'api_key',
         '-u', 'admin',
         '-p', get_trento_password(),
         '-i', get_trento_ip(),
-        '-d', $wd, '-v');
+        '-v');
     my $agent_api_key = '';
     my @lines = split(/\n/, script_output($cmd));
     foreach my $line (@lines) {
