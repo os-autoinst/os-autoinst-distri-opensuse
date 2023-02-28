@@ -37,12 +37,17 @@ else
 	uncompressed_filename=$(basename $image_to_flash .xz)
 fi
 uncompressed_full_path="$destination_folder/$uncompressed_filename"
+ext="${uncompressed_filename##*.}"
 
 # Extract compressed image, if needed
 if [[ "$image_to_flash_extension" == "xz" ]]; then
-	xzcat "$image_to_flash" --threads=0 "$uncompressed_full_path"
-	echo "*** xz image uncompressed"
-	# No need to resize since the SD card size is fixed
+	if [ "$ext" == "raw" ] ; then
+		echo "*** image is raw.xz, no need to uncompress it"
+	else
+		xzcat "$image_to_flash" --threads=0 "$uncompressed_full_path"
+		echo "*** xz image uncompressed"
+		# No need to resize since the SD card size is fixed
+	fi
 elif [[ "$image_to_flash_extension" == "qcow2" ]]; then
 	qemu-img convert "$image_to_flash" "$uncompressed_full_path"
 	echo "*** qcow2 image uncompressed"
@@ -56,7 +61,12 @@ set -e
 if [ "$output" == "" ]; then
 	# Copy to SD card
 	echo "** Copy to SD card"
-	dd if=$uncompressed_full_path of=/dev/disk/by-id/usb-LinuxAut_sdmux_HS-SD_MMC_${device_serial}-0:0 oflag=sync bs=8M
+	if [ "$ext" == "raw" ] ; then
+		# stream data to SD card directly
+		xz -cd $image_to_flash | dd of=/dev/disk/by-id/usb-LinuxAut_sdmux_HS-SD_MMC_${device_serial}-0:0 oflag=sync bs=8M
+	else
+		dd if=$uncompressed_full_path of=/dev/disk/by-id/usb-LinuxAut_sdmux_HS-SD_MMC_${device_serial}-0:0 oflag=sync bs=8M
+	fi
 else
 	echo "***** /dev/$sdX_device is mounted, so it is unlikely your target. Please check. *****"
 	echo "$output"
