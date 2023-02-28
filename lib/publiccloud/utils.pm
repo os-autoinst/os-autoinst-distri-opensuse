@@ -174,14 +174,6 @@ sub is_embargo_update {
     return 0;
 }
 
-sub define_secret_variable {
-    my ($var_name, $var_value) = @_;
-    script_run("set -a");
-    script_run("read -sp \"enter value: \" $var_name", 0);
-    type_password($var_value . "\n");
-    script_run("set +a");
-}
-
 # Get credentials from the Public Cloud micro service, which requires user
 # and password. The resulting json will be stored in a file.
 sub get_credentials {

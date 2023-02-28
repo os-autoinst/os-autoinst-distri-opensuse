@@ -10,6 +10,7 @@
 package publiccloud::aws_client;
 use Mojo::Base -base;
 use testapi;
+use utils;
 use publiccloud::utils;
 
 has region => sub { get_var('PUBLIC_CLOUD_REGION', 'eu-central-1') };
