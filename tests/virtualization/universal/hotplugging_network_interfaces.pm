@@ -45,6 +45,7 @@ sub add_virtual_network_interface {
             assert_script_run("ssh root\@$guest cat /proc/uptime | cut -d. -f1", 60);
             script_retry("ssh root\@$guest ip l | grep " . $mac, delay => 60, retry => 3, timeout => 60);
             assert_script_run("virsh detach-interface $guest bridge --mac " . $mac);
+            die "Failed to detach bridge interface for guest $guest." if (script_run("ssh root\@$guest ip l | grep " . $mac, 60) eq 0);
         }
     } else {
         record_soft_failure 'bsc#959325 - Live NIC attachment on <=12-SP2 Xen hypervisor with HVM guests does not work correctly.';
