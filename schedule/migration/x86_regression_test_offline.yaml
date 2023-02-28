@@ -49,7 +49,6 @@ conditional_schedule:
         - console/prepare_test_data
         - console/consoletest_setup
         - '{{check_upgraded_service}}'
-        - migration/openldap_to_389ds
         - '{{regression_tests}}'
         - '{{rollback_after_migration}}'
       1:

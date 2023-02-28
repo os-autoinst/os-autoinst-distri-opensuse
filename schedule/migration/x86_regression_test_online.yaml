@@ -30,7 +30,6 @@ conditional_schedule:
         - console/system_state
         - console/prepare_test_data
         - console/consoletest_setup
-        - migration/openldap_to_389ds
         - '{{regression_tests}}'
         - '{{rollback_after_migration}}'
       1:
