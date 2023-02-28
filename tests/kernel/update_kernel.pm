@@ -21,6 +21,7 @@ use klp;
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use Utils::Backends;
+use LTP::utils;
 
 sub check_kernel_package {
     my $kernel_name = shift;
@@ -304,6 +305,19 @@ sub find_version {
     die "$packname-$version_arg not found in repositories.";
 }
 
+sub start_heavy_load {
+    my @pids;
+    my $root = get_ltproot;
+
+    script_run("grep -v 'module\|add_key' $root/runtest/syscalls >$root/runtest/syscalls.klp");
+
+    for my $runfile (qw(syscalls.klp ltp-aiodio.part4)) {
+        push @pids, background_script_run("yes | $root/runltp -f $runfile &>/dev/null");
+    }
+
+    return \@pids;
+}
+
 sub update_kgraft {
     my ($incident_klp_pkg, $repo, $incident_id) = @_;
 
@@ -323,13 +337,7 @@ sub update_kgraft {
         script_run(qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\\n" | sort -t '-' > /tmp/rpmlist.before});
         upload_logs('/tmp/rpmlist.before');
 
-        # Download HEAVY LOAD script
-        assert_script_run("curl -f " . autoinst_url . "/data/qam/heavy_load.sh -o /tmp/heavy_load.sh");
-
-        # install screen command
-        zypper_call("in screen", exitcode => [0, 102, 103]);
-        #run HEAVY Load script
-        script_run("bash /tmp/heavy_load.sh");
+        my $pids = start_heavy_load;
 
         # warm up system
         sleep 15;
@@ -337,8 +345,7 @@ sub update_kgraft {
         zypper_call("in -l -t patch $patches", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
 
         #kill HEAVY-LOAD scripts
-        script_run("screen -S LTP_syscalls -X quit");
-        script_run("screen -S LTP_aiodio_part4 -X quit");
+        script_run("kill -s INT -- " . join(' ', map { "-$_" } @$pids));
 
         script_run(qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\\n" | sort -t '-' > /tmp/rpmlist.after});
         upload_logs('/tmp/rpmlist.after');
