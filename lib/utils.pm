@@ -1703,6 +1703,8 @@ C<$retry> refers to the number of retries and defaults to C<10>.
 
 C<$delay> is the time between retries and defaults to C<30>.
 
+C<$fail_message> is an optional error message in case of failure. Defaults to "Waiting for Godot".
+
 The command must return within C<$timeout> seconds (default: 25).
 
 If the command doesn't return C<$expect> after C<$retry> retries,
@@ -1721,6 +1723,7 @@ sub script_retry {
     my $delay = $args{delay} // 30;
     my $timeout = $args{timeout} // 30;
     my $die = $args{die} // 1;
+    my $fail_msg = $args{fail_message} // "Waiting for Godot: $cmd";
 
     my $ret;
 
@@ -1736,7 +1739,7 @@ sub script_retry {
         $ret = script_run($exec, ($timeout + 3));
         last if defined($ret) && $ret == $ecode;
 
-        die("Waiting for Godot: $cmd") if $retry == $_ && $die == 1;
+        die($fail_msg) if $retry == $_ && $die == 1;
         sleep $delay if ($delay > 0);
     }
 
@@ -1755,6 +1758,8 @@ C<$retry> refers to the number of retries and defaults to C<10>.
 
 C<$delay> is the time between retries and defaults to C<30>.
 
+C<$fail_message> is an optional error message in case of failure. Defaults to "Waiting for Godot".
+
 The command must return within C<$timeout> seconds (default: 25).
 
 If the command doesn't return C<$expect> after C<$retry> retries,
@@ -1772,6 +1777,7 @@ sub script_output_retry {
     my $delay = $args{delay} // 30;
     my $timeout = $args{timeout} // 30;
     my $die = $args{die} // 1;
+    my $fail_msg = $args{fail_message} // "Waiting for Godot: $cmd";
 
     my $exec = "timeout --foreground " . ($timeout - 3) . " $cmd";
     for (1 .. $retry) {
@@ -1780,7 +1786,7 @@ sub script_output_retry {
         sleep $delay;
         record_info('Retry', 'script_output failed, retrying.');
     }
-    die("Waiting for Godot: $cmd") if $die;
+    die($fail_msg) if $die;
 }
 
 
@@ -1793,6 +1799,8 @@ Repeat command until validate_script_output succeeds or die. Return the output o
 C<$retry> refers to the number of retries and defaults to C<10>.
 
 C<$delay> is the time between retries and defaults to C<30>.
+
+C<$fail_message> is an optional error message in case of failure. Defaults to "Can't validate output after $retry retries".
 
 If the command doesn't succeed after C<$retry> retries,
 this function will die.
@@ -1814,6 +1822,7 @@ sub validate_script_output_retry {
     my $timeout = delete $args{timeout};
     my $ret;
     my $exec = "timeout --foreground --kill-after 5s ${timeout}s";
+    my $fail_msg = $args{fail_message} // "Can't validate output after $retry retries";
     # Exclamation mark needs to be moved before the timeout command, if present
     if (substr($cmd, 0, 1) eq "!") {
         $cmd = substr($cmd, 1);
@@ -1829,7 +1838,7 @@ sub validate_script_output_retry {
         record_info("Retry", "validate_script_output failed or timed out. Retrying...");
         sleep $delay;
     }
-    die("Can't validate output after $retry retries");
+    die($fail_msg);
 }
 
 
