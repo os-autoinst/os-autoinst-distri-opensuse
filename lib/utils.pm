@@ -2636,4 +2636,25 @@ sub handle_screen {
     return $exit;
 }
 
+=head2 define_secret_variable
+    define_secret_variable($var_name, $var_value);
+
+define_secret_variable sets a hidden environment variable without exposing it to openQA.
+This function is useful to hide secrets from openQA by setting them as an accessible
+environment variable, but without any traces in the output terminals.
+
+e.g. define_secret_variable('SECRET', get_var('_SECRET_VARIABLE')) would store the
+openQA variable '_SECRET_VARIABLE' into the '$SECRET' environment variable, which can be
+used afterwards by using $SECRET.
+=cut
+
+sub define_secret_variable {
+    my ($var_name, $var_value) = @_;
+    script_run("set -a");
+    script_run("read -sp '$var_name: ' $var_name", 0);
+    type_password($var_value . "\n");
+    script_run("set +a");
+}
+
+
 1;
