@@ -41,6 +41,7 @@ sub run {
         # enable & disable source repo for multipat-tools source
         assert_script_run(q(zypper mr -e --refresh $(zypper lr|awk '/Basesystem.*Source/ {print$5}')));
         add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1);
+        zypper_call("--gpg-auto-import-keys ref", 300) if (get_var('FIPS') || get_var('FIPS_ENABLED'));
         build_mt();
         assert_script_run(q(zypper mr -d $(zypper lr|awk '/Basesystem.*Source/ {print$5}')));
     } elsif (is_tumbleweed) {
