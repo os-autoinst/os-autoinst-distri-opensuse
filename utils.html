@@ -530,6 +530,8 @@ zypper_ar(&#39;https://download.opensuse.org/repositories/devel:/kubic/openSUSE_
 
 <p><code>$delay</code> is the time between retries and defaults to <code>30</code>.</p>
 
+<p><code>$fail_message</code> is an optional error message in case of failure. Defaults to &quot;Waiting for Godot&quot;.</p>
+
 <p>The command must return within <code>$timeout</code> seconds (default: 25).</p>
 
 <p>If the command doesn&#39;t return <code>$expect</code> after <code>$retry</code> retries, this function will die, if <code>$die</code> is set.</p>
@@ -550,6 +552,8 @@ zypper_ar(&#39;https://download.opensuse.org/repositories/devel:/kubic/openSUSE_
 
 <p><code>$delay</code> is the time between retries and defaults to <code>30</code>.</p>
 
+<p><code>$fail_message</code> is an optional error message in case of failure. Defaults to &quot;Waiting for Godot&quot;.</p>
+
 <p>The command must return within <code>$timeout</code> seconds (default: 25).</p>
 
 <p>If the command doesn&#39;t return <code>$expect</code> after <code>$retry</code> retries, this function will die, if <code>$die</code> is set.</p>
@@ -567,6 +571,8 @@ zypper_ar(&#39;https://download.opensuse.org/repositories/devel:/kubic/openSUSE_
 <p><code>$retry</code> refers to the number of retries and defaults to <code>10</code>.</p>
 
 <p><code>$delay</code> is the time between retries and defaults to <code>30</code>.</p>
+
+<p><code>$fail_message</code> is an optional error message in case of failure. Defaults to &quot;Can&#39;t validate output after $retry retries&quot;.</p>
 
 <p>If the command doesn&#39;t succeed after <code>$retry</code> retries, this function will die.</p>
 
