@@ -174,12 +174,11 @@ sub is_embargo_update {
     return 0;
 }
 
+# Defines a secret environment variable, which is not directly visible to openQA
+# This call wraps around utils::define_secret_variable so that modules in this directory have access to it
 sub define_secret_variable {
     my ($var_name, $var_value) = @_;
-    script_run("set -a");
-    script_run("read -sp \"enter value: \" $var_name", 0);
-    type_password($var_value . "\n");
-    script_run("set +a");
+    utils::define_secret_variable($var_name, $var_value);
 }
 
 # Get credentials from the Public Cloud micro service, which requires user
