@@ -52,7 +52,7 @@
     <guest_filesystem></guest_filesystem>
     <guest_sound></guest_sound>
     <guest_watchdog></guest_watchdog>
-    <guest_video>cirrus</guest_video>
+    <guest_video></guest_video>
     <guest_smartcard></guest_smartcard>
     <guest_redirdev></guest_redirdev>
     <guest_memballoon></guest_memballoon>
