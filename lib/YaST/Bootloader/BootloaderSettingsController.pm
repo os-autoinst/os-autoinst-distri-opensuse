@@ -13,6 +13,7 @@ use YuiRestClient;
 use YaST::Bootloader::BootCodeOptionsPage;
 use YaST::Bootloader::KernelParametersPage;
 use YaST::Bootloader::BootloaderOptionsPage;
+use YaST::Bootloader::BootloaderOptionsNavTab 'use_navigating_tabs';
 
 sub new {
     my ($class, $args) = @_;
@@ -77,6 +78,13 @@ sub write_to_partition {
     my ($self) = @_;
     $self->get_boot_code_options_page->check_write_to_partition();
     $self->get_boot_code_options_page->press_next();
+}
+
+sub disable_grub_timeout_navigating_tabs {
+    my ($self) = @_;
+    use_navigating_tabs();
+    $self->get_bootloader_options_page->set_grub_timeout('-1');
+    $self->get_bootloader_options_page->press_next();
 }
 
 sub disable_grub_timeout {
