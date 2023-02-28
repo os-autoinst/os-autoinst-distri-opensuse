@@ -103,6 +103,7 @@ our @EXPORT = qw(
   script_start_io
   script_finish_io
   handle_screen
+  define_secret_variable
   @all_tests_results
 );
 
