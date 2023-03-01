@@ -16,6 +16,7 @@ use version_utils qw(is_sle is_leap);
 use x11utils 'turn_off_gnome_screensaver';
 use YaST::Module;
 use utils;
+use YaST::workarounds;
 
 sub test_setup {
     select_console "x11";
@@ -42,6 +43,7 @@ sub run {
     wait_screen_change {
         send_key 'alt-a';
     };
+    apply_workaround_poo124652('yast_scc-installation-summary', 100) if (is_sle('>=15-SP4'));
     assert_screen("yast_scc-installation-summary", 100);
 
     $testapi::distri->get_module_registration_installation_report()->press_finish();
