@@ -768,7 +768,7 @@ Get the api-key from the Trento installation
 
 sub trento_api_key {
     my ($wd, $basedir) = @_;
-    my $cmd = join(' ', $basedir . 'trento_deploy/trento_deploy.py',
+    my $cmd = join(' ', $basedir . '/trento_deploy/trento_deploy.py',
         '--verbose', 'api_key',
         '-u', 'admin',
         '-p', get_trento_password(),
