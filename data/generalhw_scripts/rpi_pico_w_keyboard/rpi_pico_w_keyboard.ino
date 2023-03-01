@@ -90,6 +90,10 @@ void setup(void) {
   WiFi.begin(ssid, password);
   Serial.println("");
 
+  Serial.println("RPi Pico W Keyboard Emulator");
+
+  Serial.print("Connecting to WiFi ");
+
   // Wait for connection
   uint16_t i = 0;
   while (WiFi.status() != WL_CONNECTED) {
@@ -104,6 +108,8 @@ void setup(void) {
   Serial.println("");
   Serial.print("Connected to ");
   Serial.println(ssid);
+  Serial.print("MAC address: ");
+  Serial.println(WiFi.macAddress());
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
   digitalWrite(LED_BUILTIN, HIGH);
