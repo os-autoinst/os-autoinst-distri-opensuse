@@ -65,16 +65,21 @@ sub run {
 
     die "no btrfs volume present" if (script_output('mount') !~ "btrfs");
 
-    # Check state of btrfsmaintenance-refresh units. Have to use (|| :) due to pipefail
-    validate_script_output('systemctl is-enabled btrfsmaintenance-refresh.path || true', qr/enabled/, fail_message => 'btrfsmaintenance-refresh.path is not enabled') unless is_sle("<15");
-    # Fixed in SP1:Update, but is out of general support
-    if (is_sle("<15-SP2")) {
-        validate_script_output('systemctl is-enabled btrfsmaintenance-refresh.service || true', qr/enabled/, fail_message => 'btrfsmaintenance-refresh.service is not enabled');
-        record_soft_failure('boo#1165780 - Preset is wrong and enables btrfsmaintenance-refresh.service instead of .path');
+    # Check state of btrfsmaintenance-refresh units.
+    # On SLES15/TW we use the btrfsmaintenance-refresh.path. On SLES12 we still use the btrfsmaintenance-refresh.service
+    if (is_sle("<15")) {
+        validate_script_output('systemctl is-enabled btrfsmaintenance-refresh.service || true', qr/enabled/, fail_message => 'btrfsmaintenance-refresh.service must be enabled on SLES12');
     } else {
-        # Preset is correct, btrfsmaintenance-refresh.service dropped the [Install] section
-        validate_script_output('systemctl is-enabled btrfsmaintenance-refresh.service || true', qr/^static.*/, fail_message => 'btrfsmaintenance-refresh.service is not static');
+        validate_script_output('systemctl is-enabled btrfsmaintenance-refresh.path || true', qr/enabled/, fail_message => "btrfsmaintenance-refresh.path must be enabled");
+
+        # On SLES 15-SP1 the service is not yet static.
+        if (is_sle("<15-SP2")) {
+            validate_script_output('systemctl is-enabled btrfsmaintenance-refresh.service || true', qr/(static|disabled)/, fail_message => 'btrfsmaintenance-refresh.service must be disabled or static');
+        } else {
+            validate_script_output('systemctl is-enabled btrfsmaintenance-refresh.service || true', qr/static/, fail_message => 'btrfsmaintenance-refresh.service must be static');
+        }
     }
+
     # Check if btrfs-scrub and btrfs-balance are (somehow) enabled (results only in a info write)
     if (!is_sle('<15')) {
         die("btrfs-scrub service not active") if btrfs_service_unavailable("scrub");
