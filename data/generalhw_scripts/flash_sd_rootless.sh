@@ -8,7 +8,7 @@ set -ex
 echo "Flash script start...";
 
 # Check number of args
-if [ "$#" -ne 4 ]; then
+if [ "$#" -ne 3 ]; then
     echo "Please provide <device serial>, <image to flash> and <hdd size> (ignored)."
     exit 1;
 fi
