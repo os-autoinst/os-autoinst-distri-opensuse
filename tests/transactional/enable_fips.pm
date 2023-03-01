@@ -13,9 +13,10 @@ use testapi;
 use transactional;
 use bootloader_setup qw(change_grub_config);
 use version_utils qw(is_sle_micro);
+use serial_terminal 'select_serial_terminal';
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
     # make sure fips is not enabled
     assert_script_run("grep '^0\$' /proc/sys/crypto/fips_enabled");
