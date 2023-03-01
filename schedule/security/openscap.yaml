@@ -1,0 +1,28 @@
+name: openscap
+description:    >
+    This is for the openscap and mau-openscap tests.
+schedule:
+    - '{{bootloader_s390}}'
+    - '{{bootloader_ppc}}'
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - security/openscap/oscap_setup
+    - security/openscap/oscap_info
+    - security/openscap/oscap_oval_scanning
+    - security/openscap/oscap_xccdf_scanning
+    - security/openscap/oscap_source_datastream
+    - security/openscap/oscap_result_datastream
+    - security/openscap/oscap_remediating_online
+    - security/openscap/oscap_remediating_offline
+    - security/openscap/oscap_generating_report
+    - security/openscap/oscap_generating_fix
+    - security/openscap/oscap_validating
+conditional_schedule:
+    bootloader_s390:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
+    bootloader_ppc:
+        BACKEND:
+            pvm_hmc:
+                - installation/bootloader
