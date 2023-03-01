@@ -33,7 +33,7 @@ sub install_in_venv {
     assert_script_run(sprintf('curl -f -v %s/data/publiccloud/venv/%s.txt > /tmp/%s.txt', autoinst_url(), $binary, $binary)) if defined($args{requirements});
 
     my $venv = '/root/.venv_' . $binary;
-    assert_script_run("python3.9 -m venv $venv");
+    assert_script_run("python3.10 -m venv $venv");
     assert_script_run("source '$venv/bin/activate'");
     my $what_to_install = defined($args{requirements}) ? sprintf('-r /tmp/%s.txt', $binary) : $args{pip_packages};
     assert_script_run('pip install --force-reinstall ' . $what_to_install, timeout => $install_timeout);
@@ -71,7 +71,7 @@ sub run {
     ensure_ca_certificates_suse_installed();
 
     # Install prerequisite packages test
-    zypper_call('-q in python39-pip python39-devel python3-img-proof python3-img-proof-tests podman docker jq rsync');
+    zypper_call('-q in python310-pip python310-devel python3-pytest python3-img-proof python3-img-proof-tests podman docker jq rsync');
     record_info('python', script_output('python --version'));
     systemctl('enable --now docker');
     assert_script_run('podman ps');
@@ -129,12 +129,12 @@ EOT
     my $ansible_core_version = get_var('ANSIBLE_CORE_VERSION');
     my $ansible_install_log = '/tmp/ansible_install.log';
 
-    assert_script_run("python3.9 -m pip install --no-input -q --no-color --log $ansible_install_log ansible==$ansible_version", timeout => 240);
+    assert_script_run("python3.10 -m pip install --no-input -q --no-color --log $ansible_install_log ansible==$ansible_version", timeout => 240);
     upload_logs("$ansible_install_log", failok => 1);
 
     if (length $ansible_core_version) {
         my $ansible_core_install_log = "/tmp/ansible_core_install.log";
-        assert_script_run("python3.9 -m pip install --no-input -q --no-color --log $ansible_core_install_log ansible-core==$ansible_core_version", timeout => 240);
+        assert_script_run("python3.10 -m pip install --no-input -q --no-color --log $ansible_core_install_log ansible-core==$ansible_core_version", timeout => 240);
         upload_logs("$ansible_core_install_log", failok => 1);
     }
     record_info('Ansible', script_output('ansible --version'));
