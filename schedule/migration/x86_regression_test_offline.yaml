@@ -16,6 +16,7 @@ schedule:
   - boot/boot_to_desktop
   - update/patch_sle
   - migration/record_disk_info
+  - '{{openldap_configuration}}'
   - '{{install_service}}'
   - migration/reboot_to_upgrade
   - migration/version_switch_upgrade_target
@@ -37,6 +38,10 @@ schedule:
   - migration/post_upgrade
   - '{{qcow_generation}}'
 conditional_schedule:
+  openldap_configuration:
+    MEDIA_UPGRADE:
+      0:
+        - migration/openldap_configuration
   qcow_generation:
     QCOW_GENERATION:
       0:
@@ -49,7 +54,7 @@ conditional_schedule:
         - console/prepare_test_data
         - console/consoletest_setup
         - '{{check_upgraded_service}}'
-        - migration/openldap_to_389ds
+        - '{{openldap_to_389ds}}'
         - '{{regression_tests}}'
         - '{{rollback_after_migration}}'
       1:
@@ -63,6 +68,10 @@ conditional_schedule:
     REGRESSION_SERVICE:
       1:
         - console/check_upgraded_service
+  openldap_to_389ds:
+    MEDIA_UPGRADE:
+      0:
+        - migration/openldap_to_389ds
   isosize_test:
     REGRESSION_SERVICE:
       1:
@@ -79,7 +88,6 @@ conditional_schedule:
         - console/hostname
         - console/upgrade_snapshots
         - console/zypper_lr
-        - console/check_system_info
         - console/zypper_ref
         - console/firewall_enabled
         - console/zypper_lifecycle
