@@ -228,71 +228,25 @@ our $thresholds_by_flavor = {
     },
 };
 
-
-sub systemd_time_to_sec
-{
-    my $str = trim(shift);
-    if ($str !~ /^(?<check_min>(?<min>\d{1,2})\s*min\s*)?((?<sec>\d{1,2}\.\d{1,3})s|(?<ms>\d+)ms)$/) {
-        die("Unable to parse systemd time '$str'");
-    }
-    my $sec = $+{sec} // $+{ms} / 1000;
-    $sec += $+{min} * 60 if (defined($+{check_min}));
-    return $sec;
-}
-
-sub extract_analyze {
-    my $string = shift;
-    my $res = {};
-    ($string) = split(/\r?\n/, $string, 2);
-    $string =~ s/Startup finished in\s*//;
-    $string =~ s/=(.+)$/+$1 (overall)/;
-    for my $time (split(/\s*\+\s*/, $string)) {
-        $time = trim($time);
-        my ($time, $type) = $time =~ /^(.+)\s*\((\w+)\)$/;
-        $res->{$type} = systemd_time_to_sec($time);
-    }
-    map { die("Fail to detect $_ timing") unless exists($res->{$_}) } qw(kernel initrd userspace overall);
-    return $res;
-}
-
-sub extract_blame {
-    my $string = shift;
-    my $ret = {};
-    for my $line (split(/\r?\n/, $string)) {
-        $line = trim($line);
-        my ($time, $service) = $line =~ /^(.+)\s+(\S+)$/;
-        $ret->{$service} = systemd_time_to_sec($time);
-    }
-    return $ret;
-}
-
-sub do_systemd_analyze {
-    my ($instance, %args) = @_;
-    $args{timeout} = 120;
-    my $start_time = time();
-    my $output = "";
-    my @ret;
-
-    # Wait for guest register, before calling syastemd-analyze
-    $instance->wait_for_guestregister();
-    while ($output !~ /Startup finished in/ && time() - $start_time < $args{timeout}) {
-        $output = $instance->run_ssh_command(cmd => 'systemd-analyze time', proceed_on_failure => 1);
-        sleep 5;
-    }
-
-    die("Unable to get system-analyze in $args{timeout} seconds") unless (time() - $start_time < $args{timeout});
-    push @ret, extract_analyze($output);
-
-    $output = $instance->run_ssh_command(cmd => 'systemd-analyze blame');
-    push @ret, extract_blame($output);
-
-    return @ret;
-}
-
-sub measure_timings {
+sub provider_instance {
     my ($self, $args) = @_;
     my $provider;
     my $instance;
+
+    if (get_var('PUBLIC_CLOUD_QAM')) {
+        $provider = $args->{my_provider};
+        $instance = $args->{my_instance};
+    } else {
+        $provider = $self->provider_factory();
+        $instance = $self->{my_instance} = $provider->create_instance(check_connectivity => 0);
+    }
+    die("Provider instance error") unless ($provider and $instance);
+
+    return $instance;
+}
+
+sub measure_timings {
+    my ($self, $instance) = @_;
 
     my $ret = {
         kernel_release => undef,
@@ -302,14 +256,6 @@ sub measure_timings {
             first => {}, soft => {}, hard => {}
         },
     };
-
-    if (get_var('PUBLIC_CLOUD_QAM')) {
-        $instance = $args->{my_instance};
-        $provider = $args->{my_provider};
-    } else {
-        $provider = $self->provider_factory();
-        $instance = $self->{my_instance} = $provider->create_instance(check_connectivity => 0);
-    }
 
     $ret->{analyze}->{ssh_access} = $instance->wait_for_ssh(timeout => 300);
     assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
@@ -348,45 +294,6 @@ sub measure_timings {
     return $ret;
 }
 
-sub store_in_db {
-    my ($self, $results) = @_;
-    my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI');
-    return unless ($url);
-    my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf');
-    my $token = get_required_var('_PUBLIC_CLOUD_PERF_DB_TOKEN');
-    my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
-
-    my $tags = {
-        instance_type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
-        os_flavor => get_required_var('FLAVOR'),
-        os_version => get_required_var('VERSION'),
-        os_build => get_required_var('BUILD'),
-        os_kernel_release => $results->{kernel_release},
-        os_kernel_version => $results->{kernel_version},
-    };
-
-    $tags->{os_pc_build} = get_var('PUBLIC_CLOUD_QAM') ? 'N/A' : get_required_var('PUBLIC_CLOUD_BUILD');
-    $tags->{os_pc_kiwi_build} = get_var('PUBLIC_CLOUD_QAM') ? 'N/A' : get_required_var('PUBLIC_CLOUD_BUILD_KIWI');
-
-    # Store values in influx-db
-    my $data = {
-        table => 'bootup',
-        tags => $tags,
-        values => $results->{analyze}
-    };
-    influxdb_push_data($url, $db, $org, $token, $data);
-
-    for my $type (qw(first soft hard)) {
-        $tags->{boottype} = $type;
-        $data = {
-            table => 'bootup_blame',
-            tags => $tags,
-            values => $results->{blame}->{$type}
-        };
-        influxdb_push_data($url, $db, $org, $token, $data);
-    }
-}
-
 sub check_threshold_values
 {
     my ($self, $results, $thresholds) = @_;
@@ -404,7 +311,7 @@ sub check_threshold_values
 
 sub check_thresholds {
     my ($self, $results) = @_;
-
+    return unless ($results);
     my $flavor = get_required_var('FLAVOR');
     die("Missing thresholds for flavor $flavor") unless (exists($thresholds_by_flavor->{$flavor}));
     my $thresholds = $thresholds_by_flavor->{$flavor};
@@ -419,10 +326,11 @@ sub check_thresholds {
 
 sub run {
     my ($self, $args) = @_;
+    my $results;
     select_host_console();
-
-    my $results = $self->measure_timings($args);
-    $self->store_in_db($results) if (check_var('_PUBLIC_CLOUD_PERF_PUSH_DATA', 1));
+    my $instance = $self->provider_instance($args);
+    $results = $instance->measure_timings($args) unless (get_required_var('PUBLIC_CLOUD_PERF_COLLECT'));
+    $instance->store_in_db($results) if (check_var('_PUBLIC_CLOUD_PERF_PUSH_DATA', 1));
     $self->check_thresholds($results) if (get_var('PUBLIC_CLOUD_PERF_THRESH_CHECK'));
 }
 
@@ -431,6 +339,7 @@ sub run {
 =head1 Discussion
 
 This module collect boot time statistics from publiccloud images.
+This code is executed only if not already elsewhere executed (PUBLIC_CLOUD_PERF_COLLECT).
 It collect systemd_analyze and ssh access time for three states:
 1) After first deployment
 2) After a soft reboot
