@@ -20,14 +20,24 @@ image_to_flash=$2
 # Get hdd size (ignored for SD, but passed as arg from openQA)
 hdd_size=$3
 
+device_link="/dev/disk/by-id/usb-LinuxAut_sdmux_HS-SD_MMC_${device_serial}-0:0"
+
 echo "* Switch SD card to flasher"
 usbsdmux /dev/usb-sd-mux/id-$device_serial host
 
+echo "* Wait for kernel to propagate device nodes"
+sleep 5
+while ! [[ -L $device_link ]] ; do
+	sleep 1
+done
+sdX_device=$(readlink -f $device_link)
+while ! [[ -b $sdX_device ]] ; do
+	sleep 1
+done
+
 # Check /dev/sdX_device is not mounted to prevent unexpected overwritting
 set +e
-device_link="/dev/disk/by-id/usb-LinuxAut_sdmux_HS-SD_MMC_${device_serial}-0:0"
-sdX_device=$(readlink -f $device_link)
-output=$(mount | grep /dev/$sdX_device)
+output=$(mount | grep $sdX_device)
 set -e
 if [ "$output" == "" ]; then
 	# Copy to SD card
