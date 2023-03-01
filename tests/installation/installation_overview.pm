@@ -119,6 +119,9 @@ sub run {
         # select None for Major Linux Security Module.
         set_linux_security_to_none if (is_sle('>=15-SP4') && check_screen("apparmor-not-selected") && !(get_var('PATTERNS') =~ 'default|all|apparmor'));
         ensure_ssh_unblocked;
+        until (!check_screen("install-overview-options-evaluating-pkg-selection")) {
+            save_screenshot;
+        }
         $self->check_default_target();
     }
 }
