@@ -21,7 +21,7 @@ sub server_configure_network {
     setup_static_mm_network('10.0.2.101/24');
 
     if (is_sle('15+') || is_opensuse) {
-        record_soft_failure 'boo#1083486 No firewalld service for nfs-kernel-server';
+        record_info('bsc#1083486', 'No firewalld service for nfs-kernel-server');
         disable_and_stop_service('firewalld');
     }
 }
