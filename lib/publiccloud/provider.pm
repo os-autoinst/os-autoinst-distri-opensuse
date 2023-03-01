@@ -313,6 +313,9 @@ sub create_instances {
             # Install server's ssh publicckeys to prevent authenticity interactions
             assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
         }
+        # Performance data: boottime
+        my $btime = $instance->measure_boottime($instance);
+        $instance->store_in_db($btime);
     }
     return @vms;
 }
