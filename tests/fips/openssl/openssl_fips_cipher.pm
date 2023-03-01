@@ -17,11 +17,13 @@ use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_sle_micro);
 
 sub run {
     select_serial_terminal;
-    zypper_call 'in openssl';
+
+    # openssl pre-installed in SLE Micro
+    zypper_call 'in openssl' unless is_sle_micro;
 
     my $enc_passwd = "pass1234";
     my $hash_alg = "sha256";

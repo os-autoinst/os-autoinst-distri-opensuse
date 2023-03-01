@@ -211,6 +211,12 @@ sub load_qemu_tests {
 
 sub load_fips_tests {
     loadtest 'transactional/enable_fips';
+    loadtest 'fips/openssl/openssl_fips_alglist';
+    loadtest 'fips/openssl/openssl_fips_cipher';
+    loadtest 'fips/openssl/openssl_fips_dhparam';
+    loadtest 'fips/openssl/openssl_fips_hash';
+    loadtest 'fips/openssl/openssl_pubkey_dsa';
+    loadtest 'fips/openssl/openssl_pubkey_rsa';
 }
 
 sub load_rcshell_tests {
