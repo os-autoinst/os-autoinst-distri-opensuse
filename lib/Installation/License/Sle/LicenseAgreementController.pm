@@ -20,11 +20,11 @@ sub init {
     my ($self, $args) = @_;
     $self->{AcceptLicensePopup} = Installation::License::AcceptLicensePopup->new({
             app => YuiRestClient::get_app(),
-            btn_ok_filter => {id => 'ok'}});
+            btn_ok_filter => {id => qr/ok_msg|ok/}});
     $self->{LicenseAgreementPage} = Installation::License::LicenseAgreementExplicitPage->new({
             app => YuiRestClient::get_app(),
             chb_accept_license_filter => {id => '"Y2Packager::Widgets::ProductLicenseConfirmation"'},
-            cmb_language_filter => {id => '"simple_language_selection"'},
+            cmb_language_filter => {id => qr/Y2Country::Widgets::LanguageSelection|simple_language_selection/},
             rct_eula_filter => {id => '"CWM::RichText"'}});
     return $self;
 }
