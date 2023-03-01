@@ -402,7 +402,7 @@
     </addons>
     <do_registration t="boolean">true</do_registration>
     <email/>
-    <install_updates t="boolean">false</install_updates>
+    <install_updates t="boolean">true</install_updates>
     <reg_code>{{SCC_REGCODE}}</reg_code>
     <reg_server>{{SCC_URL}}</reg_server>
     <slp_discovery t="boolean">false</slp_discovery>
