@@ -128,7 +128,7 @@ RPI_WIFI_WORKER_IP = 192.168.7.1
 [1]
 # Raspberry Pi 4 B
 # Most config moved to openQA `MACHINE` defintion due to https://progress.opensuse.org/issues/63766
-GENERAL_HW_FLASH_ARGS = /dev/shm/1 000000001006
+GENERAL_HW_FLASH_ARGS = 000000001006
 GENERAL_HW_FLASH_CMD = flash_sd_rootless.sh
 
 GENERAL_HW_POWEROFF_CMD = power_on_off_shelly.sh
