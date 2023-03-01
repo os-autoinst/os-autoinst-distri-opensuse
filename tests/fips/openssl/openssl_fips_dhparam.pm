@@ -12,9 +12,25 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_sle_micro);
+
+sub create_user {
+    my $user = $testapi::username;
+    my $password = $testapi::password;
+    if (script_run("getent passwd $user") != 0) {
+        assert_script_run "useradd -m $user";
+        assert_script_run "echo '$user:$password' | chpasswd";
+    }
+    # Make sure user has access to tty group
+    my $serial_group = script_output "stat -c %G /dev/$testapi::serialdev";
+    assert_script_run "grep '^${serial_group}:.*:${user}\$' /etc/group || (chown $user /dev/$testapi::serialdev && gpasswd -a $user $serial_group)";
+}
 
 sub run {
     select_console 'root-console';
+
+    # SLE Micro doesn't have user created by default
+    create_user if is_sle_micro;
 
     assert_script_run 'openssl req -newkey rsa:2048 -nodes -keyout generatedkey.key -x509 -days 365 -out generatedcert.crt -subj "/C=DE/L=Nue/O=SUSE/CN=security.suse.de"';
     assert_script_run 'openssl dhparam -out dhparams_2048.pem 2048';
