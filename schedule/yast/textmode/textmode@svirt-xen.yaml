@@ -5,47 +5,21 @@ description: |
 vars:
   YUI_REST_API: 1
 schedule:
-  - installation/bootloader_start
-  - installation/setup_libyui
-  - installation/access_beta_distribution
-  - installation/product_selection/install_SLES
-  - installation/licensing/accept_license
-  - installation/registration/register_via_scc
-  - installation/module_registration/skip_module_registration
-  - installation/add_on_product/skip_install_addons
-  - installation/system_role/accept_selected_role_text_mode
-  - installation/partitioning/accept_proposed_layout
-  - installation/clock_and_timezone/accept_timezone_configuration
-  - installation/authentication/use_same_password_for_root
-  - installation/authentication/default_user_simple_pwd
-  - installation/installation_settings/validate_ssh_service_enabled
-  - installation/installation_settings/open_ssh_port
-  - installation/installation_settings/validate_default_target
-  - installation/launch_installation
-  - installation/confirm_installation
-  - installation/performing_installation/perform_installation
-  - '{{stop_reboot_timeout}}'
-  - installation/logs_from_installation_system
-  - installation/performing_installation/update_virsh_config_to_boot_from_hd
-  - installation/performing_installation/confirm_reboot
-  - installation/performing_installation/reconnect_after_reboot
-  - installation/first_boot
-  - console/system_prepare
-  - console/prepare_test_data
-  - console/consoletest_setup
-  - console/validate_product_installed_SLES
-  - console/verify_network
-  - locale/keymap_or_locale
-  - console/validate_installed_patterns
-  - console/force_scheduled_tasks
-  - console/textinfo
-  - console/orphaned_packages_check
-  - console/consoletest_finish
-conditional_schedule:
-  stop_reboot_timeout:
-    VIRSH_VMM_TYPE:
-      linux:
-        - installation/performing_installation/stop_timeout_system_reboot_now
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_preparation:
+    - console/system_prepare
+    - console/prepare_test_data
+    - console/consoletest_setup
+  system_validation:
+    - console/validate_product_installed_SLES
+    - console/verify_network
+    - locale/keymap_or_locale
+    - console/validate_installed_patterns
+    - console/force_scheduled_tasks
+    - console/textinfo
+    - console/orphaned_packages_check
+    - console/consoletest_finish
 test_data:
   software:
     patterns:
