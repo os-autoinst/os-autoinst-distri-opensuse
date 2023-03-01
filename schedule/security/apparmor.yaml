@@ -1,0 +1,31 @@
+name: apparmor
+description:    >
+    This is for the apparmor and mau-apparmor tests.
+schedule:
+    - '{{bootloader_s390}}'
+    - '{{bootloader_ppc}}'
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - '{{prepare}}'
+    - security/apparmor/aa_status
+    - security/apparmor/aa_enforce
+    - security/apparmor/aa_complain
+    - security/apparmor/aa_genprof
+    - security/apparmor/aa_autodep
+    - security/apparmor/aa_logprof
+    - security/apparmor/aa_easyprof
+    - security/apparmor/aa_notify
+    - security/apparmor/aa_disable
+conditional_schedule:
+    bootloader_s390:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
+    bootloader_ppc:
+        BACKEND:
+            pvm_hmc:
+                - installation/bootloader
+    prepare:
+        TEST:
+            mau-apparmor:
+                - security/apparmor/aa_prepare

@@ -1,0 +1,24 @@
+name: security_pam
+description:    >
+    This is for the security_pam test.
+schedule:
+    - '{{bootloader_s390}}'
+    - '{{bootloader_ppc}}'
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - security/pam/pam_basic_function
+    - security/pam/pam_login
+    - security/pam/pam_su
+    - security/pam/pam_config
+    - security/pam/pam_mount
+    - security/pam/pam_faillock
+    - security/pam/pam_u2f
+conditional_schedule:
+    bootloader_s390:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
+    bootloader_ppc:
+        BACKEND:
+            pvm_hmc:
+                - installation/bootloader

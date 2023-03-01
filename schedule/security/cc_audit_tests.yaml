@@ -1,30 +1,47 @@
 name: cc_audit_tests
 description:    >
-    This is for cc audit tests in single node
+    This is for cc audit test.
 schedule:
-    - '{{bootloader_zkvm}}'
+    - '{{bootloader_s390}}'
+    - '{{bootloader_ppc}}'
     - boot/boot_to_desktop
     - security/cc/cc_audit_test_setup
-    - '{{trustedprograms}}'
     - '{{disable_root_ssh}}'
-    - security/cc/filter
-    - security/cc/syscalls
-    - security/cc/polkit_tests
-    - security/cc/audit_trail_protection
+    - security/cc/audit_tools
+    - security/cc/fail_safe
+    - security/cc/ip_eb_tables
+    - security/cc/kvm_svirt_apparmor
+    - security/cc/extended_apparmor_interface_trace_test
+    - security/cc/apparmor_negative_test
+    - '{{enable_root_ssh}}'
     - security/selinux/selinux_setup
-    - security/cc/libpam
+    - security/cc/cc_selinux_setup
+    - '{{disable_root_ssh}}'
+    - security/cc/crypto
+    - security/cc/misc
 conditional_schedule:
-    bootloader_zkvm:
+    bootloader_s390:
         ARCH:
             s390x:
                 - installation/bootloader_zkvm
+    bootloader_ppc:
+        BACKEND:
+            pvm_hmc:
+                - installation/bootloader
     disable_root_ssh:
         ARCH:
             s390x:
                 - security/cc/disable_root_ssh
+<<<<<<< HEAD
     trustedprograms:
         VERSION:
             15-SP5:
                 - security/cc/trustedprograms
             15-SP4:
                 - security/cc/trustedprograms
+=======
+    enable_root_ssh:
+        ARCH:
+            s390x:
+                - security/cc/disable_root_ssh
+>>>>>>> 0a9025ce9 (Port cc_audit-test to yaml)
