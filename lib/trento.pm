@@ -772,8 +772,7 @@ sub trento_api_key {
         '--verbose', 'api_key',
         '-u', 'admin',
         '-p', get_trento_password(),
-        '-i', get_trento_ip(),
-        '-v');
+        '-i', get_trento_ip());
     my $agent_api_key = '';
     my @lines = split(/\n/, script_output($cmd));
     foreach my $line (@lines) {
