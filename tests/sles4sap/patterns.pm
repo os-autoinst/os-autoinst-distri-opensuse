@@ -19,7 +19,7 @@ use warnings;
 
 sub run {
     my @sappatterns = qw(sap-nw sap-b1 sap-hana);
-    $sappatterns[1] =~ s/b1/bone/ if (is_sle('15-SP5+'));
+    splice(@sappatterns, 1, 1) if (is_sle('15-SP5+'));    # sap-bone pattern is no longer part of SLES4SAP starting on 15-SP5
     my $output = '';
 
     select_serial_terminal;
