@@ -152,3 +152,66 @@ sub post_fail_hook ($self) {
 }
 
 1;
+
+=head1 Variables explanation
+
+=over
+=item $mpi
+Stores the MPI implementation. This is usually whatever MPI job variable is
+given. It is changed when openmpi is used to get the corresponding version
+for products despite the MPI value. C<get_mpi> function needs to get improved
+
+=item $mpi_compiler
+This is determined based on the source code which is used and comes together
+with C<mpi_c>
+
+=item $mpi_c
+The source code to compile and run. The source codes are located in
+ L<data|data/hpc>
+
+=item $mpi_bin
+Holds the name of the compiled source code
+
+=item $cluster_nodes
+A str representation of all the nodes of the cluster, including master node.
+
+=item %exports_path
+Holds the common paths which nodes locate libraries and source code.
+
+=item $user_virtio_fixed
+A boolean which determines whether isotovideo can set user console prompt or
+not
+
+=item $prompt
+Used by C<select_user_serial_terminal> to get a user terminal
+
+=item $mpi2load
+differentiates the openmpi name to be used in lmod loading. C<lmod> can load
+only one mpi. In case of openmpi2, openmpi3, openmpi4 which is stored in C<mpi>,
+it takes their place as all are found as I<openmpi>
+
+=item $hostname
+It just holds the I<hostname> to avoid recall C<get_var> again and again
+
+=item $mpirun_s
+Holds an object which implements wrappers for B<mpirun>. Implementation can be
+found at L<formatter|lib/hpc/formatter.pm>
+
+=item $imb_version
+Stores the version of the imb installed package. It is used to determine the
+path in the L<lib|/usr/lib/hpc/gnu7/$mpi/imb> which the bins are located.
+
+=back
+
+=head1 Notes to keep in mind
+
+=head2 Known Bugs
+
+C<mvapich2> in SLE15SP2 and below suffers from various issues which causes
+segmentation faults and Floating point exception. Those should be handled
+with C<record_soft_failure>
+
+=head2 Settings
+TODO
+
+=cut
