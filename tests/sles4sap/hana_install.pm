@@ -90,7 +90,8 @@ sub run {
     my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
     my $sid = get_required_var('INSTANCE_SID');
     my $instid = get_required_var('INSTANCE_ID');
-    my $tout = get_var('HANA_INSTALLATION_TIMEOUT', 3600);    # Timeout for HANA installation commands.
+    # set timeout as 4800 as a temp workaround for slow nfs
+    my $tout = get_var('HANA_INSTALLATION_TIMEOUT', 4800);    # Timeout for HANA installation commands.
 
     select_serial_terminal;
     my $RAM = $self->get_total_mem();
