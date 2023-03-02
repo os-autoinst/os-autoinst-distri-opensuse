@@ -26,8 +26,6 @@ conditional_schedule:
         - installation/user_settings
   user_settings_root:
     VERSION:
-      15-SP1:
-        - installation/user_settings_root
       15-SP2:
         - installation/user_settings_root
       15-SP3:
