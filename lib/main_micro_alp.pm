@@ -217,6 +217,9 @@ sub load_fips_tests {
     loadtest 'fips/openssl/openssl_fips_hash';
     loadtest 'fips/openssl/openssl_pubkey_dsa';
     loadtest 'fips/openssl/openssl_pubkey_rsa';
+    loadtest 'fips/gnutls/gnutls_base_check';
+    loadtest 'fips/gnutls/gnutls_server';
+    loadtest 'fips/gnutls/gnutls_client';
 }
 
 sub load_rcshell_tests {
