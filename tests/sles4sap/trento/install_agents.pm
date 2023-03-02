@@ -20,7 +20,7 @@ sub run {
     my $wd = '/root/work_dir';
     enter_cmd "mkdir $wd";
 
-    my $agent_api_key = trento_api_key($wd, $basedir);
+    my $agent_api_key = trento_api_key($basedir);
 
     cluster_install_agent($wd, $basedir, $agent_api_key);
 }
