@@ -170,7 +170,7 @@ sub load_create_publiccloud_tools_image {
 # Test CLI tools for each provider
 sub load_publiccloud_cli_tools {
     loadtest 'boot/boot_to_desktop';
-    loadtest 'publiccloud/azure_cli';
+    loadtest 'publiccloud/azure_vm_cli';
     loadtest 'publiccloud/aws_cli';
     loadtest 'publiccloud/google_cli';
     loadtest 'shutdown/shutdown';
