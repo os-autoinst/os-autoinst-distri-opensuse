@@ -265,6 +265,10 @@ sub format_with_options {
         format_partition($part, 'xfs', options => '-f -m crc=1,reflink=0,rmapbt=0, -i sparse=0 -lsize=100m');
         script_run("echo 'export XFS_MKFS_OPTIONS=\"-m crc=1,reflink=0,rmapbt=0, -i sparse=0 -lsize=100m\"' >> $CONFIG_FILE");
     }
+    elsif ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'bigtime') != -1) {
+        format_partition($part, 'xfs', options => '-f -m bigtime=1');
+        script_run("echo 'export XFS_MKFS_OPTIONS=\"-m bigtime=1\"' >> $CONFIG_FILE");
+    }
     # In case to test different mkfs.btrfs options
     # $XFSTEST_MKFS_OPTION: options for mkfs.btrfs
     # Example of 4k block size: -f -s 4k -n 16k
