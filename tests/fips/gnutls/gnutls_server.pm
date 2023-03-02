@@ -12,10 +12,17 @@ use testapi;
 use strict;
 use warnings;
 use utils qw(zypper_call);
+use version_utils qw(is_transactional);
+use transactional qw(trup_call process_reboot);
 
 sub run {
     select_console "root-console";
-    zypper_call 'in gnutls';
+    if (is_transactional) {
+        trup_call('pkg install gnutls');
+        process_reboot(trigger => 1);
+    } else {
+        zypper_call('in gnutls');
+    }
 
     # Create test folder
     my $test_dir = "gnutls";

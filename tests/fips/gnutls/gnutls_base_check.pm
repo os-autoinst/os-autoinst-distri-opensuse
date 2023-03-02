@@ -14,13 +14,19 @@ use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils 'zypper_call';
-use version_utils qw(is_tumbleweed is_leap is_sle);
+use version_utils qw(is_tumbleweed is_leap is_sle is_transactional);
+use transactional qw(trup_call process_reboot);
 
 sub run {
     select_serial_terminal;
 
     # Install the gnutls / libnettle packages (pulled as dependency)
-    zypper_call('in gnutls');
+    if (is_transactional) {
+        trup_call('pkg install gnutls');
+        process_reboot(trigger => 1);
+    } else {
+        zypper_call('in gnutls');
+    }
 
     my $current_ver = script_output("rpm -q --qf '%{version}\n' gnutls");
     record_info('gnutls version', "Version of Current gnutls package: $current_ver");
