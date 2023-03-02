@@ -23,7 +23,8 @@ sub run {
     my $sid = get_required_var('INSTANCE_SID');
     my $hostname = get_var('INSTANCE_ALIAS', '$(hostname)');
     my $params_file = "/sapinst/$instance_type.params";
-    my $timeout = bmwqemu::scale_timeout(900);    # Time out for NetWeaver's sources related commands
+    # set timeout as 1800 as workaround for slow nfs
+    my $timeout = bmwqemu::scale_timeout(1800);    # Time out for NetWeaver's sources related commands
     my $product_id = undef;
 
     # Set Product ID depending on the type of Instance
