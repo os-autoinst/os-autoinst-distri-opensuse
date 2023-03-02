@@ -26,6 +26,7 @@ sub run ($self) {
     my $mpi = $self->get_mpi();
     my ($mpi_compiler, $mpi_c) = $self->get_mpi_src();
     my $mpi_bin = 'mpi_bin';
+    my $mpi2load = '';
     my @cluster_nodes = $self->cluster_names();
     my $cluster_nodes = join(',', @cluster_nodes);
     my %exports_path = (
@@ -45,7 +46,7 @@ sub run ($self) {
     type_string('pkill -u root', lf => 1) unless $user_virtio_fixed;
     select_user_serial_terminal($prompt);
     # for <15-SP2 the openmpi2 module is named simply openmpi
-    $mpi = 'openmpi' if ($mpi =~ /openmpi2|openmpi3|openmpi4/);
+    $mpi2load = 'openmpi' if ($mpi =~ /openmpi2|openmpi3|openmpi4/);
 
     barrier_wait('CLUSTER_PROVISIONED');
     record_info 'CLUSTER_PROVISIONED', strftime("\%H:\%M:\%S", localtime);
@@ -68,7 +69,7 @@ sub run ($self) {
     type_string('pkill -u root') unless $user_virtio_fixed;
     select_user_serial_terminal($prompt);
     # load mpi after all the relogins
-    assert_script_run "module load gnu $mpi";
+    assert_script_run "module load gnu $mpi2load";
     script_run "module av";
 
     barrier_wait('MPI_SETUP_READY');
@@ -120,11 +121,10 @@ sub run ($self) {
     barrier_wait('MPI_RUN_TEST');
     record_info 'MPI_RUN_TEST', strftime("\%H:\%M:\%S", localtime);
 
-    my $mpi_var_name = get_required_var('MPI');
-    my $imb_version = script_output("rpm -q --queryformat '%{VERSION}' imb-gnu-$mpi_var_name-hpc");
+    my $imb_version = script_output("rpm -q --queryformat '%{VERSION}' imb-gnu-$mpi-hpc");
 
     if ($mpi eq 'mvapich2') {
-        my $return = script_run("set -o pipefail; mpirun -np 4 /usr/lib/hpc/gnu7/$mpi_var_name/imb/$imb_version/bin/IMB-MPI1 PingPong |& tee /tmp/mpi_bin.log", timeout => 120);
+        my $return = script_run("set -o pipefail; mpirun -np 4 /usr/lib/hpc/gnu7/$mpi/imb/$imb_version/bin/IMB-MPI1 PingPong |& tee /tmp/mpi_bin.log", timeout => 120);
         if ($return == 136) {
             if (script_run('grep \'Caught error: Floating point exception (signal 8)\' /tmp/mpi_bin.log') == 0) {
                 record_soft_failure('bsc#1175679 Floating point exception should be fixed on mvapich2/2.3.4');
@@ -136,7 +136,7 @@ sub run ($self) {
     } else {
         record_info 'testing IMB', 'Run all IMB-MPI1 components';
         # Run IMB-MPI1 without args to run the whole set of testings. Mind the timeout if you do so
-        assert_script_run("mpirun -np 4 /usr/lib/hpc/gnu7/$mpi_var_name/imb/$imb_version/bin/IMB-MPI1 PingPong");
+        assert_script_run("mpirun -np 4 /usr/lib/hpc/gnu7/$mpi/imb/$imb_version/bin/IMB-MPI1 PingPong");
     }
     barrier_wait('IBM_TEST_DONE');
     record_info 'IBM_TEST_DONE', strftime("\%H:\%M:\%S", localtime);
