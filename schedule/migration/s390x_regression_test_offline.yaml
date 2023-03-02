@@ -29,7 +29,7 @@ schedule:
   - installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
-  - installation/logs_from_installation_system
+  - '{{logs_from_installation_system}}'
   - installation/reboot_after_installation
   - installation/handle_reboot
   - installation/first_boot
@@ -64,6 +64,10 @@ conditional_schedule:
     REGRESSION_SERVICE:
       1:
         - installation/install_service
+  logs_from_installation_system:
+    FLAVOR:
+      Regression-on-Migration-from-SLE15-SPx:
+        - installation/logs_from_installation_system
   regression_tests:
     REGRESSION_TEST:
       1:
