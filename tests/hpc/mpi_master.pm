@@ -26,6 +26,7 @@ sub run ($self) {
     my $mpi = $self->get_mpi();
     my ($mpi_compiler, $mpi_c) = $self->get_mpi_src();
     my $mpi_bin = 'mpi_bin';
+    my $mpi2load = '';
     my @cluster_nodes = $self->cluster_names();
     my $cluster_nodes = join(',', @cluster_nodes);
     my %exports_path = (
@@ -45,7 +46,7 @@ sub run ($self) {
     type_string('pkill -u root', lf => 1) unless $user_virtio_fixed;
     select_user_serial_terminal($prompt);
     # for <15-SP2 the openmpi2 module is named simply openmpi
-    $mpi = 'openmpi' if ($mpi =~ /openmpi2|openmpi3|openmpi4/);
+    $mpi2load = 'openmpi' if ($mpi =~ /openmpi2|openmpi3|openmpi4/);
 
     barrier_wait('CLUSTER_PROVISIONED');
     record_info 'CLUSTER_PROVISIONED', strftime("\%H:\%M:\%S", localtime);
@@ -68,7 +69,7 @@ sub run ($self) {
     type_string('pkill -u root') unless $user_virtio_fixed;
     select_user_serial_terminal($prompt);
     # load mpi after all the relogins
-    assert_script_run "module load gnu $mpi";
+    assert_script_run "module load gnu $mpi2load";
     script_run "module av";
 
     barrier_wait('MPI_SETUP_READY');
@@ -120,11 +121,10 @@ sub run ($self) {
     barrier_wait('MPI_RUN_TEST');
     record_info 'MPI_RUN_TEST', strftime("\%H:\%M:\%S", localtime);
 
-    my $mpi_var_name = get_required_var('MPI');
-    my $imb_version = script_output("rpm -q --queryformat '%{VERSION}' imb-gnu-$mpi_var_name-hpc");
+    my $imb_version = script_output("rpm -q --queryformat '%{VERSION}' imb-gnu-$mpi-hpc");
 
     if ($mpi eq 'mvapich2') {
-        my $return = script_run("set -o pipefail; mpirun -np 4 /usr/lib/hpc/gnu7/$mpi_var_name/imb/$imb_version/bin/IMB-MPI1 PingPong |& tee /tmp/mpi_bin.log", timeout => 120);
+        my $return = script_run("set -o pipefail; mpirun -np 4 /usr/lib/hpc/gnu7/$mpi/imb/$imb_version/bin/IMB-MPI1 PingPong |& tee /tmp/mpi_bin.log", timeout => 120);
         if ($return == 136) {
             if (script_run('grep \'Caught error: Floating point exception (signal 8)\' /tmp/mpi_bin.log') == 0) {
                 record_soft_failure('bsc#1175679 Floating point exception should be fixed on mvapich2/2.3.4');
@@ -136,7 +136,7 @@ sub run ($self) {
     } else {
         record_info 'testing IMB', 'Run all IMB-MPI1 components';
         # Run IMB-MPI1 without args to run the whole set of testings. Mind the timeout if you do so
-        assert_script_run("mpirun -np 4 /usr/lib/hpc/gnu7/$mpi_var_name/imb/$imb_version/bin/IMB-MPI1 PingPong");
+        assert_script_run("mpirun -np 4 /usr/lib/hpc/gnu7/$mpi/imb/$imb_version/bin/IMB-MPI1 PingPong");
     }
     barrier_wait('IBM_TEST_DONE');
     record_info 'IBM_TEST_DONE', strftime("\%H:\%M:\%S", localtime);
@@ -152,3 +152,66 @@ sub post_fail_hook ($self) {
 }
 
 1;
+
+=head1 Variables explanation
+
+=over
+=item $mpi
+Stores the MPI implementation. This is usually whatever MPI job variable is
+given. It is changed when openmpi is used to get the corresponding version
+for products despite the MPI value. C<get_mpi> function needs to get improved
+
+=item $mpi_compiler
+This is determined based on the source code which is used and comes together
+with C<mpi_c>
+
+=item $mpi_c
+The source code to compile and run. The source codes are located in
+ L<data|data/hpc>
+
+=item $mpi_bin
+Holds the name of the compiled source code
+
+=item $cluster_nodes
+A str representation of all the nodes of the cluster, including master node.
+
+=item %exports_path
+Holds the common paths which nodes locate libraries and source code.
+
+=item $user_virtio_fixed
+A boolean which determines whether isotovideo can set user console prompt or
+not
+
+=item $prompt
+Used by C<select_user_serial_terminal> to get a user terminal
+
+=item $mpi2load
+differentiates the openmpi name to be used in lmod loading. C<lmod> can load
+only one mpi. In case of openmpi2, openmpi3, openmpi4 which is stored in C<mpi>,
+it takes their place as all are found as I<openmpi>
+
+=item $hostname
+It just holds the I<hostname> to avoid recall C<get_var> again and again
+
+=item $mpirun_s
+Holds an object which implements wrappers for B<mpirun>. Implementation can be
+found at L<formatter|lib/hpc/formatter.pm>
+
+=item $imb_version
+Stores the version of the imb installed package. It is used to determine the
+path in the L<lib|/usr/lib/hpc/gnu7/$mpi/imb> which the bins are located.
+
+=back
+
+=head1 Notes to keep in mind
+
+=head2 Known Bugs
+
+C<mvapich2> in SLE15SP2 and below suffers from various issues which causes
+segmentation faults and Floating point exception. Those should be handled
+with C<record_soft_failure>
+
+=head2 Settings
+TODO
+
+=cut
