@@ -4,6 +4,7 @@ description:    >
     ALP virtualization guest installation and virt feature tests schedule
 schedule:
     - virt_autotest/login_console
+    - virt_autotest/prepare_alp_host
     - virt_autotest/setup_kvm_container
     - "{{install_guest}}"
     - virt_autotest/set_config_as_glue
