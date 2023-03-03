@@ -26,8 +26,9 @@ use testapi;
 use Utils::Backends;
 use Utils::Architectures;
 use utils;
-use version_utils qw(is_sle is_public_cloud);
+use version_utils qw(is_sle is_public_cloud is_transactional is_sle_micro);
 use utils qw(zypper_call package_upgrade_check);
+use transactional qw(trup_call process_reboot);
 
 sub gpg_test {
     my ($key_size, $gpg_ver) = @_;
@@ -115,7 +116,7 @@ EOF
     # the random probable primes p and q for RSA.
     #
     # Please see bsc#1165902#c40 that RSA 4096 can be accepted even in FIPS mode
-    if (get_var('FIPS') || get_var('FIPS_ENABLED') && ($key_size == '1024')) {
+    if ((get_var('FIPS') || get_var('FIPS_ENABLED') || get_var('FIPS_ENV_MODE')) && ($key_size == '1024')) {
         wait_serial("failed: Invalid value", 90) || die "It should failed with invalid value!";
         return;
     }
@@ -161,8 +162,13 @@ sub run {
     select_console 'root-console';
 
     # increase entropy for key generation for s390x on svirt backend
-    if (is_s390x && (is_sle('15+') && (is_svirt))) {
-        zypper_call('in haveged');
+    if (is_s390x && ((is_sle('15+') || is_transactional) && (is_svirt))) {
+        if (is_transactional) {
+            trup_call('pkg install haveged');
+            process_reboot(trigger => 1);
+        } else {
+            zypper_call('in haveged');
+        }
         systemctl('start haveged');
     }
 
@@ -183,10 +189,15 @@ sub run {
             return 1;
         }
     } else {
-        zypper_call("in " . join(' ', keys %$pkg_list));
+        if (is_transactional) {
+            trup_call('pkg install ' . join(' ', keys %$pkg_list));
+            process_reboot(trigger => 1);
+        } else {
+            zypper_call("in " . join(' ', keys %$pkg_list));
+        }
     }
 
-    if (is_sle('>=15-sp4')) {
+    if (is_sle('>=15-sp4') || is_sle_micro) {
         package_upgrade_check($pkg_list) unless (is_public_cloud() && check_var('BETA', '1'));
     }
     else {
