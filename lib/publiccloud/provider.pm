@@ -314,8 +314,8 @@ sub create_instances {
             assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
         }
         # Performance data: boottime
-        my $btime = $instance->measure_boottime($instance);
-        $instance->store_in_db($btime);
+        my $btime = $instance->measure_boottime($instance, 'first');
+        $instance->store_boottime_db($btime);
     }
     return @vms;
 }

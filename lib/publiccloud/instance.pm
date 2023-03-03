@@ -498,111 +498,84 @@ sub network_speed_test() {
 Perfomrance measurement of the system Boot time. 
 Mainly used C<systemd-analyze> command for the data extraction.
 Data is then collected in an internal record, ready for storing in a DB.
-- when PUBLIC_CLOUD_PERF_COLLECT=0 boottime measurement disabled;
-- when bit-0 ON,First reboot only enabled =1;
-- when bit-1 ON, first,softreboot enabled =3 [2 too];
-- when bit-2 ON, first,hardreboot enabled =5 [4 too];
-- when all bits ON,all 3 measures enabled =7 [6 too].
+Set PUBLIC_CLOUD_PERF_COLLECT true or >0, to activate boottime measurements.
 
 =cut
 
 sub measure_boottime() {
-    my ($self, $instance) = @_;
-    my $perf = get_var('PUBLIC_CLOUD_PERF_COLLECT');
-    return 0 unless ($perf);
-
-    my $softreboot = $perf & 2;    # bit-1 check
-    my $hardreboot = $perf & 4;    # bit-2 check
+    my ($self, $instance, $type) = @_;
+    return 0 unless (get_var('PUBLIC_CLOUD_PERF_COLLECT'));
 
     my $ret = {
         kernel_release => undef,
         kernel_version => undef,
+        type => undef,
         analyze => {},
-        blame => {
-            first => {}, soft => {}, hard => {}
-        },
+        blame => {},
     };
+
     record_info("BOOT TIME", 'systemd_analyze');
     # first deployment analysis
-    my ($systemd_analyze, $systemd_blame) = do_systemd_analyze($instance);
+    my ($systemd_analyze, $systemd_blame) = do_systemd_analyze_time($instance);
     $ret->{analyze}->{$_} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
-    $ret->{blame}->{first} = $systemd_blame;
+    $ret->{blame} = $systemd_blame;
+    $ret->{type} = $type;
+    # $ret->{analyze}->{ssh_access} = $startup_time; # placeholder for next implementation
 
     # Collect kernel version
-    $ret->{kernel_release} = $instance->run_ssh_command(cmd => 'uname -r');
-    $ret->{kernel_version} = $instance->run_ssh_command(cmd => 'uname -v');
-
-    if ($softreboot) {
-        # Do soft reboot
-        my ($shutdown_time, $startup_time) = $instance->softreboot();
-        $ret->{analyze}->{ssh_access_soft} = $startup_time;
-
-        ($systemd_analyze, $systemd_blame) = do_systemd_analyze($instance);
-        $ret->{analyze}->{$_ . '_soft'} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
-        $ret->{blame}->{soft} = $systemd_blame;
-    }
-
-    if ($hardreboot) {
-        # Do hard reboot
-        $instance->stop();
-        $ret->{analyze}->{ssh_access_hard} = $instance->start();
-
-        ($systemd_analyze, $systemd_blame) = do_systemd_analyze($instance);
-        $ret->{analyze}->{$_ . '_hard'} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
-        $ret->{blame}->{hard} = $systemd_blame;
-    }
+    $ret->{kernel_release} = $instance->run_ssh_command(cmd => 'uname -r', proceed_on_failure => 1);
+    $ret->{kernel_version} = $instance->run_ssh_command(cmd => 'uname -v', proceed_on_failure => 1);
 
     # Do logging to openqa UI
     $Data::Dumper::Sortkeys = 1;
     record_info("RESULTS", Dumper($ret));
 
-    $instance->run_ssh_command(cmd => 'sudo tar -czvf /tmp/sle_cloud.tar.gz /var/log/cloudregister /var/log/cloud-init.log /var/log/cloud-init-output.log /var/log/messages /var/log/NetworkManager', proceed_on_failure => 1);
-    $instance->upload_log('/tmp/sle_cloud.tar.gz');
+    my $logs = '/var/log/cloudregister /var/log/cloud-init.log /var/log/cloud-init-output.log /var/log/messages /var/log/NetworkManager';
+    $instance->run_ssh_command(cmd => 'sudo tar -czvf /tmp/sle_cloud.tar.gz ' . $logs, proceed_on_failure => 1);
+    $instance->upload_log('/tmp/sle_cloud.tar.gz', failok => 1);
 
     return $ret;
 }
 
 
-=head2 store_in_db
+=head2 store_boottime_db
 
-    store_in_db();
+    store_boottime_db();
 
 Save data collected with measure_boottime in a DB;
 Mainly stored on a remote InfluxDB on a Grafana server.
 
 =cut
 
-sub store_in_db() {
+sub store_boottime_db() {
     my ($self, $results) = @_;
     return unless (get_var('_PUBLIC_CLOUD_PERF_PUSH_DATA') && $results);
 
     my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI');
-    return unless ($url);
-
     my $token = get_var('_PUBLIC_CLOUD_PERF_DB_TOKEN');
-    return unless ($token);
-
+    unless ($url && $token) {
+        record_info("WARN", "PUBLIC_CLOUD_PERF_DB_URI or _PUBLIC_CLOUD_PERF_DB_TOKEN is missing ", result => 'fail');
+        return;
+    }
     my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
     my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf');
 
-    my $softreboot = (get_var('PUBLIC_CLOUD_PERF_COLLECT', 0) & 2) or get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME');  # bit-1 check
-    my $hardreboot = (get_var('PUBLIC_CLOUD_PERF_COLLECT', 0) & 4) or get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME');  # bit-2 check
-
     my $tags = {
         instance_type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
+        provider => get_required_var('PUBLIC_CLOUD_PROVIDER'),
         os_build => get_required_var('BUILD'),
         os_flavor => get_required_var('FLAVOR'),
         os_version => get_required_var('VERSION'),
-
         os_kernel_release => $results->{kernel_release},
         os_kernel_version => $results->{kernel_version},
     };
 
-    $tags->{os_pc_build} = get_var('PUBLIC_CLOUD_QAM') ? 'N/A' : get_required_var('PUBLIC_CLOUD_BUILD');
-    $tags->{os_pc_kiwi_build} = get_var('PUBLIC_CLOUD_QAM') ? 'N/A' : get_required_var('PUBLIC_CLOUD_BUILD_KIWI');
+    $tags->{os_pc_build} = get_var('PUBLIC_CLOUD_QAM') ? 'N/A' : get_var('PUBLIC_CLOUD_BUILD', 0);
+    $tags->{os_pc_kiwi_build} = get_var('PUBLIC_CLOUD_QAM') ? 'N/A' : get_var('PUBLIC_CLOUD_BUILD_KIWI', 0);
 
-    record_info("STORE DATA", 'bootup');
+    record_info("STORE analyze", 'bootup');
     # Store values in influx-db
+
     my $data = {
         table => 'bootup',
         tags => $tags,
@@ -610,80 +583,66 @@ sub store_in_db() {
     };
     influxdb_push_data($url, $db, $org, $token, $data);
 
-    record_info("STORE DATA", 'bootup_blame');
-    for my $type (qw(first soft hard)) {
-        if ($type == 'soft' && !$softreboot) {
-            next;
-        }
-        if ($type == 'hard' && !$hardreboot) {
-            next;
-        }
-        $tags->{boottype} = $type;
-        $data = {
-            table => 'bootup_blame',
-            tags => $tags,
-            values => $results->{blame}->{$type}
-        };
-        influxdb_push_data($url, $db, $org, $token, $data);
-    }
+    record_info("STORE blame", $results->{type});
+    $tags->{boottype} = $results->{type};
+    $data = {
+        table => 'bootup_blame',
+        tags => $tags,
+        values => $results->{blame}
+    };
+    influxdb_push_data($url, $db, $org, $token, $data);
 }
 
-sub systemd_time_to_sec
+sub systemd_time_to_second
 {
-    my $str = trim(shift);
-    if ($str !~ /^(?<check_min>(?<min>\d{1,2})\s*min\s*)?((?<sec>\d{1,2}\.\d{1,3})s|(?<ms>\d+)ms)$/) {
-        die("Unable to parse systemd time '$str'");
+    my $str_time = trim(shift);
+    if ($str_time !~ /^(?<check_min>(?<min>\d{1,2})\s*min\s*)?((?<sec>\d{1,2}\.\d{1,3})s|(?<ms>\d+)ms)$/) {
+        die("Unable to parse systemd time '$str_time'");
     }
     my $sec = $+{sec} // $+{ms} / 1000;
     $sec += $+{min} * 60 if (defined($+{check_min}));
     return $sec;
 }
 
-sub extract_analyze {
-    my $string = shift;
+sub extract_analyze_time {
+    my $str_time = shift;
     my $res = {};
-    ($string) = split(/\r?\n/, $string, 2);
-    $string =~ s/Startup finished in\s*//;
-    $string =~ s/=(.+)$/+$1 (overall)/;
-    for my $time (split(/\s*\+\s*/, $string)) {
+    ($str_time) = split(/\r?\n/, $str_time, 2);
+    $str_time =~ s/Startup finished in\s*//;
+    $str_time =~ s/=(.+)$/+$1 (overall)/;
+    for my $time (split(/\s*\+\s*/, $str_time)) {
         $time = trim($time);
         my ($time, $type) = $time =~ /^(.+)\s*\((\w+)\)$/;
-        $res->{$type} = systemd_time_to_sec($time);
+        $res->{$type} = systemd_time_to_second($time);
     }
     map { die("Fail to detect $_ timing") unless exists($res->{$_}) } qw(kernel initrd userspace overall);
     return $res;
 }
 
-sub extract_blame {
-    my $string = shift;
+sub extract_blame_time {
+    my $str_time = shift;
     my $ret = {};
-    for my $line (split(/\r?\n/, $string)) {
+    for my $line (split(/\r?\n/, $str_time)) {
         $line = trim($line);
         my ($time, $service) = $line =~ /^(.+)\s+(\S+)$/;
-        $ret->{$service} = systemd_time_to_sec($time);
+        $ret->{$service} = systemd_time_to_second($time);
     }
     return $ret;
 }
 
-sub do_systemd_analyze {
+sub do_systemd_analyze_time {
     my ($instance, %args) = @_;
     $args{timeout} = 120;
     my $start_time = time();
     my $output = "";
     my @ret;
 
-    # Wait for guest register, before calling syastemd-analyze
-    $instance->wait_for_guestregister();
-    while ($output !~ /Startup finished in/ && time() - $start_time < $args{timeout}) {
-        $output = $instance->run_ssh_command(cmd => 'systemd-analyze time', proceed_on_failure => 1);
-        sleep 5;
-    }
+    # calling syastemd-analyze time & blame
+    $output = $instance->run_ssh_command(cmd => 'systemd-analyze time', proceed_on_failure => 1);
+    push @ret, extract_analyze_time($output);
 
-    die("Unable to get system-analyze in $args{timeout} seconds") unless (time() - $start_time < $args{timeout});
-    push @ret, extract_analyze($output);
-
-    $output = $instance->run_ssh_command(cmd => 'systemd-analyze blame');
-    push @ret, extract_blame($output);
+    $output = $instance->run_ssh_command(cmd => 'systemd-analyze blame', proceed_on_failure => 1);
+    push @ret, extract_blame_time($output);
 
     return @ret;
 }
