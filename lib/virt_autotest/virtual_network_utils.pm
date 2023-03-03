@@ -357,10 +357,12 @@ sub clean_all_virt_networks {
     foreach my $vnet (split(/\n+/, $_virt_networks)) {
         my $_br = script_output(q@virsh net-dumpxml @ . $vnet . q@|grep -o "bridge name=[^\s]*" | sed  's#bridge name=##'@, type_command => 0, proceed_on_failure => 0);
         script_run("virsh net-destroy $vnet");
-        assert_script_run("virsh net-undefine $vnet");
+        script_run("virsh net-undefine $vnet");
         assert_script_run("if ip a|grep $_br;then ip link del $_br;fi");
         save_screenshot;
     }
+
+    die "Virtual networks are not fully cleaned!" if (script_output("virsh net-list --name --all"));
     record_info("All existing virtual networks: \n$_virt_networks \nhave been destroy and undefined.", script_output("ip a; ip route show all"));
 }
 
