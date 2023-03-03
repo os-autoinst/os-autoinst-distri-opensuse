@@ -56,7 +56,8 @@ sub run {
 
     record_info('system reboots');
     my ($shutdown_time, $startup_time) = $instance->softreboot(
-        timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 400)
+        timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 400),
+        ignore_wrong_pubkey => 1
     );
 
     # Upload distro_migration.log

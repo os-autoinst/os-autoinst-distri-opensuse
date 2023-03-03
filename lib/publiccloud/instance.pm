@@ -315,10 +315,16 @@ sub wait_for_ssh {
     my ($self, %args) = @_;
     $args{timeout} //= 600;
     $args{proceed_on_failure} //= 0;
+    # DMS migration (tests/publiccloud/migration.pm) is running under user "migration"
+    # until it is not over we will recieve "ssh permission denied (pubkey)" error
+    # but it is not good reason to die early because after it will be over DMS will return normal
+    # user and error will be resolved.
+    $args{ignore_wrong_pubkey} //= 0;
     $args{username} //= $self->username();
     $args{public_ip} //= $self->public_ip();
     my $start_time = time();
     my $check_port = 1;
+    my $sleep_period = $args{ignore_wrong_pubkey} ? 20 : 1;
 
     # Looping until reaching timeout or passing two conditions :
     # - SSH port 22 is reachable
@@ -339,10 +345,10 @@ sub wait_for_ssh {
                 return $duration;
             }
             elsif ($output =~ m/Permission denied \(publickey\).*/) {
-                die "ssh permission denied (pubkey)";
+                die "ssh permission denied (pubkey)" unless $args{ignore_wrong_pubkey};
             }
         }
-        sleep 1;
+        sleep $sleep_period;
     }
 
     script_run("ssh  -i /root/.ssh/id_rsa -v $args{username}\@$args{public_ip} true", timeout => 360);
@@ -381,6 +387,8 @@ sub softreboot {
     my ($self, %args) = @_;
     $args{timeout} //= 600;
     $args{username} //= $self->username();
+    # see detailed explanation inside wait_for_ssh
+    $args{ignore_wrong_pubkey} //= 0;
 
     my $duration;
 
@@ -402,7 +410,9 @@ sub softreboot {
     }
     my $shutdown_time = time() - $start_time;
     die("Waiting for system down failed!") unless ($shutdown_time < $args{timeout});
-    my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time, username => $args{username});
+    my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time,
+        username => $args{username},
+        ignore_wrong_pubkey => $args{ignore_wrong_pubkey});
 
     # ensure the tunnel-console is healthy, usefuly to early detect possible issues with the serial terminal
     assert_script_run("true", fail_message => "console is broken");
