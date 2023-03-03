@@ -76,7 +76,6 @@ conditional_schedule:
         - locale/keymap_or_locale
         - console/force_scheduled_tasks
         - console/hostname
-        - console/upgrade_snapshots
         - console/zypper_lr
         - console/zypper_ref
         - console/check_system_info
