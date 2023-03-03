@@ -45,6 +45,7 @@ sub load_config_tests {
     loadtest 'transactional/enable_selinux' if (get_var('ENABLE_SELINUX') && is_image);
     loadtest 'console/suseconnect_scc' if (is_sle_micro && get_var('SCC_REGISTER') && !is_dvd);
     loadtest 'transactional/install_updates' if (is_sle_micro && is_released);
+    loadtest 'microos/services_health';
 }
 
 sub load_boot_from_disk_tests {
@@ -114,6 +115,7 @@ sub load_installation_tests {
             loadtest 'microos/disk_boot';
         }
         loadtest 'console/textinfo';
+        loadtest 'microos/services_health';
     }
 }
 
@@ -226,10 +228,10 @@ sub load_rcshell_tests {
     loadtest 'microos/one_line_checks';
 }
 
-sub load_journal_check_tests {
+sub load_finalizing_check_tests {
     # Enclosing test cases
+    loadtest 'microos/services_health';
     loadtest 'console/journal_check';
-    loadtest 'shutdown/shutdown';
 }
 
 sub load_tests {
@@ -294,7 +296,9 @@ sub load_tests {
         load_common_tests;
         load_transactional_tests unless is_zvm;
     }
-    load_journal_check_tests;
+    load_finalizing_check_tests();
+    loadtest 'shutdown/shutdown';
+
 }
 
 1;
