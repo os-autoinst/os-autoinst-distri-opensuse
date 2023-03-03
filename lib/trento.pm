@@ -767,6 +767,12 @@ sub trento_collect_scenarios {
 =head3 trento_api_key
 
 Get the api-key from the Trento installation
+
+=over 1
+
+=item B<BASEDIR> - Folder of the trento installer repo clone
+
+=back
 =cut
 
 sub trento_api_key {

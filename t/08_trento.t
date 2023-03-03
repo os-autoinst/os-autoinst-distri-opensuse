@@ -524,6 +524,29 @@ subtest '[cluster_install_agent] download rpm' => sub {
     like $calls[0], qr/.*--output \/ALICI\/NACHOS/;
 };
 
+subtest '[trento_api_key]' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+
+    $trento->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'GARBAGE
+GARBAGE
+api_key:SUPERSECRETINGREDIENT'; });
+    $trento->redefine(get_trento_password => sub { return 'PIZZOCCHERI'; });
+    $trento->redefine(get_trento_ip => sub { return 'BITTO'; });
+
+    my $key = trento_api_key('/PEPERONATA');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
+    like $calls[0], qr/\/PEPERONATA\/trento_deploy\/trento_deploy\.py.*api_key/;
+    like $calls[0], qr/\-u admin/;
+    like $calls[0], qr/\-p PIZZOCCHERI/;
+    like $calls[0], qr/\-i BITTO/;
+    is $key, "SUPERSECRETINGREDIENT";
+};
+
 subtest '[clone_trento_deployment] with token from worker.ini' => sub {
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     @calls = ();
