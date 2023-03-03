@@ -432,18 +432,21 @@ sub clean_up_all_guests {
             script_run("virsh undefine $_ --nvram") if (script_run("virsh undefine $_") ne 0);
         }
         save_screenshot;
-        # With `import` installation method supported,
-        # storage root path shoud not be cleaned, but to delete potential affecting storage files
-        foreach my $_vm (split(/,/, get_required_var('UNIFIED_GUEST_LIST'))) {
-            script_run("rm -f -r /var/lib/libvirt/images/${_vm}.*");
-            script_run("rm -f -r $self->{guest_storage_path}/${_vm}.*") if ($self->{guest_storage_path} ne '');
-        }
-        save_screenshot;
-        record_info("Cleaned all existing vms and affecting disk files.");
+        record_info("Cleaned all existing vms.");
     }
     else {
         diag("No guests reside on this host $self->{host_name}");
     }
+
+    # With `import` installation method supported,
+    # storage root path shoud not be cleaned, but to delete potential affecting storage files
+    foreach my $_vm (split(/,/, get_required_var('UNIFIED_GUEST_LIST'))) {
+        script_run("rm -f -r /var/lib/libvirt/images/${_vm}.*");
+        script_run("rm -f -r $self->{guest_storage_path}/${_vm}.*") if ($self->{guest_storage_path} ne '');
+    }
+    save_screenshot;
+    record_info("Cleaned all potential affecting disk files.");
+
     return $self;
 }
 
