@@ -33,6 +33,10 @@ sub run {
     if (check_var('MACHINE', 'uefi')) {
         zypper_call('up grub2 grub2-x86_64-efi kernel-default');
     }
+    # yast2-logs for save_y2logs is on 15-SP4 not installed with minimal base system pattern
+    if (is_sle('>=15-SP4')) {
+        zypper_call('in yast2-logs');
+    }
     # do zypper update bsc#1165180
     zypper_call('up zypper');
 
