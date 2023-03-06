@@ -1,0 +1,243 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <deploy_image>
+    <image_installation config:type="boolean">false</image_installation>
+  </deploy_image>
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+       <final_restart_services config:type="boolean">false</final_restart_services>
+    </mode>
+    <signature-handling>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+    <self_update config:type="boolean">false</self_update>
+  </general>
+  <networking>
+    <dhcp_options>
+      <dhclient_hostname_option>AUTO</dhclient_hostname_option>
+    </dhcp_options>
+    <dns>
+      <dhcp_hostname config:type="boolean">false</dhcp_hostname>
+      <resolv_conf_policy>auto</resolv_conf_policy>
+      <write_hostname config:type="boolean">false</write_hostname>
+    </dns>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <dhclient_set_default_route>yes</dhclient_set_default_route>
+        <startmode>auto</startmode>
+      </interface>
+      <interface>
+        <bootproto>static</bootproto>
+        <broadcast>127.255.255.255</broadcast>
+        <device>lo</device>
+        <ipaddr>127.0.0.1</ipaddr>
+        <netmask>255.0.0.0</netmask>
+        <network>127.0.0.0</network>
+        <prefixlen>8</prefixlen>
+        <startmode>nfsroot</startmode>
+        <usercontrol>no</usercontrol>
+      </interface>
+    </interfaces>
+    <ipv6 config:type="boolean">true</ipv6>
+    <keep_install_network config:type="boolean">false</keep_install_network>
+    <managed config:type="boolean">false</managed>
+    <routing>
+      <ipv4_forward config:type="boolean">false</ipv4_forward>
+      <ipv6_forward config:type="boolean">false</ipv6_forward>
+    </routing>
+  </networking>
+  <ntp-client>
+    <ntp_policy>auto</ntp_policy>
+    <ntp_servers config:type="list">
+      <ntp_server>
+        <iburst config:type="boolean">false</iburst>
+        <address>de.pool.ntp.org</address>
+        <offline config:type="boolean">true</offline>
+      </ntp_server>
+    </ntp_servers>
+    <ntp_sync>15</ntp_sync>
+  </ntp-client>
+  <firewall>
+    <enable_firewall config:type="boolean">true</enable_firewall>
+    <start_firewall config:type="boolean">true</start_firewall>
+  </firewall>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">10</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">10</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">10</timeout>
+    </yesno_messages>
+  </report>
+  <services-manager>
+    <default_target>graphical</default_target>
+    <services>
+      <enable config:type="list">
+        <service>sshd</service>
+      </enable>
+    </services>
+  </services-manager>
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <install_updates config:type="boolean">true</install_updates>
+    <slp_discovery config:type="boolean">false</slp_discovery>
+    <reg_code>{{SCC_REGCODE_SLES4SAP}}</reg_code>
+    <reg_server>{{SCC_URL}}</reg_server>
+    <addons config:type="list">
+      <addon>
+        <name>sle-module-basesystem</name>
+	<version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-desktop-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-sap-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-server-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+    </addons>
+  </suse_register>
+  <software>
+    <patterns config:type="list">
+      <pattern>gnome_basis</pattern>
+      <pattern>base</pattern>
+      <pattern>enhanced_base</pattern>
+      <pattern>apparmor</pattern>
+      <pattern>32bit</pattern>
+      <pattern>yast2_basis</pattern>
+      <pattern>fonts</pattern>
+      <pattern>x11</pattern>
+      <pattern>sap_server</pattern>
+    </patterns>
+    <products config:type="list">
+      <product>SLES_SAP</product>
+    </products>
+  </software>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>Europe/Berlin</timezone>
+  </timezone>
+  <users config:type="list">
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$6$/UZBxmky.5P7$kALvFZzN.X0s23DuhAsvpXKVBeR3opRtI2O1UklpiuwebAF.JZ9vimjPjK2NxrztY7dg0qoiPxUV1RLE6acnG/</user_password>
+      <username>root</username>
+    </user>
+  </users>
+  <partitioning config:type="list">
+    <drive>
+      <is_lvm_vg config:type="boolean">true</is_lvm_vg>
+      <device>/dev/system</device>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <mountby config:type="symbol">device</mountby>
+          <filesystem config:type="symbol">swap</filesystem>
+          <mount>swap</mount>
+          <lv_name>swap</lv_name>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <mountby config:type="symbol">device</mountby>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <mount>/</mount>
+          <lv_name>root</lv_name>
+        </partition>
+      </partitions>
+      <pesize>4M</pesize>
+      <type config:type="symbol">CT_LVM</type>
+    </drive>
+    <drive>
+      <device>/dev/vda</device>
+      <disklabel>gpt</disklabel>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          % if ($check_var->('ARCH', 'ppc64le')) {
+          <format config:type="boolean">false</format>
+          % }
+          % unless ($check_var->('ARCH', 'ppc64le')) {
+          <format config:type="boolean">true</format>
+          <filesystem config:type="symbol">ext2</filesystem>
+          % }
+          % if ($check_var->('UEFI', '1')) {
+          <filesystem config:type="symbol">vfat</filesystem>
+          % }
+          % if ($check_var->('ARCH', 's390x')) {
+          <mount>/boot/zipl</mount>
+          <fstopt>acl,user_xattr</fstopt>
+          % }
+          % if ($check_var->('UEFI', '1')) {
+          <mount>/boot/efi</mount>
+          <fstopt>umask=0002,utf8=true</fstopt>
+          % }
+          % unless ($check_var->('ARCH', 's390x') or $check_var->('ARCH', 'ppc64le') or $check_var->('UEFI', '1')) {
+          <mount>/boot</mount>
+          % }
+          <mountby config:type="symbol">path</mountby>
+          % if ($check_var->('ARCH', 'ppc64le')) {
+          <partition_id config:type="integer">65</partition_id>
+          % }
+          % unless ($check_var->('ARCH', 'ppc64le') or $check_var->('UEFI', '1')) {
+          <partition_id config:type="integer">131</partition_id>
+          % }
+          % if ($check_var->('UEFI', '1')) {
+          <partition_id config:type="integer">259</partition_id>
+          % }
+          <partition_nr config:type="integer">1</partition_nr>
+          <partition_type>primary</partition_type>
+          <size>500M</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <format config:type="boolean">false</format>
+          <lvm_group>system</lvm_group>
+          <partition_id config:type="integer">142</partition_id>
+          <partition_nr config:type="integer">2</partition_nr>
+          <partition_type>primary</partition_type>
+          <resize config:type="boolean">false</resize>
+          <size>max</size>
+        </partition>
+      </partitions>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+</profile>
