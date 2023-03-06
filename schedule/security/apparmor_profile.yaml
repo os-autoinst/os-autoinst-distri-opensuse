@@ -1,0 +1,30 @@
+name: apparmor_profile
+description:    >
+    This is for the apparmor_profile and mau-apparmor_profile tests.
+schedule:
+    - '{{bootloader_s390}}'
+    - '{{bootloader_ppc}}'
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - '{{prepare}}'
+    - security/apparmor_profile/usr_sbin_smbd
+    - security/apparmor_profile/apache2_changehat
+    - security/apparmor_profile/usr_sbin_dovecot
+    - security/apparmor_profile/usr_sbin_traceroute
+    - security/apparmor_profile/usr_sbin_nscd
+    - security/apparmor_profile/mailserver_setup
+    - security/apparmor_profile/usr_lib_dovecot_pop3
+    - security/apparmor_profile/usr_lib_dovecot_imap
+conditional_schedule:
+    bootloader_s390:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
+    bootloader_ppc:
+        BACKEND:
+            pvm_hmc:
+                - installation/bootloader
+    prepare:
+        TEST:
+            mau-apparmor_profile:
+                - security/apparmor/aa_prepare

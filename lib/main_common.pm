@@ -2343,123 +2343,10 @@ sub load_security_tests_mmtest {
     load_applicationstests;
 }
 
-sub load_security_tests_apparmor {
-    load_security_console_prepare;
-
-    if (check_var('TEST', 'mau-apparmor') || is_jeos) {
-        loadtest "security/apparmor/aa_prepare";
-    }
-    loadtest "security/apparmor/aa_status";
-    loadtest "security/apparmor/aa_enforce";
-    loadtest "security/apparmor/aa_complain";
-    loadtest "security/apparmor/aa_genprof";
-    loadtest "security/apparmor/aa_autodep";
-    loadtest "security/apparmor/aa_logprof";
-    loadtest "security/apparmor/aa_easyprof";
-    loadtest "security/apparmor/aa_notify";
-    loadtest "security/apparmor/aa_disable";
-}
-
-sub load_security_tests_apparmor_profile {
-    if (check_var('TEST', 'mau-apparmor_profile')) {
-        load_security_console_prepare;
-        loadtest "security/apparmor/aa_prepare";
-    }
-    else {
-        load_security_console_prepare;
-    }
-    loadtest "security/apparmor_profile/usr_sbin_smbd";
-    loadtest "security/apparmor_profile/apache2_changehat";
-    loadtest "security/apparmor_profile/usr_sbin_dovecot";
-    loadtest "security/apparmor_profile/usr_sbin_traceroute";
-    loadtest "security/apparmor_profile/usr_sbin_nscd";
-    # ALWAYS run ".*usr_lib_dovecot_*" after "mailserver_setup" for the dependencies
-    loadtest "security/apparmor_profile/mailserver_setup";
-    loadtest "security/apparmor_profile/usr_lib_dovecot_pop3";
-    loadtest "security/apparmor_profile/usr_lib_dovecot_imap";
-}
-
-sub load_security_tests_yast2_apparmor {
-    load_security_console_prepare;
-
-    loadtest "security/yast2_apparmor/settings_disable_enable_apparmor";
-    loadtest "security/yast2_apparmor/settings_toggle_profile_mode";
-    loadtest "security/yast2_apparmor/scan_audit_logs_ncurses";
-    loadtest "security/yast2_apparmor/manually_add_profile_ncurses";
-}
-
 sub load_security_tests_yast2_users {
     load_security_console_prepare;
 
     loadtest "security/yast2_users/add_users";
-}
-
-sub load_security_tests_lynis {
-    load_security_console_prepare;
-
-    loadtest "security/lynis/lynis_setup";
-    loadtest "security/lynis/lynis_perform_system_audit";
-    loadtest "security/lynis/lynis_analyze_system_audit";
-    loadtest "security/lynis/lynis_harden_index";
-}
-
-sub load_security_tests_openscap {
-    # ALWAYS run following tests in sequence because of the dependencies
-
-    load_security_console_prepare;
-
-    # Setup - download test files and install necessary packages
-    loadtest "security/openscap/oscap_setup";
-
-    loadtest "security/openscap/oscap_info";
-    loadtest "security/openscap/oscap_oval_scanning";
-    loadtest "security/openscap/oscap_xccdf_scanning";
-    loadtest "security/openscap/oscap_source_datastream";
-    loadtest "security/openscap/oscap_result_datastream";
-    loadtest "security/openscap/oscap_remediating_online";
-    loadtest "security/openscap/oscap_remediating_offline";
-    loadtest "security/openscap/oscap_generating_report";
-    loadtest "security/openscap/oscap_generating_fix";
-    loadtest "security/openscap/oscap_validating";
-}
-
-sub load_security_tests_cc_audit_test {
-    # Setup environment for cc testing: 'audit-test' test suite setup
-    # Such as: download code branch; install needed packages
-    loadtest 'security/cc/cc_audit_test_setup';
-
-    # For s390x, we enable root ssh when installing system, so we need to
-    # disable root ssh login, because this is a requirement for cc testing.
-    loadtest 'security/cc/disable_root_ssh' if (is_s390x);
-
-    # Run test cases of 'audit-test' test suite which do NOT need SELinux env
-    loadtest 'security/cc/audit_tools';
-    loadtest 'security/cc/fail_safe';
-    loadtest 'security/cc/ip_eb_tables';
-    loadtest 'security/cc/kvm_svirt_apparmor';
-    loadtest 'security/cc/extended_apparmor_interface_trace_test';
-    loadtest 'security/cc/apparmor_negative_test';
-
-    # For s390x, we should enable root ssh before rebooting, otherwise, the automation test
-    # will fail on can't login the system.
-    if (is_s390x) {
-        my $root_ssh_switch = OpenQA::Test::RunArgs->new();
-        $root_ssh_switch->{option} = 'yes';
-        loadtest('security/cc/disable_root_ssh', name => 'enable_root_ssh', run_args => $root_ssh_switch);
-    }
-    # Some audit tests must be run in selinux enabled mode. so load selinux setup here
-    # Setup environment for cc testing: SELinux setup
-    # Such as: set up SELinux with permissive mode and specific policy type
-    loadtest 'security/selinux/selinux_setup';
-    loadtest 'security/cc/cc_selinux_setup';
-
-    # When system reboot, we need to disable root ssh for following tests
-    loadtest 'security/cc/disable_root_ssh' if (is_s390x);
-
-    # Run test cases of 'audit-test' test suite which do need SELinux env
-    # Please add these test cases here: poo#93441
-    loadtest 'security/cc/crypto';
-    loadtest 'security/cc/misc';
 }
 
 sub load_security_tests_cc_audit_remote_libvirt {
@@ -2473,62 +2360,6 @@ sub load_security_tests_cc_audit_remote_libvirt {
 
 sub load_security_tests_mok_enroll {
     loadtest "security/mokutil_sign";
-}
-
-sub load_security_tests_check_kernel_config {
-    load_security_console_prepare;
-
-    loadtest "security/check_kernel_config/CC_STACKPROTECTOR_STRONG" if (is_sle);
-    loadtest "security/check_kernel_config/CONFIG_FORTIFY_SOURCE";
-    loadtest "security/check_kernel_config/dm_crypt";
-}
-
-sub load_security_tests_pam {
-    load_security_console_prepare;
-
-    loadtest "security/pam/pam_basic_function";
-    loadtest "security/pam/pam_login";
-    loadtest "security/pam/pam_su";
-    loadtest "security/pam/pam_config";
-    loadtest "security/pam/pam_mount";
-    loadtest "security/pam/pam_faillock";
-    loadtest "security/pam/pam_u2f";
-}
-
-sub load_security_tests_create_swtpm_hdd {
-    load_security_console_prepare;
-
-    loadtest "security/create_swtpm_hdd/build_hdd";
-}
-
-sub load_security_tests_swtpm {
-    load_security_console_prepare;
-
-    loadtest "security/swtpm/swtpm_env_setup";
-    loadtest "security/swtpm/swtpm_verify";
-}
-
-sub load_security_tests_grub_auth {
-    load_security_console_prepare;
-
-    loadtest "security/grub_auth/grub_authorization";
-}
-
-sub load_security_tests_tpm2 {
-    if (is_sle('>=15-SP2')) {
-        load_security_console_prepare;
-
-        loadtest "security/tpm2/tpm2_env_setup";
-        loadtest "security/tpm2/tpm2_engine/tpm2_engine_info";
-        loadtest "security/tpm2/tpm2_engine/tpm2_engine_random_data";
-        loadtest "security/tpm2/tpm2_engine/tpm2_engine_rsa_operation";
-        loadtest "security/tpm2/tpm2_engine/tpm2_engine_ecdsa_operation";
-        loadtest "security/tpm2/tpm2_engine/tpm2_engine_self_sign";
-        loadtest "security/tpm2/tpm2_tools/tpm2_tools_self_contain_tool";
-        loadtest "security/tpm2/tpm2_tools/tpm2_tools_encrypt";
-        loadtest "security/tpm2/tpm2_tools/tpm2_tools_sign_verify";
-        loadtest "security/tpm2/tpm2_tools/tpm2_tools_auth";
-    }
 }
 
 sub load_vt_perf_tests {
@@ -2624,17 +2455,8 @@ sub load_security_tests {
       fips_setup crypt_core crypt_web crypt_kernel crypt_x11 crypt_firefox crypt_tool crypt_openjdk
       crypt_libtool
       ipsec mmtest
-      apparmor apparmor_profile yast2_apparmor yast2_users
-      openscap
+      yast2_users
       mok_enroll
-      check_kernel_config
-      tpm2
-      pam
-      create_swtpm_hdd
-      swtpm
-      grub_auth
-      lynis
-      cc_audit_test
       cc_audit_remote_libvirt
     );
 

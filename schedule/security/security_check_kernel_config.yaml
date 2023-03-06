@@ -1,0 +1,24 @@
+name: security_check_kernel_config
+description:    >
+    This is for the security_check_kernel_config test.
+schedule:
+    - '{{bootloader_s390}}'
+    - '{{bootloader_ppc}}'
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - '{{stack_sle}}'
+    - security/check_kernel_config/CONFIG_FORTIFY_SOURCE
+    - security/check_kernel_config/dm_crypt
+conditional_schedule:
+    bootloader_s390:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
+    bootloader_ppc:
+        BACKEND:
+            pvm_hmc:
+                - installation/bootloader
+    stack_sle:
+        DISTRI:
+            sle:
+                - security/check_kernel_config/CC_STACKPROTECTOR_STRONG
