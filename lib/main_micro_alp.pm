@@ -220,6 +220,7 @@ sub load_fips_tests {
     loadtest 'fips/gnutls/gnutls_base_check';
     loadtest 'fips/gnutls/gnutls_server';
     loadtest 'fips/gnutls/gnutls_client';
+    loadtest 'console/gpg';
 }
 
 sub load_rcshell_tests {
