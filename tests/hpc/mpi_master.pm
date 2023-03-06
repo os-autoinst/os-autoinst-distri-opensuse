@@ -46,7 +46,7 @@ sub run ($self) {
     type_string('pkill -u root', lf => 1) unless $user_virtio_fixed;
     select_user_serial_terminal($prompt);
     # for <15-SP2 the openmpi2 module is named simply openmpi
-    $mpi2load = 'openmpi' if ($mpi =~ /openmpi2|openmpi3|openmpi4/);
+    $mpi2load = ($mpi =~ /openmpi2|openmpi3|openmpi4/) ? 'opensuse' : $mpi;
 
     barrier_wait('CLUSTER_PROVISIONED');
     record_info 'CLUSTER_PROVISIONED', strftime("\%H:\%M:\%S", localtime);
