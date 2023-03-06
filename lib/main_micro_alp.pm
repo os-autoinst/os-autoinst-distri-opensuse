@@ -34,11 +34,6 @@ sub is_regproxy_required {
 }
 
 sub load_config_tests {
-    if (is_microos && !is_staging) {
-        loadtest 'update/zypper_clear_repos';
-        loadtest 'console/zypper_ar';
-        loadtest 'console/zypper_ref';
-    }
     loadtest 'transactional/tdup' if get_var('TDUP');
     loadtest 'transactional/host_config' unless is_dvd;
     loadtest 'rt/rt_is_realtime' if is_rt;
