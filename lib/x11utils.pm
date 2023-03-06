@@ -179,7 +179,7 @@ sub ensure_unlocked_desktop {
         die 'ensure_unlocked_desktop repeated too much. Check for X-server crash.' if ($counter eq 1);    # die loop when generic-desktop not matched
         if (match_has_tag('screenlock') || match_has_tag('blackscreen')) {
             wait_screen_change {
-                send_key 'ctrl';    # end screenlock
+                send_key 'esc';    # end screenlock
                 diag("Screen lock present");
             };
             next;    # Go directly to assert_screen, skip wait_still_screen (and don't collect $200)
