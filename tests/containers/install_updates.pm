@@ -43,6 +43,10 @@ sub run {
     select_console($prev_console);
 }
 
+sub post_run_hook {
+    my ($self) = @_;
+}
+
 sub test_flags {
     return {fatal => 1};
 }
