@@ -19,7 +19,7 @@ use strict;
 use warnings;
 
 use utils;
-use power_action_utils 'prepare_system_shutdown';
+use power_action_utils qw(prepare_system_shutdown power_action);
 use version_utils 'is_sle';
 use qam;
 use testapi;
@@ -38,7 +38,12 @@ sub run {
         zypper_call('in yast2-logs');
     }
     # do zypper update bsc#1165180
-    zypper_call('up zypper');
+    fully_patch_system;
+
+    # DESKTOP can be gnome, but patch is happening in shell, thus always force reboot in shell
+    power_action('reboot', textmode => 1);
+    $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 200));
+    select_console('root-console');
 
     capture_state('before');
 
