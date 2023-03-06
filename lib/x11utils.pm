@@ -179,7 +179,8 @@ sub ensure_unlocked_desktop {
         die 'ensure_unlocked_desktop repeated too much. Check for X-server crash.' if ($counter eq 1);    # die loop when generic-desktop not matched
         if (match_has_tag('screenlock') || match_has_tag('blackscreen')) {
             wait_screen_change {
-                send_key 'ctrl';    # end screenlock
+                # ESC of KDE turns the monitor off and CTRL does not work on older SLES versions to unlock the screen
+                send_key(is_sle("<15-SP4") ? 'esc' : 'ctrl');    # end screenlock
                 diag("Screen lock present");
             };
             next;    # Go directly to assert_screen, skip wait_still_screen (and don't collect $200)
