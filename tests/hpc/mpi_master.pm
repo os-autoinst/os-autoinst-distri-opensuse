@@ -131,7 +131,7 @@ sub run ($self) {
             }
         } else {
             ##TODO: condider more rebust handling of various errors
-            die("echo $return - not expected errorcode");
+            die("echo $return - not expected errorcode") unless $return == 0;
         }
     } else {
         record_info 'testing IMB', 'Run all IMB-MPI1 components';
