@@ -295,11 +295,7 @@ sub handle_login {
     handle_additional_polkit_windows($mypwd) if check_screen([qw(authentication-required-user-settings authentication-required-modify-system)], 15);
     assert_screen([qw(generic-desktop gnome-activities opensuse-welcome)], 180);
     if (match_has_tag('gnome-activities')) {
-        send_key_until_needlematch [qw(generic-desktop opensuse-welcome language-change-required-update-folder)], 'esc';
-        if (match_has_tag('language-change-required-update-folder')) {
-            assert_and_click('reserve_old_folder_name');
-            assert_screen([qw(generic-desktop opensuse-welcome)]);
-        }
+        send_key_until_needlematch [qw(generic-desktop opensuse-welcome)], 'esc', 5, 10;
     }
 }
 
