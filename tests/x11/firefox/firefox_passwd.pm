@@ -33,10 +33,31 @@ use base "x11test";
 use testapi;
 use version_utils;
 
+my $masterpw = "Firefox_test123!@#";
+
+sub confirm_master_pw {
+    enter_cmd $masterpw. "" if (check_screen('firefox-passwd-confirm_master_pw', 20));
+}
+
+# Renew the function to in case of FIPs mode,
+# we need to signin again with master password
+sub restart_firefox_new {
+    my ($self, $cmd, $url) = @_;
+    $url ||= '/home';
+    # exit firefox properly
+    wait_still_screen 2;
+    $self->exit_firefox_common;
+    assert_script_run('time wait $(pidof firefox)');
+    enter_cmd "$cmd";
+    enter_cmd "firefox $url >>firefox.log 2>&1 &";
+    $self->firefox_check_default;
+    confirm_master_pw if (get_var('FIPS_ENABLED') || get_var('FIPS'));
+    assert_screen 'firefox-url-loaded';
+}
+
 sub run {
     my ($self) = @_;
 
-    my $masterpw = "firefox_test";
     my $mozlogin = "https://www-archive.mozilla.org/quality/browser/front-end/testcases/wallet/login.html";
 
     # Start Firefox
@@ -47,6 +68,7 @@ sub run {
     send_key_until_needlematch('firefox-primary-passwd-selected', 'alt-shift-u', 4, 1);
     send_key 'spc';
     assert_screen('firefox-passwd-master_setting');
+    # We should use strong password due to bsc#1208951
     type_string $masterpw, 150;
     send_key "tab";
     type_string $masterpw, 150;
@@ -55,10 +77,9 @@ sub run {
     assert_and_click('firefox-passwd-success');
 
     #Restart firefox
-    $self->restart_firefox;
+    $self->restart_firefox_new;
 
     $self->firefox_open_url($mozlogin);
-
     assert_and_click('firefox-passwd-input_username');
     type_string "squiddy";
     send_key "tab";
@@ -66,9 +87,7 @@ sub run {
     send_key "ret";
     wait_still_screen(2);
     assert_and_click('firefox-passwd-confirm_remember');
-    assert_screen('firefox-passwd-confirm_master_pw');
-    enter_cmd $masterpw. "";
-
+    confirm_master_pw;
     $self->firefox_open_url($mozlogin);
     assert_screen('firefox-passwd-auto_filled');
 
