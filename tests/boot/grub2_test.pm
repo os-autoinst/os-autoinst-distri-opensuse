@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
-use bootloader_setup qw(stop_grub_timeout boot_grub_item);
+use bootloader_setup qw(stop_grub_timeout boot_grub_item grub_mkconfig);
 use utils qw(zypper_call zypper_ar);
 use version_utils 'is_sle';
 
@@ -51,6 +51,7 @@ sub run {
     record_info 'grub2 menu entry', 'install another kernel, boot the previous one';
     assert_script_run 'uname -r >kernel.txt';
     assert_script_run q(sed -i '/BEGIN.*10_linux/a menuentry "SLES Fake boot" {\nlinux\n}' /boot/grub2/grub.cfg);
+    grub_mkconfig;
     reboot;
     boot_grub_item(2);
     assert_screen 'linux-login', 200;
