@@ -45,7 +45,7 @@ sub run {
     my @invalid_hash = ("md4", "md5", "mdc2", "rmd160", "ripemd160", "whirlpool", "md5-sha1");
     for my $hash (@invalid_hash) {
         eval {
-            validate_script_output "openssl dgst -$hash $tmp_file 2>&1 || true", sub { m/$hash is not a known digest|unknown option|Unknown digest|dgst: Unrecognized flag/ };
+            validate_script_output "openssl dgst -$hash $tmp_file 2>&1 || true", sub { m/$hash is not a known digest|unknown option|Unknown digest|dgst: Unrecognized flag|disabled for FIPS|disabled for fips/ };
         };
         if ($@) {
             record_soft_failure 'bsc#1193859';
