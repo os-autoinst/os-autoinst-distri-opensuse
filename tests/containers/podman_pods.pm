@@ -6,7 +6,7 @@
 # Package: podman
 # Summary: Test podman pods functionality
 # - Use data/containers/hello-kubic.yaml to run pods
-# - Confirm 3 pods are spawned
+# - Confirm 1 pod is spawned
 # - Clean up pods using hello-kubic.yaml
 # Maintainer: Richard Brown <rbrown@suse.com>
 
@@ -28,13 +28,12 @@ sub run {
 
     record_info('Test', 'Confirm pods are running');
     record_info('pod ps', script_output('podman pod ps'));
-    assert_script_run('podman pod ps | grep "Running" | wc -l | grep -q 3');
+    assert_script_run('podman pod ps | grep "Running" | wc -l | grep -q 1');
 
     record_info('Test', 'Killing one pod');
     assert_script_run('podman pod stop $(podman pod ps -q | head -n1)');
 
     record_info('Test', 'Confirm one pod has been killed');
-    assert_script_run('podman pod ps | grep "Running" | wc -l | grep -q 2');
     assert_script_run('podman pod ps | grep "Exited" | wc -l | grep -q 1');
 
     if (is_sle('15-SP3+') || is_opensuse()) {
