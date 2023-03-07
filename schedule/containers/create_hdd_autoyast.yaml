@@ -12,6 +12,10 @@ conditional_schedule:
         ARCH:
             's390x':
                 - shutdown/svirt_upload_assets
+    fips:
+        FIPS:
+            '1':
+                - fips/fips_setup
 schedule:
     - autoyast/prepare_profile
     - installation/bootloader_start
@@ -22,6 +26,7 @@ schedule:
     - autoyast/save_y2logs
     - '{{grub_set_bootargs}}'
     - containers/install_updates
+    - '{{fips}}'
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
     - '{{svirt_upload_assets}}'
