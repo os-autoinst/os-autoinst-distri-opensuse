@@ -79,18 +79,19 @@ sub start_online_update {
             if (is_tumbleweed()) {
                 zypper_call("ar -f http://download.opensuse.org/ports/$repo_arch/update/tumbleweed repo-update");
             } else {
-                zypper_call("ar -f http://download.opensuse.org/ports/update/$update_name repo-update");
+                 zypper_call("ar -f http://download.opensuse.org/ports/update/$update_name repo-update");
             }
         }
         select_console 'x11', await_console => 0;
     }
     assert_and_click 'yast2_control-center_online-update';
-    my @tags = qw(yast2_control-center_update-repo-dialogue yast2_control-center_online-update_close yast2_control-center-ask_packagekit_to_quit);
+    my @tags = qw(yast2_control-center_update-repo-dialogue yast2_control-center_online-update_close yast2_control-center-ask_packagekit_to_quit yast2_control-center-no-update-repo);
     do {
         assert_screen \@tags;
         wait_screen_change { send_key 'alt-n' } if match_has_tag('yast2_control-center_update-repo-dialogue');
         # Let it kill PackageKit, in case it is running.
         wait_screen_change { send_key 'alt-y' } if match_has_tag('yast2_control-center-ask_packagekit_to_quit');
+        wait_screen_change { send_key 'alt-y' } if match_has_tag('yast2_control-center-no-update-repo');
     } until (match_has_tag('yast2_control-center_online-update_close'));
 
     send_key 'alt-c';
