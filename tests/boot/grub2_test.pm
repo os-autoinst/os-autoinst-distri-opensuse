@@ -42,6 +42,7 @@ sub grub2_boot {
 
 sub run {
     select_console 'root-console';
+    zypper_call 'in yast2-bootloader' if is_sle('>=15-sp4');
     # remove splash and quiet parameters from cmdline, grub config will be updated with following kernel installation
     assert_script_run 'sed -i \'/CMDLINE/s/ quiet//\' /etc/default/grub';
     assert_script_run 'sed -i \'/CMDLINE/s/splash=silent //\' /etc/default/grub';
