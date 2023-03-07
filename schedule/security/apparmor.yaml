@@ -27,5 +27,5 @@ conditional_schedule:
                 - installation/bootloader
     prepare:
         TEST:
-            mau-apparmor:
+            'mau-apparmor':
                 - security/apparmor/aa_prepare
