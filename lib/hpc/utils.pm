@@ -46,6 +46,7 @@ sub get_mpi_src {
     # not a boost lib. but using it we can distiguish between `.c` and `.cpp` source code
     return ('mpic++', 'sample_boost.cpp') if (get_var('HPC_LIB') eq 'boost');
     return ('', 'sample_scipy.py') if (get_var('HPC_LIB') eq 'scipy');
+    return ('mpicc', 'papi_hw_info.c') if (get_var('HPC_LIB') eq 'papi');
 }
 
 =head2 relogin_root
@@ -94,6 +95,12 @@ sub setup_scientific_module {
         $self->relogin_root;
         # TODO smoke checks? (ex /MODULEPATH/)
         assert_script_run('module load gnu python3-scipy');
+    }
+    if (get_var('HPC_LIB') eq 'papi') {
+        zypper_call("in papi-hpc papi-hpc-devel");
+        $self->relogin_root;
+        assert_script_run('module load gnu papi');
+        assert_script_run('echo $LD_LIBRARY_PATH');
     }
     return 0;
 }

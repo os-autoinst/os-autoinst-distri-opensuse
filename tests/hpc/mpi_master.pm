@@ -74,7 +74,12 @@ sub run ($self) {
 
     barrier_wait('MPI_SETUP_READY');
     record_info 'MPI_SETUP_READY', strftime("\%H:\%M:\%S", localtime);
-    assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin") if $mpi_compiler;
+    if (get_var('HPC_LIB') eq 'papi') {
+        assert_script_run('module load gnu papi');
+        assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin -I/usr/lib/hpc/papi/7.0.0/include/ -L/usr/lib/hpc/papi/7.0.0/lib64/ -lpapi") if $mpi_compiler;
+    } else {
+        assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin") if $mpi_compiler;
+    }
 
     # python code is not compiled. *mpi_bin* is expected as a compiled binary. if compilation was not
     # invoked return source code (ex: sample_scipy.py).
@@ -92,6 +97,7 @@ sub run ($self) {
                 record_soft_failure('bsc#1199811 known problem on single core on mvapich2/2.2');
             }
         } else {
+            assert_script_run('echo $LD_LIBRARY_PATH');
             assert_script_run($mpirun_s->single_node("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
         }
     }
