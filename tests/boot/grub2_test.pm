@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
-use bootloader_setup qw(stop_grub_timeout boot_grub_item);
+use bootloader_setup qw(stop_grub_timeout boot_grub_item grub_mkconfig);
 use utils qw(zypper_call zypper_ar);
 use version_utils 'is_sle';
 
@@ -29,7 +29,8 @@ sub reboot {
 
 sub edit_cmdline {
     send_key 'e';
-    for (1 .. 12) { send_key 'down'; }
+    my $jump_down = is_sle('<15-sp4') ? '12' : '8';
+    for (1 .. $jump_down) { send_key 'down'; }
     send_key_until_needlematch 'grub2-edit-linux-line', 'down';
     send_key 'end';
 }
@@ -42,6 +43,7 @@ sub grub2_boot {
 
 sub run {
     select_console 'root-console';
+    zypper_call 'in yast2-bootloader' if is_sle('>=15-sp4');
     # remove splash and quiet parameters from cmdline, grub config will be updated with following kernel installation
     assert_script_run 'sed -i \'/CMDLINE/s/ quiet//\' /etc/default/grub';
     assert_script_run 'sed -i \'/CMDLINE/s/splash=silent //\' /etc/default/grub';
@@ -49,6 +51,7 @@ sub run {
     record_info 'grub2 menu entry', 'install another kernel, boot the previous one';
     assert_script_run 'uname -r >kernel.txt';
     assert_script_run q(sed -i '/BEGIN.*10_linux/a menuentry "SLES Fake boot" {\nlinux\n}' /boot/grub2/grub.cfg);
+    grub_mkconfig;
     reboot;
     boot_grub_item(2);
     assert_screen 'linux-login', 200;
@@ -99,6 +102,7 @@ sub run {
     # on sle12sp1 will the schortcut change from 't' to 'l' after you press alt-t
     send_key 'alt-t' if is_sle('=12-sp1');
     send_key 'alt-l';    # bootloader options tab
+    wait_still_screen(2);
     assert_screen 'installation-bootloader-options';
     my $protect_key = is_sle('=12-sp1') && !get_var('UEFI') ? 'a' : 'e';
     send_key "alt-$protect_key";    # check protect boot loader with pw
