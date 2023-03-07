@@ -99,6 +99,7 @@ sub run {
     # on sle12sp1 will the schortcut change from 't' to 'l' after you press alt-t
     send_key 'alt-t' if is_sle('=12-sp1');
     send_key 'alt-l';    # bootloader options tab
+    wait_still_screen(2);
     assert_screen 'installation-bootloader-options';
     my $protect_key = is_sle('=12-sp1') && !get_var('UEFI') ? 'a' : 'e';
     send_key "alt-$protect_key";    # check protect boot loader with pw
