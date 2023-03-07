@@ -13,6 +13,7 @@ use strict;
 use warnings;
 use testapi;
 use utils 'zypper_call';
+use version_utils qw(is_sle);
 
 sub run {
     select_console 'root-console';
@@ -22,7 +23,14 @@ sub run {
     assert_script_run 'export DASD_DEVICE=$(lsreipl|awk \'/Device/ {print$2}\')';
     validate_script_output 'chreipl ccw -d $DASD_DEVICE', sub { m/Re-IPL|Device|Loadparm|Bootparms/ };
     validate_script_output 'lscss', sub { m/Device|Subchan|DevType|CU|Type|Use|PIM|PAM|POM|CHPIDs/ };
-    validate_script_output 'cputype', sub { m/IBM z/ };
+    if (is_sle('=15-sp4')) {
+        # bsc#1208983
+        assert_script_run("sed -i 's/grep machine/grep \"machine =\"/' /usr/bin/cputype");
+        validate_script_output 'cputype', sub { m/IBM z/ };
+    }
+    else {
+        validate_script_output 'cputype', sub { m/IBM z/ };
+    }
     validate_script_output 'lsqeth', sub { m/Device namei|card_type|cdev0|online|state|buffer_count|layer2/ };
     validate_script_output 'lsdasd', sub { m/Bus-ID|Status|Name|Device|Type|BlkSz|Size|Blocks/ };
     validate_script_output 'lsmem', sub { m/RANGE|SIZE|STATE|REMOVABLE|BLOCK/i };
