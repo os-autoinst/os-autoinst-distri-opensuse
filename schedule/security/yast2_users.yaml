@@ -1,0 +1,18 @@
+name: yast2_users
+description:    >
+    This is for the yast2_users test.
+schedule:
+    - '{{bootloader_s390}}'
+    - '{{bootloader_ppc}}'
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - security/yast2_users/add_users
+conditional_schedule:
+    bootloader_s390:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
+    bootloader_ppc:
+        BACKEND:
+            pvm_hmc:
+                - installation/bootloader

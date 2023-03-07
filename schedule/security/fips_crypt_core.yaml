@@ -1,0 +1,45 @@
+name: fips_crypt_core
+description:    >
+    This is for the crypt_core fips tests.
+schedule:
+    - '{{bootloader_s390}}'
+    - '{{bootloader_ppc}}'
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - '{{repo_setup}}'
+    - fips/fips_setup
+    - '{{y2_vnc_pvm}}'
+    - fips/openssl/openssl_fips_alglist
+    - fips/openssl/openssl_fips_hash
+    - fips/openssl/openssl_fips_cipher
+    - fips/openssl/dirmngr_setup
+    - fips/openssl/dirmngr_daemon
+    - fips/gnutls/gnutls_base_check
+    - fips/gnutls/gnutls_server
+    - fips/gnutls/gnutls_client
+    - fips/openssl/openssl_tlsv1_3
+    - fips/openssl/openssl_pubkey_rsa
+    - fips/openssl/openssl_pubkey_dsa
+    - fips/openssh/openssh_fips
+    - console/sshd
+    - console/ssh_cleanup
+conditional_schedule:
+    bootloader_s390:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
+    bootloader_ppc:
+        BACKEND:
+            pvm_hmc:
+                - installation/bootloader
+    repo_setup:
+        BETA:
+            1:
+                - security/test_repo_setup
+        FLAVOR:
+            Online-QR:
+                - security/test_repo_setup
+    y2_vnc_pvm:
+        BACKEND:
+            pvm_hmc:
+                - console/yast2_vnc
