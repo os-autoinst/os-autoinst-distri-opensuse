@@ -1,0 +1,22 @@
+---
+name: qam regression other tests with fips enabled for Vendor Affirmation
+schedule:
+- boot/boot_to_desktop
+- fips/fips_setup
+- x11/window_system
+- console/consoletest_setup
+- x11/brasero/brasero_launch
+- x11/gnome_documents
+- x11/totem/totem_launch
+- x11/gnome_control_center
+- x11/gnome_tweak_tool
+- x11/seahorse
+- x11/gnome_music
+- x11/tracker/prep_tracker
+- x11/tracker/tracker_by_command
+- x11/tracker/tracker_info
+- x11/tracker/tracker_search_in_nautilus
+- x11/tracker/clean_tracker
+- fips/openjdk/openjdk_fips
+- fips/openjdk/openjdk_ssh
+...
