@@ -24,8 +24,14 @@ conditional_schedule:
     HPC:
       server:
         - installation/user_settings
+  installation_node_conf:
+    SYSTEM_ROLE:
+      hpc-node:
+        - installation/user_settings_root
   user_settings_root:
     VERSION:
+      15-SP1:
+        - '{{installation_node_conf}}'
       15-SP2:
         - installation/user_settings_root
       15-SP3:
