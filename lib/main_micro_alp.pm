@@ -221,6 +221,7 @@ sub load_fips_tests {
     loadtest 'fips/gnutls/gnutls_server';
     loadtest 'fips/gnutls/gnutls_client';
     loadtest 'console/gpg';
+    loadtest 'fips/mozilla_nss/nss_smoke';
 }
 
 sub load_rcshell_tests {
