@@ -32,6 +32,14 @@ sub get_product_selection_page {
     return $self->{ProductSelectionPage};
 }
 
+sub wait_product_selection_page {
+    my ($self, $args) = @_;
+    $args->{timeout} = YuiRestClient::get_timeout() * $args->{timeout_scale};
+    YuiRestClient::Wait::wait_until(object => sub {
+            $self->{ProductSelectionPage}->is_shown({timeout => 0});
+    }, %$args);
+}
+
 sub get_access_beta_distribution_popup {
     my ($self) = @_;
     die "Popup for accessing Beta Distribution is not displayed" unless $self->{AccessBetaDistributionPopup}->is_shown();
