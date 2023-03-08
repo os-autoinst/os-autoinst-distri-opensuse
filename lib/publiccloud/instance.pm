@@ -22,6 +22,7 @@ use utils;
 use db_utils;
 use Mojo::Util 'trim';
 use Data::Dumper;
+use mmapi qw(get_current_job_id);
 
 use constant SSH_TIMEOUT => 90;
 
@@ -555,14 +556,16 @@ sub store_boottime_db() {
     my $token = get_var('_PUBLIC_CLOUD_PERF_DB_TOKEN');
     unless ($url && $token) {
         record_info("WARN", "PUBLIC_CLOUD_PERF_DB_URI or _PUBLIC_CLOUD_PERF_DB_TOKEN is missing ", result => 'fail');
-        return;
+        return -1;
     }
+
     my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
     my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf');
 
     my $tags = {
         instance_type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
-        provider => get_required_var('PUBLIC_CLOUD_PROVIDER'),
+        job_id => get_current_job_id(),
+        os_provider => get_required_var('PUBLIC_CLOUD_PROVIDER'),
         os_build => get_required_var('BUILD'),
         os_flavor => get_required_var('FLAVOR'),
         os_version => get_required_var('VERSION'),
