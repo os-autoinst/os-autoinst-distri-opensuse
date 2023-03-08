@@ -518,6 +518,8 @@ sub measure_boottime() {
     record_info("BOOT TIME", 'systemd_analyze');
     # first deployment analysis
     my ($systemd_analyze, $systemd_blame) = do_systemd_analyze_time($instance);
+    return 0 unless ($systemd_analyze && $systemd_blame);
+
     $ret->{analyze}->{$_} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
     $ret->{blame} = $systemd_blame;
     $ret->{type} = $type;
@@ -556,7 +558,7 @@ sub store_boottime_db() {
     my $token = get_var('_PUBLIC_CLOUD_PERF_DB_TOKEN');
     unless ($url && $token) {
         record_info("WARN", "PUBLIC_CLOUD_PERF_DB_URI or _PUBLIC_CLOUD_PERF_DB_TOKEN is missing ", result => 'fail');
-        return -1;
+        return 0;
     }
 
     my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
@@ -599,8 +601,10 @@ sub store_boottime_db() {
 sub systemd_time_to_second
 {
     my $str_time = trim(shift);
+
     if ($str_time !~ /^(?<check_min>(?<min>\d{1,2})\s*min\s*)?((?<sec>\d{1,2}\.\d{1,3})s|(?<ms>\d+)ms)$/) {
-        die("Unable to parse systemd time '$str_time'");
+        record_info("WARN", "Unable to parse systemd time '$str_time'", result => 'fail');
+        return -1;
     }
     my $sec = $+{sec} // $+{ms} / 1000;
     $sec += $+{min} * 60 if (defined($+{check_min}));
@@ -617,8 +621,9 @@ sub extract_analyze_time {
         $time = trim($time);
         my ($time, $type) = $time =~ /^(.+)\s*\((\w+)\)$/;
         $res->{$type} = systemd_time_to_second($time);
+        return 0 if ($res->{$type} == -1);
     }
-    map { die("Fail to detect $_ timing") unless exists($res->{$_}) } qw(kernel initrd userspace overall);
+    map { return 0 unless exists($res->{$_}) } qw(kernel initrd userspace overall);
     return $res;
 }
 
@@ -629,6 +634,7 @@ sub extract_blame_time {
         $line = trim($line);
         my ($time, $service) = $line =~ /^(.+)\s+(\S+)$/;
         $ret->{$service} = systemd_time_to_second($time);
+        return 0 if ($ret->{$service} == -1);
     }
     return $ret;
 }
@@ -641,7 +647,15 @@ sub do_systemd_analyze_time {
     my @ret;
 
     # calling syastemd-analyze time & blame
-    $output = $instance->run_ssh_command(cmd => 'systemd-analyze time', proceed_on_failure => 1);
+    while ($output !~ /Startup finished in/ && time() - $start_time < $args{timeout}) {
+        $output = $instance->run_ssh_command(cmd => 'systemd-analyze time', proceed_on_failure => 1);
+        sleep 5;
+    }
+
+    unless ($output && (time() - $start_time < $args{timeout})) {
+        record_info("WARN", "Unable to get system-analyze in $args{timeout} seconds", result => 'fail');
+        return (0, 0);
+    }
     push @ret, extract_analyze_time($output);
 
     $output = $instance->run_ssh_command(cmd => 'systemd-analyze blame', proceed_on_failure => 1);
