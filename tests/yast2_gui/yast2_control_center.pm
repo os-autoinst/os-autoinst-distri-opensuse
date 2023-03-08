@@ -79,7 +79,7 @@ sub start_online_update {
             if (is_tumbleweed()) {
                 zypper_call("ar -f http://download.opensuse.org/ports/$repo_arch/update/tumbleweed repo-update");
             } else {
-                 zypper_call("ar -f http://download.opensuse.org/ports/update/$update_name repo-update");
+                zypper_call("ar -f http://download.opensuse.org/ports/update/$update_name repo-update");
             }
         }
         select_console 'x11', await_console => 0;
