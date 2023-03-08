@@ -12,7 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle_micro);
+use version_utils qw(is_transactional);
 
 sub create_user {
     my $user = $testapi::username;
@@ -30,9 +30,9 @@ sub run {
     select_console 'root-console';
 
     # SLE Micro doesn't have user created by default
-    create_user if is_sle_micro;
+    create_user if is_transactional;
 
-    assert_script_run 'openssl req -newkey rsa:2048 -nodes -keyout generatedkey.key -x509 -days 365 -out generatedcert.crt -subj "/C=DE/L=Nue/O=SUSE/CN=security.suse.de"';
+    assert_script_run 'openssl req -newkey rsa:2048 -nodes -keyout generatedkey.key -x509 -days 365 -out generatedcert.crt -subj "/C=DE/L=Nue/O=SUSE/CN=security.suse.de"', timeout => 300;
     assert_script_run 'openssl dhparam -out dhparams_2048.pem 2048';
     clear_console;
 
