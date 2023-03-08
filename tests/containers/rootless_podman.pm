@@ -154,7 +154,18 @@ sub verify_userid_on_container {
     $cid = script_output "podman run -d --rm --name test2 --user 1000 $image sleep infinity";
     $cid = check_bsc1200623($cid);
     my $id = $start_id + $huser_id - 1;
-    validate_script_output "podman top $cid user huser", sub { /1000\s+${id}/ };
+
+    # podman >= v4.4.0 lists username instead of uid
+    # when using `user` descriptor with `podman top`, handle
+    # conditionally.
+    # https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/16567
+    my $podman_version = get_podman_version();
+    if (package_version_cmp($podman_version, '4.4.0') >= 0) {
+        my $huser_name = script_output "whoami";
+        validate_script_output "podman top $cid user huser", sub { /${huser_name}\s+${id}/ };
+    } else {
+        validate_script_output "podman top $cid user huser", sub { /1000\s+${id}/ };
+    }
     validate_script_output "podman top $cid capeff", sub { /none/ };
 
     record_info "root with keep-id", "the default user(root) starts process with the same uid as host user";
