@@ -37,6 +37,7 @@ schedule:
   - installation/grub_test
   - installation/first_boot
   - console/system_prepare
+  - '{{disable_screensaver}}'
   - sles4sap/netweaver_install
   - sles4sap/netweaver_test_instance
   - console/scc_deregistration
@@ -45,3 +46,9 @@ schedule:
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
+
+conditional_schedule:
+  disable_screensaver:
+    DESKTOP:
+      gnome:
+        - x11/disable_screensaver

@@ -20,6 +20,7 @@ schedule:
   - '{{handle_reboot}}'
   - installation/first_boot
   - console/system_prepare
+  - '{{disable_screensaver}}'
   - console/hostname
   - console/force_scheduled_tasks
   - console/scc_deregistration
@@ -29,6 +30,10 @@ schedule:
   - '{{svirt_upload_assets}}'
 
 conditional_schedule:
+  disable_screensaver:
+    DESKTOP:
+      gnome:
+        - x11/disable_screensaver
   handle_reboot:
     ARCH:
       s390x:
