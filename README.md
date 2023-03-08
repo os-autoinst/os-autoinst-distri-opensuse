@@ -1,4 +1,9 @@
 os-autoinst/openQA tests for openSUSE and SUSE Linux Enterprise [![Build Status](https://github.com/os-autoinst/os-autoinst-distri-opensuse/workflows/ci/badge.svg)](https://github.com/os-autoinst/os-autoinst-distri-opensuse/actions)
+
+
+- Gnome on Tumbleweed: [![Gnome on Tumbleweed](https://openqa.opensuse.org/tests/latest/badge?arch=x86_64&distri=opensuse&flavor=DVD&machine=64bit&test=gnome&version=Tumbleweed)](https://openqa.opensuse.org/tests/latest?arch=x86_64&distri=opensuse&flavor=DVD&machine=64bit&test=gnome&version=Tumbleweed)
+- KDE on Tumbleweed: [![KDE on Tumbleweed](https://openqa.opensuse.org/tests/latest/badge?arch=x86_64&distri=opensuse&flavor=DVD&machine=64bit&test=kde&version=Tumbleweed)](https://openqa.opensuse.org/tests/latest?arch=x86_64&distri=opensuse&flavor=DVD&machine=64bit&test=kde&version=Tumbleweed)
+
 =================================================================================================================================================================================================================================
 os-autoinst-distri-opensuse is repo which contains tests, which are executed
 by openQA for openSUSE and SLE distributions.
