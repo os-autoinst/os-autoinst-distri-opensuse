@@ -619,7 +619,39 @@ subtest '[cypress_test_exec] Base execution' => sub {
     like $logs[1], qr/result_caciucco/;
 
     ok((any { /podman run.*\/test_caciucco\.js/ } @calls), 'Podman run of the test file');
-#    " --reporter junit --reporter-options "mochaFile=/results/test_result_FARINATA_test_caciucco.xml,toConsole=true" 2>/results/cypress_FARINATA_log.txt"]' docker.io/cypress/included:9.6.1 | tee cypress_FARINATA_result.txt
+    ok((any { /podman run.*\/cypress_FARINATA_test_caciucco_log\.txt/ } @calls), 'Podman run store log in cypress_FARINATA_test_caciucco_log.txt');
+};
+
+subtest '[cypress_test_exec] Base execution with multiple test files' => sub {
+    # This test, at the moment, it is testing multiple trento.pm layers
+    #  - cypress_test_exec
+    #  - cypress_exec
+    #  - cypress_log_upload
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+    @logs = ();
+
+    $trento->redefine(script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $trento->redefine(parse_extra_log => sub { push @logs, @_; });
+    $trento->redefine(script_output => sub {
+            push @calls, $_[0];
+            if ($_[0] =~ /iname\s".*js"/) { return '
+test_caciucco.js
+test_capponata.js'; }
+            if ($_[0] =~ /iname\s".*test_result_.*"/) { return "result_caciucco.xml"; }
+            return '';
+    });
+    cypress_test_exec('TEST_DIR', 'FARINATA', 1000);
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  L-->  " . join("\n  L-->  ", @logs));
+    like $logs[0], qr/XUnit/;
+    like $logs[1], qr/result_caciucco/;
+
+    ok((any { /podman run.*\/test_caciucco\.js/ } @calls), 'Podman run of the test file test_caciucco.js');
+    ok((any { /podman run.*\/cypress_FARINATA_test_caciucco_log\.txt/ } @calls), 'Podman run store log in cypress_FARINATA_test_caciucco_log.txt');
+    ok((any { /podman run.*\/test_capponata\.js/ } @calls), 'Podman run of the test file test_capponata.js');
+    ok((any { /podman run.*\/cypress_FARINATA_test_capponata_log\.txt/ } @calls), 'Podman run store log in cypress_FARINATA_test_capponata_log.txt');
 };
 
 subtest '[cypress_test_exec] old CY' => sub {

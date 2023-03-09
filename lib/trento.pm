@@ -1014,8 +1014,7 @@ sub cypress_exec {
         '-v', "$cypress_test_dir:/e2e", '-w', '/e2e',
         '-e', '"DEBUG=cypress:*"',
         "--entrypoint=$cypress_entry_point",
-        $image_name,
-        '|', 'tee', 'cypress_' . $log_prefix . '_result.txt');
+        $image_name);
     $ret = script_run($cypress_run_cmd, $timeout);
     if ($ret != 0) {
         # Look for SIGTERM
@@ -1047,9 +1046,12 @@ sub cypress_test_exec {
     $timeout //= bmwqemu::scale_timeout(600);
     my $ret = 0;
     my $cy_test_struct = 'cypress/integration';
+
+    # The latest version of cypress.io request a different folder structure for the test code
     $cy_test_struct = 'cypress/e2e'
       if ((get_var('TRENTO_CYPRESS_VERSION', CYPRESS_DEFAULT_VERSION) =~ /(\d+)\..*/g) &&
         (int($1) >= 10));
+
     my $find_cmd = join(' ',
         'find',
         "$cypress_test_dir/$cy_test_struct/$test_tag",
@@ -1059,18 +1061,18 @@ sub cypress_test_exec {
 
     for (split(/\n/, $test_file_list)) {
         # Compose the JUnit .xml file name, starting from the .js filename
-        my $test_filename = basename($_);
-        my $test_result = 'test_result_' . $test_tag . '_' . $test_filename;
-        $test_result =~ s/js$/xml/;
+        my $test_base_filename = basename($_) =~ s/\.js$//r;
+        my $test_result = 'test_result_' . $test_tag . '_' . $test_base_filename . '.xml';
+        my $log_tag = join('_', $test_tag, $test_base_filename);
         my $test_cmd = join(' ', 'run',
-            '--spec', '\"' . $cy_test_struct . '/' . $test_tag . '/' . $test_filename . '\"',
+            '--spec', '\"' . $cy_test_struct . '/' . $test_tag . '/' . $test_base_filename . '.js\"',
             '--reporter', 'junit',
             '--reporter-options', '\"mochaFile=/results/' . $test_result . ',toConsole=true\"');
-        record_info('CY INFO', "test_filename:$test_filename test_result:$test_result test_cmd:$test_cmd");
+        record_info('CY INFO', "test_filename:$test_base_filename.js test_result:$test_result test_cmd:$test_cmd");
 
         # Execute the test: force $failok=1 to keep the execution going.
         # Any cypress test failure will be reported during the XUnit parsing
-        $ret = cypress_exec($cypress_test_dir, $test_cmd, $timeout, $test_tag, 1);
+        $ret = cypress_exec($cypress_test_dir, $test_cmd, $timeout, $log_tag, 1);
 
         # Parse the results
         $find_cmd = join(' ',
