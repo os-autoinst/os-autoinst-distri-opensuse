@@ -14,5 +14,5 @@ fi
 # Get IP/hostname from arg
 device=$1
 
-/usr/bin/kasa --plug --host $device off
-/usr/bin/kasa --plug --host $device led 0
+/usr/bin/kasa --type plug --host $device off
+/usr/bin/kasa --type plug --host $device led 0
