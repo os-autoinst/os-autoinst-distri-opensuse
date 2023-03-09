@@ -16,6 +16,8 @@
     <ul>
       <li><a href="#single_node">single_node</a></li>
       <li><a href="#all_nodes">all_nodes</a></li>
+      <li><a href="#slave_nodes">slave_nodes</a></li>
+      <li><a href="#n_nodes">n_nodes</a></li>
     </ul>
   </li>
 </ul><h1>lib/hpc/formatter.pm</h1>
@@ -31,6 +33,18 @@
 <pre><code>all_nodes($bin);</code></pre>
 
 <p>Prepares and returns the command to run as string for all the nodes in the cluster. <code>bin</code> is required. <code>need_interpreter</code> boolean will tell if the <code>bin</code> is actually a source code where needs invoke _python_ interpreter. TODO: improve the identification of the <code>bin</code></p>
+
+<h2 id="slave_nodes">slave_nodes</h2>
+
+<pre><code>slave_nodes($bin);</code></pre>
+
+<p>Prepares and returns the command to run as string for assigning only the compute nodes of the cluster. <code>bin</code> is required. <code>need_interpreter</code> boolean will tell if the <code>bin</code> is actually a source code where needs invoke _python_ interpreter. TODO: improve the identification of the <code>bin</code></p>
+
+<h2 id="n_nodes">n_nodes</h2>
+
+<pre><code>n_nodes($bin, $n);</code></pre>
+
+<p>Prepares and returns the command to run as string without pass <code>--host</code> variable. Instead defines the number of nodes which the code should run on. <code>bin</code> is required. <code>n</code> is required <code>need_interpreter</code> boolean will tell if the <code>bin</code> is actually a source code where needs invoke _python_ interpreter. TODO: improve the identification of the <code>bin</code></p>
 
 
 </body>

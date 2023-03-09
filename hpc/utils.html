@@ -26,7 +26,9 @@
 
 <pre><code>get_mpi_src();</code></pre>
 
-<p>Returns the source code which is used based on <b>HPC_LIB</b> job variable. The variable indicates the HPC library which the mpi use to compile the source code. if the variable is not set, one of the other MPI implementations will be used(mpich, openmpi, mvapich2).</p>
+<p>Returns the source code which is used based on <b>HPC_LIB</b> job variable. The variable indicates the HPC library which the mpi use to compile the source code. But the variable can be any indicator to select the requisite source code that test should use.</p>
+
+<p>Make sure that the source code matches with the correct compiler. if the variable is not set, one of the other MPI implementations will be used(mpich, openmpi, mvapich2).</p>
 
 <p>Returns an array with the mpi compiler and the source code located in /data/hpc</p>
 
