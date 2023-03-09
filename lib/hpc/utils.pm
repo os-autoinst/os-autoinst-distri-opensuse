@@ -34,7 +34,11 @@ sub get_mpi() {
  get_mpi_src();
 
 Returns the source code which is used based on B<HPC_LIB> job variable. The variable indicates the HPC library
-which the mpi use to compile the source code. if the variable is not set, one of the other MPI implementations
+which the mpi use to compile the source code. But the variable can be any indicator to select the requisite
+source code that test should use.
+
+Make sure that the source code matches with the correct compiler.
+if the variable is not set, one of the other MPI implementations
 will be used(mpich, openmpi, mvapich2).
 
 Returns an array with the mpi compiler and the source code located in /data/hpc
@@ -42,10 +46,12 @@ Returns an array with the mpi compiler and the source code located in /data/hpc
 =cut
 
 sub get_mpi_src {
-    return ('mpicc', 'simple_mpi.c') unless get_var('HPC_LIB', '');
-    # not a boost lib. but using it we can distiguish between `.c` and `.cpp` source code
-    return ('mpic++', 'sample_boost.cpp') if (get_var('HPC_LIB') eq 'boost');
-    return ('', 'sample_scipy.py') if (get_var('HPC_LIB') eq 'scipy');
+    my $libvar = get_var('HPC_LIB', '');
+    record_info "WHAT", "$libvar";
+    return ('mpicc', 'simple_mpi.c') if ($libvar eq '');
+    return ('mpic++', 'sample_cplusplus.cpp') if ($libvar eq 'c++');
+    return ('mpic++', 'sample_boost.cpp') if ($libvar eq 'boost');
+    return ('', 'sample_scipy.py') if ($libvar eq 'scipy');
 }
 
 =head2 relogin_root

@@ -83,7 +83,7 @@ sub run ($self) {
     record_info 'MPI_BINARIES_READY', strftime("\%H:\%M:\%S", localtime);
     my $mpirun_s = hpc::formatter->new();
 
-    unless ($mpi_bin eq '.cpp') {    # because calls expects minimum 2 nodes
+    unless ($mpi_c eq 'sample_cplusplus.cpp') {    # because calls expects minimum 2 nodes
         record_info('INFO', 'Run MPI over single machine');
         if ($mpi eq 'mvapich2') {
             # mvapich2/2.2 known issue
@@ -116,7 +116,12 @@ sub run ($self) {
             die("echo $return - not expected errorcode");
         }
     } else {
-        assert_script_run($mpirun_s->all_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
+        if ($mpi_c eq 'sample_cplusplus.cpp') {
+            assert_script_run($mpirun_s->slave_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
+            assert_script_run($mpirun_s->n_nodes("$exports_path{'bin'}/$mpi_bin", 2), timeout => 120);
+        } else {
+            assert_script_run($mpirun_s->all_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
+        }
     }
     barrier_wait('MPI_RUN_TEST');
     record_info 'MPI_RUN_TEST', strftime("\%H:\%M:\%S", localtime);
