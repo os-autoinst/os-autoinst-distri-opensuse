@@ -18,6 +18,7 @@ use Utils::Backends;
 use Mojo::UserAgent;
 use zypper qw(wait_quit_zypper);
 use Storable qw(dclone);
+use Getopt::Long qw(GetOptionsFromString);
 
 our @EXPORT = qw(
   generate_results
@@ -874,7 +875,18 @@ into an array of hashes.
 
 sub zypper_search {
     my $params = shift;
-    my @fields = ('status', 'name', 'type', 'version', 'arch', 'repository');
+    my %opts;
+    my @fields = ('status', 'name', 'summary', 'type');
+
+    # Set Getopt to ignore any unrecognized options
+    Getopt::Long::Configure('bundling', 'pass_through', 'permute');
+
+    # Call in array context to silence warnings about extra options and args
+    my @tmp = GetOptionsFromString($params, \%opts, 'details|s', 'verbose|v');
+
+    if (exists($opts{details}) || exists($opts{verbose})) {
+        @fields = ('status', 'name', 'type', 'version', 'arch', 'repository');
+    }
 
     my $output = script_output("zypper -n se $params");
     return parse_zypper_table($output, \@fields);
