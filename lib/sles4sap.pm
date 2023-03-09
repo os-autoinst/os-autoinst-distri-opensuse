@@ -832,7 +832,7 @@ SLES and HANA versions whether B<libopenssl1_0_0> must be installed.
 sub install_libopenssl_legacy {
     my ($self, $hana_path) = @_;
 
-    if ($hana_path =~ s/.*\/SPS([0-9]+)rev[0-9]\/.*/$1/r) {
+    if ($hana_path =~ s/.*\/SPS([0-9]+)rev[0-9]+\/.*/$1/r) {
         my $hana_version = $1;
         if (is_sle('15+') && ($hana_version <= 2)) {
             # The old libopenssl is in Legacy Module
