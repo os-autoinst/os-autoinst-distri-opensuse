@@ -17,13 +17,13 @@ use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
-use version_utils qw(is_sle is_sle_micro);
+use version_utils qw(is_sle is_transactional);
 
 sub run {
     select_serial_terminal;
 
     # openssl pre-installed in SLE Micro
-    zypper_call 'in openssl' unless is_sle_micro;
+    zypper_call 'in openssl' unless is_transactional;
 
     my $enc_passwd = "pass1234";
     my $hash_alg = "sha256";
@@ -51,7 +51,7 @@ sub run {
     for my $cipher (@invalid_cipher) {
         validate_script_output
           "openssl enc -$cipher -e -pbkdf2 -in $file_raw -out $file_enc -k $enc_passwd -md $hash_alg 2>&1 || true",
-          sub { m/disabled for fips|disabled for FIPS|unknown option|Unknown cipher|enc: Unrecognized flag/ };
+          sub { m/disabled for fips|disabled for FIPS|unknown option|Unknown cipher|enc: Unrecognized flag|unsupported:crypto/ };
     }
 
     script_run 'cd - && rm -rf fips-test';

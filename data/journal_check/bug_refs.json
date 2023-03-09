@@ -437,5 +437,12 @@
             "sle": ["15-SP4"]
         },
         "type": "ignore"
+    },
+    "boo#1209063": {
+        "description": "Failed to start OpenSSH Daemon.",
+        "products": {
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "bug"
     }
 }

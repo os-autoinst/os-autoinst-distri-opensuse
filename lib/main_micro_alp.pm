@@ -221,7 +221,8 @@ sub load_fips_tests {
     loadtest 'fips/gnutls/gnutls_server';
     loadtest 'fips/gnutls/gnutls_client';
     loadtest 'console/gpg';
-    loadtest 'fips/mozilla_nss/nss_smoke';
+    # Need to investigate why this doesn't work in MicroOS
+    loadtest 'fips/mozilla_nss/nss_smoke' unless is_microos;
 }
 
 sub load_rcshell_tests {

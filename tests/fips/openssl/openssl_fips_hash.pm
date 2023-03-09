@@ -21,13 +21,13 @@ use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils qw(zypper_call);
-use version_utils qw(is_sle_micro);
+use version_utils qw(is_transactional);
 
 sub run {
     select_serial_terminal;
 
     # openssl pre-installed in SLE Micro
-    zypper_call 'in openssl' unless is_sle_micro;
+    zypper_call 'in openssl' unless is_transactional;
 
     my $tmp_file = "/tmp/hello.txt";
 
@@ -45,11 +45,11 @@ sub run {
     my @invalid_hash = ("md4", "md5", "mdc2", "rmd160", "ripemd160", "whirlpool", "md5-sha1");
     for my $hash (@invalid_hash) {
         eval {
-            validate_script_output "openssl dgst -$hash $tmp_file 2>&1 || true", sub { m/$hash is not a known digest|unknown option|Unknown digest|dgst: Unrecognized flag|disabled for FIPS|disabled for fips/ };
+            validate_script_output "openssl dgst -$hash $tmp_file 2>&1 || true", sub { m/$hash is not a known digest|unknown option|Unknown digest|dgst: Unrecognized flag|disabled for FIPS|disabled for fips|unsupported:crypto/ };
         };
         if ($@) {
             record_soft_failure 'bsc#1193859';
-            validate_script_output "openssl dgst -$hash $tmp_file 2>&1 || true", sub { m/disabled for fips|disabled for FIPS|unknown option|Unknown digest|dgst: Unrecognized flag/ };
+            validate_script_output "openssl dgst -$hash $tmp_file 2>&1 || true", sub { m/disabled for fips|disabled for FIPS|unknown option|Unknown digest|dgst: Unrecognized flag|unsupported:crypto/ };
         }
     }
 

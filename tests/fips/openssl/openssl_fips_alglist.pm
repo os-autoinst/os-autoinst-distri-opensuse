@@ -16,13 +16,13 @@ use testapi;
 use strict;
 use warnings;
 use utils 'zypper_call';
-use version_utils qw(is_sle is_sle_micro);
+use version_utils qw(is_sle is_transactional);
 
 sub run {
     select_console 'root-console';
 
     # openssl pre-installed in SLE Micro
-    zypper_call 'in openssl' unless is_sle_micro;
+    zypper_call 'in openssl' unless is_transactional;
     zypper_call('info openssl');
     my $current_ver = script_output("rpm -q --qf '%{version}\n' openssl");
 
