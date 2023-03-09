@@ -50,6 +50,7 @@ conditional_schedule:
         - migration/online_migration/online_migration_setup
         - migration/online_migration/register_system
         - migration/online_migration/zypper_patch
+        - migration/openldap_configuration
   check_migration_features:
     MIGRATION_FEATURES:
       1:

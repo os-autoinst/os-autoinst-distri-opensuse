@@ -4,4 +4,5 @@ description:    >
 schedule:
   - boot/boot_to_desktop
   - console/consoletest_setup
+  - migration/openldap_configuration
   - migration/openldap_to_389ds
