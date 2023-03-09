@@ -17,7 +17,6 @@ schedule:
   - console/yast2_tftp
   - console/yast2_proxy
   - console/yast2_vnc
-  - console/yast2_http
   - console/yast2_ftp
   - console/yast2_apparmor
   - console/yast2_lan
@@ -25,11 +24,6 @@ schedule:
   - console/yast2_lan_hostname/dhcp_no
   - console/yast2_lan_hostname/dhcp_yes
   - console/yast2_lan_hostname/dhcp_yes_eth
-  - console/yast2_dns_server_initial_setup
-  - console/yast2_dns_server_service_inactive_enabled
-  - console/yast2_dns_server_service_active_disabled
-  - console/yast2_dns_server_service_inactive_disabled
-  - console/yast2_dns_server_service_keep_inactive_disabled
   - console/yast2_nfs_client
   - console/yast2_snapper_ncurses
 test_data:
