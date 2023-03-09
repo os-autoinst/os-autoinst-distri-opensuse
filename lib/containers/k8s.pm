@@ -144,7 +144,7 @@ Find pods using kubectl queries
 sub wait_for_k8s_job_complete {
     my ($job) = @_;
     my $cmd = "kubectl wait --for=condition=complete --timeout=300s job/$job";
-    script_retry($cmd, retry => 3, timeout => 360, die => 1);
+    script_retry($cmd, retry => 5, timeout => 360, die => 1);
 }
 
 =head2 wait_for_k8s_job_complete
@@ -162,7 +162,7 @@ Validates that the logs contains a text
 
 sub validate_pod_log {
     my ($pod, $text) = @_;
-    validate_script_output("kubectl logs $pod 2>&1", qr/$text/);
+    validate_script_output("kubectl logs $pod 2>&1", qr/$text/, timeout => 180);
 }
 
 1;
