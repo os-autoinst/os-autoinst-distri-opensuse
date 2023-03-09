@@ -17,7 +17,6 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use utils qw(zypper_call package_upgrade_check clear_console);
 use Utils::Architectures;
 use version_utils 'is_sle';
 
@@ -120,6 +119,10 @@ sub run {
     # send_key "alt-shift-d" is fail to react in s390x/aarch64 usually
     assert_and_click("firefox-click-security-device");
     assert_screen "firefox-device-manager";
+    save_screenshot;
+    # on s390x the dialog with Security Modules and Devices is colored wrong
+    # https://bugzilla.suse.com/show_bug.cgi?id=1203578
+    record_soft_failure("bsc#1209107") if is_s390x;
 
     # Add condition in FIPS_ENV_MODE & Remove hotkey
     if (get_var('FIPS_ENV_MODE')) {
@@ -198,8 +201,14 @@ sub run {
     # send_key "alt-shift-d" is fail to react in s390x/aarch64 usually
     assert_and_click("firefox-click-security-device");
     assert_screen("firefox-device-manager");
-    assert_screen("firefox-confirm-fips_enabled");
-
+    # on s390x the dialog with Security Modules and Devices is colored wrong
+    # https://bugzilla.suse.com/show_bug.cgi?id=1203578
+    if (is_s390x) {
+        record_soft_failure("bsc#1209107");
+    } else {
+        assert_screen("firefox-confirm-fips_enabled");
+    }
+    save_screenshot;
     # Close Firefox
     quit_firefox;
     assert_screen("generic-desktop", $waittime);
