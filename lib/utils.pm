@@ -45,6 +45,7 @@ our @EXPORT = qw(
   minimal_patch_system
   zypper_search
   zypper_repos
+  zypper_patches
   set_zypper_lock_timeout
   workaround_type_encrypted_passphrase
   is_boot_encrypted
@@ -926,6 +927,32 @@ sub zypper_repos {
     }
 
     my $output = script_output("zypper lr $params");
+    return parse_zypper_table($output, \@fields);
+}
+
+=head2 zypper_patches
+
+ zypper_patches($params);
+
+Run C<zypper patches> with given command line arguments and parse the output
+into an array of hashes.
+
+=cut
+
+sub zypper_patches {
+    my $params = shift // '';
+    my @fields;
+
+    if (is_sle('<12-SP2')) {
+        @fields = ('repository', 'name', 'version', 'category', 'status');
+    } else {
+        @fields = ('repository', 'name', 'category', 'severity',
+            'interactive', 'status');
+        push @fields, 'since' if is_sle('15+');
+        push @fields, 'summary';
+    }
+
+    my $output = script_output("zypper pch $params", 300);
     return parse_zypper_table($output, \@fields);
 }
 
