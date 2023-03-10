@@ -17,24 +17,11 @@ use mmapi 'get_current_job_id';
 use utils qw(zypper_call script_retry);
 use version_utils 'is_sle';
 use registration qw(add_suseconnect_product get_addon_fullname);
-use strict;
-use warnings;
-use publiccloud::utils;
-
-our $azure_repo = get_required_var('PY_AZURE_REPO');
-our $backports_repo = get_required_var('PY_BACKPORTS_REPO');
-our $cloud_tools_repo = get_required_var('CLOUD_TOOLS_REPO');
 
 sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
     my $job_id = get_current_job_id();
-
-
-    # if cloud_tools and azure repo is provided create sles vm and validate azure cli test 
-    if (exists($azure_repo) && exists($backports_repo) && ($cloud_tools_repo)) {
-        create_vm($azure_repo,$backports_repo,$cloud_tools_repo);
-    }
 
     # If 'az' is preinstalled, we test that version
     if (script_run("which az") != 0) {
@@ -80,13 +67,6 @@ sub run {
     # Check that the machine is reachable via ssh
     my $ip_address = script_output("az vm list-ip-addresses -g $resource_group -n $machine_name --query '[].virtualMachine.network.publicIpAddresses[0].ipAddress' --output tsv", 90);
     script_retry("ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no azureuser\@$ip_address hostnamectl", 90, delay => 15, retry => 12);
-
-    my $location = "southeastasia";
-    my $sshkey = "~/.ssh/id_rsa.pub";
-    # Call Virtual Network and Run Command Test
-    virtual_network_test($resource_group,$location,$machine_name,$sshkey,$image_name);
-    run_cmd_test($resource_group,$location,$machine_name,$sshkey,$image_name);
-    vmss_test($resource_group,$location,$machine_name,$sshkey,$image_name);
 }
 
 sub cleanup {
@@ -101,55 +81,4 @@ sub test_flags {
     return {fatal => 0, milestone => 0, always_rollback => 1};
 }
 
-sub virtual_network_test {
-    my ($rg,$loc,$mn,$ssh,$img) = @_;
-    assert_script_run("cd $root_dir");
-    assert_script_run('curl ' . data_url('publiccloud/azure_vn.sh') . ' -o azure_vn.sh');
-    assert_script_run('chmod +x azure_vn.sh');
-    my $start_cmd = $root_dir . '/azure_vn.sh $rg, $loc, $mn, $ssh, $img start ' . $self->instance_log_args();
-    assert_script_run($start_cmd);
-}
-
-sub run_cmd_test {
-    my ($rg,$loc,$mn,$ssh,$img) = @_;
-    assert_script_run("cd $root_dir");
-    assert_script_run('curl ' . data_url('publiccloud/azure_runcmd.sh') . ' -o azure_runcmd.sh');
-    assert_script_run('chmod +x azure_runcmd.sh');
-    my $start_cmd = $root_dir . '/azure_runcmd.sh $rg, $loc, $mn, $ssh, $img start ' . $self->instance_log_args();
-    assert_script_run($start_cmd);
-}
-
-sub vmss_test {
-    my ($rg,$loc,$mn,$ssh,$img) = @_;
-    assert_script_run("cd $root_dir");
-    assert_script_run('curl ' . data_url('publiccloud/azure_vmss.sh') . ' -o azure_vmss.sh');
-    assert_script_run('chmod +x azure_vmss.sh');
-    my $start_cmd = $root_dir . '/azure_vmss.sh $rg, $loc, $mn, $ssh, $img start ' . $self->instance_log_args();
-    assert_script_run($start_cmd);
-}
-
-sub create_vm {
-    my ($ar,$br,$ctr) = @_;
-
-    select_serial_terminal();
-    my $provider = $args->{my_provider};
-    my $instance = $provider->create_instance();
-    $instance->wait_for_guestregister();
-    registercloudguest($instance) if is_byos();
-
-    # call addons for pcm and phub
-    # register module-public-cloud and PackageHub
-    register_addons_in_pc($instance);
-
-    #Add Repos and install azure-cli
-    $instance->run_ssh_command(cmd => 'sudo zypper -n addrepo -fG ' . $ar, timeout => 600);
-    $instance->run_ssh_command(cmd => 'sudo zypper -n addrepo -fG ' . $br, timeout => 600);
-    $instance->run_ssh_command(cmd => 'sudo zypper -n addrepo -fG ' . $ctr, timeout => 600);
-    $instance->ssh_assert_script_run('sudo zypper ref; sudo zypper -n up', timeout => 300);
-    $instance->ssh_assert_script_run('sudo zypper install --allow-vendor-change --force azure-cli', timeout => 300);
-
-    record_info('azure cli installed');
-
-    sleep 90;    # wait for a bit for zypper to be available
-}
 1;
