@@ -21,6 +21,7 @@
 
 
 use base 'sles4sap_publiccloud_basetest';
+use publiccloud::ssh_interactive 'select_host_console';
 use strict;
 use warnings;
 use testapi;
@@ -154,6 +155,9 @@ sub run {
     my $workspace = get_var('PUBLIC_CLOUD_RESOURCE_GROUP', 'qesapopenqa');
     $workspace .= sprintf("%04x", rand(0xffff));
 
+    # Select console on the host (not the PC instance) to reset 'TUNNELED',
+    # otherwise select_serial_terminal() will be failed
+    select_host_console();
     select_serial_terminal();
 
     # Collect OpenQA variables and default values
