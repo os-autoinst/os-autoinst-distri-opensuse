@@ -35,6 +35,11 @@ our @EXPORT = qw(
 sub setup_sle {
     select_console 'root-console';
 
+    # https://bugzilla.suse.com/show_bug.cgi?id=1205290#c3
+    if (is_ppc64le && is_sle('<12-sp5')) {
+        systemctl('restart systemd-vconsole-setup.service');
+    }
+
     # Stop packagekitd
     if (is_sle('12+')) {
         quit_packagekit;
