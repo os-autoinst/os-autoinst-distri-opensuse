@@ -33,6 +33,9 @@ sub packages_to_install {
     my $arch = get_required_var('ARCH');
     my $scc_timeout = 1200;    # SCC can take really long timetimes
 
+    # Avoid PackageKit to conflict about lock with zypper
+    script_run("pkcon quit", die_on_timeout => 0);
+
     # common packages
     my @packages = ('git-core', 'python3', 'gcc', 'jq');
     if ($host_distri eq 'ubuntu') {
