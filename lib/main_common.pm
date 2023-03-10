@@ -2222,140 +2222,9 @@ sub load_security_console_prepare {
     loadtest "console/yast2_vnc" if (get_var("FIPS_ENABLED") && is_pvm);
 }
 
-# The function name load_security_tests_crypt_* is to avoid confusing
-# since openSUSE does NOT have FIPS mode
-# Some tests are valid only for FIPS Regression testing. Use
-# "FIPS_ENABLED" to control whether to run these "FIPS only" cases
-sub load_security_tests_crypt_core {
-    load_security_console_prepare;
-
-    if (get_var('FIPS_ENABLED')) {
-        loadtest "fips/openssl/openssl_fips_alglist";
-        loadtest "fips/openssl/openssl_fips_hash";
-        loadtest "fips/openssl/openssl_fips_cipher";
-        loadtest "fips/openssl/dirmngr_setup";
-        loadtest "fips/openssl/dirmngr_daemon";    # dirmngr_daemon needs to be tested after dirmngr_setup
-        loadtest "fips/gnutls/gnutls_base_check";
-        loadtest "fips/gnutls/gnutls_server";
-        loadtest "fips/gnutls/gnutls_client";
-    }
-    loadtest "fips/openssl/openssl_tlsv1_3";
-    loadtest "fips/openssl/openssl_pubkey_rsa";
-    loadtest "fips/openssl/openssl_pubkey_dsa";
-    loadtest "fips/openssh/openssh_fips" if get_var("FIPS_ENABLED");
-    loadtest "console/sshd";
-    loadtest "console/ssh_cleanup";
-}
-
-
-sub load_security_tests_crypt_web {
-    load_security_console_prepare;
-
-    loadtest "console/curl_https";
-    loadtest "console/wget_https";
-    loadtest "console/w3m_https";
-    if (is_sle('15+') || is_tumbleweed) {
-        loadtest "console/links_https";
-        loadtest "console/lynx_https";
-    }
-    loadtest "console/apache_ssl";
-    if (get_var('FIPS_ENABLED')) {
-        loadtest "fips/mozilla_nss/apache_nssfips";
-        loadtest "console/libmicrohttpd" if is_sle('<15');
-    }
-}
-
-sub load_security_tests_crypt_kernel {
-    load_security_console_prepare;
-
-    loadtest "console/cryptsetup";
-    loadtest "security/dm_crypt";
-}
-
-sub load_security_tests_crypt_x11 {
-    set_var('SECTEST_REQUIRE_WE', 1);
-    load_security_console_prepare;
-
-    # In SLE, hexchat and seahorse are provided only in WE addon which is for
-    # x86_64 platform only.
-    if (is_x86_64) {
-        loadtest "x11/seahorse_sshkey";
-        loadtest "x11/hexchat_ssl";
-    }
-    loadtest "x11/x3270_ssl";
-}
-
-sub load_security_tests_crypt_firefox {
-    load_security_console_prepare;
-
-    loadtest "fips/mozilla_nss/firefox_nss" if get_var('FIPS_ENABLED');
-}
-
-sub load_security_tests_crypt_openjdk {
-    load_security_console_prepare;
-
-    if (get_var('FIPS_ENABLED')) {
-        loadtest "fips/openjdk/openjdk_fips";
-        loadtest "fips/openjdk/openjdk_ssh";
-    }
-}
-
-sub load_security_tests_crypt_tool {
-    load_security_console_prepare;
-
-    if (get_var('FIPS_ENABLED')) {
-        loadtest "fips/curl_fips_rc4_seed";
-        loadtest "console/aide_check";
-    }
-    loadtest "console/gpg";
-    loadtest "console/journald_fss";
-    loadtest "console/git";
-    loadtest "console/clamav";
-    loadtest "console/openvswitch_ssl";
-    loadtest "console/ntp_client";
-    loadtest "console/cups";
-    loadtest "console/syslog";
-    loadtest "x11/evolution/evolution_prepare_servers";
-    loadtest "console/mutt";
-}
-
-sub load_security_tests_crypt_libtool {
-    load_security_console_prepare;
-
-    loadtest "fips/libtool/liboauth";
-}
-
 sub load_security_tests_fips_setup {
     # Setup system into fips mode
     loadtest "fips/fips_setup";
-}
-
-sub load_security_tests_ipsec {
-    load_security_console_prepare;
-
-    loadtest "console/ipsec_tools_h2h";
-}
-
-sub load_security_tests_mmtest {
-    load_security_console_prepare;
-
-    # Load client tests by APPTESTS variable
-    load_applicationstests;
-}
-
-sub load_security_tests_yast2_users {
-    load_security_console_prepare;
-
-    loadtest "security/yast2_users/add_users";
-}
-
-sub load_security_tests_cc_audit_remote_libvirt {
-    # Setup environment for cc testing: 'audit-test' test suite setup
-    # Such as: download code branch; install needed packages
-    loadtest 'security/cc/cc_audit_test_setup';
-
-    # Run test cases of 'audit-test' test suite which do NOT need SELinux env
-    loadtest 'security/cc/audit_remote_libvirt';
 }
 
 sub load_security_tests_mok_enroll {
@@ -2452,12 +2321,8 @@ sub load_mitigation_tests {
 
 sub load_security_tests {
     my @security_tests = qw(
-      fips_setup crypt_core crypt_web crypt_kernel crypt_x11 crypt_firefox crypt_tool crypt_openjdk
-      crypt_libtool
-      ipsec mmtest
-      yast2_users
+      fips_setup
       mok_enroll
-      cc_audit_remote_libvirt
     );
 
     # Check SECURITY_TEST and call the load functions iteratively.
