@@ -2222,6 +2222,28 @@ sub load_security_console_prepare {
     loadtest "console/yast2_vnc" if (get_var("FIPS_ENABLED") && is_pvm);
 }
 
+# Used by fips-jeos on o3
+sub load_security_tests_crypt_core {
+    load_security_console_prepare;
+
+    if (get_var('FIPS_ENABLED')) {
+        loadtest "fips/openssl/openssl_fips_alglist";
+        loadtest "fips/openssl/openssl_fips_hash";
+        loadtest "fips/openssl/openssl_fips_cipher";
+        loadtest "fips/openssl/dirmngr_setup";
+        loadtest "fips/openssl/dirmngr_daemon";    # dirmngr_daemon needs to be tested after dirmngr_setup
+        loadtest "fips/gnutls/gnutls_base_check";
+        loadtest "fips/gnutls/gnutls_server";
+        loadtest "fips/gnutls/gnutls_client";
+    }
+    loadtest "fips/openssl/openssl_tlsv1_3";
+    loadtest "fips/openssl/openssl_pubkey_rsa";
+    loadtest "fips/openssl/openssl_pubkey_dsa";
+    loadtest "fips/openssh/openssh_fips" if get_var("FIPS_ENABLED");
+    loadtest "console/sshd";
+    loadtest "console/ssh_cleanup";
+}
+
 sub load_security_tests_fips_setup {
     # Setup system into fips mode
     loadtest "fips/fips_setup";
@@ -2323,6 +2345,7 @@ sub load_security_tests {
     my @security_tests = qw(
       fips_setup
       mok_enroll
+      crypt_core
     );
 
     # Check SECURITY_TEST and call the load functions iteratively.
