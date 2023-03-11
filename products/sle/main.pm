@@ -849,19 +849,16 @@ elsif (get_var("VIRT_AUTOTEST")) {
     }
     else {
         if (!is_s390x) {
+            loadtest "autoyast/prepare_profile" if get_var("AUTOYAST_PREPARE_PROFILE");
             load_boot_tests();
             if (get_var("AUTOYAST")) {
                 loadtest "autoyast/installation";
-                loadtest "virt_autotest/reboot_and_wait_up_normal";
             }
             else {
                 load_inst_tests();
-                loadtest "virt_autotest/login_console";
             }
         }
-        else {
-            loadtest "virt_autotest/login_console";
-        }
+        loadtest "virt_autotest/login_console";
         loadtest "virt_autotest/install_package";
         loadtest "virt_autotest/update_package";
         loadtest "virt_autotest/reset_partition";
