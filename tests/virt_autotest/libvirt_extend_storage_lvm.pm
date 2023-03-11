@@ -69,7 +69,7 @@ sub prepare_lvm_storage_pool_source {
     # Use a unused hard disk for LVM volumes
     $dev = "/dev/";
     foreach my $disk (@disks) {
-        if (script_run("set -o pipefail;lsblk -rnoPKNAME,MOUNTPOINT | grep -i $disk | awk \'{print \$2}\'") ne '0') {
+        if (script_run("set -o pipefail;findmnt -n -o SOURCE / | grep $disk") != 0) {
             $lvm_disk_name = $dev . $disk;
             last;
         }
