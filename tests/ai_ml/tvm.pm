@@ -19,9 +19,9 @@ sub run {
 
     select_serial_terminal;
 
-    # Current TVM does not support python 3.10, the default python3 in Tumbleweed, so force python 3.8
-    my $python_interpreter = is_tumbleweed() ? 'python3.8' : 'python3';
-    my $pythonsuffix = is_tumbleweed() ? '38' : '3';
+    # Use python3
+    my $python_interpreter = 'python3';
+    my $pythonsuffix = '3';
 
     zypper_call "in tvmc python$pythonsuffix-pytest python$pythonsuffix-tornado gcc-c++";
 
