@@ -23,7 +23,7 @@ sub run {
     $self->{in_boot_desktop} = 1;
     # We have tests that boot from HDD and wait for DVD boot menu's timeout, so
     # the timeout here must cover it. UEFI DVD adds some 60 seconds on top.
-    my $timeout = get_var('UEFI') ? 140 : 80;
+    my $timeout = get_var('BOOTLOADER_TIMEOUT', 200);
     my $ready_time = get_var('USE_SUPPORT_SERVER_PXE_CUSTOMKERNEL') ? 900 : 500;
     # Increase timeout on ipmi bare metal backend, firmware initialization takes
     # a lot of time
