@@ -62,7 +62,13 @@ sub run {
 
     if ($is_generalhw_via_ssh) {
         # Do not set network down as we are connected through ssh!
-        my $filetoedit = is_leap('<=15.2') ? '/usr/lib/jeos-firstboot' : '/usr/share/jeos-firstboot/jeos-firstboot-dialogs';
+        my $filetoedit = '/usr/share/jeos-firstboot/modules/network-modules/wicked';
+        if (is_leap('<=15.2')) {
+            $filetoedit = '/usr/lib/jeos-firstboot';
+        }
+        elsif (is_sle('<=15-sp4') or is_leap('<=15.4')) {
+            $filetoedit = '/usr/share/jeos-firstboot/jeos-firstboot-dialogs';
+        }
         assert_script_run("sed -i 's/ip link set down /# ip link set down/g' $filetoedit");
     }
     # Remove current root password
