@@ -84,7 +84,7 @@ sub run {
     if ($instance->ssh_script_output(cmd => 'sudo zypper lr | wc -l', timeout => 600) > 2) {
         die('The list of zypper repositories is not empty.');
     }
-    if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/* | wc -l') != 0) {
+    if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l') != 0) {
         die('Directory /etc/zypp/credentials.d/ is not empty.');
     }
 
@@ -101,7 +101,7 @@ sub run {
     if ($instance->ssh_script_output(cmd => 'sudo zypper lr | wc -l', timeout => 600) == 0) {
         die('The list of zypper repositories is empty.');
     }
-    if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/* | wc -l') == 0) {
+    if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l') == 0) {
         die('Directory /etc/zypp/credentials.d/ is empty.');
     }
 
@@ -111,7 +111,7 @@ sub run {
         if ($instance->ssh_script_output(cmd => 'sudo zypper lr | wc -l', timeout => 600) == 0) {
             die('The list of zypper repositories is empty.');
         }
-        if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/* | wc -l') == 0) {
+        if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l') == 0) {
             die('Directory /etc/zypp/credentials.d/ is empty.');
         }
     }
