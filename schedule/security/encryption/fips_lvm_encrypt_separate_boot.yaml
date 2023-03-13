@@ -9,6 +9,7 @@ vars:
   FULL_LVM_ENCRYPT: 1
   YUI_REST_API: 1
   MAX_JOB_TIME: '14400'
+  DESKTOP: textmode
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
