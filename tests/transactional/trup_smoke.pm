@@ -29,11 +29,7 @@ sub run {
 
     select_serial_terminal;
 
-    if (is_sle_micro && is_s390x) {
-        record_soft_failure "bsc#1191863 -  [s390x] Can't reboot after transactional-update bootloader";
-    } else {
-        action('bootloader', 'Reinstall bootloader');
-    }
+    action('bootloader', 'Reinstall bootloader');
     action('grub.cfg', 'Regenerate grub.cfg');
     action('initrd', 'Regenerate initrd');
     action('kdump', 'Regenerate kdump');
