@@ -161,7 +161,7 @@ sub verify_userid_on_container {
     # https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/16567
     my $podman_version = get_podman_version();
     if (package_version_cmp($podman_version, '4.4.0') >= 0) {
-        my $huser_name = script_output "whoami";
+        my $huser_name = $testapi::username;
         validate_script_output "podman top $cid user huser", sub { /${huser_name}\s+${id}/ };
     } else {
         validate_script_output "podman top $cid user huser", sub { /1000\s+${id}/ };
