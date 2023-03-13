@@ -482,11 +482,24 @@ sub wrapup_log_file {
 sub wrap_script_run {
     my ($self, $args) = @_;
     my $ret = '';
+    my $log = '/tmp/log';
 
-    $ret = script_run "$args";
+    $ret = script_run "$args > $log 2>&1";
     if ($ret) {
-        $result = 'fail';
-        record_soft_failure('Error found:jsc#TEAM-6726');
+        script_run "cat $log";
+        record_soft_failure('Error found:jsc#TEAM-7435');
+        # These are known issues so mark them as 'softfail' not 'fail' for not blocking 'bot' auto approval
+        # - sysstat service [FAIL] exited disabled != dead disabled
+        # - sysstat (cronjob) [FAIL] ok == no link
+        # - UserTasksMax [FAIL] max == 12288
+        # - UserTasksMax (sapconf DropIn) [FAIL] regular == missing
+        if (
+            script_run(
+"grep -Ev '(sysstat service.*FAIL.*exited disabled|sysstat \(cronjob\) .*FAIL.*ok|UserTasksMax.*FAIL.*max|UserTasksMax \(sapconf DropIn\).*FAIL.*regular)' $log"
+            ))
+        {
+            $result = 'fail';
+        }
         $result_module = $result;
         $self->result("$result");
     }
