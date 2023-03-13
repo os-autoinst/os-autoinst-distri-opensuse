@@ -87,7 +87,7 @@ sub logs_from_salt {
 
     upload_logs '/var/log/salt/minion', log_name => 'salt-minion.txt';
 
-    my $error = "cat /var/log/salt/* | grep -i 'CRITICAL\\|ERROR\\|Traceback' ";
+    my $error = "cat /var/log/salt/* | grep -i '\\[.*CRITICAL.*\\]\\|\\[.*ERROR.*\\]\\|Traceback' ";
     $error .= "| grep -vi 'Error while parsing IPv\\|Error loading module\\|Unable to resolve address\\|SaltReqTimeoutError' ";
     $error .= "| grep -vi 'has cached the public key for this node\\|Minion unable to successfully connect to a Salt Master'";
     $error .= "| grep -vi 'Error while bringing up minion for multi-master'";
