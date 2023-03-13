@@ -14,7 +14,11 @@ use testapi;
 use utils;
 
 sub run {
-    assert_gui_app('epiphany');
+    assert_gui_app('epiphany', remain => 1);
+    if (match_has_tag 'epiphany-set-default-browser') {
+        send_key('alt-n');
+    }
+    send_key('alt-f4');
 }
 
 1;
