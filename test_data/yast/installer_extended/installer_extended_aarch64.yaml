@@ -45,3 +45,6 @@ modules:
 selected_modules:
   - sle-module-basesystem
   - sle-module-server-applications
+registered_modules:
+  - sle-module-basesystem
+  - sle-module-server-applications
