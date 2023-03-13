@@ -1,5 +1,11 @@
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC
+# SPDX-License-Identifier: FSFAP
+# Maintainer: QE-SAP <qe-sap@suse.de>
 provider: 'gce'
 apiver: 3
+
 terraform:
   variables:
     project: "ei-sle-qa-sap-8469"
