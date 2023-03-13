@@ -36,7 +36,7 @@ sub setup_sle {
     select_console 'root-console';
 
     # https://bugzilla.suse.com/show_bug.cgi?id=1205290#c3
-    if (is_ppc64le && is_sle('<12-sp5')) {
+    if (is_sle('<=12-SP5')) {
         systemctl('restart systemd-vconsole-setup.service');
     }
 
