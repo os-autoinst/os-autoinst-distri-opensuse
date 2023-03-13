@@ -2,8 +2,7 @@ name: security_tpm2
 description:    >
     This is for the security_tpm2 test.
 schedule:
-    - '{{bootloader_s390}}'
-    - '{{bootloader_ppc}}'
+    - installation/bootloader_start
     - boot/boot_to_desktop
     - console/consoletest_setup
     - security/tpm2/tpm2_env_setup
@@ -16,12 +15,3 @@ schedule:
     - security/tpm2/tpm2_tools/tpm2_tools_encrypt
     - security/tpm2/tpm2_tools/tpm2_tools_sign_verify
     - security/tpm2/tpm2_tools/tpm2_tools_auth
-conditional_schedule:
-    bootloader_s390:
-        ARCH:
-            s390x:
-                - installation/bootloader_zkvm
-    bootloader_ppc:
-        BACKEND:
-            pvm_hmc:
-                - installation/bootloader

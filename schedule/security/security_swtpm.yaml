@@ -2,18 +2,8 @@ name: security_swtpm
 description:    >
     This is for the security_swtpm test.
 schedule:
-    - '{{bootloader_s390}}'
-    - '{{bootloader_ppc}}'
+    - installation/bootloader_start
     - boot/boot_to_desktop
     - console/consoletest_setup
     - security/swtpm/swtpm_env_setup
     - security/swtpm/swtpm_verify
-conditional_schedule:
-    bootloader_s390:
-        ARCH:
-            s390x:
-                - installation/bootloader_zkvm
-    bootloader_ppc:
-        BACKEND:
-            pvm_hmc:
-                - installation/bootloader

@@ -2,8 +2,7 @@ name: apparmor_profile
 description:    >
     This is for the apparmor_profile and mau-apparmor_profile tests.
 schedule:
-    - '{{bootloader_s390}}'
-    - '{{bootloader_ppc}}'
+    - installation/bootloader_start
     - boot/boot_to_desktop
     - console/consoletest_setup
     - '{{prepare}}'
@@ -16,14 +15,6 @@ schedule:
     - security/apparmor_profile/usr_lib_dovecot_pop3
     - security/apparmor_profile/usr_lib_dovecot_imap
 conditional_schedule:
-    bootloader_s390:
-        ARCH:
-            s390x:
-                - installation/bootloader_zkvm
-    bootloader_ppc:
-        BACKEND:
-            pvm_hmc:
-                - installation/bootloader
     prepare:
         TEST:
             mau-apparmor_profile:
