@@ -9,6 +9,7 @@ terraform:
     private_key: "%SSH_KEY_PRIV%"
     public_key: "%SSH_KEY_PUB%"
     aws_credentials: "/root/amazon_credentials"
+    hana_instancetype: "%HANA_INSTANCE_TYPE%"
 
 ansible:
   az_storage_account_name: "%HANA_ACCOUNT%"
