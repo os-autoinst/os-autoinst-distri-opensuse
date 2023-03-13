@@ -1,0 +1,8 @@
+name: verify_fips_packages
+description:    >
+    This is for the verify_fips_packages test.
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - security/verify_fips_packages
