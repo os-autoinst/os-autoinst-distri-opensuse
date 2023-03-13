@@ -9,11 +9,13 @@ use strict;
 use warnings;
 use testapi;
 use mmapi qw(get_current_job_id);
+use JSON qw(encode_json);
 
 our @EXPORT = qw(
   influxdb_push_data
   influxdb_read_data
   push_image_data_to_db
+  check_postgres_db
 );
 
 sub build_influx_kv {
@@ -153,20 +155,20 @@ sub push_image_data_to_db {
     $args{arch} //= get_required_var('ARCH');
     $args{flavor} //= get_required_var('FLAVOR');
     $args{build} //= get_required_var('BUILD');
-    $args{type} //= '';
+    $args{table} //= 'size';
+    $args{url} = $job_url;
+    $args{asset} = $image;
+    $args{value} = $value;
+    $args{product} = $product;
     (my $build = $args{build}) =~ s/\_.*//;    #To remove unneeded strings, e.g. 15.11_init-image -> 15.11
 
-    my $cmd = 'curl -i -K /etc/postgres_conf -X POST http://' . $db_ip . ':' . $db_port . '/size -d \'{';
-    $cmd .= '"product": "' . $product . '", ';
-    $cmd .= '"distri": "' . $args{distri} . '", ';
-    $cmd .= '"version": "' . $args{version} . '", ';
-    $cmd .= '"arch": "' . $args{arch} . '", ';
-    $cmd .= '"flavor": "' . $args{flavor} . '", ';
-    $cmd .= '"build": "' . $build . '", ';
-    $cmd .= '"asset": "' . $image . '", ';
-    $cmd .= '"url": "' . $job_url . '", ';
-    $cmd .= '"type": "' . $args{type} . '", ';
-    $cmd .= '"value": "' . $value . '"}\'';
+    assert_script_run('cat /etc/postgres_conf');
+    my $cmd = sprintf('curl -i -K /etc/postgres_conf -X POST http://%s:%s/%s', $db_ip, $db_port, $args{table});
+    delete $args{table};
+    $cmd .= " -d '";
+    $cmd .= encode_json(\%args);
+    $cmd .= q(');
+
     record_info('db cmd', $cmd);
     script_run("echo '$cmd' | tee -a $db_log");
     my $cmd_output = script_output("$cmd 2>&1 | tee -a $db_log", proceed_on_failure => 1);
@@ -178,4 +180,48 @@ sub push_image_data_to_db {
     } else {
         record_soft_failure("poo#113120 - There has been a problem pushing data to the DB.");
     }
+}
+
+sub check_postgres_db {
+    my $image = shift;
+    my $db_ip = get_var('POSTGRES_IP');
+    my $db_port = get_var('POSTGRES_PORT', '5444');
+    my $db_log = "/tmp/db.log";
+    # Check if the running job can push data to the Data Base
+    # We only allow this on certain conditions:
+    #  - The job must contain IMAGE_MON_SERVER
+    #  - The job shouldn't be a verification run
+    #  - The job must be executed from OSD or O3
+    return 0 if (!$db_port && !$db_ip);
+
+    # CASEDIR var is always set, and if when no specified, the value is "sle" for OSD and "opensuse" for O3
+    return 0 if (get_required_var('CASEDIR') !~ m/^sle$|^opensuse$|^(sle|leap)-micro$/);
+
+    my $job_url;
+    my $openqa_host = get_required_var('OPENQA_HOSTNAME');
+    if ($openqa_host =~ /openqa1-opensuse|openqa.opensuse.org/) {    # O3 hostname
+        $job_url = 'https://openqa.opensuse.org/tests/' . get_current_job_id();
+    }
+    elsif ($openqa_host =~ /openqa.suse.de/) {    # OSD hostname
+        $job_url = 'https://openqa.suse.de/tests/' . get_current_job_id();
+    }
+    return 0 unless ($job_url);
+
+    # Check if the data for this image has been already published before.
+    # This will avoid publishing the same data if a job is restarted.
+    # e.g.
+    my $query = sprintf('curl -I "http://%s:%s/size"', $db_ip, $db_port);
+
+    script_run("echo '$query' | tee -a $db_log");
+    my $query_output = script_output("$query 2>&1 | tee -a $db_log", proceed_on_failure => 1);
+
+    # Successful query should return 'HTTP/1.1 200 OK'
+    # Empty records will return  '{"results":[{"statement_id":0}]}'
+    # Existing records will return '{"results":[{"statement_id":0,"series":[{"name":"size","columns":["time","value"],"values"' ...
+    if ($query_output !~ /200 OK/) {
+        record_soft_failure("poo#110221 - There has been a problem with the query.");
+        return 0;
+    }
+    record_info('DB ok', "Access is OK and the data will be pushed to the DB.\nquery = $query\nresult = \n$query_output");
+    return 1;
 }
