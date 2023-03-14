@@ -116,8 +116,10 @@ sub _cleanup {
     my $flags = $self->test_flags();
     # currently we have two cases when cleanup of image will be skipped:
     # 1. Calling module needs to have publiccloud_multi_module => 1 test flag
-    # and should not have result = 'fail'
-    return if ($flags->{publiccloud_multi_module} && !($self->{result} eq 'fail'));
+    # and should not have result = 'fail' and 'fatal' flag
+    if ($flags->{publiccloud_multi_module}) {
+        return unless ($flags->{fatal} && $self->{result} eq 'fail');
+    }
     # 2. Job should have PUBLIC_CLOUD_NO_CLEANUP defined and job should have result = 'fail'
     return if ($self->{result} eq 'fail' && get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE'));
     if ($self->{run_args} && $self->{run_args}->{my_provider}) {
