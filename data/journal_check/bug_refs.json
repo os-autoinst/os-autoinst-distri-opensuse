@@ -317,7 +317,7 @@
         "type": "ignore"
     },
     "health-check-typo": {
-        "description": "health-checker/fail.sh check\" failed|Machine didn't come up correct, do a rollback",
+        "description": "health-checker/fail.sh check\" failed|Failed to start MicroOS Health Checker.Machine didn't come up correct, do a rollback|",
         "products": {
             "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" ],
             "leap-micro": ["5.2", "5.3", "5.4"],
