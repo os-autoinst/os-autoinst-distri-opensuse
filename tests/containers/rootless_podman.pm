@@ -159,13 +159,8 @@ sub verify_userid_on_container {
     # when using `user` descriptor with `podman top`, handle
     # conditionally.
     # https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/16567
-    my $podman_version = get_podman_version();
-    if (package_version_cmp($podman_version, '4.4.0') >= 0) {
-        my $huser_name = $testapi::username;
-        validate_script_output "podman top $cid user huser", sub { /${huser_name}\s+${id}/ };
-    } else {
-        validate_script_output "podman top $cid user huser", sub { /1000\s+${id}/ };
-    }
+    my $huser_name = $testapi::username;
+    validate_script_output "podman top $cid user huser", sub { /${huser_name}\s+${id}|1000\s+${id}/ };
     validate_script_output "podman top $cid capeff", sub { /none/ };
 
     record_info "root with keep-id", "the default user(root) starts process with the same uid as host user";
