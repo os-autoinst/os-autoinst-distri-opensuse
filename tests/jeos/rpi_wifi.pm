@@ -50,6 +50,9 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     save_and_upload_log('cat /etc/sysconfig/network/ifcfg-wlan0', 'ifcfg-wlan0.txt');
+    save_and_upload_log('wicked show wlan0', 'wicked-show-wlan0.txt');
+    save_and_upload_log('dmesg', 'dmesg.log');
+    save_and_upload_log('journalctl -b', 'journal.log');
 }
 
 1;
