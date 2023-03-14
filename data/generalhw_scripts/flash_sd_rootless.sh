@@ -42,15 +42,17 @@ set -e
 if [ "$output" == "" ]; then
 	# Copy to SD card
 	echo "** Copy to SD card"
+	du --apparent-size -h $image_to_flash
 	image_to_flash_extension="${image_to_flash##*.}"
 	if [ "$image_to_flash_extension" == "qcow2" ] ; then
+		qemu-img info $image_to_flash
 		qemu-img dd -f qcow2 -O raw if=$image_to_flash of=$device_link bs=8M
 	elif [ "$image_to_flash_extension" == "xz" ] ; then
-		xzcat --threads=0 $image_to_flash | dd of=$device_link oflag=sync bs=8M
+		xzcat --threads=0 $image_to_flash | dd of=$device_link oflag=sync bs=8M status=progress
 	elif [ "$image_to_flash_extension" == "gz" ] ; then
-		zcat $image_to_flash | dd of=$device_link oflag=sync bs=8M
+		zcat $image_to_flash | dd of=$device_link oflag=sync bs=8M status=progress
 	else
-		cat $image_to_flash | dd of=$device_link oflag=sync bs=8M
+		cat $image_to_flash | dd of=$device_link oflag=sync bs=8M status=progress
 	fi
 else
 	echo "***** /dev/$sdX_device is mounted, so it is unlikely your target. Please check. *****"
