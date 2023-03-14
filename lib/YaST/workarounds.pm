@@ -12,7 +12,7 @@ use utils;
 use version_utils;
 
 
-our @EXPORT = qw(apply_workaround_poo124652 apply_workaround_bsc1207157);
+our @EXPORT = qw(apply_workaround_poo124652 apply_workaround_bsc1206132);
 
 =head1 Workarounds for known issues
 
@@ -49,19 +49,19 @@ sub apply_workaround_poo124652 {
     }
 }
 
-=head2 apply_workaround_bsc1207157 ():
+=head2 apply_workaround_bsc1206132 ():
 
 Workaround for the iscsi return code issue.
 
-Records a soft failure with a reference to bsc#1207157
+Records a soft failure with a reference to bsc#1206132
 
 Changes the iscsid service file to require and start after the iscsid socket.
 Then reloads systemd, in order to scan for the changed unit.
 
 =cut
 
-sub apply_workaround_bsc1207157 {
-    record_soft_failure('bsc#1207157 - openQA test fails in iscsi_client - launched then no response');
+sub apply_workaround_bsc1206132 {
+    record_soft_failure('bsc#1206132 - openQA test fails in iscsi_client - launched then no response');
     my $service_unit = '/usr/lib/systemd/system/iscsid.service';
     # append the two lines at the end of the [Unit] section of the service file, as specified in bsc#1206132
     my $cmd = q(awk -i inplace 'BEGIN {c=1}; /^$/ {if (c){print("Requires=iscsid.socket\nAfter=iscsid.socket")} c=0}; {print}' );
