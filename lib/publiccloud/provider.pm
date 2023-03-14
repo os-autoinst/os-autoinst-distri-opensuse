@@ -304,6 +304,7 @@ C<instance_type> defines the flavor of the instance. If not specified, it will l
 sub create_instances {
     my ($self, %args) = @_;
     $args{check_connectivity} //= 1;
+    $args{check_guestregister} //= 1;
 
     my @vms = $self->terraform_apply(%args);
     foreach my $instance (@vms) {
@@ -313,6 +314,8 @@ sub create_instances {
             # Install server's ssh publicckeys to prevent authenticity interactions
             assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
         }
+        # check guestregister conditional, default yes:
+        $instance->wait_for_guestregister_chk() if ($args{check_guestregister});
         # Performance data: boottime
         my $btime = $instance->measure_boottime($instance, 'first');
         $instance->store_boottime_db($btime);

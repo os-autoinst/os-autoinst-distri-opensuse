@@ -260,9 +260,9 @@ sub upload_log {
     assert_script_run("test -d '$tmpdir' && rm -rf '$tmpdir'");
 }
 
-=head2 wait_for_guestregister
+=head2 wait_for_guestregister_chk
 
-    wait_for_guestregister([timeout => 300]);
+    wait_for_guestregister_chk([timeout => 300]);
 
 Run command C<systemctl is-active guestregister> on the instance in a loop and
 wait till guestregister is ready. If guestregister finish with state failed,
@@ -270,31 +270,34 @@ a soft-failure will be recorded.
 If guestregister will not finish within C<timeout> seconds, job dies.
 In case of BYOS images we checking that service is inactive and quit
 Returns the time needed to wait for the guestregister to complete.
+C<wait_for_guestregister_chk> is called inside C<create_instance()>, enabled by C<check_guestregister>
 =cut
 
-sub wait_for_guestregister {
+sub wait_for_guestregister_chk {
     my ($self, %args) = @_;
     $args{timeout} //= 300;
     my $start_time = time();
     my $last_info = 0;
+    my $log = '/var/log/cloudregister';
+    my $name = $autotest::current_test->{name} . '-cloudregister.log.txt';
 
     # Check what version of registercloudguest binary we use
     $self->run_ssh_command(cmd => "rpm -qa cloud-regionsrv-client", proceed_on_failure => 1);
-
+    record_info('CHECK', 'guestregister check');
     while (time() - $start_time < $args{timeout}) {
         my $out = $self->run_ssh_command(cmd => 'sudo systemctl is-active guestregister', proceed_on_failure => 1, quiet => 1);
         # guestregister is expected to be inactive because it runs only once
         if ($out eq 'inactive') {
-            $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
+            $self->upload_log($log, log_name => $name);
             return time() - $start_time;
         }
         elsif ($out eq 'failed') {
-            $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
+            $self->upload_log($log, log_name => $name);
             $out = $self->run_ssh_command(cmd => 'sudo systemctl status guestregister', quiet => 1);
             return time() - $start_time;
         }
         elsif ($out eq 'active') {
-            $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
+            $self->upload_log($log, log_name => $name);
             die "guestregister should not be active on BYOS" if (is_byos);
         }
 
@@ -305,8 +308,26 @@ sub wait_for_guestregister {
         sleep 1;
     }
 
-    $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
+    $self->upload_log($log, log_name => $name);
     die('guestregister didn\'t end in expected timeout=' . $args{timeout});
+}
+
+
+=head2 wait_for_guestregister
+
+    wait_for_guestregister([timeout => 300]);
+
+The previous functionality has been migrated into wait_for_guestregister_chk above, for logic refactoring 
+planned to run directly when publiccloud create_instances executed. 
+This function is now a temporary placeholder without effects, to quickly proof the new logic, 
+but passing the existing calls still present in many modules,reducing the changes of deleting those ones.
+After the new logic will be consilidated, this function and related calls will be removed. 
+=cut
+
+sub wait_for_guestregister {
+    my ($self, %args) = @_;
+    my $out = $self->run_ssh_command(cmd => 'sudo systemctl is-active guestregister', proceed_on_failure => 1, quiet => 1);
+    return;
 }
 
 =head2 wait_for_ssh
@@ -532,11 +553,8 @@ sub measure_boottime() {
     # Do logging to openqa UI
     $Data::Dumper::Sortkeys = 1;
     record_info("RESULTS", Dumper($ret));
-
-    my $logs = '/var/log/cloudregister /var/log/cloud-init.log /var/log/cloud-init-output.log /var/log/messages /var/log/NetworkManager';
-    $instance->run_ssh_command(cmd => 'sudo tar -czvf /tmp/sle_cloud.tar.gz ' . $logs, proceed_on_failure => 1);
-    $instance->upload_log('/tmp/sle_cloud.tar.gz', failok => 1);
-
+    my @logs = qw(cloudregister cloud-init.log cloud-init-output.log messages NetworkManager);
+    $instance->upload_log("/var/log/" . $_, log_name => 'measure_boottime_' . $_ . '.txt', failok => 1) foreach (@logs);
     return $ret;
 }
 
@@ -623,7 +641,7 @@ sub extract_analyze_time {
         $res->{$type} = systemd_time_to_second($time);
         return 0 if ($res->{$type} == -1);
     }
-    map { return 0 unless exists($res->{$_}) } qw(kernel initrd userspace overall);
+    foreach (qw(kernel initrd userspace overall)) { return 0 unless exists($res->{$_}); }
     return $res;
 }
 
@@ -646,7 +664,8 @@ sub do_systemd_analyze_time {
     my $output = "";
     my @ret;
 
-    # calling syastemd-analyze time & blame
+    # calling systemd-analyze time & blame
+    # guestregister check executed in create_instances
     while ($output !~ /Startup finished in/ && time() - $start_time < $args{timeout}) {
         $output = $instance->run_ssh_command(cmd => 'systemd-analyze time', proceed_on_failure => 1);
         sleep 5;
@@ -654,6 +673,7 @@ sub do_systemd_analyze_time {
 
     unless ($output && (time() - $start_time < $args{timeout})) {
         record_info("WARN", "Unable to get system-analyze in $args{timeout} seconds", result => 'fail');
+        # handle_boot_failure: soft exit from measurement.
         return (0, 0);
     }
     push @ret, extract_analyze_time($output);

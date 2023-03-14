@@ -21,7 +21,7 @@ sub run {
     select_serial_terminal();
     my $provider = $self->provider_factory();
     $provider->{username} = 'suse';
-    my $instance = $self->{my_instance} = $provider->create_instance();
+    my $instance = $self->{my_instance} = $provider->create_instance(check_guestregister => 0);
     my $test_package = 'strace';
     registercloudguest($instance);
     $instance->run_ssh_command(cmd => 'zypper lr -d', timeout => 600);

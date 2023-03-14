@@ -25,7 +25,7 @@ sub prepare_vm {
     my ($self, $provider) = @_;
     my $iperf = get_required_var('IPERF_FILE');
     record_info('INFO', 'Create VM');
-    my $instance = $provider->create_instance();
+    my $instance = $provider->create_instance(check_guestregister => 0);
     record_info('Instance', 'Instance ' . $instance->instance_id . ' created');
     record_info('Iperf', 'Install IPerf binaries in VM');
     $instance->run_ssh_command(cmd => "wget https://iperf.fr/download/opensuse/$iperf");
