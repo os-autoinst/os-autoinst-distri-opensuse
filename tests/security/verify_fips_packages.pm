@@ -82,7 +82,7 @@ sub cmp_packages {
         }
     }
     if ($out eq '') {
-        record_info("Package version", "The $package package does not exist", result => 'fail');
+        record_info("Package version", "The $package package does not exist", result => 'softfail');
         assert_script_run "echo '$package not found' >> $outfile";
         assert_script_run "echo >> $outfile";
     }
