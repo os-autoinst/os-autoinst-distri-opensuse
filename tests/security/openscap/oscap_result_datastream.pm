@@ -14,7 +14,7 @@ use openscaptest;
 
 sub run {
 
-    my $arf_result_match = 'm/
+    my $arf_result_match = qr/
         version="[0-9]+\.[0-9]+"\s+encoding="UTF-8".*
         <arf:asset-report-collection.*<ns0:definitions.*
         <ns0:criteria\s+operator="AND".*
@@ -29,7 +29,7 @@ sub run {
         check="all"\s+result="not\sevaluated".*
         <test\s+test_id="oval:rule_misc_sysrq:tst:1".*
         check="at\sleast\sone"\s+result="not\sevaluated".*
-        \/arf:asset-report-collection>/sxx';
+        \/arf:asset-report-collection>/sxx;
 
     ensure_generated_file($source_ds);
 

@@ -15,11 +15,11 @@ use openscaptest;
 sub run {
     my $remediate_result = "scan-xccdf-remediate-results.xml";
 
-    my $remediate_match = 'm/
+    my $remediate_match = qr/
               Rule.*no_direct_root_logins.*Result.*fixed.*
-              Rule.*rule_misc_sysrq.*Result.*fixed/sxx';
+              Rule.*rule_misc_sysrq.*Result.*fixed/sxx;
 
-    my $remediate_result_match = 'm/
+    my $remediate_result_match = qr/
               <\?xml\s+version="[0-9]+\.[0-9]+"\s+encoding="UTF-8".*
               <Benchmark.*<Profile\s+id="standard".*
               select.*no_direct_root_logins.*selected="true".*
@@ -33,12 +33,12 @@ sub run {
               rule-result.*idref="no_direct_root_logins".*result.*fixed.*
               rule-result.*idref="rule_misc_sysrq".*result.*fixed.*
               score\s+system="urn:xccdf:scoring:default".*
-              maximum="[0-9]+/sxx';
+              maximum="[0-9]+/sxx;
 
     ensure_generated_file($xccdf_result);
     prepare_remediate_validation;
 
-    validate_script_output("oscap xccdf remediate --results $remediate_result $xccdf_result", sub { $remediate_match });
+    validate_script_output("oscap xccdf remediate --results $remediate_result $xccdf_result", $remediate_match);
     validate_result($remediate_result, $remediate_result_match);
 
     # Verify the remediate action result
