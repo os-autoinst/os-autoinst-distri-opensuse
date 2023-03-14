@@ -70,7 +70,9 @@ sub run {
 
     my $size_mb = $image_size / 1024 / 1024;
     record_info('Image', "Image: $image\nSize: $size_mb");
-    push_image_data_to_db('minimal-vm', $image, $size_mb, table => 'size', type => 'uncompressed');
+    my $is_conflict = push_image_data_to_db('minimal-vm', $image, $size_mb, table => 'size', type => 'uncompressed');
+
+    return 1 if ($is_conflict == 409);
 
     # Get list of packages installed in the system
     my $packages = script_output('rpm -qa --queryformat "%{SIZE} %{NAME}-%{VERSION}-%{RELEASE}\n" |sort -n -r');
