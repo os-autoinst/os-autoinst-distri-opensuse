@@ -2,8 +2,7 @@ name: cc_audit_tests
 description:    >
     This is for cc audit test.
 schedule:
-    - '{{bootloader_s390}}'
-    - '{{bootloader_ppc}}'
+    - installation/bootloader_start
     - boot/boot_to_desktop
     - security/cc/cc_audit_test_setup
     - '{{disable_root_ssh}}'
@@ -20,14 +19,6 @@ schedule:
     - security/cc/crypto
     - security/cc/misc
 conditional_schedule:
-    bootloader_s390:
-        ARCH:
-            s390x:
-                - installation/bootloader_zkvm
-    bootloader_ppc:
-        BACKEND:
-            pvm_hmc:
-                - installation/bootloader
     disable_root_ssh:
         ARCH:
             s390x:

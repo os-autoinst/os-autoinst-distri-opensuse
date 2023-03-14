@@ -2,8 +2,7 @@ name: fips_crypt_core
 description:    >
     This is for the crypt_core fips tests.
 schedule:
-    - '{{bootloader_s390}}'
-    - '{{bootloader_ppc}}'
+    - installation/bootloader_start
     - boot/boot_to_desktop
     - console/consoletest_setup
     - '{{repo_setup}}'
@@ -24,14 +23,6 @@ schedule:
     - console/sshd
     - console/ssh_cleanup
 conditional_schedule:
-    bootloader_s390:
-        ARCH:
-            s390x:
-                - installation/bootloader_zkvm
-    bootloader_ppc:
-        BACKEND:
-            pvm_hmc:
-                - installation/bootloader
     repo_setup:
         BETA:
             1:
