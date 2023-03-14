@@ -177,6 +177,9 @@ sub push_image_data_to_db {
         record_info("DB", "Image data has been successfully pushed to the Database.");
     } elsif ($cmd_output =~ /(?=.*409 Conflict)/) {
         record_info("DB", "This image info already exists DB.");
+        # return to the caller that conflict has been found
+        # caller should exit the test case module immediately
+        return 409;
     } else {
         record_soft_failure("poo#113120 - There has been a problem pushing data to the DB.");
     }
