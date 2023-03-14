@@ -10,6 +10,8 @@ terraform:
     public_key: "%SSH_KEY_PUB%"
     aws_credentials: "/root/amazon_credentials"
     hana_instancetype: "%HANA_INSTANCE_TYPE%"
+    hana_remote_python: "%ANSIBLE_REMOTE_PYTHON%"
+    iscsi_remote_python: "%ANSIBLE_REMOTE_PYTHON%"
 
 ansible:
   az_storage_account_name: "%HANA_ACCOUNT%"
