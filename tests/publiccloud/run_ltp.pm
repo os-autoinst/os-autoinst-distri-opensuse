@@ -14,7 +14,7 @@ use utils;
 use repo_tools 'generate_version';
 use Mojo::UserAgent;
 use LTP::utils qw(get_ltproot);
-use LTP::WhiteList;
+#use LTP::WhiteList;
 use Mojo::File;
 use Mojo::JSON;
 use publiccloud::utils qw(is_byos registercloudguest register_openstack);
@@ -65,13 +65,13 @@ sub upload_ltp_logs
         my $ltp_log = Mojo::JSON::decode_json($log_file->slurp());
         my $parser = OpenQA::Parser::Format::LTP->new()->load($log_file->to_string);
         my %ltp_log_results = map { $_->{test_fqn} => $_->{test} } @{$ltp_log->{results}};
-        my $whitelist = LTP::WhiteList->new();
+        #my $whitelist = LTP::WhiteList->new();
 
-        for my $result (@{$parser->results()}) {
-            if ($whitelist->override_known_failures($self, {%{$self->{ltp_env}}, retval => $ltp_log_results{$result->{test_fqn}}->{retval}}, $ltp_testsuite, $result->{test_fqn})) {
-                $result->{result} = 'softfail';
-            }
-        }
+        # for my $result (@{$parser->results()}) {
+#     if ($whitelist->override_known_failures($self, {%{$self->{ltp_env}}, retval => $ltp_log_results{$result->{test_fqn}}->{retval}}, $ltp_testsuite, $result->{test_fqn})) {
+        #         $result->{result} = 'softfail';
+        #     }
+        # }
 
         $parser->write_output(bmwqemu::result_dir());
         $parser->write_test_result(bmwqemu::result_dir());
@@ -122,16 +122,16 @@ sub run {
     $self->{ltp_env} = $ltp_env;
 
     # Use lib/LTP/WhiteList module to exclude tests
-    if (get_var('LTP_KNOWN_ISSUES')) {
-        my $whitelist = LTP::WhiteList->new();
-        my $exclude = get_var('LTP_COMMAND_EXCLUDE', '');
-        my @skipped_tests = $whitelist->list_skipped_tests($ltp_env, get_required_var('LTP_COMMAND_FILE'));
-        if (@skipped_tests) {
-            $exclude .= '|' if (length($exclude) > 0);
-            $exclude .= '^(' . join('|', @skipped_tests) . ')$';
-            set_var('LTP_COMMAND_EXCLUDE', $exclude);
-        }
-    }
+    # if (get_var('LTP_KNOWN_ISSUES')) {
+    #     my $whitelist = LTP::WhiteList->new();
+    #     my $exclude = get_var('LTP_COMMAND_EXCLUDE', '');
+    #     my @skipped_tests = $whitelist->list_skipped_tests($ltp_env, get_required_var('LTP_COMMAND_FILE'));
+    #     if (@skipped_tests) {
+    #         $exclude .= '|' if (length($exclude) > 0);
+    #         $exclude .= '^(' . join('|', @skipped_tests) . ')$';
+    #         set_var('LTP_COMMAND_EXCLUDE', $exclude);
+    #     }
+    # }
 
     my $runltp_ng_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/linux-test-project/runltp-ng.git");
     my $runltp_ng_branch = get_var("LTP_RUN_NG_BRANCH", "master");
