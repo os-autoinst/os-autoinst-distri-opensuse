@@ -171,7 +171,7 @@ sub push_image_data_to_db {
 
     record_info('db cmd', $cmd);
     script_run("echo '$cmd' | tee -a $db_log");
-    my $cmd_output = script_output("$cmd 2>&1 | tee -a $db_log", proceed_on_failure => 1);
+    my $cmd_output = script_output("$cmd 2>&1 | tee -a $db_log", proceed_on_failure => 1, timeout => 120);
     # if successful push, it should return 'HTTP/1.1 201 Created'
     if ($cmd_output =~ /(?=.*201 Created)/) {
         record_info("DB", "Image data has been successfully pushed to the Database.");
@@ -213,7 +213,7 @@ sub check_postgres_db {
     my $query = sprintf('curl -I "http://%s:%s/size"', $db_ip, $db_port);
 
     script_run("echo '$query' | tee -a $db_log");
-    my $query_output = script_output("$query 2>&1 | tee -a $db_log", proceed_on_failure => 1);
+    my $query_output = script_output("$query 2>&1 | tee -a $db_log", proceed_on_failure => 1, timeout => 120);
 
     # Successful query should return 'HTTP/1.1 200 OK'
     # Empty records will return  '{"results":[{"statement_id":0}]}'
