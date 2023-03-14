@@ -90,6 +90,10 @@ sub destroy_test_barriers {
         barrier_destroy('MPI_BINARIES_READY');
         barrier_destroy('MPI_RUN_TEST');
     }
+    elsif (check_var('HPC', 'ww4_controller') || check_var('HPC', 'ww4_compute')) {
+        barrier_create('WWCTL_DONE');
+        barrier_create('COMPUTE_BOOT_DONE');
+    }
 }
 
 sub post_run_hook {
