@@ -3,8 +3,7 @@
 # Copyright 2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: For openSUSE virtualization test only. login in console, install kvm/xen patterns if needed.
-#  - Even if you'd like to run tests without host installation(DO_NOT_INSTALL_HOST=1), this module is still necessary as login console in this module is required.
+# Summary: For openSUSE virtualization tests which install hosts with needle matching. login in console, configure sshd, install kvm/xen patterns and set up br0. It is not required for tests which install hosts with autoyast, because all these configurations are written in its autoyast profiles.
 #  - This module is added for openSUSE TW because of the difference beteen SLE and TW. Meanwile, login_console, install_package and update_package from SLE are not needed. The reasons are listed below:
 #    -- login_console is not called after first boot in host installation in TW because kvm/xen patterns have not been installed at that time. reconnect_mgmt_console and first_boot take care of the login function.
 #    -- have to zypper install kvm/xen patterns in TW.
@@ -41,10 +40,8 @@ sub run {
     }
     assert_screen "text-logged-in-root";
     #skip TW host installation and directly login if you'd like to run test on an SUT with TW installed
-    permit_root_ssh_in_sol unless get_var('DO_NOT_INSTALL_HOST');
+    permit_root_ssh_in_sol;
     select_console('root-ssh');
-
-    return if get_var('DO_NOT_INSTALL_HOST');
 
     die 'Need one of both to be true: is_kvm_host || is_xen_host' unless is_kvm_host || is_xen_host;
     my $hypervisor = is_kvm_host ? 'kvm' : 'xen';

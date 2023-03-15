@@ -4,8 +4,6 @@ description:    >
     Virtualization guest installation tests including extended feature tests schedule
 schedule:
     - '{{install_and_bootup}}'
-    - virt_autotest/switch_to_ssh_and_install_hypervisor
-    - '{{reboot}}'
     - '{{install_guest}}'
     - virt_autotest/set_config_as_glue
     - '{{virtual_network_test}}'
@@ -17,6 +15,13 @@ conditional_schedule:
         DO_NOT_INSTALL_HOST:
             0:
                 - installation/ipxe_install
+                - '{{install_host_with_needle_matching}}'
+    install_host_with_needle_matching:
+        HOST_INSTALL_AUTOYAST:
+            1:
+                - autoyast/installation
+                - virt_autotest/login_console
+            0:
                 - installation/welcome
                 - installation/online_repos
                 - installation/installation_mode
@@ -32,9 +37,7 @@ conditional_schedule:
                 - installation/start_install
                 - installation/await_install
                 - installation/reboot_after_installation
-    reboot:
-        DO_NOT_INSTALL_HOST:
-            0:
+                - virt_autotest/switch_to_ssh_and_install_hypervisor
                 - virt_autotest/reboot_and_wait_up_normal
     install_guest:
         SKIP_GUEST_INSTALL:
