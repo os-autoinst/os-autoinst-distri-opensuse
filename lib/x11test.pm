@@ -547,8 +547,14 @@ EOF
 // https://firefox-source-docs.mozilla.org/browser/components/newtab/content-src/asrouter/docs/first-run.html
 pref("app.normandy.enabled", false);
 pref("browser.aboutwelcome.enabled", false);
+pref("browser.discovery.enabled", false);
+pref("browser.messaging-system.whatsNewPanel.enabled", false);
 pref("browser.startup.upgradeDialog.enabled", false);
+pref("browser.uitour.enabled", false);
+pref("datareporting.policy.firstRunURL", "");
+pref("messaging-system.rsexperimentloader.enabled", false);
 pref("privacy.restrict3rdpartystorage.rollout.enabledByDefault", false);
+pref("trailhead.firstrun.branches", "nofirstrun-empty");
 EOF
 });
 
