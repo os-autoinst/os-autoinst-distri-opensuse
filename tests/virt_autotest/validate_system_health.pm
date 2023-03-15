@@ -28,7 +28,7 @@ sub prepare_run_test {
 }
 
 sub run_test {
-    return unless is_x86_64;
+    return unless is_x86_64 || is_alp;
 
     my $self = shift;
     my %health_status = ();

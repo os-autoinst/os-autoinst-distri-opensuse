@@ -381,7 +381,7 @@ sub prepare_common_environment {
         virt_autotest::utils::backup_file(\@stuff_to_backup);
         script_run("rm -f -r /root/.ssh/config");
         virt_autotest::utils::setup_common_ssh_config('/root/.ssh/config');
-        script_run("sed -i -r -n \'s/^.*IdentityFile.*\$/#&/\' /etc/ssh/ssh_config");
+        script_run("[ -f /etc/ssh/ssh_config ] && sed -i -r -n \'s/^.*IdentityFile.*\$/#&/\' /etc/ssh/ssh_config");
         enable_debug_logging;
         $self->prepare_non_transactional_environment;
         $common_environment_prepared = 'true';

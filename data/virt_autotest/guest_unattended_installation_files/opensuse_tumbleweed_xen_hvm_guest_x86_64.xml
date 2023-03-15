@@ -138,7 +138,7 @@
   </software>
   <timezone>
     <hwclock>UTC</hwclock>
-    <timezone>America/Denver</timezone>
+    <timezone>America/New_York</timezone>
   </timezone>
   <user_defaults>
     <expire/>
