@@ -18,7 +18,7 @@ use utils;
 use power_action_utils 'prepare_system_shutdown';
 use Utils::Architectures;
 use Carp;
-use virt_autotest::utils qw(check_port_state);
+use virt_autotest::utils qw(is_xen_host check_port_state);
 
 our @EXPORT = qw(set_grub_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot ipmitool enable_sev_in_kernel add_kernel_options set_grub_terminal_and_timeout reconnect_when_ssh_console_broken);
 
@@ -96,6 +96,14 @@ sub setup_console_in_grub {
               . "' $grub_cfg_file";
             assert_script_run($cmd);
             save_screenshot;
+
+            # setting grub menuentry selection on sol console with grub2-set-default as xen, during host installation
+            if (is_xen_host && get_var('XEN_DEFAULT_BOOT_IS_SET')) {
+                $cmd = "sed -i '/### END \\\/etc\\\/grub.d\\\/00_header ###/iset default=2' $grub_cfg_file";
+                assert_script_run($cmd);
+            }
+
+
         }
         elsif (${virt_type} eq "kvm") {
             $bootmethod = "linux";
