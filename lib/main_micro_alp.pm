@@ -99,8 +99,13 @@ sub load_installation_tests {
         loadtest 'installation/ntp_config_settings';
         loadtest 'installation/user_settings_root';
         loadtest 'installation/resolve_dependency_issues';
-        loadtest 'installation/select_patterns' if get_var('PATTERNS');
-        loadtest 'installation/installation_overview';
+        if (get_var('PATTERNS')) {
+            loadtest 'installation/select_patterns';
+            loadtest 'installation/installation_overview';
+            loadtest 'installation/edit_optional_kernel_cmd_parameters' if get_var('PATTERNS') =~ m/fips/i;
+        } else {
+            loadtest 'installation/installation_overview';
+        }
         loadtest 'installation/disable_grub_timeout';
         loadtest 'installation/enable_selinux' if get_var('ENABLE_SELINUX');
         loadtest 'installation/start_install';
@@ -210,7 +215,7 @@ sub load_qemu_tests {
 }
 
 sub load_fips_tests {
-    loadtest 'transactional/enable_fips';
+    loadtest 'transactional/enable_fips' if get_var('BOOT_HDD_IMAGE');
     loadtest 'fips/openssl/openssl_fips_alglist';
     loadtest 'fips/openssl/openssl_fips_cipher';
     loadtest 'fips/openssl/openssl_fips_dhparam';
@@ -268,7 +273,8 @@ sub load_tests {
         # in 10G-disk tests, we don't run more tests
         return if check_var('HDDSIZEGB', '10');
         # Stop here if we are testing only scc extensions (live, phub, ...) activation
-        if (get_var('SCC_ADDONS') =~ /phub/) {
+        my $is_phub = get_var('SCC_ADDONS');
+        if (defined($is_phub) && $is_phub =~ /phub/) {
             loadtest 'transactional/check_phub';
             return;
         }
