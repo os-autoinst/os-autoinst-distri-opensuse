@@ -19,6 +19,8 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use YaST::workarounds;
+use version_utils qw(is_sle);
 
 our @EXPORT = qw(change_service_configuration verify_service_configuration);
 
@@ -49,7 +51,7 @@ sub change_service_configuration {
     my $after_writing_ref = $args{after_writing};
     my $after_reboot_ref = $args{after_reboot};
 
-    assert_screen 'yast2_ncurses_service_start_widget';
+    apply_workaround_poo124652('yast2_ncurses_service_start_widget') if (is_sle('=15-SP5'));
     change_service_configuration_step('after_writing_conf', $after_writing_ref) if $after_writing_ref;
     change_service_configuration_step('after_reboot', $after_reboot_ref) if $after_reboot_ref;
 }
