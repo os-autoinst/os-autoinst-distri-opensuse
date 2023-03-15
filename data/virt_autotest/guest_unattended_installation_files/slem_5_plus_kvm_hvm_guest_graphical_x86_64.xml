@@ -160,7 +160,7 @@
   </software>
   <timezone t="map">
     <hwclock>UTC</hwclock>
-    <timezone>America/Denver</timezone>
+    <timezone>America/New_York</timezone>
   </timezone>
   <user_defaults t="map">
     <expire/>

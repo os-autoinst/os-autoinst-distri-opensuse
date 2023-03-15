@@ -140,7 +140,7 @@ sub reset_log_cursor {
 #support x86_64 only
 #welcome everybody to extend this function
 sub check_failures_in_journal {
-    return unless is_x86_64;
+    return unless is_x86_64 and (is_sle or is_opensuse);
     my $machine = shift;
     $machine //= 'localhost';
 
@@ -149,7 +149,7 @@ sub check_failures_in_journal {
     $cmd .= defined($cursor) ? "--cursor='$cursor'" : "-b";
     $cmd = "ssh root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
 
-    my $log = script_output($cmd);
+    my $log = script_output($cmd, type_command => 1, proceed_on_failure => 1);
     my $failures = "";
     my @warnings = ('Started Process Core Dump', 'Call Trace');
 
@@ -235,7 +235,7 @@ sub download_script {
     my $script_url = $args{script_url} // data_url("virt_autotest/$script_name");
     my $machine = $args{machine} // 'localhost';
 
-    my $cmd = "curl -s -o ~/$script_name $script_url";
+    my $cmd = "curl -o ~/$script_name $script_url";
     $cmd = "ssh root\@$machine " . "\"$cmd\"" if ($machine ne 'localhost');
     unless (script_retry($cmd, retry => 2, die => 0) == 0) {
         # Add debug codes as the url only exists in a dynamic openqa URL
