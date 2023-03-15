@@ -1,0 +1,136 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <general>
+    <mode>
+      <confirm t="boolean">false</confirm>
+      <final_reboot t="boolean">true</final_reboot>
+      <second_stage t="boolean">false</second_stage>
+    </mode>
+    <signature-handling>
+      <accept_file_without_checksum t="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key t="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key t="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file t="boolean">true</accept_unsigned_file>
+      <accept_verification_failed t="boolean">true</accept_verification_failed>
+      <import_gpg_key t="boolean">true</import_gpg_key>
+    </signature-handling>
+  </general>
+  <report>
+    <errors>
+      <show t="boolean">true</show>
+      <timeout t="integer">20</timeout>
+      <log t="boolean">true</log>
+    </errors>
+    <messages>
+      <show t="boolean">true</show>
+      <timeout t="integer">5</timeout>
+      <log t="boolean">true</log>
+    </messages>
+    <warnings>
+      <show t="boolean">true</show>
+      <timeout t="integer">10</timeout>
+      <log t="boolean">true</log>
+    </warnings>
+    <yesno_messages>
+      <show t="boolean">true</show>
+      <timeout t="integer">30</timeout>
+      <log t="boolean">true</log>
+    </yesno_messages>
+  </report>
+  <bootloader>
+    <loader_type>grub2</loader_type>
+    <global>
+      <activate>true</activate>
+      <boot_mbr>true</boot_mbr>
+      <gfxmode>auto</gfxmode>
+      <os_prober>true</os_prober>
+      <terminal>console serial</terminal>
+      <serial>serial --unit=1 --speed=115200 --word=8 --parity=no</serial>
+      <timeout t="integer">30</timeout>
+      <update_nvram>true</update_nvram>
+      <xen_kernel_append>console=com2,115200 loglvl=all guest_loglvl=all sync_console</xen_kernel_append>
+      <xen_append>console=hvc0,115200 console=tty loglevel=5</xen_append>
+    </global>
+  </bootloader>
+  <partitioning t="list">
+    <drive>
+      <device>/dev/sda</device>
+      <initialize t="boolean">true</initialize>
+      <use>all</use>
+      <enable_snapshots t="boolean">false</enable_snapshots>
+    </drive>
+  </partitioning>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>America/New_York</timezone>
+  </timezone>
+  <networking>
+    <keep_install_network t="boolean">true</keep_install_network>
+    <backend>network_manager</backend>
+  </networking>
+  <software>
+    <products t="list">
+      <product>openSUSE</product>
+    </products>
+    <install_recommended t="boolean">true</install_recommended>
+    <patterns t="list">
+      <pattern>base</pattern>
+      <pattern>basesystem</pattern>
+      <pattern>enhanced_base</pattern>
+      <pattern>kvm_server</pattern>
+      <pattern>kvm_tools</pattern>
+    </patterns>
+    <packages t="list">
+      <package>autoyast2</package>
+      <package>supportutils</package>
+      <package>nmap</package>
+    </packages>
+  </software>
+  <users t="list">
+    <user>
+      <username>bernhard</username>
+      <user_password>$y$j9T$xsY9ubdI0jRF5JoSV8vvg1$03I5jIewyiCMm/EmkgRtYxvEYm83ZSJo0tl1rKP8Ad.</user_password>
+      <fullname>Bernhard M. Wiedemann</fullname>  
+      <encrypted t="boolean">true</encrypted>
+    </user>
+    <user>
+      <username>root</username>
+      <user_password>$y$j9T$Bc3oHTMRcmYxyzTlxEd7A/$jU0KChUccTna2tH9ItMRyRHC9fofibG37RGH4XkCxYD</user_password>
+      <encrypted t="boolean">true</encrypted>
+    </user>
+  </users>
+  <services-manager>
+    <default_target>multi-user</default_target>
+    <services>
+      <disable t="list">
+        <service>firewalld</service>
+      </disable>
+      <enable t="list">
+        <service>sshd</service>
+	<service>virtqemud</service>
+	<service>virtstoraged</service>
+	<service>virtnetworkd</service>
+	<service>virtnodedevd</service>
+	<service>virtsecretd</service>
+	<service>virtproxyd</service>
+      </enable>
+    </services>
+  </services-manager>
+  <scripts>
+    <!-- permit root login, password login and pubkeys login -->
+    <!-- keep ssh session alive -->
+    <!-- /etc/ssh/sshd_config is not default installed in TW -->
+    <init-scripts t="list">
+      <script>
+        <source><![CDATA[
+sshd_config_file="/etc/ssh/sshd_config.d/permit_root_login.conf"
+echo -e "PermitRootLogin yes\nPubkeyAuthentication yes\nPasswordAuthentication yes" > $sshd_config_file
+sshd_config_file="/etc/ssh/sshd_config.d/keep_alive.conf"
+echo -e "TCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 480" > $sshd_config_file
+]]>
+        </source>
+      </script>
+    </init-scripts>
+  </scripts>
+</profile>

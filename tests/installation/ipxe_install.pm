@@ -17,6 +17,7 @@ use ipmi_backend_utils;
 use version_utils qw(is_upgrade is_tumbleweed);
 use bootloader_setup 'prepare_disks';
 use Utils::Architectures;
+use virt_autotest::utils qw(is_kvm_host is_xen_host);
 
 use HTTP::Tiny;
 use IPC::Run;
@@ -149,22 +150,36 @@ sub run {
     #use ipxe bootloader in O3
     #it is static menu and choose the TW entry to start installation
     if (get_var('VIRT_AUTOTEST') && is_tumbleweed) {
+        save_screenshot;
         ipmitool('chassis power reset') unless check_screen([qw(o3-ipxe-menu ipxe-boot-failure)], 180);
         assert_screen('o3-ipxe-menu', 300);
-        send_key 't';
+        if (get_var('HOST_INSTALL_AUTOYAST')) {
+            is_kvm_host ? send_key 'k' : send_key 'z';
+        }
+        else {
+            send_key 't';
+        }
         assert_screen([qw(load-linux-kernel load-initrd)], 240);
-        #loading initrd spend much time(fg. 10-15 minutes to Beijing SUT)
-        assert_screen([qw(start-tw-install)], 360);
+        # Loading initrd spend much time(fg. 10-15 minutes to Beijing SUT)
+        # Downloading from O3 became much more quick, some needles may not be caught.
+        check_screen([qw(start-tw-install network-config-created loading-installation-system)], 360);
+        if (match_has_tag("start-tw-install")) {
+            record_info("TW install", "Start with installing Tumbleweed...");
+        }
+        else {
+            record_info("TW install?", "Pls make sure it is Tumbleweed that is being installed.", result => 'softfail');
+        }
         assert_screen([qw(network-config-created loading-installation-system)], 60);
-        wait_still_screen(stilltime => 30, similarity_level => 60, timeout => 120);
+        wait_still_screen(stilltime => 12, similarity_level => 60, timeout => 30) unless check_screen('sshd-server-started', timeout => 60);
         save_screenshot;
     }
 
     # when we don't use autoyast, we need to also load the right test modules to perform the remote installation
-    if (get_var('AUTOYAST')) {
+    if (get_var('AUTOYAST') and !get_var('VIRT_AUTOTEST')) {
         # make sure to wait for a while befor changing the boot device again, in order to not change it too early
         sleep 120;
-    } else {
+    }
+    else {
         my $ssh_vnc_wait_time = 1500;
         #for TW virtualization test, 15 minutes is enough to load installation system, 75 minutes is too long
         $ssh_vnc_wait_time = 300 if get_var('VIRT_AUTOTEST') && is_tumbleweed;
@@ -179,19 +194,18 @@ sub run {
 
         set_bootscript_hdd if get_var('IPXE_UEFI');
 
-        select_console 'installation';
-        save_screenshot;
-
-        # We have textmode installation via ssh and the default vnc installation so far
-        if (check_var('VIDEOMODE', 'text')) {
-            enter_cmd_slow('DISPLAY= yast.ssh');
+        unless (get_var('HOST_INSTALL_AUTOYAST')) {
+            select_console 'installation';
+            save_screenshot;
+            if (check_var('VIDEOMODE', 'ssh-x') or is_tumbleweed) {
+                enter_cmd_slow("yast.ssh");
+            }
+            elsif (check_var('VIDEOMODE', 'text')) {
+                enter_cmd_slow('DISPLAY= yast.ssh');
+            }
+            save_screenshot;
+            wait_still_screen;
         }
-        elsif (check_var('VIDEOMODE', 'ssh-x')) {
-            enter_cmd_slow("yast.ssh");
-        }
-        save_screenshot;
-
-        wait_still_screen;
     }
 }
 
