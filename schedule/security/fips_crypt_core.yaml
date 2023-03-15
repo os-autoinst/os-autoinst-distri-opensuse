@@ -20,8 +20,8 @@ schedule:
     - fips/openssl/openssl_pubkey_rsa
     - fips/openssl/openssl_pubkey_dsa
     - fips/openssh/openssh_fips
-    - console/sshd
-    - console/ssh_cleanup
+    # ssh disabled in env mode, see poo#125648
+    - '{{ssh}}'
 conditional_schedule:
     repo_setup:
         BETA:
@@ -34,3 +34,11 @@ conditional_schedule:
         BACKEND:
             pvm_hmc:
                 - console/yast2_vnc
+    ssh:
+        TEST_SUITE_NAME:
+            fips_ker_mode_tests_crypt_core:
+                - console/sshd
+                - console/ssh_cleanup
+            fips_ker_mode_tests_crypt_core_intel_ipmi:
+                - console/sshd
+                - console/ssh_cleanup
