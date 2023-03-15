@@ -149,6 +149,10 @@ sub run {
                     $mitigations_list{sysfs}->{auto}->{'spectre_v2'} = 'Mitigation: Retpolines,.*IBPB: conditional, IBRS_FW*';
                     $mitigations_list{sysfs}->{'auto,nosmt'}->{'spectre_v2'} = 'Mitigation: Retpolines,.*IBPB: conditional, IBRS_FW*';
                 }
+                if (get_var('MACHINE', '') =~ /^qemu-skylake.*-passthrough$/ && $item eq 'spectre_v2') {
+                    $mitigations_list{sysfs}->{auto}->{'spectre_v2'} = 'Mitigation: IBRS, IBPB: conditional, RSB filling.*';
+                    $mitigations_list{sysfs}->{'auto,nosmt'}->{'spectre_v2'} = 'Mitigation: IBRS, IBPB: conditional, RSB filling.*';
+                }
                 #NO-IBRS
                 if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/ && $item eq 'mds') {
                     $mitigations_list{sysfs}->{auto}->{mds} = 'Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown';
