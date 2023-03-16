@@ -65,6 +65,8 @@ sub run {
     $self->download_data_dir();
     $self->prepare_coredump();
 
+    zypper_call("ref");
+
     my $package_list = 'openvpn';
     $package_list .= ' tcpdump' if get_var('WICKED_TCPDUMP');
     if (check_var('IS_WICKED_REF', '1')) {
