@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+    <suse_register>
+        <do_registration config:type="boolean">true</do_registration>
+        <email><%= $get_var->('SCC_EMAIL') %></email>
+        <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
+        <install_updates config:type="boolean">true</install_updates>
+        % if (keys %$addons) {
+        <addons config:type="list">
+            % while (my ($key, $addon) = each (%$addons)) {
+            <addon>
+                <name><%= $addon->{name} %></name>
+                <version><%= $addon->{version} %></version>
+                <arch><%= $addon->{arch} %></arch>
+                % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sles')) {
+                <reg_code><%= $get_var->('SCC_REGCODE_WE') %></reg_code>
+                % }
+                % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sled')) {
+                <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
+                % }
+                % if ($key eq 'rt') {
+                <reg_code><%= $get_var->('SCC_REGCODE_RT') %></reg_code>
+                % }
+                % if ($key eq 'ltss') {
+                <reg_code><%= $get_var->('SCC_REGCODE_LTSS') %></reg_code>
+                % }
+            </addon>
+            % }
+        </addons>
+        %}
+    </suse_register>
+    <bootloader>
+        <global>
+            <timeout config:type="integer">-1</timeout>
+        </global>
+    </bootloader>
+    <general>
+        <mode>
+            <confirm config:type="boolean">false</confirm>
+        </mode>
+    </general>
+    <partitioning config:type="list">
+        <drive>
+            <initialize config:type="boolean">true</initialize>
+            <use>all</use>
+        </drive>
+    </partitioning>
+    <networking>
+        <interfaces config:type="list">
+            <interface>
+                <bootproto>dhcp</bootproto>
+                <device>eth0</device>
+                <dhclient_set_default_route>yes</dhclient_set_default_route>
+                <startmode>auto</startmode>
+            </interface>
+        </interfaces>
+    </networking>
+    <firewall>
+        <enable_firewall config:type="boolean">true</enable_firewall>
+        <start_firewall config:type="boolean">true</start_firewall>
+        <zones config:type="list">
+            <zone>
+                <name>public</name>
+                <interfaces config:type="list">
+                    <interface>eth0</interface>
+                </interfaces>
+                <services config:type="list">
+                    <service>ssh</service>
+                </services>
+                <ports config:type="list">
+                    <port>22/tcp</port>
+                    <port>30000-50000/tcp</port>
+                </ports>
+            </zone>
+        </zones>
+    </firewall>
+    <report>
+        <errors>
+            <log config:type="boolean">true</log>
+            <show config:type="boolean">true</show>
+            <timeout config:type="integer">0</timeout>
+        </errors>
+        <messages>
+            <log config:type="boolean">true</log>
+            <show config:type="boolean">true</show>
+            <timeout config:type="integer">0</timeout>
+        </messages>
+        <warnings>
+            <log config:type="boolean">true</log>
+            <show config:type="boolean">true</show>
+            <timeout config:type="integer">0</timeout>
+        </warnings>
+        <yesno_messages>
+            <log config:type="boolean">true</log>
+            <show config:type="boolean">true</show>
+            <timeout config:type="integer">0</timeout>
+        </yesno_messages>
+    </report>
+    <keyboard>
+        <keyboard_values>
+            <delay/>
+            <discaps config:type="boolean">false</discaps>
+            <numlock>bios</numlock>
+            <rate/>
+        </keyboard_values>
+        <keymap>english-us</keymap>
+    </keyboard>
+    <language>
+        <language>en_US</language>
+        <languages/>
+    </language>
+    <ntp-client>
+        <ntp_policy>auto</ntp_policy>
+    </ntp-client>
+    <software>
+        <products config:type="list">
+            <product><%= uc $get_var->('SLE_PRODUCT') %></product>
+        </products>
+        <patterns config:type="list">
+            % for my $pattern (@$patterns) {
+            <pattern><%= $pattern %></pattern>
+            % }
+        </patterns>
+        <!-- Workaround for bsc#1202234: [addon]-release packages are missing after autoyast installation. -->
+        <packages config:type="list">
+        % foreach (values %$addons) {
+            <package><%= lc($_->{name}) %>-release</package>
+        % }
+        </packages>
+        <!-- end of workaround -->
+    </software>
+    <services-manager>
+        <services>
+            <disable config:type="list"/>
+            <enable config:type="list">
+                <service>sshd</service>
+            </enable>
+        </services>
+    </services-manager>
+    <timezone>
+        <hwclock>UTC</hwclock>
+        <timezone>Europe/Berlin</timezone>
+    </timezone>
+    <users config:type="list">
+        <user>
+            <encrypted config:type="boolean">false</encrypted>
+            <fullname>Bernhard M. Wiedemann</fullname>
+            <gid>100</gid>
+            <home>/home/bernhard</home>
+            <password_settings>
+                <expire/>
+                <flag/>
+                <inact>-1</inact>
+                <max>99999</max>
+                <min>0</min>
+                <warn>7</warn>
+            </password_settings>
+            <shell>/bin/bash</shell>
+            <uid>1000</uid>
+            <user_password>nots3cr3t</user_password>
+            <username>bernhard</username>
+        </user>
+        <user>
+            <encrypted config:type="boolean">false</encrypted>
+            <fullname>root</fullname>
+            <gid>0</gid>
+            <home>/root</home>
+            <password_settings>
+                <expire/>
+                <flag/>
+                <inact/>
+                <max/>
+                <min/>
+                <warn/>
+            </password_settings>
+            <shell>/bin/bash</shell>
+            <uid>0</uid>
+            <user_password>nots3cr3t</user_password>
+            <username>root</username>
+        </user>
+    </users>
+</profile>
