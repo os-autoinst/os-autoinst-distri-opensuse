@@ -22,25 +22,26 @@ use testapi;
 use utils;
 use version_utils;
 use power_action_utils 'power_action';
+use serial_terminal 'select_serial_terminal';
 
 my $disksize = "100M";    # Size of the test disks
 
 sub get_repository() {
     if (is_tumbleweed) {
         return 'https://download.opensuse.org/repositories/filesystems/openSUSE_Tumbleweed/filesystems.repo';
-    } elsif (is_leap("=15.5")) {
+    } elsif (is_leap("=15.5") || is_sle("=15-SP5")) {
         return 'https://download.opensuse.org/repositories/filesystems/15.5/filesystems.repo';
-    } elsif (is_leap("=15.4")) {
+    } elsif (is_leap("=15.4") || is_sle("=15-SP4")) {
         return 'https://download.opensuse.org/repositories/filesystems/15.4/filesystems.repo';
     } elsif (is_leap("=15.3")) {
         return 'https://download.opensuse.org/repositories/filesystems/15.3/filesystems.repo';
-    } elsif (is_sle("=15.3")) {
+    } elsif (is_sle("=15-SP3")) {
         return 'https://download.opensuse.org/repositories/filesystems/SLE_15_SP3/filesystems.repo';
-    } elsif (is_sle("=15.2")) {
+    } elsif (is_sle("=15-SP2")) {
         return 'https://download.opensuse.org/repositories/filesystems/SLE_15_SP2/filesystems.repo';
-    } elsif (is_sle("=15.1")) {
+    } elsif (is_sle("=15-SP1")) {
         return 'https://download.opensuse.org/repositories/filesystems/SLE_15_SP1/filesystems.repo';
-    } elsif (is_sle("=12.5")) {
+    } elsif (is_sle("=12-SP5")) {
         return 'https://download.opensuse.org/repositories/filesystems/SLE_12_SP5/filesystems.repo';
     } else {
         die "Unsupported version";
@@ -122,16 +123,18 @@ sub import_pool {
 
 sub reboot {
     my ($self) = @_;
-    my $console = current_console();    # Restore current console after reboot
     power_action('reboot', textmode => 1);
     $self->wait_boot(bootloader_time => 300);
-    select_console "$console";
+    select_serial_terminal();
 }
 
 sub run {
     my $self = shift;
+    select_serial_terminal();
     return unless (install_zfs());    # Possible softfailure if module is not yet available (e.g. new Leap version)
-    assert_script_run('modprobe zfs');
+    my $additional = "";
+    $additional = "--allow-unsupported" if (is_sle);
+    assert_script_run("modprobe $additional zfs");
     prepare_disks();
 
     ## Prepare test pools
@@ -253,10 +256,11 @@ sub run {
     assert_script_run('mv /tank/BBB_8_seconds_bird_clip.ogv /tank/Big_Buck_Bunny_8_seconds_bird_clip.ogv');
 
     ## Check if zfs survives a reboot
-    assert_script_run("echo zfs > /etc/modules-load.d//90-zfs.conf");
-    assert_script_run("chmod 0644 /etc/modules-load.d//90-zfs.conf");
+    assert_script_run("echo 'allow_unsupported_modules 1' > /etc/modprobe.d/10-unsupported-modules.conf") if (is_sle);
+    assert_script_run("echo 'zfs' > /etc/modules-load.d/90-zfs.conf");
+    assert_script_run("chmod 0644 /etc/modules-load.d/90-zfs.conf");
     reboot($self);
-    assert_script_run("lsmod | grep zfs");
+    validate_script_output("lsmod", qr/zfs/, fail_message => "zfs module not loaded after reboot");
     assert_script_run("systemctl status zfs.target | grep 'active'");
     assert_script_run("systemctl status zfs-share | grep 'active'");
     # Since zpool by default only searches for disks but not files, we need to point it to the disk files manually
