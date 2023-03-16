@@ -633,7 +633,9 @@ sub load_jeos_tests {
     }
     load_boot_tests();
     loadtest "jeos/firstrun";
-    #    loadtest "jeos/image_info";
+    if (get_var('POSTGRES_IP')) {
+        loadtest "jeos/image_info";
+    }
     loadtest "jeos/record_machine_id";
     loadtest "console/force_scheduled_tasks";
     # this test case also disables grub timeout
