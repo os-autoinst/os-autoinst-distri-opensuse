@@ -62,6 +62,8 @@ sub run {
     systemctl('is-active network');
     systemctl('is-active wicked');
 
+    zypper_call("ref");
+
     $self->download_data_dir();
     $self->prepare_coredump();
 
