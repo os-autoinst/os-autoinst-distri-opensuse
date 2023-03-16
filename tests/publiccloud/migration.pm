@@ -34,7 +34,7 @@ sub run {
     register_addons_in_pc($instance);
     $instance->ssh_assert_script_run('sudo zypper ref; sudo zypper -n up', timeout => 300);
 
-    record_info('INFO', $target_version);
+    record_info('Target Version', $target_version);
 
     sleep 90;    # wait for a bit for zypper to be available
 
@@ -64,14 +64,14 @@ sub run {
     $instance->upload_log("/var/log/distro_migration.log", failok => 1);
 
     # migration finished and instance rebooted
-    record_info('INFO', 'Checking the migration succeed');
+    record_info('Migration Status', 'Checking the migration succeed');
 
-    my $product_version = $instance->ssh_script_run(cmd => 'sudo cat /etc/os-release');
-    record_info('INFO', $product_version);
+    my $product_version = $instance->run_ssh_command(cmd => 'sudo cat /etc/os-release');
+    record_info('Product Version', $product_version);
 
     my $migrated_version = 'N/A';
-    $migrated_version = $1 if $product_version =~ /^VERSION_ID="([\d\.]+)"/sm;
-    record_info('new version', $migrated_version);
+    $migrated_version = $1 if ($product_version =~ /^VERSION_ID="([\d\.]+)"/sm);
+    record_info('Migrated Version', $migrated_version);
 
     die("Wrong version: expected: " . $target_version . ", got " . $migrated_version) if ($migrated_version ne $target_version);
 }
