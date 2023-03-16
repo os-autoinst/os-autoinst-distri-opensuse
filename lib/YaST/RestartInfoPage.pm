@@ -28,4 +28,12 @@ sub confirm_reboot_needed {
     $self->get_restart_info_page()->{btn_ok}->click();
 }
 
+sub wait_restart_info_popup {
+    my ($self) = @_;
+
+    YuiRestClient::Wait::wait_until(object => sub {
+            $self->{btn_ok}->exist({timeout => 0});
+    }, timeout => 180, message => "btn_ok does not exist");
+}
+
 1;
