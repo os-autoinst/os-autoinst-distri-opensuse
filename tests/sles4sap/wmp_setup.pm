@@ -19,9 +19,10 @@ use warnings;
 sub run {
     my ($self) = @_;
 
-    # WMP is a feature of SLES for SAP Applications 15+. Skip test in older systems
-    if (is_sle('<15')) {
-        record_info 'WMP', 'WMP is only available in SLES for SAP Applications 15+';
+    # WMP is a feature of SLES for SAP Applications 15+. Skip test in older
+    # systems and sle15sp5+ (PED-131)
+    if (is_sle('<15') || (is_sle('15-SP5+'))) {
+        record_info 'WMP', 'WMP is only available in SLES for SAP Applications 15+ to 15SP4';
         return;
     }
 
