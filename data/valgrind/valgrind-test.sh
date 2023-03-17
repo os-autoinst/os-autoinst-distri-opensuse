@@ -1,12 +1,13 @@
-#!/bin/bash
+#!/bin/bash -e
 # SUSE's openQA tests
 #
-# Copyright 2020 SUSE LLC
+# Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 # 
 # Regression test for valgrind
-# Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
+set -x # didn't work as part of the shebang
 
 # Helper function to grep and ident the output
 function GREP {
@@ -26,8 +27,6 @@ if [[ $(uname -m) == "x86_64" ]]; then
 	echo "[INFO] x86_64 architecture detected"
 fi
 
-# Exit on errors
-set -e
 
 echo "Compiling test program ... "
 # Disable -Wmaybe-uninitialized because we test a use of an uninitiazed memory.
@@ -99,7 +98,7 @@ GREP "events: " cachegrind.out
 GREP "summary: " cachegrind.out
 
 echo "Testing helgrind ... "
-valgrind --tool=helgrind ./valgrind-test 2>/dev/null
+valgrind -v --tool=helgrind ./valgrind-test 2>/dev/null
 # Not output test, we rely on the correct execution and exit status
 
 echo "Testing massif ... "

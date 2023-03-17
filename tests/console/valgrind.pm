@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2020 SUSE LLC
+# Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: gcc valgrind curl
@@ -17,7 +17,7 @@
 # - Check the valgrind tool "cachegrind"
 # - Check the valgrind tool "helgrind"
 # - Check the valgrind tool "massif"
-# Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base 'consoletest';
 use strict;
@@ -25,6 +25,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use Utils::Logging;
 use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
 use version_utils "is_sle";
 
@@ -41,14 +42,19 @@ sub run {
     # install requirements
     zypper_call 'in gcc valgrind';
     # run test script
-    assert_script_run 'cd /var/tmp';
+    assert_script_run 'mkdir /var/tmp/valgrind && cd /var/tmp/valgrind';
     assert_script_run 'curl -v -o valgrind-test.c ' . data_url('valgrind/valgrind-test.c');
     assert_script_run 'curl -v -o valgrind-test.sh ' . data_url('valgrind/valgrind-test.sh');
-    assert_script_run 'bash -e valgrind-test.sh';
-    # unregister SDK
+    assert_script_run 'bash -x valgrind-test.sh';    # script's shebang has -e, -x inside
+
     if (is_sle && !main_common::is_updates_tests()) {
-        remove_suseconnect_product(get_addon_fullname('sdk'));
+        remove_suseconnect_product(get_addon_fullname('sdk'));    # unregister SDK
     }
 }
 
+sub post_fail_hook {
+    my ($self) = shift;
+    $self->SUPER::post_fail_hook;
+    tar_and_upload_log('/var/tmp/valgrind', 'valgrind-failed.tar.bz2');
+}
 1;
