@@ -50,7 +50,14 @@ sub test_flags {
 sub post_fail_hook {
     my ($self) = shift;
     qesap_upload_logs();
-    qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
+    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my $inventory = qesap_get_inventory($prov);
+    if (script_run("test -e $inventory") == 0)
+    {
+        # sleep bmwqemu::scale_timeout(300)
+        qesap_ansible_cmd(cmd => $_, provider => $prov, filter => 'hana') for ('crm status', 'crm configure show', 'lsblk -i -a', 'journalctl -b --no-pager -o short-precise', 'systemctl --no-pager --full status sbd');
+        qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
+    }
     qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1200);
     $self->SUPER::post_fail_hook;
 }

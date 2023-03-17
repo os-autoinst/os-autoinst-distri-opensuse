@@ -18,7 +18,7 @@ sub run {
 
     my $chdir = qesap_get_terraform_dir();
     assert_script_run("terraform -chdir=$chdir output");
-    qesap_ansible_cmd(cmd => $_, provider => $prov, $_) for ('pwd', 'uname -a', 'cat /etc/os-release');
+    qesap_ansible_cmd(cmd => $_, provider => $prov) for ('pwd', 'uname -a', 'cat /etc/os-release');
     qesap_ansible_cmd(cmd => 'ls -lai /hana/', provider => $prov, filter => 'hana');
     my $cmr_status = qesap_ansible_script_output(cmd => 'crm status', provider => $prov, host => 'vmhana01', root => 1);
     record_info("crm status", $cmr_status);
