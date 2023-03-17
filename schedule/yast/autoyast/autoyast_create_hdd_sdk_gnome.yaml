@@ -5,7 +5,6 @@ description: >
 vars:
   AUTOYAST_PREPARE_PROFILE: '1'
   DESKTOP: gnome
-  PUBLISH_HDD_1: autoyast-SLE%VERSION%-%ARCH%-GM-SDK-allpatterns-updated.qcow2
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start

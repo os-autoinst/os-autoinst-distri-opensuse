@@ -348,7 +348,6 @@
           <pattern>documentation</pattern>
           <pattern>gnome-basic</pattern>
           <pattern>x11</pattern>
-	  <pattern>yast2_basis</pattern>
         </patterns>
 	% }
     </software>
