@@ -104,7 +104,7 @@ sub run {
     $self->run_tox_cmd('all');
 
     # Run metadata tests when needed
-    $self->run_tox_cmd('metadata') if get_var('BCI_TEST_METADATA');
+    $self->run_tox_cmd('metadata') if check_var('BCI_TEST_METADATA', '1');
 
     # Run environment specific tests
     for my $env (split(/,/, $test_envs)) {
