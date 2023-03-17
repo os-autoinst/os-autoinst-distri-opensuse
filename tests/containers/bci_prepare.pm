@@ -134,6 +134,16 @@ sub run {
             # Note: Both lines are aligned, thus the additional space
             record_info('builds', "CONTAINER_IMAGE_BUILD:  $build\norg.opensuse.reference: $reference");
             die('Missmatch in image build number. The image build number is different than the one triggered by the container bot!') if ($reference !~ /$build$/);
+            if (check_var('BCI_TEST_METADATA', '1')) {
+                # Check if we can run Metadata tests when the variable BCI_TEST_METADATA is set.
+                # Metadata tests compare the image under tests vs the released image in the public registry,
+                # so we need to make sure the public image exists, which won't be the case for brand new images
+                my $out = script_output("$engine pull -q $reference 2>&1", timeout => 600, proceed_on_failure => 1);
+                if ($out =~ m/manifest unknown/g) {
+                    record_info("SKIP", "Skip metadata tests. Image $reference does not exist yet.");
+                    set_var('BCI_TEST_METADATA', '0');
+                }
+            }
         }
         if (get_var('IMAGE_STORE_DATA')) {
             my $size_b = script_output("$engine inspect --format \"{{.VirtualSize}}\" $image");
