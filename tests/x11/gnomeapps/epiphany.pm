@@ -17,6 +17,8 @@ sub run {
     assert_gui_app('epiphany', remain => 1);
     if (match_has_tag 'epiphany-set-default-browser') {
         send_key('alt-n');
+        sleep 1;
+        assert_screen('test-epiphany-started');
     }
     send_key('alt-f4');
 }
