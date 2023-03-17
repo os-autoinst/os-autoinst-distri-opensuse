@@ -29,6 +29,7 @@ sub run {
     save_screenshot;
     $fadump->get_navigation->ok();
     save_screenshot;
+    $restartinfo->wait_restart_info_popup();
     $restartinfo->confirm_reboot_needed();
     save_screenshot;
 
