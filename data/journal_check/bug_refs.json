@@ -438,6 +438,13 @@
         },
         "type": "ignore"
     },
+    "bsc#1207301": {
+        "description": "kernel: device-mapper: core: CONFIG_IMA_DISABLE_HTABLE is disabled. Duplicate IMA measurements will not be recorded in the IMA log",
+        "products": {
+            "sle": ["15-SP5"]
+        },
+        "type": "bug"
+    },
     "boo#1209063": {
         "description": "Failed to start OpenSSH Daemon.",
         "products": {
