@@ -158,7 +158,7 @@ sub log_add {
     send_key 'ret';
     assert_script_run($cmd);
     sleep 5;
-    my $ret = script_output("cat $file", 20);
+    my $ret = script_output("cat $file", 60);
     return $ret;
 }
 
