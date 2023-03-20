@@ -170,7 +170,7 @@ sub run {
     select_serial_terminal;
 
     my $provider = $self->provider_factory();
-    my @instances = $provider->create_instances(check_connectivity => 1);
+    my @instances = $provider->create_instances(check_connectivity => 1, check_guestregister => 0);
 
     # Upload all TF/SALT logs first!
     foreach my $instance (@instances) {

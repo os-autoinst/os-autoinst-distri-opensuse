@@ -18,6 +18,11 @@ use Utils::Backends qw(set_sshserial_dev unset_sshserial_dev);
 use publiccloud::ssh_interactive qw(ssh_interactive_tunnel ssh_interactive_leave select_host_console);
 use version_utils;
 use utils;
+# for boottime checks
+use db_utils;
+use Mojo::Util 'trim';
+use Data::Dumper;
+use mmapi qw(get_current_job_id);
 
 use constant SSH_TIMEOUT => 90;
 
@@ -255,9 +260,9 @@ sub upload_log {
     assert_script_run("test -d '$tmpdir' && rm -rf '$tmpdir'");
 }
 
-=head2 wait_for_guestregister
+=head2 wait_for_guestregister_chk
 
-    wait_for_guestregister([timeout => 300]);
+    wait_for_guestregister_chk([timeout => 300]);
 
 Run command C<systemctl is-active guestregister> on the instance in a loop and
 wait till guestregister is ready. If guestregister finish with state failed,
@@ -265,31 +270,34 @@ a soft-failure will be recorded.
 If guestregister will not finish within C<timeout> seconds, job dies.
 In case of BYOS images we checking that service is inactive and quit
 Returns the time needed to wait for the guestregister to complete.
+C<wait_for_guestregister_chk> is called inside C<create_instance()>, enabled by C<check_guestregister>
 =cut
 
-sub wait_for_guestregister {
+sub wait_for_guestregister_chk {
     my ($self, %args) = @_;
     $args{timeout} //= 300;
     my $start_time = time();
     my $last_info = 0;
+    my $log = '/var/log/cloudregister';
+    my $name = $autotest::current_test->{name} . '-cloudregister.log.txt';
 
     # Check what version of registercloudguest binary we use
     $self->run_ssh_command(cmd => "rpm -qa cloud-regionsrv-client", proceed_on_failure => 1);
-
+    record_info('CHECK', 'guestregister check');
     while (time() - $start_time < $args{timeout}) {
         my $out = $self->run_ssh_command(cmd => 'sudo systemctl is-active guestregister', proceed_on_failure => 1, quiet => 1);
         # guestregister is expected to be inactive because it runs only once
         if ($out eq 'inactive') {
-            $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
+            $self->upload_log($log, log_name => $name);
             return time() - $start_time;
         }
         elsif ($out eq 'failed') {
-            $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
+            $self->upload_log($log, log_name => $name);
             $out = $self->run_ssh_command(cmd => 'sudo systemctl status guestregister', quiet => 1);
             return time() - $start_time;
         }
         elsif ($out eq 'active') {
-            $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
+            $self->upload_log($log, log_name => $name);
             die "guestregister should not be active on BYOS" if (is_byos);
         }
 
@@ -300,8 +308,26 @@ sub wait_for_guestregister {
         sleep 1;
     }
 
-    $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
+    $self->upload_log($log, log_name => $name);
     die('guestregister didn\'t end in expected timeout=' . $args{timeout});
+}
+
+
+=head2 wait_for_guestregister
+
+    wait_for_guestregister([timeout => 300]);
+
+The previous functionality has been migrated into wait_for_guestregister_chk above, for logic refactoring 
+planned to run directly when publiccloud create_instances executed. 
+This function is now a temporary placeholder without effects, to quickly proof the new logic, 
+but passing the existing calls still present in many modules,reducing the changes of deleting those ones.
+After the new logic will be consilidated, this function and related calls will be removed. 
+=cut
+
+sub wait_for_guestregister {
+    my ($self, %args) = @_;
+    my $out = $self->run_ssh_command(cmd => 'sudo systemctl is-active guestregister', proceed_on_failure => 1, quiet => 1);
+    return;
 }
 
 =head2 wait_for_ssh
@@ -486,5 +512,177 @@ sub network_speed_test() {
     record_info("ping 1.1.1.1", $self->run_ssh_command(cmd => "ping -c30 1.1.1.1", proceed_on_failure => 1, timeout => 600));
     record_info("curl $rmt_host", $self->run_ssh_command(cmd => "curl -w '$write_out' -o /dev/null -v https://$rmt_host/", proceed_on_failure => 1));
 }
+
+=head2 measure_boottime
+
+    measure_boottime();
+
+Perfomrance measurement of the system Boot time. 
+Mainly used C<systemd-analyze> command for the data extraction.
+Data is then collected in an internal record, ready for storing in a DB.
+Set PUBLIC_CLOUD_PERF_COLLECT true or >0, to activate boottime measurements.
+
+=cut
+
+sub measure_boottime() {
+    my ($self, $instance, $type) = @_;
+    return 0 unless (get_var('PUBLIC_CLOUD_PERF_COLLECT'));
+
+    my $ret = {
+        kernel_release => undef,
+        kernel_version => undef,
+        type => undef,
+        analyze => {},
+        blame => {},
+    };
+
+    record_info("BOOT TIME", 'systemd_analyze');
+    # first deployment analysis
+    my ($systemd_analyze, $systemd_blame) = do_systemd_analyze_time($instance);
+    return 0 unless ($systemd_analyze && $systemd_blame);
+
+    $ret->{analyze}->{$_} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
+    $ret->{blame} = $systemd_blame;
+    $ret->{type} = $type;
+    # $ret->{analyze}->{ssh_access} = $startup_time; # placeholder for next implementation
+
+    # Collect kernel version
+    $ret->{kernel_release} = $instance->run_ssh_command(cmd => 'uname -r', proceed_on_failure => 1);
+    $ret->{kernel_version} = $instance->run_ssh_command(cmd => 'uname -v', proceed_on_failure => 1);
+
+    # Do logging to openqa UI
+    $Data::Dumper::Sortkeys = 1;
+    record_info("RESULTS", Dumper($ret));
+    my @logs = qw(cloudregister cloud-init.log cloud-init-output.log messages NetworkManager);
+    $instance->upload_log("/var/log/" . $_, log_name => 'measure_boottime_' . $_ . '.txt', failok => 1) foreach (@logs);
+    return $ret;
+}
+
+
+=head2 store_boottime_db
+
+    store_boottime_db();
+
+Save data collected with measure_boottime in a DB;
+Mainly stored on a remote InfluxDB on a Grafana server.
+
+=cut
+
+sub store_boottime_db() {
+    my ($self, $results) = @_;
+    return unless (get_var('_PUBLIC_CLOUD_PERF_PUSH_DATA') && $results);
+
+    my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI');
+    my $token = get_var('_PUBLIC_CLOUD_PERF_DB_TOKEN');
+    unless ($url && $token) {
+        record_info("WARN", "PUBLIC_CLOUD_PERF_DB_URI or _PUBLIC_CLOUD_PERF_DB_TOKEN is missing ", result => 'fail');
+        return 0;
+    }
+
+    my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
+    my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf');
+
+    my $tags = {
+        instance_type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
+        job_id => get_current_job_id(),
+        os_provider => get_required_var('PUBLIC_CLOUD_PROVIDER'),
+        os_build => get_required_var('BUILD'),
+        os_flavor => get_required_var('FLAVOR'),
+        os_version => get_required_var('VERSION'),
+        os_kernel_release => $results->{kernel_release},
+        os_kernel_version => $results->{kernel_version},
+    };
+
+    $tags->{os_pc_build} = get_var('PUBLIC_CLOUD_QAM') ? 'N/A' : get_var('PUBLIC_CLOUD_BUILD', 0);
+    $tags->{os_pc_kiwi_build} = get_var('PUBLIC_CLOUD_QAM') ? 'N/A' : get_var('PUBLIC_CLOUD_BUILD_KIWI', 0);
+
+    record_info("STORE analyze", 'bootup');
+    # Store values in influx-db
+
+    my $data = {
+        table => 'bootup',
+        tags => $tags,
+        values => $results->{analyze}
+    };
+    influxdb_push_data($url, $db, $org, $token, $data);
+
+    record_info("STORE blame", $results->{type});
+    $tags->{boottype} = $results->{type};
+    $data = {
+        table => 'bootup_blame',
+        tags => $tags,
+        values => $results->{blame}
+    };
+    influxdb_push_data($url, $db, $org, $token, $data);
+}
+
+sub systemd_time_to_second
+{
+    my $str_time = trim(shift);
+
+    if ($str_time !~ /^(?<check_min>(?<min>\d{1,2})\s*min\s*)?((?<sec>\d{1,2}\.\d{1,3})s|(?<ms>\d+)ms)$/) {
+        record_info("WARN", "Unable to parse systemd time '$str_time'", result => 'fail');
+        return -1;
+    }
+    my $sec = $+{sec} // $+{ms} / 1000;
+    $sec += $+{min} * 60 if (defined($+{check_min}));
+    return $sec;
+}
+
+sub extract_analyze_time {
+    my $str_time = shift;
+    my $res = {};
+    ($str_time) = split(/\r?\n/, $str_time, 2);
+    $str_time =~ s/Startup finished in\s*//;
+    $str_time =~ s/=(.+)$/+$1 (overall)/;
+    for my $time (split(/\s*\+\s*/, $str_time)) {
+        $time = trim($time);
+        my ($time, $type) = $time =~ /^(.+)\s*\((\w+)\)$/;
+        $res->{$type} = systemd_time_to_second($time);
+        return 0 if ($res->{$type} == -1);
+    }
+    foreach (qw(kernel initrd userspace overall)) { return 0 unless exists($res->{$_}); }
+    return $res;
+}
+
+sub extract_blame_time {
+    my $str_time = shift;
+    my $ret = {};
+    for my $line (split(/\r?\n/, $str_time)) {
+        $line = trim($line);
+        my ($time, $service) = $line =~ /^(.+)\s+(\S+)$/;
+        $ret->{$service} = systemd_time_to_second($time);
+        return 0 if ($ret->{$service} == -1);
+    }
+    return $ret;
+}
+
+sub do_systemd_analyze_time {
+    my ($instance, %args) = @_;
+    $args{timeout} = 120;
+    my $start_time = time();
+    my $output = "";
+    my @ret;
+
+    # calling systemd-analyze time & blame
+    # guestregister check executed in create_instances
+    while ($output !~ /Startup finished in/ && time() - $start_time < $args{timeout}) {
+        $output = $instance->run_ssh_command(cmd => 'systemd-analyze time', proceed_on_failure => 1);
+        sleep 5;
+    }
+
+    unless ($output && (time() - $start_time < $args{timeout})) {
+        record_info("WARN", "Unable to get system-analyze in $args{timeout} seconds", result => 'fail');
+        # handle_boot_failure: soft exit from measurement.
+        return (0, 0);
+    }
+    push @ret, extract_analyze_time($output);
+
+    $output = $instance->run_ssh_command(cmd => 'systemd-analyze blame', proceed_on_failure => 1);
+    push @ret, extract_blame_time($output);
+
+    return @ret;
+}
+
 
 1;
