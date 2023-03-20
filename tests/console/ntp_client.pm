@@ -47,10 +47,10 @@ sub run {
     systemctl 'status chronyd';
     # ensure and wait until time is actually synced before checking status
     # otherwise we could get a transient *503 No such source* on listing sources
+    assert_script_run 'chronyc makestep';
     assert_script_run 'chronyc waitsync 120 0.5', 1210;
     assert_script_run 'chronyc sources';
     assert_script_run 'chronyc tracking';
-    assert_script_run 'chronyc makestep';
     assert_script_run 'chronyc tracking';
     assert_script_run 'chronyc activity';
 }
