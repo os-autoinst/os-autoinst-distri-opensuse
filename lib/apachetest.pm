@@ -38,7 +38,8 @@ sub setup_apache2 {
     my %args = @_;
     my $mode = uc $args{mode} || "";
     # package hostname is available on sle15+ and openSUSE, on <15 it's net-tools
-    my @packages = qw(apache2 /bin/hostname);
+    my @packages = qw(/bin/hostname);
+    push @packages, get_var('APACHE2_PKG', "apache2");
 
     # For gensslcert
     push @packages, 'apache2-utils', 'openssl' if is_tumbleweed;
