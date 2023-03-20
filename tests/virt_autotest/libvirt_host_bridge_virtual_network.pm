@@ -17,16 +17,19 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_alp);
 
 our $virt_host_bridge = 'br0';
 our $based_guest_dir = 'tmp';
 sub run_test {
     my ($self) = @_;
 
-    #Prepare VM HOST SERVER Network Interface Configuration
-    #for libvirt virtual network testing
-    virt_autotest::virtual_network_utils::prepare_network($virt_host_bridge, $based_guest_dir);
+    # ALP has done this in earlier setup
+    unless (is_alp) {
+        #Prepare VM HOST SERVER Network Interface Configuration
+        #for libvirt virtual network testing
+        virt_autotest::virtual_network_utils::prepare_network($virt_host_bridge, $based_guest_dir);
+    }
 
     #Download libvirt host bridge virtual network configuration file
     my $vnet_host_bridge_cfg_name = "vnet_host_bridge.xml";

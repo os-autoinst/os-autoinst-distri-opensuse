@@ -32,6 +32,7 @@ conditional_schedule:
         ENABLE_VIR_NET:
             1:
                 - virt_autotest/libvirt_virtual_network_init
+                - virt_autotest/libvirt_host_bridge_virtual_network
                 - virt_autotest/libvirt_nated_virtual_network
                 - virt_autotest/libvirt_routed_virtual_network
                 - virt_autotest/libvirt_isolated_virtual_network

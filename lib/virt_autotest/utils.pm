@@ -31,8 +31,7 @@ our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest i
   print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs ensure_default_net_is_active ensure_guest_started
   ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests restore_downloaded_guests save_original_guest_xmls restore_original_guests
   is_guest_online wait_guests_shutdown remove_vm setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host
-  check_port_state subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest upload_virt_logs recreate_guests
-  download_vm_import_disks);
+  check_port_state subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest upload_virt_logs recreate_guests download_vm_import_disks enable_nm_debug check_activate_network_interface set_host_bridge_interface_with_nm upload_nm_debug_log);
 
 my %log_cursors;
 
@@ -999,5 +998,44 @@ sub download_vm_import_disks {
     record_info("All imported disk download is done.");
 }
 
+sub enable_nm_debug {
+    # Enable Network Manager Debug Log Level
+    assert_script_run("nmcli general logging level DEBUG domains ALL", 60);
+    record_info("Enable Network Manager in Debug Level successfully for automation test.");
+}
+
+sub check_activate_network_interface {
+    # Check with activate network interface as required
+    my ($network_interface, $target_name) = @_;
+    $network_interface //= "br0";
+    $target_name //= get_required_var('OPENQA_URL');
+    assert_script_run("ping -I $network_interface -c 3 $target_name", 60);
+    assert_script_run("nmcli device show $network_interface", 60);
+    save_screenshot;
+    record_info("Activate Network Interface check successfully for automation test.");
+}
+
+sub set_host_bridge_interface_with_nm {
+    # Setup Host Bridge Network Interface with nmcli(NetworkManager) as needed
+    my $_host_bridge_cfg = "/etc/NetworkManager/system-connections/br0.nmconnection";
+
+    # Change the NetworkManager log-level as DEBUG at runtime
+    enable_nm_debug;
+
+    if (script_run("[[ -f $_host_bridge_cfg ]]") != 0) {
+        my $_alp_host_bridge = "/root/alp_host_bridge_init.sh";
+        assert_script_run("curl " . data_url("virt_autotest/alp_host_bridge_init.sh") . " -o $_alp_host_bridge");
+        assert_script_run("chmod +rx $_alp_host_bridge && $_alp_host_bridge");
+        save_screenshot;
+        record_info("Host Bridge Network Interface is set successfully for automation test.", script_output("ip a; ip route show all"));
+    }
+    check_activate_network_interface;
+}
+
+sub upload_nm_debug_log {
+    script_run("journalctl -u NetworkManager.service > /tmp/NetworkManager.logs");
+    upload_virt_logs("/tmp/NetworkManager.logs", "NetworkManager-debug-logs");
+    script_run("rm -rf /tmp/NetworkManager.logs");
+}
 
 1;

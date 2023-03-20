@@ -32,6 +32,9 @@ sub run {
     save_screenshot;
     assert_script_run("ls -latr /var/lib/libvirt/images/");
     record_info("Ignition file is successfully downloaded.");
+
+    # Setup Host Bridge Network Interface as required
+    virt_autotest::utils::set_host_bridge_interface_with_nm;
 }
 
 sub test_flags {
@@ -41,6 +44,8 @@ sub test_flags {
 sub post_fail_hook {
     # Let it empty now.
     # Need to let parent one called after yast team modifies the parent class to fit alp.
+    # Upload expected NetworkManager debug log
+    virt_autotest::utils::upload_nm_debug_log;
 }
 
 1;
