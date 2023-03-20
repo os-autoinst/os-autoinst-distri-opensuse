@@ -124,7 +124,7 @@ sub y2snapper_new_snapshot {
         send_key_until_needlematch 'yast2_snapper-focus-in-snapshots', 'tab';
     }
     else {
-        apply_workaround_poo124652([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)]) if (is_sle('>=15-SP4'));
+        apply_workaround_poo124652([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 10) if (is_sle('>=15-SP4'));
     }
 
     # Make sure the snapshot is listed in the main window
