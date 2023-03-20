@@ -230,6 +230,26 @@ sub load_fips_tests {
     loadtest 'fips/mozilla_nss/nss_smoke' unless is_microos;
 }
 
+sub load_selinux_tests {
+    loadtest 'security/selinux/selinux_setup';
+    loadtest 'security/selinux/sestatus';
+    loadtest 'security/selinux/selinux_smoke';
+    loadtest 'security/selinux/enforcing_mode_setup';
+    loadtest 'security/selinux/semanage_fcontext';
+    loadtest 'security/selinux/semanage_boolean';
+    loadtest 'security/selinux/fixfiles';
+    loadtest 'security/selinux/print_se_context';
+    loadtest 'security/selinux/audit2allow';
+    loadtest 'security/selinux/semodule';
+    loadtest 'security/selinux/setsebool';
+    loadtest 'security/selinux/restorecon';
+    loadtest 'security/selinux/chcon';
+    loadtest 'security/selinux/chcat';
+    loadtest 'security/selinux/set_get_enforce';
+    loadtest 'security/selinux/selinuxexeccon';
+}
+
+
 sub load_rcshell_tests {
     # Tests before the YaST installation
     loadtest 'microos/rcshell_start';
@@ -302,6 +322,8 @@ sub load_tests {
         load_qemu_tests;
     } elsif (check_var('EXTRA', 'fips')) {
         load_fips_tests;
+    } elsif (check_var('EXTRA', 'selinux')) {
+        load_selinux_tests;
     } else {
         load_common_tests;
         load_transactional_tests unless is_zvm;
