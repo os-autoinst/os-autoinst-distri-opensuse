@@ -15,6 +15,11 @@
     </signature-handling>
     <self_update config:type="boolean">false</self_update>
   </general>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">30</timeout>
+    </global>
+  </bootloader>
   <networking>
     <dhcp_options>
       <dhclient_hostname_option>AUTO</dhclient_hostname_option>
@@ -102,29 +107,39 @@
     <slp_discovery config:type="boolean">false</slp_discovery>
     <reg_code>{{SCC_REGCODE_SLES4SAP}}</reg_code>
     <reg_server>{{SCC_URL}}</reg_server>
+    % if (keys %$addons) {
     <addons config:type="list">
+      % while (my ($key, $addon) = each (%$addons)) {
       <addon>
-        <name>sle-module-basesystem</name>
-	<version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
+        <name><%= $addon->{name} %></name>
+        <version><%= $addon->{version} %></version>
+        <arch><%= $addon->{arch} %></arch>
+        % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sles')) {
+        <reg_code><%= $get_var->('SCC_REGCODE_WE') %></reg_code>
+        % }
+        % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sled')) {
+        <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
+        % }
+        % if ($key eq 'ha') {
+        <reg_code><%= $get_var->('SCC_REGCODE_HA') %></reg_code>
+        % }
+        % if ($key eq 'ltss') {
+        <reg_code><%= $get_var->('SCC_REGCODE_LTSS') %></reg_code>
+        % }
       </addon>
-      <addon>
-        <name>sle-module-desktop-applications</name>
-        <version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
-      </addon>
-      <addon>
-        <name>sle-module-sap-applications</name>
-        <version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
-      </addon>
-      <addon>
-        <name>sle-module-server-applications</name>
-        <version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
-      </addon>
+      % }
     </addons>
+    %}
   </suse_register>
+  <add-on>
+    <add_on_products config:type="list">
+      % for my $repo (@$repos) {
+      <listentry>
+        <media_url><%= $repo %></media_url>
+      </listentry>
+      % }
+    </add_on_products>
+  </add-on>
   <software>
     <patterns config:type="list">
       <pattern>gnome_basis</pattern>

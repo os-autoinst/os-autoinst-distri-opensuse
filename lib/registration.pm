@@ -1,4 +1,4 @@
-# Copyright 2015-2021 SUSE LLC
+# Copyright 2015-2023 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 package registration;
@@ -818,6 +818,7 @@ sub get_addon_fullname {
         ltss => 'SLES-LTSS',
         pcm => 'sle-module-public-cloud',
         rt => 'SUSE-Linux-Enterprise-RT',
+        sapapp => 'sle-module-sap-applications',
         script => 'sle-module-web-scripting',
         serverapp => 'sle-module-server-applications',
         tcm => is_sle('15+') ? 'sle-module-development-tools' : 'sle-module-toolchain',

@@ -3,7 +3,6 @@ name: autoyast_sles4sap_saptune
 description: >
   AutoYaST installation of SAP saptune.
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_sles4sap_saptune.xml.ep
   AUTOYAST_PREPARE_PROFILE: '1'
   AY_EXPAND_VARS: SCC_REGCODE_SLES4SAP
 schedule:
