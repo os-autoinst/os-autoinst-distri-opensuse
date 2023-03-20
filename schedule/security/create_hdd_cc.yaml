@@ -1,0 +1,45 @@
+name: create_hdd_cc
+description: >
+  This testsuite create an hdd for Common Criteria for both uefi and non uefi systems.
+schedule:
+  - installation/bootloader_start
+  - installation/isosize
+  - installation/bootloader
+  - installation/welcome
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning/no_separate_home
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/hostname_inst
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - '{{mgmt_console}}'
+  - installation/first_boot
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - security/cc/ensure_crypto_checks_enabled
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+  - '{{svirt_upload}}'
+conditional_schedule:
+  mgmt_console:
+    ARCH:
+      s390x:
+        - boot/reconnect_mgmt_console
+  svirt_upload:
+    ARCH:
+      s390x:
+        - shutdown/svirt_upload_assets
