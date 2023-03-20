@@ -411,15 +411,19 @@ sub qesap_prepare_env {
 
 =item B<FILTER> - filter hosts in the inventory
 
+=item B<FAILOK> - if not set, ansible failure result in die
+
 =back
 =cut
 
 sub qesap_ansible_cmd {
     my (%args) = @_;
     croak 'Missing mandatory cmd argument' unless $args{cmd};
-    my $inventory = qesap_get_inventory($args{provider});
     $args{user} ||= 'cloudadmin';
     $args{filter} ||= 'all';
+    $args{failok} ||= 0;
+
+    my $inventory = qesap_get_inventory($args{provider});
 
     my $ansible_cmd = join(' ',
         'ansible',
@@ -428,8 +432,14 @@ sub qesap_ansible_cmd {
         '-u', $args{user},
         '-b', '--become-user=root',
         '-a', "\"$args{cmd}\"");
-    enter_cmd("source " . QESAPDEPLOY_VENV . "/bin/activate");
-    assert_script_run($ansible_cmd);
+    assert_script_run("source " . QESAPDEPLOY_VENV . "/bin/activate");
+
+    if ($args{failok}) {
+        script_run($ansible_cmd);
+    }
+    else {
+        assert_script_run($ansible_cmd);
+    }
     enter_cmd("deactivate");
 }
 
@@ -460,6 +470,8 @@ sub qesap_ansible_cmd {
 
 =item B<ROOT> - 1 to enable remote execution with elevated user, default to 0
 
+=item B<FAILOK> - if not set, ansible failure result in die
+
 =back
 =cut
 
@@ -469,6 +481,7 @@ sub qesap_ansible_script_output {
     croak 'Missing mandatory host argument' unless $args{host};
     $args{user} ||= 'cloudadmin';
     $args{root} ||= 0;
+    $args{failok} ||= 0;
 
     my $inventory = qesap_get_inventory($args{provider});
 
@@ -494,8 +507,14 @@ sub qesap_ansible_script_output {
         '-e', "out_file='$local_file'");
 
     enter_cmd "rm $local_tmp";
-    enter_cmd("source " . QESAPDEPLOY_VENV . "/bin/activate");    # venv activate
-    assert_script_run(join(' ', @ansible_cmd));
+    assert_script_run("source " . QESAPDEPLOY_VENV . "/bin/activate");    # venv activate
+
+    if ($args{failok}) {
+        script_run(join(' ', @ansible_cmd));
+    }
+    else {
+        assert_script_run(join(' ', @ansible_cmd));
+    }
     enter_cmd("deactivate");    #venv deactivate
     my $output = script_output("cat $local_tmp");
     enter_cmd "rm $local_tmp";

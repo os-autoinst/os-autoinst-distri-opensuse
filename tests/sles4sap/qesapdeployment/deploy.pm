@@ -55,7 +55,15 @@ sub post_fail_hook {
     if (script_run("test -e $inventory") == 0)
     {
         # sleep bmwqemu::scale_timeout(300)
-        qesap_ansible_cmd(cmd => $_, provider => $prov, filter => 'hana') for ('crm status', 'crm configure show', 'lsblk -i -a', 'journalctl -b --no-pager -o short-precise', 'systemctl --no-pager --full status sbd');
+        foreach my $element (
+            ['crm status', 'crm_status.txt'],
+            ['crm configure show', 'crm_configure.txt'],
+            ['lsblk -i -a', 'lsblk.txt'],
+            ['journalctl -b --no-pager -o short-precise', 'journalctl.txt'],
+            ['systemctl --no-pager --full status sbd', 'sbd.txt']) {
+            my $out = qesap_ansible_script_output(cmd => @$element[0], provider => $prov, filter => 'hana', failok => 1);
+            save_tmp_file(@$element[1], $out);
+        }
         qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
     }
     qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1200);

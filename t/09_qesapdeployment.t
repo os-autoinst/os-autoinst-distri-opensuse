@@ -184,7 +184,25 @@ subtest '[qesap_ansible_cmd]' => sub {
     qesap_ansible_cmd(cmd => 'FINDING', provider => 'OCEAN');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
+    like $calls[0], qr/.*source.*activate.*/, "Activate venv";
     ok((any { qr/.*ansible.*all.*-i.*SIDNEY.*-u.*cloudadmin.*-b.*--become-user=root.*-a.*"FINDING".*/ } @calls), "Expected ansible command format");
+};
+
+subtest '[qesap_ansible_cmd] failok' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my @calls_script_run;
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(script_run => sub { push @calls_script_run, $_[0]; });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(qesap_get_inventory => sub { return '/SIDNEY'; });
+
+    qesap_ansible_cmd(cmd => 'FINDING', provider => 'OCEAN', failok => 1);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    note("\n  -->  " . join("\n  -->  ", @calls_script_run));
+
+    ok((any { qr/.*ansible.*all.*-i.*SIDNEY.*-u.*cloudadmin.*-b.*--become-user=root.*-a.*"FINDING".*/ } @calls_script_run), "Expected ansible command format");
 };
 
 subtest '[qesap_ansible_cmd] filter and user' => sub {
@@ -336,6 +354,24 @@ subtest '[qesap_ansible_script_output]' => sub {
     ok((any { /ansible-playbook.*REEF.*"cmd='SWIM'"/ } @calls), 'proper ansible-playbooks command');
 };
 
+subtest '[qesap_ansible_script_output] failok' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my @calls_scriptrun;
+
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    $qesap->redefine(script_run => sub { push @calls_scriptrun, $_[0]; return 0; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(data_url => sub { return '/BRUCE'; });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'patate'; });
+
+    my $cmr_status = qesap_ansible_script_output(cmd => 'SWIM', provider => 'NEMO', host => 'REEF', failok => 1);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  C-->  " . join("\n  C-->  ", @calls_scriptrun));
+    ok((any { /ansible-playbook.*/ } @calls_scriptrun), 'ansible-playbooks executed with script_run');
+};
 
 subtest '[qesap_ansible_script_output] cmd with spaces' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
