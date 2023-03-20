@@ -44,7 +44,7 @@ sub run {
     }
 
 
-    unless (is_sle_micro('<5.2') || is_leap_micro('<5.2')) {
+    unless (is_sle_micro('<5.2') || is_leap_micro('<5.2') || is_alp) {
         push @pkgs, qw(cockpit-machines cockpit-tukit);
     }
 
