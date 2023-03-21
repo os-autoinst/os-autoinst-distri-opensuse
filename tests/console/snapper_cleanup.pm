@@ -24,7 +24,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'clear_console';
 use List::Util qw(max min);
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils qw(is_sle is_tumbleweed is_leap);
 
 my $exp_excl_space;
 my $btrfs_fs_usage = 'btrfs filesystem usage / --raw';
@@ -48,7 +48,16 @@ sub snapper_cleanup {
     for (1 .. $scratch_size_gb) { assert_script_run("$snap_create", 500); }
     assert_script_run('sync');
     script_run "echo There are `$snaps_numb` snapshots BEFORE cleanup";
-    assert_script_run("snapper cleanup number", 300);    # cleanup created snapshots
+    # cleanup created snapshots
+    # softfail the test if hitting bsc#1206814, so that the subsequent test runs are not affected
+    my $output = script_output('snapper cleanup number || echo "error detected"', 300, proceed_on_failure => 1);
+    if ($output =~ m/error detected/) {
+        if (($output =~ m/Failure\s+\(error\.something\)\./) && is_leap) {
+            record_soft_failure 'bsc#1206814';
+            return;
+        }
+        die 'snapper cleanup number failed';
+    }
     assert_script_run("btrfs quota rescan -w /", 90);
     script_run "echo There are `$snaps_numb` snapshots AFTER cleanup";
     assert_script_run("btrfs qgroup show -pcre /");
