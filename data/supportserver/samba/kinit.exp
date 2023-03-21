@@ -45,6 +45,6 @@ if {$force_conservative} {
 set timeout -1
 spawn kinit Administrator
 match_max 100000
-expect -exact "Password for Administrator@$AD_DOMAIN: "
-send -- "$AD_DOMAIN_PASSWORD\r"
+expect -exact "Password for Administrator@GEEKO.COM: "
+send -- "Nots3cr3t\r"
 expect eof
