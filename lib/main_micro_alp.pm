@@ -216,6 +216,7 @@ sub load_qemu_tests {
 
 sub load_fips_tests {
     loadtest 'transactional/enable_fips' if get_var('BOOT_HDD_IMAGE');
+    loadtest 'fips/libica' if is_s390x && is_sle_micro('5.4+');
     loadtest 'fips/openssl/openssl_fips_alglist';
     loadtest 'fips/openssl/openssl_fips_cipher';
     loadtest 'fips/openssl/openssl_fips_dhparam';
