@@ -2251,10 +2251,6 @@ sub load_security_tests_fips_setup {
     loadtest "fips/fips_setup";
 }
 
-sub load_security_tests_mok_enroll {
-    loadtest "security/mokutil_sign";
-}
-
 sub load_vt_perf_tests {
     loadtest "virt_autotest/login_console";
     if (get_var('VT_PERF_BAREMETAL')) {
@@ -2346,7 +2342,6 @@ sub load_mitigation_tests {
 sub load_security_tests {
     my @security_tests = qw(
       fips_setup
-      mok_enroll
       crypt_core
     );
 

@@ -1,0 +1,35 @@
+name: create_hdd_ntlm
+description: >
+  create_hdd_ntlm
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - '{{no_sep_home}}'
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/hostname_inst
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - boot/reconnect_mgmt_console
+  - '{{grub_test}}'
+  - installation/first_boot
+conditional_schedule:
+  no_sep_home:
+    ARCH:
+      ppc64le:
+        - installation/partitioning/no_separate_home
+  grub_test:
+    ARCH:
+      ppc64le:
+        - installation/grub_test
