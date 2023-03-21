@@ -183,7 +183,7 @@ sub load_common_tests {
     loadtest 'microos/cockpit_service' unless is_staging || (is_microos('Tumbleweed') && get_var('HDD_1') =~ /-old/);
     # Staging has no access to repos and the MicroOS-DVD does not contain ansible
     # Ansible test needs Packagehub in SLE and it can't be enabled in SLEM
-    loadtest 'console/ansible' unless (is_staging || is_sle_micro || is_leap_micro);
+    loadtest 'console/ansible' unless (is_staging || is_sle_micro || is_leap_micro || is_alp);
     loadtest 'console/kubeadm' if (check_var('SYSTEM_ROLE', 'kubeadm'));
 }
 

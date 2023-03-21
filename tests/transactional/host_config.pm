@@ -28,10 +28,8 @@ sub run {
     record_info('REPOS (Default)', script_output('zypper lr --url', proceed_on_failure => 1));
 
     if (is_alp) {
-        change_grub_config('=.*', '=1024x768', 'GRUB_GFXMODE=');
-        zypper_call('mr -e ALP-Build');
-
-        add_staging_repos() if (get_var("STAGING"));
+        zypper_call('ar -c ' . get_required_var('MIRROR_PREFIX') . '/' . get_required_var('REPO_ALP') . ' alp');
+        zypper_call('--gpg-auto-import-keys ref');
         record_info('REPOS (all)', script_output('zypper lr --url', proceed_on_failure => 1));
     }
 
