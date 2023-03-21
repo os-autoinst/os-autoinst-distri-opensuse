@@ -10,6 +10,7 @@ use warnings;
 use utils;
 use testapi;
 use Exporter 'import';
+use YaST::workarounds;
 
 our @EXPORT = qw(launch_yast2_module_x11 %setup_nis_nfs_x11);
 our %setup_nis_nfs_x11 = (
@@ -53,6 +54,7 @@ sub launch_yast2_module_x11 {
     # the command started with 'sh -c' to be able to execute 'echo' in Desktop Runner on Gnome
     x11_start_program("sh -c 'xdg-su -c \"env $yast_env_variables /sbin/yast2 $module\"; echo \"yast2-$module-status-\$?\" > /dev/$serialdev'", target_match => @tags, match_timeout => $args{match_timeout});
     foreach ($args{target_match}) {
+        return apply_workaround_poo124652($_) if (is_sle('>=15-SP4'));
         return if match_has_tag($_);
     }
     die "unexpected last match" unless match_has_tag 'root-auth-dialog';
