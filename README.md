@@ -2,9 +2,11 @@ os-autoinst/openQA tests for openSUSE and SUSE Linux Enterprise
 
 [![Build Status](https://github.com/os-autoinst/os-autoinst-distri-opensuse/workflows/ci/badge.svg)](https://github.com/os-autoinst/os-autoinst-distri-opensuse/actions)
 
-Status of [openSUSE Tumbleweed](https://get.opensuse.org/tumbleweed/) tests
-- GNOME on Tumbleweed: [![Gnome on Tumbleweed](https://openqa.opensuse.org/tests/latest/badge?arch=x86_64&distri=opensuse&flavor=DVD&machine=64bit&test=gnome&version=Tumbleweed&show_build=1)](https://openqa.opensuse.org/tests/latest?&arch=x86_64&distri=opensuse&flavor=DVD&machine=64bit&test=gnome&version=Tumbleweed)
-- KDE on Tumbleweed: [![KDE on Tumbleweed](https://openqa.opensuse.org/tests/latest/badge?arch=x86_64&distri=opensuse&flavor=DVD&machine=64bit&test=kde&version=Tumbleweed&show_build=1)](https://openqa.opensuse.org/tests/latest?arch=x86_64&distri=opensuse&flavor=DVD&machine=64bit&test=kde&version=Tumbleweed)
+Status of [openSUSE Tumbleweed](https://get.opensuse.org/tumbleweed/) tests:
+| Test | Badge |
+| --- | --- |
+| GNOME on Tumbleweed | [![Gnome on Tumbleweed](https://openqa.opensuse.org/tests/latest/badge?arch=x86_64&distri=opensuse&flavor=DVD&machine=64bit&test=gnome&version=Tumbleweed&show_build=1)](https://openqa.opensuse.org/tests/latest?&arch=x86_64&distri=opensuse&flavor=DVD&machine=64bit&test=gnome&version=Tumbleweed) |
+| KDE on Tumbleweed | [![KDE on Tumbleweed](https://openqa.opensuse.org/tests/latest/badge?arch=x86_64&distri=opensuse&flavor=DVD&machine=64bit&test=kde&version=Tumbleweed&show_build=1)](https://openqa.opensuse.org/tests/latest?arch=x86_64&distri=opensuse&flavor=DVD&machine=64bit&test=kde&version=Tumbleweed) |
 
 ---
 
