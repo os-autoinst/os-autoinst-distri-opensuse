@@ -51,7 +51,8 @@ sub run {
     record_info "START", "Start all guests";
     foreach my $guest (keys %virt_autotest::common::guests) {
         if (script_retry("virsh start $guest", delay => 120, retry => 3, die => 0) != 0) {
-            restart_libvirtd;
+            # Note: TBD for modular libvirt. See poo#129086 for detail.
+            restart_libvirtd if is_monolithic_libvirtd;
             script_retry("virsh start $guest", delay => 120, retry => 3);
         }
         script_retry "nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12;

@@ -114,6 +114,7 @@
 	<service>virtnodedevd</service>
 	<service>virtsecretd</service>
 	<service>virtproxyd</service>
+	<service>virtnwfilterd</service>
       </enable>
     </services>
   </services-manager>

@@ -35,7 +35,8 @@ sub run {
         save_screenshot;
         switch_from_ssh_to_sol_console(reset_console_flag => 'on');
     } else {
-        systemctl("restart libvirtd");
+        # Note: TBD for modular libvirt. See poo#129086 for detail.
+        systemctl("restart libvirtd") if is_monolithic_libvirtd;
         script_run("virsh list --all | grep -v Domain-0");
         # Check that all guests are still running
         script_retry("nmap $_ -PN -p ssh | grep open", delay => 60, retry => 60) foreach (keys %virt_autotest::common::guests);
