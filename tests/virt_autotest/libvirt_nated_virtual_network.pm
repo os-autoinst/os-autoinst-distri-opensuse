@@ -76,7 +76,8 @@ sub post_fail_hook {
     $self->SUPER::post_fail_hook;
 
     #Restart libvirtd service
-    virt_autotest::utils::restart_libvirtd();
+    # Note: TBD for modular libvirt. See poo#129086 for detail.
+    virt_autotest::utils::restart_libvirtd() if is_monolithic_libvirtd;
 
     #Destroy created virtual networks
     virt_autotest::virtual_network_utils::destroy_vir_network();

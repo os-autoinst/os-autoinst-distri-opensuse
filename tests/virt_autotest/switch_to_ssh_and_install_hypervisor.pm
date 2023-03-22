@@ -48,7 +48,6 @@ sub run {
     zypper_call('--gpg-auto-import-keys ref');
     script_retry("zypper -n in -t pattern ${hypervisor}_server ${hypervisor}_tools", timeout => 1800, retry => 5, delay => 10);
     set_grub_on_vh('', '', $hypervisor);
-    systemctl 'enable libvirtd', ignore_failure => 1;
 
     virt_autotest::utils::install_default_packages();
     save_screenshot;

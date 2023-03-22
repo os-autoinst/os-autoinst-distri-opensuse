@@ -22,7 +22,8 @@ sub run {
     assert_script_run "virsh autostart --disable $_" foreach (keys %virt_autotest::common::guests);
 
     record_info "LIBVIRTD", "Restart libvirtd and expect all guests to stay down";
-    restart_libvirtd;
+    # Note: TBD for modular libvirt. See poo#129086 for detail.
+    restart_libvirtd if is_monolithic_libvirtd;
 }
 
 sub test_flags {

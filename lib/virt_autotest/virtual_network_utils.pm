@@ -27,7 +27,7 @@ use virt_autotest::utils;
 
 our @EXPORT
   = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_network
-  restore_guests restore_network destroy_vir_network restore_libvirt_default enable_libvirt_log pload_debug_log
+  restore_guests restore_network destroy_vir_network restore_libvirt_default pload_debug_log
   check_guest_status check_guest_module check_guest_ip save_guest_ip test_network_interface hosts_backup
   hosts_restore get_free_mem get_active_pool_and_available_space clean_all_virt_networks setup_vm_simple_dns_with_ip
   get_guest_ip_from_vnet_with_mac update_simple_dns_for_all_vm validate_guest_status);
@@ -286,13 +286,6 @@ sub restore_libvirt_default {
         assert_script_run("virsh net-define $default_path", 60);
         assert_script_run("rm -rf $default_path");
     }
-}
-
-sub enable_libvirt_log {
-    assert_script_run qq(echo 'log_level = 1
-    log_filters="3:remote 4:event 3:json 3:rpc"
-    log_outputs="1:file:/var/log/libvirt/libvirtd.log"' >> /etc/libvirt/libvirtd.conf);
-    restart_libvirtd;
 }
 
 sub upload_debug_log {
