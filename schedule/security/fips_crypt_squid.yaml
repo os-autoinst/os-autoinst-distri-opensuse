@@ -1,0 +1,25 @@
+name: fips_crypt_squid
+description:    >
+    This is for the crypt_squid fips tests.
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - '{{repo_setup}}'
+    - fips/fips_setup
+    - '{{y2_vnc_pvm}}'
+    - fips/squid/squid_init
+    - fips/squid/squid_web_proxy
+    - fips/squid/squid_reverse_proxy
+conditional_schedule:
+    repo_setup:
+        BETA:
+            1:
+                - security/test_repo_setup
+        FLAVOR:
+            Online-QR:
+                - security/test_repo_setup
+    y2_vnc_pvm:
+        BACKEND:
+            pvm_hmc:
+                - console/yast2_vnc
