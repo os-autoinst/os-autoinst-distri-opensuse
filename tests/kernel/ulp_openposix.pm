@@ -59,7 +59,7 @@ sub prepare_repo {
     }
 
     my $provides = script_output("zypper -n info --provides $repo_args $packname");
-    my @versions = $provides =~ m/^\s*libc_([^_]+)_livepatch\d+\.so\(\)\([^)]+\)\s*$/gm;
+    my @versions = $provides =~ m/^\s*libc_([^_()]+)_livepatch\d+\.so\(\)\([^)]+\)\s*$/gm;
 
     die "Package $packname contains no libc livepatches"
       unless scalar @versions;
