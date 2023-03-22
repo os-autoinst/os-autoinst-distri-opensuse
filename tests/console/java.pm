@@ -49,7 +49,7 @@ sub run {
     # java-11-openjdk                   -> Basesystem
     # java-10-openjdk & java-1_8_0-ibm  -> Legacy
     my $cmd = 'install --auto-agree-with-licenses ';
-    $cmd .= (is_sle('15+') || is_sle('=12-SP5') || is_leap) ? 'java-11-openjdk* java-1_*' : 'java-*';
+    $cmd .= (is_sle('15+') || is_sle('=12-SP5') || is_leap) ? 'java-11-openjdk{,-demo,-devel} java-1_*' : 'java-*';
 
     if (is_transactional) {
         select_console 'root-console';
