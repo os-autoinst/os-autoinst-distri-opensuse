@@ -17,6 +17,8 @@ schedule:
 - x11/tracker/tracker_info
 - x11/tracker/tracker_search_in_nautilus
 - x11/tracker/clean_tracker
-- fips/openjdk/openjdk_fips
+- fips/openjdk/openjdk11_fips
+- fips/openjdk/openjdk_ssh
+- fips/openjdk/openjdk17_fips
 - fips/openjdk/openjdk_ssh
 ...
