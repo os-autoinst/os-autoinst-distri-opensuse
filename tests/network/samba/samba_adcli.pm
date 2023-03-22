@@ -116,6 +116,14 @@ sub randomize_hostname {
     assert_script_run("hostnamectl set-hostname '$hostname'");
 }
 
+sub disable_ipv6 {
+    assert_script_run('sysctl -w net.ipv6.conf.all.disable_ipv6=1');
+}
+
+sub enable_ipv6 {
+    assert_script_run('sysctl -w net.ipv6.conf.all.disable_ipv6=0');
+}
+
 sub run {
     select_serial_terminal;
 
@@ -125,6 +133,7 @@ sub run {
 
     samba_sssd_install();
     randomize_hostname();    # Prevent race condition with parallel test runs
+    disable_ipv6();    # AD host is not reachable via IPv6 on some of our workers
     join_domain();
     $domain_joined = 1;
 
@@ -149,11 +158,14 @@ sub run {
 
 sub post_run_hook {
     my ($self) = shift;
+    enable_ipv6();
 }
 
 sub post_fail_hook {
     my ($self) = shift;
     $self->SUPER::post_fail_hook;
+
+    enable_ipv6();
 
     script_run 'tar Jcvf samba_adcli.tar.xz /etc/sssd /var/log/samba /var/log/sssd /var/log/krb5';
     upload_logs('./samba_adcli.tar.xz');
