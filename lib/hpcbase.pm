@@ -428,6 +428,7 @@ sub setup_nfs_server {
     my ($self, $exports) = @_;
     zypper_call 'in nfs-kernel-server';
     foreach my $dir (values %$exports) {
+        assert_script_run "install -d -o $testapi::username -g users $dir" unless script_run("test -f $dir", quiet => 1) == 0;
         assert_script_run "echo $dir *(rw,no_root_squash,sync,no_subtree_check) >> /etc/exports";
     }
     assert_script_run 'exportfs -a';
