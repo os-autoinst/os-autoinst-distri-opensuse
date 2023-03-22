@@ -4,10 +4,12 @@
     cmd: ''
     out_path: '/tmp/ansible_script_output/'
     out_file: 'testout.txt'
+    failok: no
   tasks:
   - name: 'Run cmd'
     shell: "{{ cmd }} > /tmp/{{ out_file }}"
     register: crm_status_files
+    ignore_errors: "{{ failok }}"
   - name: fetch
     fetch:
       flat: yes

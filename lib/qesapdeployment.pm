@@ -63,6 +63,9 @@ our @EXPORT = qw(
   qesap_create_aws_credentials
   qesap_create_aws_config
   qesap_remote_hana_public_ips
+  qesap_wait_for_ssh
+  qesap_cluster_log_cmds
+  qesap_cluster_logs
 );
 
 =head1 DESCRIPTION
@@ -269,7 +272,7 @@ sub qesap_yaml_replace {
 
 sub qesap_execute {
     my (%args) = @_;
-    die 'QESAP command to execute undefined' unless $args{cmd};
+    croak 'Missing mandatory cmd argument' unless $args{cmd};
 
     my $verbose = $args{verbose} ? "--verbose" : "";
     my %paths = qesap_get_file_paths();
@@ -421,7 +424,6 @@ sub qesap_ansible_cmd {
     croak 'Missing mandatory cmd argument' unless $args{cmd};
     $args{user} ||= 'cloudadmin';
     $args{filter} ||= 'all';
-    $args{failok} ||= 0;
 
     my $inventory = qesap_get_inventory($args{provider});
 
@@ -434,15 +436,10 @@ sub qesap_ansible_cmd {
         '-a', "\"$args{cmd}\"");
     assert_script_run("source " . QESAPDEPLOY_VENV . "/bin/activate");
 
-    if ($args{failok}) {
-        script_run($ansible_cmd);
-    }
-    else {
-        assert_script_run($ansible_cmd);
-    }
+    $args{failok} ? script_run($ansible_cmd) : assert_script_run($ansible_cmd);
+
     enter_cmd("deactivate");
 }
-
 
 =head3 qesap_ansible_script_output
 
@@ -458,7 +455,10 @@ sub qesap_ansible_cmd {
     3. the playbook download the file locally
     4. the file is read and stored to be returned to the caller
 
-=over 5
+    If local_file and local_path are specified, the output is written to file, return is the full path;
+    otherwise the return is the command output as string.
+
+=over 8
 
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
@@ -472,23 +472,28 @@ sub qesap_ansible_cmd {
 
 =item B<FAILOK> - if not set, ansible failure result in die
 
+=item B<LOCAL_FILE> - filter hosts in the inventory
+
+=item B<LOCAL_PATH> - filter hosts in the inventory
+
 =back
 =cut
 
 sub qesap_ansible_script_output {
     my (%args) = @_;
+    croak 'Missing mandatory provider argument' unless $args{provider};
     croak 'Missing mandatory cmd argument' unless $args{cmd};
     croak 'Missing mandatory host argument' unless $args{host};
     $args{user} ||= 'cloudadmin';
     $args{root} ||= 0;
-    $args{failok} ||= 0;
 
     my $inventory = qesap_get_inventory($args{provider});
 
     my $pb = 'script_output.yaml';
-    my $local_path = '/tmp/ansible_script_output/';
-    my $local_file = 'testout.txt';
+    my $local_path = $args{local_path} // '/tmp/ansible_script_output/';
+    my $local_file = $args{local_file} // 'testout.txt';
     my $local_tmp = $local_path . $local_file;
+    my $return_string = ((not exists $args{local_path}) && (not exists $args{local_file}));
 
     if (script_run "test -e $pb") {
         my $cmd = join(' ',
@@ -505,20 +510,24 @@ sub qesap_ansible_script_output {
     push @ansible_cmd, ('-e', qq("cmd='$args{cmd}'"),
         '-e', "out_path='$local_path'",
         '-e', "out_file='$local_file'");
+    push @ansible_cmd, ('-e', "failok=yes") if ($args{failok});
 
-    enter_cmd "rm $local_tmp";
+
+    enter_cmd "rm $local_tmp || echo 'Nothing to delete'" if ($return_string);
+
     assert_script_run("source " . QESAPDEPLOY_VENV . "/bin/activate");    # venv activate
 
-    if ($args{failok}) {
-        script_run(join(' ', @ansible_cmd));
+    $args{failok} ? script_run(join(' ', @ansible_cmd)) : assert_script_run(join(' ', @ansible_cmd));
+
+    enter_cmd("deactivate");    #venv deactivate
+    if ($return_string) {
+        my $output = script_output("cat $local_tmp");
+        enter_cmd "rm $local_tmp || echo 'Nothing to delete'";
+        return $output;
     }
     else {
-        assert_script_run(join(' ', @ansible_cmd));
+        return $local_tmp;
     }
-    enter_cmd("deactivate");    #venv deactivate
-    my $output = script_output("cat $local_tmp");
-    enter_cmd "rm $local_tmp";
-    return $output;
 }
 
 =head3 qesap_create_aws_credentials
@@ -562,6 +571,99 @@ sub qesap_remote_hana_public_ips {
     my $tfdir = qesap_get_terraform_dir($prov);
     my $data = decode_json(script_output "terraform -chdir=$tfdir output -json");
     return @{$data->{hana_public_ip}->{value}};
+}
+
+=head3 qesap_wait_for_ssh
+
+  Probe specified port on the remote host each 5sec till response.
+  Return -1 in case of timeout
+  Return total time of retry loop in case of pass.
+
+=over 3
+
+=item B<HOST> - IP of the host to probe
+
+=item B<TIMEOUT> - time to wait before to give up, default is 10mins
+
+=item B<PORT> - port to probe, default is 22
+
+=back
+=cut
+
+sub qesap_wait_for_ssh {
+    my (%args) = @_;
+    croak 'Missing mandatory host argument' unless $args{host};
+    $args{timeout} //= bmwqemu::scale_timeout(600);
+    $args{port} ||= 22;
+    my $start_time = time();
+    my $check_port = 1;
+
+    # Looping until reaching timeout or passing two conditions :
+    # - SSH port 22 is reachable
+    # - journalctl got message about reaching one of certain targets
+    while ((my $duration = time() - $start_time) < $args{timeout}) {
+        return $duration if (script_run(join(' ', 'nc', '-vz', '-w', '1', $args{host}, $args{port}), quiet => 1) == 0);
+        sleep 5;
+    }
+
+    return -1;
+}
+
+=head3 qesap_cluster_log_cmds
+
+  List of commands to collect logs from a deployed cluster
+
+=cut
+
+sub qesap_cluster_log_cmds {
+    return (
+        {
+            Cmd => 'crm status',
+            Output => 'crm_status.txt',
+        },
+        {
+            Cmd => 'crm configure show',
+            Output => 'crm_configure.txt',
+        },
+        {
+            Cmd => 'lsblk -i -a',
+            Output => 'lsblk.txt',
+        },
+        {
+            Cmd => 'journalctl -b --no-pager -o short-precise',
+            Output => 'journalctl.txt',
+        },
+        {
+            Cmd => 'systemctl --no-pager --full status sbd',
+            Output => 'sbd.txt',
+        },
+    );
+}
+
+=head3 qesap_cluster_logs
+
+  Collect logs from a deployed cluster
+
+=cut
+
+sub qesap_cluster_logs {
+    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my $inventory = qesap_get_inventory($prov);
+    if (script_run("test -e $inventory") == 0)
+    {
+        foreach my $host ('vmhana01', 'vmhana02') {
+            foreach my $cmd (qesap_cluster_log_cmds()) {
+                my $out = qesap_ansible_script_output(cmd => $cmd->{Cmd},
+                    provider => $prov,
+                    host => $host,
+                    failok => 1,
+                    root => 1,
+                    local_path => '/tmp/',
+                    local_file => "$host-$cmd->{Output}");
+                upload_logs($out, failok => 1);
+            }
+        }
+    }
 }
 
 1;

@@ -14,10 +14,13 @@ use qesapdeployment;
 sub run {
     select_serial_terminal;
 
-    my $ret = qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
-    die "'qesap.py ansible -d' return: $ret" if ($ret);
-    $ret = qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1200);
-    die "'qesap.py terraform -d' return: $ret" if ($ret);
+    my $ansible_ret = qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
+    if ($ansible_ret) {
+        qesap_cluster_logs();
+    }
+    my $terraform_ret = qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1200);
+    die "'qesap.py ansible -d' return: $ansible_ret" if ($ansible_ret);
+    die "'qesap.py terraform -d' return: $terraform_ret" if ($terraform_ret);
 }
 
 sub post_fail_hook {
