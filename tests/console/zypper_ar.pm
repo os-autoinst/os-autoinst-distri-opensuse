@@ -19,7 +19,7 @@ sub run {
     select_console 'root-console';
     # Trying to switch to more scalable solution with updated rsync.pl
     if (my $urlprefix = get_var('MIRROR_PREFIX')) {
-        my @repos_to_add = qw(OSS NON_OSS OSS_DEBUGINFO);
+        my @repos_to_add = qw(OSS NON_OSS OSS_DEBUGINFO ALP);
         my $repourl;
         foreach (@repos_to_add) {
             next unless get_var("REPO_$_");    # Skip repo if not defined
