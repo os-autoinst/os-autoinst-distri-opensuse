@@ -69,7 +69,7 @@ sub change_desktop {
     }
     else {
         if (!check_var('DESKTOP', 'gnome')) {
-            send_key_until_needlematch 'gnome-selected', 'down';
+            send_key_until_needlematch 'gnome-selected', 'down', 25;
             send_key ' ';
         }
         if (check_var('DESKTOP', 'kde')) {
