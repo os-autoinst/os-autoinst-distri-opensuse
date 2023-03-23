@@ -41,6 +41,8 @@ conditional_schedule:
         - installation/grub_test
       aarch64:
         - installation/grub_test
+      ppc64le:
+        - installation/grub_test
   svirt_upload_assets:
     ARCH:
       s390x:
