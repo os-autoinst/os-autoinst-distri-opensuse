@@ -3,7 +3,7 @@
 #
 # Package: openssl SUSEConnect ca-certificates-suse
 # Summary: Register all guests against local SMT server
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "virt_feature_test_base";
 use virt_autotest::common;

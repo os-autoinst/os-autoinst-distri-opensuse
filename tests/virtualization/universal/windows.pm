@@ -5,7 +5,7 @@
 
 # Package: libvirt-daemon openssh
 # Summary: Import and test Windows guest
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "consoletest";
 use virt_autotest::common;

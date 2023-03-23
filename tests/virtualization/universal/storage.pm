@@ -5,7 +5,7 @@
 
 # Package: libvirt-client
 # Summary: Storage pool / volume test
-# Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>, Jan Baier <jbaier@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "virt_feature_test_base";
 use virt_autotest::virtual_storage_utils;

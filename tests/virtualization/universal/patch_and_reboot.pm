@@ -5,7 +5,7 @@
 
 # Package: rpm nmap libvirt-client
 # Summary: Apply patches to the running system
-# Maintainer: Pavel Dostál <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base 'consoletest';
 use virt_autotest::common;

@@ -3,7 +3,7 @@
 #
 # Package: openssh libvirt-client libvirt-daemon
 # Summary: Stop all libvirt guests
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "consoletest";
 use virt_autotest::common;

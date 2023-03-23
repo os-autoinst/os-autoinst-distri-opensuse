@@ -3,7 +3,7 @@
 #
 # Package: openssh coreutils ca-certificates-suse
 # Summary: This test connects to hypervisor using SSH
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "consoletest";
 use virt_autotest::common;

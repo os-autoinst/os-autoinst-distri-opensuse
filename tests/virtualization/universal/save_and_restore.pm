@@ -10,7 +10,7 @@
 
 # Package: libvirt-client nmap
 # Summary: Test if the guests can be saved and restored
-# Maintainer: Jan Baier <jbaier@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "virt_feature_test_base";
 use virt_autotest::common;

@@ -3,7 +3,7 @@
 #
 # Package: openssh
 # Summary: This test fetch SSH keys of all guests and authorize the client one
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "consoletest";
 use virt_autotest::common;
