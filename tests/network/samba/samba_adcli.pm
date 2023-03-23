@@ -125,6 +125,11 @@ sub enable_ipv6 {
 }
 
 sub run {
+    # Don't run on 12-SP2. This is much easier than a conditional schedule in the yaml file.
+    if (is_sle('<12-SP3')) {
+        record_info("Not available", "this test run is not available for SLES version older than 12-SP3.");
+        return;
+    }
     select_serial_terminal;
 
     # Ensure the required variables are set
