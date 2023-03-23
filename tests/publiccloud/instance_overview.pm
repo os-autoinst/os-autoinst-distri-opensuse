@@ -8,7 +8,7 @@
 # We just register the system, install random package, see the system and network configuration
 # This test module will fail at the end to prove that the test run will continue without rollback
 #
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: qa-c <qa-c@suse.de>
 
 use base 'publiccloud::basetest';
 use registration;

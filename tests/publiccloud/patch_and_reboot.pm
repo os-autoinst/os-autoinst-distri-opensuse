@@ -6,7 +6,7 @@
 # Package: zypper
 # Summary: Refresh repositories, apply patches and reboot
 #
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: qa-c <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use registration;
