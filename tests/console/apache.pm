@@ -9,7 +9,7 @@
 #  * Test custom vhost domain, custom vhost port
 #  * Test if http-prefork works correctly
 #  * Test http basic authentication
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use testapi;

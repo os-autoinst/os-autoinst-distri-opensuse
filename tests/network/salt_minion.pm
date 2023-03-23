@@ -17,7 +17,7 @@
 # - Check that the user and it's group created from the master are present
 # - Check that the sysctl value set from the master has right value
 # - Stop the minion at the end
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "saltbase";
 use strict;

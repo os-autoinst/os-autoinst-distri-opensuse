@@ -14,7 +14,7 @@
 #    * We also create some testing file
 #    * 1GB file is created and the md5 checksum saved for later comparing
 #    * The NFSv4 ACL are used to protest some files - the client then tries to access those
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "y2_module_consoletest";
 
