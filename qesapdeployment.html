@@ -37,6 +37,9 @@
           <li><a href="#qesap_create_aws_credentials">qesap_create_aws_credentials</a></li>
           <li><a href="#qesap_create_aws_config">qesap_create_aws_config</a></li>
           <li><a href="#qesap_remote_hana_public_ips">qesap_remote_hana_public_ips</a></li>
+          <li><a href="#qesap_wait_for_ssh">qesap_wait_for_ssh</a></li>
+          <li><a href="#qesap_cluster_log_cmds">qesap_cluster_log_cmds</a></li>
+          <li><a href="#qesap_cluster_logs">qesap_cluster_logs</a></li>
         </ul>
       </li>
     </ul>
@@ -180,6 +183,10 @@ qesap_prepare_env(cmd=&gt;{string}, provider =&gt; &#39;aws&#39;);</code></pre>
 <dd>
 
 </dd>
+<dt id="FAILOK---if-not-set-ansible-failure-result-in-die"><b>FAILOK</b> - if not set, ansible failure result in die</dt>
+<dd>
+
+</dd>
 </dl>
 
 <h3 id="qesap_ansible_script_output">qesap_ansible_script_output</h3>
@@ -194,7 +201,10 @@ It uses playbook data/sles4sap/script_output.yaml
 1. ansible-playbook run the playbook
 2. the playbook executes the command and redirects the output to file, both remotely
 3. the playbook download the file locally
-4. the file is read and stored to be returned to the caller</code></pre>
+4. the file is read and stored to be returned to the caller
+
+If local_file and local_path are specified, the output is written to file, return is the full path;
+otherwise the return is the command output as string.</code></pre>
 
 <dl>
 
@@ -218,6 +228,18 @@ It uses playbook data/sles4sap/script_output.yaml
 <dd>
 
 </dd>
+<dt id="FAILOK---if-not-set-ansible-failure-result-in-die1"><b>FAILOK</b> - if not set, ansible failure result in die</dt>
+<dd>
+
+</dd>
+<dt id="LOCAL_FILE---filter-hosts-in-the-inventory"><b>LOCAL_FILE</b> - filter hosts in the inventory</dt>
+<dd>
+
+</dd>
+<dt id="LOCAL_PATH---filter-hosts-in-the-inventory"><b>LOCAL_PATH</b> - filter hosts in the inventory</dt>
+<dd>
+
+</dd>
 </dl>
 
 <h3 id="qesap_create_aws_credentials">qesap_create_aws_credentials</h3>
@@ -232,6 +254,36 @@ It uses playbook data/sles4sap/script_output.yaml
 
 <pre><code>Return a list of the public IP addresses of the systems deployed by qesapdeployment, as reported
 by C&lt;terraform output&gt;. Needs to run after C&lt;qesap_execute(cmd =&gt; &#39;terraform&#39;);&gt; call.</code></pre>
+
+<h3 id="qesap_wait_for_ssh">qesap_wait_for_ssh</h3>
+
+<pre><code>Probe specified port on the remote host each 5sec till response.
+Return -1 in case of timeout
+Return total time of retry loop in case of pass.</code></pre>
+
+<dl>
+
+<dt id="HOST---IP-of-the-host-to-probe"><b>HOST</b> - IP of the host to probe</dt>
+<dd>
+
+</dd>
+<dt id="TIMEOUT---time-to-wait-before-to-give-up-default-is-10mins"><b>TIMEOUT</b> - time to wait before to give up, default is 10mins</dt>
+<dd>
+
+</dd>
+<dt id="PORT---port-to-probe-default-is-22"><b>PORT</b> - port to probe, default is 22</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_cluster_log_cmds">qesap_cluster_log_cmds</h3>
+
+<pre><code>List of commands to collect logs from a deployed cluster</code></pre>
+
+<h3 id="qesap_cluster_logs">qesap_cluster_logs</h3>
+
+<pre><code>Collect logs from a deployed cluster</code></pre>
 
 
 </body>
