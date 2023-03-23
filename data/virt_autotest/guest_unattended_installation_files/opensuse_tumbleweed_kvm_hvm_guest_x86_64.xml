@@ -45,27 +45,7 @@
       <hostname>##Host-Name##</hostname>
       <resolv_conf_policy>auto</resolv_conf_policy>
     </dns>
-    <interfaces config:type="list">
-      <interface>
-        <bootproto>dhcp</bootproto>
-        <name>enp1s0</name>
-        <startmode>auto</startmode>
-      </interface>
-      <interface>
-        <bootproto>static</bootproto>
-        <broadcast>127.255.255.255</broadcast>
-        <name>lo</name>
-        <firewall>no</firewall>
-        <ipaddr>127.0.0.1</ipaddr>
-        <netmask>255.0.0.0</netmask>
-        <network>127.0.0.0</network>
-        <prefixlen>8</prefixlen>
-        <startmode>auto</startmode>
-      </interface>
-    </interfaces>
-    <ipv6 config:type="boolean">true</ipv6>
     <keep_install_network config:type="boolean">true</keep_install_network>
-    <managed config:type="boolean">false</managed>
     <routing>
       <ipv4_forward config:type="boolean">true</ipv4_forward>
       <ipv6_forward config:type="boolean">true</ipv6_forward>
@@ -113,21 +93,8 @@
         <product>openSUSE</product>
     </products>
     <packages config:type="list">
-      <package>openSUSE-release</package>
-      <package>less</package>
-      <package>wicked</package>
-      <package>openssh</package>
-      <package>numactl</package>
-      <package>kexec-tools</package>
-      <package>irqbalance</package>
-      <package>iproute2</package>
-      <package>grub2</package>
-      <package>glibc</package>
-      <package>e2fsprogs</package>
-      <package>chrony</package>
-      <package>btrfsprogs</package>
-      <package>biosdevname</package>
       <package>autoyast2</package>
+      <package>supportutils</package>
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
