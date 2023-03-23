@@ -3,7 +3,7 @@
 #
 # Package: virt-manager
 # Summary: This test adds some devices to our VMs
-# Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "virt_feature_test_base";
 use virt_autotest::common;

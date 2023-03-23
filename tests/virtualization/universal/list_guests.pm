@@ -5,7 +5,7 @@
 
 # Package: libvirt-client openssh
 # Summary: List every guest and ensure they are online
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "virt_feature_test_base";
 use virt_autotest::common;

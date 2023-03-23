@@ -5,7 +5,7 @@
 
 # Package: openssh rpm nmap systemd-sysvinit libvirt-client
 # Summary: Apply patches to the all of our guests and reboot them
-# Maintainer: Pavel Dostál <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base 'consoletest';
 use warnings;

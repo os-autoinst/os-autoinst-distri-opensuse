@@ -5,7 +5,7 @@
 
 # Package: libvirt-client
 # Summary: Wait for guests so they finish the installation
-# Maintainer: Pavel Dostál <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base 'consoletest';
 use virt_autotest::common;

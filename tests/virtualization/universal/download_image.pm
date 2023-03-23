@@ -5,7 +5,7 @@
 
 # Package: rsync
 # Summary: Download disk image
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "consoletest";
 use virt_autotest::common;

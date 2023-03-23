@@ -5,7 +5,7 @@
 
 # Package: openssh binutils util-linux
 # Summary: Tests, if the machine is up and running
-# Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "virt_feature_test_base";
 use virt_autotest::common;

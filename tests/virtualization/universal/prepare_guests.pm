@@ -10,7 +10,7 @@
 # PATCH_WITH_ZYPPER and UPDATE_PACKAGE are not defined in settings. They
 # should be specified on command line when scheduling tests.
 #
-# Maintainer: Pavel Dostál <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base 'consoletest';
 use virt_autotest::common;

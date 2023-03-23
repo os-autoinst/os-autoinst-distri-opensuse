@@ -3,7 +3,7 @@
 #
 # Package: vhostmd vm-dump-metrics
 # Summary: Prepare the dom0 metrics environment
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "consoletest";
 use virt_autotest::common;

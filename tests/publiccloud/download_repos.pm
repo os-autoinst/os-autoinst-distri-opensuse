@@ -5,7 +5,7 @@
 
 # Summary: Download repositores from the internal server
 #
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: qa-c <qa-c@suse.de>
 
 use base 'consoletest';
 use registration;

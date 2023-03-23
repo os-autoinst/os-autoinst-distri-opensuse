@@ -24,7 +24,7 @@
 # - Create user and group and wait for the minion
 # - Set sysctl key and wait for the minion
 # - Stop both master and minion at the end
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "saltbase";
 use strict;

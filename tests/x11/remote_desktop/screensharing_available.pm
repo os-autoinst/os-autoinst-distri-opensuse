@@ -12,7 +12,7 @@
 # - Check if wayland is being used
 #   - If wayland is detected, record_soft_failure (boo#1137569)
 # - Finish with ctrl-q
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "x11test";
 use strict;

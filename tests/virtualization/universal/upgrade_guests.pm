@@ -5,7 +5,7 @@
 
 # Package: openssh zypper
 # Summary: Upgrade all guests to their latest state
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "consoletest";
 use warnings;

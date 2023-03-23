@@ -3,7 +3,7 @@
 #
 # Package: xen-tools openssh
 # Summary: Obtain the dom0 metrics
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "consoletest";
 use virt_autotest::common;

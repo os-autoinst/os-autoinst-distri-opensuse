@@ -6,7 +6,7 @@
 # Package: libvirt-client iputils nmap xen-tools
 # Summary: The last test of a typical virtualization run:
 #   It's purpose is to collect logs.
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base 'consoletest';
 use virt_autotest::common;

@@ -15,7 +15,7 @@
 #   * The NFSv4 ACLs are tested as well
 #   * Every forbidden file is tested so no read nor write operations suceed
 #   * We download 1GB file and check it's checksum
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "y2_module_consoletest";
 
