@@ -31,7 +31,7 @@ sub run {
 
     # package installation test
     my $ret = $instance->run_ssh_command(cmd => 'rpm -q ' . $test_package, rc_only => 1);
-    if ($ret) {
+    unless ($ret) {
         die("Testing package \'$test_package\' is already installed, choose a different package!");
     }
     $instance->run_ssh_command(cmd => 'sudo transactional-update -n pkg install ' . $test_package, timeout => 600);
