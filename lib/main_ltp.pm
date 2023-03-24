@@ -32,11 +32,6 @@ sub load_kernel_tests {
     loadtest_kernel "../installation/bootloader" if is_pvm;
 
     if (get_var('INSTALL_LTP')) {
-        if (is_alp) {
-            loadtest('microos/disk_boot');
-            loadtest('transactional/host_config');
-        }
-
         if (get_var('INSTALL_KOTD')) {
             loadtest_kernel 'install_kotd';
         }
