@@ -550,6 +550,7 @@ Destroys the current terraform deployment
 
 sub terraform_destroy {
     my ($self) = @_;
+    record_info('TFM DESTROY', 'Running terraform_destroy() now');
     # Do not destroy if terraform has not been applied or the environment doesn't exist
     return unless ($self->terraform_applied);
 
