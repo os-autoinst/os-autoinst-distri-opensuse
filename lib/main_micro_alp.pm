@@ -265,10 +265,6 @@ sub load_journal_check_tests {
 }
 
 sub load_tests {
-    if (is_kernel_test()) {
-        load_kernel_tests;
-        return 1;
-    }
     if (get_var('REMOTE_TARGET')) {
         load_remote_target_tests;
         return 1;
@@ -299,12 +295,13 @@ sub load_tests {
             loadtest 'transactional/check_phub';
             return;
         }
-
     }
 
     load_config_tests;
 
-    if (is_container_test || check_var('SYSTEM_ROLE', 'container-host')) {
+    if (is_kernel_test()) {
+        load_kernel_tests;
+    } elsif (is_container_test || check_var('SYSTEM_ROLE', 'container-host')) {
         if (is_microos) {
             # MicroOS Container-Host image runs all tests.
             load_common_tests;
