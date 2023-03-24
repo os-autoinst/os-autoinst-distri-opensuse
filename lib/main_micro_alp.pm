@@ -234,8 +234,9 @@ sub load_fips_tests {
 sub load_selinux_tests {
     loadtest 'security/selinux/selinux_setup';
     loadtest 'security/selinux/sestatus';
-    loadtest 'security/selinux/selinux_smoke';
-    loadtest 'security/selinux/enforcing_mode_setup';
+    # ALP has selinux enabled and in enforcing mode by default
+    loadtest 'security/selinux/selinux_smoke' unless is_alp;
+    loadtest 'security/selinux/enforcing_mode_setup' unless is_alp;
     loadtest 'security/selinux/semanage_fcontext';
     loadtest 'security/selinux/semanage_boolean';
     loadtest 'security/selinux/fixfiles';
