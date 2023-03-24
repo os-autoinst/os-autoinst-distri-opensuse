@@ -51,6 +51,7 @@ schedule:
     - console/curl_ipv6
     - console/wget_ipv6
     - console/ca_certificates_mozilla
+    - console/ansible
     - x11/evolution/evolution_prepare_servers
     - console/unzip
     - console/salt
@@ -60,4 +61,3 @@ schedule:
     - console/dstat
     - console/journalctl
     - console/procps
-    - console/ansible
