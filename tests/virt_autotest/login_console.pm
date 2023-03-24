@@ -15,7 +15,7 @@ use testapi;
 use Utils::Architectures;
 use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout);
 use ipmi_backend_utils;
-use virt_autotest::utils qw(is_xen_host check_port_state check_host_health);
+use virt_autotest::utils qw(is_xen_host is_kvm_host check_port_state check_host_health);
 use IPC::Run;
 
 sub set_ssh_console_timeout_before_use {
@@ -23,7 +23,7 @@ sub set_ssh_console_timeout_before_use {
     select_console('root-console');
     set_ssh_console_timeout('/etc/ssh/sshd_config', '28800');
     reset_consoles;
-    select_console 'sol', await_console => 1;
+    select_console 'sol', await_console => 0;
     send_key 'ret';
     check_screen([qw(linux-login virttest-displaymanager)], 60);
     save_screenshot;
@@ -47,6 +47,16 @@ sub double_check_xen_role {
     record_info 'INFO', 'Check if start bootloader from a read-only snapshot';
     assert_script_run('touch /root/read-only.fs && rm -rf /root/read-only.fs');
     save_screenshot;
+}
+
+sub check_kvm_modules {
+    if (script_run('lsmod | grep "^kvm\b"') == 0 and script_run('lsmod | grep -e "^kvm_intel\b" -e "^kvm_amd\b"') == 0) {
+        save_screenshot;
+        record_info("KVM", "kvm and kvm_intel/amd modules are loaded");
+    }
+    else {
+        die "KVM modules are not loaded!";
+    }
 }
 
 #Explanation for parameters introduced to facilitate offline host upgrade:
@@ -191,12 +201,14 @@ sub login_to_console {
         send_key 'ret';
     }
 
-    # Set ssh console timeout for thunderx machine
-    set_ssh_console_timeout_before_use if (is_remote_backend && is_aarch64 && get_var('IPMI_HW') eq 'thunderx');
+    # Set ssh console timeout for virt tests on ipmi backend machines
+    # it will make ssh serial console alive even with long time command
+    set_ssh_console_timeout_before_use if (is_remote_backend and is_x86_64 and get_var('VIRT_AUTOTEST', ''));
     # use console based on ssh to avoid unstable ipmi
     use_ssh_serial_console;
     # double-check xen role for xen host
     double_check_xen_role if (is_xen_host and !get_var('REBOOT_AFTER_UPGRADE'));
+    check_kvm_modules if is_x86_64 and is_kvm_host and !get_var('REBOOT_AFTER_UPGRADE');
 }
 
 sub run {
