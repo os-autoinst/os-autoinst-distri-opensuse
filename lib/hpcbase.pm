@@ -357,6 +357,14 @@ sub prepare_spack_env {
     select_serial_terminal(0);
     assert_script_run 'module load gnu $mpi';    ## TODO
     assert_script_run 'source /usr/share/spack/setup-env.sh';
+
+    if (script_run("env | grep -i SPACK_LD_LIBRARY_PATH") != 0) {
+        my $spack_version = script_output "rpm -qa spack";
+        record_soft_failure("bsc#1208751 libboost_mpi.so cant be found after installed by spack on $spack_version\n");
+        assert_script_run("spack config add modules:prefix_inspections:lib64:[LD_LIBRARY_PATH]");
+        assert_script_run("spack config add modules:prefix_inspections:lib:[LD_LIBRARY_PATH]");
+    }
+
     record_info 'spack', script_output 'zypper -q info spack';
     record_info 'boost spec', script_output('spack spec boost', timeout => 360);
     assert_script_run "spack install boost+mpi^$mpi", timeout => 12000;
