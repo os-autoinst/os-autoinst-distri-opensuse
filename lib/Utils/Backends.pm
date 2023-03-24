@@ -263,8 +263,15 @@ sub is_generalhw { check_var('BACKEND', 'generalhw'); }
 sub set_ssh_console_timeout {
     my ($sshd_config_file, $sshd_timeout) = @_;
     my $client_count_max = $sshd_timeout / 60;
-    script_run("sed -irnE 's/^.*TCPKeepAlive.*\$/TCPKeepAlive yes/g; s/^.*ClientAliveInterval.*\$/ClientAliveInterval 60/g; s/^.*ClientAliveCountMax.*\$/ClientAliveCountMax $client_count_max/g' $sshd_config_file");
-    script_run("service sshd restart") if (script_run("systemctl restart sshd") ne '0');
+    if (script_run("ls $sshd_config_file") == 0) {
+        script_run("sed -irnE 's/^.*TCPKeepAlive.*\$/TCPKeepAlive yes/g; s/^.*ClientAliveInterval.*\$/ClientAliveInterval 60/g; s/^.*ClientAliveCountMax.*\$/ClientAliveCountMax $client_count_max/g' $sshd_config_file");
+        script_run("grep -i Alive $sshd_config_file");
+        script_run("service sshd restart") if (script_run("systemctl restart sshd") ne '0');
+        record_info("Keep ssh connection alive for long-time run test!");
+    }
+    else {
+        record_info("Fail to set ssh session alive for long-time run test", "Unable to find $sshd_config_file", result => 'softfail');
+    }
 }
 
 =head2 is_ssh_installation
