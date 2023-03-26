@@ -84,6 +84,10 @@ variable "gpu" {
   default = false
 }
 
+variable "vm_create_timeout" {
+    default = "20m"
+}
+
 resource "random_id" "service" {
     count = var.instance_count
     keepers = {
@@ -144,6 +148,10 @@ resource "google_compute_instance" "openqa" {
             enable_vtpm = "true"
             enable_integrity_monitoring = "true"
         }
+    }
+
+    timeouts {
+        create = var.vm_create_timeout
     }
 }
 

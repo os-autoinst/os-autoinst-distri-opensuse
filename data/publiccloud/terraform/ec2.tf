@@ -52,6 +52,10 @@ variable "tags" {
     default = {}
 }
 
+variable "vm_create_timeout" {
+    default = "20m"
+}
+
 resource "random_id" "service" {
     count = var.instance_count
     keepers = {
@@ -106,6 +110,10 @@ resource "aws_instance" "openqa" {
     ebs_block_device {
         device_name = "/dev/sda1"
         volume_size = 20
+    }
+
+    timeouts {
+        create = var.vm_create_timeout
     }
 }
 
