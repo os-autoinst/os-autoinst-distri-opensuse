@@ -26,16 +26,23 @@ sub run {
     $variables{PROVIDER} = $qesap_provider;
     $variables{REGION} = $provider->provider_client->region;
     $variables{DEPLOYMENTNAME} = $resource_group_postfix;
-    $variables{QESAP_CLUSTER_OS_VER} = get_required_var("QESAP_CLUSTER_OS_VER");
+    if (get_var('QESAP_CLUSTER_OS_VER')) {
+        $variables{QESAP_CLUSTER_OS_VER} = get_var('QESAP_CLUSTER_OS_VER');
+    }
+    else {
+        $variables{STORAGE_ACCOUNT_NAME} = get_required_var('STORAGE_ACCOUNT_NAME');
+        $variables{SLE_IMAGE} = $provider->get_image_id();
+    }
+
     $variables{SSH_KEY_PRIV} = '/root/.ssh/id_rsa';
     $variables{SSH_KEY_PUB} = '/root/.ssh/id_rsa.pub';
     $variables{SCC_REGCODE_SLES4SAP} = get_required_var('SCC_REGCODE_SLES4SAP');
     $variables{HANA_INSTANCE_TYPE} = get_var('QESAP_HANA_INSTANCE_TYPE', 'r6i.xlarge');
 
-    $variables{HANA_ACCOUNT} = get_required_var("QESAPDEPLOY_HANA_ACCOUNT");
-    $variables{HANA_CONTAINER} = get_required_var("QESAPDEPLOY_HANA_CONTAINER");
+    $variables{HANA_ACCOUNT} = get_required_var('QESAPDEPLOY_HANA_ACCOUNT');
+    $variables{HANA_CONTAINER} = get_required_var('QESAPDEPLOY_HANA_CONTAINER');
     if (get_var("QESAPDEPLOY_HANA_TOKEN")) {
-        $variables{HANA_TOKEN} = get_required_var("QESAPDEPLOY_HANA_TOKEN");
+        $variables{HANA_TOKEN} = get_required_var('QESAPDEPLOY_HANA_TOKEN');
         # escape needed by 'sed'
         # but not implemented in file_content_replace() yet poo#120690
         $variables{HANA_TOKEN} =~ s/\&/\\\&/g;
