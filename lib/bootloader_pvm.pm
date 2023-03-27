@@ -90,17 +90,6 @@ sub reset_lpar_netboot {
         send_key '1';
         get_into_net_boot;
     }
-    elsif (match_has_tag('load-initrd-error')) {
-        enter_cmd_slow "exit";
-        enter_cmd_slow "set-default ibm,fw-nbr-reboots";
-        enter_cmd_slow "reset-all";
-        if (check_screen 'no-image-detected', 60) {
-            send_key 'ctrl-C';
-            get_into_net_boot;
-        }
-        # then we have really an issue on setup of pvm and it cannot be workaround this time.
-        die 'No image was detected by firmware, you need check your setup on pvm' if (check_screen 'no-image-detected', 30);
-    }
 }
 
 sub enter_netboot_parameters {
@@ -138,42 +127,17 @@ sub prepare_pvm_installation {
     $boot_attempt //= 1;
     reset_lpar_netboot;
     enter_netboot_parameters;
-    # we have sporadic netwwork issue on power machine 'grenache', mnt directory cannot be accessed, see poo#120570
-    # record_soft_failure if error occurs while loading initrd
-    assert_screen([qw(pvm-grub-command-line-fresh-prompt load-initrd-error)], 180, no_wait => 1);    # initrd is downloaded while waiting
-    if (match_has_tag('load-initrd-error')) {
-        record_soft_failure 'cannot load initrd, sporadic issue, see poo#120570. Re-trying now...';
-        # run some network checks and list $mntpoint before reset_lpar_netboot
-        my $repo = get_required_var('REPO_0');
-        my $mirror = get_netboot_mirror;
-        my $mntpoint = "mnt/openqa/repo/$repo/boot/ppc64le";
-        enter_cmd_slow "clear";
-        enter_cmd_slow "net_ls_addr";
-        enter_cmd_slow "net_ls_cards";
-        enter_cmd_slow "net_nslookup qanet.qa.suse.de";
-        wait_still_screen 10;
-        enter_cmd_slow "ls $mntpoint";
-        wait_still_screen 10;
-        save_screenshot;
-        reset_lpar_netboot;
-        enter_netboot_parameters;
-    }
-    else {
-        enter_cmd "boot";
-        save_screenshot;
-    }
+    enter_cmd "boot";
+    save_screenshot;
 
     # pvm has sometimes extrem performance issue, increase timeout for booting up after enter_netboot_parameters
-    assert_screen(["pvm-grub-menu", "novalink-successful-first-boot", "load-initrd-error"], 700);
+    assert_screen(["pvm-grub-menu", "novalink-successful-first-boot"], 300);
     if (match_has_tag "pvm-grub-menu") {
         # During boot pvm-grub menu was seen again
         # Will try to setup linux and initrd again up to 3 times
         $boot_attempt++;
         die "Boot process restarted too many times" if ($boot_attempt > 3);
         return (bootloader_pvm::prepare_pvm_installation $boot_attempt);
-    }
-    elsif (match_has_tag "load-initrd-error") {
-        die 'Still not able to load kernel to boot up. Possible network issue, please check directory $mntpoint';
     }
 
     assert_screen("run-yast-ssh", 300);
