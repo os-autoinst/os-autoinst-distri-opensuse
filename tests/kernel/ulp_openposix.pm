@@ -89,7 +89,8 @@ sub run {
     record_info('glibc version', $libver);
     zypper_call("in --oldpackage glibc-$libver");
     schedule_tests('openposix', "_glibc-$libver");
-    loadtest_kernel('ulp_threads', name => "ulp_threads_glibc-$libver");
+    loadtest_kernel('ulp_threads', name => "ulp_threads_glibc-$libver",
+        run_args => $tinfo);
     zypper_call("in " . $tinfo->{packname});
 
     # Run tests again with the next untested glibc version
