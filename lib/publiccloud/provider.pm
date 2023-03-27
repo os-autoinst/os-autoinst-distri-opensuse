@@ -419,7 +419,7 @@ sub terraform_apply {
         my $sle_version = get_var('FORCED_DEPLOY_REPO_VERSION') ? get_var('FORCED_DEPLOY_REPO_VERSION') : get_var('VERSION');
         $sle_version =~ s/-/_/g;
         my $ha_sap_repo = get_var('HA_SAP_REPO') ? get_var('HA_SAP_REPO') . '/SLE_' . $sle_version : '';
-        my $suffix = sprintf("%04x", rand(0xffff));
+        my $suffix = get_current_job_id();
         my $fencing_mechanism = get_var('FENCING_MECHANISM', 'sbd');
         file_content_replace('terraform.tfvars',
             q(%MACHINE_TYPE%) => $instance_type,
