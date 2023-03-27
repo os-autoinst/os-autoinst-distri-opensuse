@@ -1,5 +1,11 @@
 ---
 name: qam-minimal
+description:    >
+    Maintainer: qe-core@suse.com
+    test is first textmode, system update and RR update is done
+    on x86_64 is installation publiched for grub2 test
+vars:
+  DESKTOP: 'textmode'
 schedule:
 - installation/bootloader_start
 - installation/welcome
@@ -22,6 +28,8 @@ schedule:
 - installation/reboot_after_installation
 - installation/handle_reboot
 - installation/first_boot
+- console/system_prepare
+- console/hostname
 - qam-minimal/install_update
 - qam-minimal/update_minimal
 - qam-minimal/check_logs
@@ -39,8 +47,6 @@ conditional_schedule:
   publish:
     ARCH:
       x86_64:
-        - console/hostname
-        - console/system_prepare
         - console/force_scheduled_tasks
         - shutdown/grub_set_bootargs
         - shutdown/cleanup_before_shutdown
