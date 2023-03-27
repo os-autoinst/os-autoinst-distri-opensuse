@@ -330,7 +330,7 @@
         "description": "health-checker/fail.sh check\" failed|Machine didn't come up correctly, do a rollback",
         "products": {
             "microos":  ["Tumbleweed"],
-            "alp":  ["0.1", "0.1:S:A", "0.1:S:B"]
+            "alp":  ["micro-0.1", "bedrock-0.1"]
         },
         "type": "ignore"
     },
