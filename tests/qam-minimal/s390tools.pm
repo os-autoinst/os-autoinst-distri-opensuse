@@ -14,9 +14,10 @@ use warnings;
 use testapi;
 use utils 'zypper_call';
 use version_utils qw(is_sle);
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
     zypper_call 'in s390-tools';
     validate_script_output 'zipl -c /boot/zipl/config --dry-run', sub { m/Building|Preparing|Done/ };
     validate_script_output 'lsreipl', sub { m/Re-IPL|Device|Loadparm|Bootparms/ };

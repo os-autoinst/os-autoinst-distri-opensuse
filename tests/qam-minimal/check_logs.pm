@@ -13,9 +13,10 @@ use warnings;
 
 use qam;
 use testapi;
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
     # we should get the same IP setup after every reboot, but for now
     # we can't assert this
     script_run("diff -u /tmp/ip_a_before.log /tmp/ip_a_after.log");
