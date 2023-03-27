@@ -58,15 +58,37 @@ sub search_certificates {
     wait_still_screen 10;
 }
 
+sub select_master_password_option {
+    my ($ff_ver) = @_;
+
+    firefox_preferences;
+    wait_still_screen 20;
+    # Search "Passwords" section
+    if ($ff_ver >= 91) {
+        type_string "Use a primary", timeout => 15, max_interval => 40;
+    }
+    else {
+        type_string "Use a master", timeout => 15, max_interval => 40;
+    }
+    assert_and_click("firefox-master-password-checkbox");
+    assert_screen("firefox-passwd-master_setting");
+}
+
+sub set_master_password {
+    my ($password, $needle_name) = @_;
+
+    type_string $password;
+    send_key "tab";
+    type_string $password;
+    send_key "ret";
+    assert_screen("$needle_name");
+    send_key "ret";
+}
+
 sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    # Define FIPS password for firefox, and it should be consisted by:
-    # - at least 8 characters
-    # - at least one upper case
-    # - at least one non-alphabet-non-number character (like: @-.=%)
-    my $fips_password = 'openqa@SUSE';
     my $firefox_version = script_output(q(rpm -q MozillaFirefox | awk -F '-' '{ split($2, a, "."); print a[1]; }'));
     record_info('MozillaFirefox version', "Version of Current MozillaFirefox package: $firefox_version");
 
@@ -88,26 +110,20 @@ sub run {
     select_console 'x11';
     x11_start_program('firefox https://html5test.opensuse.org', target_match => 'firefox-html-test', match_timeout => 360);
 
-    # Firefox Preferences
-    firefox_preferences;
-    wait_still_screen 20;
-    # Search "Passwords" section
-    if ($firefox_version >= 91) {
-        type_string "Use a primary", timeout => 15, max_interval => 40;
-    }
-    else {
-        type_string "Use a master", timeout => 15, max_interval => 40;
-    }
-    assert_and_click("firefox-master-password-checkbox");
-    assert_screen("firefox-passwd-master_setting");
+    # Define FIPS password for firefox, and it should be consisted by:
+    # - at least 8 characters
+    # - at least one upper case
+    # - at least one non-alphabet-non-number character (like: @-.=%)
+    my $fips_strong_password = 'openqa@SUSE';
+    my $fips_weak_password = 'asdasd';
 
-    # Set the Master Password
-    type_string $fips_password;
-    send_key "tab";
-    type_string $fips_password;
-    send_key "ret";
-    assert_screen("firefox-password-change-succeeded");
-    send_key "ret";
+    # Set the Master Password and check behaviour when a weak pwd is set (poo#125420)
+    select_master_password_option $firefox_version;
+    set_master_password("$fips_weak_password", "firefox-weak-password-error");
+
+    select_master_password_option $firefox_version;
+    set_master_password("$fips_strong_password", "firefox-password-change-succeeded");
+
     wait_still_screen 3;
     send_key "ctrl-f";
     send_key "ctrl-a";
@@ -172,7 +188,7 @@ sub run {
     if (check_screen("firefox-passowrd-typefield", 120)) {
 
         # Add max_interval while type password and extend time of click needle match
-        type_string($fips_password, timeout => 10, max_interval => 30);
+        type_string($fips_strong_password, timeout => 10, max_interval => 30);
         send_key 'ret', wait_screen_change => 1;    # Confirm password
 
         wait_still_screen 30;
@@ -182,7 +198,7 @@ sub run {
         # The problem frequently happened in aarch64
         if (check_screen("firefox-password-typefield-miss")) {
             record_info("aarch64 type_missing", "Firefox password is missing to input, please refer to bsc#1179749 & poo#105343");
-            type_string($fips_password, timeout => 10, max_interval => 30);
+            type_string($fips_strong_password, timeout => 10, max_interval => 30);
             send_key "ret";
         }
     }
