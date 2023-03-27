@@ -51,6 +51,8 @@ sub load_boot_from_disk_tests {
     if (is_s390x()) {
         loadtest 'installation/bootloader_start';
         loadtest 'boot/boot_to_desktop';
+    } elsif (is_generalhw && is_aarch64) {
+        loadtest 'microos/prepare_firstboot';
     } else {
         if (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
             loadtest 'jeos/firstrun';
