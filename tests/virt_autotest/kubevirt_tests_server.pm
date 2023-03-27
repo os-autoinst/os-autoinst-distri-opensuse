@@ -82,7 +82,6 @@ sub run {
         record_info('Agent IP', $agent_ip);
 
         $self->rke2_server_setup($agent_ip);
-        $self->install_kubevirt_packages();
         $self->deploy_kubevirt_manifests();
     } else {
         select_console 'sol', await_console => 0;
@@ -90,16 +89,14 @@ sub run {
     }
 
     $self->run_virt_tests();
-
     barrier_wait('kubevirt_test_done');
-
     die "Testing failed, please check details." if ($if_case_fail);
 }
 
 sub rke2_server_setup {
     my ($self, $agent_ip) = @_;
 
-    record_info('Start RKE2 server setup', '');
+    record_info('RKE2 Server Setup', '');
     unless (is_transactional) {
         disable_and_stop_service('apparmor.service');
         disable_and_stop_service('firewalld.service');
@@ -110,9 +107,11 @@ sub rke2_server_setup {
     script_run('rebootmgrctl set-strategy off') if (is_transactional);
     # Check if the package 'ca-certificates-suse' are installed on the node
     ensure_ca_certificates_suse_installed();
+
     transactional::process_reboot(trigger => 1) if (is_transactional);
-    # Set long host name to avoid x509 server connection issue
-    assert_script_run('hostnamectl set-hostname ' . get_required_var('SUT_IP'));
+    record_info('Installed certificates packages', script_output('rpm -qa | grep certificates'));
+
+    $self->install_kubevirt_packages();
 
     # RKE2 deployment on server node
     # Default is to setup service with the latest RKE2 version, the parameter INSTALL_RKE2_VERSION allows to setup with a specified version.
@@ -132,12 +131,12 @@ sub rke2_server_setup {
     assert_script_run("sed -i '/ExecStart=/s/server\$/server --cni=multus,canal/' /etc/systemd/system/rke2-server.service");
 
     # Enable rke2-server service
-    systemctl('enable rke2-server.service');
-    systemctl('start rke2-server.service', timeout => 180);
+    systemctl('enable --now rke2-server.service', timeout => 180);
     $self->check_service_status();
 
     # Start rke2-server service ready
     barrier_wait('rke2_server_start_ready');
+    record_info('Start RKE2 Server', '');
 
     assert_script_run('mkdir -p ~/.kube');
     assert_script_run('cp /etc/rancher/rke2/rke2.yaml ~/.kube/config');
@@ -145,17 +144,25 @@ sub rke2_server_setup {
     assert_script_run('kubectl get nodes');
 
     # Create registries ready
-    script_run('cat > /etc/rancher/rke2/registries.yaml <<__END
+    our $local_registry_fqdn = get_required_var("LOCAL_REGISTRY_FQDN");
+    our $local_registry_ip = script_output("nslookup $local_registry_fqdn|sed -n '5,1p'|awk -F' ' '{print \$2}'");
+    assert_script_run("cat > /etc/rancher/rke2/registries.yaml <<__END
 mirrors:
   registry.suse.de:
     endpoint:
       - http://registry.suse.com
+  $local_registry_fqdn:5000:
+    endpoint:
+      - http://$local_registry_fqdn:5000
+  $local_registry_ip:5000:
+    endpoint:
+      - http://$local_registry_ip:5000
 configs:
   registry.suse.com:
     tls:
       insecure_skip_verify: true
 __END
-true');
+(exit \$?)");
 
     # Wait for rke2-agent service to be ready
     my $children = get_children();
@@ -169,10 +176,11 @@ true');
 
     # Restart rke2-server service complete
     barrier_wait('rke2_server_restart_complete');
+    record_info('Restart RKE2 Server', '');
 
     mutex_wait('rke2_agent_restart_complete', (keys %$children)[0]);
 
-    script_retry('! kubectl get nodes | grep NotReady', retry => 8, delay => 20, timeout => 180);
+    script_retry('! kubectl get nodes | grep NotReady', retry => 14, delay => 20, timeout => 300);
     assert_script_run('kubectl get nodes');
 }
 
@@ -198,6 +206,7 @@ sub install_kubevirt_packages {
     # Devel test repo, e.g. http://download.suse.de/download/ibs/Devel:/Virt:/SLE-15-SP4/SUSE_SLE-15-SP4_Update_standard/
     # MU product test (SLE official MU channel+incidents)
     transactional::enter_trup_shell(global_options => '--drop-if-no-change') if (is_transactional);
+
     zypper_call("lr -d");
     zypper_call("ar $virt_tests_repo Virt-Tests-Repo");
     zypper_call("ar $virt_manifests_repo Virt-Manifests-Repo") if ($virt_manifests_repo);
@@ -216,18 +225,38 @@ sub install_kubevirt_packages {
         }
     }
     zypper_call("in -f -r Virt-Tests-Repo kubevirt-tests");
+
+    # Install Longhorn dependencies
+    our $kubevirt_ver = script_output("rpm -q --qf \%{VERSION} kubevirt-tests");
+    record_info('Kubevirt test version', $kubevirt_ver);
+    zypper_call('in jq open-iscsi') if (script_run('rpmquery jq open-iscsi') && ($kubevirt_ver ge "0.50.0"));
+
+    # Install required packages perl-CPAN-Changes and ant-junit
     if (is_transactional) {
-        transactional::exit_trup_shell_and_reboot();
-        assert_script_run('kubectl get nodes');
+        $self->install_additional_pkgs();
+    } else {
+        zypper_call('in git ant-junit') if (script_run('rpmquery git ant-junit'));
     }
+
+    # Ensure Config::Tiny module installed
+    assert_script_run('cpan install Config::Tiny <<<yes', timeout => 300) if (script_run('cpan -l <<<yes | grep Config::Tiny') == 1);
+
+    transactional::exit_trup_shell_and_reboot() if (is_transactional);
+
     record_info('Installed kubevirt package version', script_output('rpm -qa |grep -E "containerized|kubevirt|virt-test"'));
+
+    # Enable iscsid service
+    systemctl('enable --now iscsid', timeout => 180) if ($kubevirt_ver ge "0.50.0");
+
+    # Install kubevirt packages complete
+    barrier_wait('kubevirt_packages_install_complete');
 }
 
 sub deploy_kubevirt_manifests {
     my $self = shift;
-    # Deploy required kubevirt manifests
-    my $kubevirt_ver = script_output("rpm -q --qf \%{VERSION} kubevirt-tests");
+    our $kubevirt_ver;
 
+    # Deploy required kubevirt manifests
     record_info('Deploy kubevirt manifests', '');
     assert_script_run("kubectl apply -f /usr/share/cdi/manifests/release/cdi-operator.yaml");
     assert_script_run("kubectl apply -f /usr/share/cdi/manifests/release/cdi-cr.yaml");
@@ -237,6 +266,8 @@ sub deploy_kubevirt_manifests {
     assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/release/kubevirt-cr.yaml");
     assert_script_run("kubectl -n kubevirt wait kv kubevirt --for condition=available --timeout=30m", timeout => 1800);
 
+    # Workaround for failure 'MountVolume.SetUp failed for volume "local-storage" : mkdir /mnt/local-storage: read-only file system'
+    assert_script_run('mkdir -p /root/tmp && mount -o bind /root/tmp /mnt') if (is_transactional);
     # Check all loop devices to see if they refer to deleted files
     record_info('Check all loop devices', script_output('losetup -a -l'));
     # Detach all loop devices, the disk-image-provider needs to use it to setup images
@@ -245,14 +276,17 @@ sub deploy_kubevirt_manifests {
     record_info('Remove existing local disks', script_output('[ -d /tmp/hostImages -a -d /mnt/local-storage ] && rm -r /tmp/hostImages /mnt/local-storage', proceed_on_failure => 1));
 
     assert_script_run("kubectl apply -f https://github.com/kubevirt/kubevirt/releases/download/v${kubevirt_ver}/rbac-for-testing.yaml");
-    # Workaround for failure 'MountVolume.SetUp failed for volume "local-storage" : mkdir /mnt/local-storage: read-only file system'
-    assert_script_run('mkdir -p /root/tmp && mount -o bind /root/tmp /mnt') if (is_transactional);
     assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/testing/disks-images-provider.yaml");
 
-    my $hostname = script_output('hostname');
-    assert_script_run("curl -JLO https://github.com/kubevirt/kubevirt/releases/download/v${kubevirt_ver}/local-block-storage.yaml");
-    assert_script_run("sed -i 's/node01/$hostname/g' local-block-storage.yaml");
-    assert_script_run("kubectl apply -f local-block-storage.yaml");
+    if ($kubevirt_ver lt "0.50.0") {
+        my $hostname = script_output('hostname');
+        assert_script_run("curl -JLO https://github.com/kubevirt/kubevirt/releases/download/v${kubevirt_ver}/local-block-storage.yaml");
+        assert_script_run("sed -i 's/node01/$hostname/g' local-block-storage.yaml");
+        assert_script_run("kubectl apply -f local-block-storage.yaml");
+    }
+    else {
+        $self->setup_longhorn_csi();
+    }
 
     assert_script_run("kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml");
     assert_script_run("kubectl -n local-path-storage wait deployment/local-path-provisioner --for condition=available --timeout=15m", timeout => 900);
@@ -264,33 +298,162 @@ sub deploy_kubevirt_manifests {
     record_info('List local storage', script_output('ls /mnt/local-storage -R -l'));
     record_info('Check the loop device "loop0"', script_output('losetup /dev/loop0'));
     record_info('Check all loop devices', script_output('losetup -l -a'));
+
+    $self->apply_test_config();
+}
+
+sub setup_longhorn_csi {
+    my $self = shift;
+
+    record_info('Install Longhorn CSI', '');
+
+    # Install Longhorn CSI
+    my $longhorn_ver = get_var('LONGHORN_VERSION');
+    assert_script_run("kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v$longhorn_ver/deploy/longhorn.yaml");
+
+    # Ensure successful Longhorn deployment
+    my @deployments = split(/\n/, script_output("kubectl get --no-headers deployments -n longhorn-system -o custom-columns=:.metadata.name"));
+    assert_script_run("kubectl rollout status deployment --timeout=20m -n longhorn-system $_") foreach (@deployments);
+    my @daemonsets = split(/\n/, script_output("kubectl get --no-headers daemonsets -n longhorn-system -o custom-columns=:.metadata.name"));
+    assert_script_run("kubectl rollout status daemonset --timeout=20m -n longhorn-system $_") foreach (@daemonsets);
+
+    # Adjust Longhorn settings (lhs)
+    script_retry('kubectl get -n longhorn-system lhs', retry => 8, delay => 10, timeout => 90);
+    assert_script_run(qq(kubectl patch -n longhorn-system lhs storage-minimal-available-percentage --type merge -p '{"value": "5"}'));
+
+    # Create storage classes
+    assert_script_run("kubectl apply -f https://gitlab.suse.de/virtualization/kubevirt-ci/-/raw/main/storage/longhorn-sc.yaml");
+
+    # Ensure only one default storage class exists
+    assert_script_run(qq(kubectl patch storageclass longhorn-default -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'));
+    assert_script_run("kubectl delete --ignore-not-found configmaps -n longhorn-system longhorn-storageclass");
+    assert_script_run("kubectl delete --ignore-not-found storageclass longhorn");
+
+    # Update storage profiles (give CDI some time to reconcile)
+    script_retry('kubectl get StorageProfile longhorn-default longhorn-migratable longhorn-wffc', retry => 8, delay => 10, timeout => 90);
+    assert_script_run("curl -kJLO https://gitlab.suse.de/virtualization/kubevirt-ci/-/raw/main/storage/longhorn-sp-patch.yaml");
+    assert_script_run("kubectl patch StorageProfile longhorn-default --type merge --patch-file longhorn-sp-patch.yaml");
+    assert_script_run("kubectl patch StorageProfile longhorn-migratable --type merge --patch-file longhorn-sp-patch.yaml");
+    assert_script_run(qq(kubectl patch StorageProfile longhorn-wffc --type merge -p '{"spec": {"claimPropertySets": [{"accessModes": ["ReadWriteOnce"]}]}}'));
+
+    # Enable snapshots support
+    my @crd = (
+        'snapshot.storage.k8s.io_volumesnapshotclasses.yaml',
+        'snapshot.storage.k8s.io_volumesnapshotcontents.yaml',
+        'snapshot.storage.k8s.io_volumesnapshots.yaml'
+    );
+    assert_script_run("kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-4.0/client/config/crd/$_") foreach (@crd);
+
+    my @snapshot_controller = (
+        'rbac-snapshot-controller.yaml',
+        'setup-snapshot-controller.yaml'
+    );
+    assert_script_run("kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-4.0/deploy/kubernetes/snapshot-controller/$_") foreach (@snapshot_controller);
+
+    # Create a backup target
+    assert_script_run("kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v$longhorn_ver/deploy/backupstores/nfs-backupstore.yaml");
+
+    # Set backup target URL to nfs://longhorn-test-nfs-svc.default:/opt/backupstore
+    assert_script_run(qq(kubectl patch -n longhorn-system lhs backup-target --type merge -p '{"value": "nfs://longhorn-test-nfs-svc.default:/opt/backupstore"}'));
+
+    # Add a default VolumeSnapshotClass
+    assert_script_run("kubectl apply -f - <<EOF
+kind: VolumeSnapshotClass
+apiVersion: snapshot.storage.k8s.io/v1
+metadata:
+  name: longhorn-default
+driver: driver.longhorn.io
+deletionPolicy: Delete
+parameters:
+    type: snap
+EOF
+(exit \$?)");
+
+    # Setup access to Longhorn UI (useful for debugging)
+    assert_script_run("curl -kJLO https://gitlab.suse.de/virtualization/kubevirt-ci/-/raw/main/storage/longhorn-auth");
+    assert_script_run("kubectl -n longhorn-system create secret generic basic-auth --from-file=auth=longhorn-auth || true");
+    assert_script_run("kubectl -n longhorn-system apply -f https://gitlab.suse.de/virtualization/kubevirt-ci/-/raw/main/storage/longhorn-ingress.yaml");
+}
+
+sub apply_test_config {
+    my $self = shift;
+
+    record_info('Apply test config', '');
+
+    # bsc#1210696, 1210863
+    our $local_registry_fqdn;
+    our $local_registry_ip;
+    assert_script_run("cat > 1210696_1210863.yaml <<EOF
+spec:
+  config:
+    dataVolumeTTLSeconds: -1
+    featureGates:
+    - HonorWaitForFirstConsumer
+    insecureRegistries:
+    - registry:5000
+    - fakeregistry:5000
+    - $local_registry_fqdn:5000
+    - $local_registry_ip:5000
+    uploadProxyURLOverride: https://127.0.0.1:31001
+EOF
+(exit \$?)");
+    assert_script_run("kubectl patch cdi cdi --type merge --patch-file 1210696_1210863.yaml");
+
+    # bsc#1210856
+    assert_script_run("mkdir -p /var/provision/kubevirt.io/tests && mount -t tmpfs tmpfs /var/provision/kubevirt.io/tests");
+    assert_script_run("echo 'tmpfs /var/provision/kubevirt.io/tests tmpfs rw 0 0' >> /etc/fstab");
+
+    # bsc#1210884
+    assert_script_run(qq(kubectl -n kubevirt patch kubevirt kubevirt --type merge --patch '{"spec": {"configuration": {"developerConfiguration": {"pvcTolerateLessSpaceUpToPercent": 20}}}}'));
+
+    # bsc#1210906
+    assert_script_run("sysctl -w vm.unprivileged_userfaultfd=1");
+    # Installing Whereabouts plugin
+    assert_script_run("git clone https://github.com/k8snetworkplumbingwg/whereabouts && cd whereabouts", 600);
+    assert_script_run("kubectl apply -f doc/crds/daemonset-install.yaml " .
+          "-f doc/crds/whereabouts.cni.cncf.io_ippools.yaml " .
+          "-f doc/crds/whereabouts.cni.cncf.io_overlappingrangeipreservations.yaml && cd");
 }
 
 sub run_virt_tests {
     my $self = shift;
-    my $test_conf;
+    my $test_suite_conf;
+    my $test_scope_conf;
     my @kubevirt_tests;
-    my $test_suite_config = '/usr/share/kube-virt/manifests/testing/default-config.json';
+    our $kubevirt_ver;
 
-    record_info('Run kubevirt tests', '');
-    transactional::enter_trup_shell(global_options => '--drop-if-no-change') if (is_transactional);
+    record_info('Run kubevirt tests', $kubevirt_ver);
 
-    record_info('Set local storage class', '');
-    assert_script_run("sed -i '/storageClassLocal/s/local/local-path/' $test_suite_config");
-
-    if (is_transactional) {
-        # Install required packages perl-CPAN-Changes and ant-junit
-        $self->install_additional_pkgs();
+    # Create a valid config for the test suite
+    # Default testing config path: /usr/share/kube-virt/manifests/testing/default-config.json
+    if ($kubevirt_ver lt "0.50.0") {
+        $test_suite_conf = '/tmp/local-config.json';
+        assert_script_run(qq(cat > $test_suite_conf <<EOF
+{
+    "storageClassLocal":       "local-path",
+    "storageClassHostPath":    "host-path",
+    "storageClassHostPathSeparateDevice":    "host-path-sd",
+    "storageClassBlockVolume": "block-volume",
+    "storageClassRhel":        "rhel",
+    "storageClassWindows":     "windows",
+    "manageStorageClasses":     true
+}
+EOF
+(exit \$?)));
     } else {
-        zypper_call('in ant-junit') if (script_run('rpmquery ant-junit'));
-    }
-
-    # Ensure Config::Tiny module installed
-    assert_script_run('cpan install Config::Tiny <<<yes', timeout => 300) if (script_run('cpan -l <<<yes | grep Config::Tiny') == 1);
-
-    if (is_transactional) {
-        transactional::exit_trup_shell_and_reboot();
-        assert_script_run('mkdir -p /root/tmp && mount -o bind /root/tmp /mnt');
+        $test_suite_conf = '/tmp/longhorn-config.json';
+        assert_script_run(qq(cat > $test_suite_conf <<EOF
+{
+    "storageClassRhel":        "longhorn-default",
+    "storageClassWindows":     "longhorn-default",
+    "storageRWXFileSystem":    "longhorn-default",
+    "storageRWXBlock":         "longhorn-migratable",
+    "storageRWOFileSystem":    "longhorn-wffc",
+    "storageRWOBlock":         "longhorn-migratable",
+    "storageSnapshot":         "longhorn-default"
+}
+EOF
+(exit \$?)));
     }
 
     my $result_dir = '/tmp/artifacts';
@@ -299,17 +462,18 @@ sub run_virt_tests {
 
     # Run virt-tests command for each go test files
     if (check_var('KUBEVIRT_TEST', 'full')) {
-        $test_conf = 'full-tests.conf';
+        $test_scope_conf = 'full-tests.conf';
         @kubevirt_tests = @full_tests;
     } elsif (check_var('KUBEVIRT_TEST', 'core')) {
-        $test_conf = 'core-tests.conf';
+        $test_scope_conf = 'core-tests.conf';
         @kubevirt_tests = @core_tests;
     }
     my $parser_script = 'config_parser.pl';
-    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$test_conf") . " -o $test_conf");
+    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$test_scope_conf") . " -o $test_scope_conf");
     assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$parser_script") . " -o $parser_script");
 
-    my ($go_test, $skip_test, $extra_opt, $params);
+    my ($ginkgo_focus, $ginkgo_skip, $extra_opt, $specific_test, $ginkgo_v2);
+    my ($go_test, $skip_test, $params, $server_ip, $nic_name);
     my ($artifacts, $junit_xml, $test_log, $test_cmd, $num_of_skipped);
     my $retry_times = get_var('FAILED_RETRY');
 
@@ -318,37 +482,62 @@ sub run_virt_tests {
     assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$node_helper") . " -o $node_helper");
     assert_script_run("kubectl apply -f $node_helper");
 
-    my $ginkgo_focus = get_var('GINKGO_FOCUS');
+    my $pre_rel_reg = get_required_var('PREVIOUS_RELEASE_REGISTRY');
+    my $pre_rel_tag = get_required_var('PREVIOUS_RELEASE_TAG');
+    my $additional_reg_tag = "-previous-release-registry=$pre_rel_reg -previous-release-tag=$pre_rel_tag";
+
+    our $local_registry_fqdn;
+    my ($container_prefix, $container_tag, $pre_util_container_reg, $pre_util_container_tag);
+    if ($kubevirt_ver ge "0.50.0") {
+        $container_prefix = "$local_registry_fqdn:5000";
+        $container_tag = get_required_var('CONTAINER_TAG');
+        $pre_util_container_reg = "$local_registry_fqdn:5000";
+        $pre_util_container_tag = get_required_var('PREVIOUS_UTILITY_CONTAINER_TAG');
+        $additional_reg_tag = "$additional_reg_tag " .
+          "-container-prefix=$container_prefix -container-tag=$container_tag " .
+          "-previous-utility-container-registry=$pre_util_container_reg " .
+          "-previous-utility-container-tag=$pre_util_container_tag";
+    }
+
+    $ginkgo_focus = get_var('GINKGO_FOCUS');
     if ($ginkgo_focus) {
-        my $ginkgo_skip = get_var('GINKGO_SKIP');
-        my $extra_opt = get_var('EXTRA_OPT');
+        $ginkgo_skip = get_var('GINKGO_SKIP');
+        $extra_opt = get_var('EXTRA_OPT');
+        $specific_test = 'test' . int(rand(999));
 
         $ginkgo_skip = "|$ginkgo_skip" if (defined($ginkgo_skip));
-        record_info('specific_test', $ginkgo_focus);
-        $result_dir = "$result_dir/specific_test";
+        record_info($specific_test, $ginkgo_focus);
+        $result_dir = "$result_dir/$specific_test";
         assert_script_run("mkdir -p $result_dir");
 
-        $junit_xml = "$result_dir/specific_test.xml";
-        $test_log = "$result_dir/specific_test.log";
-        $test_cmd = "virt-tests -ginkgo.regexScansFilePath=true " .
-          "-ginkgo.focus='$ginkgo_focus' " .
-          "-ginkgo.skip='QUARANTINE$ginkgo_skip' " .
-          "-ginkgo.slowSpecThreshold 60 " .
-          "-kubeconfig=/root/.kube/config " .
-          "-kubectl-path=`which kubectl` " .
-          "-virtctl-path=`which virtctl` " .
-          "-installed-namespace=kubevirt " .
-          "-deploy-testing-infra=false " .
-          "-config=$test_suite_config " .
-          "-dns-service-name=rke2-coredns-rke2-coredns " .
-          "-ginkgo.v=true -test.v=true -ginkgo.trace=true " .
-          "-ginkgo.noisySkippings=false -ginkgo.progress=true " .
-          "-ginkgo.noColor -apply-default-e2e-configuration " .
-          "$extra_opt " .
-          "-artifacts=$result_dir " .
-          "-junit-output=$junit_xml " .
+        $junit_xml = "$result_dir/$specific_test.xml";
+        $test_log = "$result_dir/$specific_test.log";
+
+        if ($kubevirt_ver lt "0.50.0") {
+            $ginkgo_v2 = "-ginkgo.regexScansFilePath=true " .
+              "-ginkgo.focus='$ginkgo_focus' " .
+              "-ginkgo.skip='QUARANTINE$ginkgo_skip' " .
+              "-ginkgo.slowSpecThreshold 60 " .
+              "-ginkgo.v=true -ginkgo.trace=true " .
+              "-ginkgo.noisySkippings=false -ginkgo.progress=true";
+        } else {
+            $ginkgo_v2 = "--ginkgo.focus='$ginkgo_focus' " .
+              "--ginkgo.skip='QUARANTINE$ginkgo_skip' " .
+              "--ginkgo.slow-spec-threshold 60s " .
+              "--ginkgo.v=true --ginkgo.trace=true " .
+              "--ginkgo.progress=true";
+        }
+
+        $test_cmd = "virt-tests $ginkgo_v2 -kubeconfig=/root/.kube/config " .
+          "-kubectl-path=`which kubectl` -virtctl-path=`which virtctl` " .
+          "-installed-namespace=kubevirt -deploy-testing-infra=false " .
+          "-config=$test_suite_conf -dns-service-name=rke2-coredns-rke2-coredns " .
+          "$extra_opt $additional_reg_tag " .
+          "-test.v=true -apply-default-e2e-configuration " .
+          "-artifacts=$artifacts -junit-output=$junit_xml " .
           "2>&1 | tee $test_log";
 
+        record_info("Run test cmd", $test_cmd);
         script_run($test_cmd, timeout => 7200);
         send_key 'ctrl-c';
         save_screenshot;
@@ -358,43 +547,55 @@ sub run_virt_tests {
             $go_test = '';
             $skip_test = '';
             $extra_opt = '';
-            $params = script_output("perl $parser_script $test_conf $section");
+            $params = script_output("perl $parser_script $test_scope_conf $section");
             ($go_test, $skip_test, $extra_opt) = split(',', $params);
             record_info($section, join("\n", $go_test, $skip_test, $extra_opt));
 
-            if ($section eq 'operator_test') {
-                my $pre_rel_registry = get_required_var('PREVIOUS_RELEASE_REGISTRY');
-                my $pre_rel_tag = get_required_var('PREVIOUS_RELEASE_TAG');
-                $extra_opt =~ s/PREVIOUS_RELEASE_REGISTRY/$pre_rel_registry/;
-                $extra_opt =~ s/PREVIOUS_RELEASE_TAG/$pre_rel_tag/;
+            if ($section eq 'migration_test') {
+                assert_script_run("kubectl delete net-attach-def migration-cni -n kubevirt") if (!script_run("kubectl get net-attach-def -A | grep migration-cni"));
+                $server_ip = get_required_var('SERVER_IP');
+                $nic_name = script_output("ip addr | grep $server_ip | awk -F' ' '{print \$NF}'");
+                $extra_opt = "-migration-network-nic=$nic_name";
             }
 
             $artifacts = "$result_dir/$section";
             $junit_xml = "$result_dir/${section}.xml";
             $test_log = "$result_dir/${section}.log";
-            $test_cmd = "virt-tests -ginkgo.regexScansFilePath=true " .
-              "-ginkgo.focus='$go_test' " .
-              "-ginkgo.skip='QUARANTINE$skip_test' " .
-              "-ginkgo.slowSpecThreshold 60 " .
-              "-kubeconfig=/root/.kube/config " .
-              "-kubectl-path=`which kubectl` " .
-              "-virtctl-path=`which virtctl` " .
-              "-installed-namespace=kubevirt " .
-              "-deploy-testing-infra=false " .
-              "-config=$test_suite_config " .
-              "-dns-service-name=rke2-coredns-rke2-coredns " .
-              "-ginkgo.v=true -test.v=true -ginkgo.trace=true " .
-              "-ginkgo.noisySkippings=false -ginkgo.progress=true " .
-              "-ginkgo.noColor -apply-default-e2e-configuration " .
-              "$extra_opt " .
-              "-artifacts=$artifacts " .
-              "-junit-output=$junit_xml " .
+
+            if ($kubevirt_ver lt "0.50.0") {
+                $ginkgo_v2 = "-ginkgo.regexScansFilePath=true " .
+                  "-ginkgo.focus='$go_test' " .
+                  "-ginkgo.skip='QUARANTINE$skip_test' " .
+                  "-ginkgo.slowSpecThreshold 60 " .
+                  "-ginkgo.v=true -ginkgo.trace=true " .
+                  "-ginkgo.noisySkippings=false -ginkgo.progress=true";
+            } else {
+                if ($go_test =~ /\.go$/) {
+                    $ginkgo_focus = "--ginkgo.focus-file='$go_test' ";
+                } else {
+                    $ginkgo_focus = "--ginkgo.focus='$go_test' ";
+                }
+                $ginkgo_v2 = $ginkgo_focus .
+                  "--ginkgo.skip='QUARANTINE$skip_test' " .
+                  "--ginkgo.slow-spec-threshold 60s " .
+                  "--ginkgo.v=true --ginkgo.trace=true " .
+                  "--ginkgo.progress=true " .
+                  "--ginkgo.timeout=24h";
+            }
+
+            $test_cmd = "virt-tests $ginkgo_v2 -kubeconfig=/root/.kube/config " .
+              "-kubectl-path=`which kubectl` -virtctl-path=`which virtctl` " .
+              "-installed-namespace=kubevirt -deploy-testing-infra=false " .
+              "-config=$test_suite_conf -dns-service-name=rke2-coredns-rke2-coredns " .
+              "$extra_opt $additional_reg_tag " .
+              "-test.v=true -apply-default-e2e-configuration " .
+              "-artifacts=$artifacts -junit-output=$junit_xml " .
               "2>&1 | tee $test_log";
 
             $retry_times = 1 unless ($retry_times);
             my $n_runs = 1;
             while ($n_runs <= $retry_times) {
-                record_info("Run count: $n_runs", '');
+                record_info("Run count: $n_runs", $test_cmd);
                 script_run($test_cmd, timeout => 7200);
                 send_key 'ctrl-c';
                 save_screenshot;
@@ -418,25 +619,25 @@ sub generate_test_report {
     my $html_dir = "$result_dir/html";
 
     record_info('Generate test report', '');
-    script_run("cat > $build_xml <<__END
-<project name=\"genTestReport\" default=\"gen\" basedir=\"$result_dir\">
+    assert_script_run(qq(cat > $build_xml <<__END
+<project name="genTestReport" default="gen" basedir="$result_dir">
     <description>
         Generate the HTML report from JUnit XML files
     </description>
-    <target name=\"gen\">
-        <property name=\"genReportDir\" location=\"$result_dir\"/>
-        <delete dir=\"$html_dir\"/>
-        <mkdir dir=\"$html_dir\"/>
-        <junitreport todir=\"$result_dir\">
-            <fileset dir=\"$result_dir\">
-                <include name=\"*_test.xml\" />
+    <target name="gen">
+        <property name="genReportDir" location="$result_dir"/>
+        <delete dir="$html_dir"/>
+        <mkdir dir="$html_dir"/>
+        <junitreport todir="$result_dir">
+            <fileset dir="$result_dir">
+                <include name="*_test.xml" />
             </fileset>
-            <report format=\"frames\" todir=\"$html_dir\" />
+            <report format="frames" todir="$html_dir" />
         </junitreport>
     </target>
 </project>
 __END
-true");
+(exit \$?)));
 
     # Generate JUnit HTML aggregate test reports
     script_run("ant -buildfile $build_xml");
