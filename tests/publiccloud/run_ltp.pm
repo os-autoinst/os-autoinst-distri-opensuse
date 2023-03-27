@@ -99,7 +99,7 @@ sub run {
         $provider = $self->{provider} = $args->{my_provider};    # required for cleanup
     } else {
         $provider = $self->provider_factory();
-        $instance = $self->{my_instance} = $provider->create_instance();
+        $instance = $self->{my_instance} = $provider->create_instance(check_guestregister => is_openstack ? 0 : 1);
         unless (is_openstack) {
             $instance->wait_for_guestregister();
         }

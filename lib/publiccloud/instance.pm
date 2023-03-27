@@ -580,7 +580,7 @@ sub store_boottime_db() {
     }
 
     my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
-    my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf');
+    my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf_2');
 
     my $tags = {
         instance_type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
