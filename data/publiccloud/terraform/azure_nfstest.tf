@@ -53,6 +53,10 @@ variable "sku" {
     default="gen1"
 }
 
+variable "vm_create_timeout" {
+    default = "20m"
+}
+
 ## ---- data ---------------------------------------------------------------- ##
 
 // IP address of the client
@@ -236,6 +240,10 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
       sku       = var.image_id != "" ? "" : var.sku
       version   = var.image_id != "" ? "" : "latest"
     }
+  }
+
+  timeouts {
+    create = var.vm_create_timeout
   }
 }
 

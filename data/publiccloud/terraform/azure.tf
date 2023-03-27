@@ -76,6 +76,10 @@ variable "tags" {
     default = {}
 }
 
+variable "vm_create_timeout" {
+    default = "20m"
+}
+
 resource "random_id" "service" {
     count = var.instance_count
     keepers = {
@@ -217,6 +221,10 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
   boot_diagnostics {
     /* Passing a null value will utilize a Managed Storage Account to store Boot Diagnostics */
     storage_account_uri = null
+  }
+
+  timeouts {
+    create = var.vm_create_timeout
   }
 }
 

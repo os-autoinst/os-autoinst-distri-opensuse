@@ -395,6 +395,7 @@ sub terraform_apply {
     my $create_extra_disk = 'false';
     my $extra_disk_size = 0;
     my $terraform_timeout = get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT);
+    my $terraform_vm_create_timeout = get_var('TERRAFORM_VM_CREATE_TIMEOUT');
 
     $args{count} //= '1';
     my $instance_type = get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
@@ -468,6 +469,7 @@ sub terraform_apply {
         $cmd .= "-var 'name=" . $self->resource_name . "' ";
         $cmd .= "-var 'project=" . $args{project} . "' " if $args{project};
         $cmd .= "-var 'enable_confidential_vm=true' " if $args{confidential_compute};
+        $cmd .= "-var 'vm_create_timeout=" . $terraform_vm_create_timeout . "' " if $terraform_vm_create_timeout;
         $cmd .= sprintf(q(-var 'tags=%s' ), escape_single_quote($self->terraform_param_tags));
         if ($args{use_extra_disk}) {
             $cmd .= "-var 'create-extra-disk=true' ";
@@ -490,6 +492,7 @@ sub terraform_apply {
     # https://developer.hashicorp.com/terraform/internals/debugging
     my $tf_log = get_var("TERRAFORM_LOG", "");
 
+    # The $terraform_timeout must higher than $terraform_vm_create_timeout (See also var.vm_create_timeout in *.tf file)
     my $ret = script_run("TF_LOG=$tf_log terraform apply -no-color -input=false myplan", $terraform_timeout);
     $self->terraform_applied(1);    # Must happen here to prevent resource leakage
     unless (defined $ret) {
