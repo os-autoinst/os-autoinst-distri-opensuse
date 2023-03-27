@@ -1,0 +1,15 @@
+name:           nvme
+description:    >
+    Executing basic nvme smoke tests
+vars:
+    DESKTOP: textmode
+    VIDEOMODE: text
+    VIRTIO_CONSOLE: 1
+    DUMP_MEMORY_ON_FAIL: 1
+    BOOT_HDD_IMAGE: 1
+    NVME_PACKAGES: "nvmetcli nvme-cli nvme-stas"
+    NVMETCLI_UPSTREAM: "http://git.infradead.org/users/hch/nvmetcli.git/blob_plain/"
+    NVME_MODULES: "nvme_loop nvmet nvme_fabrics"
+schedule:
+    - boot/boot_to_desktop
+    - kernel/nvme
