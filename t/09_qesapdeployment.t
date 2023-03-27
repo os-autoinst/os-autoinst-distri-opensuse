@@ -520,7 +520,9 @@ subtest '[qesap_create_aws_config]' => sub {
             return (%paths);
     });
 
+    set_var('PUBLIC_CLOUD_REGION', 'eu-south-2');
     qesap_create_aws_config();
+    set_var('PUBLIC_CLOUD_REGION', undef);
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     note("\n  C-->  " . join("\n  C-->  ", @contents));
@@ -529,6 +531,92 @@ subtest '[qesap_create_aws_config]' => sub {
     ok((any { qr/eu-central-1/ } @calls), 'AWS Region matches');
     is $contents[0], 'config', "AWS config file: config is the expected value and got $contents[0]";
     like $contents[1], qr/region = eu-central-1/, "Expected region eu-central-1 is in the config file";
+};
+
+subtest '[qesap_create_aws_config] fix quote' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @contents;
+
+    $qesap->redefine(script_output => sub { return '"eu-central-1"'; });
+    $qesap->redefine(assert_script_run => sub { return; });
+    $qesap->redefine(save_tmp_file => sub { push @contents, @_; });
+    $qesap->redefine(autoinst_url => sub { return 'http://10.0.2.2/tests/'; });
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{qesap_conf_trgt} = '/BRUCE';
+            return (%paths);
+    });
+
+    qesap_create_aws_config();
+
+    note("\n  CONTENT-->  " . join("\n  CONTENT-->  ", @contents));
+    like $contents[1], qr/region = eu-central-1/, "Expected region eu-central-1 is in the config file";
+};
+
+subtest '[qesap_create_aws_config] not solved template' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @contents;
+
+    $qesap->redefine(script_output => sub { return '%REGION%'; });
+    $qesap->redefine(assert_script_run => sub { return; });
+    $qesap->redefine(save_tmp_file => sub { push @contents, $_[1]; });
+    $qesap->redefine(autoinst_url => sub { return ''; });
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{qesap_conf_trgt} = '/BRUCE';
+            return (%paths);
+    });
+
+    set_var('PUBLIC_CLOUD_REGION', 'eu-central-1');
+    qesap_create_aws_config();
+    set_var('PUBLIC_CLOUD_REGION', undef);
+
+    note("\n  CONTENT-->  " . join("\n  CONTENT-->  ", @contents));
+    like $contents[0], qr/region = eu-central-1/, "Expected region eu-central-1 is in the config file";
+};
+
+subtest '[qesap_create_aws_config] not solved template with quote' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @contents;
+
+    $qesap->redefine(script_output => sub { return '"%REGION%"'; });
+    $qesap->redefine(assert_script_run => sub { return; });
+    $qesap->redefine(save_tmp_file => sub { push @contents, $_[1]; });
+    $qesap->redefine(autoinst_url => sub { return ''; });
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{qesap_conf_trgt} = '/BRUCE';
+            return (%paths);
+    });
+
+    set_var('PUBLIC_CLOUD_REGION', 'eu-central-1');
+    qesap_create_aws_config();
+    set_var('PUBLIC_CLOUD_REGION', undef);
+
+    note("\n  CONTENT-->  " . join("\n  CONTENT-->  ", @contents));
+    like $contents[0], qr/region = eu-central-1/, "Expected region eu-central-1 is in the config file";
+};
+
+subtest '[qesap_create_aws_config] not solved template and variable with quote' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @contents;
+
+    $qesap->redefine(script_output => sub { return '%REGION%'; });
+    $qesap->redefine(assert_script_run => sub { return; });
+    $qesap->redefine(save_tmp_file => sub { push @contents, $_[1]; });
+    $qesap->redefine(autoinst_url => sub { return ''; });
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{qesap_conf_trgt} = '/BRUCE';
+            return (%paths);
+    });
+
+    set_var('PUBLIC_CLOUD_REGION', '"eu-central-1"');
+    qesap_create_aws_config();
+    set_var('PUBLIC_CLOUD_REGION', undef);
+
+    note("\n  CONTENT-->  " . join("\n  CONTENT-->  ", @contents));
+    like $contents[0], qr/region = eu-central-1/, "Expected region eu-central-1 is in the config file";
 };
 
 subtest '[qesap_remote_hana_public_ips]' => sub {
@@ -664,4 +752,6 @@ subtest '[qesap_cluster_logs] multi log command' => sub {
     ok((none { /.*ignore_me\.txt/ } @logfile_calls), 'ignore_me.txt is expected to be ignored');
     ok((none { /.*ignore_me_too\.txt/ } @logfile_calls), 'ignore_me_too.txt is expected to be ignored');
 };
+
+
 done_testing;

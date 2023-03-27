@@ -553,7 +553,8 @@ sub qesap_create_aws_credentials {
 sub qesap_create_aws_config {
     my %paths = qesap_get_file_paths();
     my $region = script_output q|awk -F ' ' '/aws_region/ {print $2}' | . $paths{qesap_conf_trgt};
-    $region = get_required_var('PUBLIC_CLOUD_REGION') if ($region =~ /^%.+%$/);
+    $region = get_required_var('PUBLIC_CLOUD_REGION') if ($region =~ /^["']?%.+%["']?$/);
+    $region =~ s/[\"\']//g;
     save_tmp_file('config', "[default]\nregion = $region\n");
     assert_script_run 'mkdir -p ~/.aws';
     assert_script_run 'curl ' . autoinst_url . "/files/config -o ~/.aws/config";
@@ -636,6 +637,10 @@ sub qesap_cluster_log_cmds {
         {
             Cmd => 'systemctl --no-pager --full status sbd',
             Output => 'sbd.txt',
+        },
+        {
+            Cmd => 'cat ~/.aws/config > aws_config.txt',
+            Output => 'aws_config.txt',
         },
     );
 }
