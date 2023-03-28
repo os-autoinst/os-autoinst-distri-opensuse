@@ -65,9 +65,8 @@ sub run {
     # Filter out zypper warning messages and release or skelcd packages
 
     script_run(
-q[zypper --quiet packages --orphaned | grep -v "^Warning" | grep -v "\(release-DVD\|release-dvd\|openSUSE-release\|skelcd\)" | awk -F '\\\\| ' 'NR>2 {print $3}' > /tmp/orphaned.log],
-        timeout => 180,
-        die_on_timeout => 0
+q[zypper --quiet packages --orphaned | awk -F'|' 'intable && NR>2 {print $3} /^-/ { intable=1 }' | grep -v '\(release-DVD\|release-dvd\|openSUSE-release\|skelcd\)' > /tmp/orphaned.log],
+        timeout => 180
     );
     upload_logs('/tmp/orphaned.log', (log_name => 'orphaned.log'));
     my @orphans = split(/\n/, path('ulogs/orphaned.log')->slurp);
