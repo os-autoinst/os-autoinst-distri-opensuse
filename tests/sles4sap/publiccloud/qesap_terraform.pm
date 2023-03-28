@@ -33,6 +33,7 @@ use qesapdeployment;
 use sles4sap_publiccloud;
 use serial_terminal 'select_serial_terminal';
 use YAML::PP;
+use mmapi qw(get_current_job_id);
 
 our $ha_enabled = set_var_output('HA_CLUSTER', '0') =~ /false|0/i ? 0 : 1;
 
@@ -152,8 +153,7 @@ sub run {
 
     # Let's define a workspace for terraform. We use PUBLIC_CLOUD_RESOURCE_GROUP
     # if defined, otherwise we use qesapopenqa
-    my $workspace = get_var('PUBLIC_CLOUD_RESOURCE_GROUP', 'qesapopenqa');
-    $workspace .= sprintf("%04x", rand(0xffff));
+    my $workspace = get_var('PUBLIC_CLOUD_RESOURCE_GROUP', 'qesapopenqa') . get_current_job_id();
 
     # Select console on the host (not the PC instance) to reset 'TUNNELED',
     # otherwise select_serial_terminal() will be failed
