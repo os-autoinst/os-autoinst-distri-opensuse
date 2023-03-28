@@ -108,7 +108,7 @@ sub run {
     send_key 'ret';
 
     # Accept EULA if required
-    unless (is_tumbleweed || is_microos) {
+    unless (is_tumbleweed || is_microos || is_leap('>=15.5')) {
         assert_screen 'jeos-doyouaccept';
         send_key 'ret';
     }
