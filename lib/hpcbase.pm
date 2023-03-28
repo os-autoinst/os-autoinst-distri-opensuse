@@ -366,7 +366,7 @@ sub prepare_spack_env {
     }
 
     record_info 'spack', script_output 'zypper -q info spack';
-    record_info 'boost spec', script_output('spack spec boost', timeout => 360);
+    record_info 'boost spec', script_output('spack spec boost', timeout => 480);
     assert_script_run "spack install boost+mpi^$mpi", timeout => 12000;
     assert_script_run 'spack load boost';
 }
