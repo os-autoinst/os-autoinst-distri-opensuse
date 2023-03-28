@@ -127,7 +127,7 @@ sub add_custom_grub_entries {
         $distro = "SLES" . ' \\?' . get_required_var('VERSION');
     }
     elsif (is_alp()) {
-        $distro = "Adaptable Linux Platform";
+        $distro = "ALP";
     }
     elsif (is_sle_micro()) {
         $distro = "SLE Micro" . ' \\?' . get_required_var('VERSION');
