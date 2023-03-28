@@ -8,7 +8,7 @@ use base 'Exporter';
 use Exporter;
 use testapi qw(check_var get_required_var get_var);
 use utils;
-use main_common qw(boot_hdd_image load_bootloader_s390x load_kernel_baremetal_tests);
+use main_common qw(boot_hdd_image load_bootloader_s390x load_kernel_baremetal_tests replace_opensuse_repos_tests is_repo_replacement_required);
 use 5.018;
 use Utils::Backends;
 use version_utils qw(is_opensuse is_alp);
@@ -32,6 +32,12 @@ sub load_kernel_tests {
     loadtest_kernel "../installation/bootloader" if is_pvm;
 
     if (get_var('INSTALL_LTP')) {
+        if (is_alp) {
+            loadtest 'microos/disk_boot';
+            replace_opensuse_repos_tests if is_repo_replacement_required;
+            loadtest 'transactional/host_config';
+        }
+
         if (get_var('INSTALL_KOTD')) {
             loadtest_kernel 'install_kotd';
         }
