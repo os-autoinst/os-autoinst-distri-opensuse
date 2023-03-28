@@ -52,7 +52,7 @@ sub run {
     # TODO: Use another namespace using team group name
     # Docker image source in https://github.com/ricardobranco777/hawk_test
     # It will be eventually moved to https://github.com/ClusterLabs/hawk/e2e_test
-    my $docker_image = "registry.opensuse.org/home/rbranco/branches/opensuse/templates/images/15.4/containers/hawk_test:latest";
+    my $docker_image = "registry.opensuse.org/devel/openqa/ci/tooling/containers_15_4/hawk_test:latest";
 
     assert_script_run("docker pull $docker_image", 240);
 
