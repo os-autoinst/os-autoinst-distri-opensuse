@@ -488,12 +488,8 @@ sub terraform_apply {
 
     script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
 
-    # Valid values according to documentation: TRACE, DEBUG, INFO, WARN, ERROR & OFF
-    # https://developer.hashicorp.com/terraform/internals/debugging
-    my $tf_log = get_var("TERRAFORM_LOG", "");
-
     # The $terraform_timeout must higher than $terraform_vm_create_timeout (See also var.vm_create_timeout in *.tf file)
-    my $ret = script_run("TF_LOG=$tf_log terraform apply -no-color -input=false myplan", $terraform_timeout);
+    my $ret = script_run("terraform apply -no-color -input=false myplan", $terraform_timeout);
     $self->terraform_applied(1);    # Must happen here to prevent resource leakage
     unless (defined $ret) {
         if (is_serial_terminal()) {
