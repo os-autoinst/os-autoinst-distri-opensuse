@@ -9,6 +9,7 @@
 # Tags: poo#19606
 
 use Mojo::Base qw(consoletest);
+use Mojo::File 'path';
 use testapi;
 use utils 'zypper_call';
 use version_utils 'is_upgrade';
@@ -47,13 +48,8 @@ sub compare_orphans_lists {
 
     # Summary
     record_info('Detected Orphans', to_string @detected_orphans);
-    record_info('Orphans whitelisted',
-        $whitelist // 'No orphans whitelisted within the test suite'
-    );
-    record_info('Missing',
-        @missed_orphans ? to_string @missed_orphans : 'None',
-        result => @missed_orphans ? 'fail' : 'ok'
-    );
+    record_info('Orphans whitelisted', $whitelist // 'No orphans whitelisted within the test suite');
+    record_info('Missing', @missed_orphans ? to_string @missed_orphans : 'None', result => @missed_orphans ? 'fail' : 'ok');
 
     return ((scalar @missed_orphans) == 0);
 }
@@ -67,14 +63,18 @@ sub run {
     # Orphans are also expected in JeOS without SDK module (jeos-firstboot, jeos-license and live-langset-data)
     # Save the orphaned packages list to one log file and upload the log, so QA can use this log to report bug
     # Filter out zypper warning messages and release or skelcd packages
-    my @orphans = split('\n',
-        script_output q[zypper --quiet packages --orphaned | tee -a /tmp/orphaned.log |
-         grep -v "^Warning" | grep -v "\(release-DVD\|release-dvd\|openSUSE-release\|skelcd\)" |
-         awk -F \| 'NR>2 {print $3}'], proceed_on_failure => 1, timeout => 180);
+
+    script_run(
+q[zypper --quiet packages --orphaned | grep -v "^Warning" | grep -v "\(release-DVD\|release-dvd\|openSUSE-release\|skelcd\)" | awk -F '\\\\| ' 'NR>2 {print $3}' > /tmp/orphaned.log],
+        timeout => 180,
+        die_on_timeout => 0
+    );
+    upload_logs('/tmp/orphaned.log', (log_name => 'orphaned.log'));
+    my @orphans = split(/\n/, path('ulogs/orphaned.log')->slurp);
 
     if (((scalar @orphans) > 0) && !is_offline_upgrade_or_livecd) {
-        compare_orphans_lists(zypper_orphans => \@orphans) or
-          die "There have been unexpected orphans detected!";
+        compare_orphans_lists(zypper_orphans => \@orphans)
+          or die "There have been unexpected orphans detected!";
     }
 }
 
