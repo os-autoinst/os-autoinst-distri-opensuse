@@ -86,6 +86,7 @@ conditional_schedule:
                 - console/zziplib
                 - console/vsftpd
                 - console/python3_new_version_check
+                - console/year_2038_detection
     tumbleweed_tests:
         VERSION:
             'Tumbleweed':
