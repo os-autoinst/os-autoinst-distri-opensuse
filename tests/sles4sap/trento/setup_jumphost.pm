@@ -42,6 +42,8 @@ sub run {
 
     # Cypress.io installation
     cypress_install_container();
+
+    zypper_call 'rr "Public Cloud Devel"';
 }
 
 sub post_fail_hook {
