@@ -17,15 +17,12 @@ use qam;
 use LTP::utils;
 use OpenQA::Test::RunArgs;
 
-sub prepare_repo {
+sub parse_incident_repo {
     my $incident_id = get_required_var('INCIDENT_ID');
     my $repo = get_required_var('INCIDENT_REPO');
     my @repos = split(",", $repo);
     my @repo_names;
     my $packname;
-
-    install_klp_product;
-    zypper_call('in libpulp0 libpulp-tools');
 
     while ((my ($i, $url)) = (each(@repos))) {
         push @repo_names, "ULP_$i";
@@ -58,6 +55,26 @@ sub prepare_repo {
         return undef;
     }
 
+    return {packname => $packname, repo_args => $repo_args};
+}
+
+sub setup_ulp {
+    my $packname = 'openposix-livepatches';
+    my $repo_args = '';
+
+    install_klp_product;
+    zypper_call('in libpulp0 libpulp-tools');
+
+    if (get_var('INCIDENT_REPO')) {
+        my $repo_data = parse_incident_repo();
+        return undef unless $repo_data;
+
+        $packname = $repo_data->{packname};
+        $repo_args = $repo_data->{repo_args};
+    } else {
+        record_info('Tools tests', "No incident provided, testing lastest livepatching tools.");
+    }
+
     my $provides = script_output("zypper -n info --provides $repo_args $packname");
     my @versions = $provides =~ m/^\s*libc_([^_()]+)_livepatch\d+\.so\(\)\([^)]+\)\s*$/gm;
 
@@ -76,7 +93,7 @@ sub run {
 
     if (!defined($tinfo)) {
         # First test round in the job, prepare environment
-        $tinfo = prepare_repo();
+        $tinfo = setup_ulp();
 
         # Incident has no userspace livepatch related packages, nothing to do
         return if not $tinfo;
