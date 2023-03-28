@@ -32,7 +32,7 @@ sub display_results {
     die 'failed to parse results.json' unless $results;
     die 'results.json is not array' unless (ref($results->{testcase}) eq 'ARRAY');
 
-    record_info('Results', "failures: $results->{failures}\nskipped: $results->{skipped}\ntime: $results->{time}");
+    record_info('Results', "failures: $results->{failures}\nskipped: $results->{skipped}\ntime: $results->{time}", result => $results->{failures} ? 'fail' : ($results->{skipped} ? 'softfail' : 'ok'));
 
     for my $test (@{$results->{testcase}}) {
         if (exists($test->{skipped})) {
@@ -43,7 +43,7 @@ sub display_results {
     }
 
     record_info('Passed', $pass);
-    record_info('Skipped', $skip);
+    record_info('Skipped', $skip, result => $results->{skipped} ? 'softfail' : 'ok');
 
     for my $test (@{$results->{testcase}}) {
         bmwqemu::fctinfo("code: $test->{code}");

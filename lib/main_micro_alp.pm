@@ -302,6 +302,7 @@ sub load_tests {
 
     if (is_kernel_test()) {
         load_kernel_tests;
+        return 1;
     } elsif (is_container_test || check_var('SYSTEM_ROLE', 'container-host')) {
         if (is_microos) {
             # MicroOS Container-Host image runs all tests.
