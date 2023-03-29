@@ -397,7 +397,7 @@
     "boo#1196618": {
         "description": "error -110 whilst initialising SD card",
         "products": {
-            "opensuse": ["Tumbleweed", "15.4"]
+            "opensuse": ["Tumbleweed", "15.4", "15.5"]
         },
         "type": "bug"
     },
