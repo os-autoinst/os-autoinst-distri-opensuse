@@ -70,6 +70,8 @@ our @EXPORT = qw(
   qesap_cluster_logs
   qesap_get_vnet
   qesap_get_az_resource_group
+  qesap_az_vnet_peering
+  qesap_delete_az_peering
 );
 
 =head1 DESCRIPTION
@@ -769,6 +771,111 @@ sub qesap_get_az_maintenance_name {
 
     # Die if all integers between 0 and 25 are used
     die "No free slot found for adress range. Too many maintenance deloyments running."
+}
+
+=head3 qesap_az_vnet_peering
+
+    Performs peering between the cluster and IBS mirror on Azure.
+
+=over 3
+
+=item B<SOURCE_GROUP> - resource group of source
+
+=item B<SOURCE_VNET> - vnet of source
+
+=item B<TARGET_GROUP> - resource group of target
+
+=item B<TARGET_VNET> - vnet of target
+
+=item B<VERBOSE> - wether output will be verbose or not
+
+=back
+=cut
+
+sub qesap_az_vnet_peering {
+    my (%args) = @_;
+    croak 'Missing mandatory source_group argument' unless $args{source_group};
+    croak 'Missing mandatory source_vnet argument' unless $args{source_vnet};
+    croak 'Missing mandatory target_group argument' unless $args{target_group};
+    croak 'Missing mandatory target_vnet argument' unless $args{target_vnet};
+    my $az_output = "none";
+
+    if ($args{verbose}) {
+        $az_output = "table";
+    }
+
+    my $az_installed = script_run("which az");
+    if ($az_installed != 0) {
+        record_info("AZURE MISSING", "Azure command \"az\" doesn't seem installed\n");
+        return 1;
+    }
+
+    my $source_vnet_id = script_output("az network vnet show --resource-group $args{source_group} --name $args{source_vnet} --query id --output tsv");
+    record_info("[M] source vnet ID: $source_vnet_id\n") if $args{verbose};
+
+    my $target_vnet_id = script_output("az network vnet show --resource-group $args{target_group} --name $args{target_vnet} --query id --output tsv");
+    record_info("[M] target vnet ID: $target_vnet_id\n") if $args{verbose};
+
+    my $peering_name = "$args{source_vnet}-$args{target_vnet}";
+
+    my $result = script_run("az network vnet peering create --name $peering_name --resource-group $args{source_group} --vnet-name $args{source_vnet} --remote-vnet $target_vnet_id --allow-vnet-access --output $az_output");
+    if ($result == 0) {
+        record_info("PEERING SUCCESS (source)", "[M] Peering from $args{source_group}.$args{source_vnet} server was successful\n") if $args{verbose};
+    } else {
+        record_info("PEERING FAIL (source)", "[E:$result] Unable to setup peering from the $args{source_group}.$args{source_vnet}\n");
+        return $result;
+    }
+
+    $result = script_run("az network vnet peering create --name $peering_name --resource-group $args{target_group} --vnet-name $args{target_vnet} --remote-vnet $source_vnet_id --allow-vnet-access --output $az_output");
+    if ($result == 0) {
+        record_info("PEERING SUCCESS (target)", "[M] Peering from $args{target_group}.$args{target_vnet} server was successful\n") if $args{verbose};
+    } else {
+        record_info("PEERING FAIL (target)", "[E:$result] Unable to setup peering from $args{target_group}.$args{target_vnet}\n");
+        return $result;
+    }
+
+    if ($args{verbose}) {
+        enter_cmd("echo \"[M] Peering status:\n\"");
+        $result = script_run("az network vnet peering show --name $peering_name --resource-group $args{target_group} --vnet-name $args{target_vnet} --output $az_output");
+        if ($result != 0) {
+            record_info("PEERING STATUS FAIL", "[E:$result] Unable to get peering status!\n");
+            return $result;
+        } else {
+            record_info("PEERING STATUS SUCCESS");
+        }
+    }
+
+    return 0;
+}
+
+=head3 qesap_delete_az_peering
+
+    Performs peering between the cluster and IBS mirror on Azure.
+
+=over 3
+
+=item B<SOURCE_GROUP> - resource group of source
+
+=item B<SOURCE_VNET> - vnet of source
+
+=item B<TARGET_GROUP> - resource group of target
+
+=item B<TARGET_VNET> - vnet of target
+
+=back
+=cut
+sub qesap_delete_az_peering {
+    my (%args) = @_;
+    croak 'Missing mandatory source_group argument' unless $args{source_group};
+    croak 'Missing mandatory source_vnet argument' unless $args{source_vnet};
+    croak 'Missing mandatory target_group argument' unless $args{target_group};
+    croak 'Missing mandatory target_vnet argument' unless $args{target_vnet};
+
+    my $peering_name = "$args{source_vnet}-$args{target_vnet}";
+    my $source_cmd = "az network vnet peering delete --resource-group $args{source_group} --vnet-name $args{source_vnet} -n $peering_name";
+    my $target_cmd = "az network vnet peering delete --resource-group $args{target_group} --vnet-name $args{target_vnet} -n $peering_name";
+    assert_script_run($source_cmd);
+    assert_script_run($target_cmd);
 }
 
 1;
