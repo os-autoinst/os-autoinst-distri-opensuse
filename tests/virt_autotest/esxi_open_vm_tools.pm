@@ -144,8 +144,6 @@ sub login_vm_console {
     reset_consoles;
     console('svirt')->start_serial_grab;
     select_console('sut');
-    assert_screen('grub2', 90);
-    send_key 'ret';
     assert_screen('linux-login', 90);
     select_console('root-console');
 }
@@ -176,7 +174,7 @@ sub init_guest_time {
     # Set the guest time by using the variable $last_day
     if (is_svirt) {
         $last_day = script_output("date -u -d '$h_datetime last day' +'\%F \%T'");
-        $g_datetime = script_output("date -u -d '$h_datetime last day' +'\%F \%T'");
+        $g_datetime = script_output("date -u -d '$last_day last day' +'\%F \%T'");
     }
     elsif (is_qemu) {
         $last_day = script_output(qq($ssh_vm "date -u -d '$h_datetime last day' +'\%F \%T'"));
@@ -279,10 +277,11 @@ sub do_clock_sync_tests {
 
     select_console('sut') if (is_svirt && current_console() ne 'sut');
 
-    # Set the last day of host time in guest before enabling timesync service
+    # Set guest time with the last day of host time before enabling timesync service
     $g_init_time = init_guest_time();
     record_info('Guest current time before time sync enabled', $g_init_time);
 
+    record_info('Enable clock sync tests');
     # Enable timesync service in guest VM
     if (script_output($ssh_vm . 'vmware-toolbox-cmd timesync status', proceed_on_failure => 1, timeout => 90) eq 'Disabled') {
         assert_script_run($ssh_vm . 'vmware-toolbox-cmd timesync enable', timeout => 90);
@@ -297,22 +296,13 @@ sub do_clock_sync_tests {
         die 'Clock synchronization failed.';
     }
 
-    # Disable clock sync tests
-    select_console('svirt') if (is_svirt);
+    record_info('Disable clock sync tests');
+    # Disable timesync service in guest VM
+    if (script_output($ssh_vm . 'vmware-toolbox-cmd timesync status', proceed_on_failure => 1, timeout => 90) eq 'Enabled') {
+        assert_script_run($ssh_vm . 'vmware-toolbox-cmd timesync disable', timeout => 90);
+    }
 
-    $powerops = 'power.shutdown';
-    $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
-    check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 0, $VM_POWER_OFF);
-
-    disable_vm_time_synchronization($vm_name);
-
-    $powerops = 'power.on';
-    $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_OFF);
-    check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
-
-    login_vm_console() if (is_svirt);
-
-    # Set guest time with a given time which different from host time
+    # Set guest time with the last day of host time before disabling timesync service
     $g_init_time = init_guest_time();
     record_info('Set guest time after time sync disabled', $g_init_time);
 
@@ -323,19 +313,6 @@ sub do_clock_sync_tests {
         record_info('Clock synchronization was disabled successfully.');
     } else {
         die 'Disabling clock synchronization failed.';
-    }
-
-    if (is_qemu) {
-        record_info('Revert VM timesync configs');
-        $powerops = 'power.shutdown';
-        $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
-        check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 0, $VM_POWER_OFF);
-
-        revert_vm_timesync_setting($vm_name);
-
-        $powerops = 'power.on';
-        $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_OFF);
-        check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
     }
 }
 
