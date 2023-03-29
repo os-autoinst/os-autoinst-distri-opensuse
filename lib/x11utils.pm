@@ -12,7 +12,7 @@ use testapi;
 use version_utils qw(is_sle is_leap);
 use utils 'assert_and_click_until_screen_change';
 use Utils::Architectures;
-use Utils::Backends 'is_pvm';
+use Utils::Backends qw(is_pvm is_qemu);
 
 our @EXPORT = qw(
   desktop_runner_hotkey
@@ -179,8 +179,16 @@ sub ensure_unlocked_desktop {
         die 'ensure_unlocked_desktop repeated too much. Check for X-server crash.' if ($counter eq 1);    # die loop when generic-desktop not matched
         if (match_has_tag('screenlock') || match_has_tag('blackscreen')) {
             wait_screen_change {
-                # ESC of KDE turns the monitor off and CTRL does not work on older SLES versions to unlock the screen
-                send_key(is_sle("<15-SP4") ? 'esc' : 'ctrl');    # end screenlock
+                if (is_qemu && is_sle('=15-sp3')) {
+                    # sometimes screensaver can't be unlocked with key presses poo#125930
+                    mouse_set(600, 600);
+                    mouse_click;
+                    mouse_hide(1);
+                }
+                else {
+                    # ESC of KDE turns the monitor off and CTRL does not work on older SLES versions to unlock the screen
+                    send_key(is_sle("<15-SP4") ? 'esc' : 'ctrl');    # end screenlock
+                }
                 diag("Screen lock present");
             };
             next;    # Go directly to assert_screen, skip wait_still_screen (and don't collect $200)
