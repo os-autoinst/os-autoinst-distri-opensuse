@@ -34,6 +34,7 @@ use Mojo::JSON qw(decode_json);
 use YAML::PP;
 use utils qw(file_content_replace);
 use publiccloud::utils qw(get_credentials);
+use mmapi 'get_current_job_id';
 use testapi;
 use Exporter 'import';
 
@@ -66,6 +67,8 @@ our @EXPORT = qw(
   qesap_wait_for_ssh
   qesap_cluster_log_cmds
   qesap_cluster_logs
+  qesap_get_vnet
+  qesap_get_az_resource_group
 );
 
 =head1 DESCRIPTION
@@ -415,6 +418,8 @@ sub qesap_prepare_env {
 
 =item B<FAILOK> - if not set, ansible failure result in die
 
+=item B<HOST_KEYS_CHECK> - if set, add some extra argument to the Ansible call to add allow contacting hosts not in the  KnownHost list yet. This enables the use of this api before the call to qesap.py ansible
+
 =back
 =cut
 
@@ -434,6 +439,8 @@ sub qesap_ansible_cmd {
         '-b', '--become-user=root',
         '-a', "\"$args{cmd}\"");
     assert_script_run("source " . QESAPDEPLOY_VENV . "/bin/activate");
+
+    $ansible_cmd = $args{host_keys_check} ? join(' ', $ansible_cmd, "-e 'ansible_ssh_common_args=\"-o UpdateHostKeys=yes -o StrictHostKeyChecking=accept-new\"'") : $ansible_cmd;
 
     $args{failok} ? script_run($ansible_cmd) : assert_script_run($ansible_cmd);
 
@@ -668,6 +675,47 @@ sub qesap_cluster_logs {
             }
         }
     }
+}
+
+=head3 qesap_get_vnet
+
+Return the output of az network vnet list
+=over 1
+
+=item B<RESOURCE_GROUP> - resource group name to query
+
+=back
+=cut
+
+sub qesap_get_vnet {
+    my ($resource_group) = @_;
+    my $az_cmd = join(' ', 'az', 'network',
+        'vnet', 'list',
+        '-g', $resource_group,
+        '--query', '"[0].name"',
+        '-o', 'tsv');
+    return script_output($az_cmd, 180);
+}
+
+=head3 qesap_get_az_resource_group
+
+Query and return the resource group used
+by the qe-sap-deployment
+
+=over 3
+
+=item B<SUBSTRING> - optional substring to be used with aditional grep at the end of the command
+
+=back
+=cut
+
+sub qesap_get_az_resource_group {
+    my (%args) = @_;
+    my $substring = $args{substring} ? " | grep $args{substring}" : "";
+    my $job_id = get_current_job_id();
+    my $result = script_output("az group list --query \"[].name\" -o tsv | grep $job_id" . $substring);
+    record_info('QESAP RG', "result:$result");
+    return $result;
 }
 
 1;

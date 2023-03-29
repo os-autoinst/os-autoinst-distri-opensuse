@@ -229,19 +229,6 @@ sub get_resource_group {
     return TRENTO_AZ_PREFIX . '-rg-' . get_current_job_id();
 }
 
-=head3 get_qesap_resource_group
-
-Query and return the resource group used
-by the qe-sap-deployment
-=cut
-
-sub get_qesap_resource_group {
-    my $job_id = get_current_job_id();
-    my $result = script_output("az group list --query \"[].name\" -o tsv | grep $job_id | grep " . TRENTO_QESAPDEPLOY_PREFIX);
-    record_info('QESAP RG', "result:$result");
-    return $result;
-}
-
 =head3 cluster_config
 
 Create a variable map and prepare the qe-sap-deployment using it
@@ -507,26 +494,6 @@ sub get_trento_private_ip {
     my $az_cmd = sprintf 'az vm list -g %s --show-details --query "[?publicIps==\'%s\'].{PrivateIP:privateIps}" -o tsv',
       get_resource_group(),
       get_trento_ip();
-    return script_output($az_cmd, 180);
-}
-
-=head3 get_vnet
-
-Return the output of az network vnet list
-=over 1
-
-=item B<RESOURCE_GROUP> - resource group name to query
-
-=back
-=cut
-
-sub get_vnet {
-    my ($resource_group) = @_;
-    my $az_cmd = join(' ', 'az', 'network',
-        'vnet', 'list',
-        '-g', $resource_group,
-        '--query', '"[0].name"',
-        '-o', 'tsv');
     return script_output($az_cmd, 180);
 }
 
@@ -867,13 +834,13 @@ Run 00.050 net peering script
 sub cluster_trento_net_peering {
     my ($basedir) = @_;
     my $trento_rg = get_resource_group();
-    my $cluster_rg = get_qesap_resource_group();
+    my $cluster_rg = qesap_get_az_resource_group(substring => TRENTO_QESAPDEPLOY_PREFIX);
     my $cmd = join(' ',
         $basedir . '/00.050-trento_net_peering_tserver-sap_group.sh',
         '-s', $trento_rg,
-        '-n', get_vnet($trento_rg),
+        '-n', qesap_get_vnet($trento_rg),
         '-t', $cluster_rg,
-        '-a', get_vnet($cluster_rg));
+        '-a', qesap_get_vnet($cluster_rg));
     record_info('NET PEERING');
     assert_script_run($cmd, 360);
 }
