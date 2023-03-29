@@ -28,7 +28,7 @@ sub run {
     select_serial_terminal();
     my $provider = $args->{my_provider};
     my $instance = $provider->create_instance();
-    $instance->wait_for_guestregister();
+    $instance->wait_for_guestregister([timeout => 400]);
     registercloudguest($instance) if is_byos();
 
     register_addons_in_pc($instance);
