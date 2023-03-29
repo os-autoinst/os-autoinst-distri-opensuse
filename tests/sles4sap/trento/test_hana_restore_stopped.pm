@@ -18,7 +18,8 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my $primary_host = 'vmhana01';
+    # "hana[0]" is more generic than vmhana01.
+    my $primary_host = '"hana[0]"';
     cluster_print_cluster_status($primary_host);
 
     # Register the stopped DB to the new promoted primary
@@ -32,7 +33,8 @@ sub run {
 
     # Restart the stopped instance
     my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
-    qesap_ansible_cmd(cmd => "sudo crm resource refresh rsc_SAPHana_HDB_HDB00 $primary_host",
+    # vmhana01 hardcoded in place of $primary_host as the second one is only valid for Ansible
+    qesap_ansible_cmd(cmd => "sudo crm resource refresh rsc_SAPHana_HDB_HDB00 vmhana01",
         provider => $prov,
         filter => $primary_host);
     cluster_wait_status($primary_host, sub { ((shift =~ m/.+DEMOTED.+SOK/) && (shift =~ m/.+PROMOTED.+PRIM/)); });
