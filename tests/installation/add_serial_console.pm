@@ -33,7 +33,11 @@ sub run {
     assert_script_run('sed -ie \'s/GRUB_TERMINAL.*//\' /etc/default/grub');
     # VMware needs to always stop in Grub and wait for interaction.
     # Migration seems to reset it.
-    assert_script_run('sed -ie \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=-1/\' /etc/default/grub');
+    if (get_var('KEEP_GRUB_TIMEOUT')) {
+        assert_script_run('sed -ie \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=8/\' /etc/default/grub');
+    } else {
+        assert_script_run('sed -ie \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=-1/\' /etc/default/grub');
+    }
     assert_script_run('echo GRUB_TERMINAL_OUTPUT=\"serial gfxterm\" >> /etc/default/grub');
     assert_script_run('echo GRUB_SERIAL_COMMAND=\"serial\" >> /etc/default/grub');
     # Set expected resolution for GRUB and kernel
