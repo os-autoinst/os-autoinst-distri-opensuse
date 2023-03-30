@@ -37,7 +37,7 @@ sub run ($self) {
     my $prompt = $user_virtio_fixed ? $testapi::username . '@' . get_required_var('HOSTNAME') . ':~> ' : undef;
 
     script_run("sudo -u $testapi::username mkdir -p $exports_path{bin}");
-    zypper_call("in $mpi-gnu-hpc $mpi-gnu-hpc-devel python3-devel imb-gnu-$mpi-hpc");
+    zypper_call("in $mpi-gnu-hpc $mpi-gnu-hpc-devel imb-gnu-$mpi-hpc");
 
     my $need_restart = $self->setup_scientific_module();
     $self->relogin_root if $need_restart;
@@ -69,7 +69,9 @@ sub run ($self) {
     type_string('pkill -u root') unless $user_virtio_fixed;
     select_user_serial_terminal($prompt);
     # load mpi after all the relogins
-    assert_script_run "module load gnu $mpi2load";
+    my @load_modules = $mpi2load;
+    push @load_modules, 'python3-scipy' if check_var('HPC_LIB', 'scipy');
+    assert_script_run "module load gnu @load_modules";
     script_run "module av";
 
     barrier_wait('MPI_SETUP_READY');

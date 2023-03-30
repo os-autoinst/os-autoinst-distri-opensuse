@@ -93,13 +93,17 @@ sub setup_scientific_module {
     my $mpi = get_required_var('MPI');
 
     if (get_var('HPC_LIB') eq 'scipy') {
-        zypper_call("in python3-scipy-gnu-hpc");
-        assert_script_run("env MPICC=mpicc python3 -m pip install mpi4py");
+        # $mpi-gnu-hpc-devel will be installed on compute nodes
+        # which is required to compile the mpi4py.
+        # This seems is not be shared by NFS
+        # If you have a better idea let me know.
+        zypper_call("in python3-scipy-gnu-hpc python3-devel $mpi-gnu-hpc-devel");
 
         # Make sure that env is updated. This will run scripts like 'source /usr/share/lmod/lmod/init/bash'
         $self->relogin_root;
-        # TODO smoke checks? (ex /MODULEPATH/)
-        assert_script_run('module load gnu python3-scipy');
+        my $mpi2load = ($mpi =~ /openmpi2|openmpi3|openmpi4/) ? 'openmpi' : $mpi;
+        assert_script_run "module load gnu $mpi2load python3-scipy";
+        assert_script_run("env MPICC=mpicc python3 -m pip install mpi4py");
     }
     return 0;
 }

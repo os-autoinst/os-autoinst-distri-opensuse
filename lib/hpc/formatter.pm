@@ -38,8 +38,9 @@ is actually a source code where needs invoke _python_ interpreter.
 =cut
 
 sub single_node ($self, $bin) {
-    #my ($self, $bin) = @_;
     die unless $bin;
+    # Documentation gives `mpiexec -n numprocs python -m mpi4py pyfile`
+    # but it looks it works without defining the module in the command
     $bin = 'python3 ' . $bin if $self->need_interpreter;
     sprintf "%s %s", $self->mpirun, $bin;
 }
@@ -61,6 +62,8 @@ sub all_nodes ($self, $bin) {
     die unless $bin;
     my @cluster_nodes = $self->cluster_names();
     my $nodes = join(',', @cluster_nodes);
+    # Documentation gives `mpiexec -n numprocs python -m mpi4py pyfile`
+    # but it looks it works without defining the module in the command
     $bin = 'python3 ' . $bin if $self->need_interpreter;
     sprintf "%s --host %s %s", $self->mpirun, $nodes, $bin;
 }

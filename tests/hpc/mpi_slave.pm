@@ -26,7 +26,7 @@ sub run ($self) {
     barrier_wait('MPI_SETUP_READY');
     record_info 'MPI_SETUP_READY', strftime("\%H:\%M:\%S", localtime);
     $self->mount_nfs_exports(\%exports_path);
-
+    $self->setup_scientific_module();
     barrier_wait('MPI_BINARIES_READY');
     record_info 'MPI_BINARIES_READY', strftime("\%H:\%M:\%S", localtime);
     barrier_wait('MPI_RUN_TEST');
