@@ -63,7 +63,7 @@ sub run {
     # Orphans are also expected in JeOS without SDK module (jeos-firstboot, jeos-license and live-langset-data)
     # Save the orphaned packages list to one log file and upload the log, so QA can use this log to report bug
     # Filter out zypper warning messages and release or skelcd packages
-    my $orphan_pkgs = script_output(q[zypper --quiet packages --orphaned | tee -a /tmp/orphaned.log | awk -F'|' 'intable && NR>2 {print $3} /^-/ { intable=1 }' | grep -v '\(release-DVD\|release-dvd\|openSUSE-release\|skelcd\)'], timeout => 180);
+    my $orphan_pkgs = script_output(q[zypper --quiet packages --orphaned | tee -a /tmp/orphaned.log | awk -F'|' 'intable && NR>2 {print $3} /^-/ { intable=1 }' | grep -v '\(release-DVD\|release-dvd\|openSUSE-release\|skelcd\)'], timeout => 180, proceed_on_failure => 1,);
     my @orphans = split('\n', $orphan_pkgs);
 
     if (((scalar @orphans) > 0) && !is_offline_upgrade_or_livecd) {
