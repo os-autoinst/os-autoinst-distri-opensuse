@@ -136,6 +136,12 @@ sub run {
     my $password = get_required_var("_SECRET_AD_DOMAIN_PASSWORD");
     define_secret_variable("AD_DOMAIN_PASSWORD", $password);
 
+    # Check for poo#126866
+    if (is_s390x && script_run("ping -c 2 $AD_hostname") != 0) {
+        record_soft_failure("poo#126866 - Can't contact domain controller (infra issue)");
+        return;
+    }
+
     samba_sssd_install();
     randomize_hostname();    # Prevent race condition with parallel test runs
     disable_ipv6();    # AD host is not reachable via IPv6 on some of our workers
