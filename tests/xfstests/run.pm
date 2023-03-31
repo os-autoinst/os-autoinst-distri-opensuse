@@ -255,7 +255,9 @@ sub tests_from_ranges {
 sub test_run {
     my $test = shift;
     my ($category, $num) = split(/\//, $test);
-    my $cmd = "\n$TEST_WRAPPER '$test' | tee $LOG_DIR/$category/$num; ";
+    my $run_options = '';
+    $run_options = '-nfs' if check_var('XFSTESTS', 'nfs');
+    my $cmd = "\n$TEST_WRAPPER '$test' $run_options | tee $LOG_DIR/$category/$num; ";
     $cmd .= "echo \${PIPESTATUS[0]} > $HB_DONE_FILE\n";
     type_string($cmd);
 }

@@ -24,6 +24,7 @@ use File::Basename;
 
 my $INST_DIR = '/opt/xfstests';
 my $CONFIG_FILE = "$INST_DIR/local.config";
+my $NFS_VERSION = get_var('XFSTESTS_NFS_VERSION', '4.1');
 
 # Number of SCRATCH disk in SCRATCH_DEV_POOL, other than btrfs has only 1 SCRATCH_DEV, xfstests specific
 sub partition_amount_by_homesize {
@@ -214,6 +215,13 @@ sub set_config {
     if (get_var('XFSTESTS_XFS_REPAIR')) {
         script_run("echo export TEST_XFS_REPAIR_REBUILD=1 >> $CONFIG_FILE");
     }
+    if (check_var('XFSTESTS', 'nfs')) {
+        script_run("echo export TEST_DEV=localhost:/export/test >> $CONFIG_FILE");
+        script_run("echo export TEST_DIR=/nfs/test >> $CONFIG_FILE");
+        script_run("echo export SCRATCH_DEV=localhost:/export/scratch >> $CONFIG_FILE");
+        script_run("echo export SCRATCH_MNT=/nfs/scratch >> $CONFIG_FILE");
+        script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$NFS_VERSION\"' >> $CONFIG_FILE");
+    }
     record_info('Config file', script_output("cat $CONFIG_FILE"));
 }
 
@@ -281,6 +289,38 @@ sub format_with_options {
     }
 }
 
+sub install_dependencies_nfs {
+    my @deps = qw(
+      nfs-client
+      nfs-kernel-server
+      nfs4-acl-tools
+    );
+    zypper_call('in ' . join(' ', @deps));
+}
+
+sub setup_nfs_server {
+    my $nfsversion = shift;
+    assert_script_run('mkdir -p /export/test /export/scratch /nfs/test /nfs/scratch && chown nobody:nogroup /export/test /export/scratch && echo \'/export/test *(rw,no_subtree_check,no_root_squash)\' >> /etc/exports && echo \'/export/scratch *(rw,no_subtree_check,no_root_squash,fsid=1)\' >> /etc/exports');
+
+    my $nfsgrace = get_var('NFS_GRACE_TIME', 15);
+    assert_script_run("echo 'options lockd nlm_grace_period=$nfsgrace' >> /etc/modprobe.d/lockd.conf && echo 'options lockd nlm_timeout=5' >> /etc/modprobe.d/lockd.conf");
+
+    if ($nfsversion == '3') {
+        assert_script_run("echo 'MOUNT_NFS_V3=\"yes\"' >> /etc/sysconfig/nfs");
+        assert_script_run("echo 'MOUNT_NFS_DEFAULT_PROTOCOL=3' >> /etc/sysconfig/autofs && echo 'OPTIONS=\"-O vers=3\"' >> /etc/sysconfig/autofs");
+        assert_script_run("echo 'Defaultvers=3' >> /etc/nfsmount.conf && echo 'Nfsvers=3' >> /etc/nfsmount.conf");
+    }
+    else {
+        assert_script_run("sed -i 's/NFSV4LEASETIME=\"\"/NFSV4LEASETIME=\"$nfsgrace\"/' /etc/sysconfig/nfs");
+        assert_script_run("echo -e '[nfsd]\\ngrace-time=$nfsgrace\\nlease-time=$nfsgrace' > /etc/nfs.conf.local");
+    }
+    assert_script_run('exportfs -a && systemctl restart rpcbind && systemctl enable nfs-server.service && systemctl restart nfs-server');
+
+    # There's a graceful time we need to wait before using the NFS server
+    my $gracetime = script_output('cat /proc/fs/nfsd/nfsv4gracetime;');
+    sleep($gracetime * 2);
+}
+
 sub run {
     select_serial_terminal;
 
@@ -291,7 +331,11 @@ sub run {
 
     my $filesystem = get_required_var('XFSTESTS');
     my %para;
-    if ($device) {
+    if (check_var('XFSTESTS', 'nfs')) {
+        install_dependencies_nfs;
+        setup_nfs_server("$NFS_VERSION");
+    }
+    elsif ($device) {
         assert_script_run("parted $device --script -- mklabel gpt");
         $para{fstype} = $filesystem;
         $para{dev} = $device;
