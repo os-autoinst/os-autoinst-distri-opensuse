@@ -23,6 +23,9 @@ use power_action_utils 'prepare_system_shutdown';
 use qam;
 use version_utils 'is_sle';
 use testapi;
+use serial_terminal qw(select_serial_terminal);
+use power_action_utils qw(power_action);
+use Utils::Architectures 'is_s390x';
 
 sub install_packages {
     my $patch_info = shift;
@@ -44,7 +47,7 @@ sub run {
     my $repo = get_var('INCIDENT_REPO');
     check_patch_variables($patch, $incident_id);
 
-    select_console 'root-console';
+    select_serial_terminal;
     my $patches = '';
     $patches = get_patches($incident_id, $repo) if $incident_id;
 
@@ -60,15 +63,16 @@ sub run {
     script_run('sed -i -r "s/^DISPLAYMANAGER_AUTOLOGIN/#DISPLAYMANAGER_AUTOLOGIN/" /etc/sysconfig/displaymanager');
     script_run('sed -i -r "s/^DEFAULT_WM=\"icewm\"/DEFAULT_VM=\"\"/" /etc/sysconfig/windowmanager');
     # now we have gnome installed - restore DESKTOP variable
-    set_var('DESKTOP', get_var('FULL_DESKTOP'));
+    set_var('DESKTOP', 'gnome', reload_needles => 1);
 
     $patch = $patch ? $patch : $patches;
     my $patch_status = is_patch_needed($patch, 1);
     install_packages($patch_status) if $patch_status;
 
-    prepare_system_shutdown;
-    enter_cmd "reboot";
-    $self->wait_boot(bootloader_time => 200);
+    systemctl 'restart display-manager' if is_s390x && is_sle('=15-SP2');
+
+    power_action('reboot', textmode => 1);
+    $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 200));
 }
 
 sub test_flags {
@@ -78,7 +82,7 @@ sub test_flags {
 sub post_fail_hook {
     my ($self) = @_;
     $self->SUPER::post_fail_hook;
-    select_console('root-console');
+    select_serial_terminal;
 
     assert_script_run "save_y2logs /tmp/y2logs-fail.tar.bz2";
     upload_logs "/tmp/y2logs-fail.tar.bz2";

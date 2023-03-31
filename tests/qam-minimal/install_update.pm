@@ -19,15 +19,16 @@ use strict;
 use warnings;
 
 use utils;
-use power_action_utils qw(prepare_system_shutdown power_action);
+use power_action_utils qw(power_action);
 use version_utils 'is_sle';
 use qam;
 use testapi;
 use Utils::Systemd 'disable_and_stop_service';
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
+    select_serial_terminal;
 
     # shim update will fail with old grub2 due to old signature
     if (check_var('MACHINE', 'uefi')) {
@@ -43,7 +44,7 @@ sub run {
     # DESKTOP can be gnome, but patch is happening in shell, thus always force reboot in shell
     power_action('reboot', textmode => 1);
     $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 200));
-    select_console('root-console');
+    select_serial_terminal;
 
     capture_state('before');
 
@@ -80,6 +81,14 @@ sub run {
 
         capture_state('between', 1);
 
+        # old kernel does not have key of new kernel
+        my $repos_to_check = join(' ', map { "-r $_" } split(',', $repo));
+        if (check_var('MACHINE', 'uefi') && script_run("zypper se $repos_to_check kernel") == 0) {
+            power_action('reboot', textmode => 1);
+            $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 200));
+            select_serial_terminal;
+        }
+
         # check if latest kernel has valid secure boot signature
         if (check_var('MACHINE', 'uefi') && is_sle('12-sp1+')) {
             assert_script_run 'kexec -l -s /boot/vmlinuz --initrd=/boot/initrd --reuse-cmdline';
@@ -88,7 +97,7 @@ sub run {
             enter_cmd "kexec -e";
             assert_screen 'linux-login', 90;
             reset_consoles;
-            select_console 'root-console';
+            select_serial_terminal;
             assert_script_run 'uname -a';
             assert_script_run 'mokutil --sb-state';
             assert_script_run 'mokutil --list-enrolled';
@@ -98,9 +107,9 @@ sub run {
             record_soft_failure('disable lvm2-monitor service due to bsc#1158145');
             disable_and_stop_service('lvm2-monitor', ignore_failure => 1);
         }
-        prepare_system_shutdown;
-        enter_cmd "reboot";
-        $self->wait_boot(bootloader_time => 200);
+        power_action('reboot', textmode => 1);
+        $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 200));
+        select_serial_terminal;
     }
 }
 

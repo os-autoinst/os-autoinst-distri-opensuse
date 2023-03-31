@@ -17,13 +17,14 @@ use warnings;
 use base "opensusebasetest";
 
 use utils;
-use power_action_utils 'prepare_system_shutdown';
+use power_action_utils qw(power_action);
 use qam;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
+    select_serial_terminal;
 
     quit_packagekit;
 
@@ -36,9 +37,9 @@ sub run {
     fully_patch_system;
     capture_state('after', 1);
 
-    prepare_system_shutdown;
-    enter_cmd "reboot";
-    $self->wait_boot(bootloader_time => 200);
+    power_action('reboot', textmode => 1);
+    $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 200));
+    select_serial_terminal;
 }
 
 sub test_flags {
