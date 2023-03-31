@@ -57,7 +57,7 @@ sub run {
     systemctl("status sssd");
 
     # check memeberof plugin
-    validate_script_output("ldapsearch -H ldap://localhost -b 'dc=ldapdom,dc=net' -s sub -x -D 'cn=Directory Manager' -w $password memberof", sub { m/memberof:.*group1/ });
+    validate_script_output_retry("ldapsearch -H ldap://localhost -b 'dc=ldapdom,dc=net' -s sub -x -D 'cn=Directory Manager' -w $password memberof", sub { m/memberof:.*group1/ }, retry => 5, delay => 60);
     validate_script_output('getent passwd testuser1\@ldapdom', sub { m/testuser1.*testuser1/ });
 
 }
