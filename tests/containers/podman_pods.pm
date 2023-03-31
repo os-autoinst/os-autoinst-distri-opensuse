@@ -49,7 +49,7 @@ sub run {
         my $image = "registry.suse.com/bci/bci-busybox:latest";
         script_retry("podman pull $image", timeout => 300, delay => 60, retry => 3);
         assert_script_run("podman container create --pod testing_pod --name container $image sh -c \"sleep 3600\"");
-        assert_script_run("podman kube generate testing_pod -f pod.yaml");
+        assert_script_run("podman kube generate testing_pod | tee pod.yaml");
         assert_script_run("grep 'image: $image' pod.yaml");
         assert_script_run("podman pod rm testing_pod");
 
