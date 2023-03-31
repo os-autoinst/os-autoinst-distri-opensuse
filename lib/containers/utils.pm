@@ -22,7 +22,7 @@ use Mojo::Util 'trim';
 
 our @EXPORT = qw(test_seccomp runtime_smoke_tests basic_container_tests get_vars
   can_build_sle_base get_docker_version get_podman_version check_runtime_version
-  container_ip container_route registry_url);
+  check_min_runtime_version container_ip container_route registry_url);
 
 sub test_seccomp {
     my $no_seccomp = script_run('docker info | tee /tmp/docker_info.txt | grep seccomp');
@@ -55,6 +55,13 @@ sub check_runtime_version {
     my ($current, $other) = @_;
     return check_version($other, $current, qr/\d{2}(?:\.\d+)/);
 }
+
+sub check_min_runtime_version {
+    my ($desired_version) = @_;
+    my $podman_version = get_podman_version();
+    return version->parse($podman_version) >= version->parse($desired_version);
+}
+
 
 sub container_ip {
     my ($container, $runtime) = @_;

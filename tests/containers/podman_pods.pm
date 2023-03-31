@@ -13,6 +13,7 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use utils qw(script_retry);
+use containers::utils qw(check_min_runtime_version);
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle is_opensuse);
 
@@ -42,7 +43,7 @@ sub run {
         assert_script_run('podman play kube --down hello-kubic.yaml');
     }
 
-    unless (is_sle('<=15-SP2')) {
+    unless (!check_min_runtime_version('4.4.2')) {
         # Kube generate
         record_info('Test', 'Generate the yaml from a pod');
         assert_script_run('podman pod create testing_pod');
