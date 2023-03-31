@@ -18,12 +18,14 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my $primary_host = 'vmhana01';
-
-    cluster_print_cluster_status($primary_host);
+    # "hana[0]" is more generic than vmhana01.
+    # It is fine for cluster_print_cluster_status as
+    #it only uses it for some qesap_ansible_cmd
+    cluster_print_cluster_status('"hana[0]"');
 
     # Stop the primary DB
-    cluster_hdbadm($primary_host, 'HDB stop');
+    my $primary_host = 'vmhana01';
+    cluster_hdbadm('"hana[0]"', 'HDB stop');
     cluster_wait_status($primary_host, sub { ((shift =~ m/.+UNDEFINED.+SFAIL/) && (shift =~ m/.+PROMOTED.+PRIM/)); });
 
     my $cypress_test_dir = "/root/test/test";

@@ -20,7 +20,7 @@ sub run {
     cluster_trento_net_peering('/root/test');
 
     my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
-    my $primary_host = 'vmhana01';
+    my $primary_host = '"hana[0]"';
     qesap_ansible_cmd(cmd => 'crm cluster wait_for_startup', provider => $prov, filter => $primary_host);
 
     cluster_print_cluster_status($primary_host);
