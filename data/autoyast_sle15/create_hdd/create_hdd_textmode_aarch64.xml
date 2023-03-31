@@ -292,7 +292,6 @@
       <package>wicked</package>
       <package>snapper</package>
       <package>sle-module-server-applications-release</package>
-      <package>sle-module-desktop-applications-release</package>
       <package>sle-module-basesystem-release</package>
       <package>shim</package>
       <package>openssh</package>
