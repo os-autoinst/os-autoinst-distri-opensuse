@@ -41,7 +41,8 @@ sub run {
         # btrfsprogs split bash-completion into a sub-package; JeOS using no-recommends does
         # not trigger this sub-package to be auto-installed. Attempt to install, accept non-
         # existing package on case it is not yet split (exitcode 104)
-        zypper_call('in bash-completion btrfsprogs-bash-completion', exitcode => [0, 104]);
+        # use zypper -n -i install: -i ignores missing packages
+        zypper_call('-i in bash-completion btrfsprogs-bash-completion', exitcode => [0, 104]);
         assert_script_run('source $(rpmquery -l bash-completion | grep bash_completion.sh)');
     }
 
