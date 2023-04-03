@@ -161,7 +161,7 @@ sub run {
     # verify that package eol defaults to product eol
     # dash is accepted in prod EOL, despite it does not match zypper lifecycle, see poo#126794
     $output = script_output "zypper lifecycle $package", 300;
-    unless ($output =~ /$package(-\S+)?\s+($product_eol|-)/) {
+    unless ($output =~ /$package(-\S+)?\s+($product_eol|-$)/) {
         die "$package lifecycle entry incorrect:\nOutput: '$output', expected: '/$package-\\S+\\s+$product_eol'";
     }
 
