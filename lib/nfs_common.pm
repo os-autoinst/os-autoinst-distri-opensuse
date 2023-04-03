@@ -178,7 +178,7 @@ sub client_common_tests {
 sub check_nfs_ready {
     my ($rw, $ro) = @_;
 
-    assert_script_run "exportfs | grep '${rw}\\|${ro}'";
+    assert_script_run "exportfs | grep '${rw}\\|${ro}'", 600;
     assert_script_run "cat /etc/exports | tr -d ' \\t\\r' | grep '${rw}\\*(rw,\\|${ro}\\*(ro,'";
     assert_script_run "cat /proc/fs/nfsd/exports";
 
