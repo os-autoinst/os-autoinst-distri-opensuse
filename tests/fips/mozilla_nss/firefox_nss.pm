@@ -206,6 +206,12 @@ sub run {
 
         firefox_crashreporter;
     }
+
+    if (is_sle('<=15-SP3') && check_screen("firefox-password-required-prompt")) {
+        type_string($fips_strong_password, timeout => 10, max_interval => 30);
+        send_key "ret";
+    }
+
     assert_screen("firefox-url-loaded", $waittime);
 
     # Firefox Preferences
