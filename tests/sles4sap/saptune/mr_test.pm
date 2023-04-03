@@ -48,10 +48,10 @@ sub setup {
     # Disable packagekit
     quit_packagekit;
     # Install saptune
-    zypper_call "-n in saptune";
+    zypper_call "in saptune";
+    zypper_call "in sapconf";
     if (systemctl("-q is-active sapconf.service", ignore_failure => 1)) {
         record_soft_failure("bsc#1190787 - sapconf is not started");
-        zypper_call "in sapconf";
     }
     # Install mr_test dependencies
     # 'zypper_call "-n in python3-rpm"' returns error message:
