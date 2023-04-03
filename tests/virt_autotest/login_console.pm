@@ -13,10 +13,11 @@ use warnings;
 use File::Basename;
 use testapi;
 use Utils::Architectures;
-use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout);
+use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout update_ssh_console_netconfig);
 use ipmi_backend_utils;
 use virt_autotest::utils qw(is_xen_host is_kvm_host check_port_state check_host_health);
 use IPC::Run;
+use version_utils;
 
 sub set_ssh_console_timeout_before_use {
     reset_consoles;
@@ -209,6 +210,7 @@ sub login_to_console {
     # double-check xen role for xen host
     double_check_xen_role if (is_xen_host and !get_var('REBOOT_AFTER_UPGRADE'));
     check_kvm_modules if is_x86_64 and is_kvm_host and !get_var('REBOOT_AFTER_UPGRADE');
+    update_ssh_console_netconfig if (is_x86_64 and (is_sle or is_sle_micro) and get_var('VIRT_AUTOTEST', ''));
 }
 
 sub run {

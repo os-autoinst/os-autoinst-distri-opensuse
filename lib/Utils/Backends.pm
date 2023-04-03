@@ -18,6 +18,7 @@ use base 'Exporter';
 use Exporter;
 use testapi ':DEFAULT';
 use Utils::Architectures 'is_s390x';
+use Mojo::File 'path';
 
 use constant {
     BACKEND => [
@@ -49,6 +50,7 @@ use constant {
           set_ssh_console_timeout
           save_serial_console
           get_serial_console
+          update_ssh_console_netconfig
         )
     ]
 };
@@ -286,6 +288,52 @@ sub is_ssh_installation {
     my $videomode = get_var('VIDEOMODE', '');
     return ($videomode =~ /ssh/ ||
           (($videomode =~ /text/) && (is_pvm || is_s390x)));
+}
+
+=head2 update_ssh_console_netconfig
+
+Update the network configuration using current netconfig settings. This will help
+refresh file like /etc/resolv.conf, so associated machine will get the latest or
+corrected name servers to continue to function as normal, for example, establish 
+connection back to worker machine by using FQDN or communicate with system outside 
+using FQDN. If "netconfig update -f" can not help, adding functioning name servers
+into /etc/resolv.conf provided by worker machine. Record failure and even terminate 
+test run if host fails to communicate outside at the last. Arguments are address 
+of the system on which netconfig will operate and the number of retries.
+
+=cut
+
+sub update_ssh_console_netconfig {
+    my (%args) = @_;
+    $args{dest} //= 'localhost';
+    $args{retry} //= 3;
+
+    my $pingaddr = version_utils::is_opensuse() ? 'openqa.opensuse.org' : 'openqa.suse.de';
+    my $sshcmd = $args{dest} eq 'localhost' ? "" : "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root\@$args{dest}";
+    my $pingret = script_run("$sshcmd timeout --kill-after=1 --signal=9 20 ping -c5 $pingaddr");
+    while ($args{retry} > 0 and $pingret != 0) {
+        script_run("$sshcmd timeout --kill-after=1 --signal=9 20 netconfig update -f");
+        $pingret = script_run("$sshcmd timeout --kill-after=1 --signal=9 20 ping -c5 $pingaddr");
+        $args{retry} -= 1;
+    }
+    save_screenshot;
+    if ($pingret != 0) {
+        my $resolv_file = "/etc/resolv.conf";
+        assert_script_run("$sshcmd sed -i -r \'/^nameserver.*\$/d\' $resolv_file") if (script_run("$sshcmd cat $resolv_file | grep \"^nameserver.*\$\"") == 0);
+        my $nameserver = join '', map { "$_\\n" } grep { /^nameserver/ } split("\n", path($resolv_file)->slurp);
+        $args{dest} eq 'localhost' ? assert_script_run("sed -i -r \'\$a $nameserver\' $resolv_file") : assert_script_run("$sshcmd \"sed -i -r \'\\\$a $nameserver\' $resolv_file\"");
+        $pingret = script_run("$sshcmd timeout --kill-after=1 --signal=9 20 ping -c5 $pingaddr");
+    }
+    save_screenshot;
+    my $outputcmd = "cat /etc/resolv.conf;cat /etc/netconfig;ip neighbor;ip addr show;ip route show all";
+    $outputcmd = "$sshcmd \"$outputcmd\"" if ($args{dest} ne 'localhost');
+    if ($pingret != 0) {
+        record_info("$args{dest} network failure", script_output($outputcmd, type_command => 1, proceed_on_failure => 1), result => 'fail');
+        die "Test run can not continue due to severe communication failure" if ($args{dest} eq 'localhost');
+    }
+    else {
+        record_info("$args{dest} network intact", script_output($outputcmd, type_command => 1, proceed_on_failure => 1));
+    }
 }
 
 1;
