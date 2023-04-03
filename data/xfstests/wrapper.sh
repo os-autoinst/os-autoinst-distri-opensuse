@@ -5,8 +5,6 @@ SCRIPT_DIR=$(realpath $(dirname "$0"))
 OPTIONS=""
 if [ "$#" -gt 1 ]; then
     OPTIONS=$2
-fi
-if [ "$#" -gt 3 ]; then
     INJECT_LINE=$3
     INJECT_CODE=$4
 fi
