@@ -1,0 +1,19 @@
+name: fips_crypt_libica
+description:    >
+    This is for the crypt_libica fips tests.
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - '{{repo_setup}}'
+    - fips/fips_setup
+    - fips/libica_upstream_testsuite
+    - fips/libica
+conditional_schedule:
+    repo_setup:
+        BETA:
+            1:
+                - security/test_repo_setup
+        FLAVOR:
+            Online-QR:
+                - security/test_repo_setup
