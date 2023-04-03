@@ -141,20 +141,35 @@ sub upload_img {
     my $key = $self->get_storage_account_keys($storage_account);
 
 
+    my $file_md5 = script_output("md5sum $file | cut -d' ' -f1");
 
     # Check if blob already exists
     my $container = $self->container;
-    my $blobs = script_output("az storage blob list --container-name '$container' --account-name '$storage_account' | jq '.[].name'");
+    my $blobs = script_output("az storage blob list --account-key $key --container-name '$container' --account-name '$storage_account' --query '[].name' -o tsv");
     $blobs =~ s/^\s+|\s+$//g;    # trim
     my @blobs = split(/\n/, $blobs);
     if (grep(/$img_name/, @blobs)) {
-        record_info('blob', "Blob already exists, omitting upload\nExisting blobs:\n$blobs");
+        record_info('Blob exists', "Blob already exists, omitting upload\nExisting blobs:\n$blobs");
+        my $cmd_show = "az storage blob show --container-name '" . $container . "' --account-name '$storage_account' --name $img_name " .
+          '--query="{name: name,createTime: properties.creationTime,md5: properties.contentSettings.contentMd5}"' .
+          ' -o json';
+        script_run($cmd_show);    # This is temporal debug
+                                  #my $start_time = time();
+                                  #while (time() - $start_time < $upload_time) {
+                                  #    my $blob_info = decode_azure_json(script_output($cmd_show));
+                                  #    record_info('Compare MD5', "File Md5:$file_md5 \n Blob MD5:$blob_info->{md5}");
+                                  #    last if (index($blob_info->{md5}, $file_md5) != -1);
+                                  #    sleep 60 * 5;
+                                  #}
     } else {
         record_info("blobs", $blobs);
         # Note: VM images need to be a page blob type
         assert_script_run('az storage blob upload --max-connections 4 --account-name '
-              . $storage_account . ' --account-key ' . $key . ' --container-name ' . $self->container
+              . $storage_account . ' --account-key ' . $key . ' --container-name ' . $container
               . ' --type page --file ' . $file . ' --name ' . $img_name, timeout => 60 * 60 * 2);
+        # After blob is uploaded we save the of it as its metadata.
+        # This is also to verify that the upload has been finished.
+        assert_script_run("az storage blob update --account-key $key --container-name '$container' --account-name '$storage_account' --name $img_name --content-md5 $file_md5");
     }
 
     if ($arch eq 'Arm64') {
