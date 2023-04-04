@@ -502,7 +502,8 @@ sub terraform_apply {
         else {
             send_key('ctrl-\\');    # Send QUIT signal
         }
-        assert_script_run('true');    # make sure we have a prompt
+        assert_script_run('true');    # Make sure we have a prompt
+        script_run("killall -KILL terraform");    # Send SIGKILL in case SIGQUIT doesn't work
         record_info('ERROR', 'Terraform apply failed with timeout', result => 'fail');
         assert_script_run('cd ' . TERRAFORM_DIR);
         $self->on_terraform_apply_timeout();
