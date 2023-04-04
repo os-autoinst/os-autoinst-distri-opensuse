@@ -79,7 +79,7 @@ sub validate_default_target {
 
     my $target_search = 'default target has been set';
     # default.target is not yet linked, so we parse logs and assert expectations
-    if (my $log_line = script_output("grep '$target_search' /var/log/YaST2/y2log | tail -1",
+    if (my $log_line = script_output("grep '$target_search' /var/log/YaST2/y2log | tail -1", timeout => 30,
             proceed_on_failure => 1)) {
         $log_line =~ /$target_search: (?<current_target>.*)/;
         assert_equals($expected_target, $+{current_target}, "Mismatch in default.target");
