@@ -97,7 +97,7 @@ sub post_run_hook {
     select_console('log-console');
     my $hname = get_var('HOSTNAME', 'susetest');
     foreach (keys %log_files) {
-        save_and_upload_log($log_files{$_}{cmd}, "/tmp/$hname-" . $log_files{$_}{logfile}, {screenshot => 1});
+        save_and_upload_log($log_files{$_}{cmd}, "/tmp/$hname-" . $log_files{$_}{logfile}, {timeout => 1200, screenshot => 1});
     }
     $self->upload_service_log("wicked");
     if ($hname =~ /master/) {
