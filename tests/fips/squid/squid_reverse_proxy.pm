@@ -45,7 +45,7 @@ sub run {
     configure_squid;
     # use squid as https reverse proxy to access content served by apache.
     # Ensure reply contains certificate info, HTTP 200 and test page content
-    validate_script_output 'curl -v --proxy https://localhost:8443 http://localhost:8080/hello.html',
+    validate_script_output 'curl -v  --no-styled-output --proxy https://localhost:8443 http://localhost:8080/hello.html',
       sub { m/subject:.+O=Suse.+CN=localhost.+HTTP\/1.1 200 OK.+Test Page/s };
 }
 

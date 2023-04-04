@@ -28,10 +28,11 @@ sub run {
     configure_squid;
     my $testfile = data_url('squid/hello.html');
     # try to download file without authentication, should fail
-    validate_script_output 'curl --head --proxy http://localhost:3128 ' . $testfile,
-      sub { m/HTTP\/1.1 407 Proxy Authentication Required.+Server: squid/s, proceed_on_failure => 1, };
+    validate_script_output('curl --no-styled-output --head --proxy http://localhost:3128 ' . $testfile,
+        sub { m/HTTP\/1.1 407 Proxy Authentication Required.+Server: squid/s },
+        proceed_on_failure => 1);
     # try to download file with authentication, should success
-    validate_script_output 'curl --head --proxy-digest -U proxyuser:proxypassword --proxy http://localhost:3128 ' . $testfile,
+    validate_script_output 'curl --no-styled-output --head --proxy-digest -U proxyuser:proxypassword --proxy http://localhost:3128 ' . $testfile,
       sub { m/HTTP\/1.1 200 OK/ };
 }
 
