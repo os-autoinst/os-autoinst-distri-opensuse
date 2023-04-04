@@ -331,7 +331,7 @@ sub load_tests {
         load_common_tests;
         load_transactional_tests unless is_zvm;
     }
-    loadtest 'console/year_2038_detection';
+    loadtest 'console/year_2038_detection' if is_alp;
     load_journal_check_tests;
 }
 
