@@ -1,6 +1,6 @@
 # SUSE's Apache regression test
 #
-# Copyright 2019-2021 SUSE LLC
+# Copyright 2019-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: apache2 apache2-mod_php72 php72-php72-curl
@@ -22,6 +22,9 @@ use version_utils qw(is_sle is_jeos);
 sub run {
     select_serial_terminal;
 
+    # On SLES12-SP5 apache2 and apache2-tls13 are supported
+    my $apache2 = get_var('APACHE2_PKG', "apache2");
+
     # installation of docs and manpages is excluded in zypp.conf
     # enable full package installation, and clean up previous apache2 deployment
     if (is_jeos) {
@@ -32,16 +35,10 @@ sub run {
     # Even before the installation there should be htdocs so we can create the index
     assert_script_run 'echo "index" > /srv/www/htdocs/index.html';
 
-    # Ensure apache2 is installed and stopped
-    if (script_run('rpm -q apache2') == 0) {
-        systemctl('stop apache2');
-    } else {
-        zypper_call 'in apache2';
-    }
-
-    # Check if the unit is enabled (and if not, enable it), started (and if not, start it) and display its status
-    systemctl 'enable apache2';
-    systemctl 'start apache2';
+    # Install and start apache
+    zypper_call "in $apache2";
+    systemctl 'enable apache2';    # Note: The systemd service is always apache2, not apache2-tls13.
+    systemctl 'restart apache2';    # apache2 could be already running from previous test runs
     systemctl 'status apache2';
 
     # Check if apache is working when php module is enabled
@@ -127,7 +124,7 @@ sub run {
         else {
             # Create directory for the new instance and prepare config
             assert_script_run 'mkdir -p /tmp/prefork';
-            assert_script_run 'sed "s_\(/var/log/apache2\|/var/run\)_/tmp/prefork_; s/80/8080/" /usr/share/doc/packages/apache2/httpd.conf.default > /tmp/prefork/httpd.conf';
+            assert_script_run "sed 's_\(/var/log/apache2\|/var/run\)_/tmp/prefork_; s/80/8080/' /usr/share/doc/packages/$apache2/httpd.conf.default > /tmp/prefork/httpd.conf";
 
             # httpd.default.conf contains wrong service userid and groupid
             assert_script_run q{sed -ie 's/^User daemon$/User wwwrun/' /tmp/prefork/httpd.conf};

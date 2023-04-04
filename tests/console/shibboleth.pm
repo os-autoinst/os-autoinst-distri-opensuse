@@ -22,7 +22,8 @@ use utils;
 sub run {
     select_console 'root-console';
 
-    zypper_call "in shibboleth-sp apache2";
+    my $apache2 = get_var('APACHE2_PKG', "apache2");
+    zypper_call "in shibboleth-sp $apache2";
     assert_script_run "a2enmod shib";
     systemctl 'restart apache2';
 

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2020 SUSE LLC
+# Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Package for apache2 service tests
@@ -13,9 +13,11 @@ use testapi;
 use utils;
 use strict;
 use warnings;
+use version_utils 'is_sle';
 
 sub install_service {
-    zypper_call('in apache2 apache2-utils');
+    my $apache = get_var('APACHE2_PKG', "apache2");
+    zypper_call("in $apache $apache-utils");
 }
 
 sub enable_service {
