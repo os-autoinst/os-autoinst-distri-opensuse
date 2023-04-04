@@ -17,6 +17,7 @@ use publiccloud::azure;
 use publiccloud::gce;
 use publiccloud::openstack;
 use serial_terminal 'select_serial_terminal';
+use version_utils qw(is_jeos);
 
 sub run {
     my ($self, $args) = @_;
@@ -49,8 +50,13 @@ sub run {
         die "404 - Image not found" if ($output =~ "ERROR 404: Not Found");
         die "wget failed with return code $rc";
     }
-    assert_script_run $cmd_sha256;
-    assert_script_run "sha256sum -c $img_name.sha256";
+
+    # IBS sync does not pull checksum file for JeOS Cloud image
+    unless (is_jeos) {
+        assert_script_run $cmd_sha256;
+        assert_script_run "sha256sum -c $img_name.sha256";
+    }
+
     $provider->upload_img($img_name);
 }
 
