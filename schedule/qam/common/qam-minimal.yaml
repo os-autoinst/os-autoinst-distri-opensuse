@@ -14,6 +14,8 @@ schedule:
 - installation/addon_products_sle
 - installation/system_role
 - installation/partitioning
+- '{{ext4}}'
+- '{{lvm}}'
 - installation/partitioning_finish
 - installation/installer_timezone
 - installation/user_settings
@@ -40,6 +42,14 @@ conditional_schedule:
     ARCH:
       s390x:
         - installation/disk_activation
+  ext4:
+    FILESYSTEM:
+      ext4:
+        - installation/partitioning_filesystem
+  lvm:
+    LVM:
+      1:
+        - installation/partitioning/lvm
   s390tools:
     ARCH:
       s390x:
