@@ -287,16 +287,17 @@ sub wait_for_guestregister_chk {
     while (time() - $start_time < $args{timeout}) {
         my $out = $self->run_ssh_command(cmd => 'sudo systemctl is-active guestregister', proceed_on_failure => 1, quiet => 1);
         # guestregister is expected to be inactive because it runs only once
-        if ($out eq 'inactive') {
+        # the tests match the expected string at end of the cmd output
+        if ($out =~ m/inactive$/) {
             $self->upload_log($log, log_name => $name);
             return time() - $start_time;
         }
-        elsif ($out eq 'failed') {
+        elsif ($out =~ m/failed$/) {
             $self->upload_log($log, log_name => $name);
             $out = $self->run_ssh_command(cmd => 'sudo systemctl status guestregister', quiet => 1);
             return time() - $start_time;
         }
-        elsif ($out eq 'active') {
+        elsif ($out =~ m/active$/) {
             $self->upload_log($log, log_name => $name);
             die "guestregister should not be active on BYOS" if (is_byos);
         }
