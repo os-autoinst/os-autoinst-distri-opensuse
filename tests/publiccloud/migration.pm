@@ -27,8 +27,7 @@ sub run {
     my ($self, $args) = @_;
     select_serial_terminal();
     my $provider = $args->{my_provider};
-    my $instance = $provider->create_instance();
-    $instance->wait_for_guestregister();
+    my $instance = $provider->create_instance(check_guestregister => 0);
     registercloudguest($instance) if is_byos();
 
     register_addons_in_pc($instance);
