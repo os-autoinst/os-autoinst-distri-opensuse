@@ -15,6 +15,7 @@ use testapi;
 use utils qw(OPENQA_FTP_URL zypper_call);
 use Utils::Backends 'is_pvm';
 use Utils::Logging 'export_logs';
+use zypper 'wait_quit_zypper';
 
 sub run {
     my $self = shift;
@@ -37,6 +38,9 @@ sub run {
     script_run "ip addr show";
     save_screenshot;
     assert_script_run('modprobe nvram') if is_pvm;
+
+    # poo#126425, sometimes we have issue with zypper progress in background, so we just need to wait a little bit
+    wait_quit_zypper;
 
     # Disable all repos, so we do not need to remove one by one
     # beware PackageKit!
