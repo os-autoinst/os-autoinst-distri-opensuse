@@ -45,7 +45,7 @@ sub lifecycle_output_check {
     }
     if (get_var('SCC_REGCODE_LTSS')) {
         if ($output =~ /No products.*before/) {
-            record_soft_failure('poo#95593 https://jira.suse.com/browse/MSC-70');
+            record_info('Softfail', "poo#95593 https://jira.suse.com/browse/MSC-70");
             return;
         }
         die "SUSE Linux Enterprise Server is end of support\nOutput: '$output'" unless $output =~ /SUSE Linux Enterprise Server/;
