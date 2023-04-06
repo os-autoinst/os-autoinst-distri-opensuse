@@ -165,7 +165,14 @@ Parse variables and test modules from a yaml file representing a test suite to b
 
 sub load_yaml_schedule {
     if (my $yamlfile = get_var('YAML_SCHEDULE')) {
-        my $schedule_file = $ypp->load_file($root_project_dir . $yamlfile);
+        my $filename = $root_project_dir . $yamlfile;
+        if (!-e $filename) {
+            # Write error to log to give the user the chance to understand, what went wrong
+            diag("YAML_SCHEDULE file not found: '$filename'");
+            # Note that openQA will terminate with "unable to load main.pm, check the log for the cause" on error at this stage.
+            die "Provided YAML_SCHEDULE does not exist";
+        }
+        my $schedule_file = $ypp->load_file($filename);
         my %schedule_vars = parse_vars($schedule_file);
         my $test_context_instance = undef;
         while (my ($var, $value) = each %schedule_vars) { set_var($var, $value) }
