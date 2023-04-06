@@ -20,8 +20,11 @@ use warnings;
 use testapi;
 use utils;
 use serial_terminal 'select_serial_terminal';
-use transactional qw(trup_call check_reboot_changes);
+use transactional qw(trup_call check_reboot_changes process_reboot);
 use version_utils qw(is_transactional);
+use Utils::Systemd 'disable_and_stop_service';
+use power_action_utils 'power_action';
+use Utils::Backends 'is_pvm';
 
 sub install_pkg {
     if (is_transactional) {
@@ -34,43 +37,43 @@ sub install_pkg {
 }
 
 sub run {
+    my $self = shift;
     select_serial_terminal;
 
     install_pkg if (script_run('rpm -qi chrony') != 0);
     systemctl("start chronyd");    # Ensure chrony is started
-    assert_script_run 'chronyc makestep';
+    assert_script_run('chronyc makestep');
     record_info('Show current date and time', script_output('date +"%Y-%m-%d"'));
     assert_script_run('utmpdump /var/run/utmp');
     assert_script_run('utmpdump /var/log/wtmp');
 
     # Stop the chrony service so that we can change date and time
-    systemctl('stop chronyd.service');
+    disable_and_stop_service('chronyd.service');
+
     # Set the time and date beyond a Y2038
+    record_info('Timewarp', script_output('timedatectl status'));
     assert_script_run('timedatectl set-time "2038-01-20 03:14:07"');
 
     # We may need to logout and login again to make the date/time change
-    # take effect. in a simple way, we can switch to another user to
-    # achieve this.
-    #
-    # Create user account, if image doesn't already contain user
-    # (which is the case for SLE images that were already prepared by openQA)
-    if (script_run("getent passwd $username") != 0) {
-        assert_script_run "useradd -m $testapi::username";
-        assert_script_run "echo '$testapi::username:$testapi::password' | chpasswd";
+    # However, we need to handle many platforms and different products.
+    # Reboot the system to acieve this is a simple way for the time being.
+    if (is_transactional) {
+        process_reboot(trigger => 1);
     }
-    ensure_serialdev_permissions;
-
-    # Switch user to check if the issue can be captured
-    select_console 'user-console';
+    else {
+        power_action('reboot', textmode => 1);
+        reconnect_mgmt_console if is_pvm;
+        $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 300);
+    }
+    select_serial_terminal;
+    record_info("time after reboot", script_output("timedatectl status"));
     my $utmp_output = script_output('utmpdump /var/run/utmp');
     my $wtmp_output = script_output('utmpdump /var/log/wtmp');
     record_soft_failure('bsc#1188626 uttmpdump shows incorrect year for 2038 and beyond') if ($utmp_output !~ m/2038/sx || $wtmp_output !~ m/2038/sx);
 
-    # Start the chrony service again
-    select_serial_terminal;
     systemctl('start chronyd.service');
-    assert_script_run 'chronyc makestep';
-    record_info('Show synced date and time', script_output('date +"%Y-%m-%d"'));
+    record_info('Show NTP sources', script_output('chronyc -n sources -v'));
+    script_retry('chronyc makestep && (date +"%Y-%m-%d" | grep -v 2038)', delay => 60, retry => 3, fail_message => 'Time sync with NTP server failed (poo#127343)');
 }
 
 sub post_run_hook {
