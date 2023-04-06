@@ -207,7 +207,7 @@ my $tsx_async_abort_full_nosmt = {"tsx_async_abort=full,nosmt" => {
 };
 my $spectrev2_on = {"spectre_v2=on" => {
         default => {
-            expected => {'cat /proc/cmdline' => ['spectre_v2=on'], 'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['IBPB: always-on,.*STIBP.*']},
+            expected => {'cat /proc/cmdline' => ['spectre_v2=on'], 'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['IBPB: always-on,.*RSB filling']},
             unexpected => {'cat /proc/cmdline' => ['spectre_v2=off', 'spectre_v2=auto', 'spectre_v2=retpoline'], 'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Vulnerable', '.*IBPB: disabled,.*STIBP: disabled']}
         }
     }
@@ -249,7 +249,7 @@ my $spectrev2_retpoline_spec_ctrl_no = {"spectre_v2=retpoline" => {
 };
 my $spectrev2_user_on = {"spectre_v2_user=on" => {
         default => {
-            expected => {'cat /proc/cmdline' => ['spectre_v2_user=on'], 'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['IBPB: always-on,.*STIBP:.*']},
+            expected => {'cat /proc/cmdline' => ['spectre_v2_user=on'], 'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['IBPB: always-on,.*RSB filling.*']},
             unexpected => {'cat /proc/cmdline' => ['spectre_v2_user=off', 'spectre_v2_user=prctl', 'spectre_v2_user=prctl,ibpb', 'spectre_v2_user=seccomp', 'spectre_v2_user=seccomp,ibpb', 'spectre_v2_user=auto'], 'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['IBPB: disabled,.*STIBP: disabled', 'IBPB: conditional.*']}
         }
     }
@@ -263,7 +263,7 @@ my $spectrev2_user_on_spec_ctrl_no = {"spectre_v2_user=on" => {
 };
 my $spectrev2_user_off = {"spectre_v2_user=off" => {
         default => {
-            expected => {'cat /proc/cmdline' => ['spectre_v2_user=off'], 'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['IBPB: disabled,.*STIBP: disabled']},
+            expected => {'cat /proc/cmdline' => ['spectre_v2_user=off'], 'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['IBPB: disabled,.*RSB filling.*']},
             unexpected => {'cat /proc/cmdline' => ['spectre_v2_user=on', 'spectre_v2_user=prctl', 'spectre_v2_user=prctl,ibpb', 'spectre_v2_user=seccomp', 'spectre_v2_user=seccomp,ibpb', 'spectre_v2_user=auto'], 'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['IBPB: always-on,.* STIBP: forced,.*', 'IBPB: conditional.*', 'IBPB: always-on.*']}
         }
     }
@@ -318,12 +318,40 @@ my $mitigations_auto_on_pv_haswell = {"mitigations=auto" => {
         }
     }
 };
+my $mitigations_auto_on_pv_icelake = {"mitigations=auto" => {
+        default => {
+            expected => {
+                'cat /proc/cmdline' => ['mitigations=auto'],
+'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Retpolines, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
+                'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Unknown.*XEN PV detected, hypervisor mitigation required'],
+                'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
+                'cat /sys/devices/system/cpu/vulnerabilities/tsx_async_abort' => ['Clear CPU buffers; SMT Host state unknown']},
+            unexpected => {}
+        }
+    }
+};
+
+my $mitigations_auto_on_pv_cascadelake = {"mitigations=auto" => {
+        default => {
+            expected => {
+                'cat /proc/cmdline' => ['mitigations=auto'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: IBRS.*IBPB: conditional, RSB filling.*'],
+                'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Unknown.*XEN PV detected, hypervisor mitigation required'],
+                'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
+                'cat /sys/devices/system/cpu/vulnerabilities/tsx_async_abort' => ['Not affected']},
+            unexpected => {}
+        }
+    }
+};
+
 
 my $mitigations_auto_on_pv = {"mitigations=auto" => {
         default => {
             expected => {
                 'cat /proc/cmdline' => ['mitigations=auto'],
-'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Retpolines, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: IBRS.*IBPB: conditional, RSB filling.*'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Unknown.*XEN PV detected, hypervisor mitigation required'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
                 'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
@@ -336,7 +364,7 @@ my $mitigations_auto_on_hvm = {"mitigations=auto" => {
         default => {
             expected => {
                 'cat /proc/cmdline' => ['mitigations=auto'],
-                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Retpolines, IBPB: conditional, IBRS_FW, RSB filling'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: IBRS, IBPB: conditional, RSB filling'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Mitigation: PTI'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
                 'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
@@ -359,11 +387,39 @@ my $mitigations_auto_on_hvm_haswell = {"mitigations=auto" => {
         }
     }
 };
+my $mitigations_auto_on_hvm_icelake = {"mitigations=auto" => {
+        default => {
+            expected => {
+                'cat /proc/cmdline' => ['mitigations=auto'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Retpolines, IBPB: conditional, IBRS_FW, RSB filling'],
+                'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Mitigation: PTI'],
+                'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
+                'cat /sys/devices/system/cpu/vulnerabilities/tsx_async_abort' => ['Clear CPU buffers; SMT Host state unknown']},
+            unexpected => {}
+        }
+    }
+};
+
+my $mitigations_auto_on_hvm_cascadelake = {"mitigations=auto" => {
+        default => {
+            expected => {
+                'cat /proc/cmdline' => ['mitigations=auto'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: IBRS, IBPB: conditional, RSB filling'],
+                'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Mitigation: PTI'],
+                'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
+                'cat /sys/devices/system/cpu/vulnerabilities/tsx_async_abort' => ['Not affected']},
+            unexpected => {}
+        }
+    }
+};
+
 my $mitigations_on_on_pv = {"mitigations=on" => {
         default => {
             expected => {
                 'cat /proc/cmdline' => ['mitigations=on'],
-'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Retpolines, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: IBRS.*IBPB: conditional, RSB filling.*'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Unknown.*XEN PV detected, hypervisor mitigation required'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
                 'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
@@ -386,12 +442,39 @@ my $mitigations_on_on_pv_haswell = {"mitigations=on" => {
         }
     }
 };
+my $mitigations_on_on_pv_icelake = {"mitigations=on" => {
+        default => {
+            expected => {
+                'cat /proc/cmdline' => ['mitigations=on'],
+'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Retpolines, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
+                'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Unknown.*XEN PV detected, hypervisor mitigation required'],
+                'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
+                'cat /sys/devices/system/cpu/vulnerabilities/tsx_async_abort' => ['Clear CPU buffers; SMT Host state unknown']},
+            unexpected => {}
+        }
+    }
+};
+
+my $mitigations_on_on_pv_cascadelake = {"mitigations=on" => {
+        default => {
+            expected => {
+                'cat /proc/cmdline' => ['mitigations=on'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: IBRS.*IBPB: conditional, RSB filling.*'],
+                'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Unknown.*XEN PV detected, hypervisor mitigation required'],
+                'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
+                'cat /sys/devices/system/cpu/vulnerabilities/tsx_async_abort' => ['Not affected']},
+            unexpected => {}
+        }
+    }
+};
 
 my $mitigations_on_on_hvm = {"mitigations=on" => {
         default => {
             expected => {
                 'cat /proc/cmdline' => ['mitigations=on'],
-                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Retpolines, IBPB: conditional, IBRS_FW, RSB filling'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: IBRS.*IBPB: conditional, RSB filling.*'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Mitigation: PTI'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
                 'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
@@ -414,6 +497,35 @@ my $mitigations_on_on_hvm_haswell = {"mitigations=on" => {
         }
     }
 };
+my $mitigations_on_on_hvm_icelake = {"mitigations=on" => {
+        default => {
+            expected => {
+                'cat /proc/cmdline' => ['mitigations=on'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Retpolines, IBPB: conditional, IBRS_FW, RSB filling'],
+                'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Mitigation: PTI'],
+                'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
+                'cat /sys/devices/system/cpu/vulnerabilities/tsx_async_abort' => ['Clear CPU buffers; SMT Host state unknown']},
+            unexpected => {}
+        }
+    }
+};
+
+my $mitigations_on_on_hvm_cascadelake = {"mitigations=on" => {
+        default => {
+            expected => {
+                'cat /proc/cmdline' => ['mitigations=on'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: IBRS.*IBPB: conditional, RSB filling.*'],
+                'cat /sys/devices/system/cpu/vulnerabilities/meltdown' => ['Mitigation: PTI'],
+                'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Clear CPU buffers; SMT Host state unknown'],
+                'cat /sys/devices/system/cpu/vulnerabilities/spec_store_bypass' => ['Speculative Store Bypass disabled via prctl and seccomp'],
+                'cat /sys/devices/system/cpu/vulnerabilities/tsx_async_abort' => ['Not affected']},
+            unexpected => {}
+        }
+    }
+};
+
+
 # tsx_async_abort result is Not affected on haswell when mitigations=off
 my $mitigations_off_on_pv_haswell = {"mitigations=off" => {
         default => {
@@ -499,7 +611,7 @@ if ($DOMU_TYPE =~ /pv/i) {
     $pti = {%$pti_on_on_hvm, %$pti_off_on_hvm, %$pti_auto_on_hvm};
 }
 
-if ($bmwqemu::vars{MICRO_ARCHITECTURE} =~ /Haswell|Cascadelake/i) {
+if ($bmwqemu::vars{MICRO_ARCHITECTURE} =~ /Haswell/i) {
     $tsx_async_abort = {%$tsx_async_abort_full_on_haswell, %$tsx_async_abort_full_nosmt_on_haswell};
     $cross_testcases = {%$corss_testcase_mds_taa_off_on_haswell};
     if ($DOMU_TYPE =~ /pv/i) {
@@ -507,7 +619,27 @@ if ($bmwqemu::vars{MICRO_ARCHITECTURE} =~ /Haswell|Cascadelake/i) {
     } else {
         $mitigations = {%$mitigations_auto_on_hvm_haswell, %$mitigations_on_on_hvm_haswell, %$mitigations_off_on_hvm_haswell};
     }
-} else {
+}
+elsif ($bmwqemu::vars{MICRO_ARCHITECTURE} =~ /Cascadelake/i) {
+    $tsx_async_abort = {%$tsx_async_abort_full_on_haswell, %$tsx_async_abort_full_nosmt_on_haswell};
+    $cross_testcases = {%$corss_testcase_mds_taa_off_on_haswell};
+    if ($DOMU_TYPE =~ /pv/i) {
+        $mitigations = {%$mitigations_auto_on_pv_cascadelake, %$mitigations_on_on_pv_cascadelake, %$mitigations_off_on_pv_haswell};
+    } else {
+        $mitigations = {%$mitigations_auto_on_hvm_cascadelake, %$mitigations_on_on_hvm_cascadelake, %$mitigations_off_on_hvm_haswell};
+    }
+}
+elsif ($bmwqemu::vars{MICRO_ARCHITECTURE} =~ /Icelake/i) {
+    $tsx_async_abort = {%$tsx_async_abort_full, %$tsx_async_abort_full_nosmt};
+    $cross_testcases = {%$corss_testcase_mds_taa_off};
+    if ($DOMU_TYPE =~ /pv/i) {
+        $mitigations = {%$mitigations_auto_on_pv_icelake, %$mitigations_on_on_pv_icelake, %$mitigations_off_on_pv};
+    } else {
+        $mitigations = {%$mitigations_auto_on_hvm_icelake, %$mitigations_on_on_hvm_icelake, %$mitigations_off_on_hvm};
+    }
+}
+
+else {
     $tsx_async_abort = {%$tsx_async_abort_full, %$tsx_async_abort_full_nosmt};
     $cross_testcases = {%$corss_testcase_mds_taa_off};
     if ($DOMU_TYPE =~ /pv/i) {
@@ -516,6 +648,8 @@ if ($bmwqemu::vars{MICRO_ARCHITECTURE} =~ /Haswell|Cascadelake/i) {
         $mitigations = {%$mitigations_auto_on_hvm, %$mitigations_on_on_hvm, %$mitigations_off_on_hvm};
     }
 }
+
+
 
 my $spectrev2 = {%$spectrev2_on, %$spectrev2_off, %$spectrev2_retpoline, %$spectrev2_user_on};
 my $spectrev2_spec_ctrl_no = {%$spectrev2_on_spec_ctrl_no, %$spectrev2_off, %$spectrev2_retpoline_spec_ctrl_no, %$spectrev2_user_on};
