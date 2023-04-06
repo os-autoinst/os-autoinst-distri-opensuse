@@ -156,15 +156,6 @@
       <partitions t="list">
         <partition t="map">
           <create t="boolean">true</create>
-          <filesystem t="symbol">vfat</filesystem>
-          <format t="boolean">true</format>
-          <partition_id t="integer">259</partition_id>
-          <partition_nr t="integer">1</partition_nr>
-          <resize t="boolean">false</resize>
-          <size>536870912</size>
-        </partition>
-        <partition t="map">
-          <create t="boolean">true</create>
           <create_subvolumes t="boolean">true</create_subvolumes>
           <filesystem t="symbol">btrfs</filesystem>
           <format t="boolean">true</format>
@@ -295,11 +286,9 @@
       <package>snapper</package>
       <package>sle-module-server-applications-release</package>
       <package>sle-module-basesystem-release</package>
-      <package>shim</package>
       <package>openssh</package>
-      <package>mokutil</package>
+      <package>grub2</package>
       <package>kexec-tools</package>
-      <package>grub2-x86_64-efi</package>
       <package>glibc</package>
       <package>firewalld</package>
       <package>e2fsprogs</package>
