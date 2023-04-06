@@ -138,11 +138,7 @@ sub init_main {
 
 sub loadtest {
     my ($test, %args) = @_;
-    if ($test =~ /\.p[my]$/) {
-        autotest::loadtest("tests/$test", %args);
-    } else {
-        autotest::loadtest("tests/$test.pm", %args);
-    }
+    autotest::loadtest('tests/' . ($test =~ /\.p[my]$/ ? $test : "$test.pm"), %args);
 }
 
 sub load_testdir {
