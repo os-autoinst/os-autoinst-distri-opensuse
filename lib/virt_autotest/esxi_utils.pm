@@ -33,7 +33,7 @@ my $hypervisor = get_var('HYPERVISOR') // 'esxi7.qa.suse.cz';
 
 sub esxi_vm_get_vmid {
     my $vm_name = shift;
-    my $vim_cmd = "vim-cmd vmsvc/getallvms | grep -i $vm_name | cut -d' ' -f1";
+    my $vim_cmd = "vim-cmd vmsvc/getallvms | grep -w $vm_name | cut -d' ' -f1";
     my $vmid;
     if (is_svirt) {
         (undef, $vmid) = console('svirt')->run_cmd($vim_cmd, domain => 'sshVMwareServer', wantarray => 1);
