@@ -67,8 +67,27 @@ sub find_img {
     my $sku = (check_var('PUBLIC_CLOUD_AZURE_SKU', 'gen2')) ? 'V2' : 'V1';
     $name =~ s/\.xz$//;
     $name =~ s/\.vhdfixed$/-$sku.vhd/;
+
+    my $container = $self->container;
+    my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'eisleqaopenqa');
+    my $key = $self->get_storage_account_keys($storage_account);
+    my $cmd_show = "az storage blob show --account-key $key -o json " .
+      "--container-name '" . $container . "' --account-name '$storage_account' --name $name " .
+      '--query="{name: name,createTime: properties.creationTime,md5: properties.contentSettings.contentMd5}"';
+    record_info('BLOB INFO', script_output($cmd_show));    # This is temporal debug
+    my ($start_time, $upload_time, $completed) = (time(), 600, 0);
+    while (time() - $start_time < $upload_time) {
+        my $blob_info = decode_azure_json(script_output($cmd_show));
+        record_info('MD5', "Blob MD5: $blob_info->{md5}");
+        # Check that MD5 metadata exists and is not empty
+        # We cannot compare the md5, because we don't always have the file available.
+        $completed = 1 if ($blob_info->{md5} && length($blob_info->{md5}) == 32);
+        last if $completed == 1;
+        sleep 60 * 5;
+    }
+
     my $json = script_output("az image show --resource-group " . $self->resource_group . " --name $name", 60, proceed_on_failure => 1);
-    record_info('INFO', $json);
+    record_info('IMG INFO', $json);
     my $image;
     eval {
         $image = decode_azure_json($json)->{name};
@@ -141,7 +160,7 @@ sub upload_img {
     my $key = $self->get_storage_account_keys($storage_account);
 
 
-    my $file_md5 = script_output("md5sum $file | cut -d' ' -f1");
+    my $file_md5 = script_output("md5sum $file | cut -d' ' -f1", timeout => 240);
 
     # Check if blob already exists
     my $container = $self->container;
@@ -149,18 +168,8 @@ sub upload_img {
     $blobs =~ s/^\s+|\s+$//g;    # trim
     my @blobs = split(/\n/, $blobs);
     if (grep(/$img_name/, @blobs)) {
-        record_info('Blob exists', "Blob already exists, omitting upload\nExisting blobs:\n$blobs");
-        my $cmd_show = "az storage blob show --container-name '" . $container . "' --account-name '$storage_account' --name $img_name " .
-          '--query="{name: name,createTime: properties.creationTime,md5: properties.contentSettings.contentMd5}"' .
-          ' -o json';
-        script_run($cmd_show);    # This is temporal debug
-                                  #my $start_time = time();
-                                  #while (time() - $start_time < $upload_time) {
-                                  #    my $blob_info = decode_azure_json(script_output($cmd_show));
-                                  #    record_info('Compare MD5', "File Md5:$file_md5 \n Blob MD5:$blob_info->{md5}");
-                                  #    last if (index($blob_info->{md5}, $file_md5) != -1);
-                                  #    sleep 60 * 5;
-                                  #}
+        die("The upload_img() subroutine has been called even tho the $img_name blob exists. " .
+              "This means that ccloud/upload_image test module did not properly detected it.");
     } else {
         record_info("blobs", $blobs);
         # Note: VM images need to be a page blob type
