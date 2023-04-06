@@ -25,7 +25,7 @@ sub run ($self) {
     $self->setup_nfs_server(\%exports_path);
     $self->prepare_spack_env($mpi);
 
-    record_info 'boost info', script_output 'spack info boost';
+    record_info 'spack info', script_output "spack info $mpi";
     barrier_wait('CLUSTER_PROVISIONED');
 
     ## all nodes should be able to ssh to each other, as MPIs requires so
@@ -40,8 +40,8 @@ sub run ($self) {
     assert_script_run("wget --quiet " . data_url("hpc/$mpi_c") . " -O $exports_path{'bin'}/$mpi_c");
 
     barrier_wait('MPI_SETUP_READY');
-
-    assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin -l boost_mpi -I \${BOOST_ROOT}/include/ -L \${BOOST_ROOT}/lib 2>&1 > /tmp/make.out");
+    assert_script_run "spack load $mpi";
+    assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin  2>&1 > /tmp/make.out");
     barrier_wait('MPI_BINARIES_READY');
 
     type_string "sudo systemctl restart sshd\n";
@@ -64,7 +64,7 @@ sub test_flags ($self) {
 }
 
 sub post_run_hook ($self) {
-    $self->uninstall_spack_module('boost');
+    $self->uninstall_spack_modules();
 }
 
 sub post_fail_hook ($self) {
