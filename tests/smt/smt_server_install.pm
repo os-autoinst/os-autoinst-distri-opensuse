@@ -33,9 +33,9 @@ sub run {
     wait_still_screen;
     wait_screen_change { send_key "alt-f" };
     wait_screen_change { send_key "alt-u" };
-    type_string "UC5414818";
+    type_string get_var('SMT_USER');
     wait_screen_change { send_key "alt-p" };
-    type_string "2c3dff7ee9";
+    type_string get_var('SMT_PASSWORD');
 
     wait_screen_change { send_key "alt-s" };
     type_string 'osukup@suse.com';
@@ -47,7 +47,7 @@ sub run {
     assert_screen "smt_settings";
 
     wait_screen_change { send_key "alt-t" };
-    assert_screen "smt-test-succ";
+    assert_screen "smt-test-succ", 120;
     wait_screen_change { send_key "ret" };
     send_key "alt-n";
     wait_still_screen(2);
