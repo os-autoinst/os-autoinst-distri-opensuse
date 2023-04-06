@@ -1,0 +1,10 @@
+---
+name: agama_auto
+description: >
+  First test for autoinstallation wit agama
+vars:
+  AGAMA_AUTO: yam/agama/auto/alp.sh
+schedule:
+  - yam/agama/auto/url_prepare
+  - installation/bootloader_start
+  - yam/agama/auto/auto
