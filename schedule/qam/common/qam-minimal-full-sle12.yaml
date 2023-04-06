@@ -4,14 +4,12 @@ description:    >
     Maintainer: qe-core@suse.com
     test is first textmode after system update and RR update is done
      "gnome" pattern is installed then console and x11 tests run
-    workaround:
-    schedule system_prepare also after install_patterns on 15-SP1 & SP2 ppc64le
 vars:
   DESKTOP: 'textmode'
-  SYSTEM_ROLE: 'textmode'
 schedule:
 - installation/bootloader_start
 - installation/welcome
+- '{{disk_activation}}'
 - installation/scc_registration
 - installation/addon_products_sle
 - installation/system_role
@@ -37,9 +35,8 @@ schedule:
 - qam-minimal/install_update
 - qam-minimal/update_minimal
 - qam-minimal/check_logs
+- '{{s390tools}}'
 - qam-minimal/install_patterns
-# on 15-SP1 & SP2 ppc64le hvc0 permissions are reset after install_patterns
-- console/system_prepare
 - locale/keymap_or_locale
 - console/force_scheduled_tasks
 - console/textinfo
@@ -48,7 +45,6 @@ schedule:
 - console/zypper_ref
 - '{{yast2_lan}}'
 - console/curl_https
-- console/salt
 - console/glibc_sanity
 - console/glibc_tunables
 - console/zypper_in
@@ -60,7 +56,6 @@ schedule:
 - console/ssh_cleanup
 - console/mtab
 - console/zypper_lifecycle
-- console/nginx
 - console/orphaned_packages_check
 - console/consoletest_finish
 - x11/desktop_runner
@@ -83,6 +78,14 @@ schedule:
 - console/zypper_log_packages
 - shutdown/shutdown
 conditional_schedule:
+  disk_activation:
+    ARCH:
+      s390x:
+        - installation/disk_activation
+  s390tools:
+    ARCH:
+      s390x:
+        - qam-minimal/s390tools
   yast2_lan:
     BACKEND:
       qemu:

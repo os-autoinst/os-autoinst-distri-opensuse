@@ -8,7 +8,6 @@ description:    >
     schedule system_prepare also after install_patterns on 15-SP1 & SP2 ppc64le
 vars:
   DESKTOP: 'textmode'
-  SYSTEM_ROLE: 'textmode'
 schedule:
 - installation/bootloader_start
 - installation/welcome
@@ -38,7 +37,7 @@ schedule:
 - qam-minimal/update_minimal
 - qam-minimal/check_logs
 - qam-minimal/install_patterns
-# on 15-SP1 & SP2 ppc64le hvc0 permissions are reset after install_patterns
+# on SLE 12, 15-SP1 & SP2 ppc64le hvc0 permissions are reset after install_patterns
 - console/system_prepare
 - locale/keymap_or_locale
 - console/force_scheduled_tasks
@@ -48,7 +47,6 @@ schedule:
 - console/zypper_ref
 - '{{yast2_lan}}'
 - console/curl_https
-- console/salt
 - console/glibc_sanity
 - console/glibc_tunables
 - console/zypper_in
@@ -60,7 +58,6 @@ schedule:
 - console/ssh_cleanup
 - console/mtab
 - console/zypper_lifecycle
-- console/nginx
 - console/orphaned_packages_check
 - console/consoletest_finish
 - x11/desktop_runner
