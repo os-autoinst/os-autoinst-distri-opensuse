@@ -138,8 +138,11 @@ sub init_main {
 
 sub loadtest {
     my ($test, %args) = @_;
-    croak "extensions are not allowed here '$test'" if $test =~ /\.pm$/;
-    autotest::loadtest("tests/$test.pm", %args);
+    if ($test =~ /\.p[my]$/) {
+        autotest::loadtest("tests/$test", %args);
+    } else {
+        autotest::loadtest("tests/$test.pm", %args);
+    }
 }
 
 sub load_testdir {
