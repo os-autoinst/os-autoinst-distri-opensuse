@@ -74,17 +74,7 @@ sub find_img {
     my $cmd_show = "az storage blob show --account-key $key -o json " .
       "--container-name '" . $container . "' --account-name '$storage_account' --name $name " .
       '--query="{name: name,createTime: properties.creationTime,md5: properties.contentSettings.contentMd5}"';
-    record_info('BLOB INFO', script_output($cmd_show));    # This is temporal debug
-    my ($start_time, $upload_time, $completed) = (time(), 600, 0);
-    while (time() - $start_time < $upload_time) {
-        my $blob_info = decode_azure_json(script_output($cmd_show));
-        record_info('MD5', "Blob MD5: $blob_info->{md5}");
-        # Check that MD5 metadata exists and is not empty
-        # We cannot compare the md5, because we don't always have the file available.
-        $completed = 1 if ($blob_info->{md5} && length($blob_info->{md5}) == 32);
-        last if $completed == 1;
-        sleep 60 * 5;
-    }
+    record_info('BLOB INFO', script_output($cmd_show, proceed_on_failure => 1));
 
     my $json = script_output("az image show --resource-group " . $self->resource_group . " --name $name", 60, proceed_on_failure => 1);
     record_info('IMG INFO', $json);
