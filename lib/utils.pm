@@ -1820,6 +1820,9 @@ sub script_retry {
 
     my $ret;
 
+    # Adjust timeout with TIMEOUT_SCALE value
+    $timeout = $timeout * get_var('TIMEOUT_SCALE', 1);
+
     my $exec = "timeout $timeout $cmd";
     # Exclamation mark needs to be moved before the timeout command, if present
     if (substr($cmd, 0, 1) eq "!") {
