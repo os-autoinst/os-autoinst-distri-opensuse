@@ -32,7 +32,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:a3',
             ip => '192.168.122.102',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-Installer-GM/x86_64/DVD1/',    # SLE-15-Installer-latest link is not avaiable any more
             linuxrc => 'ifcfg="eth0=192.168.122.102/24,192.168.122.1,192.168.122.1"',
         },
         sles15HVM => {
@@ -42,7 +42,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:a4',
             ip => '192.168.122.101',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-Installer-GM/x86_64/DVD1/',    # SLE-15-Installer-latest link is not avaiable any more
             linuxrc => 'ifcfg="eth0=192.168.122.101/24,192.168.122.1,192.168.122.1"',
         },
         sles12sp4PV => {
@@ -198,7 +198,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:a4',
             ip => '192.168.122.101',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-Installer-GM/x86_64/DVD1/',    # SLE-15-Installer-latest link is not avaiable any more
             linuxrc => 'ifcfg="eth0=192.168.122.101/24,192.168.122.1,192.168.122.1"',
         },
         sles15sp1 => {
