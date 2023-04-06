@@ -37,6 +37,7 @@ sub run {
     select_serial_terminal;
 
     install_pkg if (script_run('rpm -qi chrony') != 0);
+    systemctl("start chronyd");    # Ensure chrony is started
     assert_script_run 'chronyc makestep';
     record_info('Show current date and time', script_output('date +"%Y-%m-%d"'));
     assert_script_run('utmpdump /var/run/utmp');
