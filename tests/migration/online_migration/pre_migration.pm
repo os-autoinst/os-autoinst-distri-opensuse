@@ -21,27 +21,12 @@ use x11utils 'turn_off_gnome_show_banner';
 sub check_or_install_packages {
     assert_script_run('modprobe nvram') if is_pvm_hmc;
     if (get_var("FULL_UPDATE") || get_var("MINIMAL_UPDATE")) {
-        if (is_leap_migration) {
-            # https://bugzilla.suse.com/show_bug.cgi?id=1197268#c2
-            record_soft_failure('bsc#1197268 - suseconnect-ng obsoletes zypper-migration-plugin in leap to sle migration');
-            zypper_call('rm zypper-migration-plugin');
-            zypper_call "in yast2-registration rollback-helper";
-            if (get_var('LEAP_TECH_PREVIEW_REPO')) {
-                record_info('SLE-23610', 'TechPreview: yast-migration-sle a simplified Leap -> SLE migration');
-                my $tech_preview_repo = get_var('LEAP_TECH_PREVIEW_REPO');
-                zypper_call("ar $tech_preview_repo");
-                zypper_call('in yast2-migration-sle');
-            }
-            systemctl 'enable rollback.service';
-            systemctl 'start rollback.service';
-        } else {
-            # if system is fully updated or even minimal patch applied,
-            # all necessary packages for online migration should be installed
-            # and zypper-migration-plugin was obsoleted since 15sp4.
-            my @pkgs = qw(yast2-migration rollback-helper);
-            push @pkgs, "zypper-migration-plugin" if is_sle('<15-SP4', get_var('ORIGIN_SYSTEM_VERSION'));
-            assert_script_run("rpm -q $_") foreach @pkgs;
-        }
+        # if system is fully updated or even minimal patch applied,
+        # all necessary packages for online migration should be installed
+        # and zypper-migration-plugin was obsoleted since 15sp4.
+        my @pkgs = qw(yast2-migration rollback-helper);
+        push @pkgs, "zypper-migration-plugin" if is_sle('<15-SP4', get_var('ORIGIN_SYSTEM_VERSION'));
+        assert_script_run("rpm -q $_") foreach @pkgs;
     } else {
         # install necessary packages for online migration if system is not updated
         # also update snapper to ensure rollback service work properly after migration
@@ -64,7 +49,7 @@ sub run {
     select_console 'root-console';
 
     set_zypp_single_rpmtrans();
-    check_or_install_packages;
+    check_or_install_packages unless is_leap_migration;
 
     # set scc proxy url here to perform online migration via scc proxy
     set_scc_proxy_url;

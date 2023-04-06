@@ -768,7 +768,7 @@ sub yast_scc_registration {
     # and start/enable rollback.service before running yast2 registration module.
     my $client_module = 'scc';
     if (is_leap_migration) {
-        zypper_call('in yast2-registration rollback-helper');
+        zypper_call('in yast2-migration-sle rollback-helper');
         systemctl("enable rollback");
         systemctl("start rollback");
         $client_module = 'registration';

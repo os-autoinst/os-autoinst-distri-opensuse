@@ -151,13 +151,14 @@ sub run {
         zypper_call "rs $service{$addon}\t";    # remove service
     }
 
-    my $migration_cmd = get_var('LEAP_TECH_PREVIEW_REPO') ? 'migration_sle' : 'migration';
+    my $migration_cmd = is_leap_migration ? 'migration_sle' : 'migration';
     my $yast_cmd = is_pvm ? 'yast' : 'yast2';
     script_run("$yast_cmd $migration_cmd; echo yast2-migration-done-\$? > /dev/$serialdev", 0);
 
     # yast2 migration would check and install minimal update before migration
     # if the system doesn't perform full update or minimal update
-    if (!(get_var("FULL_UPDATE") || get_var("MINIMAL_UPDATE"))) {
+    # leap2sle will skip this
+    if (!is_leap_migration && !(get_var("FULL_UPDATE") || get_var("MINIMAL_UPDATE"))) {
         assert_screen 'yast2-migration-onlineupdates';
         send_key "alt-y";
         assert_screen 'yast2-migration-updatesoverview';
@@ -171,7 +172,7 @@ sub run {
     }
 
     # wait for migration target after needed updates installed
-    assert_screen ['yast2-migration-target', 'yast2-migration-inconsistency'], 300;
+    assert_screen ['yast2-migration-target', 'yast2-migration-inconsistency', 'yast2-migration-leap_to_sle'], 300;
     if (match_has_tag 'yast2-migration-inconsistency') {
         if (get_var('MIGRATION_INCONSISTENCY_DEACTIVATE')) {
             send_key 'alt-d';    # deactivate
@@ -193,21 +194,29 @@ sub run {
             }
         }
     }
-    assert_screen 'yast2-migration-target';
-    send_key "alt-p";    # focus on the item of possible migration targets
-    assert_screen 'yast2-migration-target-list-selected', 60;
-    send_key_until_needlematch 'migration-target-' . get_var("VERSION"), 'down', 21, 3;
-    send_key "alt-n";
-    # migration via smt will install packagehub and NVIDIA compute, we need click trust
-    # gpg keys; Same with leap to sle migration, need to trust packagehub gpg key.
-    if (get_var('SMT_URL') =~ /smt/) {
-        assert_screen 'import-untrusted-gpg-key', 180;
-        send_key 'alt-t';
-        if ((is_x86_64) && (!(is_leap_migration)) || (is_aarch64)) {
-            assert_screen 'import-untrusted-gpg-key-nvidia', 300;
+    if (!is_leap_migration) {
+        assert_screen 'yast2-migration-target';
+        send_key "alt-p";    # focus on the item of possible migration targets
+        assert_screen 'yast2-migration-target-list-selected', 60;
+        send_key_until_needlematch 'migration-target-' . get_var("VERSION"), 'down', 21, 3;
+        send_key "alt-n";
+        # migration via smt will install packagehub and NVIDIA compute, we need click trust
+        # gpg keys; Same with leap to sle migration, need to trust packagehub gpg key.
+        if (get_var('SMT_URL') =~ /smt/) {
+            assert_screen 'import-untrusted-gpg-key', 180;
             send_key 'alt-t';
+            if ((is_x86_64) && (!(is_leap_migration)) || (is_aarch64)) {
+                assert_screen 'import-untrusted-gpg-key-nvidia', 300;
+                send_key 'alt-t';
+            }
         }
     }
+    else {
+        # leap to sle migration, alt-m for Migration
+        send_key 'alt-m' if (match_has_tag 'yast2-migration-leap_to_sle');
+    }
+
+    # migration_sle will show yast2_migration-license-agreement after alt-m
     assert_screen [qw(yast2-migration-installupdate yast2_migration-license-agreement)], 600;
     if (match_has_tag 'yast2-migration-installupdate') {    # Not all cases have install update message.
         send_key 'alt-y';
@@ -226,8 +235,10 @@ sub run {
     }
 
     send_key "alt-n";
-    assert_screen 'yast2-migration-startupgrade', 90;
-    send_key "alt-u";
+    if (!is_leap_migration) {
+        assert_screen 'yast2-migration-startupgrade', 90;
+        send_key "alt-u";
+    }
     assert_screen "yast2-migration-upgrading", 120;
 
     # start migration
