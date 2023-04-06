@@ -130,11 +130,6 @@ sub push_image_data_to_db {
         record_soft_failure("poo#113120 - Missing variable _SECRET_DATABASE_PWD. Can't push data to DB.");
         return 0;
     }
-    script_run("read -s pg_pwd", 0);
-    type_password("-H \"Authorization: Bearer $token\"\n");
-    assert_script_run('echo $pg_pwd > /etc/postgres_conf');
-    assert_script_run('echo \'-H "Content-Type: application/json"\' >> /etc/postgres_conf');
-
 
     my $openqa_host = get_required_var('OPENQA_HOSTNAME');
     my $job_url;
@@ -147,7 +142,7 @@ sub push_image_data_to_db {
     } else {
         $job_url = $openqa_host . '/' . $job_id;
     }
-    record_info('job_url', $job_url);
+    bmwqemu::diag('job_url', $job_url);
     return 0 unless ($job_url);
 
     $args{distri} //= get_required_var('DISTRI');
@@ -162,27 +157,32 @@ sub push_image_data_to_db {
     $args{product} = $product;
     (my $build = $args{build}) =~ s/\_.*//;    #To remove unneeded strings, e.g. 15.11_init-image -> 15.11
 
-    assert_script_run('cat /etc/postgres_conf');
-    my $cmd = sprintf('curl -i -K /etc/postgres_conf -X POST http://%s:%s/%s', $db_ip, $db_port, $args{table});
-    delete $args{table};
-    $cmd .= " -d '";
-    $cmd .= encode_json(\%args);
-    $cmd .= q(');
+    my $ua = Mojo::UserAgent->new;
+    $ua = $ua->max_connections(5);
+    $ua = $ua->max_redirects(3);
+    $ua = $ua->connect_timeout(30);
 
-    record_info('db cmd', $cmd);
-    script_run("echo '$cmd' | tee -a $db_log");
-    my $cmd_output = script_output("$cmd 2>&1 | tee -a $db_log", proceed_on_failure => 1, timeout => 120);
+    my $url = sprintf('http://%s:%s/%s', $db_ip, $db_port, $args{table});
+    delete $args{table};
+
+    my $data = encode_json(\%args);
+    bmwqemu::diag("Collected image data: $data");
+
+    my $res = $ua->post("$url" => {Authorization => "Bearer $token", Accept => "application/json",
+            'Content-type' => "application/json"} => json => $data)->result();
+
     # if successful push, it should return 'HTTP/1.1 201 Created'
-    if ($cmd_output =~ /(?=.*201 Created)/) {
-        record_info("DB", "Image data has been successfully pushed to the Database.");
-    } elsif ($cmd_output =~ /(?=.*409 Conflict)/) {
-        record_info("DB", "This image info already exists DB.");
+    if ($res->code == 201) {
+        bmwqemu::diag("Image data has been successfully pushed to the Database, RC => ($res->code)");
+    } elsif ($res->code == 409) {
+        bmwqemu::diag("This image info already exists DB, RC => ($res->code)");
         # return to the caller that conflict has been found
         # caller should exit the test case module immediately
-        return 409;
     } else {
-        record_soft_failure("poo#113120 - There has been a problem pushing data to the DB.");
+        record_soft_failure("poo#113120 - There has been a problem pushing data to the DB. RC => ($res->code)");
     }
+
+    return $res->code;
 }
 
 sub check_postgres_db {
