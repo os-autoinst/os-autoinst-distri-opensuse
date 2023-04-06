@@ -13,7 +13,7 @@ use registration;
 use utils;
 use mmapi 'get_parents';
 use version_utils
-  qw(is_vmware is_hyperv is_hyperv_in_gui is_installcheck is_rescuesystem is_desktop_installed is_jeos is_sle is_staging is_upgrade is_public_cloud is_openstack);
+  qw(is_vmware is_hyperv is_hyperv_in_gui is_installcheck is_rescuesystem is_desktop_installed is_jeos is_sle is_staging is_upgrade is_public_cloud);
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
@@ -21,6 +21,7 @@ use scheduler 'load_yaml_schedule';
 use Utils::Backends qw(is_hyperv is_hyperv_in_gui is_pvm is_ipmi);
 use main_containers;
 use main_publiccloud;
+use main_jeos'load_jeos_tests';
 use Utils::Architectures;
 use DistributionProvider;
 
@@ -653,15 +654,9 @@ if (load_yaml_schedule) {
 return load_wicked_create_hdd if (get_var('WICKED_CREATE_HDD'));
 
 if (is_jeos) {
-    if (is_openstack) {
-        load_jeos_openstack_tests();
-        return 1;
-    }
     load_jeos_tests();
 }
-
-# load the tests in the right order
-if (is_kernel_test()) {
+elsif (is_kernel_test()) {
     load_kernel_tests();
 }
 elsif (is_systemd_test()) {

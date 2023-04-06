@@ -15,6 +15,7 @@ use File::Basename;
 use DistributionProvider;
 use scheduler 'load_yaml_schedule';
 use main_containers;
+use main_jeos'load_jeos_tests';
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
@@ -261,8 +262,7 @@ sub load_default_tests {
 if (is_jeos) {
     load_jeos_tests();
 }
-
-if (is_kernel_test()) {
+elsif (is_kernel_test()) {
     load_kernel_tests();
 }
 elsif (is_container_test) {
