@@ -1,0 +1,56 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/virt_autotest/domain_management_utils.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#construct_uri">construct_uri</a></li>
+      <li><a href="#create_guest">create_guest</a></li>
+      <li><a href="#shutdown_guest">shutdown_guest</a></li>
+      <li><a href="#remove_guest">remove_guest</a></li>
+      <li><a href="#show_guest">show_guest</a></li>
+      <li><a href="#check_guest_state">check_guest_state</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/virt_autotest/domain_management_utils.pm</h1>
+
+<h2 id="construct_uri">construct_uri</h2>
+
+<p>Construct connection URI to be used with virsh command. URI is composed of many parts which are all supported here. Please refer to libvirt page for details: https://libvirt.org/uri.html#remote-uris.</p>
+
+<h2 id="create_guest">create_guest</h2>
+
+<p>Create guest by using virsh define or xl create. Main arguments are guest to be created, virtualization management tool to be used, whether die (1) or not (0) if any failures happen, directory in which guest xml and xl config are stored and whether start (1) or not (0) guest after defining it. This subroutine also calls construct_uri to determine the desired URI to be connected if the interested party is not localhost. Please refer to subroutine construct_uri for the arguments related.</p>
+
+<h2 id="shutdown_guest">shutdown_guest</h2>
+
+<p>Shutdown guest and verify result. Main arguments are guest to be powered off, virtualization management tool (virsh or xl) to be used and whether die (1) or not (0) if any failures happen. This subroutine also calls construct_uri to determine the desired URI to be connected if the interested party is not localhost. Please refer to subroutine construct_uri for the arguments related.</p>
+
+<h2 id="remove_guest">remove_guest</h2>
+
+<p>Remove guest forcibly. Main arguments are guest to be removed, and whether die (1) or not (0) if any failures happen. This subroutine also calls construct_uri to determine the desired URI to be connected if the interested party is not localhost. Please refer to subroutine construct_uri for the arguments related.</p>
+
+<h2 id="show_guest">show_guest</h2>
+
+<p>Show all guests available on host or specified ones. Main arguments are guest to be checked, virtualization management tool to be used (virsh or xl) and whether die (1) or not (0) if any failures happen. This subroutine also calls construct_uri to determine the desired URI to be connected if the interested party is not localhost. Please refer to subroutine construct_uri for the arguments related.</p>
+
+<h2 id="check_guest_state">check_guest_state</h2>
+
+<p>Check and return guest state. Main argument are guest to be checked and virtualization management tool to be used (virsh or xl). This subroutine also calls construct_uri to determine the desired URI to be connected if the interested party is not localhost. Please refer to subroutine construct_uri for the arguments related.</p>
+
+
+</body>
+
+</html>
+
+
