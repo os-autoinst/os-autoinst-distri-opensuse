@@ -1,11 +1,9 @@
 <?xml version="1.0"?>
 <guest>
     <guest_os_name>alp</guest_os_name>
-    <guest_version>0.1</guest_version>
-    <guest_version_major>0</guest_version_major>
-    <guest_version_minor>1</guest_version_minor>
+    <guest_version>##guest_version##</guest_version>
     <guest_os_word_length>64</guest_os_word_length>
-    <guest_build></guest_build>
+    <guest_build>##guest_build##</guest_build>
     <host_hypervisor_uri></host_hypervisor_uri>
     <host_virt_type>kvm</host_virt_type>
     <guest_virt_type>hvm</guest_virt_type>
@@ -17,6 +15,7 @@
     <guest_vcpus>2,maxvcpus=4</guest_vcpus>
     <guest_cpumodel>host-model</guest_cpumodel>
     <guest_metadata></guest_metadata>
+    <guest_boot_settings>##guest_boot_settings##</guest_boot_settings>
     <guest_xpath></guest_xpath>
     <guest_installation_automation></guest_installation_automation>
     <guest_installation_automation_file></guest_installation_automation_file>
@@ -32,7 +31,7 @@
     <guest_storage_format>qcow2</guest_storage_format>
     <guest_storage_label>gpt</guest_storage_label>
     <guest_storage_size>40</guest_storage_size>
-    <guest_storage_others>backing_store=/var/lib/libvirt/images/ALP-VM.x86_64-0.0.1-kvm-Snapshot##guest_build##-back.qcow2,backing_format=qcow2,bus=virtio,cache=none</guest_storage_others>
+    <guest_storage_others>backing_store=/var/lib/libvirt/images/##backing_disk_name##,backing_format=##backing_format##,bus=virtio,cache=none</guest_storage_others>
     <guest_network_type>virtual_network</guest_network_type>
     <guest_network_device>br123</guest_network_device>
     <guest_network_others></guest_network_others>
@@ -68,7 +67,7 @@
     <guest_cputune></guest_cputune>
     <guest_memtune></guest_memtune>
     <guest_blkiotune></guest_blkiotune>
-    <guest_memorybacking></guest_memorybacking>
+    <guest_memorybacking>##guest_memorybacking##</guest_memorybacking>
     <guest_features></guest_features>
     <guest_clock></guest_clock>
     <guest_power_management></guest_power_management>
@@ -76,7 +75,7 @@
     <guest_resource></guest_resource>
     <guest_sysinfo>type=fwcfg,entry0.name="opt/com.coreos/config",entry0.file="/var/lib/libvirt/images/VIRT_TEST_VM_config.ign"</guest_sysinfo>
     <guest_qemu_command></guest_qemu_command>
-    <guest_launchSecurity></guest_launchSecurity>
+    <guest_launchsecurity>##guest_launchsecurity##</guest_launchsecurity>
     <guest_autostart></guest_autostart>
     <guest_transient></guest_transient>
     <guest_destroy_on_exit></guest_destroy_on_exit>

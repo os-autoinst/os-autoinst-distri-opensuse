@@ -899,19 +899,19 @@ sub download_vm_import_disks {
     my $download_dir = shift;
 
     $download_dir //= "/var/lib/libvirt/images";
-    my $disks_to_download = get_var("VM_IMPORT_DISK_CONFIG", '');
 
-    if (!$disks_to_download) {
+    my @disks_to_download = split(/,/, get_var("VM_IMPORT_DISK_LOCATION", ''));
+    if (not @disks_to_download) {
         record_info "No import disk configured, skip download.";
         return;
     } else {
         record_info "Going to download imported disk...";
     }
 
+    my @checksums_for_disks = split(/,/, get_var("VM_IMPORT_DISK_CHECKSUM", ''));
     assert_script_run("mkdir -p $download_dir");
-
     my $BASE_URL = get_required_var("OPENQA_URL") . "/assets/";
-    foreach my $disk (split(/,/, $disks_to_download)) {
+    while (my ($index, $disk) = each @disks_to_download) {
         my $download_url = $BASE_URL . $disk;
         die "URL is not accessible: $download_url." unless head($download_url);
 
@@ -922,11 +922,13 @@ sub download_vm_import_disks {
         save_screenshot;
 
         # Check if the downloaded image is good.
-        # `qemu-img check` is fast even for several GB disks.
-        # For download from corect URL, it can detect qcow2/raw format disk errors,
-        assert_script_run("qemu-img check $download_dir/$output_name");
+        my $real_disk_checksum = script_output("sha256sum $download_dir/$output_name" . ' |cut -d\' \' -f 1');
         save_screenshot;
-        record_info("Disk downloaded successfully for $download_url.");
+        if ($real_disk_checksum eq $checksums_for_disks[$index]) {
+            record_info("Disk downloaded successfully for $download_url.");
+        } else {
+            die "Faulty disk dowmload for $download_url. Please check network or imported disk configuration.";
+        }
     }
     assert_script_run("ls -latr $download_dir");
     record_info("All imported disk download is done.");

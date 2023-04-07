@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <guest>
     <guest_os_name>alp</guest_os_name>
-    <guest_version>0.1</guest_version>
+    <guest_version>bedrock-0.1</guest_version>
     <guest_version_major>0</guest_version_major>
     <guest_version_minor>1</guest_version_minor>
     <guest_os_word_length>64</guest_os_word_length>
@@ -33,7 +33,7 @@
     <guest_storage_format>qcow2</guest_storage_format>
     <guest_storage_label>gpt</guest_storage_label>
     <guest_storage_size>40</guest_storage_size>
-    <guest_storage_others>backing_store=/var/lib/libvirt/images/ALP-VM.x86_64-0.0.1-kvm-Snapshot##guest_build##-back.qcow2,backing_format=qcow2,bus=virtio,cache=none</guest_storage_others>
+    <guest_storage_others>backing_store=/var/lib/libvirt/images/ALP-Bedrock.x86_64-0.1-Default-qcow-Build##guest_build##-back.qcow2,backing_format=qcow2,bus=virtio,cache=none</guest_storage_others>
     <guest_network_type>virtual_network</guest_network_type>
     <guest_network_device>br123</guest_network_device>
     <guest_network_others></guest_network_others>
