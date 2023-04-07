@@ -9,6 +9,7 @@ schedule:
     - "{{install_guest}}"
     - virt_autotest/set_config_as_glue
     - '{{uefi_guest_verification}}'
+    - '{{sev_es_guest_verification}}'
     - '{{virtual_network_test}}'
     - '{{hotplugging_test}}'
     - '{{storage_test}}'
@@ -18,11 +19,15 @@ conditional_schedule:
     install_guest:
         SKIP_GUEST_INSTALL:
             0:
-                - virt_autotest/unified_guest_installation
+                - virt_autotest/alp_guest_installation
     uefi_guest_verification:
         VIRT_UEFI_GUEST_INSTALL:
             1:
                 - virt_autotest/uefi_guest_verification
+    sev_es_guest_verification:
+        VIRT_SEV_ES_GUEST_INSTALL:
+            1:
+                - virt_autotest/sev_es_guest_verification
     virtual_network_test:
         ENABLE_VIR_NET:
             1:

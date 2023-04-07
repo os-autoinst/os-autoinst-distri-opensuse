@@ -73,10 +73,25 @@ sub instantiate_guests_and_profiles {
         $_guest_profile->{guest_registration_code} = $_store_of_guests{$_element}{REG_CODE};
         $_guest_profile->{guest_registration_extensions_codes} = $_store_of_guests{$_element}{REG_EXTS_CODES};
         $guest_instances_profiles{$_element} = $_guest_profile;
+        $self->edit_guest_profile_with_template($_element) if ($_store_of_guests{$_element}{USE_TEMPLATE} eq '1');
         diag "Guest $_element is going to use profile" . Dumper($guest_instances_profiles{$_element});
     }
 
     return $self;
+}
+
+# Motivation of the function:
+#   When multiple vms' profiles have great similarity and have some rules
+#   to follow to generate different profiles from a template, such a function
+#   will save a lot of static profile files in data/virt_autotest/guest_params_xml_files.
+# Usage:
+#   In testsuite settings, var UNIFIED_GUEST_PROFILE_TEMPLATE_FLAGS copes
+#   with var UNIFIED_GUEST_PROFILES. Both have values separated with comma.
+#   If at a position of UNIFIED_GUEST_PROFILE_TEMPLATE_FLAGS the value is '1',
+#   the UNIFIED_GUEST_PROFILES value at the same position will be the template profile for the vm.
+#   It's supported that some vms use template while some do not.
+sub edit_guest_profile_with_template {
+    # To be overloaded in child classes with customized needs.
 }
 
 #Create guest instance using $guest_instances{$_}->create(%{$guest_instances_profiles{$_}} and install it by calling $guest_instances{$_}->guest_installation_run.

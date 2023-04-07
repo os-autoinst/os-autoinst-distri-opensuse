@@ -49,6 +49,9 @@ sub run_test {
     if (is_sle('>=15')) {
         $self->check_guest_pmsuspend_enabled;
     }
+    elsif (is_alp) {
+        record_info("Skip power management check on ALP", "The uefi firmware does not support pm well.");
+    }
     else {
         record_info("SLES that is eariler than 15 does not support power management functionality with uefi", "Skip check_guest_pmsuspend_enabled");
     }
