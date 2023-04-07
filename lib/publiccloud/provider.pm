@@ -415,7 +415,7 @@ sub terraform_apply {
         my $storage_account_name = get_var('STORAGE_ACCOUNT_NAME');
         my $storage_account_key = get_var('STORAGE_ACCOUNT_KEY');
         # Enable specifying resource group name to allow running multiple tests simultaneously
-        my $resource_group = get_var('PUBLIC_CLOUD_RESOURCE_GROUP', 'qashapopenqa');
+        my $resource_group = get_var('PUBLIC_CLOUD_RESOURCE_GROUP', 'qesaposd');
         my $sle_version = get_var('FORCED_DEPLOY_REPO_VERSION') ? get_var('FORCED_DEPLOY_REPO_VERSION') : get_var('VERSION');
         $sle_version =~ s/-/_/g;
         my $ha_sap_repo = get_var('HA_SAP_REPO') ? get_var('HA_SAP_REPO') . '/SLE_' . $sle_version : '';
