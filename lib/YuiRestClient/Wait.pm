@@ -9,6 +9,8 @@ use DateTime;
 sub wait_until {
     my (%args) = @_;
     $args{timeout} //= 10;
+    $args{timeout_scale} //= 1;
+    $args{timeout} *= $args{timeout_scale};
     $args{interval} //= 1;
     $args{message} //= '';
 

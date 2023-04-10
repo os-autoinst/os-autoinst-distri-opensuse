@@ -32,9 +32,9 @@ sub get_product_selection_page {
     return $self->{ProductSelectionPage};
 }
 
-sub wait_product_selection_page {
+sub wait_for_product_selection_page {
     my ($self, $args) = @_;
-    $args->{timeout} = YuiRestClient::get_timeout() * $args->{timeout_scale};
+    $args->{timeout} = $args->{timeout} // YuiRestClient::get_timeout();
     YuiRestClient::Wait::wait_until(object => sub {
             $self->{ProductSelectionPage}->is_shown({timeout => 0});
     }, %$args);

@@ -19,9 +19,9 @@ sub run {
 
     $performing_install->get_performing_installation_page();
 
-    my $timeout = 2400 * get_var('TIMEOUT_SCALE', 1);
-    $performing_install->wait_installation_popup({
-            timeout => $timeout,
+    $performing_install->wait_for_installation_popup({
+            timeout => 2400,
+            timeout_scale => get_var('TIMEOUT_SCALE', 1),
             interval => 2,
             message => 'System reboot popup did not appear'});
 

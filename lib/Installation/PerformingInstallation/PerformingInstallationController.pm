@@ -51,7 +51,7 @@ sub get_system_reboot_with_timeout_popup {
     return $self->{OKStopPopup};
 }
 
-sub wait_installation_popup {
+sub wait_for_installation_popup {
     my ($self, $args) = @_;
     YuiRestClient::Wait::wait_until(object => sub {
             $self->{AbstractOKPopup}->is_shown({timeout => 0});
