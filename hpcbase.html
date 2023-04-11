@@ -27,11 +27,6 @@
       <li><a href="#get_slave_ip">get_slave_ip</a></li>
       <li><a href="#prepare_user_and_group">prepare_user_and_group</a></li>
       <li><a href="#prepare_spack_env">prepare_spack_env</a></li>
-      <li><a href="#uninstall_spack_module">uninstall_spack_module</a></li>
-      <li><a href="#get_compute_nodes_deps">get_compute_nodes_deps</a></li>
-      <li><a href="#CAVEATS">CAVEATS</a></li>
-      <li><a href="#setup_nfs_server">setup_nfs_server</a></li>
-      <li><a href="#mount_nfs_exports">mount_nfs_exports</a></li>
     </ul>
   </li>
 </ul><h1>lib/hpcbase.pm</h1>
@@ -94,31 +89,9 @@
 
 <p>After <code>prepare_spack_env</code> run, <code>spack</code> should be ready to build entire tool stack, downloading and installing all bits required for whatever package or compiler.</p>
 
-<h2 id="uninstall_spack_module">uninstall_spack_module</h2>
+<p>This sub is designed to install one of the mpi implementations. Although there are thousands packages to be used.</p>
 
-<pre><code>uninstall_spack_module($module)</code></pre>
-
-<p>Unload and uninstall <code>module</code> from spack stack</p>
-
-<h2 id="get_compute_nodes_deps">get_compute_nodes_deps</h2>
-
-<pre><code>get_compute_nodes_deps($mpi)</code></pre>
-
-<p>This function is used to select dependencies packages which are required to be installed on HPC compute nodes in order to run code against particular <code>mpi</code> implementation. <code>get_compute_nodes_deps</code> returns an array of packages</p>
-
-<h2 id="CAVEATS">CAVEATS</h2>
-
-<p>Obsolete function. Not in use since sle15sp5 Used to install dependencies of the HPC modules when the binaries were shared through NFS. Changes in openmpi breaks this on SLE15SP5. Need to get updated to be functional again. As for now can be used to find those dependencies prior to that version.</p>
-
-<h2 id="setup_nfs_server">setup_nfs_server</h2>
-
-<p>Prepare a nfs server on the so called management node of the HPC setup. The management node in a minimal setup should provide the directories of *-gnu-hpc installed libraries and the directory with the binaries.</p>
-
-<p><code>exports</code> takes a hash reference with the paths which NFS should make available to the compute nodes in order to run MPI software.</p>
-
-<h2 id="mount_nfs_exports">mount_nfs_exports</h2>
-
-<p>Make the HPC libraries and the location of the binaries available to the so called compute nodes, from the management one. <code>exports</code> takes a hash reference with the paths which the management node share in order to run the MPI binaries</p>
+<p>LD_LIBRARY_PATH is removed and spack is not exported. In case LD_LIBRARY_PATH is required it has to be add it in the <i>.spack/modules.yaml</i>.</p>
 
 
 </body>
