@@ -10,8 +10,8 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(:VERSION :SCENARIO);
-use utils 'installwithaddonrepos_is_applicable';
+use version_utils qw(:VERSION :SCENARIO is_livecd);
+use utils qw(installwithaddonrepos_is_applicable get_netboot_mirror);
 
 sub open_online_repos_dialog {
     wait_screen_change { send_key 'alt-y' };
@@ -64,7 +64,7 @@ sub run {
     # Test online repos dialog explicitly
     if (get_var('DISABLE_ONLINE_REPOS')) {
         disable_online_repos_explicitly;
-    } elsif (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
+    } elsif ((is_livecd && !get_netboot_mirror) || installwithaddonrepos_is_applicable()) {
         # Acivate online repositories
         wait_screen_change { send_key 'alt-y' };
     } else {
