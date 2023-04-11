@@ -158,7 +158,7 @@ sub upload_img {
     $blobs =~ s/^\s+|\s+$//g;    # trim
     my @blobs = split(/\n/, $blobs);
     if (grep(/$img_name/, @blobs)) {
-        record_soft_failure('BLOB EXISTS', "The upload_img() subroutine has been called even tho the $img_name blob exists. " .
+        record_soft_failure("The upload_img() subroutine has been called even tho the $img_name blob exists. " .
               "This means that publiccloud/upload_image test module did not properly detect it.");
     } else {
         record_info("blobs", $blobs);
