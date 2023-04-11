@@ -67,6 +67,8 @@ sub run {
     } elsif ((is_livecd && !get_netboot_mirror) || installwithaddonrepos_is_applicable()) {
         # Acivate online repositories
         wait_screen_change { send_key 'alt-y' };
+        assert_screen('list-of-online-repositories');
+        send_key $cmd{next};
     } else {
         # If click No, step is skipped, which is default behavior
         wait_screen_change { send_key 'alt-n' };
