@@ -753,5 +753,20 @@ subtest '[qesap_cluster_logs] multi log command' => sub {
     ok((none { /.*ignore_me_too\.txt/ } @logfile_calls), 'ignore_me_too.txt is expected to be ignored');
 };
 
+subtest '[qesap_get_az_resource_group]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'GYROS' });
+    $qesap->redefine(get_current_job_id => sub { return 'FETA'; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $result = qesap_get_az_resource_group();
+
+    ok((any { /az group list.*/ } @calls), 'az command properly composed');
+    ok((any { /.*FETA.*/ } @calls), 'az filtered by jobId');
+    ok($result eq "GYROS", 'function return is equal to the script_output return');
+};
+
 
 done_testing;
