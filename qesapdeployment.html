@@ -40,10 +40,13 @@
           <li><a href="#qesap_wait_for_ssh">qesap_wait_for_ssh</a></li>
           <li><a href="#qesap_cluster_log_cmds">qesap_cluster_log_cmds</a></li>
           <li><a href="#qesap_cluster_logs">qesap_cluster_logs</a></li>
+          <li><a href="#qesap_get_vnet">qesap_get_vnet</a></li>
+          <li><a href="#qesap_get_az_resource_group">qesap_get_az_resource_group</a></li>
         </ul>
       </li>
     </ul>
   </li>
+  <li><a href="#POD-ERRORS">POD ERRORS</a></li>
 </ul><h1>lib/qesapdeployment.pm</h1>
 
 <h1 id="NAME">NAME</h1>
@@ -187,6 +190,10 @@ qesap_prepare_env(cmd=&gt;{string}, provider =&gt; &#39;aws&#39;);</code></pre>
 <dd>
 
 </dd>
+<dt id="HOST_KEYS_CHECK---if-set-add-some-extra-argument-to-the-Ansible-call-to-add-allow-contacting-hosts-not-in-the-KnownHost-list-yet.-This-enables-the-use-of-this-api-before-the-call-to-qesap.py-ansible"><b>HOST_KEYS_CHECK</b> - if set, add some extra argument to the Ansible call to add allow contacting hosts not in the KnownHost list yet. This enables the use of this api before the call to qesap.py ansible</dt>
+<dd>
+
+</dd>
 </dl>
 
 <h3 id="qesap_ansible_script_output">qesap_ansible_script_output</h3>
@@ -284,6 +291,44 @@ Return total time of retry loop in case of pass.</code></pre>
 <h3 id="qesap_cluster_logs">qesap_cluster_logs</h3>
 
 <pre><code>Collect logs from a deployed cluster</code></pre>
+
+<h3 id="qesap_get_vnet">qesap_get_vnet</h3>
+
+<p>Return the output of az network vnet list =over 1</p>
+
+<dl>
+
+<dt id="RESOURCE_GROUP---resource-group-name-to-query"><b>RESOURCE_GROUP</b> - resource group name to query</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_get_az_resource_group">qesap_get_az_resource_group</h3>
+
+<p>Query and return the resource group used by the qe-sap-deployment</p>
+
+<dl>
+
+<dt id="SUBSTRING---optional-substring-to-be-used-with-aditional-grep-at-the-end-of-the-command"><b>SUBSTRING</b> - optional substring to be used with aditional grep at the end of the command</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h1 id="POD-ERRORS">POD ERRORS</h1>
+
+<p>Hey! <b>The above document had some coding errors, which are explained below:</b></p>
+
+<dl>
+
+<dt id="Around-line-685">Around line 685:</dt>
+<dd>
+
+<p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
+
+</dd>
+</dl>
 
 
 </body>
