@@ -82,7 +82,7 @@ sub find_img {
     eval {
         $image = decode_azure_json($json)->{name};
     };
-    record_info('INFO', "Cannot find image $name. Need to upload it.\n$@") if ($@);
+    record_info('IMG NOT-FOUND', "Cannot find image $name. Need to upload it.\n$@") if ($@);
     return $image;
 }
 
@@ -158,8 +158,8 @@ sub upload_img {
     $blobs =~ s/^\s+|\s+$//g;    # trim
     my @blobs = split(/\n/, $blobs);
     if (grep(/$img_name/, @blobs)) {
-        die("The upload_img() subroutine has been called even tho the $img_name blob exists. " .
-              "This means that ccloud/upload_image test module did not properly detected it.");
+        record_soft_fail('BLOB EXISTS', "The upload_img() subroutine has been called even tho the $img_name blob exists. " .
+              "This means that publiccloud/upload_image test module did not properly detect it.");
     } else {
         record_info("blobs", $blobs);
         # Note: VM images need to be a page blob type
