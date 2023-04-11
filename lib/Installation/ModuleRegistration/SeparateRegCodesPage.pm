@@ -27,19 +27,10 @@ sub is_shown {
     return $self->{lbl_separate_code}->exist();
 }
 
-sub set_we_regcode {
-    my ($self, $code) = @_;
-    $self->{txb_we_code}->set($code);
-}
-
-sub set_ha_regcode {
-    my ($self, $code) = @_;
-    $self->{txb_ha_code}->set($code);
-}
-
-sub set_ltss_regcode {
-    my ($self, $code) = @_;
-    $self->{txb_ltss_code}->set($code);
+sub set_regcode {
+    my ($self, $addon, $code) = @_;
+    my $key = "txb_$addon" . "_code";
+    $self->{$key}->set($code);
 }
 
 1;

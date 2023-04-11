@@ -11,8 +11,6 @@ schedule:
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
   - installation/module_registration/register_extensions_and_modules
-  - installation/module_registration/add_additional_regcodes
-  - installation/module_registration/import_untrusted_gnpupg_key
   - installation/add_on_product/add_maintenance_repos
   - installation/addon_products_sle
   - installation/partitioning
