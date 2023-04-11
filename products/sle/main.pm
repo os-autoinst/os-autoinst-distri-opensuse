@@ -1110,26 +1110,6 @@ else {
             loadtest 'support_server/windows/win2019_boot';
         }
     }
-    elsif (get_var('QAM_SMT')) {
-        set_var('INSTALLONLY', 1);
-        if (check_var('HOSTNAME', 'server')) {
-            barrier_create('smt_setup', 2);
-            barrier_create('smt_registered', 2);
-            boot_hdd_image;
-            loadtest 'network/setup_multimachine';
-            loadtest 'smt/smt_server';
-        }
-        elsif (check_var('HOSTNAME', 'client1')) {
-            boot_hdd_image;
-            loadtest 'network/setup_multimachine';
-            loadtest 'smt/smt_client1';
-        }
-        else {
-            #default hostname, installation and setting up smt server
-            boot_hdd_image;
-            loadtest 'smt/smt_server_install';
-        }
-    }
     elsif (get_var('QAM_MAIL_THUNDERBIRD')) {
         set_var('INSTALLONLY', 1);
         boot_hdd_image;

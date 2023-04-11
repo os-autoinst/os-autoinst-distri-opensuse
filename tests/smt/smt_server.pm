@@ -30,7 +30,7 @@ sub run {
     #time for registration of clients
 
     barrier_wait 'smt_registered';
-    validate_script_output 'smt-list-registrations', sub { m/client1/ };
+    validate_script_output 'smt-list-registrations', sub { m/client/ };
     assert_script_run 'smt-job -l';
 }
 1;
