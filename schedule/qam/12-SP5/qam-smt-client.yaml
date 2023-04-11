@@ -1,0 +1,12 @@
+---
+name: qam-smt-client
+description:    >
+    Maintainer: qe-core@suse.com
+vars:
+  BOOT_HDD_IMAGE: 1
+  HOSTNAME: 'client'
+schedule:
+- boot/boot_to_desktop
+- network/setup_multimachine
+- smt/smt_client
+...

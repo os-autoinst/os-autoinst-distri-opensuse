@@ -9,43 +9,39 @@
 # - Configure smt server
 # - Use yast certificate to issue correct cert
 # - Mirror repositories
-# Maintainer: Katerina Lorenzova <klorenzova@suse.cz>
+# Maintainer: QE Core <qe-core@suse.com>
 
-use base 'x11test';
+use base 'y2_module_consoletest';
 use strict;
 use warnings;
 use testapi;
 use utils;
 use lockapi;
 use mm_network;
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
+    select_serial_terminal;
+    barrier_create('smt_setup', 2);
+    barrier_create('smt_registered', 2);
+    barrier_create('smt_finished', 2);
 
     zypper_call 'in -t pattern smt';
     zypper_call 'in mariadb';
 
-    assert_script_run 'hostnamectl set-hostname server';
+    select_console 'root-console';
 
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'smt-wizard');
 
-    wait_still_screen;
+    assert_screen "smt_settings";
     wait_screen_change { send_key "alt-f" };
     wait_screen_change { send_key "alt-u" };
     type_string get_var('SMT_USER');
-    wait_screen_change { send_key "alt-p" };
+    send_key "alt-p";
+    wait_still_screen(1);
     type_string get_var('SMT_PASSWORD');
-
-    wait_screen_change { send_key "alt-s" };
-    type_string 'osukup@suse.com';
-    wait_screen_change { send_key "alt-y" };
-    foreach (0 .. 15) {
-        send_key "backspace";
-    }
-    type_string "http://server/";
-    assert_screen "smt_settings";
-
+    wait_still_screen(1);
     wait_screen_change { send_key "alt-t" };
     assert_screen "smt-test-succ", 120;
     wait_screen_change { send_key "ret" };
@@ -147,24 +143,26 @@ sub run {
     wait_screen_change { send_key "alt-f" };
     wait_serial("$module_name-0", 200) || die "yast2 ca_mgm failed";
 
+
     #mirroring repos
+    select_serial_terminal;
+    systemctl('restart apache');
     assert_script_run "df -h";    #mirroring needs quite a lot of space
     save_screenshot;
 
     validate_script_output "SUSEConnect --status", sub { m/"identifier":"SLES","version":"12\.5","arch":"x86_64","status":"Registered"/ };
     assert_script_run "smt-repos -o";
-    validate_script_output "smt-repos -m", sub { m/SLES12-SP5-Updates/ }, timeout => 200;
+    validate_script_output "smt-repos -m SLES12-SP5-Updates", sub { m/SLES12-SP5-Updates/ }, timeout => 200;
 
     assert_script_run "smt-repos -e SLES12-SP5-Updates sle-12-x86_64";
     assert_script_run "smt-repos -e SLES12-SP5-Pool sle-12-x86_64";
     validate_script_output "smt-repos -o", sub { m/SLES12-SP5-Updates/ };
     validate_script_output "smt-repos -o", sub { m/SLES12-SP5-Pool/ };
 
-    assert_script_run "smt-mirror", 16000;
+    assert_script_run "smt-mirror", 4000;
 
     assert_script_run "df -h";
     save_screenshot;
-    select_console "x11";
 }
 
 sub test_flags {
