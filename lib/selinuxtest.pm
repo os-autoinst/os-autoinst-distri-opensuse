@@ -59,18 +59,18 @@ sub create_test_file {
 sub fixfiles_restore {
     my ($self, $file_name, $fcontext_pre, $fcontext_post) = @_;
 
-    if (script_run("[ -z $file_name ]") == 0) {
+    if (script_run("[ -z \"$file_name\" ]") == 0) {
         record_info("WARNING", "no file need to be restored", result => "softfail");
     }
-    elsif (script_run("[ -f $file_name ]") == 0) {
-        validate_script_output("ls -Z $file_name", sub { m/$fcontext_pre/ });
-        assert_script_run("fixfiles restore $file_name");
-        validate_script_output("ls -Z $file_name", sub { m/$fcontext_post/ });
+    elsif (script_run("[ -f \"$file_name\" ]") == 0) {
+        validate_script_output("ls -Z \"$file_name\"", sub { m/$fcontext_pre/ });
+        assert_script_run("fixfiles restore \"$file_name\"");
+        validate_script_output("ls -Z \"$file_name\"", sub { m/$fcontext_post/ });
     }
-    elsif (script_run("[ -d $file_name ]") == 0) {
-        validate_script_output("ls -Zd $file_name", sub { m/$fcontext_pre/ });
-        assert_script_run("fixfiles restore $file_name");
-        validate_script_output("ls -Zd $file_name", sub { m/$fcontext_post/ });
+    elsif (script_run("[ -d \"$file_name\" ]") == 0) {
+        validate_script_output("ls -Zd \"$file_name\"", sub { m/$fcontext_pre/ });
+        assert_script_run("fixfiles restore \"$file_name\"");
+        validate_script_output("ls -Zd \"$file_name\"", sub { m/$fcontext_post/ });
     }
 }
 
