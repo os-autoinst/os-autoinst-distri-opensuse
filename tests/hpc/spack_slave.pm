@@ -25,6 +25,7 @@ sub run ($self) {
     type_string("$testapi::password\n");
     barrier_wait('CLUSTER_PROVISIONED');
     barrier_wait('MPI_SETUP_READY');
+    assert_script_run "spack load $mpi";
     script_run "module av";
 
     record_info('ssh check', 'Validate sshd service status before mpirun');

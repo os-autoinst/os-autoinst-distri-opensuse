@@ -347,6 +347,24 @@ from the rest and can be exported via a network file system.
 
 After C<prepare_spack_env> run, C<spack> should be ready to build entire tool stack,
 downloading and installing all bits required for whatever package or compiler.
+
+This sub is designed to install one of the mpi implementations. Although there are
+thousands packages to be used.
+
+LD_LIBRARY_PATH is removed and spack is not exported. In case LD_LIBRARY_PATH is required
+it has to be add it in the F<.spack/modules.yaml>.
+
+=begin text
+  See bsc#1208751 for details
+=end text
+
+To do that run
+
+=begin text
+  spack config add modules:prefix_inspections:lib64:[LD_LIBRARY_PATH]
+  spack config add modules:prefix_inspections:lib:[LD_LIBRARY_PATH]
+=end text
+
 =cut
 
 sub prepare_spack_env {
@@ -358,33 +376,23 @@ sub prepare_spack_env {
     assert_script_run 'module load gnu $mpi';    ## TODO
     assert_script_run 'source /usr/share/spack/setup-env.sh';
 
-    if (script_run("env | grep -i SPACK_LD_LIBRARY_PATH") != 0) {
-        my $spack_version = script_output "rpm -qa spack";
-        record_soft_failure("bsc#1208751 libboost_mpi.so cant be found after installed by spack on $spack_version\n");
-        assert_script_run("spack config add modules:prefix_inspections:lib64:[LD_LIBRARY_PATH]");
-        assert_script_run("spack config add modules:prefix_inspections:lib:[LD_LIBRARY_PATH]");
-    }
-
     record_info 'spack', script_output 'zypper -q info spack';
-    record_info 'boost spec', script_output('spack spec boost', timeout => 480);
-    assert_script_run "spack install boost+mpi^$mpi", timeout => 12000;
-    assert_script_run 'spack load boost';
+    record_info "$mpi spec", script_output("spack spec $mpi", timeout => 480);
+    assert_script_run "spack install $mpi", timeout => 12000;
+
 }
 
-=head2 uninstall_spack_module
+=head2 uninstall_spack_modules
 
-  uninstall_spack_module($module)
+  uninstall_spack_module()
 
-Unload and uninstall C<module> from spack stack
+Clean up from spack stack
 =cut
 
-sub uninstall_spack_module {
-    my ($self, $module) = @_;
-    die 'uninstall_spack_module requires a module name' unless $module;
-    assert_script_run("spack unload $module");
+sub uninstall_spack_modules {
+    assert_script_run("spack unload --all");
     script_run('module av', timeout => 120);
-    assert_script_run("spack uninstall -y $module", timeout => 360);
-    assert_script_run("spack find $module | grep 'No package matches the query'");
+    assert_script_run("spack uninstall -y --all", timeout => 360);
 }
 
 =head2 get_compute_nodes_deps
