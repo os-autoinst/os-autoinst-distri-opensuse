@@ -10,7 +10,7 @@
 # - Get registration script and certificate from server
 # - Register
 # - Check registration
-# Maintainer: Katerina Lorenzova <klorenzova@suse.cz>
+# Maintainer: QE Core <qe-core@suse.com>
 
 use base 'consoletest';
 use strict;
@@ -18,9 +18,10 @@ use warnings;
 use testapi;
 use utils;
 use lockapi;
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
     zypper_call 'in smt-client';
     assert_script_run 'SUSEConnect --cleanup';
@@ -40,5 +41,8 @@ sub run {
     validate_script_output 'zypper lr --uri', sub { m/SLES12-SP5-Updates *\| Yes/ };
     validate_script_output 'zypper lr --uri', sub { m/SLES12-SP5-Pool *\| Yes/ };
     barrier_wait 'smt_registered';
+    # install some packages
+    zypper_call('in apache2 mariadb qemu', timeout => 300);
+    barrier_wait 'smt_finished';
 }
 1;
