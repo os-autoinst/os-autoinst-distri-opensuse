@@ -13,6 +13,7 @@ use Mojo::JSON qw(decode_json encode_json);
 use Term::ANSIColor 2.01 'colorstrip';
 use Data::Dumper;
 use testapi qw(is_serial_terminal :DEFAULT);
+use mmapi 'get_current_job_id';
 use utils qw(script_output_retry);
 use publiccloud::azure_client;
 use publiccloud::ssh_interactive 'select_host_console';
@@ -72,7 +73,7 @@ sub find_img {
     my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'eisleqaopenqa');
     my $key = $self->get_storage_account_keys($storage_account);
     my $cmd_show = "az storage blob show --account-key $key -o json " .
-      "--container-name '" . $container . "' --account-name '$storage_account' --name $name " .
+      "--container-name '$container' --account-name '$storage_account' --name '$name' " .
       '--query="{name: name,createTime: properties.creationTime,md5: properties.contentSettings.contentMd5}"';
     record_info('BLOB INFO', script_output($cmd_show, proceed_on_failure => 1));
 
@@ -143,6 +144,11 @@ sub upload_img {
 
     my $arch = (check_var('PUBLIC_CLOUD_ARCH', 'arm64')) ? 'Arm64' : 'x64';
 
+    my $job_id = get_current_job_id();
+    my $openqa_url = get_required_var('OPENQA_URL');
+    my $created_by = "$openqa_url/t$job_id";
+    my $tags = "openqa_created_by=$created_by";
+
     my $rg_exist = $self->resource_exist();
 
     $self->create_resources($storage_account) if (!$rg_exist);
@@ -163,9 +169,9 @@ sub upload_img {
     } else {
         record_info("blobs", $blobs);
         # Note: VM images need to be a page blob type
-        assert_script_run('az storage blob upload --max-connections 4 --account-name '
-              . $storage_account . ' --account-key ' . $key . ' --container-name ' . $container
-              . ' --type page --file ' . $file . ' --name ' . $img_name, timeout => 60 * 60 * 2);
+        assert_script_run('az storage blob upload --max-connections 4 --type page'
+              . " --account-name '$storage_account' --account-key '$key' --container-name '$container'"
+              . " --file '$file' --name '$img_name' --tags '$tags'", timeout => 60 * 60 * 2);
         # After blob is uploaded we save the of it as its metadata.
         # This is also to verify that the upload has been finished.
         assert_script_run("az storage blob update --account-key $key --container-name '$container' --account-name '$storage_account' --name $img_name --content-md5 $file_md5");
