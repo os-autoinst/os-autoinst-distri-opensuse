@@ -228,11 +228,6 @@ service package name.
 
 sub _is_applicable {
     my ($srv_pkg_name) = @_;
-    if ($srv_pkg_name eq 'kdump' && is_s390x) {
-        # workaround for bsc#116300 on s390x
-        record_soft_failure 'bsc#1163000 - System does not come back after crash on s390x';
-        return 0;
-    }
     # This feature is used only by hpc
     return 0 if ($srv_pkg_name eq 'hpcpackage_remain' && !check_var('SLE_PRODUCT', 'hpc'));
     if (get_var('EXCLUDE_SERVICES')) {
