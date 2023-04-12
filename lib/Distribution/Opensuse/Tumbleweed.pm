@@ -40,6 +40,7 @@ use Installation::SystemProbing::EncryptedVolumeActivationController;
 use Installation::SystemRole::SystemRoleController;
 use Installation::Popups::OKPopupController;
 use Installation::Popups::YesNoPopupController;
+use Installation::Popups::AcceptPopupController;
 use YaST::Bootloader::BootloaderSettingsController;
 use YaST::Firstboot::ConfigurationCompletedController;
 use YaST::Firstboot::HostNameController;
@@ -174,6 +175,10 @@ sub get_ok_popup_controller {
 
 sub get_yes_no_popup_controller {
     return Installation::Popups::YesNoPopupController->new();
+}
+
+sub get_accept_popup_controller {
+    return Installation::Popups::AcceptPopupController->new();
 }
 
 sub get_encrypted_volume_activation {
