@@ -174,7 +174,7 @@ sub init_guest_time {
     # Set the guest time by using the variable $last_day
     if (is_svirt) {
         $last_day = script_output("date -u -d '$h_datetime last day' +'\%F \%T'");
-        $g_datetime = script_output("date -u -d '$last_day last day' +'\%F \%T'");
+        $g_datetime = script_output("date -u -s '$last_day' +'\%F \%T'");
     }
     elsif (is_qemu) {
         $last_day = script_output(qq($ssh_vm "date -u -d '$h_datetime last day' +'\%F \%T'"));
