@@ -225,10 +225,10 @@ sub t01_accounting() {
     my $description = 'Basic check for slurm accounting cmd';
     my $result = 0;
     my %users = (
-        'user_1' => 'Sebastian',
-        'user_2' => 'Egbert',
-        'user_3' => 'Christina',
-        'user_4' => 'Jose',
+        'user_1' => 'sebastian',
+        'user_2' => 'egbert',
+        'user_3' => 'christina',
+        'user_4' => 'jose',
     );
 
     ##Add users TODO: surely this should be abstracted

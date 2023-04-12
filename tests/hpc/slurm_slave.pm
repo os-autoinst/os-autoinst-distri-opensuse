@@ -28,7 +28,18 @@ sub run ($self) {
         zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);
         zypper_call('in iputils python');
     }
+    my %users = (
+        'user_1' => 'sebastian',
+        'user_2' => 'egbert',
+        'user_3' => 'christina',
+        'user_4' => 'jose',
+    );
 
+    ##Add users TODO: surely this should be abstracted
+    script_run("useradd $users{user_1}");
+    script_run("useradd $users{user_2}");
+    script_run("useradd $users{user_3}");
+    script_run("useradd $users{user_4}");
     barrier_wait('CLUSTER_PROVISIONED');
     barrier_wait("SLURM_SETUP_DONE");
     barrier_wait('SLURM_SETUP_DBD');
