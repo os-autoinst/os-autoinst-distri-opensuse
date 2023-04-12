@@ -29,13 +29,15 @@ sub run {
     select_serial_terminal;
 
     assert_script_run("systemctl restart auditd");
+    assert_script_run("cp $original_audit $audit_log");
+
+    if (is_alp) {
+        validate_script_output("audit2allow -a", sub { m/^\s*$/sx });
+        record_info("Empty output", "Since there are no denies, audit2allow always returns an empty output.");
+        return 0;
+    }
 
     # read input from logs and translate to why
-    assert_script_run("cp $original_audit $audit_log");
-    # audit2allow is empty (no denials) on ALP, so create a fake denial for testing purposes for the later commmands
-    if (is_alp) {
-        script_run("echo 'type=AVC msg=audit(1670248641.102:242): avc:  denied  { read } for  pid=2160 comm=\"useradd\" name=\"run\" dev=\"dm-0\" ino=19939 scontext=unconfined_u:unconfined_r:useradd_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:unlabeled_t:s0 tclass=lnk_file permissive=1' >> $audit_log");
-    }
     validate_script_output("audit2allow -a", sub { m/allow\ .*_t\ .*;.*/sx });
     validate_script_output("audit2allow -i $audit_log", sub { m/allow\ .*_t\ .*;.*/sx });
     assert_script_run("tail -n 500 $audit_log > $audit_log_short");
@@ -78,10 +80,6 @@ sub run {
         zypper_call("in policycoreutils-devel");
     } elsif (is_sle('<15')) {
         zypper_call("in selinux-policy-devel");
-    } elsif (is_alp) {
-        # NOTE: ALP does not have policycoreutils-devel at the moment.
-        # If it would have, we could install it and reboot at this point.
-        return 0;
     } else {
         zypper_call("in policycoreutils-devel");
     }
