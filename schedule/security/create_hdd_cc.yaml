@@ -2,9 +2,8 @@ name: create_hdd_cc
 description: >
   This testsuite create an hdd for Common Criteria for both uefi and non uefi systems.
 schedule:
-  - installation/bootloader_start
   - installation/isosize
-  - installation/bootloader
+  - installation/bootloader_start
   - installation/welcome
   - installation/scc_registration
   - installation/addon_products_sle
@@ -23,7 +22,6 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - installation/grub_test
   - '{{mgmt_console}}'
   - installation/first_boot
   - console/system_prepare
@@ -39,6 +37,10 @@ conditional_schedule:
     ARCH:
       s390x:
         - boot/reconnect_mgmt_console
+      x86_64:
+        - installation/grub_test
+      aarch64:
+        - installation/grub_test
   svirt_upload:
     ARCH:
       s390x:
