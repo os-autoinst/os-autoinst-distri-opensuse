@@ -72,8 +72,7 @@ sub create_playbook_section_list {
 
     # SLES4SAP/HA related playbooks
     if ($ha_enabled) {
-        push @hana_playbook_list, 'pre-cluster.yaml',
-          'sap-hana-preconfigure.yaml -e use_sapconf=' . set_var_output('USE_SAPCONF', 'true');
+        push @hana_playbook_list, 'pre-cluster.yaml', 'sap-hana-preconfigure.yaml -e use_sapconf=' . set_var_output('USE_SAPCONF', 'true');
         push @hana_playbook_list, 'cluster_sbd_prep.yaml' if (check_var('FENCING_MECHANISM', 'sbd'));
         push @hana_playbook_list, qw(
           sap-hana-storage.yaml
@@ -139,8 +138,7 @@ sub create_instance_data {
                 provider => $provider,
                 region => $provider->provider_client->region,
                 type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
-                image_id => $provider->get_image_id()
-            );
+                image_id => $provider->get_image_id());
             push @instances, $instance;
         }
     }
@@ -152,8 +150,8 @@ sub run {
     my ($self, $run_args) = @_;
 
     # Let's define a workspace for terraform. We use PUBLIC_CLOUD_RESOURCE_GROUP
-    # if defined, otherwise we use qesapopenqa
-    my $workspace = get_var('PUBLIC_CLOUD_RESOURCE_GROUP', 'qesapopenqa') . get_current_job_id();
+    # if defined, otherwise we use qesaposd
+    my $workspace = get_var('PUBLIC_CLOUD_RESOURCE_GROUP', 'qesaposd') . get_current_job_id();
 
     # Select console on the host (not the PC instance) to reset 'TUNNELED',
     # otherwise select_serial_terminal() will be failed

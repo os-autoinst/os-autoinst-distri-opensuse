@@ -1,0 +1,36 @@
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC
+# SPDX-License-Identifier: FSFAP
+# Maintainer: QE-SAP <qe-sap@suse.de>
+# Summary: Generic yaml template for use with qe-sap-deployment project: https://github.com/SUSE/qe-sap-deployment
+#   Settings are meant to be controlled via OpenQA variables and managed by test:
+#   tests/sles4sap/publiccloud/qesap_ansible.pm
+
+provider: 'azure'
+apiver: 3
+terraform:
+  provider: 'azure'
+  variables:
+    # GENERAL VARIABLES #
+    az_region: '%PUBLIC_CLOUD_REGION%'
+    admin_user: 'cloudadmin'
+    public_key: '~/.ssh/id_rsa.pub'
+    private_key: '~/.ssh/id_rsa'
+    os_image_uri: 'https://%STORAGE_ACCOUNT_NAME%.blob.core.windows.net/sle-images/%SLE_IMAGE%'
+
+    # HANA
+    hana_count: '%NODE_COUNT%'
+    hana_ha_enabled: '%HA_CLUSTER%'
+    vm_size: '%PUBLIC_CLOUD_INSTANCE_TYPE%'
+    hana_cluster_fencing_mechanism: '%FENCING_MECHANISM%'
+
+ansible:
+  az_storage_account_name: "%HANA_ACCOUNT%"
+  az_container_name:  "%HANA_CONTAINER%"
+  hana_media:
+    - "%HANA_SAR%"
+    - "%HANA_CLIENT_SAR%"
+    - "%HANA_SAPCAR%"
+  destroy:
+    - deregister.yaml
