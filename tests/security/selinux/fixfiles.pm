@@ -26,8 +26,8 @@ sub run {
     # pick up a test file to test. We need to use sed+awk to deal with potential spaces in the file path.
     my $file_info = script_output("grep -i 'Would relabel' $file_output | tail -1 | sed 's/Would relabel //'");
     my $file_name = script_output("echo $file_info | awk \'{split(\$0, array, \" from \"); print array[1]}\'");
-    my $fcontext_pre = script_output("echo $file_info | cut -d ' ' -f1");
-    my $fcontext_post = script_output("echo $file_info | cut -d ' ' -f3");
+    my $fcontext_pre = script_output("echo $file_info | awk \'{split(\$0, array, \" from \"); print array[2]}\' | cut -f1 -d' '");
+    my $fcontext_post = script_output("echo $file_info | awk \'{split(\$0, array, \" from \"); print array[2]}\'| cut -f3 -d' '");
 
     # test `fixfiles restore`: run fixfiles restore on the test file and check the results
     $self->fixfiles_restore("$file_name", "$fcontext_pre", "$fcontext_post");
