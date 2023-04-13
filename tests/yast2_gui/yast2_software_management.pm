@@ -19,7 +19,7 @@ sub run {
     # Accept => Exit, or get to the installation report
     send_key 'alt-a';
     # Installation may take some time
-    assert_screen [qw(sw_single_ui_installation_report generic-desktop)], timeout => 300;
+    assert_screen [qw(sw_single_ui_installation_report generic-desktop)], timeout => 350;
     if (match_has_tag('sw_single_ui_installation_report')) {
         # Press finish
         send_key 'alt-f';
