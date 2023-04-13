@@ -155,7 +155,7 @@ sub push_image_data_to_db {
     $args{asset} = $image;
     $args{value} = $value;
     $args{product} = $product;
-    (my $build = $args{build}) =~ s/\_.*//;    #To remove unneeded strings, e.g. 15.11_init-image -> 15.11
+    $args{build} =~ s/\_.*//;    #To remove unneeded strings, e.g. 15.11_init-image -> 15.11
 
     my $ua = Mojo::UserAgent->new;
     $ua = $ua->max_connections(5);
@@ -163,23 +163,24 @@ sub push_image_data_to_db {
     $ua = $ua->connect_timeout(30);
 
     my $url = sprintf('http://%s:%s/%s', $db_ip, $db_port, $args{table});
-    delete $args{table};
+    bmwqemu::diag("Database URL: $url");
+    my $table = delete $args{table};
 
-    my $data = encode_json(\%args);
-    bmwqemu::diag("Collected image data: $data");
+    #my $data = encode_json(\%args);
+    bmwqemu::diag("Collected image data: " . encode_json(\%args));
 
     my $res = $ua->post("$url" => {Authorization => "Bearer $token", Accept => "application/json",
-            'Content-type' => "application/json"} => json => $data)->result();
+            'Content-type' => "application/json"} => json => \%args)->result();
 
     # if successful push, it should return 'HTTP/1.1 201 Created'
     if ($res->code == 201) {
-        bmwqemu::diag("Image data has been successfully pushed to the Database, RC => ($res->code)");
+        bmwqemu::diag("Image data has been successfully pushed to the Database ($table), RC => " . $res->code);
     } elsif ($res->code == 409) {
-        bmwqemu::diag("This image info already exists DB, RC => ($res->code)");
+        bmwqemu::diag("This image info already exists in $table, RC => " . $res->code);
         # return to the caller that conflict has been found
         # caller should exit the test case module immediately
     } else {
-        record_soft_failure("poo#113120 - There has been a problem pushing data to the DB. RC => ($res->code)");
+        record_soft_failure("poo#113120 - There has been a problem pushing data to the $table. RC => " . $res->code);
     }
 
     return $res->code;
