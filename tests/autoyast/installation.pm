@@ -341,6 +341,10 @@ sub run {
 
     check_screen \@needles, $check_time;
     @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot unreachable-repo warning-pop-up inst-bootmenu lang_and_keyboard encrypted-disk-password-prompt);
+    if (get_var('WORKAROUND_BSC1209083')) {
+        @needles = qw(reboot-after-installation autoyast-boot inst-bootmenu);
+        record_soft_failure "bsc#1209083 - In migration with AutoYaST setting grub2 timeout doesn't take effect";
+    }
     # Do not try to fail early in case of autoyast_error_dialog scenario
     # where we test that certain error are properly handled
     push @needles, 'autoyast-error' unless get_var('AUTOYAST_EXPECT_ERRORS');
