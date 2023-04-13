@@ -96,6 +96,12 @@ sub run {
         select_console 'root-console';
     }
 
+    record_info 'grub2 zfs', 'ensure that zfs in grub2 is not available on SLE but on openSUSE';
+    if (is_sle()) {
+        assert_script_run 'zypper se grub2- | grep extras ; test "$?" == "1"';
+        assert_script_run 'rpm -qa | grep grub2 | xargs rpm -ql | grep zfs ; test "$?" == "1"';
+    }
+
     record_info 'grub2 password', 'set password to boot';
     script_run "yast bootloader; echo yast-bootloader-status-\$? > /dev/$serialdev", 0;
     assert_screen 'test-yast2_bootloader-1';

@@ -131,6 +131,17 @@ sub reboot {
 sub run {
     my $self = shift;
     select_serial_terminal();
+
+    if (!is_sle()) {
+        record_info 'grub2 zfs', 'ensure that zfs in grub2 is not available on SLE but on openSUSE';
+        my @bootloader_rpms = split(/\n/, script_output("zypper se 'grub2-' | grep 'Bootloader with support' | grep '^i' | awk '{print \$3}'"));
+        for my $rpm (@bootloader_rpms) {
+            assert_script_run("rpm -ql $rpm | grep zfs ; test \"\$?\" == \"1\"");
+            zypper_call "in $rpm-extras";
+            assert_script_run("rpm -ql $rpm-extras | grep zfs");
+        }
+    }
+
     return unless (install_zfs());    # Possible softfailure if module is not yet available (e.g. new Leap version)
     my $additional = "";
     $additional = "--allow-unsupported" if (is_sle);
