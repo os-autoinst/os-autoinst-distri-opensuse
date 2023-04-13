@@ -64,7 +64,7 @@ sub run {
     # Test online repos dialog explicitly
     if (get_var('DISABLE_ONLINE_REPOS')) {
         disable_online_repos_explicitly;
-    } elsif (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
+    } elsif (installwithaddonrepos_is_applicable()) {
         # Acivate online repositories
         wait_screen_change { send_key 'alt-y' };
     } else {
