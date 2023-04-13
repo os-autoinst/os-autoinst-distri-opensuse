@@ -563,7 +563,7 @@ sub load_slepos_tests {
 sub load_system_role_tests {
     # This part is relevant only for openSUSE
     if (is_opensuse) {
-        if (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
+        if (installwithaddonrepos_is_applicable()) {
             loadtest "installation/setup_online_repos";
         }
         # Do not run on REMOTE_CONTROLLER, IPMI and on Hyper-V in GUI mode
@@ -946,6 +946,7 @@ sub load_inst_tests {
         if (is_opensuse) {
             # See https://github.com/yast/yast-packager/pull/385
             loadtest "installation/online_repos";
+            loadtest "installation/setup_online_repos" if installwithaddonrepos_is_applicable;
         }
     }
     if (is_sle) {
