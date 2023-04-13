@@ -25,17 +25,11 @@ sub settle_load {
     my $loop = 'read load dummy < /proc/loadavg  ; top -n1 -b| head -n30 ; test "${load/./}" -lt $limit && break ; sleep 5';
     script_run "limit=10; for c in `seq 1 200`; do $loop; done; echo TOP-DONE > /dev/$serialdev", 0;
     my $before = time;
-    # Adding 2 extra minutes due to bsc#1178761 to ensure 200 iterations
     wait_serial('TOP-DONE', 1120) || die 'load not settled';
     # JeOS is different to SLE general as it extends the appliance's disk on first boot,
     # so the balance is a different challenge to SLE. Elapsed time is not necessary a key
     # measure here, responsiveness of the system is.
     record_soft_failure 'bsc#1063638' if (time - $before) > (is_jeos() ? 180 : 70) && get_var('SOFTFAIL_BSC1063638');
-    if ((time - $before) > 1005) {
-        record_soft_failure 'bsc#1178761';
-        return 0;
-    }
-    return 1;
 }
 
 sub run {
