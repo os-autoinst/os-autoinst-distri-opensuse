@@ -103,7 +103,7 @@ sub setup_scientific_module {
         $self->relogin_root;
         my $mpi2load = ($mpi =~ /openmpi2|openmpi3|openmpi4/) ? 'openmpi' : $mpi;
         assert_script_run "module load gnu $mpi2load python3-scipy";
-        assert_script_run("env MPICC=mpicc python3 -m pip install mpi4py", timeout => 600);
+        assert_script_run("env MPICC=mpicc python3 -m pip install mpi4py", timeout => 1200);
     }
     return 0;
 }
