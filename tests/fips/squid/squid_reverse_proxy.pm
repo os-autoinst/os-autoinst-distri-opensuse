@@ -8,11 +8,10 @@
 #
 # Maintainer: QE Security <none@suse.de>
 
-use base "basetest";
+use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
-use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call);
 
 sub configure_apache {
@@ -36,16 +35,20 @@ sub configure_squid {
     assert_script_run 'cp /etc/squid/squid.cert /usr/share/pki/trust/anchors ; update-ca-certificates';
     # configure squid as reverse proxy
     assert_script_run 'curl ' . data_url('squid/squid_reverse.conf') . ' -o /etc/squid/squid.conf';
-    systemctl 'reload squid';
+    systemctl('restart squid', timeout => 600);
+    systemctl 'status squid';
+    # ensure squid is ready to serve requests before proceeding
+    assert_script_run('lsof -i :3128 | grep squid');
 }
 
 sub run {
-    select_serial_terminal;
+    select_console 'root-console';
     configure_apache;
     configure_squid;
     # use squid as https reverse proxy to access content served by apache.
     # Ensure reply contains certificate info, HTTP 200 and test page content
-    validate_script_output 'curl -v  --no-styled-output --proxy https://localhost:8443 http://localhost:8080/hello.html',
+    # note we redirect stderr to stdout, because some info from --verbose are on stderr
+    validate_script_output 'curl --no-styled-output --verbose --proxy https://localhost:8443 http://localhost:8080/hello.html 2>&1',
       sub { m/subject:.+O=Suse.+CN=localhost.+HTTP\/1.1 200 OK.+Test Page/s };
 }
 
