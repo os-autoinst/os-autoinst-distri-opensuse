@@ -23,6 +23,7 @@ conditional_schedule:
       0:
         - console/check_upgraded_service
         - console/system_prepare
+        - console/force_scheduled_tasks
         - console/check_os_release
         - console/check_system_info
         - '{{check_migration_features}}'
@@ -55,7 +56,6 @@ conditional_schedule:
     REGRESSION_TEST:
       1:
         - locale/keymap_or_locale
-        - console/force_scheduled_tasks
         - console/hostname
         - console/upgrade_snapshots
         - console/zypper_lr
