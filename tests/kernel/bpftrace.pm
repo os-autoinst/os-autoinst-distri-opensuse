@@ -76,11 +76,17 @@ sub run {
     }
 
     foreach my $t (@assert_tests) {
-        assert_script_run("timeout --preserve-status -s SIGINT 5 bpftrace $tools_dir/$t");
+        my $ret = script_run("timeout --preserve-status -s SIGINT 10 bpftrace $tools_dir/$t");
+
+        if ($ret == 130) {
+            record_info('timeout', "'bpftrace $t' did not handle SIGINT; system was probably too slow to attach probes");
+        } elsif ($ret) {
+            die "'bpftrace $t' failed";
+        }
     }
 
     foreach my $t (@tests) {
-        script_run("timeout --preserve-status -s SIGINT 5 bpftrace $tools_dir/$t");
+        script_run("timeout --preserve-status -s SIGINT 10 bpftrace $tools_dir/$t");
     }
 }
 
@@ -102,3 +108,7 @@ requires kernel 5.17+.
 
 Scripts that will not execute correctly on TW or SLE are run without
 asserting the return value. These use kprobes which are not stable.
+
+If bpftrace is terminated before attaching the probes then it doesn't
+handle SIGINT and assert_script_run fails. Once the probes are
+attached it handles SIGINT gracefully.
