@@ -352,11 +352,13 @@ sub wait_for_ssh {
     my $start_time = time();
     my $check_port = 1;
     my $sleep_period = $args{ignore_wrong_pubkey} ? 20 : 1;
-
-    my $ana = get_var('PUBLIC_CLOUD_WAITSSH_SYSANA', 0);
-    my $command = $ana ? 'systemd-analyze time' : 'sudo systemctl is-system-running --wait';
-    my $output;
-    my $output2;
+    #
+    my @sem = (1, 1, 1);
+    my @command = ('sudo systemctl is-system-running --wait', 'systemd-analyze time', 'sudo journalctl -b | grep -E "Reached target (Cloud-init|Default|Main User Target)"');
+    my @output = ('running|degraded', 'Startup finished in', 'Reached target ');
+    my $kostate = 'maintenance|stopping|offline|unknown';    # wrong states of command[0]
+    my $pass = 0;
+    my @out;
 
     # Looping until reaching timeout or passing two conditions :
     # - SSH port 22 is reachable
@@ -369,36 +371,41 @@ sub wait_for_ssh {
         else {
             # On boottime test we do hard reboot which may change the instance address
             script_run("ssh-keyscan $args{public_ip} | tee -a ~/.ssh/known_hosts") if (get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME'));
-            $output = $self->run_ssh_command(
-                # cmd => 'sudo journalctl -b | grep -E "Reached target (Cloud-init|Default|Main User Target)"',
-                cmd => $command,
-                proceed_on_failure => 1,
-                username => $args{username});
-            $output2 = $self->run_ssh_command(
-                cmd => 'sudo journalctl -b | grep -E "Reached target (Cloud-init|Default|Main User Target)"',
-                proceed_on_failure => 1,
-                username => $args{username});
-            if ($output2 =~ m/Reached target /) {
-                record_info("CHECK SSH J", "wait ssh journal OK " . $duration . "s\n" . "System: " . $output2);
+            # here 3 check methods 0 to 2 from @command used:
+            foreach my $j (0 .. 2) {
+                $out[$j] = $self->run_ssh_command(cmd => $command[$j], proceed_on_failure => 1, username => $args{username});
+                if ($sem[$j] && $out[$j] =~ m/$output[$j]/) {
+                    --$sem[$j];
+                    # DEBUG print
+                    if ($j == 0 && $out[$j] =~ m/degraded/) {
+                        $out[$j] = $self->run_ssh_command(cmd => 'sudo systemctl --failed', proceed_on_failure => 1, username => $args{username});
+                    }
+                    my $msg = 'wait ssh ' . (++$pass) . ' ok, ' . (time() - $start_time) . 's, System:' . "\n" . $out[$j];
+                    record_info("CHECK SSH", $msg);
+                }
+                elsif ($j == 0 && $sem[$j] && $out[$j] =~ m/$kostate/) {
+                    # check if system status ko using command 0:
+                    $sem[0] = 2;
+                    last;    # exit For.
+                }
+                elsif ($out[$j] =~ m/Permission denied \(publickey\).*/) {
+                    die "ssh permission denied (pubkey)" unless $args{ignore_wrong_pubkey};
+                }
             }
-            if (($output =~ m/running|degraded/i and !$ana) or ($output =~ m/Startup finished in/ and $ana)) {
-                # DEBUG print
-                record_info("CHECK SSH", "wait ssh OK " . $duration . "s\n" . "System: " . $output);
+            if ($pass == 3) {    # all checks passed
                 $self->journal_upload("/tmp/waitssh_journal.txt", username => $args{username});
                 return $duration;
             }
-            elsif ($output =~ m/Permission denied \(publickey\).*/) {
-                die "ssh permission denied (pubkey)" unless $args{ignore_wrong_pubkey};
-            }
-            elsif (defined $output && length $output > 0 && !$ana) {
-                last;    # loop break error
-            }
+            last if ($sem[0] > 1);    # exit While, due to command 0
         }
         sleep $sleep_period;
     }
 
     # DEBUG print
-    record_info("CHECK SSH", "wait ssh NOK " . time() - $start_time . "s\n" . "System: " . $output);
+    foreach my $j (0 .. 2) {
+        my $msg = 'wait ssh ' . ($j + 1) . ' Nok ' . (time() - $start_time) . 's, System:' . "\n" . $out[$j];
+        record_info("CHECK SSH", $msg) if $sem[$j];
+    }
     script_run("ssh  -i /root/.ssh/id_rsa -v $args{username}\@$args{public_ip} true", timeout => 360);
 
     unless ($args{proceed_on_failure}) {
@@ -422,10 +429,13 @@ sub wait_for_ssh {
 }
 
 sub journal_upload {
+    # moved this code from wait_for_ssh into THIS temporary function
+    # for faster log provisioning and code reuse, improvement and control.
     my ($self, $log, %args) = @_;
     my $usr = $args{username};
-    my $com = 'sudo journalctl -b --no-pager| grep -iE "Reached target" > ' . $log;
+    my $com = 'sudo journalctl -b --no-pager > ' . $log;
     eval {
+        return unless ($log);
         if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
             $self->run_ssh_command(cmd => $com, proceed_on_failure => 1, username => $usr, timeout => 360);
             $self->upload_log($log, failok => 1);
