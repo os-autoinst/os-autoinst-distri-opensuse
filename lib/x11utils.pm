@@ -179,7 +179,7 @@ sub ensure_unlocked_desktop {
         die 'ensure_unlocked_desktop repeated too much. Check for X-server crash.' if ($counter eq 1);    # die loop when generic-desktop not matched
         if (match_has_tag('screenlock') || match_has_tag('blackscreen')) {
             wait_screen_change {
-                if (is_qemu && is_sle('=15-sp3')) {
+                if (is_qemu && (is_sle('=15-sp3') || is_sle('=15-sp2'))) {
                     # sometimes screensaver can't be unlocked with key presses poo#125930
                     mouse_set(600, 600);
                     mouse_click;
