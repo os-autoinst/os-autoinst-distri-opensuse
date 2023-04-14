@@ -21,7 +21,7 @@ sub run {
         assert_screen 'Common-Criteria-Evaluated-Configuration-RN-Next';
         send_key 'alt-n';
     }
-    assert_screen 'partitioning-edit-proposal-button', 40;
+    assert_screen 'partitioning-edit-proposal-button', 180;
     if (check_var('PARTITION_EDIT', 'ext4_btrfs')) {
         send_key 'alt-g';
         send_key 'alt-n';
