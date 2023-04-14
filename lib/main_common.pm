@@ -70,7 +70,6 @@ our @EXPORT = qw(
   load_extra_tests_prepare
   load_inst_tests
   load_iso_in_external_tests
-  load_jeos_tests
   load_kernel_baremetal_tests
   load_kernel_tests
   load_nfs_tests
@@ -120,7 +119,6 @@ our @EXPORT = qw(
   load_extra_tests_y2uitest_gui
   load_extra_tests_kernel
   load_wicked_create_hdd
-  load_jeos_openstack_tests
   load_upstream_systemd_tests
 );
 
@@ -371,7 +369,6 @@ sub default_desktop {
 }
 
 sub load_shutdown_tests {
-    return if is_openstack;
     # Schedule cleanup before shutdown only in cases the HDD will be published
     loadtest("shutdown/cleanup_before_shutdown") if get_var('PUBLISH_HDD_1');
     loadtest "shutdown/shutdown";
@@ -577,87 +574,6 @@ sub load_system_role_tests {
     elsif (is_opensuse) {
         loadtest "installation/installer_desktopselection";
     }
-}
-
-sub load_jeos_openstack_tests {
-    return unless is_openstack;
-    my $args = OpenQA::Test::RunArgs->new();
-    loadtest 'boot/boot_to_desktop';
-    if (get_var('JEOS_OPENSTACK_UPLOAD_IMG')) {
-        loadtest "publiccloud/upload_image";
-        return;
-    } else {
-        loadtest "jeos/prepare_openstack", run_args => $args;
-    }
-
-    if (get_var('LTP_COMMAND_FILE')) {
-        loadtest 'publiccloud/run_ltp';
-        return;
-    } else {
-        loadtest 'publiccloud/ssh_interactive_start', run_args => $args;
-    }
-
-    if (get_var('CI_VERIFICATION')) {
-        loadtest 'jeos/verify_cloudinit', run_args => $args;
-        loadtest("publiccloud/ssh_interactive_end", run_args => $args);
-        return;
-    }
-
-    loadtest "jeos/image_info";
-    loadtest "jeos/record_machine_id";
-    loadtest "console/system_prepare" if is_sle;
-    loadtest "console/force_scheduled_tasks";
-    loadtest "jeos/grub2_gfxmode";
-    loadtest "jeos/build_key";
-    loadtest "console/prjconf_excluded_rpms";
-    unless (get_var('CI_VERIFICATION')) {
-        loadtest "console/suseconnect_scc";
-    }
-    unless (get_var('CONTAINER_RUNTIME')) {
-        loadtest "console/journal_check";
-        loadtest "microos/libzypp_config";
-    }
-
-    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
-    replace_opensuse_repos_tests if is_repo_replacement_required;
-    main_containers::load_container_tests();
-    loadtest("publiccloud/ssh_interactive_end", run_args => $args);
-}
-
-sub load_jeos_tests {
-    if ((is_arm || is_aarch64) && is_opensuse()) {
-        # Enable jeos-firstboot, due to boo#1020019
-        load_boot_tests();
-        loadtest "jeos/prepare_firstboot";
-    }
-    load_boot_tests();
-    loadtest "jeos/firstrun";
-    if (get_var('POSTGRES_IP')) {
-        loadtest "jeos/image_info";
-    }
-    loadtest "jeos/record_machine_id";
-    loadtest "console/force_scheduled_tasks";
-    # this test case also disables grub timeout
-    loadtest "jeos/grub2_gfxmode";
-    unless (get_var('INSTALL_LTP') || get_var('SYSTEMD_TESTSUITE')) {
-        loadtest "jeos/diskusage" unless is_openstack;
-        loadtest "jeos/build_key";
-        loadtest "console/prjconf_excluded_rpms";
-    }
-    unless (get_var('CONTAINER_RUNTIME')) {
-        loadtest "console/journal_check";
-        loadtest "microos/libzypp_config";
-    }
-    if (is_sle) {
-        loadtest "console/suseconnect_scc";
-        loadtest "jeos/efi_tid" if (get_var('UEFI') && is_sle('=12-sp5'));
-    }
-
-    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
-    replace_opensuse_repos_tests if is_repo_replacement_required;
-    loadtest 'console/verify_efi_mok' if get_var 'CHECK_MOK_IMPORT';
-    # zypper_ref needs to run on jeos-containers. the is_sle is required otherwise is scheduled twice on o3
-    loadtest "console/zypper_ref" if (get_var('CONTAINER_RUNTIME') && is_sle);
 }
 
 sub installzdupstep_is_applicable {
