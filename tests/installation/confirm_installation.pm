@@ -16,7 +16,7 @@ use version_utils 'is_sle';
 sub run {
     # For SLE 15 SP4 tests that have the Legacy module added during installation, there is
     # additional licence popup that is handled by the following function.
-    if (!(get_var("PATTERNS") =~ /minimal/) && (get_var("SCC_ADDONS") =~ /legacy/) && (is_sle("=15-SP4"))) {
+    if ((get_var("PATTERNS", "") !~ /base,enhanced_base/) && (get_var("SCC_ADDONS") =~ /legacy/) && (is_sle("=15-SP4"))) {
         my $package_license_popup = $testapi::distri->get_accept_popup_controller();
         $package_license_popup->wait_accept_popup({
                 timeout => 3000,
