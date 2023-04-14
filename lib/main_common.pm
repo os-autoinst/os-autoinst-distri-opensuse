@@ -563,9 +563,6 @@ sub load_slepos_tests {
 sub load_system_role_tests {
     # This part is relevant only for openSUSE
     if (is_opensuse) {
-        if (installwithaddonrepos_is_applicable()) {
-            loadtest "installation/setup_online_repos";
-        }
         # Do not run on REMOTE_CONTROLLER, IPMI and on Hyper-V in GUI mode
         if ((!get_var('BACKEND', 'ipmi') || !is_pvm) && !is_hyperv_in_gui && !get_var("LIVECD")) {
             loadtest "installation/logpackages";
@@ -933,21 +930,17 @@ sub load_inst_tests {
     if (!is_sle('15-SP4+') && !get_var('WITHISCSI') && (get_var('MULTIPATH') or get_var('MULTIPATH_CONFIRM'))) {
         loadtest "installation/multipath";
     }
-    if (is_opensuse && noupdatestep_is_applicable() && !is_livecd) {
-        # See https://github.com/yast/yast-packager/pull/385
-        loadtest "installation/online_repos";
-        loadtest "installation/installation_mode";
-    }
     if (is_upgrade) {
         loadtest "installation/upgrade_select";
         if (check_var("UPGRADE", "LOW_SPACE")) {
             loadtest "installation/disk_space_fill";
         }
-        if (is_opensuse) {
-            # See https://github.com/yast/yast-packager/pull/385
-            loadtest "installation/online_repos";
-            loadtest "installation/setup_online_repos" if installwithaddonrepos_is_applicable;
-        }
+    }
+    if (is_opensuse) {
+        # See https://github.com/yast/yast-packager/pull/385
+        loadtest "installation/online_repos";
+        loadtest "installation/setup_online_repos" if installwithaddonrepos_is_applicable;
+        loadtest "installation/installation_mode";
     }
     if (is_sle) {
         loadtest 'installation/network_configuration' if get_var('NETWORK_CONFIGURATION');
@@ -964,12 +957,6 @@ sub load_inst_tests {
         loadtest "installation/addon_products_sle";
     }
     if (noupdatestep_is_applicable()) {
-        # On Leap 15.2/TW Lives and Argon there is no network configuration stage
-        if (get_var("LIVECD") && is_leap("<=15.1") && !is_krypton_argon) {
-            loadtest "installation/livecd_network_settings";
-        }
-        # See https://github.com/yast/yast-packager/pull/385
-        loadtest "installation/online_repos" if is_opensuse && is_livecd;
         # Run system_role/desktop selection tests if using the new openSUSE installation flow
         if (is_using_system_role_first_flow && requires_role_selection) {
             load_system_role_tests;
