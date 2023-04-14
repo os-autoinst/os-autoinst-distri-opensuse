@@ -44,6 +44,11 @@ sub run {
             send_key 'ret';
             return;
         }
+        if (!get_var('SOFTFAIL_1129504') && is_upgrade && is_sle) {
+            record_info('Bootloader conf', 'Workaround for bsc#1129504 grub2 timeout is too fast');
+            send_key 'alt-c';
+            return;
+        }
     }
     assert_screen([qw(inst-bootloader-settings inst-bootloader-settings-first_tab_highlighted)]);
     # Depending on an optional button "release notes" we need to press "tab"
