@@ -583,7 +583,7 @@ my $mitigations_off_on_hvm_haswell = {"mitigations=off" => {
     }
 };
 
-my $corss_testcase_mds_taa_off = {"mds=off tsx_async_abort=off" => {
+my $corss_testcase_mds_taa_off = {"mds=off tsx_async_abort=off mmio_stale_data=off" => {
         default => {
             expected => {'cat /proc/cmdline' => ['mds=off tsx_async_abort=off'], 'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Vulnerable; SMT Host state unknown'], 'cat /sys/devices/system/cpu/vulnerabilities/tsx_async_abort' => ['Vulnerable']},
             unexpected => {}
@@ -591,7 +591,7 @@ my $corss_testcase_mds_taa_off = {"mds=off tsx_async_abort=off" => {
     }
 };
 
-my $corss_testcase_mds_taa_off_on_haswell = {"mds=off tsx_async_abort=off" => {
+my $corss_testcase_mds_taa_off_on_haswell = {"mds=off tsx_async_abort=off mmio_stale_data=off" => {
         default => {
             expected => {'cat /proc/cmdline' => ['mds=off tsx_async_abort=off'], 'cat /sys/devices/system/cpu/vulnerabilities/mds' => ['Vulnerable; SMT Host state unknown'], 'cat /sys/devices/system/cpu/vulnerabilities/tsx_async_abort' => ['Not affected']},
             unexpected => {}
