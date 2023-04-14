@@ -59,7 +59,7 @@ sub run {
       ((check_var('UEFI', '1')) ? 'alt-t' : 'alt-r')    # uefi on x86 has different behavior
       : 'alt-t';    # t is the default for non x86
 
-    send_key_until_needlematch 'inst-bootloader-options-highlighted', $bsc_1208266_needed ? $bootloader_shortcut : 'right';
+    send_key_until_needlematch 'inst-bootloader-options-highlighted', $bsc_1208266_needed ? $bootloader_shortcut : 'right', 20, 2;
     assert_screen 'installation-bootloader-options';
     # Select Timeout dropdown box and disable
     send_key 'alt-t';
