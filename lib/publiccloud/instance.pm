@@ -354,15 +354,14 @@ sub wait_for_ssh {
     my $sleep_period = $args{ignore_wrong_pubkey} ? 20 : 1;
     #
     my @sem = (1, 1, 1);
+    my @out = ('') x 3;
     my @command = ('sudo systemctl is-system-running --wait', 'systemd-analyze time', 'sudo journalctl -b | grep -E "Reached target (Cloud-init|Default|Main User Target)"');
-    my @output = ('running|degraded', 'Startup finished in', 'Reached target ');
-    my $kostate = 'maintenance|stopping|offline|unknown';    # wrong states of command[0]
+    my @expect = ('running|degraded', 'Startup finished in', 'Reached target ');
+    my $expect_ko_0 = 'maintenance|stopping|offline|unknown';    # wrong states of command[0]
     my $pass = 0;
-    my @out;
-
     # Looping until reaching timeout or passing two conditions :
     # - SSH port 22 is reachable
-    # - Startup time successfully collected or is-system-running true
+    # - Startup time successfully collected + is-system-running true + journal contains target
     #   - journalctl got message about reaching one of certain targets
     while ((my $duration = time() - $start_time) < $args{timeout}) {
         if ($check_port) {
@@ -374,19 +373,16 @@ sub wait_for_ssh {
             # here 3 check methods 0 to 2 from @command used:
             foreach my $j (0 .. 2) {
                 $out[$j] = $self->run_ssh_command(cmd => $command[$j], proceed_on_failure => 1, username => $args{username});
-                if ($sem[$j] && $out[$j] =~ m/$output[$j]/) {
+                #
+                if ($j == 0 && $sem[$j] && $out[$j] =~ m/degraded/) {
+                    --$sem[$j];
+                    my $failed = $self->run_ssh_command(cmd => 'sudo systemctl --failed', proceed_on_failure => 1, username => $args{username});
+                    record_info("CHECK SSH", 'wait ssh ' . (++$pass) . ' fail.serv.,' . (time() - $start_time) . 's, System:' . "\n" . $failed);
+                }
+                elsif ($sem[$j] && $out[$j] =~ m/$expect[$j]/) {
                     --$sem[$j];
                     # DEBUG print
-                    if ($j == 0 && $out[$j] =~ m/degraded/) {
-                        $out[$j] = $self->run_ssh_command(cmd => 'sudo systemctl --failed', proceed_on_failure => 1, username => $args{username});
-                    }
-                    my $msg = 'wait ssh ' . (++$pass) . ' ok, ' . (time() - $start_time) . 's, System:' . "\n" . $out[$j];
-                    record_info("CHECK SSH", $msg);
-                }
-                elsif ($j == 0 && $sem[$j] && $out[$j] =~ m/$kostate/) {
-                    # check if system status ko using command 0:
-                    $sem[0] = 2;
-                    last;    # exit For.
+                    record_info("CHECK SSH", 'wait ssh ' . (++$pass) . ' ok,' . (time() - $start_time) . 's, System:' . "\n" . $out[$j]);
                 }
                 elsif ($out[$j] =~ m/Permission denied \(publickey\).*/) {
                     die "ssh permission denied (pubkey)" unless $args{ignore_wrong_pubkey};
@@ -396,7 +392,10 @@ sub wait_for_ssh {
                 $self->journal_upload("/tmp/waitssh_journal.txt", username => $args{username});
                 return $duration;
             }
-            last if ($sem[0] > 1);    # exit While, due to command 0
+            elsif ($sem[0] && $out[0] =~ m/$expect_ko_0/) {
+                # check if system status ko using command 0:
+                last;    # exit While loop
+            }
         }
         sleep $sleep_period;
     }
@@ -404,15 +403,14 @@ sub wait_for_ssh {
     # DEBUG print
     foreach my $j (0 .. 2) {
         my $msg = 'wait ssh ' . ($j + 1) . ' Nok ' . (time() - $start_time) . 's, System:' . "\n" . $out[$j];
-        record_info("CHECK SSH", $msg) if $sem[$j];
+        record_info("CHECK SSH", $msg) if ($sem[$j]);
     }
-    script_run("ssh  -i /root/.ssh/id_rsa -v $args{username}\@$args{public_ip} true", timeout => 360);
+    my $res = $self->ssh_script_run(cmd => 'true', timeout => 360);
 
     unless ($args{proceed_on_failure}) {
         # Debug output: We have occasional error in 'journalctl -b' - see poo#96464 - this will be removed soon.
         # Exclude 'mr_test/saptune' test case as it will introduce random softreboot failures.
-        $self->journal_upload("/tmp/waitssh_journal_ko.txt", username => $args{username});
-
+        $self->journal_upload("/tmp/waitssh_journal_ko.txt", username => $args{username}) unless ($check_port);
         my $error_msg;
         if ($check_port) {
             $error_msg = sprintf("Unable to reach SSH port of instance %s with public IP:%s within %d seconds", $self->{instance_id}, $self->{public_ip},
