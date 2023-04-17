@@ -1,11 +1,11 @@
 ---
 name: qam_virt_install_guest
 description:    >
+  Maintainer: roy.cai@suse.com, qe-virt@suse.de
   Install guest VMs for virtualization tests.
 schedule:
   - virt_autotest/login_console
-  - virtualization/universal/prepare_guests
-  - virtualization/universal/waitfor_guests
+  - '{{install_guests}}'
   - '{{patch_host_guest_zypper}}'
   - virtualization/universal/kernel
   - virtualization/universal/finish
@@ -27,3 +27,8 @@ conditional_schedule:
       'qemu':
         - virt_autotest/login_console
         - virtualization/universal/list_guests
+  install_guests:
+    INSTALL_GUEST:
+      '1':
+        - virtualization/universal/prepare_guests
+        - virtualization/universal/waitfor_guests
