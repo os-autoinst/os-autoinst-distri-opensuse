@@ -125,7 +125,8 @@ sub run {
     $pid = background_script_run('kubectl port-forward deploy/nginx-deployment 8008:80');
     validate_script_output_retry("curl http://localhost:8008/index.html", qr/I am Groot/, retry => 6, delay => 20, timeout => 10);
     assert_script_run("kill $pid");    # terminate port-forwarding
-    my $ip = script_output("kubectl get services | awk '/web-load-balancer/ {print \$4}'s");
+    my $output = script_output("kubectl describe services/web-load-balancer");
+    my ($ip) = $output =~ /IP:\s+([^\s]+)/;
     record_info('Balancer IP', $ip);
     validate_script_output_retry("curl http://$ip:8080/index.html", qr/I am Groot/, retry => 6, delay => 20, timeout => 10);
 
