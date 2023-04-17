@@ -28,8 +28,8 @@ use version_utils 'is_tumbleweed';
 
 sub run {
     select_serial_terminal;
-
-    zypper_call('in openvswitch ovn ovn-central ovn-devel ovn-docker ovn-host ovn-vtep', timeout => 300);
+    my $ovn_ver = get_var('OVN_VERSION', 'ovn');
+    zypper_call("in openvswitch $ovn_ver $ovn_ver-central $ovn_ver-devel $ovn_ver-docker $ovn_ver-host $ovn_ver-vtep", timeout => 300);
 
     # Start the openvswitch and OVN daemons
     systemctl 'start openvswitch ovn-controller ovn-northd', timeout => 200;
