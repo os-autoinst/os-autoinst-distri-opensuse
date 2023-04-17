@@ -42,7 +42,7 @@ sub apply_workaround_poo124652 {
     if (!check_screen($mustmatch, %args)) {
         record_info('poo#124652', 'poo#124652 - gtk glitch not showing dialog window decoration on openQA');
         send_key('shift-f3', wait_screen_change => 1);
-        assert_screen('style-sheet-selection-popup');
+        check_screen('style-sheet-selection-popup', 10);
         send_key('esc', wait_screen_change => 1);
         # in some verification tests this didn't work, so let's check
         if (!check_screen($mustmatch)) {
