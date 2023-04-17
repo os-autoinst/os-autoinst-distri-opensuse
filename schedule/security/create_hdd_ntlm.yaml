@@ -11,7 +11,6 @@ schedule:
   - '{{no_sep_home}}'
   - installation/partitioning_finish
   - installation/installer_timezone
-  - installation/hostname_inst
   - installation/user_settings
   - installation/user_settings_root
   - installation/resolve_dependency_issues
@@ -24,6 +23,7 @@ schedule:
   - boot/reconnect_mgmt_console
   - '{{grub_test}}'
   - installation/first_boot
+  - console/hostname
 conditional_schedule:
   no_sep_home:
     ARCH:
