@@ -387,7 +387,7 @@ sub cleanup {
 
     my $id = $args->{my_instance}->{instance_id};
 
-    script_run("az vm boot-diagnostics get-boot-log --ids $id | jq -r '.' > bootlog.txt");
+    script_run("az vm boot-diagnostics get-boot-log --ids $id | jq -r '.' > bootlog.txt", timeout => 120, die_on_timeout => 0);
     upload_logs("bootlog.txt", failok => 1);
 
     $self->SUPER::cleanup();
