@@ -1,0 +1,14 @@
+---
+name: Kea DHCP
+description: >
+    Install and test Kea DHCP6 server container
+conditional_schedule:
+    kea_dhcp:
+        HOSTNAME:
+            'client':
+                - microos/workloads/kea-container/dhcp6_client
+            'server':
+                - microos/workloads/kea-container/setup_dhcp6_server
+schedule:
+    - microos/disk_boot
+    - '{{kea_dhcp}}'
