@@ -12,11 +12,13 @@ use base 'opensusebasetest';
 use testapi;
 
 sub run {
-    my ($self) = @_;
+    my ($self, $tinfo) = @_;
+
+    die 'ulp_threads must be scheduled by ulp_openposix' unless defined($tinfo);
 
     my $threadcount = get_var('ULP_THREAD_COUNT', 1000);
     my $threadsleep = get_var('ULP_THREAD_SLEEP', 100);
-    my $livepatch_list = script_output('rpm -ql glibc-livepatches');
+    my $livepatch_list = script_output("rpm -ql " . $tinfo->{packname});
     assert_script_run('export LD_PRELOAD=/usr/lib64/libpulp.so.0');
 
     # Do not use background_script_run() here. The actual test runs inside
