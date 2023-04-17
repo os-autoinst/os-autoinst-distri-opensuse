@@ -15,7 +15,8 @@ use testapi;
 use Data::Dumper;
 
 sub edit_guest_profile_with_template {
-    my ($self, $guest_name) = @_;
+    my ($self, $guest_name, $_guest_config) = @_;
+    my %_guest_config_from_testsuite = %$_guest_config;
 
     # Initialize config
     my %_guest_profile = %{$concurrent_guest_installations::guest_instances_profiles{$guest_name}};
@@ -27,7 +28,7 @@ sub edit_guest_profile_with_template {
     $_guest_profile{guest_boot_settings} =~ s/##guest_boot_settings##/$_boot_value/g;
 
     # Handle guest_storage_others
-    my $_backing_disk_name = get_var('HDD_1', '');
+    my $_backing_disk_name = $_guest_config_from_testsuite{BACKING_DISK};
     $_backing_disk_name =~ /([^\/]+)\.([^\/\.]+)$/m;
     my $_new_back_name = "$1-back.$2";
     my $_back_format = $2;
@@ -35,13 +36,13 @@ sub edit_guest_profile_with_template {
     $_guest_profile{guest_storage_others} =~ s/##backing_format##/$_back_format/g;
 
     # Handle version
-    my $_version = get_var('VERSION', '');
+    my $_version = $_guest_config_from_testsuite{VM_VERSION};
     $_version =~ /[a-zA-Z]+-([0-9\.]+)/m;
     $_version = $1;
     $_guest_profile{guest_version} =~ s/##guest_version##/$_version/g;
 
     # Handle build
-    my $_build = get_var('BUILD', '');
+    my $_build = $_guest_config_from_testsuite{VM_BUILD};
     $_guest_profile{guest_build} =~ s/##guest_build##/$_build/g;
 
     # Handle SEV-ES realted settings
