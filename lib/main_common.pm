@@ -940,7 +940,7 @@ sub load_inst_tests {
         # See https://github.com/yast/yast-packager/pull/385
         loadtest "installation/online_repos";
         loadtest "installation/setup_online_repos" if installwithaddonrepos_is_applicable;
-        loadtest "installation/installation_mode";
+        loadtest "installation/installation_mode" if noupdatestep_is_applicable;
     }
     if (is_sle) {
         loadtest 'installation/network_configuration' if get_var('NETWORK_CONFIGURATION');
