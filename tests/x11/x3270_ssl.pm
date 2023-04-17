@@ -78,8 +78,10 @@ sub run {
     # Run x3270 as background since backend code adjust warning policy
     # It introduces run error if the command is not quit
     background_script_run("x3270 -trace $noverifycert -tracefile $tracelog_file L:localhost:8443");
+    wait_still_screen;
 
-    assert_screen 'x3270_fips_launched_with_TLS_SSL';
+    # This needle can be removed in the future (poo#127730):
+    # assert_screen 'x3270_fips_launched_with_TLS_SSL';
 
     # Exit and back to generic desktop
     send_key "ctrl-c";
@@ -91,6 +93,10 @@ sub run {
     select_console 'root-console';
     send_key "ctrl-c";
     clear_console;
+
+    record_info 'SSL Trace', 'x3270-trace.log contains passed SSL negotiation data';
+    assert_script_run("grep 'Cipher: TLS_AES_256_GCM_SHA384' /tmp/x3270-trace.log");
+    assert_script_run("grep 'SSL_connect trace: SSLOK  SSL negotiation finished successfully' /tmp/x3270-trace.log");
 
     enter_cmd "cat $tracelog_file | tee /dev/$serialdev";
 
