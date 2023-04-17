@@ -41,6 +41,11 @@
 # will be assigned to guest parameters [guest_registration_code] and
 # [guest_registration_extensions_codes], so please refer to base module
 # lib/concurrent_guest_installations for detailed information about them.
+# TEMPLATE_VM_BACKING_DISKS, TEMPLATE_VM_BUILDS, and TEMPLATE_VM_VERSIONS
+# are 3 additional testsuite settings to help with template based guest
+# installation. They work together with UNIFIED_GUEST_PROFILE_TEMPLATE_FLAGS.
+# Only VMs configured with profile template will use the 3 settings to edit
+# profile in code.
 # Installation progress monitoring,result validation, junit log provision,
 # environment cleanup and failure handling are also included and supported
 # by calling other subroutines:
@@ -72,15 +77,21 @@ sub run {
     my @guest_profiles = split(/,/, get_required_var('UNIFIED_GUEST_PROFILES'));
     croak("Guest names and profiles must be given to create, configure and install guests.") if ((scalar(@guest_names) eq 0) or (scalar(@guest_profiles) eq 0));
     my %store_of_guests;
-    my @guest_registration_codes = my @guest_registration_extensions_codes = my @guest_profile_template_flags = ('') x scalar @guest_names;
+    my @guest_registration_codes = my @guest_registration_extensions_codes = my @guest_profile_template_flags = my @template_vm_backing_disks = my @template_vm_versions = my @template_vm_builds = ('') x scalar @guest_names;
     @guest_registration_codes = split(/,/, get_var('UNIFIED_GUEST_REG_CODES', '')) if (get_var('UNIFIED_GUEST_REG_CODES', '') ne '');
     @guest_registration_extensions_codes = split(/,/, get_var('UNIFIED_GUEST_REG_EXTS_CODES', '')) if (get_var('UNIFIED_GUEST_REG_EXTS_CODES', '') ne '');
     @guest_profile_template_flags = split(/,/, get_var('UNIFIED_GUEST_PROFILE_TEMPLATE_FLAGS', '')) if (get_var('UNIFIED_GUEST_PROFILE_TEMPLATE_FLAGS', '') ne '');
+    @template_vm_backing_disks = split(/,/, get_var('TEMPLATE_VM_BACKING_DISKS', '')) if (get_var('TEMPLATE_VM_BACKING_DISKS', '') ne '');
+    @template_vm_versions = split(/,/, get_var('TEMPLATE_VM_VERSIONS', '')) if (get_var('TEMPLATE_VM_VERSIONS', '') ne '');
+    @template_vm_builds = split(/,/, get_var('TEMPLATE_VM_BUILDS', '')) if (get_var('TEMPLATE_VM_BUILDS', '') ne '');
     while (my ($index, $element) = each @guest_names) {
         $store_of_guests{$element}{PROFILE} = $guest_profiles[$index];
         $store_of_guests{$element}{REG_CODE} = $guest_registration_codes[$index];
         $store_of_guests{$element}{REG_EXTS_CODES} = $guest_registration_extensions_codes[$index];
         $store_of_guests{$element}{USE_TEMPLATE} = $guest_profile_template_flags[$index];
+        $store_of_guests{$element}{BACKING_DISK} = $template_vm_backing_disks[$index];
+        $store_of_guests{$element}{VM_VERSION} = $template_vm_versions[$index];
+        $store_of_guests{$element}{VM_BUILD} = $template_vm_builds[$index];
     }
 
     $self->concurrent_guest_installations_run(\%store_of_guests);

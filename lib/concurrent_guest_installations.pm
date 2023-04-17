@@ -73,7 +73,7 @@ sub instantiate_guests_and_profiles {
         $_guest_profile->{guest_registration_code} = $_store_of_guests{$_element}{REG_CODE};
         $_guest_profile->{guest_registration_extensions_codes} = $_store_of_guests{$_element}{REG_EXTS_CODES};
         $guest_instances_profiles{$_element} = $_guest_profile;
-        $self->edit_guest_profile_with_template($_element) if ($_store_of_guests{$_element}{USE_TEMPLATE} eq '1');
+        $self->edit_guest_profile_with_template($_element, $_store_of_guests{$_element}) if ($_store_of_guests{$_element}{USE_TEMPLATE} eq '1');
         diag "Guest $_element is going to use profile" . Dumper($guest_instances_profiles{$_element});
     }
 
