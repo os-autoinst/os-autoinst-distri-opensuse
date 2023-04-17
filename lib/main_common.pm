@@ -2539,7 +2539,11 @@ sub load_extra_tests_kernel {
     loadtest "kernel/module_build";
     loadtest "kernel/tuned";
     loadtest "kernel/fwupd" if is_sle('15+');
-    loadtest "kernel/bpftrace" if is_tumbleweed || is_sle('>=15-sp5');
+
+    if (is_tumbleweed || is_sle('>=15-sp5')) {
+        loadtest "kernel/bpftrace";
+        loadtest "kernel/bcc";
+    }
 }
 
 # Scheduling set for validation of specific installation
