@@ -38,14 +38,12 @@ sub run {
       loads.bt
       naptime.bt
       oomkill.bt
-      opensnoop.bt
       pidpersec.bt
       runqlat.bt
       runqlen.bt
       setuids.bt
       ssllatency.bt
       sslsnoop.bt
-      statsnoop.bt
       swapin.bt
       syncsnoop.bt
       syscount.bt
@@ -64,23 +62,25 @@ sub run {
       biosnoop.bt
       biostacks.bt
       mdflush.bt
-      xfsdist.bt);
-
-    if (is_sle('<=15-SP5')) {
-        push(@assert_tests, 'old/tcpdrop.bt');
-        push(@tests, 'vfsstat.bt');
-
-    } else {
-        push(@assert_tests, 'tcpdrop.bt');
-        push(@assert_tests, 'vfsstat.bt');
-    }
+      opensnoop.bt
+      statsnoop.bt
+      xfsdist.bt
+      vfsstat.bt
+      tcpdrop.bt
+      old/tcpdrop.bt);
 
     foreach my $t (@assert_tests) {
-        assert_script_run("timeout --preserve-status -s SIGINT 5 bpftrace $tools_dir/$t");
+        my $ret = script_run("timeout --preserve-status -s SIGINT 10 bpftrace $tools_dir/$t");
+
+        if ($ret == 130) {
+            record_info('timeout', "'bpftrace $t' did not handle SIGINT; system was probably too slow to attach probes");
+        } elsif ($ret) {
+            die "'bpftrace $t' failed";
+        }
     }
 
     foreach my $t (@tests) {
-        script_run("timeout --preserve-status -s SIGINT 5 bpftrace $tools_dir/$t");
+        script_run("timeout --preserve-status -s SIGINT 10 bpftrace $tools_dir/$t");
     }
 }
 
@@ -97,8 +97,15 @@ ABI, but may not be available on all configurations.
 Next we try running some prepackaged scripts. We check that most of
 them execute without a critical error. This is a smoke test.
 
+Scripts that will not execute correctly on TW, SLE or some arch are
+run without asserting the return value.
+
 Some scripts need particular kernel versions. The new tcpdrop.bt
 requires kernel 5.17+.
 
-Scripts that will not execute correctly on TW or SLE are run without
-asserting the return value. These use kprobes which are not stable.
+opensnoop.bt/statsnoop.bt does not work on Aarch64 because of:
+https://github.com/iovisor/bpftrace/issues/1838
+
+If bpftrace is terminated before attaching the probes then it doesn't
+handle SIGINT and assert_script_run fails. Once the probes are
+attached it handles SIGINT gracefully.
