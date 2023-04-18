@@ -18,6 +18,7 @@ use testapi;
 
 sub run {
     my ($self) = @_;
+    ensure_installed('gedit');
     x11_start_program('gedit');
     $self->enter_test_text('gedit', slow => 1);
     assert_screen 'test-gedit-1';
