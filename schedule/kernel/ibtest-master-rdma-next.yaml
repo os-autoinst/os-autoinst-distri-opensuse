@@ -3,7 +3,6 @@ description:    >
     The master node for the infiniband testsuite (hpc-testing)
 vars:
     DESKTOP: textmode
-    DEVEL_TOOLS_REPO: https://download.opensuse.org/repositories/devel:/tools/SLE_15_SP2/devel:tools.repo
     GRUB_TIMEOUT: 300
     IBTESTS: 1
     IBTEST_GITBRANCH: master
