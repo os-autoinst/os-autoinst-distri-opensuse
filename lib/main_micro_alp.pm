@@ -252,6 +252,12 @@ sub load_selinux_tests {
     loadtest 'security/selinux/selinuxexeccon';
 }
 
+sub load_container_selinux_tests {
+    loadtest 'security/selinux/selinux_setup';
+    loadtest 'security/selinux/sestatus';
+    loadtest 'security/selinux/container_selinux';
+}
+
 
 sub load_rcshell_tests {
     # Tests before the YaST installation
@@ -327,6 +333,7 @@ sub load_tests {
         load_fips_tests;
     } elsif (check_var('EXTRA', 'selinux')) {
         load_selinux_tests;
+        load_container_selinux_tests;
     } else {
         load_common_tests;
         load_transactional_tests unless is_zvm;
