@@ -1,0 +1,21 @@
+---
+name: NFS
+description:    >
+    Maintainer: schlad
+    Tests creating NFS set-up and testing NFS itself with focus on various
+    versions, features etc.
+vars:
+  DESKTOP: textmode
+  BOOT_HDD_IMAGE: 1
+
+conditional_schedule:
+  nfstest:
+    ROLE:
+      nfs_server:
+        - kernel/nfs_server
+      nfs_client:
+        - kernel/nfs_client
+schedule:
+  - boot/boot_to_desktop
+  - kernel/before_nfs_test
+  - '{{nfstest}}'
