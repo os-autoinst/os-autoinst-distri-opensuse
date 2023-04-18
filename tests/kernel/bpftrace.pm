@@ -9,7 +9,8 @@ use Mojo::Base qw(opensusebasetest);
 use testapi;
 use utils 'zypper_call';
 use version_utils 'is_sle';
-use serial_terminal 'select_serial_terminal';
+use serial_terminal;
+use Mojo::File 'path';
 
 sub run {
     select_serial_terminal;
@@ -82,6 +83,19 @@ sub run {
     foreach my $t (@tests) {
         script_run("timeout --preserve-status -s SIGINT 10 bpftrace $tools_dir/$t");
     }
+
+    my $case_dir = get_required_var('CASEDIR');
+    my $open_bt = path("$case_dir/data/kernel/open.bt")->slurp();
+
+    background_script_run("while sleep 5; do touch opentest; done");
+
+    my $cmd_text = "bpftrace -";
+    wait_serial(serial_term_prompt(), no_regex => 1);
+    type_string($cmd_text);
+    wait_serial($cmd_text, no_regex => 1);
+    send_key('ret');
+    type_string($open_bt, terminate_with => 'EOT');
+    wait_serial(qr/Found it; PID == \d+!/);
 }
 
 1;
@@ -109,3 +123,7 @@ https://github.com/iovisor/bpftrace/issues/1838
 If bpftrace is terminated before attaching the probes then it doesn't
 handle SIGINT and assert_script_run fails. Once the probes are
 attached it handles SIGINT gracefully.
+
+Finally we run open.bt which traces opening files. It exits when it
+sees opentest being opened. We check the output to verify the script
+ran correctly and found the event.
