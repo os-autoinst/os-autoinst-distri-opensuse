@@ -14,7 +14,7 @@ use Exporter;
 use main_common;
 use main_containers qw(load_container_tests is_container_test);
 use testapi qw(check_var get_required_var get_var set_var);
-use version_utils qw(is_microos is_sle_micro is_leap_micro is_alp is_staging is_released is_transactional is_rt);
+use version_utils;
 use utils;
 use Utils::Architectures;
 use Utils::Backends;
@@ -266,7 +266,29 @@ sub load_journal_check_tests {
     loadtest 'shutdown/shutdown';
 }
 
+sub load_slem_on_pc_tests {
+    my $args = OpenQA::Test::RunArgs->new();
+
+    loadtest("boot/boot_to_desktop");
+    loadtest("publiccloud/prepare_instance", run_args => $args);
+    loadtest("publiccloud/registration", run_args => $args);
+    loadtest("publiccloud/ssh_interactive_start", run_args => $args);
+    loadtest("publiccloud/instance_overview", run_args => $args);
+    loadtest("publiccloud/slem_prepare", run_args => $args);
+
+    if (get_var("PUBLIC_CLOUD_CONTAINERS")) {
+        load_container_tests() if is_container_test;
+    }
+    loadtest("publiccloud/ssh_interactive_end", run_args => $args);
+}
+
 sub load_tests {
+    # SLEM on PC
+    if (is_public_cloud()) {
+        load_slem_on_pc_tests;
+        return 1;
+    }
+
     if (is_kernel_test()) {
         load_kernel_tests;
         return 1;
