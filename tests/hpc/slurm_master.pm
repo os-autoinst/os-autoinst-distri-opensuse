@@ -288,6 +288,12 @@ sub t01_accounting() {
     script_run("srun --account=UNI_Y_Physics -N 3 hostname");
 
     select_serial_terminal;
+    if (script_run("srun --uid=$users{user_2} --account=UNI_X_Math -w slave-node00,slave-node01 date") != 0) {
+        record_soft_failure 'bsc#1210374 - Cant run srun with with uid switch';
+        my $last_entry = script_output "squeue | tail -n1 | awk '{print \$1}'";
+        record_info("squeue", script_output "squeue");
+        assert_script_run("scancel $last_entry");
+    }
     # this is required; see: bugzilla#1150565?
     systemctl('restart slurmctld');
     systemctl('is-active slurmctld');
