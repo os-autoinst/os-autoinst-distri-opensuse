@@ -16,12 +16,12 @@ sub run {
     select_serial_terminal;
 
     # ensure that SELinux is enabled and in enforcing mode
-    validate_script_output("sestatus", sub { m/SELinux\ status: .*enabled.* Current\ mode: .*enforce/sx });
+    validate_script_output("sestatus", sub { m/SELinux\ status: .*enabled.* Current\ mode: .*enforcing/sx });
 
     my $image = 'registry.opensuse.org/opensuse/tumbleweed:latest';
     my $container_name = 'test_container_selinux';
 
-    assert_script_run("podman pull $image");
+    assert_script_run("podman pull $image", timeout => 300);
     assert_script_run("podman run --name $container_name -dt $image");
 
     validate_script_output("podman exec $container_name /bin/bash -c 'ps -eZ | grep container_t | grep bash'", sub { /.*container_t.*/ });

@@ -1,0 +1,24 @@
+name: container_selinux
+description: >
+    This is for container-selinux test
+schedule:
+    - '{{boot}}'
+    - security/selinux/selinux_setup
+    - security/selinux/sestatus
+    - security/selinux/container_selinux
+conditional_schedule:
+    boot:
+        DISTRI:
+            alp:
+                - microos/disk_boot
+                - update/zypper_clear_repos
+                - console/zypper_ar
+                - console/zypper_ref
+                - transactional/host_config
+                - transactional/enable_selinux
+            sle:
+                - installation/bootloader_start
+                - boot/boot_to_desktop
+            opensuse:
+                - installation/bootloader_start
+                - boot/boot_to_desktop
