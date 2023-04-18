@@ -137,6 +137,7 @@ NOIMAGES |||
 NOLOGS | boolean | false | Do not collect logs if set to true. Handy during development.
 NVIDIA_REPO | string | '' | Define the external repo for nvidia driver. Used by `nvidia.pm` module.
 OPT_KERNEL_PARAMS | string | Specify optional kernel command line parameters on bootloader settings page of the installer.
+OVN_VERSION | string | Specify the package version of 'ovn', we may need to test 'ovn' or 'ovn3'.
 PHUB_READY | boolean | true | Indicates PackageHub is available, it may be not ready in early development phase[Before Beta].
 PERF_KERNEL | boolean | false | Enables kernel performance testing.
 PERF_INSTALL | boolean | false | Enables kernel performance testing installation part.
