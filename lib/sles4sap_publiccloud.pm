@@ -214,7 +214,8 @@ sub stop_hana {
         return ();
     }
     else {
-        $self->run_cmd(cmd => $cmd, runas => get_required_var("SAP_SIDADM"), timeout => $timeout);
+        my $sapadmin = lc(get_required_var('INSTANCE_SID')) . 'adm';
+        $self->run_cmd(cmd => $cmd, runas => $sapadmin, timeout => $timeout);
     }
 }
 
@@ -261,25 +262,25 @@ sub cleanup_resource {
 sub check_takeover {
     my ($self) = @_;
     my $hostname = $self->{my_instance}->{instance_id};
-    my $takeover_complete = 0;
+    my $retry_count = 0;
     my $fenced_hana_status = $self->is_hana_online();
     die("Fenced database '$hostname' is not offline") if ($fenced_hana_status == 1);
 
-    while ($takeover_complete == 0) {
+  TAKEOVER_LOOP: while (1) {
         my $topology = $self->get_hana_topology();
-
+        $retry_count++;
         for my $entry (@$topology) {
             my %host_entry = %$entry;
             my $sync_state = $host_entry{sync_state};
             my $takeover_host = $host_entry{vhost};
 
             if ($takeover_host ne $hostname && $sync_state eq "PRIM") {
-                $takeover_complete = 1;
                 record_info("Takeover status:", "Takeover complete to node '$takeover_host'");
-                last;
+                last TAKEOVER_LOOP;
             }
             sleep 30;
         }
+        die "Test failed: takeover failed to complete." if ($retry_count > 40);
     }
 
     return 1;
@@ -376,15 +377,13 @@ sub wait_for_sync {
         die 'HANA replication: node did not sync in time' if $count == 1;
         die 'HANA replication: node is stuck at SFAIL' if $output_fail == 10;
         sleep 30;
-        my $cmd = 'SAPHanaSR-showAttr|grep online';
-        my $ret = $self->run_cmd(cmd => $cmd, proceed_on_failure => 1);
+        my $ret = $self->run_cmd(cmd => 'SAPHanaSR-showAttr | grep online', proceed_on_failure => 1);
         $output_pass++ if $ret =~ /SOK/ && $ret =~ /PRIM/ && $ret !~ /SFAIL/;
         $output_pass-- if $output_pass == 1 && $ret !~ /SOK/ && $ret !~ /PRIM/ && $ret =~ /SFAIL/;
         $output_fail++ if $ret =~ /SFAIL/;
         $output_fail-- if $output_fail >= 1 && $ret !~ /SFAIL/;
         next if $output_pass < 3;
         last if $output_pass == 3;
-
         if (time - $start_time > $timeout) {
             record_info("Cluster status", $self->run_cmd(cmd => $crm_mon_cmd));
             record_info("Sync FAIL", "Host replication status: " . $self->run_cmd(cmd => 'SAPHanaSR-showAttr'));
@@ -427,7 +426,7 @@ sub wait_for_pacemaker {
      Delay is used in case of cluster VM joining cluster too quickly after fencing operation.
      For more information check sbd man page.
 
-     "no" - do not set and turn off SMD delay time
+     "no" - do not set and turn off SBD delay time
      "yes" - sets default SBD value which is calculated from a formula
      "<number of seconds>" - sets sepcific delay in seconds
 
