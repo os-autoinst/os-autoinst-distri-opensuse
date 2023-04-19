@@ -70,10 +70,23 @@ sub run {
 
     # JeOS on generalhw
     mouse_hide;
+
+    # attach serial console to active VNC on z/kvm host
+    # in order to interact with the firstboot wizard
+    my $con;
+    my $initial_screen_timeout = 300;
+    if (is_s390x && is_svirt) {
+        $con = select_console('svirt', await_console => 0);
+        my $name = $con->name;
+        enter_cmd("virsh console --devname console0 --force $name");
+        # long timeout bsc#1210429
+        $initial_screen_timeout = 420;
+    }
+
     # https://github.com/openSUSE/jeos-firstboot/pull/82 welcome dialog is shown on all consoles
     # and configuration continues on console where *Start* has been pressed
     unless (is_leap('<15.4') || is_sle('<15-sp4')) {
-        assert_screen 'jeos-init-config-screen', 300;
+        assert_screen 'jeos-init-config-screen', $initial_screen_timeout;
         # Without this 'ret' sometimes won't get to the dialog
         wait_still_screen;
         send_key 'ret';
@@ -150,6 +163,11 @@ sub run {
         }
     }
 
+    # release console and reattach to be used again as serial output
+    if (is_s390x && is_svirt) {
+        send_key('ctrl-^-]');
+        $con->attach_to_running();
+    }
     select_console('root-console', skip_set_standard_prompt => 1, skip_setterm => 1);
 
     type_string('1234%^&*()qwerty');
@@ -164,7 +182,7 @@ sub run {
     }
     # Manually configure root-console as we skipped some parts in root-console's activation
     $testapi::distri->set_standard_prompt('root');
-    assert_script_run('setterm -blank 0');
+    assert_script_run('setterm -blank 0') unless is_s390x;
 
     verify_user_info(user_is_root => 1);
 
