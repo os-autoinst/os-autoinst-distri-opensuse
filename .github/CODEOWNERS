@@ -3,6 +3,6 @@
 lib/publiccloud/ @pdostal @grisu48 @asmorodskyi
 tests/publiccloud/ @pdostal @grisu48 @asmorodskyi
 
-lib/containers/ @pdostal @grisu48
-tests/containers/ @pdostal @grisu48
+lib/containers/ @pdostal @grisu48 @jlausuch
+tests/containers/ @pdostal @grisu48 @jlausuch
 
