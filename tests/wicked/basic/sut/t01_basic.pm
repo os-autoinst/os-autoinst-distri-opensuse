@@ -51,7 +51,7 @@ sub run {
     if (arrays_differ(\@wicked_all_ifaces, \@ls_all_ifaces)) {
         diag "expected list of interfaces: @wicked_all_ifaces";
         diag "actual list of interfaces: @ls_all_ifaces";
-        die "Wrong list of interfaces from wicked";
+        die "Wrong list of interfaces from wicked @ls_all_ifaces";
     }
     record_info('Test 6', 'Bring an interface down with wicked');
     $self->wicked_command('ifdown', $ctx->iface());

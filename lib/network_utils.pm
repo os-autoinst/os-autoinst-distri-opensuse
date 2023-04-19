@@ -59,7 +59,8 @@ Return first NIC which is not loopback
 sub iface {
     my ($quantity) = @_;
     $quantity ||= 1;
-    return script_output('ls /sys/class/net/ | grep -v lo | head -' . $quantity);
+    # bonding_masters showing up in ppc64le jobs in 15-SP5: bsc#1210641
+    return script_output('ls /sys/class/net/ | grep -v lo | grep -v bonding_masters | head -' . $quantity);
 }
 
 =head2 can_upload_logs
