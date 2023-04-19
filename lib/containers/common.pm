@@ -238,7 +238,7 @@ sub test_search_registry {
         }
         die 'Unexpected error during search!' if ($res && $res != 125);
         # This should be conditional based on the needed time, but that's currently not possible.
-        record_soft_failure('Searching registry.suse.com is too slow (sdsc#SD-106252 https://sd.suse.com/servicedesk/customer/portal/1/SD-106252)');
+        record_info('Softfail', 'Searching registry.suse.com is too slow (sdsc#SD-106252 https://sd.suse.com/servicedesk/customer/portal/1/SD-106252)');
     }
 }
 
