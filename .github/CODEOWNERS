@@ -2,9 +2,16 @@
 
 lib/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777
 tests/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777
+data/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777
+lib/main_publiccloud.pm @pdostal @grisu48 @asmorodskyi @ricardobranco777
 
 lib/containers/ @pdostal @grisu48 @jlausuch @ricardobranco777
 tests/containers/ @pdostal @grisu48 @jlausuch @ricardobranco777
+data/containers/ @pdostal @grisu48 @jlausuch @ricardobranco777
+lib/main_containers.pm @pdostal @grisu48 @jlausuch @ricardobranco777
 
-tests/jeos/ @mloviska
-tests/microos/ @mloviska
+tests/jeos/ @mloviska @jlausuch
+tests/microos/ @mloviska @jlausuch
+tests/transactional/ @mloviska @jlausuch
+lib/main_micro_alp.pm @mloviska @jlausuch
+lib/main_containers.pm @mloviska @jlausuch
