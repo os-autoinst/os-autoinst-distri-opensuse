@@ -415,6 +415,9 @@ sub load_boot_tests {
         loadtest "installation/data_integrity" if data_integrity_is_applicable;
         loadtest "installation/bootloader_uefi";
     }
+    elsif (is_jeos() && is_s390x()) {
+        loadtest "installation/bootloader_start";
+    }
     elsif (is_svirt_except_s390x()) {
         load_svirt_vm_setup_tests;
     }
