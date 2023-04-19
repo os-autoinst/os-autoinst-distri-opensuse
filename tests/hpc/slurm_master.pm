@@ -232,7 +232,7 @@ sub t01_accounting() {
     );
 
     foreach my $key (keys %{users}) {
-        create_user_account($users{$key});
+        script_run("useradd -m -p \$(openssl passwd -1 $testapi::password) $users{$key}");
     }
 
     my $cluster = script_output('sacctmgr -n -p list cluster');
@@ -502,16 +502,6 @@ sub post_fail_hook ($self) {
     export_logs_basic;
     $self->get_remote_logs('slave-node02', 'slurmdbd.log');
     upload_logs('/var/log/slurmctld.log');
-}
-
-sub create_user_account ($username) {
-    script_run("useradd -m $username");
-    type_string("passwd $username", lf => 1);
-    wait_serial("New password:");
-    type_string("$testapi::password", lf => 1);
-    wait_serial("Retype new password:");
-    type_string("$testapi::password", lf => 1);
-    return 0;
 }
 
 1;
