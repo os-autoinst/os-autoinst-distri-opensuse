@@ -62,6 +62,8 @@ sub install_k3s {
     script_run("mkdir -p ~/.kube");
     script_run("rm -f ~/.kube/config");
     assert_script_run("ln -s /etc/rancher/k3s/k3s.yaml ~/.kube/config");
+    sleep 60;
+    script_retry("kubectl get serviceaccount default -o name", delay => 60, retry => 3);
     record_info('k3s', "k3s installed");
 }
 
