@@ -16,23 +16,103 @@
     <ul>
       <li><a href="#run_cmd-run_cmd-cmd-command-runas-user-timeout-60">run_cmd run_cmd(cmd =&gt; &#39;command&#39;, [runas =&gt; &#39;user&#39;, timeout =&gt; 60]);</a></li>
       <li><a href="#get_promoted_hostname-get_promoted_hostname">get_promoted_hostname() get_promoted_hostname();</a></li>
-      <li><a href="#wait_for_sync-wait_for_sync-Wait-for-replica-site-to-sync-data-with-primary.-Checks-SAPHanaSR-showAttr-output-and-ensures-replica-site-has-sync_state-SOK">wait_for_sync wait_for_sync(); Wait for replica site to sync data with primary. Checks &quot;SAPHanaSR-showAttr&quot; output and ensures replica site has &quot;sync_state&quot; &quot;SOK&quot;.</a></li>
-      <li><a href="#get_hana_topology-get_hana_topology-hostname-hostname-Parses-command-output-returns-list-of-hashes-containing-values-for-each-host.-If-hostname-defined-returns-hash-with-values-only-for-host-specified">get_hana_topology get_hana_topology([hostname =&gt; $hostname]); Parses command output, returns list of hashes containing values for each host. If hostname defined, returns hash with values only for host specified.</a></li>
+      <li><a href="#get_hana_topology-get_hana_topology-hostname-hostname">get_hana_topology get_hana_topology([hostname =&gt; $hostname]);</a></li>
+      <li><a href="#is_hana_online-is_hana_online-timeout-120-wait_for_start-false">is_hana_online is_hana_online([timeout =&gt; 120, wait_for_start =&gt; &#39;false&#39;]);</a></li>
+      <li><a href="#is_hana_resource_running-is_hana_resource_running-timeout-60">is_hana_resource_running is_hana_resource_running([timeout =&gt; 60]);</a></li>
+      <li><a href="#stop_hana-stop_hana-timeout-timeout-method-method">stop_hana stop_hana([timeout =&gt; $timeout, method =&gt; $method]);</a></li>
+      <li><a href="#start_hana-start_hana-timeout-60">start_hana start_hana([timeout =&gt; 60]);</a></li>
+      <li><a href="#cleanup_resource-cleanup_resource-timeout-60">cleanup_resource cleanup_resource([timeout =&gt; 60]);</a></li>
+      <li><a href="#check_takeover-check_takeover">check_takeover check_takeover();</a></li>
+      <li><a href="#enable_replication-enable_replication">enable_replication enable_replication();</a></li>
+      <li><a href="#get_replication_info-get_replication_info">get_replication_info get_replication_info();</a></li>
+      <li><a href="#get_promoted_instance-get_promoted_instance">get_promoted_instance get_promoted_instance();</a></li>
+      <li><a href="#wait_for_sync-wait_for_sync-timeout-timeout">wait_for_sync wait_for_sync([timeout =&gt; $timeout]);</a></li>
+      <li><a href="#wait_for_pacemaker-wait_for_pacemaker-timeout-timeout">wait_for_pacemaker wait_for_pacemaker([timeout =&gt; $timeout]);</a></li>
+      <li><a href="#setup_sbd_delay-setup_sbd_delay-set_delay-set_delay">setup_sbd_delay setup_sbd_delay([set_delay =&gt; $set_delay]);</a></li>
+      <li><a href="#cloud_file_content_replace-cloud_file_content_replace-filename-search_pattern-replace_with">cloud_file_content_replace cloud_file_content_replace($filename, $search_pattern, $replace_with);</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap_publiccloud.pm</h1>
 
 <h2 id="run_cmd-run_cmd-cmd-command-runas-user-timeout-60">run_cmd run_cmd(cmd =&gt; &#39;command&#39;, [runas =&gt; &#39;user&#39;, timeout =&gt; 60]);</h2>
 
-<p>Runs a command <code>cmd</code> via ssh in the given VM and log the output. All commands are executed through <code>sudo</code>. If &#39;runas&#39; defined, command will be executed as specified user, otherwise it will be executed as root.</p>
+<pre><code>Runs a command C&lt;cmd&gt; via ssh in the given VM and log the output.
+All commands are executed through C&lt;sudo&gt;.
+If &#39;runas&#39; defined, command will be executed as specified user,
+otherwise it will be executed as root.</code></pre>
 
 <h2 id="get_promoted_hostname-get_promoted_hostname">get_promoted_hostname() get_promoted_hostname();</h2>
 
-<p>Checks and returns hostname of HANA promoted node.</p>
+<pre><code>Checks and returns hostname of HANA promoted node according to crm shell output.</code></pre>
 
-<h2 id="wait_for_sync-wait_for_sync-Wait-for-replica-site-to-sync-data-with-primary.-Checks-SAPHanaSR-showAttr-output-and-ensures-replica-site-has-sync_state-SOK">wait_for_sync wait_for_sync(); Wait for replica site to sync data with primary. Checks &quot;SAPHanaSR-showAttr&quot; output and ensures replica site has &quot;sync_state&quot; &quot;SOK&quot;.</h2>
+<h2 id="get_hana_topology-get_hana_topology-hostname-hostname">get_hana_topology get_hana_topology([hostname =&gt; $hostname]);</h2>
 
-<h2 id="get_hana_topology-get_hana_topology-hostname-hostname-Parses-command-output-returns-list-of-hashes-containing-values-for-each-host.-If-hostname-defined-returns-hash-with-values-only-for-host-specified">get_hana_topology get_hana_topology([hostname =&gt; $hostname]); Parses command output, returns list of hashes containing values for each host. If hostname defined, returns hash with values only for host specified.</h2>
+<pre><code>Parses command output, returns list of hashes containing values for each host.
+If hostname defined, returns hash with values only for host specified.</code></pre>
+
+<h2 id="is_hana_online-is_hana_online-timeout-120-wait_for_start-false">is_hana_online is_hana_online([timeout =&gt; 120, wait_for_start =&gt; &#39;false&#39;]);</h2>
+
+<pre><code>Check if hana DB is online. Define &#39;wait_for_start&#39; to wait for DB to start.</code></pre>
+
+<h2 id="is_hana_resource_running-is_hana_resource_running-timeout-60">is_hana_resource_running is_hana_resource_running([timeout =&gt; 60]);</h2>
+
+<pre><code>Checks if resource msl_SAPHana_* is running on given node.</code></pre>
+
+<h2 id="stop_hana-stop_hana-timeout-timeout-method-method">stop_hana stop_hana([timeout =&gt; $timeout, method =&gt; $method]);</h2>
+
+<pre><code>Stops HANA database using default or specified method.
+&quot;stop&quot; - stops database using &quot;HDB stop&quot; command.
+&quot;kill&quot; - kills database processes using &quot;HDB -kill&quot; command.
+&quot;crash&quot; - crashes entire os using &quot;/proc-sysrq-trigger&quot; method.</code></pre>
+
+<h2 id="start_hana-start_hana-timeout-60">start_hana start_hana([timeout =&gt; 60]);</h2>
+
+<pre><code>Start HANA DB using &quot;HDB start&quot; command</code></pre>
+
+<h2 id="cleanup_resource-cleanup_resource-timeout-60">cleanup_resource cleanup_resource([timeout =&gt; 60]);</h2>
+
+<pre><code>Cleanup resource &#39;msl_SAPHana_*&#39;, wait for DB start automaticlly.</code></pre>
+
+<h2 id="check_takeover-check_takeover">check_takeover check_takeover();</h2>
+
+<pre><code>Checks takeover status and waits for finish until successful or reaches timeout.</code></pre>
+
+<h2 id="enable_replication-enable_replication">enable_replication enable_replication();</h2>
+
+<pre><code>Enables replication on fenced database. Database needs to be offline.</code></pre>
+
+<h2 id="get_replication_info-get_replication_info">get_replication_info get_replication_info();</h2>
+
+<pre><code>Parses &quot;hdbnsutil -sr_state&quot; command output.
+Returns hash of found values converted to lowercase and replaces spaces to underscores.</code></pre>
+
+<h2 id="get_promoted_instance-get_promoted_instance">get_promoted_instance get_promoted_instance();</h2>
+
+<pre><code>Retrieves hostname from currently promoted (Master) database and returns instance data from $self-&gt;{instances}.</code></pre>
+
+<h2 id="wait_for_sync-wait_for_sync-timeout-timeout">wait_for_sync wait_for_sync([timeout =&gt; $timeout]);</h2>
+
+<pre><code>Wait for replica site to sync data with primary.
+Checks &quot;SAPHanaSR-showAttr&quot; output and ensures replica site has &quot;sync_state&quot; &quot;SOK &amp;&amp; PRIM&quot; and no SFAIL.
+Continue after expected output matched three times continually to make sure cluster is synced.</code></pre>
+
+<h2 id="wait_for_pacemaker-wait_for_pacemaker-timeout-timeout">wait_for_pacemaker wait_for_pacemaker([timeout =&gt; $timeout]);</h2>
+
+<pre><code>Checks status of pacemaker via systemd &#39;is-active&#39; command an waits for startup.</code></pre>
+
+<h2 id="setup_sbd_delay-setup_sbd_delay-set_delay-set_delay">setup_sbd_delay setup_sbd_delay([set_delay =&gt; $set_delay]);</h2>
+
+<pre><code>Set (activate or deactivate) SBD_DELAY_start setting in /etc/sysconfig/sbd.
+Delay is used in case of cluster VM joining cluster too quickly after fencing operation.
+For more information check sbd man page.
+
+&quot;no&quot; - do not set and turn off SMD delay time
+&quot;yes&quot; - sets default SBD value which is calculated from a formula
+&quot;&lt;number of seconds&gt;&quot; - sets sepcific delay in seconds</code></pre>
+
+<h2 id="cloud_file_content_replace-cloud_file_content_replace-filename-search_pattern-replace_with">cloud_file_content_replace cloud_file_content_replace($filename, $search_pattern, $replace_with);</h2>
+
+<pre><code>Replaces file content direct on PC SUT. Similar to lib/utils.pm file_content_replace()</code></pre>
 
 
 </body>
