@@ -418,6 +418,9 @@ sub load_boot_tests {
     elsif (is_svirt_except_s390x()) {
         load_svirt_vm_setup_tests;
     }
+    elsif (is_s390x && is_jeos) {
+        loadtest "installation/bootloader_start";
+    }
     elsif (uses_qa_net_hardware() || get_var("PXEBOOT")) {
         loadtest "boot/boot_from_pxe";
         set_var("DELAYED_START", get_var("PXEBOOT"));
@@ -627,6 +630,7 @@ sub load_jeos_tests {
         load_boot_tests();
         loadtest "jeos/prepare_firstboot";
     }
+
     load_boot_tests();
     loadtest "jeos/firstrun";
     if (get_var('POSTGRES_IP')) {

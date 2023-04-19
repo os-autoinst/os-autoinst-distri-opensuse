@@ -79,8 +79,8 @@ sub run {
         $con = select_console('svirt', await_console => 0);
         my $name = $con->name;
         enter_cmd("virsh console --devname console0 --force $name");
-        # long timeout bsc#1210429
-        $initial_screen_timeout = 420;
+        # long timeout due to missing combustion/ignition config bsc#1210429
+        $initial_screen_timeout = 420 if is_sle_micro;
     }
 
     # https://github.com/openSUSE/jeos-firstboot/pull/82 welcome dialog is shown on all consoles
