@@ -1,7 +1,7 @@
 # GitHub CODEOWNERS https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
-lib/publiccloud/ @pdostal @grisu48 @asmorodskyi
-tests/publiccloud/ @pdostal @grisu48 @asmorodskyi
+lib/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777
+tests/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777
 
 lib/containers/ @pdostal @grisu48 @jlausuch
 tests/containers/ @pdostal @grisu48 @jlausuch
