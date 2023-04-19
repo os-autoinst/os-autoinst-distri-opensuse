@@ -20,6 +20,7 @@ use Utils::Architectures;
 
 our @EXPORT = qw(
   get_ltproot
+  get_ltp_mul
   get_ltp_openposix_test_list_file
   get_ltp_version_file
   init_ltp_tests
@@ -132,12 +133,21 @@ sub log_versions {
     script_run('aa-enabled; aa-status');
 }
 
+sub get_ltp_mul {
+    # default timeout multiplicator, e.g. LTP_TIMEOUT_MUL_aarch64
+    my $mul = get_var('LTP_TIMEOUT_MUL') || 1;
+
+    # arch specific timeout multiplicator, e.g. LTP_TIMEOUT_MUL_aarch64
+    $mul = get_var('LTP_TIMEOUT_MUL_' . get_required_var('ARCH')) || $mul;
+
+    return $mul;
+}
 
 # Set up basic shell environment for running LTP tests
 sub prepare_ltp_env {
     my $ltp_env = get_var('LTP_ENV');
 
-    assert_script_run('export LTPROOT=' . get_ltproot() . '; export LTP_COLORIZE_OUTPUT=n TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$PATH');
+    assert_script_run('export LTPROOT=' . get_ltproot() . '; export LTP_COLORIZE_OUTPUT=n LTP_TIMEOUT_MUL=' . get_ltp_mul() . ' TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$PATH');
 
     # setup for LTP networking tests
     assert_script_run("export PASSWD='$testapi::password'");

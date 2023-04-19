@@ -16,6 +16,7 @@ use Time::HiRes qw(clock_gettime CLOCK_MONOTONIC);
 use serial_terminal;
 use Mojo::File 'path';
 use Mojo::JSON;
+use LTP::utils;
 use LTP::WhiteList;
 require bmwqemu;
 
@@ -291,10 +292,16 @@ sub run {
     my ($self, $tinfo) = @_;
     die 'Need LTP_COMMAND_FILE to know which tests to run' unless $tinfo && $tinfo->runfile;
     my $runfile = $tinfo->runfile;
-    my $timeout = get_var('LTP_TIMEOUT') || 900;
+    my $test = $tinfo->test;
+
+    # default timeout
+    my $timeout = (get_var('LTP_TIMEOUT') || 900);
+    # test specific timeout, e.g. LTP_TIMEOUT_zram01
+    $timeout = (get_var('LTP_TIMEOUT_' . $test->{name})) || $timeout;
+    $timeout *= get_ltp_mul();
+
     my $is_posix = $runfile =~ m/^\s*openposix\s*$/i;
     my $test_result_export = $tinfo->test_result_export;
-    my $test = $tinfo->test;
     my %env = %{$test_result_export->{environment}};
 
     $env{retval} = 'undefined';
@@ -405,7 +412,21 @@ This overrides LTP_COMMAND_PATTERN.
 
 =head2 LTP_TIMEOUT
 
-The time in seconds which each test command has to run.
+The time in seconds which each test command has to run. The default is 900.
+
+=head2 LTP_TIMEOUT_test (e.g.  LTP_TIMEOUT_zram01)
+
+Test specific timeout in sec (overrides LTP_TIMEOUT).
+
+=head2 LTP_TIMEOUT_MUL
+
+Multiplies the timeout. Also exported as environment variable for LTP
+(originally LTP variable).
+
+=head2 LTP_TIMEOUT_MUL_arch (e.g. LTP_TIMEOUT_MUL_aarch64)
+
+Multiplicator for specific arch (overrides LTP_TIMEOUT_MUL, also exported as
+LTP_TIMEOUT_MUL for LTP).
 
 =head2 LTP_DUMP_MEMORY_ON_TIMEOUT
 
