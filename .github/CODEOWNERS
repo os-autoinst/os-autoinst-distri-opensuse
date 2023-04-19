@@ -6,3 +6,5 @@ tests/publiccloud/ @pdostal @grisu48 @asmorodskyi
 lib/containers/ @pdostal @grisu48 @jlausuch
 tests/containers/ @pdostal @grisu48 @jlausuch
 
+tests/jeos/ @mloviska
+tests/microos/ @mloviska
