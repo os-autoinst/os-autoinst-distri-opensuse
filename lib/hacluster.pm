@@ -65,6 +65,7 @@ our @EXPORT = qw(
   is_not_maintenance_update
   activate_ntp
   calculate_sbd_start_delay
+  check_iscsi_failure
 );
 
 =head1 SYNOPSIS
@@ -1015,6 +1016,34 @@ sub calculate_sbd_start_delay {
     if (looks_like_number($params{'sbd_delay_start'})) {
         record_info("SBD start delay", "Specified explicitly in config: $params{'sbd_delay_start'}");
         return $params{'sbd_delay_start'};
+    }
+}
+
+=head2 check_iscsi_failure
+
+ check_iscsi_failure();
+
+Workaround for bsc#1129385, checks system log for iSCSI connection failures, if
+necessary restarts iscsi and pacemaker service
+
+=cut
+
+sub check_iscsi_failure {
+    # check system logs for iscsi, pacemaker and corosync failures
+    assert_script_run 'journalctl -b --no-pager -o short-precise > bsc1129385-check-journal.log';
+    my $iscsi_fails = script_run 'grep -q "iscsid: .*cannot make a connection to" bsc1129385-check-journal.log';
+    my $csync_fails = script_run 'grep -q "corosync.service: Failed" bsc1129385-check-journal.log';
+    my $pcmk_fails = script_run 'grep -E -q "pacemaker.service.+failed" bsc1129385-check-journal.log';
+
+    # restart and mark as softfailure if all failure conditions are match
+    if (defined $iscsi_fails and $iscsi_fails == 0 and defined $csync_fails
+        and $csync_fails == 0 and defined $pcmk_fails and $pcmk_fails == 0)
+    {
+        record_soft_failure "bsc#1129385";
+        upload_logs 'bsc1129385-check-journal.log';
+        $iscsi_fails = script_run 'grep -q LIO-ORG /proc/scsi/scsi';
+        systemctl 'restart iscsi' if ($iscsi_fails);
+        systemctl 'restart pacemaker';
     }
 }
 
