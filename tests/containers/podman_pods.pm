@@ -16,6 +16,7 @@ use utils qw(script_retry);
 use containers::utils qw(check_min_runtime_version);
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle is_opensuse);
+use containers::k8s qw(install_k3s);
 
 sub run {
     my ($self, $args) = @_;
@@ -46,35 +47,42 @@ sub run {
     unless (!check_min_runtime_version('4.4.2')) {
         # Kube generate
         record_info('Test', 'Generate the yaml from a pod');
-        assert_script_run('podman pod create testing_pod');
+        assert_script_run('podman pod create testing-pod');
         my $image = "registry.suse.com/bci/bci-busybox:latest";
         script_retry("podman pull $image", timeout => 300, delay => 60, retry => 3);
-        assert_script_run("podman container create --pod testing_pod --name container $image sh -c \"sleep 3600\"");
-        assert_script_run("podman kube generate testing_pod | tee pod.yaml");
+        assert_script_run("podman container create --pod testing-pod --name container $image sh -c \"sleep 3600\"");
+        assert_script_run("podman kube generate testing-pod | tee pod.yaml");
         assert_script_run("grep 'image: $image' pod.yaml");
-        assert_script_run("podman pod rm testing_pod");
+        assert_script_run("podman pod rm testing-pod");
 
         record_info('Test', 'Test the pod yaml creates a pod');
         assert_script_run('podman play kube pod.yaml');
         record_info('Test', 'Confirm pod is running');
         record_info('pod ps', script_output('podman pod ps'));
-        validate_script_output('podman pod ps', sub { m/testing_pod/ });
-        validate_script_output('podman ps', sub { m/testing_pod-container/ });
+        validate_script_output('podman pod ps', sub { m/testing-pod/ });
+        validate_script_output('podman ps', sub { m/testing-pod-container/ });
 
         record_info('Test', 'Removing one pod');
-        assert_script_run('podman pod rm -f testing_pod');
+        assert_script_run('podman pod rm -f testing-pod');
 
         # kube play
         record_info('Test', 'kube play');
         assert_script_run('podman kube play pod.yaml');
-        validate_script_output('podman pod ps', sub { m/testing_pod/ });
-        validate_script_output('podman ps', sub { m/testing_pod-container/ });
+        validate_script_output('podman pod ps', sub { m/testing-pod/ });
+        validate_script_output('podman ps', sub { m/testing-pod-container/ });
 
         # kube down
         record_info('Test', 'kube down');
         assert_script_run('podman kube down pod.yaml');
-        validate_script_output('podman pod ps', sub { !m/testing_pod/ });
-        validate_script_output('podman ps', sub { !m/testing_pod-container/ });
+        validate_script_output('podman pod ps', sub { !m/testing-pod/ });
+        validate_script_output('podman ps', sub { !m/testing-pod-container/ });
+
+        # kube apply
+        install_k3s();
+        record_info('Test', 'kube apply');
+        assert_script_run('podman kube apply --kubeconfig ~/.kube/config -f pod.yaml');
+        assert_script_run('kubectl wait --for=condition=Ready pod/testing-pod');
+        validate_script_output('kubectl exec testing-pod -- cat /etc/os-release', sub { m/SUSE Linux Enterprise Server/ });
     }
 
     $podman->cleanup_system_host();
