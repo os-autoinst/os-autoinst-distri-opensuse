@@ -3,8 +3,8 @@
 lib/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777
 tests/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777
 
-lib/containers/ @pdostal @grisu48 @jlausuch
-tests/containers/ @pdostal @grisu48 @jlausuch
+lib/containers/ @pdostal @grisu48 @jlausuch @ricardobranco777
+tests/containers/ @pdostal @grisu48 @jlausuch @ricardobranco777
 
 tests/jeos/ @mloviska
 tests/microos/ @mloviska
