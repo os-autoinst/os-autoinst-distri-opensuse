@@ -79,11 +79,29 @@ sub run {
     my $uid = script_output 'id -u';
     validate_script_output 'toolbox -u id', sub { m/uid=${uid}\(${user}\)/ }, timeout => 180;
     die "$user shouldn't have access to /etc/passwd!" if (script_run('toolbox -u touch /etc/passwd') == 0);
+    # Check if toolbox sees processes from outside the container (there should be no pid namespace separation)
+    background_script_run('sleep 3612');
+    validate_script_output('toolbox ps a', sub { m/sleep 3612/ });
 
     record_info 'Test', "Rootfull toolbox as $user";
     validate_script_output 'toolbox -r id', sub { m/uid=0\(root\)/ };
     assert_script_run 'toolbox -r touch /etc/passwd', fail_message => 'Root should have access to /etc/passwd!';
     assert_script_run 'podman ps -a';
+
+    record_info 'Test', "Update toolbox";
+    assert_script_run('set -o pipefail');
+    assert_script_run('toolbox -- zypper -n ref', timeout => 300);
+    if (script_run('toolbox -- zypper -n up 2>&1 > /var/tmp/toolbox_zypper_up.txt', timeout => 300) != 0) {
+        upload_logs('/var/tmp/toolbox_zypper_up.txt');
+        # Test for bsc#1210587
+        my $output = script_output('cat /var/tmp/toolbox_zypper_up.txt');
+        if ($output =~ m/Installation of timezone-2023c-.* failed/) {
+            record_soft_failure("bsc#1210587 installation of timezone failed");
+        } else {
+            die "zypper up failed within toolbox";
+        }
+    }
+
     clean_container_host(runtime => 'podman');
 
     enter_cmd "exit";
