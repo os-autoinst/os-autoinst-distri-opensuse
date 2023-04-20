@@ -22,6 +22,7 @@ sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
     my $podman = $self->containers_factory('podman');
+    $self->{podman} = $podman;
 
     record_info('Prep', 'Get kube yaml');
     assert_script_run('curl ' . data_url('containers/hello-kubic.yaml') . ' -o hello-kubic.yaml');
@@ -83,13 +84,26 @@ sub run {
             install_k3s();
             record_info('Test', 'kube apply');
             assert_script_run('podman kube apply --kubeconfig ~/.kube/config -f pod.yaml');
-            assert_script_run('kubectl wait --for=condition=Ready pod/testing-pod');
+            assert_script_run('kubectl wait --timeout=240s --for=condition=Ready pod/testing-pod', timeout => 260);
             validate_script_output('kubectl exec testing-pod -- cat /etc/os-release', sub { m/SUSE Linux Enterprise Server/ });
-            uninstall_k3s();    # prevent k3s from hogging too much memory and interfere with other test runs.
         }
     }
+}
 
-    $podman->cleanup_system_host();
+sub cleanup {
+    my ($self) = @_;
+    $self->{podman}->cleanup_system_host();
+    uninstall_k3s();    # prevent k3s from hogging too much memory and interfere with other test runs.
+}
+
+sub post_run_hook {
+    my ($self) = @_;
+    $self->cleanup();
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->cleanup();
 }
 
 1;
