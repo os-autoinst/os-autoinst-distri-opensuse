@@ -92,12 +92,12 @@ sub run {
     # reboot the SUT
     $self->run_in_powershell(
         cmd => $powershell_cmds->{enable_wsl_feature}->{wsl},
-        timeout => 240
+        timeout => 300
     );
     if (get_var('WSL2')) {
         $self->run_in_powershell(
             cmd => $powershell_cmds->{enable_wsl_feature}->{vm_platform},
-            timeout => 240
+            timeout => 300
         );
     }
 
