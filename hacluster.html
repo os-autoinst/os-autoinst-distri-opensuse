@@ -51,6 +51,7 @@
       <li><a href="#is_not_maintenance_update">is_not_maintenance_update</a></li>
       <li><a href="#activate_ntp">activate_ntp</a></li>
       <li><a href="#calculate_sbd_start_delay">calculate_sbd_start_delay</a></li>
+      <li><a href="#check_iscsi_failure">check_iscsi_failure</a></li>
     </ul>
   </li>
 </ul><h1>lib/hacluster.pm</h1>
@@ -294,6 +295,12 @@
 <pre><code>calculate_sbd_start_delay();</code></pre>
 
 <p>Calculates start time delay after node is fenced. Prevents cluster failure if fenced node restarts too quickly. Delay time is used either if specified in sbd config variable &quot;SBD_DELAY_START&quot; or calculated: &quot;corosync_token + corosync_consensus + SBD_WATCHDOG_TIMEOUT * 2&quot; Variables &#39;corosync_token&#39; and &#39;corosync_consensus&#39; are converted to seconds.</p>
+
+<h2 id="check_iscsi_failure">check_iscsi_failure</h2>
+
+<pre><code>check_iscsi_failure();</code></pre>
+
+<p>Workaround for bsc#1129385, checks system log for iSCSI connection failures, if necessary restarts iscsi and pacemaker service</p>
 
 
 </body>
