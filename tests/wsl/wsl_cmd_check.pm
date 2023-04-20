@@ -19,8 +19,6 @@ my %expected = (
 sub run {
     my $self = shift;
 
-    assert_and_click 'powershell-as-admin-window';
-    enter_cmd 'exit';
     $self->open_powershell_as_admin();
     $self->run_in_powershell(cmd => 'wsl --list --verbose', timeout => 60);
     $self->run_in_powershell(cmd => "wsl mount | Select-String -Pattern $expected{mount}", timeout => 60);
