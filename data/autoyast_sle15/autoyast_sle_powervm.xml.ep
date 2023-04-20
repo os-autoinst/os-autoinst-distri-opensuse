@@ -74,7 +74,7 @@
     <ntp_policy>auto</ntp_policy>
   </ntp-client>
   <services-manager config:type="map">
-    <default_target>graphical</default_target>
+    <default_target>multi-user</default_target>
     <services config:type="map">
       <enable config:type="list">
         <service>firewalld</service>
@@ -95,6 +95,9 @@
       <pattern>basesystem</pattern>
       <pattern>enhanced_base</pattern>
       <pattern>minimal_base</pattern>
+      <pattern>x11</pattern>
+      <pattern>x11_yast</pattern>
+      <pattern>yast2_basis</pattern>
     </patterns>
     <products config:type="list">
       <product>SLES</product>
