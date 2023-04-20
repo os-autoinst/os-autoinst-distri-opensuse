@@ -94,7 +94,11 @@ sub register_via_scc {
     wait_screen_change(sub { send_key 'alt-c' }, 10);
     wait_screen_change { type_string $reg_code, max_interval => 125, wait_screen_change => 2 };
     send_key 'alt-n';
-    assert_screen 'wsl-registration-repository-offer', 180;
+    if (is_sle('>=15-SP5')) {
+        assert_screen 'trust_nvidia_gpg_keys', timeout => 240;
+        send_key 'alt-t';
+    }
+    assert_screen 'wsl-registration-repository-offer', timeout => 240;
     send_key 'alt-y';
     assert_screen 'wsl-extension-module-selection';
     send_key 'alt-n';
@@ -127,7 +131,7 @@ sub run {
         enter_user_details([$realname, undef, $password, $password]);
         send_key 'alt-n';
         # wsl-gui pattern installation (only in SLE15-SP4+ by now)
-        wsl_gui_pattern if (is_sle('15-SP4+'));
+        wsl_gui_pattern if (is_sle('>=15-SP4'));
         # Registration
         is_sle && register_via_scc();
         # SLED Workstation license agreement and trust nVidia GPG keys
