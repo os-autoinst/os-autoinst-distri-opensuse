@@ -15,7 +15,7 @@ use testapi;
 use utils qw(script_retry);
 use containers::utils qw(check_min_runtime_version);
 use serial_terminal 'select_serial_terminal';
-use version_utils qw(is_sle is_opensuse);
+use version_utils qw(is_sle is_opensuse is_tumbleweed is_microos);
 use containers::k8s qw(install_k3s);
 
 sub run {
@@ -78,11 +78,14 @@ sub run {
         validate_script_output('podman ps', sub { !m/testing-pod-container/ });
 
         # kube apply
-        install_k3s();
-        record_info('Test', 'kube apply');
-        assert_script_run('podman kube apply --kubeconfig ~/.kube/config -f pod.yaml');
-        assert_script_run('kubectl wait --for=condition=Ready pod/testing-pod');
-        validate_script_output('kubectl exec testing-pod -- cat /etc/os-release', sub { m/SUSE Linux Enterprise Server/ });
+        # Temporary disabled on TW due to broken tests (See poo#128069 and poo#124601)
+        unless (is_tumbleweed || is_microos) {
+            install_k3s();
+            record_info('Test', 'kube apply');
+            assert_script_run('podman kube apply --kubeconfig ~/.kube/config -f pod.yaml');
+            assert_script_run('kubectl wait --for=condition=Ready pod/testing-pod');
+            validate_script_output('kubectl exec testing-pod -- cat /etc/os-release', sub { m/SUSE Linux Enterprise Server/ });
+        }
     }
 
     $podman->cleanup_system_host();
