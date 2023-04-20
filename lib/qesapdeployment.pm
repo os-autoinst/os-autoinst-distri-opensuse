@@ -86,7 +86,7 @@ our @EXPORT = qw(
 sub qesap_get_file_paths {
     my %paths;
     $paths{qesap_conf_filename} = get_required_var('QESAP_CONFIG_FILE');
-    $paths{deployment_dir} = get_var('QESAP_DEPLOYMENT_DIR', get_var('DEPLOYMENT_DIR', '/root/qe-sap-deployment'));
+    $paths{deployment_dir} = get_var('QESAP_DEPLOYMENT_DIR', '/root/qe-sap-deployment');
     $paths{terraform_dir} = get_var('PUBLIC_CLOUD_TERRAFORM_DIR', $paths{deployment_dir} . '/terraform');
     $paths{qesap_conf_trgt} = $paths{deployment_dir} . '/scripts/qesap/' . $paths{qesap_conf_filename};
     $paths{qesap_conf_src} = data_url('sles4sap/qe_sap_deployment/' . $paths{qesap_conf_filename});
@@ -113,8 +113,11 @@ sub qesap_get_variables {
     my %paths = qesap_get_file_paths();
     my $yaml_file = $paths{'qesap_conf_src'};
     my %variables;
-    my $grep_cmd = "grep -v '#' | grep -oE %[A-Z0-9_]*% | sed s/%//g";
-    my $cmd = join(' ', 'curl -s -fL', $yaml_file, '|', $grep_cmd);
+    my $cmd = join(' ',
+        'curl -s -fL', $yaml_file, '|',
+        'grep -v', "'#'", '|',
+        'grep -oE %[A-Z0-9_]*%', '|',
+        'sed s/%//g');
 
     for my $variable (split(" ", script_output($cmd))) {
         $variables{$variable} = get_required_var($variable);
@@ -212,6 +215,8 @@ sub qesap_get_deployment_code {
 
     # Script from a release
     if (get_var('QESAP_INSTALL_VERSION')) {
+        record_info("WARNING", "QESAP_INSTALL_GITHUB_REPO will be ignored") if (get_var('QESAP_INSTALL_GITHUB_REPO'));
+        record_info("WARNING", "QESAP_INSTALL_GITHUB_BRANCH will be ignored") if (get_var('QESAP_INSTALL_GITHUB_BRANCH'));
         my $ver_artifact = 'v' . get_var('QESAP_INSTALL_VERSION') . '.tar.gz';
 
         my $curl_cmd = "curl -v -fL https://$official_repo/archive/refs/tags/$ver_artifact -o$ver_artifact";
@@ -406,7 +411,7 @@ sub qesap_prepare_env {
 
     qesap_prepare_env(cmd=>{string}, provider => 'aws');
 
-=over 4
+=over 6
 
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
@@ -418,7 +423,7 @@ sub qesap_prepare_env {
 
 =item B<FAILOK> - if not set, ansible failure result in die
 
-=item B<HOST_KEYS_CHECK> - if set, add some extra argument to the Ansible call to add allow contacting hosts not in the  KnownHost list yet. This enables the use of this api before the call to qesap.py ansible
+=item B<HOST_KEYS_CHECK> - if set, add some extra argument to the Ansible call to allow contacting hosts not in the  KnownHost list yet. This enables the use of this api before the call to qesap.py ansible
 
 =back
 =cut
@@ -517,7 +522,6 @@ sub qesap_ansible_script_output {
         '-e', "out_path='$local_path'",
         '-e', "out_file='$local_file'");
     push @ansible_cmd, ('-e', "failok=yes") if ($args{failok});
-
 
     enter_cmd "rm $local_tmp || echo 'Nothing to delete'" if ($return_string);
 
@@ -623,7 +627,7 @@ sub qesap_wait_for_ssh {
 =cut
 
 sub qesap_cluster_log_cmds {
-    return (
+    my @log_list = (
         {
             Cmd => 'crm status',
             Output => 'crm_status.txt',
@@ -645,10 +649,33 @@ sub qesap_cluster_log_cmds {
             Output => 'sbd.txt',
         },
         {
-            Cmd => 'cat ~/.aws/config > aws_config.txt',
-            Output => 'aws_config.txt',
+            Cmd => 'lsscsi -i',
+            Output => 'lsscsi.txt',
+        },
+        {
+            Cmd => 'cat /var/tmp/hdbinst.log',
+            Output => 'hdbinst.log.txt',
+        },
+        {
+            Cmd => 'cat /var/tmp/hdblcm.log',
+            Output => 'hdblcm.log.txt',
+        },
+        {
+            Cmd => 'cat /etc/corosync/corosync.conf',
+            Output => 'corosync.conf.txt',
+        },
+        {
+            Cmd => 'csync2 -L',
+            Output => 'csync2__L.txt',
         },
     );
+    if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
+        push @log_list, {
+            Cmd => 'cat ~/.aws/config > aws_config.txt',
+            Output => 'aws_config.txt',
+        };
+    }
+    return @log_list;
 }
 
 =head3 qesap_cluster_logs
