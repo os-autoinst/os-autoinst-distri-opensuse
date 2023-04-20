@@ -64,6 +64,7 @@ sub run {
         else {
             # Ensure we are in 'Select the Migration Target' page
             assert_screen 'select-migration-target', 120;
+            wait_still_screen 2;
             send_key 'alt-p';
             # Confirm default migration target matches correct base product
             my $migration_target_base = 'migration_target_' . lc(get_var('SLE_PRODUCT', 'sles')) . lc(get_var('VERSION'));
