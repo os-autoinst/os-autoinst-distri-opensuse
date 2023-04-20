@@ -10,7 +10,7 @@
 
 use Mojo::Base qw(hpcbase hpc::configs), -signatures;
 use testapi;
-use serial_terminal 'select_serial_terminal';
+use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use lockapi;
 use utils;
 use version_utils 'is_sle';
@@ -231,11 +231,9 @@ sub t01_accounting() {
         'user_4' => 'Jose',
     );
 
-    ##Add users TODO: surely this should be abstracted
-    script_run("useradd $users{user_1}");
-    script_run("useradd $users{user_2}");
-    script_run("useradd $users{user_3}");
-    script_run("useradd $users{user_4}");
+    foreach my $key (keys %{users}) {
+        script_run("useradd -m -p \$(openssl passwd -1 $testapi::password) $users{$key}");
+    }
 
     my $cluster = script_output('sacctmgr -n -p list cluster');
 
@@ -267,12 +265,35 @@ sub t01_accounting() {
     script_run('sacctmgr show associations');
     record_info('INFO', script_run('sacctmgr show account'));
 
-    script_run("srun --uid=$users{user_1} --account=UNI_X_Math -w slave-node00,slave-node01 date");
-    script_run("srun --uid=$users{user_2} --account=UNI_X_IT -N 2 hostname");
+    my $current_user = $testapi::username;
+    $testapi::username = $users{user_1};
+    my $prompt = $testapi::username . '@' . get_required_var('HOSTNAME') . ':~> ';
+    record_info "$testapi::username", "ok";
+    select_user_serial_terminal($prompt);
+    script_run("srun --account=UNI_X_Math -w slave-node00,slave-node01 date");
+    type_string("su - $users{user_2}", lf => 1);
+    wait_serial("Password:"); type_string("$testapi::password", lf => 1);
 
-    script_run("srun --uid=$users{user_3} --account=UNI_Y_Biology -N 3 date");
-    script_run("srun --uid=$users{user_4} --account=UNI_Y_Physics -N 3 hostname");
+    $testapi::username = $users{user_2};
+    script_run("srun --account=UNI_X_IT -N 2 hostname");
+    $testapi::username = $users{user_3};
+    type_string("su - $users{user_3}", lf => 1);
+    wait_serial("Password:"); type_string("$testapi::password", lf => 1);
 
+    script_run("srun --account=UNI_Y_Biology -N 3 date");
+    $testapi::username = $users{user_4};
+    $prompt = $testapi::username . '@' . get_required_var('HOSTNAME') . ':~> ';
+    type_string("su - $users{user_4}", lf => 1);
+    wait_serial("Password:"); type_string("$testapi::password", lf => 1);
+    script_run("srun --account=UNI_Y_Physics -N 3 hostname");
+
+    select_serial_terminal;
+    if (script_run("srun --uid=$users{user_2} --account=UNI_X_Math -w slave-node00,slave-node01 date") != 0) {
+        record_soft_failure 'bsc#1210374 - Cant run srun with with uid switch';
+        my $last_entry = script_output "squeue | tail -n1 | awk '{print \$1}'";
+        record_info("squeue", script_output "squeue");
+        assert_script_run("scancel $last_entry");
+    }
     # this is required; see: bugzilla#1150565?
     systemctl('restart slurmctld');
     systemctl('is-active slurmctld');

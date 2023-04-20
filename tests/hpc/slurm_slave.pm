@@ -28,6 +28,16 @@ sub run ($self) {
         zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);
         zypper_call('in iputils python');
     }
+    my %users = (
+        'user_1' => 'Sebastian',
+        'user_2' => 'Egbert',
+        'user_3' => 'Christina',
+        'user_4' => 'Jose',
+    );
+
+    foreach my $key (keys %{users}) {
+        script_run("useradd -m $users{$key}");
+    }
 
     barrier_wait('CLUSTER_PROVISIONED');
     barrier_wait("SLURM_SETUP_DONE");
