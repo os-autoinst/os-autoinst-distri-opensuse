@@ -23,6 +23,9 @@ sub run {
     # We may execute this test after a reboot, so we need to log in
     select_console 'root-console';
 
+    # workaround for bsc#1129385
+    check_iscsi_failure;
+
     # Only perform clvm to lvmlockd migration if the cluster is up and has clvm resources
     assert_script_run $crm_mon_cmd;
     my $clvm_rsc = script_run "grep -wq clvm <($crm_mon_cmd)";
