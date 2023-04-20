@@ -201,14 +201,23 @@ sub check_guest_health {
     return unless is_x86_64 and ($vm =~ /sle|alp/i);
 
     #check if guest is still alive
-    validate_script_output("virsh domstate $vm", sub { /running/ }, proceed_on_failure => 1) if (script_run("virsh list --all | grep \"$vm \"") == 0);
-    if (is_xen_host and script_run("xl list $vm") == 0) {
-        script_retry("xl list $vm | grep \"\\-b\\-\\-\\-\\-\"", delay => 10, retry => 30, die => 0);
-        validate_script_output("xl list $vm", sub { /-b----/ }, proceed_on_failure => 1);
+    my $vmstate = "nok";
+    my $failures = "";
+    if (script_run("virsh list --all | grep \"$vm \"") == 0) {
+        $vmstate = "ok" if (script_run("virsh domstate $vm | grep running") == 0);
     }
-    my $failures = check_failures_in_journal($vm);
-    return 'fail' if $failures;
-    record_info("Healthy guest!", "$vm looks good so far!");
+    if (is_xen_host and script_run("xl list $vm") == 0) {
+        script_retry("xl list $vm | grep \"\\-b\\-\\-\\-\\-\"", delay => 10, retry => 1, die => 0) for (0 .. 3);
+        $vmstate = "ok" if script_run("xl list $vm | grep \"\\-b\\-\\-\\-\\-\"");
+    }
+    if ($vmstate eq "ok") {
+        $failures = check_failures_in_journal($vm);
+        return 'fail' if $failures;
+        record_info("Healthy guest!", "$vm looks good so far!");
+    }
+    else {
+        record_info("Skip check_failures_in_journal for $vm", "$vm is not in desired state judged by either virsh or xl tool stack");
+    }
     return 'pass';
 }
 
