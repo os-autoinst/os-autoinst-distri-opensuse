@@ -87,15 +87,17 @@ sub run {
     my $case_dir = get_required_var('CASEDIR');
     my $open_bt = path("$case_dir/data/kernel/open.bt")->slurp();
 
-    background_script_run("while sleep 5; do touch opentest; done");
+    assert_script_run('curl -o open.bt -sS ' . data_url('kernel/open.bt'));
+    my $pid = background_script_run("while sleep 5; do touch opentest; done");
 
-    my $cmd_text = "bpftrace -";
+    my $cmd_text = 'bpftrace open.bt';
     wait_serial(serial_term_prompt(), no_regex => 1);
     type_string($cmd_text);
     wait_serial($cmd_text, no_regex => 1);
     send_key('ret');
-    type_string($open_bt, terminate_with => 'EOT');
     wait_serial(qr/Found it; PID == \d+!/);
+
+    assert_script_run("kill $pid");
 }
 
 1;
