@@ -2427,7 +2427,7 @@ sub cleanup_disk_space {
     diag "available space = $avail GB";
     return if ($avail > get_var("DISK_LOW_WATERMARK"));
 
-    record_soft_failure "bsc#1192331", "Low diskspace on Filesystem root";
+    record_soft_failure('bsc#1192331 - Low diskspace on Filesystem root');
 
     my $ret = script_run("snapper --help | grep disable-used-space");
     my $disable = $ret ? '' : '--disable-used-space';
