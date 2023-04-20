@@ -49,6 +49,7 @@ sub test_gb18030_file {
 sub run {
     my ($self) = @_;
 
+    ensure_installed('gedit');
     # download test text file from x11 data directory
     x11_start_program("xterm");
     enter_cmd("wget " . autoinst_url . "/data/x11/gb18030/{double,four}.txt");

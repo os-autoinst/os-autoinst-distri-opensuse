@@ -15,6 +15,7 @@ use testapi;
 use utils;
 
 sub test_jp {
+    ensure_installed('gedit');
     x11_start_program('gedit');
     hold_key('super');
     send_key_until_needlematch 'ibus_switch_jp', 'spc', 7;
