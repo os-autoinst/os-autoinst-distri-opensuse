@@ -23,6 +23,7 @@ use version_utils;
 use utils 'reconnect_mgmt_console';
 use Utils::Backends;
 use Utils::Architectures;
+use publiccloud::instances;
 
 our @EXPORT = qw(
   process_reboot
@@ -74,6 +75,12 @@ sub process_reboot {
     $args{trigger} //= 0;
     $args{automated_rollback} //= 0;
     $args{expected_grub} //= 1;
+
+    if (is_public_cloud) {
+        my $instance = publiccloud::instances::get_instance();
+        $instance->softreboot();    # Handled re-establishing of the required ssh tunnel and consoles
+        return;
+    }
 
     # Switch to root-console as we need VNC to check for grub and for login prompt
     my $prev_console = current_console();
