@@ -93,7 +93,7 @@ sub run {
 sub cleanup {
     my ($self) = @_;
     $self->{podman}->cleanup_system_host();
-    uninstall_k3s();    # prevent k3s from hogging too much memory and interfere with other test runs.
+    uninstall_k3s() if (is_sle_micro("5.3+"));    # prevent k3s from hogging too much memory and interfere with other test runs.
 }
 
 sub post_run_hook {
