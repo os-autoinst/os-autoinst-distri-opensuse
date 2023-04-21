@@ -1,11 +1,11 @@
-# Copyright 2021-2022 SUSE LLC
+# Copyright 2021-2023 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Update IBM's Trusted Computing Group Software Stack (TSS) to the latest version.
 #          IBM has tested x86_64, s390x and ppc64le, we only need cover aarch64
 #          This test module covers basic function test
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#101088, poo#102792, poo#103086, poo#106501, tc#1769800
+# Tags: poo#101088, poo#102792, poo#103086, poo#106501, tc#1769800, poo#128057
 
 use base 'opensusebasetest';
 use base 'consoletest';
@@ -34,8 +34,15 @@ sub run {
     # Download the test script, which is imported from link 'https://git.code.sf.net/p/ibmtpm20tss/tssi'
     select_serial_terminal;
 
+    # choose correct test suite version to download according to installed package
+    my $version = script_output 'rpm -q ibmswtpm2';
+
+    record_info("ibmswtpm2 version: $version");
+
     assert_script_run('git clone https://git.code.sf.net/p/ibmtpm20tss/tss ibmtpm20tss-tss', timeout => 240);
-    assert_script_run('cd ibmtpm20tss-tss/utils');
+    # poo#128057 : latest upstream testsuite version (2.0) is not compatible with packaged binaries,
+    # so let's use the previous stable
+    assert_script_run('cd ibmtpm20tss-tss/utils ; git checkout v1.6.0');
 
     # Modify the script to use the binaries installed in current system
     assert_script_run q(sed -i 's#^PREFIX=.*#PREFIX=/usr/bin/tss#g' reg.sh);
