@@ -66,55 +66,54 @@ sub load_boot_from_dvd_tests {
     }
 }
 
+sub load_10GB_installation_tests {
+    # boo#1099762
+    # undefined method "safe_copy" for nil:NilClass
+    # YaST2 crashes if disk is too small for a viable proposal
+    loadtest 'installation/welcome';
+    loadtest 'installation/installation_mode';
+    loadtest 'installation/logpackages';
+    loadtest 'installation/system_role';
+    loadtest 'installation/ntp_config_settings';
+    loadtest 'installation/user_settings_root';
+    loadtest 'installation/installation_overview';
+}
+
 sub load_installation_tests {
-    if (check_var('HDDSIZEGB', '10')) {
-        # boo#load_installation_tests
-        # undefined method "safe_copy" for nil:NilClass
-        # YaST2 crashes if disk is too small for a viable proposal
-        loadtest 'installation/welcome';
+    loadtest 'installation/welcome';
+    loadtest 'installation/disk_activation' if is_zvm;
+    loadtest 'installation/scc_registration' if is_sle_micro;
+    if (is_microos) {
+        loadtest 'installation/online_repos';
         loadtest 'installation/installation_mode';
         loadtest 'installation/logpackages';
         loadtest 'installation/system_role';
-        loadtest 'installation/ntp_config_settings';
-        loadtest 'installation/user_settings_root';
+    }
+
+    loadtest 'installation/ntp_config_settings';
+    loadtest 'installation/user_settings_root';
+    loadtest 'installation/resolve_dependency_issues';
+    if (get_var('PATTERNS')) {
+        loadtest 'installation/select_patterns';
+        loadtest 'installation/installation_overview';
+        loadtest 'installation/edit_optional_kernel_cmd_parameters' if get_var('PATTERNS') =~ m/fips/i;
+    } else {
         loadtest 'installation/installation_overview';
     }
-    else {
-        loadtest 'installation/welcome';
-        loadtest 'installation/disk_activation' if is_zvm;
-        loadtest 'installation/scc_registration' if is_sle_micro;
-        if (is_microos) {
-            loadtest 'installation/online_repos';
-            loadtest 'installation/installation_mode';
-            loadtest 'installation/logpackages';
-            loadtest 'installation/system_role';
-        }
-
-        loadtest 'installation/ntp_config_settings';
-        loadtest 'installation/user_settings_root';
-        loadtest 'installation/resolve_dependency_issues';
-        if (get_var('PATTERNS')) {
-            loadtest 'installation/select_patterns';
-            loadtest 'installation/installation_overview';
-            loadtest 'installation/edit_optional_kernel_cmd_parameters' if get_var('PATTERNS') =~ m/fips/i;
-        } else {
-            loadtest 'installation/installation_overview';
-        }
-        loadtest 'installation/disable_grub_timeout';
-        loadtest 'installation/enable_selinux' if get_var('ENABLE_SELINUX');
-        loadtest 'installation/start_install';
-        loadtest 'installation/await_install';
-        loadtest 'installation/logs_from_installation_system';
-        loadtest 'installation/reboot_after_installation';
-        if (is_s390x) {
-            loadtest 'boot/reconnect_mgmt_console';
-            loadtest 'installation/first_boot';
-        } else {
-            loadtest 'microos/disk_boot';
-        }
-        loadtest 'console/textinfo';
-        replace_opensuse_repos_tests if is_repo_replacement_required;
+    loadtest 'installation/disable_grub_timeout';
+    loadtest 'installation/enable_selinux' if get_var('ENABLE_SELINUX');
+    loadtest 'installation/start_install';
+    loadtest 'installation/await_install';
+    loadtest 'installation/logs_from_installation_system';
+    loadtest 'installation/reboot_after_installation';
+    if (is_s390x) {
+        loadtest 'boot/reconnect_mgmt_console';
+        loadtest 'installation/first_boot';
+    } else {
+        loadtest 'microos/disk_boot';
     }
+    loadtest 'console/textinfo';
+    replace_opensuse_repos_tests if is_repo_replacement_required;
 }
 
 sub load_autoyast_installation_tests {
@@ -310,9 +309,11 @@ sub load_tests {
         return 1;
     } elsif (is_dvd) {
         load_boot_from_dvd_tests;
+        if (check_var('HDDSIZEGB', '10')) {
+            load_10GB_installation_tests;
+            return;    # in 10G-disk tests, we don't run more tests
+        }
         load_installation_tests;
-        # in 10G-disk tests, we don't run more tests
-        return if check_var('HDDSIZEGB', '10');
         # Stop here if we are testing only scc extensions (live, phub, ...) activation
         my $is_phub = get_var('SCC_ADDONS');
         if (defined($is_phub) && $is_phub =~ /phub/) {
