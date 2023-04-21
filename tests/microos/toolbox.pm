@@ -95,7 +95,7 @@ sub run {
         upload_logs('/var/tmp/toolbox_zypper_up.txt');
         # Test for bsc#1210587
         my $output = script_output('cat /var/tmp/toolbox_zypper_up.txt');
-        if ($output =~ m/Installation of timezone-2023c-.* failed/) {
+        if ($output =~ m/Installation of timezone-.* failed/ && is_sle_micro) {
             record_soft_failure("bsc#1210587 installation of timezone failed");
         } else {
             die "zypper up failed within toolbox";
