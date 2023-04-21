@@ -34,11 +34,6 @@ sub is_regproxy_required {
 }
 
 sub load_config_tests {
-    if (is_microos && !is_staging) {
-        loadtest 'update/zypper_clear_repos';
-        loadtest 'console/zypper_ar';
-        loadtest 'console/zypper_ref';
-    }
     loadtest 'transactional/tdup' if get_var('TDUP');
     loadtest 'transactional/host_config' unless is_dvd;
     loadtest 'rt/rt_is_realtime' if is_rt;
@@ -118,6 +113,7 @@ sub load_installation_tests {
             loadtest 'microos/disk_boot';
         }
         loadtest 'console/textinfo';
+        replace_opensuse_repos_tests if is_repo_replacement_required;
     }
 }
 
@@ -342,6 +338,7 @@ sub load_tests {
     } elsif (check_var('EXTRA', 'provisioning')) {
         # This module fails in MicroOS, never been run before. Need to investigate.
         loadtest 'microos/verify_setup' unless is_microos;
+        load_transactional_tests;
     } elsif (check_var('EXTRA', 'virtualization')) {
         load_qemu_tests;
     } elsif (check_var('EXTRA', 'fips')) {
