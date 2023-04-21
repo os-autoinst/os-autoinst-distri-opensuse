@@ -47,7 +47,10 @@ sub run {
     foreach (@wicked_all_ifaces) {
         $_ = substr($_, 0, index($_, ' '));
     }
-    my @ls_all_ifaces = split(' ', script_output('ls /sys/class/net/'));
+    # bonding_masters is neither a bond, nor an interface, it's just an empty file getting created upon loading the bonding module
+    # It appears on power only, because of hcnmgr being power-only.
+    # https://bugzilla.suse.com/show_bug.cgi?id=1210641
+    my @ls_all_ifaces = split(' ', script_output('ls /sys/class/net/ | grep -v bonding_masters'));
     if (arrays_differ(\@wicked_all_ifaces, \@ls_all_ifaces)) {
         diag "expected list of interfaces: @wicked_all_ifaces";
         diag "actual list of interfaces: @ls_all_ifaces";
