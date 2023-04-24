@@ -19,6 +19,7 @@ use testapi;
 
 sub run {
     # Launch 3 applications
+    ensure_installed('gedit');
     x11_start_program('nautilus');
     send_key "super-h";    # Minimize the window
     x11_start_program('gedit');
