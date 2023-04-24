@@ -1,10 +1,11 @@
 # GitHub CODEOWNERS https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
 # Public Cloud
-lib/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777
+lib/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777 @mpagot
 tests/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777
 data/publiccloud/ @pdostal @grisu48 @asmorodskyi @ricardobranco777
 lib/main_publiccloud.pm @pdostal @grisu48 @asmorodskyi @ricardobranco777
+lib/qesapdeploymnet.pm @mpagot
 
 # Containers
 lib/containers/ @pdostal @grisu48 @jlausuch @mloviska @ricardobranco777
