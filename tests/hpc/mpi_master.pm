@@ -71,12 +71,19 @@ sub run ($self) {
     # load mpi after all the relogins
     my @load_modules = $mpi2load;
     push @load_modules, 'python3-scipy' if check_var('HPC_LIB', 'scipy');
+    push @load_modules, 'papi' if check_var('HPC_LIB', 'papi');
     assert_script_run "module load gnu @load_modules";
     script_run "module av";
 
     barrier_wait('MPI_SETUP_READY');
     record_info 'MPI_SETUP_READY', strftime("\%H:\%M:\%S", localtime);
-    assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin") if $mpi_compiler;
+    if (get_var('HPC_LIB') eq 'papi') {
+        my $papi_version = script_output("module whatis papi | grep Version");
+        $papi_version = (split(/: /, $papi_version))[2];
+        assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin -I/usr/lib/hpc/papi/$papi_version/include/ -L/usr/lib/hpc/papi/$papi_version/lib64/ -lpapi") if $mpi_compiler;
+    } else {
+        assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin") if $mpi_compiler;
+    }
 
     # python code is not compiled. *mpi_bin* is expected as a compiled binary. if compilation was not
     # invoked return source code (ex: sample_scipy.py).
@@ -122,7 +129,11 @@ sub run ($self) {
             assert_script_run($mpirun_s->slave_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
             assert_script_run($mpirun_s->n_nodes("$exports_path{'bin'}/$mpi_bin", 2), timeout => 120);
         } else {
-            assert_script_run($mpirun_s->all_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
+            # Skipping papi test on compute nodes as for some reason
+            # module is not getting loaded for the c test execution
+            unless (get_var('HPC_LIB') eq 'papi') {
+                assert_script_run($mpirun_s->all_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
+            }
         }
     }
     barrier_wait('MPI_RUN_TEST');
