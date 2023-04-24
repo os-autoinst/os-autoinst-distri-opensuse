@@ -25,7 +25,7 @@ use transactional qw(trup_call check_reboot_changes);
 # git-core needed by ansible-galaxy
 # sudo is used by ansible to become root
 # python3-yamllint needed by ansible-test
-my $pkgs = 'ansible git-core';
+my $pkgs = 'ansible ansible-test git-core';
 $pkgs .= ' python3-yamllint' unless is_alp;
 
 sub run {
@@ -132,12 +132,8 @@ sub run {
     assert_script_run "ansible-playbook -i hosts main.yaml --check $skip_tags", timeout => 300;
 
     # Run the ansible sanity test
-    if (script_run('ansible-test')) {
-        record_soft_failure("boo#1204320 - Ansible: No module named 'ansible_test'");
-    } else {
-        script_run 'ansible-test --help';
-        assert_script_run 'ansible-test sanity';
-    }
+    script_run 'ansible-test --help';
+    assert_script_run 'ansible-test sanity';
 
     # 5. Ansible playbook execution
 
