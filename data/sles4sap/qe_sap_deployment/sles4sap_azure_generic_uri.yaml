@@ -18,7 +18,7 @@ terraform:
     deployment_name: '%PUBLIC_CLOUD_RESOURCE_GROUP%'
     public_key: '~/.ssh/id_rsa.pub'
     private_key: '~/.ssh/id_rsa'
-    os_image: "%QESAP_CLUSTER_OS_VER%"
+    os_image_uri: 'https://%STORAGE_ACCOUNT_NAME%.blob.core.windows.net/sle-images/%SLE_IMAGE%'
     hana_os_major_version: '%HANA_OS_MAJOR_VERSION%'
 
     # HANA
