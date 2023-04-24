@@ -7,7 +7,7 @@ vars:
   INSTANCE_ID: '00'
   INSTANCE_SID: QAD
   INSTANCE_TYPE: ASCS
-  NW: nfs://1c119.qa.suse.de/srv/nfs/sap/NW75_CLUSTER
+  NW: nfs://10.162.31.119/srv/nfs/sap/NW75_CLUSTER
   ROOTONLY: '1'
   START_AFTER_TEST: install_sles4sap_baremetal
 schedule:

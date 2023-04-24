@@ -9,7 +9,7 @@ vars:
   GRUB_TIMEOUT: 300
   IPXE: 1
   IPXE_HTTPSERVER: http://baremetal-support.qa.suse.de:8080
-  HANA: nfs://1c119.qa.suse.de/srv/nfs/sap/HANA2/SPS04rev46/x86_64
+  HANA: nfs://10.162.31.119/srv/nfs/sap/HANA2/SPS04rev46/x86_64
   INSTANCE_SID: NDB
   INSTANCE_ID: '00'
   SEPARATE_HOME: 0

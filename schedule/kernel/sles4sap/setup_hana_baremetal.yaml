@@ -7,7 +7,7 @@ description: >
 vars:
   DESKTOP: textmode
   GRUB_TIMEOUT: 300
-  HANA: nfs://1c119.qa.suse.de/srv/nfs/sap/HANA2/SPS04rev46/x86_64
+  HANA: nfs://10.162.31.119/srv/nfs/sap/HANA2/SPS04rev46/x86_64
   INSTANCE_SID: NDB
   INSTANCE_ID: '00'
   INSTANCE_TYPE: HBD
