@@ -30,7 +30,7 @@ sub run {
 
     assert_script_run("curl -O " . data_url("containers/k8s_job_manifest.yaml"));
     file_content_replace("k8s_job_manifest.yaml", JOB_NAME => $job_name, IMAGE => $image, CMD => $cmd);
-    assert_script_run("kubectl apply -f k8s_job_manifest.yaml");
+    assert_script_run("kubectl apply -f k8s_job_manifest.yaml", timeout => 300);
     wait_for_k8s_job_complete($job_name);
     my $pod = find_pods("job-name=$job_name");
     validate_pod_log($pod, "SUSE Linux Enterprise Server");
