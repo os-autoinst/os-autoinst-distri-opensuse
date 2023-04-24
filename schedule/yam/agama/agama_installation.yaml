@@ -1,0 +1,7 @@
+---
+name: agama_installation
+description: >
+  Playwright test on agama
+schedule:
+  - installation/bootloader_start
+  - yam/agama/agama_installation
