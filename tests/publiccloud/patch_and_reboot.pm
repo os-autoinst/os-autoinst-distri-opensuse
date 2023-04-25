@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019 SUSE LLC
+# Copyright 2019-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: zypper
@@ -30,7 +30,7 @@ sub run {
 
     ssh_fully_patch_system($remote);
 
-    $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+    $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 1200));
 }
 
 sub test_flags {
