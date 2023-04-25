@@ -1,0 +1,7 @@
+---
+name: agama_auto
+description: >
+  Prepare url for agama.auto boot parameter, boot, perform auto-installation with agama.
+schedule:
+  - installation/bootloader_start
+  - yam/agama/auto

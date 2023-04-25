@@ -505,6 +505,10 @@ sub bootmenu_default_params {
         }
 
     }
+    if (get_var('AGAMA_AUTO')) {
+        my $path = data_url(get_var('AGAMA_AUTO'));
+        set_var('EXTRABOOTPARAMS', "agama.auto=\"$path\"");
+    }
 
     if (!get_var("NICEVIDEO")) {
         if (is_microos || is_selfinstall) {

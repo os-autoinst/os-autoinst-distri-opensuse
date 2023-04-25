@@ -8,12 +8,13 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 
-use testapi;
-use utils;
+use testapi 'assert_screen';
+
 
 sub run {
-    my $path = data_url(get_var('AGAMA_AUTO'));
-    set_var('EXTRABOOTPARAMS', "agama.auto=\"$path\"");
+    assert_screen('agama-main-page', 120);
+    assert_screen('agama-installing', 60);
+    assert_screen('welcome-to', 960);
 }
 
 1;
