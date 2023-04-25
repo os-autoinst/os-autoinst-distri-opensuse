@@ -22,7 +22,7 @@ sub run {
 
     select_console 'root-console';
     # disable GRUB_TIMEOUT to avoid this module failed since grub menu timeout
-    change_grub_config('=.*', '=-1', 'GRUB_TIMEOUT', '', 1) if (is_aarch64);
+    change_grub_config('=.*', '=-1', 'GRUB_TIMEOUT', '', 1);
     power_action('reboot', keepconsole => 1, textmode => 1);
     reset_consoles;
     reconnect_mgmt_console if is_pvm;
