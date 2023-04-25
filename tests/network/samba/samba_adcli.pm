@@ -137,7 +137,7 @@ sub run {
     define_secret_variable("AD_DOMAIN_PASSWORD", $password);
 
     # Check for poo#126866
-    if (is_s390x && script_run("ping -c 2 $AD_hostname") != 0) {
+    if (is_s390x && script_run("ping -c 2 $AD_ip") != 0) {
         record_soft_failure("poo#126866 - Can't contact domain controller (infra issue)");
         return;
     }
