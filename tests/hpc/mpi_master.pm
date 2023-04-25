@@ -121,7 +121,7 @@ sub run ($self) {
                 record_soft_failure('bsc#1175679 Floating point exception should be fixed on mvapich2/2.3.4');
             }
         } else {
-            ##TODO: condider more rebust handling of various errors
+            ##TODO: consider more robust handling of various errors
             die("echo $return - not expected errorcode");
         }
     } else {
@@ -152,7 +152,7 @@ sub run ($self) {
                 record_soft_failure('bsc#1209130 MPI Benchmarks unable to run on 15SP1 with imb-gnu-mvapich2-hpc');
             }
         } else {
-            ##TODO: condider more rebust handling of various errors
+            ##TODO: consider more robust handling of various errors
             die("echo $return - not expected errorcode") unless $return == 0;
         }
     } else {
@@ -160,8 +160,8 @@ sub run ($self) {
         # Run IMB-MPI1 without args to run the whole set of testings. Mind the timeout if you do so
         assert_script_run("mpirun -np 4 /usr/lib/hpc/gnu7/$mpi/imb/$imb_version/bin/IMB-MPI1 PingPong");
     }
-    barrier_wait('IBM_TEST_DONE');
-    record_info 'IBM_TEST_DONE', strftime("\%H:\%M:\%S", localtime);
+    barrier_wait('IMB_TEST_DONE');
+    record_info 'IMB_TEST_DONE', strftime("\%H:\%M:\%S", localtime);
 }
 
 sub test_flags ($self) {
