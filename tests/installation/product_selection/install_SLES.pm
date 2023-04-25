@@ -12,7 +12,8 @@ use warnings;
 sub run {
     my $product_selection = $testapi::distri->get_product_selection();
 
-    $product_selection->wait_product_selection_page({timeout_scale => get_var('TIMEOUT_SCALE', 1), message => 'Product Selection page is not displayed'});
+    $product_selection->wait_for_product_selection_page({timeout_scale => get_var('TIMEOUT_SCALE', 1), message => 'Product Selection page is not displayed'});
+
     $product_selection->install_product('SLES');
 }
 
