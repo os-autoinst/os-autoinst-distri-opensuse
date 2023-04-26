@@ -17,8 +17,9 @@ use testapi;
 use utils qw(zypper_call script_retry file_content_replace validate_script_output_retry random_string);
 use Utils::Systemd qw(systemctl);
 use containers::utils 'registry_url';
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_microos);
 use registration qw(add_suseconnect_product get_addon_fullname);
+use transactional qw(trup_call check_reboot_changes);
 
 our @EXPORT = qw(install_k3s uninstall_k3s install_kubectl install_helm install_oc apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log);
 
@@ -31,6 +32,10 @@ sub install_k3s {
         assert_script_run('/usr/bin/k3s-install');
     }
     else {
+        if (is_microos()) {
+            trup_call('pkg install k3s-selinux');
+            check_reboot_changes;
+        }
         zypper_call('in apparmor-parser') if (is_sle('>=15-sp1'));
   # Apply additional options. For more information see https://rancher.com/docs/k3s/latest/en/installation/install-options/#options-for-installation-with-script
         my $k3s_version = get_var("CONTAINERS_K3S_VERSION");

@@ -15,7 +15,7 @@ use testapi;
 use utils qw(script_retry);
 use containers::utils qw(check_min_runtime_version);
 use serial_terminal 'select_serial_terminal';
-use version_utils qw(is_sle is_opensuse is_sle_micro);
+use version_utils qw(is_sle is_opensuse);
 use containers::k8s qw(install_k3s uninstall_k3s);
 
 sub run {
@@ -78,9 +78,7 @@ sub run {
         validate_script_output('podman pod ps', sub { !m/testing-pod/ });
         validate_script_output('podman ps', sub { !m/testing-pod-container/ });
 
-        # kube apply
-        # Temporary disabled on TW due to broken tests (See poo#128069 and poo#124601)
-        if (is_sle_micro("5.3+")) {
+        if (check_min_runtime_version('4.4.0')) {
             install_k3s();
             record_info('Test', 'kube apply');
             assert_script_run('podman kube apply --kubeconfig ~/.kube/config -f pod.yaml');
@@ -93,7 +91,7 @@ sub run {
 sub cleanup {
     my ($self) = @_;
     $self->{podman}->cleanup_system_host();
-    uninstall_k3s() if (is_sle_micro("5.3+"));    # prevent k3s from hogging too much memory and interfere with other test runs.
+    uninstall_k3s() if (check_min_runtime_version('4.4.0'));
 }
 
 sub post_run_hook {
