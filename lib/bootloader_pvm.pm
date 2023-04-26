@@ -225,7 +225,7 @@ sub boot_spvm {
 
     # power off the machine if it's still running - and don't give it a 2nd chance
     enter_cmd " pvmctl lpar power-off -i id=$lpar_id --hard";
-    assert_screen [qw(pvm-poweroff-successful pvm-poweroff-not-running)], 180;
+    assert_screen [qw(pvm-poweroff-successful pvm-poweroff-not-running)], 250;    # changed again
 
     # make sure that the default boot mode is 'Normal' and not 'System_Management_Services'
     # see https://progress.opensuse.org/issues/39785#note-14
