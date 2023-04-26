@@ -1,6 +1,6 @@
 ---
-name:           cryptlvm_minimal_x@64bit-staging
-description:    >
+name: cryptlvm_minimal_x@64bit-staging
+description: >
   Combination of "cryptlvm" and "minimal_x" for 64bit and staging.
   (crypt-)LVM installations can take longer,
   especially on non-x86_64 architectures.
@@ -20,9 +20,10 @@ schedule:
   - '{{access_beta_distribution}}'
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-  - installation/scc_registration
-  - installation/addon_products_sle
-  - installation/system_role
+  - installation/registration/register_via_scc
+  - installation/module_registration/register_module_desktop
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
   - installation/partitioning/select_guided_setup
   - installation/partitioning/guided_setup/encrypt_lvm_simple_pwd
   - installation/partitioning/guided_setup/accept_default_fs_options
@@ -32,10 +33,10 @@ schedule:
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/change_desktop
-  - installation/installation_overview
-  - installation/disable_grub_timeout
-  - installation/start_install
-  - installation/await_install
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
+  - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/grub_test

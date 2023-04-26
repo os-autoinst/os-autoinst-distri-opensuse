@@ -1,29 +1,38 @@
 ---
-name:           gnome@64bit-staging
-description:    >
+name: gnome@64bit-staging
+description: >
   The standard scenario where we mainly just follow installation
   suggestions without any adjustments as long as the default desktop is gnome.
 vars:
   MAX_JOB_TIME: 10800
+  DESKTOP: gnome
+  YUI_REST_API: 1
+conditional_schedule:
+  access_beta_distribution:
+    BETA:
+      1:
+        - installation/access_beta_distribution
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/scc_registration
-  - installation/addon_products_sle
-  - installation/system_role
-  - installation/partitioning
-  - installation/partitioning_finish
-  - installation/installer_timezone
-  - installation/user_settings
-  - installation/user_settings_root
+  - installation/setup_libyui
+  - '{{access_beta_distribution}}'
+  - installation/product_selection/install_SLES
+  - installation/licensing/accept_license
+  - installation/registration/register_via_scc
+  - installation/module_registration/register_module_desktop
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
-  - installation/installation_overview
-  - installation/disable_grub_timeout
-  - installation/start_install
-  - installation/await_install
+  - installation/launch_installation
+  - installation/confirm_installation
+  - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
-  - installation/reboot_after_installation
-  - installation/grub_test
+  - installation/performing_installation/confirm_reboot
+  - installation/handle_reboot
   - installation/first_boot
   - console/system_prepare
   - console/check_network
