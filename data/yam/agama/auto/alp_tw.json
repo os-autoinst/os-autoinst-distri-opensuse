@@ -1,0 +1,14 @@
+{
+   "software": {
+      "product": "Tumbleweed"
+   },
+   "user": {
+      "fullName": "Jane Doe",
+      "password": "doe",
+      "userName": "joe"
+   },
+   "root": {
+      "password": "nots3cr3t"
+   }
+}
+
