@@ -140,9 +140,9 @@ sub _cleanup {
     if (($self->{run_args} && $self->{run_args}->{my_provider}) || $self->{provider}) {
         diag('Public Cloud _cleanup: Ready for provider cleanup.');
         if (get_var('PUBLIC_CLOUD_QAM')) {
-            eval { $self->{run_args}->{my_provider}->cleanup($self->{run_args}); } or bmwqemu::fctwarn("provider::cleanup() failed -- $@");
+            eval { $self->{run_args}->{my_provider}->cleanup($self->{run_args}); } or bmwqemu::fctwarn("\$self->{run_args}->{my_provider}::cleanup() failed -- $@");
         } else {
-            eval { $self->{provider}->cleanup(); } or bmwqemu::fctwarn("provider::cleanup() failed -- $@");
+            eval { $self->{provider}->cleanup(); } or bmwqemu::fctwarn("\$self->provider::cleanup() failed -- $@");
         }
         diag('Public Cloud _cleanup: The provider cleanup finished.');
     } else {
