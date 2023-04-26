@@ -26,18 +26,19 @@ our @EXPORT = qw(self_sign_ca);
 sub self_sign_ca {
     my ($ca_dir, $cn_name) = @_;
 
-    assert_script_run("rm -rf $ca_dir");
-    assert_script_run("mkdir -p $ca_dir");
-    assert_script_run("cd $ca_dir");
-    assert_script_run(
-        "openssl req -new -x509 -newkey rsa:2048 -keyout myca.key -days 3560 -out myca.pem -nodes -subj \"/C=CN/ST=Beijing/L=Beij
-ing/O=QA/OU=security/CN=$cn_name.example.com\""
-    );
-    assert_script_run("openssl genrsa -out server.key 2048");
-    assert_script_run("openssl req -new -key server.key -out server.csr -subj \"/C=CN/ST=Beijing/L=Beijing/O=QA/OU=security/CN=$cn_name.example.com\"");
-    assert_script_run("openssl x509 -req -days 3560 -CA myca.pem -CAkey myca.key -CAcreateserial -in server.csr -out server.pem");
-    assert_script_run("openssl pkcs12 -export -inkey server.key -in server.pem -out crt.p12 -nodes -name Server-Cert -password pass:\"\"");
-    assert_script_run("openssl verify -verbose -CAfile myca.pem server.pem");
+    assert_script_run qq(rm -rf $ca_dir);
+    assert_script_run qq(mkdir -p $ca_dir);
+    assert_script_run qq(cd $ca_dir);
+    # generate CA keypair with keUsage extension. Note that CA's CN must differ from server CN
+    my $openssl_cmd = qq(openssl req -new -x509 -newkey rsa:2048 -keyout myca.key -days 3560 -out myca.pem -nodes) .
+      qq( -subj "/C=CN/ST=Beijing/L=Beijing/O=QA/OU=security/CN=$cn_name.ca.example.com") .
+      qq( -addext "keyUsage=digitalSignature,keyEncipherment,dataEncipherment,cRLSign,keyCertSign");    # poo128213
+    assert_script_run $openssl_cmd;
+    assert_script_run qq(openssl genrsa -out server.key 2048);
+    assert_script_run qq(openssl req -new -key server.key -out server.csr -subj "/C=CN/ST=Beijing/L=Beijing/O=QA/OU=security/CN=$cn_name.example.com");
+    assert_script_run qq(openssl x509 -req -days 3560 -CA myca.pem -CAkey myca.key -CAcreateserial -in server.csr -out server.pem);
+    assert_script_run qq(openssl pkcs12 -export -inkey server.key -in server.pem -out crt.p12 -nodes -name Server-Cert -password pass:"");
+    assert_script_run qq(openssl verify -verbose -CAfile myca.pem server.pem);
 }
 
 1;
