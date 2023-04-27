@@ -2,7 +2,7 @@ name: fips_crypt_web
 description:    >
     This is for the crypt_web fips tests.
 schedule:
-    - installation/bootloader_start
+    - '{{boot}}'
     - boot/boot_to_desktop
     - console/consoletest_setup
     - '{{repo_setup}}'
@@ -16,6 +16,12 @@ schedule:
     - console/apache_ssl
     - fips/mozilla_nss/apache_nssfips
 conditional_schedule:
+    boot:
+        ARCH:
+            s390x:
+                - installation/bootloader_start
+            ppc64le:
+                - installation/bootloader_start
     repo_setup:
         BETA:
             1:
