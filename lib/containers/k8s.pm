@@ -35,7 +35,7 @@ sub install_k3s {
   # Apply additional options. For more information see https://rancher.com/docs/k3s/latest/en/installation/install-options/#options-for-installation-with-script
         my $k3s_version = get_var("CONTAINERS_K3S_VERSION");
         if ($k3s_version) {
-            record_info('k3s', $k3s_version);
+            record_info('k3s forced version', $k3s_version);
             assert_script_run("export INSTALL_K3S_VERSION=$k3s_version");
         }
         assert_script_run("export INSTALL_K3S_SYMLINK=" . get_var('K3S_SYMLINK')) if (get_var('K3S_SYMLINK'));
@@ -63,8 +63,12 @@ sub install_k3s {
     script_run("rm -f ~/.kube/config");
     assert_script_run("ln -s /etc/rancher/k3s/k3s.yaml ~/.kube/config");
     sleep 60;
+    # Await k3s to be ready and exists the default service account
     script_retry("kubectl get serviceaccount default -o name", delay => 60, retry => 3);
-    record_info('k3s', "k3s installed");
+    # Await k3s to be ready and the api is accessible
+    script_retry("kubectl get pods --all-namespaces", delay => 60, retry => 3);
+    record_info('k3s', "k3s version " . script_output("k3s --version") . " installed");
+    record_info('kubectl version', script_output('kubectl version --short'));
 }
 
 =head2 uninstall_k3s

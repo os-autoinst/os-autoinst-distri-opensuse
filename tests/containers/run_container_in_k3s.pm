@@ -16,7 +16,7 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
 use publiccloud::utils;
-use containers::k8s qw(install_k3s apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log);
+use containers::k8s qw(install_k3s uninstall_k3s apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log);
 
 sub run {
     select_serial_terminal;
@@ -30,11 +30,30 @@ sub run {
 
     assert_script_run("curl -O " . data_url("containers/k8s_job_manifest.yaml"));
     file_content_replace("k8s_job_manifest.yaml", JOB_NAME => $job_name, IMAGE => $image, CMD => $cmd);
-    assert_script_run("kubectl apply -f k8s_job_manifest.yaml", timeout => 300);
+    assert_script_run("kubectl apply -f k8s_job_manifest.yaml", timeout => 600);
     wait_for_k8s_job_complete($job_name);
     my $pod = find_pods("job-name=$job_name");
     validate_pod_log($pod, "SUSE Linux Enterprise Server");
     record_info('cmd', "Command `$cmd` successfully executed in the image.");
 }
+
+sub cleanup {
+    my ($self) = @_;
+    uninstall_k3s();
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    record_info('K3s nodes', script_output('kubectl get nodes'));
+    record_info('K3s pods', script_output('kubectl get pods --all-namespaces'));
+    script_run('journalctl -u k3s --no-pager');
+    $self->cleanup();
+}
+
+sub post_run_hook {
+    my ($self) = @_;
+    $self->cleanup();
+}
+
 
 1;
