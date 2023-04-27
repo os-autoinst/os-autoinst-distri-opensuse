@@ -378,7 +378,7 @@ sub wait_for_ssh {
         sleep $sleep_period;
     }
 
-    script_run("ssh  -i /root/.ssh/id_rsa -v $args{username}\@$args{public_ip} true", timeout => 360);
+    script_run("ssh  -i /root/.ssh/id_rsa $args{username}\@$args{public_ip} true", timeout => 360);
     # Debug output: We have occasional error in 'journalctl -b' - see poo#96464 - this will be removed soon.
     # Exclude 'mr_test/saptune' test case as it will introduce random softreboot failures.
     if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
