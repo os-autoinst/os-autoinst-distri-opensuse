@@ -3,7 +3,7 @@ name: migration_offline_sap
 description: >
   SAP offline migration with netweaver
 vars:
-  NW: 'nfs://1c119.qa.suse.de/srv/nfs/sap/NW75_CLUSTER'
+  NW: 'nfs://10.162.31.119/srv/nfs/sap/NW75_CLUSTER'
   INSTANCE_ID: '00'
   INSTANCE_SID: 'QAD'
   INSTANCE_TYPE: 'ASCS'
