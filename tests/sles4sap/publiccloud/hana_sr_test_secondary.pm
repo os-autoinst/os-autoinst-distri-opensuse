@@ -17,6 +17,7 @@ sub run {
     $self->{instances} = $run_args->{instances};
     my $hana_start_timeout = bmwqemu::scale_timeout(600);
     # $site_b = $instance of secondary instance located in $run_args->{$instances}
+    croak("site_b is missing or undefined in run_args") if (!$run_args->{site_b});
     my $site_b = $run_args->{site_b};
     select_serial_terminal;
 
@@ -35,7 +36,7 @@ sub run {
 
     if ($db_action eq "crash") {
         # Setup sbd delay in case of crash OS to prevent cluster starting too quickly after reboot.
-        $self->setup_sbd_delay("30s") if $db_action eq "crash";
+        $self->setup_sbd_delay("30s");
         record_info("Crash DB", "Crashing OS on Site B ('$site_b->{instance_id}')");
     }
     else {

@@ -18,7 +18,7 @@ terraform:
     deployment_name: '%PUBLIC_CLOUD_RESOURCE_GROUP%'
     public_key: '~/.ssh/id_rsa.pub'
     private_key: '~/.ssh/id_rsa'
-    os_image: "%QESAP_CLUSTER_OS_VER%"
+    os_image: "%PUBLIC_CLOUD_IMAGE_ID%"
     hana_os_major_version: '%HANA_OS_MAJOR_VERSION%'
 
     # HANA

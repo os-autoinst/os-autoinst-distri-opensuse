@@ -10,6 +10,7 @@ use strict;
 use warnings FATAL => 'all';
 use testapi;
 use publiccloud::utils;
+use utils qw(zypper_call);
 use sles4sap_publiccloud;
 use Data::Dumper;
 use serial_terminal 'select_serial_terminal';
@@ -33,6 +34,8 @@ sub run {
     $self->{my_instance} = $target_site;
 
     # Check initial cluster status
+    $self->run_cmd(cmd => 'zypper -n in ClusterTools2');
+    $self->run_cmd(cmd => 'cs_wait_for_idle --sleep 5');
     my $cluster_status = $self->run_cmd(cmd => "crm status");
     record_info("Cluster status", $cluster_status);
     die(uc($site_name) . " '$target_site->{instance_id}' is NOT in MASTER mode.") if
