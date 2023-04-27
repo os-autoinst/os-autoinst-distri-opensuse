@@ -607,7 +607,7 @@ sub start_clean_firefox {
     }
 
     # get rid of the reader & tracking pop-up once, first test should have milestone flag
-    $self->firefox_open_url('eu.httpbin.org/html');
+    $self->firefox_open_url('eu.httpbin.org/html', assert_loaded_url => 'firefox-urls_protocols-http');
     wait_still_screen(3);
     if (check_screen 'firefox_readerview_window') {
         wait_still_screen(3);
@@ -709,7 +709,7 @@ sub firefox_check_popups {
 }
 
 sub firefox_open_url {
-    my ($self, $url) = @_;
+    my ($self, $url, %args) = @_;
     my $counter = 1;
     while (1) {
         # make sure firefox window is focused
@@ -726,7 +726,16 @@ sub firefox_open_url {
         }
     }
     enter_cmd_slow "$url";
-    assert_screen 'firefox-url-loaded', 180;
+    wait_still_screen 2;
+    while ($counter++ < 5) {
+        check_screen 'firefox-url-loaded', 90;
+        if (defined $args{assert_loaded_url} && !check_screen($args{assert_loaded_url})) {
+            record_info 'retry', "Needle $args{assert_loaded_url} didn't match";
+            send_key 'f5';
+            next;
+        }
+        last;
+    }
 }
 
 sub firefox_preferences {
@@ -1109,8 +1118,7 @@ sub firefox_print2file_overview {
     }
     send_key "alt-f4";
     $self->start_firefox_with_profile;
-    $self->firefox_open_url("/home/$username/ffprint/$file");
-    assert_screen("firefox-print-$file-display");
+    $self->firefox_open_url("/home/$username/ffprint/$file", assert_loaded_url => "firefox-print-$file-display");
     send_key "ctrl-p";
     assert_and_click("firefox-print-$file-overview");
 }
