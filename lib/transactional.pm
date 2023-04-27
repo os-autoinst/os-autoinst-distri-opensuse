@@ -165,16 +165,16 @@ sub rpmver {
 
     # rpm version & release numbers
     my %rpm = (
-        obs => {v => '5', r => '2.1'},
+        obs => {v => '5.1', r => '1.20'},
         ibs => {v => '5', r => '2.29'},
     );
 
     if ($arch eq 'aarch64') {
-        $rpm{obs} = {v => '5', r => '4.3'};
+        $rpm{obs} = {v => '5.1', r => '1.16'};
     }
 
     if ($arch eq 'ppc64le') {
-        $rpm{obs} = {v => '5.1', r => '1.1'};
+        $rpm{obs} = {v => '5.1', r => '1.15'};
     }
 
     my $vr = "$rpm{$iobs}{v}-$rpm{$iobs}{r}";
