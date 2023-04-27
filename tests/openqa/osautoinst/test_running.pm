@@ -12,7 +12,7 @@ use base "consoletest";
 use testapi;
 
 sub run {
-    assert_script_run ' ret=false; for i in {1..5} ; do openqa-client jobs state=running | grep --color -z running && ret=true && break ; sleep 30 ; done ; [ "$ret" = "true" ] ; echo $? ', 300;
+    assert_script_run ' ret=false; for i in {1..5} ; do openqa-cli api jobs state=running | grep --color -z running && ret=true && break ; sleep 30 ; done ; [ "$ret" = "true" ] ; echo $? ', 300;
 }
 
 sub post_fail_hook {

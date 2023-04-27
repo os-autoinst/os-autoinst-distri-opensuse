@@ -15,10 +15,10 @@ use testapi;
 my $tutorial_disabled;
 
 sub upload_autoinst_log {
-    assert_script_run 'openqa-client jobs/1/cancel post';
+    assert_script_run 'openqa-cli api -X post jobs/1/cancel';
     for my $i (1 .. 10) {
         # wait for test to finish and upload
-        last if (script_run('openqa-client jobs/1 | grep state | grep done', 40) == 0);
+        last if (script_run('openqa-cli api jobs/1 | grep state | grep done', 40) == 0);
         sleep 5;
     }
     if (script_run('wget http://localhost/tests/1/file/autoinst-log.txt') != 0) {
