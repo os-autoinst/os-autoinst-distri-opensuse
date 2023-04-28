@@ -93,6 +93,9 @@ sub run {
     # Call the zypper module properly (depends on version)
     file_content_replace('roles/test/tasks/main.yaml', COMMUNITYGENERAL => ((is_tumbleweed) ? 'community.general.' : ''));
 
+    # https://bugzilla.suse.com/show_bug.cgi?id=1210875 Package ansible-test requires Python2.7
+    script_run('echo "[defaults]\ninterpreter_python = /usr/bin/python3" | tee ansible.cfg') if (is_sle('<15-SP5'));
+
     # 2. Ansible basics
 
     # Check Ansible version
