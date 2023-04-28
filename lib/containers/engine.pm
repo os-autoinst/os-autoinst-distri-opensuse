@@ -238,7 +238,7 @@ Otherwise it prints the output of info.
 =cut
 
 sub info {
-    my ($self, %args) = shift;
+    my ($self, %args) = @_;
     my $property = $args{property} ? qq(--format '{{.$args{property}}}') : '';
     my $expected = $args{value} ? qq( | grep $args{value}) : '';
     $self->_engine_assert_script_run(sprintf("info %s %s", $property, $expected));

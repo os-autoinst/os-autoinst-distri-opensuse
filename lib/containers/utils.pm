@@ -42,9 +42,12 @@ sub test_seccomp {
 }
 
 sub get_docker_version {
-    my $v = script_output("docker --version");
-    record_info "$v", $v =~ /(\d{2}\.\d{2})/;
-    return $v =~ /(\d{2}\.\d{2})/;
+    my $raw = script_output("docker --version");
+    my ($v, undef) = split(',', $raw);
+    my @all = $v =~ /(\d+)/g;
+    $v = join('.', @all);
+    record_info "Docker version", "$v";
+    return $v;
 }
 
 sub get_podman_version {
