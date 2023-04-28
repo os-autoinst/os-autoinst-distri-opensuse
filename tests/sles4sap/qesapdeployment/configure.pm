@@ -52,6 +52,7 @@ sub run {
     $variables{HANA_CLIENT_SAR} = get_required_var("QESAPDEPLOY_IMDB_CLIENT");
     $variables{HANA_SAPCAR} = get_required_var("QESAPDEPLOY_IMDB_SERVER");
     $variables{ANSIBLE_REMOTE_PYTHON} = get_var("QESAPDEPLOY_ANSIBLE_REMOTE_PYTHON", "/usr/bin/python3");
+    $variables{HANA_DATA_DISK_TYPE} = get_var("QESAPDEPLOY_HANA_DATA_DISK_TYPE", "pd-ssd");
     qesap_prepare_env(openqa_variables => \%variables, provider => $qesap_provider);
 }
 
