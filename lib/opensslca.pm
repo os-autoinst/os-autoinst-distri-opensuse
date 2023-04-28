@@ -18,6 +18,8 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_sle);
+
 
 our @EXPORT = qw(self_sign_ca);
 
@@ -31,8 +33,9 @@ sub self_sign_ca {
     assert_script_run qq(cd $ca_dir);
     # generate CA keypair with keUsage extension. Note that CA's CN must differ from server CN
     my $openssl_cmd = qq(openssl req -new -x509 -newkey rsa:2048 -keyout myca.key -days 3560 -out myca.pem -nodes) .
-      qq( -subj "/C=CN/ST=Beijing/L=Beijing/O=QA/OU=security/CN=$cn_name.ca.example.com") .
-      qq( -addext "keyUsage=digitalSignature,keyEncipherment,dataEncipherment,cRLSign,keyCertSign");    # poo128213
+      qq( -subj "/C=CN/ST=Beijing/L=Beijing/O=QA/OU=security/CN=$cn_name.ca.example.com");
+    # poo128213, poo128396 add keyUsage attribute only on distro with openssl 1.1.1+
+    $openssl_cmd .= qq( -addext "keyUsage=digitalSignature,keyEncipherment,dataEncipherment,cRLSign,keyCertSign") unless is_sle("<=15-SP1");
     assert_script_run $openssl_cmd;
     assert_script_run qq(openssl genrsa -out server.key 2048);
     assert_script_run qq(openssl req -new -key server.key -out server.csr -subj "/C=CN/ST=Beijing/L=Beijing/O=QA/OU=security/CN=$cn_name.example.com");
