@@ -28,7 +28,8 @@ use transactional qw(trup_call check_reboot_changes);
 my $pkgs = 'ansible git-core';
 $pkgs .= ' python3-yamllint' unless is_alp;
 # https://bugzilla.suse.com/show_bug.cgi?id=1210876 Nothing provides 'python3-virtualenv'
-$pkgs .= ' ansible-test' unless is_sle('=15-SP5');
+# https://bugzilla.suse.com/show_bug.cgi?id=1210875 Package ansible-test requires Python2.7
+$pkgs .= ' ansible-test' unless is_sle;
 
 sub run {
     select_serial_terminal;
@@ -93,9 +94,6 @@ sub run {
     # Call the zypper module properly (depends on version)
     file_content_replace('roles/test/tasks/main.yaml', COMMUNITYGENERAL => ((is_tumbleweed) ? 'community.general.' : ''));
 
-    # https://bugzilla.suse.com/show_bug.cgi?id=1210875 Package ansible-test requires Python2.7
-    script_run('echo "[defaults]\ninterpreter_python = /usr/bin/python3" | tee ansible.cfg') if (is_sle('<15-SP5'));
-
     # 2. Ansible basics
 
     # Check Ansible version
@@ -137,7 +135,7 @@ sub run {
     assert_script_run "ansible-playbook -i hosts main.yaml --check $skip_tags", timeout => 300;
 
     # Run the ansible sanity test
-    unless (is_sle('=15-SP5')) {
+    unless (is_sle) {
         script_run 'ansible-test --help';
         assert_script_run 'ansible-test sanity';
     }
