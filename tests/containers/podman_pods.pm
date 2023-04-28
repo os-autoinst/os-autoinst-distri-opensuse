@@ -15,7 +15,7 @@ use testapi;
 use utils qw(script_retry);
 use containers::utils qw(check_min_runtime_version);
 use serial_terminal 'select_serial_terminal';
-use version_utils qw(is_sle is_opensuse);
+use version_utils qw(is_sle is_opensuse is_staging);
 use containers::k8s qw(install_k3s uninstall_k3s);
 
 sub run {
@@ -78,7 +78,8 @@ sub run {
         validate_script_output('podman pod ps', sub { !m/testing-pod/ });
         validate_script_output('podman ps', sub { !m/testing-pod-container/ });
 
-        if (check_min_runtime_version('4.4.0')) {
+        # Staging does not have access to repositories, only to DVD
+        if (check_min_runtime_version('4.4.0') && !is_staging) {
             install_k3s();
             record_info('Test', 'kube apply');
             assert_script_run('podman kube apply --kubeconfig ~/.kube/config -f pod.yaml');
@@ -91,7 +92,8 @@ sub run {
 sub cleanup {
     my ($self) = @_;
     $self->{podman}->cleanup_system_host();
-    uninstall_k3s() if (check_min_runtime_version('4.4.0'));
+    # Staging does not have access to repositories, only to DVD
+    uninstall_k3s() if (check_min_runtime_version('4.4.0') && !is_staging);
 }
 
 sub post_run_hook {
