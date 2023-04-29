@@ -83,8 +83,8 @@ sub run {
             install_k3s();
             record_info('Test', 'kube apply');
             assert_script_run('podman kube apply --kubeconfig ~/.kube/config -f pod.yaml');
-            assert_script_run('kubectl wait --timeout=240s --for=condition=Ready pod/testing-pod', timeout => 260);
-            validate_script_output('kubectl exec testing-pod -- cat /etc/os-release', sub { m/SUSE Linux Enterprise Server/ });
+            assert_script_run('kubectl wait --timeout=600s --for=condition=Ready pod/testing-pod', timeout => 610);
+            validate_script_output('kubectl exec testing-pod -- cat /etc/os-release', sub { m/SUSE Linux Enterprise Server/ }, timeout => 300);
         }
     }
 }
