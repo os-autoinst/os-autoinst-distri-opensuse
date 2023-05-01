@@ -17,7 +17,7 @@ use testapi;
 use utils qw(zypper_call script_retry file_content_replace validate_script_output_retry random_string);
 use Utils::Systemd qw(systemctl);
 use containers::utils 'registry_url';
-use version_utils qw(is_sle is_microos);
+use version_utils qw(is_sle is_microos is_public_cloud);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use transactional qw(trup_call check_reboot_changes);
 
@@ -46,6 +46,9 @@ sub install_k3s {
         assert_script_run("export INSTALL_K3S_SYMLINK=" . get_var('K3S_SYMLINK')) if (get_var('K3S_SYMLINK'));
         assert_script_run("export INSTALL_K3S_BIN_DIR=" . get_var('K3S_BIN_DIR')) if (get_var('K3S_BIN_DIR'));
         assert_script_run("export INSTALL_K3S_CHANNEL=" . get_var('K3S_CHANNEL')) if (get_var('K3S_CHANNEL'));
+        # k3s doesn't like long hostnames like the ones being used in publiccloud
+        assert_script_run("export K3S_NODE_NAME=k3s-node") if (is_public_cloud);
+
         # github.com/k3s-io/k3s#5946 - The kubectl delete namespace helm-ns-413 command freezes and does nothing
         # Note: The install script starts a k3s-server by default, unless INSTALL_K3S_SKIP_START is set to true
         assert_script_run("curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true sh -s - --disable=metrics-server", timeout => 180);
