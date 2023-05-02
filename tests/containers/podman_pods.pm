@@ -19,6 +19,43 @@ use version_utils qw(is_sle is_opensuse is_staging);
 use containers::k8s qw(install_k3s uninstall_k3s);
 use Utils::Architectures qw(is_ppc64le);
 
+sub check_container_nspid {
+    # expect set hostpid
+    my $hostpid = shift;
+    my $config = 'hello-kubic.yaml';
+    my @errors = ();
+
+    record_info('NSPid', sprintf('Expect HostPid == %s', !!$hostpid ? 'True' : 'False'));
+
+    if ($hostpid) {
+        assert_script_run(qq[sed -i '/containers:/i\\      hostPID: true' $config]);
+    }
+
+    assert_script_run("podman play kube --replace $config");
+    my $pod = script_output(q[podman pod ps --format '{{ .Name }}']);
+    my $container = script_output(q[podman container ps --filter name=.*pod.* --format '{{ .Names }}']);
+    my $pid_on_host = script_output(qq[podman container inspect $container --format '{{ .State.Pid }}']);
+
+    my @pids = split(/\s+/, script_output("grep NSpid: /proc/$pid_on_host/status"));
+    shift @pids;
+    record_info('Detected', sprintf("%s", join(", ", @pids)));
+
+    my $pid_mode = script_output(qq[podman inspect $container --format '{{ .HostConfig.PidMode }}']);
+    if ($hostpid && $pid_mode ne 'host') {
+        push @errors, "HostConfig.PidMode should show 'host' when option 'hostPid: true' was used in the manifest file. Currently HostConfig.PidMore returns $pid_mode";
+    }
+
+    foreach (@pids) {
+        if ($_ == 1 && $hostpid) {
+            push @errors, "HostPid was set and PID=1 was found!";
+        }
+    }
+
+    if (@errors) {
+        die join("\n", @errors);
+    }
+}
+
 sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
@@ -88,6 +125,11 @@ sub run {
             assert_script_run('kubectl wait --timeout=600s --for=condition=Ready pod/testing-pod', timeout => 610);
             validate_script_output('kubectl exec testing-pod -- cat /etc/os-release', sub { m/SUSE Linux Enterprise Server/ }, timeout => 300);
         }
+    }
+
+    if (check_min_runtime_version('4.4.4')) {
+        check_container_nspid();
+        check_container_nspid(1);
     }
 }
 
