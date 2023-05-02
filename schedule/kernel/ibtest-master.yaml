@@ -7,8 +7,6 @@ vars:
     IBTESTS: 1
     IBTEST_GITBRANCH: master
     IBTEST_GITTREE: https://github.com/SUSE/hpc-testing.git
-    IBTEST_IP1: 10.162.2.93
-    IBTEST_IP2: 10.162.2.94
     IBTEST_ROLE: IBTEST_MASTER
     IPXE: 1
     IPXE_HTTPSERVER: http://baremetal-support.qa.suse.de:8080
