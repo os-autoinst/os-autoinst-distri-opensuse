@@ -23,6 +23,11 @@ sub parse_incident_repo {
     my @repos = split(",", $repo);
     my @repo_names;
     my $packname;
+    my %ulp_tools = (
+        libpulp0 => 1,
+        'libpulp-tools' => 1,
+        'libpulp-load-default' => 1
+    );
 
     while ((my ($i, $url)) = (each(@repos))) {
         push @repo_names, "ULP_$i";
@@ -36,7 +41,7 @@ sub parse_incident_repo {
         record_info('Livepatch tests', "Incident $incident_id contains userspace livepatches.");
         $packname = 'glibc-livepatches';
     }
-    elsif (grep { $$_{name} eq 'libpulp0' || $$_{name} eq 'libpulp-tools' } @$packlist) {
+    elsif (grep { exists($ulp_tools{$$_{name}}) } @$packlist) {
         record_info('Tools tests', "Incident $incident_id contains livepatching tools.");
 
         my $patches = get_patches($incident_id, $repo);
@@ -63,7 +68,7 @@ sub setup_ulp {
     my $repo_args = '';
 
     install_klp_product;
-    zypper_call('in libpulp0 libpulp-tools');
+    zypper_call('in libpulp0 libpulp-tools libpulp-load-default');
 
     if (get_var('INCIDENT_REPO')) {
         my $repo_data = parse_incident_repo();
