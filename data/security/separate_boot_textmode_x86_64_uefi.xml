@@ -1,0 +1,419 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <bootloader t="map">
+    <global t="map">
+      <cpu_mitigations>auto</cpu_mitigations>
+      <gfxmode>auto</gfxmode>
+      <hiddenmenu>false</hiddenmenu>
+      <os_prober>false</os_prober>
+      <secure_boot>true</secure_boot>
+      <terminal>gfxterm</terminal>
+      <timeout t="integer">-1</timeout>
+      <trusted_grub>false</trusted_grub>
+      <update_nvram>true</update_nvram>
+      <append>boot=/dev/vda2</append>
+    </global>
+    <loader_type>grub2-efi</loader_type>
+  </bootloader>
+  <firewall t="map">
+    <default_zone>public</default_zone>
+    <enable_firewall t="boolean">true</enable_firewall>
+    <log_denied_packets>off</log_denied_packets>
+    <start_firewall t="boolean">true</start_firewall>
+    <zones t="list">
+      <zone t="map">
+        <description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>
+        <interfaces t="list">
+          <interface>eth0</interface>
+        </interfaces>
+        <masquerade t="boolean">false</masquerade>
+        <name>public</name>
+        <ports t="list"/>
+        <protocols t="list"/>
+        <services t="list">
+          <service>dhcpv6-client</service>
+        </services>
+        <short>Public</short>
+        <target>default</target>
+      </zone>
+    </zones>
+  </firewall>
+  <general t="map">
+    <mode t="map">
+      <confirm t="boolean">false</confirm>
+    </mode>
+  </general>
+  <groups t="list">
+    <group t="map">
+      <gid>100</gid>
+      <groupname>users</groupname>
+      <userlist/>
+    </group>
+  </groups>
+  <host t="map">
+    <hosts t="list">
+      <hosts_entry t="map">
+        <host_address>127.0.0.1</host_address>
+        <names t="list">
+          <name>localhost</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry t="map">
+        <host_address>::1</host_address>
+        <names t="list">
+          <name>localhost ipv6-localhost ipv6-loopback</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry t="map">
+        <host_address>fe00::0</host_address>
+        <names t="list">
+          <name>ipv6-localnet</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry t="map">
+        <host_address>ff00::0</host_address>
+        <names t="list">
+          <name>ipv6-mcastprefix</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry t="map">
+        <host_address>ff02::1</host_address>
+        <names t="list">
+          <name>ipv6-allnodes</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry t="map">
+        <host_address>ff02::2</host_address>
+        <names t="list">
+          <name>ipv6-allrouters</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry t="map">
+        <host_address>ff02::3</host_address>
+        <names t="list">
+          <name>ipv6-allhosts</name>
+        </names>
+      </hosts_entry>
+    </hosts>
+  </host>
+  <networking t="map">
+    <dhcp_options t="map">
+      <dhclient_client_id/>
+      <dhclient_hostname_option>AUTO</dhclient_hostname_option>
+    </dhcp_options>
+    <dns t="map">
+      <dhcp_hostname t="boolean">true</dhcp_hostname>
+      <hostname>localhost</hostname>
+      <resolv_conf_policy>auto</resolv_conf_policy>
+    </dns>
+    <interfaces t="list">
+      <interface t="map">
+        <bootproto>dhcp</bootproto>
+        <name>eth0</name>
+        <startmode>auto</startmode>
+        <zone>public</zone>
+      </interface>
+    </interfaces>
+    <ipv6 t="boolean">true</ipv6>
+    <keep_install_network t="boolean">true</keep_install_network>
+    <managed t="boolean">false</managed>
+    <net-udev t="list">
+      <rule t="map">
+        <name>eth0</name>
+        <rule>KERNELS</rule>
+        <value>0000:00:04.0</value>
+      </rule>
+    </net-udev>
+    <routing t="map">
+      <ipv4_forward t="boolean">false</ipv4_forward>
+      <ipv6_forward t="boolean">false</ipv6_forward>
+    </routing>
+  </networking>
+  <nis t="map">
+    <netconfig_policy>auto</netconfig_policy>
+    <nis_broadcast t="boolean">false</nis_broadcast>
+    <nis_broken_server t="boolean">false</nis_broken_server>
+    <nis_domain/>
+    <nis_local_only t="boolean">false</nis_local_only>
+    <nis_options/>
+    <nis_other_domains t="list"/>
+    <nis_servers t="list"/>
+    <slp_domain t="map"/>
+    <start_autofs t="boolean">false</start_autofs>
+    <start_nis t="boolean">false</start_nis>
+  </nis>
+  <ntp-client t="map">
+    <ntp_policy>auto</ntp_policy>
+    <ntp_servers t="list"/>
+    <ntp_sync>manual</ntp_sync>
+  </ntp-client>
+  <partitioning t="list">
+    <drive t="map">
+      <device>/dev/vda</device>
+      <disklabel>gpt</disklabel>
+      <enable_snapshots t="boolean">true</enable_snapshots>
+      <partitions t="list">
+        <partition t="map">
+          <create t="boolean">true</create>
+          <filesystem t="symbol">vfat</filesystem>
+          <format t="boolean">true</format>
+          <fstopt>utf8</fstopt>
+          <mount>/boot/efi</mount>
+          <mountby t="symbol">uuid</mountby>
+          <partition_id t="integer">259</partition_id>
+          <partition_nr t="integer">1</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>536870912</size>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <create_subvolumes t="boolean">false</create_subvolumes>
+          <filesystem t="symbol">btrfs</filesystem>
+          <format t="boolean">true</format>
+          <mount>/boot</mount>
+          <mountby t="symbol">uuid</mountby>
+          <partition_id t="integer">131</partition_id>
+          <partition_nr t="integer">2</partition_nr>
+          <quotas t="boolean">false</quotas>
+          <resize t="boolean">false</resize>
+          <size>1073741824</size>
+          <subvolumes t="list"/>
+          <subvolumes_prefix/>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <create_subvolumes t="boolean">true</create_subvolumes>
+          <filesystem t="symbol">btrfs</filesystem>
+          <format t="boolean">true</format>
+          <mount>/</mount>
+          <mountby t="symbol">uuid</mountby>
+          <partition_id t="integer">131</partition_id>
+          <partition_nr t="integer">3</partition_nr>
+          <quotas t="boolean">false</quotas>
+          <resize t="boolean">false</resize>
+          <size>38106300416</size>
+          <subvolumes t="list">
+            <subvolume t="map">
+              <copy_on_write t="boolean">false</copy_on_write>
+              <path>var</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>usr/local</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>tmp</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>srv</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>root</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>opt</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>home</path>
+            </subvolume>
+          </subvolumes>
+          <subvolumes_prefix>@</subvolumes_prefix>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <filesystem t="symbol">swap</filesystem>
+          <format t="boolean">true</format>
+          <mount>swap</mount>
+          <mountby t="symbol">uuid</mountby>
+          <partition_id t="integer">130</partition_id>
+          <partition_nr t="integer">4</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>3221225472</size>
+        </partition>
+      </partitions>
+      <type t="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <proxy t="map">
+    <enabled t="boolean">false</enabled>
+  </proxy>
+  <security t="map">
+    <console_shutdown>reboot</console_shutdown>
+    <cracklib_dict_path>/usr/lib/cracklib_dict</cracklib_dict_path>
+    <disable_restart_on_update>no</disable_restart_on_update>
+    <disable_stop_on_removal>no</disable_stop_on_removal>
+    <extra_services>insecure</extra_services>
+    <fail_delay>3</fail_delay>
+    <gid_max>60000</gid_max>
+    <gid_min>1000</gid_min>
+    <hibernate_system>active_console</hibernate_system>
+    <kernel.sysrq>184</kernel.sysrq>
+    <lsm_select>apparmor</lsm_select>
+    <mandatory_services>secure</mandatory_services>
+    <net.ipv4.ip_forward>0</net.ipv4.ip_forward>
+    <net.ipv4.tcp_syncookies>0</net.ipv4.tcp_syncookies>
+    <net.ipv6.conf.all.forwarding>0</net.ipv6.conf.all.forwarding>
+    <pass_max_days>99999</pass_max_days>
+    <pass_min_days>0</pass_min_days>
+    <pass_min_len>5</pass_min_len>
+    <pass_warn_age>7</pass_warn_age>
+    <passwd_encryption>sha512</passwd_encryption>
+    <passwd_remember_history>0</passwd_remember_history>
+    <passwd_use_cracklib>yes</passwd_use_cracklib>
+    <permission_security>easy</permission_security>
+    <run_updatedb_as/>
+    <smtpd_listen_remote>no</smtpd_listen_remote>
+    <sys_gid_max>499</sys_gid_max>
+    <sys_gid_min>100</sys_gid_min>
+    <sys_uid_max>499</sys_uid_max>
+    <sys_uid_min>100</sys_uid_min>
+    <syslog_on_no_error>no</syslog_on_no_error>
+    <uid_max>60000</uid_max>
+    <uid_min>1000</uid_min>
+    <useradd_cmd>/usr/sbin/useradd.local</useradd_cmd>
+    <userdel_postcmd>/usr/sbin/userdel-post.local</userdel_postcmd>
+    <userdel_precmd>/usr/sbin/userdel-pre.local</userdel_precmd>
+  </security>
+  <services-manager t="map">
+    <default_target>multi-user</default_target>
+    <services t="map">
+      <enable t="list">
+        <service>bluetooth</service>
+        <service>firewalld</service>
+        <service>wickedd-auto4</service>
+        <service>wickedd-dhcp4</service>
+        <service>wickedd-dhcp6</service>
+        <service>wickedd-nanny</service>
+        <service>wicked</service>
+        <service>sshd</service>
+        <service>systemd-remount-fs</service>
+      </enable>
+    </services>
+  </services-manager>
+  <software t="map">
+    <install_recommended t="boolean">true</install_recommended>
+    <instsource/>
+    <packages t="list">
+      <package>wicked</package>
+      <package>snapper</package>
+      <package>sle-module-server-applications-release</package>
+      <package>sle-module-basesystem-release</package>
+      <package>shim</package>
+      <package>openssh</package>
+      <package>mokutil</package>
+      <package>kexec-tools</package>
+      <package>grub2-x86_64-efi</package>
+      <package>glibc</package>
+      <package>firewalld</package>
+      <package>e2fsprogs</package>
+      <package>dosfstools</package>
+      <package>btrfsprogs</package>
+      <package>autoyast2</package>
+    </packages>
+    <patterns t="list">
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>basic_desktop</pattern>
+      <pattern>enhanced_base</pattern>
+      <pattern>minimal_base</pattern>
+      <pattern>fips</pattern>
+      <pattern>x11</pattern>
+      <pattern>x11_yast</pattern>
+      <pattern>yast2_basis</pattern>
+    </patterns>
+    <products t="list">
+      <product>SLES</product>
+    </products>
+  </software>
+  <ssh_import t="map">
+    <copy_config t="boolean">false</copy_config>
+    <import t="boolean">false</import>
+  </ssh_import>
+  <suse_register t="map">
+    <addons t="list">
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-server-applications</name>
+        <reg_code/>
+        <release_type>nil</release_type>
+        <version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-basesystem</name>
+        <reg_code/>
+        <release_type>nil</release_type>
+        <version>{{VERSION}}</version>
+      </addon>
+    </addons>
+    <do_registration t="boolean">true</do_registration>
+    <email/>
+    <install_updates t="boolean">true</install_updates>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <reg_server>{{SCC_URL}}</reg_server>
+    <slp_discovery t="boolean">false</slp_discovery>
+  </suse_register>
+  <tftp-server t="map">
+    <start_tftpd t="boolean">false</start_tftpd>
+  </tftp-server>
+  <timezone t="map">
+    <timezone>America/New_York</timezone>
+  </timezone>
+  <user_defaults t="map">
+    <expire/>
+    <group>100</group>
+    <home>/home</home>
+    <inactive>-1</inactive>
+    <shell>/bin/bash</shell>
+    <umask>022</umask>
+  </user_defaults>
+  <users t="list">
+    <user t="map">
+      <authorized_keys t="list"/>
+      <encrypted t="boolean">true</encrypted>
+      <fullname>bernhard</fullname>
+      <gid>100</gid>
+      <home>/home/bernhard</home>
+      <home_btrfs_subvolume t="boolean">false</home_btrfs_subvolume>
+      <password_settings t="map">
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>1000</uid>
+      <user_password>$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/</user_password>
+      <username>bernhard</username>
+    </user>
+    <user t="map">
+      <authorized_keys t="list"/>
+      <encrypted t="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <home_btrfs_subvolume t="boolean">false</home_btrfs_subvolume>
+      <password_settings t="map">
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$6$gdDHoMtVLjs4CCzf$2tSvAdgvqrKo84pA59bEjZRh7IGMfv4u0Yl4hrRzPgFPWLd8RXWdn/boT7yM3K3BlTk57qyR0TZ/nMb9rlpzx1</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>
