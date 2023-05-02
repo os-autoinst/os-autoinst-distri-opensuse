@@ -71,7 +71,11 @@ sub install_k3s {
     # Await k3s to be ready and exists the default service account
     script_retry("kubectl get serviceaccount default -o name", delay => 60, retry => 3);
     # Await k3s to be ready and the api is accessible
+    script_retry("kubectl get namespaces", delay => 60, retry => 3);
     script_retry("kubectl get pods --all-namespaces", delay => 60, retry => 3);
+    record_info("k3s api resources", script_output("kubectl api-resources"));
+    assert_script_run("kubectl auth can-i 'create' 'pods'");
+    assert_script_run("kubectl auth can-i 'create' 'deployments'");
     record_info('k3s', "k3s version " . script_output("k3s --version") . " installed");
     record_info('kubectl version', script_output('kubectl version --short'));
 }
