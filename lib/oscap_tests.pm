@@ -27,8 +27,6 @@ our @EXPORT = qw(
   $remediated
   set_ds_file
   upload_logs_reports
-  pattern_count_in_file
-  rules_count_in_file
   oscap_security_guide_setup
   oscap_remediate
   oscap_evaluate
@@ -82,6 +80,7 @@ sub set_ds_file {
       '/usr/share/xml/scap/ssg/content/ssg-sle' . "$version" . '-ds.xml';
 }
 
+
 sub upload_logs_reports {
 
     # Upload logs & ouputs for reference
@@ -100,64 +99,6 @@ sub upload_logs_reports {
     if (get_var('UPLOAD_REPORT_HTML')) {
         upload_logs("$f_report", timeout => 600)
           if script_run "! [[ -e $f_report ]]";
-    }
-}
-
-sub pattern_count_in_file {
-
-    #Find count and rules names of matched pattern
-    my $self = $_[0];
-    my $data = $_[1];
-    my $pattern = $_[2];
-    my @rules;
-    my $count = 0;
-
-    my @lines = split /\n|\r/, $data;
-    for my $i (0 .. $#lines) {
-        if ($lines[$i] =~ /$pattern/) {
-            $count++;
-            # Add to the array rule name
-            push(@rules, $lines[$i - 4]) if ($i >= 4);
-        }
-    }
-
-    #Returning by reference array of matched rules
-    $_[3] = \@rules;
-    return $count;
-}
-
-sub rules_count_in_file {
-
-    #Find count of rules names matched name and status patterns
-    my $self = $_[0];
-    my $data = $_[1];
-    my $pattern = $_[2];
-    my $l_rules = $_[3];
-    my @rules;
-    my $count = 0;
-
-    my @lines = split /\n|\r/, $data;
-    my @a_rules = @$l_rules;
-
-    for my $i (0 .. $#lines) {
-        for my $j (0 .. $#a_rules) {
-            # Check if not getting outside array
-            if ($#lines >= $i + 4) {
-                if ($lines[$i] =~ /$a_rules[$j]/ and $lines[$i + 4] =~ /$pattern/) {
-                    $count++;
-                    push(@rules, $lines[$i]);
-                }
-            }
-        }
-    }
-    #Returning by reference array of matched rules
-    $_[4] = \@rules;
-    #Return -2 if found not correct count of rules
-    if ($count == $#a_rules + 1) {
-        return $count;
-    }
-    else {
-        return -2;
     }
 }
 
@@ -223,101 +164,137 @@ sub oscap_remediate {
     upload_logs_reports();
 }
 
+
+## remove leading and trailing whitespace from a string
+sub strip {
+    my $string = shift;
+    $string =~ s/^\s+|\s+$//g;
+    return $string;
+}
+
+# parses oscap output in a key->value hash: Rule->Result
+# sample output:
+#  Title
+#   	Ensure /var Located On Separate Partition
+#  Rule
+#	    xccdf_org.ssgproject.content_rule_partition_for_var
+#  Ident
+#	    CCE-85640-1
+#  Result
+#	    pass
+#
+# returns {'xccdf_org.ssgproject.content_rule_partition_for_var' => 'pass'}
+#
+sub parse_oscap_stdout {
+    my %parsed;
+    my @data = split /\n|\r/, shift;
+    my $key;
+    while (my ($index, $line) = each @data) {
+        if ($line =~ m/^Rule/) {
+            $key = strip($data[$index + 1]);
+        }
+        if ($key && $line =~ m/^Result/) {
+            $parsed{$key} = strip($data[$index + 1]);
+            $key = undef;
+        }
+    }
+    return %parsed;
+}
+
 sub oscap_evaluate {
     my ($self, $f_ssg_ds, $profile_ID, $n_passed_rules, $n_failed_rules, $eval_match) = @_;
     select_console 'root-console';
 
-    my $passed_rules_ref;
-    my $failed_rules_ref;
-
     # Verify detection mode
     my $ret = script_run("oscap xccdf eval --profile $profile_ID --oval-results --report $f_report $f_ssg_ds > $f_stdout 2> $f_stderr", timeout => 600);
-    if ($ret == 0 || $ret == 2) {
-        record_info("Returned $ret", "oscap xccdf eval --profile $profile_ID --oval-results --report $f_report $f_ssg_ds > $f_stdout 2> $f_stderr");
-        # Note: the system cannot be fully remediated in this test and some rules are verified failing
-        my $data = script_output "cat $f_stdout";
-        # For a new installed OS the first time remediate can permit fail
-        if ($remediated == 0) {
-            record_info('non remediated', 'before remediation more rules fails are expected');
-            my $pass_count = pattern_count_in_file(1, $data, $f_pregex, $passed_rules_ref);
-            record_info(
-                "Passed rules count=$pass_count",
-                "Pattern $f_pregex count in file $f_stdout is $pass_count. Matched rules:\n " . join "\n",
-                @$passed_rules_ref
-            );
-            my $fail_count = pattern_count_in_file(1, $data, $f_fregex, $failed_rules_ref);
-            record_info(
-                "Failed rules count=$fail_count",
-                "Pattern $f_fregex count in file $f_stdout is $fail_count. Matched rules:\n" . join "\n",
-                @$failed_rules_ref
-            );
-        }
-        else {
-            #Verify remediated rules
-            record_info('remediated', 'after remediation less rules are failing');
-
-            #Verify failed rules
-            my $ret_rcount = rules_count_in_file(1, $data, $f_fregex, $eval_match, $failed_rules_ref);
-            my $failed_rules = $#$failed_rules_ref + 1;
-            if ($ret_rcount == -2) {
-                record_info(
-                    "Failed check of failed rules",
-                    "Pattern $f_fregex count in file $f_stdout is $failed_rules, expected $n_failed_rules. Matched rules:\n" . (join "\n",
-                        @$failed_rules_ref) . "\nExpected rules:\n" . (join "\n",
-                        @$eval_match),
-                    result => 'fail'
-                );
-                $self->result('fail');
-            }
-            else {
-                record_info(
-                    "Passed check of failed rules",
-                    "Check of $ret_rcount failed rules:\n" . (join "\n",
-                        @$eval_match) . "\n in file $f_stdout. \nMatched rules:\n" . (join "\n",
-                        @$failed_rules_ref)
-                );
-            }
-
-            #Verify number of passed and failed rules
-            my $pass_count = pattern_count_in_file(1, $data, $f_pregex, $passed_rules_ref);
-            if ($pass_count != $n_passed_rules) {
-                record_info(
-                    "Failed check of passed rules count",
-                    "Pattern $f_pregex count in file $f_stdout is $pass_count, expected $n_passed_rules. Matched rules:\n" . join "\n",
-                    @$passed_rules_ref, result => 'fail'
-                );
-                $self->result('fail');
-            }
-            else {
-                record_info(
-                    "Passed check of passed rules count",
-                    "Pattern $f_pregex count in file $f_stdout is $pass_count. Matched rules:\n" . join "\n",
-                    @$passed_rules_ref
-                );
-            }
-            my $fail_count = pattern_count_in_file(1, $data, $f_fregex, $failed_rules_ref);
-            if ($fail_count != $n_failed_rules) {
-                record_info(
-                    "Failed check of failed rules count",
-                    "Pattern $f_fregex count in file $f_stdout is $fail_count, expected $n_failed_rules. Matched rules: \n" . join "\n",
-                    @$failed_rules_ref, result => 'fail'
-                );
-                $self->result('fail');
-            }
-            else {
-                record_info(
-                    "Passed check of failed rules count",
-                    "Pattern $f_fregex count in file $f_stdout is $fail_count. Matched rules: \n" . join "\n",
-                    @$failed_rules_ref
-                );
-            }
-        }
-    }
-    else {
+    if ($ret != 0 && $ret != 2) {
         record_info("errno=$ret", "# oscap xccdf eval --profile \"$profile_ID\" returns: $ret", result => 'fail');
+        $self->result('fail');
+        return;
+    }
+    record_info("Returned $ret", "oscap xccdf eval --profile $profile_ID --oval-results --report $f_report $f_ssg_ds > $f_stdout 2> $f_stderr");
+    # Note: the system cannot be fully remediated in this test and some rules are verified failing
+    my %data = parse_oscap_stdout(script_output "cat $f_stdout");
+    # look at all entries (keys) of the hash and pick only those with a value that matches the regexp
+    my @passed_rules = grep { $data{$_} =~ m/$f_pregex/ } keys %data;
+    my $pass_count = scalar @passed_rules;    # get the length of the array
+    my @failed_rules = grep { $data{$_} =~ m/$f_fregex/ } keys %data;
+    my $fail_count = scalar @failed_rules;
+    # For a new installed OS the first time remediate can permit fail
+    if ($remediated == 0) {
+        record_info('non remediated', 'before remediation more rules fails are expected');
+        record_info(
+            "Passed rules count=$pass_count",
+            "Pattern $f_pregex count in file $f_stdout is $pass_count. Matched rules:\n " . join "\n",
+            @passed_rules
+        );
+        record_info(
+            "Failed rules count=$fail_count",
+            "Pattern $f_fregex count in file $f_stdout is $fail_count. Matched rules:\n" . join "\n",
+            @failed_rules
+        );
+        upload_logs_reports();
+        return;
+    }
+    #if we get here, system has been remediated. Verify remediated rules
+    record_info('remediated', 'after remediation less rules are failing');
+
+    # note: $eval_match is an array reference. We need to get the complete key,
+    # e.g. from description 'content_rule_is_fips_mode_enabled' to 'xccdf_org.ssgproject.content_rule_is_fips_mode_enabled'
+    my @matched_rules;
+    foreach my $rule_desc (@$eval_match) {
+        # build array of keys with only the one matching the rule description
+        push @matched_rules, grep { $_ =~ m/$rule_desc/ } keys %data;
+    }
+    # counts the keys matching $f_fregex. Number should be equal to $eval_match length
+    my @fails = grep { $data{$_} =~ m/$f_fregex/ } @matched_rules;
+    my $fails_len = scalar @fails;
+
+    if ($fails_len == scalar @$eval_match) {
+        record_info(
+            "Passed check of failed rules",
+            "Check of $fails_len failed rules:\n" . (join "\n",
+                @$eval_match) . "\n in file $f_stdout. \nMatched rules:\n" . (join "\n", @fails)
+        );
+    } else {
+        record_info(
+            "Failed check of failed rules",
+            "Pattern $f_fregex count in file $f_stdout is $fails_len, expected $n_failed_rules. Matched rules:\n" . (join "\n",
+                @fails) . "\nExpected rules:\n" . (join "\n", @$eval_match),
+            result => 'fail'
+        );
         $self->result('fail');
     }
 
+    #Verify number of passed and failed rules
+    if ($pass_count != $n_passed_rules) {
+        record_info(
+            "Failed check of passed rules count",
+            "Pattern $f_pregex count in file $f_stdout is $pass_count, expected $n_passed_rules. Matched rules:\n" . join "\n",
+            @passed_rules, result => 'fail'
+        );
+        $self->result('fail');
+    }
+    else {
+        record_info(
+            "Passed check of passed rules count",
+            "Pattern $f_pregex count in file $f_stdout is $pass_count. Matched rules:\n" . join "\n", @passed_rules
+        );
+    }
+    if ($fail_count != $n_failed_rules) {
+        record_info(
+            "Failed check of failed rules count",
+            "Pattern $f_fregex count in file $f_stdout is $fail_count, expected $n_failed_rules. Matched rules: \n" . join "\n",
+            @failed_rules, result => 'fail'
+        );
+        $self->result('fail');
+    }
+    else {
+        record_info(
+            "Passed check of failed rules count",
+            "Pattern $f_fregex count in file $f_stdout is $fail_count. Matched rules: \n" . join "\n", @failed_rules
+        );
+    }
     # Upload logs & ouputs for reference
     upload_logs_reports();
 }
