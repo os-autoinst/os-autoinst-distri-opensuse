@@ -17,6 +17,7 @@ use containers::utils qw(check_min_runtime_version);
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle is_opensuse is_staging);
 use containers::k8s qw(install_k3s uninstall_k3s);
+use Utils::Architectures qw(is_ppc64le);
 
 sub run {
     my ($self, $args) = @_;
@@ -79,7 +80,8 @@ sub run {
         validate_script_output('podman ps', sub { !m/testing-pod-container/ });
 
         # Staging does not have access to repositories, only to DVD
-        if (check_min_runtime_version('4.4.0') && !is_staging) {
+        # curl -sfL https://get.k3s.io is not supported on ppc poo#128456
+        if (check_min_runtime_version('4.4.0') && !is_staging && !is_ppc64le) {
             install_k3s();
             record_info('Test', 'kube apply');
             assert_script_run('podman kube apply --kubeconfig ~/.kube/config -f pod.yaml');
@@ -93,7 +95,7 @@ sub cleanup {
     my ($self) = @_;
     $self->{podman}->cleanup_system_host();
     # Staging does not have access to repositories, only to DVD
-    uninstall_k3s() if (check_min_runtime_version('4.4.0') && !is_staging);
+    uninstall_k3s() if (check_min_runtime_version('4.4.0') && !is_staging && !is_ppc64le);
 }
 
 sub post_run_hook {
