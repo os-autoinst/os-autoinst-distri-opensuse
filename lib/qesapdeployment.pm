@@ -70,6 +70,7 @@ our @EXPORT = qw(
   qesap_cluster_logs
   qesap_get_vnet
   qesap_get_az_resource_group
+  qesap_calculate_az_address_range
   qesap_az_vnet_peering
   qesap_delete_az_peering
 );
@@ -748,29 +749,40 @@ sub qesap_get_az_resource_group {
     return $result;
 }
 
-=head3 qesap_get_az_maintenance_name
+=head3 qesap_calculate_az_address_range
 
-Query the existing maintenance deployments for azure
-and determine a name with a free adress range number
-for the current deployment
+Calculate the vnet and subnet address
+ranges. The format is 10.ip2.ip3.0/21 and
+ /24 respectively. ip2 and ip3 are calculated
+ using the worker instance number as seed.
+
+=over 1
+
+=item B<SLOT> - integer to be used as seed in calculating addresses
+
+=back
 
 =cut
 
-sub qesap_get_az_maintenance_name {
-    my $az_output = qx(az group list --query "[].name" -o tsv);
-    my @lines = split /\n/, $az_output;
-    
-    my @matching_deployments = grep { /^az-maintenance-\d+-/ } @lines;
-    my %used_integers = map { /az-maintenance-(\d+)-/; $1 => 1 } @matching_deployments;
+sub qesap_calculate_az_address_range {
+    my %args = @_;
+    croak 'Missing mandatory slot argument' unless $args{slot};
 
-    for my $i (0 .. 25) {
-        if (!exists $used_integers{$i}) {
-            return "az-maintenance-$i";
-        }
-    }
+    my $offset = ($args{slot} - 1) * 8;
 
-    # Die if all integers between 0 and 25 are used
-    die "No free slot found for adress range. Too many maintenance deloyments running."
+    # addresses are of the form 10.ip2.ip3.0/21 and /24 respectively
+    #ip2 gets incremented when is >=256
+    my $ip2 = int($offset / 256);
+    #ip3 gets incremented by 8 until it's >=256, then it resets
+    my $ip3 = $offset % 256;
+
+    my $vnet_address_range = sprintf("10.%d.%d.0/21", $ip2, $ip3);
+    my $subnet_address_range = sprintf("10.%d.%d.0/24", $ip2, $ip3);
+
+    return (
+        vnet_address_range => $vnet_address_range,
+        subnet_address_range => $subnet_address_range,
+    );
 }
 
 =head3 qesap_az_vnet_peering
@@ -864,6 +876,7 @@ sub qesap_az_vnet_peering {
 
 =back
 =cut
+
 sub qesap_delete_az_peering {
     my (%args) = @_;
     croak 'Missing mandatory source_group argument' unless $args{source_group};

@@ -151,6 +151,12 @@ sub run {
 
     # Let's define a workspace for terraform. We use PUBLIC_CLOUD_RESOURCE_GROUP
     # if defined, otherwise we use qesaposd
+    # if it's a maintenance job, prefix with a unique identifier (used in peering)
+    if (get_var('IS_MAINTENANCE', 0) == 1) {
+        my %maintenance_vars = qesap_calculate_az_address_range(slot => get_var("WORKER_INSTANCE"));
+        set_var("VNET_ADDRESS_RANGE", $maintenance_vars{vnet_address_range});
+        set_var("SUBNET_ADDRESS_RANGE", $maintenance_vars{subnet_address_range});
+    }
     my $workspace = get_var('PUBLIC_CLOUD_RESOURCE_GROUP', 'qesaposd') . get_current_job_id();
 
     # Select console on the host (not the PC instance) to reset 'TUNNELED',

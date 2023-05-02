@@ -14,7 +14,7 @@ use qesapdeployment;
 sub run {
     my ($self, $run_args) = @_;
     my $instance = $run_args->{my_instance};
-    record_info("$my_instance");
+    record_info("$instance");
     my $rg = qesap_get_az_resource_group();
     my $vn = qesap_get_vnet($rg);
     my $target_rg = get_required_var('QESAP_TARGET_RESOURCE_GROUP');
