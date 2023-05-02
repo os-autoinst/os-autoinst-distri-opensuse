@@ -55,6 +55,7 @@ conditional_schedule:
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
+    - console/system_prepare
     - console/prepare_test_data
     - console/consoletest_setup
     - x11/x11_setup
