@@ -32,6 +32,7 @@ use warnings;
 use Carp qw(croak);
 use Mojo::JSON qw(decode_json);
 use YAML::PP;
+use List::Util qw(any);
 use utils qw(file_content_replace);
 use publiccloud::utils qw(get_credentials);
 use mmapi 'get_current_job_id';
@@ -729,7 +730,7 @@ sub qesap_get_vnet {
 Query and return the resource group used
 by the qe-sap-deployment
 
-=over 3
+=over 1
 
 =item B<SUBSTRING> - optional substring to be used with aditional grep at the end of the command
 
@@ -743,6 +744,31 @@ sub qesap_get_az_resource_group {
     my $result = script_output("az group list --query \"[].name\" -o tsv | grep $job_id" . $substring);
     record_info('QESAP RG', "result:$result");
     return $result;
+}
+
+=head3 qesap_get_az_maintenance_name
+
+Query the existing maintenance deployments for azure
+and determine a name with a free adress range number
+for the current deployment
+
+=cut
+
+sub qesap_get_az_maintenance_name {
+    my $az_output = qx(az group list --query "[].name" -o tsv);
+    my @lines = split /\n/, $az_output;
+    
+    my @matching_deployments = grep { /^az-maintenance-\d+-/ } @lines;
+    my %used_integers = map { /az-maintenance-(\d+)-/; $1 => 1 } @matching_deployments;
+
+    for my $i (0 .. 25) {
+        if (!exists $used_integers{$i}) {
+            return "az-maintenance-$i";
+        }
+    }
+
+    # Die if all integers between 0 and 25 are used
+    die "No free slot found for adress range. Too many maintenance deloyments running."
 }
 
 1;
