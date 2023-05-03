@@ -1,14 +1,20 @@
 name: autoyast_create_hdd_x86_64_uefi
 description:    >
   Test performs autoyast installation to generate qcow images for security tests
-vars:
-  AUTOYAST: security/create_hdd_%DESKTOP%_%ARCH%_uefi.xml
+conditional_schedule:
+  update_repos:
+    VERSION:
+      'Tumbleweed':
+        - update/zypper_clear_repos
+        - console/zypper_ar
+        - console/zypper_ref
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start
   - autoyast/installation
   - installation/first_boot
   - console/system_prepare
+  - '{{update_repos}}'
   - console/hostname
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
