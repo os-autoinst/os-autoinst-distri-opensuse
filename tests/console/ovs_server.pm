@@ -28,6 +28,7 @@ use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
 use console::ovs_utils;
+use version_utils;
 
 my $server_ip = "10.0.2.101";
 my $client_ip = "10.0.2.102";
@@ -62,7 +63,13 @@ sub run {
     mutex_create 'barrier_setup_done';
 
     # Install the needed packages
-    zypper_call('in openvswitch-ipsec tcpdump openvswitch-pki openvswitch-vtep', timeout => 300);
+    # At moment we have opnvswitch3* packages on sles 15 sp5 only
+    if (is_sle('>=15-SP5')) {
+        zypper_call('in openvswitch3-ipsec tcpdump openvswitch3-pki openvswitch3-vtep', timeout => 300);
+    }
+    else {
+        zypper_call('in openvswitch-ipsec tcpdump openvswitch-pki openvswitch-vtep', timeout => 300);
+    }
     systemctl 'start openvswitch', timeout => 200;
     systemctl 'start openvswitch-ipsec', timeout => 200;
 
