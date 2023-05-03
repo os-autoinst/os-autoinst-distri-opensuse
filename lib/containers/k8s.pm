@@ -51,7 +51,9 @@ sub install_k3s {
 
         # github.com/k3s-io/k3s#5946 - The kubectl delete namespace helm-ns-413 command freezes and does nothing
         # Note: The install script starts a k3s-server by default, unless INSTALL_K3S_SKIP_START is set to true
-        assert_script_run("curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true sh -s - --disable=metrics-server", timeout => 180);
+        script_retry("curl -sfL https://get.k3s.io  -o install_k3s.sh", timeout => 180, delay => 60, retry => 3);
+        assert_script_run("INSTALL_K3S_SKIP_START=true sh install_k3s.sh --disable=metrics-server");
+        script_run("rm -f install_k3s.sh");
     }
 
     if (get_var('REGISTRY')) {
