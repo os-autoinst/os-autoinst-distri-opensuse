@@ -13,6 +13,7 @@ use containers::common 'install_containerd_when_needed';
 use containers::utils 'registry_url';
 use utils qw(zypper_call);
 use version_utils qw(is_leap is_sle);
+use Utils::Architectures;
 has runtime => 'crictl';
 
 sub init {
@@ -23,8 +24,16 @@ sub init {
     } else {
         # The crictl validation test suite is a plug-in required for this test and needs to be installed from an external source.
         my $version = get_var('CONTAINERS_CRICTL_VERSION', 'v1.23.0');
-        my $url = "https://github.com/kubernetes-sigs/cri-tools/releases/download/$version/crictl-$version-linux-amd64.tar.gz";
-        my $filename = "/tmp/crictl-$version-linux-amd64.tar.gz";
+        my $arch;
+        if (is_aarch64) {
+            $arch = 'arm64';
+        } elsif (is_x86_64) {
+            $arch = 'amd64';
+        } else {
+            die 'Architecture ' . get_required_var('ARCH') . ' is not supported';
+        }
+        my $url = "https://github.com/kubernetes-sigs/cri-tools/releases/download/$version/crictl-$version-linux-$arch.tar.gz";
+        my $filename = "/tmp/crictl-$version-linux-$arch.tar.gz";
         assert_script_run("curl -L $url -o $filename");
         assert_script_run("tar zxvf $filename -C /usr/local/bin");
         assert_script_run("rm $filename");
