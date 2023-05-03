@@ -11,6 +11,7 @@ terraform:
     gcp_credentials_file: "/root/google_credentials.json"
     hana_remote_python: "%ANSIBLE_REMOTE_PYTHON%"
     iscsi_remote_python: "%ANSIBLE_REMOTE_PYTHON%"
+    hana_data_disk_type: "%HANA_DATA_DISK_TYPE%"
 
 ansible:
   az_storage_account_name: "%HANA_ACCOUNT%"
