@@ -18,6 +18,9 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use containers::common;
 use btrfs_test qw(set_playground_disk);
+use containers::utils qw(get_docker_version check_runtime_version);
+use version_utils;
+use Utils::Systemd qw(systemctl);
 
 my ($root_drive, $play_drive);
 
@@ -41,7 +44,16 @@ sub _sanity_test_btrfs {
     }
     assert_script_run("echo -e 'FROM $img\\nENV WORLD_VAR Arda' > $dockerfile_path/Dockerfile");
     my $btrfs_head = '/tmp/subvolumes_saved';
-    $rt->info(property => 'Driver', value => 'btrfs');
+
+    if (version->parse(get_docker_version()) >= version->parse('23.0.5')) {
+        $rt->info(property => 'Driver', value => 'overlay2');
+        assert_script_run('docker system prune -af');
+        assert_script_run(q[sed -i 's/{/{ "storage-driver": "btrfs",/' /etc/docker/daemon.json]);
+        systemctl('restart docker');
+    } else {
+        $rt->info(property => 'Driver', value => 'btrfs');
+    }
+
     $rt->build($dockerfile_path, 'huge_image');
     assert_script_run "btrfs fi df $dev_path/btrfs/";
     assert_script_run "ls -td $dev_path/btrfs/subvolumes/* | head -n 1 > $btrfs_head";
