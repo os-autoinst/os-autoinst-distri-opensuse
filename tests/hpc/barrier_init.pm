@@ -63,6 +63,10 @@ sub run ($self) {
         barrier_create('MPI_RUN_TEST', $nodes);
         barrier_create('IMB_TEST_DONE', $nodes);
     }
+    elsif (check_var('HPC', 'ww4_controller')) {
+        barrier_create('WWCTL_DONE', $nodes);
+        barrier_create('WWCTL_COMPUTE_DONE', $nodes);
+    }
     elsif (check_var('HPC', 'hpc_comprehensive')) {
         if (get_var('HPC_MIGRATION')) {
             barrier_create('HPC_PRE_MIGRATION', $nodes);

@@ -1,0 +1,30 @@
+---
+name: Warewulf4
+description:    >
+    Maintainer: kernel-qa
+    Unified scheduler for warewulf4 multimachine tests
+    '{{pxe}}' runs the scheduler for compute nodes
+    '{{ww4}}' schedules the controller
+vars:
+  DESKTOP: textmode
+  BOOT_HDD_IMAGE: 1
+
+conditional_schedule:
+  bootmenu:
+    ARCH:
+      aarch64:
+  ww4:
+    HPC:
+      ww4_controller:
+        - hpc/barrier_init
+        - support_server/login
+        - hpc/before_test
+        - hpc/ww4
+  pxe:
+    HPC:
+      ww4_compute:
+        - hpc/ww4_await_pxe_install
+schedule:
+  - '{{bootmenu}}'
+  - '{{pxe}}'
+  - '{{ww4}}'
