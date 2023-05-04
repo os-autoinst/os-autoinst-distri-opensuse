@@ -377,7 +377,7 @@ sub prepare_spack_env {
     zypper_call "in spack $mpi-gnu-hpc $mpi-gnu-hpc-devel", timeout => 1200;
     type_string('pkill -u root');    # this kills sshd
     select_serial_terminal(0);
-    assert_script_run 'module load gnu $mpi';    ## TODO
+    assert_script_run "module load gnu $mpi";
     assert_script_run 'source /usr/share/spack/setup-env.sh';
 
     record_info 'spack', script_output 'zypper -q info spack';
