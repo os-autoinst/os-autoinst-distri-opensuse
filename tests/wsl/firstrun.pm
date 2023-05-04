@@ -95,11 +95,9 @@ sub register_via_scc {
     wait_screen_change(sub { send_key 'alt-c' }, 10);
     wait_screen_change { type_string $reg_code, max_interval => 125, wait_screen_change => 2 };
     send_key 'alt-n';
-    if (check_var('SLE_PRODUCT', 'sled')) {
-        assert_screen 'trust_nvidia_gpg_keys', timeout => 60;
-        send_key 'alt-t';
-    }
-    assert_screen 'wsl-registration-repository-offer';
+    assert_screen ['trust_nvidia_gpg_keys', 'wsl-registration-repository-offer'], timeout => 60;
+    send_key 'alt-t' if (match_has_tag 'trust_nvidia_gpg_keys');
+    assert_screen 'wsl-registration-repository-offer', timeout => 60;
     send_key 'alt-y';
     assert_screen 'wsl-extension-module-selection';
     send_key 'alt-n';
@@ -138,6 +136,8 @@ sub run {
         # SLED Workstation license agreement
         license if (check_var('SLE_PRODUCT', 'sled'));
         # And done!
+        assert_screen ['trust_nvidia_gpg_keys', 'wsl-installation-completed'], timeout => 60;
+        send_key 'alt-t' if (match_has_tag 'trust_nvidia_gpg_keys');
         assert_screen 'wsl-installation-completed', 240;
         send_key 'alt-f';
         # Back to CLI
