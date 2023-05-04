@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 #!/bin/bash -u
+=======
+>>>>>>> armlb
 set -o pipefail
 . $(dirname "${BASH_SOURCE[0]}")/azure_lib_fn.sh
 ##########################################################################
@@ -154,7 +157,11 @@ do
             --output table
         # Create 1st & 2 NIC
 	name=${vmname}-nic-${i}
+<<<<<<< HEAD
         allnics="${allnics} ${name}"
+=======
+        allnics="${allnics} ${nic}"
+>>>>>>> armlb
         cmd_status "az_network_nic_create1" az network nic create \
             --resource-group "${grpname}" \
             --location "${location}" \

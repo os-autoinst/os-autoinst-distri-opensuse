@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 #!/bin/bash -u
+=======
+##!/bin/bash -u
+>>>>>>> armlb
 set -o pipefail
 . $(dirname "${BASH_SOURCE[0]}")/azure_lib_fn.sh
 ############################################################################

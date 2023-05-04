@@ -1,0 +1,329 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sshPublicKeys_oqacliarm_key_name": {
+            "defaultValue": "oqacliarm-key",
+            "type": "String"
+        },
+        "virtualMachines_oqacliarm_zvm_name": {
+            "defaultValue": "oqacliarm-zvm",
+            "type": "String"
+        },
+        "virtualNetworks_oqacliarm_vnet_name": {
+            "defaultValue": "oqacliarm-vnet",
+            "type": "String"
+        },
+        "networkInterfaces_oqacliarm_int_name": {
+            "defaultValue": "oqacliarm-int",
+            "type": "String"
+        },
+        "publicIPAddresses_oqacliarm_ip_name": {
+            "defaultValue": "oqacliarm-ip",
+            "type": "String"
+        },
+        "networkSecurityGroups_oqacliarm_nsg_name": {
+            "defaultValue": "oqacliarm-nsg",
+            "type": "String"
+        },
+        "networkSecurityGroups_oqacliarm_nsg1_name": {
+            "defaultValue": "oqacliarm-nsg1",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Compute/sshPublicKeys",
+            "apiVersion": "2021-07-01",
+            "name": "[parameters('sshPublicKeys_oqacliarm_key_name')]",
+            "location": "westus",
+            "properties": {
+                "publicKey": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC8fOjvB9gGGoz7H9lftSZjyMt4\r\ns5VlJiOs44H5I8rJA+5mwhBC2KQaZkCteyipCVa5m0Oej4m0Xafbs2pGUmHLcob0\r\nDWS/j0HM7YhKyQdlL7VvFcoGn+C1RFIHu3I1azqvPfKAuRNF9NE7mSl0UXdyPmhd\r\nKhfIe7PmHdigxY7cBbm0OeIG62Zl3owQrGQ13useZ5/tnz8Wmr0M6DpOKFH+IEHF\r\nAFmlldCZMaGc7Syl0A3QBFcWTDMVsJkhEc1rrp+Rl8w7TGb8eCoVzsKjyLRSE1Fg\r\nrWW0g2jmEyDIqgs80B9tMAjaD3DqvXjGid88NH/mrVCQ6ppd5wfNQgr05e0YsCZB\r\nlRHtkkDaarBZpbtpe0VoxEw5CLB6IjLYvjYyCIHesRl0hOk3zW6NkBcq02U4grCK\r\nBTDs8QY7j+54NH01hWKuvB7+kfJYuIccTltbDr3xmEYjDRnu6C0y1q1Tdoou9p6/\r\nm/VSvf8E46tPiDc1ZCGvWROl+NoX0PNrgBW2Vak= generated-by-azure\r\n"
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-11-01",
+            "name": "[parameters('networkSecurityGroups_oqacliarm_nsg_name')]",
+            "location": "westus",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowSSH",
+                        "properties": {
+                            "description": "AllowSSH",
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-11-01",
+            "name": "[parameters('networkSecurityGroups_oqacliarm_nsg1_name')]",
+            "location": "westus",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "ssh",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1010,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2020-11-01",
+            "name": "[parameters('publicIPAddresses_oqacliarm_ip_name')]",
+            "location": "westus",
+            "sku": {
+                "name": "Basic",
+                "tier": "Regional"
+            },
+            "properties": {
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Dynamic",
+                "idleTimeoutInMinutes": 4,
+                "ipTags": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-11-01",
+            "name": "[parameters('virtualNetworks_oqacliarm_vnet_name')]",
+            "location": "westus",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.12.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "default",
+                        "properties": {
+                            "addressPrefix": "10.12.0.0/24",
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2021-07-01",
+            "name": "[parameters('virtualMachines_oqacliarm_zvm_name')]",
+            "location": "westus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_oqacliarm_int_name'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_D2s_v3"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "suse",
+                        "offer": "sles-12-sp5-basic",
+                        "sku": "gen2",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Linux",
+                        "name": "[concat(parameters('virtualMachines_oqacliarm_zvm_name'), '_OsDisk_1_5879f7a3853049589aeda07d25d26232')]",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "deleteOption": "Detach"
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachines_oqacliarm_zvm_name')]",
+                    "adminUsername": "azureuser",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                            "publicKeys": [
+                                {
+                                    "path": "/home/azureuser/.ssh/authorized_keys",
+                                    "keyData": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC8fOjvB9gGGoz7H9lftSZjyMt4\r\ns5VlJiOs44H5I8rJA+5mwhBC2KQaZkCteyipCVa5m0Oej4m0Xafbs2pGUmHLcob0\r\nDWS/j0HM7YhKyQdlL7VvFcoGn+C1RFIHu3I1azqvPfKAuRNF9NE7mSl0UXdyPmhd\r\nKhfIe7PmHdigxY7cBbm0OeIG62Zl3owQrGQ13useZ5/tnz8Wmr0M6DpOKFH+IEHF\r\nAFmlldCZMaGc7Syl0A3QBFcWTDMVsJkhEc1rrp+Rl8w7TGb8eCoVzsKjyLRSE1Fg\r\nrWW0g2jmEyDIqgs80B9tMAjaD3DqvXjGid88NH/mrVCQ6ppd5wfNQgr05e0YsCZB\r\nlRHtkkDaarBZpbtpe0VoxEw5CLB6IjLYvjYyCIHesRl0hOk3zW6NkBcq02U4grCK\r\nBTDs8QY7j+54NH01hWKuvB7+kfJYuIccTltbDr3xmEYjDRnu6C0y1q1Tdoou9p6/\r\nm/VSvf8E46tPiDc1ZCGvWROl+NoX0PNrgBW2Vak= generated-by-azure\r\n"
+                                }
+                            ]
+                        },
+                        "provisionVMAgent": true,
+                        "patchSettings": {
+                            "patchMode": "ImageDefault",
+                            "assessmentMode": "ImageDefault"
+                        }
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_oqacliarm_int_name'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+            "apiVersion": "2020-11-01",
+            "name": "[concat(parameters('networkSecurityGroups_oqacliarm_nsg_name'), '/AllowSSH')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_oqacliarm_nsg_name'))]"
+            ],
+            "properties": {
+                "description": "AllowSSH",
+                "protocol": "TCP",
+                "sourcePortRange": "*",
+                "destinationPortRange": "22",
+                "sourceAddressPrefix": "*",
+                "destinationAddressPrefix": "*",
+                "access": "Allow",
+                "priority": 100,
+                "direction": "Inbound",
+                "sourcePortRanges": [],
+                "destinationPortRanges": [],
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefixes": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+            "apiVersion": "2020-11-01",
+            "name": "[concat(parameters('networkSecurityGroups_oqacliarm_nsg1_name'), '/ssh')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_oqacliarm_nsg1_name'))]"
+            ],
+            "properties": {
+                "protocol": "TCP",
+                "sourcePortRange": "*",
+                "destinationPortRange": "22",
+                "sourceAddressPrefix": "*",
+                "destinationAddressPrefix": "*",
+                "access": "Allow",
+                "priority": 1010,
+                "direction": "Inbound",
+                "sourcePortRanges": [],
+                "destinationPortRanges": [],
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefixes": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-11-01",
+            "name": "[concat(parameters('virtualNetworks_oqacliarm_vnet_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_oqacliarm_vnet_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "10.12.0.0/24",
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2020-11-01",
+            "name": "[parameters('networkInterfaces_oqacliarm_int_name')]",
+            "location": "westus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_oqacliarm_ip_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_oqacliarm_vnet_name'), 'default')]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_oqacliarm_nsg_name'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAddress": "10.12.0.4",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_oqacliarm_ip_name'))]"
+                            },
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_oqacliarm_vnet_name'), 'default')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableAcceleratedNetworking": true,
+                "enableIPForwarding": false,
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_oqacliarm_nsg1_name'))]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deploymentScripts",
+            "apiVersion": "2020-10-01",
+            "name": "runPowerShellInline",
+            "location": "[resourceGroup().location]",
+            "kind": "AzurePowerShell",
+            "properties": {
+              "azPowerShellVersion": "8.3",
+              "scriptContent": "
+                $output = 'Hello from deployment script' 
+		Write-Output $output
+		$DeploymentScriptOutputs = @{}
+                $DeploymentScriptOutputs['text'] = $output
+	      ",
+              "timeout": "PT1H",
+              "cleanupPreference": "OnSuccess",
+              "retentionInterval": "P1D"
+            }
+        } 
+    ],
+    "outputs": {
+    "result": {
+      "value": "[reference('runPowerShellInline').outputs.text]",
+      "type": "string"
+    }
+  }
+}
