@@ -21,7 +21,7 @@ declare -A TEST_STATUS
 # Exits : when passed fewer than two parameter
 ##################################################################################
 cmd_status()
-{ 
+{
  if (( $# < 2 )); then
     echo "illegal number of parameter"
     echo "Usage: cmd_status <test nameG> <test command>"
@@ -32,7 +32,7 @@ cmd_status()
  local test_name="${1}"
  shift 1 # consume the first argument
  echo "[Running test: '${test_name}' and command : '${@}']"
- # Executing command 
+ # Executing command
  "${@}"
  exit_status=$?
  TEST_STATUS[${test_name}]=${exit_status}
@@ -54,7 +54,7 @@ pcmd=0
 fcmd=0
 final_exit_status=0
  for ind in "${!TEST_STATUS[@]}"
- do 
+ do
     let "tcmd+=1"
     if  (( ${TEST_STATUS[${ind}]} > 0 ))
     then

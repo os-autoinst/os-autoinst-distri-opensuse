@@ -25,7 +25,7 @@ location="${2:-westus}"
 vmname="${3:-oqaclivmss}"
 ssh_key="${4:-oqaclitest-sshkey}"
 vmximagename="${5:-UbuntuLTS}"
-account="${6:-5f40eec9-a9be-4851-90c1-621e6d65df81}"
+account="${6:-a5e130f6-1ae8-48f5-8ca3-322fa4d9800f}"
 admin="${7:-azureuser}"
 
 # Variable block
@@ -44,7 +44,7 @@ echo "Creating resource group { az group create }"
 cmd_status "az_group_create" az group create -n "${grpname}" -l "${location}" -o table
 echo "Created group ${grpname}"
 
-# VM Scaleset Create 
+# VM Scaleset Create
 echo "Creating VM Scale Set { az vmss create }"
 cmd_status "az_vmss_create" az vmss create \
     --resource-group "${grpname}" \
@@ -86,9 +86,6 @@ echo " List vmss list nic for ${vmname} { az vmss nic list }"
 echo "******************************************************"
 cmd_status "az_vmss_nic_list" az vmss nic list -g "${grpname}" --vmss-name "${vmname}" -o table
 
-echo " List vmss list-vm-nics for ${vmname} { az vmss nic list-vm-nics } "
-cmd_status "az_vmss_nic_list-vm-nics" az vmss nic list-vm-nics -g "${grpname}" --vmss-name "${vmname}" --instance-id 4 -o table
-
 #operation commands using VMSS
 echo " Restart ${vmname} { az vmss restart }"
 cmd_status "az_vmss_restart" az vmss restart -g "${grpname}" --name "${vmname}"
@@ -97,7 +94,10 @@ echo " deallocate, stop and start ${vmname}"
 cmd_status "az_vmss_list-instances" az vmss list-instances -g "${grpname}" --name "${vmname}"
 
 #Get only one instance id from VMSS list to do operation command.
-iid=$(az vmss list-instances -g ${grpname} --name ${vmname} --query "[].{instanceid:instanceId}" -o tsv | head -n 1)
+iid=$(az vmss list-instances -g "${grpname}" --name "${vmname}" --query "[].{instanceid:instanceId}" -o tsv | head -n 1)
+
+echo " List vmss list-vm-nics for ${vmname} { az vmss nic list-vm-nics } "
+cmd_status "az_vmss_nic_list-vm-nics" az vmss nic list-vm-nics -g "${grpname}" --vmss-name "${vmname}" --instance-id "${iid}" -o table
 
 echo " Deallocate vm's within VMSS instance id ${iid} { az vmss deallocate }"
 cmd_status "az_vmss_deallocate" az vmss deallocate --name "${vmname}" -g "${grpname}" --instance-ids "${iid}"
@@ -128,7 +128,7 @@ cmd_status "az_vmss_run-command-create" az vmss run-command create \
 echo "List created Run-command ${runcmd} for instance id ${iid} { az vmss run-command list }"
 cmd_status "az_vmss_run-command_list" az vmss run-command list -g "${grpname}" --vmss-name "${vmname}" --instance-id "${iid}"
 
-cmdlist=$(az vmss run-command list --vmss-name $vmname -g $grpname --instance-id $iid --query "[].{name:name}" -o tsv| head -n 1)
+cmdlist=$(az vmss run-command list --vmss-name "$vmname" -g "$grpname" --instance-id "$iid" --query "[].{name:name}" -o tsv| head -n 1)
 echo "Show Run-command ${cmdlist} { az vmss run-command show }"
 cmd_status "az_vmss_run-command_show" az vmss run-command show -o table \
                --vmss-name "${vmname}" \

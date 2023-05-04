@@ -6,11 +6,11 @@ set -o pipefail
 # Command: azure_runcmd.sh <resource groupname> <location> ..........
 # Description: Tests Azure Manage run-command cli's on virtual machine.
 #              Also list, show , delete the created resource using cli.
-# Arguments: 
+# Arguments:
 #    Resource Group name
 #    Location
-#    VM name 
-#    SSH key 
+#    VM name
+#    SSH key
 #    Image name
 #    Subscription account
 #    Admin user
@@ -24,12 +24,12 @@ location="${2:-westus}"
 vmname="${3:-oqacliruncmdvm}"
 ssh_key="${4:-oqaclitest-sshkey}"
 vmximagename="${5:-UbuntuLTS}"
-account="${6:-5f40eec9-a9be-4851-90c1-621e6d65df81}"
+account="${6:-a5e130f6-1ae8-48f5-8ca3-322fa4d9800f}"
 admin="${7:-azureuser}"
 
 # local variable block
-# runcmd: holds name for createing runcommand 
-# later used for invoking, listing, show, delete 
+# runcmd: holds name for createing runcommand
+# later used for invoking, listing, show, delete
 runcmd="oqaclirc"
 
 echo "**Start of AZURE CLI run-command test"
@@ -81,31 +81,31 @@ cmd_status "az_vm_run-command_delete" az vm run-command delete -g "${grpname}" -
 echo "Delete vm and the associated resources like { az resource list } "
 echo "*************************************************************"
 cmd_status "az_resource_list" az resource list -o table -g "${grpname}"
-az resource list -o table -g ${grpname} --query "[?contains(name, 'oqacliruncmdvm')].{Name:name,Type:type}" -o tsv
+az resource list -o table -g "${grpname}" --query "[?contains(name, 'oqacliruncmdvm')].{Name:name,Type:type}" -o tsv
 
 #Get required ids to delete the resource
 echo "Get interface id for the network resource { az vm show --query } "
 echo "*************************************************************"
 cmd_status "az_vm_show_querynetworkinterface" az vm show --resource-group "${grpname}" --name "${vmname}"
-interface_id=$(az vm show --resource-group ${grpname} --name ${vmname} --query networkProfile.networkInterfaces[0].id)
+interface_id=$(az vm show --resource-group "${grpname}" --name "${vmname}" --query networkProfile.networkInterfaces[0].id)
 interface_id=${interface_id:1: -1}
 
 echo "Get os disk id for the managedDisk { az vm show --query } "
 echo "*************************************************************"
 cmd_status "az_vm_show_querymanagedDisk" az vm show --resource-group "${grpname}" --name "${vmname}"
-os_disk_id=$(az vm show --resource-group ${grpname} --name ${vmname} --query storageProfile.osDisk.managedDisk.id)
+os_disk_id=$(az vm show --resource-group "${grpname}" --name "${vmname}" --query storageProfile.osDisk.managedDisk.id)
 os_disk_id=${os_disk_id:1: -1}
 
 echo "Get security group id { az vm show --query } "
 echo "*************************************************************"
 cmd_status "az_vm_show_querysecgrp" az vm show --resource-group "${grpname}" --name "${vmname}"
-security_group_id=$(az network nic show --id ${interface_id} --query networkSecurityGroup.id)
+security_group_id=$(az network nic show --id "${interface_id}" --query networkSecurityGroup.id)
 security_group_id=${security_group_id:1: -1}
 
 echo "Get public ip id { az vm show --query } "
 echo "*************************************************************"
 cmd_status "az_vm_show_publicip" az vm show --resource-group "${grpname}" --name "${vmname}"
-public_ip_id=$(az network nic show --id ${interface_id} --query ipConfigurations[0].publicIpAddress.id)
+public_ip_id=$(az network nic show --id "${interface_id}" --query ipConfigurations[0].publicIpAddress.id)
 public_ip_id=${public_ip_id:1: -1}
 
 echo "Delete ${vmname} Virtual Machine { az vm delete } "

@@ -24,7 +24,7 @@ location="${2:-westus}"
 vmname="${3:-oqaclivm}"
 ssh_key="${4:-oqaclitest-sshkey}"
 vmximagename="${5:-UbuntuLTS}"
-account="${6:-5f40eec9-a9be-4851-90c1-621e6d65df81}"
+account="${6:-a5e130f6-1ae8-48f5-8ca3-322fa4d9800f}"
 admin="${7:-azureuser}"
 
 
@@ -35,11 +35,10 @@ storage_cont=${grpname}ct
 addressprefix="30.0.0.0/16"
 subnet_prefixes=( 30.0.0.0/24 30.0.1.0/24 30.0.2.0/24 )
 number_of_nics=${#subnet_prefixes[@]}
-PrivateIps=( 30.0.0.10 30.0.1.10 )
+PrivateIps=( 30.0.0.10 30.0.1.10 30.0.2.10 )
 vnet=${grpname}-vnet1
 base_subnet=${vnet}-vsubnet
 base_nic=${vmname}-wan-nic
-mdisk="_Managed_Disk"
 echo "**Start of AZURE CLI Virtual Network test**"
 echo "*******************************************"
 
@@ -57,10 +56,10 @@ echo "Creating storage account { az storage account create }"
 cmd_status "az_storage_account_create" az storage account create --sku Standard_LRS --location "${location}" --kind Storage --resource-group "${grpname}" --name "${storageacc}" --output table
 echo "Created storage account ${storageacc}"
 
-# Get connection string for the storage account 
+# Get connection string for the storage account
 echo "Get Connection string for storage account { az storage account keys list }"
 cmd_status "az_storage_account_keys_list" az storage account keys list --account-name "${storageacc}" --resource-group "${grpname}"
-acct_key=$(az storage account keys list --account-name ${storageacc} --resource-group ${grpname}  | grep -m 1 \"value\": | awk '{print $2}')
+acct_key=$(az storage account keys list --account-name "${storageacc}" --resource-group "${grpname}"  | grep -m 1 \"value\": | awk '{print $2}')
 
 # Create storage container
 echo "Create storage container { az storage container create }"
@@ -80,16 +79,16 @@ done
 # Create VNET
 echo "Creating Azure virtual network ${vnet} { az network vnet create } "
 az network vnet create \
-    --resource-group ${grpname} \
-    --name ${vnet} \
-    --address-prefix ${addressprefix} \
-    --location ${location} \
+    --resource-group "${grpname}" \
+    --name "${vnet}" \
+    --address-prefix "${addressprefix}" \
+    --location "${location}" \
     --output table
 echo "Done creating Azure virtual network ${vnet}"
 
 # Create as many subnets as there are NICs
 i=0
-echo "subnetprefix" ${subnet_prefixes[@]}
+echo "subnetprefix ${subnet_prefixes[@]}"
 for prefix in "${subnet_prefixes[@]}"
 do
     echo "Creating virtual subnet ${subnet_names[$i]} $prefix..{az network vnet subnet create }"
@@ -186,8 +185,8 @@ done
 echo "Adding routes to routing tables { az network route-table route create }"
 
 cmd_status "az_network_nic_show" az network nic show -g "${grpname}" --name "${vmname}-nic-0" -o table
-ip=$(az network nic show -g ${grpname} --name ${vmname}-nic-0|grep privateIpAddress\"|awk '{print $2}'|sed -e  s/\"//g -e s/\,//)
-echo ${subnet_prefixes[1]} 
+ip=$(az network nic show -g "${grpname}" --name "${vmname}-nic-0"|grep privateIpAddress\"|awk '{print $2}'|sed -e  s/\"//g -e s/\,//)
+echo "${subnet_prefixes[1]}"
 cmd_status "az_network_route-table_route_create" az network route-table route create \
     --resource-group "${grpname}" \
     --route-table-name "${grpname}-rt-to-subnet2" \
@@ -203,17 +202,17 @@ cmd_status "az_network_route-table_route_create" az network route-table route cr
 echo "Creating vMX VM..{ az vm create }."
 cmd_status "az_vm_create" echo "creating vm "
 az vm create \
-    --name ${vmname} \
+    --name "${vmname}" \
     --size "Standard_D2s_v3" \
-    --image ${vmximagename} \
-    --nics ${allnics} \
-    --resource-group ${grpname} \
-    --location ${location} \
+    --image "${vmximagename}" \
+    --nics "${allnics}" \
+    --resource-group "${grpname}" \
+    --location "${location}" \
     --authentication-type ssh \
-    --admin-username ${admin} \
+    --admin-username "${admin}" \
     --generate-ssh-keys \
     --storage-sku Standard_LRS  \
-    --boot-diagnostics-storage ${storageacc}\
+    --boot-diagnostics-storage "${storageacc}" \
     --public-ip-sku Standard \
     --output table
 echo "vMX deployment complete"
@@ -233,7 +232,7 @@ done
 echo "Storage Container list { az storage container list } { az storage containter show }"
 echo "***********************************************************************************"
 cmd_status "az_storage_container_list" az storage container list --account-name "${storageacc}" --account-key "${acct_key}"
-for astorage in $(az storage container list --account-name $storageacc --account-key ${acct_key} --query "[].{name:name}" -o tsv ); do
+for astorage in $(az storage container list --account-name "$storageacc" --account-key "${acct_key}" --query "[].{name:name}" -o tsv ); do
     cmd_status "az_storage_container_show" az storage container show -n "${astorage}" --account-name "${storageacc}" --account-key "${acct_key}" -o table
 done
 
@@ -247,7 +246,7 @@ done
 echo "Network vnet list-available-ips { az network vnet list-available-ips }"
 echo "**********************************************************************"
 cmd_status "az_network_vnet_list-available-ips" az network vnet list-available-ips -n "${vnet}" -o table
-    
+
 
 echo "Network vnet list-endpoint-services { az network vnet list-endpoint-services }"
 echo "******************************************************************************"
@@ -256,7 +255,7 @@ cmd_status "az_network_vnet_list-endpoint-services" az network vnet list-endpoin
 echo "Network subnet list & show { az network vnet subnet list } { az network vnet subnet show }"
 echo "******************************************************************************************"
 cmd_status "az_network_vnet_subnet_list" az network vnet subnet list --vnet-name "${vnet}" -o table
-for sublist in $(az network vnet subnet list --vnet-name ${vnet} --query "[].{name:name}" -o tsv); do
+for sublist in $(az network vnet subnet list --vnet-name "${vnet}" --query "[].{name:name}" -o tsv); do
     cmd_status "az_network_vnet_subnet_show" az network vnet subnet show --vnet-name "${vnet}" -n "${sublist}" -o table
 done
 
@@ -355,11 +354,11 @@ cmd_status "az_network_route-table_list" az network route-table list
 for rlist in $(az network route-table list --query "[].{name:name}" -o tsv); do
     echo "Delete Network route-table ${rlist} { az network route-table delete }"
     echo "*******************************************************************"
-    cmd_status "az_network_route-table_delete" az network route-table delete -n ${rlist}
+    cmd_status "az_network_route-table_delete" az network route-table delete -n "${rlist}"
 done
 
-cmd_status "az_storage_container_list" az storage container list --account-name "${storageacc}" --account-key "${acct_key}" 
-for astorage in $(az storage container list --account-name ${storageacc} --account-key ${acct_key} --query "[].{name:name}" -o tsv ); do
+cmd_status "az_storage_container_list" az storage container list --account-name "${storageacc}" --account-key "${acct_key}"
+for astorage in $(az storage container list --account-name "${storageacc}" --account-key "${acct_key}" --query "[].{name:name}" -o tsv ); do
     echo "Delete storage container $astorage { az storage container delete } "
     echo "*******************************************************************"
     cmd_status "az_storage_container_delete" az storage container delete -n "${astorage}" --account-name "${storageacc}" --account-key "${acct_key}"
