@@ -338,10 +338,10 @@ sub get_3rd_party_images {
     ) unless (is_arm || is_s390x || is_ppc64le);
 
     # RedHat UBI7 images are not built for aarch64 and 32-bit arm
+    # ubi7/ubi-init fails with "requested source is not authorized"
     push @images, (
         "registry.access.redhat.com/ubi7/ubi",
-        "registry.access.redhat.com/ubi7/ubi-minimal",
-        "registry.access.redhat.com/ubi7/ubi-init"
+        "registry.access.redhat.com/ubi7/ubi-minimal"
     ) unless (is_arm || is_aarch64 || check_var('PUBLIC_CLOUD_ARCH', 'arm64'));
 
     return (\@images);
