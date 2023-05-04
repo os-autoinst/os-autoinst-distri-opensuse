@@ -1,0 +1,71 @@
+---
+name:           RAID1@64bit-staging
+description:    >
+  Test for RAID1
+  Installation of RAID1 using expert partitioner.
+vars:
+  RAIDLEVEL: 1
+  YUI_REST_API: 1
+conditional_schedule:
+  access_beta_distribution:
+    BETA:
+      1:
+        - installation/access_beta_distribution
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - '{{access_beta_distribution}}'
+  - installation/product_selection/install_SLES
+  - installation/licensing/accept_license
+  - installation/registration/register_via_scc
+  - installation/module_registration/skip_module_registration
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_text_mode
+  - installation/partitioning/raid_gpt
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/hostname_inst
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
+  - installation/resolve_dependency_issues
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
+  - installation/performing_installation/perform_installation
+  - installation/logs_from_installation_system
+  - installation/performing_installation/confirm_reboot
+  - installation/handle_reboot
+  - installation/first_boot
+  - console/hostname
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - console/validate_raid
+test_data:
+  <<: !include test_data/yast/raid/raid_gpt_disks_with_bios-boot.yaml
+  mds:
+    - raid_level: 1
+      devices:
+        - vda2
+        - vdb2
+        - vdc2
+        - vdd2
+      partition:
+        role: operating-system
+        formatting_options:
+          should_format: 1
+        mounting_options:
+          should_mount: 1
+    - raid_level: 0
+      chunk_size: '64 KiB'
+      devices:
+        - vda3
+        - vdb3
+        - vdc3
+        - vdd3
+      partition:
+        role: operating-system
+        formatting_options:
+          should_format: 1
+          filesystem: swap
+        mounting_options:
+          should_mount: 1
