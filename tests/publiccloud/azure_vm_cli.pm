@@ -34,28 +34,15 @@ sub run {
     my @test_scripts = ("azure_lib_fn.sh");
     #my $include_tests = "azure_lib_fn.sh";
     my @tests = split(',',get_var('AZURE_CLI_TEST_NAME')); 
-<<<<<<< HEAD
-    #possible value for AZURE_CLI_TEST_NAME is azure_vn.sh azure_vmss.sh azure_runcmd.sh
-    foreach my $t (@tests)
-    { 
-      if("$t" eq "virtual_network") {
-=======
     #possible value for AZURE_CLI_TEST_NAME is vn,vmss,runcmd,rbac,arm_grp,arm_sub,arm_mg,lb
     foreach my $t (@tests)
     { 
       if("$t" eq "vn") {
->>>>>>> armlb
          push(@test_scripts,"azure_vn.sh");
       }elsif("$t" eq "vmss") {
          push(@test_scripts,"azure_vmss.sh");
       }elsif("$t" eq "runcmd") {
          push(@test_scripts,"azure_runcmd.sh");
-<<<<<<< HEAD
-      }
-      #my @test_scripts = $include_tests;
-      print "included tests".Dumper(@test_scripts);
-      #print "test_scripts".Dumper(@test_scripts);
-=======
       }elsif("$t" eq "rbac") {
          push(@test_scripts,"azure_rbac.sh");
       }elsif("$t" eq "arm_grp") {
@@ -68,7 +55,6 @@ sub run {
          push(@test_scripts,"azure_lb.sh");
       }
       print "included tests".Dumper(@test_scripts);
->>>>>>> armlb
     }
 
     #Create Azure vm
@@ -118,26 +104,17 @@ sub run {
     record_info("PINT", "Pint query: " . $image_name);
 
     # Call Virtual Network ,Run Command and Virtual Machine Scale Set Test
-<<<<<<< HEAD
-    #my @test_scripts = qw("azure_lib_fn.sh" "azure_vn.sh" "azure_vmss.sh" "azure_runcmd.sh");
-=======
->>>>>>> armlb
     load_cli_test($resource_group,$location,$machine_name,$sshkey,$image_name,$subid,@test_scripts);
 
     sub load_cli_test {
     my ($rg,$loc,$mn,$ssh,$img,$sub_id,@cli_tests) = @_;
-<<<<<<< HEAD
-=======
     #for each test it scp the test scripts and dependency scripts and execute the test
->>>>>>> armlb
     foreach my $test_name (@cli_tests) {
        if ($instance->ssh_script_output(cmd => "ls $root_dir/$test_name | wc -l") == 0) {
            record_info('Preparing permission for cli test ',$test_name);
            assert_script_run("curl " . data_url("publiccloud/$test_name") . " -o /tmp/$test_name", 60);
 	   $instance->scp( "/tmp/$test_name", 'remote:' . "$root_dir/$test_name", 200 );
            $instance->run_ssh_command(cmd => "chmod +x $root_dir/$test_name", timeout => 60);
-<<<<<<< HEAD
-=======
 	   my $dep_test_name="N/A"
            if ($test_name eq "azure_rbac.sh"){
               my $dep_test_name = "rbac.config" 
@@ -154,7 +131,6 @@ sub run {
                $instance->scp( "/tmp/$test_name", 'remote:' . "$root_dir/$dep_test_name", 200 );
                $instance->run_ssh_command(cmd => "chmod +x $root_dir/$dep_test_name", timeout => 60);
            }
->>>>>>> armlb
        }
        if ($test_name ne "azure_lib_fn.sh") {
            record_info('Ready to run cli test ',$test_name);
