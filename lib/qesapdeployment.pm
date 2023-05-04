@@ -32,7 +32,6 @@ use warnings;
 use Carp qw(croak);
 use Mojo::JSON qw(decode_json);
 use YAML::PP;
-use List::Util qw(any);
 use utils qw(file_content_replace);
 use publiccloud::utils qw(get_credentials);
 use mmapi 'get_current_job_id';
@@ -773,17 +772,14 @@ sub qesap_calculate_az_address_range {
     my $offset = ($args{slot} - 1) * 8;
 
     # addresses are of the form 10.ip2.ip3.0/21 and /24 respectively
-    #ip2 gets incremented when is >=256
+    #ip2 gets incremented when it is >=256
     my $ip2 = int($offset / 256);
     #ip3 gets incremented by 8 until it's >=256, then it resets
     my $ip3 = $offset % 256;
 
-    my $vnet_address_range = sprintf("10.%d.%d.0/21", $ip2, $ip3);
-    my $subnet_address_range = sprintf("10.%d.%d.0/24", $ip2, $ip3);
-
     return (
-        vnet_address_range => $vnet_address_range,
-        subnet_address_range => $subnet_address_range,
+        vnet_address_range => sprintf("10.%d.%d.0/21", $ip2, $ip3),
+        subnet_address_range => sprintf("10.%d.%d.0/24", $ip2, $ip3),
     );
 }
 
@@ -821,7 +817,7 @@ sub qesap_az_vnet_peering {
     assert_script_run("az network vnet peering create --name $peering_name --resource-group $args{target_group} --vnet-name $args{target_vnet} --remote-vnet $source_vnet_id --allow-vnet-access --output table");
     record_info("PEERING SUCCESS (target)", "[M] Peering from $args{target_group}.$args{target_vnet} server was successful\n") if $args{verbose};
 
-    enter_cmd("echo \"[M] Peering status:\n\"");
+    record_info("Checking peering status");
     assert_script_run("az network vnet peering show --name $peering_name --resource-group $args{target_group} --vnet-name $args{target_vnet} --output table");
     record_info("PEERING STATUS SUCCESS");
 }
@@ -845,16 +841,25 @@ sub qesap_az_vnet_peering {
 
 sub qesap_delete_az_peering {
     my (%args) = @_;
-    croak 'Missing mandatory source_group argument' unless $args{source_group};
-    croak 'Missing mandatory source_vnet argument' unless $args{source_vnet};
-    croak 'Missing mandatory target_group argument' unless $args{target_group};
-    croak 'Missing mandatory target_vnet argument' unless $args{target_vnet};
+    foreach (qw(source_group target_group)) {
+        croak "Missing mandatory $_ argument" unless $args{$_};
+    }
+
+    $args{source_vnet} = script_output('az network vnet list --resource-group ' . $args{source_group} . ' --query "[0].name" -o tsv');
+    $args{target_vnet} = script_output('az network vnet list --resource-group ' . $args{target_group} . ' --query "[0].name" -o tsv');
 
     my $peering_name = "$args{source_vnet}-$args{target_vnet}";
     my $source_cmd = "az network vnet peering delete --resource-group $args{source_group} --vnet-name $args{source_vnet} -n $peering_name";
     my $target_cmd = "az network vnet peering delete --resource-group $args{target_group} --vnet-name $args{target_vnet} -n $peering_name";
-    assert_script_run($source_cmd);
-    assert_script_run($target_cmd);
+
+    record_info("Attempting peering destruction");
+    my $source_ret = script_run($source_cmd);
+    my $target_ret = script_run($target_cmd);
+    if ($source_ret == 0 && $target_ret == 0) {
+        record_info("Peering deletion SUCCESS", "The peering was successfully destroyed");
+        return;
+    }
+    record_info("Peering destruction FAIL", "There may be leftover peering connections, please check");
 }
 
 1;
