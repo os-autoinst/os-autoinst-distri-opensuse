@@ -36,6 +36,7 @@ use YAML::PP;
 use utils qw(script_retry);
 use testapi;
 use qesapdeployment;
+use Carp;
 
 use Exporter 'import';
 
@@ -51,6 +52,7 @@ our @EXPORT = qw(
   cluster_hdbadm
   cluster_trento_net_peering
   cluster_wait_status
+  cluster_wait_status_by_regex
   get_trento_ip
   deploy_vm
   trento_acr_azure
@@ -821,6 +823,45 @@ sub cluster_wait_status {
             join("\n\n", "Output : $show_attr",
                 'status{vmhana01} : ' . $status{vmhana01},
                 'status{vmhana02} : ' . $status{vmhana02},
+                "done : $done"));
+    }
+    die "Timeout waiting for the change" if !$done;
+}
+
+=head3 cluster_wait_status_by_regex
+
+Remotely run 'SAPHanaSR-showAttr' in a loop on $host, wait output that matches regular expression
+=over 3
+
+=item B<HOST> - Ansible name or filter for the remote host where to run 'SAPHanaSR-showAttr'
+
+=item B<TIMEOUT> - Max time to retry. Die if timeout
+
+=item B<REGULAR_EXPRESSION> - Regular expression to match the text to find
+
+=back
+=cut
+
+sub cluster_wait_status_by_regex {
+    my ($host, $regular_expression, $timeout) = @_;
+    $timeout //= bmwqemu::scale_timeout(300);
+    my $_monitor_start_time = time();
+    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my $done = 0;
+    croak 'No regular expression provided' unless (ref $regular_expression eq 'Regexp');
+    while ((time() - $_monitor_start_time <= $timeout) && (!$done)) {
+        sleep 30;
+        my $show_attr = qesap_ansible_script_output(
+            cmd => 'SAPHanaSR-showAttr',
+            provider => $prov,
+            host => $host,
+            root => 1);
+
+        for my $line (split("\n", $show_attr)) {
+            $done = 1 if ($line =~ $regular_expression);
+        }
+        record_info("SAPHanaSR-showAttr",
+            join("\n\n", "Output : $show_attr",
                 "done : $done"));
     }
     die "Timeout waiting for the change" if !$done;
