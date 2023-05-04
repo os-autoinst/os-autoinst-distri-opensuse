@@ -25,9 +25,7 @@ sub run {
     my ($self) = @_;
 
     $self->start_firefox_with_profile;
-
-    $self->firefox_open_url('file:///usr/share/w3m/w3mhelp.html');
-    assert_screen('firefox-fullscreen-page');
+    $self->firefox_open_url('file:///usr/share/w3m/w3mhelp.html', assert_loaded_url => 'firefox-fullscreen-page');
 
     send_key "f11";
     assert_screen('firefox-fullscreen-enter', 90);

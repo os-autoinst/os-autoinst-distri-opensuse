@@ -27,8 +27,7 @@ sub run {
     enter_cmd('python3 -m http.server 48080 &');
     # curl provides an adequate time window for the server to run
     assert_script_run 'curl --connect-timeout 5 --max-time 10 --retry-connrefused 5 --retry-delay 1 --retry-max-time 40 http://localhost:48080/';
-    $self->firefox_open_url('http://localhost:48080/html5_video');
-    assert_screen('firefox-testvideo');
+    $self->firefox_open_url('http://localhost:48080/html5_video', assert_loaded_url => 'firefox-testvideo');
     $self->exit_firefox;
     enter_cmd('exit');
 }

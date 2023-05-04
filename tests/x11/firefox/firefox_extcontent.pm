@@ -31,9 +31,7 @@ sub run {
     my $host = script_run('ping -c1 mirror.suse.cz') == 0 ? 'mirror.suse.cz' : 'ibs-mirror.prv.suse.net';
     send_key 'ctrl-d';
     wait_still_screen 2;
-    $self->firefox_open_url('http://$host/install/SLP/SLE-12-SP5-Server-GM/x86_64/DVD1/');
-
-    assert_screen('firefox-extcontent-pageloaded');
+    $self->firefox_open_url("http://$host/install/SLP/SLE-12-SP5-Server-GM/x86_64/DVD1/", assert_loaded_url => 'firefox-extcontent-pageloaded');
 
     send_key "/";
     sleep 1;

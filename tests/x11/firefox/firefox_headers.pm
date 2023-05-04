@@ -30,8 +30,7 @@ sub run {
     # open network monitor tab in developer tools
     send_key 'ctrl-shift-e';
     assert_screen 'firefox-headers-inspector';
-    $self->firefox_open_url('gnu.org');
-    assert_screen('firefox-headers-website');
+    $self->firefox_open_url('gnu.org', assert_loaded_url => 'firefox-headers-website');
 
     assert_and_click('firefox-headers-select-html');
     # to see new request window after edit and resend on SLE15

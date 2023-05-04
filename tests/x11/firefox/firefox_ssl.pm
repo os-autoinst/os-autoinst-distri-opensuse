@@ -28,9 +28,7 @@ sub run {
     my ($self) = @_;
     $self->start_firefox_with_profile;
 
-    $self->firefox_open_url('https://build.suse.de');
-
-    assert_screen 'firefox-ssl-untrusted';
+    $self->firefox_open_url('https://build.suse.de', assert_loaded_url => 'firefox-ssl-untrusted');
 
     # go to advanced button and press it
     send_key "tab";
@@ -75,8 +73,7 @@ sub run {
     wait_screen_change { send_key "esc" };
     send_key "ctrl-w";
 
-    $self->firefox_open_url('https://untrusted-root.badssl.com/');
-    assert_screen('firefox-ssl-connection_untrusted');
+    $self->firefox_open_url('https://untrusted-root.badssl.com/', assert_loaded_url => 'firefox-ssl-connection_untrusted');
 
     # Exit
     $self->exit_firefox;
