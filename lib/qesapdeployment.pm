@@ -754,7 +754,7 @@ sub qesap_get_az_resource_group {
 Calculate the vnet and subnet address
 ranges. The format is 10.ip2.ip3.0/21 and
  /24 respectively. ip2 and ip3 are calculated
- using the worker instance number as seed.
+ using the slot number as seed.
 
 =over 1
 
