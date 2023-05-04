@@ -16,13 +16,8 @@ sub run {
     my $instance = $run_args->{my_instance};
     record_info("$instance");
     my $rg = qesap_get_az_resource_group();
-    my $vn = qesap_get_vnet($rg);
     my $target_rg = get_required_var('QESAP_TARGET_RESOURCE_GROUP');
-    my $target_vn = get_required_var('QESAP_TARGET_VN');
-    my $ret = qesap_az_vnet_peering(source_group => $rg, source_vnet => $vn, target_group => $target_rg, target_vnet => $target_vn, verbose => 1);
-    if ($ret != 0) {
-        die "Peering with the IBS Mirror network failed. Check that there are no overlapping peering conections.";
-    }
+    qesap_az_vnet_peering(source_group => $rg, target_group => $target_rg);
     add_server_to_hosts();
 }
 

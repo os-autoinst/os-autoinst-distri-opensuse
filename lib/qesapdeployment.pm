@@ -768,6 +768,8 @@ sub qesap_calculate_az_address_range {
     my %args = @_;
     croak 'Missing mandatory slot argument' unless $args{slot};
 
+    die "Invalid 'slot' argument - valid values are 1-8192" if ($args{slot} > 8192 || $args{slot} < 1);
+
     my $offset = ($args{slot} - 1) * 8;
 
     # addresses are of the form 10.ip2.ip3.0/21 and /24 respectively
@@ -789,17 +791,11 @@ sub qesap_calculate_az_address_range {
 
     Performs peering between the cluster and IBS mirror on Azure.
 
-=over 3
+=over 2
 
 =item B<SOURCE_GROUP> - resource group of source
 
-=item B<SOURCE_VNET> - vnet of source
-
 =item B<TARGET_GROUP> - resource group of target
-
-=item B<TARGET_VNET> - vnet of target
-
-=item B<VERBOSE> - wether output will be verbose or not
 
 =back
 =cut
@@ -807,57 +803,27 @@ sub qesap_calculate_az_address_range {
 sub qesap_az_vnet_peering {
     my (%args) = @_;
     croak 'Missing mandatory source_group argument' unless $args{source_group};
-    croak 'Missing mandatory source_vnet argument' unless $args{source_vnet};
     croak 'Missing mandatory target_group argument' unless $args{target_group};
-    croak 'Missing mandatory target_vnet argument' unless $args{target_vnet};
-    my $az_output = "none";
-
-    if ($args{verbose}) {
-        $az_output = "table";
-    }
-
-    my $az_installed = script_run("which az");
-    if ($az_installed != 0) {
-        record_info("AZURE MISSING", "Azure command \"az\" doesn't seem installed\n");
-        return 1;
-    }
+    $args{source_vnet} = script_output('az network vnet list --resource-group ' . $args{source_group} . ' --query "[0].name" -o tsv');
+    $args{target_vnet} = script_output('az network vnet list --resource-group ' . $args{target_group} . ' --query "[0].name" -o tsv');
 
     my $source_vnet_id = script_output("az network vnet show --resource-group $args{source_group} --name $args{source_vnet} --query id --output tsv");
-    record_info("[M] source vnet ID: $source_vnet_id\n") if $args{verbose};
+    record_info("[M] source vnet ID: $source_vnet_id\n");
 
     my $target_vnet_id = script_output("az network vnet show --resource-group $args{target_group} --name $args{target_vnet} --query id --output tsv");
-    record_info("[M] target vnet ID: $target_vnet_id\n") if $args{verbose};
+    record_info("[M] target vnet ID: $target_vnet_id\n");
 
     my $peering_name = "$args{source_vnet}-$args{target_vnet}";
 
-    my $result = script_run("az network vnet peering create --name $peering_name --resource-group $args{source_group} --vnet-name $args{source_vnet} --remote-vnet $target_vnet_id --allow-vnet-access --output $az_output");
-    if ($result == 0) {
-        record_info("PEERING SUCCESS (source)", "[M] Peering from $args{source_group}.$args{source_vnet} server was successful\n") if $args{verbose};
-    } else {
-        record_info("PEERING FAIL (source)", "[E:$result] Unable to setup peering from the $args{source_group}.$args{source_vnet}\n");
-        return $result;
-    }
+    assert_script_run("az network vnet peering create --name $peering_name --resource-group $args{source_group} --vnet-name $args{source_vnet} --remote-vnet $target_vnet_id --allow-vnet-access --output table");
+    record_info("PEERING SUCCESS (source)", "[M] Peering from $args{source_group}.$args{source_vnet} server was successful\n") if $args{verbose};
 
-    $result = script_run("az network vnet peering create --name $peering_name --resource-group $args{target_group} --vnet-name $args{target_vnet} --remote-vnet $source_vnet_id --allow-vnet-access --output $az_output");
-    if ($result == 0) {
-        record_info("PEERING SUCCESS (target)", "[M] Peering from $args{target_group}.$args{target_vnet} server was successful\n") if $args{verbose};
-    } else {
-        record_info("PEERING FAIL (target)", "[E:$result] Unable to setup peering from $args{target_group}.$args{target_vnet}\n");
-        return $result;
-    }
+    assert_script_run("az network vnet peering create --name $peering_name --resource-group $args{target_group} --vnet-name $args{target_vnet} --remote-vnet $source_vnet_id --allow-vnet-access --output table");
+    record_info("PEERING SUCCESS (target)", "[M] Peering from $args{target_group}.$args{target_vnet} server was successful\n") if $args{verbose};
 
-    if ($args{verbose}) {
-        enter_cmd("echo \"[M] Peering status:\n\"");
-        $result = script_run("az network vnet peering show --name $peering_name --resource-group $args{target_group} --vnet-name $args{target_vnet} --output $az_output");
-        if ($result != 0) {
-            record_info("PEERING STATUS FAIL", "[E:$result] Unable to get peering status!\n");
-            return $result;
-        } else {
-            record_info("PEERING STATUS SUCCESS");
-        }
-    }
-
-    return 0;
+    enter_cmd("echo \"[M] Peering status:\n\"");
+    assert_script_run("az network vnet peering show --name $peering_name --resource-group $args{target_group} --vnet-name $args{target_vnet} --output table");
+    record_info("PEERING STATUS SUCCESS");
 }
 
 =head3 qesap_delete_az_peering

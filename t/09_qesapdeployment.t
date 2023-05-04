@@ -784,6 +784,8 @@ subtest '[qesap_calculate_az_address_range]' => sub {
     is($result_64{subnet_address_range}, "10.1.248.0/24", 'result_64 subnet_address_range is correct');
     is($result_65{vnet_address_range}, "10.2.0.0/21", 'result_65 vnet_address_range is correct');
     is($result_65{subnet_address_range}, "10.2.0.0/24", 'result_65 subnet_address_range is correct');
+    dies_ok { qesap_calculate_az_address_range(slot => 0); } "Expected die for slot < 1";
+    dies_ok { qesap_calculate_az_address_range(slot => 8193); } "Expected die for slot > 8192";
 };
 
 
