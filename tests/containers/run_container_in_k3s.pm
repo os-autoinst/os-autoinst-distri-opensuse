@@ -45,9 +45,12 @@ sub cleanup {
 sub post_fail_hook {
     my ($self) = @_;
     record_info('K3s status', script_output('systemctl status k3s'));
-    record_info('K3s nodes', script_output('kubectl get nodes'));
-    record_info('K3s pods', script_output('kubectl get pods --all-namespaces'));
     script_run('journalctl -u k3s --no-pager');
+    record_info('K3s nodes', script_output('kubectl get nodes'));
+    script_run('kubectl describe nodes');
+    record_info('K3s pods', script_output('kubectl get pods --all-namespaces'));
+    script_run('kubectl describe pods --all-namespaces');
+    script_run('kubectl describe jobs --all-namespaces');
     $self->cleanup();
 }
 
