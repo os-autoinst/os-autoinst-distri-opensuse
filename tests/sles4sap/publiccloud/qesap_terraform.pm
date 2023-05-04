@@ -172,6 +172,15 @@ sub run {
         record_info 'Resource Group', "Resource Group used for deployment: $workspace";
     }
 
+    if (get_var("HANA_TOKEN")) {
+        my $escaped_token = get_required_var("HANA_TOKEN");
+        # escape needed by 'sed'
+        # but not implemented in file_content_replace() yet poo#120690
+        $escaped_token =~ s/\&/\\\&/g;
+        set_var("HANA_TOKEN", $escaped_token);
+    }
+
+
     my $provider = $self->provider_factory();
     set_var('SLE_IMAGE', $provider->get_image_id());
     my $ansible_playbooks = create_playbook_section_list();
