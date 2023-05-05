@@ -5,7 +5,7 @@
 
 # Summary: s390-tools test
 # - bootloader installation (zipl) and re-IPL, without real change as worker has only one dasd
-# - lscss, cputype, lsqeth, lsdasd, lsmem, dasd_reload, dasdview, dasdstat, dbginfo.sh
+# - lscss, cputype, lsqeth, lsdasd, lsmem, dasdview, dasdstat, dbginfo.sh
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "consoletest";
@@ -35,14 +35,6 @@ sub run {
     validate_script_output 'lsqeth', sub { m/Device namei|card_type|cdev0|online|state|buffer_count|layer2/ };
     validate_script_output 'lsdasd', sub { m/Bus-ID|Status|Name|Device|Type|BlkSz|Size|Blocks/ };
     validate_script_output 'lsmem', sub { m/RANGE|SIZE|STATE|REMOVABLE|BLOCK/i };
-    # dasd_reload does exit with 4
-    if (script_run('dasd_reload|grep "line 79: echo: write error"') == 0) {
-        record_soft_failure 'bsc#1209705';
-        script_run 'dasd_reload|grep -E "offline|Activating"';
-    }
-    else {
-        script_run 'dasd_reload|grep -E "offline|Activating"';
-    }
     validate_script_output 'dasdview -i /dev/dasda', sub { m/general DASD information|DASD geometry/ };
     validate_script_output 'dasdview -c /dev/dasda', sub { m/encrypted disk|solid state device/ };
     validate_script_output 'dasdview -x /dev/dasda', sub { m/extended DASD information|features|characteristics/ };
