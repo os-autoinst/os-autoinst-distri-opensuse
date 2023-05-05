@@ -1,4 +1,4 @@
-provider: 'gce'
+provider: 'gcp'
 apiver: 3
 terraform:
   variables:
@@ -6,19 +6,15 @@ terraform:
     region: "%PUBLIC_CLOUD_REGION%"
     admin_user: "cloudadmin"
     os_image: "%SLE_IMAGE%"
-    hana_os_major_version: "%HANA_OS_MAJOR_VERSION%"
-    iscsi_os_major_version: "%HANA_OS_MAJOR_VERSION%"
-    monitoring_os_major_version: "%HANA_OS_MAJOR_VERSION%"
-    drdb_os_major_version: "%HANA_OS_MAJOR_VERSION%"
-    netweaver_os_major_version: "%HANA_OS_MAJOR_VERSION%"
-    bastion_os_major_version: "%HANA_OS_MAJOR_VERSION%"
     private_key: "~/.ssh/id_rsa"
     public_key: "~/.ssh/id_rsa.pub"
     gcp_credentials_file: "/root/google_credentials.json"
 
     # HANA
     hana_count: '1'
-    hana_ha_enabled: '%HA_CLUSTER%'
+    hana_ha_enabled: "%HA_CLUSTER%"
+    hana_data_disk_type: "%HANA_DISK_TYPE%"
+    hana_log_disk_type: "%HANA_DISK_TYPE%"
 
 ansible:
   az_storage_account_name: "%HANA_ACCOUNT%"
