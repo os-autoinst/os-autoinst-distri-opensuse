@@ -1,5 +1,5 @@
 ---
-name: 12-common_base_installation_autoyast
+name: 15-common_base_installation_autoyast
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start
