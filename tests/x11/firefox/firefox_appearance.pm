@@ -29,9 +29,9 @@ sub run {
     assert_and_click('firefox-appearance-tabicon');
     assert_screen('firefox-appearance-default', 30);
 
-    $self->firefox_open_url('addons.mozilla.org/en-US/firefox/addon/opensuse');
-    assert_screen('firefox-appearance-mozilla_addons');
+    $self->firefox_open_url('addons.mozilla.org/en-US/firefox/addon/opensuse', assert_loaded_url => 'firefox-appearance-mozilla_addons');
     assert_and_click('firefox-appearance-addto');
+    wait_still_screen 2, 4;
     assert_and_click('firefox-appearance-addto-permissions_requested');
     assert_screen 'firefox-appearance-installed', 120;
     # on SLE 12 window gets unselected after pop-up is handled

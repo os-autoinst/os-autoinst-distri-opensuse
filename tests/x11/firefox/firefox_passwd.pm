@@ -88,8 +88,7 @@ sub run {
     wait_still_screen(2);
     assert_and_click('firefox-passwd-confirm_remember');
     confirm_master_pw;
-    $self->firefox_open_url($mozlogin);
-    assert_screen('firefox-passwd-auto_filled');
+    $self->firefox_open_url($mozlogin, assert_loaded_url => 'firefox-passwd-auto_filled');
 
     $self->firefox_preferences;
     assert_and_click('firefox-passwd-security');

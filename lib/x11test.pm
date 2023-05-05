@@ -728,7 +728,7 @@ sub firefox_open_url {
     enter_cmd_slow "$url";
     wait_still_screen 2;
     while ($counter++ < 5) {
-        check_screen 'firefox-url-loaded', 90;
+        check_screen 'firefox-url-loaded', 60;
         if (defined $args{assert_loaded_url} && !check_screen($args{assert_loaded_url})) {
             record_info 'retry', "Needle $args{assert_loaded_url} didn't match";
             send_key 'f5';
