@@ -313,7 +313,7 @@
   <users config:type="list">
     <user>
       <encrypted config:type="boolean">false</encrypted>
-      <fullname>Bernhard M. Wiedemann</fullname>
+      <fullname>bernhard</fullname>
       <gid>100</gid>
       <home>/home/bernhard</home>
       <password_settings>

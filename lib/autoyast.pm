@@ -124,7 +124,12 @@ sub expand_patterns {
         }
         return [@all];
     }
-    return [split(/,/, get_var('PATTERNS') =~ s/\bminimal\b/minimal_base/r)] if is_sle('15+');
+    if (is_sle('15+')) {
+        my $patterns = get_var('PATTERNS');
+        $patterns =~ s/\bbase\b/enhanced_base/;
+        $patterns =~ s/\bminimal\b/minimal_base/;
+        return [split(/,/, $patterns)];
+    }
     return [split(/,/, get_var('PATTERNS') =~ s/\bminimal\b/Minimal/r)];
 }
 
