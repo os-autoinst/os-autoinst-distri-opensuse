@@ -69,6 +69,9 @@ our @EXPORT = qw(
   qesap_cluster_logs
   qesap_get_vnet
   qesap_get_az_resource_group
+  qesap_calculate_az_address_range
+  qesap_az_vnet_peering
+  qesap_delete_az_peering
 );
 
 =head1 DESCRIPTION
@@ -729,7 +732,7 @@ sub qesap_get_vnet {
 Query and return the resource group used
 by the qe-sap-deployment
 
-=over 3
+=over 1
 
 =item B<SUBSTRING> - optional substring to be used with aditional grep at the end of the command
 
@@ -743,6 +746,119 @@ sub qesap_get_az_resource_group {
     my $result = script_output("az group list --query \"[].name\" -o tsv | grep $job_id" . $substring);
     record_info('QESAP RG', "result:$result");
     return $result;
+}
+
+=head3 qesap_calculate_az_address_range
+
+Calculate the vnet and subnet address
+ranges. The format is 10.ip2.ip3.0/21 and
+ /24 respectively. ip2 and ip3 are calculated
+ using the slot number as seed.
+
+=over 1
+
+=item B<SLOT> - integer to be used as seed in calculating addresses
+
+=back
+
+=cut
+
+sub qesap_calculate_az_address_range {
+    my %args = @_;
+    croak 'Missing mandatory slot argument' unless $args{slot};
+
+    die "Invalid 'slot' argument - valid values are 1-8192" if ($args{slot} > 8192 || $args{slot} < 1);
+
+    my $offset = ($args{slot} - 1) * 8;
+
+    # addresses are of the form 10.ip2.ip3.0/21 and /24 respectively
+    #ip2 gets incremented when it is >=256
+    my $ip2 = int($offset / 256);
+    #ip3 gets incremented by 8 until it's >=256, then it resets
+    my $ip3 = $offset % 256;
+
+    return (
+        vnet_address_range => sprintf("10.%d.%d.0/21", $ip2, $ip3),
+        subnet_address_range => sprintf("10.%d.%d.0/24", $ip2, $ip3),
+    );
+}
+
+=head3 qesap_az_vnet_peering
+
+    Performs peering between the cluster and IBS mirror on Azure.
+
+=over 2
+
+=item B<SOURCE_GROUP> - resource group of source
+
+=item B<TARGET_GROUP> - resource group of target
+
+=back
+=cut
+
+sub qesap_az_vnet_peering {
+    my (%args) = @_;
+    croak 'Missing mandatory source_group argument' unless $args{source_group};
+    croak 'Missing mandatory target_group argument' unless $args{target_group};
+    $args{source_vnet} = qesap_get_vnet($args{source_group});
+    $args{target_vnet} = qesap_get_vnet($args{target_group});
+
+    my $source_vnet_id = script_output("az network vnet show --resource-group $args{source_group} --name $args{source_vnet} --query id --output tsv");
+    record_info("[M] source vnet ID: $source_vnet_id\n");
+
+    my $target_vnet_id = script_output("az network vnet show --resource-group $args{target_group} --name $args{target_vnet} --query id --output tsv");
+    record_info("[M] target vnet ID: $target_vnet_id\n");
+
+    my $peering_name = "$args{source_vnet}-$args{target_vnet}";
+
+    assert_script_run("az network vnet peering create --name $peering_name --resource-group $args{source_group} --vnet-name $args{source_vnet} --remote-vnet $target_vnet_id --allow-vnet-access --output table");
+    record_info("PEERING SUCCESS (source)", "[M] Peering from $args{source_group}.$args{source_vnet} server was successful\n");
+
+    assert_script_run("az network vnet peering create --name $peering_name --resource-group $args{target_group} --vnet-name $args{target_vnet} --remote-vnet $source_vnet_id --allow-vnet-access --output table");
+    record_info("PEERING SUCCESS (target)", "[M] Peering from $args{target_group}.$args{target_vnet} server was successful\n");
+
+    record_info("Checking peering status");
+    assert_script_run("az network vnet peering show --name $peering_name --resource-group $args{target_group} --vnet-name $args{target_vnet} --output table");
+    record_info("PEERING STATUS SUCCESS");
+}
+
+=head3 qesap_delete_az_peering
+
+    Performs peering between the cluster and IBS mirror on Azure.
+
+=over 3
+
+=item B<SOURCE_GROUP> - resource group of source
+
+=item B<SOURCE_VNET> - vnet of source
+
+=item B<TARGET_GROUP> - resource group of target
+
+=item B<TARGET_VNET> - vnet of target
+
+=back
+=cut
+
+sub qesap_delete_az_peering {
+    my (%args) = @_;
+    croak 'Missing mandatory source_group argument' unless $args{source_group};
+    croak 'Missing mandatory target_group argument' unless $args{target_group};
+
+    $args{source_vnet} = qesap_get_vnet($args{source_group});
+    $args{target_vnet} = qesap_get_vnet($args{target_group});
+
+    my $peering_name = "$args{source_vnet}-$args{target_vnet}";
+    my $source_cmd = "az network vnet peering delete --resource-group $args{source_group} --vnet-name $args{source_vnet} -n $peering_name";
+    my $target_cmd = "az network vnet peering delete --resource-group $args{target_group} --vnet-name $args{target_vnet} -n $peering_name";
+
+    record_info("Attempting peering destruction");
+    my $source_ret = script_run($source_cmd);
+    my $target_ret = script_run($target_cmd);
+    if ($source_ret == 0 && $target_ret == 0) {
+        record_info("Peering deletion SUCCESS", "The peering was successfully destroyed");
+        return;
+    }
+    record_info("Peering destruction FAIL", "There may be leftover peering connections, please check");
 }
 
 1;
