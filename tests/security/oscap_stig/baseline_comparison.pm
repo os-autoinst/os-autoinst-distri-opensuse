@@ -31,6 +31,9 @@ sub run {
 
     select_console 'root-console';
 
+    # Install runtime dependencies
+    zypper_call("in wget");
+
     # Download python script for baseline comparison
     assert_script_run('wget --quiet ' . data_url("$py_script"));
 

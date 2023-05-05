@@ -23,6 +23,9 @@ use version_utils;
 sub run {
     select_serial_terminal;
 
+    # Install runtime dependencies
+    zypper_call("in rsyslog");
+
     my $test_log_msg = 'Test Log Message FOOBAR123';
     assert_script_run "logger $test_log_msg";
 

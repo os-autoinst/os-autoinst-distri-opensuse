@@ -22,6 +22,9 @@ sub run {
     my $self = shift;
     select_serial_terminal;
 
+    # Install runtime dependencies
+    zypper_call("in sudo");
+
     # Make sure the code changes are there
     if (is_sle) {
         assert_script_run("rpm -q kernel-default --changelog | grep 'dm crypt' | grep 'kcryptd workqueues'");

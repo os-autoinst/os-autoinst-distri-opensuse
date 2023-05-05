@@ -30,7 +30,7 @@ sub run {
         add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1);
         is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
     }
-    zypper_call("in sssd sssd-ldap openldap2-client sshpass docker");
+    zypper_call("in nscd sssd sssd-ldap openldap2-client sshpass docker");
     systemctl('enable --now docker');
     #Select container base image by specifying variable BASE_IMAGE_TAG. (for sles using sle15sp3 by default)
     my $pkgs = "openldap2 sudo";

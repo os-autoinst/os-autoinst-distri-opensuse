@@ -23,6 +23,9 @@ sub run {
 
     select_console 'root-console';
 
+    # Install runtime dependencies
+    zypper_call("in iputils");
+
     # We don't run setup_multimachine in s390x, but we need to know the server and client's
     # ip address, so we add a known ip to NETDEV.
     my $netdev = get_var('NETDEV', 'eth0');

@@ -20,6 +20,9 @@ use power_action_utils 'power_action';
 sub run {
     select_serial_terminal;
 
+    # Install runtime dependencies
+    zypper_call("in wget");
+
     # Install tpm and tpm2 related packages, then we can verify the swtpm function
     zypper_call("in tpm-tools tpm-quote-tools tpm2-0-tss tpm2-tss-engine tpm2.0-abrmd tpm2.0-tools trousers");
     assert_script_run("systemctl enable tcsd");

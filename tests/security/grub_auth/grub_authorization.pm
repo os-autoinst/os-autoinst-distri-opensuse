@@ -86,6 +86,9 @@ sub grub_auth_oper {
 sub run {
     select_console("root-console");
 
+    # Install runtime dependencies
+    zypper_call("in wget");
+
     # Check disk name, partition number and fs_type for root file system,
     # then create a new custom grub config file based on the users/passwords we definded
     assert_script_run "wget --quiet " . data_url("grub_auth/create_custom_grub.sh");

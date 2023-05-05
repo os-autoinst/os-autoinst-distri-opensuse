@@ -31,7 +31,7 @@ sub run {
 
     # Install the required packages for libvirt environment setup,
     # "expect" is used for later remote login test, so install here as well
-    zypper_call("in qemu libvirt swtpm expect virt-install virt-manager");
+    zypper_call("in qemu libvirt swtpm expect virt-install virt-manager wget");
 
     # Start libvirtd daemon and start the default libvirt network
     assert_script_run("systemctl start libvirtd");

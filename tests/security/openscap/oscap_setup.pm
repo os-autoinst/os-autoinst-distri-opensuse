@@ -15,7 +15,7 @@ use version_utils 'is_opensuse';
 
 sub run {
 
-    zypper_call('in openscap-utils libxslt-tools');
+    zypper_call("in openscap-utils libxslt-tools wget");
 
     oscap_get_test_file("oval.xml");
     oscap_get_test_file("xccdf.xml");

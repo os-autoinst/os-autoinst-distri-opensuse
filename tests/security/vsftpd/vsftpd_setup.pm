@@ -26,7 +26,7 @@ sub run {
     select_console 'root-console';
 
     # Install vsftpd, expect for Tumbleweed
-    zypper_call('in vsftpd expect openssl');
+    zypper_call("in vsftpd expect openssl wget");
 
     # Create self-signed certificate
     assert_script_run("mkdir $vsftpd_path && cd $vsftpd_path");
