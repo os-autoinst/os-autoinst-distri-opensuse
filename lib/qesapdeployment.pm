@@ -800,8 +800,8 @@ sub qesap_az_vnet_peering {
     my (%args) = @_;
     croak 'Missing mandatory source_group argument' unless $args{source_group};
     croak 'Missing mandatory target_group argument' unless $args{target_group};
-    $args{source_vnet} = script_output('az network vnet list --resource-group ' . $args{source_group} . ' --query "[0].name" -o tsv');
-    $args{target_vnet} = script_output('az network vnet list --resource-group ' . $args{target_group} . ' --query "[0].name" -o tsv');
+    $args{source_vnet} = qesap_get_vnet($args{source_group});
+    $args{target_vnet} = qesap_get_vnet($args{target_group});
 
     my $source_vnet_id = script_output("az network vnet show --resource-group $args{source_group} --name $args{source_vnet} --query id --output tsv");
     record_info("[M] source vnet ID: $source_vnet_id\n");
@@ -812,10 +812,10 @@ sub qesap_az_vnet_peering {
     my $peering_name = "$args{source_vnet}-$args{target_vnet}";
 
     assert_script_run("az network vnet peering create --name $peering_name --resource-group $args{source_group} --vnet-name $args{source_vnet} --remote-vnet $target_vnet_id --allow-vnet-access --output table");
-    record_info("PEERING SUCCESS (source)", "[M] Peering from $args{source_group}.$args{source_vnet} server was successful\n") if $args{verbose};
+    record_info("PEERING SUCCESS (source)", "[M] Peering from $args{source_group}.$args{source_vnet} server was successful\n");
 
     assert_script_run("az network vnet peering create --name $peering_name --resource-group $args{target_group} --vnet-name $args{target_vnet} --remote-vnet $source_vnet_id --allow-vnet-access --output table");
-    record_info("PEERING SUCCESS (target)", "[M] Peering from $args{target_group}.$args{target_vnet} server was successful\n") if $args{verbose};
+    record_info("PEERING SUCCESS (target)", "[M] Peering from $args{target_group}.$args{target_vnet} server was successful\n");
 
     record_info("Checking peering status");
     assert_script_run("az network vnet peering show --name $peering_name --resource-group $args{target_group} --vnet-name $args{target_vnet} --output table");
@@ -841,12 +841,11 @@ sub qesap_az_vnet_peering {
 
 sub qesap_delete_az_peering {
     my (%args) = @_;
-    foreach (qw(source_group target_group)) {
-        croak "Missing mandatory $_ argument" unless $args{$_};
-    }
+    croak 'Missing mandatory source_group argument' unless $args{source_group};
+    croak 'Missing mandatory target_group argument' unless $args{target_group};
 
-    $args{source_vnet} = script_output('az network vnet list --resource-group ' . $args{source_group} . ' --query "[0].name" -o tsv');
-    $args{target_vnet} = script_output('az network vnet list --resource-group ' . $args{target_group} . ' --query "[0].name" -o tsv');
+    $args{source_vnet} = qesap_get_vnet($args{source_group});
+    $args{target_vnet} = qesap_get_vnet($args{target_group});
 
     my $peering_name = "$args{source_vnet}-$args{target_vnet}";
     my $source_cmd = "az network vnet peering delete --resource-group $args{source_group} --vnet-name $args{source_vnet} -n $peering_name";
