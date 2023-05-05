@@ -16,6 +16,10 @@ use testapi;
 
 sub run {
     select_console "root-console";
+
+    # Install runtime dependencies
+    zypper_call("in wget");
+
     assert_script_run("rpm -q wget");
     assert_script_run("wget -c https://build.opensuse.org -O opensuse.html");
     assert_script_run("wget -c https://www.google.com -O google.html");

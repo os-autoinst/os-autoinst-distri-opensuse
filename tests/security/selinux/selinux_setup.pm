@@ -32,7 +32,7 @@ sub run {
         assert_script_run('transactional-update --non-interactive pkg install policycoreutils');
     }
     else {
-        zypper_call("in policycoreutils");
+        zypper_call("in policycoreutils wget");
     }
     # Program 'semanage' is found in:
     #  - policycoreutils-python-utils pkgs on ALP, TW and SLES 15-SP4

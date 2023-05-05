@@ -26,6 +26,9 @@ sub run {
     barrier_wait 'SETUP_DONE';
     select_serial_terminal;
 
+    # Install runtime dependencies
+    zypper_call("in iputils");
+
     # Install openvpn
     zypper_call('in openvpn');
     assert_script_run('cd /etc/openvpn');

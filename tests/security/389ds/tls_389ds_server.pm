@@ -19,6 +19,9 @@ use services::389ds_server;
 sub run {
     select_console("root-console");
 
+    # Install runtime dependencies
+    zypper_call("in wget");
+
     services::389ds_server::install_service();
     services::389ds_server::config_service();
     services::389ds_server::enable_service();

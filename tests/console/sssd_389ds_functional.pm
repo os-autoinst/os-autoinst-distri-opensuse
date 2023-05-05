@@ -32,7 +32,7 @@ sub run {
         $docker = "docker";
         is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
     }
-    zypper_call("in sssd sssd-ldap openldap2-client $docker");
+    zypper_call("in nscd sssd sssd-ldap openldap2-client $docker");
 
     #For released sle versions use sle15sp3 base image by default. For developing sle use corresponding image in registry.suse.de
     my $pkgs = "awk systemd systemd-sysvinit 389-ds openssl";

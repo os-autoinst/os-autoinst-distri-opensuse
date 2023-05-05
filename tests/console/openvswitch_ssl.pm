@@ -19,6 +19,9 @@ use version_utils 'is_sle';
 sub run {
     select_console 'root-console';
 
+    # Install runtime dependencies
+    zypper_call("in wget");
+
     if (is_sle("<=12-SP5")) {
         zypper_call('in python python-base openvswitch');
     } else {

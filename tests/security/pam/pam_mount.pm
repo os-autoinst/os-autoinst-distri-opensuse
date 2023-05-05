@@ -20,8 +20,8 @@ sub run {
     # so switch to root-console here
     select_console 'root-console';
 
-    # Install the pam-mount package, since this service package is not installed by default
-    zypper_call 'in pam_mount';
+    # Install runtime dependencies
+    zypper_call("in pam_mount cryptsetup");
 
     # Define the uesr and encrypt key for the volume
     my $user = 'bernhard';

@@ -34,6 +34,9 @@ sub run {
     barrier_wait 'SETUP_DONE';
     select_serial_terminal;
 
+    # Install runtime dependencies
+    zypper_call("in iputils");
+
     # Install openvpn, generate static key
     add_qa_head_repo unless is_opensuse();
     zypper_call('in openvpn easy-rsa');

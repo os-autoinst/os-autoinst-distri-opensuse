@@ -16,6 +16,10 @@ sub run {
     my $f_bpf_test = '/tmp/bpf_test';
 
     select_console 'root-console';
+
+    # Install runtime dependencies
+    zypper_call("in wget");
+
     # Set 'unprivileged_bpf_disabled' to 1
     validate_script_output('sysctl kernel.unprivileged_bpf_disabled=1', sub { m/kernel.unprivileged_bpf_disabled = 1/ });
     validate_script_output("cat /proc/sys/kernel/unprivileged_bpf_disabled", sub { m/1/ });
