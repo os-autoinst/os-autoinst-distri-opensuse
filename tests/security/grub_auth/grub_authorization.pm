@@ -20,6 +20,7 @@ use warnings;
 use testapi;
 use base 'consoletest';
 use version_utils 'is_sle';
+use utils 'zypper_call';
 
 my $sup_user = 'admin';
 my $sup_passwd = 'pw_admin';
