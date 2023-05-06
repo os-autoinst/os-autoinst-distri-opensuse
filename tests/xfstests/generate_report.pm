@@ -104,6 +104,7 @@ sub analyze_result {
 
 sub run {
     select_serial_terminal;
+    return if get_var('XFSTESTS_NFS_SERVER');
     sleep 5;
 
     # Reload uploaded status log back to file
