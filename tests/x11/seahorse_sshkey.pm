@@ -1,6 +1,6 @@
 # SUSE's gnome-keyring tests
 #
-# Copyright 2017 SUSE LLC
+# Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Package: seahorse
@@ -27,9 +27,15 @@ sub run {
     send_key 'alt-d';
     type_string "Keyring test";    # Name of new ssh key
     send_key 'alt-j';    # Just Create ssh key without setup
+    if (check_screen("seahorse-sshkey-inhibit", timeout => 3)) {
+        assert_and_click "seahorse-sshkey-inhibit";
+    }
     assert_screen 'seahorse-sshkey-passphrase';    # sshkey passphrase
     type_password;
     send_key 'ret';
+    if (check_screen("seahorse-sshkey-inhibit", timeout => 3)) {
+        assert_and_click "seahorse-sshkey-inhibit";
+    }
     assert_screen 'seahorse-sshkey-passphrase-retype';    # sshkey passphrase retype
     type_password;
     send_key 'ret';
