@@ -52,7 +52,7 @@ sub install_k3s {
         # github.com/k3s-io/k3s#5946 - The kubectl delete namespace helm-ns-413 command freezes and does nothing
         # Note: The install script starts a k3s-server by default, unless INSTALL_K3S_SKIP_START is set to true
         script_retry("curl -sfL https://get.k3s.io  -o install_k3s.sh", timeout => 180, delay => 60, retry => 3);
-        assert_script_run("INSTALL_K3S_SKIP_START=true sh install_k3s.sh --disable=metrics-server", timeout => 180);
+        assert_script_run("INSTALL_K3S_SKIP_START=true sh install_k3s.sh --disable=metrics-server", timeout => 300);
         script_run("rm -f install_k3s.sh");
     }
 
@@ -74,10 +74,10 @@ sub install_k3s {
     assert_script_run("ln -s /etc/rancher/k3s/k3s.yaml ~/.kube/config");
     sleep 60;
     # Await k3s to be ready and exists the default service account
-    script_retry("kubectl get serviceaccount default -o name", delay => 60, retry => 3);
+    script_retry("kubectl get serviceaccount default -o name", timeout => 120, delay => 60, retry => 3);
     # Await k3s to be ready and the api is accessible
-    script_retry("kubectl get namespaces", delay => 60, retry => 3);
-    script_retry("kubectl get pods --all-namespaces | grep -E 'Running|Completed'", delay => 60, retry => 10);
+    script_retry("kubectl get namespaces", timeout => 120, delay => 60, retry => 3);
+    script_retry("kubectl get pods --all-namespaces | grep -E 'Running|Completed'", timeout => 120, delay => 60, retry => 10);
     record_info("k3s api resources", script_output("kubectl api-resources"));
     assert_script_run("kubectl auth can-i 'create' 'pods'");
     assert_script_run("kubectl auth can-i 'create' 'deployments'");
