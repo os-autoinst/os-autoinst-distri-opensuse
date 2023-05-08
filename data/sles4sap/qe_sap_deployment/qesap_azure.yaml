@@ -9,6 +9,8 @@ terraform:
     hana_remote_python: "%ANSIBLE_REMOTE_PYTHON%"
     iscsi_remote_python: "%ANSIBLE_REMOTE_PYTHON%"
     hana_instancetype: "%HANA_INSTANCE_TYPE%"
+    vnet_address_range: "%VNET_ADDRESS_RANGE%"
+    subnet_address_range: "%SUBNET_ADDRESS_RANGE%"
 
 ansible:
   az_storage_account_name: "%HANA_ACCOUNT%"

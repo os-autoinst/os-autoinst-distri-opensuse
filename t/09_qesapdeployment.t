@@ -769,8 +769,6 @@ subtest '[qesap_get_az_resource_group]' => sub {
 };
 
 subtest '[qesap_calculate_az_address_range]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-
     my %result_1 = qesap_calculate_az_address_range(slot => 1);
     my %result_2 = qesap_calculate_az_address_range(slot => 2);
     my %result_64 = qesap_calculate_az_address_range(slot => 64);
@@ -787,6 +785,5 @@ subtest '[qesap_calculate_az_address_range]' => sub {
     dies_ok { qesap_calculate_az_address_range(slot => 0); } "Expected die for slot < 1";
     dies_ok { qesap_calculate_az_address_range(slot => 8193); } "Expected die for slot > 8192";
 };
-
 
 done_testing;

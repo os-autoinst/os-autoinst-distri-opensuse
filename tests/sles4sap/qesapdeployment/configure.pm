@@ -56,6 +56,11 @@ sub run {
         $variables{HANA_DATA_DISK_TYPE} = get_var("QESAPDEPLOY_HANA_DISK_TYPE", "pd-ssd");
         $variables{HANA_LOG_DISK_TYPE} = get_var("QESAPDEPLOY_HANA_DISK_TYPE", "pd-ssd");
     }
+
+    my %peering_settings = qesap_calculate_az_address_range(slot => get_var("WORKER_INSTANCE"));
+    $variables{VNET_ADDRESS_RANGE} = $peering_settings{vnet_address_range};
+    $variables{SUBNET_ADDRESS_RANGE} = $peering_settings{subnet_address_range};
+
     qesap_prepare_env(openqa_variables => \%variables, provider => $qesap_provider);
 }
 

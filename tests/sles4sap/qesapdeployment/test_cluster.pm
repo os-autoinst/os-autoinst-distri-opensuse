@@ -24,6 +24,13 @@ sub run {
     record_info("crm status", $cmr_status);
     qesap_ansible_cmd(cmd => $crm_mon_cmd, provider => $prov, filter => '"hana[0]"');
     qesap_cluster_logs();
+
+    if (get_var("QESAP_IBSMIRROR_RESOURCE_GROUP")) {
+        my $rg = qesap_get_az_resource_group();
+        my $ibs_mirror_rg = get_var('QESAP_IBSMIRROR_RESOURCE_GROUP');
+        qesap_az_vnet_peering(source_group => $rg, target_group => $ibs_mirror_rg);
+        qesap_delete_az_peering(source_group => $rg, target_group => $ibs_mirror_rg);
+    }
 }
 
 sub post_fail_hook {
@@ -31,6 +38,11 @@ sub post_fail_hook {
     qesap_upload_logs();
     qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
     qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1200);
+    if (get_var("QESAP_IBSMIRROR_RESOURCE_GROUP")) {
+        my $rg = qesap_get_az_resource_group();
+        my $ibs_mirror_rg = get_required_var('QESAP_IBSMIRROR_RESOURCE_GROUP');
+        qesap_delete_az_peering(source_group => $rg, target_group => $ibs_mirror_rg);
+    }
     $self->SUPER::post_fail_hook;
 }
 
