@@ -787,11 +787,13 @@ sub qesap_calculate_az_address_range {
 
     Performs peering between the cluster and IBS mirror on Azure.
 
-=over 2
+=over 3
 
 =item B<SOURCE_GROUP> - resource group of source
 
 =item B<TARGET_GROUP> - resource group of target
+
+=item B<TIMEOUT> - default is 5 mins
 
 =back
 =cut
@@ -802,23 +804,27 @@ sub qesap_az_vnet_peering {
     croak 'Missing mandatory target_group argument' unless $args{target_group};
     my $source_vnet = qesap_get_vnet($args{source_group});
     my $target_vnet = qesap_get_vnet($args{target_group});
+    $args{timeout} //= bmwqemu::scale_timeout(300);
 
-    my $source_vnet_id = script_output("az network vnet show --resource-group $args{source_group} --name $source_vnet --query id --output tsv");
+    my $az_net = 'az network vnet';
+
+    my $source_vnet_id = script_output("$az_net show --resource-group $args{source_group} --name $source_vnet --query id --output tsv");
     record_info("[M] source vnet ID: $source_vnet_id\n");
 
-    my $target_vnet_id = script_output("az network vnet show --resource-group $args{target_group} --name $target_vnet --query id --output tsv");
+    my $target_vnet_id = script_output("$az_net show --resource-group $args{target_group} --name $target_vnet --query id --output tsv");
     record_info("[M] target vnet ID: $target_vnet_id\n");
 
     my $peering_name = "$source_vnet-$target_vnet";
+    my $peering_cmd = "$az_net peering create --name $peering_name --allow-vnet-access --output table";
 
-    assert_script_run("az network vnet peering create --name $peering_name --resource-group $args{source_group} --vnet-name $source_vnet --remote-vnet $target_vnet_id --allow-vnet-access --output table");
+    assert_script_run("$peering_cmd --resource-group $args{source_group} --vnet-name $source_vnet --remote-vnet $target_vnet_id", timeout => $args{timeout});
     record_info("PEERING SUCCESS (source)", "[M] Peering from $args{source_group}.$source_vnet server was successful\n");
 
-    assert_script_run("az network vnet peering create --name $peering_name --resource-group $args{target_group} --vnet-name $target_vnet --remote-vnet $source_vnet_id --allow-vnet-access --output table");
+    assert_script_run("$peering_cmd --resource-group $args{target_group} --vnet-name $target_vnet --remote-vnet $source_vnet_id", timeout => $args{timeout});
     record_info("PEERING SUCCESS (target)", "[M] Peering from $args{target_group}.$target_vnet server was successful\n");
 
     record_info("Checking peering status");
-    assert_script_run("az network vnet peering show --name $peering_name --resource-group $args{target_group} --vnet-name $target_vnet --output table");
+    assert_script_run("$az_net peering show --name $peering_name --resource-group $args{target_group} --vnet-name $target_vnet --output table");
     record_info("PEERING STATUS SUCCESS");
 }
 
@@ -826,11 +832,13 @@ sub qesap_az_vnet_peering {
 
     Performs peering between the cluster and IBS mirror on Azure.
 
-=over 2
+=over 3
 
 =item B<SOURCE_GROUP> - resource group of source
 
 =item B<TARGET_GROUP> - resource group of target
+
+=item B<TIMEOUT> - default is 5 mins
 
 =back
 =cut
@@ -839,17 +847,19 @@ sub qesap_delete_az_peering {
     my (%args) = @_;
     croak 'Missing mandatory source_group argument' unless $args{source_group};
     croak 'Missing mandatory target_group argument' unless $args{target_group};
+    $args{timeout} //= bmwqemu::scale_timeout(300);
 
     my $source_vnet = qesap_get_vnet($args{source_group});
     my $target_vnet = qesap_get_vnet($args{target_group});
 
     my $peering_name = "$source_vnet-$target_vnet";
-    my $source_cmd = "az network vnet peering delete --resource-group $args{source_group} --vnet-name $source_vnet -n $peering_name";
-    my $target_cmd = "az network vnet peering delete --resource-group $args{target_group} --vnet-name $target_vnet -n $peering_name";
+    my $peering_cmd = "az network vnet peering delete -n $peering_name";
+    my $source_cmd = "$peering_cmd --resource-group $args{source_group} --vnet-name $source_vnet";
+    my $target_cmd = "$peering_cmd --resource-group $args{target_group} --vnet-name $target_vnet";
 
     record_info("Attempting peering destruction");
-    my $source_ret = script_run($source_cmd);
-    my $target_ret = script_run($target_cmd);
+    my $source_ret = script_run($source_cmd, timeout => $args{timeout});
+    my $target_ret = script_run($target_cmd, timeout => $args{timeout});
     if ($source_ret == 0 && $target_ret == 0) {
         record_info("Peering deletion SUCCESS", "The peering was successfully destroyed");
         return;
