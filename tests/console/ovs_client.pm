@@ -48,8 +48,8 @@ sub run {
     mutex_wait 'barrier_setup_done';
 
     # Install the needed packages
-    # At moment we have opnvswitch3* packages on sles 15 sp5 only
-    if (is_sle('>=15-SP5')) {
+    # At moment we have opnvswitch3* packages on sles 15 sp5 only, so take care of update test as well
+    if (is_sle('>=15-SP5') || check_var('FLAVOR', 'Server-DVD-Updates')) {
         zypper_call('in openvswitch3-ipsec tcpdump openvswitch3-pki openvswitch3-vtep', timeout => 300);
     }
     else {
