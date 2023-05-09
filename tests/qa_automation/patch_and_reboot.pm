@@ -37,14 +37,6 @@ sub run {
 
     quit_packagekit unless check_var('DESKTOP', 'textmode');
 
-    # We need to activated SLES-LTSS product again on system installed via autoyast
-    # https://progress.opensuse.org/issues/128840
-    # https://bugzilla.suse.com/show_bug.cgi?id=1211154
-    if (get_var('AUTOYAST') && get_var('SCC_ADDONS') =~ /ltss/ && script_run('test -f /etc/products.d/SLES-LTSS.prod') != 0) {
-        record_soft_failure('bsc#1211154');
-        add_suseconnect_product('SLES-LTSS', undef, undef, '-r ' . get_var('SCC_REGCODE_LTSS'), 150);
-    }
-
     zypper_call(q{mr -d $(zypper lr | awk -F '|' '{IGNORECASE=1} /nvidia/ {print $2}')}, exitcode => [0, 3]);
 
     add_test_repositories;

@@ -315,6 +315,13 @@
     % if ($get_var->('SCC_ADDONS') =~ m/\brt\b/) {
     <kernel>kernel-rt</kernel>
     % }
+    <packages config:type="list">
+      <!-- Workaround for bsc#1202234: [addon]-release packages are missing after autoyast installation. -->
+      % foreach (values %$addons) {
+      <package><%= lc($_->{name}) %>-release</package>
+      % }
+      <!-- end of workaround -->
+    </packages>
     <patterns config:type="list">
       % for my $pattern (@$patterns) {
       <pattern><%= $pattern %></pattern>
