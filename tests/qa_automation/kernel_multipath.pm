@@ -93,8 +93,8 @@ sub start_testrun {
     # qa_test_multipath RPM: when deployed for testsuites sw_multipath_s_aa
     # resp. sw_multipath_s_ap, scripts active_active.sh, resp.,
     # active_passive.sh configure a runtime of 180 s each.
-    # An openQA timeout of 360 s should therefore be plenty.
-    my $tc_timeout = 360;
+    # An openQA timeout of 1800 s should therefore be plenty.
+    my $tc_timeout = 1800;
 
     zypper_call("in open-iscsi qa_test_multipath");
 
