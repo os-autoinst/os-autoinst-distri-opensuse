@@ -3,7 +3,6 @@
 mds:
   - raid_level: 1
     name: md0
-    chunk_size: '64 KiB'
     devices:
       - vda2
       - vdb2
@@ -17,7 +16,6 @@ mds:
         should_mount: 1
   - raid_level: 1
     name: md1
-    chunk_size: '64 KiB'
     devices:
       - vda3
       - vdb3
