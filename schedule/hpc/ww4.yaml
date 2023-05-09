@@ -7,7 +7,6 @@ description:    >
     '{{ww4}}' schedules the controller
 vars:
   DESKTOP: textmode
-  BOOT_HDD_IMAGE: 1
 
 conditional_schedule:
   bootmenu:
