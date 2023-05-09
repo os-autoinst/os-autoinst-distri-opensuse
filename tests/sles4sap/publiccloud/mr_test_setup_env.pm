@@ -32,10 +32,8 @@ sub run {
     select_host_console();
 
     # Download mr_test and extract it to '/root' later
-    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
-        my $tarball = get_var('MR_TEST_TARBALL', "https://gitlab.suse.de/qa/mr_test/-/archive/master/$mr_test_tar");
-        assert_script_run "curl -sk $tarball -o /root/$mr_test_tar";
-    }
+    my $tarball = get_var('MR_TEST_TARBALL', "https://gitlab.suse.de/qa/mr_test/-/archive/master/$mr_test_tar");
+    assert_script_run "curl -sk $tarball -o /root/$mr_test_tar";
 
     # Copy the code to instance
     my $remote = $run_args->{my_instance}->username . '@' . $run_args->{my_instance}->public_ip;
