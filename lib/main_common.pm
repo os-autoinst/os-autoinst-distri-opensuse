@@ -2540,15 +2540,17 @@ sub load_extra_tests_syscontainer {
 }
 
 sub load_extra_tests_kernel {
-    loadtest "kernel/module_build";
-    loadtest "kernel/tuned";
-    loadtest "kernel/fwupd" if is_sle('15+');
-
     if (is_tumbleweed || is_sle('>=15-sp5')) {
         loadtest "kernel/bpftrace";
         loadtest "kernel/bcc";
         loadtest "kernel/io_uring";
     }
+
+    loadtest "kernel/tuned";
+    loadtest "kernel/fwupd" if is_sle('15+');
+
+    # keep it on the latest place as it taints kernel
+    loadtest "kernel/module_build";
 }
 
 # Scheduling set for validation of specific installation
