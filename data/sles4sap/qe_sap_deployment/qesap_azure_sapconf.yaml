@@ -4,7 +4,7 @@ terraform:
   variables:
     az_region: "%REGION%"
     deployment_name: "%DEPLOYMENTNAME%"
-    os_image: "%QESAP_CLUSTER_OS_VER%"
+    os_image: "%OS_VER%"
     public_key: "%SSH_KEY_PUB%"
     hana_remote_python: "%ANSIBLE_REMOTE_PYTHON%"
     iscsi_remote_python: "%ANSIBLE_REMOTE_PYTHON%"

@@ -4,8 +4,8 @@ terraform:
   variables:
     aws_region: "%REGION%"
     deployment_name: "%DEPLOYMENTNAME%"
-    os_image: "%QESAP_CLUSTER_OS_VER%"
-    os_owner: "%QESAP_CLUSTER_OS_OWNER%"
+    os_image: "%OS_VER%"
+    os_owner: "%OS_OWNER%"
     private_key: "%SSH_KEY_PRIV%"
     public_key: "%SSH_KEY_PUB%"
     aws_credentials: "/root/amazon_credentials"

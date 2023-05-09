@@ -7,7 +7,7 @@ terraform:
     public_key: "%SSH_KEY_PUB%"
     hana_remote_python: "%ANSIBLE_REMOTE_PYTHON%"
     iscsi_remote_python: "%ANSIBLE_REMOTE_PYTHON%"
-    os_image_uri: 'https://%STORAGE_ACCOUNT_NAME%.blob.core.windows.net/sle-images/%SLE_IMAGE%'
+    os_image_uri: 'https://%STORAGE_ACCOUNT_NAME%.blob.core.windows.net/sle-images/%OS_VER%'
     hana_instancetype: "%HANA_INSTANCE_TYPE%"
 
 ansible:

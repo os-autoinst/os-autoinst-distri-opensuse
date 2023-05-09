@@ -5,7 +5,7 @@ terraform:
     project: "ei-sle-qa-sap-8469"
     region: "%REGION%"
     deployment_name: "%DEPLOYMENTNAME%"
-    os_image: "%QESAP_CLUSTER_OS_VER%"
+    os_image: "%OS_VER%"
     private_key: "%SSH_KEY_PRIV%"
     public_key: "%SSH_KEY_PUB%"
     gcp_credentials_file: "/root/google_credentials.json"
