@@ -10,6 +10,7 @@ use Mojo::Base qw(hpcbase hpc::utils), -signatures;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use lockapi;
+use mmapi;
 use utils;
 use Utils::Logging 'export_logs';
 use hpc::formatter;
@@ -28,6 +29,7 @@ sub run ($self) {
     my $prompt = $user_virtio_fixed ? $testapi::username . '@' . get_required_var('HOSTNAME') . ':~> ' : undef;
 
     ensure_ca_certificates_suse_installed();
+    mutex_create 'ww4_ready';
     my $rt = zypper_call("in warewulf4");
     test_case('Installation', 'ww4', $rt);
 
@@ -61,6 +63,9 @@ sub run ($self) {
     # provides complete results of the scripts.
     $rt = assert_script_run "echo yes | wwctl -v configure --all";
     test_case('Service configuration', 'ww4', $rt);
+    barrier_wait('WWCTL_READY');
+    record_info 'WWCTL_READY', strftime("\%H:\%M:\%S", localtime);
+    mutex_unlock 'ww4_ready';
 
     barrier_wait('WWCTL_DONE');
     record_info 'WWCTL_DONE', strftime("\%H:\%M:\%S", localtime);

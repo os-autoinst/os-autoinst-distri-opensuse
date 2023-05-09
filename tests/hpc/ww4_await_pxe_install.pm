@@ -11,31 +11,24 @@
 use Mojo::Base qw(hpcbase), -signatures;
 use testapi;
 use lockapi;
+use mmapi;
 use utils;
 use mm_tests;
 use POSIX 'strftime';
 
 sub run ($self) {
-    my $i = 0;
-
-    while ($i < 10) {
-        check_screen('pxe-start');
-        record_info "pxe", "$i";
-        sleep(1);
+    if (check_screen('pxe-start')) {
         send_key "ctrl-B";
-        sleep(20);
-        type_string("reboot", lf => 1);
         save_screenshot();
-        $i++;
+        record_info "pxe", "wait for controller";
     }
-
-    while (1) {
-        unless (check_screen('ww4-ready')) {
-            record_info('Booting', '');
-            next;
-        }
-        last;
-    }
+    mutex_wait "ww4_ready";
+    barrier_wait('WWCTL_READY');
+    record_info 'WWCTL_READY', strftime("\%H:\%M:\%S", localtime);
+    type_string("reboot", lf => 1);
+    save_screenshot();
+    check_screen('ww4-ready', 180);
+    save_screenshot();
     barrier_wait('WWCTL_DONE');
     record_info 'WWCTL_DONE', strftime("\%H:\%M:\%S", localtime);
 
