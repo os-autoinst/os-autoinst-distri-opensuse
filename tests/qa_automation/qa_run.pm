@@ -154,7 +154,7 @@ sub run {
 
     # JUnit xml report
     if (is_sle('<15-sp4')) {
-        assert_script_run("/usr/share/qa/qaset/bin/junit_xml_gen.py -n 'regression' -d -o /tmp/junit.xml /var/log/qaset");
+        assert_script_run("python2 /usr/share/qa/qaset/bin/junit_xml_gen.py -n 'regression' -d -o /tmp/junit.xml /var/log/qaset");
         parse_junit_log("/tmp/junit.xml");
     }
 
