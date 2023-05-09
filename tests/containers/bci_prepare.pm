@@ -46,9 +46,8 @@ sub packages_to_install {
         push @packages, ('python3-devel', 'python3-pip', 'golang', 'postgresql-devel');
     } elsif ($host_distri eq 'sles') {
         # SDK is needed for postgresql
-
         my $version = "$version.$sp";
-        push @packages, ('python3-devel', 'postgresql-devel');
+        push @packages, ('python3-devel', 'postgresql-server-devel');
         if ($version eq "12.5") {
             script_retry("SUSEConnect -p sle-sdk/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
             # PackageHub is needed for jq
