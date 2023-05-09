@@ -1,0 +1,23 @@
+name:           multipath
+description:    >
+  Test installation on machine with virtual multipath hardware.
+  Tests successful detection of multipath and installation and
+  validate multipath configuration and tools after booting.
+vars:
+  DESKTOP: gnome
+  MULTIPATH: 1
+  YUI_REST_API: 1
+schedule:
+  extension_module_selection:
+    - installation/module_registration/register_module_desktop
+  system_probing:
+    - installation/multipath
+  system_role:
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
+  system_preparation:
+    - console/system_prepare
+    - console/force_scheduled_tasks
+  system_validation:
+    - console/validate_multipath
+test_data:
+  <<: !include test_data/yast/multipath.yaml
