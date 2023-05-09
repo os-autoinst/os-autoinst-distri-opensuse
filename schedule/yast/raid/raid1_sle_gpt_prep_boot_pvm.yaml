@@ -42,7 +42,6 @@ test_data:
   mds:
     - raid_level: 1
       name: md0
-      chunk_size: '64 KiB'
       devices:
         - sda2
         - sdb2
@@ -56,7 +55,6 @@ test_data:
           should_mount: 1
     - raid_level: 1
       name: md1
-      chunk_size: '64 KiB'
       devices:
         - sda3
         - sdb3
