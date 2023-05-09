@@ -67,7 +67,7 @@ sub packages_to_install {
             push @packages, ('go', 'skopeo');
         }
     } elsif ($host_distri =~ /opensuse/) {
-        push @packages, qw(python3-devel go skopeo postgresql-devel);
+        push @packages, qw(python3-devel go skopeo postgresql-server-devel);
     } else {
         die("Host is not supported for running BCI tests.");
     }
