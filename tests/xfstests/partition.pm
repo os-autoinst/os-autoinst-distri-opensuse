@@ -21,10 +21,15 @@ use serial_terminal 'select_serial_terminal';
 use filesystem_utils qw(str_to_mb parted_print partition_num_by_type mountpoint_to_partition
   partition_table create_partition remove_partition format_partition);
 use File::Basename;
+use lockapi;
+use mmapi;
+use mm_network;
+use nfs_common;
 
 my $INST_DIR = '/opt/xfstests';
 my $CONFIG_FILE = "$INST_DIR/local.config";
 my $NFS_VERSION = get_var('XFSTESTS_NFS_VERSION', '4.1');
+my $NFS_SERVER_IP;
 
 # Number of SCRATCH disk in SCRATCH_DEV_POOL, other than btrfs has only 1 SCRATCH_DEV, xfstests specific
 sub partition_amount_by_homesize {
@@ -216,9 +221,9 @@ sub set_config {
         script_run("echo export TEST_XFS_REPAIR_REBUILD=1 >> $CONFIG_FILE");
     }
     if (check_var('XFSTESTS', 'nfs')) {
-        script_run("echo export TEST_DEV=localhost:/export/test >> $CONFIG_FILE");
+        script_run("echo export TEST_DEV=$NFS_SERVER_IP:/export/test >> $CONFIG_FILE");
         script_run("echo export TEST_DIR=/nfs/test >> $CONFIG_FILE");
-        script_run("echo export SCRATCH_DEV=localhost:/export/scratch >> $CONFIG_FILE");
+        script_run("echo export SCRATCH_DEV=$NFS_SERVER_IP:/export/scratch >> $CONFIG_FILE");
         script_run("echo export SCRATCH_MNT=/nfs/scratch >> $CONFIG_FILE");
         script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$NFS_VERSION\"' >> $CONFIG_FILE");
     }
@@ -322,6 +327,7 @@ sub setup_nfs_server {
 }
 
 sub run {
+    my ($self) = @_;
     select_serial_terminal;
 
     # DO NOT set XFSTESTS_DEVICE if you don't know what's this mean
@@ -332,8 +338,23 @@ sub run {
     my $filesystem = get_required_var('XFSTESTS');
     my %para;
     if (check_var('XFSTESTS', 'nfs')) {
-        install_dependencies_nfs;
-        setup_nfs_server("$NFS_VERSION");
+        if (get_var('XFSTESTS_NFS_SERVER')) {
+            server_configure_network($self);
+            install_dependencies_nfs;
+            setup_nfs_server("$NFS_VERSION");
+            mutex_create('xfstests_nfs_server_ready');
+            wait_for_children;
+        }
+        elsif (get_var('PARALLEL_WITH')) {
+            setup_static_mm_network('10.0.2.102/24');
+            assert_script_run('mkdir -p /nfs/test /nfs/scratch');
+            $NFS_SERVER_IP = '10.0.2.101';
+        }
+        else {
+            install_dependencies_nfs;
+            setup_nfs_server("$NFS_VERSION");
+            $NFS_SERVER_IP = 'localhost';
+        }
     }
     elsif ($device) {
         assert_script_run("parted $device --script -- mklabel gpt");
@@ -358,7 +379,9 @@ sub run {
             post_env_info(do_partition_for_xfstests(\%para));
         }
     }
-    set_config;
+    if (!get_var('XFSTESTS_NFS_SERVER')) {
+        set_config;
+    }
 }
 
 sub test_flags {

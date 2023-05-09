@@ -27,6 +27,8 @@ use utils;
 use Utils::Backends 'is_pvm';
 use power_action_utils qw(power_action prepare_system_shutdown);
 use filesystem_utils qw(format_partition);
+use lockapi;
+use mmapi;
 
 # Heartbeat variables
 my $HB_INTVL = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
@@ -410,6 +412,7 @@ sub config_debug_option {
 sub run {
     my $self = shift;
     select_console('root-console');
+    return if get_var('XFSTESTS_NFS_SERVER');
 
     config_debug_option;
 
@@ -433,6 +436,13 @@ sub run {
     %BLACKLIST = (%BLACKLIST, %tests_needto_exclude);
 
     test_prepare;
+
+    # wait until nfs service is ready
+    if (get_var('PARALLEL_WITH')) {
+        mutex_wait('xfstests_nfs_server_ready');
+        script_retry('ping -c3 10.0.2.101', delay => 15, retry => 12);
+    }
+
     heartbeat_start;
     my $status_log_content = "";
     foreach my $test (@tests) {
