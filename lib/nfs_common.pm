@@ -257,8 +257,6 @@ sub config_service {
 
 sub start_service {
     my ($rw, $ro) = @_;
-    # Back on the console
-    clear_console;
 
     # Server is up and running, client can use it now!
     check_nfs_ready($rw, $ro);
