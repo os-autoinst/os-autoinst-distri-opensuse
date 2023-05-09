@@ -234,7 +234,7 @@ sub install_lock_kernel {
 
     # Workaround for kgraft installation issue due to Retbleed mitigations
     push @packages, 'crash-kmp-default-7.2.1_k4.12.14_122.124'
-      if is_sle('=12-SP5');
+      if is_sle('=12-SP5') && !check_var('SLE_PRODUCT', 'slert');
 
     # install and lock needed kernel
     zypper_call("in " . join(' ', @packages), exitcode => [0, 102, 103, 104], timeout => 1400);
@@ -300,11 +300,18 @@ sub prepare_kgraft {
 
 sub downgrade_kernel {
     my $kver = shift;
+    my $kernel_package = 'kernel-default';
+    my $src_package = 'kernel-source';
 
     fully_patch_system;
 
-    my $kernel_version = find_version('kernel-default', $kver);
-    my $src_version = find_version('kernel-source', $kver);
+    if (check_var('SLE_PRODUCT', 'slert')) {
+        $kernel_package = 'kernel-rt';
+        $src_package = 'kernel-source-rt';
+    }
+
+    my $kernel_version = find_version($kernel_package, $kver);
+    my $src_version = find_version($src_package, $kver);
     install_lock_kernel($kernel_version, $src_version);
 }
 
@@ -408,6 +415,12 @@ sub boot_to_console {
 
 sub run {
     my $self = shift;
+    my $kernel_package = get_kernel_flavor;
+
+    unless (get_var('KERNEL_FLAVOR')) {
+        $kernel_package = 'kernel-default-base' if is_sle('<12');
+        $kernel_package = 'kernel-rt' if check_var('SLE_PRODUCT', 'slert');
+    }
 
     if ((is_ipmi && get_var('LTP_BAREMETAL')) || is_transactional) {
         # System is already booted after installation, just switch terminal
@@ -428,7 +441,7 @@ sub run {
 
     if (get_var('KERNEL_VERSION')) {
         downgrade_kernel(get_var('KERNEL_VERSION'));
-        check_kernel_package('kernel-default');
+        check_kernel_package($kernel_package);
         power_action('reboot', textmode => 1);
         $self->wait_boot if get_var('LTP_BAREMETAL');
         return;
@@ -436,15 +449,11 @@ sub run {
 
     my $repo = get_var('KOTD_REPO');
     my $incident_id = undef;
-    my $kernel_package = get_kernel_flavor;
 
     unless ($repo) {
         $repo = get_required_var('INCIDENT_REPO');
         $incident_id = get_required_var('INCIDENT_ID');
     }
-
-    $kernel_package = 'kernel-default-base' if is_sle('<12');
-    $kernel_package = 'kernel-rt' if check_var('SLE_PRODUCT', 'slert');
 
     if (get_var('KGRAFT')) {
         my $incident_klp_pkg = prepare_kgraft($repo, $incident_id);
