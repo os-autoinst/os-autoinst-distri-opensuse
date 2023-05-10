@@ -47,7 +47,7 @@
       <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
       <terminal>console</terminal>
-      <timeout config:type="integer">8</timeout>
+      <timeout config:type="integer">-1</timeout>
       <trusted_grub>false</trusted_grub>
       <xen_append>crashkernel=163M</xen_append>
       <xen_kernel_append>crashkernel=163M\&lt;4G</xen_kernel_append>
@@ -217,7 +217,7 @@
   % unless ($check_var->('ARCH', 's390x')) {
   <bootloader>
     <global>
-      <timeout config:type="integer">45</timeout>
+      <timeout config:type="integer">-1</timeout>
     </global>
   </bootloader>
   <general>
