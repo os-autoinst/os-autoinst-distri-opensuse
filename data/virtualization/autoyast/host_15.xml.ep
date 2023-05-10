@@ -68,7 +68,7 @@
     <ask-list config:type="list"/>
     <mode>
       <confirm config:type="boolean">false</confirm>
-      % if ($check_var->('VERSION', '15-SP4')) {
+      % if ($get_var->('VERSION') gt '15-SP3') {
       <final_reboot config:type="boolean">true</final_reboot>
       % }
     </mode>
