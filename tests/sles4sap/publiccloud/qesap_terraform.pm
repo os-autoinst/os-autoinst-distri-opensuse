@@ -32,7 +32,6 @@ use publiccloud::instances;
 use qesapdeployment;
 use sles4sap_publiccloud;
 use serial_terminal 'select_serial_terminal';
-use YAML::PP;
 
 our $ha_enabled = set_var_output('HA_CLUSTER', '0') =~ /false|0/i ? 0 : 1;
 
@@ -107,42 +106,6 @@ sub create_hana_vars_section {
         set_var('SAP_SIDADM', lc(get_var('INSTANCE_SID') . 'adm'));
     }
     return (\%hana_vars);
-}
-
-=head2 create_instance_data
-
-    Create and populate a list of publiccloud::instance and publiccloud::provider compatible
-    class instances.
-
-=cut
-
-sub create_instance_data {
-    my $provider = shift;
-    my $class = ref($provider);
-    die "Unexpected class type [$class]" unless ($class =~ /^publiccloud::(azure|ec2|gce)/);
-    my @instances = ();
-    my $inventory_file = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
-    my $ypp = YAML::PP->new;
-    my $raw_file = script_output("cat $inventory_file");
-    my $inventory_data = $ypp->load_string($raw_file)->{all}{children};
-
-    for my $type_label (keys %$inventory_data) {
-        my $type_data = $inventory_data->{$type_label}{hosts};
-        for my $vm_label (keys %$type_data) {
-            my $instance = publiccloud::instance->new(
-                public_ip => $type_data->{$vm_label}->{ansible_host},
-                instance_id => $vm_label,
-                username => get_required_var('PUBLIC_CLOUD_USER'),
-                ssh_key => '~/.ssh/id_rsa',
-                provider => $provider,
-                region => $provider->provider_client->region,
-                type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
-                image_id => $provider->get_image_id());
-            push @instances, $instance;
-        }
-    }
-    publiccloud::instances::set_instances(@instances);
-    return \@instances;
 }
 
 sub run {
