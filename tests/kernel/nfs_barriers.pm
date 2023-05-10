@@ -17,6 +17,7 @@ sub run {
     barrier_create("NFS_SERVER_ENABLED", $nodes);
     barrier_create("NFS_CLIENT_ENABLED", $nodes);
     barrier_create("NFS_SERVER_CHECK", $nodes);
+    mutex_create("NFS_BARRIERS_CREATED");
     record_info("barriers initialized");
 }
 

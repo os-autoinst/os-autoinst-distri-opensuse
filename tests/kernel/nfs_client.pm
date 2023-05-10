@@ -22,7 +22,9 @@ sub run {
     my $local_nfs3_async = "/home/localNFS3async";
     my $local_nfs4_async = "/home/localNFS4async";
 
+    mutex_wait('NFS_BARRIERS_CREATED');
     barrier_wait("NFS_SERVER_ENABLED");
+
     record_info("showmount", script_output("showmount -e server-node00"));
 
     assert_script_run("mkdir $local_nfs3 $local_nfs4 $local_nfs3_async $local_nfs4_async");

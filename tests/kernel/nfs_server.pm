@@ -64,6 +64,7 @@ sub run {
     #my $nfsstat = script_output("nfsstat -s");
     record_info("NFS stat for server", script_output("nfsstat -s"));
 
+    mutex_wait('NFS_BARRIERS_CREATED');
     barrier_wait("NFS_SERVER_ENABLED");
     barrier_wait("NFS_CLIENT_ENABLED");
     barrier_wait("NFS_SERVER_CHECK");
