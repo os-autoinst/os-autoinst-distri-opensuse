@@ -47,24 +47,24 @@ sub packages_to_install {
     } elsif ($host_distri eq 'sles') {
         # SDK is needed for postgresql
         my $version = "$version.$sp";
-        push @packages, ('python3-devel', 'postgresql-server-devel');
+        push @packages, ('postgresql-server-devel');
         if ($version eq "12.5") {
             script_retry("SUSEConnect -p sle-sdk/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
             # PackageHub is needed for jq
             script_retry("SUSEConnect -p PackageHub/12.5/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
-            push @packages, 'python36-pip';
+            push @packages, ('python36-devel', 'python36-pip');
         } elsif ($version eq '15.0') {
             # Desktop module is needed for SDK module, which is required for go and postgresql-devel
             script_retry("SUSEConnect -p sle-module-desktop-applications/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
             script_retry("SUSEConnect -p sle-module-development-tools/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
             # On SLES15 go needs to be installed from packagehub. On later SLES it comes from the SDK module
             script_retry("SUSEConnect -p PackageHub/15/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
-            push @packages, ('go1.10', 'skopeo');
+            push @packages, ('python3-devel', 'go1.10', 'skopeo');
         } else {
             # Desktop module is needed for SDK module, which is required for go and postgresql-devel
             script_retry("SUSEConnect -p sle-module-desktop-applications/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
             script_retry("SUSEConnect -p sle-module-development-tools/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
-            push @packages, ('go', 'skopeo');
+            push @packages, ('python3-devel', 'go', 'skopeo');
         }
     } elsif ($host_distri =~ /opensuse/) {
         push @packages, qw(python3-devel go skopeo postgresql-server-devel);
