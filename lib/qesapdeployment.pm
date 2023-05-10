@@ -72,6 +72,7 @@ our @EXPORT = qw(
   qesap_calculate_az_address_range
   qesap_az_vnet_peering
   qesap_delete_az_peering
+  qesap_add_server_to_hosts
 );
 
 =head1 DESCRIPTION
@@ -743,7 +744,7 @@ sub qesap_get_az_resource_group {
     my (%args) = @_;
     my $substring = $args{substring} ? " | grep $args{substring}" : "";
     my $job_id = get_current_job_id();
-    my $result = script_output("az group list --query \"[].name\" -o tsv | grep $job_id" . $substring);
+    my $result = script_output("az group list --query \"[].name\" -o tsv | grep $job_id" . $substring, proceed_on_failure => 1);
     record_info('QESAP RG', "result:$result");
     return $result;
 }
@@ -826,39 +827,91 @@ sub qesap_az_vnet_peering {
 
     Performs peering between the cluster and IBS mirror on Azure.
 
-=over 3
+=over 2
 
 =item B<SOURCE_GROUP> - resource group of source
 
-=item B<SOURCE_VNET> - vnet of source
-
 =item B<TARGET_GROUP> - resource group of target
-
-=item B<TARGET_VNET> - vnet of target
 
 =back
 =cut
 
 sub qesap_delete_az_peering {
     my (%args) = @_;
-    croak 'Missing mandatory source_group argument' unless $args{source_group};
     croak 'Missing mandatory target_group argument' unless $args{target_group};
 
-    $args{source_vnet} = qesap_get_vnet($args{source_group});
     $args{target_vnet} = qesap_get_vnet($args{target_group});
 
-    my $peering_name = "$args{source_vnet}-$args{target_vnet}";
-    my $source_cmd = "az network vnet peering delete --resource-group $args{source_group} --vnet-name $args{source_vnet} -n $peering_name";
-    my $target_cmd = "az network vnet peering delete --resource-group $args{target_group} --vnet-name $args{target_vnet} -n $peering_name";
+    my $peering_name = qesap_get_peering_name();
+    if (!$peering_name) {
+        record_info("NO PEERING", "No peering to be destroyed!");
+        return;
+    }
 
     record_info("Attempting peering destruction");
-    my $source_ret = script_run($source_cmd);
+    my $source_ret = 0;
+    if ($args{source_group}) {
+        $args{source_vnet} = qesap_get_vnet($args{source_group});
+        my $source_cmd = "az network vnet peering delete --resource-group $args{source_group} --vnet-name $args{source_vnet} -n $peering_name";
+        $source_ret = script_run($source_cmd);
+    }
+    my $target_cmd = "az network vnet peering delete --resource-group $args{target_group} --vnet-name $args{target_vnet} -n $peering_name";
     my $target_ret = script_run($target_cmd);
+
     if ($source_ret == 0 && $target_ret == 0) {
         record_info("Peering deletion SUCCESS", "The peering was successfully destroyed");
         return;
     }
-    record_info("Peering destruction FAIL", "There may be leftover peering connections, please check");
+    record_soft_failure("Peering destruction FAIL: There may be leftover peering connections, please check - jira#7487");
 }
+
+=head3 qesap_get_peering_name
+
+    Returns the peering name for the current job, or
+    empty string if a peering doesn't exist
+
+=cut
+
+sub qesap_get_peering_name {
+    my $job_id = get_current_job_id();
+    my $json_response = script_output("az network vnet peering list -g dsdm0we --vnet-name vnet-dsdm0we");
+    my $peerings = decode_json($json_response);
+
+    for my $peering (@$peerings) {
+        my $name = $peering->{name};
+
+        if ($name =~ /$job_id/) {
+            return $name;
+        }
+    }
+    return "";
+}
+
+=head3 qesap_add_server_to_hosts
+
+    Adds a 'ip -> name' pair in the end of /etc/hosts in the hosts
+
+=over 2
+
+=item B<IP> - ip of server to add to hosts
+
+=item B<NAME> - name of server to add to hosts
+
+=back
+=cut
+
+sub qesap_add_server_to_hosts {
+    my (%args) = @_;
+    croak 'Missing mandatory ip argument' unless $args{ip};
+    croak 'Missing mandatory name argument' unless $args{name};
+
+    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    qesap_ansible_cmd(cmd => "sed -i '\\\$a $args{ip} $args{name}' /etc/hosts",
+        provider => $prov,
+        host_keys_check => 1);
+    qesap_ansible_cmd(cmd => "cat /etc/hosts",
+        provider => $prov);
+}
+
 
 1;
