@@ -74,6 +74,7 @@ sub upload_img {
     assert_script_run("openstack image create"
           . " --disk-format qcow2"
           . " --container-format bare"
+          . " --tag openqa"
           . " --file $file $img_name", timeout => 60 * 60);
 
     my $image_id = $self->find_img($img_name);
