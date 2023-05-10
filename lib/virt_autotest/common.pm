@@ -162,6 +162,24 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             distro => 'SLE_15_SP4',
             location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.108/24,192.168.122.1,192.168.122.1"'
+        },
+        sles15sp5PV => {
+            name => 'sles15sp5PV',
+            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
+            macaddress => '52:54:00:78:73:a7',
+            ip => '192.168.122.119',
+            distro => 'SLE_15_SP5',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP5-Full-LATEST/x86_64/DVD1/',
+            linuxrc => 'ifcfg="eth0=192.168.122.119/24,192.168.122.1,192.168.122.1"'
+        },
+        sles15sp5HVM => {
+            name => 'sles15sp5HVM',
+            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
+            macaddress => '52:54:00:78:73:a8',
+            ip => '192.168.122.120',
+            distro => 'SLE_15_SP5',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP5-Full-LATEST/x86_64/DVD1/',
+            linuxrc => 'ifcfg="eth0=192.168.122.120/24,192.168.122.1,192.168.122.1"'
         }
     );
 
@@ -249,6 +267,15 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             distro => 'SLE_15',
             location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.108/24,192.168.122.1,192.168.122.1"'
+        },
+        sles15sp5 => {
+            name => 'sles15sp5',
+            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
+            macaddress => '52:54:00:78:73:a7',
+            ip => '192.168.122.109',
+            distro => 'SLE_15',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP5-Full-LATEST/x86_64/DVD1/',
+            linuxrc => 'ifcfg="eth0=192.168.122.109/24,192.168.122.1,192.168.122.1"'
         }
     );
 } elsif (get_var("REGRESSION", '') =~ /vmware/) {
@@ -276,6 +303,9 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles15sp4 => {
             name => 'sles15sp4',
+        },
+        sles15sp5 => {
+            name => 'sles15sp5',
         },
     );
 
@@ -321,6 +351,10 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             name => 'sles15sp4',
             ip => 'win2k19-sle15-SP4.qa.suse.cz',
         },
+        sles15sp5 => {
+            name => 'sles15sp5',
+            ip => 'win2k19-sle15-SP5.qa.suse.cz',
+        },
     );
 
     delete($guests{sles12sp3}) if (!is_sle('=12-SP3'));
@@ -331,6 +365,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     delete($guests{sles15sp2}) if (!is_sle('=15-SP2'));
     delete($guests{sles15sp3}) if (!is_sle('=15-SP3'));
     delete($guests{sles15sp4}) if (!is_sle('=15-SP4'));
+    delete($guests{sles15sp5}) if (!is_sle('=15-SP5'));
 } else {
     %guests = ();
 }
