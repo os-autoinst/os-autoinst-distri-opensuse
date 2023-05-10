@@ -13,8 +13,10 @@ conditional_schedule:
     ROLE:
       nfs_server:
         - kernel/nfs_server
+        - kernel/nfstest
       nfs_client:
         - kernel/nfs_client
+        - kernel/nfstest
 schedule:
   - boot/boot_to_desktop
   - kernel/before_nfs_test
