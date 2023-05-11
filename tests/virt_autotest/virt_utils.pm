@@ -303,10 +303,10 @@ sub generate_guest_asset_name {
 
     #get build number
     my $build_num;
-    #for clone job, get build number from SCC proxy which is set in Media
-    if (get_var('CASEDIR')) {
-        get_var('SCC_URL') =~ /^http.*all-([\d\.]*)\.proxy\.*/;
-        $build_num = $1;
+    # for a clone job, the setting BUILD must be set as it was in its original job, for example, BUILD=98.1
+    # or the job will not know in which build guest assets should be download or uploaded
+    if (get_var('CASEDIR') and get_var('BUILD') !~ /^\d+[\._]?\d*$/) {
+        die "Downloading guest assets is not allowed without a particular build number. Please trigger job with BUILD=<build_number> or with SKIP_GUEST_INSTALL=1 not to download guest assets from openqa server";
     }
     else {
         $build_num = get_required_var('BUILD');
