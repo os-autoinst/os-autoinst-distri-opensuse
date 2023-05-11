@@ -79,7 +79,7 @@ sub run {
     if ($@) {
         for (1 .. 3) {
             eval {
-                record_soft_failure 'Retry: poo#71329';
+                record_info 'Retry: poo#71329';
                 assert_script_run 'TFAIL=$(awk -F: -e \'/^R:.*:FAIL/ {print$2}\' systests.output)';
                 assert_script_run 'for t in $TFAIL; do runuser -u bernhard -- sh run.sh $t; done', 2000;
             };
