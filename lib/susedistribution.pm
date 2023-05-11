@@ -59,7 +59,7 @@ sub handle_password_prompt {
     my ($console) = @_;
     $console //= '';
 
-    return if (get_var("LIVETEST") || get_var('LIVECD')) && get_var('FLAVOR') !~ /d-installer/;
+    return if (get_var("LIVETEST") || get_var('LIVECD')) && (get_var('VERSION') !~ /agama/);
     if (is_serial_terminal()) {
         wait_serial(qr/Password:\s*$/i, timeout => 30);
     } else {
