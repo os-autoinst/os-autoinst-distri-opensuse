@@ -244,6 +244,7 @@
         <device>eth0</device>
         <dhclient_set_default_route>yes</dhclient_set_default_route>
         <startmode>auto</startmode>
+        <zone>public</zone>
       </interface>
     </interfaces>
   </networking>
