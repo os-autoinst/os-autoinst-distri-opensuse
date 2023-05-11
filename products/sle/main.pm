@@ -760,7 +760,7 @@ elsif (get_var("QA_TESTSET")) {
         loadtest 'kernel/kernel_kexec';
     }
     elsif (check_var('QA_TESTSET', 'kernel_multipath')) {
-        loadtest 'qa_automation/kernel_multipath';
+        loadtest 'kernel/multipath_iscsi';
     }
     else {
         loadtest 'qa_automation/qa_run', name => get_required_var('QA_TESTSET');
