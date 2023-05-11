@@ -64,6 +64,7 @@ sub run ($self) {
         barrier_create('IMB_TEST_DONE', $nodes);
     }
     elsif (check_var('HPC', 'ww4_controller')) {
+        barrier_create('WWCTL_READY', $nodes);
         barrier_create('WWCTL_DONE', $nodes);
         barrier_create('WWCTL_COMPUTE_DONE', $nodes);
     }
