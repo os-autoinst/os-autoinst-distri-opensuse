@@ -29,6 +29,7 @@ use power_action_utils qw(power_action);
 use version_utils qw(is_sle);
 use serial_terminal qw(add_serial_console);
 use version_utils qw(is_jeos);
+use registration qw(add_suseconnect_product);
 
 sub run {
     my $self = shift;

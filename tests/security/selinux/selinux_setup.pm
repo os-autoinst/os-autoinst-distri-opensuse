@@ -105,7 +105,7 @@ sub run {
     }
 
     # Record the pkgs' version for reference
-    my $results = script_output('zypper se -s selinux policy');
+    my $results = script_output('zypper se -s selinux policy', timeout => 300);
     record_info('Pkg_ver', "SELinux packages' version is: $results");
 
     # Check SELinux status by default, it should be disabled otherwise but enabled on ALP

@@ -19,16 +19,6 @@ conditional_schedule:
   PC_instance_ssh_interactive_start:
     PUBLIC_CLOUD_SLES4SAP:
       '1':
-        - publiccloud/download_repos
-        - sles4sap/publiccloud/qesap_terraform
-        - sles4sap/publiccloud/mr_test_setup_env
-        - publiccloud/registration
-        - publiccloud/transfer_repos
-        - publiccloud/patch_and_reboot
-        - publiccloud/ssh_interactive_start
-        - publiccloud/instance_overview
-    IS_MAINTENANCE:
-      '1':
         - sles4sap/publiccloud/qesap_terraform
         - sles4sap/qesapdeployment/network_peering
         - sles4sap/qesapdeployment/cluster_add_repos

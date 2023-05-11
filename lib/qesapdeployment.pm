@@ -72,6 +72,7 @@ our @EXPORT = qw(
   qesap_calculate_az_address_range
   qesap_az_vnet_peering
   qesap_delete_az_peering
+  qesap_add_server_to_hosts
 );
 
 =head1 DESCRIPTION
@@ -719,11 +720,10 @@ Return the output of az network vnet list
 
 sub qesap_get_vnet {
     my ($resource_group) = @_;
-    my $az_cmd = join(' ', 'az', 'network',
-        'vnet', 'list',
+    my $az_cmd = join(' ', 'az network vnet list',
         '-g', $resource_group,
-        '--query', '"[0].name"',
-        '-o', 'tsv');
+        '--query "[0].name"',
+        '-o tsv');
     return script_output($az_cmd, 180);
 }
 
@@ -743,7 +743,7 @@ sub qesap_get_az_resource_group {
     my (%args) = @_;
     my $substring = $args{substring} ? " | grep $args{substring}" : "";
     my $job_id = get_current_job_id();
-    my $result = script_output("az group list --query \"[].name\" -o tsv | grep $job_id" . $substring);
+    my $result = script_output("az group list --query \"[].name\" -o tsv | grep $job_id" . $substring, proceed_on_failure => 1);
     record_info('QESAP RG', "result:$result");
     return $result;
 }
@@ -785,7 +785,8 @@ sub qesap_calculate_az_address_range {
 
 =head3 qesap_az_vnet_peering
 
-    Performs peering between the cluster and IBS mirror on Azure.
+    Create a pair of network peering between
+    the two provided deployments.
 
 =over 3
 
@@ -806,16 +807,16 @@ sub qesap_az_vnet_peering {
     my $target_vnet = qesap_get_vnet($args{target_group});
     $args{timeout} //= bmwqemu::scale_timeout(300);
 
-    my $az_net = 'az network vnet';
+    my $vnet_show_cmd = 'az network vnet show --query id --output tsv';
 
-    my $source_vnet_id = script_output("$az_net show --resource-group $args{source_group} --name $source_vnet --query id --output tsv");
+    my $source_vnet_id = script_output("$vnet_show_cmd --resource-group $args{source_group} --name $source_vnet");
     record_info("[M] source vnet ID: $source_vnet_id\n");
 
-    my $target_vnet_id = script_output("$az_net show --resource-group $args{target_group} --name $target_vnet --query id --output tsv");
+    my $target_vnet_id = script_output("$vnet_show_cmd --resource-group $args{target_group} --name $target_vnet");
     record_info("[M] target vnet ID: $target_vnet_id\n");
 
     my $peering_name = "$source_vnet-$target_vnet";
-    my $peering_cmd = "$az_net peering create --name $peering_name --allow-vnet-access --output table";
+    my $peering_cmd = "az network vnet peering create --name $peering_name --allow-vnet-access --output table";
 
     assert_script_run("$peering_cmd --resource-group $args{source_group} --vnet-name $source_vnet --remote-vnet $target_vnet_id", timeout => $args{timeout});
     record_info("PEERING SUCCESS (source)", "[M] Peering from $args{source_group}.$source_vnet server was successful\n");
@@ -824,13 +825,13 @@ sub qesap_az_vnet_peering {
     record_info("PEERING SUCCESS (target)", "[M] Peering from $args{target_group}.$target_vnet server was successful\n");
 
     record_info("Checking peering status");
-    assert_script_run("$az_net peering show --name $peering_name --resource-group $args{target_group} --vnet-name $target_vnet --output table");
+    assert_script_run("az network vnet peering show --name $peering_name --resource-group $args{target_group} --vnet-name $target_vnet --output table");
     record_info("PEERING STATUS SUCCESS");
 }
 
 =head3 qesap_delete_az_peering
 
-    Performs peering between the cluster and IBS mirror on Azure.
+    Delete all the network peering between the two provided deploymnets.
 
 =over 3
 
@@ -845,26 +846,88 @@ sub qesap_az_vnet_peering {
 
 sub qesap_delete_az_peering {
     my (%args) = @_;
-    croak 'Missing mandatory source_group argument' unless $args{source_group};
     croak 'Missing mandatory target_group argument' unless $args{target_group};
     $args{timeout} //= bmwqemu::scale_timeout(300);
 
-    my $source_vnet = qesap_get_vnet($args{source_group});
     my $target_vnet = qesap_get_vnet($args{target_group});
 
-    my $peering_name = "$source_vnet-$target_vnet";
-    my $peering_cmd = "az network vnet peering delete -n $peering_name";
-    my $source_cmd = "$peering_cmd --resource-group $args{source_group} --vnet-name $source_vnet";
-    my $target_cmd = "$peering_cmd --resource-group $args{target_group} --vnet-name $target_vnet";
+    my $peering_name = qesap_get_peering_name($args{target_group});
+    if (!$peering_name) {
+        record_info('NO PEERING', "No peering between $args{target_group} and resources belonging to the current job to be destroyed!");
+        return;
+    }
 
     record_info("Attempting peering destruction");
-    my $source_ret = script_run($source_cmd, timeout => $args{timeout});
+    my $peering_cmd = "az network vnet peering delete -n $peering_name";
+    my $source_ret = 0;
+    if ($args{source_group}) {
+        $args{source_vnet} = qesap_get_vnet($args{source_group});
+        my $source_cmd = "$peering_cmd --resource-group $args{source_group} --vnet-name $args{source_vnet}";
+        $source_ret = script_run($source_cmd, timeout => $args{timeout});
+    }
+    my $target_cmd = "$peering_cmd --resource-group $args{target_group} --vnet-name $args{target_vnet}";
     my $target_ret = script_run($target_cmd, timeout => $args{timeout});
+
     if ($source_ret == 0 && $target_ret == 0) {
         record_info("Peering deletion SUCCESS", "The peering was successfully destroyed");
         return;
     }
-    record_info("Peering destruction FAIL", "There may be leftover peering connections, please check");
+    record_soft_failure("Peering destruction FAIL: There may be leftover peering connections, please check - jira#7487");
 }
+
+=head3 qesap_get_peering_name
+
+    Search for all network peering related to both:
+     - resource group related to the current job
+     - the provided resource group.
+    Returns the peering name or
+    empty string if a peering doesn't exist
+
+=over 1
+
+=item B<RESOURCE_GROUP> - resource group connected to by the peering
+
+=back
+=cut
+
+sub qesap_get_peering_name {
+    my (%args) = @_;
+
+    my $job_id = get_current_job_id();
+    my $cmd = join(' ', 'az network vnet peering list',
+    '-g',  $args{resource_group},
+    '--vnet-name', qesap_get_vnet($args{resource_group}),
+    '--query "[].name"',
+    '-o tsv',
+    '| grep', $job_id );
+    return script_output($cmd, proceed_on_failure => 1);
+}
+
+=head3 qesap_add_server_to_hosts
+
+    Adds a 'ip -> name' pair in the end of /etc/hosts in the hosts
+
+=over 2
+
+=item B<IP> - ip of server to add to hosts
+
+=item B<NAME> - name of server to add to hosts
+
+=back
+=cut
+
+sub qesap_add_server_to_hosts {
+    my (%args) = @_;
+    croak 'Missing mandatory ip argument' unless $args{ip};
+    croak 'Missing mandatory name argument' unless $args{name};
+
+    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    qesap_ansible_cmd(cmd => "sed -i '\\\$a $args{ip} $args{name}' /etc/hosts",
+        provider => $prov,
+        host_keys_check => 1);
+    qesap_ansible_cmd(cmd => "cat /etc/hosts",
+        provider => $prov);
+}
+
 
 1;

@@ -66,6 +66,7 @@ sub load_mr_tests {
     #   [debug] ||| starting 1_saptune_notes .../mr_test_run.pm
     #   [debug] ||| finished 1_saptune_notes lib
     loadtest_mr_test('tests/publiccloud/ssh_interactive_end', run_args => $args) if get_var('PUBLIC_CLOUD_SLES4SAP');
+    loadtest_mr_test('tests/sles4sap/qesapdeployment/peering_destroy', run_args => $args) if get_var('IS_MAINTENANCE');
 }
 
 1;

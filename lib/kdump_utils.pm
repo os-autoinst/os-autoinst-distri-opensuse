@@ -15,7 +15,7 @@ use Utils::Architectures;
 use power_action_utils 'power_action';
 use version_utils qw(is_sle is_jeos is_leap is_tumbleweed is_opensuse);
 use utils 'ensure_serialdev_permissions';
-
+use virt_autotest::utils 'is_xen_host';
 
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump
   activate_kdump activate_kdump_cli activate_kdump_without_yast
@@ -214,7 +214,13 @@ sub activate_kdump {
 # Activate kdump using yast command line interface
 sub activate_kdump_cli {
     # Skip configuration, if is kdump already enabled and no special memory settings is required
-    my $status = script_run('yast kdump show 2>&1 | grep "Kdump is disabled"', 180);
+    # Yast cli may timeout on with XEN bsc#1206274, we need to check configuration directly
+    my $status;
+    if (is_xen_host) {
+        $status = script_run('! grep "GRUB_CMDLINE_XEN_DEFAULT.*crashkernel" /etc/default/grub');
+    } else {
+        $status = script_run('yast kdump show 2>&1 | grep "Kdump is disabled"', 180);
+    }
     return if ($status and !get_var('CRASH_MEMORY'));
 
     # Make sure fadump is disabled on PowerVM

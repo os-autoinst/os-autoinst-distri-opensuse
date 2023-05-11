@@ -149,6 +149,12 @@ sub create_instance_data {
 sub run {
     my ($self, $run_args) = @_;
 
+    if (check_var('IS_MAINTENANCE', 1)) {
+        my %maintenance_vars = qesap_calculate_az_address_range(slot => get_var("WORKER_INSTANCE"));
+        set_var("VNET_ADDRESS_RANGE", $maintenance_vars{vnet_address_range});
+        set_var("SUBNET_ADDRESS_RANGE", $maintenance_vars{subnet_address_range});
+    }
+
     # Let's define a workspace for terraform. We use PUBLIC_CLOUD_RESOURCE_GROUP
     # if defined, otherwise we use qesaposd
     my $workspace = get_var('PUBLIC_CLOUD_RESOURCE_GROUP', 'qesaposd') . get_current_job_id();

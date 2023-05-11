@@ -27,13 +27,13 @@ sub run {
     $variables{REGION} = $provider->provider_client->region;
     $variables{DEPLOYMENTNAME} = $resource_group_postfix;
     if (get_var('QESAP_CLUSTER_OS_VER')) {
-        $variables{QESAP_CLUSTER_OS_VER} = get_var('QESAP_CLUSTER_OS_VER');
+        $variables{OS_VER} = get_var('QESAP_CLUSTER_OS_VER');
     }
     else {
         $variables{STORAGE_ACCOUNT_NAME} = get_required_var('STORAGE_ACCOUNT_NAME');
-        $variables{SLE_IMAGE} = $provider->get_image_id();
+        $variables{OS_VER} = $provider->get_image_id();
     }
-    $variables{QESAP_CLUSTER_OS_OWNER} = get_var('QESAP_CLUSTER_OS_OWNER', 'amazon') if check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
+    $variables{OS_OWNER} = get_var('QESAP_CLUSTER_OS_OWNER', 'amazon') if check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
 
     $variables{SSH_KEY_PRIV} = '/root/.ssh/id_rsa';
     $variables{SSH_KEY_PUB} = '/root/.ssh/id_rsa.pub';

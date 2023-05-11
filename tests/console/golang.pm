@@ -30,9 +30,9 @@ sub run {
         add_suseconnect_product(get_addon_fullname('sdk'));
     }
 
-    script_run "zypper se go | grep ' go[0-9][0-9.]* '";
-    my $older_go = script_output "zypper se go | grep ' go[0-9][0-9.]* ' | awk -F '|' '{print \$2}' | tr -d ' ' | sort --version-sort | tail -2 | head -1";
-    my $latest_go = script_output "zypper se go | grep ' go[0-9][0-9.]* ' | awk -F '|' '{print \$2}' | tr -d ' ' | sort --version-sort | tail -1 | head -1";
+    script_run "zypper se '/^go[0-9][0-9.]*\$/'";
+    my $older_go = script_output "zypper se '/^go[0-9][0-9.]*\$/' | awk -F '|' '{print \$2}' | tr -d ' ' | sort --version-sort | tail -2 | head -1";
+    my $latest_go = script_output "zypper se '/^go[0-9][0-9.]*\$/' | awk -F '|' '{print \$2}' | tr -d ' ' | sort --version-sort | tail -1 | head -1";
     record_info "Go Versions", "Detected Go versions:\nOlder: $older_go\nLatest: $latest_go";
     record_info "$older_go";
     zypper_call "in $older_go";

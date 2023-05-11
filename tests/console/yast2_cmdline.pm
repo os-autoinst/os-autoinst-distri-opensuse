@@ -14,6 +14,7 @@ use warnings;
 use testapi;
 use utils qw(zypper_call systemctl);
 use repo_tools 'prepare_source_repo';
+use version_utils qw(is_sle is_leap);
 
 # Executes the command line tests from a yast repository (in master or in the
 # given optional branch) using prove
@@ -52,7 +53,7 @@ sub run {
 
     # Run YaST CLI tests
     run_yast_cli_test('yast2-network');
-    run_yast_cli_test('yast2-http-server');
+    run_yast_cli_test('yast2-http-server') if (is_leap("<16.0") || is_sle("<16"));
 }
 
 1;

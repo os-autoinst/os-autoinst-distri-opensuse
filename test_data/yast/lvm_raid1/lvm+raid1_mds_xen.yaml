@@ -1,6 +1,5 @@
 ---
 - raid_level: 1
-  chunk_size: '64 KiB'
   devices:
     - xvdb2
     - xvdc2

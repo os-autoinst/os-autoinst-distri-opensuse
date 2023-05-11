@@ -44,7 +44,6 @@ test_data:
   <<: !include test_data/yast/raid/raid_gpt_disks_with_bios-boot.yaml
   mds:
     - raid_level: 1
-      chunk_size: '64 KiB'
       devices:
         - vda2
         - vdb2

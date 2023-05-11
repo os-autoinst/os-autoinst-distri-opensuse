@@ -47,7 +47,7 @@
       <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
       <terminal>console</terminal>
-      <timeout config:type="integer">8</timeout>
+      <timeout config:type="integer">-1</timeout>
       <trusted_grub>false</trusted_grub>
       <xen_append>crashkernel=163M</xen_append>
       <xen_kernel_append>crashkernel=163M\&lt;4G</xen_kernel_append>
@@ -68,50 +68,84 @@
       <confirm config:type="boolean">false</confirm>
     </mode>
   </general>
-  <partitioning config:type="list">
-    <drive>
+  <partitioning t="list">
+    <drive t="map">
       <device>/dev/disk/by-path/ccw-0.0.0000</device>
       <disklabel>gpt</disklabel>
-      <enable_snapshots config:type="boolean">true</enable_snapshots>
-      <partitions config:type="list">
-        <partition>
-          <create config:type="boolean">true</create>
-          <filesystem config:type="symbol">ext2</filesystem>
-          <format config:type="boolean">true</format>
-          <fstopt>acl,user_xattr</fstopt>
+      <enable_snapshots t="boolean">true</enable_snapshots>
+      <partitions t="list">
+        <partition t="map">
+          <create t="boolean">true</create>
+          <filesystem t="symbol">ext2</filesystem>
+          <format t="boolean">true</format>
           <mount>/boot/zipl</mount>
-          <mountby config:type="symbol">uuid</mountby>
-          <partition_id config:type="integer">131</partition_id>
-          <partition_nr config:type="integer">1</partition_nr>
-          <partition_type>primary</partition_type>
-          <resize config:type="boolean">false</resize>
-          <size>300M</size>
+          <mountby t="symbol">uuid</mountby>
+          <partition_id t="integer">131</partition_id>
+          <partition_nr t="integer">1</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>314572800</size>
         </partition>
-        <partition>
-          <create config:type="boolean">true</create>
-          <filesystem config:type="symbol">btrfs</filesystem>
-          <format config:type="boolean">true</format>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <create_subvolumes t="boolean">true</create_subvolumes>
+          <filesystem t="symbol">btrfs</filesystem>
+          <format t="boolean">true</format>
           <mount>/</mount>
-          <mountby config:type="symbol">uuid</mountby>
-          <partition_id config:type="integer">131</partition_id>
-          <partition_nr config:type="integer">2</partition_nr>
-          <partition_type>primary</partition_type>
-          <resize config:type="boolean">false</resize>
+          <mountby t="symbol">uuid</mountby>
+          <partition_id t="integer">131</partition_id>
+          <partition_nr t="integer">2</partition_nr>
+          <quotas t="boolean">true</quotas>
+          <resize t="boolean">false</resize>
+          <size>max</size>
+          <subvolumes t="list">
+            <subvolume t="map">
+              <copy_on_write t="boolean">false</copy_on_write>
+              <path>var</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>usr/local</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>tmp</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>srv</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>root</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>opt</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>home</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>boot/grub2/s390x-emu</path>
+            </subvolume>
+          </subvolumes>
+          <subvolumes_prefix>@</subvolumes_prefix>
         </partition>
-        <partition>
-          <create config:type="boolean">true</create>
-          <filesystem config:type="symbol">swap</filesystem>
-          <format config:type="boolean">true</format>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <filesystem t="symbol">swap</filesystem>
+          <format t="boolean">true</format>
           <mount>swap</mount>
-          <mountby config:type="symbol">uuid</mountby>
-          <partition_id config:type="integer">130</partition_id>
-          <partition_nr config:type="integer">3</partition_nr>
-          <partition_type>primary</partition_type>
-          <resize config:type="boolean">false</resize>
-          <size>2G</size>
+          <mountby t="symbol">uuid</mountby>
+          <partition_id t="integer">130</partition_id>
+          <partition_nr t="integer">3</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>2148515328</size>
         </partition>
       </partitions>
-      <type config:type="symbol">CT_DISK</type>
+      <type t="symbol">CT_DISK</type>
       <use>all</use>
     </drive>
   </partitioning>
@@ -180,7 +214,7 @@
   % unless ($check_var->('ARCH', 's390x')) {
   <bootloader>
     <global>
-      <timeout config:type="integer">45</timeout>
+      <timeout config:type="integer">-1</timeout>
     </global>
   </bootloader>
   <general>
@@ -280,12 +314,17 @@
     % if ($get_var->('SCC_ADDONS') =~ m/\brt\b/) {
     <kernel>kernel-rt</kernel>
     % }
-    % if ($check_var->('VERSION', '15-SP3') or $check_var->('VERSION', '15-SP4')) {
     <packages config:type="list">
+      <!-- Workaround for bsc#1202234: [addon]-release packages are missing after autoyast installation. -->
+      % foreach (values %$addons) {
+      <package><%= lc($_->{name}) %>-release</package>
+      % }
+      <!-- end of workaround -->
+    % if ($check_var->('VERSION', '15-SP3') or $check_var->('VERSION', '15-SP4')) {
       <package>openssh</package>
       <package>firewalld</package>
-    </packages>
     % }
+    </packages>
     <patterns config:type="list">
       % for my $pattern (@$patterns) {
       <pattern><%= $pattern %></pattern>
