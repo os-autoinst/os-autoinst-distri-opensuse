@@ -834,13 +834,13 @@ Run 00.050 net peering script
 sub cluster_trento_net_peering {
     my ($basedir) = @_;
     my $trento_rg = get_resource_group();
-    my $cluster_rg = qesap_get_az_resource_group(substring => TRENTO_QESAPDEPLOY_PREFIX);
+    my $cluster_rg = qesap_az_get_resource_group(substring => TRENTO_QESAPDEPLOY_PREFIX);
     my $cmd = join(' ',
         $basedir . '/00.050-trento_net_peering_tserver-sap_group.sh',
         '-s', $trento_rg,
-        '-n', qesap_get_vnet($trento_rg),
+        '-n', qesap_az_get_vnet($trento_rg),
         '-t', $cluster_rg,
-        '-a', qesap_get_vnet($cluster_rg));
+        '-a', qesap_az_get_vnet($cluster_rg));
     record_info('NET PEERING');
     assert_script_run($cmd, 360);
 }

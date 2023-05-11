@@ -12,9 +12,9 @@ use testapi;
 use qesapdeployment;
 
 sub run {
-    my $rg = qesap_get_az_resource_group();
+    my $rg = qesap_az_get_resource_group();
     my $target_rg = get_required_var('QESAP_TARGET_RESOURCE_GROUP');
-    qesap_delete_az_peering(source_group => $rg, target_group => $target_rg);
+    qesap_az_vnet_peering_delete(source_group => $rg, target_group => $target_rg);
 }
 
 1;

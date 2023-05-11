@@ -19,13 +19,12 @@ sub run {
     # Init al the PC gears (ssh keys)
     my $provider = $self->provider_factory();
 
-    my $resource_group_postfix = 'qesapval' . get_current_job_id();
     my $qesap_provider = lc get_required_var('PUBLIC_CLOUD_PROVIDER');
 
     my %variables;
     $variables{PROVIDER} = $qesap_provider;
     $variables{REGION} = $provider->provider_client->region;
-    $variables{DEPLOYMENTNAME} = $resource_group_postfix;
+    $variables{DEPLOYMENTNAME} = qesap_calculate_deployment_name('qesapval');
     if (get_var('QESAP_CLUSTER_OS_VER')) {
         $variables{OS_VER} = get_var('QESAP_CLUSTER_OS_VER');
     }
@@ -56,6 +55,11 @@ sub run {
         $variables{HANA_DATA_DISK_TYPE} = get_var("QESAPDEPLOY_HANA_DISK_TYPE", "pd-ssd");
         $variables{HANA_LOG_DISK_TYPE} = get_var("QESAPDEPLOY_HANA_DISK_TYPE", "pd-ssd");
     }
+
+    my %peering_settings = qesap_calculate_az_address_range(slot => get_required_var('WORKER_ID'));
+    $variables{VNET_ADDRESS_RANGE} = $peering_settings{vnet_address_range};
+    $variables{SUBNET_ADDRESS_RANGE} = $peering_settings{subnet_address_range};
+
     qesap_prepare_env(openqa_variables => \%variables, provider => $qesap_provider);
 }
 

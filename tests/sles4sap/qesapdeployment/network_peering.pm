@@ -15,7 +15,7 @@ sub run {
     my ($self, $run_args) = @_;
     my $instance = $run_args->{my_instance};
     record_info("$instance");
-    my $rg = qesap_get_az_resource_group();
+    my $rg = qesap_az_get_resource_group();
     my $target_rg = get_required_var('QESAP_TARGET_RESOURCE_GROUP');
     qesap_az_vnet_peering(source_group => $rg, target_group => $target_rg);
     qesap_add_server_to_hosts(name => 'download.suse.de', ip => get_required_var("IBSM_IP"));
@@ -30,11 +30,11 @@ sub post_fail_hook {
     qesap_upload_logs();
 
     # destroy the network peering, if it was created
-    my $rg = qesap_get_az_resource_group();
-    my $vn = qesap_get_vnet($rg);
+    my $rg = qesap_az_get_resource_group();
+    my $vn = qesap_az_get_vnet($rg);
     my $target_rg = get_required_var('QESAP_TARGET_RESOURCE_GROUP');
-    my $target_vn = qesap_get_vnet($target_rg);
-    qesap_delete_az_peering(source_group => $rg, source_vnet => $vn, target_group => $target_rg, target_vnet => $target_vn);
+    my $target_vn = qesap_az_get_vnet($target_rg);
+    qesap_az_vnet_peering_delete(source_group => $rg, source_vnet => $vn, target_group => $target_rg, target_vnet => $target_vn);
 
     my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
     qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300) unless (script_run("test -e $inventory"));
