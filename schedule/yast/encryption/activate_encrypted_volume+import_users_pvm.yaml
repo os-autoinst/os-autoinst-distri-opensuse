@@ -10,10 +10,15 @@ vars:
   ETC_PASSWD: "bernhard:x:1000:100:bernhard:/home/bernhard:/bin/bash"
   ETC_SHADOW: "bernhard:$6$ZQ2QptdwejF6$QAEuGvFZJCsyA0oWlrFsWXcMSNcgkU4y3oVPGHhoOjuEHU7BhKAm8DN5L8FnwQlngmNheB.vZqyz1HripbwKL0:18435:0:99999:7:::"
   YUI_REST_API: 1
+conditional_schedule:
+  access_beta_distribution:
+    BETA:
+      1:
+        - installation/access_beta_distribution
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/access_beta_distribution
+  - '{{access_beta_distribution}}'
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/registration/register_via_scc

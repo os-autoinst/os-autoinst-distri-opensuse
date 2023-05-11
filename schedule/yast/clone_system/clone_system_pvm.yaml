@@ -4,10 +4,15 @@ description: >
   generated and no error reported by YaST. No validation of the profile is done.
 vars:
   YUI_REST_API: 1
+conditional_schedule:
+  access_beta_distribution:
+    BETA:
+      1:
+        - installation/access_beta_distribution
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/access_beta_distribution
+  - '{{access_beta_distribution}}'
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
