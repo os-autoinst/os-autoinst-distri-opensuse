@@ -54,7 +54,7 @@ sub run {
     y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 120);
     apply_workaround_poo124652('yast2_security-login-settings') if (is_sle('>=15-SP4'));
     assert_and_click "yast2_security-login-settings";
-    assert_screen "yast2_security-login-attempts";
+    apply_workaround_poo124652("yast2_security-login-attempts") if (is_sle('>=15-SP4'));
     # set file permissions to 'secure'
     assert_and_click "yast2_security-misc-settings";
     send_key "alt-f";
