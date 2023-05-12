@@ -753,7 +753,7 @@ subtest '[qesap_cluster_logs] multi log command' => sub {
     ok((none { /.*ignore_me_too\.txt/ } @logfile_calls), 'ignore_me_too.txt is expected to be ignored');
 };
 
-subtest '[qesap_get_az_resource_group]' => sub {
+subtest '[qesap_az_get_resource_group]' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
 
@@ -761,7 +761,7 @@ subtest '[qesap_get_az_resource_group]' => sub {
     $qesap->redefine(get_current_job_id => sub { return 'FETA'; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $result = qesap_get_az_resource_group();
+    my $result = qesap_az_get_resource_group();
 
     ok((any { /az group list.*/ } @calls), 'az command properly composed');
     ok((any { /.*FETA.*/ } @calls), 'az filtered by jobId');
@@ -769,8 +769,6 @@ subtest '[qesap_get_az_resource_group]' => sub {
 };
 
 subtest '[qesap_calculate_az_address_range]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-
     my %result_1 = qesap_calculate_az_address_range(slot => 1);
     my %result_2 = qesap_calculate_az_address_range(slot => 2);
     my %result_64 = qesap_calculate_az_address_range(slot => 64);
@@ -788,5 +786,117 @@ subtest '[qesap_calculate_az_address_range]' => sub {
     dies_ok { qesap_calculate_az_address_range(slot => 8193); } "Expected die for slot > 8192";
 };
 
+subtest '[qesap_az_get_vnet]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'GYROS'; });
+    my $result = qesap_az_get_vnet('TZATZIKI');
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /az network vnet list.*/ } @calls), 'az command properly composed');
+    ok($result eq 'GYROS', 'function return is equal to the script_output return');
+};
+
+subtest '[qesap_az_get_vnet] no resource_group' => sub {
+    dies_ok { qesap_az_get_vnet() } "Expected die for missing resource_group";
+};
+
+subtest '[qesap_calculate_deployment_name]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    $qesap->redefine(get_current_job_id => sub { return 42; });
+    my $result = qesap_calculate_deployment_name();
+    ok($result eq '42', 'function return is proper deployment_name');
+};
+
+subtest '[qesap_calculate_deployment_name] with postfix' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    $qesap->redefine(get_current_job_id => sub { return 42; });
+    my $result = qesap_calculate_deployment_name('TZATZIKI');
+    ok($result eq 'TZATZIKI42', 'function return is proper deployment_name');
+};
+
+subtest '[qesap_az_vnet_peering] missing group arguments' => sub {
+    dies_ok { qesap_az_vnet_peering() } "Expected die for missing arguments";
+    dies_ok { qesap_az_vnet_peering(source_group => 'STINCO') } "Expected die for missing target_group";
+    dies_ok { qesap_az_vnet_peering(target_group => 'BRACIOLA') } "Expected die for missing source_group";
+};
+
+subtest '[qesap_az_vnet_peering]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(qesap_az_get_vnet => sub {
+            return 'VNET_STINCO' if ($_[0] =~ /STINCO/);
+            return 'VNET_BRACIOLA' if ($_[0] =~ /BRACIOLA/);
+            return 'VNET_UNKNOWN';
+    });
+    $qesap->redefine(script_output => sub { push @calls, $_[0];
+            return 'ID_STINCO' if ($_[0] =~ /VNET_STINCO/);
+            return 'ID_BRACIOLA' if ($_[0] =~ /VNET_BRACIOLA/);
+            return 'ID_UNKNOWN';
+    });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+
+    qesap_az_vnet_peering(source_group => 'STINCO', target_group => 'BRACIOLA');
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /az network vnet show.*STINCO/ } @calls), 'az network vnet show command properly composed for the source_group');
+    ok((any { /az network vnet show.*BRACIOLA/ } @calls), 'az network vnet show command properly composed for the target_group');
+    ok((any { /az network vnet peering create.*STINCO/ } @calls), 'az network vnet peering create command properly composed for the source_group');
+    ok((any { /az network vnet peering create.*BRACIOLA/ } @calls), 'az network vnet peering create command properly composed for the target_group');
+};
+
+subtest '[qesap_az_vnet_peering_delete] missing target_group arguments' => sub {
+    dies_ok { qesap_az_vnet_peering_delete() } "Expected die for missing arguments";
+};
+
+subtest '[qesap_get_peering_name] missing resource_group arguments' => sub {
+    dies_ok { qesap_get_peering_name() } "Expected die for missing arguments";
+};
+
+subtest '[qesap_az_vnet_peering_delete]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(get_current_job_id => sub { return 42; });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'GYROS'; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(record_soft_failure => sub { note(join(' ', 'RECORD_SOFT_FAILURE -->', @_)); });
+    $qesap->redefine(qesap_az_get_vnet => sub {
+            return 'VNET_TZATZIKI' if ($_[0] =~ /TZATZIKI/);
+            return;
+    });
+
+    qesap_az_vnet_peering_delete(target_group => 'TZATZIKI');
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
+    # qesap_get_peering_name
+    ok((any { /az network vnet peering list.*grep 42/ } @calls), 'az command properly composed');
+};
+
+subtest '[qesap_az_vnet_peering_delete] delete failure' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my @soft_failure;
+    $qesap->redefine(get_current_job_id => sub { return 42; });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'GYROS'; });
+
+    # Simulate a failure in the delete
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 1; });
+
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(record_soft_failure => sub {
+            push @soft_failure, $_[0];
+            note(join(' ', 'RECORD_SOFT_FAILURE -->', @_)); });
+    $qesap->redefine(qesap_az_get_vnet => sub {
+            return 'VNET_TZATZIKI' if ($_[0] =~ /TZATZIKI/);
+            return;
+    });
+
+    qesap_az_vnet_peering_delete(target_group => 'TZATZIKI');
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  SF-->  " . join("\n  SF-->  ", @soft_failure));
+
+    # qesap_get_peering_name
+    ok((any { /jira#7487/ } @soft_failure), 'soft failure');
+};
 
 done_testing;

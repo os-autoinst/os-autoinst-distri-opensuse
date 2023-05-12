@@ -67,12 +67,13 @@ our @EXPORT = qw(
   qesap_wait_for_ssh
   qesap_cluster_log_cmds
   qesap_cluster_logs
-  qesap_get_vnet
-  qesap_get_az_resource_group
+  qesap_az_get_vnet
+  qesap_az_get_resource_group
   qesap_calculate_az_address_range
   qesap_az_vnet_peering
-  qesap_delete_az_peering
+  qesap_az_vnet_peering_delete
   qesap_add_server_to_hosts
+  qesap_calculate_deployment_name
 );
 
 =head1 DESCRIPTION
@@ -708,7 +709,7 @@ sub qesap_cluster_logs {
     }
 }
 
-=head3 qesap_get_vnet
+=head3 qesap_az_get_vnet
 
 Return the output of az network vnet list
 =over 1
@@ -718,8 +719,9 @@ Return the output of az network vnet list
 =back
 =cut
 
-sub qesap_get_vnet {
+sub qesap_az_get_vnet {
     my ($resource_group) = @_;
+    croak 'Missing mandatory slot argument' unless $resource_group;
     my $az_cmd = join(' ', 'az', 'network',
         'vnet', 'list',
         '-g', $resource_group,
@@ -728,7 +730,24 @@ sub qesap_get_vnet {
     return script_output($az_cmd, 180);
 }
 
-=head3 qesap_get_az_resource_group
+=head3 qesap_calculate_deployment_name
+
+Compose the deployment name. It always has the JobId
+
+=over 1
+
+=item B<PREFIX> - optional substring prepend in front of the job id
+
+=back
+=cut
+
+sub qesap_calculate_deployment_name {
+    my ($prefix) = @_;
+    my $id = get_current_job_id();
+    return $prefix ? $prefix . $id : $id;
+}
+
+=head3 qesap_az_get_resource_group
 
 Query and return the resource group used
 by the qe-sap-deployment
@@ -740,7 +759,7 @@ by the qe-sap-deployment
 =back
 =cut
 
-sub qesap_get_az_resource_group {
+sub qesap_az_get_resource_group {
     my (%args) = @_;
     my $substring = $args{substring} ? " | grep $args{substring}" : "";
     my $job_id = get_current_job_id();
@@ -786,13 +805,16 @@ sub qesap_calculate_az_address_range {
 
 =head3 qesap_az_vnet_peering
 
-    Performs peering between the cluster and IBS mirror on Azure.
+    Create a pair of network peering between
+    the two provided deployments.
 
-=over 2
+=over 3
 
 =item B<SOURCE_GROUP> - resource group of source
 
 =item B<TARGET_GROUP> - resource group of target
+
+=item B<TIMEOUT> - default is 5 mins
 
 =back
 =cut
@@ -801,62 +823,74 @@ sub qesap_az_vnet_peering {
     my (%args) = @_;
     croak 'Missing mandatory source_group argument' unless $args{source_group};
     croak 'Missing mandatory target_group argument' unless $args{target_group};
-    $args{source_vnet} = qesap_get_vnet($args{source_group});
-    $args{target_vnet} = qesap_get_vnet($args{target_group});
+    my $source_vnet = qesap_az_get_vnet($args{source_group});
+    my $target_vnet = qesap_az_get_vnet($args{target_group});
+    $args{timeout} //= bmwqemu::scale_timeout(300);
 
-    my $source_vnet_id = script_output("az network vnet show --resource-group $args{source_group} --name $args{source_vnet} --query id --output tsv");
+    my $vnet_show_cmd = 'az network vnet show --query id --output tsv';
+
+    my $source_vnet_id = script_output("$vnet_show_cmd --resource-group $args{source_group} --name $source_vnet");
     record_info("[M] source vnet ID: $source_vnet_id\n");
 
-    my $target_vnet_id = script_output("az network vnet show --resource-group $args{target_group} --name $args{target_vnet} --query id --output tsv");
+    my $target_vnet_id = script_output("$vnet_show_cmd --resource-group $args{target_group} --name $target_vnet");
     record_info("[M] target vnet ID: $target_vnet_id\n");
 
-    my $peering_name = "$args{source_vnet}-$args{target_vnet}";
+    my $peering_name = "$source_vnet-$target_vnet";
+    my $peering_cmd = "az network vnet peering create --name $peering_name --allow-vnet-access --output table";
 
-    assert_script_run("az network vnet peering create --name $peering_name --resource-group $args{source_group} --vnet-name $args{source_vnet} --remote-vnet $target_vnet_id --allow-vnet-access --output table");
-    record_info("PEERING SUCCESS (source)", "[M] Peering from $args{source_group}.$args{source_vnet} server was successful\n");
+    assert_script_run("$peering_cmd --resource-group $args{source_group} --vnet-name $source_vnet --remote-vnet $target_vnet_id", timeout => $args{timeout});
+    record_info("PEERING SUCCESS (source)", "[M] Peering from $args{source_group}.$source_vnet server was successful\n");
 
-    assert_script_run("az network vnet peering create --name $peering_name --resource-group $args{target_group} --vnet-name $args{target_vnet} --remote-vnet $source_vnet_id --allow-vnet-access --output table");
-    record_info("PEERING SUCCESS (target)", "[M] Peering from $args{target_group}.$args{target_vnet} server was successful\n");
+    assert_script_run("$peering_cmd --resource-group $args{target_group} --vnet-name $target_vnet --remote-vnet $source_vnet_id", timeout => $args{timeout});
+    record_info("PEERING SUCCESS (target)", "[M] Peering from $args{target_group}.$target_vnet server was successful\n");
 
     record_info("Checking peering status");
-    assert_script_run("az network vnet peering show --name $peering_name --resource-group $args{target_group} --vnet-name $args{target_vnet} --output table");
+    assert_script_run("az network vnet peering show --name $peering_name --resource-group $args{target_group} --vnet-name $target_vnet --output table");
     record_info("PEERING STATUS SUCCESS");
 }
 
-=head3 qesap_delete_az_peering
+=head3 qesap_az_vnet_peering_delete
 
-    Performs peering between the cluster and IBS mirror on Azure.
+    Delete all the network peering between the two provided deploymnets.
 
-=over 2
+=over 3
 
-=item B<SOURCE_GROUP> - resource group of source
+=item B<SOURCE_GROUP> - resource group of source.
+                        This parameter is optional, if not provided
+                        the related peering will be ignored.
 
-=item B<TARGET_GROUP> - resource group of target
+=item B<TARGET_GROUP> - resource group of target.
+                        This parameter is mandatory and
+                        the associated resource group is supposed to still exist.
+
+=item B<TIMEOUT> - default is 5 mins
 
 =back
 =cut
 
-sub qesap_delete_az_peering {
+sub qesap_az_vnet_peering_delete {
     my (%args) = @_;
     croak 'Missing mandatory target_group argument' unless $args{target_group};
+    $args{timeout} //= bmwqemu::scale_timeout(300);
 
-    $args{target_vnet} = qesap_get_vnet($args{target_group});
+    my $target_vnet = qesap_az_get_vnet($args{target_group});
 
-    my $peering_name = qesap_get_peering_name();
+    my $peering_name = qesap_get_peering_name(resource_group => $args{target_group});
     if (!$peering_name) {
-        record_info("NO PEERING", "No peering to be destroyed!");
+        record_info('NO PEERING', "No peering between $args{target_group} and resources belonging to the current job to be destroyed!");
         return;
     }
 
     record_info("Attempting peering destruction");
+    my $peering_cmd = "az network vnet peering delete -n $peering_name";
     my $source_ret = 0;
     if ($args{source_group}) {
-        $args{source_vnet} = qesap_get_vnet($args{source_group});
-        my $source_cmd = "az network vnet peering delete --resource-group $args{source_group} --vnet-name $args{source_vnet} -n $peering_name";
-        $source_ret = script_run($source_cmd);
+        my $source_vnet = qesap_az_get_vnet($args{source_group});
+        my $source_cmd = "$peering_cmd --resource-group $args{source_group} --vnet-name $source_vnet";
+        $source_ret = script_run($source_cmd, timeout => $args{timeout});
     }
-    my $target_cmd = "az network vnet peering delete --resource-group $args{target_group} --vnet-name $args{target_vnet} -n $peering_name";
-    my $target_ret = script_run($target_cmd);
+    my $target_cmd = "$peering_cmd --resource-group $args{target_group} --vnet-name $target_vnet";
+    my $target_ret = script_run($target_cmd, timeout => $args{timeout});
 
     if ($source_ret == 0 && $target_ret == 0) {
         record_info("Peering deletion SUCCESS", "The peering was successfully destroyed");
@@ -867,24 +901,32 @@ sub qesap_delete_az_peering {
 
 =head3 qesap_get_peering_name
 
-    Returns the peering name for the current job, or
+    Search for all network peering related to both:
+     - resource group related to the current job
+     - the provided resource group.
+    Returns the peering name or
     empty string if a peering doesn't exist
 
+=over 1
+
+=item B<RESOURCE_GROUP> - resource group connected to the peering
+
+=back
 =cut
 
 sub qesap_get_peering_name {
+    my (%args) = @_;
+
+    croak 'Missing mandatory target_group argument' unless $args{resource_group};
+
     my $job_id = get_current_job_id();
-    my $json_response = script_output("az network vnet peering list -g dsdm0we --vnet-name vnet-dsdm0we");
-    my $peerings = decode_json($json_response);
-
-    for my $peering (@$peerings) {
-        my $name = $peering->{name};
-
-        if ($name =~ /$job_id/) {
-            return $name;
-        }
-    }
-    return "";
+    my $cmd = join(' ', 'az network vnet peering list',
+        '-g', $args{resource_group},
+        '--vnet-name', qesap_az_get_vnet($args{resource_group}),
+        '--query "[].name"',
+        '-o tsv',
+        '| grep', $job_id);
+    return script_output($cmd, proceed_on_failure => 1);
 }
 
 =head3 qesap_add_server_to_hosts
