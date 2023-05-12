@@ -29,4 +29,8 @@ sub run {
     assert_script_run "fwupdmgr get-remotes";
 }
 
+sub test_flags {
+    return {fatal => 0};
+}
+
 1;

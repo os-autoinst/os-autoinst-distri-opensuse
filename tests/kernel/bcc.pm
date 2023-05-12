@@ -23,6 +23,10 @@ sub run {
     assert_script_run("$tools_dir/filetop -a 5 10");
 }
 
+sub test_flags {
+    return {fatal => 0};
+}
+
 1;
 
 =head1 Discussion

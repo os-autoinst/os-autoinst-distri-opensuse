@@ -37,4 +37,8 @@ sub run {
     assert_script_run "cd .. && rm -rf data";
 }
 
+sub test_flags {
+    return {fatal => 0};
+}
+
 1;
