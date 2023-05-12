@@ -171,6 +171,10 @@ sub load_image_tests_in_k8s {
     }
 }
 
+sub load_image_tests_in_openshift {
+    loadtest 'containers/openshift_image';
+}
+
 sub update_host_and_publish_hdd {
     # Method used to update pre-installed host images, booting
     # the existing qcow2 and publish a new qcow2
@@ -179,6 +183,7 @@ sub update_host_and_publish_hdd {
         # we only need to shutdown the VM before publishing the HDD
         loadtest 'boot/boot_to_desktop';
         loadtest 'containers/update_host';
+        loadtest 'containers/openshift_setup' if check_var('CONTAINER_RUNTIME', 'openshift');
     }
     loadtest 'shutdown/cleanup_before_shutdown' if is_s390x;
     loadtest 'shutdown/shutdown';
@@ -200,7 +205,7 @@ sub load_container_tests {
         loadtest 'boot/boot_to_desktop' unless is_public_cloud;
     }
 
-    if (is_container_image_test() && !(is_jeos || is_sle_micro || is_microos || is_leap_micro) && $runtime ne "k8s") {
+    if (is_container_image_test() && !(is_jeos || is_sle_micro || is_microos || is_leap_micro) && $runtime !~ /k8s|openshift/) {
         # Container Image tests common
         loadtest 'containers/host_configuration';
         loadtest 'containers/bci_prepare' if (get_var('BCI_TESTS'));
@@ -232,6 +237,7 @@ sub load_container_tests {
                 load_image_tests_podman($run_args) if (/podman/i);
                 load_image_tests_docker($run_args) if (/docker/i);
                 load_image_tests_in_k8s($run_args) if (/k8s/i);
+                load_image_tests_in_openshift if (/openshift/i);
             }
         } elsif (get_var('REPO_BCI')) {
             loadtest 'containers/host_configuration';
