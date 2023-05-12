@@ -25,6 +25,7 @@ use lockapi;
 use mmapi;
 use mm_network;
 use nfs_common;
+use Utils::Systemd 'disable_and_stop_service';
 
 my $INST_DIR = '/opt/xfstests';
 my $CONFIG_FILE = "$INST_DIR/local.config";
@@ -338,6 +339,7 @@ sub run {
     my $filesystem = get_required_var('XFSTESTS');
     my %para;
     if (check_var('XFSTESTS', 'nfs')) {
+        disable_and_stop_service('firewalld');
         if (get_var('XFSTESTS_NFS_SERVER')) {
             server_configure_network($self);
             install_dependencies_nfs;
