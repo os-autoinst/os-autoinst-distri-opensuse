@@ -15,6 +15,8 @@ schedule:
     - installation/add_on_product/skip_install_addons
   system_role:
     - installation/system_role/select_role_minimal
+  booting:
+    - installation/bootloader_settings/disable_boot_menu_timeout_navigating_tabs
   default_systemd_target:
     - installation/installation_settings/validate_default_target
   system_preparation:

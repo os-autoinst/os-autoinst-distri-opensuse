@@ -24,7 +24,7 @@ schedule:
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
-  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/bootloader_settings/disable_boot_menu_timeout_navigating_tabs
   - installation/launch_installation
   - installation/confirm_installation
   - installation/performing_installation/perform_installation
