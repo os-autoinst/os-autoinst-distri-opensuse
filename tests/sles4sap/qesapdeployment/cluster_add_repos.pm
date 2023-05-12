@@ -34,11 +34,8 @@ sub run() {
 
 sub delete_peering {
     # destroy the network peering, if it was created
-    my $rg = qesap_az_get_resource_group();
-    my $vn = qesap_az_get_vnet($rg);
-    my $target_rg = get_required_var('QESAP_TARGET_RESOURCE_GROUP');
-    my $target_vn = qesap_az_get_vnet($target_rg);
-    qesap_az_vnet_peering_delete(source_group => $rg, source_vnet => $vn, target_group => $target_rg, target_vnet => $target_vn);
+    qesap_az_vnet_peering_delete(source_group => qesap_az_get_resource_group(),
+        target_group => get_required_var('IBSM_RG'));
 }
 
 sub test_flags {
