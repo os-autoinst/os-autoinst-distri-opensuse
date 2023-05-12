@@ -9,8 +9,6 @@ vars:
   NETBOOT: 1
   YUI_REST_API: 1
 schedule:
-  access_beta:
-    - installation/access_beta_distribution
   product_selection:
     - installation/validation/validate_install_repo
     - installation/product_selection/install_SLES
