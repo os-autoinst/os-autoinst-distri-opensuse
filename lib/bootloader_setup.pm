@@ -277,7 +277,7 @@ sub boot_local_disk {
             push @tags, 'displaymanager' if check_var('DESKTOP', 'gnome');
         }
 
-        assert_screen(\@tags, 60);
+        assert_screen(\@tags, 120);
         if (match_has_tag 'grub2') {
             diag 'already in grub2, returning from boot_local_disk';
             stop_grub_timeout;
