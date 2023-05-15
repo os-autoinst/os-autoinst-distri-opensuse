@@ -92,7 +92,7 @@ sub run {
     # This may be necessary if your cluster nodes reboot so fast that the
     # other nodes are still waiting in the fence acknowledgement phase.
     # This is an occasional issue with virtual machines.
-    file_content_replace("$sbd_cfg", "SBD_DELAY_START=.*" => "SBD_DELAY_START=yes");
+    #file_content_replace("$sbd_cfg", "SBD_DELAY_START=.*" => "SBD_DELAY_START=yes");
 
     # Execute csync2 to synchronise the sysconfig sbd file
     exec_csync;
