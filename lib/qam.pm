@@ -81,6 +81,28 @@ sub add_test_repositories {
     my @repos = split(/,/, get_var('MAINT_TEST_REPO', ''));
     my $gpg = get_var('BUILD') =~ m/^MR:/ ? "-G" : "";
     my $system_repos = script_output('zypper lr -u');
+
+    if (is_sle('=12-SP2')) {
+        my $arch = get_var('ARCH');
+        my $url = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update/";
+        # don't add repo when it's already present
+        unless ($system_repos =~ /$url/) {
+            zypper_call("--no-gpg-checks ar -f $gpg $url '12-SP2-LTSS-ERICSSON-Updates'");
+        }
+    }
+    if (is_sle('=12-SP3')) {
+        my $arch = get_var('ARCH');
+        my $url = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3-LTSS-TERADATA/$arch/update/";
+        # don't add repo when it's already present
+        unless ($system_repos =~ /$url/) {
+            zypper_call("--no-gpg-checks ar -f $gpg $url '12-SP3-LTSS-TERADATA-Updates'");
+        }
+    }
+    # shim update will fail with old grub2 due to old signature
+    if (get_var('UEFI')) {
+        zypper_call('up grub2 grub2-x86_64-efi kernel-default');
+    }
+
     # Be carefull. If you have defined both variables, the PATCH_TEST_REPO variable will always
     # have precedence over MAINT_TEST_REPO. So if MAINT_TEST_REPO is required to be installed
     # please be sure that the PATCH_TEST_REPO is empty.
@@ -99,22 +121,6 @@ sub add_test_repositories {
         }
     }
 
-    if (is_sle('=12-SP2')) {
-        my $arch = get_var('ARCH');
-        my $url = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update/";
-        # don't add repo when it's already present
-        unless ($system_repos =~ /$url/) {
-            zypper_call("--no-gpg-checks ar -f $gpg $url '12-SP2-LTSS-ERICSSON-Updates'");
-        }
-    }
-    if (is_sle('=12-SP3')) {
-        my $arch = get_var('ARCH');
-        my $url = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3-LTSS-TERADATA/$arch/update/";
-        # don't add repo when it's already present
-        unless ($system_repos =~ /$url/) {
-            zypper_call("--no-gpg-checks ar -f $gpg $url '12-SP3-LTSS-TERADATA-Updates'");
-        }
-    }
     # refresh repositories, inf 106 is accepted because repositories with test
     # can be removed before test start
     zypper_call('ref', timeout => 1400, exitcode => [0, 106]);
