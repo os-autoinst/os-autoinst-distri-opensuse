@@ -66,7 +66,7 @@ sub run {
         if (is_leap('<=15.2')) {
             $filetoedit = '/usr/lib/jeos-firstboot';
         }
-        elsif (is_sle('<=15-sp4') or is_leap('<=15.4')) {
+        elsif (is_sle('<15-sp4') or is_leap('<15.4')) {
             $filetoedit = '/usr/share/jeos-firstboot/jeos-firstboot-dialogs';
         }
         assert_script_run("sed -i 's/ip link set down /# ip link set down/g' $filetoedit");
