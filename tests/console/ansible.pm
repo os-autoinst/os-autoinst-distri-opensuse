@@ -18,7 +18,7 @@ use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call random_string systemctl file_content_replace ensure_serialdev_permissions);
-use version_utils qw(is_sle is_opensuse is_tumbleweed is_transactional is_microos is_alp);
+use version_utils qw(is_opensuse is_tumbleweed is_transactional is_microos is_alp);
 use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 use transactional qw(trup_call check_reboot_changes);
 
@@ -29,7 +29,7 @@ my $pkgs = 'ansible git-core';
 $pkgs .= ' python3-yamllint' unless is_alp;
 # https://bugzilla.suse.com/show_bug.cgi?id=1210876 Nothing provides 'python3-virtualenv'
 # https://bugzilla.suse.com/show_bug.cgi?id=1210875 Package ansible-test requires Python2.7
-$pkgs .= ' ansible-test' unless is_sle;
+$pkgs .= ' ansible-test';
 
 sub run {
     select_serial_terminal;
@@ -37,9 +37,13 @@ sub run {
     # 1. System setup
 
     unless (is_opensuse) {
+        # The Desktop module is required by the Development Tools module
+        add_suseconnect_product(get_addon_fullname('desktop'));
+        # Package 'ansible-test' needs python3-virtualenv from Development Tools module
+        add_suseconnect_product(get_addon_fullname('sdk'));
+
         # Package 'python3-yamllint' and 'ansible' require PackageHub is available
-        return unless is_phub_ready();
-        add_suseconnect_product(get_addon_fullname('phub'));
+        add_suseconnect_product(get_addon_fullname('phub')) if (is_phub_ready());
     }
 
     # Create user account, if image doesn't already contain user
@@ -135,10 +139,8 @@ sub run {
     assert_script_run "ansible-playbook -i hosts main.yaml --check $skip_tags", timeout => 300;
 
     # Run the ansible sanity test
-    unless (is_sle) {
-        script_run 'ansible-test --help';
-        assert_script_run 'ansible-test sanity';
-    }
+    script_run 'ansible-test --help';
+    assert_script_run 'ansible-test sanity';
 
     # 5. Ansible playbook execution
 
