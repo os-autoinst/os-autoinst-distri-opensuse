@@ -15,7 +15,7 @@ use testapi;
 use utils qw(zypper_call handle_screen);
 use JSON;
 use List::Util qw(max);
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_transactional);
 
 our @EXPORT
   = qw(capture_state check_automounter is_patch_needed add_test_repositories disable_test_repositories enable_test_repositories
@@ -99,7 +99,7 @@ sub add_test_repositories {
         }
     }
     # shim update will fail with old grub2 due to old signature
-    if (get_var('UEFI')) {
+    if (get_var('MACHINE') =~ /uefi/ && !is_transactional) {
         zypper_call('up grub2 grub2-x86_64-efi kernel-default');
     }
 
