@@ -118,7 +118,7 @@ sub check {
 
     # Exceptional behavior for /etc/sysctl.conf, it is silently ignored
     my $file = "/etc/sysctl.conf";
-    assert_script_run("rm $file");
+    assert_script_run("rm -f $file");
     assert_script_run("ln -s /I_do_not_exists $file");
     check_load_order();
     die("Wrongly showing broken '$file' in logs") if grep { $_ eq $file } @{wicked_get_file_order()};
