@@ -14,7 +14,7 @@ terraform:
     # GENERAL VARIABLES #
     az_region: '%PUBLIC_CLOUD_REGION%'
     admin_user: 'cloudadmin'
-    deployment_name: '%PUBLIC_CLOUD_RESOURCE_GROUP%'
+    deployment_name: '%QESAP_DEPLOYMENT_NAME%'
     public_key: '~/.ssh/id_rsa.pub'
     private_key: '~/.ssh/id_rsa'
     os_image_uri: 'https://%STORAGE_ACCOUNT_NAME%.blob.core.windows.net/sle-images/%SLE_IMAGE%'

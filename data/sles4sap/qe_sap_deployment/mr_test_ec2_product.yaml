@@ -5,6 +5,7 @@ terraform:
   variables:
     # GENERAL VARIABLES #
     aws_region: "%PUBLIC_CLOUD_REGION%"
+    deployment_name: '%QESAP_DEPLOYMENT_NAME%'
     admin_user: "cloudadmin"
     public_key: "~/.ssh/id_rsa.pub"
     private_key: "~/.ssh/id_rsa"
