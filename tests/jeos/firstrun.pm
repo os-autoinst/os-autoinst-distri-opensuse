@@ -142,7 +142,7 @@ sub run {
         send_key 'ret';
     }
 
-    if (is_generalhw && is_aarch64 && !is_leap("<15.4")) {
+    if (is_generalhw && is_aarch64 && !is_leap("<15.4") && !is_tumbleweed) {
         assert_screen 'jeos-please-configure-wifi';
         send_key 'n';
     }
