@@ -401,7 +401,7 @@ sub start_evolution {
             send_key 'alt-n';
         }
         else {
-            record_soft_failure 'poo#67408';
+            record_info 'poo#67408';
             send_key 'alt-c';
         }
     }
