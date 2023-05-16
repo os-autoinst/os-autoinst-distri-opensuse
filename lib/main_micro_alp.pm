@@ -269,7 +269,7 @@ sub load_slem_on_pc_tests {
     loadtest("publiccloud/ssh_interactive_start", run_args => $args);
     loadtest("publiccloud/instance_overview", run_args => $args);
     loadtest("publiccloud/slem_prepare", run_args => $args);
-
+    loadtest("transactional/enable_selinux") if (get_var('ENABLE_SELINUX'));
     if (get_var("PUBLIC_CLOUD_CONTAINERS")) {
         load_container_tests() if is_container_test;
     }
