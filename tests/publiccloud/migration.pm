@@ -36,6 +36,9 @@ sub run {
     my $act_rpm          = get_var('PUBLIC_CLOUD_DMS_ACT_RPM');
     my $act_url      = "$pc_act_location" . "$act_rpm";
     my $pc_url       = "$pc_act_location" . "$pc_rpm";
+    record_info('DEBUG', $pc_url);
+    record_info('DEBUG', $pc_act_location);
+
     my $tmp_repo         = "/tmp/sles15-mig-repo";
 
     select_serial_terminal();
@@ -58,6 +61,9 @@ sub run {
     assert_script_run( "wget $repo_key_url -O /tmp/$repo_key", 180 );
     assert_script_run( "wget $dms_rpm_url -O /tmp/$dms_rpm",          180 );
     assert_script_run( "wget $act_url -O /tmp/$act_rpm",           180 );
+    record_info('DEBUG', $pc_url);
+    record_info('DEBUG', $pc_act_location);
+    record_info('DEBUG', "wget $pc_url -O /tmp/$pc_rpm");
     assert_script_run( "wget $pc_url -O /tmp/$pc_rpm",             180 );
 
     #Create repo
