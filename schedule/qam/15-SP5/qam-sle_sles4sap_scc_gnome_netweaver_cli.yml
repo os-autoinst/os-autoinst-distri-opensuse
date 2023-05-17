@@ -1,0 +1,9 @@
+name:           qam-sle_sles4sap_scc_gnome_netweaver_cli
+description:    >
+  Deploy a NW instance on top of gnome image using cli.
+schedule:
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - sles4sap/patterns
+  - sles4sap/netweaver_install
+  - sles4sap/netweaver_test_instance

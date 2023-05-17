@@ -1,0 +1,33 @@
+---
+name: qam-regression-installation
+description: installation for qam-regression-firefox
+schedule:
+- installation/bootloader
+- installation/welcome
+- installation/scc_registration
+- installation/add_update_test_repo
+- installation/addon_products_sle
+- installation/system_role
+- installation/partitioning
+- installation/partitioning_finish
+- installation/installer_timezone
+- installation/user_settings
+- installation/user_settings_root
+- installation/resolve_dependency_issues
+- installation/installation_overview
+- installation/disable_grub_timeout
+- installation/start_install
+- installation/await_install
+- installation/logs_from_installation_system
+- installation/reboot_after_installation
+- installation/grub_test
+- installation/first_boot
+- x11/x11_setup
+- qa_automation/patch_and_reboot
+- console/system_prepare
+- console/hostname
+- console/force_scheduled_tasks
+- shutdown/grub_set_bootargs
+- shutdown/cleanup_before_shutdown
+- shutdown/shutdown
+...

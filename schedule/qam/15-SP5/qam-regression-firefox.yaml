@@ -1,0 +1,29 @@
+---
+name: qam-regression-firefox
+schedule:
+- boot/boot_to_desktop
+- console/prepare_test_data
+- x11/window_system
+- x11/disable_screensaver
+- x11/firefox/firefox_smoke
+- x11/firefox/firefox_urlsprotocols
+# https://progress.opensuse.org/issues/113435
+# - x11/firefox/firefox_downloading
+- x11/firefox/firefox_changesaving
+- x11/firefox/firefox_fullscreen
+- x11/firefox/firefox_localfiles
+- x11/firefox/firefox_headers
+- x11/firefox/firefox_pdf
+- x11/firefox/firefox_pagesaving
+- x11/firefox/firefox_private
+- x11/firefox/firefox_extensions
+- x11/firefox/firefox_appearance
+- x11/firefox/firefox_passwd
+- x11/firefox/firefox_html5
+- x11/firefox/firefox_developertool
+- x11/firefox/firefox_ssl
+- x11/firefox/firefox_emaillink
+- x11/firefox/firefox_plugins
+- x11/firefox/firefox_extcontent
+- x11/firefox_audio
+...

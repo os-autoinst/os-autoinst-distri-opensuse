@@ -1,0 +1,19 @@
+---
+name: mau-extratests-phub
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/add_phub_extension
+  # - console/python_scientific Removed because of bsc#1198891
+  - '{{sle15_x86_64}}'
+  # - console/python_flake8 Removed because of bsc#1198893
+  - console/vmstat
+  - console/coredump_collect
+conditional_schedule:
+  sle15_x86_64:
+    ARCH:
+      x86_64:
+        - console/wpa_supplicant
+...

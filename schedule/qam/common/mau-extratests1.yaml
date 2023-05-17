@@ -40,6 +40,11 @@ schedule:
 conditional_schedule:
   version_specific:
     VERSION:
+      15-SP5:
+        - console/golang
+        - console/redis
+        - console/python3_new_version_check
+        - '{{arch_specific}}'
       15-SP4:
         - console/golang
         - console/redis
@@ -73,6 +78,9 @@ conditional_schedule:
         - '{{sle15}}'
   sle15:
     VERSION:
+      15-SP5:
+        - console/firewalld
+        - console/lshw
       15-SP4:
         - console/firewalld
         - console/lshw
