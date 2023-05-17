@@ -94,7 +94,7 @@ sub process_reboot {
     } elsif (is_backend_s390x) {
         prepare_system_shutdown;
         enter_cmd "reboot";
-        opensusebasetest::wait_boot(opensusebasetest->new(), bootloader_time => 200);
+        opensusebasetest::wait_boot(opensusebasetest->new(), bootloader_time => 300);
         record_kernel_audit_messages();
     } else {
         power_action('reboot', observe => !$args{trigger}, keepconsole => 1);
