@@ -4,6 +4,7 @@ terraform:
   variables:
     project: "ei-sle-qa-sap-8469"
     region: "%PUBLIC_CLOUD_REGION%"
+    deployment_name: '%QESAP_DEPLOYMENT_NAME%'
     admin_user: "cloudadmin"
     os_image: "%SLE_IMAGE%"
     private_key: "~/.ssh/id_rsa"
