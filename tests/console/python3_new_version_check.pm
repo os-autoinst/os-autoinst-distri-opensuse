@@ -32,27 +32,30 @@ sub run {
         add_suseconnect_product('sle-module-python3');
     }
 
-    # Test new python3 versions if any
-    my @python_versions = split(/,/, get_var('PYTHON_VERSIONS', '3.10'));
+    # Test all avaiable new python3 versions if any
+    my $ret = zypper_call('se "python3[0-9]*"', exitcode => [0, 104]);
+    die('No new python3 packages available') if ($ret == 104);
+    my @python3_versions = split(/\n/, script_output(qq[zypper se 'python3[0-9]*' | awk -F '|' '/python3[0-9]/ {gsub(" ", ""); print \$2}' | awk -F '-' '{print \$1}' | uniq]));
+    record_info("Available versions", "All available new python3 versions are: @python3_versions");
     my $sub_version;
-    foreach my $python_version (@python_versions) {
-        record_info("python$python_version is tested now");
-        $sub_version = substr($python_version, 2);
-        my @python31x_results = split "\n", script_output("zypper se python3$sub_version | awk -F \'|\' \'/python3$sub_version/ {gsub(\" \", \"\"); print \$2}\'");
-        if ((scalar(@python31x_results) == 0) || ($python31x_results[0] ne "python3$sub_version")) {
-            die("Python $python_version not found in the repositories\n\n");
-        }
-        else {
-            zypper_call("install python3$sub_version");
-            # Running classic testing algorithm 'man_or_boy'. More info at:
-            # https://rosettacode.org/wiki/Man_or_boy_test
-            assert_script_run("[ -f man_or_boy.py ] || curl -O " . data_url("console/man_or_boy.py") . " || true");
-            my $man_or_boy = script_output("python3.$sub_version man_or_boy.py");
-            if ($man_or_boy != -67) {
-                die("Execution of 'man_or_boy.py' not correct\n");
-            }
+    foreach my $python3_version (@python3_versions) {
+        record_info("Testing $python3_version", "$python3_version is tested now");
+        $sub_version = substr($python3_version, 7);
+        zypper_call("install $python3_version");
+        # Running classic testing algorithm 'man_or_boy'. More info at:
+        # https://rosettacode.org/wiki/Man_or_boy_test
+        assert_script_run("[ -f man_or_boy.py ] || curl -O " . data_url("console/man_or_boy.py") . " || true");
+        my $man_or_boy = script_output("python3.$sub_version man_or_boy.py");
+        if ($man_or_boy != -67) {
+            die("Execution of 'man_or_boy.py' with $python3_version is not correct\n");
         }
     }
+}
+
+sub post_fail_hook {
+    select_console 'log-console';
+    assert_script_run 'save_y2logs /tmp/python3_new_version_check_y2logs.tar.bz2';
+    upload_logs '/tmp/python3_new_version_check_y2logs.tar.bz2';
 }
 
 1;
