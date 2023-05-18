@@ -65,6 +65,8 @@ sub run {
     # files. this cause the zypper lifecycle failed when building cache for non-root user.
     assert_script_run('chmod -R u+rwX,og+rX /var/cache/zypp');
     zypper_call('in curl') if (script_run('rpm -qi curl') == 1);
+    # force reinstall release notes, package must not come from expected SLE-Product repo e.g. GMC
+    zypper_call('in -f release-notes*');
 
     select_console 'user-console';
     my $overview = script_output('zypper lifecycle', 600);
