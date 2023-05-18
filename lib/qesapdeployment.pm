@@ -177,7 +177,7 @@ sub qesap_pip_install {
 
     push(@log_files, $pip_install_log);
     record_info("QESAP repo", "Installing pip requirements");
-    assert_script_run(join(' ', $pip_ints_cmd, '-r', $paths{deployment_dir} . '/requirements.txt | tee -a', $pip_install_log), 360);
+    assert_script_run(join(' ', $pip_ints_cmd, '-r', $paths{deployment_dir} . '/requirements.txt | tee -a', $pip_install_log), 720);
     script_run("deactivate");
 }
 
