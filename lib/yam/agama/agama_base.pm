@@ -15,8 +15,8 @@ use Utils::Logging 'save_and_upload_log';
 sub post_fail_hook {
     $testapi::password = 'linux';
     select_console 'root-console';
+    Utils::Logging::save_and_upload_log('journalctl -u agama-auto', '/tmp/agama-auto-log.txt');
     y2_base::save_upload_y2logs;
-    save_and_upload_log('journalctl -u agama-auto', "/tmp/agama-auto-log.txt");
 }
 
 1;
