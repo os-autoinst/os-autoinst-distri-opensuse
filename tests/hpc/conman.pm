@@ -45,7 +45,7 @@ sub run ($self) {
     # do not restart conmand after starting netcat!
 
     # start conman on this socket
-    $rt = enter_cmd("conman socket1 &");
+    $rt = (enter_cmd("conman socket1 &")) ? 1 : 0;
     test_case('Config socket', 'conman socket', $rt);
 
     # test from netcat side

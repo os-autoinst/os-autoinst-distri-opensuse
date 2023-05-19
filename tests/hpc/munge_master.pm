@@ -36,9 +36,9 @@ sub run ($self) {
     barrier_wait("MUNGE_SERVICE_ENABLED");
 
     # Test if munge works fine
-    $rt = assert_script_run('munge -n');
+    $rt = (assert_script_run('munge -n')) ? 1 : 0;
     test_case('Run munge', 'munge test', $rt);
-    $rt = assert_script_run('munge -n | unmunge');
+    $rt = (assert_script_run('munge -n | unmunge')) ? 1 : 0;
     test_case('Check unmunge output', 'munge test', $rt);
     for (my $node = 1; $node < $nodes; $node++) {
         my $node_name = sprintf("munge-slave%02d", $node);
@@ -48,7 +48,7 @@ sub run ($self) {
         };
         test_case("Check ssh $node_name", 'test munge config', $rt);
     }
-    $rt = assert_script_run('remunge');
+    $rt = (assert_script_run('remunge')) ? 1 : 0;
     test_case('Run remunge', 'test remunge', $rt);
     barrier_wait('MUNGE_DONE');
 }

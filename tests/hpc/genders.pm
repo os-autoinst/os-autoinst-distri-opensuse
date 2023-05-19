@@ -43,7 +43,7 @@ sub run ($self) {
     assert_script_run('cat $cfile');
 
     # Compare test files, file must have same content, difference means test failure
-    $rt = assert_script_run('diff $tmpfile $cfile');
+    $rt = (assert_script_run('diff $tmpfile $cfile')) ? 1 : 0;
     test_case('Compare test files', 'genders smoke test', $rt);
 }
 
