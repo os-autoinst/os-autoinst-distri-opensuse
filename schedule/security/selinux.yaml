@@ -2,8 +2,7 @@ name: selinux
 description: >
     This is for SElinux test
 schedule:
-    - '{{bootloader_zkvm}}'
-    - boot/boot_to_desktop
+    - '{{boot}}'
     - security/selinux/selinux_setup
     - security/selinux/sestatus
     - '{{selinux_enforcing}}'
@@ -20,12 +19,22 @@ schedule:
     - security/selinux/set_get_enforce
     - security/selinux/selinuxexeccon
 conditional_schedule:
-    bootloader_zkvm:
-        ARCH:
-            s390x:
-                - installation/bootloader_zkvm
-            ppc64le:
-                - installation/bootloader
+    boot:
+        DISTRI:
+            alp:
+                - microos/disk_boot
+                - update/zypper_clear_repos
+                - console/zypper_ar
+                - console/zypper_ref
+                - transactional/host_config
+                - transactional/enable_selinux
+            sle:
+                - installation/bootloader_start
+                - boot/boot_to_desktop
+            opensuse:
+                - installation/bootloader_start
+                - boot/boot_to_desktop
+
     selinux_enforcing:
         DISTRI:
             opensuse:
