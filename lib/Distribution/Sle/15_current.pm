@@ -62,7 +62,7 @@ sub get_module_registration_installation_report {
     return Installation::ModuleRegistration::ModuleRegistrationInstallationReportController->new();
 }
 
-sub wait_registration_common_regcode_finished {
+sub wait_for_separate_regcode {
     return Installation::ModuleRegistration::SeparateRegCodesController->new();
 }
 
