@@ -42,13 +42,18 @@ sub build_influx_query {
 
 =head2 influxdb_push_data
 
-    influxdb_push_data($url, $db, $org, $token, $data [, quiet => 1])
+    influxdb_push_data($url, $db, $org, $token, $data [, quiet => 1] [, proceed_on_failure => 1])
 
 Builds an influx-db query and write it to the given database specified with
 C<url>, C<org> and C<db> for the Influx DB organization and database name.
 C<token> is used for user authentication.
-C<data> is a hash containing the table name in Influx DB, the tags
-and the values to plot.
+C<quiet> is a boolean flag to hide output results, default true.
+C<proceed_on_failure> is a boolean flag to continue and not die when return_code not ok, default false.
+C<data> is a hash containing the table name in Influx DB, the tags and the values to plot.
+
+Return code: 
+    1, when ok and data uploaded to remote db
+    undef or die, when push failed 
 
 Example of data:
     $data = {
@@ -61,17 +66,24 @@ Example of data:
 sub influxdb_push_data {
     my ($url, $db, $org, $token, $data, %args) = @_;
     $args{quiet} //= 1;
+    $args{proceed_on_failure} //= 0;
     $data = build_influx_query($data);
     my $cmd = sprintf("curl -iLk -X POST '$url/api/v2/write?org=$org&bucket=$db' --header 'Authorization: Token $token' --write-out 'RETURN_CODE:%%{response_code}' --data-binary '%s'", $data);
 
     # Hide the token in the info box
     my $out = $cmd;
     $out =~ s/$token/<redacted>/;
-    record_info('curl', $out);
+    record_info('curl POST', $out);
 
     my $output = script_output($cmd, quiet => $args{quiet});
     my ($return_code) = $output =~ /RETURN_CODE:(\d+)/;
-    die("Fail to push data into Influx DB:\n$output") unless ($return_code >= 200 && $return_code < 300);
+    unless ($return_code >= 200 && $return_code < 300) {
+        my $msg = "Failed pushing data into Influx DB:\n$output\n";
+        record_info("FAIL push db", $msg, result => 'fail') if ($args{proceed_on_failure});
+        die($msg) unless ($args{proceed_on_failure});
+        return;
+    }
+    return 1;
 }
 
 =head2 influxdb_read_data

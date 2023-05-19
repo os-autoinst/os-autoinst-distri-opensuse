@@ -605,7 +605,8 @@ sub store_boottime_db() {
         tags => $tags,
         values => $results->{analyze}
     };
-    influxdb_push_data($url, $db, $org, $token, $data);
+    my $res = influxdb_push_data($url, $db, $org, $token, $data, proceed_on_failure => 1);
+    return unless ($res);
 
     record_info("STORE blame", $results->{type});
     $tags->{boottype} = $results->{type};
@@ -614,7 +615,8 @@ sub store_boottime_db() {
         tags => $tags,
         values => $results->{blame}
     };
-    influxdb_push_data($url, $db, $org, $token, $data);
+    $res = influxdb_push_data($url, $db, $org, $token, $data, proceed_on_failure => 1);
+    return $res;
 }
 
 sub systemd_time_to_second
