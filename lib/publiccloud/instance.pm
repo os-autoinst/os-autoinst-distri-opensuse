@@ -504,6 +504,8 @@ sub softreboot {
 
     $self->ssh_assert_script_run(cmd => 'sudo /sbin/shutdown -r +1');
     sleep 60;    # wait for the +1 in the previous command
+    # add more time to wait for the system to turn off for SLES4SAP test cases
+    # sleep 120 if (get_var('PUBLIC_CLOUD_SLES4SAP'));
     my $start_time = time();
 
     # wait till ssh disappear
@@ -517,6 +519,7 @@ sub softreboot {
     my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time,
         username => $args{username},
         ignore_wrong_pubkey => $args{ignore_wrong_pubkey});
+    #record_info('UPTIME', $self->ssh_assert_script_run(cmd => 'uptime'));
 
     # ensure the tunnel-console is healthy, usefuly to early detect possible issues with the serial terminal
     assert_script_run("true", fail_message => "console is broken");

@@ -66,7 +66,7 @@ sub ssh_interactive_tunnel {
     # because this only happens the first time the console is activated
     if ($args{reconnect}) {
         establish_tunnel_console("root-console");
-        establish_tunnel_console("user-console");
+        establish_tunnel_console("user-console", timeout => 120);
         establish_tunnel_console("root-virtio-terminal");
     }
 
