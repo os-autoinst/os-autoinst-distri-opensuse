@@ -39,7 +39,7 @@ sub run ($self) {
 
     $self->switch_user('nobody');
     my $genders_plugin = get_var('PDSH_GENDER_TEST') ? '-g type=genders-test' : '';
-    $rt = assert_script_run("pdsh -R mrsh $genders_plugin -w $server_hostname ls / &> /tmp/pdsh.log");
+    $rt = (assert_script_run("pdsh -R mrsh $genders_plugin -w $server_hostname ls / &> /tmp/pdsh.log")) ? 1 : 0;
     test_case('Run remotelly mrsh module on the server', 'pdsh remote invocation', $rt);
     assert_script_run("test -s /tmp/pdsh.log");
     upload_logs '/tmp/pdsh.log';

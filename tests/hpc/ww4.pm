@@ -40,20 +40,20 @@ sub run ($self) {
     assert_script_run(qq{sed -ri 's/^network:.*\$/network: 192.168.10.0/g' /etc/warewulf/warewulf.conf});
     assert_script_run(qq{sed -ri 's/^  range start:.*\$/  range start: 192.168.10.111/g' /etc/warewulf/warewulf.conf});
     assert_script_run(qq{sed -ri 's/^  range end:.*\$/  range end: 192.168.10.115/g' /etc/warewulf/warewulf.conf});
-    $rt = systemctl 'enable --now warewulfd';
+    $rt = (systemctl 'enable --now warewulfd') ? 1 : 0;
     test_case('systemd', 'ww4', $rt);
     record_info "warewulf.conf", script_output("cat /etc/warewulf/warewulf.conf");
     record_info "defaults.conf", script_output("cat /etc/warewulf/defaults.conf");
 
-    $rt = assert_script_run "wwctl container import docker://registry.suse.de/suse/containers/sle-micro/5.3/containers/suse/sle-micro-rancher/5.3:latest sle-micro-5.3 --setdefault", timeout => 320;
+    $rt = (assert_script_run "wwctl container import docker://registry.suse.de/suse/containers/sle-micro/5.3/containers/suse/sle-micro-rancher/5.3:latest sle-micro-5.3 --setdefault", timeout => 320) ? 1 : 0;
     test_case('Container pull', 'ww4', $rt);
-    $rt = assert_script_run "wwctl profile set -y -C sle-micro-5.3";
+    $rt = (assert_script_run "wwctl profile set -y -C sle-micro-5.3") ? 1 : 0;
     test_case('Profile', 'ww4', $rt);
     assert_script_run "wwctl profile set -y default --netname default --netmask 255.255.255.0 --gateway 192.168.10.100";
     assert_script_run "wwctl profile list -a";
-    $rt = assert_script_run "wwctl node add compute10 --netdev eth0 -I 192.168.10.111 --discoverable=true";
+    $rt = (assert_script_run "wwctl node add compute10 --netdev eth0 -I 192.168.10.111 --discoverable=true") ? 1 : 0;
     test_case('Nodes', 'first node added successfully', $rt);
-    $rt = assert_script_run "wwctl node add compute11 --netdev eth0 -I 192.168.10.112 --discoverable=true";
+    $rt = (assert_script_run "wwctl node add compute11 --netdev eth0 -I 192.168.10.112 --discoverable=true") ? 1 : 0;
     test_case('Nodes', 'second node added successfully', $rt);
 
     my $compute_nodes = script_output "wwctl node list -a";
@@ -61,7 +61,7 @@ sub run ($self) {
 
     # I think running the configuration after the profile and the nodes are set
     # provides complete results of the scripts.
-    $rt = assert_script_run "echo yes | wwctl -v configure --all";
+    $rt = (assert_script_run "echo yes | wwctl -v configure --all") ? 1 : 0;
     test_case('Service configuration', 'ww4', $rt);
     barrier_wait('WWCTL_READY');
     record_info 'WWCTL_READY', strftime("\%H:\%M:\%S", localtime);
@@ -72,7 +72,7 @@ sub run ($self) {
     my @compute_nodes = _get_compute_node_hostnames();
     foreach my $node (@compute_nodes) {
         script_run("ssh -o StrictHostKeyChecking=accept-new $node ip a | tee /tmp/script_out");
-        $rt = assert_script_run "grep -E 'inet 192\.168\.10\.11[1-5]' /tmp/script_out", fail_message => 'IP address likely is not set or is not in the defined IP range!!';
+        $rt = (assert_script_run "grep -E 'inet 192\.168\.10\.11[1-5]' /tmp/script_out", fail_message => 'IP address likely is not set or is not in the defined IP range!!') ? 1 : 0;
         test_case("Check IP on $node", 'Compute Validate IP', $rt);
         $rt = validate_script_output("ssh -o StrictHostKeyChecking=accept-new $node cat /etc/os-release", sub { m/NAME.+SLE Micro/ });
         test_case("Check OS on $node", 'Compute Validate OS', $rt);
@@ -91,6 +91,7 @@ sub test_flags ($self) {
 }
 
 sub post_run_hook ($self) {
+    record_info "post_run", "hook started";
     pars_results('HPC warewulf4 controller tests', $file, @all_tests_results);
     parse_extra_log('XUnit', $file);
     $self->upload_service_log('warewulfd');
