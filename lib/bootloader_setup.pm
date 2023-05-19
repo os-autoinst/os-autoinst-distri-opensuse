@@ -379,10 +379,8 @@ sub get_bootmenu_console_params {
 sub uefi_bootmenu_params {
     # assume bios+grub+anim already waited in start.sh
     # in grub2 it's tricky to set the screen resolution
-    #send_key_until_needlematch('grub2-enter-edit-mode', 'e', 6, 0.5);
-    (is_jeos)
-      ? send_key_until_needlematch('grub2-enter-edit-mode', 'e', 6, 0.5)
-      : send_key 'e';
+    send_key 'e';
+    assert_screen("grub2-enter-edit-mode", 30) if is_jeos;
     # Kiwi in TW uses grub2-mkconfig instead of the custom kiwi config
     # Locate gfxpayload parameter and update it
     if (is_jeos && (is_tumbleweed || is_sle('>=15-sp1') || is_leap('>=15.1'))) {
