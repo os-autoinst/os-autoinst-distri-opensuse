@@ -11,6 +11,7 @@
 #    - Check the system version is the expected one
 #
 # Maintainer: Jesus Bermudez Velazquez <jesus.bv@suse.com>
+#             Yogalakshmi Arunachalam <yarunachalam@suse.com>
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
@@ -20,6 +21,7 @@ use warnings;
 use utils;
 use publiccloud::utils;
 use File::Basename;
+use Data::Dumper;
 
 our $target_version = get_required_var('TARGET_VERSION');
 our $not_clean_vm   = get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE');
@@ -36,8 +38,8 @@ sub run {
     my $act_rpm          = get_var('PUBLIC_CLOUD_DMS_ACT_RPM');
     my $act_url      = "$pc_act_location" . "$act_rpm";
     my $pc_url       = "$pc_act_location" . "$pc_rpm";
-    record_info('DEBUG', $pc_url);
-    record_info('DEBUG', $pc_act_location);
+    record_info('INFO', $pc_url);
+    record_info('INFO', $act_url);
 
     my $tmp_repo         = "/tmp/sles15-mig-repo";
 
@@ -61,9 +63,6 @@ sub run {
     assert_script_run( "wget $repo_key_url -O /tmp/$repo_key", 180 );
     assert_script_run( "wget $dms_rpm_url -O /tmp/$dms_rpm",          180 );
     assert_script_run( "wget $act_url -O /tmp/$act_rpm",           180 );
-    record_info('DEBUG', $pc_url);
-    record_info('DEBUG', $pc_act_location);
-    record_info('DEBUG', "wget $pc_url -O /tmp/$pc_rpm");
     assert_script_run( "wget $pc_url -O /tmp/$pc_rpm",             180 );
 
     #Create repo
@@ -80,9 +79,9 @@ sub run {
     my $remote_repo_key =
       $instance->scp( "/tmp/$repo_key", 'remote:' . "/tmp/$repo_key",
         200 );
-    $instance->scp( "/tmp/$dms_rpm", 'remote:' . "$tmp_repo/rpm/x86_64/$dms_rpm", 4000 );
-    $instance->scp( "/tmp/$act_rpm", 'remote:' . "$tmp_repo/rpm/noarch/$act_rpm", 300 );
-    $instance->scp( "/tmp/$pc_rpm", 'remote:' . "/tmp/$pc_rpm", 300 );
+    $instance->scp( "/tmp/$dms_rpm", 'remote:' . "$tmp_repo/rpm/x86_64/$dms_rpm", 9999 );
+    $instance->scp( "/tmp/$act_rpm", 'remote:' . "$tmp_repo/rpm/noarch/$act_rpm", 1000 );
+    $instance->scp( "/tmp/$pc_rpm", 'remote:' . "/tmp/$pc_rpm", 1000 );
 
     $instance->run_ssh_command( cmd => "cd $tmp_repo;createrepo -v ." );
     $instance->run_ssh_command( cmd =>
@@ -90,8 +89,8 @@ sub run {
     );
 
     # Upload distro_migration.log
-    $instance->upload_log("/system-root/var/log/distro_migration.log", failok => 1);
-
+    $instance->upload_log( "/system-root/var/log/distro_migration.log",
+        failok => 1 );
     record_info("Import $remote_repo_key");
     $instance->run_ssh_command(
         cmd                => "sudo rpm --import /tmp/$repo_key",
@@ -129,14 +128,14 @@ sub run {
     record_info('system reboots');
     my ( $shutdown_time, $startup_time ) = $instance->softreboot(
         timeout             => get_var( 'PUBLIC_CLOUD_REBOOT_TIMEOUT', 400 ),
-         ignore_wrong_pubkey => 1
-     );
+        ignore_wrong_pubkey => 1
+    );
 
     # Upload distro_migration.log
     $instance->upload_log( "/var/log/distro_migration.log", failok => 1 );
 
     # migration finished and instance rebooted
-    record_info('Migration Status', 'Checking the migration succeed');
+    record_info( 'Migration Status', 'Checking the migration succeed' );
 
     my $product_version =
       $instance->run_ssh_command( cmd => 'sudo cat /etc/os-release' );
@@ -153,5 +152,4 @@ sub run {
           . $migrated_version )
       if ( $migrated_version ne $target_version );
 }
-
 1;
