@@ -43,7 +43,7 @@ sub run {
         my @repos;
         my $incident;
         for my $maintrepo (@all_repos) {
-            $incident = $1 while $maintrepo =~ /\/Maintenance:\/(\d+)/g;
+            $incident = $1 if $maintrepo =~ /\/Maintenance:\/(\d+)/g;
             push(@repos, $maintrepo) unless (is_embargo_update($incident));
         }
 

@@ -61,7 +61,7 @@ sub run {
         my $regex = "'s390x\\/|ppc64le\\/|kernel*debuginfo*.rpm|src\\/'";
         my $incident;
         for my $maintrepo (@repos) {
-            $incident = $1 while $maintrepo =~ /\/Maintenance:\/(\d+)/g;
+            $incident = $1 if $maintrepo =~ /\/Maintenance:\/(\d+)/g;
             die "We did not detect incident number for URL \"$maintrepo\". We detected \"$incident\"" unless $incident =~ /\d+/;
             if (is_embargo_update($incident)) {
                 record_info("EMBARGOED", "The repository \"$maintrepo\" belongs to embargoed incident number \"$incident\"");
