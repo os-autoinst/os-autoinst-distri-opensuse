@@ -23,9 +23,11 @@
 
 <h2 id="influxdb_push_data">influxdb_push_data</h2>
 
-<pre><code>influxdb_push_data($url, $db, $org, $token, $data [, quiet =&gt; 1])</code></pre>
+<pre><code>influxdb_push_data($url, $db, $org, $token, $data [, quiet =&gt; 1] [, proceed_on_failure =&gt; 1])</code></pre>
 
-<p>Builds an influx-db query and write it to the given database specified with <code>url</code>, <code>org</code> and <code>db</code> for the Influx DB organization and database name. <code>token</code> is used for user authentication. <code>data</code> is a hash containing the table name in Influx DB, the tags and the values to plot.</p>
+<p>Builds an influx-db query and write it to the given database specified with <code>url</code>, <code>org</code> and <code>db</code> for the Influx DB organization and database name. <code>token</code> is used for user authentication. <code>quiet</code> is a boolean flag to hide output results, default true. <code>proceed_on_failure</code> is a boolean flag to continue and not die when return_code not ok, default false. <code>data</code> is a hash containing the table name in Influx DB, the tags and the values to plot.</p>
+
+<p>Return code: 1, when ok and data uploaded to remote db undef or die, when push failed</p>
 
 <p>Example of data: $data = { table =&gt; &#39;my_db_table_name&#39;, tags =&gt; { BUILD =&gt; &#39;42&#39;, KERNEL =&gt; &#39;4.12.14-lp151.28.20-default&#39;}, values =&gt; { io_reads&#39; =&gt; 1337, io_writes =&gt; 1338 } }</p>
 
