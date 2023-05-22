@@ -590,6 +590,9 @@ sub store_boottime_db() {
         os_build => get_required_var('BUILD'),
         os_flavor => get_required_var('FLAVOR'),
         os_version => get_required_var('VERSION'),
+        os_distri => get_required_var('DISTRI'),
+        os_arch => get_required_var('ARCH'),
+        os_region => get_required_var('PUBLIC_CLOUD_REGION'),
         os_kernel_release => $results->{kernel_release},
         os_kernel_version => $results->{kernel_version},
     };
