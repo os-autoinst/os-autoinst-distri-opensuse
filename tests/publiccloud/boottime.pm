@@ -371,7 +371,8 @@ sub store_in_db {
         tags => $tags,
         values => $results->{analyze}
     };
-    influxdb_push_data($url, $db, $org, $token, $data);
+    my $res = influxdb_push_data($url, $db, $org, $token, $data);
+    return unless ($res);
 
     for my $type (qw(first soft hard)) {
         $tags->{boottype} = $type;
@@ -380,7 +381,8 @@ sub store_in_db {
             tags => $tags,
             values => $results->{blame}->{$type}
         };
-        influxdb_push_data($url, $db, $org, $token, $data);
+        $res = influxdb_push_data($url, $db, $org, $token, $data);
+        return unless ($res);
     }
 }
 
