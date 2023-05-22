@@ -21,6 +21,7 @@ conditional_schedule:
       '1':
         - sles4sap/publiccloud/qesap_terraform
         - sles4sap/publiccloud/network_peering
+        - sles4sap/publiccloud/add_server_to_hosts
         - sles4sap/publiccloud/cluster_add_repos
         - sles4sap/publiccloud/mr_test_setup_env
         - publiccloud/registration
