@@ -38,6 +38,15 @@
         <release_type>nil</release_type>
         <version>{{VERSION}}</version>
       </addon>
+      % if ($check_var->('VERSION', '15-SP4')) {
+      <addon config:type="map">
+        <arch>{{ARCH}}</arch>
+        <name>PackageHub</name>
+        <reg_code/>
+        <release_type>nil</release_type>
+        <version>{{VERSION}}</version>
+      </addon>
+      % }
       % unless ($check_var->('VERSION', '15')) {
       <addon config:type="map">
         <arch>{{ARCH}}</arch>
