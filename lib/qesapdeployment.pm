@@ -416,7 +416,7 @@ sub qesap_prepare_env {
 
     qesap_prepare_env(cmd=>{string}, provider => 'aws');
 
-=over 6
+=over 8
 
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
@@ -428,7 +428,13 @@ sub qesap_prepare_env {
 
 =item B<FAILOK> - if not set, ansible failure result in die
 
-=item B<HOST_KEYS_CHECK> - if set, add some extra argument to the Ansible call to allow contacting hosts not in the  KnownHost list yet. This enables the use of this api before the call to qesap.py ansible
+=item B<HOST_KEYS_CHECK> - if set, add some extra argument to the Ansible call
+                           to allow contacting hosts not in the  KnownHost list yet.
+                           This enables the use of this api before the call to qesap.py ansible
+
+=item B<TIMEOUT> - default 90 secs
+
+=item B<VERBOSE> - enable verbosity, default is OFF
 
 =back
 =cut
@@ -438,11 +444,13 @@ sub qesap_ansible_cmd {
     croak 'Missing mandatory cmd argument' unless $args{cmd};
     $args{user} ||= 'cloudadmin';
     $args{filter} ||= 'all';
+    $args{timeout} //= bmwqemu::scale_timeout(90);
+    my $verbose = $args{verbose} ? ' -vvvv' : '';
 
     my $inventory = qesap_get_inventory($args{provider});
 
     my $ansible_cmd = join(' ',
-        'ansible',
+        'ansible' . $verbose,
         $args{filter},
         '-i', $inventory,
         '-u', $args{user},
@@ -450,9 +458,12 @@ sub qesap_ansible_cmd {
         '-a', "\"$args{cmd}\"");
     assert_script_run("source " . QESAPDEPLOY_VENV . "/bin/activate");
 
-    $ansible_cmd = $args{host_keys_check} ? join(' ', $ansible_cmd, "-e 'ansible_ssh_common_args=\"-o UpdateHostKeys=yes -o StrictHostKeyChecking=accept-new\"'") : $ansible_cmd;
+    $ansible_cmd = $args{host_keys_check} ?
+      join(' ', $ansible_cmd, "-e 'ansible_ssh_common_args=\"-o UpdateHostKeys=yes -o StrictHostKeyChecking=accept-new\"'") :
+      $ansible_cmd;
 
-    $args{failok} ? script_run($ansible_cmd) : assert_script_run($ansible_cmd);
+    $args{failok} ? script_run($ansible_cmd, timeout => $args{timeout}) :
+      assert_script_run($ansible_cmd, timeout => $args{timeout});
 
     enter_cmd("deactivate");
 }
@@ -875,7 +886,7 @@ sub qesap_az_vnet_peering_delete {
 
     my $target_vnet = qesap_az_get_vnet($args{target_group});
 
-    my $peering_name = qesap_get_peering_name(resource_group => $args{target_group});
+    my $peering_name = qesap_az_get_peering_name(resource_group => $args{target_group});
     if (!$peering_name) {
         record_info('NO PEERING', "No peering between $args{target_group} and resources belonging to the current job to be destroyed!");
         return;
@@ -899,7 +910,7 @@ sub qesap_az_vnet_peering_delete {
     record_soft_failure("Peering destruction FAIL: There may be leftover peering connections, please check - jira#7487");
 }
 
-=head3 qesap_get_peering_name
+=head3 qesap_az_get_peering_name
 
     Search for all network peering related to both:
      - resource group related to the current job
@@ -914,7 +925,7 @@ sub qesap_az_vnet_peering_delete {
 =back
 =cut
 
-sub qesap_get_peering_name {
+sub qesap_az_get_peering_name {
     my (%args) = @_;
 
     croak 'Missing mandatory target_group argument' unless $args{resource_group};
@@ -950,9 +961,11 @@ sub qesap_add_server_to_hosts {
     my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
     qesap_ansible_cmd(cmd => "sed -i '\\\$a $args{ip} $args{name}' /etc/hosts",
         provider => $prov,
-        host_keys_check => 1);
+        host_keys_check => 1,
+        verbose => 1);
     qesap_ansible_cmd(cmd => "cat /etc/hosts",
-        provider => $prov);
+        provider => $prov,
+        verbose => 1);
 }
 
 
