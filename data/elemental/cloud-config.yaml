@@ -1,0 +1,10 @@
+name: "Default user"
+stages:
+   initramfs:
+     - name: "Setup users"
+       ensure_entities:
+       - path: /etc/shadow
+         entity: |
+            kind: "shadow"
+            username: "root"
+            password: "%TEST_PASSWORD%"

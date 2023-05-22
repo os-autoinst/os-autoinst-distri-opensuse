@@ -1,0 +1,8 @@
+name: elemental_iso
+description: >
+  Test installation and boot of Elemental ISO.
+  Maintainer: elemental@suse.de
+schedule:
+  - elemental/installation
+  - console/journal_check
+  - elemental/shutdown
