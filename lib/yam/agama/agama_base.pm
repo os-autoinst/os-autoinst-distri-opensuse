@@ -23,4 +23,8 @@ sub post_fail_hook {
     save_and_upload_log('journalctl -u agama-auto', "/tmp/agama-auto-log.txt");
 }
 
+sub post_run_hook {
+    $testapi::password = 'nots3cr3t';
+}
+
 1;
