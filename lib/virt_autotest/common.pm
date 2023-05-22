@@ -317,6 +317,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     delete($guests{sles15sp2}) if (!is_sle('=15-SP2'));
     delete($guests{sles15sp3}) if (!is_sle('=15-SP3'));
     delete($guests{sles15sp4}) if (!is_sle('=15-SP4'));
+    delete($guests{sles15sp5}) if (!is_sle('=15-SP5'));
 } elsif (get_var("REGRESSION", '') =~ /hyperv/) {
     %guests = (
         sles12sp3 => {
