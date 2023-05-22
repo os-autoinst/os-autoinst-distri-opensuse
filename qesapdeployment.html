@@ -46,7 +46,7 @@
           <li><a href="#qesap_calculate_az_address_range">qesap_calculate_az_address_range</a></li>
           <li><a href="#qesap_az_vnet_peering">qesap_az_vnet_peering</a></li>
           <li><a href="#qesap_az_vnet_peering_delete">qesap_az_vnet_peering_delete</a></li>
-          <li><a href="#qesap_get_peering_name">qesap_get_peering_name</a></li>
+          <li><a href="#qesap_az_get_peering_name">qesap_az_get_peering_name</a></li>
           <li><a href="#qesap_add_server_to_hosts">qesap_add_server_to_hosts</a></li>
         </ul>
       </li>
@@ -197,6 +197,14 @@ qesap_prepare_env(cmd=&gt;{string}, provider =&gt; &#39;aws&#39;);</code></pre>
 
 </dd>
 <dt id="HOST_KEYS_CHECK---if-set-add-some-extra-argument-to-the-Ansible-call-to-allow-contacting-hosts-not-in-the-KnownHost-list-yet.-This-enables-the-use-of-this-api-before-the-call-to-qesap.py-ansible"><b>HOST_KEYS_CHECK</b> - if set, add some extra argument to the Ansible call to allow contacting hosts not in the KnownHost list yet. This enables the use of this api before the call to qesap.py ansible</dt>
+<dd>
+
+</dd>
+<dt id="TIMEOUT---default-90-secs"><b>TIMEOUT</b> - default 90 secs</dt>
+<dd>
+
+</dd>
+<dt id="VERBOSE---enable-verbosity-default-is-OFF"><b>VERBOSE</b> - enable verbosity, default is OFF</dt>
 <dd>
 
 </dd>
@@ -387,7 +395,7 @@ the two provided deployments.</code></pre>
 </dd>
 </dl>
 
-<h3 id="qesap_get_peering_name">qesap_get_peering_name</h3>
+<h3 id="qesap_az_get_peering_name">qesap_az_get_peering_name</h3>
 
 <pre><code>Search for all network peering related to both:
  - resource group related to the current job
@@ -425,7 +433,7 @@ empty string if a peering doesn&#39;t exist</code></pre>
 
 <dl>
 
-<dt id="Around-line-717">Around line 717:</dt>
+<dt id="Around-line-728">Around line 728:</dt>
 <dd>
 
 <p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
