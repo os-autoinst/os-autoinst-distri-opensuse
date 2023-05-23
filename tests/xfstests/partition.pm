@@ -349,6 +349,7 @@ sub run {
         }
         elsif (get_var('PARALLEL_WITH')) {
             setup_static_mm_network('10.0.2.102/24');
+            install_dependencies_nfs;
             assert_script_run('mkdir -p /nfs/test /nfs/scratch');
             $NFS_SERVER_IP = '10.0.2.101';
         }
