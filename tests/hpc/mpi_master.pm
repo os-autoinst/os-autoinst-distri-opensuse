@@ -147,10 +147,12 @@ sub run ($self) {
             if (script_run('grep \'Caught error: Floating point exception (signal 8)\' /tmp/mpi_bin.log') == 0) {
                 record_soft_failure('bsc#1175679 Floating point exception should be fixed on mvapich2/2.3.4');
             }
-        } elsif ($return == 1) {
-            if (script_run('grep \'failure occurred while posting a receive for message data\' /tmp/mpi_bin.log') == 0) {
-                record_soft_failure('bsc#1209130 MPI Benchmarks unable to run on 15SP1 with imb-gnu-mvapich2-hpc');
+        } elsif ($return == 1 || $return == 139 || $return == 255) {
+            if (script_run('grep \'Caught error: Segmentation fault (signal 11)\' /tmp/mpi_bin.log') == 0) {
+                record_soft_failure('bsc#1144000 MVAPICH2: segfault while executing without ib_uverbs loaded');
             }
+        } elsif (script_run('grep \'failure occurred while posting a receive for message data\' /tmp/mpi_bin.log') == 0) {
+            record_soft_failure('bsc#1209130 MPI Benchmarks unable to run on 15SP1 with imb-gnu-mvapich2-hpc');
         } else {
             ##TODO: consider more robust handling of various errors
             die("echo $return - not expected errorcode") unless $return == 0;
