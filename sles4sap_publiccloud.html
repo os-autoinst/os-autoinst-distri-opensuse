@@ -30,6 +30,7 @@
       <li><a href="#wait_for_pacemaker-wait_for_pacemaker-timeout-timeout">wait_for_pacemaker wait_for_pacemaker([timeout =&gt; $timeout]);</a></li>
       <li><a href="#setup_sbd_delay-setup_sbd_delay-set_delay-set_delay">setup_sbd_delay setup_sbd_delay([set_delay =&gt; $set_delay]);</a></li>
       <li><a href="#cloud_file_content_replace-cloud_file_content_replace-filename-search_pattern-replace_with">cloud_file_content_replace cloud_file_content_replace($filename, $search_pattern, $replace_with);</a></li>
+      <li><a href="#create_instance_data">create_instance_data</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap_publiccloud.pm</h1>
@@ -113,6 +114,11 @@ For more information check sbd man page.
 <h2 id="cloud_file_content_replace-cloud_file_content_replace-filename-search_pattern-replace_with">cloud_file_content_replace cloud_file_content_replace($filename, $search_pattern, $replace_with);</h2>
 
 <pre><code>Replaces file content direct on PC SUT. Similar to lib/utils.pm file_content_replace()</code></pre>
+
+<h2 id="create_instance_data">create_instance_data</h2>
+
+<pre><code>Create and populate a list of publiccloud::instance and publiccloud::provider compatible
+class instances.</code></pre>
 
 
 </body>
