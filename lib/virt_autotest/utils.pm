@@ -547,7 +547,8 @@ sub remove_additional_nic {
 
 sub collect_virt_system_logs {
     if (script_run("test -f /var/log/libvirt/*d.log") == 0) {
-        upload_logs("/var/log/libvirt/*d.log");
+        script_run('tar czvf /tmp/libvirt_daemons.tar.gz /var/log/libvirt/*d.log');
+        upload_asset("/tmp/libvirt_daemons.tar.gz");
     }
     else {
         record_info "File /var/log/libvirt/*d.log does not exist.";
@@ -930,6 +931,8 @@ sub restore_original_guests {
             record_info("Fail to restore guest!", "$guest", result => 'softfail');
         }
     }
+    script_run("virsh list --all");
+    save_screenshot;
 }
 
 sub upload_virt_logs {
