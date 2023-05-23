@@ -20,7 +20,7 @@ use warnings;
 
 use utils;
 use power_action_utils qw(power_action);
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_transactional);
 use qam;
 use testapi;
 use Utils::Systemd 'disable_and_stop_service';
@@ -31,7 +31,7 @@ sub run {
     select_serial_terminal;
 
     # shim update will fail with old grub2 due to old signature
-    if (get_var('UEFI')) {
+    if (get_var('MACHINE') =~ /uefi/ && !is_transactional) {
         zypper_call('up grub2 grub2-x86_64-efi kernel-default');
     }
     # yast2-logs for save_y2logs is on 15-SP4 not installed with minimal base system pattern
@@ -83,14 +83,14 @@ sub run {
 
         # old kernel does not have key of new kernel
         my $repos_to_check = join(' ', map { "-r $_" } split(',', $repo));
-        if (get_var('UEFI') && script_run("zypper se $repos_to_check kernel") == 0) {
+        if (get_var('MACHINE') =~ /uefi/ && !is_transactional && script_run("zypper se $repos_to_check kernel") == 0) {
             power_action('reboot', textmode => 1);
             $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 200));
             select_serial_terminal;
         }
 
         # check if latest kernel has valid secure boot signature
-        if (get_var('UEFI') && is_sle('12-sp1+')) {
+        if (get_var('MACHINE') =~ /uefi/ && !is_transactional && is_sle('12-sp1+')) {
             assert_script_run 'kexec -l -s /boot/vmlinuz --initrd=/boot/initrd --reuse-cmdline';
             script_run 'umount -a';
             script_run 'mount -o remount,ro /';

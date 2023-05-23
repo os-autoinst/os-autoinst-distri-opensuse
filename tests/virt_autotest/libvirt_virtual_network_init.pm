@@ -49,7 +49,7 @@ sub run_test {
         virt_autotest::virtual_network_utils::restore_standalone() if (is_sle('=11-sp4'));
 
         #Enable libvirt debug log
-        virt_autotest::virtual_network_utils::enable_libvirt_log();
+        turn_on_libvirt_debugging_log;
 
         #VM HOST SSH SETUP
         virt_autotest::utils::ssh_setup();
@@ -111,7 +111,8 @@ sub post_fail_hook {
     $self->SUPER::post_fail_hook;
 
     #Restart libvirtd service
-    virt_autotest::utils::restart_libvirtd();
+    # Note: TBD for modular libvirt. See poo#129086 for detail.
+    virt_autotest::utils::restart_libvirtd() if is_monolithic_libvirtd;
 
     #Destroy created virtual networks
     virt_autotest::virtual_network_utils::destroy_vir_network();

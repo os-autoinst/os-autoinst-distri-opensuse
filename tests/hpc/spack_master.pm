@@ -64,6 +64,7 @@ sub test_flags ($self) {
 }
 
 sub post_run_hook ($self) {
+    tar_and_upload_log("/etc/spack", "/tmp/spack_etc.tar", {timeout => 1200, screenshot => 1});
     $self->uninstall_spack_modules();
 }
 

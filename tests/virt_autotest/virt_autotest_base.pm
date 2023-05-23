@@ -152,7 +152,6 @@ sub post_run_test {
     }
 
     if ($self->{upload_guest_assets_flag} eq "yes") {
-        record_info('Check UPLOAD_GUEST_ASSETS flag', 'This test should upload guest assets!');
         $self->upload_guest_assets;
     }
 }
@@ -225,6 +224,11 @@ sub add_junit_log {
 sub upload_guest_assets {
     my $self = shift;
 
+    if (get_var('CASEDIR')) {
+        record_info('Skip uploading guest assets', 'Guest assets will only be uploaded with test codes in git master branch.');
+        return;
+    }
+    record_info('Uploading guest assets', 'as UPLOAD_GUEST_ASSETS flag is set');
     record_info('Skip upload guest asset.', 'No successful guest, skip upload assets.') unless @{$self->{success_guest_list}};
 
     foreach my $guest (@{$self->{success_guest_list}}) {

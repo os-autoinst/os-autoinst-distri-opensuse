@@ -27,11 +27,11 @@ use IO::Socket::INET;
 use Carp;
 
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host reset_log_cursor check_failures_in_journal check_host_health check_guest_health
+  is_monolithic_libvirtd turn_on_libvirt_debugging_log
   print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs ensure_default_net_is_active ensure_guest_started
   ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests restore_downloaded_guests save_original_guest_xmls restore_original_guests
   is_guest_online wait_guests_shutdown remove_vm setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host
-  check_port_state subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest upload_virt_logs recreate_guests
-  download_vm_import_disks);
+  check_port_state subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest upload_virt_logs recreate_guests download_vm_import_disks enable_nm_debug check_activate_network_interface set_host_bridge_interface_with_nm upload_nm_debug_log);
 
 my %log_cursors;
 
@@ -55,8 +55,23 @@ sub restart_libvirtd {
     else {
         systemctl("restart libvirtd", timeout => 180);
     }
+    record_info("Libvirtd has been restarted!");
     save_screenshot;
-    record_info("Debug log for libvirtd has been enabled!");
+}
+
+# Usage: restart_modular_libvirt_daemons([daemon1_name daemon2_name ...]). For example:
+# to specify daemons which will be restarted: restart_modular_libvirt_daemons(virtqemud virtstoraged ...)
+# to restart all modular daemons without any daemons passed
+sub restart_modular_libvirt_daemons {
+    my @daemons = @_ == 0 ? qw(virtqemud virtstoraged virtnetworkd virtnodedevd virtsecretd virtproxyd virtnwfilterd) : split(" ", @_);
+    if (is_alp) {
+        record_soft_failure("Restaring modular libvirt daemons has not been implemented in ALP. See poo#129086");
+    }
+    else {
+        systemctl("restart $_\{,-ro,-admin\}.socket") foreach @daemons;
+        systemctl("restart $_.service") foreach @daemons;
+    }
+    record_info("Libvirt daemons restarted", join(' ', @daemons));
 }
 
 #return 1 if it is a VMware test judging by REGRESSION variable
@@ -114,6 +129,43 @@ sub is_guest_ballooned {
 #return 1 if test is expected to run on KVM hypervisor
 sub is_kvm_host {
     return check_var("SYSTEM_ROLE", "kvm") || check_var("HOST_HYPERVISOR", "kvm") || check_var("REGRESSION", "qemu-hypervisor");
+}
+
+#retrun 1 if libvirt 9.0- is running which monolithic libvirtd is the default service
+sub is_monolithic_libvirtd {
+    unless (is_alp) {
+        return 1 if script_run('rpm -q libvirt-libs | grep -e "libs-9\.0" -e "libs-[1-8]\."') == 0;
+    }
+    return 0;
+}
+
+# For legacy libvird, set debug level logging for libvirtd services
+# For modular libvirt, do the same settings to /etc/libvirt/virt{qemu,xen,driver}d.conf.
+# virt{qemu,xen}d daemons provide the most important libvirt log(sufficient for most issues).
+# virt{driver}.d daemons is only required by specific issues, eg virtual network failures may need virtnetworkd log.
+# But our automation is better to set them to collect more logs as we could as possible.
+# Developer asked to use different log file as log_output per daemon.
+sub turn_on_libvirt_debugging_log {
+
+    my @libvirt_daemons = is_monolithic_libvirtd ? "libvirtd" : qw(virtqemud virtstoraged virtnetworkd virtnodedevd virtsecretd virtproxyd virtnwfilterd virtlockd virtlogd);
+
+    #turn on debug and log filter for libvirt services
+    #set log_level = 1 'debug'
+    #the size of libvirtd with debug level and without any filter on sles15sp3 xen is over 100G,
+    #which consumes all the disk space. Now get comfirmation from virt developers,
+    #log filter is set to store component logs with different levels.
+    foreach my $daemon (@libvirt_daemons) {
+        my $conf_file = "/etc/libvirt/$daemon.conf";
+        if (script_run("ls $conf_file") == 0) {
+            script_run "sed -i '/^[# ]*log_level *=/{h;s/^[# ]*log_level *= *[0-9].*\$/log_level = 1/};\${x;/^\$/{s//log_level = 1/;H};x}' $conf_file";
+            script_run "sed -i '/^[# ]*log_outputs *=/{h;s%^[# ]*log_outputs *=.*[0-9].*\$%log_outputs = \"1:file:/var/log/libvirt/$daemon.log\"%};\${x;/^\$/{s%%log_outputs = \"1:file:/var/log/libvirt/$daemon.log\"%;H};x}' $conf_file";
+            script_run "sed -i '/^[# ]*log_filters *=/{h;s%^[# ]*log_filters *=.*[0-9].*\$%log_filters = \"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%};\${x;/^\$/{s%%log_filters = \"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%;H};x}' $conf_file";
+        }
+    }
+    script_run "grep -e 'log_level.*=' -e 'log_outputs.*=' -e 'log_filters.*=' /etc/libvirt/*d.conf";
+    save_screenshot;
+
+    is_monolithic_libvirtd ? restart_libvirtd : restart_modular_libvirt_daemons;
 }
 
 #return 1 if test is expected to run on XEN hypervisor
@@ -439,7 +491,8 @@ sub ensure_online {
             }
             # Check also if name resolution works - restart libvirtd if not
             if (script_run("ssh $guest ping -c 3 -w 120 $dns_host", timeout => 180) != 0) {
-                restart_libvirtd if (is_xen_host || is_kvm_host);
+                # Note: TBD for modular libvirt. See poo#129086 for detail.
+                restart_libvirtd if (is_monolithic_libvirtd and (is_xen_host || is_kvm_host));
                 die "name resolution failed for $guest" if (script_retry("ssh $guest ping -c 3 -w 120 $dns_host", delay => 1, retry => 10, timeout => 180) != 0);
             }
         }
@@ -455,7 +508,8 @@ sub upload_y2logs {
 
 sub ensure_default_net_is_active {
     if (script_run("virsh net-list --all | grep default | grep ' active'", 90) != 0) {
-        restart_libvirtd;
+        # Note: TBD for modular libvirt. See poo#129086 for detail.
+        restart_libvirtd if is_monolithic_libvirtd;
         if (script_run("virsh net-list --all | grep default | grep ' active'", 90) != 0) {
             assert_script_run "virsh net-start default";
         }
@@ -492,10 +546,11 @@ sub remove_additional_nic {
 }
 
 sub collect_virt_system_logs {
-    if (script_run("test -f /var/log/libvirt/libvirtd.log") == 0) {
-        upload_logs("/var/log/libvirt/libvirtd.log");
-    } else {
-        record_info "File /var/log/libvirt/libvirtd.log does not exist.";
+    if (script_run("test -f /var/log/libvirt/*d.log") == 0) {
+        upload_logs("/var/log/libvirt/*d.log");
+    }
+    else {
+        record_info "File /var/log/libvirt/*d.log does not exist.";
     }
 
     if (script_run("test -d /var/log/libvirt/libxl/") == 0) {
@@ -943,5 +998,44 @@ sub download_vm_import_disks {
     record_info("All imported disk download is done.");
 }
 
+sub enable_nm_debug {
+    # Enable Network Manager Debug Log Level
+    assert_script_run("nmcli general logging level DEBUG domains ALL", 60);
+    record_info("Enable Network Manager in Debug Level successfully for automation test.");
+}
+
+sub check_activate_network_interface {
+    # Check with activate network interface as required
+    my ($network_interface, $target_name) = @_;
+    $network_interface //= "br0";
+    $target_name //= get_required_var('OPENQA_URL');
+    assert_script_run("ping -I $network_interface -c 3 $target_name", 60);
+    assert_script_run("nmcli device show $network_interface", 60);
+    save_screenshot;
+    record_info("Activate Network Interface check successfully for automation test.");
+}
+
+sub set_host_bridge_interface_with_nm {
+    # Setup Host Bridge Network Interface with nmcli(NetworkManager) as needed
+    my $_host_bridge_cfg = "/etc/NetworkManager/system-connections/br0.nmconnection";
+
+    # Change the NetworkManager log-level as DEBUG at runtime
+    enable_nm_debug;
+
+    if (script_run("[[ -f $_host_bridge_cfg ]]") != 0) {
+        my $_alp_host_bridge = "/root/alp_host_bridge_init.sh";
+        assert_script_run("curl " . data_url("virt_autotest/alp_host_bridge_init.sh") . " -o $_alp_host_bridge");
+        assert_script_run("chmod +rx $_alp_host_bridge && $_alp_host_bridge");
+        save_screenshot;
+        record_info("Host Bridge Network Interface is set successfully for automation test.", script_output("ip a; ip route show all"));
+    }
+    check_activate_network_interface;
+}
+
+sub upload_nm_debug_log {
+    script_run("journalctl -u NetworkManager.service > /tmp/NetworkManager.logs");
+    upload_virt_logs("/tmp/NetworkManager.logs", "NetworkManager-debug-logs");
+    script_run("rm -rf /tmp/NetworkManager.logs");
+}
 
 1;

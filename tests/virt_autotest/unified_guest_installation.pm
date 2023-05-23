@@ -67,10 +67,15 @@ use strict;
 use warnings;
 use testapi;
 use Carp;
+use Utils::Backends 'use_ssh_serial_console';
 use virt_autotest::utils qw(check_guest_health);
+use ipmi_backend_utils;
 
 sub run {
     my $self = shift;
+
+    select_console 'sol', await_console => 0;
+    use_ssh_serial_console;
 
     $self->reveal_myself;
     my @guest_names = split(/,/, get_required_var('UNIFIED_GUEST_LIST'));

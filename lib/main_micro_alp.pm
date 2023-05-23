@@ -179,6 +179,7 @@ sub load_common_tests {
     # Ansible test needs Packagehub in SLE and it can't be enabled in SLEM
     loadtest 'console/ansible' unless (is_staging || is_sle_micro || is_leap_micro || is_alp);
     loadtest 'console/kubeadm' if (check_var('SYSTEM_ROLE', 'kubeadm'));
+    loadtest 'console/year_2038_detection';
 }
 
 
@@ -269,7 +270,7 @@ sub load_slem_on_pc_tests {
     loadtest("publiccloud/ssh_interactive_start", run_args => $args);
     loadtest("publiccloud/instance_overview", run_args => $args);
     loadtest("publiccloud/slem_prepare", run_args => $args);
-
+    loadtest("transactional/enable_selinux") if (get_var('ENABLE_SELINUX'));
     if (get_var("PUBLIC_CLOUD_CONTAINERS")) {
         load_container_tests() if is_container_test;
     }
@@ -350,7 +351,6 @@ sub load_tests {
         load_common_tests;
         load_transactional_tests unless is_zvm;
     }
-    loadtest 'console/year_2038_detection';
     load_journal_check_tests;
 }
 

@@ -86,6 +86,11 @@ sub run {
     if (get_var('UEFI_HTTP_BOOT') || get_var('UEFI_HTTPS_BOOT')) {
         tianocore_http_boot;
     }
+
+    # Some aach64 JeOS jobs take too long to match the first grub2 needle.
+    # By pressing a random key, we stop the grub timeout
+    send_key 'backspace' if (is_jeos && is_aarch64);
+
     assert_screen([qw(bootloader-shim-import-prompt bootloader-grub2)], $bootloader_timeout);
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";

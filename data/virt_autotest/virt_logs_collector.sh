@@ -2,6 +2,18 @@
 set -o pipefail
 shopt -s nocasematch
 
+# Get Product name
+# Product name are "SLES", "openSUSE Tumbleweed", "openSUSE Leap"
+# TBD: ALP, ...
+function get_product_name() {
+	local version_file=$1
+	if [[ -z ${version_file} ]];then
+	    version_file="/etc/os-release"
+	fi
+	local product_name=`cat /etc/os-release | grep ^NAME= | cut -d '"' -f2`
+	echo $product_name
+}
+
 #Obtain SLES release version and service pack level
 function get_sles_release() {
         local query_type=$1
@@ -339,6 +351,7 @@ function collect_extra_logs_from_host() {
 	local libvirt_qemu_log="/var/lib/libvirt/qemu"
 	local libvirt_log="/var/log/libvirt"
 	local libvirtd_log="${libvirt_log}/libvirtd.log"
+	local libvirt_daemon_logs="${libvirt_log}/*d.log"
 	local xen_log="/var/log/xen"
 	local xen_boot_log="${xen_log}/xen-boot.log"
 
@@ -360,11 +373,13 @@ function collect_extra_logs_from_host() {
               cp --parent -f -r ${xen_boot_log} ${extra_logs_folder}
               ret_result=$(( ${ret_result} | $? ))
            fi           
-        elif [[ ${release} -eq 15 ]];then
+        elif [[ ${release} -eq 15 || `get_product_name` == "openSUSE Tumbleweed" ]];then
            cp --parent -f -r ${libvirt_boot_log} ${extra_logs_folder}
            ret_result=$(( ${ret_result} | $? ))
            cp --parent -f -r ${libvirt_qemu_log} ${extra_logs_folder}
            ret_result=$(( ${ret_result} | $? ))
+	   cp --parent -f -r ${libvirt_daemon_logs} ${extra_logs_folder}
+	   ret_result=$(( ${ret_result} | $? ))
            if [[ `get_sles_hypervisor` == "XEN" ]];then
               cp --parent -f -r ${xen_boot_log} ${extra_logs_folder}
               ret_result=$(( ${ret_result} | $? ))

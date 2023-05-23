@@ -26,8 +26,8 @@ sub run {
     # 'HANASR_PRIMARY_ACTIONS' - define to override test flow
     my @database_actions = split(",", get_var("HANASR_PRIMARY_ACTIONS", 'stop,kill,crash'));
     for my $action (@database_actions) {
-        for my $site ("site_a", "site_b") {
-            my $test_name = join(" ", ucfirst($action), $site, "-", "primary");
+        for my $site ('site_a', 'site_b') {
+            my $test_name = join('_', ucfirst($action), "$site-primary");
             $run_args->{hana_test_definitions}{$test_name}{action} = $action;
             $run_args->{hana_test_definitions}{$test_name}{site_name} = $site;
             loadtest('sles4sap/publiccloud/hana_sr_takeover', name => $test_name, run_args => $run_args, @_);

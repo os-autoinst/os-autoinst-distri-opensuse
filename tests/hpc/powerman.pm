@@ -58,16 +58,16 @@ EOF
     test_case('Test powerman -l', 'powerman can find nodes', $rt);
 
     # check if target can be turned on
-    $rt = assert_script_run("powerman -1 \$(hostname)");
+    $rt = (assert_script_run("powerman -1 \$(hostname)")) ? 1 : 0;
     test_case('powerman on', 'powerman can turn on nodes', $rt);
 
     $rt = validate_script_output("powerman -Q \$(hostname)", sub { /on:\s+$hostname.*/ });
     test_case('powerman list online nodes', 'powerman can find nodes', $rt);
 
     # check if target can be turned off
-    $rt = assert_script_run("powerman -0 \$(hostname)");
+    $rt = (assert_script_run("powerman -0 \$(hostname)")) ? 1 : 0;
     test_case('powerman off', 'powerman can turn off nodes', $rt);
-    $rt = validate_script_output("powerman -Q \$(hostname)", sub { /off:\s+$hostname.*/ });
+    $rt = (validate_script_output("powerman -Q \$(hostname)", sub { /off:\s+$hostname.*/ })) ? 1 : 0;
     test_case('powerman list online nodes', 'powerman can turn off nodes', $rt);
 
     # check if command can be handled by power control device
@@ -75,7 +75,7 @@ EOF
     # Power cycle is not supported by *bashfun*.
     if (exists $$powerman_dev_caps{cycle}) {
         record_info('skip cycle', 'cycle is supported but check is not implemented');
-        $rt = assert_script_run("powerman -c \$(hostname)");
+        $rt = (assert_script_run("powerman -c \$(hostname)")) ? 1 : 0;
         test_case('powerman cycle', 'powerman can show node cycle', $rt);
     } else {
         $rt = validate_script_output("powerman -c \$(hostname)", sub { /.*cannot be handled by power control device.*/ }, proceed_on_failure => 1);

@@ -31,7 +31,7 @@ ansible:
   create:
     - registration.yaml -e reg_code=${REG_CODE} -e email_address=${EMAIL}
     - pre-cluster.yaml
-    - sap-hana-preconfigure.yaml
+    - sap-hana-preconfigure.yaml -e use_reboottimeout=900
     - cluster_sbd_prep.yaml
     - sap-hana-storage.yaml
     - sap-hana-download-media.yaml
@@ -44,3 +44,4 @@ ansible:
   variables:
     REG_CODE: "%SCC_REGCODE_SLES4SAP%"
     EMAIL: testing@suse.com
+

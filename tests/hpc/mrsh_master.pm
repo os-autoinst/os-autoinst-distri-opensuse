@@ -53,10 +53,10 @@ sub run {
         enter_cmd("exit");
         sleep(1);
         assert_script_run('hostname|grep mrsh-master');
-        $rt = assert_script_run("mrsh ${node_name}  rm -f /tmp/hello");
+        $rt = (assert_script_run("mrsh ${node_name}  rm -f /tmp/hello")) ? 1 : 0;
         test_case('Delete file remotely', 'mrsh test remote deletion', $rt);
         assert_script_run("echo \"Hello world!\" >/tmp/hello");
-        $rt = assert_script_run("mrcp /tmp/hello ${node_name}:/tmp/hello");
+        $rt = (assert_script_run("mrcp /tmp/hello ${node_name}:/tmp/hello")) ? 1 : 0;
         test_case('Create file remotely', 'mrsh test remote copy', $rt);
         assert_script_run("mrsh ${node_name}  cat /tmp/hello");
     }

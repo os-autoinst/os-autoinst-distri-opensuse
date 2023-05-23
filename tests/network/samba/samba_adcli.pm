@@ -61,7 +61,7 @@ sub samba_sssd_install {
     validate_script_output("cat /etc/resolv.conf", qr/nameserver $AD_ip/, fail_message => "Domain controller not present in /etc/resolv.conf");
 
     # Ensure DNS name resolution works for the AD host
-    assert_script_run("ping -c 2 $AD_hostname");
+    script_retry("ping -c 2 $AD_hostname", retry => 3, timeout => 60, die => 1, fail_message => "$AD_hostname is unreachable");
     assert_script_run("dig srv _kerberos._tcp.$AD_hostname", fail_message => "failed to resolved the required kerberos host entry for AD controller");
     assert_script_run("dig srv _ldap._tcp.$AD_hostname", fail_message => "failed to resolved the required LDAP SRV entry for AD controller");
 }
@@ -81,7 +81,7 @@ sub join_domain {
     # if something is not working in the future: i.e authentication is not working, switching to using expect
     # would be a better idea
     # TODO: REMOVED: -S '$AD_hostname'
-    assert_script_run("echo \"\$AD_DOMAIN_PASSWORD\" | net ads join --domain '$AD_domain' -U Administrator --no-dns-updates -i", timeout => 60, fail_message => "Error joining domain (poo#96986)");
+    script_retry("echo \"\$AD_DOMAIN_PASSWORD\" | net ads join --domain '$AD_domain' -U Administrator --no-dns-updates -i", retry => 3, timeout => 60, die => 1, fail_message => "Error joining domain (poo#96986)");
 
     # Enable pam authentication
     assert_script_run "pam-config -a --mkhomedir";

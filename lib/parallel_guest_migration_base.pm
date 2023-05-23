@@ -54,7 +54,7 @@ use List::MoreUtils qw(firstidx);
 use List::Util 'first';
 use version_utils qw(is_opensuse is_sle is_alp is_microos get_os_release);
 use virt_utils qw(collect_host_and_guest_logs cleanup_host_and_guest_logs enable_debug_logging);
-use virt_autotest::utils qw(is_kvm_host is_xen_host check_host_health check_guest_health is_fv_guest is_pv_guest add_guest_to_hosts parse_subnet_address_ipv4 check_port_state setup_common_ssh_config);
+use virt_autotest::utils qw(is_kvm_host is_xen_host check_host_health check_guest_health is_fv_guest is_pv_guest add_guest_to_hosts parse_subnet_address_ipv4 check_port_state setup_common_ssh_config is_monolithic_libvirtd);
 use virt_autotest::domain_management_utils qw(construct_uri create_guest remove_guest shutdown_guest show_guest check_guest_state);
 use utils qw(zypper_call systemctl script_retry define_secret_variable);
 use virt_autotest::common;
@@ -443,7 +443,8 @@ sub check_host_virtualization {
         assert_script_run("lsmod | grep xen");
     }
 
-    if (!is_alp) {
+    # Note: TBD for modular libvirt. See poo#129086 for detail.
+    if (!is_alp and is_monolithic_libvirtd) {
         if (script_run("systemctl is-active libvirtd") != 0) {
             systemctl("stop libvirtd", ignore_failure => 1);
             systemctl("start libvirtd");
@@ -1251,8 +1252,11 @@ EOF
                 $_temp = 0;
             }
             if (script_run("virsh $_uri net-start $guest_matrix{$_guest}{netname}") != 0) {
-                systemctl("restart libvirtd");
-                systemctl("status libvirtd");
+                # Note: TBD for modular libvirt. See poo#129086 for detail.
+                if (is_monolithic_libvirtd) {
+                    systemctl("restart libvirtd");
+                    systemctl("status libvirtd");
+                }
                 $_temp |= script_run("virsh $_uri net-start $guest_matrix{$_guest}{netname}");
             }
             else {

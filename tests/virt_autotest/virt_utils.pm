@@ -21,7 +21,6 @@ use XML::Writer;
 use IO::File;
 use List::Util 'first';
 use LWP::Simple 'head';
-use version_utils 'is_sle';
 use virt_autotest::utils;
 use version_utils qw(is_sle is_alp get_os_release);
 
@@ -30,19 +29,7 @@ our @EXPORT
 
 sub enable_debug_logging {
 
-    #turn on debug and log filter for libvirtd
-    #set log_level = 1 'debug'
-    #the size of libvirtd with debug level and without any filter on sles15sp3 xen is over 100G,
-    #which consumes all the disk space. Now get comfirmation from virt developers,
-    #log filter is set to store component logs with different levels.
-    my $libvirtd_conf_file = "/etc/libvirt/libvirtd.conf";
-    if (!script_run "ls $libvirtd_conf_file") {
-        script_run "sed -i '/^[# ]*log_level *=/{h;s/^[# ]*log_level *= *[0-9].*\$/log_level = 1/};\${x;/^\$/{s//log_level = 1/;H};x}' $libvirtd_conf_file";
-        script_run "sed -i '/^[# ]*log_outputs *=/{h;s%^[# ]*log_outputs *=.*[0-9].*\$%log_outputs=\"1:file:/var/log/libvirt/libvirtd.log\"%};\${x;/^\$/{s%%log_outputs=\"1:file:/var/log/libvirt/libvirtd.log\"%;H};x}' $libvirtd_conf_file";
-        script_run "sed -i '/^[# ]*log_filters *=/{h;s%^[# ]*log_filters *=.*[0-9].*\$%log_filters=\"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%};\${x;/^\$/{s%%log_filters=\"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%;H};x}' $libvirtd_conf_file";
-        script_run "grep -e log_level -e log_outputs -e log_filters $libvirtd_conf_file";
-    }
-    save_screenshot;
+    turn_on_libvirt_debugging_log;
 
     # enable journal log with previous reboot
     my $journald_conf_file = "/etc/systemd/journald.conf";
@@ -61,8 +48,6 @@ sub enable_debug_logging {
     }
     save_screenshot;
 
-    #restart libvirtd to make debug level and coredump take effect
-    virt_autotest::utils::restart_libvirtd;
 }
 
 sub get_version_for_daily_build_guest {
@@ -303,10 +288,10 @@ sub generate_guest_asset_name {
 
     #get build number
     my $build_num;
-    #for clone job, get build number from SCC proxy which is set in Media
-    if (get_var('CASEDIR')) {
-        get_var('SCC_URL') =~ /^http.*all-([\d\.]*)\.proxy\.*/;
-        $build_num = $1;
+    # for a clone job, the setting BUILD must be set as it was in its original job, for example, BUILD=98.1
+    # or the job will not know in which build guest assets should be download or uploaded
+    if (get_var('CASEDIR') and get_var('BUILD') !~ /^\d+[\._]?\d*$/) {
+        die "Downloading guest assets is not allowed without a particular build number. Please trigger job with BUILD=<build_number> or with SKIP_GUEST_INSTALL=1 not to download guest assets from openqa server";
     }
     else {
         $build_num = get_required_var('BUILD');

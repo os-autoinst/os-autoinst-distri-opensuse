@@ -1806,7 +1806,8 @@ sub get_guest_ipaddr {
     my @subnets_in_route = @_;
 
     $self->reveal_myself;
-    return $self if ((($self->{guest_ipaddr} ne '') and ($self->{guest_ipaddr} ne 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT')) or ($self->{guest_ipaddr_static} eq 'true'));
+    # Tumbleweed guest's IP will change after reboot, so we need check IP multiple times even if an IP has been detected.
+    return $self if ((!is_tumbleweed and ($self->{guest_ipaddr} ne '') and ($self->{guest_ipaddr} ne 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT')) or ($self->{guest_ipaddr_static} eq 'true'));
     @subnets_in_route = split(/\n+/, script_output("ip route show all | awk \'{print \$1}\' | grep -v default")) if (scalar(@subnets_in_route) eq 0);
     foreach (@subnets_in_route) {
         my $single_subnet = $_;
@@ -1894,7 +1895,7 @@ sub check_guest_installation_result_via_ssh {
     $self->reveal_myself;
     my $_guest_transient_hostname = '';
     record_info("Going to use guest $self->{guest_name} ip address to detect installation result directly.", "No any interested needle or text-login/guest-console-text-login needle is detected.Just a moment");
-    $self->get_guest_ipaddr if (($self->{guest_ipaddr_static} ne 'true') and (!($self->{guest_ipaddr} =~ /^\d+\.\d+\.\d+\.\d+$/im)));
+    $self->get_guest_ipaddr if (is_tumbleweed or (($self->{guest_ipaddr_static} ne 'true') and (!($self->{guest_ipaddr} =~ /^\d+\.\d+\.\d+\.\d+$/im))));
     save_screenshot;
     if ($self->{guest_ipaddr} =~ /^\d+\.\d+\.\d+\.\d+$/im) {
         if ($self->{guest_network_type} eq 'virtual_network') {

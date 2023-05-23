@@ -14,8 +14,9 @@ use File::Basename;
 use testapi;
 use Utils::Architectures;
 use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout);
+use version_utils qw(is_sle is_tumbleweed);
 use ipmi_backend_utils;
-use virt_autotest::utils qw(is_xen_host is_kvm_host check_port_state check_host_health);
+use virt_autotest::utils qw(is_xen_host is_kvm_host check_port_state check_host_health is_monolithic_libvirtd);
 use IPC::Run;
 
 sub set_ssh_console_timeout_before_use {
@@ -44,19 +45,29 @@ sub double_check_xen_role {
         die 'Double-check xen kernel failed';
     }
 
+    # for modular libvirt, virtxend is expected in "loaded: active or inactive" status.
+    # virtxend.socket seems to be always in "loaded: active" status
+    unless (is_monolithic_libvirtd) {
+        die 'virtxend.socket is not running!' unless script_run("systemctl is-active virtxend.socket") eq 0;
+    }
+
     record_info 'INFO', 'Check if start bootloader from a read-only snapshot';
     assert_script_run('touch /root/read-only.fs && rm -rf /root/read-only.fs');
     save_screenshot;
 }
 
 sub check_kvm_modules {
-    if (script_run('lsmod | grep "^kvm\b"') == 0 and script_run('lsmod | grep -e "^kvm_intel\b" -e "^kvm_amd\b"') == 0) {
+    unless (script_run('lsmod | grep "^kvm\b"') == 0 or script_run('lsmod | grep -e "^kvm_intel\b" -e "^kvm_amd\b"') == 0) {
         save_screenshot;
-        record_info("KVM", "kvm and kvm_intel/amd modules are loaded");
-    }
-    else {
         die "KVM modules are not loaded!";
     }
+
+    # for modular libvirt, virtqemud is expected in "loaded: active or inactive" status.
+    # virtqemud.socket seems to be always in "loaded: active" status
+    unless (is_monolithic_libvirtd) {
+        die 'virtqemud.socket is not running!' unless script_run("systemctl is-active virtqemud.socket") eq 0;
+    }
+    record_info("KVM", "kvm modules are loaded!");
 }
 
 #Explanation for parameters introduced to facilitate offline host upgrade:
@@ -110,7 +121,7 @@ sub login_to_console {
         }
     }
 
-    if (!check_screen([qw(grub2 grub1 prague-pxe-menu)], 210)) {
+    unless (check_screen([qw(grub2 grub1 prague-pxe-menu)], 210) or is_tumbleweed) {
         ipmitool("chassis power reset");
         reset_consoles;
         select_console 'sol', await_console => 0;
@@ -203,18 +214,19 @@ sub login_to_console {
 
     # Set ssh console timeout for virt tests on ipmi backend machines
     # it will make ssh serial console alive even with long time command
-    set_ssh_console_timeout_before_use if (is_remote_backend and is_x86_64 and get_var('VIRT_AUTOTEST', ''));
+    # For TW hosts, sshd configurations have been created in its autoyast profiles
+    set_ssh_console_timeout_before_use if (is_sle and is_remote_backend and is_x86_64 and get_var('VIRT_AUTOTEST', ''));
     # use console based on ssh to avoid unstable ipmi
     use_ssh_serial_console;
     # double-check xen role for xen host
     double_check_xen_role if (is_xen_host and !get_var('REBOOT_AFTER_UPGRADE'));
     check_kvm_modules if is_x86_64 and is_kvm_host and !get_var('REBOOT_AFTER_UPGRADE');
+    check_host_health();
 }
 
 sub run {
     my $self = shift;
     $self->login_to_console;
-    check_host_health();
 }
 
 sub post_fail_hook {

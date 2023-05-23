@@ -32,8 +32,6 @@ use publiccloud::instances;
 use qesapdeployment;
 use sles4sap_publiccloud;
 use serial_terminal 'select_serial_terminal';
-use YAML::PP;
-use mmapi qw(get_current_job_id);
 
 our $ha_enabled = set_var_output('HA_CLUSTER', '0') =~ /false|0/i ? 0 : 1;
 
@@ -110,42 +108,6 @@ sub create_hana_vars_section {
     return (\%hana_vars);
 }
 
-=head2 create_instance_data
-
-    Create and populate a list of publiccloud::instance and publiccloud::provider compatible
-    class instances.
-
-=cut
-
-sub create_instance_data {
-    my $provider = shift;
-    my $class = ref($provider);
-    die "Unexpected class type [$class]" unless ($class =~ /^publiccloud::(azure|ec2|gce)/);
-    my @instances = ();
-    my $inventory_file = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
-    my $ypp = YAML::PP->new;
-    my $raw_file = script_output("cat $inventory_file");
-    my $inventory_data = $ypp->load_string($raw_file)->{all}{children};
-
-    for my $type_label (keys %$inventory_data) {
-        my $type_data = $inventory_data->{$type_label}{hosts};
-        for my $vm_label (keys %$type_data) {
-            my $instance = publiccloud::instance->new(
-                public_ip => $type_data->{$vm_label}->{ansible_host},
-                instance_id => $vm_label,
-                username => get_required_var('PUBLIC_CLOUD_USER'),
-                ssh_key => '~/.ssh/id_rsa',
-                provider => $provider,
-                region => $provider->provider_client->region,
-                type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
-                image_id => $provider->get_image_id());
-            push @instances, $instance;
-        }
-    }
-    publiccloud::instances::set_instances(@instances);
-    return \@instances;
-}
-
 sub run {
     my ($self, $run_args) = @_;
 
@@ -155,9 +117,6 @@ sub run {
         set_var("SUBNET_ADDRESS_RANGE", $maintenance_vars{subnet_address_range});
     }
 
-    # Let's define a workspace for terraform. We use PUBLIC_CLOUD_RESOURCE_GROUP
-    # if defined, otherwise we use qesaposd
-    my $workspace = qesap_calculate_deployment_name(get_var('PUBLIC_CLOUD_RESOURCE_GROUP', 'qesaposd'));
 
     # Select console on the host (not the PC instance) to reset 'TUNNELED',
     # otherwise select_serial_terminal() will be failed
@@ -171,12 +130,22 @@ sub run {
     die "HA cluster needs at least 2 nodes. Check 'NODE_COUNT' parameter." if ($ha_enabled && (get_var('NODE_COUNT') <= 1));
 
     set_var('FENCING_MECHANISM', 'native') unless ($ha_enabled);
-    if (is_azure) {
-        # Update PUBLIC_CLOUD_RESOURCE_GROUP in Azure's tests so it includes the random
-        # string appended to the workspace
-        set_var('PUBLIC_CLOUD_RESOURCE_GROUP', $workspace);
-        record_info 'Resource Group', "Resource Group used for deployment: $workspace";
-    }
+
+    my $deployment_name = qesap_calculate_deployment_name(get_var('PUBLIC_CLOUD_RESOURCE_GROUP', 'qesaposd'));
+    # Create a QESAP_DEPLOYMENT_NAME variable so it includes the random
+    # string appended to the PUBLIC_CLOUD_RESOURCE_GROUP
+    #
+    # User can :
+    #  * define none of PUBLIC_CLOUD_RESOURCE_GROUP and QESAP_DEPLOYMENT_NAME
+    #     resulting deployment_name: qesaposd123456
+    #  * only define PUBLIC_CLOUD_RESOURCE_GROUP=goofy
+    #     resulting deployment_name: goofy123456
+    #  * define QESAP_DEPLOYMENT_NAME=goofy
+    #     resulting deployment_name: goofy
+    #     PUBLIC_CLOUD_RESOURCE_GROUP is completly ignored and
+    #     the job_id is not included in the deployment name
+    set_var('QESAP_DEPLOYMENT_NAME', get_var('QESAP_DEPLOYMENT_NAME', $deployment_name));
+    record_info 'Resource Group', "Resource Group used for deployment: $deployment_name";
 
     if (get_var("HANA_TOKEN")) {
         my $escaped_token = get_required_var("HANA_TOKEN");
@@ -201,7 +170,7 @@ sub run {
     qesap_prepare_env(provider => lc(get_required_var('PUBLIC_CLOUD_PROVIDER')), only_configure => 1);
 
     die 'Terraform deployment FAILED. Check "qesap*" logs for details.'
-      if (qesap_execute(cmd => 'terraform', timeout => 3600, verbose => 1, cmd_options => "-w $workspace"));
+      if (qesap_execute(cmd => 'terraform', timeout => 3600, verbose => 1));
     $provider->terraform_applied(1);
     my $instances = create_instance_data($provider);
     foreach my $instance (@$instances) {

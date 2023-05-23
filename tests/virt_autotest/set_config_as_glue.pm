@@ -13,6 +13,8 @@ use virt_autotest::common;
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends 'use_ssh_serial_console';
+use ipmi_backend_utils;
 
 sub fufill_guests_in_setting {
     my $wait_script = "30";
@@ -28,6 +30,8 @@ sub fufill_guests_in_setting {
 }
 
 sub run {
+    select_console 'sol', await_console => 0;
+    use_ssh_serial_console;
     fufill_guests_in_setting;
 }
 

@@ -26,7 +26,8 @@ sub run {
 
 sub post_fail_hook {
     select_console 'log-console';
-    upload_logs "/var/log/zypper.log";
+    assert_script_run 'save_y2logs /tmp/patterns_y2logs.tar.bz2';
+    upload_logs '/tmp/patterns_y2logs.tar.bz2';
 }
 
 1;

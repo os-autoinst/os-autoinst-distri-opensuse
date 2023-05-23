@@ -590,6 +590,9 @@ sub store_boottime_db() {
         os_build => get_required_var('BUILD'),
         os_flavor => get_required_var('FLAVOR'),
         os_version => get_required_var('VERSION'),
+        os_distri => get_required_var('DISTRI'),
+        os_arch => get_required_var('ARCH'),
+        os_region => get_required_var('PUBLIC_CLOUD_REGION'),
         os_kernel_release => $results->{kernel_release},
         os_kernel_version => $results->{kernel_version},
     };
@@ -605,7 +608,8 @@ sub store_boottime_db() {
         tags => $tags,
         values => $results->{analyze}
     };
-    influxdb_push_data($url, $db, $org, $token, $data);
+    my $res = influxdb_push_data($url, $db, $org, $token, $data, proceed_on_failure => 1);
+    return unless ($res);
 
     record_info("STORE blame", $results->{type});
     $tags->{boottype} = $results->{type};
@@ -614,7 +618,8 @@ sub store_boottime_db() {
         tags => $tags,
         values => $results->{blame}
     };
-    influxdb_push_data($url, $db, $org, $token, $data);
+    $res = influxdb_push_data($url, $db, $org, $token, $data, proceed_on_failure => 1);
+    return $res;
 }
 
 sub systemd_time_to_second

@@ -18,6 +18,8 @@ schedule:
 conditional_schedule:
   version_specific:
     VERSION:
+      15-SP5:
+        - texlive/latexdiff
       15-SP4:
         - texlive/latexdiff
       15-SP3:

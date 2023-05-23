@@ -91,8 +91,8 @@ sub setup_console_in_grub {
             }
             $cmd
               = "sed -ri '/multiboot/ "
-              . "{s/(console|loglevel|log_lvl|guest_loglvl)=[^ ]*//g; "
-              . "/multiboot/ s/\$/ $dom0_options console=com2,115200 log_lvl=all guest_loglvl=all sync_console $com_settings/;}; "
+              . "{s/(console|loglevel|loglvl|guest_loglvl)=[^ ]*//g; "
+              . "/multiboot/ s/\$/ $dom0_options console=com2,115200 loglvl=all guest_loglvl=all sync_console $com_settings/;}; "
               . "' $grub_cfg_file";
             assert_script_run($cmd);
             save_screenshot;
@@ -122,7 +122,7 @@ sub setup_console_in_grub {
         $cmd
           = "cp $grub_cfg_file ${grub_cfg_file}.org "
           . "\&\& sed -ri '/($bootmethod\\s*.*$search_pattern)/ "
-          . "{s/(console|loglevel|log_lvl|guest_loglvl)=[^ ]*//g; "
+          . "{s/(console|loglevel|loglvl|guest_loglvl)=[^ ]*//g; "
           . "/$bootmethod\\s*.*$search_pattern/ s/\$/ console=$ipmi_console,115200 console=tty loglevel=5 $intel_option/;}; "
           . "s/timeout=-{0,1}[0-9]{1,}/timeout=30/g;"
           . "' $grub_cfg_file";

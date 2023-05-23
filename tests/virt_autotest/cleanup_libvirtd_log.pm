@@ -13,11 +13,14 @@ use base "virt_autotest_base";
 use testapi;
 
 sub run {
-    # Cleanup libvirtd.log
-    my $libvirtd_log_file = "/var/log/libvirt/libvirtd.log";
-    if (script_run("test -f $libvirtd_log_file") == 0) {
-        script_run("echo '' > $libvirtd_log_file");
-        record_info "Set file $libvirtd_log_file empty before every test.";
+    # Cleanup logs of libvirt daemons
+    my @libvirt_daemons = qw(libvirtd virtqemud virtstoraged virtnetworkd virtnodedevd virtsecretd virtproxyd virtnwfilterd virtlockd virtlogd);
+    foreach (@libvirt_daemons) {
+        my $log_file = "/var/log/libvirt/$_.log";
+        if (script_run("test -f $log_file") == 0) {
+            script_run("echo '' > $log_file");
+            record_info "Set file $log_file empty before every test.";
+        }
     }
 }
 

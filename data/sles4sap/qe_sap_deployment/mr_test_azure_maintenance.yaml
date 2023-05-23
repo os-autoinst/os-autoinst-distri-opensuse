@@ -16,6 +16,7 @@ terraform:
     vnet_address_range: "%VNET_ADDRESS_RANGE%"
     subnet_address_range: "%SUBNET_ADDRESS_RANGE%"
     az_region: '%PUBLIC_CLOUD_REGION%'
+    deployment_name: '%QESAP_DEPLOYMENT_NAME%'
     admin_user: 'cloudadmin'
     public_key: '~/.ssh/id_rsa.pub'
     private_key: '~/.ssh/id_rsa'

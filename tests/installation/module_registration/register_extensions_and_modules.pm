@@ -17,6 +17,19 @@ sub run {
     my @scc_addons = grep($_, split(/,/, get_required_var('SCC_ADDONS')));
     $testapi::distri->get_module_registration()->register_extension_and_modules([@scc_addons]);
     save_screenshot;
+    foreach my $addon (@scc_addons) {
+        if ($addon =~ /we|ha|ltss/) {
+            $testapi::distri->wait_for_separate_regcode({
+                    timeout => 60,
+                    interval => 2,
+                    message => 'Page to insert separate registration code did not appear'});
+            my $regcode = get_required_var('SCC_REGCODE_' . uc $addon);
+            $testapi::distri->get_module_regcode()->add_separate_registration_code($addon, $regcode);
+
+            save_screenshot;
+            $testapi::distri->get_module_regcode()->trust_gnupg_key() if ($addon eq 'we');
+        }
+    }
 }
 
 1;

@@ -10,7 +10,6 @@ schedule:
   - installation/registration/register_via_scc
   - installation/module_registration/view_development_versions
   - installation/module_registration/register_extensions_and_modules
-  - installation/module_registration/add_ha_regcode
   - installation/add_on_product/skip_install_addons
   - installation/system_role/select_role_text_mode
   - installation/partitioning/accept_proposed_layout

@@ -632,9 +632,9 @@ sub handle_scc_popups {
             die 'Registration repeated too much. Check if SCC is down.' if ($counter eq 1);
             if (is_sle('>=15-SP4')
                 && (get_var('VIDEOMODE', '') !~ /text|ssh-x/)
-                && (get_var("DESKTOP") !~ /textmode/)
-                && (get_var('REMOTE_CONTROLLER') !~ /vnc/)
-                && !(get_var('PUBLISH_HDD_1') || check_var('SLE_PRODUCT', 'hpc'))) {
+                && (get_var("DESKTOP", '') !~ /textmode/)
+                && (get_var('REMOTE_CONTROLLER', '') !~ /vnc/)
+                && !(get_var('PUBLISH_HDD_1', '') || check_var('SLE_PRODUCT', 'hpc'))) {
                 apply_workaround_poo124652(\@tags, timeout => 360);
             }
             assert_screen(\@tags, timeout => 360);

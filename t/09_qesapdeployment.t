@@ -190,6 +190,20 @@ subtest '[qesap_ansible_cmd]' => sub {
     ok((any { /.*ansible.*all.*-i.*SIDNEY.*-u.*cloudadmin.*-b.*--become-user=root.*-a.*"FINDING".*/ } @calls), "Expected ansible command format");
 };
 
+subtest '[qesap_ansible_cmd] verbose' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(qesap_get_inventory => sub { return '/SIDNEY'; });
+
+    qesap_ansible_cmd(cmd => 'FINDING', provider => 'OCEAN', verbose => 1);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    like $calls[0], qr/.*source.*activate.*/, "Activate venv";
+    ok((any { /.*ansible.*-vvvv.*/ } @calls), "Expected verbosity in ansible command");
+};
+
 subtest '[qesap_ansible_cmd] failok' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
@@ -848,8 +862,8 @@ subtest '[qesap_az_vnet_peering_delete] missing target_group arguments' => sub {
     dies_ok { qesap_az_vnet_peering_delete() } "Expected die for missing arguments";
 };
 
-subtest '[qesap_get_peering_name] missing resource_group arguments' => sub {
-    dies_ok { qesap_get_peering_name() } "Expected die for missing arguments";
+subtest '[qesap_az_get_peering_name] missing resource_group arguments' => sub {
+    dies_ok { qesap_az_get_peering_name() } "Expected die for missing arguments";
 };
 
 subtest '[qesap_az_vnet_peering_delete]' => sub {
@@ -868,7 +882,7 @@ subtest '[qesap_az_vnet_peering_delete]' => sub {
     qesap_az_vnet_peering_delete(target_group => 'TZATZIKI');
     note("\n  C-->  " . join("\n  C-->  ", @calls));
 
-    # qesap_get_peering_name
+    # qesap_az_get_peering_name
     ok((any { /az network vnet peering list.*grep 42/ } @calls), 'az command properly composed');
 };
 
@@ -895,7 +909,7 @@ subtest '[qesap_az_vnet_peering_delete] delete failure' => sub {
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     note("\n  SF-->  " . join("\n  SF-->  ", @soft_failure));
 
-    # qesap_get_peering_name
+    # qesap_az_get_peering_name
     ok((any { /jira#7487/ } @soft_failure), 'soft failure');
 };
 

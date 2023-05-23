@@ -39,28 +39,16 @@ sub get_untrusted_GPG_popup {
     return $self->{ImportUntrustedGnuPGKey};
 }
 
-sub wait_registration_common_regcode_finished {
+sub wait_for_separate_regcode {
     my ($self, $args) = @_;
     YuiRestClient::Wait::wait_until(object => sub {
             $self->{SeparateRegCodesPage}->is_shown({timeout => 0});
     }, %$args);
 }
 
-sub add_separate_we_registration_code {
-    my ($self, $regcode) = @_;
-    $self->get_module_regcode_page()->set_we_regcode($regcode);
-    $self->get_module_regcode_page()->press_next();
-}
-
-sub add_separate_ha_registration_code {
-    my ($self, $regcode) = @_;
-    $self->get_module_regcode_page()->set_ha_regcode($regcode);
-    $self->get_module_regcode_page()->press_next();
-}
-
-sub add_separate_ltss_registration_code {
-    my ($self, $regcode) = @_;
-    $self->get_module_regcode_page()->set_ltss_regcode($regcode);
+sub add_separate_registration_code {
+    my ($self, $addon, $regcode) = @_;
+    $self->get_module_regcode_page()->set_regcode($addon, $regcode);
     $self->get_module_regcode_page()->press_next();
 }
 

@@ -37,6 +37,8 @@ use publiccloud::utils qw(get_credentials);
 use mmapi 'get_current_job_id';
 use testapi;
 use Exporter 'import';
+use Scalar::Util 'looks_like_number';
+use File::Basename;
 
 my @log_files = ();
 
@@ -74,6 +76,8 @@ our @EXPORT = qw(
   qesap_az_vnet_peering_delete
   qesap_add_server_to_hosts
   qesap_calculate_deployment_name
+  qesap_export_instances
+  qesap_import_instances
 );
 
 =head1 DESCRIPTION
@@ -177,7 +181,7 @@ sub qesap_pip_install {
 
     push(@log_files, $pip_install_log);
     record_info("QESAP repo", "Installing pip requirements");
-    assert_script_run(join(' ', $pip_ints_cmd, '-r', $paths{deployment_dir} . '/requirements.txt | tee -a', $pip_install_log), 360);
+    assert_script_run(join(' ', $pip_ints_cmd, '-r', $paths{deployment_dir} . '/requirements.txt | tee -a', $pip_install_log), 720);
     script_run("deactivate");
 }
 
@@ -416,7 +420,7 @@ sub qesap_prepare_env {
 
     qesap_prepare_env(cmd=>{string}, provider => 'aws');
 
-=over 6
+=over 8
 
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
@@ -428,7 +432,13 @@ sub qesap_prepare_env {
 
 =item B<FAILOK> - if not set, ansible failure result in die
 
-=item B<HOST_KEYS_CHECK> - if set, add some extra argument to the Ansible call to allow contacting hosts not in the  KnownHost list yet. This enables the use of this api before the call to qesap.py ansible
+=item B<HOST_KEYS_CHECK> - if set, add some extra argument to the Ansible call
+                           to allow contacting hosts not in the  KnownHost list yet.
+                           This enables the use of this api before the call to qesap.py ansible
+
+=item B<TIMEOUT> - default 90 secs
+
+=item B<VERBOSE> - enable verbosity, default is OFF
 
 =back
 =cut
@@ -438,11 +448,13 @@ sub qesap_ansible_cmd {
     croak 'Missing mandatory cmd argument' unless $args{cmd};
     $args{user} ||= 'cloudadmin';
     $args{filter} ||= 'all';
+    $args{timeout} //= bmwqemu::scale_timeout(90);
+    my $verbose = $args{verbose} ? ' -vvvv' : '';
 
     my $inventory = qesap_get_inventory($args{provider});
 
     my $ansible_cmd = join(' ',
-        'ansible',
+        'ansible' . $verbose,
         $args{filter},
         '-i', $inventory,
         '-u', $args{user},
@@ -450,9 +462,12 @@ sub qesap_ansible_cmd {
         '-a', "\"$args{cmd}\"");
     assert_script_run("source " . QESAPDEPLOY_VENV . "/bin/activate");
 
-    $ansible_cmd = $args{host_keys_check} ? join(' ', $ansible_cmd, "-e 'ansible_ssh_common_args=\"-o UpdateHostKeys=yes -o StrictHostKeyChecking=accept-new\"'") : $ansible_cmd;
+    $ansible_cmd = $args{host_keys_check} ?
+      join(' ', $ansible_cmd, "-e 'ansible_ssh_common_args=\"-o UpdateHostKeys=yes -o StrictHostKeyChecking=accept-new\"'") :
+      $ansible_cmd;
 
-    $args{failok} ? script_run($ansible_cmd) : assert_script_run($ansible_cmd);
+    $args{failok} ? script_run($ansible_cmd, timeout => $args{timeout}) :
+      assert_script_run($ansible_cmd, timeout => $args{timeout});
 
     enter_cmd("deactivate");
 }
@@ -875,7 +890,7 @@ sub qesap_az_vnet_peering_delete {
 
     my $target_vnet = qesap_az_get_vnet($args{target_group});
 
-    my $peering_name = qesap_get_peering_name(resource_group => $args{target_group});
+    my $peering_name = qesap_az_get_peering_name(resource_group => $args{target_group});
     if (!$peering_name) {
         record_info('NO PEERING', "No peering between $args{target_group} and resources belonging to the current job to be destroyed!");
         return;
@@ -899,7 +914,7 @@ sub qesap_az_vnet_peering_delete {
     record_soft_failure("Peering destruction FAIL: There may be leftover peering connections, please check - jira#7487");
 }
 
-=head3 qesap_get_peering_name
+=head3 qesap_az_get_peering_name
 
     Search for all network peering related to both:
      - resource group related to the current job
@@ -914,7 +929,7 @@ sub qesap_az_vnet_peering_delete {
 =back
 =cut
 
-sub qesap_get_peering_name {
+sub qesap_az_get_peering_name {
     my (%args) = @_;
 
     croak 'Missing mandatory target_group argument' unless $args{resource_group};
@@ -950,10 +965,62 @@ sub qesap_add_server_to_hosts {
     my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
     qesap_ansible_cmd(cmd => "sed -i '\\\$a $args{ip} $args{name}' /etc/hosts",
         provider => $prov,
-        host_keys_check => 1);
+        host_keys_check => 1,
+        verbose => 1);
     qesap_ansible_cmd(cmd => "cat /etc/hosts",
-        provider => $prov);
+        provider => $prov,
+        verbose => 1);
 }
 
+=head3 qesap_import_instances
+
+    Downloads assets required for re-using infrastructure from previously exported test.
+    qesap_import_instances(<$test_id>)
+
+=over 1
+
+=item B<$test_id> - OpenQA test ID from a test previously run with "QESAP_DEPLOYMENT_IMPORT=1" and infrastructure still being up and running
+
+=back
+=cut
+
+sub qesap_import_instances {
+    my ($test_id) = @_;
+    die("OpenQA test ID must be a number. Parameter 'QESAP_DEPLOYMENT_IMPORT' must contain ID of previously exported test")
+      unless looks_like_number($test_id);
+
+    my $inventory_file = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    my %files = ('id_rsa' => '/root/.ssh/',
+        'id_rsa.pub' => '/root/.ssh/',
+        basename($inventory_file) => dirname($inventory_file) . '/');
+    my $test_url = join('', 'http://', get_required_var('OPENQA_URL'), '/tests/', $test_id);
+
+    assert_script_run('mkdir -m700 /root/.ssh');
+    assert_script_run('mkdir -p ' . dirname($inventory_file));
+
+    foreach my $key (keys %files) {
+        assert_script_run(join(' ', 'curl -v -fL', $test_url . '/file/' . $key, '-o', $files{$key} . $key),
+            fail_message => "Failed to download file log data '$key' from test '$test_url'");
+        record_info('IMPORT', "File '$key' imported from test '$test_url'");
+    }
+    assert_script_run('chmod -R 600 /root/.ssh/');
+}
+
+=head3 qesap_export_instances
+
+    Downloads assets required for re-using infrastructure from previously exported test.
+    qesap_export_instances()
+
+=cut
+
+sub qesap_export_instances {
+    my @upload_files = (
+        qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER')),
+        '/root/.ssh/id_rsa',
+        '/root/.ssh/id_rsa.pub');
+
+    upload_logs($_, log_name => basename($_)) for @upload_files;
+    record_info('EXPORT', "SSH keys and instances data uploaded to test results:\n" . join("\n", @upload_files));
+}
 
 1;

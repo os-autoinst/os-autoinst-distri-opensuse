@@ -24,12 +24,12 @@ sub run() {
 
     while (defined(my $maintrepo = shift @repos)) {
         next if $maintrepo =~ /^\s*$/;
-        qesap_ansible_cmd(cmd => "zypper --no-gpg-checks ar -f -n TEST_$count $maintrepo TEST_$count",
-            provider => $prov);
+        $instance->run_ssh_command(cmd => "sudo zypper --no-gpg-checks ar -f -n TEST_$count $maintrepo TEST_$count",
+            username => 'cloudadmin');
         $count++;
     }
 
-    qesap_ansible_cmd(cmd => 'sudo zypper -n ref', provider => $prov);
+    $instance->run_ssh_command(cmd => 'sudo zypper -n ref', username => 'cloudadmin');
 }
 
 sub delete_peering {

@@ -27,7 +27,7 @@ use testapi;
 
 sub run {
     # https://en.opensuse.org/openSUSE:Bugreport_wicked
-    enter_cmd "systemctl status wickedd.service";
+    enter_cmd "systemctl --no-pager status wickedd.service";
     enter_cmd "echo `wicked show all |cut -d ' ' -f 1` END | tee /dev/$serialdev";
     my $iflist = wait_serial("END", 10);
     # For poo#70453, to filter network link from mixed info of the output of wicked cmd
