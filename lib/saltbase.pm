@@ -96,6 +96,10 @@ sub logs_from_salt {
             record_soft_failure('bsc#1209248');
             return;
         }
+        if (script_run('grep "ModuleNotFoundError.*\'salt.ext.six\'" /var/log/salt/minion') == 0) {
+            record_soft_failure('bsc#1211591');
+            return;
+        }
         die "Salt logs are containing errors!";
     }
 }
