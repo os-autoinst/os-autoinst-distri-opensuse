@@ -34,6 +34,8 @@ vars:
   INSTANCE_IP_CIDR: '10.0.2.200/24'
   INSTANCE_SID: 'HA1'
   INSTANCE_TYPE: HDB
+  WMP_MEMORY_LOW: '30G'
+  WMP_STRESS_MEM: '16777216'
 schedule:
   - boot/boot_to_desktop
   - ha/wait_barriers
@@ -61,6 +63,7 @@ schedule:
   - '{{boot_to_desktop_node02}}'
   - ha/check_after_reboot
   - '{{wmp_check_process}}'
+  - '{{wmp_simple}}'
   - ha/check_logs
 conditional_schedule:
   cluster_setup:
@@ -89,3 +92,7 @@ conditional_schedule:
     WMP:
       1:
         - sles4sap/wmp_check_process
+  wmp_simple:
+    WMP:
+      1:
+        - kernel/wmp_simple
