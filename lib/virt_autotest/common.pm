@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Helper package for common virt operations
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: qe-virt <qe-virt@suse.de>
 
 package virt_autotest::common;
 
