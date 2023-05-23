@@ -8,10 +8,10 @@ schedule:
   - x11/disable_screensaver
   - x11/vnc_two_passwords
   - x11/user_defined_snapshot
-  - x11/remote_desktop/screensharing_available
   - x11/libqt5_qtbase
   - x11/rrdtool_x11
   - x11/yast2_lan_restart
+  - x11/remote_desktop/screensharing_available
   - console/yast2_lan_device_settings
   - '{{version_specific}}'
   - console/coredump_collect
