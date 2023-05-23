@@ -77,6 +77,7 @@ our @EXPORT = qw(
   exec_and_insert_password
   shorten_url
   reconnect_mgmt_console
+  print_ip_info
   set_hostname
   show_tasks_in_blocked_state
   show_oom_info
@@ -1052,6 +1053,21 @@ sub set_bridged_networking {
     }
     # Some needles match hostname which we can't set permanently with bridge.
     set_var('BRIDGED_NETWORKING', 1) if $ret;
+}
+
+=head2 print_ip_info
+
+  print_ip_info();
+
+Print the interface addresses, routes and adjacent network nodes (that
+have been seen). Especially useful for multi-machine test debugging.
+
+=cut
+
+sub print_ip_info {
+    script_run('ip addr');
+    script_run('ip route');
+    script_run('ip neigh');
 }
 
 =head2 set_hostname
