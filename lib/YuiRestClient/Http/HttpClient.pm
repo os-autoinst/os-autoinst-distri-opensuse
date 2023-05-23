@@ -6,6 +6,7 @@ use warnings;
 
 use Mojo::UserAgent;
 use YuiRestClient::Logger;
+use testapi 'get_var';
 
 my $ua = Mojo::UserAgent->new;
 
@@ -15,6 +16,8 @@ sub http_get {
     my $url = Mojo::URL->new($args{uri});
     sleep(1) if $args{add_delay};
     my $res = $ua->get($url)->result;
+    my $body = $res->body;
+    YuiRestClient::Logger->get_instance()->debug("!!!body=:$body") if get_var('LIBYUI_WIDGET_DEBUG');
     return $res if $res->is_success;
     # Die if non OK response code
     YuiRestClient::Logger->get_instance()->error('Widget not found by url: ' . $url);
