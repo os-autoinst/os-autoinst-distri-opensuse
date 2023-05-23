@@ -81,6 +81,127 @@ sub do_sanity_checks {
     assert_script_run($ssh_vm . "vmware-toolbox-cmd logging level get vmtoolsd | grep 'vmtoolsd.level = debug'");
 }
 
+sub do_power_mgmt_tests {
+    my ($vm_id, $vm_ip) = @_;
+    my ($powerops, $powerops_ret);
+
+    record_info('Power Manangement Tests');
+
+    record_info('Guest Power Shutdown');
+    $powerops = 'power.shutdown';
+    check_vmtools_service() if (is_svirt);
+    $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
+    check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 0, $VM_POWER_OFF);
+
+    record_info('Guest Power On');
+    $powerops = 'power.on';
+    $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_OFF);
+    check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
+
+    record_info('Guest Power Reboot');
+    $powerops = 'power.reboot';
+    check_vmtools_service() if (is_svirt);
+    $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
+    check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
+
+    record_info('Guest Power Reset');
+    $powerops = 'power.reset';
+    check_vmtools_service() if (is_svirt);
+    $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
+    check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
+
+    record_info('Guest Power Off');
+    $powerops = 'power.off';
+    check_vmtools_service() if (is_svirt);
+    $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
+    check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 0, $VM_POWER_OFF);
+
+    # Boot up the VM if it's powered off
+    $powerops = 'power.on';
+    $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_OFF);
+    check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
+}
+
+sub do_networking_tests {
+    my ($vm_id, $vm_ip) = @_;
+
+    record_info('Networking Tests');
+
+    my $vswitch_name = esxi_vm_network_binding($vm_id);
+    record_info('VSwitch Name', $vswitch_name);
+
+    # Test network via assigned IPv4 address
+    my $openqa_url = get_required_var('OPENQA_URL');
+    my $external_url = 'www.suse.com';
+
+    if (is_sle('15+')) {
+        assert_script_run($ssh_vm . "ping -I $vm_ip -4 -c3 " . $openqa_url);
+        assert_script_run($ssh_vm . "ping -I $vm_ip -4 -c3 " . $external_url);
+    }
+    else {
+        assert_script_run($ssh_vm . "ping -I $vm_ip -c3 " . $openqa_url);
+        assert_script_run($ssh_vm . "ping -I $vm_ip -c3 " . $external_url);
+    }
+}
+
+sub do_clock_sync_tests {
+    my ($vm_name, $vm_id, $vm_ip) = @_;
+    my ($powerops, $powerops_ret, $g_init_time, $diff_secs);
+
+    record_info('Clock Sync Tests');
+
+    select_console('sut') if (is_svirt && current_console() ne 'sut');
+
+    # Set guest time with the last day of host time before enabling timesync service
+    $g_init_time = init_guest_time();
+    record_info('Guest current time before time sync enabled', $g_init_time);
+
+    record_info('Enable clock sync tests');
+    # Enable timesync service in guest VM
+    if (script_output($ssh_vm . 'vmware-toolbox-cmd timesync status', proceed_on_failure => 1, timeout => 90) eq 'Disabled') {
+        assert_script_run($ssh_vm . 'vmware-toolbox-cmd timesync enable', timeout => 90);
+    }
+
+    # Check the time difference between host and guest after timesync service enabled
+    $diff_secs = get_diff_seconds();
+
+    if ($diff_secs < 10) {
+        record_info('Clock synchronization is successful.');
+    } else {
+        die 'Clock synchronization failed.';
+    }
+
+    record_info('Disable clock sync tests');
+    # Disable timesync service in guest VM
+    if (script_output($ssh_vm . 'vmware-toolbox-cmd timesync status', proceed_on_failure => 1, timeout => 90) eq 'Enabled') {
+        assert_script_run($ssh_vm . 'vmware-toolbox-cmd timesync disable', timeout => 90);
+    }
+
+    # Set guest time with the last day of host time before disabling timesync service
+    $g_init_time = init_guest_time();
+    record_info('Set guest time after time sync disabled', $g_init_time);
+
+    # Guest time will not be synced up with host after timesync service disabled
+    $diff_secs = get_diff_seconds();
+
+    if ($diff_secs > 86400 && $diff_secs < 86420) {
+        record_info('Clock synchronization was disabled successfully.');
+    } else {
+        die 'Disabling clock synchronization failed.';
+    }
+}
+
+sub check_vmtools_service {
+    my $times = shift // 9;
+
+    select_console('sut') if (current_console() ne 'sut');
+
+    while (script_run($ssh_vm . 'systemctl is-active vmtoolsd') || script_run($ssh_vm . 'systemctl is-active vgauthd')) {
+        die "vmtools service status is still inactive." if ($times == 0);
+        $times--;
+    }
+}
+
 sub take_vm_power_ops {
     # $powerops:     this value is from the esxi server command 'vim-cmd vmsvc/'
     # $if_vm_state:  $VM_POWER_ON or $VM_POWER_OFF; check if it's the current vm power state
@@ -102,6 +223,8 @@ sub check_vm_power_state {
     # $if_pingable:      1 or 0; check if the vm network is pingable or not
     # $expect_vm_state:  $VM_POWER_ON or $VM_POWER_OFF; expected vm power state after taking power action
     my ($vm_id, $vm_ip, $powerops, $powerops_ret, $if_pingable, $expect_vm_state) = @_;
+
+    login_vm_console() if (is_svirt && (grep /$powerops/, ('power.on', 'power.reboot', 'power.reset')));
 
     if ($powerops_ret) {
         wait_for_vm_network($vm_ip, $if_pingable);
@@ -144,7 +267,9 @@ sub login_vm_console {
     reset_consoles;
     console('svirt')->start_serial_grab;
     select_console('sut');
-    assert_screen('linux-login', 90);
+    assert_screen('grub2', 200);
+    wait_screen_change { send_key 'ret' };
+    assert_screen('linux-login', 120);
     select_console('root-console');
 }
 
@@ -204,116 +329,6 @@ sub get_diff_seconds {
     record_info('Diff secs', $diff_secs);
 
     return $diff_secs;
-}
-
-sub do_power_mgmt_tests {
-    my ($vm_id, $vm_ip) = @_;
-    my ($powerops, $powerops_ret);
-
-    record_info('Power Manangement Tests');
-    select_console('svirt') if (is_svirt);
-
-    record_info('Guest Power Shutdown');
-    $powerops = 'power.shutdown';
-    $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
-    check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 0, $VM_POWER_OFF);
-
-    record_info('Guest Power On');
-    $powerops = 'power.on';
-    $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_OFF);
-    check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
-
-    record_info('Guest Power Reboot');
-    $powerops = 'power.reboot';
-    $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
-    check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
-
-    record_info('Guest Power Reset');
-    $powerops = 'power.reset';
-    $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
-    check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
-
-    record_info('Guest Power Off');
-    $powerops = 'power.off';
-    $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
-    check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 0, $VM_POWER_OFF);
-}
-
-sub do_networking_tests {
-    my ($vm_id, $vm_ip) = @_;
-    my ($powerops, $powerops_ret);
-
-    record_info('Networking Tests');
-    # Boot up the VM if it's powered off
-    $powerops = 'power.on';
-    $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_OFF);
-    check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
-
-    my $vswitch_name = esxi_vm_network_binding($vm_id);
-    record_info('VSwitch Name', $vswitch_name);
-
-    login_vm_console() if (is_svirt);
-
-    # Test network via assigned IPv4 address
-    if (is_sle('15+')) {
-        assert_script_run($ssh_vm . "ping -I $vm_ip -4 -c3 openqa.suse.de");
-        assert_script_run($ssh_vm . "ping -I $vm_ip -4 -c3 www.suse.com");
-    }
-    else {
-        assert_script_run($ssh_vm . "ping -I $vm_ip -c3 openqa.suse.de");
-        assert_script_run($ssh_vm . "ping -I $vm_ip -c3 www.suse.com");
-    }
-}
-
-sub do_clock_sync_tests {
-    my ($vm_name, $vm_id, $vm_ip) = @_;
-    my ($powerops, $powerops_ret, $g_init_time, $diff_secs);
-
-    record_info('Clock Sync Tests');
-    # Boot up the VM if it's powered off
-    $powerops = 'power.on';
-    $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_OFF);
-    check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
-
-    select_console('sut') if (is_svirt && current_console() ne 'sut');
-
-    # Set guest time with the last day of host time before enabling timesync service
-    $g_init_time = init_guest_time();
-    record_info('Guest current time before time sync enabled', $g_init_time);
-
-    record_info('Enable clock sync tests');
-    # Enable timesync service in guest VM
-    if (script_output($ssh_vm . 'vmware-toolbox-cmd timesync status', proceed_on_failure => 1, timeout => 90) eq 'Disabled') {
-        assert_script_run($ssh_vm . 'vmware-toolbox-cmd timesync enable', timeout => 90);
-    }
-
-    # Check the time difference between host and guest after timesync service enabled
-    $diff_secs = get_diff_seconds();
-
-    if ($diff_secs < 10) {
-        record_info('Clock synchronization is successful.');
-    } else {
-        die 'Clock synchronization failed.';
-    }
-
-    record_info('Disable clock sync tests');
-    # Disable timesync service in guest VM
-    if (script_output($ssh_vm . 'vmware-toolbox-cmd timesync status', proceed_on_failure => 1, timeout => 90) eq 'Enabled') {
-        assert_script_run($ssh_vm . 'vmware-toolbox-cmd timesync disable', timeout => 90);
-    }
-
-    # Set guest time with the last day of host time before disabling timesync service
-    $g_init_time = init_guest_time();
-    record_info('Set guest time after time sync disabled', $g_init_time);
-
-    # Guest time will not be synced up with host after timesync service disabled
-    $diff_secs = get_diff_seconds();
-
-    if ($diff_secs > 86400 && $diff_secs < 86420) {
-        record_info('Clock synchronization was disabled successfully.');
-    } else {
-        die 'Disabling clock synchronization failed.';
-    }
 }
 
 sub post_fail_hook {
