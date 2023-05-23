@@ -1,5 +1,7 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
+# Summary: All the logging related subroutines
+# Maintainer: Pavel Dostál <pdostal@suse.cz>, QE Core <qe-core@suse.com>
 
 =head1 Utils::Logging
 

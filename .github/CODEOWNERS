@@ -22,3 +22,16 @@ tests/jeos/ @mloviska @jlausuch
 tests/transactional/ @mloviska @jlausuch
 lib/main_micro_alp.pm @mloviska @jlausuch
 
+# pdostal
+tests/console/sshd.pm @pdostal
+tests/console/ansible.pm @pdostal
+tests/console/nginx.pm @pdostal
+lib/services/nginx.pm @pdostal
+tests/console/irqbalance.pm @pdostal
+tests/console/rpm.pm @pdostal
+tests/network/wireguard.pm @pdostal
+tests/network/openvpn_client.pm @pdostal
+tests/network/openvpn_server.pm @pdostal
+tests/network/setup_multimachine.pm @pdostal
+lib/Utils/Logging.pm @pdostal
+

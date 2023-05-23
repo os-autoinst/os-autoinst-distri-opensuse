@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Virtualization kernel functions
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: qe-virt <qe-virt@suse.de>
 
 package virt_autotest::kernel;
 
