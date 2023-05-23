@@ -27,7 +27,7 @@ sub run {
     my @database_actions = split(",", get_var("HANASR_SECONDARY_ACTIONS", 'stop,kill,crash'));
 
     for my $action (@database_actions) {
-        my $test_name = ucfirst($action) . " replica";
+        my $test_name = ucfirst($action) . "_replica";
         $run_args->{hana_test_definitions}{$test_name} = $action;
         loadtest('sles4sap/publiccloud/hana_sr_test_secondary', name => $test_name, run_args => $run_args, @_);
     }

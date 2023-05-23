@@ -37,6 +37,8 @@ use publiccloud::utils qw(get_credentials);
 use mmapi 'get_current_job_id';
 use testapi;
 use Exporter 'import';
+use Scalar::Util 'looks_like_number';
+use File::Basename;
 
 my @log_files = ();
 
@@ -74,6 +76,8 @@ our @EXPORT = qw(
   qesap_az_vnet_peering_delete
   qesap_add_server_to_hosts
   qesap_calculate_deployment_name
+  qesap_export_instances
+  qesap_import_instances
 );
 
 =head1 DESCRIPTION
@@ -968,5 +972,55 @@ sub qesap_add_server_to_hosts {
         verbose => 1);
 }
 
+=head3 qesap_import_instances
+
+    Downloads assets required for re-using infrastructure from previously exported test.
+    qesap_import_instances(<$test_id>)
+
+=over 1
+
+=item B<$test_id> - OpenQA test ID from a test previously run with "QESAP_DEPLOYMENT_IMPORT=1" and infrastructure still being up and running
+
+=back
+=cut
+
+sub qesap_import_instances {
+    my ($test_id) = @_;
+    die("OpenQA test ID must be a number. Parameter 'QESAP_DEPLOYMENT_IMPORT' must contain ID of previously exported test")
+      unless looks_like_number($test_id);
+
+    my $inventory_file = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    my %files = ('id_rsa' => '/root/.ssh/',
+        'id_rsa.pub' => '/root/.ssh/',
+        basename($inventory_file) => dirname($inventory_file) . '/');
+    my $test_url = join('', 'http://', get_required_var('OPENQA_URL'), '/tests/', $test_id);
+
+    assert_script_run('mkdir -m700 /root/.ssh');
+    assert_script_run('mkdir -p ' . dirname($inventory_file));
+
+    foreach my $key (keys %files) {
+        assert_script_run(join(' ', 'curl -v -fL', $test_url . '/file/' . $key, '-o', $files{$key} . $key),
+            fail_message => "Failed to download file log data '$key' from test '$test_url'");
+        record_info('IMPORT', "File '$key' imported from test '$test_url'");
+    }
+    assert_script_run('chmod -R 600 /root/.ssh/');
+}
+
+=head3 qesap_export_instances
+
+    Downloads assets required for re-using infrastructure from previously exported test.
+    qesap_export_instances()
+
+=cut
+
+sub qesap_export_instances {
+    my @upload_files = (
+        qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER')),
+        '/root/.ssh/id_rsa',
+        '/root/.ssh/id_rsa.pub');
+
+    upload_logs($_, log_name => basename($_)) for @upload_files;
+    record_info('EXPORT', "SSH keys and instances data uploaded to test results:\n" . join("\n", @upload_files));
+}
 
 1;

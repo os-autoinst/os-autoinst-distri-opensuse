@@ -15,7 +15,11 @@ use testapi;
 
 sub run {
     my ($self, $args) = @_;
-    return if get_var("PUBLIC_CLOUD_NO_CLEANUP");
+    if (get_var('QESAP_NO_CLEANUP')) {
+        record_info('SKIP CLEANUP',
+            "Variable 'QESAP_NO_CLEANUP' set to value " . get_var('QESAP_NO_CLEANUP'));
+        return 1;
+    }
     $self->cleanup($args);
 }
 

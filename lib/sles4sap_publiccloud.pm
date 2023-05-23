@@ -23,6 +23,9 @@ use List::MoreUtils qw(uniq);
 use utils 'file_content_replace';
 use Carp qw(croak);
 use hacluster '$crm_mon_cmd';
+use qesapdeployment;
+use YAML::PP;
+use publiccloud::instance;
 
 our @EXPORT = qw(
   run_cmd
@@ -41,6 +44,7 @@ our @EXPORT = qw(
   wait_for_pacemaker
   cloud_file_content_replace
   setup_sbd_delay
+  create_instance_data
 );
 
 =head2 run_cmd
@@ -451,6 +455,42 @@ sub cloud_file_content_replace() {
     die("Missing input variable") if (!$filename || !$search_pattern || !$replace_with);
     $self->run_cmd(cmd => sprintf("sed -E 's/%s/%s/g' -i %s", $search_pattern, $replace_with, $filename), quiet => 1);
     return 1;
+}
+
+=head2 create_instance_data
+
+    Create and populate a list of publiccloud::instance and publiccloud::provider compatible
+    class instances.
+
+=cut
+
+sub create_instance_data {
+    my $provider = shift;
+    my $class = ref($provider);
+    die "Unexpected class type [$class]" unless ($class =~ /^publiccloud::(azure|ec2|gce)/);
+    my @instances = ();
+    my $inventory_file = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    my $ypp = YAML::PP->new;
+    my $raw_file = script_output("cat $inventory_file");
+    my $inventory_data = $ypp->load_string($raw_file)->{all}{children};
+
+    for my $type_label (keys %$inventory_data) {
+        my $type_data = $inventory_data->{$type_label}{hosts};
+        for my $vm_label (keys %$type_data) {
+            my $instance = publiccloud::instance->new(
+                public_ip => $type_data->{$vm_label}->{ansible_host},
+                instance_id => $vm_label,
+                username => get_required_var('PUBLIC_CLOUD_USER'),
+                ssh_key => '~/.ssh/id_rsa',
+                provider => $provider,
+                region => $provider->provider_client->region,
+                type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
+                image_id => $provider->get_image_id());
+            push @instances, $instance;
+        }
+    }
+    publiccloud::instances::set_instances(@instances);
+    return \@instances;
 }
 
 1;
