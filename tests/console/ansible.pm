@@ -18,7 +18,7 @@ use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call random_string systemctl file_content_replace ensure_serialdev_permissions);
-use version_utils qw(is_opensuse is_tumbleweed is_transactional is_microos is_alp);
+use version_utils qw(is_opensuse is_tumbleweed is_transactional is_microos is_alp is_sle);
 use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 use transactional qw(trup_call check_reboot_changes);
 
@@ -97,6 +97,11 @@ sub run {
 
     # Call the zypper module properly (depends on version)
     file_content_replace('roles/test/tasks/main.yaml', COMMUNITYGENERAL => ((is_tumbleweed) ? 'community.general.' : ''));
+
+    if (is_sle('<15-SP5')) {
+        record_soft_failure 'bsc#1210875 Package ansible-test requires Python2.7';
+        script_run 'echo -e "[defaults]\ninterpreter_python = /usr/bin/python3" | tee ansible.cfg';
+    }
 
     # 2. Ansible basics
 
