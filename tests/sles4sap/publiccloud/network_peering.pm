@@ -18,7 +18,6 @@ sub run {
     my $rg = qesap_az_get_resource_group();
     my $ibs_mirror_resource_group = get_required_var('IBSM_RG');
     qesap_az_vnet_peering(source_group => $rg, target_group => $ibs_mirror_resource_group);
-    qesap_add_server_to_hosts(name => 'download.suse.de', ip => get_required_var("IBSM_IP"));
 }
 
 sub test_flags {
