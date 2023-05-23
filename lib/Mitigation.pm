@@ -381,7 +381,12 @@ sub remove_parameter {
 
 sub ssh_vm_cmd {
     my ($cmd, $qa_password, $vm_ip_addr) = @_;
-    my $ret = script_run("sshpass -p ${qa_password} ssh -o StrictHostKeyChecking=no -qy root\@${vm_ip_addr} \"$cmd\"");
+    my $ret = script_run("sshpass -p ${qa_password} ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -qy root\@${vm_ip_addr} \"$cmd\"",timeout => 5);
+    if ($ret ne 0) {
+        my $guest_status = script_output('virsh list --all');
+        print "SSH guest wrong, and please check the status of guest.\n";
+        print "$guest_status";
+    }
     return $ret;
 }
 
@@ -389,16 +394,17 @@ sub ssh_vm_cmd {
 # Execute $cmd in vm and get output
 sub script_output_from_vm {
     my ($cmd, $qa_password, $vm_ip_addr) = @_;
-    my $output = script_output("sshpass -p ${qa_password} ssh -o StrictHostKeyChecking=no -qy root\@${vm_ip_addr} \"$cmd\"", proceed_on_failure => 1);
+    my $output = script_output("sshpass -p ${qa_password} ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -qy root\@${vm_ip_addr} \"$cmd\"", proceed_on_failure => 1);
     for (1 .. 3) {
         if ($output) {
             return $output;
         } else {
             sleep 2;
-            $output = script_output("sshpass -p ${qa_password} ssh -o StrictHostKeyChecking=no -qy root\@${vm_ip_addr} \"$cmd\"", proceed_on_failure => 1);
+            $output = script_output("sshpass -p ${qa_password} ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -qy root\@${vm_ip_addr} \"$cmd\"", proceed_on_failure => 1);
         }
     }
     record_info('ERROR', "Failed to get output from guest.");
+    print "SSH error:fail to get the output from guest.\n";
     return $output;
 }
 
@@ -409,6 +415,7 @@ sub config_and_reboot {
         ssh_vm_cmd("grub2-mkconfig -o /boot/grub2/grub.cfg", $qa_password, $vm_ip_addr);
     }
     record_info('INFO', "Generate domu kernel parameters.");
+    print "Generate domu kernel parameters.\n";
     #ssh_vm_cmd("poweroff", $qa_password, $vm_ip_addr);
     ssh_vm_cmd("sync", $qa_password, $vm_ip_addr);
 
@@ -418,6 +425,7 @@ sub config_and_reboot {
     script_run("virsh start \"${vm_domain_name}\"");
 
     record_info('INFO', "Waiting for the vm to reboot");
+    print "Waiting for the vm to reboot.\n";
     sleep 60;
     if ($DEBUG_MODE) {
         record_info("Debug",
@@ -426,6 +434,8 @@ sub config_and_reboot {
                 $qa_password,
                 $vm_ip_addr),
             result => 'ok');
+    } else {
+        print "VM reboot error,please check.\n";
     }
 
 }
@@ -439,6 +449,7 @@ sub do_check {
             foreach my $expected_string (@{$lines}) {
                 if ($vm_output !~ /$expected_string/i) {
                     record_info("ERROR", "Actual output: " . $vm_output . "\nExpected string: " . $expected_string, result => 'fail');
+                    print "Error Actual output: $vm_output and the Expected : $expected_string\n";
                     return (1, "Expected", $expected_string, $vm_output);
                 }
             }
@@ -461,6 +472,7 @@ sub do_check {
 sub cycle_workflow {
     my ($self, $carg, $ckey, $cvalue, $qa_password, $cvm_domain_name, $vm_ip_addr, $hyper_param) = @_;
     my $parameter = $ckey;
+    print "Test Begin:$parameter";
     ssh_vm_cmd("sed -i -e '/GRUB_CMDLINE_LINUX=/s/\\\"\$/ $parameter\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
     my $cmd_output = script_output_from_vm("grep GRUB_CMDLINE_LINUX= /etc/default/grub", $qa_password, $vm_ip_addr);
     if ($cmd_output !~ /$parameter/i) {
@@ -474,11 +486,14 @@ sub cycle_workflow {
               . "\nDomu kernel parameters:" . $vm_cmdline_output
               . "\nVulnerabilities value: " . $vm_vulnerability_output, result => 'ok');
     }
+    print "Check the parameter $parameter";
     my ($ret, $match_type, $match_value, $actual_output) = do_check($cvalue, $qa_password, $cvm_domain_name, $vm_ip_addr);
     if ($ret ne 0) {
         record_info('ERROR', "$parameter test is failed.", result => 'fail');
+        print "$parameter test failed.\n";
     }
-    record_info('INFO', "$parameter test is finished.");
+    record_info('Finish INFO', "$parameter test finished.");
+    print "$parameter test finished.\n";
     ssh_vm_cmd("sed -i -e '/GRUB_CMDLINE_LINUX=/s/ $parameter//g' /etc/default/grub", $qa_password, $vm_ip_addr);
     config_and_reboot($qa_password, $cvm_domain_name, $vm_ip_addr);
     return ($ret, $match_type, $match_value, $actual_output);
@@ -538,7 +553,8 @@ sub guest_cycle {
                 } else {
                     insert_tc2_xml(file_name => "$junit_file",
                         class_name => "$key",
-                        case_status => "$testcase_status");
+                        case_status => "$testcase_status",
+                        sys_output => "The output value is the same as the expected value");
                 }
                 update_ts_attr(file_name => "$junit_file", attr => 'failures', value => $failure_tc_count_in_ts);
                 update_ts_attr(file_name => "$junit_file", attr => 'tests', value => $total_tc_count_in_ts);
