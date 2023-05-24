@@ -4,6 +4,7 @@ use Test::More;
 use Test::Warnings;
 use Test::Exception;
 use Test::MockModule;
+use Test::Mock::Time;
 use List::Util qw(any);
 use testapi qw(set_var);
 use trento;
@@ -14,7 +15,6 @@ my @logs;
 subtest '[k8s_logs] None of the pods are for any of the required trento-server' => sub {
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     @calls = ();
-    @logs = ();
     # Only one PANINO pod is running in the cluster
     $trento->redefine(script_output => sub { push @calls, $_[0]; return 'PANINO'; });
     # ignore them, needed by the production code but not of interest for this test
@@ -25,7 +25,6 @@ subtest '[k8s_logs] None of the pods are for any of the required trento-server' 
     k8s_logs(qw(web runner));
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    note("\n  L-->  " . join("\n  L-->  ", @logs));
 
     like $calls[0], qr/.*kubectl get pods/, 'Start by getting the list of pods';
     ok scalar @calls == 1, sprintf 'Only 1 in place of %d remote commands expected as none of the running pods match with any of the requested pods', scalar @calls;
@@ -54,6 +53,8 @@ subtest '[k8s_logs] Get logs from running pods as it is also required' => sub {
 subtest '[trento_support]' => sub {
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     @calls = ();
+    @logs = ();
+
     $trento->redefine(enter_cmd => sub { push @calls, $_[0]; return 'PATATINE'; });
     $trento->redefine(script_run => sub { push @calls, $_[0]; return 'PATATINE'; });
     $trento->redefine(script_output => sub { push @calls, $_[0]; return 'PATATINE'; });
@@ -74,6 +75,8 @@ subtest '[trento_support]' => sub {
 subtest '[trento_collect_scenarios]' => sub {
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     @calls = ();
+    @logs = ();
+
     $trento->redefine(enter_cmd => sub { push @calls, $_[0]; return 'PATATINE'; });
     $trento->redefine(script_run => sub { push @calls, $_[0]; return 'PATATINE'; });
     $trento->redefine(script_output => sub { push @calls, $_[0]; return 'PATATINE'; });
@@ -594,6 +597,74 @@ subtest '[az_delete_group]' => sub {
     like $calls[0], qr/az group delete --resource-group MINESTRE/;
 };
 
+subtest '[cypress_test_exec]' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+    my $calls_cy_exec = 0;
+    my $calls_cy_logs = 0;
+    my $calls_parse_extra = 0;
+
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $trento->redefine(cypress_exec => sub { $calls_cy_exec += 1; return 0; });
+    $trento->redefine(cypress_log_upload => sub { $calls_cy_logs += 1; return 0; });
+    $trento->redefine(parse_extra_log => sub {
+            $calls_parse_extra += 1;
+            push @calls, "parse_extra_log( XUnit , $_[1] )";
+            return 0; });
+    $trento->redefine(script_output => sub {
+            push @calls, $_[0];
+            if ($_[0] =~ /iname\s".*js"/) { return "test_caciucco.js"; }
+            if ($_[0] =~ /iname\s".*test_result_.*"/) { return "result_caciucco.xml"; }
+            return '';
+    });
+
+    my $ret = cypress_test_exec('TEST_DIR', 'FARINATA', 1000);
+    note("ret : $ret");
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
+    # ==1 as there's only one test file "test_caciucco.js"
+    ok $calls_cy_exec == 1, "cypress_exec called one time.";
+    ok $calls_cy_logs == 1, "cypress_log_upload called one time.";
+    ok $calls_parse_extra == 1, "parse_extra_log called one time.";
+    ok $ret == 0, "Zero errors accumulated in the return.";
+};
+
+subtest '[cypress_test_exec] keep running' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+    my $calls_cy_exec = 0;
+    my $calls_cy_logs = 0;
+    my $calls_parse_extra = 0;
+
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $trento->redefine(cypress_exec => sub { $calls_cy_exec += 1; return 7; });
+    $trento->redefine(cypress_log_upload => sub { $calls_cy_logs += 1; return 0; });
+    $trento->redefine(parse_extra_log => sub {
+            $calls_parse_extra += 1;
+            push @calls, "parse_extra_log( XUnit , $_[1] )";
+            return 0; });
+    $trento->redefine(script_output => sub {
+            push @calls, $_[0];
+            if ($_[0] =~ /iname\s".*js"/) { return "test_caciucco.js\ntest_seppia.js\ntest_polpo.js"; }
+            # the return here is not an error, just a simplification
+            # the `find` in the production code is configured to only search
+            # for result file that contain the test name.
+            # Simulate here the find output that exactly only produce the only one searched file
+            if ($_[0] =~ /iname\s".*test_result_.*"/) { return "result_the_right_one.xml"; }
+            return '';
+    });
+
+    my $ret = cypress_test_exec('TEST_DIR', 'FARINATA', 1000);
+    note("ret : $ret");
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
+    # ==3 as there are 3 test files
+    ok $calls_cy_exec == 3, "cypress_exec called one time.";
+    ok $calls_cy_logs == 3, "cypress_log_upload called one time.";
+    ok $calls_parse_extra == 3, "parse_extra_log called one time.";
+    ok $ret == 21, "21=7*3 errors accumulated in the return.";
+};
+
 subtest '[cypress_test_exec] Base execution' => sub {
     # This test, at the moment, it is testing multiple trento.pm layers
     #  - cypress_test_exec
@@ -612,7 +683,7 @@ subtest '[cypress_test_exec] Base execution' => sub {
             if ($_[0] =~ /iname\s".*test_result_.*"/) { return "result_caciucco.xml"; }
             return '';
     });
-    cypress_test_exec('TEST_DIR', 'FARINATA', 1000);
+    my $ret = cypress_test_exec('TEST_DIR', 'FARINATA', 1000);
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     note("\n  L-->  " . join("\n  L-->  ", @logs));
     like $logs[0], qr/XUnit/;
@@ -679,7 +750,6 @@ subtest '[cypress_test_exec] old CY' => sub {
     ok((any { /podman run.*cypress\/integration\/FARINATA\// } @calls), 'Podman get test file in old folder');
 };
 
-
 subtest '[cypress_test_exec] new CY' => sub {
     # This test, at the moment, it is testing multiple trento.pm layers
     #  - cypress_test_exec
@@ -704,5 +774,62 @@ subtest '[cypress_test_exec] new CY' => sub {
     ok((any { /podman run.*docker\.io\/cypress\/included:10\.2\.3/ } @calls), 'Podman run use the selected CY version tag');
     ok((any { /podman run.*cypress\/e2e\/FARINATA\// } @calls), 'Podman get test file in new folder');
 };
+
+subtest '[cluster_wait_status_by_regex] not enough arguments' => sub {
+    dies_ok { cluster_wait_status_by_regex() } "Expected croak for missing arguments host.";
+    dies_ok { cluster_wait_status_by_regex('hana') } "Expected croak for missing arguments regexp.";
+    foreach (qw(Foo Bar)) {    # it is just to puts values in $_
+                               # Intentionally try to call the function using m//
+                               # to probe what happen if the user misunderstood the API
+        dies_ok { cluster_wait_status_by_regex('hana', m/.*/) } "Expected croak for wrong arguments regexp.";
+    }
+};
+
+subtest '[cluster_wait_status_by_regex]' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+    $trento->redefine(qesap_ansible_script_output => sub { push @calls, $_[0]; return 'PANINO'; });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    set_var('PUBLIC_CLOUD_PROVIDER', 'POLPETTE');
+    cluster_wait_status_by_regex('hana', qr/.*/);
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok(scalar @calls == 1, 'cluster_wait_status_by_regex exit after the first qesap_ansible_script_output call as the output match the regexp');
+};
+
+
+subtest '[cluster_wait_status_by_regex] died as no match in time' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+    $trento->redefine(qesap_ansible_script_output => sub { push @calls, $_[0]; return 'CARNE'; });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    set_var('PUBLIC_CLOUD_PROVIDER', 'POLPETTE');
+    dies_ok { cluster_wait_status_by_regex('hana', qr/^PESCE/) } "Never mix CARNE and PESCE";
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+};
+
+
+subtest '[cluster_wait_status]' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+    $trento->redefine(qesap_ansible_script_output => sub {
+            push @calls, $_[0];
+            return "vmhana01: AAA\n\nvmhana02: BBB";
+    });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    set_var('PUBLIC_CLOUD_PROVIDER', 'POLPETTE');
+    cluster_wait_status('hana', sub { ((shift =~ m/AAA/) && (shift =~ m/BBB/)); });
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok(scalar @calls == 1, 'cluster_wait_status exit after the first qesap_ansible_script_output call as the output match the regexp');
+};
+
 
 done_testing;
