@@ -43,6 +43,7 @@
           <li><a href="#cluster_print_cluster_status">cluster_print_cluster_status</a></li>
           <li><a href="#cluster_hdbadm">cluster_hdbadm</a></li>
           <li><a href="#cluster_wait_status">cluster_wait_status</a></li>
+          <li><a href="#cluster_wait_status_by_regex">cluster_wait_status_by_regex</a></li>
           <li><a href="#cluster_trento_net_peering">cluster_trento_net_peering</a></li>
           <li><a href="#podman_self_check">podman_self_check</a></li>
           <li><a href="#cypress_configs">cypress_configs</a></li>
@@ -269,6 +270,26 @@
 
 <p>Remotly run &#39;SAPHanaSR-showAttr&#39; in a loop on $host, wait output that match in f_status callback test</p>
 
+<h3 id="cluster_wait_status_by_regex">cluster_wait_status_by_regex</h3>
+
+<p>Remotely run &#39;SAPHanaSR-showAttr&#39; in a loop on $host, wait output that matches regular expression =over 3</p>
+
+<dl>
+
+<dt id="HOST---Ansible-name-or-filter-for-the-remote-host-where-to-run-SAPHanaSR-showAttr"><b>HOST</b> - Ansible name or filter for the remote host where to run &#39;SAPHanaSR-showAttr&#39;</dt>
+<dd>
+
+</dd>
+<dt id="TIMEOUT---Max-time-to-retry.-Die-if-timeout"><b>TIMEOUT</b> - Max time to retry. Die if timeout</dt>
+<dd>
+
+</dd>
+<dt id="REGULAR_EXPRESSION---Regular-expression-to-match-the-text-to-find"><b>REGULAR_EXPRESSION</b> - Regular expression to match the text to find</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h3 id="cluster_trento_net_peering">cluster_trento_net_peering</h3>
 
 <p>Run 00.050 net peering script</p>
@@ -359,13 +380,19 @@
 
 <dl>
 
-<dt id="Around-line-103">Around line 103:</dt>
+<dt id="Around-line-105">Around line 105:</dt>
 <dd>
 
 <p>Unknown directive: =hean3</p>
 
 </dd>
-<dt id="Around-line-237">Around line 237:</dt>
+<dt id="Around-line-239">Around line 239:</dt>
+<dd>
+
+<p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
+
+</dd>
+<dt id="Around-line-836">Around line 836:</dt>
 <dd>
 
 <p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
