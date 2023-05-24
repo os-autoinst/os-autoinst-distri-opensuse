@@ -1016,22 +1016,22 @@ It is the I<test> folder within the path used by L<setup_jumphost>
 =item B<CMD> - String of cmd to be used as main argument for the cypress
 executable call. 
 
-=item B<TIMEOUT> - Integer used as timeout for the cypress command execution
-
 =item B<LOG_PREFIX> - String of the command to be executed remotely
 
-=item B<FAILOK> - Integer boolean value. 0:test marked as failure if the podman/cypress
-return not 0 exit code. 1:all not 0 podman/cypress exit code are ignored. SoftFail reported.
+=item B<TIMEOUT> - Integer used as timeout for the cypress command execution
 
 =back
 =cut
 
 sub cypress_exec {
-    my ($cypress_test_dir, $cmd, $timeout, $log_prefix, $failok) = @_;
-    $timeout //= bmwqemu::scale_timeout(600);
+    my (%args) = @_;
+    croak 'Missing mandatory cypress_test_dir argument' unless $args{cypress_test_dir};
+    croak 'Missing mandatory cmd argument' unless $args{cmd};
+    croak 'Missing mandatory log_prefix argument' unless $args{log_prefix};
+    $args{timeout} //= bmwqemu::scale_timeout(600);
     my $ret = 0;
 
-    record_info('CY EXEC', 'Cypress exec:' . $cmd);
+    record_info('CY EXEC', "Cypress exec: $args{cmd}");
     my $image_name = CYPRESS_IMAGE . ":" . get_var('TRENTO_CYPRESS_VERSION', CYPRESS_DEFAULT_VERSION);
 
     # Container is executed with --name to simplify the log retrieve.
@@ -1042,20 +1042,17 @@ sub cypress_exec {
     my $cypress_entry_point = join(' ',
         "'[",
         '"/bin/sh",', '"-c",',
-        '"/usr/local/bin/cypress', $cmd, '2>/results/cypress_' . $log_prefix . '_log.txt"',
+        '"/usr/local/bin/cypress', $args{cmd}, '2>/results/cypress_' . $args{log_prefix} . '_log.txt"',
         "]'");
     my $cypress_run_cmd = join(' ', 'podman', 'run',
         '-it', '--name', CYPRESS_IMAGE_TAG,
         '-v', CYPRESS_LOG_DIR . ':/results',
-        '-v', "$cypress_test_dir:/e2e", '-w', '/e2e',
+        '-v', "$args{cypress_test_dir}:/e2e", '-w', '/e2e',
         '-e', '"DEBUG=cypress:*"',
         "--entrypoint=$cypress_entry_point",
         $image_name);
-    $ret = script_run($cypress_run_cmd, $timeout);
-    if ($ret != 0) {
-        # Look for SIGTERM
-        script_run('podman logs -t ' . CYPRESS_IMAGE_TAG);
-    }
+    $ret = script_run($cypress_run_cmd, $args{timeout});
+    script_run('podman logs -t ' . CYPRESS_IMAGE_TAG) unless $ret;
     return $ret;
 }
 
@@ -1106,9 +1103,12 @@ sub cypress_test_exec {
             '--reporter-options', '\"mochaFile=/results/' . $test_result . ',toConsole=true\"');
         record_info('CY INFO', "test_filename:$test_base_filename.js test_result:$test_result test_cmd:$test_cmd");
 
-        # Execute the test: force $failok=1 to keep going with the execution.
+        # Execute the test keeps going with the execution even if one test file produce an error.
         # Any cypress test failure will be reported during the XUnit parsing
-        $ret += cypress_exec($cypress_test_dir, $test_cmd, $timeout, $log_tag, 1);
+        $ret += cypress_exec(cypress_test_dir => $cypress_test_dir,
+            cmd => $test_cmd,
+            log_prefix => $log_tag,
+            timeout => $timeout);
 
         # Parse the results
         $find_cmd = join(' ',
