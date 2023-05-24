@@ -37,15 +37,15 @@ sub run {
     }
     zypper_call("in sssd sssd-ldap openldap2-client $docker");
 
-    #For released sle versions use sle15sp3 base image by default. For developing sle use corresponding image in registry.suse.de
+    #For released sle versions use sle15sp4 base image by default. For developing sle use corresponding image in registry.suse.de
     my $pkgs = "awk systemd systemd-sysvinit 389-ds openssl";
     my $tag = "";
     if (is_opensuse) {
         $tag = (is_tumbleweed) ? "registry.opensuse.org/opensuse/tumbleweed" : "registry.opensuse.org/opensuse/leap";
     }
     else {
-        $tag = 'registry.suse.com/suse/sle15:15.3';
-        if (check_var('BETA', '1')) {
+        $tag = 'registry.suse.com/suse/sle15:15.4';
+        if (check_var('BETA', '1') || (get_var('SCC_URL') =~ /proxy\.scc/)) {
             my ($v, $sp) = split("-SP", get_var("VERSION"));
             $tag = $sp > 0 ? "registry.suse.de/suse/sle-$v-sp$sp/ga/images/suse/sle$v:$v.$sp" : "registry.suse.de/suse/sle-$v/ga/images/suse/sle$v:$v.0";
             ensure_ca_certificates_suse_installed;
