@@ -21,4 +21,5 @@ schedule:
     - console/journalctlLevels
     - console/perf
     - '{{tw_tests}}'
+    - console/dpdk
     - console/zypper_log_packages
