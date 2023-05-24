@@ -703,7 +703,13 @@ sub install_domu {
               . " --serial pty", timeout => 5400);
     }
     # Check if the DomU is up
-    script_run("virsh start \"${domu_name}\"");
+    my $vmstatus = script_output("virsh start \"${domu_name}\"");
+    if ($vmstatus =~ /started/) {
+        print "DomU started successfully.";
+    } else {
+        print "DomU started fail,Please check the status on openqa snapshot and logs.";
+        print $vmstatus;
+    }
 }
 
 
@@ -711,61 +717,80 @@ sub get_domu_ip {
     return script_output("./get_guest_ip.sh \"${domu_name}\"", timeout => 1800);
 }
 
+sub verifyIpaddress {
+    if ($_[0] =~ /\d+\.\d+\.\d+\.\d+/) {
+        print "Successfully and the ip is $_[0]\n";
+        return 1;
+    } else {
+        print $_[0] . "\n";
+        return 0;
+    }
+}
+
 sub exec_testcases {
     my $self = @_;
-
+    print "Begin installing domu\n";
     install_domu();
     $domu_ip_addr = get_domu_ip();
-
+    my $retip = verifyIpaddress($domu_ip_addr);
     # Restore domU kernel parameters
-    Mitigation::ssh_vm_cmd("cat /proc/cmdline | grep   \"mitigations=auto\"", $qa_password, $domu_ip_addr);
-    Mitigation::ssh_vm_cmd("sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/s/mitigations=[a-z,]*/\\ /' /etc/default/grub", $qa_password, $domu_ip_addr);
-    Mitigation::config_and_reboot($qa_password, $domu_name, $domu_ip_addr);
+    if ($retip) {
+        print "Restore domU kernel parameters.\n";
+        Mitigation::ssh_vm_cmd("cat /proc/cmdline | grep   \"mitigations=auto\"", $qa_password, $domu_ip_addr);
+        Mitigation::ssh_vm_cmd("sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/s/mitigations=[a-z,]*/\\ /' /etc/default/grub", $qa_password, $domu_ip_addr);
+        Mitigation::config_and_reboot($qa_password, $domu_name, $domu_ip_addr);
 
-    # Loop to execute test accounding to hash list
-    my $domu_test_cases_hash = {};
-    while (my ($hy_param, $hy_value_hash) = each %$hyper_test_cases_hash) {
-        while (my ($hy_value, $hy_result_hash) = each %$hy_value_hash) {
-            my $hy_prameter = $hy_param . '=' . $hy_value;
-            if ($hy_value eq "yes" or $hy_value eq "no-xen") {
-                $domu_test_cases_hash = $domu_test_cases_hash_spec_ctrl_default;
-            } elsif ($hy_value eq "no") {
-                $domu_test_cases_hash = $domu_test_cases_hash_spec_ctrl_no;
-            }
-            if ($hy_test_param and $hy_test_param ne $hy_prameter) {
-                next;
-            }
+        # Loop to execute test accounding to hash list
+        my $domu_test_cases_hash = {};
+        print "Begin execute the test cases according to the list.\n";
+        while (my ($hy_param, $hy_value_hash) = each %$hyper_test_cases_hash) {
+            while (my ($hy_value, $hy_result_hash) = each %$hy_value_hash) {
+                my $hy_prameter = $hy_param . '=' . $hy_value;
+                if ($hy_value eq "yes" or $hy_value eq "no-xen") {
+                    $domu_test_cases_hash = $domu_test_cases_hash_spec_ctrl_default;
+                }
+                elsif ($hy_value eq "no") {
+                    $domu_test_cases_hash = $domu_test_cases_hash_spec_ctrl_no;
+                }
+                if ($hy_test_param and $hy_test_param ne $hy_prameter) {
+                    next;
+                }
 
-            if ($DEBUG_MODE) {
-                #$test_mode = 'single';
-                #$test_mode = 'all';
-                #$test_suite = "mitigations";
-                record_info("Debug",
-                    "Hypervisor param: " . $hy_prameter . "\n"
-                      . "Single TestSuite: " . $test_suite . "\n"
-                      . "Single TestMode: " . $test_mode . "\n"
-                      . "DomU Password: " . $qa_password . "\n"
-                      . "DomU ip :" . $domu_ip_addr,
-                    result => 'ok');
-            } else {
-                # Change hypervisor layer grub parameter
-                bootloader_setup::add_grub_xen_cmdline_settings($hy_prameter, 1);
-                Mitigation::reboot_and_wait($self, 150);
-            }
+                if ($DEBUG_MODE) {
+                    #$test_mode = 'single';
+                    #$test_mode = 'all';
+                    #$test_suite = "mitigations";
+                    record_info("Debug",
+                        "Hypervisor param: " . $hy_prameter . "\n"
+                          . "Single TestSuite: " . $test_suite . "\n"
+                          . "Single TestMode: " . $test_mode . "\n"
+                          . "DomU Password: " . $qa_password . "\n"
+                          . "DomU ip :" . $domu_ip_addr,
+                        result => 'ok');
+                }
+                else {
+                    # Change hypervisor layer grub parameter
+                    bootloader_setup::add_grub_xen_cmdline_settings($hy_prameter, 1);
+                    Mitigation::reboot_and_wait($self, 150);
+                }
 
-            # Start vm and wait for up
-            script_run("virsh start \"${domu_name}\"");
-            record_info("Info", "Waiting for the vm up to go ahead ", result => 'ok');
-            sleep 60;
+                # Start vm and wait for up
+                script_run("virsh start \"${domu_name}\"");
+                record_info("Info", "Waiting for the vm up to go ahead ", result => 'ok');
+                sleep 60;
 
-            Mitigation::guest_cycle($self, $domu_test_cases_hash, $test_suite, $test_mode, $qa_password, $domu_name, $domu_ip_addr, $hy_prameter);
+                Mitigation::guest_cycle($self, $domu_test_cases_hash, $test_suite, $test_mode, $qa_password, $domu_name, $domu_ip_addr, $hy_prameter);
 
-            # Restore hypervisor default parameters
-            if (!$DEBUG_MODE) {
-                bootloader_setup::remove_grub_xen_cmdline_settings($hy_prameter);
-                bootloader_setup::grub_mkconfig();
+                # Restore hypervisor default parameters
+                if (!$DEBUG_MODE) {
+                    bootloader_setup::remove_grub_xen_cmdline_settings($hy_prameter);
+                    bootloader_setup::grub_mkconfig();
+                }
             }
         }
+    } else {
+        print $retip. "\n";
+        record_info('Error', $retip);
     }
 
 }
