@@ -59,18 +59,44 @@ sub restart_libvirtd {
     save_screenshot;
 }
 
+#return 1 if test is expected to run on XEN hypervisor
+sub is_xen_host {
+    return get_var("XEN") || check_var("SYSTEM_ROLE", "xen") || check_var("HOST_HYPERVISOR", "xen") || check_var("REGRESSION", "xen-hypervisor");
+}
+
 # Usage: restart_modular_libvirt_daemons([daemon1_name daemon2_name ...]). For example:
 # to specify daemons which will be restarted: restart_modular_libvirt_daemons(virtqemud virtstoraged ...)
 # to restart all modular daemons without any daemons passed
 sub restart_modular_libvirt_daemons {
-    my @daemons = @_ == 0 ? qw(virtqemud virtstoraged virtnetworkd virtnodedevd virtsecretd virtproxyd virtnwfilterd) : split(" ", @_);
+    my @daemons;
+
+    if (@_ == 0) {
+        if (is_xen_host) {
+            @daemons = qw(virtxend virtstoraged virtnetworkd virtnodedevd virtsecretd virtproxyd virtnwfilterd);
+        } else {
+            @daemons = qw(virtqemud virtstoraged virtnetworkd virtnodedevd virtsecretd virtproxyd virtnwfilterd);
+        }
+    } else {
+        @daemons = @_;
+    }
+
     if (is_alp) {
-        record_soft_failure("Restaring modular libvirt daemons has not been implemented in ALP. See poo#129086");
+        record_soft_failure("Restarting modular libvirt daemons has not been implemented in ALP. See poo#129086");
+    } else {
+        # Restart the sockets first
+        foreach my $daemon (@daemons) {
+            systemctl("restart $daemon\{,-ro,-admin\}.socket");
+        }
+
+        # Introduce idle time here (e.g., sleep 5) if necessary
+        sleep 5;
+
+        # Restart the services after a brief idle time
+        foreach my $daemon (@daemons) {
+            systemctl("restart $daemon.service");
+        }
     }
-    else {
-        systemctl("restart $_\{,-ro,-admin\}.socket") foreach @daemons;
-        systemctl("restart $_.service") foreach @daemons;
-    }
+
     record_info("Libvirt daemons restarted", join(' ', @daemons));
 }
 
@@ -166,11 +192,6 @@ sub turn_on_libvirt_debugging_log {
     save_screenshot;
 
     is_monolithic_libvirtd ? restart_libvirtd : restart_modular_libvirt_daemons;
-}
-
-#return 1 if test is expected to run on XEN hypervisor
-sub is_xen_host {
-    return get_var("XEN") || check_var("SYSTEM_ROLE", "xen") || check_var("HOST_HYPERVISOR", "xen") || check_var("REGRESSION", "xen-hypervisor");
 }
 
 # Reset journalctl cursor used by check_failures_in_journal() to skip already
