@@ -32,6 +32,7 @@ has public_ip => undef;    # public IP of instance
 has username => undef;    # username for ssh connection
 has image_id => undef;    # image from where the VM is booted
 has type => undef;
+has region => undef;    # provider region, filled by provider::terraform_apply
 has provider => undef, weak => 1;    # back reference to the provider
 has ssh_opts => '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR';
 
@@ -584,15 +585,15 @@ sub store_boottime_db() {
     my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf_2');
 
     my $tags = {
-        instance_type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
+        instance_type => get_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
         job_id => get_current_job_id(),
-        os_provider => get_required_var('PUBLIC_CLOUD_PROVIDER'),
-        os_build => get_required_var('BUILD'),
-        os_flavor => get_required_var('FLAVOR'),
-        os_version => get_required_var('VERSION'),
-        os_distri => get_required_var('DISTRI'),
-        os_arch => get_required_var('ARCH'),
-        os_region => get_required_var('PUBLIC_CLOUD_REGION'),
+        os_provider => get_var('PUBLIC_CLOUD_PROVIDER'),
+        os_build => get_var('BUILD'),
+        os_flavor => get_var('FLAVOR'),
+        os_version => get_var('VERSION'),
+        os_distri => get_var('DISTRI'),
+        os_arch => get_var('ARCH'),
+        os_region => $self->{region},
         os_kernel_release => $results->{kernel_release},
         os_kernel_version => $results->{kernel_version},
     };
