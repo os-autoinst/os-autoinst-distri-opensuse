@@ -33,10 +33,10 @@ use mmapi 'get_current_job_id';
 use File::Basename qw(basename);
 use Mojo::JSON qw(decode_json);
 use YAML::PP;
+use Carp;
 use utils qw(script_retry);
 use testapi;
 use qesapdeployment;
-use Carp;
 
 use Exporter 'import';
 
@@ -797,17 +797,44 @@ sub cluster_hdbadm {
 
 =head3 cluster_wait_status
 
-Remotly run 'SAPHanaSR-showAttr' in a loop on $host, wait output that match in f_status callback test
+This function allow to wait for a specific output
+for 'SAPHanaSR-showAttr', on one specific remote host.
+Remotly runs 'SAPHanaSR-showAttr' on $host.
+Runs 'SAPHanaSR-showAttr' multiple times in a loop,
+retying until the output PASS the test 'f_status'.
+The 'f_status' test is passed as a "function pointer".
+
+Usage example:
+    cluster_wait_status($primary_host, sub { ((shift =~ m/.+UNDEFINED.+SFAIL/) && (shift =~ m/.+PROMOTED.+PRIM/)); });
+
+This one result in SAPHanaSR-showAttr to be called on the HANA PRIMARY until :
+the line about vmhana01 match with regexp .+UNDEFINED.+SFAIL
+AND
+the line about vmhana02 match with regexp .+PROMOTED.+PRIM
+
+=over 3
+
+=item B<HOST> - Ansible name or filter for the remote host where to run 'SAPHanaSR-showAttr'
+
+=item B<F_STATUS> - Function pointer to test the 'SAPHanaSR-showAttr' stdout.
+                    Provided function has to support two arguments.
+                    `cluster_wait_status` will call the `f_status` passing as first arguments
+                    only the output lines of 'SAPHanaSR-showAttr' about the vmhana01,
+                    and as second arguments lines about vmhana02
+
+=item B<TIMEOUT> - Max time to retry. Die if timeout
+
+=back
 =cut
 
 sub cluster_wait_status {
     my ($host, $f_status, $timeout) = @_;
     $timeout //= bmwqemu::scale_timeout(300);
     my $_monitor_start_time = time();
-    my $done;
+    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my $done = 0;
     while ((time() - $_monitor_start_time <= $timeout) && (!$done)) {
         sleep 30;
-        my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
         my $show_attr = qesap_ansible_script_output(
             cmd => 'SAPHanaSR-showAttr',
             provider => $prov,
@@ -820,7 +847,7 @@ sub cluster_wait_status {
         }
         $done = $f_status->($status{vmhana01}, $status{vmhana02});
         record_info("SAPHanaSR-showAttr",
-            join("\n\n", "Output : $show_attr",
+            join("\n------------\n", "Output : $show_attr",
                 'status{vmhana01} : ' . $status{vmhana01},
                 'status{vmhana02} : ' . $status{vmhana02},
                 "done : $done"));
@@ -844,11 +871,11 @@ Remotely run 'SAPHanaSR-showAttr' in a loop on $host, wait output that matches r
 
 sub cluster_wait_status_by_regex {
     my ($host, $regular_expression, $timeout) = @_;
+    croak 'No regular expression provided' unless (ref $regular_expression eq 'Regexp');
     $timeout //= bmwqemu::scale_timeout(300);
     my $_monitor_start_time = time();
     my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
     my $done = 0;
-    croak 'No regular expression provided' unless (ref $regular_expression eq 'Regexp');
     while ((time() - $_monitor_start_time <= $timeout) && (!$done)) {
         sleep 30;
         my $show_attr = qesap_ansible_script_output(
@@ -861,8 +888,9 @@ sub cluster_wait_status_by_regex {
             $done = 1 if ($line =~ $regular_expression);
         }
         record_info("SAPHanaSR-showAttr",
-            join("\n\n", "Output : $show_attr",
-                "done : $done"));
+            join("\n------------\n", "Output : $show_attr",
+                "regexp : $regular_expression",
+                "done : $done",));
     }
     die "Timeout waiting for the change" if !$done;
 }
@@ -1078,9 +1106,9 @@ sub cypress_test_exec {
             '--reporter-options', '\"mochaFile=/results/' . $test_result . ',toConsole=true\"');
         record_info('CY INFO', "test_filename:$test_base_filename.js test_result:$test_result test_cmd:$test_cmd");
 
-        # Execute the test: force $failok=1 to keep the execution going.
+        # Execute the test: force $failok=1 to keep going with the execution.
         # Any cypress test failure will be reported during the XUnit parsing
-        $ret = cypress_exec($cypress_test_dir, $test_cmd, $timeout, $log_tag, 1);
+        $ret += cypress_exec($cypress_test_dir, $test_cmd, $timeout, $log_tag, 1);
 
         # Parse the results
         $find_cmd = join(' ',
@@ -1093,6 +1121,7 @@ sub cypress_test_exec {
         # Upload all logs at once
         cypress_log_upload(qw(.txt .mp4));
     }
+    return $ret;
 }
 
 1;
