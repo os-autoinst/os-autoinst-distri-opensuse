@@ -268,11 +268,11 @@
 
 <h3 id="cluster_wait_status">cluster_wait_status</h3>
 
-<p>Remotly run &#39;SAPHanaSR-showAttr&#39; in a loop on $host, wait output that match in f_status callback test</p>
+<p>This function allow to wait for a specific output for &#39;SAPHanaSR-showAttr&#39;, on one specific remote host. Remotly runs &#39;SAPHanaSR-showAttr&#39; on $host. Runs &#39;SAPHanaSR-showAttr&#39; multiple times in a loop, retying until the output PASS the test &#39;f_status&#39;. The &#39;f_status&#39; test is passed as a &quot;function pointer&quot;.</p>
 
-<h3 id="cluster_wait_status_by_regex">cluster_wait_status_by_regex</h3>
+<p>Usage example: cluster_wait_status($primary_host, sub { ((shift =~ m/.+UNDEFINED.+SFAIL/) &amp;&amp; (shift =~ m/.+PROMOTED.+PRIM/)); });</p>
 
-<p>Remotely run &#39;SAPHanaSR-showAttr&#39; in a loop on $host, wait output that matches regular expression =over 3</p>
+<p>This one result in SAPHanaSR-showAttr to be called on the HANA PRIMARY until : the line about vmhana01 match with regexp .+UNDEFINED.+SFAIL AND the line about vmhana02 match with regexp .+PROMOTED.+PRIM</p>
 
 <dl>
 
@@ -280,7 +280,27 @@
 <dd>
 
 </dd>
+<dt id="F_STATUS---Function-pointer-to-test-the-SAPHanaSR-showAttr-stdout.-Provided-function-has-to-support-two-arguments.-cluster_wait_status-will-call-the-f_status-passing-as-first-arguments-only-the-output-lines-of-SAPHanaSR-showAttr-about-the-vmhana01-and-as-second-arguments-lines-about-vmhana02"><b>F_STATUS</b> - Function pointer to test the &#39;SAPHanaSR-showAttr&#39; stdout. Provided function has to support two arguments. `cluster_wait_status` will call the `f_status` passing as first arguments only the output lines of &#39;SAPHanaSR-showAttr&#39; about the vmhana01, and as second arguments lines about vmhana02</dt>
+<dd>
+
+</dd>
 <dt id="TIMEOUT---Max-time-to-retry.-Die-if-timeout"><b>TIMEOUT</b> - Max time to retry. Die if timeout</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="cluster_wait_status_by_regex">cluster_wait_status_by_regex</h3>
+
+<p>Remotely run &#39;SAPHanaSR-showAttr&#39; in a loop on $host, wait output that matches regular expression =over 3</p>
+
+<dl>
+
+<dt id="HOST---Ansible-name-or-filter-for-the-remote-host-where-to-run-SAPHanaSR-showAttr1"><b>HOST</b> - Ansible name or filter for the remote host where to run &#39;SAPHanaSR-showAttr&#39;</dt>
+<dd>
+
+</dd>
+<dt id="TIMEOUT---Max-time-to-retry.-Die-if-timeout1"><b>TIMEOUT</b> - Max time to retry. Die if timeout</dt>
 <dd>
 
 </dd>
@@ -392,7 +412,7 @@
 <p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
 
 </dd>
-<dt id="Around-line-836">Around line 836:</dt>
+<dt id="Around-line-863">Around line 863:</dt>
 <dd>
 
 <p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
