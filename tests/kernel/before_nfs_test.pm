@@ -25,4 +25,8 @@ sub test_flags {
 }
 sub post_run_hook { }
 
+sub post_fail_hook {
+    print_ip_info;
+}
+
 1;
