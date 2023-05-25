@@ -270,12 +270,21 @@ sub handle_login {
     $mypwd //= $testapi::password;
     $user_selected //= 0;
 
+    wait_still_screen 3;
     save_screenshot();
     # wait for DM, avoid screensaver and try to login
-    # Previously this pressed esc, but that makes the text field in SDDM lose focus
-    # we need send key 'esc' to quit screen saver when desktop is gnome
-    my $mykey = check_var('DESKTOP', 'gnome') ? 'esc' : 'shift';
-    send_key_until_needlematch('displaymanager', $mykey, 31, 3);
+    # ESC of KDE turns the monitor off and CTRL does not work on older SLES versions to unlock the screen
+    my $mykey = is_sle("<15-SP4") ? 'esc' : 'ctrl';    # end screenlock
+    if (is_qemu && (is_sle('=15-sp3') || is_sle('=15-sp2'))) {
+        # sometimes screensaver can't be unlocked with key presses poo#125930
+        mouse_set(600, 600);
+        mouse_click;
+        mouse_hide(1);
+    }
+    else {
+        # ESC of KDE turns the monitor off and CTRL does not work on older SLES versions to unlock the screen
+        send_key_until_needlematch('displaymanager', $mykey, 31, 3);
+    }
     if (get_var('ROOTONLY')) {
         # we now use this tag to support login as root
         if (check_screen 'displaymanager-username-notlisted', 10) {
