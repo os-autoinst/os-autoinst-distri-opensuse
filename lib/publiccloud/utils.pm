@@ -39,6 +39,7 @@ our @EXPORT = qw(
   register_addons_in_pc
   gcloud_install
   prepare_ssh_tunnel
+  kill_packagekit
 );
 
 # Get the current UTC timestamp as YYYY/mm/dd HH:MM:SS
@@ -267,6 +268,17 @@ sub prepare_ssh_tunnel {
     # Create log file for ssh tunnel
     my $ssh_sut = '/var/tmp/ssh_sut.log';
     assert_script_run "touch $ssh_sut; chmod 777 $ssh_sut";
+}
+
+sub kill_packagekit {
+    my ($instance) = @_;
+    my $ret = $instance->ssh_script_run(cmd => "pkcon quit", timeout => 120);
+    if ($ret) {
+        # Older versions of systemd don't support "disable --now"
+        $instance->ssh_script_run(cmd => "systemctl stop packagekitd");
+        $instance->ssh_script_run(cmd => "systemctl disable packagekitd");
+        $instance->ssh_script_run(cmd => "systemctl mask packagekitd");
+    }
 }
 
 1;
