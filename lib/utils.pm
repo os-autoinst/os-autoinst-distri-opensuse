@@ -77,7 +77,6 @@ our @EXPORT = qw(
   exec_and_insert_password
   shorten_url
   reconnect_mgmt_console
-  print_ip_info
   set_hostname
   show_tasks_in_blocked_state
   show_oom_info
@@ -1055,21 +1054,6 @@ sub set_bridged_networking {
     set_var('BRIDGED_NETWORKING', 1) if $ret;
 }
 
-=head2 print_ip_info
-
-  print_ip_info();
-
-Print the interface addresses, routes and adjacent network nodes (that
-have been seen). Especially useful for multi-machine test debugging.
-
-=cut
-
-sub print_ip_info {
-    script_run('ip addr');
-    script_run('ip route');
-    script_run('ip neigh');
-}
-
 =head2 set_hostname
 
  set_hostname($hostname);
@@ -1094,24 +1078,7 @@ sub set_hostname {
     assert_script_run "uname -n|grep $hostname";
     systemctl 'status network.service';
     save_screenshot;
-
-    if (systemctl('is-active NetworkManager', ignore_failure => 1) == 0) {
-        assert_script_run 'nmcli -w 30 network off';
-        assert_script_run 'nmcli -w 30 network on';
-
-        for (my $i = 0; $i < 30; $i++) {
-            my $state = script_output 'nmcli -w 30 networking connectivity check';
-
-            last if $state =~ /full/;
-
-            sleep 1;
-        }
-    } else {
-        assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
-    }
-
-    print_ip_info;
-    script_run("dig +short $hostname.openqa.test");
+    assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
 }
 
 =head2 assert_and_click_until_screen_change
