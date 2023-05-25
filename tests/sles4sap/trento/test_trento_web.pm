@@ -25,7 +25,11 @@ sub run {
     assert_script_run "mkdir " . CYPRESS_LOG_DIR;
 
     #  Cypress verify: cypress.io self check about the framework installation
-    cypress_exec($cypress_test_dir, 'verify', bmwqemu::scale_timeout(120), 'verify', 1);
+    cypress_exec(cypress_test_dir => $cypress_test_dir,
+        cmd => 'verify',
+        log_prefix => 'verify',
+        timeout => bmwqemu::scale_timeout(120));
+
     cypress_log_upload(('.txt'));
 
     # test about first visit: login and eula

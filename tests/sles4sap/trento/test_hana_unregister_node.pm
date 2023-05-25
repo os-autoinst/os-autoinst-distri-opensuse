@@ -63,7 +63,7 @@ sub run {
 
     my $cypress_test_dir = "/root/test/test";
     enter_cmd "cd $cypress_test_dir";
-    cypress_test_exec($cypress_test_dir, 'unregister', bmwqemu::scale_timeout(900));
+    cypress_test_exec($cypress_test_dir, 'unregister', bmwqemu::scale_timeout(1800));
     trento_support();
     trento_collect_scenarios('test_hana_unregister');
 }

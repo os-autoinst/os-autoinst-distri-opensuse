@@ -775,6 +775,21 @@ subtest '[cypress_test_exec] new CY' => sub {
     ok((any { /podman run.*cypress\/e2e\/FARINATA\// } @calls), 'Podman get test file in new folder');
 };
 
+subtest '[cypress_exec]' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+
+    $trento->redefine(script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    cypress_exec(cypress_test_dir => 'TEST_DIR',
+        cmd => 'FARINATA',
+        log_prefix => 'FARINATA');
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /podman images/ } @calls), 'Podman run');
+    ok((any { /podman rm/ } @calls), 'Podman run');
+    ok((any { /podman run.*/ } @calls), 'Podman run');
+};
+
 subtest '[cluster_wait_status_by_regex] not enough arguments' => sub {
     dies_ok { cluster_wait_status_by_regex() } "Expected croak for missing arguments host.";
     dies_ok { cluster_wait_status_by_regex('hana') } "Expected croak for missing arguments regexp.";
