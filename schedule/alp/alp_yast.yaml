@@ -1,0 +1,9 @@
+---
+name: alp_yast
+description: >
+    Enable YaST automation test for ALP
+vars:
+    YUI_REST_API: 1
+schedule:
+    - microos/disk_boot
+    - shutdown/shutdown
