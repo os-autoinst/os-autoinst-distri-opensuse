@@ -121,7 +121,7 @@ sub login_to_console {
         }
     }
 
-    unless (check_screen([qw(grub2 grub1 prague-pxe-menu)], 210) or is_tumbleweed) {
+    unless (is_tumbleweed or check_screen([qw(grub2 grub1 prague-pxe-menu)], 210)) {
         ipmitool("chassis power reset");
         reset_consoles;
         select_console 'sol', await_console => 0;
@@ -201,7 +201,7 @@ sub login_to_console {
         set_var('AFTER_UPGRADE', '1');
     }
     save_screenshot;
-    send_key 'ret';
+    send_key 'ret' unless is_tumbleweed;
 
     sleep 30;    # Wait for the GRUB to disappier (there's no chance for the system to boot faster
     save_screenshot;

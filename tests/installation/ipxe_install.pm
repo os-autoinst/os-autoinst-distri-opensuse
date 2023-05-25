@@ -153,12 +153,10 @@ sub run {
         save_screenshot;
         ipmitool('chassis power reset') unless check_screen([qw(o3-ipxe-menu ipxe-boot-failure)], 180);
         assert_screen('o3-ipxe-menu', 300);
-        if (get_var('HOST_INSTALL_AUTOYAST')) {
-            is_kvm_host ? send_key 'k' : send_key 'z';
-        }
-        else {
-            send_key 't';
-        }
+        my $key = get_var('HOST_INSTALL_AUTOYAST') ? (is_kvm_host ? 'k' : 'z') : 't';
+        send_key "$key";
+        # try one more time as sometimes sending key does not take effect
+        send_key "$key" if check_screen('o3-ipxe-menu');
         assert_screen([qw(load-linux-kernel load-initrd)], 240);
         # Loading initrd spend much time(fg. 10-15 minutes to Beijing SUT)
         # Downloading from O3 became much more quick, some needles may not be caught.
@@ -170,12 +168,13 @@ sub run {
             record_info("TW install?", "Pls make sure it is Tumbleweed that is being installed.", result => 'softfail');
         }
         assert_screen([qw(network-config-created loading-installation-system)], 60);
+        return if get_var('AUTOYAST');
         wait_still_screen(stilltime => 12, similarity_level => 60, timeout => 30) unless check_screen('sshd-server-started', timeout => 60);
         save_screenshot;
     }
 
     # when we don't use autoyast, we need to also load the right test modules to perform the remote installation
-    if (get_var('AUTOYAST') and !get_var('VIRT_AUTOTEST')) {
+    if (get_var('AUTOYAST')) {
         # make sure to wait for a while befor changing the boot device again, in order to not change it too early
         sleep 120;
     }
