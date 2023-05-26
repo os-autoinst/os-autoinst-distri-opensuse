@@ -75,7 +75,7 @@ sub run {
         subnet_v6 => 'fd00::1:8:0/112'
     };
     my $ctr1 = {
-        image => get_required_var('REGISTRY') . '/fedora/apache',
+        image => registry_url('httpd'),
         name => 'apache_ctr',
         ip => '10.90.0.8',
         mac => '76:22:33:44:55:66',
