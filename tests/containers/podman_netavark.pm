@@ -139,7 +139,7 @@ sub run {
             'http://localhost:8080',
             'http://localhost:8888'
     )) {
-        validate_script_output("curl --retry 5 --retry-all-errors --head --silent $req", sub { /HTTP.* 200 OK/ }, timeout => 120);
+        validate_script_output("curl --retry 5 --head --silent $req", sub { /HTTP.* 200 OK/ }, timeout => 120);
     }
 
     assert_script_run("podman container inspect $ctr1->{name} --format {{.NetworkSettings.Networks.$net1->{name}.IPAddress}}");
