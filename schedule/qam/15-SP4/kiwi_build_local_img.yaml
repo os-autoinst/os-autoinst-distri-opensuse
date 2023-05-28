@@ -1,0 +1,9 @@
+---
+name: kiwi_build_image
+description: >
+     Kiwi test to build a qcow2 image locally
+schedule:
+      - installation/bootloader_start
+      - boot/boot_to_desktop
+      - kiwi_images_test/kiwi_build_image
+...
