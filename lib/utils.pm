@@ -1054,6 +1054,21 @@ sub set_bridged_networking {
     set_var('BRIDGED_NETWORKING', 1) if $ret;
 }
 
+=head2 print_ip_info
+
+  print_ip_info();
+
+Print the interface addresses, routes and adjacent network nodes (that
+have been seen). Especially useful for multi-machine test debugging.
+
+=cut
+
+sub print_ip_info {
+    script_run('ip addr');
+    script_run('ip route');
+    script_run('ip neigh');
+}
+
 =head2 set_hostname
 
  set_hostname($hostname);
