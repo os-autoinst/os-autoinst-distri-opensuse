@@ -72,6 +72,11 @@ function get_guest_ip_addr() {
 			echo "Error: Domian $guestname is not running,"  $w
 			exit -1
 		fi
+		if [ $ret -eq 9 ];then
+			echo "Error: The guest $guestname is broken during installation,"  $w
+			exit -1
+		fi
+		echo "Error occur."
 	fi
 
 	echo $gip

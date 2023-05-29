@@ -691,7 +691,7 @@ sub install_domu {
         } else {
             $domu_intall_param = " -v ";
         }
-        script_run("virt-install --name \"${domu_name}\" ${domu_intall_param} "
+        my $status = script_output("virt-install --name \"${domu_name}\" ${domu_intall_param} "
               . " --location \"${install_media_url}\""
               . " --extra-args ${extra_domu_kernel_param}"
               . " --disk path=${domu_imagepool_path}/${domu_name}.disk,size=20,format=qcow2"
@@ -701,22 +701,38 @@ sub install_domu {
               . " --vnc"
               . " --events on_reboot=destroy"
               . " --serial pty", timeout => 5400);
+        if ($status =~ /Domain is still running. Installation may be in progress/) {
+            diag "Guest installation successful.\n";
+
+        } else {
+            diag "Error:guest installation,Please check the status of guest.\n";
+            return 0;
+        }
     }
+
     # Check if the DomU is up
     script_run("virsh start \"${domu_name}\"");
+    return 1;
 }
-
 
 sub get_domu_ip {
     return script_output("./get_guest_ip.sh \"${domu_name}\"", timeout => 1800);
 }
 
+sub check_and_run {
+    my $domu_status = install_domu();
+    if ($domu_status == 1) {
+        $domu_ip_addr = get_domu_ip();
+        if ($domu_ip_addr =~ /Error/) {
+            diag "Get guest ip address fail\n";
+        } else {
+            diag "Begin execute testcase.\n";
+            exec_testcases();
+        }
+    }
+}
 sub exec_testcases {
     my $self = @_;
-
-    install_domu();
-    $domu_ip_addr = get_domu_ip();
-
     # Restore domU kernel parameters
     Mitigation::ssh_vm_cmd("cat /proc/cmdline | grep   \"mitigations=auto\"", $qa_password, $domu_ip_addr);
     Mitigation::ssh_vm_cmd("sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/s/mitigations=[a-z,]*/\\ /' /etc/default/grub", $qa_password, $domu_ip_addr);
@@ -729,7 +745,8 @@ sub exec_testcases {
             my $hy_prameter = $hy_param . '=' . $hy_value;
             if ($hy_value eq "yes" or $hy_value eq "no-xen") {
                 $domu_test_cases_hash = $domu_test_cases_hash_spec_ctrl_default;
-            } elsif ($hy_value eq "no") {
+            }
+            elsif ($hy_value eq "no") {
                 $domu_test_cases_hash = $domu_test_cases_hash_spec_ctrl_no;
             }
             if ($hy_test_param and $hy_test_param ne $hy_prameter) {
@@ -747,7 +764,8 @@ sub exec_testcases {
                       . "DomU Password: " . $qa_password . "\n"
                       . "DomU ip :" . $domu_ip_addr,
                     result => 'ok');
-            } else {
+            }
+            else {
                 # Change hypervisor layer grub parameter
                 bootloader_setup::add_grub_xen_cmdline_settings($hy_prameter, 1);
                 Mitigation::reboot_and_wait($self, 150);
@@ -767,8 +785,8 @@ sub exec_testcases {
             }
         }
     }
-
 }
+
 
 sub get_expect_script {
     my $self = @_;
@@ -788,7 +806,7 @@ sub run {
     zypper_call 'in -y xmlstarlet expect sshpass';
 
     get_expect_script();
-    exec_testcases();
+    check_and_run();
 }
 
 sub post_fail_hook {
