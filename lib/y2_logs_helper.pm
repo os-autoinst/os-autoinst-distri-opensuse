@@ -15,6 +15,7 @@ our @EXPORT_OK = qw(
   select_conflict_resolution
   workaround_dependency_issues
   break_dependency
+  vendor_change_dependency
   verify_license_has_to_be_accepted
   accept_license
   verify_license_translations
@@ -77,6 +78,25 @@ sub break_dependency {
             wait_still_screen(2);
         }
     }
+}
+
+# to fix vendor change dependency issues
+sub vendor_change_dependency {
+    return unless check_screen 'dependency-issue', 10;
+
+    while (check_screen('dependency-issue', 5)) {
+        # Cancel conflict
+        send_key 'alt-c';
+        # Refer ticket https://progress.opensuse.org/issues/48266
+        wait_still_screen(2);
+    }
+    assert_screen('software-dependency');
+    send_key 'alt-o';
+    assert_and_click('allow-vendor-change');
+    assert_and_click('accept-option-change');
+    assert_screen('automatic-change');
+    send_key 'alt-o';
+    assert_and_click('continue-unsupported-pkgs');
 }
 
 

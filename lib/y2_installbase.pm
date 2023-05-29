@@ -507,6 +507,7 @@ sub process_unsigned_files {
 # to deal with dependency issues, either work around it, or break dependency to continue with installation
 sub deal_with_dependency_issues {
     my ($self) = @_;
+    my $vendor_change = 0;
 
     return unless check_screen 'manual-intervention', 0;
 
@@ -527,13 +528,19 @@ sub deal_with_dependency_issues {
     elsif (check_var("BREAK_DEPS", '1')) {
         y2_logs_helper::break_dependency;
     }
+    elsif (check_var("VENDOR_CHG_DEPS", '1')) {
+        $vendor_change = 1;
+        y2_logs_helper::vendor_change_dependency;
+    }
     else {
         die 'Dependency problems';
     }
 
-    assert_screen 'dependency-issue-fixed';    # make sure the dependancy issue is fixed now
-    send_key 'alt-a';    # Accept
-    sleep 2;
+    if (!$vendor_change) {
+        assert_screen 'dependency-issue-fixed';    # make sure the dependancy issue is fixed now
+        send_key 'alt-a';    # Accept
+        sleep 2;
+    }
 
   DO_CHECKS:
     while (check_screen('accept-licence', 2)) {
