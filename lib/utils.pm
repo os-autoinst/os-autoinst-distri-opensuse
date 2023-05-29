@@ -1093,7 +1093,26 @@ sub set_hostname {
     assert_script_run "uname -n|grep $hostname";
     systemctl 'status network.service';
     save_screenshot;
-    assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
+
+    if (systemctl('is-active NetworkManager', ignore_failure => 1) == 0) {
+        my $conn_id = script_output 'basename $(ls -1 /etc/NetworkManager/system-connections | head -n 1) .nmconnection';
+
+        assert_script_run 'nmcli device down ' . $conn_id;
+        assert_script_run 'nmcli device up ' . $conn_id;
+
+        for (my $i = 0; $i < 5; $i++) {
+            my $state = script_output 'nmcli -w 5 networking connectivity check';
+
+            last if $state =~ /full/;
+
+            sleep 1;
+        }
+    } else {
+        assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
+    }
+
+    print_ip_info;
+    script_run("dig +short $hostname.openqa.test");
 }
 
 =head2 assert_and_click_until_screen_change
