@@ -3,9 +3,9 @@
       "product": "Tumbleweed"
    },
    "user": {
-      "fullName": "Jane Doe",
-      "password": "doe",
-      "userName": "joe"
+      "fullName": "Bernhard M. Wiedemann",
+      "password": "nots3cr3t",
+      "userName": "bernhard"
    },
    "root": {
       "password": "nots3cr3t"

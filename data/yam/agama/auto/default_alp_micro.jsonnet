@@ -16,9 +16,9 @@ local findBiggestDisk(disks) =
     password: 'nots3cr3t',
   },
   user: {
-    fullName: 'Jane Doe',
-    password: '123456',
-    userName: 'jane.doe',
+    fullName: 'Bernhard M. Wiedemann',
+    password: 'nots3cr3t',
+    userName: 'bernhard',
   },
   localization: {
     language: 'en_US',
