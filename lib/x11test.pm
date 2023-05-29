@@ -969,7 +969,7 @@ sub gnote_search_and_close {
     type_string $string;
     assert_screen $needle, 5;
 
-    send_key "ctrl-w";
+    send_key "alt-f4";
 }
 
 # remove the created new note
@@ -979,7 +979,7 @@ sub cleanup_gnote {
     assert_and_click($needle, button => 'right');
     assert_and_click "delete-new-note";
     assert_and_click "really-delete-note";
-    send_key 'ctrl-w';
+    send_key 'alt-f4';
 }
 
 sub gnote_start_with_new_note {

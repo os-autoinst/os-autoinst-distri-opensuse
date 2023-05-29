@@ -26,7 +26,7 @@ sub run {
         select_console('x11');
     }
     x11_start_program('gnote');
-    send_key "ctrl-w";
+    send_key "ctrl-q";
 }
 
 # add milestone flag to save gnote installation in lastgood vm snapshot
