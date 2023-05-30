@@ -28,8 +28,8 @@ sub configure_ha_exporter {
     upload_logs("/usr/etc/$exporter_name", failok => 1);
 
     # Get the IP port and start exporter
-    my ($ha_exporter_port) = script_output("awk '/port:/ { print \$NF }' /etc/$exporter_name /usr/etc/$exporter_name 2>/dev/null", proceed_on_failure => 1) =~ /(\d+)/;
-    $ha_exporter_port ||= 9664;
+    my ($ha_exporter_port) = script_output("awk '/port:/ { print \$NF }' /etc/$exporter_name /usr/etc/$exporter_name 2>/dev/null", proceed_on_failure => 1) =~ /^(\d+)$/ ? $1 : 9664;
+
     systemctl "enable --now prometheus-$exporter_name";
     systemctl "status prometheus-$exporter_name";
     assert_script_run "curl -o $metrics_file http://localhost:$ha_exporter_port";
@@ -63,8 +63,7 @@ sub configure_hanadb_exporter {
     upload_logs("$hanadb_exporter_config", failok => 1);
 
     # Get the IP port and start exporter
-    ($hanadb_exporter_port) = script_output("awk '/exposition_port/ { print \$NF }' $hanadb_exporter_config", proceed_on_failure => 1) =~ /(\d+)/;
-    $hanadb_exporter_port ||= 9668;
+    ($hanadb_exporter_port) = script_output("awk '/exposition_port/ { print \$NF }' $hanadb_exporter_config", proceed_on_failure => 1) =~ /^(\d+)$/ ? $1 : 9668;
 
     # Add monitoring resource in the HA stack
     wait_for_idle_cluster;
@@ -124,8 +123,7 @@ sub configure_sap_host_exporter {
     upload_logs("$exporter_config", failok => 1);
 
     # Get the IP port and start exporter
-    my ($exporter_port) = script_output("awk '/port:/ { print \$NF }' $exporter_config", proceed_on_failure => 1) =~ /(\d+)/;
-    $exporter_port ||= 9680;
+    my ($exporter_port) = script_output("awk '/port:/ { print \$NF }' $exporter_config", proceed_on_failure => 1) =~ /^(\d+)$/ ? $1 : 9680;
 
     if (get_var('HA_CLUSTER')) {
         my $exporter_rsc = "rsc_exporter_$args{rsc_id}";
