@@ -9,6 +9,7 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
+use utils qw(script_retry);
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(package_version_cmp);
 use containers::utils qw(registry_url container_ip);
@@ -52,10 +53,40 @@ sub run() {
         assert_script_run('podman network inspect newnet1 --format "{{range .Subnets}}Subnet: {{.Subnet}} Gateway: {{.Gateway}}{{end}}"');
     }
 
+    #connect, disconnect & reload
+    unless ($old_podman) {
+        record_info('Prepare', 'Prepare three containers');
+        script_retry("podman pull registry.opensuse.org/opensuse/tumbleweed", timeout => 300, delay => 60, retry => 3);
+        script_retry("podman pull registry.opensuse.org/opensuse/nginx", timeout => 300, delay => 60, retry => 3);
+
+
+        assert_script_run('podman run -id --rm --name container1 -p 1234:1234 registry.opensuse.org/opensuse/tumbleweed');
+        assert_script_run('podman run -id --rm --name container2 -p 1235:1235 registry.opensuse.org/opensuse/tumbleweed');
+        my $container_id = script_output('podman run -id --rm --name container3 -p 8080:80 registry.opensuse.org/opensuse/nginx');
+
+
+        record_info('Connect', 'Connect the containers to the networks');
+        assert_script_run('podman network connect newnet1 container1');
+        assert_script_run('podman network connect newnet2 container2');
+        assert_script_run('podman network connect newnet2 container3');
+
+        record_info('Inspect', 'Inspect that the containers belong to their respective networks');
+        validate_script_output('podman inspect --format="{{.NetworkSettings.Networks}}" container1', sub { m/newnet1/ });
+        validate_script_output('podman inspect --format="{{.NetworkSettings.Networks}}" container2', sub { m/newnet2/ });
+        validate_script_output('podman inspect --format="{{.NetworkSettings.Networks}}" container3', sub { m/newnet2/ });
+
+        record_info('Disconnect', 'Disconnect the container from the network');
+        assert_script_run('podman network disconnect newnet2 container2');
+        validate_script_output('podman inspect --format="{{.NetworkSettings.Networks}}" container2', sub { !m/newnet2/ });
+
+        record_info('Reload', 'Reload the container network configuration');
+        validate_script_output('podman network reload container3', sub { m/$container_id/ });
+    }
+
     record_info('Cleanup', 'Remove all unused networks');
     unless ($old_podman) {
         assert_script_run('podman network prune -f');
-        validate_script_output('podman network ls', sub { !m/newnet/ });
+        validate_script_output('podman network ls', sub { !m/newnet4/ });
     }
 
     $podman->cleanup_system_host();
