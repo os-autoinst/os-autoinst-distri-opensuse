@@ -62,6 +62,7 @@ sub run ($self) {
 
     # I need to restart the nfs-server for some reason otherwise the compute nodes
     # cannot mount directories
+    record_info 'NFS', 'setup NFS';
     select_console('root-console');
     systemctl 'restart nfs-server';
     # And login as normal user to run the tests
@@ -72,6 +73,7 @@ sub run ($self) {
     my @load_modules = $mpi2load;
     push @load_modules, 'python3-scipy' if check_var('HPC_LIB', 'scipy');
     push @load_modules, 'papi' if check_var('HPC_LIB', 'papi');
+    push @load_modules, 'openblas' if check_var('HPC_LIB', 'openblas');
     assert_script_run "module load gnu @load_modules";
     script_run "module av";
 
@@ -81,6 +83,10 @@ sub run ($self) {
         my $papi_version = script_output("module whatis papi | grep Version");
         $papi_version = (split(/: /, $papi_version))[2];
         assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin -I/usr/lib/hpc/papi/$papi_version/include/ -L/usr/lib/hpc/papi/$papi_version/lib64/ -lpapi") if $mpi_compiler;
+    } elsif (get_var('HPC_LIB') eq 'openblas') {
+        my $version = script_output("module whatis openblas | grep Version");
+        $version = (split(/: /, $version))[2];
+        assert_script_run("$mpi_compiler -o $exports_path{'bin'}/$mpi_bin $exports_path{'bin'}/$mpi_c -Iexports_path{'hpc'}/gnu7/openblas/$version/include -Iexports_path{'hpc'}/gnu7/openblas/$version/lib64 -lopenblas");
     } else {
         assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin") if $mpi_compiler;
     }
@@ -234,6 +240,11 @@ path in the L<lib|/usr/lib/hpc/gnu7/$mpi/imb> which the bins are located.
 C<mvapich2> in SLE15SP2 and below suffers from various issues which causes
 segmentation faults and Floating point exception. Those should be handled
 with C<record_soft_failure>
+
+=head2 Other Notes
+
+- B<papi> and B<OpenBLAS> modules and their code samples do not
+use OpenMP, and as such are running at a single node.
 
 =head2 Settings
 TODO

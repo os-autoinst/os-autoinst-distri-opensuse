@@ -53,6 +53,7 @@ sub get_mpi_src {
     return ('mpic++', 'sample_boost.cpp') if ($libvar eq 'boost');
     return ('', 'sample_scipy.py') if ($libvar eq 'scipy');
     return ('mpicc', 'papi_hw_info.c') if (get_var('HPC_LIB') eq 'papi');
+    return ('mpicc', 'test_cblas_dgemm.c') if (get_var('HPC_LIB') eq 'openblas');
 }
 
 =head2 relogin_root
@@ -92,8 +93,8 @@ sub setup_scientific_module {
     my ($self) = @_;
     return 1 unless get_var('HPC_LIB', '');
     my $mpi = get_required_var('MPI');
-
-    if (get_var('HPC_LIB') eq 'scipy') {
+    my $lib = get_var('HPC_LIB', '');
+    if ($lib eq 'scipy') {
         # $mpi-gnu-hpc-devel will be installed on compute nodes
         # which is required to compile the mpi4py.
         # This seems is not be shared by NFS
@@ -106,10 +107,15 @@ sub setup_scientific_module {
         assert_script_run "module load gnu $mpi2load python3-scipy";
         assert_script_run("env MPICC=mpicc python3 -m pip install mpi4py", timeout => 1200);
     }
-    if (get_var('HPC_LIB') eq 'papi') {
+    if ($lib eq 'papi') {
         zypper_call("in papi-hpc papi-hpc-devel");
         $self->relogin_root;
-        assert_script_run('module load gnu papi');
+        assert_script_run('module load gnu $lib');
+    }
+    if ($lib eq 'openblas') {
+        zypper_call("in libopenblas-gnu-hpc libopenblas-gnu-hpc-devel");
+        $self->relogin_root;
+        assert_script_run("module load gnu $mpi $lib");
     }
     return 0;
 }
