@@ -34,6 +34,7 @@ sub run {
     }
     $variables{OS_OWNER} = get_var('QESAP_CLUSTER_OS_OWNER', 'amazon') if check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
 
+    $variables{USE_SAPCONF} = get_required_var('USE_SAPCONF');
     $variables{SSH_KEY_PRIV} = '/root/.ssh/id_rsa';
     $variables{SSH_KEY_PUB} = '/root/.ssh/id_rsa.pub';
     $variables{SCC_REGCODE_SLES4SAP} = get_required_var('SCC_REGCODE_SLES4SAP');
