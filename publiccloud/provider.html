@@ -93,7 +93,7 @@
 
 <p>Creates multiple instances on the public cloud provider. Retrieves an array of publiccloud::instance objects.</p>
 
-<p><code>image</code> defines the image_id to create the instance. <code>instance_type</code> defines the flavor of the instance. If not specified, it will load it from PUBLIC_CLOUD_INSTANCE_TYPE.</p>
+<p><code>image</code> defines the image_id to create the instance. <code>instance_type</code> defines the flavor of the instance. If not specified, it will load it from PUBLIC_CLOUD_INSTANCE_TYPE. <code>timeout</code> Parameter to pass to instance::wait_for_ssh. <code>ignore_wrong_pubkey</code> Same as timeout. <code>proceed_on_failure</code> Same as timeout.</p>
 
 <h2 id="on_terraform_apply_timeout">on_terraform_apply_timeout</h2>
 
