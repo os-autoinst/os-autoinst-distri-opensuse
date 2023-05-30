@@ -13,5 +13,4 @@ schedule:
     - installation/security/select_security_module_none
   system_role:
     - installation/system_role/select_role_text_mode
-  stop_timeout_system_reboot: []
 ...
