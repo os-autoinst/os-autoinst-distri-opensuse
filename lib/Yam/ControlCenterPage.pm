@@ -23,12 +23,11 @@ sub init {
     return $self;
 }
 
-sub get_control_center_page {
+sub _get_control_center_page {
     my ($self) = @_;
     die 'YaST Control Center is not displayed' unless $self->{btn_run}->exist();
     return $self;
 }
-
 
 # private methods collection
 
@@ -49,7 +48,7 @@ sub _apply_workaround_bsc1206966 {
 
 sub _select_software {
     my ($self) = @_;
-    $self->{slb_groups}->select('Software');
+    $self->_get_control_center_page()->{slb_groups}->select('Software');
     $self->_apply_workaround_bsc1206966();
     return $self;
 }
@@ -81,7 +80,7 @@ sub _select_software_repositories {
 
 sub _select_system {
     my ($self) = @_;
-    $self->{slb_groups}->select('System');
+    $self->_get_control_center_page()->{slb_groups}->select('System');
     $self->_apply_workaround_bsc1206966();
     return $self;
 }
@@ -120,7 +119,7 @@ sub _select_services_manager {
 
 sub _select_hardware {
     my ($self) = @_;
-    $self->{slb_groups}->select('Hardware');
+    $self->_get_control_center_page()->{slb_groups}->select('Hardware');
     $self->_apply_workaround_bsc1206966();
     return $self;
 }
@@ -137,7 +136,7 @@ sub _select_system_keyboard_layout {
 
 sub _select_network_services {
     my ($self) = @_;
-    $self->{slb_groups}->select('Network Services');
+    $self->_get_control_center_page()->{slb_groups}->select('Network Services');
     $self->_apply_workaround_bsc1206966();
     return $self;
 }
@@ -169,7 +168,7 @@ sub _select_iscsi_initiator {
 
 sub _select_security_and_users {
     my ($self) = @_;
-    $self->{slb_groups}->select('Security and Users');
+    $self->_get_control_center_page()->{slb_groups}->select('Security and Users');
     $self->_apply_workaround_bsc1206966();
     return $self;
 }
@@ -186,7 +185,7 @@ sub _select_user_and_group_management {
 
 sub _select_support {
     my ($self) = @_;
-    $self->{slb_groups}->select('Support');
+    $self->_get_control_center_page()->{slb_groups}->select('Support');
     $self->_apply_workaround_bsc1206966();
     return $self;
 }
@@ -198,7 +197,7 @@ sub _select_release_notes {
 
 sub _select_miscellaneous {
     my ($self) = @_;
-    $self->{slb_groups}->select('Miscellaneous');
+    $self->_get_control_center_page()->{slb_groups}->select('Miscellaneous');
     $self->_apply_workaround_bsc1206966();
     return $self;
 }
@@ -220,7 +219,7 @@ sub _select_vendor_driver {
 
 sub _run {
     my ($self) = @_;
-    $self->{btn_run}->click();
+    $self->_get_control_center_page()->{btn_run}->click();
 }
 
 # public methods
@@ -347,7 +346,6 @@ sub open_user_and_group_management {
 
 sub open_release_notes {
     my ($self) = @_;
-    $self->get_control_center_page();
     $self->_select_support();
     $self->_select_release_notes();
 }
@@ -372,8 +370,7 @@ sub open_vendor_driver {
 
 sub quit {
     my ($self) = @_;
-    $self->get_control_center_page();
-    $self->{btn_quit}->click();
+    $self->_get_control_center_page()->{btn_quit}->click();
 }
 
 

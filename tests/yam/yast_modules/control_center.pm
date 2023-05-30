@@ -17,15 +17,12 @@ sub run {
     select_console('root-console');
     enter_cmd(get_var('YUI_PARAMS') . " $podman_cmd");
     my $control_center = $testapi::distri->get_control_center();
-    $control_center->open_release_notes();
     my $release_notes = $testapi::distri->get_release_notes();
-    wait_still_screen(2);
+    $control_center->open_release_notes();
     save_screenshot();
     $release_notes->close();
-    wait_still_screen(2);
     save_screenshot();
     $control_center->quit();
-    wait_still_screen(2);
 }
 
 1;

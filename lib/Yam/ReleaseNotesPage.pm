@@ -19,7 +19,7 @@ sub init {
     return $self;
 }
 
-sub get_release_notes_page {
+sub _get_release_notes_page {
     my ($self) = @_;
     die 'Release notes dialog is not displayed' unless $self->{cmb_language}->exist();
     return $self;
@@ -27,8 +27,7 @@ sub get_release_notes_page {
 
 sub close {
     my ($self) = @_;
-    $self->get_release_notes_page();
-    $self->{btn_close}->click();
+    $self->_get_release_notes_page()->{btn_close}->click();
 }
 
 1;
