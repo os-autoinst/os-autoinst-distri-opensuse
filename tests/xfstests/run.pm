@@ -47,7 +47,7 @@ my $HB_SCRIPT = '/opt/heartbeat.sh';
 # - XFSTESTS: TEST_DEV type, and test in this folder and generic/ folder will be triggered. XFSTESTS=(xfs|btrfs|ext4)
 my $TEST_RANGES = get_required_var('XFSTESTS_RANGES');
 my $TEST_WRAPPER = '/opt/wrapper.sh';
-my %BLACKLIST = map { $_ => 1 } split(/,/, get_var('XFSTESTS_BLACKLIST'));
+my @BLACKLIST = split(/,/, get_var('XFSTESTS_BLACKLIST'));
 my @GROUPLIST = split(/,/, get_var('XFSTESTS_GROUPLIST'));
 my $STATUS_LOG = '/opt/status.log';
 my $INST_DIR = '/opt/xfstests';
@@ -252,6 +252,26 @@ sub tests_from_ranges {
     return @tests;
 }
 
+# Return a hash of blacklist to skip from @BLACKLIST
+# return structure - hash
+sub genarate_blacklist {
+    my @blacklist_copy;
+    foreach my $test_item (@BLACKLIST) {
+        $test_item =~ m"\w+/";
+        my ($test_category, $test_num) = ($&, $');
+        if ($test_num =~ /^(\d{3})-(\d{3})$/) {
+            push(@blacklist_copy, map { $_ = "$test_category$_" } ($1 .. $2));
+        }
+        elsif ($test_num =~ /^\d{3}$/) {
+            push(@blacklist_copy, "$test_category$test_num");
+        }
+        else {
+            die "Invalid test blacklist: $test_item";
+        }
+    }
+    return map { $_ => 1 } @blacklist_copy;
+}
+
 # Run a single test and write log to file
 # test - test to run(e.g. xfs/001)
 sub test_run {
@@ -431,9 +451,9 @@ sub run {
         @tests = shuffle(@tests);
     }
 
-    # Maintain BLACKLIST by exclude group list
+    # Genarate and maintain BLACKLIST by exclude group list
     my %tests_needto_exclude = exclude_grouplist;
-    %BLACKLIST = (%BLACKLIST, %tests_needto_exclude);
+    my %BLACKLIST = (genarate_blacklist, %tests_needto_exclude);
 
     test_prepare;
 
