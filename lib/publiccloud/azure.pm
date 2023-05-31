@@ -72,9 +72,10 @@ sub find_img {
 
     my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'eisleqaopenqa');
     my $key = $self->get_storage_account_keys($storage_account);
+    my $container = $self->container;
 
     $json = script_output("az storage blob show --account-key $key -o json " .
-          "--container-name '${self->container}' --account-name '$storage_account' --name '$name' " .
+          "--container-name '$container' --account-name '$storage_account' --name '$name' " .
           '--query="{name: name,createTime: properties.creationTime,md5: properties.contentSettings.contentMd5}"',
         proceed_on_failure => 1);
     record_info('BLOB INFO', $json);
@@ -122,15 +123,16 @@ sub get_storage_account_keys {
 
 sub create_resources {
     my ($self, $storage_account) = @_;
+    my $container = $self->container;
     my $timeout = 60 * 5;
     record_info('INFO', 'Create resource group ' . $self->resource_group);
     assert_script_run('az group create --name ' . $self->resource_group . ' -l ' . $self->provider_client->region, $timeout);
     record_info('INFO', 'Create storage account ' . $storage_account);
     assert_script_run('az storage account create --resource-group ' . $self->resource_group . ' -l '
           . $self->provider_client->region . ' --name ' . $storage_account . ' --kind Storage --sku Standard_LRS', $timeout);
-    record_info('INFO', 'Create storage container ' . $self->container);
+    record_info('INFO', 'Create storage container ' . $container);
     assert_script_run('az storage container create --account-name ' . $storage_account
-          . ' --name ' . $self->container, $timeout);
+          . ' --name ' . $container, $timeout);
     # Image gallery for Arm64 images
     assert_script_run('az sig create --resource-group ' . $self->resource_group . ' --gallery-name "' . $self->image_gallery . '" --description "openQA upload Gallery"', timeout => 300);
 }
@@ -161,6 +163,7 @@ sub upload_img {
     $img_name =~ s/\.vhdfixed/-$sku.vhd/;
     my $disk_name = $img_name;
     my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'eisleqaopenqa');
+    my $container = $self->container;
 
     my $arch = (check_var('PUBLIC_CLOUD_ARCH', 'arm64')) ? 'Arm64' : 'x64';
 
@@ -176,12 +179,12 @@ sub upload_img {
 
     # Note: VM images need to be a page blob type
     assert_script_run('az storage blob upload --max-connections 4 --type page'
-          . " --account-name '$storage_account' --account-key '$key' --container-name '${self->container}'"
+          . " --account-name '$storage_account' --account-key '$key' --container-name '$container'"
           . " --file '$file' --name '$img_name' --tags '$tags'", timeout => 60 * 60 * 2);
     # After blob is uploaded we save the MD5 of it as its metadata.
     # This is also to verify that the upload has been finished.
     my $file_md5 = script_output("md5sum $file | cut -d' ' -f1", timeout => 240);
-    assert_script_run("az storage blob update --account-key $key --container-name '${self->container}' --account-name '$storage_account' --name $img_name --content-md5 $file_md5");
+    assert_script_run("az storage blob update --account-key $key --container-name '$container' --account-name '$storage_account' --name $img_name --content-md5 $file_md5");
 
     if ($arch eq 'Arm64') {
         # For Arm64 images we need to use the image galleries
@@ -220,11 +223,11 @@ sub upload_img {
               "--architecture '$arch' --hyper-v-generation '$hyperv' --os-state 'Generalized'", timeout => 300);
         assert_script_run("az sig image-version create --resource-group '$resource_group' --gallery-name '$gallery' " .
               "--gallery-image-definition '$definition' --gallery-image-version '$version' --os-vhd-storage-account '$sa_url' " .
-              "--os-vhd-uri https://$storage_account.blob.core.windows.net/${self->container}/$img_name --target-regions $target_regions", timeout => 60 * 30);
+              "--os-vhd-uri https://$storage_account.blob.core.windows.net/$container/$img_name --target-regions $target_regions", timeout => 60 * 30);
     } else {
         # Create disk from blob
         assert_script_run('az disk create --resource-group ' . $self->resource_group . ' --name ' . $disk_name
-              . ' --source https://' . $storage_account . '.blob.core.windows.net/' . $self->container . '/' . $img_name
+              . ' --source https://' . $storage_account . '.blob.core.windows.net/' . $container . '/' . $img_name
               . ' --hyper-v-generation=' . $sku . ' --architecture=' . $arch);
         # Create image from disk
         assert_script_run('az image create --resource-group ' . $self->resource_group . ' --name ' . $img_name
