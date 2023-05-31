@@ -178,7 +178,7 @@ sub upload_img {
     my $key = $self->get_storage_account_keys($storage_account);
 
     # Note: VM images need to be a page blob type
-    assert_script_run('az storage blob upload --max-connections 4 --type page'
+    assert_script_run('az storage blob upload --max-connections 4 --type page --overwrite'
           . " --account-name '$storage_account' --account-key '$key' --container-name '$container'"
           . " --file '$file' --name '$img_name' --tags '$tags'", timeout => 60 * 60 * 2);
     # After blob is uploaded we save the MD5 of it as its metadata.
