@@ -12,14 +12,14 @@ use base "Exporter";
 use Exporter;
 
 use testapi;
-use utils qw(zypper_call handle_screen);
+use utils qw(zypper_call handle_screen zypper_repos);
 use JSON;
 use List::Util qw(max);
 use version_utils qw(is_sle is_transactional);
 
 our @EXPORT
   = qw(capture_state check_automounter is_patch_needed add_test_repositories disable_test_repositories enable_test_repositories
-  ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables);
+  add_extra_customer_repositories ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables);
 use constant ZYPPER_PACKAGE_COL => 1;
 use constant OLD_ZYPPER_STATUS_COL => 4;
 use constant ZYPPER_STATUS_COL => 5;
@@ -73,31 +73,37 @@ sub is_patch_needed {
     }
 }
 
+sub add_repo_if_not_present {
+    my ($url, $name) = @_;
+    my $gpg = get_var('BUILD') =~ m/^MR:/ ? "-G" : "";
+    my $system_repos = zypper_repos('-u');
+    zypper_call("--no-gpg-checks ar -f $gpg -n '$name' $url '$name'") unless grep { $_->{uri} eq $url } @$system_repos;
+}
+
+# https://progress.opensuse.org/issues/90522
+sub add_extra_customer_repositories {
+    my $arch = get_var('ARCH');
+    my @repo_list = (
+        {cond => '=12-SP2', name => '12-SP2-LTSS-ERICSSON-Updates', uri => "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update/"},
+        {cond => '=12-SP3', name => '12-SP3-LTSS-TERADATA-Updates', uri => "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3-LTSS-TERADATA/$arch/update/"},
+        {cond => '=15-SP3', name => '15-SP3-ERICSSON-Updates', uri => "http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP3-ERICSSON/$arch/update/"},
+        {cond => '=15-SP4', name => '15-SP4-ERICSSON-Updates', uri => "http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP4-ERICSSON/$arch/update/"}
+    );
+
+    for my $repo (@repo_list) {
+        add_repo_if_not_present($repo->{uri}, $repo->{name}) if is_sle($repo->{cond});
+    }
+}
+
 # Function that will add all test repos
 sub add_test_repositories {
     my $counter = 0;
 
     my $oldrepo = get_var('PATCH_TEST_REPO');
     my @repos = split(/,/, get_var('MAINT_TEST_REPO', ''));
-    my $gpg = get_var('BUILD') =~ m/^MR:/ ? "-G" : "";
-    my $system_repos = script_output('zypper lr -u');
 
-    if (is_sle('=12-SP2')) {
-        my $arch = get_var('ARCH');
-        my $url = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update/";
-        # don't add repo when it's already present
-        unless ($system_repos =~ /$url/) {
-            zypper_call("--no-gpg-checks ar -f $gpg $url '12-SP2-LTSS-ERICSSON-Updates'");
-        }
-    }
-    if (is_sle('=12-SP3')) {
-        my $arch = get_var('ARCH');
-        my $url = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3-LTSS-TERADATA/$arch/update/";
-        # don't add repo when it's already present
-        unless ($system_repos =~ /$url/) {
-            zypper_call("--no-gpg-checks ar -f $gpg $url '12-SP3-LTSS-TERADATA-Updates'");
-        }
-    }
+    add_extra_customer_repositories;
+
     # shim update will fail with old grub2 due to old signature
     if (get_var('MACHINE') =~ /uefi/ && !is_transactional) {
         zypper_call('up grub2 grub2-x86_64-efi kernel-default');
@@ -114,9 +120,7 @@ sub add_test_repositories {
         zypper_call('--gpg-auto-import-keys ref', timeout => 1400, exitcode => [0, 106]);
     } else {
         for my $var (@repos) {
-            # don't add repo when it's already present
-            next if $system_repos =~ /$var/;
-            zypper_call("--no-gpg-checks ar -f $gpg -n 'TEST_$counter' $var 'TEST_$counter'");
+            add_repo_if_not_present("$var", "TEST_$counter");
             $counter++;
         }
     }
