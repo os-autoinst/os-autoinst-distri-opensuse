@@ -379,23 +379,40 @@ sub remove_parameter {
     }
 }
 
-sub ssh_vm_cmd {
+sub ssh_vm_cmd_one {
     my ($cmd, $qa_password, $vm_ip_addr) = @_;
-    my $ret = script_run("sshpass -p ${qa_password} ssh -o StrictHostKeyChecking=no -qy root\@${vm_ip_addr} \"$cmd\"");
+    my $ret = script_run("sshpass -p ${qa_password} ssh -o StrictHostKeyChecking=no -qy root\@${vm_ip_addr} \"$cmd\"", timeout => 5);
     return $ret;
 }
+
+sub ssh_vm_cmd {
+    my $ret;
+    my ($cmd, $qa_password, $vm_ip_addr) = @_;
+    for (1 .. 3) {
+        $ret = ssh_vm_cmd_one($cmd, $qa_password, $vm_ip_addr);
+        if ($ret == 0) {
+            return $ret;
+        }
+    }
+    if ($ret ne 0) {
+        record_info('Error', 'SSH to guest fail after three times.');
+        diag "SSH to guest fail after three times.\n";
+    }
+    return $ret;
+}
+
 
 
 # Execute $cmd in vm and get output
 sub script_output_from_vm {
     my ($cmd, $qa_password, $vm_ip_addr) = @_;
-    my $output = script_output("sshpass -p ${qa_password} ssh -o StrictHostKeyChecking=no -qy root\@${vm_ip_addr} \"$cmd\"", proceed_on_failure => 1);
+    my $output = script_output("sshpass -p ${qa_password} ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -qy root\@${vm_ip_addr} \"$cmd\"", proceed_on_failure => 1);
     for (1 .. 3) {
         if ($output) {
             return $output;
         } else {
             sleep 2;
-            $output = script_output("sshpass -p ${qa_password} ssh -o StrictHostKeyChecking=no -qy root\@${vm_ip_addr} \"$cmd\"", proceed_on_failure => 1);
+            $output = script_output("sshpass -p ${qa_password} ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -qy root\@${vm_ip_addr} \"$cmd\"", proceed_on_failure => 1);
         }
     }
     record_info('ERROR', "Failed to get output from guest.");
