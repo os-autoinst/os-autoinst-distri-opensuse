@@ -461,6 +461,7 @@ sub do_check {
 sub cycle_workflow {
     my ($self, $carg, $ckey, $cvalue, $qa_password, $cvm_domain_name, $vm_ip_addr, $hyper_param) = @_;
     my $parameter = $ckey;
+    diag "Test begin:$parameter\n";
     ssh_vm_cmd("sed -i -e '/GRUB_CMDLINE_LINUX=/s/\\\"\$/ $parameter\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
     my $cmd_output = script_output_from_vm("grep GRUB_CMDLINE_LINUX= /etc/default/grub", $qa_password, $vm_ip_addr);
     if ($cmd_output !~ /$parameter/i) {
@@ -474,11 +475,14 @@ sub cycle_workflow {
               . "\nDomu kernel parameters:" . $vm_cmdline_output
               . "\nVulnerabilities value: " . $vm_vulnerability_output, result => 'ok');
     }
+    diag "Check the parameter:$parameter\n";
     my ($ret, $match_type, $match_value, $actual_output) = do_check($cvalue, $qa_password, $cvm_domain_name, $vm_ip_addr);
     if ($ret ne 0) {
         record_info('ERROR', "$parameter test is failed.", result => 'fail');
+        diag "$parameter test failed.\n";
     }
-    record_info('INFO', "$parameter test is finished.");
+    record_info("$parameter Finish", "$parameter test is finished.");
+    diag "$parameter test finished.\n";
     ssh_vm_cmd("sed -i -e '/GRUB_CMDLINE_LINUX=/s/ $parameter//g' /etc/default/grub", $qa_password, $vm_ip_addr);
     config_and_reboot($qa_password, $cvm_domain_name, $vm_ip_addr);
     return ($ret, $match_type, $match_value, $actual_output);
@@ -533,7 +537,7 @@ sub guest_cycle {
                     insert_tc2_xml(file_name => "$junit_file",
                         class_name => "$key",
                         case_status => "$testcase_status",
-                        sys_output => "$match_type:" . "$match_value",
+                        sys_output => "$match_type:" . "$match_value\n" . "Hypervisor params: " . $arg . "\nTest mode: " . $mode . "\nTestCase:" . $single,
                         sys_err => "Actual:" . "$actual_output");
                 } else {
                     insert_tc2_xml(file_name => "$junit_file",
