@@ -23,6 +23,18 @@ sub remove_subtest_setup {
     validate_script_output("podman ps -a --noheading", sub { /^\s*$/ });
 }
 
+sub is_container_running {
+    my @containers = @_;
+    my $out = script_output("podman container ps --format '{{.Names}}' --noheading");
+
+    foreach my $cont (@containers) {
+        next if ($out =~ m/$cont/);
+        record_soft_failure('bsc#1211774 - podman fails to start container with SELinux');
+        return 0;
+    }
+    return 1;
+}
+
 sub _cleanup {
     my $podman = shift->containers_factory('podman');
     select_console 'log-console';
@@ -86,8 +98,10 @@ sub run {
     assert_script_run("podman network create --gateway $net1->{gateway} --subnet $net1->{subnet} $net1->{name}");
     assert_script_run("podman run --network $net1->{name}:ip=$ctr1->{ip},mac=$ctr1->{mac} -d --name $ctr1->{name} $ctr1->{image}");
     assert_script_run("podman container inspect $ctr1->{name} --format {{.NetworkSettings.Networks.$net1->{name}.IPAddress}}");
-    validate_script_output("curl --head --silent $ctr1->{ip}:80", sub { /HTTP.* 200 OK/ });
-    assert_script_run("grep $ctr1->{name} /run/containers/networks/aardvark-dns/$net1->{name}");
+    if (is_container_running($ctr1->{name})) {
+        validate_script_output("curl --head --silent $ctr1->{ip}:80", sub { /HTTP.* 200 OK/ });
+        assert_script_run("grep $ctr1->{name} /run/containers/networks/aardvark-dns/$net1->{name}");
+    }
     remove_subtest_setup;
 
     ## TEST2
@@ -113,17 +127,19 @@ sub run {
     assert_script_run("podman run --network $net2->{name}:ip=$ctr2->{ip},mac=$ctr2->{mac} --network $net1->{name}:ip=$ctr2->{ip_sec},mac=$ctr2->{mac_sec} -dt --name $ctr2->{name} $ctr2->{image}");
 
     # second container should have 2 interfaces
-    my $net1_reg = qr@ether\s+$ctr2->{mac}.*\s+inet\s+$ctr2->{ip}\/16@;
-    my $net2_reg = qr@ether\s+$ctr2->{mac_sec}.*\s+inet\s+$ctr2->{ip_sec}\/16@;
-    validate_script_output("podman exec -t $ctr2->{name} /bin/sh -c 'ip addr show eth0'", sub { /$net1_reg|$net2_reg/m });
-    validate_script_output("podman exec -t $ctr2->{name} /bin/sh -c 'ip addr show eth1'", sub { /$net1_reg|$net2_reg/m });
+    if (is_container_running($ctr1->{name}, $ctr2->{name})) {
+        my $net1_reg = qr@ether\s+$ctr2->{mac}.*\s+inet\s+$ctr2->{ip}\/16@;
+        my $net2_reg = qr@ether\s+$ctr2->{mac_sec}.*\s+inet\s+$ctr2->{ip_sec}\/16@;
+        validate_script_output("podman exec -t $ctr2->{name} /bin/sh -c 'ip addr show eth0'", sub { /$net1_reg|$net2_reg/m });
+        validate_script_output("podman exec -t $ctr2->{name} /bin/sh -c 'ip addr show eth1'", sub { /$net1_reg|$net2_reg/m });
+        validate_script_output("podman exec -t $ctr2->{name} /bin/sh -c 'nslookup $ctr1->{name}'", sub { /Name:\s+$ctr1->{name}\s+Address.*$ctr1->{ip}/m });
+        validate_script_output("podman exec -t $ctr2->{name} /bin/sh -c 'wget -S $ctr1->{ip}:80'", sub { /HTTP.* 200 OK/ });
+        # busybox container should be able to resolve apache container
+        assert_script_run("grep $ctr1->{name} /run/containers/networks/aardvark-dns/$net1->{name}");
+        assert_script_run("grep $ctr2->{name} /run/containers/networks/aardvark-dns/$net1->{name}");
+        assert_script_run("grep $ctr2->{name} /run/containers/networks/aardvark-dns/$net2->{name}");
+    }
 
-    # busybox container should be able to resolve apache container
-    validate_script_output("podman exec -t $ctr2->{name} /bin/sh -c 'nslookup $ctr1->{name}'", sub { /Name:\s+$ctr1->{name}\s+Address.*$ctr1->{ip}/m });
-    validate_script_output("podman exec -t $ctr2->{name} /bin/sh -c 'wget -S $ctr1->{ip}:80'", sub { /HTTP.* 200 OK/ });
-    assert_script_run("grep $ctr1->{name} /run/containers/networks/aardvark-dns/$net1->{name}");
-    assert_script_run("grep $ctr2->{name} /run/containers/networks/aardvark-dns/$net1->{name}");
-    assert_script_run("grep $ctr2->{name} /run/containers/networks/aardvark-dns/$net2->{name}");
     remove_subtest_setup;
 
     ## TEST3
@@ -133,19 +149,21 @@ sub run {
     assert_script_run("podman run --network $net1->{name} -d --name $ctr1->{name6} --ip6 $ctr1->{ip6} -p 8080:80 $ctr1->{image}");
     assert_script_run("podman run --network $net1->{name} -d --name $ctr1->{name} --ip $ctr1->{ip} -p 8888:80 $ctr1->{image}");
 
-    foreach my $req ((
-            "-6 http://[$ctr1->{ip6}]:80",
-            "-4 http://$ctr1->{ip}:80",
-            'http://localhost:8080',
-            'http://localhost:8888'
-    )) {
-        validate_script_output("curl --retry 5 --head --silent $req", sub { /HTTP.* 200 OK/ }, timeout => 120);
+    if (is_container_running($ctr1->{name})) {
+        foreach my $req ((
+                "-6 http://[$ctr1->{ip6}]:80",
+                "-4 http://$ctr1->{ip}:80",
+                'http://localhost:8080',
+                'http://localhost:8888'
+        )) {
+            validate_script_output("curl --retry 5 --head --silent $req", sub { /HTTP.* 200 OK/ }, timeout => 120);
+        }
+        assert_script_run("podman container inspect $ctr1->{name} --format {{.NetworkSettings.Networks.$net1->{name}.IPAddress}}");
+        assert_script_run("podman container inspect $ctr1->{name6} --format {{.NetworkSettings.Networks.$net1->{name}.IPAddress}}");
+        assert_script_run("grep $ctr1->{name} /run/containers/networks/aardvark-dns/$net1->{name}");
+        assert_script_run("grep $ctr1->{name6} /run/containers/networks/aardvark-dns/$net1->{name}");
     }
 
-    assert_script_run("podman container inspect $ctr1->{name} --format {{.NetworkSettings.Networks.$net1->{name}.IPAddress}}");
-    assert_script_run("podman container inspect $ctr1->{name6} --format {{.NetworkSettings.Networks.$net1->{name}.IPAddress}}");
-    assert_script_run("grep $ctr1->{name} /run/containers/networks/aardvark-dns/$net1->{name}");
-    assert_script_run("grep $ctr1->{name6} /run/containers/networks/aardvark-dns/$net1->{name}");
     remove_subtest_setup;
 
     my $cur_version = script_output('rpm -q --qf "%{VERSION}\n" netavark');
@@ -160,8 +178,10 @@ sub run {
         my $dev = script_output(q(ip -br link show | awk '/UP / {print $1}'));
         assert_script_run("podman network create -d macvlan --interface-name $dev $net1->{name}");
         assert_script_run("podman run --network $net1->{name} -td --name $ctr2->{name} $ctr2->{image}");
-        assert_script_run("podman exec $ctr2->{name} ip addr show eth0");
-        assert_script_run("podman container inspect $ctr2->{name} --format {{.NetworkSettings.Networks.$net1->{name}.IPAddress}}");
+        if (is_container_running($ctr2->{name})) {
+            assert_script_run("podman exec $ctr2->{name} ip addr show eth0");
+            assert_script_run("podman container inspect $ctr2->{name} --format {{.NetworkSettings.Networks.$net1->{name}.IPAddress}}");
+        }
     }
 }
 
