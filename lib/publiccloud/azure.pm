@@ -74,7 +74,7 @@ sub find_img {
     my $key = $self->get_storage_account_keys($storage_account);
 
     $json = script_output("az storage blob show --account-key $key -o json " .
-          "--container-name '$self->container' --account-name '$storage_account' --name '$name' " .
+          "--container-name '${self->container}' --account-name '$storage_account' --name '$name' " .
           '--query="{name: name,createTime: properties.creationTime,md5: properties.contentSettings.contentMd5}"',
         proceed_on_failure => 1);
     record_info('BLOB INFO', $json);
@@ -176,12 +176,12 @@ sub upload_img {
 
     # Note: VM images need to be a page blob type
     assert_script_run('az storage blob upload --max-connections 4 --type page'
-          . " --account-name '$storage_account' --account-key '$key' --container-name '$self->container'"
+          . " --account-name '$storage_account' --account-key '$key' --container-name '${self->container}'"
           . " --file '$file' --name '$img_name' --tags '$tags'", timeout => 60 * 60 * 2);
     # After blob is uploaded we save the MD5 of it as its metadata.
     # This is also to verify that the upload has been finished.
     my $file_md5 = script_output("md5sum $file | cut -d' ' -f1", timeout => 240);
-    assert_script_run("az storage blob update --account-key $key --container-name '$self->container' --account-name '$storage_account' --name $img_name --content-md5 $file_md5");
+    assert_script_run("az storage blob update --account-key $key --container-name '${self->container}' --account-name '$storage_account' --name $img_name --content-md5 $file_md5");
 
     if ($arch eq 'Arm64') {
         # For Arm64 images we need to use the image galleries
@@ -220,7 +220,7 @@ sub upload_img {
               "--architecture '$arch' --hyper-v-generation '$hyperv' --os-state 'Generalized'", timeout => 300);
         assert_script_run("az sig image-version create --resource-group '$resource_group' --gallery-name '$gallery' " .
               "--gallery-image-definition '$definition' --gallery-image-version '$version' --os-vhd-storage-account '$sa_url' " .
-              "--os-vhd-uri https://$storage_account.blob.core.windows.net/$self->container/$img_name --target-regions $target_regions", timeout => 60 * 30);
+              "--os-vhd-uri https://$storage_account.blob.core.windows.net/${self->container}/$img_name --target-regions $target_regions", timeout => 60 * 30);
     } else {
         # Create disk from blob
         assert_script_run('az disk create --resource-group ' . $self->resource_group . ' --name ' . $disk_name
