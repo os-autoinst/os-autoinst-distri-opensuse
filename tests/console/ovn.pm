@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: openvswitch ovn ovn-central ovn-devel ovn-docker ovn-host ovn-vtep
@@ -15,7 +15,7 @@
 #    - Makes use of network namespaces to test basic
 #        connectivity between the ports
 #
-# Maintainer: Michael Grifalconi <mgrifalconi@suse.com>
+# Maintainer: Michael Grifalconi <mgrifalconi@suse.com>, QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use testapi;
@@ -23,13 +23,14 @@ use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
-use version_utils 'is_tumbleweed';
+use version_utils qw(is_sle is_leap is_tumbleweed);
 
 
 sub run {
     select_serial_terminal;
-    my $ovn_ver = get_var('OVN_VERSION', 'ovn');
-    zypper_call("in openvswitch $ovn_ver $ovn_ver-central $ovn_ver-devel $ovn_ver-docker $ovn_ver-host $ovn_ver-vtep", timeout => 300);
+    # 'ovn' packages are moved to legacy module, we need to test newer version on sle15sp5+
+    my $ovn_ver = (is_sle('>=15-sp5') or is_leap('>=15.5')) ? 'ovn3' : 'ovn';
+    zypper_call("in $ovn_ver $ovn_ver-central $ovn_ver-devel $ovn_ver-docker $ovn_ver-host $ovn_ver-vtep", timeout => 300);
 
     # Start the openvswitch and OVN daemons
     systemctl 'start openvswitch ovn-controller ovn-northd', timeout => 200;

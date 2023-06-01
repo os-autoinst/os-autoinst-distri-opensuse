@@ -1,12 +1,12 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2022 SUSE LLC
+# Copyright 2017-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Package: python openvswitch
 # Summary: The test to connect openvswitch to openflow with SSL enabled
 #
-# Maintainer: QE Security <none@suse.de>
+# Maintainer: QE Security <none@suse.de>, QE Core <qe-core@suse.de>
 # Tags: TC1595181, poo#65375, poo#107134
 
 use base "consoletest";
@@ -22,10 +22,12 @@ sub run {
     # Install runtime dependencies
     zypper_call("in wget");
 
+    # openvswitch is moved to legacy module, we need to test newer version on sle15sp5+
+    my $ovs_pkg = is_sle('>=15-sp5') ? 'openvswitch3' : 'openvswitch';
     if (is_sle("<=12-SP5")) {
-        zypper_call('in python python-base openvswitch');
+        zypper_call("in python python-base $ovs_pkg");
     } else {
-        zypper_call('in python3 python3-base openvswitch');
+        zypper_call("in python3 python3-base $ovs_pkg");
     }
 
     # Start openvswitch service
