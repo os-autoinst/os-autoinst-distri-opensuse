@@ -43,8 +43,8 @@ sub run {
         my @repos;
         my $incident;
         for my $maintrepo (@all_repos) {
-            $incident = $1 if $maintrepo =~ /\/Maintenance:\/(\d+)/g;
-            push(@repos, $maintrepo) unless (is_embargo_update($incident));
+            $incident = $1 if $maintrepo =~ /\/PTF:\/(\d+)/g;
+            push(@repos, $maintrepo);
         }
 
         s/http*:\/\/// for @repos;
