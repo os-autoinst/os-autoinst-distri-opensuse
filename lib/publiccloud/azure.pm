@@ -95,7 +95,7 @@ sub find_img {
         my $definition = get_required_var('DISTRI') . '-' . get_required_var('FLAVOR') . '-' . get_required_var('VERSION');
         $definition = get_var("PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION", uc($definition));
         $json = script_output("az sig image-version show --resource-group '$resource_group' --gallery-name '$gallery' " .
-              "--gallery-image-definition '$definition' --gallery-image-version '$version'", timeout => 60 * 30);
+              "--gallery-image-definition '$definition' --gallery-image-version '$version'", proceed_on_failure => 1, timeout => 60 * 30);
     } else {
         $json = script_output("az image show --resource-group " . $self->resource_group . " --name $name", 60, proceed_on_failure => 1);
         record_info('IMG INFO', $json);
