@@ -1,0 +1,9 @@
+---
+name: qam-glibc-sle11
+description: https://progress.opensuse.org/issues/125606
+schedule:
+- boot/boot_to_desktop
+- qa_automation/patch_and_reboot
+- console/gdb
+- console/glibc_sanity
+...
