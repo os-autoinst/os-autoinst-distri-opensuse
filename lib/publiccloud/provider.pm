@@ -260,7 +260,7 @@ sub get_image_uri {
     my ($self) = @_;
     my $image_uri = get_var("PUBLIC_CLOUD_IMAGE_URI");
     die 'The PUBLIC_CLOUD_IMAGE_URI variable makes sense only for Azure' if ($image_uri && !is_azure);
-    if ($image_uri =~ /^auto$/mi) {
+    if (!!$image_uri && $image_uri =~ /^auto$/mi) {
         my $definition = get_required_var('DISTRI') . '-' . get_required_var('FLAVOR') . '-' . get_required_var('VERSION');
         my $version = $self->calc_img_version();    # PUBLIC_CLOUD_BUILD PUBLIC_CLOUD_BUILD_KIWI
         my $subscriptions = $self->provider_client->subscription;
@@ -269,8 +269,10 @@ sub get_image_uri {
         $image_uri = "/subscriptions/$subscriptions/resourceGroups/$resource_group/providers/";
         $image_uri .= "Microsoft.Compute/galleries/$image_gallery/images/$definition/versions/$version";
         record_info 'IMAGE_URI', "Calculated IMAGE_URI=$image_uri";
-    } else {
+    } elsif (!!$image_uri) {
         record_info 'IMAGE_URI', "Provided IMAGE_URI=$image_uri";
+    } else {
+        record_info 'IMAGE_URI', 'IMAGE_URI not found!';
     }
     return $image_uri;
 }
