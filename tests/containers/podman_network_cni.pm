@@ -14,7 +14,6 @@ use serial_terminal 'select_serial_terminal';
 use version_utils qw(package_version_cmp);
 use containers::utils qw(registry_url container_ip);
 use containers::utils qw(get_podman_version);
-use Data::Dumper;
 
 
 sub run() {
@@ -63,9 +62,9 @@ sub run() {
 
         assert_script_run('podman run -id --rm --name container1 -p 1234:1234 registry.opensuse.org/opensuse/tumbleweed');
         assert_script_run('podman run -id --rm --name container2 -p 1235:1235 registry.opensuse.org/opensuse/tumbleweed');
-        my $container_id = script_output('podman run -id --rm --name container3 -p 8080:80 registry.opensuse.org/opensuse/nginx');
+        assert_script_run('podman run -id --rm --name container3 -p 8080:80 registry.opensuse.org/opensuse/nginx');
 
-        record_info('Debug', $container_id);
+        my $container_id = script_output("podman inspect -f '{{.Id}}' container3");
 
         record_info('Connect', 'Connect the containers to the networks');
         assert_script_run('podman network connect newnet1 container1');
