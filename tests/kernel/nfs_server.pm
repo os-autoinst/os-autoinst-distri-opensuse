@@ -61,7 +61,6 @@ sub run {
 
     record_info("NFS config", script_output("cat /etc/sysconfig/nfs"));
 
-    #my $nfsstat = script_output("nfsstat -s");
     record_info("NFS stat for server", script_output("nfsstat -s"));
 
     barrier_wait("NFS_SERVER_ENABLED");
