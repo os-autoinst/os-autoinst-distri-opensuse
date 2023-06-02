@@ -62,8 +62,9 @@ sub run() {
 
         assert_script_run('podman run -id --rm --name container1 -p 1234:1234 registry.opensuse.org/opensuse/tumbleweed');
         assert_script_run('podman run -id --rm --name container2 -p 1235:1235 registry.opensuse.org/opensuse/tumbleweed');
-        my $container_id = script_output('podman run -id --rm --name container3 -p 8080:80 registry.opensuse.org/opensuse/nginx');
+        assert_script_run('podman run -id --rm --name container3 -p 8080:80 registry.opensuse.org/opensuse/nginx');
 
+        my $container_id = script_output("podman inspect -f '{{.Id}}' container3");
 
         record_info('Connect', 'Connect the containers to the networks');
         assert_script_run('podman network connect newnet1 container1');
