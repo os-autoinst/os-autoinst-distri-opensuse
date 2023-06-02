@@ -83,15 +83,21 @@ sub add_repo_if_not_present {
 # https://progress.opensuse.org/issues/90522
 sub add_extra_customer_repositories {
     my $arch = get_var('ARCH');
-    my @repo_list = (
-        {cond => '=12-SP2', name => '12-SP2-LTSS-ERICSSON-Updates', uri => "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update/"},
-        {cond => '=12-SP3', name => '12-SP3-LTSS-TERADATA-Updates', uri => "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3-LTSS-TERADATA/$arch/update/"},
-        {cond => '=15-SP3', name => '15-SP3-ERICSSON-Updates', uri => "http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP3-ERICSSON/$arch/update/", arch_only => 'x86_64'},
-        {cond => '=15-SP4', name => '15-SP4-ERICSSON-Updates', uri => "http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP4-ERICSSON/$arch/update/", arch_only => 'x86_64'}
+    my %repo_list = (
+        x86_64 => [
+            {cond => '=12-SP2', name => '12-SP2-LTSS-ERICSSON-Updates', uri => 'http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/x86_64/update/'},
+            {cond => '=12-SP3', name => '12-SP3-LTSS-TERADATA-Updates', uri => 'http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3-LTSS-TERADATA/x86_64/update/'},
+            {cond => '=15-SP3', name => '15-SP3-ERICSSON-Updates', uri => 'http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP3-ERICSSON/x86_64/update/'},
+            {cond => '=15-SP4', name => '15-SP4-ERICSSON-Updates', uri => 'http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP4-ERICSSON/x86_64/update/'},
+        ],
+        s390x => [],
+        ppc64le => [],
+        aarch64 => [],
     );
 
-    for my $repo (@repo_list) {
-        add_repo_if_not_present($repo->{uri}, $repo->{name}) if is_sle($repo->{cond}) && defined($repo->{arch_only}) eq 'x86_64';
+    for my $repo (@{$repo_list{$arch}}) {
+        return unless $repo_list{$arch};
+        add_repo_if_not_present($repo->{uri}, $repo->{name}) if is_sle($repo->{cond});
     }
 }
 
