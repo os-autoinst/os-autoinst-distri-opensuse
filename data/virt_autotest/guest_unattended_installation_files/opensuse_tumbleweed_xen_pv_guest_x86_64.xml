@@ -10,7 +10,7 @@
       <secure_boot>false</secure_boot>
       <serial>serial --unit=0 --speed=115200 --parity=no --word=8</serial>
       <terminal>gfxterm serial</terminal>
-      <timeout t="integer">8</timeout>
+      <timeout t="integer">1</timeout>
       <update_nvram>true</update_nvram>
     </global>
     <loader_type>grub2</loader_type>
