@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2021 SUSE LLC
+# Copyright 2016-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: openvswitch iputils
@@ -14,7 +14,7 @@
 #    connectivity between veth pairs and OvS switches connected via
 #    patch ports.
 #
-# Maintainer: Markos Chandras <mchandras@suse.de>
+# Maintainer: Markos Chandras <mchandras@suse.de>, QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use testapi;
@@ -22,12 +22,13 @@ use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_leap);
 
 sub run {
     select_serial_terminal;
 
-    my $pkg_name = 'openvswitch';
+    # openvswitch is moved to legacy module, we need to test newer version on sle15sp5+
+    my $pkg_name = (is_sle('>=15-sp5') or is_leap('>=15.5')) ? 'openvswitch3' : 'openvswitch';
     # package openvswitch-switch still exist for sle12-sp2
     $pkg_name = 'openvswitch-switch' if is_sle('=12-sp2');
 
