@@ -6,4 +6,6 @@ vars:
     YUI_REST_API: 1
 schedule:
     - microos/disk_boot
+    - console/setup_libyui_running_system
+    - yam/yast_modules/control_center
     - shutdown/shutdown
