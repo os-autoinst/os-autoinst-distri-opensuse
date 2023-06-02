@@ -205,8 +205,10 @@ sub install_lock_kernel {
     my @lpackages = @packages;
     my %packver = (
         'kernel-devel' => $src_version,
+        'kernel-devel-rt' => $src_version,
         'kernel-macros' => $src_version,
-        'kernel-source' => $src_version
+        'kernel-source' => $src_version,
+        'kernel-source-rt' => $src_version
     );
 
     if (check_var('SLE_PRODUCT', 'slert')) {
