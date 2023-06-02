@@ -6,7 +6,6 @@
       <append>console=tty console=ttyS0,115200n8 mitigations=auto</append>
       <cpu_mitigations>auto</cpu_mitigations>
       <gfxmode>auto</gfxmode>
-      <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
       <secure_boot>false</secure_boot>
       <serial>serial --unit=0 --speed=115200 --parity=no --word=8</serial>
