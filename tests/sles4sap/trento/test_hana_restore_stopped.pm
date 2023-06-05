@@ -44,7 +44,9 @@ sub run {
 
     my $cypress_test_dir = "/root/test/test";
     enter_cmd "cd $cypress_test_dir";
-    cypress_test_exec($cypress_test_dir, 'restore_cluster', bmwqemu::scale_timeout(900));
+    cypress_test_exec(cypress_test_dir => $cypress_test_dir,
+        test_tag => 'restore_cluster',
+        timeout => bmwqemu::scale_timeout(900));
     trento_support();
     trento_collect_scenarios('test_hana_restore_stopped');
 }
