@@ -598,51 +598,52 @@ subtest '[az_delete_group]' => sub {
 };
 
 subtest '[cypress_test_exec]' => sub {
+    # Simulate cypress_test_exec for folder with single test
+    # test is passing.
+    # Test is focus on how many time underline functions are called
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     @calls = ();
     my $calls_cy_exec = 0;
     my $calls_cy_logs = 0;
     my $calls_parse_extra = 0;
 
-    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $trento->redefine(cypress_exec => sub { $calls_cy_exec += 1; return 0; });
-    $trento->redefine(cypress_log_upload => sub { $calls_cy_logs += 1; return 0; });
-    $trento->redefine(parse_extra_log => sub {
-            $calls_parse_extra += 1;
-            push @calls, "parse_extra_log( XUnit , $_[1] )";
-            return 0; });
     $trento->redefine(script_output => sub {
             push @calls, $_[0];
             if ($_[0] =~ /iname\s".*js"/) { return "test_caciucco.js"; }
             if ($_[0] =~ /iname\s".*test_result_.*"/) { return "result_caciucco.xml"; }
             return '';
     });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $trento->redefine(cypress_exec => sub { $calls_cy_exec += 1; return 0; });
 
-    my $ret = cypress_test_exec('TEST_DIR', 'FARINATA', 1000);
+    $trento->redefine(cypress_log_upload => sub { $calls_cy_logs += 1; return 0; });
+    $trento->redefine(parse_extra_log => sub {
+            $calls_parse_extra += 1;
+            push @calls, "parse_extra_log( XUnit , $_[1] )";
+            return 0; });
+    $trento->redefine(enter_cmd => sub { push @calls, $_[0]; });
+
+    my $ret = cypress_test_exec(cypress_test_dir => 'TEST_DIR', test_tag => 'FARINATA', timeout => 1000);
     note("ret : $ret");
     note("\n  C-->  " . join("\n  C-->  ", @calls));
 
     # ==1 as there's only one test file "test_caciucco.js"
     ok $calls_cy_exec == 1, "cypress_exec called one time.";
+    # ==1 as there's only one result_caciucco.xml
     ok $calls_cy_logs == 1, "cypress_log_upload called one time.";
     ok $calls_parse_extra == 1, "parse_extra_log called one time.";
     ok $ret == 0, "Zero errors accumulated in the return.";
 };
 
 subtest '[cypress_test_exec] keep running' => sub {
+    # Simulate cypress_test_exec for folder with multiple test
+    # each single test is failing but function has to run all of them
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     @calls = ();
     my $calls_cy_exec = 0;
     my $calls_cy_logs = 0;
     my $calls_parse_extra = 0;
 
-    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $trento->redefine(cypress_exec => sub { $calls_cy_exec += 1; return 7; });
-    $trento->redefine(cypress_log_upload => sub { $calls_cy_logs += 1; return 0; });
-    $trento->redefine(parse_extra_log => sub {
-            $calls_parse_extra += 1;
-            push @calls, "parse_extra_log( XUnit , $_[1] )";
-            return 0; });
     $trento->redefine(script_output => sub {
             push @calls, $_[0];
             if ($_[0] =~ /iname\s".*js"/) { return "test_caciucco.js\ntest_seppia.js\ntest_polpo.js"; }
@@ -653,11 +654,22 @@ subtest '[cypress_test_exec] keep running' => sub {
             if ($_[0] =~ /iname\s".*test_result_.*"/) { return "result_the_right_one.xml"; }
             return '';
     });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $ret = cypress_test_exec('TEST_DIR', 'FARINATA', 1000);
+    # simulate an error
+    $trento->redefine(cypress_exec => sub { $calls_cy_exec += 1; return 7; });
+
+    $trento->redefine(cypress_log_upload => sub { $calls_cy_logs += 1; return 0; });
+    $trento->redefine(parse_extra_log => sub {
+            $calls_parse_extra += 1;
+            push @calls, "parse_extra_log( XUnit , $_[1] )";
+            return 0; });
+    $trento->redefine(enter_cmd => sub { push @calls, $_[0]; });
+
+    my $ret = cypress_test_exec(cypress_test_dir => 'TEST_DIR', test_tag => 'FARINATA', timeout => 1000);
+
     note("ret : $ret");
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-
     # ==3 as there are 3 test files
     ok $calls_cy_exec == 3, "cypress_exec called one time.";
     ok $calls_cy_logs == 3, "cypress_log_upload called one time.";
@@ -666,76 +678,89 @@ subtest '[cypress_test_exec] keep running' => sub {
 };
 
 subtest '[cypress_test_exec] Base execution' => sub {
-    # This test, at the moment, it is testing multiple trento.pm layers
-    #  - cypress_test_exec
-    #  - cypress_exec
-    #  - cypress_log_upload
+    # test cypress_test_exec with single test file
+    # this test focus on arguments passed to underline API
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     @calls = ();
     @logs = ();
-
-    $trento->redefine(script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(cypress_exec => sub { my (%args) = @_; push @calls, $args{cmd}; return 0; });
+    $trento->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $trento->redefine(parse_extra_log => sub { push @logs, @_; });
     $trento->redefine(script_output => sub {
-            push @calls, $_[0];
             if ($_[0] =~ /iname\s".*js"/) { return "test_caciucco.js"; }
             if ($_[0] =~ /iname\s".*test_result_.*"/) { return "result_caciucco.xml"; }
             return '';
     });
-    my $ret = cypress_test_exec('TEST_DIR', 'FARINATA', 1000);
+
+    cypress_test_exec(cypress_test_dir => 'TEST_DIR', test_tag => 'FARINATA', timeout => 1000);
+
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     note("\n  L-->  " . join("\n  L-->  ", @logs));
-    like $logs[0], qr/XUnit/;
-    like $logs[1], qr/result_caciucco/;
+    like $logs[0], qr/XUnit/, "Proper parse_extra_log type";
+    like $logs[1], qr/result_caciucco/, "Proper parse_extra_log file";
 
-    ok((any { /podman run.*\/test_caciucco\.js/ } @calls), 'Podman run of the test file');
-    ok((any { /podman run.*\/cypress_FARINATA_test_caciucco_log\.txt/ } @calls), 'Podman run store log in cypress_FARINATA_test_caciucco_log.txt');
+    ok((any { /run.*\/test_caciucco\.js.*test_result_FARINATA_test_caciucco\.xml,/ } @calls), 'Podman run of the test file');
 };
 
 subtest '[cypress_test_exec] Base execution with multiple test files' => sub {
-    # This test, at the moment, it is testing multiple trento.pm layers
-    #  - cypress_test_exec
-    #  - cypress_exec
-    #  - cypress_log_upload
+    # test cypress_test_exec with multiple test file
+    # this test focus on arguments passed to underline API
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     @calls = ();
     @logs = ();
-
-    $trento->redefine(script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(cypress_exec => sub { my (%args) = @_; push @calls, $args{cmd}; return 0; });
+    $trento->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $trento->redefine(parse_extra_log => sub { push @logs, @_; });
     $trento->redefine(script_output => sub {
             push @calls, $_[0];
-            if ($_[0] =~ /iname\s".*js"/) { return '
+            my $find_res;
+            if ($_[0] =~ /iname\s".*js"/) {
+                $find_res = '
 test_caciucco.js
-test_capponata.js'; }
-            if ($_[0] =~ /iname\s".*test_result_.*"/) { return "result_caciucco.xml"; }
+test_capponata.js';
+                note("\nfind return : $find_res");
+                return $find_res; }
+            if ($_[0] =~ /iname\s".*test_result_.*"/) {
+                $find_res = 'result_caciucco.xml';
+                note("\nfind return : $find_res");
+                return $find_res;
+            }
+            note("\n  WARNING --> Unexpected script_output call with $_[0]");
             return '';
     });
-    cypress_test_exec('TEST_DIR', 'FARINATA', 1000);
+
+    cypress_test_exec(cypress_test_dir => 'TEST_DIR', test_tag => 'FARINATA', timeout => 1000);
+
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     note("\n  L-->  " . join("\n  L-->  ", @logs));
-    like $logs[0], qr/XUnit/;
-    like $logs[1], qr/result_caciucco/;
+    like $logs[0], qr/XUnit/, "Proper parse_extra_log type";
+    like $logs[1], qr/result_caciucco/, "Proper parse_extra_log file";
 
-    ok((any { /podman run.*\/test_caciucco\.js/ } @calls), 'Podman run of the test file test_caciucco.js');
-    ok((any { /podman run.*\/cypress_FARINATA_test_caciucco_log\.txt/ } @calls), 'Podman run store log in cypress_FARINATA_test_caciucco_log.txt');
-    ok((any { /podman run.*\/test_capponata\.js/ } @calls), 'Podman run of the test file test_capponata.js');
-    ok((any { /podman run.*\/cypress_FARINATA_test_capponata_log\.txt/ } @calls), 'Podman run store log in cypress_FARINATA_test_capponata_log.txt');
+    ok((any { /run.*\/test_caciucco\.js/ } @calls),
+        'Podman run of the test file test_caciucco.js');
+
+    ok((any { /run.*\/test_result_FARINATA_test_caciucco\.xml/ } @calls),
+        'Podman run store log in test_result_FARINATA_test_caciucco.xml');
+
+    ok((any { /run.*\/test_capponata\.js/ } @calls),
+        'Podman run of the test file test_capponata.js');
+
+    ok((any { /run.*\/test_result_FARINATA_test_capponata\.xml/ } @calls),
+        'Podman run store log in test_result_FARINATA_test_capponata.xml');
 };
 
 subtest '[cypress_test_exec] old CY' => sub {
-    # This test, at the moment, it is testing multiple trento.pm layers
-    #  - cypress_test_exec
-    #  - cypress_exec
-    #  - cypress_log_upload
+    # This test is to check that the function compose
+    # a different 'cypress run' command for two different
+    # cy.io versions.
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     @calls = ();
-
-    $trento->redefine(script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(cypress_exec => sub { my (%args) = @_; push @calls, $args{cmd}; return 0; });
+    $trento->redefine(enter_cmd => sub { });
     $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $trento->redefine(parse_extra_log => sub { return; });
+    $trento->redefine(parse_extra_log => sub { });
     $trento->redefine(script_output => sub {
             push @calls, $_[0];
             if ($_[0] =~ /iname\s".*js"/) { return "test_caciucco.js"; }
@@ -743,24 +768,26 @@ subtest '[cypress_test_exec] old CY' => sub {
             return '';
     });
     set_var('TRENTO_CYPRESS_VERSION', '1.2.3');
-    cypress_test_exec('TEST_DIR', 'FARINATA', 1000);
+    cypress_test_exec(cypress_test_dir => 'TEST_DIR', test_tag => 'FARINATA', timeout => 1000);
     set_var('TRENTO_CYPRESS_VERSION', undef);
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok((any { /podman run.*docker\.io\/cypress\/included:1\.2\.3/ } @calls), 'Podman run use the selected CY version tag');
-    ok((any { /podman run.*cypress\/integration\/FARINATA\// } @calls), 'Podman get test file in old folder');
+
+    # The important part is 'cypress\/integration'
+    ok((any { /run.*cypress\/integration\/FARINATA\// } @calls), 'Podman get test file in old folder');
 };
 
 subtest '[cypress_test_exec] new CY' => sub {
-    # This test, at the moment, it is testing multiple trento.pm layers
-    #  - cypress_test_exec
-    #  - cypress_exec
-    #  - cypress_log_upload
+    # This test is to check that the function compose
+    # a different 'cypress run' command for two different
+    # cy.io versions.
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     @calls = ();
 
-    $trento->redefine(script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(cypress_exec => sub { my (%args) = @_; push @calls, $args{cmd}; return 0; });
+    $trento->redefine(enter_cmd => sub { });
+    $trento->redefine(wait_serial => sub { });
     $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $trento->redefine(parse_extra_log => sub { return; });
+    $trento->redefine(parse_extra_log => sub { });
     $trento->redefine(script_output => sub {
             push @calls, $_[0];
             if ($_[0] =~ /iname\s".*js"/) { return "test_caciucco.js"; }
@@ -768,26 +795,96 @@ subtest '[cypress_test_exec] new CY' => sub {
             return '';
     });
     set_var('TRENTO_CYPRESS_VERSION', '10.2.3');
-    cypress_test_exec('TEST_DIR', 'FARINATA', 1000);
+    cypress_test_exec(cypress_test_dir => 'TEST_DIR', test_tag => 'FARINATA', timeout => 1000);
     set_var('TRENTO_CYPRESS_VERSION', undef);
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok((any { /podman run.*docker\.io\/cypress\/included:10\.2\.3/ } @calls), 'Podman run use the selected CY version tag');
-    ok((any { /podman run.*cypress\/e2e\/FARINATA\// } @calls), 'Podman get test file in new folder');
+
+    # The important part is 'cypress\/e2e'
+    ok((any { /run.*cypress\/e2e\/FARINATA\// } @calls), 'Podman get test file in new folder');
 };
 
 subtest '[cypress_exec]' => sub {
+    # Simpler possible test about cypress_exec. Only test that "some"
+    # podman commands are called and simulate podman_wait to return 0
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     @calls = ();
 
+    $trento->redefine(random_string => sub { return 'STRUDEL'; });
+    $trento->redefine(podman_delete_all => sub { });
+
+    $trento->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $trento->redefine(script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(wait_serial => sub { return; });
+
+    # Function to async determine that podman run has finished
+    $trento->redefine(podman_wait => sub { return 0; });
+
     $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    cypress_exec(cypress_test_dir => 'TEST_DIR',
+
+    my $ret = cypress_exec(cypress_test_dir => 'TEST_DIR',
+        cmd => 'FARINATA',
+        log_prefix => 'FARINATA');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
+    ok((any { /podman run.*FARINATA.*/ } @calls), 'Called podman run');
+    ok((any { /podman.*>.*cypress_FARINATA_log.txt/ } @calls), 'podman run output redirected to file');
+    ok((any { /podman.*rm.*STRUDEL/ } @calls), 'podman run output redirected to file');
+    ok $ret == 0, "cypress_exec return code is ok";
+};
+
+
+subtest '[cypress_exec] specific Cypress version' => sub {
+    # Cypress version is controlled by a setting
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+
+    $trento->redefine(random_string => sub { return 'STRUDEL'; });
+    $trento->redefine(podman_delete_all => sub { });
+
+    $trento->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $trento->redefine(script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(wait_serial => sub { return; });
+
+    # Function to async determine that podman run has finished
+    $trento->redefine(podman_wait => sub { return 0; });
+
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    set_var('TRENTO_CYPRESS_VERSION', '10.2.3');
+    my $ret = cypress_exec(cypress_test_dir => 'TEST_DIR',
+        cmd => 'FARINATA',
+        log_prefix => 'FARINATA');
+    set_var('TRENTO_CYPRESS_VERSION', undef);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
+    ok((any { /podman run.*docker\.io\/cypress\/included:10\.2\.3/ } @calls), 'Podman run use the selected CY version tag');
+};
+
+subtest '[cypress_exec] podman run error' => sub {
+    # Simulate podman run exited with error.
+
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+
+    $trento->redefine(random_string => sub { return 'STRUDEL'; });
+    $trento->redefine(podman_delete_all => sub { });
+    $trento->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $trento->redefine(script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(wait_serial => sub { return; });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    # Simulate the error here
+    $trento->redefine(podman_wait => sub { return 42; });
+
+    my $ret = cypress_exec(cypress_test_dir => 'TEST_DIR',
         cmd => 'FARINATA',
         log_prefix => 'FARINATA');
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok((any { /podman images/ } @calls), 'Podman run');
-    ok((any { /podman rm/ } @calls), 'Podman run');
-    ok((any { /podman run.*/ } @calls), 'Podman run');
+
+    # Error has to be reported outside
+    ok $ret == 42, "cypress_exec return code is ok";
 };
 
 subtest '[cluster_wait_status_by_regex] not enough arguments' => sub {
@@ -846,5 +943,96 @@ subtest '[cluster_wait_status]' => sub {
     ok(scalar @calls == 1, 'cluster_wait_status exit after the first qesap_ansible_script_output call as the output match the regexp');
 };
 
+subtest '[podman_wait] ret 0' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+
+    $trento->redefine(script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(script_output => sub {
+            return 'Exited (0) 38 seconds ago,STRUDEL';
+    });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = podman_wait(name => 'STRUDEL', timeout => 1);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok $ret == 0;
+    ok((any { /wait.*pgrep.*podman/ } @calls), 'Wait podman process to terminate');
+    ok((!any { /podman.*logs/ } @calls), 'podman logs not called if podman exit 0');
+};
+
+subtest '[podman_wait] support for more than one dessert' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+
+    $trento->redefine(script_run => sub { });
+    $trento->redefine(script_output => sub {
+            return 'Exited (0) 38 seconds ago,KRAPFEN';
+    });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = podman_wait(name => 'KRAPFEN', timeout => 42);
+
+    ok $ret == 0;
+};
+
+subtest '[podman_wait] ret 42' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+
+    $trento->redefine(script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(script_output => sub {
+            return 'Exited (42) 38 seconds ago,STRUDEL';
+    });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = podman_wait(name => 'STRUDEL', timeout => 1);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok $ret == 42;
+    ok((any { /podman.*logs/ } @calls), 'podman logs not called if podman exit 0');
+};
+
+subtest '[podman_wait] timeout' => sub {
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+    @calls = ();
+
+    $trento->redefine(script_run => sub { push @calls, $_[0]; });
+    $trento->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $trento->redefine(script_output => sub {
+            return 'Up 38 seconds ago,STRUDEL';
+    });
+    $trento->redefine(podman_exec => sub { my (%args) = @_; push @calls, $args{cmd}; });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = podman_wait(name => 'STRUDEL', timeout => 1);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok $ret == 1;
+    ok((any { /pkill.*cypress/ } @calls), 'pkill cypress');
+    ok((any { /pkill.*podman/ } @calls), 'pkill cypress');
+    ok((any { /podman.*logs/ } @calls), 'podman logs not called if podman exit 0');
+};
+
+subtest '[podman_delete_all]' => sub {
+    @calls = ();
+    my $trento = Test::MockModule->new('trento', no_auto => 1);
+
+    $trento->redefine(script_output => sub {
+            return 'Exited (0) 38 seconds ago,trento_cy123223
+Up,trento_cy3123434
+Up,somethingelsenottrento
+Exited (0) 38 seconds ago,trento_cy12331345';
+    });
+    $trento->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $trento->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    podman_delete_all();
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /podman.*rm.*trento_cy123223/ } @calls), 'Podman rm trento_cy123223');
+    ok((any { /podman.*rm.*trento_cy3123434/ } @calls), 'Podman rm trento_cy3123434');
+    ok((any { /podman.*rm.*trento_cy12331345/ } @calls), 'Podman rm trento_cy12331345');
+    ok(scalar @calls == 3, 'somethingelsenottrento is not removed');
+};
 
 done_testing;
