@@ -94,7 +94,13 @@ sub run {
     $self->mariadb_setup();
 
     # Set up Web environment for running Adminer
+    # Note that adminer_setup() also does a test run - at this stage, with Apache running unconfined
     $self->adminer_setup();
+
+    # Stop unconfined Apache instance before loading the AppArmor profile for it.
+    # This is needed to avoid that a confined Apache process ("restart" after loading the AppArmor profile)
+    # sends a signal to its unconfined predecessor (boo#1211766)
+    systemctl("stop apache2");
 
     # Configure Apache's mod_apparmor, so that AppArmor can detect
     # accesses to Adminer and change to the specific “hat”
@@ -102,8 +108,6 @@ sub run {
     assert_script_run("echo '<Directory /srv/www/htdocs/adminer>' > $apparmor_conf_file");
     assert_script_run("echo 'AAHatName adminer' >> $apparmor_conf_file");
     assert_script_run("echo '</Directory>' >> $apparmor_conf_file");
-    # Then, restart Apache
-    systemctl("restart apache2");
 
     # Apache now knows about the Adminer and changing a “hat” for it,
     # It is time to create the related hat for Adminer,
@@ -136,8 +140,8 @@ sub run {
     assert_script_run("echo > $audit_log");
     assert_script_run("echo '=== separation line for reference ===' >> /var/log/apache2/error_log");
 
-    # Then, restart Apache
-    systemctl("restart apache2");
+    # Now that the AppArmor profile is loaded, start Apache again
+    systemctl("start apache2");
 
     # Do some operations on Adminer web, e.g., log in, select/delete a database
     $self->adminer_database_delete();
