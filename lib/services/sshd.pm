@@ -145,8 +145,8 @@ sub ssh_basic_check {
     # SCP (poo#46937)
     assert_script_run "echo 'sshd.pm: Testing SCP subsystem' | logger";
     assert_script_run "scp -4v $ssh_testman\@localhost:/etc/resolv.conf /tmp";
-    assert_script_run "scp -4v '$ssh_testman\@localhost:/etc/{group,passwd}' /tmp";
-    assert_script_run "scp -4v '$ssh_testman\@localhost:/etc/ssh/*.pub' /tmp";
+    assert_script_run "scp -4v $ssh_testman\@localhost:/etc/{group,passwd} /tmp";
+    assert_script_run "scp -4v $ssh_testman\@localhost:/etc/ssh/*.pub /tmp";
 }
 
 sub do_ssh_cleanup {
