@@ -41,13 +41,13 @@ sub run {
         # We need to exclude embargoed incidents
         my @all_repos = split(/,/, get_var('MAINT_TEST_REPO'));
         my @repos;
-        my $incident;
+        my ($incident, $type);
         for my $maintrepo (@all_repos) {
-            $incident = $1 if $maintrepo =~ /\/Maintenance:\/(\d+)/g;
-            push(@repos, $maintrepo) unless (is_embargo_update($incident));
+            ($incident, $type) = ($2, $1) if ($maintrepo =~ /\/(PTF|Maintenance):\/(\d+)/g);
+            push(@repos, $maintrepo) unless (is_embargo_update($incident, $type));
         }
 
-        s/http*:\/\/// for @repos;
+        s/https?:\/\/// for @repos;
 
         # Create list of directories for rsync
         my $directories;
@@ -57,7 +57,17 @@ sub run {
         # Mitigate occasional CSP network problems (especially one CSP is prone to those issues!)
         # Delay of 2 minutes between the tries to give their network some time to recover after a failure
         # For rsync the ~/repos/./ means that the --relative will take efect after.
-        script_retry("rsync --timeout=$timeout -uahRd -e ssh --files-from /tmp/transfer_repos.txt ~/repos/./ '$remote:/tmp/repos/'", timeout => $timeout + 10, retry => 3, delay => 120);
+        # * The --relative (-R) option is implied when --files-from is specified.
+        # * The --dirs (-d) option is implied whn --files-from is specified.
+        # * The --archive (-a) option's behavior does not imply --recursive (-r) when --files-from is specified.
+        # --recursive (-r), --update (-u), --archive (-a), --human-readable (-h), --rsh (-e)
+        script_retry("rsync --timeout=$timeout -ruahd -e ssh --files-from /tmp/transfer_repos.txt ~/repos/./ '$remote:/tmp/repos/'", timeout => $timeout + 10, retry => 3, delay => 120);
+
+        my $total_size = $args->{my_instance}->ssh_script_output(cmd => 'du -hs /tmp/repos');
+        record_info("Repo size", "Total repositories size: $total_size");
+        $args->{my_instance}->ssh_assert_script_run("find ./ -name '*.rpm' -exec du -h '{}' + | sort -h > /tmp/rpm_list.txt", timeout => 60);
+        $args->{my_instance}->upload_log('/tmp/rpm_list.txt');
+
         $args->{my_instance}->ssh_assert_script_run("sudo find /tmp/repos/ -name *.repo -exec sed -i 's,http://,/tmp/repos/,g' '{}' \\;");
         $args->{my_instance}->ssh_assert_script_run("sudo find /tmp/repos/ -name *.repo -exec zypper ar -p10 '{}' \\;");
         $args->{my_instance}->ssh_assert_script_run("sudo find /tmp/repos/ -name *.repo -exec echo '{}' \\;");

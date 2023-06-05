@@ -169,7 +169,8 @@ sub is_hardened() {
 }
 
 sub is_embargo_update {
-    my ($incident) = @_;
+    my ($incident, $type) = @_;
+    return 0 if ($type =~ /PTF/);
     script_retry("curl -sSf https://build.suse.de/attribs/SUSE:Maintenance:$incident -o /tmp/$incident.txt");
     return 1 if (script_run("grep 'OBS:EmbargoDate' /tmp/$incident.txt") == 0);
     return 0;
