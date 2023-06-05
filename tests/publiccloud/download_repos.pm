@@ -59,11 +59,11 @@ sub run {
         my $ret = 0;
         my $reject = "'robots.txt,*.ico,*.png,*.gif,*.css,*.js,*.htm*'";
         my $regex = "'s390x\\/|ppc64le\\/|kernel*debuginfo*.rpm|src\\/'";
-        my $incident;
+        my ($incident, $type);
         for my $maintrepo (@repos) {
-            $incident = $1 if $maintrepo =~ /\/Maintenance:\/(\d+)/g;
+            ($incident, $type) = ($2, $1) if ($maintrepo =~ /\/(PTF|Maintenance):\/(\d+)/g);
             die "We did not detect incident number for URL \"$maintrepo\". We detected \"$incident\"" unless $incident =~ /\d+/;
-            if (is_embargo_update($incident)) {
+            if (is_embargo_update($incident, $type)) {
                 record_info("EMBARGOED", "The repository \"$maintrepo\" belongs to embargoed incident number \"$incident\"");
                 script_run("echo 'The repository \"$maintrepo\" belongs to embargoed incident number \"$incident\"'");
                 next;
@@ -104,7 +104,7 @@ sub run {
 
     my $total_size = script_output("du -hs ~/repos");
     record_info("Repo size", "Total repositories size: $total_size");
-    assert_script_run("find ./ -name '*.rpm' -exec du -h '{}' \\; | sort -h > /root/rpm_list.txt", timeout => 60);
+    assert_script_run("find ./ -name '*.rpm' -exec du -h '{}' + | sort -h > /root/rpm_list.txt", timeout => 60);
     upload_logs("/root/rpm_list.txt");
 
     # The maintenance *.repo files all point to download.suse.de, but we are using dist.suse.de, so we need to rename the directory
@@ -120,7 +120,7 @@ sub post_fail_hook {
     #bash: cannot create temp file for here-document: No space left on device
     #H69A2-1-
     assert_script_run("du -hs ~/repos || true");
-    assert_script_run("find ~/repos/ -name '*.rpm' -exec du -h '{}' \\; | sort -h || true");
+    assert_script_run("find ~/repos/ -name '*.rpm' -exec du -h '{}' + | sort -h || true");
     assert_script_run("df -h");
 }
 

@@ -32,6 +32,10 @@ sub run {
 
     ssh_fully_patch_system($remote);
 
+    record_info('UNAME', $args->{my_instance}->ssh_script_output(cmd => 'uname -a'));
+    $args->{my_instance}->ssh_assert_script_run(cmd => 'rpm -qa > /tmp/rpm-qa.txt');
+    $args->{my_instance}->upload_log('/tmp/rpm-qa.txt');
+
     $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
 }
 
