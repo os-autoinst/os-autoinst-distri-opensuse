@@ -63,22 +63,32 @@ sub run {
     else {
         power_action('reboot', textmode => 1);
         reconnect_mgmt_console if is_pvm;
-        $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 300);
+        $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 400);
     }
     select_serial_terminal;
     record_info("time after reboot", script_output("timedatectl status"));
     my $utmp_output = script_output('utmpdump /var/run/utmp');
     my $wtmp_output = script_output('utmpdump /var/log/wtmp');
     record_soft_failure('bsc#1188626 uttmpdump shows incorrect year for 2038 and beyond') if ($utmp_output !~ m/2038/sx || $wtmp_output !~ m/2038/sx);
-
     systemctl('start chronyd.service');
-    record_info('Show NTP sources', script_output('chronyc -n sources -v'));
-    script_retry('chronyc makestep && (date +"%Y-%m-%d" | grep -v 2038)', delay => 60, retry => 3, fail_message => 'Time sync with NTP server failed (poo#127343)');
+    record_info('Show NTP sources', script_output('chronyc -n sources -v -a'));
+
+    # We may need to add some workaround due to poo#127343:
+    # wait for chronyd service to check the system clock change;
+    # add some timeout after 'chronyc makestep'
+    script_retry('journalctl -u chronyd | grep -e "System clock wrong" -e "Received KoD RATE"', delay => 60, retry => 3, die => 0);
+    record_soft_failure('poo#127343, Time sync with NTP server failed') if script_run('chronyc makestep && sleep 2 && (date +"%Y-%m-%d" | grep -v 2038)') != 0;
 }
 
 sub post_run_hook {
     my ($self) = shift;
     upload_logs('/var/log/wtmp');
+}
+
+# We need to force the sytem to rollback to snapshot because of poo#127343
+# so that we can get the right system clock
+sub test_flags {
+    return {always_rollback => 1};
 }
 
 1;
