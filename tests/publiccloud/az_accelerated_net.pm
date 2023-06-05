@@ -14,6 +14,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use publiccloud::utils qw(is_container_host);
 
 =head2 prepare_vm
 
@@ -37,7 +38,7 @@ sub prepare_vms {
 
 =head2 get_new_ip
 
-Gets the PublicIP of the given C<instance>. This is useful when stopping and starting
+Gets the PrivateIP or PublicIP of the given C<instance>. This is useful when stopping and starting
 a VM again, since the IPs will differ.
 
 =cut
@@ -87,6 +88,7 @@ sub check_sriov {
     my ($self, $instance) = @_;
     record_info('sr-iov', 'Checking SRIOV feature for instance ' . $instance->instance_id);
     my $lspci_output = $instance->run_ssh_command(cmd => "sudo lspci");
+    $instance->run_ssh_command(cmd => 'sudo zypper -n in ethtool') if is_container_host();
     my $ethtool_output = $instance->run_ssh_command(cmd => "sudo ethtool -S eth0 | grep vf_");
     record_info('lspci', $lspci_output);
     record_info('ethtool', $ethtool_output);
