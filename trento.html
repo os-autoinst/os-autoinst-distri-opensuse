@@ -46,6 +46,9 @@
           <li><a href="#cluster_wait_status_by_regex">cluster_wait_status_by_regex</a></li>
           <li><a href="#cluster_trento_net_peering">cluster_trento_net_peering</a></li>
           <li><a href="#podman_self_check">podman_self_check</a></li>
+          <li><a href="#podman_delete_all">podman_delete_all</a></li>
+          <li><a href="#podman_wait">podman_wait</a></li>
+          <li><a href="#podman_exec">podman_exec</a></li>
           <li><a href="#cypress_configs">cypress_configs</a></li>
           <li><a href="#cypress_install_container">cypress_install_container</a></li>
           <li><a href="#cypress_log_upload">cypress_log_upload</a></li>
@@ -318,6 +321,46 @@
 
 <p>Perform some generic checks related to the podman installation itself and the relevant parameters of the current machine environment.</p>
 
+<h3 id="podman_delete_all">podman_delete_all</h3>
+
+<p>Delete all podman containers with name containing CYPRESS_IMAGE_TAG</p>
+
+<h3 id="podman_wait">podman_wait</h3>
+
+<p>Check for status of running container with given name. Polling state until container Status become Exit or timeout. Gently terminate podman in case of timeout. Return the container Exit status.</p>
+
+<dl>
+
+<dt id="NAME---Name-of-the-running-container-used-to-filter-the-podman-ps"><b>NAME</b> - Name of the running container used to filter the podman ps</dt>
+<dd>
+
+</dd>
+<dt id="TIMEOUT---Timeout-waiting-container-to-exit"><b>TIMEOUT</b> - Timeout waiting container to exit</dt>
+<dd>
+
+</dd>
+<dt id="CYPRESS_LOG---File-used-to-redirect-the-cypress-console-output"><b>CYPRESS_LOG</b> - File used to redirect the cypress console output</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="podman_exec">podman_exec</h3>
+
+<p>Run a command within the running container</p>
+
+<dl>
+
+<dt id="NAME---Name-of-the-running-container-where-to-exec-commands"><b>NAME</b> - Name of the running container where to exec commands</dt>
+<dd>
+
+</dd>
+<dt id="CMD---command-to-run-within-the-container"><b>CMD</b> - command to run within the container</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h3 id="cypress_configs">cypress_configs</h3>
 
 <p>Prepare all the configuration files for cypress</p>
@@ -396,19 +439,19 @@
 
 <dl>
 
-<dt id="Around-line-105">Around line 105:</dt>
+<dt id="Around-line-108">Around line 108:</dt>
 <dd>
 
 <p>Unknown directive: =hean3</p>
 
 </dd>
-<dt id="Around-line-239">Around line 239:</dt>
+<dt id="Around-line-242">Around line 242:</dt>
 <dd>
 
 <p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
 
 </dd>
-<dt id="Around-line-863">Around line 863:</dt>
+<dt id="Around-line-866">Around line 866:</dt>
 <dd>
 
 <p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
