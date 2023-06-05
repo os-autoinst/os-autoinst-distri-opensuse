@@ -95,8 +95,8 @@ sub add_extra_customer_repositories {
         aarch64 => [],
     );
 
+    return unless $repo_list{$arch};
     for my $repo (@{$repo_list{$arch}}) {
-        return unless $repo_list{$arch};
         add_repo_if_not_present($repo->{uri}, $repo->{name}) if is_sle($repo->{cond});
     }
 }
