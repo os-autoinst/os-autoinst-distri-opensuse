@@ -46,6 +46,7 @@
       <li><a href="#is_boot_encrypted">is_boot_encrypted</a></li>
       <li><a href="#is_bridged_networking">is_bridged_networking</a></li>
       <li><a href="#set_bridged_networking">set_bridged_networking</a></li>
+      <li><a href="#print_ip_info">print_ip_info</a></li>
       <li><a href="#set_hostname">set_hostname</a></li>
       <li><a href="#assert_and_click_until_screen_change">assert_and_click_until_screen_change</a></li>
       <li><a href="#handle_livecd_reboot_failure">handle_livecd_reboot_failure</a></li>
@@ -347,6 +348,12 @@ zypper_ar(&#39;https://download.opensuse.org/repositories/devel:/kubic/openSUSE_
 <pre><code>set_bridged_networking();</code></pre>
 
 <p>Sets <code>BRIDGED_NETWORKING</code> to <code>1</code> if applicable.</p>
+
+<h2 id="print_ip_info">print_ip_info</h2>
+
+<pre><code>print_ip_info();</code></pre>
+
+<p>Print the interface addresses, routes and adjacent network nodes (that have been seen). Especially useful for multi-machine test debugging.</p>
 
 <h2 id="set_hostname">set_hostname</h2>
 
