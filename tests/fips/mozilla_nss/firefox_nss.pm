@@ -22,7 +22,8 @@ use version_utils 'is_sle';
 
 sub quit_firefox {
     send_key "alt-f4";
-    if (check_screen("firefox-save-and-quit", 30)) {
+    assert_screen([qw(firefox-save-and-quit generic-desktop)]);
+    if (match_has_tag 'firefox-save-and-quit') {
         assert_and_click("firefox-click-close-tabs");
     }
 }
@@ -47,22 +48,22 @@ sub firefox_crashreporter {
 
 sub firefox_preferences {
     send_key "alt-e";
-    wait_still_screen 10;
+    wait_still_screen 5;
     send_key "n";
     assert_screen("firefox-preferences");
+    wait_still_screen 2, 4;
 }
 
 sub search_certificates {
     type_string "certificates", timeout => 20, max_interval => 40;
     send_key "tab";
-    wait_still_screen 10;
+    wait_still_screen 2, 4;
 }
 
 sub select_master_password_option {
     my ($ff_ver) = @_;
 
     firefox_preferences;
-    wait_still_screen 20;
     # Search "Passwords" section
     if ($ff_ver >= 91) {
         type_string "Use a primary", timeout => 15, max_interval => 40;
@@ -83,6 +84,7 @@ sub set_master_password {
     send_key "ret";
     assert_screen("$needle_name");
     send_key "ret";
+    wait_still_screen 2;
 }
 
 sub run {
@@ -124,7 +126,6 @@ sub run {
     select_master_password_option $firefox_version;
     set_master_password("$fips_strong_password", "firefox-password-change-succeeded");
 
-    wait_still_screen 3;
     send_key "ctrl-f";
     send_key "ctrl-a";
 
@@ -176,6 +177,7 @@ sub run {
     }
 
     select_console 'x11', await_console => 0;    # Go back to X11
+    wait_still_screen 2;    # wait sec after switch before pressing keys
 
     # "start_firefox" will be not used, since the master password is
     # required when firefox launching in FIPS mode
@@ -184,8 +186,9 @@ sub run {
     x11_start_program('xterm');
     mouse_hide(1);
     enter_cmd("firefox --setDefaultBrowser https://html5test.opensuse.org");
-    wait_still_screen 30;
-    if (check_screen("firefox-passowrd-typefield", 120)) {
+    wait_still_screen 10;
+    if (check_screen("firefox-passowrd-typefield")) {
+        wait_still_screen 4;
 
         # Add max_interval while type password and extend time of click needle match
         type_string($fips_strong_password, timeout => 10, max_interval => 30);
