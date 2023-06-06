@@ -5,10 +5,6 @@ local findBiggestDisk(disks) =
   sorted[0].logicalname;
 
 {
-  description: |||
-        Install agama Micro with jsonnet on
-        x86_64 and aarch64.
-      |||,
   software: {
     product: 'ALP-Micro',
   },
