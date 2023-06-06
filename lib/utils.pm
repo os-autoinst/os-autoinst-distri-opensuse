@@ -1095,17 +1095,35 @@ sub set_hostname {
     save_screenshot;
 
     if (systemctl('is-active NetworkManager', ignore_failure => 1) == 0) {
-        my $conn_id = script_output 'basename $(ls -1 /etc/NetworkManager/system-connections | head -n 1) .nmconnection';
+        my $state = script_output 'nmcli networking connectivity check', proceed_on_failure => 1;
 
-        assert_script_run 'nmcli device down ' . $conn_id;
-        assert_script_run 'nmcli device up ' . $conn_id;
+        if ($state =~ /full/) {
+            my @devs = split("\n", script_output('nmcli device'));
 
-        for (my $i = 0; $i < 5; $i++) {
-            my $state = script_output 'nmcli -w 5 networking connectivity check';
+            foreach my $indx (keys @devs) {
+                my $line = $devs[$indx];
 
-            last if $state =~ /full/;
+                if (!($line =~ /^([a-z0-9_-]+)/i)) {
+                    record_info('nmcli output error', 'device id did not match: ' . $devs[$indx], result => 'fail');
+                    next;
+                }
+                my $dev = $1;
 
-            sleep 1;
+                next if ($indx == 0 && $dev eq 'DEVICE');
+                next if ($dev eq 'lo');
+                next if !($line =~ /connected/);
+
+                assert_script_run 'nmcli device disconnect ' . $dev;
+                assert_script_run 'nmcli device connect ' . $dev;
+            }
+
+            for (my $i = 0; $i < 5; $i++) {
+                $state = script_output 'nmcli -w 5 networking connectivity check';
+
+                last if $state =~ /full/;
+
+                sleep 1;
+            }
         }
     } else {
         assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
