@@ -292,9 +292,13 @@
 
 <h2 id="calculate_sbd_start_delay">calculate_sbd_start_delay</h2>
 
-<pre><code>calculate_sbd_start_delay();</code></pre>
+<pre><code>calculate_sbd_start_delay(\%sbd_parameters);</code></pre>
 
-<p>Calculates start time delay after node is fenced. Prevents cluster failure if fenced node restarts too quickly. Delay time is used either if specified in sbd config variable &quot;SBD_DELAY_START&quot; or calculated: &quot;corosync_token + corosync_consensus + SBD_WATCHDOG_TIMEOUT * 2&quot; Variables &#39;corosync_token&#39; and &#39;corosync_consensus&#39; are converted to seconds.</p>
+<p>Calculates start time delay after node is fenced. Prevents cluster failure if fenced node restarts too quickly. Delay time is used either if specified in sbd config variable &quot;SBD_DELAY_START&quot; or calculated: &quot;corosync token timeout + consensus timeout + pcmk_delay_max + msgwait&quot; Variables &#39;corosync_token&#39; and &#39;corosync_consensus&#39; are converted to seconds. For diskless SBD pcmk_delay_max is set to static 30s.</p>
+
+<p>%sbd_parameters = { &#39;corosync_token&#39; =&gt; &lt;runtime.config.totem.token&gt;, &#39;corosync_consensus&#39; =&gt; &lt;runtime.config.totem.consensus&gt;, &#39;sbd_watchdog_timeout&#39; =&gt; &lt;SBD_WATCHDOG_TIMEOUT&gt;, &#39;sbd_delay_start&#39; =&gt; &lt;SBD_DELAY_START&gt;, &#39;pcmk_delay_max&#39; =&gt; &lt;pcmk_delay_max&gt; }</p>
+
+<p>If <code>%sbd_parameters</code> argument is omitted, then function will try to obtain the values from the configuration files.</p>
 
 <h2 id="check_iscsi_failure">check_iscsi_failure</h2>
 
