@@ -19,6 +19,7 @@ use warnings;
 use testapi;
 
 sub run {
+    ensure_installed('gedit');
     x11_start_program('gedit');
     assert_and_click 'gedit-x-button';
 

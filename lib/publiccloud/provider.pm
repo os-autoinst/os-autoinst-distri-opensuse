@@ -260,7 +260,7 @@ sub get_image_uri {
     my ($self) = @_;
     my $image_uri = get_var("PUBLIC_CLOUD_IMAGE_URI");
     die 'The PUBLIC_CLOUD_IMAGE_URI variable makes sense only for Azure' if ($image_uri && !is_azure);
-    if ($image_uri =~ /^auto$/mi) {
+    if (!!$image_uri && $image_uri =~ /^auto$/mi) {
         my $definition = get_required_var('DISTRI') . '-' . get_required_var('FLAVOR') . '-' . get_required_var('VERSION');
         my $version = $self->calc_img_version();    # PUBLIC_CLOUD_BUILD PUBLIC_CLOUD_BUILD_KIWI
         my $subscriptions = $self->provider_client->subscription;
@@ -269,8 +269,10 @@ sub get_image_uri {
         $image_uri = "/subscriptions/$subscriptions/resourceGroups/$resource_group/providers/";
         $image_uri .= "Microsoft.Compute/galleries/$image_gallery/images/$definition/versions/$version";
         record_info 'IMAGE_URI', "Calculated IMAGE_URI=$image_uri";
-    } else {
+    } elsif (!!$image_uri) {
         record_info 'IMAGE_URI', "Provided IMAGE_URI=$image_uri";
+    } else {
+        record_info 'IMAGE_URI', 'IMAGE_URI not found!';
     }
     return $image_uri;
 }
@@ -298,6 +300,9 @@ publiccloud::instance objects.
 C<image>         defines the image_id to create the instance.
 C<instance_type> defines the flavor of the instance. If not specified, it will load it
                      from PUBLIC_CLOUD_INSTANCE_TYPE.
+C<timeout>             Parameter to pass to instance::wait_for_ssh.
+C<ignore_wrong_pubkey> Same as timeout.
+C<proceed_on_failure>  Same as timeout.
 
 =cut
 
@@ -310,7 +315,9 @@ sub create_instances {
     foreach my $instance (@vms) {
         record_info("INSTANCE", $instance->{instance_id});
         if ($args{check_connectivity}) {
-            $instance->wait_for_ssh();
+            $instance->wait_for_ssh(timeout => $args{timeout},
+                ignore_wrong_pubkey => $args{ignore_wrong_pubkey},
+                proceed_on_failure => $args{proceed_on_failure});
             # Install server's ssh publicckeys to prevent authenticity interactions
             assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
         }

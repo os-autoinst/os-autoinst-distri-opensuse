@@ -16,16 +16,20 @@ use version_utils 'is_sle_micro';
 our $user = $testapi::username;
 our $password = $testapi::password;
 
+my $user_created = 0;
+
 sub cleanup {
     record_info 'Cleanup';
     clean_container_host(runtime => 'podman');
-    script_run "userdel -rf $user";    # script_run in case user has not been created yet
+    # Delete user only if created within the test run.
+    script_run "userdel -rf $user" if ($user_created);
 }
 
 sub create_user {
     if (script_run("getent passwd $user") != 0) {
         assert_script_run "useradd -m $user";
         assert_script_run "echo '$user:$password' | chpasswd";
+        $user_created = 1;
     }
 
     # Make sure user has access to tty group

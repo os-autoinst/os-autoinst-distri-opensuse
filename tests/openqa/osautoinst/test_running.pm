@@ -10,9 +10,11 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
+use utils 'zypper_call';
 
 sub run {
-    assert_script_run ' ret=false; for i in {1..5} ; do openqa-client jobs state=running | grep --color -z running && ret=true && break ; sleep 30 ; done ; [ "$ret" = "true" ] ; echo $? ', 300;
+    zypper_call('in ack');
+    assert_script_run q{ret=false; for i in {1..5} ; do openqa-cli api jobs state=running state=done | ack --passthru --color 'running|done' && ret=true && break ; sleep 30 ; done ; [ "$ret" = "true" ]}, 300;
 }
 
 sub post_fail_hook {

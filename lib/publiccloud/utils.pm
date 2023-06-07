@@ -39,6 +39,7 @@ our @EXPORT = qw(
   register_addons_in_pc
   gcloud_install
   prepare_ssh_tunnel
+  kill_packagekit
 );
 
 # Get the current UTC timestamp as YYYY/mm/dd HH:MM:SS
@@ -168,7 +169,8 @@ sub is_hardened() {
 }
 
 sub is_embargo_update {
-    my ($incident) = @_;
+    my ($incident, $type) = @_;
+    return 0 if ($type =~ /PTF/);
     script_retry("curl -sSf https://build.suse.de/attribs/SUSE:Maintenance:$incident -o /tmp/$incident.txt");
     return 1 if (script_run("grep 'OBS:EmbargoDate' /tmp/$incident.txt") == 0);
     return 0;
@@ -267,6 +269,17 @@ sub prepare_ssh_tunnel {
     # Create log file for ssh tunnel
     my $ssh_sut = '/var/tmp/ssh_sut.log';
     assert_script_run "touch $ssh_sut; chmod 777 $ssh_sut";
+}
+
+sub kill_packagekit {
+    my ($instance) = @_;
+    my $ret = $instance->ssh_script_run(cmd => "pkcon quit", timeout => 120);
+    if ($ret) {
+        # Older versions of systemd don't support "disable --now"
+        $instance->ssh_script_run(cmd => "systemctl stop packagekitd");
+        $instance->ssh_script_run(cmd => "systemctl disable packagekitd");
+        $instance->ssh_script_run(cmd => "systemctl mask packagekitd");
+    }
 }
 
 1;

@@ -6,9 +6,9 @@ schedule:
   - console/prepare_test_data
   - console/consoletest_setup
   - console/add_phub_extension
-  # - console/python_scientific Removed because of bsc#1198891
+  - console/python_scientific
   - '{{sle15_x86_64}}'
-  # - console/python_flake8 Removed because of bsc#1198893
+  # - console/python_flake8 Removed due to bsc#1209609
   - console/vmstat
   - console/coredump_collect
 conditional_schedule:

@@ -1,0 +1,11 @@
+---
+name: control_center_container
+description: >
+  Install system and then launch the container with the YaST2 control center.
+vars:
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - yam/agama/auto
+  - console/setup_libyui_running_system
+  - yam/yast_modules/control_center

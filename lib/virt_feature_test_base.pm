@@ -144,7 +144,9 @@ sub analyzeResult {
     #the correctness and effectivenees of entire JUnit log
     if ($status eq 'FAILED' && $self->{"fail_nums"} eq '0') {
         $self->{"fail_nums"} = '1';
-        my $uncheckpoint_failure = script_output("cat /root/commands_history | tail -3 | head -1");
+        my $uncheckpoint_failure = "";
+        $uncheckpoint_failure = script_output("cat /root/commands_history | tail -3 | head -1", 60, proceed_on_failure => 1);
+        $uncheckpoint_failure = "echo 'NOT found the failure from commands history'" if $uncheckpoint_failure eq '';
         my @involved_failure_guest = grep { $uncheckpoint_failure =~ /$_/img } (keys %virt_autotest::common::guests);
         my $uncheckpoint_failure_guest = "";
         if (!scalar @involved_failure_guest) {
@@ -179,7 +181,8 @@ sub post_fail_hook {
     virt_utils::stop_monitor_guest_console() if (!(get_var("TEST", '') =~ /qam/) && (is_xen_host() || is_kvm_host()));
     #(caller(0))[3] can help pass calling subroutine name into called subroutine
     $self->junit_log_provision((caller(0))[3]) if get_var("VIRT_AUTOTEST");
-    collect_virt_system_logs();
+    # virt logs are included in next step "virt_utils::collect_host_and_guest_logs"
+    collect_virt_system_logs() unless get_var("VIRT_AUTOTEST");
 
     virt_utils::collect_host_and_guest_logs;
     upload_logs("/var/log/clean_up_virt_logs.log");
@@ -191,7 +194,7 @@ sub post_fail_hook {
     $self->upload_coredumps;
     save_screenshot;
     alp_workloads::kvm_workload_utils::collect_kvm_container_setup_logs if (version_utils::is_alp);
-    alp_workloads::kvm_workload_utils::enter_kvm_container_sh;
+    alp_workloads::kvm_workload_utils::enter_kvm_container_sh if is_alp;
 }
 
 sub get_virt_disk_and_available_space {

@@ -216,7 +216,7 @@ cd /etc/zypp/repos.d
 sed -i 's/enabled=1/enabled=0/' $(ls|grep -i nvidia)
 zypper lr
 
-% if ( $get_var->('VERSION') =~ /15-SP[34]/ ) {
+% if ( $get_var->('VERSION') =~ /15-SP[3-5]/ ) {
     # Regarding rpm lock see Q9@ https://documentation.suse.com/de-de/sles/15-SP1/html/SLES-all/app-ay-faq.html
     # quote : "during the post-script phase, YaST still has an exclusive lock on the RPM database."
     # the package cannot be installed the autoyast way, because of the changing package name (eg libyui-rest-api15)

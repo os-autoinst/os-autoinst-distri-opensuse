@@ -14,35 +14,42 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use Data::Dumper;
+use publiccloud::utils qw(is_container_host);
 
 =head2 prepare_vm
 
 Creates a VM in Azure and installs IPERF binaries on it
 
 =cut
-sub prepare_vm {
+sub prepare_vms {
     my ($self, $provider) = @_;
-    my $iperf = get_required_var('IPERF_FILE');
-    record_info('INFO', 'Create VM');
-    my $instance = $provider->create_instance(check_guestregister => 0);
-    record_info('Instance', 'Instance ' . $instance->instance_id . ' created');
-    record_info('Iperf', 'Install IPerf binaries in VM');
-    $instance->run_ssh_command(cmd => "wget https://iperf.fr/download/opensuse/$iperf");
-    $instance->run_ssh_command(cmd => "sudo rpm -i  $iperf");
-    return $instance;
+    my $repo = get_required_var('IPERF_REPO');
+    record_info('INFO', "Create VM\nInstalling iperf package from $repo");
+    my @instances = $provider->create_instances(check_guestregister => 0, count => 2);
+    foreach my $instance (@instances) {
+        record_info('Instance', 'Instance ' . $instance->instance_id . ' created');
+        record_info('Iperf', 'Install IPerf binaries in VM');
+        $instance->run_ssh_command(cmd => "sudo zypper -n ar --no-gpgcheck $repo net_perf");
+        $instance->run_ssh_command(cmd => "sudo zypper -n in -r net_perf iperf");
+    }
+
+    return \@instances;
 }
 
 =head2 get_new_ip
 
-Gets the PublicIP of the given C<instance>. This is useful when stopping and starting
+Gets the PrivateIP or PublicIP of the given C<instance>. This is useful when stopping and starting
 a VM again, since the IPs will differ.
 
 =cut
 sub get_new_ip {
-    my ($self, $instance) = @_;
-    assert_script_run('az vm list -g ' . $instance->instance_id . ' -d');
-    my $cmd = 'az vm list -g ' . $instance->instance_id . q( -d|grep -i publicip|awk '{print $2}'| tr -d '"'| tr -d ',');
+    my ($instance, $need_pub) = @_;
+    my $resgroup = (split('/', $instance->instance_id))[4];
+    assert_script_run("az vm list -g $resgroup -d");
+    my $cmd = 'az vm list-ip-addresses --ids ' . $instance->instance_id . ' --query "[].virtualMachine.network.privateIpAddresses[]" -o tsv';
+    if (!!$need_pub) {
+        $cmd = 'az vm list-ip-addresses --ids ' . $instance->instance_id . ' --query "[].virtualMachine.network.publicIpAddresses[].ipAddress" -o tsv';
+    }
     my $ip = script_output($cmd);
     record_info('Instance', "VM has new IP: $ip");
     return $ip;
@@ -56,12 +63,16 @@ It follows the instructions in https://goo.gl/Px6kou
 =cut
 sub enable_accelerated_net {
     my ($self, $instance) = @_;
-    my $name = $instance->{instance_id};
-    assert_script_run("az vm deallocate --resource-group $name --name $name", timeout => 60 * 10);
-    assert_script_run("az network nic update --name $name-nic --resource-group $name --accelerated-networking true", timeout => 60 * 10);
-    assert_script_run("az vm start --resource-group $name --name $name", timeout => 60 * 20);
+    my $inst_id = $instance->{instance_id};
+    my $name = (split('/', $inst_id))[-1];
+    my $resgroup = (split('/', $inst_id))[4];
+    my $subs = $instance->{provider}->{provider_client}->{subscription};
+    assert_script_run("az vm deallocate --ids $inst_id", timeout => 60 * 10);
+    assert_script_run("az network nic update --resource-group $resgroup --name $name-nic --accelerated-networking true", timeout => 60 * 10);
+    assert_script_run("az vm start --ids $inst_id", timeout => 60 * 20);
     sleep 60 * 3;    # Sometimes, IP is not reachable after the restart and 5 minutes is enough.
-    $instance->public_ip($self->get_new_ip($instance));
+    $instance->{private_ip} = get_new_ip($instance);
+    $instance->public_ip(get_new_ip($instance, 1));
     die('SR-IOV flags not found') if (!$self->check_sriov($instance));
 }
 
@@ -77,10 +88,11 @@ sub check_sriov {
     my ($self, $instance) = @_;
     record_info('sr-iov', 'Checking SRIOV feature for instance ' . $instance->instance_id);
     my $lspci_output = $instance->run_ssh_command(cmd => "sudo lspci");
+    $instance->run_ssh_command(cmd => 'sudo zypper -n in ethtool') if is_container_host();
     my $ethtool_output = $instance->run_ssh_command(cmd => "sudo ethtool -S eth0 | grep vf_");
     record_info('lspci', $lspci_output);
     record_info('ethtool', $ethtool_output);
-    if ($lspci_output =~ m/Mellanox/ && $ethtool_output !~ m/vf_rx_bytes: 0/) {
+    if (($lspci_output =~ m/Mellanox/) && ($ethtool_output !~ m/^\s+vf_rx_bytes: 0$/)) {
         record_info('sr-iov', 'SR-IOV is enabled');
         return 1;
     }
@@ -96,11 +108,12 @@ test on the client side. The test runs TEST_TIME seconds.
 =cut
 sub run_test {
     my ($self, $client, $server) = @_;
-    record_info('server', 'Start IPERF in server' . $server->public_ip);
-    $server->run_ssh_command(cmd => 'nohup iperf -s -D &', no_quote => 1);
+    record_info('server', 'Start IPERF in server ' . $server->public_ip);
+    $server->run_ssh_command(cmd => 'nohup iperf3 -s -D &', no_quote => 1);
     sleep 60;    # Wait 60 seconds so that the server starts up safely and the clinet can connect to it
     record_info('client', 'Start IPERF in client');
-    my $output = $client->run_ssh_command(cmd => 'iperf -t ' . get_required_var('TEST_TIME') . ' -c ' . $server->public_ip);
+    my $ttime = get_required_var('TEST_TIME');
+    my $output = $client->run_ssh_command(cmd => 'iperf3 -t ' . $ttime . ' -c ' . $server->{private_ip}, timeout => $ttime * 3);
     record_info('RESULTS', $output);
 }
 
@@ -110,8 +123,7 @@ sub run {
     select_serial_terminal;
 
     my $provider = $self->provider_factory();
-    my $client = $self->prepare_vm($provider);
-    my $server = $self->prepare_vm($provider);
+    my ($client, $server) = @{$self->prepare_vms($provider)};
 
     $self->enable_accelerated_net($client);
     $self->enable_accelerated_net($server);

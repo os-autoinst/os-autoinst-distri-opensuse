@@ -33,7 +33,8 @@ use mmapi 'get_current_job_id';
 use File::Basename qw(basename);
 use Mojo::JSON qw(decode_json);
 use YAML::PP;
-use utils qw(script_retry);
+use Carp;
+use utils qw(script_retry random_string);
 use testapi;
 use qesapdeployment;
 
@@ -51,6 +52,10 @@ our @EXPORT = qw(
   cluster_hdbadm
   cluster_trento_net_peering
   cluster_wait_status
+  cluster_wait_status_by_regex
+  podman_wait
+  podman_delete_all
+  podman_exec
   get_trento_ip
   deploy_vm
   trento_acr_azure
@@ -87,7 +92,7 @@ use constant GITLAB_CLONE_LOG => '/tmp/gitlab_clone.log';
 use constant TRENTO_AZ_ACR_PREFIX => 'openqatrentoacr';
 
 # Constants used for cypress image
-use constant CYPRESS_IMAGE_TAG => 'goofy';
+use constant CYPRESS_IMAGE_TAG => 'trento_cy';
 use constant CYPRESS_IMAGE => 'docker.io/cypress/included';
 use constant CYPRESS_DEFAULT_VERSION => '9.6.1';
 
@@ -795,17 +800,43 @@ sub cluster_hdbadm {
 
 =head3 cluster_wait_status
 
-Remotly run 'SAPHanaSR-showAttr' in a loop on $host, wait output that match in f_status callback test
+This function allow to wait for a specific output
+for 'SAPHanaSR-showAttr', on one specific remote host.
+Remotly runs 'SAPHanaSR-showAttr' on $host.
+Runs 'SAPHanaSR-showAttr' multiple times in a loop,
+retying until the output PASS the test 'f_status'.
+The 'f_status' test is passed as a "function pointer".
+
+Usage example:
+    cluster_wait_status($primary_host, sub { ((shift =~ m/.+UNDEFINED.+SFAIL/) && (shift =~ m/.+PROMOTED.+PRIM/)); });
+
+This one result in SAPHanaSR-showAttr to be called on the HANA PRIMARY until :
+the line about vmhana01 match with regexp .+UNDEFINED.+SFAIL
+AND
+the line about vmhana02 match with regexp .+PROMOTED.+PRIM
+
+=over 3
+
+=item B<HOST> - Ansible name or filter for the remote host where to run 'SAPHanaSR-showAttr'
+
+=item B<F_STATUS> - Function pointer to test the 'SAPHanaSR-showAttr' stdout.
+                    Provided function has to support two arguments.
+                    `cluster_wait_status` will call the `f_status` passing as first arguments
+                    only the output lines of 'SAPHanaSR-showAttr' about the vmhana01,
+                    and as second arguments lines about vmhana02
+
+=item B<TIMEOUT> - Max time to retry. Die if timeout
+
+=back
 =cut
 
 sub cluster_wait_status {
     my ($host, $f_status, $timeout) = @_;
     $timeout //= bmwqemu::scale_timeout(300);
-    my $_monitor_start_time = time();
-    my $done;
-    while ((time() - $_monitor_start_time <= $timeout) && (!$done)) {
-        sleep 30;
-        my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my $done = 0;
+    my $start_time = time();
+    while ((time() - $start_time <= $timeout) && (!$done)) {
         my $show_attr = qesap_ansible_script_output(
             cmd => 'SAPHanaSR-showAttr',
             provider => $prov,
@@ -818,10 +849,51 @@ sub cluster_wait_status {
         }
         $done = $f_status->($status{vmhana01}, $status{vmhana02});
         record_info("SAPHanaSR-showAttr",
-            join("\n\n", "Output : $show_attr",
+            join("\n------------\n", "Output : $show_attr",
                 'status{vmhana01} : ' . $status{vmhana01},
                 'status{vmhana02} : ' . $status{vmhana02},
                 "done : $done"));
+        sleep 30 unless $done;
+    }
+    die "Timeout waiting for the change" if !$done;
+}
+
+=head3 cluster_wait_status_by_regex
+
+Remotely run 'SAPHanaSR-showAttr' in a loop on $host, wait output that matches regular expression
+=over 3
+
+=item B<HOST> - Ansible name or filter for the remote host where to run 'SAPHanaSR-showAttr'
+
+=item B<TIMEOUT> - Max time to retry. Die if timeout
+
+=item B<REGULAR_EXPRESSION> - Regular expression to match the text to find
+
+=back
+=cut
+
+sub cluster_wait_status_by_regex {
+    my ($host, $regular_expression, $timeout) = @_;
+    croak 'No regular expression provided' unless (ref $regular_expression eq 'Regexp');
+    $timeout //= bmwqemu::scale_timeout(300);
+    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my $done = 0;
+    my $start_time = time();
+    while ((time() - $start_time <= $timeout) && (!$done)) {
+        my $show_attr = qesap_ansible_script_output(
+            cmd => 'SAPHanaSR-showAttr',
+            provider => $prov,
+            host => $host,
+            root => 1);
+
+        for my $line (split("\n", $show_attr)) {
+            $done = 1 if ($line =~ $regular_expression);
+        }
+        record_info("SAPHanaSR-showAttr",
+            join("\n------------\n", "Output : $show_attr",
+                "regexp : $regular_expression",
+                "done : $done",));
+        sleep 30 unless $done;
     }
     die "Timeout waiting for the change" if !$done;
 }
@@ -859,6 +931,134 @@ sub podman_self_check {
     assert_script_run('podman ps');
     assert_script_run('podman images');
     assert_script_run('df -h');
+}
+
+=head3 podman_delete_all
+
+Delete all podman containers with name containing CYPRESS_IMAGE_TAG
+
+=cut
+
+sub podman_delete_all {
+    my $cmd = join(' ',
+        'podman', 'ps',
+        '--all',
+        '--format', '"{{.Status}},{{.Names}}"');
+    for my $container (split(/\n/, script_output($cmd, bmwqemu::scale_timeout(10), proceed_on_failure => 1))) {
+        record_info('podman_delete_all', "container: $container");
+        # Note about the regexp: it is composed using a constant variable
+        #    - outer round bracket are for a Perl regexp match group
+        #    - inner round bracket and backslash are to "escape" the constant
+        enter_cmd("podman rm $1") if ($container =~ qr/.*,(${\(CYPRESS_IMAGE_TAG)}.*)/);
+    }
+}
+
+=head3 podman_wait
+
+Check for status of running container with given name.
+Polling state until container Status become Exit or timeout.
+Gently terminate podman in case of timeout.
+Return the container Exit status.
+
+=over 3
+
+=item B<NAME> - Name of the running container used to filter the podman ps
+
+=item B<TIMEOUT> - Timeout waiting container to exit
+
+=item B<CYPRESS_LOG> - File used to redirect the cypress console output
+
+=back
+=cut
+
+sub podman_wait {
+    my (%args) = @_;
+    croak 'Missing mandatory name argument' unless $args{name};
+    croak 'Missing mandatory timeout argument' unless $args{timeout};
+
+    my $cmd = join(' ',
+        'podman', 'ps',
+        '--all',
+        '--filter', '"name=' . $args{name} . '"',
+        '--format', '"{{.Status}},{{.Names}}"');
+
+    my $start_time = time();
+    my $done = 0;
+    my $ret = undef;
+    while ((time() - $start_time <= $args{timeout}) && (!defined $ret)) {
+        # This code will run podman ps --all using script_output and get the output parsed with a regexp
+        # Let say the CY image is called MY_IMG, the output could be of of these two:
+        #     Up 39 seconds,MY_IMG
+        #     Exited (0) 38 seconds ago,MY_IMG
+        #
+        # The regexp only match for:
+        #   - Start with "Exit"
+        #   - There's a number in round bracket
+        #   - End with ",MY_IMG"
+        # The regexp has to match --format from the previous podman command
+        # The regexp also extracts the number in round bracket (it is the $1)
+        # that is assigned to $ret variable.
+        # If the regexp does not match, undef is assigned to $ret
+        # that result in the look to keep spinning.
+        if (script_output($cmd, bmwqemu::scale_timeout(10), proceed_on_failure => 1)
+            =~ qr/Exited \((\d+)\).*,$args{name}/) {
+            $ret = $1;
+            # the cypress container is done but podman process need some more time.
+            # Notice that this `wait` is only executed if the internal container
+            # has been detected as `Exited`
+            # pwait is not available in the JumpHost
+            script_run('wait $(pgrep -f "podman.*' . $args{name} . '")', timeout => bmwqemu::scale_timeout(10));
+            record_info('CY DONE', "ret: $ret");
+        }
+        sleep bmwqemu::scale_timeout(30) if !defined $ret;
+    }
+
+    if (!defined $ret) {
+        # The previous while loop exited for timeout.
+        # Retrieve logs and gently terminate podman
+        record_info('CY TIMEOUT', "");
+
+        # In case of timeout, extract more debug information from
+        # inside the running container
+        podman_exec(name => $args{name}, cmd => 'ps aux');
+        podman_exec(name => $args{name}, cmd => 'pgrep cypress');
+
+        # Kill cypress within the container ...
+        podman_exec(name => $args{container_name}, cmd => 'pkill -15 cypress');
+        # ... give podman few more seconds to terminate ...
+        sleep bmwqemu::scale_timeout(10);
+        enter_cmd('pkill -9 podman');
+        # Conventionally the reported error is 1 (just something not zero)
+        $ret = 1;
+    }
+
+    # read more logs for debug purpose
+    script_run("podman logs -t $args{name}") if $ret;
+
+    return $ret;
+}
+
+
+=head3 podman_exec
+
+Run a command within the running container
+
+=over 2
+
+=item B<NAME> - Name of the running container where to exec commands
+
+=item B<CMD> - command to run within the container
+
+=back
+=cut
+
+sub podman_exec {
+    my (%args) = @_;
+    croak 'Missing mandatory name argument' unless $args{name};
+    croak 'Missing mandatory cmd argument' unless $args{cmd};
+
+    return script_run("podman exec $args{name} $args{cmd}",
+        timeout => bmwqemu::scale_timeout(10), die_on_timeout => -1);
 }
 
 =head3 cypress_configs
@@ -932,61 +1132,73 @@ sub cypress_log_upload {
     my (@log_filter) = @_;
     my $find_cmd = 'find ' . CYPRESS_LOG_DIR . ' -type f \( -iname \*' . join(' -o -iname \*', @log_filter) . ' \)';
 
-    upload_logs("$_") for split(/\n/, script_output($find_cmd));
+    for my $log (split(/\n/, script_output($find_cmd))) {
+        upload_logs($log);
+        enter_cmd("rm $log");
+    }
 }
 
 =head3 cypress_exec
 
-Execute a cypress command within the container 
+Execute a cypress command within the container
 
-=over 5
+=over 4
 
 =item B<CYPRESS_TEST_DIR> - String of the path where the cypress Trento code is available.
 It is the I<test> folder within the path used by L<setup_jumphost>
 
 =item B<CMD> - String of cmd to be used as main argument for the cypress
-executable call. 
-
-=item B<TIMEOUT> - Integer used as timeout for the cypress command execution
+executable call.
 
 =item B<LOG_PREFIX> - String of the command to be executed remotely
 
-=item B<FAILOK> - Integer boolean value. 0:test marked as failure if the podman/cypress
-return not 0 exit code. 1:all not 0 podman/cypress exit code are ignored. SoftFail reported.
+=item B<TIMEOUT> - Integer used as timeout for the cypress command execution
 
 =back
 =cut
 
 sub cypress_exec {
-    my ($cypress_test_dir, $cmd, $timeout, $log_prefix, $failok) = @_;
-    $timeout //= bmwqemu::scale_timeout(600);
+    my (%args) = @_;
+    croak 'Missing mandatory cypress_test_dir argument' unless $args{cypress_test_dir};
+    croak 'Missing mandatory cmd argument' unless $args{cmd};
+    croak 'Missing mandatory log_prefix argument' unless $args{log_prefix};
+    $args{timeout} //= bmwqemu::scale_timeout(600);
     my $ret = 0;
 
-    record_info('CY EXEC', 'Cypress exec:' . $cmd);
     my $image_name = CYPRESS_IMAGE . ":" . get_var('TRENTO_CYPRESS_VERSION', CYPRESS_DEFAULT_VERSION);
+    my $container_name = CYPRESS_IMAGE_TAG . random_string();
 
     # Container is executed with --name to simplify the log retrieve.
-    # To do so, we need to rm present container with the same name
-    script_run('podman images');
-    script_run('podman rm ' . CYPRESS_IMAGE_TAG . ' || echo "No ' . CYPRESS_IMAGE_TAG . ' to delete"');
+    # To avoid confusion, remove container from previous run
+    podman_delete_all();
 
-    my $cypress_entry_point = join(' ',
-        "'[",
-        '"/bin/sh",', '"-c",',
-        '"/usr/local/bin/cypress', $cmd, '2>/results/cypress_' . $log_prefix . '_log.txt"',
-        "]'");
-    my $cypress_run_cmd = join(' ', 'podman', 'run',
-        '-it', '--name', CYPRESS_IMAGE_TAG,
-        '-v', CYPRESS_LOG_DIR . ':/results',
-        '-v', "$cypress_test_dir:/e2e", '-w', '/e2e',
-        '-e', '"DEBUG=cypress:*"',
-        "--entrypoint=$cypress_entry_point",
-        $image_name);
-    $ret = script_run($cypress_run_cmd, $timeout);
-    if ($ret != 0) {
-        # Look for SIGTERM
-        script_run('podman logs -t ' . CYPRESS_IMAGE_TAG);
-    }
+    my $cypress_log = CYPRESS_LOG_DIR . "/cypress_$args{log_prefix}_log.txt";
+    my $cypress_cmd = join(' ',
+        'podman', 'run',
+        '--name', $container_name,    # define a tag to retrieve the running container later
+        '-v', CYPRESS_LOG_DIR . ':/results',    # mount a folder to output results
+        '-v', "$args{cypress_test_dir}:/e2e",    # mount a folder to input the test code
+        '-w', '/e2e',
+        '-e "DEBUG=cypress:*"',
+        "--entrypoint cypress",    # doing so allow to specify more arguments for cypress later
+        $image_name,    # select the cypress image and its version
+        $args{cmd},    # the cypress operation to perform
+        '&>' . $cypress_log,    # redirect everything to file
+        '&'    # run podman in background
+    );
+    record_info('CY EXEC',
+        join("\n",
+            "container_name: $container_name",
+            "cmd:  $args{cmd}",
+            "cypress_cmd:  $cypress_cmd"));
+    enter_cmd('rm -rf ' . CYPRESS_LOG_DIR . '/*.*');
+    enter_cmd($cypress_cmd);
+    wait_serial('# ');
+
+    $ret = podman_wait(name => $container_name, timeout => $args{timeout});
+    record_info('CY EXEC DONE', "ret: $ret");
+
+    script_run("podman rm $container_name");
     return $ret;
 }
 
@@ -1009,11 +1221,13 @@ Also used as tag for each test result file
 =cut
 
 sub cypress_test_exec {
-    my ($cypress_test_dir, $test_tag, $timeout) = @_;
-    $timeout //= bmwqemu::scale_timeout(600);
+    my (%args) = @_;
+    croak 'Missing mandatory cypress_test_dir argument' unless $args{cypress_test_dir};
+    croak 'Missing mandatory test_tag argument' unless $args{test_tag};
+    $args{timeout} //= bmwqemu::scale_timeout(600);
     my $ret = 0;
-    my $cy_test_struct = 'cypress/integration';
 
+    my $cy_test_struct = 'cypress/integration';
     # The latest version of cypress.io request a different folder structure for the test code
     $cy_test_struct = 'cypress/e2e'
       if ((get_var('TRENTO_CYPRESS_VERSION', CYPRESS_DEFAULT_VERSION) =~ /(\d+)\..*/g) &&
@@ -1021,7 +1235,7 @@ sub cypress_test_exec {
 
     my $find_cmd = join(' ',
         'find',
-        "$cypress_test_dir/$cy_test_struct/$test_tag",
+        "$args{cypress_test_dir}/$cy_test_struct/$args{test_tag}",
         '-type', 'f',
         '-iname', '"*.js"');
     my $test_file_list = script_output($find_cmd);
@@ -1029,17 +1243,24 @@ sub cypress_test_exec {
     for (split(/\n/, $test_file_list)) {
         # Compose the JUnit .xml file name, starting from the .js filename
         my $test_base_filename = basename($_) =~ s/\.js$//r;
-        my $test_result = 'test_result_' . $test_tag . '_' . $test_base_filename . '.xml';
-        my $log_tag = join('_', $test_tag, $test_base_filename);
+        my $test_result = 'test_result_' . $args{test_tag} . '_' . $test_base_filename . '.xml';
+        my $log_tag = join('_', $args{test_tag}, $test_base_filename);
         my $test_cmd = join(' ', 'run',
-            '--spec', '\"' . $cy_test_struct . '/' . $test_tag . '/' . $test_base_filename . '.js\"',
+            '--spec', '"' . $cy_test_struct . '/' . $args{test_tag} . '/' . $test_base_filename . '.js"',
             '--reporter', 'junit',
-            '--reporter-options', '\"mochaFile=/results/' . $test_result . ',toConsole=true\"');
-        record_info('CY INFO', "test_filename:$test_base_filename.js test_result:$test_result test_cmd:$test_cmd");
+            '--reporter-options', '"mochaFile=/results/' . $test_result . ',toConsole=true"');
+        record_info('CY INFO', join("\n",
+                "test_filename:$test_base_filename.js",
+                "test_result:$test_result",
+                "test_cmd:$test_cmd"));
 
-        # Execute the test: force $failok=1 to keep the execution going.
+        # Execute the test keeps going with the execution even if one test file produce an error.
         # Any cypress test failure will be reported during the XUnit parsing
-        $ret = cypress_exec($cypress_test_dir, $test_cmd, $timeout, $log_tag, 1);
+        $ret += cypress_exec(
+            cypress_test_dir => $args{cypress_test_dir},
+            cmd => $test_cmd,
+            log_prefix => $log_tag,
+            timeout => $args{timeout});
 
         # Parse the results
         $find_cmd = join(' ',
@@ -1047,11 +1268,15 @@ sub cypress_test_exec {
             CYPRESS_LOG_DIR,
             '-type', 'f',
             '-iname', "\"$test_result\"");
-        parse_extra_log("XUnit", $_) for split(/\n/, script_output($find_cmd));
+        for my $log (split(/\n/, script_output($find_cmd))) {
+            parse_extra_log("XUnit", $log);
+            enter_cmd("rm $log");
+        }
 
         # Upload all logs at once
         cypress_log_upload(qw(.txt .mp4));
     }
+    return $ret;
 }
 
 1;

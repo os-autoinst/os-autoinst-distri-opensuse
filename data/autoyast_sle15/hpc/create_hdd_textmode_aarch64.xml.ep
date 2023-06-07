@@ -349,9 +349,6 @@
     <gid_min>1000</gid_min>
     <hibernate_system>active_console</hibernate_system>
     <kernel.sysrq>184</kernel.sysrq>
-    % unless ($check_var->('VERSION', '15-SP3')) {
-    <lsm_select>apparmor</lsm_select>
-    % }
     <mandatory_services>secure</mandatory_services>
     <net.ipv4.ip_forward>0</net.ipv4.ip_forward>
     <net.ipv4.tcp_syncookies>0</net.ipv4.tcp_syncookies>
@@ -390,7 +387,6 @@
       <enable config:type="list">
         <service>YaST2-Firstboot</service>
         <service>YaST2-Second-Stage</service>
-        <service>apparmor</service>
         <service>auditd</service>
         <service>klog</service>
         <service>cron</service>
@@ -455,7 +451,6 @@
       <package>SLE_HPC-release</package>
     </packages>
     <patterns config:type="list">
-      <pattern>apparmor</pattern>
       <pattern>base</pattern>
       <pattern>basesystem</pattern>
       <pattern>enhanced_base</pattern>

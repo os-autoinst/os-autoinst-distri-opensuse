@@ -5,3 +5,5 @@ description: >
 schedule:
   - installation/bootloader_start
   - yam/agama/auto
+  - yam/validate/validate_product
+  - yam/validate/validate_user

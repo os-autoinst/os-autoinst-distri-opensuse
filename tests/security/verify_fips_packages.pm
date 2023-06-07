@@ -19,43 +19,51 @@ use Utils::Architectures qw(is_s390x);
 my $final_result = 'ok';
 my $outfile = '/tmp/fips_packages_mismatch';
 
+my $kernel_ver = '5.14.21-150400.24.46.1';
+my $kernelRT_ver = '5.14.21-150400.15.11.1';
+my $openssl_ver = '1.1.1l-150400.7.28.1';
+my $gnutls_ver = '3.7.3-150400.4.35.1';
+my $gcrypt_ver = '1.9.4-150400.6.8.1';
+my $nss_ver = '3.79.4-150400.3.29.1';
+my $ica_ver = '4.2.1-150400.3.8.1';
+
 my %packages_common = (
-    'kernel-default' => '5.14.21-150400.24.46.1',
-    'kernel-default-devel' => '5.14.21-150400.24.46.1',
-    'kernel-devel' => '5.14.21-150400.24.46.1',
-    'kernel-source' => '5.14.21-150400.24.46.1',
-    'kernel-default-devel-debuginfo' => '5.14.21-150400.24.46.1',
-    'kernel-default-debuginfo' => '5.14.21-150400.24.46.1',
-    'kernel-default-debugsource' => '5.14.21-150400.24.46.1',
-    'libopenssl1_1' => '1.1.1l-150400.7.25.1',
-    'libopenssl1_1-hmac' => '1.1.1l-150400.7.25.1',
-    'libopenssl1_1-32bit' => '1.1.1l-150400.7.25.1',
-    'libopenssl1_1-hmac-32bit' => '1.1.1l-150400.7.25.1',
-    libgnutls30 => '3.7.3-150400.4.27.1',
-    'libgnutls30-hmac' => '3.7.3-150400.4.27.1',
-    'libgnutls-devel' => '3.7.3-150400.4.27.1',
+    'kernel-default' => $kernel_ver,
+    'kernel-default-devel' => $kernel_ver,
+    'kernel-devel' => $kernel_ver,
+    'kernel-source' => $kernel_ver,
+    'kernel-default-devel-debuginfo' => $kernel_ver,
+    'kernel-default-debuginfo' => $kernel_ver,
+    'kernel-default-debugsource' => $kernel_ver,
+    'libopenssl1_1' => $openssl_ver,
+    'libopenssl1_1-hmac' => $openssl_ver,
+    'libopenssl1_1-32bit' => $openssl_ver,
+    'libopenssl1_1-hmac-32bit' => $openssl_ver,
+    libgnutls30 => $gnutls_ver,
+    'libgnutls30-hmac' => $gnutls_ver,
+    'libgnutls-devel' => $gnutls_ver,
     libnettle8 => '3.7.3-150400.2.21',
-    libgcrypt20 => '1.9.4-150400.6.5.1',
-    'libgcrypt20-hmac' => '1.9.4-150400.6.5.1',
-    'libgcrypt-devel' => '1.9.4-150400.6.5.1',
-    'mozilla-nss-tools' => '3.79.4-150000.3.1',
-    'mozilla-nss-debugsource' => '3.79.4-150000.3.1',
-    'mozilla-nss' => '3.79.4-150000.3.1',
-    'mozilla-nss-certs' => '3.79.4-150000.3.1',
-    'mozilla-nss-devel' => '3.79.4-150000.3.1',
-    'mozilla-nss-debuginfo' => '3.79.4-150000.3.1'
+    libgcrypt20 => $gcrypt_ver,
+    'libgcrypt20-hmac' => $gcrypt_ver,
+    'libgcrypt-devel' => $gcrypt_ver,
+    'mozilla-nss-tools' => $nss_ver,
+    'mozilla-nss-debugsource' => $nss_ver,
+    'mozilla-nss' => $nss_ver,
+    'mozilla-nss-certs' => $nss_ver,
+    'mozilla-nss-devel' => $nss_ver,
+    'mozilla-nss-debuginfo' => $nss_ver
 );
 
 my %packages_s390x = (
-    libica4 => '4.2.1-150400.3.8.1',
-    'libica-tools' => '4.2.1-150400.3.8.1'
+    libica4 => $ica_ver,
+    'libica-tools' => $ica_ver
 );
 
 
 my %packages_rt = (
-    'kernel-rt' => '5.14.21-150400.15.11.1',
-    'kernel-devel-rt' => '5.14.21-150400.15.11.1',
-    'kernel-source-rt' => '5.14.21-150400.15.11.1'
+    'kernel-rt' => $kernelRT_ver,
+    'kernel-devel-rt' => $kernelRT_ver,
+    'kernel-source-rt' => $kernelRT_ver
 );
 
 

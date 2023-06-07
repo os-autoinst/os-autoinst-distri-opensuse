@@ -27,6 +27,7 @@ sub run {
     my $takeover_action = $run_args->{hana_test_definitions}{$test_name}{action};
     my $site_name = $run_args->{hana_test_definitions}{$test_name}{site_name};
     my $target_site = $run_args->{$site_name};
+    my $sbd_delay;
     die("Target site '$site_name' data is missing. This might indicate deployment issue.")
       unless $target_site;
 
@@ -36,33 +37,40 @@ sub run {
     # Check initial cluster status
     $self->run_cmd(cmd => 'zypper -n in ClusterTools2');
     $self->run_cmd(cmd => 'cs_wait_for_idle --sleep 5');
-    my $cluster_status = $self->run_cmd(cmd => "crm status");
-    record_info("Cluster status", $cluster_status);
+    my $cluster_status = $self->run_cmd(cmd => 'crm status');
+    record_info('Cluster status', $cluster_status);
     die(uc($site_name) . " '$target_site->{instance_id}' is NOT in MASTER mode.") if
       $self->get_promoted_hostname() ne $target_site->{instance_id};
-    record_info(ucfirst($takeover_action) . " DB",
-        join(" ", ucfirst($takeover_action) . "DB on", ucfirst($site_name), "('", $target_site->{instance_id}, "')")
+    record_info(ucfirst($takeover_action) . ' DB',
+        join(' ', ucfirst($takeover_action) . 'DB on', ucfirst($site_name), "('", $target_site->{instance_id}, "')")
     );
 
+    # Setup sbd delay if defined by variable in case of crash OS to prevent cluster starting too quickly after reboot
+    $self->setup_sbd_delay() if $takeover_action eq 'crash' and defined(get_var('HA_SBD_START_DELAY'));
+    # Calculate SBD delay sleep time
+    $sbd_delay = $self->sbd_delay_formula if $takeover_action eq 'crash';
+
     # Stop/kill/crash HANA DB and wait till SSH is again available with pacemaker running.
-    # Setup sbd delay in case of crash OS to prevent cluster starting too quickly after reboot
-    $self->setup_sbd_delay("30s") if $takeover_action eq "crash";
     $self->stop_hana(method => $takeover_action);
     $self->{my_instance}->wait_for_ssh(username => 'cloudadmin');
-    sleep 10;
-    $self->wait_for_pacemaker();
 
+    # SBD delay is active only after reboot
+    if ($takeover_action eq 'crash' and $sbd_delay != 0) {
+        record_info('SBD SLEEP', "Waiting $sbd_delay sec for SBD delay timeout.");
+        sleep($sbd_delay);
+        $self->wait_for_pacemaker();
+    }
 
-    record_info("Takeover check");
+    record_info('Takeover check');
     $self->check_takeover;
 
-    record_info("Replication", join(" ", ("Enabling replication on", ucfirst($site_name), "(DEMOTED)")));
+    record_info('Replication', join(' ', ('Enabling replication on', ucfirst($site_name), '(DEMOTED)')));
     $self->enable_replication();
 
-    record_info(ucfirst($site_name) . " start");
+    record_info(ucfirst($site_name) . ' start');
     $self->cleanup_resource();
 
-    record_info("Done", "Test finished");
+    record_info('Done', 'Test finished');
 }
 
 1;

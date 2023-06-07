@@ -21,9 +21,10 @@ use x11utils 'ensure_unlocked_desktop';
 use version_utils 'is_sle';
 use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
 use Utils::Architectures 'is_aarch64';
+use main_common qw(is_updates_tests);
 
 sub run {
-    if (is_sle('>=15-sp4')) {
+    if (is_sle('>=15-sp4') && !main_common::is_updates_tests) {
         select_serial_terminal;
         # Activating development-tools module to install libqt5-qttools package
         add_suseconnect_product("sle-module-development-tools");

@@ -1,0 +1,47 @@
+---
+name: lvm-encrypt-separate-boot
+description: >
+  Installation of a system with root on an encrypted logical volume
+  and with /boot on a separate unencrypted partition.
+vars:
+  UNENCRYPTED_BOOT: 1
+  ENCRYPT: 1
+  FULL_LVM_ENCRYPT: 1
+  YUI_REST_API: 1
+  # Used by `installation/edit_optional_kernel_cmd_parameters`.
+  # Setting `boot=/edev/vda2` fixes poo#116281
+  # We have to set `fips=1` again, since all parameters get overwritten.
+  OPT_KERNEL_PARAMS: 'fips=1 boot=/dev/vda2'
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/licensing/accept_license
+  - installation/registration/register_via_scc
+  - installation/module_registration/register_module_desktop
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
+  - installation/partitioning/new_partitioning_gpt
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
+  - installation/installation_settings/validate_ssh_service_enabled
+  - installation/installation_settings/open_ssh_port
+  - installation/installation_settings/validate_default_target
+  - installation/edit_optional_kernel_cmd_parameters
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
+  - installation/performing_installation/perform_installation
+  - installation/performing_installation/stop_timeout_system_reboot_now
+  - installation/logs_from_installation_system
+  - installation/performing_installation/confirm_reboot
+  - installation/performing_installation/reconnect_after_reboot
+  - installation/boot_encrypt
+  - installation/handle_reboot
+  - installation/first_boot
+  - console/hostname
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - console/validate_lvm
+  - console/validate_encrypt

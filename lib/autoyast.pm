@@ -21,7 +21,7 @@ use warnings;
 use testapi;
 use Utils::Backends;
 use Utils::Architectures;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_opensuse);
 use registration qw(scc_version get_addon_fullname);
 use File::Copy 'copy';
 use File::Find qw(finddepth);
@@ -613,7 +613,7 @@ sub detect_profile_directory {
             $major_version =~ s/-SP.*//;
             $distri .= $major_version;
         }
-        $path = "$dir${distri}/$path";
+        $path = "$dir${distri}/$path" unless (is_opensuse && is_s390x);
         record_info('INFO', "Trying to use path with detected folder: '$path'");
     }
     return $path;

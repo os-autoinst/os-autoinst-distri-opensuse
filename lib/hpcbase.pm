@@ -259,6 +259,7 @@ master node is expected, the ssh keys should be also be distributed in it too.
 sub generate_and_distribute_ssh {
     my ($self, $user) = @_;
     $user //= 'root';
+    record_info 'Conf ssh', 'generate_and_distribute_ssh';
     my @cluster_nodes = slave_node_names();
     my @master_nodes = master_node_names();
     if (scalar @master_nodes > 1) {

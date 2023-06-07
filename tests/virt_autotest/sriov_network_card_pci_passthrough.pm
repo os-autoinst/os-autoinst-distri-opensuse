@@ -117,7 +117,7 @@ sub run_test {
         #reboot the guest
         record_info("VM reboot", "$guest");
         script_run "ssh root\@$guest 'reboot'";    #don't use assert_script_run, or may fail on xen guests
-        wait_guest_online($guest);
+        wait_guest_online($guest, 30);
         save_network_device_status_logs($log_dir, $guest, $passthru_vf_count + 3 . '-after_guest_reboot');
 
         #check host and guest to make sure they work well

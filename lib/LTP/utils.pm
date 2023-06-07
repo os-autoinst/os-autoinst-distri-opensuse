@@ -57,9 +57,9 @@ sub shutdown_ltp {
 sub want_ltp_32bit {
     my $pkg = shift // get_var('LTP_PKG');
 
-    # TEST_SUITE_NAME is for running 32bit tests (e.g. ltp_syscalls_m32),
-    # checking LTP_PKG is for install_ltp.pm which also uses prepare_ltp_env()
-    return (get_required_var('TEST_SUITE_NAME') =~ m/[-_]m32$/
+    # TEST is for running 32bit tests (e.g. ltp_syscalls_m32), checking
+    # LTP_PKG is for install_ltp.pm which also uses prepare_ltp_env()
+    return (get_required_var('TEST') =~ m/[-_]m32$/
           || $pkg =~ m/-32bit$/
           || is_32bit);
 }

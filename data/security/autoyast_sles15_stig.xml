@@ -1,0 +1,150 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" 
+  xmlns:config="http://www.suse.com/1.0/configns">
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email/>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    <reg_server>{{SCC_URL}}</reg_server>
+    <addons config:type="list">
+      <addon>
+        <name>sle-module-basesystem</name>
+      <version>{{VERSION}}</version>
+      <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-we</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+        <reg_code>{{SCC_REGCODE_WE}}</reg_code>
+      </addon>
+    </addons>
+  </suse_register>
+<bootloader>
+  <global>
+    <password>
+      <encrypted>false</encrypted>
+      <unrestricted>false</unrestricted>
+      <value>nots3cr3t</value>
+    </password>
+    <secure_boot>true</secure_boot>
+    <timeout config:type="integer">-1</timeout>
+    <terminal>console</terminal>
+  </global>
+</bootloader>
+<general>
+  <mode>
+    <confirm config:type="boolean">true</confirm>
+  </mode>
+  <signature-handling>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+  </signature-handling>  
+</general>
+<networking>
+  <keep_install_network config:type="boolean">true</keep_install_network>
+</networking>
+<software>
+  <products config:type="list">
+    <product>SLES</product>
+    <product>sle-we</product>
+  </products>
+  <patterns config:type="list">
+    <pattern>base</pattern>
+    <pattern>enhanced_base</pattern>
+    <pattern>yast2_basis</pattern>
+    </patterns>
+</software>
+<users config:type="list">
+  <user>
+    <encrypted config:type="boolean">false</encrypted>
+    <username>root</username>
+    <user_password>nots3cr3t</user_password>
+  </user>
+  <user>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>nots3cr3t</user_password>
+      <username>bernhard</username>
+  </user>  
+</users>
+<partitioning t="list">
+  <drive>
+    <initialize config:type="boolean">true</initialize>
+    <use>all</use>
+    <partitions t="list">
+      <partition t="map">
+        <filesystem config:type="symbol">ext4</filesystem>
+        <format config:type="boolean">true</format>        
+        <mount>/</mount>
+        <size>max</size>
+        <crypt_method config:type="symbol">luks1</crypt_method>
+        <crypt_key>nots3cr3t</crypt_key>
+      </partition>
+      <partition t="map">
+        <crypt_method t="symbol">random_swap</crypt_method>
+        <filesystem t="symbol">swap</filesystem>
+        <format t="boolean">true</format>
+        <mount>swap</mount>
+        <size>auto</size>
+      </partition>
+      <partition t="map">
+        <filesystem config:type="symbol">ext4</filesystem>
+        <format config:type="boolean">true</format>        
+        <mount>/var</mount>
+        <size>10%</size>
+        <crypt_method config:type="symbol">luks1</crypt_method>
+        <crypt_key>nots3cr3t</crypt_key>
+      </partition>
+      <partition t="map">
+        <filesystem config:type="symbol">ext4</filesystem>
+        <format config:type="boolean">true</format>        
+        <mount>/home</mount>
+        <size>5%</size>
+        <crypt_method config:type="symbol">luks1</crypt_method>
+        <crypt_key>nots3cr3t</crypt_key>
+      </partition>
+      <partition t="map">
+        <filesystem config:type="symbol">ext4</filesystem>
+        <format config:type="boolean">true</format>        
+        <mount>/var/log/audit</mount>
+        <size>128M</size>
+        <crypt_method config:type="symbol">luks1</crypt_method>
+        <crypt_key>nots3cr3t</crypt_key>
+      </partition>
+    </partitions>
+  </drive>
+</partitioning>
+<security>
+  <security_policy>
+    <policy>stig</policy>
+    <action>remediate</action>
+  </security_policy>
+</security>
+<report>
+<errors>
+    <log config:type="boolean">true</log>
+    <show config:type="boolean">true</show>
+    <timeout config:type="integer">5</timeout>
+</errors>
+<messages>
+    <log config:type="boolean">true</log>
+    <show config:type="boolean">true</show>
+    <timeout config:type="integer">5</timeout>
+</messages>
+<warnings>
+    <log config:type="boolean">true</log>
+    <show config:type="boolean">true</show>
+    <timeout config:type="integer">5</timeout>
+</warnings>
+<yesno_messages>
+    <log config:type="boolean">true</log>
+    <show config:type="boolean">true</show>
+    <timeout config:type="integer">5</timeout>
+</yesno_messages>
+</report>
+</profile>

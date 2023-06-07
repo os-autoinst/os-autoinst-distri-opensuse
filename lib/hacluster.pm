@@ -19,12 +19,19 @@ use lockapi;
 use isotovideo;
 use x11utils 'ensure_unlocked_desktop';
 use Utils::Logging 'export_logs';
+use Carp qw(croak);
+use Data::Dumper;
 
 our @EXPORT = qw(
   $crm_mon_cmd
   $softdog_timeout
   $join_timeout
   $default_timeout
+  $corosync_token
+  $corosync_consensus
+  $sbd_watchdog_timeout
+  $sbd_delay_start
+  $pcmk_delay_max
   exec_csync
   add_file_in_csync
   get_cluster_name
@@ -90,11 +97,17 @@ Extension (HA or HAE) tests.
 =back
 
 =cut
+
 our $crm_mon_cmd = 'crm_mon -R -r -n -N -1';
 our $softdog_timeout = bmwqemu::scale_timeout(60);
 our $prev_console;
 our $join_timeout = bmwqemu::scale_timeout(60);
 our $default_timeout = bmwqemu::scale_timeout(30);
+our $corosync_token = q@corosync-cmapctl | awk -F " = " '/runtime.config.totem.token\s/ {print $2/1000}'@;
+our $corosync_consensus = q@corosync-cmapctl | awk -F " = " '/runtime.config.totem.consensus\s/ {print $2/1000}'@;
+our $sbd_watchdog_timeout = q@grep -oP '(?<=^SBD_WATCHDOG_TIMEOUT=)[[:digit:]]+' /etc/sysconfig/sbd@;
+our $sbd_delay_start = q@grep -oP '(?<=^SBD_DELAY_START=)([[:digit:]]+|yes|no)+' /etc/sysconfig/sbd@;
+our $pcmk_delay_max = q@crm resource param stonith-sbd show pcmk_delay_max| sed 's/[^0-9]*//g'@;
 
 # Private functions
 sub _just_the_ip {
@@ -554,7 +567,7 @@ sub rsc_cleanup {
  ha_export_logs();
 
 Upload HA-relevant logs from SUT. These include: crm configuration, cluster
-bootstrap log, corosync configuration, B<hb_report>, list of installed packages,
+bootstrap log, corosync configuration, B<crm report>, list of installed packages,
 list of iSCSI devices, F</etc/mdadm.conf>, support config and B<y2logs>. If available,
 logs from the B<HAWK> test, from B<CTS> and from B<HANA> are also included.
 
@@ -563,7 +576,7 @@ logs from the B<HAWK> test, from B<CTS> and from B<HANA> are also included.
 sub ha_export_logs {
     my $bootstrap_log = '/var/log/ha-cluster-bootstrap.log';
     my $corosync_conf = '/etc/corosync/corosync.conf';
-    my $hb_log = '/var/log/hb_report';
+    my $crm_log = '/var/log/crm_report';
     my $packages_list = '/tmp/packages.list';
     my $iscsi_devs = '/tmp/iscsi_devices.list';
     my $mdadm_conf = '/etc/mdadm.conf';
@@ -576,9 +589,9 @@ sub ha_export_logs {
 
     # Extract HA logs and upload them
     script_run "touch $corosync_conf";
-    script_run "hb_report $report_opt -E $bootstrap_log $hb_log", 300;
+    script_run "crm report $report_opt -E $bootstrap_log $crm_log", 300;
     upload_logs("$bootstrap_log", failok => 1);
-    upload_logs("$hb_log.tar.bz2", failok => 1);
+    upload_logs("$crm_log.tar.bz2", failok => 1);
 
     script_run "crm configure show > /tmp/crm.txt";
     upload_logs('/tmp/crm.txt');
@@ -968,55 +981,73 @@ sub activate_ntp {
 
 =head2 calculate_sbd_start_delay
 
-  calculate_sbd_start_delay();
+  calculate_sbd_start_delay(\%sbd_parameters);
 
 Calculates start time delay after node is fenced.
 Prevents cluster failure if fenced node restarts too quickly.
 Delay time is used either if specified in sbd config variable "SBD_DELAY_START"
 or calculated:
-"corosync_token + corosync_consensus + SBD_WATCHDOG_TIMEOUT * 2"
+"corosync token timeout + consensus timeout + pcmk_delay_max + msgwait"
 Variables 'corosync_token' and 'corosync_consensus' are converted to seconds.
+For diskless SBD pcmk_delay_max is set to static 30s.
+
+%sbd_parameters = {
+    'corosync_token' => <runtime.config.totem.token>,
+    'corosync_consensus' => <runtime.config.totem.consensus>,
+    'sbd_watchdog_timeout' => <SBD_WATCHDOG_TIMEOUT>,
+    'sbd_delay_start' => <SBD_DELAY_START>,
+    'pcmk_delay_max' => <pcmk_delay_max>
+}
+
+If C<%sbd_parameters> argument is omitted, then function will
+try to obtain the values from the configuration files.
+
 =cut
 
 sub calculate_sbd_start_delay {
-    my %params;
-    my $default_wait = 35 * get_var('TIMEOUT_SCALE', 1);
-
-    %params = (
-        'corosync_token' => script_output("corosync-cmapctl | awk -F \" = \" '/config.totem.token\\s/ {print \$2}'"),
-        'corosync_consensus' => script_output("corosync-cmapctl | awk -F \" = \" '/totem.consensus\\s/ {print \$2}'"),
-        'sbd_watchdog_timeout' => script_output("awk -F \"=\" '/SBD_WATCHDOG_TIMEOUT/ {print \$2}' /etc/sysconfig/sbd"),
-        'sbd_delay_start' => script_output("awk -F \"=\" '/SBD_DELAY_START/ {print \$2}' /etc/sysconfig/sbd")
+    my ($sbd_parameters) = @_;
+    my %params = (ref($sbd_parameters) eq 'HASH') ? %$sbd_parameters : (
+        'corosync_token' => script_output($corosync_token),
+        'corosync_consensus' => script_output($corosync_consensus),
+        'sbd_watchdog_timeout' => script_output($sbd_watchdog_timeout),
+        'sbd_delay_start' => script_output($sbd_delay_start),
+        'pcmk_delay_max' => get_var('USE_DISKLESS_SBD') ? 30 :
+          script_output($pcmk_delay_max)
     );
 
+    my $default_wait = 35 * get_var('TIMEOUT_SCALE', 1);
+
+    record_info('SBD Params', Dumper(\%params));
+
     # if delay is false return 0sec wait
-    if ($params{'sbd_delay_start'} == 'no' || $params{'sbd_delay_start'} == 0) {
-        record_info("SBD start delay", "SBD delay disabled in config file");
+    if (grep /^$params{'sbd_delay_start'}$/, qw(no 0)) {
+        record_info('SBD start delay', 'SBD delay disabled either in /etc/sysconfig/sbd or by provided function arguments');
         return 0;
     }
 
     # if delay is only true, calculate according to default equation
-    if ($params{'sbd_delay_start'} == 'yes' || $params{'sbd_delay_start'} == 1) {
+    if (grep /^$params{'sbd_delay_start'}$/, qw(yes 1)) {
         for my $param_key (keys %params) {
-            if (!looks_like_number($params{$param_key})) {
-                record_soft_failure("SBD start delay",
-                    "Parameter '$param_key' returned non numeric value:\n$params{$param_key}");
-                return $default_wait;
-            }
-            my $sbd_delay_start_time =
-              $params{'corosync_token'} / 1000 +
-              $params{'corosync_consensus'} / 1000 +
-              $params{'sbd_watchdog_timeout'} * 2;
-            record_info("SBD start delay", "SBD delay calculated: $sbd_delay_start_time");
-            return ($sbd_delay_start_time);
+            croak("Parameter '$param_key' returned non numeric value: $params{$param_key}\n
+                This might indicate test issue or unexpected HA configuration value.")
+              if !looks_like_number($params{$param_key}) and $param_key ne 'sbd_delay_start';
         }
+        my $sbd_delay_start_time =
+          $params{'corosync_token'} +
+          $params{'corosync_consensus'} +
+          $params{'pcmk_delay_max'} +
+          $params{'sbd_watchdog_timeout'} * 2 +    # msgwait = sbd_watchdog_timeout * 2
+          30;    # wait time should be greater than formula therefore adding 30s
+        record_info('SBD start delay', "SBD delay calculated: $sbd_delay_start_time");
+        return ($sbd_delay_start_time);
     }
 
     # if sbd_delay_stat is specified by number explicitly
     if (looks_like_number($params{'sbd_delay_start'})) {
-        record_info("SBD start delay", "Specified explicitly in config: $params{'sbd_delay_start'}");
+        record_info('SBD start delay', "Specified explicitly in config: $params{'sbd_delay_start'}");
         return $params{'sbd_delay_start'};
     }
+    return $default_wait;
 }
 
 =head2 check_iscsi_failure

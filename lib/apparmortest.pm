@@ -628,8 +628,7 @@ sub adminer_database_delete {
     send_key "tab";
     send_key "tab";
     send_key "ret";
-    assert_screen("adminer-save-passwd");
-    send_key "alt-s";
+    assert_and_click("adminer-save-passwd", timeout => 180);
     assert_screen("adminer-select-database");
     assert_and_click("adminer-click-database-test");
     assert_and_click("adminer-click-drop-database-test");

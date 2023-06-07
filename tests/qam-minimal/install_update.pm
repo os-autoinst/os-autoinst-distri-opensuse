@@ -65,12 +65,7 @@ sub run {
     # record softfail on QAM_MINIMAL=small tests, or record info on others
     # if isn't patch neded, zypper call with install makes no sense
     if ((is_patch_needed($patch) && $patch) || ($incident_id && !($patches))) {
-        if (check_var('QAM_MINIMAL', 'small')) {
-            record_soft_failure("Patch isn't needed on minimal installation poo#17412");
-        }
-        else {
-            record_info('Not needed', q{Patch doesn't fix any package in minimal pattern});
-        }
+        record_info('Not needed', q{Patch doesn't fix any package in minimal pattern - poo#17412});
     }
     else {
         # Use single patch or patch list

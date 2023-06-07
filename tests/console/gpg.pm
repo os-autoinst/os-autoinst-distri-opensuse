@@ -202,7 +202,7 @@ sub run {
     }
     else {
         foreach my $pkg_name (keys %$pkg_list) {
-            my $pkg_ver = script_output("rpm -q --qf '%{version}\n' $pkg_name");
+            my $pkg_ver = script_output("rpm -q --qf '%{version}\n' --whatprovides $pkg_name");
             record_info("$pkg_name version", "Version of Current package: $pkg_ver");
         }
     }

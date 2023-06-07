@@ -20,6 +20,8 @@ sub run {
 
     # "hana[0]" is more generic than vmhana01.
     my $primary_host = '"hana[0]"';
+
+    # Print cluster status at the beginning, just as reference
     cluster_print_cluster_status($primary_host);
 
     # Register the stopped DB to the new promoted primary
@@ -33,7 +35,8 @@ sub run {
 
     # Restart the stopped instance
     my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
-    # vmhana01 hardcoded in place of $primary_host as the second one is only valid for Ansible
+    # vmhana01 hard-coded in place of the generic Ansible filter from $primary_host.
+    # The Ansible generic filter is only valid for Ansible, here it is crm.
     qesap_ansible_cmd(cmd => "sudo crm resource refresh rsc_SAPHana_HDB_HDB00 vmhana01",
         provider => $prov,
         filter => $primary_host);
@@ -41,7 +44,9 @@ sub run {
 
     my $cypress_test_dir = "/root/test/test";
     enter_cmd "cd $cypress_test_dir";
-    cypress_test_exec($cypress_test_dir, 'restore_cluster', bmwqemu::scale_timeout(900));
+    cypress_test_exec(cypress_test_dir => $cypress_test_dir,
+        test_tag => 'restore_cluster',
+        timeout => bmwqemu::scale_timeout(900));
     trento_support();
     trento_collect_scenarios('test_hana_restore_stopped');
 }

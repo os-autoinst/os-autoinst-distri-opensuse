@@ -33,8 +33,6 @@ installation_settings:
 installation:
   - installation/confirm_installation
   - installation/performing_installation/perform_installation
-stop_timeout_system_reboot:
-  - installation/performing_installation/stop_timeout_system_reboot_now
 installation_logs:
   - installation/logs_from_installation_system
 confirm_reboot:

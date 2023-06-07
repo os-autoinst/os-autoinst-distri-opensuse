@@ -24,7 +24,7 @@
     <guest_installation_extra_args>sshd=1#sshpassword=nots3cr3t#console=ttyS0,115200n8#textmode=1</guest_installation_extra_args>
     <guest_installation_wait></guest_installation_wait>
     <guest_installation_method_others></guest_installation_method_others>
-    <guest_installation_media>http://download.opensuse.org/tumbleweed/repo/oss</guest_installation_media>
+    <guest_installation_media>http://openqa.opensuse.org/assets/repo/openSUSE-Tumbleweed-oss-x86_64-CURRENT</guest_installation_media>
     <guest_installation_fine_grained></guest_installation_fine_grained>
     <guest_boot_settings></guest_boot_settings>
     <guest_secure_boot></guest_secure_boot>
