@@ -55,8 +55,14 @@ sub run {
 
     # install and enable SELinux if not done by default
     if (!is_enforcing) {
-        die("SELinux should be enabled by default on " . get_required_var("DISTRI") . " " . get_required_var("VERSION"))
-          if (is_sle_micro('5.4+') || is_leap_micro('5.4+') || is_microos);
+        if (is_sle_micro('5.4+') || is_leap_micro('5.4+') || is_microos) {
+            if (is_sle_micro('=5.4')) {
+                record_soft_failure("bsc#1211917 - SELinux not in enforcing mode on SLEM 5.4");
+            } else {
+                die("SELinux should be enabled by default on " . get_required_var("DISTRI") . " " . get_required_var("VERSION"));
+            }
+        }
+
         trup_call('setup-selinux');
         upload_logs($trup_log, log_name => $trup_log . ".txt");
         save_and_upload_log('rpm -qa', 'installed_pkgs.txt');
