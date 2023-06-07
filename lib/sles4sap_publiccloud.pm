@@ -16,13 +16,14 @@ use base 'publiccloud::basetest';
 use strict;
 use warnings FATAL => 'all';
 use Exporter 'import';
+use Scalar::Util 'looks_like_number';
 use publiccloud::utils;
 use publiccloud::provider;
 use testapi;
 use List::MoreUtils qw(uniq);
 use utils 'file_content_replace';
 use Carp qw(croak);
-use hacluster '$crm_mon_cmd';
+use hacluster;
 use qesapdeployment;
 use YAML::PP;
 use publiccloud::instance;
@@ -44,6 +45,7 @@ our @EXPORT = qw(
   wait_for_pacemaker
   cloud_file_content_replace
   setup_sbd_delay
+  sbd_delay_formula
   create_instance_data
 );
 
@@ -424,25 +426,60 @@ sub wait_for_pacemaker {
 }
 
 =head2 setup_sbd_delay
-     setup_sbd_delay([set_delay => $set_delay]);
+     $self->setup_sbd_delay();
 
-     Set (activate or deactivate) SBD_DELAY_start setting in /etc/sysconfig/sbd.
+     Set (activate or deactivate) SBD_DELAY_START setting in /etc/sysconfig/sbd.
      Delay is used in case of cluster VM joining cluster too quickly after fencing operation.
      For more information check sbd man page.
 
+     Setting is changed via OpenQA parameter: HA_SBD_START_DELAY
+     Possible values:
      "no" - do not set and turn off SBD delay time
      "yes" - sets default SBD value which is calculated from a formula
-     "<number of seconds>" - sets sepcific delay in seconds
+     "<number of seconds>" - sets specific delay in seconds
+
+     Returns integer representing wait time.
 
 =cut
 
 sub setup_sbd_delay() {
-    my ($self, $set_delay) = @_;
-    my $delay = $set_delay || "no";
-    record_info("SBD delay", "Setting SBD delay to: $delay");
+    my ($self) = @_;
+    my $delay = get_var('HA_SBD_START_DELAY');
+    $delay =~ s/(?<![ye])s//g;
+    if ($delay eq '') {
+        record_info('SBD delay', 'Skipping, parameter without value');
+        return;
+    }
+
+    croak("<\$set_delay> value must be either 'yes', no or an integer. Got value: $delay")
+      unless looks_like_number($delay) or grep /^$delay$/, qw(yes no);
+
     $self->cloud_file_content_replace('/etc/sysconfig/sbd', '^SBD_DELAY_START=.*', "SBD_DELAY_START=$delay");
-    return 1;
+    record_info('SBD delay', "SBD delay set to: $delay");
+    return $delay;
 }
+
+=head2 sbd_delay_formula
+    $self->sbd_delay_formula();
+
+
+=cut
+
+sub sbd_delay_formula() {
+    my ($self) = @_;
+    my %params = (
+        'corosync_token' => $self->run_cmd(cmd => $corosync_token),
+        'corosync_consensus' => $self->run_cmd(cmd => $corosync_consensus),
+        'sbd_watchdog_timeout' => $self->run_cmd(cmd => $sbd_watchdog_timeout),
+        'sbd_delay_start' => $self->run_cmd(cmd => $sbd_delay_start),
+        'pcmk_delay_max' => get_var('FENCING_MECHANISM') eq 'sbd' ?
+          $self->run_cmd(cmd => $pcmk_delay_max) : 30
+    );
+    my $calculated_delay = calculate_sbd_start_delay(\%params);
+    record_info('SBD wait', "Calculated SBD start delay: $calculated_delay");
+    return $calculated_delay;
+}
+
 
 =head2 cloud_file_content_replace
     cloud_file_content_replace($filename, $search_pattern, $replace_with);
