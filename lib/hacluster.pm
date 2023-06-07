@@ -554,7 +554,7 @@ sub rsc_cleanup {
  ha_export_logs();
 
 Upload HA-relevant logs from SUT. These include: crm configuration, cluster
-bootstrap log, corosync configuration, B<hb_report>, list of installed packages,
+bootstrap log, corosync configuration, B<crm report>, list of installed packages,
 list of iSCSI devices, F</etc/mdadm.conf>, support config and B<y2logs>. If available,
 logs from the B<HAWK> test, from B<CTS> and from B<HANA> are also included.
 
@@ -563,7 +563,7 @@ logs from the B<HAWK> test, from B<CTS> and from B<HANA> are also included.
 sub ha_export_logs {
     my $bootstrap_log = '/var/log/ha-cluster-bootstrap.log';
     my $corosync_conf = '/etc/corosync/corosync.conf';
-    my $hb_log = '/var/log/hb_report';
+    my $crm_log = '/var/log/crm_report';
     my $packages_list = '/tmp/packages.list';
     my $iscsi_devs = '/tmp/iscsi_devices.list';
     my $mdadm_conf = '/etc/mdadm.conf';
@@ -576,9 +576,9 @@ sub ha_export_logs {
 
     # Extract HA logs and upload them
     script_run "touch $corosync_conf";
-    script_run "hb_report $report_opt -E $bootstrap_log $hb_log", 300;
+    script_run "crm report $report_opt -E $bootstrap_log $crm_log", 300;
     upload_logs("$bootstrap_log", failok => 1);
-    upload_logs("$hb_log.tar.bz2", failok => 1);
+    upload_logs("$crm_log.tar.bz2", failok => 1);
 
     script_run "crm configure show > /tmp/crm.txt";
     upload_logs('/tmp/crm.txt');
