@@ -12,12 +12,14 @@ use qesapdeployment;
 
 sub run {
     my ($self, $run_args) = @_;
-    my $instance = $run_args->{my_instance};
-    record_info("$instance");
+    foreach my $instance (@{$run_args->{instances}}) {
+        next if ($instance->{'instance_id'} !~ m/vmhana/);
+        record_info("$instance");
 
-    my $ibsm_ip = get_required_var('IBSM_IP');
-    $instance->run_ssh_command(cmd => "echo \"$ibsm_ip download.suse.de\" | sudo tee -a /etc/hosts", username => 'cloudadmin');
-    $instance->run_ssh_command(cmd => 'cat /etc/hosts', username => 'cloudadmin');
+        my $ibsm_ip = get_required_var('IBSM_IP');
+        $instance->run_ssh_command(cmd => "echo \"$ibsm_ip download.suse.de\" | sudo tee -a /etc/hosts", username => 'cloudadmin');
+        $instance->run_ssh_command(cmd => 'cat /etc/hosts', username => 'cloudadmin');
+    }
 }
 
 sub test_flags {
