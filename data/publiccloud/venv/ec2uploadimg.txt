@@ -3,7 +3,7 @@ boto3==1.23.10
 botocore==1.26.10
 cffi==1.15.1
 cryptography==37.0.4
-ec2imgutils==10.0.1
+ec2imgutils==10.0.2
 jmespath==0.10.0
 paramiko==2.11.0
 pycparser==2.21
