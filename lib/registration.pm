@@ -180,6 +180,10 @@ sub add_suseconnect_product {
     $version //= '${VERSION_ID}';
     $arch //= '${CPU}';
     $params //= '';
+    if ($name =~ /PackageHub/) {
+        $params .= ' --gpg-auto-import-keys';
+        record_soft_failure 'bsc#1212134 - Package hub signing key verification failure';
+    }
     $retry //= 3;    # Times we retry the SUSEConnect command (besides first execution)
     $timeout //= 300;
 
