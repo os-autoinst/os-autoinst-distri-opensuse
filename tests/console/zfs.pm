@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2020 SUSE LLC
+# Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: zfs util-linux
@@ -146,6 +146,10 @@ sub run {
     my $additional = "";
     $additional = "--allow-unsupported" if (is_sle);
     assert_script_run("modprobe $additional zfs");
+    assert_script_run("ztest", fail_message => "zfs test suite 'ztest' failed", timeout => 600);
+
+    ## Integration tests start here
+
     prepare_disks();
 
     ## Prepare test pools
