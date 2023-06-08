@@ -130,6 +130,11 @@ sub run {
             for my $pkg ('wicked', 'wicked-service') {
                 die("Missing installation of package $pkg!") unless grep { $_ eq $pkg } @installed_packages;
             }
+            for my $pkg (qw(wicked-debuginfo wicked-debugsource)) {
+                if (script_run("zypper search --repo $repo_id $pkg") == 0) {
+                    zypper_call("in --force -y --from $repo_id --force-resolution $pkg");
+                }
+            }
             my @zypper_ps_progs = split(/\s+/, script_output('zypper ps  --print "%s"', qr/^\s*$/));
             for my $ps_prog (@zypper_ps_progs) {
                 die("The following programm $ps_prog use deleted files") if grep { /$ps_prog/ } @installed_packages;
@@ -155,6 +160,10 @@ sub run {
         }
         wicked::wlan::prepare_packages() if (check_var('WICKED', 'wlan'));
 
+        if ($self->valgrind_enable()) {
+            $need_reboot = 1;
+            $package_list .= ' valgrind';
+        }
         $package_list .= ' openvswitch iputils';
         $package_list .= ' libteam-tools libteamdctl0 ' if check_var('WICKED', 'advanced') || check_var('WICKED', 'aggregate');
         $package_list .= ' gcc' if check_var('WICKED', 'advanced');
@@ -162,6 +171,7 @@ sub run {
         $self->reset_wicked();
         $self->reboot() if $need_reboot;
         record_info('PKG', script_output(q(rpm -qa 'wicked*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
+        record_info('ps', script_output(q(ps -aux)));
         wicked::wlan::prepare_sut() if (check_var('WICKED', 'wlan'));
     }
 }

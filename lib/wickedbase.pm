@@ -22,6 +22,7 @@ use Mojo::Util qw(b64_encode b64_decode trim);
 use Regexp::Common 'net';
 use File::Basename;
 use version_utils 'check_version';
+use List::MoreUtils qw(uniq);
 
 use strict;
 use warnings;
@@ -48,6 +49,7 @@ sub wicked_command {
 
     my $cmd = '/usr/sbin/wicked --log-target syslog --debug all ' . $action . ' ' . $iface;
     assert_script_run('echo -e "\n# $(date -Isecond)\n# "' . $cmd . ' >> ' . $serial_log);
+    $cmd = $self->valgrind_cmd('wicked') . " $cmd" if (grep { /^wicked$/ } $self->valgrind_get_services());
     record_info('wicked cmd', $cmd);
     assert_script_run($cmd . ' 2>&1 | tee -a ' . $serial_log);
     assert_script_run(q(echo -e "\n# ip addr" >> ) . $serial_log);
@@ -116,6 +118,148 @@ sub assert_wicked_state {
     $self->ping_with_timeout(ip => $args{ping_ip}) if $args{ping_ip};
 }
 
+=head2 valgrind_get_services
+
+    valgrind_get_services()
+
+Retrieves the list of wicked services where valgrind is enabled for. It read the
+`WICKED_VALGRIND` variable.
+
+=cut
+
+sub valgrind_get_services {
+    my $self = shift;
+    my $val = get_var('WICKED_VALGRIND');
+
+    return if (!defined($val) || !$val);
+    my @all = qw(wickedd-auto4
+      wickedd-dhcp6
+      wickedd
+      wickedd-dhcp4
+      wickedd-nanny
+      wicked);
+    my @tmp;
+    my @enable;
+    if (index($val, ",")) {
+        @tmp = split(/,/, $val);
+    } else {
+        @tmp = $val;
+    }
+    foreach my $v (@tmp) {
+        $v =~ s/\.service$//;
+        if (grep { /^$v$/ } @all) {
+            push @enable, $v;
+        } elsif ($v =~ /^1|all$/i) {
+            push @enable, @all;
+        } else {
+            record_info('WARNING', "Unknown value for WICKED_VALGRIND $v", result => 'softfail');
+        }
+    }
+    @enable = uniq @enable;
+
+    return @enable;
+}
+
+=head2 valgrind_cmd
+
+    valgrind_cmd([$service])
+
+Retrieves the valgrind command. If the C<$service> is given, the log file will contain
+the name of it. It used `WICKED_VALGRIND_CMD` variable to build the command.
+
+=cut
+
+sub valgrind_cmd {
+    my ($self, $service) = @_;
+
+    my $valgrind_cmd = get_var('WICKED_VALGRIND_CMD', '/usr/bin/valgrind --tool=memcheck --leak-check=yes');
+    if ($service) {
+        my $logfile = "/var/log/valgrind_$service.log";
+        $valgrind_cmd = "$valgrind_cmd --log-file=$logfile";
+    }
+    return $valgrind_cmd;
+}
+
+=head2 valgrind_enable
+
+    valgrind_enable()
+
+Modify all systemd service units, to enable valgrind for all binarys which where 
+specified via WICKED_VALGRIND.
+
+=cut
+
+sub valgrind_enable {
+    my $self = shift;
+    my $valgrind_cmd = get_var('WICKED_VALGRIND_CMD', '/usr/bin/valgrind --tool=memcheck --leak-check=yes');
+
+    my @services = $self->valgrind_get_services();
+    return 0 if (!@services);
+
+    record_info("valgrind enable", "services: @services\ncommand: $valgrind_cmd");
+
+    foreach my $service (@services) {
+        my $service_file = "/etc/systemd/system/$service.service";
+
+        assert_script_run("systemctl cat $service > $service_file");
+        # Add valgrind command prefix to `ExecStart=` in the custom service file
+        assert_script_run(sprintf(q(sed -i -E 's@^(ExecStart=)(.*)$@\1%s \2@' '%s'),
+                $self->valgrind_cmd($service), $service_file));
+
+        record_info("$service.service", script_output("cat $service_file"));
+    }
+
+    assert_script_run('systemctl daemon-reload');
+
+    return 1;
+}
+
+=head2
+
+    valgrind_prerun()
+
+Run before test-module. Simple cleanup of left-overs.
+
+=cut
+
+sub valgrind_prerun {
+    my $self = shift;
+
+    my @services = $self->valgrind_get_services();
+    foreach my $service (@services) {
+        my $logfile = "/var/log/valgrind_$service.log";
+
+        assert_script_run("rm -f $logfile");
+    }
+}
+
+=head2 valgrind_postrun
+
+    valgrind_postrun()
+
+Check for valgrind errors in one of the valgrind enabled binaries valgrind-logs.
+
+=cut
+
+sub valgrind_postrun {
+    my $self = shift;
+
+    my @services = $self->valgrind_get_services();
+    foreach my $service (@services) {
+        my $logfile = "/var/log/valgrind_$service.log";
+
+        my @lines = split(/\r?\n/, script_output("test -r '$logfile' && grep 'ERROR SUMMARY' '$logfile' || true"));
+        foreach my $l (@lines) {
+            if ($l =~ /ERROR\s+SUMMARY:\s+(\d+)/) {
+                if ($1 > 0) {
+                    record_info("valgrind $service", "service:$service\n\n" . script_output("cat $logfile"), result => 'fail');
+                    $self->result('fail');
+                    last;
+                }
+            }
+        }
+    }
+}
 
 sub reset_wicked {
     my $self = @_;
@@ -980,6 +1124,7 @@ sub post_run {
     }
     $self->check_logs() unless $self->{skip_check_logs_on_post_run};
     $self->check_coredump();
+    $self->valgrind_postrun();
     $self->upload_wicked_logs('post');
 }
 
@@ -1002,6 +1147,8 @@ sub pre_run_hook {
     $self->upload_wicked_logs('pre');
     $self->{pre_run_log_cursor} = $self->get_log_cursor() if ($self->{name} ne 'before_test');
     $self->SUPER::pre_run_hook;
+
+    $self->valgrind_prerun();
     $self->do_barrier('pre_run');
 }
 
