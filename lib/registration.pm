@@ -180,7 +180,7 @@ sub add_suseconnect_product {
     $version //= '${VERSION_ID}';
     $arch //= '${CPU}';
     $params //= '';
-    if ($name =~ /PackageHub/) {
+    if (is_sle('=15-SP5') && $name =~ /PackageHub/) {
         $params .= ' --gpg-auto-import-keys';
         record_soft_failure 'bsc#1212134 - Package hub signing key verification failure';
     }
