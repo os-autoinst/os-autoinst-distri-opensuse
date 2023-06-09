@@ -881,6 +881,9 @@ sub wait_boot {
         #
         $self->handle_pxeboot(bootloader_time => $bootloader_time, pxemenu => 'pxe-custom-kernel', pxeselect => 'pxe-custom-kernel-selected');
     }
+    # When no bounce back on power KVM, we need skip bootloader process and go ahead when 'displaymanager' matched.
+    elsif (get_var('OFW') && (check_screen('displaymanager', 5))) {
+    }
     else {
         assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600) if (uses_qa_net_hardware() || get_var("PXEBOOT"));
         $self->handle_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
