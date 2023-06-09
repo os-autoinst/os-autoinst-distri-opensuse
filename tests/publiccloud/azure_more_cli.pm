@@ -77,6 +77,7 @@ sub run {
             'sudo zypper lr -u; sudo SUSEConnect -list-extensions', 300);
         script_output('sudo zypper -n ref; sudo zypper -n up',
             2000, proceed_on_failure => 1);
+        record_info('zypper ref & up');
         assert_script_run(
             'sudo zypper in -y --allow-vendor-change --force azure-cli', 4600);
         record_info('azure cli installed');
@@ -131,7 +132,7 @@ sub load_cli_test {
             record_info('Preparing permission for cli test ', $test_name);
             assert_script_run(
                 "curl "
-                  . data_url("publiccloud/$test_name")
+                  . data_url("publiccloud/azure_more_cli/$test_name")
                   . " -o /$root_dir/$test_name",
                 60
             );
@@ -159,7 +160,7 @@ sub load_cli_test {
                     $dep_test_name);
                 assert_script_run(
                     "curl "
-                      . data_url("publiccloud/$dep_test_name")
+                      . data_url("publiccloud/azure_more_cli/$dep_test_name")
                       . " -o /$root_dir/$dep_test_name",
                     60
                 );

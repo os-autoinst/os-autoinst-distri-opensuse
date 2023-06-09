@@ -1,5 +1,8 @@
 #!/bin/bash -u
 set -o pipefail
+# This bash source is for reporting
+# shellcheck disable=2046
+# shellcheck disable=1091
 . $(dirname "${BASH_SOURCE[0]}")/azure_lib_fn.sh
 #######################################################################
 # File: azure_runcmd.sh
@@ -22,6 +25,8 @@ set -o pipefail
 grpname="${1:-oqaclitest}"
 location="${2:-westus}"
 vmname="${3:-oqacliruncmdvm}"
+# This standard variable is not used in this script
+# shellcheck disable=2034
 ssh_key="${4:-oqaclitest-sshkey}"
 vmximagename="${5:-UbuntuLTS}"
 account="${6:-a5e130f6-1ae8-48f5-8ca3-322fa4d9800f}"
@@ -135,7 +140,7 @@ echo "Deleted public ip: ${public_ip_id}"
 
 echo "List all resources for resource group ${grpname} { az resource list }"
 echo "*******************************************************************"
-for rid in $(az resource list --query "reverse(sort_by([?contains(name, 'oqacli')].{name:name,time:createdTime,id:id}, &time))" -o tsv); do
+for rid in $(az resource list --name "${grpname}" --query "reverse(sort_by([?contains(name, 'oqacli')].{name:name,time:createdTime,id:id}, &time))" -o tsv); do
     if [[ "${rid}" =~ .*"virtualNetworks".* ]]; then
        echo "Delete resource virtual network ${rid} { az network vnet delete }"
        echo "********************************************************************"

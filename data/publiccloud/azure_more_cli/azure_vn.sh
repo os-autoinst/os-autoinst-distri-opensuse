@@ -1,5 +1,8 @@
 #!/bin/bash -u
 set -o pipefail
+# This bash source is for reporting
+# shellcheck disable=2046
+# shellcheck disable=1091
 . $(dirname "${BASH_SOURCE[0]}")/azure_lib_fn.sh
 ##########################################################################
 # File: azure_vn.sh
@@ -22,6 +25,8 @@ set -o pipefail
 grpname="${1:-oqaclitest}"
 location="${2:-westus}"
 vmname="${3:-oqaclivm}"
+# This standard variable is not used in this script
+# shellcheck disable=2034
 ssh_key="${4:-oqaclitest-sshkey}"
 vmximagename="${5:-UbuntuLTS}"
 account="${6:-a5e130f6-1ae8-48f5-8ca3-322fa4d9800f}"
@@ -68,11 +73,13 @@ echo "Created container ${storage_cont}"
 
 #based on number of nics
 #store subnet name and nic names in array
+# shellcheck disable=2004
 count=$(( ${number_of_nics} - 1 ))
 while [ $count -ge 0 ]
 do
     subnet_names[${count}]=${base_subnet}"${count}"
     nic_names[${count}]=${base_nic}"${count}"
+    # shellcheck disable=2004
     count=$(( ${count} - 1 ))
 done
 
@@ -88,7 +95,6 @@ echo "Done creating Azure virtual network ${vnet}"
 
 # Create as many subnets as there are NICs
 i=0
-echo "subnetprefix ${subnet_prefixes[@]}"
 for prefix in "${subnet_prefixes[@]}"
 do
     echo "Creating virtual subnet ${subnet_names[$i]} $prefix..{az network vnet subnet create }"
@@ -99,6 +105,7 @@ do
         --vnet-name "${vnet}" \
         --output table
     echo "Done creating subnet ${subnet_names[$i]} with prefix ${prefix} and ${i}"
+    # shellcheck disable=2219
     let "i+=1"
 done
 
@@ -176,6 +183,7 @@ do
             --output table
         echo "Created NIC ${nic}..."
     fi
+    # shellcheck disable=2219
     let "i+=1"
 done
 
@@ -311,7 +319,7 @@ cmd_status "az_configure_defaults_group" az configure --defaults group="${grpnam
 echo "List all resources for resource group ${grpname} { az resource list }"
 echo "*******************************************************************"
 
-cmd_status "az_resource_list" az resource list -o table
+cmd_status "az_resource_list" az resource list --name "${grpname}" -o table
 
 echo "Delete all the resources created in resource group ${grpname} { az vm delete } "
 echo "******************************************************************************"
@@ -380,7 +388,7 @@ done
 
 echo "List all resources for resource group ${grpname} { az resource list }"
 echo "*******************************************************************"
-cmd_status "az_resource_list" az resource list -o table
+cmd_status "az_resource_list" az resource list --name "${grpname}" -o table
 
 echo "              Virtual Network AZURE CLI Test Report                "
 echo "*******************************************************************"

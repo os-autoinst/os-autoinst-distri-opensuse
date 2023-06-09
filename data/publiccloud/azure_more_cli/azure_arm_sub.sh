@@ -1,5 +1,8 @@
 #!/bin/bash -u
 set -o pipefail
+# This bash source is for reporting
+# shellcheck disable=2046
+# shellcheck disable=1091
 . $(dirname "${BASH_SOURCE[0]}")/azure_lib_fn.sh
 #######################################################################
 # File: azure_arm_sub.sh
@@ -22,10 +25,18 @@ set -o pipefail
 # Required AZ setting variable block with default values
 grpname="${1:-oqaclitest}"
 location="${2:-westus}"
+# This standard variable is not used in this script
+# shellcheck disable=2034
 vmname="${3:-oqacliruncmdvm}"
+# This standard variable is not used in this script
+# shellcheck disable=2034
 ssh_key="${4:-oqaclitest-sshkey}"
+# This standard variable is not used in this script
+# shellcheck disable=2034
 vmximagename="${5:-UbuntuLTS}"
 account="${6:-a5e130f6-1ae8-48f5-8ca3-322fa4d9800f}"
+# This standard variable is not used in this script
+# shellcheck disable=2034
 admin="${7:-azureuser}"
 
 # local variable block

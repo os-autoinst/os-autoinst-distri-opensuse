@@ -1,5 +1,8 @@
 #!/bin/bash -u
 set -o pipefail
+# This bash source is for reporting
+# shellcheck disable=2046
+# shellcheck disable=1091
 . $(dirname "${BASH_SOURCE[0]}")/azure_lib_fn.sh
 #######################################################################
 # File: azure_lb.sh
@@ -22,6 +25,8 @@ set -o pipefail
 grpname="${1:-oqaclitest}"
 location="${2:-westus}"
 vmname="${3:-oqaclilbvm}"
+# This standard variable is not used in this script
+# shellcheck disable=2034
 ssh_key="${4:-oqaclitest-sshkey}"
 vmximagename="${5:-UbuntuLTS}"
 account="${6:-a5e130f6-1ae8-48f5-8ca3-322fa4d9800f}"
@@ -242,38 +247,56 @@ echo "Deleting ..."
 declare -a diskids=()
 # list the resource name starts with oqacli
 # Delete Disk after deleting the VM
-for rid in $(az resource list --query "[?contains(name, 'oqacli')].{id:id}" -o tsv); do
+for rid in $(az resource list --name "${grpname}" --query "[?contains(name, 'oqacli')].{id:id}" -o tsv); do
 case "${rid}" in
       *"publicIPAddresses"*)
+            echo "Deleting public-ip ${rid}"
             cmd_status "az_net_pubip_del" az network public-ip delete --id "${rid}"
-            echo "public-ip deleted " "${rid}"
+            echo "public-ip deleted ${rid}"
             ;;
       *"virtualMachines"*)
+            echo "Deleting vm ${rid}"
             cmd_status "az_vm_delete" az vm delete --ids "${rid}" --yes
-            echo "vm deleted " "${rid}"
+            echo "vm deleted ${rid}"
             ;;
       *"disks"* )
+            # shellcheck disable=2179
             diskids+=${rid}
             ;;
       *"networkSecurityGroups"*)
+            echo "Deleting nsg ${rid}"
             cmd_status "az_net_nsg_del" az network nsg delete --id "${rid}"
-            echo "nsg deleted " "${rid}"
+            echo "nsg deleted ${rid}"
             ;;
       *"networkInterfaces"*)
+            echo "Deleting nic ${rid}"
             cmd_status "az_net_nic_del" az network nic delete --id "${rid}"
-            echo "nic deleted " "${rid}"
+            echo "nic deleted ${rid}"
             ;;
       *"virtualNetworks"*)
+            echo "Deleting vnet ${rid}"
             cmd_status "az_net_vnet_del" az network vnet delete --id "${rid}"
-            echo "vnet deleted " "${rid}"
+            echo "vnet deleted ${rid}"
             ;;
       *"sshPublicKeys"*)
+            echo "Deleting publickey ${rid}"
             cmd_status "az_sshkey_del" az sshkey delete --id "${rid}" --yes
-            echo "publickey deleted " "${rid}"
+            echo "publickey deleted ${rid}"
             ;;
       *"availabilitySets".*)
+            echo "Deleting availability set ${rid}"
             cmd_status "az_vm_avset_delete" az vm availability-set delete --ids "${rid}"
-            echo "availabilty set deleted"
+            echo "availabilty set deleted ${rid}"
+	    ;;
+      *"routeTables".*)
+            echo "Deleting routeTables ${rid}"
+            cmd_status "az_rtable_delete" az network route-table route delete --ids "${rid}"
+            echo "routeTables deleted ${rid}"
+	    ;;
+      *"storageAccounts".*)
+            echo "Deleting storageAccounts ${rid}"
+            cmd_status "az_stacct_delete" az storage account delete --ids "${rid}"
+            echo "storageAccounts deleted ${rid}"
 	    ;;
       *)
             echo "Unknown RID type ${rid}"
