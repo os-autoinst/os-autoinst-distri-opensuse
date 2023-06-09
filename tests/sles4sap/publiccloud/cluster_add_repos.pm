@@ -32,6 +32,7 @@ sub run() {
         $count++;
     }
     foreach my $instance (@{$run_args->{instances}}) {
+        next if ($instance->{'instance_id'} !~ m/vmhana/);
         $instance->run_ssh_command(cmd => 'sudo zypper -n ref', username => 'cloudadmin', timeout => 1500);
     }
 }
