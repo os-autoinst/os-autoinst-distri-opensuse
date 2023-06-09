@@ -170,9 +170,13 @@ sub load_create_publiccloud_tools_image {
 # Test CLI tools for each provider
 sub load_publiccloud_cli_tools {
     loadtest 'boot/boot_to_desktop';
-    loadtest 'publiccloud/azure_cli';
-    loadtest 'publiccloud/aws_cli';
-    loadtest 'publiccloud/google_cli';
+    if (get_var('PUBLIC_CLOUD_AZURE_CLI_TEST')) {
+        loadtest 'publiccloud/azure_more_cli';
+    } else {
+        loadtest 'publiccloud/azure_cli';
+        loadtest 'publiccloud/aws_cli';
+        loadtest 'publiccloud/google_cli';
+    }
     loadtest 'shutdown/shutdown';
 }
 
