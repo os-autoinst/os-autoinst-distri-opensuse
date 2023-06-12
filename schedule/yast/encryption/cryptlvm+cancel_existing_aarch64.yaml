@@ -1,0 +1,28 @@
+---
+description: >
+  Conduct installation cancelling encrypted partitions activation, and creating
+  encrypted lvm setup from scratch. Using pre-partitioned disk image to validate
+  encrypted partitions activation and that we can re-ecnrypt the disk.
+name: cryptlvm+cancel_existing
+vars:
+  ENCRYPT: 1
+  LVM: 1
+  YUI_REST_API: 1
+schedule:
+  extension_module_selection:
+    - installation/module_registration/register_module_desktop
+  system_probing:
+    - installation/system_probing/cancel_encrypted_volume
+    - console/validate_encrypted_partition_not_activated
+  add_on_product: []
+  system_role: []
+  suggested_partitioning: []
+  clock_and_timezone: []
+  local_user: []
+  booting: []
+  installation_settings: []
+  installation: []
+  installation_logs: []
+  confirm_reboot: []
+  grub: []
+  first_login: []
