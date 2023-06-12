@@ -910,7 +910,7 @@ subtest '[qesap_az_vnet_peering_delete] delete failure' => sub {
     note("\n  SF-->  " . join("\n  SF-->  ", @soft_failure));
 
     # qesap_az_get_peering_name
-    ok((any { /jira#7487/ } @soft_failure), 'soft failure');
+    ok((any { /jsc#7487/ } @soft_failure), 'soft failure');
 };
 
 done_testing;

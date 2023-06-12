@@ -14,6 +14,7 @@ use warnings FATAL => 'all';
 use Exporter 'import';
 use testapi;
 use qesapdeployment;
+use publiccloud::utils;
 
 our @EXPORT = qw(cleanup);
 
@@ -27,6 +28,20 @@ sub cleanup {
     for my $command ('ansible', 'terraform') {
         # Skip cleanup if ansible inventory is not present (deployment could not have been done without it)
         next if (script_run 'test -f ' . qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER')));
+
+
+        if (is_azure && check_var('IS_MAINTENANCE', 1)) {
+            record_info('Cleanup', `Executing peering cleanup (if peering is present)`);
+            my $rg = qesap_az_get_resource_group();
+            my $ibsm_rg = get_required_var('IBSM_RG');
+            # Check that required vars are available befor delleting the peering
+            if (defined $rg && $rg ne '' && defined $ibsm_rg && $ibsm_rg ne '') {
+                qesap_az_vnet_peering_delete(source_group => $rg, target_group => $ibsm_rg);
+            }
+            else {
+                record_info('No peering', 'No peering exists, peering destruction skipped');
+            }
+        }
 
         record_info('Cleanup', "Executing $command cleanup");
         # 3 attempts for both terraform and ansible cleanup
