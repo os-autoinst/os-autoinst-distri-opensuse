@@ -1,3 +1,4 @@
+#!/bin/bash -u
 ##################################################################################
 # File: azure_lib_fn.sh
 # Description: Holds shared functions for azcli testing
@@ -31,7 +32,7 @@ cmd_status()
 
  local test_name="${1}"
  shift 1 # consume the first argument
- echo "[Running test: '${test_name}' and command : '${@}']"
+ echo "[Running test: '${test_name}' and command : '$*']"
  # Executing command
  "${@}"
  exit_status=$?
@@ -55,14 +56,17 @@ fcmd=0
 final_exit_status=0
  for ind in "${!TEST_STATUS[@]}"
  do
+    # shellcheck disable=2219
     let "tcmd+=1"
     if  (( ${TEST_STATUS[${ind}]} > 0 ))
     then
       echo "  Test ${ind} FAILED "
+      # shellcheck disable=2219
       let "fcmd+=1"
       final_exit_status=1
     else
       echo "  Test ${ind} Passed "
+      # shellcheck disable=2219
       let "pcmd+=1"
     fi
  done

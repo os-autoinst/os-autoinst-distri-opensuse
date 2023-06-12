@@ -1,5 +1,8 @@
 #!/bin/bash -u
 set -o pipefail
+# This bash source is for reporting
+# shellcheck disable=2046
+# shellcheck disable=1091
 . $(dirname "${BASH_SOURCE[0]}")/azure_lib_fn.sh
 ############################################################################
 # File: azure_vmss.sh
@@ -23,6 +26,8 @@ set -o pipefail
 grpname="${1:-oqaclitest}"
 location="${2:-westus}"
 vmname="${3:-oqaclivmss}"
+# This standard variable is not used in this script
+# shellcheck disable=2034
 ssh_key="${4:-oqaclitest-sshkey}"
 vmximagename="${5:-UbuntuLTS}"
 account="${6:-a5e130f6-1ae8-48f5-8ca3-322fa4d9800f}"
@@ -60,6 +65,7 @@ echo "VM Scale set created"
 echo " List all the resource created by VM scale set ${vmname} { az resource list }"
 echo "***************************************************************************"
 cmd_status "az_resource_list" az resource list \
+    --name "${grpname}" \
     --query "[?contains(name, '${vmname}')].{name:name,type:type}"
 
 echo " List VM scaleset in the resource group ${grpname} { az vmss list }"
@@ -157,7 +163,7 @@ cmd_status "az_vmss_delete" az vmss delete -n "${vmname}" -g "${grpname}" --forc
 
 echo "List all resources for resource group ${grpname} { az resource list }"
 echo "*******************************************************************"
-for rid in $(az resource list -o table --query "reverse(sort_by([?contains(name, 'oqaclivmss')].{name:name,time:createdTime,id:id}, &time))" -o tsv);
+for rid in $(az resource list -o table --name "${grpname}" --query "reverse(sort_by([?contains(name, 'oqaclivmss')].{name:name,time:createdTime,id:id}, &time))" -o tsv);
 do
     if [[ "${rid}" =~ .*"virtualNetworks".* ]]; then
        echo "Delete resource virtual network ${rid} { az network vnet delete }"

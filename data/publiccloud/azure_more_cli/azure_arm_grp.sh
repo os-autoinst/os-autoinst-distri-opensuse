@@ -1,5 +1,8 @@
 #!/bin/bash -u
 set -o pipefail
+# This bash source is for reporting
+# shellcheck disable=2046
+# shellcheck disable=1091
 . $(dirname "${BASH_SOURCE[0]}")/azure_lib_fn.sh
 #######################################################################
 # File: azure_arm_grp.sh
@@ -23,10 +26,18 @@ set -o pipefail
 # Required AZ setting variable block with default values
 grpname="${1:-oqaclitest}"
 location="${2:-westus}"
+# This standard variable is not used in this script
+# shellcheck disable=2034
 vmname="${3:-oqacliruncmdvm}"
+# This standard variable is not used in this script
+# shellcheck disable=2034
 ssh_key="${4:-oqaclitest-sshkey}"
+# This standard variable is not used in this script
+# shellcheck disable=2034
 vmximagename="${5:-UbuntuLTS}"
 account="${6:-a5e130f6-1ae8-48f5-8ca3-322fa4d9800f}"
+# This standard variable is not used in this script
+# shellcheck disable=2034
 admin="${7:-azureuser}"
 
 # local variable block
@@ -55,7 +66,7 @@ echo "Export template group ${grp_template}"
 cmd_status "az_dep_grp_exp" az deployment group export -n "${grp_deployname}" -g "${grpname}"
 
 echo "List the resource created by the deployment group template ${grp_template}"
-cmd_status "az_res_list" az resource list -o table --query "[?contains(name, 'oqacliarm')].{Name:name}" -o table
+cmd_status "az_res_list" az resource list --name "${grpname}" -o table --query "[?contains(name, 'oqacliarm')].{Name:name}" -o table
 
 echo "List the deployment group "
 cmd_status "az_dep_grp_list" az deployment group list --resource-group "${grpname}" --query "[?contains(type, 'Microsoft.Resources/deployments')].{type:type,Name:name,State:properties.provisioningState}" -o table
@@ -81,7 +92,7 @@ diskid="0"
 # Delete Disk after deleting the VM
 # grep only the resource id
 #for rid in $(az resource list --query "reverse(sort_by([?contains(name, 'oqacliarm')].{name:name,time:createdTime,id:id}, &time))" -o tsv | awk '{print $3}'); do
-for rid in $(az resource list --query "[?contains(name, 'oqacliarm')].{id:id}" -o tsv); do
+for rid in $(az resource list --name "${grpname}" --query "[?contains(name, 'oqacliarm')].{id:id}" -o tsv); do
 case "${rid}" in
       *"publicIPAddresses"*)
             cmd_status "az_net_pubip_del" az network public-ip delete --id "${rid}"
