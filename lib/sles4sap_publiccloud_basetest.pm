@@ -29,7 +29,6 @@ sub cleanup {
         # Skip cleanup if ansible inventory is not present (deployment could not have been done without it)
         next if (script_run 'test -f ' . qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER')));
 
-
         if (is_azure && check_var('IS_MAINTENANCE', 1)) {
             record_info('Cleanup', `Executing peering cleanup (if peering is present)`);
             my $rg = qesap_az_get_resource_group();
