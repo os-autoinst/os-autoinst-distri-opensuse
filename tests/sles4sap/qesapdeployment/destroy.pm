@@ -16,7 +16,7 @@ sub run {
 
     my $ansible_ret = qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
     qesap_cluster_logs() if ($ansible_ret);
-    my $terraform_ret = qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1200);
+    my $terraform_ret = qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1800);
     die "'qesap.py ansible -d' return: $ansible_ret" if ($ansible_ret);
     die "'qesap.py terraform -d' return: $terraform_ret" if ($terraform_ret);
 }
