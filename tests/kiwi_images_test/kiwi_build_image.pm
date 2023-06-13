@@ -38,7 +38,7 @@ sub run {
     # while the SLE Build may have different requirements.
     validate_script_output("ls -l /tmp", sub { m/SLES$version-kiwi.x86_64-1.1.0.qcow2/ });
     assert_script_run("qemu-img convert -c -O qcow2 /tmp/SLES$version-kiwi.x86_64-1.1.0.qcow2 /tmp/SLES$version-kiwi.x86_64-$build.qcow2;sync");
-    upload_asset("/tmp/SLES$version-kiwi.x86_64-$build.qcow2", 'public');
+    upload_asset("/tmp/SLES$version-kiwi.x86_64-$build.qcow2");
 }
 
 1;
