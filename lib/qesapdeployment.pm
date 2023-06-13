@@ -911,7 +911,7 @@ sub qesap_az_vnet_peering_delete {
         record_info("Peering deletion SUCCESS", "The peering was successfully destroyed");
         return;
     }
-    record_soft_failure("Peering destruction FAIL: There may be leftover peering connections, please check - jira#7487");
+    record_soft_failure("Peering destruction FAIL: There may be leftover peering connections, please check - jsc#7487");
 }
 
 =head3 qesap_az_get_peering_name
