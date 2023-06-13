@@ -18,6 +18,11 @@
       <li><a href="#get_wicked_version">get_wicked_version</a></li>
       <li><a href="#check_wicked_version">check_wicked_version</a></li>
       <li><a href="#assert_wicked_state">assert_wicked_state</a></li>
+      <li><a href="#valgrind_get_services">valgrind_get_services</a></li>
+      <li><a href="#valgrind_cmd">valgrind_cmd</a></li>
+      <li><a href="#valgrind_enable">valgrind_enable</a></li>
+      <li><a href="#"></a></li>
+      <li><a href="#valgrind_postrun">valgrind_postrun</a></li>
       <li><a href="#get_remote_ip">get_remote_ip</a></li>
       <li><a href="#get_ip">get_ip</a></li>
       <li><a href="#get_current_ip">get_current_ip</a></li>
@@ -66,6 +71,36 @@
 <p>Check that wicked processes are as expected by input arguments. &#39;Up&#39; by default.</p>
 
 <p>The optional parameters <code>wicked_client_down</code> is given normally with <code>interfaces_down</code> =&gt; 1 to verify that wicked.service process is down. The optional argument <code>wicked_daemon_down</code> is given to verify that wickedd.service is down. The optional argument <code>ping_ip</code> checks that the IP is reachable. The optinal argument <code>iface</code> allows to print the output of the command &#39;ip address show&#39;. With no arguments, it will check that wicked.service and wickedd.service are up.</p>
+
+<h2 id="valgrind_get_services">valgrind_get_services</h2>
+
+<pre><code>valgrind_get_services()</code></pre>
+
+<p>Retrieves the list of wicked services where valgrind is enabled for. It read the `WICKED_VALGRIND` variable.</p>
+
+<h2 id="valgrind_cmd">valgrind_cmd</h2>
+
+<pre><code>valgrind_cmd([$service])</code></pre>
+
+<p>Retrieves the valgrind command. If the <code>$service</code> is given, the log file will contain the name of it. It used `WICKED_VALGRIND_CMD` variable to build the command.</p>
+
+<h2 id="valgrind_enable">valgrind_enable</h2>
+
+<pre><code>valgrind_enable()</code></pre>
+
+<p>Modify all systemd service units, to enable valgrind for all binarys which where specified via WICKED_VALGRIND.</p>
+
+<h2 id=""></h2>
+
+<pre><code>valgrind_prerun()</code></pre>
+
+<p>Run before test-module. Simple cleanup of left-overs.</p>
+
+<h2 id="valgrind_postrun">valgrind_postrun</h2>
+
+<pre><code>valgrind_postrun()</code></pre>
+
+<p>Check for valgrind errors in one of the valgrind enabled binaries valgrind-logs.</p>
 
 <h2 id="get_remote_ip">get_remote_ip</h2>
 
