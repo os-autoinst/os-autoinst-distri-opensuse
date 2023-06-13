@@ -18,7 +18,16 @@ sub run {
 
     my $chdir = qesap_get_terraform_dir();
     assert_script_run("terraform -chdir=$chdir output");
-    qesap_ansible_cmd(cmd => $_, provider => $prov) for ('pwd', 'uname -a', 'cat /etc/os-release');
+    my @remote_cmd = (
+        'pwd',
+        'uname -a',
+        'cat /etc/os-release',
+        'sudo SUSEConnect --status-text',
+        'zypper ref',
+        'zypper lr',
+        'zypper in -f -y vim'
+    );
+    qesap_ansible_cmd(cmd => $_, provider => $prov) for @remote_cmd;
     qesap_ansible_cmd(cmd => 'ls -lai /hana/', provider => $prov, filter => 'hana');
     my $cmr_status = qesap_ansible_script_output(cmd => 'crm status', provider => $prov, host => '"hana[0]"', root => 1);
     record_info("crm status", $cmr_status);
