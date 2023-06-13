@@ -8,8 +8,10 @@ schedule:
     - '{{repo_setup}}'
     - fips/fips_setup
     - '{{y2_vnc_pvm}}'
-    - fips/openjdk/openjdk_fips
-    - fips/openjdk/openjdk_ssh
+    - fips/openjdk/openjdk11_fips
+    - fips/openjdk/openjdk11_ssh
+    - fips/openjdk/openjdk17_fips
+    - fips/openjdk/openjdk17_ssh
 conditional_schedule:
     repo_setup:
         BETA:
