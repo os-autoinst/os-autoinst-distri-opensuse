@@ -345,3 +345,20 @@ PUBLIC_AZURE_CLI_TEST | string | "vmss" | Azure CLI test names. This variable sh
 PUBLIC_CLOUD_PY_BACKPORTS_REPO | string | "" | PY Backport repo URL for azure_more_cli_test.
 PUBLIC_CLOUD_PY_AZURE_REPO | string | "" | PY azure repo URL for azure_more_cli_test.
 PUBLIC_CLOUD_TOOLS_REPO | string | "" | cloud tools repo URL for azure_more_cli_test.
+
+
+### Wicked testsuite specifc variables
+
+The following variables are relevant for the wicked testsuite
+
+Variable        | Type      | Default value | Details
+---             | ---       | ---           | ---
+WICKED_CHECK_LOG_EXCLUDE | string | @see [wickedbase.pm](./lib/wickedbase.pm)::check_logs() | A CSV of log messages, which doesn't result in a test-module failure. The format is `<wicked-binary>=<regex>`.
+WICKED_CHECK_LOG_FAIL | bool | false | If enabled, after each test-module. The journal of each wicked services is checked and the test-module fail if an unknown error was found.
+WICKED_COMMIT_SHA | string | | Can be used with `WICKED_REPO`. It check the given SHA against the latest changelog entry of wicked. It's used to verify that we run openqa against the version we expect.
+WICKED_EXCLUDE | regex  | | This exclude given wicked test modules. E.g.  `WICKED_EXCLUDE='^(?!t01_).*$'` would only run the test-module starting with `t01_*`.
+WICKED_REPO | string | | If specified, wicked get installed from this repo before testing. The url should point to the `*.repo` file.
+WICKED_SKIP_VERSION_CHECK | bool | false | Some test-modules require a specific wicked version. If you don't want this check take place, set this variable to `true`.
+WICKED_TCPDUMP | bool | false | If enabled, on each test-module the network interfaces are set into promiscuous mode and a `*.pcap` file will be captured and uploaded.
+WICKED_VALGRIND | string | | Enable valgind for specified wicked binaries. Multiple values should be separated by `,`. If set to `all` or `1`, valgrind is enabled for all binaries(wickedd-auto4, wickedd-dhcp6, wickedd-dhcp4, wickedd-nanny, wickedd and wicked).
+WICKED_VALGRIND | string | /usr/bin/valgrind --tool=memcheck --leak-check=yes | The valgrind command used with `WICKED_VALGRIND` for each binary.
