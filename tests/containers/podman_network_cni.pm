@@ -24,7 +24,7 @@ sub run() {
 
 
     my $podman_version = get_podman_version();
-    my $old_podman = (package_version_cmp($podman_version, '3.1.0') >= 0) ? 0 : 1;
+    my $supports_network = (package_version_cmp($podman_version, '3.1.0') >= 0) ? 0 : 1;
 
     record_info('Create', 'Create new networks named newnet1 and newnet2');
     assert_script_run('podman network create newnet1');
@@ -32,7 +32,7 @@ sub run() {
 
     record_info('List', script_output('podman network ls'));
     validate_script_output('podman network ls', sub { m/newnet/g });
-    unless ($old_podman) {
+    unless ($supports_network) {
         assert_script_run("podman network exists newnet1");
         assert_script_run("podman network exists newnet2");
     }
@@ -44,25 +44,23 @@ sub run() {
     record_info('Delete', 'Delete newnet3 and list the networks to see if it is deleted');
     assert_script_run('podman network rm newnet3');
     validate_script_output('podman network ls', sub { !m/newnet3/ });
-    unless ($old_podman) {
+    unless ($supports_network) {
         script_run('podman network exists newnet3') or die('newnet3 has not been deleted!');
     }
 
-    unless ($old_podman) {
+    unless ($supports_network) {
         record_info('Inspect', script_output('podman inspect newnet1'));
         assert_script_run('podman network inspect newnet1 --format "{{range .Subnets}}Subnet: {{.Subnet}} Gateway: {{.Gateway}}{{end}}"');
     }
 
     #connect, disconnect & reload
-    unless ($old_podman) {
+    unless ($supports_network) {
         record_info('Prepare', 'Prepare three containers');
         script_retry("podman pull registry.opensuse.org/opensuse/tumbleweed", timeout => 300, delay => 60, retry => 3);
-        script_retry("podman pull registry.opensuse.org/opensuse/nginx", timeout => 300, delay => 60, retry => 3);
-
 
         assert_script_run('podman run -id --rm --name container1 -p 1234:1234 registry.opensuse.org/opensuse/tumbleweed');
         assert_script_run('podman run -id --rm --name container2 -p 1235:1235 registry.opensuse.org/opensuse/tumbleweed');
-        assert_script_run('podman run -id --rm --name container3 -p 8080:80 registry.opensuse.org/opensuse/nginx');
+        assert_script_run('podman run -id --rm --name container3 -p 1236:1236 registry.opensuse.org/opensuse/tumbleweed');
 
         my $container_id = script_output("podman inspect -f '{{.Id}}' container3");
 
@@ -85,7 +83,7 @@ sub run() {
     }
 
     record_info('Cleanup', 'Remove all unused networks');
-    unless ($old_podman) {
+    unless ($supports_network) {
         assert_script_run('podman network prune -f');
         validate_script_output('podman network ls', sub { !m/newnet4/ });
     }
