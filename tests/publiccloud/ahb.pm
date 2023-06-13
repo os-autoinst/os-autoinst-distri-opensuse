@@ -35,7 +35,6 @@ sub run {
 
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance();
-    $instance->wait_for_guestregister();
     # resource group
     # get instance resource group
     my $resource_group_command = "curl -s -H Metadata:true --noproxy \"*\" \"$azure_endpoint/resourceGroupName?api-version=$api_version&format=text\"";

@@ -322,7 +322,7 @@ sub create_instances {
             assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
         }
         # check guestregister conditional, default yes:
-        $instance->wait_for_guestregister_chk() if ($args{check_guestregister});
+        $instance->wait_for_guestregister() if ($args{check_guestregister});
         # Performance data: boottime
         my $btime = $instance->measure_boottime($instance, 'first');
         $instance->store_boottime_db($btime);
