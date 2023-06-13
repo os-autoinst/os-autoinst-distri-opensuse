@@ -1094,7 +1094,7 @@ sub set_hostname {
     systemctl 'status network.service';
     save_screenshot;
 
-    if (systemctl('is-active NetworkManager', ignore_failure => 1) == 0) {
+    if (is_qemu && systemctl('is-active NetworkManager', ignore_failure => 1) == 0) {
         my $state = script_output 'nmcli networking connectivity check', proceed_on_failure => 1;
 
         if ($state =~ /full/) {
