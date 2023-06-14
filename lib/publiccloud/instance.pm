@@ -261,9 +261,9 @@ sub upload_log {
     assert_script_run("test -d '$tmpdir' && rm -rf '$tmpdir'");
 }
 
-=head2 wait_for_guestregister_chk
+=head2 wait_for_guestregister
 
-    wait_for_guestregister_chk([timeout => 300]);
+    wait_for_guestregister([timeout => 300]);
 
 Run command C<systemctl is-active guestregister> on the instance in a loop and
 wait till guestregister is ready. If guestregister finish with state failed,
@@ -271,10 +271,10 @@ a soft-failure will be recorded.
 If guestregister will not finish within C<timeout> seconds, job dies.
 In case of BYOS images we checking that service is inactive and quit
 Returns the time needed to wait for the guestregister to complete.
-C<wait_for_guestregister_chk> is called inside C<create_instance()>, enabled by C<check_guestregister>
+C<wait_for_guestregister> is called inside C<create_instance()>, enabled by C<check_guestregister>
 =cut
 
-sub wait_for_guestregister_chk {
+sub wait_for_guestregister {
     my ($self, %args) = @_;
     $args{timeout} //= 300;
     my $start_time = time();
@@ -312,24 +312,6 @@ sub wait_for_guestregister_chk {
 
     $self->upload_log($log, log_name => $name);
     die('guestregister didn\'t end in expected timeout=' . $args{timeout});
-}
-
-
-=head2 wait_for_guestregister
-
-    wait_for_guestregister([timeout => 300]);
-
-The previous functionality has been migrated into wait_for_guestregister_chk above, for logic refactoring 
-planned to run directly when publiccloud create_instances executed. 
-This function is now a temporary placeholder without effects, to quickly proof the new logic, 
-but passing the existing calls still present in many modules,reducing the changes of deleting those ones.
-After the new logic will be consilidated, this function and related calls will be removed. 
-=cut
-
-sub wait_for_guestregister {
-    my ($self, %args) = @_;
-    my $out = $self->run_ssh_command(cmd => 'sudo systemctl is-active guestregister', proceed_on_failure => 1, quiet => 1);
-    return;
 }
 
 =head2 wait_for_ssh

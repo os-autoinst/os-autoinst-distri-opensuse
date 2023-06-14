@@ -273,8 +273,6 @@ sub do_systemd_analyze {
     my $output = "";
     my @ret;
 
-    # Wait for guest register, before calling syastemd-analyze
-    $instance->wait_for_guestregister();
     while ($output !~ /Startup finished in/ && time() - $start_time < $args{timeout}) {
         $output = $instance->run_ssh_command(cmd => 'systemd-analyze time', proceed_on_failure => 1);
         sleep 5;

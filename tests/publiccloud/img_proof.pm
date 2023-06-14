@@ -31,8 +31,6 @@ sub run {
     } else {
         $provider = $self->provider_factory();
         $instance = $provider->create_instance(check_guestregister => is_ondemand ? 1 : 0);
-
-        $instance->wait_for_guestregister() if is_ondemand();
     }
 
     if ($tests eq "default") {
