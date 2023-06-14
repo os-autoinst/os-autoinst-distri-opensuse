@@ -34,8 +34,8 @@ sub run {
 
     if (is_alp) {
         # Add Core repo
-        my $repo = data_url('REPO_SLE_ALP_MICRO');
-        zypper_call("ar $repo 'ALP Build Repository'");
+        my $repo = get_required_var('REPO_SLE_ALP_MICRO');
+        zypper_call("ar http://openqa.suse.de/assets/repo/$repo 'ALP Build Repository'");
         zypper_call("--gpg-auto-import-keys ref");
     }
     record_info('REPOS', script_output('zypper lr --url', proceed_on_failure => 1));
