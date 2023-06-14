@@ -271,7 +271,7 @@
   </security>
   <services-manager t="map">
     <default_target>graphical</default_target>
-    <!--services t="map">
+    <services t="map">
       <enable t="list">
         <service>bluetooth</service>
         <service>firewalld</service>
@@ -288,12 +288,12 @@
       <on_demand t="list">
         <listentry>virtlockd</listentry>
       </on_demand>
-    </services-->
+    </services>
   </services-manager>
   <software t="map">
     <install_recommended t="boolean">true</install_recommended>
     <instsource/>
-    <!--packages t="list">
+    <packages t="list">
       <package>yast2-x11</package>
       <package>xorg-x11-server</package>
       <package>xorg-x11-fonts</package>
@@ -347,7 +347,7 @@
       <pattern>yast2_basis</pattern>
       <pattern>yast2_desktop</pattern>
       <pattern>yast2_server</pattern>
-    </patterns-->
+    </patterns>
     <products t="list">
       <product>SLES</product>
     </products>
