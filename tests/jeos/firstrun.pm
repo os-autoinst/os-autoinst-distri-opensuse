@@ -10,7 +10,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro);
+use version_utils qw(is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro is_vmware);
 use Utils::Architectures;
 use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
@@ -56,6 +56,41 @@ sub verify_mounts {
     (scalar(@findmnt_entries) == 0) or die "Not all mounts are mounted by $expected_type->{mount_type}\nUnexpected mount(s) ( @findmnt_entries )\n";
 
     assert_script_run('mount -fva');
+}
+
+sub verify_hypervisor {
+    my $virt = script_output('systemd-detect-virt');
+
+    return 0 if (
+        is_qemu && $virt =~ /(qemu|kvm)/ ||
+        is_s390x && $virt =~ /zvm/ ||
+        is_hyperv && $virt =~ /microsoft/ ||
+        is_vmware && $virt =~ /vmware/);
+
+    die("Unknown hypervisor: $virt");
+}
+
+sub verify_norepos {
+    my $ret = script_run "zypper lr";
+
+    # Check ZYPPER_EXIT_NO_REPOS
+    die("Image should not contain any repos after first boot") if ($ret != 6);
+}
+
+sub verify_bsc {
+    if (is_qemu && is_x86_64 && script_run("rpm -q qemu-guest-agent") != 0) {
+        # Included in SLE-15-SP2+, TW and Leap
+        die("bsc#1207135 - Missing qemu-guest-agent from virtual images") unless is_sle('<15-SP2');
+    }
+
+    if (is_qemu && script_run("rpm -q grub2-x86_64-xen") == 0) {
+        die("bsc#1166474 - kvm-and-xen image contains grub2-x86_64-xen") unless is_sle('<15-SP2');
+    }
+
+    if (is_sle('>15')) {
+        my $output = script_output "chronyc sources";
+        die("bsc#1156884 - chronyd is missing sources") if ($output =~ /Number of sources = 0/);
+    }
 }
 
 sub run {
@@ -207,6 +242,10 @@ sub run {
 
     # openSUSE JeOS has SWAP mounted as LABEL instead of UUID until kiwi 9.19.0, so tw and Leap 15.2+ are fine
     verify_mounts unless is_leap('<15.2') && is_aarch64;
+
+    verify_hypervisor;
+    verify_norepos unless is_opensuse;
+    verify_bsc;
 }
 
 sub test_flags {
