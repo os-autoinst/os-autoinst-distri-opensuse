@@ -23,6 +23,7 @@ schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start
   - autoyast/installation
+  - installation/logs_from_installation_system
   - installation/first_boot
   - console/system_prepare
   - console/hostname

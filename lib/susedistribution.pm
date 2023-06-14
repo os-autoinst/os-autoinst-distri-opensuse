@@ -783,6 +783,10 @@ sub activate_console {
             # login as root, who does not have a password on Live-CDs
             wait_screen_change { enter_cmd "root" };
         }
+        elsif (check_screen('tty2-selected')) {
+            enter_cmd "root";
+            handle_password_prompt;
+        }
         else {
             # on s390x we need to login here by providing a password
             handle_password_prompt if is_s390x;
