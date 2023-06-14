@@ -81,11 +81,11 @@ sub install_k3s {
     # Await k3s to be ready and the api is accessible
     script_retry("kubectl get namespaces", timeout => 120, delay => 60, retry => 3);
     script_retry("kubectl get pods --all-namespaces | grep -E 'Running|Completed'", timeout => 120, delay => 60, retry => 10);
+    record_info('k3s', "k3s version " . script_output("k3s --version") . " installed");
+    record_info('kubectl version', script_output('kubectl version --short'));
     record_info("k3s api resources", script_output("kubectl api-resources"));
     assert_script_run("kubectl auth can-i 'create' 'pods'");
     assert_script_run("kubectl auth can-i 'create' 'deployments'");
-    record_info('k3s', "k3s version " . script_output("k3s --version") . " installed");
-    record_info('kubectl version', script_output('kubectl version --short'));
 }
 
 =head2 uninstall_k3s
