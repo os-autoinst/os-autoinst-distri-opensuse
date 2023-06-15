@@ -71,6 +71,7 @@ our @EXPORT = qw(
   test_flags
   is_not_maintenance_update
   activate_ntp
+  script_output_retry_check
   calculate_sbd_start_delay
   check_iscsi_failure
 );
@@ -979,6 +980,44 @@ sub activate_ntp {
     systemctl "enable --now $ntp_service.service";
 }
 
+=head2 script_output_retry_check
+
+  script_output_retry_check(cmd=>$cmd, regex_string=>$regex_sring, [retry=>$retry, sleep=>$sleep, ignore_failure=>$ignore_failure]);
+
+Executes command via 'script_output' subroutine and makes a sanity check against a regular expression. Command output is returned
+after success, otherwise the command is retried defined number of times. Test dies after last unsuccessfull retry.
+
+C<$cmd> command being executed.
+C<$regex_string> regular expression to check output against.
+C<$retry> number of retries. Defaults to C<5>.
+C<$sleep> sleep time between retries. Defaults to C<10s>.
+C<$ignore_failure> do not kill the test upon failure.
+
+  Example: script_output_retry_check(cmd=>'hostname', regex_string=>'^node01$', retry=>'100', sleep=>'60', ignore_failure=>'1');
+
+=cut
+
+sub script_output_retry_check {
+    my %args = @_;
+    my $cmd = $args{cmd} // die('No command specified.');
+    my $regex = $args{regex_string} // die('Regex input missing');
+    my $retry = $args{retry} // 5;
+    my $sleep = $args{sleep} // 10;
+    my $ignore_failure = $args{ignore_failure} // "0";
+    my $result;
+
+    foreach (1 .. $retry) {
+        $result = script_output($cmd, %args);
+        return $result if $result =~ /$regex/;
+        sleep $sleep;
+        record_info('CMD RETRY', "Retry $_/$retry.\nScript output did not match pattern '$regex'\nOutput: $result");
+        next;
+    }
+
+    die('Pattern did not match') unless $ignore_failure;
+    return $result;
+}
+
 =head2 calculate_sbd_start_delay
 
   calculate_sbd_start_delay(\%sbd_parameters);
@@ -1006,13 +1045,17 @@ try to obtain the values from the configuration files.
 
 sub calculate_sbd_start_delay {
     my ($sbd_parameters) = @_;
-    my %params = (ref($sbd_parameters) eq 'HASH') ? %$sbd_parameters : (
-        'corosync_token' => script_output($corosync_token),
-        'corosync_consensus' => script_output($corosync_consensus),
-        'sbd_watchdog_timeout' => script_output($sbd_watchdog_timeout),
-        'sbd_delay_start' => script_output($sbd_delay_start),
+    my %params = (ref($sbd_parameters) eq 'HASH' and $sbd_parameters) ? %$sbd_parameters : (
+        'corosync_token' =>
+          script_output_retry_check(cmd => $corosync_token, regex_string => '^\d+$', sleep => '3', retry => '3'),
+        'corosync_consensus' =>
+          script_output_retry_check(cmd => $corosync_consensus, regex_string => '^\d+$', sleep => '3', retry => '3'),
+        'sbd_watchdog_timeout' =>
+          script_output_retry_check(cmd => $sbd_watchdog_timeout, regex_string => '^\d+$', sleep => '3', retry => '3'),
+        'sbd_delay_start' =>
+          script_output_retry_check(cmd => $sbd_delay_start, regex_string => '^\d+$|yes|no', sleep => '3', retry => '3'),
         'pcmk_delay_max' => get_var('USE_DISKLESS_SBD') ? 30 :
-          script_output($pcmk_delay_max)
+          script_output_retry_check(cmd => $pcmk_delay_max, regex_string => '^\d+$', sleep => '3', retry => '3')
     );
 
     my $default_wait = 35 * get_var('TIMEOUT_SCALE', 1);
