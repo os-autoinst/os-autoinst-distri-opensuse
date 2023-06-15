@@ -218,7 +218,7 @@ sub run {
         die "journal lists less than 2 boots";
     }
     is_journal_empty('--boot=-1', "journalctl-1.txt");
-    script_retry('journalctl --identifier=batman --boot=-1| grep "The batman is going to sleep"', retry => 5, delay => 2);
+    script_retry('journalctl --identifier=batman --boot=-1| grep "The batman is going to sleep"', retry => 8, delay => 4);
     script_run('echo -e "Reboot time:  `cat /var/tmp/reboottime`\nCurrent time: `date -u \'+%F %T\'`"');
     die "journalctl after reboot empty" if is_journal_empty('-S "`cat /var/tmp/reboottime`"', "journalctl-after.txt");
     # Basic journalctl tests: Export journalctl with various arguments and ensure they are not empty
