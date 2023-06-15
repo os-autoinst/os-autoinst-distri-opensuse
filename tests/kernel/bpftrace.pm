@@ -71,17 +71,11 @@ sub run {
       old/tcpdrop.bt);
 
     foreach my $t (@assert_tests) {
-        my $ret = script_run("timeout --preserve-status -s SIGINT --kill-after=10 10 bpftrace $tools_dir/$t");
-
-        if ($ret == 130) {
-            record_info('timeout', "'bpftrace $t' did not handle SIGINT; system was probably too slow to attach probes");
-        } elsif ($ret) {
-            die "'bpftrace $t' failed";
-        }
+        assert_script_run(qq%echo -e "\\ninterval:s:5 { exit(); }" | cat $tools_dir/$t - | bpftrace -%);
     }
 
     foreach my $t (@tests) {
-        script_run("timeout --preserve-status -s SIGINT --kill-after=10 10 bpftrace $tools_dir/$t");
+        script_run(qq%echo -e "\\ninterval:s:5 { exit(); }" | cat $tools_dir/$t - | bpftrace -%);
     }
 
     my $case_dir = get_required_var('CASEDIR');
