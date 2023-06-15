@@ -14,14 +14,15 @@ schedule:
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
-  - installation/module_registration/register_module_desktop
+  - installation/module_registration/skip_module_registration
   - installation/add_on_product/skip_install_addons
-  - installation/system_role/accept_selected_role_SLES_with_GNOME
+  - installation/system_role/accept_selected_role_text_mode
   - installation/partitioning/new_partitioning_gpt
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
   - installation/installation_settings/validate_default_target
+  - installation/bootloader_settings/disable_plymouth
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
   - installation/confirm_installation
@@ -31,9 +32,5 @@ schedule:
   - installation/handle_reboot
   - installation/boot_encrypt
   - installation/first_boot
-  - console/hostname
-  - console/system_prepare
-  - console/force_scheduled_tasks
-  - shutdown/grub_set_bootargs
   - console/validate_lvm
   - console/validate_encrypt
