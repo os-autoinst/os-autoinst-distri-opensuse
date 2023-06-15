@@ -65,7 +65,7 @@ sub reboot_and_wait_up {
                     assert_screen [qw(text-login linux-login)], 600;
                 }
                 else {
-                    assert_screen "text-login", 600;
+                    assert_screen [qw(text-login linux-login)], 600;
                 }
                 enter_cmd "root";
                 assert_screen "password-prompt";

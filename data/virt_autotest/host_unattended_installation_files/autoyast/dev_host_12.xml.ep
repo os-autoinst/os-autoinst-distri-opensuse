@@ -1,0 +1,294 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    % if (keys %$addons) {
+    <addons config:type="list">
+      % while (my ($key, $addon) = each (%$addons)) {
+      <addon>
+        <name><%= $addon->{name} %></name>
+        <version><%= $addon->{version} %></version>
+        <arch><%= $addon->{arch} %></arch>
+        <release_type/>
+        % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sles')) {
+        <reg_code><%= $get_var->('SCC_REGCODE_WE') %></reg_code>
+        % }
+        % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sled')) {
+        <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
+        % }
+        % if ($key eq 'rt') {
+        <reg_code><%= $get_var->('SCC_REGCODE_RT') %></reg_code>
+        % }
+        % if ($key eq 'ltss') {
+        <reg_code><%= $get_var->('SCC_REGCODE_LTSS') %></reg_code>
+        % }
+      </addon>
+      % }
+    </addons>
+    %}
+  </suse_register>
+  <bootloader>
+    <global>
+      <activate>true</activate>
+      <gfxmode>auto</gfxmode>
+      <hiddenmenu>false</hiddenmenu>
+      <os_prober>false</os_prober>
+      <serial>serial --speed=115200 --unit=<%= $get_var->('SERIALDEV') =~ s/ttyS//r %> --word=8 --parity=no --stop=1</serial>
+      <timeout config:type="integer">15</timeout>
+      <trusted_grub>false</trusted_grub>
+      <terminal>console</terminal>
+      % if ($check_var->('SYSTEM_ROLE', 'xen')) {
+      <xen_append>loglevel=5 vt.color=0x07 splash=silent console=hvc0 <%= $check_var->('AMD', '1') ? "amd_iommu=on" : "intel_iommu=on" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></xen_append>
+      <xen_kernel_append>com2=115200,8n1 console=com2,vga loglvl=all guest_loglvl=all sync_console</xen_kernel_append>
+      % } else {
+      <append>loglevel=5 gfxpayload=1024x768 <%= $check_var->('AMD', '1') ? "amd_iommu=on" : "intel_iommu=on" %> <%= defined $bmwqemu::vars{"OPT_KERNEL_PARAMS"} ? $bmwqemu::vars{"OPT_KERNEL_PARAMS"} : "" %></append>
+      % }
+    </global>
+    <loader_type>grub2</loader_type>
+  </bootloader>
+  <general>
+    <ask-list config:type="list"/>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+    <proposals config:type="list"/>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">true</accept_verification_failed>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+    <storage>
+      <partition_alignment config:type="symbol">align_optimal</partition_alignment>
+      <start_multipath config:type="boolean">false</start_multipath>
+    </storage>
+  </general>
+  <kdump>
+    <add_crash_kernel config:type="boolean">true</add_crash_kernel>
+    <crash_kernel config:type="list">
+      <listentry>72M,low</listentry>
+      <listentry>256M,high</listentry>
+    </crash_kernel>
+    <crash_xen_kernel>201M\&lt;4G</crash_xen_kernel>
+  </kdump>
+  <firewall>
+    <enable_firewall config:type="boolean">false</enable_firewall>
+    <start_firewall config:type="boolean">false</start_firewall>
+  </firewall>
+  <keyboard>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages/>
+  </language>
+  <login_settings/>
+  <networking>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+    <managed config:type="boolean">false</managed>
+    <interfaces config:type="list">
+      <interface>
+        <device>br0</device>
+        <bootproto>dhcp</bootproto>
+        <bridge>yes</bridge>
+        <bridge_forwarddelay>0</bridge_forwarddelay>
+        <bridge_ports>eth0 eth1 em1 em2</bridge_ports>
+        <bridge_stp>off</bridge_stp>
+        <startmode>auto</startmode>
+      </interface>
+    </interfaces>
+    <dns>
+      <dhcp_hostname config:type="boolean">true</dhcp_hostname>
+      <nameservers config:type="list">
+        <nameserver>10.162.0.1</nameserver>
+<!--gonzo and a another machine can not get nameserver from local dns server after autoyast installation. Put a static nameserver option above. If nameserver is retrived from dhcp they will be merged. Otherwise use the static -->
+      </nameservers>
+      <resolv_conf_policy>auto</resolv_conf_policy>
+    </dns>
+  </networking>
+  <partitioning config:type="list">
+  % my $wwn = {'quinn' => 'wwn-0x5000c50099db2117', 'kermit-1' => 'wwn-0x500a075119406ab6', 'gonzo-1' => 'wwn-0x500a075119406aa6', 'fozzie-1' => 'wwn-0x55cd2e414f1f16f1', 'scooter-1' => 'wwn-0x55cd2e414f1760e2', 'amd-zen3-gpu-sut1-1' => 'wwn-0x500a075133755d4b', 'ix64ph1075' => 'wwn-0x5000c5004f25d745'};
+  % my $hostname = (split(/\./, $get_var->("SUT_IP")))[0];
+  % my $device_id = defined($wwn->{$hostname}) ? '/dev/disk/by-id/' . $wwn->{$hostname} : '';
+    <drive>
+      <device><%= $device_id %></device>
+      <disklabel>gpt</disklabel>
+      <enable_snapshots config:type="boolean">false</enable_snapshots>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>/</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <label>osroot<%= int(rand(99)) %></label>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">xfs</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>/var/lib/libvirt/images/</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <resize config:type="boolean">false</resize>
+          <size>120G</size>
+        </partition>
+      </partitions>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">10</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">10</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">10</timeout>
+    </yesno_messages>
+  </report>
+  <services-manager>
+    <default_target>multi-user</default_target>
+    <services>
+      <disable config:type="list"/>
+      <enable config:type="list">
+        <service>sshd</service>
+      </enable>
+    </services>
+  </services-manager>
+  <software>
+    <packages config:type="list">
+      <package>dhcp-client</package>
+      <package>guestfs-tools</package>
+      <package>nmap</package>
+    </packages>
+    <products config:type="list">
+      <product><%= uc $get_var->('SLE_PRODUCT') %></product>
+    </products>
+    <patterns config:type="list">
+      % my $patterns = $check_var->('SYSTEM_ROLE', 'kvm') ? ['Minimal', 'base', 'apparmor', 'kvm_server', 'kvm_tools'] : ['Minimal', 'base', 'apparmor', 'xen_server', 'xen_tools'];
+      % for my $pattern (@$patterns) {
+      <pattern><%= $pattern %></pattern>
+      % }
+    </patterns>
+  </software>
+  <ssh_import>
+    <copy_config config:type="boolean">false</copy_config>
+    <import config:type="boolean">false</import>
+  </ssh_import>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>UTC</timezone>
+  </timezone>
+  <ntp-client>
+    <ntp_policy>auto</ntp_policy>
+    <start_at_boot config:type="boolean">true</start_at_boot>
+   <restricts config:type="list">
+     <restrict>
+       <options>kod nomodify notrap nopeer noquery</options>
+       <target>default</target>
+     </restrict>
+     <restrict>
+       <target>127.0.0.1</target>
+     </restrict>
+     <restrict>
+       <target>::1</target>
+     </restrict>
+   </restricts>
+   <peers config:type="list">
+     <peer>
+       <address>0.europe.pool.ntp.org</address>
+       <options>iburst</options>
+       <type>server</type>
+     </peer>
+     <peer>
+       <address>1.europe.pool.ntp.org</address>
+       <options>iburst</options>
+       <type>server</type>
+     </peer>
+     <peer>
+       <address>2.europe.pool.ntp.org</address>
+       <options>iburst</options>
+       <type>server</type>
+     </peer>
+     <peer>
+       <address>3.europe.pool.ntp.org</address>
+       <options>iburst</options>
+       <type>server</type>
+     </peer>
+   </peers>
+  </ntp-client>
+  <users config:type="list">
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <gid>100</gid>
+      <home>/home/bernhard</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>1000</uid>
+      <user_password>$6$0bUrc6YvA/qw$h1Z3pzadaxmc/KgcHRSEcYoU1ShVNymoXBaRAQZJ4ozVhTbCvdAMbGQrQAAX7cC9cLRybhsvDio3kBX/IB3xj/</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$6$0bUrc6YvA/qw$h1Z3pzadaxmc/KgcHRSEcYoU1ShVNymoXBaRAQZJ4ozVhTbCvdAMbGQrQAAX7cC9cLRybhsvDio3kBX/IB3xj/</user_password>
+      <username>root</username>
+    </user>
+  </users>
+  <scripts>
+    <post-scripts config:type="list">
+      % if ($check_var->('SYSTEM_ROLE', 'xen') && $check_var->('XEN_DEFAULT_BOOT_IS_SET', 1)) {
+      <script>
+        <filename>default_xen_boot.sh</filename>
+        <interpreter>shell</interpreter>
+        <source><![CDATA[
+grub2-set-default 2
+]]>
+        </source>
+      </script>
+      % }
+      <script/>
+    </post-scripts>
+  </scripts>
+</profile>
