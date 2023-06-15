@@ -19,7 +19,7 @@ use utils;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use filesystem_utils qw(str_to_mb parted_print partition_num_by_type mountpoint_to_partition
-  partition_table create_partition remove_partition format_partition);
+  partition_table create_partition remove_partition format_partition get_partition_size);
 use File::Basename;
 use lockapi;
 use mmapi;
@@ -340,6 +340,8 @@ sub run {
     my %para;
     if (check_var('XFSTESTS', 'nfs')) {
         disable_and_stop_service('firewalld');
+        set_var('XFSTESTS_TEST_DEV', mountpoint_to_partition('/'));
+        post_env_info(get_partition_size('/'));
         if (get_var('XFSTESTS_NFS_SERVER')) {
             server_configure_network($self);
             install_dependencies_nfs;
