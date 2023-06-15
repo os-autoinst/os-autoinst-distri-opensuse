@@ -118,7 +118,7 @@
     <ntp_sync>systemd</ntp_sync>
   </ntp-client>
   <partitioning config:type="list">
-  % my $wwn = {'quinn' => 'wwn-0x5000c50099db2117', 'kermit-1' => 'wwn-0x500a075119406ab6', 'gonzo-1' => 'wwn-0x500a075119406aa6', 'fozzie-1' => 'wwn-0x55cd2e414f1f16f1', 'scooter-1' => 'wwn-0x55cd2e414f1760e2', 'amd-zen3-gpu-sut1-1' => 'wwn-0x500a075133755d4b', 'ix64ph1075' => 'wwn-0x5000c5004f25d745' 'openqaipmi5' => 'wwn-0x5000c5008711f2fc'};
+  % my $wwn = {'quinn' => 'wwn-0x5000c50099db2117', 'kermit-1' => 'wwn-0x500a075119406ab6', 'gonzo-1' => 'wwn-0x500a075119406aa6', 'fozzie-1' => 'wwn-0x55cd2e414f1f16f1', 'scooter-1' => 'wwn-0x55cd2e414f1760e2', 'amd-zen3-gpu-sut1-1' => 'wwn-0x500a075133755d4b', 'ix64ph1075' => 'wwn-0x5000c5004f25d745', 'openqaipmi5' => 'wwn-0x5000c5008711f2fc'};
   % my $hostname = (split(/\./, $get_var->("SUT_IP")))[0];
   % my $device_id = defined($wwn->{$hostname}) ? '/dev/disk/by-id/' . $wwn->{$hostname} : ''; 
     <drive>
