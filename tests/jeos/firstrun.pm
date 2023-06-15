@@ -16,6 +16,7 @@ use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
 
+
 sub post_fail_hook {
     assert_script_run('timedatectl');
     assert_script_run('locale');
@@ -65,7 +66,8 @@ sub verify_hypervisor {
         is_qemu && $virt =~ /(qemu|kvm)/ ||
         is_s390x && $virt =~ /zvm/ ||
         is_hyperv && $virt =~ /microsoft/ ||
-        is_vmware && $virt =~ /vmware/);
+        is_vmware && $virt =~ /vmware/ ||
+        check_var("VIRSH_VMM_FAMILY", "xen") && $virt =~ /xen/);
 
     die("Unknown hypervisor: $virt");
 }
