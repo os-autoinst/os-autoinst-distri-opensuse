@@ -433,7 +433,9 @@ sub run ($self) {
     # provision HPC cluster, so the proper rpms are installed,
     # munge key is distributed to all nodes, so is slurm.conf
     # and proper services are enabled and started
-    zypper_call('in slurm slurm-munge slurm-torque');
+    my $ver = get_var('SLURM_VERSION') // '';
+    my $slurm = $ver ? "slurm_$ver" : 'slurm';
+    zypper_call("in $slurm slurm-munge slurm-torque");
 
     if ($slurm_conf =~ /ha/) {
         $self->mount_nfs();

@@ -17,11 +17,12 @@ use utils;
 sub run ($self) {
     select_serial_terminal();
     my $nodes = get_required_var("CLUSTER_NODES");
-
+    my $ver = get_var('SLURM_VERSION') // '';
+    my $slurm = $ver ? "slurm_$ver" : 'slurm';
     barrier_wait('CLUSTER_PROVISIONED');
 
     $self->prepare_user_and_group();
-    zypper_call('in slurm slurm-munge');
+    zypper_call("in $slurm slurm-munge");
 
     # mount NFS shared directory specific
     # for this test /shared/slurm and provided by the

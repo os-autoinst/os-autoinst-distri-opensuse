@@ -19,8 +19,9 @@ sub run ($self) {
     barrier_wait('CLUSTER_PROVISIONED');
 
     $self->prepare_user_and_group();
-    zypper_call('in slurm slurm-munge');
-
+    my $ver = get_var('SLURM_VERSION') // '';
+    my $slurm = $ver ? "slurm_$ver" : 'slurm';
+    zypper_call("in $slurm slurm-munge");
     $self->mount_nfs();
     barrier_wait("SLURM_SETUP_DONE");
     barrier_wait('SLURM_SETUP_DBD');

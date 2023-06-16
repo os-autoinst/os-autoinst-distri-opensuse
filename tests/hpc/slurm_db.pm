@@ -24,7 +24,9 @@ sub run ($self) {
     $self->prepare_user_and_group();
 
     # Install slurm
-    zypper_call("in slurm slurm-munge slurm-slurmdbd");
+    my $ver = get_var('SLURM_VERSION') // '';
+    my $slurm = $ver ? "slurm_$ver" : 'slurm';
+    zypper_call("in $slurm slurm-munge slurm-slurmdbd");
     # install slurm-node if sle15, not available yet for sle12
     zypper_call('in slurm-node') if is_sle '15+';
 
