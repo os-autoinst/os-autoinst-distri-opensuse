@@ -245,7 +245,7 @@ sub run {
     # openSUSE JeOS has SWAP mounted as LABEL instead of UUID until kiwi 9.19.0, so tw and Leap 15.2+ are fine
     verify_mounts unless is_leap('<15.2') && is_aarch64;
 
-    verify_hypervisor;
+    verify_hypervisor unless is_generalhw;
     verify_norepos unless is_opensuse;
     verify_bsc;
 }
