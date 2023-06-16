@@ -10,7 +10,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro is_vmware);
+use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro is_vmware);
 use Utils::Architectures;
 use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
@@ -247,7 +247,7 @@ sub run {
 
     verify_hypervisor unless is_generalhw;
     verify_norepos unless is_opensuse;
-    verify_bsc;
+    verify_bsc if is_jeos;
 }
 
 sub test_flags {
