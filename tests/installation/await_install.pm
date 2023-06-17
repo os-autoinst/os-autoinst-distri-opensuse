@@ -86,7 +86,7 @@ sub run {
     # NET isos are slow to install
     # If this timeout needs to be bumped again, we might be having a bigger network problem
     # or a peformance problem on the installer
-    my $timeout = (is_s390x || is_ppc64le) ? 2400 : 2000;
+    my $timeout = (is_s390x || is_ppc64le) ? 2400 : 2200;
 
     # workaround for yast popups and
     # detect "Wrong Digest" error to end test earlier
