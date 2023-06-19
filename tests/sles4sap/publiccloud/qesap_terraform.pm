@@ -112,7 +112,7 @@ sub run {
     my ($self, $run_args) = @_;
 
     if (check_var('IS_MAINTENANCE', 1)) {
-        my %maintenance_vars = qesap_calculate_az_address_range(slot => get_required_var('WORKER_ID'));
+        my %maintenance_vars = qesap_az_calculate_address_range(slot => get_required_var('WORKER_ID'));
         set_var("VNET_ADDRESS_RANGE", $maintenance_vars{vnet_address_range});
         set_var("SUBNET_ADDRESS_RANGE", $maintenance_vars{subnet_address_range});
     }

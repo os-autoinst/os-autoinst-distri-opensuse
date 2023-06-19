@@ -34,12 +34,23 @@ sub run {
     qesap_ansible_cmd(cmd => $crm_mon_cmd, provider => $prov, filter => '"hana[0]"');
     qesap_cluster_logs();
 
-    if (get_var("QESAP_IBSMIRROR_RESOURCE_GROUP")) {
-        my $rg = qesap_az_get_resource_group();
-        my $ibs_mirror_rg = get_var('QESAP_IBSMIRROR_RESOURCE_GROUP');
-        qesap_az_vnet_peering(source_group => $rg, target_group => $ibs_mirror_rg);
-        qesap_add_server_to_hosts(name => 'download.suse.de', ip => get_required_var("QESAP_IBSMIRROR_IP"));
-        qesap_az_vnet_peering_delete(source_group => $rg, target_group => $ibs_mirror_rg);
+    if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+        if (get_var("QESAPDEPLOY_IBSMIRROR_RESOURCE_GROUP")) {
+            my $rg = qesap_az_get_resource_group();
+            my $ibs_mirror_rg = get_var('QESAPDEPLOY_IBSMIRROR_RESOURCE_GROUP');
+            qesap_az_vnet_peering(source_group => $rg, target_group => $ibs_mirror_rg);
+            qesap_add_server_to_hosts(name => 'download.suse.de', ip => get_required_var("QESAPDEPLOY_IBSMIRROR_IP"));
+            qesap_az_vnet_peering_delete(source_group => $rg, target_group => $ibs_mirror_rg);
+        }
+    } elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
+        if (get_var("QESAPDEPLOY_IBSMIRROR_IP_RANGE")) {
+            my $deployment_name = qesap_calculate_deployment_name('qesapval');
+            my $vpc_id = qesap_aws_get_vpc_id(resource_group => $deployment_name);
+            my $ibs_mirror_target_ip = get_var('QESAPDEPLOY_IBSMIRROR_IP_RANGE');    # '10.254.254.240/28'
+            die 'Error in network peering setup.' if !qesap_aws_vnet_peering(target_ip => $ibs_mirror_target_ip, vpc_id => $vpc_id);
+            qesap_add_server_to_hosts(name => 'download.suse.de', ip => get_required_var("QESAPDEPLOY_IBSMIRROR_IP"));
+            die 'Error in network peering delete.' if !qesap_aws_delete_transit_gateway_vpc_attachment(name => $deployment_name . '*');
+        }
     }
 }
 
@@ -48,10 +59,16 @@ sub post_fail_hook {
     qesap_upload_logs();
     qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
     qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1200);
-    if (get_var("QESAP_IBSMIRROR_RESOURCE_GROUP")) {
-        my $rg = qesap_az_get_resource_group();
-        my $ibs_mirror_rg = get_required_var('QESAP_IBSMIRROR_RESOURCE_GROUP');
-        qesap_az_vnet_peering_delete(source_group => $rg, target_group => $ibs_mirror_rg);
+    if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+        if (get_var("QESAPDEPLOY_IBSMIRROR_RESOURCE_GROUP")) {
+            my $rg = qesap_az_get_resource_group();
+            my $ibs_mirror_rg = get_required_var('QESAPDEPLOY_IBSMIRROR_RESOURCE_GROUP');
+            qesap_az_vnet_peering_delete(source_group => $rg, target_group => $ibs_mirror_rg);
+        }
+    } elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
+        if (get_var("QESAPDEPLOY_IBSMIRROR_IP_RANGE")) {
+            qesap_aws_delete_transit_gateway_vpc_attachment(name => qesap_calculate_deployment_name('qesapval') . '*');
+        }
     }
     $self->SUPER::post_fail_hook;
 }

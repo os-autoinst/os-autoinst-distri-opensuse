@@ -13,7 +13,6 @@ use qesapdeployment;
 
 sub run {
     select_serial_terminal;
-
     my $ansible_ret = qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
     qesap_cluster_logs() if ($ansible_ret);
     my $terraform_ret = qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1800);

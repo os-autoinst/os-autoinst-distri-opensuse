@@ -59,9 +59,11 @@ sub run {
         $variables{HANA_LOG_DISK_TYPE} = get_var("QESAPDEPLOY_HANA_DISK_TYPE", "pd-ssd");
     }
 
-    my %peering_settings = qesap_calculate_az_address_range(slot => get_required_var('WORKER_ID'));
-    $variables{VNET_ADDRESS_RANGE} = $peering_settings{vnet_address_range};
-    $variables{SUBNET_ADDRESS_RANGE} = $peering_settings{subnet_address_range};
+    if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+        my %peering_settings = qesap_az_calculate_address_range(slot => get_required_var('WORKER_ID'));
+        $variables{VNET_ADDRESS_RANGE} = $peering_settings{vnet_address_range};
+        $variables{SUBNET_ADDRESS_RANGE} = $peering_settings{subnet_address_range};
+    }
 
     qesap_prepare_env(openqa_variables => \%variables, provider => $qesap_provider);
 }
