@@ -10,7 +10,7 @@ schedule:
   system_probing:
     - installation/system_probing/cancel_encrypted_volume
     - console/validate_encrypted_partition_not_activated
-  guided_partititioning:
+  guided_partitioning:
     - installation/partitioning/lvm_ignore_existing
   first_boot:
     - installation/boot_encrypt
