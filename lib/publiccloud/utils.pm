@@ -273,12 +273,12 @@ sub prepare_ssh_tunnel {
 
 sub kill_packagekit {
     my ($instance) = @_;
-    my $ret = $instance->ssh_script_run(cmd => "pkcon quit", timeout => 120);
+    my $ret = $instance->ssh_script_run(cmd => "sudo pkcon quit", timeout => 120);
     if ($ret) {
         # Older versions of systemd don't support "disable --now"
-        $instance->ssh_script_run(cmd => "systemctl stop packagekitd");
-        $instance->ssh_script_run(cmd => "systemctl disable packagekitd");
-        $instance->ssh_script_run(cmd => "systemctl mask packagekitd");
+        $instance->ssh_script_run(cmd => "sudo systemctl stop packagekitd");
+        $instance->ssh_script_run(cmd => "sudo systemctl disable packagekitd");
+        $instance->ssh_script_run(cmd => "sudo systemctl mask packagekitd");
     }
 }
 
