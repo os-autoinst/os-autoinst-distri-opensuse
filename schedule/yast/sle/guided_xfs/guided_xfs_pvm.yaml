@@ -8,7 +8,6 @@ schedule:
   guided_partitioning:
     - installation/partitioning/select_guided_setup
     - installation/partitioning/guided_setup/accept_default_part_scheme
-  guided_filesystem:
     - installation/partitioning/guided_setup/select_filesystem_option_xfs
   system_validation:
     - console/validate_partition_table_via_blkid

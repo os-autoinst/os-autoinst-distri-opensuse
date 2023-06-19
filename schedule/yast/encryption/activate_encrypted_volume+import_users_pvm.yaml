@@ -14,7 +14,6 @@ schedule:
   system_probing:
     - installation/system_probing/activate_encrypted_volume
     - console/validate_encrypted_volume_activation
-    - installation/add_on_product/skip_install_addons
   expert_partitioning:
     - installation/partitioning/suggested_partitioning/verify_decrypted_partition_deleted
   local_user:
