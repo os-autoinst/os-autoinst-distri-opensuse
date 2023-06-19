@@ -43,10 +43,21 @@
           <li><a href="#qesap_az_get_vnet">qesap_az_get_vnet</a></li>
           <li><a href="#qesap_calculate_deployment_name">qesap_calculate_deployment_name</a></li>
           <li><a href="#qesap_az_get_resource_group">qesap_az_get_resource_group</a></li>
-          <li><a href="#qesap_calculate_az_address_range">qesap_calculate_az_address_range</a></li>
+          <li><a href="#qesap_az_calculate_address_range">qesap_az_calculate_address_range</a></li>
           <li><a href="#qesap_az_vnet_peering">qesap_az_vnet_peering</a></li>
           <li><a href="#qesap_az_vnet_peering_delete">qesap_az_vnet_peering_delete</a></li>
           <li><a href="#qesap_az_get_peering_name">qesap_az_get_peering_name</a></li>
+          <li><a href="#qesap_aws_get_region_subnets">qesap_aws_get_region_subnets</a></li>
+          <li><a href="#qesap_aws_get_vpc_id">qesap_aws_get_vpc_id</a></li>
+          <li><a href="#qesap_aws_get_transit_gateway_vpc_attachment-Ged-a-description-of-one-or-more-transit-gateway-attachments-Function-support-optional-arguments-that-are-translated-to-filters:---transit_gateway_attach_id---name">qesap_aws_get_transit_gateway_vpc_attachment Ged a description of one or more transit-gateway-attachments Function support optional arguments that are translated to filters: - transit_gateway_attach_id - name</a></li>
+          <li><a href="#qesap_aws_create_transit_gateway_vpc_attachment">qesap_aws_create_transit_gateway_vpc_attachment</a></li>
+          <li><a href="#qesap_aws_delete_transit_gateway_vpc_attachment">qesap_aws_delete_transit_gateway_vpc_attachment</a></li>
+          <li><a href="#qesap_aws_add_route_to_tgw-Adding-the-route-to-the-transit-gateway-to-the-routing-table-in-refhost-VPC">qesap_aws_add_route_to_tgw Adding the route to the transit gateway to the routing table in refhost VPC</a></li>
+          <li><a href="#qesap_aws_filter_query">qesap_aws_filter_query</a></li>
+          <li><a href="#qesap_aws_get_mirror_tg">qesap_aws_get_mirror_tg</a></li>
+          <li><a href="#qesap_aws_get_vpc_workspace">qesap_aws_get_vpc_workspace</a></li>
+          <li><a href="#qesap_aws_get_routing">qesap_aws_get_routing</a></li>
+          <li><a href="#qesap_aws_vnet_peering">qesap_aws_vnet_peering</a></li>
           <li><a href="#qesap_add_server_to_hosts">qesap_add_server_to_hosts</a></li>
           <li><a href="#qesap_import_instances">qesap_import_instances</a></li>
           <li><a href="#qesap_export_instances">qesap_export_instances</a></li>
@@ -344,7 +355,7 @@ Return total time of retry loop in case of pass.</code></pre>
 </dd>
 </dl>
 
-<h3 id="qesap_calculate_az_address_range">qesap_calculate_az_address_range</h3>
+<h3 id="qesap_az_calculate_address_range">qesap_az_calculate_address_range</h3>
 
 <p>Calculate the vnet and subnet address ranges. The format is 10.ip2.ip3.0/21 and /24 respectively. ip2 and ip3 are calculated using the slot number as seed.</p>
 
@@ -413,6 +424,171 @@ empty string if a peering doesn&#39;t exist</code></pre>
 </dd>
 </dl>
 
+<h3 id="qesap_aws_get_region_subnets">qesap_aws_get_region_subnets</h3>
+
+<p>Return a list of subnets. Return a single subnet for each region.</p>
+
+<dl>
+
+<dt id="VPC_ID---VPC-ID-of-resource-to-filter-list-of-subnets"><b>VPC_ID</b> - VPC ID of resource to filter list of subnets</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_aws_get_vpc_id">qesap_aws_get_vpc_id</h3>
+
+<pre><code>Get the vpc_id of a given instance in the cluster.
+This function looks for the cluster using the aws describe-instances
+and filtering by terraform deployment_name value, that qe-sap-deployment
+is kind to use as tag for each resource.</code></pre>
+
+<dl>
+
+<dt id="RESOURCE_GROUP---resource-group-name-to-query1"><b>RESOURCE_GROUP</b> - resource group name to query</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_aws_get_transit_gateway_vpc_attachment-Ged-a-description-of-one-or-more-transit-gateway-attachments-Function-support-optional-arguments-that-are-translated-to-filters:---transit_gateway_attach_id---name">qesap_aws_get_transit_gateway_vpc_attachment Ged a description of one or more transit-gateway-attachments Function support optional arguments that are translated to filters: - transit_gateway_attach_id - name</h3>
+
+<pre><code>Example:
+  qesap_aws_get_transit_gateway_vpc_attachment(name =&gt; &#39;SOMETHING&#39;)
+
+  Result internally in aws cli to be called like
+
+  aws ec2 describe-transit-gateway-attachments --filter=&#39;Name=tag:Name,Values=SOMETHING
+
+Only one filter mode is supported at any time.
+
+Returns a HASH reference to the decoded JSON returned by the AWS command or undef on failure.</code></pre>
+
+<h3 id="qesap_aws_create_transit_gateway_vpc_attachment">qesap_aws_create_transit_gateway_vpc_attachment</h3>
+
+<pre><code>Call create-transit-gateway-vpc-attachment and
+wait until Transit Gateway Attachment is available.
+
+Return 1 (true) if properly managed to create the transit-gateway-vpc-attachment
+Return 0 (false) if create-transit-gateway-vpc-attachment fails or the gateway does not become active before the timeout</code></pre>
+
+<dl>
+
+<dt id="TRANSIT_GATEWAY_ID---ID-of-the-target-Transit-gateway-IBS-Mirror"><b>TRANSIT_GATEWAY_ID</b> - ID of the target Transit gateway (IBS Mirror)</dt>
+<dd>
+
+</dd>
+<dt id="VPC_ID---VPC-ID-of-resource-to-be-attached-SUT-HANA-cluster"><b>VPC_ID</b> - VPC ID of resource to be attached (SUT HANA cluster)</dt>
+<dd>
+
+</dd>
+<dt id="SUBNET_ID_LIST---List-of-subnet-to-connect-SUT-HANA-cluster"><b>SUBNET_ID_LIST</b> - List of subnet to connect (SUT HANA cluster)</dt>
+<dd>
+
+</dd>
+<dt id="NAME---Prefix-for-the-Tag-Name-of-transit-gateway-vpc-attachment"><b>NAME</b> - Prefix for the Tag Name of transit-gateway-vpc-attachment</dt>
+<dd>
+
+</dd>
+<dt id="TIMEOUT---default-is-5-mins2"><b>TIMEOUT</b> - default is 5 mins</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_aws_delete_transit_gateway_vpc_attachment">qesap_aws_delete_transit_gateway_vpc_attachment</h3>
+
+<pre><code>Call delete-transit-gateway-vpc-attachment and
+wait until Transit Gateway Attachment is deleted.
+
+Return 1 (true) if properly managed to delete the transit-gateway-vpc-attachment
+Return 0 (false) if delete-transit-gateway-vpc-attachment fails or the gateway does not become inactive before the timeout</code></pre>
+
+<dl>
+
+<dt id="NAME---Prefix-for-the-Tag-Name-of-transit-gateway-vpc-attachment1"><b>NAME</b> - Prefix for the Tag Name of transit-gateway-vpc-attachment</dt>
+<dd>
+
+</dd>
+<dt id="TIMEOUT---default-is-5-mins3"><b>TIMEOUT</b> - default is 5 mins</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_aws_add_route_to_tgw-Adding-the-route-to-the-transit-gateway-to-the-routing-table-in-refhost-VPC">qesap_aws_add_route_to_tgw Adding the route to the transit gateway to the routing table in refhost VPC</h3>
+
+<dl>
+
+<dt id="RTABLE_ID---Routing-table-ID"><b>RTABLE_ID</b> - Routing table ID</dt>
+<dd>
+
+</dd>
+<dt id="TARGET_IP_NET---Target-IP-network-to-be-added-to-the-Routing-table-eg.-192.168.11.0-16"><b>TARGET_IP_NET</b> - Target IP network to be added to the Routing table eg. 192.168.11.0/16</dt>
+<dd>
+
+</dd>
+<dt id="TRANSIT_GATEWAY_ID---ID-of-the-target-Transit-gateway-IBS-Mirror1"><b>TRANSIT_GATEWAY_ID</b> - ID of the target Transit gateway (IBS Mirror)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_aws_filter_query">qesap_aws_filter_query</h3>
+
+<pre><code>Generic function to compose a aws cli command with:
+  - `aws ec2` something
+  - use both `filter` and `query`
+  - has text output</code></pre>
+
+<h3 id="qesap_aws_get_mirror_tg">qesap_aws_get_mirror_tg</h3>
+
+<pre><code>Return the Transient Gateway ID of the IBS Mirror</code></pre>
+
+<h3 id="qesap_aws_get_vpc_workspace">qesap_aws_get_vpc_workspace</h3>
+
+<pre><code>Get the VPC tag Workspace</code></pre>
+
+<dl>
+
+<dt id="VPC_ID---VPC-ID-of-resource-to-be-attached-SUT-HANA-cluster1"><b>VPC_ID</b> - VPC ID of resource to be attached (SUT HANA cluster)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_aws_get_routing">qesap_aws_get_routing</h3>
+
+<pre><code>Get the Routing table: searching Routing Table with external connection
+and get the Workspace tag</code></pre>
+
+<dl>
+
+<dt id="VPC_ID---VPC-ID-of-resource-to-be-attached-SUT-HANA-cluster2"><b>VPC_ID</b> - VPC ID of resource to be attached (SUT HANA cluster)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_aws_vnet_peering">qesap_aws_vnet_peering</h3>
+
+<pre><code>Create a pair of network peering between
+the two provided deployments.
+
+Return 1 (true) if the overall peering procedure completes successfully</code></pre>
+
+<dl>
+
+<dt id="TARGET_IP---Target-IP-network-to-be-added-to-the-Routing-table-eg.-192.168.11.0-16"><b>TARGET_IP</b> - Target IP network to be added to the Routing table eg. 192.168.11.0/16</dt>
+<dd>
+
+</dd>
+<dt id="VPC_ID---VPC-ID-of-resource-to-be-attached-SUT-HANA-cluster3"><b>VPC_ID</b> - VPC ID of resource to be attached (SUT HANA cluster)</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h3 id="qesap_add_server_to_hosts">qesap_add_server_to_hosts</h3>
 
 <pre><code>Adds a &#39;ip -&gt; name&#39; pair in the end of /etc/hosts in the hosts</code></pre>
@@ -453,7 +629,7 @@ qesap_export_instances()</code></pre>
 
 <dl>
 
-<dt id="Around-line-732">Around line 732:</dt>
+<dt id="Around-line-740">Around line 740:</dt>
 <dd>
 
 <p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
