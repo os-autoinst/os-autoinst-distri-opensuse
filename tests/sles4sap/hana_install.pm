@@ -196,11 +196,11 @@ sub run {
         # Read all configured pmem devices on the system
         my @pmem_devices_all = split("\n", script_output("find /dev/pmem*"));
         foreach my $pmem_device (@pmem_devices_all) {
-            $pmem_device =~ s:/dev/(.*):$1:;
+            $pmem_device =~ s:/dev/(pmem.+):$1:;
             assert_script_run "mkdir -p $pmempath/$pmem_device";
             assert_script_run "mkfs.xfs -f /dev/$pmem_device";
             assert_script_run "echo /dev/$pmem_device $pmempath/$pmem_device xfs defaults,noauto,dax 0 0 >> /etc/fstab";
-            assert_script_run "mount $pmempath/$pmem_device"; my $nvddevs = get_var('NVDIMM_NAMESPACES_TOTAL', 2);
+            assert_script_run "mount $pmempath/$pmem_device";
         }
 
         assert_script_run 'mkdir -p /etc/systemd/system/systemd-udev-settle.service.d';

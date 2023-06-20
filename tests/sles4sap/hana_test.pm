@@ -84,11 +84,10 @@ sub run {
     if (get_var('NVDIMM') and !get_var('SKIP_HANADB_QUERY')) {
         $output = script_output "$hdbsql \"SELECT * FROM M_INIFILE_CONTENTS where file_name = 'global.ini' and section = 'persistence' and key = 'basepath_persistent_memory_volumes'\"";
         my $pmempath = get_var('HANA_PMEM_BASEPATH', "/hana/pmem/$sid");
-        my $nvddevs = get_var('NVDIMM_NAMESPACES_TOTAL', 2);
         # Read all configured pmem devices on the system
         my @pmem_devices_all = split("\n", script_output("find /dev/pmem*"));
         foreach my $pmem_device (@pmem_devices_all) {
-            $pmem_device =~ s:/dev/(.*):$1:;
+            $pmem_device =~ s:/dev/(pmem.+):$1:;
             die "hdbsql: HANA not configured with NVDIMM\n\n$output" unless ($output =~ /$pmem_device/);
             assert_script_run "grep -q -w $pmem_device /hana/shared/$sid/global/hdb/custom/config/global.ini";
             assert_script_run "ls $pmempath/$pmem_device";
