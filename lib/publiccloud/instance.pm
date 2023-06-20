@@ -356,7 +356,7 @@ sub wait_for_ssh {
     # DMS will return normal user and error will be resolved.
     $args{ignore_wrong_pubkey} //= 0;
     $args{username} //= $self->username();
-    my $delay = $args{ignore_wrong_pubkey} ? 20 : 1;
+    my $delay = $args{ignore_wrong_pubkey} ? 5 : 1;
     my $start_time = time();
     my $instance_msg = "instance: $self->{instance_id}, public IP: $self->{public_ip}";
     my ($duration, $exit_code, $sshout, $sysout);
@@ -380,10 +380,10 @@ sub wait_for_ssh {
 
     # check also remote system is up and running:
     if ($args{systemup_check} and isok($exit_code)) {
-        script_run("ssh-keyscan $args{public_ip} | tee -a ~/.ssh/known_hosts")
-          if (get_var('PUBLIC_CLOUD_PERF_COLLECT') or get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME') or get_var('PUBLIC_CLOUD_CHECK_REBOOT'));
+        # Install server's ssh publicckeys to prevent authentication interactions
+        # or instance address changes during VM reboots.
+        script_run("ssh-keyscan $args{public_ip} | tee -a ~/.ssh/known_hosts");
         while (($duration = time() - $start_time) < $args{timeout}) {
-            # On boottime test we do hard reboot which may change the instance address:
             # timeout recalculated removing consumed time until now
             $sysout = $self->ssh_script_output(cmd => 'sudo systemctl is-system-running',
                 timeout => $args{timeout} - $duration, proceed_on_failure => 1, username => $args{username});
