@@ -111,12 +111,11 @@ sub create_hana_vars_section {
 sub run {
     my ($self, $run_args) = @_;
 
-    if (check_var('IS_MAINTENANCE', 1)) {
+    if (is_azure) {
         my %maintenance_vars = qesap_az_calculate_address_range(slot => get_required_var('WORKER_ID'));
         set_var("VNET_ADDRESS_RANGE", $maintenance_vars{vnet_address_range});
         set_var("SUBNET_ADDRESS_RANGE", $maintenance_vars{subnet_address_range});
     }
-
 
     # Select console on the host (not the PC instance) to reset 'TUNNELED',
     # otherwise select_serial_terminal() will be failed
@@ -154,7 +153,6 @@ sub run {
         $escaped_token =~ s/\&/\\\&/g;
         set_var("HANA_TOKEN", $escaped_token);
     }
-
 
     my $provider = $self->provider_factory();
     set_var('SLE_IMAGE', $provider->get_image_id());
