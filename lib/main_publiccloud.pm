@@ -38,8 +38,6 @@ sub load_maintenance_publiccloud_tests {
         loadtest("publiccloud/img_proof", run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_LTP')) {
         loadtest('publiccloud/run_ltp', run_args => $args);
-    } elsif (get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME')) {
-        loadtest("publiccloud/boottime", run_args => $args);
     } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
         loadtest('publiccloud/ahb');
     } else {
@@ -111,9 +109,6 @@ sub load_latest_publiccloud_tests {
     elsif (get_var('PUBLIC_CLOUD_ACCNET')) {
         loadtest 'publiccloud/az_accelerated_net';
     }
-    elsif (get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME')) {
-        loadtest "publiccloud/boottime";
-    }
     elsif (get_var('PUBLIC_CLOUD_FIO')) {
         loadtest 'publiccloud/storage_perf';
     }
@@ -170,9 +165,13 @@ sub load_create_publiccloud_tools_image {
 # Test CLI tools for each provider
 sub load_publiccloud_cli_tools {
     loadtest 'boot/boot_to_desktop';
-    loadtest 'publiccloud/azure_cli';
-    loadtest 'publiccloud/aws_cli';
-    loadtest 'publiccloud/google_cli';
+    if (get_var('PUBLIC_CLOUD_AZURE_CLI_TEST')) {
+        loadtest 'publiccloud/azure_more_cli';
+    } else {
+        loadtest 'publiccloud/azure_cli';
+        loadtest 'publiccloud/aws_cli';
+        loadtest 'publiccloud/google_cli';
+    }
     loadtest 'shutdown/shutdown';
 }
 

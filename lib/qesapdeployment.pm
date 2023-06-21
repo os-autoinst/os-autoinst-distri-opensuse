@@ -71,9 +71,19 @@ our @EXPORT = qw(
   qesap_cluster_logs
   qesap_az_get_vnet
   qesap_az_get_resource_group
-  qesap_calculate_az_address_range
+  qesap_az_calculate_address_range
   qesap_az_vnet_peering
   qesap_az_vnet_peering_delete
+  qesap_aws_get_region_subnets
+  qesap_aws_get_vpc_id
+  qesap_aws_create_transit_gateway_vpc_attachment
+  qesap_aws_delete_transit_gateway_vpc_attachment
+  qesap_aws_get_transit_gateway_vpc_attachment
+  qesap_aws_add_route_to_tgw
+  qesap_aws_get_mirror_tg
+  qesap_aws_get_vpc_workspace
+  qesap_aws_get_routing
+  qesap_aws_vnet_peering
   qesap_add_server_to_hosts
   qesap_calculate_deployment_name
   qesap_export_instances
@@ -289,11 +299,10 @@ sub qesap_yaml_replace {
 sub qesap_execute {
     my (%args) = @_;
     croak 'Missing mandatory cmd argument' unless $args{cmd};
-
     my $verbose = $args{verbose} ? "--verbose" : "";
-    my %paths = qesap_get_file_paths();
     $args{cmd_options} ||= '';
 
+    my %paths = qesap_get_file_paths();
     my $exec_log = "/tmp/qesap_exec_$args{cmd}";
     $exec_log .= "_$args{cmd_options}" if ($args{cmd_options});
     $exec_log .= '.log.txt';
@@ -512,9 +521,7 @@ sub qesap_ansible_cmd {
 
 sub qesap_ansible_script_output {
     my (%args) = @_;
-    croak 'Missing mandatory provider argument' unless $args{provider};
-    croak 'Missing mandatory cmd argument' unless $args{cmd};
-    croak 'Missing mandatory host argument' unless $args{host};
+    foreach (qw(provider cmd host)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     $args{user} ||= 'cloudadmin';
     $args{root} ||= 0;
 
@@ -626,6 +633,7 @@ sub qesap_wait_for_ssh {
     croak 'Missing mandatory host argument' unless $args{host};
     $args{timeout} //= bmwqemu::scale_timeout(600);
     $args{port} ||= 22;
+
     my $start_time = time();
     my $check_port = 1;
 
@@ -736,13 +744,14 @@ Return the output of az network vnet list
 
 sub qesap_az_get_vnet {
     my ($resource_group) = @_;
-    croak 'Missing mandatory slot argument' unless $resource_group;
-    my $az_cmd = join(' ', 'az', 'network',
-        'vnet', 'list',
+    croak 'Missing mandatory resource_group argument' unless $resource_group;
+
+    my $cmd = join(' ', 'az network',
+        'vnet list',
         '-g', $resource_group,
-        '--query', '"[0].name"',
-        '-o', 'tsv');
-    return script_output($az_cmd, 180);
+        '--query "[0].name"',
+        '-o tsv');
+    return script_output($cmd, 180);
 }
 
 =head3 qesap_calculate_deployment_name
@@ -783,7 +792,7 @@ sub qesap_az_get_resource_group {
     return $result;
 }
 
-=head3 qesap_calculate_az_address_range
+=head3 qesap_az_calculate_address_range
 
 Calculate the vnet and subnet address
 ranges. The format is 10.ip2.ip3.0/21 and
@@ -798,12 +807,10 @@ ranges. The format is 10.ip2.ip3.0/21 and
 
 =cut
 
-sub qesap_calculate_az_address_range {
+sub qesap_az_calculate_address_range {
     my %args = @_;
     croak 'Missing mandatory slot argument' unless $args{slot};
-
     die "Invalid 'slot' argument - valid values are 1-8192" if ($args{slot} > 8192 || $args{slot} < 1);
-
     my $offset = ($args{slot} - 1) * 8;
 
     # addresses are of the form 10.ip2.ip3.0/21 and /24 respectively
@@ -836,8 +843,7 @@ sub qesap_calculate_az_address_range {
 
 sub qesap_az_vnet_peering {
     my (%args) = @_;
-    croak 'Missing mandatory source_group argument' unless $args{source_group};
-    croak 'Missing mandatory target_group argument' unless $args{target_group};
+    foreach (qw(source_group target_group)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     my $source_vnet = qesap_az_get_vnet($args{source_group});
     my $target_vnet = qesap_az_get_vnet($args{target_group});
     $args{timeout} //= bmwqemu::scale_timeout(300);
@@ -911,7 +917,7 @@ sub qesap_az_vnet_peering_delete {
         record_info("Peering deletion SUCCESS", "The peering was successfully destroyed");
         return;
     }
-    record_soft_failure("Peering destruction FAIL: There may be leftover peering connections, please check - jira#7487");
+    record_soft_failure("Peering destruction FAIL: There may be leftover peering connections, please check - jsc#7487");
 }
 
 =head3 qesap_az_get_peering_name
@@ -931,7 +937,6 @@ sub qesap_az_vnet_peering_delete {
 
 sub qesap_az_get_peering_name {
     my (%args) = @_;
-
     croak 'Missing mandatory target_group argument' unless $args{resource_group};
 
     my $job_id = get_current_job_id();
@@ -942,6 +947,368 @@ sub qesap_az_get_peering_name {
         '-o tsv',
         '| grep', $job_id);
     return script_output($cmd, proceed_on_failure => 1);
+}
+
+=head3 qesap_aws_get_region_subnets
+
+Return a list of subnets. Return a single subnet for each region.
+
+=over 1
+
+=item B<VPC_ID> - VPC ID of resource to filter list of subnets
+
+=back
+=cut
+
+sub qesap_aws_get_region_subnets {
+    my (%args) = @_;
+    croak 'Missing mandatory vpc_id argument' unless $args{vpc_id};
+
+    # Get the VPC tag Workspace
+    my $cmd = join(' ', 'aws ec2 describe-subnets',
+        '--filters', "\"Name=vpc-id,Values=$args{vpc_id}\"",
+        '--query "Subnets[].{AZ:AvailabilityZone,SI:SubnetId}"',
+        '--output json');
+
+    my $describe_vpcs = decode_json(script_output($cmd));
+    my %seen = ();
+    my @uniq = ();
+    foreach (@{$describe_vpcs}) {
+        push(@uniq, $_->{SI}) unless $seen{$_->{AZ}}++;
+    }
+    return @uniq;
+}
+
+=head3 qesap_aws_get_vpc_id
+
+    Get the vpc_id of a given instance in the cluster.
+    This function looks for the cluster using the aws describe-instances
+    and filtering by terraform deployment_name value, that qe-sap-deployment
+    is kind to use as tag for each resource.
+
+=cut
+
+=over 1
+
+=item B<RESOURCE_GROUP> - resource group name to query
+
+=back
+=cut
+
+sub qesap_aws_get_vpc_id {
+    my (%args) = @_;
+    croak 'Missing mandatory resource_group argument' unless $args{resource_group};
+
+    my $cmd = join(' ', 'aws ec2 describe-instances',
+        '--region', get_required_var('PUBLIC_CLOUD_REGION'),
+        '--filters',
+        '"Name=tag-key,Values=Workspace"',
+        "\"Name=tag-value,Values=$args{resource_group}\"",
+        '--query',
+        "'Reservations[0].Instances[0].VpcId'",    # the two 0 index result in select only the vpc of vmhana01 that is always equal to the one used by vmhana02
+        '--output text');
+    return script_output($cmd);
+}
+
+=head3 qesap_aws_get_transit_gateway_vpc_attachment
+    Ged a description of one or more transit-gateway-attachments
+    Function support optional arguments that are translated to filters:
+     - transit_gateway_attach_id
+     - name
+
+    Example:
+      qesap_aws_get_transit_gateway_vpc_attachment(name => 'SOMETHING')
+
+      Result internally in aws cli to be called like
+
+      aws ec2 describe-transit-gateway-attachments --filter='Name=tag:Name,Values=SOMETHING
+
+    Only one filter mode is supported at any time.
+
+    Returns a HASH reference to the decoded JSON returned by the AWS command or undef on failure.
+=cut
+
+sub qesap_aws_get_transit_gateway_vpc_attachment {
+    my (%args) = @_;
+    my $filter = '';
+    if ($args{transit_gateway_attach_id}) {
+        $filter = "--filter='Name=transit-gateway-attachment-id,Values=$args{transit_gateway_attach_id}'";
+    }
+    elsif ($args{name}) {
+        $filter = "--filter='Name=tag:Name,Values=$args{name}'";
+    }
+    my $cmd = join(' ', 'aws ec2 describe-transit-gateway-attachments',
+        $filter,
+        '--query "TransitGatewayAttachments[]"');
+    return decode_json(script_output($cmd));
+}
+
+=head3 qesap_aws_create_transit_gateway_vpc_attachment
+
+    Call create-transit-gateway-vpc-attachment and
+    wait until Transit Gateway Attachment is available.
+
+    Return 1 (true) if properly managed to create the transit-gateway-vpc-attachment
+    Return 0 (false) if create-transit-gateway-vpc-attachment fails or the gateway does not become active before the timeout
+
+=over 5
+
+=item B<TRANSIT_GATEWAY_ID> - ID of the target Transit gateway (IBS Mirror)
+
+=item B<VPC_ID> - VPC ID of resource to be attached (SUT HANA cluster)
+
+=item B<SUBNET_ID_LIST> - List of subnet to connect (SUT HANA cluster)
+
+=item B<NAME> - Prefix for the Tag Name of transit-gateway-vpc-attachment
+
+=item B<TIMEOUT> - default is 5 mins
+
+=back
+=cut
+
+sub qesap_aws_create_transit_gateway_vpc_attachment {
+    my (%args) = @_;
+    foreach (qw(transit_gateway_id vpc_id subnet_id_list name)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    $args{timeout} //= bmwqemu::scale_timeout(300);
+
+    my $cmd = join(' ', 'aws ec2 create-transit-gateway-vpc-attachment',
+        '--transit-gateway-id', $args{transit_gateway_id},
+        '--vpc-id', $args{vpc_id},
+        '--subnet-ids', join(' ', @{$args{subnet_id_list}}),
+        '--tag-specifications',
+        '"ResourceType=transit-gateway-attachment,Tags=[{Key=Name,Value=' . $args{name} . '-tga}]"',
+        '--output json');
+    my $describe_tgva = decode_json(script_output($cmd));
+    return 0 unless $describe_tgva;
+
+    my $transit_gateway_attachment_id = $describe_tgva->{TransitGatewayVpcAttachment}->{TransitGatewayAttachmentId};
+    my $res;
+    my $state = 'none';
+    my $duration;
+    my $start_time = time();
+    while ((($duration = time() - $start_time) < $args{timeout}) && ($state !~ m/available/)) {
+        sleep 5;
+        $res = qesap_aws_get_transit_gateway_vpc_attachment(
+            transit_gateway_attach_id => $transit_gateway_attachment_id);
+        $state = $res->[0]->{State};
+    }
+    return $duration < $args{timeout};
+}
+
+=head3 qesap_aws_delete_transit_gateway_vpc_attachment
+
+    Call delete-transit-gateway-vpc-attachment and
+    wait until Transit Gateway Attachment is deleted.
+
+    Return 1 (true) if properly managed to delete the transit-gateway-vpc-attachment
+    Return 0 (false) if delete-transit-gateway-vpc-attachment fails or the gateway does not become inactive before the timeout
+
+=over 2
+
+=item B<NAME> - Prefix for the Tag Name of transit-gateway-vpc-attachment
+
+=item B<TIMEOUT> - default is 5 mins
+
+=back
+=cut
+
+sub qesap_aws_delete_transit_gateway_vpc_attachment {
+    my (%args) = @_;
+    croak 'Missing mandatory name argument' unless $args{name};
+    $args{timeout} //= bmwqemu::scale_timeout(300);
+
+    my $res = qesap_aws_get_transit_gateway_vpc_attachment(
+        name => $args{name});
+    # Here [0] suppose that only one of them match 'name'
+    my $transit_gateway_attachment_id = $res->[0]->{TransitGatewayAttachmentId};
+    return 0 unless $transit_gateway_attachment_id;
+
+    my $cmd = join(' ', 'aws ec2 delete-transit-gateway-vpc-attachment',
+        '--transit-gateway-attachment-id', $transit_gateway_attachment_id);
+    script_run($cmd);
+
+    my $state = 'none';
+    my $duration;
+    my $start_time = time();
+    while ((($duration = time() - $start_time) < $args{timeout}) && ($state !~ m/deleted/)) {
+        sleep 5;
+        $res = qesap_aws_get_transit_gateway_vpc_attachment(
+            transit_gateway_attach_id => $transit_gateway_attachment_id);
+        $state = $res->[0]->{State};
+    }
+    return $duration < $args{timeout};
+}
+
+=head3 qesap_aws_add_route_to_tgw
+    Adding the route to the transit gateway to the routing table in refhost VPC
+
+=over 3
+
+=item B<RTABLE_ID> - Routing table ID
+
+=item B<TARGET_IP_NET> - Target IP network to be added to the Routing table eg. 192.168.11.0/16
+
+=item B<TRANSIT_GATEWAY_ID> - ID of the target Transit gateway (IBS Mirror)
+
+=back
+=cut
+
+sub qesap_aws_add_route_to_tgw {
+    my (%args) = @_;
+    foreach (qw(rtable_id target_ip_net trans_gw_id)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+
+    my $cmd = join(' ',
+        'aws ec2 create-route',
+        '--route-table-id', $args{rtable_id},
+        '--destination-cidr-block', $args{target_ip_net},
+        '--transit-gateway-id', $args{trans_gw_id},
+        '--output text');
+    script_run($cmd);
+}
+
+=head3 qesap_aws_filter_query
+
+    Generic function to compose a aws cli command with:
+      - `aws ec2` something
+      - use both `filter` and `query`
+      - has text output
+
+=cut
+
+sub qesap_aws_filter_query {
+    my (%args) = @_;
+    foreach (qw(cmd filter query)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+
+    my $cmd = join(' ', 'aws ec2', $args{cmd},
+        '--filters', $args{filter},
+        '--query', $args{query},
+        '--output text');
+    return script_output($cmd);
+}
+
+=head3 qesap_aws_get_mirror_tg
+
+    Return the Transient Gateway ID of the IBS Mirror
+
+=cut
+
+sub qesap_aws_get_mirror_tg {
+    return qesap_aws_filter_query(
+        cmd => 'describe-transit-gateways',
+        filter => '"Name=tag-key,Values=Project" "Name=tag-value,Values=IBS Mirror"',
+        query => '"TransitGateways[].TransitGatewayId"'
+    );
+}
+
+=head3 qesap_aws_get_vpc_workspace
+
+    Get the VPC tag Workspace
+
+=over 1
+
+=item B<VPC_ID> - VPC ID of resource to be attached (SUT HANA cluster)
+
+=back
+=cut
+
+sub qesap_aws_get_vpc_workspace {
+    my (%args) = @_;
+    croak 'Missing mandatory vpc_id argument' unless $args{vpc_id};
+
+    return qesap_aws_filter_query(
+        cmd => 'describe-vpcs',
+        filter => "\"Name=vpc-id,Values=$args{vpc_id}\"",
+        query => '"Vpcs[*].Tags[?Key==\`Workspace\`].Value"'
+    );
+}
+
+=head3 qesap_aws_get_routing
+
+    Get the Routing table: searching Routing Table with external connection
+    and get the Workspace tag
+
+=over 1
+
+=item B<VPC_ID> - VPC ID of resource to be attached (SUT HANA cluster)
+
+=back
+=cut
+
+sub qesap_aws_get_routing {
+    my (%args) = @_;
+    croak 'Missing mandatory vpc_id argument' unless $args{vpc_id};
+
+    return qesap_aws_filter_query(
+        cmd => 'describe-route-tables',
+        filter => "\"Name=vpc-id,Values=$args{vpc_id}\"",
+        query => '"RouteTables[?Routes[?GatewayId!=\`local\`]].RouteTableId"'
+    );
+}
+
+=head3 qesap_aws_vnet_peering
+
+    Create a pair of network peering between
+    the two provided deployments.
+
+    Return 1 (true) if the overall peering procedure completes successfully
+
+=over 2
+
+=item B<TARGET_IP> - Target IP network to be added to the Routing table eg. 192.168.11.0/16
+
+=item B<VPC_ID> - VPC ID of resource to be attached (SUT HANA cluster)
+
+=back
+=cut
+
+sub qesap_aws_vnet_peering {
+    my (%args) = @_;
+    foreach (qw(target_ip vpc_id)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+
+    my $trans_gw_id = qesap_aws_get_mirror_tg();
+    unless ($trans_gw_id) {
+        record_info('AWS PEERING', 'Empty trans_gw_id');
+        return 0;
+    }
+
+    # For qe-sap-deployment this one match or contain the Terraform deloyment_name
+    my $vpc_tag_name = qesap_aws_get_vpc_workspace(vpc_id => $args{vpc_id});
+    unless ($vpc_tag_name) {
+        record_info('AWS PEERING', 'Empty vpc_tag_name');
+        return 0;
+    }
+
+    my @vpc_subnets_list = qesap_aws_get_region_subnets(vpc_id => $args{vpc_id});
+    unless (@vpc_subnets_list) {
+        record_info('AWS PEERING', 'Empty vpc_subnets_list');
+        return 0;
+    }
+
+    my $rtable_id = qesap_aws_get_routing(vpc_id => $args{vpc_id});
+    unless ($rtable_id) {
+        record_info('AWS PEERING', 'Empty rtable_id');
+        return 0;
+    }
+
+    # Setting up the peering
+    # Attaching the VPC to the Transit Gateway
+    my $attach = qesap_aws_create_transit_gateway_vpc_attachment(
+        transit_gateway_id => $trans_gw_id,
+        vpc_id => $args{vpc_id},
+        subnet_id_list => \@vpc_subnets_list,
+        name => $vpc_tag_name);
+    unless ($attach) {
+        record_info('AWS PEERING', 'VPC attach failure');
+        return 0;
+    }
+
+    qesap_aws_add_route_to_tgw(
+        rtable_id => $rtable_id,
+        target_ip_net => $args{target_ip},
+        trans_gw_id => $trans_gw_id);
+
+    record_info('AWS PEERING', 'SUCCESS');
+    return 1;
 }
 
 =head3 qesap_add_server_to_hosts
@@ -959,8 +1326,7 @@ sub qesap_az_get_peering_name {
 
 sub qesap_add_server_to_hosts {
     my (%args) = @_;
-    croak 'Missing mandatory ip argument' unless $args{ip};
-    croak 'Missing mandatory name argument' unless $args{name};
+    foreach (qw(ip name)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
 
     my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
     qesap_ansible_cmd(cmd => "sed -i '\\\$a $args{ip} $args{name}' /etc/hosts",

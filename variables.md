@@ -215,6 +215,7 @@ YUI_SERVER | string | | libyui REST API server name or ip address.
 YUI_START_PORT | integer | 39000 | Sets starting port for the libyui REST API, on qemu VNC port is then added to this port not to have conflicts.
 YUI_REST_API | boolean | false | Is used to setup environment for libyui REST API, as some parameters have to be set before the VM is started.
 YUI_PARAMS | string | | libyui REST API params required to open YaST modules
+YUPDATE_GIT | string | | Github link used by yast help script yupdate, format is repo#branch such as yast/agama#main.
 ZDUP | boolean | false | Prescribes zypper dup scenario.
 ZDUPREPOS | string | | Comma separated list of repositories to be added/used for zypper dup call, defaults to SUSEMIRROR or attached media, e.g. ISO.
 ZFCP_ADAPTERS | string | | Comma separated list of available ZFCP adapters in the machine (usually 0.0.fa00 and/or 0.0.fc00)
@@ -278,7 +279,6 @@ PUBLIC_CLOUD_AZURE_OFFER | string | "" | Specific to Azure. Allow to query for i
 PUBLIC_CLOUD_AZURE_SKU | string | "" | Specific to Azure.
 PUBLIC_CLOUD_BUILD | string | "" | The image build number. Used only when we use custom built image.
 PUBLIC_CLOUD_BUILD_KIWI | string | "" | The image kiwi build number. Used only when we use custom built image.
-PUBLIC_CLOUD_CHECK_BOOT_TIME | boolean | false | If set, boottime test module is added to the job.
 PUBLIC_CLOUD_CONFIDENTIAL_VM | boolean | false | GCE Confidential VM instance
 PUBLIC_CLOUD_UPLOAD_IMG | boolean | false | If set, `publiccloud/upload_image` test module is added to the job.
 PUBLIC_CLOUD_CONSOLE_TESTS | boolean | false | If set, console tests are added to the job.
@@ -303,8 +303,9 @@ PUBLIC_CLOUD_IMG_PROOF_EXCLUDE | string | "" | Tests to be excluded by img-proof
 PUBLIC_CLOUD_INSTANCE_TYPE | string | "" | Specify the instance type. Which instance types exists depends on the CSP. (default-azure: Standard_A2, default-ec2: t2.large )
 PUBLIC_CLOUD_LTP | boolean | false | If set, the run_ltp test module is added to the job.
 PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE | boolean | false | Do not remove the instance when the test fails.
+PUBLIC_CLOUD_PERF_COLLECT | boolean | false | Enable `boottime` measures collection, at end of `create_instance` routine.
 PUBLIC_CLOUD_PERF_DB_URI | string | "" | If set, the bootup times get stored in the influx database. (e.g. PUBLIC_CLOUD_PERF_DB_URI=http://publiccloud-ng.qe.suse.de:8086)
-PUBLIC_CLOUD_PERF_DB | string | "perf" | If `PUBLIC_CLOUD_PERF_DB_URI` is defined, this variable defines the bucket in which the performance metrics are stored
+PUBLIC_CLOUD_PERF_DB | string | "perf_2" | If `PUBLIC_CLOUD_PERF_DB_URI` is defined, this variable defines the bucket in which the performance metrics are stored
 PUBLIC_CLOUD_PERF_DB_ORG | string | "qec" | If `PUBLIC_CLOUD_PERF_DB_URI` is defined, this variable defines the organization in which the performance metrics are stored
 _PUBLIC_CLOUD_PERF_DB_TOKEN | string | "" | If `PUBLIC_CLOUD_PERF_DB_URI` is defined, this required variable is the access token
 _PUBLIC_CLOUD_PERF_PUSH_DATA | boolean | "" | If set to `1`, then the test run will push it's metrics to the InfluxDB. This variable is used as secret variable, so that cloned jobs by default do not push metrics to avoid accidental database contamination.
@@ -340,3 +341,24 @@ _SECRET_PUBLIC_CLOUD_INSTANCE_SSH_KEY | string | "" | The `~/.ssh/id_rsa` existi
 PUBLIC_CLOUD_TERRAFORM_DIR | string | "/root/terraform" | Override default root path to terraform directory
 PUBLIC_CLOUD_SCC_ENDPOINT | string | "registercloudguest" | Name of binary which will be used to register image . Except default value only possible value is "SUSEConnect" anything else will lead to test failure!
 TERRAFORM_VM_CREATE_TIMEOUT | string | "20m" | Terraform timeout for creating the virtual machine resource.
+PUBLIC_AZURE_CLI_TEST | string | "vmss" | Azure CLI test names. This variable should list the test name which should be tested.
+PUBLIC_CLOUD_PY_BACKPORTS_REPO | string | "" | PY Backport repo URL for azure_more_cli_test.
+PUBLIC_CLOUD_PY_AZURE_REPO | string | "" | PY azure repo URL for azure_more_cli_test.
+PUBLIC_CLOUD_TOOLS_REPO | string | "" | cloud tools repo URL for azure_more_cli_test.
+
+
+### Wicked testsuite specifc variables
+
+The following variables are relevant for the wicked testsuite
+
+Variable        | Type      | Default value | Details
+---             | ---       | ---           | ---
+WICKED_CHECK_LOG_EXCLUDE | string | @see [wickedbase.pm](./lib/wickedbase.pm)::check_logs() | A CSV of log messages, which doesn't result in a test-module failure. The format is `<wicked-binary>=<regex>`.
+WICKED_CHECK_LOG_FAIL | bool | false | If enabled, after each test-module. The journal of each wicked services is checked and the test-module fail if an unknown error was found.
+WICKED_COMMIT_SHA | string | | Can be used with `WICKED_REPO`. It check the given SHA against the latest changelog entry of wicked. It's used to verify that we run openqa against the version we expect.
+WICKED_EXCLUDE | regex  | | This exclude given wicked test modules. E.g.  `WICKED_EXCLUDE='^(?!t01_).*$'` would only run the test-module starting with `t01_*`.
+WICKED_REPO | string | | If specified, wicked get installed from this repo before testing. The url should point to the `*.repo` file.
+WICKED_SKIP_VERSION_CHECK | bool | false | Some test-modules require a specific wicked version. If you don't want this check take place, set this variable to `true`.
+WICKED_TCPDUMP | bool | false | If enabled, on each test-module the network interfaces are set into promiscuous mode and a `*.pcap` file will be captured and uploaded.
+WICKED_VALGRIND | string | | Enable valgind for specified wicked binaries. Multiple values should be separated by `,`. If set to `all` or `1`, valgrind is enabled for all binaries(wickedd-auto4, wickedd-dhcp6, wickedd-dhcp4, wickedd-nanny, wickedd and wicked).
+WICKED_VALGRIND | string | /usr/bin/valgrind --tool=memcheck --leak-check=yes | The valgrind command used with `WICKED_VALGRIND` for each binary.

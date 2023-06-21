@@ -34,6 +34,7 @@ sub run {
     my $pc_rpm = get_var('PUBLIC_CLOUD_DMS_PC_RPM');
     my $pc_act_location = get_var('PUBLIC_CLOUD_PC_ACT_LOCATION');
     my $act_rpm = get_var('PUBLIC_CLOUD_DMS_ACT_RPM');
+    my $add_boot = get_var('PUBLIC_CLOUD_DMS_ADD_REBOOT');
     my $act_url = "$pc_act_location" . "$act_rpm";
     my $pc_url = "$pc_act_location" . "$pc_rpm";
     my $tmp_repo = "/tmp/sles15-mig-repo";
@@ -110,7 +111,7 @@ sub run {
     # migration finished and instance rebooted
     record_info('Migration Status', 'Checking the migration succeed');
 
-    my $product_version = $instance->run_ssh_command(cmd => 'sudo cat /etc/os-release');
+    my $product_version = $instance->run_ssh_command(cmd => 'cat /etc/os-release');
     record_info('Product Version', $product_version);
 
     my $migrated_version = 'N/A';
@@ -118,6 +119,16 @@ sub run {
     record_info('Migrated Version', $migrated_version);
 
     die("Wrong version: expected: " . $target_version . ", got " . $migrated_version) if ($migrated_version ne $target_version);
+
+    if ($add_boot) {
+        record_info('system reboots after succesfull migration');
+        my ($shutdown_time, $startup_time) = $instance->softreboot(
+            timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 400)
+        );
+
+        my $product_version = $instance->run_ssh_command(cmd => 'cat /etc/os-release');
+        record_info('Additional reboot success and reachable', $product_version);
+    }
 }
 
 1;

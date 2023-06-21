@@ -291,9 +291,6 @@ sub parse_openposix_runfile {
     my $ulp_test = get_var('LIBC_LIVEPATCH', 0);
     my $whitelist = LTP::WhiteList->new();
 
-    assert_script_run('export LD_PRELOAD=/usr/lib64/libpulp.so.0')
-      if ($ulp_test);
-
     for my $line (@$cmds) {
         chomp($line);
         my $testname = basename($line, '.run-test') . $suffix;

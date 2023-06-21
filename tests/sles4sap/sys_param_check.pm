@@ -16,7 +16,7 @@ use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use version_utils qw(is_sle);
-use utils qw(zypper_call);
+use utils qw(zypper_call script_retry);
 use hacluster qw(is_package_installed);
 use kdump_utils qw(deactivate_kdump_cli);
 
@@ -48,8 +48,7 @@ sub run {
     my $robot_fw_version = '3.2.2';
     my $distro_ver = is_sle ? "sles-" . get_var('VERSION') : 'Tumbleweed';
     my $test_repo = "/robot/tests/$distro_ver";
-    my $robot_tar = "robot.tar.gz";
-    my $testkit = get_var('SYS_PARAM_CHECK_TEST', "qa-css-hq.qa.suse.de/$robot_tar");
+    my $testkit = get_var('SYS_PARAM_CHECK_TEST', 'https://github.com/openSUSE/sys-param-check');
     my $python_bin = is_sle('<15') ? 'python' : 'python3';
     select_serial_terminal;
 
@@ -57,8 +56,8 @@ sub run {
     assert_script_run 'dracut --force', 180;
 
     # Download and prepare the test environment
-    assert_script_run "cd /; curl -f -v \"$testkit\" -o $robot_tar";
-    assert_script_run "tar -xzf $robot_tar";
+    zypper_call 'in git-core';
+    script_retry "git clone $testkit /robot";
 
     # Install the robot framework
     assert_script_run "unzip /robot/bin/robotframework-$robot_fw_version.zip";

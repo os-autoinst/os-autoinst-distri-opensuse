@@ -1,0 +1,23 @@
+---
+name:           lvm_multipath
+description:    >
+  Textmode installation test for lvm partitioning with no spearate home, on multipath with lvm validation.
+vars:
+  YUI_REST_API: 1
+schedule:
+  system_probing:
+    - installation/multipath
+  guided_partitioning:
+    - installation/partitioning/select_guided_setup
+    - installation/partitioning/guided_setup/enable_lvm
+    - installation/partitioning/guided_setup/do_not_propose_separate_home
+  software:
+    - installation/installation_settings/validate_default_target
+  system_preparation:
+    - console/hostname
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - shutdown/grub_set_bootargs
+  system_validation:
+    - console/validate_multipath
+    - console/validate_lvm

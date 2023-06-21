@@ -261,9 +261,9 @@ sub upload_log {
     assert_script_run("test -d '$tmpdir' && rm -rf '$tmpdir'");
 }
 
-=head2 wait_for_guestregister_chk
+=head2 wait_for_guestregister
 
-    wait_for_guestregister_chk([timeout => 300]);
+    wait_for_guestregister([timeout => 300]);
 
 Run command C<systemctl is-active guestregister> on the instance in a loop and
 wait till guestregister is ready. If guestregister finish with state failed,
@@ -271,10 +271,10 @@ a soft-failure will be recorded.
 If guestregister will not finish within C<timeout> seconds, job dies.
 In case of BYOS images we checking that service is inactive and quit
 Returns the time needed to wait for the guestregister to complete.
-C<wait_for_guestregister_chk> is called inside C<create_instance()>, enabled by C<check_guestregister>
+C<wait_for_guestregister> is called inside C<create_instance()>, enabled by C<check_guestregister>
 =cut
 
-sub wait_for_guestregister_chk {
+sub wait_for_guestregister {
     my ($self, %args) = @_;
     $args{timeout} //= 300;
     my $start_time = time();
@@ -312,24 +312,6 @@ sub wait_for_guestregister_chk {
 
     $self->upload_log($log, log_name => $name);
     die('guestregister didn\'t end in expected timeout=' . $args{timeout});
-}
-
-
-=head2 wait_for_guestregister
-
-    wait_for_guestregister([timeout => 300]);
-
-The previous functionality has been migrated into wait_for_guestregister_chk above, for logic refactoring 
-planned to run directly when publiccloud create_instances executed. 
-This function is now a temporary placeholder without effects, to quickly proof the new logic, 
-but passing the existing calls still present in many modules,reducing the changes of deleting those ones.
-After the new logic will be consilidated, this function and related calls will be removed. 
-=cut
-
-sub wait_for_guestregister {
-    my ($self, %args) = @_;
-    my $out = $self->run_ssh_command(cmd => 'sudo systemctl is-active guestregister', proceed_on_failure => 1, quiet => 1);
-    return;
 }
 
 =head2 wait_for_ssh
@@ -374,7 +356,7 @@ sub wait_for_ssh {
     # DMS will return normal user and error will be resolved.
     $args{ignore_wrong_pubkey} //= 0;
     $args{username} //= $self->username();
-    my $delay = $args{ignore_wrong_pubkey} ? 20 : 1;
+    my $delay = $args{ignore_wrong_pubkey} ? 5 : 1;
     my $start_time = time();
     my $instance_msg = "instance: $self->{instance_id}, public IP: $self->{public_ip}";
     my ($duration, $exit_code, $sshout, $sysout);
@@ -398,10 +380,10 @@ sub wait_for_ssh {
 
     # check also remote system is up and running:
     if ($args{systemup_check} and isok($exit_code)) {
-        script_run("ssh-keyscan $args{public_ip} | tee -a ~/.ssh/known_hosts")
-          if (get_var('PUBLIC_CLOUD_PERF_COLLECT') or get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME') or get_var('PUBLIC_CLOUD_CHECK_REBOOT'));
+        # Install server's ssh publicckeys to prevent authentication interactions
+        # or instance address changes during VM reboots.
+        script_run("ssh-keyscan $args{public_ip} | tee -a ~/.ssh/known_hosts");
         while (($duration = time() - $start_time) < $args{timeout}) {
-            # On boottime test we do hard reboot which may change the instance address:
             # timeout recalculated removing consumed time until now
             $sysout = $self->ssh_script_output(cmd => 'sudo systemctl is-system-running',
                 timeout => $args{timeout} - $duration, proceed_on_failure => 1, username => $args{username});

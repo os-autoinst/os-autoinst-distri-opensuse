@@ -37,7 +37,9 @@ sub run {
     $variables{USE_SAPCONF} = get_var('QESAPDEPLOY_USE_SAPCONF', 'false');
     $variables{SSH_KEY_PRIV} = '/root/.ssh/id_rsa';
     $variables{SSH_KEY_PUB} = '/root/.ssh/id_rsa.pub';
-    $variables{SCC_REGCODE_SLES4SAP} = get_required_var('SCC_REGCODE_SLES4SAP');
+
+    # Only BYOS images needs it
+    $variables{SCC_REGCODE_SLES4SAP} = get_var('SCC_REGCODE_SLES4SAP', '');
     $variables{HANA_INSTANCE_TYPE} = get_var('QESAPDEPLOY_HANA_INSTANCE_TYPE', 'r6i.xlarge');
 
     $variables{HANA_ACCOUNT} = get_required_var('QESAPDEPLOY_HANA_ACCOUNT');
@@ -57,9 +59,11 @@ sub run {
         $variables{HANA_LOG_DISK_TYPE} = get_var("QESAPDEPLOY_HANA_DISK_TYPE", "pd-ssd");
     }
 
-    my %peering_settings = qesap_calculate_az_address_range(slot => get_required_var('WORKER_ID'));
-    $variables{VNET_ADDRESS_RANGE} = $peering_settings{vnet_address_range};
-    $variables{SUBNET_ADDRESS_RANGE} = $peering_settings{subnet_address_range};
+    if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+        my %peering_settings = qesap_az_calculate_address_range(slot => get_required_var('WORKER_ID'));
+        $variables{VNET_ADDRESS_RANGE} = $peering_settings{vnet_address_range};
+        $variables{SUBNET_ADDRESS_RANGE} = $peering_settings{subnet_address_range};
+    }
 
     qesap_prepare_env(openqa_variables => \%variables, provider => $qesap_provider);
 }

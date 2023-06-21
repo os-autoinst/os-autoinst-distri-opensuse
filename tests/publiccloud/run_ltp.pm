@@ -100,9 +100,6 @@ sub run {
     } else {
         $provider = $self->provider_factory();
         $instance = $self->{my_instance} = $provider->create_instance(check_guestregister => is_openstack ? 0 : 1);
-        unless (is_openstack) {
-            $instance->wait_for_guestregister();
-        }
     }
 
     assert_script_run("cd $root_dir");

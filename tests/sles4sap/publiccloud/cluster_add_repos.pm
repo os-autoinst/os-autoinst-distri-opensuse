@@ -24,12 +24,17 @@ sub run() {
 
     while (defined(my $maintrepo = shift @repos)) {
         next if $maintrepo =~ /^\s*$/;
-        $instance->run_ssh_command(cmd => "sudo zypper --no-gpg-checks ar -f -n TEST_$count $maintrepo TEST_$count",
-            username => 'cloudadmin');
+        foreach my $instance (@{$run_args->{instances}}) {
+            next if ($instance->{'instance_id'} !~ m/vmhana/);
+            $instance->run_ssh_command(cmd => "sudo zypper --no-gpg-checks ar -f -n TEST_$count $maintrepo TEST_$count",
+                username => 'cloudadmin');
+        }
         $count++;
     }
-
-    $instance->run_ssh_command(cmd => 'sudo zypper -n ref', username => 'cloudadmin');
+    foreach my $instance (@{$run_args->{instances}}) {
+        next if ($instance->{'instance_id'} !~ m/vmhana/);
+        $instance->run_ssh_command(cmd => 'sudo zypper -n ref', username => 'cloudadmin', timeout => 1500);
+    }
 }
 
 sub delete_peering {

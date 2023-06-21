@@ -18,6 +18,7 @@ use strict;
 use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use registration;
 use utils;
 use Mojo::Util 'trim';
 
@@ -27,7 +28,6 @@ sub run {
 
     my $cgroup_mem = get_required_var('WMP_MEMORY_LOW');
     my $stressng_mem = get_required_var('WMP_STRESS_MEM');
-    my $stressng_repo = get_var('WMP_STRESS_REPO', "https://download.opensuse.org/repositories/benchmark/SLE_15_SP3/benchmark.repo");
 
     my $sid = get_required_var('INSTANCE_SID');
     my $instance_id = get_required_var('INSTANCE_ID');
@@ -35,7 +35,8 @@ sub run {
 
     select_serial_terminal;
 
-    zypper_ar($stressng_repo, no_gpg_check => 1);
+    # we need packagehub for stress-ng, let's enable it
+    add_suseconnect_product(get_addon_fullname('phub'));
     zypper_call("in stress-ng");
 
     # configure memory.low

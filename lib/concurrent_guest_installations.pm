@@ -112,6 +112,8 @@ sub install_guest_instances {
         else {
             $guest_instances{$_}->guest_installation_run(@_);
         }
+        # Abort current guest installation if dry run failed
+        next if $guest_instances{$_}->{guest_installation_result} eq 'FAILED';
         if ($guest_instances{$_}->has_noautoconsole_for_sure) {
             assert_screen('text-logged-in-root');
             $guest_instances{$_}->do_attach_guest_installation_screen_without_session;

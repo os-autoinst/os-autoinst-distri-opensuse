@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2019 SUSE LLC
+# Copyright 2016-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: svirt bootloader
@@ -269,6 +269,8 @@ sub run {
         # does not work.
         if (my $bridges = $svirt->get_cmd_output("virsh iface-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
             $ifacecfg{type} = 'bridge';
+            # Due to poo#126647, the default iface 'ovs-system' on xen platform can not work fine, so we need to use br0 instead
+            $bridges = 'br0' if $bridges eq 'ovs-system';
             $ifacecfg{source} = {bridge => $bridges};
         }
         elsif (my $networks = $svirt->get_cmd_output("virsh net-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {

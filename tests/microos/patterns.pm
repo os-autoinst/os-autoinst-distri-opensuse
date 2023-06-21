@@ -23,7 +23,7 @@ sub run {
     my @patterns = map { m/\|\s+(.*?)\s+\|.*pattern$/ } @available_patterns;
 
     # install new patterns
-    trup_call('pkg install -t pattern ' . join(" ", @patterns), timeout => 300);
+    trup_call('pkg install -t pattern ' . join(" ", @patterns), timeout => 600);
     process_reboot(trigger => 1);
 
     # expect empty list therefore ZYPPER_EXIT_INF_CAP_NOT_FOUND

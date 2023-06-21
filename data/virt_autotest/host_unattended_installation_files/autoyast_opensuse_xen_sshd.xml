@@ -68,6 +68,13 @@
   <networking>
     <keep_install_network t="boolean">true</keep_install_network>
     <backend>network_manager</backend>
+    <interfaces t="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <name>p3p1</name>
+        <startmode>manual</startmode>
+      </interface>
+    </interfaces>
   </networking>
   <software>
     <products t="list">
@@ -126,10 +133,10 @@
   <init-scripts t="list">
     <script>
       <source><![CDATA[
-sshd_config_file="/etc/ssh/sshd_config.d/permit_root_login.conf"
-echo -e "PermitRootLogin yes\nPubkeyAuthentication yes\nPasswordAuthentication yes" > $sshd_config_file
-sshd_config_file="/etc/ssh/sshd_config.d/keep_alive.conf"
-echo -e "TCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 480" > $sshd_config_file
+sshd_config_dir="/etc/ssh/sshd_config.d"
+echo -e "PermitRootLogin yes\nPubkeyAuthentication yes\nPasswordAuthentication yes" > ${sshd_config_dir}/permit_root_login.conf
+echo -e "TCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 480" > ${sshd_config_dir}/keep_alive.conf
+echo -e "[Match]\nDriver=bridge\n\n[Link]\nMACAddressPolicy=none" > /etc/systemd/network/98-default-bridge.link
 echo "Below lines modify the /etc/default/grub file to set the GRUB_DEFAULT parameter to Xen hypervisor and then regenerate the GRUB configuration file using grub2-mkconfig"         
 sed -i 's/^GRUB_DEFAULT=.*/GRUB_DEFAULT=2/' /etc/default/grub
 grub2-mkconfig -o /boot/grub2/grub.cfg
