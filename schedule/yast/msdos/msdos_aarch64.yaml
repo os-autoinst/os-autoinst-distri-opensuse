@@ -1,0 +1,17 @@
+---
+name:           msdos
+description:    >
+  Test for installation on msdos partition table.
+vars:
+  YUI_REST_API: 1
+schedule:
+  expert_partitioning:
+    - installation/partitioning/msdos_partition_table
+  suggested_partitioning: []
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_validation:
+    - console/validate_partition_table_via_parted
+    - console/validate_blockdevices
+    - console/validate_free_space
+    - console/validate_read_write
