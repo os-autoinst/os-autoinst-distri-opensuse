@@ -80,8 +80,8 @@ sub run {
     send_key 'ctrl-d';
     # logout user
     handle_logout;
-    # Wait some more seconds before selecting root-console, as it fails sporadically in aarch64
-    wait_still_screen 10;
+    # Make sure we are logged out
+    assert_screen 'multi_users_dm', 180;
 
     # restore previous config
     select_console 'root-console';
