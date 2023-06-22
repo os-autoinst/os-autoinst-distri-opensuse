@@ -271,7 +271,7 @@
 
 <h3 id="cluster_wait_status">cluster_wait_status</h3>
 
-<p>This function allow to wait for a specific output for &#39;SAPHanaSR-showAttr&#39;, on one specific remote host. Remotly runs &#39;SAPHanaSR-showAttr&#39; on $host. Runs &#39;SAPHanaSR-showAttr&#39; multiple times in a loop, retying until the output PASS the test &#39;f_status&#39;. The &#39;f_status&#39; test is passed as a &quot;function pointer&quot;.</p>
+<p>This function allow to wait for a specific output for &#39;SAPHanaSR-showAttr&#39;, on one specific remote host. Remotely runs &#39;SAPHanaSR-showAttr&#39; on $host. Runs &#39;SAPHanaSR-showAttr&#39; multiple times in a loop, retying until the output PASS the test &#39;f_status&#39;. The &#39;f_status&#39; test is passed as a &quot;function pointer&quot;.</p>
 
 <p>Usage example: cluster_wait_status($primary_host, sub { ((shift =~ m/.+UNDEFINED.+SFAIL/) &amp;&amp; (shift =~ m/.+PROMOTED.+PRIM/)); });</p>
 
