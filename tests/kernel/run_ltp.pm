@@ -11,14 +11,29 @@ use 5.018;
 use warnings;
 use base 'opensusebasetest';
 use testapi qw(is_serial_terminal :DEFAULT);
+use serial_terminal 'select_serial_terminal';
+use power_action_utils 'power_action';
 use utils;
 use version_utils 'is_sle';
 use Time::HiRes qw(clock_gettime CLOCK_MONOTONIC);
+use Utils::Backends qw(is_pvm);
 use serial_terminal;
 use Mojo::File 'path';
 use Mojo::JSON;
+use LTP::utils 'prepare_ltp_env';
 use LTP::WhiteList;
 require bmwqemu;
+
+sub do_reboot {
+    my $self = shift;
+
+    record_info("reboot");
+    power_action('reboot', textmode => 1, keepconsole => is_pvm);
+    reconnect_mgmt_console if is_pvm || get_var('LTP_BAREMETAL');
+    $self->wait_boot;
+    select_serial_terminal;
+    prepare_ltp_env;
+}
 
 sub start_result {
     my ($self, $file_name, $title) = @_;
@@ -400,6 +415,9 @@ sub run {
     }
 
     script_run('vmstat -w');
+
+    # reboot unless TCONF or last test
+    $self->do_reboot if (get_var('LTP_REBOOT_AFTER_TEST') && !$test->{last} && $env{retval} != 32);
 }
 
 # Only propogate death don't create it from failure [2]
@@ -500,5 +518,9 @@ C<tcpdump>: Capture all packets sent or received during each test.
 C<crashdump>: Save kernel crashdump on test timeout.
 C<tasktrace>: Print backtrace of all processes and show blocked tasks
 
-=cut
+=head2 LTP_REBOOT_AFTER_TEST
 
+Reboot SUT after each test (unless last test or TCONF). It prolongs testing
+significantly, but for some tests may be necessary, e.g. ltp_ima_reboot.
+
+=cut
