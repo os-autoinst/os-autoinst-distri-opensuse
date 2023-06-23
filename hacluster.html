@@ -50,6 +50,7 @@
       <li><a href="#add_lock_mgr">add_lock_mgr</a></li>
       <li><a href="#is_not_maintenance_update">is_not_maintenance_update</a></li>
       <li><a href="#activate_ntp">activate_ntp</a></li>
+      <li><a href="#script_output_retry_check">script_output_retry_check</a></li>
       <li><a href="#calculate_sbd_start_delay">calculate_sbd_start_delay</a></li>
       <li><a href="#check_iscsi_failure">check_iscsi_failure</a></li>
     </ul>
@@ -289,6 +290,16 @@
 <pre><code>activate_ntp();</code></pre>
 
 <p>Enables NTP service in SUT.</p>
+
+<h2 id="script_output_retry_check">script_output_retry_check</h2>
+
+<pre><code>script_output_retry_check(cmd=&gt;$cmd, regex_string=&gt;$regex_sring, [retry=&gt;$retry, sleep=&gt;$sleep, ignore_failure=&gt;$ignore_failure]);</code></pre>
+
+<p>Executes command via &#39;script_output&#39; subroutine and makes a sanity check against a regular expression. Command output is returned after success, otherwise the command is retried defined number of times. Test dies after last unsuccessfull retry.</p>
+
+<p><code>$cmd</code> command being executed. <code>$regex_string</code> regular expression to check output against. <code>$retry</code> number of retries. Defaults to <code>5</code>. <code>$sleep</code> sleep time between retries. Defaults to <code>10s</code>. <code>$ignore_failure</code> do not kill the test upon failure.</p>
+
+<pre><code>Example: script_output_retry_check(cmd=&gt;&#39;hostname&#39;, regex_string=&gt;&#39;^node01$&#39;, retry=&gt;&#39;100&#39;, sleep=&gt;&#39;60&#39;, ignore_failure=&gt;&#39;1&#39;);</code></pre>
 
 <h2 id="calculate_sbd_start_delay">calculate_sbd_start_delay</h2>
 
