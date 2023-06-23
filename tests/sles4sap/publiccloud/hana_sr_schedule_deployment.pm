@@ -29,6 +29,7 @@ sub run {
             loadtest('sles4sap/publiccloud/network_peering', name => 'network_peering', run_args => $run_args, @_);
             loadtest('sles4sap/publiccloud/add_server_to_hosts', name => 'add_server_to_hosts', run_args => $run_args, @_);
             loadtest('sles4sap/publiccloud/cluster_add_repos', name => 'cluster_add_repos', run_args => $run_args, @_);
+            loadtest('sles4sap/publiccloud/general_patch_and_reboot', name => 'general_patch_and_reboot', run_args => $run_args, @_);
         }
         loadtest('sles4sap/publiccloud/qesap_ansible', name => 'deploy_qesap_ansible', run_args => $run_args, @_);
     }
