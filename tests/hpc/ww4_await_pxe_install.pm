@@ -17,17 +17,13 @@ use mm_tests;
 use POSIX 'strftime';
 
 sub run ($self) {
-    if (check_screen('pxe-start')) {
-        send_key "ctrl-B";
-        save_screenshot();
-        record_info "pxe", "wait for controller";
-    }
+    assert_screen('qemu-no-bootable-device', timeout => 90);
     mutex_wait "ww4_ready";
     barrier_wait('WWCTL_READY');
     record_info 'WWCTL_READY', strftime("\%H:\%M:\%S", localtime);
-    type_string("reboot", lf => 1);
+    send_key('ctrl-alt-delete');
     save_screenshot();
-    check_screen('ww4-ready', 180);
+    assert_screen('ww4-ready', 180);
     save_screenshot();
     barrier_wait('WWCTL_DONE');
     record_info 'WWCTL_DONE', strftime("\%H:\%M:\%S", localtime);
