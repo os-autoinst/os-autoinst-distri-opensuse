@@ -53,4 +53,18 @@ subtest '[calculate_sbd_start_delay] Return default on non numeric value' => sub
     $sbd_delay_params{'corosync_token'} = $corosync_token_original;
 };
 
+subtest '[script_output_retry_check] Check input values' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $hacluster->redefine(script_output => sub { return $_[0]; });
+
+    # Test mandatory args
+    dies_ok { script_output_retry_check(cmd => undef, regex_string => 'test') } "Die without cmd arg";
+    dies_ok { script_output_retry_check(cmd => 'rm -Rf /', regex_string => undef) } "Die without regex arg";
+
+    # Test regex
+    is script_output_retry_check(cmd => '42', regex_string => '^\d+$'), '42', "Test passing regex";
+    dies_ok { script_output_retry_check(cmd => 'rm -Rf /', regex_string => '^\d+$') } "Test failing regex";
+};
+
 done_testing;
