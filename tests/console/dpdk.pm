@@ -24,6 +24,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed is_leap is_opensuse);
+use Utils::Architectures qw(is_x86_64 is_aarch64);
 
 
 sub install_ovs_dpdk {
@@ -51,10 +52,19 @@ sub load_bind_kernel_module {
     my $cmd = <<EOF;
 ip a | grep -i 'br0 state UP' | awk '{print \$2}' | sed -e 's/://'
 EOF
+    script_run 'ip a > /tmp/network-device.log';    # need details of network device if something goes wrong
+    script_run 'cnf dpdk-hugepages.py' if (is_leap('>=15.5'));    # check wether dpdk-hugegapes is available on Leap 15.5, see boo#1212113
+
     assert_script_run 'modprobe "vfio-pci"';    # load required vfio-pci at first
     assert_script_run 'dpdk_nic_bind -u eth0' if (is_sle || is_leap);    # unbind the device 'eth0' at first
-    assert_script_run 'dpdk_nic_bind -u ens4' if (is_tumbleweed);    # ens4 is the active network device name on Tumbleweed
-    record_soft_failure 'bsc#1205702, cannot bind to network device: dpdk_nic_bind --bind=vfio-pci eth0' unless assert_script_run 'dpdk_nic_bind --bind="vfio-pci" 0000:00:04.0'; # bind vfio-pci
+    assert_script_run 'dpdk_nic_bind -u ens4' if (is_tumbleweed && is_x86_64);    # ens4 is the active network device name on Tumbleweed, x86_64
+    assert_script_run 'dpdk_nic_bind -u enp0s3' if (is_tumbleweed && is_aarch64);    # enp0s3 is the active network device name on Tumbleweed, aarch64
+    if (is_tumbleweed && is_aarch64) {
+        record_soft_failure 'bsc#1205702, cannot bind to network device: dpdk_nic_bind --bind=vfio-pci enp0s3' unless assert_script_run 'dpdk_nic_bind --bind="vfio-pci" 0000:00:03.0'; # bind vfio-pci
+    }
+    else {
+        record_soft_failure 'bsc#1205702, cannot bind to network device: dpdk_nic_bind --bind=vfio-pci eth0' unless assert_script_run 'dpdk_nic_bind --bind="vfio-pci" 0000:00:04.0';
+    }
 }
 
 sub test_ovs_dpdk {
@@ -93,6 +103,7 @@ sub post_fail_hook {
     select_console 'log-console';
     $self->SUPER::post_fail_hook;
     upload_logs('/var/log/openvswitch/ovs-vswitchd.log');
+    upload_logs('/tmp/network-device.log');
 }
 
 1;
