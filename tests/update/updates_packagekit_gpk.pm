@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2019 SUSE LLC
+# Copyright 2016-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: PackageKit gnome-packagekit
@@ -43,6 +43,13 @@ sub setup_system {
     send_key("ctrl-d");
 }
 
+sub close_pop_up_windows {
+    # poo#130468
+    wait_still_screen 5;
+    save_screenshot;
+    send_key "alt-f4";
+}
+
 sub tell_packagekit_to_quit {
     # tell the PackageKit daemon to stop in order to next load with new libzypp
     # this is different from quit_packagekit
@@ -70,7 +77,7 @@ sub run {
 
     my $counter = 0;
     while (1) {
-        x11_start_program('gpk-update-viewer', target_match => \@updates_tags, match_timeout => 100);
+        x11_start_program('gpk-update-viewer -v', target_match => \@updates_tags, match_timeout => 100);
         $counter += 1;
         if ($testapi::username eq 'root' and match_has_tag("package-updater-privileged-user-warning")) {
             # Special case if gpk-update-viewer is running as root. Click on Continue Anyway and reassert
@@ -80,6 +87,7 @@ sub run {
 
         if (match_has_tag("updates_none")) {
             send_key 'ret';
+            close_pop_up_windows;
             return;
         }
         elsif (match_has_tag("updates_available")) {
@@ -110,7 +118,7 @@ sub run {
             }
             elsif (match_has_tag("updates_installed-logout") || match_has_tag("updates_restart_application")) {
                 wait_screen_change { send_key "alt-c"; };    # close
-
+                close_pop_up_windows;
                 # The logout is not acted upon, which may miss a libzypp update
                 # Force reloading of packagekitd (bsc#1075260, poo#30085)
                 tell_packagekit_to_quit;
