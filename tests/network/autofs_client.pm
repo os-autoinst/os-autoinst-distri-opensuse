@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2021 SUSE LLC
+# Copyright 2019-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: autofs nfs-client
@@ -38,7 +38,7 @@ use base 'consoletest';
 use testapi;
 use lockapi;
 use autofs_utils qw(setup_autofs_server check_autofs_service);
-use utils 'systemctl';
+use utils qw(systemctl script_retry);
 use version_utils 'is_opensuse';
 use strict;
 use warnings;
@@ -70,11 +70,11 @@ sub run {
     assert_script_run("nfsidmap -c || true");
     assert_script_run("mkdir -p $test_mount_dir_nfsidmap");
 
-    mutex_wait 'barrier_setup_done';
     barrier_wait 'AUTOFS_SUITE_READY';
 
     # autofs
-    assert_script_run("ls $test_mount_dir/test");
+    # Due to poo#131291, we can add retries on client to sync the data from server
+    script_retry("ls $test_mount_dir/test", delay => 10, retry => 3);
     assert_script_run("mount | grep -e $test_mount_dir/test");
     validate_script_output("cat $test_mount_dir/test/file.txt", sub { m/It worked/ }, 200);
 
