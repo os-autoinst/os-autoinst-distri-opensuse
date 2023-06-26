@@ -23,7 +23,7 @@ sub run {
     } elsif (is_ec2) {
         my $deployment_name = qesap_calculate_deployment_name(get_var('PUBLIC_CLOUD_RESOURCE_GROUP', 'qesaposd'));
         my $vpc_id = qesap_aws_get_vpc_id(resource_group => $deployment_name . '*');
-        my $ibs_mirror_target_ip = get_var('IBSM_IPRANGE');    # '10.254.254.240/28'
+        my $ibs_mirror_target_ip = get_required_var('IBSM_IPRANGE');    # '10.254.254.240/28'
         die 'Error in network peering setup.' if !qesap_aws_vnet_peering(target_ip => $ibs_mirror_target_ip, vpc_id => $vpc_id);
     }
 }
@@ -39,7 +39,7 @@ sub post_fail_hook {
     if (is_azure) {
         # destroy the network peering, if it was created
         qesap_az_vnet_peering_delete(source_group => qesap_az_get_resource_group(),
-                                     target_group => get_required_var('IBSM_RG'));
+            target_group => get_required_var('IBSM_RG'));
     } elsif (is_ec2) {
         my $deployment_name = qesap_calculate_deployment_name();
         qesap_aws_delete_transit_gateway_vpc_attachment(name => $deployment_name . '*');
