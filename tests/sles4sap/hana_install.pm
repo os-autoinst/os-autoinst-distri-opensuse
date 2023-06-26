@@ -196,7 +196,7 @@ sub run {
         # Read all configured pmem devices on the system
         my @pmem_devices_all = split("\n", script_output("find /dev/pmem*"));
         foreach my $pmem_device (@pmem_devices_all) {
-            $pmem_device =~ s:/dev/(pmem.+):$1:;
+            $pmem_device =~ s:/dev/(pmem\S+).*:$1:;
             assert_script_run "mkdir -p $pmempath/$pmem_device";
             assert_script_run "mkfs.xfs -f /dev/$pmem_device";
             assert_script_run "echo /dev/$pmem_device $pmempath/$pmem_device xfs defaults,noauto,dax 0 0 >> /etc/fstab";
