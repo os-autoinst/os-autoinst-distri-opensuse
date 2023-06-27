@@ -1,6 +1,6 @@
 # SUSE's SLES4SAP openQA tests
 #
-# Copyright 2019-2021 SUSE LLC
+# Copyright 2019-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: lvm2 util-linux parted device-mapper
@@ -193,12 +193,14 @@ sub run {
     # Configure NVDIMM devices only when running on a BACKEND with NVDIMM
     my $pmempath = get_var('HANA_PMEM_BASEPATH', "/hana/pmem/$sid");
     if (get_var('NVDIMM')) {
-        my $nvddevs = get_var('NVDIMM_NAMESPACES_TOTAL', 2);
-        foreach my $i (0 .. ($nvddevs - 1)) {
-            assert_script_run "mkdir -p $pmempath/pmem$i";
-            assert_script_run "mkfs.xfs -f /dev/pmem$i";
-            assert_script_run "echo /dev/pmem$i $pmempath/pmem$i xfs defaults,noauto,dax 0 0 >> /etc/fstab";
-            assert_script_run "mount $pmempath/pmem$i";
+        # Read all configured pmem devices on the system
+        my @pmem_devices_all = split("\n", script_output("find /dev/pmem*"));
+        foreach my $pmem_device (@pmem_devices_all) {
+            $pmem_device =~ s:/dev/(pmem\S+).*:$1:;
+            assert_script_run "mkdir -p $pmempath/$pmem_device";
+            assert_script_run "mkfs.xfs -f /dev/$pmem_device";
+            assert_script_run "echo /dev/$pmem_device $pmempath/$pmem_device xfs defaults,noauto,dax 0 0 >> /etc/fstab";
+            assert_script_run "mount $pmempath/$pmem_device";
         }
 
         assert_script_run 'mkdir -p /etc/systemd/system/systemd-udev-settle.service.d';
