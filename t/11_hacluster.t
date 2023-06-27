@@ -59,12 +59,12 @@ subtest '[script_output_retry_check] Check input values' => sub {
     $hacluster->redefine(script_output => sub { return $_[0]; });
 
     # Test mandatory args
-    dies_ok { script_output_retry_check(cmd => undef, regex_string => 'test') } "Die without cmd arg";
-    dies_ok { script_output_retry_check(cmd => 'rm -Rf /', regex_string => undef) } "Die without regex arg";
+    dies_ok { script_output_retry_check(cmd => undef, regex_string => 'test', sleep => '1') } "Die without cmd arg";
+    dies_ok { script_output_retry_check(cmd => 'rm -Rf /', regex_string => undef, sleep => '1') } "Die without regex arg";
 
     # Test regex
-    is script_output_retry_check(cmd => '42', regex_string => '^\d+$'), '42', "Test passing regex";
-    dies_ok { script_output_retry_check(cmd => 'rm -Rf /', regex_string => '^\d+$') } "Test failing regex";
+    is script_output_retry_check(cmd => '42', regex_string => '^\d+$', sleep => '1', retry => '2'), '42', "Test passing regex";
+    dies_ok { script_output_retry_check(cmd => 'rm -Rf /', regex_string => '^\d+$', sleep => '1', retry => '2') } "Test failing regex";
 };
 
 done_testing;

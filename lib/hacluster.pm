@@ -104,8 +104,8 @@ our $softdog_timeout = bmwqemu::scale_timeout(60);
 our $prev_console;
 our $join_timeout = bmwqemu::scale_timeout(60);
 our $default_timeout = bmwqemu::scale_timeout(30);
-our $corosync_token = q@corosync-cmapctl | awk -F " = " '/runtime.config.totem.token\s/ {print $2/1000}'@;
-our $corosync_consensus = q@corosync-cmapctl | awk -F " = " '/runtime.config.totem.consensus\s/ {print $2/1000}'@;
+our $corosync_token = q@corosync-cmapctl | awk -F " = " '/runtime.config.totem.token\s/ {print int($2/1000)}'@;
+our $corosync_consensus = q@corosync-cmapctl | awk -F " = " '/runtime.config.totem.consensus\s/ {print int($2/1000)}'@;
 our $sbd_watchdog_timeout = q@grep -oP '(?<=^SBD_WATCHDOG_TIMEOUT=)[[:digit:]]+' /etc/sysconfig/sbd@;
 our $sbd_delay_start = q@grep -oP '(?<=^SBD_DELAY_START=)([[:digit:]]+|yes|no)+' /etc/sysconfig/sbd@;
 our $pcmk_delay_max = q@crm resource param stonith-sbd show pcmk_delay_max| sed 's/[^0-9]*//g'@;
@@ -1018,6 +1018,39 @@ sub script_output_retry_check {
     return $result;
 }
 
+=head2 collect_sbd_delay_parameters
+
+  script_output_retry_check();
+
+Collects parameters required from SUT and returns them in HASH format.
+
+=cut
+
+sub collect_sbd_delay_parameters {
+    my %params = (
+        'corosync_token' =>
+          script_output_retry_check(cmd => $corosync_token, regex_string => '^\d+$', sleep => '3', retry => '3'),
+        'corosync_consensus' =>
+          script_output_retry_check(cmd => $corosync_consensus, regex_string => '^\d+$', sleep => '3', retry => '3'),
+        'sbd_watchdog_timeout' =>
+          script_output_retry_check(cmd => $sbd_watchdog_timeout, regex_string => '^\d+$', sleep => '3', retry => '3'),
+        'sbd_delay_start' =>
+          script_output_retry_check(cmd => $sbd_delay_start, regex_string => '^\d+$|yes|no', sleep => '3', retry => '3'),
+        'pcmk_delay_max' => undef
+    );
+
+    # Get pcmk_delay_max output for further validation
+    my $pcmk_delay_max_out = script_output_retry_check(
+        cmd => $pcmk_delay_max,
+        regex_string => '^\d+$',
+        sleep => '3', retry => '3',
+        ignore_failure => 1);
+
+    # pcmk_delay_max is not always present for example in diskless SBD scenario
+    $params{pcmk_delay_max} = looks_like_number($pcmk_delay_max_out) ? $pcmk_delay_max_out : 30;
+    return (%params);
+}
+
 =head2 calculate_sbd_start_delay
 
   calculate_sbd_start_delay(\%sbd_parameters);
@@ -1045,21 +1078,9 @@ try to obtain the values from the configuration files.
 
 sub calculate_sbd_start_delay {
     my ($sbd_parameters) = @_;
-    my %params = (ref($sbd_parameters) eq 'HASH' and $sbd_parameters) ? %$sbd_parameters : (
-        'corosync_token' =>
-          script_output_retry_check(cmd => $corosync_token, regex_string => '^\d+$', sleep => '3', retry => '3'),
-        'corosync_consensus' =>
-          script_output_retry_check(cmd => $corosync_consensus, regex_string => '^\d+$', sleep => '3', retry => '3'),
-        'sbd_watchdog_timeout' =>
-          script_output_retry_check(cmd => $sbd_watchdog_timeout, regex_string => '^\d+$', sleep => '3', retry => '3'),
-        'sbd_delay_start' =>
-          script_output_retry_check(cmd => $sbd_delay_start, regex_string => '^\d+$|yes|no', sleep => '3', retry => '3'),
-        'pcmk_delay_max' => get_var('USE_DISKLESS_SBD') ? 30 :
-          script_output_retry_check(cmd => $pcmk_delay_max, regex_string => '^\d+$', sleep => '3', retry => '3')
-    );
+    my %params = ref($sbd_parameters) eq 'HASH' ? %$sbd_parameters : collect_sbd_delay_parameters();
 
     my $default_wait = 35 * get_var('TIMEOUT_SCALE', 1);
-
     record_info('SBD Params', Dumper(\%params));
 
     # if delay is false return 0sec wait
