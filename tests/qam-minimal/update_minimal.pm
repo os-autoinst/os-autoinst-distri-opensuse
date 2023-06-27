@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2018 SUSE LLC
+# Copyright 2016-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: QAM Minimal test in openQA
@@ -21,12 +21,15 @@ use power_action_utils qw(power_action);
 use qam;
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use zypper;
 
 sub run {
     my ($self) = @_;
     select_serial_terminal;
 
     quit_packagekit;
+    # poo#131213, wait for 'zypper -n purge-kernels' done
+    wait_quit_zypper;
 
     capture_state('between-after');
 
