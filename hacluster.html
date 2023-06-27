@@ -51,6 +51,7 @@
       <li><a href="#is_not_maintenance_update">is_not_maintenance_update</a></li>
       <li><a href="#activate_ntp">activate_ntp</a></li>
       <li><a href="#script_output_retry_check">script_output_retry_check</a></li>
+      <li><a href="#collect_sbd_delay_parameters">collect_sbd_delay_parameters</a></li>
       <li><a href="#calculate_sbd_start_delay">calculate_sbd_start_delay</a></li>
       <li><a href="#check_iscsi_failure">check_iscsi_failure</a></li>
     </ul>
@@ -300,6 +301,12 @@
 <p><code>$cmd</code> command being executed. <code>$regex_string</code> regular expression to check output against. <code>$retry</code> number of retries. Defaults to <code>5</code>. <code>$sleep</code> sleep time between retries. Defaults to <code>10s</code>. <code>$ignore_failure</code> do not kill the test upon failure.</p>
 
 <pre><code>Example: script_output_retry_check(cmd=&gt;&#39;hostname&#39;, regex_string=&gt;&#39;^node01$&#39;, retry=&gt;&#39;100&#39;, sleep=&gt;&#39;60&#39;, ignore_failure=&gt;&#39;1&#39;);</code></pre>
+
+<h2 id="collect_sbd_delay_parameters">collect_sbd_delay_parameters</h2>
+
+<pre><code>script_output_retry_check();</code></pre>
+
+<p>Collects parameters required from SUT and returns them in HASH format.</p>
 
 <h2 id="calculate_sbd_start_delay">calculate_sbd_start_delay</h2>
 
