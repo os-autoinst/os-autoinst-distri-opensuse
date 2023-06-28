@@ -29,16 +29,22 @@ sub cleanup {
         # Skip cleanup if ansible inventory is not present (deployment could not have been done without it)
         next if (script_run 'test -f ' . qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER')));
 
-        if (is_azure && check_var('IS_MAINTENANCE', 1)) {
+        if (check_var('IS_MAINTENANCE', 1)) {
             record_info('Cleanup', `Executing peering cleanup (if peering is present)`);
-            my $rg = qesap_az_get_resource_group();
-            my $ibsm_rg = get_required_var('IBSM_RG');
-            # Check that required vars are available befor delleting the peering
-            if (defined $rg && $rg ne '' && defined $ibsm_rg && $ibsm_rg ne '') {
-                qesap_az_vnet_peering_delete(source_group => $rg, target_group => $ibsm_rg);
+            if (is_azure) {
+                my $rg = qesap_az_get_resource_group();
+                my $ibsm_rg = get_required_var('IBSM_RG');
+                # Check that required vars are available befor delleting the peering
+                if (defined $rg && $rg ne '' && defined $ibsm_rg && $ibsm_rg ne '') {
+                    qesap_az_vnet_peering_delete(source_group => $rg, target_group => $ibsm_rg);
+                }
+                else {
+                    record_info('No peering', 'No peering exists, peering destruction skipped');
+                }
             }
-            else {
-                record_info('No peering', 'No peering exists, peering destruction skipped');
+            elsif (is_ec2) {
+                my $deployment_name = qesap_calculate_deployment_name();
+                qesap_aws_delete_transit_gateway_vpc_attachment(name => $deployment_name . '*');
             }
         }
 
