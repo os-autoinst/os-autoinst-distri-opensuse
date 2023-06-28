@@ -60,7 +60,7 @@ sub iface {
     my ($quantity) = @_;
     $quantity ||= 1;
     # bonding_masters showing up in ppc64le jobs in 15-SP5: bsc#1210641
-    return script_output('ls /sys/class/net/ | grep -v lo | grep -v bonding_masters | head -' . $quantity);
+    return script_output('ls /sys/class/net/ | grep -v -e lo -e bonding_masters -e docker | head -' . $quantity);
 }
 
 =head2 can_upload_logs

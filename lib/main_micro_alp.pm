@@ -289,6 +289,17 @@ sub load_tests {
         return 1;
     }
 
+    if (check_var('PUBLIC_CLOUD_ANSIBLE_CLIENT', 1)) {
+        loadtest 'boot/boot_to_desktop';
+        loadtest 'publiccloud/ansible_client';
+        return 1;
+    }
+    elsif (check_var('PUBLIC_CLOUD_ANSIBLE_TARGET', 1)) {
+        loadtest 'microos/disk_boot';
+        loadtest 'publiccloud/ansible_target';
+        return 1;
+    }
+
     if (get_var('REMOTE_TARGET')) {
         load_remote_target_tests;
         return 1;

@@ -1,0 +1,2 @@
+PubkeyAuthentication yes
+PermitRootLogin yes
