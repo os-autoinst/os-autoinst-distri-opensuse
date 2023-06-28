@@ -226,9 +226,9 @@ sub run {
                 values => $values
             };
             my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf');
-            my $token = get_required_var('_PUBLIC_CLOUD_PERF_DB_TOKEN');
+            my $token = get_required_var('_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN');
             my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
-            influxdb_push_data($url, $db, $org, $token, $data) if (check_var('_PUBLIC_CLOUD_PERF_PUSH_DATA', 1));
+            influxdb_push_data($url, $db, $org, $token, $data) if (check_var('PUBLIC_CLOUD_PERF_PUSH_DATA', 1));
             my %influx_read_args = (
                 url => $url,
                 db => $db,
