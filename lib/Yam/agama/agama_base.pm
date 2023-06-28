@@ -33,4 +33,8 @@ sub post_run_hook {
     ensure_serialdev_permissions;
 }
 
+sub test_flags {
+    return {fatal => 1};
+}
+
 1;
