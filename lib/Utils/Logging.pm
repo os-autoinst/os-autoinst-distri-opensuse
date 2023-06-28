@@ -125,9 +125,9 @@ echo -e "\nvmstat" >> $health_log_file
 vmstat >> $health_log_file
 echo -e "\nfdisk -l" >> $health_log_file
 fdisk -l >> $health_log_file
-echo -e "\ndh -h" >> $health_log_file
+echo -e "\ndf -h" >> $health_log_file
 df -h >> $health_log_file
-echo -e "\ndh -i" >> $health_log_file
+echo -e "\ndf -i" >> $health_log_file
 df -i >> $health_log_file
 echo -e "\nTop 10 CPU Processes" >> $health_log_file
 ps axwwo %cpu,pid,user,cmd | sort -k 1 -r -n | head -11 | sed -e '/^%/d' >> $health_log_file
