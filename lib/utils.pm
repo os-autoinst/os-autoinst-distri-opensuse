@@ -1435,10 +1435,17 @@ Returns tty number used designed to be used for X.
 Since SLE 15 gdm is always running on tty7, currently the main GUI session
 is running on tty2 by default, except for Xen PV and Hyper-V (bsc#1086243).
 See also: bsc#1054782
+SDDM 0.20 uses the first free VT (usually tty2) for the greeter as well as
+the session.
 
 =cut
 
 sub get_x11_console_tty {
+    my $new_sddm = check_var('VERSION', 'Staging:E');
+    if (check_var('DESKTOP', 'kde') || check_var('DESKTOP', 'lxqt')) {
+        return $new_sddm ? 2 : 7;
+    }
+
     my $new_gdm
       = !is_sle('<15')
       && !is_leap('<15.0')
