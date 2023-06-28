@@ -98,9 +98,9 @@
 
 <p>When a remote pc instance starting, by default wait_stop param.=0(false) and this routine checks until the SSH port of the remote instance is reachable and open. Then by default also checks that system is up, unless systemup_check false/0.</p>
 
-<p>Wnen a remote pc instance is stopping in shutdown, we set input param. wait_stop=1(true), to expect until ssh is closed; automatic defaults systemup_check=0 and proceed_on_failure=1 applied. Status values of exit_code: 0 = pass; 1 = fail; 2 = fail,but on-demand can retry,till timeout.</p>
+<p>Wnen a remote pc instance is stopping in shutdown, we set input param. wait_stop=1(true), to expect until ssh is closed; automatic defaults systemup_check=0 and proceed_on_failure=1 applied. Status values of exit_code: 0 = pass; 1 = fail; 2 = fail,but retry,till timeout or valid outcome.</p>
 
-<p>Parameters: timeout =&gt; total wait timeout; default: 600. wait_stop =&gt; If true waits for ssh port to become unreachable, if false waits for ssh reachable; default: false. ignore_wrong_pubkey =&gt; for eventual publickey issue or unpredicted &#39;else&#39; sysout, if true, lets retry in loop, false let routine fail. proceed_on_failure =&gt; in case of fail, if false exit test with error, if true let calling code to continue; default: wait_stop. username =&gt; default: username(). public_ip =&gt; default: public_ip(). systemup_check =&gt; If true, checks if the system is up too, instead of just checking the ssh port; default: !wait_stop. logs =&gt; If true, upload journal to test logs, if false log not uploaded, to speed up check; default: true.</p>
+<p>Parameters: timeout =&gt; total wait timeout; default: 600. wait_stop =&gt; If true waits for ssh port to become unreachable, if false waits for ssh reachable; default: false. proceed_on_failure =&gt; in case of fail, if false exit test with error, if true let calling code to continue; default: wait_stop. username =&gt; default: username(). public_ip =&gt; default: public_ip(). systemup_check =&gt; If true, checks if the system is up too, instead of just checking the ssh port; default: !wait_stop. logs =&gt; If true, upload journal to test logs, if false log not uploaded, to speed up check; default: true.</p>
 
 <p>Return: duration if pass undef if fail and proceed_on_failure true, otherwise die.</p>
 
