@@ -31,7 +31,6 @@ schedule:
     - console/force_scheduled_tasks
     - console/textinfo
     - console/hostname
-    - console/x_vt
     - console/zypper_lr
     - console/ncurses
     - console/yast2_lan

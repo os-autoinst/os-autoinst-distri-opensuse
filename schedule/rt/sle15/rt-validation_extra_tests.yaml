@@ -19,7 +19,6 @@ schedule:
   - console/textinfo
   - console/hostname
   - console/installation_snapshots
-  - console/x_vt
   - console/ncurses
   - console/yast2_lan
   - console/curl_https
