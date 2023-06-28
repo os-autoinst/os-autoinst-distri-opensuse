@@ -71,7 +71,7 @@ sub run {
     $instance->softreboot();
     $instance->run_ssh_command(cmd => 'sudo sestatus | grep disabled');
     $instance->run_ssh_command(cmd => 'sudo transactional-update -n setup-selinux');
-    $instance->softreboot(ignore_wrong_pubkey => 1);
+    $instance->softreboot();
 
     # SElinux and logging tests
     $instance->run_ssh_command(cmd => 'sudo sestatus | grep enabled');
