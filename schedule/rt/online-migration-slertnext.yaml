@@ -36,7 +36,6 @@ schedule:
   - console/textinfo
   - console/hostname
   - console/upgrade_snapshots
-  - console/x_vt
   - console/zypper_lr
   - console/zypper_ref
   - console/ncurses
