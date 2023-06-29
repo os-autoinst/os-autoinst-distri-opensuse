@@ -1,9 +1,8 @@
 #!/bin/bash -u
 set -o pipefail
 # This bash source is for reporting
-# shellcheck disable=2046
 # shellcheck disable=1091
-. $(dirname "${BASH_SOURCE[0]}")/azure_lib_fn.sh
+. "$(dirname "${BASH_SOURCE[0]}")"/azure_lib_fn.sh
 #######################################################################
 # File: azure_lb.sh
 # Command: azure_lb.sh <resource groupname> <location> ..........
@@ -261,7 +260,7 @@ case "${rid}" in
             ;;
       *"disks"* )
             # shellcheck disable=2179
-            diskids+=${rid}
+	    diskids+=${rid}
             ;;
       *"networkSecurityGroups"*)
             echo "Deleting nsg ${rid}"

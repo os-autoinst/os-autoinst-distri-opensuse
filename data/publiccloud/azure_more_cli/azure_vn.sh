@@ -1,9 +1,9 @@
 #!/bin/bash -u
 set -o pipefail
-# This bash source is for reporting
-# shellcheck disable=2046
+# This bash source is for reporting which is common
+# for all azure_more_cli testing
 # shellcheck disable=1091
-. $(dirname "${BASH_SOURCE[0]}")/azure_lib_fn.sh
+. "$(dirname "${BASH_SOURCE[0]}")"/azure_lib_fn.sh
 ##########################################################################
 # File: azure_vn.sh
 # Description: Tests Azure Virtual Network cli create vm with muliple subnets
@@ -73,16 +73,12 @@ echo "Created container ${storage_cont}"
 
 #based on number of nics
 #store subnet name and nic names in array
-# shellcheck disable=2004
-count=$(( ${number_of_nics} - 1 ))
+count=$(( number_of_nics - 1 ))
 while [ $count -ge 0 ]
 do
-    # shellcheck disable=2004
-    subnet_names[${count}]=${base_subnet}"${count}"
-    # shellcheck disable=2004
-    nic_names[${count}]=${base_nic}"${count}"
-    # shellcheck disable=2004
-    count=$(( ${count} - 1 ))
+    subnet_names["$count"]="$base_subnet$count"
+    nic_names["$count"]="$base_nic$count"
+    count=$(( count - 1 ))
 done
 
 # Create VNET
@@ -107,8 +103,7 @@ do
         --vnet-name "${vnet}" \
         --output table
     echo "Done creating subnet ${subnet_names[$i]} with prefix ${prefix} and ${i}"
-    # shellcheck disable=2219
-    let "i+=1"
+    (( i++ ))
 done
 
 #
@@ -185,8 +180,7 @@ do
             --output table
         echo "Created NIC ${nic}..."
     fi
-    # shellcheck disable=2219
-    let "i+=1"
+    (( i++ ))
 done
 
 #
