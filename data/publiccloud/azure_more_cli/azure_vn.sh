@@ -77,7 +77,9 @@ echo "Created container ${storage_cont}"
 count=$(( ${number_of_nics} - 1 ))
 while [ $count -ge 0 ]
 do
+    # shellcheck disable=2004
     subnet_names[${count}]=${base_subnet}"${count}"
+    # shellcheck disable=2004
     nic_names[${count}]=${base_nic}"${count}"
     # shellcheck disable=2004
     count=$(( ${count} - 1 ))
