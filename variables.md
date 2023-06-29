@@ -31,6 +31,7 @@ BCI_TEST_ENVS | string | | The list of environments to be tested, e.g. `base,ini
 BCI_TESTS_REPO | string | | Location of the bci-tests repository to be cloned. Used by `bci_prepare.pm`.
 BCI_TESTS_BRANCH | string | | Branch to be cloned from bci-tests. Used by `bci_prepare.pm`.
 BCI_TIMEOUT | string | | Timeout given to the command to test each environment. Used by `bci_test.pm`.
+BCI_TARGET | string | ibs-cr | Container project to be tested. `ibs-cr` is the CR project, `ibs` is the released images project
 BTRFS | boolean | false | Indicates btrfs filesystem. Deprecated, use FILESYSTEM instead.
 BUILD | string  |       | Indicates build number of the product under test.
 CASEDIR | string | | Path to the directory which contains tests.
@@ -307,8 +308,8 @@ PUBLIC_CLOUD_PERF_COLLECT | boolean | false | Enable `boottime` measures collect
 PUBLIC_CLOUD_PERF_DB_URI | string | "" | If set, the bootup times get stored in the influx database. (e.g. PUBLIC_CLOUD_PERF_DB_URI=http://publiccloud-ng.qe.suse.de:8086)
 PUBLIC_CLOUD_PERF_DB | string | "perf_2" | If `PUBLIC_CLOUD_PERF_DB_URI` is defined, this variable defines the bucket in which the performance metrics are stored
 PUBLIC_CLOUD_PERF_DB_ORG | string | "qec" | If `PUBLIC_CLOUD_PERF_DB_URI` is defined, this variable defines the organization in which the performance metrics are stored
-_PUBLIC_CLOUD_PERF_DB_TOKEN | string | "" | If `PUBLIC_CLOUD_PERF_DB_URI` is defined, this required variable is the access token
-_PUBLIC_CLOUD_PERF_PUSH_DATA | boolean | "" | If set to `1`, then the test run will push it's metrics to the InfluxDB. This variable is used as secret variable, so that cloned jobs by default do not push metrics to avoid accidental database contamination.
+_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN | string | "" | If `PUBLIC_CLOUD_PERF_DB_URI` is defined, this required variable is the access token
+PUBLIC_CLOUD_PERF_PUSH_DATA | boolean | "" | If set to `1`, then the test run will push it's metrics to the InfluxDB.
 PUBLIC_CLOUD_PERF_THRESH_CHECK | boolean | "" | If set to `1` or any not empty value, then the test run will _also_ execute the thresholds check on the collected metrics. By _default_ that check is _Not executed_.
 PUBLIC_CLOUD_PREPARE_TOOLS | boolean | false | Activate prepare_tools test module by setting this variable.
 PUBLIC_CLOUD_GOOGLE_PROJECT_ID | string | "" | GCP only, used to specify the project id.

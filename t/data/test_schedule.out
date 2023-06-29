@@ -25,7 +25,6 @@ tests/locale/keymap_or_locale.pm
 tests/console/force_scheduled_tasks.pm
 tests/console/textinfo.pm
 tests/console/hostname.pm
-tests/console/x_vt.pm
 tests/console/zypper_lr.pm
 tests/console/zypper_ref.pm
 tests/console/yast2_lan.pm

@@ -86,6 +86,7 @@ sub run {
     my $engine = $args->{runtime};
     my $bci_devel_repo = get_var('BCI_DEVEL_REPO');
     my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
+    my $bci_target = get_var('BCI_TARGET', 'ibs-cr');
     my $version = get_required_var('VERSION');
     my $test_envs = get_required_var('BCI_TEST_ENVS');
     return if ($test_envs eq '-');
@@ -98,7 +99,7 @@ sub run {
     assert_script_run("export CONTAINER_RUNTIME=$engine");
     $version =~ s/-SP/./g;
     assert_script_run("export OS_VERSION=$version");
-    assert_script_run("export TARGET=ibs-cr");
+    assert_script_run("export TARGET=$bci_target");
     assert_script_run("export BCI_DEVEL_REPO=$bci_devel_repo") if $bci_devel_repo;
 
     # Run common tests from test_all.py

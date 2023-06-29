@@ -25,7 +25,7 @@ sub run {
         next if ($instance->{'instance_id'} !~ m/vmhana/);
         record_info("$instance");
 
-        my $remote = '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' . $instance->username . '@' . $instance->public_ip;
+        my $remote = '-o ControlMaster=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' . $instance->username . '@' . $instance->public_ip;
 
         my $cmd_time = time();
         my $ref_timeout = check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE') ? 3600 : 240;

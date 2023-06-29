@@ -72,7 +72,6 @@ conditional_schedule:
     ARCH:
       x86_64:
         - console/glibc_sanity
-        - console/x_vt
   salt:
     SLE_PRODUCT:
       sles:

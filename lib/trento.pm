@@ -802,7 +802,7 @@ sub cluster_hdbadm {
 
 This function allow to wait for a specific output
 for 'SAPHanaSR-showAttr', on one specific remote host.
-Remotly runs 'SAPHanaSR-showAttr' on $host.
+Remotely runs 'SAPHanaSR-showAttr' on $host.
 Runs 'SAPHanaSR-showAttr' multiple times in a loop,
 retying until the output PASS the test 'f_status'.
 The 'f_status' test is passed as a "function pointer".
