@@ -365,7 +365,7 @@ sub setup_iscsi_server {
 
     # The easiest way (really!?) to configure LIO is with YaST
     # Code grab and adapted from tests/iscsi/iscsi_server.pm
-    script_run("yast2 iscsi-lio-server; echo yast2-iscsi-lio-server-status-\$? > /dev/$serialdev", 0);
+    script_run("yast2 iscsi-lio-server; echo yast2-iscsi-lio-server-status-\$? > /dev/$serialdev", 300);
     assert_screen 'iscsi-target-overview-service-tab', 60;
     send_key 'alt-t';    # go to target tab
     assert_screen 'iscsi-target-overview-empty-target-tab';
