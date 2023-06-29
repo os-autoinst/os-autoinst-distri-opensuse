@@ -24,7 +24,7 @@ variable "name" {
 }
 
 variable "type" {
-    default = "Standard_A2_v2"
+    default = "Standard_B2s"
 }
 
 variable "region" {

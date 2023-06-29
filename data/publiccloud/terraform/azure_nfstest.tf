@@ -38,7 +38,7 @@ variable "instance_count" {
     default = "1"
 }
 variable "type" {
-    default = "Standard_A2_v2"
+    default = "Standard_B2s"
 }
 
 variable "image_id" {
