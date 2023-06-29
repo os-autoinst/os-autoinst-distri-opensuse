@@ -463,7 +463,7 @@ zypper_ar(&#39;https://download.opensuse.org/repositories/devel:/kubic/openSUSE_
 
 <pre><code>get_x11_console_tty();</code></pre>
 
-<p>Returns tty number used designed to be used for X. Since SLE 15 gdm is always running on tty7, currently the main GUI session is running on tty2 by default, except for Xen PV and Hyper-V (bsc#1086243). See also: bsc#1054782</p>
+<p>Returns tty number used designed to be used for X. Since SLE 15 gdm is always running on tty7, currently the main GUI session is running on tty2 by default, except for Xen PV and Hyper-V (bsc#1086243). See also: bsc#1054782 SDDM 0.20 uses the first free VT (usually tty2) for the greeter as well as the session.</p>
 
 <h2 id="arrays_differ">arrays_differ</h2>
 
