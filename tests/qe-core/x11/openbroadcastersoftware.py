@@ -1,3 +1,14 @@
+# SUSE's openQA tests
+#
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Test flatpak
+#   * Install flatpak
+#   * Install obs studio
+#   * Run obs studio
+# Maintainer: qe-core@suse.de
+
 from testapi import *
 
 def run(self):
