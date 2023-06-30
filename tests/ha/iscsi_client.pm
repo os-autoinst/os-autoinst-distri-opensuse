@@ -89,7 +89,9 @@ sub run {
 
     if (is_sle('=15-SP1') && systemctl('-q is-active iscsi', ignore_failure => 1)) {
         record_soft_failure('iscsi issue: bug bsc#1162078');
+        systemctl('stop iscsid');
         systemctl('start iscsi');
+        systemctl('start iscsid');
     }
 
     # iSCSI LUN must be present
