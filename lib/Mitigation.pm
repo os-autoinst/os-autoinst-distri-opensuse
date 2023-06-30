@@ -201,6 +201,7 @@ sub read_msr {
 
 sub vulnerabilities {
     my $self = shift;
+    diag "Check if $self->{'name'} is affected.";
     if ($self->read_cpuid_edx() & $self->CPUID()) {
         if ($self->read_msr() & $self->MSR()) {
             record_info("$self->{'name'} Not Affected", "This machine needn't be tested.");
@@ -246,6 +247,7 @@ sub lscpu {
 #This function will finish testing in default status.
 #As out of box testing. and clean up all mitigations parameters.
 sub check_default_status {
+    diag "Check mitigation default status.";
     my $self = shift;
     assert_script_run('cat /proc/cmdline');
     if (ref($self->{parameter}) ne 'ARRAY') {
@@ -274,6 +276,7 @@ sub check_default_status {
 #Check cpu flags exist or not.
 #when $cmd is off, the match is inverted.
 sub check_cpu_flags {
+    diag "Check the cpu flags.";
     my ($self) = @_;
     assert_script_run('cat /proc/cpuinfo');
     foreach my $flag (@{$self->{cpuflags}}) {
@@ -342,6 +345,7 @@ sub check_one_parameter_value {
 #check all cmdline items.
 sub check_each_parameter_value {
     #testing each parameter.
+    diag "Testing each parameter";
     my $self = shift;
     foreach my $cmd (@{$self->cmdline()}) {
         record_info("$self->{name}=$cmd", "Mitigation $self->{name}=$cmd testing start.");
@@ -352,6 +356,7 @@ sub check_each_parameter_value {
         $self->check_sysfs($cmd);
         $self->remove_parameter($cmd);
     }
+    diag "Finish testing each parameter";
 }
 
 
@@ -590,6 +595,7 @@ sub do_test {
         if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/ && is_qemu && !(get_var('TEST') =~ /MELTDOWN/)) {
             record_info('NO-IBRS machine', "This is a QEMU VM and didn't passthrough CPU flags.");
             record_info('INFO', "Check status of mitigations as like OFF.");
+            diag "Check sysfs:off";
             $self->check_sysfs("off");
             return;
         }
@@ -607,9 +613,9 @@ sub do_test {
     #and prepare the command line parameter for next testings
     $self->check_default_status();
     $self->check_cpu_flags();
+    diag "Check the sysfs default";
     $self->check_sysfs("default");
     $self->check_each_parameter_value();
-
     remove_grub_cmdline_settings($self->{parameter} . '=' . '[a-z,]*');
 }
 

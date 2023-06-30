@@ -70,8 +70,10 @@ sub run {
 
         #UPDATE list for QEMU first
         if (is_qemu) {
+            diag "Firstly update the list for qemu.";
             mds::smt_status_qemu();
             taa::update_list_for_qemu();
+            diag "Qemu list is" . %mitigations_list;
         }
 
         #Unable to use dynamic hash name because limitations:
@@ -98,10 +100,12 @@ sub run {
             $item = "spec_store_bypass";
         } else {
             record_info("undefine vulnerabilities items: $item");
+            diag "Undefine vulnerabilities items: $item";
         }
         die "Unable to get vulnerabilities instance, exit!" unless $obj;
         my $ret = $obj->vulnerabilities();
         if ($ret eq 1) {
+            diag "Update the list for the items which is affected.";
             #off
             $mitigations_list{sysfs}->{off}->{$item} = $current_list->{sysfs}->{off};
             #auto
@@ -216,9 +220,10 @@ sub run {
             $mitigations_list{sysfs}->{'auto,nosmt'}->{'itlb_multihit'} = "KVM: Mitigation: VMX unsupported";
         }
     }
-
+    diag "Print the mitigation_list and will begin to do test.";
     print Dumper \%mitigations_list;
     my $test_obj = Mitigation->new(\%mitigations_list);
+    diag "Begin do test";
     $test_obj->do_test();
 }
 
@@ -271,6 +276,7 @@ sub dump_sysfs_to_hash {
         upload_logs "/tmp/$logfile";
         remove_grub_cmdline_settings("mitigations=[a-z,]*");
     }
+    diag "The hash of sysfs...";
     print Dumper \%ret_data;
 }
 
