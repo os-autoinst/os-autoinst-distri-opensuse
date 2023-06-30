@@ -355,7 +355,7 @@ sub wait_for_ssh {
     # DMS will return normal user and error will be resolved: connection retry for that error.
 
     $args{username} //= $self->username();
-    my $delay = 1;
+    my $delay = $args{timeout} > 180 ? 5 : 1;
     my $start_time = time();
     my $instance_msg = "instance: $self->{instance_id}, public IP: $self->{public_ip}";
     my ($duration, $exit_code, $sshout, $sysout);
@@ -433,7 +433,7 @@ sub wait_for_ssh {
     # OK
     return $duration if (isok($exit_code) and not $args{wait_stop});
     # FAIL
-    croak($sshout . $sysout) unless ($args{proceed_on_failure});
+    croak(" results summary:\n" . $sshout . $sysout) unless ($args{proceed_on_failure});
     return;    # proceed_on_failure true
 }    # end sub
 
