@@ -1119,8 +1119,8 @@ else {
             loadtest 'x11/window_system';
             loadtest 'x11/disable_screensaver';
             loadtest 'x11/thunderbird/thunderbird_install';
-            loadtest 'x11/thunderbird/thunderbird_imap';
             loadtest 'x11/thunderbird/thunderbird_pop';
+            loadtest 'x11/thunderbird/thunderbird_imap';
         }
     }
     elsif (get_var('QAM_MAIL_EVOLUTION')) {
