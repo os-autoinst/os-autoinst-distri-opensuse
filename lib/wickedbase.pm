@@ -15,6 +15,7 @@ use network_utils;
 use lockapi;
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal 'select_serial_terminal';
+use version_utils 'is_sle';
 use bmwqemu;
 use serial_terminal;
 use Carp;
@@ -24,6 +25,8 @@ use Regexp::Common 'net';
 use File::Basename;
 use version_utils 'check_version';
 use List::MoreUtils qw(uniq);
+use containers::common qw(install_podman_when_needed install_docker_when_needed);
+
 
 use strict;
 use warnings;
@@ -1112,6 +1115,43 @@ sub check_coredump {
         record_info('CORE DUMP', $core, result => 'fail');
         $self->result('fail');
     }
+}
+
+sub container_runtime {
+    return 'docker' if (is_sle("<=15-SP1"));
+    return 'podman';
+}
+
+sub prepare_containers {
+    my $self = shift;
+
+    if ($self->container_runtime eq 'docker') {
+        install_docker_when_needed(get_var('DISTRI'));
+    } else {
+        install_podman_when_needed(get_var('DISTRI'));
+    }
+
+    my $containers = $self->get_containers();
+    foreach my $name (keys(%$containers)) {
+        my $url = $containers->{$name};
+        assert_script_run($self->container_runtime . " pull '$url'", timeout => 400);
+    }
+}
+
+sub get_containers {
+    my $self = shift;
+    if (!defined($self->{containers})) {
+        my $default_container = 'scapy=registry.opensuse.org/home/cfconrad/branches/opensuse/templates/images/tumbleweed/containers/scapy:latest';
+        my @containers = split(/\s*,\s*/, get_var("WICKED_CONTAINERS", $default_container));
+        @containers = grep { /\w+=.+/ } @containers;
+        $self->{containers} = {map { split(/=/, $_, 2) } @containers};
+    }
+    return $self->{containers};
+}
+
+sub get_container {
+    my ($self, $name) = @_;
+    return $self->get_containers()->{$name} // croak("There is no container with name $name");
 }
 
 sub reboot {
