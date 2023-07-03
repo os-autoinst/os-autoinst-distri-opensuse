@@ -527,21 +527,21 @@ sub qesap_ansible_script_output {
 
     my $inventory = qesap_get_inventory($args{provider});
 
-    my $pb = 'script_output.yaml';
+    my $playbook = 'script_output.yaml';
     my $local_path = $args{local_path} // '/tmp/ansible_script_output/';
     my $local_file = $args{local_file} // 'testout.txt';
     my $local_tmp = $local_path . $local_file;
     my $return_string = ((not exists $args{local_path}) && (not exists $args{local_file}));
 
-    if (script_run "test -e $pb") {
+    if (script_run "test -e $playbook") {
         my $cmd = join(' ',
             'curl', '-v', '-fL',
-            data_url("sles4sap/$pb"),
-            '-o', $pb);
+            data_url("sles4sap/$playbook"),
+            '-o', $playbook);
         assert_script_run($cmd);
     }
 
-    my @ansible_cmd = ('ansible-playbook', '-vvvv', $pb);
+    my @ansible_cmd = ('ansible-playbook', '-vvvv', $playbook);
     push @ansible_cmd, ('-l', $args{host}, '-i', $inventory);
     push @ansible_cmd, ('-u', $args{user});
     push @ansible_cmd, ('-b', '--become-user', 'root') if ($args{root});
@@ -867,7 +867,7 @@ sub qesap_az_vnet_peering {
 
     record_info("Checking peering status");
     assert_script_run("az network vnet peering show --name $peering_name --resource-group $args{target_group} --vnet-name $target_vnet --output table");
-    record_info("PEERING STATUS SUCCESS");
+    record_info("AZURE PEERING SUCCESS");
 }
 
 =head3 qesap_az_vnet_peering_delete
@@ -1307,7 +1307,7 @@ sub qesap_aws_vnet_peering {
         target_ip_net => $args{target_ip},
         trans_gw_id => $trans_gw_id);
 
-    record_info('AWS PEERING', 'SUCCESS');
+    record_info('AWS PEERING SUCCESS');
     return 1;
 }
 

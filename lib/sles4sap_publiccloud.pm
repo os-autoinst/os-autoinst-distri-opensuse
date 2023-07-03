@@ -47,6 +47,8 @@ our @EXPORT = qw(
   setup_sbd_delay
   sbd_delay_formula
   create_instance_data
+  deployment_name
+  delete_network_peering
 );
 
 =head2 run_cmd
@@ -239,7 +241,7 @@ sub start_hana {
 =head2 cleanup_resource
     cleanup_resource([timeout => 60]);
 
-    Cleanup resource 'msl_SAPHana_*', wait for DB start automaticlly.
+    Cleanup resource 'msl_SAPHana_*', wait for DB start automatically.
 =cut
 
 sub cleanup_resource {
@@ -480,7 +482,6 @@ sub sbd_delay_formula() {
     return $calculated_delay;
 }
 
-
 =head2 cloud_file_content_replace
     cloud_file_content_replace($filename, $search_pattern, $replace_with);
 
@@ -528,6 +529,41 @@ sub create_instance_data {
     }
     publiccloud::instances::set_instances(@instances);
     return \@instances;
+}
+
+=head2 deployment_name
+
+    Return a string to be used as value for the deployment_name variable
+    in the qe-sap-deployment.
+
+=cut
+
+sub deployment_name {
+    return qesap_calculate_deployment_name(get_var('PUBLIC_CLOUD_RESOURCE_GROUP', 'qesaposd'));
+}
+
+=head2 delete_network_peering
+
+    Delete network peering between SUT created with qe-sa-deployment
+    and the IBS Mirror. Function is generic over all the Cloud Providers
+
+=cut
+
+sub delete_network_peering {
+    record_info('Peering cleanup', 'Executing peering cleanup (if peering is present)');
+    if (is_azure) {
+        # Check that required vars are available before deleting the peering
+        my $rg = qesap_az_get_resource_group();
+        if ($rg ne '' && get_var('IBSM_RG')) {
+            qesap_az_vnet_peering_delete(source_group => $rg, target_group => get_var('IBSM_RG'));
+        }
+        else {
+            record_info('No peering', 'No peering exists, peering destruction skipped');
+        }
+    }
+    elsif (is_ec2) {
+        qesap_aws_delete_transit_gateway_vpc_attachment(name => deployment_name() . '*');
+    }
 }
 
 1;

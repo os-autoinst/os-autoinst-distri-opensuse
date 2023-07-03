@@ -5,14 +5,12 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Test module for performing database takeover using various methods on "master" HANA database.
 
-use base 'sles4sap_publiccloud_basetest';
 use strict;
 use warnings FATAL => 'all';
+use base 'sles4sap_publiccloud_basetest';
 use testapi;
 use publiccloud::utils;
-use utils qw(zypper_call);
 use sles4sap_publiccloud;
-use Data::Dumper;
 use serial_terminal 'select_serial_terminal';
 
 sub test_flags {
@@ -21,8 +19,10 @@ sub test_flags {
 
 sub run {
     my ($self, $run_args) = @_;
-    select_serial_terminal;
+    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
     $self->{instances} = $run_args->{instances};
+
+    select_serial_terminal;
     my $test_name = $self->{name};
     my $takeover_action = $run_args->{hana_test_definitions}{$test_name}{action};
     my $site_name = $run_args->{hana_test_definitions}{$test_name}{site_name};
