@@ -2,18 +2,19 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Deployment steps for qe-sap-deployment
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 use strict;
 use warnings;
-use mmapi 'get_current_job_id';
-use Mojo::Base 'publiccloud::basetest';
-use testapi;
-use qesapdeployment;
+use sles4sap_publiccloud;
 
 sub run {
-    qesap_az_vnet_peering_delete(source_group => qesap_az_get_resource_group(),
-        target_group => get_required_var('IBSM_RG'));
+    my ($self, $run_args) = @_;
+    if ($run_args->{network_peering_present}) {
+        $self->{network_peering_present} = 1;
+        delete_network_peering();
+        $run_args->{network_peering_present} = $self->{network_peering_present} = 0;
+    }
 }
 
 1;

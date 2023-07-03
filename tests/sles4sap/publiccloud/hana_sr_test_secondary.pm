@@ -5,20 +5,26 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Test module for performing database stop using various methods on secondary HANA database site.
 
-use base 'sles4sap_publiccloud_basetest';
 use strict;
 use warnings FATAL => 'all';
+use base 'sles4sap_publiccloud_basetest';
 use sles4sap_publiccloud;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Time::HiRes 'sleep';
 
+sub test_flags {
+    return {fatal => 1, publiccloud_multi_module => 1};
+}
+
 sub run {
     my ($self, $run_args) = @_;
+    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
     $self->{instances} = $run_args->{instances};
+    croak('site_b is missing or undefined in run_args') if (!$run_args->{site_b});
+
     my $hana_start_timeout = bmwqemu::scale_timeout(600);
     # $site_b = $instance of secondary instance located in $run_args->{$instances}
-    croak('site_b is missing or undefined in run_args') if (!$run_args->{site_b});
     my $site_b = $run_args->{site_b};
     select_serial_terminal;
 
@@ -65,10 +71,6 @@ sub run {
       if $self->get_promoted_hostname() eq $site_b->{instance_id};
 
     record_info("Done", "Test finished");
-}
-
-sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
 }
 
 1;

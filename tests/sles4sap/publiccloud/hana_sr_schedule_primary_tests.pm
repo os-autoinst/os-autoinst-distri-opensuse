@@ -10,10 +10,10 @@
 
 package hana_sr_schedule_primary_tests;
 
-use base 'sles4sap_publiccloud_basetest';
-use main_common 'loadtest';
 use strict;
 use warnings FATAL => 'all';
+use base 'sles4sap_publiccloud_basetest';
+use main_common 'loadtest';
 use testapi;
 
 sub test_flags {
@@ -22,6 +22,8 @@ sub test_flags {
 
 sub run {
     my ($self, $run_args) = @_;
+    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
+
     record_info("Schedule", "Executing tests on master Hana DB");
     # 'HANASR_PRIMARY_ACTIONS' - define to override test flow
     my @database_actions = split(",", get_var("HANASR_PRIMARY_ACTIONS", 'stop,kill,crash'));

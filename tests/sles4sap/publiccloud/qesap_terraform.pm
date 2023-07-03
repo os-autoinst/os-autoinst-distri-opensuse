@@ -20,17 +20,16 @@
 # INSTANCE_ID - SAP instance id
 
 
-use base 'sles4sap_publiccloud_basetest';
-use publiccloud::ssh_interactive 'select_host_console';
 use strict;
 use warnings;
+use base 'sles4sap_publiccloud_basetest';
+use publiccloud::ssh_interactive 'select_host_console';
 use testapi;
-use Mojo::File 'path';
 use publiccloud::utils;
 use publiccloud::instance;
 use publiccloud::instances;
-use qesapdeployment;
 use sles4sap_publiccloud;
+use qesapdeployment;
 use serial_terminal 'select_serial_terminal';
 
 our $ha_enabled = set_var_output('HA_CLUSTER', '0') =~ /false|0/i ? 0 : 1;
@@ -130,7 +129,7 @@ sub run {
 
     set_var('FENCING_MECHANISM', 'native') unless ($ha_enabled);
 
-    my $deployment_name = qesap_calculate_deployment_name(get_var('PUBLIC_CLOUD_RESOURCE_GROUP', 'qesaposd'));
+    my $deployment_name = deployment_name();
     # Create a QESAP_DEPLOYMENT_NAME variable so it includes the random
     # string appended to the PUBLIC_CLOUD_RESOURCE_GROUP
     #
@@ -141,7 +140,7 @@ sub run {
     #     resulting deployment_name: goofy123456
     #  * define QESAP_DEPLOYMENT_NAME=goofy
     #     resulting deployment_name: goofy
-    #     PUBLIC_CLOUD_RESOURCE_GROUP is completly ignored and
+    #     PUBLIC_CLOUD_RESOURCE_GROUP is completely ignored and
     #     the job_id is not included in the deployment name
     set_var('QESAP_DEPLOYMENT_NAME', get_var('QESAP_DEPLOYMENT_NAME', $deployment_name));
     record_info 'Resource Group', "Resource Group used for deployment: $deployment_name";
@@ -159,7 +158,7 @@ sub run {
     my $ansible_playbooks = create_playbook_section_list();
     my $ansible_hana_vars = create_hana_vars_section();
 
-    # Prepare QESAP deplyoment
+    # Prepare QESAP deployment
     qesap_prepare_env(provider => lc(get_required_var('PUBLIC_CLOUD_PROVIDER')));
     qesap_create_ansible_section(ansible_section => 'create', section_content => $ansible_playbooks) if @$ansible_playbooks;
     qesap_create_ansible_section(ansible_section => 'hana_vars', section_content => $ansible_hana_vars) if %$ansible_hana_vars;
@@ -188,12 +187,6 @@ sub run {
     $self->{provider} = $run_args->{my_provider} = $provider;    # Required for cleanup
     record_info('Deployment OK',);
     return 1;
-}
-
-sub post_fail_hook {
-    my ($self, $run_args) = @_;
-    qesap_upload_logs();
-    $self->SUPER::post_fail_hook;
 }
 
 1;

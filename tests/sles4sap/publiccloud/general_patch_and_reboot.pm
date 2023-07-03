@@ -8,17 +8,22 @@
 #
 # Maintainer: qa-c <qa-c@suse.de>
 
-use Mojo::Base 'publiccloud::basetest';
-use registration;
-use warnings;
-use testapi;
 use strict;
+use warnings;
+use base 'sles4sap_publiccloud_basetest';
+use testapi;
+use registration;
 use utils;
 use publiccloud::ssh_interactive qw(select_host_console);
 use publiccloud::utils qw(kill_packagekit);
 
+sub test_flags {
+    return {fatal => 1, publiccloud_multi_module => 1};
+}
+
 sub run {
     my ($self, $run_args) = @_;
+    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
     select_host_console();    # select console on the host, not the PC instance
 
     foreach my $instance (@{$run_args->{instances}}) {
@@ -38,10 +43,6 @@ sub run {
 
         $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
     }
-}
-
-sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
 }
 
 1;
