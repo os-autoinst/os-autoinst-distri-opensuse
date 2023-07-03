@@ -20,7 +20,7 @@ sub run {
     # Get ds file and profile ID
     my $f_ssg_ds = is_sle ? $oscap_tests::f_ssg_sle_ds : $oscap_tests::f_ssg_tw_ds;
     my $profile_ID = is_sle ? $oscap_tests::profile_ID_sle_stig : $oscap_tests::profile_ID_tw;
-    my $n_passed_rules = 210;
+    my $n_passed_rules = 211;
     my $n_failed_rules = 5;
     my @eval_match = (
         'content_rule_is_fips_mode_enabled',
@@ -30,7 +30,7 @@ sub run {
         'content_rule_no_files_unowned_by_user');
 
     if (is_s390x) {
-        $n_passed_rules = 209;
+        $n_passed_rules = 210;
         $n_failed_rules = 5;
     }
     # Exclusion for ARM platform
