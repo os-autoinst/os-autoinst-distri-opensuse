@@ -102,7 +102,7 @@ sub run {
     assert_present($output, 'totals: ', "'callgrind totals' mismatch");
 
     # cachegrind tool checks
-    assert_script_run('valgrind --tool=cachegrind --cachegrind-out-file="cachegrind.out" ./valgrind-test');
+    assert_script_run('valgrind --tool=cachegrind --cachegrind-out-file="cachegrind.out" --cache-sim=yes ./valgrind-test');
     $output = script_output('cat cachegrind.out');
     script_run('rm -f cachegrind.out');
     assert_present($output, "desc: I1", "'cachegrind desc I1' mismatch");
