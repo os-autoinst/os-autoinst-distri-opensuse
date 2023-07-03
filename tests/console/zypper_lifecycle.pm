@@ -41,6 +41,11 @@ sub lifecycle_output_check {
         record_info 'poo#129026';
         return;
     }
+    # https://suse.slack.com/archives/C02D16TCP99/p1688366603014179
+    if (is_sle('=15-sp3') && $output =~ /Containers Module.*2023-06-30/) {
+        record_soft_failure 'jsc#MSC-658';
+        return;
+    }
     if (get_var('SCC_REGCODE_LTSS')) {
         if ($output =~ /No products.*before/) {
             record_info('Softfail', "poo#95593 https://jira.suse.com/browse/MSC-70");
