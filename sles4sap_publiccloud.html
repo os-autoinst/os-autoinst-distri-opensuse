@@ -32,6 +32,8 @@
       <li><a href="#sbd_delay_formula-self-sbd_delay_formula">sbd_delay_formula $self-&gt;sbd_delay_formula();</a></li>
       <li><a href="#cloud_file_content_replace-cloud_file_content_replace-filename-search_pattern-replace_with">cloud_file_content_replace cloud_file_content_replace($filename, $search_pattern, $replace_with);</a></li>
       <li><a href="#create_instance_data">create_instance_data</a></li>
+      <li><a href="#deployment_name">deployment_name</a></li>
+      <li><a href="#delete_network_peering">delete_network_peering</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap_publiccloud.pm</h1>
@@ -73,7 +75,7 @@ If hostname defined, returns hash with values only for host specified.</code></p
 
 <h2 id="cleanup_resource-cleanup_resource-timeout-60">cleanup_resource cleanup_resource([timeout =&gt; 60]);</h2>
 
-<pre><code>Cleanup resource &#39;msl_SAPHana_*&#39;, wait for DB start automaticlly.</code></pre>
+<pre><code>Cleanup resource &#39;msl_SAPHana_*&#39;, wait for DB start automatically.</code></pre>
 
 <h2 id="check_takeover-check_takeover">check_takeover check_takeover();</h2>
 
@@ -126,6 +128,16 @@ Returns integer representing wait time.</code></pre>
 
 <pre><code>Create and populate a list of publiccloud::instance and publiccloud::provider compatible
 class instances.</code></pre>
+
+<h2 id="deployment_name">deployment_name</h2>
+
+<pre><code>Return a string to be used as value for the deployment_name variable
+in the qe-sap-deployment.</code></pre>
+
+<h2 id="delete_network_peering">delete_network_peering</h2>
+
+<pre><code>Delete network peering between SUT created with qe-sa-deployment
+and the IBS Mirror. Function is generic over all the Cloud Providers</code></pre>
 
 
 </body>
