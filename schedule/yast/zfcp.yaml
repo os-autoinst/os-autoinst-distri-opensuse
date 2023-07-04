@@ -6,7 +6,12 @@ description: >
 vars:
   YUI_REST_API: 1
 schedule:
-  multipath:
+  configure_dasd_disks:
+    - installation/disk_activation/select_configure_zfcp_disks
+    - installation/disk_activation/select_add_zfcp_device
+    - installation/disk_activation/configure_zfcp_device
+    - installation/disk_activation/accept_configured_zfcp_devices
+    - installation/disk_activation/finish_disk_activation
     - installation/activate_multipath
   extension_module_selection:
     - installation/module_registration/register_module_desktop
