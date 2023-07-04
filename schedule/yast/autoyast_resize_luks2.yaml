@@ -3,7 +3,7 @@ name: autoyast_resize_luks2
 description: >
   Test autoyast installation, while resizing encrypted partition using luks2
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_resize_luks2.xml
+  AUTOYAST: yam/autoyast/resize_luks2.xml
   DESKTOP: textmode
   QEMURAM: 2048
   NUMDISKS: 2
