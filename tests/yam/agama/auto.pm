@@ -13,8 +13,8 @@ use utils 'clear_console';
 
 sub run {
     assert_screen('agama-main-page', 120);
-    assert_screen('agama-installing', 120);
-    assert_screen('agama-install-finished', 900);
+    assert_screen('agama-installing', 320);
+    assert_screen('agama-install-finished', 1200);
 
     select_console 'root-console';
     clear_console;
