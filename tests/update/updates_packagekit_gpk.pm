@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2019 SUSE LLC
+# Copyright 2016-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: PackageKit gnome-packagekit
@@ -43,6 +43,15 @@ sub setup_system {
     send_key("ctrl-d");
 }
 
+sub close_pop_up_windows {
+    if (check_screen([qw(Could_not_get_updates Could_not_get_update_details)], timeout => 5)) {
+        record_soft_failure 'poo#130468';
+        send_key 'alt-c';
+        wait_still_screen 3;
+        save_screenshot;
+    }
+}
+
 sub tell_packagekit_to_quit {
     # tell the PackageKit daemon to stop in order to next load with new libzypp
     # this is different from quit_packagekit
@@ -80,6 +89,7 @@ sub run {
 
         if (match_has_tag("updates_none")) {
             send_key 'ret';
+            close_pop_up_windows;
             return;
         }
         elsif (match_has_tag("updates_available")) {
@@ -110,6 +120,7 @@ sub run {
             }
             elsif (match_has_tag("updates_installed-logout") || match_has_tag("updates_restart_application")) {
                 wait_screen_change { send_key "alt-c"; };    # close
+                close_pop_up_windows;
 
                 # The logout is not acted upon, which may miss a libzypp update
                 # Force reloading of packagekitd (bsc#1075260, poo#30085)
