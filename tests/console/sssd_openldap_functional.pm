@@ -36,13 +36,13 @@ sub run {
     }
     zypper_call("in sssd sssd-ldap openldap2-client sshpass docker");
     systemctl('enable --now docker');
-    #Select container base image by specifying variable BASE_IMAGE_TAG. (for sles using sle15sp4 by default)
+    #Select container base image by specifying variable BASE_IMAGE_TAG. (for sles using sle15sp5 by default)
     my $pkgs = "openldap2 sudo";
     my $tag = get_var("BASE_IMAGE_TAG");
     my $maint_test_repo = get_var('MAINT_TEST_REPO');
     unless ($tag) {
         if (is_opensuse) { $tag = (is_tumbleweed) ? "opensuse/tumbleweed" : "opensuse/leap";
-        } else { $tag = "registry.suse.com/suse/sle15:15.4"; }
+        } else { $tag = "registry.suse.com/suse/sle15:15.5"; }
     }
     # build container
     # build image, create container, setup openldap database and import testing data
