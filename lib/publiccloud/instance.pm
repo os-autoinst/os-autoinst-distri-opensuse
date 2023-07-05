@@ -580,7 +580,9 @@ Set PUBLIC_CLOUD_PERF_COLLECT true or >0, to activate boottime measurements.
 
 sub measure_boottime() {
     my ($self, $instance, $type) = @_;
-    return 0 unless (get_var('PUBLIC_CLOUD_PERF_COLLECT'));
+    my $data_collect = get_var('PUBLIC_CLOUD_PERF_COLLECT', 1);
+
+    return 0 unless ($data_collect);
 
     my $ret = {
         kernel_release => undef,
@@ -619,22 +621,24 @@ sub measure_boottime() {
 
 Save data collected with measure_boottime in a DB;
 Mainly stored on a remote InfluxDB on a Grafana server.
-
+To activate boottime push, shall be available results and
+  PUBLIC_CLOUD_PERF_PUSH_DATA true/not 0 and
+  _SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN defined
 =cut
 
 sub store_boottime_db() {
     my ($self, $results) = @_;
-    return unless (get_var('PUBLIC_CLOUD_PERF_PUSH_DATA') && $results);
-
-    my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI');
-    my $token = get_var('_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN');
-    unless ($url && $token) {
-        record_info("WARN", "PUBLIC_CLOUD_PERF_DB_URI or _SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN is missing ", result => 'fail');
-        return 0;
-    }
-
+    my $data_push = get_var('PUBLIC_CLOUD_PERF_PUSH_DATA', 1);
+    my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI', 'http://publiccloud-ng.qa.suse.de:8086');
     my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
     my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf_2');
+    my $token = get_var('_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN');
+
+    return unless ($results && $data_push);
+    unless ($token) {
+        record_info("WARN", "_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN is missing ", result => 'fail');
+        return 0;
+    }
 
     my $tags = {
         instance_type => get_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
