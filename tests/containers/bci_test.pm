@@ -81,6 +81,11 @@ sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
 
+    if (get_var('BCI_SKIP')) {
+        record_info('BCI skipped', 'BCI test skipped due to BCI_SKIP=1 setting');
+        return;
+    }
+
     $error_count = 0;
 
     my $engine = $args->{runtime};
