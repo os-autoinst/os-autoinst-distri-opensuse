@@ -151,6 +151,7 @@ echo -e "PermitRootLogin yes\nPubkeyAuthentication yes\nPasswordAuthentication y
 [ -d /root/.ssh ] || mkdir -p /root/.ssh; chmod 700 /root/.ssh
 touch /root/.ssh/authorized_keys; chmod 600 /root/.ssh/authorized_keys
 echo "##Authorized-Keys##" >> /root/.ssh/authorized_keys
+echo "testing"
 ]]>
         </source>
       </script>
