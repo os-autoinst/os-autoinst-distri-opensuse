@@ -26,7 +26,6 @@ conditional_schedule:
                 - x11/steam
                 - x11/wine
                 - x11/chrome
-                - qe-core/x11/openbroadcastersoftware.py
     python_liblouis:
         DISTRI:
             sle:
