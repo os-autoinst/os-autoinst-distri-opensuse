@@ -53,12 +53,22 @@
       <xen_append>console=hvc0,115200 console=tty loglevel=5</xen_append>
     </global>
   </bootloader>
-  <partitioning t="list">
+  <partitioning config:type="list">
     <drive>
       <device>/dev/sda</device>
       <initialize t="boolean">true</initialize>
       <use>all</use>
       <enable_snapshots t="boolean">false</enable_snapshots>
+      <filesystem type="btrfs"/>
+      <mount>/</mount>
+    </drive>
+    <drive>
+      <device>/dev/sdb</device>
+      <initialize t="boolean">true</initialize>
+      <use>all</use>
+      <enable_snapshots t="boolean">false</enable_snapshots>
+      <filesystem type="btrfs"/>
+      <mount>/mnt</mount>
     </drive>
   </partitioning>
   <timezone>
@@ -98,7 +108,7 @@
     <user>
       <username>bernhard</username>
       <user_password>$y$j9T$xsY9ubdI0jRF5JoSV8vvg1$03I5jIewyiCMm/EmkgRtYxvEYm83ZSJo0tl1rKP8Ad.</user_password>
-      <fullname>Bernhard M. Wiedemann</fullname>  
+      <fullname>Bernhard M. Wiedemann</fullname>
       <encrypted t="boolean">true</encrypted>
     </user>
     <user>
@@ -115,20 +125,20 @@
       </disable>
       <enable t="list">
         <service>sshd</service>
-	<service>virtqemud</service>
-	<service>virtstoraged</service>
-	<service>virtnetworkd</service>
-	<service>virtnodedevd</service>
-	<service>virtsecretd</service>
-	<service>virtproxyd</service>
-	<service>virtnwfilterd</service>
+        <service>virtqemud</service>
+        <service>virtstoraged</service>
+        <service>virtnetworkd</service>
+        <service>virtnodedevd</service>
+        <service>virtsecretd</service>
+        <service>virtproxyd</service>
       </enable>
     </services>
   </services-manager>
   <scripts>
     <!-- permit root login, password login and pubkeys login -->
     <!-- keep ssh session alive -->
-    <!-- /etc/ssh/sshd_config is not default installed in TW -->
+    <!-- change MACAddressPolicy to none, or the network bridge will get a different MAC address from its enslave -->
+    <!-- becasue TW uses udev naming scheme v247, see bsc#1136600 -->
     <init-scripts t="list">
       <script>
         <source><![CDATA[
