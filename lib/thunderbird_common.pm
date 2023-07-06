@@ -219,9 +219,10 @@ sub tb_send_message {
     if ($hostname eq 'client') {
         while (1) {
             my @tags = qw(thunderbird_attachment_reminder thunderbird_SSL_error_security_exception thunderbird_confirm_security_exception thunderbird_maximized_send-message thunderbird_cancel thunderbird_get-messages);
-            wait_still_screen(5, 10);
+            wait_still_screen(2, 4);
             assert_screen(\@tags);
             click_lastmatch;
+            wait_still_screen(2, 4);
             last if match_has_tag('thunderbird_get-messages');
         }
     }
