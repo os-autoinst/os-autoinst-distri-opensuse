@@ -13,7 +13,7 @@ use Mojo::Base 'wickedbase';
 
 sub run {
     my ($self, $ctx) = @_;
-    $self->get_from_data('wicked/ifreload-1.sh', '/tmp/ifreload-1.sh');
+    $self->get_from_data('wicked/scripts/ifreload-1.sh', '/tmp/ifreload-1.sh');
     $self->run_test_shell_script('ifreload-1', 'time sh /tmp/ifreload-1.sh');
 }
 

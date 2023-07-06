@@ -15,7 +15,7 @@ use testapi;
 
 sub run {
     my ($self, $ctx) = @_;
-    $self->get_from_data('wicked/ifreload-2.sh', '/tmp/ifreload-2.sh');
+    $self->get_from_data('wicked/scripts/ifreload-2.sh', '/tmp/ifreload-2.sh');
     my $script_cmd = sprintf(q(time sh /tmp/ifreload-2.sh /etc/sysconfig/network %s), $ctx->iface);
     $self->run_test_shell_script('ifreload-2', $script_cmd);
 }

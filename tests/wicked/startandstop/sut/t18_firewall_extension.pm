@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2022-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: wicked
@@ -30,7 +30,7 @@ sub run {
 
     systemctl('enable --now firewalld');
 
-    $self->get_from_data('wicked/test-ext-firewall.sh', '/tmp/test-ext-firewall.sh', executable => 1);
+    $self->get_from_data('wicked/scripts/test-ext-firewall.sh', '/tmp/test-ext-firewall.sh', executable => 1);
 
     $args{timeout} = 600 if is_aarch64;
     $self->run_test_shell_script("ext-firewall $ifc", "time /tmp/test-ext-firewall.sh '$ifc'", %args);
