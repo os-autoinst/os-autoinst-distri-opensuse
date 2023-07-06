@@ -1,16 +1,15 @@
 # SUSE's openQA tests
 #
-# Copyright 2018 SUSE LLC
+# Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Standalone card - ifdown, ifreload
+# Summary: Just creating required locks to sync between ref and sut.
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 #             Jose Lausuch <jalausuch@suse.com>
 #             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'basetest';
+use wickedbase;
 use testapi;
 use lockapi;
 
@@ -19,13 +18,8 @@ sub run {
 
     if (get_var('IS_WICKED_REF')) {
         for my $test (@{$args->{wicked_tests}}) {
-            my $barrier_name = 'test_' . $test . '_pre_run';
-
-            record_info('barrier create', $barrier_name . ' num_children: 2');
-            barrier_create($barrier_name, 2);
-            $barrier_name = 'test_' . $test . '_post_run';
-            barrier_create($barrier_name, 2);
-            record_info('barrier create', $barrier_name . ' num_children: 2');
+            wickedbase::do_barrier_create('pre_run', $test);
+            wickedbase::do_barrier_create('post_run', $test);
         }
         mutex_create('wicked_barriers_created');
     }

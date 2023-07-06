@@ -671,6 +671,24 @@ sub upload_wicked_logs {
     $self->upload_log_file("$dir_name.tar.gz");
 }
 
+=head2 do_barrier_create
+
+  do_barrier_create(<barrier_postfix> [, <test_name>] )
+
+Create a barier which can be later used to syncronize the wicked tests for SUT and REF.
+This function can be called statically. In this case the C<test_name> parameter is 
+mandatory.
+
+=cut
+
+sub do_barrier_create {
+    my ($self, $type, $test_name) = ref $_[0] ? @_ : (undef, @_);
+    $test_name //= $self ? $self->{name} : die("test_name parameter is mandatory");
+
+    my $barrier_name = 'test_' . $test_name . '_' . $type;
+    barrier_create($barrier_name, 2);
+}
+
 =head2 do_barrier
 
   do_barrier(<barrier_postfix>)
