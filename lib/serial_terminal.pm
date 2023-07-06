@@ -379,7 +379,7 @@ sub select_serial_terminal {
         if (check_var('SERIAL_CONSOLE', 0)) {
             $console = $root ? 'root-console' : 'user-console';
         } else {
-            $console = $root ? 'root-sut-serial' : 'sut-serial';
+            $console = $root ? 'root-sut-serial' : 'user-sut-serial';
         }
     } elsif (has_serial_over_ssh) {
         $console = 'root-ssh';
