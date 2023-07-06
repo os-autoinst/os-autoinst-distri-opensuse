@@ -23,6 +23,11 @@ has container => 'sle-images';
 has image_gallery => 'test_image_gallery';
 has lease_id => undef;
 
+# Default SKU/HyperV generation, if not explicitly defined.
+# Currently too many places still rely on gen1 as default, this should be changed soon (poo#133079)
+# This trigger is a temporary solution to make this transition easier and can be removed when poo#133079 is being resolved.
+my $default_sku = 'gen1';
+
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
@@ -59,6 +64,24 @@ sub get_image_id {
     return $self->SUPER::get_image_id($img_url);
 }
 
+=head2 generate_azure_image_definition
+
+    my $definition = $self->generate_azure_image_definition();
+
+Generated the Azure Image name from the job settings. If present, it takes the PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION setting.
+If not present it generated the image definition name based on distri, version, flavor and SKU.
+
+Note: Image definitions needs to be distinct names and can only serve one architecture!
+
+Example: 'SLE-MICRO-5.4-BYOS-AZURE-X86_64-GEN1'
+=cut
+
+sub generate_azure_image_definition {
+    my $arch = (get_var('PUBLIC_CLOUD_ARCH', get_required_var('ARCH'))) eq 'x86_64' ? 'x64' : 'Arm64';
+    my $definition = get_required_var('DISTRI') . '-' . get_required_var('VERSION') . '-' . get_required_var('FLAVOR') . '-' . $arch . '-' . get_var('PUBLIC_CLOUD_AZURE_SKU', $default_sku);
+    return get_var("PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION", uc($definition));
+}
+
 sub find_img {
     my ($self, $name) = @_;
     my ($json, $md5, $image);
@@ -90,8 +113,7 @@ sub find_img {
     my $resource_group = $self->resource_group;
     my $gallery = $self->image_gallery;
     my $version = calc_img_version();
-    my $definition = get_required_var('DISTRI') . '-' . get_required_var('FLAVOR') . '-' . get_var('PUBLIC_CLOUD_ARCH', 'x86_64') . '-' . get_required_var('VERSION') . '-' . $gen;
-    $definition = get_var("PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION", uc($definition));
+    my $definition = $self->generate_azure_image_definition();
     $json = script_output("az sig image-version show --resource-group '$resource_group' --gallery-name '$gallery' " .
           "--gallery-image-definition '$definition' --gallery-image-version '$version'", proceed_on_failure => 1, timeout => 60 * 30);
     record_info('IMGV INFO', $json);
@@ -142,6 +164,22 @@ sub calc_img_version {
     return "$build.$kiwi";
 }
 
+sub get_image_definition {
+    # Check if the given image definition, identified by the tuple (publisher, offer and sku) is present in the given image gallery
+    # returns the name of the found image definition or undef if not found
+    my ($self, $resource_group, $gallery, $publisher, $offer, $sku) = @_;
+
+    my $definitions = script_output("az sig image-definition list --resource-group '$resource_group' --gallery-name '$gallery'");
+    return undef unless ($definitions);
+    my $json_data = decode_azure_json($definitions);
+    foreach my $def (@$json_data) {
+        my $identifier = $def->{identifier};
+        next unless (defined $identifier);
+        return $def->{name} if ($identifier->{publisher} eq $publisher && $identifier->{offer} eq $offer && $identifier->{sku} eq $sku);
+    }
+    return undef;
+}
+
 sub upload_img {
     my ($self, $file) = @_;
 
@@ -176,11 +214,10 @@ sub upload_img {
     my $file_md5 = script_output("md5sum $file | cut -d' ' -f1", timeout => 240);
     assert_script_run("az storage blob update --account-key $key --container-name '$container' --account-name '$storage_account' --name $img_name --content-md5 $file_md5");
 
+    my $arch = (get_var('PUBLIC_CLOUD_ARCH', get_required_var('ARCH'))) eq 'x86_64' ? 'x64' : 'Arm64';
     my $publisher = get_var("PUBLIC_CLOUD_AZURE_PUBLISHER", "qe-c");
-    my $offer = get_var("PUBLIC_CLOUD_AZURE_OFFER", get_var('DISTRI') . '-' . get_var('VERSION') . '-' . get_var('FLAVOR') . '-' . get_var('PUBLIC_CLOUD_ARCH', 'x86_64'));
-    my $definition = get_required_var('DISTRI') . '-' . get_required_var('FLAVOR') . '-' . get_var('PUBLIC_CLOUD_ARCH', 'x86_64') . '-' . get_required_var('VERSION') . '-' . $gen;
-    $definition = get_var("PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION", uc($definition));
-    my $sku = get_var("PUBLIC_CLOUD_AZURE_SKU", 'gen2');
+    my $offer = get_var("PUBLIC_CLOUD_AZURE_OFFER", get_var('DISTRI') . '-' . get_var('VERSION') . '-' . get_var('FLAVOR') . '-' . $arch);
+    my $sku = get_var("PUBLIC_CLOUD_AZURE_SKU", $default_sku);
     ## For the Azure Compute Gallery, multiple target regions are supported.
     # This is necessary, because the image version upload needs to happen once for all regions, for which we want to
     # execute test runs. For reasons of being concise we re-use the existing variable PUBLIC_CLOUD_REGION, but here
@@ -201,16 +238,24 @@ sub upload_img {
     ## 1. Ensure the image definition in the Azure Compute Gallery exists
     ## 2. Create a new image version for that definition. Use the link to the uploaded blob to create this version
 
+
     # Print image definitions as a help to debug possible conflicting definitions
     my $images = script_output("az sig image-definition list -g '$resource_group' -r '$gallery'");
-    record_info("img-def", "Existing image definitions:\n$images");
+    record_info("img-defs", "Existing image definitions:\n$images");
 
-    my $arch = (get_var('PUBLIC_CLOUD_ARCH', 'x86_64'));
-    $arch = $arch eq 'x86_64' ? 'x64' : 'Arm64';
+    # Create new definition only, if there is no previous definition present
+    my $definition = $self->get_image_definition($resource_group, $gallery, $publisher, $offer, $sku);
+    if (defined $definition) {
+        record_info("use img-def", "Using found image definitions:\n$definition");
+    } else {
+        $definition = $self->generate_azure_image_definition();
+        my $gen = ($sku =~ "gen2" ? "V2" : "V1");
+        record_info("gen img-def", "Create image definitions:\n$definition");
+        assert_script_run("az sig image-definition create --resource-group '$resource_group' --gallery-name '$gallery' " .
+              "--gallery-image-definition '$definition' --os-type Linux --publisher '$publisher' --offer '$offer' --sku '$sku' " .
+              "--architecture '$arch' --hyper-v-generation '$gen' --os-state 'Generalized'", timeout => 300);
+    }
     # Note: Repetitive calls do not fail
-    assert_script_run("az sig image-definition create --resource-group '$resource_group' --gallery-name '$gallery' " .
-          "--gallery-image-definition '$definition' --os-type Linux --publisher '$publisher' --offer '$offer' --sku '$sku' " .
-          "--architecture '$arch' --hyper-v-generation '$gen' --os-state 'Generalized'", timeout => 300);
     assert_script_run("az sig image-version create --resource-group '$resource_group' --gallery-name '$gallery' " .
           "--gallery-image-definition '$definition' --gallery-image-version '$version' --os-vhd-storage-account '$sa_url' " .
           "--os-vhd-uri https://$storage_account.blob.core.windows.net/$container/$img_name --target-regions $target_regions", timeout => 60 * 30);
