@@ -686,6 +686,7 @@ sub do_barrier_create {
     $test_name //= $self ? $self->{name} : die("test_name parameter is mandatory");
 
     my $barrier_name = 'test_' . $test_name . '_' . $type;
+    record_info('barrier create', $barrier_name . ' num_children: 2');
     barrier_create($barrier_name, 2);
 }
 
@@ -1059,7 +1060,7 @@ sub check_logs {
     $default_exclude .= ',wickedd=error retrieving tap attribute from sysfs';
 
     my $exclude_var = get_var(WICKED_CHECK_LOG_EXCLUDE => $default_exclude);
-    my $exclude_test_var = get_var('WICKED_CHECK_LOG_EXCLUDE_' . $self->{name}, '');
+    my $exclude_test_var = get_var('WICKED_CHECK_LOG_EXCLUDE_' . uc($self->{name}), '');
 
     my @excludes = split(/(?<!\\),/, "$exclude_var,$exclude_test_var");
     @excludes = map { my $v = trim($_); length($v) > 0 ? $v : () } @excludes;
@@ -1077,7 +1078,7 @@ sub check_logs {
             my $msg = "wicked check logs failed:\n$cmd\n\n$out\n\n";
             $msg .= "Use WICKED_CHECK_LOG_EXCLUDE to change filter!\n";
             $msg .= "  WICKED_CHECK_LOG_EXCLUDE=$exclude_var\n";
-            $msg .= '  WICKED_CHECK_LOG_EXCLUDE_' . $self->{name} . "=$exclude_test_var\n";
+            $msg .= '  WICKED_CHECK_LOG_EXCLUDE_' . uc($self->{name}) . "=$exclude_test_var\n";
             $msg .= "Control if test fail with WICKED_CHECK_LOG_FAIL default off.\n";
             bmwqemu::fctwarn($msg);
             record_info('LOG-ERROR', $out, result => 'fail');
