@@ -464,6 +464,9 @@ sub setup_sbd_delay() {
 =head2 sbd_delay_formula
     $self->sbd_delay_formula();
 
+    Collects required data from OS to calculate startup delay for pacemaker (and sbd) service after reboot.
+    Parameters are passed to 'calculate_sbd_start_delay' to calculate delay in sec. using defined formula.
+    Returns number of seconds for services start delay.
 
 =cut
 
