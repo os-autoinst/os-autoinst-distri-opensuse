@@ -65,10 +65,16 @@ sub run {
     my $repo;
     my $vmware_openqa_datastore;
 
-    # Clear datastore on VMware host
     if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
+        # Clear datastore on VMware host
         $vmware_openqa_datastore = "/vmfs/volumes/" . get_required_var('VMWARE_DATASTORE') . "/openQA/";
         $svirt->get_cmd_output("set -x; rm -f ${vmware_openqa_datastore}*${name}*", {domain => 'sshVMwareServer'});
+        # Remove invalid VM by previous openQA job
+        my @vm_id = split('\n', $svirt->get_cmd_output("vim-cmd vmsvc/getallvms 2>&1 | grep 'invalid VM' | cut -d\\' -f2", {domain => 'sshVMwareServer'}));
+        foreach (@vm_id) {
+            $svirt->run_cmd("vim-cmd vmsvc/reload $_", domain => 'sshVMwareServer');
+            $svirt->run_cmd("vim-cmd vmsvc/unregister $_", domain => 'sshVMwareServer');
+        }
     }
 
     my $n = get_var('NUMDISKS', 1);
