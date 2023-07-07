@@ -18,7 +18,9 @@ use utils qw(
 use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_opensuse);
 use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop x11_start_program_xterm);
 use Utils::Backends;
-use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT);
+
+use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT SERIAL_USER_TERMINAL_DEFAULT_DEVICE SERIAL_USER_TERMINAL_DEFAULT_PORT);
+
 use Cwd;
 use autotest 'query_isotovideo';
 use isotovideo;
@@ -476,10 +478,15 @@ sub init_consoles {
             });
         set_var('SVIRT_VNC_CONSOLE', 'sut');
     } else {
-        # sut-serial (serial terminal: emulation of QEMU's virtio console for svirt)
+        # ssh-virtsh-serial for root (serial terminal: emulation of QEMU's virtio console for svirt)
         $self->add_console('root-sut-serial', 'ssh-virtsh-serial', {
                 pty_dev => SERIAL_TERMINAL_DEFAULT_DEVICE,
                 target_port => SERIAL_TERMINAL_DEFAULT_PORT});
+
+        # ssh-virtsh-serial for user (serial terminal: emulation of QEMU's virtio console for svirt)
+        $self->add_console('user-sut-serial', 'ssh-virtsh-serial', {
+                pty_dev => SERIAL_USER_TERMINAL_DEFAULT_DEVICE,
+                target_port => SERIAL_USER_TERMINAL_DEFAULT_PORT});
     }
 
     if ((get_var('BACKEND', '') =~ /qemu|ikvm/
