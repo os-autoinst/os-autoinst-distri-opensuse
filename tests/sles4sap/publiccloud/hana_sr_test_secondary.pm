@@ -4,6 +4,10 @@
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Test module for performing database stop using various methods on secondary HANA database site.
+#
+# Parameters:
+# HA_SBD_START_DELAY (optional) - Sets SBD start delay in /etc/sysconfig/sbd
+# DB_ACTION (optional) - Action to be done on the database to simulate failure - check lib/sles4sap_publiccloud "stop_hana" function
 
 use strict;
 use warnings FATAL => 'all';
@@ -26,6 +30,7 @@ sub run {
     my $hana_start_timeout = bmwqemu::scale_timeout(600);
     # $site_b = $instance of secondary instance located in $run_args->{$instances}
     my $site_b = $run_args->{site_b};
+    my $sbd_delay;
     select_serial_terminal;
 
     # Switch to control Site B (currently replica mode)
@@ -41,9 +46,9 @@ sub run {
     my $db_action = get_var('DB_ACTION', $run_args->{hana_test_definitions}{$self->{name}});
     croak('Database action unknown or not defined.') if ($db_action !~ /^(stop|kill|crash)$/);
 
-    if (($db_action eq 'crash') && get_var('HA_SBD_START_DELAY')) {
+    if (($db_action eq 'crash') && defined(get_var('HA_SBD_START_DELAY'))) {
         # Setup sbd delay in case of crash OS to prevent cluster starting too quickly after reboot.
-        $self->setup_sbd_delay(get_var('HA_SBD_START_DELAY'));
+        $self->setup_sbd_delay();
         record_info('Crash DB', "Crashing OS on Site B ('$site_b->{instance_id}')");
     }
     else {
@@ -51,12 +56,19 @@ sub run {
         my $action = $db_action eq 'stop' ? 'stopp' : $db_action;
         record_info(ucfirst($db_action) . ' DB', ucfirst($action) . "ing Site B ('$site_b->{instance_id}')");
     }
+
+    # Calculate SBD delay sleep time
+    $sbd_delay = $self->sbd_delay_formula if $db_action eq 'crash';
+
     $self->stop_hana(method => $db_action);
     $self->{my_instance}->wait_for_ssh(username => 'cloudadmin');
 
     # SBD delay is active only after reboot
-    sleep $self->sbd_delay_formula if $db_action eq "crash";
-    $self->wait_for_pacemaker();
+    if ($db_action eq 'crash' and $sbd_delay != 0) {
+        record_info('SBD SLEEP', "Waiting $sbd_delay sec for SBD delay timeout.");
+        sleep($sbd_delay);
+        $self->wait_for_pacemaker();
+    }
 
     # wait for DB to start with resources
     $self->is_hana_online(wait_for_start => 'true');
