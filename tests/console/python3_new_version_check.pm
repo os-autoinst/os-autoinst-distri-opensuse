@@ -22,34 +22,55 @@ use registration "add_suseconnect_product";
 
 sub run {
     select_serial_terminal;
+    # Test system python3 version
+    my @system_python_version = script_output(qq[zypper se --installed-only --provides '/usr/bin/python3' | awk -F '|' '/python3[0-9]*/ {gsub(" ", ""); print \$2}' | awk -F '-' '{print \$1}' | uniq]);
+    die "There are many python3 versions installed " if (scalar(@system_python_version) > 1);
+    record_info("System python version", "$system_python_version[0]");
+    assert_script_run("[ -f man_or_boy.py ] || curl -O " . data_url("console/man_or_boy.py") . " || true");
+    my $python3_spec_release = get_python3_specific_release($system_python_version[0]);
     if (is_sle('>=15-SP4')) {
-        my $python_version = script_output("rpm -q python3 | awk -F \'-\' \'{print \$2}\'");
-        if ((package_version_cmp($python_version, "3.6") < 0) ||
-            (package_version_cmp($python_version, "3.7") >= 0)) {
+        if ((package_version_cmp($python3_spec_release, "3.6") < 0) ||
+            (package_version_cmp($python3_spec_release, "3.7") >= 0)) {
             # Factory default Python3 version for SLE15-SP4+ should be 3.6
             die("Python default version differs from 3.6");
         }
-        add_suseconnect_product('sle-module-python3');
     }
-
+    if (is_tumbleweed) {
+        if (package_version_cmp($python3_spec_release, "3.11") < 0) {
+            # Factory default Python3 version for Tumbleweed should be 3.11
+            record_info("Python default version differs from 3.11");
+        }
+    }
+    record_info("Testing system python version $python3_spec_release", "python $python3_spec_release is tested now");
+    my $man_or_boy = script_output("/usr/bin/python3 man_or_boy.py");
+    if ($man_or_boy != -67) {
+        die("Execution of 'man_or_boy.py' with $system_python_version[0] is not correct\n");
+    }
     # Test all avaiable new python3 versions if any
     my $ret = zypper_call('se "python3[0-9]*"', exitcode => [0, 104]);
     die('No new python3 packages available') if ($ret == 104);
     my @python3_versions = split(/\n/, script_output(qq[zypper se 'python3[0-9]*' | awk -F '|' '/python3[0-9]/ {gsub(" ", ""); print \$2}' | awk -F '-' '{print \$1}' | uniq]));
     record_info("Available versions", "All available new python3 versions are: @python3_versions");
-    my $sub_version;
-    foreach my $python3_version (@python3_versions) {
-        record_info("Testing $python3_version", "$python3_version is tested now");
-        $sub_version = substr($python3_version, 7);
-        zypper_call("install $python3_version");
+    foreach my $python3_spec_release (@python3_versions) {
+        record_info("Testing $python3_spec_release", "$python3_spec_release is tested now");
+        my $python3_version = get_python3_specific_release($python3_spec_release);
+        zypper_call("install $python3_spec_release");
         # Running classic testing algorithm 'man_or_boy'. More info at:
         # https://rosettacode.org/wiki/Man_or_boy_test
-        assert_script_run("[ -f man_or_boy.py ] || curl -O " . data_url("console/man_or_boy.py") . " || true");
-        my $man_or_boy = script_output("python3.$sub_version man_or_boy.py");
+        my $man_or_boy = script_output("$python3_version man_or_boy.py");
         if ($man_or_boy != -67) {
             die("Execution of 'man_or_boy.py' with $python3_version is not correct\n");
         }
     }
+}
+
+sub get_python3_specific_release {
+    my ($python3_version) = @_;
+    if ($python3_version eq "python3") {
+        return script_output("rpm -q python3 | awk -F \'-\' \'{print \$2}\'");
+    }
+    my $sub_version = substr($python3_version, 7);
+    return "python3.$sub_version";
 }
 
 sub post_fail_hook {
