@@ -12,6 +12,8 @@ use testapi;
 use serial_terminal;
 use lockapi;
 use utils;
+use registration;
+use version_utils 'is_sle';
 
 sub server {
     barrier_wait('NFS_STRESS_NG_START');
@@ -29,7 +31,10 @@ sub client {
     my $run_stress_ng = "stress-ng --sequential -1 --timeout $stressor_timeout --class filesystem";
     my @paths = ($local_nfs3, $local_nfs4, $local_nfs3_async, $local_nfs4_async);
 
-    # TODO: Add stress-ng repo for SLES
+    # in case this is SLE we need packagehub for stress-ng, let's enable it
+    if (is_sle) {
+        add_suseconnect_product(get_addon_fullname('phub'));
+    }
     zypper_call("in stress-ng");
 
     select_user_serial_terminal;
