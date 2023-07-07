@@ -65,10 +65,16 @@ sub run {
     my $repo;
     my $vmware_openqa_datastore;
 
-    # Clear datastore on VMware host
     if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
+        # Clear datastore on VMware host
         $vmware_openqa_datastore = "/vmfs/volumes/" . get_required_var('VMWARE_DATASTORE') . "/openQA/";
         $svirt->get_cmd_output("set -x; rm -f ${vmware_openqa_datastore}*${name}*", {domain => 'sshVMwareServer'});
+        # Remove invalid VM by previous openQA job
+        my $vm_id = $svirt->get_cmd_output("vim-cmd vmsvc/getallvms | grep invalid | cut -d\\' -f2", {domain => 'sshVMwareServer'});
+        if ($vm_id) {
+            $svirt->run_cmd("vim-cmd vmsvc/reload $vm_id", domain => 'sshVMwareServer');
+            $svirt->run_cmd("vim-cmd vmsvc/unregister $vm_id", domain => 'sshVMwareServer');
+        }
     }
 
     # Workaround before fix in svirt (https://github.com/os-autoinst/os-autoinst/pull/901) is deployed
