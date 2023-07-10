@@ -24,12 +24,11 @@ sub run {
     assert_screen('xca_main_page');
 
     # Create a new database
-    send_key 'ctrl-n';
-    wait_still_screen 2;
+    wait_screen_change { send_key 'ctrl-n' };
     save_screenshot;
 
     # Enter database dir
-    type_string('fips_xca');
+    wait_screen_change { type_string 'fips_xca' };
     assert_and_click('xca_database_save');
     wait_still_screen 2;
     save_screenshot;
