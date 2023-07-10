@@ -26,6 +26,7 @@ use mmapi;
 use mm_network;
 use nfs_common;
 use Utils::Systemd 'disable_and_stop_service';
+use registration;
 
 my $INST_DIR = '/opt/xfstests';
 my $CONFIG_FILE = "$INST_DIR/local.config";
@@ -290,9 +291,25 @@ sub format_with_options {
         format_partition($part, 'btrfs', options => "$mkfs_option");
         script_run("echo 'export BTRFS_MKFS_OPTIONS=\"$mkfs_option\"' >> $CONFIG_FILE");
     }
+    elsif ($filesystem eq 'ocfs2') {
+        format_partition($part, 'ocfs2', options => '--fs-features=local --fs-feature-level=max-features');
+        script_run("echo 'export MKFS_OPTIONS=\"--fs-features=local --fs-feature-level=max-features\"' >> $CONFIG_FILE");
+    }
     else {
         format_partition($part, $filesystem);
     }
+}
+
+sub install_dependencies_ocfs2 {
+    my $scc_product = get_var('VERSION') =~ s/-SP/./r;
+    my $scc_arch = get_var('ARCH');
+    my $scc_regcode = get_var('SCC_REGCODE_HA');
+    add_suseconnect_product('sle-ha', $scc_product, $scc_arch, "-r $scc_regcode");
+    my @deps = qw(
+      ocfs2-tools
+    );
+    zypper_call('in ' . join(' ', @deps));
+    script_run('modprobe ocfs2');
 }
 
 sub install_dependencies_nfs {
@@ -338,6 +355,9 @@ sub run {
 
     my $filesystem = get_required_var('XFSTESTS');
     my %para;
+    if (check_var('XFSTESTS', 'ocfs2')) {
+        install_dependencies_ocfs2;
+    }
     if (check_var('XFSTESTS', 'nfs')) {
         disable_and_stop_service('firewalld');
         if (get_var('XFSTESTS_NFS_SERVER')) {
