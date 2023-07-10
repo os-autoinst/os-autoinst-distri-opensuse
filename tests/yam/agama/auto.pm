@@ -20,7 +20,9 @@ sub run {
     clear_console;
     enter_cmd "reboot";
 
-    assert_screen('grub2', 120);
+    # For agama test, it is too short time to match the grub2, so we create
+    # a new needle to avoid too much needles loaded.
+    assert_screen('grub2-agama', 120);
     wait_screen_change { send_key 'ret' };
 
     my @tags = ("welcome-to", "login");
