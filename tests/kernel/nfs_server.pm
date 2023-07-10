@@ -17,6 +17,7 @@ use Utils::Logging "export_logs_basic";
 
 sub run {
     select_serial_terminal();
+    record_info("hostname", script_output("hostname"));
 
     #TODO: configure nfs config as pleased, specifically:
     #USE_KERNEL_NFSD_NUMBER
