@@ -4,7 +4,7 @@
 # Summary: base class for Patch Agama tests
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-package yam::agama::patch_agama_base;
+package Yam::agama::patch_agama_base;
 use base 'opensusebasetest';
 use strict;
 use warnings;

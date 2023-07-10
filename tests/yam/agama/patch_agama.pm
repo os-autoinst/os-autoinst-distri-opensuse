@@ -4,7 +4,7 @@
 # Summary: This module use yupdate patch the Agama on Live Medium
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use base yam::agama::patch_agama_base;
+use base Yam::agama::patch_agama_base;
 use strict;
 use warnings;
 use testapi;

@@ -4,7 +4,7 @@
 # Summary: First installation using D-Installer current CLI (only for development purpose)
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use base yam::agama::agama_base;
+use base Yam::agama::agama_base;
 use strict;
 use warnings;
 
