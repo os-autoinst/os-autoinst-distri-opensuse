@@ -6,6 +6,7 @@
 
 use strict;
 use warnings;
+use base 'sles4sap_publiccloud_basetest';
 use sles4sap_publiccloud;
 
 sub run {
