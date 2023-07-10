@@ -88,6 +88,8 @@ our @EXPORT = qw(
   qesap_calculate_deployment_name
   qesap_export_instances
   qesap_import_instances
+  qesap_get_roles_code
+  qesap_set_roles_env_var
 );
 
 =head1 DESCRIPTION
@@ -109,8 +111,11 @@ sub qesap_get_file_paths {
     $paths{terraform_dir} = get_var('PUBLIC_CLOUD_TERRAFORM_DIR', $paths{deployment_dir} . '/terraform');
     $paths{qesap_conf_trgt} = $paths{deployment_dir} . '/scripts/qesap/' . $paths{qesap_conf_filename};
     $paths{qesap_conf_src} = data_url('sles4sap/qe_sap_deployment/' . $paths{qesap_conf_filename});
+    $paths{roles_dir} = get_var('QESAP_DEPLOYMENT_DIR', '/root/community.sles-for-sap');
+    $paths{roles_dir_path} = $paths{roles_dir} . '/roles';
     return (%paths);
 }
+
 
 =head3 qesap_create_folder_tree
 
@@ -258,6 +263,60 @@ sub qesap_get_deployment_code {
     assert_script_run("ln -s " . $paths{terraform_dir} . "/gcp " . $paths{terraform_dir} . "/gce");
 }
 
+
+=head3 qesap_get_roles_code
+
+    Get the community.sles-for-sap roles code
+=cut
+
+sub qesap_get_roles_code {
+    my $official_repo = 'github.com/sap-linuxlab/community.sles-for-sap';
+    my $roles_git_clone_log = '/tmp/git_clone_roles.txt';
+    my %paths = qesap_get_file_paths();
+
+    assert_script_run("mkdir -p $paths{roles_dir}", quiet => 1);
+
+    record_info("SLES4SAP Roles repo", "Preparing community.sles-for-sap repository");
+
+    enter_cmd "cd " . $paths{roles_dir};
+    push(@log_files, $roles_git_clone_log);
+
+    # Script from a release
+    if (get_var('ROLES_INSTALL_VERSION')) {
+        record_info("WARNING", "ROLES_INSTALL_GITHUB_REPO will be ignored") if (get_var('ROLES_INSTALL_GITHUB_REPO'));
+        record_info("WARNING", "ROLES_INSTALL_GITHUB_BRANCH will be ignored") if (get_var('ROLES_INSTALL_GITHUB_BRANCH'));
+        my $ver_artifact = 'v' . get_var('ROLES_INSTALL_VERSION') . '.tar.gz';
+
+        my $curl_cmd = "curl -v -fL https://$official_repo/archive/refs/tags/$ver_artifact -o$ver_artifact";
+        assert_script_run("set -o pipefail ; $curl_cmd | tee " . $roles_git_clone_log, quiet => 1);
+
+        my $tar_cmd = "tar xvf $ver_artifact --strip-components=1";
+        assert_script_run($tar_cmd);
+    }
+    else {
+        # Get the code for the qe-sap-deployment by cloning its repository
+        assert_script_run('git config --global http.sslVerify false', quiet => 1) if get_var('QESAP_INSTALL_GITHUB_NO_VERIFY');
+        my $git_branch = get_var('ROLES_INSTALL_GITHUB_BRANCH', 'main');
+
+        my $git_repo = get_var('ROLES_INSTALL_GITHUB_REPO', $official_repo);
+        my $git_clone_cmd = 'git clone --depth 1 --branch ' . $git_branch . ' https://' . $git_repo . ' ' . $paths{roles_dir};
+        assert_script_run("set -o pipefail ; $git_clone_cmd  2>&1 | tee $roles_git_clone_log", quiet => 1);
+    }
+    qesap_set_roles_env_var();
+}
+
+
+=head3 qesap_set_roles_env_var
+
+    
+=cut
+
+sub qesap_set_roles_env_var {
+    my %paths = qesap_get_file_paths();
+    assert_script_run('export ANSIBLE_ROLES_PATH=' . $paths{roles_dir_path});
+}
+
+
 =head3 qesap_yaml_replace
 
     Replaces yaml config file variables with parameters defined by OpenQA testode, yaml template or yaml schedule.
@@ -396,6 +455,10 @@ sub qesap_prepare_env {
         qesap_create_folder_tree();
         qesap_get_deployment_code();
         qesap_pip_install();
+
+        # Get roles code from the roles repo
+        qesap_get_roles_code();
+        qesap_set_roles_env_var();
 
         record_info("QESAP yaml", "Preparing yaml config file");
         assert_script_run('curl -v -fL ' . $paths{qesap_conf_src} . ' -o ' . $paths{qesap_conf_trgt});
