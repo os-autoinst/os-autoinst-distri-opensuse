@@ -40,6 +40,8 @@ sub load_maintenance_publiccloud_tests {
         loadtest('publiccloud/run_ltp', run_args => $args);
     } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
         loadtest('publiccloud/ahb');
+    } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
+        loadtest("publiccloud/bsc_1205002", run_args => $args);
     } else {
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         loadtest("publiccloud/instance_overview", run_args => $args) unless get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS');
