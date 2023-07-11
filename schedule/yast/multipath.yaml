@@ -9,7 +9,7 @@ vars:
 schedule:
   extension_module_selection:
     - installation/module_registration/register_module_desktop
-  multipath:
+  system_probing:
     - installation/multipath
   system_role:
     - installation/system_role/accept_selected_role_SLES_with_GNOME
