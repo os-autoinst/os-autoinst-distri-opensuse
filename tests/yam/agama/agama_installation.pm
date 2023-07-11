@@ -23,13 +23,17 @@ sub run {
     $testapi::password = 'linux';
     select_console 'root-console';
 
-    assert_script_run('RUN_INSTALLATION=1 playwright test --trace on --project chromium --config /usr/share/agama-playwright take_screenshots', timeout => 600);
-
+    assert_script_run('RUN_INSTALLATION=1 playwright test --trace on --project chromium --config /usr/share/e2e-agama-playwright take_screenshots', timeout => 600);
     upload_logs('./test-results/take_screenshots-The-Installer-installs-the-system-chromium/trace.zip');
+
     assert_script_run('reboot');
     assert_screen('grub2', 120);
     my @tags = ("welcome-to", "login");
     assert_screen(\@tags, 300);
+}
+
+sub post_fail_hook {
+    upload_logs('./test-results/take_screenshots-The-Installer-installs-the-system-chromium/trace.zip');
 }
 
 1;

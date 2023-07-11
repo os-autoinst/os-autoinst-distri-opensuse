@@ -453,7 +453,7 @@ sub setup_sbd_delay() {
         return;
     }
 
-    croak("<\$set_delay> value must be either 'yes', no or an integer. Got value: $delay")
+    croak("<\$set_delay> value must be either 'yes', 'no' or an integer. Got value: $delay")
       unless looks_like_number($delay) or grep /^$delay$/, qw(yes no);
 
     $self->cloud_file_content_replace('/etc/sysconfig/sbd', '^SBD_DELAY_START=.*', "SBD_DELAY_START=$delay");

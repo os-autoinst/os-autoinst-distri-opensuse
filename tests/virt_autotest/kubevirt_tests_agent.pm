@@ -46,7 +46,7 @@ sub run {
 sub rke2_agent_setup {
     my ($self, $server_ip) = @_;
 
-    record_info('Start RKE2 agent setup', '');
+    record_info('RKE2 Agent Setup', '');
     unless (is_transactional) {
         disable_and_stop_service('apparmor.service');
         disable_and_stop_service('firewalld.service');
@@ -57,9 +57,12 @@ sub rke2_agent_setup {
     script_run "rebootmgrctl set-strategy off" if (is_transactional);
     # Check if the package 'ca-certificates-suse' are installed on the node
     ensure_ca_certificates_suse_installed();
+
     transactional::process_reboot(trigger => 1) if (is_transactional);
-    # Set long host name to avoid x509 server connection issue
-    assert_script_run('hostnamectl set-hostname ' . get_required_var('SUT_IP'));
+    record_info('Installed certificates packages', script_output('rpm -qa | grep certificates'));
+
+    # Install kubevirt packages complete
+    barrier_wait('kubevirt_packages_install_complete');
 
     # RKE2 deployment on agent node
     # Default is to setup service with the latest RKE2 version, the parameter INSTALL_RKE2_VERSION allows to setup with a specified version.
@@ -85,12 +88,12 @@ sub rke2_agent_setup {
     assert_script_run("echo 'token: $server_node_token' >> /etc/rancher/rke2/config.yaml");
 
     # Enable rke2-agent service
-    systemctl('enable rke2-agent.service');
-    systemctl('start rke2-agent.service', timeout => 180);
+    systemctl('enable --now rke2-agent.service', timeout => 180);
     $self->check_service_status();
 
     # Start rke2-agent service ready
     mutex_create('rke2_agent_start_ready');
+    record_info('Start RKE2 Agent', '');
 
     assert_script_run("mkdir -p ~/.kube; scp root\@$server_ip:/etc/rancher/rke2/rke2.yaml ~/.kube/config");
     assert_script_run("sed -i 's/127.0.0.1/$server_ip/' ~/.kube/config");
@@ -106,13 +109,28 @@ sub rke2_agent_setup {
     $self->check_service_status();
     assert_script_run("grep static /var/lib/kubelet/cpu_manager_state");
 
-    # Workaround for failure 'MountVolume.SetUp failed for volume "local-storage" : mkdir /mnt/local-storage: read-only file system'
-    assert_script_run('mkdir -p /root/tmp && mount -o bind /root/tmp /mnt') if (is_transactional);
+    my $kubevirt_ver = script_output(qq(ssh root\@$server_ip "rpm -q --qf \%{VERSION} kubevirt-tests"));
+    # Install Longhorn dependencies
+    if (is_transactional) {
+        if (script_run('rpmquery jq open-iscsi') && ($kubevirt_ver ge "0.50.0")) {
+            transactional::trup_install("jq open-iscsi");
+            transactional::process_reboot(trigger => 1);
+        }
+        # Workaround for failure 'MountVolume.SetUp failed for volume "local-storage" : mkdir /mnt/local-storage: read-only file system'
+        assert_script_run('mkdir -p /root/tmp && mount -o bind /root/tmp /mnt');
+    }
+    else {
+        zypper_call('in jq open-iscsi') if (script_run('rpmquery jq open-iscsi') && ($kubevirt_ver ge "0.50.0"));
+    }
+
+    # Enable iscsid service
+    systemctl('enable --now iscsid', timeout => 180) if ($kubevirt_ver ge "0.50.0");
 
     # Restart rke2-agent service ready
     mutex_create('rke2_agent_restart_complete');
+    record_info('Restart RKE2 Agent', '');
 
-    script_retry('! kubectl get nodes | grep NotReady', retry => 8, delay => 20, timeout => 180);
+    script_retry('! kubectl get nodes | grep NotReady', retry => 14, delay => 20, timeout => 300);
     assert_script_run('kubectl get nodes');
 }
 

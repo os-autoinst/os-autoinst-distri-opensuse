@@ -66,14 +66,12 @@ sub run {
         record_info 'Kernel Mode', 'FIPS kernel mode configured!';
     }
 
-    # Check if hmac related packages are installed when sle >= 15-sp4
+    # Try to install hmac related packages when sle >= 15-sp4
     # Refer to poo #110707
     if (is_sle('>=15-sp4')) {
         my $pkg_list = {
             'libcryptsetup12-hmac' => '2.4.3',
-            'libsoftokn3-hmac' => '3.68.3',
             'libgnutls30-hmac' => '3.7.3',
-            'libfreebl3-hmac' => '3.68.3',
             'libopenssl1_1-hmac' => '1.1.1l',
             'libgcrypt20-hmac' => '1.9.4'
         };

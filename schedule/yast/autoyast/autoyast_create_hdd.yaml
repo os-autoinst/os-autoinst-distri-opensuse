@@ -29,6 +29,8 @@ schedule:
 conditional_schedule:
   handle_reboot:
     ARCH:
+      ppc64le:
+        - installation/handle_reboot
       s390x:
         - installation/handle_reboot
       x86_64:

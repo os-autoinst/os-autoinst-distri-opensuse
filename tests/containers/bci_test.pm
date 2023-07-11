@@ -86,6 +86,14 @@ sub run {
         return;
     }
 
+    # Skip the postgresql test runs on RHEL7 due to poo#129301
+    my ($os_version, $sp, $host_distri) = get_os_release;
+    my $is_rhel7 = ($host_distri eq 'rhel' && $os_version == 7);
+    if (get_var('BCI_TEST_ENVS') eq 'postgres' && $is_rhel7) {
+        record_soft_failure("poo#129301 unsupported authentication for postgresql on RHEL7");
+        return;
+    }
+
     $error_count = 0;
 
     my $engine = $args->{runtime};
