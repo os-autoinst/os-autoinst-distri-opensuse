@@ -162,10 +162,45 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             linuxrc => 'ifcfg="eth0=192.168.122.120/24,192.168.122.1,192.168.122.1"'
         }
     );
-
-    delete($guests{sles12sp4PV}) if (!is_sle('=12-SP4'));
-    delete($guests{sles12sp5HVM}) if (!is_sle('=12-SP5'));
-    delete($guests{sles15sp1HVM}) if (!is_sle('=15-SP1'));
+    # Filter out guests not allowed for the detected SLE version
+    if (is_sle('=12-SP5')) {
+        my @allowed_guests = qw(sles12sp5HVM sles12sp5PV sles15sp1HVM sles15sp1PV sles15sp5HVM sles15sp5PV);
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
+    } elsif (is_sle('=12-SP4')) {
+        my @allowed_guests = qw(sles12sp4HVM sles12sp4PV sles12sp5HVM sles12sp5PV);
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
+    } elsif (is_sle('=15-SP1')) {
+        my @allowed_guests = qw(sles15sp1HVM sles15sp1PV sles15sp2HVM sles15sp2PV);
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
+    } elsif (is_sle('=15-SP2')) {
+        my @allowed_guests = qw(sles15sp2HVM sles15sp2PV sles15sp3HVM sles15sp3PV);
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
+    } elsif (is_sle('=15-SP3')) {
+        my @allowed_guests = qw(sles15sp3HVM sles15sp3PV sles15sp4HVM sles15sp4PV);
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
+    } elsif (is_sle('=15-SP4')) {
+        my @allowed_guests = qw(sles12sp5HVM sles12sp5PV sles15sp4HVM sles15sp4PV sles15sp5HVM sles15sp5PV);
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
+    } elsif (is_sle('=15-SP5')) {
+        my @allowed_guests = qw(sles12sp5HVM sles12sp5PV sles15sp5HVM sles15sp5PV);
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
+    } else {
+        %guests = ();
+    }
 } elsif (get_var("REGRESSION", '') =~ /kvm|qemu/) {
     %guests = (
         sles12sp3 => {
@@ -247,6 +282,50 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             linuxrc => 'ifcfg="eth0=192.168.122.109/24,192.168.122.1,192.168.122.1"'
         }
     );
+    # Filter out guests not allowed for the detected SLE version
+    if (is_sle('=12-SP3')) {
+        my @allowed_guests = qw(sles12sp3);
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
+    } elsif (is_sle('=12-SP4')) {
+        my @allowed_guests = qw(sles12sp4 sles12sp5);
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
+    } elsif (is_sle('=12-SP5')) {
+        my @allowed_guests = qw(sles12sp5 sles15sp1 sles15sp5);
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
+    } elsif (is_sle('=15-SP1')) {
+        my @allowed_guests = qw(sles15sp1 sles15sp2);
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
+    } elsif (is_sle('=15-SP2')) {
+        my @allowed_guests = qw(sles15sp2 sles15sp3);
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
+    } elsif (is_sle('=15-SP3')) {
+        my @allowed_guests = qw(sles15sp3 sles15sp4);
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
+    } elsif (is_sle('=15-SP4')) {
+        my @allowed_guests = qw(sles12sp5 sles15sp4 sles15sp5);
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
+    } elsif (is_sle('=15-SP5')) {
+        my @allowed_guests = qw(sles12sp5 sles15sp5);
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
+    } else {
+        %guests = ();
+    }
 } elsif (get_var("REGRESSION", '') =~ /vmware/) {
     %guests = (
         sles12sp3 => {
