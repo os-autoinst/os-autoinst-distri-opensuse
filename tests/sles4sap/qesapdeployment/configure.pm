@@ -22,7 +22,6 @@ sub run {
     my $qesap_provider = lc get_required_var('PUBLIC_CLOUD_PROVIDER');
 
     my %variables;
-    $variables{PROVIDER} = $qesap_provider;
     $variables{REGION} = $provider->provider_client->region;
     $variables{DEPLOYMENTNAME} = qesap_calculate_deployment_name('qesapval');
     if (get_var('QESAPDEPLOY_CLUSTER_OS_VER')) {
