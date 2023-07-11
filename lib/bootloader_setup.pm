@@ -787,7 +787,12 @@ sub specific_bootmenu_params {
             elsif ($dud =~ /^ASSET_\d+$/) {
                 # In case dud is uploaded as an ASSET we need just filename
                 $dud = basename(get_required_var($dud));
-                push @params, 'dud=' . shorten_url(autoinst_url("/assets/other/$dud"));
+                if (check_var('DUD_NO_SHORTEN_URL', '1')) {
+                    push @params, 'dud=' . autoinst_url("/assets/other/$dud");
+                }
+                else {
+                    push @params, 'dud=' . shorten_url(autoinst_url("/assets/other/$dud"));
+                }
             }
             else {
                 push @params, 'dud=' . data_url($dud);
