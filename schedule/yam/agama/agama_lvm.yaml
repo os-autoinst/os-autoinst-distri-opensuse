@@ -1,0 +1,9 @@
+---
+name: agama_lvm
+description: >
+  Playwright use lvm test on agama
+schedule:
+  - installation/bootloader_start
+  - yam/agama/patch_agama
+  - yam/agama/agama_lvm
+  - console/validate_lvm
