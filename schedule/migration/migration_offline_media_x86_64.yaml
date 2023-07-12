@@ -25,11 +25,10 @@ schedule:
   - installation/upgrade/remove_previously_used_repos
   - installation/scc_registration
   - installation/addon_products_sle
-  - installation/resolve_dependency_issues
-  - installation/installation_overview
-  - installation/disable_grub_timeout
-  - installation/start_install
-  - installation/await_install
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
+  - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/grub_test
