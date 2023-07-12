@@ -28,7 +28,9 @@ sub run {
     upload_logs('./test-results/lvm-Use-logical-volume-management-LVM-as-storage-device-for-installation-chromium/trace.zip');
 
     assert_script_run('reboot');
-    assert_screen('grub2', 120);
+    # For agama test, it is too short time to match the grub2, so we create
+    # a new needle to avoid too much needles loaded.
+    assert_screen('grub2-agama', 120);
     my @tags = ("welcome-to", "login");
     assert_screen(\@tags, 300);
     reset_consoles;
