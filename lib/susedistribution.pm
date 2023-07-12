@@ -901,7 +901,7 @@ sub activate_console {
         assert_screen "text-logged-in-$user", 60;
     }
     elsif ($type eq 'serial-ssh') {
-        serial_terminal::set_serial_prompt($user eq 'root' ? '# ' : '> ');
+        serial_terminal::set_serial_prompt($user eq 'root' ? '# ' : '$ ');
     }
     else {
         diag 'activate_console called with generic type, no action';
