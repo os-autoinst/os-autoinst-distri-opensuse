@@ -26,9 +26,8 @@ sub irc_login_send_message {
         assert_screen "$name-join-channel-select";
         # clear original '#hexchat' channel name
         wait_still_screen 2;
-        send_key "ctrl-a";
-        send_key "delete";
-        wait_still_screen 2;
+        wait_screen_change { send_key 'ctrl-a' };
+        wait_screen_change { send_key "delete" };
 
         # change name to '#openqa-test_irc_from_openqa' and join this channel
         enter_cmd "#openqa-test_irc_from_openqa";
