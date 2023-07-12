@@ -113,7 +113,7 @@ sub run {
         subnet => '10.64.0.0/16',
     };
     my $ctr2 = {
-        image => 'registry.opensuse.org/bci/bci-busybox',
+        image => 'registry.opensuse.org/opensuse/bci/bci-busybox',
         name => 'busybox_ctr',
         ip => '10.64.0.8',
         mac => '92:aa:33:44:55:66',
