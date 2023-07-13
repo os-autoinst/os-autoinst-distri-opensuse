@@ -105,8 +105,8 @@ sub run {
         foreach my $pkg (@packages) {
             zypper_call("--quiet in $pkg", timeout => 300);
         }
-        assert_script_run('pip3.6 --quiet install --upgrade pip', timeout => 600);
-        assert_script_run("pip3.6 --quiet install tox --ignore-installed six", timeout => 600);
+        assert_script_run('pip --quiet install --upgrade pip', timeout => 600);
+        assert_script_run("pip --quiet install tox --ignore-installed six", timeout => 600);
     } else {
         die "Unexpected distribution ($host_distri) has been used";
     }

@@ -111,6 +111,7 @@ sub run {
     assert_script_run("export TOX_PARALLEL_NO_SPINNER=1");
     assert_script_run("export CONTAINER_RUNTIME=$engine");
     $version =~ s/-SP/./g;
+    $version = lc($version);
     assert_script_run("export OS_VERSION=$version");
     assert_script_run("export TARGET=$bci_target");
     assert_script_run("export BCI_DEVEL_REPO=$bci_devel_repo") if $bci_devel_repo;
