@@ -118,12 +118,14 @@ sub run {
     my $testdate_before = '2620-02-02';
     # backup and create our lifecycle data with known content
     select_console 'root-console';
-    assert_script_run "
-    if [ -f /var/lib/lifecycle/data/$prod.lifecycle ] ; then
-        mv /var/lib/lifecycle/data/$prod.lifecycle /var/lib/lifecycle/data/$prod.lifecycle.orig
-    fi
-    mkdir -p /var/lib/lifecycle/data
-    echo '$package, *, $testdate' > /var/lib/lifecycle/data/$prod.lifecycle";
+    my $backup = <<"EOF";
+if [ -f /var/lib/lifecycle/data/$prod.lifecycle ] ; then
+    mv /var/lib/lifecycle/data/$prod.lifecycle /var/lib/lifecycle/data/$prod.lifecycle.orig
+fi
+mkdir -p /var/lib/lifecycle/data
+echo '$package, *, $testdate' > /var/lib/lifecycle/data/$prod.lifecycle
+EOF
+    script_output $backup;
     # verify eol from lifecycle data
     select_console 'user-console';
     $output = script_output "zypper lifecycle $package", 300;
@@ -167,11 +169,12 @@ sub run {
 
     # restore original data, if any
     select_console 'root-console';
-    assert_script_run "
-    if [ -f /var/lib/lifecycle/data/$prod.lifecycle.orig ] ; then
-        mv /var/lib/lifecycle/data/$prod.lifecycle.orig /var/lib/lifecycle/data/$prod.lifecycle
-    fi";
-    #
+    my $restore = <<"EOF";
+if [ -f /var/lib/lifecycle/data/$prod.lifecycle.orig ] ; then
+    mv /var/lib/lifecycle/data/$prod.lifecycle.orig /var/lib/lifecycle/data/$prod.lifecycle
+fi
+EOF
+    script_output $restore;
     select_console 'user-console';
     # 4. verify that "zypper lifecycle --days N" and "zypper lifecycle --date
     # D" shows correct results
