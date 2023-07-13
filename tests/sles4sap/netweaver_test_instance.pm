@@ -9,6 +9,7 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use version_utils 'is_upgrade';
@@ -17,7 +18,7 @@ sub run {
     my ($self) = @_;
     my $pscmd = $self->set_ps_cmd(get_required_var('INSTANCE_TYPE'));
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # On upgrade scenarios, hostname and IP address could have changed from the original
     # installation of NetWeaver. This ensures the current hostname can be resolved

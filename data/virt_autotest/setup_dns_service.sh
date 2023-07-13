@@ -261,7 +261,7 @@ cp ${dns_resolv_file} ${dns_resolv_file}.orig
 awk -v dnsvar=${bridgeip} 'done != 1 && /^nameserver.*$/ { print "nameserver "dnsvar"\n"; done=1 } 1' ${dns_resolv_file} > ${dns_config_file_tmp}
 mv ${dns_config_file_tmp} ${dns_resolv_file}
 #Add testvirt.net as domain suffix
-sed -irn "/^search/ s/$/ ${dns_domain_forward}/" ${dns_resolv_file}
+sed -irn "s/^search/search ${dns_domain_forward}/" ${dns_resolv_file}
 #Add 192.168.123.1 as forwarder
 get_nameservers=`cat ${dns_resolv_file} | grep -iE "^nameserver" | awk '{print $NF}'`
 nameservers_array=$(echo -e ${get_nameservers})
@@ -270,10 +270,16 @@ declare -a forwarders_array=""
 for single_nameserver in ${nameservers_array[@]};do
 	forwarders_array+=(${single_nameserver}\;)
 done	
-sed -irn "s/forwarders.*$/forwarders { `echo -e ${forwarders_array[@]}` };/" ${dns_config_file}
+sed -irn "/^ *forwarders/s/forwarders.*$/forwarders { `echo -e ${forwarders_array[@]}` };/" ${dns_config_file}
 #Insert script signature to the end of ${dns_config_file} and ${dns_resolv_file}
 echo -e "#$0" >> ${dns_config_file}
 echo -e "#$0" >> ${dns_resolv_file}
+
+echo "" | tee -a ${setup_log_file}
+echo "****** content of /etc/resolv.conf ****" | tee -a ${setup_log_file}
+cat /etc/resolv.conf | tee -a ${setup_log_file}
+echo "------------------------------------" | tee -a ${setup_log_file}
+echo "" | tee -a ${setup_log_file}
 
 #Start named service. Quit if failed.
 dns_service_name="named"
@@ -331,6 +337,20 @@ for i in `seq 12`;do
 	sleep 10s
 	echo -e "$((120 - $i * 10)) seconds remaining.\n"
 done
+
+echo "" | tee -a ${setup_log_file}
+echo "# virsh list --all" | tee -a ${setup_log_file}
+virsh list --all | tee -a ${setup_log_file}
+ehco "" | tee -a ${setup_log_file}
+
+ehco "" | tee -a ${setup_log_file}
+echo "the new /etc/named.conf after modified: "  | tee -a ${setup_log_file}
+echo "cat /etc/named.conf" | tee -a ${setup_log_file}
+echo "---------" | tee -a ${setup_log_file}
+cat /etc/named.conf | tee -a ${setup_log_file}
+echo "---------" | tee -a ${setup_log_file}
+echo "" | tee -a ${setup_log_file}
+
 #Try to ping all vm guests by using their dns names. Quit if any failure. 
 sleep_time=180
 sleep_count=0
@@ -342,7 +362,7 @@ while [ ${sleep_count} -le ${sleep_time} ];do
 	vmguest_index=0
 	#Ping each vm guest by using its dns name and store result.
 	for vmguest in ${vm_guestnames_array[@]};do
-        	ping -c 1 ${vmguest}
+		ping -c 1 ${vmguest} | tee -a ${setup_log_file}
 		vmguest_ping_failed[${vmguest_index}]=`echo $?`
                 vmguest_index=$((${vmguest_index} + 1))
 	done

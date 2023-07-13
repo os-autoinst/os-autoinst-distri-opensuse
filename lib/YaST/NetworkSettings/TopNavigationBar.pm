@@ -5,7 +5,7 @@
 
 # Summary: The class introduces all accessing methods Top Navigation Bar in yast2 lan YaST module.
 # This is a part of a screen and it has to be included in Network Settings Controller.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package YaST::NetworkSettings::TopNavigationBar;
 use strict;

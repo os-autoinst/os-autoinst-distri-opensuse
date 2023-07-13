@@ -5,17 +5,17 @@
 #          For tpm2_enginee tests, we need tpm2-abrmd serive active.
 #          We have several test modules, this test module will cover
 #          the self signed tests.
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#64902, tc#1742298
 
 use strict;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Self Signed certificate generate operation
     my $test_dir = "tpm2_engine_self_sign";

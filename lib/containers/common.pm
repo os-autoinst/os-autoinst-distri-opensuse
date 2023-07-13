@@ -231,12 +231,13 @@ sub test_search_registry {
 
     foreach my $rlink (@registries) {
         record_info("URL", "Scanning: $rlink");
-        my $res = script_run(sprintf(qq[set -o pipefail; %s search %s/busybox --format="{{.Name}}" |& tee ./out], $engine, $rlink));
-        if (script_run('grep "requested access to the resource is denied" ./out') == 0) {
-            record_soft_failure("bsc#1178214 Podman search doesn't work with SUSE Registry");
-            record_soft_failure("bsc#1198974 [sle15sp1,sle15sp2] podman search wrong return code") if ($res != 125);
+        my $start = time;
+        assert_script_run(sprintf('%s --log-level=debug search %s/busybox --format="{{.Name}}"', $engine, $rlink), timeout => 200);
+        my $duration = time - $start;
+        record_info('Response', "Registry $rlink responded in $duration seconds");
+        if ($duration > 60) {
+            record_info('Softfail', 'Searching registry.suse.com is too slow (sdsc#SD-106252 https://sd.suse.com/servicedesk/customer/portal/1/SD-106252)');
         }
-        die 'Unexpected error during search!' if ($res && $res != 125);
     }
 }
 

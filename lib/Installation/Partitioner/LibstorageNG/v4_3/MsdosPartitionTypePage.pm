@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Page to handle partition type (exteded, primary) for msdos partitions
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::MsdosPartitionTypePage;
 use parent 'Installation::Navigation::NavigationBase';

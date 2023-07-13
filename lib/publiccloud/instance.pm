@@ -1,11 +1,11 @@
 # SUSE's openQA tests
 #
-# Copyright 2018 SUSE LLC
+# Copyright 2018-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Base class for public cloud instances
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
+# Maintainer: qa-c@suse.de
 
 package publiccloud::instance;
 use testapi;
@@ -14,9 +14,15 @@ use Mojo::Base -base;
 use Mojo::Util 'trim';
 use File::Basename;
 use publiccloud::utils;
-use publiccloud::ssh_interactive qw(ssh_interactive_tunnel ssh_interactive_leave);
+use Utils::Backends qw(set_sshserial_dev unset_sshserial_dev);
+use publiccloud::ssh_interactive qw(ssh_interactive_tunnel ssh_interactive_leave select_host_console);
 use version_utils;
 use utils;
+# for boottime checks
+use db_utils;
+use Mojo::Util 'trim';
+use Data::Dumper;
+use mmapi qw(get_current_job_id);
 
 use constant SSH_TIMEOUT => 90;
 
@@ -24,9 +30,9 @@ has instance_id => undef;    # unique CSP instance id
 has resource_id => undef;    # randomized resource id for all resources (e.g. resource group and storage account)
 has public_ip => undef;    # public IP of instance
 has username => undef;    # username for ssh connection
-has ssh_key => undef;    # path to ssh-key for connection
 has image_id => undef;    # image from where the VM is booted
 has type => undef;
+has region => undef;    # provider region, filled by provider::terraform_apply
 has provider => undef, weak => 1;    # back reference to the provider
 has ssh_opts => '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR';
 
@@ -35,7 +41,7 @@ has ssh_opts => '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o 
     run_ssh_command(cmd => 'command'[, timeout => 90][, ssh_opts =>'..'][, username => 'XXX'][, no_quote => 0][, rc_only => 0]);
 
 Runs a command C<cmd> via ssh in the given VM. Retrieves the output.
-If the command retrieves not zero, a exception is thrown..
+If the command retrieves not zero, an exception is thrown.
 Timeout can be set by C<timeout> or 90 sec by default.
 C<<proceed_on_failure=>1>> allows to proceed with validation when C<cmd> is
 failing (return non-zero exit code)
@@ -52,7 +58,7 @@ sub run_ssh_command {
     my $self = shift;
     my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
     die('Argument <cmd> missing') unless ($args{cmd});
-    $args{ssh_opts} //= $self->ssh_opts() . " -i '" . $self->ssh_key . "'";
+    $args{ssh_opts} //= $self->ssh_opts() . " -i '" . $self->provider->ssh_key . "'";
     $args{username} //= $self->username();
     $args{timeout} //= SSH_TIMEOUT;
     $args{quiet} //= 1;
@@ -78,14 +84,16 @@ sub run_ssh_command {
     if ($args{timeout} == 0) {
         # Run the command and don't wait for it - no output nor returncode here
         script_run($ssh_cmd, %args);
-    } elsif ($rc_only) {
+    }
+    elsif ($rc_only) {
         # Increase the hard timeout for script_run, otherwise our 'timeout $args{timeout} ...' has no effect
         $args{timeout} += 2;
         $args{quiet} = 0;
         $args{die_on_timeout} = 1;
         # Run the command and return only the returncode here
         return script_run($ssh_cmd, %args);
-    } else {
+    }
+    else {
         # Run the command, wait for it and return the output
         return script_output($ssh_cmd, %args);
     }
@@ -129,7 +137,7 @@ sub retry_ssh_command {
 sub _prepare_ssh_cmd {
     my ($self, %args) = @_;
     die('No command defined') unless ($args{cmd});
-    $args{ssh_opts} //= $self->ssh_opts() . " -i '" . $self->ssh_key . "'";
+    $args{ssh_opts} //= $self->ssh_opts() . " -i '" . $self->provider->ssh_key . "'";
     $args{username} //= $self->username();
     $args{timeout} //= SSH_TIMEOUT;
 
@@ -139,8 +147,7 @@ sub _prepare_ssh_cmd {
         $cmd = "\$'$cmd'";
     }
 
-    my $ssh_cmd = sprintf('ssh %s "%s@%s" -- %s', $args{ssh_opts}, $args{username}, $self->public_ip, $cmd);
-    #$ssh_cmd = "timeout $args{timeout} $ssh_cmd" if ($args{timeout} > 0);
+    my $ssh_cmd = sprintf('ssh -t %s "%s@%s" -- %s', $args{ssh_opts}, $args{username}, $self->public_ip, $cmd);
     return $ssh_cmd;
 }
 
@@ -231,8 +238,7 @@ sub scp {
     $from =~ s/^remote:/$url/;
     $to =~ s/^remote:/$url/;
 
-    my $ssh_cmd = sprintf('scp %s -i "%s" "%s" "%s"',
-        $self->ssh_opts, $self->ssh_key, $from, $to);
+    my $ssh_cmd = sprintf('scp %s -i "%s" "%s" "%s"', $self->ssh_opts, $self->provider->ssh_key, $from, $to);
 
     return script_run($ssh_cmd, %args);
 }
@@ -265,32 +271,35 @@ a soft-failure will be recorded.
 If guestregister will not finish within C<timeout> seconds, job dies.
 In case of BYOS images we checking that service is inactive and quit
 Returns the time needed to wait for the guestregister to complete.
+C<wait_for_guestregister> is called inside C<create_instance()>, enabled by C<check_guestregister>
 =cut
 
-sub wait_for_guestregister
-{
+sub wait_for_guestregister {
     my ($self, %args) = @_;
     $args{timeout} //= 300;
     my $start_time = time();
     my $last_info = 0;
+    my $log = '/var/log/cloudregister';
+    my $name = $autotest::current_test->{name} . '-cloudregister.log.txt';
 
     # Check what version of registercloudguest binary we use
-    $self->run_ssh_command(cmd => "sudo rpm -qa cloud-regionsrv-client", proceed_on_failure => 1);
-
+    $self->run_ssh_command(cmd => "rpm -qa cloud-regionsrv-client", proceed_on_failure => 1);
+    record_info('CHECK', 'guestregister check');
     while (time() - $start_time < $args{timeout}) {
         my $out = $self->run_ssh_command(cmd => 'sudo systemctl is-active guestregister', proceed_on_failure => 1, quiet => 1);
         # guestregister is expected to be inactive because it runs only once
-        if ($out eq 'inactive') {
-            $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
+        # the tests match the expected string at end of the cmd output
+        if ($out =~ m/inactive$/) {
+            $self->upload_log($log, log_name => $name);
             return time() - $start_time;
-        } elsif ($out eq 'failed') {
-            $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
-            $out = $self->run_ssh_command(cmd => 'sudo systemctl status guestregister', proceed_on_failure => 1, quiet => 1);
-            record_info("guestregister failed", $out, result => 'fail');
-            record_soft_failure("bsc#1195414");
+        }
+        elsif ($out =~ m/failed$/) {
+            $self->upload_log($log, log_name => $name);
+            $out = $self->run_ssh_command(cmd => 'sudo systemctl status guestregister', quiet => 1);
             return time() - $start_time;
-        } elsif ($out eq 'active') {
-            $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
+        }
+        elsif ($out =~ m/active$/) {
+            $self->upload_log($log, log_name => $name);
             die "guestregister should not be active on BYOS" if (is_byos);
         }
 
@@ -301,66 +310,149 @@ sub wait_for_guestregister
         sleep 1;
     }
 
-    $self->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log');
+    $self->upload_log($log, log_name => $name);
     die('guestregister didn\'t end in expected timeout=' . $args{timeout});
 }
 
 =head2 wait_for_ssh
 
-    wait_for_ssh([timeout => 600] [, proceed_on_failure => 0])
+    wait_for_ssh([timeout => 600] [, proceed_on_failure => 0] [, ...])
 
-Check if the SSH port of the instance is reachable and open.
+When a remote pc instance starting, by default wait_stop param.=0(false) and 
+this routine checks until the SSH port of the remote instance is reachable and open. 
+Then by default also checks that system is up, unless systemup_check false/0.
+
+Wnen a remote pc instance is stopping in shutdown, we set input param. wait_stop=1(true),
+to expect until ssh is closed; automatic defaults systemup_check=0 and proceed_on_failure=1 applied.
+Status values of exit_code: 0 = pass; 1 = fail; 2 = fail,but retry,till timeout or valid outcome.
+
+Parameters:
+ timeout => total wait timeout; default: 600.
+ wait_stop => If true waits for ssh port to become unreachable, if false waits for ssh reachable; default: false.
+ proceed_on_failure => in case of fail, if false exit test with error, if true let calling code to continue; default: wait_stop.
+ username => default: username().
+ public_ip => default: public_ip().
+ systemup_check => If true, checks if the system is up too, instead of just checking the ssh port; default: !wait_stop.
+ logs => If true, upload journal to test logs, if false log not uploaded, to speed up check; default: true.
+
+Return:
+ duration if pass 
+ undef if fail and proceed_on_failure true, otherwise die.
 =cut
 
-sub wait_for_ssh
-{
+sub wait_for_ssh {
     my ($self, %args) = @_;
+    # Input parameters, see description in above head2 - Parameters section:
     $args{timeout} //= 600;
-    $args{proceed_on_failure} //= 0;
-    $args{username} //= $self->username();
+    $args{wait_stop} //= 0;
+    $args{proceed_on_failure} //= $args{wait_stop};
+    $args{systemup_check} //= not $args{wait_stop};
+    $args{logs} //= 1;
     $args{public_ip} //= $self->public_ip();
+    # DMS migration (tests/publiccloud/migration.pm) is running under user "migration"
+    # until it is not over we will receive "ssh permission denied (pubkey)" error
+    # but it is not good reason to die early because after it will be over
+    # DMS will return normal user and error will be resolved: connection retry for that error.
+
+    $args{username} //= $self->username();
+    my $delay = $args{timeout} > 180 ? 5 : 1;
     my $start_time = time();
-    my $check_port = 1;
+    my $instance_msg = "instance: $self->{instance_id}, public IP: $self->{public_ip}";
+    my ($duration, $exit_code, $sshout, $sysout);
 
-    # Looping until reaching timeout or passing two conditions :
-    # - SSH port 22 is reachable
-    # - journalctl got message about reaching one of certain targets
-    while ((my $duration = time() - $start_time) < $args{timeout}) {
-        if ($check_port) {
-            $check_port = 0 if (script_run('nc -vz -w 1 ' . $self->{public_ip} . ' 22', quiet => 1) == 0);
-        }
-        else {
-            # On boottime test we do hard reboot which may change the instance address
-            script_run("ssh-keyscan $args{public_ip} | tee -a ~/.ssh/known_hosts") if (get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME'));
+    # Looping until SSH port 22 is reachable or timeout.
+    while (($duration = time() - $start_time) < $args{timeout}) {
+        $exit_code = script_run('nc -vz -w 1 ' . $self->{public_ip} . ' 22', quiet => 1);
+        last if (isok($exit_code) and not $args{wait_stop});    # ssh port open ok
+        last if (not isok($exit_code) and $args{wait_stop});    # ssh port closed ok
+        sleep $delay;
+    }    # endloop
 
-            my $output = $self->run_ssh_command(cmd => 'sudo journalctl -b | grep -E "Reached target (Cloud-init|Default|Main User Target)"', proceed_on_failure => 1, username => $args{username});
-            if ($output =~ m/Reached target.*/) {
-                return $duration;
-            }
-            elsif ($output =~ m/Permission denied (publickey).*/) {
-                die "ssh permission denied (pubkey)";
-            }
-        }
-        sleep 1;
+    # exit_code is 0 when shell script is ok
+    if (isok($exit_code)) {
+        $sshout = "SSH port is open\n";
     }
+    else {
+        $sshout = "SSH port is not open failed access\n";
+        $sshout .= "as expected by stopping: OK.\n" if $args{wait_stop};
+    }    # endif
 
-    script_run("ssh  -i /root/.ssh/id_rsa -v $args{username}\@$args{public_ip} true", timeout => 360);
-    # Debug output: We have occasional error in 'journalctl -b' - see poo#96464 - this will be removed soon.
-    $self->run_ssh_command(cmd => 'sudo journalctl -b', proceed_on_failure => 1, username => $args{username});
+    # check also remote system is up and running:
+    my $retry = 0;    # count retries of unexpected sysout
+    if ($args{systemup_check} and isok($exit_code)) {
+        # Install server's ssh publicckeys to prevent authentication interactions
+        # or instance address changes during VM reboots.
+        script_run("ssh-keyscan $args{public_ip} | tee -a ~/.ssh/known_hosts");
+        while (($duration = time() - $start_time) < $args{timeout}) {
+            # timeout recalculated removing consumed time until now
+            $sysout = $self->ssh_script_output(cmd => 'sudo systemctl is-system-running',
+                timeout => $args{timeout} - $duration, proceed_on_failure => 1, username => $args{username});
+            # result check
+            if ($sysout =~ m/initializing|starting/) {    # still starting
+                $exit_code = undef;
+            }
+            elsif ($sysout =~ m/running/) {    # startup OK
+                $exit_code = 0;
+                $sysout .= "\nSystem successfully booted";
+                last;
+            }
+            elsif ($sysout =~ m/degraded/) {    # up but with failed services to collect
+                $exit_code = 0;
+                $sysout .= "\nSystem booted, but some services failed:\n" .
+                  $self->ssh_script_output(cmd => 'sudo systemctl --failed',
+                    proceed_on_failure => 1, username => $args{username});
+                last;
+            }
+            elsif ($sysout =~ m/maintenance|stopping|offline|unknown/) {
+                $exit_code = 1;
+                $sysout .= "\nCan not reach systemd target";
+                last;
+            }
+            else {    # other outcome or connection refused: retry/reloop
+                $exit_code = 2;
+                ++$retry;
+            }    # endif
+            sleep $delay;
+        }    # end loop
 
-    unless ($args{proceed_on_failure}) {
-        my $error_msg;
-        if ($check_port) {
-            $error_msg = sprintf("Unable to reach SSH port of instance %s with public IP:%s within %d seconds", $self->{instance_id}, $self->{public_ip}, $args{timeout});
-        }
-        else {
-            $error_msg = sprintf("Can not reach systemd target on instance %s with public IP:%s within %d seconds", $self->{instance_id}, $self->{public_ip}, $args{timeout});
-        }
-        croak($error_msg);
-    }
+        # Log upload
+        if (!get_var('PUBLIC_CLOUD_SLES4SAP') and $args{logs}) {
+            #Exclude 'mr_test/saptune' test case as it will introduce random softreboot failures.
+            $self->ssh_script_run('sudo journalctl -b --no-pager > /tmp/journalctl.log',
+                timeout => 360, proceed_on_failure => 1, username => $args{username}, quiet => 1);
+            $self->upload_log('/tmp/journalctl.log', failok => 1);
+        }    # endif
+    }    # endif
 
-    return;
-}
+    # result display
+    $sysout .= "\nTimeout $args{timeout} sec. expired" if ($duration >= $args{timeout});
+    $instance_msg = "Check" . ($args{systemup_check} ? " SYSTEM " : " SSH ") . ($args{wait_stop} ? "DOWN" : "UP") .
+      ", $instance_msg, Duration: $duration sec.\nResult: $sshout . $sysout";
+    $instance_msg .= "\nRetries on failure: $retry" if ($retry);
+    record_info("WAIT CHECK", $instance_msg);
+    # OK
+    return $duration if (isok($exit_code) and not $args{wait_stop});
+    # FAIL
+    croak(" results summary:\n" . $sshout . $sysout) unless ($args{proceed_on_failure});
+    return;    # proceed_on_failure true
+}    # end sub
+
+=head2 isok
+
+    isok($exit_code);
+
+To convert in a true or 1 value for perl tests the exit_code 0 of shell script ok.
+
+Return:
+the positive test status of a shell exit code, 
+that is true(1) and ok when its value is defined and zero: C<$x == 0>
+otherwise false(undef).
+=cut
+
+sub isok {
+    my ($x) = @_;
+    return (defined($x) and $x == 0);
+}    # end sub
 
 =head2 softreboot
 
@@ -371,44 +463,50 @@ Return an array of two values, first one is the time till the instance isn't
 reachable anymore. The second one is the estimated bootup time.
 =cut
 
-sub softreboot
-{
+sub softreboot {
     my ($self, %args) = @_;
     $args{timeout} //= 600;
     $args{username} //= $self->username();
+    # see detailed explanation inside wait_for_ssh
 
     my $duration;
 
-    # On TUNNELED test runs, ensure we are not on the publiccloud instance
     my $prev_console = current_console();
-    # We only need to re-establish the ssh tunnel, if we are in a TUNNELED test run, and if the tunnel is already initialized
-    my $tunneled = get_var('TUNNELED', 0) && get_var("_SSH_TUNNELS_INITIALIZED", 0);
+    # On TUNNELED test runs, we need to re-establish the tunnel
+    my $tunneled = is_tunneled() && get_var("_SSH_TUNNELS_INITIALIZED", 0);
     if ($tunneled) {
-        select_host_console(force => 1);
+        select_console('tunnel-console', await_console => 0);
         ssh_interactive_leave();
     }
 
-    $self->run_ssh_command(cmd => 'sudo shutdown -r +1');
+    $self->ssh_assert_script_run(cmd => 'sudo /sbin/shutdown -r +1');
     sleep 60;    # wait for the +1 in the previous command
     my $start_time = time();
 
     # wait till ssh disappear
-    while (($duration = time() - $start_time) < $args{timeout}) {
-        last unless (defined($self->wait_for_ssh(timeout => 1, proceed_on_failure => 1, username => $args{username})));
-    }
+    my $out = $self->wait_for_ssh(timeout => $args{timeout}, wait_stop => 1, username => $args{username});
+    # ok ssh port closed
+    record_info("Shutdown failed", "WARNING: while stopping the system, ssh port still open after timeout,\nreporting: $out")
+      if (defined $out);    # not ok port still open
+
     my $shutdown_time = time() - $start_time;
     die("Waiting for system down failed!") unless ($shutdown_time < $args{timeout});
     my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time, username => $args{username});
 
-    # Re-establish tunnel and switch back to previous console if TUNNELED
+    # ensure the tunnel-console is healthy, usefuly to early detect possible issues with the serial terminal
+    assert_script_run("true", fail_message => "console is broken");
+
+    # Re-establish tunnel and switch back to previous console if needed
     if ($tunneled) {
-        ssh_interactive_tunnel($self);
+        record_info("re-establish tunnel", "re-esablishing ssh tunnel");
+        ssh_interactive_tunnel($self, reconnect => 1);
         die("expect ssh serial device to be active") unless (get_var('SERIALDEV') =~ /ssh/);
         select_console($prev_console) if ($prev_console !~ /tunnel/);
     }
 
     return ($shutdown_time, $bootup_time);
 }
+
 
 =head2 stop
 
@@ -417,8 +515,7 @@ sub softreboot
 Stop the instance using the CSP api calls.
 =cut
 
-sub stop
-{
+sub stop {
     my $self = shift;
     $self->provider->stop_instance($self, @_);
 }
@@ -427,12 +524,11 @@ sub stop
 
     start([timeout => ?]);
 
-Start the instance and check SSH connectivity. Return the number of seconds
-till the SSH port was available.
+Start the instance and wait for the system to be up.
+Returns the number of seconds till the system up and running.
 =cut
 
-sub start
-{
+sub start {
     my ($self, %args) = @_;
     $args{timeout} //= 600;
     $self->provider->start_instance($self, @_);
@@ -446,8 +542,7 @@ sub start
 Get the status of the instance using the CSP api calls.
 =cut
 
-sub get_state
-{
+sub get_state {
     my $self = shift;
     return $self->provider->get_state_from_instance($self, @_);
 }
@@ -462,7 +557,8 @@ Test the network speed.
 sub network_speed_test() {
     my ($self, %args) = @_;
     # Curl stats output format
-    my $write_out = 'time_namelookup:\t%{time_namelookup} s\ntime_connect:\t\t%{time_connect} s\ntime_appconnect:\t%{time_appconnect} s\ntime_pretransfer:\t%{time_pretransfer} s\ntime_redirect:\t\t%{time_redirect} s\ntime_starttransfer:\t%{time_starttransfer} s\ntime_total:\t\t%{time_total} s\n';
+    my $write_out
+      = 'time_namelookup:\t%{time_namelookup} s\ntime_connect:\t\t%{time_connect} s\ntime_appconnect:\t%{time_appconnect} s\ntime_pretransfer:\t%{time_pretransfer} s\ntime_redirect:\t\t%{time_redirect} s\ntime_starttransfer:\t%{time_starttransfer} s\ntime_total:\t\t%{time_total} s\n';
     # PC RMT server domain name
     my $rmt_host = "smt-" . lc(get_required_var('PUBLIC_CLOUD_PROVIDER')) . ".susecloud.net";
     my $rmt = $self->run_ssh_command(cmd => "grep \"$rmt_host\" /etc/hosts", proceed_on_failure => 1);
@@ -470,5 +566,186 @@ sub network_speed_test() {
     record_info("ping 1.1.1.1", $self->run_ssh_command(cmd => "ping -c30 1.1.1.1", proceed_on_failure => 1, timeout => 600));
     record_info("curl $rmt_host", $self->run_ssh_command(cmd => "curl -w '$write_out' -o /dev/null -v https://$rmt_host/", proceed_on_failure => 1));
 }
+
+=head2 measure_boottime
+
+    measure_boottime();
+
+Perfomrance measurement of the system Boot time. 
+Mainly used C<systemd-analyze> command for the data extraction.
+Data is then collected in an internal record, ready for storing in a DB.
+Set PUBLIC_CLOUD_PERF_COLLECT true or >0, to activate boottime measurements.
+
+=cut
+
+sub measure_boottime() {
+    my ($self, $instance, $type) = @_;
+    my $data_collect = get_var('PUBLIC_CLOUD_PERF_COLLECT', 1);
+
+    return 0 unless ($data_collect);
+
+    my $ret = {
+        kernel_release => undef,
+        kernel_version => undef,
+        type => undef,
+        analyze => {},
+        blame => {},
+    };
+
+    record_info("BOOT TIME", 'systemd_analyze');
+    # first deployment analysis
+    my ($systemd_analyze, $systemd_blame) = do_systemd_analyze_time($instance);
+    return 0 unless ($systemd_analyze && $systemd_blame);
+
+    $ret->{analyze}->{$_} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
+    $ret->{blame} = $systemd_blame;
+    $ret->{type} = $type;
+    # $ret->{analyze}->{ssh_access} = $startup_time; # placeholder for next implementation
+
+    # Collect kernel version
+    $ret->{kernel_release} = $instance->run_ssh_command(cmd => 'uname -r', proceed_on_failure => 1);
+    $ret->{kernel_version} = $instance->run_ssh_command(cmd => 'uname -v', proceed_on_failure => 1);
+
+    # Do logging to openqa UI
+    $Data::Dumper::Sortkeys = 1;
+    record_info("RESULTS", Dumper($ret));
+    my @logs = qw(cloudregister cloud-init.log cloud-init-output.log messages NetworkManager);
+    $instance->upload_log("/var/log/" . $_, log_name => 'measure_boottime_' . $_ . '.txt', failok => 1) foreach (@logs);
+    return $ret;
+}
+
+
+=head2 store_boottime_db
+
+    store_boottime_db();
+
+Save data collected with measure_boottime in a DB;
+Mainly stored on a remote InfluxDB on a Grafana server.
+To activate boottime push, shall be available results and
+  PUBLIC_CLOUD_PERF_PUSH_DATA true/not 0 and
+  _SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN defined
+=cut
+
+sub store_boottime_db() {
+    my ($self, $results) = @_;
+    my $data_push = get_var('PUBLIC_CLOUD_PERF_PUSH_DATA', 1);
+    my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI', 'http://publiccloud-ng.qa.suse.de:8086');
+    my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
+    my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf_2');
+    my $token = get_var('_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN');
+
+    return unless ($results && $data_push);
+    unless ($token) {
+        record_info("WARN", "_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN is missing ", result => 'fail');
+        return 0;
+    }
+
+    my $tags = {
+        instance_type => get_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
+        job_id => get_current_job_id(),
+        os_provider => get_var('PUBLIC_CLOUD_PROVIDER'),
+        os_build => get_var('BUILD'),
+        os_flavor => get_var('FLAVOR'),
+        os_version => get_var('VERSION'),
+        os_distri => get_var('DISTRI'),
+        os_arch => get_var('ARCH'),
+        os_region => $self->{region},
+        os_kernel_release => $results->{kernel_release},
+        os_kernel_version => $results->{kernel_version},
+    };
+
+    $tags->{os_pc_build} = get_var('PUBLIC_CLOUD_QAM') ? 'N/A' : get_var('PUBLIC_CLOUD_BUILD', 0);
+    $tags->{os_pc_kiwi_build} = get_var('PUBLIC_CLOUD_QAM') ? 'N/A' : get_var('PUBLIC_CLOUD_BUILD_KIWI', 0);
+
+    record_info("STORE analyze", 'bootup');
+    # Store values in influx-db
+
+    my $data = {
+        table => 'bootup',
+        tags => $tags,
+        values => $results->{analyze}
+    };
+    my $res = influxdb_push_data($url, $db, $org, $token, $data, proceed_on_failure => 1);
+    return unless ($res);
+
+    record_info("STORE blame", $results->{type});
+    $tags->{boottype} = $results->{type};
+    $data = {
+        table => 'bootup_blame',
+        tags => $tags,
+        values => $results->{blame}
+    };
+    $res = influxdb_push_data($url, $db, $org, $token, $data, proceed_on_failure => 1);
+    return $res;
+}
+
+sub systemd_time_to_second
+{
+    my $str_time = trim(shift);
+
+    if ($str_time !~ /^(?<check_min>(?<min>\d{1,2})\s*min\s*)?((?<sec>\d{1,2}\.\d{1,3})s|(?<ms>\d+)ms)$/) {
+        record_info("WARN", "Unable to parse systemd time '$str_time'", result => 'fail');
+        return -1;
+    }
+    my $sec = $+{sec} // $+{ms} / 1000;
+    $sec += $+{min} * 60 if (defined($+{check_min}));
+    return $sec;
+}
+
+sub extract_analyze_time {
+    my $str_time = shift;
+    my $res = {};
+    ($str_time) = split(/\r?\n/, $str_time, 2);
+    $str_time =~ s/Startup finished in\s*//;
+    $str_time =~ s/=(.+)$/+$1 (overall)/;
+    for my $time (split(/\s*\+\s*/, $str_time)) {
+        $time = trim($time);
+        my ($time, $type) = $time =~ /^(.+)\s*\((\w+)\)$/;
+        $res->{$type} = systemd_time_to_second($time);
+        return 0 if ($res->{$type} == -1);
+    }
+    foreach (qw(kernel initrd userspace overall)) { return 0 unless exists($res->{$_}); }
+    return $res;
+}
+
+sub extract_blame_time {
+    my $str_time = shift;
+    my $ret = {};
+    for my $line (split(/\r?\n/, $str_time)) {
+        $line = trim($line);
+        my ($time, $service) = $line =~ /^(.+)\s+(\S+)$/;
+        $ret->{$service} = systemd_time_to_second($time);
+        return 0 if ($ret->{$service} == -1);
+    }
+    return $ret;
+}
+
+sub do_systemd_analyze_time {
+    my ($instance, %args) = @_;
+    $args{timeout} = 120;
+    my $start_time = time();
+    my $output = "";
+    my @ret;
+
+    # calling systemd-analyze time & blame
+    # guestregister check executed in create_instances
+    while ($output !~ /Startup finished in/ && time() - $start_time < $args{timeout}) {
+        $output = $instance->run_ssh_command(cmd => 'systemd-analyze time', proceed_on_failure => 1);
+        sleep 5;
+    }
+
+    unless ($output && (time() - $start_time < $args{timeout})) {
+        record_info("WARN", "Unable to get system-analyze in $args{timeout} seconds", result => 'fail');
+        # handle_boot_failure: soft exit from measurement.
+        return (0, 0);
+    }
+    push @ret, extract_analyze_time($output);
+
+    $output = $instance->run_ssh_command(cmd => 'systemd-analyze blame', proceed_on_failure => 1);
+    push @ret, extract_blame_time($output);
+
+    return @ret;
+}
+
 
 1;

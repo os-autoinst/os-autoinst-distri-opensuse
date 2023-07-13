@@ -6,7 +6,7 @@
 # Summary: The class introduces all accessing methods for New Partition Size
 # Page of Expert Partitioner Wizard, that are common for all the versions of the
 # page (e.g. for both Libstorage and Libstorage-NG).
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::Partitioner::NewPartitionSizePage;
 use strict;

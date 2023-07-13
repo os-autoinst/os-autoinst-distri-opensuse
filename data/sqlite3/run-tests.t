@@ -66,8 +66,8 @@ subtest test_view => sub {
 };
 
 subtest test_trigger => sub {
-    my $cmd = sprintf q{echo '%s;' | sqlite3 %s},
-      q{UPDATE movie SET name="The Dead Don'"'"'t Die" WHERE mid=1},
+    my $cmd = sprintf q{echo "%s;" | sqlite3 %s},
+      q{UPDATE movie SET name='The Dead Don''t Die' WHERE mid=1},
       $dbfile;
     note "Command: '$cmd'";
     my @output = qx{$cmd};

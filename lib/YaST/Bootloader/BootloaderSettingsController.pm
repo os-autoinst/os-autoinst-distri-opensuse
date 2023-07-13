@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Controller for YaST bootloader module.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package YaST::Bootloader::BootloaderSettingsController;
 use strict;
@@ -13,6 +13,7 @@ use YuiRestClient;
 use YaST::Bootloader::BootCodeOptionsPage;
 use YaST::Bootloader::KernelParametersPage;
 use YaST::Bootloader::BootloaderOptionsPage;
+use YaST::Bootloader::BootloaderOptionsTab;
 
 sub new {
     my ($class, $args) = @_;
@@ -25,6 +26,7 @@ sub init {
     $self->{BootCodeOptionsPage} = YaST::Bootloader::BootCodeOptionsPage->new({app => YuiRestClient::get_app()});
     $self->{KernelParametersPage} = YaST::Bootloader::KernelParametersPage->new({app => YuiRestClient::get_app()});
     $self->{BootloaderOptionsPage} = YaST::Bootloader::BootloaderOptionsPage->new({app => YuiRestClient::get_app()});
+    $self->{BootloaderOptionsTab} = YaST::Bootloader::BootloaderOptionsTab->new({});
     return $self;
 }
 
@@ -44,6 +46,11 @@ sub get_bootloader_options_page {
     my ($self) = @_;
     die 'Bootloader Options tab is not shown' unless $self->{BootloaderOptionsPage}->is_shown();
     return $self->{BootloaderOptionsPage};
+}
+
+sub get_bootloader_options_tab {
+    my ($self) = @_;
+    return $self->{BootloaderOptionsTab};
 }
 
 sub get_current_settings {
@@ -77,6 +84,14 @@ sub write_to_partition {
     my ($self) = @_;
     $self->get_boot_code_options_page->check_write_to_partition();
     $self->get_boot_code_options_page->press_next();
+}
+
+sub disable_grub_timeout_navigating_tabs {
+    my ($self) = @_;
+    $self->get_boot_code_options_page;
+    $self->get_bootloader_options_tab->navigate();
+    $self->get_bootloader_options_page->set_grub_timeout('-1');
+    $self->get_bootloader_options_page->press_next();
 }
 
 sub disable_grub_timeout {

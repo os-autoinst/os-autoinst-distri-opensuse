@@ -8,13 +8,13 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use hacluster;
 use strict;
 use warnings;
 
 sub run {
-    my ($self) = @_;
     my $cluster_name = get_cluster_name;
     my $instance_type = get_required_var('INSTANCE_TYPE');
     my ($ip, $netmask) = split '/', get_required_var('INSTANCE_IP_CIDR');
@@ -24,7 +24,7 @@ sub run {
     # Export needed variables
     set_var('INSTANCE_ALIAS', "$alias");
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Get the network interface and add IP alias
     my $eth = script_output "ip -o route | sed -rn '/^default/s/.+dev ([a-z]+[0-9]).+/\\1/p'";

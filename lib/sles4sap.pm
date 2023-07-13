@@ -8,11 +8,12 @@
 
 ## no critic (RequireFilenameMatchesPackage);
 package sles4sap;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use hacluster qw(get_hostname ha_export_logs pre_run_hook save_state wait_until_resources_started);
 use isotovideo;
@@ -24,10 +25,14 @@ use registration qw(add_suseconnect_product);
 use version_utils qw(is_sle);
 use utils qw(zypper_call);
 use Utils::Systemd qw(systemctl);
+use Utils::Logging 'save_and_upload_log';
 
 our @EXPORT = qw(
   $instance_password
   $systemd_cgls_cmd
+  SAPINIT_RE
+  SYSTEMD_RE
+  SYSTEMCTL_UNITS_RE
   ensure_serialdev_permissions_for_sap
   fix_path
   set_ps_cmd
@@ -47,9 +52,11 @@ our @EXPORT = qw(
   reboot
   check_replication_state
   check_hanasr_attr
+  check_landscape
   do_hana_sr_register
   do_hana_takeover
   install_libopenssl_legacy
+  startup_type
 );
 
 =head1 SYNOPSIS
@@ -66,9 +73,37 @@ our $prev_console;
 our $sapadmin;
 our $sid;
 our $instance;
+our $product;
 our $ps_cmd;
 our $instance_password = get_var('INSTANCE_PASSWORD', 'Qwerty_123');
 our $systemd_cgls_cmd = 'systemd-cgls --no-pager -u SAP.slice';
+
+=head2 SAPINIT_RE & SYSTEMD_RE
+
+    $self->SAPINIT_RE();
+    $self->SAPINIT_RE(qr/some regexp/);
+    $self->SYSTEMD_RE();
+    $self->SYSTEMD_RE(qr/some regexp/);
+
+Set or get a regular expressions to test on the F</usr/sap/sapservices> file
+whether the SAP workload was started via sapinit or systemd.
+
+=cut
+
+has SAPINIT_RE => undef;
+has SYSTEMD_RE => undef;
+
+=head2 SYSTEMCTL_UNITS_RE
+
+    $self->SYSTEMCTL_UNITS_RE();
+    $self->SYSTEMCTL_UNITS_RE(qr/some regexp/);
+
+Set or get a regular expression to test in the output of C<systemctl --list-unit-files>
+whether the SAP workload was started via systemd units.
+
+=cut
+
+has SYSTEMCTL_UNITS_RE => undef;
 
 =head2 ensure_serialdev_permissions_for_sap
 
@@ -137,7 +172,8 @@ sub set_ps_cmd {
 SAP software relies on 2 identifiers, the system id (SID) which is a 3-character
 identifier, and the instance number. This method receives both via positional
 arguments, and sets the internal variables for B<$sid>, B<$instance> and B<$sapadmin>
-accordingly. Returns the value of B<$sapadmin>.
+accordingly. It also sets accessors that depend on B<$sid> and B<$instance>
+as well as the product type. Returns the value of B<$sapadmin>.
 
 =cut 
 
@@ -146,6 +182,13 @@ sub set_sap_info {
     $sid = uc($sid_env);
     $instance = $instance_env;
     $sapadmin = lc($sid_env) . 'adm';
+    $product = get_var('INSTANCE_TYPE', 'HDB');    # Default to HDB as INSTANCE_TYPE is only a required setting in NW tests
+    if (ref($self)) {
+        # Only set RE if called in OO mode
+        $self->SAPINIT_RE(qr|$sid/$product$instance/exe/sapstartsrv|);
+        $self->SYSTEMD_RE(qr|systemctl.+start SAP${sid}_$instance|);
+        $self->SYSTEMCTL_UNITS_RE(qr/SAP${sid}_$instance.service/);
+    }
     return ($sapadmin);
 }
 
@@ -267,7 +310,7 @@ sub prepare_profile {
         my $ret = systemctl('restart systemd-logind.service', ignore_failure => 1);
         die "systemctl restart systemd-logind.service failed with retcode: [$ret]" if $ret;
         if (!defined $ret) {
-            $self->select_serial_terminal;
+            select_serial_terminal;
             systemctl 'restart systemd-logind.service';
         }
     }
@@ -290,13 +333,13 @@ sub prepare_profile {
                 qw(root-console displaymanager displaymanager-password-prompt generic-desktop
                   text-login linux-login started-x-displaymanager-info)
             ], 120);
-        $self->select_serial_terminal unless (match_has_tag 'root-console');
+        select_serial_terminal unless (match_has_tag 'root-console');
     }
     else {
         # If running in DESKTOP=gnome, systemd-logind restart may cause the graphical
         # console to reset and appear in SUD, so need to select 'root-console' again
         # 'root-console' can be re-selected safely even if DESKTOP=textmode
-        $self->select_serial_terminal;
+        select_serial_terminal;
     }
 
     if ($has_saptune) {
@@ -305,7 +348,7 @@ sub prepare_profile {
         if (!defined $ret) {
             # Command timed out. 'saptune daemon start' could have caused the SUT to
             # move out of root-console, so select root-console and try again
-            $self->select_serial_terminal;
+            select_serial_terminal;
             $ret = script_run "saptune solution verify $profile";
         }
         record_soft_failure("poo#57464: 'saptune solution verify' returned warnings or errors! Please check!") if ($ret && !is_qemu());
@@ -314,7 +357,7 @@ sub prepare_profile {
         if (!defined $output) {
             # Command timed out or failed. 'saptune solution verify' could have caused
             # the SUT to move out of root-console, so select root-console and try again
-            $self->select_serial_terminal;
+            select_serial_terminal;
             $output = script_output "saptune daemon status";
         }
         record_info("saptune status", $output);
@@ -559,7 +602,7 @@ sub check_instance_state {
         last if (($output =~ /GRAY/) && ($uc_state eq 'GRAY'));
 
         if ((($output =~ /GREEN/) && ($uc_state eq 'GREEN')) || ($uc_state eq 'GRAY')) {
-            $output = script_output "sapcontrol -nr $instance -function GetProcessList | egrep -i ^[a-z]", proceed_on_failure => 1;
+            $output = script_output "sapcontrol -nr $instance -function GetProcessList | grep -E -i ^[a-z]", proceed_on_failure => 1;
             die "sapcontrol: GetProcessList: command failed" unless ($output =~ /GetProcessList[\r\n]+OK/);
 
             my $failing_services = 0;
@@ -602,7 +645,7 @@ sub check_replication_state {
     my $sapadm = $self->set_sap_info(get_required_var('INSTANCE_SID'), get_required_var('INSTANCE_ID'));
     # Wait by default for 5 minutes
     my $time_to_wait = 300;
-    my $cmd = "su - $sapadm -c 'python2 exe/python_support/systemReplicationStatus.py'";
+    my $cmd = "su - $sapadm -c 'python exe/python_support/systemReplicationStatus.py'";
 
     # Replication check can only be done on PRIMARY node
     my $output = script_output($cmd, proceed_on_failure => 1);
@@ -636,7 +679,8 @@ returns a non-zero return value.
 
 sub check_hanasr_attr {
     my ($self, %args) = @_;
-    my $looptime = bmwqemu::scale_timeout($args{timeout} // 90);
+    $args{timeout} //= 90;
+    my $looptime = bmwqemu::scale_timeout($args{timeout});
     my $out;
 
     while ($out = script_output 'SAPHanaSR-showAttr') {
@@ -650,6 +694,24 @@ sub check_hanasr_attr {
     record_info 'SFAIL', "One of the HANA nodes still has SFAIL sync_state after $args{timeout} seconds"
       if ($looptime <= 0 && $out =~ /SFAIL/);
     record_info 'SAPHanaSR-showAttr', $out;
+}
+
+=head2 check_landscape
+
+ $self->check_landscape();
+
+Runs B<lanscapeHostConfiguration.py> and records the information.
+
+=cut
+
+sub check_landscape {
+    my ($self, %args) = @_;
+    my $looptime = bmwqemu::scale_timeout($args{timeout} // 90);
+    my $sapadm = $self->set_sap_info(get_required_var('INSTANCE_SID'), get_required_var('INSTANCE_ID'));
+    # Use proceed_on_failure => 1 on call as landscapeHostConfiguration.py returns non zero value on success
+    my $out = script_output("su - $sapadm -c 'python exe/python_support/landscapeHostConfiguration.py'", proceed_on_failure => 1);
+    record_info 'landscapeHostConfiguration', $out;
+    die 'Overall host status not OK' unless ($out =~ /overall host status: ok/i);
 }
 
 =head2 reboot
@@ -674,7 +736,7 @@ sub reboot {
         power_action('reboot', textmode => 1);
         $self->wait_boot(nologin => 1, bootloader_time => 300);
     }
-    $self->select_serial_terminal;
+    select_serial_terminal;
 }
 
 =head2 do_hana_sr_register
@@ -706,7 +768,7 @@ sub do_hana_sr_register {
 
 =head2 do_hana_takeover
 
- $self->do_hana_takeover( node => $node [, manual_takeover => $manual_takeover] [, cluster => $cluster] );
+ $self->do_hana_takeover( node => $node [, manual_takeover => $manual_takeover] [, cluster => $cluster] [, timeout => $timeout] );
 
 Do a takeover/takeback on a HANA cluster.
 
@@ -717,6 +779,8 @@ takeover. Defaults to false.
 
 Set B<$cluster> to true so the method runs also a C<crm resource cleanup>. Defaults to false.
 
+Set B<$timeout> to the amount of seconds the internal calls will wait for. Defaults to 300 seconds.
+
 =cut
 
 sub do_hana_takeover {
@@ -726,24 +790,28 @@ sub do_hana_takeover {
     my $instance_id = get_required_var('INSTANCE_ID');
     my $sid = get_required_var('INSTANCE_SID');
     my $sapadm = $self->set_sap_info($sid, $instance_id);
+    $args{timeout} //= 300;
 
     # Node name is mandatory
     die 'Node name should be set' if !defined $args{node};
 
     # Do the takeover/failback
-    assert_script_run "su - $sapadm -c 'hdbnsutil -sr_takeover'" if defined $args{manual_takeover};
+    assert_script_run "su - $sapadm -c 'hdbnsutil -sr_takeover'" if ($args{manual_takeover});
     my $res = $self->do_hana_sr_register(node => $args{node}, proceed_on_failure => 1);
     if (defined $res && $res != 0) {
         record_info "System not ready", "HANA has not finished starting as master/slave in the HA stack";
-        wait_until_resources_started(timeout => 900);
+        wait_until_resources_started(timeout => ($args{timeout} * 3));
         save_state;
         $self->check_replication_state;
         $self->check_hanasr_attr;
-        script_run 'egrep "expected_votes|two_node" /etc/corosync/corosync.conf';
+        script_run 'grep -E "expected_votes|two_node" /etc/corosync/corosync.conf';
         $self->do_hana_sr_register(node => $args{node});
     }
     sleep bmwqemu::scale_timeout(10);
-    assert_script_run "crm resource cleanup rsc_SAPHana_${sid}_HDB$instance_id", 300 if defined $args{cluster};
+    if ($args{cluster}) {
+        assert_script_run "crm resource cleanup rsc_SAPHana_${sid}_HDB$instance_id", $args{timeout};
+        assert_script_run 'crm_resource --cleanup', $args{timeout};
+    }
 }
 
 =head2 install_libopenssl_legacy
@@ -764,7 +832,7 @@ SLES and HANA versions whether B<libopenssl1_0_0> must be installed.
 sub install_libopenssl_legacy {
     my ($self, $hana_path) = @_;
 
-    if ($hana_path =~ s/.*\/SPS([0-9]+)rev[0-9]\/.*/$1/r) {
+    if ($hana_path =~ s/.*\/SPS([0-9]+)rev[0-9]+\/.*/$1/r) {
         my $hana_version = $1;
         if (is_sle('15+') && ($hana_version <= 2)) {
             # The old libopenssl is in Legacy Module
@@ -798,12 +866,36 @@ Upload NetWeaver installation logs from SUT.
 sub upload_nw_install_log {
     my ($self) = @_;
 
-    $self->save_and_upload_log('ls -alF /sapinst/unattended', '/tmp/nw_unattended_ls.log');
-    $self->save_and_upload_log('ls -alF /sbin/mount*', '/tmp/sbin_mount_ls.log');
+    save_and_upload_log('ls -alF /sapinst/unattended', '/tmp/nw_unattended_ls.log');
+    save_and_upload_log('ls -alF /sbin/mount*', '/tmp/sbin_mount_ls.log');
     upload_logs('/tmp/check-nw-media', failok => 1);
     upload_logs '/sapinst/unattended/sapinst.log';
+    upload_logs('/sapinst/unattended/sapinst_ASCS.log', failok => 1);
+    upload_logs('/sapinst/unattended/sapinst_ERS.log', failok => 1);
     upload_logs '/sapinst/unattended/sapinst_dev.log';
     upload_logs '/sapinst/unattended/start_dir.cd';
+}
+
+=head2 startup_type
+
+ $self->startup_type();
+
+Record whether the SAP workload was started via sapinit or systemd units.
+
+=cut
+
+sub startup_type {
+    my ($self) = @_;
+    my $out = script_output 'cat /usr/sap/sapservices';
+    my $msg = "Could not determine $product startup method";
+    $msg = "$product is started with sapstartsrv using sapinit" if ($out =~ $self->SAPINIT_RE);
+    $msg = "$product is started with sapstartsrv using systemd units" if ($out =~ $self->SYSTEMD_RE);
+    record_info "$product Startup", "$msg\nsapservices output:\n$out";
+    $out = script_output 'systemctl --no-pager list-unit-files | grep -i sap';
+    if ($out =~ $self->SYSTEMCTL_UNITS_RE) {
+        record_info "$product Systemd", "$product is started using systemd units";
+        record_info 'Systemd Units', $out;
+    }
 }
 
 sub post_run_hook {

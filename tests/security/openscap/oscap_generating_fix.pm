@@ -3,7 +3,7 @@
 #
 # Summary: Generate  a script that shall bring the system to a state of
 #          compliance with given XCCDF Benchmark
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#36916, tc#1621174
 
 use base "consoletest";

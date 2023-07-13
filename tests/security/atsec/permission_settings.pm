@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run 'Permission settings of relevant configuration files' test case of ATSec test suite
-# Maintainer: xiaojing.liu <xiaojing.liu@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#111518
 
 use base 'consoletest';

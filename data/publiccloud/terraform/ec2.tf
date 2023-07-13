@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     aws = {
-      version = "= 3.37.0"
+      version = "= 4.59.0"
       source = "hashicorp/aws"
     }
     random = {
@@ -50,6 +50,10 @@ variable "create-extra-disk" {
 variable "tags" {
     type = map(string)
     default = {}
+}
+
+variable "vm_create_timeout" {
+    default = "20m"
 }
 
 resource "random_id" "service" {
@@ -106,6 +110,10 @@ resource "aws_instance" "openqa" {
     ebs_block_device {
         device_name = "/dev/sda1"
         volume_size = 20
+    }
+
+    timeouts {
+        create = var.vm_create_timeout
     }
 }
 

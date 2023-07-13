@@ -2,18 +2,18 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: PAM tests for login, user login should fail without authentication
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#70345, tc#1767577
 
 use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use version_utils;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Define the user and password, which are already configured in previous milestone
     my $user = 'suse';

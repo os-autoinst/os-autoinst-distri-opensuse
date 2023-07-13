@@ -20,7 +20,13 @@ schedule:
 - console/snapper_create
 - console/snapper_thin_lvm
 - network/cifs
+- '{{nfs}}'
 - network/samba/server
 - console/udisks2
 - console/coredump_collect
+conditional_schedule:
+  nfs:
+    ARCH:
+      x86_64:
+        - network/nfs
 ...

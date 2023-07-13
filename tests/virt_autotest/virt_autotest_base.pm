@@ -17,7 +17,9 @@ use XML::Writer;
 use IO::File;
 use virt_utils;
 use Utils::Architectures;
+use virt_autotest::utils;
 use upload_system_log;
+use virt_autotest::utils qw(upload_virt_logs);
 
 sub analyzeResult {
     die "You need to overload analyzeResult in your class";
@@ -36,6 +38,8 @@ sub generateXML {
     my $skip_nums = 0;
     my $test_time_hours = 0;
     my $test_time_mins = 0;
+    my $time_hours = 0;
+    my $time_mins = 0;
     foreach my $item (keys(%my_hash)) {
         if ($my_hash{$item}->{status} =~ m/PASSED/) {
             $pass_nums += 1;
@@ -49,8 +53,8 @@ sub generateXML {
         }
         my $test_time = eval { $my_hash{$item}->{test_time} ? $my_hash{$item}->{test_time} : '' };
         if ($test_time ne '') {
-            my ($time_hours) = $test_time =~ /^(\d+)m.*s$/i;
-            my ($time_mins) = $test_time =~ /^.*m(\d+)s$/i;
+            $time_hours = $test_time =~ /^(\d+)m.*s$/i;
+            $time_mins = $test_time =~ /^.*m(\d+)s$/i;
             $test_time_hours += $time_hours;
             $test_time_mins += $time_mins;
         }
@@ -148,7 +152,6 @@ sub post_run_test {
     }
 
     if ($self->{upload_guest_assets_flag} eq "yes") {
-        record_info('Check UPLOAD_GUEST_ASSETS flag', 'This test should upload guest assets!');
         $self->upload_guest_assets;
     }
 }
@@ -187,6 +190,11 @@ sub run_test {
     if (!$timeout) {
         $timeout = 300;
     }
+    $add_junit_log_flag //= 'no';
+    $upload_virt_log_flag //= 'no';
+    $upload_guest_assets_flag //= 'no';
+
+    check_host_health;
 
     my $test_cmd = $self->get_script_run();
     #FOR S390X LPAR
@@ -216,6 +224,11 @@ sub add_junit_log {
 sub upload_guest_assets {
     my $self = shift;
 
+    if (get_var('CASEDIR')) {
+        record_info('Skip uploading guest assets', 'Guest assets will only be uploaded with test codes in git master branch.');
+        return;
+    }
+    record_info('Uploading guest assets', 'as UPLOAD_GUEST_ASSETS flag is set');
     record_info('Skip upload guest asset.', 'No successful guest, skip upload assets.') unless @{$self->{success_guest_list}};
 
     foreach my $guest (@{$self->{success_guest_list}}) {
@@ -262,6 +275,8 @@ sub post_fail_hook {
 
     $self->post_run_test;
     save_screenshot;
+
+    check_host_health;
 
     if (get_var('VIRT_PRJ1_GUEST_INSTALL')) {
         #collect and upload guest autoyast control files

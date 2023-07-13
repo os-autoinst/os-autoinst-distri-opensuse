@@ -15,35 +15,17 @@ vars:
   ADDONS: all-packages
   YUI_REST_API: 1
 schedule:
-  - installation/bootloader_start
-  - installation/setup_libyui
-  - installation/access_beta_distribution
-  - installation/product_selection/install_SLES
-  - installation/licensing/accept_license
-  - installation/registration/skip_registration
-  - installation/module_selection/select_nonconflicting_modules
-  - installation/add_on_product_installation/accept_add_on_installation
-  - installation/system_role/accept_selected_role_SLES_with_GNOME
-  - installation/partitioning/accept_proposed_layout
-  - installation/clock_and_timezone/accept_timezone_configuration
-  - installation/authentication/use_same_password_for_root
-  - installation/authentication/default_user_simple_pwd
-  - installation/select_patterns
-  - installation/installation_settings/validate_ssh_service_enabled
-  - installation/installation_settings/open_ssh_port
-  - installation/bootloader_settings/disable_boot_menu_timeout
-  - installation/launch_installation
-  - installation/confirm_installation
-  - installation/performing_installation/perform_installation
-  - installation/performing_installation/confirm_reboot
-  - installation/grub_test
-  - installation/first_boot
-  - console/integration_services
-  - console/system_prepare
-  - console/force_scheduled_tasks
-  - shutdown/grub_set_bootargs
-  - console/validate_installed_packages
-  - console/validate_installed_patterns
-  - shutdown/cleanup_before_shutdown
-  - console/suseconnect_scc
-  - shutdown/shutdown
+  registration:
+    - installation/registration/skip_registration
+  extension_module_selection:
+    - installation/module_selection/select_nonconflicting_modules
+  add_on_product:
+    - installation/add_on_product_installation/accept_add_on_installation
+  system_role:
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
+  software:
+    - installation/select_patterns
+  security:
+    - installation/installation_settings/validate_ssh_service_enabled
+    - installation/installation_settings/open_ssh_port
+  installation_logs: []

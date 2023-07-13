@@ -34,7 +34,9 @@ use File::Basename;
 use testapi;
 use IPC::Run;
 use virt_utils;
+use version_utils;
 use virt_autotest_base;
+use alp_workloads::kvm_workload_utils;
 use XML::Simple;
 use Data::Dumper;
 use LWP;
@@ -71,10 +73,25 @@ sub instantiate_guests_and_profiles {
         $_guest_profile->{guest_registration_code} = $_store_of_guests{$_element}{REG_CODE};
         $_guest_profile->{guest_registration_extensions_codes} = $_store_of_guests{$_element}{REG_EXTS_CODES};
         $guest_instances_profiles{$_element} = $_guest_profile;
+        $self->edit_guest_profile_with_template($_element, $_store_of_guests{$_element}) if ($_store_of_guests{$_element}{USE_TEMPLATE} eq '1');
         diag "Guest $_element is going to use profile" . Dumper($guest_instances_profiles{$_element});
     }
 
     return $self;
+}
+
+# Motivation of the function:
+#   When multiple vms' profiles have great similarity and have some rules
+#   to follow to generate different profiles from a template, such a function
+#   will save a lot of static profile files in data/virt_autotest/guest_params_xml_files.
+# Usage:
+#   In testsuite settings, var UNIFIED_GUEST_PROFILE_TEMPLATE_FLAGS copes
+#   with var UNIFIED_GUEST_PROFILES. Both have values separated with comma.
+#   If at a position of UNIFIED_GUEST_PROFILE_TEMPLATE_FLAGS the value is '1',
+#   the UNIFIED_GUEST_PROFILES value at the same position will be the template profile for the vm.
+#   It's supported that some vms use template while some do not.
+sub edit_guest_profile_with_template {
+    # To be overloaded in child classes with customized needs.
 }
 
 #Create guest instance using $guest_instances{$_}->create(%{$guest_instances_profiles{$_}} and install it by calling $guest_instances{$_}->guest_installation_run.
@@ -95,13 +112,15 @@ sub install_guest_instances {
         else {
             $guest_instances{$_}->guest_installation_run(@_);
         }
+        # Abort current guest installation if dry run failed
+        next if $guest_instances{$_}->{guest_installation_result} eq 'FAILED';
         if ($guest_instances{$_}->has_noautoconsole_for_sure) {
             assert_screen('text-logged-in-root');
             $guest_instances{$_}->do_attach_guest_installation_screen_without_session;
         }
         $guest_instances{$_}->{guest_installation_attached} = 'true';
         save_screenshot;
-        if (!(check_screen([qw(guest-installation-yast2-started guest-installation-anaconda-started)], timeout => 180 / get_var('TIMEOUT_SCALE', 1)))) {
+        if (!(check_screen([qw(guest-installation-yast2-started guest-installation-anaconda-started linux-login)], timeout => 180 / get_var('TIMEOUT_SCALE', 1)))) {
             record_info("Failed to detect or guest $guest_instances{$_}->{guest_name} does not have installation window opened", "This might be caused by improper console settings or reboot after installaton finishes. Will continue to monitor its installation progess, so this is not treated as fatal error at the moment.");
         }
         else {
@@ -122,10 +141,10 @@ sub monitor_concurrent_guest_installations {
     my $self = shift;
 
     $self->reveal_myself;
-    my $_installation_timeout = 0;
     my $_guest_installations_left = scalar(keys %guest_instances) - scalar(@guest_installations_done);
     my $_guest_installations_not_the_last = 1;
-    while ($_installation_timeout < 3600) {
+    my $_monitor_start_time = time();
+    while (time() - $_monitor_start_time <= 7200) {
         foreach (keys %guest_instances) {
             if ($guest_instances{$_}->{guest_installation_result} eq '') {
                 $guest_instances{$_}->attach_guest_installation_screen if (($_guest_installations_not_the_last ne 0) or ($guest_instances{$_}->{guest_installation_attached} ne 'true'));
@@ -145,7 +164,6 @@ sub monitor_concurrent_guest_installations {
         }
         last if ($_guest_installations_left eq 0);
         sleep 60;
-        $_installation_timeout += 60;
     }
     return $self;
 }
@@ -198,7 +216,13 @@ sub junit_log_provision {
         $_guest_installations_results->{$_}{stop_run} = ($guest_instances{$_}->{stop_run} eq '' ? time() : $guest_instances{$_}->{stop_run});
         $_guest_installations_results->{$_}{test_time} = strftime("\%Hh\%Mm\%Ss", gmtime($_guest_installations_results->{$_}{stop_run} - $_guest_installations_results->{$_}{start_run}));
     }
-    $self->{"product_tested_on"} = script_output("cat /etc/issue | grep -io -e \"SUSE.*\$(arch))\" -e \"openSUSE.*[0-9]\"");
+    if (!version_utils::is_alp) {
+        $self->{"product_tested_on"} = script_output("cat /etc/issue | grep -io -e \"SUSE.*\$(arch))\" -e \"openSUSE.*[0-9]\"");
+    } else {
+        alp_workloads::kvm_workload_utils::exit_kvm_container;
+        $self->{"product_tested_on"} = script_output(q@cat /etc/os-release |grep PRETTY_NAME | sed 's/PRETTY_NAME=//'@);
+        alp_workloads::kvm_workload_utils::enter_kvm_container_sh;
+    }
     $self->{"product_name"} = ref($self);
     $self->{"package_name"} = ref($self);
     my $_guest_installation_xml_results = virt_autotest_base::generateXML($self, $_guest_installations_results);
@@ -209,16 +233,19 @@ sub junit_log_provision {
     return $self;
 }
 
-#Check whether current console is root-ssh console and re-connect if needle 'text-logged-in-root' can not be detected.
+#Check whether current console is root-ssh console of the hypervisor and re-connect if relevant needle can not be detected.
 sub check_root_ssh_console {
     my $self = shift;
 
     $self->reveal_myself;
+    script_run("clear");
     save_screenshot;
-    if (!(check_screen('text-logged-in-root'))) {
+    if ((version_utils::is_alp && !check_screen('in-libvirtd-container-bash')) or (!version_utils::is_alp and !(check_screen('text-logged-in-root')))) {
         reset_consoles;
         select_console('root-ssh');
+        alp_workloads::kvm_workload_utils::enter_kvm_container_sh if (version_utils::is_alp);
     }
+
     return $self;
 }
 
@@ -266,6 +293,7 @@ sub post_fail_hook {
     $self->junit_log_provision((caller(0))[3]);
     $self->SUPER::post_fail_hook;
     $self->save_guest_installations_assets;
+    alp_workloads::kvm_workload_utils::collect_kvm_container_setup_logs if (version_utils::is_alp);
     return $self;
 }
 

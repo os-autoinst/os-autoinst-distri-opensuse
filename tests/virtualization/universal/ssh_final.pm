@@ -3,7 +3,7 @@
 #
 # Package: openssh hostname iputils
 # Summary: This checks all VMs over SSH
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "virt_feature_test_base";
 use strict;

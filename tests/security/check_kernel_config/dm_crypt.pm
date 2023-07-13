@@ -5,13 +5,14 @@
 #          workqueues, the options are 'no_read_workqueue' and
 #          'no_write_workqueue'
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#88873, tc#1768663
 
 use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
 use Utils::Backends 'is_pvm';
@@ -19,7 +20,10 @@ use version_utils 'is_sle';
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
+
+    # Install runtime dependencies
+    zypper_call("in sudo");
 
     # Make sure the code changes are there
     if (is_sle) {
@@ -46,7 +50,7 @@ sub run {
     # For aarch64 and ppc64le platforms, OS may need a bit more
     # time to boot up, so add some wait time here
     $self->wait_boot(textmode => 1, bootloader_time => 400, ready_time => 600);
-    $self->select_serial_terminal;
+    select_serial_terminal;
 }
 
 1;

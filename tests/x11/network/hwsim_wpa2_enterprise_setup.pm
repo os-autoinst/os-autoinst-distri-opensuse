@@ -13,6 +13,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Utils::Logging 'save_and_upload_systemd_unit_log';
 
 sub run {
     my $self = shift;
@@ -88,7 +89,7 @@ sub reload_services {
 sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
-    $self->save_and_upload_systemd_unit_log('hostapd');
+    save_and_upload_systemd_unit_log('hostapd');
     systemctl 'status hostapd';
     $self->SUPER::post_fail_hook;
 }

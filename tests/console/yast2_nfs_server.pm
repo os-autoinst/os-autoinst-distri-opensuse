@@ -23,15 +23,17 @@ use base "y2_module_consoletest";
 use utils qw(clear_console zypper_call systemctl);
 use version_utils;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use mmapi;
 use mm_network;
 use nfs_common;
 use version_utils 'is_sle';
+use Utils::Logging 'save_and_upload_log';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     if (get_var('NFSSERVER')) {
         server_configure_network($self);
@@ -45,7 +47,7 @@ sub run {
     config_service($rw, $ro);
 
     # From now we can use serial terminal
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     start_service($rw, $ro);
 
@@ -75,7 +77,7 @@ sub run {
 
     wait_for_children;
 
-    $self->save_and_upload_log("journalctl --no-pager -u nfs-server -o short-precise", "journal_nfs_server.log");
+    save_and_upload_log("journalctl --no-pager -u nfs-server -o short-precise", "journal_nfs_server.log");
 }
 
 1;

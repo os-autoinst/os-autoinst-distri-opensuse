@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run CC 'ipsec' server case
-# Maintainer: Liu Xiaojing <xiaojing.liu@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#101226
 
 use base 'consoletest';
@@ -54,7 +54,7 @@ sub run {
     # Restart the strongswan service
     assert_script_run('systemctl restart strongswan');
 
-    mutex_wait('IPSEC_CLEINT_DONE', (keys %$children)[0]);
+    mutex_wait('IPSEC_CLIENT_DONE', (keys %$children)[0]);
 
     # Stop StrongSWAN
     assert_script_run('systemctl stop strongswan');

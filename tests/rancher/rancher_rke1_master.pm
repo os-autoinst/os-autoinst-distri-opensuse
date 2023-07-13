@@ -10,6 +10,7 @@ use base 'x11test';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
 use version_utils;
@@ -17,8 +18,7 @@ use rancher::utils;
 use containers::common;
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     mutex_wait('support_server_ready');
     prepare_mm_network();

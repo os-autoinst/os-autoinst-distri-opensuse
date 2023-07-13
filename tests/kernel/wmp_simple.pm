@@ -17,28 +17,37 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
+use registration;
 use utils;
 use Mojo::Util 'trim';
 
 sub run {
-    my $self = shift;
     my $meminfo;
     my $failed;
 
     my $cgroup_mem = get_required_var('WMP_MEMORY_LOW');
     my $stressng_mem = get_required_var('WMP_STRESS_MEM');
-    my $stressng_repo = get_var('WMP_STRESS_REPO', "https://download.opensuse.org/repositories/benchmark/SLE_15_SP3/benchmark.repo");
 
-    $self->select_serial_terminal;
+    my $sid = get_required_var('INSTANCE_SID');
+    my $instance_id = get_required_var('INSTANCE_ID');
+    my $instance_type = get_var('INSTANCE_TYPE', 'HDB');
 
-    zypper_ar($stressng_repo, no_gpg_check => 1);
+    select_serial_terminal;
+
+    # we need packagehub for stress-ng, let's enable it
+    add_suseconnect_product(get_addon_fullname('phub'));
     zypper_call("in stress-ng");
 
     # configure memory.low
     assert_script_run("systemctl set-property SAP.slice MemoryLow=$cgroup_mem");
 
     # start hana again and wait for the memory consumption to settle
-    assert_script_run('sudo -u ndbadm bash -c "/usr/sap/NDB/HDB00/exe/sapcontrol -nr 00 -function StartSystem ALL"');
+    my $admuser = lc($sid) . "adm";
+    my $sappath = "/usr/sap/" . $sid . "/" . $instance_type . $instance_id . "/exe";
+    my $sapctrl = "/usr/sap/" . $sappath . "/sapcontrol";
+
+    assert_script_run('sudo -u ' . $admuser . ' bash -c "export LD_LIBRARY_PATH=' . $sappath . '" "' . $sapctrl . ' -nr 00 -function StartSystem ALL"');
 
 
     # wait until memory usage of HANA settled, this takes a while and we have to patiently wait

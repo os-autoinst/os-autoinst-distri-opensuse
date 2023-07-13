@@ -6,7 +6,7 @@
 # Summary: The class introduces business actions for Authentication
 # for the System Administrator "root"
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::AuthenticationForRoot::AuthenticationForRootController;
 use strict;

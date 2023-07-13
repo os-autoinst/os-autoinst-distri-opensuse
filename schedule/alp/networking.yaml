@@ -1,0 +1,10 @@
+---
+description: 'Networking test suite for ALP'
+name: 'alp_networking@x86_64'
+schedule:
+    - microos/disk_boot
+    - transactional/host_config
+    - transactional/enable_selinux
+    - microos/networking
+    - microos/libzypp_config
+    - console/firewalld

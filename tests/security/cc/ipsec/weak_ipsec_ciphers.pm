@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run ATSec 'Weak IPsec ciphers' case
-# Maintainer: Liu Xiaojing <xiaojing.liu@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#101226
 
 use base 'consoletest';
@@ -13,13 +13,15 @@ use warnings;
 use testapi;
 use utils;
 use lockapi;
+use Utils::Architectures;
 
 sub run {
     my ($self) = @_;
     select_console 'root-console';
 
     assert_script_run('cd /usr/local/atsec/ipsec/IPSEC_basic_eval');
-    my $output = script_output('bash test_basic_ipsec_eval_weak.bash');
+    my $timeout = is_s390x() ? 180 : 90;
+    my $output = script_output('bash test_basic_ipsec_eval_weak.bash', $timeout);
 
     my @lines = split(/\n/, $output);
     foreach my $line (@lines) {

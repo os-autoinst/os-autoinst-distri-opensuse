@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: xca basic tests in FIPS mode
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#104733
 
 use base 'opensusebasetest';
@@ -24,12 +24,11 @@ sub run {
     assert_screen('xca_main_page');
 
     # Create a new database
-    send_key 'ctrl-n';
-    wait_still_screen 2;
+    wait_screen_change { send_key 'ctrl-n' };
     save_screenshot;
 
     # Enter database dir
-    type_string('fips_xca');
+    wait_screen_change { type_string 'fips_xca' };
     assert_and_click('xca_database_save');
     wait_still_screen 2;
     save_screenshot;
@@ -62,10 +61,12 @@ sub run {
     send_key 'alt-g';
     wait_still_screen 2;
     save_screenshot;
-    send_key 'ret';
-    wait_still_screen 2;
+    # press enter to generate key.
+    # Key generation can take some time on a busy system
+    send_key 'ret', wait_screen_change => 1;
+    wait_still_screen 10;
     save_screenshot;
-    send_key 'alt-o';
+    send_key 'alt-o', wait_screen_change => 1;
     assert_and_click('ok_to_create_certificate');
 
     # The certificate contains no extensions, you may apply the

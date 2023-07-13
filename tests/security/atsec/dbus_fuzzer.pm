@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run 'DBus fuzzer' test case of ATSec test suite
-# Maintainer: xiaojing.liu <xiaojing.liu@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#109978
 
 use base 'consoletest';

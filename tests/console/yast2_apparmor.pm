@@ -19,6 +19,7 @@ use base "y2_module_consoletest";
 use testapi;
 use utils qw(zypper_call systemctl);
 use version_utils qw(is_pre_15 is_sle is_opensuse is_leap);
+use Utils::Logging 'save_and_upload_systemd_unit_log';
 
 sub install_extra_packages_requested {
     if (check_screen 'yast2_apparmor_extra_packages_requested', 15) {
@@ -236,7 +237,7 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
-    $self->save_and_upload_systemd_unit_log('apparmor');
+    save_and_upload_systemd_unit_log('apparmor');
     $self->SUPER::post_fail_hook;
 }
 

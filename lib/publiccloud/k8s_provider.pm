@@ -24,21 +24,18 @@ sub init {
 
     if ($service =~ /ECR|EKS/) {
         $self->provider_client(
-            publiccloud::aws_client->new(
-                service => $service
-            ));
+            publiccloud::aws_client->new()
+        );
     }
     elsif ($service =~ /GCR|GKE/) {
         $self->provider_client(
-            publiccloud::gcp_client->new(
-                service => $service
-            ));
+            publiccloud::gcp_client->new()
+        );
     }
     elsif ($service =~ /ACR|AKS/) {
         $self->provider_client(
-            publiccloud::azure_client->new(
-                service => $service
-            ));
+            publiccloud::azure_client->new()
+        );
     }
     else {
         die("Invalid provider");

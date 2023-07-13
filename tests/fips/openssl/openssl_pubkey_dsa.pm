@@ -18,17 +18,17 @@
 #
 #          According to openssl wiki, "dss1" digest method is not available in openssl-1.1-x any more
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#47471, poo#48020
 
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $file_raw = "hello.txt";
     my $dgst_alg = "sha256";

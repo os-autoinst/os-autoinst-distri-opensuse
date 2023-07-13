@@ -6,10 +6,11 @@
 # Summary: Boot SelfInstallation image for SLEM
 # Maintainer: QA-C team <qa-c@suse.de>
 
-use Mojo::Base qw(opensusebasetest);
+use Mojo::Base qw(consoletest);
 use testapi;
 use microos "microos_login";
 use Utils::Architectures qw(is_aarch64);
+use version_utils qw(is_sle_micro is_leap_micro);
 
 sub run {
     my ($self) = @_;
@@ -21,6 +22,19 @@ sub run {
     send_key 'ret';
     # Use firmware boot manager of aarch64 to boot HDD
     $self->handle_uefi_boot_disk_workaround if is_aarch64;
+
+    my $no_cd;
+    # workaround failed *kexec* execution on UEFI with SecureBoot
+    if (get_var('UEFI') && is_sle_micro('<5.4') && assert_screen('failed-to-kexec', 240)) {
+        record_soft_failure('bsc#1203896 - kexec fail in selfinstall with secureboot');
+        send_key 'ret';
+        eject_cd();
+        $no_cd = 1;
+    }
+
+    wait_serial('reboot: Restarting system', 240) or die "SelfInstall image has not rebooted as expected";
+    eject_cd() unless $no_cd;
+
     microos_login;
 }
 

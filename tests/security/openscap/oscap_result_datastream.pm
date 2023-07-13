@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test SCAP result data stream
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#36913, tc#1621173
 
 use base 'consoletest';

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: lock package test mainly used for migration testsuite - poo#17206
-# Maintainer: Lemon <leli@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package lock_package;
 use base "consoletest";

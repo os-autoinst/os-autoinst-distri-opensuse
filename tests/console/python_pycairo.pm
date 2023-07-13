@@ -15,24 +15,28 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
+use version_utils 'is_tumbleweed';
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Make sure pycairo python module is installed
     zypper_call "in python3 python3-pycairo";
 
     # Import pycairo script and sample svg file
     assert_script_run("curl -O " . data_url("python/pycairo_sample.py"));
-    assert_script_run("curl -O " . data_url("python/pycairo_sample.svg"));
+
+    my $sample_svg = is_tumbleweed ? "pycairo_sample_tumbleweed.svg" : "pycairo_sample.svg";
+    assert_script_run("curl -O " . data_url("python/$sample_svg"));
 
     # Execute pycairo script and generate the svg file
     assert_script_run("python3 pycairo_sample.py");
 
     # Compare generated svg file with the expected one
-    assert_script_run("diff pycairo_sample.svg pycairo_generated.svg");
+    assert_script_run("diff $sample_svg  pycairo_generated.svg");
 
     $self->cleanup();
 }
@@ -45,7 +49,7 @@ sub post_fail_hook {
 }
 
 sub cleanup {
-    script_run("rm -f pycairo_sample.py pycairo_sample.svg pycairo_generated.svg");
+    script_run("rm -f pycairo_sample.py pycairo_sample.svg pycairo_sample_tumbleweed.svg pycairo_generated.svg");
 }
 
 1;

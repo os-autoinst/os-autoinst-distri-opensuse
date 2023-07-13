@@ -46,7 +46,10 @@ conditional_schedule:
         - microos/disk_boot
       'combustion+ignition':
         - microos/disk_boot
-
+  image_customization:
+    TEST_PROVISIONING:
+      '1':
+        - microos/verify_setup
 schedule:
   - '{{boot}}'
   - transactional/host_config
@@ -56,6 +59,7 @@ schedule:
   - '{{maintenance}}'
   - '{{selinux}}'
   - '{{k3s}}'
+  - '{{image_customization}}'
   - microos/networking
   - microos/libzypp_config
   - microos/image_checks

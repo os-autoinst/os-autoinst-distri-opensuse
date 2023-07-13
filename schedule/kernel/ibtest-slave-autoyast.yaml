@@ -5,13 +5,10 @@ vars:
     AUTOYAST: autoyast_mlx_con5.xml
     AUTOYAST_PREPARE_PROFILE: 1
     DEVEL_TOOLS_REPO: https://download.opensuse.org/repositories/home:/MMoese:/branches:/devel:/tools/SLE_12_SP4/home:MMoese:branches:devel:tools.repo
-    GA_REPO: http://dist.suse.de/ibs/SUSE:/SLE-%VERSION%:/GA/standard/SUSE:SLE-%VERSION%:GA.repo
     GRUB_TIMEOUT: 300
     IBTESTS: 1
     IBTEST_GITBRANCH: master
     IBTEST_GITTREE: https://github.com/SUSE/hpc-testing.git
-    IBTEST_IP1: 10.162.2.93
-    IBTEST_IP2: 10.162.2.94
     IBTEST_ROLE: IBTEST_SLAVE
     IPXE: 1
     IPXE_CONSOLE: ttyS1,115200

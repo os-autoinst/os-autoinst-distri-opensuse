@@ -5,7 +5,7 @@
 
 # Summary: Package for 389ds sssd client service tests
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 
 package services::389ds_sssd;
 use base 'opensusebasetest';

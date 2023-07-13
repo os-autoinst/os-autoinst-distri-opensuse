@@ -9,7 +9,7 @@
 #    Make sure those yast2 modules can opened properly. We can add more
 #    feature test against each module later, it is ensure it will not crashed
 #    while launching atm.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "y2_module_guitest";
 use strict;

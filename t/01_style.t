@@ -11,4 +11,5 @@ ok system(qq{git grep -I -l 'This program is free software.*if not, see <http://
 ok system(qq{git grep -I -l '[#/ ]*SPDX-License-Identifier ' ':!t/01_style.t'}) != 0, 'SPDX-License-Identifier correctly terminated';
 $out = qx{git grep -ne "check_var('ARCH',.*)" -e "check_var('BACKEND',.*)" ':!lib/Utils/Architectures.pm' ':!lib/Utils/Backends.pm' 'lib' 'tests'};
 ok $? != 0 && $out eq '', 'No check_var function to verify ARCH/BACKEND types' or diag $out;
+ok system(qq{git grep -I -l \\( -e "egrep" -e "fgrep" \\) ':!t/01_style.t' ':!CONTRIBUTING.md'}) != 0, 'No usage of the deprecated egrep and fgrep commands';
 done_testing;

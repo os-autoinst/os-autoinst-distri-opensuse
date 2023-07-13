@@ -8,20 +8,19 @@
 # We just register the system, install random package, see the system and network configuration
 # This test module will fail at the end to prove that the test run will continue without rollback
 #
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: qa-c <qa-c@suse.de>
 
-use base 'consoletest';
+use base 'publiccloud::basetest';
 use registration;
 use warnings;
 use testapi;
 use strict;
 use utils;
 use publiccloud::utils;
+use Utils::Logging 'tar_and_upload_log';
 
 sub run {
     my ($self, $args) = @_;
-    # Preserve args for post_fail_hook
-    $self->{provider} = $args->{my_provider};
 
     script_run("hostname -f");
     assert_script_run("uname -a");
@@ -44,8 +43,8 @@ sub run {
 
     assert_script_run("lsblk");
 
-    # Install bzip2 to check for bsc#1165915
-    zypper_call("in bzip2");
+    # Check for bsc#1165915
+    zypper_call("ref");
 
     assert_script_run("SUSEConnect --status-text", 300);
     zypper_call("lr -d");
@@ -63,19 +62,12 @@ sub collect_system_information {
     assert_script_run("cat /proc/cpuinfo | tee instance_overview/cpuinfo.txt");
     assert_script_run("cat /proc/meminfo | tee instance_overview/meminfo.txt");
     assert_script_run("uname -a | tee instance_overview/uname.txt");
-    $self->tar_and_upload_log("instance_overview/", "instance_overview.tar.gz");
+    tar_and_upload_log("instance_overview/", "instance_overview.tar.gz");
     script_run("cd");
 }
 
 sub test_flags {
-    return {fatal => 1};
-}
-
-sub post_fail_hook {
-    my ($self) = @_;
-    select_host_console(force => 1);
-    # Destroy the public cloud instance
-    $self->{provider}->cleanup();
+    return {fatal => 1, publiccloud_multi_module => 1};
 }
 
 1;

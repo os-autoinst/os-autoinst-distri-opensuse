@@ -4,7 +4,7 @@
 # Summary: Test module which accept pre-selected System Role
 # 'Text Mode' and navigate to next screen in SLES.
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

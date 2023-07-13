@@ -1,0 +1,143 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>w3m help page</title>
+</head>
+<body>
+<center>
+******* 
+<a href="http://w3m.sourceforge.net/">
+w3m</a>
+ (WWW-wo-Miru)  Version 0.5.3+git20180125 by 
+<a href="mailto:aito@fw.ipsj.or.jp">A.ITO</a> ********<br>
+             ***** Key assign table *****
+</center>
+
+<a href="file:///usr/share/w3m/w3mhelp-lynx_ja.html">Japanese</a>
+
+<h3>Page/Cursor motion</h3>
+<table cellpadding="0">
+<tbody><tr><td width="100">SPC,C-v,+</td><td>Forward page
+</td></tr><tr><td>b,ESC v,-</td><td>Previous page
+</td></tr><tr><td>l</td><td>Cursor right
+</td></tr><tr><td>h</td><td>Cursor left
+</td></tr><tr><td>j</td><td>Cursor down
+</td></tr><tr><td>k</td><td>Cursor up
+</td></tr><tr><td>J</td><td>Roll up one line
+</td></tr><tr><td>K</td><td>Roll down one line
+</td></tr><tr><td>^</td><td>Go to the beginning of line
+</td></tr><tr><td>$</td><td>Go to the end of line
+</td></tr><tr><td>&gt;</td><td>Shift screen right
+</td></tr><tr><td>&lt;</td><td>Shift screen left
+</td></tr><tr><td>C-a</td><td>Go to the first line
+</td></tr><tr><td>C-e</td><td>Go to the last line
+</td></tr><tr><td>G</td><td>Go to the specified line
+</td></tr><tr><td>Z</td><td>Move to the center line
+</td></tr><tr><td>z</td><td>Move to the center column
+</td></tr><tr><td>TAB,C-n,Down arrow</td><td>Move to next hyperlink
+</td></tr><tr><td>ESC TAB,C-p,Up arrow</td><td>Move to previous hyperlink
+</td></tr><tr><td>C-g</td><td>Show current page position
+</td></tr></tbody></table>
+
+
+<h2>Hyperlink operation</h2>
+<table cellpadding="0">
+<tbody><tr><td width="100">RET, C-f, Right arrow</td><td>Follow hyperlink
+</td></tr><tr><td>d, ESC RET</td><td>Save link to file
+</td></tr><tr><td>u</td><td>Peek at link URL
+</td></tr><tr><td>i</td><td>Peek at image URL
+</td></tr><tr><td>I</td><td>View inline image
+</td></tr><tr><td>ESC I</td><td>Save inline image to file
+</td></tr><tr><td>:</td><td>Mark URL-like strings as links
+</td></tr><tr><td>ESC :</td><td>Mark Message-ID-like strings as links
+</td></tr><tr><td>c</td><td>Peek at current URL
+</td></tr><tr><td>=</td><td>Display information about current document
+</td></tr><tr><td>C-h</td><td>View browser history
+</td></tr><tr><td>F</td><td>Render frames
+</td></tr><tr><td>M</td><td>Browse current document using external browser
+(prefix 2, 3, ..., or 9 to invoke alternate configured browsers, e.g. 3 M)
+</td></tr><tr><td>ESC M</td><td>Browse link using external browser
+(prefixed as above, e.g. 3ESC M)
+</td></tr></tbody></table>
+
+<h2>File/Stream operation</h2>
+<table cellpadding="0">
+<tbody><tr><td width="100">g,U</td><td>Open URL
+</td></tr><tr><td>V</td><td>View new file
+</td></tr><tr><td>@</td><td>Execute shell command and load
+</td></tr><tr><td>#</td><td>Execute shell command and browse
+</td></tr></tbody></table>
+
+<h2>Buffer operation</h2>
+<table cellpadding="0">
+<tbody><tr><td width="100">B, C-b, Left arrow</td><td>Back to the previous buffer
+</td></tr><tr><td>\</td><td>View HTML source
+</td></tr><tr><td>s</td><td>Select buffer
+</td></tr><tr><td>E</td><td>Edit buffer source
+</td></tr><tr><td>C-l, C-w</td><td>Redraw screen
+</td></tr><tr><td>R, C-r</td><td>Reload buffer
+</td></tr><tr><td>S, p</td><td>Save buffer
+</td></tr><tr><td>ESC s</td><td>Save source
+</td></tr><tr><td>ESC e</td><td>Edit buffer image
+</td></tr></tbody></table>
+
+<h2>Buffer selection mode</h2>
+<table cellpadding="0">
+<tbody><tr><td width="100">k, C-p</td><td>Select previous buffer
+</td></tr><tr><td>j, C-n</td><td>Select next buffer
+</td></tr><tr><td>D</td><td>Delete current buffer
+</td></tr><tr><td>RET</td><td>Go to the selected buffer
+</td></tr></tbody></table>
+
+<h2>Bookmark operation</h2>
+<table cellpadding="0">
+<tbody><tr><td width="100">v, ESC b</td><td>Load bookmark
+</td></tr><tr><td>a, ESC a</td><td>Add current to bookmark
+</td></tr></tbody></table>
+
+<h2>Search</h2>
+<table cellpadding="0">
+<tbody><tr><td width="100">/, C-s</td><td>Search forward
+</td></tr><tr><td>n</td><td>Search next
+</td></tr><tr><td>w</td><td>Toggle search wrap mode
+</td></tr></tbody></table>
+
+<h2>Mark operation</h2>
+<table cellpadding="0">
+<tbody><tr><td width="100">C-SPC</td><td>Set/unset mark
+</td></tr><tr><td>P</td><td>Go to previous mark
+</td></tr><tr><td>N</td><td>Go to next mark
+</td></tr><tr><td>"</td><td>Mark by regular expression
+</td></tr></tbody></table>
+
+<h2>Miscellany</h2>
+<table cellpadding="0">
+<tbody><tr><td width="100">!</td><td>Execute shell command
+</td></tr><tr><td>H, ?</td><td>Help (load this file)
+</td></tr><tr><td>o</td><td>Set option
+</td></tr><tr><td>C-k</td><td>Show cookie jar
+</td></tr><tr><td>C-c</td><td>Stop
+</td></tr><tr><td>C-z</td><td>Suspend
+</td></tr><tr><td>q</td><td>Quit (with confirmation, if you like)
+</td></tr><tr><td>Q</td><td>Quit without confirmation
+</td></tr></tbody></table>
+
+<h2>Line-editing mode</h2>
+<table cellpadding="0">
+<tbody><tr><td width="100">C-f</td><td>Move cursor forward
+</td></tr><tr><td>C-b</td><td>Move cursor backward
+</td></tr><tr><td>C-h</td><td>Delete previous character
+</td></tr><tr><td>C-d</td><td>Delete current character
+</td></tr><tr><td>C-k</td><td>Kill everything after cursor
+</td></tr><tr><td>C-u</td><td>Kill everything before cursor
+</td></tr><tr><td>C-a</td><td>Move to the top of line
+</td></tr><tr><td>C-e</td><td>Move to the bottom of line
+</td></tr><tr><td>C-p</td><td>Fetch the previous string from the history list
+</td></tr><tr><td>C-n</td><td>Fetch the next string from the history list
+</td></tr><tr><td>TAB,SPC</td><td>Complete filename
+</td></tr><tr><td>RETURN</td><td>Accept
+</td></tr></tbody></table>
+<hr>
+
+
+</body></html>
+

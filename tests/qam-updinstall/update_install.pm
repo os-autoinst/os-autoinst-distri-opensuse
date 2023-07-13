@@ -25,6 +25,7 @@ use List::Util qw(first pairmap uniq notall);
 use qam;
 use maintenance_smelt qw(get_packagebins_in_modules get_incident_packages);
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle);
 
 sub has_conflict {
@@ -64,6 +65,7 @@ sub has_conflict {
         'SAPHanaSR-ScaleOut-doc' => 'SAPHanaSR-doc',
         'dapl-devel' => 'dapl-debug-devel',
         'libdat2-2' => 'dapl-debug-libs',
+        'libjpeg8-devel' => 'libjpeg62-devel',
         dapl => 'dapl-debug'
     );
     return $conflict{$binary};
@@ -107,7 +109,7 @@ sub run {
     my @new_binaries;    #Binaries introduced by the update that will be installed after the repos are added.
     my %bins;
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $zypper_version = script_output(q(rpm -q zypper|awk -F. '{print$2}'));
 
@@ -118,7 +120,7 @@ sub run {
     my @modules = split(/,/, $repos);
     foreach (@modules) {
         # substitue SLES_SAP for LTSS repo at this point is SAP ESPOS
-        $_ =~ s/SAP_(\d+(-SP\d)?)/$1-LTSS/;
+        $_ =~ s/SAP_(\d+(-SP\d)?)/$1-LTSS/ if is_sle('15+');
         next if s{http.*SUSE_Updates_(.*)/?}{$1};
         die 'Modules regex failed. Modules could not be extracted from repos variable.';
     }
@@ -237,7 +239,7 @@ sub run {
         # Install binaries newly added by the incident.
         if (scalar @new_binaries) {
             record_info 'Install new packages', "New packages: @new_binaries";
-            zypper_call("in -l @new_binaries", exitcode => [0, 102, 103], log => "new_$patch.log", timeout => 1500);
+            zypper_call("in -l $solver_focus @new_binaries", exitcode => [0, 102, 103], log => "new_$patch.log", timeout => 1500);
         }
 
         # After the patches have been applied and the new binaries have been
@@ -273,7 +275,7 @@ sub run {
         disable_test_repositories($repos_count);
         record_info 'Uninstall patch', "Uninstall patch $patch";
         # update repos are disabled, zypper dup will downgrade packages from patch
-        zypper_call('dup', exitcode => [0, 8]);
+        zypper_call('dup -l', exitcode => [0, 8]);
         # remove patched packages with multiple versions installed e.g. kernel-source
         foreach (@patch_l3, @patch_l2) {
             zypper_call("rm $_-\$(zypper se -si $_|awk 'END{print\$7}')", exitcode => [0, 104]) if script_output("rpm -q $_|wc -l", proceed_on_failure => 1) >= 2;

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2020 SUSE LLC
+# Copyright 2019-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Initialize testing environment for Libvirt Virtual Networks
@@ -10,18 +10,17 @@
 # libvirt_routed_virtual_network
 # libvirt_isolated_virtual_network
 #
-# Maintainer: Leon Guo <xguo@suse.com>
+# Maintainer: Leon Guo <xguo@suse.com>, qe-virt@suse.com
 
 use virt_autotest::virtual_network_utils;
 use virt_autotest::utils;
 use base "virt_feature_test_base";
 use virt_utils;
-use set_config_as_glue;
 use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_alp);
 use virt_autotest::utils qw(is_xen_host);
 
 sub run_test {
@@ -43,15 +42,18 @@ sub run_test {
     assert_script_run("test $AVAILABLE_POOL_SIZE -ge $expected_pool_size",
         fail_message => "The SUT needs at least " . $expected_pool_size . "GiB available space of active pool for virtual network test");
 
-    #Need to reset up environemt - br123 for virt_atuo test due to after
-    #finished guest installation to trigger cleanup step on sles11sp4 vm hosts
-    virt_autotest::virtual_network_utils::restore_standalone() if (is_sle('=11-sp4'));
+    # ALP has done this in earlier setup
+    unless (is_alp) {
+        #Need to reset up environemt - br123 for virt_atuo test due to after
+        #finished guest installation to trigger cleanup step on sles11sp4 vm hosts
+        virt_autotest::virtual_network_utils::restore_standalone() if (is_sle('=11-sp4'));
 
-    #Enable libvirt debug log
-    virt_autotest::virtual_network_utils::enable_libvirt_log();
+        #Enable libvirt debug log
+        turn_on_libvirt_debugging_log;
 
-    #VM HOST SSH SETUP
-    virt_autotest::utils::ssh_setup();
+        #VM HOST SSH SETUP
+        virt_autotest::utils::ssh_setup();
+    }
 
     #Backup file /etc/hosts before virtual network testing
     virt_autotest::virtual_network_utils::hosts_backup();
@@ -67,10 +69,14 @@ sub run_test {
         upload_logs "/tmp/$guest.xml";
         #Used with attach-detach(hotplugging) interface to confirm all virtual network mode
         #NOTE: Required all guests keep running status
-        #Check that all guests are still running before virtual network tests
-        script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 180);
+        #Ensures the SSH connection and ICMP PING responses is workable for given guest system
+        validate_guest_status($guest);
         save_guest_ip($guest, name => "br123");
         virt_autotest::utils::ssh_copy_id($guest);
+        check_guest_health($guest);
+
+        # ALP guest uses networkmanager to control network, no /etc/sysconfig/network/ifcfg*
+        next if ($guest =~ /alp/i);
         #Prepare the new guest network interface files for libvirt virtual network
         #for some guests, interfaces are named eth0, eth1, eth2, ...
         #for TW kvm guest, they are enp1s0, enp2s0, enp3s0, ...
@@ -105,7 +111,8 @@ sub post_fail_hook {
     $self->SUPER::post_fail_hook;
 
     #Restart libvirtd service
-    virt_autotest::utils::restart_libvirtd();
+    # Note: TBD for modular libvirt. See poo#129086 for detail.
+    virt_autotest::utils::restart_libvirtd() if is_monolithic_libvirtd;
 
     #Destroy created virtual networks
     virt_autotest::virtual_network_utils::destroy_vir_network();

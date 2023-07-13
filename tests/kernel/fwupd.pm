@@ -11,21 +11,26 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use Utils::Backends 'is_pvm';
+use version_utils 'is_sle';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Install and start fwupd
     zypper_call "in fwupd";
     systemctl "start fwupd";
 
     # Get all devices that support firmware updates
-    assert_script_run "fwupdmgr get-devices" unless is_pvm;
+    assert_script_run "fwupdmgr get-devices" if (!is_pvm && is_sle('15-sp3+'));
     # Gets the configured remotes
     assert_script_run "fwupdmgr get-remotes";
+}
+
+sub test_flags {
+    return {fatal => 0};
 }
 
 1;

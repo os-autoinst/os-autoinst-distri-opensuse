@@ -11,6 +11,7 @@ use 5.018;
 use warnings;
 use base "opensusebasetest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use utils;
 use kernel;
@@ -20,7 +21,7 @@ sub run {
     my $self = shift;
     $self->wait_boot;
     # Use root-console for KOTD installation on svirt instead of root-sut-serial poo#54275
-    is_svirt ? select_console('root-console') : $self->select_serial_terminal;
+    is_svirt ? select_console('root-console') : select_serial_terminal;
     # Get url of kotd/kmp repositories
     my $kotd_repo = get_required_var('KOTD_REPO');
     my $kmp_repo = get_var('KMP_REPO');

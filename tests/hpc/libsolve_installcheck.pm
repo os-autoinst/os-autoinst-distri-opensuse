@@ -8,11 +8,11 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $installcheck_script = 'installcheck_hpc_module.sh';
     assert_script_run("wget --quiet " . data_url("hpc/$installcheck_script") . " -O $installcheck_script");
     assert_script_run("chmod +x $installcheck_script");

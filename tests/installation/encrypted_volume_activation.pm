@@ -12,7 +12,7 @@
 #
 #    When the variable ENCRYPTED_ACTIVATE_EXISTING is set it will enter the
 #    password for the existing volume to activate it.
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_installbase';
 use strict;

@@ -12,7 +12,7 @@
 #
 # In case of failure, the test will die.
 #
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use base 'consoletest';

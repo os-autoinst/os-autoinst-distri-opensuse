@@ -9,29 +9,33 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_staging is_sle is_upgrade);
 use Utils::Architectures;
 use Utils::Systemd 'systemctl';
+use utils qw(zypper_call);
 use strict;
 use warnings;
 
 sub run_developers_tests {
-    my $devel_repo = 'https://gitlab.suse.de/AngelaBriel/sapconf-test/repository/sapconf_v5/archive.tar.gz';
+    my $devel_repo = 'https://gitlab.suse.de/AngelaBriel/sapconf-test';
+    my $branch = 'sapconf_v5';
     my $log = '/tmp/sapconf_test.log';
 
     # Download and unpack the test scripts supplied by the developers
     # Continue if it can not be downloaded
     enter_cmd "cd /tmp";
-    my $ret = script_run "curl -k $devel_repo | tar -zxvf -";
+    zypper_call 'in git-core';
+    my $ret = script_run "git clone -q  -c http.sslVerify=false --branch $branch $devel_repo";
     unless (defined $ret and $ret == 0) {
         record_info 'Download problem', 'Could not download developer test script';
         return;
     }
 
     # Run script as is and upload results
-    $ret = script_run 'cd sapconf-test-*';
+    $ret = script_run 'cd sapconf-test';
     unless (defined $ret and $ret == 0) {
-        record_info 'Script not found', 'sapconf-test-master-* directory not found in the developer test package';
+        record_info 'Script not found', 'sapconf-test directory not found in the developer test package';
         return;
     }
     my $output = script_output 'ls';
@@ -55,7 +59,8 @@ sub run_developers_tests {
         # Skip results of fate#325548 on SLES4SAP versions before 15
         next if ($summary =~ /fate325548/ and is_sle('<15'));
         if ($summary =~ /Test #(bsc|fate)([0-9]+)/) {
-            record_soft_failure "$1#$2";
+            my $reference = "$1#$2";
+            record_soft_failure("$reference");
         }
         else {
             record_info $summary, "Test summary: $summary", result => 'fail';
@@ -77,9 +82,7 @@ sub verify_sapconf_service {
 }
 
 sub run {
-    my ($self) = @_;
-
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     assert_script_run("rpm -q sapconf");
 

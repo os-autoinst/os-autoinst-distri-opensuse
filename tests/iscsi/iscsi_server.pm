@@ -29,6 +29,7 @@ use utils qw(zypper_call systemctl type_string_slow_extended);
 use yast2_widget_utils 'change_service_configuration';
 use scheduler 'get_test_suite_data';
 use y2_mm_common 'prepare_xterm_and_setup_static_network';
+use YaST::workarounds;
 
 # load expected test data from yaml
 # common for both iscsi MM modules
@@ -92,8 +93,12 @@ sub target_service_tab {
 }
 
 sub config_2way_authentication {
-    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-    send_key_until_needlematch('iscsi-target-modify-acls', 'alt-f10', 10, 2);
+    if (is_sle('>=15-SP4')) {
+        apply_workaround_poo124652('iscsi-target-modify-acls') if (is_sle('>=15-SP4'));
+    }
+    else {
+        assert_screen 'iscsi-target-modify-acls';
+    }
     send_key 'alt-a';
     assert_screen 'iscsi-target-modify-acls-initiator-popup';
     if (is_sle('>=15')) {

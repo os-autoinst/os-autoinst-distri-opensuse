@@ -4,7 +4,7 @@
 # Summary: Implement & Integrate 389ds + sssd test case into openQA,
 #          This test module covers the server setup processes
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#88513, poo#92410, poo#93832, poo#101698, poo#101800, tc#1768672
 
 use base 'consoletest';
@@ -18,6 +18,9 @@ use services::389ds_server;
 
 sub run {
     select_console("root-console");
+
+    # Install runtime dependencies
+    zypper_call("in wget");
 
     services::389ds_server::install_service();
     services::389ds_server::config_service();

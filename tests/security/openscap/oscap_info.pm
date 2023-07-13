@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Determine type and print information about a openscap source file
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#36901, tc#1621169
 
 use base 'consoletest';

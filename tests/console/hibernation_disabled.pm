@@ -7,7 +7,7 @@
 # This kernel parameter enables hibernation, it is not supported for all backends.
 # See https://bugzilla.suse.com/show_bug.cgi?id=1188731
 
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
 use strict;

@@ -1,0 +1,7 @@
+name: cc_audit_remote_libvirt
+description:    >
+    This is for audit-remote-libvirt test in CC system role
+schedule:
+    - boot/boot_to_desktop
+    - security/cc/cc_audit_test_setup
+    - security/cc/audit_remote_libvirt

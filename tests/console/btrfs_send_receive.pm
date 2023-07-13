@@ -19,6 +19,7 @@ use base 'btrfs_test';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 my $src = "/root/sr";
@@ -51,7 +52,7 @@ sub compare_data {
 # poo#11792
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Set up
     assert_script_run "mkdir $src";

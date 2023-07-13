@@ -19,7 +19,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap);
-
+use serial_terminal 'select_serial_terminal';
 # rpm -q --scripts hello0.rpm
 # preinstall scriptlet (using /bin/sh):
 # if [ -e /preinstall_fail ] ; then
@@ -34,9 +34,9 @@ use version_utils qw(is_sle is_leap);
 # fi
 
 sub run {
-    select_console 'root-console';
-
-    script_run("zypper lr -d | tee /dev/$serialdev", timeout => 180);
+    my $timeout = 300;
+    select_serial_terminal;
+    script_run("zypper lr -d | tee /dev/$serialdev", timeout => $timeout);
     my $pkgname = get_var('PACKAGETOINSTALL');
     if (!$pkgname) {
         $pkgname = 'x3270' if check_var('DISTRI', 'sle');
@@ -44,7 +44,7 @@ sub run {
     }
     zypper_call "in screen $pkgname";
     clear_console;    # clear screen to see that second update does not do any more
-    assert_script_run("rpm -e $pkgname");
+    assert_script_run("rpm -e $pkgname", timeout => $timeout);
     assert_script_run("! rpm -q $pkgname");
 
     if (!is_sle('<15-SP4') && !is_leap('<15.4') && !check_var('OFFLINE_SUT', '1')) {
@@ -52,14 +52,14 @@ sub run {
         # also they have issues with this rpms being hashed by something newer than MD5
         # and also this ZYPP_SINGLE_RPMTRANS feature flag is only available as of 15.4
         assert_script_run 'touch /preinstall_fail';
-        my $r = script_run 'zypper -n in --allow-unsigned-rpm ' . data_url('zypper/hello0.rpm'), timeout => 180;
+        my $r = script_run 'zypper -n in --allow-unsigned-rpm ' . data_url('zypper/hello0.rpm'), timeout => $timeout;
         die "Unexpected zypper exit code $r - expected 8" unless (defined($r) && ($r == 8));
         assert_script_run 'rm -f /preinstall_fail';
 
         assert_script_run 'export ZYPP_SINGLE_RPMTRANS=1';
 
         assert_script_run 'touch /preinstall_fail';
-        $r = script_run 'zypper -n in --allow-unsigned-rpm ' . data_url('zypper/hello0.rpm'), timeout => 180;
+        $r = script_run 'zypper -n in --allow-unsigned-rpm ' . data_url('zypper/hello0.rpm'), timeout => $timeout;
         die "Unexpected zypper exit code $r - expected 8" unless (defined($r) && ($r == 8));
         assert_script_run 'rm -f /preinstall_fail';
 

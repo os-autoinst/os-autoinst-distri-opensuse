@@ -18,6 +18,7 @@ use strict;
 use warnings;
 use base 'btrfs_test';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle);
 
@@ -56,7 +57,7 @@ sub get_last_snap_number {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     $self->cron_mock_lastrun() if is_sle('<15');
 
     my @snapper_cmd = "snapper create";

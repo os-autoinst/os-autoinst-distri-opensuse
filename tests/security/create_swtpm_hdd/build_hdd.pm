@@ -6,19 +6,22 @@
 #          root access for ssh is enabled along with udev rules.
 #          at the same time, install some required packages.
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#81256, tc#1768671, poo#93835, poo#102933
 
 use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call permit_root_ssh);
 use power_action_utils 'power_action';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
+
+    # Install runtime dependencies
+    zypper_call("in wget");
 
     # Install tpm and tpm2 related packages, then we can verify the swtpm function
     zypper_call("in tpm-tools tpm-quote-tools tpm2-0-tss tpm2-tss-engine tpm2.0-abrmd tpm2.0-tools trousers");

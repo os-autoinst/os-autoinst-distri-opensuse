@@ -3,7 +3,7 @@
 #
 # Summary: Unlocking LUKS volumes with TPM2
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#107488, tc#1769799, poo#112241
 
 use strict;

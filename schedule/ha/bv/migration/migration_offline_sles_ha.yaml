@@ -26,6 +26,7 @@ schedule:
   - migration/version_switch_origin_system
   - '{{bootloader_zkvm}}'
   - boot/boot_to_desktop
+  - ha/stop_pacemaker
   - update/patch_sle
   - migration/record_disk_info
   - migration/reboot_to_upgrade

@@ -4,7 +4,7 @@
 # Summary: Enable libyui for firstboot. Temporary module until
 # https://progress.opensuse.org/issues/90368 is done.
 
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

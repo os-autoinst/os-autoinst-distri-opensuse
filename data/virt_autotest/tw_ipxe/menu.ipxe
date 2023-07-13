@@ -1,0 +1,90 @@
+# This is the ipxe menu for installing TW on O3
+# path: user@ariel:/srv/tftpboot/ipxe/menu.ipxe
+# ---------- file begin ----------
+
+#!ipxe
+
+dhcp
+
+#set variables
+set menu-timeout 30000
+
+:start
+menu iPXE boot menu for openqa.opensuse.org 
+
+item --gap --             ------------------------- Operating systems ------------------------------
+item --key l leapS1       (L)Boot openSUSE Leap15.3 from download.opensuse.org / ttyS1 (http)
+item --key e leapS2       (E)Boot openSUSE Leap15.3 from download.opensuse.org / ttyS2 (http)
+item --key k tumbleweed_KVM_autoyast (K)Boot openSUSE Tumbleweed KVM server from O3 repo with autoyast/ ttyS1 (http)
+item --key z tumbleweed_XEN_autoyast (Z)Boot openSUSE Tumbleweed XEN server from O3 repo with autoyast/ ttyS1 (http)
+item --key t tumbleweedS1 (T)Boot openSUSE Tumbleweed from download.opensuse.org / ttyS1 (http)
+item --key s tumbleweedS2 (S)Boot openSUSE Tumbleweed from download.opensuse.org / ttyS2 (http)
+item --gap --           ------------------------- Advanced options -------------------------------
+item --key c config       Configure settings
+item shell                      Drop to iPXE shell 
+item reboot                  Reboot computer
+item
+item --key x exit         Exit iPXE and continue BIOS boot 
+
+choose --timeout ${menu-timeout} --default exit selected || goto cancel
+set menu-timeout 0
+goto ${selected}
+
+:leapS1
+kernel http://download.opensuse.org/distribution/leap/15.3/repo/oss/boot/x86_64/loader/linux usessh=1 sshpassword=linux network=1 install=http://download.opensuse.org/distribution/leap/15.3/repo/oss/ console=ttyS1,115200n8 root=/dev/ram0 initrd=initrd textmode=1
+initrd http://download.opensuse.org/distribution/leap/15.3/repo/oss/boot/x86_64/loader/initrd
+boot
+
+:leapS2
+kernel http://download.opensuse.org/distribution/leap/15.3/repo/oss/boot/x86_64/loader/linux usessh=1 sshpassword=linux network=1 install=http://download.opensuse.org/distribution/leap/15.3/repo/oss/ console=ttyS2,115200n8 root=/dev/ram0 initrd=initrd textmode=1
+initrd http://download.opensuse.org/distribution/leap/15.3/repo/oss/boot/x86_64/loader/initrd
+boot
+
+:tumbleweed_KVM_autoyast
+echo Installing TumbleWeed ...
+kernel http://openqa.opensuse.org/assets/repo/openSUSE-Tumbleweed-oss-x86_64-CURRENT/boot/x86_64/loader/linux install=http://openqa.opensuse.org/assets/repo/openSUSE-Tumbleweed-oss-x86_64-CURRENT textmode=1 plymouth.enable=0 Y2DEBUG=1 console=ttyS1,115200 linuxrc.log=/dev/ttyS1 linuxrc.core=/dev/ttyS1 linuxrc.debug=4,trace reboot_timeout=0  kernel.softlockup_panic=1 vga=791 video=1024x768 vt.color=0x07 quiet autoyast=http://openqa.opensuse.org/assets/other/autoyast_opensuse_kvm_sshd.xml
+initrd http://openqa.opensuse.org/assets/repo/openSUSE-Tumbleweed-oss-x86_64-CURRENT/boot/x86_64/loader/initrd
+boot
+
+:tumbleweed_XEN_autoyast
+echo Installing TumbleWeed ...
+kernel http://openqa.opensuse.org/assets/repo/openSUSE-Tumbleweed-oss-x86_64-CURRENT/boot/x86_64/loader/linux install=http://openqa.opensuse.org/assets/repo/openSUSE-Tumbleweed-oss-x86_64-CURRENT textmode=1 plymouth.enable=0 Y2DEBUG=1 console=ttyS1,115200 linuxrc.log=/dev/ttyS1 linuxrc.core=/dev/ttyS1 linuxrc.debug=4,trace reboot_timeout=0  kernel.softlockup_panic=1 vga=791 video=1024x768 vt.color=0x07 quiet autoyast=http://openqa.opensuse.org/assets/other/autoyast_opensuse_xen_sshd.xml
+initrd http://openqa.opensuse.org/assets/repo/openSUSE-Tumbleweed-oss-x86_64-CURRENT/boot/x86_64/loader/initrd
+boot
+
+:tumbleweedS1
+echo Installing TumbleWeed ...
+kernel http://download.opensuse.org/tumbleweed/repo/oss/boot/x86_64/loader/linux install=http://download.opensuse.org/tumbleweed/repo/oss plymouth.enable=0 textmode=1 Y2DEBUG=1 console=ttyS1,115200 linuxrc.log=/dev/ttyS1 linuxrc.core=/dev/ttyS1 linuxrc.debug=4,trace reboot_timeout=0 ssh=1 sshpassword=nots3cr3t kernel.softlockup_panic=1 vga=791 video=1024x768 vt.color=0x07 quiet
+initrd http://download.opensuse.org/tumbleweed/repo/oss/boot/x86_64/loader/initrd
+boot
+
+:tumbleweedS2
+kernel http://openqa.opensuse.org/assets/repo/openSUSE-Tumbleweed-oss-x86_64-CURRENT/boot/x86_64/loader/linux usessh=1 sshpassword=linux network=1 install=http://openqa.opensuse.org/assets/repo/openSUSE-Tumbleweed-oss-i586-x86_64-CURRENT console=ttyS2,115200n8 root=/dev/ram0 initrd=initrd textmode=1
+initrd http://openqa.opensuse.org/assets/repo/openSUSE-Tumbleweed-oss-i586-x86_64-CURRENT/boot/x86_64/loader/initrd
+boot
+
+:cancel
+echo You cancelled the menu, dropping you to a shell
+
+:shell
+echo Type 'exit' to get the back to the menu
+shell
+set menu-timeout 0
+set submenu-timeout 0
+goto start
+
+:failed
+echo Booting failed, dropping to shell
+goto shell
+
+:reboot
+reboot
+
+:exit
+exit
+
+:config
+config
+goto start
+
+# ------------ file end -------------------

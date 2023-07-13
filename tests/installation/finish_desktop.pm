@@ -4,7 +4,7 @@
 # Copyright 2012-2018 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: move all inst/$DESKTOP.pm into one global 999_finish_desktop and runthe tests from start.pl
+# Summary: move all inst/$DESKTOP.pm into one global 999_finish_desktop and run the tests from start.pl
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
 use base "installbasetest";
@@ -12,6 +12,8 @@ use testapi;
 use strict;
 use warnings;
 use main_common 'opensuse_welcome_applicable';
+use x11utils 'turn_off_plasma_tooltips';
+use Utils::Logging qw(save_and_upload_log export_logs);
 
 # using this as base class means only run when an install is needed
 sub run {
@@ -33,15 +35,19 @@ sub run {
         @tags = grep { !/gnome-activities/ } @tags;
         assert_screen \@tags, $timeout;
     }
+
+    # This only works with generic-desktop. In the opensuse-welcome case,
+    # the opensuse-welcome module will handle it instead.
+    turn_off_plasma_tooltips if match_has_tag('generic-desktop');
 }
 
 sub post_fail_hook {
     my $self = shift;
 
-    $self->export_logs();
+    export_logs();
 
     # Also list branding packages (help to debug desktop branding issues)
-    $self->save_and_upload_log('zypper --no-refresh se *branding*', '/tmp/list_branding_packages.txt', {screenshot => 1});
+    save_and_upload_log('zypper --no-refresh se *branding*', '/tmp/list_branding_packages.txt', {screenshot => 1});
 }
 
 1;

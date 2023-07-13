@@ -85,10 +85,6 @@ sub run {
     send_key $cmd{next};    # Next
 
     if (get_var("WITH_MAIN_REPO")) {
-        if (get_var('BETA')) {
-            assert_screen "inst-betawarning", 500;
-            send_key 'alt-o';
-        }
         # older product versions check for same license multiple times so we
         # need to check that
         if (is_sle('<15') || is_leap('<15.0')) {

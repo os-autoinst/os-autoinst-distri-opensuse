@@ -3,7 +3,7 @@
 
 # Summary: Validate installer self update feature downloads updates and applies
 #          them to the system
-# Maintainer: QA SLE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_installbase';
 use strict;

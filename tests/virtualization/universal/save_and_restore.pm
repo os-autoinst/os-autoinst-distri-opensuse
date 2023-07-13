@@ -10,7 +10,7 @@
 
 # Package: libvirt-client nmap
 # Summary: Test if the guests can be saved and restored
-# Maintainer: Jan Baier <jbaier@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "virt_feature_test_base";
 use virt_autotest::common;
@@ -31,7 +31,7 @@ sub run_test {
     record_info "Check", "Check saved states";
     foreach my $guest (keys %virt_autotest::common::guests) {
         if (script_run("virsh list --all | grep $guest | grep shut") != 0) {
-            record_soft_failure "Guest $guest should be shut down now";
+            record_info 'Softfail', "Guest $guest should be shut down now", result => 'softfail';
             script_run "virsh destroy $guest", 90;
         }
     }

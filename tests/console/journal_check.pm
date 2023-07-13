@@ -3,13 +3,16 @@
 # Copyright 2017-2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Basic journal tests
+# Summary: Check system journal for errors given a list of known patterns
+#          referring to known bugs. This module will fail in case an unknown
+#          message was found and in case a failing systemd service was found.
 # Maintainer: qa-c team <qa-c@suse.de>
 
 use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use version_utils 'is_opensuse';
 use Mojo::JSON qw(decode_json);
 
@@ -50,7 +53,7 @@ sub run {
     my $self = shift;
     my $bug_pattern = parse_bug_refs();
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my @journal_output = split(/\n/, script_output("journalctl --no-pager --quiet -p ${\get_var('JOURNAL_LOG_LEVEL', 'err')} -o short-precise"));
     my @matched_bugs;
@@ -70,7 +73,7 @@ sub run {
             } elsif ($bug_pattern->{$bug}->{type} eq 'ignore') {
                 bmwqemu::diag("Ignoring log message:\n$buffer\n");
             } else {
-                record_soft_failure("$bug:\n$buffer");
+                record_info('Softfail', "$bug:\n$buffer", result => 'softfail');
             }
         }
     }
@@ -97,8 +100,8 @@ sub run {
             my $service = $1;
             my $failed_service_output = script_output("systemctl status $service -l || true");
             foreach my $bsc (@matched_bugs) {
-                if ($failed_service_output =~ /$bug_pattern->{$bsc}->{description}/) {
-                    record_soft_failure("Service: $service failed due to $bsc\n$failed_service_output");
+                if ($failed_service_output =~ $bug_pattern->{$bsc}->{description}) {
+                    record_info('Softfail', "Service: $service failed due to $bsc\n$failed_service_output", result => 'softfail');
                     next SRV;
                 }
             }
@@ -106,6 +109,13 @@ sub run {
             $failed = 1;
         }
     }
+
+    # upload all content of audit directory
+    if (script_run('test -d /var/log/audit/') == 0) {
+        assert_script_run('tar cvf /tmp/audit.tar  /var/log/audit/*');
+        upload_logs('/tmp/audit.tar');
+    }
+
     $self->result('fail') if $failed;
 }
 

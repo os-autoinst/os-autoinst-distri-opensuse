@@ -1,0 +1,130 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+      <confirm_base_product_license config:type="boolean">true</confirm_base_product_license>
+    </mode>
+  </general>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+  </bootloader>
+  <suse_register>
+    <do_registration config:type="boolean">false</do_registration>
+  </suse_register>
+  <add-on>
+    <add_on_products config:type="list">
+      <listentry>
+        <media_url><![CDATA[dvd:///?devices=/dev/sr0]]></media_url>
+        <product>sle-module-basesystem</product>
+        <product_dir>/Module-Basesystem</product_dir>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[dvd:///?devices=/dev/sr0]]></media_url>
+        <product>sle-module-serverapplications</product>
+        <product_dir>/Module-Server-Applications</product_dir>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[dvd:///?devices=/dev/sr0]]></media_url>
+        <product>sle-module-desktop-applications</product>
+        <product_dir>/Module-Desktop-Applications</product_dir>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[dvd:///?devices=/dev/sr0]]></media_url>
+        <product>sle-module-legacy</product>
+        <product_dir>/Module-Legacy</product_dir>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[dvd:///?devices=/dev/sr0]]></media_url>
+        <product>sle-module-development-tools</product>
+	<product_dir>/Module-Development-Tools</product_dir>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[dvd:///?devices=/dev/sr0]]></media_url>
+        <product>sle-module-web-scripting</product>
+        <product_dir>/Module-Web-Scripting</product_dir>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[dvd:///?devices=/dev/sr0]]></media_url>
+        <product>sle-module-containers</product>
+        <product_dir>/Module-Containers</product_dir>
+      </listentry>
+    </add_on_products>
+  </add-on>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <networking>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <dhclient_set_default_route>yes</dhclient_set_default_route>
+        <startmode>auto</startmode>
+      </interface>
+    </interfaces>
+    <keep_install_network t="boolean">true</keep_install_network>
+  </networking>
+  <firewall>
+    <enable_firewall config:type="boolean">true</enable_firewall>
+    <start_firewall config:type="boolean">true</start_firewall>
+  </firewall>
+  <users config:type="list">
+    <user>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <encrypted config:type="boolean">true</encrypted>
+      <user_password>$6$A5x/aKtAldy8V2Q5$5tFn6SW808brpHQHJUVgHL0zpI3VSFkIrlr5r1xE0mnHTzJY29S4p.aIUv4xGeXU7Z0FWe/vFaBoKOIEyQgJH1</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <user_password>$6$Viz.6zkOLg.HGiYS$uwvqo4HVVn9/n7UByRDCwf/3h7.jVunrhugXfuxQve7db8kS0Q0flCXajdB/8Odh5tbwfnWf.cT1K8QgWlsci1</user_password>
+      <username>root</username>
+    </user>
+  </users>
+  <software>
+    <packages config:type="list">
+      <package>grub2</package>
+      <package>sles-release</package>
+    </packages>
+    <patterns config:type="list">
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>basesystem</pattern>
+      <pattern>enhanced_base</pattern>
+      <pattern>gnome_basic</pattern>
+      <pattern>gnome_basis</pattern>
+      <pattern>minimal_base</pattern>
+      <pattern>x11</pattern>
+      <pattern>x11_yast</pattern>
+      <pattern>yast2_basis</pattern>
+      <pattern>yast2_desktop</pattern>
+      <pattern>yast2_server</pattern>
+    </patterns>
+    <products config:type="list">
+      <product>SLES</product>
+    </products>
+  </software>
+</profile>

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 #Setup libguestfs environmen for non-x86_64 machine
 function setup_libguestfs_env() {
@@ -55,7 +55,7 @@ function fetch_logs_from_guest_via_ssh() {
 
         local ret_result=128
         local retry_times=0
-        while [[ ${retry_times} -lt 3 ]] && [[ ${ret_result} -ne 0 ]];
+        while [[ ${retry_times} -lt 2 ]] && [[ ${ret_result} -ne 0 ]];
         do
               mkdir -p ${logs_folder}/${guest_transformed}
               echo -e "${sshpass_scp_cmd}:${logs_folder} ${logs_folder}/${guest_transformed}"
@@ -262,9 +262,9 @@ fi
 
 unset guest_hash_ipaddr
 declare -a guest_hash_ipaddr=""
-guest_domain_types="sles|opensuse|tumbleweed|leap|oracle"
-guests_inactive_array=`virsh list --inactive | grep -E "${guest_domain_types}" | awk '{print $2}'`
-guest_domains_array=`virsh list  --all | grep -E "${guest_domain_types}" | awk '{print $2}'`
+guest_domain_types="sles|opensuse|tumbleweed|leap|oracle|alp"
+guests_inactive_array=`virsh list --inactive | grep -Ei "${guest_domain_types}" | awk '{print $2}'`
+guest_domains_array=`virsh list  --all | grep -Ei "${guest_domain_types}" | awk '{print $2}'`
 guest_current=""
 guest_macaddresses_array=""
 guest_ipaddress="";
@@ -276,7 +276,8 @@ echo -e "Install necessary packages. zypper install -y sshpass nmap xmlstarlet l
 zypper install -y sshpass nmap xmlstarlet libguestfs* guestfs-tools | tee -a ${fetch_logs_from_guest_log}
 
 #Establish reachable networks and hosts database on host
-subnets_in_route=`ip route show all | awk '{print $1}' | grep -v default`
+#In ALP, podman network takes ~40 minutes to finish scan, but it's useless, so exclude it
+subnets_in_route=`ip route show all | grep -v cni-podman0 | awk '{print $1}' | grep -v default`
 subnets_scan_results=""
 subnets_scan_index=0
 echo -e "Subnets ${subnets_in_route[@]} are reachable on host judging by ip route show all" | tee -a ${fetch_logs_from_guest_log}

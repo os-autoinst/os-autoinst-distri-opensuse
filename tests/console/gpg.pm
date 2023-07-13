@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2021 SUSE LLC
+# Copyright 2017-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: gpg2 haveged
@@ -16,7 +16,7 @@
 # - Check test file signature
 # - Cleanup
 #
-# Maintainer: Petr Cervinka <pcervinka@suse.com>, Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#65375, poo#97685, poo#104556
 
 use base "consoletest";
@@ -26,8 +26,9 @@ use testapi;
 use Utils::Backends;
 use Utils::Architectures;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_public_cloud is_transactional is_sle_micro);
 use utils qw(zypper_call package_upgrade_check);
+use transactional qw(trup_call process_reboot);
 
 sub gpg_test {
     my ($key_size, $gpg_ver) = @_;
@@ -64,6 +65,8 @@ EOF
         if (get_var('FIPS_ENV_MODE')) {
             assert_script_run('gpgconf --kill gpg-agent');
         }
+        # force gpg to use text mode dialog for entering passphrase
+        assert_script_run("echo 'pinentry-program /usr/bin/pinentry-curses' > ~/.gnupg/gpg-agent.conf ; gpg-connect-agent reloadagent /bye");
 
         script_run("gpg2 -vv --batch --full-generate-key $egg_file &> /dev/$serialdev; echo gpg-finished-\$? >/dev/$serialdev", 0);
     }
@@ -113,7 +116,7 @@ EOF
     # the random probable primes p and q for RSA.
     #
     # Please see bsc#1165902#c40 that RSA 4096 can be accepted even in FIPS mode
-    if (get_var('FIPS') || get_var('FIPS_ENABLED') && ($key_size == '1024')) {
+    if ((get_var('FIPS') || get_var('FIPS_ENABLED') || get_var('FIPS_ENV_MODE')) && ($key_size == '1024')) {
         wait_serial("failed: Invalid value", 90) || die "It should failed with invalid value!";
         return;
     }
@@ -147,17 +150,25 @@ EOF
     assert_script_run("test -e $tfile_asc");
     assert_script_run("gpg2 -u $email --verify --verbose $tfile_asc");
 
+    # cleanup
+    assert_script_run("rm -f ~/.gnupg/gpg-agent.conf ; gpg-connect-agent reloadagent /bye") if $gpg_ver ge 2.1;
     # Restore
     assert_script_run("rm -rf $tfile.* $egg_file");
     assert_script_run("rm -rf .gnupg && gpg -K");    # Regenerate default ~/.gnupg
+
 }
 
 sub run {
     select_console 'root-console';
 
     # increase entropy for key generation for s390x on svirt backend
-    if (is_s390x && (is_sle('15+') && (is_svirt))) {
-        zypper_call('in haveged');
+    if (is_s390x && ((is_sle('15+') || is_transactional) && (is_svirt))) {
+        if (is_transactional) {
+            trup_call('pkg install haveged');
+            process_reboot(trigger => 1);
+        } else {
+            zypper_call('in haveged');
+        }
         systemctl('start haveged');
     }
 
@@ -172,19 +183,31 @@ sub run {
         libgcrypt20 => '1.9.0',
         'libgcrypt20-hmac' => '1.9.0'
     };
-    zypper_call("in " . join(' ', keys %$pkg_list));
+    if (is_public_cloud() && check_var('BETA', '1')) {
+        if (zypper_call("in " . join(' ', keys %$pkg_list), exitcode => [0, 4]) == '4') {
+            record_info("Aborting", "The repositories are behind Public Cloud image. See bsc#1199312");
+            return 1;
+        }
+    } else {
+        if (is_transactional) {
+            trup_call('pkg install ' . join(' ', keys %$pkg_list));
+            process_reboot(trigger => 1);
+        } else {
+            zypper_call("in " . join(' ', keys %$pkg_list));
+        }
+    }
 
-    if (is_sle('>=15-sp4')) {
-        package_upgrade_check($pkg_list);
+    if (is_sle('>=15-sp4') || is_sle_micro) {
+        package_upgrade_check($pkg_list) unless (is_public_cloud() && check_var('BETA', '1'));
     }
     else {
         foreach my $pkg_name (keys %$pkg_list) {
-            my $pkg_ver = script_output("rpm -q --qf '%{version}\n' $pkg_name");
+            my $pkg_ver = script_output("rpm -q --qf '%{version}\n' --whatprovides $pkg_name");
             record_info("$pkg_name version", "Version of Current package: $pkg_ver");
         }
     }
 
-    # GPG key generation and basic function testing with differnet key lengths
+    # GPG key generation and basic function testing with different key lengths
     # RSA keys may be between 1024 and 4096 only currently
     foreach my $len ('1024', '2048', '3072', '4096') {
         gpg_test($len, $gpg_version);

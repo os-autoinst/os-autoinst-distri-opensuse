@@ -56,4 +56,3 @@ schedule:
     - console/shells
     - console/dstat
     - console/procps
-    - console/kdump_and_crash

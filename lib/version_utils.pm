@@ -12,6 +12,7 @@ use version 'is_lax';
 use Carp 'croak';
 use Utils::Backends;
 use Utils::Architectures;
+use SemVer;
 
 use constant {
     VERSION => [
@@ -43,12 +44,14 @@ use constant {
           is_public_cloud
           is_openstack
           is_leap_migration
+          is_tunneled
           requires_role_selection
           check_version
           get_os_release
           check_os_release
           package_version_cmp
           get_version_id
+          php_version
         )
     ],
     BACKEND => [
@@ -101,7 +104,7 @@ Returns true if called on jeos
 =cut
 
 sub is_jeos {
-    return get_var('FLAVOR', '') =~ /^JeOS/;
+    return get_var('FLAVOR', '') =~ /JeOS/;
 }
 
 =head2 is_vmware
@@ -188,6 +191,12 @@ sub check_version {
         if (is_lax($pv) && is_lax($qv)) {
             $pv = version->declare($pv);
             $qv = version->declare($qv);
+        }
+        elsif (index($pv, "sp") == -1 && index($qv, "sp") == -1) {
+            eval {
+                $pv = SemVer->declare($pv);
+                $qv = SemVer->declare($qv);
+            }
         }
         return $pv ge $qv if $+{plus} || $+{op} eq '>=';
         return $pv le $qv if $+{op} eq '<=';
@@ -753,6 +762,15 @@ sub is_leap_migration {
     return is_upgrade && get_var('ORIGIN_SYSTEM_VERSION') =~ /leap/;
 }
 
+=head2 is_tunneled
+
+Returns true if TUNNELED is set to 1
+=cut
+
+sub is_tunneled {
+    return get_var('TUNNELED', 0);
+}
+
 =head2 has_test_issues
 
 Returns true if test issues are present (i.e. is update tests are present)
@@ -831,8 +849,11 @@ sub is_quarterly_iso {
 
 Get SLES version from VERSION_ID in /etc/os-release. This subroutine also supports
 performing query on remote machine if dst_machine is given specific ip address or
-fqdn text of the remote machine. The default location that contains VERSION_ID is
-file /etc/os-release if nothing else is passed in to argument verid_file.
+fqdn text of the remote machine. If C<dst_machine> is given it will run on the remote
+as B<root>. To run it as another user, C<dst_machine> can be also specified as [user@]hostname.
+
+The default location that contains VERSION_ID is file /etc/os-release if nothing else
+is passed in to argument verid_file.
 
 =cut
 
@@ -842,6 +863,33 @@ sub get_version_id {
     $args{verid_file} //= '/etc/os-release';
 
     my $cmd = "cat $args{verid_file} | grep VERSION_ID | grep -Eo \"[[:digit:]]{1,}\\.[[:digit:]]{1,}\"";
-    $cmd = "ssh root\@$args{dst_machine} " . "$cmd" if ($args{dst_machine} ne 'localhost');
+    if ($args{dst_machine} ne 'localhost') {
+        if ($args{dst_machine} =~ /^(\w+)@.+/) {
+            $cmd = "ssh $args{dst_machine} " . "$cmd";
+        } else {
+            $cmd = "ssh root\@$args{dst_machine} " . "$cmd";
+        }
+    }
     return script_output($cmd);
 }
+
+sub php_version {
+    my ($php, $php_pkg, $php_ver);
+    if (is_sle('<15')) {
+        $php = 'php';
+        $php_pkg = 'php5';
+        $php_ver = '5';
+    }
+    elsif (is_leap("<15.4") || is_sle("<15-SP4")) {
+        $php = 'php7';
+        $php_pkg = 'php7';
+        $php_ver = '7';
+    }
+    else {
+        $php = 'php8';
+        $php_pkg = 'php8';
+        $php_ver = '8';
+    }
+    ($php, $php_pkg, $php_ver);
+}
+

@@ -16,6 +16,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use repo_tools qw(prepare_source_repo disable_source_repo);
 use version_utils qw(is_sle is_leap is_opensuse);
@@ -49,8 +50,7 @@ sub test_package_output {
 }
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # check for zypper info
     test_package_output;

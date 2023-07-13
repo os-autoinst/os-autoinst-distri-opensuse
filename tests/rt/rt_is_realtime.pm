@@ -10,10 +10,11 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
+use Utils::Logging qw(export_logs_basic upload_coredumps);
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     # check booted kernel, expected RT
     validate_script_output("uname -v", sub { m/\s{1}PREEMPT(\s{1}|_)RT\s{1}/ });
     # display running RT processes, expected to see FF - SCHED_FIFO or RR - SCHED_RR processes
@@ -40,7 +41,7 @@ sub post_fail_hook {
 
     select_console 'log-console';
 
-    $self->export_logs_basic;
+    export_logs_basic;
     $self->upload_coredumps;
 }
 

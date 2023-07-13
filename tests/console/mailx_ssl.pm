@@ -5,7 +5,7 @@
 #
 # Package: mailx
 # Summary: Test mailx send/reveive mails with SSL enabled
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 
 use base "consoletest";
 use strict;

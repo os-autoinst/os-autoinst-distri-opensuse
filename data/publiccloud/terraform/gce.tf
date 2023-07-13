@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     google = {
-      version = "= 3.65.0"
+      version = "= 4.57.0"
       source = "hashicorp/google"
     }
     random = {
@@ -78,6 +78,16 @@ variable "enable_confidential_vm" {
 	default=false
 }
 
+variable "gpu" {
+  description = "Enable and configure node GPUs"
+
+  default = false
+}
+
+variable "vm_create_timeout" {
+    default = "20m"
+}
+
 resource "random_id" "service" {
     count = var.instance_count
     keepers = {
@@ -91,7 +101,12 @@ resource "google_compute_instance" "openqa" {
     name                         = "${var.name}-${element(random_id.service.*.hex, count.index)}"
     machine_type                 = var.type
     zone                         = var.region
-    
+
+    guest_accelerator {
+      type = "nvidia-tesla-t4"
+      count = var.gpu ? 1 : 0
+    }
+
     confidential_instance_config {
     	enable_confidential_compute = var.enable_confidential_vm ? true : false
     }
@@ -133,6 +148,10 @@ resource "google_compute_instance" "openqa" {
             enable_vtpm = "true"
             enable_integrity_monitoring = "true"
         }
+    }
+
+    timeouts {
+        create = var.vm_create_timeout
     }
 }
 

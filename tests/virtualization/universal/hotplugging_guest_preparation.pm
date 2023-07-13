@@ -5,7 +5,7 @@
 
 # Package: bridge-utils libvirt-client openssh qemu-tools util-linux
 # Summary: Virtual network and virtual block device hotplugging
-# Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>, Jan Baier <jbaier@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "virt_feature_test_base";
 use virt_autotest::common;
@@ -15,25 +15,18 @@ use warnings;
 use testapi;
 use utils;
 use virt_utils;
-use version_utils;
+use version_utils qw(is_alp get_os_release);
 use hotplugging_utils;
+use virt_autotest::virtual_network_utils qw(update_simple_dns_for_all_vm);
 
 # Magic MAC prefix for temporary devices. Must be of the format 'XX:XX:XX:XX'
 my $MAC_PREFIX = '00:16:3f:32';
-
-sub increase_max_memory {
-    my $guest = shift;
-    my $increase = shift // 2048;
-    my $guest_instance = $virt_autotest::common::guests{$guest};
-    my $maxmemory = $guest_instance->{maxmemory} // "4096";
-    $maxmemory += $increase;
-    assert_script_run("virsh setmaxmem $guest $maxmemory" . "M --config");
-}
 
 sub run_test {
     my ($self) = @_;
     my ($sles_running_version, $sles_running_sp) = get_os_release;
 
+    # Update dns records if needed
     if ($sles_running_version eq '15' && get_var("VIRT_AUTOTEST") && !get_var("VIRT_UNIFIED_GUEST_INSTALL")) {
         record_info("DNS Setup", "SLE 15+ host may have more strict rules on dhcp assigned ip conflict prevention, so guest ip may change");
         my $dns_bash_script_url = data_url("virt_autotest/setup_dns_service.sh");
@@ -41,14 +34,14 @@ sub run_test {
         script_output("chmod +x ~/setup_dns_service.sh && ~/setup_dns_service.sh -f testvirt.net -r 123.168.192 -s 192.168.123.1", 180, type_command => 0, proceed_on_failure => 0);
         upload_logs("/var/log/virt_dns_setup.log");
         save_screenshot;
+    } elsif (is_alp) {
+        update_simple_dns_for_all_vm('test-virt-net');
     }
 
     # Guest preparation
     shutdown_guests();
-    # Increase maximum memory for this test run
-    increase_max_memory($_) foreach (keys %virt_autotest::common::guests);
+    reset_guest($_, $MAC_PREFIX) foreach (keys %virt_autotest::common::guests);
     start_guests();
-
 }
 
 sub post_fail_hook {

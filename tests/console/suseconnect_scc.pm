@@ -9,13 +9,13 @@
 
 use Mojo::Base qw(consoletest);
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call script_retry script_output_retry);
 use version_utils qw(is_sle is_jeos is_sle_micro);
 use registration qw(register_addons_cmd verify_scc investigate_log_empty_license);
 
 sub run {
     return if get_var('HDD_SCC_REGISTERED');
-    my $self = shift;
     my $reg_code = get_required_var 'SCC_REGCODE';
     my $cmd = "SUSEConnect -r $reg_code";
     my $scc_addons = get_var 'SCC_ADDONS', '';
@@ -28,7 +28,7 @@ sub run {
     my $delay = 60;    # time between retries to run SUSEConnect commands
 
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
     die 'SUSEConnect package is not pre-installed!' if script_run 'command -v SUSEConnect';
     if ((is_jeos || is_sle_micro) && script_run(q(SUSEConnect --status-text | grep -i 'not registered'))) {
         die 'System has been already registered!';

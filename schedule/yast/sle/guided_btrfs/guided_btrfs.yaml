@@ -9,6 +9,10 @@ vars:
 schedule:
   default_systemd_target:
     - installation/installation_settings/validate_default_target
+  extension_module_selection:
+    - installation/module_registration/register_module_desktop
+  system_role:
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
   system_preparation:
     - console/system_prepare
     - console/force_scheduled_tasks
@@ -20,27 +24,4 @@ schedule:
     - console/validate_partition_table_via_blkid
     - console/validate_blockdevices
 test_data:
-  subvolume:
-    cow:
-      - /root
-      - /tmp
-      - /usr/local
-      - /.snapshots
-      - /srv
-      - /opt
-    no_cow:
-      - /var
-  disks:
-  - name: vda
-    table_type: gpt
-    partitions:
-    - name: vda2
-      formatting_options:
-        filesystem: btrfs
-      mounting_options:
-        mount_point: /
-    - name: vda3
-      formatting_options:
-        filesystem: xfs
-      mounting_options:
-        mount_point: /home
+  <<: !include test_data/yast/btrfs/guided_btrfs.yaml

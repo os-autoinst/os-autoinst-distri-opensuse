@@ -48,7 +48,7 @@ sub run {
     reset_consoles;
     $self->wait_boot;
     select_console 'root-console';
-    script_run("systemctl poweroff");
+    enter_cmd("systemctl poweroff");
     assert_shutdown;
 }
 
@@ -59,7 +59,6 @@ sub test_flags {
 sub post_fail_hook {
     my $self = shift;
     $self->SUPER::post_fail_hook;
-    $self->export_logs;
 }
 
 1;

@@ -1,0 +1,46 @@
+---
+name: fips-install-encrypt-lvm-separate-boot
+description: >
+  Installation of a system with root on an encrypted logical volume
+  and with /boot on a separate unencrypted partition.
+  This test should replace the old fips_lvm_encrypt_separate_boot.
+vars:
+  ENCRYPT: 1
+  FULL_LVM_ENCRYPT: 1
+  UNENCRYPTED_BOOT: 1
+  YUI_REST_API: 1
+  MAX_JOB_TIME: '14400'
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - '{{access_beta_distribution}}'
+  - installation/product_selection/install_SLES
+  - installation/licensing/accept_license
+  - installation/registration/register_via_scc
+  - installation/module_registration/skip_module_registration
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_text_mode
+  - installation/partitioning/new_partitioning_gpt
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
+  - installation/bootloader_settings/disable_plymouth
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/performing_installation/perform_installation
+  - installation/logs_from_installation_system
+  - installation/performing_installation/confirm_reboot
+  - installation/handle_reboot
+  - installation/boot_encrypt
+  - installation/first_boot
+  - console/hostname
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - console/validate_lvm
+  - console/validate_encrypt
+conditional_schedule:
+  access_beta_distribution:
+    BETA:
+      1:
+        - installation/access_beta_distribution

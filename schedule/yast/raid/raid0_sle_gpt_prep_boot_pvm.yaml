@@ -11,31 +11,12 @@ vars:
   OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
   YUI_REST_API: 1
 schedule:
-  - installation/bootloader_start
-  - installation/setup_libyui
-  - installation/access_beta_distribution
-  - installation/product_selection/install_SLES
-  - installation/licensing/accept_license
-  - installation/registration/register_via_scc
-  - installation/module_registration/skip_module_registration
-  - installation/add_on_product/skip_install_addons
-  - installation/system_role/accept_selected_role_text_mode
-  - installation/partitioning/raid_gpt
-  - installation/clock_and_timezone/accept_timezone_configuration
-  - installation/authentication/use_same_password_for_root
-  - installation/authentication/default_user_simple_pwd
-  - installation/installation_settings/validate_ssh_service_enabled
-  - installation/installation_settings/open_ssh_port
-  - installation/bootloader_settings/disable_boot_menu_timeout
-  - installation/launch_installation
-  - installation/confirm_installation
-  - installation/performing_installation/perform_installation
-  - installation/logs_from_installation_system
-  - installation/performing_installation/confirm_reboot
-  - installation/handle_reboot
-  - installation/first_boot
-  - console/validate_md_raid
-  - console/validate_raid
+  expert_partitioning:
+    - installation/partitioning/raid_gpt
+  suggested_partitioning: []
+  system_validation:
+    - console/validate_md_raid
+    - console/validate_raid
 test_data:
   # We have same partitioning layout for all raid tests, except mds
   <<: !include test_data/yast/raid/raid_prep_boot_test_data_pvm.yaml
@@ -56,7 +37,6 @@ test_data:
           should_mount: 1
     - raid_level: 1
       name: md1
-      chunk_size: '64 KiB'
       devices:
         - sda3
         - sdb3

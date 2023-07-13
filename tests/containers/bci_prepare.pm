@@ -25,38 +25,49 @@ use version_utils qw(get_os_release);
 use db_utils qw(push_image_data_to_db);
 use containers::common;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 
 sub packages_to_install {
     my ($version, $sp, $host_distri) = @_;
     my $arch = get_required_var('ARCH');
+    my $scc_timeout = 1200;    # SCC can take really long timetimes
+
+    # Avoid PackageKit to conflict about lock with zypper
+    script_run("pkcon quit", die_on_timeout => 0);
+
     # common packages
     my @packages = ('git-core', 'python3', 'gcc', 'jq');
     if ($host_distri eq 'ubuntu') {
-        push @packages, ('python3-dev', 'python3-pip', 'golang');
+        push @packages, ('python3-dev', 'python3-pip', 'golang', 'postgresql-server-dev-all');
     } elsif ($host_distri eq 'rhel' && $version > 7) {
-        push @packages, ('platform-python-devel', 'python3-pip', 'golang');
+        push @packages, ('platform-python-devel', 'python3-pip', 'golang', 'postgresql-devel');
     } elsif ($host_distri =~ /centos|rhel/) {
-        push @packages, ('python3-devel', 'python3-pip', 'golang');
+        push @packages, ('python3-devel', 'python3-pip', 'golang', 'postgresql-devel');
     } elsif ($host_distri eq 'sles') {
+        # SDK is needed for postgresql
         my $version = "$version.$sp";
-        push @packages, 'python3-devel';
+        push @packages, ('postgresql-server-devel');
         if ($version eq "12.5") {
+            script_retry("SUSEConnect -p sle-sdk/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
             # PackageHub is needed for jq
-            script_retry("SUSEConnect -p PackageHub/12.5/$arch", delay => 60, retry => 3, timeout => 300);
-            push @packages, 'python36-pip';
+            script_retry("SUSEConnect -p PackageHub/12.5/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
+            push @packages, ('python36-devel', 'python36-pip');
         } elsif ($version eq '15.0') {
+            # Desktop module is needed for SDK module, which is required for go and postgresql-devel
+            script_retry("SUSEConnect -p sle-module-desktop-applications/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
+            script_retry("SUSEConnect -p sle-module-development-tools/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
             # On SLES15 go needs to be installed from packagehub. On later SLES it comes from the SDK module
-            script_retry("SUSEConnect -p PackageHub/15/$arch", delay => 60, retry => 3, timeout => 300);
-            push @packages, ('go1.10', 'skopeo');
+            script_retry("SUSEConnect -p PackageHub/15/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
+            push @packages, ('python3-devel', 'go1.10', 'skopeo');
         } else {
-            # Desktop module is needed for SDK module, which is required for installing go
-            script_retry("SUSEConnect -p sle-module-desktop-applications/$version/$arch", delay => 60, retry => 3, timeout => 300);
-            script_retry("SUSEConnect -p sle-module-development-tools/$version/$arch", delay => 60, retry => 3, timeout => 300);
-            push @packages, ('go', 'skopeo');
+            # Desktop module is needed for SDK module, which is required for go and postgresql-devel
+            script_retry("SUSEConnect -p sle-module-desktop-applications/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
+            script_retry("SUSEConnect -p sle-module-development-tools/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
+            push @packages, ('python3-devel', 'go', 'skopeo');
         }
     } elsif ($host_distri =~ /opensuse/) {
-        push @packages, qw(python3-devel go skopeo);
+        push @packages, qw(python3-devel go skopeo postgresql-server-devel);
     } else {
         die("Host is not supported for running BCI tests.");
     }
@@ -64,8 +75,10 @@ sub packages_to_install {
 }
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
+
+    # Wait for any zypper tasks in the background to finish
+    assert_script_run('while pgrep -f zypp; do sleep 1; done', timeout => 300);
 
     # CONTAINER_RUNTIME can be "docker", "podman" or both "podman,docker"
     my $engines = get_required_var('CONTAINER_RUNTIME');
@@ -122,10 +135,10 @@ sub run {
         record_info('Inspect', script_output("$engine inspect $image"));
         my $build = get_var('CONTAINER_IMAGE_BUILD');
         if ($build && $build ne 'UNKNOWN') {
-            record_info('BUILD#', "CONTAINER_IMAGE_BUILD=$build");
             my $reference = script_output(qq($engine inspect --type image $image | jq -r '.[0].Config.Labels."org.opensuse.reference"'));
-            record_info('image ref', "org.opensuse.reference: $reference");
-            die('Miss match in image build number. The image build number is different than the one triggered by the container bot!') if ($reference !~ /$build$/);
+            # Note: Both lines are aligned, thus the additional space
+            record_info('builds', "CONTAINER_IMAGE_BUILD:  $build\norg.opensuse.reference: $reference");
+            die('Missmatch in image build number. The image build number is different than the one triggered by the container bot!') if ($reference !~ /$build$/);
         }
         if (get_var('IMAGE_STORE_DATA')) {
             my $size_b = script_output("$engine inspect --format \"{{.VirtualSize}}\" $image");

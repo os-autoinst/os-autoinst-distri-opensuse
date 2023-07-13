@@ -275,12 +275,24 @@ sub format_partition {
     if ($filesystem =~ /ext4/) {
         $options = $args{options} // "-F";
     }
+    elsif ($filesystem =~ /ocfs2/) {
+        $options = $args{options} // "-F --fs-features=local --fs-feature-level=max-features";
+    }
     else {
         $options = $args{options} // "-f";
     }
     script_run("umount -f $part");
     sleep 1;
-    assert_script_run("mkfs.$filesystem $options $part");
+    if ($filesystem =~ /ocfs2/) {
+        # mkfs.ocfs2 will still require input y even you used -F
+        background_script_run("mkfs.$filesystem $options $part");
+        sleep 1;
+        script_run('y');
+        wait_still_screen(10, 60);
+    }
+    else {
+        assert_script_run("mkfs.$filesystem $options $part");
+    }
 }
 
 =head2 df_command

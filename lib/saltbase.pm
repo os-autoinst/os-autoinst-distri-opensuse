@@ -10,7 +10,7 @@ use warnings;
 use testapi;
 use known_bugs;
 
-use utils qw(zypper_call systemctl);
+use utils qw(zypper_call systemctl remount_tmp_if_ro);
 
 sub master_prepare {
     # Install the salt master
@@ -87,11 +87,19 @@ sub logs_from_salt {
 
     upload_logs '/var/log/salt/minion', log_name => 'salt-minion.txt';
 
-    my $error = "cat /var/log/salt/* | grep -i 'CRITICAL\\|ERROR\\|Traceback' ";
+    my $error = "cat /var/log/salt/* | grep -i '\\[.*CRITICAL.*\\]\\|\\[.*ERROR.*\\]\\|Traceback' ";
     $error .= "| grep -vi 'Error while parsing IPv\\|Error loading module\\|Unable to resolve address\\|SaltReqTimeoutError' ";
     $error .= "| grep -vi 'has cached the public key for this node\\|Minion unable to successfully connect to a Salt Master'";
     $error .= "| grep -vi 'Error while bringing up minion for multi-master'";
     if (script_run("$error") != 1) {
+        if (check_var('HOSTNAME', 'master') && script_run('grep "self.pusher.connect(timeout=timeout)" /var/log/salt/master') == 0) {
+            record_soft_failure('bsc#1209248');
+            return;
+        }
+        if (script_run('grep "ModuleNotFoundError.*\'salt.ext.six\'" /var/log/salt/minion') == 0) {
+            record_soft_failure('bsc#1211591');
+            return;
+        }
         die "Salt logs are containing errors!";
     }
 }
@@ -126,6 +134,7 @@ Method executed when run() finishes and the module has result => 'fail'
 
 sub post_fail_hook {
     my ($self) = shift;
+    return if get_var('NOLOGS');
     select_console('log-console');
 
     # fetch Salt specific logs
@@ -135,8 +144,7 @@ sub post_fail_hook {
     stop();
 
     $self->SUPER::post_fail_hook;
-    $self->remount_tmp_if_ro;
-    $self->export_logs_basic;
+    remount_tmp_if_ro;
 }
 
 1;

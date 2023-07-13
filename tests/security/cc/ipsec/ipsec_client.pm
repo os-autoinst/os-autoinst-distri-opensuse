@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run CC 'ipsec' client case
-# Maintainer: Liu Xiaojing <xiaojing.liu@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#101226
 
 use base 'consoletest';
@@ -26,9 +26,8 @@ sub run {
     my $netdev = get_var('NETDEV', 'eth0');
     assert_script_run("ip addr add $atsec_test::client_ip/24 dev $netdev") if (is_s390x);
 
-    mutex_wait('IPSEC_SERVER_READY');
-
     assert_script_run("cd $audit_test::test_dir/ipsec_configuration/toe");
+    mutex_wait('IPSEC_SERVER_READY');
 
     # Setup the ipip tunnel to the IPSec gateway and test it
     # 192.168.100.1 is configured in the server by ipsec_setup_tunnel_server.sh
@@ -42,6 +41,14 @@ sub run {
     # Test the IPSec connection
     assert_script_run('ipsec start');
     assert_script_run('stime=$(date +\'%H:%M:%S\')');
+
+    # ipsec start can take some time to start charon daemon,
+    # so we wait until we get some status output
+    my $inc = 0;
+    while (scalar(split(/\n/, script_output('ipsec statusall', proceed_on_failure => 1)) <= 5) && $inc < 10) {
+        sleep(++$inc);
+    }
+
     assert_script_run('ipsec up ikev2suse');
 
     # Test the IPSec connection
@@ -51,7 +58,9 @@ sub run {
     assert_script_run('ausearch -ts $stime | grep --color -e \'MAC_IPSEC_EVENT\' -e \'SPD-add\' -e \'SAD-add\'');
 
     assert_script_run('stime=$(date +\'%H:%M:%S\')');
-    assert_script_run('ipsec down ikev2suse');
+
+    my $timeout = is_s390x() ? 180 : 90;
+    assert_script_run('ipsec down ikev2suse', $timeout);
 
     # Search for AUDIT SPD/SAD delete records
     assert_script_run('ausearch -ts $stime | grep --color -e \'MAC_IPSEC_EVENT\' -e \'SPD-delete\' -e \'SAD-delete\'');

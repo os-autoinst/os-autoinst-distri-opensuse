@@ -10,7 +10,7 @@
 #           in Chinese.
 #        3. Run rmt-cli sync and ensure the output is in Chinese.
 #
-# Maintainer: Lemon Li <leli@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;
@@ -29,7 +29,7 @@ sub set_language_to_Chinese {
     select_console 'x11', await_console => 0;
     wait_still_screen 15;
     ensure_unlocked_desktop;
-    assert_screen "generic-desktop";
+    assert_screen 'generic-desktop';
 
     x11_start_program('xterm');
     wait_still_screen 2, 2;
@@ -52,6 +52,11 @@ sub set_language_to_Chinese {
 
     # Logout and login to ensure the configuration for Chinese language take effect.
     handle_relogin;
+
+    # Reserve old folder name and close dialog of requirement for language change to update folder
+    assert_screen 'language-change-required-update-folder';
+    assert_and_click('reserve_old_folder_name');
+    assert_screen 'generic-desktop';
 
     x11_start_program('gnome-terminal');
     wait_still_screen 2, 2;

@@ -11,7 +11,7 @@ use strict;
 use warnings;
 use base "virt_autotest_base";
 use testapi;
-use virt_utils qw(remove_vm);
+use virt_autotest::utils qw(remove_vm);
 
 sub run {
     #revert dns setting

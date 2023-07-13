@@ -15,6 +15,7 @@ use base "opensusebasetest";
 use registration 'add_suseconnect_product';
 use repo_tools qw(add_qa_head_repo add_qa_web_repo);
 use testapi qw(is_serial_terminal :DEFAULT);
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle package_version_cmp);
 
@@ -47,7 +48,7 @@ sub system_status {
 
 sub system_login {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 }
 
 # Call test_run_list and write the result into /root/qaset/config

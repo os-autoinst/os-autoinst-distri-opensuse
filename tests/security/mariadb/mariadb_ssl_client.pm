@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run mariadb connect to server with '--ssl' parameter test case
-# Maintainer: Starry Wang <starry.wang@suse.com> Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#109154, tc#1767518
 
 use base 'consoletest';
@@ -22,6 +22,9 @@ sub run {
     my $client_ip = get_var('CLIENT_IP', '10.0.2.102');
 
     select_console 'root-console';
+
+    # Install runtime dependencies
+    zypper_call("in iputils");
 
     # We don't run setup_multimachine in s390x, but we need to know the server and client's
     # ip address, so we add a known ip to NETDEV.

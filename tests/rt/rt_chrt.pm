@@ -18,8 +18,10 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Systemd 'systemctl';
 use version_utils qw(is_sle);
+use Utils::Logging qw(export_logs_basic upload_coredumps);
 
 #****************************** SLERT default setup ******************************#
 # The default values for sched_rt_period_us (1000000 or 1s) and
@@ -51,9 +53,7 @@ sub remap_args {
 }
 
 sub run {
-    my $self = shift;
-
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Are there any running RT processes ?
     print "List of all running RT processes:\n";
@@ -121,8 +121,8 @@ sub post_fail_hook {
     my $self = shift;
 
     select_console 'log-console';
-    $self->export_logs_basic;
-    $self->upload_coredumps;
+    export_logs_basic;
+    upload_coredumps;
 }
 
 1;

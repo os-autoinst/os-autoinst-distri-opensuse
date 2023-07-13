@@ -8,7 +8,7 @@
 # json. Capture the output of the command in a log file
 # - Upload the logfile
 # - Check the logfile for a specific set of values
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#36895, tc#1621144
 
 use strict;

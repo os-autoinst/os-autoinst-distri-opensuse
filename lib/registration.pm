@@ -1,4 +1,4 @@
-# Copyright 2015-2021 SUSE LLC
+# Copyright 2015-2023 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 package registration;
@@ -13,6 +13,7 @@ use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call s
 use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro);
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
+use YaST::workarounds;
 
 our @EXPORT = qw(
   add_suseconnect_product
@@ -33,6 +34,7 @@ our @EXPORT = qw(
   get_addon_fullname
   rename_scc_addons
   is_module
+  is_phub_ready
   verify_scc
   investigate_log_empty_license
   register_addons_cmd
@@ -104,6 +106,11 @@ sub is_module {
     return defined $SLE15_MODULES{$name};
 }
 
+# Check if Packagehub is available
+sub is_phub_ready {
+    return (check_var('PHUB_READY', '0')) ? 0 : 1;
+}
+
 sub accept_addons_license {
     my (@scc_addons) = @_;
 
@@ -126,7 +133,7 @@ sub accept_addons_license {
 
     # In SLE 15 some modules do not have license or have the same
     # license (see bsc#1089163) and so are not be shown twice
-    push @addons_with_license, @SLE15_ADDONS_WITHOUT_LICENSE unless is_sle('15+');
+    push @addons_with_license, @SLE15_ADDONS_WITHOUT_LICENSE unless (is_sle('15+') || is_sle_micro);
     # HA and WE have licenses when calling yast2 scc
     push @addons_with_license, @SLE15_ADDONS_WITH_LICENSE_NOINSTALL if (is_sle('15+') and get_var('IN_PATCH_SLE'));
     # HA does not show EULA when doing migration to 12-SP5
@@ -279,7 +286,8 @@ sub register_product {
     if (get_var('SMT_URL')) {
         assert_script_run('SUSEConnect --url ' . get_var('SMT_URL') . ' ' . uc(get_var('SLE_PRODUCT')) . '/' . scc_version(get_var('HDDVERSION')) . '/' . get_var('ARCH'), 200);
     } else {
-        assert_script_run('SUSEConnect -r ' . get_required_var('SCC_REGCODE'), 200);
+        my $scc_reg_code = is_sles4sap ? get_required_var('SCC_REGCODE_SLES4SAP') : get_required_var('SCC_REGCODE');
+        assert_script_run('SUSEConnect -r ' . $scc_reg_code, 200);
     }
 }
 
@@ -517,6 +525,9 @@ sub process_scc_register_addons {
         # start addons/modules registration, it needs longer time if select multiple or all addons/modules
         my $counter = ADDONS_COUNT;
         my @needles = qw(import-untrusted-gpg-key nvidia-validation-failed yast_scc-pkgtoinstall yast-scc-emptypkg inst-addon contacting-registration-server refreshing-repository system-probing);
+
+        # In SLE Micro, we don't need to continue with registering any additional module.
+        return if is_sle_micro;
         if (is_sle('15-SP2+')) {
             # In SLE 15 SP2 multipath detection happens directly after registration, so using it to detect that all pop-up are processed
             push @needles, 'enable-multipath' if get_var('MULTIPATH');
@@ -605,9 +616,12 @@ sub handle_scc_popups {
         if (get_var('SCC_URL') || get_var('SMT_URL')) {
             push @tags, 'untrusted-ca-cert';
         }
+        # For s390 there is only one product therefore license is confirmed in the initial welcome dialog.
+        my $only_one_license = !(is_sle('=15-SP5') && (is_s390x));
         # The SLE15-SP2 license page moved after registration.
-        push @tags, 'license-agreement' if (!get_var('MEDIA_UPGRADE') && is_sle('15-SP2+'));
-        push @tags, 'license-agreement-accepted' if (!get_var('MEDIA_UPGRADE') && is_sle('15-SP2+'));
+        push @tags, 'license-agreement' if (!get_var('MEDIA_UPGRADE') && is_sle('15-SP2+') && $only_one_license);
+        push @tags, 'license-agreement-accepted' if (!get_var('MEDIA_UPGRADE') && is_sle('15-SP2+') && $only_one_license);
+        push @tags, 'remove-repository' if (!get_var('MEDIA_UPGRADE') && is_sle('15-SP2+'));
         push @tags, 'leap-to-sle-registrition-finished' if (is_leap_migration);
         # The "Extension and Module Selection" won't be shown during upgrade to sle15, refer to:
         # https://bugzilla.suse.com/show_bug.cgi?id=1070031#c11
@@ -616,13 +630,12 @@ sub handle_scc_popups {
         push @tags, 'expired-gpg-key' if is_sle('=15');
         while ($counter--) {
             die 'Registration repeated too much. Check if SCC is down.' if ($counter eq 1);
-            if (is_sle('15-SP4+')
+            if (is_sle('>=15-SP4')
                 && (get_var('VIDEOMODE', '') !~ /text|ssh-x/)
-                && (get_var("DESKTOP") !~ /textmode/)
-                && (get_var('REMOTE_CONTROLLER') !~ /vnc/)
-                && !(get_var('PUBLISH_HDD_1') || check_var('SLE_PRODUCT', 'hpc'))) {
-                record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-                for (1 .. 2) { send_key 'alt-f10' }
+                && (get_var("DESKTOP", '') !~ /textmode/)
+                && (get_var('REMOTE_CONTROLLER', '') !~ /vnc/)
+                && !(get_var('PUBLISH_HDD_1', '') || check_var('SLE_PRODUCT', 'hpc'))) {
+                apply_workaround_poo124652(\@tags, timeout => 360);
             }
             assert_screen(\@tags, timeout => 360);
             if (match_has_tag('import-untrusted-gpg-key')) {
@@ -681,8 +694,13 @@ sub handle_scc_popups {
                 send_key 'alt-a';
                 assert_screen('license-agreement-accepted');
                 send_key $cmd{next};
-                assert_screen "remove-repository";
+                next;
+            }
+            elsif (match_has_tag("remove-repository")) {
+                wait_still_screen 10;
                 send_key $cmd{next};
+                wait_still_screen 10;
+                next;
             }
             elsif (match_has_tag('leap-to-sle-registrition-finished')) {
                 # leap to sle do not need to add any addons
@@ -750,7 +768,7 @@ sub yast_scc_registration {
     # and start/enable rollback.service before running yast2 registration module.
     my $client_module = 'scc';
     if (is_leap_migration) {
-        zypper_call('in yast2-registration rollback-helper');
+        zypper_call('in yast2-migration-sle rollback-helper');
         systemctl("enable rollback");
         systemctl("start rollback");
         $client_module = 'registration';
@@ -800,6 +818,7 @@ sub get_addon_fullname {
         ltss => 'SLES-LTSS',
         pcm => 'sle-module-public-cloud',
         rt => 'SUSE-Linux-Enterprise-RT',
+        sapapp => 'sle-module-sap-applications',
         script => 'sle-module-web-scripting',
         serverapp => 'sle-module-server-applications',
         tcm => is_sle('15+') ? 'sle-module-development-tools' : 'sle-module-toolchain',
@@ -881,15 +900,12 @@ sub scc_deregistration {
             add_suseconnect_product('sle-module-python2');
         }
         my $deregister_ret = script_run('SUSEConnect --de-register --debug > /tmp/SUSEConnect.debug 2>&1', 300);
-        if (defined $deregister_ret and $deregister_ret == 104) {
-            # https://bugzilla.suse.com/show_bug.cgi?id=1119512
-            # https://bugzilla.suse.com/show_bug.cgi?id=1122497
-            record_soft_failure 'bsc#1119512 and bsc#1122497';
-            # Workaround the soft-failure
+        if (defined $deregister_ret and $deregister_ret) {
+            # Cleanup and upload logs in case of de-registration failure.
+            record_soft_failure "bsc#1211970 - SUSEConnect --de-register returned code $deregister_ret";
+            upload_logs "/tmp/SUSEConnect.debug";
             assert_script_run('SUSEConnect --cleanup', 200);
         }
-        # If there was a failure de-registering, upload debug information for the SCC team
-        upload_logs "/tmp/SUSEConnect.debug" if (defined $deregister_ret and $deregister_ret);
         my $output = script_output 'SUSEConnect -s';
         die "System is still registered" unless $output =~ /Not Registered/;
         save_screenshot;
@@ -997,7 +1013,6 @@ sub process_modules {
             set_var('SCC_ADDONS', $addons);
         }
     }
-
     # Process modules
     if (check_var('SCC_REGISTER', 'installation') || check_var('SCC_REGISTER', 'yast') || check_var('SCC_REGISTER', 'console')) {
         process_scc_register_addons;

@@ -1,0 +1,374 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <suse_register>
+  <do_registration config:type="boolean">true</do_registration>
+  <reg_code><%= $get_var->('SCC_REGCODE_SLES4SAP') %></reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+  </suse_register>
+  <bootloader>
+    <device_map config:type="list">
+      <device_map_entry>
+        <firmware>hd0</firmware>
+        <linux>/dev/vda</linux>
+      </device_map_entry>
+    </device_map>
+    <global>
+      <timeout config:type="integer">1</timeout>
+      <activate>true</activate>
+      <timeout config:type="integer">-1</timeout>
+      <boot_boot>false</boot_boot>
+      <xen_append>fadump= crashkernel=201M</xen_append>
+      <xen_kernel_append><![CDATA[vga=gfx-1024x768x16 vga=gfx-1024x768x16 crashkernel=201M<4G]]></xen_kernel_append>
+    </global>
+    <loader_type>grub2</loader_type>
+  </bootloader>
+  <deploy_image>
+    <image_installation config:type="boolean">false</image_installation>
+  </deploy_image>
+  <firewall>
+    <FW_ALLOW_FW_BROADCAST_DMZ>no</FW_ALLOW_FW_BROADCAST_DMZ>
+    <FW_ALLOW_FW_BROADCAST_EXT>no</FW_ALLOW_FW_BROADCAST_EXT>
+    <FW_ALLOW_FW_BROADCAST_INT>no</FW_ALLOW_FW_BROADCAST_INT>
+    <FW_BOOT_FULL_INIT>no</FW_BOOT_FULL_INIT>
+    <FW_CONFIGURATIONS_DMZ>xrdp</FW_CONFIGURATIONS_DMZ>
+    <FW_CONFIGURATIONS_EXT>xrdp</FW_CONFIGURATIONS_EXT>
+    <FW_CONFIGURATIONS_INT>xrdp</FW_CONFIGURATIONS_INT>
+    <FW_DEV_DMZ/>
+    <FW_DEV_EXT/>
+    <FW_DEV_INT/>
+    <FW_FORWARD_ALWAYS_INOUT_DEV/>
+    <FW_FORWARD_MASQ/>
+    <FW_IGNORE_FW_BROADCAST_DMZ>no</FW_IGNORE_FW_BROADCAST_DMZ>
+    <FW_IGNORE_FW_BROADCAST_EXT>yes</FW_IGNORE_FW_BROADCAST_EXT>
+    <FW_IGNORE_FW_BROADCAST_INT>no</FW_IGNORE_FW_BROADCAST_INT>
+    <FW_IPSEC_TRUST>no</FW_IPSEC_TRUST>
+    <FW_LOAD_MODULES/>
+    <FW_LOG_ACCEPT_ALL>no</FW_LOG_ACCEPT_ALL>
+    <FW_LOG_ACCEPT_CRIT>yes</FW_LOG_ACCEPT_CRIT>
+    <FW_LOG_DROP_ALL>no</FW_LOG_DROP_ALL>
+    <FW_LOG_DROP_CRIT>yes</FW_LOG_DROP_CRIT>
+    <FW_MASQUERADE>no</FW_MASQUERADE>
+    <FW_PROTECT_FROM_INT>no</FW_PROTECT_FROM_INT>
+    <FW_ROUTE>no</FW_ROUTE>
+    <FW_SERVICES_ACCEPT_DMZ/>
+    <FW_SERVICES_ACCEPT_EXT/>
+    <FW_SERVICES_ACCEPT_INT/>
+    <FW_SERVICES_ACCEPT_RELATED_DMZ/>
+    <FW_SERVICES_ACCEPT_RELATED_EXT/>
+    <FW_SERVICES_ACCEPT_RELATED_INT/>
+    <FW_SERVICES_DMZ_IP/>
+    <FW_SERVICES_DMZ_RPC/>
+    <FW_SERVICES_DMZ_TCP/>
+    <FW_SERVICES_DMZ_UDP/>
+    <FW_SERVICES_EXT_IP/>
+    <FW_SERVICES_EXT_RPC/>
+    <FW_SERVICES_EXT_TCP/>
+    <FW_SERVICES_EXT_UDP/>
+    <FW_SERVICES_INT_IP/>
+    <FW_SERVICES_INT_RPC/>
+    <FW_SERVICES_INT_TCP/>
+    <FW_SERVICES_INT_UDP/>
+    <FW_STOP_KEEP_ROUTING_STATE>no</FW_STOP_KEEP_ROUTING_STATE>
+    <enable_firewall config:type="boolean">true</enable_firewall>
+    <start_firewall config:type="boolean">true</start_firewall>
+  </firewall>
+  <general>
+    <ask-list config:type="list"/>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+    <proposals config:type="list"/>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+    <storage>
+      <partition_alignment config:type="symbol">align_optimal</partition_alignment>
+      <start_multipath config:type="boolean">false</start_multipath>
+    </storage>
+  </general>
+  <keyboard>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages/>
+  </language>
+  <networking>
+    <dhcp_options>
+      <dhclient_client_id/>
+      <dhclient_hostname_option>AUTO</dhclient_hostname_option>
+    </dhcp_options>
+    <dns>
+      <dhcp_hostname config:type="boolean">false</dhcp_hostname>
+      <hostname>susetest</hostname>
+      <resolv_conf_policy>auto</resolv_conf_policy>
+      <write_hostname config:type="boolean">false</write_hostname>
+    </dns>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <dhclient_set_default_route>yes</dhclient_set_default_route>
+        <startmode>auto</startmode>
+      </interface>
+      <interface>
+        <bootproto>static</bootproto>
+        <device>lo</device>
+        <firewall>no</firewall>
+        <ipaddr>127.0.0.1</ipaddr>
+        <netmask>255.0.0.0</netmask>
+        <network>127.0.0.0</network>
+        <prefixlen>8</prefixlen>
+        <startmode>nfsroot</startmode>
+        <usercontrol>no</usercontrol>
+      </interface>
+    </interfaces>
+    <ipv6 config:type="boolean">true</ipv6>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+    <managed config:type="boolean">false</managed>
+    <net-udev config:type="list">
+      <rule>
+        <name>eth0</name>
+        <rule>KERNELS</rule>
+        <value>0000:01:00.0</value>
+      </rule>
+    </net-udev>
+    <routing>
+      <ipv4_forward config:type="boolean">false</ipv4_forward>
+      <ipv6_forward config:type="boolean">false</ipv6_forward>
+    </routing>
+  </networking>
+  <partitioning config:type="list">
+    <drive>
+      <initialize config:type="boolean">true</initialize>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <saptune>
+    <enable config:type="boolean">false</enable>
+  </saptune>
+  <services-manager>
+    <default_target>graphical</default_target>
+    <services>
+      <disable config:type="list"/>
+      <enable config:type="list">
+        <service>apparmor</service>
+        <service>btrfsmaintenance-refresh</service>
+        <service>cron</service>
+        <service>display-manager</service>
+        <service>haveged</service>
+        <service>irqbalance</service>
+        <service>iscsi</service>
+        <service>kdump-early</service>
+        <service>kdump</service>
+        <service>mcelog</service>
+        <service>nscd</service>
+        <service>postfix</service>
+        <service>purge-kernels</service>
+        <service>rollback</service>
+        <service>rsyslog</service>
+        <service>smartd</service>
+        <service>spice-vdagentd</service>
+        <service>sshd</service>
+        <service>SuSEfirewall2</service>
+        <service>SuSEfirewall2_init</service>
+        <service>wicked</service>
+        <service>wickedd-auto4</service>
+        <service>wickedd-dhcp4</service>
+        <service>wickedd-dhcp6</service>
+        <service>wickedd-nanny</service>
+        <service>xrdp</service>
+        <service>YaST2-Firstboot</service>
+        <service>YaST2-Second-Stage</service>
+        <service>getty@tty1</service>
+        <service>sapconf</service>
+        <service>sapinit</service>
+      </enable>
+    </services>
+  </services-manager>
+  <software>
+    <image/>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <instsource/>
+    <packages config:type="list">
+      <package>snapper</package>
+      <package>lvm2</package>
+      <package>iprutils</package>
+      <package>xrdp</package>
+      <package>xfsprogs</package>
+      <package>snapper</package>
+      <package>sap-installation-wizard</package>
+      <package>openssh</package>
+      <package>kexec-tools</package>
+      <package>kdump</package>
+      <package>grub2</package>
+      <package>glibc</package>
+      <package>e2fsprogs</package>
+      <package>btrfsprogs</package>
+      <package>SuSEfirewall2</package>
+      <package>SLES_SAP-release</package>
+    </packages>
+    <patterns config:type="list">
+      % if ($check_var->('ARCH', 'x86_64')) {
+      <pattern>sles-Basis-Devel-32bit</pattern>
+      <pattern>sles-Minimal-32bit</pattern>
+      <pattern>sles-WBEM-32bit</pattern>
+      <pattern>sles-base-32bit</pattern>
+      <pattern>sles-documentation-32bit</pattern>
+      <pattern>sles-printing-32bit</pattern>
+      <pattern>sles-sap_server-32bit</pattern>
+      <pattern>sles-x11-32bit</pattern>
+      % }
+      <pattern>WBEM</pattern>
+      <pattern>sap-b1</pattern>
+      <pattern>sap-hana</pattern>
+      <pattern>sap-nw</pattern>
+      <pattern>sap_server</pattern>
+      <pattern>Minimal</pattern>
+      <pattern>base</pattern>
+      <pattern>documentation</pattern>
+      <pattern>gnome-basic</pattern>
+      <pattern>x11</pattern>
+      <pattern>yast2</pattern>
+    </patterns>
+  </software>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>America/New_York</timezone>
+  </timezone>
+  <user_defaults>
+    <expire/>
+    <group>100</group>
+    <home>/home</home>
+    <inactive>-1</inactive>
+    <no_groups config:type="boolean">true</no_groups>
+    <shell>/bin/bash</shell>
+    <skel>/etc/skel</skel>
+    <umask>022</umask>
+  </user_defaults>
+  <groups config:type="list">
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>1002</gid>
+      <group_password>x</group_password>
+      <groupname>sapsys</groupname>
+      <userlist>qadadm</userlist>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>1000</gid>
+      <group_password>x</group_password>
+      <groupname>saprouter</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>5</gid>
+      <group_password>x</group_password>
+      <groupname>tty</groupname>
+      <userlist>qadadm</userlist>
+    </group>
+  </groups>
+  <users config:type="list">
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$6$FPZli6dRHjYZ$3bxzkOeXFG1BDzcZFVCAQyqPrErPgFIY2XCMT.sGMZ6Ld1nNUrw2cr0Mxj6V9Hj5G9Mcus/6w5Sd/ZNwwmlV./</user_password>
+      <username>root</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>SAP System Administrator</fullname>
+      <gid>1002</gid>
+      <home>/home/qadadm</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/csh</shell>
+      <uid>1001</uid>
+      <user_password>$6$FPZli6dRHjYZ$3bxzkOeXFG1BDzcZFVCAQyqPrErPgFIY2XCMT.sGMZ6Ld1nNUrw2cr0Mxj6V9Hj5G9Mcus/6w5Sd/ZNwwmlV./</user_password>
+      <username>qadadm</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname/>
+      <gid>100</gid>
+      <home>/var/lib/saprouter</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/false</shell>
+      <uid>1000</uid>
+      <user_password>!</user_password>
+      <username>saprouter</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>SAP System Administrator</fullname>
+      <gid>1002</gid>
+      <home>/home/sapadm</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/false</shell>
+      <uid>1002</uid>
+      <user_password>$6$emPnZkjg$.YdCvmDjOXNKXpxzUTeUg41QJoRZnJNd3RkbDPtlMUdcDSnkSKJw3LE70chae5mX4mKuJ5Y.JJ3kjM2KDq8tJ0</user_password>
+      <username>sapadm</username>
+    </user>
+  </users>
+</profile>

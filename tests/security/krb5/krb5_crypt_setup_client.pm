@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Setup client system for krb5 cryptographic testing
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Ticket: poo#51560, poo#51569
 
 use base "consoletest";

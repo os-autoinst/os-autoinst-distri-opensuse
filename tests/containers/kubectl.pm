@@ -11,14 +11,14 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
 use publiccloud::utils;
 use containers::k8s;
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     install_kubectl();
     # Record kubectl version and check if the tool itself is healthy
@@ -122,15 +122,20 @@ sub run {
     validate_script_output('kubectl describe services/web-load-balancer', sub { $_ =~ m/.*Port:.*8080\/TCP.*/ });
     validate_script_output('kubectl describe services/web-load-balancer', sub { $_ =~ m/.*TargetPort:.*80\/TCP.*/ });
     validate_script_output('kubectl describe services/web-load-balancer', sub { $_ =~ m/.*Endpoints:.*10.*/ });
-    validate_script_output_retry("curl http://localhost:8080/index.html", qr/I am Groot/, retry => 6, delay => 20, timeout => 10);
+    $pid = background_script_run('kubectl port-forward deploy/nginx-deployment 8008:80');
+    validate_script_output_retry("curl http://localhost:8008/index.html", qr/I am Groot/, retry => 6, delay => 20, timeout => 10);
+    assert_script_run("kill $pid");    # terminate port-forwarding
+    my $output = script_output("kubectl describe services/web-load-balancer");
+    my ($ip) = $output =~ /IP:\s+([^\s]+)/;
+    record_info('Balancer IP', $ip);
+    validate_script_output_retry("curl http://$ip:8080/index.html", qr/I am Groot/, retry => 6, delay => 20, timeout => 10);
+
     assert_script_run('kubectl delete -f service.yml');
 
     assert_script_run('kubectl delete -f deployment.yml');
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
-
     # Try to collect as much information about kubernetes as possible
     script_run('kubectl describe deployments');
     script_run('kubectl describe services');

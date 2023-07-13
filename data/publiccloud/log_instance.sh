@@ -19,6 +19,7 @@ ec2_start_log()
     set +e
     aws ec2 get-console-output --instance-id "$INSTANCE_ID" --output text > "${OUTPUT_DIR}/${CNT}_get_console_output_start.log"
     set -e
+    # shellcheck disable=2086
     nohup ssh $SSH_OPTS "ec2-user@${HOST}" -- sudo dmesg -c -w > "${OUTPUT_DIR}/${CNT}_dmesg.log" 2>&1 &
     echo $! > "$PID_FILE"
 }
@@ -30,7 +31,7 @@ ec2_stop_log()
     aws ec2 get-console-output --instance-id "$INSTANCE_ID" --output text > "${OUTPUT_DIR}/${CNT}_get_console_output_stop.log"
     set -e
     if [ -f "$PID_FILE" ]; then
-      kill -9 $(cat "$PID_FILE")
+      kill -9 "$(< "$PID_FILE")"
       rm "$PID_FILE"
     fi
 }
@@ -69,7 +70,8 @@ gce_read_serial()
 gce_is_running()
 {
     if [ -f "$PID_FILE" ]; then
-        local pid=$( cat "$PID_FILE");
+        local pid
+        pid=$(< "$PID_FILE");
         if kill -0 "$pid" > /dev/null 2>&1 ; then
             return 0;
         fi
@@ -89,7 +91,7 @@ gce_stop_log()
     # Use flock to wait max 60s that gce_read_serial() is ready. And kill during
     # the 30s sleep afterwards. If flock fail, just kill the bg process.
     (flock -w 60 -e 9 || exit 1
-        gce_is_running && kill -9 $( cat "$PID_FILE" )
+        gce_is_running && kill -9 "$(< "$PID_FILE" )"
         rm "$PID_FILE"
     ) 9> "${LOCK}"
 }
@@ -101,6 +103,7 @@ azure_start_log()
     set +e
     az vm boot-diagnostics get-boot-log --ids "$INSTANCE_ID" > "${OUTPUT_DIR}/$CNT""_boot_log_start.txt" 2>&1
     set -e
+    # shellcheck disable=2086
     nohup ssh $SSH_OPTS "azureuser@${HOST}" -- sudo dmesg -c -w > "${OUTPUT_DIR}/${CNT}_dmesg.log" 2>&1 &
     echo $! > "$PID_FILE"
 
@@ -116,7 +119,7 @@ azure_stop_log()
     az vm boot-diagnostics get-boot-log --ids "$INSTANCE_ID" > "${OUTPUT_DIR}/$CNT""_boot_log_stop.txt" 2>&1
     set -e
     if [ -f "$PID_FILE" ]; then
-      kill -9 $(cat "$PID_FILE")
+      kill -9 "$(< "$PID_FILE")"
       rm "$PID_FILE"
     fi
 }

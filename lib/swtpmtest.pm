@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Base module for swtpm test cases
-# Maintainer: rfan1 <richard.fan@suse.com> Starry Wang <starry.wang@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#81256, tc#1768671, poo#102849, poo#108386, poo#100512
 
 package swtpmtest;
@@ -118,7 +118,7 @@ sub swtpm_verify {
     if (!is_sle('<15-SP4')) {
         # Measured boot check
         # If measured boot works fine, it can record available algorithms and pcrs
-        assert_script_run("cat $result_file | egrep 'AlgorithmId|pcrs'");
+        assert_script_run("cat $result_file | grep -E 'AlgorithmId|pcrs'");
     }
 }
 

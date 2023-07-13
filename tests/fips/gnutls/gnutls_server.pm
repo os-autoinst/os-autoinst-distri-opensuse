@@ -4,7 +4,7 @@
 # Package: gnutls
 # Summary: SLES15SP2 FIPS certification, we need to certify gnutls and libnettle
 #          In this case, will configure GnuTLS server
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#63223, tc#1744099
 
 use base "consoletest";
@@ -12,10 +12,17 @@ use testapi;
 use strict;
 use warnings;
 use utils qw(zypper_call);
+use version_utils qw(is_transactional);
+use transactional qw(trup_call process_reboot);
 
 sub run {
     select_console "root-console";
-    zypper_call 'in gnutls';
+    if (is_transactional) {
+        trup_call('pkg install gnutls');
+        process_reboot(trigger => 1);
+    } else {
+        zypper_call('in gnutls');
+    }
 
     # Create test folder
     my $test_dir = "gnutls";

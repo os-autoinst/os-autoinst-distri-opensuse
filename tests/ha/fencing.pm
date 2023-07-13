@@ -32,11 +32,13 @@ sub run {
         barrier_wait("HANA_REPLICATE_STATE_${cluster_name}_NODE${node_index}");
     }
 
-    # Fence a node with sysrq or crm node fence
+    # Fence a node with sysrq, crm node fence or by killing corosync
     # Sysrq fencing is more a real crash simulation
-    if (get_var('USE_SYSRQ_FENCING')) {
-        record_info('Fencing info', 'Fencing done by sysrq');
-        enter_cmd "echo b > /proc/sysrq-trigger" if ((!defined $node_to_fence && check_var('HA_CLUSTER_INIT', 'yes')) || (defined $node_to_fence && get_hostname eq "$node_to_fence"));
+    if (get_var('USE_SYSRQ_FENCING') || get_var('USE_PKILL_COROSYNC_FENCING')) {
+        my $cmd = 'echo b > /proc/sysrq-trigger';
+        $cmd = 'pkill -9 corosync' if (get_var('USE_PKILL_COROSYNC_FENCING'));
+        record_info('Fencing info', "Fencing done by [$cmd]");
+        enter_cmd $cmd if ((!defined $node_to_fence && check_var('HA_CLUSTER_INIT', 'yes')) || (defined $node_to_fence && get_hostname eq "$node_to_fence"));
     }
     else {
         record_info('Fencing info', 'Fencing done by crm');

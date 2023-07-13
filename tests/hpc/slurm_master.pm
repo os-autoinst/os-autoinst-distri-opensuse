@@ -10,67 +10,17 @@
 
 use Mojo::Base qw(hpcbase hpc::configs), -signatures;
 use testapi;
+use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use lockapi;
 use utils;
 use version_utils 'is_sle';
+use Utils::Logging 'export_logs_basic';
 
-## TODO: provide better parser for HPC specific tests
-sub validate_result ($result) {
-    if ($result == 0) {
-        return 'PASS';
-    } elsif ($result == 1) {
-        return 'FAIL';
-    } else {
-        return undef;
-    }
-}
-
-sub generate_results ($name, $description, $result) {
-    my %results = (
-        test => $name,
-        description => $description,
-        result => validate_result($result)
-    );
-    return %results;
-}
-
-sub pars_results (@test) {
-    my $file = 'tmpresults.xml';
-
-    # check if there are some single test failing
-    # and if so, make sure the whole testsuite will fail
-    my $fail_check = 0;
-    for my $i (@test) {
-        if ($i->{result} eq 'FAIL') {
-            $fail_check++;
-        }
-    }
-
-    if ($fail_check > 0) {
-        script_run("echo \"<testsuite name='HPC single tests' errors='1'>\" >> $file");
-    } else {
-        script_run("echo \"<testsuite name='HPC single tests'>\" >> $file");
-    }
-
-    # pars all results and provide expected xml file
-    for my $i (@test) {
-        if ($i->{result} eq 'FAIL') {
-            script_run("echo \"<testcase name='$i->{test}' errors='1'>\" >>  $file");
-        } else {
-            script_run("echo \"<testcase name='$i->{test}'>\" >> $file");
-        }
-        script_run("echo \"<system-out>\" >> $file");
-        script_run("echo $i->{description} >>  $file");
-        script_run("echo \"</system-out>\" >> $file");
-        script_run("echo \"</testcase>\" >> $file");
-    }
-}
+our @all_tests_results;
 
 sub run_tests ($slurm_conf) {
-    my $file = 'tmpresults.xml';
-    assert_script_run("touch $file");
-
-    my @all_tests_results;
+    my $xmlfile = 'testresults.xml';
+    assert_script_run("touch $xmlfile");
 
     # always run basic tests
     push(@all_tests_results, run_basic_tests());
@@ -85,10 +35,8 @@ sub run_tests ($slurm_conf) {
         push(@all_tests_results, run_ha_tests());
     }
 
-    pars_results(@all_tests_results);
-
-    script_run("echo \"</testsuite>\" >> $file");
-    parse_extra_log('XUnit', 'tmpresults.xml');
+    pars_results('HPC slurm tests', $xmlfile, @all_tests_results);
+    parse_extra_log('XUnit', $xmlfile);
 }
 
 ########################################
@@ -283,11 +231,9 @@ sub t01_accounting() {
         'user_4' => 'Jose',
     );
 
-    ##Add users TODO: surely this should be abstracted
-    script_run("useradd $users{user_1}");
-    script_run("useradd $users{user_2}");
-    script_run("useradd $users{user_3}");
-    script_run("useradd $users{user_4}");
+    foreach my $key (keys %{users}) {
+        script_run("useradd -m -p \$(openssl passwd -1 $testapi::password) $users{$key}");
+    }
 
     my $cluster = script_output('sacctmgr -n -p list cluster');
 
@@ -319,12 +265,35 @@ sub t01_accounting() {
     script_run('sacctmgr show associations');
     record_info('INFO', script_run('sacctmgr show account'));
 
-    script_run("srun --uid=$users{user_1} --account=UNI_X_Math -w slave-node00,slave-node01 date");
-    script_run("srun --uid=$users{user_2} --account=UNI_X_IT -N 2 hostname");
+    my $current_user = $testapi::username;
+    $testapi::username = $users{user_1};
+    my $prompt = $testapi::username . '@' . get_required_var('HOSTNAME') . ':~> ';
+    record_info "$testapi::username", "ok";
+    select_user_serial_terminal($prompt);
+    script_run("srun --account=UNI_X_Math -w slave-node00,slave-node01 date");
+    type_string("su - $users{user_2}", lf => 1);
+    wait_serial("Password:"); type_string("$testapi::password", lf => 1);
 
-    script_run("srun --uid=$users{user_3} --account=UNI_Y_Biology -N 3 date");
-    script_run("srun --uid=$users{user_4} --account=UNI_Y_Physics -N 3 hostname");
+    $testapi::username = $users{user_2};
+    script_run("srun --account=UNI_X_IT -N 2 hostname");
+    $testapi::username = $users{user_3};
+    type_string("su - $users{user_3}", lf => 1);
+    wait_serial("Password:"); type_string("$testapi::password", lf => 1);
 
+    script_run("srun --account=UNI_Y_Biology -N 3 date");
+    $testapi::username = $users{user_4};
+    $prompt = $testapi::username . '@' . get_required_var('HOSTNAME') . ':~> ';
+    type_string("su - $users{user_4}", lf => 1);
+    wait_serial("Password:"); type_string("$testapi::password", lf => 1);
+    script_run("srun --account=UNI_Y_Physics -N 3 hostname");
+
+    select_serial_terminal;
+    if (script_run("srun --uid=$users{user_2} --account=UNI_X_Math -w slave-node00,slave-node01 date") != 0) {
+        record_soft_failure 'bsc#1210374 - Cant run srun with with uid switch';
+        my $last_entry = script_output "squeue | tail -n1 | awk '{print \$1}'";
+        record_info("squeue", script_output "squeue");
+        assert_script_run("scancel $last_entry");
+    }
     # this is required; see: bugzilla#1150565?
     systemctl('restart slurmctld');
     systemctl('is-active slurmctld');
@@ -452,6 +421,7 @@ sub extended_hpc_tests ($master_ip, $slave_ip) {
 }
 
 sub run ($self) {
+    select_serial_terminal();
     my $nodes = get_required_var('CLUSTER_NODES');
     my $slurm_conf = get_required_var('SLURM_CONF');
     my $version = get_required_var('VERSION');
@@ -525,11 +495,11 @@ sub test_flags ($self) {
 
 sub post_fail_hook ($self) {
     $self->destroy_test_barriers();
-    $self->select_serial_terminal;
+    select_serial_terminal;
     $self->upload_service_log('slurmd');
     $self->upload_service_log('munge');
     $self->upload_service_log('slurmctld');
-    $self->export_logs_basic;
+    export_logs_basic;
     $self->get_remote_logs('slave-node02', 'slurmdbd.log');
     upload_logs('/var/log/slurmctld.log');
 }

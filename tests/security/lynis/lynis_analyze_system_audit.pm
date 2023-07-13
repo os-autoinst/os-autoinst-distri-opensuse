@@ -3,7 +3,7 @@
 #
 # Summary: Integrate the Lynis scanner into OpenQA: analyze the "system audit"
 #          current outputs with baseline
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#78224, poo#78230, poo#78330
 
 use base 'consoletest';

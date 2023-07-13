@@ -37,15 +37,18 @@ our $date_re = qr/[0-9]{4}-[0-9]{2}-[0-9]{2}/;
 
 sub lifecycle_output_check {
     my $output = shift;
-    if ($output =~ /Legacy Module.*2021-(07|12)-30|Python 2 Module.*2021-(07|12)-30|Containers Module.*2021-12-31/) {
-        # https://chat.suse.de/channel/qem-openqa-review/thread/KLrXWR5Sy7zprLFcx?jump=e2dxZRDbkXHE5DXQt
-        # https://progress.opensuse.org/issues/95593
-        record_soft_failure 'bsc#1194294 zypper lifecycle wrong EOL for python2 and legacy module';
+    if (is_sle('=15-sp1') && $output =~ /Python 2 Module.*2021-07-3(0|1)/) {
+        record_info 'poo#129026';
+        return;
+    }
+    # https://suse.slack.com/archives/C02D16TCP99/p1688366603014179
+    if (is_sle('=15-sp3') && $output =~ /Containers Module.*2023-06-30/) {
+        record_soft_failure 'jsc#MSC-658';
         return;
     }
     if (get_var('SCC_REGCODE_LTSS')) {
         if ($output =~ /No products.*before/) {
-            record_soft_failure('poo#95593 https://jira.suse.com/browse/MSC-70');
+            record_info('Softfail', "poo#95593 https://jira.suse.com/browse/MSC-70");
             return;
         }
         die "SUSE Linux Enterprise Server is end of support\nOutput: '$output'" unless $output =~ /SUSE Linux Enterprise Server/;
@@ -64,6 +67,9 @@ sub run {
     # For some reason the system will change the permission on /var/cache/zypp/{solv,raw}
     # files. this cause the zypper lifecycle failed when building cache for non-root user.
     assert_script_run('chmod -R u+rwX,og+rX /var/cache/zypp');
+    zypper_call('in curl') if (script_run('rpm -qi curl') == 1);
+    # force reinstall release notes, package must not come from expected SLE-Product repo e.g. GMC
+    zypper_call('in -f release-notes*');
 
     select_console 'user-console';
     my $overview = script_output('zypper lifecycle', 600);
@@ -153,8 +159,9 @@ sub run {
 
     select_console 'user-console';
     # verify that package eol defaults to product eol
+    # dash is accepted in prod EOL, despite it does not match zypper lifecycle, see poo#126794
     $output = script_output "zypper lifecycle $package", 300;
-    unless ($output =~ /$package(-\S+)?\s+$product_eol/) {
+    unless ($output =~ /$package(-\S+)?\s+($product_eol|-$)/) {
         die "$package lifecycle entry incorrect:\nOutput: '$output', expected: '/$package-\\S+\\s+$product_eol'";
     }
 

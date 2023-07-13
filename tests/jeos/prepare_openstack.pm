@@ -16,7 +16,7 @@ sub run {
     select_host_console();
 
     my $provider = $self->provider_factory();
-    my $instance = $provider->create_instance();
+    my $instance = $provider->create_instance(check_guestregister => 0);
     $self->{provider} = $args->{my_provider} = $provider;
     $args->{my_instance} = $instance;
     $args->{ssh_log_file} = '/var/tmp/ssh_sut.log';

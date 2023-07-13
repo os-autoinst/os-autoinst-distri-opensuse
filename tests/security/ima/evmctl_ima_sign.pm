@@ -3,18 +3,18 @@
 #
 # Summary: Test evmctl ima_sign options
 # Note: This case should come after 'ima_apprasial_digital_signatures'
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#50333
 
 use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $sample_dir = '/tmp/ima_tests';
     my $sample_file1 = "$sample_dir/foo";

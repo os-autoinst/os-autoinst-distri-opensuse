@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2009-2013 Bernhard M. Wiedemann
-# Copyright 2012-2016 SUSE LLC
+# Copyright 2012-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: MozillaFirefox
@@ -13,7 +13,7 @@
 # - Open url "addons.mozilla.org/en-US/firefox/addon/opensuse" and check
 # - Install opensuse theme and check
 # - Exit firefox
-# Maintainer: wnereiz <wnereiz@gmail.com>
+# Maintainer: wnereiz <wnereiz@gmail.com>, QE Core <qe-core@suse.de>
 
 use strict;
 use warnings;
@@ -29,15 +29,11 @@ sub run {
     assert_and_click('firefox-appearance-tabicon');
     assert_screen('firefox-appearance-default', 30);
 
-    $self->firefox_open_url('addons.mozilla.org/en-US/firefox/addon/opensuse');
-    assert_screen('firefox-appearance-mozilla_addons');
-    for (1 .. 3) {
-        assert_and_click 'firefox-appearance-addto';
-        if (check_screen("firefox-appearance-addto-permissions_requested", 10)) {
-            assert_and_click "firefox-appearance-addto-permissions_requested";
-        }
-        last if check_screen 'firefox-appearance-installed', 90;
-    }
+    $self->firefox_open_url('addons.mozilla.org/en-US/firefox/addon/opensuse', assert_loaded_url => 'firefox-appearance-mozilla_addons');
+    assert_and_click('firefox-appearance-addto');
+    wait_still_screen 2, 4;
+    assert_and_click('firefox-appearance-addto-permissions_requested');
+    assert_screen 'firefox-appearance-installed', 120;
     # on SLE 12 window gets unselected after pop-up is handled
     assert_and_click 'firefox-appearance-mozilla_addons' if is_sle('<15');
     $self->exit_firefox;

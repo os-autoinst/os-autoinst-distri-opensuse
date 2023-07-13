@@ -18,7 +18,7 @@
 #   - Collect network card info
 #   - Compress everything and upload the logs
 #   - Save a screenshot
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;
@@ -27,7 +27,7 @@ use testapi;
 
 sub run {
     # https://en.opensuse.org/openSUSE:Bugreport_wicked
-    enter_cmd "systemctl status wickedd.service";
+    enter_cmd "systemctl --no-pager status wickedd.service";
     enter_cmd "echo `wicked show all |cut -d ' ' -f 1` END | tee /dev/$serialdev";
     my $iflist = wait_serial("END", 10);
     # For poo#70453, to filter network link from mixed info of the output of wicked cmd
@@ -45,7 +45,7 @@ sub run {
         enter_cmd "mkdir /tmp/wicked";
         # enable debugging
         enter_cmd "perl -i -lpe 's{^(WICKED_DEBUG)=.*}{\$1=\"all\"};s{^(WICKED_LOG_LEVEL)=.*}{\$1=\"debug\"}' /etc/sysconfig/network/config";
-        enter_cmd "egrep \"WICKED_DEBUG|WICKED_LOG_LEVEL\" /etc/sysconfig/network/config";
+        enter_cmd "grep -E \"WICKED_DEBUG|WICKED_LOG_LEVEL\" /etc/sysconfig/network/config";
         # restart the daemons
         enter_cmd "systemctl restart wickedd";
         save_screenshot;

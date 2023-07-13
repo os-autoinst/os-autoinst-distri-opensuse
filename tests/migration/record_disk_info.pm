@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Record the disk usage before migration
-# Maintainer: Wei Gao <wegao@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "opensusebasetest";
 use strict;

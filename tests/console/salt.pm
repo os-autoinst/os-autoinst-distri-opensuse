@@ -22,13 +22,13 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call quit_packagekit systemctl);
 use version_utils qw(is_jeos is_opensuse);
 use registration 'add_suseconnect_product';
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     if (is_jeos && !is_opensuse) {
         my $version = get_required_var('VERSION') =~ s/([0-9]+).*/$1/r;
         if ($version == '12') {

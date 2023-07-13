@@ -80,8 +80,8 @@ sub run {
     send_key 'ctrl-d';
     # logout user
     handle_logout;
-    # Wait some more seconds before selecting root-console, as it fails sporadically in aarch64
-    wait_still_screen 10;
+    # Make sure we are logged out
+    assert_screen 'multi_users_dm', 180;
 
     # restore previous config
     select_console 'root-console';
@@ -89,6 +89,8 @@ sub run {
     assert_script_run "~$username/data/delete_users $users_to_create";
     script_run "clear";
     assert_script_run "rcxdm restart";
+    # Wait for gdm to be started before selecting x11-console
+    wait_still_screen 10;
     select_console 'x11';
     # after restart of X11 give the desktop a bit more time to show up to
     # prevent the post_run_hook to fail being too impatient

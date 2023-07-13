@@ -8,7 +8,7 @@
 # Note: The test case can be run separately for postfix sanity test,
 #       or run as stand-alone mail server (together with dovecot)
 #       in multi-machine test scenario if MAIL_SERVER var set.
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 
 use base "consoletest";
 use strict;

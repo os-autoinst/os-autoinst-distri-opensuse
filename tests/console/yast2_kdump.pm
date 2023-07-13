@@ -5,7 +5,7 @@
 
 # Summary: Test scenario which configures Kdump with a YaST module
 # and checks configuration without rebooting the system.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "y2_module_consoletest";
 use strict;
@@ -17,6 +17,7 @@ use registration;
 use scheduler 'get_test_suite_data';
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     select_console('root-console');
@@ -24,6 +25,7 @@ sub run {
     # install kdump by adding additional modules
     add_suseconnect_product('sle-module-desktop-applications');
     add_suseconnect_product('sle-module-development-tools');
+    zypper_call('in kdump') if is_sle('15-SP5+');
     zypper_call('in yast2-kdump');
 
     # Kdump configuration with YaST module

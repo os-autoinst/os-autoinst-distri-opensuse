@@ -3,7 +3,7 @@
 #
 # Summary: Integrate the Lynis scanner into OpenQA: run test cases/modules
 #          according to section list
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#78224, poo#78230
 
 use base 'consoletest';

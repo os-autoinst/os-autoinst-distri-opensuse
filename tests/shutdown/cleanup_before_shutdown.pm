@@ -9,7 +9,8 @@
 # - if DEBUG_SHUTDOWN is set, then collect detailed logs to investigate shutdown issues
 #   and redirect them to serial console
 # - if KEEP_PERSISTENT_NET_RULES is set, 70-persistent-net.rules will not be deleted on backend with image support
-# - dhcp cleanup on qemu backend (stop network and wickedd, remove xml files from /var/lib/wicked)
+# - Clean /var/lib/wicked - remove the DUID so it gets regenerated and forget DHCP leases
+#     ( There might be multiple machines at the same time originating from the same HDD )
 # - if DESKTOP is set, then set 'ForwardToConsole=yes', 'MaxLevelConsole=debug' and 'TTYPath=/dev/$serialdev'
 #   in /etc/systemd/journald.conf and restart systemd-journalctl
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>
@@ -22,6 +23,7 @@ use serial_terminal 'prepare_serial_console';
 use utils;
 use version_utils;
 use Utils::Backends;
+use Utils::Logging 'save_and_upload_systemd_unit_log';
 
 sub run {
     select_console('root-console');
@@ -50,8 +52,8 @@ END_SCRIPT
 
     # Proceed with dhcp cleanup on qemu backend only.
     # Cleanup is made, because if same hdd image used in multimachine scenario
-    # on several nodes, the dhcp clients use same id and cause conflicts on dhcpd server.
-    if (is_qemu) {
+    # on several nodes, the dhcp clients use same DUID and cause conflicts on dhcpd server.
+    if (is_qemu || is_svirt_except_s390x) {
         my $network_status = script_output('systemctl status network');
         # Do dhcp cleanup for wicked
         if ($network_status =~ /wicked/) {
@@ -59,7 +61,7 @@ END_SCRIPT
             systemctl 'stop wickedd.service';
             assert_script_run('ls /var/lib/wicked/');
             save_screenshot;
-            script_run('rm -f /var/lib/wicked/*.xml');
+            assert_script_run('rm -f /var/lib/wicked/{duid,lease-*}.xml');
         }
         script_run("echo -n '' > /etc/hostname") if get_var('RESET_HOSTNAME');
     }
@@ -76,7 +78,7 @@ END_SCRIPT
 sub post_fail_hook {
     my ($self) = @_;
     $self->SUPER::post_fail_hook;
-    $self->save_and_upload_systemd_unit_log('systemd-journald');
+    save_and_upload_systemd_unit_log('systemd-journald');
 }
 
 1;

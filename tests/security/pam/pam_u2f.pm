@@ -10,7 +10,7 @@
 #          This adds support for FIDO2 (yubikey or other)
 #          with pam and provides additional verifications (User, PIN)
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#104181 tc#1769990
 
 use base 'opensusebasetest';

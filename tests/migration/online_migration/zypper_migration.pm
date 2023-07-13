@@ -5,16 +5,18 @@
 
 # Package: zypper, transactional-update
 # Summary: SLE online migration using zypper migration or transactional update
-# Maintainer: yutao <yuwang@suse.com>, <qa-c@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>, <qa-c@suse.de>
 
 use base "installbasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
 use version_utils qw(is_desktop_installed is_sles4sap is_leap_migration is_sle_micro);
 use Utils::Backends 'is_pvm';
+use Utils::Logging 'upload_solvertestcase_logs';
 use transactional;
 
 sub check_migrated_version {
@@ -47,7 +49,9 @@ sub run {
     # start migration
     if (is_sle_micro) {
         # We need to stop and disable apparmor service before migration due to bsc#1197368
-        systemctl('disable --now apparmor.service');
+        if (script_run('systemctl is-active apparmor.service') == 0) {
+            systemctl('disable --now apparmor.service');
+        }
         script_run("(transactional-update migration; echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
     } else {
         my $option = (is_leap_migration) || (get_var("SCC_ADDONS") =~ /phub/) || (get_var("SMT_URL") =~ /smt/) ? " --allow-vendor-change " : " ";
@@ -173,10 +177,10 @@ sub run {
 
 sub post_fail_hook {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     script_run("pkill zypper");
     upload_logs '/var/log/zypper.log';
-    $self->upload_solvertestcase_logs();
+    upload_solvertestcase_logs();
     $self->SUPER::post_fail_hook;
 }
 

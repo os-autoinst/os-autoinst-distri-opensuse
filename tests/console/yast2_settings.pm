@@ -8,7 +8,7 @@
 # - verify writing config to the correct file
 # - ensure conflict detected when custom config with higher priority exists
 # - validate that YaST applies changes to the system. bsc#1167234
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "y2_module_consoletest";
 use strict;

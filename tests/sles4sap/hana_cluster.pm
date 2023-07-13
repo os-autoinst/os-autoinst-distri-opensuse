@@ -9,6 +9,7 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use hacluster;
 use utils qw(systemctl file_content_replace);
@@ -29,7 +30,7 @@ sub run {
     # Synchronize the nodes
     barrier_wait "HANA_CLUSTER_INSTALL_$cluster_name";
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $node1 = choose_node(1);
     my $node2 = choose_node(2);
@@ -60,9 +61,13 @@ sub run {
         barrier_wait "HANA_CREATED_CONF_$cluster_name";
 
         # Upload the configuration into the cluster
-        assert_script_run 'crm configure property maintenance-mode=true';
-        assert_script_run "crm configure load update $cluster_conf";
-        assert_script_run 'crm configure property maintenance-mode=false';
+        my @crm_cmds = ("crm configure load update $cluster_conf",
+            "crm resource refresh msl_SAPHana_${sid}_HDB${instance_id}",
+            "crm resource maintenance msl_SAPHana_${sid}_HDB${instance_id} off");
+        foreach my $cmd (@crm_cmds) {
+            wait_for_idle_cluster;
+            assert_script_run $cmd;
+        }
     }
     else {
         # Synchronize the nodes
@@ -93,12 +98,17 @@ sub run {
 
     # Synchronize the nodes
     barrier_wait "HANA_LOADED_CONF_$cluster_name";
+    save_state;
 
     # Wait for resources to be started
     wait_until_resources_started(timeout => 300);
 
     # And check for the state of the whole cluster
     check_cluster_state;
+    $self->check_replication_state;
+    $self->check_hanasr_attr;
+    $self->check_landscape;
+    assert_script_run 'cs_clusterstate';
 }
 
 1;

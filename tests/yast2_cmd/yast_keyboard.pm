@@ -10,7 +10,7 @@
 # - Set keyboard layout to korean and validate.
 # - Set keyboard layout to german.
 # - Restore keyboard settings to english-us and verify (enter using german characters).
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 =head1 Create regression test for keyboard layout and verify
 

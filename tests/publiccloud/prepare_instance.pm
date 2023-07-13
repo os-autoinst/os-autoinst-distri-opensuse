@@ -10,47 +10,11 @@
 # Maintainer: <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
-use publiccloud::ssh_interactive "select_host_console";
+use publiccloud::ssh_interactive qw(select_host_console);
 use testapi;
+use version_utils;
 use utils;
-
-sub prepare_ssh_tunnel {
-    my $instance = shift;
-
-    # configure ssh client
-    my $ssh_config_url = data_url('publiccloud/ssh_config');
-    assert_script_run("curl $ssh_config_url -o ~/.ssh/config");
-
-    # Create the ssh alias
-    assert_script_run(sprintf(q(echo -e 'Host sut\n  Hostname %s' >> ~/.ssh/config), $instance->public_ip));
-
-    # Copy SSH settings also for normal user
-    assert_script_run("install -o $testapi::username -g users -m 0700 -dD /home/$testapi::username/.ssh");
-    assert_script_run("install -o $testapi::username -g users -m 0600 ~/.ssh/* /home/$testapi::username/.ssh/");
-
-    # Skip setting root password for img_proof, because it expects the root password to NOT be set
-    $instance->ssh_assert_script_run(qq(echo -e "$testapi::password\\n$testapi::password" | sudo passwd root));
-
-    # Permit root passwordless login over SSH
-    $instance->ssh_assert_script_run('sudo sed -i "s/PermitRootLogin no/PermitRootLogin prohibit-password/g" /etc/ssh/sshd_config');
-    $instance->ssh_assert_script_run('sudo systemctl reload sshd');
-
-    # Copy SSH settings for remote root
-    $instance->ssh_assert_script_run('sudo install -o root -g root -m 0700 -dD /root/.ssh');
-    $instance->ssh_assert_script_run(sprintf("sudo install -o root -g root -m 0644 /home/%s/.ssh/authorized_keys /root/.ssh/", $instance->{username}));
-
-    # Create remote user and set him a password
-    $instance->ssh_assert_script_run("test -d /home/$testapi::username || sudo useradd -m $testapi::username");
-    $instance->ssh_assert_script_run(qq(echo -e "$testapi::password\\n$testapi::password" | sudo passwd $testapi::username));
-
-    # Copy SSH settings for remote user
-    $instance->ssh_assert_script_run("sudo install -o $testapi::username -g users -m 0700 -dD /home/$testapi::username/.ssh");
-    $instance->ssh_assert_script_run("sudo install -o $testapi::username -g users -m 0644 ~/.ssh/authorized_keys /home/$testapi::username/.ssh/");
-
-    # Create log file for ssh tunnel
-    my $ssh_sut = '/var/tmp/ssh_sut.log';
-    assert_script_run "touch $ssh_sut; chmod 777 $ssh_sut";
-}
+use publiccloud::utils;
 
 sub run {
     my ($self, $args) = @_;
@@ -61,6 +25,11 @@ sub run {
 
     select_host_console();    # select console on the host, not the PC instance
 
+    # Prevent kernel messages of the helper VM to contaminate the serial console
+    # this is needed on our ext4-based helper VM to avoid kernel messages from overlayfs
+    # to confuse openQA
+    assert_script_run("dmesg -n emerg");
+
     my $additional_disk_size = get_var('PUBLIC_CLOUD_HDD2_SIZE', 0);
     my $additional_disk_type = get_var('PUBLIC_CLOUD_HDD2_TYPE', '');    # Optional variable, also if PUBLIC_CLOUD_HDD2_SIZE is set
 
@@ -69,16 +38,22 @@ sub run {
     my %instance_args;
     $instance_args{check_connectivity} = 1;
     $instance_args{use_extra_disk} = {size => $additional_disk_size, type => $additional_disk_type} if ($additional_disk_size > 0);
-    my $instance = $provider->create_instance(%instance_args);
-    $instance->wait_for_guestregister();
     $args->{my_provider} = $provider;
+    my $instance = $provider->create_instance(%instance_args);
     $args->{my_instance} = $instance;
     $instance->ssh_opts("");    # Clear $instance->ssh_opts which ombit the known hosts file and strict host checking by default
 
     $instance->network_speed_test();
 
     # ssh-tunnel settings
-    prepare_ssh_tunnel($instance) if (get_var('TUNNELED'));
+    prepare_ssh_tunnel($instance) if (is_tunneled());
+
+    # azure images based on sle12-sp{4,5} code streams come with commented entries 'Defaults targetpw' in /etc/sudoers
+    # because the Azure Linux agent creates an entry in /etc/sudoers.d for users without the NOPASSWD flag
+    # this is an exception in comparision with other images
+    if (is_sle('<15') && is_azure) {
+        $instance->ssh_assert_script_run(q(sudo sed -i "/Defaults targetpw/s/^#//" /etc/sudoers));
+    }
 }
 
 sub test_flags {

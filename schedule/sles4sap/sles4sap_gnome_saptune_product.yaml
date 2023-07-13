@@ -1,0 +1,26 @@
+---
+name: sles4sap_gnome_saptune
+description: >
+  saptune tests for SLES4SAP on VM's
+
+vars:
+  BOOTFROM: c
+  BOOT_HDD_IMAGE: '1'
+  NODE_COUNT: '1'
+  TEST_CONTEXT: 'OpenQA::Test::RunArgs'
+  # Below have to be entered in the OpenQA UI because it doesn't read this YAML
+  # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-gnome.qcow2
+  # START_AFTER_TEST: create_hdd_sles4sap_gnome
+schedule:
+  - boot/boot_to_desktop
+  - '{{PC_instance_ssh_interactive_start}}'
+  - sles4sap/saptune/mr_test
+conditional_schedule:
+  PC_instance_ssh_interactive_start:
+    PUBLIC_CLOUD_SLES4SAP:
+      '1':
+        - sles4sap/publiccloud/qesap_terraform
+        - sles4sap/publiccloud/mr_test_setup_env
+        - publiccloud/registration
+        - publiccloud/ssh_interactive_start
+        - publiccloud/instance_overview

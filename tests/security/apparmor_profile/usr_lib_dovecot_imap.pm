@@ -12,7 +12,7 @@
 # - Use telnet and retrieve email using imap
 # - Check audit.log for existence of errors related to dovecot
 
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#46235, tc#1695943
 
 use base "apparmortest";

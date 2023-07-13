@@ -14,7 +14,7 @@
 #           proxy_user: PROXY_USER
 #           proxy_password: PROXY_PASSWORD
 #           proxy_auth: ntlm
-# Maintainer: Lemon Li <leli@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
 use strict;

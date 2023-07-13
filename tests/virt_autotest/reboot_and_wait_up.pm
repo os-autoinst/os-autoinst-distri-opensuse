@@ -10,7 +10,6 @@ package reboot_and_wait_up;
 use strict;
 use warnings;
 use testapi;
-use login_console;
 use ipmi_backend_utils;
 use base "proxymode";
 use power_action_utils 'power_action';

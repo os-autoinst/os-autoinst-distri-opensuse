@@ -5,7 +5,7 @@
 
 # Package: openssh binutils util-linux
 # Summary: Tests, if the machine is up and running
-# Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "virt_feature_test_base";
 use virt_autotest::common;
@@ -13,6 +13,7 @@ use virt_autotest::utils;
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use virt_autotest::utils;
 
@@ -34,8 +35,7 @@ my %cves = (
 );
 
 sub run_test {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Print latest Kernel version
     script_run('uname -a');
@@ -102,7 +102,7 @@ sub smoketest() {
                 record_info("$name", "$cve ($name) on $go_to_target vulnerable (expensive mitigations disabled by default)");
             } else {
                 # Some failures are OK but we still want to record them
-                record_soft_failure("$cve ($name) vulnerable on $go_to_target") unless ignore_cve_fail($cve, $go_to_target);
+                record_info('Softfail', "$cve ($name) vulnerable on $go_to_target", result => 'softfail') unless ignore_cve_fail($cve, $go_to_target);
                 record_info("$name", "$cve ($name) vulnerable on $go_to_target") if ignore_cve_fail($cve, $go_to_target);
             }
         }

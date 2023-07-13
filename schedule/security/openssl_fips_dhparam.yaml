@@ -1,0 +1,15 @@
+name: openssl_fips_dhparam
+description:    >
+  This is for the openssl_fips_dhparam test
+schedule:
+  - '{{bootloader}}'
+  - boot/boot_to_desktop
+  - fips/fips_setup
+  - fips/openssl/openssl_fips_dhparam
+conditional_schedule:
+  bootloader:
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
+      ppc64le:
+        - installation/bootloader

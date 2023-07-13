@@ -7,19 +7,19 @@
 #          We need only test this feature on aarch64 platform,
 #          However, based on bsc#1193350, test it on x86_64 as
 #          well
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#103644, tc#1769832
 
 use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call systemctl package_upgrade_check);
 use Utils::Architectures;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Version check
     my $pkg_list = {'tpm-tools' => '1.3.9.2', trousers => '0.3.15'};

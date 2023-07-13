@@ -1,0 +1,36 @@
+disks:
+  - name: vda
+    partitions:
+      - size: 300MiB
+        role: raw-volume
+        formatting_options:
+          should_format: 1
+          filesystem: ext2
+        mounting_options:
+          should_mount: 1
+          mount_point: /boot/zipl
+      - size: 500MiB
+        role: operating-system
+        formatting_options:
+          should_format: 1
+          filesystem: ext2
+        mounting_options:
+          should_mount: 1
+          mount_point: /boot
+      - role: raw-volume
+        id: linux-lvm
+        encrypt_device: 1
+lvm:
+  volume_groups:
+  - name: vg-system
+    devices:
+      - /dev/vda3
+    logical_volumes:
+      - name: lv-swap
+        size: 2000MiB
+        role: swap
+      - name: lv-root
+        role: operating-system
+crypttab:
+  num_devices_encrypted: 1
+<<: !include test_data/qam/QR/15-SP4/encryption/default_enc.yaml

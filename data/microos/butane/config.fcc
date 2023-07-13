@@ -1,0 +1,67 @@
+variant: fcos
+version: 1.1.0
+passwd:
+  users:
+    - name: root
+      password_hash: $6$eEm2HpuzI7dfE4i7$dbYiTRLhrqVvwryR7zmMEcnrp13IqZ3mzLbsx9EeHAX7849PibGVgX5vdPuaeYYIO7hVfcboI9/JDpGiDZhHf/
+    - name: bernhard
+      password_hash: $6$eEm2HpuzI7dfE4i7$dbYiTRLhrqVvwryR7zmMEcnrp13IqZ3mzLbsx9EeHAX7849PibGVgX5vdPuaeYYIO7hVfcboI9/JDpGiDZhHf/
+      uid: 1001
+      gecos: Bernhard M. Wiedemann
+    - name: HomelessTester
+      uid: 2002
+      no_create_home: true
+      primary_group: geekos
+      groups:
+        - users
+        - geekos
+  groups:
+    - name: geekos
+      gid: 2002
+systemd:
+  units:
+    - name: sshd.service
+      enabled: true
+      mask: false
+    - name: create_test_file.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Just a Test!
+        [Service]
+        Type=oneshot
+        RemainAfterExit=no
+        ExecStart=/usr/bin/touch /var/log/flagfile
+        [Install]
+        WantedBy=multi-user.target
+storage:
+  disks:
+    - device: /dev/vdc
+      wipe_table: true
+      partitions:
+      - number: 1
+        label: testing_part
+  filesystems:
+    - path: /home
+      device: /dev/disk/by-partlabel/testing_part
+      format: ext4
+      wipe_filesystem: true
+      with_mount_unit: true
+      label: home
+  files:
+    - path: /etc/hostname
+      overwrite: true
+      contents:
+        inline: cucaracha
+    - path: /home/bernhard/testdir/hello
+      overwrite: true
+      mode: 0600
+      user:
+        name: bernhard
+      contents:
+        inline: Hello there!
+  directories:
+    - path: /home/bernhard/testdir
+      mode: 0755
+      user:
+        name: bernhard

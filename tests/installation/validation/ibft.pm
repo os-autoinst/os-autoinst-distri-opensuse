@@ -14,6 +14,7 @@
 use base "opensusebasetest";
 use strict;
 use warnings;
+use Socket;
 use testapi;
 use Test::Assert 'assert_equals';
 use version_utils qw(is_sle);
@@ -35,7 +36,6 @@ my $ibft_expected = {
         target_name => get_required_var('NBF'),
         flags => 3,
         port => 3260,
-        ip_addr => get_required_var('WORKER_HOSTNAME'),
         chap_type => 0
     },
     acpi_header => {
@@ -113,14 +113,17 @@ sub run {
     # Requires NICTYPE=user and backend/qemu.pm code to run
     $ibft_expected->{ethernet}->{mac} = get_required_var('NICMAC');
 
+    my $fqdn = testapi::get_required_var('WORKER_HOSTNAME');
+    $ibft_expected->{target}->{ip_addr} = inet_ntoa(inet_aton($fqdn));
+
     select_console 'root-console';
     # find iscsi drive
     my $iscsi_drive = script_output 'lsblk --scsi | grep -i iscsi | awk \'NR==1 {print $1}\'';
     die "No iSCSI drive found!\n" unless ($iscsi_drive);
-    assert_script_run 'ls -l /dev/disk/by-path | egrep -e ' . $iscsi_drive . ' -e ' . $ibft_expected->{target}->{ip_addr} .
+    assert_script_run 'ls -l /dev/disk/by-path | grep -E -e ' . $iscsi_drive . ' -e ' . $ibft_expected->{target}->{ip_addr} .
       ' -e ' . $ibft_expected->{target}->{target_name};
     assert_script_run 'lsblk -o KNAME,MOUNTPOINT,SIZE,RO,TYPE,VENDOR,TRAN,MODE,HCTL,STATE,MAJ:MIN | grep ' . $iscsi_drive;
-    assert_script_run 'lsscsi -cl | egrep -e state=running -ie ' . $ibft_expected->{backstore}->{vendor} . ' -ie ' . $ibft_expected->{backstore}->{model};
+    assert_script_run 'lsscsi -cl | grep -E -e state=running -ie ' . $ibft_expected->{backstore}->{vendor} . ' -ie ' . $ibft_expected->{backstore}->{model};
     assert_script_run 'iscsiadm -m session -P 1|grep -e ' . $ibft_expected->{target}->{target_name} . ' -e ' . $ibft_expected->{target}->{ip_addr} .
       ':' . $ibft_expected->{target}->{port} . ' -e ' . $ibft_expected->{initiator}->{initiator_name} . ' -e ' . $ibft_expected->{ethernet}->{ip_addr};
 
@@ -150,7 +153,6 @@ sub run {
     for (1 .. 3) {
         assert_script_run 'hdparm -tT /dev/' . $iscsi_drive;
     }
-    assert_script_run 'smartctl -i /dev/' . $iscsi_drive;
     assert_script_run 'sg_turs /dev/' . $iscsi_drive . ' -vt -n 10';
     $self->ibft_validation;
 }

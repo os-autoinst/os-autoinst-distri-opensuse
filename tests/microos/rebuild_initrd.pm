@@ -9,7 +9,7 @@
 #          e.g. qemu/qemu.pm (s390x)
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use Mojo::Base "opensusebasetest";
+use Mojo::Base "consoletest";
 use testapi;
 use transactional;
 

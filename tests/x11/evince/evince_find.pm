@@ -13,7 +13,7 @@
 # - Type CTRL-SHIFT-G 2 times and check
 # - Exit search with ESC
 # - Close evince
-# Maintainer: Huajian Luo <hluo@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 # Tags: tc#1436022
 
 use base "x11test";

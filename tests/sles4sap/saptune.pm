@@ -8,6 +8,7 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils "zypper_call";
 use version_utils qw(is_sle is_upgrade);
 use Utils::Architectures;
@@ -15,9 +16,7 @@ use strict;
 use warnings;
 
 sub run {
-    my ($self) = @_;
-
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Skip test on migration
     return if is_upgrade();

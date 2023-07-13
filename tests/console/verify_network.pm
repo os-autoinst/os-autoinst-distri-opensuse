@@ -5,7 +5,7 @@
 
 # Summary: Verify basic network configuration
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_module_consoletest';
 use strict;
@@ -22,7 +22,7 @@ sub run {
         qw(network_manager device config_files)};
 
     # check device UP (or UNKNOWN for some machines)
-    if (script_run("ip link show dev $dev | egrep 'state (UP|UNKNOWN)'")) {
+    if (script_run("ip link show dev $dev | grep -E 'state (UP|UNKNOWN)'")) {
         die "Network device '$dev' should be UP (or UNKNOWN)";
     }
     # check IPv6 addresses in use

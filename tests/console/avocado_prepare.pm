@@ -11,12 +11,13 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call);
 use version_utils qw(is_sle is_opensuse);
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # needed for script_output
     zypper_call 'in curl';
@@ -93,8 +94,8 @@ sed -i 's/timeout=360/timeout=20/' /var/lib/avocado/data/avocado-vt/test-provide
 sed -i 's/timeout=90/timeout=20/' /var/lib/avocado/data/avocado-vt/test-providers.d/downloads/io-github-autotest-qemu/qemu/tests/nic_hotplug.py
 sed -i 's/ip, 10,/ip, 3,/' /var/lib/avocado/data/avocado-vt/test-providers.d/downloads/io-github-autotest-qemu/qemu/tests/nic_hotplug.py
 sed -i 's/boot_menu_key = "f12"/boot_menu_key = "esc"/' /var/lib/avocado/data/avocado-vt/backends/qemu/cfg/subtests.cfg
-egrep "^arch|^nettype|^netdst|^backup_image_before_test|^restore_image_after_test" /etc/avocado/conf.d/vt.conf
-egrep ^login_timeout /var/lib/avocado/data/avocado-vt/backends/qemu/cfg/base.cfg
+grep -E "^arch|^nettype|^netdst|^backup_image_before_test|^restore_image_after_test" /etc/avocado/conf.d/vt.conf
+grep -E ^login_timeout /var/lib/avocado/data/avocado-vt/backends/qemu/cfg/base.cfg
 systemctl start openvswitch.service
 systemctl status openvswitch.service
 EOF

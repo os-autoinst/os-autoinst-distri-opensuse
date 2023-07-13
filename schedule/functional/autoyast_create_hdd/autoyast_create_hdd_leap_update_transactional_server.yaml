@@ -1,0 +1,26 @@
+---
+name: autoyast_create_hdd_leap_update_transactional_server
+description: >
+  Test performs autoyast installation to generate qcow images
+  for leap update tests with system role transactional server
+vars:
+  AUTOYAST: autoyast_opensuse/opensuse_leap.xml.ep
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - console/zypper_add_repos
+  - transactional/install_updates
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

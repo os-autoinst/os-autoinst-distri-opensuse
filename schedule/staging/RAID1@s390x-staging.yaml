@@ -45,7 +45,6 @@ test_data:
   <<: !include test_data/yast/raid/raid_disks_boot_zipl.yaml
   mds:
     - raid_level: 1
-      chunk_size: '64 KiB'
       devices:
         - vda2
         - vdb2

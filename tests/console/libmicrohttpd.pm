@@ -5,7 +5,7 @@
 
 # Package: greenbone-security-assistant
 # Summary: Case 1525263 - Verify libmicrohttpd via Greenbone Security Assistant
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 
 use base "consoletest";
 use strict;

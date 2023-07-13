@@ -302,15 +302,9 @@ sub run {
     $self->{ltp_tinfo} = $tinfo;
 
     my $fin_msg = "### TEST $test->{name} COMPLETE >>> ";
-    my $cmd_text = qq($test->{command}; echo "$fin_msg\$?");
+    my $cmd_text = qq($test->{command}; echo "$fin_msg\$?.");
     my $klog_stamp = "echo 'OpenQA::run_ltp.pm: Starting $test->{name}' > /dev/$serialdev";
     my $start_time = thetime();
-    # See poo#16648 for disabled LTP networking related tests.
-    my $set_rhost = $test->{command} =~ m/^finger01|ftp01|rcp01|rdist01|rlogin01|rpc01|rpcinfo01|rsh01|telnet01/;
-
-    if ($set_rhost) {
-        assert_script_run(q(export RHOST='127.0.0.1'));
-    }
 
     if (is_serial_terminal) {
         script_run($klog_stamp);
@@ -320,12 +314,12 @@ sub run {
         send_key 'ret';
     }
     else {
-        enter_cmd("($cmd_text) | tee /dev/$serialdev");
+        enter_cmd("($cmd_text) 2>\&1 | tee /dev/$serialdev");
     }
-    my $test_log = wait_serial(qr/$fin_msg\d+/, $timeout, 0, record_output => 1);
+    my $test_log = wait_serial(qr/$fin_msg\d+\./, $timeout, 0, record_output => 1);
     my ($timed_out, $result_export) = $self->record_ltp_result($runfile, $test, $test_log, $fin_msg, thetime() - $start_time, $is_posix);
 
-    if ($test_log =~ qr/$fin_msg(\d+)$/) {
+    if ($test_log =~ qr/$fin_msg(\d+)\.$/) {
         $env{retval} = $1;
     }
 
@@ -335,10 +329,6 @@ sub run {
             save_memory_dump(filename => $test->{name});
         }
         die "Timed out waiting for LTP test case which may still be running or the OS may have crashed!";
-    }
-
-    if ($set_rhost) {
-        assert_script_run('unset RHOST');
     }
 
     script_run('vmstat -w');

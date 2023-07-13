@@ -16,6 +16,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call script_retry script_output_retry);
 use version_utils qw(is_sle);
 use mmapi 'get_current_job_id';
@@ -35,7 +36,7 @@ sub run {
     my $is_k3s = $k8s_backend eq 'K3S';
     $self->{is_k3s} = $is_k3s;
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $chart = "bitnami/apache";
 
     record_info("Chart name", $chart);
@@ -49,13 +50,13 @@ sub run {
         my $provider;
 
         # Configure the public cloud kubernetes
-        if ($k8s_backend eq "EKS") {
+        if ($k8s_backend eq "EC2") {
             add_suseconnect_product(get_addon_fullname('pcm')) if is_sle;
             zypper_call("in jq aws-cli", timeout => 300);
 
             $provider = publiccloud::eks->new();
         }
-        elsif ($k8s_backend eq 'AKS') {
+        elsif ($k8s_backend eq 'AZURE') {
             add_suseconnect_product(get_addon_fullname('pcm'),
                 (is_sle('=12-sp5') ? '12' : undef));
             add_suseconnect_product(get_addon_fullname('phub'))
@@ -64,12 +65,12 @@ sub run {
 
             $provider = publiccloud::aks->new();
         }
-        elsif ($k8s_backend eq 'GKE') {
+        elsif ($k8s_backend eq 'GCE') {
             add_suseconnect_product(get_addon_fullname('pcm')) if is_sle;
             gcloud_install();
 
             # package needed by init():
-            my $pkg = is_sle('=15-SP4') ? "in chrony" : "in ntp";
+            my $pkg = is_sle('>=15') ? "in chrony" : "in ntp";
             zypper_call($pkg, timeout => 300);
 
             $provider = publiccloud::gke->new();

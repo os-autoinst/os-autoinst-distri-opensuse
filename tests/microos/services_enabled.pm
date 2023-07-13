@@ -9,7 +9,7 @@
 
 use strict;
 use warnings;
-use base "opensusebasetest";
+use base "consoletest";
 use utils;
 use testapi;
 

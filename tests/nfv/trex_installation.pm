@@ -9,6 +9,7 @@
 
 use base "opensusebasetest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use strict;
 use warnings;
@@ -26,7 +27,7 @@ sub run {
     my $PORT_1 = get_required_var('PORT_1');
     my $PORT_2 = get_required_var('PORT_2');
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Download and extract T-Rex package
     record_info("INFO", "Download TREX package");

@@ -12,13 +12,14 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use version_utils 'is_staging';
 use utils 'zypper_call';
 
 sub run {
     select_console 'root-console';
     # Trying to switch to more scalable solution with updated rsync.pl
     if (my $urlprefix = get_var('MIRROR_PREFIX')) {
-        my @repos_to_add = qw(OSS NON_OSS OSS_DEBUGINFO);
+        my @repos_to_add = qw(OSS NON_OSS OSS_DEBUGINFO ALP LEAP_MICRO);
         my $repourl;
         foreach (@repos_to_add) {
             next unless get_var("REPO_$_");    # Skip repo if not defined
@@ -29,6 +30,12 @@ sub run {
             if ($rc) {
                 ($_ =~ m/^OSS$/) ? die 'Adding OSS repo failed!' : record_info("$_ repo failure", "zypper exited with code $rc");
             }
+        }
+    }
+    elsif (is_staging && get_var('ISO_1')) {
+        # Use the product DVD as repository if not already there
+        if (script_run('grep -qR "baseurl=cd:" /etc/zypp/repos.d/') != 0) {
+            zypper_call 'ar -G cd:/ dvd';
         }
     }
     else {

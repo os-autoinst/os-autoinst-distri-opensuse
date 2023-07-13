@@ -4,7 +4,7 @@
 # Package: SUSEConnect
 # Summary: Verify milestone version and display some info.
 # Check product info before and after migration
-# Maintainer: Yutao Wang <yuwang@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
 use strict;
@@ -32,10 +32,11 @@ sub check_addons {
     foreach my $addon (@unique_addons) {
         my $name = get_addon_fullname($addon);
         record_info("$addon module fullname: ", $name);
+        $name = "sle-product-ha\\|sle-ha" if (($name =~ /sle-ha/) && is_sle('15+'));
         $name = "sle-product-we" if (($name =~ /sle-we/) && !get_var("MEDIA_UPGRADE") && is_sle('15+'));
         $name = "SLE-Module-DevTools" if (($name =~ /development/) && !get_var("MEDIA_UPGRADE"));
         $name =~ s/sle-module-//g if (is_sle('=15-sp3') && ($name =~ /sle-module-/));
-        my $out = script_output("zypper lr | grep -i $name", 200, proceed_on_failure => 1);
+        my $out = script_output("zypper lr | grep -i '$name'", 200, proceed_on_failure => 1);
         die "zypper lr command output does not include $name" if ($out eq '');
     }
 }
@@ -49,6 +50,7 @@ sub check_product {
         SLES => 'SLES' . $myver,
         SLED => 'SLED' . $myver,
         SLE_HPC => 'SLE-Product-HPC-' . $myver,
+        SLES4SAP => 'SLE-' . $myver . '-SAP',
         leap => "openSUSE-Leap",
         Media_HPC => $myver . '-HPC',
     );

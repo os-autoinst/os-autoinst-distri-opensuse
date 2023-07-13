@@ -49,6 +49,10 @@ sub get_port {
     return $port;
 }
 
+sub get_timeout {
+    return $app->{timeout};
+}
+
 sub set_host {
     my ($yuihost) = @_;
     $host = $yuihost;
@@ -177,7 +181,7 @@ SPDX-License-Identifier: FSFAP
 
 =head1 AUTHORS
 
-QE YaST <qa-sle-yast@suse.de>
+QE Yam <qe-yam at suse de>
 
 =head1 SYNOPSIS
 
@@ -215,6 +219,8 @@ B<get_host(%args)> - returns name or IP of the REST server.
 The %args is a boolean $installation (see parameters of C<get_app()> above.)
 
 B<get_port()> - returns port number for the rest server.
+
+B<get_timeout()> - returns the current timeout.
 
 B<init_logger> - Initializes logger instance.
 

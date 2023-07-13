@@ -8,6 +8,7 @@
 requires 'Carp';
 requires 'Code::DRY';
 requires 'Config::Tiny';
+requires 'Class::Accessor::Fast';
 requires 'Cwd';
 requires 'Data::Dump';
 requires 'Data::Dumper';
@@ -53,6 +54,7 @@ requires 'strict';
 requires 'utf8';
 requires 'version';
 requires 'warnings';
+requires 'SemVer';
 
 
 on 'test' => sub {

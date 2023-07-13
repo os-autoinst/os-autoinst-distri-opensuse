@@ -3,18 +3,18 @@
 #
 # Summary: Basic function check for PAM, and prepare the setup for other
 #          pam tests, e.g., create user, install some packages
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#70345, tc#1767569
 
 use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Install the pam-config package, and make sure it can list all modules
     zypper_call 'in pam-config';
@@ -23,7 +23,7 @@ sub run {
 
     # Make sure all corresponding files are there
     assert_script_run 'ls /etc/pam.d';
-    assert_script_run 'ls /lib64/security';
+    assert_script_run 'ls /lib*/security';
     assert_script_run 'ls /etc/security';
 
     # Make sure the binaries are controlled by PAM

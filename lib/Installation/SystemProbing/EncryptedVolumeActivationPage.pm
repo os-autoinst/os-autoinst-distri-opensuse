@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces all accessing methods for Encrypted Volume Activation
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::SystemProbing::EncryptedVolumeActivationPage;
 use strict;

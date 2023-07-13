@@ -50,6 +50,9 @@ sub setup_environment {
 
     assert_script_run("systemctl disable qaperf.service");
     if (get_var("HANA_PERF")) {
+        # Remove blacklist megaraid_sas 50-blacklist.conf to make sure all disks are present next reboot
+        script_run("sed -e '/^blacklist megaraid_sas/s/^/#/g' -i /etc/modprobe.d/50-blacklist.conf");
+
         my $qaset_kernel_tag = ' ' . get_var('QASET_KERNEL_TAG', '');
         assert_script_run("/usr/share/qa/qaset/bin/deploy_hana_perf.sh HANA $mitigation_switch $qaset_kernel_tag");
         assert_script_run("ls /root/qaset/deploy_hana_perf_env.done");

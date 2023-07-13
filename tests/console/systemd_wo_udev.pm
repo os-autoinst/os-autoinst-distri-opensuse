@@ -9,9 +9,10 @@
 
 use Mojo::Base qw(consoletest);
 use testapi;
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
-    shift->select_serial_terminal;
+    select_serial_terminal;
     script_run("zypper if --requires systemd | grep udev") or
       die 'systemd on sle15sp4+, leap15.4+ and TW should have no dependency to udev package!';
 }

@@ -5,7 +5,7 @@
 
 # Package: yast2 libcamgm100 perl-camgm yast2-ca-management
 # Summary: Test libcamgm via Yast2 CA management module(yast2 ca_mgm)
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 
 use base "x11test";
 use strict;

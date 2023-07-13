@@ -16,13 +16,16 @@ use publiccloud::ec2;
 use publiccloud::azure;
 use publiccloud::gce;
 use publiccloud::openstack;
+use serial_terminal 'select_serial_terminal';
+use version_utils qw(is_jeos);
 
 sub run {
-    my ($self) = @_;
+    my ($self, $args) = @_;
     # Better use the root-console here so that the download progress can be monitored in openQA
-    select_console("root-console");
+    select_serial_terminal();
 
     my $provider = $self->provider_factory();
+    $args->{my_provider} = $provider;
 
     my $img_url = get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION');
     my ($img_name) = $img_url =~ /([^\/]+)$/;
@@ -33,9 +36,11 @@ sub run {
     }
 
     # Download the given image via wget. Note that by default wget retries 20 times before giving up
-    my $cmd = "wget --no-check-certificate --retry-connrefused --retry-on-host-error $img_url -O $img_name";
-    # A generious timeout is required because downloading up to 30 GB (Azure images) can take more than an hour.
-    my $rc = script_run("$cmd 2>&1 | tee download.txt", timeout => 120 * 60);
+    my $wget_cmd = "wget -q --server-response --no-check-certificate --retry-connrefused --retry-on-host-error";
+    my $cmd = "$wget_cmd $img_url -O $img_name";
+    my $cmd_sha256 = "$wget_cmd $img_url.sha256 -O $img_name.sha256";
+    # A generous timeout is required because downloading up to 30 GB (Azure images) can take more than an hour.
+    my $rc = script_run("(set -o pipefail && $cmd 2>&1 | tee download.txt)", timeout => 120 * 60);
     if ($rc != 0) {
         # Check for 404 errors and make them better visible
         upload_logs("download.txt");
@@ -45,6 +50,13 @@ sub run {
         die "404 - Image not found" if ($output =~ "ERROR 404: Not Found");
         die "wget failed with return code $rc";
     }
+
+    # IBS sync does not pull checksum file for JeOS Cloud image
+    unless (is_jeos) {
+        assert_script_run $cmd_sha256;
+        assert_script_run "sha256sum -c $img_name.sha256";
+    }
+
     $provider->upload_img($img_name);
 }
 
@@ -70,20 +82,6 @@ The type of the CSP (e.g. AZURE, EC2, GOOGLE)
 The URL where the image gets downloaded from. The name of the image gets extracted
 from this URL.
 
-=head2 PUBLIC_CLOUD_KEY_ID
-
-The CSP credentials key-id to used to access API.
-
-=head2 PUBLIC_CLOUD_KEY_SECRET
-
-The CSP credentials secret used to access API.
-
 =head2 PUBLIC_CLOUD_REGION
 
-The region to use. (default-azure: westeurope, default-ec2: eu-central-1, default-gcp: europe-west1)
-
-=head2 PUBLIC_CLOUD_AZURE_TENANT_ID
-
-This is B<only for azure> and used to create the service account file.
-
-=cut
+The region to use. (default-azure: westeurope, default-ec2: eu-central-1, default-gcp: europe-west1-b)

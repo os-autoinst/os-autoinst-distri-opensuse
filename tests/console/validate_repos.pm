@@ -5,7 +5,7 @@
 
 # Summary: Validate repos in the system using expectations from the test data.
 #
-# Maintainer: QE-YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

@@ -5,7 +5,7 @@
 
 # Package: snapper
 # Summary: Conduct a rollback after migration back to previous system
-# Maintainer: yutao <yuwang@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
 use strict;

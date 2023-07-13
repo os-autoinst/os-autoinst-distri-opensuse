@@ -12,10 +12,10 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     assert_script_run('getent passwd sshboy > /dev/null && userdel -fr sshboy');
 }
 

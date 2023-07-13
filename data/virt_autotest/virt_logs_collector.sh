@@ -1,6 +1,18 @@
-#!/bin/bash
+#!/bin/bash -x
 set -o pipefail
 shopt -s nocasematch
+
+# Get Product name
+# Product name are "SLES", "openSUSE Tumbleweed", "openSUSE Leap"
+# TBD: ALP, ...
+function get_product_name() {
+	local version_file=$1
+	if [[ -z ${version_file} ]];then
+	    version_file="/etc/os-release"
+	fi
+	local product_name=`cat /etc/os-release | grep ^NAME= | cut -d '"' -f2`
+	echo $product_name
+}
 
 #Obtain SLES release version and service pack level
 function get_sles_release() {
@@ -61,7 +73,7 @@ set guest_domain [lindex \$argv 1]
 set guest_transformed [lindex \$argv 2]
 set logs_folder [lindex \$argv 3]
 set extra_logs [lindex \$argv 4]
-set retry_times 3
+set retry_times 2
 set ret_result 1
 set fail_string sad_to_fail
 set pass_string glad_go_pass
@@ -93,7 +105,7 @@ while { \${retry_times} > 0 } {
          expect -re "~( |\\\])#"
          if { \${extra_logs} == {support_config} } {
             send "rm -f -r \${logs_folder}/*supportconfig*\r"
-            send "supportconfig -y -A -t \${logs_folder} -B guest_\${guest_transformed}_supportconfig_\\\${time_stamp}\r"
+            send "supportconfig -y -A -o AUDIT -t \${logs_folder} -B guest_\${guest_transformed}_supportconfig_\\\${time_stamp}\r"
          }
          if { \${extra_logs} == {sos_report} } {
             send "rm -f -r \${logs_folder}/*sosreport*\r"
@@ -176,7 +188,7 @@ function collect_system_log_and_diagnosis() {
 
 	local ret_result=128
 	local retry_times=0
-	while [[ ${retry_times} -lt 3 ]] && [[ ${ret_result} -ne 0 ]];
+	while [[ ${retry_times} -lt 2 ]] && [[ ${ret_result} -ne 0 ]];
 	do
 	   if [[ ${target_type} == "host" && `cat /etc/issue` =~ oracle|rhel|red.*hat|fedora ]] || [[ ${target_type} == "guest" && ${target_transformed} =~ oracle|rhel|fedora ]];then
 	      ${sshpass_ssh_cmd} rm -f -r ${logs_folder}/*sosreport*
@@ -187,8 +199,8 @@ function collect_system_log_and_diagnosis() {
 	   else	   
     	      local time_stamp=`date '+%Y%m%d%H%M%S'`
 	      ${sshpass_ssh_cmd} rm -f -r ${logs_folder}/*supportconfig*
-	      echo -e "${sshpass_ssh_cmd} supportconfig -y -A -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}"
-	      ${sshpass_ssh_cmd} supportconfig -y -A -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}
+	      echo -e "${sshpass_ssh_cmd} supportconfig -y -A -o AUDIT -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}"
+	      ${sshpass_ssh_cmd} supportconfig -y -A -o AUDIT -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}
 	   fi
 	   ret_result=$?
 	   if [[ ${ret_result} -eq 0 ]];then
@@ -273,7 +285,7 @@ function collect_extra_logs_from_guest() {
            local guest_transformed=${guest_domain//./_}
            local ret_result=128
            local retry_times=0
-           while [[ ${retry_times} -lt 3 ]] && [[ ${ret_result} -ne 0 ]];
+           while [[ ${retry_times} -lt 2 ]] && [[ ${ret_result} -ne 0 ]];
            do
                  ${sshpass_ssh_cmd} rm -f -r ${logs_folder}/guest_${guest_transformed}_extra_logs
                  ${sshpass_ssh_cmd} mkdir -p ${logs_folder}/guest_${guest_transformed}_extra_logs
@@ -339,6 +351,7 @@ function collect_extra_logs_from_host() {
 	local libvirt_qemu_log="/var/lib/libvirt/qemu"
 	local libvirt_log="/var/log/libvirt"
 	local libvirtd_log="${libvirt_log}/libvirtd.log"
+	local libvirt_daemon_logs="${libvirt_log}/*d.log"
 	local xen_log="/var/log/xen"
 	local xen_boot_log="${xen_log}/xen-boot.log"
 
@@ -360,11 +373,13 @@ function collect_extra_logs_from_host() {
               cp --parent -f -r ${xen_boot_log} ${extra_logs_folder}
               ret_result=$(( ${ret_result} | $? ))
            fi           
-        elif [[ ${release} -eq 15 ]];then
+        elif [[ ${release} -eq 15 || `get_product_name` == "openSUSE Tumbleweed" ]];then
            cp --parent -f -r ${libvirt_boot_log} ${extra_logs_folder}
            ret_result=$(( ${ret_result} | $? ))
            cp --parent -f -r ${libvirt_qemu_log} ${extra_logs_folder}
            ret_result=$(( ${ret_result} | $? ))
+	   cp --parent -f -r ${libvirt_daemon_logs} ${extra_logs_folder}
+	   ret_result=$(( ${ret_result} | $? ))
            if [[ `get_sles_hypervisor` == "XEN" ]];then
               cp --parent -f -r ${xen_boot_log} ${extra_logs_folder}
               ret_result=$(( ${ret_result} | $? ))
@@ -434,9 +449,9 @@ fi
 
 unset guest_hash_ipaddr
 declare -a guest_hash_ipaddr=""
-guest_domain_types="sles|opensuse|tumbleweed|leap|oracle"
-guests_inactive_array=`virsh list --inactive | grep -E "${guest_domain_types}" | awk '{print $2}'`
-guest_domains_array=`virsh list  --all | grep -E "${guest_domain_types}" | awk '{print $2}'`
+guest_domain_types="sles|opensuse|tumbleweed|leap|oracle|alp"
+guests_inactive_array=`virsh list --inactive | grep -Ei "${guest_domain_types}" | awk '{print $2}'`
+guest_domains_array=`virsh list  --all | grep -Ei "${guest_domain_types}" | awk '{print $2}'`
 guest_macaddresses_array=""
 guest_ipaddress="";
 guest_hash_index=0
@@ -444,11 +459,12 @@ guest_current=""
 dhcpd_lease_file="/var/lib/dhcp/db/dhcpd.leases"
 
 #Install necessary packages
-echo -e "Install necessary packages. zypper install -y sshpass nmap xmlstarlet" | tee -a ${virt_logs_collecor_log}
-zypper install -y sshpass nmap xmlstarlet | tee -a ${virt_logs_collecor_log}
+echo -e "Install necessary packages. zypper install -y sshpass nmap xmlstarlet expect" | tee -a ${virt_logs_collecor_log}
+zypper install -y sshpass nmap xmlstarlet expect| tee -a ${virt_logs_collecor_log}
 
 #Establish reachable networks and hosts database on host
-subnets_in_route=`ip route show all | awk '{print $1}' | grep -v default`
+#In ALP, podman network takes ~40 minutes to finish scan, but it's useless, so exclude it
+subnets_in_route=`ip route show all | grep -v cni-podman0 | awk '{print $1}' | grep -v default`
 subnets_scan_results=""
 subnets_scan_index=0
 echo -e "Subnets ${subnets_in_route[@]} are reachable on host judging by ip route show all" | tee -a ${virt_logs_collecor_log}

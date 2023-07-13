@@ -5,7 +5,7 @@
 
 # Summary: The class introduces business actions for Repository URL dialog.
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::RepositoryURL::RepositoryURLController;
 use strict;

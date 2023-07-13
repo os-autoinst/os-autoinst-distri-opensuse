@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+    <suse_register>
+        <do_registration config:type="boolean">true</do_registration>
+        <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
+        <install_updates config:type="boolean">true</install_updates>
+        % if (keys %$addons) {
+        <addons config:type="list">
+            % while (my ($key, $addon) = each (%$addons)) {
+            <addon>
+                <name><%= $addon->{name} %></name>
+                <version><%= $addon->{version} %></version>
+                <arch><%= $addon->{arch} %></arch>
+                % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sles')) {
+                <reg_code><%= $get_var->('SCC_REGCODE_WE') %></reg_code>
+                % }
+                % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sled')) {
+                <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
+                % }
+                % if ($key eq 'rt') {
+                <reg_code><%= $get_var->('SCC_REGCODE_RT') %></reg_code>
+                % }
+                % if ($key eq 'ltss') {
+                <reg_code><%= $get_var->('SCC_REGCODE_LTSS') %></reg_code>
+                % }
+		% if ($key eq 'ha') {
+                <reg_code><%= $get_var->('SCC_REGCODE_HA') %></reg_code>
+                % }
+            </addon>
+            % }
+        </addons>
+        %}
+    </suse_register>
+    <bootloader>
+      <device_map config:type="list">
+        <device_map_entry>
+          <firmware>hd0</firmware>
+          <linux>/dev/vda</linux>
+        </device_map_entry>
+      </device_map>
+      <global>
+        <timeout config:type="integer">-1</timeout>
+        <activate>true</activate>
+        <append>showopts plymouth.ignore-serial-consoles console=hvc0 console=tty mitigations=auto crashkernel=201M</append>
+        <boot_boot>false</boot_boot>
+        <xen_append>fadump= crashkernel=201M</xen_append>
+        <xen_kernel_append><![CDATA[vga=gfx-1024x768x16 vga=gfx-1024x768x16 crashkernel=201M<4G]]></xen_kernel_append>
+      </global>
+      <loader_type>grub2</loader_type>
+    </bootloader>
+    <general>
+      <mode>
+        <confirm config:type="boolean">false</confirm>
+      </mode>
+      <signature-handling>
+        <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+        <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+        <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+        <import_gpg_key config:type="boolean">true</import_gpg_key>
+      </signature-handling>
+    </general>
+    <partitioning config:type="list">
+      <drive>
+	<disklabel>msdos</disklabel>
+        <device>/dev/vda</device>
+        <enable_snapshots config:type="boolean">true</enable_snapshots>
+        <initialize config:type="boolean">true</initialize>
+        <partitions config:type="list">
+          <partition>
+            <create config:type="boolean">true</create>
+            <crypt_fs config:type="boolean">false</crypt_fs>
+            <format config:type="boolean">false</format>
+            <loop_fs config:type="boolean">false</loop_fs>
+            <mountby config:type="symbol">device</mountby>
+            <partition_id config:type="integer">65</partition_id>
+            <partition_nr config:type="integer">1</partition_nr>
+            <partition_type>primary</partition_type>
+            <resize config:type="boolean">false</resize>
+            <size>8225280</size>
+          </partition>
+          <partition>
+            <create config:type="boolean">true</create>
+            <crypt_fs config:type="boolean">false</crypt_fs>
+            <filesystem config:type="symbol">swap</filesystem>
+            <format config:type="boolean">true</format>
+            <fstopt>defaults</fstopt>
+            <loop_fs config:type="boolean">false</loop_fs>
+            <mount>swap</mount>
+            <mountby config:type="symbol">uuid</mountby>
+            <partition_id config:type="integer">130</partition_id>
+            <partition_nr config:type="integer">2</partition_nr>
+            <partition_type>primary</partition_type>
+            <resize config:type="boolean">false</resize>
+            <size>2146598400</size>
+          </partition>
+          <partition>
+            <create config:type="boolean">true</create>
+            <crypt_fs config:type="boolean">false</crypt_fs>
+            <filesystem config:type="symbol">btrfs</filesystem>
+            <format config:type="boolean">true</format>
+            <fstopt>defaults</fstopt>
+            <loop_fs config:type="boolean">false</loop_fs>
+            <mount>/</mount>
+            <mountby config:type="symbol">uuid</mountby>
+            <partition_id config:type="integer">131</partition_id>
+            <partition_nr config:type="integer">3</partition_nr>
+            <partition_type>primary</partition_type>
+            <resize config:type="boolean">false</resize>
+            <size>max</size>
+            <subvolumes config:type="list">
+              <listentry>
+                <copy_on_write config:type="boolean">true</copy_on_write>
+                <path>boot/grub2/powerpc-ieee1275</path>
+              </listentry>
+              <listentry>
+                <copy_on_write config:type="boolean">true</copy_on_write>
+                <path>opt</path>
+              </listentry>
+              <listentry>
+                <copy_on_write config:type="boolean">true</copy_on_write>
+                <path>srv</path>
+              </listentry>
+              <listentry>
+                <copy_on_write config:type="boolean">true</copy_on_write>
+                <path>tmp</path>
+              </listentry>
+              <listentry>
+                <copy_on_write config:type="boolean">true</copy_on_write>
+                <path>usr/local</path>
+              </listentry>
+              <listentry>
+                <copy_on_write config:type="boolean">true</copy_on_write>
+                <path>var/cache</path>
+              </listentry>
+              <listentry>
+                <copy_on_write config:type="boolean">true</copy_on_write>
+                <path>var/crash</path>
+              </listentry>
+              <listentry>
+                <copy_on_write config:type="boolean">false</copy_on_write>
+                <path>var/lib/libvirt/images</path>
+              </listentry>
+              <listentry>
+                <copy_on_write config:type="boolean">true</copy_on_write>
+                <path>var/lib/machines</path>
+              </listentry>
+              <listentry>
+                <copy_on_write config:type="boolean">true</copy_on_write>
+                <path>var/lib/mailman</path>
+              </listentry>
+              <listentry>
+                <copy_on_write config:type="boolean">false</copy_on_write>
+                <path>var/lib/mariadb</path>
+              </listentry>
+              <listentry>
+                <copy_on_write config:type="boolean">false</copy_on_write>
+                <path>var/lib/mysql</path>
+              </listentry>
+              <listentry>
+                <copy_on_write config:type="boolean">true</copy_on_write>
+                <path>var/lib/named</path>
+              </listentry>
+              <listentry>
+                <copy_on_write config:type="boolean">false</copy_on_write>
+                <path>var/lib/pgsql</path>
+              </listentry>
+              <listentry>
+                <copy_on_write config:type="boolean">false</copy_on_write>
+                <path>var/log</path>
+              </listentry>
+              <listentry>
+                <copy_on_write config:type="boolean">true</copy_on_write>
+                <path>var/opt</path>
+              </listentry>
+              <listentry>
+                <copy_on_write config:type="boolean">true</copy_on_write>
+                <path>var/spool</path>
+              </listentry>
+              <listentry>
+                <copy_on_write config:type="boolean">true</copy_on_write>
+                <path>var/tmp</path>
+              </listentry>
+            </subvolumes>
+          </partition>
+        </partitions>
+        <pesize/>
+        <type config:type="symbol">CT_DISK</type>
+        <use>all</use>
+      </drive>
+    </partitioning>
+    <networking>
+      <interfaces config:type="list">
+        <interface>
+          <bootproto>dhcp</bootproto>
+          <device>eth0</device>
+          <dhclient_set_default_route>yes</dhclient_set_default_route>
+          <startmode>auto</startmode>
+        </interface>
+      </interfaces>
+    </networking>
+    <firewall>
+      <enable_firewall config:type="boolean">true</enable_firewall>
+      <start_firewall config:type="boolean">true</start_firewall>
+      <FW_ALLOW_PING_FW>yes</FW_ALLOW_PING_FW>
+      <FW_DEV_EXT>eth0</FW_DEV_EXT>
+      <FW_SERVICES_ACCEPT_EXT>0/0,tcp,22</FW_SERVICES_ACCEPT_EXT>
+    </firewall>
+    <report>
+        <errors>
+            <log config:type="boolean">true</log>
+            <show config:type="boolean">true</show>
+            <timeout config:type="integer">0</timeout>
+        </errors>
+        <messages>
+            <log config:type="boolean">true</log>
+            <show config:type="boolean">true</show>
+            <timeout config:type="integer">0</timeout>
+        </messages>
+        <warnings>
+            <log config:type="boolean">true</log>
+            <show config:type="boolean">true</show>
+            <timeout config:type="integer">0</timeout>
+        </warnings>
+        <yesno_messages>
+            <log config:type="boolean">true</log>
+            <show config:type="boolean">true</show>
+            <timeout config:type="integer">0</timeout>
+        </yesno_messages>
+    </report>
+    <keyboard>
+        <keyboard_values>
+            <delay/>
+            <discaps config:type="boolean">false</discaps>
+            <numlock>bios</numlock>
+            <rate/>
+        </keyboard_values>
+        <keymap>english-us</keymap>
+    </keyboard>
+    <language>
+        <language>en_US</language>
+        <languages/>
+    </language>
+    <ntp-client>
+        <ntp_policy>auto</ntp_policy>
+    </ntp-client>
+    <software>
+        <products config:type="list">
+            <product><%= uc $get_var->('SLE_PRODUCT') %></product>
+        </products>
+        <packages config:type="list">
+            <!-- Workaround for bsc#1202234: [addon]-release packages are missing after autoyast installation. -->
+            % foreach (values %$addons) {
+            <package><%= lc($_->{name}) %>-release</package>
+            % }
+            <!-- end of workaround -->
+        </packages>
+	<patterns config:type="list">
+           % for my $pattern (@$patterns) {
+           <pattern><%= $pattern %></pattern>
+           % }
+        </patterns>
+    </software>
+    <services-manager>
+	% if ($check_var->('DESKTOP', 'gnome')) {
+        <default_target>graphical</default_target>
+        % }
+        % if ($check_var->('DESKTOP', 'textmode')) {
+        <default_target>multi-user</default_target>
+        % }
+        <services>
+            <disable config:type="list"/>
+            <enable config:type="list">
+                <service>sshd</service>
+            </enable>
+        </services>
+    </services-manager>
+    <timezone>
+        <hwclock>UTC</hwclock>
+        <timezone>Europe/Berlin</timezone>
+    </timezone>
+    <users config:type="list">
+        <user>
+            <encrypted config:type="boolean">false</encrypted>
+            <fullname>Bernhard M. Wiedemann</fullname>
+            <gid>100</gid>
+            <home>/home/bernhard</home>
+            <password_settings>
+                <expire/>
+                <flag/>
+                <inact>-1</inact>
+                <max>99999</max>
+                <min>0</min>
+                <warn>7</warn>
+            </password_settings>
+            <shell>/bin/bash</shell>
+            <uid>1000</uid>
+            <user_password>nots3cr3t</user_password>
+            <username>bernhard</username>
+        </user>
+        <user>
+            <encrypted config:type="boolean">false</encrypted>
+            <fullname>root</fullname>
+            <gid>0</gid>
+            <home>/root</home>
+            <password_settings>
+                <expire/>
+                <flag/>
+                <inact/>
+                <max/>
+                <min/>
+                <warn/>
+            </password_settings>
+            <shell>/bin/bash</shell>
+            <uid>0</uid>
+            <user_password>nots3cr3t</user_password>
+            <username>root</username>
+        </user>
+    </users>
+</profile>

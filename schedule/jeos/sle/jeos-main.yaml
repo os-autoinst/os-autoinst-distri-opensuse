@@ -17,6 +17,8 @@ conditional_schedule:
             'svirt-vmware65':
                 - installation/bootloader_svirt
                 - installation/bootloader_uefi
+            's390x-kvm-sle12':
+                - installation/bootloader_start
     efi:
         UEFI:
             '1':
@@ -29,21 +31,27 @@ conditional_schedule:
         FLAVOR:
             'JeOS-for-kvm-and-xen-Updates':
                 - qa_automation/patch_and_reboot
+    wizard:
+        FIRST_BOOT_CONFIG:
+            'wizard':
+                - jeos/firstrun
+            'cloud-init':
+                - installation/first_boot
+                - console/system_prepare
 schedule:
     - '{{bootloader}}'
-    - jeos/firstrun
+    - '{{wizard}}'
     - jeos/image_info
     - jeos/record_machine_id
-    - console/system_prepare
     - console/force_scheduled_tasks
     - jeos/grub2_gfxmode
     - jeos/diskusage
     - jeos/build_key
     - console/prjconf_excluded_rpms
     - console/journal_check
-    - console/pam
     - microos/libzypp_config
     - console/suseconnect_scc
+    - console/pam
     - '{{maintenance}}'
     - '{{efi}}'
     - jeos/glibc_locale

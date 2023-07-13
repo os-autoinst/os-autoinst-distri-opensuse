@@ -20,7 +20,7 @@
 #   - Handle warning pop ups
 #   - Handle autoyast errors during second stage
 #   - Handle grub to boot on local disk (aarch64)
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;
@@ -29,7 +29,7 @@ use testapi;
 use Utils::Architectures;
 use utils;
 use power_action_utils 'prepare_system_shutdown';
-use version_utils qw(is_sle is_microos is_released is_upgrade);
+use version_utils qw(is_sle is_microos is_tumbleweed is_released is_upgrade);
 use main_common 'opensuse_welcome_applicable';
 use x11utils 'untick_welcome_on_next_startup';
 use Utils::Backends;
@@ -106,7 +106,7 @@ sub verify_timeout_and_check_screen {
 sub run {
     my ($self) = @_;
 
-    test_ayp_url;
+    test_ayp_url unless get_var('VIRT_AUTOTEST') and is_tumbleweed;
     my $test_data = get_test_suite_data();
     my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot package-notification nvidia-validation-failed import-untrusted-gpg-key);
 
@@ -289,9 +289,10 @@ sub run {
         }
         elsif (match_has_tag('nvidia-validation-failed')) {
             # nvidia repositories are unstable and really not needed for anything
-            record_info("nVidia", "nVidia repository is broken");
-            send_key 'alt-y';
+            record_info("NVIDIA", "NVIDIA repository is broken");
             wait_still_screen { send_key 'alt-o' };
+            send_key 'alt-n';
+            $num_errors++;
         }
         elsif (match_has_tag('package-notification')) {
             send_key 'alt-o';
@@ -321,7 +322,7 @@ sub run {
 
     # Cannot verify second stage properly on s390x, so reconnect to already installed system
     if (is_s390x) {
-        reconnect_mgmt_console(timeout => 700, grub_timeout => 180);
+        reconnect_mgmt_console(timeout => 1400, grub_timeout => 360);
         return;
     }
     # For powerVM need to switch to mgmt console to handle the reboot properly
@@ -340,6 +341,10 @@ sub run {
 
     check_screen \@needles, $check_time;
     @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot unreachable-repo warning-pop-up inst-bootmenu lang_and_keyboard encrypted-disk-password-prompt);
+    if (get_var('WORKAROUND_BSC1209083')) {
+        @needles = qw(reboot-after-installation autoyast-boot inst-bootmenu);
+        record_soft_failure "bsc#1209083 - In migration with AutoYaST setting grub2 timeout doesn't take effect";
+    }
     # Do not try to fail early in case of autoyast_error_dialog scenario
     # where we test that certain error are properly handled
     push @needles, 'autoyast-error' unless get_var('AUTOYAST_EXPECT_ERRORS');

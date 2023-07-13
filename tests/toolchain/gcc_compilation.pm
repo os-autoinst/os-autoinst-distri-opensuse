@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use testapi;
 use utils 'clear_console';
+use Utils::Logging 'export_logs';
 
 sub run {
     assert_script_run('curl --output ./gawk-src.tar.gz ' . data_url('toolchain/gawk-src.tar.gz'));
@@ -27,7 +28,7 @@ sub post_fail_hook {
     my $self = shift;
     upload_logs '/tmp/make.log';
     upload_logs '/tmp/configure.log';
-    $self->export_logs();
+    export_logs();
 }
 
 1;

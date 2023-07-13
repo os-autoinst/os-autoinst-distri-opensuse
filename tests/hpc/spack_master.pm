@@ -10,8 +10,10 @@
 
 use Mojo::Base qw(hpcbase hpc::utils), -signatures;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use lockapi;
+use Utils::Logging qw(tar_and_upload_log export_logs);
 
 sub run ($self) {
     my $mpi = $self->get_mpi();
@@ -19,23 +21,12 @@ sub run ($self) {
     my $mpi_bin = 'mpi_bin';
     my @cluster_nodes = $self->cluster_names();
     my $cluster_nodes = join(',', @cluster_nodes);
-    $self->prepare_spack_env($mpi);
-    my %exports_path = (
-        bin => '/home/bernhard/bin',
-        spack => '/home/bernhard/spack',
-        hpc_lib => '/usr/lib/hpc',
-        spack_lib => '/opt/spack'
-    );
-
-    record_info 'boost info', script_output 'spack info boost';
-    barrier_wait('CLUSTER_PROVISIONED');
-    script_run "pkill -u $testapi::username";
-    select_console('root-console');
+    my %exports_path = (bin => '/home/bernhard/bin');
     $self->setup_nfs_server(\%exports_path);
+    $self->prepare_spack_env($mpi);
 
-    # And login as normal user to run the tests
-    type_string('pkill -u root');
-    $self->select_serial_terminal(0);
+    record_info 'spack info', script_output "spack info $mpi";
+    barrier_wait('CLUSTER_PROVISIONED');
 
     ## all nodes should be able to ssh to each other, as MPIs requires so
     $self->generate_and_distribute_ssh($testapi::username);
@@ -49,8 +40,8 @@ sub run ($self) {
     assert_script_run("wget --quiet " . data_url("hpc/$mpi_c") . " -O $exports_path{'bin'}/$mpi_c");
 
     barrier_wait('MPI_SETUP_READY');
-
-    assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin -l boost_mpi -I \${BOOST_ROOT}/include/ -L \${BOOST_ROOT}/lib 2>&1 > /tmp/make.out");
+    assert_script_run "spack load $mpi";
+    assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin  2>&1 > /tmp/make.out");
     barrier_wait('MPI_BINARIES_READY');
 
     type_string "sudo systemctl restart sshd\n";
@@ -73,7 +64,8 @@ sub test_flags ($self) {
 }
 
 sub post_run_hook ($self) {
-    $self->uninstall_spack_module('boost');
+    tar_and_upload_log("/etc/spack", "/tmp/spack_etc.tar", {timeout => 1200, screenshot => 1});
+    $self->uninstall_spack_modules();
 }
 
 sub post_fail_hook ($self) {
@@ -83,9 +75,9 @@ sub post_fail_hook ($self) {
     my $compiler_ver = script_output("gcc --version | grep -E '\\b[0-9]+\.[0-9]+\.[0-9]+\$' | awk '{print \$4}'");
     my $arch = get_var('ARCH');
     my $node = script_output('hostname');
-    $self->tar_and_upload_log("/opt/spack/linux-sle_hpc15-$arch/gcc-$compiler_ver", "/tmp/spack_$node.tar.bz2", timeout => 360);
+    tar_and_upload_log("/opt/spack/linux-sle_hpc15-$arch/gcc-$compiler_ver", "/tmp/spack_$node.tar.bz2", timeout => 360);
     upload_logs('/tmp/make.out');
-    $self->export_logs();
+    export_logs();
 }
 
 1;

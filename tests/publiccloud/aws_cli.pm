@@ -12,6 +12,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use mmapi 'get_current_job_id';
 use utils qw(zypper_call script_retry);
 use version_utils 'is_sle';
@@ -19,7 +20,7 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 
 sub run {
     my ($self, $args) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $job_id = get_current_job_id();
 
     # If 'aws' is preinstalled, we test that version
@@ -41,7 +42,8 @@ sub run {
     my $machine_name = "openqa-cli-test-vm-$job_id";
     my $security_group_name = "openqa-cli-test-sg-$job_id";
     my $openqa_ttl = get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300);
-    my $created_by = get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm');
+    my $openqa_url = get_required_var('OPENQA_URL');
+    my $created_by = "$openqa_url/t$job_id";
     my $tag = "{Key=openqa-cli-test-tag,Value=$job_id},{Key=openqa_created_by,Value=$created_by},{Key=openqa_ttl,Value=$openqa_ttl}";
 
     my $create_security_group = "aws ec2 create-security-group --group-name $security_group_name --description 'aws_cli openqa test security group'";

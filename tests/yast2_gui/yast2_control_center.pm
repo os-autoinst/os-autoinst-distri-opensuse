@@ -9,7 +9,7 @@
 #    Make sure those yast2 modules can opened properly. We can add more
 #    feature test against each module later, it is ensure it will not crashed
 #    while launching atm.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_module_guitest';
 use strict;
@@ -17,6 +17,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_opensuse is_sle is_leap is_tumbleweed is_storage_ng);
+use YaST::workarounds;
 
 sub search {
     my ($name) = @_;
@@ -56,6 +57,7 @@ sub start_media_check {
     search 'check';
     assert_and_click 'yast2_control-center_media-check';
     wait_still_screen;
+    apply_workaround_poo124652('yast2_control-center_media-check_close') if (is_sle('>=15-SP4'));
     assert_screen 'yast2_control-center_media-check_close';
     send_key 'alt-l';
     assert_screen 'yast2-control-center-ui';
@@ -83,12 +85,13 @@ sub start_online_update {
         select_console 'x11', await_console => 0;
     }
     assert_and_click 'yast2_control-center_online-update';
-    my @tags = qw(yast2_control-center_update-repo-dialogue yast2_control-center_online-update_close yast2_control-center-ask_packagekit_to_quit);
+    my @tags = qw(yast2_control-center_update-repo-dialogue yast2_control-center_online-update_close yast2_control-center-ask_packagekit_to_quit yast2_control-center-no-update-repo);
     do {
         assert_screen \@tags;
         wait_screen_change { send_key 'alt-n' } if match_has_tag('yast2_control-center_update-repo-dialogue');
         # Let it kill PackageKit, in case it is running.
         wait_screen_change { send_key 'alt-y' } if match_has_tag('yast2_control-center-ask_packagekit_to_quit');
+        wait_screen_change { send_key 'alt-y' } if match_has_tag('yast2_control-center-no-update-repo');
     } until (match_has_tag('yast2_control-center_online-update_close'));
 
     send_key 'alt-c';
@@ -204,8 +207,8 @@ sub start_partitioner {
 sub start_vpn_gateway {
     search('vpn');
     assert_and_click 'yast2_control-center_vpn-gateway-client';
-    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-    send_key_until_needlematch('yast2-vpn-gateway-client', 'alt-f10', 20, 9);
+    apply_workaround_poo124652('yast2-vpn-gateway-client', 180) if (is_sle('>=15-SP4'));
+    assert_screen 'yast2-vpn-gateway-client', timeout => 180;
     send_key 'alt-c';
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
@@ -245,8 +248,9 @@ sub start_hypervisor {
 sub start_add_system_extensions_or_modules {
     search 'system ext';
     assert_and_click 'yast2_control-center_add-system-extensions-or-modules';
-    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-    send_key_until_needlematch('yast2_control-center_registration', 'alt-f10', 10, 2);
+    wait_still_screen(5, 10);
+    apply_workaround_poo124652('yast2_control-center_registration', 180) if (is_sle('>=15-SP4'));
+    assert_screen 'yast2_control-center_registration', timeout => 180;
     send_key 'alt-r';
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
@@ -281,8 +285,8 @@ sub start_wake_on_lan {
     assert_and_click 'yast2_control-center_wake-on-lan';
     assert_screen 'yast2_control-center_wake-on-lan_install_wol';
     send_key $cmd{install};    # wol needs to be installed
-    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-    send_key_until_needlematch('yast2_control-center_wake-on-lan_overview', 'alt-f10', 10, 2);
+    apply_workaround_poo124652('yast2_control-center_wake-on-lan_overview', 180) if (is_sle('>=15-SP4'));
+    assert_screen 'yast2_control-center_wake-on-lan_overview', timeout => 180;
     send_key 'alt-f';
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
@@ -339,7 +343,7 @@ sub run {
     start_online_update;
     start_software_repositories;
     start_printer;
-    start_sound;
+    start_sound if is_sle('<=15-sp5') or is_leap('<=15.5');
     start_sysconfig_editor;
     start_partitioner;
     start_vpn_gateway;

@@ -2,18 +2,24 @@
 name:           yast2_ncurses_textmode
 description:    >
   Test for yast2 UI, ncurses only. Running on created textmode image.
+vars:
+  YUI_REST_API: 1
+  SCC_ADDONS: desktop,sdk
 schedule:
   - "{{bootloader_start}}"
   - boot/boot_to_desktop
   - console/prepare_test_data
   - console/consoletest_setup
   - console/scc_cleanup_reregister
+  - console/install_packages_simple
+  - console/firewalld_add_port
+  - console/setup_libyui_running_system
   - console/yast2_lan
   - console/yast2_i
   - console/yast2_bootloader
   - console/yast2_lan_device_settings
   - "{{yast_nfs_server}}"
-  - console/yast2_kdump
+  - "{{yast2_kdump}}"
 conditional_schedule:
   bootloader_start:
     BACKEND:
@@ -23,3 +29,14 @@ conditional_schedule:
     BACKEND:
       qemu:
         - console/yast2_nfs_server
+  yast2_kdump:
+    BACKEND:
+      qemu:
+        - console/yast2_kdump_enable_kdump
+      svirt:
+        - console/yast2_kdump_accept_kdump_options
+test_data:
+  install_packages:
+    - libyui-rest-api
+  port: 30000-50000
+  zone: public

@@ -11,7 +11,7 @@
 # - Check credits
 # - Close about
 # - Exit gedit
-# Maintainer: Huajian Luo <hluo@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 # Tags: tc#1436120
 
 use base "x11test";

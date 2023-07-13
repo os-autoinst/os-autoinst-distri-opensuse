@@ -25,8 +25,7 @@ sub run {
     my ($self) = @_;
     $self->start_firefox_with_profile;
 
-    $self->firefox_open_url('opensuse.org');
-    assert_screen('firefox-developertool-opensuse');
+    $self->firefox_open_url('opensuse.org', assert_loaded_url => 'firefox-developertool-opensuse');
     send_key 'f12';
     assert_screen('firefox-developertool-gerneral', 30);
     assert_and_click "firefox-developertool-click_element";

@@ -119,7 +119,7 @@ sub patching_sle {
 
     # disable multiversion for kernel-default based on bsc#1097111, for migration continuous cases only
     if (get_var('FLAVOR', '') =~ /Continuous-Migration/) {
-        record_soft_failure 'bsc#1097111 - File conflict of SLE12 SP3 and SLE15 kernel';
+        record_info("Softfail", "bsc#1097111 - File conflict of SLE12 SP3 and SLE15 kernel");
         disable_kernel_multiversion;
     }
 

@@ -35,8 +35,7 @@ sub run {
     # smb not supported
     record_soft_failure 'bsc#1004573';
     for my $proto (sort keys %sites_url) {
-        $self->firefox_open_url($sites_url{$proto});
-        assert_screen('firefox-urls_protocols-' . $proto);
+        $self->firefox_open_url($sites_url{$proto}, assert_loaded_url => 'firefox-urls_protocols-' . $proto);
     }
 
     $self->exit_firefox;

@@ -20,7 +20,7 @@ sub remove_pkg {
     x11_start_program('xterm');
 
     # Remove packages
-    assert_script_sudo "zypper -n rm @packages", timeout => 180;
+    assert_script_sudo "zypper -n rm @packages", 180;
     assert_script_run "zypper --no-refresh if @packages|grep 'not installed'";
     enter_cmd "exit";
 }

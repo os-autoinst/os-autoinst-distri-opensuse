@@ -60,8 +60,7 @@ sub run {
     send_key_until_needlematch 'firefox-extensions-flagfox_installed', 'f5', 6, 5;
 
     send_key "alt-1";
-    $self->firefox_open_url('opensuse.org');
-    assert_screen('firefox-extensions-show_flag');
+    $self->firefox_open_url('opensuse.org', assert_loaded_url => 'firefox-extensions-show_flag');
 
     send_key "alt-2";
     wait_still_screen 2, 4;

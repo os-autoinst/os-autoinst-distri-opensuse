@@ -28,3 +28,5 @@ bootcode_applied_params:
 bootcode_device:
   default: /dev/vda
   write_to_partition: /dev/vda2
+port: 30000-50000
+zone: public

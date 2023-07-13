@@ -3,7 +3,7 @@
 #
 # Package: virt-manager
 # Summary: This test turns just check all VMs
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "virt_feature_test_base";
 use virt_autotest::common;

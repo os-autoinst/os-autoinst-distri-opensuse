@@ -26,21 +26,29 @@ sub run {
 
     # Network setup takes ages
     assert_screen 'windows-account-setup', 360;
-    assert_and_click 'windows-select-personal-use', dclick => 1;
-    wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
-    assert_and_click 'windows-next';
 
-    # To select an offline account in Win11 requires an intermediate step
+    # From 22H2 build, the offline account selection process has diverted a lot
     if (check_var "WIN_VERSION", "11") {
-        assert_and_click('windows-signin-options', timeout => 300);
+        # There's need to select a work or school account and then choose a
+        # domain join in order to skip the MS account
+        assert_and_click 'windows-work-school-account', dclick => 1;
+        wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
+        assert_and_click 'windows-next';
+        assert_and_click 'windows-signin-options', timeout => 300;
+        assert_and_click 'windows-domain-join';
+        wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
+
     }
     else {
+        assert_and_click 'windows-select-personal-use', dclick => 1;
+        wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
+        assert_and_click 'windows-next';
         assert_screen 'windows-signin-with-ms', timeout => 60;
+        assert_and_click 'windows-offline';
+        wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
+        assert_and_click 'windows-limited-exp', timeout => 60;
+        wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
     }
-    assert_and_click 'windows-offline';
-    wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
-    assert_and_click 'windows-limited-exp', timeout => 60;
-    wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
     assert_and_click 'windows-create-account';
     wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
     type_string $realname;
@@ -94,7 +102,7 @@ sub run {
         assert_screen 'windows-desktop';
     }
 
-    # setup stable lock screen background
+    # setup stable lock screen background only in Win10
     $self->use_search_feature('lock screen settings');
     assert_screen 'windows-lock-screen-in-search';
     wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
@@ -149,7 +157,7 @@ sub run {
     );
 
     # poweroff
-    $self->reboot_or_shutdown();
+    $self->reboot_or_shutdown;
 }
 
 1;

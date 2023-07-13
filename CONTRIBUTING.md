@@ -19,11 +19,26 @@ Redmine project. Look for tickets with [easy] or [easy-hack] tags.
 
 ## How to get this repository working
 
-Upon setting up a new openQA instance, it's also necessary to install some aditional dependencies that are inherent to this repository,
-for which there are two ways:
+Upon setting up a new openQA instance, it's also necessary to install some
+aditional dependencies that are inherent to this repository.
 
-* In case you're using cpanm (with or without local::lib, or others), from within the working copy: call `cpanm -n --mirror http://no.where/ --installdeps . `
-* In case you're using openSUSE: `zypper in os-autoinst-distri-opensuse-deps perl-JSON-Validator gnu_parallel`
+* On openSUSE to install an openQA worker and all dependencies do:
+
+```
+zypper in os-autoinst-distri-opensuse-deps-worker perl-JSON-Validator gnu_parallel
+```
+
+* If you just want to just install the dependencies without the openQA worker:
+
+
+```
+zypper in os-autoinst-distri-opensuse-deps perl-JSON-Validator gnu_parallel
+```
+
+* Otherwise most of the dependencies are available using cpanm (with or without
+local::lib, or others), from within the working copy: call
+`cpanm -n --mirror http://no.where/ --installdeps .`
+
 * For linting YAML, you need the openSUSE package `python3-yamllint` or install `yamllint` via pip
 
 #### Relevant documentation
@@ -61,8 +76,8 @@ and additionally the following rules:
   `$self` object. Do not parse any parameter if you do not need any.
 * [DRY](https://en.wikipedia.org/wiki/Don't_repeat_yourself)
 * Use defined architecture and backend functions defined in
-  'lib/Utils/Architecture.pm' and 'lib/Utils/Backends.pm' for checking specific 
-  ARCH and BACKEND types instead of calling the function calls check_var(). 
+  'lib/Utils/Architectures.pm' and 'lib/Utils/Backends.pm' for checking specific
+  ARCH and BACKEND types instead of calling the function calls `check_var()`.
   If they don't exist, add them.
 * Avoid `sleep()`: Do not use `sleep()` or simulate a sleep-like
   functionality. This introduces the risk of either unnecessarily wasting time
@@ -118,6 +133,8 @@ and additionally the following rules:
   with non-zero timeout to prevent introducing any timing dependant behaviour,
   to save test execution time as well as state more explicitly from the testers
   point of view what are the expected alternatives. For example:
+* Avoid use of egrep and fgrep. The two commands are deprecated, so please use 
+  `grep -E` and `grep -F` respectively.
 
 ```perl
 assert_screen([qw(yast2_console-finished yast2_missing_package)]);
@@ -126,6 +143,17 @@ if (match_has_tag('yast2_missing_package')) {
     assert_screen 'yast2_console-finished';
 }
 ```
+* Please add a bug/ticket reference for `record_soft_failure`, otherwise
+  CI checks may fail. you can use formats like below:
+  bsc#12345 -> Bugzilla bug
+  poo#12345 -> Progress ticket
+  jsc#SLE-19640 -> Jira ticket
+  Maniphest#T5531
+  fate.suse.com/123
+  $reference -> if you have to use a variable to define a reference ticket
+  If you don't have a reference ticket, and still want to mark a specific
+  step as soft_fail, please use `record_info` with softfail tag:
+  record_info($title [, $output] [, result => softfail] [, resultname => $resultname]);
 
 ### Preparing a new Pull Request
 * All code needs to be tidy, for this use `make prepare` the first time you

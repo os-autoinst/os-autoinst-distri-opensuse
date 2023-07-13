@@ -3,7 +3,7 @@
 #
 # Summary: Luks1 decrypt with ssh
 #
-# Maintainer: rfan1 <richard.fan@suse.com> Starry Wang <starry.wang@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#107488, tc#1769799, poo#110953
 
 use strict;

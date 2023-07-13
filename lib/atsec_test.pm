@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Base module for ATSEC test cases
-# Maintainer: xiaojing.liu <xiaojing.liu@suse.com>
+# Maintainer: QE Security <none@suse.de>
 
 package atsec_test;
 
@@ -37,7 +37,14 @@ our @white_list_for_dbus = (
     'org.opensuse.Network.DHCP6',
     'org.opensuse.Network.AUTO4',
     'org.opensuse.Network.Nanny',
-    'org.opensuse.Snapper'
+    'org.opensuse.Snapper',
+    ':1.13',
+    ':1.19',
+    ':1.22',
+    ':1.29',
+    ':1.30',
+    ':1.36',
+    ':1.37'
 );
 
 our $server_ip = get_var('SERVER_IP', '10.0.2.101');

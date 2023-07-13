@@ -10,7 +10,7 @@
 # PATCH_WITH_ZYPPER and UPDATE_PACKAGE are not defined in settings. They
 # should be specified on command line when scheduling tests.
 #
-# Maintainer: Pavel Dostál <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base 'consoletest';
 use virt_autotest::common;
@@ -18,8 +18,8 @@ use virt_autotest::utils;
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils 'is_sle';
 use File::Copy 'copy';
 use File::Path 'make_path';
 
@@ -78,13 +78,13 @@ sub gen_osinfo {
 }
 
 sub run {
-    my $self = shift;
     # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
-    #    $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
+    #    select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
     select_console('root-console');
-    systemctl("restart libvirtd");
-    assert_script_run('for i in $(virsh list --name|grep sles);do virsh destroy $i;done');
-    assert_script_run('for i in $(virsh list --name --inactive); do virsh undefine $i --remove-all-storage;done');
+    # Note: TBD for modular libvirt. See poo#129086 for detail.
+    systemctl("restart libvirtd") if is_monolithic_libvirtd;
+    assert_script_run('for i in $(virsh list --name|grep -v Domain-0);do virsh destroy $i;done');
+    assert_script_run('for i in $(virsh list --name --inactive); do if [[ $i == win* ]]; then virsh undefine $i; else virsh undefine $i --remove-all-storage; fi; done');
     script_run("[ -f /root/.ssh/known_hosts ] && > /root/.ssh/known_hosts");
     script_run 'rm -rf /tmp/guests_ip';
 

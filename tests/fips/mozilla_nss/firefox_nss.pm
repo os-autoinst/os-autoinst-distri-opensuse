@@ -8,7 +8,7 @@
 # Package: MozillaFirefox
 # Summary: FIPS mozilla-nss test for firefox : firefox_nss
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tag: poo#47018, poo#58079, poo#71458, poo#77140, poo#77143,
 #      poo#80754, poo#104314, poo#104989, poo#105343
 
@@ -17,13 +17,13 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use utils qw(zypper_call package_upgrade_check clear_console);
 use Utils::Architectures;
 use version_utils 'is_sle';
 
 sub quit_firefox {
     send_key "alt-f4";
-    if (check_screen("firefox-save-and-quit", 30)) {
+    assert_screen([qw(firefox-save-and-quit generic-desktop)]);
+    if (match_has_tag 'firefox-save-and-quit') {
         assert_and_click("firefox-click-close-tabs");
     }
 }
@@ -48,14 +48,42 @@ sub firefox_crashreporter {
 
 sub firefox_preferences {
     send_key "alt-e";
-    wait_still_screen 2;
+    wait_still_screen 5;
     send_key "n";
     assert_screen("firefox-preferences");
+    wait_still_screen 2, 4;
 }
 
 sub search_certificates {
-    type_string "certificates";
+    type_string "certificates", timeout => 20, max_interval => 40;
     send_key "tab";
+    wait_still_screen 2, 4;
+}
+
+sub select_master_password_option {
+    my ($ff_ver) = @_;
+
+    firefox_preferences;
+    # Search "Passwords" section
+    if ($ff_ver >= 91) {
+        type_string "Use a primary", timeout => 15, max_interval => 40;
+    }
+    else {
+        type_string "Use a master", timeout => 15, max_interval => 40;
+    }
+    assert_and_click("firefox-master-password-checkbox");
+    assert_screen("firefox-passwd-master_setting");
+}
+
+sub set_master_password {
+    my ($password, $needle_name) = @_;
+
+    type_string $password;
+    send_key "tab";
+    type_string $password;
+    send_key "ret";
+    assert_screen("$needle_name");
+    send_key "ret";
     wait_still_screen 2;
 }
 
@@ -63,11 +91,6 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    # Define FIPS password for firefox, and it should be consisted by:
-    # - at least 8 characters
-    # - at least one upper case
-    # - at least one non-alphabet-non-number character (like: @-.=%)
-    my $fips_password = 'openqa@SUSE';
     my $firefox_version = script_output(q(rpm -q MozillaFirefox | awk -F '-' '{ split($2, a, "."); print a[1]; }'));
     record_info('MozillaFirefox version', "Version of Current MozillaFirefox package: $firefox_version");
 
@@ -87,30 +110,22 @@ sub run {
     }
     clear_console;
     select_console 'x11';
-    return record_soft_failure('bsc#1200325 - firefox_nss can no longer open https webpages in FIPS Mode') if (is_sle('=15-sp4') && get_var('FIPS_ENABLED'));
     x11_start_program('firefox https://html5test.opensuse.org', target_match => 'firefox-html-test', match_timeout => 360);
 
-    # Firefox Preferences
-    firefox_preferences;
+    # Define FIPS password for firefox, and it should be consisted by:
+    # - at least 8 characters
+    # - at least one upper case
+    # - at least one non-alphabet-non-number character (like: @-.=%)
+    my $fips_strong_password = 'openqa@SUSE';
+    my $fips_weak_password = 'asdasd';
 
-    # Search "Passwords" section
-    if ($firefox_version >= 91) {
-        type_string "Use a primary", timeout => 2;
-    }
-    else {
-        type_string "Use a master", timeout => 2;
-    }
-    assert_and_click("firefox-master-password-checkbox");
-    assert_screen("firefox-passwd-master_setting");
+    # Set the Master Password and check behaviour when a weak pwd is set (poo#125420)
+    select_master_password_option $firefox_version;
+    set_master_password("$fips_weak_password", "firefox-weak-password-error");
 
-    # Set the Master Password
-    type_string $fips_password;
-    send_key "tab";
-    type_string $fips_password;
-    send_key "ret";
-    assert_screen("firefox-password-change-succeeded");
-    send_key "ret";
-    wait_still_screen 3;
+    select_master_password_option $firefox_version;
+    set_master_password("$fips_strong_password", "firefox-password-change-succeeded");
+
     send_key "ctrl-f";
     send_key "ctrl-a";
 
@@ -121,6 +136,10 @@ sub run {
     # send_key "alt-shift-d" is fail to react in s390x/aarch64 usually
     assert_and_click("firefox-click-security-device");
     assert_screen "firefox-device-manager";
+    save_screenshot;
+    # on s390x the dialog with Security Modules and Devices is colored wrong
+    # https://bugzilla.suse.com/show_bug.cgi?id=1203578
+    record_soft_failure("bsc#1209107") if is_s390x;
 
     # Add condition in FIPS_ENV_MODE & Remove hotkey
     if (get_var('FIPS_ENV_MODE')) {
@@ -158,6 +177,7 @@ sub run {
     }
 
     select_console 'x11', await_console => 0;    # Go back to X11
+    wait_still_screen 2;    # wait sec after switch before pressing keys
 
     # "start_firefox" will be not used, since the master password is
     # required when firefox launching in FIPS mode
@@ -166,20 +186,22 @@ sub run {
     x11_start_program('xterm');
     mouse_hide(1);
     enter_cmd("firefox --setDefaultBrowser https://html5test.opensuse.org");
-
-    if (check_screen("firefox-passowrd-typefield", 120)) {
+    wait_still_screen 10;
+    if (check_screen("firefox-passowrd-typefield")) {
+        wait_still_screen 4;
 
         # Add max_interval while type password and extend time of click needle match
-        type_string($fips_password, max_interval => 2);
-        assert_and_click('firefox-enter-password-OK', timeout => 120);
-        wait_still_screen 10;
+        type_string($fips_strong_password, timeout => 10, max_interval => 30);
+        send_key 'ret', wait_screen_change => 1;    # Confirm password
+
+        wait_still_screen 30;
 
         # Add a condition to avoid the password missed input
         # Retype password again once the password missed input
-        # The problem frequently happaned in aarch64
+        # The problem frequently happened in aarch64
         if (check_screen("firefox-password-typefield-miss")) {
             record_info("aarch64 type_missing", "Firefox password is missing to input, please refer to bsc#1179749 & poo#105343");
-            type_string($fips_password, max_interval => 2);
+            type_string($fips_strong_password, timeout => 10, max_interval => 30);
             send_key "ret";
         }
     }
@@ -187,11 +209,16 @@ sub run {
 
         firefox_crashreporter;
     }
-    assert_screen("firefox-url-loaded", 20);
+
+    if (is_sle('<=15-SP3') && check_screen("firefox-password-required-prompt")) {
+        type_string($fips_strong_password, timeout => 10, max_interval => 30);
+        send_key "ret";
+    }
+
+    assert_screen("firefox-url-loaded", $waittime);
 
     # Firefox Preferences
     firefox_preferences;
-
     # Search "Certificates" section
     search_certificates;
 
@@ -199,11 +226,17 @@ sub run {
     # send_key "alt-shift-d" is fail to react in s390x/aarch64 usually
     assert_and_click("firefox-click-security-device");
     assert_screen("firefox-device-manager");
-    assert_screen("firefox-confirm-fips_enabled");
-
+    # on s390x the dialog with Security Modules and Devices is colored wrong
+    # https://bugzilla.suse.com/show_bug.cgi?id=1203578
+    if (is_s390x) {
+        record_soft_failure("bsc#1209107");
+    } else {
+        assert_screen("firefox-confirm-fips_enabled");
+    }
+    save_screenshot;
     # Close Firefox
     quit_firefox;
-    assert_screen("generic-desktop", 20);
+    assert_screen("generic-desktop", $waittime);
 }
 
 sub test_flags {

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2020-2021 SUSE LLC
+# Copyright 2020-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Basic functions for testing docker
@@ -21,8 +21,8 @@ use version_utils;
 use Mojo::Util 'trim';
 
 our @EXPORT = qw(test_seccomp runtime_smoke_tests basic_container_tests get_vars
-  can_build_sle_base get_docker_version check_runtime_version
-  container_ip container_route registry_url);
+  can_build_sle_base get_docker_version get_podman_version check_runtime_version
+  check_min_runtime_version container_ip container_route registry_url);
 
 sub test_seccomp {
     my $no_seccomp = script_run('docker info | tee /tmp/docker_info.txt | grep seccomp');
@@ -42,15 +42,29 @@ sub test_seccomp {
 }
 
 sub get_docker_version {
-    my $v = script_output("docker --version");
-    record_info "$v", $v =~ /(\d{2}\.\d{2})/;
-    return $v =~ /(\d{2}\.\d{2})/;
+    my $raw = script_output("docker --version");
+    my ($v, undef) = split(',', $raw);
+    my @all = $v =~ /(\d+)/g;
+    $v = join('.', @all);
+    record_info "Docker version", "$v";
+    return $v;
+}
+
+sub get_podman_version {
+    return script_output "podman version | awk '/^Version:/ { print \$2 }'";
 }
 
 sub check_runtime_version {
     my ($current, $other) = @_;
     return check_version($other, $current, qr/\d{2}(?:\.\d+)/);
 }
+
+sub check_min_runtime_version {
+    my ($desired_version) = @_;
+    my $podman_version = get_podman_version();
+    return version->parse($podman_version) >= version->parse($desired_version);
+}
+
 
 sub container_ip {
     my ($container, $runtime) = @_;
@@ -77,6 +91,44 @@ sub registry_url {
     return $registry unless $container_name;
     return sprintf("%s/%s", $repo, $container_name) unless $version_tag;
     return sprintf("%s/%s:%s", $repo, $container_name, $version_tag);
+}
+
+sub test_update_cmd {
+    my %args = @_;
+    my $runtime = $args{runtime};
+    my $container = $args{container};
+
+    # podman update was added to v4.3.0
+    if ($runtime eq 'podman') {
+        my $version = get_podman_version();
+        if (package_version_cmp($version, '4.3.0') <= 0) {
+            record_info("SKIP", "The update command is not supported on podman $version");
+            return;
+        }
+    } elsif ($runtime ne 'docker') {
+        record_info("SKIP", "The update command is not supported on $runtime");
+        return;
+    }
+
+    my $old_value = script_output "$runtime container inspect -f '{{.HostConfig.CpuShares}}' $container";
+    die "Default for cpu-shares != 0" if ($old_value != 0);
+
+    my $try_value = 512;
+
+    assert_script_run "$runtime update --cpu-shares $try_value $container";
+
+    my $new_value = script_output "$runtime container inspect -f '{{.HostConfig.CpuShares}}' $container";
+
+    if ($try_value != $new_value) {
+        if ($runtime eq 'podman') {
+            # NOTE: Remove block when https://github.com/containers/podman/issues/17187 is solved
+            my $id = script_output "podman container inspect -f '{{.Id}}' $container";
+            my $cpu_weight = "cat /sys/fs/cgroup/machine.slice/libpod-$id.scope/cpu.weight";
+            die "$runtime update failed for cpu-shares: $cpu_weight" if $cpu_weight == 100;
+        } else {
+            die "$runtime update failed for cpu-shares: $try_value != $new_value";
+        }
+    }
 }
 
 # This is simple and universal
@@ -110,6 +162,9 @@ sub runtime_smoke_tests {
         # Exec command in running container
         assert_script_run("$runtime exec sleeper echo 'Hello'");
 
+        # Test update command
+        test_update_cmd(runtime => $runtime, container => 'sleeper');
+
         # Stop the container
         assert_script_run("$runtime stop sleeper");
 
@@ -132,7 +187,9 @@ sub basic_container_tests {
     my $tumbleweed = "registry.opensuse.org/opensuse/tumbleweed";
 
     # Test search feature
-    validate_script_output("$runtime search --no-trunc --format \"table {{.Name}} {{.Description}}\" tumbleweed", sub { m/Official openSUSE Tumbleweed images/ });
+    validate_script_output("$runtime search --no-trunc --format \"table {{.Name}} {{.Description}}\" tumbleweed", sub { m/Official openSUSE Tumbleweed images/ }, timeout => 200);
+    # This should be conditional based on the needed time, but that's currently not possible.
+    record_info('Softfail', 'Searching registry.suse.com is too slow (https://sd.suse.com/servicedesk/customer/portal/1/SD-106252)');
 
     #   - pull minimalistic alpine image of declared version using tag
     #   - https://store.docker.com/images/alpine
@@ -217,8 +274,8 @@ sub basic_container_tests {
     die("error: $runtime image rmi -a $leap") if ($output_containers =~ m/Untagged:.*opensuse\/leap/);
     die("error: $runtime image rmi -a $tumbleweed") if ($output_containers =~ m/Untagged:.*opensuse\/tumbleweed/);
     die("error: $runtime image rmi -a tw:saved") if ($output_containers =~ m/Untagged:.*tw:saved/);
-    record_soft_failure("error: $runtime image rmi -a $alpine") if ($output_containers =~ m/Untagged:.*alpine/);
-    record_soft_failure("error: $runtime image rmi -a $hello_world:latest") if ($output_containers =~ m/Untagged:.*hello-world:latest/);
+    record_info('Softfail', "error: $runtime image rmi -a $alpine", result => 'softfail') if ($output_containers =~ m/Untagged:.*alpine/);
+    record_info('Softfail', "error: $runtime image rmi -a $hello_world:latest", result => 'softfail') if ($output_containers =~ m/Untagged:.*hello-world:latest/);
 }
 
 =head2 can_build_sle_base

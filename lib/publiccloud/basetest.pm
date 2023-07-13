@@ -103,7 +103,7 @@ sub provider_factory {
 
 sub cleanup {
     # to be overridden by tests
-    return;
+    return 1;
 }
 
 sub _cleanup {
@@ -114,14 +114,39 @@ sub _cleanup {
     eval { $self->cleanup(); } or bmwqemu::fctwarn("self::cleanup() failed -- $@");
 
     my $flags = $self->test_flags();
+
+    diag('Public Cloud _cleanup: $flags->{publiccloud_multi_module}=' . $flags->{publiccloud_multi_module}) if ($flags->{publiccloud_multi_module});
+    diag('Public Cloud _cleanup: $flags->{fatal}=' . $flags->{fatal}) if ($flags->{fatal});
+    diag('Public Cloud _cleanup: $self->{result}=' . $self->{result}) if ($self->{result});
+    diag('Public Cloud _cleanup: $self->{run_args}') if ($self->{run_args});
+    diag('Public Cloud _cleanup: $self->{provider}') if ($self->{provider});
+
     # currently we have two cases when cleanup of image will be skipped:
-    # 1. Calling module needs to have publiccloud_multi_module => 1 test flag
-    # and not have fatal => 1. Job should not have result = 'fail'
-    return if ($flags->{publiccloud_multi_module} && !($self->{result} eq 'fail' && $flags->{fatal}));
-    # 2. Job should have PUBLIC_CLOUD_NO_CLEANUP defined and job should have result = 'fail'
-    return if ($self->{result} eq 'fail' && get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE'));
-    if ($self->{provider}) {
-        eval { $self->{provider}->cleanup(); } or bmwqemu::fctwarn("provider::cleanup() failed -- $@");
+    # 1. Job should have 'PUBLIC_CLOUD_NO_CLEANUP' variable and result == 'fail'
+    return if ($self->{result} && $self->{result} eq 'fail' && get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE'));
+    diag('Public Cloud _cleanup: 1st check passed.');
+
+    # 2. Test module needs to have 'publiccloud_multi_module' and should not have 'fatal' flags and 'fail' result
+    if ($flags->{publiccloud_multi_module}) {
+        diag('Public Cloud _cleanup: Test has `publiccloud_multi_module` flag.');
+        return unless ($flags->{fatal} && $self->{result} && $self->{result} eq 'fail');
+    } else {
+        diag('Public Cloud _cleanup: Test does not have `publiccloud_multi_module` flag.');
+    }
+    diag('Public Cloud _cleanup: 2nd check passed.');
+
+    # For maintenance, we need $self->run_args and $self->run_args->my_provider
+    #  otherwise we need just $self->provider
+    if (($self->{run_args} && $self->{run_args}->{my_provider}) || $self->{provider}) {
+        diag('Public Cloud _cleanup: Ready for provider cleanup.');
+        if (get_var('PUBLIC_CLOUD_QAM')) {
+            eval { $self->{run_args}->{my_provider}->cleanup($self->{run_args}); } or bmwqemu::fctwarn("\$self->{run_args}->{my_provider}::cleanup() failed -- $@");
+        } else {
+            eval { $self->{provider}->cleanup(); } or bmwqemu::fctwarn("\$self->provider::cleanup() failed -- $@");
+        }
+        diag('Public Cloud _cleanup: The provider cleanup finished.');
+    } else {
+        diag('Public Cloud _cleanup: Not ready for provider cleanup.');
     }
 }
 

@@ -3,8 +3,9 @@
 INPUT_FILE="systemd_rpm_macros_list"
 
 echo "--------------------------------------------"
-for m in $(xargs < "$INPUT_FILE"); do
+while read m; do
     echo "Testing $m..."
     rpm -E "$m"
     echo "--------------------------------------------"
-done
+done < "$INPUT_FILE"
+

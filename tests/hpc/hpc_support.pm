@@ -10,6 +10,7 @@
 
 use Mojo::Base qw(hpcbase hpc::configs hpc::migration);
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
 use version_utils 'is_sle';
@@ -85,7 +86,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     $self->upload_service_log('slurmd');
     $self->upload_service_log('munge');
     $self->upload_service_log('slurmdbd');

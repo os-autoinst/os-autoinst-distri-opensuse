@@ -1,0 +1,29 @@
+---
+name: select_modules_and_patterns
+description: |
+  Perform an installation enabling some modules and selecting some
+  patterns.This test suite always registers to have access to some modules.
+vars:
+  YUI_REST_API: 1
+schedule:
+  extension_module_selection:
+    - installation/module_registration/register_nonconflicting_modules
+  system_role:
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
+  guided_partitioning:
+    - installation/partitioning/select_guided_setup
+    - installation/partitioning/guided_setup/accept_default_part_scheme
+    - installation/partitioning/guided_setup/do_not_propose_separate_home
+  software:
+    - installation/select_visible_patterns_from_bottom
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_preparation:
+    - console/system_prepare
+    - console/consoletest_setup
+  system_validation:
+    - console/validate_installed_packages
+    - console/validate_installed_patterns
+    - console/yast2_i
+    - console/verify_no_separate_home
+    - console/validate_subvolumes

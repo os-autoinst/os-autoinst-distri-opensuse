@@ -5,7 +5,7 @@
 #
 # Package: hexchat
 # Summary: FIPS : hexchat_ssl
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#49139 , poo#49136 , poo#52796
 
 use base "x11test";
@@ -26,9 +26,8 @@ sub irc_login_send_message {
         assert_screen "$name-join-channel-select";
         # clear original '#hexchat' channel name
         wait_still_screen 2;
-        send_key "ctrl-a";
-        send_key "delete";
-        wait_still_screen 2;
+        wait_screen_change { send_key 'ctrl-a' };
+        wait_screen_change { send_key "delete" };
 
         # change name to '#openqa-test_irc_from_openqa' and join this channel
         enter_cmd "#openqa-test_irc_from_openqa";
@@ -53,12 +52,7 @@ sub run {
     my $name = ('hexchat');
     zypper_call("in $name");
 
-    # we need to move the mouse in the top left corner as hexchat
-    # opens it's window where the mouse is. mouse_hide() would move
-    # it to the lower right where the pk-update-icon's passive popup
-    # may suddenly cover parts of the dialog ... o_O
     select_console "x11";
-    mouse_set(0, 0);
 
     if (my $url = get_var("XCHAT_URL")) {
         # Start up hexchat client and try to login into server

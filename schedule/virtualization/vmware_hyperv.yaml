@@ -1,6 +1,6 @@
 name:           vmware_hyperv
 description:    >
-    Maintainer: pdostal@suse.cz
+    Maintainer: pdostal@suse.cz, nan.zhang@suse.com
     Testing Kernel on VMware / Hyper-V SLE hosts
 schedule:
     - support_server/login
@@ -10,9 +10,28 @@ schedule:
     - virtualization/universal/upgrade_guests
     - virtualization/universal/patch_guests
     - '{{open_vm_tools}}'
-
 conditional_schedule:
     open_vm_tools:
         REGRESSION:
             vmware:
+                - '{{product_version}}'
+    product_version:
+        VERSION:
+            12-SP2:
                 - virtualization/universal/open_vm_tools
+            12-SP3:
+                - virtualization/universal/open_vm_tools
+            12-SP4:
+                - virtualization/universal/open_vm_tools
+            12-SP5:
+                - virt_autotest/esxi_open_vm_tools
+            15-SP1:
+                - virtualization/universal/open_vm_tools
+            15-SP2:
+                - virtualization/universal/open_vm_tools
+            15-SP3:
+                - virtualization/universal/open_vm_tools
+            15-SP4:
+                - virt_autotest/esxi_open_vm_tools
+            15-SP5:
+                - virt_autotest/esxi_open_vm_tools

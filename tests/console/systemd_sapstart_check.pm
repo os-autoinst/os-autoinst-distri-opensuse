@@ -28,6 +28,7 @@ use version_utils qw(is_sle is_opensuse is_tumbleweed);
 use Mojo::JSON qw(encode_json);
 use strict;
 use warnings;
+use Utils::Logging qw(save_and_upload_log tar_and_upload_log);
 
 my $log = '/tmp/systemd_run.log';
 my $testdir = '/usr/lib/systemd/test/SAP';
@@ -111,8 +112,8 @@ sub parse_results_from_output {
 
 sub upload_systemdlib_tests_logs {
     my ($self) = @_;
-    $self->tar_and_upload_log($log, "$log.tar.bz2");
-    $self->save_and_upload_log('journalctl --no-pager -axb -o short-precise', 'journal.txt');
+    tar_and_upload_log($log, "$log.tar.bz2");
+    save_and_upload_log('journalctl --no-pager -axb -o short-precise', 'journal.txt');
 }
 
 sub run {
@@ -137,7 +138,7 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     #upload logs from given testname
-    $self->tar_and_upload_log('/var/log/journal /run/log/journal', 'binary-journal-log.tar.bz2');
+    tar_and_upload_log('/var/log/journal /run/log/journal', 'binary-journal-log.tar.bz2');
     $self->upload_systemdlib_tests_logs;
 }
 

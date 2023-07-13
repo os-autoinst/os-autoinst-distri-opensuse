@@ -7,7 +7,7 @@
 # Package: x3270 openssl
 # Summary: x3270 for SSL support testing, with openssl s_server running on local system
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#65570, poo#65615, poo#89005, poo#106504, poo#109566
 
 use base "x11test";
@@ -78,8 +78,7 @@ sub run {
     # Run x3270 as background since backend code adjust warning policy
     # It introduces run error if the command is not quit
     background_script_run("x3270 -trace $noverifycert -tracefile $tracelog_file L:localhost:8443");
-
-    assert_screen 'x3270_fips_launched_with_TLS_SSL';
+    wait_still_screen;
 
     # Exit and back to generic desktop
     send_key "ctrl-c";
@@ -91,6 +90,11 @@ sub run {
     select_console 'root-console';
     send_key "ctrl-c";
     clear_console;
+
+    # Check trace log
+    record_info("SSL Trace", "x3270-trace.log contains passed SSL negotiation data");
+    assert_script_run("grep 'Cipher: TLS_AES_256_GCM_SHA384' /tmp/x3270-trace.log");
+    assert_script_run("grep 'SSL_connect trace: SSLOK  SSL negotiation finished successfully' /tmp/x3270-trace.log");
 
     enter_cmd "cat $tracelog_file | tee /dev/$serialdev";
 

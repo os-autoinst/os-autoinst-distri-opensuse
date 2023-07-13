@@ -24,17 +24,14 @@ sub run {
     $self->start_firefox_with_profile;
 
     # html
-    $self->firefox_open_url('/usr/share/w3m/w3mhelp.html');
-    assert_screen('firefox-urls_protocols-local');
+    $self->firefox_open_url('/usr/share/w3m/w3mhelp.html', assert_loaded_url => 'firefox-urls_protocols-local');
 
     # wav
-    $self->firefox_open_url('/usr/share/sounds/alsa/test.wav');
-    assert_screen('firefox-local_files-wav');
+    $self->firefox_open_url('/usr/share/sounds/alsa/test.wav', assert_loaded_url => 'firefox-local_files-wav');
     send_key 'esc';
 
     # so
-    $self->firefox_open_url('/usr/lib64/libnss3.so');
-    assert_screen('firefox-local_files-so');
+    $self->firefox_open_url('/usr/lib64/libnss3.so', assert_loaded_url => 'firefox-local_files-so');
     send_key "esc";
 
     $self->exit_firefox;

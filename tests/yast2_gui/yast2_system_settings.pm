@@ -8,7 +8,7 @@
 # keys at the kernel settings and validate the change in the system configuration.
 # Enable sysrq and validate again.
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "y2_module_guitest";
 use strict;

@@ -8,7 +8,7 @@
 # - Verify that service is up and running
 # - Connect using tftp command, get test file and check
 # - Connect using tftp command, put test file back
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_module_consoletest';
 use strict;

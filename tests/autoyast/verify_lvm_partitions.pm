@@ -5,7 +5,7 @@
 #
 # Package: lvm2
 # Summary: Verify lvm partitions after autoyast installation
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

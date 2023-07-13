@@ -26,7 +26,7 @@
 # - Create and delete a test folder inside the share
 # - Switch back to text console
 # - Check audit.log for error messages related to smbd
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#48776, tc#1695952
 
 use base apparmortest;
@@ -35,6 +35,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle);
+use Utils::Architectures;
 
 # Setup samba server
 sub samba_server_setup {
@@ -125,9 +126,14 @@ sub samba_client_access {
     send_key "ret";
     assert_screen("nautilus-sharedir-opened");
 
-    # Do some operations, e.g., create a test folder then delete it
-    assert_and_click("nautilus-open-menu");
-    assert_and_click("nautilus-new-folder");
+    # Create new folder
+    if (is_s390x()) {
+        # on s390x the keyboard shortcut doesn't always work, that's why we use needles instead.
+        assert_and_click("nautilus-empty-view-dclick", button => "right");
+        assert_and_click("nautilus-create-folder");
+    } else {
+        send_key "shift-ctrl-n";
+    }
     assert_screen("nautilus-folder-name-input-box");
     type_string("sub-testdir", wait_screen_change => 10);
     send_key "ret";

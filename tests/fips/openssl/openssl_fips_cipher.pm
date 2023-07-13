@@ -8,20 +8,23 @@
 #          In fips mode, openssl only works with the FIPS
 #          approved Cihper algorithms: AES and DES3
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#44837
 
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_transactional is_sle_micro);
+use Utils::Architectures qw(is_s390x);
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
-    zypper_call 'in openssl';
+    select_serial_terminal;
+
+    # openssl pre-installed in SLE Micro
+    zypper_call 'in openssl' unless is_transactional;
 
     my $enc_passwd = "pass1234";
     my $hash_alg = "sha256";
@@ -33,7 +36,9 @@ sub run {
     assert_script_run "mkdir fips-test && cd fips-test && echo Hello > $file_raw";
 
     # With FIPS approved Cipher algorithms, openssl should work
-    my @approved_cipher = ("aes128", "aes192", "aes256", "des3", "des-ede3");
+    my @approved_cipher = ("aes128", "aes192", "aes256");
+    # https://bugzilla.suse.com/show_bug.cgi?id=1209271#c8
+    push @approved_cipher, qw(des3 des-ede3) unless (is_sle_micro('5.4+') && is_s390x);
     for my $cipher (@approved_cipher) {
         assert_script_run "openssl enc -$cipher -e -pbkdf2 -in $file_raw -out $file_enc -k $enc_passwd -md $hash_alg";
         assert_script_run "openssl enc -$cipher -d -pbkdf2 -in $file_enc -out $file_dec -k $enc_passwd -md $hash_alg";
@@ -43,13 +48,12 @@ sub run {
 
     # With FIPS non-approved Cipher algorithms, openssl shall report failure
     my @invalid_cipher = ("bf", "cast", "rc4", "seed", "des", "desx");
-    if (is_sle('12-SP2+')) {
-        push @invalid_cipher, "des-ede";
-    }
+    push @invalid_cipher, "des-ede" if is_sle('12-SP2+');
+    push @invalid_cipher, qw(des3 des-ede3) if (is_sle_micro('5.4+') && is_s390x);
     for my $cipher (@invalid_cipher) {
         validate_script_output
           "openssl enc -$cipher -e -pbkdf2 -in $file_raw -out $file_enc -k $enc_passwd -md $hash_alg 2>&1 || true",
-          sub { m/disabled for fips|disabled for FIPS|unknown option|Unknown cipher|enc: Unrecognized flag/ };
+          sub { m/disabled for fips|disabled for FIPS|unknown option|Unknown cipher|enc: Unrecognized flag|unsupported:crypto|request failed/ };
     }
 
     script_run 'cd - && rm -rf fips-test';

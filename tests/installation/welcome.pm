@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2009-2013 Bernhard M. Wiedemann
-# Copyright 2012-2020 SUSE LLC
+# Copyright 2012-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Wait for installer welcome screen. Covers loading linuxrc
@@ -17,7 +17,7 @@
 # - Save screenshot
 # - If necessary, change keyboard layout
 # - Proceed install (Next, next) until license on welcome screen is found
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;
@@ -58,22 +58,22 @@ sub switch_keyboard_layout {
 Returns hash which contains shortcuts for the product selection.
 =cut
 sub get_product_shortcuts {
-    # sles4sap does have different shortcuts in different tests at same time
-    #     ppc64le x86_64
-    # Full   u      i
-    # QR     i      p
-    # Online i      t
-    if (check_var('SLE_PRODUCT', 'sles4sap')) {
-        return (sles4sap => is_ppc64le() ? 'u' : 'i') if get_var('ISO') =~ /Full/;
-        return (sles4sap => is_ppc64le() ? 'i' : is_quarterly_iso() ? 'p' : 't') unless get_var('ISO') =~ /Full/;
-    }
     # We got new products in SLE 15 SP1
-    elsif (is_sle '15-SP1+') {
-        return (sles => 's') if (get_var('ISO') =~ /Full/ && is_ppc64le() && get_var('NTLM_AUTH_INSTALL'));
+    if (is_sle '15-SP1+') {
+        # sles does have different shortcuts in different tests at same time
+        #                x86_64
+        # Full              i
+        # Full (15-SP4)     s
+        if (is_ppc64le() && get_var('ISO') =~ /Full/ && get_var('NTLM_AUTH_INSTALL')) {
+            return (sles => 's') if get_var('FLAVOR') eq 'Full';
+            return (sles => 'u') if get_var('FLAVOR') eq 'Full-QR';
+        }
         return (
-            sles => (is_ppc64le() || is_s390x()) ? 'u'
+            sles => (is_sle '15-SP5+') ? 's'    # for now treat 15-SP5+ as if they would have new shortcuts
+            : (is_ppc64le() || is_s390x()) ? 'u'    # s390 doesn't have a product selection screen for now
             : is_aarch64() ? 's'
-            : ((is_sle '15-SP4+') && (get_var('ISO') =~ /Full/)) ? 's'
+            : ((is_sle '=15-SP4') && (get_var('ISO') =~ /Full/) && (get_var('FLAVOR') =~ /Full-QR/)) ? 'i'    # this is used by QU/QR
+            : ((is_sle '=15-SP4') && (get_var('ISO') =~ /Full/)) ? 's'    # this is used be Maintenance Test Repo
             : 'i',
             sled => 'x',
             hpc => is_x86_64() ? 'g' : 'u',
@@ -84,7 +84,6 @@ sub get_product_shortcuts {
     return (
         sles => 's',
         sled => 'u',
-        sles4sap => is_ppc64le() ? 'u' : 'x',
         hpc => is_x86_64() ? 'x' : 'u',
         rt => is_x86_64() ? 'u' : undef
     );
@@ -193,9 +192,18 @@ sub run {
         assert_screen('select-product');
         my $product = get_required_var('SLE_PRODUCT');
         if (check_var('VIDEOMODE', 'text')) {
-            my %hotkey = get_product_shortcuts();
-            die "No shortcut for the \"$product\" product specified." unless $hotkey{$product};
-            send_key 'alt-' . $hotkey{$product};
+            # kb shortcuts in textmode change on sles4sap "each build" escpecially on pp64le
+            # I guess because of less products then x86_64 and kb shortcuts switch between similar SLES and SAP
+            # https://bugzilla.suse.com/show_bug.cgi?id=1208202#c1
+            if (check_var('SLE_PRODUCT', 'sles4sap')) {
+                send_key_until_needlematch("select-product-$product-highlighted", 'tab', 15);
+                send_key 'spc';
+            }
+            else {
+                my %hotkey = get_product_shortcuts();
+                die "No shortcut for the \"$product\" product specified." unless $hotkey{$product};
+                send_key 'alt-' . $hotkey{$product};
+            }
         }
         else {
             assert_and_click('before-select-product-' . $product);

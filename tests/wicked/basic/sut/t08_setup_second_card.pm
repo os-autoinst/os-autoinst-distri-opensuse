@@ -17,6 +17,9 @@ use lockapi;
 
 sub run {
     my ($self, $ctx) = @_;
+
+    sleep(30);    # OVS on a worker is slow sometimes to change and we haven't found better way how to handle it
+
     my $cfg_ifc1 = '/etc/sysconfig/network/ifcfg-' . $ctx->iface();
     my $cfg_ifc2 = '/etc/sysconfig/network/ifcfg-' . $ctx->iface2();
     my $dhcp_ip_sut = $self->get_ip(type => 'dhcp_2nic');

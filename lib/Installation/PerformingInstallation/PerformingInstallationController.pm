@@ -6,7 +6,7 @@
 # Summary: The class introduces business actions for the Performing Installation
 #          Page in the installer.
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::PerformingInstallation::PerformingInstallationController;
 use strict;
@@ -51,7 +51,7 @@ sub get_system_reboot_with_timeout_popup {
     return $self->{OKStopPopup};
 }
 
-sub wait_installation_popup {
+sub wait_for_installation_popup {
     my ($self, $args) = @_;
     YuiRestClient::Wait::wait_until(object => sub {
             $self->{AbstractOKPopup}->is_shown({timeout => 0});

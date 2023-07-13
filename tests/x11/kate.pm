@@ -17,7 +17,13 @@ use testapi;
 sub run {
     my ($self) = @_;
     ensure_installed("kate");
-    x11_start_program('kate');
+    x11_start_program('kate', target_match => [qw(kate kate-welcome)]);
+
+    # Handle the new (22.11) welcome screen
+    if (match_has_tag('kate-welcome')) {
+        send_key 'ctrl-n';
+        assert_screen 'kate';
+    }
 
     if (!get_var("PLASMA5")) {
         # close welcome screen

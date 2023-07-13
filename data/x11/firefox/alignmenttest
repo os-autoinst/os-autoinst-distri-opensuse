@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en"><head>
+
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta http-equiv="Content-Language" content="en">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+
+  <title>Test Case for printing alignment</title>
+
+  <link rel="contents" href="https://www-archive.mozilla.org/quality/browser/front-end/testcases/printing/alignmenttest.html" title="Test Case Description for printing pages with alignment">
+  <link rel="up" href="https://www-archive.mozilla.org/quality/browser/front-end/testcases/printing/alignmenttest.html" title="Test Case Description for printing pages with alignment">
+
+</head>
+
+<body>
+
+<h1>From Shakespeare's Hamlet</h1>
+
+<p style="text-align: left;">I have of late but<br>
+wherefore I know not lost all my mirth,<br>
+forgone all custom of exercises;<br>
+and indeed, it goes so heavily with<br>
+my disposition that this goodly frame,<br>
+the earth, seems to me a sterile promontory;<br>
+this most excellent canopy, the air, look you,<br>
+this brave o'erhanging firmament,<br>
+this majestical roof fretted with golden fire<br>
+why, it appeareth no other thing to me than a foul<br>
+and pestilent congregation of vapours.<br>
+What a piece of work is a man!<br>
+how noble in reason! how infinite in faculties!<br>
+in form and moving how express and admirable!<br>
+in action how like an angel!<br>
+in apprehension how like a god!<br>
+the beauty of the world, the paragon of animals!
+
+</p><p style="text-align: center;">I have of late but<br>
+wherefore I know not lost all my mirth,<br>
+forgone all custom of exercises;<br>
+and indeed, it goes so heavily with<br>
+my disposition that this goodly frame,<br>
+the earth, seems to me a sterile promontory;<br>
+this most excellent canopy, the air, look you,<br>
+this brave o'erhanging firmament,<br>
+this majestical roof fretted with golden fire<br>
+why, it appeareth no other thing to me than a foul<br>
+and pestilent congregation of vapours.<br>
+What a piece of work is a man!<br>
+how noble in reason! how infinite in faculties!<br>
+in form and moving how express and admirable!<br>
+in action how like an angel!<br>
+in apprehension how like a god!<br>
+the beauty of the world, the paragon of animals!
+
+</p><p style="text-align: right;">I have of late but<br>
+wherefore I know not lost all my mirth,<br>
+forgone all custom of exercises;<br>
+and indeed, it goes so heavily with<br>
+my disposition that this goodly frame,<br>
+the earth, seems to me a sterile promontory;<br>
+this most excellent canopy, the air, look you,<br>
+this brave o'erhanging firmament,<br>
+this majestical roof fretted with golden fire<br>
+why, it appeareth no other thing to me than a foul<br>
+and pestilent congregation of vapours.<br>
+What a piece of work is a man!<br>
+how noble in reason! how infinite in faculties!<br>
+in form and moving how express and admirable!<br>
+in action how like an angel!<br>
+in apprehension how like a god!<br>
+the beauty of the world, the paragon of animals!
+
+
+</p></body></html>
+

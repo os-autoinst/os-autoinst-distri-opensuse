@@ -24,6 +24,7 @@ use warnings;
 use base "consoletest";
 use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
+use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl exec_and_insert_password zypper_call random_string clear_console);
 use version_utils qw(is_upgrade is_sle is_tumbleweed is_leap is_opensuse);
 use services::sshd;
@@ -34,7 +35,7 @@ my $reenable_firewall = 0;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $ssh_testman = "sshboy";
     services::sshd::prepare_test_data();

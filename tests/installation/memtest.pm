@@ -17,6 +17,7 @@ sub run {
     my $self = shift;
     ensure_shim_import;
     select_bootmenu_more('inst-onmemtest', 1);
+    send_key 'f1' if (check_screen 'memtest-Fail-Safe-Mode', 10);
     assert_screen('pass-complete', 1000);
 }
 

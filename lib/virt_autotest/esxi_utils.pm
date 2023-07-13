@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Utils::Backends qw(is_qemu is_svirt);
 
 our @EXPORT = qw(
   esxi_vm_get_vmid
@@ -25,12 +26,22 @@ our @EXPORT = qw(
   esxi_vm_public_ip
   get_host_timestamp
   disable_vm_time_synchronization
+  revert_vm_timesync_setting
 );
+
+my $hypervisor = get_var('HYPERVISOR') // 'esxi7.qa.suse.cz';
 
 sub esxi_vm_get_vmid {
     my $vm_name = shift;
-    my $vim_cmd = "vim-cmd vmsvc/getallvms | grep -i $vm_name | awk -F' ' '{print \$1}'";
-    my (undef, $vmid) = console('svirt')->run_cmd($vim_cmd, domain => 'sshVMwareServer', wantarray => 1);
+    my $vim_cmd = "vim-cmd vmsvc/getallvms | grep -iw $vm_name | cut -d' ' -f1";
+    my $vmid;
+
+    if (is_svirt) {
+        (undef, $vmid) = console('svirt')->run_cmd($vim_cmd, domain => 'sshVMwareServer', wantarray => 1);
+    }
+    elsif (is_qemu) {
+        $vmid = script_output(qq(ssh -o StrictHostKeyChecking=no root\@$hypervisor "$vim_cmd"));
+    }
     chomp($vmid);
     return $vmid;
 }
@@ -38,48 +49,72 @@ sub esxi_vm_get_vmid {
 sub esxi_vm_power_getstate {
     my $vmid = shift;
     my $vim_cmd = "vim-cmd vmsvc/power.getstate";
-    my (undef, $power_state) = console('svirt')->run_cmd("$vim_cmd $vmid", domain => 'sshVMwareServer', wantarray => 1);
+    my $power_state;
+
+    if (is_svirt) {
+        (undef, $power_state) = console('svirt')->run_cmd("$vim_cmd $vmid", domain => 'sshVMwareServer', wantarray => 1);
+    }
+    elsif (is_qemu) {
+        $power_state = script_output(qq(ssh -o StrictHostKeyChecking=no root\@$hypervisor "$vim_cmd $vmid"));
+    }
     return $power_state;
 }
 
 sub esxi_vm_power_ops {
     my ($vmid, $powerops) = @_;
     my $vim_cmd = "vim-cmd vmsvc/$powerops";
-    return console('svirt')->run_cmd("$vim_cmd $vmid", domain => 'sshVMwareServer', wantarray => 1);
+
+    if (is_svirt) {
+        return console('svirt')->run_cmd("$vim_cmd $vmid", domain => 'sshVMwareServer', wantarray => 1);
+    }
+    elsif (is_qemu) {
+        return script_run(qq(ssh -o StrictHostKeyChecking=no root\@$hypervisor "$vim_cmd $vmid"));
+    }
 }
 
 sub esxi_vm_network_binding {
     my $vmid = shift;
-    my $vim_cmd = "vim-cmd vmsvc/get.environment $vmid | grep vswitch | sed -n 1p | cut -d'\"' -f2";
-    my (undef, $vswitch) = console('svirt')->run_cmd($vim_cmd, domain => 'sshVMwareServer', wantarray => 1);
+    my $vim_cmd;
+    my $vswitch;
+
+    if (is_svirt) {
+        $vim_cmd = qq(vim-cmd vmsvc/get.environment $vmid | grep vswitch | sed -n 1p | cut -d'\"' -f2);
+        (undef, $vswitch) = console('svirt')->run_cmd($vim_cmd, domain => 'sshVMwareServer', wantarray => 1);
+    }
+    elsif (is_qemu) {
+        $vim_cmd = qq(vim-cmd vmsvc/get.environment $vmid | grep vswitch | sed -n 1p | cut -d'\\"' -f2);
+        $vswitch = script_output(qq(ssh -o StrictHostKeyChecking=no root\@$hypervisor "$vim_cmd"));
+    }
     return $vswitch;
 }
 
 sub esxi_vm_public_ip {
     my $vmid = shift;
-    my $vim_cmd = "vim-cmd vmsvc/get.guest $vmid | grep ipAddress | sed -n 1p | cut -d'\"' -f2";
-    my (undef, $vm_ip) = console('svirt')->run_cmd($vim_cmd, domain => 'sshVMwareServer', wantarray => 1);
+    my $vim_cmd;
+    my $vm_ip;
+
+    if (is_svirt) {
+        $vim_cmd = qq(vim-cmd vmsvc/get.guest $vmid | grep ipAddress | sed -n 1p | cut -d'\"' -f2);
+        (undef, $vm_ip) = console('svirt')->run_cmd($vim_cmd, domain => 'sshVMwareServer', wantarray => 1);
+    }
+    elsif (is_qemu) {
+        $vim_cmd = qq(vim-cmd vmsvc/get.guest $vmid | grep ipAddress | sed -n 1p | cut -d'\\"' -f2);
+        $vm_ip = script_output(qq(ssh -o StrictHostKeyChecking=no root\@$hypervisor "$vim_cmd"));
+    }
     return $vm_ip;
 }
 
 sub get_host_timestamp {
     my $date_cmd = shift // "date -u +'\%F \%T'";    # Default to get UTC time
-    my (undef, $host_time) = console('svirt')->run_cmd($date_cmd, domain => 'sshVMwareServer', wantarray => 1);
+    my $host_time;
+
+    if (is_svirt) {
+        (undef, $host_time) = console('svirt')->run_cmd($date_cmd, domain => 'sshVMwareServer', wantarray => 1);
+    }
+    elsif (is_qemu) {
+        $host_time = script_output(qq(ssh -o StrictHostKeyChecking=no root\@$hypervisor "$date_cmd"));
+    }
     return $host_time;
-}
-
-sub disable_vm_time_synchronization {
-    my $vm_name = shift;
-    my $vmx_file = "/vmfs/volumes/datastore1/openQA/$vm_name.vmx";
-
-    # Set all time synchronization properties to FALSE
-    console('svirt')->run_cmd("sed -ie 's/tools.syncTime.*/tools.syncTime=\"FALSE\"/' $vmx_file", domain => 'sshVMwareServer', wantarray => 1);
-    console('svirt')->run_cmd("echo time.synchronize.continue=\"FALSE\" >> $vmx_file", domain => 'sshVMwareServer', wantarray => 1);
-    console('svirt')->run_cmd("echo time.synchronize.restore=\"FALSE\" >> $vmx_file", domain => 'sshVMwareServer', wantarray => 1);
-    console('svirt')->run_cmd("echo time.synchronize.resume.disk=\"FALSE\" >> $vmx_file", domain => 'sshVMwareServer', wantarray => 1);
-    console('svirt')->run_cmd("echo time.synchronize.shrink=\"FALSE\" >> $vmx_file", domain => 'sshVMwareServer', wantarray => 1);
-    console('svirt')->run_cmd("echo time.synchronize.tools.startup=\"FALSE\" >> $vmx_file", domain => 'sshVMwareServer', wantarray => 1);
-    console('svirt')->run_cmd("echo time.synchronize.resume.host=\"FALSE\" >> $vmx_file", domain => 'sshVMwareServer', wantarray => 1);
 }
 
 1;

@@ -23,7 +23,7 @@ sub run {
     my $repos_folder = '/etc/zypp/repos.d';
     zypper_call 'lr -d', exitcode => [0, 6];
     assert_script_run(
-"find $repos_folder/*.repo -type f -exec grep -Eq 'baseurl=(http|https)://download.opensuse.org/' {} \\; -delete && echo 'unneed_repos_removed' > /dev/$serialdev",
+"find $repos_folder/ -name \\*.repo -type f -exec grep -Eq 'baseurl=(http|https)://download.opensuse.org/' {} \\; -delete && echo 'unneed_repos_removed' > /dev/$serialdev",
         15
     );
     zypper_call 'lr -d', exitcode => [0, 6];

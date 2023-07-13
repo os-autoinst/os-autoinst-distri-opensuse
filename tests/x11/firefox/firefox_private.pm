@@ -29,9 +29,7 @@ sub run {
     wait_still_screen 1;
     send_key "ctrl-shift-p";
     assert_screen 'firefox-private-browsing';
-    $self->firefox_open_url('facebook.com');
-    assert_screen('firefox-private-facebook');
-
+    $self->firefox_open_url('facebook.com', assert_loaded_url => 'firefox-private-facebook');
     $self->restart_firefox;
 
     send_key "ctrl-h";

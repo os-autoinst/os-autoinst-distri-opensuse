@@ -11,6 +11,7 @@
 
 use base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
@@ -31,8 +32,6 @@ sub start_wgquick {
 }
 
 sub run {
-    my $self = shift;
-
     if (get_var('IS_MM_SERVER')) {
         barrier_create 'SETUP_DONE', 2;
         barrier_create 'KEY_TRANSFERED', 2;
@@ -45,7 +44,7 @@ sub run {
 
     mutex_wait 'barrier_setup_done';
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
     barrier_wait 'SETUP_DONE';
 
     my ($vpn_local, $vpn_remote, $remote);

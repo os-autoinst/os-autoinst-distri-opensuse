@@ -63,6 +63,7 @@ use base 'y2_module_basetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 # this is a tmp file for testing
@@ -78,8 +79,7 @@ EOF
 (exit $?)';
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # make sure the package was installed.
     zypper_call("in yast2-sysconfig", exitcode => [0, 102, 103]);

@@ -10,13 +10,15 @@
 #    Make sure those yast2 modules can opened properly. We can add more
 #    feature test against each module later, it is ensure it will not crashed
 #    while launching atm.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "y2_module_guitest";
 use strict;
 use warnings;
 use testapi;
 use utils 'type_string_slow_extended';
+use version_utils 'is_sle';
+use YaST::workarounds;
 
 sub run {
     select_console 'x11';
@@ -45,11 +47,13 @@ sub run {
     type_string '16';
 
     #	default boot section
-    for (1 .. 2) { send_key 'alt-f10' }
-    assert_and_click 'yast2-bootloader_default-boot-section';
-    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-    send_key_until_needlematch('yast2-bootloader_default-boot-section_tw', 'alt-f10', 9, 2);
-    send_key 'esc';    # Close drop down
+    if (is_sle('>=15-SP4')) {
+        apply_workaround_poo124652('yast2-bootloader_default-boot-section') if (is_sle('>=15-SP4'));
+        assert_and_click 'yast2-bootloader_default-boot-section';
+    }
+    else {
+        assert_screen 'yast2-bootloader_default-boot-section_tw';
+    }
 
     #	proctect boot loader with password
     assert_and_click 'yast2-bootloader_protect-bootloader-with-password';

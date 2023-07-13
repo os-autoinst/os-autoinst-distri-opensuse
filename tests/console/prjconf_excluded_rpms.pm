@@ -12,9 +12,11 @@
 
 use Mojo::Base qw(consoletest);
 use testapi;
+use serial_terminal qw(select_serial_terminal);
+use Utils::Logging 'save_and_upload_log';
 
 sub run {
-    shift->select_serial_terminal;
+    select_serial_terminal;
 
     # Check that no *-mini RPM package is present
     assert_script_run 'rpm -qa *-mini *-mini1 systemd-mini-sysvinit dummy-release *-upstream | tee excluded_rpms';
@@ -25,7 +27,7 @@ sub post_fail_hook {
     my $self = shift;
     select_console 'log-console';
     upload_logs './excluded_rpms';
-    $self->save_and_upload_log('rpm -qa', '/tmp/rpmquery_all', {screenshot => 1});
+    save_and_upload_log('rpm -qa', '/tmp/rpmquery_all', {screenshot => 1});
 }
 
 1;

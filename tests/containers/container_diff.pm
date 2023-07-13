@@ -9,6 +9,7 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use containers::common;
 use containers::container_images;
@@ -16,7 +17,7 @@ use containers::urls 'get_image_uri';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $docker = $self->containers_factory('docker');
 
     zypper_call("install container-diff") if (script_run("which container-diff") != 0);

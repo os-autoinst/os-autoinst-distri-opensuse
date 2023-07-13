@@ -10,10 +10,12 @@ package main_publiccloud;
 use Mojo::Base 'Exporter';
 use utils;
 use version_utils;
+use publiccloud::utils;
 use main_common qw(loadtest);
 use testapi qw(check_var get_var);
 use Utils::Architectures qw(is_aarch64);
 use main_containers qw(load_container_tests);
+require bmwqemu;
 
 our @EXPORT = qw(
   load_publiccloud_tests
@@ -36,11 +38,13 @@ sub load_maintenance_publiccloud_tests {
         loadtest("publiccloud/img_proof", run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_LTP')) {
         loadtest('publiccloud/run_ltp', run_args => $args);
-    } elsif (get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME')) {
-        loadtest("publiccloud/boottime", run_args => $args);
+    } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
+        loadtest('publiccloud/ahb');
+    } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
+        loadtest("publiccloud/bsc_1205002", run_args => $args);
     } else {
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
-        loadtest "publiccloud/instance_overview" unless get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS');
+        loadtest("publiccloud/instance_overview", run_args => $args) unless get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS');
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
             load_publiccloud_consoletests($args);
         } elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
@@ -56,7 +60,11 @@ sub load_maintenance_publiccloud_tests {
             loadtest "publiccloud/az_l8s_nvme" if (get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ 'Standard_L(8|16|32|64)s_v2');
         } elsif (get_var('PUBLIC_CLOUD_AZURE_NFS_TEST')) {
             loadtest("publiccloud/azure_nfs", run_args => $args);
+        } elsif (check_var('PUBLIC_CLOUD_NVIDIA', 1)) {
+            die "ConfigError: Either the provider is not supported or SLE version is old!\n" unless (check_var('PUBLIC_CLOUD_PROVIDER', 'GCE') && is_sle('15-SP4+'));
+            loadtest "publiccloud/nvidia", run_args => $args;
         }
+
         loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     }
 }
@@ -80,6 +88,16 @@ sub load_publiccloud_consoletests {
     loadtest 'console/libgcrypt' unless is_sle '=12-SP4';
 }
 
+my $should_use_runargs = sub {
+    my @public_cloud_variables = qw(
+      PUBLIC_CLOUD_CONSOLE_TESTS
+      PUBLIC_CLOUD_CONTAINERS
+      PUBLIC_CLOUD_SMOKETEST
+      PUBLIC_CLOUD_AZURE_NFS_TEST
+      PUBLIC_CLOUD_NVIDIA);
+    return grep { exists $bmwqemu::vars{$_} } @public_cloud_variables;
+};
+
 sub load_latest_publiccloud_tests {
     if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
         loadtest "publiccloud/img_proof";
@@ -93,16 +111,13 @@ sub load_latest_publiccloud_tests {
     elsif (get_var('PUBLIC_CLOUD_ACCNET')) {
         loadtest 'publiccloud/az_accelerated_net';
     }
-    elsif (get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME')) {
-        loadtest "publiccloud/boottime";
-    }
     elsif (get_var('PUBLIC_CLOUD_FIO')) {
         loadtest 'publiccloud/storage_perf';
     }
-    elsif (get_var('PUBLIC_CLOUD_CONSOLE_TESTS') || get_var('PUBLIC_CLOUD_CONTAINERS') || get_var('PUBLIC_CLOUD_SMOKETEST') || get_var('PUBLIC_CLOUD_AZURE_NFS_TEST')) {
+    elsif (&$should_use_runargs()) {
         my $args = OpenQA::Test::RunArgs->new();
         loadtest "publiccloud/prepare_instance", run_args => $args;
-        if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
+        if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS') && !is_container_host()) {
             loadtest("publiccloud/check_registercloudguest", run_args => $args);
         }
         else {
@@ -111,6 +126,10 @@ sub load_latest_publiccloud_tests {
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
             load_publiccloud_consoletests($args);
+        }
+        elsif (check_var('PUBLIC_CLOUD_NVIDIA', 1)) {
+            die "ConfigError: The provider is not supported\n" unless (check_var('PUBLIC_CLOUD_PROVIDER', 'GCE') && is_sle('15-SP4+'));
+            loadtest "publiccloud/nvidia", run_args => $args;
         }
         elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
             load_container_tests();
@@ -130,6 +149,8 @@ sub load_latest_publiccloud_tests {
     }
     elsif (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
         loadtest "publiccloud/upload_image";
+    } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
+        loadtest('publiccloud/ahb');
     } else {
         die "*publiccloud - Latest* expects PUBLIC_CLOUD_* job variable. None is matched from the expected ones.";
     }
@@ -146,9 +167,13 @@ sub load_create_publiccloud_tools_image {
 # Test CLI tools for each provider
 sub load_publiccloud_cli_tools {
     loadtest 'boot/boot_to_desktop';
-    loadtest 'publiccloud/azure_cli';
-    loadtest 'publiccloud/aws_cli';
-    loadtest 'publiccloud/google_cli';
+    if (get_var('PUBLIC_CLOUD_AZURE_CLI_TEST')) {
+        loadtest 'publiccloud/azure_more_cli';
+    } else {
+        loadtest 'publiccloud/azure_cli';
+        loadtest 'publiccloud/aws_cli';
+        loadtest 'publiccloud/google_cli';
+    }
     loadtest 'shutdown/shutdown';
 }
 
@@ -177,13 +202,13 @@ sub load_publiccloud_tests {
     else {
         loadtest 'boot/boot_to_desktop';
         if (get_var('PUBLIC_CLOUD_MIGRATION')) {
-            loadtest('publiccloud/migration');
+            my $args = OpenQA::Test::RunArgs->new();
+            loadtest('publiccloud/upload_image', run_args => $args);
+            loadtest('publiccloud/migration', run_args => $args);
         } elsif (check_var('PUBLIC_CLOUD_DOWNLOAD_TESTREPO', 1)) {
             load_publiccloud_download_repos();
         } elsif (get_var('PUBLIC_CLOUD_QAM')) {
             load_maintenance_publiccloud_tests();
-        } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
-            loadtest('publiccloud/ahb');
         } else {
             load_latest_publiccloud_tests();
         }

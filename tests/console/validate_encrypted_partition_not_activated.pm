@@ -7,7 +7,7 @@
 # Covered scenarios:
 # - Validate that hard disk encryption(LUKS) is not activated on the configured partitioning
 #
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

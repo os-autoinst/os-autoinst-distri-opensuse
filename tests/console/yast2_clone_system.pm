@@ -12,25 +12,27 @@ use base "y2_module_consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
+use Utils::Architectures 'is_aarch64';
 use version_utils qw(is_sle is_opensuse is_staging);
 use utils 'zypper_call';
 use repo_tools 'get_repo_var_name';
 use y2_logs_helper qw(upload_autoyast_profile upload_autoyast_schema);
 
 sub run {
-    my $self = shift;
     select_console 'root-console';
 
     # Install for TW and generate profile
     zypper_call "in autoyast2";
 
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'clone_system');
-    wait_serial("$module_name-0", 360) || die "'yast2 clone_system' didn't finish";
+    my $timeout = is_aarch64 ? 1200 : 720;
+    wait_serial("$module_name-0", $timeout) || die "'yast2 clone_system' didn't finish";
 
     # Workaround for aarch64, as ncurces UI is not updated properly sometimes
     script_run('clear');
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $ay_profile_path = '/root/autoinst.xml';
     # Replace unitialized email variable - bsc#1015158
     assert_script_run "sed -i \"/server_email/ s/postmaster@/\\0suse.com/\" $ay_profile_path";
@@ -41,7 +43,7 @@ sub run {
     unless (is_opensuse) {
         # As developement_tools are not build for staging, we will attempt to get the package
         # otherwise MODULE_DEVELOPMENT_TOOLS should be used
-        my $uri = get_ftp_uri();
+        my $uri = get_devel_uri();
         zypper_call "ar -c $uri devel-repo";
     }
     zypper_call '--gpg-auto-import-keys ref';
@@ -65,15 +67,16 @@ sub run {
     select_console 'root-console';
 }
 
-sub get_ftp_uri {
+sub get_devel_uri {
     my $devel_repo;
     if (is_staging) {
-        $devel_repo = uc(get_required_var('DISTRI')) . '-' . get_required_var('VERSION') .
-          '-Module-Development-Tools-POOL-' . get_required_var('ARCH') . '-CURRENT-Media1';
+        $devel_repo = 'https://download.suse.de/download/install/SLP/SLE-' . get_required_var('VERSION') .
+          '-Full-LATEST/' . get_required_var('ARCH') . '/CD1/Module-Development-Tools/?ssl_verify=no';
+        return $devel_repo;
     } else {
         $devel_repo = get_required_var(is_sle('>=15') ? get_repo_var_name("MODULE_DEVELOPMENT_TOOLS") : 'REPO_SLE_SDK');
+        return "$utils::OPENQA_FTP_URL/" . $devel_repo;
     }
-    return "$utils::OPENQA_FTP_URL/" . $devel_repo;
 }
 
 sub post_fail_hook {

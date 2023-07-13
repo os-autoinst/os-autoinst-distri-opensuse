@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_public_cloud);
+use version_utils qw(is_sle is_public_cloud get_version_id);
 use registration;
 
 our @EXPORT = qw(
@@ -31,11 +31,15 @@ our @EXPORT = qw(
   is_azure
   is_gce
   is_container_host
+  is_hardened
+  is_embargo_update
   registercloudguest
   register_addon
   register_openstack
   register_addons_in_pc
   gcloud_install
+  prepare_ssh_tunnel
+  kill_packagekit
 );
 
 # Get the current UTC timestamp as YYYY/mm/dd HH:MM:SS
@@ -62,7 +66,12 @@ sub register_addon {
     } elsif (is_sle('<15') && $addon =~ /sdk|we/) {
         ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch, '', $timeout, $retries, $delay);
     } else {
-        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), undef, $arch, '', $timeout, $retries, $delay);
+        if ($addon =~ /nvidia/i) {
+            (my $version = get_version_id(dst_machine => $remote)) =~ s/^(\d+).*/$1/m;
+            ssh_add_suseconnect_product($remote, get_addon_fullname($addon), $version, $arch, '', $timeout, $retries, $delay);
+        } else {
+            ssh_add_suseconnect_product($remote, get_addon_fullname($addon), undef, $arch, '', $timeout, $retries, $delay);
+        }
     }
     record_info('SUSEConnect time', 'The command SUSEConnect -r ' . get_addon_fullname($addon) . ' took ' . (time() - $cmd_time) . ' seconds.');
 }
@@ -91,41 +100,20 @@ sub deregister_addon {
 sub registercloudguest {
     my ($instance) = @_;
     my $regcode = get_required_var('SCC_REGCODE');
-    my $remote = $instance->username . '@' . $instance->public_ip;
-    # not all images currently have registercloudguest pre-installed .
-    # in such a case,we need to regsiter against SCC and install registercloudguest with all needed dependencies and then
-    # unregister and re-register with registercloudguest
-    if ($instance->ssh_script_output(cmd => "sudo which registercloudguest > /dev/null; echo \"registercloudguest\$?\" ", proceed_on_failure => 1) =~ m/registercloudguest1/) {
-        $instance->ssh_script_retry(cmd => "sudo SUSEConnect -r $regcode", timeout => 420, retry => 3, delay => 120);
-        register_addon($remote, 'pcm');
-        my $install_packages = 'cloud-regionsrv-client';    # contains registercloudguest binary
-        if (is_azure()) {
-            $install_packages .= ' cloud-regionsrv-client-plugin-azure regionServiceClientConfigAzure regionServiceCertsAzure';
-        }
-        elsif (is_ec2()) {
-            $install_packages .= ' cloud-regionsrv-client-plugin-ec2 regionServiceClientConfigEC2 regionServiceCertsEC2';
-        }
-        elsif (is_gce()) {
-            $install_packages .= ' cloud-regionsrv-client-plugin-gce regionServiceClientConfigGCE regionServiceCertsGCE';
-        }
-        else {
-            die 'Unexpected provider ' . get_var('PUBLIC_CLOUD_PROVIDER');
-        }
-        $instance->ssh_assert_script_run(cmd => "sudo zypper -q -n in $install_packages", timeout => 420);
-        $instance->ssh_assert_script_run(cmd => "sudo registercloudguest --clean");
-    }
-    # Check what version of registercloudguest binary we use
-    $instance->ssh_script_run(cmd => "sudo rpm -qa cloud-regionsrv-client");
-    # Register the system
+    my $path = is_sle('>15') && is_sle('<15-SP3') ? '/usr/sbin/' : '';
+    my $suseconnect = $path . get_var("PUBLIC_CLOUD_SCC_ENDPOINT", "registercloudguest");
     my $cmd_time = time();
-    $instance->ssh_script_retry(cmd => "sudo registercloudguest -r $regcode", timeout => 420, retry => 3, delay => 120);
-    record_info('registercloudguest time', 'The command registercloudguest took ' . (time() - $cmd_time) . ' seconds.');
+    # Check what version of registercloudguest binary we use
+    $instance->ssh_script_run(cmd => "rpm -qa cloud-regionsrv-client");
+    $instance->ssh_script_retry(cmd => "sudo $suseconnect -r $regcode", timeout => 420, retry => 3, delay => 120);
+    record_info('registeration time', 'The registration took ' . (time() - $cmd_time) . ' seconds.');
 }
 
 sub register_addons_in_pc {
     my ($instance) = @_;
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
     my $remote = $instance->username . '@' . $instance->public_ip;
+    $instance->ssh_script_retry(cmd => "sudo zypper -n --gpg-auto-import-keys ref", timeout => 300, retry => 3, delay => 120);
     for my $addon (@addons) {
         next if ($addon =~ /^\s+$/);
         register_addon($remote, $addon);
@@ -176,12 +164,16 @@ sub is_container_host() {
     return is_public_cloud && get_var('FLAVOR') =~ 'CHOST';
 }
 
-sub define_secret_variable {
-    my ($var_name, $var_value) = @_;
-    script_run("set -a");
-    script_run("read -sp \"enter value: \" $var_name", 0);
-    type_password($var_value . "\n");
-    script_run("set +a");
+sub is_hardened() {
+    return is_public_cloud && get_var('FLAVOR') =~ 'Hardened';
+}
+
+sub is_embargo_update {
+    my ($incident, $type) = @_;
+    return 0 if ($type =~ /PTF/);
+    script_retry("curl -sSf https://build.suse.de/attribs/SUSE:Maintenance:$incident -o /tmp/$incident.txt");
+    return 1 if (script_run("grep 'OBS:EmbargoDate' /tmp/$incident.txt") == 0);
+    return 0;
 }
 
 # Get credentials from the Public Cloud micro service, which requires user
@@ -211,7 +203,7 @@ sub get_credentials {
 =head2 gcloud_install
     gcloud_install($url, $dir, $timeout)
 
-This function is used to install the gcloud CLI 
+This function is used to install the gcloud CLI
 for the GKE Google Cloud.
 
 From $url we get the full package and install it
@@ -236,6 +228,58 @@ sub gcloud_install {
     assert_script_run("source ~/.bashrc");
 
     record_info('GCE', script_output('gcloud version'));
+}
+
+sub prepare_ssh_tunnel {
+    my $instance = shift;
+
+    # configure ssh client
+    my $ssh_config_url = data_url('publiccloud/ssh_config');
+    assert_script_run("curl $ssh_config_url -o ~/.ssh/config");
+
+    # Create the ssh alias
+    assert_script_run(sprintf(q(echo -e 'Host sut\n  Hostname %s' >> ~/.ssh/config), $instance->public_ip));
+
+    # Copy SSH settings also for normal user
+    assert_script_run("install -o $testapi::username -g users -m 0700 -dD /home/$testapi::username/.ssh");
+    assert_script_run("install -o $testapi::username -g users -m 0600 ~/.ssh/* /home/$testapi::username/.ssh/");
+
+    # Skip setting root password for img_proof, because it expects the root password to NOT be set
+    $instance->ssh_assert_script_run(qq(echo -e "$testapi::password\\n$testapi::password" | sudo passwd root));
+
+    # Permit root passwordless login over SSH
+    $instance->ssh_assert_script_run('sudo cat /etc/ssh/sshd_config');
+    $instance->ssh_assert_script_run('sudo sed -i "s/PermitRootLogin no/PermitRootLogin prohibit-password/g" /etc/ssh/sshd_config');
+    $instance->ssh_assert_script_run('sudo sed -iE "/^AllowTcpForwarding/c\AllowTcpForwarding yes" /etc/ssh/sshd_config') if (is_hardened());
+    $instance->ssh_assert_script_run('sudo systemctl reload sshd');
+
+    # Copy SSH settings for remote root
+    $instance->ssh_assert_script_run('sudo install -o root -g root -m 0700 -dD /root/.ssh');
+    $instance->ssh_assert_script_run(sprintf("sudo install -o root -g root -m 0644 /home/%s/.ssh/authorized_keys /root/.ssh/", $instance->{username}));
+
+    # Create remote user and set him a password
+    my $path = (is_sle('>15') && is_sle('<15-SP3')) ? '/usr/sbin/' : '';
+    $instance->ssh_assert_script_run("test -d /home/$testapi::username || sudo ${path}useradd -m $testapi::username");
+    $instance->ssh_assert_script_run(qq(echo -e "$testapi::password\\n$testapi::password" | sudo passwd $testapi::username));
+
+    # Copy SSH settings for remote user
+    $instance->ssh_assert_script_run("sudo install -o $testapi::username -g users -m 0700 -dD /home/$testapi::username/.ssh");
+    $instance->ssh_assert_script_run("sudo install -o $testapi::username -g users -m 0644 ~/.ssh/authorized_keys /home/$testapi::username/.ssh/");
+
+    # Create log file for ssh tunnel
+    my $ssh_sut = '/var/tmp/ssh_sut.log';
+    assert_script_run "touch $ssh_sut; chmod 777 $ssh_sut";
+}
+
+sub kill_packagekit {
+    my ($instance) = @_;
+    my $ret = $instance->ssh_script_run(cmd => "sudo pkcon quit", timeout => 120);
+    if ($ret) {
+        # Older versions of systemd don't support "disable --now"
+        $instance->ssh_script_run(cmd => "sudo systemctl stop packagekitd");
+        $instance->ssh_script_run(cmd => "sudo systemctl disable packagekitd");
+        $instance->ssh_script_run(cmd => "sudo systemctl mask packagekitd");
+    }
 }
 
 1;

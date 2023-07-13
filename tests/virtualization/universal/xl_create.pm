@@ -3,7 +3,7 @@
 #
 # Package: libvirt-daemon xen-tools nmap
 # Summary: Export XML from virsh and create new guests in xl stack
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "consoletest";
 use virt_autotest::common;

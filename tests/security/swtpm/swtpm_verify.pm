@@ -4,7 +4,7 @@
 # Summary: Ship the "swtpm" software TPM emulator for QEMU,
 #          test Legacy guest OS under libvirt, cover both
 #          TPM 1.2 and TPM 2.0
-# Maintainer: rfan1 <richard.fan@suse.com> Starry Wang <starry.wang@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#81256, tc#1768671, poo#100512
 
 use base 'opensusebasetest';
@@ -12,11 +12,11 @@ use swtpmtest;
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal if !(get_var('MACHINE') =~ /RPi4/);
+    select_serial_terminal if !(get_var('MACHINE') =~ /RPi4/);
     my $vm_type = 'legacy';
     $vm_type = 'uefi' if get_var('HDD_SWTPM_UEFI');
     # aarch64 does not support tpm1.2

@@ -19,7 +19,7 @@
   <add-on>
     <add_on_products config:type="list">
       <listentry>
-        <media_url>https://download.opensuse.org/repositories/Cloud:/Tools:/CI:/15SP3/SLE_15_SP3/</media_url>
+        <media_url>https://download.opensuse.org/repositories/Cloud:/Tools:/CI/SLE_15_SP4/</media_url>
         <product>public_cloud_devel</product>
         <alias>Public Cloud Devel</alias>
         <product_dir>/</product_dir>
@@ -61,6 +61,16 @@
         <version>{{VERSION}}</version>
         <arch>x86_64</arch>
       </addon>
+      <addon>
+        <name>PackageHub</name>
+        <version>{{VERSION}}</version>
+        <arch>x86_64</arch>
+      </addon>
+      <addon>
+        <name>sle-module-python3</name>
+        <version>{{VERSION}}</version>
+        <arch>x86_64</arch>
+      </addon>
     </addons>
   </suse_register>
   <bootloader>
@@ -89,7 +99,7 @@
       <package>gcc</package>
       <package>sudo</package>
       <package>wget</package>
-      <package>python</package>
+      <package>python3</package>
       <package>haveged</package>
     </packages>
   </software>

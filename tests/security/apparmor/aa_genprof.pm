@@ -13,7 +13,7 @@
 # - Run function "aa_tmp_prof_verify" (check if program is able to start using
 # the temporary profiles)
 # - Clean the temporary profiles directory
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#36886, poo#45803
 
 use strict;

@@ -22,7 +22,7 @@ use utils;
 use virt_utils;
 use virt_autotest::common;
 use virt_autotest::utils;
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils qw(is_sle is_tumbleweed is_alp);
 use Utils::Architectures;
 
 sub run_test {
@@ -30,7 +30,7 @@ sub run_test {
 
     $self->check_sev_es_on_host;
     foreach (keys %virt_autotest::common::guests) {
-        virt_autotest::utils::wait_guest_online($_, 180, 1);
+        virt_autotest::utils::wait_guest_online($_, 50, 1);    # 50 retries * ~7 seconds/retry, long enough
         $self->check_sev_es_on_guest(guest_name => "$_");
     }
     return $self;
@@ -49,10 +49,10 @@ additional argument supported by this subroutine.
 sub check_sev_es_on_host {
     my $self = shift;
 
-    record_info('Check SEV/SEV-ES support status on host', 'Only 15-SP2+ host supports AMD SEV and only 15-SP4+ supports AMD SEV-ES.');
+    record_info('Check SEV/SEV-ES support status on host', 'Only 15-SP2+ host supports AMD SEV, and only 15-SP4+/Tumbleweed/ALP support AMD SEV-ES.');
     if (is_x86_64) {
-        if (is_sle('>=15-SP4') or is_tumbleweed) {
-            record_info('No AMD SEV or SEV-ES feature available on host', 'Host is a 15-SP4 or newer produdct') unless ($self->check_sev_es_parameter(params_to_check => 'sev sev_es') == 0);
+        if (is_sle('>=15-SP4') or is_tumbleweed or is_alp) {
+            record_info('No AMD SEV or SEV-ES feature available on host', 'Host is a 15-SP4+/Tumbleweed/ALP produdct') unless ($self->check_sev_es_parameter(params_to_check => 'sev sev_es') == 0);
         }
         elsif (is_sle('>=15-SP2')) {
             record_info('No AMD SEV feature available on host', 'Host is a 15-SP2 or newer produdct but older than 15-SP4') unless ($self->check_sev_es_parameter(params_to_check => 'sev') == 0);
@@ -160,7 +160,7 @@ sub check_sev_es_dmesg {
     foreach (@flags) {
         $cmd1 = ($args{dst_machine} eq 'localhost' ? "\"$_( |\$)\"" : "\\\"$_( |\$)\\\"");
         $cmd1 = "grep -i -E -o " . $cmd1;
-        $cmd2 = ($args{dst_machine} eq 'localhost' ? "\"AMD Memory Encryption Features active\"" : "\\\"AMD Memory Encryption Features active\\\"");
+        $cmd2 = ($args{dst_machine} eq 'localhost' ? "\"Memory Encryption Features active\"" : "\\\"Memory Encryption Features active\\\"");
         $cmd2 = "grep -i " . $cmd2;
         $cmd1 = "dmesg | $cmd2 | $cmd1";
         $cmd1 = "ssh root\@$args{dst_machine} " . "\"$cmd1\"" if ($args{dst_machine} ne 'localhost');

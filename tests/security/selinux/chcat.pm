@@ -4,7 +4,7 @@
 # Summary: Test "# chcat" can change file SELinux security category
 #          NOTE: Since we only focus on minimum policy and this cmd is
 #                for "mls", so this case only do some basic testings.
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#66096, tc#1745369
 
 use base "selinuxtest";
@@ -12,11 +12,12 @@ use power_action_utils "power_action";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
     my ($self) = shift;
-    my $test_dir = "/testdir";
+    my $test_dir = "/tmp/testdir";
     my $test_file = "testfile";
     my $test_user = "root";
 
@@ -28,7 +29,7 @@ sub run {
     my $default_category_root = $systemhigh;
     my $default_category_commonfile = $systemlow;
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # create a testing directory/file
     $self->create_test_file("$test_dir", "$test_file");

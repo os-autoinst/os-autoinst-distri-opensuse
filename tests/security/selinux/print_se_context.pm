@@ -3,20 +3,20 @@
 #
 # Summary: Test "# ls/id/ps -Z" prints any security context of each
 #          file/dir/user/process.
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#61783, tc#1741282
 
 use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my ($self) = @_;
     my $testfile = "foo";
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # print security context of file/dir
     assert_script_run("touch $testfile");

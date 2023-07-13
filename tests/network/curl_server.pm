@@ -11,13 +11,13 @@ use base 'opensusebasetest';
 use warnings;
 use strict;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use mmapi;
 use lockapi;
 
 sub run {
     #run on serial console.
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     #preparing files will be use by client side.
     assert_script_run(' echo "Hello World!!" > /srv/www/htdocs/get');

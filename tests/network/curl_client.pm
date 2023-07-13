@@ -13,11 +13,11 @@ use base "consoletest";
 use warnings;
 use strict;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     #waiting curl server ready.
     mutex_wait('curl_server_ready');

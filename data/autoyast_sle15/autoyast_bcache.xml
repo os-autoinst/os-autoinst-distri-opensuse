@@ -38,7 +38,7 @@
       <enable_snapshots config:type="boolean">true</enable_snapshots>
       <partitions config:type="list">
         <partition>
-          <mount>/swap</mount>
+          <mount>swap</mount>
           <create config:type="boolean">true</create>
           <filesystem config:type="symbol">swap</filesystem>
           <size>auto</size>

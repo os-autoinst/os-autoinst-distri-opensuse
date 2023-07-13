@@ -20,9 +20,7 @@ use testapi;
 use Data::Dumper;
 use XML::Writer;
 use IO::File;
-use proxymode;
 use version_utils 'is_sle';
-use virt_autotest_base;
 use virt_autotest::utils;
 use virt_utils;
 

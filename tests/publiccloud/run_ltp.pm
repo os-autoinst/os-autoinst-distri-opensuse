@@ -13,7 +13,7 @@ use testapi;
 use utils;
 use repo_tools 'generate_version';
 use Mojo::UserAgent;
-use LTP::utils qw(get_ltproot get_ltp_version_file);
+use LTP::utils qw(get_ltproot);
 use LTP::WhiteList;
 use Mojo::File;
 use Mojo::JSON;
@@ -48,11 +48,13 @@ sub instance_log_args
 sub upload_ltp_logs
 {
     my ($self) = @_;
-    my $log_file = Mojo::File::path('ulogs/ltp_log.json');
     my $ltp_testsuite = get_required_var('LTP_COMMAND_FILE');
-
-    upload_logs("$root_dir/ltp_log.raw", log_name => 'ltp_log.raw', failok => 1);
-    upload_logs("$root_dir/ltp_log.json", log_name => $log_file->basename, failok => 1);
+    my $log_file = Mojo::File::path('ulogs/result.json');
+    record_info('LTP Logs', 'upload');
+    upload_logs("$root_dir/result.json", log_name => $log_file->basename, failok => 1);
+    # debug file in the standart LTP log-dir. structure:
+    assert_script_run("test -f /tmp/runltp.\$USER/latest/debug.log || echo No debug log");
+    upload_logs("/tmp/runltp.\$USER/latest/debug.log", failok => 1);
 
     return unless -e $log_file->to_string;
 
@@ -85,6 +87,7 @@ sub run {
     my ($self, $args) = @_;
     my $arch = check_var('PUBLIC_CLOUD_ARCH', 'arm64') ? 'aarch64' : 'x86_64';
     my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/benchmark:/ltp:/stable/' . generate_version("_") . '/');
+
     my $provider;
     my $instance;
 
@@ -96,10 +99,7 @@ sub run {
         $provider = $self->{provider} = $args->{my_provider};    # required for cleanup
     } else {
         $provider = $self->provider_factory();
-        $instance = $self->{my_instance} = $provider->create_instance();
-        unless (is_openstack) {
-            $instance->wait_for_guestregister();
-        }
+        $instance = $self->{my_instance} = $provider->create_instance(check_guestregister => is_openstack ? 0 : 1);
     }
 
     assert_script_run("cd $root_dir");
@@ -130,30 +130,44 @@ sub run {
         }
     }
 
-    my $runltp_ng_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/metan-ucw/runltp-ng.git");
+    my $runltp_ng_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/linux-test-project/runltp-ng.git");
     my $runltp_ng_branch = get_var("LTP_RUN_NG_BRANCH", "master");
+    record_info('LTP CLONE REPO', "Repo: " . $runltp_ng_repo . "\nBranch: " . $runltp_ng_branch);
+
     assert_script_run("git clone -q --single-branch -b $runltp_ng_branch --depth 1 $runltp_ng_repo");
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
+    record_info('VM Detect', $instance->run_ssh_command(cmd => 'systemd-detect-virt'));
 
     my $reset_cmd = $root_dir . '/restart_instance.sh ' . $self->instance_log_args();
     my $log_start_cmd = $root_dir . '/log_instance.sh start ' . $self->instance_log_args();
 
+    my $env = get_var('LTP_PC_RUNLTP_ENV');
+
     assert_script_run($log_start_cmd);
 
-    my $cmd = 'perl -I runltp-ng runltp-ng/runltp-ng ';
-    $cmd .= '--logname=ltp_log --verbose ';
-    $cmd .= '--timeout=1200 ';
-    $cmd .= '--run ' . get_required_var('LTP_COMMAND_FILE') . ' ';
-    $cmd .= '--exclude \'' . get_var('LTP_COMMAND_EXCLUDE') . '\' ' if get_var('LTP_COMMAND_EXCLUDE');
-    $cmd .= '--backend=ssh';
-    $cmd .= ':user=' . $instance->username;
-    $cmd .= ':key_file=' . $instance->ssh_key;
-    $cmd .= ':host=' . $instance->public_ip;
-    $cmd .= ':reset_command=\'' . $reset_cmd . '\'';
-    $cmd .= ':ssh_opts=\'-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\' ';
-    $cmd .= '--json_filter=openqa ';
+    # LTP command line preparation
+    zypper_call("in -y python3-paramiko python3-scp");
+    my $sut = ':user=' . $instance->username;
+    $sut .= ':sudo=1';
+    $sut .= ':key_file=' . $instance->provider->ssh_key;
+    $sut .= ':host=' . $instance->public_ip;
+    $sut .= ':reset_command=\'' . $reset_cmd . '\'';
+    $sut .= ':hostkey_policy=missing';
+    $sut .= ':known_hosts=/dev/null';
+
+    my $cmd = 'python3 runltp-ng/runltp-ng ';
+    $cmd .= "--json-report=$root_dir/result.json ";
+    $cmd .= '--verbose ';
+    $cmd .= '--exec-timeout=1200 ';
+    $cmd .= '--suite-timeout=5400 ';
+    $cmd .= '--run-suite ' . get_required_var('LTP_COMMAND_FILE') . ' ';
+    $cmd .= '--skip-tests \'' . get_var('LTP_COMMAND_EXCLUDE') . '\' ' if get_var('LTP_COMMAND_EXCLUDE');
+    $cmd .= '--sut=ssh' . $sut . ' ';
+    $cmd .= '--env ' . $env . ' ' if ($env);
+    record_info('LTP START', 'Command launch');
     assert_script_run($cmd, timeout => get_var('LTP_TIMEOUT', 30 * 60));
+    record_info('LTP END', 'tests done');
 }
 
 
@@ -163,7 +177,6 @@ sub cleanup {
     # Ensure that the ltp script gets killed
     type_string('', terminate_with => 'ETX');
     $self->upload_ltp_logs();
-
     if ($self->{my_instance} && script_run("test -f $root_dir/log_instance.sh") == 0) {
         assert_script_run($root_dir . '/log_instance.sh stop ' . $self->instance_log_args());
         assert_script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
@@ -214,6 +227,12 @@ The repo which will be added and is used to install LTP package.
 Used to specify a url for a json file with well known LTP issues. If an error occur
 which is listed, then the result is overwritten with softfailure.
 
+=head2 LTP_PC_RUNLTP_ENV
+
+Contains eventual internal environment new parameters for `runltp-ng` , 
+defined with the `--env` option, initialized in a column-separated string format: 
+"PAR1=xxx:PAR2=yyy:...". By default it is empty, not defined.
+
 =head2 PUBLIC_CLOUD_LTP
 
 If set, this test module is added to the job.
@@ -227,20 +246,6 @@ The type of the CSP (e.g. AZURE, EC2)
 The URL where the image gets downloaded from. The name of the image gets extracted
 from this URL.
 
-=head2 PUBLIC_CLOUD_KEY_ID
-
-The CSP credentials key-id to used to access API.
-
-=head2 PUBLIC_CLOUD_KEY_SECRET
-
-The CSP credentials secret used to access API.
-
 =head2 PUBLIC_CLOUD_REGION
 
 The region to use. (default-azure: westeurope, default-ec2: eu-central-1)
-
-=head2 PUBLIC_CLOUD_AZURE_TENANT_ID
-
-This is B<only for azure> and used to create the service account file.
-
-=cut

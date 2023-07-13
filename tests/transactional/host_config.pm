@@ -9,14 +9,12 @@
 #
 # Maintainer: Jose Lausuch <jalausuch@suse.com>
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base qw(consoletest);
 use testapi;
-use transactional qw(process_reboot trup_call check_reboot_changes);
+use transactional qw(process_reboot);
 use bootloader_setup qw(change_grub_config);
-use version_utils qw(is_alp is_transactional);
-use utils qw(zypper_call ensure_ca_certificates_suse_installed);
+use utils qw(ensure_ca_certificates_suse_installed zypper_call);
+use version_utils qw(is_alp);
 
 sub run {
     select_console 'root-console';
@@ -33,15 +31,16 @@ sub run {
         ensure_ca_certificates_suse_installed if get_var('HOST_VERSION');
         process_reboot(trigger => 1);
     }
+
     if (is_alp) {
-        record_info('Packages', 'Install needed packages to run the tests');
-        if (is_transactional) {
-            trup_call('pkg install tar', timeout => 300);
-            check_reboot_changes;
-        } else {
-            zypper_call('in tar');
-        }
+        # Add additional ALP repositories
+        my $repo = get_required_var('REPO_SLE_ALP_MICRO');
+        zypper_call("ar http://openqa.suse.de/assets/repo/$repo 'ALP Build Repository'");
+        my $source_repo = get_var('REPO_ALP_SOURCE_BUILD');
+        zypper_call("ar $source_repo 'ALP Source Build Repository'") if $source_repo;
+        zypper_call("--gpg-auto-import-keys ref");
     }
+    record_info('REPOS', script_output('zypper lr --url', proceed_on_failure => 1));
 }
 
 sub test_flags {

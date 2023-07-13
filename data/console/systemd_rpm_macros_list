@@ -19,21 +19,21 @@
 %_stop_on_removal_force
 %_stop_on_removal_never
 %_stop_on_removal
-%service_add_pre
-%service_add_post
-%service_del_preun
-%service_del_postun_without_restart
-%service_del_postun
-%systemd_post
-%systemd_postun
-%systemd_postun_with_restart
+%service_add_pre FOO.service
+%service_add_post FOO.service
+%service_del_preun FOO.service
+%service_del_postun_without_restart FOO.service
+%service_del_postun FOO.service
+%systemd_post FOO.service
+%systemd_postun FOO.service
+%systemd_postun_with_restart FOO.service
 %udev_hwdb_update
 %udev_rules_update
 %journal_catalog_update
-%tmpfiles_create
-%sysusers_create
+%tmpfiles_create tmpfile.conf
+%sysusers_create sysusers.conf
 %sysusers_create_inline
-%sysctl_apply
-%binfmt_apply
+%sysctl_apply sysctl.conf
+%binfmt_apply binfmt.conf
 %systemd_preset_pre
 %systemd_preset_posttrans

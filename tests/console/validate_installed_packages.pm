@@ -6,7 +6,7 @@
 # Summary: validate packages in the SUT
 # - Reads test data structure with expectations for packages
 # - Validate that provided packages are installed or not
-# Maintainer: QA SLE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
 use strict;

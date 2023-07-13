@@ -1,0 +1,30 @@
+---
+name: autoyast_regression_test_offline_pre@pvm
+description: >
+  autoYaST installation and prepare base system
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_sle_powervm.xml.ep
+  AUTOYAST_PREPARE_PROFILE: '1'
+  DESKTOP: textmode
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - update/patch_sle
+  - '{{install_service}}'
+  - shutdown/grub_set_bootargs
+  - shutdown/shutdown
+conditional_schedule:
+  install_service:
+    REGRESSION_SERVICE:
+      1:
+        - installation/install_service

@@ -8,7 +8,7 @@
 # - Clean "/var/log/audit/audit.log"
 # - Run "traceroute www.baidu.com"
 # - Log (audit.log) should not contain no errors related to traceroute
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#44996, tc#1682587
 
 use base "apparmortest";

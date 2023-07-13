@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en"><head>
+
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta http-equiv="Content-Language" content="en">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+
+  <title>Test Case for printing pages with indentation</title>
+
+  <link rel="contents" href="https://www-archive.mozilla.org/quality/browser/front-end/testcases/printing/indentationtest.html" title="Test Case Description for printing pages with indentation">
+  <link rel="up" href="https://www-archive.mozilla.org/quality/browser/front-end/testcases/printing/indentationtest.html" title="Test Case Description for printing pages with indentation">
+
+</head>
+<body>
+
+<h1>Advertisement</h1>
+<p class="author">by Wislawa Szymborska - 1972</p>
+
+<blockquote>
+<p>I am a tranquilizer.</p>
+
+<p>I am effective at home,<br>
+I work well at the office,<br>
+I take exams,<br>
+I appear in court,<br>
+I carefully mend broken crockery -<br>
+all you need do is take me,<br>
+dissolve me under the tongue,<br>
+all you need do is swallow me,<br>
+just wash me down with water.</p>
+
+<p>I know how to cope with misfortune,<br>
+how to endure bad news,<br>
+take the edge of injustice,<br>
+make up for the absence of God,<br>
+help pick out your widow's weeds.<br>
+What are you waiting for -<br>
+have faith in chemistry's compassion.</p>
+
+<p>You're still a young man/woman,<br>
+you really should settle down somehow.<br>
+Who said<br>
+life must be lived courageously?</p>
+
+<p>Hand your abyss over to me -<br>
+I will line it up with soft sleep,<br>
+you'll be grateful for<br>
+the four-footed landing.</p>
+
+<p>Sell me your soul.<br>
+There's no other buyer likely to turn up.</p>
+
+<p>There's no other devil left.</p>
+</blockquote>
+
+
+</body></html>
+

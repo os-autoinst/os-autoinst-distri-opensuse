@@ -5,7 +5,7 @@
 
 # Package: firewalld
 # Summary: Verify firewall configuration after installation using ay profile
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'basetest';
 use strict;

@@ -11,9 +11,19 @@ use base 'sles4sap';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(file_content_replace type_string_slow);
 use x11utils qw(turn_off_gnome_screensaver);
 use version_utils qw(package_version_cmp is_sle);
+
+sub turn_off_low_disk_warning {
+    enter_cmd q@VAL=$(gsettings get org.gnome.settings-daemon.plugins.housekeeping ignore-paths | sed -e "s,.$,\, '/hana/shared'\, '/hana/data'\, '/hana/log'],")@;
+    enter_cmd 'echo $VAL';
+    enter_cmd 'gsettings get org.gnome.settings-daemon.plugins.housekeeping ignore-paths';
+    enter_cmd 'gsettings set org.gnome.settings-daemon.plugins.housekeeping ignore-paths "$VAL"';
+    enter_cmd 'gsettings get org.gnome.settings-daemon.plugins.housekeeping ignore-paths';
+    save_screenshot;
+}
 
 sub run {
     my ($self) = @_;
@@ -22,7 +32,7 @@ sub run {
     my $sid = get_required_var('INSTANCE_SID');
     my $instid = get_required_var('INSTANCE_ID');
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Check that there is enough RAM for HANA
     my $RAM = $self->get_total_mem();
@@ -50,6 +60,7 @@ sub run {
         mouse_hide;    # Hide the mouse so no needle will fail because of the mouse pointer appearing
         x11_start_program('xterm');
         turn_off_gnome_screensaver;    # Disable screensaver
+        turn_off_low_disk_warning;
         enter_cmd "killall xterm";
         assert_screen 'generic-desktop';
         x11_start_program('yast2 sap-installation-wizard', target_match => 'sap-installation-wizard');

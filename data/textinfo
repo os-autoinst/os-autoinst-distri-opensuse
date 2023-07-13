@@ -11,7 +11,7 @@ ip -o a s
 ip r s
 ip -6 r s
 cat /etc/resolv.conf
-ls -al /etc/sysconfig/network
+ls -al /etc/sysconfig/network || true
 rpm -qa 'kernel-*'
 grep DISPLAYMANAGER /etc/sysconfig/displaymanager || true
 grep DEFAULT /etc/sysconfig/windowmanager || true

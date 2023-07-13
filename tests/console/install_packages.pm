@@ -27,7 +27,7 @@ sub run {
     # better have it fail and let a reviewer check the reason
     assert_script_run("test -s \$XDG_RUNTIME_DIR/install_packages.txt");
     # might take longer for large patches (i.e. 12 kernel flavors)
-    assert_script_run("xargs --no-run-if-empty zypper -n in -l < \$XDG_RUNTIME_DIR/install_packages.txt", 800);
+    assert_script_run("xargs --no-run-if-empty zypper -n in -l < \$XDG_RUNTIME_DIR/install_packages.txt", 1400);
     assert_script_run("grep -Ev '^-' \$XDG_RUNTIME_DIR/install_packages.txt | xargs --no-run-if-empty rpm -q -- | tee /dev/$serialdev");
 }
 

@@ -5,7 +5,7 @@
 #
 # Summary: Validate the sshd is running *and* that port 22 is opened,as
 # admins may want to connect with ssh right after an ssh installation.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

@@ -4,7 +4,7 @@
 # Summary: Module to set up the environment for using libyui REST API in the
 # running system by installing libyui-rest-api packages.
 
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

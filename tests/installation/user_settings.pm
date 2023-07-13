@@ -11,7 +11,7 @@
 # - Disable autologin if NOAUTOLOGIN is defined
 # - Otherwise, if distro is sle and NOAUTOLOGIN is undefined, enable autologin
 # - Select next, handle "password is too simple" screen
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

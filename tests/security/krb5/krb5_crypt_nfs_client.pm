@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test NFS with krb5 authentication and GSS API - client
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Ticket: poo#51560, poo#52388
 
 use base "consoletest";

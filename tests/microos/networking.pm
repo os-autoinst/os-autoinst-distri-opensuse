@@ -6,7 +6,7 @@
 # Summary: Test network connectivity
 # Maintainer: Panagiotis Georgiadis <pgeorgiadis@suse.com>
 
-use base "opensusebasetest";
+use base "consoletest";
 use strict;
 use warnings;
 use testapi;

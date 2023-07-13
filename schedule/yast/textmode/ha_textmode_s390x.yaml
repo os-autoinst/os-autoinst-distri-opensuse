@@ -1,0 +1,14 @@
+name: ha_textmode
+description: |
+  Installation sles with ha in textmode which selects System Role 'Text Mode'.
+vars:
+  YUI_REST_API: 1
+schedule:
+  extension_module_selection:
+    - installation/module_registration/view_development_versions
+    - installation/module_registration/register_extensions_and_modules
+  system_role:
+    - installation/system_role/select_role_text_mode
+  installation_settings: []
+  stop_timeout_system_reboot: []
+  system_preparation: []

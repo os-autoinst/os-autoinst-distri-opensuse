@@ -5,22 +5,28 @@
 # Summary: SLES15SP2 and SLES15SP4 FIPS certification need to certify gnutls and libnettle
 #          In this case, will do some base check for gnutls
 #
-# Maintainer: rfan1 <richard.fan@suse.com>, Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>, Ben Chou <bchou@suse.com>
 # Tags: poo#63223, poo#102770, tc#1744099
 
 use base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils 'zypper_call';
-use version_utils qw(is_tumbleweed is_leap is_sle);
+use version_utils qw(is_tumbleweed is_leap is_sle is_transactional);
+use transactional qw(trup_call process_reboot);
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Install the gnutls / libnettle packages (pulled as dependency)
-    zypper_call('in gnutls');
+    if (is_transactional) {
+        trup_call('pkg install gnutls');
+        process_reboot(trigger => 1);
+    } else {
+        zypper_call('in gnutls');
+    }
 
     my $current_ver = script_output("rpm -q --qf '%{version}\n' gnutls");
     record_info('gnutls version', "Version of Current gnutls package: $current_ver");
@@ -37,7 +43,7 @@ sub run {
     if (!get_var("FIPS_ENV_MODE")) {
         validate_script_output 'gnutls-cli --fips140-mode 2>&1', sub {
             m/
-                library\sis\sin\sFIPS140-2\smode.*/sx
+                library\sis\sin\sFIPS140-[2-3]\smode.*/sx
         };
     }
 

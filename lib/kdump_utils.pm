@@ -15,7 +15,7 @@ use Utils::Architectures;
 use power_action_utils 'power_action';
 use version_utils qw(is_sle is_jeos is_leap is_tumbleweed is_opensuse);
 use utils 'ensure_serialdev_permissions';
-
+use virt_autotest::utils 'is_xen_host';
 
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump
   activate_kdump activate_kdump_cli activate_kdump_without_yast
@@ -192,13 +192,15 @@ sub activate_kdump {
         $expect_restart_info = 1;
     }
     send_key('alt-o');
+    # Expect yast2-kdump-restart-info on s390x
+    $expect_restart_info = 1 if (is_s390x && is_sle('15-SP5+'));
     if ($expect_restart_info == 1) {
-        my @tags = qw(yast2-kdump-restart-info os-prober-warning);
+        my @tags = qw(yast2-kdump-restart-info os-prober-warning yast2-kdump-no-restart-info);
         do {
             assert_screen(\@tags, timeout => 180);
             handle_warning_install_os_prober() if match_has_tag('os-prober-warning');
-        } until (match_has_tag('yast2-kdump-restart-info'));
-        send_key('alt-o');
+        } until (match_has_tag('yast2-kdump-restart-info') || match_has_tag('yast2-kdump-no-restart-info'));
+        send_key('alt-o') if match_has_tag('yast2-kdump-restart-info');
     }
 
     if (check_screen('yast2-kdump-restart-info', 180)) {
@@ -211,6 +213,16 @@ sub activate_kdump {
 
 # Activate kdump using yast command line interface
 sub activate_kdump_cli {
+    # Skip configuration, if is kdump already enabled and no special memory settings is required
+    # Yast cli may timeout on with XEN bsc#1206274, we need to check configuration directly
+    my $status;
+    if (is_xen_host) {
+        $status = script_run('! grep "GRUB_CMDLINE_XEN_DEFAULT.*crashkernel" /etc/default/grub');
+    } else {
+        $status = script_run('yast kdump show 2>&1 | grep "Kdump is disabled"', 180);
+    }
+    return if ($status and !get_var('CRASH_MEMORY'));
+
     # Make sure fadump is disabled on PowerVM
     assert_script_run('yast2 kdump fadump disable', 180) if is_pvm;
 
@@ -341,6 +353,7 @@ sub configure_service {
 sub check_function {
     my %args = @_;
     $args{test_type} //= '';
+    my $boot_timeout = is_aarch64 || is_hyperv ? 240 : undef;
 
     my $self = y2_module_consoletest->new();
 
@@ -363,18 +376,18 @@ sub check_function {
         power_action('reboot', textmode => 1, observe => 1, keepconsole => 1);
     }
     unlock_if_encrypted;
-    # Wait for system's reboot; more time for Hyper-V as it's slow.
-    $self->wait_boot(bootloader_time => check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 200 : undef);
+    # Wait for system's reboot; more time for Hyper-V / aarch64 as it's slow.
+    $self->wait_boot(bootloader_time => $boot_timeout);
     select_console 'root-console';
 
     assert_script_run 'find /var/crash/';
 
     if ($args{test_type} eq 'function') {
         # Check, that vmcore exists, otherwise fail
-        assert_script_run('ls -lah /var/crash/*/vmcore', 180);
+        assert_script_run('ls -lah /var/crash/*/vmcore', 240);
         my $vmlinux = (is_sle("<16") || is_leap("<16.0")) ? '/boot/vmlinux-$(uname -r)*' : '/usr/lib/modules/$(uname -r)/vmlinux*';
         my $crash_cmd = "echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` $vmlinux";
-        validate_script_output "$crash_cmd", sub { m/PANIC:\s([^\s]+)/ }, 800;
+        validate_script_output "$crash_cmd", sub { m/PANIC:\s([^\s]+)/ }, is_aarch64 ? 1200 : 800;
     }
     else {
         # migration tests need remove core files before migration start

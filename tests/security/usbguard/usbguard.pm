@@ -11,7 +11,7 @@
 #          '# usbguard add-user', '# usbguard remove-user',
 #          '# usbguard get-parameter', '# usbguard set-parameter'
 #          '# usbguard generate/list/install/remove rules'
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#102566, tc#1769830
 
 use base 'opensusebasetest';
@@ -41,7 +41,7 @@ sub run {
 
     # 0. Set up environment
     # Install usbguard packages
-    zypper_call('in libusbguard1 usbguard usbguard-devel usbguard-tools', timeout => 900);
+    zypper_call('in libusbguard1 usbguard usbguard-devel usbguard-tools usbutils', timeout => 900);
 
     # Start audit service
     systemctl('restart auditd.service');

@@ -15,6 +15,7 @@ use utils qw(zypper_call script_retry);
 use version_utils qw(get_os_release);
 use power_action_utils qw(power_action);
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub disable_selinux {
     if (script_run('selinuxenabled') == 0) {
@@ -25,7 +26,7 @@ sub disable_selinux {
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $update_timeout = 1200;
 
     my ($version, $sp, $host_distri) = get_os_release;
@@ -49,7 +50,7 @@ sub run {
     # For some reason, we need to wait for some time in RES8 before waiting for boot
     sleep 60 if ($host_distri eq 'rhel');
     $self->wait_boot();
-    $self->select_serial_terminal;
+    select_serial_terminal;
     record_info('uname', script_output('uname -a'));
     record_info('relaese', script_output('cat /etc/os-release'));
 }

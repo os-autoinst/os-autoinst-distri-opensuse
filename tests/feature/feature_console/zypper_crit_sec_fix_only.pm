@@ -5,7 +5,7 @@
 
 # Summary: Test zypper can update critical security fixes only
 # Tags: fate#318760, tc#1480288
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 
 use base "consoletest";
 use strict;

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run ATSec 'ipsec ciphers' case
-# Maintainer: Liu Xiaojing <xiaojing.liu@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#110980
 
 use base 'consoletest';
@@ -30,7 +30,7 @@ sub run {
     # Test ike
     my $ike_output = script_output('bash test_basic_ipsec_eval_ike.bash');
 
-    mutex_create('IPSEC_CLEINT_DONE');
+    mutex_create('IPSEC_CLIENT_DONE');
 
     my @results = (split(/\n/, "$esp_output\n$ike_output"));
     my $expect_failures = {

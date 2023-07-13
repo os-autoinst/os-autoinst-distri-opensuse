@@ -13,7 +13,7 @@
 # - Check /tmp/apparmor.d/usr.sbin.nscd" for '/usr.*nscd mrix' and 'nscd\.conf'
 # - Check if nscd could start with the temporary apparmor profiles
 # - Cleanup temporary directory
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#36892, poo#45803, poo#81730, tc#1767574
 
 use base "apparmortest";

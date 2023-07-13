@@ -6,7 +6,7 @@
 #
 # Package: ipsec-tools iproute2
 # Summary: Test Racoon host-to-host scenario
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 
 use strict;
 use warnings;

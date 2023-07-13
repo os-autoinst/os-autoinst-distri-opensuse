@@ -11,7 +11,7 @@
 #    - It is active;
 #    - Its properties are correct.
 #    - Storing and restoring for binary backups of LUKS header and keyslot areas.
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package validate_encrypt;
 use strict;

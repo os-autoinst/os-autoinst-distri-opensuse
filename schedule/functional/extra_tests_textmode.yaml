@@ -56,16 +56,13 @@ conditional_schedule:
                 - console/gdb
                 - console/perf
                 - console/salt
-                - console/sssd_389ds_functional
                 - console/libgpiod
                 - console/libgcrypt
                 - console/gd
                 - console/gcc
-                - console/valgrind
                 - console/wpa_supplicant
                 - appgeo/gdal
                 - console/rabbitmq
-                - console/rails
                 - console/openqa_review
                 - console/zbar
                 - console/a2ps
@@ -77,6 +74,7 @@ conditional_schedule:
                 - console/python_scientific
                 - console/vmstat
                 - console/kdump_and_crash
+                - console/ansible
     validate_packages_and_patterns:
         DISTRI:
             sle:
@@ -87,8 +85,8 @@ conditional_schedule:
                 - console/supportutils
                 - console/zziplib
                 - console/vsftpd
-                - console/python310_version_check
-                - network/samba/samba_adcli
+                - console/python3_new_version_check
+                - console/year_2038_detection
     tumbleweed_tests:
         VERSION:
             'Tumbleweed':
@@ -96,10 +94,12 @@ conditional_schedule:
                 - console/systemd_rpm_macros
                 - console/vsftpd
                 - console/python_flake8
-                - console/python310_version_check
+                - console/python3_new_version_check
+                - console/year_2038_detection
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
+    - console/system_prepare
     - console/prepare_test_data
     - console/consoletest_setup
     - '{{update_repos}}'
@@ -152,7 +152,6 @@ schedule:
     - console/mutt
     - '{{sle_tests}}'
     - console/mdadm
-    - console/journalctl
     - console/systemd_nspawn
     - console/quota
     - console/vhostmd
@@ -168,6 +167,9 @@ schedule:
     - console/osinfo_db
     - '{{opensuse_tests}}'
     - '{{tumbleweed_tests}}'
+    - console/journalctl
     - console/tar
     - console/coredump_collect
+    - console/valgrind
+    - console/sssd_389ds_functional
     - console/zypper_log_packages

@@ -1,0 +1,64 @@
+---
+name: qam-minimal
+description:    >
+    Maintainer: qe-core@suse.com
+    test is first textmode, system update and RR update is done
+    on x86_64 is installation publiched for grub2 test
+vars:
+  DESKTOP: 'textmode'
+schedule:
+- installation/bootloader_start
+- installation/welcome
+- '{{disk_activation}}'
+- installation/scc_registration
+- installation/addon_products_sle
+- installation/system_role
+- installation/partitioning
+- '{{ext4}}'
+- '{{lvm}}'
+- installation/partitioning_finish
+- installation/installer_timezone
+- installation/user_settings
+- installation/user_settings_root
+- installation/resolve_dependency_issues
+- installation/select_patterns
+- installation/installation_overview
+- installation/disable_grub_timeout
+- installation/start_install
+- installation/await_install
+- installation/logs_from_installation_system
+- installation/reboot_after_installation
+- installation/handle_reboot
+- installation/first_boot
+- console/system_prepare
+- console/hostname
+- qam-minimal/install_update
+- qam-minimal/update_minimal
+- qam-minimal/check_logs
+- '{{s390tools}}'
+- '{{publish}}'
+conditional_schedule:
+  disk_activation:
+    ARCH:
+      s390x:
+        - installation/disk_activation
+  ext4:
+    FILESYSTEM:
+      ext4:
+        - installation/partitioning_filesystem
+  lvm:
+    LVM:
+      1:
+        - installation/partitioning/lvm
+  s390tools:
+    ARCH:
+      s390x:
+        - qam-minimal/s390tools
+  publish:
+    ARCH:
+      x86_64:
+        - console/force_scheduled_tasks
+        - shutdown/grub_set_bootargs
+        - shutdown/cleanup_before_shutdown
+        - shutdown/shutdown
+...

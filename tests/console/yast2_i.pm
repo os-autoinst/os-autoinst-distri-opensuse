@@ -17,7 +17,7 @@
 # "nfs-client"
 # - Disable "recommended packages" and accept install of test package
 # - Remove test package
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "y2_module_consoletest";
 use strict;

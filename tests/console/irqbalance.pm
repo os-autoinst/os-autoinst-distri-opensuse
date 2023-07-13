@@ -11,11 +11,11 @@ use warnings;
 use base "consoletest";
 use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
+use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call clear_console);
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Return when balancing is ineffective on system with a single cpu
     my $nproc = script_output('cat /proc/cpuinfo | grep processor | wc -l');

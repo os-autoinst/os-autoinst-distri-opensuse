@@ -7,7 +7,7 @@
 # Package: zypper
 # Summary: Full patch system using zypper
 # - Calls zypper in quiet mode and patch system
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "y2_module_consoletest";
 use strict;

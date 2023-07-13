@@ -26,12 +26,13 @@ use strict;
 use warnings;
 
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 use version_utils qw(is_sle is_opensuse);
+use Utils::Logging 'export_logs_basic';
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Install test subjects and test scripts
     my @test_subjects = qw(
@@ -90,7 +91,7 @@ sub run {
 
 sub post_fail_hook {
     select_console 'log-console';
-    shift->export_logs_basic;
+    export_logs_basic;
 }
 
 1;

@@ -1,0 +1,24 @@
+---
+name: yast_hostname+dhcp_hostname
+description: >
+  Test suite uses default option to set dhcp (using ifgf=*=dhcp), hostname.
+  Test validates if installation can successfully start in case of usage of
+  these parameters.
+vars:
+  EXPECTED_INSTALL_HOSTNAME: dhcphostname
+  EXTRABOOTPARAMS: ifcfg=*=dhcp
+  NICTYPE_USER_OPTIONS: hostname=dhcphostname
+  YUI_REST_API: 1
+schedule:
+  local_user:
+    - installation/hostname_inst
+    - installation/authentication/use_same_password_for_root
+    - installation/authentication/default_user_simple_pwd
+  booting: []
+  default_systemd_target: []
+  installation_settings: []
+  installation: []
+  installation_logs: []
+  confirm_reboot: []
+  grub: []
+  first_login: []

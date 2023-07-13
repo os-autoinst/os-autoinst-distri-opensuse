@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2020 SUSE LLC
+# Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: zfs util-linux
@@ -22,23 +22,26 @@ use testapi;
 use utils;
 use version_utils;
 use power_action_utils 'power_action';
+use serial_terminal 'select_serial_terminal';
 
 my $disksize = "100M";    # Size of the test disks
 
 sub get_repository() {
     if (is_tumbleweed) {
         return 'https://download.opensuse.org/repositories/filesystems/openSUSE_Tumbleweed/filesystems.repo';
-    } elsif (is_leap("=15.4")) {
+    } elsif (is_leap("=15.5") || is_sle("=15-SP5")) {
+        return 'https://download.opensuse.org/repositories/filesystems/15.5/filesystems.repo';
+    } elsif (is_leap("=15.4") || is_sle("=15-SP4")) {
         return 'https://download.opensuse.org/repositories/filesystems/15.4/filesystems.repo';
     } elsif (is_leap("=15.3")) {
         return 'https://download.opensuse.org/repositories/filesystems/15.3/filesystems.repo';
-    } elsif (is_sle("=15.3")) {
+    } elsif (is_sle("=15-SP3")) {
         return 'https://download.opensuse.org/repositories/filesystems/SLE_15_SP3/filesystems.repo';
-    } elsif (is_sle("=15.2")) {
+    } elsif (is_sle("=15-SP2")) {
         return 'https://download.opensuse.org/repositories/filesystems/SLE_15_SP2/filesystems.repo';
-    } elsif (is_sle("=15.1")) {
+    } elsif (is_sle("=15-SP1")) {
         return 'https://download.opensuse.org/repositories/filesystems/SLE_15_SP1/filesystems.repo';
-    } elsif (is_sle("=12.5")) {
+    } elsif (is_sle("=12-SP5")) {
         return 'https://download.opensuse.org/repositories/filesystems/SLE_12_SP5/filesystems.repo';
     } else {
         die "Unsupported version";
@@ -57,7 +60,7 @@ sub install_zfs {
         $repo = get_repository();
         if (!check_available($repo)) {
             my $msg = "Sorry, zfs repository is not (yet) available for this distribution";
-            record_soft_failure($msg);
+            record_info('Softfail', $msg, result => 'softfail');
             return 0;
         }
     }
@@ -100,7 +103,9 @@ sub cleanup {
 
 sub scrub {
     my $pool = shift;
-    assert_script_run("zpool scrub $pool", timeout => 180);
+    # We may skip scrub operation in case the zpool is currently resilvering.
+    my $in_progress = script_run("zpool status $pool | grep -e 'scan:.*in progress'") == 0;
+    assert_script_run("zpool scrub $pool", timeout => 180) if (!$in_progress);
     # Wait for scrub to finish
     script_retry("zpool status $pool | grep scan | grep -v 'in progress'", delay => 10, retry => 12);
 }
@@ -118,16 +123,33 @@ sub import_pool {
 
 sub reboot {
     my ($self) = @_;
-    my $console = current_console();    # Restore current console after reboot
     power_action('reboot', textmode => 1);
     $self->wait_boot(bootloader_time => 300);
-    select_console "$console";
+    select_serial_terminal();
 }
 
 sub run {
     my $self = shift;
+    select_serial_terminal();
+
+    if (!is_sle()) {
+        record_info 'grub2 zfs', 'ensure that zfs in grub2 is not available on SLE but on openSUSE';
+        my @bootloader_rpms = split(/\n/, script_output("zypper se 'grub2-' | grep 'Bootloader with support' | grep '^i' | awk '{print \$3}'"));
+        for my $rpm (@bootloader_rpms) {
+            assert_script_run("rpm -ql $rpm | grep zfs ; test \"\$?\" == \"1\"");
+            zypper_call "in $rpm-extras";
+            assert_script_run("rpm -ql $rpm-extras | grep zfs");
+        }
+    }
+
     return unless (install_zfs());    # Possible softfailure if module is not yet available (e.g. new Leap version)
-    assert_script_run('modprobe zfs');
+    my $additional = "";
+    $additional = "--allow-unsupported" if (is_sle);
+    assert_script_run("modprobe $additional zfs");
+    assert_script_run("ztest", fail_message => "zfs test suite 'ztest' failed", timeout => 600);
+
+    ## Integration tests start here
+
     prepare_disks();
 
     ## Prepare test pools
@@ -175,7 +197,7 @@ sub run {
     clear_disk('/var/tmp/tank_a.img');
     assert_script_run('zpool replace tank /var/tmp/tank_a.img');
     scrub('tank');
-    assert_script_run('zpool status tank | grep state | grep ONLINE');
+    script_retry('zpool status tank | grep state | grep ONLINE', delay => 3, retry => 3);
     # Display status for debugging purposes
     script_run('zpool status tank');
 
@@ -249,10 +271,11 @@ sub run {
     assert_script_run('mv /tank/BBB_8_seconds_bird_clip.ogv /tank/Big_Buck_Bunny_8_seconds_bird_clip.ogv');
 
     ## Check if zfs survives a reboot
-    assert_script_run("echo zfs > /etc/modules-load.d//90-zfs.conf");
-    assert_script_run("chmod 0644 /etc/modules-load.d//90-zfs.conf");
+    assert_script_run("echo 'allow_unsupported_modules 1' > /etc/modprobe.d/10-unsupported-modules.conf") if (is_sle);
+    assert_script_run("echo 'zfs' > /etc/modules-load.d/90-zfs.conf");
+    assert_script_run("chmod 0644 /etc/modules-load.d/90-zfs.conf");
     reboot($self);
-    assert_script_run("lsmod | grep zfs");
+    validate_script_output("lsmod", qr/zfs/, fail_message => "zfs module not loaded after reboot");
     assert_script_run("systemctl status zfs.target | grep 'active'");
     assert_script_run("systemctl status zfs-share | grep 'active'");
     # Since zpool by default only searches for disks but not files, we need to point it to the disk files manually
@@ -288,6 +311,11 @@ sub post_fail_hook {
 
 sub post_run_hook {
     cleanup();
+}
+
+sub test_flags {
+    # Test is rather intrusive, so to be sure to not disturb the rest of the test run, do a rollback
+    return {always_rollback => 1};
 }
 
 1;

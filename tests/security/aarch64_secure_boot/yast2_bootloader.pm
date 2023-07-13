@@ -4,7 +4,7 @@
 # Summary: Use "yast2 bootloader" to enable or
 #          disable secureboot support
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#81712
 
 use base 'opensusebasetest';

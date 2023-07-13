@@ -26,6 +26,7 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use containers::common;
 use containers::utils;
@@ -35,7 +36,7 @@ sub run {
     my ($self, $args) = @_;
     die('You must define a engine') unless ($args->{runtime});
     $self->{runtime} = $args->{runtime};
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $dir = "/root/DockerTest";
 

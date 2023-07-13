@@ -1,0 +1,34 @@
+---
+name: minimal+base@s390x_zvm.yaml
+description: >
+  Select a minimal textmode installation by starting with the default and unselecting
+  all patterns except for "base" and "enhanced_base". Not to be confused with
+  the new system role "minimal" introduced with SLE15. Requires disk activation
+  and grub is not displayed due to console reconnection.
+vars:
+  DEPENDENCY_RESOLVER_FLAG: 1
+  DESKTOP: textmode
+  PATTERNS: base,enhanced_base
+  YUI_REST_API: 1
+schedule:
+  software:
+    - installation/select_patterns
+  security:
+    - installation/security/select_security_module_none
+  system_preparation:
+    - console/system_prepare
+  system_validation:
+    - console/installation_snapshots
+    - console/zypper_lr
+    - console/zypper_ref
+    - console/ncurses
+    - update/zypper_up
+    - console/zypper_lifecycle
+    - console/orphaned_packages_check
+    - console/validate_installed_patterns
+    - console/consoletest_finish
+test_data:
+  software:
+    patterns:
+      - base
+      - enhanced_base

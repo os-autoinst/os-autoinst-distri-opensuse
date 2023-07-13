@@ -5,7 +5,7 @@
 
 # Package: vncmanager xorg-x11
 # Summary: Configure remote administration with yast2 vnc
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

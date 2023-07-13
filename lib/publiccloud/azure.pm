@@ -13,11 +13,14 @@ use Mojo::JSON qw(decode_json encode_json);
 use Term::ANSIColor 2.01 'colorstrip';
 use Data::Dumper;
 use testapi qw(is_serial_terminal :DEFAULT);
+use mmapi 'get_current_job_id';
 use utils qw(script_output_retry);
 use publiccloud::azure_client;
+use publiccloud::ssh_interactive 'select_host_console';
 
 has resource_group => 'openqa-upload';
 has container => 'sle-images';
+has image_gallery => 'test_image_gallery';
 has lease_id => undef;
 
 sub init {
@@ -58,19 +61,50 @@ sub get_image_id {
 
 sub find_img {
     my ($self, $name) = @_;
+    my ($json, $md5, $image);
 
     return if (!$self->resource_exist());
 
     ($name) = $name =~ m/([^\/]+)$/;
+    my $sku = (check_var('PUBLIC_CLOUD_AZURE_SKU', 'gen2')) ? 'V2' : 'V1';
     $name =~ s/\.xz$//;
-    $name =~ s/\.vhdfixed$/.vhd/;
-    my $json = script_output("az image show --resource-group " . $self->resource_group . " --name $name", 60, proceed_on_failure => 1);
-    record_info('INFO', $json);
-    my $image;
-    eval {
-        $image = decode_azure_json($json)->{name};
-    };
-    record_info('INFO', "Cannot find image $name. Need to upload it.\n$@") if ($@);
+    $name =~ s/\.vhdfixed$/-$sku.vhd/;
+
+    my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'eisleqaopenqa');
+    my $key = $self->get_storage_account_keys($storage_account);
+    my $container = $self->container;
+
+    $json = script_output("az storage blob show --account-key $key -o json " .
+          "--container-name '$container' --account-name '$storage_account' --name '$name' " .
+          '--query="{name: name,createTime: properties.creationTime,md5: properties.contentSettings.contentMd5}"',
+        proceed_on_failure => 1);
+    record_info('BLOB INFO', $json);
+    eval { $md5 = decode_azure_json($json)->{md5}; };
+    if ($@) {
+        record_info('BLOB NOT-FOUND', "Cannot find blob $name. Need to upload it.\n$@");
+    } elsif (!$md5 || $md5 !~ /^[a-fA-F0-9]{32}$/) {
+        record_info('INVALID', "The blob $name does not have valid md5 field.");
+        return $image;
+    }
+
+    my $arch = (check_var('PUBLIC_CLOUD_ARCH', 'arm64')) ? 'Arm64' : 'x64';
+    if ($arch eq 'Arm64') {
+        my $resource_group = $self->resource_group;
+        my $gallery = $self->image_gallery;
+        my $version = calc_img_version();
+        my $definition = get_required_var('DISTRI') . '-' . get_required_var('FLAVOR') . '-' . get_required_var('VERSION');
+        $definition = get_var("PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION", uc($definition));
+        $json = script_output("az sig image-version show --resource-group '$resource_group' --gallery-name '$gallery' " .
+              "--gallery-image-definition '$definition' --gallery-image-version '$version'", proceed_on_failure => 1, timeout => 60 * 30);
+    } else {
+        $json = script_output("az image show --resource-group " . $self->resource_group . " --name $name", 60, proceed_on_failure => 1);
+        record_info('IMG INFO', $json);
+        eval { $image = decode_azure_json($json)->{name}; };
+        record_info('IMG NOT-FOUND', "Cannot find image $name. Need to upload it.\n$@") if ($@);
+    }
+    record_info('IMGV INFO', $json);
+    eval { $image = decode_azure_json($json)->{name}; };
+    record_info('IMGV NOT-FOUND', "Cannot find image-version $name. Need to upload it.\n$@") if ($@);
     return $image;
 }
 
@@ -89,15 +123,31 @@ sub get_storage_account_keys {
 
 sub create_resources {
     my ($self, $storage_account) = @_;
+    my $container = $self->container;
     my $timeout = 60 * 5;
     record_info('INFO', 'Create resource group ' . $self->resource_group);
     assert_script_run('az group create --name ' . $self->resource_group . ' -l ' . $self->provider_client->region, $timeout);
     record_info('INFO', 'Create storage account ' . $storage_account);
     assert_script_run('az storage account create --resource-group ' . $self->resource_group . ' -l '
           . $self->provider_client->region . ' --name ' . $storage_account . ' --kind Storage --sku Standard_LRS', $timeout);
-    record_info('INFO', 'Create storage container ' . $self->container);
+    record_info('INFO', 'Create storage container ' . $container);
     assert_script_run('az storage container create --account-name ' . $storage_account
-          . ' --name ' . $self->container, $timeout);
+          . ' --name ' . $container, $timeout);
+    # Image gallery for Arm64 images
+    assert_script_run('az sig create --resource-group ' . $self->resource_group . ' --gallery-name "' . $self->image_gallery . '" --description "openQA upload Gallery"', timeout => 300);
+}
+
+sub calc_img_version {
+    # Build the image Version for upload to the Compute Gallery.
+    # The expected format is 'X.Y.Z'.
+    # We assemble the img version by the PUBLIC_CLOUD_BUILD (Format: 'X.Y') and the digits of PUBLIC_CLOUD_KIWI_BUILD, formatted as integer
+
+    my $build = get_required_var('PUBLIC_CLOUD_BUILD');
+    # Take only the digits of PUBLIC_CLOUD_KIWI_BUILD and convert to an int, to remove leading zeros
+    my $kiwi = get_required_var('PUBLIC_CLOUD_BUILD_KIWI');
+    $kiwi =~ s/\.//g;
+    $kiwi = int($kiwi);
+    return "$build.$kiwi";
 }
 
 sub upload_img {
@@ -109,25 +159,80 @@ sub upload_img {
     }
 
     my ($img_name) = $file =~ /([^\/]+)$/;
-    $img_name =~ s/\.vhdfixed/.vhd/;
+    my $sku = (check_var('PUBLIC_CLOUD_AZURE_SKU', 'gen2')) ? 'V2' : 'V1';
+    $img_name =~ s/\.vhdfixed/-$sku.vhd/;
     my $disk_name = $img_name;
     my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'eisleqaopenqa');
+    my $container = $self->container;
+
+    my $arch = (check_var('PUBLIC_CLOUD_ARCH', 'arm64')) ? 'Arm64' : 'x64';
+
+    my $job_id = get_current_job_id();
+    my $openqa_url = get_required_var('OPENQA_URL');
+    my $created_by = "$openqa_url/t$job_id";
+    my $tags = "openqa_created_by=$created_by";
 
     my $rg_exist = $self->resource_exist();
-
     $self->create_resources($storage_account) if (!$rg_exist);
 
     my $key = $self->get_storage_account_keys($storage_account);
 
-    assert_script_run('az storage blob upload --max-connections 4 --account-name '
-          . $storage_account . ' --account-key ' . $key . ' --container-name ' . $self->container
-          . ' --type page --file ' . $file . ' --name ' . $img_name, timeout => 60 * 60 * 2);
-    assert_script_run('az disk create --resource-group ' . $self->resource_group . ' --name ' . $disk_name
-          . ' --source https://' . $storage_account . '.blob.core.windows.net/' . $self->container . '/' . $img_name);
+    # Note: VM images need to be a page blob type
+    assert_script_run('az storage blob upload --max-connections 4 --type page --overwrite'
+          . " --account-name '$storage_account' --account-key '$key' --container-name '$container'"
+          . " --file '$file' --name '$img_name' --tags '$tags'", timeout => 60 * 60 * 2);
+    # After blob is uploaded we save the MD5 of it as its metadata.
+    # This is also to verify that the upload has been finished.
+    my $file_md5 = script_output("md5sum $file | cut -d' ' -f1", timeout => 240);
+    assert_script_run("az storage blob update --account-key $key --container-name '$container' --account-name '$storage_account' --name $img_name --content-md5 $file_md5");
 
-    assert_script_run('az image create --resource-group ' . $self->resource_group . ' --name ' . $img_name
-          . ' --os-type Linux --source=' . $disk_name);
+    if ($arch eq 'Arm64') {
+        # For Arm64 images we need to use the image galleries
+        my $publisher = get_var("PUBLIC_CLOUD_AZURE_PUBLISHER", "qe-c");
+        my $offer = get_required_var("PUBLIC_CLOUD_AZURE_OFFER");
+        my $definition = get_required_var('DISTRI') . '-' . get_required_var('FLAVOR') . '-' . get_required_var('VERSION');
+        $definition = get_var("PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION", uc($definition));
+        $sku = get_required_var("PUBLIC_CLOUD_AZURE_SKU");
+        ## For the Azure Compute Gallery, multiple target regions are supported.
+        # This is necessary, because the image version upload needs to happen once for all regions, for which we want to
+        # execute test runs. For reasons of being concise we re-use the existing variable PUBLIC_CLOUD_REGION, but here
+        # it can contain a comma-separated list of all regions, in which the uploaded image should be available
+        my $target_regions = get_var("PUBLIC_CLOUD_REGION", "westeurope");
+        $target_regions =~ s/,/ /g;    # CLI expects spaces as separation, not commas
+        my $hyperv = $sku =~ 'gen1' ? 'V1' : 'V2';
+        my $subscription = $self->provider_client->subscription;
+        my $sa_url = "/subscriptions/$subscription/resourceGroups/imageGroups/providers/Microsoft.Storage/storageAccounts/$storage_account";
+        my $version = calc_img_version();
 
+        my $resource_group = $self->resource_group;
+        my $gallery = $self->image_gallery;
+
+        ## Create image definition. This image definition can then be used by addressing it with it's
+        ## /subscription/.../resourceGroups/openqa-upload/providers/Microsoft.Compute/galleries/...
+        ## link.
+        ## 1. Ensure the image definition in the Azure Compute Gallery exists
+        ## 2. Create a new image version for that definition. Use the link to the uploaded blob to create this version
+
+        # Print image definitions as a help to debug possible conflicting definitions
+        my $images = script_output("az sig image-definition list -g '$resource_group' -r '$gallery'");
+        record_info("img-def", "Existing image definitions:\n$images");
+
+        # Note: Repetitive calls are do not fail
+        assert_script_run("az sig image-definition create --resource-group '$resource_group' --gallery-name '$gallery' " .
+              "--gallery-image-definition '$definition' --os-type Linux --publisher '$publisher' --offer '$offer' --sku '$sku' " .
+              "--architecture '$arch' --hyper-v-generation '$hyperv' --os-state 'Generalized'", timeout => 300);
+        assert_script_run("az sig image-version create --resource-group '$resource_group' --gallery-name '$gallery' " .
+              "--gallery-image-definition '$definition' --gallery-image-version '$version' --os-vhd-storage-account '$sa_url' " .
+              "--os-vhd-uri https://$storage_account.blob.core.windows.net/$container/$img_name --target-regions $target_regions", timeout => 60 * 30);
+    } else {
+        # Create disk from blob
+        assert_script_run('az disk create --resource-group ' . $self->resource_group . ' --name ' . $disk_name
+              . ' --source https://' . $storage_account . '.blob.core.windows.net/' . $container . '/' . $img_name
+              . ' --hyper-v-generation=' . $sku . ' --architecture=' . $arch);
+        # Create image from disk
+        assert_script_run('az image create --resource-group ' . $self->resource_group . ' --name ' . $img_name
+              . ' --os-type Linux --hyper-v-generation=' . $sku . ' --source=' . $disk_name);
+    }
     return $img_name;
 }
 
@@ -135,20 +240,8 @@ sub img_proof {
     my ($self, %args) = @_;
 
     my $credentials_file = 'azure_credentials.txt';
-    my $credentials = "{" . $/
-      . '"clientId": "' . $self->provider_client->key_id . '", ' . $/
-      . '"clientSecret": "' . $self->provider_client->key_secret . '", ' . $/
-      . '"subscriptionId": "' . $self->provider_client->subscription . '", ' . $/
-      . '"tenantId": "' . $self->provider_client->tenantid . '", ' . $/
-      . '"activeDirectoryEndpointUrl": "https://login.microsoftonline.com", ' . $/
-      . '"resourceManagerEndpointUrl": "https://management.azure.com/", ' . $/
-      . '"activeDirectoryGraphResourceId": "https://graph.windows.net/", ' . $/
-      . '"sqlManagementEndpointUrl": "https://management.core.windows.net:8443/", ' . $/
-      . '"galleryEndpointUrl": "https://gallery.azure.com/", ' . $/
-      . '"managementEndpointUrl": "https://management.core.windows.net/" ' . $/
-      . '}';
 
-    save_tmp_file($credentials_file, $credentials);
+    save_tmp_file($credentials_file, $self->provider_client->credentials_file_content);
     assert_script_run('curl -O ' . autoinst_url . "/files/" . $credentials_file);
 
     $args{credentials_file} = $credentials_file;
@@ -298,7 +391,14 @@ This method is called called after each test on failure or success to revoke the
 =cut
 
 sub cleanup {
-    my ($self) = @_;
+    my ($self, $args) = @_;
+    select_host_console(force => 1);
+
+    my $id = $args->{my_instance}->{instance_id};
+
+    script_run("az vm boot-diagnostics get-boot-log --ids $id | jq -r '.' > bootlog.txt", timeout => 120, die_on_timeout => 0);
+    upload_logs("bootlog.txt", failok => 1);
+
     $self->SUPER::cleanup();
     $self->provider_client->cleanup();
 }

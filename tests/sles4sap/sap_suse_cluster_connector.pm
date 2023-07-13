@@ -8,6 +8,7 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use hacluster;
 use strict;
 use warnings;
@@ -34,7 +35,6 @@ sub exec_conn_cmd {
 }
 
 sub run {
-    my ($self) = @_;
     my $instance_type = get_required_var('INSTANCE_TYPE');
     my $instance_id = get_required_var('INSTANCE_ID');
     my $instance_sid = get_required_var('INSTANCE_SID');
@@ -44,7 +44,7 @@ sub run {
     # No need to test this cluster specific part if there is no HA
     return unless get_var('HA_CLUSTER');
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Check the version
     my $package_version = script_output "rpm -q --qf '%{VERSION}' sap-suse-cluster-connector";
@@ -68,18 +68,23 @@ sub run {
     my @resources = get_var('NW') ? ('ip', 'fs', 'sap') : ('ip', 'SAPHanaTopology', 'SAPHana');
     foreach my $rsc_type (@resources) {
         my $rsc = "rsc_${rsc_type}_${instance_sid}_${instance_type}${instance_id}";
+        wait_for_idle_cluster;
         exec_conn_cmd(binary => $binary, cmd => "lsn --res $rsc", log_file => $log_file);
     }
 
     # Test Stop/Start of SAP resource
     my $rsc = get_var('NW') ? "rsc_sap_${instance_sid}_${instance_type}${instance_id}" : "rsc_SAPHana_${instance_sid}_${instance_type}${instance_id}";
+    wait_for_idle_cluster;
     exec_conn_cmd(binary => $binary, cmd => "$_ --res $rsc --act stop", timeout => 120) foreach qw(fra cpa);
     wait_until_resources_stopped(timeout => 1200);
     save_state;    # do a check of the cluster with a screenshot
+    wait_for_idle_cluster;
     exec_conn_cmd(binary => $binary, cmd => "$_ --res $rsc --act start", timeout => 120) foreach qw(fra cpa);
 
     # Wait for the resources to be restarted
     wait_until_resources_started(timeout => 1200);
+    save_state;    # do a check of the cluster with a screenshot
+    assert_script_run 'crm_resource --cleanup';
 
     # Check for the state of the whole cluster
     check_cluster_state;

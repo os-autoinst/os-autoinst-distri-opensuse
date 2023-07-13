@@ -7,7 +7,7 @@
 #          '# Verify re-enable unprivileged eBPF temporarily using "systemctl"'
 #          '# Verify re-enable unprivileged eBPF temporarily using status file'
 #          '# Verify re-enable unprivileged eBPF persistently using config file'
-# Maintainer: llzhao <llzhao@suse.com> Starry Wang <starry.wang@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#103932, tc#1769831, poo#108302
 
 use base 'opensusebasetest';

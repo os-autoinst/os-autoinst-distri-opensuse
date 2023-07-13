@@ -6,7 +6,7 @@
 # Summary: This test module launches the installation from
 #          the installation settings page.
 
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

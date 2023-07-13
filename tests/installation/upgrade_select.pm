@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Select existing partition(s) for upgrade
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_installbase';
 use strict;
@@ -64,6 +64,7 @@ sub run {
         else {
             # Ensure we are in 'Select the Migration Target' page
             assert_screen 'select-migration-target', 120;
+            wait_still_screen 2;
             send_key 'alt-p';
             # Confirm default migration target matches correct base product
             my $migration_target_base = 'migration_target_' . lc(get_var('SLE_PRODUCT', 'sles')) . lc(get_var('VERSION'));

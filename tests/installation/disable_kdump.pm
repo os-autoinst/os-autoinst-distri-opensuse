@@ -29,7 +29,8 @@ sub run {
     }
     else {
         # Select section kdump on Installation Settings overview (video mode)
-        send_key_until_needlematch 'kdump-section-selected', 'tab';
+        send_key_until_needlematch 'kdump-section-selected', 'tab', 30;
+
         send_key 'ret';
     }
 

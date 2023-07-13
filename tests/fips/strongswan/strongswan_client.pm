@@ -20,7 +20,9 @@ use lockapi;
 sub run {
     my $self = shift;
     select_console 'root-console';
-    zypper_call 'in strongswan strongswan-hmac tcpdump';
+
+    # Install runtime dependencies
+    zypper_call("in strongswan strongswan-hmac tcpdump wget");
 
     my $remote_ip = get_var('SERVER_IP', '10.0.2.101');
     my $local_ip = get_var('CLIENT_IP', '10.0.2.102');

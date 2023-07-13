@@ -16,6 +16,7 @@ use base "consoletest";
 use testapi;
 use Utils::Architectures;
 use utils qw(is_bridged_networking systemctl zypper_call);
+use Utils::Logging 'save_and_upload_log';
 
 sub run {
     select_console 'root-console';
@@ -47,7 +48,7 @@ sub post_fail_hook {
     select_console 'log-console';
     upload_logs '/etc/named.conf';
     # to see if zone file is present
-    $self->save_and_upload_log('ls /var/lib/named', 'named_files.log');
+    save_and_upload_log('ls /var/lib/named', 'named_files.log');
     upload_logs '/var/lib/named/localhost.zone';
     script_run '/usr/sbin/named-checkzone localhost /var/lib/named/localhost.zone';
     $self->SUPER::post_fail_hook;

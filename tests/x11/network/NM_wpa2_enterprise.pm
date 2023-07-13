@@ -13,6 +13,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Utils::Logging 'save_and_upload_systemd_unit_log';
 
 sub run {
     my $self = shift;
@@ -28,8 +29,8 @@ sub run {
     enter_cmd "exit";
     enter_cmd "exit";
 
-    # connect again to see if NM has a "connection" after we disabled v4 and v6
-    $self->connect_to_network;
+    # wait for auto reconnect to see if NM has a "connection" after we disabled v4 and v6
+    wait_still_screen;
     assert_screen [qw(network_manager-network_connected network_manager-wrong_card_selected)];
     if (match_has_tag 'network_manager-wrong_card_selected') {
         record_soft_failure 'boo#1079320';
@@ -108,7 +109,7 @@ sub NM_disable_ip {
 sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
-    $self->save_and_upload_systemd_unit_log($_) foreach qw(NetworkManager hostapd);
+    save_and_upload_systemd_unit_log($_) foreach qw(NetworkManager hostapd);
     $self->SUPER::post_fail_hook;
 }
 

@@ -5,7 +5,7 @@
 
 # Package: yast2-network
 # Summary: Base test module for all the tests modules of yast2 lan.
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package yast2_lan_hostname_base;
 use parent "y2_module_consoletest";

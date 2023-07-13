@@ -10,6 +10,7 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_upgrade);
 use main_common 'is_updates_tests';
@@ -17,11 +18,11 @@ use strict;
 use warnings;
 
 sub run {
-    my ($self) = @_;
     my @sappatterns = qw(sap-nw sap-b1 sap-hana);
+    splice(@sappatterns, 1, 1) if (is_sle('15-SP5+'));    # sap-bone pattern is no longer part of SLES4SAP starting on 15-SP5
     my $output = '';
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Disable packagekit
     quit_packagekit;

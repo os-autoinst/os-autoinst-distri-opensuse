@@ -60,6 +60,18 @@
       % }
     </addons>
   </suse_register>
+  <add-on>
+    <add_on_others config:type="list">
+      % for my $repo (@$repos) {
+      % my ($repo_id, $addon) = $repo =~ (/(\d+)\/(.*)\//);
+    <listentry>
+    <media_url><%= $repo %></media_url>
+      <name><%= $addon . "_" . $repo_id %></name>
+      <alias><%= $addon . "_" . $repo_id %></alias>
+    </listentry>
+    %}
+    </add_on_others>
+  </add-on>
   <bootloader>
     <global>
       <timeout config:type="integer">-1</timeout>

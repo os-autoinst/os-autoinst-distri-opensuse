@@ -101,6 +101,7 @@ sub run {
     # We need to set it for reproducing the same behaviour we had with no-quorum-policy=ignore
     if (!check_var('TWO_NODES', 'no')) {
         record_info("Cluster info", "Two nodes cluster detected");
+        wait_for_idle_cluster;
         assert_script_run "crm corosync set quorum.wait_for_all 0";
         assert_script_run "grep -q 'wait_for_all: 0' $corosync_conf";
         assert_script_run "crm cluster stop";

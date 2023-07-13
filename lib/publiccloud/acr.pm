@@ -17,11 +17,7 @@ use Mojo::Base 'publiccloud::k8s_provider';
 use testapi;
 use utils;
 
-has security_token => undef;
-has key_id => undef;
-has key_secret => undef;
 has subscription => undef;
-has tenantid => undef;
 
 sub init {
     my ($self, %args) = @_;

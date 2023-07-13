@@ -5,7 +5,7 @@
 
 # Summary: The class introduces all accessing methods for Kernel Parameters tab
 # in Boot Loader Settings.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package YaST::Bootloader::KernelParametersPage;
 use parent 'Installation::Navigation::NavigationBase';

@@ -5,7 +5,7 @@
 # Summary: Setup dirmngr testing environment - create Root CA,
 #          testing ca, testing DER, and CRL
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#52430, poo#52937, tc#1729313
 
 use base "consoletest";

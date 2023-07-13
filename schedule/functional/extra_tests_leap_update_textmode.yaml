@@ -1,0 +1,45 @@
+---
+name: extra tests for leap in textmode part2
+description: >
+    Run extra tests with leap update
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/check_network
+    - console/system_state
+    - console/prepare_test_data
+    - console/consoletest_setup
+    - locale/keymap_or_locale
+    - console/force_scheduled_tasks
+    - console/textinfo
+    - console/hostname
+    - console/zypper_lr
+    - console/zypper_ref
+    - console/systemd_wo_udev
+    - console/ncurses
+    - console/yast2_lan
+    - console/curl_https
+    - console/salt
+    - console/glibc_sanity
+    - console/glibc_tunables
+    - console/zypper_in
+    - console/zypper_log
+    - console/yast2_i
+    - console/yast2_bootloader
+    - console/vim
+    - console/sshd
+    - console/ssh_cleanup
+    - console/sshfs
+    - console/mtab
+    - console/mariadb_srv
+    - console/yast2_nfs_server
+    - console/rsync
+    - console/http_srv
+    - console/apache
+    - console/dns_srv
+    - console/postgresql_server
+    - console/mariadb_odbc
+    - console/nginx
+    - console/orphaned_packages_check
+    - console/zypper_log_packages
+    - console/consoletest_finish

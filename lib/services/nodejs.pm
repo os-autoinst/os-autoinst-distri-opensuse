@@ -5,7 +5,7 @@
 
 # Summary: Package for nodejs update tests
 #
-# Maintainer: Lemon Li <leli@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package services::nodejs;
 use base 'opensusebasetest';

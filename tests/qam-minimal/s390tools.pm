@@ -5,7 +5,7 @@
 
 # Summary: s390-tools test
 # - bootloader installation (zipl) and re-IPL, without real change as worker has only one dasd
-# - lscss, cputype, lsqeth, lsdasd, lsmem, dasd_reload, dasdview, dasdstat, dbginfo.sh
+# - lscss, cputype, lsqeth, lsdasd, lsmem, dasdview, dasdstat, dbginfo.sh
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "consoletest";
@@ -13,21 +13,28 @@ use strict;
 use warnings;
 use testapi;
 use utils 'zypper_call';
+use version_utils qw(is_sle);
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
     zypper_call 'in s390-tools';
     validate_script_output 'zipl -c /boot/zipl/config --dry-run', sub { m/Building|Preparing|Done/ };
     validate_script_output 'lsreipl', sub { m/Re-IPL|Device|Loadparm|Bootparms/ };
     assert_script_run 'export DASD_DEVICE=$(lsreipl|awk \'/Device/ {print$2}\')';
     validate_script_output 'chreipl ccw -d $DASD_DEVICE', sub { m/Re-IPL|Device|Loadparm|Bootparms/ };
     validate_script_output 'lscss', sub { m/Device|Subchan|DevType|CU|Type|Use|PIM|PAM|POM|CHPIDs/ };
-    validate_script_output 'cputype', sub { m/IBM z/ };
+    if (is_sle('=15-sp4')) {
+        # bsc#1208983
+        assert_script_run("sed -i 's/grep machine/grep \"machine =\"/' /usr/bin/cputype");
+        validate_script_output 'cputype', sub { m/IBM z/ };
+    }
+    else {
+        validate_script_output 'cputype', sub { m/IBM z/ };
+    }
     validate_script_output 'lsqeth', sub { m/Device namei|card_type|cdev0|online|state|buffer_count|layer2/ };
     validate_script_output 'lsdasd', sub { m/Bus-ID|Status|Name|Device|Type|BlkSz|Size|Blocks/ };
     validate_script_output 'lsmem', sub { m/RANGE|SIZE|STATE|REMOVABLE|BLOCK/i };
-    # dasd_reload does exit with 4
-    assert_script_run 'dasd_reload|grep -E "offline|Activating"';
     validate_script_output 'dasdview -i /dev/dasda', sub { m/general DASD information|DASD geometry/ };
     validate_script_output 'dasdview -c /dev/dasda', sub { m/encrypted disk|solid state device/ };
     validate_script_output 'dasdview -x /dev/dasda', sub { m/extended DASD information|features|characteristics/ };

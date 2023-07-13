@@ -1,0 +1,7 @@
+name: create_swtpm_hdd
+description: >
+    This is used by the create_swtpm_hdd test. This runs only on x86_64.
+schedule:
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - security/create_swtpm_hdd/build_hdd

@@ -5,7 +5,7 @@
 
 # Summary: Package for libvirtd service check tests for migration
 #
-# Maintainer: Wegao <wegao@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package services::libvirtd;
 use base 'opensusebasetest';

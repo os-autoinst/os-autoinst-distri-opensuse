@@ -12,10 +12,11 @@
 
 use base "sles4sap";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use version_utils qw(is_sle);
-use utils qw(zypper_call);
+use utils qw(zypper_call script_retry);
 use hacluster qw(is_package_installed);
 use kdump_utils qw(deactivate_kdump_cli);
 
@@ -33,10 +34,10 @@ sub check_failure {
 }
 
 sub add_softfail {
-    my ($module, $os_version, $bsc_number, @parameters) = @_;
+    my ($module, $os_version, $reference, @parameters) = @_;
     foreach my $parameter (@parameters) {
         if (check_var("VERSION", $os_version) && check_failure($module, $parameter)) {
-            record_soft_failure "$bsc_number - Wrong value for $parameter";
+            record_soft_failure("$reference - Wrong value for $parameter");
             remove_value($module, $parameter);
         }
     }
@@ -45,15 +46,18 @@ sub add_softfail {
 sub run {
     my ($self) = @_;
     my $robot_fw_version = '3.2.2';
-    my $test_repo = "/robot/tests/sles-" . get_var('VERSION');
-    my $robot_tar = "robot.tar.gz";
-    my $testkit = get_var('SYS_PARAM_CHECK_TEST', "qa-css-hq.qa.suse.de/$robot_tar");
-    my $python_bin = is_sle('15+') ? 'python3' : 'python';
-    $self->select_serial_terminal;
+    my $distro_ver = is_sle ? "sles-" . get_var('VERSION') : 'Tumbleweed';
+    my $test_repo = "/robot/tests/$distro_ver";
+    my $testkit = get_var('SYS_PARAM_CHECK_TEST', 'https://github.com/openSUSE/sys-param-check');
+    my $python_bin = is_sle('<15') ? 'python' : 'python3';
+    select_serial_terminal;
+
+    # regenerate initrd bsc#1204897
+    assert_script_run 'dracut --force', 180;
 
     # Download and prepare the test environment
-    assert_script_run "cd /; curl -f -v \"$testkit\" -o $robot_tar";
-    assert_script_run "tar -xzf $robot_tar";
+    zypper_call 'in git-core';
+    script_retry "git clone $testkit /robot";
 
     # Install the robot framework
     assert_script_run "unzip /robot/bin/robotframework-$robot_fw_version.zip";

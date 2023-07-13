@@ -5,7 +5,7 @@
 
 # Package: smt yast2-smt
 # Summary: Disconnected SMT internal
-# Maintainer: Wei Gao <wegao@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "x11test";
 use strict;

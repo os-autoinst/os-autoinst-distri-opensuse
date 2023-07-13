@@ -31,8 +31,14 @@ sub rescan_devices {
 sub select_partition {
     my $partition_needle_name = shift;
     send_key 'tab';
+    wait_still_screen 3;
+    save_screenshot;
     send_key 'tab';
+    wait_still_screen 3;
+    save_screenshot;
     send_key 'tab';
+    wait_still_screen 3;
+    save_screenshot;
     for (1 ... 100) {
         send_key 'down';
         send_key_until_needlematch("expert-partitioner-label", "right", 51, 1);
@@ -69,9 +75,14 @@ sub run {
     if (get_var("MITIGATION_INSTALL")) {
         select_partition "expert-partitioner-swap";
         send_key 'alt-e';
+        save_screenshot;
+        wait_still_screen 3;
         send_key 'alt-a';
+        save_screenshot;
         send_key $cmd{next};
+        save_screenshot;
     }
+    wait_still_screen 3;
     my $disk = get_required_var('SPECIFIC_DISK');
     select_partition "expert-partitioner-$disk";
 
@@ -94,6 +105,7 @@ sub run {
     # Expert partition finish
     send_key(is_storage_ng() ? 'alt-n' : 'alt-f');
     send_key 'alt-p';
+    wait_still_screen 3;
     if (check_screen("expert-partitioner-Warning_popup", 5)) {
         send_key 'alt-y';
     }

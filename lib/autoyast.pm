@@ -21,12 +21,13 @@ use warnings;
 use testapi;
 use Utils::Backends;
 use Utils::Architectures;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_opensuse);
 use registration qw(scc_version get_addon_fullname);
 use File::Copy 'copy';
 use File::Find qw(finddepth);
 use File::Path 'make_path';
 use LWP::Simple 'head';
+use Socket;
 
 use xml_utils;
 
@@ -43,6 +44,7 @@ our @EXPORT = qw(
   validate_autoyast_profile
   get_test_data_files
   prepare_ay_file
+  generate_xml
 );
 
 =head2 expand_patterns
@@ -122,7 +124,12 @@ sub expand_patterns {
         }
         return [@all];
     }
-    return [split(/,/, get_var('PATTERNS') =~ s/\bminimal\b/minimal_base/r)] if is_sle('15+');
+    if (is_sle('15+')) {
+        my $patterns = get_var('PATTERNS');
+        $patterns =~ s/\bbase\b/enhanced_base/;
+        $patterns =~ s/\bminimal\b/minimal_base/;
+        return [split(/,/, $patterns)];
+    }
     return [split(/,/, get_var('PATTERNS') =~ s/\bminimal\b/Minimal/r)];
 }
 
@@ -606,7 +613,7 @@ sub detect_profile_directory {
             $major_version =~ s/-SP.*//;
             $distri .= $major_version;
         }
-        $path = "$dir${distri}/$path";
+        $path = "$dir${distri}/$path" unless (is_opensuse && is_s390x);
         record_info('INFO', "Trying to use path with detected folder: '$path'");
     }
     return $path;
@@ -668,7 +675,7 @@ sub expand_variables {
     my ($profile) = @_;
     # Expand other variables
     my @vars = qw(SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_REGCODE_HPC
-      SCC_REGCODE_WE SCC_URL ARCH LOADER_TYPE NTP_SERVER_ADDRESS
+      SCC_REGCODE_LTSS SCC_REGCODE_WE SCC_URL ARCH LOADER_TYPE NTP_SERVER_ADDRESS
       REPO_SLE_MODULE_DEVELOPMENT_TOOLS);
     # Push more variables to expand from the job setting
     my @extra_vars = push @vars, split(/,/, get_var('AY_EXPAND_VARS', ''));
@@ -677,6 +684,9 @@ sub expand_variables {
         $profile =~ s/\{\{SALT_FORMULAS_PATH\}\}/$tarfile/g;
     }
     for my $var (@vars) {
+        if ($var eq 'WORKER_IP') {
+            set_var('WORKER_IP', inet_ntoa(inet_aton(get_var 'WORKER_HOSTNAME')));
+        }
         # Skip if value is not defined
         next unless my ($value) = get_var($var);
         $profile =~ s/\{\{$var\}\}/$value/g;
@@ -835,6 +845,67 @@ sub prepare_ay_file {
     $profile = expand_variables($profile);
     upload_profile(profile => $profile, path => $path);
     return $path;
+}
+
+=head2 generate_xml
+
+  generate_xml(addons => $addons)
+
+Get maintenance updates addons
+Generate one xml file
+Get values from MAINT_TEST_REPO
+Return string with xml format
+
+  $addons is maintenance updates URL
+
+=cut
+
+sub generate_xml {
+    my ($addons) = @_;
+
+    # Generate addon products xml file
+    my $writer = XML::Writer->new(
+        DATA_MODE => 'true',
+        DATA_INDENT => 2,
+        OUTPUT => "self"
+    );
+    $writer->startTag(
+        "add_on_products",
+        xmlns => "http://www.suse.com/1.0/yast2ns",
+        "xmlns:config" => "http://www.suse.com/1.0/configns"
+    );
+    $writer->startTag("product_items", "config:type" => "list");
+    for my $addon (split(/,/, $addons)) {
+        my ($repo_id, $repo) = $addon =~ (/^\S+\/(\d+)\/(\S+)\/$/);
+        my $name = join '_', ($repo, $repo_id);
+        $writer->startTag("product_item");
+        $writer->startTag("url");
+        $writer->characters($addon);
+        $writer->endTag("url");
+        $writer->startTag("name");
+        $writer->characters($name);
+        $writer->endTag("name");
+        $writer->startTag("alias");
+        $writer->characters($name);
+        $writer->endTag("alias");
+        $writer->startTag("priority", "config:type" => "integer");
+        $writer->characters("50");
+        $writer->endTag("priority");
+        $writer->startTag("ask_user", "config:type" => "boolean");
+        $writer->characters("true");
+        $writer->endTag("ask_user");
+        $writer->startTag("selected", "config:type" => "boolean");
+        $writer->characters("true");
+        $writer->endTag("selected");
+        $writer->startTag("check_name", "config:type" => "boolean");
+        $writer->characters("true");
+        $writer->endTag("check_name");
+        $writer->endTag("product_item");
+    }
+    $writer->endTag("product_items");
+    $writer->endTag("add_on_products");
+    $writer->end();
+    return $writer->to_string;
 }
 
 1;

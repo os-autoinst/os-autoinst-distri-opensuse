@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  namespace: openqa
+  name: test
+  version: 1.0.0
+  readme: README.md
+  authors: Pavel Dostál <pdostal@suse.com>
+  description: Test Ansible playbook
+  license: FSFAP
+  tags: []
+  dependencies: {}
+  build_ignore: []

@@ -3,7 +3,7 @@
 #
 # Package: vhostmd vm-dump-metrics
 # Summary: Prepare the dom0 metrics environment
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "consoletest";
 use virt_autotest::common;
@@ -11,11 +11,12 @@ use virt_autotest::utils;
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
     select_console 'root-console';
-    opensusebasetest::select_serial_terminal();
+    select_serial_terminal();
 
     zypper_call '-t in vhostmd', exitcode => [0, 4, 102, 103, 106];
 

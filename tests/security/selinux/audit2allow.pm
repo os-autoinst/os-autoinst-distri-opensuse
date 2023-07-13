@@ -3,19 +3,20 @@
 #
 # Summary: Test "# audit2allow" command with options
 #          "-a / -i / -w / -R / -M / -r" can work
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#61792, tc#1741285
 
 use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_sle);
+use power_action_utils 'power_action';
+use version_utils qw(is_alp is_sle);
 use registration qw(add_suseconnect_product);
 
 sub run {
-    my ($self) = @_;
     my $testfile = "test_file";
     my $test_module = "test_module";
     my $original_audit = "/var/log/audit/audit.log";
@@ -25,12 +26,18 @@ sub run {
     # have to use the full log when testing audit2allow.
     my $audit_log_test = is_sle('=15-SP3') ? "$original_audit" : "$audit_log_short";
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     assert_script_run("systemctl restart auditd");
+    assert_script_run("cp $original_audit $audit_log");
+
+    if (is_alp) {
+        validate_script_output("audit2allow -a", sub { m/^\s*$/sx });
+        record_info("Empty output", "Since there are no denies, audit2allow always returns an empty output.");
+        return 0;
+    }
 
     # read input from logs and translate to why
-    assert_script_run("cp $original_audit $audit_log");
     validate_script_output("audit2allow -a", sub { m/allow\ .*_t\ .*;.*/sx });
     validate_script_output("audit2allow -i $audit_log", sub { m/allow\ .*_t\ .*;.*/sx });
     assert_script_run("tail -n 500 $audit_log > $audit_log_short");
@@ -38,9 +45,9 @@ sub run {
         "audit2allow -w -i $audit_log_test",
         sub {
             m/
-	    type=.*AVC.*denied.*
-	    Was\ caused\ by:.*
-	    You\ can\ use\ audit2allow\ to\ generate\ a\ loadable\ module\ to\ allow\ this\ access.*/sx
+        type=.*AVC.*denied.*
+        Was\ caused\ by:.*
+        You\ can\ use\ audit2allow\ to\ generate\ a\ loadable\ module\ to\ allow\ this\ access.*/sx
         }, 600);
 
     # upload aduit log for reference

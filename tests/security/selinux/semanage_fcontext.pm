@@ -3,7 +3,7 @@
 #
 # Summary: Test "#semanage fcontext" command with options
 #          "-D / -a / -m ..." can work
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#65669, tc#1741290
 
 use base "selinuxtest";
@@ -11,20 +11,23 @@ use power_action_utils "power_action";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
+use version_utils qw(is_alp);
 
 sub run {
     my ($self) = shift;
     my $file_contexts_local = $selinuxtest::file_contexts_local;
     my $test_boolean = "fips_mode";
-    my $test_dir = "/testdir";
+    # /tmp is required for ALP since / is read-only
+    my $test_dir = "/tmp/testdir";
     my $test_file = "testfile";
-    my $fcontext_type_default = "default_t";    # or, "user_tmp_t";
+    my $fcontext_type_default = "user_tmp_t";    # or, "default_t" if the file would be in / instead of /tmp;
     my $fcontext_type1 = "etc_t";
     my $fcontext_type2 = "bin_t";
     my $fcontext_type3 = "var_t";
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # create a testing directory/file
     $self->create_test_file("$test_dir", "$test_file");

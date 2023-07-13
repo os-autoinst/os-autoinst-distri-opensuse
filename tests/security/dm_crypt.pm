@@ -4,18 +4,18 @@
 # Package: cryptsetup
 # Summary: Test dm-crypt cipher support with cryptsetup tool. Make sure
 #          unsafe algorithms are not applicable in FIPS or non-FIPS mode.
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#39071
 
 use strict;
 use warnings;
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $crypt_pass = "dm#*crypt";
     my $crypt_tmp = "/tmp/foo";
@@ -32,7 +32,7 @@ sub run {
 
     if (get_var('FIPS_ENABLED')) {
         foreach my $i ("serpent", "twofish") {
-            my $check = script_run "grep '$i' $bench_log | egrep -v 'N\/A\\s+N\/A'";
+            my $check = script_run "grep '$i' $bench_log | grep -E -v 'N\/A\\s+N\/A'";
             die "$i should not be supported anywhere!" if ($check eq 0);
         }
     }

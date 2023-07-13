@@ -9,6 +9,7 @@
 
 use Mojo::Base 'publiccloud::k8sbasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use containers::urls 'get_image_uri';
 
 sub run {
@@ -16,7 +17,7 @@ sub run {
     my $provider = undef;
     my $container_registry_service = undef;
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     if (defined $run_args->{provider}) {
         my $public_cloud_provider = shift(@{$run_args->{provider}});
@@ -30,7 +31,7 @@ sub run {
 
     my $image = get_image_uri();
     my $tag = $provider->get_default_tag();
-    $self->{image_tag} = $tag;
+    $self->{image_tag} = $run_args->{image_tag} = $tag;
 
     record_info('Pull', "Pulling $image");
     assert_script_run("podman pull $image", 360);

@@ -1,0 +1,20 @@
+---
+name: autoyast_offline_pre@pvm
+description: >
+  autoYaST installation and prepare base system for offline migration cases
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - update/patch_sle
+  - shutdown/grub_set_bootargs
+  - shutdown/shutdown

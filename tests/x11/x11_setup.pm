@@ -5,7 +5,7 @@
 
 # Summary: Common setup for x11 tests
 # - Switch to X11 (make sure that is running in graphics mode)
-# Maintainer: Huajian Luo <hluo@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "x11test";
 use strict;

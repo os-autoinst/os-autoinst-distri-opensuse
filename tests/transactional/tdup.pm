@@ -7,7 +7,7 @@
 # Summary: To a transactional-update dup and reboot the node
 # Maintainer: Richard Brown <rbrown@suse.com>
 
-use base "opensusebasetest";
+use base "consoletest";
 use strict;
 use warnings;
 use testapi;

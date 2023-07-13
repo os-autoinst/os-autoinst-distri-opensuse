@@ -44,7 +44,6 @@
       <append>console=tty console=ttyS0,115200n8 mitigations=auto</append>      
       <cpu_mitigations>auto</cpu_mitigations>
       <gfxmode>auto</gfxmode>
-      <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
       <serial>serial --unit=0 --speed=115200 --parity=no --word=8</serial>
       <terminal>serial</terminal>
@@ -186,7 +185,7 @@
   </software>
   <timezone>
     <hwclock>UTC</hwclock>
-    <timezone>America/Denver</timezone>
+    <timezone>America/New_York</timezone>
   </timezone>
   <user_defaults>
     <expire/>

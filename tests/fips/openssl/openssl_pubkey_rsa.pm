@@ -14,16 +14,16 @@
 #
 #    For DSA public key, test 1024/2048/3072 bits key pair generation,
 #    and message signing/verification.
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $file_raw = "hello.txt";
     my $file_enc = $file_raw . ".enc";

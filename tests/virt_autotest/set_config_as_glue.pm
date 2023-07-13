@@ -13,11 +13,13 @@ use virt_autotest::common;
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends 'use_ssh_serial_console';
+use ipmi_backend_utils;
 
 sub fufill_guests_in_setting {
     my $wait_script = "30";
-    my $vm_types = "sles|win|opensuse|oracle";
-    my $get_vm_hostnames = "virsh list --all | grep -E \"${vm_types}\" | awk \'{print \$2}\'";
+    my $vm_types = "sles|win|opensuse|alp|oracle";
+    my $get_vm_hostnames = "virsh list --all | grep -Ei \"${vm_types}\" | awk \'{print \$2}\'";
     my $vm_hostnames = script_output($get_vm_hostnames, $wait_script, type_command => 0, proceed_on_failure => 0);
     my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
     foreach (@vm_hostnames_array) {
@@ -28,6 +30,8 @@ sub fufill_guests_in_setting {
 }
 
 sub run {
+    select_console 'sol', await_console => 0;
+    use_ssh_serial_console;
     fufill_guests_in_setting;
 }
 

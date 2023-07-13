@@ -6,7 +6,7 @@
 # Summary: The class is a parent for all Installation Pages. Introduces
 # accessing methods to the elements that are common for all the pages.
 
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::WizardPage;
 use strict;

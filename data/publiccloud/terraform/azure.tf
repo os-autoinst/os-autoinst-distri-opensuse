@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     azurerm = {
-      version = "= 3.5.0"
+      version = "= 3.48.0"
       source = "hashicorp/azurerm"
     }
     random = {
@@ -24,7 +24,7 @@ variable "name" {
 }
 
 variable "type" {
-    default = "Standard_A2_v2"
+    default = "Standard_B2s"
 }
 
 variable "region" {
@@ -33,6 +33,14 @@ variable "region" {
 
 variable "image_id" {
     default = ""
+}
+
+variable "image_uri" {
+	default = ""
+}
+
+variable "publisher" {
+	default="SUSE"
 }
 
 variable "offer" {
@@ -66,6 +74,10 @@ variable "storage-account" {
 variable "tags" {
     type = map(string)
     default = {}
+}
+
+variable "vm_create_timeout" {
+    default = "20m"
 }
 
 resource "random_id" "service" {
@@ -151,6 +163,7 @@ resource "azurerm_image" "image" {
     name                      = "${azurerm_resource_group.openqa-group.name}-disk1"
     location                  = var.region
     resource_group_name       = azurerm_resource_group.openqa-group.name
+    hyper_v_generation        = var.sku == "gen1" ? "V1" : "V2"
     count = var.image_id != "" ? 1 : 0
 
     os_disk {
@@ -194,11 +207,11 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
     # disk_size_gb         = 30
   }
 
-  source_image_id =  var.image_id != "" ? azurerm_image.image.0.id : null
+  source_image_id = var.image_uri != "" ? var.image_uri : (var.image_id != "" ? azurerm_image.image.0.id : null)
   dynamic "source_image_reference" {
-    for_each = range(var.image_id != "" ? 0 : 1)
+    for_each = range(var.image_id == "" && var.image_uri == "" ? 1 : 0)
     content {
-      publisher = var.image_id != "" ? "" : "SUSE"
+      publisher = var.image_id != "" ? "" : var.publisher
       offer     = var.image_id != "" ? "" : var.offer
       sku       = var.image_id != "" ? "" : var.sku
       version   = var.image_id != "" ? "" : "latest"
@@ -208,6 +221,10 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
   boot_diagnostics {
     /* Passing a null value will utilize a Managed Storage Account to store Boot Diagnostics */
     storage_account_uri = null
+  }
+
+  timeouts {
+    create = var.vm_create_timeout
   }
 }
 

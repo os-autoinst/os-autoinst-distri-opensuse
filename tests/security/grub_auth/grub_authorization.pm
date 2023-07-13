@@ -11,7 +11,7 @@
 #                can access into the corresponding grub menu entry
 #             3) Wrong user/password is not able to access the grub
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#81721, poo#95548, poo#97175, poo#101238, tc#1768659
 
 use base 'opensusebasetest';
@@ -20,6 +20,7 @@ use warnings;
 use testapi;
 use base 'consoletest';
 use version_utils 'is_sle';
+use utils 'zypper_call';
 
 my $sup_user = 'admin';
 my $sup_passwd = 'pw_admin';
@@ -85,6 +86,9 @@ sub grub_auth_oper {
 
 sub run {
     select_console("root-console");
+
+    # Install runtime dependencies
+    zypper_call("in wget");
 
     # Check disk name, partition number and fs_type for root file system,
     # then create a new custom grub config file based on the users/passwords we definded

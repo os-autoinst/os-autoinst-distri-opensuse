@@ -1,6 +1,6 @@
 # SUSE's SLES4SAP openQA tests
 #
-# Copyright 2019-2021 SUSE LLC
+# Copyright 2019-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: lvm2 util-linux parted device-mapper
@@ -12,11 +12,13 @@ use base 'sles4sap';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use utils qw(file_content_replace zypper_call);
 use Utils::Systemd 'systemctl';
 use version_utils 'is_sle';
 use POSIX 'ceil';
+use Utils::Logging 'save_and_upload_log';
 
 sub is_multipath {
     return (get_var('MULTIPATH') and (get_var('MULTIPATH_CONFIRM') !~ /\bNO\b/i));
@@ -31,9 +33,9 @@ sub get_hana_device_from_system {
     $out = $1;
     my @pvdevs = map { if ($_ =~ s@mapper/@@) { $_ =~ s/\-part\d+$// } else { $_ =~ s/\d+$// } $_ =~ s@^/dev/@@; $_; } split(/,/, $out);
 
-    my $lsblk = q@lsblk -n -l -o NAME -d -e 7,11 | egrep -vw '@ . join('|', @pvdevs) . "'";
+    my $lsblk = q@lsblk -n -l -o NAME -d -e 7,11 | grep -E -vw '@ . join('|', @pvdevs) . "'";
     # lsblk command to probe for devices is different when in multipath scenario
-    $lsblk = q@lsblk -l -o NAME,TYPE -e 7,11 | awk '($2 == "mpath") {print $1}' | sort -u | egrep -vw '@ . join('|', @pvdevs) . "'" if is_multipath();
+    $lsblk = q@lsblk -l -o NAME,TYPE -e 7,11 | awk '($2 == "mpath") {print $1}' | sort -u | grep -E -vw '@ . join('|', @pvdevs) . "'" if is_multipath();
 
     # Probe devices, check its size and filter out the ones that do not meet the disk requirements
     my $devsize = 0;
@@ -41,7 +43,7 @@ sub get_hana_device_from_system {
     my $device;
     my $filter_devices;
     while ($devsize < $disk_requirement) {
-        $out = script_output "echo DEV=\$($lsblk | egrep -vw '$filter_devices' | head -1)";
+        $out = script_output "echo DEV=\$($lsblk | grep -E -vw '$filter_devices' | head -1)";
         die "Could not find a suitable device for HANA installation." unless ($out =~ /DEV=([\w\.]+)$/);
         $device = $1;
         $filter_devices .= "|$device";
@@ -63,7 +65,7 @@ sub debug_locked_device {
     for ('dmsetup info', 'dmsetup ls', 'mount', 'df -h', 'pvscan', 'vgscan', 'lvscan', 'pvdisplay', 'vgdisplay', 'lvdisplay') {
         my $filename = $_;
         $filename =~ s/[^\w]/_/g;
-        $self->save_and_upload_log($_, "$filename.txt");
+        save_and_upload_log($_, "$filename.txt");
     }
 }
 
@@ -74,12 +76,12 @@ sub get_test_summary {
     $info .= script_output 'basename $(realpath /etc/products.d/baseproduct)';
     $info =~ s/.prod//;
     $info .= "\n";
-    $info .= script_output 'egrep ^VERSION= /etc/os-release';
+    $info .= script_output 'grep -E ^VERSION= /etc/os-release';
     $info =~ s/VERSION=/Version: /;
     $info .= "\nProduct Name: ";
     $info .= script_output q(grep -w summary /etc/products.d/baseproduct | sed -r -e 's@<.?summary>@@g');
     $info .= "\n\nHANA Details:\n\n";
-    $info .= script_output 'egrep "INFO.*SAP HANA Lifecycle Management" /var/tmp/hdblcm.log | cut -d" " -f3,11-';
+    $info .= script_output 'grep -E "INFO.*SAP HANA Lifecycle Management" /var/tmp/hdblcm.log | cut -d" " -f3,11-';
     return $info;
 }
 
@@ -88,9 +90,10 @@ sub run {
     my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
     my $sid = get_required_var('INSTANCE_SID');
     my $instid = get_required_var('INSTANCE_ID');
-    my $tout = get_var('HANA_INSTALLATION_TIMEOUT', 3600);    # Timeout for HANA installation commands.
+    # set timeout as 4800 as a temp workaround for slow nfs
+    my $tout = get_var('HANA_INSTALLATION_TIMEOUT', 4800);    # Timeout for HANA installation commands.
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $RAM = $self->get_total_mem();
     die "RAM=$RAM. The SUT needs at least 24G of RAM" if $RAM < 24000;
 
@@ -190,12 +193,14 @@ sub run {
     # Configure NVDIMM devices only when running on a BACKEND with NVDIMM
     my $pmempath = get_var('HANA_PMEM_BASEPATH', "/hana/pmem/$sid");
     if (get_var('NVDIMM')) {
-        my $nvddevs = get_var('NVDIMM_NAMESPACES_TOTAL', 2);
-        foreach my $i (0 .. ($nvddevs - 1)) {
-            assert_script_run "mkdir -p $pmempath/pmem$i";
-            assert_script_run "mkfs.xfs -f /dev/pmem$i";
-            assert_script_run "echo /dev/pmem$i $pmempath/pmem$i xfs defaults,noauto,dax 0 0 >> /etc/fstab";
-            assert_script_run "mount $pmempath/pmem$i";
+        # Read all configured pmem devices on the system
+        my @pmem_devices_all = split("\n", script_output("find /dev/pmem*"));
+        foreach my $pmem_device (@pmem_devices_all) {
+            $pmem_device =~ s:/dev/(pmem\S+).*:$1:;
+            assert_script_run "mkdir -p $pmempath/$pmem_device";
+            assert_script_run "mkfs.xfs -f /dev/$pmem_device";
+            assert_script_run "echo /dev/$pmem_device $pmempath/$pmem_device xfs defaults,noauto,dax 0 0 >> /etc/fstab";
+            assert_script_run "mount $pmempath/$pmem_device";
         }
 
         assert_script_run 'mkdir -p /etc/systemd/system/systemd-udev-settle.service.d';
@@ -252,8 +257,8 @@ sub run {
 
     # Upload installations logs
     $self->upload_hana_install_log;
-    $self->save_and_upload_log('rpm -qa', 'packages.list');
-    $self->save_and_upload_log('systemctl list-units --all', 'systemd-units.list');
+    save_and_upload_log('rpm -qa', 'packages.list');
+    save_and_upload_log('systemctl list-units --all', 'systemd-units.list');
 
     # Quick check of block/filesystem devices after installation
     assert_script_run 'mount';

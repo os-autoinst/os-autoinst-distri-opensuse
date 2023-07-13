@@ -10,6 +10,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use containers::common;
 use containers::utils;
@@ -17,8 +18,7 @@ use version_utils "get_os_release";
 use rancher::utils;
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my ($running_version, $sp, $host_distri) = get_os_release;
     install_podman_when_needed($host_distri);

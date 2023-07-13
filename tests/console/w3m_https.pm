@@ -9,7 +9,7 @@
 # Summary: Add w3m_https test case and fips test entry
 #    Add w3m_https.pm test case was located in console/w3m_https.pm
 #    Add w3m_https.pm test entry in load_fips_tests_web() in sle/main.pm
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 
 use base "consoletest";
 use strict;

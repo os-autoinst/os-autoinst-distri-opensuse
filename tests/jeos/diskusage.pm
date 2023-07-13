@@ -9,10 +9,9 @@
 # 2) Check rootfs size
 # Maintainer: Martin Loviska <mloviska@suse.com>
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base qw(opensusebasetest);
 use testapi;
+use Utils::Architectures qw(is_s390x);
 
 sub run {
     select_console 'root-console';
@@ -35,7 +34,7 @@ sub run {
     my $rootfs_size = script_output q[df --output=size / | awk 'END{print}'];
     chomp($rootfs_size);
     # value estimated by tester in kiB, no hard data reference found
-    my $max_rootfs = 26214400;
+    my $max_rootfs = is_s390x ? 34246208 : 26214400;
     record_info('Rootfs size', $rootfs_size . 'kiB', result => ($rootfs_size < $max_rootfs) ? 'ok' : 'fail');
     die "Rootfs by JeOS exceededs expected OS installation size (25GB)" if $rootfs_size > $max_rootfs;
 }

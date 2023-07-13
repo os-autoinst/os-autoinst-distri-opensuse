@@ -1,20 +1,20 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2021 SUSE LLC
+# Copyright 2018-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: python3-pip python3-virtualenv python3-ec2imgutils aws-cli
 # python3-img-proof azure-cli
 # Summary: Install IPA tool
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>, qa-c team <qa-c@suse.de>
+# Maintainer: qa-c team <qa-c@suse.de>, QE-SAP <qe-sap@suse.de>
 
 use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
-use registration 'add_suseconnect_product';
 use version_utils qw(is_sle is_opensuse);
 use repo_tools 'generate_version';
 
@@ -33,8 +33,8 @@ sub install_in_venv {
     assert_script_run(sprintf('curl -f -v %s/data/publiccloud/venv/%s.txt > /tmp/%s.txt', autoinst_url(), $binary, $binary)) if defined($args{requirements});
 
     my $venv = '/root/.venv_' . $binary;
-    assert_script_run("virtualenv '$venv'");
-    assert_script_run(". '$venv/bin/activate'");
+    assert_script_run("python3.10 -m venv $venv");
+    assert_script_run("source '$venv/bin/activate'");
     my $what_to_install = defined($args{requirements}) ? sprintf('-r /tmp/%s.txt', $binary) : $args{pip_packages};
     assert_script_run('pip install --force-reinstall ' . $what_to_install, timeout => $install_timeout);
     assert_script_run('deactivate');
@@ -58,9 +58,9 @@ EOT
 }
 
 sub run {
-    my ($self) = @_;
+    my $PUBLISH_HDD_1 = get_required_var("PUBLISH_HDD_1");
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     if (my $tools_repo = get_var('PUBLIC_CLOUD_TOOLS_REPO')) {
         for my $repo (split(/\s+/, $tools_repo)) {
@@ -70,8 +70,8 @@ sub run {
 
     ensure_ca_certificates_suse_installed();
 
-    # Install prerequesite packages test
-    zypper_call('-q in python3-pip python3-devel python3-virtualenv python3-img-proof python3-img-proof-tests podman docker jq rsync');
+    # Install prerequisite packages test
+    zypper_call('-q in python310-pip python310-devel python3-pytest python3-img-proof python3-img-proof-tests podman docker jq rsync');
     record_info('python', script_output('python --version'));
     systemctl('enable --now docker');
     assert_script_run('podman ps');
@@ -111,15 +111,33 @@ sub run {
     record_info('img-proof', $img_proof_ver);
     set_var('PUBLIC_CLOUD_IMG_PROOF_VER', $img_proof_ver =~ /img-proof, version ([\d\.]+)/);
 
-    my $terraform_version = '1.1.7';
+    my $terraform_version = get_var('TERRAFORM_VERSION', '1.3.6');
     # Terraform in a container
     my $terraform_wrapper = <<EOT;
-#!/bin/sh
-podman run -v /root/:/root/ --rm --env-host=true -w=\$PWD docker.io/hashicorp/terraform:$terraform_version \$@
+#!/bin/bash -e
+podman run --rm -w=\$PWD -v /root/:/root/ --env-host=true docker.io/hashicorp/terraform:$terraform_version \$@
 EOT
 
-    create_script_file('terraform', '/usr/bin/terraform', $terraform_wrapper);
+    create_script_file('terraform', '/usr/local/bin/terraform', $terraform_wrapper);
+    validate_script_output("terraform -version", qr/$terraform_version/);
     record_info('Terraform', script_output('terraform -version'));
+
+    # Ansible install with pip
+    # Default version is chosen as low as possible so it run also on SLE12's
+    # ANSIBLE_CORE_VERSION should be set only if the different then default one need to be used
+    my $ansible_version = get_var('ANSIBLE_VERSION', '4.10.0');
+    my $ansible_core_version = get_var('ANSIBLE_CORE_VERSION');
+    my $ansible_install_log = '/tmp/ansible_install.log';
+
+    assert_script_run("python3.10 -m pip install --no-input -q --no-color --log $ansible_install_log ansible==$ansible_version", timeout => 240);
+    upload_logs("$ansible_install_log", failok => 1);
+
+    if (length $ansible_core_version) {
+        my $ansible_core_install_log = "/tmp/ansible_core_install.log";
+        assert_script_run("python3.10 -m pip install --no-input -q --no-color --log $ansible_core_install_log ansible-core==$ansible_core_version", timeout => 240);
+        upload_logs("$ansible_core_install_log", failok => 1);
+    }
+    record_info('Ansible', script_output('ansible --version'));
 
     # Kubectl in a container
     my $kubectl_version = get_var('KUBECTL_VERSION', 'v1.22.12');
@@ -131,6 +149,9 @@ EOT
 
     # Remove persistent net rules, necessary to boot the x86_64 image in the aarch64 test runs
     assert_script_run('rm /etc/udev/rules.d/70-persistent-net.rules');
+
+    # Add marker file for PC tools image
+    assert_script_run("echo -e 'PC tools image\\nHDD: $PUBLISH_HDD_1' > /root/pc_tools_image.txt");
 
     select_console 'root-console';
 }

@@ -7,7 +7,7 @@
 #   Is required in some scenarios to disable plymouth, for instance.
 #   All default parameters are removed before entering requested settings.
 #   Using OPT_KERNEL_PARAMS to get wanted boot options.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

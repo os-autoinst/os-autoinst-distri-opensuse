@@ -10,6 +10,7 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle);
 
@@ -17,12 +18,11 @@ use version_utils qw(is_sle);
 sub get_sev_message {
     return "AMD Secure Encrypted Virtualization (SEV) active" if is_sle('=15-SP2');
     # More messages will be added pas a pas, as more versions run this test.
-    return "AMD Memory Encryption Features active";    # Default message
+    return "Memory Encryption Features active";    # Default message
 }
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Skip this test run, unless defined to run
     unless (get_var("PUBLIC_CLOUD_CONFIDENTIAL_VM", 0)) {

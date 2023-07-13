@@ -5,17 +5,17 @@
 #          For tpm2_enginee tests, we need tpm2-abrmd serive active.
 #          We have several test modules, this test module will cover
 #          ECDSA operations.
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#64902, tc#1742298
 
 use strict;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # ECDSA operations
     # There is an known issue bsc#1159508

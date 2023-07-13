@@ -6,7 +6,7 @@
 # Summary: Prepare AutoYaST xml files when using rules and clases
 # by expanding variables before installation and setting correct URL
 # for the installer.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

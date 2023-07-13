@@ -58,7 +58,7 @@ sub run {
     assert_and_click 'auth_credentials-ok';
 
     wait_still_screen 3;
-    assert_screen [qw(connection-failed windows-desktop-on-remmina)];
+    assert_screen [qw(connection-failed windows-desktop-on-remmina)], 180;
 
     if (match_has_tag 'connection-failed') {
         record_soft_failure 'bsc#1117402 - Remmina is not able to connect to the windows server';

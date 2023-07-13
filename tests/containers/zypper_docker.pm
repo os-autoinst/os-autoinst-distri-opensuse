@@ -16,13 +16,14 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use utils;
 use containers::common;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $docker = $self->containers_factory('docker');
 
     # install zypper-docker and verify installation

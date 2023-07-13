@@ -4,17 +4,17 @@
 
 check_ssh()
 {
-    nc -w1 -z $1 22
+    nc -w1 -z "$1" 22
 }
 
 wait_for_power_off()
 {
     local host=$1
     local tries=$2
-    while check_ssh $host
+    while check_ssh "$host"
     do
-        tries=$(( $tries - 1  ))
-        [ $tries -lt 1 ] && return 1;
+        tries=$((tries - 1))
+        [ "$tries" -lt 1 ] && return 1;
         echo "waiting for power off"
         sleep 1;
     done
@@ -25,10 +25,10 @@ wait_for_power_on()
 {
     local host=$1
     local tries=$2
-    while ! check_ssh $host
+    while ! check_ssh "$host"
     do
-        tries=$(( $tries - 1  ))
-        [ $tries -lt 1 ] && return 1;
+        tries=$((tries - 1))
+        [ "$tries" -lt 1 ] && return 1;
         echo "waiting for power on"
         sleep 1;
     done

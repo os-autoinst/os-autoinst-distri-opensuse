@@ -5,7 +5,7 @@
 
 # Summary: Select 'None' Major Linux Security Module in Security Configuration
 # in the installer.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

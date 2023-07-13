@@ -12,6 +12,8 @@ use Mojo::Base qw(consoletest);
 use testapi;
 use utils 'zypper_call';
 use version_utils 'is_upgrade';
+use Utils::Logging 'export_logs';
+use serial_terminal 'select_serial_terminal';
 
 # Performing a DVD/Offline system upgrade cannot update
 # all potential packages already present on the SUT
@@ -46,33 +48,27 @@ sub compare_orphans_lists {
 
     # Summary
     record_info('Detected Orphans', to_string @detected_orphans);
-    record_info('Orphans whitelisted',
-        $whitelist // 'No orphans whitelisted within the test suite'
-    );
-    record_info('Missing',
-        @missed_orphans ? to_string @missed_orphans : 'None',
-        result => @missed_orphans ? 'fail' : 'ok'
-    );
+    record_info('Orphans whitelisted', $whitelist // 'No orphans whitelisted within the test suite');
+    record_info('Missing', @missed_orphans ? to_string @missed_orphans : 'None', result => @missed_orphans ? 'fail' : 'ok');
 
     return ((scalar @missed_orphans) == 0);
 }
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
     record_info((is_offline_upgrade_or_livecd) ? 'Upgrade/LiveCD' : 'No upgrade/LiveCD', 'Upgraded or installed from LIVECD can possibly cause orphans');
 
+    zypper_call('in curl') if (script_run('rpm -qi curl') == 1);
     # Orphans are also expected in JeOS without SDK module (jeos-firstboot, jeos-license and live-langset-data)
     # Save the orphaned packages list to one log file and upload the log, so QA can use this log to report bug
     # Filter out zypper warning messages and release or skelcd packages
-    my @orphans = split('\n',
-        script_output q[zypper --quiet packages --orphaned | tee -a /tmp/orphaned.log |
-         grep -v "^Warning" | grep -v "\(release-DVD\|release-dvd\|openSUSE-release\|skelcd\)" |
-         awk -F \| 'NR>2 {print $3}'], proceed_on_failure => 1, timeout => 180);
+    my $orphan_pkgs = script_output(q[zypper --quiet packages --orphaned | tee -a /tmp/orphaned.log | awk -F'|' 'intable && NR>2 {print $3} /^-/ { intable=1 }' | grep -v '\(release-DVD\|release-dvd\|openSUSE-release\|skelcd\)'], timeout => 180, proceed_on_failure => 1,);
+    my @orphans = split('\n', $orphan_pkgs);
 
     if (((scalar @orphans) > 0) && !is_offline_upgrade_or_livecd) {
-        compare_orphans_lists(zypper_orphans => \@orphans) or
-          die "There have been unexpected orphans detected!";
+        compare_orphans_lists(zypper_orphans => \@orphans)
+          or die "There have been unexpected orphans detected!";
     }
 }
 
@@ -80,7 +76,7 @@ sub post_fail_hook {
     my $self = shift;
 
     select_console 'log-console';
-    (script_run q{test -s /tmp/orphaned.log}) ? $self->export_logs() : upload_logs '/tmp/orphaned.log';
+    (script_run q{test -s /tmp/orphaned.log}) ? export_logs() : upload_logs '/tmp/orphaned.log';
     upload_logs '/var/log/zypper.log';
 }
 

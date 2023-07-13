@@ -12,8 +12,10 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_tumbleweed);
+use registration 'is_phub_ready';
 
 sub run_python_script {
     my $script = shift;
@@ -28,14 +30,16 @@ sub run_python_script {
             record_info("scipy-fft", "scipy-fft module not available", result => 'softfail');
         } else {
             my $failmsg = script_output("grep 'Softfail' '$logfile'");
-            record_soft_failure("$failmsg");
+            record_info('Softfail', "$failmsg", result => 'softfail');
         }
     }
 }
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
+
+    # Package 'python3-scipy' requires PackageHub is available
+    return unless is_phub_ready();
 
     my $scipy = is_sle('<15-sp1') ? '' : 'python3-scipy';
     zypper_call "in python3 python3-numpy $scipy";

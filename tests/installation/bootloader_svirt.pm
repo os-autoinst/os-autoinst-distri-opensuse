@@ -1,9 +1,14 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2019 SUSE LLC
+# Copyright 2016-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: svirt bootloader
+# Summary: Initialize virtual machine (Xen, KVM, VMware)... on a (remote)
+#          hypervisor using SSH virtual machine management console backend
+#          (svirt), e.g. set boot devices and images, configure input and
+#          display devices and network interfaces for Xen, KVM and VMware.
+#          Then start the machine, define grub parameters and boot into an
+#          option.
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
 package bootloader_svirt;
@@ -269,6 +274,8 @@ sub run {
         # does not work.
         if (my $bridges = $svirt->get_cmd_output("virsh iface-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
             $ifacecfg{type} = 'bridge';
+            # Due to poo#126647, the default iface 'ovs-system' on xen platform can not work fine, so we need to use br0 instead
+            $bridges = 'br0' if $bridges eq 'ovs-system';
             $ifacecfg{source} = {bridge => $bridges};
         }
         elsif (my $networks = $svirt->get_cmd_output("virsh net-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {

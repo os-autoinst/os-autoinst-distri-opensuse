@@ -3,7 +3,7 @@
 #
 # Summary: Verify the "ausearch" utility can search the audit log file for certain events using various keys or
 #          other characteristics of the logged format
-# Maintainer: llzhao <llzhao@suse.com>, shawnhao <weixuan.hao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#81772, tc#1768578
 
 use base 'opensusebasetest';

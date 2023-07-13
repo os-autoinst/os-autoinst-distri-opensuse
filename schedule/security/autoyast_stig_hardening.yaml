@@ -1,0 +1,17 @@
+---
+name: autoyast_stig_hardening
+description: >
+  Schedule for installation with AutoYaST control file selecting STIG hardening in remediate mode.
+vars:
+  AUTOYAST_CONFIRM: 1
+  ENCRYPT: 1
+  FULL_LVM_ENCRYPT: 1
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/grub_test
+  - security/grub_auth/grub_authentication
+  - installation/boot_encrypt
+  - installation/first_boot
+  - security/stig/upload_stig_logs

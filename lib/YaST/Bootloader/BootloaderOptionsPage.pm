@@ -5,7 +5,7 @@
 
 # Summary: The class introduces all accessing methods for Bootloader Options tab
 # in Boot Loader Settings.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package YaST::Bootloader::BootloaderOptionsPage;
 use parent 'Installation::Navigation::NavigationBase';

@@ -5,7 +5,7 @@
 
 # Summary: The class introduces methods to control Notification Dialog
 # which has only "Ok" button.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package YaST::Warning::Notification;
 use strict;

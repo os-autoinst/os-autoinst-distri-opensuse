@@ -13,6 +13,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use mmapi 'get_current_job_id';
 use utils qw(zypper_call script_retry);
 use version_utils 'is_sle';
@@ -29,12 +30,11 @@ our $azure_endpoint = get_var(
 
 sub run {
     my ($self, $args) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $job_id = get_current_job_id();
 
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance();
-    $instance->wait_for_guestregister();
     # resource group
     # get instance resource group
     my $resource_group_command = "curl -s -H Metadata:true --noproxy \"*\" \"$azure_endpoint/resourceGroupName?api-version=$api_version&format=text\"";

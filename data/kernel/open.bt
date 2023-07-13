@@ -1,0 +1,37 @@
+BEGIN
+{
+	printf("Tracing do_sys_openat2...\n");
+}
+
+kprobe:do_sys_openat2
+{
+	$found_it = 1;
+
+	if (comm == "touch") {
+		printf("[+] comm = touch, ");
+	} else {
+		printf("[-] comm = %s, ", comm);
+		$found_it = 0;
+	}
+
+	if ((int32)arg0 == (int32)-100) {
+		printf("[+] dfd == AT_FDCWD, ");
+	} else {
+		printf("[-] dfd == %d, ", arg0);
+		$found_it = 0;
+	}
+
+	if (strcontains(str(uptr(arg1)), "opentest")) {
+		printf("[+]");
+	} else {
+		printf("[-]");
+		$found_it = 0;
+	}
+
+	printf(" path == %s\n", str(uptr(arg1)));
+
+	if ($found_it) {
+		printf("Found it; PID == %d!\n", pid);
+		exit();
+	}
+}

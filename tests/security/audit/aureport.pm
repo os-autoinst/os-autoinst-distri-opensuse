@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-Later
 #
 # Summary: Verify the "aureport" utility can generate default audit report and reports with specifc parameters
-# Maintainer: llzhao <llzhao@suse.com>, shawnhao <weixuan.hao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#81772, tc#1768552
 
 use base 'opensusebasetest';

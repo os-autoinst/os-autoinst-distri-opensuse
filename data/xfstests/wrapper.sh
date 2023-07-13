@@ -2,14 +2,16 @@
 XFSTESTS_DIR='/opt/xfstests'
 PROG="$XFSTESTS_DIR/check"
 SCRIPT_DIR=$(realpath $(dirname "$0"))
-if [ "$#" -gt 2 ]; then
-    INJECT_LINE=$2
-    INJECT_CODE=$3
+OPTIONS=""
+if [ "$#" -gt 1 ]; then
+    OPTIONS=$2
+    INJECT_LINE=$3
+    INJECT_CODE=$4
 fi
 
 function usage()
 {
-    echo "Usage: $0 TEST [INJECT_LINE(for debug)] [INJECT_CODE(for debug)]"
+    echo "Usage: $0 TEST [OPTIONS for ./check] [INJECT_LINE(for debug)] [INJECT_CODE(for debug)]"
 }
 
 function unset_vars()
@@ -90,7 +92,7 @@ fi
 
 # Run test
 log_file="/tmp/xfstests-$(echo "$1" | tr '/' '_').tmp"
-./$(basename "$PROG") -d "$1" | tee "$log_file"
+./$(basename "$PROG") -d "$OPTIONS" "$1" | tee "$log_file"
 output=$(cat "$log_file")
 rm -f $log_file
 

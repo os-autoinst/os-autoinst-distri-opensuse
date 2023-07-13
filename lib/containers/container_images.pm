@@ -124,7 +124,11 @@ sub build_with_zypper_docker {
     }
 
     zypper_call("in zypper-docker") if (script_run("which zypper-docker") != 0);
-    script_retry("zypper-docker list-updates $image", timeout => 300, retry => 3, delay => 60);
+
+    my $log = "/tmp/zypper-docker-list-updates.log";
+    script_retry("zypper-docker list-updates $image >$log", timeout => 300, retry => 3, delay => 60);
+    return if script_run("grep 'No updates found.' $log");
+
     script_retry("zypper-docker up $image $derived_image", timeout => 300, retry => 3, delay => 60);
 
     # If zypper-docker list-updates lists no updates then derived image was successfully updated
@@ -256,7 +260,8 @@ sub test_systemd_install {
     if ($image_id eq 'opensuse-tumbleweed' ||
         ($image_id eq 'opensuse-leap' && check_version('>=15.4', "$image_version.$image_sp", qr/\d{2}\.\d/)) ||
         ($image_id eq 'sles' && check_version('>=15-SP4', "$image_version-SP$image_sp", qr/\d{2}-sp\d/))) {
-        assert_script_run("$runtime run $image /bin/bash -c 'zypper al udev && zypper -n in systemd'", timeout => 300);
+        my $repo = $image_id eq 'sles' ? '-r SLE_BCI' : '';
+        assert_script_run("$runtime run $image /bin/bash -c 'zypper al udev && zypper -n in $repo systemd'", timeout => 300);
     }
 }
 

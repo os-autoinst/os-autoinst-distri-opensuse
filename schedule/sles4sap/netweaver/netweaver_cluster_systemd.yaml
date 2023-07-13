@@ -1,0 +1,76 @@
+---
+name: netweaver_cluster_systemd
+description: >
+  NetWeaver Cluster Test (with switch to systemd). Schedule for all nodes.
+
+  This test just adds the patching (needed as long as NW does not come with systemd
+  support without patching) and the systemd registration before doing the cluster test.
+
+  Some settings are required in the job group or test suite for this schedule to work.
+
+  The other settings required in the job group are.
+
+  CLUSTER_INFOS must be defined in the parent job to the name of the cluster, number
+  of nodes and number of LUNs. Example 'nw:2:3'
+  CLUSTER_NAME must be defined for all jobs as a string.
+  INSTANCE_ID, INSTANCE_IP_CIDR, INSTANCE_SID and INSTANCE_TYPE must be defined and set
+  according to NE needs.
+  HA_CLUSTER_INIT must be defined to yes on the job that initializes the cluster, and to
+  no in the rest of the cluster node jobs
+  HA_CLUSTER_JOIN must be defined for the rest of the jobs, and it must contain the
+  hostname of the job where HA_CLUSTER_INIT is defined to yes
+  NW must be defined pointing to the location of the NW installation masters
+  HOSTNAME must be defined to different hostnames for each node.
+  MAX_JOB_TIME is recommended to be defined as well to a high value (ex. 20000)
+  All jobs with the exception of the parent job must include a PARALLEL_WITH setting
+  referencing the parent job.
+  SLE_PRODUCT must be defined and set to sles4sap.
+  And of course, YAML_SCHEDULE must point to this file.
+vars:
+  BOOT_HDD_IMAGE: '1'
+  USE_SUPPORT_SERVER: '1'
+  HDD_SCC_REGISTERED: '1'
+  VIRTIO_CONSOLE: '0'
+  HA_CLUSTER: '1'
+  # Below have to be entered in the OpenQA UI because it doesn't read this YAML
+  # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-gnome.qcow2
+schedule:
+  - boot/boot_to_desktop
+  - ha/wait_barriers
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/hostname
+  - ha/ha_sle15_workarounds
+  - ha/firewall_disable
+  - ha/iscsi_client
+  - ha/watchdog
+  - sles4sap/patterns
+  - '{{cluster_setup}}'
+  - sles4sap/netweaver_network
+  - sles4sap/netweaver_filesystems
+  - sles4sap/netweaver_install
+  - sles4sap/netweaver_patch
+  - sles4sap/netweaver_test_systemd
+  - sles4sap/netweaver_cluster
+  - sles4sap/monitoring_services
+  - '{{sap_suse_cluster_connector}}'
+  - ha/fencing
+  - '{{boot_to_desktop}}'
+  - ha/check_after_reboot
+  - ha/check_logs
+conditional_schedule:
+  cluster_setup:
+    HA_CLUSTER_INIT:
+      yes:
+        - ha/ha_cluster_init
+      no:
+        - ha/ha_cluster_join
+  sap_suse_cluster_connector:
+    HA_CLUSTER_INIT:
+      yes:
+        - sles4sap/sap_suse_cluster_connector
+  boot_to_desktop:
+    HA_CLUSTER_INIT:
+      yes:
+        - boot/boot_to_desktop

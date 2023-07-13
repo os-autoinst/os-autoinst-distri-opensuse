@@ -13,12 +13,13 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle is_leap is_tumbleweed is_sles4sap is_rt is_hpc);
 use main_common 'is_desktop';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my %checker = ();
     $checker{VERSION} = get_var("TARGET_VERSION", get_required_var("VERSION"));

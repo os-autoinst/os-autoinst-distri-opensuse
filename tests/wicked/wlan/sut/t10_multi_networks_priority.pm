@@ -13,6 +13,7 @@
 
 use Mojo::Base 'wicked::wlan';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(script_retry script_output_retry);
 
 has wicked_version => '>=0.6.66';
@@ -145,7 +146,7 @@ has ifcfg_wlan => q(
 sub run {
     my $self = shift;
     my $WAIT_SECONDS = get_var("WICKED_WAIT_SECONDS", 70);
-    $self->select_serial_terminal;
+    select_serial_terminal;
     return if ($self->skip_by_wicked_version());
 
     $self->setup_ref();

@@ -15,6 +15,7 @@ use repo_tools qw(add_qa_head_repo generate_version);
 use utils qw(zypper_call);
 use testapi;
 use version_utils 'check_version';
+use serial_terminal 'select_serial_terminal';
 
 has wicked_version => undef;
 has wpa_supplicant_version => undef;
@@ -199,7 +200,7 @@ sub prepare_phys {
         $cmd_set_netns = 'iw phy ' . $self->ref_phy . ' set netns ' . $1;
     }
     # Delay namespace setup of wlan device to avoid wickedd-nanny error message
-    assert_script_run('sleep 3');
+    sleep 3;
     assert_script_run($cmd_set_netns);
 
     assert_script_run('iw dev');
@@ -425,7 +426,7 @@ sub __as_config_array {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     return if ($self->skip_by_wicked_version());
     return if ($self->skip_by_supported_key_mgmt());
     return if ($self->skip_by_wpa_supplicant_version());

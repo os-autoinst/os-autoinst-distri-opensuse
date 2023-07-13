@@ -33,6 +33,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use mmapi 'wait_for_children';
 use mm_network;
@@ -184,7 +185,7 @@ sub run {
     }
     mutex_wait 'barrier_setup_done';
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
     barrier_wait 'BARRIER_READY';
 
     configure_machines($self, $hostname, $net0, $net1);

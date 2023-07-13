@@ -2,6 +2,6 @@
 cre="${cre:-"podman"}"
 out="${out:-$(mktemp)}"
 
-$cre run --pull=always --rm -it -v .:/opt/tests registry.opensuse.org/devel/openqa/containers-tw/isotovideo:qemu-x86-os-autoinst-distri-opensuse -d casedir=/opt/tests productdir=products/opensuse/ _exit_after_schedule=1  |& tee $out
+$cre run --pull=always --rm -it -v .:/opt/tests registry.opensuse.org/devel/openqa/containers/isotovideo:qemu-x86-os-autoinst-distri-opensuse -d casedir=/opt/tests productdir=products/opensuse/ _exit_after_schedule=1  |& tee $out
 # Color sequences have to be removed now
 diff -u <(sed -n 's/\r//;s/^.*scheduling \w* //p' $out | sed -r "s/\x1b\[([0-9]{1,2}(;[0-9]{1,2})*)?m//" ) t/data/test_schedule.out

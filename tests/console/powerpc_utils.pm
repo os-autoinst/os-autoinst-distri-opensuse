@@ -9,13 +9,13 @@
 
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use strict;
 use warnings;
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     zypper_call('refresh');
     zypper_call('in powerpc-utils');

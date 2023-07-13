@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Post-scan remediation test - offline
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#36919, tc#1621175
 
 use base "consoletest";
@@ -38,7 +38,7 @@ sub run {
     ensure_generated_file($xccdf_result);
     prepare_remediate_validation;
 
-    validate_script_output "oscap xccdf remediate --results $remediate_result $xccdf_result", sub { $remediate_match };
+    validate_script_output("oscap xccdf remediate --results $remediate_result $xccdf_result", sub { $remediate_match });
     validate_result($remediate_result, $remediate_result_match);
 
     # Verify the remediate action result

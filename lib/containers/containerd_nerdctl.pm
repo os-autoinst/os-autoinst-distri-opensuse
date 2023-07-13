@@ -11,27 +11,33 @@ use Mojo::Base 'containers::engine';
 use testapi;
 use containers::common 'install_containerd_when_needed';
 use containers::utils 'registry_url';
+use utils qw(zypper_call);
+use version_utils qw(is_leap is_sle);
 use Utils::Architectures;
 has runtime => 'nerdctl';
 
 sub init {
     install_containerd_when_needed();
 
-    # The nerdctl validation test suite is a plug-in required for this test and needs to be installed from an external source.
-    my $version = get_var('CONTAINERS_NERDCTL_VERSION', '0.16.1');
-    my $arch;
-    if (is_aarch64) {
-        $arch = 'arm64';
-    } elsif (is_x86_64) {
-        $arch = 'amd64';
+    unless (is_sle || is_leap) {
+        zypper_call("in nerdctl");
     } else {
-        die 'Architecture ' . get_required_var('ARCH') . ' is not supported';
+        # The nerdctl validation test suite is a plug-in required for this test and needs to be installed from an external source.
+        my $version = get_var('CONTAINERS_NERDCTL_VERSION', '0.16.1');
+        my $arch;
+        if (is_aarch64) {
+            $arch = 'arm64';
+        } elsif (is_x86_64) {
+            $arch = 'amd64';
+        } else {
+            die 'Architecture ' . get_required_var('ARCH') . ' is not supported';
+        }
+        my $url = "https://github.com/containerd/nerdctl/releases/download/v$version/nerdctl-$version-linux-$arch.tar.gz";
+        my $filename = "/tmp/nerdctl-$version-linux-$arch.tar.gz";
+        assert_script_run("curl -L $url -o $filename");
+        assert_script_run("tar zxvf $filename -C /usr/local/bin");
+        assert_script_run("rm $filename");
     }
-    my $url = "https://github.com/containerd/nerdctl/releases/download/v$version/nerdctl-$version-linux-$arch.tar.gz";
-    my $filename = "/tmp/nerdctl-$version-linux-$arch.tar.gz";
-    assert_script_run("curl -L $url -o $filename");
-    assert_script_run("tar zxvf $filename -C /usr/local/bin");
-    assert_script_run("rm $filename");
     assert_script_run('nerdctl');
 }
 

@@ -13,18 +13,16 @@
 # - Create index.html, connect to apache instance, check page
 # Maintainer: QE Core <qe-core@suse.de>
 
-package http_srv;
-use services::apache;
+use base 'consoletest';
 use strict;
 use warnings;
-use base 'consoletest';
 use testapi;
-use utils;
+use services::apache;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
-    script_run("df -h > /dev/$serialdev", 0);
+    select_serial_terminal();
 
     services::apache::install_service();
     services::apache::enable_service();

@@ -5,12 +5,14 @@
 
 # Summary: The class introduces all accessing methods for Overview Tab in YaST2
 # lan module dialog.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package YaST::NetworkSettings::OverviewTab;
 use strict;
 use warnings;
 use testapi;
+use YaST::workarounds;
+use version_utils qw(is_sle);
 
 use constant {
     OVERVIEW_TAB => 'yast2_lan_overview_tab_selected',
@@ -27,27 +29,29 @@ sub new {
 }
 
 sub press_add {
-    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-    send_key_until_needlematch(OVERVIEW_TAB, 'alt-f10', 10, 2);
+    apply_workaround_poo124652(OVERVIEW_TAB) if (is_sle('>=15-SP4'));
+    assert_screen(OVERVIEW_TAB);
     send_key('alt-a');
 }
 
 sub press_edit {
-    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-    send_key_until_needlematch(OVERVIEW_TAB, 'alt-f10', 10, 2);
+    apply_workaround_poo124652(OVERVIEW_TAB) if (is_sle('>=15-SP4'));
+    assert_screen(OVERVIEW_TAB);
     send_key('alt-i');
 }
 
 sub press_delete {
-    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-    send_key_until_needlematch(OVERVIEW_TAB, 'alt-f10', 10, 2);
+    apply_workaround_poo124652(OVERVIEW_TAB) if (is_sle('>=15-SP4'));
+    assert_screen(OVERVIEW_TAB);
     send_key('alt-t');
 }
 
 sub select_device {
     my ($self, $device) = @_;
     assert_and_click(NAME_COLUMN);
-    send_key 'home';
+    for my $shot (1 .. 3) {
+        send_key 'home';
+    }
     my $device_needle;
     if ($device eq 'bridge') {
         $device_needle = BRIDGE_DEVICE_IN_LIST;
@@ -68,10 +72,8 @@ sub select_device {
 }
 
 sub press_ok {
-    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-    send_key_until_needlematch(OVERVIEW_TAB, 'alt-f10', 10, 2);
+    apply_workaround_poo124652(OVERVIEW_TAB) if (is_sle('>=15-SP4'));
     send_key('alt-o');
 }
-
 
 1;

@@ -8,7 +8,7 @@
 # Libstorage-NG version 4.3 introduces reworked UI which heavily relies on new
 # menu widget bar
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
 use strict;
@@ -340,7 +340,7 @@ sub add_raid {
     }
     $self->get_raid_type_page()->press_next();
     $self->get_raid_options_page()->select_chunk_size($chunk_size) if $chunk_size;
-    $self->get_raid_options_page()->press_next();
+    $self->get_raid_options_page()->press_next() if $chunk_size;
     $self->add_raid_partition($args->{partition});
 }
 

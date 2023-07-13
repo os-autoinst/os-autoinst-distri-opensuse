@@ -1,6 +1,6 @@
 # VIRSH TEST MODULE BASE PACKAGE
 #
-# Copyright 2019 SUSE LLC
+# Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: This is the base package for virsh test modules, for example,
@@ -21,7 +21,7 @@
 # 4. $self->{test_results}->{$guest}->{CUSTOMIZED_TEST1}->{output} which can
 # be given any customized output message that is suitable to be placed in
 # system-out section.
-# Maintainer: Wayne Chen <wchen@suse.com>
+# Maintainer: Wayne Chen <wchen@suse.com>, qe-virt@suse.de
 
 package virt_feature_test_base;
 
@@ -36,10 +36,12 @@ use IO::File;
 use List::Util 'first';
 use testapi;
 use utils;
+use ipmi_backend_utils;
 use virt_utils;
 use virt_autotest::common;
 use virt_autotest::utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_alp);
+use alp_workloads::kvm_workload_utils;
 
 sub run_test {
     die('Please override this subroutine in children modules to run desired tests.');
@@ -48,8 +50,13 @@ sub run_test {
 sub prepare_run_test {
     my $self = shift;
 
-    script_run("rm -f /root/{commands_history,commands_failure}");
+    unless (defined(script_run("rm -f /root/{commands_history,commands_failure}", die_on_timeout => 0))) {
+        reconnect_when_ssh_console_broken;
+        alp_workloads::kvm_workload_utils::enter_kvm_container_sh if is_alp;
+    }
     assert_script_run("history -c");
+
+    check_host_health;
 
     virt_utils::cleanup_host_and_guest_logs;
     virt_utils::start_monitor_guest_console;
@@ -107,7 +114,13 @@ sub junit_log_params_provision {
     my $start_time = $self->{"start_run"};
     my $stop_time = $self->{"stop_run"};
     $self->{"test_time"} = strftime("\%H:\%M:\%S", gmtime($stop_time - $start_time));
-    $self->{"product_tested_on"} = script_output("cat /etc/issue | grep -io -e \"SUSE.*\$(arch))\" -e \"openSUSE.*[0-9]\"");
+    if (!version_utils::is_alp) {
+        $self->{"product_tested_on"} = script_output("cat /etc/issue | grep -io -e \"SUSE.*\$(arch))\" -e \"openSUSE.*[0-9]\"");
+    } else {
+        alp_workloads::kvm_workload_utils::exit_kvm_container;
+        $self->{"product_tested_on"} = script_output(q@cat /etc/os-release |grep PRETTY_NAME | sed 's/PRETTY_NAME=//'@);
+        alp_workloads::kvm_workload_utils::enter_kvm_container_sh;
+    }
     $self->{"product_name"} = ref($self);
     $self->{"package_name"} = ref($self);
 }
@@ -131,7 +144,9 @@ sub analyzeResult {
     #the correctness and effectivenees of entire JUnit log
     if ($status eq 'FAILED' && $self->{"fail_nums"} eq '0') {
         $self->{"fail_nums"} = '1';
-        my $uncheckpoint_failure = script_output("cat /root/commands_history | tail -3 | head -1");
+        my $uncheckpoint_failure = "";
+        $uncheckpoint_failure = script_output("cat /root/commands_history | tail -3 | head -1", 60, proceed_on_failure => 1);
+        $uncheckpoint_failure = "echo 'NOT found the failure from commands history'" if $uncheckpoint_failure eq '';
         my @involved_failure_guest = grep { $uncheckpoint_failure =~ /$_/img } (keys %virt_autotest::common::guests);
         my $uncheckpoint_failure_guest = "";
         if (!scalar @involved_failure_guest) {
@@ -157,11 +172,17 @@ sub post_fail_hook {
     my ($self) = shift;
 
     $self->{"stop_run"} = time();
-    assert_script_run("history -w /root/commands_history");
+    unless (defined(script_run("rm -f /root/{commands_history,commands_failure}", die_on_timeout => 0))) {
+        reconnect_when_ssh_console_broken;
+        alp_workloads::kvm_workload_utils::enter_kvm_container_sh if is_alp;
+    }
+
+    check_host_health;
     virt_utils::stop_monitor_guest_console() if (!(get_var("TEST", '') =~ /qam/) && (is_xen_host() || is_kvm_host()));
     #(caller(0))[3] can help pass calling subroutine name into called subroutine
     $self->junit_log_provision((caller(0))[3]) if get_var("VIRT_AUTOTEST");
-    collect_virt_system_logs();
+    # virt logs are included in next step "virt_utils::collect_host_and_guest_logs"
+    collect_virt_system_logs() unless get_var("VIRT_AUTOTEST");
 
     virt_utils::collect_host_and_guest_logs;
     upload_logs("/var/log/clean_up_virt_logs.log");
@@ -172,6 +193,8 @@ sub post_fail_hook {
     save_screenshot;
     $self->upload_coredumps;
     save_screenshot;
+    alp_workloads::kvm_workload_utils::collect_kvm_container_setup_logs if (version_utils::is_alp);
+    alp_workloads::kvm_workload_utils::enter_kvm_container_sh if is_alp;
 }
 
 sub get_virt_disk_and_available_space {

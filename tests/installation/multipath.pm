@@ -6,7 +6,7 @@
 
 # Summary: Test module to activate multipath during initial installation
 # - If MULTIPATH_CONFIRM is set to YES, select yes at multipath detection screen
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_installbase';
 use strict;

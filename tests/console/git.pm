@@ -13,19 +13,19 @@
 # - Push update via ssh
 # - Git clone via https protocol
 # - Clean up
-# Maintainer: Lemon <leli@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call);
 
 sub run {
     my $username = $testapi::username;
     my $email = "you\@example.com";
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Create a test repo
     zypper_call("in git-core");

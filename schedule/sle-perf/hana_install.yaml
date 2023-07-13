@@ -35,9 +35,16 @@ conditional_schedule:
         - '{{fix_sle_15gm_multi_disks}}'
         - '{{separate_home}}'
         - '{{partitioning_method}}'
+      kvm:
+        - '{{fix_sle_15gm_multi_disks}}'
+        - '{{partitioning_method}}'
   fix_sle_15gm_multi_disks:
     VERSION:
       15:
+        - '{{fix_sle_15gm_multi_disks_by_arch}}'
+  fix_sle_15gm_multi_disks_by_arch:
+    ARCH:
+      ppc64le:
         - installation/partitioning_smalldisk_storageng
   disable_grub_graphics:
     ARCH:
@@ -80,13 +87,30 @@ conditional_schedule:
         - installation/partitioning/no_enlarge_swap
       15-SP4:
         - installation/partitioning/no_enlarge_swap
+      15-SP5:
+        - installation/partitioning/no_enlarge_swap
+  ppc64le_partitioning_smalldisk_storageng_by_version:
+    VERSION:
+      12-SP4:
+        - installation/partitioning_smalldisk_storageng
+      12-SP5:
+        - installation/partitioning_smalldisk_storageng
+      15-SP1:
+        - installation/partitioning_smalldisk_storageng
+      15-SP2:
+        - installation/partitioning_smalldisk_storageng
+      15-SP3:
+        - installation/partitioning_smalldisk_storageng
+      15-SP4:
+        - installation/partitioning_smalldisk_storageng
+      15-SP5:
+        - installation/partitioning_smalldisk_storageng
   partitioning_method:
     ARCH:
       x86_64:
         - installation/partitioning_firstdisk
       ppc64le:
-        - installation/partitioning_smalldisk_storageng
-        - '{{fix_sle_15gm_multi_disks}}'
+        - '{{ppc64le_partitioning_smalldisk_storageng_by_version}}'
   change_desktop:
     VERSION:
       12-SP4:

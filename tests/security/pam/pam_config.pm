@@ -3,19 +3,19 @@
 #
 # Summary: PAM tests for pam-config, create, add or delete services
 #
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#70345, poo#108096, tc#1767580
 
 use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 use version_utils 'is_sle';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Create a simple Unix authentication configuration, all backup files will not be deleted
     if (!is_sle) {
@@ -37,10 +37,10 @@ sub run {
     foreach my $meth (@meth_list) {
         # Add a method
         assert_script_run "pam-config --add --$meth";
-        assert_script_run "find /etc/pam.d -type f | grep common | xargs egrep $meth";
+        assert_script_run "find /etc/pam.d -type f | grep common | xargs grep -E $meth";
         # Delete a method
         assert_script_run "pam-config --delete --$meth";
-        validate_script_output "find /etc/pam.d -type f | grep common | xargs egrep $meth || echo 'check pass'", sub { m/check pass/ };
+        validate_script_output "find /etc/pam.d -type f | grep common | xargs grep -E $meth || echo 'check pass'", sub { m/check pass/ };
     }
 
     # Upload logs

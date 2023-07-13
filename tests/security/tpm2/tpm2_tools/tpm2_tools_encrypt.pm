@@ -4,17 +4,17 @@
 # Summary: Per TPM2 stack, we would like to add the tpm2-tools tests,
 #          from sles15sp2, update tpm2.0-tools to the stable 4 release
 #          this test module will cover encrypt and decrypt tests.
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#64905, poo#105732, tc#1742297
 
 use strict;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $tpm_suffix = '';
     $tpm_suffix = '-T tabrmd' if (get_var('QEMUTPM', 0) != 1 || get_var('QEMUTPM_VER', '') ne '2.0');

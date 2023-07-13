@@ -21,14 +21,14 @@
 
 use base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils 'zypper_call';
 use version_utils 'is_sle';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # script to add missing dependency repos and in second run remove only added products/repos
     assert_script_run 'curl -v -o /tmp/script.sh ' . data_url('qam/handle_bind_source_dependencies.sh');
@@ -79,7 +79,7 @@ sub run {
     if ($@) {
         for (1 .. 3) {
             eval {
-                record_soft_failure 'Retry: poo#71329';
+                record_info 'Retry: poo#71329';
                 assert_script_run 'TFAIL=$(awk -F: -e \'/^R:.*:FAIL/ {print$2}\' systests.output)';
                 assert_script_run 'for t in $TFAIL; do runuser -u bernhard -- sh run.sh $t; done', 2000;
             };
@@ -94,7 +94,7 @@ sub run {
 
 sub post_fail_hook {
     # print out what tests failed
-    assert_script_run 'egrep "^A|^R" systests.output|grep -B1 FAIL';
+    assert_script_run 'grep -E "^A|^R" systests.output|grep -B1 FAIL';
     upload_logs 'systests.output';
 }
 

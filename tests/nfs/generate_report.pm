@@ -12,6 +12,7 @@ use warnings;
 use base 'opensusebasetest';
 use Mojo::JSON;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use upload_system_log;
 
 sub display_results {
@@ -31,7 +32,7 @@ sub display_results {
     die 'failed to parse results.json' unless $results;
     die 'results.json is not array' unless (ref($results->{testcase}) eq 'ARRAY');
 
-    record_info('Results', "failures: $results->{failures}\nskipped: $results->{skipped}\ntime: $results->{time}");
+    record_info('Results', "failures: $results->{failures}\nskipped: $results->{skipped}\ntime: $results->{time}", result => $results->{failures} ? 'fail' : ($results->{skipped} ? 'softfail' : 'ok'));
 
     for my $test (@{$results->{testcase}}) {
         if (exists($test->{skipped})) {
@@ -42,7 +43,7 @@ sub display_results {
     }
 
     record_info('Passed', $pass);
-    record_info('Skipped', $skip);
+    record_info('Skipped', $skip, result => $results->{skipped} ? 'softfail' : 'ok');
 
     for my $test (@{$results->{testcase}}) {
         bmwqemu::fctinfo("code: $test->{code}");
@@ -78,7 +79,7 @@ sub upload_cthon04_log {
         $self->result("fail");
         record_info('Fail', "Basic test failed");
     }
-    if (script_output("egrep ' ok|success' ./result_special_test.txt | wc -l") =~ '7') {
+    if (script_output("grep -E ' ok|success' ./result_special_test.txt | wc -l") =~ '7') {
         record_info('Pass', "Special test pass");
     }
     else {
@@ -100,7 +101,7 @@ sub upload_cthon04_log {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     if (get_var("PYNFS")) {
         $self->display_results();

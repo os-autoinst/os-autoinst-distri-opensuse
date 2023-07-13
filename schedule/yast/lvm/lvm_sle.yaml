@@ -5,40 +5,21 @@ description: >
   wizard screen.
 name: cryptlvm
 vars:
-  DESKTOP: textmode
   LVM: '1'
-  MAX_JOB_TIME: '14400'
   OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
   YUI_REST_API: 1
 schedule:
-  - installation/bootloader_start
-  - installation/setup_libyui
-  - installation/access_beta_distribution
-  - installation/product_selection/install_SLES
-  - installation/licensing/accept_license
-  - installation/registration/register_via_scc
-  - installation/module_registration/skip_module_registration
-  - installation/add_on_product/skip_install_addons
-  - installation/system_role/accept_selected_role_text_mode
-  - installation/partitioning/select_guided_setup
-  - installation/partitioning/guided_setup/enable_lvm
-  - installation/partitioning/guided_setup/accept_default_fs_options
-  - installation/partitioning/accept_proposed_layout
-  - installation/clock_and_timezone/accept_timezone_configuration
-  - installation/authentication/use_same_password_for_root
-  - installation/authentication/default_user_simple_pwd
-  - installation/installation_settings/validate_default_target
-  - installation/bootloader_settings/disable_boot_menu_timeout
-  - installation/launch_installation
-  - installation/confirm_installation
-  - installation/performing_installation/perform_installation
-  - installation/logs_from_installation_system
-  - installation/performing_installation/confirm_reboot
-  - installation/handle_reboot
-  - installation/first_boot
-  - console/system_prepare
-  - console/validate_lvm
-  - console/zypper_lr
-  - console/zypper_ref
-  - console/zypper_in
-  - console/firewall_enabled
+  guided_partitioning:
+    - installation/partitioning/select_guided_setup
+    - installation/partitioning/guided_setup/enable_lvm
+    - installation/partitioning/guided_setup/accept_default_fs_options
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_preparation:
+    - console/system_prepare
+  system_validation:
+    - console/validate_lvm
+    - console/zypper_lr
+    - console/zypper_ref
+    - console/zypper_in
+    - console/firewall_enabled

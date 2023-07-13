@@ -9,6 +9,7 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'script_retry';
 use version_utils qw(is_sle is_leap);
 use containers::utils qw(registry_url container_ip);
@@ -19,7 +20,7 @@ my $stop_firewall = 0;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $engine = $self->containers_factory('docker');
     my $container_name = 'sut_container';
@@ -47,7 +48,7 @@ sub run {
     }
     # Rules applied before DOCKER. Default is to listen to all tcp connections
     # ex. output: "1           0        0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0"
-    validate_script_output "iptables -L DOCKER-USER -nvx --line-numbers", sub { /1.+all.+0\.0\.0\.0\/0\s+0\.0\.0\.0\/0/ };
+    validate_script_output "iptables -L DOCKER-USER -vx --line-numbers", sub { /1.+all.+anywhere\s+anywhere/ };
 
     # Run container in the background
     assert_script_run "docker run -id --rm --name $container_name -p 1234:1234 " . registry_url('alpine') . " sleep 30d";

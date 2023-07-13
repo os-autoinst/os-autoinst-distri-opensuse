@@ -7,7 +7,7 @@
 #          (WPA-PSK or SAE with DHCP)
 #   - The AP is connfiguered to allow SAE connections with PMF
 #   - Connect to AP with only SSID and PSK set (autosection)
-#   - Connect to AP with SAE 
+#   - Connect to AP with SAE
 #   - Each connection is checked with data bi-directional traffic
 #
 # Maintainer: cfamullaconrad@suse.com

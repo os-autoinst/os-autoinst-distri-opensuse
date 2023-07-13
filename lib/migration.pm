@@ -29,13 +29,14 @@ our @EXPORT = qw(
   reset_consoles_tty
   set_scc_proxy_url
   set_zypp_single_rpmtrans
+  remove_dropped_modules_packages
 );
 
 sub setup_sle {
     select_console 'root-console';
 
-    if (is_ppc64le && is_sle('<=12-sp5')) {
-        record_soft_failure('bsc#1195046 - ncurses display a wrong checker board character');
+    # https://bugzilla.suse.com/show_bug.cgi?id=1205290#c3
+    if (is_sle('<=12-SP5')) {
         systemctl('restart systemd-vconsole-setup.service');
     }
 
@@ -92,7 +93,7 @@ sub register_system_in_textmode {
         register_addons_cmd();
     }
     else {
-        yast_scc_registration();
+        yast_scc_registration(yast2_opts => '--ncurses');
     }
     # Once SCC registration is done, disable IN_PATCH_SLE so it does not interfere
     # with further calls to accept_addons_license (in upgrade for example)
@@ -129,6 +130,17 @@ sub deregister_dropped_modules {
         @all_addons = grep { $_ ne $name } @all_addons;
     }
     set_var('SCC_ADDONS', join(',', @all_addons));
+}
+
+# This function removes the packages specified with variable DROPPED_MODULES instead of un-registering the modules
+# before migrating: it is enough to just remove the -release package to avoid warnings like "the module
+# cannot be updated".
+sub remove_dropped_modules_packages {
+    my $droplist = get_var('DROPPED_MODULES', '');
+    for my $name (split(/,/, $droplist)) {
+        my $release_package = get_addon_fullname($name) . "-release";
+        zypper_call("rm $release_package");
+    }
 }
 
 # Disable installation repos before online migration

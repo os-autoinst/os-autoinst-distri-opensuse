@@ -1,0 +1,22 @@
+---
+name: autoyast_milestone_test_online_pre@pvm
+description: >
+  autoYaST installation and prepare base system
+vars:
+  AUTOYAST_PREPARE_PROFILE: '1'
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

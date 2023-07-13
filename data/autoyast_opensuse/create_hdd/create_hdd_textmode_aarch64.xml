@@ -1,0 +1,189 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+  </general>
+  <bootloader>
+    <global t="map">
+      <append>splash=silent video=1024x768 plymouth.ignore-serial-consoles console=ttyS0 console=tty kernel.softlockup_panic=1 security=apparmor mitigations=auto</append>
+      <cpu_mitigations>auto</cpu_mitigations>
+      <gfxmode>auto</gfxmode>
+      <hiddenmenu>false</hiddenmenu>
+      <os_prober>true</os_prober>
+      <secure_boot>true</secure_boot>
+      <terminal>gfxterm</terminal>
+      <timeout t="integer">-1</timeout>
+      <update_nvram>true</update_nvram>
+      <xen_kernel_append>vga=gfx-1024x768x16</xen_kernel_append>
+    </global>
+    <loader_type>grub2-efi</loader_type>
+  </bootloader>
+  <login_settings>
+    <autologin_user>bernhard</autologin_user>
+  </login_settings>
+  <networking>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+  </networking>
+  <partitioning t="list">
+    <drive t="map">
+      <device>/dev/vda</device>
+      <disklabel>gpt</disklabel>
+      <enable_snapshots t="boolean">true</enable_snapshots>
+      <partitions t="list">
+        <partition t="map">
+          <create t="boolean">true</create>
+          <filesystem t="symbol">vfat</filesystem>
+          <format t="boolean">true</format>
+          <fstopt>utf8</fstopt>
+          <mount>/boot/efi</mount>
+          <mountby t="symbol">uuid</mountby>
+          <partition_id t="integer">259</partition_id>
+          <partition_nr t="integer">1</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>300MiB</size>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <create_subvolumes t="boolean">true</create_subvolumes>
+          <filesystem t="symbol">btrfs</filesystem>
+          <format t="boolean">true</format>
+          <mount>/</mount>
+          <mountby t="symbol">uuid</mountby>
+          <partition_id t="integer">131</partition_id>
+          <partition_nr t="integer">2</partition_nr>
+          <quotas t="boolean">true</quotas>
+          <resize t="boolean">false</resize>
+          <size>max</size>
+          <subvolumes t="list">
+            <subvolume t="map">
+              <copy_on_write t="boolean">false</copy_on_write>
+              <path>var</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>usr/local</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>srv</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>root</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>opt</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>home</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>boot/grub2/arm64-efi</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>boot/grub2/i386-pc</path>
+            </subvolume>
+          </subvolumes>
+          <subvolumes_prefix>@</subvolumes_prefix>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <filesystem t="symbol">swap</filesystem>
+          <format t="boolean">true</format>
+          <mount>swap</mount>
+          <mountby t="symbol">uuid</mountby>
+          <partition_id t="integer">130</partition_id>
+          <partition_nr t="integer">3</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>2GiB</size>
+        </partition>
+      </partitions>
+      <type t="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <software t="map">
+    <install_recommended t="boolean">true</install_recommended>
+    <instsource/>
+    <packages t="list">
+      <package>snapper</package>
+      <package>shim</package>
+      <package>os-prober</package>
+      <package>openssh</package>
+      <package>openSUSE-release</package>
+      <package>mokutil</package>
+      <package>kexec-tools</package>
+      <package>grub2-arm64-efi</package>
+      <package>glibc</package>
+      <package>firewalld</package>
+      <package>e2fsprogs</package>
+      <package>dosfstools</package>
+      <package>dialog</package>
+      <package>chrony</package>
+      <package>btrfsprogs</package>
+      <package>autoyast2</package>
+      <package>NetworkManager</package>
+    </packages>
+    <patterns t="list">
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>enhanced_base</pattern>
+      <pattern>minimal_base</pattern>
+      <pattern>sw_management</pattern>
+      <pattern>yast2_basis</pattern>
+      <pattern>yast2_server</pattern>
+    </patterns>
+    <products t="list">
+      <product>openSUSE</product>
+    </products>
+  </software>
+  <users t="list">
+    <user t="map">
+      <authorized_keys t="list"/>
+      <encrypted t="boolean">true</encrypted>
+      <fullname>bernhard</fullname>
+      <gid>100</gid>
+      <home>/home/bernhard</home>
+      <home_btrfs_subvolume t="boolean">false</home_btrfs_subvolume>
+      <password_settings t="map">
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>1000</uid>
+      <user_password>$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/</user_password>
+      <username>bernhard</username>
+    </user>
+    <user t="map">
+      <authorized_keys t="list"/>
+      <encrypted t="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <home_btrfs_subvolume t="boolean">false</home_btrfs_subvolume>
+      <password_settings t="map">
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$6$gdDHoMtVLjs4CCzf$2tSvAdgvqrKo84pA59bEjZRh7IGMfv4u0Yl4hrRzPgFPWLd8RXWdn/boT7yM3K3BlTk57qyR0TZ/nMb9rlpzx1</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>

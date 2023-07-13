@@ -14,7 +14,7 @@
 # - Send CTRL-MINUS (zoom out) and check
 # - Send CTRL-+ (zoom in)
 # - Exit evince
-# Maintainer: Huajian Luo <hluo@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 # Tags: tc#1436024
 
 use base "x11test";

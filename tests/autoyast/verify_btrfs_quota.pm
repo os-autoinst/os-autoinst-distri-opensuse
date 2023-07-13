@@ -5,7 +5,7 @@
 #
 # Summary: Verify that quota is set and corresponds to the expected limit for the required subvolumes.
 # The list of subvolumes and expected quota limit are stored in 'test_data'.
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'basetest';
 use strict;

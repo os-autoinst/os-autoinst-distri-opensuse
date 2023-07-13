@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run 'trustedprograms' test case of 'audit-test' test suite
-# Maintainer: rfan1 <richard.fan@suse.com>, Liu Xiaojing <xiaojing.liu@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#95908
 
 use base 'consoletest';
@@ -43,6 +43,9 @@ sub run {
     select_console 'root-console';
 
     run_testcase('trustedprograms', (make => 1, timeout => 1200));
+
+    # Add a reminder that https://progress.opensuse.org/issues/96438 is not yet fixed.
+    record_soft_failure("poo#96438 - basic_strongswan FAILS");
 
     # Compare current test results with baseline
     my $result = compare_run_log('trustedprograms');

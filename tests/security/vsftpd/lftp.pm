@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-Later
 #
 # Summary: Test vsftpd with ssl enabled
-# Maintainer: shawnhao <weixuan.hao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#108614, tc#1769978
 
 use base 'opensusebasetest';

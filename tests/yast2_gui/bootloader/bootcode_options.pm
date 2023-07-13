@@ -6,7 +6,7 @@
 # Summary: Open bootloader gui, verify default setting in ui, change
 # some settings and verify that they have been applied.
 #
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "y2_module_guitest";
 use strict;

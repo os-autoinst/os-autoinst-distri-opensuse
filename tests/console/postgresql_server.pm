@@ -17,13 +17,13 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 use apachetest qw(setup_pgsqldb destroy_pgsqldb test_pgsql postgresql_cleanup);
 use Utils::Systemd 'systemctl';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # install the postgresql server package
     zypper_call "in postgresql-server sudo";

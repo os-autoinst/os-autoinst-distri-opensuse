@@ -15,15 +15,16 @@
 #   SPACE_LIMIT
 # - Run snapper at least couple of times to ensure it cleans up properly
 # - Cleanup
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'btrfs_test';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'clear_console';
 use List::Util qw(max min);
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_tumbleweed is_leap);
 
 my $exp_excl_space;
 my $btrfs_fs_usage = 'btrfs filesystem usage / --raw';
@@ -47,7 +48,16 @@ sub snapper_cleanup {
     for (1 .. $scratch_size_gb) { assert_script_run("$snap_create", 500); }
     assert_script_run('sync');
     script_run "echo There are `$snaps_numb` snapshots BEFORE cleanup";
-    assert_script_run("snapper cleanup number", 300);    # cleanup created snapshots
+    # cleanup created snapshots
+    # softfail the test if hitting bsc#1206814, so that the subsequent test runs are not affected
+    my $output = script_output('snapper cleanup number || echo "error detected"', 300, proceed_on_failure => 1);
+    if ($output =~ m/error detected/) {
+        if (($output =~ m/Failure\s+\(error\.something\)\./) && is_leap) {
+            record_soft_failure 'bsc#1206814';
+            return;
+        }
+        die 'snapper cleanup number failed';
+    }
     assert_script_run("btrfs quota rescan -w /", 90);
     script_run "echo There are `$snaps_numb` snapshots AFTER cleanup";
     assert_script_run("btrfs qgroup show -pcre /");
@@ -60,7 +70,7 @@ sub snapper_cleanup {
         my $msg = "bsc#998360: qgroup 1/0: Exclusive space is above user-defined limit:\n"
           . "$exp_excl_space (expected exclusive disk space) < $qgroup_excl_space (consumed exclusive disk space)";
         if (check_var('VERSION', '12-SP2')) {
-            record_soft_failure $msg;
+            record_info('Softfail', $msg, result => 'softfail');
         }
         else {
             die $msg;
@@ -70,7 +80,7 @@ sub snapper_cleanup {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     $self->cron_mock_lastrun() if is_sle('<15');
 
     if (get_var("UPGRADE") || get_var("AUTOUPGRADE") && !get_var("BOOT_TO_SNAPSHOT")) {
@@ -135,7 +145,10 @@ sub run {
     # tidy up and restore default settings
     assert_script_run("snapper set-config NUMBER_LIMIT=0; snapper cleanup number; rm -fv data", 300);
     assert_script_run("snapper set-config NUMBER_LIMIT=$number_limit_pre NUMBER_MIN_AGE=$number_min_age_pre");
-    assert_script_run("snapper get-config; snapper ls");    # final report
+    assert_script_run("snapper get-config");    # final report
+        # command 'snapper ls' runs timeout or it stucks because of display used space, so we have to disable it on tumbleweed, see poo#122557
+    my $command_args = (is_tumbleweed && check_var('MACHINE', '64bit')) ? '--disable-used-space' : undef;
+    assert_script_run("snapper ls $command_args", 30);
     assert_script_run("$btrfs_fs_usage", 120);    # final report
 }
 

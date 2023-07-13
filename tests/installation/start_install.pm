@@ -12,7 +12,7 @@
 # install progress
 # - If USEIMAGES is set, check desktop install type (either kde, gnome or
 # textmode)
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_installbase';
 use strict;
@@ -31,9 +31,9 @@ sub run {
     # Also, virtual machines for testing can be really slow in this step
     my $started_timeout = get_var('LIVECD') ? 1200 : 300;
     if (is_upgrade) {
+        wait_still_screen 2;
         send_key $cmd{update};
-        sleep 1;
-        assert_screen [qw(startupdate startupdate-conflict license-popup)], 5;
+        assert_screen [qw(startupdate startupdate-conflict license-popup)], 10;
 
         while (match_has_tag("startupdate-conflict") || match_has_tag("license-popup")) {
             if (match_has_tag("startupdate-conflict")) {

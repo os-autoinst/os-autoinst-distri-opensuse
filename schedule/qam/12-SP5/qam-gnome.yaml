@@ -70,7 +70,6 @@ conditional_schedule:
     ARCH:
       x86_64:
         - console/glibc_sanity
-        - console/x_vt
   sled_tests:
     SLE_PRODUCT:
       sled:

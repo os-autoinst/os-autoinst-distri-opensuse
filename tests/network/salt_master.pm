@@ -24,12 +24,13 @@
 # - Create user and group and wait for the minion
 # - Set sysctl key and wait for the minion
 # - Stop both master and minion at the end
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "saltbase";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils qw(script_retry zypper_call);
 
@@ -38,7 +39,7 @@ sub run {
     barrier_create('SALT_FINISHED', 2);
     mutex_create 'barrier_setup_done';
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Install, configure and start the salt master
     $self->master_prepare();

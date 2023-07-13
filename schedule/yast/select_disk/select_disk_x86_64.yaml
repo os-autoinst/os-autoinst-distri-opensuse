@@ -1,0 +1,24 @@
+---
+description: >
+  Test the selection of "first" disk with the guided setup in partitioning.
+  This is also used as a prerequisite for real hardware tests to select
+  the right disk for installation and not a "random" one.
+name: select_disk
+vars:
+  YUI_REST_API: 1
+schedule:
+  guided_partitioning:
+    - installation/partitioning/select_guided_setup
+    - installation/partitioning/guided_setup/select_disks
+    - installation/partitioning/guided_setup/accept_default_part_scheme
+    - installation/partitioning/guided_setup/accept_default_fs_options
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_validation:
+    - console/validate_first_disk_selection
+test_data:
+  guided_partitioning:
+    disks:
+      - vda
+  unused_disks:
+    - vdb

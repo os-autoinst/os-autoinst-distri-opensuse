@@ -2,20 +2,21 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test IMA appraisal using hashes
-# Maintainer: llzhao <llzhao@suse.com>, rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#53579, poo#100694, poo#102311
 
 use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings tianocore_disable_secureboot);
 use power_action_utils 'power_action';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $fstype = 'ext4';
     my $sample_app = '/usr/bin/yes';
@@ -32,7 +33,7 @@ sub run {
     $self->wait_grub(bootloader_time => 200);
     $self->tianocore_disable_secureboot;
     $self->wait_boot(textmode => 1);
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $findret = script_output("find / -fstype $fstype -type f -uid 0 -exec sh -c \"< '{}'\" \\;", 900, proceed_on_failure => 1);
 
@@ -57,7 +58,7 @@ sub run {
     $self->wait_grub(bootloader_time => 200);
     $self->tianocore_disable_secureboot('re_enable');
     $self->wait_boot(textmode => 1);
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $ret = script_output($sample_cmd, 30, proceed_on_failure => 1);
     die "$sample_app should not have permission to run" if ($ret !~ "\Q$sample_app\E: *Permission denied");

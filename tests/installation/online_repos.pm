@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Process online repos during installation, relevant for openSUSE only
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_installbase';
 use strict;
@@ -64,7 +64,7 @@ sub run {
     # Test online repos dialog explicitly
     if (get_var('DISABLE_ONLINE_REPOS')) {
         disable_online_repos_explicitly;
-    } elsif (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
+    } elsif (installwithaddonrepos_is_applicable()) {
         # Acivate online repositories
         wait_screen_change { send_key 'alt-y' };
     } else {

@@ -12,12 +12,10 @@ use Utils::Architectures;
 
 use version_utils qw(is_microos is_sle);
 use y2_logs_helper 'get_available_compression';
-use utils qw(type_string_slow zypper_call);
+use utils qw(type_string_slow zypper_call remount_tmp_if_ro detect_bsc_1063638);
 use lockapi;
 use mmapi;
 use Test::Assert 'assert_equals';
-
-my $workaround_bsc1189550_done;
 
 =head1 y2_installbase
 
@@ -81,7 +79,7 @@ sub validate_default_target {
 
     my $target_search = 'default target has been set';
     # default.target is not yet linked, so we parse logs and assert expectations
-    if (my $log_line = script_output("grep '$target_search' /var/log/YaST2/y2log | tail -1",
+    if (my $log_line = script_output("grep '$target_search' /var/log/YaST2/y2log | tail -1", timeout => 30,
             proceed_on_failure => 1)) {
         $log_line =~ /$target_search: (?<current_target>.*)/;
         assert_equals($expected_target, $+{current_target}, "Mismatch in default.target");
@@ -184,8 +182,14 @@ highlight cursor one item down.
 
 sub move_down {
     my $ret = wait_screen_change { send_key 'down' };
-    workaround_bsc1189550() if (!$workaround_bsc1189550_done && is_sle('>=15-sp3'));
     last if (!$ret);    # down didn't change the screen, so exit here
+    if (is_sle('>=15-sp3')) {
+        # Sending 'down' twice, followed by 'up', scrolls to the intended item.
+        $ret = wait_screen_change { send_key 'down' };
+        # If screen did not change with the second down we are on the last item.
+        # In that case do not press up so that it remains selected.
+        wait_screen_change { send_key 'up' } if $ret;
+    }
     check12qtbug if check_var('VERSION', '12');
 }
 
@@ -253,6 +257,41 @@ sub select_all_patterns_by_menu {
     send_key 'alt-o';
     $self->accept3rdparty();
     assert_screen 'inst-overview';
+}
+
+=head2 select_not_install_any_pattern 
+
+    select_not_install_any_pattern() 
+
+Being in the "select pattern" screen, performs steps to not install any
+patterns.
+=cut
+
+sub select_not_install_any_pattern {
+    my ($self) = @_;
+
+    # Ensure mouse on certain pattern then right click
+    assert_and_click("minimal-system", button => 'right');
+    assert_screen 'selection-menu';
+    # select action on all patterns
+    wait_screen_change { send_key 'a'; };
+    # confirm do not install
+    assert_and_click 'all-do-not-install';
+    save_screenshot;
+}
+
+=head2 select_visible_unselected_patterns
+
+    select_visible_unselected_patterns([@patterns])
+
+Being in the "select pattern" screen, performs steps to select visible
+patterns.
+=cut
+
+sub select_visible_unselected_patterns {
+    my ($self, $patterns) = @_;
+
+    assert_and_click("$_-pattern") for ($patterns->@*);
 }
 
 =head2 deselect_pattern
@@ -468,6 +507,7 @@ sub process_unsigned_files {
 # to deal with dependency issues, either work around it, or break dependency to continue with installation
 sub deal_with_dependency_issues {
     my ($self) = @_;
+    my $vendor_change = 0;
 
     return unless check_screen 'manual-intervention', 0;
 
@@ -488,13 +528,19 @@ sub deal_with_dependency_issues {
     elsif (check_var("BREAK_DEPS", '1')) {
         y2_logs_helper::break_dependency;
     }
+    elsif (check_var("VENDOR_CHG_DEPS", '1')) {
+        $vendor_change = 1;
+        y2_logs_helper::vendor_change_dependency;
+    }
     else {
         die 'Dependency problems';
     }
 
-    assert_screen 'dependency-issue-fixed';    # make sure the dependancy issue is fixed now
-    send_key 'alt-a';    # Accept
-    sleep 2;
+    if (!$vendor_change) {
+        assert_screen 'dependency-issue-fixed';    # make sure the dependancy issue is fixed now
+        send_key 'alt-a';    # Accept
+        sleep 2;
+    }
 
   DO_CHECKS:
     while (check_screen('accept-licence', 2)) {
@@ -577,9 +623,9 @@ sub post_fail_hook {
         # error pop-up and system will reboot, so log collection will fail (see poo#61052)
         $self->SUPER::post_fail_hook unless get_var('AUTOYAST');
         get_to_console;
-        $self->detect_bsc_1063638;
+        detect_bsc_1063638;
         $self->get_ip_address;
-        $self->remount_tmp_if_ro;
+        remount_tmp_if_ro;
         # Avoid collectin logs twice when investigate_yast2_failure() is inteded to hard-fail
         $self->save_upload_y2logs unless get_var('ASSERT_Y2LOGS');
         return if is_microos;
@@ -588,12 +634,6 @@ sub post_fail_hook {
         # Collect yast2 installer  strace and gbd debug output if is still running
         $self->save_strace_gdb_output;
     }
-}
-
-sub workaround_bsc1189550 {
-    wait_screen_change { send_key 'end' };
-    wait_screen_change { send_key 'home' };
-    $workaround_bsc1189550_done = 1;
 }
 
 # All steps in the installation are 'fatal'.

@@ -2,13 +2,14 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Setup online repos or dvd images for further testing
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#52808
 
 use strict;
 use warnings;
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use utils;
 use version_utils "is_sle";
@@ -23,8 +24,7 @@ sub repo_cleanup {
 }
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Note: Check the ticket in p.o.o for detailed descriptions of the
     #       repository setup logic.

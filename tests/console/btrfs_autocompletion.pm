@@ -38,14 +38,18 @@ sub run {
     # On JeOS 'bash-completion' is not expected to be present. On general
     # SLES installation it is. Thus on JeOS we have to enable it manually.
     if (is_jeos) {
-        zypper_call('in bash-completion');
+        # btrfsprogs split bash-completion into a sub-package; JeOS using no-recommends does
+        # not trigger this sub-package to be auto-installed. Attempt to install, accept non-
+        # existing package on case it is not yet split (exitcode 104)
+        # use zypper -n -i install: -i ignores missing packages
+        zypper_call('-i in bash-completion btrfsprogs-bash-completion', exitcode => [0, 104]);
         assert_script_run('source $(rpmquery -l bash-completion | grep bash_completion.sh)');
     }
 
     compare_commands("btrfs device stats ", "btrfs d\tst\t");
     compare_commands("btrfs subvolume get-default ", "btrfs su\tg\t");
     compare_commands("btrfs filesystem usage ", "btrfs fi\tu\t");
-    compare_commands("btrfs inspect-internal min-dev-size ", "btrfs i\tm\t");
+    compare_commands("btrfs inspect-internal min-dev-size ", "btrfs i\tmi\t");
 
     # Check loading of complete function
     assert_script_run "complete | grep '_btrfs btrfs'";

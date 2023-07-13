@@ -18,6 +18,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(quit_packagekit zypper_call);
 use version_utils qw(is_sle is_leap is_opensuse is_transactional);
 use registration qw(add_suseconnect_product remove_suseconnect_product);
@@ -30,8 +31,7 @@ my $version = get_var('VERSION');
 my $version_id = (split('-', $version))[0] . '.' . (split('P', (split('-', $version))[1]))[1];
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     # Make sure that PackageKit is not running
     quit_packagekit;
     # if !QAM test suite then register Legacy module
@@ -49,7 +49,7 @@ sub run {
     # java-11-openjdk                   -> Basesystem
     # java-10-openjdk & java-1_8_0-ibm  -> Legacy
     my $cmd = 'install --auto-agree-with-licenses ';
-    $cmd .= (is_sle('15+') || is_sle('=12-SP5') || is_leap) ? 'java-11-openjdk* java-1_*' : 'java-*';
+    $cmd .= (is_sle('15+') || is_sle('=12-SP5') || is_leap) ? 'java-11-openjdk{,-demo,-devel} java-1_*' : 'java-*';
 
     if (is_transactional) {
         select_console 'root-console';

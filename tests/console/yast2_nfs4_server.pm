@@ -14,7 +14,7 @@
 #    * We also create some testing file
 #    * 1GB file is created and the md5 checksum saved for later comparing
 #    * The NFSv4 ACL are used to protest some files - the client then tries to access those
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "y2_module_consoletest";
 
@@ -23,6 +23,7 @@ use warnings;
 use utils qw(clear_console zypper_call systemctl);
 use version_utils;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use mmapi;
 use mm_network;
@@ -30,7 +31,7 @@ use nfs_common;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $rw = '/srv/nfs';
     my $ro = '/srv/nfs/ro';

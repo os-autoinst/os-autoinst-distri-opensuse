@@ -24,11 +24,11 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # disable packagekit and install all needed packages
     quit_packagekit;

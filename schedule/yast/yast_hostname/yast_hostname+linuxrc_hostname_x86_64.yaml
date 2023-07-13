@@ -1,0 +1,23 @@
+---
+name: yast_hostname+linuxrc_hostname
+description: >
+  Test suite uses default option to set hostname=linuxrchostname.
+  Test validates if installation can successfully start in case of usage of
+  these parameters.
+vars:
+  EXPECTED_INSTALL_HOSTNAME: linuxrchostname
+  EXTRABOOTPARAMS: hostname=linuxrchostname
+  YUI_REST_API: 1
+schedule:
+  local_user: []
+  booting: []
+  clock_and_timezone:
+    - installation/clock_and_timezone/accept_timezone_configuration
+    - installation/hostname_inst
+  default_systemd_target: []
+  installation_settings: []
+  installation: []
+  installation_logs: []
+  confirm_reboot: []
+  grub: []
+  first_login: []

@@ -1,0 +1,5 @@
+BOOTPROTO='static'
+STARTMODE='auto'
+ZONE='trusted'
+IPADDR='192.168.10.100'
+NETMASK='255.255.255.0'

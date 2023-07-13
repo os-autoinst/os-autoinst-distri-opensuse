@@ -38,7 +38,7 @@ variable "instance_count" {
     default = "1"
 }
 variable "type" {
-    default = "Standard_A2_v2"
+    default = "Standard_B2s"
 }
 
 variable "image_id" {
@@ -51,6 +51,10 @@ variable "offer" {
 
 variable "sku" {
     default="gen1"
+}
+
+variable "vm_create_timeout" {
+    default = "20m"
 }
 
 ## ---- data ---------------------------------------------------------------- ##
@@ -163,7 +167,7 @@ resource "azurerm_storage_account_network_rules" "openqa-group" {
   default_action             = "Deny"
   virtual_network_subnet_ids = [azurerm_subnet.openqa-subnet.id]
   // AZURE LIMITATION: After setting Deny, we need to allow this host otherwise we cannot do changes or delete the resources
-  ip_rules = [chomp(data.http.myip.body)]
+  ip_rules = [chomp(data.http.myip.response_body)]
   
   private_link_access {
     endpoint_resource_id     = azurerm_subnet.openqa-subnet.id
@@ -236,6 +240,10 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
       sku       = var.image_id != "" ? "" : var.sku
       version   = var.image_id != "" ? "" : "latest"
     }
+  }
+
+  timeouts {
+    create = var.vm_create_timeout
   }
 }
 

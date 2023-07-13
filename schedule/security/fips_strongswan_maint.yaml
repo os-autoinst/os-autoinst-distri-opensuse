@@ -1,0 +1,27 @@
+name: fips_strongswan
+description:    >
+    This is for testing strongswan in fips mode
+schedule:
+    - '{{bootloader_zkvm}}'
+    - boot/boot_to_desktop
+    - '{{setup_multimachine}}'
+    - console/consoletest_setup
+    - fips/fips_setup
+    - '{{strongswan}}'
+conditional_schedule:
+    bootloader_zkvm:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
+    setup_multimachine:
+        ARCH:
+            aarch64:
+                - network/setup_multimachine
+            x86_64:
+                - network/setup_multimachine
+    strongswan:
+        HOSTNAME:
+            server:
+                - fips/strongswan/strongswan_server
+            client:
+                - fips/strongswan/strongswan_client

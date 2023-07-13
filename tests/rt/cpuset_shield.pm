@@ -18,15 +18,16 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
+use Utils::Logging qw(export_logs_basic upload_coredumps);
 
 # Used in post_fail_hook as well
 my $cpuset_log = '/var/log/cpuset';
 
 sub run {
-    my $self = shift;
     my $cmd_base = 'cset --log ' . $cpuset_log . ' shield ';
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Support for cpuset filesystem has to enabled in kernel during compilation
     ((script_output 'cat /proc/filesystems') =~ m/\bnodev\s+cpuset\b/) or
@@ -71,8 +72,8 @@ sub post_fail_hook {
     my $self = shift;
 
     select_console 'log-console';
-    $self->export_logs_basic;
-    $self->upload_coredumps;
+    export_logs_basic;
+    upload_coredumps;
     upload_logs($cpuset_log) unless (script_run("test -f $cpuset_log"));
 }
 

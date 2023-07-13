@@ -6,7 +6,7 @@
 # Summary: Run simple toolbox tests
 # Maintainer: Jose Lausuch <jalausuch@suse.com>
 
-use base "opensusebasetest";
+use base "consoletest";
 use strict;
 use warnings;
 use testapi;
@@ -16,15 +16,21 @@ use version_utils 'is_sle_micro';
 our $user = $testapi::username;
 our $password = $testapi::password;
 
+my $user_created = 0;
+
 sub cleanup {
     record_info 'Cleanup';
     clean_container_host(runtime => 'podman');
-    script_run "userdel -rf $user";    # script_run in case user has not been created yet
+    # Delete user only if created within the test run.
+    script_run "userdel -rf $user" if ($user_created);
 }
 
 sub create_user {
-    assert_script_run "useradd -m $user " if (!check_var('FIRST_BOOT_CONFIG', 'wizard'));
-    assert_script_run "echo '$user:$password' | chpasswd";
+    if (script_run("getent passwd $user") != 0) {
+        assert_script_run "useradd -m $user";
+        assert_script_run "echo '$user:$password' | chpasswd";
+        $user_created = 1;
+    }
 
     # Make sure user has access to tty group
     my $serial_group = script_output "stat -c %G /dev/$testapi::serialdev";
@@ -77,11 +83,29 @@ sub run {
     my $uid = script_output 'id -u';
     validate_script_output 'toolbox -u id', sub { m/uid=${uid}\(${user}\)/ }, timeout => 180;
     die "$user shouldn't have access to /etc/passwd!" if (script_run('toolbox -u touch /etc/passwd') == 0);
+    # Check if toolbox sees processes from outside the container (there should be no pid namespace separation)
+    background_script_run('sleep 3612');
+    validate_script_output('toolbox ps a', sub { m/sleep 3612/ });
 
     record_info 'Test', "Rootfull toolbox as $user";
     validate_script_output 'toolbox -r id', sub { m/uid=0\(root\)/ };
     assert_script_run 'toolbox -r touch /etc/passwd', fail_message => 'Root should have access to /etc/passwd!';
     assert_script_run 'podman ps -a';
+
+    record_info 'Test', "Update toolbox";
+    assert_script_run('set -o pipefail');
+    assert_script_run('toolbox -- zypper -n ref', timeout => 300);
+    if (script_run('toolbox -- zypper -n up 2>&1 > /var/tmp/toolbox_zypper_up.txt', timeout => 300) != 0) {
+        upload_logs('/var/tmp/toolbox_zypper_up.txt');
+        # Test for bsc#1210587
+        my $output = script_output('cat /var/tmp/toolbox_zypper_up.txt');
+        if ($output =~ m/Installation of timezone-.* failed/ && is_sle_micro) {
+            record_soft_failure("bsc#1210587 installation of timezone failed");
+        } else {
+            die "zypper up failed within toolbox";
+        }
+    }
+
     clean_container_host(runtime => 'podman');
 
     enter_cmd "exit";
@@ -98,7 +122,7 @@ sub run {
             assert_script_run 'echo -e "REGISTRY=registry.opensuse.org\nIMAGE=opensuse/toolbox" > ~/.toolboxrc';
             validate_script_output 'toolbox -r cat /etc/os-release', sub { m/opensuse/ }, timeout => 180;
         } else {
-            assert_script_run 'echo -e "REGISTRY=registry.suse.com\nIMAGE=suse/sle-micro/5.0/toolbox" > ~/.toolboxrc';
+            assert_script_run 'echo -e "REGISTRY=registry.suse.com\nIMAGE=suse/sle-micro/5.3/toolbox" > ~/.toolboxrc';
             validate_script_output 'toolbox -r cat /etc/os-release', sub { m/sles/ }, timeout => 180;
         }
         assert_script_run 'podman rm toolbox-root';

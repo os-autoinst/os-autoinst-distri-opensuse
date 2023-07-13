@@ -1,0 +1,24 @@
+name: autoyast-create-hdd-multipath-textmode
+
+description:  >
+    Prepare image with multipath enabled using autoyast for kernel testing.
+
+vars:
+  DESKTOP: textmode
+  MULTIPATH: 1
+  HDDMODEL: scsi-hd
+  SEPARATE_HOME: 0
+  INSTALLONLY: 1
+  AUTOYAST: autoyast_sle15/create_hdd/create_hdd_multipath_textmode_%ARCH%.xml
+
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/first_boot
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

@@ -5,7 +5,7 @@
 
 # Summary: Verify Warning Dialog when BIOS boot partition has too small
 # size to install bootloader.
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_installbase';
 use strict;

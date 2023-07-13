@@ -17,13 +17,14 @@
 # original location and executed on its own dedicated test suites, qam-clamav
 # for maintenance and extra_tests_clamav in functional.
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: TC1595169, poo#46880, poo#65375, poo#80182
 
 use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use utils;
 use version_utils qw(is_jeos is_opensuse is_sle);
@@ -39,8 +40,7 @@ sub scan_and_parse {
 }
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     zypper_call('in clamav vim');
     zypper_call('info clamav');
@@ -58,7 +58,7 @@ sub run {
     # First from local mirror, it's much faster, then from official clamav db
     my $host = is_sle ? 'openqa.suse.de' : 'openqa.opensuse.org';
     assert_script_run("sed -i '/mirror1/i PrivateMirror $host/assets/repo/cvd' /etc/freshclam.conf");
-    assert_script_run('freshclam');
+    assert_script_run('freshclam', timeout => 300);
 
     # clamd takes a lot of memory at startup so a swap partition is needed on JeOS
     # But openSUSE aarch64 JeOS has already a swap and BTRFS does not support swapfile

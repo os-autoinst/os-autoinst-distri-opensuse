@@ -6,7 +6,7 @@
 # Summary: A library that provides the certain distribution depending on the
 # version of the product that is specified for a Test Suite.
 
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package DistributionProvider;
 use strict;
@@ -20,6 +20,7 @@ use Distribution::Sle::12;
 use Distribution::Opensuse::Leap::42;
 use Distribution::Opensuse::Leap::15;
 use Distribution::Opensuse::Tumbleweed;
+use Distribution::Alp;
 
 =head2 provide
 
@@ -38,6 +39,7 @@ sub provide {
     return Distribution::Sle::12->new() if is_sle('12+');
     return Distribution::Opensuse::Leap::15->new() if is_leap('15.0+');
     return Distribution::Opensuse::Leap::42->new() if is_leap('42.0+');
+    return Distribution::Alp->new() if is_alp;
     return Distribution::Opensuse::Tumbleweed->new();
 }
 

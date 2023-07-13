@@ -27,19 +27,25 @@ sub run {
     my ($self) = @_;
 
     $self->start_firefox_with_profile;
-    $self->firefox_open_url('http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-GM/x86_64/DVD1/');
-
-    assert_screen('firefox-extcontent-pageloaded');
+    x11_start_program('xterm');
+    my $host = script_run('ping -c1 mirror.suse.cz') == 0 ? 'mirror.suse.cz' : 'ibs-mirror.prv.suse.net';
+    send_key 'ctrl-d';
+    wait_still_screen 2;
+    $self->firefox_open_url("http://$host/install/SLP/SLE-12-SP5-Server-GM/x86_64/DVD1/", assert_loaded_url => 'firefox-extcontent-pageloaded');
 
     send_key "/";
     sleep 1;
     enter_cmd "license.tar.gz";
 
-    assert_screen('firefox-extcontent-opening', 60);
-
-    send_key "alt-o";
-    sleep 1;
-    send_key "ret";
+    assert_screen ['firefox-extcontent-opening', 'firefox-extcontent-downloaded'], 30;
+    # If firefox does not prompt us with the opening window we need to double click the downloaded file
+    if (match_has_tag 'firefox-extcontent-downloaded') {
+        assert_and_dclick('firefox-extcontent-downloaded');
+    } else {
+        send_key "alt-o";
+        sleep 1;
+        send_key "ret";
+    }
 
     assert_screen(is_sle('15+') ? 'firefox-extcontent-nautils' : 'firefox-extcontent-archive_manager');
 

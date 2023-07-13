@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-Later
 #
 # Summary: Controlling the Auditd daemon as root by "systemctl" to verify it can work
-# Maintainer: llzhao <llzhao@suse.com>, shawnhao <weixuan.hao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#81772, tc#1768549
 
 use base 'opensusebasetest';

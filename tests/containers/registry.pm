@@ -4,10 +4,10 @@
 # Copyright 2012-2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: docker-distribution-registry
+# Package: docker-distribution-registry | distribution-registry
 # Summary: Test container registry package
-# - docker-distribution-registry package can be installed
-# - docker-distribution-registry daemon can be started
+# - distribution-registry package can be installed
+# - distribution-registry daemon can be started
 # - images can be pushed
 # - images can be searched
 # - images can be pulled
@@ -16,6 +16,7 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_tumbleweed is_leap);
 use registration;
@@ -59,11 +60,22 @@ sub registry_push_pull {
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Install and check that it's running
-    add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1) if is_sle(">=15");
-    my $pkg = is_tumbleweed ? 'distribution-registry' : 'docker-distribution-registry';
+    my $pkg = 'distribution-registry';
+    if (is_sle(">=15-SP4")) {
+        activate_containers_module;
+    } elsif (is_sle("<=15")) {
+        record_info("SKIP", "docker-distribution-registry is not available on this version of SLE");
+        return;
+    } elsif (is_sle(">15")) {
+        add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1);
+        $pkg = 'docker-distribution-registry';
+    } elsif (is_leap("<15.4")) {
+        $pkg = 'docker-distribution-registry';
+    }
+
     zypper_call "se -v $pkg";
     zypper_call "in $pkg";
     systemctl '--now enable registry';

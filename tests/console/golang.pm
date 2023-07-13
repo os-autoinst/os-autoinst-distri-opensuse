@@ -10,6 +10,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
 use registration;
@@ -22,17 +23,16 @@ sub mob_test {
 }
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     if (is_sle() && !main_common::is_updates_tests()) {
         add_suseconnect_product('sle-module-desktop-applications');
         add_suseconnect_product(get_addon_fullname('sdk'));
     }
 
-    script_run "zypper se go | grep ' go[0-9][0-9.]* '";
-    my $older_go = script_output "zypper se go | grep ' go[0-9][0-9.]* ' | awk -F '|' '{print \$2}' | tr -d ' ' | sort --version-sort | tail -2 | head -1";
-    my $latest_go = script_output "zypper se go | grep ' go[0-9][0-9.]* ' | awk -F '|' '{print \$2}' | tr -d ' ' | sort --version-sort | tail -1 | head -1";
+    script_run "zypper se '/^go[0-9][0-9.]*\$/'";
+    my $older_go = script_output "zypper se '/^go[0-9][0-9.]*\$/' | awk -F '|' '{print \$2}' | tr -d ' ' | sort --version-sort | tail -2 | head -1";
+    my $latest_go = script_output "zypper se '/^go[0-9][0-9.]*\$/' | awk -F '|' '{print \$2}' | tr -d ' ' | sort --version-sort | tail -1 | head -1";
     record_info "Go Versions", "Detected Go versions:\nOlder: $older_go\nLatest: $latest_go";
     record_info "$older_go";
     zypper_call "in $older_go";

@@ -6,7 +6,7 @@
 # Summary: The class represents Tumbleweed distribution and provides access to
 # its features.
 
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Distribution::Opensuse::Tumbleweed;
 use strict;
@@ -40,6 +40,7 @@ use Installation::SystemProbing::EncryptedVolumeActivationController;
 use Installation::SystemRole::SystemRoleController;
 use Installation::Popups::OKPopupController;
 use Installation::Popups::YesNoPopupController;
+use Installation::Popups::AcceptPopupController;
 use YaST::Bootloader::BootloaderSettingsController;
 use YaST::Firstboot::ConfigurationCompletedController;
 use YaST::Firstboot::HostNameController;
@@ -49,6 +50,12 @@ use YaST::Firstboot::NTPConfigurationController;
 use YaST::Firstboot::WelcomeController;
 use YaST::NetworkSettings::v4_3::NetworkSettingsController;
 use YaST::SystemSettings::SystemSettingsController;
+use YaST::Firewall::FirewallController;
+use YaST::DNSServer::DNSServerController;
+use YaST::DNSServer::DNSServerSetupController;
+use YaST::Kdump::StartUpPage;
+use YaST::Kdump::FADumpStartUpPage;
+use YaST::RestartInfoPage;
 
 sub get_language_keyboard {
     return Installation::LanguageKeyboard::LanguageKeyboardController->new();
@@ -110,6 +117,10 @@ sub get_firstboot_welcome {
     return YaST::Firstboot::WelcomeController->new();
 }
 
+sub get_firewall {
+    return YaST::Firewall::FirewallController->new();
+}
+
 sub get_navigation {
     return Installation::Navigation::NavigationController->new();
 }
@@ -166,6 +177,10 @@ sub get_yes_no_popup_controller {
     return Installation::Popups::YesNoPopupController->new();
 }
 
+sub get_accept_popup_controller {
+    return Installation::Popups::AcceptPopupController->new();
+}
+
 sub get_encrypted_volume_activation {
     return Installation::SystemProbing::EncryptedVolumeActivationController->new();
 }
@@ -196,6 +211,28 @@ sub get_ssh_import_settings {
 
 sub get_security_configuration {
     return Installation::SecurityConfiguration::SecurityConfigurationController->new();
+}
+
+sub get_dns_server {
+    return YaST::DNSServer::DNSServerController->new();
+}
+
+sub get_dns_server_setup {
+    return YaST::DNSServer::DNSServerSetupController->new();
+}
+
+# Page Object Design only with Pages, not using Controllers
+
+sub get_kdump_startup {
+    return YaST::Kdump::StartUpPage->new({app => YuiRestClient::get_app()});
+}
+
+sub get_kdump_fadump_startup {
+    return YaST::Kdump::FADumpStartUpPage->new({app => YuiRestClient::get_app()});
+}
+
+sub get_restart_info {
+    return YaST::RestartInfoPage->new({app => YuiRestClient::get_app()});
 }
 
 1;

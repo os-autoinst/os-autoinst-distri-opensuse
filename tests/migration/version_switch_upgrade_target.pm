@@ -7,7 +7,7 @@
 #       reload needles.
 #       After original system being patched, we need switch
 #       VERSION to the target version of upgrade.
-# Maintainer: Wei Gao <wegao@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base "opensusebasetest";
 use strict;

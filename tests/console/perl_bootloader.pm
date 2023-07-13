@@ -10,6 +10,7 @@
 
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils 'zypper_call';
@@ -18,7 +19,7 @@ use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     if (script_run 'rpm -q perl-Bootloader' == 1) {
         zypper_call 'in perl-Bootloader';

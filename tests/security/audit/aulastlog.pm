@@ -3,7 +3,7 @@
 #
 # Summary: Verify the "aulastlog" can print the last login for all users of a machine similar to the way lastlog does
 #          The login name, port and last login time will be printed
-# Maintainer: llzhao <llzhao@suse.com>, shawnhao <weixuan.hao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#81772, tc#1768580
 
 use base 'opensusebasetest';

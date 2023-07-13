@@ -12,14 +12,14 @@ use base "Exporter";
 use Exporter;
 
 use testapi;
-use utils qw(zypper_call);
+use utils qw(zypper_call handle_screen zypper_repos);
 use JSON;
 use List::Util qw(max);
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_transactional);
 
 our @EXPORT
   = qw(capture_state check_automounter is_patch_needed add_test_repositories disable_test_repositories enable_test_repositories
-  ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables);
+  add_extra_customer_repositories ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables);
 use constant ZYPPER_PACKAGE_COL => 1;
 use constant OLD_ZYPPER_STATUS_COL => 4;
 use constant ZYPPER_STATUS_COL => 5;
@@ -73,13 +73,48 @@ sub is_patch_needed {
     }
 }
 
+sub add_repo_if_not_present {
+    my ($url, $name) = @_;
+    my $gpg = get_var('BUILD') =~ m/^MR:/ ? "-G" : "";
+    my $system_repos = zypper_repos('-u');
+    zypper_call("--no-gpg-checks ar -f $gpg -n '$name' $url '$name'") unless grep { $_->{uri} eq $url } @$system_repos;
+}
+
+# https://progress.opensuse.org/issues/90522
+sub add_extra_customer_repositories {
+    my $arch = get_var('ARCH');
+    my %repo_list = (
+        x86_64 => [
+            {cond => '=12-SP2', name => '12-SP2-LTSS-ERICSSON-Updates', uri => 'http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/x86_64/update/'},
+            {cond => '=12-SP3', name => '12-SP3-LTSS-TERADATA-Updates', uri => 'http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3-LTSS-TERADATA/x86_64/update/'},
+            {cond => '=15-SP3', name => '15-SP3-ERICSSON-Updates', uri => 'http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP3-ERICSSON/x86_64/update/'},
+            {cond => '=15-SP4', name => '15-SP4-ERICSSON-Updates', uri => 'http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP4-ERICSSON/x86_64/update/'},
+        ],
+        s390x => [],
+        ppc64le => [],
+        aarch64 => [],
+    );
+
+    return unless $repo_list{$arch};
+    for my $repo (@{$repo_list{$arch}}) {
+        add_repo_if_not_present($repo->{uri}, $repo->{name}) if is_sle($repo->{cond});
+    }
+}
+
 # Function that will add all test repos
 sub add_test_repositories {
     my $counter = 0;
 
     my $oldrepo = get_var('PATCH_TEST_REPO');
     my @repos = split(/,/, get_var('MAINT_TEST_REPO', ''));
-    my $gpg = get_var('BUILD') =~ m/^MR:/ ? "-G" : "";
+
+    add_extra_customer_repositories;
+
+    # shim update will fail with old grub2 due to old signature
+    if (get_var('MACHINE') =~ /uefi/ && !is_transactional) {
+        zypper_call('up grub2 grub2-x86_64-efi kernel-default');
+    }
+
     # Be carefull. If you have defined both variables, the PATCH_TEST_REPO variable will always
     # have precedence over MAINT_TEST_REPO. So if MAINT_TEST_REPO is required to be installed
     # please be sure that the PATCH_TEST_REPO is empty.
@@ -91,21 +126,11 @@ sub add_test_repositories {
         zypper_call('--gpg-auto-import-keys ref', timeout => 1400, exitcode => [0, 106]);
     } else {
         for my $var (@repos) {
-            zypper_call("--no-gpg-checks ar -f $gpg -n 'TEST_$counter' $var 'TEST_$counter'");
+            add_repo_if_not_present("$var", "TEST_$counter");
             $counter++;
         }
     }
 
-    if (is_sle('=12-SP2')) {
-        my $arch = get_var('ARCH');
-        my $url = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update/";
-        zypper_call("--no-gpg-checks ar -f $gpg $url '12-SP2-LTSS-ERICSSON-Updates'");
-    }
-    if (is_sle('=12-SP3')) {
-        my $arch = get_var('ARCH');
-        my $url = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3-LTSS-TERADATA/$arch/update/";
-        zypper_call("--no-gpg-checks ar -f $gpg $url '12-SP3-LTSS-TERADATA-Updates'");
-    }
     # refresh repositories, inf 106 is accepted because repositories with test
     # can be removed before test start
     zypper_call('ref', timeout => 1400, exitcode => [0, 106]);
@@ -150,7 +175,7 @@ sub ssh_add_test_repositories {
     }
     # refresh repositories, inf 106 is accepted because repositories with test
     # can be removed before test start
-    my $ret = script_run("ssh root\@$host 'zypper -n ref'", 240);
+    my $ret = script_run("ssh root\@$host 'zypper -n --gpg-auto-import-keys ref'", 240);
     die "Zypper failed with $ret" if ($ret != 0 && $ret != 106);
 }
 
@@ -166,15 +191,26 @@ sub advance_installer_window {
     my $build = get_var('BUILD');
 
     send_key $cmd{next};
-    die 'Unable to create repository' if check_screen('unable-to-create-repo', 5);
+    my %handlers;
+
+    $handlers{$screenName} = sub { 1 };
+    $handlers{'unable-to-create-repo'} = sub {
+        die 'Unable to create repository';
+    };
+    $handlers{'cannot-access-installation-media'} = sub {
+        send_key "alt-y";
+        return 0;
+    };
+
     if ($build =~ m/^MR:/) {
-        if (check_screen("import-untrusted-gpg-key", 20)) {
+        $handlers{'import-untrusted-gpg-key'} = sub {
             send_key "alt-t";
-        }
+            return 0;
+        };
     }
-    unless (check_screen "$screenName", 60) {
-        my $key = check_screen('cannot-access-installation-media') ? "alt-y" : "$cmd{next}";
-        send_key_until_needlematch $screenName, $key, 6, 60;
+
+    unless (handle_screen([keys %handlers], \%handlers, assert => 0, timeout => 60)) {
+        send_key_until_needlematch $screenName, $cmd{next}, 6, 60;
         record_soft_failure 'Retry most probably due to network problems poo#52319 or failed next click';
     }
 }

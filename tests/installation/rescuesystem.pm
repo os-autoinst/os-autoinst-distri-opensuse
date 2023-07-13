@@ -12,6 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use bootloader_setup qw(ensure_shim_import select_bootmenu_more);
+use Utils::Architectures 'is_aarch64';
 
 sub run {
     my $self = shift;
@@ -23,7 +24,9 @@ sub run {
         select_bootmenu_more('inst-rescuesystem', 1);
     }
 
-    assert_screen 'keyboardmap-list', 120;
+    # booting up on aarch64 takes longer and extend timeout to prevent failure, see poo#120513
+    my $timeout = (is_aarch64) ? 200 : 120;
+    assert_screen 'keyboardmap-list', $timeout;
     send_key "ret";
 
     # Login as root (no password)

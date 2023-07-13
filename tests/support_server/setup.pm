@@ -143,13 +143,16 @@ sub setup_dns_server {
     $setup_script .= qq@
         sed -i -e '/^NETCONFIG_DNS_FORWARDER=/ s/=.*/="bind"/' \\
                -e '/^NETCONFIG_DNS_FORWARDER_FALLBACK=/ s/yes/no/' /etc/sysconfig/network/config
-        sed -i '/^NAMED_CONF_INCLUDE_FILES=/ s/=.*/="openqa.zones"/' /etc/sysconfig/named
         sed -i 's|#forwarders.*;|include "/etc/named.d/forwarders.conf";|' /etc/named.conf
         sed -i 's|#dnssec-validation .*;|dnssec-validation no;|' /etc/named.conf
+
+        echo -e '\ninclude "/etc/named.d/openqa.zones";' >> /etc/named.conf
         curl -f -v $named_url/openqa.zones > /etc/named.d/openqa.zones
+        chown :named /etc/named.d/openqa.zones
+
         curl -f -v $named_url/openqa.test.zone > /var/lib/named/master/openqa.test.zone
         curl -f -v $named_url/2.0.10.in-addr.arpa.zone > /var/lib/named/master/2.0.10.in-addr.arpa.zone
-        chown named:named /var/lib/named/master
+        chown -R named:named /var/lib/named/master
     @;
 
     # Allow RPZ overrides - poo#32290

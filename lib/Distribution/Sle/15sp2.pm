@@ -6,7 +6,7 @@
 # Summary: The class represents SLE 15 SP2 distribution and provides access to
 # its features.
 
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Distribution::Sle::15sp2;
 use strict;

@@ -5,13 +5,15 @@
 
 # Summary: The class introduces all accessing methods for Bond Slaves Tab in
 # YaST2 lan module dialog.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package YaST::NetworkSettings::NetworkCardSetup::BondSlavesTab;
 use strict;
 use warnings;
 use testapi;
 use parent 'YaST::NetworkSettings::NetworkCardSetup::NetworkCardSetupWizard';
+use YaST::workarounds;
+use version_utils qw(is_sle);
 
 use constant {
     NETWORK_CARD_SETUP => 'yast2_lan_network_card_setup',
@@ -35,9 +37,9 @@ sub select_tab {
 
 sub select_bond_slave_in_list {
     assert_screen(BOND_SLAVES_TAB);
-    record_soft_failure('bsc#1191112 - Resizing window as workaround for YaST content not loading');
-    send_key_until_needlematch(BOND_SLAVE_DEVICE_CHECKBOX_UNCHECKED, 'alt-f10', 10, 2);
+    apply_workaround_poo124652(BOND_SLAVE_DEVICE_CHECKBOX_UNCHECKED) if (is_sle('>=15-SP4'));
     assert_and_click(BOND_SLAVE_DEVICE_CHECKBOX_UNCHECKED);
+    wait_still_screen;
 }
 
 sub select_continue_in_popup {

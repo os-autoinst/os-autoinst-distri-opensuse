@@ -1,0 +1,3 @@
+crypttab:
+  num_devices_encrypted: 3
+<<: !include test_data/qam/QR/15-SP4/encryption/default_enc.yaml

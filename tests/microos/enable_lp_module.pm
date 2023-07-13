@@ -6,7 +6,7 @@
 # Summary: Enable Live Patching module in SLE Micro
 # Maintainer: qa-c@suse.de
 
-use base "opensusebasetest";
+use base "consoletest";
 use strict;
 use warnings;
 use testapi;

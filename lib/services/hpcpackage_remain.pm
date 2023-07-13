@@ -15,7 +15,7 @@
 #    package name) and save this list.
 # 6. Perform a migration
 # 7. Confirm all packages in the list generated in 5. remain installed.
-# Maintainer: Yutao Wang <yuwang@suse.com>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package services::hpcpackage_remain;
 use base 'opensusebasetest';

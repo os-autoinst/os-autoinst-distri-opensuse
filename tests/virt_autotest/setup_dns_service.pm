@@ -34,10 +34,6 @@ sub post_fail_hook {
 
     diag("There is something wrong with establishing dns service for vm guest or ssh connection to vm guest without inputting login password.");
     diag("Module setup_dns_service post fail hook starts.");
-    for (my $i = 0; $i < 4; $i++) {
-        script_run("head -n \$((($i+1)*50)) /etc/named.conf");
-        save_screenshot;
-    }
     script_run("cat /var/lib/named/testvirt.net.zone");
     save_screenshot;
     script_run("cat /var/lib/named/123.168.192.zone");

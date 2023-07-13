@@ -9,11 +9,12 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     # clear console to prevent linux-login to match before reboot
     clear_console;
     # Copy kernel image and rename it
@@ -39,7 +40,7 @@ sub run {
     script_run("systemctl kexec", 0);
     reset_consoles;
     $self->wait_boot_past_bootloader;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     # Check kernel cmdline parameter
     my $result = script_output("cat /proc/cmdline", 120);
     print "Checking kernel boot parameter...\nCurrent:  $result\nExpected: $cmdline\n";

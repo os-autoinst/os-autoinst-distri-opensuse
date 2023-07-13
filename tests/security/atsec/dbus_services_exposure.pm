@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run 'DBus services exposure' test case of ATSec test suite
-# Maintainer: xiaojing.liu <xiaojing.liu@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#109542
 
 use base 'consoletest';
@@ -24,7 +24,11 @@ my %white_list_for_busctl = (
     'systemd-logind' => 1,
     'wickedd-nanny' => 1,
     'systemd-machine' => 1,
-    libvirtd => 1
+    libvirtd => 1,
+    busctl => 1,
+    snapperd => 1,
+    'session-1' => 1,
+    'session-3' => 1
 );
 
 sub parse_results {

@@ -19,12 +19,12 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_jeos is_opensuse);
 
 sub run() {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     quit_packagekit;
 
@@ -109,7 +109,6 @@ sub post_fail_hook {
     my ($self) = shift;
     select_console('log-console');
     $self->SUPER::post_fail_hook;
-    $self->export_logs_basic;
 }
 
 1;

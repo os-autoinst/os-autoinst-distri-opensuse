@@ -8,14 +8,16 @@
 
 use Mojo::Base qw(hpcbase hpc::cluster), -signatures;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use lockapi;
 
 sub run ($self) {
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # disable packagekitd
     quit_packagekit();
+    ensure_apparmor_disabled();
 
     # Stop firewall
     systemctl 'stop ' . $self->firewall;
@@ -32,6 +34,13 @@ sub run ($self) {
 
         zypper_call("--gpg-auto-import-keys ref");
         zypper_call 'up';
+    }
+}
+
+sub ensure_apparmor_disabled () {
+    unless (systemctl "is-active apparmor", proceed_on_failure => 1) {    # 0 if active, unless to revert
+        systemctl "disable --now apparmor";
+        record_info "apparmor", "disabled";
     }
 }
 

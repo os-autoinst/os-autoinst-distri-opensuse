@@ -4,17 +4,17 @@
 # Summary: Per TPM2 stack, we would like to add the tpm2-tools tests,
 #          from sles15sp2, update tpm2.0-tools to the stable 4 release
 #          this test module will cover self contained tool.
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#64905, poo#105732, tc#1742297
 
 use strict;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $tpm_suffix = '';
     $tpm_suffix = '-T tabrmd' if (get_var('QEMUTPM', 0) != 1 || get_var('QEMUTPM_VER', '') ne '2.0');
@@ -49,10 +49,11 @@ sub run {
     validate_script_output "tpm2_nvdefine $nv_val -C 0x40000001 -s 32 -a 0x2000A $tpm_suffix", sub { m/nv-index:\s$nv_val/ };
 
     # Display all defined Non-Volatile (NV)s indices
+    # from tpm_tools 5.3+ attribute is output with fixed endianness, so it's displayed in the same way as set in the command
+    # we match both to support also old versions
     validate_script_output "tpm2_nvreadpublic $tpm_suffix", sub {
-        m/
-             value:\s0xA000200.*
-             size:\s32.*/sx
+        m/ value:\s0x(A000200|2000A).*
+           size:\s32.*/sx
     };
 
     # Undefine the nv index

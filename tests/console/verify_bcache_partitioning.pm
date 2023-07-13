@@ -12,7 +12,7 @@
 # Scenarios covered:
 # - Verify that certain values are set correctly in a bcache setup after installation.
 # - Write operation in a backing device can be performed and validate that cache is working watching the cache hits.
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;

@@ -19,9 +19,10 @@ use warnings;
 sub run {
     my ($self) = @_;
 
-    # WMP is a feature of SLES for SAP Applications 15+. Skip test in older systems
-    if (is_sle('<15')) {
-        record_info 'WMP', 'WMP is only available in SLES for SAP Applications 15+';
+    # WMP is a feature of SLES for SAP Applications 15+. Skip test in older
+    # systems and sle15sp5+ (PED-131)
+    if (is_sle('<15') || (is_sle('15-SP5+'))) {
+        record_info 'WMP', 'WMP is only available in SLES for SAP Applications 15+ to 15SP4';
         return;
     }
 
@@ -38,8 +39,9 @@ sub run {
     # Add cgroup capture program to startup profile
     my $sid = get_required_var('INSTANCE_SID');
     my $instance_id = get_required_var('INSTANCE_ID');
+    my $instance_type = get_var('INSTANCE_TYPE', 'HDB');
     my $hostname = get_hostname;
-    my $profile = "/usr/sap/${sid}/SYS/profile/${sid}_HDB${instance_id}_${hostname}";
+    my $profile = "/usr/sap/${sid}/SYS/profile/${sid}_${instance_type}${instance_id}_${hostname}";
     assert_script_run 'echo "# all programs spawned below will be put in dedicated cgroup" >> ' . $profile;
     assert_script_run 'echo "Execute_20 = local /usr/lib/sapwmp/sapwmp-capture -a" >> ' . $profile;
     assert_script_run "tail $profile";

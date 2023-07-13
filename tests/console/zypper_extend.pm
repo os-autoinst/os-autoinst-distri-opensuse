@@ -46,13 +46,13 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use utils qw(zypper_call);
 use version_utils qw(is_sle is_leap is_jeos is_tumbleweed);
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     #Search for a package (star
     zypper_call 'se star';

@@ -7,7 +7,7 @@
 # appears on Partitioning Scheme Page while entering too simple password for
 # partition encrypting.
 
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::Partitioner::LibstorageNG::TooSimplePasswordDialog;
 use strict;

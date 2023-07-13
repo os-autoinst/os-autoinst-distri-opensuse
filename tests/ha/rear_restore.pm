@@ -11,6 +11,7 @@ use base 'rear';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use power_action_utils 'power_action';
 
 sub run {
@@ -36,7 +37,7 @@ sub run {
     $self->wait_boot;
 
     # Test login to ensure that the based OS configuration is correctly restored
-    $self->select_serial_terminal;
+    select_serial_terminal;
     assert_script_run('cat /etc/os-release ; uname -a');
 }
 

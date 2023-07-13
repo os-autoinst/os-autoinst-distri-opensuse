@@ -1,0 +1,27 @@
+---
+name:           guided_ext4
+description:    >
+  Guided Partitioning installation with ext4 filesystem.
+vars:
+  FILESYSTEM: ext4
+  YUI_REST_API: 1
+schedule:
+  extension_module_selection:
+    - installation/module_registration/register_module_desktop
+  system_role:
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
+  guided_partitioning:
+    - installation/partitioning/select_guided_setup
+    - installation/partitioning/guided_setup/accept_default_part_scheme
+    - installation/partitioning/guided_setup/select_filesystem_option_ext4
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_validation:
+    - console/validate_partition_table_via_blkid
+    - console/validate_blockdevices
+    - console/validate_free_space
+test_data:
+  guided_partitioning:
+    filesystem_options:
+      root_filesystem_type: ext4
+  <<: !include test_data/yast/ext4/ext4.yaml

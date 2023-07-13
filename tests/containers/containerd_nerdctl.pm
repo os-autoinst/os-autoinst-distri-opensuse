@@ -8,11 +8,12 @@
 # Maintainer: qa-c team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
+use serial_terminal 'select_serial_terminal';
 use containers::utils 'runtime_smoke_tests';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $engine = $self->containers_factory('containerd_nerdctl');
 

@@ -1,6 +1,6 @@
 # SUSE's gnome-keyring tests
 #
-# Copyright 2017 SUSE LLC
+# Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Package: seahorse
@@ -12,9 +12,21 @@ use strict;
 use warnings;
 use testapi;
 use utils 'zypper_call';
+use version_utils 'is_sle';
+use registration qw(add_suseconnect_product get_addon_fullname);
+
+sub prepare_repositories {
+    # add workstation extension
+    add_suseconnect_product(get_addon_fullname('we'), undef, undef, "-r " . get_var('SCC_REGCODE_WE'), 300, 1);
+    # disable nvidia repository to avoid the 'doesn't contain public key data' error
+    zypper_call(q{mr -d $(zypper lr | awk -F '|' '{IGNORECASE=1} /nvidia/ {print $2}')}, exitcode => [0, 3]);
+}
 
 sub run {
     select_console 'root-console';
+
+    prepare_repositories if is_sle();
+
     zypper_call "in seahorse";
     select_console 'x11';
 
@@ -27,9 +39,15 @@ sub run {
     send_key 'alt-d';
     type_string "Keyring test";    # Name of new ssh key
     send_key 'alt-j';    # Just Create ssh key without setup
+    if (check_screen("seahorse-sshkey-inhibit", timeout => 6)) {
+        assert_and_click "seahorse-sshkey-inhibit";
+    }
     assert_screen 'seahorse-sshkey-passphrase';    # sshkey passphrase
     type_password;
     send_key 'ret';
+    if (check_screen("seahorse-sshkey-inhibit", timeout => 6)) {
+        assert_and_click "seahorse-sshkey-inhibit";
+    }
     assert_screen 'seahorse-sshkey-passphrase-retype';    # sshkey passphrase retype
     type_password;
     send_key 'ret';

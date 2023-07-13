@@ -17,24 +17,34 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use containers::common;
 use containers::container_images;
-use containers::utils 'registry_url';
-use version_utils qw(is_sle is_leap is_jeos is_transactional);
+use containers::utils qw(registry_url get_podman_version);
+use version_utils qw(is_sle is_leap is_jeos is_transactional package_version_cmp);
 use power_action_utils 'power_action';
 use bootloader_setup 'add_grub_cmdline_settings';
 use Utils::Architectures;
 use transactional 'process_reboot';
+use Utils::Logging 'save_and_upload_log';
 
 my $bsc1200623 = 0;    # to prevent printing the soft-failure more than once
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     my $user = $testapi::username;
 
     my $podman = $self->containers_factory('podman');
+
+    # add testuser to systemd-journal group to allow non-root
+    # user to access container logs via journald event driver
+    # to avoid flakes w/ Podman <=4.0.0
+    my $podman_version = get_podman_version();
+    if (package_version_cmp($podman_version, '4.0.0') <= 0) {
+        assert_script_run "usermod -a -G systemd-journal $testapi::username";
+    }
 
     # Prepare for Podman 3.4.4 and CGroups v2
     if (is_sle('15-SP3+') || is_leap('15.3+')) {
@@ -49,7 +59,7 @@ sub run {
             power_action('reboot', textmode => 1);
             $self->wait_boot(bootloader_time => 360);
         }
-        $self->select_serial_terminal;
+        select_serial_terminal;
 
         validate_script_output 'cat /proc/cmdline', sub { /systemd\.unified_cgroup_hierarchy=1/ };
         validate_script_output 'podman info', sub { /cgroupVersion: v2/ };
@@ -144,7 +154,13 @@ sub verify_userid_on_container {
     $cid = script_output "podman run -d --rm --name test2 --user 1000 $image sleep infinity";
     $cid = check_bsc1200623($cid);
     my $id = $start_id + $huser_id - 1;
-    validate_script_output "podman top $cid user huser", sub { /1000\s+${id}/ };
+
+    # podman >= v4.4.0 lists username instead of uid
+    # when using `user` descriptor with `podman top`, handle
+    # conditionally.
+    # https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/16567
+    my $huser_name = $testapi::username;
+    validate_script_output "podman top $cid user huser", sub { /${huser_name}\s+${id}|1000\s+${id}/ };
     validate_script_output "podman top $cid capeff", sub { /none/ };
 
     record_info "root with keep-id", "the default user(root) starts process with the same uid as host user";
@@ -193,18 +209,18 @@ sub check_bsc1200623() {
 
 sub post_run_hook {
     my $self = shift;
-    $self->select_serial_terminal();
+    select_serial_terminal();
     assert_script_run "setfacl -x u:$testapi::username /etc/zypp/credentials.d/*" if is_sle;
     $self->SUPER::post_run_hook;
 }
 
 sub post_fail_hook {
     my $self = shift;
-    $self->save_and_upload_log('cat /etc/{subuid,subgid}', "/tmp/permissions.txt");
+    save_and_upload_log('cat /etc/{subuid,subgid}', "/tmp/permissions.txt");
     assert_script_run("tar -capf /tmp/proc_files.tar.xz /proc/self");
     upload_logs("/tmp/proc_files.tar.xz");
     if (is_sle) {
-        $self->save_and_upload_log('ls -la /etc/zypp/credentials.d', "/tmp/credentials.d.perm.txt");
+        save_and_upload_log('ls -la /etc/zypp/credentials.d', "/tmp/credentials.d.perm.txt");
         assert_script_run "setfacl -x u:$testapi::username /etc/zypp/credentials.d/*";
     }
     $self->SUPER::post_fail_hook;

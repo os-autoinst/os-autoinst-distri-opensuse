@@ -12,6 +12,7 @@
 
 use Mojo::Base qw(opensusebasetest);
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
 
@@ -20,7 +21,7 @@ sub run {
     my $git_tree = get_required_var('KERNEL_GIT_TREE');
     my $git_branch = get_var('KERNEL_GIT_BRANCH', 'master');
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # download, compile and install a kernel tree from git
     zypper_call('in bc git-core ncurses-devel gcc flex bison libelf-devel libopenssl-devel');

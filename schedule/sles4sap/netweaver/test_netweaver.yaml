@@ -8,7 +8,6 @@ vars:
   INSTANCE_ID: '00'
   INSTANCE_SID: QAD
   INSTANCE_TYPE: ASCS
-  NW: nfs://1c119.qa.suse.de/srv/nfs/sap/NW75_CLUSTER
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
   # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-%DESKTOP%.qcow2
 schedule:

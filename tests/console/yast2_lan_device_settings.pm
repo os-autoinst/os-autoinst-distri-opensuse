@@ -56,7 +56,7 @@ sub run {
             send_key "alt-n";
             send_key "alt-c";
             close_yast2_lan();
-            record_soft_failure("Duplicate IP, $static_ip is currently unavailable. Skipping static IP assignment");
+            record_info('Softfail', "Duplicate IP, $static_ip is currently unavailable. Skipping static IP assignment", result => 'softfail');
         } elsif (match_has_tag 'static-ip-address-set') {
             close_yast2_lan();
 

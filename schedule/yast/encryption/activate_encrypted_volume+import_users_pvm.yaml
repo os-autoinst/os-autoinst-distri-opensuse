@@ -11,33 +11,16 @@ vars:
   ETC_SHADOW: "bernhard:$6$ZQ2QptdwejF6$QAEuGvFZJCsyA0oWlrFsWXcMSNcgkU4y3oVPGHhoOjuEHU7BhKAm8DN5L8FnwQlngmNheB.vZqyz1HripbwKL0:18435:0:99999:7:::"
   YUI_REST_API: 1
 schedule:
-  - installation/bootloader_start
-  - installation/setup_libyui
-  - installation/access_beta_distribution
-  - installation/product_selection/install_SLES
-  - installation/licensing/accept_license
-  - installation/registration/register_via_scc
-  - installation/module_registration/skip_module_registration
-  - installation/system_probing/activate_encrypted_volume
-  - console/validate_encrypted_volume_activation
-  - installation/add_on_product/skip_install_addons
-  - installation/system_role/accept_selected_role_text_mode
-  - installation/partitioning/suggested_partitioning/verify_decrypted_partition_deleted
-  - installation/partitioning/accept_proposed_layout
-  - installation/clock_and_timezone/accept_timezone_configuration
-  - installation/authentication/import_users
-  - installation/authentication/root_simple_pwd
-  - installation/installation_settings/validate_ssh_service_enabled
-  - installation/installation_settings/open_ssh_port
-  - installation/bootloader_settings/disable_boot_menu_timeout
-  - installation/launch_installation
-  - installation/confirm_installation
-  - installation/performing_installation/perform_installation
-  - installation/logs_from_installation_system
-  - installation/performing_installation/confirm_reboot
-  - installation/handle_reboot
-  - installation/first_boot
-  - console/validate_user_login_textmode
+  system_probing:
+    - installation/system_probing/activate_encrypted_volume
+    - console/validate_encrypted_volume_activation
+  expert_partitioning:
+    - installation/partitioning/suggested_partitioning/verify_decrypted_partition_deleted
+  local_user:
+    - installation/authentication/import_users
+    - installation/authentication/root_simple_pwd
+  system_validation:
+    - console/validate_user_login_textmode
 test_data:
   mapped_device: '/dev/mapper/cr-auto-1'
   device_status:

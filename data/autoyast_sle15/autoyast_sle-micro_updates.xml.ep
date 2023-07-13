@@ -5,7 +5,6 @@
     <do_registration config:type="boolean">true</do_registration>
     <reg_code>{{SCC_REGCODE}}</reg_code>
     <install_updates config:type="boolean">true</install_updates>
-    <reg_server>{{SCC_URL}}</reg_server>
   </suse_register>
   <add-on>
     <add_on_products config:type="list">

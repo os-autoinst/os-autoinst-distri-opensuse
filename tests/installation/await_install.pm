@@ -25,7 +25,7 @@
 #   - If needle matches 'package-update-found'
 #     - Send 'alt-n'
 #   - Stop reboot timeout where necessary
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;
@@ -86,7 +86,7 @@ sub run {
     # NET isos are slow to install
     # If this timeout needs to be bumped again, we might be having a bigger network problem
     # or a peformance problem on the installer
-    my $timeout = (is_s390x || is_ppc64le) ? 2400 : 2000;
+    my $timeout = (is_s390x || is_ppc64le) ? 2400 : 2200;
 
     # workaround for yast popups and
     # detect "Wrong Digest" error to end test earlier

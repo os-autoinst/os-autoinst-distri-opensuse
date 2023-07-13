@@ -10,11 +10,13 @@
 
 use Mojo::Base 'hpcbase', -signatures;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
 use version_utils 'is_sle';
 
 sub run ($self) {
+    select_serial_terminal();
     $self->prepare_user_and_group();
 
     # Install slurm
@@ -25,6 +27,16 @@ sub run ($self) {
     if (get_required_var('EXT_HPC_TESTS')) {
         zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);
         zypper_call('in iputils python');
+    }
+    my %users = (
+        'user_1' => 'Sebastian',
+        'user_2' => 'Egbert',
+        'user_3' => 'Christina',
+        'user_4' => 'Jose',
+    );
+
+    foreach my $key (keys %{users}) {
+        script_run("useradd -m $users{$key}");
     }
 
     barrier_wait('CLUSTER_PROVISIONED');
@@ -49,7 +61,7 @@ sub test_flags ($self) {
 
 sub post_fail_hook ($self) {
     $self->destroy_test_barriers();
-    $self->select_serial_terminal;
+    select_serial_terminal;
     $self->upload_service_log('slurmd');
     $self->upload_service_log('munge');
 }

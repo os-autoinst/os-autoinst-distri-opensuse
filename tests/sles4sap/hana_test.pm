@@ -1,6 +1,6 @@
 # SUSE's SLES4SAP openQA tests
 #
-# Copyright 2018 SUSE LLC
+# Copyright 2018-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: HANA installation smoke test
@@ -11,6 +11,7 @@ use base "sles4sap";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 
 sub test_python3 {
     my ($self) = @_;
@@ -35,7 +36,7 @@ sub run {
     # No need to run these tests on the secondary node
     return if get_var('HA_CLUSTER_JOIN');
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # First, upload the installation logs if we are doing AutoYaST test
     # NOTE: done here because AutoYaST part is not HANA specific
@@ -83,12 +84,14 @@ sub run {
     if (get_var('NVDIMM') and !get_var('SKIP_HANADB_QUERY')) {
         $output = script_output "$hdbsql \"SELECT * FROM M_INIFILE_CONTENTS where file_name = 'global.ini' and section = 'persistence' and key = 'basepath_persistent_memory_volumes'\"";
         my $pmempath = get_var('HANA_PMEM_BASEPATH', "/hana/pmem/$sid");
-        my $nvddevs = get_var('NVDIMM_NAMESPACES_TOTAL', 2);
-        foreach my $i (0 .. ($nvddevs - 1)) {
-            die "hdbsql: HANA not configured with NVDIMM\n\n$output" unless ($output =~ /pmem$i/);
-            assert_script_run "grep -q -w pmem$i /hana/shared/$sid/global/hdb/custom/config/global.ini";
-            assert_script_run "ls $pmempath/pmem$i";
-            assert_script_run "test -n \"\$(ls $pmempath/pmem$i)\"";
+        # Read all configured pmem devices on the system
+        my @pmem_devices_all = split("\n", script_output("find /dev/pmem*"));
+        foreach my $pmem_device (@pmem_devices_all) {
+            $pmem_device =~ s:/dev/(pmem\S+).*:$1:;
+            die "hdbsql: HANA not configured with NVDIMM\n\n$output" unless ($output =~ /$pmem_device/);
+            assert_script_run "grep -q -w $pmem_device /hana/shared/$sid/global/hdb/custom/config/global.ini";
+            assert_script_run "ls $pmempath/$pmem_device";
+            assert_script_run "test -n \"\$(ls $pmempath/$pmem_device)\"";
         }
     }
 
@@ -102,6 +105,8 @@ sub run {
 
     # Disconnect SAP account
     $self->reset_user_change;
+    # Record whether HANA was started with sapinit or systemd
+    $self->startup_type;
 }
 
 1;

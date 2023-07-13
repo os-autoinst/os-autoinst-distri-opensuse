@@ -16,11 +16,14 @@ use utils qw(
   zypper_call
 );
 use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_opensuse);
-use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop);
+use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop x11_start_program_xterm);
 use Utils::Backends;
-use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT);
+
+use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT SERIAL_USER_TERMINAL_DEFAULT_DEVICE SERIAL_USER_TERMINAL_DEFAULT_PORT);
+
 use Cwd;
 use autotest 'query_isotovideo';
+use isotovideo;
 
 =head1 SUSEDISTRIBUTION
 
@@ -31,9 +34,9 @@ Base class implementation of distribution class necessary for testapi
 
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
 use testapi qw(send_key %cmd assert_screen check_screen check_var click_lastmatch get_var save_screenshot
-  match_has_tag set_var type_password type_string enter_cmd wait_serial $serialdev
+  match_has_tag set_var type_password type_string enter_cmd wait_serial $serialdev is_serial_terminal
   mouse_hide send_key_until_needlematch record_info record_soft_failure
-  wait_still_screen wait_screen_change get_required_var diag);
+  wait_still_screen wait_screen_change get_required_var diag hashed_string);
 
 
 =head2 new
@@ -58,8 +61,12 @@ sub handle_password_prompt {
     my ($console) = @_;
     $console //= '';
 
-    return if get_var("LIVETEST") || get_var('LIVECD');
-    assert_screen("password-prompt", 60);
+    return if (get_var("LIVETEST") || get_var('LIVECD')) && (get_var('VERSION') !~ /agama/);
+    if (is_serial_terminal()) {
+        wait_serial(qr/Password:\s*$/i, timeout => 30);
+    } else {
+        assert_screen("password-prompt", 60);
+    }
     if ($console eq 'hyperv-intermediary') {
         type_string get_required_var('VIRSH_GUEST_PASSWORD');
     }
@@ -327,7 +334,7 @@ sub ensure_installed {
     my $pkglist = ref $pkgs eq 'ARRAY' ? join ' ', @$pkgs : $pkgs;
     $args{timeout} //= 90;
 
-    testapi::x11_start_program('xterm');
+    x11_start_program_xterm;
     $self->become_root;
     ensure_serialdev_permissions;
     quit_packagekit;
@@ -345,15 +352,18 @@ Execute the given command as sudo
 sub script_sudo {
     my ($self, $prog, $wait) = @_;
 
-    my $str = time;
+    my $str = hashed_string("ASS$prog");
     if ($wait > 0) {
-        $prog = "$prog; echo $str-\$?- > /dev/$testapi::serialdev" unless $prog eq 'bash';
+        unless ($prog =~ /^bash/) {
+            $prog .= "; echo $str-\$?-";
+            $prog .= " > /dev/$testapi::serialdev" unless is_serial_terminal();
+        }
     }
     enter_cmd "clear";    # poo#13710
     enter_cmd "su -c \'$prog\'", max_interval => 125;
     handle_password_prompt unless ($testapi::username eq 'root');
     if ($wait > 0) {
-        if ($prog eq 'bash') {
+        if ($prog =~ /^bash/) {
             return wait_still_screen(4, 8);
         }
         else {
@@ -421,7 +431,11 @@ sub init_consoles {
 
     if (is_qemu) {
         $self->add_console('root-virtio-terminal', 'virtio-terminal', {});
-        $self->add_console('user-virtio-terminal', 'virtio-terminal', {});
+
+        $self->add_console('user-virtio-terminal', 'virtio-terminal',
+            isotovideo::get_version() >= 35 ?
+              {socked_path => cwd() . '/virtio_console_user'} : {});
+
         for (my $num = 1; $num < get_var('VIRTIO_CONSOLE_NUM', 1); $num++) {
             $self->add_console('root-virtio-terminal' . $num, 'virtio-terminal', {socked_path => cwd() . '/virtio_console' . $num});
         }
@@ -464,10 +478,15 @@ sub init_consoles {
             });
         set_var('SVIRT_VNC_CONSOLE', 'sut');
     } else {
-        # sut-serial (serial terminal: emulation of QEMU's virtio console for svirt)
+        # ssh-virtsh-serial for root (serial terminal: emulation of QEMU's virtio console for svirt)
         $self->add_console('root-sut-serial', 'ssh-virtsh-serial', {
                 pty_dev => SERIAL_TERMINAL_DEFAULT_DEVICE,
                 target_port => SERIAL_TERMINAL_DEFAULT_PORT});
+
+        # ssh-virtsh-serial for user (serial terminal: emulation of QEMU's virtio console for svirt)
+        $self->add_console('user-sut-serial', 'ssh-virtsh-serial', {
+                pty_dev => SERIAL_USER_TERMINAL_DEFAULT_DEVICE,
+                target_port => SERIAL_USER_TERMINAL_DEFAULT_PORT});
     }
 
     if ((get_var('BACKEND', '') =~ /qemu|ikvm/
@@ -506,6 +525,16 @@ sub init_consoles {
                 serial => 'rm -f /dev/sshserial; mkfifo /dev/sshserial; chmod 666 /dev/sshserial; while true; do cat /dev/sshserial; done',
                 gui => 1
             });
+        $self->add_console(
+            'root-ssh-virt',
+            'ssh-xterm',
+            {
+                hostname => get_required_var('SUT_IP'),
+                password => $testapi::password,
+                username => 'root',
+                serial => 'rm -f /dev/virtsshserial; mkfifo /dev/virtsshserial; chmod 666 /dev/virtsshserial; while true; do cat /dev/virtsshserial; done',
+                gui => 1
+            }) if (get_var('VIRT_AUTOTEST', '') or get_var('REGRESSION', ''));
     }
 
     # Use ssh consoles on generalhw, without VNC connection
@@ -562,6 +591,21 @@ sub init_consoles {
             set_var("S390_NETWORK_PARAMS", $s390_params);
 
             ($hostname) = $s390_params =~ /Hostname=(\S+)/;
+
+            # adds serial console for S390_ZKVM
+            # NOTE: adding consoles just at the top of init_consoles() is not enough, otherwise
+            # using just them would fail with:
+            # ::: basetest::runtest: # Test died: Error connecting to <root@192.168.112.9>: Connection refused at /usr/lib/os-autoinst/testapi.pm line 1700.
+            unless (get_var('SUT_IP')) {
+                $self->add_console(
+                    'root-serial-ssh',
+                    'ssh-serial',
+                    {
+                        hostname => $hostname,
+                        password => $testapi::password,
+                        username => 'root'
+                    });
+            }
         }
 
         if (check_var("VIDEOMODE", "text")) {    # adds console for text-based installation on s390x
@@ -741,8 +785,9 @@ sub activate_console {
     return use_ssh_serial_console if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm|pvm_hmc/ && $console =~ m/^(root-console|install-shell|log-console)$/);
     if ($console eq 'install-shell') {
         if (get_var("LIVECD")) {
-            # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
-            assert_screen "tty2-selected", 10;
+            # LIVE CDs do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
+            my $vt = get_root_console_tty();
+            assert_screen "tty${vt}-selected", 10;
             # login as root, who does not have a password on Live-CDs
             wait_screen_change { enter_cmd "root" };
         }

@@ -5,7 +5,7 @@
 
 # Package: bridge-utils libvirt-client openssh qemu-tools util-linux
 # Summary: Virtual network and virtual block device hotplugging
-# Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>, Jan Baier <jbaier@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "virt_feature_test_base";
 use virt_autotest::common;

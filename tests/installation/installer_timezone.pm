@@ -9,7 +9,7 @@
 # - If TIMEZONE is "beijing", select timezone-beijing in timezone selection
 # screen
 # - Select next
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_installbase';
 use strict;

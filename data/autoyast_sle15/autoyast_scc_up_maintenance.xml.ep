@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <bootloader>
+    <global>
+      <activate>false</activate>
+      <boot_extended>false</boot_extended>
+      <boot_mbr>true</boot_mbr>
+      <boot_root>true</boot_root>
+      <generic_mbr>false</generic_mbr>
+      <timeout config:type="integer">5</timeout>
+    </global>
+    <loader_type>{{LOADER_TYPE}}</loader_type>
+  </bootloader>
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+      <second_stage config:type="boolean">false</second_stage>
+    </mode>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">false</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+  </general>
+  <keyboard>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages>en_US</languages>
+  </language>
+  <report>
+    <errors>
+      <show config:type="boolean">true</show>
+      <log config:type="boolean">true</log>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <warnings>
+      <show config:type="boolean">true</show>
+      <log config:type="boolean">true</log>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <messages>
+      <show config:type="boolean">true</show>
+      <log config:type="boolean">true</log>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <yesno_messages>
+      <show config:type="boolean">true</show>
+      <log config:type="boolean">true</log>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <software>
+    <products config:type="list">
+        <product>SLES</product>
+    </products>
+  </software>
+  <upgrade>
+    <stop_on_solver_conflict config:type="boolean">true</stop_on_solver_conflict>
+  </upgrade>
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    % if (keys %$addons) {
+        <addons config:type="list">
+            % while (my ($key, $addon) = each (%$addons)) {
+            <addon>
+                <name><%= $addon->{name} %></name>
+                <version><%= $addon->{version} %></version>
+                <arch><%= $addon->{arch} %></arch>
+                % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sles')) {
+                <reg_code><%= $get_var->('SCC_REGCODE_WE') %></reg_code>
+                % }
+                % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sled')) {
+                <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
+                % }
+                % if ($key eq 'rt') {
+                <reg_code><%= $get_var->('SCC_REGCODE_RT') %></reg_code>
+                % }
+                % if ($key eq 'ltss') {
+                <reg_code><%= $get_var->('SCC_REGCODE_LTSS') %></reg_code>
+                % }
+            </addon>
+            % }
+        </addons>
+        %}
+  </suse_register>
+  <add-on>
+       <add_on_others config:type="list">
+           % for my $repo (@$repos) {
+           % my ($repo_id, $addon) = $repo =~ (/(\d+)\/(.*)\//);
+       <listentry>
+       <media_url><%= $repo %></media_url>
+           <name><%= $addon . "_" . $repo_id %></name>
+           <alias><%= $addon . "_" . $repo_id %></alias>
+       </listentry>
+       %}
+       </add_on_others>
+  </add-on>
+</profile>

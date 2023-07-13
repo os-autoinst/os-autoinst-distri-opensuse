@@ -4,7 +4,7 @@
 # Summary: switch from CC_STACKPROTECTOR to CC_STACKPROTECTOR_STRONG in the kernel.
 # This provides better protection against stack based buffer overflows.
 # The feature is not included in s390x platform yet.
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#64084, tc#1744070
 
 use base 'opensusebasetest';

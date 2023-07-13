@@ -5,20 +5,24 @@
 
 # Summary: This kubevirt test relies on the upstream test code, which is downstreamed as virt-tests.
 #          This is the part running on agent node.
-# Maintainer: Nan Zhang <nan.zhang@suse.com>
+# Maintainer: Nan Zhang <nan.zhang@suse.com> qe-virt@suse.de
 
 use base multi_machine_job_base;
 use strict;
 use warnings;
 use testapi;
 use lockapi;
+use transactional;
 use utils;
+use version_utils qw(is_transactional);
+use Utils::Systemd;
 use Utils::Backends 'use_ssh_serial_console';
+use Utils::Logging qw(save_and_upload_log save_and_upload_systemd_unit_log);
 
 sub run {
     my ($self) = shift;
 
-    if (get_required_var('WITH_SLE_INSTALL')) {
+    if (get_required_var('WITH_HOST_INSTALL')) {
         my $sut_ip = get_required_var('SUT_IP');
 
         set_var('AGENT_IP', $sut_ip);
@@ -42,16 +46,23 @@ sub run {
 sub rke2_agent_setup {
     my ($self, $server_ip) = @_;
 
-    record_info('Start RKE2 agent setup', '');
-    systemctl('stop apparmor.service');
-    systemctl('stop firewalld.service');
+    record_info('RKE2 Agent Setup', '');
+    unless (is_transactional) {
+        disable_and_stop_service('apparmor.service');
+        disable_and_stop_service('firewalld.service');
+    }
     $self->setup_passwordless_ssh_login($server_ip);
 
-    # Ensure SUSE certificates are installed on the node
+    # rebootmgr has to be turned off as prerequisity for this to work
+    script_run "rebootmgrctl set-strategy off" if (is_transactional);
+    # Check if the package 'ca-certificates-suse' are installed on the node
     ensure_ca_certificates_suse_installed();
 
-    # Install downstream kubevirt packages
-    zypper_call('in -n kubernetes1.18-client') if (script_run('rpmquery kubernetes1.18-client'));
+    transactional::process_reboot(trigger => 1) if (is_transactional);
+    record_info('Installed certificates packages', script_output('rpm -qa | grep certificates'));
+
+    # Install kubevirt packages complete
+    barrier_wait('kubevirt_packages_install_complete');
 
     # RKE2 deployment on agent node
     # Default is to setup service with the latest RKE2 version, the parameter INSTALL_RKE2_VERSION allows to setup with a specified version.
@@ -63,6 +74,10 @@ sub rke2_agent_setup {
         assert_script_run('curl -sfL https://get.rke2.io | INSTALL_RKE2_TYPE=agent sh -', timeout => 180);
     }
 
+    # Add kubectl command to $PATH environment varibable
+    my $rke2_bin_path = "export PATH=\$PATH:/opt/rke2/bin:/var/lib/rancher/rke2/bin";
+    assert_script_run("echo '$rke2_bin_path' >> \$HOME/.bashrc; source \$HOME/.bashrc");
+
     # Wait for rke2-server service to be ready
     barrier_wait('rke2_server_start_ready');
 
@@ -73,15 +88,16 @@ sub rke2_agent_setup {
     assert_script_run("echo 'token: $server_node_token' >> /etc/rancher/rke2/config.yaml");
 
     # Enable rke2-agent service
-    systemctl('enable rke2-agent.service');
-    systemctl('start rke2-agent.service', timeout => 180);
+    systemctl('enable --now rke2-agent.service', timeout => 180);
     $self->check_service_status();
 
     # Start rke2-agent service ready
-    mutex_create('RKE2_AGENT_START_READY');
+    mutex_create('rke2_agent_start_ready');
+    record_info('Start RKE2 Agent', '');
 
     assert_script_run("mkdir -p ~/.kube; scp root\@$server_ip:/etc/rancher/rke2/rke2.yaml ~/.kube/config");
     assert_script_run("sed -i 's/127.0.0.1/$server_ip/' ~/.kube/config");
+    assert_script_run('kubectl config view');
     assert_script_run('kubectl get nodes');
     $self->set_cpu_manager_policy();
 
@@ -93,10 +109,28 @@ sub rke2_agent_setup {
     $self->check_service_status();
     assert_script_run("grep static /var/lib/kubelet/cpu_manager_state");
 
-    # Restart rke2-agent service ready
-    mutex_create('RKE2_AGENT_RESTART_COMPLETE');
+    my $kubevirt_ver = script_output(qq(ssh root\@$server_ip "rpm -q --qf \%{VERSION} kubevirt-tests"));
+    # Install Longhorn dependencies
+    if (is_transactional) {
+        if (script_run('rpmquery jq open-iscsi') && ($kubevirt_ver ge "0.50.0")) {
+            transactional::trup_install("jq open-iscsi");
+            transactional::process_reboot(trigger => 1);
+        }
+        # Workaround for failure 'MountVolume.SetUp failed for volume "local-storage" : mkdir /mnt/local-storage: read-only file system'
+        assert_script_run('mkdir -p /root/tmp && mount -o bind /root/tmp /mnt');
+    }
+    else {
+        zypper_call('in jq open-iscsi') if (script_run('rpmquery jq open-iscsi') && ($kubevirt_ver ge "0.50.0"));
+    }
 
-    script_retry('! kubectl get nodes | grep NotReady', retry => 8, delay => 20, timeout => 180);
+    # Enable iscsid service
+    systemctl('enable --now iscsid', timeout => 180) if ($kubevirt_ver ge "0.50.0");
+
+    # Restart rke2-agent service ready
+    mutex_create('rke2_agent_restart_complete');
+    record_info('Restart RKE2 Agent', '');
+
+    script_retry('! kubectl get nodes | grep NotReady', retry => 14, delay => 20, timeout => 300);
     assert_script_run('kubectl get nodes');
 }
 
@@ -121,9 +155,9 @@ sub post_fail_hook {
     my $self = shift;
 
     select_console 'log-console';
-    $self->save_and_upload_log('dmesg', '/tmp/dmesg.log', {screenshot => 0});
-    $self->save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
-    $self->save_and_upload_systemd_unit_log('rke2-agent.service');
+    save_and_upload_log('dmesg', '/tmp/dmesg.log', {screenshot => 0});
+    save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
+    save_and_upload_systemd_unit_log('rke2-agent.service');
 }
 
 1;

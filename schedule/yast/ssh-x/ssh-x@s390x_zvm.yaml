@@ -1,0 +1,22 @@
+name:           ssh-X
+description:    >
+  Conduct an installation using ssh with X-Forwarding.
+  Might only be effective for zVM and powerVM
+vars:
+  YUI_REST_API: 1
+  DESKTOP: textmode
+  VIDEOMODE: ssh-x
+schedule:
+  product_selection:
+    - installation/ensure_installer_fullscreen
+    - installation/product_selection/install_SLES
+  guided_partitioning:
+    - installation/partitioning/select_guided_setup
+    - installation/partitioning/guided_setup/accept_default_part_scheme
+    - installation/partitioning/guided_setup/accept_default_fs_options
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  stop_timeout_system_reboot: []
+  system_validation:
+    - installation/validation/validate_sshd_reachable
+    - console/sshd

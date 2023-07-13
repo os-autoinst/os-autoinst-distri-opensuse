@@ -9,7 +9,6 @@ schedule:
   - migration/online_migration/register_system
   - migration/online_migration/zypper_patch
   - network/setup_multimachine
-  - network/samba/samba_adcli
   - migration/version_switch_upgrade_target
   - migration/online_migration/pre_migration
   - migration/online_migration/yast2_migration

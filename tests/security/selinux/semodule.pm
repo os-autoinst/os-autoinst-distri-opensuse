@@ -2,20 +2,21 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test "# semodule" command with options "-l / -d / -e" can work
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#63490, tc#1741286
 
 use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
+use version_utils qw(is_alp);
 
 sub run {
-    my ($self) = @_;
     my $test_module = "openvpn";
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # test option "-l": list and verify some (not all as it changes often) standard modules
     validate_script_output(
@@ -46,15 +47,27 @@ sub run {
     assert_script_run("semodule -lfull | grep -w $test_module", sub { m/100\ $test_module\ .*pp.*/sx });
 
     # test option "-l": list all modules and verify some of them (disabled + enabled)
-    validate_script_output(
-        "semodule -lfull",
-        sub {
-            m/
-            100\ abrt.*pp\ disabled.*
-            100\ apache.*pp.*
-            100\ userdomain.*pp.*
-            100\ zosremote.*pp\ disabled.*/sx
-        });
+    if (is_alp) {
+        validate_script_output(
+            "semodule -lfull",
+            sub {
+                m/
+                100\ abrt.*pp.*
+                100\ apache.*pp.*
+                100\ userdomain.*pp.*
+                100\ zosremote.*pp.*/sx
+            });
+    } else {
+        validate_script_output(
+            "semodule -lfull",
+            sub {
+                m/
+                100\ abrt.*pp\ disabled.*
+                100\ apache.*pp.*
+                100\ userdomain.*pp.*
+                100\ zosremote.*pp\ disabled.*/sx
+            });
+    }
 }
 
 1;

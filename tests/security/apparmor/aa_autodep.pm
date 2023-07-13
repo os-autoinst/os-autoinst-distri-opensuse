@@ -11,7 +11,7 @@
 # - Output created pam profile to serial output
 # - Disable temporarily created nscd profile
 # - Cleanup temporary profiles
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#36889, poo#45803, poo#106002
 
 use base 'apparmortest';

@@ -10,6 +10,7 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use containers::common;
 use containers::container_images;
@@ -18,7 +19,7 @@ use db_utils qw(push_image_data_to_db);
 
 sub run {
     my ($self, $args) = @_;
-    $self->select_serial_terminal();
+    select_serial_terminal();
 
     my $runtime = $args->{runtime};
     my $engine = $self->containers_factory($runtime);

@@ -12,7 +12,7 @@ use testapi;
 use version_utils qw(is_sle is_leap);
 use utils 'assert_and_click_until_screen_change';
 use Utils::Architectures;
-use Utils::Backends 'is_pvm';
+use Utils::Backends qw(is_pvm is_qemu);
 
 our @EXPORT = qw(
   desktop_runner_hotkey
@@ -26,6 +26,7 @@ our @EXPORT = qw(
   select_user_gnome
   turn_off_screensaver
   turn_off_kde_screensaver
+  turn_off_plasma_tooltips
   turn_off_plasma_screen_energysaver
   turn_off_plasma_screenlocker
   turn_off_gnome_screensaver
@@ -35,6 +36,7 @@ our @EXPORT = qw(
   turn_off_gnome_show_banner
   untick_welcome_on_next_startup
   start_root_shell_in_xterm
+  x11_start_program_xterm
   handle_gnome_activities
 );
 
@@ -55,7 +57,7 @@ desktop
 
 =cut
 
-sub desktop_runner_hotkey { check_var('DESKTOP', 'minimalx') ? 'super-spc' : 'alt-f2' }
+sub desktop_runner_hotkey { check_var('DESKTOP', 'minimalx') ? 'ctrl-alt-spc' : 'alt-f2' }
 
 
 =head2
@@ -73,9 +75,9 @@ sub ensure_unlocked_desktop {
 
     # press key to update screen, wait shortly before and after to not match cached screen
     my $wait_time = get_var('UPGRADE') ? 10 : 3;
-    wait_still_screen($wait_time);
+    wait_still_screen($wait_time, timeout => 15);
     send_key 'ctrl';
-    wait_still_screen($wait_time);
+    wait_still_screen($wait_time, timeout => 15);
     while ($counter--) {
         my @tags = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system guest-disabled-display oh-no-something-has-gone-wrong);
         push(@tags, 'blackscreen') if get_var("DESKTOP") =~ /minimalx|xfce/;    # Only xscreensaver and xfce have a blackscreen as screenlock
@@ -177,7 +179,16 @@ sub ensure_unlocked_desktop {
         die 'ensure_unlocked_desktop repeated too much. Check for X-server crash.' if ($counter eq 1);    # die loop when generic-desktop not matched
         if (match_has_tag('screenlock') || match_has_tag('blackscreen')) {
             wait_screen_change {
-                send_key 'esc';    # end screenlock
+                if (is_qemu && (is_sle('=15-sp3') || is_sle('=15-sp2'))) {
+                    # sometimes screensaver can't be unlocked with key presses poo#125930
+                    mouse_set(600, 600);
+                    mouse_click;
+                    mouse_hide(1);
+                }
+                else {
+                    # ESC of KDE turns the monitor off and CTRL does not work on older SLES versions to unlock the screen
+                    send_key(is_sle("<15-SP4") ? 'esc' : 'ctrl');    # end screenlock
+                }
                 diag("Screen lock present");
             };
             next;    # Go directly to assert_screen, skip wait_still_screen (and don't collect $200)
@@ -259,12 +270,21 @@ sub handle_login {
     $mypwd //= $testapi::password;
     $user_selected //= 0;
 
+    wait_still_screen 3;
     save_screenshot();
     # wait for DM, avoid screensaver and try to login
-    # Previously this pressed esc, but that makes the text field in SDDM lose focus
-    # we need send key 'esc' to quit screen saver when desktop is gnome
-    my $mykey = check_var('DESKTOP', 'gnome') ? 'esc' : 'shift';
-    send_key_until_needlematch('displaymanager', $mykey, 31, 3);
+    # ESC of KDE turns the monitor off and CTRL does not work on older SLES versions to unlock the screen
+    my $mykey = is_sle("<15-SP4") ? 'esc' : 'ctrl';    # end screenlock
+    if (is_qemu && (is_sle('=15-sp3') || is_sle('=15-sp2'))) {
+        # sometimes screensaver can't be unlocked with key presses poo#125930
+        mouse_set(600, 600);
+        mouse_click;
+        mouse_hide(1);
+    }
+    else {
+        # ESC of KDE turns the monitor off and CTRL does not work on older SLES versions to unlock the screen
+        send_key_until_needlematch('displaymanager', $mykey, 31, 3);
+    }
     if (get_var('ROOTONLY')) {
         # we now use this tag to support login as root
         if (check_screen 'displaymanager-username-notlisted', 10) {
@@ -293,11 +313,7 @@ sub handle_login {
     handle_additional_polkit_windows($mypwd) if check_screen([qw(authentication-required-user-settings authentication-required-modify-system)], 15);
     assert_screen([qw(generic-desktop gnome-activities opensuse-welcome)], 180);
     if (match_has_tag('gnome-activities')) {
-        send_key_until_needlematch [qw(generic-desktop opensuse-welcome language-change-required-update-folder)], 'esc';
-        if (match_has_tag('language-change-required-update-folder')) {
-            assert_and_click('reserve_old_folder_name');
-            assert_screen([qw(generic-desktop opensuse-welcome)]);
-        }
+        send_key_until_needlematch [qw(generic-desktop opensuse-welcome)], 'esc', 5, 10;
     }
 }
 
@@ -390,7 +406,7 @@ sub turn_off_plasma_screen_energysaver {
 
 =head2 turn_off_plasma_screenlocker
 
- turnoff_plasma_screenlocker()
+ turn_off_plasma_screenlocker()
 
 Turns off the Plasma desktop screenlocker.
 
@@ -403,6 +419,20 @@ sub turn_off_plasma_screenlocker {
     # Was 'alt-o' before, but does not work in Plasma 5.17 due to kde#411758
     send_key 'ctrl-ret';
     assert_screen 'generic-desktop';
+}
+
+=head2 turn_off_plasma_tooltips
+
+  turn_off_plasma_tooltips()
+
+Disable Plasma tooltips, especially the one triggered by the "Peek Desktop" below the default
+mouse_hide location can break needles and break or slow down matches.
+
+=cut
+
+sub turn_off_plasma_tooltips {
+    x11_start_program('kwriteconfig5 --file plasmarc --group PlasmaToolTips --key Delay -- -1',
+        target_match => 'generic-desktop', no_wait => 1) if check_var('DESKTOP', 'kde');
 }
 
 =head2 turn_off_kde_screensaver
@@ -548,6 +578,23 @@ sub start_root_shell_in_xterm {
     mouse_set(400, 400);
     mouse_click(['left']);
     become_root;
+}
+
+=head2 x11_start_program_xterm
+
+    x11_start_program_xterm()
+
+Start xterm, if it is not focused, record a soft-failure and focus the xterm window.
+
+=cut
+
+sub x11_start_program_xterm {
+    x11_start_program('xterm', target_match => [qw(xterm xterm-without-focus)]);
+    if (match_has_tag 'xterm-without-focus') {
+        record_soft_failure('poo#111752: xterm is not focused');
+        click_lastmatch;
+        assert_screen 'xterm';
+    }
 }
 
 =head2 handle_gnome_activities

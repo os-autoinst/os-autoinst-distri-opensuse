@@ -4,7 +4,6 @@ description: >
   First ay test on zvm, works only there, has special partitioning and networking
   setup.
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_sles_zvm.xml
   AUTOYAST_PREPARE_PROFILE: 1
   DESKTOP: textmode
   FORMAT_DASD: 0

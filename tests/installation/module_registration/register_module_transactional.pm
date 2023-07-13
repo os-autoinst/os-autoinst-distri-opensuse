@@ -7,14 +7,14 @@
 #          in "Extension and Module Selection" dialog
 # Medium:  Online (you see the "Hide Development versions" checkbox)
 #
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_installbase';
 use strict;
 use warnings;
 
 sub run {
-    $testapi::distri->get_module_registration()->register_module('transactional');
+    $testapi::distri->get_module_registration()->register_module('tsm');
 }
 
 1;

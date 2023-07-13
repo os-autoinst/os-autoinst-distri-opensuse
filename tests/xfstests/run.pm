@@ -25,8 +25,10 @@ use File::Basename;
 use testapi;
 use utils;
 use Utils::Backends 'is_pvm';
-use power_action_utils 'power_action';
+use power_action_utils qw(power_action prepare_system_shutdown);
 use filesystem_utils qw(format_partition);
+use lockapi;
+use mmapi;
 
 # Heartbeat variables
 my $HB_INTVL = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
@@ -45,7 +47,7 @@ my $HB_SCRIPT = '/opt/heartbeat.sh';
 # - XFSTESTS: TEST_DEV type, and test in this folder and generic/ folder will be triggered. XFSTESTS=(xfs|btrfs|ext4)
 my $TEST_RANGES = get_required_var('XFSTESTS_RANGES');
 my $TEST_WRAPPER = '/opt/wrapper.sh';
-my %BLACKLIST = map { $_ => 1 } split(/,/, get_var('XFSTESTS_BLACKLIST'));
+my @BLACKLIST = split(/,/, get_var('XFSTESTS_BLACKLIST'));
 my @GROUPLIST = split(/,/, get_var('XFSTESTS_GROUPLIST'));
 my $STATUS_LOG = '/opt/status.log';
 my $INST_DIR = '/opt/xfstests';
@@ -158,7 +160,7 @@ sub log_add {
     send_key 'ret';
     assert_script_run($cmd);
     sleep 5;
-    my $ret = script_output("cat $file", 20);
+    my $ret = script_output("cat $file", 60);
     return $ret;
 }
 
@@ -250,12 +252,35 @@ sub tests_from_ranges {
     return @tests;
 }
 
+# Return a hash of blacklist to skip from @BLACKLIST
+# return structure - hash
+sub genarate_blacklist {
+    my @blacklist_copy;
+    foreach my $test_item (@BLACKLIST) {
+        $test_item =~ m"\w+/";
+        my ($test_category, $test_num) = ($&, $');
+        if ($test_num =~ /^(\d{3})-(\d{3})$/) {
+            push(@blacklist_copy, map { $_ = "$test_category$_" } ($1 .. $2));
+        }
+        elsif ($test_num =~ /^\d{3}$/) {
+            push(@blacklist_copy, "$test_category$test_num");
+        }
+        else {
+            die "Invalid test blacklist: $test_item";
+        }
+    }
+    return map { $_ => 1 } @blacklist_copy;
+}
+
 # Run a single test and write log to file
 # test - test to run(e.g. xfs/001)
 sub test_run {
     my $test = shift;
     my ($category, $num) = split(/\//, $test);
-    my $cmd = "\n$TEST_WRAPPER '$test' | tee $LOG_DIR/$category/$num; ";
+    my $run_options = '';
+    $run_options = '-nfs' if check_var('XFSTESTS', 'nfs');
+    my $inject_code = get_var('INJECT_INFO', '');
+    my $cmd = "\n$TEST_WRAPPER '$test' $run_options $inject_code | tee $LOG_DIR/$category/$num; ";
     $cmd .= "echo \${PIPESTATUS[0]} > $HB_DONE_FILE\n";
     type_string($cmd);
 }
@@ -319,7 +344,7 @@ sub copy_fsxops {
 sub dump_btrfs_img {
     my ($category, $num) = @_;
     my $cmd = "echo \"no inconsistent error, skip btrfs image dump\"";
-    my $ret = script_output("egrep -m 1 \"filesystem on .+ is inconsistent\" $LOG_DIR/$category/$num");
+    my $ret = script_output("grep -E -m 1 \"filesystem on .+ is inconsistent\" $LOG_DIR/$category/$num");
     if ($ret =~ /filesystem on (.+) is inconsistent/) { $cmd = "umount $1;btrfs-image $1 $LOG_DIR/$category/$num.img"; }
     script_run($cmd);
 }
@@ -407,6 +432,7 @@ sub config_debug_option {
 sub run {
     my $self = shift;
     select_console('root-console');
+    return if get_var('XFSTESTS_NFS_SERVER');
 
     config_debug_option;
 
@@ -425,11 +451,18 @@ sub run {
         @tests = shuffle(@tests);
     }
 
-    # Maintain BLACKLIST by exclude group list
+    # Genarate and maintain BLACKLIST by exclude group list
     my %tests_needto_exclude = exclude_grouplist;
-    %BLACKLIST = (%BLACKLIST, %tests_needto_exclude);
+    my %BLACKLIST = (genarate_blacklist, %tests_needto_exclude);
 
     test_prepare;
+
+    # wait until nfs service is ready
+    if (get_var('PARALLEL_WITH')) {
+        mutex_wait('xfstests_nfs_server_ready');
+        script_retry('ping -c3 10.0.2.101', delay => 15, retry => 12);
+    }
+
     heartbeat_start;
     my $status_log_content = "";
     foreach my $test (@tests) {
@@ -471,7 +504,9 @@ sub run {
         };
         # If SUT didn't reboot for some reason, force reset
         if ($@) {
-            power_action('reset', keepconsole => is_pvm);
+            prepare_system_shutdown;
+            select_console 'root-console' unless is_pvm;
+            send_key 'alt-sysrq-b';
             reconnect_mgmt_console if is_pvm;
             $self->wait_boot;
         }
@@ -504,16 +539,21 @@ sub run {
     #Save status log before next step(if run.pm fail will load into a last good snapshot)
     save_tmp_file('status.log', $status_log_content);
     my $local_file = "/tmp/opt_logs.tar.gz";
-    script_run("tar zcvf $local_file --absolute-names /opt/log/");
-    script_run("NUM=0; while [ ! -f $local_file ]; do sleep 20; NUM=\$(( \$NUM + 1 )); if [ \$NUM -gt 10 ]; then break; fi; done");
-    upload_logs $local_file;
+    my $back_pid = background_script_run("tar zcvf $local_file --absolute-names /opt/log/");
+    script_run("wait $back_pid");
+    upload_logs($local_file, failok => 1, timeout => 180);
+}
+
+sub test_flags {
+    return {fatal => 0};
 }
 
 sub post_fail_hook {
     my ($self) = shift;
     # Collect executed test logs
-    script_run 'tar zcvf /tmp/opt_logs.tar.gz --absolute-names /opt/log/';
-    upload_logs '/tmp/opt_logs.tar.gz';
+    my $back_pid = background_script_run('tar zcvf /tmp/opt_logs.tar.gz --absolute-names /opt/log/');
+    script_run("wait $back_pid");
+    upload_logs('/tmp/opt_logs.tar.gz', failok => 1, timeout => 180);
 }
 
 1;

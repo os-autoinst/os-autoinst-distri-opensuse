@@ -11,6 +11,7 @@ use base 'rear';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(file_content_replace quit_packagekit zypper_call);
 
 sub run {
@@ -21,7 +22,7 @@ sub run {
     my $timeout = bmwqemu::scale_timeout(600);
 
     # Disable packagekit and install ReaR
-    get_var('USE_YAST_REAR') ? select_console 'root-console' : $self->select_serial_terminal;
+    get_var('USE_YAST_REAR') ? select_console 'root-console' : select_serial_terminal;
     quit_packagekit;
     zypper_call 'in yast2-rear';
 

@@ -3,27 +3,43 @@ name:           ext4@uefi-staging
 description:    >
   Test for ext4 filesystem.
 vars:
-  FILESYSTEM: ext4
-  FORMAT_DASD: install
+  YUI_REST_API: 1
+conditional_schedule:
+  access_beta_distribution:
+    BETA:
+      1:
+        - installation/access_beta_distribution
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/scc_registration
-  - installation/addon_products_sle
-  - installation/system_role
-  - installation/partitioning
-  - installation/partitioning_filesystem
-  - installation/partitioning_finish
-  - installation/installer_timezone
-  - installation/hostname_inst
-  - installation/user_settings
-  - installation/user_settings_root
+  - installation/setup_libyui
+  - '{{access_beta_distribution}}'
+  - installation/product_selection/install_SLES
+  - installation/licensing/accept_license
+  - installation/registration/register_via_scc
+  - installation/module_registration/register_module_desktop
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/select_role_text_mode
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup/accept_default_part_scheme
+  - installation/partitioning/guided_setup/select_filesystem_option_ext4
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
-  - installation/installation_overview
-  - installation/disable_grub_timeout
-  - installation/start_install
-  - installation/await_install
+  - installation/launch_installation
+  - installation/confirm_installation
+  - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
-  - installation/reboot_after_installation
-  - installation/grub_test
+  - installation/performing_installation/confirm_reboot
+  - installation/handle_reboot
   - installation/first_boot
+  - console/validate_partition_table_via_blkid
+  - console/validate_blockdevices
+  - console/validate_free_space
+  - console/validate_read_write
+test_data:
+  guided_partitioning:
+    filesystem_options:
+      root_filesystem_type: ext4
+  <<: !include test_data/yast/ext4/ext4.yaml

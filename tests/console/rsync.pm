@@ -17,12 +17,12 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_opensuse is_sle is_jeos);
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     # try to install rsync if the test does not run on JeOS
     if (!is_jeos) {
         zypper_call('-t in rsync', dumb_term => 1);

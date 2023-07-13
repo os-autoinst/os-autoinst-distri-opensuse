@@ -1,7 +1,0 @@
-guided_partitioning:
-  disks:
-    - sda
-unused_disks:
-  - sdb
-  - sdc
-  - sdd

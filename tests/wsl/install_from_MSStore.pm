@@ -77,7 +77,7 @@ sub run {
 
     # Install required SUSE distro from the MS Store
     $self->run_in_powershell(
-        cmd => 'winget install --accept-package-agreements --accept-source-agreements "' . $WSL_version . '"',
+        cmd => 'winget install --source msstore --accept-package-agreements --accept-source-agreements "' . $WSL_version . '"',
         code => sub {
             assert_screen 'install-SUSE-WSL-finish', timeout => 720;
         }

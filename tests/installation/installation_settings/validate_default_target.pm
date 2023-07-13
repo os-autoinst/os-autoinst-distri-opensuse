@@ -7,7 +7,7 @@
 # systemd target corresponds to the expected one.
 # Then returns back to the installation console.
 #
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_installbase';
 use strict;

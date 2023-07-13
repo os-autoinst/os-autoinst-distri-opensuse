@@ -5,33 +5,16 @@ description: |
 vars:
   YUI_REST_API: 1
 schedule:
-  - installation/bootloader_start
-  - installation/setup_libyui
-  - installation/access_beta_distribution
-  - installation/product_selection/install_SLES
-  - installation/licensing/accept_license
-  - installation/registration/register_via_scc
-  - installation/module_registration/skip_module_registration
+  add_on_product:
   - installation/add_on_product/add_add_on_http_repo_url
   - installation/add_on_product_installation/add_add_on_ftp_repo_url
   - installation/add_on_product_installation/accept_add_on_installation
-  - installation/system_role/select_role_text_mode
-  - installation/partitioning/accept_proposed_layout
-  - installation/clock_and_timezone/accept_timezone_configuration
-  - installation/authentication/use_same_password_for_root
-  - installation/authentication/default_user_simple_pwd
-  - installation/installation_settings/validate_ssh_service_enabled
-  - installation/installation_settings/open_ssh_port
-  - installation/bootloader_settings/disable_boot_menu_timeout
-  - installation/launch_installation
-  - installation/confirm_installation
-  - installation/performing_installation/perform_installation
-  - installation/logs_from_installation_system
-  - installation/performing_installation/confirm_reboot
-  - installation/handle_reboot
-  - installation/first_boot
-  - console/system_prepare
-  - console/consoletest_setup
-  - console/zypper_ref
-  - console/validate_addon_extension_repo_http
-  - console/validate_addon_extension_repo_ftp
+  system_role:
+    - installation/system_role/select_role_text_mode
+  system_preparation:
+    - console/system_prepare
+    - console/consoletest_setup
+    - console/zypper_ref
+  system_validation:
+    - console/validate_addon_extension_repo_http
+    - console/validate_addon_extension_repo_ftp

@@ -19,6 +19,7 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use registration;
 use utils;
 use version_utils qw(is_leap is_sle);
@@ -27,7 +28,7 @@ use publiccloud::utils 'is_ondemand';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     add_suseconnect_product(get_addon_fullname('phub')) if is_sle();
     add_suseconnect_product(get_addon_fullname('python2')) if is_sle('=15-sp1');

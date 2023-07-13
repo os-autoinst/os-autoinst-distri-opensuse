@@ -1,12 +1,12 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2022 SUSE LLC
+# Copyright 2017-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Package: python openvswitch
 # Summary: The test to connect openvswitch to openflow with SSL enabled
 #
-# Maintainer: Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>, QE Core <qe-core@suse.de>
 # Tags: TC1595181, poo#65375, poo#107134
 
 use base "consoletest";
@@ -14,12 +14,21 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
 
-    # Install python here since pox scripts need python
-    zypper_call('in python python-base openvswitch');
+    # Install runtime dependencies
+    zypper_call("in wget");
+
+    # openvswitch is moved to legacy module, we need to test newer version on sle15sp5+
+    my $ovs_pkg = is_sle('>=15-sp5') ? 'openvswitch3' : 'openvswitch';
+    if (is_sle("<=12-SP5")) {
+        zypper_call("in python python-base $ovs_pkg");
+    } else {
+        zypper_call("in python3 python3-base $ovs_pkg");
+    }
 
     # Start openvswitch service
     systemctl('start openvswitch');
@@ -39,8 +48,9 @@ sub run {
     }
 
     # Get pox for openflow test
-    assert_script_run 'wget --quiet ' . data_url('pox.tar.bz2');
-    assert_script_run 'tar jvfx pox.tar.bz2';
+    my $fname = is_sle("<=12-SP5") ? "pox.tar.bz2" : "pox-py3.tar.bz2";
+    assert_script_run 'wget --quiet ' . data_url("$fname");
+    assert_script_run "tar jvfx $fname";
 
     # Setup a simulated open-flow controller with POX
     type_string

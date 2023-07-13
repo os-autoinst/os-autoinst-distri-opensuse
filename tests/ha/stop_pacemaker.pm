@@ -10,9 +10,11 @@
 use base 'opensusebasetest';
 use strict;
 use warnings;
+use testapi;
 use Utils::Systemd qw(systemctl);
 
 sub run {
+    select_console("root-console");
     systemctl 'stop pacemaker';
 }
 

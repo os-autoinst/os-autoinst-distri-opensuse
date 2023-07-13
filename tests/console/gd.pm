@@ -17,11 +17,11 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     zypper_call('in gd');
     script_run('cd /var/tmp');
     assert_script_run 'curl -v -o giphy.gif ' . data_url('qam/giphy.gif');

@@ -23,6 +23,7 @@ sub validate_team_port_config {
     $self->validate_interfaces('team0', $ctx->iface(), $ctx->iface2(), 0);
     $self->ping_with_timeout(type => 'host', interface => 'team0', count_success => 30, timeout => 4);
 
+    # The Mojo::JSON::Pointer is a helper to search in json data, like you can do with dom objects
     my $jpointer = Mojo::JSON::Pointer->new(decode_json(script_output('teamdctl team0 config dump actual')));
 
     my %check = (

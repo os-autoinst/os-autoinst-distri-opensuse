@@ -5,7 +5,7 @@
 
 # Package: rmt-server yast2-rmt
 # Summary: Test for the yast2-rmt module
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use parent "y2_module_consoletest";
 
@@ -66,7 +66,7 @@ sub test_config {
     for (@unit) {
         script_run("systemctl is-active $_") && die "The systemd unit $_ is not active";
     }
-    assert_script_run("firewall-cmd --list-services |egrep 'http[[:space:]]https'", fail_message => 'The firewall ports are not opened');
+    assert_script_run("firewall-cmd --list-services |grep -E 'http[[:space:]]https'", fail_message => 'The firewall ports are not opened');
     assert_script_run("grep rmt /etc/rmt.conf", fail_message => 'Missing values in /etc/rmt.conf');
     assert_script_run("wget --no-check-certificate https://localhost/rmt.crt", fail_message => 'Certificate not found at https://localhost/rmt.crt');
     # yast2-rmt was changed to no longer include the host name as part of the CA

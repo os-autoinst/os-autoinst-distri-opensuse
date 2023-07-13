@@ -1,0 +1,11 @@
+name:           generate_pflash
+description:    >
+  This sets the resolution in Tianocore boot menu
+schedule:
+  - boot/tianocore_set_resolution
+vars:
+  PUBLISH_PFLASH_VARS: ovmf-x86_64-ms-vars-800x600.qcow2
+  QEMUVGA: qxl
+  UEFI: 1
+  UEFI_PFLASH_CODE: /usr/share/qemu/ovmf-x86_64-ms-code.bin
+  UEFI_PFLASH_VARS: /usr/share/qemu/ovmf-x86_64-ms-vars.bin

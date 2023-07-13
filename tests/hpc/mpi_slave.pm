@@ -9,22 +9,30 @@
 use Mojo::Base qw(hpcbase hpc::utils), -signatures;
 use lockapi;
 use utils;
+use serial_terminal 'select_serial_terminal';
+use Utils::Logging 'export_logs';
+use testapi qw(record_info);
+use POSIX 'strftime';
 
 sub run ($self) {
+    select_serial_terminal();
     my $mpi = $self->get_mpi();
     my %exports_path = (
-        bin => '/home/bernhard/bin',
-        hpc_lib => '/usr/lib/hpc',
+        bin => '/home/bernhard/bin'
     );
-    # Install required HPC dependencies on the nodes act as compute nodes
-    my @hpc_deps = $self->get_compute_nodes_deps($mpi);
-    zypper_call("in @hpc_deps");
+    zypper_call("in $mpi-gnu-hpc");
     barrier_wait('CLUSTER_PROVISIONED');
+    record_info 'CLUSTER_PROVISIONED', strftime("\%H:\%M:\%S", localtime);
     barrier_wait('MPI_SETUP_READY');
+    record_info 'MPI_SETUP_READY', strftime("\%H:\%M:\%S", localtime);
     $self->mount_nfs_exports(\%exports_path);
-
+    $self->setup_scientific_module();
     barrier_wait('MPI_BINARIES_READY');
+    record_info 'MPI_BINARIES_READY', strftime("\%H:\%M:\%S", localtime);
     barrier_wait('MPI_RUN_TEST');
+    record_info 'MPI_RUN_TEST', strftime("\%H:\%M:\%S", localtime);
+    barrier_wait('IMB_TEST_DONE');
+    record_info 'IMB_TEST_DONE', strftime("\%H:\%M:\%S", localtime);
 }
 
 sub test_flags ($self) {
@@ -33,7 +41,7 @@ sub test_flags ($self) {
 
 sub post_fail_hook ($self) {
     $self->destroy_test_barriers();
-    $self->export_logs();
+    export_logs();
 }
 
 1;

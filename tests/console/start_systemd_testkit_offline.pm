@@ -16,6 +16,7 @@
 
 use base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use Mojo::JSON qw(encode_json);
 use version_utils qw(is_sle);
@@ -28,7 +29,7 @@ my $testdir = '/usr/lib/test/external/';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
     assert_script_run("cd $testdir");
     assert_script_run("tar -zxvf systemd_suse.tgz");
     # Make the Network offline if OFFLIE_SUT is set to 1
@@ -65,8 +66,7 @@ sub parse_results_from_output {
     my %results = (
         tests => [],
         info => {timestamp => 0, distro => $distro, results_file => $results_file},
-        summary => {duration => 0, passed => 0, num_tests => 0}
-    );
+        summary => {duration => 0, passed => 0, num_tests => 0});
 
     $out =~ s/\r//gs;
     foreach my $line (split(/\n/, $out)) {

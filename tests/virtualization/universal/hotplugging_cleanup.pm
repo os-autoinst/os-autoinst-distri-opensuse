@@ -5,7 +5,7 @@
 
 # Package: bridge-utils libvirt-client openssh qemu-tools util-linux
 # Summary: Virtual network and virtual block device hotplugging
-# Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>, Jan Baier <jbaier@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "virt_feature_test_base";
 use virt_autotest::common;
@@ -26,6 +26,7 @@ sub run_test {
     # Ensure guests remain in a consistent state also
     shutdown_guests();
     reset_guest($_, $MAC_PREFIX) foreach (keys %virt_autotest::common::guests);
+    start_guests();
 }
 
 sub post_fail_hook {

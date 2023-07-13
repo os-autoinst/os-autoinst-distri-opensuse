@@ -54,7 +54,6 @@ sub run {
 sub post_fail_hook {
     my $self = shift;
 
-    $self->export_logs();
     upload_logs '/tmp/build.log';
     upload_logs '/tmp/test.log';
     script_run 'tar cfJ fcvs21_f95_results.tar.xz *.res';

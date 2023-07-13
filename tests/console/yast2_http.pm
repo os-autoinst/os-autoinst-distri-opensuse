@@ -20,6 +20,7 @@ use testapi;
 use utils 'zypper_call';
 use version_utils qw(is_sle is_leap);
 use yast2_widget_utils 'change_service_configuration';
+use Utils::Logging 'save_and_upload_systemd_unit_log';
 
 sub run {
     select_console 'root-console';
@@ -70,7 +71,8 @@ sub run {
                                           # Sometimes we don't get to the next page after first key press
                                           # As part of poo#20668 we introduce this workaround to have reliable tests
                                           # Go to http server wizard (4/5)--virtual hosts and check page (4/5 )is open
-    send_key_until_needlematch 'http_add_host', $cmd{next}, 3, 3;
+    send_key $cmd{next};
+    assert_screen 'http_add_host';
     wait_still_screen 1;
     send_key 'alt-a';
     assert_screen 'http_new_host_info';    # check new host information page got open to edit
@@ -133,7 +135,7 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
-    $self->save_and_upload_systemd_unit_log('apache2');
+    save_and_upload_systemd_unit_log('apache2');
     $self->SUPER::post_fail_hook;
 }
 

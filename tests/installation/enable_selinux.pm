@@ -36,6 +36,9 @@ sub run {
         send_key 'ret' if $textmode;
     } else {
         # Select SELinux first
+        # sle-micro 5.3+ selects SELinux by default
+        # let's wait for YaST2 to load the settings
+        wait_still_screen stilltime => 9, timeout => 45;
         send_key 'alt-s';
         send_key_until_needlematch 'security-module-selinux', 'up';
         send_key 'ret' if $textmode;

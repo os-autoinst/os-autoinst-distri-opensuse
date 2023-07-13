@@ -1,0 +1,47 @@
+---
+name: mau-extratests_fips
+description: qe-core test cases with fips enabled for Vendor Affirmation
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - fips/fips_setup
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/curl_ipv6
+  - console/wget_ipv6
+  - console/ca_certificates_mozilla
+  - console/unzip
+  - console/rsync
+  - console/shells
+  - console/sudo
+  - console/dstat
+  - console/supportutils
+  - console/mdadm
+  - console/quota
+  - console/vhostmd
+  - console/rpcbind
+  - console/timezone
+  - console/procps
+  - console/iotop
+  - console/systemd_rpm_macros
+  - console/kmod
+  - console/suse_module_tools
+  - console/aaa_base
+  - console/gd
+  - console/vsftpd
+  - console/coredump_collect
+  - console/osinfo_db
+  - console/ovn
+  - console/firewalld
+  - console/libgcrypt
+  - console/zziplib
+  - console/nginx
+  - console/gdb
+  - console/sysctl
+  - '{{arch_specific}}'
+conditional_schedule:
+  arch_specific:
+    ARCH:
+      x86_64:
+        - console/ansible
+...

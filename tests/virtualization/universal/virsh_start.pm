@@ -3,7 +3,7 @@
 #
 # Package: libvirt-client libvirt-daemon
 # Summary: This starts libvirt guests again
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "consoletest";
 use virt_autotest::common;
@@ -17,12 +17,13 @@ sub run {
     record_info "AUTOSTART ENABLE", "Enable autostart for all guests";
     foreach my $guest (keys %virt_autotest::common::guests) {
         if (script_run("virsh autostart $guest", 30) != 0) {
-            record_soft_failure "Cannot enable autostart on $guest guest";
+            record_info('Softfail', "Cannot enable autostart on $guest guest", result => 'softfail');
         }
     }
 
     record_info "LIBVIRTD", "Restart libvirtd and expect all guests to boot up";
-    restart_libvirtd;
+    # Note: TBD for modular libvirt. See poo#129086 for detail.
+    restart_libvirtd if is_monolithic_libvirtd;
 
 
     # Ensure all guests have network connectivity

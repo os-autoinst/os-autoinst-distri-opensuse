@@ -7,12 +7,13 @@ use 5.018;
 use warnings;
 use testapi;
 use Utils::Architectures;
+use Utils::Backends;
 use utils;
 use autotest;
 use base 'Exporter';
 use Exporter;
 use bmwqemu ();
-use version_utils qw(is_sle is_leap is_sle_micro);
+use version_utils qw(is_sle is_leap is_sle_micro is_openstack);
 use Mojo::Util qw(b64_encode b64_decode sha1_sum trim);
 use Mojo::File 'path';
 use File::Basename;
@@ -28,6 +29,8 @@ BEGIN {
       set_serial_prompt
       serial_term_prompt
       upload_file
+      select_serial_terminal
+      select_user_serial_terminal
     );
     our @EXPORT_OK = qw(
       reboot
@@ -56,20 +59,53 @@ sub add_serial_console {
     prepare_serial_console();
 
 Wrapper for add_serial_console.
+
+Configure serial consoles for virtio support (root-virtio-terminal and
+user-virtio-terminal).
+
+NOTE: if test plans to use more consoles via VIRTIO_CONSOLE_NUM, it have to
+call add_serial_console() with proper console name (beware different number
+for ppc64le).
 =cut
 
 sub prepare_serial_console {
-    # Configure serial consoles for virtio support
-    # poo#18860 Enable console on hvc0 on SLES < 12-SP2
-    # poo#44699 Enable console on hvc1 to fix login issues on ppc64le
-    if (!check_var('VIRTIO_CONSOLE', 0)) {
-        if (is_sle('<12-SP2') && !is_s390x) {
-            add_serial_console('hvc0');
-        }
-        elsif (get_var('OFW')) {
-            add_serial_console('hvc1');
-        }
+    # Virtio console is disabled only with VIRTIO_CONSOLE=0 (by default
+    # VIRTIO_CONSOLE is not set which also means that virtio console is
+    # *enabled*).
+    unless (!check_var('VIRTIO_CONSOLE', 0)) {
+        record_info('skip virtio', 'Skipped due to disabled virtio console');
+        return;
     }
+
+    unless (is_qemu) {
+        record_info('skip virtio', 'Skipped adding consoles due unsupported backend (only BACKEND=qemu supported)');
+        return;
+    }
+
+    if (is_openstack) {
+        record_info('skip virtio', 'Openstack Images do not have hvc consoles');
+        return;
+    }
+
+    record_info('getty before', script_output('systemctl | grep serial-getty'));
+
+    my $console = 'hvc1';
+
+    # poo#18860 Enable console on hvc0 on SLES < 12-SP2 (root-virtio-terminal)
+    if (is_sle('<12-SP2') && !is_s390x) {
+        add_serial_console('hvc0');
+    }
+    # poo#44699 Enable console on hvc1 to fix login issues on ppc64le
+    # (root-virtio-terminal)
+    elsif (get_var('OFW')) {
+        add_serial_console('hvc1');
+        $console = 'hvc2';
+    }
+
+    # user-virtio-terminal
+    add_serial_console($console);
+
+    record_info('getty after', script_output('systemctl | grep serial-getty'));
 }
 
 =head2 get_login_message
@@ -285,6 +321,87 @@ sub reboot {
     select_console($args{console});
 
     assert_script_run("! test -e '$check_file'");
+}
+
+=head2 select_serial_terminal
+
+    select_serial_terminal($root[, $prompt]);
+
+Select most suitable text console. The optional parameter C<root> controls
+whether the console will have root privileges or not. Passing any value that
+evaluates to true will select a root console (default). Passing any value that
+evaluates to false will select unprivileged user console.
+The choice is made by BACKEND and other variables.
+
+Purpose of this wrapper is to avoid if/else conditions when selecting console.
+
+Optional C<root> parameter specifies, whether use root user (C<root>=1, also
+default when parameter not specified) or prefer non-root user if available.
+
+Variables affecting behavior:
+C<VIRTIO_CONSOLE>=0 disables virtio console (use {root,user}-console instead
+of the default {root-,user-}virtio-terminal)
+NOTE: virtio console is enabled by default (C<VIRTIO_CONSOLE>=1).
+For ppc64le it requires to call prepare_serial_console() to before first use
+(used in console/system_prepare and shutdown/cleanup_before_shutdown modules)
+and console=hvc0 in kernel parameters (add it to autoyast profile or update
+grub setup manually with add_grub_cmdline_settings()).
+
+C<SERIAL_CONSOLE>=0 disables serial console (use {root,user}-console instead
+of the default {root-,}sut-serial)
+NOTE: serial console is disabled by default on all but s390x machines
+(C<SERIAL_CONSOLE>=0), because it's not working yet on other machines
+(see poo#55985).
+For s390x it requires console=ttysclp0 in kernel parameters (add it to autoyast
+profile or update grub setup manually with add_grub_cmdline_settings()).
+
+On ikvm|ipmi|spvm|pvm_hmc it's expected, that use_ssh_serial_console() has been called
+(done via activate_console()) therefore SERIALDEV has been set and we can
+use root-ssh console directly.
+=cut
+
+sub select_serial_terminal {
+    my $root = shift // 1;
+    my $prompt = shift // ($root ? '# ' : '> ');
+
+    my $backend = get_required_var('BACKEND');
+    my $console;
+
+    if ($backend eq 'qemu') {
+        if (check_var('VIRTIO_CONSOLE', 0)) {
+            $console = $root ? 'root-console' : 'user-console';
+        } else {
+            $console = $root ? 'root-virtio-terminal' : 'user-virtio-terminal';
+        }
+    } elsif (get_var('SUT_IP') || is_backend_s390x) {
+        $console = $root ? 'root-serial-ssh' : 'user-serial-ssh';
+    } elsif ($backend eq 'svirt') {
+        if (check_var('SERIAL_CONSOLE', 0)) {
+            $console = $root ? 'root-console' : 'user-console';
+        } else {
+            $console = $root ? 'root-sut-serial' : 'user-sut-serial';
+        }
+    } elsif (has_serial_over_ssh) {
+        $console = 'root-ssh';
+    } elsif (($backend eq 'generalhw' && !has_serial_over_ssh) || $backend eq 's390x') {
+        $console = $root ? 'root-console' : 'user-console';
+    }
+
+    die "No support for backend '$backend', add it" if (!defined $console) || ($console eq '');
+    $testapi::distri->{serial_term_prompt} = $prompt;
+    select_console($console);
+}
+
+=head2 select_user_serial_terminal
+
+    select_user_serial_terminal([$prompt]);
+
+Select most suitable text console with non-root user.
+The choice is made by BACKEND and other variables.
+=cut
+
+sub select_user_serial_terminal {
+    select_serial_terminal(0);
 }
 
 1;

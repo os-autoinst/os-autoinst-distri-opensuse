@@ -5,7 +5,7 @@
 
 # Package: libvirt-client nmap
 # Summary: Test basic VM guest management
-# Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>, Jan Baier <jbaier@suse.cz>
+# Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use base "consoletest";
 use virt_autotest::common;
@@ -27,7 +27,7 @@ sub run {
     foreach my $guest (keys %virt_autotest::common::guests) {
         assert_script_run "virsh reboot $guest";
         if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, die => 0)) {
-            record_soft_failure "Reboot on $guest failed";
+            record_info('Softfail', "Reboot on $guest failed", result => 'softfail');
             script_run "virsh destroy $guest", 90;
             assert_script_run "virsh start $guest", 60;
         }
@@ -36,14 +36,14 @@ sub run {
     record_info "SHUTDOWN", "Shut all guests down";
     foreach my $guest (keys %virt_autotest::common::guests) {
         if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, die => 0)) {
-            record_soft_failure "Guest $guest is not running after the reboot";
+            record_info('Softfail', "Guest $guest is not running after the reboot", result => 'softfail');
             assert_script_run "virsh start $guest", 60;
         }
         if (script_run("virsh shutdown $guest") != 0) {
-            record_soft_failure "Guest $guest seems to be already down";
+            record_info('Softfail', "Guest $guest seems to be already down", result => 'softfail');
         }
         if (script_retry("virsh list --all | grep $guest | grep \"shut off\"", delay => 15, retry => 6, die => 0)) {
-            record_soft_failure "Shutdown on $guest failed";
+            record_info('Softfail', "Shutdown on $guest failed", result => 'softfail');
             assert_script_run "virsh destroy $guest";
         }
     }
@@ -51,7 +51,8 @@ sub run {
     record_info "START", "Start all guests";
     foreach my $guest (keys %virt_autotest::common::guests) {
         if (script_retry("virsh start $guest", delay => 120, retry => 3, die => 0) != 0) {
-            restart_libvirtd;
+            # Note: TBD for modular libvirt. See poo#129086 for detail.
+            restart_libvirtd if is_monolithic_libvirtd;
             script_retry("virsh start $guest", delay => 120, retry => 3);
         }
         script_retry "nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12;

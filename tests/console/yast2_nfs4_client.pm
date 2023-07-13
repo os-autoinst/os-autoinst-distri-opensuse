@@ -15,7 +15,7 @@
 #   * The NFSv4 ACLs are tested as well
 #   * Every forbidden file is tested so no read nor write operations suceed
 #   * We download 1GB file and check it's checksum
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "y2_module_consoletest";
 
@@ -24,13 +24,13 @@ use warnings;
 use utils qw(zypper_call systemctl script_retry);
 use version_utils;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use lockapi;
 use mm_network;
 use nfs_common;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     setup_static_mm_network('10.0.2.102/24');
 
@@ -81,7 +81,7 @@ sub run {
     yast2_client_exit($module_name);
 
     # From now we can use serial terminal
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     mount_export();
 

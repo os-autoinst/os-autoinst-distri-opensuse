@@ -9,18 +9,21 @@
 
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
-use utils;
-use version_utils;
-use registration;
+use utils 'zypper_call';
+use version_utils 'is_sle';
+use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
+
+    # python3-Django and various dependencies require PackageHub available
+    return unless is_phub_ready();
 
     add_suseconnect_product("PackageHub", undef, undef, undef, 300, 1) if is_sle;
-    add_suseconnect_product("sle-module-desktop-applications", undef, undef, undef, 300, 1) if is_sle;
+    add_suseconnect_product(get_addon_fullname('desktop'), undef, undef, undef, 300, 1) if is_sle('<=15');
 
     zypper_call "in python3-Django";
 

@@ -4,7 +4,7 @@
 # Summary: PAM tests for faillock, the uesr login can be locked
 #          if reaches the limit number of authentication failures;
 #          we can unlock it as well with root user.
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#102990 tc#1769824
 
 use base 'opensusebasetest';

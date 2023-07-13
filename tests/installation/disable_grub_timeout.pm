@@ -8,7 +8,7 @@
 # - Enter bootloader configuration option during install (unless is update)
 # - Set grub timeout to "-1" (60 if older than sle12sp1)
 # - Save screenshot
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use strict;
 use warnings;
@@ -16,6 +16,7 @@ use base 'y2_installbase';
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_upgrade);
+use Utils::Architectures;
 
 sub run {
     my ($self) = shift;
@@ -43,7 +44,7 @@ sub run {
             send_key 'ret';
             return;
         }
-        if (!get_var('SOFTFAIL_1129504') && is_upgrade && is_sle) {
+        if (get_var('SOFTFAIL_1129504') && is_upgrade && is_sle) {
             record_info('Bootloader conf', 'Workaround for bsc#1129504 grub2 timeout is too fast', result => 'softfail');
             send_key 'alt-c';
             return;
@@ -53,7 +54,17 @@ sub run {
     # Depending on an optional button "release notes" we need to press "tab"
     # to go to the first tab
     send_key 'tab' unless match_has_tag 'inst-bootloader-settings-first_tab_highlighted';
-    send_key_until_needlematch 'inst-bootloader-options-highlighted', 'right';
+
+    # Seems like difference between UEFI and Legacy for sle15sp5+.
+    my $is_textmode = check_var('VIDEOMODE', 'text');    # bsc#1208266 only happens in textmode,
+                                                         # so the workaround is only needed here
+    my $bsc_1208266_needed = is_sle('15-SP5+') && $is_textmode;
+
+    my $bootloader_shortcut = (is_x86_64) ?
+      ((check_var('UEFI', '1')) ? 'alt-t' : 'alt-r')    # uefi on x86 has different behavior
+      : 'alt-t';    # t is the default for non x86
+
+    send_key_until_needlematch 'inst-bootloader-options-highlighted', $bsc_1208266_needed ? $bootloader_shortcut : 'right', 20, 2;
     assert_screen 'installation-bootloader-options';
     # Select Timeout dropdown box and disable
     send_key 'alt-t';
@@ -64,6 +75,7 @@ sub run {
     $timeout = "90" if (get_var("REGRESSION", '') =~ /xen|kvm|qemu/);
     type_string $timeout;
 
+    wait_still_screen(1);
     # ncurses uses blocking modal dialog, so press return is needed
     send_key 'ret' if check_var('VIDEOMODE', 'text');
 

@@ -8,7 +8,7 @@
 # - Run "aa-enforce usr.sbin.dovecot" and check output for enforce mode enabled
 # - Stop, start, restart and check status for dovecot service
 # - Check audit.log for errors related to dovecot
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#44999, tc#1695949
 
 use base "apparmortest";

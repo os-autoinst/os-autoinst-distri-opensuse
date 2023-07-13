@@ -8,7 +8,7 @@
 # - Run "aa-enforce usr.sbin.nscd", checks output for enforce mode confirmation
 # - Stop, start, restart and check status on nscd service
 # - Check audit.log for errors related to nscd
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#44993, tc#1695951
 
 use base "apparmortest";

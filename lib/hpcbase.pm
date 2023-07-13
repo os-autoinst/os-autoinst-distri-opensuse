@@ -9,10 +9,12 @@
 package hpcbase;
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use Utils::Architectures;
 use version_utils 'is_sle';
 use lockapi;
+use Utils::Logging 'save_and_upload_log';
 
 =head2 enable_and_start
 
@@ -88,6 +90,11 @@ sub destroy_test_barriers {
         barrier_destroy('MPI_BINARIES_READY');
         barrier_destroy('MPI_RUN_TEST');
     }
+    elsif (check_var('HPC', 'ww4_controller') || check_var('HPC', 'ww4_compute')) {
+        barrier_destroy('WWCTL_READY');
+        barrier_destroy('WWCTL_DONE');
+        barrier_destroy('COMPUTE_BOOT_DONE');
+    }
 }
 
 sub post_run_hook {
@@ -95,7 +102,7 @@ sub post_run_hook {
     select_console('log-console');
     my $hname = get_var('HOSTNAME', 'susetest');
     foreach (keys %log_files) {
-        $self->save_and_upload_log($log_files{$_}{cmd}, "/tmp/$hname-" . $log_files{$_}{logfile}, {screenshot => 1});
+        save_and_upload_log($log_files{$_}{cmd}, "/tmp/$hname-" . $log_files{$_}{logfile}, {timeout => 1200, screenshot => 1});
     }
     $self->upload_service_log("wicked");
     if ($hname =~ /master/) {
@@ -103,12 +110,14 @@ sub post_run_hook {
         upload_logs('/tmp/mpi_bin.log')
           if (check_var('HPC', 'mpi_master') && script_run(qq{test -e /tmp/mpi_bin.log}) == 0);
     }
+    # Restore serial_console
+    select_serial_terminal if check_var('VIRTIO_CONSOLE', '1');
 }
 
 sub post_fail_hook {
     my ($self) = @_;
     $self->destroy_test_barriers();
-    $self->select_serial_terminal;
+    select_serial_terminal;
     script_run("SUSEConnect --status-text");
     script_run("journalctl -o short-precise > /tmp/journal.log");
     script_run('cat /tmp/journal.log');
@@ -250,6 +259,7 @@ master node is expected, the ssh keys should be also be distributed in it too.
 sub generate_and_distribute_ssh {
     my ($self, $user) = @_;
     $user //= 'root';
+    record_info 'Conf ssh', 'generate_and_distribute_ssh';
     my @cluster_nodes = slave_node_names();
     my @master_nodes = master_node_names();
     if (scalar @master_nodes > 1) {
@@ -343,36 +353,52 @@ from the rest and can be exported via a network file system.
 
 After C<prepare_spack_env> run, C<spack> should be ready to build entire tool stack,
 downloading and installing all bits required for whatever package or compiler.
+
+This sub is designed to install one of the mpi implementations. Although there are
+thousands packages to be used.
+
+LD_LIBRARY_PATH is removed and spack is not exported. In case LD_LIBRARY_PATH is required
+it has to be add it in the F<.spack/modules.yaml>.
+
+=begin text
+  See bsc#1208751 for details
+=end text
+
+To do that run
+
+=begin text
+  spack config add modules:prefix_inspections:lib64:[LD_LIBRARY_PATH]
+  spack config add modules:prefix_inspections:lib:[LD_LIBRARY_PATH]
+=end text
+
 =cut
 
 sub prepare_spack_env {
     my ($self, $mpi) = @_;
     $mpi //= 'mpich';
-    zypper_call "in spack $mpi-gnu-hpc $mpi-gnu-hpc-devel";
+    zypper_call "in spack $mpi-gnu-hpc $mpi-gnu-hpc-devel", timeout => 1200;
     type_string('pkill -u root');    # this kills sshd
-    $self->select_serial_terminal(0);
-    assert_script_run 'module load gnu $mpi';    ## TODO
+    select_serial_terminal(0);
+    assert_script_run "module load gnu $mpi";
     assert_script_run 'source /usr/share/spack/setup-env.sh';
+
     record_info 'spack', script_output 'zypper -q info spack';
-    record_info 'boost spec', script_output('spack spec boost', timeout => 360);
-    assert_script_run "spack install boost+mpi^$mpi", timeout => 12000;
-    assert_script_run 'spack load boost';
+    record_info "$mpi spec", script_output("spack spec $mpi", timeout => 600);
+    assert_script_run "spack install $mpi", timeout => 12000;
+
 }
 
-=head2 uninstall_spack_module
+=head2 uninstall_spack_modules
 
-  uninstall_spack_module($module)
+  uninstall_spack_module()
 
-Unload and uninstall C<module> from spack stack
+Clean up from spack stack
 =cut
 
-sub uninstall_spack_module {
-    my ($self, $module) = @_;
-    die 'uninstall_spack_module requires a module name' unless $module;
-    assert_script_run("spack unload $module");
+sub uninstall_spack_modules {
+    assert_script_run("spack unload --all");
     script_run('module av', timeout => 120);
-    assert_script_run("spack uninstall -y $module", timeout => 360);
-    assert_script_run("spack find $module | grep 'No package matches the query'");
+    assert_script_run("spack uninstall -y --all", timeout => 360);
 }
 
 =head2 get_compute_nodes_deps
@@ -382,11 +408,21 @@ sub uninstall_spack_module {
 This function is used to select dependencies packages which are required to be installed
 on HPC compute nodes in order to run code against particular C<mpi> implementation.
 C<get_compute_nodes_deps> returns an array of packages
+
+=head2 CAVEATS
+
+Obsolete function. Not in use since sle15sp5
+Used to install dependencies of the HPC modules when the binaries were shared
+through NFS. Changes in openmpi breaks this on SLE15SP5. Need to get updated to
+be functional again. As for now can be used to find those dependencies prior to
+that version.
+
 =cut
 
 sub get_compute_nodes_deps {
     my ($self, $mpi) = @_;
     die "missing C<mpi> parameter" unless $mpi;
+    die "This function is deprecated. Rather install *hpc-gnu package";
     my @deps = ('libucp0');
     if (is_sle('>=15-SP3')) {
         push @deps, 'libhwloc15' if $mpi =~ m/mpich/;
@@ -414,6 +450,7 @@ sub setup_nfs_server {
     my ($self, $exports) = @_;
     zypper_call 'in nfs-kernel-server';
     foreach my $dir (values %$exports) {
+        assert_script_run "install -d -o $testapi::username -g users $dir" unless script_run("test -f $dir", quiet => 1) == 0;
         assert_script_run "echo $dir *(rw,no_root_squash,sync,no_subtree_check) >> /etc/exports";
     }
     assert_script_run 'exportfs -a';
@@ -431,10 +468,14 @@ run the MPI binaries
 sub mount_nfs_exports {
     my ($self, $exports) = @_;
     zypper_call 'in nfs-client';
+    systemctl "enable --now nfs-client.target";
+    record_info 'nfs-client status', script_output "systemctl status nfs-client.target";
+
     foreach my $dir (values %$exports) {
         assert_script_run "mkdir -p $dir" unless script_run("test -f $dir", quiet => 1) == 0;
         assert_script_run "mount master-node00:$dir $dir", timeout => 120;
     }
+    script_run "test -e /usr/lib/hpc";
 }
 
 1;

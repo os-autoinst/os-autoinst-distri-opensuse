@@ -8,6 +8,7 @@
 
 use Mojo::Base qw(windowsbasetest);
 use testapi;
+use utils qw(enter_cmd_slow);
 use version_utils qw(is_sle);
 use wsl qw(is_sut_reg is_fake_scc_url_needed);
 
@@ -60,8 +61,15 @@ sub license {
 
     if (is_sle) {
         # license warning
-        assert_screen 'wsl-license-not-accepted';
-        send_key 'ret';
+        assert_screen(['wsl-license-not-accepted', 'wsl-sled-license-not-accepted']);
+        if (match_has_tag 'wsl-license-not-accepted') {
+            send_key 'ret';
+        }
+        else {
+            # When activating SLED, license agreement for workstation module appears,
+            # and this time the popup shows Yes or No options
+            send_key 'alt-n';
+        }
         # Accept license
         assert_screen 'wsl-license';
         send_key 'alt-a';
@@ -87,9 +95,22 @@ sub register_via_scc {
     wait_screen_change(sub { send_key 'alt-c' }, 10);
     wait_screen_change { type_string $reg_code, max_interval => 125, wait_screen_change => 2 };
     send_key 'alt-n';
-    assert_screen 'wsl-registration-repository-offer', 180;
+    assert_screen ['trust_nvidia_gpg_keys', 'wsl-registration-repository-offer'], timeout => 240;
+    send_key 'alt-t' if (match_has_tag 'trust_nvidia_gpg_keys');
+    assert_screen 'wsl-registration-repository-offer', timeout => 240;
     send_key 'alt-y';
     assert_screen 'wsl-extension-module-selection';
+    send_key 'alt-n';
+}
+
+sub wsl_gui_pattern {
+    assert_screen 'wsl-gui-pattern';
+    if (is_sut_reg) {
+        # Select product SLED if SLE_PRODUCT var is provided
+        send_key_until_needlematch('wsl_sled_install', 'alt-u') if (check_var('SLE_PRODUCT', 'sled'));
+        # Install wsl_gui pattern if WSL_GUI var is provided
+        send_key_until_needlematch('wsl_gui-pattern-install', 'alt-i') if (get_var('WSL_GUI'));
+    }
     send_key 'alt-n';
 }
 
@@ -108,9 +129,15 @@ sub run {
         assert_screen 'local-user-credentials';
         enter_user_details([$realname, undef, $password, $password]);
         send_key 'alt-n';
+        # wsl-gui pattern installation (only in SLE15-SP4+ by now)
+        wsl_gui_pattern if (is_sle('>=15-SP4'));
         # Registration
         is_sle && register_via_scc();
+        # SLED Workstation license agreement
+        license if (check_var('SLE_PRODUCT', 'sled'));
         # And done!
+        assert_screen ['trust_nvidia_gpg_keys', 'wsl-installation-completed'], timeout => 240;
+        send_key 'alt-t' if (match_has_tag 'trust_nvidia_gpg_keys');
         assert_screen 'wsl-installation-completed', 240;
         send_key 'alt-f';
         # Back to CLI
@@ -134,17 +161,17 @@ sub run {
     # Nothing to do in WSL2 pts w/o serialdev support
     # https://github.com/microsoft/WSL/issues/4322
     if (get_var('WSL2')) {
-        enter_cmd "exit";
+        enter_cmd_slow "exit\n";
         return;
     }
 
     is_fake_scc_url_needed || become_root;
     assert_script_run 'cd ~';
     assert_script_run "zypper ps";
-    enter_cmd 'exit';
+    enter_cmd_slow "exit\n";
     sleep 3;
     save_screenshot;
-    is_fake_scc_url_needed || enter_cmd 'exit';
+    is_fake_scc_url_needed || enter_cmd_slow "exit\n";
 }
 
 sub post_fail_hook {

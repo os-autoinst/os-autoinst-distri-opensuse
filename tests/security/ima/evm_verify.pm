@@ -2,18 +2,18 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test EVM verify function provided by evmctl
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#53585
 
 use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     my $test_app = "/usr/bin/yes";
     my $mok_priv = "/root/certs/key.asc";

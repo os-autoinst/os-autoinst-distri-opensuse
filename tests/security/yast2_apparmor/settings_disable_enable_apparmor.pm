@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test "# yast2 apparmor" can disable/enable apparmor service
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#67021, tc#1741266
 
 use base 'apparmortest';

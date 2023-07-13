@@ -1,7 +1,7 @@
 # Copyright 2017 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Package: dhcp-client xorg-x11-server-extra
+# Package: xorg-x11-server-extra
 # Summary: Remote Login: XDMCP with gdm and GNOME session configured
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586203
@@ -26,7 +26,6 @@ sub run {
     # Make sure the client gets the IP address and configure the firewall
     x11_start_program('xterm');
     become_root;
-    assert_script_run 'dhclient';
     $self->configure_xdmcp_firewall;
     enter_cmd "exit";
 

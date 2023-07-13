@@ -9,11 +9,11 @@
 #    - path: /etc/hosts
 #      entries:
 #        - 'new.entry.de\t10.226.154.19 h999uz'
-#    - path: /etc/chrony.conf
+#    - path: /etc/chrony.d/pool.conf
 #      entries:
 #        - pool ntp.suse.de iburst
 # See lib/cfg_files_utils.pm
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base 'y2_module_consoletest';
 use strict;

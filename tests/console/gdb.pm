@@ -19,6 +19,7 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call);
 use version_utils qw(is_leap is_sle);
 
@@ -39,10 +40,9 @@ sub enter_gdb_cmd {
 }
 
 sub run {
-    my $self = shift;
     my $test_deps = 'gcc glibc-devel gdb';
 
-    $self->select_serial_terminal;
+    select_serial_terminal;
     # *pidof* binary is normally found in *procps* rpm
     # except of sle, where it is provided by *sysvinit-tools* rpm
     # since sle(15-SP3+) *sysvinit-tools* is not preinstalled on JeOS

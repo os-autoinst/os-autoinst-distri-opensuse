@@ -22,10 +22,6 @@ use constant CREDENTIALS_FILE => '/root/google_credentials.json';
 has storage_name => sub { get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'openqa-storage') };
 has project_id => sub { get_var('PUBLIC_CLOUD_GOOGLE_PROJECT_ID') };
 has account => sub { get_var('PUBLIC_CLOUD_GOOGLE_ACCOUNT') };
-has service_acount_name => sub { get_var('PUBLIC_CLOUD_GOOGLE_SERVICE_ACCOUNT') };
-has private_key_id => undef;
-has private_key => undef;
-has client_id => sub { get_var('PUBLIC_CLOUD_GOOGLE_CLIENT_ID') };
 has gcr_zone => sub { get_var('PUBLIC_CLOUD_GCR_ZONE', 'eu.gcr.io') };
 has region => sub { get_var('PUBLIC_CLOUD_REGION', 'europe-west1-b') };
 has username => sub { get_var('PUBLIC_CLOUD_USER', 'susetest') };
@@ -36,7 +32,13 @@ sub init {
     $self->project_id($data->{project_id});
     $self->account($data->{client_id});
     assert_script_run('source ~/.bashrc');
-    (is_sle('=15-SP4')) ? assert_script_run("chronyd -q 'pool time.google.com iburst'") : assert_script_run('ntpdate -s time.google.com');
+    if (is_sle('>=15')) {
+        # kill it in case it's running
+        script_run("killall chronyd && sleep 5 && if pgrep chronyd; then killall -9 chronyd; fi");
+        assert_script_run("chronyd -q 'pool time.google.com iburst'");
+    } else {
+        assert_script_run('ntpdate -s time.google.com');
+    }
     assert_script_run('gcloud config set account ' . $self->account);
     assert_script_run(
         'gcloud auth activate-service-account --key-file=' . CREDENTIALS_FILE . ' --project=' . $self->project_id);

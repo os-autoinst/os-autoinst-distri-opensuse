@@ -5,7 +5,7 @@
 # Summary: Test with "FIPS" installed and enabled, the WWW browser "links"
 #          can access https web pages successfully.
 #
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#52289, tc#1621467, poo#65375
 
 use base "consoletest";

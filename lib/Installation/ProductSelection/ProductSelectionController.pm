@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces business actions for Product Selection
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
+# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 package Installation::ProductSelection::ProductSelectionController;
 use strict;
@@ -30,6 +30,14 @@ sub get_product_selection_page {
     my ($self) = @_;
     die 'Product Selection page is not displayed' unless $self->{ProductSelectionPage}->is_shown();
     return $self->{ProductSelectionPage};
+}
+
+sub wait_for_product_selection_page {
+    my ($self, $args) = @_;
+    $args->{timeout} = $args->{timeout} // YuiRestClient::get_timeout();
+    YuiRestClient::Wait::wait_until(object => sub {
+            $self->{ProductSelectionPage}->is_shown({timeout => 0});
+    }, %$args);
 }
 
 sub get_access_beta_distribution_popup {

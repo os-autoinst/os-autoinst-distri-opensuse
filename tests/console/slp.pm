@@ -15,14 +15,16 @@
 
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils qw(zypper_call systemctl script_retry);
 use Utils::Systemd 'disable_and_stop_service';
+use Utils::Logging 'save_and_upload_log';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Let's install slpd
     zypper_call 'in openslp-server';
@@ -64,7 +66,7 @@ sub run {
     # Deregister one NTP service and find the other one
     assert_script_run 'slptool deregister ntp://tik.cesnet.cz:123,en,65535';
     assert_script_run 'slptool findsrvs ntp';
-    assert_script_run 'if [[ $(slptool findsrvs ntp | grep -c "tik\|tak") = "1" ]]; then echo "One remaining NTP announcement was found"; else false; fi';
+    assert_script_run 'if [[ $(slptool findsrvs ntp | grep -c "tik\|tak" | cut -d, -f1 | sort | uniq ) = "1" ]]; then echo "One remaining NTP announcement was found"; else false; fi';
 
     # Turn off slpd
     systemctl 'stop slpd';
@@ -77,10 +79,10 @@ sub post_fail_hook {
     assert_script_run 'slptool findsrvs ntp';
     upload_logs '/var/log/slpd.log';
     upload_logs '/var/log/zypper.log';
-    $self->save_and_upload_log('journalctl --no-pager -o short-precise', '/tmp/journal.log', {screenshot => 1});
-    $self->save_and_upload_log('rpm -ql openslp-server', '/tmp/openslp-server.content', {screenshot => 1});
-    $self->save_and_upload_log('rpm -ql openslp', '/tmp/openslp.content', {screenshot => 1});
-    $self->save_and_upload_log('lsmod', '/tmp/loaded_modules.txt', {screenshot => 1});
+    save_and_upload_log('journalctl --no-pager -o short-precise', '/tmp/journal.log', {screenshot => 1});
+    save_and_upload_log('rpm -ql openslp-server', '/tmp/openslp-server.content', {screenshot => 1});
+    save_and_upload_log('rpm -ql openslp', '/tmp/openslp.content', {screenshot => 1});
+    save_and_upload_log('lsmod', '/tmp/loaded_modules.txt', {screenshot => 1});
 }
 
 1;

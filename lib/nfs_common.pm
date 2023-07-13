@@ -7,7 +7,7 @@ use utils qw(systemctl file_content_replace clear_console zypper_call clear_cons
 use Utils::Systemd 'disable_and_stop_service';
 use mm_network;
 use version_utils;
-
+use Utils::Backends qw(is_pvm_hmc is_spvm);
 
 our @ISA = qw(Exporter);
 our @EXPORT = qw(server_configure_network try_nfsv2 prepare_exports yast_handle_firewall add_shares
@@ -21,7 +21,7 @@ sub server_configure_network {
     setup_static_mm_network('10.0.2.101/24');
 
     if (is_sle('15+') || is_opensuse) {
-        record_soft_failure 'boo#1083486 No firewalld service for nfs-kernel-server';
+        record_info('bsc#1083486', 'No firewalld service for nfs-kernel-server');
         disable_and_stop_service('firewalld');
     }
 }
@@ -29,6 +29,18 @@ sub server_configure_network {
 sub try_nfsv2 {
     # Try that NFSv2 is disabled by default
     systemctl 'start nfs-server';
+
+    # Make sure it exists and also print the content as info.
+    assert_script_run 'cat /proc/fs/nfsd/versions', fail_message => 'NFS versions file must exist';
+
+    # It's ok if it's not available in the kernel
+    if (script_run("grep -q '[+-]2' /proc/fs/nfsd/versions") == 1) {
+        record_info('Info', 'NFSv2 not available in the kernel');
+        systemctl 'stop nfs-server';
+        return;
+    }
+
+    # If available, make sure it's disabled by default
     assert_script_run "cat /proc/fs/nfsd/versions | grep '\\-2'";
 
     # Stop testing NFSv2 on tumbleweed, support is removed in nfs-utils
@@ -214,8 +226,9 @@ sub config_service {
     try_nfsv2();
 
     prepare_exports($rw, $ro);
-
-    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'nfs-server');
+    my $y2_opts = "";
+    $y2_opts = "--ncurses" if (is_pvm_hmc() || is_spvm());
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'nfs-server', yast2_opts => $y2_opts);
 
     yast2_server_initial();
 
@@ -244,8 +257,6 @@ sub config_service {
 
 sub start_service {
     my ($rw, $ro) = @_;
-    # Back on the console
-    clear_console;
 
     # Server is up and running, client can use it now!
     check_nfs_ready($rw, $ro);

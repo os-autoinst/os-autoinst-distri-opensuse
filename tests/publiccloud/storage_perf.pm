@@ -10,6 +10,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use db_utils;
 use Mojo::JSON;
@@ -30,7 +31,7 @@ sub get_mean_from_db {
 
     my $query = sprintf("SELECT MEAN(*) FROM (SELECT %s FROM storage WHERE scenario='%s' and os_flavor='%s' and os_version='%s' %s)", $args->{load_type}, $args->{scenario}, $args->{os_flavor}, $args->{os_version}, $limit);
 
-    my $json_res = influxdb_read_data($args->{url}, $args->{db}, $query);
+    my $json_res = influxdb_read_data($args->{url}, $args->{db}, $args->{org}, $args->{token}, $query);
     # when there is no results , "series" section is not returned :
     # { 'results' =>
     #      [{
@@ -70,7 +71,7 @@ sub db_has_data {
 
     my $query = sprintf("SELECT count(*) FROM storage WHERE scenario='%s' and os_flavor='%s' and os_version='%s'", $args{scenario}, $args{os_flavor}, $args{os_version});
 
-    my $json_res = influxdb_read_data($args{url}, $args{db}, $query);
+    my $json_res = influxdb_read_data($args{url}, $args{db}, $args{org}, $args{token}, $query);
     return 0 unless (defined($json_res->{results}->[0]->{series}));
 
     my $series = $json_res->{results}->[0]->{series};
@@ -111,7 +112,7 @@ sub analyze_previous_series {
             record_info('ANALYZE', $analyze);
             # This detects if mean values differs more than 10%
             if ($diff_percents > 10) {
-                record_soft_failure("Deviation occurred. $generic_message");
+                record_info('Softfail', "Deviation occurred. $generic_message", result => 'softfail');
                 $result = 1;
             } else {
                 record_info('PASS', "The data looks good. $generic_message");
@@ -171,11 +172,10 @@ sub run {
         os_kernel_version => undef,
     };
 
-    $self->select_serial_terminal();
+    select_serial_terminal();
 
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance(use_extra_disk => {size => $disk_size, type => $disk_type});
-    $instance->wait_for_guestregister();
 
     $tags->{os_kernel_release} = $instance->run_ssh_command(cmd => 'uname -r');
     $tags->{os_kernel_version} = $instance->run_ssh_command(cmd => 'uname -v');
@@ -225,10 +225,15 @@ sub run {
                 tags => $tags,
                 values => $values
             };
-            $data = influxdb_push_data($url, 'publiccloud', $data);
+            my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf');
+            my $token = get_required_var('_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN');
+            my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
+            influxdb_push_data($url, $db, $org, $token, $data) if (check_var('PUBLIC_CLOUD_PERF_PUSH_DATA', 1));
             my %influx_read_args = (
                 url => $url,
-                db => 'publiccloud',
+                db => $db,
+                org => $org,
+                token => $token,
                 scenario => $href->{name},
                 os_flavor => $tags->{os_flavor},
                 os_version => $tags->{os_version}

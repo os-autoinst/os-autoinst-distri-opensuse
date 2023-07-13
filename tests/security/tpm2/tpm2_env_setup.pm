@@ -3,23 +3,24 @@
 #
 # Summary: TPM2 test environment prepare
 #          Install required packages and create user, start the abrmd service
-# Maintainer: rfan1 <richard.fan@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#64899, poo#103143, poo#105732, poo#107908, tc#1742297, tc#1742298
 
 use strict;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
-use utils 'zypper_call';
+use serial_terminal 'select_serial_terminal';
+use utils;
 use power_action_utils 'power_action';
 use version_utils 'is_sle';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_serial_terminal;
 
     # Install the tpm2.0 related packages
     # and then start the TPM2 Access Broker & Resource Manager
+    quit_packagekit;
     zypper_call("in expect ibmswtpm2 tpm2.0-abrmd tpm2.0-abrmd-devel openssl tpm2-0-tss tpm2-tss-engine tpm2.0-tools");
 
     # Add user tss, tss is the default user to start tpm2.0 service

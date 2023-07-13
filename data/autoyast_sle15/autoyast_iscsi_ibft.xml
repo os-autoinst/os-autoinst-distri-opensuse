@@ -20,7 +20,7 @@
             <listentry t="map">
                 <authmethod>None</authmethod>
                 <iface>default</iface>
-                <portal>{{WORKER_HOSTNAME}}:3260</portal>
+                <portal>{{WORKER_IP}}:3260</portal>
                 <startup>onboot</startup>
                 <target>{{NBF}}</target>
             </listentry>
