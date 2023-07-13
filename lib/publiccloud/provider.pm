@@ -625,7 +625,8 @@ sub terraform_param_tags
     my $tags = {
         openqa_ttl => get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300),
         openqa_var_JOB_ID => get_current_job_id(),
-        openqa_var_NAME => get_var(NAME => '')
+        openqa_var_NAME => get_var(NAME => ''),
+        openqa_var_SERVER => get_var('OPENQA_URL', get_var('OPENQA_HOSTNAME'))
     };
 
     return encode_json($tags);
