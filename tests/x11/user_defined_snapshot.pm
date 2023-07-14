@@ -23,6 +23,7 @@ use testapi;
 use utils;
 use Utils::Backends 'is_remote_backend';
 use power_action_utils 'power_action';
+use y2snapper_common qw(y2snapper_close_snapper_module);
 
 sub y2snapper_create_snapshot {
     my ($self, $name, $user_data) = @_;
@@ -60,7 +61,7 @@ sub run {
     # Make sure the snapshot is listed in the main window
     send_key_until_needlematch([qw(grub_comment)], 'pgdn');
     # C'l'ose  the snapper module
-    send_key "alt-l";
+    y2snapper_common::y2snapper_close_snapper_module;
     wait_serial("$module_name-0", 200) || die "'yast2 $module_name' didn't finish";
     $self->{in_wait_boot} = 1;
     record_info 'Snapshot created', 'booting the system into created snapshot';
