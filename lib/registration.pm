@@ -900,11 +900,10 @@ sub scc_deregistration {
             add_suseconnect_product('sle-module-python2');
         }
         my $deregister_ret = script_run('SUSEConnect --de-register --debug > /tmp/SUSEConnect.debug 2>&1', 300);
-        if (defined $deregister_ret and $deregister_ret) {
-            # Cleanup and upload logs in case of de-registration failure.
-            record_soft_failure "bsc#1211970 - SUSEConnect --de-register returned code $deregister_ret";
+        if ($deregister_ret) {
+            # See git blame for previous workarounds.
             upload_logs "/tmp/SUSEConnect.debug";
-            assert_script_run('SUSEConnect --cleanup', 200);
+            die "SUSEConnect --de-register returned error code $deregister_ret";
         }
         my $output = script_output 'SUSEConnect -s';
         die "System is still registered" unless $output =~ /Not Registered/;
