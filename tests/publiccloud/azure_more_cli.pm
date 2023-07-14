@@ -93,10 +93,9 @@ sub run {
 
     my $openqa_ttl = get_var('MAX_JOB_TIME', 7200) +
       get_var('PUBLIC_CLOUD_TTL_OFFSET', 300);
-    my $openqa_url = get_required_var('OPENQA_URL');
+    my $openqa_url = get_var('OPENQA_URL', get_var('OPENQA_HOSTNAME'));
     my $created_by = "$openqa_url/t$job_id";
-    my $tags =
-      "openqa-cli-test-tag=$job_id openqa_created_by=$created_by openqa_ttl=$openqa_ttl";
+    my $tags = "openqa-cli-test-tag=$job_id openqa_created_by=$created_by openqa_ttl=$openqa_ttl";
     my $location = "southeastasia";
     my $sshkey = "~/.ssh/id_rsa.pub";
 
