@@ -24,7 +24,7 @@ schedule:
   - installation/upgrade/accept_remove_previous_repos
   - installation/addon_products_sle
   - installation/resolve_dependency_issues
-  - installation/bootloader_settings/disable_boot_menu_timeout_navigating_tabs
+  - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
   - installation/confirm_installation
   - installation/performing_installation/perform_installation
@@ -32,4 +32,3 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
-  
