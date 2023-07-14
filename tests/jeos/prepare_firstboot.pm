@@ -21,7 +21,7 @@ sub run {
     my $distripassword = $testapi::password;
     my $reboot_for_jeos_firstboot = 1;
 
-    my $is_generalhw_via_ssh = is_generalhw && !defined(get_var('GENERAL_HW_VNC_IP'));
+    my $is_generalhw_via_ssh = is_generalhw && !defined(get_var('GENERAL_HW_VNC_IP')) && !defined(get_var('GENERAL_HW_VIDEO_STREAM_URL'));
 
     if (get_var('GENERAL_HW_VIDEO_STREAM_URL')) {
         # capture boot sequence and wait for login prompt on raw HDMI output
