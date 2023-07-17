@@ -21,7 +21,7 @@ use utils;
 sub run {
     select_serial_terminal;
 
-    my $image = get_var('CONTAINER_IMAGE_TO_TEST');
+    my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
 
     assert_script_run("podman pull $image");
     assert_script_run("podman run --name suma_image -dt $image");
