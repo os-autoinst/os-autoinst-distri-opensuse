@@ -210,8 +210,8 @@ sub qesap_pip_install {
 
 sub qesap_upload_logs {
     my (%args) = @_;
-    my $failok = $args{failok};
-    record_info("Uploading logfiles", join("\n", @log_files));
+    my $failok = $args{failok} || 0;
+    record_info("Uploading logfiles failok:$failok", join("\n", @log_files));
     while (my $file = pop @log_files) {
         upload_logs($file, failok => $failok);
     }
@@ -406,7 +406,7 @@ sub qesap_prepare_env {
 
     record_info("QESAP conf", "Generating all terraform and Ansible configuration files");
     push(@log_files, "$paths{terraform_dir}/$provider/terraform.tfvars");
-    push(@log_files, "$paths{deployment_dir}/ansible/playbooks/vars/hana_media.yaml");
+    my $hana_media = "$paths{deployment_dir}/ansible/playbooks/vars/hana_media.yaml";
     my $hana_vars = "$paths{deployment_dir}/ansible/playbooks/vars/hana_vars.yaml";
     my $exec_rc = qesap_execute(cmd => 'configure', verbose => 1);
 
@@ -416,6 +416,7 @@ sub qesap_prepare_env {
         qesap_create_aws_credentials($data->{access_key_id}, $data->{secret_access_key});
     }
 
+    push(@log_files, $hana_media) if (script_run("test -e $hana_media") == 0);
     push(@log_files, $hana_vars) if (script_run("test -e $hana_vars") == 0);
     qesap_upload_logs(failok => 1);
     die("Qesap deployment returned non zero value during 'configure' phase.") if $exec_rc;
