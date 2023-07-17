@@ -35,7 +35,7 @@ security: []
 installation_settings:
   - installation/launch_installation
 installation:
-  - installation/confirm_installation
+  - installation/confirm_installation_maintenance
   - installation/performing_installation/perform_installation
 installation_logs:
   - installation/logs_from_installation_system
