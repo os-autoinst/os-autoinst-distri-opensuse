@@ -79,8 +79,8 @@ sub run {
                 # Wait for boot and reconnect to root console
                 $self->wait_boot;
                 select_serial_terminal;
-                # Wait for fencing delay and resources to start
-                sleep $start_delay_after_fencing;
+                # Wait for fencing delay and resources to start. Test should wait a little longer than startup delay.
+                sleep $start_delay_after_fencing + 15;
                 wait_until_resources_started();
                 $node_was_fenced = 1;
                 last;
