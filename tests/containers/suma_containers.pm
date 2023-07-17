@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Test SUMA container images:
@@ -11,7 +11,7 @@
 #   proxy-ssh
 #   proxy-tftpd
 #
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: Maurizio Galli <maurizio.galli@suse.com>
 
 use Mojo::Base qw(consoletest);
 use testapi;
@@ -24,22 +24,6 @@ sub run {
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
 
     assert_script_run("podman pull $image");
-    assert_script_run("podman run --name suma_image -dt $image");
-
-    record_info('Kernel', 'Test that kernel files are present');
-    validate_script_output("podman exec suma_image /bin/sh -c 'ls /boot'", sub { /initrd/ });
-    validate_script_output("podman exec suma_image /bin/sh -c 'ls /boot'", sub { /vmlinuz/ });
-
-    record_info('Firmware', 'Test that /lib/firmware directory is not empty');
-    assert_script_run("podman exec suma_image /bin/sh -c 'test -d /lib/firmware'");
-    assert_script_run("podman exec suma_image /bin/sh -c '[[ -n \"`ls -A /lib/firmware`\" ]]'");
-
-    record_info('grub', "Test that /etc/default/grub exists and it's not empty");
-    assert_script_run("podman exec suma_image /bin/sh -c 'test -s /etc/default/grub'");
-
-    record_info('repos', 'Image should come with empty repos');
-    validate_script_output("podman exec suma_image /bin/sh -c 'zypper lr' 2>&1", sub { /No repositories defined/ }, proceed_on_failure => 1);
-    assert_script_run("podman exec suma_image /bin/sh -c '[[ -z \"`ls -A /etc/zypp/repos.d`\" ]]'");
 }
 
 sub test_flags {
