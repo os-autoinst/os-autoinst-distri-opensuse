@@ -28,6 +28,7 @@
       <li><a href="#get_promoted_instance-get_promoted_instance">get_promoted_instance get_promoted_instance();</a></li>
       <li><a href="#wait_for_sync-wait_for_sync-timeout-timeout">wait_for_sync wait_for_sync([timeout =&gt; $timeout]);</a></li>
       <li><a href="#wait_for_pacemaker-wait_for_pacemaker-timeout-timeout">wait_for_pacemaker wait_for_pacemaker([timeout =&gt; $timeout]);</a></li>
+      <li><a href="#change_sbd_service_timeout-self-change_sbd_service_timeout-timeout-timeout">change_sbd_service_timeout $self-&gt;change_sbd_service_timeout(timeout =&gt; $timeout);</a></li>
       <li><a href="#setup_sbd_delay-self-setup_sbd_delay">setup_sbd_delay $self-&gt;setup_sbd_delay();</a></li>
       <li><a href="#sbd_delay_formula-self-sbd_delay_formula">sbd_delay_formula $self-&gt;sbd_delay_formula();</a></li>
       <li><a href="#cloud_file_content_replace-cloud_file_content_replace-filename-search_pattern-replace_with">cloud_file_content_replace cloud_file_content_replace($filename, $search_pattern, $replace_with);</a></li>
@@ -103,6 +104,11 @@ Continue after expected output matched three times continually to make sure clus
 <h2 id="wait_for_pacemaker-wait_for_pacemaker-timeout-timeout">wait_for_pacemaker wait_for_pacemaker([timeout =&gt; $timeout]);</h2>
 
 <pre><code>Checks status of pacemaker via systemd &#39;is-active&#39; command an waits for startup.</code></pre>
+
+<h2 id="change_sbd_service_timeout-self-change_sbd_service_timeout-timeout-timeout">change_sbd_service_timeout $self-&gt;change_sbd_service_timeout(timeout =&gt; $timeout);</h2>
+
+<pre><code>Overrides timeout for sbd systemd service to a value provided by argument.
+This is done by creating or changing file &quot;/etc/systemd/system/sbd.service.d/sbd_delay_start.conf&quot;</code></pre>
 
 <h2 id="setup_sbd_delay-self-setup_sbd_delay">setup_sbd_delay $self-&gt;setup_sbd_delay();</h2>
 
