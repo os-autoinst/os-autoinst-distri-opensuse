@@ -1,0 +1,12 @@
+---
+- hosts: all
+  vars:
+    out_path: '/tmp/ansible_script_output/'
+    out_file: 'testout.txt'
+    failok: no
+  tasks:
+  - name: fetch
+    fetch:
+      flat: yes
+      src: "/tmp/{{ out_file }}"
+      dest: "{{ out_path }}"

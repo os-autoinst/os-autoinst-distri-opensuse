@@ -506,7 +506,7 @@ sub qesap_ansible_cmd {
 
     qesap_ansible_script_output(cmd => 'crm status', provider => 'aws', host => 'vmhana01', root => 1);
 
-    It uses playbook data/sles4sap/script_output.yaml
+    It uses playbooks data/sles4sap/script_output.yaml
 
     1. ansible-playbook run the playbook
     2. the playbook executes the command and redirects the output to file, both remotely
@@ -564,7 +564,6 @@ sub qesap_ansible_script_output {
     push @ansible_cmd, ('-u', $args{user});
     push @ansible_cmd, ('-b', '--become-user', 'root') if ($args{root});
     push @ansible_cmd, ('-e', qq("cmd='$args{cmd}'"),
-        '-e', "out_path='$local_path'",
         '-e', "out_file='$local_file'");
     push @ansible_cmd, ('-e', "failok=yes") if ($args{failok});
 
@@ -573,6 +572,12 @@ sub qesap_ansible_script_output {
     assert_script_run("source " . QESAPDEPLOY_VENV . "/bin/activate");    # venv activate
 
     $args{failok} ? script_run(join(' ', @ansible_cmd)) : assert_script_run(join(' ', @ansible_cmd));
+    qesap_ansible_fetch_file(provider => $args{provider},
+                    host => $args{host},
+                    failok => 1,
+                    root => 1,
+                    local_path => '/tmp/',
+                    local_file => $local_file);
 
     enter_cmd("deactivate");    #venv deactivate
     if ($return_string) {
@@ -583,6 +588,75 @@ sub qesap_ansible_script_output {
     else {
         return $local_tmp;
     }
+}
+
+=head3 qesap_ansible_fetch_file
+
+    Use Ansible to fetch a file remotely.
+    Command could be executed with elevated privileges
+
+    qesap_ansible_fetch_file(provider => 'aws', host => 'vmhana01', root => 1);
+
+    It uses playbook data/sles4sap/fetch_file.yaml
+
+    1. ansible-playbook run the playbook
+    3. the playbook download the file locally
+    4. the file is read and stored to be returned to the caller
+
+=over 8
+
+=item B<PROVIDER> - Cloud provider name, used to find the inventory
+
+=item B<HOST> - filter hosts in the inventory
+
+=item B<USER> - user on remote host, default to 'cloudadmin'
+
+=item B<ROOT> - 1 to enable remote execution with elevated user, default to 0
+
+=item B<FAILOK> - if not set, ansible failure result in die
+
+=item B<LOCAL_FILE> - filter hosts in the inventory
+
+=item B<LOCAL_PATH> - filter hosts in the inventory
+
+=back
+=cut
+
+sub qesap_ansible_fetch_file {
+    my (%args) = @_;
+    foreach (qw(provider cmd host)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    $args{user} ||= 'cloudadmin';
+    $args{root} ||= 0;
+
+    my $inventory = qesap_get_inventory($args{provider});
+
+    my $fetch_playbook = 'fetch_file.yaml';
+    my $local_path = $args{local_path} // '/tmp/ansible_script_output/';
+    my $local_file = $args{local_file} // 'testout.txt';
+    my $local_tmp = $local_path . $local_file;
+
+    if (script_run "test -e $fetch_playbook") {
+        my $cmd = join(' ',
+            'curl', '-v', '-fL',
+            data_url("sles4sap/$fetch_playbook"),
+            '-o', $fetch_playbook);
+        assert_script_run($cmd);
+    }
+
+    my @ansible_fetch_cmd = ('ansible-playbook', '-vvvv', $fetch_playbook);
+    push @ansible_fetch_cmd, ('-l', $args{host}, '-i', $inventory);
+    push @ansible_fetch_cmd, ('-u', $args{user});
+    push @ansible_fetch_cmd, ('-b', '--become-user', 'root') if ($args{root});
+    push @ansible_fetch_cmd, ('-e', "out_path='$local_path'",
+        '-e', "out_file='$local_file'");
+    push @ansible_fetch_cmd, ('-e', "failok=yes") if ($args{failok});
+
+    assert_script_run("source " . QESAPDEPLOY_VENV . "/bin/activate");    # venv activate
+
+    $args{failok} ? script_run(join(' ', @ansible_fetch_cmd)) : assert_script_run(join(' ', @ansible_fetch_cmd));
+
+    enter_cmd("deactivate");    #venv deactivate
+    return $local_tmp;
 }
 
 =head3 qesap_create_aws_credentials

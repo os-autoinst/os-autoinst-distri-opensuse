@@ -2,7 +2,6 @@
 - hosts: all
   vars:
     cmd: ''
-    out_path: '/tmp/ansible_script_output/'
     out_file: 'testout.txt'
     failok: no
   tasks:
@@ -10,8 +9,4 @@
     shell: "{{ cmd }} > /tmp/{{ out_file }}"
     register: crm_status_files
     ignore_errors: "{{ failok }}"
-  - name: fetch
-    fetch:
-      flat: yes
-      src: "/tmp/{{ out_file }}"
-      dest: "{{ out_path }}"
+
