@@ -64,8 +64,20 @@ sub create_playbook_section_list {
     my @hana_playbook_list;
 
     # Add registration module as first element - "QESAP_SCC_NO_REGISTER" skips scc registration via ansible
-    push @playbook_list, 'registration.yaml -e reg_code=' . get_required_var('SCC_REGCODE_SLES4SAP') . " -e email_address=''"
-      unless (get_var('QESAP_SCC_NO_REGISTER'));
+    if ( check_var( 'USE_ROLES', 1 ) ) {
+        push @playbook_list,
+            'registration_role.yaml -e reg_code='
+          . get_required_var('SCC_REGCODE_SLES4SAP')
+          . " -e email_address=''"
+          unless ( get_var('QESAP_SCC_NO_REGISTER') );
+    }
+    else {
+        push @playbook_list,
+            'registration.yaml -e reg_code='
+          . get_required_var('SCC_REGCODE_SLES4SAP')
+          . " -e email_address=''"
+          unless ( get_var('QESAP_SCC_NO_REGISTER') );
+    }
 
     # SLES4SAP/HA related playbooks
     if ($ha_enabled) {
