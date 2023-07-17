@@ -1135,7 +1135,7 @@ sub post_run {
     $self->valgrind_postrun();
     $self->upload_wicked_logs('post');
 
-    if (check_var('IS_WICKED_REF')) {
+    if (get_var('IS_WICKED_REF')) {
         my $time_since_barrier_wait = time - ($self->{last_barrier_wait_call} // 0);
         if ($time_since_barrier_wait < lockapi::POLL_INTERVAL) {
             my $seconds = lockapi::POLL_INTERVAL - $time_since_barrier_wait;
