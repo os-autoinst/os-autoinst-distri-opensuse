@@ -444,13 +444,14 @@ subtest '[qesap_ansible_script_output] output file' => sub {
     my $out = qesap_ansible_script_output(cmd => 'SWIM',
         provider => 'NEMO',
         host => 'REEF',
-        local_path => '/BERMUDA_TRIAGLE/',
-        local_file => 'SUBMARINE.TXT');
+        path => '/tmp/',
+        out_path => '/BERMUDA_TRIAGLE/',
+        file => 'SUBMARINE.TXT');
 
     note("\n  out=$out");
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok((any { /ansible-playbook.*-e.*out_path='\/BERMUDA_TRIAGLE\/'/ } @calls), 'proper ansible-playbooks local_path');
-    ok((any { /ansible-playbook.*-e.*out_file='SUBMARINE.TXT'/ } @calls), 'proper ansible-playbooks local_file');
+    ok((any { /ansible-playbook.*-e.*file='SUBMARINE.TXT'/ } @calls), 'proper ansible-playbooks local_file');
     like($out, qr/^\/BERMUDA_TRIAGLE\/SUBMARINE\.TXT/, 'the return is the path of the file stored by Ansible');
 };
 
@@ -773,14 +774,15 @@ subtest '[qesap_cluster_logs]' => sub {
     $qesap->redefine(qesap_ansible_script_output => sub {
             my (%args) = @_;
             push @ansible_calls, $args{cmd};
-            push @logfile_calls, $args{local_file};
-            note("\n ###--> local_path : $args{local_path}");
-            note("\n ###--> local_file : $args{local_file}");
+            push @logfile_calls, $args{file};
+            note("\n ###--> local_path : $args{out_path}");
+            note("\n ###--> local_file : $args{file}");
             return 'BOUBLE BOUBLE BOUBLE'; });
     $qesap->redefine(qesap_get_inventory => sub { return '/BERMUDAS/TRIANGLE'; });
     $qesap->redefine(script_run => sub { return 0; });
     $qesap->redefine(upload_logs => sub { push @save_file_calls, $_[0]; return; });
     $qesap->redefine(qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt'}); });
+    $qesap->redefine(qesap_upload_crm_report => sub { return 0; });
 
     my $cloud_provider = 'NEMO';
     set_var('PUBLIC_CLOUD_PROVIDER', $cloud_provider);
@@ -803,14 +805,15 @@ subtest '[qesap_cluster_logs] multi log command' => sub {
     $qesap->redefine(qesap_ansible_script_output => sub {
             my (%args) = @_;
             push @ansible_calls, $args{cmd};
-            push @logfile_calls, $args{local_file};
-            note("\n ###--> local_path : $args{local_path}");
-            note("\n ###--> local_file : $args{local_file}");
+            push @logfile_calls, $args{file};
+            note("\n ###--> local_path : $args{out_path}");
+            note("\n ###--> file : $args{file}");
             return 'BOUBLE BOUBLE BOUBLE'; });
     $qesap->redefine(qesap_get_inventory => sub { return '/BERMUDAS/TRIANGLE'; });
     $qesap->redefine(script_run => sub { return 0; });
     $qesap->redefine(upload_logs => sub { return; });
     $qesap->redefine(qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt', Logs => ['ignore_me.txt', 'ignore_me_too.txt']}); });
+    $qesap->redefine(qesap_upload_crm_report => sub { return 0; });
 
     my $cloud_provider = 'NEMO';
     set_var('PUBLIC_CLOUD_PROVIDER', $cloud_provider);
