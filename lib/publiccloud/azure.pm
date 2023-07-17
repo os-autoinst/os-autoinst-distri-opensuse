@@ -177,7 +177,7 @@ sub upload_img {
     assert_script_run("az storage blob update --account-key $key --container-name '$container' --account-name '$storage_account' --name $img_name --content-md5 $file_md5");
 
     my $publisher = get_var("PUBLIC_CLOUD_AZURE_PUBLISHER", "qe-c");
-    my $offer = get_var("PUBLIC_CLOUD_AZURE_OFFER", get_var('FLAVOR') . '-' . get_var('PUBLIC_CLOUD_ARCH', 'x86_64'));
+    my $offer = get_var("PUBLIC_CLOUD_AZURE_OFFER", get_var('DISTRI') . '-' . get_var('VERSION') . '-' . get_var('FLAVOR') . '-' . get_var('PUBLIC_CLOUD_ARCH', 'x86_64'));
     my $definition = get_required_var('DISTRI') . '-' . get_required_var('FLAVOR') . '-' . get_var('PUBLIC_CLOUD_ARCH', 'x86_64') . '-' . get_required_var('VERSION') . '-' . $gen;
     $definition = get_var("PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION", uc($definition));
     my $sku = get_var("PUBLIC_CLOUD_AZURE_SKU", 'gen2');
