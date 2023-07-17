@@ -46,8 +46,8 @@ sub run {
     my $db_action = get_var('DB_ACTION', $run_args->{hana_test_definitions}{$self->{name}});
     croak('Database action unknown or not defined.') if ($db_action !~ /^(stop|kill|crash)$/);
 
-    if (($db_action eq 'crash') && defined(get_var('HA_SBD_START_DELAY'))) {
-        # Setup sbd delay in case of crash OS to prevent cluster starting too quickly after reboot.
+    if (($db_action eq 'crash')) {
+        # SBD delay related setup in case of crash OS to prevent cluster starting too quickly after reboot
         $self->setup_sbd_delay();
         record_info('Crash DB', "Crashing OS on Site B ('$site_b->{instance_id}')");
     }
@@ -66,7 +66,8 @@ sub run {
     # SBD delay is active only after reboot
     if ($db_action eq 'crash' and $sbd_delay != 0) {
         record_info('SBD SLEEP', "Waiting $sbd_delay sec for SBD delay timeout.");
-        sleep($sbd_delay);
+        # sleep needs to be a little longer than sbd start delay
+        sleep($sbd_delay + 30);
         $self->wait_for_pacemaker();
     }
 
