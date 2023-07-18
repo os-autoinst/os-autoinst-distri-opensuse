@@ -1027,6 +1027,7 @@ Collects parameters required from SUT and returns them in HASH format.
 =cut
 
 sub collect_sbd_delay_parameters {
+    # all commands below ($corosync_token, $corosync_consensus...) are defined and exported at the beginning of the library
     my %params = (
         'corosync_token' =>
           script_output_retry_check(cmd => $corosync_token, regex_string => '^\d+$', sleep => '3', retry => '3'),
@@ -1036,18 +1037,11 @@ sub collect_sbd_delay_parameters {
           script_output_retry_check(cmd => $sbd_watchdog_timeout, regex_string => '^\d+$', sleep => '3', retry => '3'),
         'sbd_delay_start' =>
           script_output_retry_check(cmd => $sbd_delay_start, regex_string => '^\d+$|yes|no', sleep => '3', retry => '3'),
-        'pcmk_delay_max' => undef
+        # pcmk_delay_max is not always present for example in diskless SBD scenario
+        'pcmk_delay_max' => get_var('USE_DISKLESS_SBD') ? 30 :
+          script_output_retry_check(cmd => $pcmk_delay_max, regex_string => '^\d+$', sleep => '3', retry => '3')
     );
 
-    # Get pcmk_delay_max output for further validation
-    my $pcmk_delay_max_out = script_output_retry_check(
-        cmd => $pcmk_delay_max,
-        regex_string => '^\d+$',
-        sleep => '3', retry => '3',
-        ignore_failure => 1);
-
-    # pcmk_delay_max is not always present for example in diskless SBD scenario
-    $params{pcmk_delay_max} = looks_like_number($pcmk_delay_max_out) ? $pcmk_delay_max_out : 30;
     return (%params);
 }
 
