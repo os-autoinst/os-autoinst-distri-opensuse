@@ -510,6 +510,7 @@ sub setup_sbd_delay() {
 
 sub sbd_delay_formula() {
     my ($self) = @_;
+    # all commands below ($corosync_token, $corosync_consensus...) are defined and imported from lib/hacluster.pm
     my %params = (
         'corosync_token' => $self->run_cmd(cmd => $corosync_token),
         'corosync_consensus' => $self->run_cmd(cmd => $corosync_consensus),
