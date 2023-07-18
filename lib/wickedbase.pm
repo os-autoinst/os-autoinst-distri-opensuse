@@ -1239,4 +1239,24 @@ sub post_run_hook {
     $self->post_run() unless $self->{wicked_post_run};
 }
 
+sub wait_for_background_process {
+    my ($self, $pid, %args) = @_;
+    $args{proceed_on_failure} //= 0;
+
+    my $ret = script_run("wait $pid", die_on_timeout => 0, %args);
+    unless (defined($ret)) {
+        if (is_serial_terminal()) {
+            type_string(qq(\cc));
+        }
+        else {
+            send_key('ctrl-c');
+        }
+        script_run("kill -9 $pid");
+
+        die("wait_for_background_process() failed, process $pid wasn't ready yet");
+    }
+
+    return $ret if ($ret == 0 || $args{proceed_on_failure});
+    die("Background process $pid exit with $ret");
+}
 1;
