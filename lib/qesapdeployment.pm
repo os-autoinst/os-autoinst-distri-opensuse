@@ -88,6 +88,7 @@ our @EXPORT = qw(
   qesap_calculate_deployment_name
   qesap_export_instances
   qesap_import_instances
+  qesap_ansible_log_find_timeout
 );
 
 =head1 DESCRIPTION
@@ -326,7 +327,21 @@ sub qesap_execute {
     qesap_upload_logs();
     # deactivate virtual environment
     script_run("deactivate");
-    return $exec_rc;
+    my @results = ($exec_rc, $exec_log);
+    return @results;
+}
+
+=head3 qesap_ansible_log_find_timeout
+
+    Return the Timeout error found in the ansible log or not
+=cut
+
+sub qesap_ansible_log_find_timeout
+{
+    my ($file) = @_;
+    my $search_string = 'Timed out waiting for last boot time check';
+    my $timeout_match = script_output("grep \"$search_string\" $file || exit 0");
+    return $timeout_match ? 1 : 0;
 }
 
 =head3 qesap_get_inventory
@@ -408,7 +423,7 @@ sub qesap_prepare_env {
     push(@log_files, "$paths{terraform_dir}/$provider/terraform.tfvars");
     push(@log_files, "$paths{deployment_dir}/ansible/playbooks/vars/hana_media.yaml");
     my $hana_vars = "$paths{deployment_dir}/ansible/playbooks/vars/hana_vars.yaml";
-    my $exec_rc = qesap_execute(cmd => 'configure', verbose => 1);
+    my @exec_rc = qesap_execute(cmd => 'configure', verbose => 1);
 
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
         my $data = get_credentials('aws.json');
@@ -418,7 +433,7 @@ sub qesap_prepare_env {
 
     push(@log_files, $hana_vars) if (script_run("test -e $hana_vars") == 0);
     qesap_upload_logs(failok => 1);
-    die("Qesap deployment returned non zero value during 'configure' phase.") if $exec_rc;
+    die("Qesap deployment returned non zero value during 'configure' phase.") if $exec_rc[0];
     return;
 }
 

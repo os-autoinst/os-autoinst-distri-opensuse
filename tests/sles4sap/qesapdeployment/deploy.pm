@@ -11,8 +11,8 @@ use testapi;
 use qesapdeployment;
 
 sub run {
-    my $ret = qesap_execute(cmd => 'terraform', verbose => 1, timeout => 1800);
-    die "'qesap.py terraform' return: $ret" if ($ret);
+    my @ret = qesap_execute(cmd => 'terraform', verbose => 1, timeout => 1800);
+    die "'qesap.py terraform' return: $ret[0]" if ($ret[0]);
     my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
     upload_logs($inventory, failok => 1);
     my @remote_ips = qesap_remote_hana_public_ips;
@@ -20,11 +20,15 @@ sub run {
     foreach my $host (@remote_ips) {
         die 'Timed out while waiting for ssh to be available in the CSP instances' if qesap_wait_for_ssh(host => $host) == -1;
     }
-    $ret = qesap_execute(cmd => 'ansible', cmd_options => '--profile', verbose => 1, timeout => 3600);
-    if ($ret)
+    @ret = qesap_execute(cmd => 'ansible', cmd_options => '--profile', verbose => 1, timeout => 3600);
+    if ($ret[0])
     {
         qesap_cluster_logs();
-        die "'qesap.py ansible' return: $ret";
+        my $rec_timeout = qesap_ansible_log_find_timeout($ret[1]);
+        if ($rec_timeout) {
+            record_info('DETECTED ANSIBLE TIMEOUT ERROR');
+        }
+        die "'qesap.py ansible' return: $ret[0]";
     }
 }
 

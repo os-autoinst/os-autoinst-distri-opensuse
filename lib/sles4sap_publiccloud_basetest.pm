@@ -45,8 +45,8 @@ sub cleanup {
         record_info('Cleanup', "Executing $command cleanup");
         # 3 attempts for both terraform and ansible cleanup
         for (1 .. 3) {
-            my $cleanup_cmd_rc = qesap_execute(verbose => '--verbose', cmd => $command, cmd_options => '-d', timeout => 1200);
-            if ($cleanup_cmd_rc == 0) {
+            my @cleanup_cmd_rc = qesap_execute(verbose => '--verbose', cmd => $command, cmd_options => '-d', timeout => 1200);
+            if ($cleanup_cmd_rc[0] == 0) {
                 diag(ucfirst($command) . " cleanup attempt # $_ PASSED.");
                 record_info("Clean $command", ucfirst($command) . ' cleanup PASSED.');
                 last;
@@ -55,8 +55,8 @@ sub cleanup {
                 diag(ucfirst($command) . " cleanup attempt # $_ FAILED.");
                 sleep 10;
             }
-            record_info('Cleanup FAILED', "Cleanup $command FAILED", result => 'fail') if $_ == 3 && $cleanup_cmd_rc;
-            $self->{result} = "fail" if $_ == 3 && $cleanup_cmd_rc;
+            record_info('Cleanup FAILED', "Cleanup $command FAILED", result => 'fail') if $_ == 3 && $cleanup_cmd_rc[0];
+            $self->{result} = "fail" if $_ == 3 && $cleanup_cmd_rc[0];
         }
     }
     $args->{my_provider}->terraform_applied(0) if ((defined $args) &&

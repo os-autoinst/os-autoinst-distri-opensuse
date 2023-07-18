@@ -27,8 +27,9 @@ sub run {
     my $instances = $run_args->{instances};
 
     # skip ansible deploymnt in case of reusing infrastructure
+    my @ret = qesap_execute(cmd => 'ansible', timeout => 3600, verbose => 1);
     unless (get_var('QESAP_DEPLOYMENT_IMPORT')) {
-        die("Ansible deploymend FAILED. Check 'qesap*' logs for details.") if qesap_execute(cmd => 'ansible', timeout => 3600, verbose => 1) > 0;
+        die("Ansible deploymend FAILED. Check 'qesap*' logs for details.") if $ret[0] > 0;
         record_info('FINISHED', 'Ansible deployment process finished successfully.');
     }
 

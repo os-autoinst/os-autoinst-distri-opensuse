@@ -167,8 +167,9 @@ sub run {
     # Regenerate config files (This workaround will be replaced with full yaml generator)
     qesap_prepare_env(provider => lc(get_required_var('PUBLIC_CLOUD_PROVIDER')), only_configure => 1);
 
-    die 'Terraform deployment FAILED. Check "qesap*" logs for details.'
-      if (qesap_execute(cmd => 'terraform', timeout => 3600, verbose => 1));
+    my @ret = qesap_execute(cmd => 'terraform', timeout => 3600, verbose => 1);
+    die 'Terraform deployment FAILED. Check "qesap*" logs for details.' if ($ret[0]);
+
     $provider->terraform_applied(1);
     my $instances = create_instance_data($provider);
     foreach my $instance (@$instances) {
