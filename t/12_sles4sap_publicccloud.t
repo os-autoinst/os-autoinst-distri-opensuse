@@ -13,6 +13,8 @@ subtest "Run 'setup_sbd_delay' with different values" => sub {
     $sles4sap_publiccloud->redefine(record_info => sub { return; });
     $sles4sap_publiccloud->redefine(cloud_file_content_replace => sub { return; });
     $sles4sap_publiccloud->redefine(croak => sub { die; });
+    $sles4sap_publiccloud->redefine(change_sbd_service_timeout => sub { return; });
+    $sles4sap_publiccloud->redefine(sbd_delay_formula => sub { return 30; });
 
     my %passing_values_vs_expected = (
         '1' => '1',
@@ -36,6 +38,9 @@ subtest "Run 'setup_sbd_delay' with different values" => sub {
     }
 
     set_var('HA_SBD_START_DELAY', undef);
+    my $returned_delay = $self->setup_sbd_delay();
+    is $returned_delay, 30, "Test with undefined 'HA_SBD_START_DELAY':\n Expected: 30\nGot: $returned_delay";
+
 };
 
 done_testing;

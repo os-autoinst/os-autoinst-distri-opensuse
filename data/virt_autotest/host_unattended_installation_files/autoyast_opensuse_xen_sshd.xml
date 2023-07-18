@@ -44,7 +44,7 @@
       <activate>true</activate>
       <boot_mbr>true</boot_mbr>
       <gfxmode>auto</gfxmode>
-      <os_prober>true</os_prober>
+      <os_prober>false</os_prober>
       <terminal>console serial</terminal>
       <serial>serial --unit=1 --speed=115200 --word=8 --parity=no</serial>
       <timeout t="integer">30</timeout>

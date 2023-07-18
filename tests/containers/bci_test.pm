@@ -81,6 +81,19 @@ sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
 
+    if (get_var('BCI_SKIP')) {
+        record_info('BCI skipped', 'BCI test skipped due to BCI_SKIP=1 setting');
+        return;
+    }
+
+    # Skip the postgresql test runs on RHEL7 due to poo#129301
+    my ($os_version, $sp, $host_distri) = get_os_release;
+    my $is_rhel7 = ($host_distri eq 'rhel' && $os_version == 7);
+    if (get_var('BCI_TEST_ENVS') eq 'postgres' && $is_rhel7) {
+        record_soft_failure("poo#129301 unsupported authentication for postgresql on RHEL7");
+        return;
+    }
+
     $error_count = 0;
 
     my $engine = $args->{runtime};
@@ -98,6 +111,7 @@ sub run {
     assert_script_run("export TOX_PARALLEL_NO_SPINNER=1");
     assert_script_run("export CONTAINER_RUNTIME=$engine");
     $version =~ s/-SP/./g;
+    $version = lc($version);
     assert_script_run("export OS_VERSION=$version");
     assert_script_run("export TARGET=$bci_target");
     assert_script_run("export BCI_DEVEL_REPO=$bci_devel_repo") if $bci_devel_repo;

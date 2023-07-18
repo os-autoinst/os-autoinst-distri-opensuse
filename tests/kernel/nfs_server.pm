@@ -17,6 +17,7 @@ use Utils::Logging "export_logs_basic";
 
 sub run {
     select_serial_terminal();
+    record_info("hostname", script_output("hostname"));
 
     #TODO: configure nfs config as pleased, specifically:
     #USE_KERNEL_NFSD_NUMBER
@@ -36,7 +37,7 @@ sub run {
     my $nfs_permissions_async = "rw,async,no_root_squash";
 
     # provision NFS server(s) of various types
-    zypper_call("in yast2-nfs-server");
+    zypper_call("in yast2-nfs-server nfs-kernel-server");
 
     assert_script_run("mkdir -p $nfs_mount_nfs3");
     assert_script_run("chmod 777 $nfs_mount_nfs3");
@@ -55,10 +56,12 @@ sub run {
 
     record_info("EXPORTS", script_output("cat /etc/exports"));
 
-    systemctl("enable nfs-server");
-    systemctl("start nfs-server");
+    systemctl("enable rpcbind --now");
+    systemctl("is-active rpcbind");
+    systemctl("enable nfs-server --now");
     systemctl("is-active nfs-server");
 
+    record_info("RPC", script_output("rpcinfo"));
     record_info("NFS config", script_output("cat /etc/sysconfig/nfs"));
 
     #my $nfsstat = script_output("nfsstat -s");

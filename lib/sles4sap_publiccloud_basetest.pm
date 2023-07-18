@@ -14,6 +14,7 @@ use warnings FATAL => 'all';
 use Exporter 'import';
 use testapi;
 use qesapdeployment;
+use sles4sap_publiccloud;
 use publiccloud::utils;
 
 our @EXPORT = qw(cleanup);
@@ -21,27 +22,26 @@ our @EXPORT = qw(cleanup);
 
 sub cleanup {
     my ($self, $args) = @_;
+
+    record_info('Cleanup',
+        join(' ',
+            'cleanup_called:', $self->{cleanup_called} // 'undefined',
+            'network_peering_present:', $self->{network_peering_present} // 'undefined'));
     # Do not run destroy if already executed
     return if ($self->{cleanup_called});
     $self->{cleanup_called} = 1;
 
-    for my $command ('ansible', 'terraform') {
-        # Skip cleanup if ansible inventory is not present (deployment could not have been done without it)
-        next if (script_run 'test -f ' . qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER')));
+    qesap_upload_logs();
+    delete_network_peering() if ($self->{network_peering_present});
 
-        if (is_azure && check_var('IS_MAINTENANCE', 1)) {
-            record_info('Cleanup', `Executing peering cleanup (if peering is present)`);
-            my $rg = qesap_az_get_resource_group();
-            my $ibsm_rg = get_required_var('IBSM_RG');
-            # Check that required vars are available befor delleting the peering
-            if (defined $rg && $rg ne '' && defined $ibsm_rg && $ibsm_rg ne '') {
-                qesap_az_vnet_peering_delete(source_group => $rg, target_group => $ibsm_rg);
-            }
-            else {
-                record_info('No peering', 'No peering exists, peering destruction skipped');
-            }
-        }
+    my @cmd_list;
+    # Only run the Ansible deregister if the inventory is present
+    push(@cmd_list, 'ansible') if (!script_run 'test -f ' . qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER')));
 
+    # Terraform destroy can be executed in any case
+    push(@cmd_list, 'terraform');
+
+    for my $command (@cmd_list) {
         record_info('Cleanup', "Executing $command cleanup");
         # 3 attempts for both terraform and ansible cleanup
         for (1 .. 3) {

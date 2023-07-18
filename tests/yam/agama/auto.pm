@@ -4,7 +4,7 @@
 # Summary: First installation using D-Installer current CLI (only for development purpose)
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use base yam::agama::agama_base;
+use base Yam::agama::agama_base;
 use strict;
 use warnings;
 
@@ -13,14 +13,16 @@ use utils 'clear_console';
 
 sub run {
     assert_screen('agama-main-page', 120);
-    assert_screen('agama-installing', 120);
-    assert_screen('agama-install-finished', 900);
+    assert_screen('agama-installing', 320);
+    assert_screen('agama-install-finished', 1200);
 
     select_console 'root-console';
     clear_console;
     enter_cmd "reboot";
 
-    assert_screen('grub2', 120);
+    # For agama test, it is too short time to match the grub2, so we create
+    # a new needle to avoid too much needles loaded.
+    assert_screen('grub2-agama', 120);
     wait_screen_change { send_key 'ret' };
 
     my @tags = ("welcome-to", "login");

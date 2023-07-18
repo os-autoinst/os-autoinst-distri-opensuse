@@ -17,8 +17,8 @@ my %sbd_delay_params = (
 subtest '[calculate_sbd_start_delay] Check sbd_delay_start values' => sub {
     my $sbd_delay;
     my %value_vs_expected = (
-        'yes' => 55,
-        '1' => 55,
+        'yes' => 25,
+        '1' => 25,
         'no' => 0,
         '0' => 0,
         '120' => 120,

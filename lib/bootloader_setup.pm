@@ -19,7 +19,7 @@ use version_utils qw(is_microos is_sle_micro is_jeos is_leap is_sle is_tumblewee
 use mm_network;
 use Utils::Backends;
 
-use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT SERIAL_CONSOLE_DEFAULT_DEVICE SERIAL_CONSOLE_DEFAULT_PORT);
+use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT SERIAL_CONSOLE_DEFAULT_DEVICE SERIAL_CONSOLE_DEFAULT_PORT SERIAL_USER_TERMINAL_DEFAULT_DEVICE SERIAL_USER_TERMINAL_DEFAULT_PORT);
 
 our @EXPORT = qw(
   add_custom_grub_entries
@@ -787,7 +787,12 @@ sub specific_bootmenu_params {
             elsif ($dud =~ /^ASSET_\d+$/) {
                 # In case dud is uploaded as an ASSET we need just filename
                 $dud = basename(get_required_var($dud));
-                push @params, 'dud=' . shorten_url(autoinst_url("/assets/other/$dud"));
+                if (check_var('DUD_NO_SHORTEN_URL', '1')) {
+                    push @params, 'dud=' . autoinst_url("/assets/other/$dud");
+                }
+                else {
+                    push @params, 'dud=' . shorten_url(autoinst_url("/assets/other/$dud"));
+                }
             }
             else {
                 push @params, 'dud=' . data_url($dud);
@@ -1134,13 +1139,22 @@ sub zkvm_add_pty {
             target_port => SERIAL_CONSOLE_DEFAULT_PORT
         });
 
-    # sut-serial (serial terminal: emulation of QEMU's virtio console for svirt)
+    # ssh-virtsh-serial for root (serial terminal: emulation of QEMU's virtio console for svirt)
     $svirt->add_pty(
         {
             pty_dev => SERIAL_TERMINAL_DEFAULT_DEVICE,
             pty_dev_type => 'pty',
             target_type => 'virtio',
             target_port => SERIAL_TERMINAL_DEFAULT_PORT
+        });
+
+    # ssh-virtsh-serial for user (serial terminal: emulation of QEMU's virtio console for svirt)
+    $svirt->add_pty(
+        {
+            pty_dev => SERIAL_USER_TERMINAL_DEFAULT_DEVICE,
+            pty_dev_type => 'pty',
+            target_type => 'virtio',
+            target_port => SERIAL_USER_TERMINAL_DEFAULT_PORT
         });
 }
 

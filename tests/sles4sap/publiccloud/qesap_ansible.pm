@@ -6,11 +6,10 @@
 # Summary: Execute ansible deployment using qe-sap-deployment project.
 # https://github.com/SUSE/qe-sap-deployment
 
-use base 'sles4sap_publiccloud_basetest';
 use strict;
 use warnings;
+use base 'sles4sap_publiccloud_basetest';
 use testapi;
-use Mojo::File 'path';
 use publiccloud::utils;
 use sles4sap_publiccloud;
 use qesapdeployment;
@@ -22,13 +21,14 @@ sub test_flags {
 
 sub run {
     my ($self, $run_args) = @_;
-    select_serial_terminal;
-    my $ha_enabled = get_required_var('HA_CLUSTER') =~ /false|0/i ? 0 : 1;
+    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
     my $instances = $run_args->{instances};
 
-    # skip ansible deploymnt in case of reusing infrastructure
-    my @ret = qesap_execute(cmd => 'ansible', timeout => 3600, verbose => 1);
+    my $ha_enabled = get_required_var('HA_CLUSTER') =~ /false|0/i ? 0 : 1;
+    select_serial_terminal;
+    # skip ansible deployment in case of reusing infrastructure
     unless (get_var('QESAP_DEPLOYMENT_IMPORT')) {
+        my @ret = qesap_execute(cmd => 'ansible', timeout => 3600, verbose => 1);
         die("Ansible deploymend FAILED. Check 'qesap*' logs for details.") if $ret[0] > 0;
         record_info('FINISHED', 'Ansible deployment process finished successfully.');
     }
@@ -61,7 +61,7 @@ sub run {
     }
 
     get_var('QESAP_DEPLOYMENT_IMPORT') ?
-      record_info('IMPORT OK', 'Importing infrastructure successfull.') :
+      record_info('IMPORT OK', 'Importing infrastructure successfully.') :
       record_info('DEPLOY OK', 'Ansible deployment process finished successfully.');
 
     return unless $ha_enabled;

@@ -679,7 +679,12 @@ Used to syncronize the wicked tests for SUT and REF creating the corresponding m
 sub do_barrier {
     my ($self, $type) = @_;
     my $barrier_name = 'test_' . $self->{name} . '_' . $type;
-    barrier_wait($barrier_name);
+    barrier_wait({name => $barrier_name, check_dead_job => 1});
+
+    # This is to mitigate the problem, that if a parallel job is running in the
+    # barrier_wait() poll loop, while this job finished. This would lead to a
+    # failure on the other side.
+    $self->{last_barrier_wait_call} = time;
 }
 
 =head2 setup_vlan
@@ -1129,6 +1134,17 @@ sub post_run {
     $self->check_coredump();
     $self->valgrind_postrun();
     $self->upload_wicked_logs('post');
+
+    if (get_var('IS_WICKED_REF')) {
+        my $time_since_barrier_wait = time - ($self->{last_barrier_wait_call} // 0);
+        if ($time_since_barrier_wait < lockapi::POLL_INTERVAL) {
+            my $seconds = lockapi::POLL_INTERVAL - $time_since_barrier_wait;
+            #see https://github.com/os-autoinst/os-autoinst/issues/2340
+            bmwqemu::diag("If the parallel job might wait in barrier_wait() poll loop," .
+                  " we should not finish this parent job to early! sleep $seconds seconds");
+            sleep $seconds;
+        }
+    }
 }
 
 sub pre_run_hook {

@@ -3,7 +3,9 @@
 # Copyright 2017-2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Basic journal tests
+# Summary: Check system journal for errors given a list of known patterns
+#          referring to known bugs. This module will fail in case an unknown
+#          message was found and in case a failing systemd service was found.
 # Maintainer: qa-c team <qa-c@suse.de>
 
 use base "opensusebasetest";

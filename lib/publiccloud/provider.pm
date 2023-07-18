@@ -261,7 +261,8 @@ sub get_image_uri {
     my $image_uri = get_var("PUBLIC_CLOUD_IMAGE_URI");
     die 'The PUBLIC_CLOUD_IMAGE_URI variable makes sense only for Azure' if ($image_uri && !is_azure);
     if (!!$image_uri && $image_uri =~ /^auto$/mi) {
-        my $definition = get_required_var('DISTRI') . '-' . get_required_var('FLAVOR') . '-' . get_required_var('VERSION');
+        my $gen = (check_var('PUBLIC_CLOUD_AZURE_SKU', 'gen2')) ? 'V2' : 'V1';
+        my $definition = get_required_var('DISTRI') . '-' . get_required_var('FLAVOR') . '-' . get_var('PUBLIC_CLOUD_ARCH', 'x86_64') . '-' . get_required_var('VERSION') . '-' . $gen;
         my $version = $self->calc_img_version();    # PUBLIC_CLOUD_BUILD PUBLIC_CLOUD_BUILD_KIWI
         my $subscriptions = $self->provider_client->subscription;
         my $resource_group = $self->resource_group;
@@ -625,7 +626,8 @@ sub terraform_param_tags
     my $tags = {
         openqa_ttl => get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300),
         openqa_var_JOB_ID => get_current_job_id(),
-        openqa_var_NAME => get_var(NAME => '')
+        openqa_var_NAME => get_var(NAME => ''),
+        openqa_var_SERVER => get_var('OPENQA_URL', get_var('OPENQA_HOSTNAME'))
     };
 
     return encode_json($tags);

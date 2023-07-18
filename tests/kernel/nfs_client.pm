@@ -16,6 +16,7 @@ use utils;
 
 sub run {
     select_serial_terminal();
+    record_info("hostname", script_output("hostname"));
 
     my $local_nfs3 = "/home/localNFS3";
     my $local_nfs4 = "/home/localNFS4";

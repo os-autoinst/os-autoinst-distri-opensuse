@@ -1100,8 +1100,8 @@ sub calculate_sbd_start_delay {
           $params{'corosync_token'} +
           $params{'corosync_consensus'} +
           $params{'pcmk_delay_max'} +
-          $params{'sbd_watchdog_timeout'} * 2 +    # msgwait = sbd_watchdog_timeout * 2
-          30;    # wait time should be greater than formula therefore adding 30s
+          $params{'sbd_watchdog_timeout'} * 2;    # msgwait = sbd_watchdog_timeout * 2
+
         record_info('SBD start delay', "SBD delay calculated: $sbd_delay_start_time");
         return ($sbd_delay_start_time);
     }

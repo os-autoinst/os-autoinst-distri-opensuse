@@ -210,7 +210,7 @@ sub load_container_tests {
     if (is_container_image_test() && !(is_jeos || is_sle_micro || is_microos || is_leap_micro) && $runtime !~ /k8s|openshift/) {
         # Container Image tests common
         loadtest 'containers/host_configuration';
-        loadtest 'containers/bci_prepare' if (get_var('BCI_TESTS'));
+        loadtest 'containers/bci_prepare' if (get_var('BCI_TESTS') && !get_var('BCI_SKIP'));
     }
 
     if (get_var('CONTAINER_SLEM_RANCHER')) {
@@ -228,9 +228,11 @@ sub load_container_tests {
         $run_args->{runtime} = $_;
         if (is_container_image_test()) {
             if (get_var('BCI_TESTS')) {
-                loadtest('containers/bci_test', run_args => $run_args, name => 'bci_test_' . $run_args->{runtime});
-                # For Base image we also run traditional image.pm test
-                load_image_test($run_args) if (is_sle(">=15-SP3") && check_var('BCI_TEST_ENVS', 'base'));
+                unless (get_var('BCI_SKIP')) {
+                    loadtest('containers/bci_test', run_args => $run_args, name => 'bci_test_' . $run_args->{runtime});
+                    # For Base image we also run traditional image.pm test
+                    load_image_test($run_args) if (is_sle(">=15-SP3") && check_var('BCI_TEST_ENVS', 'base'));
+                }
             } elsif (is_sle_micro || is_alp) {
                 # Test toolbox image updates
                 loadtest 'microos/toolbox';
@@ -257,6 +259,6 @@ sub load_container_tests {
             loadtest 'containers/apptainer' if (/apptainer/i);
         }
     }
-    loadtest 'containers/bci_logs' if (get_var('BCI_TESTS'));
+    loadtest 'containers/bci_logs' if (get_var('BCI_TESTS') && !get_var('BCI_SKIP'));
     loadtest 'console/coredump_collect' unless (is_public_cloud || is_jeos || is_sle_micro || is_microos || is_leap_micro || is_alp || get_var('BCI_TESTS') || is_ubuntu_host || is_expanded_support_host);
 }

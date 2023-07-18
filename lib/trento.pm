@@ -1024,7 +1024,7 @@ sub podman_wait {
         podman_exec(name => $args{name}, cmd => 'pgrep cypress');
 
         # Kill cypress within the container ...
-        podman_exec(name => $args{container_name}, cmd => 'pkill -15 cypress');
+        podman_exec(name => $args{name}, cmd => 'pkill -15 cypress');
         # ... give podman few more seconds to terminate ...
         sleep bmwqemu::scale_timeout(10);
         enter_cmd('pkill -9 podman');

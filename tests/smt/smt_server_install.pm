@@ -42,9 +42,15 @@ sub run {
     wait_still_screen(1);
     type_string get_var('SMT_PASSWORD');
     wait_still_screen(1);
-    wait_screen_change { send_key "alt-t" };
-    assert_screen "smt-test-succ", 120;
-    wait_screen_change { send_key "ret" };
+    my $count = 1;
+    do {
+        send_key "alt-t";
+        check_screen "smt-test-succ", 120;
+        send_key "ret";
+        die 'Customer center test failed' if $count == 5;
+        record_info "Retry No.$count";
+        sleep 30 if $count++ > 2;
+    } until match_has_tag 'smt-test-succ';
     send_key "alt-n";
     wait_still_screen(2);
 

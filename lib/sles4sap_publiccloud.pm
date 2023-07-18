@@ -44,9 +44,12 @@ our @EXPORT = qw(
   wait_for_sync
   wait_for_pacemaker
   cloud_file_content_replace
+  change_sbd_service_timeout
   setup_sbd_delay
   sbd_delay_formula
   create_instance_data
+  deployment_name
+  delete_network_peering
 );
 
 =head2 run_cmd
@@ -239,7 +242,7 @@ sub start_hana {
 =head2 cleanup_resource
     cleanup_resource([timeout => 60]);
 
-    Cleanup resource 'msl_SAPHana_*', wait for DB start automaticlly.
+    Cleanup resource 'msl_SAPHana_*', wait for DB start automatically.
 =cut
 
 sub cleanup_resource {
@@ -425,6 +428,39 @@ sub wait_for_pacemaker {
     return 1;
 }
 
+=head2 change_sbd_service_timeout
+     $self->change_sbd_service_timeout(timeout => $timeout);
+
+     Overrides timeout for sbd systemd service to a value provided by argument.
+     This is done by creating or changing file "/etc/systemd/system/sbd.service.d/sbd_delay_start.conf"
+
+=cut
+
+sub change_sbd_service_timeout() {
+    my ($self, $service_timeout) = @_;
+    die if !defined($service_timeout);
+    my $service_override_dir = "/etc/systemd/system/sbd.service.d/";
+    my $service_override_filename = "sbd_delay_start.conf";
+    my $service_override_path = $service_override_dir . $service_override_filename;
+    my $file_exists = $self->run_cmd(cmd => join(" ", "test", "-e", $service_override_path, ";echo", "\$?"),
+        proceed_on_failure => 1,
+        quiet => 1);
+
+    # bash return code has inverted value: 0 = file exists
+    if (!$file_exists) {
+        $self->cloud_file_content_replace($service_override_path,
+            '^TimeoutSec=.*',
+            "TimeoutSec=$service_timeout");
+    }
+    else {
+        my @content = ('[Service]', "TimeoutSec=$service_timeout");
+
+        $self->run_cmd(cmd => join(" ", "mkdir", "-p", $service_override_dir), quiet => 1);
+        $self->run_cmd(cmd => join(" ", "bash", "-c", "\"echo", "'$_'", ">>", $service_override_path, "\""), quiet => 1) foreach @content;
+    }
+    record_info("Systemd SBD", "Systemd unit timeout for 'sbd.service' set to '$service_timeout'");
+}
+
 =head2 setup_sbd_delay
      $self->setup_sbd_delay();
 
@@ -444,18 +480,25 @@ sub wait_for_pacemaker {
 
 sub setup_sbd_delay() {
     my ($self) = @_;
-    my $delay = get_var('HA_SBD_START_DELAY');
-    $delay =~ s/(?<![ye])s//g;
+    my $delay = get_var('HA_SBD_START_DELAY') // '';
+
     if ($delay eq '') {
         record_info('SBD delay', 'Skipping, parameter without value');
-        return;
+        # Ensure service timeout is higher than sbd delay time
+        $delay = $self->sbd_delay_formula();
+        $self->change_sbd_service_timeout($delay + 30);
+    }
+    else {
+        $delay =~ s/(?<![ye])s//g;
+        croak("<\$set_delay> value must be either 'yes', 'no' or an integer. Got value: $delay")
+          unless looks_like_number($delay) or grep /^$delay$/, qw(yes no);
+
+        $self->cloud_file_content_replace('/etc/sysconfig/sbd', '^SBD_DELAY_START=.*', "SBD_DELAY_START=$delay");
+        # service timeout must be higher that startup delay
+        $self->change_sbd_service_timeout($self->sbd_delay_formula() + 30);
+        record_info('SBD delay', "SBD delay set to: $delay");
     }
 
-    croak("<\$set_delay> value must be either 'yes', no or an integer. Got value: $delay")
-      unless looks_like_number($delay) or grep /^$delay$/, qw(yes no);
-
-    $self->cloud_file_content_replace('/etc/sysconfig/sbd', '^SBD_DELAY_START=.*', "SBD_DELAY_START=$delay");
-    record_info('SBD delay', "SBD delay set to: $delay");
     return $delay;
 }
 
@@ -479,7 +522,6 @@ sub sbd_delay_formula() {
     record_info('SBD wait', "Calculated SBD start delay: $calculated_delay");
     return $calculated_delay;
 }
-
 
 =head2 cloud_file_content_replace
     cloud_file_content_replace($filename, $search_pattern, $replace_with);
@@ -528,6 +570,41 @@ sub create_instance_data {
     }
     publiccloud::instances::set_instances(@instances);
     return \@instances;
+}
+
+=head2 deployment_name
+
+    Return a string to be used as value for the deployment_name variable
+    in the qe-sap-deployment.
+
+=cut
+
+sub deployment_name {
+    return qesap_calculate_deployment_name(get_var('PUBLIC_CLOUD_RESOURCE_GROUP', 'qesaposd'));
+}
+
+=head2 delete_network_peering
+
+    Delete network peering between SUT created with qe-sa-deployment
+    and the IBS Mirror. Function is generic over all the Cloud Providers
+
+=cut
+
+sub delete_network_peering {
+    record_info('Peering cleanup', 'Executing peering cleanup (if peering is present)');
+    if (is_azure) {
+        # Check that required vars are available before deleting the peering
+        my $rg = qesap_az_get_resource_group();
+        if ($rg ne '' && get_var('IBSM_RG')) {
+            qesap_az_vnet_peering_delete(source_group => $rg, target_group => get_var('IBSM_RG'));
+        }
+        else {
+            record_info('No peering', 'No peering exists, peering destruction skipped');
+        }
+    }
+    elsif (is_ec2) {
+        qesap_aws_delete_transit_gateway_vpc_attachment(name => deployment_name() . '*');
+    }
 }
 
 1;
