@@ -24,6 +24,7 @@ sub run {
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
 
     assert_script_run("podman pull $image");
+    assert_script_run("podman run $image cat /etc/os-release");
 }
 
 sub test_flags {
