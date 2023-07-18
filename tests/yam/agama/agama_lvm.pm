@@ -5,7 +5,7 @@
 # run playwright tests directly from the Live ISO.
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-use base 'y2_installbase';
+use base Yam::agama::agama_base;
 use strict;
 use warnings;
 

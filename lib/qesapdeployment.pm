@@ -185,13 +185,15 @@ sub qesap_create_ansible_section {
 sub qesap_pip_install {
     assert_script_run("python3.10 -m venv " . QESAPDEPLOY_VENV . " && source " . QESAPDEPLOY_VENV . "/bin/activate");
     enter_cmd 'pip3.10 config --site set global.progress_bar off';
-    my $pip_ints_cmd = 'pip3.10 install --no-color --no-cache-dir ';
-    my $pip_install_log = '/tmp/pip_install.txt';
     my %paths = qesap_get_file_paths();
+    my $pip_install_log = '/tmp/pip_install.txt';
+    my $pip_ints_cmd = join(' ', 'pip3.10 install --no-color --no-cache-dir ',
+        '-r', $paths{deployment_dir} . '/requirements.txt',
+        '|& tee -a', $pip_install_log);
 
     push(@log_files, $pip_install_log);
     record_info("QESAP repo", "Installing pip requirements");
-    assert_script_run(join(' ', $pip_ints_cmd, '-r', $paths{deployment_dir} . '/requirements.txt | tee -a', $pip_install_log), 720);
+    assert_script_run($pip_ints_cmd, 720);
     script_run("deactivate");
 }
 
@@ -210,8 +212,8 @@ sub qesap_pip_install {
 
 sub qesap_upload_logs {
     my (%args) = @_;
-    my $failok = $args{failok};
-    record_info("Uploading logfiles", join("\n", @log_files));
+    my $failok = $args{failok} || 0;
+    record_info("Uploading logfiles failok:$failok", join("\n", @log_files));
     while (my $file = pop @log_files) {
         upload_logs($file, failok => $failok);
     }
@@ -406,7 +408,7 @@ sub qesap_prepare_env {
 
     record_info("QESAP conf", "Generating all terraform and Ansible configuration files");
     push(@log_files, "$paths{terraform_dir}/$provider/terraform.tfvars");
-    push(@log_files, "$paths{deployment_dir}/ansible/playbooks/vars/hana_media.yaml");
+    my $hana_media = "$paths{deployment_dir}/ansible/playbooks/vars/hana_media.yaml";
     my $hana_vars = "$paths{deployment_dir}/ansible/playbooks/vars/hana_vars.yaml";
     my $exec_rc = qesap_execute(cmd => 'configure', verbose => 1);
 
@@ -416,6 +418,7 @@ sub qesap_prepare_env {
         qesap_create_aws_credentials($data->{access_key_id}, $data->{secret_access_key});
     }
 
+    push(@log_files, $hana_media) if (script_run("test -e $hana_media") == 0);
     push(@log_files, $hana_vars) if (script_run("test -e $hana_vars") == 0);
     qesap_upload_logs(failok => 1);
     die("Qesap deployment returned non zero value during 'configure' phase.") if $exec_rc;
