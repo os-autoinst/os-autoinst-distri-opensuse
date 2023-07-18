@@ -28,9 +28,11 @@ sub run {
     $net =~ s/^((\d+\.){2}).*/${1}0.0\/16/;
 
     my $podman_cmd = $self->container_runtime . " run --net host --privileged -v /root/:/host '$scapy' /usr/bin/python3 /host/arp-tool.py defend " . $ctx->iface() . " $net --count 1";
+    $podman_cmd .= " --robustness 3" if $self->need_network_tweaks();
     my $podman_pid = background_script_run($podman_cmd . ' >& /tmp/arp_tool.log');
     $self->add_post_log_file('/tmp/arp_tool.log');
 
+    sleep 30 if $self->need_network_tweaks();
     $self->do_barrier('setup');
     $self->do_barrier('ifup');
 

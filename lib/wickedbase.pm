@@ -1240,6 +1240,12 @@ sub post_run_hook {
     $self->post_run() unless $self->{wicked_post_run};
 }
 
+sub need_network_tweaks() {
+    my ($self) = @_;
+    # By default we enable this variable to get reliable results
+    return get_var("WICKED_NEED_NETWORK_TWEAKS") // 1;
+}
+
 sub wait_for_background_process {
     my ($self, $pid, %args) = @_;
     $args{proceed_on_failure} //= 0;

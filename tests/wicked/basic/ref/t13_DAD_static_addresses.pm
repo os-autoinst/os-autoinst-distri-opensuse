@@ -23,6 +23,7 @@ sub run {
     assert_script_run(sprintf(q(ip addr add dev '%s' '%s'), $ctx->iface(), $ip));
     assert_script_run(sprintf(q(ip link set dev '%s' up), $ctx->iface()));
 
+    sleep 30 if $self->need_network_tweaks();
     $self->do_barrier('setup');
 }
 
