@@ -185,13 +185,15 @@ sub qesap_create_ansible_section {
 sub qesap_pip_install {
     assert_script_run("python3.10 -m venv " . QESAPDEPLOY_VENV . " && source " . QESAPDEPLOY_VENV . "/bin/activate");
     enter_cmd 'pip3.10 config --site set global.progress_bar off';
-    my $pip_ints_cmd = 'pip3.10 install --no-color --no-cache-dir ';
-    my $pip_install_log = '/tmp/pip_install.txt';
     my %paths = qesap_get_file_paths();
+    my $pip_install_log = '/tmp/pip_install.txt';
+    my $pip_ints_cmd = join(' ', 'pip3.10 install --no-color --no-cache-dir ',
+        '-r', $paths{deployment_dir} . '/requirements.txt',
+        '|& tee -a', $pip_install_log);
 
     push(@log_files, $pip_install_log);
     record_info("QESAP repo", "Installing pip requirements");
-    assert_script_run(join(' ', $pip_ints_cmd, '-r', $paths{deployment_dir} . '/requirements.txt | tee -a', $pip_install_log), 720);
+    assert_script_run($pip_ints_cmd, 720);
     script_run("deactivate");
 }
 
