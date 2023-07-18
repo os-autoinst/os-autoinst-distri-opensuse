@@ -248,6 +248,11 @@ sub load_container_tests {
         return;
     }
 
+    if (get_var('CONTAINER_SUMA')) {
+        loadtest 'containers/suma_containers';
+        return;
+    }
+
     foreach (split(',\s*', $runtime)) {
         my $run_args = OpenQA::Test::RunArgs->new();
         $run_args->{runtime} = $_;
