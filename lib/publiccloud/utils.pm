@@ -25,6 +25,7 @@ our @EXPORT = qw(
   deregister_addon
   define_secret_variable
   get_credentials
+  validate_repo
   is_byos
   is_ondemand
   is_ec2
@@ -131,6 +132,22 @@ sub register_openstack {
     my $cmd = "sudo SUSEConnect -r $regcode";
     $cmd .= " --url $fake_scc" if $fake_scc;
     $instance->ssh_assert_script_run(cmd => $cmd, timeout => 700, retry => 5);
+}
+
+# Validation for update repos
+sub validate_repo {
+    my ($maintrepo) = @_;
+    if ($maintrepo =~ /\/(PTF|Maintenance):\/(\d+)/g) {
+        my ($incident, $type) = ($2, $1);
+        die "We did not detect incident number for URL \"$maintrepo\". We detected \"$incident\"" unless $incident =~ /\d+/;
+        if (is_embargo_update($incident, $type)) {
+            record_info("EMBARGOED", "The repository \"$maintrepo\" belongs to embargoed incident number \"$incident\"");
+            script_run("echo 'The repository \"$maintrepo\" belongs to embargoed incident number \"$incident\"'");
+            return 0;
+        }
+        return 1;
+    }
+    die "Unexpected URL \"$maintrepo\"";
 }
 
 # Check if we are a BYOS test run

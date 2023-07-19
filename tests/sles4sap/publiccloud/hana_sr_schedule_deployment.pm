@@ -26,6 +26,9 @@ sub run {
         loadtest('sles4sap/publiccloud/qesap_ansible', name => 'verify_infrastructure', run_args => $run_args, @_);
     }
     else {
+        if (check_var('IS_MAINTENANCE', 1)) {
+            loadtest('publiccloud/validate_repos', name => 'validate_repos', run_args => $run_args, @_);
+        }
         loadtest('sles4sap/publiccloud/qesap_terraform', name => 'deploy_qesap_terraform', run_args => $run_args, @_);
         if (check_var('IS_MAINTENANCE', 1)) {
             loadtest('sles4sap/publiccloud/network_peering', name => 'network_peering', run_args => $run_args, @_);
