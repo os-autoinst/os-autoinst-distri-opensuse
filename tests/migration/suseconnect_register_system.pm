@@ -17,7 +17,6 @@ sub run {
 
     register_product();
     register_addons_cmd();
-    set_var('IN_PATCH_SLE', 0);
 }
 
 1;
