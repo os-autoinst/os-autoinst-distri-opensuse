@@ -222,7 +222,7 @@ subtest '[cypress_configs]' => sub {
 subtest '[cluster_deploy] ok' => sub {
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     @logs = ();
-    $trento->redefine(qesap_execute => sub { return 0; });
+    $trento->redefine(qesap_execute => sub { return (0, 'log'); });
     $trento->redefine(upload_logs => sub { push @logs, @_; });
     $trento->redefine(qesap_get_inventory => sub { return '/PEPERONATA'; });
 
@@ -235,14 +235,14 @@ subtest '[cluster_deploy] ok' => sub {
 
 subtest '[cluster_deploy] not ok' => sub {
     my $trento = Test::MockModule->new('trento', no_auto => 1);
-    $trento->redefine(qesap_execute => sub { return 1; });
+    $trento->redefine(qesap_execute => sub { return (1, 'log'); });
     dies_ok { cluster_deploy() } "Expected die for internal qesap_execute returnin non zero.";
 };
 
 subtest '[cluster_destroy] ok' => sub {
     my $trento = Test::MockModule->new('trento', no_auto => 1);
     @calls = ();
-    $trento->redefine(qesap_execute => sub { my (%args) = @_; push @calls, \%args; return 0; });
+    $trento->redefine(qesap_execute => sub { my (%args) = @_; push @calls, \%args; return (0, 'log'); });
     cluster_destroy();
 
     ok((any { $_->{cmd} eq 'ansible' and $_->{cmd_options} eq '-d' } @calls), 'ansible cmd ok');
@@ -251,7 +251,7 @@ subtest '[cluster_destroy] ok' => sub {
 
 subtest '[cluster_destroy] not ok' => sub {
     my $trento = Test::MockModule->new('trento', no_auto => 1);
-    $trento->redefine(qesap_execute => sub { return 1; });
+    $trento->redefine(qesap_execute => sub { return (1, 'log'); });
     dies_ok { cluster_destroy() } "Expected die for internal qesap_execute returnin non zero.";
 };
 

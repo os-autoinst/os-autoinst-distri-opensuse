@@ -261,12 +261,12 @@ subtest '[qesap_execute] simple call' => sub {
     });
 
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return $expected_res });
-    my $res = qesap_execute(cmd => $cmd);
+    my @res = qesap_execute(cmd => $cmd);
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /.*qesap.py.*-c.*-b.*$cmd\s+.*tee.*$expected_log_name/ } @calls), 'qesap.py and log redirection are fine');
     ok((any { /.*activate/ } @calls), 'virtual environment activated');
     ok((any { /.*deactivate/ } @calls), 'virtual environment deactivated');
-    ok $res == $expected_res;
+    ok $res[0] == $expected_res;
 };
 
 subtest '[qesap_execute] cmd_options' => sub {
@@ -308,9 +308,63 @@ subtest '[qesap_execute] failure' => sub {
             return (%paths);
     });
 
-    my $res = qesap_execute(cmd => 'GILL');
+    my @res = qesap_execute(cmd => 'GILL');
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok $res == $expected_res;
+    ok $res[0] == $expected_res, 'result part of the return array is 1 when script_run fails';
+};
+
+subtest '[qesap_ansible_log_find_timeout] success' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    # internally the function is using grep to search for a specific
+    # error string. Here the result of the grep.
+    my $log = 'ERROR    OUTPUT:              "msg": "Timed out waiting for last boot time check (timeout=600)",';
+    # Create a mock to replace the script_output
+    # The mock will return, within the function under test,
+    # the result of the grep.
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return $log });
+
+    my $res = qesap_ansible_log_find_timeout('JACQUES');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok $res == 1, 'Return is 1 when string is detected';
+    ok((any { /grep.*JACQUES/ } @calls), 'Function calling grep against the log file');
+};
+
+subtest '[qesap_ansible_log_find_timeout] fail' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    # Create a mock to replace the script_output
+    # The mock will return, within the function under test,
+    # the result of the grep.
+    # Here simulate that the grep does not return any match
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return '' });
+
+    my $res = qesap_ansible_log_find_timeout('JACQUES');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok $res == 0, 'Return is 0 when string is not detected';
+};
+
+subtest '[qesap_execute] check_logs' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my @logs = ();
+    my $expected_res = 1;
+    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return $expected_res });
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{deployment_dir} = '/BRUCE';
+            $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
+            return (%paths);
+    });
+
+    my @res = qesap_execute(cmd => 'GILL');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    #ok (( any {/.*/qesap_exec.*.log.txt/} @calls), 'File pattern is okay';
+    ok $res[1] =~ /\/.*.log.txt/, 'File pattern is okay';
 };
 
 subtest '[qesap_get_nodes_number]' => sub {
@@ -1333,5 +1387,6 @@ subtest '[qesap_aws_vnet_peering] died when aws does not return expected output'
     ok !$res, 'Expected die for missing return from qesap_aws_get_routing.';
     $routing_id = 'rtb-00deadbeef00';
 };
+
 
 done_testing;
