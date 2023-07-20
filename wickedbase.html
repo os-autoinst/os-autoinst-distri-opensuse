@@ -37,6 +37,7 @@
       <li><a href="#get_test_result">get_test_result</a></li>
       <li><a href="#upload_log_file">upload_log_file</a></li>
       <li><a href="#upload_wicked_logs">upload_wicked_logs</a></li>
+      <li><a href="#do_barrier_create">do_barrier_create</a></li>
       <li><a href="#do_barrier">do_barrier</a></li>
       <li><a href="#setup_vlan">setup_vlan</a></li>
       <li><a href="#sync_start_of">sync_start_of</a></li>
@@ -189,6 +190,12 @@
 <pre><code>upload_wicked_logs($prefix =&gt; [pre|post])</code></pre>
 
 <p>Gathers all the needed wicked information and compiles a compressed file that get&#39;s uploaded to the openqa instance. This function is normally called before and after a test is executed, the parameter <code>prefix</code> is used to to be appended to the file name to be uploaded. Normally &#39;pre&#39; or &#39;post&#39;, but could be any string.</p>
+
+<h2 id="do_barrier_create">do_barrier_create</h2>
+
+<pre><code>do_barrier_create(&lt;barrier_postfix&gt; [, &lt;test_name&gt;] )</code></pre>
+
+<p>Create a barier which can be later used to syncronize the wicked tests for SUT and REF. This function can be called statically. In this case the <code>test_name</code> parameter is mandatory.</p>
 
 <h2 id="do_barrier">do_barrier</h2>
 
