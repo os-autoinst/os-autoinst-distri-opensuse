@@ -8,7 +8,7 @@ vars:
 schedule:
   - migration/version_switch_origin_system
   - boot/boot_to_desktop
-  - migration/SUSEConnect_register_system
+  - migration/suseconnect_register_system
   - migration/patch_and_reboot_system
   - migration/setup_sle
   - migration/install_patterns
