@@ -6,5 +6,5 @@ heredoc_pod_whitespace_rule
 
 
 grep -Pzo "=cut\nsub" -rn lib || exit 0
-echo -e '\033[0;31mCheck for whitespace after end of POD failed.\nAdd a empty line between =cut and code.'
+echo -e '\033[0;31mCheck for whitespace after end of POD failed.\nAdd a empty line between =cut and code.\e[m'
 exit 1
