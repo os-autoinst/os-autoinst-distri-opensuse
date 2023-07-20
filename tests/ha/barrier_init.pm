@@ -41,9 +41,6 @@ sub run {
             barrier_create("BARRIER_HA_NONSS_FILES_SYNCED_$cluster_name", $num_nodes);
         }
         else {
-	    record_info("delay 60s start", "before barrier_create BARRIER_HA_$cluster_name");
-	    sleep 60;
-	    record_info("delay 60s end");
             barrier_create("BARRIER_HA_$cluster_name", $num_nodes + 1);
         }
 
