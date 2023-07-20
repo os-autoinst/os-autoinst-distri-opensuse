@@ -73,6 +73,7 @@ our @EXPORT = qw(
   activate_ntp
   script_output_retry_check
   calculate_sbd_start_delay
+  collect_sbd_delay_parameters
   check_iscsi_failure
 );
 
@@ -1015,7 +1016,7 @@ sub script_output_retry_check {
     }
 
     die('Pattern did not match') unless $ignore_failure;
-    return $result;
+    return undef;
 }
 
 =head2 collect_sbd_delay_parameters
@@ -1037,9 +1038,9 @@ sub collect_sbd_delay_parameters {
           script_output_retry_check(cmd => $sbd_watchdog_timeout, regex_string => '^\d+$', sleep => '3', retry => '3'),
         'sbd_delay_start' =>
           script_output_retry_check(cmd => $sbd_delay_start, regex_string => '^\d+$|yes|no', sleep => '3', retry => '3'),
-        # pcmk_delay_max is not always present for example in diskless SBD scenario
+        # pcmk_delay_max is not always present for example in 3 node clusters or diskless SBD scenario
         'pcmk_delay_max' => get_var('USE_DISKLESS_SBD') ? 30 :
-          script_output_retry_check(cmd => $pcmk_delay_max, regex_string => '^\d+$', sleep => '3', retry => '3')
+          script_output_retry_check(cmd => $pcmk_delay_max, regex_string => '^\d+$', sleep => '3', retry => '3', ignore_failure => 1) // 0
     );
 
     return (%params);
