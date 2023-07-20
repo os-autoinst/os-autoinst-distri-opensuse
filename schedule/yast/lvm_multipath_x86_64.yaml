@@ -10,7 +10,7 @@ vars:
   HDDMODEL: scsi-hd
   YUI_REST_API: 1
 schedule:
-  multipath:
+  system_probing:
     - installation/multipath
   guided_partitioning:
     - installation/partitioning/select_guided_setup
