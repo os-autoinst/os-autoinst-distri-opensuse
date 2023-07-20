@@ -6,7 +6,7 @@ description: >
      - Verify that warning message is shown during installation;
      - Verify that multi-user target is set as default in the case.
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_invalid_default_target.xml
+  AUTOYAST: yam/autoyast/invalid_default_target.xml
   AUTOYAST_PREPARE_PROFILE: 1
 schedule:
   - autoyast/prepare_profile

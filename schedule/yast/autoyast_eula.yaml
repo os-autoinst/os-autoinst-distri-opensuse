@@ -5,7 +5,7 @@ description: >
   Now expect single license, as content of all licenses is the same and we don't show it.
   Packages DVD is vanished, using "Full" installer instead.
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_eula.xml
+  AUTOYAST: yam/autoyast/eula.xml
   AUTOYAST_LICENSE: 1
   DESKTOP: textmode
 schedule:

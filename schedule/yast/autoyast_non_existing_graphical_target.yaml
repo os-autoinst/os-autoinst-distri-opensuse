@@ -11,7 +11,7 @@ description:    >
        done indirectly by logging in to the system after installation.
 
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_non_existing_graphical_target.xml
+  AUTOYAST: yam/autoyast/non_existing_graphical_target.xml
   AUTOYAST_PREPARE_PROFILE: 1
 schedule:
   - autoyast/prepare_profile

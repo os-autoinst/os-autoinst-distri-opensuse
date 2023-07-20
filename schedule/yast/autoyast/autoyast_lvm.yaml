@@ -8,7 +8,7 @@ description: >
      - Subvolumes configuration
      - Passwords are set for the users in the profile
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_lvm.xml
+  AUTOYAST: yam/autoyast/lvm.xml
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start

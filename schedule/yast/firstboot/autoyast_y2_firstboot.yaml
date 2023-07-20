@@ -7,7 +7,7 @@ description:    >
   configure root and user accounts. SUT should end up in GDM screen after exiting YaST2
   Firstboot.
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_firstboot.xml
+  AUTOYAST: yam/autoyast/firstboot.xml
   AY_EXPAND_VARS: YUI_PORT
   DESKTOP: gnome
   YUI_REST_API: 1

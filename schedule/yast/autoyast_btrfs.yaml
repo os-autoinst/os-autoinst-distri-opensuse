@@ -6,7 +6,7 @@ description: >
   but with product and and addons defined for SLE15.
 vars:
   AUTOYAST_PREPARE_PROFILE: 1
-  AUTOYAST: autoyast_sle15/autoyast_btrfs.xml
+  AUTOYAST: yam/autoyast/btrfs.xml
   DESKTOP: gnome
   FILESYSTEM: btrfs
 schedule:

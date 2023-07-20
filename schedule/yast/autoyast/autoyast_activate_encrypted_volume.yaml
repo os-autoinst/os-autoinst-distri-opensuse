@@ -3,7 +3,7 @@ name: autoyast_activate_encrypted_volume
 description: >
     Conduct autoyast installation activating encrypted partitions
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_reuse-encrypted.xml
+  AUTOYAST: yam/autoyast/reuse-encrypted.xml
   ENCRYPT_ACTIVATE_EXISTING: '1'
 schedule:
   - autoyast/prepare_profile

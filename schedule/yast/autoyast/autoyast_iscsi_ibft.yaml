@@ -5,7 +5,7 @@ description: >
   in the installed system, as well as cloned profile is verified to check
   relevant sections.
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_iscsi_ibft.xml
+  AUTOYAST: yam/autoyast/iscsi_ibft.xml
   # Using it for specifying iscsi portal
   AY_EXPAND_VARS: WORKER_IP,NBF
   DESKTOP: textmode
