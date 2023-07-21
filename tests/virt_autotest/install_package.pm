@@ -103,7 +103,7 @@ sub install_package {
     if (get_var('GUEST_LIST', '') =~ /^win-.*/ && (is_xen_host)) { zypper_call '--no-refresh --no-gpg-checks in mkisofs' }
 
     #Subscribing packagehub from SLE 15-SP4 onwards that enables access to many useful software tools
-    virt_autotest::utils::subscribe_extensions_and_modules(reg_exts => 'PackageHub') if (is_sle('>=15-sp4') and !is_s390x);
+    virt_autotest::utils::subscribe_extensions_and_modules(reg_exts => 'PackageHub') if (!get_var('AUTOYAST') and is_sle('>=15-sp4') and !is_s390x);
 }
 
 sub run {
