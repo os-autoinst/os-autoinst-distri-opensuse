@@ -381,11 +381,21 @@ sub prepare_spack_env {
     select_serial_terminal(0);
     assert_script_run "module load gnu $mpi";
     assert_script_run 'source /usr/share/spack/setup-env.sh';
-
+    if (check_var('HPC_LIB', 'boost')) {
+        # Workaround for bsc#1208751
+        assert_script_run "spack config add modules:prefix_inspections:lib64:[LD_LIBRARY_PATH]";
+        assert_script_run "spack config add modules:prefix_inspections:lib:[LD_LIBRARY_PATH]";
+    }
     record_info 'spack', script_output 'zypper -q info spack';
     record_info "$mpi spec", script_output("spack spec $mpi", timeout => 600);
-    assert_script_run "spack install $mpi", timeout => 12000;
-
+    if (check_var('HPC_LIB', 'boost')) {
+        record_info "boost spec", script_output("spack spec boost", timeout => 600);
+        assert_script_run "spack install boost+mpi^$mpi", timeout => 12000;
+        #assert_script_run 'spack load boost';
+    } else {
+        record_info "$mpi spec", script_output("spack spec $mpi", timeout => 600);
+        assert_script_run "spack install $mpi", timeout => 12000;
+    }
 }
 
 =head2 uninstall_spack_modules

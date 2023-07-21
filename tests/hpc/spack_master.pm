@@ -40,8 +40,13 @@ sub run ($self) {
     assert_script_run("wget --quiet " . data_url("hpc/$mpi_c") . " -O $exports_path{'bin'}/$mpi_c");
 
     barrier_wait('MPI_SETUP_READY');
-    assert_script_run "spack load $mpi";
-    assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin  2>&1 > /tmp/make.out");
+    if (check_var('HPC_LIB', 'boost')) {
+        assert_script_run 'spack load boost';
+        assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin -l boost_mpi -I \${BOOST_ROOT}/include/ -L \${BOOST_ROOT}/lib 2>&1 > /tmp/make.out");
+    } else {
+        assert_script_run "spack load $mpi";
+        assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin  2>&1 > /tmp/make.out");
+    }
     barrier_wait('MPI_BINARIES_READY');
 
     type_string "sudo systemctl restart sshd\n";
