@@ -91,6 +91,10 @@ sub run {
     record_info('EC2', script_output('aws --version'));
 
     # Install ec2imgutils
+    # bsc#1213529
+    assert_script_run('cat /usr/lib/python3.6/site-packages/azure_core-1.23.1-py3.6.egg-info/requires.txt');
+    assert_script_run(q(sed -i 's/^typing-extensions>=4\.0\.1$/typing-extensions>=3.10.0.0/' /usr/lib/python3.6/site-packages/azure_core-1.23.1-py3.6.egg-info/requires.txt));
+
     install_in_venv('ec2uploadimg', requirements => 1);
     record_info('ec2imgutils', 'ec2uploadimg:' . script_output('ec2uploadimg --version'));
 
