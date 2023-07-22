@@ -29,6 +29,8 @@
       <li><a href="#ensure_user">ensure_user</a></li>
       <li><a href="#hyperv_console_switch">hyperv_console_switch</a></li>
       <li><a href="#console_nr">console_nr</a></li>
+      <li><a href="#prompt_for_user">prompt_for_user</a></li>
+      <li><a href="#get_console_info">get_console_info</a></li>
       <li><a href="#activate_console">activate_console</a></li>
       <li><a href="#console_selected">console_selected</a></li>
     </ul>
@@ -116,6 +118,18 @@
 <pre><code>console_nr($console)</code></pre>
 
 <p>Return console VT number with regards to it&#39;s name.</p>
+
+<h2 id="prompt_for_user">prompt_for_user</h2>
+
+<pre><code>prompt_for_user($username)</code></pre>
+
+<p>Returns the shell prompt that should be set for the given username</p>
+
+<h2 id="get_console_info">get_console_info</h2>
+
+<pre><code>get_console_info($console)</code></pre>
+
+<p>Returns a triplet describing the console: Session privilege level (root/user), username, console type.</p>
 
 <h2 id="activate_console">activate_console</h2>
 
