@@ -140,7 +140,8 @@ sub set_serial_prompt {
     die "Invalid prompt string '$serial_term_prompt'"
       unless $serial_term_prompt =~ s/\s*$//r;
     enter_cmd(qq/PS1="$serial_term_prompt"/);
-    wait_serial(qr/PS1="$serial_term_prompt"/);
+    wait_serial(qq/PS1="$serial_term_prompt"/, no_regex => 1);
+    $testapi::distri->{serial_term_prompt} = $serial_term_prompt;
 }
 
 =head2 login
@@ -388,7 +389,6 @@ sub select_serial_terminal {
     }
 
     die "No support for backend '$backend', add it" if (!defined $console) || ($console eq '');
-    $testapi::distri->{serial_term_prompt} = $prompt;
     select_console($console);
 }
 
