@@ -62,7 +62,9 @@ our @EXPORT = qw(
   qesap_execute
   qesap_yaml_replace
   qesap_ansible_cmd
+  qesap_ansible_script_output_file
   qesap_ansible_script_output
+  qesap_ansible_fetch_file
   qesap_create_ansible_section
   qesap_create_aws_credentials
   qesap_create_aws_config
@@ -500,7 +502,7 @@ sub qesap_ansible_cmd {
     enter_cmd("deactivate");
 }
 
-=head3 qesap_ansible_script_output
+=head3 qesap_ansible_script_output_file
 
     Use Ansible to run a command remotely and get the stdout.
     Command could be executed with elevated privileges
@@ -540,9 +542,9 @@ sub qesap_ansible_cmd {
 =back
 =cut
 
-sub qesap_ansible_script_output {
+sub qesap_ansible_script_output_file {
     my (%args) = @_;
-    foreach (qw(provider cmd host)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    foreach (qw(provider cmd host file out_path)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     $args{user} ||= 'cloudadmin';
     $args{root} ||= 0;
 
@@ -552,8 +554,8 @@ sub qesap_ansible_script_output {
     my $path = $args{remote_path} // '/tmp/';
     my $out_path = $args{out_path} // '/tmp/ansible_script_output/';
     my $file = $args{file} // 'testout.txt';
+    my $failok = $args{failok} // 1;
     my $local_tmp = $out_path . $file;
-    my $return_string = ((not exists $args{path}) && (not exists $args{file}));
 
     if (script_run "test -e $playbook") {
         my $cmd = join(' ',
@@ -568,10 +570,8 @@ sub qesap_ansible_script_output {
     push @ansible_cmd, ('-u', $args{user});
     push @ansible_cmd, ('-b', '--become-user', 'root') if ($args{root});
     push @ansible_cmd, ('-e', qq("cmd='$args{cmd}'"),
-        '-e', "out_file='$file'", '-e', "path='$path'");
+        '-e', "out_file='$file'", '-e', "remote_path='$path'");
     push @ansible_cmd, ('-e', "failok=yes") if ($args{failok});
-
-    enter_cmd "rm $local_tmp || echo 'Nothing to delete'" if ($return_string);
 
     assert_script_run("source " . QESAPDEPLOY_VENV . "/bin/activate");    # venv activate
 
@@ -580,21 +580,72 @@ sub qesap_ansible_script_output {
     # Grab the file from the remote
     qesap_ansible_fetch_file(provider => $args{provider},
         host => $args{host},
-        failok => 1,
-        root => 1,
+        failok => $failok,
+        user => $args{user},
+        root => $args{root},
         remote_path => $path,
         out_path => $out_path,
         file => $file);
 
     enter_cmd("deactivate");    #venv deactivate
-    if ($return_string) {
-        my $output = script_output("cat $local_tmp");
-        enter_cmd "rm $local_tmp || echo 'Nothing to delete'";
-        return $output;
-    }
-    else {
-        return $local_tmp;
-    }
+    return $local_tmp;
+}
+
+=head3 qesap_ansible_script_output
+
+    Return the output of a command executed on the remote machine via Ansible.
+
+=over 9
+
+=item B<PROVIDER> - Cloud provider name, used to find the inventory
+
+=item B<CMD> - command to run remotely
+
+=item B<HOST> - filter hosts in the inventory
+
+=item B<USER> - user on remote host, default to 'cloudadmin'
+
+=item B<ROOT> - 1 to enable remote execution with elevated user, default to 0
+
+=item B<FAILOK> - if not set, ansible failure result in die
+
+=item B<FILE> - result file name
+
+=item B<OUT_PATH> - path to save result file locally (without file name)
+
+=item B<REMOTE_PATH> - Path to save file in the remote (without file name)
+
+=back
+=cut
+
+sub qesap_ansible_script_output {
+    my (%args) = @_;
+    foreach (qw(provider cmd host)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    $args{user} ||= 'cloudadmin';
+    $args{root} ||= 0;
+    my $cmd = $args{cmd};
+    my $prov = $args{provider};
+    my $host = $args{host};
+    my $path = $args{remote_path} // '/tmp/';
+    my $out_path = $args{out_path} // '/tmp/ansible_script_output/';
+    my $file = $args{file} // 'testout.txt';
+    my $failok = $args{failok} // 1;
+    my $local_tmp = $out_path . $file;
+
+    # Grab command output as file
+    my $out = qesap_ansible_script_output_file(cmd => $cmd,
+        provider => $prov,
+        host => $host,
+        failok => 1,
+        user => $args{user},
+        root => $args{root},
+        remote_path => $path,
+        out_path => $out_path,
+        file => $file);
+    # Print output and delete output file
+    my $output = script_output("cat $local_tmp");
+    enter_cmd "rm $local_tmp || echo 'Nothing to delete'";
+    return $output;
 }
 
 =head3 qesap_ansible_fetch_file
@@ -657,7 +708,7 @@ sub qesap_ansible_fetch_file {
     push @ansible_fetch_cmd, ('-l', $args{host}, '-i', $inventory);
     push @ansible_fetch_cmd, ('-u', $args{user});
     push @ansible_fetch_cmd, ('-b', '--become-user', 'root') if ($args{root});
-    push @ansible_fetch_cmd, ('-e', "out_path='$local_path'", '-e', "path='$path'",
+    push @ansible_fetch_cmd, ('-e', "out_path='$local_path'", '-e', "remote_path='$path'",
         '-e', "file='$local_file'");
     push @ansible_fetch_cmd, ('-e', "failok=yes") if ($args{failok});
 
@@ -777,7 +828,7 @@ sub qesap_upload_crm_report {
         host => $host,
         failok => 1,
         root => 1,
-        path => '/var/log/',
+        remote_path => '/var/log/',
         out_path => '/tmp/ansible_script_output/',
         file => "$host-crm_report.tar.gz");
     upload_logs("/tmp/ansible_script_output/$host-crm_report.tar.gz", failok => 1);
@@ -854,7 +905,7 @@ sub qesap_cluster_logs {
     {
         foreach my $host ('vmhana01', 'vmhana02') {
             foreach my $cmd (qesap_cluster_log_cmds()) {
-                my $out = qesap_ansible_script_output(cmd => $cmd->{Cmd},
+                my $out = qesap_ansible_script_output_file(cmd => $cmd->{Cmd},
                     provider => $prov,
                     host => $host,
                     failok => 1,

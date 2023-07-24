@@ -2,11 +2,11 @@
 - hosts: all
   vars:
     cmd: ''
-    path: '/tmp/'
+    remote_path: '/tmp/'
     out_file: 'testout.txt'
     failok: no
   tasks:
   - name: 'Run cmd'
-    shell: "{{ cmd }} > {{ path }}{{ out_file }}"
+    shell: "{{ cmd }} > {{ remote_path }}{{ out_file }}"
     register: crm_status_files
     ignore_errors: "{{ failok }}"
