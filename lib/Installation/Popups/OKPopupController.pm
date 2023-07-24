@@ -40,4 +40,9 @@ sub accept {
     $self->get_ok_popup()->press_ok();
 }
 
+sub is_ok_popup_visible {
+    my ($self) = @_;
+    return $self->{OKPopup}->is_shown();
+}
+
 1;

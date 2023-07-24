@@ -13,6 +13,8 @@ use Carp 'croak';
 use Test::Assert 'assert_equals';
 use containers::utils qw(registry_url);
 use utils qw(systemctl file_content_replace script_retry);
+use version_utils qw(package_version_cmp);
+use containers::utils qw(get_podman_version);
 use overload
   '""' => sub { return shift->runtime },
   bool => sub { return 1 },
@@ -321,6 +323,15 @@ sub cleanup_system_host {
     my ($self, $assert) = @_;
     $assert //= 1;
     $self->_engine_assert_script_run("ps -q | xargs -r " . $self->runtime . " stop", 180);
+
+    # all containers should be stopped before running prune
+    # https://github.com/containers/podman/issues/19038
+    if ($self->runtime eq 'podman') {
+        if (package_version_cmp(get_podman_version(), '4.0.0') < 0) {
+            $self->_engine_script_run("pod rm --force --all", 120);
+        }
+        $self->_engine_assert_script_run("rm --force --all", 120);
+    }
     $self->_engine_assert_script_run("system prune -a -f", 300);
 
     if ($assert) {

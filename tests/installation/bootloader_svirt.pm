@@ -3,7 +3,12 @@
 # Copyright 2016-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: svirt bootloader
+# Summary: Initialize virtual machine (Xen, KVM, VMware)... on a (remote)
+#          hypervisor using SSH virtual machine management console backend
+#          (svirt), e.g. set boot devices and images, configure input and
+#          display devices and network interfaces for Xen, KVM and VMware.
+#          Then start the machine, define grub parameters and boot into an
+#          option.
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
 package bootloader_svirt;

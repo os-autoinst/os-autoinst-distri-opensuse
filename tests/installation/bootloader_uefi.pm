@@ -91,7 +91,14 @@ sub run {
     # By pressing a random key, we stop the grub timeout
     send_key 'backspace' if (is_jeos && is_aarch64);
 
-    assert_screen([qw(bootloader-shim-import-prompt bootloader-grub2)], $bootloader_timeout);
+    if (get_var('VERSION') =~ /agama/) {
+        # For agama test, it is too short time to match the grub2(10s), so we create
+        # a new needle to avoid too much needles loaded.
+        assert_screen("bootloader-grub2-agama", $bootloader_timeout);
+    }
+    else {
+        assert_screen([qw(bootloader-shim-import-prompt bootloader-grub2)], $bootloader_timeout);
+    }
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
         send_key "ret";
@@ -117,7 +124,7 @@ sub run {
         # random magic numbers
         send_key_until_needlematch('inst-onupgrade', 'down', 11, 3);
     }
-    else {
+    elsif (get_var('VERSION') !~ /agama/) {
         if (get_var("PROMO") || get_var('LIVETEST') || get_var('LIVECD')) {
             send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 11, 3);
         }

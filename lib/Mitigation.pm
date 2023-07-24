@@ -291,22 +291,77 @@ sub check_cpu_flags {
 
 sub check_sysfs {
     my ($self, $value) = @_;
+    my $total_failure_tc_count = 0;
+    my $failure_tc_count_in_ts = 0;
+    my $total_tc_count = 0;
+    my $total_tc_count_in_ts = 0;
+    my $junit_file = "mitigation_test_junit.xml";
+    init_xml(file_name => $junit_file, testsuites_name => "mitigation=$value");
+    append_ts2_xml(file_name => "$junit_file", testsuite_name => "mitigation=$value");
     record_info("sysfs:$value", "checking sysfs: $value");
+    $total_tc_count += 1;
+    $total_tc_count_in_ts += 1;
+    my $testcase_status = "pass";
     if (ref($self->{sysfs_name}) eq 'ARRAY') {
         foreach my $sysfs_name_item (@{$self->{sysfs_name}}) {
             assert_script_run('cat ' . $syspath . $sysfs_name_item);
             if (@_ == 2) {
-                assert_script_run(
+                my $ret = script_run(
                     'cat ' . $syspath . $sysfs_name_item . '| grep ' . '"' . $self->{sysfs}->{$value}->{$sysfs_name_item} . '"');
+                if ($ret == 0) {
+
+                    insert_tc2_xml(file_name => "$junit_file",
+                        class_name => "$sysfs_name_item",
+                        case_status => "pass"); } else {
+                    my $output = script_output(
+                        'cat ' . $syspath . $sysfs_name_item);
+                    $testcase_status = "fail";
+                    $failure_tc_count_in_ts += 1;
+                    $total_failure_tc_count += 1;
+                    insert_tc2_xml(file_name => "$junit_file",
+                        class_name => "$sysfs_name_item",
+                        case_status => "fail",
+                        sys_output => "output:" . "$output",
+                        sys_err => "Expected:" . $self->{sysfs}->{$value}->{$sysfs_name_item});
+                    update_ts_attr(file_name => "$junit_file", attr => 'failures', value => $failure_tc_count_in_ts);
+                    update_ts_attr(file_name => "$junit_file", attr => 'tests', value => $total_tc_count_in_ts);
+                    # update testsuites info
+                    update_tss_attr(file_name => "$junit_file", attr => 'failures', value => $total_failure_tc_count);
+                    update_tss_attr(file_name => "$junit_file", attr => 'tests', value => $total_tc_count);
+                    parse_junit_log("$junit_file");
+                    die "Fail on the $self->{sysfs}->{$value}->{$sysfs_name_item}"; }
             }
         }
     } else {
         assert_script_run('cat ' . $syspath . $self->sysfs_name());
         if (@_ == 2) {
-            assert_script_run(
+            my $ret1 = script_run(
                 'cat ' . $syspath . $self->sysfs_name() . '| grep ' . '"' . $self->sysfs($value) . '"');
+            if ($ret1 == 0) {
+                insert_tc2_xml(file_name => "$junit_file",
+                    class_name => "$self->sysfs($value)",
+                    case_status => "pass"); } else {
+                my $output1 = script_output(
+                    'cat ' . $syspath . $self->sysfs_name());
+                $testcase_status = "fail";
+                $failure_tc_count_in_ts += 1;
+                $total_failure_tc_count += 1;
+                insert_tc2_xml(file_name => "$junit_file",
+                    class_name => "$self->sysfs($value)",
+                    case_status => "fail",
+                    sys_output => "output:" . "$output1",
+                    sys_err => "Expected:" . $self->sysfs($value));
+                update_ts_attr(file_name => "$junit_file", attr => 'failures', value => $failure_tc_count_in_ts);
+                update_ts_attr(file_name => "$junit_file", attr => 'tests', value => $total_tc_count_in_ts);
+                # update testsuites info
+                update_tss_attr(file_name => "$junit_file", attr => 'failures', value => $total_failure_tc_count);
+                update_tss_attr(file_name => "$junit_file", attr => 'tests', value => $total_tc_count);
+                parse_junit_log("$junit_file");
+                die "Fail on the $self->sysfs($value)"; }
+
         }
     }
+    parse_junit_log("$junit_file");
 }
 
 sub check_dmesg {
@@ -582,6 +637,7 @@ sub guest_cycle {
 #If the current machine is not affected, test over.
 sub do_test {
     my $self = shift;
+    zypper_call 'in -y xmlstarlet';
     select_console 'root-console';
 
     if (!check_var('TEST', 'MITIGATIONS') && !check_var('TEST', 'KVM_GUEST_MITIGATIONS')) {

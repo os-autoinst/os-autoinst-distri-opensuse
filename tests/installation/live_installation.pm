@@ -31,6 +31,11 @@ sub send_key_and_wait {
 }
 
 sub run {
+    # Adjust the installation consoles, they can differ from what the instsys uses
+    # (install-shell -> tty2, installation -> tty7).
+    console('install-shell')->set_tty(get_root_console_tty());
+    console('installation')->set_tty(get_x11_console_tty());
+
     if (get_netboot_mirror) {
         select_console 'install-shell';
         # Force use of the matching repo

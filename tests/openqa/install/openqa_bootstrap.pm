@@ -21,7 +21,8 @@ sub run {
     }
 
     zypper_call('in openQA-bootstrap');
-    assert_script_run('/usr/share/openqa/script/openqa-bootstrap', 4000);
+    my $proxy_var = get_var('OPENQA_WEB_PROXY') ? 'setup_web_proxy=' . get_var('OPENQA_WEB_PROXY') . ' ' : '';
+    assert_script_run($proxy_var . "/usr/share/openqa/script/openqa-bootstrap", 4000);
 }
 
 sub test_flags {

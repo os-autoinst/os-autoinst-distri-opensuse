@@ -2,7 +2,7 @@ name:       autoyast_non_secure_boot
 description:   >
   Test autoyast installation with non-secure boot option.
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_non_secure_boot.xml
+  AUTOYAST: yam/autoyast/non_secure_boot.xml
   AUTOYAST_PREPARE_PROFILE: 1
   DESKTOP: textmode
   EXTRABOOTPARAMS: startshell=1

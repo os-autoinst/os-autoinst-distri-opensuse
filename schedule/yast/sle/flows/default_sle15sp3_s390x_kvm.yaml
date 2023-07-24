@@ -29,7 +29,7 @@ booting:
 installation_settings:
   - installation/launch_installation
 installation:
-  - installation/confirm_installation
+  - installation/confirm_installation_maintenance
   - installation/performing_installation/perform_installation
 stop_timeout_system_reboot:
   - installation/performing_installation/stop_timeout_system_reboot_now

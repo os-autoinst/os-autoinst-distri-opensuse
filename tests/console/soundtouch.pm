@@ -41,7 +41,9 @@ sub run {
 
     start_audiocapture;
     assert_script_run 'aplay soundtouch/1d5d9dD_rate.wav soundtouch/1d5d9dD_tempo-and-pitch.wav soundtouch/bar_bpm.wav';
-    record_soft_failure 'bsc#1048271' unless assert_recorded_sound 'soundtouch';
+    # aplay is  unstable due to bsc#1048271, we don't want to invest
+    # time in rerunning it, if it fails, so instead of assert, simply soft-fail
+    record_soft_failure 'bsc#1048271' unless check_recorded_sound 'soundtouch';
     assert_script_run 'rm -rf soundtouch';
     # unregister SDK
     if (is_sle() && !main_common::is_updates_tests()) {

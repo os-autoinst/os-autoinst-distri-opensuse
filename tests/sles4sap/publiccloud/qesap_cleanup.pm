@@ -7,20 +7,22 @@
 # https://github.com/SUSE/qe-sap-deployment
 
 use base 'sles4sap_publiccloud_basetest';
-use sles4sap_publiccloud_basetest;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
 
 
 sub run {
-    my ($self, $args) = @_;
+    my ($self, $run_args) = @_;
+    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
     if (get_var('QESAP_NO_CLEANUP')) {
+        delete_network_peering() if ($run_args->{network_peering_present});
         record_info('SKIP CLEANUP',
             "Variable 'QESAP_NO_CLEANUP' set to value " . get_var('QESAP_NO_CLEANUP'));
         return 1;
     }
-    $self->cleanup($args);
+    $self->cleanup($run_args);
+    $run_args->{network_peering_present} = $self->{network_peering_present} = 0;
 }
 
 1;

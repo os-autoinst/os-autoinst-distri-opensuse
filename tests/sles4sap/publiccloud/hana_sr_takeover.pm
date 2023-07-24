@@ -5,14 +5,12 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Test module for performing database takeover using various methods on "master" HANA database.
 
-use base 'sles4sap_publiccloud_basetest';
 use strict;
 use warnings FATAL => 'all';
+use base 'sles4sap_publiccloud_basetest';
 use testapi;
 use publiccloud::utils;
-use utils qw(zypper_call);
 use sles4sap_publiccloud;
-use Data::Dumper;
 use serial_terminal 'select_serial_terminal';
 
 sub test_flags {
@@ -21,8 +19,10 @@ sub test_flags {
 
 sub run {
     my ($self, $run_args) = @_;
-    select_serial_terminal;
+    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
     $self->{instances} = $run_args->{instances};
+
+    select_serial_terminal;
     my $test_name = $self->{name};
     my $takeover_action = $run_args->{hana_test_definitions}{$test_name}{action};
     my $site_name = $run_args->{hana_test_definitions}{$test_name}{site_name};
@@ -45,8 +45,8 @@ sub run {
         join(' ', ucfirst($takeover_action) . 'DB on', ucfirst($site_name), "('", $target_site->{instance_id}, "')")
     );
 
-    # Setup sbd delay if defined by variable in case of crash OS to prevent cluster starting too quickly after reboot
-    $self->setup_sbd_delay() if $takeover_action eq 'crash' and defined(get_var('HA_SBD_START_DELAY'));
+    # SBD delay related setup in case of crash OS to prevent cluster starting too quickly after reboot
+    $self->setup_sbd_delay() if $takeover_action eq 'crash';
     # Calculate SBD delay sleep time
     $sbd_delay = $self->sbd_delay_formula if $takeover_action eq 'crash';
 
@@ -57,7 +57,8 @@ sub run {
     # SBD delay is active only after reboot
     if ($takeover_action eq 'crash' and $sbd_delay != 0) {
         record_info('SBD SLEEP', "Waiting $sbd_delay sec for SBD delay timeout.");
-        sleep($sbd_delay);
+        # test needs to wait a little more than sbd delay
+        sleep($sbd_delay + 30);
         $self->wait_for_pacemaker();
     }
 

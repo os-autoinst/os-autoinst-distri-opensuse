@@ -253,4 +253,13 @@ sub start_instance
     $instance->public_ip($public_ip);
 }
 
+sub change_instance_type
+{
+    my ($self, $instance, $instance_type) = @_;
+    die "Instance type is already $instance_type" if ($self->describe_instance($instance)->{InstanceType} eq $instance_type);
+    my $instance_id = $instance->instance_id();
+    assert_script_run("aws ec2 modify-instance-attribute --instance-id $instance_id --instance-type '{\"Value\": \"$instance_type\"}'");
+    die "Failed to change instance type to $instance_type" if ($self->describe_instance($instance)->{InstanceType} ne $instance_type);
+}
+
 1;

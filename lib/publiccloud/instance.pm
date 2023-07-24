@@ -355,7 +355,7 @@ sub wait_for_ssh {
     # DMS will return normal user and error will be resolved: connection retry for that error.
 
     $args{username} //= $self->username();
-    my $delay = 1;
+    my $delay = $args{timeout} > 180 ? 5 : 1;
     my $start_time = time();
     my $instance_msg = "instance: $self->{instance_id}, public IP: $self->{public_ip}";
     my ($duration, $exit_code, $sshout, $sysout);
@@ -433,7 +433,7 @@ sub wait_for_ssh {
     # OK
     return $duration if (isok($exit_code) and not $args{wait_stop});
     # FAIL
-    croak($sshout . $sysout) unless ($args{proceed_on_failure});
+    croak(" results summary:\n" . $sshout . $sysout) unless ($args{proceed_on_failure});
     return;    # proceed_on_failure true
 }    # end sub
 
@@ -580,7 +580,9 @@ Set PUBLIC_CLOUD_PERF_COLLECT true or >0, to activate boottime measurements.
 
 sub measure_boottime() {
     my ($self, $instance, $type) = @_;
-    return 0 unless (get_var('PUBLIC_CLOUD_PERF_COLLECT'));
+    my $data_collect = get_var('PUBLIC_CLOUD_PERF_COLLECT', 1);
+
+    return 0 unless ($data_collect);
 
     my $ret = {
         kernel_release => undef,
@@ -619,22 +621,24 @@ sub measure_boottime() {
 
 Save data collected with measure_boottime in a DB;
 Mainly stored on a remote InfluxDB on a Grafana server.
-
+To activate boottime push, shall be available results and
+  PUBLIC_CLOUD_PERF_PUSH_DATA true/not 0 and
+  _SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN defined
 =cut
 
 sub store_boottime_db() {
     my ($self, $results) = @_;
-    return unless (get_var('PUBLIC_CLOUD_PERF_PUSH_DATA') && $results);
-
-    my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI');
-    my $token = get_var('_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN');
-    unless ($url && $token) {
-        record_info("WARN", "PUBLIC_CLOUD_PERF_DB_URI or _SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN is missing ", result => 'fail');
-        return 0;
-    }
-
+    my $data_push = get_var('PUBLIC_CLOUD_PERF_PUSH_DATA', 1);
+    my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI', 'http://publiccloud-ng.qa.suse.de:8086');
     my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
     my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf_2');
+    my $token = get_var('_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN');
+
+    return unless ($results && $data_push);
+    unless ($token) {
+        record_info("WARN", "_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN is missing ", result => 'fail');
+        return 0;
+    }
 
     my $tags = {
         instance_type => get_var('PUBLIC_CLOUD_INSTANCE_TYPE'),

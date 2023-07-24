@@ -4,7 +4,7 @@ description: >
   Test verifies installation with autoyast profile using keyboard layout and language
   different than us.
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_keyboard_layout.xml
+  AUTOYAST: yam/autoyast/keyboard_layout.xml
   AUTOYAST_PREPARE_PROFILE: '1'
   DESKTOP: textmode
   INSTALL_KEYBOARD_LAYOUT: cz

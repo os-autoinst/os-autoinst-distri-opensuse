@@ -22,6 +22,8 @@ sub run {
     set_var('DISPLAYMANAGER', 'sddm');
     # sddm asks straight for PW with only one user; there is no need to type the username
     set_var('DM_NEEDS_USERNAME', 0);
+    # sddm might use a different tty for the session
+    console('x11')->set_tty(get_x11_console_tty());
 
     $self->result('ok');
 }

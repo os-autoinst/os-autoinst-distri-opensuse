@@ -79,6 +79,11 @@ sub run {
             file_content_replace('/etc/dhcpd.conf', '^\s*ddns-update-style' => '# ddns-update-style', '^\s*dhcp-cache-threshold' => '# dhcp-cache-threshold');
         }
         file_content_replace('/etc/sysconfig/dhcpd', '--sed-modifier' => 'g', '^DHCPD_INTERFACE=.*' => 'DHCPD_INTERFACE="' . $ctx->iface() . '"');
+
+        if (check_var('WICKED', 'basic')) {
+            $self->prepare_containers();
+        }
+
         # avoid usage of --now as <=sle-sp1 doesn't support it
         systemctl 'enable dhcpd.service';
         systemctl 'start dhcpd.service';

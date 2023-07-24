@@ -88,6 +88,7 @@ our @EXPORT = qw(
   qesap_calculate_deployment_name
   qesap_export_instances
   qesap_import_instances
+  qesap_ansible_log_find_timeout
 );
 
 =head1 DESCRIPTION
@@ -185,13 +186,15 @@ sub qesap_create_ansible_section {
 sub qesap_pip_install {
     assert_script_run("python3.10 -m venv " . QESAPDEPLOY_VENV . " && source " . QESAPDEPLOY_VENV . "/bin/activate");
     enter_cmd 'pip3.10 config --site set global.progress_bar off';
-    my $pip_ints_cmd = 'pip3.10 install --no-color --no-cache-dir ';
-    my $pip_install_log = '/tmp/pip_install.txt';
     my %paths = qesap_get_file_paths();
+    my $pip_install_log = '/tmp/pip_install.txt';
+    my $pip_ints_cmd = join(' ', 'pip3.10 install --no-color --no-cache-dir ',
+        '-r', $paths{deployment_dir} . '/requirements.txt',
+        '|& tee -a', $pip_install_log);
 
     push(@log_files, $pip_install_log);
     record_info("QESAP repo", "Installing pip requirements");
-    assert_script_run(join(' ', $pip_ints_cmd, '-r', $paths{deployment_dir} . '/requirements.txt | tee -a', $pip_install_log), 720);
+    assert_script_run($pip_ints_cmd, 720);
     script_run("deactivate");
 }
 
@@ -210,8 +213,8 @@ sub qesap_pip_install {
 
 sub qesap_upload_logs {
     my (%args) = @_;
-    my $failok = $args{failok};
-    record_info("Uploading logfiles", join("\n", @log_files));
+    my $failok = $args{failok} || 0;
+    record_info("Uploading logfiles failok:$failok", join("\n", @log_files));
     while (my $file = pop @log_files) {
         upload_logs($file, failok => $failok);
     }
@@ -326,7 +329,21 @@ sub qesap_execute {
     qesap_upload_logs();
     # deactivate virtual environment
     script_run("deactivate");
-    return $exec_rc;
+    my @results = ($exec_rc, $exec_log);
+    return @results;
+}
+
+=head3 qesap_ansible_log_find_timeout
+
+    Return the Timeout error found in the ansible log or not
+=cut
+
+sub qesap_ansible_log_find_timeout
+{
+    my ($file) = @_;
+    my $search_string = 'Timed out waiting for last boot time check';
+    my $timeout_match = script_output("grep \"$search_string\" $file || exit 0");
+    return $timeout_match ? 1 : 0;
 }
 
 =head3 qesap_get_inventory
@@ -406,9 +423,9 @@ sub qesap_prepare_env {
 
     record_info("QESAP conf", "Generating all terraform and Ansible configuration files");
     push(@log_files, "$paths{terraform_dir}/$provider/terraform.tfvars");
-    push(@log_files, "$paths{deployment_dir}/ansible/playbooks/vars/hana_media.yaml");
+    my $hana_media = "$paths{deployment_dir}/ansible/playbooks/vars/hana_media.yaml";
     my $hana_vars = "$paths{deployment_dir}/ansible/playbooks/vars/hana_vars.yaml";
-    my $exec_rc = qesap_execute(cmd => 'configure', verbose => 1);
+    my @exec_rc = qesap_execute(cmd => 'configure', verbose => 1);
 
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
         my $data = get_credentials('aws.json');
@@ -416,9 +433,10 @@ sub qesap_prepare_env {
         qesap_create_aws_credentials($data->{access_key_id}, $data->{secret_access_key});
     }
 
+    push(@log_files, $hana_media) if (script_run("test -e $hana_media") == 0);
     push(@log_files, $hana_vars) if (script_run("test -e $hana_vars") == 0);
     qesap_upload_logs(failok => 1);
-    die("Qesap deployment returned non zero value during 'configure' phase.") if $exec_rc;
+    die("Qesap deployment returned non zero value during 'configure' phase.") if $exec_rc[0];
     return;
 }
 
@@ -527,21 +545,21 @@ sub qesap_ansible_script_output {
 
     my $inventory = qesap_get_inventory($args{provider});
 
-    my $pb = 'script_output.yaml';
+    my $playbook = 'script_output.yaml';
     my $local_path = $args{local_path} // '/tmp/ansible_script_output/';
     my $local_file = $args{local_file} // 'testout.txt';
     my $local_tmp = $local_path . $local_file;
     my $return_string = ((not exists $args{local_path}) && (not exists $args{local_file}));
 
-    if (script_run "test -e $pb") {
+    if (script_run "test -e $playbook") {
         my $cmd = join(' ',
             'curl', '-v', '-fL',
-            data_url("sles4sap/$pb"),
-            '-o', $pb);
+            data_url("sles4sap/$playbook"),
+            '-o', $playbook);
         assert_script_run($cmd);
     }
 
-    my @ansible_cmd = ('ansible-playbook', '-vvvv', $pb);
+    my @ansible_cmd = ('ansible-playbook', '-vvvv', $playbook);
     push @ansible_cmd, ('-l', $args{host}, '-i', $inventory);
     push @ansible_cmd, ('-u', $args{user});
     push @ansible_cmd, ('-b', '--become-user', 'root') if ($args{root});
@@ -867,7 +885,7 @@ sub qesap_az_vnet_peering {
 
     record_info("Checking peering status");
     assert_script_run("az network vnet peering show --name $peering_name --resource-group $args{target_group} --vnet-name $target_vnet --output table");
-    record_info("PEERING STATUS SUCCESS");
+    record_info("AZURE PEERING SUCCESS");
 }
 
 =head3 qesap_az_vnet_peering_delete
@@ -1307,7 +1325,7 @@ sub qesap_aws_vnet_peering {
         target_ip_net => $args{target_ip},
         trans_gw_id => $trans_gw_id);
 
-    record_info('AWS PEERING', 'SUCCESS');
+    record_info('AWS PEERING SUCCESS');
     return 1;
 }
 

@@ -4,7 +4,7 @@
 # Summary: base class for Agama tests
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
-package yam::agama::agama_base;
+package Yam::agama::agama_base;
 use base 'opensusebasetest';
 use strict;
 use warnings;
@@ -31,6 +31,10 @@ sub post_run_hook {
     $testapi::password = 'nots3cr3t';
     select_serial_terminal();
     ensure_serialdev_permissions;
+}
+
+sub test_flags {
+    return {fatal => 1};
 }
 
 1;

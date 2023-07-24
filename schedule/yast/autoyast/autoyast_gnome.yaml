@@ -4,7 +4,7 @@ description: >
   AutoYaST installation with gnome using default partitioning. Installation is
   validated by execution set of smoke userspace tests.
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_gnome.xml
+  AUTOYAST: yam/autoyast/gnome.xml
   AUTOYAST_PREPARE_PROFILE: '1'
   DESKTOP: gnome
 schedule:

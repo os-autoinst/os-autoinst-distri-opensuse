@@ -76,7 +76,8 @@ sub run {
     if ((!defined $node_to_fence && check_var('HA_CLUSTER_INIT', 'yes')) || (defined $node_to_fence && get_hostname eq "$node_to_fence")) {
         my $sbd_delay = calculate_sbd_start_delay;
         record_info("SBD delay $sbd_delay sec", "Calculated SBD start delay: $sbd_delay");
-        sleep $sbd_delay;
+        # test should wait longer that startup delay set therefore adding 15s
+        sleep $sbd_delay + 15;
     }
     # Barrier for fenced nodes to wait for start delay.
     barrier_wait("SBD_START_DELAY_$cluster_name");

@@ -17,8 +17,13 @@ username=root # $(whoami)
 
 # Check number of args
 if [ "$#" -ne 6 ]; then
-    echo "Please provide <tool>, <destination>, <device serial>, <sdX device>, <image to flash> and <hdd size> (ignored). Be carefull when setting sdX device. Destination is IP_or_hostname:/storage/"
-    exit 1;
+    # Workaround for jeos-container_host@RPi3 where NUMDISKS=2 is set and adds 2 additonal args
+    if [ "$#" -ne 8 ]; then
+        echo "Please provide <tool>, <destination>, <device serial>, <sdX device>, <image to flash> and <hdd size> (ignored). Be carefull when setting sdX device. Destination is IP_or_hostname:/storage/"
+        exit 1;
+    else
+        echo "Too many arguments, but ignore them as a workaround for jeos-container_host@RPi3"
+    fi
 fi
 
 # Get tool: sd-mux-ctrl or usbsdmux

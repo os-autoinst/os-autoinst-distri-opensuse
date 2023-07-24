@@ -1,0 +1,5 @@
+---
+software:
+  patterns:
+    - base
+    - enhanced_base

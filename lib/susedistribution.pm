@@ -18,7 +18,9 @@ use utils qw(
 use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_opensuse);
 use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop x11_start_program_xterm);
 use Utils::Backends;
-use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT);
+
+use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT SERIAL_USER_TERMINAL_DEFAULT_DEVICE SERIAL_USER_TERMINAL_DEFAULT_PORT);
+
 use Cwd;
 use autotest 'query_isotovideo';
 use isotovideo;
@@ -476,10 +478,15 @@ sub init_consoles {
             });
         set_var('SVIRT_VNC_CONSOLE', 'sut');
     } else {
-        # sut-serial (serial terminal: emulation of QEMU's virtio console for svirt)
+        # ssh-virtsh-serial for root (serial terminal: emulation of QEMU's virtio console for svirt)
         $self->add_console('root-sut-serial', 'ssh-virtsh-serial', {
                 pty_dev => SERIAL_TERMINAL_DEFAULT_DEVICE,
                 target_port => SERIAL_TERMINAL_DEFAULT_PORT});
+
+        # ssh-virtsh-serial for user (serial terminal: emulation of QEMU's virtio console for svirt)
+        $self->add_console('user-sut-serial', 'ssh-virtsh-serial', {
+                pty_dev => SERIAL_USER_TERMINAL_DEFAULT_DEVICE,
+                target_port => SERIAL_USER_TERMINAL_DEFAULT_PORT});
     }
 
     if ((get_var('BACKEND', '') =~ /qemu|ikvm/
@@ -754,6 +761,46 @@ sub console_nr {
     return $nr;
 }
 
+=head2 prompt_for_user
+
+  prompt_for_user($username)
+
+Returns the shell prompt that should be set for the given username
+=cut
+
+sub prompt_for_user {
+    my ($self, $username) = @_;
+
+    return $username eq 'root' ? '# ' : '$ ';
+}
+
+=head2 get_console_info
+
+  get_console_info($console)
+
+Returns a triplet describing the console: Session privilege level (root/user),
+username, console type.
+=cut
+
+sub get_console_info {
+    my ($self, $console) = @_;
+
+    $console =~ m/^(\w+)-(console|virtio-terminal|sut-serial|ssh|shell|serial-ssh)/;
+    my ($name, $user, $type) = ($1, $1, $2);
+    $name = $user //= '';
+    $type //= '';
+    if ($name eq 'user') {
+        $user = $testapi::username;
+    }
+    elsif ($name =~ /log|tunnel/) {
+        $user = 'root';
+    }
+
+    # Use ssh for generalhw(ssh/no VNC) for given consoles
+    $type = 'ssh' if (get_var('BACKEND', '') =~ /generalhw/ && !defined(get_var('GENERAL_HW_VNC_IP')) && $console =~ /root-console|install-shell|user-console|log-console/);
+    return ($name, $user, $type);
+}
+
 =head2 activate_console
 
   activate_console($console [, [ensure_tty_selected => 0|1] [, skip_set_standard_prompt => 0|1] [, skip_setterm => 0|1] [, timeout => $timeout]])
@@ -778,8 +825,9 @@ sub activate_console {
     return use_ssh_serial_console if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm|pvm_hmc/ && $console =~ m/^(root-console|install-shell|log-console)$/);
     if ($console eq 'install-shell') {
         if (get_var("LIVECD")) {
-            # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
-            assert_screen "tty2-selected", 10;
+            # LIVE CDs do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
+            my $vt = get_root_console_tty();
+            assert_screen "tty${vt}-selected", 10;
             # login as root, who does not have a password on Live-CDs
             wait_screen_change { enter_cmd "root" };
         }
@@ -790,19 +838,7 @@ sub activate_console {
         }
     }
 
-    $console =~ m/^(\w+)-(console|virtio-terminal|sut-serial|ssh|shell|serial-ssh)/;
-    my ($name, $user, $type) = ($1, $1, $2);
-    $name = $user //= '';
-    $type //= '';
-    if ($name eq 'user') {
-        $user = $testapi::username;
-    }
-    elsif ($name =~ /log|tunnel/) {
-        $user = 'root';
-    }
-    # Use ssh for generalhw(ssh/no VNC) for given consoles
-    $type = 'ssh' if (get_var('BACKEND', '') =~ /generalhw/ && !defined(get_var('GENERAL_HW_VNC_IP')) && $console =~ /root-console|install-shell|user-console|log-console/);
-
+    my ($name, $user, $type) = $self->get_console_info($console);
     diag "activate_console, console: $console, type: $type";
     if ($type eq 'console') {
         # different handling for ssh consoles on s390x zVM
@@ -849,8 +885,7 @@ sub activate_console {
         }
     }
     elsif ($type =~ /^(virtio-terminal|sut-serial)$/) {
-        $self->{serial_term_prompt} = $user eq 'root' ? '# ' : '> ';
-        serial_terminal::login($user, $self->{serial_term_prompt});
+        serial_terminal::login($user, $self->prompt_for_user($user));
     }
     elsif ($console eq 'novalink-ssh') {
         assert_screen "password-prompt-novalink";
@@ -893,7 +928,7 @@ sub activate_console {
         assert_screen "text-logged-in-$user", 60;
     }
     elsif ($type eq 'serial-ssh') {
-        serial_terminal::set_serial_prompt($user eq 'root' ? '# ' : '$ ');
+        serial_terminal::set_serial_prompt($self->prompt_for_user($user));
     }
     else {
         diag 'activate_console called with generic type, no action';
@@ -943,6 +978,10 @@ sub console_selected {
         die $ret->{error} if $ret->{error};
         $autotest::selected_console = $console;
     }
+
+    my ($name, $user, $type) = $self->get_console_info($console);
+    $self->{serial_term_prompt} = $self->prompt_for_user($user);
+
     $args{await_console} //= 1;
     $args{tags} //= $console;
     $args{ignore} //= qr{sut|user-virtio-terminal|root-virtio-terminal|root-sut-serial|iucvconn|svirt|root-ssh|hyperv-intermediary|serial-ssh};

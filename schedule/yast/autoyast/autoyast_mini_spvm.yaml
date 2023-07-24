@@ -4,7 +4,7 @@ description: >
   Test verifies installation with minimal autoyast profile.
   Same as autoyast_mini_product but with product defined in the profile.
 vars:
-  AUTOYAST: autoyast_sle15/mini_remote.xml
+  AUTOYAST: yam/autoyast/mini_remote.xml
   AUTOYAST_CONFIRM: 1
   DESKTOP: textmode
   KEEP_DISKS: 1

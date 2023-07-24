@@ -505,12 +505,10 @@
     <crash_kernel>220M</crash_kernel>
     <crash_xen_kernel>220M\&lt;4G</crash_xen_kernel>
     <general t="map">
-      <KDUMPTOOL_FLAGS/>
       <KDUMP_AUTO_RESIZE>no</KDUMP_AUTO_RESIZE>
       <KDUMP_COMMANDLINE/>
       <KDUMP_COMMANDLINE_APPEND/>
       <KDUMP_CONTINUE_ON_ERROR>true</KDUMP_CONTINUE_ON_ERROR>
-      <KDUMP_COPY_KERNEL>yes</KDUMP_COPY_KERNEL>
       <KDUMP_CPUS/>
       <KDUMP_DUMPFORMAT>lzo</KDUMP_DUMPFORMAT>
       <KDUMP_DUMPLEVEL>31</KDUMP_DUMPLEVEL>

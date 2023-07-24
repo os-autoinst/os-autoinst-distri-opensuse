@@ -73,6 +73,7 @@ our @EXPORT = qw(
   activate_ntp
   script_output_retry_check
   calculate_sbd_start_delay
+  collect_sbd_delay_parameters
   check_iscsi_failure
 );
 
@@ -1015,7 +1016,7 @@ sub script_output_retry_check {
     }
 
     die('Pattern did not match') unless $ignore_failure;
-    return $result;
+    return undef;
 }
 
 =head2 collect_sbd_delay_parameters
@@ -1027,6 +1028,7 @@ Collects parameters required from SUT and returns them in HASH format.
 =cut
 
 sub collect_sbd_delay_parameters {
+    # all commands below ($corosync_token, $corosync_consensus...) are defined and exported at the beginning of the library
     my %params = (
         'corosync_token' =>
           script_output_retry_check(cmd => $corosync_token, regex_string => '^\d+$', sleep => '3', retry => '3'),
@@ -1036,18 +1038,11 @@ sub collect_sbd_delay_parameters {
           script_output_retry_check(cmd => $sbd_watchdog_timeout, regex_string => '^\d+$', sleep => '3', retry => '3'),
         'sbd_delay_start' =>
           script_output_retry_check(cmd => $sbd_delay_start, regex_string => '^\d+$|yes|no', sleep => '3', retry => '3'),
-        'pcmk_delay_max' => undef
+        # pcmk_delay_max is not always present for example in 3 node clusters or diskless SBD scenario
+        'pcmk_delay_max' => get_var('USE_DISKLESS_SBD') ? 30 :
+          script_output_retry_check(cmd => $pcmk_delay_max, regex_string => '^\d+$', sleep => '3', retry => '3', ignore_failure => 1) // 0
     );
 
-    # Get pcmk_delay_max output for further validation
-    my $pcmk_delay_max_out = script_output_retry_check(
-        cmd => $pcmk_delay_max,
-        regex_string => '^\d+$',
-        sleep => '3', retry => '3',
-        ignore_failure => 1);
-
-    # pcmk_delay_max is not always present for example in diskless SBD scenario
-    $params{pcmk_delay_max} = looks_like_number($pcmk_delay_max_out) ? $pcmk_delay_max_out : 30;
     return (%params);
 }
 
@@ -1100,8 +1095,8 @@ sub calculate_sbd_start_delay {
           $params{'corosync_token'} +
           $params{'corosync_consensus'} +
           $params{'pcmk_delay_max'} +
-          $params{'sbd_watchdog_timeout'} * 2 +    # msgwait = sbd_watchdog_timeout * 2
-          30;    # wait time should be greater than formula therefore adding 30s
+          $params{'sbd_watchdog_timeout'} * 2;    # msgwait = sbd_watchdog_timeout * 2
+
         record_info('SBD start delay', "SBD delay calculated: $sbd_delay_start_time");
         return ($sbd_delay_start_time);
     }

@@ -3,7 +3,10 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Configure JeOS
+# Summary: Verify provided settings for the already running JeOS system and
+#          enter them going through jeos-firstboot wizard or configuring by
+#          using the terminal. (E.g. timezone, locale, keymap, mounts, users,
+#          passwords...)
 # Maintainer: qa-c team <qa-c@suse.de>
 
 use base "opensusebasetest";
