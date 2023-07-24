@@ -23,10 +23,7 @@ has container => 'sle-images';
 has image_gallery => 'test_image_gallery';
 has lease_id => undef;
 
-# Default SKU/HyperV generation, if not explicitly defined.
-# Currently too many places still rely on gen1 as default, this should be changed soon (poo#133079)
-# This trigger is a temporary solution to make this transition easier and can be removed when poo#133079 is being resolved.
-my $default_sku = 'gen1';
+my $default_sku = 'gen2';
 
 sub init {
     my ($self) = @_;
@@ -73,7 +70,7 @@ If not present it generated the image definition name based on distri, version, 
 
 Note: Image definitions needs to be distinct names and can only serve one architecture!
 
-Example: 'SLE-MICRO-5.4-BYOS-AZURE-X86_64-GEN1'
+Example: 'SLE-MICRO-5.4-BYOS-AZURE-X86_64-GEN2'
 =cut
 
 sub generate_azure_image_definition {
