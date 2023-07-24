@@ -45,6 +45,7 @@ sub run {
     my $openqa_url = get_var('OPENQA_URL', get_var('OPENQA_HOSTNAME'));
     my $created_by = "$openqa_url/t$job_id";
     my $tag = "{Key=openqa-cli-test-tag,Value=$job_id},{Key=openqa_created_by,Value=$created_by},{Key=openqa_ttl,Value=$openqa_ttl}";
+    $tag .= ",{Key=openqa_var_SERVER,Value=$openqa_url},{Key=openqa_var_JOB_ID,Value=$job_id}";
 
     my $create_security_group = "aws ec2 create-security-group --group-name $security_group_name --description 'aws_cli openqa test security group'";
     $create_security_group .= " --tag-specifications 'ResourceType=security-group,Tags=[$tag]'";

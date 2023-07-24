@@ -42,6 +42,7 @@ sub run {
     my $openqa_url = get_var('OPENQA_URL', get_var('OPENQA_HOSTNAME'));
     my $created_by = "$openqa_url/t$job_id";
     my $tags = "openqa-cli-test-tag=$job_id openqa_created_by=$created_by openqa_ttl=$openqa_ttl";
+    $tags .= " openqa_var_SERVER=$openqa_url openqa_var_JOB_ID=$job_id";
 
     # Configure default location and create Resource group
     assert_script_run("az configure --defaults location=southeastasia");
