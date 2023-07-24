@@ -40,6 +40,9 @@ sub init {
     define_secret_variable("AWS_ACCESS_KEY_ID", $data->{access_key_id});
     define_secret_variable("AWS_SECRET_ACCESS_KEY", $data->{secret_access_key});
 
+    # Disable pased (see poo#133226 - EC2: WARNING: terminal is not fully functional)
+    assert_script_run('export AWS_PAGER=""');
+
     die('Credentials are invalid') unless ($self->_check_credentials());
 
     # AWS STS is the secure token service, which is used for those credentials
