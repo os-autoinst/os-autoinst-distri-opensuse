@@ -99,6 +99,9 @@ sub run {
     my $engine = $args->{runtime};
     my $bci_devel_repo = get_var('BCI_DEVEL_REPO');
     my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
+    if (my $bci_repo = get_var('REPO_BCI')) {
+        $bci_devel_repo = "http://openqa.suse.de/assets/repo/$bci_repo";
+    }
     my $bci_target = get_var('BCI_TARGET', 'ibs-cr');
     my $version = get_required_var('VERSION');
     my $test_envs = get_required_var('BCI_TEST_ENVS');
