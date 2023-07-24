@@ -355,44 +355,43 @@ After C<prepare_spack_env> run, C<spack> should be ready to build entire tool st
 downloading and installing all bits required for whatever package or compiler.
 
 This sub is designed to install one of the mpi implementations. Although there are
-thousands packages to be used.
+thousands packages to be used. Spack will check if any mpi is installed and it will
+build the package if it is not found. In case you want to make the runtime of the
+test faster you can install C<$mpi-gnu-hpc $mpi-gnu-hpc-devel> packages in advanced.
 
 LD_LIBRARY_PATH is removed and spack is not exported. In case LD_LIBRARY_PATH is required
-it has to be add it in the F<.spack/modules.yaml>.
+it has to be added in the F<.spack/modules.yaml>.
 
 =begin text
   See bsc#1208751 for details
 =end text
 
-To do that run
+The workaround of that requires to run
 
 =begin text
   spack config add modules:prefix_inspections:lib64:[LD_LIBRARY_PATH]
   spack config add modules:prefix_inspections:lib:[LD_LIBRARY_PATH]
 =end text
 
+however the newest spack updates contain C<spack_get_libs.sh>.
+
 =cut
 
 sub prepare_spack_env {
     my ($self, $mpi) = @_;
     $mpi //= 'mpich';
-    zypper_call "in spack $mpi-gnu-hpc $mpi-gnu-hpc-devel", timeout => 1200;
+    zypper_call "in spack", timeout => 1200;
     type_string('pkill -u root');    # this kills sshd
     select_serial_terminal(0);
-    assert_script_run "module load gnu $mpi";
-    assert_script_run 'source /usr/share/spack/setup-env.sh';
-    if (check_var('HPC_LIB', 'boost')) {
-        # Workaround for bsc#1208751
-        assert_script_run "spack config add modules:prefix_inspections:lib64:[LD_LIBRARY_PATH]";
-        assert_script_run "spack config add modules:prefix_inspections:lib:[LD_LIBRARY_PATH]";
-    }
+
     record_info 'spack', script_output 'zypper -q info spack';
     record_info "$mpi spec", script_output("spack spec $mpi", timeout => 600);
     if (check_var('HPC_LIB', 'boost')) {
         record_info "boost spec", script_output("spack spec boost", timeout => 600);
         assert_script_run "spack install boost+mpi^$mpi", timeout => 12000;
-        #assert_script_run 'spack load boost';
+        assert_script_run "source spack_get_libs.sh boost^$mpi";
     } else {
+        assert_script_run 'source /usr/share/spack/setup-env.sh';
         record_info "$mpi spec", script_output("spack spec $mpi", timeout => 600);
         assert_script_run "spack install $mpi", timeout => 12000;
     }
