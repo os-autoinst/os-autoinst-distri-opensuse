@@ -592,7 +592,7 @@ sub init_consoles {
 
             ($hostname) = $s390_params =~ /Hostname=(\S+)/;
 
-            # adds serial console for S390_ZKVM
+            # adds serial console for s390x zVM
             # NOTE: adding consoles just at the top of init_consoles() is not enough, otherwise
             # using just them would fail with:
             # ::: basetest::runtest: # Test died: Error connecting to <root@192.168.112.9>: Connection refused at /usr/lib/os-autoinst/testapi.pm line 1700.
@@ -604,6 +604,14 @@ sub init_consoles {
                         hostname => $hostname,
                         password => $testapi::password,
                         username => 'root'
+                    });
+                $self->add_console(
+                    'user-serial-ssh',
+                    'ssh-serial',
+                    {
+                        hostname => $hostname,
+                        password => $testapi::password,
+                        username => $testapi::username
                     });
             }
         }
