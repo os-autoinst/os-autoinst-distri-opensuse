@@ -36,12 +36,10 @@ sub run {
     }
     assert_script_run('SUSEConnect --status-text | grep -i active', timeout => 120);
 
-    # qemu-guest-agent service should be enabled and started
-    assert_script_run('rpm -q qemu-guest-agent');
-    systemctl('is-enabled qemu-guest-agent');
-    if (script_run('systemctl --no-pager is-active qemu-guest-agent')) {
-        record_soft_failure("bsc#1207135 - [Build 2.56] qemu-guest-agent.service: Job qemu-guest-agent.service/start failed with result 'dependency'");
-    }
+    # just_a_test.service should be enabled and executed
+    systemctl('is-enabled just_a_test.service');
+    assert_script_run('journalctl --no-pager -u just_a_test.service |grep "Test service has started"');
+    systemctl('disable just_a_test.service');
 
     # Package installation
     assert_script_run('rpm -q iotop');
