@@ -86,7 +86,7 @@ sub get_add_on_product_installation {
     return Installation::AddOnProductInstallation::AddOnProductInstallationController->new();
 }
 
-sub get_system_role_controller() {
+sub get_system_role() {
     return Installation::SystemRole::Sle::SystemRoleController->new();
 }
 

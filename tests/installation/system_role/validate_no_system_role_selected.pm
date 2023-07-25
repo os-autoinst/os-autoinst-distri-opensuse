@@ -13,7 +13,7 @@ use Test::Assert 'assert_null';
 
 sub run {
     assert_null(
-        $testapi::distri->get_system_role_controller()->get_selected_role(),
+        $testapi::distri->get_system_role()->get_selected_role(),
         'A System Role is pre-selected, none expected');
 }
 
