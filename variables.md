@@ -255,11 +255,13 @@ TRENTO_QESAPDEPLOY_IMDB_SERVER | string | | IMDB_SERVER file name for the qe-sap
 TRENTO_QESAPDEPLOY_IMDB_CLIENT | string | | IMDB_CLIENT file name for the qe-sap-deployment hana_media.yaml.
 QESAP_CONFIG_FILE | string | | filename (of relative path) of the config YAML file for the qesap.py script, within `sles4sap/qe_sap_deployment/` subfolder in `data`.
 QESAP_DEPLOYMENT_DIR | string | /root/qe-sap-deployment | JumpHost folder where to install the qe-sap-deployment code
+QESAP_ROLES_DIR | string | /root/community.sles-for-sap | JumpHost folder where to install the community.sles-for-sap code
 QESAP_INSTALL_VERSION | string | | If configured, test will run with a specific release of qe-sap-deployment code from https://github.com/SUSE/qe-sap-deployment/releases. Otherwise the code is used from a latest version controlled by QESAP_INSTALL_GITHUB_REPO and QESAP_INSTALL_GITHUB_BRANCH
 QESAP_INSTALL_GITHUB_REPO | string | github.com/SUSE/qe-sap-deployment | Git repository where to clone from. Ignored if QESAP_INSTALL_VERSION is configured.
 QESAP_INSTALL_GITHUB_BRANCH | string | | Git branch. Ignored if QESAP_INSTALL_VERSION is configured.
 QESAP_INSTALL_GITHUB_NO_VERIFY | string | | Configure http.sslVerify false. Ignored if QESAP_VER is configured.
-
+QESAP_ROLES_INSTALL_GITHUB_REPO | string | github.com/sap-linuxlab/community.sles-for-sap | Git repository where to clone from. Ignored if QESAP_ROLES_INSTALL_VERSION is configured.
+QESAP_ROLES_INSTALL_GITHUB_BRANCH | string | | Git branch. Ignored if QESAP_ROLES_INSTALL_VERSION is configured.
 
 ### Publiccloud specific variables
 

@@ -178,6 +178,65 @@ subtest '[qesap_get_deployment_code] from a release' => sub {
     ok((any { /tar.*[xvf]+.*vCORAL\.tar\.gz/ } @calls), 'Decompress the release archive');
 };
 
+subtest '[qesap_get_roles_code] from default github' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{roles_dir} = '/BRUCE';
+            return (%paths);
+    });
+
+    qesap_get_roles_code();
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /git.*clone.*github.*com\/sap-linuxlab\/community\.sles-for-sap.*BRUCE/ } @calls), 'Git clone of sap-linuxlab/community.sles-for-sap is ok.');
+};
+
+subtest '[qesap_get_roles_code] from fork' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{roles_dir} = '/BRUCE';
+            return (%paths);
+    });
+
+    set_var('QESAP_ROLES_INSTALL_GITHUB_REPO', 'WHALE');
+
+    qesap_get_roles_code();
+
+    set_var('QESAP_ROLES_INSTALL_GITHUB_REPO', undef);
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /git.*clone.*https:\/\/WHALE.*/ } @calls), 'Clone from fork WHALE');
+};
+
+subtest '[qesap_get_roles_code] from branch' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{roles_dir} = '/BRUCE';
+            return (%paths);
+    });
+    set_var('QESAP_ROLES_INSTALL_GITHUB_BRANCH', 'TED');
+
+    qesap_get_roles_code();
+
+    set_var('QESAP_ROLES_INSTALL_GITHUB_BRANCH', undef);
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /git.*clone.*--branch.*TED/ } @calls), 'Checkout expected branch');
+};
+
 subtest '[qesap_ansible_cmd]' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;

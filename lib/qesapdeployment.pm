@@ -54,9 +54,11 @@ our @EXPORT = qw(
   qesap_pip_install
   qesap_upload_logs
   qesap_get_deployment_code
+  qesap_get_roles_code
   qesap_get_inventory
   qesap_get_nodes_number
   qesap_get_terraform_dir
+  qesap_get_ansible_roles_dir
   qesap_prepare_env
   qesap_execute
   qesap_yaml_replace
@@ -110,6 +112,8 @@ sub qesap_get_file_paths {
     $paths{terraform_dir} = get_var('PUBLIC_CLOUD_TERRAFORM_DIR', $paths{deployment_dir} . '/terraform');
     $paths{qesap_conf_trgt} = $paths{deployment_dir} . '/scripts/qesap/' . $paths{qesap_conf_filename};
     $paths{qesap_conf_src} = data_url('sles4sap/qe_sap_deployment/' . $paths{qesap_conf_filename});
+    $paths{roles_dir} = get_var('QESAP_ROLES_DIR', '/root/community.sles-for-sap');
+    $paths{roles_dir_path} = $paths{roles_dir} . '/roles';
     return (%paths);
 }
 
@@ -121,6 +125,7 @@ sub qesap_get_file_paths {
 sub qesap_create_folder_tree {
     my %paths = qesap_get_file_paths();
     assert_script_run("mkdir -p $paths{deployment_dir}", quiet => 1);
+    assert_script_run("mkdir -p $paths{roles_dir}", quiet => 1);
 }
 
 =head3 qesap_get_variables
@@ -261,6 +266,39 @@ sub qesap_get_deployment_code {
     assert_script_run("ln -s " . $paths{terraform_dir} . "/gcp " . $paths{terraform_dir} . "/gce");
 }
 
+
+=head3 qesap_get_roles_code
+    Get the Ansible roles code from github.com/sap-linuxlab/community.sles-for-sap
+
+    Keep in mind that to allow qe-sap-deployment to use roles from this repo,
+    your config.yaml has to have a specific setting ansible::roles_path.
+=cut
+
+sub qesap_get_roles_code {
+    my $official_repo = 'github.com/sap-linuxlab/community.sles-for-sap';
+    my $roles_git_clone_log = '/tmp/git_clone_roles.txt';
+    my %paths = qesap_get_file_paths();
+
+    record_info("SLES4SAP Roles repo", "Preparing community.sles-for-sap repository");
+
+    enter_cmd "cd " . $paths{roles_dir};
+    push(@log_files, $roles_git_clone_log);
+
+    # Script from a release
+    if (get_var('QESAP_ROLES_INSTALL_VERSION')) {
+        die('community.sles-for-sap does not implement releases yet.');
+    }
+    else {
+        # Get the code for the community.sles-for-sap by cloning its repository
+        assert_script_run('git config --global http.sslVerify false', quiet => 1) if get_var('QESAP_INSTALL_GITHUB_NO_VERIFY');
+        my $git_branch = get_var('QESAP_ROLES_INSTALL_GITHUB_BRANCH', 'main');
+
+        my $git_repo = get_var('QESAP_ROLES_INSTALL_GITHUB_REPO', $official_repo);
+        my $git_clone_cmd = 'git clone --depth 1 --branch ' . $git_branch . ' https://' . $git_repo . ' ' . $paths{roles_dir};
+        assert_script_run("set -o pipefail ; $git_clone_cmd  2>&1 | tee $roles_git_clone_log", quiet => 1);
+    }
+}
+
 =head3 qesap_yaml_replace
 
     Replaces yaml config file variables with parameters defined by OpenQA testode, yaml template or yaml schedule.
@@ -387,6 +425,17 @@ sub qesap_get_terraform_dir {
     return "$paths{deployment_dir}/terraform/" . lc $provider;
 }
 
+=head3 qesap_get_ansible_roles_dir
+
+    Return the path where sap-linuxlab/community.sles-for-sap
+    has been installed
+=cut
+
+sub qesap_get_ansible_roles_dir {
+    my %paths = qesap_get_file_paths();
+    return $paths{roles_dir};
+}
+
 =head3 qesap_prepare_env
 
     qesap_prepare_env(variables=>{dict with variables}, provider => 'aws');
@@ -412,6 +461,7 @@ sub qesap_prepare_env {
     unless ($args{only_configure}) {
         qesap_create_folder_tree();
         qesap_get_deployment_code();
+        qesap_get_roles_code();
         qesap_pip_install();
 
         record_info("QESAP yaml", "Preparing yaml config file");
