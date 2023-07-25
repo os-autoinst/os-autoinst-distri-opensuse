@@ -1,0 +1,11 @@
+---
+name: gnu-compilers-hpc
+description:    >
+    Maintainer: kernel-qa
+    Test for gnu-compilers-hpc to toolchain upgrades
+vars:
+  DESKTOP: textmode
+
+schedule:
+  - boot/boot_to_desktop
+  - hpc/gnu_compilers_hpc
