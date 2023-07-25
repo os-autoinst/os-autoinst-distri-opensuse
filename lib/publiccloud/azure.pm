@@ -165,6 +165,7 @@ sub get_image_definition {
     # Check if the given image definition, identified by the tuple (publisher, offer and sku) is present in the given image gallery
     # returns the name of the found image definition or undef if not found
     my ($self, $resource_group, $gallery, $publisher, $offer, $sku) = @_;
+    record_info('get_image_definition', "Searching for image definition with publisher=$publisher offer=$offer sku=$sku");
 
     my $definitions = script_output("az sig image-definition list --resource-group '$resource_group' --gallery-name '$gallery'");
     return undef unless ($definitions);
@@ -172,8 +173,12 @@ sub get_image_definition {
     foreach my $def (@$json_data) {
         my $identifier = $def->{identifier};
         next unless (defined $identifier);
-        return $def->{name} if ($identifier->{publisher} eq $publisher && $identifier->{offer} eq $offer && $identifier->{sku} eq $sku);
+        if ($identifier->{publisher} =~ /$publisher/i && $identifier->{offer} =~ /$offer/i && $identifier->{sku} =~ /$sku/i) {
+            record_info('image_definition', "Found $def->{name} image definition");
+            return $def->{name};
+        }
     }
+    record_info('no image_definition', "Did not found image definition.");
     return undef;
 }
 
