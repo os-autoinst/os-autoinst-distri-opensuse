@@ -19,7 +19,7 @@ sub run {
         TEST_PREFER_NSPAWN => get_var('SYSTEMD_NSPAWN', 1),
         UNIFIED_CGROUP_HIERARCHY => get_var('SYSTEMD_UNIFIED_CGROUP', 'yes')
     };
-    my $testdir = '/usr/lib/systemd/tests/test/';
+    my $testdir = '/usr/lib/systemd/tests/integration-tests/';
     my @pkgs = qw(
       lz4
       busybox
