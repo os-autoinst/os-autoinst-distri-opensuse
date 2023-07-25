@@ -1,0 +1,14 @@
+name:           sle_micro_autoyast
+description:    >
+  Maintainer: QE Yam <qe-yam at suse de>
+  SUSE Linux Enterprise Micro tests
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/logs
+  - console/textinfo
+  - microos/cockpit_service
+  - shutdown/shutdown
