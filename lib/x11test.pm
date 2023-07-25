@@ -1076,7 +1076,7 @@ sub add_input_resource {
 
     assert_and_click 'ibus-input-source-add';
     assert_and_click 'ibus-input-language-list';
-    type_string $tag;
+    type_string_slow $tag;
 
     assert_and_click "ibus-input-$tag";
     if ($tag eq "japanese") {
