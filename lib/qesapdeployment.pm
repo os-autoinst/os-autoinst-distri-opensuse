@@ -721,6 +721,12 @@ sub qesap_cluster_log_cmds {
             Output => 'aws_config.txt',
         };
     }
+    if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+        push @log_list, {
+            Cmd => 'cat /var/log/cloud-init.log > azure_cloud_init_log.txt',
+            Output => 'azure_cloud_init_log.txt',
+        };
+    }
     return @log_list;
 }
 
