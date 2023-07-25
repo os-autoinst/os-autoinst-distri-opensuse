@@ -34,7 +34,7 @@ sub run {
 
     if (is_alp) {
         # Add additional ALP repositories
-        my $repo = get_required_var('REPO_SLE_ALP_MICRO');
+        my $repo = get_required_var('REPO_SLE_ALP');
         zypper_call("ar http://openqa.suse.de/assets/repo/$repo 'ALP Build Repository'");
         my $source_repo = get_var('REPO_ALP_SOURCE_BUILD');
         zypper_call("ar $source_repo 'ALP Source Build Repository'") if $source_repo;
