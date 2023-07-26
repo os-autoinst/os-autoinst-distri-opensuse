@@ -3,7 +3,7 @@ name: autoyast_disk_as_md_member
 description: >
   Test autoyast installation, while using a disk as a MD RAID member
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_disk_as_md_member.xml
+  AUTOYAST: yam/autoyast/disk_as_md_member.xml
   AUTOYAST_CONFIRM: 1
 schedule:
   - autoyast/prepare_profile

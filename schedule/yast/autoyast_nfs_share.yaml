@@ -3,7 +3,7 @@ name: autoyast_multi_btrfs
 description: >
   Test autoyast installation, while using nfs share
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_nfs_share.xml
+  AUTOYAST: yam/autoyast/nfs_share.xml
   DESKTOP: textmode
 schedule:
   - autoyast/prepare_profile

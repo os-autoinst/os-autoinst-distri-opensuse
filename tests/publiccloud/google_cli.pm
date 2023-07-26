@@ -46,10 +46,12 @@ sub run {
 
     my $machine_name = "openqa-cli-test-vm-$job_id";
     my $openqa_ttl = get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300);
+    my $openqa_url = get_var('OPENQA_URL', get_var('OPENQA_HOSTNAME'));
     my $openqa_hostname = get_required_var('OPENQA_HOSTNAME');
-    $openqa_hostname =~ tr/./-/;
+    $openqa_hostname =~ tr/./_/;
     # Only hyphens (-), underscores (_), lowercase characters, and numbers are allowed.
     my $labels = "openqa-cli-test-label=$job_id,openqa_created_by=$openqa_hostname,openqa_ttl=$openqa_ttl";
+    $labels .= ",openqa_var_server=$openqa_hostname,openqa_var_job_id=$job_id";
     my $metadata = 'ssh-keys=susetest:$(cat ~/.ssh/id_rsa.pub | sed "s/[[:blank:]]*$//") susetest';
     my $create_instance = "gcloud compute instances create $machine_name --image-family=sles-15 --image-project=suse-cloud";
     $create_instance .= " --machine-type=e2-micro --labels='$labels' --metadata=\"$metadata\"";

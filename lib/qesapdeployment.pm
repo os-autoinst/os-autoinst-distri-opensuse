@@ -33,6 +33,7 @@ use Carp qw(croak);
 use Mojo::JSON qw(decode_json);
 use YAML::PP;
 use utils qw(file_content_replace);
+use version_utils 'is_sle';
 use publiccloud::utils qw(get_credentials);
 use mmapi 'get_current_job_id';
 use testapi;
@@ -61,7 +62,9 @@ our @EXPORT = qw(
   qesap_execute
   qesap_yaml_replace
   qesap_ansible_cmd
+  qesap_ansible_script_output_file
   qesap_ansible_script_output
+  qesap_ansible_fetch_file
   qesap_create_ansible_section
   qesap_create_aws_credentials
   qesap_create_aws_config
@@ -88,6 +91,7 @@ our @EXPORT = qw(
   qesap_calculate_deployment_name
   qesap_export_instances
   qesap_import_instances
+  qesap_ansible_log_find_timeout
 );
 
 =head1 DESCRIPTION
@@ -185,13 +189,15 @@ sub qesap_create_ansible_section {
 sub qesap_pip_install {
     assert_script_run("python3.10 -m venv " . QESAPDEPLOY_VENV . " && source " . QESAPDEPLOY_VENV . "/bin/activate");
     enter_cmd 'pip3.10 config --site set global.progress_bar off';
-    my $pip_ints_cmd = 'pip3.10 install --no-color --no-cache-dir ';
-    my $pip_install_log = '/tmp/pip_install.txt';
     my %paths = qesap_get_file_paths();
+    my $pip_install_log = '/tmp/pip_install.txt';
+    my $pip_ints_cmd = join(' ', 'pip3.10 install --no-color --no-cache-dir ',
+        '-r', $paths{deployment_dir} . '/requirements.txt',
+        '|& tee -a', $pip_install_log);
 
     push(@log_files, $pip_install_log);
     record_info("QESAP repo", "Installing pip requirements");
-    assert_script_run(join(' ', $pip_ints_cmd, '-r', $paths{deployment_dir} . '/requirements.txt | tee -a', $pip_install_log), 720);
+    assert_script_run($pip_ints_cmd, 720);
     script_run("deactivate");
 }
 
@@ -210,8 +216,8 @@ sub qesap_pip_install {
 
 sub qesap_upload_logs {
     my (%args) = @_;
-    my $failok = $args{failok};
-    record_info("Uploading logfiles", join("\n", @log_files));
+    my $failok = $args{failok} || 0;
+    record_info("Uploading logfiles failok:$failok", join("\n", @log_files));
     while (my $file = pop @log_files) {
         upload_logs($file, failok => $failok);
     }
@@ -326,7 +332,21 @@ sub qesap_execute {
     qesap_upload_logs();
     # deactivate virtual environment
     script_run("deactivate");
-    return $exec_rc;
+    my @results = ($exec_rc, $exec_log);
+    return @results;
+}
+
+=head3 qesap_ansible_log_find_timeout
+
+    Return the Timeout error found in the ansible log or not
+=cut
+
+sub qesap_ansible_log_find_timeout
+{
+    my ($file) = @_;
+    my $search_string = 'Timed out waiting for last boot time check';
+    my $timeout_match = script_output("grep \"$search_string\" $file || exit 0");
+    return $timeout_match ? 1 : 0;
 }
 
 =head3 qesap_get_inventory
@@ -406,9 +426,9 @@ sub qesap_prepare_env {
 
     record_info("QESAP conf", "Generating all terraform and Ansible configuration files");
     push(@log_files, "$paths{terraform_dir}/$provider/terraform.tfvars");
-    push(@log_files, "$paths{deployment_dir}/ansible/playbooks/vars/hana_media.yaml");
+    my $hana_media = "$paths{deployment_dir}/ansible/playbooks/vars/hana_media.yaml";
     my $hana_vars = "$paths{deployment_dir}/ansible/playbooks/vars/hana_vars.yaml";
-    my $exec_rc = qesap_execute(cmd => 'configure', verbose => 1);
+    my @exec_rc = qesap_execute(cmd => 'configure', verbose => 1);
 
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
         my $data = get_credentials('aws.json');
@@ -416,9 +436,10 @@ sub qesap_prepare_env {
         qesap_create_aws_credentials($data->{access_key_id}, $data->{secret_access_key});
     }
 
+    push(@log_files, $hana_media) if (script_run("test -e $hana_media") == 0);
     push(@log_files, $hana_vars) if (script_run("test -e $hana_vars") == 0);
     qesap_upload_logs(failok => 1);
-    die("Qesap deployment returned non zero value during 'configure' phase.") if $exec_rc;
+    die("Qesap deployment returned non zero value during 'configure' phase.") if $exec_rc[0];
     return;
 }
 
@@ -481,7 +502,7 @@ sub qesap_ansible_cmd {
     enter_cmd("deactivate");
 }
 
-=head3 qesap_ansible_script_output
+=head3 qesap_ansible_script_output_file
 
     Use Ansible to run a command remotely and get the stdout.
     Command could be executed with elevated privileges
@@ -492,13 +513,13 @@ sub qesap_ansible_cmd {
 
     1. ansible-playbook run the playbook
     2. the playbook executes the command and redirects the output to file, both remotely
-    3. the playbook download the file locally
+    3. qesap_ansible_fetch_file downloads the file locally
     4. the file is read and stored to be returned to the caller
 
     If local_file and local_path are specified, the output is written to file, return is the full path;
     otherwise the return is the command output as string.
 
-=over 8
+=over 9
 
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
@@ -512,26 +533,29 @@ sub qesap_ansible_cmd {
 
 =item B<FAILOK> - if not set, ansible failure result in die
 
-=item B<LOCAL_FILE> - filter hosts in the inventory
+=item B<FILE> - result file name
 
-=item B<LOCAL_PATH> - filter hosts in the inventory
+=item B<OUT_PATH> - path to save result file locally (without file name)
+
+=item B<REMOTE_PATH> - Path to save file in the remote (without file name)
 
 =back
 =cut
 
-sub qesap_ansible_script_output {
+sub qesap_ansible_script_output_file {
     my (%args) = @_;
-    foreach (qw(provider cmd host)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    foreach (qw(provider cmd host file out_path)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     $args{user} ||= 'cloudadmin';
     $args{root} ||= 0;
 
     my $inventory = qesap_get_inventory($args{provider});
 
     my $playbook = 'script_output.yaml';
-    my $local_path = $args{local_path} // '/tmp/ansible_script_output/';
-    my $local_file = $args{local_file} // 'testout.txt';
-    my $local_tmp = $local_path . $local_file;
-    my $return_string = ((not exists $args{local_path}) && (not exists $args{local_file}));
+    my $path = $args{remote_path} // '/tmp/';
+    my $out_path = $args{out_path} // '/tmp/ansible_script_output/';
+    my $file = $args{file} // 'testout.txt';
+    my $failok = $args{failok} // 1;
+    my $local_tmp = $out_path . $file;
 
     if (script_run "test -e $playbook") {
         my $cmd = join(' ',
@@ -546,25 +570,154 @@ sub qesap_ansible_script_output {
     push @ansible_cmd, ('-u', $args{user});
     push @ansible_cmd, ('-b', '--become-user', 'root') if ($args{root});
     push @ansible_cmd, ('-e', qq("cmd='$args{cmd}'"),
-        '-e', "out_path='$local_path'",
-        '-e', "out_file='$local_file'");
+        '-e', "out_file='$file'", '-e', "remote_path='$path'");
     push @ansible_cmd, ('-e', "failok=yes") if ($args{failok});
-
-    enter_cmd "rm $local_tmp || echo 'Nothing to delete'" if ($return_string);
 
     assert_script_run("source " . QESAPDEPLOY_VENV . "/bin/activate");    # venv activate
 
+    # Run the command on the remote and save output to a file
     $args{failok} ? script_run(join(' ', @ansible_cmd)) : assert_script_run(join(' ', @ansible_cmd));
+    # Grab the file from the remote
+    qesap_ansible_fetch_file(provider => $args{provider},
+        host => $args{host},
+        failok => $failok,
+        user => $args{user},
+        root => $args{root},
+        remote_path => $path,
+        out_path => $out_path,
+        file => $file);
 
     enter_cmd("deactivate");    #venv deactivate
-    if ($return_string) {
-        my $output = script_output("cat $local_tmp");
-        enter_cmd "rm $local_tmp || echo 'Nothing to delete'";
-        return $output;
+    return $local_tmp;
+}
+
+=head3 qesap_ansible_script_output
+
+    Return the output of a command executed on the remote machine via Ansible.
+
+=over 9
+
+=item B<PROVIDER> - Cloud provider name, used to find the inventory
+
+=item B<CMD> - command to run remotely
+
+=item B<HOST> - filter hosts in the inventory
+
+=item B<USER> - user on remote host, default to 'cloudadmin'
+
+=item B<ROOT> - 1 to enable remote execution with elevated user, default to 0
+
+=item B<FAILOK> - if not set, ansible failure result in die
+
+=item B<FILE> - result file name
+
+=item B<OUT_PATH> - path to save result file locally (without file name)
+
+=item B<REMOTE_PATH> - Path to save file in the remote (without file name)
+
+=back
+=cut
+
+sub qesap_ansible_script_output {
+    my (%args) = @_;
+    foreach (qw(provider cmd host)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    $args{user} ||= 'cloudadmin';
+    $args{root} ||= 0;
+    my $cmd = $args{cmd};
+    my $prov = $args{provider};
+    my $host = $args{host};
+    my $path = $args{remote_path} // '/tmp/';
+    my $out_path = $args{out_path} // '/tmp/ansible_script_output/';
+    my $file = $args{file} // 'testout.txt';
+    my $failok = $args{failok} // 1;
+    my $local_tmp = $out_path . $file;
+
+    # Grab command output as file
+    my $out = qesap_ansible_script_output_file(cmd => $cmd,
+        provider => $prov,
+        host => $host,
+        failok => 1,
+        user => $args{user},
+        root => $args{root},
+        remote_path => $path,
+        out_path => $out_path,
+        file => $file);
+    # Print output and delete output file
+    my $output = script_output("cat $local_tmp");
+    enter_cmd "rm $local_tmp || echo 'Nothing to delete'";
+    return $output;
+}
+
+=head3 qesap_ansible_fetch_file
+
+    Use Ansible to fetch a file remotely.
+    Command could be executed with elevated privileges
+
+    qesap_ansible_fetch_file(provider => 'aws', host => 'vmhana01', root => 1);
+
+    It uses playbook data/sles4sap/fetch_file.yaml
+
+    1. ansible-playbook run the playbook
+    3. the playbook download the file locally
+    4. the file is read and stored to be returned to the caller
+
+=over 8
+
+=item B<PROVIDER> - Cloud provider name, used to find the inventory
+
+=item B<HOST> - filter hosts in the inventory
+
+=item B<USER> - user on remote host, default to 'cloudadmin'
+
+=item B<ROOT> - 1 to enable remote execution with elevated user, default to 0
+
+=item B<FAILOK> - if not set, ansible failure result in die
+
+=item B<FILE> - file name
+
+=item B<OUT_PATH> - path to save file locally (without file name)
+
+=item B<REMOTE_PATH> - path to find file in the remote (without file name)
+
+=back
+=cut
+
+sub qesap_ansible_fetch_file {
+    my (%args) = @_;
+    foreach (qw(provider host)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    $args{user} ||= 'cloudadmin';
+    $args{root} ||= 0;
+
+    my $inventory = qesap_get_inventory($args{provider});
+
+    my $fetch_playbook = 'fetch_file.yaml';
+    my $path = $args{remote_path};
+    my $local_path = $args{out_path} // '/tmp/ansible_script_output/';
+    my $local_file = $args{file} // 'testout.txt';
+    my $local_tmp = $local_path . $local_file;
+
+    if (script_run "test -e $fetch_playbook") {
+        my $cmd = join(' ',
+            'curl', '-v', '-fL',
+            data_url("sles4sap/$fetch_playbook"),
+            '-o', $fetch_playbook);
+        assert_script_run($cmd);
     }
-    else {
-        return $local_tmp;
-    }
+
+    my @ansible_fetch_cmd = ('ansible-playbook', '-vvvv', $fetch_playbook);
+    push @ansible_fetch_cmd, ('-l', $args{host}, '-i', $inventory);
+    push @ansible_fetch_cmd, ('-u', $args{user});
+    push @ansible_fetch_cmd, ('-b', '--become-user', 'root') if ($args{root});
+    push @ansible_fetch_cmd, ('-e', "out_path='$local_path'", '-e', "remote_path='$path'",
+        '-e', "file='$local_file'");
+    push @ansible_fetch_cmd, ('-e', "failok=yes") if ($args{failok});
+
+    assert_script_run("source " . QESAPDEPLOY_VENV . "/bin/activate");    # venv activate
+
+    $args{failok} ? script_run(join(' ', @ansible_fetch_cmd)) : assert_script_run(join(' ', @ansible_fetch_cmd));
+
+    enter_cmd("deactivate");    #venv deactivate
+    return $local_tmp;
 }
 
 =head3 qesap_create_aws_credentials
@@ -648,6 +801,39 @@ sub qesap_wait_for_ssh {
     return -1;
 }
 
+=head3 qesap_upload_crm_report
+
+    Run crm report on a host and upload the resulting tarball to openqa
+
+=over 1
+
+=item B<HOST> - host to get the report from
+
+=back
+=cut
+
+sub qesap_upload_crm_report {
+    my (%args) = @_;
+    croak 'Missing mandatory host argument' unless $args{host};
+    my $host = $args{host};
+    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my $crm_log = "/var/log/$host-crm_report";
+    my $report_opt = !is_sle('12-sp4+') ? '-f0' : '';
+    qesap_ansible_cmd(cmd => "crm report $report_opt -E /var/log/ha-cluster-bootstrap.log $crm_log",
+        provider => $prov,
+        filter => $host,
+        host_keys_check => 1,
+        verbose => 1);
+    qesap_ansible_fetch_file(provider => $prov,
+        host => $host,
+        failok => 1,
+        root => 1,
+        remote_path => '/var/log/',
+        out_path => '/tmp/ansible_script_output/',
+        file => "$host-crm_report.tar.gz");
+    upload_logs("/tmp/ansible_script_output/$host-crm_report.tar.gz", failok => 1);
+}
+
 =head3 qesap_cluster_log_cmds
 
   List of commands to collect logs from a deployed cluster
@@ -703,6 +889,12 @@ sub qesap_cluster_log_cmds {
             Output => 'aws_config.txt',
         };
     }
+    if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+        push @log_list, {
+            Cmd => 'cat /var/log/cloud-init.log > azure_cloud_init_log.txt',
+            Output => 'azure_cloud_init_log.txt',
+        };
+    }
     return @log_list;
 }
 
@@ -719,15 +911,18 @@ sub qesap_cluster_logs {
     {
         foreach my $host ('vmhana01', 'vmhana02') {
             foreach my $cmd (qesap_cluster_log_cmds()) {
-                my $out = qesap_ansible_script_output(cmd => $cmd->{Cmd},
+                my $out = qesap_ansible_script_output_file(cmd => $cmd->{Cmd},
                     provider => $prov,
                     host => $host,
                     failok => 1,
                     root => 1,
-                    local_path => '/tmp/',
-                    local_file => "$host-$cmd->{Output}");
+                    path => '/tmp/',
+                    out_path => '/tmp/ansible_script_output/',
+                    file => "$host-$cmd->{Output}");
                 upload_logs($out, failok => 1);
             }
+            # Upload crm report
+            qesap_upload_crm_report(host => $host);
         }
     }
 }

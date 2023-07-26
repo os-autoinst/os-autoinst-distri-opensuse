@@ -99,6 +99,9 @@ sub run {
     my $engine = $args->{runtime};
     my $bci_devel_repo = get_var('BCI_DEVEL_REPO');
     my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
+    if (my $bci_repo = get_var('REPO_BCI')) {
+        $bci_devel_repo = "http://openqa.suse.de/assets/repo/$bci_repo";
+    }
     my $bci_target = get_var('BCI_TARGET', 'ibs-cr');
     my $version = get_required_var('VERSION');
     my $test_envs = get_required_var('BCI_TEST_ENVS');
@@ -111,6 +114,7 @@ sub run {
     assert_script_run("export TOX_PARALLEL_NO_SPINNER=1");
     assert_script_run("export CONTAINER_RUNTIME=$engine");
     $version =~ s/-SP/./g;
+    $version = lc($version);
     assert_script_run("export OS_VERSION=$version");
     assert_script_run("export TARGET=$bci_target");
     assert_script_run("export BCI_DEVEL_REPO=$bci_devel_repo") if $bci_devel_repo;

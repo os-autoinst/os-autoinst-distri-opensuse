@@ -40,7 +40,9 @@ use Installation::SystemProbing::EncryptedVolumeActivationController;
 use Installation::SystemRole::SystemRoleController;
 use Installation::Popups::OKPopupController;
 use Installation::Popups::YesNoPopupController;
-use Installation::Popups::AcceptPopupController;
+use Installation::Popups::LicensePopup;
+use Yam::PreviouslyUsedReposPage;
+use Yam::SelectForUpdatePage;
 use YaST::Bootloader::BootloaderSettingsController;
 use YaST::Firstboot::ConfigurationCompletedController;
 use YaST::Firstboot::HostNameController;
@@ -177,8 +179,8 @@ sub get_yes_no_popup_controller {
     return Installation::Popups::YesNoPopupController->new();
 }
 
-sub get_accept_popup_controller {
-    return Installation::Popups::AcceptPopupController->new();
+sub get_license_popup {
+    return Installation::Popups::LicensePopup->new();
 }
 
 sub get_encrypted_volume_activation {
@@ -233,6 +235,14 @@ sub get_kdump_fadump_startup {
 
 sub get_restart_info {
     return YaST::RestartInfoPage->new({app => YuiRestClient::get_app()});
+}
+
+sub get_select_for_update {
+    Yam::SelectForUpdatePage->new();
+}
+
+sub get_previously_used_repos {
+    Yam::PreviouslyUsedReposPage->new();
 }
 
 1;

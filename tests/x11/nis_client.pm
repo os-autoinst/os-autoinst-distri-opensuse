@@ -19,6 +19,7 @@ use mm_network 'setup_static_mm_network';
 use y2_module_guitest '%setup_nis_nfs_x11';
 use x11utils 'turn_off_gnome_screensaver';
 use y2_module_consoletest;
+use YaST::workarounds;
 
 sub setup_nis_client {
     my $server_ip = shift;
@@ -87,7 +88,7 @@ sub nfs_shares_tab {
     send_key 'alt-o';    # OK
     assert_screen 'nis-client-nfs-client-configuration';
     send_key 'alt-o';    # OK
-    assert_screen 'nis-client-configuration', 120;
+    apply_workaround_poo124652('nis-client-configuration', 120);
     send_key 'alt-f';    # finish
     if (is_opensuse) {
         assert_screen 'disable_auto_login_popup';

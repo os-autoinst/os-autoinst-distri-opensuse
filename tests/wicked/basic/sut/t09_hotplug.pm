@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019 SUSE LLC
+# Copyright 2019-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: wicked-service wicked
@@ -27,6 +27,10 @@ sub run {
     assert_script_run('./ifbind.sh unbind ' . $ctx->iface());
     assert_script_run('./ifbind.sh bind ' . $ctx->iface());
     $self->ping_with_timeout(type => 'host', interface => $ctx->iface());
+}
+
+sub test_flags {
+    return {always_rollback => 1};
 }
 
 1;

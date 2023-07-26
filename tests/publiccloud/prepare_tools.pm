@@ -71,17 +71,30 @@ sub run {
     ensure_ca_certificates_suse_installed();
 
     # Install prerequisite packages test
-    zypper_call('-q in python310-pip python310-devel python3-pytest python3-img-proof python3-img-proof-tests podman docker jq rsync');
+    zypper_call('-q in python310-pip python310-devel python3-pytest python3-img-proof python3-img-proof-tests podman docker jq rsync unzip');
     record_info('python', script_output('python --version'));
     systemctl('enable --now docker');
     assert_script_run('podman ps');
     assert_script_run('docker ps');
 
     # Install AWS cli
-    install_in_venv('aws', requirements => 1);
+    my $aws_version = '2.12.3';
+    # Download and import the AWS public PGP key
+    assert_script_run(sprintf('curl -f -v %s/data/publiccloud/aws.asc -o /tmp/aws.asc', autoinst_url()));
+    assert_script_run('gpg --import /tmp/aws.asc');
+    # Download the aws cli binary, its signature and verify those
+    script_retry("curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64-$aws_version.zip -o /tmp/awscliv2.zip", retry => 3, delay => 60);
+    script_retry("curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64-$aws_version.zip.sig -o /tmp/awscliv2.sig", retry => 3, delay => 60);
+    assert_script_run('gpg --verify /tmp/awscliv2.sig /tmp/awscliv2.zip', fail_message => 'The gpg check of downloaded installation file failed.');
+    assert_script_run('unzip /tmp/awscliv2.zip -d /tmp/');
+    assert_script_run('/tmp/aws/install -i /usr/local/aws-cli -b /usr/local/bin');
     record_info('EC2', script_output('aws --version'));
 
     # Install ec2imgutils
+    # bsc#1213529
+    assert_script_run('cat /usr/lib/python3.6/site-packages/azure_core-1.23.1-py3.6.egg-info/requires.txt');
+    assert_script_run(q(sed -i 's/^typing-extensions>=4\.0\.1$/typing-extensions>=3.10.0.0/' /usr/lib/python3.6/site-packages/azure_core-1.23.1-py3.6.egg-info/requires.txt));
+
     install_in_venv('ec2uploadimg', requirements => 1);
     record_info('ec2imgutils', 'ec2uploadimg:' . script_output('ec2uploadimg --version'));
 

@@ -29,6 +29,7 @@ use power_action_utils qw(power_action prepare_system_shutdown);
 use filesystem_utils qw(format_partition);
 use lockapi;
 use mmapi;
+use version_utils 'is_alp';
 
 # Heartbeat variables
 my $HB_INTVL = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
@@ -55,6 +56,9 @@ my $LOG_DIR = '/opt/log';
 my $KDUMP_DIR = '/opt/kdump';
 my $MAX_TIME = get_var('XFSTESTS_SUBTEST_MAXTIME') || 2400;
 my $FSTYPE = get_required_var('XFSTESTS');
+
+my $TEST_FOLDER = '/opt/test';
+my $SCRATCH_FOLDER = '/opt/scratch';
 
 # Create heartbeat script, directories(Call it only once)
 sub test_prepare {
@@ -336,7 +340,7 @@ sub copy_log {
 # Log: Copy junk.fsxops for fails fsx tests included in subtests
 sub copy_fsxops {
     my ($category, $num) = @_;
-    my $cmd = "if [ -e /mnt/test/junk.fsxops ]; then cp /mnt/test/junk.fsxops $LOG_DIR/$category/$num.junk.fsxops; fi";
+    my $cmd = "if [ -e $TEST_FOLDER/junk.fsxops ]; then cp $TEST_FOLDER/junk.fsxops $LOG_DIR/$category/$num.junk.fsxops; fi";
     script_run($cmd);
 }
 
@@ -361,7 +365,7 @@ sub collect_fs_status {
     my ($category, $num) = @_;
     my $cmd = <<END_CMD;
 mount \$TEST_DEV \$TEST_DIR &> /dev/null
-[ -n "\$SCRATCH_DEV" ] && mount \$SCRATCH_DEV /mnt/scratch &> /dev/null
+[ -n "\$SCRATCH_DEV" ] && mount \$SCRATCH_DEV $SCRATCH_FOLDER &> /dev/null
 END_CMD
     if ($FSTYPE eq 'xfs') {
         $cmd = <<END_CMD;
@@ -370,8 +374,8 @@ echo "==> /sys/fs/$FSTYPE/stats/stats <==" > $LOG_DIR/$category/$num.fs_stat
 cat /sys/fs/$FSTYPE/stats/stats >> $LOG_DIR/$category/$num.fs_stat
 tail -n +1 /sys/fs/$FSTYPE/*/log/* >> $LOG_DIR/$category/$num.fs_stat
 tail -n +1 /sys/fs/$FSTYPE/*/stats/stats >> $LOG_DIR/$category/$num.fs_stat
-xfs_info /mnt/test > $LOG_DIR/$category/$num.xfsinfo
-xfs_info /mnt/scratch >> $LOG_DIR/$category/$num.xfsinfo
+xfs_info $TEST_FOLDER > $LOG_DIR/$category/$num.xfsinfo
+xfs_info $SCRATCH_FOLDER >> $LOG_DIR/$category/$num.xfsinfo
 END_CMD
     }
     elsif ($FSTYPE eq 'btrfs') {

@@ -42,9 +42,10 @@ sub run {
     my $machine_name = "openqa-cli-test-vm-$job_id";
     my $security_group_name = "openqa-cli-test-sg-$job_id";
     my $openqa_ttl = get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300);
-    my $openqa_url = get_required_var('OPENQA_URL');
+    my $openqa_url = get_var('OPENQA_URL', get_var('OPENQA_HOSTNAME'));
     my $created_by = "$openqa_url/t$job_id";
     my $tag = "{Key=openqa-cli-test-tag,Value=$job_id},{Key=openqa_created_by,Value=$created_by},{Key=openqa_ttl,Value=$openqa_ttl}";
+    $tag .= ",{Key=openqa_var_server,Value=$openqa_url},{Key=openqa_var_job_id,Value=$job_id}";
 
     my $create_security_group = "aws ec2 create-security-group --group-name $security_group_name --description 'aws_cli openqa test security group'";
     $create_security_group .= " --tag-specifications 'ResourceType=security-group,Tags=[$tag]'";

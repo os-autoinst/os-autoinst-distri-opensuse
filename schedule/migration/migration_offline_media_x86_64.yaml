@@ -4,10 +4,11 @@ description:    |
 vars:
   ORIGIN_SYSTEM_VERSION: '%HDDVERSION%'
   UPGRADE_TARGET_VERSION: '%VERSION%'
+  YUI_REST_API: '1'
 schedule:
   - migration/version_switch_origin_system
   - boot/boot_to_desktop
-  - migration/SUSEConnect_register_system
+  - migration/suseconnect_register_system
   - migration/patch_and_reboot_system
   - migration/setup_sle
   - migration/install_patterns
@@ -17,8 +18,11 @@ schedule:
   - migration/reboot_to_upgrade
   - migration/version_switch_upgrade_target
   - installation/bootloader
+  - installation/setup_libyui
   - installation/welcome
-  - installation/upgrade_select
+  - installation/upgrade/select_for_update
+  - installation/licensing/accept_license
+  - installation/upgrade/accept_remove_previous_repos
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/resolve_dependency_issues

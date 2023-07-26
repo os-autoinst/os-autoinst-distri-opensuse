@@ -31,8 +31,8 @@ sub send_key_and_wait {
 }
 
 sub run {
-    # install-shell is tty2 by default, but that's where our session might be.
-    # Use the same logic as for the root console.
+    # Adjust the installation consoles, they can differ from what the instsys uses
+    # (install-shell -> tty2, installation -> tty7).
     console('install-shell')->set_tty(get_root_console_tty());
     console('installation')->set_tty(get_x11_console_tty());
 

@@ -48,7 +48,7 @@ variable "offer" {
 }
 
 variable "sku" {
-    default="gen1"
+    default="gen2"
 }
 
 variable "extra-disk-size" {

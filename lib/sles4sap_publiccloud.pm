@@ -44,6 +44,7 @@ our @EXPORT = qw(
   wait_for_sync
   wait_for_pacemaker
   cloud_file_content_replace
+  change_sbd_service_timeout
   setup_sbd_delay
   sbd_delay_formula
   create_instance_data
@@ -427,6 +428,39 @@ sub wait_for_pacemaker {
     return 1;
 }
 
+=head2 change_sbd_service_timeout
+     $self->change_sbd_service_timeout(timeout => $timeout);
+
+     Overrides timeout for sbd systemd service to a value provided by argument.
+     This is done by creating or changing file "/etc/systemd/system/sbd.service.d/sbd_delay_start.conf"
+
+=cut
+
+sub change_sbd_service_timeout() {
+    my ($self, $service_timeout) = @_;
+    die if !defined($service_timeout);
+    my $service_override_dir = "/etc/systemd/system/sbd.service.d/";
+    my $service_override_filename = "sbd_delay_start.conf";
+    my $service_override_path = $service_override_dir . $service_override_filename;
+    my $file_exists = $self->run_cmd(cmd => join(" ", "test", "-e", $service_override_path, ";echo", "\$?"),
+        proceed_on_failure => 1,
+        quiet => 1);
+
+    # bash return code has inverted value: 0 = file exists
+    if (!$file_exists) {
+        $self->cloud_file_content_replace($service_override_path,
+            '^TimeoutSec=.*',
+            "TimeoutSec=$service_timeout");
+    }
+    else {
+        my @content = ('[Service]', "TimeoutSec=$service_timeout");
+
+        $self->run_cmd(cmd => join(" ", "mkdir", "-p", $service_override_dir), quiet => 1);
+        $self->run_cmd(cmd => join(" ", "bash", "-c", "\"echo", "'$_'", ">>", $service_override_path, "\""), quiet => 1) foreach @content;
+    }
+    record_info("Systemd SBD", "Systemd unit timeout for 'sbd.service' set to '$service_timeout'");
+}
+
 =head2 setup_sbd_delay
      $self->setup_sbd_delay();
 
@@ -446,18 +480,25 @@ sub wait_for_pacemaker {
 
 sub setup_sbd_delay() {
     my ($self) = @_;
-    my $delay = get_var('HA_SBD_START_DELAY');
-    $delay =~ s/(?<![ye])s//g;
+    my $delay = get_var('HA_SBD_START_DELAY') // '';
+
     if ($delay eq '') {
         record_info('SBD delay', 'Skipping, parameter without value');
-        return;
+        # Ensure service timeout is higher than sbd delay time
+        $delay = $self->sbd_delay_formula();
+        $self->change_sbd_service_timeout($delay + 30);
+    }
+    else {
+        $delay =~ s/(?<![ye])s//g;
+        croak("<\$set_delay> value must be either 'yes', 'no' or an integer. Got value: $delay")
+          unless looks_like_number($delay) or grep /^$delay$/, qw(yes no);
+
+        $self->cloud_file_content_replace('/etc/sysconfig/sbd', '^SBD_DELAY_START=.*', "SBD_DELAY_START=$delay");
+        # service timeout must be higher that startup delay
+        $self->change_sbd_service_timeout($self->sbd_delay_formula() + 30);
+        record_info('SBD delay', "SBD delay set to: $delay");
     }
 
-    croak("<\$set_delay> value must be either 'yes', 'no' or an integer. Got value: $delay")
-      unless looks_like_number($delay) or grep /^$delay$/, qw(yes no);
-
-    $self->cloud_file_content_replace('/etc/sysconfig/sbd', '^SBD_DELAY_START=.*', "SBD_DELAY_START=$delay");
-    record_info('SBD delay', "SBD delay set to: $delay");
     return $delay;
 }
 
@@ -469,6 +510,7 @@ sub setup_sbd_delay() {
 
 sub sbd_delay_formula() {
     my ($self) = @_;
+    # all commands below ($corosync_token, $corosync_consensus...) are defined and imported from lib/hacluster.pm
     my %params = (
         'corosync_token' => $self->run_cmd(cmd => $corosync_token),
         'corosync_consensus' => $self->run_cmd(cmd => $corosync_consensus),

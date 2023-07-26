@@ -65,10 +65,19 @@ sub set_bootscript {
     my $autoyast = get_var('AUTOYAST', '');
     my $regurl = get_var('SCC_URL');
     my $console = get_var('IPXE_CONSOLE');
-    my $install = get_required_var('MIRROR_HTTP');
+    my $mirror_http = get_required_var('MIRROR_HTTP');
 
-    my $kernel = get_required_var('MIRROR_HTTP');
-    my $initrd = get_required_var('MIRROR_HTTP');
+    # trim all strings from variables to get rid of bogus whitespaces
+    $url =~ s/^\s+|\s+$//g;
+    $arch =~ s/^\s+|\s+$//g;
+    $autoyast =~ s/^\s+|\s+$//g;
+    $regurl =~ s/^\s+|\s+$//g;
+    $console =~ s/^\s+|\s+$//g;
+    $mirror_http =~ s/^\s+|\s+$//g;
+
+    my $install = $mirror_http;
+    my $kernel = $mirror_http;
+    my $initrd = $mirror_http;
 
     if ($arch eq 'aarch64') {
         $kernel .= '/boot/aarch64/linux';

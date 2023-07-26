@@ -1,35 +1,39 @@
-provider: "%PROVIDER%"
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC
+# SPDX-License-Identifier: FSFAP
+# Maintainer: QE-SAP <qe-sap@suse.de>
+# Summary: Generic yaml template for use with qe-sap-deployment project: https://github.com/SUSE/qe-sap-deployment
+provider: 'azure'
 apiver: 3
 terraform:
   variables:
-    az_region: "%REGION%"
-    deployment_name: "%DEPLOYMENTNAME%"
-    os_image: "%OS_VER%"
-    public_key: "%SSH_KEY_PUB%"
-    hana_remote_python: "%ANSIBLE_REMOTE_PYTHON%"
-    iscsi_remote_python: "%ANSIBLE_REMOTE_PYTHON%"
-    hana_instancetype: "%HANA_INSTANCE_TYPE%"
-    vnet_address_range: "%VNET_ADDRESS_RANGE%"
-    subnet_address_range: "%SUBNET_ADDRESS_RANGE%"
-
+    az_region: '%REGION%'
+    deployment_name: '%DEPLOYMENTNAME%'
+    os_image: '%OS_VER%'
+    public_key: '%SSH_KEY_PUB%'
+    hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
+    iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
+    vnet_address_range: '%VNET_ADDRESS_RANGE%'
+    subnet_address_range: '%SUBNET_ADDRESS_RANGE%'
 ansible:
-  az_storage_account_name: "%HANA_ACCOUNT%"
-  az_container_name:  "%HANA_CONTAINER%"
-  az_sas_token: "%HANA_TOKEN%"
+  az_storage_account_name: '%HANA_ACCOUNT%'
+  az_container_name:  '%HANA_CONTAINER%'
+  az_sas_token: '%HANA_TOKEN%'
   hana_media:
-    - "%HANA_SAR%"
-    - "%HANA_CLIENT_SAR%"
-    - "%HANA_SAPCAR%"
+    - '%HANA_SAR%'
+    - '%HANA_CLIENT_SAR%'
+    - '%HANA_SAPCAR%'
   hana_vars:
     sap_hana_install_software_directory: /hana/shared/install
     sap_hana_install_master_password: 'DoNotUseThisPassw0rd'
     sap_hana_install_sid: 'HDB'
     sap_hana_install_instance_number: '00'
-    sap_domain: "qe-test.example.com"
+    sap_domain: 'qe-test.example.com'
     primary_site: 'goofy'
     secondary_site: 'miky'
   create:
-    - registration.yaml -e reg_code=${REG_CODE} -e email_address=${EMAIL}
+    - registration.yaml -e reg_code='%SCC_REGCODE_SLES4SAP%' -e email_address='testing@suse.com'
     - pre-cluster.yaml
     - sap-hana-preconfigure.yaml -e use_reboottimeout=900
     - cluster_sbd_prep.yaml
@@ -41,7 +45,3 @@ ansible:
     - sap-hana-cluster.yaml
   destroy:
     - deregister.yaml
-  variables:
-    REG_CODE: "%SCC_REGCODE_SLES4SAP%"
-    EMAIL: testing@suse.com
-

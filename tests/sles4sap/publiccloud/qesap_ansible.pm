@@ -28,7 +28,8 @@ sub run {
     select_serial_terminal;
     # skip ansible deployment in case of reusing infrastructure
     unless (get_var('QESAP_DEPLOYMENT_IMPORT')) {
-        die("Ansible deploymend FAILED. Check 'qesap*' logs for details.") if qesap_execute(cmd => 'ansible', timeout => 3600, verbose => 1) > 0;
+        my @ret = qesap_execute(cmd => 'ansible', timeout => 3600, verbose => 1);
+        die("Ansible deploymend FAILED. Check 'qesap*' logs for details.") if $ret[0] > 0;
         record_info('FINISHED', 'Ansible deployment process finished successfully.');
     }
 

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+    <!-- minimal autoyast profile -->
+    <suse_register>
+      <do_registration config:type="boolean">true</do_registration>
+      <email/>
+      <reg_code>{{SCC_REGCODE}}</reg_code>
+      <install_updates config:type="boolean">true</install_updates>
+      <reg_server>{{SCC_URL}}</reg_server>
+      <addons config:type="list">
+        <addon>
+          <name>sle-module-basesystem</name>
+          <version>{{VERSION}}</version>
+          <arch>{{ARCH}}</arch>
+        </addon>
+      </addons>
+    </suse_register>
+    <bootloader>
+        <global>
+	    <cpu_mitigations>auto</cpu_mitigations>
+	    <gfxmode>auto</gfxmode>
+	    <hiddenmenu>false</hiddenmenu>
+	    <os_prober>false</os_prober>
+	    <secure_boot>false</secure_boot>
+	    <terminal>console</terminal>
+	    <timeout t="integer">0</timeout>
+	    <trusted_grub>false</trusted_grub>
+	    <update_nvram>true</update_nvram>
+	    <xen_kernel_append>crashkernel=147M\&lt;4G</xen_kernel_append>
+        </global>
+    </bootloader>
+    <networking>
+        <keep_install_network config:type="boolean">true</keep_install_network>
+    </networking>
+    <software>
+        <products config:type="list">
+            <product>SLES</product>
+        </products>
+    </software>
+    <users config:type="list">
+        <user>
+            <fullname>Bernhard M. Wiedemann</fullname>
+            <encrypted config:type="boolean">false</encrypted>
+            <user_password>nots3cr3t</user_password>
+            <username>bernhard</username>
+        </user>
+        <user>
+            <encrypted config:type="boolean">false</encrypted>
+            <user_password>nots3cr3t</user_password>
+            <username>root</username>
+        </user>
+    </users>
+    <report>
+      <errors>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </errors>
+      <messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </messages>
+      <warnings>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </warnings>
+      <yesno_messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </yesno_messages>
+    </report>
+</profile>

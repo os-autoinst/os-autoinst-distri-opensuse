@@ -4,7 +4,7 @@ description: >
   Test verifies autoyast installation with ext4 filesystem. Same as autoyast_ext4
   with product defined in the profile.
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_ext4.xml
+  AUTOYAST: yam/autoyast/ext4.xml
   AUTOYAST_PREPARE_PROFILE: '1'
   DESKTOP: gnome
   FILESYSTEM: ext4

@@ -243,9 +243,6 @@ sub load_container_tests {
                 load_image_tests_in_k8s($run_args) if (/k8s/i);
                 load_image_tests_in_openshift if (/openshift/i);
             }
-        } elsif (get_var('REPO_BCI')) {
-            loadtest 'containers/host_configuration';
-            loadtest 'containers/bci_repo';
         } else {
             # Container Host tests
             loadtest 'microos/toolbox' if (/podman/i && (is_sle_micro || is_microos || is_leap_micro));

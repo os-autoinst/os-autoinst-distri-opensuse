@@ -45,8 +45,8 @@ sub run {
         join(' ', ucfirst($takeover_action) . 'DB on', ucfirst($site_name), "('", $target_site->{instance_id}, "')")
     );
 
-    # Setup sbd delay if defined by variable in case of crash OS to prevent cluster starting too quickly after reboot
-    $self->setup_sbd_delay() if $takeover_action eq 'crash' and defined(get_var('HA_SBD_START_DELAY'));
+    # SBD delay related setup in case of crash OS to prevent cluster starting too quickly after reboot
+    $self->setup_sbd_delay() if $takeover_action eq 'crash';
     # Calculate SBD delay sleep time
     $sbd_delay = $self->sbd_delay_formula if $takeover_action eq 'crash';
 
@@ -57,7 +57,8 @@ sub run {
     # SBD delay is active only after reboot
     if ($takeover_action eq 'crash' and $sbd_delay != 0) {
         record_info('SBD SLEEP', "Waiting $sbd_delay sec for SBD delay timeout.");
-        sleep($sbd_delay);
+        # test needs to wait a little more than sbd delay
+        sleep($sbd_delay + 30);
         $self->wait_for_pacemaker();
     }
 

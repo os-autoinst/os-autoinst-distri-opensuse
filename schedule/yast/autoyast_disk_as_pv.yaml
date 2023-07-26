@@ -5,7 +5,7 @@ description: >
   as volume group.  Partitioning is validated after installation is finished,  then
   SUT is cloned and generated profile is validated.
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_disk_as_pv.xml
+  AUTOYAST: yam/autoyast/disk_as_pv.xml
   AUTOYAST_CONFIRM: 1
   AUTOYAST_PREPARE_PROFILE: 1
 schedule:

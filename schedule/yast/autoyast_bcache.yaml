@@ -5,7 +5,7 @@ description: |
   One contains bios boot partition, /boot and not formatted native linux partition.
   Bcache uses not formatted native linux partition as backing device and second disk as a whole as caching device.
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_bcache.xml
+  AUTOYAST: yam/autoyast/bcache.xml
   AUTOYAST_PREPARE_PROFILE: 1
   DESKTOP: textmode
   NUMDISKS: 2
