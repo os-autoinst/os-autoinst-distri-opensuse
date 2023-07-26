@@ -33,6 +33,13 @@ sub full_run {
     assert_script_run("wget -N -P $list_path $remote_list 2>&1");
     assert_script_run("cp $list_path/$runlist $list_path/list");
 
+    if (my $skip_cases = get_var('SKIP_M_CASES')) {
+        foreach my $case (split(/,/, $skip_cases)) {
+            record_info("Skip testing case $case in PROJECT_M");
+            script_run("sed -i '/$case/d' $list_path/list");
+        }
+    }
+
     if (get_var('FULLRUN_MONITOR')) {
         # clear host status first
         get($selperf_machine_status_popapi . $hostname . "/");
