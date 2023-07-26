@@ -18,6 +18,7 @@ use Utils::Architectures;
 use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
+use serial_terminal 'prepare_serial_console';
 
 
 sub post_fail_hook {
@@ -234,6 +235,8 @@ sub run {
     }
 
     ensure_serialdev_permissions;
+
+    prepare_serial_console;
 
     my $console = select_console 'user-console';
     verify_user_info;
