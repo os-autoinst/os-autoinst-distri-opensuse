@@ -173,7 +173,7 @@ sub get_image_definition {
     foreach my $def (@$json_data) {
         my $identifier = $def->{identifier};
         next unless (defined $identifier);
-        if ($identifier->{publisher} =~ /$publisher/i && $identifier->{offer} =~ /$offer/i && $identifier->{sku} =~ /$sku/i) {
+        if ($identifier->{publisher} eq $publisher && $identifier->{offer} eq $offer && $identifier->{sku} eq $sku) {
             record_info('image_definition', "Found $def->{name} image definition");
             return $def->{name};
         }
