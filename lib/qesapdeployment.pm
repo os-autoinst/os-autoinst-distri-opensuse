@@ -436,7 +436,7 @@ sub qesap_get_terraform_dir {
 
 sub qesap_get_ansible_roles_dir {
     my %paths = qesap_get_file_paths();
-    return $paths{roles_dir};
+    return $paths{roles_dir_path};
 }
 
 =head3 qesap_prepare_env
