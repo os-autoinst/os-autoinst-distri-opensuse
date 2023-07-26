@@ -365,36 +365,28 @@ if (get_var("REGRESSION", '') =~ /xen/) {
 } elsif (get_var("REGRESSION", '') =~ /hyperv/) {
     %guests = (
         sles12sp3 => {
-            name => 'sles12sp3',
-            ip => 'win2k19-sle12-SP3.qa.suse.cz',
+            vm_name => 'sles-12.3_openQA-virtualization-maintenance',
         },
         sles12sp4 => {
-            name => 'sles12sp4',
-            ip => 'win2k19-sle12-SP4.qa.suse.cz',
+            vm_name => 'sles-12.4_openQA-virtualization-maintenance',
         },
         sles12sp5 => {
-            name => 'sles12sp5',
-            ip => 'win2k19-sle12-SP5.qa.suse.cz',
+            vm_name => 'sles-12.5_openQA-virtualization-maintenance',
         },
         sles15sp1 => {
-            name => 'sles15sp1',
-            ip => 'win2k19-sle15-SP1.qa.suse.cz',
+            vm_name => 'sles-15.1_openQA-virtualization-maintenance',
         },
         sles15sp2 => {
-            name => 'sles15sp2',
-            ip => 'win2k19-sle15-SP2.qa.suse.cz',
+            vm_name => 'sles-15.2_openQA-virtualization-maintenance',
         },
         sles15sp3 => {
-            name => 'sles15sp3',
-            ip => 'win2k19-sle15-SP3.qa.suse.cz',
+            vm_name => 'sles-15.3_openQA-virtualization-maintenance',
         },
         sles15sp4 => {
-            name => 'sles15sp4',
-            ip => 'win2k19-sle15-SP4.qa.suse.cz',
+            vm_name => 'sles-15.4_openQA-virtualization-maintenance',
         },
         sles15sp5 => {
-            name => 'sles15sp5',
-            ip => 'win2k19-sle15-SP5.qa.suse.cz',
+            vm_name => 'sles-15.5_openQA-virtualization-maintenance',
         },
     );
 
