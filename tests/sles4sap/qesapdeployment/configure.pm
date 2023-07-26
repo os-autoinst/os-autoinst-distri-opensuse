@@ -9,7 +9,6 @@ use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use mmapi 'get_current_job_id';
 use qesapdeployment;
 
 sub run {
@@ -65,6 +64,8 @@ sub run {
         $variables{VNET_ADDRESS_RANGE} = $peering_settings{vnet_address_range};
         $variables{SUBNET_ADDRESS_RANGE} = $peering_settings{subnet_address_range};
     }
+
+    $variables{ANSIBLE_ROLES} = qesap_get_ansible_roles_dir();
 
     qesap_prepare_env(openqa_variables => \%variables, provider => $qesap_provider);
 }
