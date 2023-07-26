@@ -34,11 +34,14 @@
           <li><a href="#qesap_get_terraform_dir">qesap_get_terraform_dir</a></li>
           <li><a href="#qesap_prepare_env">qesap_prepare_env</a></li>
           <li><a href="#qesap_ansible_cmd">qesap_ansible_cmd</a></li>
+          <li><a href="#qesap_ansible_script_output_file">qesap_ansible_script_output_file</a></li>
           <li><a href="#qesap_ansible_script_output">qesap_ansible_script_output</a></li>
+          <li><a href="#qesap_ansible_fetch_file">qesap_ansible_fetch_file</a></li>
           <li><a href="#qesap_create_aws_credentials">qesap_create_aws_credentials</a></li>
           <li><a href="#qesap_create_aws_config">qesap_create_aws_config</a></li>
           <li><a href="#qesap_remote_hana_public_ips">qesap_remote_hana_public_ips</a></li>
           <li><a href="#qesap_wait_for_ssh">qesap_wait_for_ssh</a></li>
+          <li><a href="#qesap_upload_crm_report">qesap_upload_crm_report</a></li>
           <li><a href="#qesap_cluster_log_cmds">qesap_cluster_log_cmds</a></li>
           <li><a href="#qesap_cluster_logs">qesap_cluster_logs</a></li>
           <li><a href="#qesap_az_get_vnet">qesap_az_get_vnet</a></li>
@@ -228,7 +231,7 @@ qesap_prepare_env(cmd=&gt;{string}, provider =&gt; &#39;aws&#39;);</code></pre>
 </dd>
 </dl>
 
-<h3 id="qesap_ansible_script_output">qesap_ansible_script_output</h3>
+<h3 id="qesap_ansible_script_output_file">qesap_ansible_script_output_file</h3>
 
 <pre><code>Use Ansible to run a command remotely and get the stdout.
 Command could be executed with elevated privileges
@@ -239,7 +242,7 @@ It uses playbook data/sles4sap/script_output.yaml
 
 1. ansible-playbook run the playbook
 2. the playbook executes the command and redirects the output to file, both remotely
-3. the playbook download the file locally
+3. qesap_ansible_fetch_file downloads the file locally
 4. the file is read and stored to be returned to the caller
 
 If local_file and local_path are specified, the output is written to file, return is the full path;
@@ -271,11 +274,108 @@ otherwise the return is the command output as string.</code></pre>
 <dd>
 
 </dd>
-<dt id="LOCAL_FILE---filter-hosts-in-the-inventory"><b>LOCAL_FILE</b> - filter hosts in the inventory</dt>
+<dt id="FILE---result-file-name"><b>FILE</b> - result file name</dt>
 <dd>
 
 </dd>
-<dt id="LOCAL_PATH---filter-hosts-in-the-inventory"><b>LOCAL_PATH</b> - filter hosts in the inventory</dt>
+<dt id="OUT_PATH---path-to-save-result-file-locally-without-file-name"><b>OUT_PATH</b> - path to save result file locally (without file name)</dt>
+<dd>
+
+</dd>
+<dt id="REMOTE_PATH---Path-to-save-file-in-the-remote-without-file-name"><b>REMOTE_PATH</b> - Path to save file in the remote (without file name)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_ansible_script_output">qesap_ansible_script_output</h3>
+
+<pre><code>Return the output of a command executed on the remote machine via Ansible.</code></pre>
+
+<dl>
+
+<dt id="PROVIDER---Cloud-provider-name-used-to-find-the-inventory2"><b>PROVIDER</b> - Cloud provider name, used to find the inventory</dt>
+<dd>
+
+</dd>
+<dt id="CMD---command-to-run-remotely2"><b>CMD</b> - command to run remotely</dt>
+<dd>
+
+</dd>
+<dt id="HOST---filter-hosts-in-the-inventory1"><b>HOST</b> - filter hosts in the inventory</dt>
+<dd>
+
+</dd>
+<dt id="USER---user-on-remote-host-default-to-cloudadmin2"><b>USER</b> - user on remote host, default to &#39;cloudadmin&#39;</dt>
+<dd>
+
+</dd>
+<dt id="ROOT---1-to-enable-remote-execution-with-elevated-user-default-to-01"><b>ROOT</b> - 1 to enable remote execution with elevated user, default to 0</dt>
+<dd>
+
+</dd>
+<dt id="FAILOK---if-not-set-ansible-failure-result-in-die2"><b>FAILOK</b> - if not set, ansible failure result in die</dt>
+<dd>
+
+</dd>
+<dt id="FILE---result-file-name1"><b>FILE</b> - result file name</dt>
+<dd>
+
+</dd>
+<dt id="OUT_PATH---path-to-save-result-file-locally-without-file-name1"><b>OUT_PATH</b> - path to save result file locally (without file name)</dt>
+<dd>
+
+</dd>
+<dt id="REMOTE_PATH---Path-to-save-file-in-the-remote-without-file-name1"><b>REMOTE_PATH</b> - Path to save file in the remote (without file name)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_ansible_fetch_file">qesap_ansible_fetch_file</h3>
+
+<pre><code>Use Ansible to fetch a file remotely.
+Command could be executed with elevated privileges
+
+qesap_ansible_fetch_file(provider =&gt; &#39;aws&#39;, host =&gt; &#39;vmhana01&#39;, root =&gt; 1);
+
+It uses playbook data/sles4sap/fetch_file.yaml
+
+1. ansible-playbook run the playbook
+3. the playbook download the file locally
+4. the file is read and stored to be returned to the caller</code></pre>
+
+<dl>
+
+<dt id="PROVIDER---Cloud-provider-name-used-to-find-the-inventory3"><b>PROVIDER</b> - Cloud provider name, used to find the inventory</dt>
+<dd>
+
+</dd>
+<dt id="HOST---filter-hosts-in-the-inventory2"><b>HOST</b> - filter hosts in the inventory</dt>
+<dd>
+
+</dd>
+<dt id="USER---user-on-remote-host-default-to-cloudadmin3"><b>USER</b> - user on remote host, default to &#39;cloudadmin&#39;</dt>
+<dd>
+
+</dd>
+<dt id="ROOT---1-to-enable-remote-execution-with-elevated-user-default-to-02"><b>ROOT</b> - 1 to enable remote execution with elevated user, default to 0</dt>
+<dd>
+
+</dd>
+<dt id="FAILOK---if-not-set-ansible-failure-result-in-die3"><b>FAILOK</b> - if not set, ansible failure result in die</dt>
+<dd>
+
+</dd>
+<dt id="FILE---file-name"><b>FILE</b> - file name</dt>
+<dd>
+
+</dd>
+<dt id="OUT_PATH---path-to-save-file-locally-without-file-name"><b>OUT_PATH</b> - path to save file locally (without file name)</dt>
+<dd>
+
+</dd>
+<dt id="REMOTE_PATH---path-to-find-file-in-the-remote-without-file-name"><b>REMOTE_PATH</b> - path to find file in the remote (without file name)</dt>
 <dd>
 
 </dd>
@@ -311,6 +411,18 @@ Return total time of retry loop in case of pass.</code></pre>
 
 </dd>
 <dt id="PORT---port-to-probe-default-is-22"><b>PORT</b> - port to probe, default is 22</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_upload_crm_report">qesap_upload_crm_report</h3>
+
+<pre><code>Run crm report on a host and upload the resulting tarball to openqa</code></pre>
+
+<dl>
+
+<dt id="HOST---host-to-get-the-report-from"><b>HOST</b> - host to get the report from</dt>
 <dd>
 
 </dd>
@@ -634,7 +746,7 @@ qesap_export_instances()</code></pre>
 
 <dl>
 
-<dt id="Around-line-764">Around line 764:</dt>
+<dt id="Around-line-935">Around line 935:</dt>
 <dd>
 
 <p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
