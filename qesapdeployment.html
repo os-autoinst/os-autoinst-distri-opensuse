@@ -26,12 +26,14 @@
           <li><a href="#qesap_pip_install">qesap_pip_install</a></li>
           <li><a href="#qesap_upload_logs">qesap_upload_logs</a></li>
           <li><a href="#qesap_get_deployment_code">qesap_get_deployment_code</a></li>
+          <li><a href="#qesap_get_roles_code-Get-the-Ansible-roles-code-from-github.com-sap-linuxlab-community.sles-for-sap">qesap_get_roles_code Get the Ansible roles code from github.com/sap-linuxlab/community.sles-for-sap</a></li>
           <li><a href="#qesap_yaml_replace">qesap_yaml_replace</a></li>
           <li><a href="#qesap_execute">qesap_execute</a></li>
           <li><a href="#qesap_ansible_log_find_timeout">qesap_ansible_log_find_timeout</a></li>
           <li><a href="#qesap_get_inventory">qesap_get_inventory</a></li>
           <li><a href="#qesap_get_nodes_number">qesap_get_nodes_number</a></li>
           <li><a href="#qesap_get_terraform_dir">qesap_get_terraform_dir</a></li>
+          <li><a href="#qesap_get_ansible_roles_dir">qesap_get_ansible_roles_dir</a></li>
           <li><a href="#qesap_prepare_env">qesap_prepare_env</a></li>
           <li><a href="#qesap_ansible_cmd">qesap_ansible_cmd</a></li>
           <li><a href="#qesap_ansible_script_output_file">qesap_ansible_script_output_file</a></li>
@@ -135,6 +137,11 @@ Collect and upload logs present in @log_files.</code></pre>
 
 <pre><code>Get the qe-sap-deployment code</code></pre>
 
+<h3 id="qesap_get_roles_code-Get-the-Ansible-roles-code-from-github.com-sap-linuxlab-community.sles-for-sap">qesap_get_roles_code Get the Ansible roles code from github.com/sap-linuxlab/community.sles-for-sap</h3>
+
+<pre><code>Keep in mind that to allow qe-sap-deployment to use roles from this repo,
+your config.yaml has to have a specific setting ansible::roles_path.</code></pre>
+
 <h3 id="qesap_yaml_replace">qesap_yaml_replace</h3>
 
 <pre><code>Replaces yaml config file variables with parameters defined by OpenQA testode, yaml template or yaml schedule.
@@ -173,6 +180,11 @@ Test only returns execution result, failure has to be handled by calling method.
 
 <pre><code>Return the path used by the qesap script as -chdir argument for terraform
 It is useful if test would like to call terraform</code></pre>
+
+<h3 id="qesap_get_ansible_roles_dir">qesap_get_ansible_roles_dir</h3>
+
+<pre><code>Return the path where sap-linuxlab/community.sles-for-sap
+has been installed</code></pre>
 
 <h3 id="qesap_prepare_env">qesap_prepare_env</h3>
 
@@ -746,7 +758,7 @@ qesap_export_instances()</code></pre>
 
 <dl>
 
-<dt id="Around-line-935">Around line 935:</dt>
+<dt id="Around-line-985">Around line 985:</dt>
 <dd>
 
 <p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
