@@ -31,7 +31,7 @@ sub run {
     } else {
         foreach my $guest (keys %virt_autotest::common::guests) {
             my $vm_name = $virt_autotest::common::guests{$guest}->{vm_name};
-            my $ip = script_output(qq(ssh -o StrictHostKeyChecking=no Administrator\@win2k19.qa.suse.cz 'powershell "get-vm -Name $vm_name | select -ExpandProperty networkadapters | select ipaddresses"' | awk -F '[{,]' '{print \$2}'));
+            my $ip = script_output(qq(ssh -o StrictHostKeyChecking=no Administrator\@win2k19.qa.suse.cz 'powershell "get-vm -Name $vm_name | select -ExpandProperty networkadapters | select ipaddresses"' | grep -oE '[0-9]+.[0-9]+.[0-9]+.[0-9]+'));
             record_info("$guest: $ip");
             assert_script_run(qq(echo "$ip $guest" >> /etc/hosts));
         }
