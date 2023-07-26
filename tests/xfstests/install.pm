@@ -45,7 +45,10 @@ sub install_xfstests_from_repo {
     zypper_call('--gpg-auto-import-keys ref');
     record_info('repo info', script_output('zypper lr -U'));
     if (is_transactional) {
-        trup_call('pkg install xfstests fio');
+        trup_call('pkg install xfstests');
+        unless (is_alp) {
+            trup_call('--continue pkg install fio');
+        }
         reboot_on_changes;
     }
     else {
