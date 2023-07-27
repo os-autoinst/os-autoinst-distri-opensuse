@@ -12,6 +12,7 @@ use warnings;
 use testapi qw(
   assert_screen
   assert_script_run
+  get_required_var
   select_console
   upload_logs
 );
@@ -19,11 +20,12 @@ use power_action_utils 'power_action';
 use transactional 'process_reboot';
 
 sub run {
+    my $product_name = get_required_var('AGAMA_PRODUCT');
     assert_screen('agama_product_selection', 120);
     $testapi::password = 'linux';
     select_console 'root-console';
 
-    assert_script_run('playwright test --trace on --project chromium --config /usr/share/e2e-agama-playwright full-disk-encryption', timeout => 600);
+    assert_script_run("PRODUCTNAME=\"$product_name\" playwright test --trace on --project chromium --config /usr/share/e2e-agama-playwright full-disk-encryption", timeout => 600);
 
     $testapi::password = 'nots3cr3t';
     assert_script_run('reboot');
