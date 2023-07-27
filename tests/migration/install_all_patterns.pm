@@ -9,18 +9,13 @@
 use base "consoletest";
 use strict;
 use warnings;
-use testapi;
-use utils;
-use migration;
-use y2_base;
+use testapi qw(select_console);
+use utils qw(install_patterns);
 
 sub run {
     select_console 'root-console';
-    install_patterns() if (get_var('PATTERNS'));
-
-    # Record the installed rpm list
-    assert_script_run 'rpm -qa > /tmp/rpm-qa.txt';
-    upload_logs '/tmp/rpm-qa.txt';
+    install_patterns();
 }
 
 1;
+
