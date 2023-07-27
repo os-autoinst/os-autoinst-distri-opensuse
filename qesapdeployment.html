@@ -166,7 +166,7 @@ Test only returns execution result, failure has to be handled by calling method.
 
 <h3 id="qesap_ansible_log_find_timeout">qesap_ansible_log_find_timeout</h3>
 
-<pre><code>Return the Timeout error found in the ansible log or not</code></pre>
+<pre><code>Return the Timeout error found in the Ansible log or not</code></pre>
 
 <h3 id="qesap_get_inventory">qesap_get_inventory</h3>
 
@@ -225,7 +225,7 @@ qesap_prepare_env(cmd=&gt;{string}, provider =&gt; &#39;aws&#39;);</code></pre>
 <dd>
 
 </dd>
-<dt id="FAILOK---if-not-set-ansible-failure-result-in-die"><b>FAILOK</b> - if not set, ansible failure result in die</dt>
+<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
 <dd>
 
 </dd>
@@ -252,13 +252,12 @@ qesap_ansible_script_output(cmd =&gt; &#39;crm status&#39;, provider =&gt; &#39;
 
 It uses playbook data/sles4sap/script_output.yaml
 
-1. ansible-playbook run the playbook
-2. the playbook executes the command and redirects the output to file, both remotely
+1. ansible-playbook runs the playbook
+2. the playbook executes the command remotely and redirects the output to file, both remotely
 3. qesap_ansible_fetch_file downloads the file locally
 4. the file is read and stored to be returned to the caller
 
-If local_file and local_path are specified, the output is written to file, return is the full path;
-otherwise the return is the command output as string.</code></pre>
+Return is the local full path of the file.</code></pre>
 
 <dl>
 
@@ -274,6 +273,14 @@ otherwise the return is the command output as string.</code></pre>
 <dd>
 
 </dd>
+<dt id="FILE---result-file-name"><b>FILE</b> - result file name</dt>
+<dd>
+
+</dd>
+<dt id="OUT_PATH---path-to-save-result-file-locally-without-file-name"><b>OUT_PATH</b> - path to save result file locally (without file name)</dt>
+<dd>
+
+</dd>
 <dt id="USER---user-on-remote-host-default-to-cloudadmin1"><b>USER</b> - user on remote host, default to &#39;cloudadmin&#39;</dt>
 <dd>
 
@@ -282,15 +289,7 @@ otherwise the return is the command output as string.</code></pre>
 <dd>
 
 </dd>
-<dt id="FAILOK---if-not-set-ansible-failure-result-in-die1"><b>FAILOK</b> - if not set, ansible failure result in die</dt>
-<dd>
-
-</dd>
-<dt id="FILE---result-file-name"><b>FILE</b> - result file name</dt>
-<dd>
-
-</dd>
-<dt id="OUT_PATH---path-to-save-result-file-locally-without-file-name"><b>OUT_PATH</b> - path to save result file locally (without file name)</dt>
+<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die1"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
 <dd>
 
 </dd>
@@ -326,7 +325,7 @@ otherwise the return is the command output as string.</code></pre>
 <dd>
 
 </dd>
-<dt id="FAILOK---if-not-set-ansible-failure-result-in-die2"><b>FAILOK</b> - if not set, ansible failure result in die</dt>
+<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die2"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
 <dd>
 
 </dd>
@@ -346,7 +345,7 @@ otherwise the return is the command output as string.</code></pre>
 
 <h3 id="qesap_ansible_fetch_file">qesap_ansible_fetch_file</h3>
 
-<pre><code>Use Ansible to fetch a file remotely.
+<pre><code>Use Ansible to fetch a file from remote.
 Command could be executed with elevated privileges
 
 qesap_ansible_fetch_file(provider =&gt; &#39;aws&#39;, host =&gt; &#39;vmhana01&#39;, root =&gt; 1);
@@ -367,6 +366,10 @@ It uses playbook data/sles4sap/fetch_file.yaml
 <dd>
 
 </dd>
+<dt id="REMOTE_PATH---path-to-find-file-in-the-remote-without-file-name"><b>REMOTE_PATH</b> - path to find file in the remote (without file name)</dt>
+<dd>
+
+</dd>
 <dt id="USER---user-on-remote-host-default-to-cloudadmin3"><b>USER</b> - user on remote host, default to &#39;cloudadmin&#39;</dt>
 <dd>
 
@@ -375,19 +378,15 @@ It uses playbook data/sles4sap/fetch_file.yaml
 <dd>
 
 </dd>
-<dt id="FAILOK---if-not-set-ansible-failure-result-in-die3"><b>FAILOK</b> - if not set, ansible failure result in die</dt>
+<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die3"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
 <dd>
 
 </dd>
-<dt id="FILE---file-name"><b>FILE</b> - file name</dt>
+<dt id="FILE---file-name-of-the-local-copy-of-the-file"><b>FILE</b> - file name of the local copy of the file</dt>
 <dd>
 
 </dd>
 <dt id="OUT_PATH---path-to-save-file-locally-without-file-name"><b>OUT_PATH</b> - path to save file locally (without file name)</dt>
-<dd>
-
-</dd>
-<dt id="REMOTE_PATH---path-to-find-file-in-the-remote-without-file-name"><b>REMOTE_PATH</b> - path to find file in the remote (without file name)</dt>
 <dd>
 
 </dd>
@@ -758,7 +757,7 @@ qesap_export_instances()</code></pre>
 
 <dl>
 
-<dt id="Around-line-985">Around line 985:</dt>
+<dt id="Around-line-965">Around line 965:</dt>
 <dd>
 
 <p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
