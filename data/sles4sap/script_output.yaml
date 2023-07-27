@@ -8,5 +8,4 @@
   tasks:
   - name: 'Run cmd'
     shell: "{{ cmd }} > {{ remote_path }}{{ out_file }}"
-    register: crm_status_files
     ignore_errors: "{{ failok }}"

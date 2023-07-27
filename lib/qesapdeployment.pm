@@ -376,7 +376,7 @@ sub qesap_execute {
 
 =head3 qesap_ansible_log_find_timeout
 
-    Return the Timeout error found in the ansible log or not
+    Return the Timeout error found in the Ansible log or not
 =cut
 
 sub qesap_ansible_log_find_timeout
@@ -510,7 +510,7 @@ sub qesap_prepare_env {
 
 =item B<FILTER> - filter hosts in the inventory
 
-=item B<FAILOK> - if not set, ansible failure result in die
+=item B<FAILOK> - if not set, Ansible failure result in die
 
 =item B<HOST_KEYS_CHECK> - if set, add some extra argument to the Ansible call
                            to allow contacting hosts not in the  KnownHost list yet.
@@ -561,13 +561,12 @@ sub qesap_ansible_cmd {
 
     It uses playbook data/sles4sap/script_output.yaml
 
-    1. ansible-playbook run the playbook
-    2. the playbook executes the command and redirects the output to file, both remotely
+    1. ansible-playbook runs the playbook
+    2. the playbook executes the command remotely and redirects the output to file, both remotely
     3. qesap_ansible_fetch_file downloads the file locally
     4. the file is read and stored to be returned to the caller
 
-    If local_file and local_path are specified, the output is written to file, return is the full path;
-    otherwise the return is the command output as string.
+    Return is the local full path of the file.
 
 =over 9
 
@@ -577,15 +576,15 @@ sub qesap_ansible_cmd {
 
 =item B<HOST> - filter hosts in the inventory
 
+=item B<FILE> - result file name
+
+=item B<OUT_PATH> - path to save result file locally (without file name)
+
 =item B<USER> - user on remote host, default to 'cloudadmin'
 
 =item B<ROOT> - 1 to enable remote execution with elevated user, default to 0
 
-=item B<FAILOK> - if not set, ansible failure result in die
-
-=item B<FILE> - result file name
-
-=item B<OUT_PATH> - path to save result file locally (without file name)
+=item B<FAILOK> - if not set, Ansible failure result in die
 
 =item B<REMOTE_PATH> - Path to save file in the remote (without file name)
 
@@ -607,6 +606,8 @@ sub qesap_ansible_script_output_file {
     my $failok = $args{failok} // 1;
     my $local_tmp = $out_path . $file;
 
+    # Download the playbook from the test code repo copy on the worker
+    # within the running JompHost.
     if (script_run "test -e $playbook") {
         my $cmd = join(' ',
             'curl', '-v', '-fL',
@@ -657,7 +658,7 @@ sub qesap_ansible_script_output_file {
 
 =item B<ROOT> - 1 to enable remote execution with elevated user, default to 0
 
-=item B<FAILOK> - if not set, ansible failure result in die
+=item B<FAILOK> - if not set, Ansible failure result in die
 
 =item B<FILE> - result file name
 
@@ -700,7 +701,7 @@ sub qesap_ansible_script_output {
 
 =head3 qesap_ansible_fetch_file
 
-    Use Ansible to fetch a file remotely.
+    Use Ansible to fetch a file from remote.
     Command could be executed with elevated privileges
 
     qesap_ansible_fetch_file(provider => 'aws', host => 'vmhana01', root => 1);
@@ -717,31 +718,30 @@ sub qesap_ansible_script_output {
 
 =item B<HOST> - filter hosts in the inventory
 
+=item B<REMOTE_PATH> - path to find file in the remote (without file name)
+
 =item B<USER> - user on remote host, default to 'cloudadmin'
 
 =item B<ROOT> - 1 to enable remote execution with elevated user, default to 0
 
-=item B<FAILOK> - if not set, ansible failure result in die
+=item B<FAILOK> - if not set, Ansible failure result in die
 
-=item B<FILE> - file name
+=item B<FILE> - file name of the local copy of the file
 
 =item B<OUT_PATH> - path to save file locally (without file name)
-
-=item B<REMOTE_PATH> - path to find file in the remote (without file name)
 
 =back
 =cut
 
 sub qesap_ansible_fetch_file {
     my (%args) = @_;
-    foreach (qw(provider host)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    foreach (qw(provider host remote_path)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     $args{user} ||= 'cloudadmin';
     $args{root} ||= 0;
 
     my $inventory = qesap_get_inventory($args{provider});
 
     my $fetch_playbook = 'fetch_file.yaml';
-    my $path = $args{remote_path};
     my $local_path = $args{out_path} // '/tmp/ansible_script_output/';
     my $local_file = $args{file} // 'testout.txt';
     my $local_tmp = $local_path . $local_file;
@@ -758,7 +758,8 @@ sub qesap_ansible_fetch_file {
     push @ansible_fetch_cmd, ('-l', $args{host}, '-i', $inventory);
     push @ansible_fetch_cmd, ('-u', $args{user});
     push @ansible_fetch_cmd, ('-b', '--become-user', 'root') if ($args{root});
-    push @ansible_fetch_cmd, ('-e', "out_path='$local_path'", '-e', "remote_path='$path'",
+    push @ansible_fetch_cmd, ('-e', "local_path='$local_path'",
+        '-e', "remote_path='$args{remote_path}'",
         '-e', "file='$local_file'");
     push @ansible_fetch_cmd, ('-e', "failok=yes") if ($args{failok});
 
@@ -891,26 +892,13 @@ sub qesap_upload_crm_report {
 =cut
 
 sub qesap_cluster_log_cmds {
+    # many logs does not need to be in this list as collected with `crm report`.
+    # Some of them that are there are: `crm status`, `crm configure show`,
+    # `journalctl -b`, `systemctl status sbd`, `corosync.conf` and `csync2`
     my @log_list = (
-        {
-            Cmd => 'crm status',
-            Output => 'crm_status.txt',
-        },
-        {
-            Cmd => 'crm configure show',
-            Output => 'crm_configure.txt',
-        },
         {
             Cmd => 'lsblk -i -a',
             Output => 'lsblk.txt',
-        },
-        {
-            Cmd => 'journalctl -b --no-pager -o short-precise',
-            Output => 'journalctl.txt',
-        },
-        {
-            Cmd => 'systemctl --no-pager --full status sbd',
-            Output => 'sbd.txt',
         },
         {
             Cmd => 'lsscsi -i',
@@ -924,14 +912,6 @@ sub qesap_cluster_log_cmds {
             Cmd => 'cat /var/tmp/hdblcm.log',
             Output => 'hdblcm.log.txt',
         },
-        {
-            Cmd => 'cat /etc/corosync/corosync.conf',
-            Output => 'corosync.conf.txt',
-        },
-        {
-            Cmd => 'csync2 -L',
-            Output => 'csync2__L.txt',
-        },
     );
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
         push @log_list, {
@@ -939,7 +919,7 @@ sub qesap_cluster_log_cmds {
             Output => 'aws_config.txt',
         };
     }
-    if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+    elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
         push @log_list, {
             Cmd => 'cat /var/log/cloud-init.log > azure_cloud_init_log.txt',
             Output => 'azure_cloud_init_log.txt',

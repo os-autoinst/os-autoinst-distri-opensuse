@@ -485,7 +485,6 @@ subtest '[qesap_ansible_script_output]' => sub {
 
     note("\n  out=$out");
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    #ok((any { /ansible-playbook.*REEF.*"cmd='SWIM'"/ } @calls), 'proper ansible-playbooks command');
     like($out, qr/^ANEMONE/, 'the return is the content of the file stored by Ansible');
 };
 
@@ -509,7 +508,7 @@ subtest '[qesap_ansible_script_output_file]' => sub {
 
     note("\n  out=$out");
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok((any { /ansible-playbook.*-e.*out_path='\/BERMUDA_TRIAGLE\/'/ } @calls), 'proper ansible-playbooks local_path');
+    ok((any { /ansible-playbook.*-e.*local_path='\/BERMUDA_TRIAGLE\/'/ } @calls), 'proper ansible-playbooks local_path');
     ok((any { /ansible-playbook.*-e.*file='SUBMARINE.TXT'/ } @calls), 'proper ansible-playbooks local_file');
     like($out, qr/^\/BERMUDA_TRIAGLE\/SUBMARINE\.TXT/, 'the return is the path of the file stored by Ansible');
 };
@@ -571,7 +570,7 @@ subtest '[qesap_ansible_script_output_file] download the playbook' => sub {
     qesap_ansible_script_output_file(cmd => 'SWIM', provider => 'NEMO', host => 'REEF', out_path => '/BERMUDA_TRIAGLE/', file => 'SUBMARINE.TXT');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok((any { /curl.*BRUCE/ } @calls), 'Playbook download with culr');
+    ok((any { /curl.*BRUCE/ } @calls), 'Playbook download with curl');
 };
 
 subtest '[qesap_ansible_script_output_file] custom user' => sub {
@@ -1450,5 +1449,28 @@ subtest '[qesap_aws_vnet_peering] died when aws does not return expected output'
     $routing_id = 'rtb-00deadbeef00';
 };
 
+subtest '[qesap_ansible_fetch_file] mandatory arguments' => sub {
+    dies_ok { qesap_ansible_fetch_file() } "Expected die for missing provider and host";
+    dies_ok { qesap_ansible_fetch_file(provider => 'SAND', remote_path => '/WIND') } "Expected die for missing host";
+    dies_ok { qesap_ansible_fetch_file(host => 'SALT', remote_path => '/WIND') } "Expected die for missing provider";
+    dies_ok { qesap_ansible_fetch_file(provider => 'SAND', host => 'SALT') } "Expected die for missing remote_path";
+};
+
+subtest '[qesap_ansible_fetch_file]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    $qesap->redefine(qesap_get_inventory => sub { return '/SIDNEY'; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(data_url => sub { return '/BRUCE'; });
+
+    my $ret = qesap_ansible_fetch_file(provider => 'SAND', host => 'SALT', remote_path => '/WIND');
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("$ret");
+
+    ok $ret eq '/tmp/ansible_script_output/testout.txt', 'The default local file path is /tmp/ansible_script_output/testout.txt';
+};
 
 done_testing;
