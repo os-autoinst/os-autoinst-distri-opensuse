@@ -13,6 +13,7 @@ use base 'Exporter';
 use Exporter;
 use main_common;
 use main_containers qw(load_container_tests is_container_test);
+use main_publiccloud 'load_ansible_tests';
 use testapi qw(check_var get_required_var get_var set_var);
 use version_utils;
 use utils;
@@ -278,25 +279,19 @@ sub load_slem_on_pc_tests {
 }
 
 sub load_tests {
-    # SLEM on PC
     if (is_public_cloud()) {
-        load_slem_on_pc_tests;
+        if (check_var('PUBLIC_CLOUD_ANSIBLE_CLIENT', 1) || check_var('PUBLIC_CLOUD_ANSIBLE_TARGET', 1)) {
+            # SLE-Micro Ansible target
+            load_ansible_tests();
+        } else {
+            # SLEM on PC
+            load_slem_on_pc_tests();
+        }
         return 1;
     }
 
     if (is_kernel_test()) {
         load_kernel_tests;
-        return 1;
-    }
-
-    if (check_var('PUBLIC_CLOUD_ANSIBLE_CLIENT', 1)) {
-        loadtest 'boot/boot_to_desktop';
-        loadtest 'publiccloud/ansible_client';
-        return 1;
-    }
-    elsif (check_var('PUBLIC_CLOUD_ANSIBLE_TARGET', 1)) {
-        loadtest 'microos/disk_boot';
-        loadtest 'publiccloud/ansible_target';
         return 1;
     }
 

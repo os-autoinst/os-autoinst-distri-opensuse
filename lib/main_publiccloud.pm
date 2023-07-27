@@ -19,6 +19,7 @@ require bmwqemu;
 
 our @EXPORT = qw(
   load_publiccloud_tests
+  load_ansible_tests
 );
 
 sub load_maintenance_publiccloud_tests {
@@ -179,6 +180,20 @@ sub load_publiccloud_download_repos {
     loadtest 'publiccloud/download_repos';
     loadtest 'shutdown/shutdown';
 }
+
+sub load_ansible_tests {
+    if (check_var('PUBLIC_CLOUD_ANSIBLE_CLIENT', 1)) {
+        loadtest 'boot/boot_to_desktop';
+        loadtest 'publiccloud/ansible_client';
+        return 1;
+    }
+    elsif (check_var('PUBLIC_CLOUD_ANSIBLE_TARGET', 1)) {
+        loadtest 'microos/disk_boot';
+        loadtest 'publiccloud/ansible_target';
+        return 1;
+    }
+}
+
 
 =head2 load_publiccloud_tests
 

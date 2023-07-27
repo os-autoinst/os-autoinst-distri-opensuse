@@ -8,26 +8,32 @@
 
 use base "consoletest";
 use serial_terminal 'select_serial_terminal';
-use strict;
+use transactional qw(trup_call process_reboot);
+#use strict;
 use warnings;
 use testapi;
-use mmapi;
-use utils qw(zypper_call);
-use network_utils qw(setup_static_network);
 use lockapi;
+use mmapi;
+use mm_network qw(setup_static_mm_network);
+use utils qw(zypper_call);
 
 sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
 
     record_info('system', script_output('cat /etc/os-release'));
-    setup_static_network(ip => '10.0.2.15/15', gw => '10.0.2.2');
+    # setup_static_network(ip => '10.0.2.15/15', gw => '10.0.2.2');
+    # record_info('ip', script_output('ip a'));
+    # record_info('route', script_output('ip r'));
+    # assert_script_run('echo "10.0.2.20  microos" >> /etc/hosts');
+    # zypper_call('in -y iputils git');
+
+    setup_static_mm_network('10.0.2.15/15');
+
     record_info('ip', script_output('ip a'));
     record_info('route', script_output('ip r'));
-    assert_script_run('echo "10.0.2.20  microos" >> /etc/hosts');
-    zypper_call('in -y iputils git');
+    script_run('ping -c 1 download.suse.de');
 
-    assert_script_run('mkdir /root/.ssh');
     assert_script_run('curl -f -v ' . autoinst_url . '/data/slenkins/ssh/id_rsa > /root/.ssh/id_rsa');
     assert_script_run('chmod 600 /root/.ssh/id_rsa');
 
