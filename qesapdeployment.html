@@ -23,6 +23,7 @@
           <li><a href="#qesap_create_folder_tree">qesap_create_folder_tree</a></li>
           <li><a href="#qesap_get_variables">qesap_get_variables</a></li>
           <li><a href="#qesap_create_ansible_section">qesap_create_ansible_section</a></li>
+          <li><a href="#qesap_venv_cmd_exec">qesap_venv_cmd_exec</a></li>
           <li><a href="#qesap_pip_install">qesap_pip_install</a></li>
           <li><a href="#qesap_upload_logs">qesap_upload_logs</a></li>
           <li><a href="#qesap_get_deployment_code">qesap_get_deployment_code</a></li>
@@ -95,7 +96,7 @@ SPDX-License-Identifier: FSFAP</code></pre>
 
 <h3 id="qesap_get_file_paths">qesap_get_file_paths</h3>
 
-<pre><code>Returns a hash containing file paths for config files</code></pre>
+<pre><code>Returns a hash containing file paths for configuration files</code></pre>
 
 <h3 id="qesap_create_folder_tree">qesap_create_folder_tree</h3>
 
@@ -103,17 +104,41 @@ SPDX-License-Identifier: FSFAP</code></pre>
 
 <h3 id="qesap_get_variables">qesap_get_variables</h3>
 
-<pre><code>Scans yaml config for &#39;%OPENQA_VARIABLE%&#39; placeholders and searches for values in OpenQA defined variables.
+<pre><code>Scans yaml configuration for &#39;%OPENQA_VARIABLE%&#39; placeholders and
+searches for values in OpenQA defined variables.
 Returns hash with openqa variable key/value pairs.</code></pre>
 
 <h3 id="qesap_create_ansible_section">qesap_create_ansible_section</h3>
 
-<pre><code>Writes &quot;ansible&quot; section into yaml config file.
+<pre><code>Writes &quot;ansible&quot; section into yaml configuration file.
 $args{ansible_section} defines section(key) name.
 $args{section_content} defines content of names section.
     Example:
         @playbook_list = (&quot;pre-cluster.yaml&quot;, &quot;cluster_sbd_prep.yaml&quot;);
         qesap_create_ansible_section(ansible_section=&gt;&#39;create&#39;, section_content=&gt;\@playbook_list);</code></pre>
+
+<h3 id="qesap_venv_cmd_exec">qesap_venv_cmd_exec</h3>
+
+<pre><code>Run a command within the Python virtualenv
+created by qesap_pip_install
+
+Return is only valid if failok = 1</code></pre>
+
+<dl>
+
+<dt id="CMD---command-to-run-remotely"><b>CMD</b> - command to run remotely</dt>
+<dd>
+
+</dd>
+<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
+<dd>
+
+</dd>
+<dt id="TIMEOUT---default-90-secs"><b>TIMEOUT</b> - default 90 secs</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h3 id="qesap_pip_install">qesap_pip_install</h3>
 
@@ -144,8 +169,10 @@ your config.yaml has to have a specific setting ansible::roles_path.</code></pre
 
 <h3 id="qesap_yaml_replace">qesap_yaml_replace</h3>
 
-<pre><code>Replaces yaml config file variables with parameters defined by OpenQA testode, yaml template or yaml schedule.
-Openqa variables need to be added as a hash with key/value pair inside %run_args{openqa_variables}.
+<pre><code>Replaces yaml configuration file variables with parameters
+defined by OpenQA test code, yaml template or yaml schedule.
+Openqa variables need to be added as a hash
+with key/value pair inside %run_args{openqa_variables}.
 Example:
     my %variables;
     $variables{HANA_SAR} = get_required_var(&quot;HANA_SAR&quot;);
@@ -155,7 +182,8 @@ Example:
 <h3 id="qesap_execute">qesap_execute</h3>
 
 <pre><code>qesap_execute(cmd =&gt; $qesap_script_cmd [, verbose =&gt; 1, cmd_options =&gt; $cmd_options] );
-cmd_options - allows to append additional qesap.py commans arguments like &quot;qesap.py terraform -d&quot;
+cmd_options - allows to append additional qesap.py commands arguments
+like &quot;qesap.py terraform -d&quot;
     Example:
     qesap_execute(cmd =&gt; &#39;terraform&#39;, cmd_options =&gt; &#39;-d&#39;) will result in:
     qesap.py terraform -d
@@ -193,9 +221,9 @@ has been installed</code></pre>
 Prepare terraform environment.
 - creates file structures
 - pulls git repository
-- external config files
+- external configuration files
 - installs pip requirements and OS packages
-- generates config files with qesap script
+- generates configuration files with qesap script
 
 For variables example see &#39;qesap_yaml_replace&#39;
 Returns only result, failure handling has to be done by calling method.</code></pre>
@@ -213,7 +241,7 @@ qesap_prepare_env(cmd=&gt;{string}, provider =&gt; &#39;aws&#39;);</code></pre>
 <dd>
 
 </dd>
-<dt id="CMD---command-to-run-remotely"><b>CMD</b> - command to run remotely</dt>
+<dt id="CMD---command-to-run-remotely1"><b>CMD</b> - command to run remotely</dt>
 <dd>
 
 </dd>
@@ -225,7 +253,7 @@ qesap_prepare_env(cmd=&gt;{string}, provider =&gt; &#39;aws&#39;);</code></pre>
 <dd>
 
 </dd>
-<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
+<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die1"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
 <dd>
 
 </dd>
@@ -233,7 +261,7 @@ qesap_prepare_env(cmd=&gt;{string}, provider =&gt; &#39;aws&#39;);</code></pre>
 <dd>
 
 </dd>
-<dt id="TIMEOUT---default-90-secs"><b>TIMEOUT</b> - default 90 secs</dt>
+<dt id="TIMEOUT---default-90-secs1"><b>TIMEOUT</b> - default 90 secs</dt>
 <dd>
 
 </dd>
@@ -257,7 +285,8 @@ It uses playbook data/sles4sap/script_output.yaml
 3. qesap_ansible_fetch_file downloads the file locally
 4. the file is read and stored to be returned to the caller
 
-Return is the local full path of the file.</code></pre>
+Return is the local full path of the file containing the output of the
+remotely executed command.</code></pre>
 
 <dl>
 
@@ -265,7 +294,7 @@ Return is the local full path of the file.</code></pre>
 <dd>
 
 </dd>
-<dt id="CMD---command-to-run-remotely1"><b>CMD</b> - command to run remotely</dt>
+<dt id="CMD---command-to-run-remotely2"><b>CMD</b> - command to run remotely</dt>
 <dd>
 
 </dd>
@@ -289,7 +318,7 @@ Return is the local full path of the file.</code></pre>
 <dd>
 
 </dd>
-<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die1"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
+<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die2"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
 <dd>
 
 </dd>
@@ -309,7 +338,7 @@ Return is the local full path of the file.</code></pre>
 <dd>
 
 </dd>
-<dt id="CMD---command-to-run-remotely2"><b>CMD</b> - command to run remotely</dt>
+<dt id="CMD---command-to-run-remotely3"><b>CMD</b> - command to run remotely</dt>
 <dd>
 
 </dd>
@@ -325,7 +354,7 @@ Return is the local full path of the file.</code></pre>
 <dd>
 
 </dd>
-<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die2"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
+<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die3"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
 <dd>
 
 </dd>
@@ -354,7 +383,9 @@ It uses playbook data/sles4sap/fetch_file.yaml
 
 1. ansible-playbook run the playbook
 3. the playbook download the file locally
-4. the file is read and stored to be returned to the caller</code></pre>
+4. the file is read and stored to be returned to the caller
+
+Return the local path of the downloaded file.</code></pre>
 
 <dl>
 
@@ -378,7 +409,7 @@ It uses playbook data/sles4sap/fetch_file.yaml
 <dd>
 
 </dd>
-<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die3"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
+<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die4"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
 <dd>
 
 </dd>
@@ -398,12 +429,14 @@ It uses playbook data/sles4sap/fetch_file.yaml
 
 <h3 id="qesap_create_aws_config">qesap_create_aws_config</h3>
 
-<pre><code>Creates a AWS config file in ~/.aws as required by the QE-SAP Terraform &amp; Ansible deployment code.</code></pre>
+<pre><code>Creates a AWS configuration file in ~/.aws
+as required by the QE-SAP Terraform &amp; Ansible deployment code.</code></pre>
 
 <h3 id="qesap_remote_hana_public_ips">qesap_remote_hana_public_ips</h3>
 
-<pre><code>Return a list of the public IP addresses of the systems deployed by qesapdeployment, as reported
-by C&lt;terraform output&gt;. Needs to run after C&lt;qesap_execute(cmd =&gt; &#39;terraform&#39;);&gt; call.</code></pre>
+<pre><code>Return a list of the public IP addresses of the systems
+deployed by qesapdeployment, as reported by C&lt;terraform output&gt;.
+Needs to run after C&lt;qesap_execute(cmd =&gt; &#39;terraform&#39;);&gt; call.</code></pre>
 
 <h3 id="qesap_wait_for_ssh">qesap_wait_for_ssh</h3>
 
@@ -477,7 +510,7 @@ Return total time of retry loop in case of pass.</code></pre>
 
 <dl>
 
-<dt id="SUBSTRING---optional-substring-to-be-used-with-aditional-grep-at-the-end-of-the-command"><b>SUBSTRING</b> - optional substring to be used with aditional grep at the end of the command</dt>
+<dt id="SUBSTRING---optional-substring-to-be-used-with-additional-grep-at-the-end-of-the-command"><b>SUBSTRING</b> - optional substring to be used with additional grep at the end of the command</dt>
 <dd>
 
 </dd>
@@ -518,7 +551,7 @@ the two provided deployments.</code></pre>
 
 <h3 id="qesap_az_vnet_peering_delete">qesap_az_vnet_peering_delete</h3>
 
-<pre><code>Delete all the network peering between the two provided deploymnets.</code></pre>
+<pre><code>Delete all the network peering between the two provided deployments.</code></pre>
 
 <dl>
 
@@ -757,7 +790,7 @@ qesap_export_instances()</code></pre>
 
 <dl>
 
-<dt id="Around-line-965">Around line 965:</dt>
+<dt id="Around-line-998">Around line 998:</dt>
 <dd>
 
 <p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
