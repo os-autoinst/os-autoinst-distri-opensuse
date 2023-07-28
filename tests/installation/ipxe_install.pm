@@ -6,6 +6,7 @@
 # Summary: Verify installation starts and is in progress
 # Maintainer: Michael Moese <mmoese@suse.de>
 
+package ipxe_install;
 use base 'y2_installbase';
 use strict;
 use warnings;
