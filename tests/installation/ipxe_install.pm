@@ -71,7 +71,7 @@ sub set_bootscript {
     $url =~ s/^\s+|\s+$//g;
     $arch =~ s/^\s+|\s+$//g;
     $autoyast =~ s/^\s+|\s+$//g;
-    $regurl =~ s/^\s+|\s+$//g;
+    $regurl =~ s/^\s+|\s+$//g if defined $regurl;
     $console =~ s/^\s+|\s+$//g;
     $mirror_http =~ s/^\s+|\s+$//g;
 
