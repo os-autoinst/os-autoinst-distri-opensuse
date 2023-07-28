@@ -14,7 +14,7 @@
 # Notice:  some dpdk test cannot be excuted because of limitation on qemu vm:
 #    - run dpdk-testpmd  (we get error like 'EAL FATAL; unsupported cpu type' on qemu, this is different than on physical machine and requires a different setup)
 #    - systemctl 'restart ovs-vswitchd' (failed at moment, assume that is related to unsuccessful binding of kernel module to network device)
-#
+# add this for a small test, just ignore
 # Maintainer: Zaoliang Luo <zluo@suse.de>, qe-core team SUSE
 
 use base 'consoletest';
