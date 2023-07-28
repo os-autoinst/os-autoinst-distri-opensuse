@@ -49,6 +49,8 @@ my @log_files = ();
 # and must be between 3 and 24 characters long
 use constant QESAPDEPLOY_PREFIX => 'qesapdep';
 use constant QESAPDEPLOY_VENV => '/tmp/exec_venv';
+use constant QESAPDEPLOY_PY => 'python3.10';
+use constant QESAPDEPLOY_PIP => 'pip3.10';
 
 our @EXPORT = qw(
   qesap_create_folder_tree
@@ -105,7 +107,7 @@ our @EXPORT = qw(
 
 =head3 qesap_get_file_paths
 
-    Returns a hash containing file paths for config files
+    Returns a hash containing file paths for configuration files
 =cut
 
 sub qesap_get_file_paths {
@@ -133,7 +135,8 @@ sub qesap_create_folder_tree {
 
 =head3 qesap_get_variables
 
-    Scans yaml config for '%OPENQA_VARIABLE%' placeholders and searches for values in OpenQA defined variables.
+    Scans yaml configuration for '%OPENQA_VARIABLE%' placeholders and
+    searches for values in OpenQA defined variables.
     Returns hash with openqa variable key/value pairs.
 =cut
 
@@ -155,7 +158,7 @@ sub qesap_get_variables {
 
 =head3 qesap_create_ansible_section
 
-    Writes "ansible" section into yaml config file.
+    Writes "ansible" section into yaml configuration file.
     $args{ansible_section} defines section(key) name.
     $args{section_content} defines content of names section.
         Example:
@@ -186,24 +189,60 @@ sub qesap_create_ansible_section {
     return;
 }
 
+=head3 qesap_venv_cmd_exec
+
+    Run a command within the Python virtualenv
+    created by qesap_pip_install
+
+    Return is only valid if failok = 1
+
+=over 3
+
+=item B<CMD> - command to run remotely
+
+=item B<FAILOK> - if not set, Ansible failure result in die
+
+=item B<TIMEOUT> - default 90 secs
+
+=back
+=cut
+
+sub qesap_venv_cmd_exec {
+    my (%args) = @_;
+    croak 'Missing mandatory cmd argument' unless $args{cmd};
+    $args{timeout} //= bmwqemu::scale_timeout(90);
+    my $failok = $args{failok} // 0;
+    my $ret;
+
+    assert_script_run('source ' . QESAPDEPLOY_VENV . '/bin/activate');
+    $failok ? $ret = script_run($args{cmd}, timeout => $args{timeout}) :
+      assert_script_run($args{cmd}, timeout => $args{timeout});
+    # deactivate python virtual environment
+    script_run('deactivate');
+    return $ret;
+}
+
 =head3 qesap_pip_install
 
   Install all Python requirements of the qe-sap-deployment in a dedicated virtual environment
 =cut
 
 sub qesap_pip_install {
-    assert_script_run("python3.10 -m venv " . QESAPDEPLOY_VENV . " && source " . QESAPDEPLOY_VENV . "/bin/activate");
-    enter_cmd 'pip3.10 config --site set global.progress_bar off';
     my %paths = qesap_get_file_paths();
     my $pip_install_log = '/tmp/pip_install.txt';
-    my $pip_ints_cmd = join(' ', 'pip3.10 install --no-color --no-cache-dir ',
-        '-r', $paths{deployment_dir} . '/requirements.txt',
+    my $pip_ints_cmd = join(' ', QESAPDEPLOY_PIP, 'install --no-color --no-cache-dir',
+        '-r', "$paths{deployment_dir}/requirements.txt",
         '|& tee -a', $pip_install_log);
 
+    # Create a Python virtualenv
+    assert_script_run(join(' ', QESAPDEPLOY_PY, '-m venv', QESAPDEPLOY_VENV));
+
+    # Configure pip in it
+    qesap_venv_cmd_exec(cmd => QESAPDEPLOY_PIP . ' config --site set global.progress_bar off', failok => 1);
+
     push(@log_files, $pip_install_log);
-    record_info("QESAP repo", "Installing pip requirements");
-    assert_script_run($pip_ints_cmd, 720);
-    script_run("deactivate");
+    record_info('QESAP repo', 'Installing all qe-sap-deployment python requirements');
+    qesap_venv_cmd_exec(cmd => $pip_ints_cmd, timeout => 720);
 }
 
 =head3 qesap_upload_logs
@@ -238,15 +277,15 @@ sub qesap_get_deployment_code {
     my $qesap_git_clone_log = '/tmp/git_clone.txt';
     my %paths = qesap_get_file_paths();
 
-    record_info("QESAP repo", "Preparing qe-sap-deployment repository");
+    record_info('QESAP repo', 'Preparing qe-sap-deployment repository');
 
     enter_cmd "cd " . $paths{deployment_dir};
     push(@log_files, $qesap_git_clone_log);
 
     # Script from a release
     if (get_var('QESAP_INSTALL_VERSION')) {
-        record_info("WARNING", "QESAP_INSTALL_GITHUB_REPO will be ignored") if (get_var('QESAP_INSTALL_GITHUB_REPO'));
-        record_info("WARNING", "QESAP_INSTALL_GITHUB_BRANCH will be ignored") if (get_var('QESAP_INSTALL_GITHUB_BRANCH'));
+        record_info('WARNING', 'QESAP_INSTALL_GITHUB_REPO will be ignored') if (get_var('QESAP_INSTALL_GITHUB_REPO'));
+        record_info('WARNING', 'QESAP_INSTALL_GITHUB_BRANCH will be ignored') if (get_var('QESAP_INSTALL_GITHUB_BRANCH'));
         my $ver_artifact = 'v' . get_var('QESAP_INSTALL_VERSION') . '.tar.gz';
 
         my $curl_cmd = "curl -v -fL https://$official_repo/archive/refs/tags/$ver_artifact -o$ver_artifact";
@@ -282,7 +321,7 @@ sub qesap_get_roles_code {
     my $roles_git_clone_log = '/tmp/git_clone_roles.txt';
     my %paths = qesap_get_file_paths();
 
-    record_info("SLES4SAP Roles repo", "Preparing community.sles-for-sap repository");
+    record_info('SLES4SAP Roles repo', 'Preparing community.sles-for-sap repository');
 
     enter_cmd "cd " . $paths{roles_dir};
     push(@log_files, $roles_git_clone_log);
@@ -304,8 +343,10 @@ sub qesap_get_roles_code {
 
 =head3 qesap_yaml_replace
 
-    Replaces yaml config file variables with parameters defined by OpenQA testode, yaml template or yaml schedule.
-    Openqa variables need to be added as a hash with key/value pair inside %run_args{openqa_variables}.
+    Replaces yaml configuration file variables with parameters
+    defined by OpenQA test code, yaml template or yaml schedule.
+    Openqa variables need to be added as a hash
+    with key/value pair inside %run_args{openqa_variables}.
     Example:
         my %variables;
         $variables{HANA_SAR} = get_required_var("HANA_SAR");
@@ -330,7 +371,8 @@ sub qesap_yaml_replace {
 =head3 qesap_execute
 
     qesap_execute(cmd => $qesap_script_cmd [, verbose => 1, cmd_options => $cmd_options] );
-    cmd_options - allows to append additional qesap.py commans arguments like "qesap.py terraform -d"
+    cmd_options - allows to append additional qesap.py commands arguments
+    like "qesap.py terraform -d"
         Example:
         qesap_execute(cmd => 'terraform', cmd_options => '-d') will result in:
         qesap.py terraform -d
@@ -351,10 +393,8 @@ sub qesap_execute {
     $exec_log .= "_$args{cmd_options}" if ($args{cmd_options});
     $exec_log .= '.log.txt';
     $exec_log =~ s/[-\s]+/_/g;
-    # activate virtual environment
-    script_run("source " . QESAPDEPLOY_VENV . "/bin/activate");
 
-    my $qesap_cmd = join(' ', 'python3.10', $paths{deployment_dir} . '/scripts/qesap/qesap.py',
+    my $qesap_cmd = join(' ', QESAPDEPLOY_PY, $paths{deployment_dir} . '/scripts/qesap/qesap.py',
         $verbose,
         '-c', $paths{qesap_conf_trgt},
         '-b', $paths{deployment_dir},
@@ -366,10 +406,10 @@ sub qesap_execute {
 
     push(@log_files, $exec_log);
     record_info('QESAP exec', "Executing: \n$qesap_cmd");
-    my $exec_rc = script_run($qesap_cmd, timeout => $args{timeout});
+
+    my $exec_rc = qesap_venv_cmd_exec(cmd => $qesap_cmd, timeout => $args{timeout}, failok => 1);
+
     qesap_upload_logs();
-    # deactivate virtual environment
-    script_run("deactivate");
     my @results = ($exec_rc, $exec_log);
     return @results;
 }
@@ -446,9 +486,9 @@ sub qesap_get_ansible_roles_dir {
     Prepare terraform environment.
     - creates file structures
     - pulls git repository
-    - external config files
+    - external configuration files
     - installs pip requirements and OS packages
-    - generates config files with qesap script
+    - generates configuration files with qesap script
 
     For variables example see 'qesap_yaml_replace'
     Returns only result, failure handling has to be done by calling method.
@@ -467,14 +507,14 @@ sub qesap_prepare_env {
         qesap_get_roles_code();
         qesap_pip_install();
 
-        record_info("QESAP yaml", "Preparing yaml config file");
+        record_info('QESAP yaml', 'Preparing yaml config file');
         assert_script_run('curl -v -fL ' . $paths{qesap_conf_src} . ' -o ' . $paths{qesap_conf_trgt});
     }
 
     qesap_yaml_replace(openqa_variables => $variables);
     push(@log_files, $paths{qesap_conf_trgt});
 
-    record_info("QESAP conf", "Generating all terraform and Ansible configuration files");
+    record_info('QESAP conf', 'Generating all terraform and Ansible configuration files');
     push(@log_files, "$paths{terraform_dir}/$provider/terraform.tfvars");
     my $hana_media = "$paths{deployment_dir}/ansible/playbooks/vars/hana_media.yaml";
     my $hana_vars = "$paths{deployment_dir}/ansible/playbooks/vars/hana_vars.yaml";
@@ -532,6 +572,7 @@ sub qesap_ansible_cmd {
     my $verbose = $args{verbose} ? ' -vvvv' : '';
 
     my $inventory = qesap_get_inventory($args{provider});
+    record_info('Ansible cmd:', "Remote run on '$args{filter}' node\ncmd: '$args{cmd}'");
 
     my $ansible_cmd = join(' ',
         'ansible' . $verbose,
@@ -540,16 +581,12 @@ sub qesap_ansible_cmd {
         '-u', $args{user},
         '-b', '--become-user=root',
         '-a', "\"$args{cmd}\"");
-    assert_script_run("source " . QESAPDEPLOY_VENV . "/bin/activate");
 
     $ansible_cmd = $args{host_keys_check} ?
       join(' ', $ansible_cmd, "-e 'ansible_ssh_common_args=\"-o UpdateHostKeys=yes -o StrictHostKeyChecking=accept-new\"'") :
       $ansible_cmd;
 
-    $args{failok} ? script_run($ansible_cmd, timeout => $args{timeout}) :
-      assert_script_run($ansible_cmd, timeout => $args{timeout});
-
-    enter_cmd("deactivate");
+    qesap_venv_cmd_exec(cmd => $ansible_cmd, timeout => $args{timeout}, failok => $args{failok});
 }
 
 =head3 qesap_ansible_script_output_file
@@ -566,7 +603,8 @@ sub qesap_ansible_cmd {
     3. qesap_ansible_fetch_file downloads the file locally
     4. the file is read and stored to be returned to the caller
 
-    Return is the local full path of the file.
+    Return is the local full path of the file containing the output of the
+    remotely executed command.
 
 =over 9
 
@@ -604,7 +642,6 @@ sub qesap_ansible_script_output_file {
     my $out_path = $args{out_path} // '/tmp/ansible_script_output/';
     my $file = $args{file} // 'testout.txt';
     my $failok = $args{failok} // 1;
-    my $local_tmp = $out_path . $file;
 
     # Download the playbook from the test code repo copy on the worker
     # within the running JompHost.
@@ -624,12 +661,10 @@ sub qesap_ansible_script_output_file {
         '-e', "out_file='$file'", '-e', "remote_path='$path'");
     push @ansible_cmd, ('-e', "failok=yes") if ($args{failok});
 
-    assert_script_run("source " . QESAPDEPLOY_VENV . "/bin/activate");    # venv activate
+    qesap_venv_cmd_exec(cmd => join(' ', @ansible_cmd), failok => $args{failok});
 
-    # Run the command on the remote and save output to a file
-    $args{failok} ? script_run(join(' ', @ansible_cmd)) : assert_script_run(join(' ', @ansible_cmd));
     # Grab the file from the remote
-    qesap_ansible_fetch_file(provider => $args{provider},
+    return qesap_ansible_fetch_file(provider => $args{provider},
         host => $args{host},
         failok => $failok,
         user => $args{user},
@@ -637,9 +672,6 @@ sub qesap_ansible_script_output_file {
         remote_path => $path,
         out_path => $out_path,
         file => $file);
-
-    enter_cmd("deactivate");    #venv deactivate
-    return $local_tmp;
 }
 
 =head3 qesap_ansible_script_output
@@ -681,10 +713,9 @@ sub qesap_ansible_script_output {
     my $out_path = $args{out_path} // '/tmp/ansible_script_output/';
     my $file = $args{file} // 'testout.txt';
     my $failok = $args{failok} // 1;
-    my $local_tmp = $out_path . $file;
 
     # Grab command output as file
-    my $out = qesap_ansible_script_output_file(cmd => $cmd,
+    my $local_tmp = qesap_ansible_script_output_file(cmd => $cmd,
         provider => $prov,
         host => $host,
         failok => 1,
@@ -711,6 +742,8 @@ sub qesap_ansible_script_output {
     1. ansible-playbook run the playbook
     3. the playbook download the file locally
     4. the file is read and stored to be returned to the caller
+
+    Return the local path of the downloaded file.
 
 =over 8
 
@@ -744,6 +777,8 @@ sub qesap_ansible_fetch_file {
     my $fetch_playbook = 'fetch_file.yaml';
     my $local_path = $args{out_path} // '/tmp/ansible_script_output/';
     my $local_file = $args{file} // 'testout.txt';
+
+    # reflect the same logic implement in the playbook
     my $local_tmp = $local_path . $local_file;
 
     if (script_run "test -e $fetch_playbook") {
@@ -763,11 +798,7 @@ sub qesap_ansible_fetch_file {
         '-e', "file='$local_file'");
     push @ansible_fetch_cmd, ('-e', "failok=yes") if ($args{failok});
 
-    assert_script_run("source " . QESAPDEPLOY_VENV . "/bin/activate");    # venv activate
-
-    $args{failok} ? script_run(join(' ', @ansible_fetch_cmd)) : assert_script_run(join(' ', @ansible_fetch_cmd));
-
-    enter_cmd("deactivate");    #venv deactivate
+    qesap_venv_cmd_exec(cmd => join(' ', @ansible_fetch_cmd), failok => $args{failok});
     return $local_tmp;
 }
 
@@ -788,7 +819,8 @@ sub qesap_create_aws_credentials {
 
 =head3 qesap_create_aws_config
 
-    Creates a AWS config file in ~/.aws as required by the QE-SAP Terraform & Ansible deployment code.
+    Creates a AWS configuration file in ~/.aws
+    as required by the QE-SAP Terraform & Ansible deployment code.
 =cut
 
 sub qesap_create_aws_config {
@@ -803,8 +835,9 @@ sub qesap_create_aws_config {
 
 =head3 qesap_remote_hana_public_ips
 
-    Return a list of the public IP addresses of the systems deployed by qesapdeployment, as reported
-    by C<terraform output>. Needs to run after C<qesap_execute(cmd => 'terraform');> call.
+    Return a list of the public IP addresses of the systems
+    deployed by qesapdeployment, as reported by C<terraform output>.
+    Needs to run after C<qesap_execute(cmd => 'terraform');> call.
 
 =cut
 
@@ -867,22 +900,22 @@ sub qesap_upload_crm_report {
     my (%args) = @_;
     croak 'Missing mandatory host argument' unless $args{host};
     my $host = $args{host};
-    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
     my $crm_log = "/var/log/$host-crm_report";
     my $report_opt = !is_sle('12-sp4+') ? '-f0' : '';
+    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
     qesap_ansible_cmd(cmd => "crm report $report_opt -E /var/log/ha-cluster-bootstrap.log $crm_log",
         provider => $prov,
         filter => $host,
         host_keys_check => 1,
         verbose => 1);
-    qesap_ansible_fetch_file(provider => $prov,
+    my $local_path = qesap_ansible_fetch_file(provider => $prov,
         host => $host,
         failok => 1,
         root => 1,
         remote_path => '/var/log/',
         out_path => '/tmp/ansible_script_output/',
         file => "$host-crm_report.tar.gz");
-    upload_logs("/tmp/ansible_script_output/$host-crm_report.tar.gz", failok => 1);
+    upload_logs($local_path, failok => 1);
 }
 
 =head3 qesap_cluster_log_cmds
@@ -1003,7 +1036,7 @@ by the qe-sap-deployment
 
 =over 1
 
-=item B<SUBSTRING> - optional substring to be used with aditional grep at the end of the command
+=item B<SUBSTRING> - optional substring to be used with additional grep at the end of the command
 
 =back
 =cut
@@ -1085,19 +1118,19 @@ sub qesap_az_vnet_peering {
     my $peering_cmd = "az network vnet peering create --name $peering_name --allow-vnet-access --output table";
 
     assert_script_run("$peering_cmd --resource-group $args{source_group} --vnet-name $source_vnet --remote-vnet $target_vnet_id", timeout => $args{timeout});
-    record_info("PEERING SUCCESS (source)", "[M] Peering from $args{source_group}.$source_vnet server was successful\n");
+    record_info('PEERING SUCCESS (source)', "[M] Peering from $args{source_group}.$source_vnet server was successful\n");
 
     assert_script_run("$peering_cmd --resource-group $args{target_group} --vnet-name $target_vnet --remote-vnet $source_vnet_id", timeout => $args{timeout});
-    record_info("PEERING SUCCESS (target)", "[M] Peering from $args{target_group}.$target_vnet server was successful\n");
+    record_info('PEERING SUCCESS (target)', "[M] Peering from $args{target_group}.$target_vnet server was successful\n");
 
-    record_info("Checking peering status");
+    record_info('Checking peering status');
     assert_script_run("az network vnet peering show --name $peering_name --resource-group $args{target_group} --vnet-name $target_vnet --output table");
-    record_info("AZURE PEERING SUCCESS");
+    record_info('AZURE PEERING SUCCESS');
 }
 
 =head3 qesap_az_vnet_peering_delete
 
-    Delete all the network peering between the two provided deploymnets.
+    Delete all the network peering between the two provided deployments.
 
 =over 3
 
@@ -1127,7 +1160,7 @@ sub qesap_az_vnet_peering_delete {
         return;
     }
 
-    record_info("Attempting peering destruction");
+    record_info('Attempting peering destruction');
     my $peering_cmd = "az network vnet peering delete -n $peering_name";
     my $source_ret = 0;
     if ($args{source_group}) {
@@ -1139,7 +1172,7 @@ sub qesap_az_vnet_peering_delete {
     my $target_ret = script_run($target_cmd, timeout => $args{timeout});
 
     if ($source_ret == 0 && $target_ret == 0) {
-        record_info("Peering deletion SUCCESS", "The peering was successfully destroyed");
+        record_info('Peering deletion SUCCESS', 'The peering was successfully destroyed');
         return;
     }
     record_soft_failure("Peering destruction FAIL: There may be leftover peering connections, please check - jsc#7487");
