@@ -240,8 +240,9 @@ subtest '[qesap_get_roles_code] from branch' => sub {
 subtest '[qesap_ansible_cmd]' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(qesap_get_inventory => sub { return '/SIDNEY'; });
 
     qesap_ansible_cmd(cmd => 'FINDING', provider => 'OCEAN');
@@ -254,8 +255,9 @@ subtest '[qesap_ansible_cmd]' => sub {
 subtest '[qesap_ansible_cmd] verbose' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(qesap_get_inventory => sub { return '/SIDNEY'; });
 
     qesap_ansible_cmd(cmd => 'FINDING', provider => 'OCEAN', verbose => 1);
@@ -269,9 +271,9 @@ subtest '[qesap_ansible_cmd] failok' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
     my @calls_script_run;
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(script_run => sub { push @calls_script_run, $_[0]; });
-    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(qesap_get_inventory => sub { return '/SIDNEY'; });
 
     qesap_ansible_cmd(cmd => 'FINDING', provider => 'OCEAN', failok => 1);
@@ -285,9 +287,10 @@ subtest '[qesap_ansible_cmd] failok' => sub {
 subtest '[qesap_ansible_cmd] filter and user' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(qesap_get_inventory => sub { return '/SIDNEY'; });
-    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; });
     qesap_ansible_cmd(cmd => 'FINDING', provider => 'OCEAN', filter => 'NEMO', user => 'DARLA');
     note("\n  -->  " . join("\n  -->  ", @calls));
 
@@ -297,13 +300,11 @@ subtest '[qesap_ansible_cmd] filter and user' => sub {
 };
 
 subtest '[qesap_ansible_cmd] no cmd' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    my @calls;
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     dies_ok { qesap_ansible_cmd(provider => 'OCEAN') } "Expected die for missing cmd";
 };
 
-subtest '[qesap_execute] simple call' => sub {
+subtest '[qesap_execute] simple call integrate qesap_venv_cmd_exec' => sub {
+    # Call qesap_execute without to mock qesap_venv_cmd_exec
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
     my @logs = ();
@@ -320,12 +321,36 @@ subtest '[qesap_execute] simple call' => sub {
     });
 
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return $expected_res });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; return $expected_res });
     my @res = qesap_execute(cmd => $cmd);
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /.*qesap.py.*-c.*-b.*$cmd\s+.*tee.*$expected_log_name/ } @calls), 'qesap.py and log redirection are fine');
     ok((any { /.*activate/ } @calls), 'virtual environment activated');
     ok((any { /.*deactivate/ } @calls), 'virtual environment deactivated');
     ok $res[0] == $expected_res;
+};
+
+subtest '[qesap_execute] simple call' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my @logs = ();
+    my $expected_res = 0;
+    my $cmd = 'GILL';
+    my $expected_log_name = "qesap_exec_$cmd.log.txt";
+    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
+    $qesap->redefine(qesap_venv_cmd_exec => sub { my (%args) = @_; push @calls, $args{cmd}; return $expected_res });
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{deployment_dir} = '/BRUCE';
+            $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
+            return (%paths);
+    });
+
+    my @res = qesap_execute(cmd => $cmd);
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /.*qesap.py.*-c.*-b.*$cmd\s+.*tee.*$expected_log_name/ } @calls), 'qesap.py and log redirection are fine');
+    ok $res[0] == $expected_res, 'The function return what is internally returned by the command call';
 };
 
 subtest '[qesap_execute] cmd_options' => sub {
@@ -338,7 +363,7 @@ subtest '[qesap_execute] cmd_options' => sub {
     my $expected_log_name = 'qesap_exec_' . $cmd . '__tankgang.log.txt';
     $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
-    $qesap->redefine(script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(qesap_venv_cmd_exec => sub { my (%args) = @_; push @calls, $args{cmd}; return $expected_res });
     $qesap->redefine(qesap_get_file_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
@@ -359,7 +384,7 @@ subtest '[qesap_execute] failure' => sub {
     my $expected_res = 1;
     $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
-    $qesap->redefine(script_run => sub { push @calls, $_[0]; return $expected_res });
+    $qesap->redefine(qesap_venv_cmd_exec => sub { my (%args) = @_; push @calls, $args{cmd}; return $expected_res });
     $qesap->redefine(qesap_get_file_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
@@ -370,6 +395,27 @@ subtest '[qesap_execute] failure' => sub {
     my @res = qesap_execute(cmd => 'GILL');
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok $res[0] == $expected_res, 'result part of the return array is 1 when script_run fails';
+};
+
+subtest '[qesap_execute] check_logs' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my @logs = ();
+    my $expected_res = 1;
+    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
+    $qesap->redefine(qesap_venv_cmd_exec => sub { my (%args) = @_; push @calls, $args{cmd}; return $expected_res });
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{deployment_dir} = '/BRUCE';
+            $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
+            return (%paths);
+    });
+
+    my @res = qesap_execute(cmd => 'GILL');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    #ok (( any {/.*/qesap_exec.*.log.txt/} @calls), 'File pattern is okay';
+    ok $res[1] =~ /\/.*.log.txt/, 'File pattern is okay';
 };
 
 subtest '[qesap_ansible_log_find_timeout] success' => sub {
@@ -403,27 +449,6 @@ subtest '[qesap_ansible_log_find_timeout] fail' => sub {
     my $res = qesap_ansible_log_find_timeout('JACQUES');
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok $res == 0, 'Return is 0 when string is not detected';
-};
-
-subtest '[qesap_execute] check_logs' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    my @calls;
-    my @logs = ();
-    my $expected_res = 1;
-    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
-    $qesap->redefine(script_run => sub { push @calls, $_[0]; return $expected_res });
-    $qesap->redefine(qesap_get_file_paths => sub {
-            my %paths;
-            $paths{deployment_dir} = '/BRUCE';
-            $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
-            return (%paths);
-    });
-
-    my @res = qesap_execute(cmd => 'GILL');
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    #ok (( any {/.*/qesap_exec.*.log.txt/} @calls), 'File pattern is okay';
-    ok $res[1] =~ /\/.*.log.txt/, 'File pattern is okay';
 };
 
 subtest '[qesap_get_nodes_number]' => sub {

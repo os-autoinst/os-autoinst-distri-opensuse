@@ -1027,6 +1027,7 @@ sub podman_wait {
         podman_exec(name => $args{name}, cmd => 'pkill -15 cypress');
         # ... give podman few more seconds to terminate ...
         sleep bmwqemu::scale_timeout(10);
+        enter_cmd("podman stop $args{name}");
         enter_cmd('pkill -9 podman');
         # Conventionally the reported error is 1 (just something not zero)
         $ret = 1;
@@ -1254,7 +1255,8 @@ sub cypress_test_exec {
                 "test_result:$test_result",
                 "test_cmd:$test_cmd"));
 
-        # Execute the test keeps going with the execution even if one test file produce an error.
+        # Execute the test keeps going with the execution
+        # even if one test file produce an error.
         # Any cypress test failure will be reported during the XUnit parsing
         $ret += cypress_exec(
             cypress_test_dir => $args{cypress_test_dir},
