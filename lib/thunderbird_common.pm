@@ -20,7 +20,7 @@ use version_utils qw(is_sle is_tumbleweed);
 use base "Exporter";
 use Exporter;
 
-our @EXPORT = qw(tb_setup_account tb_send_message tb_check_email);
+our @EXPORT = qw(tb_setup_account tb_send_message tb_check_email server_hostname_workaround);
 
 =head2 tb_setup_account
  tb_setup_account($proto, $account);
@@ -56,8 +56,6 @@ sub tb_setup_account {
         send_key_until_needlematch('thunderbird_configure_manually', 'tab', 4, 1);
         send_key 'spc';    # configure manually
         wait_still_screen(2, 4);
-        save_screenshot;
-        send_key 'tab';    # scroll page down to see configuration options
         assert_and_click 'thunderbird_know-your-rights';
     }
     else {
@@ -86,6 +84,7 @@ sub tb_setup_account {
         else {
             # If use multimachine, select correct needles to configure thunderbird.
             if ($hostname eq 'client') {
+                $self->server_hostname_workaround;
                 assert_and_click 'thunderbird_SSL_auth_click';
                 wait_still_screen(2);
                 send_key 'down';
@@ -98,15 +97,7 @@ sub tb_setup_account {
     if ($new_gui) {
         # If use multimachine, select correct needles to configure thunderbird.
         if ($hostname eq 'client') {
-            send_key 'end';    # go to the bottom to see whole manual configuration
-            if (check_screen 'thunderbird_in-hostname-start-with-dot', 3) {
-                record_info 'bsc#1191866';
-                # have to edit both hostnames
-                assert_and_click 'thunderbird_in-hostname-start-with-dot';
-                send_key 'delete';
-                assert_and_click 'thunderbird_out-hostname-start-with-dot';
-                send_key 'delete';
-            }
+            $self->server_hostname_workaround;
             if (check_screen 'thunderbird_username') {
                 record_info 'bsc#1191853';
                 assert_and_click 'thunderbird_username';
@@ -118,7 +109,8 @@ sub tb_setup_account {
             send_key_until_needlematch 'thunderbird_wizard-done', 'tab', 16, 1;
             assert_and_click 'thunderbird_wizard-done';
             wait_still_screen(2, 4);
-            assert_and_click 'thunderbird_SSL_done_config' unless check_screen('thunderbird_confirm_security_exception');
+            assert_and_click 'thunderbird_I-understand-the-risks';
+            assert_and_click 'thunderbird_I-understand-the-risks-confirm';
             my $count = 1;
             while (1) {
                 die 'Repeating on security_exception too much' if $count++ == 5;
@@ -131,6 +123,8 @@ sub tb_setup_account {
             assert_and_click "thunderbird_get-messages";
         }
         else {
+            # get to the end of configutration options
+            for (1 .. 17) { send_key 'tab' }
             assert_and_click 'thunderbird_startssl-selected-for-imap';
             wait_still_screen(1);
             assert_and_click 'thunderbird_security-select-none';
@@ -152,11 +146,12 @@ sub tb_setup_account {
             send_key 'end';    # go to the bottom to see whole button and checkbox
             wait_still_screen(2);
             assert_and_click 'thunderbird_I-understand-the-risks';
-            assert_and_click 'thunderbird_risks-done';
+            assert_and_click 'thunderbird_I-understand-the-risks-confirm';
             wait_still_screen(2);
             assert_and_click 'thunderbird_finish';
             # skip additional integrations
             assert_and_click "thunderbird_skip-system-integration" if check_screen 'thunderbird_skip-system-integration', 10;
+            assert_and_click "thunderbird_select-inbox";
             assert_and_click "thunderbird_get-messages";
         }
     }
@@ -217,27 +212,7 @@ sub tb_send_message {
     send_key "tab";
     type_string "Test email send and receive.";
     assert_and_click "thunderbird_send-message";
-    wait_still_screen(2, 4);
-
-    if ($hostname eq 'client') {
-        while (1) {
-            my @tags = qw(thunderbird_attachment_reminder thunderbird_SSL_error_security_exception thunderbird_confirm_security_exception thunderbird_maximized_send-message thunderbird_cancel thunderbird_get-messages);
-            wait_still_screen(2, 4);
-            assert_screen(\@tags);
-            click_lastmatch;
-            wait_still_screen(2, 4);
-            last if match_has_tag('thunderbird_get-messages');
-        }
-    }
-    else {
-        while (1) {
-            wait_still_screen(5, 10);
-            assert_screen [qw(thunderbird_sent-folder-appeared thunderbird_cancel)];
-            click_lastmatch if match_has_tag('thunderbird_cancel');
-            last if match_has_tag('thunderbird_sent-folder-appeared');
-        }
-    }
-
+    assert_screen 'thunderbird_sent-folder-appeared', 90;
     return $mail_subject;
 }
 
@@ -269,4 +244,16 @@ sub tb_check_email {
     send_key "ctrl-shift-k";
     wait_still_screen 2, 3;
     send_key 'delete';
+}
+
+sub server_hostname_workaround {
+    if (check_screen 'thunderbird_in-hostname-start-with-dot', 3) {
+        record_info 'bsc#1191866';
+        # have to edit both hostnames
+        assert_and_click 'thunderbird_in-hostname-start-with-dot';
+        send_key 'delete';
+        for (1 .. 6) { send_key 'tab' }
+        assert_and_click 'thunderbird_out-hostname-start-with-dot';
+        send_key 'delete';
+    }
 }
