@@ -17,6 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_opensuse';
 
 sub check_audit_log {
     my ($self) = shift;
@@ -56,7 +57,8 @@ sub run {
     # Download the pre-installed guest images and sample xml files
     my $vm_name = 'nested-L2-vm';
     my $vm_L2 = get_required_var('HDD_L2');
-    assert_script_run("wget -c -P $image_path " . autoinst_url("/assets/hdd/$vm_L2"), 900);
+    my $asset_url = is_opensuse ? "assets_public" : "assests";
+    assert_script_run("wget -c -P $image_path " . autoinst_url("/$asset_url/hdd/$vm_L2"), 900);
     assert_script_run("mv $image_path/$vm_L2 $image_path/$vm_name.qcow2");
     assert_script_run('wget --quiet ' . data_url("cc/$vm_name.xml") . " -P $image_path");
 
