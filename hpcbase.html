@@ -89,9 +89,9 @@
 
 <p>After <code>prepare_spack_env</code> run, <code>spack</code> should be ready to build entire tool stack, downloading and installing all bits required for whatever package or compiler.</p>
 
-<p>This sub is designed to install one of the mpi implementations. Although there are thousands packages to be used.</p>
+<p>This sub is designed to install one of the mpi implementations. Although there are thousands packages to be used. Spack will check if any mpi is installed and it will build the package if it is not found. In case you want to make the runtime of the test faster you can install <code>$mpi-gnu-hpc $mpi-gnu-hpc-devel</code> packages in advanced.</p>
 
-<p>LD_LIBRARY_PATH is removed and spack is not exported. In case LD_LIBRARY_PATH is required it has to be add it in the <i>.spack/modules.yaml</i>.</p>
+<p>LD_LIBRARY_PATH is removed and spack is not exported. In case LD_LIBRARY_PATH is required it has to be added in the <i>.spack/modules.yaml</i>.</p>
 
 
 </body>
