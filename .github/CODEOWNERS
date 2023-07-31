@@ -35,3 +35,9 @@ tests/network/openvpn_server.pm @pdostal
 tests/network/setup_multimachine.pm @pdostal
 lib/Utils/Logging.pm @pdostal
 
+# HPC
+lib/hpc/ @b10n1k @schlad
+tests/hpc/ @b10n1k @schlad
+data/hpc/ @b10n1k @schlad
+schedule/hpc/ @b10n1k @schlad
+tests/publiccloud/nvidia.pm @b10n1k
