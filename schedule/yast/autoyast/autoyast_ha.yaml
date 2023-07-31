@@ -4,7 +4,6 @@ description: >
   HA autoYaST installation and publish qcow for ha migration standalone
   cases.
 vars:
-  AUTOYAST: autoyast_sle15/create_hdd/create_hdd_ha_%ARCH%.xml.ep
   AUTOYAST_PREPARE_PROFILE: '1'
   DESKTOP: textmode
   SYSTEM_ROLE: HA_node
