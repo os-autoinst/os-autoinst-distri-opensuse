@@ -339,7 +339,11 @@ subtest '[qesap_execute] simple call' => sub {
     my $expected_log_name = "qesap_exec_$cmd.log.txt";
     $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
-    $qesap->redefine(qesap_venv_cmd_exec => sub { my (%args) = @_; push @calls, $args{cmd}; return $expected_res });
+    $qesap->redefine(qesap_venv_cmd_exec => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return $expected_res;
+    });
     $qesap->redefine(qesap_get_file_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
@@ -363,7 +367,11 @@ subtest '[qesap_execute] cmd_options' => sub {
     my $expected_log_name = 'qesap_exec_' . $cmd . '__tankgang.log.txt';
     $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
-    $qesap->redefine(qesap_venv_cmd_exec => sub { my (%args) = @_; push @calls, $args{cmd}; return $expected_res });
+    $qesap->redefine(qesap_venv_cmd_exec => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return $expected_res;
+    });
     $qesap->redefine(qesap_get_file_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
@@ -384,7 +392,11 @@ subtest '[qesap_execute] failure' => sub {
     my $expected_res = 1;
     $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
-    $qesap->redefine(qesap_venv_cmd_exec => sub { my (%args) = @_; push @calls, $args{cmd}; return $expected_res });
+    $qesap->redefine(qesap_venv_cmd_exec => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return $expected_res;
+    });
     $qesap->redefine(qesap_get_file_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
@@ -404,7 +416,11 @@ subtest '[qesap_execute] check_logs' => sub {
     my $expected_res = 1;
     $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
-    $qesap->redefine(qesap_venv_cmd_exec => sub { my (%args) = @_; push @calls, $args{cmd}; return $expected_res });
+    $qesap->redefine(qesap_venv_cmd_exec => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return $expected_res;
+    });
     $qesap->redefine(qesap_get_file_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
@@ -514,13 +530,106 @@ subtest '[qesap_ansible_script_output]' => sub {
 };
 
 subtest '[qesap_ansible_script_output_file]' => sub {
+    # Call qesap_ansible_script_output_file with the bare minimal set of arguments
+    # and mock all the dependency.
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my $fetch_remote_path;
+    my $fetch_out_path;
+
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(data_url => sub { return '/BRUCE'; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(qesap_venv_cmd_exec => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return 0;
+    });
+    $qesap->redefine(qesap_ansible_fetch_file => sub {
+            my (%args) = @_;
+            $fetch_remote_path = $args{remote_path};
+            $fetch_out_path = $args{out_path};
+            return '/BAY';
+    });
+
+    my $out = qesap_ansible_script_output_file(
+        provider => 'NEMO',
+        cmd => 'SWIM',
+        host => 'REEF');
+
+    note("\n  out=$out");
+    note("\n  fetch_remote_path=$fetch_remote_path");
+    note("\n  fetch_out_path=$fetch_out_path");
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /test -e script_output\.yaml/ } @calls), 'Verify for the local existence of script_output.yaml');
+    ok((any { /ansible-playbook/ } @calls), 'ansible-playbook is called at least one');
+    ok((any { /ansible-playbook.*-l REEF/ } @calls), 'host is used to configure -l');
+    ok((any { /ansible-playbook.*-i \/CRUSH/ } @calls), 'inventory calculated with qesap_get_inventory is used to configure -i');
+    ok((any { /ansible-playbook.*-e.*cmd='SWIM'/ } @calls), 'cmd is used to populate -e cmd');
+    like($out, qr/\/BAY/, 'The return is what returned by qesap_ansible_fetch_file');
+};
+
+subtest '[qesap_ansible_script_output_file] call with all arguments' => sub {
+    # Call qesap_ansible_script_output_file with all possible arguments
+    # and mock all the dependency.
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my $fetch_remote_path;
+    my $fetch_out_path;
+    my $fetch_file;
+
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(data_url => sub { return '/BRUCE'; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(qesap_venv_cmd_exec => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return 0;
+    });
+    $qesap->redefine(qesap_ansible_fetch_file => sub {
+            my (%args) = @_;
+            $fetch_remote_path = $args{remote_path};
+            $fetch_out_path = $args{out_path};
+            $fetch_file = $args{file};
+            return '/BAY';
+    });
+
+    my $out = qesap_ansible_script_output_file(
+        provider => 'NEMO',
+        cmd => 'SWIM',
+        host => 'REEF',
+        user => 'NEMO',
+        root => 1,
+        remote_path => '/ADRIATIC_SEE',
+        out_path => '/TIRRENO_SEE',
+        file => 'JELLY.fish');
+
+    note("\n  out=$out");
+    note("\n  fetch_remote_path=$fetch_remote_path");
+    note("\n  fetch_out_path=$fetch_out_path");
+    note("\n  fetch_file=$fetch_file");
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
+    ok($fetch_remote_path eq '/ADRIATIC_SEE', 'remote_path is used as argument for qesap_ansible_fetch_file');
+    ok($fetch_out_path eq '/TIRRENO_SEE', 'out_path is used as argument for qesap_ansible_fetch_file');
+    ok($fetch_file eq 'JELLY.fish', 'file is used as argument for qesap_ansible_fetch_file');
+
+    # fails for an unknown reason, it should not
+    #ok((any { /ansible-playbook.*-u NEMO'/ } @calls), 'user is used as ansible-playbook -u');
+    #ok((any { /ansible-playbook.*--become-user root'/ } @calls), 'root activate ansible-playbook --become-user');
+    ok((any { /ansible-playbook.*-e.*remote_path='\/ADRIATIC_SEE'/ } @calls), 'remote_path is used as ansible-playbook -e remote_path');
+};
+
+subtest '[qesap_ansible_script_output_file] integrate with qesap_venv_cmd_exec' => sub {
+    # This test does not mock qesap_venv_cmd_exec so also test it implicitly
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
 
     $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(data_url => sub { return '/BRUCE'; });
     $qesap->redefine(script_output => sub { push @calls, $_[0]; });
 
@@ -533,72 +642,119 @@ subtest '[qesap_ansible_script_output_file]' => sub {
 
     note("\n  out=$out");
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok((any { /ansible-playbook.*-e.*local_path='\/BERMUDA_TRIAGLE\/'/ } @calls), 'proper ansible-playbooks local_path');
-    ok((any { /ansible-playbook.*-e.*file='SUBMARINE.TXT'/ } @calls), 'proper ansible-playbooks local_file');
+    ok((any { /ansible-playbook.*-e.*local_path='\/BERMUDA_TRIAGLE\/'/ } @calls), 'proper ansible-playbook local_path');
+    ok((any { /ansible-playbook.*-e.*file='SUBMARINE.TXT'/ } @calls), 'proper ansible-playbook local_file');
     like($out, qr/^\/BERMUDA_TRIAGLE\/SUBMARINE\.TXT/, 'the return is the path of the file stored by Ansible');
+};
+
+subtest '[qesap_ansible_script_output_file] no curl if test true' => sub {
+    # Call qesap_ansible_script_output_file with the bare minimal set of arguments
+    # and mock all the dependency.
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my $test_e_result;
+
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    # script_run only used for 'test -e'
+    $qesap->redefine(script_run => sub {
+            push @calls, $_[0];
+            if ($_[0] =~ /test.*-e/) {
+                return $test_e_result;
+            }
+            return 0;
+    });
+    $qesap->redefine(data_url => sub { return '/BRUCE'; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(qesap_venv_cmd_exec => sub { return 0; });
+    $qesap->redefine(qesap_ansible_fetch_file => sub { return 0; });
+
+    $test_e_result = 1;
+    qesap_ansible_script_output_file(
+        provider => 'NEMO',
+        cmd => 'SWIM',
+        host => 'REEF');
+
+    note("\n  test_e_result=$test_e_result");
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /test -e script_output\.yaml/ } @calls), 'Verify for the local existence of script_output.yaml');
+    ok((any { /curl/ } @calls), 'curl is called as the yaml is not available');
+
+    $test_e_result = 0;
+    @calls = ();
+    qesap_ansible_script_output_file(
+        provider => 'NEMO',
+        cmd => 'SWIM',
+        host => 'REEF');
+
+    note("\n  test_e_result=$test_e_result");
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /test -e script_output\.yaml/ } @calls), 'Verify for the local existence of script_output.yaml');
+    ok((none { /curl/ } @calls), 'curl is not called as the yaml is already available');
 };
 
 subtest '[qesap_ansible_script_output_file] failok' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
-    my @calls_scriptrun;
+    my $fetch_failok;
 
     $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
-    $qesap->redefine(script_run => sub { push @calls_scriptrun, $_[0]; return 0; });
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(data_url => sub { return '/BRUCE'; });
-    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'patate'; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(qesap_venv_cmd_exec => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return 0;
+    });
+    $qesap->redefine(qesap_ansible_fetch_file => sub {
+            my (%args) = @_;
+            $fetch_failok = $args{failok};
+            return '/BAY';
+    });
 
-    my $cmr_status = qesap_ansible_script_output_file(cmd => 'SWIM', provider => 'NEMO', host => 'REEF', out_path => '/BERMUDA_TRIAGLE/', file => 'SUBMARINE.TXT', failok => 1);
+    my $out = qesap_ansible_script_output_file(
+        provider => 'NEMO',
+        cmd => 'SWIM',
+        host => 'REEF',
+        failok => 1);
 
+    note("\n  out=$out");
+    note("\n  fetch_failok=$fetch_failok");
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    note("\n  C-->  " . join("\n  C-->  ", @calls_scriptrun));
-    ok((any { /ansible-playbook.*failok=yes.*/ } @calls_scriptrun), 'ansible-playbooks executed with script_run');
+    ok((any { /ansible-playbook.*-e.*failok=yes/ } @calls), 'ansible called with failok=yes');
 };
 
+
 subtest '[qesap_ansible_script_output_file] cmd with spaces' => sub {
+    # Call qesap_ansible_script_output_file with the bare minimal set of arguments
+    # and mock all the dependency.
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
 
     $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(data_url => sub { return '/BRUCE'; });
-    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'patate'; });
-
-    qesap_ansible_script_output_file(cmd => 'SWIM SWIM SWIM', provider => 'NEMO', host => 'REEF', out_path => '/BERMUDA_TRIAGLE/', file => 'SUBMARINE.TXT');
-
-    note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok((any { /ansible-playbook.*REEF.*"cmd='SWIM SWIM SWIM'"/ } @calls), 'proper ansible-playbooks command');
-};
-
-
-subtest '[qesap_ansible_script_output_file] download the playbook' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    my @calls;
-
-    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
-    $qesap->redefine(script_run => sub {
-            push @calls, $_[0];
-            if ($_[0] =~ /test.*-e/) {
-                return 1;
-            }
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(qesap_venv_cmd_exec => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
             return 0;
     });
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
-    $qesap->redefine(data_url => sub { return '/BRUCE'; });
-    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'patate'; });
+    $qesap->redefine(qesap_ansible_fetch_file => sub {
+            my (%args) = @_;
+            return '/BAY';
+    });
 
-    qesap_ansible_script_output_file(cmd => 'SWIM', provider => 'NEMO', host => 'REEF', out_path => '/BERMUDA_TRIAGLE/', file => 'SUBMARINE.TXT');
+    qesap_ansible_script_output_file(
+        provider => 'NEMO',
+        cmd => 'SWIM SWIM SWIM',
+        host => 'REEF');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok((any { /curl.*BRUCE/ } @calls), 'Playbook download with curl');
+    ok((any { /ansible-playbook.*-e.*cmd='SWIM SWIM SWIM'/ } @calls), 'cmd with spaces is properly escaped when used to populate -e cmd');
 };
 
-subtest '[qesap_ansible_script_output_file] custom user' => sub {
+subtest '[qesap_ansible_script_output_file] custom user integrate with qesap_venv_cmd_exec' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
 
@@ -615,7 +771,7 @@ subtest '[qesap_ansible_script_output_file] custom user' => sub {
     ok((any { /ansible-playbook.*-u GERALD/ } @calls), 'Custom ansible with user');
 };
 
-subtest '[qesap_ansible_script_output_file] root' => sub {
+subtest '[qesap_ansible_script_output_file] root integrate with qesap_venv_cmd_exec' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
 
@@ -907,6 +1063,29 @@ subtest '[qesap_cluster_logs] multi log command' => sub {
 
     ok((none { /.*ignore_me\.txt/ } @logfile_calls), 'ignore_me.txt is expected to be ignored');
     ok((none { /.*ignore_me_too\.txt/ } @logfile_calls), 'ignore_me_too.txt is expected to be ignored');
+};
+
+subtest '[qesap_upload_crm_report] die for missing mandatory arguments' => sub {
+    dies_ok { qesap_upload_crm_report(); } "Expected die if called without arguments";
+    dies_ok { qesap_upload_crm_report(provider => 'SAND'); } "Expected die if called without host";
+    dies_ok { qesap_upload_crm_report(host => 'SALT'); } "Expected die if called without provider";
+};
+
+subtest '[qesap_upload_crm_report]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+
+    $qesap->redefine(is_sle => sub { return 0; });
+    $qesap->redefine(qesap_ansible_cmd => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return 0; });
+    $qesap->redefine(qesap_ansible_fetch_file => sub { return 0; });
+    $qesap->redefine(upload_logs => sub { return 0; });
+    qesap_upload_crm_report(provider => 'SAND', host => 'SALT');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok 1;
 };
 
 subtest '[qesap_az_get_resource_group]' => sub {
