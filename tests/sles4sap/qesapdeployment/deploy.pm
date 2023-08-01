@@ -27,6 +27,7 @@ sub run {
         my $rec_timeout = qesap_ansible_log_find_timeout($ret[1]);
         if ($rec_timeout) {
             record_info('DETECTED ANSIBLE TIMEOUT ERROR');
+            @ret = qesap_execute(cmd => 'ansible', cmd_options => '--profile', verbose => 1, timeout => 3600);
         }
         die "'qesap.py ansible' return: $ret[0]";
     }
