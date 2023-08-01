@@ -65,7 +65,7 @@ sub reset_engines {
     my ($self, $current_engine) = @_;
     my ($version, $sp, $host_distri) = get_os_release;
     my $sp_version = "$version.$sp";
-    if ($sp_version =~ /15.3|15.4/) {
+    if ($sp_version =~ /15.3|15.4|15.5/) {
         # This workaround is only needed in SLE 15-SP3 and 15-SP4 (and Leap 15.3 and 15.4)
         # where we need to restart docker and firewalld before running podman, otherwise
         # the podman containers won't have access to the outside world.
