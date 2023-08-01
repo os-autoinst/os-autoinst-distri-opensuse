@@ -46,7 +46,11 @@ sub run {
     handle_notify_popup;
     assert_screen 'openqa-tests';
     assert_and_click 'openqa-tests';
-    assert_and_click 'openqa-job-minimalx';
+    # At this point the openQA job might still be running or already finished.
+    # Ensure to show finished results at the bottom of the screen whenever the
+    # page finished loading
+    send_key_until_needlematch 'openqa-job-minimalx', 'end';
+    click_lastmatch;
     assert_and_click 'openqa-job-details';
     assert_screen 'openqa-testresult', 600;
 }
