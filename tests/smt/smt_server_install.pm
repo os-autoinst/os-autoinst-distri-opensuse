@@ -165,7 +165,7 @@ sub run {
     validate_script_output "smt-repos -o", sub { m/SLES12-SP5-Updates/ };
     validate_script_output "smt-repos -o", sub { m/SLES12-SP5-Pool/ };
 
-    assert_script_run "smt-mirror", 5000;
+    assert_script_run "smt-mirror", 10800;
 
     assert_script_run "df -h";
     save_screenshot;
