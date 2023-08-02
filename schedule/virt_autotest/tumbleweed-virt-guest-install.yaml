@@ -5,7 +5,6 @@ description:    >
 schedule:
     - '{{install_and_bootup}}'
     - '{{install_guest}}'
-    - virt_autotest/set_config_as_glue
     - '{{virtual_network_test}}'
     - '{{sriov_network_card_pci_passthrough_test}}'
     - '{{hotplugging_test}}'
@@ -14,8 +13,10 @@ conditional_schedule:
     install_and_bootup:
         DO_NOT_INSTALL_HOST:
             0:
-                - installation/ipxe_install
+                - boot/boot_from_pxe
                 - '{{install_host_with_needle_matching}}'
+            1:
+                - installation/ipxe_install
     install_host_with_needle_matching:
         HOST_INSTALL_AUTOYAST:
             1:
@@ -43,12 +44,14 @@ conditional_schedule:
         SKIP_GUEST_INSTALL:
             0:
                 - virt_autotest/unified_guest_installation
+                - virt_autotest/set_config_as_glue
     virtual_network_test:
         ENABLE_VIR_NET:
-            1:
-                - virt_autotest/libvirt_virtual_network_init
+            0:
                 - virt_autotest/libvirt_host_bridge_virtual_network
                 - virt_autotest/libvirt_nated_virtual_network
+            1:
+                - virt_autotest/libvirt_virtual_network_init
     sriov_network_card_pci_passthrough_test:
         ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH:
             1:
@@ -56,13 +59,14 @@ conditional_schedule:
     hotplugging_test:
         ENABLE_HOTPLUGGING:
             1:
-                - virtualization/universal/hotplugging_guest_preparation
                 - virtualization/universal/hotplugging_network_interfaces
                 - virtualization/universal/hotplugging_HDD
                 - virtualization/universal/hotplugging_vCPUs
                 - virtualization/universal/hotplugging_memory
+            0:
+                - virtualization/universal/hotplugging_guest_preparation
                 - virtualization/universal/hotplugging_cleanup
     storage_test:
         ENABLE_STORAGE:
-            1:
+            0:
                 - virtualization/universal/storage

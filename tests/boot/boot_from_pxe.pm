@@ -75,6 +75,7 @@ sub run {
         my $openqa_url = get_required_var('OPENQA_URL');
         $openqa_url = 'http://' . $openqa_url unless $openqa_url =~ /http:\/\//;
         my $repo = $openqa_url . "/assets/repo/${image_name}";
+        $repo = "http://openqa.qa2.suse.asia/assets/repo/openSUSE-Tumbleweed-DVD-x86_64-Snapshot20230730/";
         my $key_used = '';
         if (is_remote_backend && is_aarch64 && is_supported_suse_domain) {
             $key_used = 'c';
@@ -89,6 +90,7 @@ sub run {
             #Nuremberg
             my $path_prefix = "/mnt/openqa/repo";
             my $path = "${path_prefix}/${image_name}/boot/${arch}/loader";
+            $repo = "http://openqa.qa2.suse.asia/assets/repo/openSUSE-Tumbleweed-DVD-x86_64-Snapshot20230730/";
             $image_path = "$path/linux initrd=$path/initrd install=$repo";
         }
         elsif (match_has_tag("orthos-grub-boot") or match_has_tag("qa-net-grub-boot")) {
@@ -97,6 +99,7 @@ sub run {
             my $path_prefix = "auto/openqa/repo";
             $path_prefix = "/mnt/openqa/repo" if (!is_orthos_machine);
             my $path = "${path_prefix}/${image_name}/boot/${arch}";
+            $repo = "http://openqa.qa2.suse.asia/assets/repo/openSUSE-Tumbleweed-DVD-x86_64-Snapshot20230730/";
             $image_path = "linux $path/linux install=$repo";
         }
 
