@@ -204,8 +204,8 @@ sub load_network_tests {
 sub load_qemu_tests {
     loadtest 'microos/rebuild_initrd' if is_s390x;
     loadtest 'qemu/info';
-    loadtest 'qemu/qemu';
-    loadtest 'qemu/kvm' unless is_aarch64;
+    loadtest 'qemu/qemu' unless is_rt;
+    loadtest 'qemu/kvm' unless (is_aarch64 or is_rt);
     # qemu-linux-user package not available in SLEM
     loadtest 'qemu/user' unless (is_sle_micro || is_leap_micro);
 }
