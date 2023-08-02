@@ -23,6 +23,7 @@ use strict;
 use warnings;
 use x11utils 'ensure_unlocked_desktop';
 use Utils::Logging 'export_logs';
+use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 
 sub run {
     my $self = shift;
@@ -41,12 +42,19 @@ sub run {
     # logout root (and later user) so they don't block logout
     # in KDE
     enter_cmd "exit";
-    $console->reset;
-
-    $console = select_console 'user-console';
-    enter_cmd "exit";    # logout
-    $console->reset;
     wait_still_screen(2);
+    select_console 'user-console';
+    enter_cmd "exit";
+    wait_still_screen(2);
+    unless (check_var('SERIAL_CONSOLE', 0) || check_var('VIRTIO_CONSOLE', 0)) {
+        select_serial_terminal;
+        enter_cmd "exit";
+        wait_still_screen(2);
+        select_user_serial_terminal;
+        enter_cmd "exit";
+        wait_still_screen(2);
+    }
+    reset_consoles;
 
     save_screenshot();
 
