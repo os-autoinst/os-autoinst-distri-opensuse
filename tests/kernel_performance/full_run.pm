@@ -51,7 +51,8 @@ sub full_run {
     assert_script_run("/usr/share/qa/qaset/run/performance-run.upload_Beijing");
     while (1) {
         if ((script_run("cat /var/log/qaset/control/NEXT_RUN | grep '_'") == 0) ||
-            (script_run("ps ax | grep [r]untest") == 0)) {
+            (script_run("ps ax | grep [r]untest") == 0) ||
+            (script_run("pgrep -f \"SCREEN -L -S .* -t .* -c .* -D -m .*\"") == 0)) {
             last;
         }
         if ($time_out == 0) {
