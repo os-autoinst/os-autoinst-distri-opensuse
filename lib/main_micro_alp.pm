@@ -277,6 +277,23 @@ sub load_slem_on_pc_tests {
     loadtest("publiccloud/ssh_interactive_end", run_args => $args);
 }
 
+sub load_xfstests_tests {
+    load_boot_from_disk_tests;
+    if (check_var('XFSTESTS', 'installation')) {
+        loadtest 'transactional/host_config';
+        loadtest 'xfstests/install';
+        unless (check_var('NO_KDUMP', '1')) {
+            loadtest 'xfstests/enable_kdump';
+        }
+        loadtest 'shutdown/shutdown';
+    }
+    else {
+        loadtest 'xfstests/partition';
+        loadtest 'xfstests/run';
+        loadtest 'xfstests/generate_report';
+    }
+}
+
 sub load_tests {
     # SLEM on PC
     if (is_public_cloud()) {
@@ -286,6 +303,11 @@ sub load_tests {
 
     if (is_kernel_test()) {
         load_kernel_tests;
+        return 1;
+    }
+
+    if (get_var('XFSTESTS')) {
+        load_xfstests_tests;
         return 1;
     }
 
