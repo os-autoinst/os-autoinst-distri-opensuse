@@ -36,6 +36,7 @@
           <li><a href="#qesap_get_terraform_dir">qesap_get_terraform_dir</a></li>
           <li><a href="#qesap_get_ansible_roles_dir">qesap_get_ansible_roles_dir</a></li>
           <li><a href="#qesap_prepare_env">qesap_prepare_env</a></li>
+          <li><a href="#qesap_ansible_get_playbook">qesap_ansible_get_playbook</a></li>
           <li><a href="#qesap_ansible_cmd">qesap_ansible_cmd</a></li>
           <li><a href="#qesap_ansible_script_output_file">qesap_ansible_script_output_file</a></li>
           <li><a href="#qesap_ansible_script_output">qesap_ansible_script_output</a></li>
@@ -228,6 +229,11 @@ Prepare terraform environment.
 For variables example see &#39;qesap_yaml_replace&#39;
 Returns only result, failure handling has to be done by calling method.</code></pre>
 
+<h3 id="qesap_ansible_get_playbook">qesap_ansible_get_playbook</h3>
+
+<pre><code>Download the playbook from the test code repo
+that is on the worker within the running JompHost.</code></pre>
+
 <h3 id="qesap_ansible_cmd">qesap_ansible_cmd</h3>
 
 <pre><code>Use Ansible to run a command remotely on some or all
@@ -276,7 +282,7 @@ qesap_prepare_env(cmd=&gt;{string}, provider =&gt; &#39;aws&#39;);</code></pre>
 <pre><code>Use Ansible to run a command remotely and get the stdout.
 Command could be executed with elevated privileges
 
-qesap_ansible_script_output(cmd =&gt; &#39;crm status&#39;, provider =&gt; &#39;aws&#39;, host =&gt; &#39;vmhana01&#39;, root =&gt; 1);
+qesap_ansible_script_output_file(cmd =&gt; &#39;crm status&#39;, provider =&gt; &#39;aws&#39;, host =&gt; &#39;vmhana01&#39;, root =&gt; 1);
 
 It uses playbook data/sles4sap/script_output.yaml
 
@@ -467,6 +473,14 @@ Return total time of retry loop in case of pass.</code></pre>
 <dl>
 
 <dt id="HOST---host-to-get-the-report-from"><b>HOST</b> - host to get the report from</dt>
+<dd>
+
+</dd>
+<dt id="PROVIDER---Cloud-provider-name-used-to-find-the-inventory4"><b>PROVIDER</b> - Cloud provider name, used to find the inventory</dt>
+<dd>
+
+</dd>
+<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die-back"><b>FAILOK</b> - if not set, Ansible failure result in die =back</dt>
 <dd>
 
 </dd>
@@ -790,7 +804,13 @@ qesap_export_instances()</code></pre>
 
 <dl>
 
-<dt id="Around-line-998">Around line 998:</dt>
+<dt id="Around-line-927">Around line 927:</dt>
+<dd>
+
+<p>You forgot a &#39;=back&#39; before &#39;=head3&#39;</p>
+
+</dd>
+<dt id="Around-line-1004">Around line 1004:</dt>
 <dd>
 
 <p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
