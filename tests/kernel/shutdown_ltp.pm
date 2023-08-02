@@ -12,7 +12,6 @@ use base 'opensusebasetest';
 use testapi;
 use utils;
 use power_action_utils 'power_action';
-use serial_terminal;
 use upload_system_log;
 
 sub export_to_json {
@@ -32,7 +31,6 @@ sub run {
         export_to_json($tinfo->test_result_export);
     }
 
-    select_serial_terminal;
     script_run('df -h');
 
     if (get_var('LTP_COMMAND_FILE')) {
