@@ -7,7 +7,7 @@ vars:
   YUI_REST_API: '1'
   PATTERNS: all
 schedule:
-  - migration/version_switch_origin_system
+  - migration/version_reset_origin_system
   - boot/boot_to_desktop
   - migration/suseconnect_register_system
   - migration/patch_and_reboot_system
