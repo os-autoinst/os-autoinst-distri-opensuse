@@ -604,7 +604,8 @@ subtest '[qesap_ansible_script_output_file] call with all arguments' => sub {
         root => 1,
         remote_path => '/ADRIATIC_SEE',
         out_path => '/TIRRENO_SEE',
-        file => 'JELLY.fish');
+        file => 'JELLY.fish',
+        timeout => 100);
 
     note("\n  out=$out");
     note("\n  fetch_remote_path=$fetch_remote_path");
