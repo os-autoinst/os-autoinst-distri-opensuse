@@ -67,7 +67,7 @@ sub verify_hypervisor {
 
     return 0 if (
         is_qemu && $virt =~ /(qemu|kvm)/ ||
-        is_s390x && $virt =~ /zvm/ ||
+        is_s390x && $virt =~ /(zvm|kvm)/ ||
         is_hyperv && $virt =~ /microsoft/ ||
         is_vmware && $virt =~ /vmware/ ||
         check_var("VIRSH_VMM_FAMILY", "xen") && $virt =~ /xen/);
