@@ -8,7 +8,7 @@ BEGIN {
 }
 use utils;
 use testapi;
-use main_common qw(init_main is_updates_test_repo unregister_needle_tags map_incidents_to_repo);
+use main_common qw(init_main is_updates_test_repo unregister_needle_tags join_incidents_to_repo);
 use main_micro_alp;
 
 init_main();
@@ -48,10 +48,12 @@ $needle::cleanuphandler = sub {
 if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
     my %incidents;
     my %u_url;
-    $incidents{OS} = get_var('OS_TEST_ISSUES', '');
-    $u_url{OS} = get_var('OS_TEST_TEMPLATE', '');
+    $incidents{OS} = get_var('OS_TEST_REPOS', '');
+    if (exists $incidents{OS} && !$incidents{OS}) {
+        die '"OS_TEST_REPOS" variable is empty';
+    }
 
-    my $repos = map_incidents_to_repo(\%incidents, \%u_url);
+    my $repos = join_incidents_to_repo(\%incidents);
     set_var('MAINT_TEST_REPO', $repos);
 }
 
