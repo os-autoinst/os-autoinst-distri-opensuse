@@ -16,7 +16,6 @@ use containers::common;
 use containers::container_images;
 use containers::urls qw(get_image_uri);
 use db_utils qw(push_image_data_to_db);
-use containers::utils qw(reset_container_network_if_needed);
 
 sub run {
     my ($self, $args) = @_;
@@ -24,8 +23,6 @@ sub run {
 
     my $runtime = $args->{runtime};
     my $engine = $self->containers_factory($runtime);
-    reset_container_network_if_needed($runtime);
-
 
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE') && $runtime eq 'docker');
 
