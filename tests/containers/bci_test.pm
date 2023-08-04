@@ -18,7 +18,6 @@ use Mojo::Base qw(consoletest);
 use XML::LibXML;
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use containers::utils qw(reset_container_network_if_needed);
 use File::Basename;
 use utils qw(systemctl);
 use version_utils qw(get_os_release);
@@ -62,6 +61,22 @@ sub run_tox_cmd {
     script_run('mv junit_' . $env . '.xml junit_' . $env . '_${CONTAINER_RUNTIME}.xml');
 }
 
+sub reset_engines {
+    my ($self, $current_engine) = @_;
+    my ($version, $sp, $host_distri) = get_os_release;
+    my $sp_version = "$version.$sp";
+    if ($sp_version =~ /15.3|15.4|15.5/) {
+        # This workaround is only needed in SLE 15-SP3 and 15-SP4 (and Leap 15.3 and 15.4)
+        # where we need to restart docker and firewalld before running podman, otherwise
+        # the podman containers won't have access to the outside world.
+        my $engines = get_required_var('CONTAINER_RUNTIME');
+        if ($engines =~ /docker/ && $host_distri =~ /sles|opensuse/ && $host_distri =~ /sles|opensuse/) {
+            ($current_engine eq 'podman') ? systemctl("stop docker") : systemctl("start docker");
+            script_run('systemctl --no-pager restart firewalld');
+        }
+    }
+}
+
 sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
@@ -92,7 +107,7 @@ sub run {
     my $test_envs = get_required_var('BCI_TEST_ENVS');
     return if ($test_envs eq '-');
 
-    reset_container_network_if_needed($engine);
+    $self->reset_engines($engine);
 
     record_info('Run', "Starting the tests for the following environments:\n$test_envs");
     assert_script_run("cd /root/BCI-tests");

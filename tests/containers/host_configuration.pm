@@ -15,7 +15,6 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(check_os_release get_os_release is_sle);
 use containers::common;
-use containers::utils qw(reset_container_network_if_needed);
 
 sub run {
     select_serial_terminal;
@@ -46,7 +45,13 @@ sub run {
     # Install engines in case they are not installed
     install_docker_when_needed($host_distri) if ($engine =~ 'docker');
     install_podman_when_needed($host_distri) if ($engine =~ 'podman');
-    reset_container_network_if_needed($engine);
+
+    # It has been observed that after system update, the ip forwarding doesn't work.
+    # In 15.3/15.4/15.5 there is a need to restart the firewall and docker daemon.
+    if ($host_distri =~ /sles|opensuse-leap/ && $version eq '15' && $sp =~ /3|4|5/) {
+        systemctl("restart docker") if ($engine =~ 'docker');
+        systemctl("restart firewalld");
+    }
 
     # Record podman|docker version
     foreach my $eng (split(',\s*', $engine)) {
