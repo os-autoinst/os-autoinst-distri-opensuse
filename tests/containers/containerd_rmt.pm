@@ -29,12 +29,11 @@ sub run {
     install_kubectl();
     install_helm();
 
-    my $rmt_helm = get_var('RMTTEST_REPO', 'https://github.com/SUSE/helm-charts/archive/refs/heads/main.zip');
+    my $rmt_helm = get_var('RMTTEST_REPO', 'https://github.com/SUSE/helm-charts/archive/refs/heads/main.tar.gz');
     # pull in the testsuite
-    assert_script_run("wget --quiet --no-check-certificate " . $rmt_helm);
-    assert_script_run("unzip main.zip");
-    my $myvalue = get_var('MY_VALUE', 'https://gitlab.suse.de/QA-APAC-I/testing/-/raw/master/data/rmtcontainer/myvalue.yaml');
-    assert_script_run("wget --no-check-certificate " . $myvalue);
+    assert_script_run("curl -sSLk $rmt_helm | tar -zxf -");
+    my $rmt_config = get_var('RMTTEST_CONFIG', 'https://gitlab.suse.de/QA-APAC-I/testing/-/raw/master/data/rmtcontainer/myvalue.yaml');
+    assert_script_run("curl -sSLOk $rmt_config");
     assert_script_run("helm install rmt ./helm-charts-main/rmt-helm -f myvalue.yaml");
     assert_script_run("helm list");
     my @out = split(' ', script_output("kubectl get pods | grep rmt-app"));
@@ -45,6 +44,7 @@ sub run {
         last if ($logs =~ /All repositories have already been enabled/);
     }
     assert_script_run("kubectl exec $out[0] rmt-cli repos list");
+    assert_script_run('test $(kubectl get pods --field-selector=status.phase=Running | grep -c rmt) -eq 3');
 }
 
 sub post_fail_hook {
