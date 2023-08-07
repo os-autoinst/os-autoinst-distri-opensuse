@@ -193,6 +193,26 @@ Execute qesap glue script commands. Check project documentation for available op
 https://github.com/SUSE/qe-sap-deployment
 Test only returns execution result, failure has to be handled by calling method.</code></pre>
 
+<dl>
+
+<dt id="CMD---qesap.py-subcommand-to-run"><b>CMD</b> - qesap.py subcommand to run</dt>
+<dd>
+
+</dd>
+<dt id="CMD_OPTIONS---set-of-arguments-for-the-qesap.py-subcommand"><b>CMD_OPTIONS</b> - set of arguments for the qesap.py subcommand</dt>
+<dd>
+
+</dd>
+<dt id="VERBOSE---activate-verbosity-in-qesap.py"><b>VERBOSE</b> - activate verbosity in qesap.py</dt>
+<dd>
+
+</dd>
+<dt id="TIMEOUT---max-expected-execution-time-back"><b>TIMEOUT</b> - max expected execution time =back</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h3 id="qesap_ansible_log_find_timeout">qesap_ansible_log_find_timeout</h3>
 
 <pre><code>Return the Timeout error found in the Ansible log or not</code></pre>
@@ -328,6 +348,10 @@ remotely executed command.</code></pre>
 <dd>
 
 </dd>
+<dt id="TIMEOUT---max-expected-execution-time-default-180sec.-Same-timeout-is-used-both-for-the-execution-of-script_output.yaml-and-for-the-fetch_file.-Timeout-of-the-same-amount-is-started-two-times"><b>TIMEOUT</b> - max expected execution time, default 180sec. Same timeout is used both for the execution of script_output.yaml and for the fetch_file. Timeout of the same amount is started two times.</dt>
+<dd>
+
+</dd>
 <dt id="REMOTE_PATH---Path-to-save-file-in-the-remote-without-file-name"><b>REMOTE_PATH</b> - Path to save file in the remote (without file name)</dt>
 <dd>
 
@@ -361,6 +385,10 @@ remotely executed command.</code></pre>
 
 </dd>
 <dt id="FAILOK---if-not-set-Ansible-failure-result-in-die3"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
+<dd>
+
+</dd>
+<dt id="TIMEOUT---max-expected-execution-time"><b>TIMEOUT</b> - max expected execution time</dt>
 <dd>
 
 </dd>
@@ -419,6 +447,10 @@ Return the local path of the downloaded file.</code></pre>
 <dd>
 
 </dd>
+<dt id="TIMEOUT---max-expected-execution-time-default-180sec"><b>TIMEOUT</b> - max expected execution time, default 180sec</dt>
+<dd>
+
+</dd>
 <dt id="FILE---file-name-of-the-local-copy-of-the-file"><b>FILE</b> - file name of the local copy of the file</dt>
 <dd>
 
@@ -441,7 +473,7 @@ as required by the QE-SAP Terraform &amp; Ansible deployment code.</code></pre>
 <h3 id="qesap_remote_hana_public_ips">qesap_remote_hana_public_ips</h3>
 
 <pre><code>Return a list of the public IP addresses of the systems
-deployed by qesapdeployment, as reported by C&lt;terraform output&gt;.
+deployed by qe-sap-deployment, as reported by C&lt;terraform output&gt;.
 Needs to run after C&lt;qesap_execute(cmd =&gt; &#39;terraform&#39;);&gt; call.</code></pre>
 
 <h3 id="qesap_wait_for_ssh">qesap_wait_for_ssh</h3>
@@ -804,13 +836,19 @@ qesap_export_instances()</code></pre>
 
 <dl>
 
-<dt id="Around-line-927">Around line 927:</dt>
+<dt id="Around-line-429">Around line 429:</dt>
 <dd>
 
 <p>You forgot a &#39;=back&#39; before &#39;=head3&#39;</p>
 
 </dd>
-<dt id="Around-line-1004">Around line 1004:</dt>
+<dt id="Around-line-951">Around line 951:</dt>
+<dd>
+
+<p>You forgot a &#39;=back&#39; before &#39;=head3&#39;</p>
+
+</dd>
+<dt id="Around-line-1028">Around line 1028:</dt>
 <dd>
 
 <p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
