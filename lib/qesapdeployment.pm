@@ -381,6 +381,17 @@ sub qesap_yaml_replace {
     Execute qesap glue script commands. Check project documentation for available options:
     https://github.com/SUSE/qe-sap-deployment
     Test only returns execution result, failure has to be handled by calling method.
+
+=over 4
+
+=item B<CMD> - qesap.py subcommand to run
+
+=item B<CMD_OPTIONS> - set of arguments for the qesap.py subcommand
+
+=item B<VERBOSE> - activate verbosity in qesap.py
+
+=item B<TIMEOUT> - max expected execution time
+=back
 =cut
 
 sub qesap_execute {
@@ -588,7 +599,6 @@ sub qesap_ansible_cmd {
     foreach (qw(provider cmd)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     $args{user} ||= 'cloudadmin';
     $args{filter} ||= 'all';
-    $args{timeout} //= bmwqemu::scale_timeout(90);
     $args{failok} //= 0;
     my $verbose = $args{verbose} ? ' -vvvv' : '';
 
@@ -627,7 +637,7 @@ sub qesap_ansible_cmd {
     Return is the local full path of the file containing the output of the
     remotely executed command.
 
-=over 9
+=over 10
 
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
@@ -645,6 +655,10 @@ sub qesap_ansible_cmd {
 
 =item B<FAILOK> - if not set, Ansible failure result in die
 
+=item B<TIMEOUT> - max expected execution time, default 180sec.
+    Same timeout is used both for the execution of script_output.yaml and for the fetch_file.
+    Timeout of the same amount is started two times.
+
 =item B<REMOTE_PATH> - Path to save file in the remote (without file name)
 
 =back
@@ -656,6 +670,7 @@ sub qesap_ansible_script_output_file {
     $args{user} ||= 'cloudadmin';
     $args{root} ||= 0;
     $args{failok} //= 0;
+    $args{timeout} //= bmwqemu::scale_timeout(180);
     my $remote_path = $args{remote_path} // '/tmp/';
     my $out_path = $args{out_path} // '/tmp/ansible_script_output/';
     my $file = $args{file} // 'testout.txt';
@@ -671,8 +686,8 @@ sub qesap_ansible_script_output_file {
         '-e', "out_file='$file'", '-e', "remote_path='$remote_path'");
     push @ansible_cmd, ('-e', "failok=yes") if ($args{failok});
 
-    # ignore the ret value for the moment
-    qesap_venv_cmd_exec(cmd => join(' ', @ansible_cmd), failok => $args{failok});
+    # ignore the return value for the moment
+    qesap_venv_cmd_exec(cmd => join(' ', @ansible_cmd), failok => $args{failok}, timeout => $args{timeout});
 
     # Grab the file from the remote
     return qesap_ansible_fetch_file(provider => $args{provider},
@@ -682,7 +697,8 @@ sub qesap_ansible_script_output_file {
         root => $args{root},
         remote_path => $remote_path,
         out_path => $out_path,
-        file => $file);
+        file => $file,
+        timeout => $args{timeout});
 }
 
 =head3 qesap_ansible_script_output
@@ -702,6 +718,8 @@ sub qesap_ansible_script_output_file {
 =item B<ROOT> - 1 to enable remote execution with elevated user, default to 0
 
 =item B<FAILOK> - if not set, Ansible failure result in die
+
+=item B<TIMEOUT> - max expected execution time
 
 =item B<FILE> - result file name
 
@@ -731,7 +749,8 @@ sub qesap_ansible_script_output {
         root => $args{root},
         remote_path => $path,
         out_path => $out_path,
-        file => $file);
+        file => $file,
+        timeout => $args{timeout});
     # Print output and delete output file
     my $output = script_output("cat $local_tmp");
     enter_cmd "rm $local_tmp || echo 'Nothing to delete'";
@@ -767,6 +786,8 @@ sub qesap_ansible_script_output {
 
 =item B<FAILOK> - if not set, Ansible failure result in die
 
+=item B<TIMEOUT> - max expected execution time, default 180sec
+
 =item B<FILE> - file name of the local copy of the file
 
 =item B<OUT_PATH> - path to save file locally (without file name)
@@ -780,6 +801,7 @@ sub qesap_ansible_fetch_file {
     $args{user} ||= 'cloudadmin';
     $args{root} ||= 0;
     $args{failok} //= 0;
+    $args{timeout} //= bmwqemu::scale_timeout(180);
     my $local_path = $args{out_path} // '/tmp/ansible_script_output/';
     my $local_file = $args{file} // 'testout.txt';
 
@@ -800,7 +822,9 @@ sub qesap_ansible_fetch_file {
         '-e', "file='$local_file'");
     push @ansible_fetch_cmd, ('-e', "failok=yes") if ($args{failok});
 
-    qesap_venv_cmd_exec(cmd => join(' ', @ansible_fetch_cmd), failok => $args{failok});
+    qesap_venv_cmd_exec(cmd => join(' ', @ansible_fetch_cmd),
+        failok => $args{failok},
+        timeout => $args{timeout});
     return $local_tmp;
 }
 
@@ -838,7 +862,7 @@ sub qesap_create_aws_config {
 =head3 qesap_remote_hana_public_ips
 
     Return a list of the public IP addresses of the systems
-    deployed by qesapdeployment, as reported by C<terraform output>.
+    deployed by qe-sap-deployment, as reported by C<terraform output>.
     Needs to run after C<qesap_execute(cmd => 'terraform');> call.
 
 =cut
