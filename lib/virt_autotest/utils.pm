@@ -159,6 +159,7 @@ sub is_kvm_host {
 
 #retrun 1 if libvirt 9.0- is running which monolithic libvirtd is the default service
 sub is_monolithic_libvirtd {
+    record_info('WARNING', 'Libvirt package is not installed', result => 'fail') if (script_run('rpm -q libvirt-libs'));
     unless (is_alp) {
         return 1 if script_run('rpm -q libvirt-libs | grep -e "libs-9\.0" -e "libs-[1-8]\."') == 0;
     }

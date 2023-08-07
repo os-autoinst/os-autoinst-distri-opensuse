@@ -65,7 +65,9 @@ sub check_kvm_modules {
     # for modular libvirt, virtqemud is expected in "loaded: active or inactive" status.
     # virtqemud.socket seems to be always in "loaded: active" status
     unless (is_monolithic_libvirtd) {
-        die 'virtqemud.socket is not running!' unless script_run("systemctl is-active virtqemud.socket") eq 0;
+        unless (get_var('TEST_SUITE_NAME') =~ /kubevirt-tests/ or script_run("systemctl is-active virtqemud.socket") eq 0) {
+            die 'virtqemud.socket is not running!';
+        }
     }
     record_info("KVM", "kvm modules are loaded!");
 }
