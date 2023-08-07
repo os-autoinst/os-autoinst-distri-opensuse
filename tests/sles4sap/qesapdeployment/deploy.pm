@@ -23,13 +23,23 @@ sub run {
     @ret = qesap_execute(cmd => 'ansible', cmd_options => '--profile', verbose => 1, timeout => 3600);
     if ($ret[0])
     {
-        qesap_cluster_logs();
         my $rec_timeout = qesap_ansible_log_find_timeout($ret[1]);
         if ($rec_timeout) {
             record_info('DETECTED ANSIBLE TIMEOUT ERROR');
             @ret = qesap_execute(cmd => 'ansible', cmd_options => '--profile', verbose => 1, timeout => 3600);
+            if ($ret[0])
+            {
+                qesap_cluster_logs();
+                die "'qesap.py ansible' return: $ret[0]";
+            }
+            record_info('ANSIBLE RETRY PASS');
         }
-        die "'qesap.py ansible' return: $ret[0]";
+        else
+        {
+            qesap_cluster_logs();
+            die "'qesap.py ansible' return: $ret[0]";
+        }
+
     }
 }
 
