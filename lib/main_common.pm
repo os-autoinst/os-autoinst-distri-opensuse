@@ -323,7 +323,7 @@ sub is_migration_tests {
 
 sub is_updates_test_repo {
     # mru stands for Maintenance Released Updates and skips unreleased updates
-    return is_updates_tests && get_required_var('FLAVOR') !~ /-Minimal$/;
+    return is_updates_tests && get_required_var('FLAVOR') !~ /-Minimal$/ && !check_var('FLAVOR', 'Container-Image-Updates');
 }
 
 sub is_repo_replacement_required {
