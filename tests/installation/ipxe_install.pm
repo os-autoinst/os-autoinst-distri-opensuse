@@ -212,6 +212,7 @@ sub run {
     if (get_var('AUTOYAST')) {
         # make sure to wait for a while befor changing the boot device again, in order to not change it too early
         sleep 120;
+        set_bootscript_hdd if get_var('IPXE_UEFI');
     }
     else {
         my $ssh_vnc_wait_time = 1500;
