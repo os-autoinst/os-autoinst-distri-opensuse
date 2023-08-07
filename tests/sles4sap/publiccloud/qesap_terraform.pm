@@ -18,6 +18,7 @@
 # _HANA_MASTER_PW (mandatory) - Hana master PW (secret)
 # INSTANCE_SID - SAP Sid
 # INSTANCE_ID - SAP instance id
+# ANSIBLE_REMOTE_PYTHON - define python version to be used for qesap-deploymnet (default '/usr/bin/python3')
 
 
 use strict;
@@ -127,6 +128,7 @@ sub run {
     die "HA cluster needs at least 2 nodes. Check 'NODE_COUNT' parameter." if ($ha_enabled && (get_var('NODE_COUNT') <= 1));
 
     set_var('FENCING_MECHANISM', 'native') unless ($ha_enabled);
+    set_var_output('ANSIBLE_REMOTE_PYTHON', '/usr/bin/python3');
 
     my $deployment_name = deployment_name();
     # Create a QESAP_DEPLOYMENT_NAME variable so it includes the random
