@@ -75,7 +75,7 @@ sub influxdb_push_data {
     $out =~ s/$token/<redacted>/;
     record_info('curl POST', $out);
 
-    my $output = script_output($cmd, quiet => $args{quiet});
+    my $output = script_output($cmd, quiet => $args{quiet}, proceed_on_failure => $args{proceed_on_failure});
     my ($return_code) = $output =~ /RETURN_CODE:(\d+)/;
     unless ($return_code >= 200 && $return_code < 300) {
         my $msg = "Failed pushing data into Influx DB:\n$output\n";
