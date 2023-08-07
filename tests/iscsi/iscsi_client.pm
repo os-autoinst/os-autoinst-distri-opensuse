@@ -141,7 +141,7 @@ sub run {
         $iscsi_drive .= '1';
     }
     sleep 3;
-    assert_script_run "mkfs.ext4 $iscsi_drive";
+    assert_script_run "mkfs.ext4 $iscsi_drive", 180;
     sleep 2;
     # try mount remote partition to /mnt
     assert_script_run "mount $iscsi_drive /mnt";
