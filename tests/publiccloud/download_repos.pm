@@ -65,8 +65,12 @@ sub run {
         my $reject = "'robots.txt,*.ico,*.png,*.gif,*.css,*.js,*.htm*'";
         my $regex = "'s390x\\/|ppc64le\\/|kernel*debuginfo*.rpm|src\\/'";
         my ($incident, $type);
+        set_var("PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED", 0);
         for my $maintrepo (@repos) {
-            next unless validate_repo($maintrepo);
+            unless (validate_repo($maintrepo)) {
+                set_var("PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED", 1);
+                next;
+            }
             script_run("echo 'Downloading $maintrepo ...' >> ~/repos/qem_download_status.txt");
             my ($parent) = $maintrepo =~ 'https?://(.*)$';
             my ($domain) = $parent =~ '^([a-zA-Z.]*)';
@@ -94,7 +98,8 @@ sub run {
         upload_logs('qem_download_status.txt');
         # Failsafe 2: Ensure the repos are not empty (i.e. size >= 100 kB)
         my $size = script_output('du -s ~/repos | awk \'{print$1}\'');
-        die "Empty test repositories" if ($check_empty_repos && $size < 100);
+        # we will not die if repos are empty due to embargoed updates filtering
+        die "Empty test repositories" if (!get_var("PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED") && $check_empty_repos && $size < 100);
     }
 
     my $total_size = script_output("du -hs ~/repos");
