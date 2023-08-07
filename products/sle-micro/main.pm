@@ -48,9 +48,10 @@ $needle::cleanuphandler = sub {
 if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
     my %incidents;
     my %u_url;
-    $incidents{OS} = get_var('OS_TEST_REPOS', '');
+    $incidents{OS} = get_var('OS_TEST_REPOS', get_var('INCIDENT_REPO'));
+
     if (exists $incidents{OS} && !$incidents{OS}) {
-        die '"OS_TEST_REPOS" variable is empty';
+        die '"OS_TEST_REPOS" or "INCIDENT_REPO" variable is empty';
     }
 
     my $repos = join_incidents_to_repo(\%incidents);
