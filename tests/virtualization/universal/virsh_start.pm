@@ -21,9 +21,9 @@ sub run {
         }
     }
 
-    record_info "LIBVIRTD", "Restart libvirtd and expect all guests to boot up";
+    record_info "LIBVIRTD", "Restart libvirt daemon and expect all guests to boot up";
     # Note: TBD for modular libvirt. See poo#129086 for detail.
-    restart_libvirtd if is_monolithic_libvirtd;
+    restart_libvirtd;
 
 
     # Ensure all guests have network connectivity

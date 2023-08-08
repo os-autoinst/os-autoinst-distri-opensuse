@@ -82,7 +82,7 @@ sub run {
     #    select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
     select_console('root-console');
     # Note: TBD for modular libvirt. See poo#129086 for detail.
-    systemctl("restart libvirtd") if is_monolithic_libvirtd;
+    restart_libvirtd;
     assert_script_run('for i in $(virsh list --name|grep -v Domain-0);do virsh destroy $i;done');
     assert_script_run('for i in $(virsh list --name --inactive); do if [[ $i == win* ]]; then virsh undefine $i; else virsh undefine $i --remove-all-storage; fi; done');
     script_run("[ -f /root/.ssh/known_hosts ] && > /root/.ssh/known_hosts");
