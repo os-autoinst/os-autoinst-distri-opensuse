@@ -1610,7 +1610,7 @@ sub config_guest_installation_automation_registration {
     $self->{guest_do_registration} = 'false' if ($self->{guest_do_registration} eq '');
     record_info("Guest $self->{guest_name} registration status: $self->{guest_do_registration}", "Good luck !");
     if ($self->{guest_do_registration} eq 'false') {
-        assert_script_run("sed -ri \'/<suse_register>/,/<\\\/suse_register>/d\' $self->{guest_installation_automation_file}") if ($self->{guest_os_name} =~ /sles/im);
+        assert_script_run("sed -ri \'/<suse_register>/,/<\\\/suse_register>/d\' $self->{guest_installation_automation_file}") if ($self->{guest_os_name} =~ /sles|slem/im);
     }
     else {
         assert_script_run("sed -ri \'s/##Do-Registration##/$self->{guest_do_registration}/g;\' $self->{guest_installation_automation_file}");
