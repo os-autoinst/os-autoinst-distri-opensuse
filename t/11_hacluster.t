@@ -90,4 +90,30 @@ subtest '[script_output_retry_check] Diskless SBD scenario' => sub {
     set_var('USE_DISKLESS_SBD', undef);
 };
 
+subtest '[cluster_status_matches_regex]' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my $cmr_status = "Some long string to simulate crm status output here";
+    my $res = cluster_status_matches_regex($cmr_status);
+    ok scalar $res == 0, 'Cluster health is excellent!!';
+};
+
+subtest '[cluster_status_matches_regex] Cluster with errors' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my $cmr_status = "* stonith-sbd	(stonith:external/sbd):	 Stopped vmhana01
+        * Clone Set: cln_azure-events [rsc_azure-events]:
+        * Started: [ vmhana01 vmhana02 ]
+        * Clone Set: cln_SAPHanaTopology_HDB_HDB00 [rsc_SAPHanaTopology_HDB_HDB00]:
+            * Started: [ vmhana01 vmhana02 ]
+        * Clone Set: msl_SAPHana_HDB_HDB00 [rsc_SAPHana_HDB_HDB00] (promotable):
+            * rsc_SAPHana_HDB_HDB00	(ocf::suse:SAPHana):	 Promoting vmhana02
+            * Stopped: [ vmhana01 ]
+        * rsc_socat_HDB_HDB00	(ocf::heartbeat:azure-lb):	 Stopped vmhana02
+        * Resource Group: g_ip_HDB_HDB00:
+            * rsc_ip_HDB00	(ocf::heartbeat:IPaddr2):	 Stopped";
+    $hacluster->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $res = cluster_status_matches_regex($cmr_status);
+    ok scalar $res == 1, 'Cluster health problem properly detected';
+};
+
 done_testing;
