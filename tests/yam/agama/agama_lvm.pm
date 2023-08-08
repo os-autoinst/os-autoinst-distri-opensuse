@@ -12,6 +12,7 @@ use warnings;
 use testapi qw(
   assert_screen
   assert_script_run
+  get_required_var
   reset_consoles
   select_console
   upload_logs
@@ -20,11 +21,12 @@ use power_action_utils 'power_action';
 use transactional 'process_reboot';
 
 sub run {
+    my $product_name = get_required_var('AGAMA_PRODUCT');
     assert_screen('agama_product_selection', 120);
     $testapi::password = 'linux';
     select_console 'root-console';
 
-    assert_script_run('RUN_INSTALLATION=1 playwright test --trace on --project chromium --config /usr/share/e2e-agama-playwright lvm', timeout => 1200);
+    assert_script_run("RUN_INSTALLATION=1 PRODUCTNAME=\"$product_name\" playwright test --trace on --project chromium --config /usr/share/e2e-agama-playwright lvm", timeout => 1200);
     upload_logs('./test-results/lvm-Use-logical-volume-management-LVM-as-storage-device-for-installation-chromium/trace.zip');
 
     assert_script_run('reboot');
