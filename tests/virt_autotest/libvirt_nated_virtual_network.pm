@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2022 SUSE LLC
+# Copyright 2019-2023 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: NAT based virtual network test:
@@ -22,6 +22,8 @@ use version_utils qw(is_sle is_alp);
 sub run_test {
     my ($self) = @_;
 
+    #Refer to bsc#1214223 more details
+    record_soft_failure('bsc#1214223 - Failed to attach NAT virtual network interface to guest system') if (is_xen_host && !is_monolithic_libvirtd);
     #Download libvirt host bridge virtual network configuration file
     my $vnet_nated_cfg_name = "vnet_nated.xml";
     virt_autotest::virtual_network_utils::download_network_cfg($vnet_nated_cfg_name);
@@ -75,21 +77,11 @@ sub post_fail_hook {
 
     $self->SUPER::post_fail_hook;
 
-    #Restart libvirtd service
-    # Note: TBD for modular libvirt. See poo#129086 for detail.
-    virt_autotest::utils::restart_libvirtd() if is_monolithic_libvirtd;
-
     #Destroy created virtual networks
     virt_autotest::virtual_network_utils::destroy_vir_network();
 
     #Restore default(NATed Network)
     virt_autotest::virtual_network_utils::restore_libvirt_default();
-
-    #Restore br123 for virt_autotest
-    virt_autotest::virtual_network_utils::restore_standalone();
-
-    #Restore Guest systems
-    virt_autotest::virtual_network_utils::restore_guests();
 }
 
 1;

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2020-2022 SUSE LLC
+# Copyright 2020-2023 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: virtualization test utilities.
@@ -29,9 +29,9 @@ use Carp;
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host reset_log_cursor check_failures_in_journal check_host_health check_guest_health
   is_monolithic_libvirtd turn_on_libvirt_debugging_log
   print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs ensure_default_net_is_active ensure_guest_started
-  ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests restore_downloaded_guests save_original_guest_xmls restore_original_guests
+  ensure_online add_guest_to_hosts restart_libvirtd check_libvirtd remove_additional_disks remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests restore_downloaded_guests save_original_guest_xmls restore_original_guests
   is_guest_online wait_guests_shutdown remove_vm setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host
-  check_port_state subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest upload_virt_logs recreate_guests download_vm_import_disks enable_nm_debug check_activate_network_interface set_host_bridge_interface_with_nm upload_nm_debug_log);
+  check_port_state subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest upload_virt_logs recreate_guests download_vm_import_disks enable_nm_debug check_activate_network_interface set_host_bridge_interface_with_nm upload_nm_debug_log restart_modular_libvirt_daemons check_modular_libvirt_daemons);
 
 my %log_cursors;
 
@@ -42,42 +42,46 @@ sub trim {
     return $text;
 }
 
-sub restart_libvirtd {
-    if (is_sle('<12')) {
-        assert_script_run('rclibvirtd restart', 180);
-    }
-    elsif (is_alp) {
-        my $_libvirtd_pid = script_output(q@ps -ef |grep [l]ibvirtd | gawk '{print $2;}'@);
-        my $_libvirtd_cmd = script_output("ps -o command $_libvirtd_pid | tail -1");
-        assert_script_run("kill -9 $_libvirtd_pid");
-        assert_script_run("$_libvirtd_cmd");
-    }
-    else {
-        systemctl("restart libvirtd", timeout => 180);
-    }
-    record_info("Libvirtd has been restarted!");
-    save_screenshot;
-}
-
 #return 1 if test is expected to run on XEN hypervisor
 sub is_xen_host {
     return get_var("XEN") || check_var("SYSTEM_ROLE", "xen") || check_var("HOST_HYPERVISOR", "xen") || check_var("REGRESSION", "xen-hypervisor");
+}
+
+# Usage: check_modular_libvirt_daemons([daemon1_name daemon2_name ...]). For example:
+# to specify daemons which will be checked: check_modular_libvirt_daemons(qemu storage ...)
+# to check all required modular daemons without any daemons passed
+sub check_modular_libvirt_daemons {
+    my @daemons = @_;
+
+    if (!@daemons) {
+        @daemons = qw(network nodedev nwfilter secret storage proxy lock);
+        # For details, please refer to poo#137096
+        (is_xen_host) ? push @daemons, 'xen' : push @daemons, ('qemu', 'log');
+    }
+
+    foreach my $daemon (@daemons) {
+        systemctl("status virt${daemon}d.service");
+        if (($daemon eq 'lock') || ($daemon eq 'log')) {
+            systemctl("status virt${daemon}d\{,-admin\}.socket");
+        } else {
+            systemctl("status virt${daemon}d\{,-ro,-admin\}.socket");
+        }
+    }
+    save_screenshot;
+
+    record_info("Modular libvirt daemons checked, all active for", join(' ', @daemons));
 }
 
 # Usage: restart_modular_libvirt_daemons([daemon1_name daemon2_name ...]). For example:
 # to specify daemons which will be restarted: restart_modular_libvirt_daemons(virtqemud virtstoraged ...)
 # to restart all modular daemons without any daemons passed
 sub restart_modular_libvirt_daemons {
-    my @daemons;
+    my @daemons = @_;
 
-    if (@_ == 0) {
-        if (is_xen_host) {
-            @daemons = qw(virtxend virtstoraged virtnetworkd virtnodedevd virtsecretd virtproxyd virtnwfilterd);
-        } else {
-            @daemons = qw(virtqemud virtstoraged virtnetworkd virtnodedevd virtsecretd virtproxyd virtnwfilterd);
-        }
-    } else {
-        @daemons = @_;
+    if (!@daemons) {
+        @daemons = qw(network nodedev nwfilter secret storage proxy lock);
+        # For details, please refer to poo#137096
+        (is_xen_host) ? push @daemons, 'xen' : push @daemons, ('qemu', 'log');
     }
 
     if (is_alp) {
@@ -85,7 +89,11 @@ sub restart_modular_libvirt_daemons {
     } else {
         # Restart the sockets first
         foreach my $daemon (@daemons) {
-            systemctl("restart $daemon\{,-ro,-admin\}.socket");
+            if (($daemon eq 'lock') || ($daemon eq 'log')) {
+                systemctl("restart virt${daemon}d\{,-admin\}.socket");
+            } else {
+                systemctl("restart virt${daemon}d\{,-ro,-admin\}.socket");
+            }
         }
 
         # Introduce idle time here (e.g., sleep 5) if necessary
@@ -93,11 +101,12 @@ sub restart_modular_libvirt_daemons {
 
         # Restart the services after a brief idle time
         foreach my $daemon (@daemons) {
-            systemctl("restart $daemon.service");
+            systemctl("restart virt${daemon}d.service");
         }
     }
+    save_screenshot;
 
-    record_info("Libvirt daemons restarted", join(' ', @daemons));
+    record_info("Modular Libvirt daemons restarted, all active for", join(' ', @daemons));
 }
 
 #return 1 if it is a VMware test judging by REGRESSION variable
@@ -166,6 +175,34 @@ sub is_monolithic_libvirtd {
     return 0;
 }
 
+# Restart libvirt daemon
+sub restart_libvirtd {
+    if (is_sle('<12')) {
+        assert_script_run('rclibvirtd restart', 180);
+    }
+    elsif (is_alp) {
+        my $_libvirtd_pid = script_output(q@ps -ef |grep [l]ibvirtd | gawk '{print $2;}'@);
+        my $_libvirtd_cmd = script_output("ps -o command $_libvirtd_pid | tail -1");
+        assert_script_run("kill -9 $_libvirtd_pid");
+        assert_script_run("$_libvirtd_cmd");
+    }
+    elsif (is_monolithic_libvirtd) {
+        systemctl("restart libvirtd", timeout => 180);
+    } else {
+        restart_modular_libvirt_daemons;
+    }
+    save_screenshot;
+
+    record_info("Libvirtd Daemon has been restarted!");
+}
+
+# Check libvirt daemon
+sub check_libvirtd {
+    is_monolithic_libvirtd ? systemctl("status libvirtd") : check_modular_libvirt_daemons;
+
+    record_info("Libvirtd Daemon has been checked!");
+}
+
 # For legacy libvird, set debug level logging for libvirtd services
 # For modular libvirt, do the same settings to /etc/libvirt/virt{qemu,xen,driver}d.conf.
 # virt{qemu,xen}d daemons provide the most important libvirt log(sufficient for most issues).
@@ -174,7 +211,9 @@ sub is_monolithic_libvirtd {
 # Developer asked to use different log file as log_output per daemon.
 sub turn_on_libvirt_debugging_log {
 
-    my @libvirt_daemons = is_monolithic_libvirtd ? "libvirtd" : qw(virtqemud virtstoraged virtnetworkd virtnodedevd virtsecretd virtproxyd virtnwfilterd virtlockd virtlogd);
+    my @libvirt_daemons = is_monolithic_libvirtd ? "libvirtd" : qw(virtqemud virtstoraged virtnetworkd virtnodedevd virtsecretd virtproxyd virtnwfilterd virtlockd);
+    # For details, please refer to poo#137096
+    push @libvirt_daemons, 'virtlogd' if is_kvm_host;
 
     #turn on debug and log filter for libvirt services
     #set log_level = 1 'debug'
@@ -192,7 +231,7 @@ sub turn_on_libvirt_debugging_log {
     script_run "grep -e 'log_level.*=' -e 'log_outputs.*=' -e 'log_filters.*=' /etc/libvirt/*d.conf";
     save_screenshot;
 
-    is_monolithic_libvirtd ? restart_libvirtd : restart_modular_libvirt_daemons;
+    restart_libvirtd;
 }
 
 # Reset journalctl cursor used by check_failures_in_journal() to skip already
@@ -514,7 +553,7 @@ sub ensure_online {
             # Check also if name resolution works - restart libvirtd if not
             if (script_run("ssh $guest ping -c 3 -w 120 $dns_host", timeout => 180) != 0) {
                 # Note: TBD for modular libvirt. See poo#129086 for detail.
-                restart_libvirtd if (is_monolithic_libvirtd and (is_xen_host || is_kvm_host));
+                restart_libvirtd;
                 die "name resolution failed for $guest" if (script_retry("ssh $guest ping -c 3 -w 120 $dns_host", delay => 1, retry => 10, timeout => 180) != 0);
             }
         }
@@ -531,7 +570,7 @@ sub upload_y2logs {
 sub ensure_default_net_is_active {
     if (script_run("virsh net-list --all | grep default | grep ' active'", 90) != 0) {
         # Note: TBD for modular libvirt. See poo#129086 for detail.
-        restart_libvirtd if is_monolithic_libvirtd;
+        restart_libvirtd;
         if (script_run("virsh net-list --all | grep default | grep ' active'", 90) != 0) {
             assert_script_run "virsh net-start default";
         }

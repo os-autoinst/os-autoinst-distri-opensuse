@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2022 SUSE LLC
+# Copyright 2019-2023 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Isolated virtual network test:
@@ -71,10 +71,6 @@ sub run_test {
 
     #After finished all virtual network test, need to restore file /etc/hosts from backup
     virt_autotest::virtual_network_utils::hosts_restore();
-
-    #Skip restart network service due to bsc#1166570
-    #Restart network service
-    #virt_autotest::virtual_network_utils::restart_network();
 }
 
 sub post_fail_hook {
@@ -82,18 +78,8 @@ sub post_fail_hook {
 
     $self->SUPER::post_fail_hook;
 
-    #Restart libvirtd service
-    # Note: TBD for modular libvirt. See poo#129086 for detail.
-    virt_autotest::utils::restart_libvirtd() if is_monolithic_libvirtd;
-
     #Destroy created virtual networks
     virt_autotest::virtual_network_utils::destroy_vir_network();
-
-    #Restore br123 for virt_autotest
-    virt_autotest::virtual_network_utils::restore_standalone();
-
-    #Restore Guest systems
-    virt_autotest::virtual_network_utils::restore_guests();
 }
 
 1;
