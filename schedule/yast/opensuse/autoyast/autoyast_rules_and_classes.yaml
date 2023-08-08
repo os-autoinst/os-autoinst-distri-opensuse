@@ -4,6 +4,7 @@ description: >
   For future testing of AutoYaST rules and classes
 vars:
   AUTOYAST: autoyast_opensuse/rule-based_example/
+  DESKTOP: gnome
 schedule:
   - autoyast/prepare_rules_and_classes
   - installation/bootloader_start
