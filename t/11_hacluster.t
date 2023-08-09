@@ -85,7 +85,7 @@ subtest '[script_output_retry_check] Diskless SBD scenario' => sub {
     is $params{'pcmk_delay_max'}, 0, "Test pcmk_delay_max undefined: pcmk_delay_max = $params{'pcmk_delay_max'}";
 
     set_var('USE_DISKLESS_SBD', 1);
-    my %params = collect_sbd_delay_parameters();
+    %params = collect_sbd_delay_parameters();
     is $params{'pcmk_delay_max'}, 30, "Test diskless scenario: pcmk_delay_max = $params{'pcmk_delay_max'}";
     set_var('USE_DISKLESS_SBD', undef);
 };
