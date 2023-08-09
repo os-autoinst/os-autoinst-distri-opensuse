@@ -16,6 +16,8 @@
     <ul>
       <li><a href="#decode_azure_json">decode_azure_json</a></li>
       <li><a href="#generate_azure_image_definition">generate_azure_image_definition</a></li>
+      <li><a href="#get_image_name">get_image_name</a></li>
+      <li><a href="#get_os_vhd_uri">get_os_vhd_uri</a></li>
       <li><a href="#my-parsed_id-self-parse_instance_id-instance-say-parsed_id--vm_name-say-parsed_id--resource_group">my $parsed_id = $self-&gt;parse_instance_id($instance); say $parsed_id-&gt;{vm_name}; say $parsed_id-&gt;{resource_group};</a></li>
       <li><a href="#cleanup-This-method-is-called-called-after-each-test-on-failure-or-success-to-revoke-the-credentials">cleanup This method is called called after each test on failure or success to revoke the credentials</a></li>
     </ul>
@@ -37,6 +39,41 @@
 <p>Note: Image definitions needs to be distinct names and can only serve one architecture!</p>
 
 <p>Example: &#39;SLE-MICRO-5.4-BYOS-AZURE-X86_64-GEN2&#39;</p>
+
+<h2 id="get_image_name">get_image_name</h2>
+
+<pre><code>Calculate the final image name in Azure Gallery
+from the file name used in SUSE download server (usually PUBLIC_CLOUD_IMAGE_LOCATION)
+
+PUBLIC_CLOUD_AZURE_SKU setting is used to determine part of the file name.
+
+B&lt;return&gt; a string with the image name</code></pre>
+
+<dl>
+
+<dt id="FILE---filename-usually-extracted-from-PUBLIC_CLOUD_IMAGE_LOCATION"><b>FILE</b> - filename, usually extracted from PUBLIC_CLOUD_IMAGE_LOCATION</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="get_os_vhd_uri">get_os_vhd_uri</h2>
+
+<pre><code>Calculate the image URI in the Azure Blob Server
+from the file name used in SUSE download server (usually PUBLIC_CLOUD_IMAGE_LOCATION)
+
+PUBLIC_CLOUD_AZURE_SKU setting is used to determine part of the file name.
+PUBLIC_CLOUD_STORAGE_ACCOUNT setting is used to compose the url
+
+B&lt;return&gt; a string with the image uri on the blob server</code></pre>
+
+<dl>
+
+<dt id="FILE---filename-usually-extracted-from-PUBLIC_CLOUD_IMAGE_LOCATION1"><b>FILE</b> - filename, usually extracted from PUBLIC_CLOUD_IMAGE_LOCATION</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="my-parsed_id-self-parse_instance_id-instance-say-parsed_id--vm_name-say-parsed_id--resource_group">my $parsed_id = $self-&gt;parse_instance_id($instance); say $parsed_id-&gt;{vm_name}; say $parsed_id-&gt;{resource_group};</h2>
 
