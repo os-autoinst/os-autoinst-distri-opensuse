@@ -75,7 +75,11 @@ Example: 'SLE-MICRO-5.4-BYOS-AZURE-X86_64-GEN2'
 
 sub generate_azure_image_definition {
     my $arch = (get_var('PUBLIC_CLOUD_ARCH', get_required_var('ARCH'))) eq 'x86_64' ? 'x64' : 'Arm64';
-    my $definition = get_required_var('DISTRI') . '-' . get_required_var('VERSION') . '-' . get_required_var('FLAVOR') . '-' . $arch . '-' . get_var('PUBLIC_CLOUD_AZURE_SKU', $default_sku);
+    my $definition = get_required_var('DISTRI') . '-' .
+      get_required_var('VERSION') . '-' .
+      get_required_var('FLAVOR') . '-' .
+      $arch . '-' .
+      get_var('PUBLIC_CLOUD_AZURE_SKU', $default_sku);
     return get_var("PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION", uc($definition));
 }
 
@@ -85,10 +89,7 @@ sub find_img {
 
     return if (!$self->resource_exist());
 
-    ($name) = $name =~ m/([^\/]+)$/;
-    my $gen = (check_var('PUBLIC_CLOUD_AZURE_SKU', 'gen2')) ? 'V2' : 'V1';
-    $name =~ s/\.xz$//;
-    $name =~ s/\.vhdfixed$/-$gen.vhd/;
+    $name = $self->get_image_name($name);
 
     my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'eisleqaopenqa');
     my $key = $self->get_storage_account_keys($storage_account);
@@ -182,6 +183,57 @@ sub get_image_definition {
     return undef;
 }
 
+=head2 get_image_name
+
+    Calculate the final image name in Azure Gallery
+    from the file name used in SUSE download server (usually PUBLIC_CLOUD_IMAGE_LOCATION)
+
+    PUBLIC_CLOUD_AZURE_SKU setting is used to determine part of the file name.
+
+    B<return> a string with the image name
+
+=over 1
+
+=item B<FILE> - filename, usually extracted from PUBLIC_CLOUD_IMAGE_LOCATION
+
+=back
+=cut
+
+sub get_image_name {
+    my ($self, $file) = @_;
+    my ($img_name) = $file =~ /([^\/]+)$/;
+    $img_name =~ s/\.xz$//;
+    my $gen = (check_var('PUBLIC_CLOUD_AZURE_SKU', 'gen2')) ? 'V2' : 'V1';
+    $img_name =~ s/\.vhdfixed/-$gen.vhd/;
+    return $img_name;
+}
+
+=head2 get_os_vhd_uri
+
+    Calculate the image URI in the Azure Blob Server
+    from the file name used in SUSE download server (usually PUBLIC_CLOUD_IMAGE_LOCATION)
+
+    PUBLIC_CLOUD_AZURE_SKU setting is used to determine part of the file name.
+    PUBLIC_CLOUD_STORAGE_ACCOUNT setting is used to compose the url
+
+    B<return> a string with the image uri on the blob server
+
+=over 1
+
+=item B<FILE> - filename, usually extracted from PUBLIC_CLOUD_IMAGE_LOCATION
+
+=back
+=cut
+
+sub get_os_vhd_uri {
+    my ($self, $file) = @_;
+    my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'eisleqaopenqa');
+    my $container = $self->container;
+    my $img_name = $self->get_image_name($file);
+
+    return "https://$storage_account.blob.core.windows.net/$container/$img_name";
+}
+
 sub upload_img {
     my ($self, $file) = @_;
 
@@ -190,10 +242,10 @@ sub upload_img {
         $file =~ s/\.xz$//;
     }
 
-    my ($img_name) = $file =~ /([^\/]+)$/;
-    my $gen = (check_var('PUBLIC_CLOUD_AZURE_SKU', 'gen2')) ? 'V2' : 'V1';
-    $img_name =~ s/\.vhdfixed/-$gen.vhd/;
-    my $disk_name = $img_name;
+    my $img_name = $self->get_image_name($file);
+    my $sku = get_var("PUBLIC_CLOUD_AZURE_SKU", $default_sku);
+    my $gen = ($sku =~ "gen2" ? "V2" : "V1");
+    my $os_vhd_uri = $self->get_os_vhd_uri($file);
     my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'eisleqaopenqa');
     my $container = $self->container;
 
@@ -219,7 +271,7 @@ sub upload_img {
     my $arch = (get_var('PUBLIC_CLOUD_ARCH', get_required_var('ARCH'))) eq 'x86_64' ? 'x64' : 'Arm64';
     my $publisher = get_var("PUBLIC_CLOUD_AZURE_PUBLISHER", "qe-c");
     my $offer = get_var("PUBLIC_CLOUD_AZURE_OFFER", get_var('DISTRI') . '-' . get_var('VERSION') . '-' . get_var('FLAVOR') . '-' . $arch);
-    my $sku = get_var("PUBLIC_CLOUD_AZURE_SKU", $default_sku);
+
     ## For the Azure Compute Gallery, multiple target regions are supported.
     # This is necessary, because the image version upload needs to happen once for all regions, for which we want to
     # execute test runs. For reasons of being concise we re-use the existing variable PUBLIC_CLOUD_REGION, but here
@@ -240,7 +292,6 @@ sub upload_img {
     ## 1. Ensure the image definition in the Azure Compute Gallery exists
     ## 2. Create a new image version for that definition. Use the link to the uploaded blob to create this version
 
-
     # Print image definitions as a help to debug possible conflicting definitions
     my $images = script_output("az sig image-definition list -g '$resource_group' -r '$gallery'");
     record_info("img-defs", "Existing image definitions:\n$images");
@@ -251,7 +302,6 @@ sub upload_img {
         record_info("use img-def", "Using found image definitions:\n$definition");
     } else {
         $definition = $self->generate_azure_image_definition();
-        my $gen = ($sku =~ "gen2" ? "V2" : "V1");
         record_info("gen img-def", "Create image definitions:\n$definition");
         assert_script_run("az sig image-definition create --resource-group '$resource_group' --gallery-name '$gallery' " .
               "--gallery-image-definition '$definition' --os-type Linux --publisher '$publisher' --offer '$offer' --sku '$sku' " .
@@ -260,7 +310,7 @@ sub upload_img {
     # Note: Repetitive calls do not fail
     assert_script_run("az sig image-version create --resource-group '$resource_group' --gallery-name '$gallery' " .
           "--gallery-image-definition '$definition' --gallery-image-version '$version' --os-vhd-storage-account '$sa_url' " .
-          "--os-vhd-uri https://$storage_account.blob.core.windows.net/$container/$img_name --target-regions $target_regions", timeout => 60 * 30);
+          "--os-vhd-uri $os_vhd_uri --target-regions $target_regions", timeout => 60 * 30);
     return $img_name;
 }
 
