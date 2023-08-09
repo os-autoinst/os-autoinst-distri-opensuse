@@ -154,7 +154,7 @@ sub run {
     }
 
     my $provider = $self->provider_factory();
-    set_var('SLE_IMAGE', $provider->get_image_id());
+    set_var('OS_URI', $provider->get_os_vhd_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION')));
     my $ansible_playbooks = create_playbook_section_list();
     my $ansible_hana_vars = create_hana_vars_section();
 
