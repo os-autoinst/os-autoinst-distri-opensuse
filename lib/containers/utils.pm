@@ -310,7 +310,7 @@ sub reset_container_network_if_needed {
             } elsif ($current_engine eq 'docker') {
                 systemctl("start docker");
             }
-            systemctl("restart firewalld");
+            systemctl("restart firewalld") if (script_run("systemctl is-active firewalld") == 0);
         }
     }
 }
