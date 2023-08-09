@@ -541,15 +541,16 @@ sub check_host_gid {
 =head2 config_host_shared_storage
 
 Configure shared nfs storage on server and mount it on client. Main arguments
-are type of shared storage, path of exported shared storage, server or client 
-and mount path on client. 
+are type of shared storage, path of exported shared storage, server or client
+, original source path on server and mount path on server and client. 
 =cut
 
 sub config_host_shared_storage {
     my ($self, %args) = @_;
     $args{type} //= 'nfs';
-    $args{exppath} //= '/var/lib/libvirt/images';
+    $args{exppath} //= '/home/virt';
     $args{role} //= 'server';
+    $args{srcpath} //= '/var/lib/libvirt/images';
     $args{mntpath} //= '/var/lib/libvirt/images';
 
     record_info("Configure host shared storage");
@@ -570,12 +571,22 @@ sub config_host_shared_storage {
             }
             $_temppath = $args{exppath};
             $_temppath =~ s/\//\\\//g;
+            # Create export path directory if it doesn't exist
+            if (script_run("test -d $_temppath") != 0) {
+                assert_script_run("mkdir -p $_temppath");
+            }
+            # Move guest images from the default image path to the export path
+            # Guest installation puts images to /var/lib/libvirt/images by default,
+            # move them to nfs export directory /home/virt, then mount /home/virt to /var/lib/libvirt/images.
+            assert_script_run("mv $args{srcpath}/* $args{exppath}/");
             assert_script_run("sed -i \'/^.*$_temppath.*\$/d\' /etc/exports");
             assert_script_run("echo \"$args{exppath} *(rw,sync,no_root_squash,no_subtree_check)\" >> /etc/exports");
             assert_script_run("exportfs -a");
             systemctl('restart nfs-server.service');
             systemctl('status nfs-server.service');
             assert_script_run("rm -f -r $args{exppath}/nfsok; touch $args{exppath}/nfsok");
+            script_run("umount $args{mntpath} || umount -f -l $args{mntpath}");
+            assert_script_run("mount -t nfs localhost:$args{exppath} $args{mntpath}");
             save_screenshot;
         }
         elsif ($args{role} eq 'client') {
