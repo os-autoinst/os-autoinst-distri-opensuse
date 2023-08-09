@@ -34,8 +34,11 @@ sub run {
     script_run('timeout 5 perf report -i perf.data');
     # test4
     # Dynamic Tracing (probe command)
-    assert_script_run('perf probe --add tcp_sendmsg');
-    script_run('perf record -e probe:tcp_sendmsg -aR sleep 10 ');
+    if (script_run('timeout 10 perf probe --add tcp_sendmsg') != 0) {
+        record_info('Run without debuginfod', 'Timeout or wrong symbol address when using debuginfod (boo#1213785)', result => 'softfail');
+        assert_script_run('DEBUGINFOD_URLS= perf probe --add tcp_sendmsg');
+    }
+    script_run('perf record -e probe:tcp_sendmsg -aR sleep 10');
     script_run('timeout 5 perf report -i perf.data');
     assert_script_run('perf probe -d tcp_sendmsg');
     # test5
