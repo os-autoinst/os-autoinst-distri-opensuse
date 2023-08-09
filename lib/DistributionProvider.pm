@@ -33,7 +33,7 @@ If there is no matched version, then returns Tumbleweed as the default one.
 =cut
 
 sub provide {
-    return Distribution::Sle::15_current->new() if is_sle('>=15-sp3');
+    return Distribution::Sle::15_current->new() if (is_sle('>=15-sp3') || is_sle_micro);
     return Distribution::Sle::15sp2->new() if is_sle('>15');
     return Distribution::Sle::15sp0->new() if is_sle('=15');
     return Distribution::Sle::12->new() if is_sle('12+');
