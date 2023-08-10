@@ -80,7 +80,6 @@ sub upload_img {
     my $image_id = $self->find_img($img_name);
     die("Cannot find image after upload!") unless $image_id;
     record_info('INFO', "Image ID: $image_id");
-    return $image_id;
 }
 
 sub terraform_apply {
