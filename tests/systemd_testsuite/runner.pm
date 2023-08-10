@@ -12,6 +12,7 @@ use serial_terminal 'select_serial_terminal';
 use Utils::Logging 'save_and_upload_log';
 
 my $test_hash;
+my $logs_path_mask = '/var/tmp/systemd-tests/systemd-test';
 
 sub build_cmd {
     my ($target, $args) = @_;
@@ -32,7 +33,7 @@ sub run {
     my ($self, $args) = @_;
     my $timeout = 900;
     my $marker = " systemd test runner: >>> $args->{test} has finished <<<";
-    my $logs = qr[\/var\/tmp\/systemd-test.(\w+)\/];
+    my $logs = qr[$logs_path_mask\.(\w+)\/];
 
     select_serial_terminal();
 
@@ -41,7 +42,7 @@ sub run {
 
     if ($out =~ $logs) {
         $test_hash = $1;
-        record_info("$test_hash", 'Test logs: /var/tmp/systemd-test.' . $test_hash);
+        record_info("$test_hash", sprintf('Test logs: %s.%s', $logs_path_mask, $test_hash));
     } else {
         bmwqemu::diag 'Cannot find the location for logs';
     }
@@ -61,11 +62,11 @@ sub run {
 }
 
 sub post_fail_hook {
-    my $lpath = sprintf('/var/tmp/systemd-test.%s/system.journal', $test_hash);
-
+    my $lfile = sprintf('%s.%s/system.journal', $logs_path_mask, $test_hash);
     select_console('log-console');
-    script_run("xz -9 $lpath");
-    upload_logs("$lpath" . '.xz', failok => 1);
+    script_run(sprintf('xz -9 %s', $lfile));
+    $lfile .= '.xz';
+    upload_logs("$lfile", failok => 1);
     save_and_upload_log('journalctl -o short-precise --no-pager', "journalctl-host.txt");
 }
 
