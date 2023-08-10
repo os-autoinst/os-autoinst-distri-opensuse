@@ -53,9 +53,14 @@
       <li><a href="#script_output_retry_check">script_output_retry_check</a></li>
       <li><a href="#collect_sbd_delay_parameters">collect_sbd_delay_parameters</a></li>
       <li><a href="#calculate_sbd_start_delay">calculate_sbd_start_delay</a></li>
-      <li><a href="#check_iscsi_failure">check_iscsi_failure</a></li>
+      <li><a href="#check_iscsi_failure">check_iscsi_failure</a>
+        <ul>
+          <li><a href="#cluster_status_matches_regex">cluster_status_matches_regex</a></li>
+        </ul>
+      </li>
     </ul>
   </li>
+  <li><a href="#POD-ERRORS">POD ERRORS</a></li>
 </ul><h1>lib/hacluster.pm</h1>
 
 <h1 id="SYNOPSIS">SYNOPSIS</h1>
@@ -323,6 +328,32 @@
 <pre><code>check_iscsi_failure();</code></pre>
 
 <p>Workaround for bsc#1129385, checks system log for iSCSI connection failures, if necessary restarts iscsi and pacemaker service</p>
+
+<h3 id="cluster_status_matches_regex">cluster_status_matches_regex</h3>
+
+<p>Check crm status output against a hardcode regular expression in order to check the cluster health =over 1</p>
+
+<dl>
+
+<dt id="SHOW_CLUSTER_STATUS---Output-from-crm-status-command"><b>SHOW_CLUSTER_STATUS</b> - Output from &#39;crm status&#39; command</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h1 id="POD-ERRORS">POD ERRORS</h1>
+
+<p>Hey! <b>The above document had some coding errors, which are explained below:</b></p>
+
+<dl>
+
+<dt id="Around-line-1146">Around line 1146:</dt>
+<dd>
+
+<p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
+
+</dd>
+</dl>
 
 
 </body>
