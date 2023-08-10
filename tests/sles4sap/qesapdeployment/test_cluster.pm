@@ -9,7 +9,7 @@ use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use qesapdeployment;
-use hacluster '$crm_mon_cmd';
+use hacluster qw($crm_mon_cmd cluster_status_matches_regex);
 
 sub run {
     my ($self) = @_;
@@ -33,6 +33,7 @@ sub run {
         provider => $prov,
         host => '"hana[0]"',
         root => 1);
+    die 'Cluster resources throwing errors' if cluster_status_matches_regex($cmr_status);
     record_info("crm status", $cmr_status);
     qesap_ansible_cmd(cmd => $crm_mon_cmd, provider => $prov, filter => '"hana[0]"');
     qesap_cluster_logs();
