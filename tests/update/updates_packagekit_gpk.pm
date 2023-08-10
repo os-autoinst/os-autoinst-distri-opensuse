@@ -44,7 +44,7 @@ sub setup_system {
 }
 
 sub close_pop_up_windows {
-    if (check_screen([qw(Could_not_get_updates Could_not_get_update_details)], timeout => 5)) {
+    if (check_screen([qw(Could_not_get_updates Could_not_get_update_details need_restart_application)], timeout => 5)) {
         record_soft_failure 'poo#130468';
         send_key 'alt-c';
         wait_still_screen 3;
