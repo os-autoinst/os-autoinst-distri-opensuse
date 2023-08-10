@@ -13,7 +13,7 @@ use warnings;
 use base 'y2_installbase';
 
 sub run {
-    my $online_repos_popup = $testapi::distri->get_yes_no_popup_controller();
+    my $online_repos_popup = $testapi::distri->get_yes_no_popup();
     $online_repos_popup->decline();
 }
 

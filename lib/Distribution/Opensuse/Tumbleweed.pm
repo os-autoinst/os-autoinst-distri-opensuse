@@ -135,7 +135,7 @@ sub get_network_settings {
     return YaST::NetworkSettings::v4_3::NetworkSettingsController->new();
 }
 
-sub get_system_role_controller() {
+sub get_system_role() {
     return Installation::SystemRole::SystemRoleController->new();
 }
 
@@ -171,11 +171,11 @@ sub get_license_agreement {
     return Installation::License::Opensuse::LicenseAgreementController->new();
 }
 
-sub get_ok_popup_controller {
+sub get_ok_popup {
     return Installation::Popups::OKPopupController->new();
 }
 
-sub get_yes_no_popup_controller {
+sub get_yes_no_popup {
     return Installation::Popups::YesNoPopupController->new();
 }
 

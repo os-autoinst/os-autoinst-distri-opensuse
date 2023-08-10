@@ -12,7 +12,7 @@ use base 'y2_installbase';
 use Test::Assert 'assert_equals';
 
 sub run {
-    my $system_role = $testapi::distri->get_system_role_controller();
+    my $system_role = $testapi::distri->get_system_role();
     assert_equals(
         $system_role->get_available_role('text_mode'),
         $system_role->get_selected_role(),

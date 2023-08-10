@@ -9,7 +9,7 @@ use strict;
 use warnings;
 
 sub run {
-    $testapi::distri->get_ok_popup_controller()->accept();
+    $testapi::distri->get_ok_popup()->accept();
 }
 
 1;
