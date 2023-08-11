@@ -391,8 +391,8 @@ sub wait_for_sync {
         $output_pass-- if $output_pass == 1 && $ret !~ /SOK/ && $ret !~ /PRIM/ && $ret =~ /SFAIL/;
         $output_fail++ if $ret =~ /SFAIL/;
         $output_fail-- if $output_fail >= 1 && $ret !~ /SFAIL/;
-        next if $output_pass < 3;
-        last if $output_pass == 3;
+        next if $output_pass < 5;
+        last if $output_pass == 5;
         if (time - $start_time > $timeout) {
             record_info("Cluster status", $self->run_cmd(cmd => $crm_mon_cmd));
             record_info("Sync FAIL", "Host replication status: " . $self->run_cmd(cmd => 'SAPHanaSR-showAttr'));

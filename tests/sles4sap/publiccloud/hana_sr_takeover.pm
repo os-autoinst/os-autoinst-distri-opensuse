@@ -50,12 +50,26 @@ sub run {
     # Calculate SBD delay sleep time
     $sbd_delay = $self->sbd_delay_formula if $takeover_action eq 'crash';
 
+    # SBD delay related setup for 'stop' to fix sporadic 'takeover failed to complete' issue on EC2
+    if ($takeover_action eq 'stop' and check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
+        $self->setup_sbd_delay();
+        $sbd_delay = $self->sbd_delay_formula();
+    }
+
     # Stop/kill/crash HANA DB and wait till SSH is again available with pacemaker running.
     $self->stop_hana(method => $takeover_action);
     $self->{my_instance}->wait_for_ssh(username => 'cloudadmin');
 
     # SBD delay is active only after reboot
     if ($takeover_action eq 'crash' and $sbd_delay != 0) {
+        record_info('SBD SLEEP', "Waiting $sbd_delay sec for SBD delay timeout.");
+        # test needs to wait a little more than sbd delay
+        sleep($sbd_delay + 30);
+        $self->wait_for_pacemaker();
+    }
+
+    # Add SBD delay for 'stop' to fix sporadic 'takeover failed to complete' issue on EC2
+    if ($takeover_action eq 'stop' and check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
         record_info('SBD SLEEP', "Waiting $sbd_delay sec for SBD delay timeout.");
         # test needs to wait a little more than sbd delay
         sleep($sbd_delay + 30);
