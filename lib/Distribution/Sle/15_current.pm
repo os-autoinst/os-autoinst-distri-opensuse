@@ -28,8 +28,11 @@ use Installation::RepositoryURL::RepositoryURLController;
 use Installation::AddOnProductInstallation::AddOnProductInstallationController;
 use Installation::SystemRole::Sle::SystemRoleController;
 use Installation::ModuleRegistration::SeparateRegCodesController;
+use Installation::NtpConfiguration::NtpConfigurationPage;
 use YaST::DNSServer::Sle::DNSServerController;
 use YaST::DNSServer::Sle::DNSServerSetupController;
+
+use YuiRestClient;
 
 =head2 get_license_agreement
 
@@ -96,6 +99,10 @@ sub get_dns_server {
 
 sub get_dns_server_setup {
     return YaST::DNSServer::Sle::DNSServerSetupController->new();
+}
+
+sub get_ntp_config {
+    return Installation::NtpConfiguration::NtpConfigurationPage->new({app => YuiRestClient::get_app()});
 }
 
 1;
