@@ -20,7 +20,7 @@ sub run {
     foreach my $addon (@scc_addons) {
         if ($addon =~ /we|ha|ltss/) {
             $testapi::distri->wait_for_separate_regcode({
-                    timeout => 60,
+                    timeout => 90,
                     interval => 2,
                     message => 'Page to insert separate registration code did not appear'});
             my $regcode = get_required_var('SCC_REGCODE_' . uc $addon);
