@@ -166,6 +166,14 @@ sub run {
         send_key "$key";
         # try one more time as sometimes sending key does not take effect
         send_key "$key" if check_screen('o3-ipxe-menu');
+
+        # confirm the dialog asking for user modifications to kernel, cmdline and initrd
+        # set limit to 10 in case some keys don't go through
+        for (1 .. 10) {
+            last if check_screen([qw(load-linux-kernel load-initrd)], 3);
+            send_key "ret";
+        }
+
         assert_screen([qw(load-linux-kernel load-initrd)], 240);
         # Loading initrd spend much time(fg. 10-15 minutes to Beijing SUT)
         # Downloading from O3 became much more quick, some needles may not be caught.
