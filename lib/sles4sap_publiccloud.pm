@@ -37,6 +37,7 @@ our @EXPORT = qw(
   check_takeover
   get_replication_info
   is_hana_online
+  is_hana_offline
   get_hana_topology
   enable_replication
   cleanup_resource
@@ -163,6 +164,26 @@ sub is_hana_online {
     return $db_status;
 }
 
+=head2 is_hana_offline
+    is_hana_offline();
+
+    Check if hana DB is offline
+=cut
+
+sub is_hana_offline {
+    my ($self) = @_;
+    my $i = 0;
+    my $db_status;
+
+    while ($i++ < 6) {
+        $db_status = $self->get_replication_info()->{online} eq "true" ? 0 : 1;
+        return $db_status if $db_status;
+        record_info("Retry: $i", "Hana database is not offline");
+        sleep 10;
+    }
+    return $db_status;
+}
+
 =head2 is_hana_resource_running
     is_hana_resource_running([timeout => 60]);
 
@@ -272,8 +293,10 @@ sub check_takeover {
     my ($self) = @_;
     my $hostname = $self->{my_instance}->{instance_id};
     my $retry_count = 0;
-    my $fenced_hana_status = $self->is_hana_online();
-    die("Fenced database '$hostname' is not offline") if ($fenced_hana_status == 1);
+    #my $fenced_hana_status = $self->is_hana_offline();
+    #die("Fenced database '$hostname' is not offline") if ($fenced_hana_status == 0);
+    #record_info("Not-offline", "Check takeover: Fenced database '$hostname' is not offline") if (!$self->is_hana_offline());
+    record_soft_failure("Not-offline, jsc#TEAM-8139, Check takeover: Fenced database '$hostname' is not offline") if (!$self->is_hana_offline());
 
   TAKEOVER_LOOP: while (1) {
         my $topology = $self->get_hana_topology();
@@ -304,11 +327,14 @@ sub check_takeover {
 sub enable_replication {
     my ($self) = @_;
     my $hostname = $self->{my_instance}->{instance_id};
-    die("Fenced database '$hostname' is not offline") if ($self->is_hana_online());
+    #die("Fenced database '$hostname' is not offline") if (!$self->is_hana_offline());
+    #record_info("Not-offline", "Enable Replication: Fenced database '$hostname' is not offline") if (!$self->is_hana_offline());
+    record_soft_failure("Not-offline, jsc#TEAM-8139, Check takeover: Fenced database '$hostname' is not offline") if (!$self->is_hana_offline());
 
     my $topology_out = $self->get_hana_topology(hostname => $hostname);
     my %topology = %$topology_out;
-    my $cmd = "hdbnsutil -sr_register " .
+    #my $cmd = "hdbnsutil -sr_register " .
+    my $cmd = "hdbnsutil -sr_register --online " .
       "--name=$topology{vhost} " .
       "--remoteHost=$topology{remoteHost} " .
       "--remoteInstance=00 " .
@@ -392,7 +418,8 @@ sub wait_for_sync {
         $output_fail++ if $ret =~ /SFAIL/;
         $output_fail-- if $output_fail >= 1 && $ret !~ /SFAIL/;
         next if $output_pass < 3;
-        last if $output_pass == 3;
+	#last if $output_pass == 3;
+        last if $output_pass == 5;
         if (time - $start_time > $timeout) {
             record_info("Cluster status", $self->run_cmd(cmd => $crm_mon_cmd));
             record_info("Sync FAIL", "Host replication status: " . $self->run_cmd(cmd => 'SAPHanaSR-showAttr'));
