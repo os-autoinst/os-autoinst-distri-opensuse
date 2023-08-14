@@ -332,6 +332,7 @@ sub cleanup_system_host {
         }
         $self->_engine_assert_script_run("rm --force --all", 120);
     }
+    $self->_engine_assert_script_run("volume prune -f", 300);
     $self->_engine_assert_script_run("system prune -a -f", 300);
 
     if ($assert) {

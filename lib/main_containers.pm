@@ -100,6 +100,7 @@ sub load_host_tests_podman {
         # exclude rootless poman on public cloud because of cgroups2 special settings
         loadtest 'containers/rootless_podman' unless (is_sle('=15-sp1') || is_openstack || is_public_cloud);
     }
+    loadtest 'containers/volumes';
 }
 
 sub load_host_tests_docker {
@@ -127,6 +128,7 @@ sub load_host_tests_docker {
     unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro) {
         loadtest 'containers/validate_btrfs';
     }
+    loadtest 'containers/volumes';
 }
 
 sub load_host_tests_containerd_rmt {
