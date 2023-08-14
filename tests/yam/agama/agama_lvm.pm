@@ -12,6 +12,7 @@ use warnings;
 use testapi qw(
   assert_screen
   assert_script_run
+  enter_cmd
   get_required_var
   reset_consoles
   select_console
@@ -26,10 +27,10 @@ sub run {
     $testapi::password = 'linux';
     select_console 'root-console';
 
-    assert_script_run("RUN_INSTALLATION=1 PRODUCTNAME=\"$product_name\" playwright test --trace on --project chromium --config /usr/share/e2e-agama-playwright lvm", timeout => 1200);
-    upload_logs('./test-results/lvm-Use-logical-volume-management-LVM-as-storage-device-for-installation-chromium/trace.zip');
+    assert_script_run("RUN_INSTALLATION=1 PRODUCTNAME=\"$product_name\" playwright test --trace on --project chromium --config /usr/share/e2e-agama-playwright tests/lvm.spec.ts", timeout => 1200);
+    upload_logs('./test-results/lvm-The-main-page-Use-logical-volume-management-LVM-as-storage-device-for-installation-chromium/trace.zip');
 
-    assert_script_run('reboot');
+    enter_cmd "reboot";
     # For agama test, it is too short time to match the grub2, so we create
     # a new needle to avoid too much needles loaded.
     assert_screen('grub2-agama', 120);
@@ -39,6 +40,6 @@ sub run {
 }
 
 sub post_fail_hook {
-    upload_logs('./test-results/lvm-Use-logical-volume-management-LVM-as-storage-device-for-installation-chromium/trace.zip');
+    upload_logs('./test-results/lvm-The-main-page-Use-logical-volume-management-LVM-as-storage-device-for-installation-chromium/trace.zip');
 }
 1;
