@@ -69,8 +69,6 @@ sub run {
     my $patch_status = is_patch_needed($patch, 1);
     install_packages($patch_status) if $patch_status;
 
-    systemctl 'restart display-manager' if is_s390x && is_sle('=15-SP2');
-
     power_action('reboot', textmode => 1);
     $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 200));
 }
