@@ -25,7 +25,6 @@ use warnings;
 use base 'sles4sap_publiccloud_basetest';
 use publiccloud::ssh_interactive 'select_host_console';
 use testapi;
-use publiccloud::utils;
 use publiccloud::instance;
 use publiccloud::instances;
 use sles4sap_publiccloud;
@@ -110,7 +109,7 @@ sub create_hana_vars_section {
 sub run {
     my ($self, $run_args) = @_;
 
-    if (is_azure) {
+    if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
         my %maintenance_vars = qesap_az_calculate_address_range(slot => get_required_var('WORKER_ID'));
         set_var("VNET_ADDRESS_RANGE", $maintenance_vars{vnet_address_range});
         set_var("SUBNET_ADDRESS_RANGE", $maintenance_vars{subnet_address_range});
@@ -154,7 +153,11 @@ sub run {
     }
 
     my $provider = $self->provider_factory();
-    set_var('OS_URI', $provider->get_os_vhd_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION')));
+    if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+        set_var('OS_URI', $provider->get_os_vhd_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION')));
+    } else {
+        set_var('SLE_IMAGE', $provider->get_image_id());
+    }
     my $ansible_playbooks = create_playbook_section_list();
     my $ansible_hana_vars = create_hana_vars_section();
 
@@ -180,7 +183,7 @@ sub run {
         my $real_hostname = $instance->run_ssh_command(cmd => 'hostname', username => 'cloudadmin');
         # We expect hostnames reported by terraform to match the actual hostnames in Azure and GCE
         die "Expected hostname $expected_hostname is different than actual hostname [$real_hostname]"
-          if ((is_azure || is_gce) && ($expected_hostname ne $real_hostname));
+          if ((check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE') || check_var('PUBLIC_CLOUD_PROVIDER', 'GCE')) && ($expected_hostname ne $real_hostname));
     }
 
     $self->{instances} = $run_args->{instances} = $instances;
