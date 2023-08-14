@@ -18,9 +18,9 @@ schedule:
     - installation/isosize
     - installation/data_integrity
     - installation/bootloader_start
-  setup_libyui:
-    - installation/setup_libyui
+  product_selection:
     - installation/language_keyboard/switch_keyboard_layout
+    - installation/product_selection/install_SLES
   license_agreement:
     - installation/licensing/verify_license_translations
     - installation/licensing/verify_license_has_to_be_accepted

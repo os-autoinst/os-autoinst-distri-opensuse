@@ -3,7 +3,7 @@ name: autoyast_rules_and_classes
 description: >
   For future testing of AutoYaST rules and classes
 vars:
-  AUTOYAST: autoyast_sle15/rule-based_example/
+  AUTOYAST: yam/autoyast/rule-based_example/
 schedule:
   - autoyast/prepare_rules_and_classes
   - installation/bootloader_start
