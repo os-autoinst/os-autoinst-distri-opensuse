@@ -35,23 +35,33 @@ sub run {
     my $current_dist;
     my $sles_running_version;
     my $sles_running_sp;
+    my $sles_running_spcurrent;
+    my $sles_running_versioncurrent;
+    my $current_distnow;
     script_run("systemctl disable apparmor.service");
     script_run("aa-teardown");
     if (get_var("DIST_FOR_REPO")) {
         ($sles_running_version, $sles_running_sp) = split(/sp/i, get_var("DIST_FOR_REPO"));
     } else {
-        ($sles_running_version, $sles_running_sp) = get_os_release();
+        die "Please check the DIST_FOR_REPO";
     }
+    ($sles_running_versioncurrent, $sles_running_spcurrent) = get_os_release();
     if ($sles_running_sp eq '0') {
-        $current_dist = sprintf("SLE_%s", $sles_running_version);
+        $current_dist = sprintf("%s.0", $sles_running_version);
     } else {
-        $current_dist = sprintf("SLE_%s_SP%s", $sles_running_version, $sles_running_sp);
+        $current_dist = sprintf("%s.%s", $sles_running_version, $sles_running_sp);
     }
+    $current_distnow = sprintf("%s.%s", $sles_running_versioncurrent, $sles_running_spcurrent);
+    diag "current dist is $current_dist and the current now dist is $current_distnow";
     die "Fail to get SLES release version" unless $current_dist;
-    zypper_call("rr devel_languages_perl devel_openQA devel_openQA_SLE-$sles_running_version");
-    zypper_ar("http://download.opensuse.org/repositories/devel:/languages:/perl/$current_dist/devel:languages:perl.repo", no_gpg_check => 1);
+    zypper_call("rr leap devel_openQA");
+    #zypper_ar("http://download.opensuse.org/repositories/devel:/languages:/perl/$current_dist/devel:languages:perl.repo", no_gpg_check => 1);
+    #zypper_ar("http://download.opensuse.org/repositories/devel:/openQA/$current_dist/devel:openQA.repo", no_gpg_check => 1);
+#zypper_ar("http://download.opensuse.org/repositories/devel:/openQA:/SLE-$sles_running_version/$current_dist/devel:openQA:SLE-$sles_running_version.repo", no_gpg_check => 1);
     zypper_ar("http://download.opensuse.org/repositories/devel:/openQA/$current_dist/devel:openQA.repo", no_gpg_check => 1);
-    zypper_ar("http://download.opensuse.org/repositories/devel:/openQA:/SLE-$sles_running_version/$current_dist/devel:openQA:SLE-$sles_running_version.repo", no_gpg_check => 1);
+    #sovle the libopencv405 problem
+    zypper_ar("http://download.opensuse.org/distribution/leap/$current_dist/repo/oss", name => 'leap');
+    assert_script_run("SUSEConnect -p PackageHub/$current_distnow/x86_64");
     zypper_call('--gpg-auto-import-keys ref');
     zypper_call('dup --auto-agree-with-licenses', timeout => 1800);
     #Convert comma to space for zypper in
