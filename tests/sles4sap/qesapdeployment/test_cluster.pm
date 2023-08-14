@@ -33,11 +33,12 @@ sub run {
         provider => $prov,
         host => '"hana[0]"',
         root => 1);
-    die 'Cluster resources throwing errors' if cluster_status_matches_regex($cmr_status);
     record_info("crm status", $cmr_status);
     qesap_ansible_cmd(cmd => $crm_mon_cmd, provider => $prov, filter => '"hana[0]"');
     qesap_cluster_logs();
-
+    if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+        die 'Cluster resources throwing errors' if cluster_status_matches_regex($cmr_status);
+    }
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
         if (get_var("QESAPDEPLOY_IBSMIRROR_RESOURCE_GROUP")) {
             my $rg = qesap_az_get_resource_group();
@@ -60,9 +61,8 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = shift;
+    qesap_cluster_logs();
     qesap_upload_logs();
-    qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
-    qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1200);
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
         if (get_var("QESAPDEPLOY_IBSMIRROR_RESOURCE_GROUP")) {
             my $rg = qesap_az_get_resource_group();
@@ -74,6 +74,8 @@ sub post_fail_hook {
             qesap_aws_delete_transit_gateway_vpc_attachment(name => qesap_calculate_deployment_name('qesapval') . '*');
         }
     }
+    qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
+    qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1200);
     $self->SUPER::post_fail_hook;
 }
 
