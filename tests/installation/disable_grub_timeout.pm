@@ -78,6 +78,11 @@ sub run {
     wait_still_screen(1);
     # ncurses uses blocking modal dialog, so press return is needed
     send_key 'ret' if check_var('VIDEOMODE', 'text');
+    # make sure sure value is -1 not 0
+    if (check_var('VIDEOMODE', 'text') && $timeout eq '-1') {
+        wait_still_screen(1);
+        send_key 'down';
+    }
 
     wait_still_screen(1);
     save_screenshot;
