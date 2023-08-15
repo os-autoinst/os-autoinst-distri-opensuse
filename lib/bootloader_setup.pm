@@ -130,7 +130,7 @@ sub add_custom_grub_entries {
         $distro = "ALP";
     }
     elsif (is_sle_micro()) {
-        $distro = "SLE Micro" . ' \\?' . get_required_var('VERSION');
+        $distro = "SLE Micro";
     }
 
     bmwqemu::diag("Trying to trigger purging old kernels before changing grub menu");
