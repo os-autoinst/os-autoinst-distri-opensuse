@@ -45,10 +45,10 @@ sub run {
             select_console 'sol', await_console => 0;
         }
     }
-    if (!check_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600)) {    # nocheck: old code, should be updated
+    if (!check_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu nue-ipxe-menu)], 600)) {    # nocheck: old code, should be updated
         ipmi_backend_utils::ipmitool 'chassis power reset';
     }
-    assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600);
+    assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu nue-ipxe-menu)], 600);
 
     # boot bare-metal/IPMI machine
     if (is_ipmi && get_var('BOOT_IPMI_SYSTEM')) {
@@ -57,12 +57,21 @@ sub run {
         return 1;
     }
     #detect pxe location
+    my $boot_cmd_suffix = "";
     if (match_has_tag("virttest-pxe-menu")) {
         #BeiJing
         # Login to command line of pxe management
         send_key_until_needlematch "virttest-pxe-edit-prompt", "esc", 61, 1;
 
         $image_path = get_var("HOST_IMG_URL");
+    }
+    elsif (match_has_tag("nue-ipxe-menu")) {
+        #Nuremberg ipxe
+        send_key 'i';    # open iPXE shell
+        assert_screen 'ipxe-shell';
+        my $path = get_required_var('MIRROR_HTTP') . "/boot/${arch}/loader";
+        $image_path = "initrd $path/initrd && kernel $path/linux install=" . get_required_var('MIRROR_HTTP');
+        $boot_cmd_suffix = " && boot";    # ipxe boot cmd looks like "initrd X && kernel Y cmdln && boot"
     }
     elsif (match_has_tag("qa-net-selection")) {
         if (check_var("INSTALL_TO_OTHERS", 1)) {
@@ -167,6 +176,7 @@ sub run {
         $is_nvdimm ? type_string_very_slow(" vt.color=0x07 ") : type_string_slow(" vt.color=0x07 ");
     }
 
+    $is_nvdimm ? type_string_very_slow $boot_cmd_suffix : type_string_slow $boot_cmd_suffix;
     send_key 'ret';
     save_screenshot;
 
