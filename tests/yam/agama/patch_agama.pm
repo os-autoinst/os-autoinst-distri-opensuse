@@ -10,7 +10,7 @@ use warnings;
 use testapi;
 
 sub run {
-    assert_screen('agama_product_selection', 120);
+    assert_screen('agama-main-page', 120);
 
     select_console 'root-console';
 
