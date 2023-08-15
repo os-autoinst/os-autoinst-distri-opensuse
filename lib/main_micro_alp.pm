@@ -278,8 +278,8 @@ sub load_slem_on_pc_tests {
 }
 
 sub load_xfstests_tests {
-    load_boot_from_disk_tests;
     if (check_var('XFSTESTS', 'installation')) {
+        load_boot_from_disk_tests;
         loadtest 'transactional/host_config';
         loadtest 'xfstests/install';
         unless (check_var('NO_KDUMP', '1')) {
@@ -288,6 +288,7 @@ sub load_xfstests_tests {
         loadtest 'shutdown/shutdown';
     }
     else {
+        boot_hdd_image;
         loadtest 'xfstests/partition';
         loadtest 'xfstests/run';
         loadtest 'xfstests/generate_report';
