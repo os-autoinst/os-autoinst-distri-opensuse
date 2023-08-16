@@ -153,6 +153,13 @@ sub ensure_unlocked_desktop {
                 next if match_has_tag 'generic-desktop';
             }
             send_key 'ret';
+            if (is_s390x && is_sle('<15-sp3')) {
+                # on s390x after login can the screen be black poo#125930
+                wait_still_screen;
+                mouse_set(600, 600);
+                mouse_click;
+                mouse_hide(1);
+            }
         }
         if (match_has_tag 'generic-desktop') {
             send_key 'esc';

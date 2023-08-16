@@ -1,7 +1,7 @@
 ## Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: This module use yupdate patch the Agama on Live Medium
+# Summary: This module use yupdate patch the Agama on Opensuse Live Medium
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base Yam::agama::patch_agama_base;
@@ -10,7 +10,7 @@ use warnings;
 use testapi;
 
 sub run {
-    assert_screen('agama-main-page', 120);
+    assert_screen('agama_product_selection', 120);
 
     select_console 'root-console';
 

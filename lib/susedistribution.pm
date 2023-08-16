@@ -441,28 +441,6 @@ sub init_consoles {
         }
     }
 
-    if (get_var('SUT_IP') || get_var('VIRSH_GUEST')) {
-        my $hostname = get_var('SUT_IP', get_var('VIRSH_GUEST'));
-
-        $self->add_console(
-            'root-serial-ssh',
-            'ssh-serial',
-            {
-                hostname => $hostname,
-                password => $testapi::password,
-                username => 'root'
-            });
-
-        $self->add_console(
-            'user-serial-ssh',
-            'ssh-serial',
-            {
-                hostname => $hostname,
-                password => $testapi::password,
-                username => $testapi::username
-            });
-    }
-
     # svirt backend, except s390x ARCH
     if (is_svirt_except_s390x) {
         my $hostname = get_var('VIRSH_GUEST');
@@ -576,14 +554,12 @@ sub init_consoles {
             });
     }
 
-    if (get_var('BACKEND', '') =~ /ipmi|s390x|spvm|pvm_hmc/ || get_var('S390_ZKVM')) {
+    if (get_var('BACKEND', '') =~ /ipmi|s390x|spvm|pvm_hmc/ || get_var('SUT_IP') || get_var('VIRSH_GUEST')) {
         my $hostname;
-
-        $hostname = get_var('VIRSH_GUEST') if get_var('S390_ZKVM');
+        $hostname = get_var('SUT_IP', get_var('VIRSH_GUEST')) if get_var('SUT_IP') || get_var('VIRSH_GUEST');
         $hostname = get_required_var('SUT_IP') if get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/;
 
         if (is_backend_s390x) {
-
             # expand the S390 params
             my $s390_params = get_var("S390_NETWORK_PARAMS");
             my $s390_host = get_required_var('S390_HOST');
@@ -591,22 +567,30 @@ sub init_consoles {
             set_var("S390_NETWORK_PARAMS", $s390_params);
 
             ($hostname) = $s390_params =~ /Hostname=(\S+)/;
-
-            # adds serial console for S390_ZKVM
-            # NOTE: adding consoles just at the top of init_consoles() is not enough, otherwise
-            # using just them would fail with:
-            # ::: basetest::runtest: # Test died: Error connecting to <root@192.168.112.9>: Connection refused at /usr/lib/os-autoinst/testapi.pm line 1700.
-            unless (get_var('SUT_IP')) {
-                $self->add_console(
-                    'root-serial-ssh',
-                    'ssh-serial',
-                    {
-                        hostname => $hostname,
-                        password => $testapi::password,
-                        username => 'root'
-                    });
-            }
         }
+
+        # adds serial console for s390x zVM
+        # NOTE: adding consoles just at the top of init_consoles() is not enough, otherwise
+        # using just them would fail with:
+        # ::: basetest::runtest: # Test died: Error connecting to <root@192.168.112.9>: Connection refused at /usr/lib/os-autoinst/testapi.pm line 1700.
+        $self->add_console(
+            'root-serial-ssh',
+            'ssh-serial',
+            {
+                hostname => $hostname,
+                password => $testapi::password,
+                username => 'root'
+            });
+        $self->add_console(
+            'user-serial-ssh',
+            'ssh-serial',
+            {
+                hostname => $hostname,
+                password => $testapi::password,
+                username => $testapi::username
+            });
+
+        return if get_var('VIRSH_GUEST') && !get_var('SUT_IP');
 
         if (check_var("VIDEOMODE", "text")) {    # adds console for text-based installation on s390x
             $self->add_console(

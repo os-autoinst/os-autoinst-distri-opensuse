@@ -11,7 +11,8 @@ use utils;
 use main_common qw(boot_hdd_image load_bootloader_s390x load_kernel_baremetal_tests replace_opensuse_repos_tests is_repo_replacement_required);
 use 5.018;
 use Utils::Backends;
-use version_utils qw(is_opensuse is_alp);
+use Utils::Architectures qw(is_s390x);
+use version_utils qw(is_opensuse is_transactional is_sle_micro);
 use LTP::utils qw(loadtest_kernel shutdown_ltp);
 use main_common 'loadtest';
 # FIXME: Delete the "## no critic (Strict)" line and uncomment "use warnings;"
@@ -32,10 +33,11 @@ sub load_kernel_tests {
     loadtest_kernel "../installation/bootloader" if is_pvm;
 
     if (get_var('INSTALL_LTP')) {
-        if (is_alp) {
-            loadtest 'microos/disk_boot';
+        if (is_transactional) {
+            is_s390x ? loadtest 'boot/boot_to_desktop' : loadtest 'microos/disk_boot';
             replace_opensuse_repos_tests if is_repo_replacement_required;
             loadtest 'transactional/host_config';
+            loadtest 'console/suseconnect_scc' if is_sle_micro;
         }
 
         if (get_var('INSTALL_KOTD')) {

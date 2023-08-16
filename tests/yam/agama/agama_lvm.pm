@@ -22,7 +22,7 @@ use transactional 'process_reboot';
 
 sub run {
     my $product_name = get_required_var('AGAMA_PRODUCT');
-    assert_screen('agama_product_selection', 120);
+    assert_screen('agama-main-page', 120);
     $testapi::password = 'linux';
     select_console 'root-console';
 
