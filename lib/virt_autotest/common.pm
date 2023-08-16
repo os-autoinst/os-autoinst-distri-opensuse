@@ -206,7 +206,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     } else {
         %guests = ();
     }
-    %guests = %guests{"sles${guest_version}PV", "sles${guest_version}HVM"} unless (check_var('TERADATA', ''));
+    %guests = %guests{"sles${guest_version}PV", "sles${guest_version}HVM"} if (get_var('TERADATA'));
 
 } elsif (get_var("REGRESSION", '') =~ /kvm|qemu/) {
     %guests = (
@@ -333,7 +333,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     } else {
         %guests = ();
     }
-    %guests = %guests{"sles$guest_version"} unless (check_var('TERADATA', ''));
+    %guests = %guests{"sles$guest_version"} if (get_var('TERADATA'));
 
 } elsif (get_var("REGRESSION", '') =~ /vmware/) {
     %guests = (
