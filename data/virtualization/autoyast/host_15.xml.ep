@@ -88,19 +88,18 @@
   <bootloader>
     <global>
       <activate>true</activate>
-      <boot_mbr>true</boot_mbr>
       <gfxmode>auto</gfxmode>
       <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
       <serial>serial --speed=115200 --unit=<%= $get_var->('SERIALDEV') =~ s/ttyS//r %> --word=8 --parity=no --stop=1</serial>
       <timeout config:type="integer">10</timeout>
       <trusted_grub>false</trusted_grub>
-      <xen_append>splash=silent quiet console=<%= $get_var->('SERIALDEV') %>,115200</xen_append>
       <terminal>console</terminal>
-      % if ($check_var->('VERSION', '15')) {
-      <xen_kernel_append>dom0_max_vcpus=4 dom0_mem=8192M,max:8192M vga=gfx-1024x768x16 loglvl=all guest_loglvl=all</xen_kernel_append>
+      % if ($check_var->('SYSTEM_ROLE', 'xen')) {
+      <xen_append>splash=silent quiet console=<%= $get_var->('SERIALDEV') %>,115200 <%= $check_var->('IPMI_HW', 'AMD') ? "amd_iommu=on" : "intel_iommu=on" %></xen_append>
+      <xen_kernel_append><%= $check_var->('IPMI_HW', 'AMD') ? "" : "dom0_max_vcpus=4 dom0_mem=8192M,max:8192M" %> vga=gfx-1024x768x16 loglvl=all guest_loglvl=all</xen_kernel_append>
       % } else {
-      <xen_kernel_append>vga=gfx-1024x768x16 loglvl=all guest_loglvl=all</xen_kernel_append>
+      <append>splash=silent <%= $check_var->('IPMI_HW', 'AMD') ? "amd_iommu=on" : "intel_iommu=on" %></append>
       % }
     </global>
     <loader_type>grub2</loader_type>
@@ -109,7 +108,7 @@
     <ask-list config:type="list"/>
     <mode>
       <confirm config:type="boolean">false</confirm>
-      % if ($get_var->('VERSION') gt '15-SP3') {
+      % if ($get_var->('VERSION') gt '15-SP2') {
       <final_reboot config:type="boolean">true</final_reboot>
       % }
     </mode>

@@ -123,14 +123,14 @@ sub is_hyperv_virtualization {
 #feel free to extend to support more cases
 sub is_fv_guest {
     my $guest = shift;
-    return $guest =~ /\bfv\b/ || $guest =~ /\bhvm\b/;
+    return $guest =~ /\bfv\b/ || $guest =~ /hvm/i;
 }
 
 #return 1 if it is a pv guest judging by name
 #feel free to extend to support more cases
 sub is_pv_guest {
     my $guest = shift;
-    return $guest =~ /\bpv\b/;
+    return $guest =~ /pv/i;
 }
 
 #Check if guest is SLE with optional filter for:
