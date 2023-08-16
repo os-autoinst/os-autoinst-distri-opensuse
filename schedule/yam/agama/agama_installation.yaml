@@ -4,5 +4,5 @@ description: >
   Playwright test on agama
 schedule:
   - installation/bootloader_start
-  - yam/agama/patch_agama
+  - yam/agama/patch_agama_opensuse
   - yam/agama/agama_installation
