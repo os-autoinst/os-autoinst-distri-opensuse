@@ -331,6 +331,9 @@ sub run {
         reconnect_mgmt_console(timeout => 500);
     }
 
+    # IPXE boot does not provide boot menu so set pxe_boot_done equals 1 without checking needles
+    $pxe_boot_done = 1 if (check_var('IPXE', '1') || check_var('IPXE_UEFI', '1'));
+
     # If we didn't see pxe, the reboot is going now
     $self->wait_boot if is_ipmi and not get_var('VIRT_AUTOTEST') and not $pxe_boot_done;
 
