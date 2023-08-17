@@ -143,6 +143,24 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.108/24,192.168.122.1,192.168.122.1"'
         },
+        sles15sp4teradataPV => {
+            name => 'sles15sp4teradataPV',
+            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
+            macaddress => '52:54:00:78:73:a9',
+            ip => '192.168.122.121',
+            distro => 'SLE_15_SP4',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
+            linuxrc => 'ifcfg="eth0=192.168.122.121/24,192.168.122.1,192.168.122.1"'
+        },
+        sles15sp4teradataHVM => {
+            name => 'sles15sp4teradataHVM',
+            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
+            macaddress => '52:54:00:78:73:a0',
+            ip => '192.168.122.122',
+            distro => 'SLE_15_SP4',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
+            linuxrc => 'ifcfg="eth0=192.168.122.122/24,192.168.122.1,192.168.122.1"'
+        },
         sles15sp5PV => {
             name => 'sles15sp5PV',
             extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
@@ -184,12 +202,12 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }
     } elsif (is_sle('=15-SP3')) {
-        my @allowed_guests = qw(sles15sp3HVM sles15sp3PV sles15sp4HVM sles15sp4PV);
+        my @allowed_guests = qw(sles15sp3HVM sles15sp3PV sles15sp4HVM sles15sp4PV sles15sp4teradataHVM sles15sp4teradataPV);
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }
     } elsif (is_sle('=15-SP4')) {
-        my @allowed_guests = qw(sles12sp5HVM sles12sp5PV sles15sp4HVM sles15sp4PV sles15sp5HVM sles15sp5PV);
+        my @allowed_guests = qw(sles12sp5HVM sles12sp5PV sles15sp4HVM sles15sp4PV sles15sp4teradataHVM sles15sp4teradataPV sles15sp5HVM sles15sp5PV);
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }
@@ -272,6 +290,15 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.108/24,192.168.122.1,192.168.122.1"'
         },
+        sles15sp4teradata => {
+            name => 'sles15sp4teradata',
+            extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
+            macaddress => '52:54:00:78:73:a8',
+            ip => '192.168.122.110',
+            distro => 'SLE_15',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
+            linuxrc => 'ifcfg="eth0=192.168.122.110/24,192.168.122.1,192.168.122.1"'
+        },
         sles15sp5 => {
             name => 'sles15sp5',
             extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
@@ -309,12 +336,12 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }
     } elsif (is_sle('=15-SP3')) {
-        my @allowed_guests = qw(sles15sp3 sles15sp4);
+        my @allowed_guests = qw(sles15sp3 sles15sp4 sles15sp4teradata);
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }
     } elsif (is_sle('=15-SP4')) {
-        my @allowed_guests = qw(sles12sp5 sles15sp4 sles15sp5);
+        my @allowed_guests = qw(sles12sp5 sles15sp4 sles15sp4teradata sles15sp5);
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }

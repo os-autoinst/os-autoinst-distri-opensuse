@@ -25,11 +25,20 @@ use File::Path 'make_path';
 
 sub create_profile {
     my ($vm_name, $arch, $mac, $ip) = @_;
-    my $version = $vm_name =~ /sp/ ? $vm_name =~ s/\D*(\d+)sp(\d)\D*/$1.$2/r : $vm_name =~ s/\D*(\d+)\D*/$1/r;
-    my $path = $version >= 15 ? "virtualization/autoyast/guest_15.xml.ep" : "virtualization/autoyast/guest_12.xml.ep";
+    #    my $version = $vm_name =~ /sp/ ? $vm_name =~ s/\D*(\d+)sp(\d)\D*/$1.$2/r : $vm_name =~ s/\D*(\d+)\D*/$1/r;
+    #    my $path = $version >= 15 ? "virtualization/autoyast/guest_15.xml.ep" : "virtualization/autoyast/guest_12.xml.ep";
+    my $version =
+      $vm_name =~ /sp/
+      ? $vm_name =~ s/\D*(\d+)sp(\d)\D*/$1.$2/r
+      : $vm_name =~ s/\D*(\d+)\D*/$1/r;
+    my $path =
+      $version =~ 12 ? "virtualization/autoyast/guest_12.xml.ep"
+      : $version =~ 15 && $vm_name =~ /teradata/
+      ? "virtualization/autoyast/guest_15_sp4_teradata.xml.ep"
+      : "virtualization/autoyast/guest_15.xml.ep";
     my $scc_code = get_required_var("SCC_REGCODE");
     my %ltss_products = @{get_var_array("LTSS_REGCODES_SECRET")};
-    my $ca_str = "SLE_" . $version =~ s/\./_SP/r;
+    my $ca_str = "SLE_" . $version =~ s/\D*(\d+).(\d)\D*/$1_SP$2/r;
     my $sut_ip = get_required_var("SUT_IP");
     my $profile = get_test_data($path);
     $profile =~ s/\{\{GUEST\}\}/$vm_name/g;
@@ -64,7 +73,7 @@ sub gen_osinfo {
     my $h_version = get_var("VERSION") =~ s/-SP/./r;
     my $g_version = $vm_name =~ /sp/ ? $vm_name =~ s/\D*(\d+)sp(\d)\D*/$1.$2/r : $vm_name =~ s/\D*(\d+)\D*/$1/r;
     my $info_op = $h_version > 15.2 ? "--osinfo" : "--os-variant";
-    my $info_val = $g_version > 12.5 ? $vm_name =~ s/HVM|PV//r =~ s/sles/sle/r : $vm_name =~ s/PV|HVM//r;
+    my $info_val = $g_version > 12.5 ? $vm_name =~ s/HVM|PV|teradata//gr =~ s/sles/sle/r : $vm_name =~ s/PV|HVM|teradata//gr;
     if ($h_version == 12.3) {
         $info_val = "sle15-unknown" if ($g_version > 15.1);
         $info_val = "sles12-unknown" if ($g_version == 12.5);
