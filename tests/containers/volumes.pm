@@ -13,6 +13,7 @@ use serial_terminal qw(select_serial_terminal);
 use version_utils;
 use containers::utils qw(get_docker_version get_podman_version);
 
+my $test_dir = "test_dir";
 
 sub run {
     my ($self, $args) = @_;
@@ -34,13 +35,12 @@ sub run {
     # The --mount flag does not support z or Z options for modifying selinux labels.
     my $Z = $runtime eq "podman" ? ",Z" : "";
 
-    my $test_dir = "test_dir";
     my $test_file = "test_file";
     my $test_image = "test_image";
     my $test_container = "test_container";
     my $test_volume = "test_volume";
 
-    assert_script_run("mkdir $test_dir");
+    assert_script_run("mkdir -p $test_dir");
 
     # Create Dockerfile with VOLUME defined
     assert_script_run("echo -e 'FROM busybox\nVOLUME /$test_dir' > $test_dir/Dockerfile");
@@ -147,3 +147,19 @@ sub run {
 }
 
 1;
+
+sub cleanup() {
+    script_run("rm -rf $test_dir");
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    cleanup();
+    $self->SUPER::post_fail_hook;
+}
+
+sub post_run_hook {
+    my ($self) = @_;
+    cleanup();
+    $self->SUPER::post_run_hook;
+}
