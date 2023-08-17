@@ -15,9 +15,20 @@ use containers::utils qw(get_docker_version get_podman_version);
 
 
 sub run {
-    my $runtime = get_required_var("CONTAINER_RUNTIME");
+    my ($self, $args) = @_;
+    my $runtime = $args->{runtime};
 
     select_serial_terminal();
+
+    my $docker_version = "";
+    my $podman_version = "";
+    if ($runtime eq "docker") {
+        $docker_version = get_docker_version();
+    } elsif ($runtime eq "podman") {
+        $podman_version = get_podman_version();
+    } else {
+        return;
+    }
 
     # From https://docs.docker.com/storage/bind-mounts/
     # The --mount flag does not support z or Z options for modifying selinux labels.
@@ -85,9 +96,15 @@ sub run {
     assert_script_run("$runtime volume inspect --format '{{.Name}}' $test_volume | grep -Fx $test_volume");
     # Other subcommands supported only by podman: mount unmount reload
     if ($runtime eq "podman") {
-        assert_script_run("$runtime volume exists $test_volume");
-        assert_script_run("tar cf - $test_dir | $runtime volume import $test_volume -");
-        assert_script_run("$runtime volume export $test_volume | tar tf - | grep -Fx $test_dir/$test_file");
+        # https://github.com/containers/podman/blob/main/RELEASE_NOTES.md#310
+        if (version->parse($podman_version) > version->parse('3.1.0')) {
+            assert_script_run("$runtime volume exists $test_volume");
+        }
+        # https://github.com/containers/podman/blob/main/RELEASE_NOTES.md#340
+        if (version->parse($podman_version) > version->parse('3.4.0')) {
+            assert_script_run("tar cf - $test_dir | $runtime volume import $test_volume -");
+            assert_script_run("$runtime volume export $test_volume | tar tf - | grep -Fx $test_dir/$test_file");
+        }
     }
     assert_script_run("$runtime volume rm $test_volume");
     assert_script_run("! $runtime volume inspect $test_volume");
@@ -101,7 +118,7 @@ sub run {
 
         # Equivalent --mount option to above
         # NOTE: ",Z" in --mount is known to work on 4.6.0+ but not 4.4.4
-        my $optionalZ = ($runtime eq "podman" && version->parse(get_podman_version()) < version->parse('4.6.0')) ? "" : $Z;
+        my $optionalZ = ($runtime eq "podman" && version->parse($podman_version) < version->parse('4.6.0')) ? "" : $Z;
         assert_script_run("$runtime run --rm --mount type=volume,source=$test_volume,destination=/$test_dir$optionalZ $test_image touch /$test_dir/$test_file");
 
         # Test --volume option with volume (read-only)
@@ -120,7 +137,7 @@ sub run {
         $all = "-a";
         # The -a option to docker volume prune was added to 23.0.5 according to:
         # https://docs.docker.com/engine/release-notes/23.0/#2305
-        return if (version->parse(get_docker_version()) < version->parse('23.0.5'));
+        return if (version->parse($docker_version) < version->parse('23.0.5'));
     }
     # Create a dangling (not used by any container) volume and test its removal
     assert_script_run("$runtime volume create $test_volume");
