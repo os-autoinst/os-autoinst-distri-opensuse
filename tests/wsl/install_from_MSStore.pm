@@ -30,7 +30,8 @@ sub run {
         timeout => 300
     );
     $self->run_in_powershell(
-        cmd => 'Disable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-Hypervisor -NoRestart'
+        cmd => 'Disable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-Hypervisor -NoRestart',
+        timeout => 300
     ) if (get_var('WSL2'));
 
     # Reboot and wait for it
