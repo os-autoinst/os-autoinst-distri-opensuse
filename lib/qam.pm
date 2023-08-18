@@ -108,7 +108,7 @@ sub add_test_repositories {
     my $oldrepo = get_var('PATCH_TEST_REPO');
     my @repos = split(/,/, get_var('MAINT_TEST_REPO', ''));
 
-    add_extra_customer_repositories;
+    add_extra_customer_repositories if get_var('MAINT_TEST_REPO');
 
     # shim update will fail with old grub2 due to old signature
     if (get_var('MACHINE') =~ /uefi/ && !is_transactional) {
