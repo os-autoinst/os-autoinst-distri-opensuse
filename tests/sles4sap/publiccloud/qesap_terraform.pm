@@ -156,7 +156,7 @@ sub run {
 
     my $provider = $self->provider_factory();
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
-        set_var('OS_URI', $provider->get_os_vhd_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION')));
+        set_var('OS_URI', $provider->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION')));
     } else {
         set_var('SLE_IMAGE', $provider->get_image_id());
     }

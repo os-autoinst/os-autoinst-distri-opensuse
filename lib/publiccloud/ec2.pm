@@ -166,7 +166,6 @@ sub upload_img {
     die("Cannot find image after upload!") unless $ami;
     validate_script_output('aws ec2 describe-images --image-id ' . $ami, sub { /"EnaSupport":\s+true/ });
     record_info('INFO', "AMI: $ami");    # Show the ami-* number, could be useful
-    return $ami;
 }
 
 sub img_proof {

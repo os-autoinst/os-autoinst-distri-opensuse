@@ -28,7 +28,7 @@ sub run {
     }
     else {
         $variables{STORAGE_ACCOUNT_NAME} = get_required_var('STORAGE_ACCOUNT_NAME');
-        $variables{OS_URI} = $provider->get_os_vhd_uri(get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
+        $variables{OS_URI} = $provider->get_blob_uri(get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
     }
     $variables{OS_OWNER} = get_var('QESAPDEPLOY_CLUSTER_OS_OWNER', 'amazon') if check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
 
