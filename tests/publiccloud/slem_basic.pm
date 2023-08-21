@@ -69,7 +69,24 @@ sub run {
     # additional tr-up tests
     $instance->run_ssh_command(cmd => 'sudo transactional-update -n up', timeout => 360);
     $instance->softreboot();
-    $instance->run_ssh_command(cmd => 'sudo sestatus | grep disabled');
+
+    # SELinux tests
+    my $getenforce = $instance->ssh_script_output('sudo getenforce');
+    record_info("SELinux state", $getenforce);
+    if (is_sle_micro('=5.1')) {
+        die "SELinux should be disabled" unless ($getenforce =~ /Disabled/i);
+    } elsif (is_sle_micro('=5.2')) {
+        # Check for bsc#1214438 (SELinux Disabled)
+        if ($getenforce =~ /Disabled/i) {
+            record_soft_failure("bsc#1214438 SELinux disabled");
+        } else {
+            die "SELinux should be permissive" unless ($getenforce =~ /Permissive/i);
+        }
+    } elsif (is_sle_micro('<5.4')) {
+        die "SELinux should be permissive" unless ($getenforce =~ /Permissive/i);
+    } else {
+        die "SELinux should be enforcing" unless ($getenforce =~ /Enforcing/i);
+    }
     $instance->run_ssh_command(cmd => 'sudo transactional-update -n setup-selinux');
     $instance->softreboot();
 
