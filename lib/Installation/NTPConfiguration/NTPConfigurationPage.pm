@@ -26,19 +26,18 @@ sub is_shown {
 
 sub get_ntp_servers {
     my ($self) = @_;
-    $self->get_ntp_configuration_page();
-    return $self->{txb_ntp_server}->value();
+    return $self->get_ntp_configuration_page()->{txb_ntp_server}->value();
 }
 
 sub get_ntp_configuration_page {
     my ($self) = @_;
     die "Ntp configuration page is not displayed" unless $self->is_shown();
+    return $self;
 }
 
 sub press_next {
     my ($self) = @_;
-    $self->get_ntp_configuration_page();
-    return $self->{btn_next}->click();
+    return $self->get_ntp_configuration_page()->{btn_next}->click();
 }
 
 1;
