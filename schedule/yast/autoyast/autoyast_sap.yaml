@@ -4,7 +4,6 @@ description: >
   SAP autoYaST installation and publish qcow for SAP migration standalone
   cases.
 vars:
-  AUTOYAST_PREPARE_PROFILE: '1'
   NW: 'nfs://10.162.31.119/srv/nfs/sap/NW75_CLUSTER'
   INSTANCE_ID: '00'
   INSTANCE_SID: 'QAD'
