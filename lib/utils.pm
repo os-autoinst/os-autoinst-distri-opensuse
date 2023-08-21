@@ -19,6 +19,7 @@ use Mojo::UserAgent;
 use zypper qw(wait_quit_zypper);
 use Storable qw(dclone);
 use Getopt::Long qw(GetOptionsFromString);
+use File::Basename;
 
 our @EXPORT = qw(
   generate_results
@@ -108,6 +109,10 @@ our @EXPORT = qw(
   handle_screen
   define_secret_variable
   @all_tests_results
+);
+
+our @EXPORT_OK = qw(
+  download_script
 );
 
 =head1 SYNOPSIS
@@ -2072,6 +2077,38 @@ sub script_run_interactive {
             }
         } while ($output);
     }
+}
+
+=head2 download_script
+
+ download_script($srcfile, [$destfile]);
+
+Download C<$srcfile> script from worker data directory to the SUT and save it
+as C<$destfile>, with executable bit set. If C<$destfile> is not set,
+the default is to save the script file under the same name in the current
+directory.
+=cut
+
+sub download_script {
+    my $srcfile = shift || die 'Script filename required';
+    my $destfile = shift || basename($srcfile);
+
+    if (get_var('OFFLINE_SUT')) {
+        my $data = get_test_data($srcfile);
+        my $eof = hashed_string("DS$data");
+
+        script_start_io("cat >$destfile <<'$eof'");
+        type_string("$data\n$eof\n");
+        # Flush the script contents from console to avoid confusing
+        # script_finish_io()
+        wait_serial(qr/\Q$eof\E$/) if is_serial_terminal;
+        script_finish_io();
+    }
+    else {
+        assert_script_run("curl -v -o $destfile " . data_url($srcfile));
+    }
+
+    assert_script_run("chmod a+x $destfile");
 }
 
 =head2 create_btrfs_subvolume
