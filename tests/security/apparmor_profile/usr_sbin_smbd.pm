@@ -97,7 +97,7 @@ sub samba_client_access {
 
     # Connect to samba server
     assert_and_click("nautilus-other-locations");
-    send_key_until_needlematch("nautilus-connect-to-server", 'tab', 21, 2);
+    assert_and_click("nautilus-connect-to-server");
     type_string("smb://$ip");
     send_key "ret";
     wait_still_screen(2);
