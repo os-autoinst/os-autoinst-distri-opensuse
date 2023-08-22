@@ -43,7 +43,6 @@ sub run ($self) {
 
     barrier_wait('MPI_SETUP_READY');
     if (check_var('HPC_LIB', 'boost')) {
-        assert_script_run 'source /usr/share/spack/setup-env.sh';
         assert_script_run "spack load boost^$mpi";
         assert_script_run 'spack find --loaded';
         assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin -l boost_mpi -I \${BOOST_ROOT}/include/ -L \${BOOST_ROOT}/lib 2>&1 > /tmp/make.out");
