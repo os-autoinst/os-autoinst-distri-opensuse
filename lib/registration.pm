@@ -544,8 +544,9 @@ sub process_scc_register_addons {
             }
             elsif (match_has_tag('nvidia-validation-failed')) {
                 # nvidia repos unreliable
-                send_key 'alt-y';
-                record_soft_failure 'bsc#1144831';
+                record_soft_failure 'bsc#1214234';
+                wait_still_screen { send_key 'alt-o' };
+                send_key 'alt-n';
                 next;
             }
             elsif (match_has_tag('yast_scc-pkgtoinstall')) {
@@ -644,8 +645,9 @@ sub handle_scc_popups {
             }
             elsif (match_has_tag('nvidia-validation-failed')) {
                 # sometimes nvidia driver repos are unreliable
-                send_key 'alt-y';
-                record_soft_failure 'bsc#1144831';
+                record_soft_failure 'bsc#1214234';
+                wait_still_screen { send_key 'alt-o' };
+                send_key 'alt-n';
                 next;
             }
             elsif (match_has_tag('contacting-registration-server')) {
