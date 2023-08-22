@@ -168,13 +168,17 @@ sub verify_userid_on_container {
     $cid = check_bsc1200623($cid);
     # Remove once the softfail removed. it is just checks the user's mapped uid
     validate_script_output "podman exec -it $cid cat /proc/self/uid_map", sub { /1000/ };
-    my $output = script_output("podman top $cid user huser 2>&1", proceed_on_failure => 1);
+    validate_script_output "podman top $cid user huser", sub { /bernhard\s+bernhard/ };
     # Check for bsc#1182428
-    if ($output =~ "error executing .*nsenter.*executable file not found") {
-        record_soft_failure "bsc#1182428 - Issue with nsenter from podman-top";
-    } else {
-        validate_script_output "podman top $cid user huser", sub { /bernhard\s+bernhard/ };
-        validate_script_output "podman top $cid capeff", sub { /none/ };
+    # podman 2.1.1 with keep-id option list unexpected capabilities
+    my $podman_version = get_podman_version();
+    my $output = script_output "podman top $cid capeff";
+    if ($output !~ /none/) {
+        if (package_version_cmp($podman_version, '2.1.1') == 0) {
+            record_soft_failure "bsc#1182428 - Issue with nsenter from podman-top";
+        } else {
+            die "Test does not expect to list any container capabilities";
+        }
     }
 
     ## Check if uid change within the container works as desired
