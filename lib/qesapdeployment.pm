@@ -70,8 +70,6 @@ our @EXPORT = qw(
   qesap_ansible_script_output
   qesap_ansible_fetch_file
   qesap_create_ansible_section
-  qesap_create_aws_credentials
-  qesap_create_aws_config
   qesap_remote_hana_public_ips
   qesap_wait_for_ssh
   qesap_cluster_log_cmds
@@ -225,7 +223,8 @@ sub qesap_venv_cmd_exec {
 
 =head3 qesap_pip_install
 
-  Install all Python requirements of the qe-sap-deployment in a dedicated virtual environment
+  Install all Python requirements of the qe-sap-deployment
+  in a dedicated virtual environment
 =cut
 
 sub qesap_pip_install {
@@ -504,12 +503,18 @@ sub qesap_get_ansible_roles_dir {
 
     For variables example see 'qesap_yaml_replace'
     Returns only result, failure handling has to be done by calling method.
+
+=over 1
+
+=item B<PROVIDER> - Cloud provider name, used to optionally activate AWS credential code
+
+=back
 =cut
 
 sub qesap_prepare_env {
     my (%args) = @_;
+    croak "Missing mandatory argument 'provider'" unless $args{provider};
     my $variables = $args{openqa_variables} ? $args{openqa_variables} : qesap_get_variables();
-    my $provider = $args{provider};
     my %paths = qesap_get_file_paths();
 
     # Option to skip straight to configuration
@@ -527,12 +532,12 @@ sub qesap_prepare_env {
     push(@log_files, $paths{qesap_conf_trgt});
 
     record_info('QESAP conf', 'Generating all terraform and Ansible configuration files');
-    push(@log_files, "$paths{terraform_dir}/$provider/terraform.tfvars");
+    push(@log_files, "$paths{terraform_dir}/$args{provider}/terraform.tfvars");
     my $hana_media = "$paths{deployment_dir}/ansible/playbooks/vars/hana_media.yaml";
     my $hana_vars = "$paths{deployment_dir}/ansible/playbooks/vars/hana_vars.yaml";
     my @exec_rc = qesap_execute(cmd => 'configure', verbose => 1);
 
-    if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
+    if ($args{provider} eq 'EC2') {
         my $data = get_credentials('aws.json');
         qesap_create_aws_config();
         qesap_create_aws_credentials($data->{access_key_id}, $data->{secret_access_key});
@@ -998,14 +1003,14 @@ sub qesap_cluster_log_cmds {
 =cut
 
 sub qesap_cluster_logs {
-    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
-    my $inventory = qesap_get_inventory($prov);
+    my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my $inventory = qesap_get_inventory($provider);
     if (script_run("test -e $inventory") == 0)
     {
         foreach my $host ('vmhana01', 'vmhana02') {
             foreach my $cmd (qesap_cluster_log_cmds()) {
                 my $out = qesap_ansible_script_output_file(cmd => $cmd->{Cmd},
-                    provider => $prov,
+                    provider => $provider,
                     host => $host,
                     failok => 1,
                     root => 1,
@@ -1015,7 +1020,7 @@ sub qesap_cluster_logs {
                 upload_logs($out, failok => 1);
             }
             # Upload crm report
-            qesap_upload_crm_report(host => $host, provider => $prov, failok => 1);
+            qesap_upload_crm_report(host => $host, provider => $provider, failok => 1);
         }
     }
 }
@@ -1616,13 +1621,13 @@ sub qesap_add_server_to_hosts {
     my (%args) = @_;
     foreach (qw(ip name)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
 
-    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
     qesap_ansible_cmd(cmd => "sed -i '\\\$a $args{ip} $args{name}' /etc/hosts",
-        provider => $prov,
+        provider => $provider,
         host_keys_check => 1,
         verbose => 1);
     qesap_ansible_cmd(cmd => "cat /etc/hosts",
-        provider => $prov,
+        provider => $provider,
         verbose => 1);
 }
 
