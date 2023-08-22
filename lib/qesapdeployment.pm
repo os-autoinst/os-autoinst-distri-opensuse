@@ -1182,6 +1182,7 @@ sub qesap_az_vnet_peering_delete {
     croak 'Missing mandatory target_group argument' unless $args{target_group};
     $args{timeout} //= bmwqemu::scale_timeout(300);
 
+    my $az_login_ret = script_run("az login");
     my $target_vnet = qesap_az_get_vnet($args{target_group});
 
     my $peering_name = qesap_az_get_peering_name(resource_group => $args{target_group});
