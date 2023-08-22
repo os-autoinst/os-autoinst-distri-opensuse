@@ -16,8 +16,6 @@ sub run {
 
     my ($repo, $branch) = split /#/, get_required_var('YUPDATE_GIT');
     assert_script_run("yupdate patch $repo $branch", timeout => 60);
-
-    select_console 'installation';
 }
 
 1;
