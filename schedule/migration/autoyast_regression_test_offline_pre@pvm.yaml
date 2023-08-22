@@ -2,10 +2,6 @@
 name: autoyast_regression_test_offline_pre@pvm
 description: >
   autoYaST installation and prepare base system
-vars:
-  AUTOYAST: autoyast_sle15/autoyast_sle_powervm.xml.ep
-  AUTOYAST_PREPARE_PROFILE: '1'
-  DESKTOP: textmode
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start
