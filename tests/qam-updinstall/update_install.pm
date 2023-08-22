@@ -234,7 +234,7 @@ sub run {
 
         # Patch binaries already installed.
         record_info 'Install patch', "Install patch $patch";
-        zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
+        zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 2000);
 
         # Install binaries newly added by the incident.
         if (scalar @new_binaries) {
