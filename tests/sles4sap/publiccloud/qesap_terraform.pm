@@ -19,7 +19,7 @@
 # INSTANCE_SID - SAP Sid
 # INSTANCE_ID - SAP instance id
 # ANSIBLE_REMOTE_PYTHON - define python version to be used for qesap-deploymnet (default '/usr/bin/python3')
-
+# PUBLIC_CLOUD_IMAGE_LOCATION - needed by get_blob_uri
 
 use strict;
 use warnings;
@@ -155,11 +155,18 @@ sub run {
     }
 
     my $provider = $self->provider_factory();
-    if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
-        set_var('OS_URI', $provider->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION')));
-    } else {
-        set_var('SLE_IMAGE', $provider->get_image_id());
+
+    # This section is only needed by tests using images uploaded
+    # with publiccloud_upload_img so using conf.yaml templates
+    # with OS_URI or SLE_IMAGE
+    if (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
+        if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+            set_var('OS_URI', $provider->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION')));
+        } else {
+            set_var('SLE_IMAGE', $provider->get_image_id());
+        }
     }
+
     my $ansible_playbooks = create_playbook_section_list();
     my $ansible_hana_vars = create_hana_vars_section();
 
