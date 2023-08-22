@@ -103,7 +103,7 @@ sub load_host_tests_podman {
         loadtest 'containers/buildah' unless (is_sle_micro || is_microos || is_leap_micro || is_alp || is_staging);
         # https://github.com/containers/podman/issues/5732#issuecomment-610222293
         # exclude rootless poman on public cloud because of cgroups2 special settings
-        loadtest 'containers/rootless_podman' unless (is_sle('<15-sp3') || is_openstack || is_public_cloud);
+        loadtest 'containers/rootless_podman' unless (is_sle('<15-sp2') || is_openstack || is_public_cloud);
         load_volume_tests($run_args);
     }
 }
