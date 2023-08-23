@@ -30,6 +30,7 @@ use transactional 'process_reboot';
 use Utils::Logging 'save_and_upload_log';
 
 my $bsc1200623 = 0;    # to prevent printing the soft-failure more than once
+my $podman_version;
 
 sub run {
     my ($self) = @_;
@@ -41,7 +42,7 @@ sub run {
     # add testuser to systemd-journal group to allow non-root
     # user to access container logs via journald event driver
     # to avoid flakes w/ Podman <=4.0.0
-    my $podman_version = get_podman_version();
+    $podman_version = get_podman_version();
     if (package_version_cmp($podman_version, '4.0.0') <= 0) {
         assert_script_run "usermod -a -G systemd-journal $testapi::username";
     }
@@ -168,18 +169,29 @@ sub verify_userid_on_container {
     $cid = check_bsc1200623($cid);
     # Remove once the softfail removed. it is just checks the user's mapped uid
     validate_script_output "podman exec -it $cid cat /proc/self/uid_map", sub { /1000/ };
-    validate_script_output "podman top $cid user huser", sub { /bernhard\s+bernhard/ };
     # Check for bsc#1182428
     # podman 2.1.1 with keep-id option list unexpected capabilities
-    my $podman_version = get_podman_version();
-    my $output = script_output "podman top $cid capeff";
-    if ($output !~ /none/) {
-        if (package_version_cmp($podman_version, '2.1.1') == 0) {
+    # podman of the same version can still show the nsenter original issue
+    my $buggy_podman = (package_version_cmp($podman_version, '2.1.1') == 0);
+
+    if ($buggy_podman && (is_aarch64 || is_s390x)) {
+        my $output = script_output("podman top $cid user huser 2>&1", proceed_on_failure => 1);
+        if ($output =~ "error executing .*nsenter.*executable file not found") {
             record_soft_failure "bsc#1182428 - Issue with nsenter from podman-top";
-        } else {
-            die "Test does not expect to list any container capabilities";
+        }
+    } else {
+        validate_script_output "podman top $cid user huser", sub { /bernhard\s+bernhard/ };
+        my $output = script_output "podman top $cid capeff";
+
+        if ($output !~ /none/) {
+            if ($buggy_podman) {
+                record_soft_failure "bsc#1182428 - Issue with nsenter from podman-top";
+            } else {
+                die "Test does not expect to list any container capabilities";
+            }
         }
     }
+
 
     ## Check if uid change within the container works as desired
     # Note: If this part with 'zypper install' becomes cumbersome we could switch to an image, which already includes sudo and useradd
