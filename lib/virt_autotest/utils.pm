@@ -774,8 +774,9 @@ sub setup_rsyslog_host {
     $log_host_protocol //= 'udp';
     $log_host_port //= '514';
 
+    # Add --gpg-auto-import-keys to zypper_call("in rsyslog")
     zypper_call("--gpg-auto-import-keys ref");
-    zypper_call("in rsyslog");
+    zypper_call("--gpg-auto-import-keys in rsyslog");
     assert_script_run("mkdir -p $log_host_folder");
     my $log_host_protocol_directive = ($log_host_protocol eq 'udp' ? '\$UDPServerRun' : '\$InputTCPServerRun');
     if (script_output("cat /etc/rsyslog.conf | grep \"#Setup centralized rsyslog host\"", proceed_on_failure => 1) eq '') {
