@@ -3,14 +3,14 @@
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <suse_register>
     <do_registration config:type="boolean">true</do_registration>
-    % unless ($check_var->('VERSION', '15-SP4')) {
+    % unless ($check_var->('VERSION', '15-SP6')) {
     <install_updates config:type="boolean">true</install_updates>
     % }
     <email/>
     <reg_code>{{SCC_REGCODE}}</reg_code>
     <reg_server>{{SCC_URL}}</reg_server>
     <addons config:type="list">
-      % if ($get_var->('VERSION') =~ /15|15-SP1|15-SP2|15-SP3|15-SP4/) {
+      % if ($get_var->('VERSION') =~ /^15/) {
       <addon>
         <name>sle-module-basesystem</name>
         <version>{{VERSION}}</version>
@@ -80,7 +80,7 @@
     <keep_install_network config:type="boolean">true</keep_install_network>
     % }
   </networking>
-  % if ($check_var->('VERSION', '15-SP4') || $check_var->('VERSION', '15-SP5')) {
+  % if ($get_var->('VERSION') =~ /15-SP[456]$/) {
   <firewall>
     <enable_firewall config:type="boolean">true</enable_firewall>
     <start_firewall config:type="boolean">true</start_firewall>
