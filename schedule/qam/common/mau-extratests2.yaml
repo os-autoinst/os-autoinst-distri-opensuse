@@ -137,7 +137,6 @@ conditional_schedule:
     ARCH:
       x86_64:
         - console/ansible
-        - console/suseconnect
   arch_specific15_sp5:
     ARCH:
       x86_64:
