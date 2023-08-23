@@ -171,12 +171,12 @@ sub run {
     my $ansible_hana_vars = create_hana_vars_section();
 
     # Prepare QESAP deployment
-    qesap_prepare_env(provider => lc(get_required_var('PUBLIC_CLOUD_PROVIDER')));
+    qesap_prepare_env(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     qesap_create_ansible_section(ansible_section => 'create', section_content => $ansible_playbooks) if @$ansible_playbooks;
     qesap_create_ansible_section(ansible_section => 'hana_vars', section_content => $ansible_hana_vars) if %$ansible_hana_vars;
 
     # Regenerate config files (This workaround will be replaced with full yaml generator)
-    qesap_prepare_env(provider => lc(get_required_var('PUBLIC_CLOUD_PROVIDER')), only_configure => 1);
+    qesap_prepare_env(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'), only_configure => 1);
 
     my @ret = qesap_execute(cmd => 'terraform', timeout => 3600, verbose => 1);
     die 'Terraform deployment FAILED. Check "qesap*" logs for details.' if ($ret[0]);
