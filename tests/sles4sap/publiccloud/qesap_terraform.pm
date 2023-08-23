@@ -24,10 +24,11 @@
 use strict;
 use warnings;
 use base 'sles4sap_publiccloud_basetest';
-use publiccloud::ssh_interactive 'select_host_console';
 use testapi;
+use publiccloud::ssh_interactive 'select_host_console';
 use publiccloud::instance;
 use publiccloud::instances;
+use publiccloud::utils qw(is_azure is_gce);
 use sles4sap_publiccloud;
 use qesapdeployment;
 use serial_terminal 'select_serial_terminal';
@@ -110,7 +111,7 @@ sub create_hana_vars_section {
 sub run {
     my ($self, $run_args) = @_;
 
-    if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+    if (is_azure()) {
         my %maintenance_vars = qesap_az_calculate_address_range(slot => get_required_var('WORKER_ID'));
         set_var("VNET_ADDRESS_RANGE", $maintenance_vars{vnet_address_range});
         set_var("SUBNET_ADDRESS_RANGE", $maintenance_vars{subnet_address_range});
@@ -159,12 +160,10 @@ sub run {
     # This section is only needed by tests using images uploaded
     # with publiccloud_upload_img so using conf.yaml templates
     # with OS_URI or SLE_IMAGE
-    if (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
-        if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
-            set_var('OS_URI', $provider->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION')));
-        } else {
-            set_var('SLE_IMAGE', $provider->get_image_id());
-        }
+    if (is_azure() && get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
+        set_var('OS_URI', $provider->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION')));
+    } else {
+        set_var('SLE_IMAGE', $provider->get_image_id());
     }
 
     my $ansible_playbooks = create_playbook_section_list();
@@ -192,7 +191,7 @@ sub run {
         my $real_hostname = $instance->run_ssh_command(cmd => 'hostname', username => 'cloudadmin');
         # We expect hostnames reported by terraform to match the actual hostnames in Azure and GCE
         die "Expected hostname $expected_hostname is different than actual hostname [$real_hostname]"
-          if ((check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE') || check_var('PUBLIC_CLOUD_PROVIDER', 'GCE')) && ($expected_hostname ne $real_hostname));
+          if ((is_azure() || is_gce()) && ($expected_hostname ne $real_hostname));
     }
 
     $self->{instances} = $run_args->{instances} = $instances;
