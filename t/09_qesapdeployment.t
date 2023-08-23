@@ -17,28 +17,28 @@ subtest '[qesap_get_inventory] upper case' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     $qesap->redefine(qesap_get_file_paths => sub {
             my %paths;
-            $paths{deployment_dir} = '/BRUCE';
+            $paths{terraform_dir} = '/BRUCE';
             return (%paths);
     });
 
-    my $inventory_path = qesap_get_inventory('NEMO');
+    my $inventory_path = qesap_get_inventory(provider => 'NEMO');
 
     note('inventory_path --> ' . $inventory_path);
-    is $inventory_path, '/BRUCE/terraform/nemo/inventory.yaml', "inventory_path:$inventory_path is the expected one";
+    is $inventory_path, '/BRUCE/nemo/inventory.yaml', "inventory_path:$inventory_path is the expected one";
 };
 
 subtest '[qesap_get_inventory] lower case' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     $qesap->redefine(qesap_get_file_paths => sub {
             my %paths;
-            $paths{deployment_dir} = '/BRUCE';
+            $paths{terraform_dir} = '/BRUCE';
             return (%paths);
     });
 
-    my $inventory_path = qesap_get_inventory('nemo');
+    my $inventory_path = qesap_get_inventory(provider => 'nemo');
 
     note('inventory_path --> ' . $inventory_path);
-    is $inventory_path, '/BRUCE/terraform/nemo/inventory.yaml', "inventory_path:$inventory_path is the expected one";
+    is $inventory_path, '/BRUCE/nemo/inventory.yaml', "inventory_path:$inventory_path is the expected one";
 };
 
 subtest '[qesap_create_folder_tree/qesap_get_file_paths] default' => sub {

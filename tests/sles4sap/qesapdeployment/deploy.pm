@@ -13,7 +13,7 @@ use qesapdeployment;
 sub run {
     my @ret = qesap_execute(cmd => 'terraform', verbose => 1, timeout => 1800);
     die "'qesap.py terraform' return: $ret[0]" if ($ret[0]);
-    my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    my $inventory = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     upload_logs($inventory, failok => 1);
     my @remote_ips = qesap_remote_hana_public_ips;
     record_info 'Remote IPs', join(' - ', @remote_ips);
@@ -50,7 +50,7 @@ sub test_flags {
 sub post_fail_hook {
     my ($self) = shift;
     qesap_upload_logs();
-    my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    my $inventory = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300) unless (script_run("test -e $inventory"));
     qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1200);
     $self->SUPER::post_fail_hook;

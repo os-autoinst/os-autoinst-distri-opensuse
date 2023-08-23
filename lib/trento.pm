@@ -437,7 +437,7 @@ sub cluster_deploy {
     die "'qesap.py terraform' return: $ret[0]" if ($ret[0]);
     @ret = qesap_execute(cmd => 'ansible', verbose => 1, timeout => bmwqemu::scale_timeout(3600));
     die "'qesap.py ansible' return: $ret[0]" if ($ret[0]);
-    my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    my $inventory = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     upload_logs($inventory);
 }
 
@@ -593,7 +593,7 @@ sub cluster_install_agent {
     }
     my $private_ip = get_trento_private_ip();
     $cmd = join(' ', 'ansible-playbook', '-vv',
-        '-i', qesap_get_inventory(lc get_required_var('PUBLIC_CLOUD_PROVIDER')),
+        '-i', qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER')),
         "$playbook_location/trento-agent.yaml",
         $local_rpm_arg,
         '-e', "api_key=$agent_api_key",
