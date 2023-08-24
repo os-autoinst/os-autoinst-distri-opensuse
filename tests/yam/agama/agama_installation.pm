@@ -19,12 +19,11 @@ use power_action_utils 'power_action';
 use transactional 'process_reboot';
 
 sub run {
-    assert_screen('agama_product_selection', 120);
+    assert_screen('agama-main-page', 120);
     $testapi::password = 'linux';
     select_console 'root-console';
 
-    assert_script_run('RUN_INSTALLATION=1 playwright test --trace on --project chromium --config /usr/share/e2e-agama-playwright take_screenshots', timeout => 600);
-    upload_logs('./test-results/take_screenshots-The-Installer-installs-the-system-chromium/trace.zip');
+    assert_script_run('RUN_INSTALLATION=1 playwright test --trace on --project chromium --config /usr/share/e2e-agama-playwright default_installation', timeout => 600);
 
     assert_script_run('reboot');
     # For agama test, it is too short time to match the grub2, so we create
@@ -35,7 +34,7 @@ sub run {
 }
 
 sub post_fail_hook {
-    upload_logs('./test-results/take_screenshots-The-Installer-installs-the-system-chromium/trace.zip');
+    upload_logs('./test-results/default_installation-The-main-page-Default-installation-test-chromium/trace.zip');
 }
 
 1;
