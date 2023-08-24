@@ -1,0 +1,15 @@
+---
+name: IPSec
+description:    >
+    Schedule multimachine setup for ipsec tests
+vars:
+  DESKTOP: textmode
+  BOOT_HDD_IMAGE: 1
+conditional_schedule:
+  bootmenu:
+    ARCH:
+      aarch64:
+schedule:
+  - '{{bootmenu}}'
+  - boot/boot_to_desktop
+  - ipsec/ipsec3hosts
