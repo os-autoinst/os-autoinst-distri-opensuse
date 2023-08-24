@@ -27,24 +27,7 @@ sub run {
     select_console 'root-console';
 
     #preparation of rsync config files
-    script_run 'cat > /etc/rsyncd.conf <<EOF
-max connections = 2
-log file = /var/log/rsync.log
-timeout = 300
-
-[pub]
-     comment = Testing files available for download
-     read only = yes
-     list = yes
-     path = /srv/rsync_test/pub
-     uid = nobody
-     gid = nobody
-     auth users = test42
-     secrets file = /etc/rsyncd.secrets
-
-EOF
-true';
-
+    assert_script_run('curl -v -o /etc/rsyncd.conf ' . data_url('console/rsyncd.conf'));
     assert_script_run 'echo "test42:424242" > /etc/rsyncd.secrets';
 
     if (is_sle('<12-sp5')) {    #using xinetd on sle 12
