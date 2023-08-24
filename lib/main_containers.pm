@@ -134,6 +134,7 @@ sub load_host_tests_docker {
         loadtest 'containers/validate_btrfs';
     }
     load_volume_tests($run_args);
+    loadtest 'containers/buildx' if (is_tumbleweed || is_microos);
 }
 
 sub load_host_tests_containerd_rmt {
