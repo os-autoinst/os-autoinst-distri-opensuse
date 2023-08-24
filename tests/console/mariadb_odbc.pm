@@ -18,6 +18,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap);
+use serial_terminal qw(select_serial_terminal);
 
 sub setup {
     # write odbc.ini
@@ -47,9 +48,11 @@ sub setup {
     assert_script_run "echo UsageCount=2 >> /etc/unixODBC/odbcinst.ini";
 
     # create the 'odbcTEST' database with table 'test' and insert one element
-    assert_script_run qq{mariadb -u root -e "CREATE DATABASE odbcTEST; USE odbcTEST; CREATE TABLE test
-(id int NOT NULL AUTO_INCREMENT, entry varchar(255) NOT NULL, PRIMARY KEY(id));
-INSERT INTO test (entry) VALUE ('can you read this?');"};
+    assert_script_run join(' ',
+        'mariadb -u root -e "CREATE DATABASE odbcTEST; USE odbcTEST;',
+        'CREATE TABLE test (id int NOT NULL AUTO_INCREMENT, entry varchar(255) NOT NULL, PRIMARY KEY(id));',
+        q[INSERT INTO test (entry) VALUE ('can you read this?');"]
+    );
     # changes mysql password temporarly to "x" becase 'isql' does not support
     # blank password
     assert_script_run qq{mariadb-admin -u root password x};
@@ -59,7 +62,7 @@ INSERT INTO test (entry) VALUE ('can you read this?');"};
 }
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
     # install requirements
     my $odbc = (!is_sle('<15') && !is_leap('<15.0')) ? 'mariadb-connector-odbc unixODBC' : 'MyODBC-unixODBC';
@@ -81,8 +84,9 @@ sub run {
     assert_script_run 'odbcinst -s -q';
 
     # connect to odbc
-    assert_script_run 'isql mariadbodbc_mysql_dsn root x -b -v < query.sql';
-    assert_screen 'mysql_odbc-isql';
+    validate_script_output 'isql mariadbodbc_mysql_dsn root x -b -v < query.sql',
+      sub { /.*1.*can you read this\?.*/ },
+      fail_message => 'Value "can you read this?" was not found in the test table';
 
     # reverting mysql password to blank, else other mysql tests fail
     assert_script_run qq{mariadb-admin -u root -px password ''};
