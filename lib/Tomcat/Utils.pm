@@ -35,17 +35,6 @@ sub browse_with_keyboard {
 
 # Install tomcat and set initial configuration
 sub tomcat_setup() {
-    my $tomcat_users_xml = <<'EOF';
-<?xml version="1.0" encoding="UTF-8"?>
-<tomcat-users xmlns="http://tomcat.apache.org/xml"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://tomcat.apache.org/xml tomcat-users.xsd"
-              version="1.0">
-<role rolename="manager-gui"/>
-<user name="admin" password="admin" roles="manager-gui,tomcat"/>
-</tomcat-users>
-EOF
-
     # log in to root console
     select_console('root-console');
 
@@ -64,7 +53,8 @@ EOF
     assert_script_run('lsof -i :8080 | grep tomcat');
 
     # create manager-gui role
-    assert_script_run("echo '$tomcat_users_xml' > /etc/tomcat/tomcat-users.xml");
+    assert_script_run('curl -v -o /etc/tomcat/tomcat-users.xml ' .
+          data_url('lib/tomcat/tomcat-users.xml'));
 
     # restart tomcat in order to take into account new role
     systemctl('restart tomcat');
