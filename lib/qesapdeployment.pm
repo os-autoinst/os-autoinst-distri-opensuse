@@ -441,12 +441,19 @@ sub qesap_ansible_log_find_timeout
 =head3 qesap_get_inventory
 
     Return the path of the generated inventory
+
+=over 1
+
+=item B<PROVIDER> - Cloud provider name using same format of PUBLIC_CLOUD_PROVIDER setting
+
+=back
 =cut
 
 sub qesap_get_inventory {
-    my ($provider) = @_;
+    my (%args) = @_;
+    croak "Missing mandatory argument 'provider'" unless $args{provider};
     my %paths = qesap_get_file_paths();
-    return "$paths{deployment_dir}/terraform/" . lc $provider . '/inventory.yaml';
+    return join('/', qesap_get_terraform_dir(provider => $args{provider}), 'inventory.yaml');
 }
 
 =head3 qesap_get_nodes_number
@@ -455,7 +462,7 @@ Get the number of cluster nodes from the inventory.yaml
 =cut
 
 sub qesap_get_nodes_number {
-    my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    my $inventory = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     my $yp = YAML::PP->new();
 
     my $inventory_content = script_output("cat $inventory");
@@ -471,12 +478,19 @@ sub qesap_get_nodes_number {
 
     Return the path used by the qesap script as -chdir argument for terraform
     It is useful if test would like to call terraform
+
+=over 1
+
+=item B<PROVIDER> - Cloud provider name using same format of PUBLIC_CLOUD_PROVIDER setting
+
+=back
 =cut
 
 sub qesap_get_terraform_dir {
-    my ($provider) = @_;
+    my (%args) = @_;
+    croak "Missing mandatory argument 'provider'" unless $args{provider};
     my %paths = qesap_get_file_paths();
-    return "$paths{deployment_dir}/terraform/" . lc $provider;
+    return join('/', $paths{terraform_dir}, lc $args{provider});
 }
 
 =head3 qesap_get_ansible_roles_dir
@@ -533,7 +547,8 @@ sub qesap_prepare_env {
     push(@log_files, $paths{qesap_conf_trgt});
 
     record_info('QESAP conf', 'Generating all terraform and Ansible configuration files');
-    push(@log_files, "$paths{terraform_dir}/$provider_folder/terraform.tfvars");
+    my $terraform_tfvars = join('/', qesap_get_terraform_dir(provider => $args{provider}), 'terraform.tfvars');
+    push(@log_files, $terraform_tfvars);
     my $hana_media = "$paths{deployment_dir}/ansible/playbooks/vars/hana_media.yaml";
     my $hana_vars = "$paths{deployment_dir}/ansible/playbooks/vars/hana_vars.yaml";
     my @exec_rc = qesap_execute(cmd => 'configure', verbose => 1);
@@ -606,7 +621,7 @@ sub qesap_ansible_cmd {
     $args{failok} //= 0;
     my $verbose = $args{verbose} ? ' -vvvv' : '';
 
-    my $inventory = qesap_get_inventory($args{provider});
+    my $inventory = qesap_get_inventory(provider => $args{provider});
     record_info('Ansible cmd:', "Remote run on '$args{filter}' node\ncmd: '$args{cmd}'");
 
     my $ansible_cmd = join(' ',
@@ -679,7 +694,7 @@ sub qesap_ansible_script_output_file {
     my $out_path = $args{out_path} // '/tmp/ansible_script_output/';
     my $file = $args{file} // 'testout.txt';
 
-    my $inventory = qesap_get_inventory($args{provider});
+    my $inventory = qesap_get_inventory(provider => $args{provider});
     my $playbook = 'script_output.yaml';
     qesap_ansible_get_playbook(playbook => $playbook);
 
@@ -809,7 +824,7 @@ sub qesap_ansible_fetch_file {
     my $local_path = $args{out_path} // '/tmp/ansible_script_output/';
     my $local_file = $args{file} // 'testout.txt';
 
-    my $inventory = qesap_get_inventory($args{provider});
+    my $inventory = qesap_get_inventory(provider => $args{provider});
     my $fetch_playbook = 'fetch_file.yaml';
 
     # reflect the same logic implement in the playbook
@@ -872,8 +887,7 @@ sub qesap_create_aws_config {
 =cut
 
 sub qesap_remote_hana_public_ips {
-    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
-    my $tfdir = qesap_get_terraform_dir($prov);
+    my $tfdir = qesap_get_terraform_dir(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     my $data = decode_json(script_output "terraform -chdir=$tfdir output -json");
     return @{$data->{hana_public_ip}->{value}};
 }
@@ -1003,7 +1017,7 @@ sub qesap_cluster_log_cmds {
 
 sub qesap_cluster_logs {
     my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
-    my $inventory = qesap_get_inventory($provider);
+    my $inventory = qesap_get_inventory(provider => $provider);
     if (script_run("test -e $inventory") == 0)
     {
         foreach my $host ('vmhana01', 'vmhana02') {

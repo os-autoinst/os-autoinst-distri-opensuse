@@ -549,7 +549,7 @@ sub create_instance_data {
     my $class = ref($provider);
     die "Unexpected class type [$class]" unless ($class =~ /^publiccloud::(azure|ec2|gce)/);
     my @instances = ();
-    my $inventory_file = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    my $inventory_file = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     my $ypp = YAML::PP->new;
     my $raw_file = script_output("cat $inventory_file");
     my $inventory_data = $ypp->load_string($raw_file)->{all}{children};
