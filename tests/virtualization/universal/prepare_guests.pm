@@ -25,8 +25,6 @@ use File::Path 'make_path';
 
 sub create_profile {
     my ($vm_name, $arch, $mac, $ip) = @_;
-    #    my $version = $vm_name =~ /sp/ ? $vm_name =~ s/\D*(\d+)sp(\d)\D*/$1.$2/r : $vm_name =~ s/\D*(\d+)\D*/$1/r;
-    #    my $path = $version >= 15 ? "virtualization/autoyast/guest_15.xml.ep" : "virtualization/autoyast/guest_12.xml.ep";
     my $version =
       $vm_name =~ /sp/
       ? $vm_name =~ s/\D*(\d+)sp(\d)\D*/$1.$2/r
