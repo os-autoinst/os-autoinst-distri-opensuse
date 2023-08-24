@@ -1,0 +1,10 @@
+---
+name: registration_stack
+description: suseconnect
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/suseconnect
+...
