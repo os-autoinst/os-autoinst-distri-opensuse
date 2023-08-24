@@ -50,9 +50,9 @@ sub run {
         s/https?:\/\/// for @repos;
 
         # Create list of directories for rsync
-        my $directories;
-        $directories .= "$_\n" foreach @repos;
-        assert_script_run("echo -en '$directories' | tee /tmp/transfer_repos.txt");
+        foreach my $repo (@repos) {
+            assert_script_run("echo $repo | tee -a /tmp/transfer_repos.txt");
+        }
 
         # Mitigate occasional CSP network problems (especially one CSP is prone to those issues!)
         # Delay of 2 minutes between the tries to give their network some time to recover after a failure
