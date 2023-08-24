@@ -121,7 +121,7 @@ sub run {
         assert_script_run('ip a && ip r');
         exec_and_insert_password("scp -o StrictHostKeyChecking=no server.pub client* $remote:/etc/wireguard/");
         # Prepare configuration script
-        assert_script_run('echo -e "[Interface]\nPrivateKey = `cat /etc/wireguard/server`\nAddress = ' . "$vpn_local\n" . 'ListenPort = 51820\n" > /etc/wireguard/wg0.conf');
+        assert_script_run('echo -e "[Interface]\nPrivateKey = `cat /etc/wireguard/server`\nAddress = ' . $vpn_local . '\nListenPort = 51820\n" > /etc/wireguard/wg0.conf');
         assert_script_run('echo -e "[Peer]\nPublicKey = `cat /etc/wireguard/client1.pub`\nAllowedIPs = 192.168.2.2\nPersistentKeepalive = 25\n" >> /etc/wireguard/wg0.conf');
         assert_script_run('echo -e "[Peer]\nPublicKey = `cat /etc/wireguard/client2.pub`\nAllowedIPs = 192.168.2.3\nPersistentKeepalive = 25\n" >> /etc/wireguard/wg0.conf');
         script_run('cat /etc/wireguard/wg0.conf');
