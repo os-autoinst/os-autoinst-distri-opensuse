@@ -24,18 +24,19 @@ sub run {
     my $output_result = "/tmp/output";
     my $output_json = "/tmp/manifest.json";
 
-    my $easyprof_cmd = "aa-easyprof \\
---template=user-application \\
---policy-groups=opt-application,user-application \\
---abstractions=\"python,audio\" \\
---read-path=\"/usr/share/foo/*\" \\
---write-path=\"/opt/foo/tmp/\" \\
---write-path=\"/opt/foo/log/\" \\
---template-var=\"\@{APPNAME}=foo\" \\
---author=\"SUSE Tester\" \\
---copyright=\"Copyright 2018, SUSE Tester\" \\
---comment=\"AppArmor is easy with aa-easyprof\" \\
+    my $easyprof_cmd = "aa-easyprof
+--template=user-application
+--policy-groups=opt-application,user-application
+--abstractions=\"python,audio\"
+--read-path=\"/usr/share/foo/*\"
+--write-path=\"/opt/foo/tmp/\"
+--write-path=\"/opt/foo/log/\"
+--template-var=\"\@{APPNAME}=foo\"
+--author=\"SUSE Tester\"
+--copyright=\"Copyright 2018, SUSE Tester\"
+--comment=\"AppArmor is easy with aa-easyprof\"
 /usr/bin/foo ";
+    $easyprof_cmd =~ s/\n/ /g;
 
     my $easyprof_args_json = "--output-format=json ";
 
