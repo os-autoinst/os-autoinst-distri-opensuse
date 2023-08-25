@@ -106,7 +106,7 @@
             "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" , "5.5" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
         },
         "type": "bug"
     },
@@ -166,7 +166,7 @@
     "bsc#1187613": {
         "description": "kernel: Grant table initialized",
         "products": {
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
         },
         "type": "bug"
     },
@@ -255,7 +255,7 @@
         "description": "fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge|PCI: System does not support PCI",
         "products": {
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
         },
         "type": "ignore"
     },
@@ -285,7 +285,7 @@
             "sle-micro": [ "5.0", "5.1" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
         },
         "type": "ignore"
     },
@@ -312,7 +312,7 @@
     "xen-trim-btrfs-on-mechaninal-drive": {
         "description": "kernel: BTRFS warning.*: failed to trim.*, last error -512",
         "products": {
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
         },
         "type": "ignore"
     },
@@ -340,7 +340,7 @@
             "sle-micro": [ "5.0", "5.1" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
         },
         "type": "ignore"
     },
@@ -350,7 +350,7 @@
             "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" , "5.5" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3", "15.4", "15.5"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
         },
         "type": "ignore"
     },
@@ -374,7 +374,7 @@
         "description": "hibernation: the secret key is invalid",
         "products": {
             "opensuse": ["Tumbleweed", "15.3"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
         },
         "type": "ignore"
     },
@@ -427,14 +427,14 @@
     "bsc#1207300": {
         "description": "virtio_gpu virtio.*drm_plane_enable_fb_damage_clips\\(\\) not called",
         "products": {
-            "sle": ["15-SP5"]
+            "sle": ["15-SP5" , "15-SP6"]
         },
         "type": "ignore"
     },
     "bsc#1204794": {
         "description": "haveged.service: Failed with result 'exit-code'",
         "products": {
-            "sle": ["15-SP4", "15-SP5"]
+            "sle": ["15-SP4", "15-SP5", "15-SP6"]
         },
         "type": "bug"
     },
