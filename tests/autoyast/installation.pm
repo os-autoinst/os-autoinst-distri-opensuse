@@ -284,6 +284,12 @@ sub run {
             @needles = grep { $_ ne 'autoyast-postpartscript' } @needles;
             $postpartscript = 1;
         }
+        elsif (check_screen('nvidia-validation-failed', 5) && check_var('BETA', '1')) {
+            # nvidia repo might be not ready in beta phase
+            record_soft_failure 'bsc#1144831';
+            wait_still_screen { send_key 'alt-o' };
+            send_key 'alt-n';
+        }
         elsif (match_has_tag('autoyast-error')) {
             die 'Error detected during first stage of the installation';
         }
