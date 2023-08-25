@@ -26,16 +26,8 @@ sub run {
     systemctl("restart firewalld");
 
     # create a customer rule 'tcp-mss-clamp'
-    script_run('cat > tcp-mss-clamp <<EOF
-#  nft list chain inet firewalld filter_FWDO_public_allow
-table inet firewalld {
-        chain filter_FWDO_public_allow {
-                tcp flags syn tcp option maxseg size set rt mtu
-        }
-}
-
-EOF
-true');
+    assert_script_run('curl -v -o tcp-mss-clamp ' .
+          data_url('console/nftables/tcp-mss-clamp'));
 
     # run and check customer rule, add firewall rule and restart firewalld
     assert_script_run("nft flush ruleset");
@@ -43,53 +35,8 @@ true');
     assert_script_run("nft list chain inet firewalld filter_FWDO_public_allow");
     assert_script_run("nft list tables");
     # create a firewall rule
-    script_run('cat > firewall <<EOF
-# IP/IPv6 Firewall rule
-flush ruleset
-
-table firewall {
-  chain incoming {
-    type filter hook input priority 0; policy drop;
-
-    # established/related connections
-    ct state established,related accept
-
-    # loopback interface
-    iifname lo accept
-
-    # icmp
-    icmp type echo-request accept
-
-    # open tcp ports: sshd (22), httpd (80)
-    tcp dport {ssh, http} accept
-  }
-}
-
-table ip6 firewall {
-  chain incoming {
-    type filter hook input priority 0; policy drop;
-
-    # established/related connections
-    ct state established,related accept
-
-    # invalid connections
-    ct state invalid drop
-
-    # loopback interface
-    iifname lo accept
-
-    # icmp
-    # routers may also want: mld-listener-query, nd-router-solicit
-    icmpv6 type {echo-request,nd-neighbor-solicit} accept
-
-    # open tcp ports: sshd (22), httpd (80)
-    tcp dport {ssh, http} accept
-  }
-}
-
-EOF
-true');
-
+    assert_script_run('curl -v -o firewall ' .
+          data_url('console/nftables/firewall'));
     assert_script_run("nft -f firewall");
     assert_script_run("systemctl restart firewalld && sleep 5");
     record_info 'firewalld, restarted and it is active.' if script_run '! systemctl is-active firewalld';
