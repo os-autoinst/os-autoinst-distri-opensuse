@@ -60,6 +60,19 @@ sub check_service {
     systemctl 'is-active libvirtd';
 }
 
+# libvirtd is removed from Tumbleweed, virtqemud is the replacement, so for the
+# cases upgraded to Tumbleweed, check whether virtqemud could be enabled and started.
+sub check_upgraded_service {
+    systemctl 'enable virtqemud.socket';
+    systemctl 'enable virtqemud.service';
+    systemctl 'start virtqemud.socket';
+    systemctl 'start virtqemud.service';
+    systemctl 'is-enabled virtqemud.socket';
+    systemctl 'is-enabled virtqemud.service';
+    systemctl 'is-active virtqemud.socket';
+    systemctl 'is-active virtqemud.service';
+}
+
 sub initialize_virt_install_command {
     my $virt_install_cmd = "virt-install";
     foreach my $key (keys %guest_params) {
@@ -115,10 +128,15 @@ sub full_libvirtd_check {
         shutdown_guest(%guest_params) if get_var("NESTED_VM_DOWN");
     }
 
-    common_service_action($pkg, $type, 'is-enabled');
-    common_service_action($pkg, $type, 'is-active');
+    if (!(($stage eq 'after') && (get_var("VERSION") eq "Tumbleweed"))) {
+        common_service_action($pkg, $type, 'is-enabled');
+        common_service_action($pkg, $type, 'is-active');
+    }
 
     if ($stage eq 'after') {
+        if (get_var("VERSION") eq "Tumbleweed") {
+            check_upgraded_service();
+        }
         script_run("virsh list --all");
         # Since not set auto-start guest so guest status should be shut-down status after reboot/migration
         check_guest_status(%guest_params, status => 'shut');
