@@ -111,6 +111,7 @@ our @EXPORT = qw(
   script_finish_io
   handle_screen
   define_secret_variable
+  write_sut_file
   @all_tests_results
   ping_size_check
 );
@@ -2902,6 +2903,22 @@ sub ping_size_check {
     for my $size (@sizes) {
         assert_script_run("ping -M do -s $size -c 1 $target", fail_message => "ping with packet size $size failed, problems with MTU size are expected. If it is multi-machine job, it can be GRE tunnel setup issue.");
     }
+}
+
+=head2 write_sut_file
+
+  write_sut_file($path, $contents)
+
+Write C<$contents> to a file C<$path> on the SUT. The directories in C<$path>
+must already exist.
+=cut
+
+sub write_sut_file {
+    my ($path, $contents) = @_;
+
+    save_tmp_file($path, $contents);
+    my $url = join('/', (autoinst_url, 'files', $path));
+    assert_script_run("curl -v -o $path $url");
 }
 
 1;
