@@ -36,7 +36,7 @@ sub run {
     assert_script_run("curl -sSLOk $rmt_config");
     my $rmt_repo = get_required_var('RMTTEST_REPO');
     my $rmt_tag = get_var('RMTTEST_TAG', 'latest');
-    assert_script_run("helm install --set app.image.repository=$rmt_repo --set app.image.tag=$rmt_tag rmt ./helm-charts-main/rmt-helm/ -f myvalue.yaml");
+    assert_script_run("helm install --insecure-skip-tls-verify --set app.image.repository=$rmt_repo --set app.image.tag=$rmt_tag rmt ./helm-charts-main/rmt-helm/ -f myvalue.yaml");
     assert_script_run("helm list");
     my @out = split(' ', script_output("kubectl get pods | grep rmt-app"));
     my $counter = 0;
