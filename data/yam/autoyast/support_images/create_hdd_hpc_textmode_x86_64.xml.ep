@@ -385,7 +385,7 @@
   </ssh_import>
   <suse_register>
     <do_registration config:type="boolean">true</do_registration>
-    <install_updates config:type="boolean">false</install_updates>
+    <install_updates config:type="boolean">true</install_updates>
     <reg_code>{{SCC_REGCODE_HPC}}</reg_code>
     <slp_discovery t="boolean">false</slp_discovery>
     % if (keys %$addons) {

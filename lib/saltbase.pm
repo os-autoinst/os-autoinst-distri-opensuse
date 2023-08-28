@@ -54,7 +54,7 @@ sub minion_prepare {
     assert_script_run("grep 'master:\\\|ipv6:\\\|log_' /etc/salt/minion");
 
     assert_script_run("grep -B9 -A9 'disable_modules' /etc/salt/minion");
-    assert_script_run("echo -en 'disable_modules:\n  - boto3_elasticsearch\n' >> /etc/salt/minion");
+    assert_script_run('echo -en "disable_modules:\n  - boto3_elasticsearch\n" >> /etc/salt/minion');
     assert_script_run("grep -B9 -A9 'disable_modules' /etc/salt/minion");
     upload_logs '/etc/salt/minion';
 

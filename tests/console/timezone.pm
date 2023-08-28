@@ -34,10 +34,12 @@ EOF
 
 sub set_data_and_validate {
     my $tz_data = get_tz_data($_[0]);
-    script_run("echo '$tz_data' > $_[1]", 0);
-    assert_script_run("zic " . $_[1]);
+    my $fn = "testdata.zone";
+    save_tmp_file($fn, $tz_data);
+    assert_script_run("curl -O " . join('/', autoinst_url, 'files', $fn));
+    assert_script_run("zic $fn");
     my @dst = split /:/, $_[0];
-    validate_script_output($_[2], sub { m/Europe\/Rome.*isdst=$dst[0].*/ });
+    validate_script_output($_[1], sub { m/Europe\/Rome.*isdst=$dst[0].*/ });
 }
 
 sub run {
@@ -48,17 +50,16 @@ sub run {
     validate_script_output("zdump Europe/London", sub { m/Europe\/London\s+\w{3} \w{3}\s+\d+ (\d{2}|:){5} \d{4} (GMT|BST)/ });
     validate_script_output("date", sub { m/\w{3} \w{3}\s+\d+ (\d{2}|:){5} \w+ \d{4}/ });
 
-    my $filename = "testdata.zone";
     my $zdump_cmd = "zdump -v Europe/Rome | grep -E 'Sun Mar 25 [0-9]{2}:[0:9]{2}:[0-9]{2} 2018'";
 
     # validate that isdst is set to 1 (default, from upstream)
     validate_script_output($zdump_cmd, sub { m/Europe\/Rome.*isdst=1.*/ });
 
     # write a file with a custom rule for Europe/Rome with isdst set to 0, compile it with zic and verify that the change was applied
-    set_data_and_validate("0", $filename, $zdump_cmd);
+    set_data_and_validate("0", $zdump_cmd);
 
     # revert back the change
-    set_data_and_validate("1:00", $filename, $zdump_cmd);
+    set_data_and_validate("1:00", $zdump_cmd);
 }
 
 1;

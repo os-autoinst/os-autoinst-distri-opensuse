@@ -5,5 +5,7 @@ description: >
 schedule:
   - installation/bootloader_start
   - yam/agama/patch_agama
-  - yam/agama/agama_lvm
+  - yam/agama/agama
+  - installation/grub_test
+  - installation/first_boot
   - console/validate_lvm

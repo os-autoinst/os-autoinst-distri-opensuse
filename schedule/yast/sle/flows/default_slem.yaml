@@ -12,7 +12,7 @@ registration:
   - installation/registration/register_via_scc
 addons: []
 ntp_configuration:
-  - installation/ntp_config_settings
+  - yam/ntp_configuration
 authentication:
   - installation/authentication/root_simple_pwd
 software:

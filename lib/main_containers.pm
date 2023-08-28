@@ -70,6 +70,11 @@ sub load_image_tests_podman {
     load_image_test($run_args);
 }
 
+sub load_volume_tests {
+    my ($run_args) = @_;
+    loadtest('containers/volumes', run_args => $run_args, name => 'volumes_' . $run_args->{runtime});
+}
+
 sub load_image_tests_docker {
     my ($run_args) = @_;
     load_image_test($run_args);
@@ -98,7 +103,8 @@ sub load_host_tests_podman {
         loadtest 'containers/buildah' unless (is_sle_micro || is_microos || is_leap_micro || is_alp || is_staging);
         # https://github.com/containers/podman/issues/5732#issuecomment-610222293
         # exclude rootless poman on public cloud because of cgroups2 special settings
-        loadtest 'containers/rootless_podman' unless (is_sle('=15-sp1') || is_openstack || is_public_cloud);
+        loadtest 'containers/rootless_podman' unless (is_sle('<15-sp2') || is_openstack || is_public_cloud);
+        load_volume_tests($run_args);
     }
 }
 
@@ -127,6 +133,8 @@ sub load_host_tests_docker {
     unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro) {
         loadtest 'containers/validate_btrfs';
     }
+    load_volume_tests($run_args);
+    loadtest 'containers/buildx' if (is_tumbleweed || is_microos);
 }
 
 sub load_host_tests_containerd_rmt {

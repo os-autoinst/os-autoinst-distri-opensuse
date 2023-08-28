@@ -254,11 +254,9 @@ sub cluster_config {
     my $resource_group_postfix = TRENTO_QESAPDEPLOY_PREFIX . get_current_job_id();
     my $ssh_key_pub = SSH_KEY . '.pub';
 
-    # to match sub-folder name in terraform folder of qe-sap-deployment
-    my $qesap_provider = lc($provider);
-
     my %variables;
-    $variables{PROVIDER} = $qesap_provider;
+    # lower-case to match sub-folder name in terraform folder of qe-sap-deployment
+    $variables{PROVIDER} = lc($provider);
     $variables{REGION} = $region;
     $variables{DEPLOYMENTNAME} = $resource_group_postfix;
     $variables{TRENTO_CLUSTER_OS_VER} = get_required_var("TRENTO_QESAPDEPLOY_CLUSTER_OS_VER");
@@ -278,7 +276,7 @@ sub cluster_config {
     $variables{HANA_SAR} = get_required_var("TRENTO_QESAPDEPLOY_SAPCAR");
     $variables{HANA_CLIENT_SAR} = get_required_var("TRENTO_QESAPDEPLOY_IMDB_CLIENT");
     $variables{HANA_SAPCAR} = get_required_var("TRENTO_QESAPDEPLOY_IMDB_SERVER");
-    qesap_prepare_env(openqa_variables => \%variables, provider => $qesap_provider);
+    qesap_prepare_env(openqa_variables => \%variables, provider => $provider);
 }
 
 =head3 deploy_vm
@@ -439,7 +437,7 @@ sub cluster_deploy {
     die "'qesap.py terraform' return: $ret[0]" if ($ret[0]);
     @ret = qesap_execute(cmd => 'ansible', verbose => 1, timeout => bmwqemu::scale_timeout(3600));
     die "'qesap.py ansible' return: $ret[0]" if ($ret[0]);
-    my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    my $inventory = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     upload_logs($inventory);
 }
 
@@ -595,7 +593,7 @@ sub cluster_install_agent {
     }
     my $private_ip = get_trento_private_ip();
     $cmd = join(' ', 'ansible-playbook', '-vv',
-        '-i', qesap_get_inventory(lc get_required_var('PUBLIC_CLOUD_PROVIDER')),
+        '-i', qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER')),
         "$playbook_location/trento-agent.yaml",
         $local_rpm_arg,
         '-e', "api_key=$agent_api_key",

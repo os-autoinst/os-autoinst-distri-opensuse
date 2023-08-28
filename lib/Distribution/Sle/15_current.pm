@@ -30,6 +30,7 @@ use Installation::SystemRole::Sle::SystemRoleController;
 use Installation::ModuleRegistration::SeparateRegCodesController;
 use YaST::DNSServer::Sle::DNSServerController;
 use YaST::DNSServer::Sle::DNSServerSetupController;
+use Installation::NTPConfiguration::NTPConfigurationPage;
 
 =head2 get_license_agreement
 
@@ -96,6 +97,10 @@ sub get_dns_server {
 
 sub get_dns_server_setup {
     return YaST::DNSServer::Sle::DNSServerSetupController->new();
+}
+
+sub get_ntp_configuration {
+    return Installation::NTPConfiguration::NTPConfigurationPage->new();
 }
 
 1;

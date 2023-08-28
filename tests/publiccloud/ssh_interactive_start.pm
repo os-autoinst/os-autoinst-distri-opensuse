@@ -12,7 +12,8 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use publiccloud::ssh_interactive "ssh_interactive_tunnel";
+use publiccloud::ssh_interactive qw(ssh_interactive_tunnel);
+use publiccloud::utils qw(allow_openqa_port_selinux);
 use version_utils;
 
 sub run {
@@ -25,6 +26,9 @@ sub run {
     # The serial terminal needs to be activated manually, as it requires the $self argument
     select_serial_terminal();
     enter_cmd('ssh -t sut');
+
+    # Allow openQA on instances where SELinux is in enforcing state by default
+    allow_openqa_port_selinux() if (is_public_cloud && is_sle_micro(">=5.4"));
 
     ## Test most important consoles to ensure they are working
     select_console('root-console');

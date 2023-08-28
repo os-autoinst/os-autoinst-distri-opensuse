@@ -18,8 +18,6 @@ sub run {
     # Init al the PC gears (ssh keys)
     my $provider = $self->provider_factory();
 
-    my $qesap_provider = lc get_required_var('PUBLIC_CLOUD_PROVIDER');
-
     my %variables;
     $variables{REGION} = $provider->provider_client->region;
     $variables{DEPLOYMENTNAME} = qesap_calculate_deployment_name('qesapval');
@@ -28,7 +26,7 @@ sub run {
     }
     else {
         $variables{STORAGE_ACCOUNT_NAME} = get_required_var('STORAGE_ACCOUNT_NAME');
-        $variables{OS_URI} = $provider->get_os_vhd_uri(get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
+        $variables{OS_URI} = $provider->get_blob_uri(get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
     }
     $variables{OS_OWNER} = get_var('QESAPDEPLOY_CLUSTER_OS_OWNER', 'amazon') if check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
 
@@ -67,7 +65,10 @@ sub run {
 
     $variables{ANSIBLE_ROLES} = qesap_get_ansible_roles_dir();
 
-    qesap_prepare_env(openqa_variables => \%variables, provider => $qesap_provider);
+    qesap_prepare_env(
+        openqa_variables => \%variables,
+        provider => get_required_var('PUBLIC_CLOUD_PROVIDER')
+    );
 }
 
 sub test_flags {

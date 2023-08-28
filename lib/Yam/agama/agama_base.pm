@@ -29,8 +29,6 @@ sub post_run_hook {
     reset_consoles;
     $testapi::username = "bernhard";
     $testapi::password = 'nots3cr3t';
-    select_serial_terminal();
-    ensure_serialdev_permissions;
 }
 
 sub test_flags {

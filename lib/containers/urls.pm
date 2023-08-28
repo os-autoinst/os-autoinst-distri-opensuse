@@ -107,7 +107,7 @@ our %images_list = (
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
         },
         '15-SP5' => {
-            released => sub { },
+            released => sub { 'registry.suse.com/suse/sle15:15.5' },
             totest => sub {
                 'registry.suse.de/suse/sle-15-sp5/ga/test/containers/suse/sle15:15.5';
             },
