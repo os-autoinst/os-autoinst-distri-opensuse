@@ -37,7 +37,7 @@ sub run {
     assert_script_run("curl -sSLO $rmt_config");
     my $rmt_repo = get_required_var('RMTTEST_REPO');
     my $rmt_tag = get_var('RMTTEST_TAG', 'latest');
-    assert_script_run("helm install --set app.image.repository=$rmt_repo --set app.image.tag=$rmt_tag rmt ./helm-charts-main/rmt-helm/ -f myvalue.yaml");
+    assert_script_run("helm install --set app.image.repository=$rmt_repo:latest --set app.image.tag=$rmt_tag rmt ./helm-charts-main/rmt-helm/ -f myvalue.yaml");
     assert_script_run("helm list");
     my @out = split(' ', script_output("kubectl get pods | grep rmt-app"));
     my $counter = 0;
@@ -46,7 +46,7 @@ sub run {
         my $logs = script_output("kubectl logs $out[0]", proceed_on_failure => 1);
         last if ($logs =~ /All repositories have already been enabled/);
     }
-    assert_script_run("kubectl exec $out[0] rmt-cli repos list");
+    assert_script_run("kubectl exec $out[0] -- rmt-cli repos list");
     assert_script_run('test $(kubectl get pods --field-selector=status.phase=Running | grep -c rmt) -eq 3');
 }
 
