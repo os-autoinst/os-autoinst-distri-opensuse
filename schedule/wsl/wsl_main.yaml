@@ -1,5 +1,5 @@
 ---
-name:         wsl_main.yaml
+name: wsl_main.yaml
 description:  >
       WSL smoke test on Windows 10 image
 
@@ -10,9 +10,14 @@ conditional_schedule:
         - wsl/install_from_MSStore
       'build':
         - wsl/prepare_wsl_feature
+  enable_systemd:
+    WSL_SYSTEMD:
+      '1':
+        - wsl/enable_systemd
 
 schedule:
   - wsl/boot_windows
   - '{{install_WSL}}'
   - wsl/firstrun
+  - '{{enable_systemd}}'
   - wsl/wsl_cmd_check
