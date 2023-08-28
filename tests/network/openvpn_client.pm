@@ -41,7 +41,12 @@ sub run {
 
     # Download key from the server
     exec_and_insert_password("scp -o StrictHostKeyChecking=no root\@10.0.2.101:/etc/openvpn/static.key /etc/openvpn/static.key");
-    assert_script_run("cat /etc/openvpn/static.key");
+    if (script_run("cat /etc/openvpn/static.key") != 0) {
+        # if the first scp failed, we try again
+        while (script_retry("cat /etc/openvpn/static.key", delay => 5, die => 1, fail_message => "Couldn't scp the key from the server") != 0) {
+            exec_and_insert_password("scp -o StrictHostKeyChecking=no root\@10.0.2.101:/etc/openvpn/static.key /etc/openvpn/static.key");
+        }
+    }
 
     # Start the client when also server is ready and test the connection
     systemctl('start openvpn@static');
