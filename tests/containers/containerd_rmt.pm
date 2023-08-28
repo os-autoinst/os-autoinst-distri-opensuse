@@ -28,15 +28,16 @@ sub run {
     install_k3s();
     install_kubectl();
     install_helm();
+    ensure_ca_certificates_suse_installed();
 
     my $rmt_helm = get_var('RMTTEST_CHART', 'https://github.com/SUSE/helm-charts/archive/refs/heads/main.tar.gz');
     # pull in the testsuite
-    assert_script_run("curl -sSLk $rmt_helm | tar -zxf -");
+    assert_script_run("curl -sSL $rmt_helm | tar -zxf -");
     my $rmt_config = get_var('RMTTEST_CONFIG', 'https://gitlab.suse.de/QA-APAC-I/testing/-/raw/master/data/rmtcontainer/myvalue.yaml');
-    assert_script_run("curl -sSLOk $rmt_config");
+    assert_script_run("curl -sSLO $rmt_config");
     my $rmt_repo = get_required_var('RMTTEST_REPO');
     my $rmt_tag = get_var('RMTTEST_TAG', 'latest');
-    assert_script_run("helm install --insecure-skip-tls-verify --set app.image.repository=$rmt_repo --set app.image.tag=$rmt_tag rmt ./helm-charts-main/rmt-helm/ -f myvalue.yaml");
+    assert_script_run("helm install --set app.image.repository=$rmt_repo --set app.image.tag=$rmt_tag rmt ./helm-charts-main/rmt-helm/ -f myvalue.yaml");
     assert_script_run("helm list");
     my @out = split(' ', script_output("kubectl get pods | grep rmt-app"));
     my $counter = 0;
