@@ -11,6 +11,7 @@ use testapi;
 use qesapdeployment;
 
 sub run {
+    my ($self) = @_;
     my @ret = qesap_execute(cmd => 'terraform', verbose => 1, timeout => 1800);
     die "'qesap.py terraform' return: $ret[0]" if ($ret[0]);
     my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
@@ -26,6 +27,9 @@ sub run {
         my $rec_timeout = qesap_ansible_log_find_timeout($ret[1]);
         if ($rec_timeout) {
             record_info('DETECTED ANSIBLE TIMEOUT ERROR');
+            $self->clean_up();
+            @ret = qesap_execute(cmd => 'terraform', verbose => 1, timeout => 1800);
+            die "'qesap.py terraform' return: $ret[0]" if ($ret[0]);
             @ret = qesap_execute(cmd => 'ansible', cmd_options => '--profile', verbose => 1, timeout => 3600);
             if ($ret[0])
             {
@@ -42,6 +46,32 @@ sub run {
 
     }
 }
+sub clean_up {
+    my ($self) = @_;
+    my @cmds_list;
+    # Only run the Ansible deregister if the inventory is present
+    push(@cmds_list, 'ansible') if (!script_run 'test -f ' . qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER')));
+
+    # Terraform destroy can be executed in any case
+    push(@cmds_list, 'terraform');
+
+    for my $command (@cmds_list) {
+        record_info('Cleanup', "Executing $command cleanup");
+        my @clean_up_cmd_rc = qesap_execute(verbose => '--verbose', cmd => $command, cmd_options => '-d', timeout => 1200);
+        if ($clean_up_cmd_rc[0] == 0) {
+            diag(ucfirst($command) . " cleanup attempt #  PASSED.");
+            record_info("Clean $command", ucfirst($command) . ' cleanup PASSED.');
+            last;
+        }
+        else {
+            diag(ucfirst($command) . " cleanup attempt #  FAILED.");
+            sleep 10;
+            record_info('Cleanup FAILED', "Cleanup $command FAILED", result => 'fail');
+            $self->{result} = "fail";
+        }
+    }
+}
+
 
 sub test_flags {
     return {fatal => 1};
