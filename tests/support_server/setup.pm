@@ -428,10 +428,12 @@ sub setup_iscsi_server {
     # With this mode, we don't need to manage iSCSI initiators
     # It's OK for a test/QA system, but of course not for a production one!
     systemctl('stop target');
-    script_run "sed -i -e '/\\/demo_mode_write_protect\$/s/^echo 1/echo 0/' \\
-                       -e '/\\/cache_dynamic_acls\$/s/^echo 0/echo 1/'      \\
-                       -e '/\\/generate_node_acls\$/s/^echo 0/echo 1/'      \\
+    my $cmd = "sed -i -e '/\\/demo_mode_write_protect\$/s/^echo 1/echo 0/'
+                       -e '/\\/cache_dynamic_acls\$/s/^echo 0/echo 1/'
+                       -e '/\\/generate_node_acls\$/s/^echo 0/echo 1/'
                        -e '/\\/authentication\$/s/^echo 1/echo 0/' /etc/target/lio_setup.sh";
+    $cmd =~ s/\n/ /g;
+    script_run($cmd);
     systemctl('enable --now target');
     select_console 'root-console';
 
