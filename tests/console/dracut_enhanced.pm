@@ -23,9 +23,10 @@ use testapi;
 use utils 'zypper_call';
 use power_action_utils 'power_action';
 use version_utils 'is_sle';
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
     my $dracut_test = get_var('DRACUT_TEST');
     # dracut on SLE15SP2 was updated to 049
     my $dracut_version = "dracut-patches.tar.gz";
@@ -53,7 +54,7 @@ sub run {
         assert_script_run "grep -q dracut-root-block-created /tmp/logs/$dracut_test-setup.log";
         power_action('reboot', textmode => 1);
         wait_still_screen(10, 60);
-        assert_screen("linux-login", 600);
+        assert_screen("linux-login", 300);
         enter_cmd "root";
         wait_still_screen 3;
         type_password;
