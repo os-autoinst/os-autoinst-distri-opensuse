@@ -1,5 +1,5 @@
 ---
-name: agama_auto
+name: agama_auto_tumbleweed
 description: >
   Prepare url for agama.auto boot parameter, boot, perform auto-installation with agama.
 schedule:
@@ -7,4 +7,4 @@ schedule:
   - yam/agama/auto
   - yam/validate/validate_product
   - yam/validate/validate_user
-  - security/selinux/sestatus
+  - yam/validate/validate_apparmor
