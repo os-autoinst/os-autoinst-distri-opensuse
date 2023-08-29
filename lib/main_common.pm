@@ -1841,7 +1841,8 @@ sub load_extra_tests_filesystem {
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
         loadtest 'console/snapper_undochange';
         loadtest 'console/snapper_create';
-        loadtest "console/snapper_jeos_cli" if is_jeos;
+        # Needs zsh, not available in staging
+        loadtest "console/snapper_jeos_cli" if is_jeos && !is_staging;
         loadtest "console/btrfs_autocompletion";
         if (get_var("NUMDISKS", 0) > 1) {
             loadtest "console/btrfs_qgroups";
