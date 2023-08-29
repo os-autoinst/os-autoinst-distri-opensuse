@@ -349,6 +349,9 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp4 => {
             name => 'sles15sp4',
         },
+        sles15sp4teradata => {
+            name => 'sles15sp4teradata',
+        },
         sles15sp5 => {
             name => 'sles15sp5',
         },
@@ -360,7 +363,8 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     delete($guests{sles15sp1}) if (!is_sle('=15-SP1'));
     delete($guests{sles15sp2}) if (!is_sle('=15-SP2'));
     delete($guests{sles15sp3}) if (!is_sle('=15-SP3'));
-    delete($guests{sles15sp4}) if (!is_sle('=15-SP4'));
+    delete($guests{sles15sp4}) if (!is_sle('=15-SP4') || check_var('TERADATA', '15-SP4'));
+    delete($guests{sles15sp4teradata}) if (!is_sle('=15-SP4') || check_var('TERADATA', ''));
     delete($guests{sles15sp5}) if (!is_sle('=15-SP5'));
 } elsif (get_var("REGRESSION", '') =~ /hyperv/) {
     %guests = (
@@ -385,6 +389,9 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp4 => {
             vm_name => 'sles-15.4_openQA-virtualization-maintenance',
         },
+        sles15sp4teradata => {
+            vm_name => 'sles-15.4_teradata_openQA-virtualization-maintenance',
+        },
         sles15sp5 => {
             vm_name => 'sles-15.5_openQA-virtualization-maintenance',
         },
@@ -396,7 +403,8 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     delete($guests{sles15sp1}) if (!is_sle('=15-SP1'));
     delete($guests{sles15sp2}) if (!is_sle('=15-SP2'));
     delete($guests{sles15sp3}) if (!is_sle('=15-SP3'));
-    delete($guests{sles15sp4}) if (!is_sle('=15-SP4'));
+    delete($guests{sles15sp4}) if (!is_sle('=15-SP4') || check_var('TERADATA', '15-SP4'));
+    delete($guests{sles15sp4teradata}) if (!is_sle('=15-SP4') || check_var('TERADATA', ''));
     delete($guests{sles15sp5}) if (!is_sle('=15-SP5'));
 } else {
     %guests = ();
