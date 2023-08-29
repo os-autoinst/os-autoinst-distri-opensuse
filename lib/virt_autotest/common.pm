@@ -21,7 +21,12 @@ use version_utils 'is_sle';
 #   * extra parameters for virsh create / xl create
 # By default, our guests will be installed via `virt-install`. If "method => 'import'" is set, the virtual machine will
 # be imported instead of installed.
-
+my $guest_version = "";
+if (get_var("VERSION")) {
+    $guest_version = get_var("VERSION");
+    $guest_version =~ s/-//;
+    $guest_version =~ y/SP/sp/;
+}
 our %guests = ();
 if (get_var("REGRESSION", '') =~ /xen/) {
     %guests = (
@@ -201,6 +206,8 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     } else {
         %guests = ();
     }
+    %guests = %guests{"sles${guest_version}PV", "sles${guest_version}HVM"} unless (check_var('TERADATA', ''));
+
 } elsif (get_var("REGRESSION", '') =~ /kvm|qemu/) {
     %guests = (
         sles12sp3 => {
@@ -326,6 +333,8 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     } else {
         %guests = ();
     }
+    %guests = %guests{"sles$guest_version"} unless (check_var('TERADATA', ''));
+
 } elsif (get_var("REGRESSION", '') =~ /vmware/) {
     %guests = (
         sles12sp3 => {
@@ -349,19 +358,15 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp4 => {
             name => 'sles15sp4',
         },
+        sles15sp4TD => {
+            name => 'sles15sp4TD',
+        },
         sles15sp5 => {
             name => 'sles15sp5',
         },
     );
+    %guests = get_var('TERADATA') ? %guests{"sles${guest_version}TD"} : %guests{"sles${guest_version}"};
 
-    delete($guests{sles12sp3}) if (!is_sle('=12-SP3'));
-    delete($guests{sles12sp4}) if (!is_sle('=12-SP4'));
-    delete($guests{sles12sp5}) if (!is_sle('=12-SP5'));
-    delete($guests{sles15sp1}) if (!is_sle('=15-SP1'));
-    delete($guests{sles15sp2}) if (!is_sle('=15-SP2'));
-    delete($guests{sles15sp3}) if (!is_sle('=15-SP3'));
-    delete($guests{sles15sp4}) if (!is_sle('=15-SP4'));
-    delete($guests{sles15sp5}) if (!is_sle('=15-SP5'));
 } elsif (get_var("REGRESSION", '') =~ /hyperv/) {
     %guests = (
         sles12sp3 => {
@@ -385,21 +390,14 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp4 => {
             vm_name => 'sles-15.4_openQA-virtualization-maintenance',
         },
+        sles15sp4TD => {
+            vm_name => 'sles-15.4_openQA-virtualization-maintenance-TD',
+        },
         sles15sp5 => {
             vm_name => 'sles-15.5_openQA-virtualization-maintenance',
         },
     );
-
-    delete($guests{sles12sp3}) if (!is_sle('=12-SP3'));
-    delete($guests{sles12sp4}) if (!is_sle('=12-SP4'));
-    delete($guests{sles12sp5}) if (!is_sle('=12-SP5'));
-    delete($guests{sles15sp1}) if (!is_sle('=15-SP1'));
-    delete($guests{sles15sp2}) if (!is_sle('=15-SP2'));
-    delete($guests{sles15sp3}) if (!is_sle('=15-SP3'));
-    delete($guests{sles15sp4}) if (!is_sle('=15-SP4'));
-    delete($guests{sles15sp5}) if (!is_sle('=15-SP5'));
-} else {
-    %guests = ();
+    %guests = get_var('TERADATA') ? %guests{"sles${guest_version}TD"} : %guests{"sles${guest_version}"};
 }
 
 our %imports = ();    # imports are virtual machines that we don't install but just import. We test those separately.

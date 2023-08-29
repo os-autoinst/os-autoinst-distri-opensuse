@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  % unless ($check_var->('TERADATA', "15-SP4")) {
   <suse_register>
     <do_registration config:type="boolean">true</do_registration>
     <email><%= $get_var->('SCC_EMAIL') %></email>
@@ -44,6 +45,46 @@
     </add_on_products>
   </add-on>
       % }
+  % } else {
+  <add-on>
+     <add_on_products config:type="list">
+     % unless ($check_var->('PATCH_WITH_ZYPPER', '1')) {
+       % my $n =0;
+       % for my $repo (@$repos) {
+       <listentry>
+         <media_url><%= $repo %></media_url>
+         <alias>TEST_<%= $n++ %></alias>
+       </listentry>
+       % }
+      % }
+       <listentry>
+         <media_url>http://download.suse.de/ibs/SUSE/Products/SLE-Module-Server-Applications/15-SP4/x86_64/product/</media_url>
+         <product>sle-module-server-applications</product>
+         <product_dir/>
+       </listentry>
+       <listentry>
+         <media_url>http://download.suse.de/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP4/x86_64/product/</media_url>
+         <product>sle-module-basesystem</product>
+         <product_dir/>
+       </listentry>
+       <listentry>
+         <media_url>http://download.suse.de/ibs/SUSE/Products/SLE-Module-Development-Tools/15-SP4/x86_64/product/</media_url>
+         <product>sle-module-development-tools</product>
+         <product_dir/>
+       </listentry>
+       <listentry>
+         <media_url>http://download.suse.de/ibs/SUSE/Products/SLE-Module-Desktop-Applications/15-SP4/x86_64/product/</media_url>
+         <product>sle-module-desktop-applications</product>
+         <product_dir/>
+       </listentry>
+       <listentry>
+         <media_url>http://download.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP4-TERADATA/x86_64/update/</media_url>
+         <alias>15-SP4-TERADATA</alias>
+         <product_dir/>
+       </listentry>
+     </add_on_products>
+   </add-on>
+   % }
   <bootloader>
     <global>
       <activate>true</activate>
@@ -59,7 +100,7 @@
       % if ($check_var->('VERSION', '15')) {
       <xen_kernel_append>dom0_max_vcpus=4 dom0_mem=8192M,max:8192M vga=gfx-1024x768x16 loglvl=all guest_loglvl=all</xen_kernel_append>
       % } else {
-      <xen_kernel_append>dom0_max_vcpus=4 vga=gfx-1024x768x16 loglvl=all guest_loglvl=all</xen_kernel_append>
+      <xen_kernel_append>vga=gfx-1024x768x16 loglvl=all guest_loglvl=all</xen_kernel_append>
       % }
     </global>
     <loader_type>grub2</loader_type>
@@ -208,6 +249,7 @@
     <instsource/>
     <packages config:type="list">
       <package>dhcp-client</package>
+      <package>nmap</package>
       <package>guestfs-tools</package>
     </packages>
     <products config:type="list">
