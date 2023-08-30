@@ -38,7 +38,7 @@ sub run {
 
     systemctl 'unmask packagekit.service';
 
-    if (!check_var('DESKTOP', 'textmode') && is_s390x && is_sle('<15-sp2')) {
+    if (!check_var('DESKTOP', 'textmode') && is_s390x && is_sle('<15-sp1')) {
         systemctl 'restart display-manager.service';
         systemctl 'restart polkit.service';
 
@@ -47,7 +47,7 @@ sub run {
         # the same time. We'd cleanup the previous one and setup the new one.
         assert_script_run 'pkill Xvnc ||:';
     }
-    elsif (!check_var('DESKTOP', 'textmode') && is_s390x && is_sle('>=15-sp2')) {
+    elsif (!check_var('DESKTOP', 'textmode') && is_s390x && is_sle('>=15-sp1')) {
         power_action('reboot', textmode => 1);
         $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 300));
     }
