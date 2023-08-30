@@ -131,6 +131,13 @@ sub get_remote_logs {
     upload_logs("/tmp/$machine\@$logs", failok => 1);
 }
 
+sub get_slurm_logs {
+    my ($self) = @_;
+    $self->upload_service_log('slurmd');
+    $self->upload_service_log('munge');
+    $self->upload_service_log('slurmctld') if get_var('HPC') =~ /slurm_master/;
+}
+
 sub switch_user {
     my ($self, $username) = @_;
     enter_cmd("su - $username");
