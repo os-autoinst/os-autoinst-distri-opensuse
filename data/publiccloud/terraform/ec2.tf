@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     aws = {
-      version = "= 4.59.0"
+      version = "= 5.14.0"
       source = "hashicorp/aws"
     }
     random = {
@@ -54,6 +54,10 @@ variable "tags" {
 
 variable "vm_create_timeout" {
     default = "20m"
+}
+
+variable "enable_confidential_vm" {
+    default = "disabled"
 }
 
 resource "random_id" "service" {
@@ -114,6 +118,10 @@ resource "aws_instance" "openqa" {
 
     timeouts {
         create = var.vm_create_timeout
+    }
+
+    cpu_options {
+        amd_sev_snp = var.enable_confidential_vm
     }
 }
 
