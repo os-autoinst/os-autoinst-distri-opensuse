@@ -62,7 +62,7 @@ sub run {
     my $ret = script_run("$runtime run --rm --volumes-from $test_container $test_image ls /$test_dir/$test_file");
     if ($ret != 0) {
         if ($runtime eq "podman") {
-            record_soft_failure("gh#19529 - Unexpected error with --volumes-from") if ($ret != 0 && $runtime == "podman");
+            record_soft_failure("gh#containers/podman#19529 - Unexpected error with --volumes-from") if ($ret != 0 && $runtime == "podman");
         } else {
             die("--volumes-from failed");
         }
