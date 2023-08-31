@@ -41,6 +41,7 @@
       <li><a href="#zypper_search">zypper_search</a></li>
       <li><a href="#zypper_repos">zypper_repos</a></li>
       <li><a href="#zypper_patches">zypper_patches</a></li>
+      <li><a href="#"></a></li>
       <li><a href="#set_zypper_lock_timeout">set_zypper_lock_timeout</a></li>
       <li><a href="#workaround_type_encrypted_passphrase">workaround_type_encrypted_passphrase</a></li>
       <li><a href="#is_boot_encrypted">is_boot_encrypted</a></li>
@@ -318,6 +319,12 @@ zypper_ar(&#39;https://download.opensuse.org/repositories/devel:/kubic/openSUSE_
 <pre><code>zypper_patches($params);</code></pre>
 
 <p>Run <code>zypper patches</code> with given command line arguments and parse the output into an array of hashes.</p>
+
+<h2 id=""></h2>
+
+<pre><code>zypper_install_available(@packages);</code></pre>
+
+<p>Install all available packages from the given list. Packages not found in enabled repositories will be skipped. Package availability is tested by exact name match.</p>
 
 <h2 id="set_zypper_lock_timeout">set_zypper_lock_timeout</h2>
 
