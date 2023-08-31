@@ -104,28 +104,11 @@ sub run {
     # By default the storage driver is set to btrfs if /var is in btrfs
     # but if the home partition is not btrfs podman commands will fail with
     # Error: "/home/bernhard/.local/share/containers/storage/btrfs" is not on a btrfs filesystem
-    if (script_output("podman info 2>&1", proceed_on_failure => 1) =~ m/prerequisites for driver not satisfied/) {
-        record_soft_failure("bsc#1197093 - /home partition is in different filesystem");
-        record_info('partitions', script_output('lsblk -f'));
-        record_info('storage.conf', script_output('cat /etc/containers/storage.conf'));
-        # Create a local storage.conf config for the rootless user
-        assert_script_run("mkdir -p ~/.config/containers");
-        assert_script_run('cp /etc/containers/storage.conf ~/.config/containers/storage.conf');
-        my $file = '~/.config/containers/storage.conf';
-        # Use generic overlay driver which is the most used and works with most filesystems.
-        file_content_replace($file, '^driver.*' => 'driver = "overlay"');
-        # Change default paths since rootless user doesn't have write access to /var/lib and /var/run
-        # Otherwise we would hit this error:
-        #   Error: error creating runtime static files directory: mkdir /var/lib/containers/storage: permission denied
-        file_content_replace($file, '^runroot.*' => 'runroot = "/run/user/1000/containers"');
-        file_content_replace($file, '^graphroot.*' => 'graphroot = "/home/' . $user . '/.local/share/containers/storage"');
-        record_info('local storage.conf', script_output("cat $file"));
-        # Remove container directories from the rootless user created by the main storage.conf.
-        # New directories and files will be created after calling any podman command following
-        # the new configuration in the local storage.conf
-        assert_script_run("rm -rf ~/.local/share/containers/");
+    my $storage = $podman->get_storage_driver();
+    if ($storage ne 'overlay') {
+        die "Unexpected storage driver -> $storage";
     }
-    assert_script_run('podman info');
+    $podman->info();
 
     test_container_image(image => $image, runtime => $podman);
     build_and_run_image(base => $image, runtime => $podman);
