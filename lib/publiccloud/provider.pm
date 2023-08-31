@@ -13,7 +13,7 @@ use Mojo::Base -base;
 use publiccloud::instance;
 use publiccloud::instances;
 use publiccloud::ssh_interactive 'select_host_console';
-use publiccloud::utils qw(is_azure is_ec2);
+use publiccloud::utils qw(is_azure is_gce is_ec2);
 use Carp;
 use List::Util qw(max);
 use Data::Dumper;
@@ -480,7 +480,8 @@ sub terraform_apply {
         $cmd .= "-var 'region=" . $self->provider_client->region . "' ";
         $cmd .= "-var 'name=" . $self->resource_name . "' ";
         $cmd .= "-var 'project=" . $args{project} . "' " if $args{project};
-        $cmd .= "-var 'enable_confidential_vm=true' " if $args{confidential_compute};
+        $cmd .= "-var 'enable_confidential_vm=true' " if ($args{confidential_compute} && is_gce());
+        $cmd .= "-var 'enable_confidential_vm=enabled' " if ($args{confidential_compute} && is_ec2());
         $cmd .= "-var 'vm_create_timeout=" . $terraform_vm_create_timeout . "' " if $terraform_vm_create_timeout;
         $cmd .= sprintf(q(-var 'tags=%s' ), escape_single_quote($self->terraform_param_tags));
         if ($args{use_extra_disk}) {
