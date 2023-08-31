@@ -48,10 +48,13 @@ sub update_package {
 sub run {
     my $self = shift;
     #workaroud: skip update package for registered aarch64 tests and because there are conflicts on sles15sp2 XEN
-    $self->update_package() unless (is_registered_sles && is_aarch64);
-    unless ((is_registered_sles && is_aarch64) || is_s390x) {
+    $self->update_package() unless (!!get_var('AUTOYAST') || is_registered_sles && is_aarch64);
+    unless (!!get_var('AUTOYAST') || (is_registered_sles && is_aarch64) || is_s390x) {
         set_grub_on_vh('', '', 'xen') if is_xen_host;
         set_grub_on_vh('', '', 'kvm') if is_kvm_host;
+    } else {
+        my @files_to_upload = ("/boot/grub2/grub.cfg", "/etc/default/grub");
+        upload_logs($_, failok => 1) foreach (@files_to_upload);
     }
     update_guest_configurations_with_daily_build();
 

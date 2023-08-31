@@ -65,8 +65,8 @@ sub resource_group_exist {
 sub get_image_id {
     my ($self, $img_url) = @_;
     $img_url //= get_var('PUBLIC_CLOUD_IMAGE_LOCATION');
-    # Very special case for Azure. Ignore the image id and only use OFFER and SKU
-    return "" if ((!$img_url) && get_var('PUBLIC_CLOUD_AZURE_OFFER') && get_var('PUBLIC_CLOUD_AZURE_SKU'));
+    # Very special case for Azure. if image id is not provided and OFFER is then return empty string.
+    return "" if ((!$img_url) && get_var('PUBLIC_CLOUD_AZURE_OFFER'));
     return $self->SUPER::get_image_id($img_url);
 }
 
@@ -312,7 +312,6 @@ sub get_blob_name {
     Calculate the image URI in the Azure Blob Server
     from the file name used in SUSE download server (usually PUBLIC_CLOUD_IMAGE_LOCATION)
 
-    PUBLIC_CLOUD_AZURE_SKU setting is used to determine part of the file name.
     PUBLIC_CLOUD_STORAGE_ACCOUNT setting is used to compose the url
 
     B<return> a string with the image uri on the blob server
