@@ -168,6 +168,12 @@ sub upload_img {
     record_info('INFO', "AMI: $ami");    # Show the ami-* number, could be useful
 }
 
+sub terraform_apply {
+    my ($self, %args) = @_;
+    $args{confidential_compute} = get_var("PUBLIC_CLOUD_CONFIDENTIAL_VM", 0);
+    return $self->SUPER::terraform_apply(%args);
+}
+
 sub img_proof {
     my ($self, %args) = @_;
 
