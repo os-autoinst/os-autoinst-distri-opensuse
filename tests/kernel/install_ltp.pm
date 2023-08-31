@@ -78,7 +78,6 @@ sub install_runtime_dependencies {
       exfat-utils
       fuse-exfat
       ibmtss
-      kernel-default-extra
       lvm2
       net-tools
       net-tools-deprecated
@@ -93,6 +92,13 @@ sub install_runtime_dependencies {
       wget
       xfsprogs
     );
+
+    # SLE-15 allows loading unsupported modules from kernel-default-extra
+    # via modprobe config file but SLE-12 does not. LTP tests for those
+    # modules then fail on SLE-12 because the required driver is available but
+    # modprobe refuses to load it.
+    push @maybe_deps, 'kernel-default-extra' unless is_sle('<15');
+
     zypper_install_available(@maybe_deps);
 }
 
