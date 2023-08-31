@@ -795,6 +795,8 @@ sub skip_registration {
     }
     elsif (match_has_tag('scc-skip-reg-warning-yes')) {
         send_key "alt-y";    # confirmed skip SCC registration
+        wait_still_screen;
+        send_key $cmd{next};
     }
 }
 

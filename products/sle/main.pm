@@ -355,7 +355,7 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
     my $repos = join_incidents_to_repo(\%incidents);
 
     set_var('MAINT_TEST_REPO', $repos);
-    set_var('SCC_REGISTER', 'installation');
+    set_var('SCC_REGISTER', 'installation') unless get_var('FLAVOR') =~ /TERADATA/;
 }
 
 if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_ADDONS')) {

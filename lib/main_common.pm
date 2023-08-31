@@ -312,7 +312,7 @@ sub is_updates_tests {
     my $flavor = get_var('FLAVOR');
     return 0 unless $flavor;
     # Incidents might be also Incidents-Gnome or Incidents-Kernel
-    return $flavor =~ /-Updates$/ || $flavor =~ /-Incidents/;
+    return $flavor =~ /-Updates/ || $flavor =~ /-Incidents/;
 }
 
 sub is_migration_tests {

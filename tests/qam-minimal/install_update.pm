@@ -30,6 +30,8 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
+    zypper_call(q{mr -e $(zypper lr | awk -F '|' '/Basesystem-Module/ {print $2}')}, exitcode => [0, 3]) if get_var('FLAVOR') =~ /TERADATA/;
+
     # shim update will fail with old grub2 due to old signature
     if (get_var('MACHINE') =~ /uefi/ && !is_transactional) {
         zypper_call('up grub2 grub2-x86_64-efi kernel-default');
