@@ -22,7 +22,8 @@ use Mojo::Util 'trim';
 
 our @EXPORT = qw(test_seccomp runtime_smoke_tests basic_container_tests get_vars
   can_build_sle_base get_docker_version get_podman_version check_runtime_version
-  check_min_runtime_version container_ip container_route registry_url reset_container_network_if_needed);
+  check_min_runtime_version container_ip container_route registry_url reset_container_network_if_needed
+);
 
 sub test_seccomp {
     my $no_seccomp = script_run('docker info | tee /tmp/docker_info.txt | grep seccomp');

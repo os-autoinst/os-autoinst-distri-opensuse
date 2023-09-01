@@ -120,8 +120,11 @@ resource "aws_instance" "openqa" {
         create = var.vm_create_timeout
     }
 
-    cpu_options {
-        amd_sev_snp = var.enable_confidential_vm
+    dynamic "cpu_options" {
+        for_each = var.enable_confidential_vm == "disabled" ? [] : [1]
+        content {
+            amd_sev_snp = var.enable_confidential_vm
+        }
     }
 }
 
