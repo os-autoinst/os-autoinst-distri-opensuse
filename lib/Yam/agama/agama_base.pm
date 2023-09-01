@@ -23,6 +23,7 @@ sub post_fail_hook {
     select_console 'root-console';
     y2_base::save_upload_y2logs($self, skip_logs_investigation => 1);
     save_and_upload_log('journalctl -u agama-auto', "/tmp/agama-auto-log.txt");
+    upload_traces();
 }
 
 sub post_run_hook {
@@ -33,6 +34,12 @@ sub post_run_hook {
 
 sub test_flags {
     return {fatal => 1};
+}
+
+sub upload_traces {
+    my ($dest, $sources) = ("/tmp/traces.tar.gz", "test-results/");
+    script_run("tar czf $dest $sources");
+    upload_logs($dest, failok => 1);
 }
 
 1;
