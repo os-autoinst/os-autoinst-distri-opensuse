@@ -1,13 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright 2020-2021 SUSE LLC
+# Copyright 2020-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Package: transactional-update
 # Summary: Host configuration operations (e.g. disable grub timeout,
 #              kernel params, etc)
 #
-# Maintainer: Jose Lausuch <jalausuch@suse.com>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base qw(consoletest);
 use testapi;
