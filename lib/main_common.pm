@@ -425,6 +425,9 @@ sub load_boot_tests {
         loadtest "boot/boot_from_pxe";
         set_var("DELAYED_START", get_var("PXEBOOT"));
     }
+    elsif (get_var("IPXE")) {
+        loadtest "installation/ipxe_install";
+    }
     else {
         loadtest "installation/data_integrity" if data_integrity_is_applicable;
         loadtest "installation/bootloader" unless load_bootloader_s390x();

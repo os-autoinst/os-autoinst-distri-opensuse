@@ -48,7 +48,7 @@ sub poweron_host {
 sub set_pxe_boot {
     while (1) {
         my $stdout = ipmitool('chassis bootparam get 5');
-        last if $stdout =~ m/Boot Flag Valid[\d\D]*Force PXE/;
+        last if $stdout =~ m/Force PXE/;
         diag "setting boot device to pxe";
         my $options = get_var('IPXE_UEFI') ? 'options=efiboot' : '';
         ipmitool("chassis bootdev pxe ${options}");
@@ -63,8 +63,8 @@ sub set_bootscript {
     my $url = "$http_server/v1/bootscript/script.ipxe/$ip";
     my $arch = get_required_var('ARCH');
     my $autoyast = get_var('AUTOYAST', '');
-    my $regurl = get_var('SCC_URL');
-    my $console = get_var('IPXE_CONSOLE');
+    my $regurl = get_var('SCC_URL', '');
+    my $console = get_var('IPXE_CONSOLE', '');
     my $mirror_http = get_required_var('MIRROR_HTTP');
 
     # trim all strings from variables to get rid of bogus whitespaces
@@ -87,19 +87,46 @@ sub set_bootscript {
         $initrd .= "/boot/$arch/loader/initrd";
     }
 
+    if (get_var('SUT_NETDEVICE') and !is_tumbleweed) {
+        my $interface = get_var('SUT_NETDEVICE');
+        $install .= "?device=$interface ifcfg=$interface=dhcp4 ";
+    }
 
     my $cmdline_extra;
     $cmdline_extra .= " regurl=$regurl " if $regurl;
     $cmdline_extra .= " console=$console " if $console;
 
+    # Support passing both EXTRA_PXE_CMDLINE to bootscripts
+    $cmdline_extra .= get_var('EXTRA_PXE_CMDLINE') . ' ' if get_var('EXTRA_PXE_CMDLINE');
     $cmdline_extra .= " root=/dev/ram0 initrd=initrd textmode=1" if check_var('IPXE_UEFI', '1');
 
     if ($autoyast ne '') {
-        $cmdline_extra .= " autoyast=$autoyast ";
+        $cmdline_extra .= " autoyast=$autoyast sshd=1 sshpassword=$testapi::password ";
     } else {
-        $cmdline_extra .= " sshd=1 vnc=1 VNCPassword=$testapi::password sshpassword=$testapi::password ";    # trigger default VNC installation
+        if (check_var('VIDEOMODE', 'text')) {
+            $cmdline_extra .= " ssh=1 sshpassword=$testapi::password ";    # trigger ssh-text installation
+        }
+        else {
+            $cmdline_extra .= " vnc=1 VNCPassword=$testapi::password ";    # trigger default VNC installation
+        }
     }
-    $cmdline_extra .= ' plymouth.enable=0 ';
+    $cmdline_extra .= " plymouth.enable=0 ";
+
+    # Extra options for virtualization tests with ipmi backend
+    if (get_var('VIRT_AUTOTEST') || get_var('HANA_PERF')) {
+        $cmdline_extra .= " video=1024x768 vt.color=0x07 " if check_var('VIDEOMODE', 'text');
+        # Support either IPXE_CONSOLE=ttyS1,115200 or SERIALDEV=ttyS1
+        my $serial_dev;
+        if (get_var('IPXE_CONSOLE')) {
+            get_var('IPXE_CONSOLE') =~ /^(\w+)/;
+            $serial_dev = $1;
+        }
+        else {
+            $serial_dev = get_var('SERIALDEV', 'ttyS1');
+            $cmdline_extra .= " console=$serial_dev,115200 ";
+        }
+        $cmdline_extra .= " Y2DEBUG=1 linuxrc.log=/dev/$serial_dev linuxrc.core=/dev/$serial_dev linuxrc.debug=4,trace reboot_timeout=0";
+    }
 
     my $bootscript = <<"END_BOOTSCRIPT";
 #!ipxe
@@ -124,6 +151,11 @@ END_BOOTSCRIPT
 
     my $response = HTTP::Tiny->new->request('POST', $url, {content => $bootscript, headers => {'content-type' => 'text/plain'}});
     diag "$response->{status} $response->{reason}\n";
+
+    # Comment out but keep the block for possible debug purpose.
+    #diag "\nThe bootscript from http server is: \n";
+    #$response = HTTP::Tiny->new->get($url);
+    #print "$response->{content}\n";
 }
 
 sub set_bootscript_hdd {
@@ -141,6 +173,21 @@ END_BOOTSCRIPT
     diag "$response->{status} $response->{reason}\n";
 }
 
+sub enter_o3_ipxe_boot_entry {
+    ipmitool('chassis power reset') unless check_screen([qw(o3-ipxe-menu ipxe-boot-failure)], 180);
+    assert_screen('o3-ipxe-menu', 210);
+    my $key = get_var('HOST_INSTALL_AUTOYAST') ? (is_kvm_host ? 'k' : 'z') : 't';
+    send_key "$key";
+    # try one more time as sometimes sending key does not take effect
+    send_key "$key" if check_screen('o3-ipxe-menu');
+    # confirm the dialog asking for user modifications to kernel, cmdline and initrd
+    # set limit to 10 in case some keys don't go through
+    for (1 .. 10) {
+        last if check_screen([qw(load-linux-kernel load-initrd)], 3);
+        send_key "ret";
+    }
+}
+
 
 sub run {
     my $self = shift;
@@ -148,7 +195,7 @@ sub run {
     poweroff_host;
 
     #virtualization tests use a static ipxe configuration file in O3
-    set_bootscript unless get_var('VIRT_AUTOTEST') && is_tumbleweed;
+    set_bootscript unless get_var('IPXE_STATIC');
 
     set_pxe_boot;
 
@@ -156,35 +203,24 @@ sub run {
 
     select_console 'sol', await_console => 0;
 
-    #use ipxe bootloader in O3
-    #it is static menu and choose the TW entry to start installation
-    if (get_var('VIRT_AUTOTEST') && is_tumbleweed) {
-        save_screenshot;
-        ipmitool('chassis power reset') unless check_screen([qw(o3-ipxe-menu ipxe-boot-failure)], 180);
-        assert_screen('o3-ipxe-menu', 300);
-        my $key = get_var('HOST_INSTALL_AUTOYAST') ? (is_kvm_host ? 'k' : 'z') : 't';
-        send_key "$key";
-        # try one more time as sometimes sending key does not take effect
-        send_key "$key" if check_screen('o3-ipxe-menu');
-
-        # confirm the dialog asking for user modifications to kernel, cmdline and initrd
-        # set limit to 10 in case some keys don't go through
-        for (1 .. 10) {
-            last if check_screen([qw(load-linux-kernel load-initrd)], 3);
-            send_key "ret";
-        }
-
+    # Print screenshots for ipxe boot process
+    if (get_var('VIRT_AUTOTEST') || get_var('HANA_PERF')) {
+        #it is static menu and choose the TW entry to start installation
+        enter_o3_ipxe_boot_entry if get_var('IPXE_STATIC');
         assert_screen([qw(load-linux-kernel load-initrd)], 240);
         # Loading initrd spend much time(fg. 10-15 minutes to Beijing SUT)
         # Downloading from O3 became much more quick, some needles may not be caught.
-        check_screen([qw(start-tw-install network-config-created loading-installation-system)], 360);
-        if (match_has_tag("start-tw-install")) {
-            record_info("TW install", "Start with installing Tumbleweed...");
+        check_screen([qw(start-tw-install start-sle-install network-config-created)], 60);
+        if (match_has_tag('start-tw-install')) {
+            record_info("Install TW", "Start installing Tumbleweed...");
+        }
+        elsif (match_has_tag('start-sle-install')) {
+            record_info("Install SLE", "Start installing SLE...");
         }
         else {
-            record_info("TW install?", "Pls make sure it is Tumbleweed that is being installed.", result => 'softfail');
+            record_info("Install others?", "Pls make sure the product that is expected to be installed.");
         }
-        assert_screen([qw(network-config-created loading-installation-system)], 60);
+        assert_screen([qw(network-config-created loading-installation-system sshd-server-started autoyast-installation)], 300);
         return if get_var('AUTOYAST');
         wait_still_screen(stilltime => 12, similarity_level => 60, timeout => 30) unless check_screen('sshd-server-started', timeout => 60);
         save_screenshot;
@@ -197,8 +233,8 @@ sub run {
     }
     else {
         my $ssh_vnc_wait_time = 1500;
-        #for TW virtualization test, 15 minutes is enough to load installation system, 75 minutes is too long
-        $ssh_vnc_wait_time = 300 if get_var('VIRT_AUTOTEST') && is_tumbleweed;
+        #for virtualization test, 9 minutes is enough to load installation system, 75 minutes is too long
+        $ssh_vnc_wait_time = 180 if get_var('VIRT_AUTOTEST');
         my $ssh_vnc_tag = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
         my @tags = ($ssh_vnc_tag);
         if (check_screen(\@tags, $ssh_vnc_wait_time)) {
