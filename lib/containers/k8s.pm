@@ -17,76 +17,116 @@ use testapi;
 use utils qw(zypper_call script_retry file_content_replace validate_script_output_retry random_string);
 use Utils::Systemd qw(systemctl);
 use containers::utils 'registry_url';
-use version_utils qw(is_sle is_microos is_public_cloud);
+use version_utils qw(is_sle is_microos is_public_cloud is_transactional is_alp is_sle_micro is_leap_micro);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use transactional qw(trup_call check_reboot_changes);
 
 our @EXPORT = qw(install_k3s uninstall_k3s install_kubectl install_helm install_oc apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log);
 
+sub check_k3s {
+    record_info('k3s', "k3s version " . script_output("k3s --version") . " installed");
+    record_info('kubectl version', script_output('k3s kubectl version'));
+    assert_script_run('uname -a');
+    assert_script_run('test -e /etc/rancher/k3s/k3s.yaml');
+    assert_script_run('k3s check-config');
+    validate_script_output('k3s kubectl config get-clusters', qr/default/);
+    validate_script_output('k3s kubectl config get-users', qr/default/);
+    validate_script_output('k3s kubectl config get-contexts --no-headers=true -o name', qr/default/);
+    assert_script_run('k3s kubectl config view --raw');
+    validate_script_output_retry("k3s kubectl get nodes", qr/ Ready.*control-plane,master /, retry => 6, delay => 15, timeout => 90);
+    validate_script_output_retry("k3s kubectl get namespaces", qr/default.*Active/, timeout => 120, delay => 60, retry => 3);
+    validate_script_output_retry('k3s kubectl get events -A', qr/Started container coredns/, retry => 6, delay => 30, timeout => 90);
+
+    # the default service account should be ready by now
+    assert_script_run("k3s kubectl get serviceaccount default -o name");
+    # expect that k3s api to be ready and is accessible
+    record_info("k3s api resources", script_output("k3s kubectl api-resources"));
+    assert_script_run("k3s kubectl auth can-i 'create' 'pods'");
+    assert_script_run("k3s kubectl auth can-i 'create' 'deployments'");
+}
+
+sub ensure_k3s_start {
+    systemctl('start k3s');
+    systemctl('is-active k3s');
+}
+
+sub set_custom_registry {
+    return unless get_var('REGISTRY');
+
+    script_run("mkdir -p /etc/rancher/k3s");
+    my $registry = registry_url();
+    assert_script_run "curl " . data_url('containers/registries.yaml') . " -o /etc/rancher/k3s/registries.yaml";
+    file_content_replace("/etc/rancher/k3s/registries.yaml", REGISTRY => $registry);
+}
+
+sub setup_and_check_k3s {
+    if (script_run('test -n "$INSTALL_K3S_SKIP_START"') == 0) {
+        set_custom_registry;
+        ensure_k3s_start;
+    }
+    script_run("rm -rf ~/.kube");
+    script_run('mkdir -p ~/.kube/');
+    assert_script_run('ln -s /etc/rancher/k3s/k3s.yaml ~/.kube/config');
+    check_k3s;
+}
+
 =head2 install_k3s
-Installs k3s, checks the instalation and prepare the kube/config
+Deploy k3s using k3s-install script that is either pulled from upstream or distro
 =cut
 
 sub install_k3s {
-    if (get_var("DISTRI") eq "alp") {
-        assert_script_run('/usr/bin/k3s-install');
+    # k3s might be already installed by default
+    return if (script_run('which k3s') == 0);
+
+    # Apply additional k3s installation options
+    # Note: The install script starts a k3s-server by default, unless INSTALL_K3S_SKIP_START is set to true
+    # For more information see https://rancher.com/docs/k3s/latest/en/installation/install-options/#options-for-installation-with-script
+    my %k3s_args = (
+        INSTALL_K3S_SYMLINK => get_var('K3S_SYMLINK'),
+        INSTALL_K3S_BIN_DIR => get_var('K3S_BIN_DIR'),
+        INSTALL_K3S_CHANNEL => get_var('K3S_CHANNEL'),
+        INSTALL_K3S_VERSION => get_var('K3S_VERSION'),
+        INSTALL_K3S_SKIP_START => get_var('K3S_SKIP_START', 'true'),
+        K3S_NODE_NAME => 'k3s-node'
+    );
+
+    # github.com/k3s-io/k3s#5946 - The kubectl delete namespace helm-ns-413 command freezes and does nothing
+    my $disables = '--disable=metrics-server';
+    $disables .= ' --disable-helm-controller' unless (get_var('K3S_ENABLE_HELM_CONTROLLER'));
+
+    while (my ($key, $value) = each %k3s_args) {
+        if ($value) {
+            assert_script_run("export $key=$value");
+        }
+        delete $k3s_args{$key};
     }
-    else {
-        if (is_microos()) {
-            trup_call('pkg install k3s-selinux');
-            check_reboot_changes;
-        }
-        zypper_call('in apparmor-parser') if (is_sle('>=15-sp1'));
-  # Apply additional options. For more information see https://rancher.com/docs/k3s/latest/en/installation/install-options/#options-for-installation-with-script
-        my $k3s_version = get_var("CONTAINERS_K3S_VERSION");
-        if ($k3s_version) {
-            record_info('k3s forced version', $k3s_version);
-            assert_script_run("export INSTALL_K3S_VERSION=$k3s_version");
-        }
-        assert_script_run("export INSTALL_K3S_SYMLINK=" . get_var('K3S_SYMLINK')) if (get_var('K3S_SYMLINK'));
-        assert_script_run("export INSTALL_K3S_BIN_DIR=" . get_var('K3S_BIN_DIR')) if (get_var('K3S_BIN_DIR'));
-        assert_script_run("export INSTALL_K3S_CHANNEL=" . get_var('K3S_CHANNEL')) if (get_var('K3S_CHANNEL'));
-        # k3s doesn't like long hostnames like the ones being used in publiccloud
-        assert_script_run("export K3S_NODE_NAME=k3s-node") if (is_public_cloud);
 
-        my $disables = '--disable=metrics-server';
-        $disables .= ' --disable-helm-controller' unless (get_var('K3S_ENABLE_HELM_CONTROLLER'));
-
-        # github.com/k3s-io/k3s#5946 - The kubectl delete namespace helm-ns-413 command freezes and does nothing
-        # Note: The install script starts a k3s-server by default, unless INSTALL_K3S_SKIP_START is set to true
+    if (get_var('K3S_INSTALL_UPSTREAM') || (is_sle || is_sle_micro || is_leap_micro)) {
         script_retry("curl -sfL https://get.k3s.io  -o install_k3s.sh", timeout => 180, delay => 60, retry => 3);
-        assert_script_run("INSTALL_K3S_SKIP_START=true sh install_k3s.sh $disables", timeout => 300);
+        assert_script_run("sh install_k3s.sh $disables", timeout => 300);
         script_run("rm -f install_k3s.sh");
+        setup_and_check_k3s;
+        return;
     }
 
-    if (get_var('REGISTRY')) {
-        script_run("mkdir -p /etc/rancher/k3s");
-        my $registry = registry_url();
-        assert_script_run "curl " . data_url('containers/registries.yaml') . " -o /etc/rancher/k3s/registries.yaml";
-        file_content_replace("/etc/rancher/k3s/registries.yaml", REGISTRY => $registry);
+    # k3s-install script is already packaged for several products
+    my @pkgs = qw(k3s-install);
+    push @pkgs, 'apparmor-parser' if is_sle('>=15-SP1');
+
+    if (script_run(sprintf('rpm -q %s', join(" ", @pkgs))) != 0) {
+        if (is_transactional) {
+            trup_call("pkg install @pkgs");
+            check_reboot_changes;
+        } else {
+            zypper_call("in @pkgs");
+        }
     }
-    systemctl('start k3s');
-    script_retry("test -e /etc/rancher/k3s/k3s.yaml", delay => 20, retry => 10);
-    systemctl('is-active k3s');
-    assert_script_run('k3s -v');
-    assert_script_run('uname -a');
-    assert_script_run("k3s kubectl get node");
-    validate_script_output_retry("k3s kubectl get node", qr/ Ready /, retry => 6, delay => 15, timeout => 90);
-    script_run("mkdir -p ~/.kube");
-    script_run("rm -f ~/.kube/config");
-    assert_script_run("ln -s /etc/rancher/k3s/k3s.yaml ~/.kube/config");
-    sleep 60;
-    # Await k3s to be ready and exists the default service account
-    script_retry("kubectl get serviceaccount default -o name", timeout => 120, delay => 60, retry => 3);
-    # Await k3s to be ready and the api is accessible
-    script_retry("kubectl get namespaces", timeout => 120, delay => 60, retry => 3);
-    script_retry("kubectl get pods --all-namespaces | grep -E 'Running|Completed'", timeout => 120, delay => 60, retry => 10);
-    record_info("k3s api resources", script_output("kubectl api-resources"));
-    assert_script_run("kubectl auth can-i 'create' 'pods'");
-    assert_script_run("kubectl auth can-i 'create' 'deployments'");
-    record_info('k3s', "k3s version " . script_output("k3s --version") . " installed");
-    record_info('kubectl version', script_output('kubectl version --short'));
+
+    assert_script_run("k3s-install $disables");
+
+    setup_and_check_k3s;
 }
+
 
 =head2 uninstall_k3s
 Uninstalls k3s
@@ -102,24 +142,18 @@ Installs kubectl from the respositories
 =cut
 
 sub install_kubectl {
-    if (script_run("which kubectl") != 0) {
-        if (is_sle) {
-            # kubectl is in the container module
-            add_suseconnect_product(get_addon_fullname('contm'));
-            # SLES-15SP2+ ships a specific kubernetes client version. Older versions hold a version-independent kubernetes-client package.
-            if (is_sle(">=15-SP3")) {
-                zypper_call("in kubernetes1.23-client");
-            } elsif (is_sle("=15-SP2")) {
-                zypper_call("in kubernetes1.18-client");
-            } else {
-                zypper_call("in kubernetes-client");
-            }
-        } else {
-            zypper_call("in kubernetes-client");
-        }
-    } else {
-        record_info('kubectl preinstalled', 'The kubectl package is already installed.');
+    if (script_run("which kubectl") == 0) {
+        record_info('kubectl preinstalled', script_output('kubectl version --client'));
+        return;
     }
+
+    # kubectl is in the container module
+    add_suseconnect_product(get_addon_fullname('contm')) if (is_sle);
+    my $k8s_pkg = get_var('K8S_CLIENT', 'kubernetes-client-provider');
+    if (!get_var('K8S_CLIENT') && (is_sle || is_sle_micro)) {
+        die '"K8S_CLIENT" was not set in test suite definition';
+    }
+    zypper_call("in -C $k8s_pkg");
     record_info('kubectl version', script_output('kubectl version --client'));
 }
 
