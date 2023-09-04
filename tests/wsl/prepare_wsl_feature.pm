@@ -16,6 +16,7 @@
 # Maintainer: qa-c <qa-c@suse.de>
 
 use Mojo::Base qw(windowsbasetest);
+use Utils::Architectures qw(is_aarch64);
 use testapi;
 use version_utils qw(is_sle is_opensuse);
 
@@ -42,8 +43,11 @@ sub run {
 
     assert_screen 'windows-desktop';
     $self->open_powershell_as_admin;
+    my $wsl_appx_uri = "\\\\10.0.2.4\\qemu\\$wsl_appx_filename";
+    # On Win 11 for Arm Build 25931, smb transfers don't work (poo#126083)
+    $wsl_appx_uri = data_url('ASSET_1') if is_aarch64;
     $self->run_in_powershell(
-        cmd => "Start-BitsTransfer -Source \\\\10.0.2.4\\qemu\\$wsl_appx_filename -Destination C:\\\\$wsl_appx_filename",
+        cmd => "Start-BitsTransfer -Source $wsl_appx_uri -Destination C:\\\\$wsl_appx_filename",
         timeout => 60
     );
     $self->run_in_powershell(cmd => $powershell_cmds->{enable_developer_mode});
