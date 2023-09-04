@@ -17,6 +17,8 @@ conditional_schedule:
         - installation/bootloader
   user_settings_root:
     VERSION:
+      15-SP6:
+        - installation/user_settings_root
       15-SP5:
         - installation/user_settings_root
       15-SP4:
