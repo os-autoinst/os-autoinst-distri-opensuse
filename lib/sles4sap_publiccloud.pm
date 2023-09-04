@@ -596,7 +596,7 @@ sub delete_network_peering {
     if (is_azure) {
         # Check that required vars are available before deleting the peering
         my $rg = qesap_az_get_resource_group();
-        if ($rg ne '' && get_var('IBSM_RG')) {
+        if (get_var('IBSM_RG')) {
             qesap_az_vnet_peering_delete(source_group => $rg, target_group => get_var('IBSM_RG'));
         }
         else {

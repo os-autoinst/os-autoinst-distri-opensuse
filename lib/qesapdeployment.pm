@@ -1211,11 +1211,16 @@ sub qesap_az_vnet_peering_delete {
     record_info('Attempting peering destruction');
     my $peering_cmd = "az network vnet peering delete -n $peering_name";
     my $source_ret = 0;
+    record_info('Destroying job_resources->IBSM peering');
     if ($args{source_group}) {
         my $source_vnet = qesap_az_get_vnet($args{source_group});
         my $source_cmd = "$peering_cmd --resource-group $args{source_group} --vnet-name $source_vnet";
         $source_ret = script_run($source_cmd, timeout => $args{timeout});
     }
+    else {
+        record_info('NO PEERING', "No peering between job VMs and IBSM - maybe it wasn't created, or the resources have been destroyed.");
+    }
+    record_info('Destroying IBSM -> job_resources peering');
     my $target_cmd = "$peering_cmd --resource-group $args{target_group} --vnet-name $target_vnet";
     my $target_ret = script_run($target_cmd, timeout => $args{timeout});
 
