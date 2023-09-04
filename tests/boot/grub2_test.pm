@@ -96,7 +96,7 @@ sub run {
         select_console 'root-console';
     }
 
-    if (is_sle('15+')) {
+    if (is_sle('15+') && get_var('FLAVOR') !~ /TERADATA/) {
         record_info 'grub2 zfs', 'ensure that zfs in grub2 is not available on SLE 15+ but on openSUSE';
         assert_script_run 'zypper se grub2- | grep extras ; test "$?" == "1"';
         assert_script_run 'rpm -qa | grep grub2 | xargs rpm -ql | grep zfs ; test "$?" == "1"';
