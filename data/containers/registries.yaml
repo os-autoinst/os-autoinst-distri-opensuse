@@ -1,4 +1,4 @@
 mirrors:
-  testing.registry:
+  docker.io:
     endpoint:
       - "http://REGISTRY"
