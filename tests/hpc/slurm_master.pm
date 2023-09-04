@@ -493,12 +493,14 @@ sub test_flags ($self) {
     return {fatal => 1, milestone => 1};
 }
 
+sub post_run_hook ($self) {
+    $self->SUPER::get_slurm_logs();
+    $self->SUPER::post_run_hook();
+}
+
 sub post_fail_hook ($self) {
     $self->destroy_test_barriers();
     select_serial_terminal;
-    $self->upload_service_log('slurmd');
-    $self->upload_service_log('munge');
-    $self->upload_service_log('slurmctld');
     export_logs_basic;
     $self->get_remote_logs('slave-node02', 'slurmdbd.log');
     upload_logs('/var/log/slurmctld.log');
