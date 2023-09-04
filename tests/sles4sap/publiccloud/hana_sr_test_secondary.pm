@@ -48,7 +48,7 @@ sub run {
 
     if (($db_action eq 'crash')) {
         # SBD delay related setup in case of crash OS to prevent cluster starting too quickly after reboot
-        $self->setup_sbd_delay();
+        $self->setup_sbd_delay_publiccloud();
         record_info('Crash DB', "Crashing OS on Site B ('$site_b->{instance_id}')");
     }
     else {
