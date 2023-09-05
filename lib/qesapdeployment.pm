@@ -95,6 +95,7 @@ our @EXPORT = qw(
   qesap_export_instances
   qesap_import_instances
   qesap_ansible_log_find_timeout
+  qesap_ansible_log_find_missing_sudo_password
 );
 
 =head1 DESCRIPTION
@@ -436,6 +437,19 @@ sub qesap_ansible_log_find_timeout
     my $search_string = 'Timed out waiting for last boot time check';
     my $timeout_match = script_output("grep \"$search_string\" $file || exit 0");
     return $timeout_match ? 1 : 0;
+}
+
+=head3 qesap_ansible_log_find_missing_sudo_password
+
+    Return the '"msg": "Missing sudo password"' error found in the Ansible log or not
+=cut
+
+sub qesap_ansible_log_find_missing_sudo_password
+{
+    my ($file) = @_;
+    my $search_string = 'Missing sudo password';
+    my $missing_sudo_pwd_match = script_output("grep \"$search_string\" $file || exit 0");
+    return $missing_sudo_pwd_match ? 1 : 0;
 }
 
 =head3 qesap_get_inventory
