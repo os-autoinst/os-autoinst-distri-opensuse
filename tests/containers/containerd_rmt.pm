@@ -13,6 +13,7 @@
 # Maintainer: qa-c team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
+use File::Basename qw(dirname);
 use testapi;
 use utils;
 use serial_terminal 'select_serial_terminal';
@@ -28,20 +29,19 @@ sub run {
     install_kubectl();
     install_helm();
 
-    my $rmt_helm = get_var('RMTTEST_CHART', 'https://github.com/SUSE/helm-charts/archive/refs/heads/main.tar.gz');
+    my $curl_options = "-sSL --retry 3 --retry-delay 30";
+
+    my $helm_chart = get_var('HELM_CHART', 'https://github.com/SUSE/helm-charts/archive/refs/heads/main.tar.gz');
     # pull in the testsuite
-    assert_script_run("curl -sSL $rmt_helm | tar -zxf -");
-    my $rmt_config = get_var('RMTTEST_CONFIG', 'https://gitlab.suse.de/QA-APAC-I/testing/-/raw/master/data/rmtcontainer/myvalue.yaml');
-    assert_script_run("curl -sSLO $rmt_config");
-    my $prefix = "registry.suse.de/suse/sle-15-sp5/update/cr/totest/images/suse";
-    my $set_options = "--set app.image.repository=$prefix/rmt-server --set app.image.tag=latest";
-    $set_options .= " --set app.init.image.repository=$prefix/rmt-mariadb-client --set app.init.image.tag=latest";
-    $set_options .= " --set db.image.repository=$prefix/rmt-mariadb --set db.image.tag=latest";
-    $set_options .= " --set front.image.repository=$prefix/rmt-nginx --set front.image.tag=latest";
+    assert_script_run("curl $curl_options $helm_chart | tar -zxf -");
+    my $helm_values = get_var('HELM_CONFIG', 'https://gitlab.suse.de/QA-APAC-I/testing/-/raw/master/data/rmtcontainer/myvalue.yaml');
+    assert_script_run("curl $curl_options -O $helm_values");
+    my ($repository, $tag) = split(':', get_required_var('CONTAINER_IMAGE_TO_TEST'), 2);
+    my $set_options = "--set app.image.repository=$repository --set app.image.tag=$tag";
     my $helm_options = "--debug";
     assert_script_run("helm install $set_options rmt ./helm-charts-main/rmt-helm -f myvalue.yaml $helm_options");
     assert_script_run("helm list");
-    sleep 20;
+    sleep 20;    # Wait until images are downloaded
     my @out = split(' ', script_output("kubectl get pods | grep rmt-app"));
     my $counter = 0;
     while ($counter++ < 50) {
