@@ -116,6 +116,7 @@ sub run {
 
     record_info('Clone', "Clone BCI tests repository: $bci_tests_repo");
     my $branch = $bci_tests_branch ? "-b $bci_tests_branch" : '';
+    script_run('rm -rf /root/BCI-tests');
     assert_script_run("git clone $branch -q --depth 1 $bci_tests_repo /root/BCI-tests");
 
     # Pull the image in advance
