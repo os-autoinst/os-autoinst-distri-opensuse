@@ -292,6 +292,11 @@ our %images_list = (
             released => sub { 'registry.opensuse.org/opensuse/leap:15.4' },
             totest => sub { },
             available_arch => ['x86_64', 'aarch64']
+        },
+        '15.5' => {
+            released => sub { 'registry.opensuse.org/opensuse/leap:15.5' },
+            totest => sub { },
+            available_arch => ['x86_64', 'aarch64']
         }
     }
 );
