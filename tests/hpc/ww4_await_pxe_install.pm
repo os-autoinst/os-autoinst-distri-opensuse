@@ -18,6 +18,7 @@ use POSIX 'strftime';
 
 sub run ($self) {
     assert_screen('qemu-no-bootable-device', timeout => 90);
+    send_key('ctrl-B');
     mutex_wait "ww4_ready";
     barrier_wait('WWCTL_READY');
     record_info 'WWCTL_READY', strftime("\%H:\%M:\%S", localtime);
