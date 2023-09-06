@@ -186,6 +186,7 @@ sub load_common_tests {
 
 
 sub load_transactional_tests {
+    loadtest 'transactional/disable_timers';
     loadtest 'transactional/filesystem_ro';
     loadtest 'transactional/trup_smoke';
     loadtest 'microos/patterns' if is_sle_micro;

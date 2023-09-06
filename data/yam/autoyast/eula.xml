@@ -12,8 +12,21 @@
             <timeout config:type="integer">-1</timeout>
         </global>
     </bootloader>
+    <suse_register>
+        <do_registration config:type="boolean">false</do_registration>
+    </suse_register>
     <add-on>
         <add_on_products config:type="list">
+             <listentry>
+                <media_url><![CDATA[dvd:///?devices=/dev/sr0]]></media_url>
+                <product>sle-module-server-applications</product>
+                <product_dir>/Module-Server-Applications</product_dir>
+             </listentry>
+             <listentry>
+                <media_url><![CDATA[dvd:///?devices=/dev/sr0]]></media_url>
+                <product>sle-module-desktop-applications</product>
+                <product_dir>/Module-Desktop-Applications</product_dir>
+             </listentry>
              <listentry>
                 <media_url><![CDATA[dvd:///?devices=/dev/sr0]]></media_url>
                 <product>sle-module-basesystem</product>

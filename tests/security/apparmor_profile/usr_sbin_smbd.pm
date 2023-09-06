@@ -1,33 +1,24 @@
-# Copyright 2019-2022 SUSE LLC
+# Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Package: samba samba-client yast2-samba-client yast2-samba-server nautilus
-# apparmor-utils
+# Package: samba samba-client yast2-samba-client yast2-samba-server apparmor-utils
 # Summary: Test with "usr.sbin.smbd" is in "enforce" mode and AppArmor is
 #          "enabled && active", access the shared directory should have no error.
 # - Install samba samba-client yast2-samba-client yast2-samba-server
 # - Restart smb
-# - Select X11 console
-# - Launch yast2 samba-server
-# - Fill Workgroup name as "WORKGROUP"
 # - Add a new share named "testdir", description "This is smbtest", type
 # directory, at "/home/testdir"
-# - Switch to text console
 # - Install expect
 # - Delete/create testuser
 # - Set a smb password for testuser
 # - Run "aa-enforce usr.sbin.smbd" and check for enforce mode confirmation
 # - Run aa-status to make sure profile is on enforce mode
 # - Restart apparmor and smb
-# - Go to X11 console
-# - Launch nautilus and access "smb://<server address>"
-# - Check for the shared dir
-# - Fill in user, workgroup, password and access the share directory
+# - Access the samba share using the previously created user
 # - Create and delete a test folder inside the share
-# - Switch back to text console
 # - Check audit.log for error messages related to smbd
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#48776, tc#1695952
+# Tags: poo#48776, poo#134780
 
 use base apparmortest;
 use strict;
@@ -36,53 +27,25 @@ use testapi;
 use utils;
 use version_utils qw(is_sle);
 use Utils::Architectures;
+use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 
-# Setup samba server
 sub samba_server_setup {
     my $testdir = $apparmortest::testdir;
 
-    # Install samba packages in case
     zypper_call("in samba samba-client yast2-samba-client yast2-samba-server");
+
+    my $smb_config = <<EOF;
+[testdir]
+        comment = samba test
+        inherit acls = Yes
+        path = /home/testdir
+        read only = No
+EOF
+    assert_script_run("echo '$smb_config' >> /etc/samba/smb.conf");
+    assert_script_run("mkdir /home/$apparmortest::testdir");
     systemctl("restart smb");
-
-    select_console 'x11';
-    y2_module_guitest::launch_yast2_module_x11("samba-server", target_match => "samba-server-installation", match_timeout => 200);
-
-    send_key "alt-w";
-    send_key "ctrl-a";
-    send_key "delete";
-    type_string("WORKGROUP");
-    send_key_until_needlematch("samba-server-configuration", 'alt-n', 11, 2);
-    send_key "alt-s";
-    assert_screen("samba-server-configuration-shares");
-    send_key "alt-a";
-    assert_screen("samba-server-configuration-shares-newshare");
-    send_key "alt-n";
-    send_key "ctrl-a";
-    send_key "delete";
-    type_string("$testdir");
-    send_key "alt-a";
-    send_key "ctrl-a";
-    send_key "delete";
-    type_string("This is smbtest");
-    send_key "alt-d";
-    send_key "alt-s";
-    send_key "ctrl-a";
-    send_key "delete";
-    type_string("/home/$testdir");
-    send_key "alt-o";
-    assert_screen("samba-server-configuration-shares-newshare-createdir");
-    assert_and_click("samba-server-configuration-shares-newshare-createdir-Yes", timeout => 60);
-    assert_screen("samba-server-configuration");
-    send_key "alt-o";
-
-    # Exit x11 and turn to console
-    send_key("alt-f4");
-    assert_screen("generic-desktop");
-    select_console("root-console");
 }
 
-# Start "nautilus" to access the shares by "Windows Shares"
 sub samba_client_access {
     my $self = shift;
     my $ip = shift;
@@ -90,61 +53,19 @@ sub samba_client_access {
     my $testuser = $apparmortest::testuser;
     my $testdir = $apparmortest::testdir;
     my $pw = $apparmortest::pw;
+    my $smb_test_dir = "mydir";
 
-    # Start "nautilus" to access the shares by "Windows Shares"
-    select_console 'x11';
-    x11_start_program("nautilus", target_match => "nautilus-other-locations", match_timeout => 200);
+    select_user_serial_terminal;
 
-    # Connect to samba server
-    assert_and_click("nautilus-other-locations");
-    assert_and_click("nautilus-connect-to-server");
-    type_string("smb://$ip");
-    send_key "ret";
-    wait_still_screen(2);
+    assert_script_run(
+        "expect -c 'spawn smbclient -U $testuser -L $ip; expect \"Enter WORKGROUP\\testuser'\"'\"'s password:\"; send \"$pw\\n\"; interact'"
+    );
 
-    # Search the shared dir
-    send_key_until_needlematch("nautilus-sharedir-search", 'ctrl-f', 6, 2);
-    type_string("$testdir");
-    assert_screen("nautilus-sharedir-selected");
-    send_key "ret";
+    assert_script_run(
+        "smbclient //$ip/$testdir -U $testuser%$pw -c \"mkdir $smb_test_dir; ls; rmdir $smb_test_dir; ls; exit\""
+    );
 
-    # Input password for samb user
-    assert_screen("nautilus-selected-sharedir-access-passwd");
-    send_key_until_needlematch("nautilus-registered-user-login", 'down', 6, 2);
-    send_key "tab";
-    send_key "ctrl-a";
-    send_key "delete";
-    type_string("$testuser");
-    send_key "ret";
-    send_key "ctrl-a";
-    send_key "delete";
-    type_string("WORKGROUP");
-    send_key "ret";
-    send_key "ctrl-a";
-    send_key "delete";
-    type_string("$pw");
-    send_key "ret";
-    assert_screen("nautilus-sharedir-opened");
-
-    # Create new folder
-    if (is_s390x()) {
-        # on s390x the keyboard shortcut doesn't always work, that's why we use needles instead.
-        assert_and_click("nautilus-empty-view-dclick", button => "right");
-        assert_and_click("nautilus-create-folder");
-    } else {
-        send_key "shift-ctrl-n";
-    }
-    assert_screen("nautilus-folder-name-input-box");
-    type_string("sub-testdir", wait_screen_change => 10);
-    send_key "ret";
-    send_key_until_needlematch("nautilus-sharedir-delete", "delete", 6, 2);
-    send_key "ret";
-    assert_screen("nautilus-sharedir-deleted");
-
-    # Exit x11 and turn to console
-    send_key("alt-f4");
-    assert_screen("generic-desktop");
-    select_console("root-console");
+    select_serial_terminal;
 }
 
 sub run {
@@ -158,6 +79,8 @@ sub run {
     my $pw = $apparmortest::pw;
     my $ip = "";
 
+    select_serial_terminal;
+
     # Set up samba server
     $self->samba_server_setup();
 
@@ -166,7 +89,8 @@ sub run {
     script_run("userdel -rf $testuser");
     assert_script_run("useradd -m -d \/home\/$testuser $testuser");
     assert_script_run(
-        "expect -c 'spawn smbpasswd -a $testuser; expect \"New password:\"; send \"$pw\\n\"; expect \"Retype new password:\"; send \"$pw\\n\"; interact'");
+        "expect -c 'spawn smbpasswd -a $testuser; expect \"New password:\"; send \"$pw\\n\"; expect \"Retype new password:\"; send \"$pw\\n\"; interact'"
+    );
 
     # Change the owner and group for the samba test dir
     assert_script_run("chown $testuser\:users /home/$testdir");

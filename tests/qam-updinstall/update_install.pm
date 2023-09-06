@@ -150,6 +150,9 @@ sub run {
         my %patch_bins = %bins;
         my (@patch_l2, @patch_l3, @patch_unsupported);
 
+        # https://progress.opensuse.org/issues/131534
+        next if $patch !~ /SUSE-SLE-Product-SLES-15-SP4-TERADATA/ && get_var('FLAVOR') =~ /TERADATA/;
+
         # Check if the patch was correctly configured.
         # Get info about the patch included in the update.
         my @patchinfo = split '\n', script_output("zypper -n info -t patch $patch", 200);
