@@ -26,6 +26,7 @@ sub run {
         my $ibsm_ip = get_required_var('IBSM_IP');
         $instance->run_ssh_command(cmd => "echo \"$ibsm_ip download.suse.de\" | sudo tee -a /etc/hosts", username => 'cloudadmin');
         $instance->run_ssh_command(cmd => 'cat /etc/hosts', username => 'cloudadmin');
+        #$instance->run_ssh_command(cmd => "ping -c 4 download.suse.de", username => 'cloudadmin');
     }
 }
 
