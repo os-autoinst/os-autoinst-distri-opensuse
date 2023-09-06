@@ -1,0 +1,32 @@
+---
+name: gnome_install_from_source
+description: >
+   Install default system using the gnome desktop
+   using a remote repository over http or https or samba.
+   Scenario is thought to use Online medium to boot
+   and Full medium for remote repositories.
+vars:
+  DESKTOP: gnome
+  NETBOOT: 1
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/hostname_inst
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_mirror_repos
