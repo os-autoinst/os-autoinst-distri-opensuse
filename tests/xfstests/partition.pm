@@ -252,7 +252,8 @@ sub post_env_info {
             $size_info = $size_info . $_ . "    $size\n";
         }
     }
-    $size_info = $size_info . "PAGE_SIZE    " . script_output("getconf PAGE_SIZE");
+    $size_info = $size_info . "PAGE_SIZE     " . script_output("getconf PAGE_SIZE") . "\n";
+    $size_info = $size_info . "QEMURAM       " . get_var("QEMURAM") . "\n";
     record_info('Size', $size_info);
 }
 
