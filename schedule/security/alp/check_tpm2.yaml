@@ -1,0 +1,8 @@
+name: check_tpm2
+description:    >
+    This is for the check_tpm2 test.
+schedule:
+    - jeos/firstrun
+    - transactional/host_config
+    - transactional/enable_selinux
+    - security/tpm2/tpm2_measured_boot
