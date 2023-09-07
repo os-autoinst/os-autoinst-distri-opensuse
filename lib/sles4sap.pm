@@ -41,6 +41,7 @@ our @EXPORT = qw(
   reset_user_change
   get_total_mem
   prepare_profile
+  copy_media
   mount_media
   add_hostname_to_hosts
   test_pids_max
@@ -362,6 +363,55 @@ sub prepare_profile {
         }
         record_info("saptune status", $output);
     }
+}
+
+=head2 copy_media
+
+ $self->copy_media( $proto, $path, $timeout, $target);
+
+Copies installation media in SUT from the share identified by B<$proto> and
+B<$path> into the target directory B<$target>. B<$timeout> specifies how long
+to wait for the copy to complete.
+
+After installation files are copied, this method will also verify the existence
+of a F<checksum.md5sum> file in the target directory and use it to check for the
+integrity of the copied files. This test can be skipped by setting to a
+true value the B<DISABLE_CHECKSUM> setting in the test.
+
+The method will croak if any of the commands sent to SUT fail.
+
+=cut
+
+sub copy_media {
+    my ($self, $proto, $path, $nettout, $target) = @_;
+    my $mnt_path = '/mnt';
+    my $media_path = "$mnt_path/" . get_required_var('ARCH');
+
+    # First create $target and copy media there. A
+    assert_script_run "mkdir $target";
+    assert_script_run "mount -t $proto -o ro $path $mnt_path";
+    # Attempt to force a unique NFSv4 client id
+    enter_cmd q@sha256sum /etc/machine-id | awk '{print $1}' | tee /sys/fs/nfs/net/nfs_client/identifier@;
+    $media_path = $mnt_path if script_run "[[ -d $media_path ]]";    # Check if specific ARCH subdir exists
+    assert_script_run "cp -ax $media_path/. $target/", $nettout;
+
+    # Unmount the share, as we don't need it anymore
+    assert_script_run "umount $mnt_path";
+
+    # Skip checksum check if DISABLE_CHECKSUM is set, or if no
+    # checksum.md5sum file was copied to the $target directory
+    # NOTE: checksum is generated with this command: "find . -type f -exec md5sum {} \; > checksum.md5sum"
+    my $chksum_file = 'checksum.md5sum';
+    my $no_checksum_file = script_run "[[ -f $target/$chksum_file ]]";
+    return 1 if (get_var('DISABLE_CHECKSUM') || $no_checksum_file);
+
+    # Switch to $target to verify copied contents are OK
+    assert_script_run "pushd $target";
+    # We can't check the checksum file itself as well as the clustered NFS share part
+    assert_script_run "sed -i -e '/$chksum_file\$/d' -e '/\\/nfs_share/d' $chksum_file";
+    assert_script_run "md5sum -c --quiet $chksum_file", $nettout;
+    # Back to previous directory
+    assert_script_run 'popd';
 }
 
 =head2 mount_media

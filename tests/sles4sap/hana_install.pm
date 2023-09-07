@@ -108,8 +108,8 @@ sub run {
     # This installs HANA. Start by configuring the appropiate SAP profile
     $self->prepare_profile('HANA');
 
-    # Mount media
-    $self->mount_media($proto, $path, '/sapinst');
+    # Copy media
+    $self->copy_media($proto, $path, 1800, '/sapinst');
 
     # Mount points information: use the same paths and minimum sizes as the wizard (based on RAM size)
     my $full_size = ceil($RAM / 1024);    # Use the ceil value of RAM in GB
