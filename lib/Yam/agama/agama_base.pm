@@ -23,6 +23,7 @@ sub post_fail_hook {
     select_console 'root-console';
     y2_base::save_upload_y2logs($self, skip_logs_investigation => 1);
     save_and_upload_log('journalctl -u agama-auto', "/tmp/agama-auto-log.txt");
+    save_and_upload_log('journalctl -u agama', "/tmp/agama-journal-log.txt");
     upload_traces();
 }
 
