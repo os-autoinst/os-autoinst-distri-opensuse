@@ -20,8 +20,16 @@ sub run() {
         set_var('SKIP_INSTALLER_SCREEN', 0);
     }
 
-    assert_screen('inst-addon', 60);
-    send_key 'alt-k';    # install with a maint update repo
+    if (!check_var('SCC_REGISTER', 'installation')) {
+        assert_screen('module-selection');
+        send_key $cmd{next};
+        assert_screen('addon-products');
+        send_key 'alt-a';
+    }
+    else {
+        assert_screen('inst-addon', 60);
+        send_key 'alt-k';    # install with a maint update repo
+    }
 
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) if get_var('INCIDENT_REPO');
     my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
