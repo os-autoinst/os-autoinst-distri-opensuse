@@ -31,6 +31,7 @@ our @EXPORT = qw(
   power_action
   assert_shutdown_and_restore_system
   assert_shutdown_with_soft_timeout
+  check_bsc1215132
 );
 
 =head2 prepare_system_shutdown
@@ -436,4 +437,17 @@ sub assert_shutdown_with_soft_timeout {
         record_info('Softfail', "$args->{soft_failure_reason}", result => 'softfail');
     }
     assert_shutdown($args->{timeout} - $args->{soft_timeout});
+}
+
+
+=head2 check_bsc1215132
+
+  Validate dependencies which provides shutdown/poweroff/reboot commands.
+  Use this in the post_fail_hook to raise a softfail of the reported bug.
+=cut
+
+sub check_bsc1215132 {
+    record_soft_failure("bsc1215132: Possible missing dependency on systemd")
+      if (script_run("rpm -q --provides systemd | grep systemd-sysvinit") ||
+        script_run("rpm -q --provides systemd | grep shutdown"));
 }
