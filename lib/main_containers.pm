@@ -138,10 +138,6 @@ sub load_host_tests_docker {
     loadtest 'containers/buildx' if (is_tumbleweed || is_microos);
 }
 
-sub load_host_tests_containerd_rmt {
-    loadtest 'containers/containerd_rmt';
-}
-
 sub load_host_tests_containerd_crictl {
     loadtest 'containers/containerd_crictl';
 }
@@ -227,6 +223,11 @@ sub load_container_tests {
         return;
     }
 
+    if (get_var('HELM_CONFIG')) {
+        loadtest 'containers/helm_rmt';
+        return;
+    }
+
     if ($runtime eq 'k3s') {
         loadtest 'containers/run_container_in_k3s';
         return;
@@ -259,7 +260,6 @@ sub load_container_tests {
             load_host_tests_docker($run_args) if (/docker/i);
             load_host_tests_containerd_crictl() if (/containerd_crictl/i);
             load_host_tests_containerd_nerdctl() if (/containerd_nerdctl/i);
-            load_host_tests_containerd_rmt() if (/containerd_rmt/i);
             loadtest('containers/kubectl') if (/kubectl/i);
             load_host_tests_helm($run_args) if (/helm/i);
             loadtest 'containers/apptainer' if (/apptainer/i);
