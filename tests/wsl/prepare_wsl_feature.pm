@@ -34,6 +34,7 @@ sub run {
     my ($self) = @_;
     my $wsl_appx_filename = (split /\//, get_required_var('ASSET_1'))[-1];
     my $ms_kernel_link = 'https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi';
+    $ms_kernel_link = 'https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_arm64.msi' if is_aarch64;
     my $certs = {
         opensuse => '/wsl/openSUSE-UEFI-CA-Certificate.crt',
         sle => '/wsl/SLES-UEFI-CA-Certificate.crt'
