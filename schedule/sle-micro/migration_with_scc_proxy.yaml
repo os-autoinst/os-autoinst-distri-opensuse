@@ -1,0 +1,29 @@
+name: migration_with_scc_proxy
+description: >
+    Maintainer: qa-c@suse.de.
+    SUSE Linux Enterprise Micro tests
+conditional_schedule:
+  boot:
+    ARCH:
+      's390x':
+        - installation/bootloader_start
+        - boot/boot_to_desktop
+      'x86_64':
+        - microos/disk_boot
+      'aarch64':
+        - microos/disk_boot
+schedule:
+  - '{{boot}}'
+  - transactional/host_config
+  - console/suseconnect_scc
+  - transactional/install_updates
+  - microos/set_scc_proxy_url
+  - migration/online_migration/zypper_migration
+  - microos/networking
+  - microos/libzypp_config
+  - microos/image_checks
+  - microos/one_line_checks
+  - microos/services_enabled
+  - microos/toolbox
+  - console/journal_check
+  - shutdown/shutdown
