@@ -19,7 +19,7 @@ sub run {
     $pxe_boot_done = 1 if (check_var('IPXE', '1') || check_var('IPXE_UEFI', '1'));
 
     # If we didn't see pxe, the reboot is going now
-    $self->wait_boot if is_ipmi and not get_var('VIRT_AUTOTEST') and not $pxe_boot_done;
+    $self->wait_boot if is_ipmi && !get_var('VIRT_AUTOTEST') && !$pxe_boot_done;
 
     select_console 'root-console';
 }
