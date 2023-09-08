@@ -5,6 +5,7 @@
 
 package windowsbasetest;
 use Mojo::Base qw(basetest);
+use Utils::Architectures qw(is_aarch64);
 use testapi;
 
 sub windows_run {
@@ -152,6 +153,7 @@ sub post_fail_hook {
 sub install_wsl2_kernel {
     my $self = shift;
     my $ms_kernel_link = 'https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi';
+    $ms_kernel_link = 'https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_arm64.msi' if is_aarch64;
 
     # Download the WSL kernel and install it
     $self->run_in_powershell(
