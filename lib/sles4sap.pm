@@ -386,12 +386,13 @@ sub copy_media {
     my ($self, $proto, $path, $nettout, $target) = @_;
     my $mnt_path = '/mnt';
     my $media_path = "$mnt_path/" . get_required_var('ARCH');
+    my $jobtoken = get_required_var('JOBTOKEN');
 
     # First create $target and copy media there. A
     assert_script_run "mkdir $target";
     assert_script_run "mount -t $proto -o ro $path $mnt_path";
     # Attempt to force a unique NFSv4 client id
-    enter_cmd q@sha256sum /etc/machine-id | awk '{print $1}' | tee /sys/fs/nfs/net/nfs_client/identifier@;
+    enter_cmd "echo $jobtoken | sha256sum | awk '{print \$1}' | tee /sys/fs/nfs/net/nfs_client/identifier";
     $media_path = $mnt_path if script_run "[[ -d $media_path ]]";    # Check if specific ARCH subdir exists
     assert_script_run "cp -ax $media_path/. $target/", $nettout;
 
