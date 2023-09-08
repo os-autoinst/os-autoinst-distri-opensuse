@@ -14,7 +14,8 @@ schedule:
   - migration/setup_sle
   - migration/install_all_patterns
   - migration/query_all_rpm
-  - migration/drop_unavailable_product_modules
+  - migration/deregister_ltss
+  - migration/deregister_python2
   - migration/deregister_system
   - migration/record_disk_info
   - migration/reboot_to_upgrade
