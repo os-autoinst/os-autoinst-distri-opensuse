@@ -99,12 +99,8 @@ sub set_bootscript {
     if ($autoyast ne '') {
         $cmdline_extra .= " autoyast=$autoyast sshd=1 sshpassword=$testapi::password ";
     } else {
-        if (check_var('VIDEOMODE', 'text')) {
-            $cmdline_extra .= " ssh=1 sshpassword=$testapi::password ";    # trigger ssh-text installation
-        }
-        else {
-            $cmdline_extra .= " vnc=1 VNCPassword=$testapi::password ";    # trigger default VNC installation
-        }
+        $cmdline_extra .= " ssh=1 sshpassword=$testapi::password ";
+        $cmdline_extra .= " vnc=1 VNCPassword=$testapi::password " unless check_var('VIDEOMODE', 'text');
     }
     $cmdline_extra .= " plymouth.enable=0 ";
 
