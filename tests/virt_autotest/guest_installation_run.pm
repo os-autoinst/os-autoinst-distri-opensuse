@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2012-2016 SUSE LLC
+# Copyright 2012-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: guest_installation_run: This test is used to verify if different products can be installed successfully as guest on specify host.
@@ -12,6 +12,7 @@ use warnings;
 use testapi;
 use Utils::Architectures;
 use virt_utils;
+use virt_autotest::utils qw(is_xen_host);
 
 sub get_script_run {
     my $pre_test_cmd = "";
@@ -63,6 +64,17 @@ sub post_execute_script_assertion {
 
 sub run {
     my $self = shift;
+
+    # refer to poo#135431 for more details
+    my $proxyscc = get_var('SCC_URL');
+    if ($proxyscc) {
+        my $fv_guest = "fv";
+        my $pv_guest = "pv";
+        my $autoyast_dir = script_output("find /usr/share/qa/virtautolib/data/autoinstallation/sles/15/ -maxdepth 1 | tail -1");
+	$autoyast_dir = $autoyast_dir . "/64/";
+        my $guest_autoyast = "$autoyast_dir" + (is_xen_host ? $pv_guest : $fv_guest ) + "/def";
+        script_run("sed -i '8i\ <reg_server>$proxyscc</reg_server>' $guest_autoyast");
+    }
 
     # Add option to keep guest after successful installation
     # Only for x86_64 now
