@@ -713,7 +713,7 @@ cleanup()
 	echo "-----------------------------------"
 	wicked ifstatus all
 	echo "-----------------------------------"
-	brctl show
+	show_bridges
 	echo "-----------------------------------"
 	ls -l /var/run/wicked/nanny/
 	echo "==================================="
