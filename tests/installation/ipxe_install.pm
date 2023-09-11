@@ -6,6 +6,7 @@
 # Summary: Verify installation starts and is in progress
 # Maintainer: Michael Moese <mmoese@suse.de>
 
+package ipxe_install;
 use base 'y2_installbase';
 use strict;
 use warnings;
@@ -21,7 +22,6 @@ use virt_autotest::utils qw(is_kvm_host is_xen_host);
 
 use HTTP::Tiny;
 use IPC::Run;
-use Socket;
 use Time::HiRes 'sleep';
 
 
@@ -58,9 +58,6 @@ sub set_pxe_boot {
 
 sub set_bootscript {
     my $host = get_required_var('SUT_IP');
-    my $ip = inet_ntoa(inet_aton($host));
-    my $http_server = get_required_var('IPXE_HTTPSERVER');
-    my $url = "$http_server/v1/bootscript/script.ipxe/$ip";
     my $arch = get_required_var('ARCH');
     my $autoyast = get_var('AUTOYAST', '');
     my $regurl = get_var('SCC_URL', '');
@@ -68,7 +65,6 @@ sub set_bootscript {
     my $mirror_http = get_required_var('MIRROR_HTTP');
 
     # trim all strings from variables to get rid of bogus whitespaces
-    $url =~ s/^\s+|\s+$//g;
     $arch =~ s/^\s+|\s+$//g;
     $autoyast =~ s/^\s+|\s+$//g;
     $regurl =~ s/^\s+|\s+$//g;
@@ -140,8 +136,6 @@ initrd $initrd
 boot
 END_BOOTSCRIPT
 
-    diag "setting iPXE bootscript to: $bootscript";
-
     if ($autoyast ne '') {
         diag "===== BEGIN autoyast $autoyast =====";
         my $curl = `curl -s $autoyast`;
@@ -149,28 +143,16 @@ END_BOOTSCRIPT
         diag "===== END autoyast $autoyast =====";
     }
 
-    my $response = HTTP::Tiny->new->request('POST', $url, {content => $bootscript, headers => {'content-type' => 'text/plain'}});
-    diag "$response->{status} $response->{reason}\n";
-
-    # Comment out but keep the block for possible debug purpose.
-    #diag "\nThe bootscript from http server is: \n";
-    #$response = HTTP::Tiny->new->get($url);
-    #print "$response->{content}\n";
+    set_ipxe_bootscript($bootscript);
 }
 
 sub set_bootscript_hdd {
-    my $host = get_required_var('SUT_IP');
-    my $ip = inet_ntoa(inet_aton($host));
-    my $http_server = get_required_var('IPXE_HTTPSERVER');
-    my $url = "$http_server/v1/bootscript/script.ipxe/$ip";
-
     my $bootscript = <<"END_BOOTSCRIPT";
 #!ipxe
 exit
 END_BOOTSCRIPT
 
-    my $response = HTTP::Tiny->new->request('POST', $url, {content => $bootscript, headers => {'content-type' => 'text/plain'}});
-    diag "$response->{status} $response->{reason}\n";
+    set_ipxe_bootscript($bootscript);
 }
 
 sub enter_o3_ipxe_boot_entry {
@@ -230,6 +212,7 @@ sub run {
     if (get_var('AUTOYAST')) {
         # make sure to wait for a while befor changing the boot device again, in order to not change it too early
         sleep 120;
+        set_bootscript_hdd if get_var('IPXE_UEFI');
     }
     else {
         my $ssh_vnc_wait_time = 1500;

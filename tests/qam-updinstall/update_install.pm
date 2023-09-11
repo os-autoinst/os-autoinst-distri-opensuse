@@ -114,6 +114,7 @@ sub run {
     my $zypper_version = script_output(q(rpm -q zypper|awk -F. '{print$2}'));
 
     zypper_call(q{mr -d $(zypper lr | awk -F '|' '/NVIDIA/ {print $2}')}, exitcode => [0, 3]);
+    zypper_call(q{mr -f $(zypper lr | awk -F '|' '/SLES15-SP4-15.4-0/ {print $2}')}, exitcode => [0, 3]) if get_var('FLAVOR') =~ /TERADATA/;
     zypper_call("ar -f http://dist.suse.de/ibs/SUSE/Updates/SLE-Live-Patching/12-SP3/" . get_var('ARCH') . "/update/ sle-module-live-patching:12-SP3::update") if is_sle('=12-SP3');
 
     # Extract module name from repo url.

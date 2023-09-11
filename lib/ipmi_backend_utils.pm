@@ -18,9 +18,10 @@ use utils;
 use power_action_utils 'prepare_system_shutdown';
 use Utils::Architectures;
 use Carp;
+use Socket;
 use virt_autotest::utils qw(is_xen_host check_port_state);
 
-our @EXPORT = qw(set_grub_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot ipmitool enable_sev_in_kernel add_kernel_options set_grub_terminal_and_timeout reconnect_when_ssh_console_broken);
+our @EXPORT = qw(set_grub_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot ipmitool enable_sev_in_kernel add_kernel_options set_grub_terminal_and_timeout reconnect_when_ssh_console_broken set_ipxe_bootscript);
 
 #With the new ipmi backend, we only use the root-ssh console when the SUT boot up,
 #and no longer setup the real serial console for either kvm or xen.
@@ -550,6 +551,31 @@ sub reconnect_when_ssh_console_broken {
     script_run("uptime");
     script_run("ls -l /var/crash/");
     save_screenshot;
+}
+
+=head2 set_ipxe_bootscript
+
+  set_ipxe_bootscript($content)
+
+Upload the given iPXE bootscript to the server address provided in
+C<IPXE_HTTPSERVER> job variable. Upload failure will raise exception.
+=cut
+
+sub set_ipxe_bootscript {
+    my $content = shift;
+    my $host = get_required_var('SUT_IP');
+    my $ip = inet_ntoa(inet_aton($host));
+    my $http_server = get_required_var('IPXE_HTTPSERVER');
+    my $url = "$http_server/v1/bootscript/script.ipxe/$ip";
+
+    $url =~ s/^\s+|\s+$//g;
+
+    diag "setting iPXE bootscript to:\n$content";
+    my $response = HTTP::Tiny->new->request('POST', $url,
+        {content => $content, headers => {'content-type' => 'text/plain'}});
+    diag "$response->{status} $response->{reason}\n";
+    die "Failed to set iPXE bootscript: $response->{status} $response->{reason}"
+      unless $response->{success};
 }
 
 1;
