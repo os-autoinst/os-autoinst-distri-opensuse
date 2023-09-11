@@ -20,7 +20,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_alp);
+use version_utils qw(is_sle is_alp is_tumbleweed);
 use virt_autotest::utils qw(is_xen_host);
 
 sub run_test {
@@ -76,7 +76,7 @@ sub run_test {
         check_guest_health($guest);
 
         # ALP guest uses networkmanager to control network, no /etc/sysconfig/network/ifcfg*
-        next if ($guest =~ /alp/i);
+        next if ($guest =~ /alp/i || is_tumbleweed);
         #Prepare the new guest network interface files for libvirt virtual network
         #for some guests, interfaces are named eth0, eth1, eth2, ...
         #for TW kvm guest, they are enp1s0, enp2s0, enp3s0, ...
