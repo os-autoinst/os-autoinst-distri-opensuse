@@ -13,10 +13,8 @@ conditional_schedule:
     install_and_bootup:
         DO_NOT_INSTALL_HOST:
             0:
-                - boot/boot_from_pxe
-                - '{{install_host_with_needle_matching}}'
-            1:
                 - installation/ipxe_install
+                - '{{install_host_with_needle_matching}}'
     install_host_with_needle_matching:
         HOST_INSTALL_AUTOYAST:
             1:
