@@ -15,3 +15,42 @@ schedule:
   - installation/boot_encrypt
   - installation/first_boot
   - security/stig/upload_stig_logs
+  - security/stig/validate_stig_rules_applied_by_yast
+test_data:
+  stig_rules_applied_by_yast:
+    CCE-85719-3:
+      name: Encrypt Partitions
+      sles_ref: SLES-15-010330
+      result: notchecked
+    CCE-85639-3:
+      name: Ensure /home Located On Separate Partition
+      sles_ref: SLES-15-040200
+      result: pass
+    CCE-85640-1:
+      name: Ensure /var Located On Separate Partition
+      sles_ref: SLES-15-040210
+      result: pass
+    CCE-85618-7:
+      name: Ensure /var/log/audit Located On Separate Partition
+      sles_ref: SLES-15-030810
+      result: pass
+    CCE-85697-1:
+      name: Configure a Sufficiently Large Partition for Audit Logs
+      sles_ref: SLES-15-030660
+      result: notchecked
+    CCE-83275-8:
+      name: Set the UEFI Boot Loader Password
+      sles_ref: SLES-15-010200
+      result: notapplicable
+    CCE-83274-1:
+      name: Set Boot Loader Password in grub2 (non-UEFI)
+      sles_ref: SLES-15-010190
+      result: pass
+    CCE-85751-6:
+      name: Verify firewalld Enabled
+      sles_ref: SLES-15-010220
+      result: pass
+    CCE-83286-5:
+      name: Deactivate Wireless Network Interfaces
+      sles_ref: SLES-15-010380
+      result: pass
