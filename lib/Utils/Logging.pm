@@ -103,7 +103,7 @@ $filename = "my-test.log";
 sub save_ulog {
     my ($out, $filename) = @_;
     mkdir('ulogs') if (!-d 'ulogs');
-    path("ulogs/$filename")->spurt($out);    # save the logs to the ulogs directory on the worker directly
+    path("ulogs/$filename")->spew($out);    # save the logs to the ulogs directory on the worker directly
 }
 
 =head2 export_healthcheck_basic
