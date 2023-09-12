@@ -351,7 +351,6 @@ sub is_opensuse {
     return 1 if check_var('DISTRI', 'opensuse');
     return 1 if check_var('DISTRI', 'microos');
     return 1 if check_var('DISTRI', 'leap-micro');
-    return 1 if check_var('DISTRI', 'alp');
     return 0;
 }
 
