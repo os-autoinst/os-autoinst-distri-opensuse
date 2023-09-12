@@ -69,6 +69,7 @@ EXIT_AFTER_START_INSTALL | boolean | false | Indicates that test suite will be f
 EXPECTED_INSTALL_HOSTNAME | string | | Contains expected hostname YaST installer got from the environment (DHCP, 'hostname=', as a kernel cmd line argument)
 EXTRABOOTPARAMS | string | | Concatenates content of the string as boot options applied to the installation bootloader.
 EXTRABOOTPARAMS_BOOT_LOCAL | string | | Boot options applied during the boot process of a local installation.
+EXTRABOOTPARAMS_LINE_OFFSET | integer | | Line offset for `linux` line in grub when `EXTRABOOTPARAMS_BOOT_LOCAL` is used.
 EXTRABOOTPARAMS_DELETE_CHARACTERS | string | | Characters to delete from boot prompt.
 EXTRABOOTPARAMS_DELETE_NEEDLE_TARGET | string | | If specified, go back with the cursor until this needle is matched to delete characters from there. Needs EXTRABOOTPARAMS_BOOT_LOCAL and should be combined with EXTRABOOTPARAMS_DELETE_CHARACTERS.
 EXTRATEST | boolean | false | Enables execution of extra tests, see `load_extra_tests`
