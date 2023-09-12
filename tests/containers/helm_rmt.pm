@@ -16,13 +16,17 @@ use Mojo::Base 'publiccloud::basetest';
 use File::Basename qw(dirname);
 use testapi;
 use utils;
-use serial_terminal 'select_serial_terminal';
+use version_utils qw(get_os_release is_sle);
+use serial_terminal qw(select_serial_terminal);
 use containers::k8s;
 
 sub run {
     my ($self) = @_;
-
     select_serial_terminal;
+
+    my ($version, $sp, $host_distri) = get_os_release;
+    return if (get_var('HELM_CONFIG') && !($host_distri == "sles" && $version == 15 && $sp >= 3));
+
     systemctl 'stop firewalld';
     ensure_ca_certificates_suse_installed();
     install_k3s();

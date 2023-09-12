@@ -21,7 +21,7 @@
 use Mojo::Base qw(consoletest);
 use XML::LibXML;
 use utils qw(zypper_call script_retry);
-use version_utils qw(get_os_release);
+use version_utils qw(get_os_release is_sle);
 use db_utils qw(push_image_data_to_db);
 use containers::common;
 use testapi;
@@ -80,12 +80,13 @@ sub run {
     # Wait for any zypper tasks in the background to finish
     assert_script_run('while pgrep -f zypp; do sleep 1; done', timeout => 300);
 
+    my ($version, $sp, $host_distri) = get_os_release;
+    return if (get_var('HELM_CONFIG') && !($host_distri == "sles" && $version == 15 && $sp >= 3));
+
     # CONTAINER_RUNTIME can be "docker", "podman" or both "podman,docker"
     my $engines = get_required_var('CONTAINER_RUNTIME');
     my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
     my $bci_tests_branch = get_var('BCI_TESTS_BRANCH');
-
-    my ($version, $sp, $host_distri) = get_os_release;
 
     record_info('Install', 'Install needed packages');
     my @packages = packages_to_install($version, $sp, $host_distri);
