@@ -246,6 +246,12 @@ sub info {
 
     if (exists $args{json} && $args{json}) {
         my $raw = $self->_engine_script_output("info -f '{{json .}}' 2> ./error", proceed_on_failure => 1);
+        # issue related to podman v2.0 (sle15sp2, s390x) -> bsc#1200623
+        # extract only the json part as there might be other error messages from info output
+        # e.g. 2023-09-11T08:01:40.788854+02:00 susetest systemd[31629]: Failed to start podman-31709.scope
+        if ($raw =~ m/(?s)(\{(?:[^{}"]++|"(?:\\.|[^"])*+"|(?1))*\})/gm) {
+            $raw = $1;
+        }
         $stdout = decode_json($raw);
     } else {
         $stdout = $self->_engine_script_output("info 2> ./error", proceed_on_failure => 1);
