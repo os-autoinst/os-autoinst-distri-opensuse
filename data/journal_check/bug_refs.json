@@ -359,7 +359,8 @@
         "products": {
             "leap-micro": ["5.3"],
             "sle-micro": ["5.3", "5.4" , "5.5"],
-            "microos":  ["Tumbleweed"]
+            "microos":  ["Tumbleweed"],
+            "opensuse":  ["Tumbleweed"]
         },
         "type": "ignore"
     },
