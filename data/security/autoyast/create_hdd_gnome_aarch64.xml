@@ -142,11 +142,6 @@
     <start_autofs t="boolean">false</start_autofs>
     <start_nis t="boolean">false</start_nis>
   </nis>
-  <ntp-client t="map">
-    <ntp_policy>auto</ntp_policy>
-    <ntp_servers t="list"/>
-    <ntp_sync>manual</ntp_sync>
-  </ntp-client>
   <partitioning t="list">
     <drive t="map">
       <device>/dev/vda</device>
