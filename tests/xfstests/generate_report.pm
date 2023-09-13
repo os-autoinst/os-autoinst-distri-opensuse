@@ -108,7 +108,10 @@ sub run {
     sleep 5;
 
     # Reload uploaded status log back to file
-    script_run('df -h; curl -O ' . autoinst_url . "/files/status.log; cat status.log > $STATUS_LOG", die_on_timeout => 0);
+    my $log_line = int(script_output("cat $STATUS_LOG | wc -l"));
+    if ($log_line < 2) {
+        script_run('df -h; curl -O ' . autoinst_url . "/files/status.log; cat status.log > $STATUS_LOG", die_on_timeout => 0);
+    }
 
     # Reload test logs if check missing
     script_run("if [ ! -d $LOG_DIR ]; then mkdir -p $LOG_DIR; curl -O " . autoinst_url . '/files/opt_logs.tar.gz; tar zxvfP opt_logs.tar.gz; fi', die_on_timeout => 0);
