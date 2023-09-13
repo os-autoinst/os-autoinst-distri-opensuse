@@ -48,7 +48,7 @@ sub registry_push_pull {
     if (script_run($engine->runtime . " images | grep '$image'") == 0) {
         assert_script_run $engine->runtime . " image rm -f $image", 90;
     } else {
-        record_soft_failure("Known issue - containers/podman#10685: podman image rm --force also untags other images (3.2.0 regression)");
+        die("rm --force untags other images");
     }
     assert_script_run "! " . $engine->runtime . " images | grep '$image'", 60;
     assert_script_run "! " . $engine->runtime . " images | grep 'localhost:5000/$image'", 60;
