@@ -93,6 +93,7 @@ sub load_host_tests_podman {
         # In Public Cloud we don't have internal resources
         load_image_test($run_args) unless is_public_cloud || is_alp;
         load_3rd_party_image_test($run_args);
+        loadtest 'containers/podman_bci_systemd';
         loadtest 'containers/podman_pods';
         # Default for ALP is Netavark
         loadtest('containers/podman_network_cni') unless (is_alp);
