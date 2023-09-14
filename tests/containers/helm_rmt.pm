@@ -18,6 +18,7 @@ use testapi;
 use utils;
 use version_utils qw(get_os_release is_sle);
 use serial_terminal qw(select_serial_terminal);
+use Utils::Architectures qw(is_ppc64le);
 use containers::k8s;
 
 sub run {
@@ -25,7 +26,8 @@ sub run {
     select_serial_terminal;
 
     my ($version, $sp, $host_distri) = get_os_release;
-    return if (get_var('HELM_CONFIG') && !($host_distri == "sles" && $version == 15 && $sp >= 3));
+    # Skip HELM tests on SLES <15-SP3 and on PPC, where k3s is not available
+    return if (get_var('HELM_CONFIG') && (!($host_distri == "sles" && $version == 15 && $sp >= 3) || is_ppc64le));
 
     systemctl 'stop firewalld';
     ensure_ca_certificates_suse_installed();
