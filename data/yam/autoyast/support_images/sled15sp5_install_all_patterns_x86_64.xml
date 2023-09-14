@@ -1,0 +1,192 @@
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <bootloader t="map">
+    <global t="map">
+      <timeout t="integer">-1</timeout>
+    </global>
+  </bootloader>
+  <firewall t="map">
+    <enable_firewall t="boolean">true</enable_firewall>
+    <start_firewall t="boolean">true</start_firewall>
+  </firewall>
+  <general t="map">
+    <mode t="map">
+      <confirm t="boolean">false</confirm>
+    </mode>
+    <signature-handling t="map">
+      <accept_non_trusted_gpg_key t="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key t="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file t="boolean">true</accept_unsigned_file>
+      <import_gpg_key t="boolean">true</import_gpg_key>
+    </signature-handling>
+  </general>
+  <keyboard t="map">
+    <keyboard_values t="map">
+      <delay/>
+      <discaps t="boolean">false</discaps>
+      <numlock>bios</numlock>
+      <rate/>
+    </keyboard_values>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language t="map">
+    <language>en_US</language>
+    <languages/>
+  </language>
+  <networking t="map">
+    <interfaces t="list">
+      <interface t="map">
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <dhclient_set_default_route>yes</dhclient_set_default_route>
+        <startmode>auto</startmode>
+      </interface>
+    </interfaces>
+    <keep_install_network t="boolean">true</keep_install_network>
+  </networking>
+  <ntp-client t="map">
+    <ntp_policy>auto</ntp_policy>
+  </ntp-client>
+  <partitioning t="list">
+    <drive t="map">
+      <initialize t="boolean">true</initialize>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <report t="map">
+    <errors t="map">
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </errors>
+    <messages t="map">
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </messages>
+    <warnings t="map">
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </warnings>
+    <yesno_messages t="map">
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <scripts t="map">
+    <post-scripts t="list">
+      <script t="map">
+        <filename>post.sh</filename>
+        <interpreter>shell</interpreter>
+        <source><![CDATA[
+#!/bin/sh
+# zypper process is locked by some ruby process, modify the repo file
+cd /etc/zypp/repos.d
+sed -i 's/enabled=1/enabled=0/' $(ls|grep -i nvidia)
+zypper lr
+
+    # Regarding rpm lock see Q9@ https://documentation.suse.com/de-de/sles/15-SP1/html/SLES-all/app-ay-faq.html
+    # quote : "during the post-script phase, YaST still has an exclusive lock on the RPM database."
+    # the package cannot be installed the autoyast way, because of the changing package name (eg libyui-rest-api15)
+    # only zypper allows to install "by capability".
+    mv /var/run/zypp.pid /var/run/zypp.sav
+    zypper -n in libyui-rest-api
+    mv /var/run/zypp.sav /var/run/zypp.pid
+
+exit 0
+
+]]></source>
+      </script>
+    </post-scripts>
+  </scripts>
+  <services-manager t="map">
+    <default_target>graphical</default_target>
+    <services t="map">
+      <disable t="list"/>
+      <enable t="list">
+        <service>sshd</service>
+      </enable>
+    </services>
+  </services-manager>
+  <software t="map">
+    <packages t="list">
+      <package>sle-module-desktop-applications-release</package>
+      <package>sle-module-python3-release</package>
+      <package>sle-we-release</package>
+      <package>sle-module-basesystem-release</package>
+    </packages>
+    <patterns t="list">
+      <pattern>base</pattern>
+      <pattern>basesystem</pattern>
+      <pattern>basic_desktop</pattern>
+      <pattern>minimal_base</pattern>
+      <pattern>enhanced_base</pattern>
+      <pattern>documentation</pattern>
+      <pattern>apparmor</pattern>
+      <pattern>x11</pattern>
+      <pattern>x11_enhanced</pattern>
+      <pattern>yast2_basis</pattern>
+      <pattern>sw_management</pattern>
+      <pattern>fonts</pattern>
+      <pattern>32bit</pattern>
+      <pattern>gnome</pattern>
+      <pattern>gnome_x11</pattern>
+      <pattern>gnome_multimedia</pattern>
+      <pattern>gnome_imaging</pattern>
+      <pattern>office</pattern>
+      <pattern>technical_writing</pattern>
+      <pattern>books</pattern>
+      <pattern>gnome_basic</pattern>
+      <pattern>gnome_basis</pattern>
+      <pattern>multimedia</pattern>
+      <pattern>laptop</pattern>
+      <pattern>imaging</pattern>
+    </patterns>
+    <products t="list">
+      <product>SLED</product>
+    </products>
+  </software>
+  <suse_register t="map">
+    <addons t="list">
+      <addon t="map">
+        <arch>x86_64</arch>
+        <name>sle-module-desktop-applications</name>
+        <version>15.5</version>
+      </addon>
+      <addon t="map">
+        <arch>x86_64</arch>
+        <name>sle-module-python3</name>
+        <version>15.5</version>
+      </addon>
+      <addon t="map">
+        <arch>x86_64</arch>
+        <name>sle-we</name>
+        <reg_code>{{SCC_REGCODE_WE}}</reg_code>
+        <version>15.5</version>
+      </addon>
+      <addon t="map">
+        <arch>x86_64</arch>
+        <name>sle-module-basesystem</name>
+        <version>15.5</version>
+      </addon>
+    </addons>
+    <do_registration t="boolean">true</do_registration>
+    <install_updates t="boolean">true</install_updates>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+  </suse_register>
+  <users t="list">
+    <user t="map">
+      <encrypted t="boolean">true</encrypted>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <user_password>$6$twq/sabzfn5.8CsL$fbn/ZNoNFMfFwQLMzbVS6FNb1oBJznHHGQ1FySHaZ72e4Wsu6U/JjlKKMpbl6CSvJdmQ3uTwTVH6hoSwL668N1</user_password>
+      <username>bernhard</username>
+    </user>
+    <user t="map">
+      <encrypted t="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <user_password>$6$.gKa.fEEU0BN5fTu$EzP7V1GoxYtMpzeNWpIRMuzNLMXALaYuQHJXC0TuKfTht4rsLYLE39jThg/bx4TwHl9KmI4wDPoCxQ6g9ANC10</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>
