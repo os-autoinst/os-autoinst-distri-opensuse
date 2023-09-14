@@ -1,19 +1,21 @@
 # SUSE's openQA tests
 #
-# Copyright 2020-2022 SUSE LLC
+# Copyright 2020-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Base module for SELinux test cases
 # Maintainer: QE Security <none@suse.de>
 
 package selinuxtest;
+use base 'Exporter';
+use Exporter;
 
 use strict;
 use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_alp);
+use version_utils qw(is_alp is_sle_micro);
 use Utils::Backends 'is_pvm';
 use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings);
 use power_action_utils 'power_action';
@@ -25,11 +27,12 @@ our @EXPORT = qw(
   $file_output
   $policyfile_tar
   download_policy_pkgs
+  check_disabled
 );
 
 our $file_contexts_local;
 # On ALP we want to use the default selinux targeted policy and do not have minimum installed which this checks
-if (is_alp) {
+if (is_alp || is_sle_micro('>=6.0')) {
     $file_contexts_local = '/etc/selinux/targeted/contexts/files/file_contexts.local';
 } else {
     $file_contexts_local = '/etc/selinux/minimum/contexts/files/file_contexts.local';
@@ -104,6 +107,14 @@ sub check_category {
         record_info("WARNING", "file \"$file_name\" is abnormal", result => "softfail");
         assert_script_run("ls -lZd $file_name");
     }
+}
+
+# check disabled SELinux
+sub check_disabled {
+    record_info('SELinux', script_output('sestatus'));
+    assert_script_run('! selinuxenabled');
+    validate_script_output("getenforce", sub { m/Disabled/ });
+    validate_script_output("sestatus", sub { m/SELinux status:.*disabled/ });
 }
 
 sub reboot_and_reconnect {
