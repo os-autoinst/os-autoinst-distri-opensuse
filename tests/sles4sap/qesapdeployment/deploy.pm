@@ -58,7 +58,7 @@ sub clean_up {
     my ($self) = @_;
     my @cmds_list;
     # Only run the Ansible deregister if the inventory is present
-    push(@cmds_list, 'ansible') if (!script_run 'test -f ' . qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER')));
+    push(@cmds_list, 'ansible') if (!script_run 'test -f ' . qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER')));
 
     # Terraform destroy can be executed in any case
     push(@cmds_list, 'terraform');
