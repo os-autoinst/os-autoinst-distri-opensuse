@@ -14,6 +14,9 @@ use utils;
 use version_utils 'is_sle';
 use serial_terminal 'select_serial_terminal';
 use version;
+use Exporter 'import';
+
+our @EXPORT = qw(get_slurm_version);
 
 sub get_mpi() {
     my $mpi = get_required_var('MPI');
@@ -27,6 +30,20 @@ sub get_mpi() {
     }
 
     return $mpi;
+}
+
+=head2 get_slurm_version
+
+ get_slurm_version();
+
+Returns the slurm package to be installed. C<SLURM_VERSION> takes the form of I<Major_Minor>.
+for instance: 23_02.
+
+=cut
+
+sub get_slurm_version {
+    my $pkg_version = shift;
+    return $pkg_version ? 'slurm_' . $pkg_version : 'slurm';
 }
 
 =head2 get_mpi_src
