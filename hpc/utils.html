@@ -14,6 +14,7 @@
 <ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
   <li>
     <ul>
+      <li><a href="#get_slurm_version">get_slurm_version</a></li>
       <li><a href="#get_mpi_src">get_mpi_src</a></li>
       <li><a href="#relogin_root">relogin_root</a></li>
       <li><a href="#setup_scientific_module">setup_scientific_module</a></li>
@@ -21,6 +22,12 @@
     </ul>
   </li>
 </ul><h1>lib/hpc/utils.pm</h1>
+
+<h2 id="get_slurm_version">get_slurm_version</h2>
+
+<pre><code>get_slurm_version();</code></pre>
+
+<p>Returns the slurm package to be installed. <code>SLURM_VERSION</code> takes the form of <i>Major_Minor</i>. for instance: 23_02.</p>
 
 <h2 id="get_mpi_src">get_mpi_src</h2>
 
