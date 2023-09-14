@@ -988,7 +988,7 @@ sub tianocore_disable_secureboot {
     send_key_until_needlematch 'tianocore-devicemanager', 'esc';
     send_key_until_needlematch 'tianocore-mainmenu-reset', 'down';
     send_key 'ret';
-    send_key 'ret' if check_screen($neelle_sb_config_state, $timeout);
+    send_key 'ret' if (!is_aarch64() && check_screen($neelle_sb_config_state, $timeout));
     $basetest->wait_grub;
 }
 
