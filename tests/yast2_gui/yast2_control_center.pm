@@ -294,6 +294,10 @@ sub start_wake_on_lan {
 sub start_directory_server {
     search 'directory server';
     assert_and_click 'yast2_control-center_authentication-server';
+    if (check_screen('deprecated_info', 60)) {
+        record_info('Deprecated Info', 'The tool is deprecated.');
+        send_key 'alt-o';
+    }
     do {
         assert_screen [
             qw(yast2_control-center-authentication-server_install yast2_control-center-authentication-server_configuration yast2_control-center-authentication-server_empty_first_page)
