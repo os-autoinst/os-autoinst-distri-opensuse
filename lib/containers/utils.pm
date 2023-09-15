@@ -22,7 +22,8 @@ use Mojo::Util 'trim';
 
 our @EXPORT = qw(test_seccomp runtime_smoke_tests basic_container_tests get_vars
   can_build_sle_base get_docker_version get_podman_version check_runtime_version
-  check_min_runtime_version container_ip container_route registry_url);
+  check_min_runtime_version container_ip container_route registry_url reset_container_network_if_needed
+);
 
 sub test_seccomp {
     my $no_seccomp = script_run('docker info | tee /tmp/docker_info.txt | grep seccomp');
@@ -292,6 +293,27 @@ sub can_build_sle_base {
     # script_run returns 0 if true, but true is 1 on perl
     my $has_sle_registration = !script_run("test -e /etc/zypp/credentials.d/SCCcredentials");
     return check_os_release('sles', 'ID') && $has_sle_registration;
+}
+
+sub reset_container_network_if_needed {
+    my ($current_engine) = @_;
+    my ($version, $sp, $host_distri) = get_os_release;
+    my $sp_version = "$version.$sp";
+
+    # This workaround is only needed from SLE 15-SP3 (and Leap 15.3) onwards.
+    # See https://bugzilla.suse.com/show_bug.cgi?id=1213811
+    if ($version eq "15" && $sp >= 3) {
+        my $runtime = get_required_var('CONTAINER_RUNTIME');
+        if ($host_distri =~ /sles|opensuse/ && $runtime =~ /docker/) {
+            if ($current_engine eq 'podman') {
+                # Only stop docker, if docker is active. This is also a free check if docker is present
+                systemctl("stop docker") if (script_run("systemctl is-active docker") == 0);
+            } elsif ($current_engine eq 'docker') {
+                systemctl("start docker");
+            }
+            systemctl("restart firewalld") if (script_run("systemctl is-active firewalld") == 0);
+        }
+    }
 }
 
 1;

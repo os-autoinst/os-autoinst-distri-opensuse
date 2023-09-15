@@ -81,7 +81,9 @@ sub reboot_and_wait_up {
         reset_consoles;
 
         #wait boot finish and relogin
+        set_var('NOT_DIRECT_REBOOT_AFTER_AUTOYAST', '1');
         login_console::login_to_console($self, $reboot_timeout);
+
     }
 }
 

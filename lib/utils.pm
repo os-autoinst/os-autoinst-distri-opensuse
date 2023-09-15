@@ -46,6 +46,7 @@ our @EXPORT = qw(
   zypper_search
   zypper_repos
   zypper_patches
+  zypper_install_available
   set_zypper_lock_timeout
   workaround_type_encrypted_passphrase
   is_boot_encrypted
@@ -956,6 +957,22 @@ sub zypper_patches {
     return parse_zypper_table($output, \@fields);
 }
 
+=head2
+
+ zypper_install_available(@packages);
+
+Install all available packages from the given list. Packages not found
+in enabled repositories will be skipped. Package availability is tested
+by exact name match.
+=cut
+
+sub zypper_install_available {
+    my $packlist = join(' ', @_);
+    my $result = zypper_search("-t package --match-exact $packlist");
+
+    return zypper_call('-t in ' . join(' ', map { $_->{name} } @$result));
+}
+
 =head2 set_zypper_lock_timeout
 
  set_zypper_lock_timeout($timeout);
@@ -1113,7 +1130,9 @@ sub set_hostname {
                 next if ($dev eq 'lo');
                 next if !($line =~ /connected/);
 
-                assert_script_run 'nmcli device disconnect ' . $dev;
+                # Default timeout (10 seconds) may be too short with qemu NO kvm, so increase to 20s - poo#131366
+                my $nmcli = get_var('QEMU_NO_KVM') ? 'nmcli -w 20' : 'nmcli';
+                assert_script_run "$nmcli device disconnect $dev";
                 assert_script_run 'nmcli device connect ' . $dev;
             }
 

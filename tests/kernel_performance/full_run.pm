@@ -33,6 +33,13 @@ sub full_run {
     assert_script_run("wget -N -P $list_path $remote_list 2>&1");
     assert_script_run("cp $list_path/$runlist $list_path/list");
 
+    if (my $skip_cases = get_var('SKIP_M_CASES')) {
+        foreach my $case (split(/,/, $skip_cases)) {
+            record_info("Skip testing case $case in PROJECT_M");
+            script_run("sed -i '/$case/d' $list_path/list");
+        }
+    }
+
     if (get_var('FULLRUN_MONITOR')) {
         # clear host status first
         get($selperf_machine_status_popapi . $hostname . "/");
@@ -44,7 +51,8 @@ sub full_run {
     assert_script_run("/usr/share/qa/qaset/run/performance-run.upload_Beijing");
     while (1) {
         if ((script_run("cat /var/log/qaset/control/NEXT_RUN | grep '_'") == 0) ||
-            (script_run("ps ax | grep [r]untest") == 0)) {
+            (script_run("ps ax | grep [r]untest") == 0) ||
+            (script_run("pgrep -f \"SCREEN -L -S .* -t .* -c .* -D -m .*\"") == 0)) {
             last;
         }
         if ($time_out == 0) {

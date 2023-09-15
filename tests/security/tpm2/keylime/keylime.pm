@@ -23,7 +23,7 @@ sub run {
     # Copy the keylime configuration files to /etc/keylime if not there
     #  configuration files path changes depending on the product
     my $agent_cfg_path;
-    if (is_sle "<=15-sp5") {
+    if (is_sle "<=15-sp6") {
         # Copy the keylime configuration file to /etc if not there
         $agent_cfg_path = "/etc/keylime.conf";
         script_run("cp -n /usr$agent_cfg_path $agent_cfg_path");

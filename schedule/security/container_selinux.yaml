@@ -11,9 +11,6 @@ conditional_schedule:
         DISTRI:
             alp:
                 - microos/disk_boot
-                - update/zypper_clear_repos
-                - console/zypper_ar
-                - console/zypper_ref
                 - transactional/host_config
                 - transactional/enable_selinux
             sle:

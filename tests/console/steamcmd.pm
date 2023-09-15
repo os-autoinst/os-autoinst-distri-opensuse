@@ -27,6 +27,10 @@ sub run {
         # https://developer.valvesoftware.com/wiki/SteamCMD#Downloading_an_app
         $ret = script_run '/usr/bin/steamcmd +login anonymous +app_update 90 validate +quit', 1200;
     }
+    if ($ret == 139) {
+        record_soft_failure("boo#1212977 steamcmd segfaults");
+        return 1;
+    }
     die "'steamcmd' failed with exit code $ret" unless (grep { $_ == $ret } @$allow_exit_codes);
     assert_script_run 'test -f Steam/steamapps/common/Half-Life/hlds_run';
 }

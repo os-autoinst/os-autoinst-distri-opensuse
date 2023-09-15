@@ -107,9 +107,9 @@ sub configure_vnc_server {
     # Config done following this guide:
     # https://github.com/TigerVNC/tigervnc/blob/master/unix/vncserver/HOWTO.md
     #   1. Add a user mapping
-    assert_script_run("echo -e \'$display=root\n\' >> /etc/tigervnc/vncserver.users");
+    assert_script_run("echo -e \"$display=root\\n\" >> /etc/tigervnc/vncserver.users");
     #   2. Configure Xvnc options
-    assert_script_run("echo -e \'session=gnome\ngeometry=1024x768\ndepth=16\' >> /etc/tigervnc/vncserver-config-defaults");
+    assert_script_run('echo -e "session=gnome\ngeometry=1024x768\ndepth=16" >> /etc/tigervnc/vncserver-config-defaults');
     #   3. Set VNC password
     #     Already created in start_vnc_server()
     #   4. Start the TigerVNC server

@@ -38,6 +38,7 @@ sub run {
     quit_packagekit unless check_var('DESKTOP', 'textmode');
 
     zypper_call(q{mr -d $(zypper lr | awk -F '|' '{IGNORECASE=1} /nvidia/ {print $2}')}, exitcode => [0, 3]);
+    zypper_call(q{mr -e $(zypper lr | awk -F '|' '/Basesystem-Module/ {print $2}')}, exitcode => [0, 3]) if get_var('FLAVOR') =~ /TERADATA/;
 
     add_test_repositories;
 

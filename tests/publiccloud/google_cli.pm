@@ -51,6 +51,7 @@ sub run {
     $openqa_hostname =~ tr/./_/;
     # Only hyphens (-), underscores (_), lowercase characters, and numbers are allowed.
     my $labels = "openqa-cli-test-label=$job_id,openqa_created_by=$openqa_hostname,openqa_ttl=$openqa_ttl";
+    $labels .= ",openqa_var_server=$openqa_hostname,openqa_var_job_id=$job_id";
     my $metadata = 'ssh-keys=susetest:$(cat ~/.ssh/id_rsa.pub | sed "s/[[:blank:]]*$//") susetest';
     my $create_instance = "gcloud compute instances create $machine_name --image-family=sles-15 --image-project=suse-cloud";
     $create_instance .= " --machine-type=e2-micro --labels='$labels' --metadata=\"$metadata\"";

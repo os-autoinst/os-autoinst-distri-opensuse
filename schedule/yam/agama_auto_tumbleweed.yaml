@@ -1,0 +1,10 @@
+---
+name: agama_auto_tumbleweed
+description: >
+  Prepare url for agama.auto boot parameter, boot, perform auto-installation with agama.
+schedule:
+  - installation/bootloader_start
+  - yam/agama/auto
+  - yam/validate/validate_product
+  - yam/validate/validate_user
+  - yam/validate/validate_apparmor

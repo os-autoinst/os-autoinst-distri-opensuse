@@ -351,7 +351,6 @@ sub is_opensuse {
     return 1 if check_var('DISTRI', 'opensuse');
     return 1 if check_var('DISTRI', 'microos');
     return 1 if check_var('DISTRI', 'leap-micro');
-    return 1 if check_var('DISTRI', 'alp');
     return 0;
 }
 
@@ -578,7 +577,7 @@ sub is_using_system_role {
       && (install_this_version() || install_to_other_at_least('12-SP2'))
       || (is_sles4sap() && main_common::is_updates_test_repo())
       || is_sle('=15')
-      || (is_sle('>15') && (check_var('SCC_REGISTER', 'installation') || get_var('ADDONS') || get_var('ADDONURL')))
+      || (is_sle('>15') && (check_var('SCC_REGISTER', 'installation') || get_var('ADDONS') || get_var('ADDONURL') || get_var('FLAVOR') =~ /TERADATA/))
       || (is_sle('15-SP2+') && check_var('FLAVOR', 'Full'))
       || (is_opensuse && !is_leap('<15.1'))    # Also on leap 15.1, TW, MicroOS
 }

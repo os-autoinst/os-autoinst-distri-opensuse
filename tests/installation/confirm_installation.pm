@@ -12,7 +12,7 @@ use warnings;
 use base 'y2_installbase';
 
 sub run {
-    my $install_popup = $testapi::distri->get_ok_popup_controller();
+    my $install_popup = $testapi::distri->get_ok_popup();
     $install_popup->accept();
 }
 

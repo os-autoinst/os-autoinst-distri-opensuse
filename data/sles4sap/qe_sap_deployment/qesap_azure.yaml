@@ -14,7 +14,6 @@ terraform:
     public_key: '%SSH_KEY_PUB%'
     hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
     iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
-    hana_instancetype: '%HANA_INSTANCE_TYPE%'
     vnet_address_range: '%VNET_ADDRESS_RANGE%'
     subnet_address_range: '%SUBNET_ADDRESS_RANGE%'
 ansible:

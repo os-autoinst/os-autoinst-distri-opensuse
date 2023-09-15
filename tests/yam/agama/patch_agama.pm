@@ -10,14 +10,12 @@ use warnings;
 use testapi;
 
 sub run {
-    assert_screen('agama_product_selection', 120);
+    assert_screen('agama-main-page', 120);
 
     select_console 'root-console';
 
     my ($repo, $branch) = split /#/, get_required_var('YUPDATE_GIT');
     assert_script_run("yupdate patch $repo $branch", timeout => 60);
-
-    select_console 'installation';
 }
 
 1;

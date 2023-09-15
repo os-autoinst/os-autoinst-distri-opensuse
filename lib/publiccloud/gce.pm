@@ -67,7 +67,6 @@ sub upload_img {
     if (!$self->find_img($file)) {
         die("Cannot find image after upload!");
     }
-    return $img_name;
 }
 
 sub img_proof {

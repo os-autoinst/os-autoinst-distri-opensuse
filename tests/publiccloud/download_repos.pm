@@ -14,8 +14,8 @@ use testapi;
 use strict;
 use utils;
 use publiccloud::ssh_interactive "select_host_console";
-use publiccloud::utils "is_embargo_update";
-use List::MoreUtils qw(uniq);
+use publiccloud::utils "validate_repo";
+
 
 # Get the status of the update repos
 # 0 = no repo, 1 = repos already downloaded, 2 = repos downloading
@@ -56,16 +56,19 @@ sub run {
         my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
         assert_script_run('touch /tmp/repos.list.txt');
 
+        # Failsafe: Fail if there are no test repositories, otherwise we have the wrong template link
+        my $count = scalar @repos;
+        my $check_empty_repos = get_var('PUBLIC_CLOUD_IGNORE_EMPTY_REPO', 0) == 0;
+        die "No test repositories" if ($check_empty_repos && $count == 0);
+
         my $ret = 0;
         my $reject = "'robots.txt,*.ico,*.png,*.gif,*.css,*.js,*.htm*'";
         my $regex = "'s390x\\/|ppc64le\\/|kernel*debuginfo*.rpm|src\\/'";
         my ($incident, $type);
+        set_var("PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED", 0);
         for my $maintrepo (@repos) {
-            ($incident, $type) = ($2, $1) if ($maintrepo =~ /\/(PTF|Maintenance):\/(\d+)/g);
-            die "We did not detect incident number for URL \"$maintrepo\". We detected \"$incident\"" unless $incident =~ /\d+/;
-            if (is_embargo_update($incident, $type)) {
-                record_info("EMBARGOED", "The repository \"$maintrepo\" belongs to embargoed incident number \"$incident\"");
-                script_run("echo 'The repository \"$maintrepo\" belongs to embargoed incident number \"$incident\"'");
+            unless (validate_repo($maintrepo)) {
+                set_var("PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED", 1);
                 next;
             }
             script_run("echo 'Downloading $maintrepo ...' >> ~/repos/qem_download_status.txt");
@@ -89,17 +92,14 @@ sub run {
                 }
             }
         }
-        # Failsafe: Fail if there are no test repositories, otherwise we have the wrong template link
-        my $count = scalar @repos;
-        my $check_empty_repos = get_var('PUBLIC_CLOUD_IGNORE_EMPTY_REPO', 0) == 0;
-        die "No test repositories" if ($check_empty_repos && $count == 0);
 
         assert_script_run("echo 'Download completed' >> ~/repos/qem_download_status.txt");
         upload_logs('/tmp/repos.list.txt');
         upload_logs('qem_download_status.txt');
         # Failsafe 2: Ensure the repos are not empty (i.e. size >= 100 kB)
         my $size = script_output('du -s ~/repos | awk \'{print$1}\'');
-        die "Empty test repositories" if ($check_empty_repos && $size < 100);
+        # we will not die if repos are empty due to embargoed updates filtering
+        die "Empty test repositories" if (!get_var("PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED") && $check_empty_repos && $size < 100);
     }
 
     my $total_size = script_output("du -hs ~/repos");

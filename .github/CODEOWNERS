@@ -8,18 +8,18 @@ lib/main_publiccloud.pm @pdostal @grisu48 @asmorodskyi @ricardobranco777
 lib/qesapdeploymnet.pm @mpagot
 
 # Containers
-lib/containers/ @pdostal @grisu48 @jlausuch @mloviska @ricardobranco777
-tests/containers/ @pdostal @grisu48 @jlausuch @mloviska @ricardobranco777
-data/containers/ @pdostal @grisu48 @jlausuch @mloviska @ricardobranco777
+lib/containers/ @pdostal @grisu48 @mloviska @ricardobranco777
+tests/containers/ @pdostal @grisu48 @mloviska @ricardobranco777
+data/containers/ @pdostal @grisu48 @mloviska @ricardobranco777
 lib/main_containers.pm @pdostal @grisu48 @jlausuch @mloviska @ricardobranco777
 
 # Transactional systems
-products/microos/ @mloviska @jlausuch @ricardobranco777
-tests/microos/ @mloviska @jlausuch @ricardobranco777
-products/sle-micro/ @mloviska @jlausuch @ricardobranco777
-products/alp/ @mloviska @jlausuch @ricardobranco777
-tests/jeos/ @mloviska @jlausuch @ricardobranco777
-tests/transactional/ @mloviska @jlausuch @ricardobranco777
+products/microos/ @mloviska @ricardobranco777
+tests/microos/ @mloviska @ricardobranco777
+products/sle-micro/ @mloviska @ricardobranco777
+products/alp/ @mloviska @ricardobranco777
+tests/jeos/ @mloviska @ricardobranco777
+tests/transactional/ @mloviska @ricardobranco777
 lib/main_micro_alp.pm @mloviska @jlausuch @ricardobranco777
 
 # pdostal
@@ -35,3 +35,9 @@ tests/network/openvpn_server.pm @pdostal
 tests/network/setup_multimachine.pm @pdostal
 lib/Utils/Logging.pm @pdostal
 
+# HPC
+lib/hpc/ @b10n1k @schlad
+tests/hpc/ @b10n1k @schlad
+data/hpc/ @b10n1k @schlad
+schedule/hpc/ @b10n1k @schlad
+tests/publiccloud/nvidia.pm @b10n1k

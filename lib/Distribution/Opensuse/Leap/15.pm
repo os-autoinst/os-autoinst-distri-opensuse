@@ -35,7 +35,7 @@ sub get_license_agreement {
     return Installation::License::Opensuse::LicenseAgreementController->new();
 }
 
-sub get_system_role_controller {
+sub get_system_role {
     return Installation::SystemRole::SystemRoleController->new();
 }
 

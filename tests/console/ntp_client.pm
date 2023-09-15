@@ -45,6 +45,16 @@ sub run {
     systemctl 'is-enabled chronyd';
     systemctl 'is-active chronyd';
     systemctl 'status chronyd';
+
+    # due to bsc#1214141, we need to remove and install again chrony and chrony-pool-suse (just reinstalling doesn't work)
+    if (is_sle() && script_run('cat /etc/chrony.d/pool.conf | grep -q ^pool') != 0) {
+        record_info 'workaround for bsc#1214141';
+        zypper_call 'rm chrony-pool-suse';
+        zypper_call 'in chrony-pool-suse';
+        systemctl 'enable chronyd';
+        systemctl 'start chronyd';
+    }
+
     # ensure and wait until time is actually synced before checking status
     # otherwise we could get a transient *503 No such source* on listing sources
     assert_script_run 'chronyc makestep';

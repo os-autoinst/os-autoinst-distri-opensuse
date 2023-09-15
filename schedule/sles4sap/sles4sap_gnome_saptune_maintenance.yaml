@@ -19,6 +19,7 @@ conditional_schedule:
   PC_instance_ssh_interactive_start:
     PUBLIC_CLOUD_SLES4SAP:
       '1':
+        - publiccloud/validate_repos
         - sles4sap/publiccloud/qesap_terraform
         - sles4sap/publiccloud/network_peering
         - sles4sap/publiccloud/add_server_to_hosts

@@ -21,6 +21,7 @@ use warnings;
 use mr_test_lib qw(load_mr_tests);
 use publiccloud::ssh_interactive 'select_host_console';
 use publiccloud::instances;
+use sles4sap_publiccloud;
 
 sub reboot_wait {
     my ($self) = @_;
@@ -92,6 +93,7 @@ sub run {
     # Preserve args for post_fail_hook
     $self->{provider} = $args->{my_provider};    # required for cleanup
     $self->setup;
+    $self->{network_peering_present} = 1 if ($args->{network_peering_present});
 
     my $test_list = get_required_var("MR_TEST");
     record_info("MR_TEST=$test_list");
@@ -103,6 +105,11 @@ sub post_fail_hook {
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         select_host_console(force => 1);
         my $args = OpenQA::Test::RunArgs->new();
+        record_info('CONTEXT LOG', join(' ', 'network_peering_present:', $self->{network_peering_present} // 'undefined'));
+        if ($self->{network_peering_present}) {
+            delete_network_peering();
+            $args->{network_peering_present} = $self->{network_peering_present} = 0;
+        }
         $args->{my_provider} = $self->{provider};
         $args->{my_provider}->cleanup($args);
         return;

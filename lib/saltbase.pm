@@ -54,7 +54,7 @@ sub minion_prepare {
     assert_script_run("grep 'master:\\\|ipv6:\\\|log_' /etc/salt/minion");
 
     assert_script_run("grep -B9 -A9 'disable_modules' /etc/salt/minion");
-    assert_script_run("echo -en 'disable_modules:\n  - boto3_elasticsearch\n' >> /etc/salt/minion");
+    assert_script_run('echo -en "disable_modules:\n  - boto3_elasticsearch\n" >> /etc/salt/minion');
     assert_script_run("grep -B9 -A9 'disable_modules' /etc/salt/minion");
     upload_logs '/etc/salt/minion';
 
@@ -92,14 +92,20 @@ sub logs_from_salt {
     $error .= "| grep -vi 'has cached the public key for this node\\|Minion unable to successfully connect to a Salt Master'";
     $error .= "| grep -vi 'Error while bringing up minion for multi-master'";
     if (script_run("$error") != 1) {
+        my $softfail_flag = 0;
         if (check_var('HOSTNAME', 'master') && script_run('grep "self.pusher.connect(timeout=timeout)" /var/log/salt/master') == 0) {
             record_soft_failure('bsc#1209248');
-            return;
+            $softfail_flag = 1;
         }
         if (script_run('grep "ModuleNotFoundError.*\'salt.ext.six\'" /var/log/salt/minion') == 0) {
             record_soft_failure('bsc#1211591');
-            return;
+            $softfail_flag = 1;
         }
+        if (script_run('grep "Encountered StreamClosedException" /var/log/salt/master') == 0) {
+            record_soft_failure('bsc#1213635');
+            $softfail_flag = 1;
+        }
+        return if $softfail_flag;
         die "Salt logs are containing errors!";
     }
 }

@@ -18,16 +18,17 @@
 # _HANA_MASTER_PW (mandatory) - Hana master PW (secret)
 # INSTANCE_SID - SAP Sid
 # INSTANCE_ID - SAP instance id
-
+# ANSIBLE_REMOTE_PYTHON - define python version to be used for qesap-deploymnet (default '/usr/bin/python3')
+# PUBLIC_CLOUD_IMAGE_LOCATION - needed by get_blob_uri
 
 use strict;
 use warnings;
 use base 'sles4sap_publiccloud_basetest';
-use publiccloud::ssh_interactive 'select_host_console';
 use testapi;
-use publiccloud::utils;
+use publiccloud::ssh_interactive 'select_host_console';
 use publiccloud::instance;
 use publiccloud::instances;
+use publiccloud::utils qw(is_azure is_gce);
 use sles4sap_publiccloud;
 use qesapdeployment;
 use serial_terminal 'select_serial_terminal';
@@ -109,8 +110,9 @@ sub create_hana_vars_section {
 
 sub run {
     my ($self, $run_args) = @_;
+    my $provider_setting = get_required_var('PUBLIC_CLOUD_PROVIDER');
 
-    if (is_azure) {
+    if (is_azure()) {
         my %maintenance_vars = qesap_az_calculate_address_range(slot => get_required_var('WORKER_ID'));
         set_var("VNET_ADDRESS_RANGE", $maintenance_vars{vnet_address_range});
         set_var("SUBNET_ADDRESS_RANGE", $maintenance_vars{subnet_address_range});
@@ -128,6 +130,7 @@ sub run {
     die "HA cluster needs at least 2 nodes. Check 'NODE_COUNT' parameter." if ($ha_enabled && (get_var('NODE_COUNT') <= 1));
 
     set_var('FENCING_MECHANISM', 'native') unless ($ha_enabled);
+    set_var_output('ANSIBLE_REMOTE_PYTHON', '/usr/bin/python3');
 
     my $deployment_name = deployment_name();
     # Create a QESAP_DEPLOYMENT_NAME variable so it includes the random
@@ -154,17 +157,26 @@ sub run {
     }
 
     my $provider = $self->provider_factory();
-    set_var('SLE_IMAGE', $provider->get_image_id());
+
+    # This section is only needed by tests using images uploaded
+    # with publiccloud_upload_img so using conf.yaml templates
+    # with OS_URI or SLE_IMAGE
+    if (is_azure() && get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
+        set_var('OS_URI', $provider->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION')));
+    } else {
+        set_var('SLE_IMAGE', $provider->get_image_id());
+    }
+
     my $ansible_playbooks = create_playbook_section_list();
     my $ansible_hana_vars = create_hana_vars_section();
 
     # Prepare QESAP deployment
-    qesap_prepare_env(provider => lc(get_required_var('PUBLIC_CLOUD_PROVIDER')));
+    qesap_prepare_env(provider => $provider_setting);
     qesap_create_ansible_section(ansible_section => 'create', section_content => $ansible_playbooks) if @$ansible_playbooks;
     qesap_create_ansible_section(ansible_section => 'hana_vars', section_content => $ansible_hana_vars) if %$ansible_hana_vars;
 
     # Regenerate config files (This workaround will be replaced with full yaml generator)
-    qesap_prepare_env(provider => lc(get_required_var('PUBLIC_CLOUD_PROVIDER')), only_configure => 1);
+    qesap_prepare_env(provider => $provider_setting, only_configure => 1);
 
     my @ret = qesap_execute(cmd => 'terraform', timeout => 3600, verbose => 1);
     die 'Terraform deployment FAILED. Check "qesap*" logs for details.' if ($ret[0]);
@@ -180,7 +192,7 @@ sub run {
         my $real_hostname = $instance->run_ssh_command(cmd => 'hostname', username => 'cloudadmin');
         # We expect hostnames reported by terraform to match the actual hostnames in Azure and GCE
         die "Expected hostname $expected_hostname is different than actual hostname [$real_hostname]"
-          if ((is_azure || is_gce) && ($expected_hostname ne $real_hostname));
+          if ((is_azure() || is_gce()) && ($expected_hostname ne $real_hostname));
     }
 
     $self->{instances} = $run_args->{instances} = $instances;

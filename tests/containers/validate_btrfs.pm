@@ -45,13 +45,18 @@ sub _sanity_test_btrfs {
     assert_script_run("echo -e 'FROM $img\\nENV WORLD_VAR Arda' > $dockerfile_path/Dockerfile");
     my $btrfs_head = '/tmp/subvolumes_saved';
 
+    my $storage = $rt->get_storage_driver();
     if (version->parse(get_docker_version()) >= version->parse('23.0.5')) {
-        $rt->info(property => 'Driver', value => 'overlay2');
+        if ($storage ne 'overlay2') {
+            die "Expected storage driver for this docker version is 'overlay2', got '$storage'";
+        }
         assert_script_run('docker system prune -af');
         assert_script_run(q[sed -i 's/{/{ "storage-driver": "btrfs",/' /etc/docker/daemon.json]);
         systemctl('restart docker');
     } else {
-        $rt->info(property => 'Driver', value => 'btrfs');
+        if ($storage ne 'btrfs') {
+            die "Expected storage driver for this docker version is 'btrfs', got '$storage'";
+        }
     }
 
     $rt->build($dockerfile_path, 'huge_image');

@@ -13,16 +13,19 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
+use hpc::utils 'get_slurm_version';
 use version_utils 'is_sle';
 
 sub run ($self) {
     select_serial_terminal();
     $self->prepare_user_and_group();
+    my $slurm_pkg = get_slurm_version(get_var('SLURM_VERSION', ''));
 
     # Install slurm
-    zypper_call('in slurm-munge');
+    # $slurm_pkg-munge is installed explicitly since slurm_23_02
+    zypper_call("in $slurm_pkg-munge");
     # install slurm-node if sle15, not available yet for sle12
-    zypper_call('in slurm-node') if is_sle '15+';
+    zypper_call("in $slurm_pkg-node") if is_sle '15+';
 
     if (get_required_var('EXT_HPC_TESTS')) {
         zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);

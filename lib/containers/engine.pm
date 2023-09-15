@@ -15,6 +15,7 @@ use containers::utils qw(registry_url);
 use utils qw(systemctl file_content_replace script_retry);
 use version_utils qw(package_version_cmp);
 use containers::utils qw(get_podman_version);
+use Mojo::JSON qw(decode_json);
 use overload
   '""' => sub { return shift->runtime },
   bool => sub { return 1 },
@@ -241,9 +242,30 @@ Otherwise it prints the output of info.
 
 sub info {
     my ($self, %args) = @_;
-    my $property = $args{property} ? qq(--format '{{.$args{property}}}') : '';
-    my $expected = $args{value} ? qq( | grep $args{value}) : '';
-    $self->_engine_assert_script_run(sprintf("info %s %s", $property, $expected));
+    my $stdout;
+
+    if (exists $args{json} && $args{json}) {
+        my $raw = $self->_engine_script_output("info -f '{{json .}}' 2> ./error", proceed_on_failure => 1);
+        # issue related to podman v2.0 (sle15sp2, s390x) -> bsc#1200623
+        # extract only the json part as there might be other error messages from info output
+        # e.g. 2023-09-11T08:01:40.788854+02:00 susetest systemd[31629]: Failed to start podman-31709.scope
+        if ($raw =~ m/(?s)(\{(?:[^{}"]++|"(?:\\.|[^"])*+"|(?1))*\})/gm) {
+            $raw = $1;
+        }
+        $stdout = decode_json($raw);
+    } else {
+        $stdout = $self->_engine_script_output("info 2> ./error", proceed_on_failure => 1);
+    }
+
+    if (script_run('test -s ./error') == 0) {
+        my $error = script_output('cat ./error');
+
+        if ($error !~ /$args{expected_error}/) {
+            die "Error found executing info";
+        }
+    }
+
+    return $stdout;
 }
 
 =head2 get_container_logs($container, $filename)
@@ -332,6 +354,7 @@ sub cleanup_system_host {
         }
         $self->_engine_assert_script_run("rm --force --all", 120);
     }
+    $self->_engine_assert_script_run("volume prune -f", 300);
     $self->_engine_assert_script_run("system prune -a -f", 300);
 
     if ($assert) {

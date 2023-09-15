@@ -13,11 +13,12 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro is_vmware);
+use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro is_vmware is_alp);
 use Utils::Architectures;
 use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
+use serial_terminal 'prepare_serial_console';
 
 
 sub post_fail_hook {
@@ -67,7 +68,7 @@ sub verify_hypervisor {
 
     return 0 if (
         is_qemu && $virt =~ /(qemu|kvm)/ ||
-        is_s390x && $virt =~ /zvm/ ||
+        is_s390x && $virt =~ /(zvm|kvm)/ ||
         is_hyperv && $virt =~ /microsoft/ ||
         is_vmware && $virt =~ /vmware/ ||
         check_var("VIRSH_VMM_FAMILY", "xen") && $virt =~ /xen/);
@@ -235,6 +236,8 @@ sub run {
 
     ensure_serialdev_permissions;
 
+    prepare_serial_console;
+
     my $console = select_console 'user-console';
     verify_user_info;
     enter_cmd "exit";
@@ -249,7 +252,7 @@ sub run {
     verify_mounts unless is_leap('<15.2') && is_aarch64;
 
     verify_hypervisor unless is_generalhw;
-    verify_norepos unless is_opensuse;
+    verify_norepos unless is_opensuse || is_alp;
     verify_bsc if is_jeos;
 }
 

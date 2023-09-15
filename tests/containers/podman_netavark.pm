@@ -10,7 +10,7 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use version_utils qw(package_version_cmp is_transactional is_jeos);
+use version_utils qw(package_version_cmp is_transactional is_jeos is_alp);
 use containers::utils qw(get_podman_version registry_url);
 use transactional qw(trup_call check_reboot_changes);
 use utils qw(zypper_call);
@@ -35,7 +35,9 @@ sub is_container_running {
     return 1;
 }
 
+# clean up routine only for systems that run CNI as default network backend
 sub _cleanup {
+    return if is_alp;
     my $podman = shift->containers_factory('podman');
     select_console 'log-console';
     remove_subtest_setup;
@@ -74,7 +76,7 @@ sub run {
         return 1;
     }
 
-    switch_to_netavark;
+    switch_to_netavark unless is_alp;
     $podman->cleanup_system_host();
 
     ## TEST1
@@ -183,6 +185,8 @@ sub run {
             assert_script_run("podman container inspect $ctr2->{name} --format {{.NetworkSettings.Networks.$net1->{name}.IPAddress}}");
         }
     }
+
+    remove_subtest_setup;
 }
 
 sub post_run_hook {

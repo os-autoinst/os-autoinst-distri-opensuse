@@ -391,8 +391,8 @@ sub wait_for_sync {
         $output_pass-- if $output_pass == 1 && $ret !~ /SOK/ && $ret !~ /PRIM/ && $ret =~ /SFAIL/;
         $output_fail++ if $ret =~ /SFAIL/;
         $output_fail-- if $output_fail >= 1 && $ret !~ /SFAIL/;
-        next if $output_pass < 3;
-        last if $output_pass == 3;
+        next if $output_pass < 5;
+        last if $output_pass == 5;
         if (time - $start_time > $timeout) {
             record_info("Cluster status", $self->run_cmd(cmd => $crm_mon_cmd));
             record_info("Sync FAIL", "Host replication status: " . $self->run_cmd(cmd => 'SAPHanaSR-showAttr'));
@@ -549,7 +549,7 @@ sub create_instance_data {
     my $class = ref($provider);
     die "Unexpected class type [$class]" unless ($class =~ /^publiccloud::(azure|ec2|gce)/);
     my @instances = ();
-    my $inventory_file = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    my $inventory_file = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     my $ypp = YAML::PP->new;
     my $raw_file = script_output("cat $inventory_file");
     my $inventory_data = $ypp->load_string($raw_file)->{all}{children};
@@ -596,7 +596,7 @@ sub delete_network_peering {
     if (is_azure) {
         # Check that required vars are available before deleting the peering
         my $rg = qesap_az_get_resource_group();
-        if ($rg ne '' && get_var('IBSM_RG')) {
+        if (get_var('IBSM_RG')) {
             qesap_az_vnet_peering_delete(source_group => $rg, target_group => get_var('IBSM_RG'));
         }
         else {

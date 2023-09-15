@@ -23,10 +23,7 @@ has container => 'sle-images';
 has image_gallery => 'test_image_gallery';
 has lease_id => undef;
 
-# Default SKU/HyperV generation, if not explicitly defined.
-# Currently too many places still rely on gen1 as default, this should be changed soon (poo#133079)
-# This trigger is a temporary solution to make this transition easier and can be removed when poo#133079 is being resolved.
-my $default_sku = 'gen1';
+my $default_sku = 'gen2';
 
 sub init {
     my ($self) = @_;
@@ -49,77 +46,132 @@ sub decode_azure_json {
     return decode_json(colorstrip(shift));
 }
 
-sub resource_exist {
+=head2 resource_group_exist
+
+    $self->resource_group_exist();
+
+Checks if the Azure resource group exists and returns boolean
+
+=cut
+
+
+sub resource_group_exist {
     my ($self) = @_;
     my $group = $self->resource_group;
     my $output = script_output_retry("az group show --name '$group' --output json", retry => 3, timeout => 30, delay => 10);
-    return ($output ne '[]');
+    return ($output ne '[]') ? 1 : 0;
 }
 
 sub get_image_id {
     my ($self, $img_url) = @_;
     $img_url //= get_var('PUBLIC_CLOUD_IMAGE_LOCATION');
-    # Very special case for Azure. Ignore the image id and only use OFFER and SKU
-    return "" if ((!$img_url) && get_var('PUBLIC_CLOUD_AZURE_OFFER') && get_var('PUBLIC_CLOUD_AZURE_SKU'));
+    # Very special case for Azure. if image id is not provided and OFFER is then return empty string.
+    return "" if ((!$img_url) && get_var('PUBLIC_CLOUD_AZURE_OFFER'));
     return $self->SUPER::get_image_id($img_url);
 }
 
-=head2 generate_azure_image_definition
+=head2 img_blob_exists
 
-    my $definition = $self->generate_azure_image_definition();
+Finds the image blob in Azure
 
-Generated the Azure Image name from the job settings. If present, it takes the PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION setting.
-If not present it generated the image definition name based on distri, version, flavor and SKU.
+ * Requires image name parameter, e.g. 'SLES15-SP5-BYOS.aarch64-1.0.0-Azure-Build1.68.xz'
+ * Returns 0 if the image blob  has not been found or 1 if the image blob has ben found.
 
-Note: Image definitions needs to be distinct names and can only serve one architecture!
-
-Example: 'SLE-MICRO-5.4-BYOS-AZURE-X86_64-GEN1'
 =cut
 
-sub generate_azure_image_definition {
-    my $arch = (get_var('PUBLIC_CLOUD_ARCH', get_required_var('ARCH'))) eq 'x86_64' ? 'x64' : 'Arm64';
-    my $definition = get_required_var('DISTRI') . '-' . get_required_var('VERSION') . '-' . get_required_var('FLAVOR') . '-' . $arch . '-' . get_var('PUBLIC_CLOUD_AZURE_SKU', $default_sku);
-    return get_var("PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION", uc($definition));
-}
-
-sub find_img {
+sub img_blob_exists {
     my ($self, $name) = @_;
-    my ($json, $md5, $image);
-
-    return if (!$self->resource_exist());
-
-    ($name) = $name =~ m/([^\/]+)$/;
-    my $gen = (check_var('PUBLIC_CLOUD_AZURE_SKU', 'gen2')) ? 'V2' : 'V1';
-    $name =~ s/\.xz$//;
-    $name =~ s/\.vhdfixed$/-$gen.vhd/;
+    my $md5;
 
     my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'eisleqaopenqa');
     my $key = $self->get_storage_account_keys($storage_account);
+
     my $container = $self->container;
 
-    $json = script_output("az storage blob show --account-key $key -o json " .
+    # TODO: This is for transition period only. We used to upload blobs such as:
+    # SLES15-SP5-SAP.x86_64-1.0.0-Azure-Build1.78-V1.vhd but the '-V1' at the end is not needed
+    # and only makes us to upload one blob twice.
+    my $gen = (check_var('PUBLIC_CLOUD_AZURE_SKU', 'gen2')) ? 'V2' : 'V1';
+    my $old_name = $name;
+    $old_name =~ s/\.vhd$/-$gen.vhd/;
+
+    # 1) Check if the image blob exists
+    my $json = script_output("az storage blob show --account-key $key -o json " .
           "--container-name '$container' --account-name '$storage_account' --name '$name' " .
           '--query="{name: name,createTime: properties.creationTime,md5: properties.contentSettings.contentMd5}"',
         proceed_on_failure => 1);
-    record_info('BLOB INFO', $json);
     eval { $md5 = decode_azure_json($json)->{md5}; };
     if ($@) {
         record_info('BLOB NOT-FOUND', "Cannot find blob $name. Need to upload it.\n$@");
+        return 0;
     } elsif (!$md5 || $md5 !~ /^[a-fA-F0-9]{32}$/) {
-        record_info('INVALID', "The blob $name does not have valid md5 field.");
-        return $image;
+        record_info('BLOB INVALID', "The blob $name does not have valid md5 field.");
+        return 0;
     }
+    record_info('BLOB FOUND', "The blob $name has been found.");
+    return 1;
+}
+
+=head2 get_image_version
+
+Finds the image version in Azure
+
+Returns the image version id or undef if not found.
+
+Return example: '/subscriptions/SMTHNG-XYZ-123/resourceGroups/openqa-upload/providers/Microsoft.Compute/galleries/test_image_gallery/images/SLE-15-SP5-AZURE-BYOS-X64-GEN2/versions/1.64.100'
+
+=cut
+
+sub get_image_version {
+    my $self = shift;
+    my $image;
 
     my $resource_group = $self->resource_group;
     my $gallery = $self->image_gallery;
-    my $version = calc_img_version();
+    my $version = generate_img_version();
     my $definition = $self->generate_azure_image_definition();
-    $json = script_output("az sig image-version show --resource-group '$resource_group' --gallery-name '$gallery' " .
+    my $json = script_output("az sig image-version show --resource-group '$resource_group' --gallery-name '$gallery' " .
           "--gallery-image-definition '$definition' --gallery-image-version '$version'", proceed_on_failure => 1, timeout => 60 * 30);
-    record_info('IMGV INFO', $json);
-    eval { $image = decode_azure_json($json)->{name}; };
-    record_info('IMGV NOT-FOUND', "Cannot find image-version $name. Need to upload it.\n$@") if ($@);
+    record_info('IMG VER', $json);
+    eval { $image = decode_azure_json($json)->{id}; };
+    if ($@) {
+        record_info('IMG VER NOT-FOUND', "Cannot find image-version $version in definition image definition. Need to upload it.\n$@");
+        return undef;
+    }
+    record_info('IMG VER FOUND', "Found $image image version.");
     return $image;
+}
+
+=head2 find_img
+
+    my $image_id = $self->find_img($name);
+
+Requires the image name:
+ * The variable may also be URL and the name will be extracted from it.
+ * The name is then used to search for the image blob.
+
+Does the following steps:
+ 1) Checks if the image blob exists
+ 2) Checks if the image version exists
+
+ * If the image definition does not exist the image version does not either.
+
+Return example: '/subscriptions/SMTHNG-XYZ-123/resourceGroups/openqa-upload/providers/Microsoft.Compute/galleries/test_image_gallery/images/SLE-15-SP5-AZURE-BYOS-X64-GEN2/versions/1.64.100'
+If either blob or the image version were not found then the default empty list or undef in the scalar context is returned.
+=cut
+
+sub find_img {
+    my ($self, $name) = @_;
+
+    return undef unless ($self->resource_group_exist());
+
+    $name = $self->get_blob_name($name);
+
+    # 1) Checks if the image blob exists
+    return undef unless ($self->img_blob_exists($name));
+
+    # 2) Check if the image version exists
+    return $self->get_image_version();
 }
 
 sub get_storage_account_keys {
@@ -139,23 +191,29 @@ sub create_resources {
     my ($self, $storage_account) = @_;
     my $container = $self->container;
     my $timeout = 60 * 5;
+
     record_info('INFO', 'Create resource group ' . $self->resource_group);
     assert_script_run('az group create --name ' . $self->resource_group . ' -l ' . $self->provider_client->region, $timeout);
+
     record_info('INFO', 'Create storage account ' . $storage_account);
     assert_script_run('az storage account create --resource-group ' . $self->resource_group . ' -l '
           . $self->provider_client->region . ' --name ' . $storage_account . ' --kind Storage --sku Standard_LRS', $timeout);
+
     record_info('INFO', 'Create storage container ' . $container);
     assert_script_run('az storage container create --account-name ' . $storage_account
           . ' --name ' . $container, $timeout);
-    # Image gallery for Arm64 images
+
+    record_info('INFO', 'Create image gallery ' . $self->image_gallery);
     assert_script_run('az sig create --resource-group ' . $self->resource_group . ' --gallery-name "' . $self->image_gallery . '" --description "openQA upload Gallery"', timeout => 300);
 }
 
-sub calc_img_version {
-    # Build the image Version for upload to the Compute Gallery.
-    # The expected format is 'X.Y.Z'.
-    # We assemble the img version by the PUBLIC_CLOUD_BUILD (Format: 'X.Y') and the digits of PUBLIC_CLOUD_KIWI_BUILD, formatted as integer
+=head2 generate_img_version
+Build the image Version for upload to the Compute Gallery.
+The expected format is 'X.Y.Z'.
+We assemble the img version by the PUBLIC_CLOUD_BUILD (Format: 'X.Y') and the digits of PUBLIC_CLOUD_KIWI_BUILD, formatted as integer
+=cut
 
+sub generate_img_version {
     my $build = get_required_var('PUBLIC_CLOUD_BUILD');
     # Take only the digits of PUBLIC_CLOUD_KIWI_BUILD and convert to an int, to remove leading zeros
     my $kiwi = get_required_var('PUBLIC_CLOUD_BUILD_KIWI');
@@ -164,60 +222,187 @@ sub calc_img_version {
     return "$build.$kiwi";
 }
 
+sub generate_tags {
+    # Define tags
+    my $job_id = get_current_job_id();
+    my $openqa_url = get_var('OPENQA_URL', get_var('OPENQA_HOSTNAME'));
+    $openqa_url =~ s@^https?://|/$@@gm;
+    my $created_by = "$openqa_url/t$job_id";
+    my $tags = "'openqa_created_by=$created_by' 'openqa_var_server=$openqa_url' 'openqa_var_job_id=$job_id'";
+
+    return $tags;
+}
+
+=head2 generate_azure_image_definition
+
+    my $definition = $self->generate_azure_image_definition();
+
+Generated the Azure Image name from the job settings. If present, it takes the PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION setting.
+If not present it generated the image definition name based on distri, version, flavor and SKU.
+
+Note: Image definitions needs to be distinct names and can only serve one architecture!
+
+Example: 'SLE-MICRO-5.4-BYOS-AZURE-X86_64-GEN2'
+=cut
+
+sub generate_azure_image_definition {
+    return get_var('PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION') if (get_var('PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION'));
+
+    my $distri = get_required_var('DISTRI');
+    my $version = get_required_var('VERSION');
+    my $flavor = get_required_var('FLAVOR');
+    my $arch = (get_var('PUBLIC_CLOUD_ARCH', get_required_var('ARCH'))) eq 'x86_64' ? 'x64' : 'Arm64';
+    my $sku = get_var('PUBLIC_CLOUD_AZURE_SKU', $default_sku);
+    my $image = uc("$distri-$version-$flavor-$arch-$sku");
+    return $image;
+}
+
+=head2 get_image_definition
+Check if the given image definition, identified by the tuple (publisher, offer and sku) is present in the given image gallery
+returns the name of the found image definition or undef if not found
+=cut
+
 sub get_image_definition {
-    # Check if the given image definition, identified by the tuple (publisher, offer and sku) is present in the given image gallery
-    # returns the name of the found image definition or undef if not found
-    my ($self, $resource_group, $gallery, $publisher, $offer, $sku) = @_;
+    my ($self, $resource_group, $gallery) = @_;
+    my $name = generate_azure_image_definition();
+    record_info('get_image_definition', "Searching for image definition in gallery=$gallery under group=$resource_group with name=$name");
 
     my $definitions = script_output("az sig image-definition list --resource-group '$resource_group' --gallery-name '$gallery'");
     return undef unless ($definitions);
     my $json_data = decode_azure_json($definitions);
     foreach my $def (@$json_data) {
-        my $identifier = $def->{identifier};
-        next unless (defined $identifier);
-        return $def->{name} if ($identifier->{publisher} eq $publisher && $identifier->{offer} eq $offer && $identifier->{sku} eq $sku);
+        next unless (defined $def->{name});
+        if ($def->{name} eq $name) {
+            record_info('image_definition', "Found $def->{name} image definition");
+            return $def->{name};
+        }
     }
+    record_info('no image_definition', "Did not found image definition.");
     return undef;
 }
 
-sub upload_img {
+=head2 get_blob_name
+
+    Calculate the image (blob) name
+    from the file name used in SUSE download server (usually PUBLIC_CLOUD_IMAGE_LOCATION)
+
+    B<return> a string with the image name
+
+=over 1
+
+=item B<FILE> - filename, usually extracted from PUBLIC_CLOUD_IMAGE_LOCATION
+
+=back
+=cut
+
+sub get_blob_name {
     my ($self, $file) = @_;
 
+    # check if the $file is non-zero length string
+    die('The image name is wrong.') unless (defined($file) && length($file) > 3);
+
+    my ($img_name) = $file =~ /([^\/]+)$/;
+    $img_name =~ s/\.xz$//;
+    $img_name =~ s/\.vhdfixed/.vhd/;
+    return $img_name;
+}
+
+=head2 get_blob_uri
+
+    Calculate the image URI in the Azure Blob Server
+    from the file name used in SUSE download server (usually PUBLIC_CLOUD_IMAGE_LOCATION)
+
+    PUBLIC_CLOUD_STORAGE_ACCOUNT setting is used to compose the url
+
+    B<return> a string with the image uri on the blob server
+
+=over 1
+
+=item B<FILE> - filename, usually extracted from PUBLIC_CLOUD_IMAGE_LOCATION
+
+=back
+=cut
+
+sub get_blob_uri {
+    my ($self, $file) = @_;
+    my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'eisleqaopenqa');
+    my $container = $self->container;
+    my $img_name = $self->get_blob_name($file);
+
+    return "https://$storage_account.blob.core.windows.net/$container/$img_name";
+}
+
+sub upload_blob {
+    my ($self, $file) = @_;
+
+    # Decompress the image
     if ($file =~ m/vhdfixed\.xz$/) {
         assert_script_run("xz -d $file", timeout => 60 * 5);
         $file =~ s/\.xz$//;
     }
 
-    my ($img_name) = $file =~ /([^\/]+)$/;
-    my $gen = (check_var('PUBLIC_CLOUD_AZURE_SKU', 'gen2')) ? 'V2' : 'V1';
-    $img_name =~ s/\.vhdfixed/-$gen.vhd/;
-    my $disk_name = $img_name;
     my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'eisleqaopenqa');
+
+    my $img_name = $self->get_blob_name($file);
     my $container = $self->container;
-
-    my $job_id = get_current_job_id();
-    my $openqa_url = get_required_var('OPENQA_URL');
-    my $created_by = "$openqa_url/t$job_id";
-    my $tags = "openqa_created_by=$created_by";
-
-    my $rg_exist = $self->resource_exist();
-    $self->create_resources($storage_account) if (!$rg_exist);
-
     my $key = $self->get_storage_account_keys($storage_account);
-
+    my $tags = generate_tags();
     # Note: VM images need to be a page blob type
-    assert_script_run('az storage blob upload --max-connections 4 --type page --overwrite'
+    assert_script_run('az storage blob upload --max-connections 4 --type page --overwrite --no-progress'
           . " --account-name '$storage_account' --account-key '$key' --container-name '$container'"
-          . " --file '$file' --name '$img_name' --tags '$tags'", timeout => 60 * 60 * 2);
+          . " --file '$file' --name '$img_name' --tags $tags", timeout => 60 * 60 * 2);
     # After blob is uploaded we save the MD5 of it as its metadata.
     # This is also to verify that the upload has been finished.
     my $file_md5 = script_output("md5sum $file | cut -d' ' -f1", timeout => 240);
     assert_script_run("az storage blob update --account-key $key --container-name '$container' --account-name '$storage_account' --name $img_name --content-md5 $file_md5");
+}
+
+# Create new definition only, if there is no previous definition present
+
+# This image definition can then be used by addressing it with it's
+# /subscription/.../resourceGroups/openqa-upload/providers/Microsoft.Compute/galleries/...
+# link.
+
+sub create_image_definition {
+    my $self = shift;
+    my $resource_group = $self->resource_group;
+    my $gallery = $self->image_gallery;
+
+    # Print image definitions as a help to debug possible conflicting definitions
+    my $images = script_output("az sig image-definition list -g '$resource_group' -r '$gallery'");
+    record_info("img-defs", "Existing image definitions:\n$images");
+
+    my $sku = get_var("PUBLIC_CLOUD_AZURE_SKU", $default_sku);
+    my $gen = ($sku =~ "gen2" ? "V2" : "V1");
+    my $tags = generate_tags();
 
     my $arch = (get_var('PUBLIC_CLOUD_ARCH', get_required_var('ARCH'))) eq 'x86_64' ? 'x64' : 'Arm64';
     my $publisher = get_var("PUBLIC_CLOUD_AZURE_PUBLISHER", "qe-c");
     my $offer = get_var("PUBLIC_CLOUD_AZURE_OFFER", get_var('DISTRI') . '-' . get_var('VERSION') . '-' . get_var('FLAVOR') . '-' . $arch);
-    my $sku = get_var("PUBLIC_CLOUD_AZURE_SKU", $default_sku);
+
+    my $definition = $self->get_image_definition($resource_group, $gallery);
+    if (defined $definition) {
+        record_info("use img-def", "Using found image definitions:\n$definition");
+    } else {
+        $definition = $self->generate_azure_image_definition();
+        record_info("gen img-def", "Create image definitions:\n$definition");
+        assert_script_run("az sig image-definition create --resource-group '$resource_group' --gallery-name '$gallery' " .
+              "--gallery-image-definition '$definition' --os-type Linux --publisher '$publisher' --offer '$offer' --sku '$sku' " .
+              "--architecture '$arch' --hyper-v-generation '$gen' --os-state 'Generalized'", timeout => 300);
+    }
+}
+
+sub create_image_version {
+    my ($self, $file) = @_;
+
+    my $resource_group = $self->resource_group;
+    my $gallery = $self->image_gallery;
+
+    my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'eisleqaopenqa');
+
+    my $subscription = $self->provider_client->subscription;
+    my $sa_url = "/subscriptions/$subscription/resourceGroups/imageGroups/providers/Microsoft.Storage/storageAccounts/$storage_account";
+
     ## For the Azure Compute Gallery, multiple target regions are supported.
     # This is necessary, because the image version upload needs to happen once for all regions, for which we want to
     # execute test runs. For reasons of being concise we re-use the existing variable PUBLIC_CLOUD_REGION, but here
@@ -225,41 +410,40 @@ sub upload_img {
     # The $self->region is not used here as it contains only the first region from the list.
     my $target_regions = get_var("PUBLIC_CLOUD_REGION", "westeurope");
     $target_regions =~ s/,/ /g;    # CLI expects spaces as separation, not commas
-    my $subscription = $self->provider_client->subscription;
-    my $sa_url = "/subscriptions/$subscription/resourceGroups/imageGroups/providers/Microsoft.Storage/storageAccounts/$storage_account";
-    my $version = calc_img_version();
 
-    my $resource_group = $self->resource_group;
-    my $gallery = $self->image_gallery;
-
-    ## Create image definition. This image definition can then be used by addressing it with it's
-    ## /subscription/.../resourceGroups/openqa-upload/providers/Microsoft.Compute/galleries/...
-    ## link.
-    ## 1. Ensure the image definition in the Azure Compute Gallery exists
-    ## 2. Create a new image version for that definition. Use the link to the uploaded blob to create this version
-
-
-    # Print image definitions as a help to debug possible conflicting definitions
-    my $images = script_output("az sig image-definition list -g '$resource_group' -r '$gallery'");
-    record_info("img-defs", "Existing image definitions:\n$images");
-
-    # Create new definition only, if there is no previous definition present
-    my $definition = $self->get_image_definition($resource_group, $gallery, $publisher, $offer, $sku);
-    if (defined $definition) {
-        record_info("use img-def", "Using found image definitions:\n$definition");
-    } else {
-        $definition = $self->generate_azure_image_definition();
-        my $gen = ($sku =~ "gen2" ? "V2" : "V1");
-        record_info("gen img-def", "Create image definitions:\n$definition");
-        assert_script_run("az sig image-definition create --resource-group '$resource_group' --gallery-name '$gallery' " .
-              "--gallery-image-definition '$definition' --os-type Linux --publisher '$publisher' --offer '$offer' --sku '$sku' " .
-              "--architecture '$arch' --hyper-v-generation '$gen' --os-state 'Generalized'", timeout => 300);
-    }
+    my $definition = $self->get_image_definition($resource_group, $gallery);
+    my $version = generate_img_version();
+    my $os_vhd_uri = $self->get_blob_uri($file);
+    my $tags = generate_tags();
     # Note: Repetitive calls do not fail
     assert_script_run("az sig image-version create --resource-group '$resource_group' --gallery-name '$gallery' " .
           "--gallery-image-definition '$definition' --gallery-image-version '$version' --os-vhd-storage-account '$sa_url' " .
-          "--os-vhd-uri https://$storage_account.blob.core.windows.net/$container/$img_name --target-regions $target_regions", timeout => 60 * 30);
-    return $img_name;
+          "--os-vhd-uri $os_vhd_uri --target-regions '$target_regions'", timeout => 60 * 30);
+}
+
+=head2 upload_img
+
+1) Create resources
+2) Upload the image blob
+3) Create image definition
+4) Create new image version for that definition. Use the link to the uploaded blob to create this version
+
+=cut
+
+sub upload_img {
+    my ($self, $file) = @_;
+
+    # 1) Create resources
+    $self->create_resources() unless ($self->resource_group_exist());
+
+    # 2) Upload the image blob
+    $self->upload_blob($file);
+
+    # 3) Ensure the image definition exists
+    $self->create_image_definition();
+
+    # 4) Create new image version for that definition. Use the link to the uploaded blob to create this version
+    $self->create_image_version($file);
 }
 
 sub img_proof {

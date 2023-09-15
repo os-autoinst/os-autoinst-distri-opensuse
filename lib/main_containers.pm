@@ -70,6 +70,11 @@ sub load_image_tests_podman {
     load_image_test($run_args);
 }
 
+sub load_volume_tests {
+    my ($run_args) = @_;
+    loadtest('containers/volumes', run_args => $run_args, name => 'volumes_' . $run_args->{runtime});
+}
+
 sub load_image_tests_docker {
     my ($run_args) = @_;
     load_image_test($run_args);
@@ -88,8 +93,10 @@ sub load_host_tests_podman {
         # In Public Cloud we don't have internal resources
         load_image_test($run_args) unless is_public_cloud || is_alp;
         load_3rd_party_image_test($run_args);
+        loadtest 'containers/podman_bci_systemd';
         loadtest 'containers/podman_pods';
-        loadtest('containers/podman_network_cni');
+        # Default for ALP is Netavark
+        loadtest('containers/podman_network_cni') unless (is_alp);
         # Netavark not supported in 15-SP1 and 15-SP2 (due to podman version older than 4.0.0)
         loadtest 'containers/podman_netavark' unless (is_staging || is_sle("<15-sp3") || is_ppc64le);
         # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
@@ -98,7 +105,8 @@ sub load_host_tests_podman {
         loadtest 'containers/buildah' unless (is_sle_micro || is_microos || is_leap_micro || is_alp || is_staging);
         # https://github.com/containers/podman/issues/5732#issuecomment-610222293
         # exclude rootless poman on public cloud because of cgroups2 special settings
-        loadtest 'containers/rootless_podman' unless (is_sle('=15-sp1') || is_openstack || is_public_cloud);
+        loadtest 'containers/rootless_podman' unless (is_sle('<15-sp2') || is_openstack || is_public_cloud);
+        load_volume_tests($run_args);
     }
 }
 
@@ -127,10 +135,8 @@ sub load_host_tests_docker {
     unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro) {
         loadtest 'containers/validate_btrfs';
     }
-}
-
-sub load_host_tests_containerd_rmt {
-    loadtest 'containers/containerd_rmt';
+    load_volume_tests($run_args);
+    loadtest 'containers/buildx' if (is_tumbleweed || is_microos);
 }
 
 sub load_host_tests_containerd_crictl {
@@ -218,6 +224,11 @@ sub load_container_tests {
         return;
     }
 
+    if (get_var('HELM_CONFIG')) {
+        loadtest 'containers/helm_rmt';
+        return;
+    }
+
     if ($runtime eq 'k3s') {
         loadtest 'containers/run_container_in_k3s';
         return;
@@ -243,9 +254,6 @@ sub load_container_tests {
                 load_image_tests_in_k8s($run_args) if (/k8s/i);
                 load_image_tests_in_openshift if (/openshift/i);
             }
-        } elsif (get_var('REPO_BCI')) {
-            loadtest 'containers/host_configuration';
-            loadtest 'containers/bci_repo';
         } else {
             # Container Host tests
             loadtest 'microos/toolbox' if (/podman/i && (is_sle_micro || is_microos || is_leap_micro));
@@ -253,7 +261,6 @@ sub load_container_tests {
             load_host_tests_docker($run_args) if (/docker/i);
             load_host_tests_containerd_crictl() if (/containerd_crictl/i);
             load_host_tests_containerd_nerdctl() if (/containerd_nerdctl/i);
-            load_host_tests_containerd_rmt() if (/containerd_rmt/i);
             loadtest('containers/kubectl') if (/kubectl/i);
             load_host_tests_helm($run_args) if (/helm/i);
             loadtest 'containers/apptainer' if (/apptainer/i);

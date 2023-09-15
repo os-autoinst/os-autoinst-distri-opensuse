@@ -15,7 +15,7 @@ use base 'y2_installbase';
 use testapi;
 
 sub run {
-    my $install_popup = $testapi::distri->get_ok_popup_controller();
+    my $install_popup = $testapi::distri->get_ok_popup();
     my $license_popup = $testapi::distri->get_license_popup();
     # The first check is for the confirm installation popup, in order to save time as
     # extra license popups will rarely appear.

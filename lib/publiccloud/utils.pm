@@ -18,13 +18,18 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_public_cloud get_version_id);
+use version_utils qw(is_sle is_public_cloud get_version_id is_transactional);
+use transactional qw(check_reboot_changes trup_call process_reboot);
 use registration;
+
+# Indicating if the openQA port has been already allowed via SELinux policies
+my $openqa_port_allowed = 0;
 
 our @EXPORT = qw(
   deregister_addon
   define_secret_variable
   get_credentials
+  validate_repo
   is_byos
   is_ondemand
   is_ec2
@@ -40,6 +45,7 @@ our @EXPORT = qw(
   gcloud_install
   prepare_ssh_tunnel
   kill_packagekit
+  allow_openqa_port_selinux
 );
 
 # Get the current UTC timestamp as YYYY/mm/dd HH:MM:SS
@@ -131,6 +137,22 @@ sub register_openstack {
     my $cmd = "sudo SUSEConnect -r $regcode";
     $cmd .= " --url $fake_scc" if $fake_scc;
     $instance->ssh_assert_script_run(cmd => $cmd, timeout => 700, retry => 5);
+}
+
+# Validation for update repos
+sub validate_repo {
+    my ($maintrepo) = @_;
+    if ($maintrepo =~ /\/(PTF|Maintenance):\/(\d+)/g) {
+        my ($incident, $type) = ($2, $1);
+        die "We did not detect incident number for URL \"$maintrepo\". We detected \"$incident\"" unless $incident =~ /\d+/;
+        if (is_embargo_update($incident, $type)) {
+            record_info("EMBARGOED", "The repository \"$maintrepo\" belongs to embargoed incident number \"$incident\"");
+            script_run("echo 'The repository \"$maintrepo\" belongs to embargoed incident number \"$incident\"'");
+            return 0;
+        }
+        return 1;
+    }
+    die "Unexpected URL \"$maintrepo\"";
 }
 
 # Check if we are a BYOS test run
@@ -280,6 +302,26 @@ sub kill_packagekit {
         $instance->ssh_script_run(cmd => "sudo systemctl disable packagekitd");
         $instance->ssh_script_run(cmd => "sudo systemctl mask packagekitd");
     }
+}
+
+
+sub allow_openqa_port_selinux {
+    # not needed to perform multiple times, also semanage would fail.
+    return if ($openqa_port_allowed);
+
+    # Additional packages required for semanage
+    my $pkgs = 'policycoreutils-python-utils';
+    if (is_transactional) {
+        trup_call("pkg install $pkgs");
+        check_reboot_changes;
+    } else {
+        zypper_call("in $pkgs");
+    }
+    # allow ssh tunnel port (to openQA)
+    my $upload_port = get_required_var('QEMUPORT') + 1;
+    assert_script_run("semanage port -a -t ssh_port_t -p tcp $upload_port");
+    process_reboot(trigger => 1) if (is_transactional);
+    $openqa_port_allowed = 1;
 }
 
 1;

@@ -11,7 +11,6 @@ use warnings;
 use base "x11test";
 use testapi;
 
-
 my $tutorial_disabled;
 
 sub upload_autoinst_log {
@@ -46,8 +45,12 @@ sub run {
     handle_notify_popup;
     assert_screen 'openqa-tests';
     assert_and_click 'openqa-tests';
-    assert_and_click 'openqa-job-minimalx';
-    assert_and_click 'openqa-job-details';
+    # At this point the openQA job might still be running or already finished.
+    # Ensure to show finished results at the bottom of the screen whenever the
+    # page finished loading
+    send_key_until_needlematch 'openqa-job-minimalx', 'up';
+    click_lastmatch;
+    assert_and_click('openqa-job-details', timeout => 60);
     assert_screen 'openqa-testresult', 600;
 }
 

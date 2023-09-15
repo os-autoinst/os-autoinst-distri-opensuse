@@ -11,7 +11,7 @@ use warnings;
 use base 'y2_installbase';
 
 sub run {
-    $testapi::distri->get_system_role_controller()->select_system_role('desktop_with_KDE_plasma');
+    $testapi::distri->get_system_role()->select_system_role('desktop_with_KDE_plasma');
 }
 
 1;

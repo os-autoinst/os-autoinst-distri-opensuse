@@ -42,9 +42,9 @@ our @EXPORT = qw(
 # Download files needed for transactional update tests
 sub get_utt_packages {
     # SLE and SUSE MicroOS need an additional repo for testing
-    if (is_sle || is_sle_micro) {
+    if (is_sle || is_sle_micro || is_alp) {
         assert_script_run 'curl -O ' . data_url("microos/utt.repo");
-    } elsif (is_leap_micro || is_alp) {
+    } elsif (is_leap_micro) {
         assert_script_run 'curl -o utt.repo ' . data_url("microos/utt-leap.repo");
     }
 
@@ -199,6 +199,7 @@ sub trup_call {
 
     $args{timeout} //= 180;
     $args{exit_code} //= 0;
+    $args{proceed_on_failure} //= 0;
     $script .= "-n " unless $args{interactive};
     $script .= $cmd;
 
@@ -232,6 +233,11 @@ sub trup_call {
         $ret = script_run($script, timeout => $args{timeout}, die_on_timeout => 0);
     }
 
+    if ($args{proceed_on_failure}) {
+        diag("transactional-update $cmd call returned: $ret");
+        return $ret;
+    }
+
     die "transactional-update didn't finish" unless defined($ret);
     die "transactional-update returned with $ret, expected $args{exit_code}" unless $ret == $args{exit_code};
 }
@@ -262,12 +268,13 @@ sub trup_install {
 sub trup_shell {
     my ($cmd, %args) = @_;
     $args{reboot} //= 1;
+    $args{timeout} //= 90;
 
     enter_cmd("transactional-update shell; echo trup_shell-status-\$? > /dev/$serialdev");
     wait_still_screen;
     enter_cmd("$cmd");
     enter_cmd("exit");
-    wait_serial('trup_shell-status-0') || die "'transactional-update shell' didn't finish";
+    wait_serial('trup_shell-status-0', timeout => $args{timeout}) || die "'transactional-update shell' didn't finish";
 
     process_reboot(trigger => 1) if $args{reboot};
 }

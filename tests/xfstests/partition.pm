@@ -27,11 +27,14 @@ use mm_network;
 use nfs_common;
 use Utils::Systemd 'disable_and_stop_service';
 use registration;
+use version_utils 'is_alp';
 
 my $INST_DIR = '/opt/xfstests';
 my $CONFIG_FILE = "$INST_DIR/local.config";
 my $NFS_VERSION = get_var('XFSTESTS_NFS_VERSION', '4.1');
 my $NFS_SERVER_IP;
+my $TEST_FOLDER = '/opt/test';
+my $SCRATCH_FOLDER = '/opt/scratch';
 
 # Number of SCRATCH disk in SCRATCH_DEV_POOL, other than btrfs has only 1 SCRATCH_DEV, xfstests specific
 sub partition_amount_by_homesize {
@@ -127,12 +130,12 @@ sub do_partition_for_xfstests {
     }
     parted_print(dev => $para{dev});
     # Create mount points
-    script_run('mkdir /mnt/test /mnt/scratch');
+    script_run("mkdir $TEST_FOLDER $SCRATCH_FOLDER");
     # Setup configure file xfstests/local.config
     script_run("echo 'export TEST_DEV=$test_dev' >> $CONFIG_FILE");
     set_var('XFSTESTS_TEST_DEV', $test_dev);
-    script_run("echo 'export TEST_DIR=/mnt/test' >> $CONFIG_FILE");
-    script_run("echo 'export SCRATCH_MNT=/mnt/scratch' >> $CONFIG_FILE");
+    script_run("echo 'export TEST_DIR=$TEST_FOLDER' >> $CONFIG_FILE");
+    script_run("echo 'export SCRATCH_MNT=$SCRATCH_FOLDER' >> $CONFIG_FILE");
     if ($para{amount} == 1) {
         script_run("echo 'export SCRATCH_DEV=$scratch_dev[0]' >> $CONFIG_FILE");
         set_var('XFSTESTS_SCRATCH_DEV', $scratch_dev[0]);
@@ -187,12 +190,12 @@ sub create_loop_device_by_rootsize {
     script_run("losetup -a");
     format_with_options("$INST_DIR/test_dev", $para{fstype});
     # Create mount points
-    script_run('mkdir /mnt/test /mnt/scratch');
+    script_run("mkdir $TEST_FOLDER $SCRATCH_FOLDER");
     # Setup configure file xfstests/local.config
     script_run("echo 'export TEST_DEV=/dev/loop0' >> $CONFIG_FILE");
     set_var('XFSTESTS_TEST_DEV', '/dev/loop0');
-    script_run("echo 'export TEST_DIR=/mnt/test' >> $CONFIG_FILE");
-    script_run("echo 'export SCRATCH_MNT=/mnt/scratch' >> $CONFIG_FILE");
+    script_run("echo 'export TEST_DIR=$TEST_FOLDER' >> $CONFIG_FILE");
+    script_run("echo 'export SCRATCH_MNT=$SCRATCH_FOLDER' >> $CONFIG_FILE");
     if ($amount == 1) {
         script_run("echo 'export SCRATCH_DEV=/dev/loop1' >> $CONFIG_FILE");
         set_var('XFSTESTS_SCRATCH_DEV', '/dev/loop1');
@@ -249,7 +252,8 @@ sub post_env_info {
             $size_info = $size_info . $_ . "    $size\n";
         }
     }
-    $size_info = $size_info . "PAGE_SIZE    " . script_output("getconf PAGE_SIZE");
+    $size_info = $size_info . "PAGE_SIZE     " . script_output("getconf PAGE_SIZE") . "\n";
+    $size_info = $size_info . "QEMURAM       " . get_var("QEMURAM") . "\n";
     record_info('Size', $size_info);
 }
 

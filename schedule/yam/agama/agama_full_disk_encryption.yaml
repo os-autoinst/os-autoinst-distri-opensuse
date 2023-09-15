@@ -5,7 +5,7 @@ description: >
 schedule:
   - installation/bootloader_start
   - yam/agama/patch_agama
-  - yam/agama/agama_full_disk_encryption
+  - yam/agama/agama
   - installation/boot_encrypt
   - installation/first_boot
   - console/validate_encrypt

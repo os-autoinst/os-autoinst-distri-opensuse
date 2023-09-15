@@ -82,22 +82,13 @@ sub add_repo_if_not_present {
 
 # https://progress.opensuse.org/issues/90522
 sub add_extra_customer_repositories {
-    my $arch = get_var('ARCH');
-    my %repo_list = (
-        x86_64 => [
-            {cond => '=12-SP2', name => '12-SP2-LTSS-ERICSSON-Updates', uri => 'http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/x86_64/update/'},
-            {cond => '=12-SP3', name => '12-SP3-LTSS-TERADATA-Updates', uri => 'http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3-LTSS-TERADATA/x86_64/update/'},
-            {cond => '=15-SP3', name => '15-SP3-ERICSSON-Updates', uri => 'http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP3-ERICSSON/x86_64/update/'},
-            {cond => '=15-SP4', name => '15-SP4-ERICSSON-Updates', uri => 'http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP4-ERICSSON/x86_64/update/'},
-        ],
-        s390x => [],
-        ppc64le => [],
-        aarch64 => [],
-    );
+    my @repos = split(/,/, get_var('EXTRA_CUSTOMER_REPOS', ''));
 
-    return unless $repo_list{$arch};
-    for my $repo (@{$repo_list{$arch}}) {
-        add_repo_if_not_present($repo->{uri}, $repo->{name}) if is_sle($repo->{cond});
+    for my $repo (@repos) {
+        my @repo_part = split(/;/, $repo);
+        my $url = $repo_part[1];
+        my $name = $repo_part[0];
+        add_repo_if_not_present($url, $name);
     }
 }
 
@@ -108,7 +99,7 @@ sub add_test_repositories {
     my $oldrepo = get_var('PATCH_TEST_REPO');
     my @repos = split(/,/, get_var('MAINT_TEST_REPO', ''));
 
-    add_extra_customer_repositories;
+    add_extra_customer_repositories if get_var('MAINT_TEST_REPO');
 
     # shim update will fail with old grub2 due to old signature
     if (get_var('MACHINE') =~ /uefi/ && !is_transactional) {

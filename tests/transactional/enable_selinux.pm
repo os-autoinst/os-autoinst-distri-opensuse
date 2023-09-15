@@ -17,6 +17,8 @@ use version_utils qw(is_leap_micro is_microos is_sle_micro is_public_cloud);
 use Utils::Systemd qw(systemctl);
 use Utils::Logging 'save_and_upload_log';
 use transactional qw(trup_call check_reboot_changes process_reboot);
+use publiccloud::utils qw(allow_openqa_port_selinux);
+use bootloader_setup 'replace_grub_cmdline_settings';
 
 sub check_enforcing {
     assert_script_run('selinuxenabled');
@@ -67,27 +69,25 @@ sub run {
         upload_logs($trup_log, log_name => $trup_log . ".txt");
         save_and_upload_log('rpm -qa', 'installed_pkgs.txt');
         check_reboot_changes;
-        if (is_public_cloud) {
-            # Additional packages required for semanage
-            trup_call('pkg install policycoreutils-python-utils');
-            check_reboot_changes;
-            # allow ssh tunnel port (to openQA)
-            my $upload_port = get_required_var('QEMUPORT') + 1;
-            assert_script_run("semanage port -a -t ssh_port_t -p tcp $upload_port");
-            process_reboot(trigger => 1);
-        }
     }
+    allow_openqa_port_selinux() if (is_public_cloud);
 
     check_enforcing;
 
     # disable and re-enable SELinux
+    record_info('Disable', "Disable SELinux");
     assert_script_run "sed -i -e 's/^SELINUX=.*/SELINUX=disabled/g' /etc/selinux/config";
     # See "Note: Relabeling your system after switching from the disabled mode" section on:
     # https://documentation.suse.com/sle-micro/5.4/html/SLE-Micro-all/cha-selinux-slemicro.html
     assert_script_run "touch /etc/selinux/.autorelabel";
+    # DEPRECATED runtime disable
+    # see https://github.com/SELinuxProject/selinux-kernel/wiki/DEPRECATE-runtime-disable
+    replace_grub_cmdline_settings('security=selinux selinux=1', 'security=selinux selinux=0', update_grub => 1);
     process_reboot(trigger => 1);
     check_disabled;
+    record_info('Re-enable', "Re-enabling SELinux");
     trup_call('setup-selinux');
+    replace_grub_cmdline_settings('security=selinux selinux=0', 'security=selinux selinux=1', update_grub => 1);
     process_reboot(trigger => 1);
     check_enforcing;
     assert_script_run "test -f /etc/selinux/.relabelled";

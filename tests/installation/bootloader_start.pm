@@ -22,6 +22,7 @@ use bootloader_hyperv;
 use bootloader_svirt;
 use bootloader_zkvm;
 use bootloader_s390;
+use ipxe_install;
 use version_utils qw(:SCENARIO :BACKEND);
 use Utils::Architectures;
 use File::Basename;
@@ -32,7 +33,12 @@ use boot_from_pxe;
 
 sub run {
     my $self = shift;
-    if (uses_qa_net_hardware() || get_var("PXEBOOT")) {
+    if (check_var('IPXE', '1')) {
+        my $ipxe = ipxe_install->new($self->{category});
+        $ipxe->run();
+        return;
+    }
+    elsif (uses_qa_net_hardware() || get_var("PXEBOOT")) {
         record_info('boot_from_pxe');
         $self->boot_from_pxe::run();
         return;

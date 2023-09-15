@@ -300,10 +300,6 @@
       <package>xorg-x11-Xvnc</package>
       <package>wicked</package>
       <package>snapper</package>
-      <package>sle-module-server-applications-release</package>
-      <package>sle-module-basesystem-release</package>
-      <package>sle-module-development-tools-release</package>
-      <package>sle-module-desktop-applications-release</package>
       <package>openssh</package>
       <package>kexec-tools</package>
       <package>kdump</package>

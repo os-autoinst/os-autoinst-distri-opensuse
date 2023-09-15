@@ -75,6 +75,7 @@ our @EXPORT = qw(
   calculate_sbd_start_delay
   collect_sbd_delay_parameters
   check_iscsi_failure
+  cluster_status_matches_regex
 );
 
 =head1 SYNOPSIS
@@ -1134,6 +1135,40 @@ sub check_iscsi_failure {
         $iscsi_fails = script_run 'grep -q LIO-ORG /proc/scsi/scsi';
         systemctl 'restart iscsi' if ($iscsi_fails);
         systemctl 'restart pacemaker';
+    }
+}
+
+=head3 cluster_status_matches_regex
+
+Check crm status output against a hardcode regular expression in order to check the cluster health 
+=over 1
+
+=item B<SHOW_CLUSTER_STATUS> - Output from 'crm status' command
+
+=back
+=cut
+
+sub cluster_status_matches_regex {
+    my ($show_cluster_status) = @_;
+    croak 'No crm status output' if (!$show_cluster_status);
+    my @resource_list = ();
+    my $previous_line = '';
+
+    for my $line (split("\n", $show_cluster_status)) {
+        if ($line =~ /(Stopped:| Stopped|Failed:| Failed|Pending:| Pending|Blocked:| Blocked)/) {
+            push @resource_list, $previous_line;
+            push @resource_list, $line;
+        }
+        else {
+            $previous_line = $line;
+        }
+    }
+    if (scalar @resource_list == 0) {
+        return 0;
+    }
+    else {
+        record_info("Cluster errors: ", join("\n", @resource_list));
+        return 1;
     }
 }
 

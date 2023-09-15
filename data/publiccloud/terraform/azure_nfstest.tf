@@ -50,7 +50,7 @@ variable "offer" {
 }
 
 variable "sku" {
-    default="gen1"
+    default="gen2"
 }
 
 variable "vm_create_timeout" {

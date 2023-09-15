@@ -129,7 +129,7 @@ sub run {
     # So push a needle to check upcoming reboot on zVM that is a way to indicate the stage done
     push @needles, 'autoyast-stage1-reboot-upcoming' if is_s390x || (is_pvm && !is_upgrade);
     # Similar situation over IPMI backend, we can check against PXE menu
-    push @needles, qw(prague-pxe-menu qa-net-selection) if is_ipmi;
+    push @needles, qw(prague-pxe-menu qa-net-selection) if is_ipmi and !get_var('IPXE');
     # Import untrusted certification for SMT
     push @needles, 'untrusted-ca-cert' if get_var('SMT_URL');
     # Workaround for removing package error during upgrade
@@ -284,6 +284,12 @@ sub run {
             @needles = grep { $_ ne 'autoyast-postpartscript' } @needles;
             $postpartscript = 1;
         }
+        elsif (check_screen('nvidia-validation-failed', 5) && check_var('BETA', '1')) {
+            # nvidia repo might be not ready in beta phase
+            record_soft_failure 'bsc#1144831';
+            wait_still_screen { send_key 'alt-o' };
+            send_key 'alt-n';
+        }
         elsif (match_has_tag('autoyast-error')) {
             die 'Error detected during first stage of the installation';
         }
@@ -331,6 +337,9 @@ sub run {
         reconnect_mgmt_console(timeout => 500);
     }
 
+    # IPXE boot does not provide boot menu so set pxe_boot_done equals 1 without checking needles
+    $pxe_boot_done = 1 if (check_var('IPXE', '1') || check_var('IPXE_UEFI', '1'));
+
     # If we didn't see pxe, the reboot is going now
     $self->wait_boot if is_ipmi and not get_var('VIRT_AUTOTEST') and not $pxe_boot_done;
 
@@ -351,7 +360,7 @@ sub run {
     # match openSUSE Welcome dialog on matching distros
     push(@needles, 'opensuse-welcome') if opensuse_welcome_applicable;
     # There will be another reboot for IPMI backend
-    push @needles, qw(prague-pxe-menu qa-net-selection) if is_ipmi;
+    push @needles, qw(prague-pxe-menu qa-net-selection) if is_ipmi and !get_var('IPXE');
     until (match_has_tag('reboot-after-installation')
           || match_has_tag('opensuse-welcome'))
     {

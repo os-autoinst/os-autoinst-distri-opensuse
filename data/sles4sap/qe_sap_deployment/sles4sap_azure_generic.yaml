@@ -19,6 +19,8 @@ terraform:
     private_key: '~/.ssh/id_rsa'
     os_image: "%PUBLIC_CLOUD_IMAGE_ID%"
     hana_os_major_version: '%HANA_OS_MAJOR_VERSION%'
+    hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
+    iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
 
     # HANA
     hana_count: '%NODE_COUNT%'

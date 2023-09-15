@@ -1,0 +1,12 @@
+---
+- hosts: all
+  vars:
+    remote_path: '/tmp/'
+    local_path: '/tmp/ansible_fetch_output/'
+    file: 'testout.txt'
+  tasks:
+  - name: fetch
+    fetch:
+      flat: yes
+      src: "{{ remote_path }}{{ file }}"
+      dest: "{{ local_path }}"

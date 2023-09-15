@@ -15,7 +15,7 @@ use lockapi;
 use testapi;
 use bootloader_setup qw(bootmenu_default_params specific_bootmenu_params prepare_disks sync_time);
 use registration 'registration_bootloader_cmdline';
-use utils qw(type_string_slow enter_cmd_slow);
+use utils qw(type_string_slow type_string_very_slow enter_cmd_slow enter_cmd_very_slow);
 use Utils::Backends;
 use Utils::Architectures;
 use version_utils qw(is_upgrade is_sle);
@@ -24,6 +24,10 @@ sub run {
     my ($image_path, $image_name, $cmdline);
     my $arch = get_var('ARCH');
     my $interface = get_var('SUT_NETDEVICE', 'eth0');
+    my $is_nvdimm = 0;
+    if (get_var('WORKER_CLASS') =~ /ipmi-nvdimm/) {
+        $is_nvdimm = 1;
+    }
     # In autoyast tests we need to wait until pxe is available
     if (get_var('AUTOYAST') && get_var('DELAYED_START') && !is_ipmi) {
         mutex_lock('pxe');
@@ -41,10 +45,10 @@ sub run {
             select_console 'sol', await_console => 0;
         }
     }
-    if (!check_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600)) {    # nocheck: old code, should be updated
+    if (!check_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu nue-ipxe-menu)], 600)) {    # nocheck: old code, should be updated
         ipmi_backend_utils::ipmitool 'chassis power reset';
     }
-    assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600);
+    assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu nue-ipxe-menu)], 600);
 
     # boot bare-metal/IPMI machine
     if (is_ipmi && get_var('BOOT_IPMI_SYSTEM')) {
@@ -53,12 +57,21 @@ sub run {
         return 1;
     }
     #detect pxe location
+    my $boot_cmd_suffix = "";
     if (match_has_tag("virttest-pxe-menu")) {
         #BeiJing
         # Login to command line of pxe management
         send_key_until_needlematch "virttest-pxe-edit-prompt", "esc", 61, 1;
 
         $image_path = get_var("HOST_IMG_URL");
+    }
+    elsif (match_has_tag("nue-ipxe-menu")) {
+        #Nuremberg ipxe
+        send_key 'i';    # open iPXE shell
+        assert_screen 'ipxe-shell';
+        my $path = get_required_var('MIRROR_HTTP') . "/boot/${arch}/loader";
+        $image_path = "initrd $path/initrd && kernel $path/linux install=" . get_required_var('MIRROR_HTTP');
+        $boot_cmd_suffix = " && boot";    # ipxe boot cmd looks like "initrd X && kernel Y cmdln && boot"
     }
     elsif (match_has_tag("qa-net-selection")) {
         if (check_var("INSTALL_TO_OTHERS", 1)) {
@@ -127,7 +140,7 @@ sub run {
         $image_path .= ' plymouth.enable=0 ';
     }
     # Execute installation command on pxe management cmd console
-    type_string_slow ${image_path} . " ";
+    $is_nvdimm ? type_string_very_slow ${image_path} . " " : type_string_slow ${image_path} . " ";
     bootmenu_default_params(pxe => 1, baud_rate => '115200');
 
     if (is_ipmi && !get_var('AUTOYAST')) {
@@ -148,11 +161,11 @@ sub run {
             $cmdline .= get_var("EXTRA_PXE_CMDLINE") . ' ';
         }
 
-        type_string_slow $cmdline;
+        $is_nvdimm ? type_string_very_slow $cmdline : type_string_slow $cmdline;
     }
 
     if (check_var('SCC_REGISTER', 'installation') && !(check_var('VIRT_AUTOTEST', 1) && check_var('INSTALL_TO_OTHERS', 1))) {
-        type_string_slow(registration_bootloader_cmdline);
+        $is_nvdimm ? type_string_very_slow(registration_bootloader_cmdline) : type_string_slow(registration_bootloader_cmdline);
     }
 
     specific_bootmenu_params;
@@ -160,9 +173,10 @@ sub run {
     # try to avoid blue screen issue on osd ipmi tests
     # local test passes, if validated on osd, will switch on to all ipmi tests
     if (is_ipmi && check_var('VIDEOMODE', 'text') && check_var('VIRT_AUTOTEST', 1)) {
-        type_string_slow(" vt.color=0x07 ");
+        $is_nvdimm ? type_string_very_slow(" vt.color=0x07 ") : type_string_slow(" vt.color=0x07 ");
     }
 
+    $is_nvdimm ? type_string_very_slow $boot_cmd_suffix : type_string_slow $boot_cmd_suffix;
     send_key 'ret';
     save_screenshot;
 
@@ -188,13 +202,13 @@ sub run {
                 my $image_name = eval { check_var("INSTALL_TO_OTHERS", 1) ? get_var("REPO_0_TO_INSTALL") : get_var("REPO_0") };
                 my $args = "initrd auto/openqa/repo/${image_name}/boot/${arch}/initrd";
                 $args = "initrd /mnt/openqa/repo/${image_name}/boot/${arch}/initrd" if (!is_orthos_machine);
-                type_string_slow $args;
+                $is_nvdimm ? type_string_very_slow $args : type_string_slow $args;
                 send_key 'ret';
                 #Detect orthos-grub-boot-initrd and qa-net-grub-boot-initrd for aarch64 in orthos and openQA networks respectively
                 wait_still_screen(stilltime => 480, timeout => 485);
                 assert_screen [qw(orthos-grub-boot-initrd qa-net-grub-boot-initrd)], $ssh_vnc_wait_time;
                 $args = "boot";
-                type_string_slow $args;
+                $is_nvdimm ? type_string_very_slow $args : type_string_slow $args;
                 send_key "ret";
                 assert_screen $ssh_vnc_tag, $ssh_vnc_wait_time;
             }
@@ -208,8 +222,8 @@ sub run {
         save_screenshot;
         # We have textmode installation via ssh and the default vnc installation so far
         if (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x')) {
-            type_string_slow('DISPLAY= ') if check_var('VIDEOMODE', 'text');
-            enter_cmd_slow("yast.ssh");
+            $is_nvdimm && check_var('VIDEOMODE', 'text') ? type_string_very_slow('DISPLAY= ') : type_string_slow('DISPLAY= ');
+            $is_nvdimm ? enter_cmd_very_slow("yast.ssh") : enter_cmd_slow("yast.ssh");
         }
         wait_still_screen;
     }

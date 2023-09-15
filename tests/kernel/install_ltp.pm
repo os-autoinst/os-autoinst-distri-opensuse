@@ -78,7 +78,6 @@ sub install_runtime_dependencies {
       exfat-utils
       fuse-exfat
       ibmtss
-      kernel-default-extra
       lvm2
       net-tools
       net-tools-deprecated
@@ -93,10 +92,14 @@ sub install_runtime_dependencies {
       wget
       xfsprogs
     );
-    for my $dep (@maybe_deps) {
-        # ignore failures due to missing packages (exit code 104)
-        zypper_call("in $dep", exitcode => [0, 104]);
-    }
+
+    # SLE-15 allows loading unsupported modules from kernel-default-extra
+    # via modprobe config file but SLE-12 does not. LTP tests for those
+    # modules then fail on SLE-12 because the required driver is available but
+    # modprobe refuses to load it.
+    push @maybe_deps, 'kernel-default-extra' unless is_sle('<15');
+
+    zypper_install_available(@maybe_deps);
 }
 
 sub install_debugging_tools {
@@ -106,10 +109,7 @@ sub install_debugging_tools {
       ltrace
       strace
     );
-    for my $dep (@maybe_deps) {
-        # ignore failures due to missing packages (exit code 104)
-        zypper_call("in $dep", exitcode => [0, 104]);
-    }
+    zypper_install_available(@maybe_deps);
 }
 
 sub install_runtime_dependencies_network {
@@ -136,10 +136,7 @@ sub install_runtime_dependencies_network {
       wireguard-tools
       xinetd
     );
-    for my $dep (@maybe_deps) {
-        # ignore failures due to missing packages (exit code 104)
-        zypper_call("in $dep", exitcode => [0, 104]);
-    }
+    zypper_install_available(@maybe_deps);
 }
 
 sub install_build_dependencies {
@@ -187,11 +184,7 @@ sub install_build_dependencies {
     # libopenssl-devel-32bit is blocked by dependency mess on SLE-12 and we
     # don't use it anyway...
     push @maybe_deps, 'libopenssl-devel-32bit' if !is_sle('<15');
-
-    for my $dep (@maybe_deps) {
-        # ignore failures due to missing packages (exit code 104)
-        zypper_call("in $dep", exitcode => [0, 104]);
-    }
+    zypper_install_available(@maybe_deps);
 }
 
 sub prepare_ltp_git {
@@ -291,7 +284,7 @@ sub install_from_repo {
     my @pkgs = split(/\s* \s*/, get_var('LTP_PKG', get_default_pkg));
 
     if (is_transactional) {
-        assert_script_run("transactional-update -n -c pkg install " . join(' ', @pkgs), 90);
+        assert_script_run("transactional-update -n -c pkg install " . join(' ', @pkgs), 180);
     } else {
         zypper_call("in --recommends " . join(' ', @pkgs));
     }
@@ -365,7 +358,7 @@ sub run {
         die 'INSTALL_LTP must contain "git" or "repo"';
     }
 
-    if (!get_var('KGRAFT') && !get_var('LTP_BAREMETAL') && !is_jeos && !is_alp) {
+    if (!get_var('KGRAFT') && !get_var('LTP_BAREMETAL') && !is_jeos && !is_transactional) {
         $self->wait_boot;
     }
 

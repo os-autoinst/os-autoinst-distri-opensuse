@@ -13,7 +13,7 @@ use Mojo::Base -base;
 use publiccloud::instance;
 use publiccloud::instances;
 use publiccloud::ssh_interactive 'select_host_console';
-use publiccloud::utils qw(is_azure is_ec2);
+use publiccloud::utils qw(is_azure is_gce is_ec2);
 use Carp;
 use List::Util qw(max);
 use Data::Dumper;
@@ -65,7 +65,7 @@ sub find_img {
     die('find_image() isn\'t implemented');
 }
 
-=head2 upload_image
+=head2 upload_img
 
 Upload a image to the CSP. Required parameter is the
 location of the C<image> file.
@@ -77,8 +77,8 @@ Retrieves the image-id after upload or die.
 
 =cut
 
-sub upload_image {
-    die('find_image() isn\'t implemented');
+sub upload_img {
+    die('upload_img() isn\'t implemented');
 }
 
 
@@ -235,15 +235,19 @@ If PUBLIC_CLOUD_IMAGE_ID is set, then this value will be used
 
 sub get_image_id {
     my ($self, $img_url) = @_;
+
     my $predefined_id = get_var('PUBLIC_CLOUD_IMAGE_ID');
     return $predefined_id if ($predefined_id);
+
     # If a URI is given, then no image ID should be determined
     return '' if (get_var('PUBLIC_CLOUD_IMAGE_URI'));
+
     # Determine image ID from image filename
     $img_url //= get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION');
     my ($img_name) = $img_url =~ /([^\/]+)$/;
     $self->{image_cache} //= {};
     return $self->{image_cache}->{$img_name} if ($self->{image_cache}->{$img_name});
+
     my $image_id = $self->find_img($img_name);
     die("Image $img_name is not available in the cloud provider") unless ($image_id);
     $self->{image_cache}->{$img_name} = $image_id;
@@ -262,7 +266,7 @@ sub get_image_uri {
     die 'The PUBLIC_CLOUD_IMAGE_URI variable makes sense only for Azure' if ($image_uri && !is_azure);
     if (!!$image_uri && $image_uri =~ /^auto$/mi) {
         my $definition = $self->generate_azure_image_definition();
-        my $version = $self->calc_img_version();    # PUBLIC_CLOUD_BUILD PUBLIC_CLOUD_BUILD_KIWI
+        my $version = $self->generate_img_version();    # PUBLIC_CLOUD_BUILD PUBLIC_CLOUD_BUILD_KIWI
         my $subscriptions = $self->provider_client->subscription;
         my $resource_group = $self->resource_group;
         my $image_gallery = $self->image_gallery;
@@ -396,24 +400,24 @@ Calls terraform tool and applies the corresponding configuration .tf file
 
 sub terraform_apply {
     my ($self, %args) = @_;
-    my @instances;
-    my $create_extra_disk = 'false';
-    my $extra_disk_size = 0;
     my $terraform_timeout = get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT);
     my $terraform_vm_create_timeout = get_var('TERRAFORM_VM_CREATE_TIMEOUT');
 
+    my $image_uri = $self->get_image_uri();
+    my $image_id = $self->get_image_id();
+
     $args{count} //= '1';
     my $instance_type = get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
-    my $image = $self->get_image_id();
-    my $image_uri = $self->get_image_uri();
     my $cloud_name = $self->conv_openqa_tf_name;
 
     record_info('WARNING', 'Terraform apply has been run previously.') if ($self->terraform_applied);
 
     $self->terraform_prepare_env();
 
+    # 1) Terraform init
+
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
-        record_info('INFO', "Creating instance $instance_type from $image ...");
+        record_info('INFO', "Creating instance $instance_type from $image_id ...");
         assert_script_run('cd ' . TERRAFORM_DIR . "/$cloud_name");
         my $sap_media = get_required_var('HANA');
         my $sap_regcode = get_required_var('SCC_REGCODE_SLES4SAP');
@@ -430,7 +434,7 @@ sub terraform_apply {
             q(%MACHINE_TYPE%) => $instance_type,
             q(%REGION%) => $self->provider_client->region,
             q(%HANA_BUCKET%) => $sap_media,
-            q(%SLE_IMAGE%) => $image,
+            q(%SLE_IMAGE%) => $image_id,
             q(%SCC_REGCODE_SLES4SAP%) => $sap_regcode,
             q(%STORAGE_ACCOUNT_NAME%) => $storage_account_name,
             q(%STORAGE_ACCOUNT_KEY%) => $storage_account_key,
@@ -446,6 +450,8 @@ sub terraform_apply {
         script_retry('terraform init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
     }
 
+    # 2) Terraform plan
+
     my $cmd = 'terraform plan -no-color ';
     if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
         # Some auxiliary variables, requires for fine control and public cloud provider specifics
@@ -453,15 +459,16 @@ sub terraform_apply {
             my $value = $args{vars}->{$key};
             $cmd .= sprintf(q(-var '%s=%s' ), $key, escape_single_quote($value));
         }
+
         # image_uri and image_id are mutally exclusive
-        if ($image_uri && $image) {
+        if ($image_uri && $image_id) {
             die "PUBLIC_CLOUD_IMAGE_URI and PUBLIC_CLOUD_IMAGE_ID are mutually exclusive";
         } elsif ($image_uri) {
             $cmd .= "-var 'image_uri=" . $image_uri . "' ";
             record_info('INFO', "Creating instance $instance_type from $image_uri ...");
-        } elsif ($image) {
-            $cmd .= "-var 'image_id=" . $image . "' ";
-            record_info('INFO', "Creating instance $instance_type from $image ...");
+        } elsif ($image_id) {
+            $cmd .= "-var 'image_id=" . $image_id . "' ";
+            record_info('INFO', "Creating instance $instance_type from $image_id ...");
         }
         if (is_azure) {
             # Note: Only the default Azure terraform profiles contains the 'storage-account' variable
@@ -473,7 +480,8 @@ sub terraform_apply {
         $cmd .= "-var 'region=" . $self->provider_client->region . "' ";
         $cmd .= "-var 'name=" . $self->resource_name . "' ";
         $cmd .= "-var 'project=" . $args{project} . "' " if $args{project};
-        $cmd .= "-var 'enable_confidential_vm=true' " if $args{confidential_compute};
+        $cmd .= "-var 'enable_confidential_vm=true' " if ($args{confidential_compute} && is_gce());
+        $cmd .= "-var 'enable_confidential_vm=enabled' " if ($args{confidential_compute} && is_ec2());
         $cmd .= "-var 'vm_create_timeout=" . $terraform_vm_create_timeout . "' " if $terraform_vm_create_timeout;
         $cmd .= sprintf(q(-var 'tags=%s' ), escape_single_quote($self->terraform_param_tags));
         if ($args{use_extra_disk}) {
@@ -492,6 +500,8 @@ sub terraform_apply {
     record_info('TFM cmd', $cmd);
 
     script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
+
+    # 3) Terraform apply
 
     # Valid values according to documentation: TRACE, DEBUG, INFO, WARN, ERROR & OFF
     # https://developer.hashicorp.com/terraform/internals/debugging
@@ -516,10 +526,10 @@ sub terraform_apply {
     }
     die('Terraform exit with ' . $ret) if ($ret != 0);
 
+    # 4) Terraform output
+
     my $output = decode_json(script_output("terraform output -json"));
-    my $vms;
-    my $ips;
-    my $resource_id;
+    my ($vms, $ips, $resource_id);
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         foreach my $vm_type ('hana', 'drbd', 'netweaver') {
             push @{$vms}, @{$output->{$vm_type . '_name'}->{value}};
@@ -532,13 +542,14 @@ sub terraform_apply {
         $resource_id = $output->{resource_id}->{value} if (get_var('PUBLIC_CLOUD_AZURE_NFS_TEST'));
     }
 
+    my @instances;
     foreach my $i (0 .. $#{$vms}) {
         my $instance = publiccloud::instance->new(
             public_ip => @{$ips}[$i],
             resource_id => $resource_id,
             instance_id => @{$vms}[$i],
             username => $self->provider_client->username,
-            image_id => $image,
+            image_id => $image_id,
             region => $self->provider_client->region,
             type => $instance_type,
             provider => $self
@@ -627,9 +638,9 @@ sub terraform_param_tags
     $openqa_var_server =~ s@^https?://|/$@@gm;
     my $tags = {
         openqa_ttl => get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300),
-        openqa_var_JOB_ID => get_current_job_id(),
-        openqa_var_NAME => get_var(NAME => ''),
-        openqa_var_SERVER => $openqa_var_server
+        openqa_var_job_id => get_current_job_id(),
+        openqa_var_name => get_var(NAME => ''),
+        openqa_var_server => $openqa_var_server
     };
 
     return encode_json($tags);

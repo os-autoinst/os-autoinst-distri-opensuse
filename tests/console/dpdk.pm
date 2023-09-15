@@ -28,7 +28,7 @@ use Utils::Architectures qw(is_x86_64 is_aarch64);
 
 
 sub install_ovs_dpdk {
-    if (is_sle('>=15-sp5')) {
+    if (is_sle('>=15-sp5') || (is_leap('>=15.5') && !(check_var('FLAVOR', 'DVD-Updates')))) {
         zypper_call('in openvswitch3 dpdk22 dpdk22-tools', timeout => 300);
     }
     else {
@@ -83,7 +83,7 @@ sub test_ovs_dpdk {
 
     # check dpdk-hugepages
     # we have issue with missing python script dpdk-hugepages.py, see boo#1212113
-    assert_script_run 'which dpdk-hugepages.py -s' if (is_sle || is_tumbleweed);
+    assert_script_run 'which dpdk-hugepages.py -s' if (is_sle || is_tumbleweed || (is_leap('>=15.5') && !(check_var('FLAVOR', 'DVD-Updates'))));
     assert_script_run 'grep -i  "dpdk enabled" /var/log/openvswitch/ovs-vswitchd.log';
 }
 

@@ -9,14 +9,14 @@ use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use qesapdeployment;
-use hacluster '$crm_mon_cmd';
+use hacluster qw($crm_mon_cmd cluster_status_matches_regex);
 
 sub run {
     my ($self) = @_;
-    my $inventory = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
-    my $prov = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my $provider_setting = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my $inventory = qesap_get_inventory(provider => $provider_setting);
 
-    my $chdir = qesap_get_terraform_dir();
+    my $chdir = qesap_get_terraform_dir(provider => $provider_setting);
     assert_script_run("terraform -chdir=$chdir output");
     my @remote_cmd = (
         'pwd',
@@ -27,14 +27,19 @@ sub run {
         'zypper lr',
         'zypper in -f -y vim'
     );
-    qesap_ansible_cmd(cmd => $_, provider => $prov) for @remote_cmd;
-    qesap_ansible_cmd(cmd => 'ls -lai /hana/', provider => $prov, filter => 'hana');
-    my $cmr_status = qesap_ansible_script_output(cmd => 'crm status', provider => $prov, host => '"hana[0]"', root => 1);
+    qesap_ansible_cmd(cmd => $_, provider => $provider_setting) for @remote_cmd;
+    qesap_ansible_cmd(cmd => 'ls -lai /hana/', provider => $provider_setting, filter => 'hana');
+    my $cmr_status = qesap_ansible_script_output(cmd => 'crm status',
+        provider => $provider_setting,
+        host => '"hana[0]"',
+        root => 1);
     record_info("crm status", $cmr_status);
-    qesap_ansible_cmd(cmd => $crm_mon_cmd, provider => $prov, filter => '"hana[0]"');
+    qesap_ansible_cmd(cmd => $crm_mon_cmd, provider => $provider_setting, filter => '"hana[0]"');
     qesap_cluster_logs();
-
-    if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+    if ($provider_setting eq 'AZURE') {
+        die 'Cluster resources throwing errors' if cluster_status_matches_regex($cmr_status);
+    }
+    if ($provider_setting eq 'AZURE') {
         if (get_var("QESAPDEPLOY_IBSMIRROR_RESOURCE_GROUP")) {
             my $rg = qesap_az_get_resource_group();
             my $ibs_mirror_rg = get_var('QESAPDEPLOY_IBSMIRROR_RESOURCE_GROUP');
@@ -42,7 +47,7 @@ sub run {
             qesap_add_server_to_hosts(name => 'download.suse.de', ip => get_required_var("QESAPDEPLOY_IBSMIRROR_IP"));
             qesap_az_vnet_peering_delete(source_group => $rg, target_group => $ibs_mirror_rg);
         }
-    } elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
+    } elsif ($provider_setting eq 'EC2') {
         if (get_var("QESAPDEPLOY_IBSMIRROR_IP_RANGE")) {
             my $deployment_name = qesap_calculate_deployment_name('qesapval');
             my $vpc_id = qesap_aws_get_vpc_id(resource_group => $deployment_name);
@@ -56,9 +61,8 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = shift;
+    qesap_cluster_logs();
     qesap_upload_logs();
-    qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
-    qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1200);
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
         if (get_var("QESAPDEPLOY_IBSMIRROR_RESOURCE_GROUP")) {
             my $rg = qesap_az_get_resource_group();
@@ -70,6 +74,8 @@ sub post_fail_hook {
             qesap_aws_delete_transit_gateway_vpc_attachment(name => qesap_calculate_deployment_name('qesapval') . '*');
         }
     }
+    qesap_execute(cmd => 'ansible', cmd_options => '-d', verbose => 1, timeout => 300);
+    qesap_execute(cmd => 'terraform', cmd_options => '-d', verbose => 1, timeout => 1200);
     $self->SUPER::post_fail_hook;
 }
 

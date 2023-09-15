@@ -9,7 +9,6 @@ use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use mmapi 'get_current_job_id';
 use qesapdeployment;
 
 sub run {
@@ -19,8 +18,6 @@ sub run {
     # Init al the PC gears (ssh keys)
     my $provider = $self->provider_factory();
 
-    my $qesap_provider = lc get_required_var('PUBLIC_CLOUD_PROVIDER');
-
     my %variables;
     $variables{REGION} = $provider->provider_client->region;
     $variables{DEPLOYMENTNAME} = qesap_calculate_deployment_name('qesapval');
@@ -29,7 +26,7 @@ sub run {
     }
     else {
         $variables{STORAGE_ACCOUNT_NAME} = get_required_var('STORAGE_ACCOUNT_NAME');
-        $variables{OS_VER} = $provider->get_image_id();
+        $variables{OS_URI} = $provider->get_blob_uri(get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
     }
     $variables{OS_OWNER} = get_var('QESAPDEPLOY_CLUSTER_OS_OWNER', 'amazon') if check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
 
@@ -39,7 +36,9 @@ sub run {
 
     # Only BYOS images needs it
     $variables{SCC_REGCODE_SLES4SAP} = get_var('SCC_REGCODE_SLES4SAP', '');
-    $variables{HANA_INSTANCE_TYPE} = get_var('QESAPDEPLOY_HANA_INSTANCE_TYPE', 'r6i.xlarge');
+    if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
+        $variables{HANA_INSTANCE_TYPE} = get_var('QESAPDEPLOY_HANA_INSTANCE_TYPE', 'r6i.xlarge');
+    }
 
     $variables{HANA_ACCOUNT} = get_required_var('QESAPDEPLOY_HANA_ACCOUNT');
     $variables{HANA_CONTAINER} = get_required_var('QESAPDEPLOY_HANA_CONTAINER');
@@ -64,7 +63,12 @@ sub run {
         $variables{SUBNET_ADDRESS_RANGE} = $peering_settings{subnet_address_range};
     }
 
-    qesap_prepare_env(openqa_variables => \%variables, provider => $qesap_provider);
+    $variables{ANSIBLE_ROLES} = qesap_get_ansible_roles_dir();
+
+    qesap_prepare_env(
+        openqa_variables => \%variables,
+        provider => get_required_var('PUBLIC_CLOUD_PROVIDER')
+    );
 }
 
 sub test_flags {

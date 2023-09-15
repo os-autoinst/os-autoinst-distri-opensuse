@@ -77,7 +77,7 @@ subtest override_known_failures => sub {
         }
     };
 
-    Mojo::File::path('test_known_issues.json')->spurt(Mojo::JSON::encode_json($known_issues_json));
+    Mojo::File::path('test_known_issues.json')->spew(Mojo::JSON::encode_json($known_issues_json));
 
     my $env = {product => 'sle:15', retval => 0};
     my $whitelist = LTP::WhiteList->new();

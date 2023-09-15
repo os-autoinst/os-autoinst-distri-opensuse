@@ -1,0 +1,13 @@
+---
+name: agama_dolomite_encrypted_lvm
+description: >
+  Playwright test on agama dolomite for installation with fully encrypted disk,
+  with LVM in use.
+schedule:
+  - installation/bootloader_start
+  - yam/agama/patch_agama
+  - yam/agama/agama
+  - installation/boot_encrypt
+  - installation/first_boot
+  - console/validate_encrypt
+  - console/validate_lvm

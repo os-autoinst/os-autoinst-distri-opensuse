@@ -65,7 +65,9 @@ sub check_kvm_modules {
     # for modular libvirt, virtqemud is expected in "loaded: active or inactive" status.
     # virtqemud.socket seems to be always in "loaded: active" status
     unless (is_monolithic_libvirtd) {
-        die 'virtqemud.socket is not running!' unless script_run("systemctl is-active virtqemud.socket") eq 0;
+        unless (get_var('TEST_SUITE_NAME') =~ /kubevirt-tests/ or script_run("systemctl is-active virtqemud.socket") eq 0) {
+            die 'virtqemud.socket is not running!';
+        }
     }
     record_info("KVM", "kvm modules are loaded!");
 }
@@ -121,11 +123,11 @@ sub login_to_console {
         }
     }
 
-    unless (is_tumbleweed or check_screen([qw(grub2 grub1 prague-pxe-menu)], 210)) {
+    unless (is_tumbleweed or check_screen([qw(grub2 grub1 prague-pxe-menu)], get_var('AUTOYAST') && !get_var("NOT_DIRECT_REBOOT_AFTER_AUTOYAST") ? 1 : 180)) {
         ipmitool("chassis power reset");
         reset_consoles;
         select_console 'sol', await_console => 0;
-        check_screen([qw(grub2 grub1 prague-pxe-menu)], 90);
+        check_screen([qw(grub2 grub1 prague-pxe-menu)], 120);
     }
 
     # If a PXE menu will appear just select the default option (and save us the time)

@@ -25,9 +25,13 @@ sub run ($self) {
     type_string("$testapi::password\n");
     barrier_wait('CLUSTER_PROVISIONED');
     barrier_wait('MPI_SETUP_READY');
-    assert_script_run "spack load $mpi";
-    script_run "module av";
-
+    if (check_var('HPC_LIB', 'boost')) {
+        assert_script_run 'source /usr/share/spack/setup-env.sh';
+        assert_script_run "spack load boost^$mpi";
+    } else {
+        assert_script_run "spack load $mpi";
+    }
+    assert_script_run 'spack find --loaded';
     record_info('ssh check', 'Validate sshd service status before mpirun');
     systemctl 'status sshd';
     barrier_wait('MPI_BINARIES_READY');

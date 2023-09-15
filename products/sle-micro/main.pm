@@ -8,8 +8,9 @@ BEGIN {
 }
 use utils;
 use testapi;
-use main_common qw(init_main is_updates_test_repo unregister_needle_tags map_incidents_to_repo);
+use main_common qw(init_main is_updates_test_repo unregister_needle_tags join_incidents_to_repo);
 use main_micro_alp;
+use DistributionProvider;
 
 init_main();
 
@@ -48,14 +49,30 @@ $needle::cleanuphandler = sub {
 if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
     my %incidents;
     my %u_url;
-    $incidents{OS} = get_var('OS_TEST_ISSUES', '');
-    $u_url{OS} = get_var('OS_TEST_TEMPLATE', '');
+    $incidents{OS} = get_var('OS_TEST_REPOS', get_var('INCIDENT_REPO'));
 
-    my $repos = map_incidents_to_repo(\%incidents, \%u_url);
+    if (exists $incidents{OS} && !$incidents{OS}) {
+        die '"OS_TEST_REPOS" or "INCIDENT_REPO" variable is empty';
+    }
+
+    my $repos = join_incidents_to_repo(\%incidents);
     set_var('MAINT_TEST_REPO', $repos);
 }
 
-return 1 if load_yaml_schedule;
+testapi::set_distribution(DistributionProvider->provide());
+
+# set failures
+#$testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
+#$testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failures());
+
+if (load_yaml_schedule) {
+    if (YuiRestClient::is_libyui_rest_api) {
+        YuiRestClient::set_libyui_backend_vars;
+        YuiRestClient::init_logger;
+    }
+    return 1;
+}
+
 main_micro_alp::load_tests();
 
 1;

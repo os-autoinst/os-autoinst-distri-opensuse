@@ -23,6 +23,9 @@ use strict;
 use warnings;
 use x11utils 'ensure_unlocked_desktop';
 use Utils::Logging 'export_logs';
+use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
+use version_utils qw(is_sle);
+use power_action_utils qw(power_action);
 
 sub run {
     my $self = shift;
@@ -34,19 +37,37 @@ sub run {
     save_screenshot();
 
     systemctl 'unmask packagekit.service';
-    # On s390x sometimes the vnc will still be there and the next select_console
-    # will create another vnc. This will make the OpenQA have 2 vnc sessions at
-    # the same time. We'd cleanup the previous one and setup the new one.
-    assert_script_run 'pkill Xvnc ||:' if !check_var('DESKTOP', 'textmode') && is_s390x;
+
+    if (!check_var('DESKTOP', 'textmode') && is_s390x && is_sle('<15-sp1')) {
+        systemctl 'restart display-manager.service';
+        systemctl 'restart polkit.service';
+
+        # On s390x sometimes the vnc will still be there and the next select_console
+        # will create another vnc. This will make the OpenQA have 2 vnc sessions at
+        # the same time. We'd cleanup the previous one and setup the new one.
+        assert_script_run 'pkill Xvnc ||:';
+    }
+    elsif (!check_var('DESKTOP', 'textmode') && is_s390x && is_sle('>=15-sp1')) {
+        power_action('reboot', textmode => 1);
+        $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 300));
+    }
+
     # logout root (and later user) so they don't block logout
     # in KDE
     enter_cmd "exit";
-    $console->reset;
-
-    $console = select_console 'user-console';
-    enter_cmd "exit";    # logout
-    $console->reset;
     wait_still_screen(2);
+    select_console 'user-console';
+    enter_cmd "exit";
+    wait_still_screen(2);
+    unless (check_var('SERIAL_CONSOLE', 0) || check_var('VIRTIO_CONSOLE', 0)) {
+        select_serial_terminal;
+        enter_cmd "exit";
+        wait_still_screen(2);
+        select_user_serial_terminal;
+        enter_cmd "exit";
+        wait_still_screen(2);
+    }
+    reset_consoles;
 
     save_screenshot();
 

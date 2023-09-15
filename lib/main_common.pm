@@ -312,7 +312,7 @@ sub is_updates_tests {
     my $flavor = get_var('FLAVOR');
     return 0 unless $flavor;
     # Incidents might be also Incidents-Gnome or Incidents-Kernel
-    return $flavor =~ /-Updates$/ || $flavor =~ /-Incidents/;
+    return $flavor =~ /-Updates/ || $flavor =~ /-Incidents/;
 }
 
 sub is_migration_tests {
@@ -323,7 +323,7 @@ sub is_migration_tests {
 
 sub is_updates_test_repo {
     # mru stands for Maintenance Released Updates and skips unreleased updates
-    return is_updates_tests && get_required_var('FLAVOR') !~ /-Minimal$/;
+    return is_updates_tests && get_required_var('FLAVOR') !~ /-Minimal$/ && !check_var('FLAVOR', 'Container-Image-Updates');
 }
 
 sub is_repo_replacement_required {
@@ -424,6 +424,9 @@ sub load_boot_tests {
     elsif (uses_qa_net_hardware() || get_var("PXEBOOT")) {
         loadtest "boot/boot_from_pxe";
         set_var("DELAYED_START", get_var("PXEBOOT"));
+    }
+    elsif (get_var("IPXE")) {
+        loadtest "installation/ipxe_install";
     }
     else {
         loadtest "installation/data_integrity" if data_integrity_is_applicable;
@@ -1841,7 +1844,8 @@ sub load_extra_tests_filesystem {
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
         loadtest 'console/snapper_undochange';
         loadtest 'console/snapper_create';
-        loadtest "console/snapper_jeos_cli" if is_jeos;
+        # Needs zsh, not available in staging
+        loadtest "console/snapper_jeos_cli" if is_jeos && !is_staging;
         loadtest "console/btrfs_autocompletion";
         if (get_var("NUMDISKS", 0) > 1) {
             loadtest "console/btrfs_qgroups";
