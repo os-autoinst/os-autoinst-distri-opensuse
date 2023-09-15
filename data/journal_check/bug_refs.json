@@ -452,5 +452,19 @@
             "microos":  ["Tumbleweed"]
         },
         "type": "bug"
+    },
+    "boo#1215367": {
+        "description": "pam_wtmpdb\\(login:session\\): Failed to execute statement: database is locked",
+        "products": {
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "bug"
+    },
+    "boo#1215368": {
+        "description": "systemctl: invalid option -- '\\.'",
+        "products": {
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "bug"
     }
 }
