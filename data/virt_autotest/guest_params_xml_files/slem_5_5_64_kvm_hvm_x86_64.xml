@@ -84,8 +84,7 @@
     <guest_autoconsole>text</guest_autoconsole>
     <guest_noreboot></guest_noreboot>
     <guest_default_target>graphical</guest_default_target>
-    <!-- Registration with scc.suse.com can only be enabled later until CDN publishment ready (bsc#1213947) -->
-    <guest_do_registration>false</guest_do_registration>
+    <guest_do_registration>true</guest_do_registration>
     <guest_registration_server></guest_registration_server>
     <guest_registration_username>www@suse.com</guest_registration_username>
     <guest_registration_password></guest_registration_password>
