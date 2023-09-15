@@ -388,6 +388,13 @@
         },
         "type": "ignore"
     },
+    "bsc#1195060": {
+        "description": "Failed to start Load kdump kernel early on startup",
+        "products": {
+            "sle-micro": ["5.1", "5.2", "5.3"]
+        },
+        "type": "bug"
+    },
     "bsc#1199163": {
         "description": "Directory '.*.hdmi' with parent 'vc4-hdmi.* already present",
         "products": {
