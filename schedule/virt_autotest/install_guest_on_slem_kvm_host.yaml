@@ -14,7 +14,6 @@ vars:
   SYSTEM_ROLE: kvm
   HOST_HYPERVISOR: kvm
   PATTERNS: default,kvm
-  IPXE: 0
   MAX_JOB_TIME: 10800
 schedule:
   - "{{bootup_and_install}}"
