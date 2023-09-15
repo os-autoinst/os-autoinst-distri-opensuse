@@ -2265,6 +2265,9 @@ sub load_mitigation_tests {
             loadtest "cpu_bugs/add_repos_qemu";
         }
     }
+    if (get_var('KVM_GUEST')) {
+        loadtest "cpu_bugs/kvm_guest_mitigations";
+    }
     if (get_var('IPMI_TO_QEMU')) {
         loadtest "cpu_bugs/ipmi_to_qemu";
     }

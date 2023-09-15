@@ -70,6 +70,7 @@ my $vm_ip_addr;
 my $qa_password;
 
 our $DEBUG_MODE = get_var("XEN_DEBUG", 0);
+our $CPU_MODE = get_var("CPUMODE", 0);
 =head2 reboot_and_wait
 
 	reboot_and_wait([timeout => $timeout]);
@@ -480,7 +481,7 @@ sub config_and_reboot {
     if ($config_ret ne 0) {
         ssh_vm_cmd("grub2-mkconfig -o /boot/grub2/grub.cfg", $qa_password, $vm_ip_addr);
     }
-    record_info('INFO', "Generate domu kernel parameters.");
+    record_info('INFO', "Generate domu/guest kernel parameters.");
     #ssh_vm_cmd("poweroff", $qa_password, $vm_ip_addr);
     ssh_vm_cmd("sync", $qa_password, $vm_ip_addr);
 
@@ -530,6 +531,24 @@ sub do_check {
     return (0, undef, undef, undef);
 }
 
+sub do_check_kvm_test {
+    my ($secnario, $qa_password, $dc_domain_name, $vm_ip_addr) = @_;
+    my $foo = $secnario->{default};
+    my $roo = $foo->{expected};
+    while (my ($cmd, $lines) = each %{$foo->{expected}}) {
+        my $vm_output = script_output_from_vm("$cmd", $qa_password, $vm_ip_addr);
+        my @ret = split('/', $cmd);
+        my $ret_paramter = $ret[-1];
+        foreach my $expected_string (@{$lines}) {
+            if ($vm_output !~ /$expected_string/i) {
+                record_info("ERROR", "Actual output: " . $cmd . $vm_output . "\nExpected string: " . $cmd . $expected_string, result => 'fail');
+                return (1, $ret_paramter, $expected_string, $vm_output);
+            }
+        }
+    }
+
+    return (0, $roo, undef, undef);
+}
 sub cycle_workflow {
     my ($self, $carg, $ckey, $cvalue, $qa_password, $cvm_domain_name, $vm_ip_addr, $hyper_param) = @_;
     my $parameter = $ckey;
@@ -548,16 +567,29 @@ sub cycle_workflow {
               . "\nVulnerabilities value: " . $vm_vulnerability_output, result => 'ok');
     }
     diag "Check the parameter:$parameter\n";
-    my ($ret, $match_type, $match_value, $actual_output) = do_check($cvalue, $qa_password, $cvm_domain_name, $vm_ip_addr);
-    if ($ret ne 0) {
-        record_info('ERROR', "$parameter test is failed.", result => 'fail');
-        diag "$parameter test failed.\n";
+    if ($CPU_MODE) {
+        my ($ret, $match_type, $match_value, $actual_output) = do_check_kvm_test($cvalue, $qa_password, $cvm_domain_name, $vm_ip_addr);
+        if ($ret ne 0) {
+            record_info('ERROR', "$parameter test is failed.", result => 'fail');
+            diag "$parameter test failed.\n";
+        }
+        record_info("$parameter Finish", "$parameter test is finished.");
+        diag "$parameter test finished.\n";
+        ssh_vm_cmd("sed -i -e '/GRUB_CMDLINE_LINUX=/s/ $parameter//g' /etc/default/grub", $qa_password, $vm_ip_addr);
+        config_and_reboot($qa_password, $cvm_domain_name, $vm_ip_addr);
+        return ($ret, $match_type, $match_value, $actual_output);
+    } else {
+        my ($ret, $match_type, $match_value, $actual_output) = do_check($cvalue, $qa_password, $cvm_domain_name, $vm_ip_addr);
+        if ($ret ne 0) {
+            record_info('ERROR', "$parameter test is failed.", result => 'fail');
+            diag "$parameter test failed.\n";
+        }
+        record_info("$parameter Finish", "$parameter test is finished.");
+        diag "$parameter test finished.\n";
+        ssh_vm_cmd("sed -i -e '/GRUB_CMDLINE_LINUX=/s/ $parameter//g' /etc/default/grub", $qa_password, $vm_ip_addr);
+        config_and_reboot($qa_password, $cvm_domain_name, $vm_ip_addr);
+        return ($ret, $match_type, $match_value, $actual_output);
     }
-    record_info("$parameter Finish", "$parameter test is finished.");
-    diag "$parameter test finished.\n";
-    ssh_vm_cmd("sed -i -e '/GRUB_CMDLINE_LINUX=/s/ $parameter//g' /etc/default/grub", $qa_password, $vm_ip_addr);
-    config_and_reboot($qa_password, $cvm_domain_name, $vm_ip_addr);
-    return ($ret, $match_type, $match_value, $actual_output);
 }
 
 sub guest_cycle {
@@ -630,6 +662,76 @@ sub guest_cycle {
 
     }
     parse_junit_log("$junit_file");
+}
+sub dealwithdata {
+    my ($secnario, $junit_file, $key, $testcase_status) = @_;
+    while (my ($cmd, $lines) = each %{$secnario}) {
+        my @ret = split('/', $cmd);
+        my $ret_paramter = $ret[-1];
+        foreach my $expected_string (@{$lines}) {
+            insert_tc2_xml(file_name => "$junit_file",
+                class_name => "$key",
+                sys_output => "Parameter:" . "$ret_paramter\n" . "Result: " . $expected_string,
+                case_status => "$testcase_status");
+        }
+    }
+}
+sub guest_cycle_kvm {
+    my ($self, $hash, $mode, $qa_password, $guest_name, $vm_ip_addr) = @_;
+
+    # Initialize variable for generating junit file
+    my $testsuites_name = $guest_name . '_mitigation_test';
+    my $testsuite_name = '';
+    my $testcase_name = '';
+    my $total_failure_tc_counts = 0;
+    my $failure_tc_counts_in_ts = 0;
+    my $total_tc_counts = 0;
+    my $total_tc_counts_in_ts = 0;
+    my $junitfile = "/tmp/" . $guest_name . "_mitigation_test_junit.xml";
+
+    # Initialize junit sturcture for hypervisor mitigation test
+    init_xml(file_name => "$junitfile", testsuites_name => "$testsuites_name");
+
+    while (my ($arg, $dict) = each %$hash) {
+        if ($mode eq 'all' or $mode eq 'single') {
+            $failure_tc_counts_in_ts = 0;
+            $total_tc_counts_in_ts = 0;
+
+            # Add a group case name as testsuite to junit file
+            append_ts2_xml(file_name => "$junitfile", testsuite_name => "$arg");
+            while (my ($key, $value) = each %$dict) {
+                $total_tc_counts += 1;
+                $total_tc_counts_in_ts += 1;
+                my $testcase_status = "pass";
+
+                # go through each case
+                my ($ret, $match_type, $match_value, $actual_output) = cycle_workflow($self, $arg, $key, $value, $qa_password, $guest_name, $vm_ip_addr);
+                if ($ret ne 0) {
+                    $testcase_status = "fail";
+                    $failure_tc_counts_in_ts += 1;
+                    $total_failure_tc_counts += 1;
+                    insert_tc2_xml(file_name => "$junitfile",
+                        class_name => "$key",
+                        case_status => "$testcase_status",
+                        sys_output => "$match_type  Expected:" . "$match_value\n",
+                        sys_err => "Actual:" . "$actual_output");
+                } else {
+                    dealwithdata($match_type, $junitfile, $key, $testcase_status);
+                }
+                update_ts_attr(file_name => "$junitfile", attr => 'failures', value => $failure_tc_counts_in_ts);
+                update_ts_attr(file_name => "$junitfile", attr => 'tests', value => $total_tc_counts_in_ts);
+                # update testsuites info
+                update_tss_attr(file_name => "$junitfile", attr => 'failures', value => $total_failure_tc_counts);
+                update_tss_attr(file_name => "$junitfile", attr => 'tests', value => $total_tc_counts);
+                # upload junit file for each case to avoid missing all result once test causes host hang.
+                parse_junit_log("$junitfile");
+            }
+        } else {
+            last;
+        }
+
+    }
+    parse_junit_log("$junitfile");
 }
 #This is entry for testing.
 #The instances call this function to finish all 'basic' testing.
