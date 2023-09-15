@@ -32,6 +32,7 @@ ansible:
     secondary_site: 'miky'
   create:
     - registration.yaml -e reg_code='%SCC_REGCODE_SLES4SAP%' -e email_address='testing@suse.com'
+    - fully-patch-system.yaml
     - pre-cluster.yaml
     - sap-hana-preconfigure.yaml -e use_sapconf=true
     - cluster_sbd_prep.yaml

@@ -625,6 +625,9 @@ sub create_playbook_section_list {
     push @playbook_list, 'registration.yaml -e reg_code=' . get_required_var('SCC_REGCODE_SLES4SAP') . " -e email_address=''"
       unless (get_var('QESAP_SCC_NO_REGISTER'));
 
+    # Add "fully patch system" module after registration module and before test start/configuration moudles
+    push @playbook_list, 'fully-patch-system.yaml';
+
     # SLES4SAP/HA related playbooks
     if ($ha_enabled) {
         push @playbook_list, 'pre-cluster.yaml', 'sap-hana-preconfigure.yaml -e use_sapconf=' . get_required_var('USE_SAPCONF');
