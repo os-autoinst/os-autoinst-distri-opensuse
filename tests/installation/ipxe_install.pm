@@ -231,7 +231,7 @@ sub run {
         # HANA PERF uses DELL R840 and R740, their UEFI IPXE boot need not set_bootscript_hdd
         return if (get_var('HANA_PERF') && get_var('IPXE_UEFI'));
         # make sure to wait for a while befor changing the boot device again, in order to not change it too early
-        sleep 120;
+        sleep get_var('PXE_BOOT_TIME', 120);
         set_bootscript_hdd if get_var('IPXE_UEFI');
     }
     else {
@@ -271,3 +271,13 @@ sub run {
 }
 
 1;
+
+=head1 Configuration
+
+=head2 PXE_BOOT_TIME
+
+The time in seconds that the worker takes from power-on to starting execution
+of the PXE script or menu. Default is 120s. Setting the variable too high is
+safer than too low.
+
+=cut
