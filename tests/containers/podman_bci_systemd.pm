@@ -18,12 +18,12 @@ sub run {
     my $podman = $self->containers_factory('podman');
     $self->{podman} = $podman;
 
-    my $image = get_var("CONTAINER_IMAGE_TO_TEST", "registry.suse.com/bci/bci-init:latest");
-
     record_info('Test', 'Launch a container with systemd');
-    assert_script_run("podman run -d -p 80:80 --name nginx $image");
+    assert_script_run("podman run -d -p 80:80 --name nginx registry.suse.com/bci/bci-init:latest");
 
     record_info('Test', 'Install nginx');
+    # Remove additional repos from the host, nginx package will be installed from BCI repo only.
+    assert_script_run("podman exec nginx rm /usr/lib/zypp/plugins/services/container-suseconnect-zypp");
     assert_script_run("podman exec nginx zypper -n in nginx");
     assert_script_run("podman exec nginx bash -c 'echo testpage123-content > /srv/www/htdocs/index.html'");
 
