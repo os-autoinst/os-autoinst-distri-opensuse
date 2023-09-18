@@ -57,6 +57,10 @@ my $KDUMP_DIR = '/opt/kdump';
 my $MAX_TIME = get_var('XFSTESTS_SUBTEST_MAXTIME') || 2400;
 my $FSTYPE = get_required_var('XFSTESTS');
 
+# Variables use for no heartbeat mode
+my $TIMEOUT_NO_HEARTBEAT = get_var('XFSTESTS_TIMEOUT', 2000);
+my ($test_status, $test_start, $test_duration);
+
 my $TEST_FOLDER = '/opt/test';
 my $SCRATCH_FOLDER = '/opt/scratch';
 
@@ -433,10 +437,75 @@ sub config_debug_option {
     }
 }
 
+# Run a single test and write log to file but without heartbeat
+sub test_run_without_heartbeat {
+    my ($self, $test) = @_;
+    my ($category, $num) = split(/\//, $test);
+    my $run_options = '';
+    my $status_num = 1;
+    $run_options = '-nfs' if check_var('XFSTESTS', 'nfs');
+    my $inject_code = get_var('INJECT_INFO', '');
+    eval {
+        $test_start = time();
+        # Send kill signal 3 seconds after sending the default SIGTERM to avoid some tests refuse to stop after timeout
+        assert_script_run("timeout -k 3 " . ($TIMEOUT_NO_HEARTBEAT - 5) . " $TEST_WRAPPER '$test' $run_options $inject_code | tee $LOG_DIR/$category/$num; echo \${PIPESTATUS[0]} > $LOG_DIR/subtest_result_num", $TIMEOUT_NO_HEARTBEAT);
+        $status_num = script_output("tail -n 1 $LOG_DIR/subtest_result_num");
+        $test_duration = time() - $test_start;
+    };
+    if ($@) {
+        $test_status = 'FAILED';
+        $test_duration = time() - $test_start;
+        sleep(2);
+        copy_log($category, $num, 'out.bad');
+        copy_log($category, $num, 'full');
+        copy_log($category, $num, 'dmesg');
+        copy_fsxops($category, $num);
+        collect_fs_status($category, $num);
+        if (get_var('BTRFS_DUMP', 0) && (check_var 'XFSTESTS', 'btrfs')) { dump_btrfs_img($category, $num); }
+        if (get_var('RAW_DUMP', 0)) { raw_dump($category, $num); }
+
+        prepare_system_shutdown;
+        select_console 'root-console' unless is_pvm;
+        send_key 'alt-sysrq-b';
+        reconnect_mgmt_console if is_pvm;
+        $self->wait_boot;
+
+        sleep 1;
+        select_console('root-console');
+        # Save kdump data to KDUMP_DIR if not set "NO_KDUMP=1"
+        unless (check_var('NO_KDUMP', '1')) {
+            unless (save_kdump($test, $KDUMP_DIR, vmcore => 1, kernel => 1, debug => 1)) {
+                # If no kdump data found, write warning to log
+                my $msg = "Warning: $test crashed SUT but has no kdump data";
+                script_run("echo '$msg' >> $LOG_DIR/$category/$num");
+            }
+        }
+
+        # Reload loop device after a reboot
+        reload_loop_device if get_var('XFSTESTS_LOOP_DEVICE');
+    }
+    else {
+        $status_num =~ s/^\s+|\s+$//g;
+        if ($status_num == 0) {
+            $test_status = 'PASSED';
+        }
+        elsif ($status_num == 22) {
+            $test_status = 'SKIPPED';
+        }
+        else {
+            $test_status = 'FAILED';
+        }
+    }
+    # Add test status to STATUS_LOG file
+    return log_add($STATUS_LOG, $test, $test_status, $test_duration);
+}
+
 sub run {
     my $self = shift;
     select_console('root-console');
     return if get_var('XFSTESTS_NFS_SERVER');
+    my $enable_heartbeat = 1;
+    $enable_heartbeat = 0 if (check_var 'XFSTESTS_NO_HEARTBEAT', '1');
 
     config_debug_option;
 
@@ -467,7 +536,8 @@ sub run {
         script_retry('ping -c3 10.0.2.101', delay => 15, retry => 12);
     }
 
-    heartbeat_start;
+    heartbeat_start if $enable_heartbeat == 1;
+
     my $status_log_content = "";
     foreach my $test (@tests) {
         # trim testname
@@ -482,6 +552,10 @@ sub run {
         # Run test and wait for it to finish
         my ($category, $num) = split(/\//, $test);
         enter_cmd("echo $test > /dev/$serialdev");
+        if ($enable_heartbeat == 0) {
+            $status_log_content = test_run_without_heartbeat($self, $test);
+            next;
+        }
         test_run($test);
         my ($type, $status, $time) = test_wait($MAX_TIME);
         if ($type eq $HB_DONE) {
@@ -495,7 +569,7 @@ sub run {
                 collect_fs_status($category, $num);
                 if (get_var('BTRFS_DUMP', 0) && (check_var 'XFSTESTS', 'btrfs')) { dump_btrfs_img($category, $num); }
             }
-            if (get_var('RAW_DUMP', 0)) { raw_dump($category, $num); }
+            raw_dump($category, $num) if get_var('RAW_DUMP', 0);
             next;
         }
 
@@ -530,15 +604,12 @@ sub run {
         log_add($STATUS_LOG, $test, $status, $time);
 
         # Reload loop device after a reboot
-        if (get_var('XFSTESTS_LOOP_DEVICE')) {
-            reload_loop_device;
-        }
+        reload_loop_device if get_var('XFSTESTS_LOOP_DEVICE');
 
         # Prepare for the next test
         heartbeat_start;
-
     }
-    heartbeat_stop;
+    heartbeat_stop if $enable_heartbeat == 1;
 
     #Save status log before next step(if run.pm fail will load into a last good snapshot)
     save_tmp_file('status.log', $status_log_content);
