@@ -21,6 +21,7 @@
       <li><a href="#power_action">power_action</a></li>
       <li><a href="#assert_shutdown_and_restore_system">assert_shutdown_and_restore_system</a></li>
       <li><a href="#assert_shutdown_with_soft_timeout">assert_shutdown_with_soft_timeout</a></li>
+      <li><a href="#check_bsc1215132">check_bsc1215132</a></li>
     </ul>
   </li>
 </ul><h1>lib/power_action_utils.pm</h1>
@@ -96,6 +97,11 @@ $args = {[timeout =&gt; $timeout] [,soft_timeout =&gt; $soft_timeout] [,bugref =
 <p>Example:</p>
 
 <pre><code>assert_shutdown_with_soft_timeout({timeout =&gt; 300, soft_timeout =&gt; 60, bugref =&gt; &#39;bsc#123456&#39;});</code></pre>
+
+<h2 id="check_bsc1215132">check_bsc1215132</h2>
+
+<pre><code>Validate dependencies which provides shutdown/poweroff/reboot commands.
+Use this in the post_fail_hook to raise a softfail of the reported bug.</code></pre>
 
 
 </body>
