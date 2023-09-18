@@ -473,5 +473,12 @@
             "microos":  ["Tumbleweed"]
         },
         "type": "bug"
+    },
+    "bsc#1215377": {
+        "description": "plugin /usr/sbin/sedispatch terminated unexpectedly",
+        "products": {
+            "sle-micro": ["5.4" , "5.5"]
+        },
+        "type": "bug"
     }
 }
