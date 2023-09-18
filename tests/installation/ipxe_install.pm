@@ -46,12 +46,16 @@ sub poweron_host {
 }
 
 sub set_pxe_boot {
+    my $is_uefi = get_var('IPXE_UEFI');
     while (1) {
         my $stdout = ipmitool('chassis bootparam get 5');
-        last if $stdout =~ m/Force PXE/;
+        last if $stdout =~ $is_uefi ? "m/(Force PXE|BIOS EFI boot)/" : "m/Force PXE/";
         diag "setting boot device to pxe";
-        my $options = get_var('IPXE_UEFI') ? 'options=efiboot' : '';
+        my $options = $is_uefi ? 'options=efiboot' : '';
         ipmitool("chassis bootdev pxe ${options}");
+        # see the Intelligent Platform Management Interface Specification v2.0
+        # Set System Boot Options Command & Get System Boot Options Command
+        ipmitool("raw 0x00 0x08 0x05 0xe0 0x04 0x00 0x00 0x00") if $is_uefi;
         sleep(3);
     }
 }
