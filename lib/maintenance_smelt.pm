@@ -31,8 +31,10 @@ sub get_incident_packages {
     my $mr = $_[0];
     my $gql_query = "{incidents(incidentId: $mr){edges{node{incidentpackagesSet{edges{node{package{name}}}}}}}}";
     my $graph = JSON->new->utf8->decode(query_smelt($gql_query));
-    my @nodes = @{$graph->{data}{incidents}{edges}[0]{node}{incidentpackagesSet}{edges}};
-    my @packages = map { $_->{node}{package}{name} } @nodes;
+    die "Error in getting incident data (incidentId:$mr) from SMELT" unless $graph;
+    my $nodes = $graph->{data}{incidents}{edges}[0]{node}{incidentpackagesSet}{edges};
+    die "Invalid/empty incident data (incidentId:$mr) from SMELT" unless $nodes;
+    my @packages = map { $_->{node}{package}{name} } @{$nodes};
     die "Test could not parse any packages in SMELT response" if not @packages;
     return @packages;
 }
