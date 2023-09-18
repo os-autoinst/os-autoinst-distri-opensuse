@@ -28,7 +28,7 @@ use hacluster qw(check_cluster_state
   get_node_index
   get_node_number
   ha_export_logs
-  calculate_sbd_start_delay
+  setup_sbd_delay
   wait_until_resources_started
 );
 use utils qw(zypper_call);
@@ -58,7 +58,7 @@ sub run {
     my @checks = qw(kill-sbd kill-corosync kill-pacemakerd split-brain-iptables);
     my $preflight_start_time = time;
     # Start delay after fencing to prevent node joining cluster too quickly
-    my $start_delay_after_fencing = calculate_sbd_start_delay();
+    my $start_delay_after_fencing = setup_sbd_delay();
 
     # Loop on each check
     foreach my $check (@checks) {

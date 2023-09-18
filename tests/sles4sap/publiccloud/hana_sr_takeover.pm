@@ -46,7 +46,7 @@ sub run {
     );
 
     # SBD delay related setup in case of crash OS to prevent cluster starting too quickly after reboot
-    $self->setup_sbd_delay() if $takeover_action eq 'crash';
+    $self->setup_sbd_delay_publiccloud() if $takeover_action eq 'crash';
     # Calculate SBD delay sleep time
     $sbd_delay = $self->sbd_delay_formula if $takeover_action eq 'crash';
 

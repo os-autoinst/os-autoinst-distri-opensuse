@@ -45,7 +45,7 @@ our @EXPORT = qw(
   wait_for_pacemaker
   cloud_file_content_replace
   change_sbd_service_timeout
-  setup_sbd_delay
+  setup_sbd_delay_publiccloud
   sbd_delay_formula
   create_instance_data
   deployment_name
@@ -461,8 +461,8 @@ sub change_sbd_service_timeout() {
     record_info("Systemd SBD", "Systemd unit timeout for 'sbd.service' set to '$service_timeout'");
 }
 
-=head2 setup_sbd_delay
-     $self->setup_sbd_delay();
+=head2 setup_sbd_delay_publiccloud
+     $self->setup_sbd_delay_publiccloud();
 
      Set (activate or deactivate) SBD_DELAY_START setting in /etc/sysconfig/sbd.
      Delay is used in case of cluster VM joining cluster too quickly after fencing operation.
@@ -478,7 +478,7 @@ sub change_sbd_service_timeout() {
 
 =cut
 
-sub setup_sbd_delay() {
+sub setup_sbd_delay_publiccloud() {
     my ($self) = @_;
     my $delay = get_var('HA_SBD_START_DELAY') // '';
 
