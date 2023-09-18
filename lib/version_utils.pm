@@ -230,7 +230,7 @@ sub is_microos {
         return $flavor =~ /DVD/;    # DVD and Staging-?-DVD
     }
     elsif ($filter eq 'VMX') {
-        return $flavor !~ /DVD/;    # If not DVD it's VMX
+        return $flavor =~ /image|default|kvm/i;
     }
     elsif ($filter eq 'Tumbleweed') {
         return $version_is_tw;
