@@ -433,9 +433,9 @@
         "type": "bug"
     },
     "bsc#1215375": {
-        "description": "Failed to lookup EFI memory descriptor for 0x000000003f*0",
+        "description": "Failed to lookup EFI memory descriptor for 0x000000003f.*0",
         "products": {
-            "sle-micro": [ "5.2" ]
+            "sle-micro": [ "5.1", "5.2" ]
         },
         "type": "bug"
     },
