@@ -39,6 +39,8 @@ sub run {
     # Set the hostname to identify both minions
     set_hostname $hostname;
 
+    # Perform ping to client from server
+    assert_script_run("ping -M do -c 1 -s 1430 10.0.2.102") if ($hostname =~ /server|master/);
     # Make sure that PermitRootLogin is set to yes
     # This is needed only when the new SSH config directory exists
     # See: poo#93850
