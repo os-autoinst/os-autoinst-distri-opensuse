@@ -120,6 +120,8 @@ sub set_bootscript {
     $cmdline_extra .= " Y2DEBUG=1 linuxrc.log=/dev/$serial_dev linuxrc.core=/dev/$serial_dev linuxrc.debug=4,trace reboot_timeout=0 "
       if (get_var('VIRT_AUTOTEST') || get_var('HANA_PERF'));
 
+    $cmdline_extra .= get_var('EXTRABOOTPARAMS', '');
+
     my $bootscript = <<"END_BOOTSCRIPT";
 #!ipxe
 echo ++++++++++++++++++++++++++++++++++++++++++
