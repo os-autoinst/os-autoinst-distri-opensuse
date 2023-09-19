@@ -326,7 +326,7 @@ sub load_tests {
 
     if (get_var('BOOT_HDD_IMAGE')) {
         load_boot_from_disk_tests;
-    } elsif (get_var('SELFINSTALL')) {
+    } elsif (is_selfinstall) {
         load_selfinstall_boot_tests;
     } elsif (get_var('AUTOYAST')) {
         load_autoyast_installation_tests;
