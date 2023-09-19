@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2021 SUSE LLC
+# Copyright 2016-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 package kdump_utils;
@@ -13,7 +13,8 @@ use registration;
 use Utils::Backends;
 use Utils::Architectures;
 use power_action_utils 'power_action';
-use version_utils qw(is_sle is_jeos is_leap is_tumbleweed is_opensuse is_transactional);
+use version_utils qw(is_alp is_sle is_jeos is_leap is_tumbleweed is_opensuse is_transactional
+  is_leap_micro is_sle_micro);
 use utils 'ensure_serialdev_permissions';
 use virt_autotest::utils 'is_xen_host';
 
@@ -22,9 +23,7 @@ our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump
   kdump_is_active do_kdump configure_service check_function
   full_kdump_check deactivate_kdump_cli);
 
-sub install_kernel_debuginfo {
-    my $import_gpg = get_var('BUILD') =~ /^MR:/ ? '--gpg-auto-import-keys' : '';
-    zypper_call "$import_gpg ref";
+sub determine_kernel_debuginfo_package {
     # Using the provided capabilities of the currently active kernel, get the
     # name and version of the shortest flavor and add "-debuginfo" to the name.
     # Before kernel-default-base was built separately (< 15 SP2/15.2):
@@ -34,8 +33,24 @@ sub install_kernel_debuginfo {
     # kernel-default(x86-64) = 5.3.18-lp152.26.2
     # kernel-default-base(x86-64) = 5.3.18-lp152.26.2.lp152.8.2.2
     # -> kernel-default-debuginfo-5.3.18-lp152.26.2
-    my $debuginfo = script_output('rpm -qf /boot/initrd-$(uname -r) --provides | awk \'match($0,/(kernel-.+)\(.+\) = (.+)/,m) {printf "%d %s-debuginfo-%s\n", length($0), m[1], m[2]}\' | sort -n | head -n1 | cut -d" " -f2-');
-    zypper_call("-v in $debuginfo", timeout => 4000);
+    return script_output('rpm -qf /boot/initrd-$(uname -r) --provides | awk \'match($0,/(kernel-.+)\(.+\) = (.+)/,m) {printf "%d %s-debuginfo-%s\n", length($0), m[1], m[2]}\' | sort -n | head -n1 | cut -d" " -f2-');
+}
+
+my $install_debug_info_timeout = 4000;
+
+sub install_transactional_kernel_debuginfo {
+    return undef if get_var('SKIP_KERNEL_DEBUGINFO');
+    my $cmd = 'transactional-update --continue --non-interactive pkg install kernel-default-debuginfo';
+    assert_script_run($cmd, timeout => $install_debug_info_timeout);
+}
+
+sub install_kernel_debuginfo {
+    return install_transactional_kernel_debuginfo if is_transactional;
+    my $import_gpg = get_var('BUILD') =~ /^MR:/ ? '--gpg-auto-import-keys' : '';
+    zypper_call "$import_gpg ref";
+    return undef if get_var('SKIP_KERNEL_DEBUGINFO');
+    my $debuginfo = determine_kernel_debuginfo_package;
+    zypper_call("-v in $debuginfo", timeout => $install_debug_info_timeout);
 }
 
 sub get_repo_url_for_kdump_sle {
@@ -87,11 +102,15 @@ sub prepare_for_kdump_sle {
     }
 }
 
-sub prepare_for_kdump {
-    my %args = @_;
-    $args{test_type} //= '';
+sub install_kernel_debuginfo_via_repo {
+    my ($repo_url) = @_;
+    zypper_call("ar $repo_url debuginfo");
+    install_kernel_debuginfo;
+    zypper_call("rr debuginfo");
+}
 
-    # disable packagekitd
+sub disable_packagekitd {
+    return if is_transactional;
     quit_packagekit;
     my @pkgs = qw(yast2-kdump kdump);
     push @pkgs, qw(crash);
@@ -99,9 +118,14 @@ sub prepare_for_kdump {
     if (is_jeos && get_var('UEFI')) {
         push @pkgs, is_aarch64 ? qw(mokutil shim) : qw(mokutil);
     }
-
     zypper_call "in @pkgs";
+}
 
+sub prepare_for_kdump {
+    my %args = @_;
+    $args{test_type} //= '';
+
+    disable_packagekitd;
     return if ($args{test_type} eq 'before');
 
     # add debuginfo channels
@@ -116,6 +140,13 @@ sub prepare_for_kdump {
         zypper_call("rr $snapshot_debuginfo_repo");
         return;
     }
+
+    # handle alp and micro via REPO_TRANSACTIONAL_DEBUG or skip repo setup if not set
+    if (my $transactional_debuginfo_repo = get_var('REPO_TRANSACTIONAL_DEBUG')) {
+        return install_kernel_debuginfo_via_repo($transactional_debuginfo_repo);
+    }
+    return if is_alp || is_leap_micro || is_sle_micro;
+
     my $opensuse_debug_repos = 'repo-debug';
     $opensuse_debug_repos .= ' repo-debug-update' unless is_tumbleweed;
     $opensuse_debug_repos .= ' repo-sle-debug-update' if is_leap("15.3+");
@@ -276,7 +307,7 @@ sub activate_kdump_without_yast {
 
 sub activate_kdump_transactional {
     my $crash_memory = determine_crash_memory;
-    assert_script_run("transactional-update setup-kdump --crashkernel=0,$crash_memory");
+    assert_script_run("transactional-update --continue setup-kdump --crashkernel=0,$crash_memory");
 }
 
 sub kdump_is_active {
@@ -331,13 +362,11 @@ sub configure_service {
         }
     }
 
-    prepare_for_kdump(%args) unless my $is_transactional = is_transactional;
-    if ($is_transactional) {
-        activate_kdump_transactional;
-    } elsif ($args{yast_interface} eq 'cli') {
-        activate_kdump_cli;
+    prepare_for_kdump(%args);
+    if ($args{yast_interface} eq 'cli') {
+        is_transactional ? activate_kdump_transactional : activate_kdump_cli;
     } else {
-        return 16 if (activate_kdump == 16);
+        return 16 if activate_kdump == 16;
     }
 
     # restart to activate kdump
@@ -398,9 +427,15 @@ sub check_function {
     if ($args{test_type} eq 'function') {
         # Check, that vmcore exists, otherwise fail
         assert_script_run('ls -lah /var/crash/*/vmcore', 240);
-        my $vmlinux = (is_sle("<16") || is_leap("<16.0")) ? '/boot/vmlinux-$(uname -r)*' : '/usr/lib/modules/$(uname -r)/vmlinux*';
-        my $crash_cmd = "echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` $vmlinux";
-        validate_script_output "$crash_cmd", sub { m/PANIC:\s([^\s]+)/ }, is_aarch64 ? 1200 : 800;
+        if (is_transactional) {
+            # there is no crash utility; check at least that the core dump is not empty
+            assert_script_run('files=(/var/crash/*/vmcore) && test -s "${files[-1]}"', 240);
+        }
+        else {
+            my $vmlinux = (is_sle("<16") || is_leap("<16.0")) ? '/boot/vmlinux-$(uname -r)*' : '/usr/lib/modules/$(uname -r)/vmlinux*';
+            my $crash_cmd = "echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` $vmlinux";
+            validate_script_output "$crash_cmd", sub { m/PANIC:\s([^\s]+)/ }, is_aarch64 ? 1200 : 800;
+        }
     }
     else {
         # migration tests need remove core files before migration start
