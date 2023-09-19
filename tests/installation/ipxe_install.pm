@@ -104,21 +104,21 @@ sub set_bootscript {
     }
     $cmdline_extra .= " plymouth.enable=0 ";
 
-    # Extra options for virtualization tests with ipmi backend
-    if (get_var('VIRT_AUTOTEST') || get_var('HANA_PERF')) {
-        $cmdline_extra .= " video=1024x768 vt.color=0x07 " if check_var('VIDEOMODE', 'text');
-        # Support either IPXE_CONSOLE=ttyS1,115200 or SERIALDEV=ttyS1
-        my $serial_dev;
-        if (get_var('IPXE_CONSOLE')) {
-            get_var('IPXE_CONSOLE') =~ /^(\w+)/;
-            $serial_dev = $1;
-        }
-        else {
-            $serial_dev = get_var('SERIALDEV', 'ttyS1');
-            $cmdline_extra .= " console=$serial_dev,115200 ";
-        }
-        $cmdline_extra .= " Y2DEBUG=1 linuxrc.log=/dev/$serial_dev linuxrc.core=/dev/$serial_dev linuxrc.debug=4,trace reboot_timeout=0";
+    $cmdline_extra .= " video=1024x768 vt.color=0x07 " if check_var('VIDEOMODE', 'text');
+    # Support either IPXE_CONSOLE=ttyS1,115200 or SERIALDEV=ttyS1
+    my $serial_dev;
+    if (get_var('IPXE_CONSOLE')) {
+        get_var('IPXE_CONSOLE') =~ /^(\w+)/;
+        $serial_dev = $1;
     }
+    else {
+        $serial_dev = get_var('SERIALDEV', 'ttyS1');
+        $cmdline_extra .= " console=$serial_dev,115200 ";
+    }
+
+    # Extra options for virtualization tests with ipmi backend
+    $cmdline_extra .= " Y2DEBUG=1 linuxrc.log=/dev/$serial_dev linuxrc.core=/dev/$serial_dev linuxrc.debug=4,trace reboot_timeout=0 "
+      if (get_var('VIRT_AUTOTEST') || get_var('HANA_PERF'));
 
     my $bootscript = <<"END_BOOTSCRIPT";
 #!ipxe
