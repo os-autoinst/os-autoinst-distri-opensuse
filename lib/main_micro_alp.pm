@@ -170,7 +170,7 @@ sub load_common_tests {
     loadtest 'console/regproxy' if is_regproxy_required;
     loadtest 'microos/networking';
     loadtest 'microos/libzypp_config';
-    loadtest 'microos/image_checks' if is_image;
+    loadtest 'microos/image_checks' if (is_image || is_selfinstall);
     loadtest 'microos/one_line_checks';
     loadtest 'microos/services_enabled';
     # MicroOS -old images use wicked, but cockpit-wicked is no longer supported in TW
