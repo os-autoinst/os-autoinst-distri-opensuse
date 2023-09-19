@@ -10,10 +10,8 @@
 use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use publiccloud::ssh_interactive qw(select_host_console);
-use testapi;
-use Mojo::File 'path';
 use publiccloud::utils;
-use Data::Dumper;
+use testapi;
 
 sub test_flags {
     return {
@@ -25,8 +23,22 @@ sub test_flags {
 
 sub run {
     my ($self, $run_args) = @_;
+
+    # Needed to have peering and ansible state propagated in post_fail_hook
     my $mr_test_tar = 'mr_test-master.tar.gz';
     my $instance = $run_args->{my_instance};
+
+    # This test module is using publiccloud::basetest and not sles4sap_publiccloud_basetest
+    # as base class. network_peering_present and ansible_present are propagated here
+    # to a different context than usual
+    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
+    $self->{ansible_present} = 1 if ($run_args->{ansible_present});
+    record_info('MR_TEST CONTEXT', join(' ',
+            'cleanup_called:', $self->{cleanup_called} // 'undefined',
+            'instance:', $instance // 'undefined',
+            'network_peering_present:', $self->{network_peering_present} // 'undefined',
+            'ansible_present:', $self->{ansible_present} // 'undefined')
+    );
 
     # Select console on the host, not the PC instance
     select_host_console();

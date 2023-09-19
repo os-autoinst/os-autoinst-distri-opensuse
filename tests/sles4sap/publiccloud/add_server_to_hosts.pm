@@ -15,11 +15,9 @@ sub test_flags {
 
 sub run {
     my ($self, $run_args) = @_;
-    my $instances = $run_args->{instances};
-    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
-    record_info('CONTEXT LOG', "instances:$instances network_peering_present:$self->{network_peering_present}");
+    $self->import_context($run_args);
 
-    foreach my $instance (@{$instances}) {
+    foreach my $instance (@{$self->{instances}}) {
         next if ($instance->{'instance_id'} !~ m/vmhana/);
         record_info("$instance");
 

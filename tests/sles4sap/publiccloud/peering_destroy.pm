@@ -11,8 +11,8 @@ use sles4sap_publiccloud;
 
 sub run {
     my ($self, $run_args) = @_;
-    if ($run_args->{network_peering_present}) {
-        $self->{network_peering_present} = 1;
+    $self->import_context($run_args);
+    if ($self->{network_peering_present}) {
         delete_network_peering();
         $run_args->{network_peering_present} = $self->{network_peering_present} = 0;
     }

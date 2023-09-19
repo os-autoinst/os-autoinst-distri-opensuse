@@ -9,8 +9,8 @@ use strict;
 use warnings FATAL => 'all';
 use base 'sles4sap_publiccloud_basetest';
 use testapi;
-use publiccloud::utils;
 use sles4sap_publiccloud;
+use publiccloud::utils;
 use serial_terminal 'select_serial_terminal';
 
 sub test_flags {
@@ -19,8 +19,9 @@ sub test_flags {
 
 sub run {
     my ($self, $run_args) = @_;
-    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
-    $self->{instances} = $run_args->{instances};
+
+    # Needed to have peering and ansible state propagated in post_fail_hook
+    $self->import_context($run_args);
 
     select_serial_terminal;
     my $test_name = $self->{name};
