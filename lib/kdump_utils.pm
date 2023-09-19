@@ -13,12 +13,12 @@ use registration;
 use Utils::Backends;
 use Utils::Architectures;
 use power_action_utils 'power_action';
-use version_utils qw(is_sle is_jeos is_leap is_tumbleweed is_opensuse);
+use version_utils qw(is_sle is_jeos is_leap is_tumbleweed is_opensuse is_transactional);
 use utils 'ensure_serialdev_permissions';
 use virt_autotest::utils 'is_xen_host';
 
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump
-  activate_kdump activate_kdump_cli activate_kdump_without_yast
+  activate_kdump activate_kdump_cli activate_kdump_without_yast activate_kdump_transactional
   kdump_is_active do_kdump configure_service check_function
   full_kdump_check deactivate_kdump_cli);
 
@@ -211,6 +211,19 @@ sub activate_kdump {
     wait_serial("$module_name-0", 240) || die "'yast2 kdump' didn't finish";
 }
 
+sub determine_crash_memory {
+    # Use kdumptool calibrate to get default memory settings
+    my $kdumptool_calibrate = script_output('kdumptool calibrate');
+    record_info('KDUMPTOOL CALIBRATE', $kdumptool_calibrate);
+    my $high_low = is_x86_64 ? 'High' : 'Low';
+    my ($calibrated_memory) = $kdumptool_calibrate =~ /\s$high_low:[ ]*(\d*)/;
+
+    # Set kernel crash memory from job variable or use kdumptool calibrate value
+    my $crash_memory = get_var('CRASH_MEMORY') ? get_var('CRASH_MEMORY') : $calibrated_memory;
+    record_info('CRASH MEMORY', $crash_memory);
+    return $crash_memory;
+}
+
 # Activate kdump using yast command line interface
 sub activate_kdump_cli {
     # Skip configuration, if is kdump already enabled and no special memory settings is required
@@ -226,14 +239,7 @@ sub activate_kdump_cli {
     # Make sure fadump is disabled on PowerVM
     assert_script_run('yast2 kdump fadump disable', 180) if is_pvm;
 
-    # Use kdumptool calibrate to get default memory settings
-    my $kdumptool_calibrate = script_output('kdumptool calibrate');
-    record_info('KDUMPTOOL CALIBRATE', $kdumptool_calibrate);
-    my $high_low = is_x86_64 ? 'High' : 'Low';
-    my ($calibrated_memory) = $kdumptool_calibrate =~ /\s$high_low:[ ]*(\d*)/;
-
-    # Set kernel crash memory from job variable or use kdumptool calibrate value
-    my $crash_memory = get_var('CRASH_MEMORY') ? get_var('CRASH_MEMORY') : $calibrated_memory;
+    my $crash_memory = determine_crash_memory;
     record_info('CRASH MEMORY', $crash_memory);
     assert_script_run("yast kdump startup enable alloc_mem=${crash_memory}", 180);
     # Enable firmware assisted dump if needed
@@ -266,6 +272,11 @@ sub activate_kdump_without_yast {
     # sync changes from /etc/default/grub into /boot/grub2/grub.cfg
     assert_script_run('grub2-mkconfig -o /boot/grub2/grub.cfg');
     systemctl('enable kdump.service');
+}
+
+sub activate_kdump_transactional {
+    my $crash_memory = determine_crash_memory;
+    assert_script_run("transactional-update setup-kdump --crashkernel=0,$crash_memory");
 }
 
 sub kdump_is_active {
@@ -320,8 +331,10 @@ sub configure_service {
         }
     }
 
-    prepare_for_kdump(%args);
-    if ($args{yast_interface} eq 'cli') {
+    prepare_for_kdump(%args) unless my $is_transactional = is_transactional;
+    if ($is_transactional) {
+        activate_kdump_transactional;
+    } elsif ($args{yast_interface} eq 'cli') {
         activate_kdump_cli;
     } else {
         return 16 if (activate_kdump == 16);
