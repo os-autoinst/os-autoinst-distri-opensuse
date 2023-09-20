@@ -29,7 +29,7 @@ variable "tags" {
 }
 
 variable "region" {
-    default = "westeurope"
+    default = "westus"
 }
 
 ## vm-instance variables
