@@ -6,6 +6,7 @@ vars:
   YUI_REST_API: 1
 schedule:
   system_preparation:
+    - console/system_prepare
     - console/consoletest_setup
     - console/force_scheduled_tasks
   system_validation:
