@@ -15,7 +15,7 @@ use utils;
 use testapi;
 use bmwqemu;
 use ipmi_backend_utils;
-use version_utils qw(is_upgrade is_tumbleweed);
+use version_utils qw(is_upgrade is_tumbleweed is_sle is_leap);
 use bootloader_setup 'prepare_disks';
 use Utils::Architectures;
 use virt_autotest::utils qw(is_kvm_host is_xen_host);
@@ -117,9 +117,9 @@ sub set_bootscript {
     }
 
     # Extra options for virtualization tests with ipmi backend
-    $cmdline_extra .= " Y2DEBUG=1 linuxrc.log=/dev/$serial_dev linuxrc.core=/dev/$serial_dev linuxrc.debug=4,trace reboot_timeout=0 "
-      if (get_var('VIRT_AUTOTEST') || get_var('HANA_PERF'));
-
+    $cmdline_extra .= " Y2DEBUG=1 linuxrc.log=/dev/$serial_dev linuxrc.core=/dev/$serial_dev linuxrc.debug=4,trace ";
+    $cmdline_extra .= " reboot_timeout=" . get_var('REBOOT_TIMEOUT', 0) . ' '
+      unless (is_leap('<15.2') || is_sle('<15-SP2'));
     $cmdline_extra .= get_var('EXTRABOOTPARAMS', '');
 
     my $bootscript = <<"END_BOOTSCRIPT";
