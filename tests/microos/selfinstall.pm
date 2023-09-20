@@ -35,11 +35,15 @@ sub run {
     # Before combustion 1.2, a reboot is necessary for firstboot configuration
     if (is_alp || is_leap_micro || is_sle_micro) {
         wait_serial('reboot: Restarting system', 240) or die "SelfInstall image has not rebooted as expected";
+        # Avoid booting into selfinstall again
+        eject_cd() unless $no_cd;
+        microos_login;
+    } else {
+        microos_login;
+        # The installed system is definitely up now, so the CD can be ejected
+        eject_cd() unless $no_cd;
     }
 
-    microos_login;
-    # The installed system is definitely up now, so the CD can be ejected
-    eject_cd() unless $no_cd;
 }
 
 sub test_flags {
