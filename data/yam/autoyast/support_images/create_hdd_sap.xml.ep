@@ -162,11 +162,6 @@
       <product>SLES_SAP</product>
     </products>
     <packages config:type="list">
-      <!-- Workaround for bsc#1202234: [addon]-release packages are missing after autoyast installation. -->
-      % foreach (values %$addons) {
-      <package><%= lc($_->{name}) %>-release</package>
-      % }
-      <!-- end of workaround -->
       <package>sle-module-sap-applications-release</package>
     </packages>
     <patterns config:type="list">
