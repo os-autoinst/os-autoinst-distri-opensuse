@@ -465,7 +465,6 @@ sub test_run_without_heartbeat {
         if (get_var('RAW_DUMP', 0)) { raw_dump($category, $num); }
 
         prepare_system_shutdown;
-        select_console 'root-console' unless is_pvm;
         send_key 'alt-sysrq-b';
         reconnect_mgmt_console if is_pvm;
         $self->wait_boot;
@@ -573,21 +572,17 @@ sub run {
             next;
         }
 
-        # SUT crashed. Wait for kdump to finish.
-        # After that, SUT will reboot automatically
+        # Here script already know the SUT crashed/hanged.
+        # To adapt two scenarios:
+        # 1. system hang in root console during run subtests;
+        # 2. system already crash and reboot by itself and waiting in bootloader screen.
+        # Here to reboot "again" to keep logic and real screen in the same page. After reboot to continue the rest tests.
         eval {
-            power_action('reboot', keepconsole => is_pvm);
-            reconnect_mgmt_console if is_pvm;
-            $self->wait_boot;
-        };
-        # If SUT didn't reboot for some reason, force reset
-        if ($@) {
             prepare_system_shutdown;
-            select_console 'root-console' unless is_pvm;
             send_key 'alt-sysrq-b';
             reconnect_mgmt_console if is_pvm;
             $self->wait_boot;
-        }
+        };
 
         sleep(1);
         select_console('root-console');
