@@ -188,6 +188,21 @@ sub run {
         send_key 'n';
     }
 
+    # Only execute this block on ALP when using the encrypted image.
+    if (is_alp && get_var("ENCRYPTED_IMAGE")) {
+        # Select FDE with pass and tpm
+        assert_screen "alp-fde-pass-tpm";
+        send_key "ret";
+        assert_screen "alp-fde-newluks";
+        type_password;
+        send_key "ret";
+        wait_still_screen 2;
+        type_password;
+        send_key "ret";
+        # Disk encryption is gonna take time. Once this is done we can proceed with login.
+        wait_still_screen 5;
+    }
+
     # Our current Hyper-V host and it's spindles are quite slow. Especially
     # when there are more jobs running concurrently. We need to wait for
     # various disk optimizations and snapshot enablement to land.
