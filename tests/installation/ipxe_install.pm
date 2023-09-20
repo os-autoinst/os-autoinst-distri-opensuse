@@ -182,7 +182,7 @@ sub run {
     select_console 'sol', await_console => 0;
 
     # Print screenshots for ipxe boot process
-    if (get_var('VIRT_AUTOTEST') || get_var('HANA_PERF')) {
+    if (get_var('VIRT_AUTOTEST')) {
         #it is static menu and choose the TW entry to start installation
         enter_o3_ipxe_boot_entry if get_var('IPXE_STATIC');
         assert_screen([qw(load-linux-kernel load-initrd)], 240);
@@ -206,6 +206,10 @@ sub run {
 
     # when we don't use autoyast, we need to also load the right test modules to perform the remote installation
     if (get_var('AUTOYAST')) {
+        # VIRT_AUTOTEST need not sleep and set_bootscript_hdd
+        return if get_var('VIRT_AUTOTEST');
+        # HANA PERF uses DELL R840 and R740, their UEFI IPXE boot need not set_bootscript_hdd
+        return if (get_var('HANA_PERF') && get_var('IPXE_UEFI'));
         # make sure to wait for a while befor changing the boot device again, in order to not change it too early
         sleep 120;
         set_bootscript_hdd if get_var('IPXE_UEFI');
