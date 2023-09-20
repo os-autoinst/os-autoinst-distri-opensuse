@@ -15,12 +15,13 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
+use transactional;
 use serial_terminal 'select_serial_terminal';
 use utils qw(quit_packagekit zypper_call reconnect_mgmt_console package_upgrade_check);
 use bootloader_setup "add_grub_cmdline_settings";
 use power_action_utils "power_action";
 use Utils::Backends 'is_pvm';
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_alp);
 
 sub run {
     my ($self) = @_;
@@ -61,7 +62,11 @@ sub run {
         record_info 'ENV Mode', 'FIPS environment mode (for single modules) configured!';
     }
     else {
-        zypper_call('in -t pattern fips');
+        if (is_alp) {
+            trup_call("pkg install -t pattern fips");
+        } else {
+            zypper_call('in -t pattern fips');
+        }
         add_grub_cmdline_settings('fips=1', update_grub => 1);
         record_info 'Kernel Mode', 'FIPS kernel mode configured!';
     }
@@ -79,7 +84,14 @@ sub run {
         package_upgrade_check($pkg_list);
     }
 
-    power_action('reboot', textmode => 1);
+    if (is_alp) {
+        my $prev_console = current_console();
+        power_action('reboot', textmode => 1);
+        $self->wait_boot(bootloader_time => 300);
+        select_console($prev_console);
+    } else {
+        power_action('reboot', textmode => 1);
+    }
     if (is_pvm) {
         reconnect_mgmt_console;
         $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 300);
