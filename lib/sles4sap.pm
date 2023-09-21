@@ -402,10 +402,10 @@ sub copy_media {
     assert_script_run "mkdir $target";
     assert_script_run "mount -t $proto -o $options $path $mnt_path", 90;
     # Attempt to force a unique NFSv4 client id
-    assert_script_run 'while (! ls /sys/fs/nfs/net/nfs_client/identifier); do sleep 1; done';    # Wait for file to be available
-    assert_script_run 'chmod +w /sys/fs/nfs/net/nfs_client/identifier';    # Ensure file is writable
-    script_run "echo $nfs_client_id > /sys/fs/nfs/net/nfs_client/identifier";
-    script_run 'cat /sys/fs/nfs/net/nfs_client/identifier';
+    assert_script_run 'while (! ls /sys/module/nfs/parameters/nfs4_unique_id); do sleep 1; done';    # Wait for file to be available
+    assert_script_run 'chmod +w /sys/module/nfs/parameters/nfs4_unique_id';    # Ensure file is writable
+    script_run "echo -n $nfs_client_id > /sys/module/nfs/parameters/nfs4_unique_id";
+    script_run 'cat /sys/module/nfs/parameters/nfs4_unique_id';
     $media_path = $mnt_path if script_run "[[ -d $media_path ]]";    # Check if specific ARCH subdir exists
     assert_script_run "rsync -azr --info=progress2 $media_path/ $target/", $nettout;
 
