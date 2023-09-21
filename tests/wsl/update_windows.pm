@@ -14,15 +14,6 @@ sub run {
 
     my $vbs_url = data_url("wsl/UpdateInstall.vbs");
     $self->open_powershell_as_admin;
-    # Create a registry value in win11 to prevent random reboots
-    if (get_var("WIN_VERSION") == '11') {
-        $self->run_in_powershell(cmd => "reg add HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows /v WindowsUpdate");
-        $self->run_in_powershell(cmd => "reg add HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate /v AU");
-        $self->run_in_powershell(cmd => "reg add HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU /v NoAutoRebootWithLoggedOnUsers /t REG_DWORD /d 1");
-        $self->reboot_or_shutdown(1);
-        $self->wait_boot_windows;
-        $self->open_powershell_as_admin;
-    }
     $self->run_in_powershell(cmd => "Invoke-WebRequest -Uri \"$vbs_url\" -OutFile \"C:\\UpdateInstall.vbs\"");
     $self->run_in_powershell(
         cmd => 'cd \\; $port.WriteLine($(cscript .\\UpdateInstall.vbs /Automate))',

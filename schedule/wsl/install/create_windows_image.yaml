@@ -4,7 +4,14 @@ description:  >
       Basic Windows system deployment job.
       Exports qcow2 with clean Windows installation.
       Scheduled on bios boot and uefi workers.
+
+conditional_schedule:
+  unattended_install:
+    WIN_UNATTENDED:
+      '0':
+      - wsl/install/ms_win_firstboot
+
 schedule:
   - wsl/install/ms_win_installation
-  - wsl/install/ms_win_firstboot
+  - '{{unattended_install}}'
   - wsl/update_windows

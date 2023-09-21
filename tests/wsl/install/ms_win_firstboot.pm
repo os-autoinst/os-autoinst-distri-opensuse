@@ -158,7 +158,7 @@ sub run {
 
     # poweroff
     $self->reboot_or_shutdown(1);
-    $self->wait_boot_windows;
+    $self->wait_boot_windows(is_firstboot => 1);
 }
 
 1;
