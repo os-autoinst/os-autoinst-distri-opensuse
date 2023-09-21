@@ -109,6 +109,7 @@ our @EXPORT = qw(
   handle_screen
   define_secret_variable
   @all_tests_results
+  ping_size_check
 );
 
 =head1 SYNOPSIS
@@ -2824,6 +2825,28 @@ sub define_secret_variable {
     script_run("read -sp '$var_name: ' $var_name", 0);
     type_password($var_value . "\n");
     script_run("set +a");
+}
+
+=head2 ping_size_check
+    ping_size_check($target, $size);
+ping_size_check will ping the defined target with different and increasing sizes with
+disabled packet fragmentation. If a size is specified, it will do single ping check with
+one size.
+
+Mandatory parameter: C<target> destination of ping target.
+
+Optional parameter: C<size> ping size for single ping test.
+=cut
+
+sub ping_size_check {
+    my $target = shift;
+    my $size = shift;
+    # Check connectivity with different packet size to target
+    # Fragmentation is disabled, maximum size is 1430 to fit in 1458 MTU in GRE tunel
+    my @sizes = $size ? $size : (100, 1000, 1350, 1400, 1430);
+    for my $size (@sizes) {
+        assert_script_run("ping -M do -s $size -c 1 $target", fail_message => "ping with packet size $size failed, problems with MTU size are expected. If it is multi-machine job, it can be GRE tunnel setup issue.");
+    }
 }
 
 1;
