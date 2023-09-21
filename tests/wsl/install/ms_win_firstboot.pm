@@ -73,6 +73,7 @@ sub run {
         sleep 3;
         assert_and_click 'windows-next';
     }
+    assert_and_click 'windows-browsing-data' if (check_screen('windows-browsing-data'));
     my $count = 0;
     my @privacy_menu =
       split(',', get_required_var('WIN_INSTALL_PRIVACY_NEEDLES'));
@@ -86,8 +87,7 @@ sub run {
 
     if (check_screen('windows-custom-experience', timeout => 120)) {
         assert_and_click 'windows-custom-experience';
-        assert_screen 'windows-make-cortana-personal-assistant';
-        assert_and_click 'windows-accept';
+        assert_and_click 'windows-make-cortana-personal-assistant';
     }
 
     assert_screen(['windows-desktop', 'windows-edge-decline', 'networks-popup-be-discoverable'], timeout => 600);
