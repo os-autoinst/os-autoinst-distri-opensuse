@@ -24,7 +24,7 @@ use Utils::Backends;
 use registration qw(add_suseconnect_product);
 use version_utils qw(is_sle);
 use utils qw(zypper_call);
-use Digest::SHA;
+use Digest::MD5 qw(md5_hex);
 use Utils::Systemd qw(systemctl);
 use Utils::Logging 'save_and_upload_log';
 
@@ -389,23 +389,22 @@ sub copy_media {
     my $media_path = "$mnt_path/" . get_required_var('ARCH');
 
     # Set some NFS options in case we are using NFS
-    my $sha = Digest::SHA->new('sha256');
-    $sha->add(get_required_var('JOBTOKEN'));
-    my $nfs_client_id = $sha->hexdigest;
+    my $nfs_client_id = md5_hex(get_required_var('JOBTOKEN'));
     my $options = 'ro';
     if ($proto eq 'nfs') {
         my $nfs_timeo = get_var('NFS_TIMEO');
         $options = $nfs_timeo ? "timeo=$nfs_timeo,rsize=16384,wsize=16384,ro" : 'rsize=16384,wsize=16384,ro';
+        # Attempt to force a unique NFSv4 client id
+        assert_script_run "modprobe nfs nfs4_unique_id=$nfs_client_id";
+        # Check nfs4_unique_id parameter file exists
+        assert_script_run 'until ls /sys/module/nfs/parameters/nfs4_unique_id; do sleep 1; done';
     }
 
-    # First create $target and copy media there. A
+    # First create $target and copy media there
     assert_script_run "mkdir $target";
     assert_script_run "mount -t $proto -o $options $path $mnt_path", 90;
-    # Attempt to force a unique NFSv4 client id
-    assert_script_run 'while (! ls /sys/module/nfs/parameters/nfs4_unique_id); do sleep 1; done';    # Wait for file to be available
-    assert_script_run 'chmod +w /sys/module/nfs/parameters/nfs4_unique_id';    # Ensure file is writable
-    script_run "echo -n $nfs_client_id > /sys/module/nfs/parameters/nfs4_unique_id";
-    script_run 'cat /sys/module/nfs/parameters/nfs4_unique_id';
+    # Check NFS client ID
+    assert_script_run 'cat /sys/module/nfs/parameters/nfs4_unique_id';
     $media_path = $mnt_path if script_run "[[ -d $media_path ]]";    # Check if specific ARCH subdir exists
     assert_script_run "rsync -azr --info=progress2 $media_path/ $target/", $nettout;
 
