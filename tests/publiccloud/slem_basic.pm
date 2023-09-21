@@ -67,15 +67,8 @@ sub run {
     $instance->run_ssh_command(cmd => 'systemctl is-enabled issue-add-ssh-keys');
 
     # Ensure NetworkManager is used on SLEM 5.3+
-    unless (has_wicked()) {
-        # Remove this softfailure after bsc#1211084 is resolved.
-        # Currently the images still contain NetworkManager.
-        if ($instance->ssh_script_run('systemctl is-active NetworkManager') != 0) {
-            record_soft_failure("bsc#1211084 - Image uses wicked instead of NetworkManager");
-        }
-    } else {
-        $instance->ssh_assert_script_run('systemctl is-active wicked', fail_message => "wicked is not active");
-    }
+    my $expected_network_service = has_wicked() ? 'wicked' : 'NetworkManager';
+    $instance->ssh_assert_script_run("systemctl is-active $expected_network_service", fail_message => "$expected_network_service is not active");
 
     # package installation test
     my $ret = $instance->run_ssh_command(cmd => 'rpm -q ' . $test_package, rc_only => 1);
