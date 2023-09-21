@@ -52,6 +52,14 @@ sub get_script_run {
     if (get_var("SKIP_GUEST_INSTALL") && is_x86_64) {
         $pre_test_cmd .= " -k $vm_xml_dir";
     }
+
+    my $do_registration = check_var('GUEST_SCC_REGISTER', 'installation') ? "true" : "false";
+    my $registration_server = get_var('SCC_URL', 'https://scc.suse.com');
+    my $registration_code = get_var('SCC_REGCODE', 'INVALID_REGCODE');
+    $pre_test_cmd .= " -e $do_registration";
+    $pre_test_cmd .= " -s $registration_server";
+    $pre_test_cmd .= " -c $registration_code";
+
     return $pre_test_cmd;
 }
 
