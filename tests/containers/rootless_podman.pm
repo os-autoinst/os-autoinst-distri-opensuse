@@ -76,10 +76,7 @@ sub run {
         validate_script_output "id $testapi::username", sub { /systemd-journal/ };
     }
 
-    if ((is_s390x || is_ppc64le) && check_bsc1192051()) {
-        record_soft_failure("bsc#1192051 - Permission denied for faccessat2");
-        return;
-    }
+    check_bsc1192051();
 
     my $image = 'registry.opensuse.org/opensuse/tumbleweed:latest';
 
@@ -197,7 +194,7 @@ sub check_bsc1192051() {
     # Test needs to pass, if seccomp filtering is off
     assert_script_run('podman run --security-opt=seccomp=unconfined --rm -it registry.opensuse.org/opensuse/tumbleweed:latest bash -c "test -x /bin/sh"');
     # And this one is the actual check for bsc#1192051, with seccomp filtering on
-    return script_run('podman run --rm -it registry.opensuse.org/opensuse/tumbleweed:latest bash -c "test -x /bin/sh"') != 0;
+    assert_script_run('podman run --rm -it registry.opensuse.org/opensuse/tumbleweed:latest bash -c "test -x /bin/sh"') != 0;
 }
 
 sub check_bsc1200623() {
