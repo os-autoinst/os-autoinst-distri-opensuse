@@ -52,7 +52,7 @@ sub run {
 
     # SBD delay related setup for 'stop' to fix sporadic 'takeover failed to complete' issue on EC2
     if ($takeover_action eq 'stop' and check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
-        $self->setup_sbd_delay();
+        $self->setup_sbd_delay_publiccloud();
         $sbd_delay = $self->sbd_delay_formula();
     }
 
