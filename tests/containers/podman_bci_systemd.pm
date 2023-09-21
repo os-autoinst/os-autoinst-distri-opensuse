@@ -10,7 +10,7 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils qw(validate_script_output_retry);
+use utils;
 
 sub run {
     my ($self, $args) = @_;
@@ -19,7 +19,7 @@ sub run {
     $self->{podman} = $podman;
 
     record_info('Test', 'Launch a container with systemd');
-    assert_script_run("podman run -d -p 80:80 --name nginx registry.suse.com/bci/bci-init:latest");
+    assert_script_run("podman run -d -p 80:80 --health-cmd='curl http://localhost' --name nginx registry.suse.com/bci/bci-init:latest");
 
     record_info('Test', 'Install nginx');
     # Remove additional repos from the host, nginx package will be installed from BCI repo only.
@@ -29,6 +29,9 @@ sub run {
 
     record_info('Test', 'Start nginx');
     assert_script_run("podman exec nginx systemctl start nginx");
+
+    record_info('Test', 'Wait for container to be healthy');
+    script_retry("podman inspect -f '{{.State.Health.Status}}' nginx | grep -x healthy", retry => 10, delay => 15);
 
     record_info('Nginx service status', validate_script_output_retry("podman exec nginx systemctl status nginx", qr/running/));
 
