@@ -207,4 +207,22 @@ sub install_wsl2_kernel {
     );
 }
 
+sub power_configuration {
+    my $self = shift;
+
+    # turn off hibernation and fast startup
+    $self->run_in_powershell(cmd =>
+          q{Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power' -Name HiberbootEnabled -Value 0}
+    );
+    $self->run_in_powershell(cmd => 'powercfg /hibernate off');
+
+    # disable screen's fade to black
+    $self->run_in_powershell(cmd => 'powercfg -change -monitor-timeout-ac 0');
+
+    # adjust visual effects to best performance
+    $self->run_in_powershell(cmd =>
+          q{Set-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Value 2}
+    );
+}
+
 1;

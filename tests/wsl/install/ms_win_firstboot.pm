@@ -112,19 +112,7 @@ sub run {
     assert_and_click 'windows-select-picture';
 
     # turn off hibernation and fast startup
-    $self->open_powershell_as_admin;
-    $self->run_in_powershell(cmd =>
-          q{Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power' -Name HiberbootEnabled -Value 0}
-    );
-    $self->run_in_powershell(cmd => 'powercfg /hibernate off');
-
-    # disable screen's fade to black
-    $self->run_in_powershell(cmd => 'powercfg -change -monitor-timeout-ac 0');
-
-    # adjust visusal effects to best performance
-    $self->run_in_powershell(cmd =>
-          q{Set-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Value 2}
-    );
+    $self->power_configuration;
 
     # remove skype and xbox
     $self->run_in_powershell(cmd =>
