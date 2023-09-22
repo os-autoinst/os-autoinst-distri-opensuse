@@ -40,7 +40,7 @@ sub run {
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
     my $host_os_version = get_var('DISTRI') . "s" . lc(get_var('VERSION') =~ s/-//r);
     foreach my $guest (@guests) {
-        if ($guest eq $host_os_version || $guest eq "${host_os_version}PV" || $guest eq "${host_os_version}HVM") {
+        if ($guest eq $host_os_version || $guest eq "${host_os_version}TD" || $guest eq "${host_os_version}PV" || $guest eq "${host_os_version}HVM") {
             if (check_var('PATCH_WITH_ZYPPER', '1')) {
                 assert_script_run("ssh root\@$guest dmesg --level=emerg,crit,alert,err -tx|sort -o /tmp/${guest}_dmesg_err_before.txt");
                 record_info("Patching $guest");
