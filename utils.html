@@ -80,6 +80,7 @@
       <li><a href="#script_output_retry">script_output_retry</a></li>
       <li><a href="#validate_script_output_retry">validate_script_output_retry</a></li>
       <li><a href="#script_run_interactive">script_run_interactive</a></li>
+      <li><a href="#download_script">download_script</a></li>
       <li><a href="#create_btrfs_subvolume">create_btrfs_subvolume</a></li>
       <li><a href="#create_raid_loop_device">create_raid_loop_device</a></li>
       <li><a href="#file_content_replace">file_content_replace</a></li>
@@ -635,6 +636,12 @@ zypper_ar(&#39;https://download.opensuse.org/repositories/devel:/kubic/openSUSE_
 <p>A &quot;EOS~~~&quot; message followed by return value will be printed as a mark for the end of interaction after the command finished running.</p>
 
 <p>If the first argument is <code>undef</code>, only the sencond part will be processed - to match output and react. If the second argument is undef, the first part will be processed - to run the command without interaction with terminal output. This is useful for some situation when you want to do more between inputing command and the following interaction, eg. switch TTYs or detach the screen.</p>
+
+<h2 id="download_script">download_script</h2>
+
+<pre><code>download_script($srcfile, [$destfile]);</code></pre>
+
+<p>Download <code>$srcfile</code> script from worker data directory to the SUT and save it as <code>$destfile</code>, with executable bit set. If <code>$destfile</code> is not set, the default is to save the script file under the same name in the current directory.</p>
 
 <h2 id="create_btrfs_subvolume">create_btrfs_subvolume</h2>
 
