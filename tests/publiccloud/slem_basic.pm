@@ -30,12 +30,12 @@ sub check_avc {
 
     my $instance = $self->{my_instance};
     # Read the Access Vector Cache to check for SELinux denials
-    my $avc = $instance->ssh_script_output(cmd => 'sudo ausearch -ts boot -m avc --format raw | grep type=AVC');
+    my $avc = $instance->ssh_script_output(cmd => 'sudo ausearch -ts boot -m avc --format raw | ( grep type=AVC || true )');
     record_info("AVC at boot", $avc);
     return if ($avc =~ "no matches");
 
     ## Gain better formatted logs and upload them for further investigation
-    $instance->ssh_assert_script_run(cmd => 'sudo ausearch -ts boot -m avc > ausearch.txt');
+    $instance->ssh_assert_script_run(cmd => 'sudo ausearch -ts boot -m avc > ausearch.txt || true');    # ausearch fails if there are no matches
     assert_script_run("scp " . $instance->username() . "@" . $instance->public_ip . ":ausearch.txt ausearch.txt");
     upload_logs("ausearch.txt");
 
