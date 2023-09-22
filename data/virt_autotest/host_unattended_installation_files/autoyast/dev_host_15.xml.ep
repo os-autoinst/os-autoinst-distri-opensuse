@@ -3,7 +3,7 @@
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <suse_register>
     <do_registration config:type="boolean">true</do_registration>
-    <reg_server>{{SCC_URL}}</reg_server>
+    <reg_server><%= defined $bmwqemu::vars{"HOST_SCC_URL"} ? $bmwqemu::vars{"HOST_SCC_URL"} : "" %></reg_server>
     <reg_code>{{SCC_REGCODE}}</reg_code>
     <install_updates config:type="boolean">true</install_updates>
     % if (keys %$addons) {
@@ -155,7 +155,7 @@
     <errors>
       <log config:type="boolean">true</log>
       <show config:type="boolean">true</show>
-      <timeout config:type="integer">0</timeout>
+      <timeout config:type="integer">10</timeout>
     </errors>
     <messages>
       <log config:type="boolean">true</log>
