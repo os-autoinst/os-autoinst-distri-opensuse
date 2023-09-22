@@ -3,8 +3,6 @@ description:    >
   Maintainer: QE Yam <qe-yam at suse de>
   SUSE Linux Enterprise Micro installation with phub and live addons.
 schedule:
-  access_beta_distribution:
-    - installation/access_beta_distribution
   addons:
     - installation/module_registration/register_extensions_and_modules
     - installation/module_registration/import_untrusted_gnpupg_key
