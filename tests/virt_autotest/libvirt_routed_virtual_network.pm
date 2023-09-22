@@ -11,7 +11,6 @@
 
 use base "virt_feature_test_base";
 use virt_utils;
-use set_config_as_glue;
 use virt_autotest::virtual_network_utils;
 use virt_autotest::utils;
 use strict;
