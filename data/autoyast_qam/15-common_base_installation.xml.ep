@@ -320,12 +320,12 @@
     % if ($get_var->('SCC_ADDONS') =~ m/\brt\b/) {
     <kernel>kernel-rt</kernel>
     % }
-    <packages config:type="list">
     % if ($check_var->('VERSION', '15-SP3') or $check_var->('VERSION', '15-SP4')) {
+    <packages config:type="list">
       <package>openssh</package>
       <package>firewalld</package>
-    % }
     </packages>
+    % }
     <patterns config:type="list">
       % for my $pattern (@$patterns) {
       <pattern><%= $pattern %></pattern>
