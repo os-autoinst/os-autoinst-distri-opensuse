@@ -326,12 +326,12 @@ sub download_script {
 
     my $cmd = "curl -o ~/$script_name $script_url";
     $cmd = "ssh root\@$machine " . "\"$cmd\"" if ($machine ne 'localhost');
-    unless (script_retry($cmd, retry => 2, die => 0) == 0) {
+    unless (script_retry($cmd, timeout => 300, retry => 2, die => 0) == 0) {
         # Add debug codes as the url only exists in a dynamic openqa URL
         record_info("URL is not accessible", "$script_url", result => 'fail') unless head($script_url);
         unless ($machine eq 'localhost') {
             record_info("machine is not ssh accessible", "$machine", result => 'fail') unless script_run("ssh root\@$machine 'hostname'") == 0;
-            record_info("OSD is unaccessible from $machine", "that means the machine is having problem to access SUSE network", result => 'fail') unless script_run("ssh root\@$machine 'ping openqa.suse.de'") == 0;
+            record_info("OSD is unaccessible from $machine", "that means the machine is having problem to access SUSE network", result => 'fail') unless script_run("ssh root\@$machine 'ping -c3 openqa.suse.de'") == 0;
         }
         die "Failed to download $script_url!";
     }
