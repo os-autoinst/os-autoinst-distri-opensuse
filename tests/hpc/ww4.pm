@@ -45,9 +45,10 @@ sub run ($self) {
     record_info "warewulf.conf", script_output("cat /etc/warewulf/warewulf.conf");
     record_info "defaults.conf", script_output("cat /etc/warewulf/defaults.conf");
 
-    $rt = (assert_script_run "wwctl container import docker://registry.suse.de/suse/containers/sle-micro/5.3/containers/suse/sle-micro-rancher/5.3:latest sle-micro-5.3 --setdefault", timeout => 320) ? 1 : 0;
+    my $hpc_container = get_required_var('HPC_WAREWULF_CONTAINER');
+    $rt = (assert_script_run "wwctl container import $hpc_container warewulf-container --setdefault", timeout => 320) ? 1 : 0;
     test_case('Container pull', 'ww4', $rt);
-    $rt = (assert_script_run "wwctl profile set -y -C sle-micro-5.3") ? 1 : 0;
+    $rt = (assert_script_run "wwctl profile set -y -C warewulf-container") ? 1 : 0;
     test_case('Profile', 'ww4', $rt);
     assert_script_run "wwctl profile set -y default --netname default --netmask 255.255.255.0 --gateway 192.168.10.100";
     assert_script_run "wwctl profile list -a";
@@ -74,7 +75,8 @@ sub run ($self) {
         script_run("ssh -o StrictHostKeyChecking=accept-new $node ip a | tee /tmp/script_out");
         $rt = (assert_script_run "grep -E 'inet 192\.168\.10\.11[1-5]' /tmp/script_out", fail_message => 'IP address likely is not set or is not in the defined IP range!!') ? 1 : 0;
         test_case("Check IP on $node", 'Compute Validate IP', $rt);
-        $rt = validate_script_output("ssh -o StrictHostKeyChecking=accept-new $node cat /etc/os-release", sub { m/NAME.+SLE Micro/ });
+        my $expected_name = get_required_var('HPC_WAREWULF_CONTAINER_NAME');
+        $rt = validate_script_output("ssh -o StrictHostKeyChecking=accept-new $node cat /etc/os-release", sub { m/NAME.+$expected_name/ });
         test_case("Check OS on $node", 'Compute Validate OS', $rt);
     }
     barrier_wait('WWCTL_COMPUTE_DONE');
