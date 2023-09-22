@@ -18,6 +18,8 @@ sub run {
     my $podman = $self->containers_factory('podman');
     $self->{podman} = $podman;
 
+    record_info("Podman version", script_output("podman version"));
+
     record_info('Test', 'Launch a container with systemd');
     assert_script_run("podman run -d -p 80:80 --health-cmd='curl http://localhost' --name nginx registry.suse.com/bci/bci-init:latest");
 
@@ -30,10 +32,8 @@ sub run {
     record_info('Test', 'Start nginx');
     assert_script_run("podman exec nginx systemctl start nginx");
 
-    record_info('Test', 'Wait for container to be healthy');
-    script_retry("podman inspect -f '{{.State.Health.Status}}' nginx | grep -x healthy", retry => 10, delay => 15);
-
-    record_info('Nginx service status', validate_script_output_retry("podman exec nginx systemctl status nginx", qr/running/));
+    record_info('Test', 'Wait for nginx to be healthy');
+    script_retry("podman exec nginx systemctl show -P ActiveState -P SubState nginx | grep -Pz 'active\\nrunning'", retry => 10, delay => 15);
 
     record_info('Test', 'Curl localhost from container');
     validate_script_output("podman exec nginx curl -sfL http://localhost", qr/testpage123-content/);
