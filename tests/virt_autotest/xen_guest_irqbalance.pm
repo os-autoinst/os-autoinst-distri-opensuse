@@ -12,7 +12,6 @@ use warnings;
 use testapi;
 use utils 'script_retry';
 use version_utils qw(is_sle);
-use set_config_as_glue;
 use virt_autotest::common;
 use virt_autotest::utils qw(is_kvm_host guest_is_sle wait_guest_online download_script_and_execute remove_vm save_original_guest_xmls restore_downloaded_guests restore_original_guests upload_virt_logs);
 
