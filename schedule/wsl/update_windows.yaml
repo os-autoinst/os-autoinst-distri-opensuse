@@ -1,0 +1,7 @@
+---
+name: update_windows.yaml
+description: Update Windows before running any WSL tests
+
+schedule:
+  - wsl/boot_windows
+  - wsl/update_windows
