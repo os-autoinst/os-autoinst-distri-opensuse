@@ -185,6 +185,7 @@ sub run {
     if (get_var('VIRT_AUTOTEST')) {
         #it is static menu and choose the TW entry to start installation
         enter_o3_ipxe_boot_entry if get_var('IPXE_STATIC');
+        for (1..150) { save_screenshot; sleep 1; };
         assert_screen([qw(load-linux-kernel load-initrd)], 240);
         # Loading initrd spend much time(fg. 10-15 minutes to Beijing SUT)
         # Downloading from O3 became much more quick, some needles may not be caught.
