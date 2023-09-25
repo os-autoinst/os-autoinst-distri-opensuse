@@ -109,7 +109,7 @@ sub run {
     $self->prepare_profile('HANA');
 
     # Copy media
-    $self->copy_media($proto, $path, 1800, '/sapinst');
+    $self->copy_media($proto, $path, 2700, '/sapinst');
 
     # Mount points information: use the same paths and minimum sizes as the wizard (based on RAM size)
     my $full_size = ceil($RAM / 1024);    # Use the ceil value of RAM in GB
