@@ -17,7 +17,7 @@ conditional_schedule:
             'svirt-vmware65':
                 - installation/bootloader_svirt
                 - installation/bootloader_uefi
-            's390x-kvm-sle12':
+            's390x-kvm':
                 - installation/bootloader_start
     efi:
         UEFI:
