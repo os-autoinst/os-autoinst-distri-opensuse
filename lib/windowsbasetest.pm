@@ -122,8 +122,7 @@ sub wait_boot_windows {
     reset_consoles;
     assert_screen 'windows-screensaver', 600;
     send_key_until_needlematch 'windows-login', 'esc';
-    # type_password
-    type_string("password");
+    type_password;
     send_key 'ret';    # press shutdown button
     assert_screen ['finish-setting', 'windows-desktop'], 240;
     if (match_has_tag 'finish-setting') {
