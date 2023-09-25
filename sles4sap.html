@@ -25,6 +25,7 @@
       <li><a href="#get_total_mem">get_total_mem</a></li>
       <li><a href="#is_saptune_installed">is_saptune_installed</a></li>
       <li><a href="#prepare_profile">prepare_profile</a></li>
+      <li><a href="#do_mount">_do_mount</a></li>
       <li><a href="#copy_media">copy_media</a></li>
       <li><a href="#mount_media">mount_media</a></li>
       <li><a href="#add_hostname_to_hosts">add_hostname_to_hosts</a></li>
@@ -125,6 +126,12 @@ $self-&gt;SYSTEMCTL_UNITS_RE(qr/some regexp/);</code></pre>
 <pre><code>$self-&gt;prepare_profile( $profile );</code></pre>
 
 <p>Configures with <b>saptune</b> (if available in SUT) or <b>sapconf</b> the SUT according to a profile passed as argument. <b>$profile</b> must be either <b>HANA</b> or <b>NETWEAVER</b>. Croaks on failure.</p>
+
+<h2 id="do_mount">_do_mount</h2>
+
+<pre><code>_do_mount( $proto, $path, $target);</code></pre>
+
+<p>Performs a call to the mount command (used by both <code>mount_media</code> and <code>copy_media</code>) with appropiate options depending on the protocol. Function internal to the class.</p>
 
 <h2 id="copy_media">copy_media</h2>
 
