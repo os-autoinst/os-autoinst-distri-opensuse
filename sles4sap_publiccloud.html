@@ -35,6 +35,8 @@
       <li><a href="#create_instance_data">create_instance_data</a></li>
       <li><a href="#deployment_name">deployment_name</a></li>
       <li><a href="#delete_network_peering">delete_network_peering</a></li>
+      <li><a href="#create_ansible_playbook_list">create_ansible_playbook_list</a></li>
+      <li><a href="#create_hana_vars_section">create_hana_vars_section</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap_publiccloud.pm</h1>
@@ -144,6 +146,15 @@ in the qe-sap-deployment.</code></pre>
 
 <pre><code>Delete network peering between SUT created with qe-sa-deployment
 and the IBS Mirror. Function is generic over all the Cloud Providers</code></pre>
+
+<h2 id="create_ansible_playbook_list">create_ansible_playbook_list</h2>
+
+<pre><code>Detects HANA/HA scenario from openQA variables and returns a list of ansible playbooks to include
+in the &quot;ansible: create:&quot; section of config.yaml file.</code></pre>
+
+<h2 id="create_hana_vars_section">create_hana_vars_section</h2>
+
+<pre><code>Detects HANA/HA scenario from openQA variables and creates &quot;terraform: variables:&quot; section in config.yaml file.</code></pre>
 
 
 </body>
