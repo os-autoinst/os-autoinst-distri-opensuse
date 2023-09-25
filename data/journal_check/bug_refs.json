@@ -503,5 +503,15 @@
             "leap-micro": [ "5.5" ]
         },
         "type": "bug"
+    },
+    "system-clock-wrong": {
+        "description": "System clock wrong by .*",
+        "products": {
+            "microos":  ["Tumbleweed"],
+            "sle": ["12-SP5", "15", "15-SP1", "15-SP2", "15-SP3", "15-SP4", "15-SP5"],
+            "sle-micro": ["5.1", "5.2", "5.3", "5.4" , "5.5"],
+            "leap-micro": ["5.1", "5.2", "5.3", "5.4" , "5.5"]
+        },
+        "type": "ignore"
     }
 }
