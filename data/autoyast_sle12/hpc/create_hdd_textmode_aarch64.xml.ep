@@ -4,32 +4,30 @@
   <suse_register>
   <do_registration config:type="boolean">true</do_registration>
   <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
-    <install_updates config:type="boolean">true</install_updates>
+  <install_updates config:type="boolean">true</install_updates>
+  <addons config:type="list">
+    <addon>
+      <name>sle-sdk</name>
+      <version>12.5</version>
+      <arch>aarch64</arch>
+    </addon>
+    <addon>
+      <name>sle-module-hpc</name>
+      <version>12</version>
+      <arch>aarch64</arch>
+    </addon>
+    <addon>
+      <name>sle-module-toolchain</name>
+      <version>12</version>
+      <arch>aarch64</arch>
+    </addon>
+    <addon>
+      <name>sle-module-web-scripting</name>
+      <version>12</version>
+      <arch>aarch64</arch>
+    </addon>
+  </addons>
   </suse_register>
-  <add-on>
-    <add_on_products config:type="list">
-      <listentry>
-        <media_url><![CDATA[https://updates.suse.com/SUSE/Products/SLE-SDK/12-SP5/aarch64/product?ieViDQb7iKfc8O3mw-Y2AXjnqSZmlnjR5gxqIVbU_xqJ5kbgHHXZHbr9KQO4ZPkNwqhnkMkq6H-5fLWP-95LTy2c3bHwz8yIDUbL2Oxinoh5Pg9s6ZEAMJNViwJFmN7tEhzyII_ElLtYIS4]]></media_url>
-        <product>sle-sdk</product>
-        <product_dir/>
-      </listentry>
-      <listentry>
-        <media_url><![CDATA[https://updates.suse.com/SUSE/Products/SLE-Module-HPC/12/aarch64/product?Qng5E1U4EdWbwYO5_KJgElCqNESCH4aLoZEqqByUFsz3U2wFwzwoMNeId0wXvU9FEiDGrR2vyyVDZKRX3QKWs3YG2-_E3FxUPBLuGOtIDKcdIYPpqA0O0lVcn__gAvfRxJ-b1ZrcGVUSccYPZ8c]]></media_url>
-        <product>sle-module-hpc</product>
-        <product_dir/>
-      </listentry>
-      <listentry>
-        <media_url><![CDATA[https://updates.suse.com/SUSE/Updates/SLE-Module-Toolchain/12/aarch64/update?d0Du_KN6Tzt8aF-yEnd_9Xa0nu_05bK6pXWRCx3nrd_Bfri9QR_Rjdvehb3Hj466Yz0mJ_n6PUcBhjKL7Ly9yrx0H6HCZ2cn7DfmulvkkBpUlBu1XJROs_w6-N8Rma0WtEX90wQdzdouMQ5ymc9Mt5Im]]></media_url>
-        <product>sle-module-toolchain</product>
-        <product_dir/>
-      </listentry>
-      <listentry>
-        <media_url><![CDATA[https://updates.suse.com/SUSE/Updates/SLE-Module-Web-Scripting/12/aarch64/update?wSpb550ZDkxkh62ejLNDhQZboKHjJNA2qyh--cI4kCoOsfojj0zmu1etximZ-mnVTP-ZYu25ROWM7L5PAYJQbA_ZHjya7Cq-EY65NfhOHvYSJaFjX7_q4g6BuAW9ioybIKMRC4okbSPt2B0006MgpUoVn3aFRA]]></media_url>
-        <product>sle-module-web-scripting</product>
-        <product_dir/>
-      </listentry>
-    </add_on_products>
-  </add-on>
   <bootloader>
     <global>
       <timeout config:type="integer">-1</timeout>
