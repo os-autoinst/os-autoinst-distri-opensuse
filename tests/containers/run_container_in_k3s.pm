@@ -1,12 +1,12 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2022-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Installs local k3s locally and executes a test
 # to be sure this is working properly
 #
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use base 'consoletest';
 use strict;

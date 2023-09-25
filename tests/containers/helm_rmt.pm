@@ -10,7 +10,7 @@
 # - check the correct deployment of the helm chart
 # - cleanup system (helm and k3s)
 #
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use File::Basename qw(dirname);

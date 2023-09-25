@@ -5,7 +5,7 @@
 
 # Package: podman network
 # Summary: Test podman network
-# Maintainer: qac team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
 use testapi;

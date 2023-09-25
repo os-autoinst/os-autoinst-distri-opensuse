@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2019 SUSE LLC
+# Copyright 2018-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: zypper-docker
@@ -12,7 +12,7 @@
 #      * zypper-docker can list outdated containers:             'zypper-docker ps'
 #      * zypper-docker can list updates/patches for a container: 'zypper-docker list-updates-container' 'zypper-docker list-patches-container'
 #      * zypper-docker can apply the updates:                    'zypper-docker update'
-# Maintainer: Antonio Caristia <acaristia@suse.com>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
 use testapi;

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2021-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Test rootless mode on podman.
@@ -13,7 +13,7 @@
 #   * container is launched with existing user id
 #   * container is launched with keep-id of the user who run the container
 # - Restore /etc/zypp/credentials.d/ credentials
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
 use testapi;

@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2009-2013 Bernhard M. Wiedemann
-# Copyright 2012-2022 SUSE LLC
+# Copyright 2013-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: docker/podman engine
@@ -22,7 +22,7 @@
 # - attach a volume
 # - expose a port
 # - test networking outside of host
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
 use testapi;
