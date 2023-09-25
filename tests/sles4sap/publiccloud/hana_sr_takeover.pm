@@ -36,7 +36,7 @@ sub run {
     $self->{my_instance} = $target_site;
 
     # Check initial cluster status
-    $self->run_cmd(cmd => 'zypper -n in ClusterTools2');
+    $self->run_cmd(cmd => 'zypper -n in ClusterTools2', timeout => 300);
     $self->run_cmd(cmd => 'cs_wait_for_idle --sleep 5');
     my $cluster_status = $self->run_cmd(cmd => 'crm status');
     record_info('Cluster status', $cluster_status);
