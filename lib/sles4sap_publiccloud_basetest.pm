@@ -17,7 +17,7 @@ use qesapdeployment;
 use sles4sap_publiccloud;
 use publiccloud::utils;
 
-our @EXPORT = qw(cleanup);
+our @EXPORT = qw(cleanup import_context);
 
 
 sub cleanup {
@@ -26,17 +26,21 @@ sub cleanup {
     record_info('Cleanup',
         join(' ',
             'cleanup_called:', $self->{cleanup_called} // 'undefined',
-            'network_peering_present:', $self->{network_peering_present} // 'undefined'));
+            'network_peering_present:', $self->{network_peering_present} // 'undefined',
+            'ansible_present:', $self->{ansible_present} // 'undefined'));
     # Do not run destroy if already executed
     return if ($self->{cleanup_called});
     $self->{cleanup_called} = 1;
 
     qesap_upload_logs();
-    delete_network_peering() if ($self->{network_peering_present});
+    if ($self->{network_peering_present}) {
+        delete_network_peering();
+        $self->{network_peering_present} = 0;
+    }
 
     my @cmd_list;
-    # Only run the Ansible deregister if the inventory is present
-    push(@cmd_list, 'ansible') if (!script_run 'test -f ' . qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER')));
+    # Only run the Ansible deregister if Ansible has been executed
+    push(@cmd_list, 'ansible') if ($self->{ansible_present});
 
     # Terraform destroy can be executed in any case
     push(@cmd_list, 'terraform');
@@ -49,6 +53,7 @@ sub cleanup {
             if ($cleanup_cmd_rc[0] == 0) {
                 diag(ucfirst($command) . " cleanup attempt # $_ PASSED.");
                 record_info("Clean $command", ucfirst($command) . ' cleanup PASSED.');
+                $self->{ansible_present} = 0 if ($command eq 'ansible');
                 last;
             }
             else {
@@ -63,6 +68,19 @@ sub cleanup {
         (ref($args->{my_provider}) =~ /^publiccloud::(azure|ec2|gce)/) &&
         (defined $self->{result}) && ($self->{result} ne 'fail'));
     record_info('Cleanup finished');
+}
+
+sub import_context {
+    my ($self, $run_args) = @_;
+    $self->{instances} = $run_args->{instances};
+    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
+    $self->{ansible_present} = 1 if ($run_args->{ansible_present});
+    record_info('CONTEXT LOG', join(' ',
+            'cleanup_called:', $self->{cleanup_called} // 'undefined',
+            'instances:', $self->{instances} // 'undefined',
+            'network_peering_present:', $self->{network_peering_present} // 'undefined',
+            'ansible_present:', $self->{ansible_present} // 'undefined')
+    );
 }
 
 sub post_fail_hook {

@@ -11,11 +11,15 @@ use testapi;
 use qesapdeployment;
 use publiccloud::utils qw(is_azure is_ec2);
 
+sub test_flags {
+    return {fatal => 1, publiccloud_multi_module => 1};
+}
+
 sub run {
     my ($self, $run_args) = @_;
-    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
-    my $instance = $run_args->{my_instance};
-    record_info('CONTEXT LOG', "instance:$instance network_peering_present:$self->{network_peering_present}");
+
+    # Needed to have peering and ansible state propagated in post_fail_hook
+    $self->import_context($run_args);
 
     die 'Network peering already in place' if ($self->{network_peering_present});
     my $ibs_mirror_resource_group = get_required_var('IBSM_RG');
@@ -28,10 +32,6 @@ sub run {
         die 'Error in network peering setup.' if !qesap_aws_vnet_peering(target_ip => $ibs_mirror_target_ip, vpc_id => $vpc_id);
     }
     $run_args->{network_peering_present} = $self->{network_peering_present} = 1;
-}
-
-sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
 }
 
 1;

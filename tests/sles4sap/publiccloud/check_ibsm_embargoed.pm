@@ -16,9 +16,8 @@ sub test_flags {
 
 sub run() {
     my ($self, $run_args) = @_;
+    $self->import_context($run_args);
     my $instance = $run_args->{my_instance};
-    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
-    record_info('CONTEXT LOG', "instance:$instance network_peering_present:$self->{network_peering_present}");
 
     my @repos = split(/,/, get_var('INCIDENT_REPO'));
     my $count = 0;
