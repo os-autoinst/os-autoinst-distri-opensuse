@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2021 SUSE LLC
+# Copyright 2017-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: runc docker-runc
@@ -10,7 +10,7 @@
 #      * create specification files
 #      * run the container
 #      * complete lifecycle (create, start, pause, resume, kill, delete)
-# Maintainer: qac team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
 use testapi;

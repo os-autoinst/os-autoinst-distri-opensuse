@@ -1,11 +1,11 @@
 # SUSE's openQA tests
 #
-# Copyright @ SUSE LLC
+# Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Test apptainer container functionality
 #
-# Maintainer: Ioannis Bonatakis <ybonatakis@suse.com>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base qw(consoletest);
 use testapi;

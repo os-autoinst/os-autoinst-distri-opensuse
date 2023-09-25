@@ -1,6 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2022-2023 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,7 +17,7 @@
 #   This module is used to test BCI repository and BCI container images.
 #   It installs the required packages and uses the existing BCI-test
 #   repository defined by BCI_TESTS_REPO.
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base qw(consoletest);
 use XML::LibXML;

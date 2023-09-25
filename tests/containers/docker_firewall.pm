@@ -1,11 +1,11 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2021-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: docker firewalld
 # Summary: Test docker with enabled firewall
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
 use testapi;

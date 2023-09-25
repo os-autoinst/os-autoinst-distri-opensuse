@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2009-2013 Bernhard M. Wiedemann
-# Copyright 2012-2021 SUSE LLC
+# Copyright 2012-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: docker-distribution-registry | distribution-registry
@@ -12,7 +12,7 @@
 # - images can be searched
 # - images can be pulled
 # - images can be deleted
-# Maintainer: qac team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
 use testapi;

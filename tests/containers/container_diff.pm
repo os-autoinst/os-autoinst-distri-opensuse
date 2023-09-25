@@ -1,11 +1,11 @@
 # SUSE's openQA tests
 #
-# Copyright 2020-2021 SUSE LLC
+# Copyright 2020-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: container-diff
 # Summary: Print and save diffs between two cotaniners using container-diff tool
-# Maintainer: qac team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
 use testapi;

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2021-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: bci-tests runner
@@ -12,7 +12,7 @@
 #   This module is used to test BCI repository and BCI container images.
 #   It makes the call to tox to run the different test environments defined
 #   in the variable BCI_TEST_ENVS.
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base qw(consoletest);
 use XML::LibXML;

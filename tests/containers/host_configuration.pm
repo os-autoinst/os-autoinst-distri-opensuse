@@ -1,13 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2022-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Setup system which will host containers
 # - setup networking via dhclient when is needed
 # - make sure that ca certifications were installed
 # - import SUSE CA certificates
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base qw(consoletest);
 use testapi;

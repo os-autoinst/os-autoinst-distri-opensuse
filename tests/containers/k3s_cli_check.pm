@@ -1,12 +1,12 @@
 # SUSE's openQA tests
 #
-# Copyright 2012-2021 SUSE LLC
+# Copyright 2012-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: k3s
 # Summary: Smoke test for k3s CLI
 #          This module assumes kubectl and k3s is already installed.
-# Maintainer: qa-c@suse.de
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use base "consoletest";
 use testapi;

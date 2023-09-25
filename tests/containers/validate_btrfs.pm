@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2020-2021 SUSE LLC
+# Copyright 2020-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Test Docker’s btrfs storage driver features for image and container management
@@ -11,7 +11,7 @@
 # Finally we test the disk administration filling up the subvolume mounted for the images
 # and try to pull another image. With btrfs we should be able to add another disk and be able to
 # continue when the docker partition is fulled up.
-# Maintainer: qac team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
 use testapi;

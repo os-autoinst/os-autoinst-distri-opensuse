@@ -5,7 +5,7 @@
 
 # Package: podman, netavark, aardvark
 # Summary: Test podman netavark network backend
-# Maintainer: qac team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
 use testapi;
