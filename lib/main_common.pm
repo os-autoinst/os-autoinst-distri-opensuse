@@ -2336,6 +2336,7 @@ sub load_security_tests {
     my @security_tests = qw(
       fips_setup
       crypt_core
+      apparmor
     );
 
     # Check SECURITY_TEST and call the load functions iteratively.
@@ -2940,6 +2941,23 @@ sub load_nfs_tests {
 
 sub load_upstream_systemd_tests {
     loadtest 'systemd_testsuite/prepare_systemd_and_testsuite';
+}
+
+sub load_security_tests_apparmor {
+    load_security_console_prepare;
+
+    if (check_var('TEST', 'mau-apparmor') || is_jeos) {
+        loadtest "security/apparmor/aa_prepare";
+    }
+    loadtest "security/apparmor/aa_status";
+    loadtest "security/apparmor/aa_enforce";
+    loadtest "security/apparmor/aa_complain";
+    loadtest "security/apparmor/aa_genprof";
+    loadtest "security/apparmor/aa_autodep";
+    loadtest "security/apparmor/aa_logprof";
+    loadtest "security/apparmor/aa_easyprof";
+    loadtest "security/apparmor/aa_notify";
+    loadtest "security/apparmor/aa_disable";
 }
 
 1;
