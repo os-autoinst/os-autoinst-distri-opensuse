@@ -4,7 +4,8 @@ bootloader:
   - installation/bootloader_start
 setup_libyui:
   - installation/setup_libyui
-access_beta_distribution: []
+# access_beta_distribution:
+#   - installation/access_beta_distribution
 license_agreement:
   - installation/licensing/accept_license
 disk_activation: []
