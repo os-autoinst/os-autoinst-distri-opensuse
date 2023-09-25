@@ -119,7 +119,7 @@ test: unit-test test-static test-compile test-isotovideo perlcritic
 endif
 
 PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --stern --include "strict" --include Perl::Critic::Policy::HashKeyQuote \
-  --verbose "::warning file=%f,line=%l,col=%c,title=%m - severity %s::%e\n"
+  --verbose "::warning file=%f,line=%l,col=%c,title=%m - severity %s::%e\n" --quiet
 
 .PHONY: perlcritic
 perlcritic: tools/lib/
