@@ -141,7 +141,17 @@ sub poweroff_x11 {
 
     if (check_var("DESKTOP", "gnome")) {
         send_key "ctrl-alt-delete";
-        assert_screen 'logoutdialog', 15;
+        if (is_sle('=12-SP5')) {
+            unless (check_screen 'logoutdialog', 15) {
+                record_soft_failure 'poo#136901 - "ctrl-alt-del" key can not work sometimes';
+                # Use mouse click 'system power button' to shutdown the system
+                assert_and_click 'gnome-system_power_btn';
+                assert_and_click 'gnome-power_action_btn';
+            }
+        }
+        else {
+            assert_screen 'logoutdialog', 15;
+        }
         assert_and_click 'gnome-shell_shutdown_btn';
 
         if (get_var("SHUTDOWN_NEEDS_AUTH")) {
