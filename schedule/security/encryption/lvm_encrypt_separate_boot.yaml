@@ -11,6 +11,7 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
+  - '{{access_beta_distribution}}'
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
@@ -36,3 +37,9 @@ schedule:
   - installation/first_boot
   - console/validate_lvm
   - console/validate_encrypt
+
+conditional_schedule:
+  access_beta_distribution:
+    BETA:
+      1:
+        - installation/access_beta_distribution
