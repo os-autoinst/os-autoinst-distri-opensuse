@@ -13,7 +13,6 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
-use version_utils 'is_sle';
 
 sub prepare_db {
     my $hostname = get_required_var("HOSTNAME");
@@ -35,9 +34,7 @@ sub run {
         barrier_wait("HPC_PRE_MIGRATION");
     }
 
-    zypper_call("in slurm-munge slurm-slurmdbd mariadb ganglia-gmond");
-    # install slurm-node if sle15, not available yet for sle12
-    zypper_call('in slurm-node') if is_sle '15+';
+    zypper_call("in slurm-node slurm-munge slurm-slurmdbd mariadb ganglia-gmond");
 
     systemctl("start mariadb");
     systemctl("is-active mariadb");
