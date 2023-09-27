@@ -85,7 +85,7 @@ sub install_docker_when_needed {
                 activate_containers_module;
 
                 # Temporarly enable LTSS product on LTSS systems where it is not present
-                if (get_var('SCC_REGCODE_LTSS') && script_run('test -f /etc/products.d/SLES-LTSS.prod') != 0) {
+                if (get_var('SCC_REGCODE_LTSS') && script_run('test -f /etc/products.d/SLES-LTSS.prod') != 0 && !main_common::is_updates_tests) {
                     add_suseconnect_product('SLES-LTSS', undef, undef, '-r ' . get_var('SCC_REGCODE_LTSS'), 150);
                     $ltss_needed = 1;
                 }
@@ -99,7 +99,7 @@ sub install_docker_when_needed {
                 systemctl 'try-restart firewalld';
             }
 
-            remove_suseconnect_product('SLES-LTSS') if $ltss_needed;
+            remove_suseconnect_product('SLES-LTSS') if $ltss_needed && !main_common::is_updates_tests;
         }
     }
 
