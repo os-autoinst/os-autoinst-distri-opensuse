@@ -41,7 +41,9 @@ sub run {
     }
 
     quit_packagekit;
-    zypper_call('in salt-master salt-minion');
+    my @packages = qw(salt-master);
+    push @packages, 'salt-minion' unless is_jeos;
+    zypper_call("in @packages");
     my $cmd = <<'EOF';
 systemctl start salt-master
 systemctl status --no-pager salt-master
