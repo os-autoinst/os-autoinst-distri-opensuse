@@ -24,10 +24,6 @@ sub run ($self) {
     # $slurm_pkg-munge is installed explicitly since slurm_23_02
     zypper_call("in $slurm_pkg-node $slurm_pkg-munge");
 
-    if (get_required_var('EXT_HPC_TESTS')) {
-        zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);
-        zypper_call('in iputils python');
-    }
     my %users = (
         'user_1' => 'Sebastian',
         'user_2' => 'Egbert',

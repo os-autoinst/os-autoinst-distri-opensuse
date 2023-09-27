@@ -405,25 +405,6 @@ sub run_accounting_ha_tests() {
     return @all_results;
 }
 
-########################################################
-##        Extended&External tests for HPC             ##
-##          Meant as fast moving tests                ##
-########################################################
-
-sub extended_hpc_tests ($master_ip, $slave_ip) {
-    # do all test preparations and setup
-    zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);
-    # https://progress.opensuse.org/issues/107395 include twopence post scripts error code
-    zypper_call('in git-core twopence-shell-client bc iputils python3', exitcode => [0, 107]);
-    assert_script_run('git -c http.sslVerify=false clone https://github.com/schlad/hpc-testing.git --branch HPC');
-
-    #execute tests
-    assert_script_run('cd hpc-testing');
-    record_info('DEBUG3', "$slave_ip");
-    assert_script_run("./hpc-test.sh $master_ip $slave_ip --in-vm -v", 360);
-    parse_extra_log('XUnit', './results/TEST-hpc-test.xml');
-}
-
 sub run ($self) {
     select_serial_terminal();
     my $nodes = get_required_var('CLUSTER_NODES');
@@ -478,19 +459,7 @@ sub run ($self) {
     # HA: 2 slurm ctl and 2+ compute nodes
     # ACCOUNTING: 1 slurm ctl, 1 slurmdbd, 2+ compute nodes
     # ACCOUNTING and HA (nfs_db): 2 slurm ctl, 1 slurmdbd, 2+ compute nodes
-    # EXT_HPC_TESTS: special variable to enable extended and external HPC tests
-    # Those EXT_HPC_TESTS are meant as fast-moving, quick tests not meant for
-    # stability; use at your own risk
-
-    if (get_required_var('EXT_HPC_TESTS')) {
-        #hpc-testing gets IPs as args
-        my $master_ip = $self->get_master_ip();
-        my $slave_ip = $self->get_slave_ip();
-        record_info('DEBUG2', "$slave_ip");
-        extended_hpc_tests($master_ip, $slave_ip);
-    } else {
-        run_tests($slurm_conf);
-    }
+    run_tests($slurm_conf);
 
     barrier_wait('SLURM_MASTER_RUN_TESTS');
 }
