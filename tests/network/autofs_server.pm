@@ -73,6 +73,13 @@ sub run {
     # common
     assert_script_run "cat /etc/exports";
     systemctl 'restart nfs-server';
+    # check for bsc#1215649
+    # https://progress.opensuse.org/issues/136004
+    if (script_output("systemctl --no-pager status nfs-server") =~ m/status=1\/FAILURE/) {
+        record_soft_failure 'bsc#1215649';
+        systemctl 'stop nfs-server';
+        systemctl 'start nfs-server';
+    }
     barrier_wait 'AUTOFS_SUITE_READY';
     barrier_wait 'AUTOFS_FINISHED';
 }
