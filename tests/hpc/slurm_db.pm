@@ -28,9 +28,8 @@ sub run ($self) {
     # Install slurm
     # $slurm_pkg-munge is installed explicitly since slurm_23_02
     zypper_call("in $slurm_pkg $slurm_pkg-munge $slurm_pkg-slurmdbd");
-    # install slurm-node if sle15, not available yet for sle12
     # $slurm_pkg-munge is installed explicitly since slurm_23_02
-    zypper_call("in $slurm_pkg-node") if is_sle '15+';
+    zypper_call("in $slurm_pkg-node");
 
     my $mariadb_service = "mariadb";
     $mariadb_service = "mysql" if is_sle('<12-sp4');
