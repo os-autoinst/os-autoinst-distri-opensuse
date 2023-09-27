@@ -38,6 +38,9 @@ conditional_schedule:
             'cloud-init':
                 - installation/first_boot
                 - console/system_prepare
+            'combustion':
+                - microos/verify_setup
+                - microos/image_checks
 schedule:
     - '{{bootloader}}'
     - '{{wizard}}'

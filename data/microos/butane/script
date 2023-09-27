@@ -1,28 +1,73 @@
 #!/bin/bash
 # combustion: network
+# 
+# Simple openQA combustion script used for sle-micro or Minimal-VM start from 15-SP6 and their opensuse counterparts
+# due to known bug boo#1157133, the script is intended to be used only on x86_64
+# 
+# Test Objects:
+#   1) set localization and timezone
+#   2) create new fs in the test drive
+#   3) set root password
+#   4) create test users
+#   5) set systemd mount for test partition
+#   6) create test oneshot systemd service that creates a file
+#   7) enable sshd
+#   8) set test hostname 
+#   9) test networking
+#
 # Redirect output to the console
 exec > >(exec tee -a /dev/console) 2>&1
 set -eux
 
-#
-### drives and filesystems
-#
-DRIVE='/dev/vdc'
-PART='/dev/vdc1'
+create_fs() {
+    DRIVE='/dev/vdc'
+    PART='/dev/vdc1'
 
-# create partition and filesystem on additional drive
-echo "label: gpt" | sfdisk "$DRIVE"
-echo "name=testing_part" | sfdisk /dev/vdc -N1
+    # create partition and filesystem on additional drive
+    echo "label: gpt" | sfdisk "$DRIVE"
+    echo "name=testing_part" | sfdisk "$DRIVE" -N1
 
-# label new partition for testing and create labeled ext4
-mkfs.ext4 -L home "$PART"
+    # label new partition for testing and create labeled ext4
+    mkfs.ext4 -L home "$PART"
 
-# mount new partition
-mount -t ext4 "$PART" /home
+    # mount new partition
+    mount -t ext4 "$PART" /home
 
-# DEBUG
-blkid
-lsblk
+    # DEBUG
+    blkid
+    lsblk
+}
+
+systemd_mount() {
+
+cat << EOF > /etc/systemd/system/home.mount
+[Unit]
+Before=local-fs.target
+Requires=systemd-fsck@dev-disk-by\x2dpartlabel-testing_part.service
+After=systemd-fsck@dev-disk-by\x2dpartlabel-testing_part.service
+
+[Mount]
+Where=/home
+What=/dev/disk/by-partlabel/testing_part
+Type=ext4
+
+[Install]
+RequiredBy=local-fs.target
+EOF
+
+}
+
+### set locale, keyboard and timezone
+# exception: sle-micro comes with symlink /etc/localtime, thus systemd-firstboot fails
+# bsc#1215618 - systemd-firstboot --force fails to replace an existing /etc/localtime symlink
+rm -f /etc/localtime
+systemd-firstboot --force --timezone=UTC --locale=en_US.UTF-8 --keymap=us
+echo 'FONT=eurlatgr.psfu' >> /etc/vconsole.conf
+
+if ! grep -q tumbleweed /etc/os-release; then
+    create_fs
+    systemd_mount
+fi
 
 #
 ### users and groups
@@ -57,21 +102,6 @@ RemainAfterExit=no
 ExecStart=/usr/bin/touch /var/log/flagfile
 [Install]
 WantedBy=multi-user.target
-EOF
-
-cat << EOF > /etc/systemd/system/home.mount
-[Unit]
-Before=local-fs.target
-Requires=systemd-fsck@dev-disk-by\x2dpartlabel-testing_part.service
-After=systemd-fsck@dev-disk-by\x2dpartlabel-testing_part.service
-
-[Mount]
-Where=/home
-What=/dev/disk/by-partlabel/testing_part
-Type=ext4
-
-[Install]
-RequiredBy=local-fs.target
 EOF
 
 systemctl enable sshd.service

@@ -635,7 +635,12 @@ sub load_jeos_tests {
     }
 
     load_boot_tests();
-    loadtest "jeos/firstrun";
+    if (check_var('FIRST_BOOT_CONFIG', 'combustion')) {
+        loadtest 'microos/verify_setup';
+        loadtest 'microos/image_checks';
+    } else {
+        loadtest "jeos/firstrun";
+    }
     if (get_var('POSTGRES_IP')) {
         loadtest "jeos/image_info";
     }

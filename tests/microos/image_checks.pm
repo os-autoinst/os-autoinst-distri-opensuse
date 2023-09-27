@@ -10,7 +10,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_microos is_sle_micro);
+use version_utils qw(is_microos is_sle_micro is_jeos);
 use Utils::Architectures qw(is_aarch64);
 
 sub run {
@@ -35,7 +35,7 @@ sub run {
     my $varsize = script_output "findmnt -rnboSIZE -T/var";
     die "/var did not grow, got $varsize B" unless $varsize > (5 * 1024 * 1024 * 1024);
 
-    if (get_var("FIRST_BOOT_CONFIG", "combustion+ignition") =~ /combustion/) {
+    if (get_var("FIRST_BOOT_CONFIG", is_jeos ? "wizard" : "combustion+ignition") =~ /combustion/) {
         # Verify that combustion ran
         validate_script_output('cat /usr/share/combustion-welcome', qr/Combustion was here/);
     }

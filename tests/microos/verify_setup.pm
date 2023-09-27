@@ -15,6 +15,7 @@ use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl);
 use YAML::PP;
 use File::Basename qw(basename);
+use version_utils qw(is_tumbleweed is_microos);
 
 my $data;
 my $fail = 0;
@@ -75,6 +76,8 @@ sub systemd_tests {
 }
 
 sub disk_tests {
+    # tumbleweed nor microos does not come with mkfs.ext4
+    return if is_tumbleweed || is_microos;
     my $disks = get_test_object('storage', 'disks');
     my $filesystems = get_test_object('storage', 'filesystems');
     my $partitions = ();
