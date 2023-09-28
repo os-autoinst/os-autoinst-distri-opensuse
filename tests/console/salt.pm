@@ -24,7 +24,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call quit_packagekit systemctl);
-use version_utils qw(is_jeos is_opensuse);
+use version_utils qw(is_jeos is_opensuse is_sle is_leap);
 use registration 'add_suseconnect_product';
 
 sub run {
@@ -42,7 +42,7 @@ sub run {
 
     quit_packagekit;
     my @packages = qw(salt-master);
-    push @packages, 'salt-minion' unless is_jeos;
+    push @packages, 'salt-minion' unless is_jeos && (is_sle || is_leap);
     zypper_call("in @packages");
     my $cmd = <<'EOF';
 systemctl start salt-master
