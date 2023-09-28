@@ -54,11 +54,6 @@ sub run {
         # Check ssh connection for all hosts
         $instance->wait_for_ssh;
 
-        # Update sudo package as a temporary fix for bsc#1205325
-        if (is_sle('=15-sp2')) {
-            $instance->run_ssh_command(cmd => 'sudo zypper up -y sudo');
-            record_soft_failure('bsc#1205325 - update sudo pkg');
-        }
         # Skip instances without HANA db or setup without cluster
         next if ($instance_id !~ m/vmhana/) or !$ha_enabled;
         $self->wait_for_sync();
