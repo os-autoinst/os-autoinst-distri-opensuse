@@ -15,11 +15,13 @@ use warnings;
 use testapi;
 use repo_tools;
 use utils;
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
     select_console 'root-console';
     record_info('RMT server setup', 'Start to setup a rmt server');
     rmt_wizard();
+    select_serial_terminal;
     # sync from SCC
     rmt_sync;
     # enable all modules of products at one arch
