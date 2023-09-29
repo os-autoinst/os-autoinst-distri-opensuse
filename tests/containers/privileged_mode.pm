@@ -13,6 +13,7 @@ use serial_terminal 'select_serial_terminal';
 use utils qw(validate_script_output_retry);
 use containers::utils qw(reset_container_network_if_needed);
 use Utils::Architectures;
+use version_utils qw(is_public_cloud);
 
 sub run {
     my ($self, $args) = @_;
@@ -28,7 +29,7 @@ sub run {
     record_info('Test', 'Launch a container with privileged mode');
 
     # /dev is only accessible in privileged mode
-    assert_script_run("$runtime run --rm --privileged $image ls /dev/bus") unless is_s390x;
+    assert_script_run("$runtime run --rm --privileged $image ls /dev/bus") unless (is_s390x || is_public_cloud);
 
     # Mounting tmpfs only works in privileged mode because the read-only protection in the default mode
     assert_script_run("$runtime run --rm --privileged $image mount -t tmpfs none /mnt");
