@@ -31,6 +31,8 @@ sub run {
     # /dev is only accessible in privileged mode
     assert_script_run("$runtime run --rm --privileged $image ls /dev/bus") unless (is_s390x || is_public_cloud);
 
+    assert_script_run("$runtime run --rm --privileged $image ls /dev")
+
     # Mounting tmpfs only works in privileged mode because the read-only protection in the default mode
     assert_script_run("$runtime run --rm --privileged $image mount -t tmpfs none /mnt");
 
