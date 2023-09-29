@@ -26,6 +26,7 @@ use constant {
           is_selfinstall
           is_gnome_next
           is_jeos
+          is_community_jeos
           is_krypton_argon
           is_leap
           is_opensuse
@@ -890,5 +891,14 @@ sub php_version {
         $php_ver = '8';
     }
     ($php, $php_pkg, $php_ver);
+}
+
+=head2 is_community_jeos
+
+Returns true for tests using the images built by the "JeOS" package on OBS
+=cut
+
+sub is_community_jeos {
+    return (get_var('FLAVOR', '') =~ /JeOS-for-(AArch64|RPi)/);
 }
 
