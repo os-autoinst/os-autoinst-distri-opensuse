@@ -31,7 +31,9 @@ sub run {
     # /dev is only accessible in privileged mode
     assert_script_run("$runtime run --rm --privileged $image ls /dev/bus") unless (is_s390x || is_public_cloud);
 
-    assert_script_run("$runtime run --rm --privileged $image ls /dev")
+    # Inspect cgroups
+    assert_script_run("$runtime run --rm --privileged $image cat /proc/1/cgroup");
+    assert_script_run("$runtime run --rm $image cat /proc/1/cgroup"); # Testing without privileged
 
     # Mounting tmpfs only works in privileged mode because the read-only protection in the default mode
     assert_script_run("$runtime run --rm --privileged $image mount -t tmpfs none /mnt");
@@ -39,7 +41,12 @@ sub run {
     # Capabilities are only available in privileged mode
     my $capbnd = script_output("cat /proc/1/status | grep CapBnd");
     validate_script_output("$runtime run --rm --privileged $image cat /proc/1/status | grep CapBnd", sub { m/$capbnd/ });
-}
+
+    # Without and with read-only mode
+    assert_script_run("$runtime run --rm --privileged $image touch /test");
+    assert_script_run("! $runtime run --rm --privileged --read-only $image touch /test", fail_message => "Nope");
+    assert_script_run("$runtime run --rm  $image touch /test"); # Testing without privileged
+}   
 
 sub cleanup {
     my ($self) = @_;
