@@ -20,9 +20,10 @@ our @EXPORT = qw(query_smelt get_incident_packages get_packagebins_in_modules);
 sub query_smelt {
     my $graphql = $_[0];
     my $transaction = Mojo::UserAgent->new->post("https://smelt.suse.de/graphql/" => json => {query => "$graphql"});
-    if ($transaction->res->code != 200) {
-        record_info "Response: $transaction->res->code", "Unexpected response code from SMELT";
-        die "Unexpected response code from SMELT: $transaction->res->code";
+    my $resp_code = $transaction->res->code;
+    if ($resp_code != 200) {
+        record_info "Response: $resp_code", "Unexpected response code from SMELT";
+        die "Unexpected response code from SMELT: $resp_code";
     }
     return $transaction->res->body;
 }
@@ -31,9 +32,12 @@ sub get_incident_packages {
     my $mr = $_[0];
     my $gql_query = "{incidents(incidentId: $mr){edges{node{incidentpackagesSet{edges{node{package{name}}}}}}}}";
     my $graph = JSON->new->utf8->decode(query_smelt($gql_query));
-    my @nodes = @{$graph->{data}{incidents}{edges}[0]{node}{incidentpackagesSet}{edges}};
-    my @packages = map { $_->{node}{package}{name} } @nodes;
-    die "Test could not parse any packages in SMELT response" if not @packages;
+    my $exception_message = "Unexpected response code from SMELT\n";
+    die $exception_message . "Error in getting incident data (incidentId:$mr) from SMELT" unless $graph;
+    my $nodes = $graph->{data}{incidents}{edges}[0]{node}{incidentpackagesSet}{edges};
+    die $exception_message . "Invalid/empty incident data (incidentId:$mr) from SMELT" unless $nodes;
+    my @packages = map { $_->{node}{package}{name} } @{$nodes};
+    die $exception_message . "Test could not parse any packages in SMELT response" if not @packages;
     return @packages;
 }
 

@@ -134,9 +134,10 @@ sub run {
                 if ($item eq 'spectre_v2') {
                     $mitigations_list{sysfs}->{'auto,nosmt'}->{$item} = "Mitigation: Retpolines,.*IBPB: conditional, IBRS_FW*";
                 }
-                if (get_var('MICRO_ARCHITECTURE') =~ /Skylake/) {
+                if ($item eq 'spectre_v2' && get_var('MICRO_ARCHITECTURE') =~ /Skylake/) {
                     $mitigations_list{sysfs}->{'auto,nosmt'}->{$item} = "Mitigation: IBRS, IBPB: conditional, RSB filling.*";
                 }
+
             }
             if (is_qemu) {
                 #spectre_v2

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2022-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: podman
@@ -8,7 +8,7 @@
 # - Use data/containers/hello-kubic.yaml to run pods
 # - Confirm 1 pod is spawned
 # - Clean up pods using hello-kubic.yaml
-# Maintainer: Richard Brown <rbrown@suse.com>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
 use testapi;

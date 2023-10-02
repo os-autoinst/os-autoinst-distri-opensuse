@@ -31,16 +31,7 @@ sub run {
     systemctl 'start bluetooth';
     systemctl 'status bluetooth';
     assert_script_run 'rfkill list';
-    if (script_run('bluetoothctl show') != 0) {
-        if (check_var('MACHINE', 'RPi3B+')) {
-            record_soft_failure 'bsc#1188238 - No bluetooth on rpi3b+';
-            $self->post_fail_hook;
-            return;
-        }
-        else {
-            die 'No bluetooth controller found';
-        }
-    }
+    die 'No bluetooth controller found' if (script_run('bluetoothctl show') != 0);
     assert_script_run '(echo "power on"; sleep 5; echo "scan on"; sleep 30; echo "devices") | bluetoothctl | tee /dev/stderr | grep openQA-worker';
     assert_script_run 'bluetoothctl show';
 }

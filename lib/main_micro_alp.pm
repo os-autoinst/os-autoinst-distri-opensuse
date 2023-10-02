@@ -170,11 +170,11 @@ sub load_common_tests {
     loadtest 'console/regproxy' if is_regproxy_required;
     loadtest 'microos/networking';
     loadtest 'microos/libzypp_config';
-    loadtest 'microos/image_checks' if is_image;
+    loadtest 'microos/image_checks' if (is_image || is_selfinstall);
     loadtest 'microos/one_line_checks';
     loadtest 'microos/services_enabled';
     # MicroOS -old images use wicked, but cockpit-wicked is no longer supported in TW
-    loadtest 'microos/cockpit_service' unless (is_microos('Tumbleweed') && is_staging) || (is_microos('Tumbleweed') && get_var('HDD_1') =~ /-old/) || !get_var('SCC_REGISTER') || is_alp;
+    loadtest 'microos/cockpit_service' unless (is_microos('Tumbleweed') && is_staging) || (is_microos('Tumbleweed') && get_var('HDD_1', '') =~ /-old/) || !get_var('SCC_REGISTER') || is_alp;
     # Staging has no access to repos and the MicroOS-DVD does not contain ansible
     # Ansible test needs Packagehub in SLE and it can't be enabled in SLEM
     loadtest 'console/ansible' unless (is_staging || is_sle_micro || is_leap_micro || is_alp);
@@ -326,7 +326,7 @@ sub load_tests {
 
     if (get_var('BOOT_HDD_IMAGE')) {
         load_boot_from_disk_tests;
-    } elsif (get_var('SELFINSTALL')) {
+    } elsif (is_selfinstall) {
         load_selfinstall_boot_tests;
     } elsif (get_var('AUTOYAST')) {
         load_autoyast_installation_tests;

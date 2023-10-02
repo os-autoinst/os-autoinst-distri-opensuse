@@ -17,6 +17,8 @@ conditional_schedule:
             'svirt-vmware65':
                 - installation/bootloader_svirt
                 - installation/bootloader_uefi
+            's390x-kvm':
+                - installation/bootloader_start
     maintenance:
         FLAVOR:
             'JeOS-for-kvm-and-xen-Updates':

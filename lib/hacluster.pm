@@ -73,6 +73,8 @@ our @EXPORT = qw(
   activate_ntp
   script_output_retry_check
   calculate_sbd_start_delay
+  setup_sbd_delay
+  set_sbd_service_timeout
   collect_sbd_delay_parameters
   check_iscsi_failure
   cluster_status_matches_regex
@@ -1108,6 +1110,63 @@ sub calculate_sbd_start_delay {
         return $params{'sbd_delay_start'};
     }
     return $default_wait;
+}
+
+=head2 setup_sbd_delay
+    setup_sbd_delay()
+
+=cut
+
+sub setup_sbd_delay() {
+    my $delay = get_var('HA_SBD_START_DELAY', '');
+
+    if ($delay eq '') {
+        record_info('SBD delay', "Skipping, variable 'HA_SBD_START_DELAY' not defined");
+    }
+    else {
+        $delay =~ s/(?<![ye])s//g;
+        croak("<\$set_delay> value must be either 'yes', 'no' or an integer. Got value: $delay")
+          unless looks_like_number($delay) or grep /^$delay$/, qw(yes no);
+        file_content_replace('/etc/sysconfig/sbd', '^SBD_DELAY_START=.*', "SBD_DELAY_START=$delay");
+        record_info('SBD delay', "SBD delay set to: $delay");
+    }
+    # Calculate currently set delay
+    $delay = calculate_sbd_start_delay();
+
+    # set SBD service timeout to be higher (+30s) that calculated/set delay
+    my $sbd_service_timeout = set_sbd_service_timeout($delay + 30);
+    record_info('sbd.service', "Service start timeout for sbd.service set to: $sbd_service_timeout");
+
+    return ($delay);
+}
+
+=head2 set_sbd_service_timeout
+    set_sbd_service_timeout($service_timeout)
+
+=cut
+
+sub set_sbd_service_timeout {
+    my ($service_timeout) = @_;
+    croak "Argument 'service_timeout' not defined" unless defined($service_timeout);
+    croak "Argument 'service_timeout' is not a number" unless looks_like_number($service_timeout);
+    my $service_override_dir = "/etc/systemd/system/sbd.service.d/";
+    my $service_override_filename = "sbd_delay_start.conf";
+    my $service_override_path = $service_override_dir . $service_override_filename;
+
+    # CMD RC is converted to true/false
+    my $file_exists = script_run(join(" ", "test", "-e", $service_override_path, ";echo", "\$?"), quiet => 1) ? 1 : 0;
+
+    if ($file_exists) {
+        file_content_replace($service_override_path, '^TimeoutSec=.*', "TimeoutSec=$service_timeout");
+    }
+    else {
+        my @content = ('[Service]', "TimeoutSec=$service_timeout");
+        assert_script_run(join(" ", "mkdir", "-p", $service_override_dir));
+        assert_script_run(join(" ", "bash", "-c", "\"echo", "'$_'", ">>", $service_override_path, "\"")) foreach @content;
+    }
+    record_info("Systemd SBD", "Systemd unit timeout for 'sbd.service' set to '$service_timeout'");
+
+    return ($service_timeout);
 }
 
 =head2 check_iscsi_failure

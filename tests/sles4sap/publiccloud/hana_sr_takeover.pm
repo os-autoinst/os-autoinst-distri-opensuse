@@ -9,8 +9,8 @@ use strict;
 use warnings FATAL => 'all';
 use base 'sles4sap_publiccloud_basetest';
 use testapi;
-use publiccloud::utils;
 use sles4sap_publiccloud;
+use publiccloud::utils;
 use serial_terminal 'select_serial_terminal';
 
 sub test_flags {
@@ -19,8 +19,9 @@ sub test_flags {
 
 sub run {
     my ($self, $run_args) = @_;
-    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
-    $self->{instances} = $run_args->{instances};
+
+    # Needed to have peering and ansible state propagated in post_fail_hook
+    $self->import_context($run_args);
 
     select_serial_terminal;
     my $test_name = $self->{name};
@@ -35,7 +36,7 @@ sub run {
     $self->{my_instance} = $target_site;
 
     # Check initial cluster status
-    $self->run_cmd(cmd => 'zypper -n in ClusterTools2');
+    $self->run_cmd(cmd => 'zypper -n in ClusterTools2', timeout => 300);
     $self->run_cmd(cmd => 'cs_wait_for_idle --sleep 5');
     my $cluster_status = $self->run_cmd(cmd => 'crm status');
     record_info('Cluster status', $cluster_status);
@@ -46,13 +47,13 @@ sub run {
     );
 
     # SBD delay related setup in case of crash OS to prevent cluster starting too quickly after reboot
-    $self->setup_sbd_delay() if $takeover_action eq 'crash';
+    $self->setup_sbd_delay_publiccloud() if $takeover_action eq 'crash';
     # Calculate SBD delay sleep time
     $sbd_delay = $self->sbd_delay_formula if $takeover_action eq 'crash';
 
     # SBD delay related setup for 'stop' to fix sporadic 'takeover failed to complete' issue on EC2
     if ($takeover_action eq 'stop' and check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
-        $self->setup_sbd_delay();
+        $self->setup_sbd_delay_publiccloud();
         $sbd_delay = $self->sbd_delay_formula();
     }
 

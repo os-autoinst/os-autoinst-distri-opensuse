@@ -15,7 +15,7 @@ use warnings;
 sub init {
     my $self = shift;
     $self->SUPER::init();
-    $self->{txb_opt_kernel_param} = $self->{app}->textbox({id => "\"Bootloader::KernelAppendWidget\""});
+    $self->{txb_opt_kernel_param} = $self->{app}->textbox({id => qr/"Bootloader::.*KernelAppendWidget"/});
     return $self;
 }
 

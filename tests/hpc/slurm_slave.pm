@@ -14,7 +14,6 @@ use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
 use hpc::utils 'get_slurm_version';
-use version_utils 'is_sle';
 
 sub run ($self) {
     select_serial_terminal();
@@ -23,9 +22,7 @@ sub run ($self) {
 
     # Install slurm
     # $slurm_pkg-munge is installed explicitly since slurm_23_02
-    zypper_call("in $slurm_pkg-munge");
-    # install slurm-node if sle15, not available yet for sle12
-    zypper_call("in $slurm_pkg-node") if is_sle '15+';
+    zypper_call("in $slurm_pkg-node $slurm_pkg-munge");
 
     if (get_required_var('EXT_HPC_TESTS')) {
         zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);

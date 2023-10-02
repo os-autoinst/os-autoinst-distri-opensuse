@@ -19,6 +19,7 @@ use Mojo::UserAgent;
 use zypper qw(wait_quit_zypper);
 use Storable qw(dclone);
 use Getopt::Long qw(GetOptionsFromString);
+use File::Basename;
 
 our @EXPORT = qw(
   generate_results
@@ -109,6 +110,11 @@ our @EXPORT = qw(
   handle_screen
   define_secret_variable
   @all_tests_results
+  ping_size_check
+);
+
+our @EXPORT_OK = qw(
+  download_script
 );
 
 =head1 SYNOPSIS
@@ -2091,6 +2097,38 @@ sub script_run_interactive {
     }
 }
 
+=head2 download_script
+
+ download_script($srcfile, [$destfile]);
+
+Download C<$srcfile> script from worker data directory to the SUT and save it
+as C<$destfile>, with executable bit set. If C<$destfile> is not set,
+the default is to save the script file under the same name in the current
+directory.
+=cut
+
+sub download_script {
+    my $srcfile = shift || die 'Script filename required';
+    my $destfile = shift || basename($srcfile);
+
+    if (get_var('OFFLINE_SUT')) {
+        my $data = get_test_data($srcfile);
+        my $eof = hashed_string("DS$data");
+
+        script_start_io("cat >$destfile <<'$eof'");
+        type_string("$data\n$eof\n");
+        # Flush the script contents from console to avoid confusing
+        # script_finish_io()
+        wait_serial(qr/\Q$eof\E$/) if is_serial_terminal;
+        script_finish_io();
+    }
+    else {
+        assert_script_run("curl -v -o $destfile " . data_url($srcfile));
+    }
+
+    assert_script_run("chmod a+x $destfile");
+}
+
 =head2 create_btrfs_subvolume
 
  create_btrfs_subvolume();
@@ -2824,6 +2862,28 @@ sub define_secret_variable {
     script_run("read -sp '$var_name: ' $var_name", 0);
     type_password($var_value . "\n");
     script_run("set +a");
+}
+
+=head2 ping_size_check
+    ping_size_check($target, $size);
+ping_size_check will ping the defined target with different and increasing sizes with
+disabled packet fragmentation. If a size is specified, it will do single ping check with
+one size.
+
+Mandatory parameter: C<target> destination of ping target.
+
+Optional parameter: C<size> ping size for single ping test.
+=cut
+
+sub ping_size_check {
+    my $target = shift;
+    my $size = shift;
+    # Check connectivity with different packet size to target
+    # Fragmentation is disabled, maximum size is 1430 to fit in 1458 MTU in GRE tunel
+    my @sizes = $size ? $size : (100, 1000, 1350, 1400, 1430);
+    for my $size (@sizes) {
+        assert_script_run("ping -M do -s $size -c 1 $target", fail_message => "ping with packet size $size failed, problems with MTU size are expected. If it is multi-machine job, it can be GRE tunnel setup issue.");
+    }
 }
 
 1;

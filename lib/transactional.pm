@@ -20,7 +20,7 @@ use Carp;
 use microos 'microos_reboot';
 use power_action_utils qw(power_action prepare_system_shutdown);
 use version_utils;
-use utils 'reconnect_mgmt_console';
+use utils qw(reconnect_mgmt_console unlock_if_encrypted);
 use Utils::Backends;
 use Utils::Architectures;
 use publiccloud::instances;
@@ -75,6 +75,7 @@ sub process_reboot {
     $args{trigger} //= 0;
     $args{automated_rollback} //= 0;
     $args{expected_grub} //= 1;
+    $args{expected_passphrase} //= 0;
 
     if (is_public_cloud) {
         my $instance = publiccloud::instances::get_instance();
@@ -105,6 +106,9 @@ sub process_reboot {
             if (is_aarch64 && check_screen('tianocore-mainmenu', 30)) {
                 # Use firmware boot manager of aarch64 to boot HDD, when needed
                 opensusebasetest::handle_uefi_boot_disk_workaround();
+            }
+            if ($args{expected_passphrase}) {
+                unlock_if_encrypted();
             }
             # Replace by wait_boot if possible
             assert_screen 'grub2', 150;

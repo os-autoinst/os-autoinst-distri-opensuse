@@ -200,7 +200,10 @@ sub ssh_script_output {
     delete($args{cmd});
     delete($args{ssh_opts});
     delete($args{username});
-    return script_output($ssh_cmd, %args);
+    my $output = script_output($ssh_cmd, %args);
+    # Filter the output ending from "Connection to ($HOST) closed."
+    $output =~ s/Connection to .* closed\.$//;
+    return $output;
 }
 
 =head2 ssh_script_retry

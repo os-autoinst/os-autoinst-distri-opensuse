@@ -5,7 +5,7 @@
 
 # Package: podman network
 # Summary: Test podman network
-# Maintainer: qac team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
 use testapi;
@@ -61,7 +61,7 @@ sub run {
     # NOTE: When https://github.com/containers/podman/issues/19529 is solved we must add a version check here
     my $ret = script_run("$runtime run --rm --volumes-from $test_container $test_image ls /$test_dir/$test_file");
     if ($ret != 0) {
-        if ($runtime eq "podman") {
+        if ($runtime eq "podman" && (version->parse($podman_version) < version->parse('4.7.0'))) {
             record_soft_failure("gh#containers/podman#19529 - Unexpected error with --volumes-from") if ($ret != 0 && $runtime == "podman");
         } else {
             die("--volumes-from failed");

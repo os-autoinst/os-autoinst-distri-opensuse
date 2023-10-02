@@ -85,7 +85,7 @@ sub install_docker_when_needed {
                 activate_containers_module;
 
                 # Temporarly enable LTSS product on LTSS systems where it is not present
-                if (get_var('SCC_REGCODE_LTSS') && script_run('test -f /etc/products.d/SLES-LTSS.prod') != 0) {
+                if (get_var('SCC_REGCODE_LTSS') && script_run('test -f /etc/products.d/SLES-LTSS.prod') != 0 && !main_common::is_updates_tests) {
                     add_suseconnect_product('SLES-LTSS', undef, undef, '-r ' . get_var('SCC_REGCODE_LTSS'), 150);
                     $ltss_needed = 1;
                 }
@@ -99,25 +99,14 @@ sub install_docker_when_needed {
                 systemctl 'try-restart firewalld';
             }
 
-            remove_suseconnect_product('SLES-LTSS') if $ltss_needed;
+            remove_suseconnect_product('SLES-LTSS') if $ltss_needed && !main_common::is_updates_tests;
         }
     }
 
     # docker daemon can be started
     systemctl('enable docker');
     systemctl('is-enabled docker');
-    # docker start, but taking bsc#1187479 into account. Please remove softfailure handling, once bsc#1187479 is solved.
-    if (systemctl('start docker', timeout => 180, ignore_failure => 1) != 0) {
-        # Check for docker start timeout, bsc#1187479
-        if (script_run('journalctl -e | grep "timeout waiting for containerd to start"') == 0) {
-            # Retry one more time
-            record_soft_failure("bsc#1187479 - docker start infrequently times out waiting for containerd");
-            sleep(120);    # give background services time to complete to prevent another failure
-            systemctl('start docker');
-        } else {
-            die "docker start failed";
-        }
-    }
+    systemctl('start docker', timeout => 180);
     systemctl('is-active docker');
     systemctl('status docker', timeout => 120);
     record_info('docker', script_output('docker info'));

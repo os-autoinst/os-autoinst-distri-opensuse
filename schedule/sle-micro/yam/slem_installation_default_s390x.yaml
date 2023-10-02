@@ -3,8 +3,6 @@ description:    >
   Maintainer: QE Yam <qe-yam at suse de>
   SUSE Linux Enterprise Micro installation
 schedule:
-  access_beta_distribution:
-    - installation/access_beta_distribution
   addons:
     - installation/module_registration/skip_module_registration
   timeout:

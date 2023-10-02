@@ -22,11 +22,16 @@ sub test_flags {
 
 sub run {
     my ($self, $run_args) = @_;
-    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
-    my $instances = $run_args->{instances};
+
+    # Needed to have peering and ansible state propagated in post_fail_hook
+    $self->import_context($run_args);
 
     my $ha_enabled = get_required_var('HA_CLUSTER') =~ /false|0/i ? 0 : 1;
     select_serial_terminal;
+    # mark as done in advance and also in case of
+    # QESAP_DEPLOYMENT_IMPORT as the status flag is mostly
+    # used to decide if to call the cleanup
+    $run_args->{ansible_present} = $self->{ansible_present} = 1;
     # skip ansible deployment in case of reusing infrastructure
     unless (get_var('QESAP_DEPLOYMENT_IMPORT')) {
         my @ret = qesap_execute(cmd => 'ansible', timeout => 3600, verbose => 1);
@@ -43,24 +48,20 @@ sub run {
     }
 
     # Check connectivity to all instances and status of the cluster in case of HA deployment
-    foreach my $instance (@$instances) {
+    foreach my $instance (@{$self->{instances}}) {
         $self->{my_instance} = $instance;
         my $instance_id = $instance->{'instance_id'};
         # Check ssh connection for all hosts
         $instance->wait_for_ssh;
 
-        # Update sudo package as a temporary fix for bsc#1205325
-        if (is_sle('=15-sp2')) {
-            $instance->run_ssh_command(cmd => 'sudo zypper up -y sudo');
-            record_soft_failure('bsc#1205325 - update sudo pkg');
-        }
         # Skip instances without HANA db or setup without cluster
         next if ($instance_id !~ m/vmhana/) or !$ha_enabled;
         $self->wait_for_sync();
 
         # Define initial state for both sites
         # Site A is always PROMOTED (Master node) after deployment
-        my $resource_output = $self->run_cmd(cmd => "crm status full", quiet => 1); record_info("crm out", $resource_output);
+        my $resource_output = $self->run_cmd(cmd => "crm status full", quiet => 1);
+        record_info("crm out", $resource_output);
         my $master_node = $self->get_promoted_hostname();
         $run_args->{site_a} = $instance if ($instance_id eq $master_node);
         $run_args->{site_b} = $instance if ($instance_id ne $master_node);

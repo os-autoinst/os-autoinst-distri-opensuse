@@ -87,18 +87,6 @@
         <partition>
           <create config:type="boolean">true</create>
           <crypt_fs config:type="boolean">false</crypt_fs>
-          <format config:type="boolean">false</format>
-          <loop_fs config:type="boolean">false</loop_fs>
-          <mountby config:type="symbol">device</mountby>
-          <partition_id config:type="integer">65</partition_id>
-          <partition_nr config:type="integer">1</partition_nr>
-          <partition_type>primary</partition_type>
-          <resize config:type="boolean">false</resize>
-          <size>8225280</size>
-        </partition>
-        <partition>
-          <create config:type="boolean">true</create>
-          <crypt_fs config:type="boolean">false</crypt_fs>
           <filesystem config:type="symbol">swap</filesystem>
           <format config:type="boolean">true</format>
           <fstopt>defaults</fstopt>
@@ -106,7 +94,7 @@
           <mount>swap</mount>
           <mountby config:type="symbol">uuid</mountby>
           <partition_id config:type="integer">130</partition_id>
-          <partition_nr config:type="integer">2</partition_nr>
+          <partition_nr config:type="integer">1</partition_nr>
           <partition_type>primary</partition_type>
           <resize config:type="boolean">false</resize>
           <size>2146598400</size>
@@ -121,18 +109,22 @@
           <mount>/</mount>
           <mountby config:type="symbol">uuid</mountby>
           <partition_id config:type="integer">131</partition_id>
-          <partition_nr config:type="integer">3</partition_nr>
+          <partition_nr config:type="integer">2</partition_nr>
           <partition_type>primary</partition_type>
           <resize config:type="boolean">false</resize>
           <size>max</size>
           <subvolumes config:type="list">
             <listentry>
               <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>boot/grub2/powerpc-ieee1275</path>
+              <path>home</path>
             </listentry>
             <listentry>
               <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>home</path>
+              <path>boot/grub2/i386-pc</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>boot/grub2/x86_64-efi</path>
             </listentry>
             <listentry>
               <copy_on_write config:type="boolean">true</copy_on_write>
@@ -205,6 +197,7 @@
           </subvolumes>
         </partition>
       </partitions>
+      <pesize/>
       <type config:type="symbol">CT_DISK</type>
       <use>all</use>
     </drive>

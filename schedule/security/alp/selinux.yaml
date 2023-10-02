@@ -1,0 +1,30 @@
+name: selinux
+description: >
+    This is for SElinux test on ALP encrypted image
+schedule:
+    - '{{boot}}'
+    - transactional/host_config
+    - transactional/enable_selinux
+    - security/selinux/selinux_setup
+    - security/selinux/sestatus
+    - security/selinux/semanage_fcontext
+    - security/selinux/semanage_boolean
+    - security/selinux/fixfiles
+    - security/selinux/print_se_context
+    - security/selinux/audit2allow
+    - security/selinux/semodule
+    - security/selinux/setsebool
+    - security/selinux/restorecon
+    - security/selinux/chcon
+    - security/selinux/chcat
+    - security/selinux/set_get_enforce
+    - security/selinux/selinuxexeccon
+    - console/journal_check
+    - shutdown/shutdown
+conditional_schedule:
+    boot:
+        ENCRYPTED_IMAGE:
+            0:
+                - microos/disk_boot
+            1:
+                - jeos/firstrun

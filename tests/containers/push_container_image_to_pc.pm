@@ -1,11 +1,11 @@
 # SUSE's openQA tests
 #
-# Copyright SUSE LLC
+# Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Push a container image to the Public Cloud Registry
 #
-# Maintainer: Ivan Lausuch <ilausuch@suse.com>, qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::k8sbasetest';
 use testapi;

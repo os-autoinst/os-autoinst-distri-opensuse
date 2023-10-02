@@ -116,4 +116,56 @@ subtest '[cluster_status_matches_regex] Cluster with errors' => sub {
     ok scalar $res == 1, 'Cluster health problem properly detected';
 };
 
+
+subtest '[setup_sbd_delay] Test OpenQA parameter input' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $hacluster->redefine(file_content_replace => sub { return 1; });
+    $hacluster->redefine(calculate_sbd_start_delay => sub {
+            my $param = get_var('HA_SBD_START_DELAY', '');
+            my $default = 30;
+            return $default if grep /$param/, ('yes', '1', '');
+            return 0 if grep /$param/, qw(no 0);
+            return 100 if $param eq '100s';
+            return $param if looks_like_number($param); });
+    $hacluster->redefine(set_sbd_service_timeout => sub {
+            my ($timeout) = @_;
+            return $timeout;
+    });
+
+    my %passing_values_vs_expected = (
+        'yes' => '30',
+        '' => '30',
+        'no' => '0',
+        '0' => '0',
+        '100' => '100',
+        '100s' => '100');
+
+    my @failok_values = ('aasd', '100asd', '100S', ' ');
+
+    for my $input_value (@failok_values) {
+        set_var('HA_SBD_START_DELAY', $input_value);
+        dies_ok { setup_sbd_delay() } "Test expected failing 'HA_SBD_START_DELAY' value: $input_value";
+    }
+
+    for my $value (keys %passing_values_vs_expected) {
+        set_var('HA_SBD_START_DELAY', $value);
+        my $returned_value = setup_sbd_delay();
+        is($returned_value, $passing_values_vs_expected{$value},
+            "Test 'HA_SBD_START_DELAY' passing values:\ninput_value: $value\n result: $returned_value");
+    }
+
+};
+
+subtest '[set_sbd_service_timeout] Check failing values' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $hacluster->redefine(file_content_replace => sub { return 1; });
+    $hacluster->redefine(assert_script_run => sub { return 1; });
+    $hacluster->redefine(script_run => sub { return 0; });
+    dies_ok { set_sbd_service_timeout() } 'Expected failure if no argument is provided';
+    dies_ok { set_sbd_service_timeout('Chupacabras') } 'Expected failure if argument is not a number';
+    is set_sbd_service_timeout('42'), '42', 'Function should not change delay time';
+};
+
 done_testing;

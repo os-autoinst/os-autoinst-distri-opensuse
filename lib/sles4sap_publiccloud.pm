@@ -45,11 +45,13 @@ our @EXPORT = qw(
   wait_for_pacemaker
   cloud_file_content_replace
   change_sbd_service_timeout
-  setup_sbd_delay
+  setup_sbd_delay_publiccloud
   sbd_delay_formula
   create_instance_data
   deployment_name
   delete_network_peering
+  create_playbook_section_list
+  create_hana_vars_section
 );
 
 =head2 run_cmd
@@ -461,8 +463,8 @@ sub change_sbd_service_timeout() {
     record_info("Systemd SBD", "Systemd unit timeout for 'sbd.service' set to '$service_timeout'");
 }
 
-=head2 setup_sbd_delay
-     $self->setup_sbd_delay();
+=head2 setup_sbd_delay_publiccloud
+     $self->setup_sbd_delay_publiccloud();
 
      Set (activate or deactivate) SBD_DELAY_START setting in /etc/sysconfig/sbd.
      Delay is used in case of cluster VM joining cluster too quickly after fencing operation.
@@ -478,7 +480,7 @@ sub change_sbd_service_timeout() {
 
 =cut
 
-sub setup_sbd_delay() {
+sub setup_sbd_delay_publiccloud() {
     my ($self) = @_;
     my $delay = get_var('HA_SBD_START_DELAY') // '';
 
@@ -606,6 +608,63 @@ sub delete_network_peering {
     elsif (is_ec2) {
         qesap_aws_delete_transit_gateway_vpc_attachment(name => deployment_name() . '*');
     }
+}
+
+=head2 create_ansible_playbook_list
+
+    Detects HANA/HA scenario from openQA variables and returns a list of ansible playbooks to include
+    in the "ansible: create:" section of config.yaml file.
+
+=cut
+
+sub create_playbook_section_list {
+    my ($ha_enabled) = @_;
+    my @playbook_list;
+
+    # Add registration module as first element - "QESAP_SCC_NO_REGISTER" skips scc registration via ansible
+    push @playbook_list, 'registration.yaml -e reg_code=' . get_required_var('SCC_REGCODE_SLES4SAP') . " -e email_address=''"
+      unless (get_var('QESAP_SCC_NO_REGISTER'));
+
+    # Add "fully patch system" module after registration module and before test start/configuration moudles
+    push @playbook_list, 'fully-patch-system.yaml';
+
+    # SLES4SAP/HA related playbooks
+    if ($ha_enabled) {
+        push @playbook_list, 'pre-cluster.yaml', 'sap-hana-preconfigure.yaml -e use_sapconf=' . get_required_var('USE_SAPCONF');
+        push @playbook_list, 'cluster_sbd_prep.yaml' if (check_var('FENCING_MECHANISM', 'sbd'));
+        push @playbook_list, qw(
+          sap-hana-storage.yaml
+          sap-hana-download-media.yaml
+          sap-hana-install.yaml
+          sap-hana-system-replication.yaml
+          sap-hana-system-replication-hooks.yaml
+          sap-hana-cluster.yaml
+        );
+    }
+    return (\@playbook_list);
+}
+
+=head2 create_hana_vars_section
+
+    Detects HANA/HA scenario from openQA variables and creates "terraform: variables:" section in config.yaml file.
+
+=cut
+
+sub create_hana_vars_section {
+    my ($ha_enabled) = @_;
+    # Cluster related setup
+    my %hana_vars;
+    if ($ha_enabled == 1) {
+        $hana_vars{sap_hana_install_software_directory} = get_required_var('HANA_MEDIA');
+        $hana_vars{sap_hana_install_master_password} = get_required_var('_HANA_MASTER_PW');
+        $hana_vars{sap_hana_install_sid} = get_required_var('INSTANCE_SID');
+        $hana_vars{sap_hana_install_instance_number} = get_required_var('INSTANCE_ID');
+        $hana_vars{sap_domain} = get_var('SAP_DOMAIN', 'qesap.example.com');
+        $hana_vars{primary_site} = get_var('HANA_PRIMARY_SITE', 'site_a');
+        $hana_vars{secondary_site} = get_var('HANA_SECONDARY_SITE', 'site_b');
+        set_var('SAP_SIDADM', lc(get_var('INSTANCE_SID') . 'adm'));
+    }
+    return (\%hana_vars);
 }
 
 1;

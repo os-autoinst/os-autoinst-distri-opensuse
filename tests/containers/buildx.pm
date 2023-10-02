@@ -9,7 +9,7 @@
 # - build test image
 # - run container with test image
 # - cleanup
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base qw(consoletest);
 use testapi;

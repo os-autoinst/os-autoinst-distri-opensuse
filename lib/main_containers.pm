@@ -85,6 +85,11 @@ sub load_image_tests_docker {
     }
 }
 
+sub load_container_engine_privileged_mode {
+    my ($run_args) = @_;
+    loadtest('containers/privileged_mode', run_args => $run_args, name => $run_args->{runtime} . "_privileged_mode");
+}
+
 sub load_host_tests_podman {
     my ($run_args) = @_;
     # podman package is only available as of 15-SP1
@@ -93,6 +98,7 @@ sub load_host_tests_podman {
         # In Public Cloud we don't have internal resources
         load_image_test($run_args) unless is_public_cloud || is_alp;
         load_3rd_party_image_test($run_args);
+        load_container_engine_privileged_mode($run_args);
         loadtest 'containers/podman_bci_systemd';
         loadtest 'containers/podman_pods';
         # Default for ALP is Netavark
@@ -116,6 +122,7 @@ sub load_host_tests_docker {
     # In Public Cloud we don't have internal resources
     load_image_test($run_args) unless is_public_cloud || is_alp;
     load_3rd_party_image_test($run_args);
+    load_container_engine_privileged_mode($run_args);
     # Firewall is not installed in Public Cloud, JeOS OpenStack and MicroOS but it is in SLE Micro
     loadtest 'containers/docker_firewall' unless (is_public_cloud || is_openstack || is_microos);
     unless (is_sle("<=15") && is_aarch64) {
@@ -136,7 +143,10 @@ sub load_host_tests_docker {
         loadtest 'containers/validate_btrfs';
     }
     load_volume_tests($run_args);
-    loadtest 'containers/buildx' if (is_tumbleweed || is_microos);
+    if (is_tumbleweed || is_microos) {
+        loadtest 'containers/buildx';
+        loadtest 'containers/rootless_docker';
+    }
 }
 
 sub load_host_tests_containerd_crictl {

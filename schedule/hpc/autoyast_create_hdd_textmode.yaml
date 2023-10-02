@@ -10,7 +10,6 @@ vars:
   PATTERNS: base,minimal,apparmor
   SLE_PRODUCT: hpc
   HDDSIZEGB: 30
-  AUTOYAST: autoyast_sle15/hpc/create_hdd_textmode_%ARCH%.xml.ep
 conditional_schedule:
   patch_and_reboot_inci:
     FLAVOR:

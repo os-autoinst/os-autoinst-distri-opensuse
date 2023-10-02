@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2021 SUSE LLC
+# Copyright 2017-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: docker-compose
@@ -14,7 +14,7 @@
 #      * Single commands can be executed inside of running container
 #      * Exposed ports are accessible from outside of a container
 #      * Logs can be retrieved
-# Maintainer: qac team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 
 use Mojo::Base 'containers::basetest';

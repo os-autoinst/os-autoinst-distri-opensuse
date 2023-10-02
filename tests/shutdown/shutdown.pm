@@ -9,7 +9,7 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
-use power_action_utils 'power_action';
+use power_action_utils qw(power_action check_bsc1215132);
 use utils;
 
 sub run {
@@ -25,6 +25,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
+    check_bsc1215132();
     $self->SUPER::post_fail_hook;
     select_console('log-console');
     # check systemd jobs still running in background, these jobs

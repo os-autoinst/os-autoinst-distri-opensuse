@@ -31,6 +31,7 @@ our @EXPORT = qw(
   power_action
   assert_shutdown_and_restore_system
   assert_shutdown_with_soft_timeout
+  check_bsc1215132
 );
 
 =head2 prepare_system_shutdown
@@ -140,7 +141,17 @@ sub poweroff_x11 {
 
     if (check_var("DESKTOP", "gnome")) {
         send_key "ctrl-alt-delete";
-        assert_screen 'logoutdialog', 15;
+        if (is_sle('=12-SP5')) {
+            unless (check_screen 'logoutdialog', 15) {
+                record_soft_failure 'poo#136901 - "ctrl-alt-del" key can not work sometimes';
+                # Use mouse click 'system power button' to shutdown the system
+                assert_and_click 'gnome-system_power_btn';
+                assert_and_click 'gnome-power_action_btn';
+            }
+        }
+        else {
+            assert_screen 'logoutdialog', 15;
+        }
         assert_and_click 'gnome-shell_shutdown_btn';
 
         if (get_var("SHUTDOWN_NEEDS_AUTH")) {
@@ -436,4 +447,17 @@ sub assert_shutdown_with_soft_timeout {
         record_info('Softfail', "$args->{soft_failure_reason}", result => 'softfail');
     }
     assert_shutdown($args->{timeout} - $args->{soft_timeout});
+}
+
+
+=head2 check_bsc1215132
+
+  Validate dependencies which provides shutdown/poweroff/reboot commands.
+  Use this in the post_fail_hook to raise a softfail of the reported bug.
+=cut
+
+sub check_bsc1215132 {
+    record_soft_failure("bsc1215132: Possible missing dependency on systemd")
+      if (script_run("rpm -q --provides systemd | grep systemd-sysvinit") ||
+        script_run("rpm -q --provides systemd | grep shutdown"));
 }

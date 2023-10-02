@@ -10,7 +10,7 @@ use Mojo::Base qw(consoletest);
 use testapi;
 use microos "microos_login";
 use Utils::Architectures qw(is_aarch64);
-use version_utils qw(is_sle_micro is_leap_micro);
+use version_utils qw(is_alp is_leap_micro is_sle_micro);
 
 sub run {
     my ($self) = @_;
@@ -32,10 +32,18 @@ sub run {
         $no_cd = 1;
     }
 
-    wait_serial('reboot: Restarting system', 240) or die "SelfInstall image has not rebooted as expected";
-    eject_cd() unless $no_cd;
+    # Before combustion 1.2, a reboot is necessary for firstboot configuration
+    if (is_alp || is_leap_micro || is_sle_micro) {
+        wait_serial('reboot: Restarting system', 240) or die "SelfInstall image has not rebooted as expected";
+        # Avoid booting into selfinstall again
+        eject_cd() unless $no_cd;
+        microos_login;
+    } else {
+        microos_login;
+        # The installed system is definitely up now, so the CD can be ejected
+        eject_cd() unless $no_cd;
+    }
 
-    microos_login;
 }
 
 sub test_flags {

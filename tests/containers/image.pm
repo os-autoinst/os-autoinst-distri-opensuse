@@ -1,12 +1,12 @@
 # SUSE's openQA tests
 #
-# Copyright 2020-2021 SUSE LLC
+# Copyright 2020-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: podman
 # Summary: Test installation and running of the docker image from the registry for this snapshot
 # This module is unified to run independented the host os.
-# Maintainer: Fabian Vogt <fvogt@suse.com>, qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
 use testapi;

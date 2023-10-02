@@ -74,7 +74,7 @@ sub run {
     systemctl 'list-units | grep iscsi', timeout => $default_timeout;
 
     if ((!defined $node_to_fence && check_var('HA_CLUSTER_INIT', 'yes')) || (defined $node_to_fence && get_hostname eq "$node_to_fence")) {
-        my $sbd_delay = calculate_sbd_start_delay;
+        my $sbd_delay = setup_sbd_delay();
         record_info("SBD delay $sbd_delay sec", "Calculated SBD start delay: $sbd_delay");
         # test should wait longer that startup delay set therefore adding 15s
         sleep $sbd_delay + 15;

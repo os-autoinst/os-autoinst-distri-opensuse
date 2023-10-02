@@ -10,7 +10,7 @@
 # - check the correct deployment of the helm chart
 # - cleanup system (helm and k3s)
 #
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use File::Basename qw(dirname);
@@ -27,7 +27,7 @@ sub run {
 
     my ($version, $sp, $host_distri) = get_os_release;
     # Skip HELM tests on SLES <15-SP3 and on PPC, where k3s is not available
-    return if (get_var('HELM_CONFIG') && (!($host_distri == "sles" && $version == 15 && $sp >= 3) || is_ppc64le));
+    return if (!($host_distri == "sles" && $version == 15 && $sp >= 3) || is_ppc64le || check_var('CONTAINER_RUNTIME', 'k8s'));
 
     systemctl 'stop firewalld';
     ensure_ca_certificates_suse_installed();

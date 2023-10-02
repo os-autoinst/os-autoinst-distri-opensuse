@@ -11,7 +11,7 @@
 #  - pull secret must be available in some internal repository defined in OPENSHIFT_CONFIG_REPO
 #  - the repository must contain 3 things: crc-linux-amd64.tar.xz oc.rpm and ps.json
 #
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base qw(consoletest);
 use testapi;

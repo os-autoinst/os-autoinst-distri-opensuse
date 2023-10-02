@@ -10,15 +10,20 @@ use strict;
 use warnings;
 use testapi;
 use utils 'zypper_call';
+use version_utils 'package_version_cmp';
 
 sub run {
     select_console('root-console');
     zypper_call('in weechat');
     select_console('user-console');
+    my $weechat_version = script_output("rpm -q --qf '%{version}' weechat");
+    record_info('weechat', "Weechat version $weechat_version detected");
+    my $ssl = package_version_cmp($weechat_version, '4') < 0 ? 'ssl' : 'tls';
+
     script_run("weechat; echo weechat-status-\$? > /dev/$serialdev", 0);
     assert_screen('weechat');
 
-    run_weechat_command("/server add znc localhost/12345 -ssl -ssl_verify=0 -username=bernhard/freenode -password=$testapi::password");
+    run_weechat_command("/server add znc localhost/12345 -${ssl} -${ssl}_verify=0 -username=bernhard/freenode -password=$testapi::password");
     assert_screen('weechat-server-added');
 
     run_weechat_command("/connect znc");

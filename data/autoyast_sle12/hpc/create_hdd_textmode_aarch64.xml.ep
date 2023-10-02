@@ -1,0 +1,488 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <suse_register>
+  <do_registration config:type="boolean">true</do_registration>
+  <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
+  <install_updates config:type="boolean">true</install_updates>
+  <addons config:type="list">
+    <addon>
+      <name>sle-sdk</name>
+      <version>12.5</version>
+      <arch>aarch64</arch>
+    </addon>
+    <addon>
+      <name>sle-module-hpc</name>
+      <version>12</version>
+      <arch>aarch64</arch>
+    </addon>
+    <addon>
+      <name>sle-module-toolchain</name>
+      <version>12</version>
+      <arch>aarch64</arch>
+    </addon>
+    <addon>
+      <name>sle-module-web-scripting</name>
+      <version>12</version>
+      <arch>aarch64</arch>
+    </addon>
+  </addons>
+  </suse_register>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+    <loader_type>grub2-efi</loader_type>
+  </bootloader>
+  <firewall>
+    <enable_firewall config:type="boolean">false</enable_firewall>
+    <start_firewall config:type="boolean">false</start_firewall>
+  </firewall>
+  <general>
+    <ask-list config:type="list"/>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+    <proposals config:type="list"/>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+    <storage>
+      <partition_alignment config:type="symbol">align_optimal</partition_alignment>
+      <start_multipath config:type="boolean">false</start_multipath>
+    </storage>
+  </general>
+  <host>
+    <hosts config:type="list">
+      <hosts_entry>
+        <host_address>127.0.0.1</host_address>
+        <names config:type="list">
+          <name>localhost</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>::1</host_address>
+        <names config:type="list">
+          <name>localhost ipv6-localhost ipv6-loopback</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>fe00::0</host_address>
+        <names config:type="list">
+          <name>ipv6-localnet</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>ff00::0</host_address>
+        <names config:type="list">
+          <name>ipv6-mcastprefix</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>ff02::1</host_address>
+        <names config:type="list">
+          <name>ipv6-allnodes</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>ff02::2</host_address>
+        <names config:type="list">
+          <name>ipv6-allrouters</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>ff02::3</host_address>
+        <names config:type="list">
+          <name>ipv6-allhosts</name>
+        </names>
+      </hosts_entry>
+    </hosts>
+    </host>
+  <keyboard>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages/>
+  </language>
+  <login_settings>
+    <autologin_user/>
+  </login_settings>
+  <networking>
+    <dhcp_options>
+      <dhclient_client_id/>
+      <dhclient_hostname_option>AUTO</dhclient_hostname_option>
+    </dhcp_options>
+    <dns>
+      <dhcp_hostname config:type="boolean">true</dhcp_hostname>
+      <hostname>linux-mp94</hostname>
+      <resolv_conf_policy>auto</resolv_conf_policy>
+      <write_hostname config:type="boolean">false</write_hostname>
+    </dns>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <dhclient_set_default_route>yes</dhclient_set_default_route>
+        <startmode>auto</startmode>
+      </interface>
+      <interface>
+        <bootproto>static</bootproto>
+        <device>lo</device>
+        <firewall>no</firewall>
+        <ipaddr>127.0.0.1</ipaddr>
+        <netmask>255.0.0.0</netmask>
+        <network>127.0.0.0</network>
+        <prefixlen>8</prefixlen>
+        <startmode>nfsroot</startmode>
+        <usercontrol>no</usercontrol>
+      </interface>
+    </interfaces>
+    <ipv6 config:type="boolean">true</ipv6>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+    <managed config:type="boolean">false</managed>
+    <net-udev config:type="list">
+      <rule>
+        <name>eth0</name>
+        <rule>KERNELS</rule>
+        <value>0000:01:00.0</value>
+      </rule>
+    </net-udev>
+    <routing>
+      <ipv4_forward config:type="boolean">false</ipv4_forward>
+      <ipv6_forward config:type="boolean">false</ipv6_forward>
+    </routing>
+  </networking>
+  <nis>
+    <netconfig_policy>auto</netconfig_policy>
+    <nis_broadcast config:type="boolean">false</nis_broadcast>
+    <nis_broken_server config:type="boolean">false</nis_broken_server>
+    <nis_domain/>
+    <nis_local_only config:type="boolean">false</nis_local_only>
+    <nis_options/>
+    <nis_other_domains config:type="list"/>
+    <nis_servers config:type="list"/>
+    <slp_domain/>
+    <start_autofs config:type="boolean">false</start_autofs>
+    <start_nis config:type="boolean">false</start_nis>
+  </nis>
+  <ntp-client>
+    <ntp_policy>auto</ntp_policy>
+    <peers config:type="list">
+      <peer>
+        <address>/var/lib/ntp/drift/ntp.drift</address>
+        <comment># path for drift file</comment>
+        <options/>
+        <type>driftfile</type>
+      </peer>
+      <peer>
+        <address>/var/log/ntp</address>
+        <comment># alternate log file</comment>
+        <options/>
+        <type>logfile</type>
+      </peer>
+      <peer>
+        <address>/etc/ntp.keys</address>
+        <comment># path for keys file</comment>
+        <options/>
+        <type>keys</type>
+      </peer>
+      <peer>
+        <address>1</address>
+        <comment># define trusted keys</comment>
+        <options/>
+        <type>trustedkey</type>
+      </peer>
+      <peer>
+        <address>1</address>
+        <comment># key (7) for accessing server variables</comment>
+        <options/>
+        <type>requestkey</type>
+      </peer>
+      <peer>
+        <address>1</address>
+        <comment># key (6) for accessing server variables</comment>
+        <options/>
+        <type>controlkey</type>
+      </peer>
+    </peers>
+    <restricts config:type="list">
+      <restrict>
+        <comment/>
+        <mask/>
+        <options>ipv6 notrap nomodify nopeer noquery</options>
+        <target>default</target>
+      </restrict>
+      <restrict>
+        <comment/>
+        <mask/>
+        <options/>
+        <target>127.0.0.1</target>
+      </restrict>
+      <restrict>
+        <comment/>
+        <mask/>
+        <options/>
+        <target>::1</target>
+      </restrict>
+    </restricts>
+    <start_at_boot config:type="boolean">false</start_at_boot>
+    <start_in_chroot config:type="boolean">false</start_in_chroot>
+    <sync_interval config:type="integer">5</sync_interval>
+    <synchronize_time config:type="boolean">false</synchronize_time>
+  </ntp-client>
+  <partitioning config:type="list">
+    <drive>
+      <device>/dev/vda</device>
+      <disklabel>gpt</disklabel>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <filesystem config:type="symbol">vfat</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>umask=0002,utf8=true</fstopt>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mount>/boot/efi</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">259</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+          <resize config:type="boolean">false</resize>
+          <size>155352576</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>defaults</fstopt>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mount>swap</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">130</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+          <partition_type>primary</partition_type>
+          <resize config:type="boolean">false</resize>
+          <size>2146598400</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>defaults</fstopt>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mount>/</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">2</partition_nr>
+          <partition_type>primary</partition_type>
+          <resize config:type="boolean">false</resize>
+          <size>16828759552</size>
+          <subvolumes config:type="list">
+            <listentry>
+              <copy_on_write
+                  config:type="boolean">true</copy_on_write>
+              <path>opt</path>
+            </listentry>
+            <listentry>
+              <copy_on_write
+                  config:type="boolean">true</copy_on_write>
+              <path>srv</path>
+            </listentry>
+            <listentry>
+              <copy_on_write
+                  config:type="boolean">true</copy_on_write>
+              <path>tmp</path>
+            </listentry>
+            <listentry>
+              <copy_on_write
+                  config:type="boolean">true</copy_on_write>
+              <path>usr/local</path>
+            </listentry>
+            <listentry>
+              <copy_on_write
+                  config:type="boolean">true</copy_on_write>
+              <path>var/cache</path>
+            </listentry>
+            <listentry>
+              <copy_on_write
+                  config:type="boolean">true</copy_on_write>
+              <path>var/crash</path>
+            </listentry>
+            <listentry>
+              <copy_on_write
+                  config:type="boolean">false</copy_on_write>
+              <path>var/lib/libvirt/images</path>
+            </listentry>
+            <listentry>
+              <copy_on_write
+                  config:type="boolean">true</copy_on_write>
+              <path>var/lib/machines</path>
+            </listentry>
+            <listentry>
+              <copy_on_write
+                  config:type="boolean">true</copy_on_write>
+              <path>var/lib/mailman</path>
+            </listentry>
+            <listentry>
+              <copy_on_write
+                  config:type="boolean">false</copy_on_write>
+              <path>var/lib/mariadb</path>
+            </listentry>
+            <listentry>
+              <copy_on_write
+                  config:type="boolean">false</copy_on_write>
+              <path>var/lib/mysql</path>
+            </listentry>
+            <listentry>
+              <copy_on_write
+                  config:type="boolean">true</copy_on_write>
+              <path>var/lib/named</path>
+            </listentry>
+            <listentry>
+              <copy_on_write
+                  config:type="boolean">false</copy_on_write>
+              <path>var/lib/pgsql</path>
+            </listentry>
+            <listentry>
+              <copy_on_write
+                  config:type="boolean">false</copy_on_write>
+              <path>var/log</path>
+            </listentry>
+            <listentry>
+              <copy_on_write
+                  config:type="boolean">true</copy_on_write>
+              <path>var/opt</path>
+            </listentry>
+            <listentry>
+              <copy_on_write
+                  config:type="boolean">true</copy_on_write>
+              <path>var/spool</path>
+            </listentry>
+            <listentry>
+              <copy_on_write
+                  config:type="boolean">true</copy_on_write>
+              <path>var/tmp</path>
+            </listentry>
+          </subvolumes>
+        </partition>
+      </partitions>
+      <pesize/>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <services-manager>
+    <default_target>multi-user</default_target>
+    <services>
+      <disable config:type="list"/>
+      <enable config:type="list">
+        <service>btrfsmaintenance-refresh</service>
+        <service>cron</service>
+        <service>purge-kernels</service>
+        <service>rollback</service>
+        <service>rsyslog</service>
+        <service>sshd</service>
+        <service>SuSEfirewall2</service>
+        <service>SuSEfirewall2_init</service>
+        <service>wicked</service>
+        <service>wickedd-auto4</service>
+        <service>wickedd-dhcp4</service>
+        <service>wickedd-dhcp6</service>
+        <service>wickedd-nanny</service>
+        <service>YaST2-Firstboot</service>
+        <service>YaST2-Second-Stage</service>
+        <service>getty@tty1</service>
+      </enable>
+    </services>
+  </services-manager>
+  <software>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <instsource/>
+    <packages config:type="list">
+      <package>snapper</package>
+      <package>sles-release</package>
+      <package>sle-module-toolchain-release</package>
+      <package>sle-sdk-release</package>
+      <package>sle-module-web-scripting-release</package>
+      <package>sle-module-hpc-release</package>
+      <package>openssh</package>
+      <package>systemd</package>
+      <package>kexec-tools</package>
+      <package>grub2-arm64-efi</package>
+      <package>efibootmgr</package>
+      <package>glibc</package>
+      <package>e2fsprogs</package>
+      <package>btrfsprogs</package>
+    </packages>
+    <patterns config:type="list">
+      <pattern>Minimal</pattern>
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>documentation</pattern>
+      <pattern>yast2</pattern>
+    </patterns>
+  </software>
+  <ssh_import>
+    <copy_config config:type="boolean">false</copy_config>
+    <import config:type="boolean">false</import>
+  </ssh_import>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>America/New_York</timezone>
+  </timezone>
+  <user_defaults>
+    <expire/>
+    <group>100</group>
+    <groups/>
+    <home>/home</home>
+    <inactive>-1</inactive>
+    <no_groups config:type="boolean">true</no_groups>
+    <shell>/bin/bash</shell>
+    <skel>/etc/skel</skel>
+    <umask>022</umask>
+  </user_defaults>
+  <users config:type="list">
+    <user>
+      <fullname>bernhard</fullname>
+      <encrypted config:type="boolean">true</encrypted>
+      <user_password>$6$1erpPSD9pQnN$YlwmpvWRlHFePmajXnSeyGAM9aKW/WSk6e8htmxjT3uU1RKixrnlW.ajT39tWYnFKJTTbMjv0vFPTGMSmm3hh.</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <user_password>$6$H6PMTIe/gRkd$HYZjnvAhL9fwFZ22L9yjV6F5q2kmfwh94zTztoMgB5loeWDPfJbueaFAl293HvhcSRsLzSaGpnaD46gauZ4FP0</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>

@@ -388,6 +388,7 @@ sub prepare_spack_env {
     my ($self, $mpi) = @_;
     $mpi //= 'mpich';
     zypper_call "in spack", timeout => 1200;
+    assert_script_run "echo source /usr/share/spack/setup-env.sh >> /home/$testapi::username/.bashrc";
     type_string('pkill -u root');    # this kills sshd
     select_serial_terminal(0);
 
@@ -398,7 +399,6 @@ sub prepare_spack_env {
         assert_script_run "spack install boost+mpi^$mpi", timeout => 12000;
         assert_script_run "source spack_get_libs.sh boost^$mpi";
     } else {
-        assert_script_run 'source /usr/share/spack/setup-env.sh';
         record_info "$mpi spec", script_output("spack spec $mpi", timeout => 600);
         assert_script_run "spack install $mpi", timeout => 12000;
     }

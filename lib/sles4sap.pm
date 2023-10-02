@@ -24,6 +24,7 @@ use Utils::Backends;
 use registration qw(add_suseconnect_product);
 use version_utils qw(is_sle);
 use utils qw(zypper_call);
+use Digest::MD5 qw(md5_hex);
 use Utils::Systemd qw(systemctl);
 use Utils::Logging 'save_and_upload_log';
 
@@ -365,6 +366,34 @@ sub prepare_profile {
     }
 }
 
+=head2 _do_mount
+
+ _do_mount( $proto, $path, $target);
+
+Performs a call to the mount command (used by both C<mount_media> and C<copy_media>) with
+appropiate options depending on the protocol. Function internal to the class.
+
+=cut
+
+sub _do_mount {
+    my ($proto, $path, $mnt_path) = @_;
+
+    # Set some NFS options in case we are using NFS
+    my $nfs_client_id = md5_hex(get_required_var('JOBTOKEN'));
+    my $options = 'ro';
+    if ($proto eq 'nfs') {
+        my $nfs_timeo = get_var('NFS_TIMEO');
+        $options = $nfs_timeo ? "timeo=$nfs_timeo,rsize=16384,wsize=16384,ro" : 'rsize=16384,wsize=16384,ro';
+        # Attempt to force a unique NFSv4 client id
+        assert_script_run "modprobe nfs nfs4_unique_id=$nfs_client_id";
+        # Check nfs4_unique_id parameter file exists
+        assert_script_run 'until ls /sys/module/nfs/parameters/nfs4_unique_id; do sleep 1; done';
+    }
+    assert_script_run "mount -t $proto -o $options $path $mnt_path", 90;
+    # Check NFS client ID
+    assert_script_run 'cat /sys/module/nfs/parameters/nfs4_unique_id' if ($proto eq 'nfs');
+}
+
 =head2 copy_media
 
  $self->copy_media( $proto, $path, $timeout, $target);
@@ -386,15 +415,14 @@ sub copy_media {
     my ($self, $proto, $path, $nettout, $target) = @_;
     my $mnt_path = '/mnt';
     my $media_path = "$mnt_path/" . get_required_var('ARCH');
-    my $jobtoken = get_required_var('JOBTOKEN');
 
-    # First create $target and copy media there. A
+    # First create $target and copy media there
     assert_script_run "mkdir $target";
-    assert_script_run "mount -t $proto -o ro $path $mnt_path";
-    # Attempt to force a unique NFSv4 client id
-    enter_cmd "echo $jobtoken | sha256sum | awk '{print \$1}' | tee /sys/fs/nfs/net/nfs_client/identifier";
+    _do_mount($proto, $path, $mnt_path);
     $media_path = $mnt_path if script_run "[[ -d $media_path ]]";    # Check if specific ARCH subdir exists
-    assert_script_run "cp -ax $media_path/. $target/", $nettout;
+    my $rsync = 'rsync -azr --info=progress2';
+    record_info 'rsync stats (dry-run)', script_output("$rsync --dry-run --stats $media_path/ $target/", proceed_on_failure => 1);
+    assert_script_run "$rsync $media_path/ $target/", $nettout;
 
     # Unmount the share, as we don't need it anymore
     assert_script_run "umount $mnt_path";
@@ -430,7 +458,7 @@ sub mount_media {
     my $media_path = "$mnt_path/" . get_required_var('ARCH');
 
     assert_script_run "mkdir $target";
-    assert_script_run "mount -t $proto -o ro $path $mnt_path";
+    _do_mount($proto, $path, $mnt_path);
     $media_path = $mnt_path if script_run "[[ -d $media_path ]]";    # Check if specific ARCH subdir exists
 
     # Create a overlay to "allow" writes to the readonly filesystem

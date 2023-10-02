@@ -12,8 +12,8 @@
 use strict;
 use warnings FATAL => 'all';
 use base 'sles4sap_publiccloud_basetest';
-use sles4sap_publiccloud;
 use testapi;
+use sles4sap_publiccloud;
 use serial_terminal 'select_serial_terminal';
 use Time::HiRes 'sleep';
 
@@ -23,8 +23,9 @@ sub test_flags {
 
 sub run {
     my ($self, $run_args) = @_;
-    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
-    $self->{instances} = $run_args->{instances};
+
+    # Needed to have peering and ansible state propagated in post_fail_hook
+    $self->import_context($run_args);
     croak('site_b is missing or undefined in run_args') if (!$run_args->{site_b});
 
     my $hana_start_timeout = bmwqemu::scale_timeout(600);
@@ -48,7 +49,7 @@ sub run {
 
     if (($db_action eq 'crash')) {
         # SBD delay related setup in case of crash OS to prevent cluster starting too quickly after reboot
-        $self->setup_sbd_delay();
+        $self->setup_sbd_delay_publiccloud();
         record_info('Crash DB', "Crashing OS on Site B ('$site_b->{instance_id}')");
     }
     else {

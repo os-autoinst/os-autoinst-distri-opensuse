@@ -12,10 +12,11 @@ use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
+
 sub init {
     my $self = shift;
     $self->SUPER::init();
-    $self->{txb_grub_timeout} = $self->{app}->textbox({id => "\"Bootloader::TimeoutWidget\""});
+    $self->{txb_grub_timeout} = $self->{app}->textbox({id => qr /"Bootloader::.*TimeoutWidget"/});
     return $self;
 }
 

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2022-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: bci-tests log parser
@@ -10,7 +10,7 @@
 #   BCI-tests produce separate XUnit results files for each environment.
 #   This merges all files together into a single xml file that will
 #   be used by OpenQA to represent the results in "External results"
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'opensusebasetest';
 use XML::LibXML;

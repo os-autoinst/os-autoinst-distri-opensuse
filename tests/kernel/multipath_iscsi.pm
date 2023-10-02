@@ -23,6 +23,9 @@ sub run {
 
     select_serial_terminal;
 
+    # Check connectivity to target inside multimachine network (supportserver)
+    ping_size_check($target);
+
     # Install iscsi
     zypper_call("in open-iscsi");
 

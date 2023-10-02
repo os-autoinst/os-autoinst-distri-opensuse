@@ -7,6 +7,8 @@
 #          mr_test repo: https://gitlab.suse.de/qa/mr_test
 # Maintainer: QE-SAP <qe-sap@suse.de>, Ricardo Branco <rbranco@suse.de>, llzhao <llzhao@suse.com>
 
+use strict;
+use warnings;
 use base "sles4sap";
 use autotest;
 use testapi;
@@ -16,8 +18,6 @@ use utils;
 use version_utils qw(is_sle is_public_cloud);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl);
-use strict;
-use warnings;
 use mr_test_lib qw(load_mr_tests);
 use publiccloud::ssh_interactive 'select_host_console';
 use publiccloud::instances;
@@ -88,30 +88,40 @@ sub setup {
 }
 
 sub run {
-    my ($self, $args) = @_;
+    my ($self, $run_args) = @_;
+
+    # This test module is using sles4sap and not sles4sap_publiccloud_basetest
+    # as base class. network_peering_present and ansible_present are propagated here
+    # to a different context than usual
+    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
+    $self->{ansible_present} = 1 if ($run_args->{ansible_present});
+    record_info('MR_TEST CONTEXT', join(' ',
+            'cleanup_called:', $self->{cleanup_called} // 'undefined',
+            'network_peering_present:', $self->{network_peering_present} // 'undefined',
+            'ansible_present:', $self->{ansible_present} // 'undefined')
+    );
 
     # Preserve args for post_fail_hook
-    $self->{provider} = $args->{my_provider};    # required for cleanup
+    $self->{provider} = $run_args->{my_provider};    # required for cleanup
     $self->setup;
-    $self->{network_peering_present} = 1 if ($args->{network_peering_present});
 
     my $test_list = get_required_var("MR_TEST");
     record_info("MR_TEST=$test_list");
-    mr_test_lib::load_mr_tests("$test_list", $args);
+    mr_test_lib::load_mr_tests("$test_list", $run_args);
 }
 
 sub post_fail_hook {
     my ($self) = @_;
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         select_host_console(force => 1);
-        my $args = OpenQA::Test::RunArgs->new();
+        my $run_args = OpenQA::Test::RunArgs->new();
         record_info('CONTEXT LOG', join(' ', 'network_peering_present:', $self->{network_peering_present} // 'undefined'));
         if ($self->{network_peering_present}) {
             delete_network_peering();
-            $args->{network_peering_present} = $self->{network_peering_present} = 0;
+            $run_args->{network_peering_present} = $self->{network_peering_present} = 0;
         }
-        $args->{my_provider} = $self->{provider};
-        $args->{my_provider}->cleanup($args);
+        $run_args->{my_provider} = $self->{provider};
+        $run_args->{my_provider}->cleanup($run_args);
         return;
     }
     $self->SUPER::post_fail_hook;

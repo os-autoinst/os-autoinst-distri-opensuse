@@ -1,0 +1,7 @@
+---
+os_release_name: openSUSE Tumbleweed
+guided_partitioning:
+  disks:
+    - vda
+unused_disks:
+  - vdb

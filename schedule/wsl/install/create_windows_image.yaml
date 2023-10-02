@@ -7,3 +7,4 @@ description:  >
 schedule:
   - wsl/install/ms_win_installation
   - wsl/install/ms_win_firstboot
+  - wsl/update_windows

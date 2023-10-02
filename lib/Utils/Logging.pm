@@ -16,7 +16,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use utils qw(clear_console show_oom_info remount_tmp_if_ro detect_bsc_1063638);
+use utils qw(clear_console show_oom_info remount_tmp_if_ro detect_bsc_1063638 download_script);
 use Utils::Systemd 'get_started_systemd_services';
 use Mojo::File 'path';
 use serial_terminal 'select_serial_terminal';
@@ -264,13 +264,9 @@ sub problem_detection {
     clear_console;
 
     # Binaries with missing libraries
-    save_and_upload_log("
-IFS=:
-for path in \$PATH; do
-    for bin in \$path/*; do
-        ldd \$bin 2> /dev/null | grep 'not found' && echo -n Affected binary: \$bin 'from ' && rpmquery -f \$bin
-    done
-done", "binaries-with-missing-libraries.txt", {timeout => 60, noupload => 1});
+    download_script('lib/missing_libraries.sh', '/tmp/missing_libraries.sh');
+    save_and_upload_log("/tmp/missing_libraries.sh",
+        "binaries-with-missing-libraries.txt", {timeout => 60, noupload => 1});
     clear_console;
 
     # rpmverify problems
