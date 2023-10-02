@@ -23,6 +23,10 @@ sub run {
 
     while (defined(my $maintrepo = shift @repos)) {
         next if $maintrepo =~ /^\s*$/;
+        if ($maintrepo =~ /Development-Tools/) {
+            record_info("MISSING REPOS", "There are Development-Tools repos in this incident, that are not uploaded to IBSM. Later errors, if they occur, may be due to these.");
+            next;
+        }
         foreach my $instance (@{$self->{instances}}) {
             next if ($instance->{'instance_id'} !~ m/vmhana/);
             $instance->run_ssh_command(cmd => "sudo zypper --no-gpg-checks ar -f -n TEST_$count $maintrepo TEST_$count",
