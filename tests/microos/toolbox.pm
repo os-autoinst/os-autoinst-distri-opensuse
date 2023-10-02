@@ -95,15 +95,10 @@ sub run {
     record_info 'Test', "Update toolbox";
     assert_script_run('set -o pipefail');
     assert_script_run('toolbox -- zypper -n ref', timeout => 300);
+    # Test for bsc#1210587
     if (script_run('toolbox -- zypper -n up 2>&1 > /var/tmp/toolbox_zypper_up.txt', timeout => 300) != 0) {
         upload_logs('/var/tmp/toolbox_zypper_up.txt');
-        # Test for bsc#1210587
-        my $output = script_output('cat /var/tmp/toolbox_zypper_up.txt');
-        if ($output =~ m/Installation of timezone-.* failed/ && is_sle_micro) {
-            record_soft_failure("bsc#1210587 installation of timezone failed");
-        } else {
-            die "zypper up failed within toolbox";
-        }
+        die "zypper up failed within toolbox";
     }
 
     clean_container_host(runtime => 'podman');
