@@ -104,6 +104,7 @@ sub run {
     }
 
     my $provider = $self->provider_factory();
+    my $subscription_id = $provider->{provider_client}{subscription};
 
     # This section is only needed by tests using images uploaded
     # with publiccloud_upload_img so using conf.yaml templates
@@ -125,7 +126,6 @@ sub run {
 
     # Regenerate config files (This workaround will be replaced with full yaml generator)
     qesap_prepare_env(provider => $provider_setting, only_configure => 1);
-
     my @ret = qesap_execute(cmd => 'terraform', timeout => 3600, verbose => 1);
     die 'Terraform deployment FAILED. Check "qesap*" logs for details.' if ($ret[0]);
 
@@ -141,6 +141,13 @@ sub run {
         # We expect hostnames reported by terraform to match the actual hostnames in Azure and GCE
         die "Expected hostname $expected_hostname is different than actual hostname [$real_hostname]"
           if ((is_azure() || is_gce()) && ($expected_hostname ne $real_hostname));
+        if (get_var('FENCING_MECHANISM') eq 'native' && get_var('PUBLIC_CLOUD_PROVIDER') eq 'AZURE') {
+            qesap_az_setup_native_fencing_permissions(
+                vm_name => $instance->instance_id,
+                subscription_id => $subscription_id,
+                resource_group => qesap_az_get_resource_group()
+            );
+        }
     }
 
     $self->{instances} = $run_args->{instances} = $instances;

@@ -53,6 +53,9 @@ our @EXPORT = qw(
   delete_network_peering
   create_playbook_section_list
   create_hana_vars_section
+  azure_fencing_agents_playbook_args
+  display_full_status
+  list_cluster_nodes
   sles4sap_cleanup
 );
 
@@ -702,6 +705,17 @@ sub create_playbook_section_list {
         push @playbook_list, 'fully-patch-system.yaml';
     }
 
+    # Prepares Azure native fencing related arguments for 'sap-hana-cluster.yaml' playbook
+    my $hana_cluster_playbook = 'sap-hana-cluster.yaml';
+    my $azure_native_fencing_args;
+    if (get_var('FENCING_MECHANISM') eq 'native') {
+        $azure_native_fencing_args = azure_fencing_agents_playbook_args(
+            spn_application_id => get_var('_SECRET_AZURE_SPN_APPLICATION_ID'),
+            spn_application_password => get_var('_SECRET_AZURE_SPN_APP_PASSWORD')
+        );
+        $hana_cluster_playbook = join(' ', $hana_cluster_playbook, $azure_native_fencing_args);
+    }
+
     # SLES4SAP/HA related playbooks
     if ($ha_enabled) {
         push @playbook_list, 'pre-cluster.yaml', 'sap-hana-preconfigure.yaml -e use_sapconf=' . get_required_var('USE_SAPCONF');
@@ -712,10 +726,45 @@ sub create_playbook_section_list {
           sap-hana-install.yaml
           sap-hana-system-replication.yaml
           sap-hana-system-replication-hooks.yaml
-          sap-hana-cluster.yaml
         );
+        push @playbook_list, $hana_cluster_playbook;
     }
     return (\@playbook_list);
+}
+
+=head3 azure_fencing_agents_playbook_args
+
+    azure_fencing_agents_playbook_args(
+        spn_application_id=>$spn_application_id,
+        spn_application_password=>$spn_application_password
+    );
+
+    Collects data and creates string of arguments that can be supplied to playbook.
+    spn_application_id - application ID that allows API access for stonith device
+    spn_application_password - password provided for application ID above
+
+=cut
+
+sub azure_fencing_agents_playbook_args {
+    my (%args) = @_;
+    my $spn_application_id = $args{spn_application_id};
+    my $spn_application_password = $args{spn_application_password};
+    my $fence_agent_openqa_var = get_var('AZURE_FENCE_AGENT_CONFIGURATION') // 'msi';
+    croak "AZURE_FENCE_AGENT_CONFIGURATION contains dubious value: '$fence_agent_openqa_var'" unless
+      !$fence_agent_openqa_var or $fence_agent_openqa_var =~ /msi|spn/;
+    my $fence_agent_configuration = $fence_agent_openqa_var eq 'spn' ? $fence_agent_openqa_var : 'msi';
+
+    foreach ('spn_application_id', 'spn_application_password') {
+        next unless ($fence_agent_configuration eq 'spn');
+        croak "Missing '$_' argument" unless defined($args{$_});
+    }
+
+    my $playbook_opts = "-e azure_identity_management=$fence_agent_configuration";
+    $playbook_opts = join(' ', $playbook_opts,
+        "-e spn_application_id=$spn_application_id",
+        "-e spn_application_password=$spn_application_password") if $fence_agent_configuration eq 'spn';
+
+    return ($playbook_opts);
 }
 
 =head2 create_hana_vars_section
@@ -739,6 +788,47 @@ sub create_hana_vars_section {
         set_var('SAP_SIDADM', lc(get_var('INSTANCE_SID') . 'adm'));
     }
     return (\%hana_vars);
+}
+
+=head2 display_full_status
+
+    $self->display_full_status()
+
+    Displays most useful debugging info about cluster status, database status within a 'record_info' test entry.
+
+=cut
+
+sub display_full_status {
+    my ($self) = @_;
+    my $vm_name = $self->{my_instance}{instance_id};
+    my $crm_status = join("\n", "\n### CRM STATUS ###", $self->run_cmd(cmd => 'crm status', proceed_on_failure => 1));
+    my $saphanasr_showattr = join("\n", "\n### HANA REPLICATION INFO ###", $self->run_cmd(cmd => 'SAPHanaSR-showAttr', proceed_on_failure => 1));
+
+    my $final_message = join("\n", $crm_status, $saphanasr_showattr);
+    record_info("STATUS $vm_name", $final_message);
+}
+
+=head2 list_cluster_nodes
+
+    $self->list_cluster_nodes()
+
+    Returns list of hostnames that are part of a cluster using cmr shell command from one of the cluster nodes.
+
+=cut
+
+sub list_cluster_nodes {
+    my ($self) = @_;
+    my $instances = $self->{instances};
+    my @cluster_nodes;
+
+    foreach my $instance (@$instances) {
+        $self->{my_instance} = $instance;
+        # check if node is part of the cluster
+        next unless ($self->run_cmd(cmd => 'crm status', rc_only => 1, quiet => 1) == 0);
+        @cluster_nodes = split(/[\n\s]/, $self->run_cmd(cmd => 'crm node server'));    # list of cluster node members
+        return \@cluster_nodes;
+    }
+    die 'None of the hosts are currently part of existing cluster' unless @cluster_nodes;
 }
 
 1;
