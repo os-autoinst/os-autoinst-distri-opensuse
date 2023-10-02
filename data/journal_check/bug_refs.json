@@ -521,5 +521,13 @@
             "microos":  ["Tumbleweed"]
         },
         "type": "bug"
+    },
+    "bsc#1215380" : {
+        "description": "Failed to start Entropy Daemon based on the HAVEGE algorithm.",
+        "products": {
+            "sle-micro": ["5.3"],
+            "leap-micro": ["5.3"]
+        },
+        "type": "bug"
     }
 }
