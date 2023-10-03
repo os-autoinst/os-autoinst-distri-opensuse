@@ -19,16 +19,15 @@ use strict;
 use warnings;
 use version_utils qw(is_sle is_opensuse);
 use registration;
-use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 
 sub run {
-    select_serial_terminal;
+    select_console 'root-console';
     assert_script_run "rpm -q libgcrypt20";
     if (script_run("rpm -q libgcrypt-devel") == 1) {
         zypper_call "in gcc libgcrypt-devel";
     }
 
-    select_user_serial_terminal;
+    select_console 'user-console';
     assert_script_run("test -f ~/data/libgcrypt-selftest.c || curl --create-dirs -o ~/data/libgcrypt-selftest.c " . data_url('libgcrypt-selftest.c'), 90);
     assert_script_run("gcc ~/data/libgcrypt-selftest.c -lgcrypt -o libgcrypt-selftest");
     validate_script_output("./libgcrypt-selftest", sub { /libgcrypt selftest successful/ });
