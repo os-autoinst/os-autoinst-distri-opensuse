@@ -42,7 +42,6 @@ conditional_schedule:
         - console/libgcrypt
         - console/zziplib
         - console/journald_fss
-        - console/openvswitch_ssl
         - console/nginx
         - '{{arch_specific}}'
         - console/valgrind
@@ -54,7 +53,6 @@ conditional_schedule:
         - console/libgcrypt
         - console/zziplib
         - console/journald_fss
-        - console/openvswitch_ssl
         - console/nginx
         - '{{arch_specific}}'
         - console/valgrind
@@ -65,7 +63,6 @@ conditional_schedule:
         - console/libgcrypt
         - console/zziplib
         - console/journald_fss
-        - console/openvswitch_ssl
         - console/nginx
         - '{{arch_specific}}'
         - console/valgrind
@@ -76,7 +73,6 @@ conditional_schedule:
         - console/libgcrypt
         - console/zziplib
         - console/journald_fss
-        - console/openvswitch_ssl
         - console/nginx
         - '{{arch_specific}}'
         - console/valgrind
@@ -85,7 +81,6 @@ conditional_schedule:
         - console/libgcrypt
         - console/zziplib
         - console/journald_fss
-        - console/openvswitch_ssl
         - console/nginx
         - console/valgrind
         - '{{arch_specific}}'
@@ -94,7 +89,6 @@ conditional_schedule:
         - console/libgcrypt
         - console/zziplib
         - console/journald_fss
-        - console/openvswitch_ssl
         - console/nginx
         - console/valgrind
         - '{{arch_specific}}'
@@ -102,19 +96,16 @@ conditional_schedule:
         - console/osinfo_db
         - console/libgcrypt
         - console/zziplib
-        - console/openvswitch_ssl
         - '{{arch_specific}}'
         - console/valgrind
         - '{{arch_12sp5}}'
       12-SP4:
         - console/osinfo_db
         - console/journald_fss
-        - console/openvswitch_ssl
         - '{{arch_specific}}'
       12-SP3:
         - console/osinfo_db
         - console/journald_fss
-        - console/openvswitch_ssl
         - '{{arch_specific}}'
       12-SP2:
         - console/journald_fss
