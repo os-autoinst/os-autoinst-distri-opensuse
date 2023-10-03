@@ -621,12 +621,15 @@ sub create_playbook_section_list {
     my ($ha_enabled) = @_;
     my @playbook_list;
 
-    # Add registration module as first element - "QESAP_SCC_NO_REGISTER" skips scc registration via ansible
-    push @playbook_list, 'registration.yaml -e reg_code=' . get_required_var('SCC_REGCODE_SLES4SAP') . " -e email_address=''"
-      unless (get_var('QESAP_SCC_NO_REGISTER'));
+    unless (get_var('QESAP_SCC_NO_REGISTER')) {
+        # Add registration module as first element - "QESAP_SCC_NO_REGISTER" skips scc registration via ansible
+        push @playbook_list, 'registration.yaml -e reg_code=' . get_required_var('SCC_REGCODE_SLES4SAP') . " -e email_address=''";
 
-    # Add "fully patch system" module after registration module and before test start/configuration moudles
-    push @playbook_list, 'fully-patch-system.yaml';
+        # Add "fully patch system" module after registration module and before test start/configuration moudles.
+        # Temporary moved inside ha_enabled condition to avoid test without Ansible to fails.
+        # To be properly addressed in the caller and fully-patch-system can be placed back out of the if.
+        push @playbook_list, 'fully-patch-system.yaml';
+    }
 
     # SLES4SAP/HA related playbooks
     if ($ha_enabled) {
