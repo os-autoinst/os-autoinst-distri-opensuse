@@ -46,7 +46,6 @@ conditional_schedule:
         - console/openvswitch_ssl
         - console/nginx
         - '{{arch_specific}}'
-        - '{{arch_specific15_sp4}}'
         - console/valgrind
         - '{{arch_specific15_sp5}}'
       15-SP4:
@@ -59,7 +58,6 @@ conditional_schedule:
         - console/openvswitch_ssl
         - console/nginx
         - '{{arch_specific}}'
-        - '{{arch_specific15_sp4}}'
         - console/valgrind
       15-SP3:
         - console/osinfo_db
@@ -70,7 +68,6 @@ conditional_schedule:
         - console/journald_fss
         - console/openvswitch_ssl
         - console/nginx
-        - console/ansible
         - '{{arch_specific}}'
         - console/valgrind
       15-SP2:
@@ -132,10 +129,6 @@ conditional_schedule:
         - console/journald_fss
       aarch64:
         - console/journald_fss
-  arch_specific15_sp4:
-    ARCH:
-      x86_64:
-        - console/ansible
   arch_specific15_sp5:
     ARCH:
       x86_64:
