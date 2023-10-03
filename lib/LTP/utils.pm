@@ -21,6 +21,7 @@ use repo_tools 'add_qa_head_repo';
 use utils;
 
 our @EXPORT = qw(
+  export_ltp_env
   get_ltproot
   get_ltp_openposix_test_list_file
   get_ltp_version_file
@@ -137,11 +138,17 @@ sub log_versions {
     script_run('aa-enabled; aa-status');
 }
 
+sub export_ltp_env {
+    my $ltp_env = get_var('LTP_ENV');
+
+    if ($ltp_env) {
+        $ltp_env =~ s/,/ /g;
+        script_run("export $ltp_env");
+    }
+}
 
 # Set up basic shell environment for running LTP tests
 sub prepare_ltp_env {
-    my $ltp_env = get_var('LTP_ENV');
-
     assert_script_run('export LTPROOT=' . get_ltproot() . '; export LTP_COLORIZE_OUTPUT=n TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$PATH');
 
     # setup for LTP networking tests
@@ -150,11 +157,6 @@ sub prepare_ltp_env {
     my $block_dev = get_var('LTP_BIG_DEV');
     if ($block_dev && get_var('NUMDISKS') > 1) {
         assert_script_run("lsblk -la; export LTP_BIG_DEV=$block_dev");
-    }
-
-    if ($ltp_env) {
-        $ltp_env =~ s/,/ /g;
-        script_run("export $ltp_env");
     }
 
     assert_script_run('cd $LTPROOT/testcases/bin');
