@@ -95,7 +95,8 @@ sub run {
         $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest --clean");
     }
 
-    $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest $regcode_param");
+    $instance->ssh_script_retry(cmd => "sudo ${path}registercloudguest $regcode_param", timeout => 300, retry => 3, delay => 120);
+
     if ($instance->ssh_script_output(cmd => 'sudo zypper lr | wc -l', timeout => 600) == 0) {
         die('The list of zypper repositories is empty.');
     }
@@ -103,7 +104,7 @@ sub run {
         die('Directory /etc/zypp/credentials.d/ is empty.');
     }
 
-    $instance->ssh_assert_script_run(cmd => "sudo ${path}registercloudguest $regcode_param --force-new");
+    $instance->ssh_script_retry(cmd => "sudo ${path}registercloudguest $regcode_param --force-new", timeout => 300, retry => 3, delay => 120);
     if ($instance->ssh_script_output(cmd => 'sudo zypper lr | wc -l', timeout => 600) == 0) {
         die('The list of zypper repositories is empty.');
     }
