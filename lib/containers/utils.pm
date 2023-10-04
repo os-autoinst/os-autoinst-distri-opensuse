@@ -252,7 +252,12 @@ sub basic_container_tests {
     assert_script_run "$runtime run --rm --init $tumbleweed ps --no-headers -xo 'pid args' | grep '1 .*init'";
 
     if (script_run('command -v man') == 0) {
-        assert_script_run("man -P cat $runtime build | grep '$runtime-build - Build'");
+        $ret = script_run("man -P cat $runtime build | grep '$runtime-build - Build'");
+        if ($ret != 0) {
+            record_soft_failure("bsc#1215465 - man -P cat docker build fails") if (is_tumbleweed || is microos);
+        } else {
+            die("man -P cat docker build fails");
+        }
     }
 
     # Containers can be stopped
