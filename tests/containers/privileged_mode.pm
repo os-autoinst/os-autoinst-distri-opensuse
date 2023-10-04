@@ -14,6 +14,7 @@ use utils qw(validate_script_output_retry);
 use containers::utils qw(reset_container_network_if_needed);
 use Utils::Architectures;
 use version_utils qw(is_public_cloud is_jeos);
+use utils qw(script_retry);
 
 sub run {
     my ($self, $args) = @_;
@@ -25,6 +26,7 @@ sub run {
     reset_container_network_if_needed($runtime);
 
     my $image = "registry.suse.com/bci/bci-base:latest";
+    script_retry("$runtime pull $image", timeout => 300, delay => 120);
 
     record_info('Test', 'Launch a container with privileged mode');
 
