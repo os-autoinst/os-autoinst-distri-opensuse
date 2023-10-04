@@ -22,8 +22,8 @@ use utils 'assert_screen_with_soft_timeout';
 use version_utils 'is_jeos';
 
 sub settle_load {
-    my $loop = 'read load dummy < /proc/loadavg  ; top -n1 -b| head -n30 ; test "${load/./}" -lt $limit && break ; sleep 5';
-    script_run "limit=10; for c in `seq 1 200`; do $loop; done; echo TOP-DONE > /dev/$serialdev", 0;
+    my $loop = 'read load dummy < /proc/loadavg  ; top -n1 -b| head -n30 ; test "${load/./}" -le $limit && break ; sleep 5';
+    script_run "limit=11; for c in `seq 1 200`; do $loop; done; echo TOP-DONE > /dev/$serialdev", 0;
     my $before = time;
     wait_serial('TOP-DONE', 1120) || die 'load not settled';
     # JeOS is different to SLE general as it extends the appliance's disk on first boot,
