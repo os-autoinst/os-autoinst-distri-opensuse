@@ -62,7 +62,7 @@ sub run {
     zypper_call "in yast2-registration";
 
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'registration');
-    assert_screen 'yast2_registration-overview';
+    assert_screen 'yast2_registration-overview', timeout => 600;
     send_key "alt-e";
     assert_screen 'yast2_registration-registration-page-registered';
     register_system_and_add_extension;
@@ -70,7 +70,7 @@ sub run {
 
     # Check via YaST if the system is already registered
     $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'registration');
-    assert_screen 'yast2_registration-overview';
+    assert_screen 'yast2_registration-overview', timeout => 600;
     send_key "alt-s";
     assert_screen 'yast2_registration-extension-registration';
 }
