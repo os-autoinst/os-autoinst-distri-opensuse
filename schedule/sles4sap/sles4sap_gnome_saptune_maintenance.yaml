@@ -26,6 +26,6 @@ conditional_schedule:
         - sles4sap/publiccloud/cluster_add_repos
         - sles4sap/publiccloud/mr_test_setup_env
         - publiccloud/registration
-        - publiccloud/patch_and_reboot
+        - sles4sap/publiccloud/general_patch_and_reboot
         - publiccloud/ssh_interactive_start
         - publiccloud/instance_overview
