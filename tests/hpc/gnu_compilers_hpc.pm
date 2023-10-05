@@ -25,6 +25,10 @@ sub run ($self) {
     assert_script_run qq{module av | grep gnu/$version};
     assert_script_run 'module load gnu';
     assert_script_run qq{env |grep "MODULEPATH=/usr/share/lmod/moduledeps/gnu-$version"};
+    zypper_call("in gnu$version-compilers-hpc-devel");
+    assert_script_run 'module load gnu';
+    assert_script_run qq{env |grep "PATH=/usr/lib/hpc/compiler/gnu/$version/bin"};
+    assert_script_run qq{gcc --version | grep $version};
 }
 
 sub post_fail_hook ($self) {
