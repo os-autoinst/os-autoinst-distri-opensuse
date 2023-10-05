@@ -24,7 +24,7 @@ sub run {
     @ret = qesap_execute(cmd => 'ansible', cmd_options => '--profile', verbose => 1, timeout => 3600);
     if ($ret[0])
     {
-        if (qesap_ansible_log_find_missing_sudo_password($ret[1])) {
+        if (qesap_file_find_string(file => $ret[1], search_string => 'Missing sudo password')) {
             record_info('DETECTED ANSIBLE MISSING SUDO PASSWORD ERROR');
             @ret = qesap_execute(cmd => 'ansible', cmd_options => '--profile', verbose => 1, timeout => 3600);
             if ($ret[0])
@@ -34,7 +34,7 @@ sub run {
             }
             record_info('ANSIBLE RETRY PASS');
         }
-        elsif (qesap_ansible_log_find_timeout($ret[1])) {
+        elsif (qesap_file_find_string(file => $ret[1], search_string => 'Timed out waiting for last boot time check')) {
             record_info('DETECTED ANSIBLE TIMEOUT ERROR');
             $self->clean_up();
             @ret = qesap_execute(cmd => 'terraform', verbose => 1, timeout => 1800);

@@ -372,7 +372,7 @@ subtest '[qesap_execute] check_logs' => sub {
     ok $res[1] =~ /\/.*.log.txt/, 'File pattern is okay';
 };
 
-subtest '[qesap_ansible_log_find_timeout] success' => sub {
+subtest '[qesap_file_find_string] success' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
     # internally the function is using grep to search for a specific
@@ -381,16 +381,16 @@ subtest '[qesap_ansible_log_find_timeout] success' => sub {
     # Create a mock to replace the script_output
     # The mock will return, within the function under test,
     # the result of the grep.
-    $qesap->redefine(script_output => sub { push @calls, $_[0]; return $log });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 1; });
 
-    my $res = qesap_ansible_log_find_timeout('JACQUES');
+    my $res = qesap_file_find_string(file => 'JACQUES', search_string => 'Timed out waiting for last boot time check');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok $res == 1, 'Return is 1 when string is detected';
     ok((any { /grep.*JACQUES/ } @calls), 'Function calling grep against the log file');
 };
 
-subtest '[qesap_ansible_log_find_timeout] fail' => sub {
+subtest '[qesap_file_find_string] fail' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
 
@@ -398,9 +398,9 @@ subtest '[qesap_ansible_log_find_timeout] fail' => sub {
     # The mock will return, within the function under test,
     # the result of the grep.
     # Here simulate that the grep does not return any match
-    $qesap->redefine(script_output => sub { push @calls, $_[0]; return '' });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
 
-    my $res = qesap_ansible_log_find_timeout('JACQUES');
+    my $res = qesap_file_find_string(file => 'JACQUES', search_string => 'Timed out waiting for last boot time check');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok $res == 0, 'Return is 0 when string is not detected';
