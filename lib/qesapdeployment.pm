@@ -1680,7 +1680,7 @@ sub qesap_import_instances {
     die("OpenQA test ID must be a number. Parameter 'QESAP_DEPLOYMENT_IMPORT' must contain ID of previously exported test")
       unless looks_like_number($test_id);
 
-    my $inventory_file = qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    my $inventory_file = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     my %files = ('id_rsa' => '/root/.ssh/',
         'id_rsa.pub' => '/root/.ssh/',
         basename($inventory_file) => dirname($inventory_file) . '/');
@@ -1706,7 +1706,7 @@ sub qesap_import_instances {
 
 sub qesap_export_instances {
     my @upload_files = (
-        qesap_get_inventory(get_required_var('PUBLIC_CLOUD_PROVIDER')),
+        qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER')),
         '/root/.ssh/id_rsa',
         '/root/.ssh/id_rsa.pub');
 
