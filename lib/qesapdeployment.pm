@@ -94,8 +94,8 @@ our @EXPORT = qw(
   qesap_calculate_deployment_name
   qesap_export_instances
   qesap_import_instances
-  qesap_ansible_log_find_timeout
-  qesap_ansible_log_find_missing_sudo_password
+  qesap_file_find_string
+
 );
 
 =head1 DESCRIPTION
@@ -426,30 +426,23 @@ sub qesap_execute {
     return @results;
 }
 
-=head3 qesap_ansible_log_find_timeout
+=head3 qesap_file_find_string
 
-    Return the Timeout error found in the Ansible log or not
+    Search for a string in the Ansible log file.
+    Returns 1 if the string is found in the log file, 0 otherwise.
+
+=over 2
+
+=item B<FILE> - Path to the Ansible log file. (Required)
+
+=item B<SEARCH_STRING> - String to search for in the log file. (Required)
+=back
 =cut
 
-sub qesap_ansible_log_find_timeout
-{
-    my ($file) = @_;
-    my $search_string = 'Timed out waiting for last boot time check';
-    my $timeout_match = script_output("grep \"$search_string\" $file || exit 0");
-    return $timeout_match ? 1 : 0;
-}
-
-=head3 qesap_ansible_log_find_missing_sudo_password
-
-    Return the '"msg": "Missing sudo password"' error found in the Ansible log or not
-=cut
-
-sub qesap_ansible_log_find_missing_sudo_password
-{
-    my ($file) = @_;
-    my $search_string = 'Missing sudo password';
-    my $missing_sudo_pwd_match = script_output("grep \"$search_string\" $file || exit 0");
-    return $missing_sudo_pwd_match ? 1 : 0;
+sub qesap_file_find_string {
+    my (%args) = @_;
+    foreach (qw(file search_string)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    return script_run("grep \"$args{search_string}\" $args{file}");
 }
 
 =head3 qesap_get_inventory
