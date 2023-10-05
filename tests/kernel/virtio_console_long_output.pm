@@ -43,7 +43,7 @@ sub run {
 
     my $filename = "original_$size.txt";
     my $testdata = create_test_data($size);
-    path('ulogs/' . $filename)->spurt($testdata);
+    path('ulogs/' . $filename)->spew($testdata);
     save_tmp_file($filename, $testdata);
     assert_script_run('curl -O ' . autoinst_url . "/files/" . $filename);
     my $sha1sum = sha1_sum(trim($testdata));    # cause script_output() trim the data
@@ -69,7 +69,7 @@ sub run {
         } else {
             script_run("cat /sys/kernel/debug/virtio-ports/*");
             record_info("FAILED $i", "ORIG: $sha1sum\nFAIL: $sha1sum_2", result => 'fail');
-            path('ulogs/failed')->spurt($output);
+            path('ulogs/failed')->spew($output);
             record_info('DIFF', scalar(`diff  ulogs/$filename ulogs/failed`)) if (system('diff --help') == 0);
             die("OUTPUT MISSMATCH");
         }

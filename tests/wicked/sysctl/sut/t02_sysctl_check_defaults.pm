@@ -71,7 +71,7 @@ EOT
     $self->record_console_test_result("Sysctl Wicked", $out_wicked, result => 'ok');
 
     mkdir "ulogs";
-    path(sprintf('ulogs/%s_%s@%s_sysctl_wicked.txt', get_var('DISTRI'), get_var('VERSION'), get_var('ARCH')))->spurt($out_wicked);
+    path(sprintf('ulogs/%s_%s@%s_sysctl_wicked.txt', get_var('DISTRI'), get_var('VERSION'), get_var('ARCH')))->spew($out_wicked);
 
     # Disable wicked and reboot to get "systemd-sysctl" defaults
     script_run('systemctl disable --now wicked', die_on_timeout => 1);
@@ -83,7 +83,7 @@ EOT
     my $out_native = script_output($cmd);
 
     $self->record_console_test_result("Sysctl Native", $out_native, result => 'ok');
-    path(sprintf('ulogs/%s_%s@%s_sysctl_native.txt', get_var('DISTRI'), get_var('VERSION'), get_var('ARCH')))->spurt($out_native);
+    path(sprintf('ulogs/%s_%s@%s_sysctl_native.txt', get_var('DISTRI'), get_var('VERSION'), get_var('ARCH')))->spew($out_native);
 
     # Wicked set `ipv4.arp_notify = 1` by default.
     my $except_diff = {'net.ipv4.conf.' . $ctx->iface() . '.arp_notify' => 1};

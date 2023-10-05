@@ -260,8 +260,8 @@ sub write_extra_test_result {
         }],
         result => $result,
     };
-    path($dir, 'result-' . $filename . '.json')->spurt(Mojo::JSON::encode_json($result_file));
-    path($dir, $filename . '.txt')->spurt($details->{test}->{log});
+    path($dir, 'result-' . $filename . '.json')->spew(Mojo::JSON::encode_json($result_file));
+    path($dir, $filename . '.txt')->spew($details->{test}->{log});
 
     push @{$self->{details}}, $result_file->{details}->[0];
 }
