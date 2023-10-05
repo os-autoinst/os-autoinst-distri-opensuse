@@ -10,10 +10,16 @@ schedule:
   - '{{sle15_x86_64}}'
   # - console/python_flake8 Removed due to bsc#1209609
   - console/vmstat
+  - '{{arch_specific15_sp4}}'
+  - console/systemd_rpm_macros
   - console/coredump_collect
 conditional_schedule:
   sle15_x86_64:
     ARCH:
       x86_64:
         - console/wpa_supplicant
+  arch_specific15_sp4:
+    ARCH:
+      x86_64:
+        - console/ansible
 ...

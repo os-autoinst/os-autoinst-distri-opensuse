@@ -16,10 +16,9 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
-use registration qw(add_suseconnect_product);
 
 sub build_mt {
-    zypper_call("in rpmbuild");
+    zypper_call("in rpm-build");
     zypper_call("si multipath-tools");
     assert_script_run("rpmbuild -bb /usr/src/packages/SPECS/multipath-tools.spec", 180);
 }
@@ -40,7 +39,6 @@ sub run {
     if (is_sle '>=15') {
         # enable & disable source repo for multipat-tools source
         assert_script_run(q(zypper mr -e --refresh $(zypper lr|awk '/Basesystem.*Source/ {print$5}')));
-        add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1);
         zypper_call("--gpg-auto-import-keys ref", 300) if (get_var('FIPS') || get_var('FIPS_ENABLED'));
         build_mt();
         assert_script_run(q(zypper mr -d $(zypper lr|awk '/Basesystem.*Source/ {print$5}')));

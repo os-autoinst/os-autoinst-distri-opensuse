@@ -23,7 +23,6 @@ schedule:
   - console/timezone
   - console/procps
   - console/iotop
-  - console/systemd_rpm_macros
   - console/kmod
   - console/suse_module_tools
   - console/aaa_base
@@ -43,10 +42,8 @@ conditional_schedule:
         - console/libgcrypt
         - console/zziplib
         - console/journald_fss
-        - console/openvswitch_ssl
         - console/nginx
         - '{{arch_specific}}'
-        - '{{arch_specific15_sp4}}'
         - console/valgrind
         - '{{arch_specific15_sp5}}'
       15-SP4:
@@ -56,10 +53,8 @@ conditional_schedule:
         - console/libgcrypt
         - console/zziplib
         - console/journald_fss
-        - console/openvswitch_ssl
         - console/nginx
         - '{{arch_specific}}'
-        - '{{arch_specific15_sp4}}'
         - console/valgrind
       15-SP3:
         - console/osinfo_db
@@ -68,9 +63,7 @@ conditional_schedule:
         - console/libgcrypt
         - console/zziplib
         - console/journald_fss
-        - console/openvswitch_ssl
         - console/nginx
-        - console/ansible
         - '{{arch_specific}}'
         - console/valgrind
       15-SP2:
@@ -80,7 +73,6 @@ conditional_schedule:
         - console/libgcrypt
         - console/zziplib
         - console/journald_fss
-        - console/openvswitch_ssl
         - console/nginx
         - '{{arch_specific}}'
         - console/valgrind
@@ -89,7 +81,6 @@ conditional_schedule:
         - console/libgcrypt
         - console/zziplib
         - console/journald_fss
-        - console/openvswitch_ssl
         - console/nginx
         - console/valgrind
         - '{{arch_specific}}'
@@ -98,7 +89,6 @@ conditional_schedule:
         - console/libgcrypt
         - console/zziplib
         - console/journald_fss
-        - console/openvswitch_ssl
         - console/nginx
         - console/valgrind
         - '{{arch_specific}}'
@@ -106,19 +96,16 @@ conditional_schedule:
         - console/osinfo_db
         - console/libgcrypt
         - console/zziplib
-        - console/openvswitch_ssl
         - '{{arch_specific}}'
         - console/valgrind
         - '{{arch_12sp5}}'
       12-SP4:
         - console/osinfo_db
         - console/journald_fss
-        - console/openvswitch_ssl
         - '{{arch_specific}}'
       12-SP3:
         - console/osinfo_db
         - console/journald_fss
-        - console/openvswitch_ssl
         - '{{arch_specific}}'
       12-SP2:
         - console/journald_fss
@@ -132,10 +119,6 @@ conditional_schedule:
         - console/journald_fss
       aarch64:
         - console/journald_fss
-  arch_specific15_sp4:
-    ARCH:
-      x86_64:
-        - console/ansible
   arch_specific15_sp5:
     ARCH:
       x86_64:
