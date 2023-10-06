@@ -19,11 +19,9 @@ sub pre_run_hook {
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
     select_console 'root-console';
-    y2_base::save_upload_y2logs($self, skip_logs_investigation => 1);
-    save_and_upload_log('journalctl -u agama-auto', "/tmp/agama-auto-log.txt");
-    save_and_upload_log('journalctl -u agama', "/tmp/agama-journal-log.txt");
+    # "agama logs store" gathers output from dmesg, journalctl and y2logs.
+    save_and_upload_log('agama logs store', "/tmp/agama_logs.tar.bz2");
     upload_traces();
 }
 
