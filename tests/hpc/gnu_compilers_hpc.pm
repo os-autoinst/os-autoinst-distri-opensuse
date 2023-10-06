@@ -25,13 +25,10 @@ sub run ($self) {
     assert_script_run qq{module av | grep gnu/$version};
     assert_script_run 'module load gnu';
     assert_script_run qq{env |grep "MODULEPATH=/usr/share/lmod/moduledeps/gnu-$version"};
-    if (zypper_call("in gnu$version-compilers-hpc-devel", exitcode => [107]) == 107) {
-        record_soft_failure 'bsc#1212351 Type in posttrans script for the non-base Compiler Version cause Script to fail';
-    }
+    zypper_call("in gnu$version-compilers-hpc-devel");
     assert_script_run 'module load gnu';
     assert_script_run qq{env |grep "PATH=/usr/lib/hpc/compiler/gnu/$version/bin"};
     assert_script_run qq{gcc --version | grep $version};
-
 }
 
 sub post_fail_hook ($self) {
