@@ -36,7 +36,7 @@ sub run {
 
     # 1. System setup
 
-    unless (is_opensuse || main_common::is_updates_tests && !is_jeos) {
+    unless (is_opensuse || (main_common::is_updates_tests && !(get_var('FIPS_ENABLED') || is_jeos))) {
         # The Desktop module is required by the Development Tools module
         add_suseconnect_product(get_addon_fullname('desktop'));
         # Package 'ansible-test' needs python3-virtualenv from Development Tools module
@@ -44,6 +44,7 @@ sub run {
 
         # Package 'python3-yamllint' and 'ansible' require PackageHub is available
         add_suseconnect_product(get_addon_fullname('phub')) if (is_phub_ready());
+        zypper_call '--gpg-auto-import-keys ref';
     }
 
     # Create user account, if image doesn't already contain user
