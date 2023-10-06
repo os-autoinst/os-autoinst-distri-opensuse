@@ -86,6 +86,8 @@ GRUB_SELECT_SECOND_MENU | integer | | Select grub menu entry in secondary grub m
 HASLICENSE | boolean | true if SLE, false otherwise | Enables processing and validation of the license agreements.
 HDDVERSION | string | | Indicates version of the system installed on the HDD.
 HTTPPROXY  |||
+HPC_WAREWULF_CONTAINER | string | | Set the container meant for warewulf test suite.
+HPC_WAREWULF_CONTAINER_NAME | string | The OS name which is expected to run from HPC_WAREWULF_CONTAINER.
 INSTALL_KEYBOARD_LAYOUT | string | | Specify one of the supported keyboard layout to switch to during installation or to be used in autoyast scenarios e.g.: cz, fr
 INSTALL_SOURCE | string | | Specify network protocol to be used as installation source e.g. MIRROR_HTTP
 INSTALLATION_VALIDATION | string | | Comma separated list of modules to be used for installed system validation, should be used in combination with INSTALLONLY, to schedule only relevant test modules.
