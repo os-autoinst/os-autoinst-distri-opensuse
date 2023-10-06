@@ -233,7 +233,12 @@
         <route>
           <destination>default</destination>
           <device>eth0</device>
+          % if ( $get_var->('WORKER_HOSTNAME') =~ /prg2/ ) {
+          <gateway>10.145.10.254</gateway>
+          % }
+          % if ( $get_var->('WORKER_HOSTNAME') =~ /nue2/ ) {
           <gateway>10.161.159.254</gateway>
+          % }
           <netmask>-</netmask>
         </route>
       </routes>
