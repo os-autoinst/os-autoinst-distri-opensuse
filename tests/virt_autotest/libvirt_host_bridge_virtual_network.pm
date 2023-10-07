@@ -17,7 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_alp);
+use version_utils qw(is_sle is_alp is_tumbleweed);
 
 our $virt_host_bridge = 'br0';
 our $based_guest_dir = 'tmp';
@@ -25,7 +25,7 @@ sub run_test {
     my ($self) = @_;
 
     # ALP has done this in earlier setup
-    unless (is_alp) {
+    unless (is_alp || is_tumbleweed) {
         #Prepare VM HOST SERVER Network Interface Configuration
         #for libvirt virtual network testing
         virt_autotest::virtual_network_utils::prepare_network($virt_host_bridge, $based_guest_dir);

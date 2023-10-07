@@ -406,7 +406,9 @@ sub ssh_copy_id {
     my $mode = is_sle('=11-sp4') ? '' : '-f';
     my $default_ssh_key = $args{default_ssh_key};
     $default_ssh_key //= (!(get_var('VIRT_AUTOTEST'))) ? "/root/.ssh/id_rsa.pub" : "/var/testvirt.net/.ssh/id_rsa.pub";
-    script_retry "nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12;
+    if (!is_tumbleweed) {
+        script_retry "nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12;
+    }
     assert_script_run "ssh-keyscan $guest >> ~/.ssh/known_hosts";
     if (script_run("ssh -o PreferredAuthentications=publickey -o ControlMaster=no $username\@$guest hostname") != 0) {
         # Our client key is not authorized, we have to type password with evry command

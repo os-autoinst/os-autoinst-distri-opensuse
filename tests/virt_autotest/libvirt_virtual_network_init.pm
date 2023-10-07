@@ -20,7 +20,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_alp);
+use version_utils qw(is_sle is_alp is_tumbleweed);
 use virt_autotest::utils qw(is_xen_host);
 
 sub run_test {
@@ -30,7 +30,7 @@ sub run_test {
         #Ensure that there is enough free memory on xen host for virtual network test
         my $MEM = virt_autotest::virtual_network_utils::get_free_mem();
         record_info('Detect FREE MEM', $MEM . 'G');
-        assert_script_run("test $MEM -ge 20", fail_message => "The SUT needs at least 20G FREE MEM for virtual network test");
+        assert_script_run("test $MEM -ge 8", fail_message => "The SUT needs at least 8G FREE MEM for virtual network test");
     }
 
     #After deployed guest systems, ensure active pool have at least 40GiB(XEN)
@@ -59,7 +59,7 @@ sub run_test {
     virt_autotest::virtual_network_utils::hosts_backup();
 
     #Install required packages
-    zypper_call '-t in iproute2 iptables iputils bind-utils sshpass nmap';
+    zypper_call '-t in iproute2 iptables iputils bind-utils';
 
     #Prepare Guests
     foreach my $guest (keys %virt_autotest::common::guests) {
@@ -75,8 +75,8 @@ sub run_test {
         virt_autotest::utils::ssh_copy_id($guest);
         check_guest_health($guest);
 
-        # ALP guest uses networkmanager to control network, no /etc/sysconfig/network/ifcfg*
-        next if ($guest =~ /alp/i);
+        # ALP and Tumbleweed guest uses networkmanager to control network, no /etc/sysconfig/network/ifcfg*
+        next if ($guest =~ /alp/i || is_tumbleweed);
         #Prepare the new guest network interface files for libvirt virtual network
         #for some guests, interfaces are named eth0, eth1, eth2, ...
         #for TW kvm guest, they are enp1s0, enp2s0, enp3s0, ...

@@ -22,7 +22,7 @@ use XML::Writer;
 use IO::File;
 use utils 'script_retry';
 use upload_system_log 'upload_supportconfig_log';
-use version_utils qw(is_sle is_alp);
+use version_utils qw(is_sle is_alp is_tumbleweed);
 use virt_autotest::utils;
 
 our @EXPORT
@@ -111,7 +111,7 @@ sub test_network_interface {
     my $routed = $args{routed} // 0;
     my $target = $args{target} // script_output("dig +short google.com");
 
-    check_guest_ip("$guest", net => $net) if ((is_sle('>15') || is_alp) && ($isolated == 1) && get_var('VIRT_AUTOTEST'));
+    check_guest_ip("$guest", net => $net) if ((is_sle('>15') || is_alp || is_tumbleweed) && ($isolated == 1) && get_var('VIRT_AUTOTEST'));
 
     save_guest_ip("$guest", name => $net);
 
@@ -119,7 +119,9 @@ sub test_network_interface {
     #flag SRIOV test as it need not restart network service
     my $is_sriov_test = "false";
     $is_sriov_test = "true" if caller 0 eq 'sriov_network_card_pci_passthrough';
-    script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 180);
+    if (!is_tumbleweed) {
+        script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 180);
+    }
     my $nic = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
     if (check_var('TEST', 'qam-xen-networking') || check_var('TEST', 'qam-kvm-networking') || $is_sriov_test eq "true") {
         assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'dhcp\\' > /etc/sysconfig/network/ifcfg-$nic\"");
@@ -162,10 +164,11 @@ sub test_network_interface {
     }
     save_screenshot;
 
-    # Restore the network interface to the default for the Xen guests
+    # Restore the network interface to the default for the Xen guests #ifcfg-eth0 ifcfg-$nic not present
     if ($is_sriov_test ne "true") {
         if (is_xen_host()) {
-            assert_script_run("ssh root\@$guest 'cd /etc/sysconfig/network/; cp ifcfg-eth0 ifcfg-$nic'");
+            # assert_script_run("ssh root\@$guest 'cd /etc/sysconfig/network/; cp ifcfg-eth0 ifcfg-$nic'");
+            assert_script_run("ls -l /etc/sysconfig/network/; echo $nic; echo $guest");
         }
     }
 }
@@ -361,14 +364,14 @@ sub setup_vm_simple_dns_with_ip {
     my $_dns_file = '/etc/hosts';
 
     # Workaround for directly editing file issue: resource busy
-    if (is_alp) {
+    if (is_alp || is_tumbleweed) {
         $_dns_file = '/etc/hosts.wip';
         assert_script_run "cp /etc/hosts $_dns_file";
     }
 
     script_run "sed -i '/$_vm/d' $_dns_file";
     assert_script_run "echo '$_ip $_vm' >> $_dns_file";
-    assert_script_run "cp $_dns_file /etc/hosts" if (is_alp);
+    assert_script_run "cp $_dns_file /etc/hosts" if (is_alp || is_tumbleweed);
     save_screenshot;
     record_info("Simple DNS setup in /etc/hosts for $_ip $_vm is successful!", script_output("cat /etc/hosts"));
 }

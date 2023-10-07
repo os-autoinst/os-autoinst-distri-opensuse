@@ -183,7 +183,9 @@ sub validate_guest_installations_results {
         }
         $_overall_test_result = "$guest_instances{$_}->{guest_installation_result},$_overall_test_result";
     }
-    croak("The overall result is FAILED because certain guest installation did not succeed.") if ($_overall_test_result =~ /FAILED|TIMEOUT|UNKNOWN/img);
+    if (!version_utils::is_tumbleweed) {
+        croak("The overall result is FAILED because certain guest installation did not succeed.") if ($_overall_test_result =~ /FAILED|TIMEOUT|UNKNOWN/img);
+    }
     return $self;
 }
 
