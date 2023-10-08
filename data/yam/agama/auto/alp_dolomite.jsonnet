@@ -22,7 +22,7 @@ local findBiggestDisk(disks) =
   storage: {
     devices: [
       {
-        name: findBiggestDisk(agama.disks),
+        bootDevice: findBiggestDisk(agama.disks),
       },
     ],
   },
