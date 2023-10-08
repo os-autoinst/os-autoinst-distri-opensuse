@@ -19,7 +19,7 @@ sub run {
     script_run("SUSEConnect -r " . get_var('SCC_REGCODE'), timeout => 420);
     assert_script_run "rm /etc/zypp/repos.d/SUSE_Maintenance* || true";
     assert_script_run "rm /etc/zypp/repos.d/TEST* || true";
-    zypper_call '-t in nmap iputils bind-utils', exitcode => [0, 102, 103, 106];
+    zypper_call '-t --gpg-auto-import-keys in nmap iputils bind-utils', exitcode => [0, 102, 103, 106];
 
     # Fill the current pairs of hostname & address into /etc/hosts file
     if (get_var("REGRESSION", '') =~ /vmware/) {
