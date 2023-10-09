@@ -18,7 +18,7 @@ use utils qw(zypper_call common_service_action script_retry);
 my $service_type = 'Systemd';
 
 sub install_service {
-    zypper_call 'in nginx';
+    zypper_call '-v in nginx', timeout => 1000;
 }
 
 sub enable_service {
