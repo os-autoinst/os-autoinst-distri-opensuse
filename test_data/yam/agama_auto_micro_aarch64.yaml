@@ -2,6 +2,6 @@
 os_release_name: ALP-Dolomite
 guided_partitioning:
   disks:
-    - vdb
+    - vda
 unused_disks:
-  - vda
+  - vdb

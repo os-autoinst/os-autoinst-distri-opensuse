@@ -18,7 +18,7 @@ use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call random_string systemctl file_content_replace ensure_serialdev_permissions);
-use version_utils qw(is_opensuse is_tumbleweed is_transactional is_microos is_alp is_sle);
+use version_utils qw(is_opensuse is_tumbleweed is_transactional is_microos is_alp is_sle is_jeos);
 use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 use transactional qw(trup_call check_reboot_changes);
 
@@ -36,7 +36,7 @@ sub run {
 
     # 1. System setup
 
-    unless (is_opensuse) {
+    unless (is_opensuse || (main_common::is_updates_tests && !(get_var('FIPS_ENABLED') || is_jeos))) {
         # The Desktop module is required by the Development Tools module
         add_suseconnect_product(get_addon_fullname('desktop'));
         # Package 'ansible-test' needs python3-virtualenv from Development Tools module
@@ -44,6 +44,7 @@ sub run {
 
         # Package 'python3-yamllint' and 'ansible' require PackageHub is available
         add_suseconnect_product(get_addon_fullname('phub')) if (is_phub_ready());
+        zypper_call '--gpg-auto-import-keys ref';
     }
 
     # Create user account, if image doesn't already contain user

@@ -199,7 +199,12 @@
         <route>
           <destination>default</destination>
           <device>eth0</device>
+          % if ( $get_var->('WORKER_HOSTNAME') =~ /prg2/ ) {
+          <gateway>10.145.10.254</gateway>
+          % }
+          % if ( $get_var->('WORKER_HOSTNAME') =~ /nue2/ ) {
           <gateway>10.161.159.254</gateway>
+          % }
           <netmask>-</netmask>
         </route>
       </routes>
@@ -320,8 +325,15 @@
     % if ($get_var->('SCC_ADDONS') =~ m/\brt\b/) {
     <kernel>kernel-rt</kernel>
     % }
-    % if ($check_var->('VERSION', '15-SP3') or $check_var->('VERSION', '15-SP4')) {
+    % if ($check_var->('VERSION', '15-SP1') or $check_var->('VERSION', '15-SP2') or $check_var->('VERSION', '15-SP3') or $check_var->('VERSION', '15-SP4')) {
     <packages config:type="list">
+      % if ($check_var->('VERSION', '15-SP1') or $check_var->('VERSION', '15-SP2')) {
+        <!-- Workaround for bsc#1202234: [addon]-release packages are missing after autoyast installation. -->
+        % foreach (values %$addons) {
+        <package><%= lc($_->{name}) %>-release</package>
+        % }
+        <!-- end of workaround -->
+      % }
       <package>openssh</package>
       <package>firewalld</package>
     </packages>

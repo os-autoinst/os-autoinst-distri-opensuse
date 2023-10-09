@@ -15,7 +15,7 @@ use testapi;
 sub run {
     # autoconf phase
     # includes downloads
-    assert_screen [qw(partitioning-edit-proposal-button before-role-selection inst-instmode online-repos)], 300;
+    assert_screen [qw(partitioning-edit-proposal-button before-role-selection inst-instmode online-repos)], 700;
     if (match_has_tag("partitioning-edit-proposal-button") || match_has_tag("before-role-selection") || match_has_tag("online-repos")) {
         # new desktop selection workflow
         set_var('NEW_DESKTOP_SELECTION', 1);

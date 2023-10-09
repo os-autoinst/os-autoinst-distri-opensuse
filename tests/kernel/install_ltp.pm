@@ -309,7 +309,7 @@ sub setup_network {
     assert_script_run("printf \"$content\" >> /etc/securetty");
 
     # ftp
-    assert_script_run('sed -i \'s/^\s*\(root\)\s*$/# \1/\' /etc/ftpusers');
+    assert_script_run('if test -f /etc/ftpusers; then sed -i \'s/^\s*\(root\)\s*$/# \1/\' /etc/ftpusers; fi');
 
     # getaddrinfo_01: missing hostname in /etc/hosts
     assert_script_run('h=`hostname`; grep -q $h /etc/hosts || printf "# ltp\n127.0.0.1\t$h\n::1\t$h\n" >> /etc/hosts');

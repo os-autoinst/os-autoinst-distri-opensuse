@@ -1,0 +1,11 @@
+---
+name: agama_auto_dolomite_select_installation_device
+description: >
+  Prepare url for agama.auto boot parameter, boot, perform auto-installation with agama.
+schedule:
+  - installation/bootloader_start
+  - yam/agama/auto
+  - console/validate_first_disk_selection
+  - yam/validate/validate_product
+  - yam/validate/validate_user
+  - security/selinux/sestatus

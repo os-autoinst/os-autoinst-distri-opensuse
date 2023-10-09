@@ -37,6 +37,11 @@ sub run {
     # Capabilities are only available in privileged mode
     my $capbnd = script_output("cat /proc/1/status | grep CapBnd");
     validate_script_output("$runtime run --rm --privileged $image cat /proc/1/status | grep CapBnd", sub { m/$capbnd/ });
+
+    # Podman inside the container
+    assert_script_run("$runtime run -it --privileged --name outer-container $image /bin/bash");
+    assert_script_run("$runtime exec outer-container zypper in -y podman");
+    assert_script_run("$runtime exec outer-container podman run -it $image ls");
 }
 
 sub cleanup {
