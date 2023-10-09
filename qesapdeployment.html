@@ -30,8 +30,7 @@
           <li><a href="#qesap_get_roles_code-Get-the-Ansible-roles-code-from-github.com-sap-linuxlab-community.sles-for-sap">qesap_get_roles_code Get the Ansible roles code from github.com/sap-linuxlab/community.sles-for-sap</a></li>
           <li><a href="#qesap_yaml_replace">qesap_yaml_replace</a></li>
           <li><a href="#qesap_execute">qesap_execute</a></li>
-          <li><a href="#qesap_ansible_log_find_timeout">qesap_ansible_log_find_timeout</a></li>
-          <li><a href="#qesap_ansible_log_find_missing_sudo_password">qesap_ansible_log_find_missing_sudo_password</a></li>
+          <li><a href="#qesap_file_find_string">qesap_file_find_string</a></li>
           <li><a href="#qesap_get_inventory">qesap_get_inventory</a></li>
           <li><a href="#qesap_get_nodes_number">qesap_get_nodes_number</a></li>
           <li><a href="#qesap_get_terraform_dir">qesap_get_terraform_dir</a></li>
@@ -215,13 +214,22 @@ Test only returns execution result, failure has to be handled by calling method.
 </dd>
 </dl>
 
-<h3 id="qesap_ansible_log_find_timeout">qesap_ansible_log_find_timeout</h3>
+<h3 id="qesap_file_find_string">qesap_file_find_string</h3>
 
-<pre><code>Return the Timeout error found in the Ansible log or not</code></pre>
+<pre><code>Search for a string in the Ansible log file.
+Returns 1 if the string is found in the log file, 0 otherwise.</code></pre>
 
-<h3 id="qesap_ansible_log_find_missing_sudo_password">qesap_ansible_log_find_missing_sudo_password</h3>
+<dl>
 
-<pre><code>Return the &#39;&quot;msg&quot;: &quot;Missing sudo password&quot;&#39; error found in the Ansible log or not</code></pre>
+<dt id="FILE---Path-to-the-Ansible-log-file.-Required"><b>FILE</b> - Path to the Ansible log file. (Required)</dt>
+<dd>
+
+</dd>
+<dt id="SEARCH_STRING---String-to-search-for-in-the-log-file.-Required-back"><b>SEARCH_STRING</b> - String to search for in the log file. (Required) =back</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h3 id="qesap_get_inventory">qesap_get_inventory</h3>
 
@@ -870,13 +878,19 @@ qesap_export_instances()</code></pre>
 <p>You forgot a &#39;=back&#39; before &#39;=head3&#39;</p>
 
 </dd>
-<dt id="Around-line-983">Around line 983:</dt>
+<dt id="Around-line-448">Around line 448:</dt>
 <dd>
 
 <p>You forgot a &#39;=back&#39; before &#39;=head3&#39;</p>
 
 </dd>
-<dt id="Around-line-1060">Around line 1060:</dt>
+<dt id="Around-line-976">Around line 976:</dt>
+<dd>
+
+<p>You forgot a &#39;=back&#39; before &#39;=head3&#39;</p>
+
+</dd>
+<dt id="Around-line-1053">Around line 1053:</dt>
 <dd>
 
 <p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
