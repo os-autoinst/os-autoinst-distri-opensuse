@@ -432,8 +432,9 @@ sub toggle_package {
 }
 
 sub use_wicked {
+    # Config DHCP for all interfaces except br0 and bring them up
     script_run "cd /proc/sys/net/ipv4/conf";
-    script_run("for i in *[0-9]; do echo BOOTPROTO=dhcp > /etc/sysconfig/network/ifcfg-\$i; wicked --debug all ifup \$i; done", 600);
+    script_run("for i in *[0-9]; do [ \$i != 'br0' ] && echo BOOTPROTO=dhcp > /etc/sysconfig/network/ifcfg-\$i; wicked --debug all ifup \$i; done", 600);
     save_screenshot;
 }
 
