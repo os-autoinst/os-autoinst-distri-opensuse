@@ -35,4 +35,4 @@ schedule:
   - console/validate_md_raid
   - console/validate_raid
 test_data:
-  <<: !include test_data/qam/QR/15-SP3/raid/raid1_prep_boot.yaml
+  <<: !include test_data/qam/QR/15-SP5/raid/raid1_prep_boot.yaml
