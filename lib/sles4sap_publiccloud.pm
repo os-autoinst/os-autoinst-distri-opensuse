@@ -19,6 +19,7 @@ use Exporter 'import';
 use Scalar::Util 'looks_like_number';
 use publiccloud::utils;
 use publiccloud::provider;
+use publiccloud::ssh_interactive 'select_host_console';
 use testapi;
 use List::MoreUtils qw(uniq);
 use utils 'file_content_replace';
@@ -52,6 +53,7 @@ our @EXPORT = qw(
   delete_network_peering
   create_playbook_section_list
   create_hana_vars_section
+  sles4sap_cleanup
 );
 
 =head2 run_cmd
@@ -108,6 +110,76 @@ sub get_promoted_hostname {
     }
 
     return join("", @master);
+}
+
+=head2 sles4sap_cleanup
+
+    Clean up Network peering and qesap deployment
+
+=cut
+
+sub sles4sap_cleanup {
+    my ($self, %args) = @_;
+
+    # If there's an open ssh connection to the VMs, return to host console first
+    select_host_console(force => 1);
+    record_info(
+        'Cleanup',
+        join(' ',
+            'cleanup_called:',
+            $args{cleanup_called} // 'undefined',
+            'network_peering_present:',
+            $args{network_peering_present} // 'undefined',
+            'ansible_present:',
+            $args{ansible_present} // 'undefined')
+    );
+
+    qesap_upload_logs();
+    if ($args{network_peering_present}) {
+        delete_network_peering();
+    }
+
+    # Do not run destroy if already executed
+    return 0 if ($args{cleanup_called});
+    my @cmd_list;
+
+    # Only run the Ansible deregister if Ansible has been executed
+    push(@cmd_list, 'ansible') if ($args{ansible_present});
+
+    # Terraform destroy can be executed in any case
+    push(@cmd_list, 'terraform');
+    for my $command (@cmd_list) {
+        record_info('Cleanup', "Executing $command cleanup");
+
+        # 3 attempts for both terraform and ansible cleanup
+        for (1 .. 3) {
+            my @cleanup_cmd_rc = qesap_execute(
+                verbose => '--verbose',
+                cmd => $command,
+                cmd_options => '-d',
+                timeout => 1200
+            );
+            if ($cleanup_cmd_rc[0] == 0) {
+                diag(ucfirst($command) . " cleanup attempt # $_ PASSED.");
+                record_info("Clean $command",
+                    ucfirst($command) . ' cleanup PASSED.');
+                last;
+            }
+            else {
+                diag(ucfirst($command) . " cleanup attempt # $_ FAILED.");
+                sleep 10;
+            }
+            record_info(
+                'Cleanup FAILED',
+                "Cleanup $command FAILED",
+                result => 'fail'
+            ) if $_ == 3 && $cleanup_cmd_rc[0];
+            return 0 if $_ == 3 && $cleanup_cmd_rc[0];
+        }
+    }
+    record_info('Cleanup finished');
+    return 1;
+
 }
 
 =head2 get_hana_topology
