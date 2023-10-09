@@ -12,20 +12,8 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use Mojo::File 'path';
 use Mojo::JSON;
-use publiccloud::utils qw(is_ondemand is_hardened);
+use publiccloud::utils qw(is_ondemand);
 use publiccloud::ssh_interactive 'select_host_console';
-
-sub test_hardened {
-    my $instance = shift;
-
-    # Basic tests required by /motd https://github.com/SUSE-Enceladus/img-proof/issues/358
-    $instance->ssh_assert_script_run(cmd => 'grep \"Authorized uses only. All activity may be monitored and reported.\" /etc/motd');
-    $instance->ssh_assert_script_run(cmd => 'sudo grep always,exit /etc/audit/rules.d/access.rules /etc/audit/rules.d/delete.rules');
-    # Check that at least one account has password age
-    $instance->ssh_assert_script_run(cmd => 'sudo awk -F: "\$5 ~ /[0-9]/ { print \$1, \$5; }\" /etc/shadow  | grep \"[0-9]\"');
-    # NOTE: Cannot run full evaluation with --fetch-remote-resources because of https://github.com/OpenSCAP/openscap/issues/1796
-    $instance->ssh_assert_script_run(cmd => "sudo oscap xccdf eval --profile pcs-hardening /usr/share/xml/scap/ssg/content/ssg-sle15-ds.xml", timeout => 300);
-}
 
 sub run {
     my ($self, $args) = @_;
@@ -83,8 +71,6 @@ sub run {
         $instance->run_ssh_command(cmd => 'sudo journalctl -b > /tmp/journalctl_b.txt', no_quote => 1);
         upload_logs('/tmp/journalctl_b.txt');
     }
-
-    test_hardened($instance) if is_hardened;
 }
 
 sub cleanup {

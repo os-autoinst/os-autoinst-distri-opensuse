@@ -59,6 +59,7 @@ sub load_maintenance_publiccloud_tests {
             loadtest "publiccloud/sev" if (get_var('PUBLIC_CLOUD_CONFIDENTIAL_VM'));
             loadtest "publiccloud/xen" if (get_var('PUBLIC_CLOUD_XEN'));
             loadtest "publiccloud/az_l8s_nvme" if (get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ 'Standard_L(8|16|32|64)s_v2');
+            loadtest "publiccloud/hardened" if is_hardened;
         } elsif (get_var('PUBLIC_CLOUD_AZURE_NFS_TEST')) {
             loadtest("publiccloud/azure_nfs", run_args => $args);
         } elsif (check_var('PUBLIC_CLOUD_NVIDIA', 1)) {
