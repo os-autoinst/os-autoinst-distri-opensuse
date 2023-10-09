@@ -17,7 +17,7 @@ use testapi;
 use utils qw(zypper_call script_retry file_content_replace validate_script_output_retry random_string);
 use Utils::Systemd qw(systemctl);
 use containers::utils 'registry_url';
-use version_utils qw(is_sle is_microos is_public_cloud is_transactional is_alp is_sle_micro is_leap_micro);
+use version_utils qw(is_sle is_microos is_public_cloud is_transactional is_alp is_sle_micro is_leap is_leap_micro);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use transactional qw(trup_call check_reboot_changes);
 
@@ -101,7 +101,7 @@ sub install_k3s {
         delete $k3s_args{$key};
     }
 
-    if (get_var('K3S_INSTALL_UPSTREAM') || (is_sle || is_sle_micro || is_leap_micro)) {
+    if (get_var('K3S_INSTALL_UPSTREAM') || (is_sle || is_leap || is_sle_micro || is_leap_micro)) {
         script_retry("curl -sfL https://get.k3s.io  -o install_k3s.sh", timeout => 180, delay => 60, retry => 3);
         assert_script_run("sh install_k3s.sh $disables", timeout => 300);
         script_run("rm -f install_k3s.sh");
