@@ -13,6 +13,7 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
+use Socket qw(inet_ntoa);
 use utils qw(systemctl file_content_replace);
 use hacluster qw(get_cluster_name get_hostname get_ip get_my_ip is_node choose_node exec_csync);
 
@@ -24,6 +25,14 @@ sub replace_text_in_ha_files {
         file_content_replace($file, %changes);
         assert_script_run "cat $file";
     }
+}
+
+sub iscsi_server_ip {
+    my ($host) = @_;
+    return $host if ($host =~ /^\d+\.\d+\.\d+\.\d+$/);    # Arg it's already IPv4
+    return $host if ($host =~ /^[a-f\d]+:[a-f\d]+:[a-f\d]+:[a-f\d]+:[a-f\d]+:[a-f\d]+:[a-f\d]+:[a-f\d]+$/);    # Arg it's IPv6
+    my $packed_ip = gethostbyname($host);
+    return inet_ntoa($packed_ip);
 }
 
 sub run {
@@ -113,7 +122,7 @@ sub run {
     # prepare LUN files. only node 1 does this
     if (is_node(1)) {
         my $cluster = get_required_var('CLUSTER_INFOS');
-        my $iscsi_srv = get_required_var('ISCSI_SERVER');
+        my $iscsi_srv = iscsi_server_ip(get_required_var('ISCSI_SERVER'));
         my $num_luns = (split(/:/, $cluster))[2];
         my $lun_list_file = "$mountpt/$dir_id/$cluster_name-lun.list";
         my $index = get_var('ISCSI_LUN_INDEX', 0);
