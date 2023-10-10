@@ -37,9 +37,15 @@ sub run {
     }
     elsif (is_s390x) {
         # Native kvm requires SIE support (start-interpretive execution)
-        die "SIE support on s390x cpu required for native kvm" if (script_run('grep sie /proc/cpuinfo') != 0);
-        enter_cmd "qemu-system-s390x -nographic -enable-kvm -kernel /boot/image -initrd /boot/initrd";
-        assert_screen 'qemu-reached-target-basic-system', 60;
+        ## Restore after https://bugzilla.suse.com/show_bug.cgi?id=1215991 is resolved
+        # die "SIE support on s390x cpu required for native kvm" if (script_run('grep sie /proc/cpuinfo') != 0);
+        if (script_run('grep sie /proc/cpuinfo') != 0) {
+            record_soft_failure("bsc#1215991 - SIE support on s390x cpu required for native kvm");
+            return;
+        } else {
+            enter_cmd "qemu-system-s390x -nographic -enable-kvm -kernel /boot/image -initrd /boot/initrd";
+            assert_screen 'qemu-reached-target-basic-system', 60;
+        }
     }
     elsif (is_aarch64) {
         enter_cmd "qemu-system-aarch64 -M virt,usb=off,gic-version=host -cpu host -enable-kvm -nographic -pflash flash0.img -pflash flash1.img";
