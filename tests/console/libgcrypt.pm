@@ -24,7 +24,7 @@ sub run {
     select_console 'root-console';
     assert_script_run "rpm -q libgcrypt20";
     if (script_run("rpm -q libgcrypt-devel") == 1) {
-        zypper_call "in gcc libgcrypt-devel";
+        zypper_call "-v in gcc libgcrypt-devel", timeout => 1000;
     }
 
     select_console 'user-console';

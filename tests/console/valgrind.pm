@@ -141,7 +141,7 @@ sub prepare {
         add_suseconnect_product(get_addon_fullname('sdk'));
     }
 
-    zypper_call 'in gcc valgrind';
+    zypper_call '-v in gcc valgrind', timeout => 1000;
 
     # Compile the valgrind test program
     assert_script_run 'mkdir -p /var/tmp/valgrind';
