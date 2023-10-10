@@ -19,6 +19,10 @@ conditional_schedule:
                 - installation/bootloader_uefi
             's390x-kvm':
                 - installation/bootloader_start
+            'uefi-virtio-vga':
+                - installation/bootloader_uefi
+            '64bit-virtio-vga':
+                - installation/bootloader_uefi
     efi:
         UEFI:
             '1':
