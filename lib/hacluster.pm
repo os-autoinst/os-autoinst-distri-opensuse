@@ -1219,7 +1219,7 @@ sub cluster_status_matches_regex {
     my $previous_line = '';
 
     for my $line (split("\n", $show_cluster_status)) {
-        if ($line =~ /(Stopped:| Stopped|Failed:| Failed|Pending:| Pending|Blocked:| Blocked)/) {
+	if (lc($line) =~ /\s?(stopped|failed|pending|blocked|starting|promoting):?/) {
             push @resource_list, $previous_line;
             push @resource_list, $line;
         }
