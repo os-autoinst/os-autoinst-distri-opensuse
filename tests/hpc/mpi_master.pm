@@ -43,6 +43,7 @@ sub run ($self) {
     $self->relogin_root if $need_restart;
     $self->setup_nfs_server(\%exports_path);
 
+    #TODO: Add comment for the below line
     type_string('pkill -u root', lf => 1) unless $user_virtio_fixed;
     select_user_serial_terminal($prompt);
     # for <15-SP2 the openmpi2 module is named simply openmpi
