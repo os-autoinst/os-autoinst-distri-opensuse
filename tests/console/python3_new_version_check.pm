@@ -35,12 +35,6 @@ sub run {
             die("Python default version differs from 3.6");
         }
     }
-    if (is_tumbleweed) {
-        if (package_version_cmp($python3_spec_release, "3.11") < 0) {
-            # Factory default Python3 version for Tumbleweed should be 3.11
-            record_info("Python default version differs from 3.11");
-        }
-    }
     record_info("Testing system python version $python3_spec_release", "python $python3_spec_release is tested now");
     my $man_or_boy = script_output("/usr/bin/python3 man_or_boy.py");
     if ($man_or_boy != -67) {
@@ -71,6 +65,23 @@ sub get_python3_specific_release {
     }
     my $sub_version = substr($python3_version, 7);
     return "python3.$sub_version";
+}
+
+sub remove_installed_pythons {
+    my $default_python = script_output("python3 --version | awk -F ' ' '{print \$2}\'");
+    my @python3_versions = split(/\n/, script_output(qq[zypper se 'python3[0-9]*' | awk -F '|' '/python3[0-9]/ {gsub(" ", ""); print \$2}' | awk -F '-' '{print \$1}' | uniq]));
+    record_info("Available versions", "All available new python3 versions are: @python3_versions");
+    foreach my $python3_spec_release (@python3_versions) {
+        my $python_versions = script_output("rpm -q $python3_spec_release | awk -F \'-\' \'{print \$2}\'");
+        record_info("Python version", "$python_versions:$default_python");
+        next if ($python_versions == $default_python);
+        assert_script_run("zypper remove -y  $python3_spec_release-base");
+    }
+
+}
+
+sub post_run_hook {
+    remove_installed_pythons();
 }
 
 sub post_fail_hook {
