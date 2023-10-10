@@ -1,6 +1,6 @@
 ---
-mds: !include test_data/qam/QR/15-SP3/lvm_raid1/lvm+raid1_mds_xen.yaml
-lvm: !include test_data/qam/QR/15-SP3/lvm_raid1/lvm+raid1_lvm.yaml
+mds: !include test_data/qam/QR/15-SP5/lvm_raid1/lvm+raid1_mds_xen.yaml
+lvm: !include test_data/qam/QR/15-SP5/lvm_raid1/lvm+raid1_lvm.yaml
 disks:
   - name: xvdb
     partitions:
