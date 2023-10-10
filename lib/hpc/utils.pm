@@ -21,11 +21,13 @@ our @EXPORT = qw(get_slurm_version);
 sub get_mpi() {
     my $mpi = get_required_var('MPI');
 
-    if ($mpi eq 'openmpi3') {
+    if ($mpi eq 'openmpi') {
         if (is_sle('<15')) {
-            $mpi = 'openmpi';
+            $mpi = 'openmpi1';
         } elsif (is_sle('<15-SP2')) {
             $mpi = 'openmpi2';
+        } else {
+            $mpi = 'openmpi3';
         }
     }
 
