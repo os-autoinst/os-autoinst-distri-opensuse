@@ -1,9 +1,9 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2019 SUSE LLC
+# Copyright 2017-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: openmpi mpirun check
+# Summary: MPI slave node
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base qw(hpcbase hpc::utils), -signatures;
