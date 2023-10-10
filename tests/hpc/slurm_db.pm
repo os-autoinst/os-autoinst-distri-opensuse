@@ -28,13 +28,16 @@ sub run ($self) {
     # Install slurm
     # $slurm_pkg-munge is installed explicitly since slurm_23_02
     zypper_call("in $slurm_pkg $slurm_pkg-munge $slurm_pkg-slurmdbd");
-    # $slurm_pkg-munge is installed explicitly since slurm_23_02
     zypper_call("in $slurm_pkg-node");
 
     my $mariadb_service = "mariadb";
     $mariadb_service = "mysql" if is_sle('<12-sp4');
 
-    zypper_call("in mariadb");
+    #for all slurm versions we have mariadb as a dependency apart from slurm18
+    #TODO: remove below line as soon as not needed
+    zypper_call("in mariadb") if $slurm_pkg =~ "slurm_18";
+    #specific if for sle15-sp1 with base slurm only which should be removed in early 2024
+    zypper_call("in mariadb") if (is_sle("=15-sp1") && $slurm_pkg eq "slurm");
     systemctl("start $mariadb_service");
     systemctl("is-active $mariadb_service");
 
