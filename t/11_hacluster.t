@@ -116,6 +116,43 @@ subtest '[cluster_status_matches_regex] Cluster with errors' => sub {
     ok scalar $res == 1, 'Cluster health problem properly detected';
 };
 
+subtest '[cluster_status_matches_regex] Cluster with master failed errors' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my $cmr_status = "* stonith-sbd	(stonith:external/sbd):	 Started vmhana01
+    	* Clone Set: cln_azure-events [rsc_azure-events]:
+    	* Started: [ vmhana01 vmhana02 ]
+  	* Clone Set: cln_SAPHanaTopology_HDB_HDB00 [rsc_SAPHanaTopology_HDB_HDB00]:
+    	     * Started: [ vmhana01 vmhana02 ]
+  	* Clone Set: msl_SAPHana_HDB_HDB00 [rsc_SAPHana_HDB_HDB00] (promotable):
+    	     * rsc_SAPHana_HDB_HDB00	(ocf::suse:SAPHana):	 FAILED Master vmhana01 (Monitoring)
+    	     * Slaves: [ vmhana02 ]
+  	* rsc_socat_HDB_HDB00	(ocf::heartbeat:azure-lb):	 Started vmhana02
+  	* Resource Group: g_ip_HDB_HDB00:
+    	    * rsc_ip_HDB00	(ocf::heartbeat:IPaddr2):	 Started vmhana01";
+    $hacluster->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $res = cluster_status_matches_regex($cmr_status);
+    ok scalar $res == 1, 'Cluster health problem properly detected';
+};
+
+subtest '[cluster_status_matches_regex] Cluster with starting errors' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my $cmr_status = "* rsc_stonith_azure	(stonith:fence_azure_arm):	 Started vmhana01
+  	* Clone Set: cln_azure-events [rsc_azure-events]:
+    	* Started: [ vmhana01 vmhana02 ]
+  	* Clone Set: cln_SAPHanaTopology_HDB_HA000 [rsc_SAPHanaTopology_HDB_HA000]:
+    	     * Started: [ vmhana01 vmhana02 ]
+  	* Clone Set: msl_SAPHana_HDB_HA000 [rsc_SAPHana_HDB_HA000] (promotable):
+    	     * rsc_SAPHana_HDB_HA000	(ocf::suse:SAPHana):	 Starting vmhana02
+             * Masters: [ vmhana01 ]
+  	* rsc_socat_HDB_HA000	(ocf::heartbeat:azure-lb):	 Started vmhana02
+  	* Resource Group: g_ip_HDB_HA000:
+            * rsc_ip_HA000	(ocf::heartbeat:IPaddr2):	 Started vmhana01";
+    $hacluster->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $res = cluster_status_matches_regex($cmr_status);
+    ok scalar $res == 1, 'Cluster health problem properly detected';
+};
 
 subtest '[setup_sbd_delay] Test OpenQA parameter input' => sub {
     my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
