@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2018 SUSE LLC
+# Copyright 2016-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: vncmanager xorg-x11
@@ -15,12 +15,12 @@ use testapi;
 use utils;
 use registration 'add_suseconnect_product';
 use yast2_shortcuts qw($is_older_product %remote_admin %firewall_settings %firewall_details $confirm);
-use Utils::Backends 'is_pvm';
+use Utils::Backends qw(is_pvm is_ipmi);
 
 sub configure_remote_admin {
     # Force ncurses mode on powerVM setup to skip ssh forwarding x11 console
     my %params = (yast2_module => 'remote');
-    $params{yast2_opts} = '--ncurses' if (get_var("FIPS_ENABLED") && is_pvm);
+    $params{yast2_opts} = '--ncurses' if ((get_var("FIPS_ENABLED") && is_pvm) || is_ipmi);
     my $module_name = y2_module_consoletest::yast2_console_exec(%params);
     # Remote Administration Settings
     assert_screen 'yast2_vnc_remote_administration';

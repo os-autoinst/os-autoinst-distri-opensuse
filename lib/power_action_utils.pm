@@ -160,6 +160,8 @@ sub poweroff_x11 {
             # we need to kill all open ssh connections before the system shuts down
             prepare_system_shutdown;
             send_key "ret";
+            # Switch to sol console to observe system shutdown on IPMI backend
+            select_console 'sol', await_console => 0 if is_ipmi;
         }
     }
 
@@ -435,7 +437,7 @@ Example:
 
 sub assert_shutdown_with_soft_timeout {
     my ($args) = @_;
-    $args->{timeout} //= is_s390x ? 600 : get_var('DEBUG_SHUTDOWN') ? 180 : 60;
+    $args->{timeout} //= (is_s390x || is_ipmi) ? 600 : get_var('DEBUG_SHUTDOWN') ? 180 : 60;
     $args->{soft_timeout} //= 0;
     $args->{bugref} //= "No bugref specified";
     if ($args->{soft_timeout}) {
