@@ -49,6 +49,7 @@ conditional_schedule:
         - hpc/pdsh_slave
       dolly_master:
         - hpc/dolly_master
+        - '{{cpuid}}'
       dolly_slave:
         - hpc/dolly_slave
       hpc_master:
@@ -64,5 +65,4 @@ schedule:
   - '{{bootmenu}}'
   - boot/boot_to_desktop
   - hpc/before_test
-  - '{{cpuid}}'
   - '{{hpctest}}'
