@@ -252,18 +252,11 @@ sub basic_container_tests {
     assert_script_run "$runtime run --rm --init $tumbleweed ps --no-headers -xo 'pid args' | grep '1 .*init'";
 
     if (script_run('command -v man') == 0) {
-        my $output = script_output("man -P cat $runtime build", proceed_on_failure => 1);
-        if (!($output =~ "$runtime-build - Build")) {
-            # Check for bsc#1215465
-            if (is_tumbleweed || is microos) {
-                if (script_run("man -P cat $runtime build") != 0) {
-                    record_soft_failure("bsc#1215465 - man -P cat docker build fails");
-                } else {
-                    die("man -P cat output is not validating");
-                }
-            } else {
-                die("man -P cat output is not validating");
-            }
+        # Note: The output of man contains non-ASCII characters. Even a dash (`-`) imposes difficulties here, so it's best to stay with letters
+        if ($runtime eq 'podman') {
+            validate_script_output("man -P cat $runtime-build", sub { m/Build a container image using a Containerfile/ }, fail_message => "`man $runtime build` contents not validating");
+        } elsif ($runtime eq 'docker') {
+            validate_script_output("man -P cat $runtime-build", sub { m/Build an image from a Dockerfile/ }, fail_message => "`man $runtime build` contents not validating");
         }
     }
 
