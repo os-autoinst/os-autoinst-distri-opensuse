@@ -5,4 +5,5 @@ schedule:
     - jeos/firstrun
     - transactional/host_config
     - transactional/enable_selinux
+    - security/tpm2/check_tpm2
     - security/fde_regenerate_key
