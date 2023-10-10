@@ -34,7 +34,13 @@ sub run ($self) {
     my $mariadb_service = "mariadb";
     $mariadb_service = "mysql" if is_sle('<12-sp4');
 
-    zypper_call("in mariadb");
+    #TODO: clean up this part; there should be no mariadb_service which results in non mariadb etc.
+    #there is a product change where we have 2 different mariadb for sle15-sp1
+    if (is_sle("=15-sp1")) {
+        zypper_call("in mariadb104");
+    } else {
+        zypper_call("in mariadb");
+    }
     systemctl("start $mariadb_service");
     systemctl("is-active $mariadb_service");
 
