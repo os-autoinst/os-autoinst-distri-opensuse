@@ -34,7 +34,6 @@ sub run ($self) {
     my $mariadb_service = "mariadb";
     $mariadb_service = "mysql" if is_sle('<12-sp4');
 
-    zypper_call("in mariadb");
     systemctl("start $mariadb_service");
     systemctl("is-active $mariadb_service");
 
