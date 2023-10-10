@@ -28,7 +28,6 @@ sub run ($self) {
     # Install slurm
     # $slurm_pkg-munge is installed explicitly since slurm_23_02
     zypper_call("in $slurm_pkg $slurm_pkg-munge $slurm_pkg-slurmdbd");
-    # $slurm_pkg-munge is installed explicitly since slurm_23_02
     zypper_call("in $slurm_pkg-node");
 
     my $mariadb_service = "mariadb";
