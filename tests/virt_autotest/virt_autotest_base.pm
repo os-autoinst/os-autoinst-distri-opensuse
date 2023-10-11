@@ -224,11 +224,11 @@ sub add_junit_log {
 sub upload_guest_assets {
     my $self = shift;
 
-    if (get_var('CASEDIR')) {
-        record_info('Skip uploading guest assets', 'Guest assets will only be uploaded with test codes in git master branch.');
+    if (get_var('CASEDIR') =~ /os-autoinst-distri-opensuse/) {
+        record_info('Skip uploading guest assets', 'Guest assets is not allowed to be uploaded with test codes in git.');
         return;
     }
-    record_info('Uploading guest assets', 'as UPLOAD_GUEST_ASSETS flag is set');
+    record_info('Uploading guest assets as UPLOAD_GUEST_ASSETS flag is set');
     record_info('Skip upload guest asset.', 'No successful guest, skip upload assets.') unless @{$self->{success_guest_list}};
 
     foreach my $guest (@{$self->{success_guest_list}}) {
