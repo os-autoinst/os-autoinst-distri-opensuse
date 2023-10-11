@@ -251,6 +251,7 @@
     <instsource/>
     <packages t="list">
       <package>yast2</package>
+      <package>yast2-registration</package>
       <package>xfsprogs</package>
       <package>wicked</package>
       <package>snapper</package>
@@ -271,6 +272,7 @@
     <patterns t="list">
       <pattern>base</pattern>
       <pattern>minimal_base</pattern>
+      <pattern>yast2_basis</pattern>
     </patterns>
     <products t="list">
       <product>SLES</product>
