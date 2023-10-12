@@ -365,7 +365,7 @@ sub download_script {
 
     my $cmd = "curl -o ~/$script_name $script_url";
     $cmd = "ssh root\@$machine " . "\"$cmd\"" if ($machine ne 'localhost');
-    unless (script_retry($cmd, timeout => 300, retry => 2, die => 0) == 0) {
+    unless (script_retry($cmd, timeout => 900, retry => 2, die => 0) == 0) {
         # Add debug codes as the url only exists in a dynamic openqa URL
         record_info("URL is not accessible", "$script_url", result => 'fail') unless head($script_url);
         unless ($machine eq 'localhost') {
