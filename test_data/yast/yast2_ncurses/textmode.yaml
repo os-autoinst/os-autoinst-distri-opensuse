@@ -8,6 +8,5 @@ config_files:
       KDUMP_DUMPLEVEL: 31
       KDUMP_DUMPFORMAT: compressed
       KDUMP_SAVEDIR: '(file://|)/var/crash'
-      KDUMP_KEEP_OLD_DUMPS: 5
-      KDUMP_IMMEDIATE_REBOOT: 'yes'
-      KDUMP_COPY_KERNEL: 'yes'
+      KDUMP_KEEP_OLD_DUMPS: 0
+      KDUMP_IMMEDIATE_REBOOT: 'true'
