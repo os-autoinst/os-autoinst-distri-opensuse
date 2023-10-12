@@ -84,7 +84,7 @@ subtest 'validate_autoyast_profile' => sub {
     $autoyast_mock->redefine("record_info", sub { my ($title, $output) = @_; print("$title\n$output"); });
     # Test that profile validates
     eval { autoyast::validate_autoyast_profile($yaml) };
-    ok !$@;
+    is $@, '', 'autoyast validation succeeded';
 };
 
 done_testing;
