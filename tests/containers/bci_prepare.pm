@@ -120,37 +120,6 @@ sub run {
     my $branch = $bci_tests_branch ? "-b $bci_tests_branch" : '';
     script_run('rm -rf /root/BCI-tests');
     assert_script_run("git clone $branch -q --depth 1 $bci_tests_repo /root/BCI-tests");
-
-    # Pull the image in advance
-    if (my $image = get_var('CONTAINER_IMAGE_TO_TEST')) {
-        record_info('IMAGE', $image);
-        # If $engines are multiple (e.g. CONTAINER_RUNTIME=podman,docker), we just pick one of them for this check
-        # as this module is executed only once.
-        my $engine;
-        if ($engines =~ /podman/) {
-            $engine = 'podman';
-        } elsif ($engines =~ /docker/) {
-            $engine = 'docker';
-        } else {
-            die('No valid container engines defined in CONTAINER_RUNTIME variable!');
-        }
-        script_retry("$engine pull -q $image", timeout => 300, delay => 60, retry => 3);
-        record_info('Inspect', script_output("$engine inspect $image"));
-        my $build = get_var('CONTAINER_IMAGE_BUILD');
-        if ($build && $build ne 'UNKNOWN') {
-            my $reference = script_output(qq($engine inspect --type image $image | jq -r '.[0].Config.Labels."org.opensuse.reference"'));
-            # Note: Both lines are aligned, thus the additional space
-            record_info('builds', "CONTAINER_IMAGE_BUILD:  $build\norg.opensuse.reference: $reference");
-            die('Missmatch in image build number. The image build number is different than the one triggered by the container bot!') if ($reference !~ /$build$/);
-        }
-        if (get_var('IMAGE_STORE_DATA')) {
-            my $size_b = script_output("$engine inspect --format \"{{.VirtualSize}}\" $image");
-            my $size_mb = $size_b / 1000000;
-            record_info('Size', $size_mb);
-            push_image_data_to_db('containers', $image, $size_mb, flavor => get_required_var('BCI_IMAGE_MARKER'), type => 'VirtualSize');
-        }
-
-    }
 }
 
 sub test_flags {
