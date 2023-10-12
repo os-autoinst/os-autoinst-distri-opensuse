@@ -23,52 +23,20 @@ our @EXPORT = qw(cleanup import_context);
 sub cleanup {
     my ($self, $args) = @_;
 
-    record_info('Cleanup',
-        join(' ',
-            'cleanup_called:', $self->{cleanup_called} // 'undefined',
-            'network_peering_present:', $self->{network_peering_present} // 'undefined',
-            'ansible_present:', $self->{ansible_present} // 'undefined'));
-    # Do not run destroy if already executed
-    return if ($self->{cleanup_called});
-    $self->{cleanup_called} = 1;
+    sles4sap_cleanup(
+        $self,
+        cleanup_called => $self->{cleanup_called},
+        network_peering_present => $self->{network_peering_present},
+        ansible_present => $self->{ansible_present}
+    );
 
-    qesap_upload_logs();
-    if ($self->{network_peering_present}) {
-        delete_network_peering();
-        $self->{network_peering_present} = 0;
-    }
-
-    my @cmd_list;
-    # Only run the Ansible deregister if Ansible has been executed
-    push(@cmd_list, 'ansible') if ($self->{ansible_present});
-
-    # Terraform destroy can be executed in any case
-    push(@cmd_list, 'terraform');
-
-    for my $command (@cmd_list) {
-        record_info('Cleanup', "Executing $command cleanup");
-        # 3 attempts for both terraform and ansible cleanup
-        for (1 .. 3) {
-            my @cleanup_cmd_rc = qesap_execute(verbose => '--verbose', cmd => $command, cmd_options => '-d', timeout => 1200);
-            if ($cleanup_cmd_rc[0] == 0) {
-                diag(ucfirst($command) . " cleanup attempt # $_ PASSED.");
-                record_info("Clean $command", ucfirst($command) . ' cleanup PASSED.');
-                $self->{ansible_present} = 0 if ($command eq 'ansible');
-                last;
-            }
-            else {
-                diag(ucfirst($command) . " cleanup attempt # $_ FAILED.");
-                sleep 10;
-            }
-            record_info('Cleanup FAILED', "Cleanup $command FAILED", result => 'fail') if $_ == 3 && $cleanup_cmd_rc[0];
-            $self->{result} = "fail" if $_ == 3 && $cleanup_cmd_rc[0];
-        }
-    }
-    $args->{my_provider}->terraform_applied(0) if ((defined $args) &&
-        (ref($args->{my_provider}) =~ /^publiccloud::(azure|ec2|gce)/) &&
-        (defined $self->{result}) && ($self->{result} ne 'fail'));
-    record_info('Cleanup finished');
+    $args->{my_provider}->terraform_applied(0)
+      if ((defined $args)
+        && (ref($args->{my_provider}) =~ /^publiccloud::(azure|ec2|gce)/)
+        && (defined $self->{result})
+        && ($self->{result} ne 'fail'));
 }
+
 
 sub import_context {
     my ($self, $run_args) = @_;

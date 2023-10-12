@@ -152,6 +152,17 @@ sub _cleanup {
 
 sub post_fail_hook {
     my ($self) = @_;
+    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
+        # This is called explicitly to avoid cyclical imports
+        sles4sap_publiccloud::sles4sap_cleanup(
+            $self,
+            cleanup_called => $self->{cleanup_called} // undef,
+            network_peering_present => 1,
+            ansible_present => 0
+        );
+        return;
+    }
+
     $self->_cleanup() unless $self->{cleanup_called};
 }
 
