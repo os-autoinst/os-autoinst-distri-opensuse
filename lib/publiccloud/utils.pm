@@ -115,9 +115,30 @@ sub registercloudguest {
     record_info('registeration time', 'The registration took ' . (time() - $cmd_time) . ' seconds.');
 }
 
+sub generate_addons_from_version {
+    if(is_sle('>=15-sp4')){
+        return qw(base serverapp contm desktop sdk pcm);
+    }
+    elif(is_sle('15-sp3') || is_sle('15-sp2')){
+        return qw(base serverapp contm desktop sdk pcm ltss);
+    }
+    elif(is_sle('15-sp1')){
+        return qw(ltss);
+    }
+    elif(is_sle('12-sp5')){
+        return qw(contm sdk pcm);
+    }
+}
+
 sub register_addons_in_pc {
     my ($instance) = @_;
-    my @addons = split(/,/, get_var('SCC_ADDONS', ''));
+    my @addons;
+    if(check_var('SCC_ADDONS', 'test_defined')){
+        @addons = generate_addons_from_version();
+    }
+    else {
+        @addons = split(/,/, get_var('SCC_ADDONS', ''));
+    }
     my $remote = $instance->username . '@' . $instance->public_ip;
     $instance->ssh_script_retry(cmd => "sudo zypper -n --gpg-auto-import-keys ref", timeout => 300, retry => 3, delay => 120);
     for my $addon (@addons) {
