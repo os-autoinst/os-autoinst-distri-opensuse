@@ -1,3 +1,5 @@
+package xml_utils;
+
 =head1 xml_utils.pm
 
 Library for parsing xml files
