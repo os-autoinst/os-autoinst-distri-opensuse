@@ -134,7 +134,7 @@ sub upload_img {
     my $sec_group = get_var('PUBLIC_CLOUD_EC2_UPLOAD_SECGROUP');
     my $vpc_subnet = get_var('PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET');
     my $instance_type = get_var('PUBLIC_CLOUD_EC2_UPLOAD_INSTANCE_TYPE', get_default_instance_type());
-    my $boot_mode = get_var('PUBLIC_CLOUD_EC2_BOOT_MODE', 'uefi');
+    my $boot_mode = get_var('PUBLIC_CLOUD_EC2_BOOT_MODE', 'uefi-preferred');
 
     # ec2uploadimg will fail without this file, but we can have it empty
     # because we passing all needed info via params anyway
