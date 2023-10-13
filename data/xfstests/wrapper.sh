@@ -3,7 +3,12 @@ XFSTESTS_DIR='/opt/xfstests'
 PROG="$XFSTESTS_DIR/check"
 SCRIPT_DIR=$(realpath $(dirname "$0"))
 OPTIONS=""
-if [ "$#" -gt 1 ]; then
+if [ "$#" -eq 2 ]; then
+    OPTIONS=$2
+elif [ "$#" -eq 3 ]; then
+    INJECT_LINE=$2
+    INJECT_CODE=$3
+elif [ "$#" -eq 4 ]; then
     OPTIONS=$2
     INJECT_LINE=$3
     INJECT_CODE=$4
@@ -47,14 +52,20 @@ function parse_result()
     return 11
 }
 
-# Inject code into subtests, could use in debugging
+# Inject code or set xtrace into subtests, could use in debugging
 # 1 - Subtests to inject
 # 2 - Line to inject
-# 3 - Inject code
+# 3 - Inject code, or else set as 'xtrace' to inject 'set -x' after
+# inject line, and redirect debug info to /opt/log/xxx_xtrace.log
 function inject_code()
 {
-    echo "DEBUG Mode: inject code ($3) into $1 line $2. Beware the output may not match after inject."
-    sed -i "$2i$3" $XFSTESTS_DIR/tests/$1
+    if [ "$3" != "xtrace" ]; then
+        echo "DEBUG Mode: inject code ($3) into $1 line $2. Beware the output may not match after inject."
+        sed -i "$2i$3" $XFSTESTS_DIR/tests/$1
+    else
+        echo "DEBUG Mode: inject 'set -x' into $1 after line $2. debug info will redirect to "$1_xtrace.log"."
+        sed -i "$2iexec 42>/opt/log/$1_xtrace.log\nexport BASH_XTRACEFD=42\nset -x" $XFSTESTS_DIR/tests/$1
+    fi
 }
 
 # Check for cmdline arguments
