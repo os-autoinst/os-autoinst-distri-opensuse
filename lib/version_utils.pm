@@ -46,6 +46,8 @@ use constant {
           is_openstack
           is_leap_migration
           is_tunneled
+          is_bootloader_grub2
+          is_bootloader_sdboot
           requires_role_selection
           check_version
           get_os_release
@@ -770,6 +772,25 @@ Returns true if TUNNELED is set to 1
 sub is_tunneled {
     return get_var('TUNNELED', 0);
 }
+
+=head2 is_bootloader_grub2
+
+Returns true if the SUT uses GRUB2 as bootloader
+=cut
+
+sub is_bootloader_grub2 {
+    return get_var('BOOTLOADER', 'grub2') eq 'grub2';
+}
+
+=head2 is_bootloader_sdboot
+
+Returns true if the SUT uses systemd-boot as bootloader
+=cut
+
+sub is_bootloader_sdboot {
+    return get_var('BOOTLOADER', 'grub2') eq 'systemd-boot';
+}
+
 
 =head2 has_test_issues
 

@@ -193,7 +193,7 @@ sub load_transactional_tests {
     loadtest 'microos/patterns' if is_sle_micro;
     loadtest 'transactional/transactional_update';
     loadtest 'transactional/rebootmgr';
-    loadtest 'transactional/health_check';
+    loadtest 'transactional/health_check' if is_bootloader_grub2;    # health-checker needs GRUB2 (poo#129748)
 }
 
 

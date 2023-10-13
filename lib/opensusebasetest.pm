@@ -884,7 +884,7 @@ sub wait_boot {
     # When no bounce back on power KVM, we need skip bootloader process and go ahead when 'displaymanager' matched.
     elsif (get_var('OFW') && (check_screen('displaymanager', 5))) {
     }
-    else {
+    elsif (is_bootloader_grub2) {
         assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600) if (uses_qa_net_hardware() || get_var("PXEBOOT"));
         $self->handle_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
         # part of soft failure bsc#1118456
@@ -896,6 +896,12 @@ sub wait_boot {
                 send_key 'ret';
             }
         }
+    } elsif (is_bootloader_sdboot) {
+        assert_screen 'systemd-boot', 300;
+        save_screenshot;    # Show what's selected for booting
+        send_key('ret');
+    } else {
+        die 'Unknown bootloader';
     }
     reconnect_xen if check_var('VIRSH_VMM_FAMILY', 'xen');
 
