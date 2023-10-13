@@ -232,7 +232,11 @@ sub load_container_tests {
     if (is_container_image_test() && !(is_jeos || is_sle_micro || is_microos || is_leap_micro) && $runtime !~ /k8s|openshift/) {
         # Container Image tests common
         loadtest 'containers/host_configuration';
-        loadtest 'containers/bci_prepare' if (get_var('BCI_TESTS') && !get_var('BCI_SKIP'));
+        if (get_var('BCI_TESTS') && !get_var('BCI_SKIP')) {
+            loadtest 'containers/bci_prepare';
+            # bci_version_check required jq from bci_prepare.
+            loadtest 'containers/bci_version_check' if (get_var('CONTAINER_IMAGE_TO_TEST') && get_var('CONTAINER_IMAGE_BUILD'));
+        }
     }
 
     if (get_var('CONTAINER_SLEM_RANCHER')) {
