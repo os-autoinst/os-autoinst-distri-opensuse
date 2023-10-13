@@ -529,5 +529,13 @@
             "leap-micro": ["5.3"]
         },
         "type": "bug"
+    },
+    "bsc#1216196": {
+        "description": "qgroup reserved space leaked",
+        "products": {
+            "opensuse": ["Tumbleweed"],
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "bug"
     }
 }
