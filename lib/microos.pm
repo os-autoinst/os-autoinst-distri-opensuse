@@ -11,7 +11,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_microos is_selfinstall);
+use version_utils qw(is_microos is_selfinstall is_bootloader_grub2 is_bootloader_sdboot);
 use power_action_utils 'power_action';
 use Utils::Architectures qw(is_aarch64);
 use Utils::Backends qw(is_ipmi);
@@ -45,7 +45,8 @@ sub microos_reboot {
     select_console 'sol', await_console => 0 if is_ipmi();
     # No grub bootloader on xen-pv
     # grub2 needle is unreliable (stalls during timeout) - poo#28648
-    assert_screen 'grub2', 300;
+    assert_screen 'grub2', 300 if is_bootloader_grub2;
+    assert_screen 'systemd-boot', 300 if is_bootloader_sdboot;
     send_key('ret') unless get_var('KEEP_GRUB_TIMEOUT');
     microos_login;
 }
