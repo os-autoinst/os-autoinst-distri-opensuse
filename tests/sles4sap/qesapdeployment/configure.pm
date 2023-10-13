@@ -24,9 +24,13 @@ sub run {
     if (get_var('QESAPDEPLOY_CLUSTER_OS_VER')) {
         $variables{OS_VER} = get_var('QESAPDEPLOY_CLUSTER_OS_VER');
     }
-    else {
+    elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
         $variables{STORAGE_ACCOUNT_NAME} = get_required_var('STORAGE_ACCOUNT_NAME');
         $variables{OS_URI} = $provider->get_blob_uri(get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
+    }
+    else
+    {
+        $variables{OS_VER} = $provider->get_image_id();
     }
     $variables{OS_OWNER} = get_var('QESAPDEPLOY_CLUSTER_OS_OWNER', 'amazon') if check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
 
