@@ -23,12 +23,18 @@ our @EXPORT = qw(cleanup import_context);
 sub cleanup {
     my ($self, $args) = @_;
 
-    sles4sap_cleanup(
+    my $res = sles4sap_cleanup(
         $self,
         cleanup_called => $self->{cleanup_called},
         network_peering_present => $self->{network_peering_present},
         ansible_present => $self->{ansible_present}
     );
+
+    if ($res) {
+        $self->{cleanup_called} = 1;
+        $self->{network_peering_present} = 0;
+        $self->{ansible_present} = 0;
+    }
 
     $args->{my_provider}->terraform_applied(0)
       if ((defined $args)
