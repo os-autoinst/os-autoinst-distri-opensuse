@@ -22,6 +22,7 @@ BEGIN {
 use utils;
 use version_utils qw(is_jeos is_gnome_next is_krypton_argon is_leap is_tumbleweed is_rescuesystem is_desktop_installed is_opensuse is_sle is_staging);
 use main_common;
+use main_ltp_loader 'load_kernel_tests';
 use known_bugs;
 use YuiRestClient;
 

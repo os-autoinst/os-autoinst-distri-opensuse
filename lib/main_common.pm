@@ -72,7 +72,6 @@ our @EXPORT = qw(
   load_iso_in_external_tests
   load_jeos_tests
   load_kernel_baremetal_tests
-  load_kernel_tests
   load_nfs_tests
   load_nfv_master_tests
   load_nfv_trafficgen_tests
@@ -277,27 +276,6 @@ sub is_kernel_test {
 
 sub is_systemd_test {
     return get_var('SYSTEMD_TESTSUITE');
-}
-
-# Isolate the loading of LTP tests because they often rely on newer features
-# not present on all workers. If they are isolated then only the LTP tests
-# will fail to load when there is a version mismatch instead of all tests.
-{
-    local $@;
-
-    eval "use main_ltp 'load_kernel_tests'";
-    if ($@) {
-        bmwqemu::fctwarn("Failed to load main_ltp.pm:\n$@", 'main_common.pm');
-        eval q%{
-            sub load_kernel_tests {
-                if (is_kernel_test())
-                {
-                    die "Can not run kernel tests because evaluating main_ltp.pm failed";
-                }
-                return 0;
-            }
-        %;
-    }
 }
 
 sub replace_opensuse_repos_tests {
