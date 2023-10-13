@@ -39,8 +39,8 @@ sub run_tests ($slurm_conf) {
         push(@all_tests_results, run_ha_tests());
     }
 
-    pars_results('HPC slurm tests', $xmlfile, @all_tests_results);
-    parse_extra_log('XUnit', $xmlfile);
+    parse_test_results('HPC slurm tests', $xmlfile, @all_tests_results);
+    parse_extra_log('XUnit', "/tmp/$xmlfile");
 }
 
 ########################################

@@ -48,8 +48,8 @@ sub run ($self) {
 }
 
 sub post_run_hook ($self) {
-    pars_results('HPC genders tests', $file, @all_tests_results);
-    parse_extra_log('XUnit', $file);
+    parse_test_results('HPC genders tests', $file, @all_tests_results);
+    parse_extra_log('XUnit', "/tmp/$file");
     $self->SUPER::post_run_hook();
 }
 

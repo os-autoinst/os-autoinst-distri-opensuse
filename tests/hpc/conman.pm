@@ -77,8 +77,8 @@ sub run ($self) {
 
 sub post_run_hook ($self) {
     select_serial_terminal;
-    pars_results('HPC conman tests', $file, @all_tests_results);
-    parse_extra_log('XUnit', $file);
+    parse_test_results('HPC conman tests', $file, @all_tests_results);
+    parse_extra_log('XUnit', "/tmp/$file");
     $self->SUPER::post_run_hook();
 }
 sub post_fail_hook ($self) {
