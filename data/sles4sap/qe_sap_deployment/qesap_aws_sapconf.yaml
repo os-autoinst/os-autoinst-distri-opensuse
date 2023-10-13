@@ -43,6 +43,6 @@ ansible:
     - sap-hana-install.yaml
     - sap-hana-system-replication.yaml
     - sap-hana-system-replication-hooks.yaml
-    - sap-hana-cluster.yaml -e use_sbd=false
+    - sap-hana-cluster.yaml
   destroy:
     - deregister.yaml
