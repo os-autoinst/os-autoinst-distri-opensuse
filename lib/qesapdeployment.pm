@@ -79,6 +79,7 @@ our @EXPORT = qw(
   qesap_az_get_resource_group
   qesap_az_calculate_address_range
   qesap_az_vnet_peering
+  qesap_az_simple_peering_delete
   qesap_az_vnet_peering_delete
   qesap_aws_get_region_subnets
   qesap_aws_get_vpc_id
@@ -95,6 +96,7 @@ our @EXPORT = qw(
   qesap_export_instances
   qesap_import_instances
   qesap_file_find_string
+  qesap_az_clean_old_peerings
 
 );
 
@@ -1183,6 +1185,31 @@ sub qesap_az_vnet_peering {
     record_info('AZURE PEERING SUCCESS');
 }
 
+=head3 qesap_az_simple_peering_delete
+
+    Delete a single peering one way
+
+=over 3
+
+=item B<RG> - Name of the resource group
+
+=item B<VNET_NAME> - Name of the vnet
+
+=item B<PEERING_NAME> - Name of the peering
+
+=item B<TIMEOUT> - (Optional) Timeout for the script_run command
+
+=back
+=cut
+
+sub qesap_az_simple_peering_delete {
+    my (%args) = @_;
+    foreach (qw(rg vnet_name peering_name)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    $args{timeout} //= bmwqemu::scale_timeout(300);
+    my $peering_cmd = "az network vnet peering delete -n $args{peering_name} --resource-group $args{rg} --vnet-name $args{vnet_name}";
+    return script_run($peering_cmd, timeout => $args{timeout});
+}
+
 =head3 qesap_az_vnet_peering_delete
 
     Delete all the network peering between the two provided deployments.
@@ -1216,20 +1243,17 @@ sub qesap_az_vnet_peering_delete {
     }
 
     record_info('Attempting peering destruction');
-    my $peering_cmd = "az network vnet peering delete -n $peering_name";
     my $source_ret = 0;
     record_info('Destroying job_resources->IBSM peering');
     if ($args{source_group}) {
         my $source_vnet = qesap_az_get_vnet($args{source_group});
-        my $source_cmd = "$peering_cmd --resource-group $args{source_group} --vnet-name $source_vnet";
-        $source_ret = script_run($source_cmd, timeout => $args{timeout});
+        $source_ret = qesap_az_simple_peering_delete(rg => $args{source_group}, vnet_name => $source_vnet, peering_name => $peering_name, timeout => $args{timeout});
     }
     else {
         record_info('NO PEERING', "No peering between job VMs and IBSM - maybe it wasn't created, or the resources have been destroyed.");
     }
     record_info('Destroying IBSM -> job_resources peering');
-    my $target_cmd = "$peering_cmd --resource-group $args{target_group} --vnet-name $target_vnet";
-    my $target_ret = script_run($target_cmd, timeout => $args{timeout});
+    my $target_ret = qesap_az_simple_peering_delete(rg => $args{target_group}, vnet_name => $target_vnet, peering_name => $peering_name, timeout => $args{timeout});
 
     if ($source_ret == 0 && $target_ret == 0) {
         record_info('Peering deletion SUCCESS', 'The peering was successfully destroyed');
@@ -1705,6 +1729,89 @@ sub qesap_export_instances {
 
     upload_logs($_, log_name => basename($_)) for @upload_files;
     record_info('EXPORT', "SSH keys and instances data uploaded to test results:\n" . join("\n", @upload_files));
+}
+
+=head3 qesap_is_job_finished
+
+    Get whether a specified job is still running or not
+
+=over 1
+
+=item B<JOB_ID> - id of job to check
+
+=back
+=cut
+
+sub qesap_is_job_finished {
+    my ($job_id) = @_;
+    my $url = get_required_var('OPENQA_HOSTNAME') . "/api/v1/jobs/$job_id";
+    my $json_data = script_output("curl -s '$url'");
+
+    my $job_data = eval { decode_json($json_data) };
+    if ($@) {
+        warn "Failed to decode JSON data for job $job_id: $@";
+        return 0;    # Assume job is still running if we can't get its state
+    }
+
+    my $job_state = $job_data->{job}->{state} // '';
+
+    return ($job_state ne 'running');
+}
+
+
+=head3 qesap_az_get_active_peerings
+
+    Get active peerings for Azure jobs
+
+=over 2
+
+=item B<RG> - Resource group in question
+
+=item B<VNET> - vnet name of rg
+
+=back
+=cut
+
+sub qesap_az_get_active_peerings {
+    my (%args) = @_;
+    foreach (qw(rg vnet)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    my $cmd = "az network vnet peering list -g $args{rg} --vnet-name $args{vnet} --output tsv --query \"[].name\"";
+    my $output_str = script_output($cmd);
+    my @output = split(/\n/, $output_str);
+    my %result;
+
+    foreach my $line (@output) {
+        # find integers in the vnet name that are 6 digits or longer - this would be the job id
+        my @matches = $line =~ /(\d{6,})/g;
+        $result{$line} = $matches[-1] if @matches;
+    }
+    return %result;
+}
+
+=head2 qesap_az_clean_old_peerings
+
+    Delete leftover peerings for Azure jobs that finished without cleaning up
+
+=over 2
+
+=item B<RG> - Resource group in question
+
+=item B<VNET> - vnet name of rg
+
+=back
+=cut
+
+sub qesap_az_clean_old_peerings {
+    my (%args) = @_;
+    foreach (qw(rg vnet)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    my %peerings = qesap_az_get_active_peerings(rg => $args{rg}, vnet => $args{vnet});
+
+    while (my ($key, $value) = each %peerings) {
+        if (qesap_is_job_finished($value)) {
+            record_info("Leftover Peering", "$key is leftover from a finished job. Attempting to delete...");
+            qesap_az_simple_peering_delete(rg => $args{rg}, vnet_name => $args{vnet}, peering_name => $key);
+        }
+    }
 }
 
 1;
