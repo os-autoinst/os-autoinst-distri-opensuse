@@ -126,10 +126,16 @@ sub override_known_failures {
         }
     }
 
-    my $msg = "Failure in LTP:$suite:$testname is known, overriding to softfail";
-    bmwqemu::diag($msg);
-    $testmod->{result} = 'softfail';
-    $testmod->record_soft_failure_result(join("\n", $msg, ($entry->{message} // ())));
+    if ($entry->{keep_fail}) {
+        $testmod->record_resultfile('Known', $entry->{message}, result => 'fail');
+    }
+    else {
+        my $msg = "Failure in LTP:$suite:$testname is known, overriding to softfail";
+        bmwqemu::diag($msg);
+        $testmod->{result} = 'softfail';
+        $testmod->record_soft_failure_result(join("\n", $msg, ($entry->{message} // ())));
+    }
+
     return 1;
 }
 
