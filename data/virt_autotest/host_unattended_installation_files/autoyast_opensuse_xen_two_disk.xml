@@ -19,7 +19,7 @@
   <report>
     <errors>
       <show t="boolean">true</show>
-      <timeout t="integer">20</timeout>
+      <timeout t="integer">0</timeout>
       <log t="boolean">true</log>
     </errors>
     <messages>
