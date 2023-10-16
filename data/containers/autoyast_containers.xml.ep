@@ -126,6 +126,33 @@
       % }
     </patterns>
   </software>
+
+  <partitioning config:type="list">
+    <drive>
+      <device>/dev/vda</device>
+      <disklabel>gpt</disklabel>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition config:type="map">
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">vfat</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>utf8</fstopt>
+          <mount>/boot/efi</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <resize config:type="boolean">false</resize>
+          <size>134217728</size>
+        </partition>
+        <partition config:type="map">
+          <mountby config:type="symbol">uuid</mountby>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <mount>/</mount>
+        </partition>
+      </partitions>
+      <use>all</use>
+    </drive>
+  </partitioning>
+
   <services-manager>
     <default_target>multi-user</default_target>
     <services>
