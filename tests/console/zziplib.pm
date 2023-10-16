@@ -41,7 +41,7 @@ sub run {
     assert_script_run "cd /tmp";
 
     # install requirements
-    zypper_call "in libzzip-0-13 zziplib-devel zip";
+    zypper_call "-v in libzzip-0-13 zziplib-devel zip", timeout => 1000;
 
     # create a zip file
     assert_script_run "zip -9 $filezip -xi zip/*";
