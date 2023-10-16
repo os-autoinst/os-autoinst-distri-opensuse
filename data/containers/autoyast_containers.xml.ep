@@ -129,7 +129,6 @@
 
   <partitioning config:type="list">
     <drive>
-      <device>/dev/vda</device>
       <disklabel>gpt</disklabel>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
