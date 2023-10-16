@@ -12,7 +12,7 @@ terraform:
     region: '%PUBLIC_CLOUD_REGION%'
     deployment_name: '%QESAP_DEPLOYMENT_NAME%'
     admin_user: 'cloudadmin'
-    os_image: '%QESAP_CLUSTER_OS_VER%'
+    os_image: '%SLE_IMAGE%'
     private_key: '~/.ssh/id_rsa'
     public_key: '~/.ssh/id_rsa.pub'
     gcp_credentials_file: '/root/google_credentials.json'
