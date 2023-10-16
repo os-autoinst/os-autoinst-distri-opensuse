@@ -14,24 +14,39 @@ use testapi;
 use warnings;
 use serial_terminal 'select_serial_terminal';
 use LTP::WhiteList;
+use version_utils qw(is_transactional);
+use transactional 'trup_install';
+
+sub download_kernel_source
+{
+    my @kv = split /\./, script_output "uname -r";
+    my ($kv0, $kv1, $kv2) = ($kv[0], $kv[1], (split /-/, $kv[2])[0]);
+    my $url = "https://mirrors.kernel.org/pub/linux/kernel/v$kv0.x/linux-$kv0.$kv1";
+
+    $url .= $kv2 eq '0' ? ".tar.gz" : ".$kv2.tar.gz";
+
+    assert_script_run("mkdir /root/linux");
+    assert_script_run("curl " . $url . "| tar xz --strip-components=1 -C /root/linux", timeout => 600);
+}
 
 sub run
 {
     my ($self) = @_;
-    my $repo = get_var('LINUX_REPO', 'https://github.com/torvalds/linux');
-    my $branch = get_var('LINUX_BRANCH', 'master');
 
     select_serial_terminal;
 
-    # download linux source code
-    zypper_call("in -y git");
-    assert_script_run("git clone -q --single-branch -b $branch --depth 1 $repo");
+    # install build tools
+    zypper_call("ref");
+    is_transactional ? trup_install("gcc make") : zypper_call("in -t pattern devel_basis");
 
-    # install build tools and compile tests
+    # download linux source code
+    download_kernel_source;
+
+    # compile tests
     my $suite = get_required_var('KSELFTESTS_SUITE');
     my $root = "/root/linux/tools/testing/selftests";
 
-    zypper_call("in -t pattern devel_basis");
+    assert_script_run("make -C /root/linux headers", timeout => 1800);
     assert_script_run("make -C $root/$suite", timeout => 1800);
 
     # set tests to skip
