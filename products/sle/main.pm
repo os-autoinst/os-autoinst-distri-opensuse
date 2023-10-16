@@ -29,6 +29,7 @@ BEGIN {
 }
 use utils;
 use main_common;
+use main_ltp_loader 'load_kernel_tests';
 use main_pods;
 use known_bugs;
 use YuiRestClient;

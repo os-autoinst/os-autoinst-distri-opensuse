@@ -12,6 +12,7 @@ use warnings;
 use base 'Exporter';
 use Exporter;
 use main_common;
+use main_ltp_loader 'load_kernel_tests';
 use main_containers qw(load_container_tests is_container_test);
 use testapi qw(check_var get_required_var get_var set_var);
 use version_utils;
