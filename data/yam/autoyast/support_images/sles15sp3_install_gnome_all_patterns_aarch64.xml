@@ -104,7 +104,6 @@
       <pattern>base-32bit</pattern>
       <pattern>basesystem</pattern>
       <pattern>basic_desktop</pattern>
-      <pattern>common-criteria</pattern>
       <pattern>dhcp_dns_server</pattern>
       <pattern>directory_server</pattern>
       <pattern>documentation</pattern>
@@ -160,6 +159,14 @@
         <name>sle-module-server-applications</name>
         <release_type>nil</release_type>
         <version>15.3</version>
+      </addon>
+      <!-- workaround for bug 1216116 -->
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>SLES-LTSS</name>
+        <release_type>nil</release_type>
+        <version>15.3</version>
+        <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
       </addon>
     </addons>
     <do_registration t="boolean">true</do_registration>
