@@ -13,12 +13,16 @@ use strict;
 use testapi;
 use warnings;
 use serial_terminal 'select_serial_terminal';
+use version_utils qw(is_transactional);
+use transactional 'trup_install';
+use LTP::utils;
 
 our $result_file = 'result.json';
 
 sub run
 {
     my ($self) = @_;
+    my $install_from = get_var('KIRK_INSTALL', 'repo');
     my $repo = get_var('KIRK_REPO', 'https://github.com/acerv/kirk.git');
     my $branch = get_var('KIRK_BRANCH', 'master');
     my $timeout = get_var('KIRK_TIMEOUT', '5400');
@@ -30,11 +34,21 @@ sub run
     my $suite = get_var('KIRK_SUITE', '');
 
     select_serial_terminal;
+    zypper_call("ref");
 
-    zypper_call("in -y git");
-    assert_script_run("git clone -q --single-branch -b $branch --depth 1 $repo");
+    my $cmd = '';
+    if ($install_from =~ /git/i) {
+        is_transactional ? trup_install("git") : zypper_call("in -y git");
+        assert_script_run("git clone -q --single-branch -b $branch --depth 1 $repo");
 
-    my $cmd = 'python3 kirk/kirk ';
+        $cmd = "python3 kirk/kirk ";
+    } else {
+        add_ltp_repo();
+        is_transactional ? trup_install("kirk") : zypper_call("in -y kirk");
+
+        $cmd = 'kirk ';
+    }
+
     $cmd .= "--verbose ";
     $cmd .= "--suite-timeout $timeout ";
     $cmd .= "--json-report $result_file ";
