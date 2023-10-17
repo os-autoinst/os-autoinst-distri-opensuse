@@ -24,10 +24,6 @@ sub run {
 
     # Start without parameters, otherwise the reminder does not trigger. Add a space to avoid autocomplete.
     x11_start_program(' firefox', valid => 0);
-    # Unfortunately that would result in a 100s delay waiting for a still screen here as
-    # the default start page is animated, so skip handling the dialog. It's not expected here anyway.
-    # $self->firefox_check_default();
-    $self->firefox_check_popups();
 
     # Click on the reminder, it might take a while to appear
     assert_and_click('plasma-browser-integration-reminder');
