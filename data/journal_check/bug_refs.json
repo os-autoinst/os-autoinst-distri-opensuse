@@ -355,12 +355,13 @@
         "type": "ignore"
     },
     "no-config-drive": {
-        "description": "Timed out waiting for device (/dev/disk/by-label/ignition|/dev/combustion/config)",
+        "description": "Timed out waiting for device (/dev/disk/by-label/ignition|/dev/combustion/config)|dev-combustion-config.device: Job dev-combustion-config.device/start timed out.",
         "products": {
             "leap-micro": ["5.3"],
             "sle-micro": ["5.3", "5.4" , "5.5"],
             "microos":  ["Tumbleweed"],
-            "opensuse":  ["Tumbleweed"]
+            "opensuse":  ["Tumbleweed"],
+            "sle": ["15-SP6"]
         },
         "type": "ignore"
     },
