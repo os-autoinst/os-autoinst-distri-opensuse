@@ -40,7 +40,6 @@ sub run {
       naptime.bt
       oomkill.bt
       pidpersec.bt
-      runqlat.bt
       runqlen.bt
       setuids.bt
       ssllatency.bt
@@ -64,6 +63,7 @@ sub run {
       biostacks.bt
       mdflush.bt
       opensnoop.bt
+      runqlat.bt
       statsnoop.bt
       xfsdist.bt
       vfsstat.bt
