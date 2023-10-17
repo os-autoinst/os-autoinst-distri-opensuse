@@ -14,6 +14,7 @@ use utils qw(validate_script_output_retry);
 use containers::utils qw(reset_container_network_if_needed);
 use Utils::Architectures;
 use version_utils qw(is_public_cloud is_jeos);
+use utils qw(script_retry);
 
 sub run {
     my ($self, $args) = @_;
@@ -25,6 +26,7 @@ sub run {
     reset_container_network_if_needed($runtime);
 
     my $image = "registry.suse.com/bci/bci-base:latest";
+    script_retry("$runtime pull $image", timeout => 300, delay => 120, retry => 3);
 
     record_info('Test', 'Launch a container with privileged mode');
 
@@ -39,7 +41,7 @@ sub run {
     validate_script_output("$runtime run --rm --privileged $image cat /proc/1/status | grep CapBnd", sub { m/$capbnd/ });
 
     # Podman inside the container
-    assert_script_run("$runtime run -it --privileged --name outer-container $image /bin/bash");
+    assert_script_run("$runtime run -d --privileged --name outer-container $image sleep 100000");
     assert_script_run("$runtime exec outer-container zypper in -y podman");
     assert_script_run("$runtime exec outer-container podman run -it $image ls");
 }
