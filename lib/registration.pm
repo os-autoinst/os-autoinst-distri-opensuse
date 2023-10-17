@@ -135,9 +135,11 @@ sub accept_addons_license {
     # license (see bsc#1089163) and so are not be shown twice
     push @addons_with_license, @SLE15_ADDONS_WITHOUT_LICENSE unless (is_sle('15+') || is_sle_micro);
     # HA and WE have licenses when calling yast2 scc
-    push @addons_with_license, @SLE15_ADDONS_WITH_LICENSE_NOINSTALL if (is_sle('15+') and is_sle('<=15-sp4') and get_var('IN_PATCH_SLE'));
+    push @addons_with_license, @SLE15_ADDONS_WITH_LICENSE_NOINSTALL if (is_sle('15+') and get_var('IN_PATCH_SLE'));
     # HA does not show EULA when doing migration to 12-SP5
     @addons_with_license = grep { $_ ne 'ha' } @addons_with_license if (is_sle('12-sp5+') && get_var('UPGRADE') && !get_var('IN_PATCH_SLE'));
+    # HA does not show EULA when doing migration from 15-SP5 to 15-SP6
+    @addons_with_license = grep { $_ ne 'ha' } @addons_with_license if (is_sle('15-sp5+') && get_var('UPGRADE'));
 
     for my $addon (@scc_addons) {
         # most modules don't have license, skip them
