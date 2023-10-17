@@ -14,6 +14,7 @@ vars:
 schedule:
   - boot/boot_to_desktop
   - sles4sap/publiccloud/qesap_terraform
+  - sles4sap/publiccloud/clean_leftover_peerings
   - sles4sap/publiccloud/network_peering
   - sles4sap/publiccloud/add_server_to_hosts
   - sles4sap/publiccloud/check_ibsm_embargoed
