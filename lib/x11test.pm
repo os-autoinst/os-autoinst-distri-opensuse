@@ -626,7 +626,7 @@ sub restart_firefox {
     wait_still_screen 2;
     $self->exit_firefox_common;
     assert_script_run('time wait $(pidof firefox)');
-    enter_cmd "$cmd";
+    enter_cmd "$cmd" if defined $cmd;
     enter_cmd "firefox $url >>firefox.log 2>&1 &";
     $self->firefox_check_default;
     assert_screen 'firefox-url-loaded';
