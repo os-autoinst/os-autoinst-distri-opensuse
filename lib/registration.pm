@@ -589,6 +589,7 @@ sub process_scc_register_addons {
         }
     }
     else {
+        wait_still_screen(2, 4);
         send_key $cmd{next};
         if (check_var('HDDVERSION', '12')) {
             assert_screen 'yast-scc-emptypkg';
