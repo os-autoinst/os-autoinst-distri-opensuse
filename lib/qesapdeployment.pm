@@ -382,7 +382,7 @@ sub qesap_yaml_replace {
     https://github.com/SUSE/qe-sap-deployment
     Test only returns execution result, failure has to be handled by calling method.
 
-=over 4
+=over 5
 
 =item B<CMD> - qesap.py subcommand to run
 
@@ -391,6 +391,10 @@ sub qesap_yaml_replace {
 =item B<VERBOSE> - activate verbosity in qesap.py
 
 =item B<TIMEOUT> - max expected execution time
+
+=item B<LOGNAME> - filename of the log file. This argument is optional,
+                   if not specified the log filename is internally calculated
+                   using content from CMD and CMD_OPTIONS.
 =back
 =cut
 
@@ -401,10 +405,16 @@ sub qesap_execute {
     $args{cmd_options} ||= '';
 
     my %paths = qesap_get_file_paths();
-    my $exec_log = "/tmp/qesap_exec_$args{cmd}";
-    $exec_log .= "_$args{cmd_options}" if ($args{cmd_options});
-    $exec_log .= '.log.txt';
-    $exec_log =~ s/[-\s]+/_/g;
+    my $exec_log = '/tmp/';
+    if ($args{logname})
+    {
+        $exec_log .= $args{logname};
+    } else {
+        $exec_log .= "qesap_exec_$args{cmd}";
+        $exec_log .= "_$args{cmd_options}" if ($args{cmd_options});
+        $exec_log .= '.log.txt';
+        $exec_log =~ s/[-\s]+/_/g;
+    }
 
     my $qesap_cmd = join(' ', QESAPDEPLOY_PY, $paths{deployment_dir} . '/scripts/qesap/qesap.py',
         $verbose,
@@ -442,7 +452,8 @@ sub qesap_execute {
 sub qesap_file_find_string {
     my (%args) = @_;
     foreach (qw(file search_string)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
-    return script_run("grep \"$args{search_string}\" $args{file}");
+    my $ret = script_run("grep \"$args{search_string}\" $args{file}");
+    return $ret == 0 ? 1 : 0;
 }
 
 =head3 qesap_get_inventory
@@ -681,6 +692,8 @@ sub qesap_ansible_cmd {
 
 =item B<FAILOK> - if not set, Ansible failure result in die
 
+=item B<VERBOSE> - 1 result in ansible-playbook to be called with '-vvvv', default is 0.
+
 =item B<TIMEOUT> - max expected execution time, default 180sec.
     Same timeout is used both for the execution of script_output.yaml and for the fetch_file.
     Timeout of the same amount is started two times.
@@ -697,6 +710,8 @@ sub qesap_ansible_script_output_file {
     $args{root} ||= 0;
     $args{failok} //= 0;
     $args{timeout} //= bmwqemu::scale_timeout(180);
+    $args{verbose} //= 0;
+    my $verbose = $args{verbose} ? '-vvvv' : '';
     my $remote_path = $args{remote_path} // '/tmp/';
     my $out_path = $args{out_path} // '/tmp/ansible_script_output/';
     my $file = $args{file} // 'testout.txt';
@@ -705,7 +720,7 @@ sub qesap_ansible_script_output_file {
     my $playbook = 'script_output.yaml';
     qesap_ansible_get_playbook(playbook => $playbook);
 
-    my @ansible_cmd = ('ansible-playbook', '-vvvv', $playbook);
+    my @ansible_cmd = ('ansible-playbook', $verbose, $playbook);
     push @ansible_cmd, ('-l', $args{host}, '-i', $inventory, '-u', $args{user});
     push @ansible_cmd, ('-b', '--become-user', 'root') if ($args{root});
     push @ansible_cmd, ('-e', qq("cmd='$args{cmd}'"),
@@ -780,6 +795,7 @@ sub qesap_ansible_script_output {
     # Print output and delete output file
     my $output = script_output("cat $local_tmp");
     enter_cmd "rm $local_tmp || echo 'Nothing to delete'";
+    record_info("Ansible cmd:$args{cmd}", $output);
     return $output;
 }
 
@@ -1225,7 +1241,7 @@ sub qesap_az_vnet_peering_delete {
         $source_ret = script_run($source_cmd, timeout => $args{timeout});
     }
     else {
-        record_info('NO PEERING', "No peering between job VMs and IBSM - maybe it wasn't created, or the resources have been destroyed.");
+        record_info('NO PEERING', "Function called without source_group argument.");
     }
     record_info('Destroying IBSM -> job_resources peering');
     my $target_cmd = "$peering_cmd --resource-group $args{target_group} --vnet-name $target_vnet";

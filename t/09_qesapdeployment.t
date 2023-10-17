@@ -378,10 +378,10 @@ subtest '[qesap_file_find_string] success' => sub {
     # internally the function is using grep to search for a specific
     # error string. Here the result of the grep.
     my $log = 'ERROR    OUTPUT:              "msg": "Timed out waiting for last boot time check (timeout=600)",';
-    # Create a mock to replace the script_output
+    # Create a mock to replace the script_run
     # The mock will return, within the function under test,
-    # the result of the grep.
-    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 1; });
+    # the result of the grep. grep return 0 in case of string match
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
 
     my $res = qesap_file_find_string(file => 'JACQUES', search_string => 'Timed out waiting for last boot time check');
 
@@ -398,7 +398,8 @@ subtest '[qesap_file_find_string] fail' => sub {
     # The mock will return, within the function under test,
     # the result of the grep.
     # Here simulate that the grep does not return any match
-    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    # grep return 1 in case of string NOT matching
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 1; });
 
     my $res = qesap_file_find_string(file => 'JACQUES', search_string => 'Timed out waiting for last boot time check');
 
