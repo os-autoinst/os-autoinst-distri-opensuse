@@ -1,0 +1,381 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State">
+	<settings pass="windowsPE">
+        <component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+            <SetupUILanguage>
+                <UILanguage>en-US</UILanguage>
+            </SetupUILanguage>
+            <InputLocale>0409:00000409</InputLocale>
+            <SystemLocale>en-US</SystemLocale>
+            <UILanguage>en-US</UILanguage>
+            <UILanguageFallback>en-US</UILanguageFallback>
+            <UserLocale>en-US</UserLocale>
+        </component>
+		<component name="Microsoft-Windows-PnpCustomizationsWinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+            <DriverPaths>
+                <PathAndCredentials wcm:action="add" wcm:keyValue="1">
+                    <Path>E:\</Path>
+                </PathAndCredentials>
+            </DriverPaths>
+        </component>
+		<component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+            <DiskConfiguration>
+                <Disk wcm:action="add">
+                    <CreatePartitions>
+                        <CreatePartition wcm:action="add">
+                            <Order>1</Order>
+                            <Type>Primary</Type>
+                            <Size>450</Size>
+                        </CreatePartition>
+                        <CreatePartition wcm:action="add">
+                            <Order>2</Order>
+                            <Type>EFI</Type>
+							<Size>100</Size>
+                        </CreatePartition>
+                        <CreatePartition wcm:action="add">
+                            <Order>3</Order>
+                            <Type>MSR</Type>
+							<Size>16</Size>
+                        </CreatePartition>
+                        <CreatePartition wcm:action="add">
+                            <Extend>true</Extend>
+                            <Order>4</Order>
+                            <Type>Primary</Type>
+                        </CreatePartition>
+                    </CreatePartitions>
+                    <ModifyPartitions>
+                        <ModifyPartition wcm:action="add">
+                            <Format>NTFS</Format>
+                            <Label>WinRE</Label>
+                            <Order>1</Order>
+                            <PartitionID>1</PartitionID>
+                            <TypeID>DE94BBA4-06D1-4D40-A16A-BFD50179D6AC</TypeID>
+                        </ModifyPartition>
+                        <ModifyPartition wcm:action="add">
+                            <Format>FAT32</Format>
+                            <Label>System</Label>
+                            <Order>2</Order>
+                            <PartitionID>2</PartitionID>
+                        </ModifyPartition>
+                        <ModifyPartition wcm:action="add">
+                            <Order>3</Order>
+                            <PartitionID>3</PartitionID>
+                        </ModifyPartition>
+						<ModifyPartition wcm:action="add">
+                            <Format>NTFS</Format>
+                            <Label>Windows</Label>
+                            <Letter>C</Letter>
+                            <Order>4</Order>
+                            <PartitionID>4</PartitionID>
+                        </ModifyPartition>
+                    </ModifyPartitions>
+                    <DiskID>0</DiskID>
+                    <WillWipeDisk>true</WillWipeDisk>
+                </Disk>
+            </DiskConfiguration>
+			<ImageInstall>
+				<OSImage>
+					<InstallTo>
+						<DiskID>0</DiskID>
+						<PartitionID>4</PartitionID>
+					</InstallTo>
+				</OSImage>
+			</ImageInstall>
+			<UserData>
+				<ProductKey>
+					<Key>VK7JG-NPHTM-C97JM-9MPGT-3V66T</Key>
+				</ProductKey>
+				<AcceptEula>true</AcceptEula>
+			</UserData>
+			<RunSynchronous>				
+				<RunSynchronousCommand wcm:action="add">
+					<Order>1</Order>
+					<Path>%windir%\System32\reg.exe add "HKLM\SYSTEM\Setup\LabConfig" /v BypassTPMCheck /t REG_DWORD /d 1 /f</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>2</Order>
+					<Path>%windir%\System32\reg.exe add "HKLM\SYSTEM\Setup\LabConfig" /v BypassSecureBootCheck /t REG_DWORD /d 1 /f</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>3</Order>
+					<Path>%windir%\System32\reg.exe add "HKLM\SYSTEM\Setup\LabConfig" /v BypassStorageCheck /t REG_DWORD /d 1 /f</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>4</Order>
+					<Path>%windir%\System32\reg.exe add "HKLM\SYSTEM\Setup\LabConfig" /v BypassRAMCheck /t REG_DWORD /d 1 /f</Path>
+				</RunSynchronousCommand>
+			</RunSynchronous>
+		</component>
+	</settings>
+	<settings pass="generalize"></settings>
+	<settings pass="specialize">
+		<component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+			<TimeZone>Central Europe Standard Time</TimeZone>
+		</component>
+		<component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+			<RunSynchronous>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>1</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'MicrosoftTeams' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>2</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Clipchamp.Clipchamp' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>3</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.BingWeather' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>4</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.MicrosoftOfficeHub' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>5</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.MicrosoftSolitaireCollection' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>6</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.MicrosoftStickyNotes' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>7</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.People' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>8</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.ScreenSketch' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>9</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.Windows.Photos' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>10</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.WindowsAlarms' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>11</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.WindowsCalculator' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>12</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.WindowsCamera' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>13</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.WindowsFeedbackHub' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>14</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.WindowsMaps' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>15</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.XboxGameOverlay' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>16</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.XboxIdentityProvider' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>17</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.XboxSpeechToTextOverlay' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>18</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.YourPhone' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>19</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.BingNews' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>20</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.Paint' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>21</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.PowerAutomateDesktop' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>22</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.Todos' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>23</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.WindowsNotepad' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>24</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.WindowsTerminal' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>25</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'MicrosoftCorporationII.QuickAssist' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>26</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.Microsoft3DViewer' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>27</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.MSPaint' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>28</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.Office.OneNote' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>29</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.Wallet' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>30</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.XboxApp' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>31</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.Getstarted' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>32</Order>
+					<Path>powershell.exe -NoProfile -Command "Get-AppxProvisionedPackage -Online | where 'DisplayName' -EQ 'Microsoft.GetHelp' | Remove-AppxProvisionedPackage -Online *&gt;&amp;1 &gt;&gt; $env:TEMP\package.log;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>33</Order>
+					<Path>%windir%\System32\cmd.exe /c echo HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Sense &gt;&gt; C:\Windows\Temp\regini.txt</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>34</Order>
+					<Path>%windir%\System32\cmd.exe /c echo     "Start" = REG_DWORD 4 &gt;&gt; C:\Windows\Temp\regini.txt</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>35</Order>
+					<Path>%windir%\System32\cmd.exe /c echo HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdBoot &gt;&gt; C:\Windows\Temp\regini.txt</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>36</Order>
+					<Path>%windir%\System32\cmd.exe /c echo     "Start" = REG_DWORD 4 &gt;&gt; C:\Windows\Temp\regini.txt</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>37</Order>
+					<Path>%windir%\System32\cmd.exe /c echo HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdFilter &gt;&gt; C:\Windows\Temp\regini.txt</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>38</Order>
+					<Path>%windir%\System32\cmd.exe /c echo     "Start" = REG_DWORD 4 &gt;&gt; C:\Windows\Temp\regini.txt</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>39</Order>
+					<Path>%windir%\System32\cmd.exe /c echo HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdNisDrv &gt;&gt; C:\Windows\Temp\regini.txt</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>40</Order>
+					<Path>%windir%\System32\cmd.exe /c echo     "Start" = REG_DWORD 4 &gt;&gt; C:\Windows\Temp\regini.txt</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>41</Order>
+					<Path>%windir%\System32\cmd.exe /c echo HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdNisSvc &gt;&gt; C:\Windows\Temp\regini.txt</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>42</Order>
+					<Path>%windir%\System32\cmd.exe /c echo     "Start" = REG_DWORD 4 &gt;&gt; C:\Windows\Temp\regini.txt</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>43</Order>
+					<Path>%windir%\System32\cmd.exe /c echo HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WinDefend &gt;&gt; C:\Windows\Temp\regini.txt</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>44</Order>
+					<Path>%windir%\System32\cmd.exe /c echo     "Start" = REG_DWORD 4 &gt;&gt; C:\Windows\Temp\regini.txt</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>45</Order>
+					<Path>%windir%\System32\regini.exe C:\Windows\Temp\regini.txt</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>46</Order>
+					<Path>%windir%\System32\reg.exe ADD HKLM\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>47</Order>
+					<Path>%windir%\System32\cmd.exe /c DEL %windir%\System32\OneDriveSetup.exe</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>48</Order>
+					<Path>%windir%\System32\cmd.exe /c DEL %windir%\SysWOW64\OneDriveSetup.exe</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>49</Order>
+					<Path>%windir%\System32\reg.exe LOAD HKU\mount C:\Users\Default\NTUSER.DAT</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>50</Order>
+					<Path>%windir%\System32\reg.exe DELETE HKU\mount\Software\Microsoft\Windows\CurrentVersion\Run /v OneDriveSetup /f</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>51</Order>
+					<Path>%windir%\System32\reg.exe UNLOAD HKU\mount</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>52</Order>
+					<Path>%windir%\System32\reg.exe ADD HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU /v AUOptions /t REG_DWORD /d 4 /f</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>53</Order>
+					<Path>%windir%\System32\reg.exe ADD HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU /v NoAutoRebootWithLoggedOnUsers /t REG_DWORD /d 1 /f</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>54</Order>
+					<Path>powershell.exe Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power' -Name HiberbootEnabled -Value 0</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>55</Order>
+					<Path>powershell.exe powercfg /hibernate off</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>56</Order>
+					<Path>powershell.exe powercfg -change -monitor-timeout-ac 0</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>57</Order>
+					<Path>powershell.exe Set-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Value 2</Path>
+				</RunSynchronousCommand>
+			</RunSynchronous>
+		</component>
+	</settings>
+	<settings pass="auditSystem"></settings>
+	<settings pass="auditUser"></settings>
+	<settings pass="oobeSystem">
+        <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+            <InputLocale>0409:00000409</InputLocale>
+            <SystemLocale>en-US</SystemLocale>
+            <UILanguage>en-US</UILanguage>
+            <UILanguageFallback>en-US</UILanguageFallback>
+            <UserLocale>en-US</UserLocale>
+        </component>
+		<component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+			<UserAccounts>
+				<LocalAccounts>
+					<LocalAccount wcm:action="add">
+						<Name>Bernhard M. Wiedeman</Name>
+						<Group>Administrators</Group>
+						<Password>
+							<Value>nots3cr3t</Value>
+							<PlainText>true</PlainText>
+						</Password>
+					</LocalAccount>
+				</LocalAccounts>
+			</UserAccounts>
+			<OOBE>
+                <HideEULAPage>true</HideEULAPage>
+                <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
+                <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+                <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+                <ProtectYourPC>1</ProtectYourPC>
+                <UnattendEnableRetailDemo>false</UnattendEnableRetailDemo>
+            </OOBE>
+		</component>
+	</settings>
+</unattend>

@@ -118,15 +118,45 @@ sub reboot_or_shutdown {
 }
 
 sub wait_boot_windows {
+
+    my ($self, $is_firstboot) = @_;
+
     # Reset the consoles: there is no user logged in anywhere
     reset_consoles;
-    assert_screen 'windows-screensaver', 600;
+    assert_screen 'windows-screensaver', 900;
     send_key_until_needlematch 'windows-login', 'esc';
     type_password;
     send_key 'ret';    # press shutdown button
-    assert_screen ['finish-setting', 'windows-desktop'], 240;
-    if (match_has_tag 'finish-setting') {
-        assert_and_click 'finish-setting';
+    if ($is_firstboot) {
+        record_info('Windows firstboot', 'Starting Windows for the first time');
+        wait_still_screen stilltime => 60, timeout => 300;
+        # When starting Windows for the first time, several screens or pop-ups may appear
+        # in a different order. We'll try to handle them until the desktop is shown
+        assert_screen(['windows-desktop', 'windows-edge-decline', 'networks-popup-be-discoverable', 'windows-start-menu', 'windows-qemu-drivers'], timeout => 120);
+        while (not match_has_tag('windows-desktop')) {
+            assert_and_click 'network-discover-yes' if (match_has_tag 'networks-popup-be-discoverable');
+            assert_and_click 'windows-edge-decline' if (match_has_tag 'windows-edge-decline');
+            assert_and_click 'windows-start-menu' if (match_has_tag 'windows-start-menu');
+            assert_and_click 'windows-qemu-drivers' if (match_has_tag 'windows-qemu-drivers');
+            wait_still_screen stilltime => 15, timeout => 60;
+            assert_screen(['windows-desktop', 'windows-edge-decline', 'networks-popup-be-discoverable', 'windows-start-menu', 'windows-qemu-drivers'], timeout => 120);
+        }
+        # Setup stable lock screen background
+        record_info('Config lockscreen', 'Setup stable lock screen background');
+        $self->use_search_feature('lock screen settings');
+        assert_screen 'windows-lock-screen-in-search';
+        wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
+        assert_and_click 'windows-lock-screen-in-search', dclick => 1;
+        assert_screen 'windows-lock-screen-settings';
+        assert_and_click 'windows-lock-screen-background';
+        assert_and_click 'windows-select-picture';
+        assert_and_click 'windows-close-lockscreen';
+    } else {
+        record_info("Win boot", "Windows started properly");
+        assert_screen ['finish-setting', 'windows-desktop'], 240;
+        if (match_has_tag 'finish-setting') {
+            assert_and_click 'finish-setting';
+        }
     }
 }
 
