@@ -9,11 +9,17 @@ use warnings;
 use base "consoletest";
 use testapi;
 use migration;
+use utils;
+use version_utils 'is_sle';
 
 sub run {
-    setup_sle;
-    # Need to set HDD as registered for offline cases
-    set_var('HDD_SCC_REGISTERED', 1) if get_var('KEEP_REGISTERED');
+    select_console 'root-console';
+    # https://bugzilla.suse.com/show_bug.cgi?id=1205290#c3
+    systemctl('restart systemd-vconsole-setup.service') if (is_sle('=12-SP5'));
+
+    # Stop packagekitd
+    quit_packagekit;
+    script_run("source /etc/bash.bashrc.local", die_on_timeout => 0);
 }
 
 1;
