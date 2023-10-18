@@ -14,7 +14,9 @@ schedule:
     - x11/toolkits/motif
     - x11/toolkits/gtk2
     - x11/toolkits/gtk3
+    - x11/toolkits/gtk4
     - x11/toolkits/qt5
+    - x11/toolkits/qt6
     - x11/toolkits/swing
     - console/coredump_collect
     - console/zypper_log_packages

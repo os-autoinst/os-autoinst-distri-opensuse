@@ -35,17 +35,14 @@ sub run {
     }
 
     my $qt5_devel = 'libQt5Core-devel libQt5Gui-devel libQt5Widgets-devel';
+    my $qt6_devel = 'qt6-core-devel qt6-gui-devel qt6-widgets-devel';
 
-    zypper_call "in gcc gcc-c++ tcl tk xmessage fltk-devel motif-devel gtk2-devel gtk3-devel java java-devel $qt5_devel";
+    zypper_call "in gcc gcc-c++ tcl tk xmessage fltk-devel motif-devel gtk2-devel gtk3-devel gtk4-devel java java-devel $qt5_devel $qt6_devel";
 
     if (is_opensuse) {
         # make sure to use latest java (that matches the java compiler that was just installed)
         assert_script_run 'update-alternatives --set java $(ls /usr/lib64/jvm/jre-*-openjdk/bin/java|sort|tail -1)';
     }
-
-    select_console 'user-console';
-    assert_script_run 'cd data';
-    assert_script_run 'tar xvf toolkits.tar.gz';
 
     select_console 'x11';
 }

@@ -1,0 +1,4 @@
+#!/usr/bin/wish
+
+label .hello -text "Hello World: Tcl/Tk"
+pack .hello
