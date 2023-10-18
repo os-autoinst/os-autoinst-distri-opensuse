@@ -17,7 +17,7 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 
 sub prepare_repositories {
     # add workstation extension
-    add_suseconnect_product(get_addon_fullname('we'), undef, undef, "-r " . get_var('SCC_REGCODE_WE'), 300, 1);
+    add_suseconnect_product(get_addon_fullname('we'), undef, undef, "--auto-agree-with-licenses -r " . get_var('SCC_REGCODE_WE'), 300, 1);
     # disable nvidia repository to avoid the 'doesn't contain public key data' error
     zypper_call(q{mr -d $(zypper lr | awk -F '|' '{IGNORECASE=1} /nvidia/ {print $2}')}, exitcode => [0, 3]);
 }
