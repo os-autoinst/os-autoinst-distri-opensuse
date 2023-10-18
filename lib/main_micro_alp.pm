@@ -101,7 +101,8 @@ sub load_installation_tests {
     } else {
         loadtest 'installation/installation_overview';
     }
-    loadtest 'installation/disable_grub_timeout';
+    loadtest 'installation/disable_grub_timeout' if is_bootloader_grub2;
+    loadtest 'installation/configure_sdboot' if is_bootloader_sdboot;
     loadtest 'installation/enable_selinux' if get_var('ENABLE_SELINUX');
     loadtest 'installation/start_install';
     loadtest 'installation/await_install';
