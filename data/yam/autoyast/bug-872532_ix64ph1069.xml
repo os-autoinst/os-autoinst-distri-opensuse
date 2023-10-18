@@ -672,6 +672,7 @@
       <package>libbtrfs0</package>
       <package>libdconf1</package>
       <package>libgirepository-1_0-1</package>
+      <package>openssh</package>
       <package>snapper</package>
       <package>snapper-zypp-plugin</package>
       <package>ucode-intel</package>
