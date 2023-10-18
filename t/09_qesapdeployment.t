@@ -372,6 +372,34 @@ subtest '[qesap_execute] check_logs' => sub {
     ok $res[1] =~ /\/.*.log.txt/, 'File pattern is okay';
 };
 
+subtest '[qesap_execute] logname' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my @logs = ();
+    my $expected_res = 0;
+    my $cmd = 'GILL';
+    my $expected_log_name = "GURLE.log.txt";
+    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
+    $qesap->redefine(qesap_venv_cmd_exec => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return $expected_res;
+    });
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{deployment_dir} = '/BRUCE';
+            $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
+            return (%paths);
+    });
+
+    my @res = qesap_execute(cmd => $cmd, logname => $expected_log_name);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /.*qesap.py.*-c.*-b.*$cmd\s+.*tee.*\/tmp\/$expected_log_name/ } @calls), 'log redirection to user specified filename');
+    ok $res[0] == $expected_res, 'The function return what is internally returned by the command call';
+};
+
 subtest '[qesap_file_find_string] success' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
