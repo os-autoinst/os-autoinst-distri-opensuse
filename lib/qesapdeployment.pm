@@ -454,7 +454,8 @@ sub qesap_execute {
 sub qesap_file_find_string {
     my (%args) = @_;
     foreach (qw(file search_string)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
-    return script_run("grep \"$args{search_string}\" $args{file}");
+    my $ret = script_run("grep \"$args{search_string}\" $args{file}");
+    return $ret == 0 ? 1 : 0;
 }
 
 =head3 qesap_get_inventory
