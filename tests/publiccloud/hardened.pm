@@ -28,11 +28,13 @@ sub run {
     my $xml_file = $xml_path =~ s/\//-/gr;
     assert_script_run("curl -o- https://ftp.suse.com/$xml_path.gz | gunzip -c > oscap/$xml_file", timeout => 300);
     my $ret = script_run("sudo oscap xccdf eval --report report.html --local-files oscap/ --profile pcs-hardening /usr/share/xml/scap/ssg/content/ssg-sle15-ds.xml", timeout => 300);
-    if ($ret == 137) {
-        record_soft_failure("gh#OpenSCAP/openscap#1796 - Killed because of OOM");
-    } else {
-        record_soft_failure("bsc#1216088 - Public Cloud Hardened image fail SCAP test") if ($ret != 0);
-        upload_logs("report.html");
+    if ($ret != 0) {
+        if (script_run("ls report.html") != 0) {
+            record_soft_failure("gh#OpenSCAP/openscap#1796 - Killed because of OOM");
+        } else {
+            record_soft_failure("bsc#1216088 - Public Cloud Hardened image fail SCAP test");
+            upload_logs("report.html");
+        }
     }
 }
 
