@@ -384,7 +384,7 @@ sub qesap_yaml_replace {
     https://github.com/SUSE/qe-sap-deployment
     Test only returns execution result, failure has to be handled by calling method.
 
-=over 4
+=over 5
 
 =item B<CMD> - qesap.py subcommand to run
 
@@ -393,6 +393,10 @@ sub qesap_yaml_replace {
 =item B<VERBOSE> - activate verbosity in qesap.py
 
 =item B<TIMEOUT> - max expected execution time
+
+=item B<LOGNAME> - filename of the log file. This argument is optional,
+                   if not specified the log filename is internally calculated
+                   using content from CMD and CMD_OPTIONS.
 =back
 =cut
 
@@ -403,10 +407,16 @@ sub qesap_execute {
     $args{cmd_options} ||= '';
 
     my %paths = qesap_get_file_paths();
-    my $exec_log = "/tmp/qesap_exec_$args{cmd}";
-    $exec_log .= "_$args{cmd_options}" if ($args{cmd_options});
-    $exec_log .= '.log.txt';
-    $exec_log =~ s/[-\s]+/_/g;
+    my $exec_log = '/tmp/';
+    if ($args{logname})
+    {
+        $exec_log .= $args{logname};
+    } else {
+        $exec_log .= "qesap_exec_$args{cmd}";
+        $exec_log .= "_$args{cmd_options}" if ($args{cmd_options});
+        $exec_log .= '.log.txt';
+        $exec_log =~ s/[-\s]+/_/g;
+    }
 
     my $qesap_cmd = join(' ', QESAPDEPLOY_PY, $paths{deployment_dir} . '/scripts/qesap/qesap.py',
         $verbose,

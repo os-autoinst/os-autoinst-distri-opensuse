@@ -26,7 +26,9 @@ sub run {
     {
         if (qesap_file_find_string(file => $ret[1], search_string => 'Missing sudo password')) {
             record_info('DETECTED ANSIBLE MISSING SUDO PASSWORD ERROR');
-            @ret = qesap_execute(cmd => 'ansible', cmd_options => '--profile', verbose => 1, timeout => 3600);
+            @ret = qesap_execute(cmd => 'ansible',
+                logname => 'qesap_ansible_retry.log.txt',
+                timeout => 3600);
             if ($ret[0])
             {
                 qesap_cluster_logs();
@@ -37,9 +39,15 @@ sub run {
         elsif (qesap_file_find_string(file => $ret[1], search_string => 'Timed out waiting for last boot time check')) {
             record_info('DETECTED ANSIBLE TIMEOUT ERROR');
             $self->clean_up();
-            @ret = qesap_execute(cmd => 'terraform', verbose => 1, timeout => 1800);
+            @ret = qesap_execute(cmd => 'terraform',
+                verbose => 1,
+                logname => 'qesap_terraform_retry.log.txt',
+                timeout => 1800);
             die "'qesap.py terraform' return: $ret[0]" if ($ret[0]);
-            @ret = qesap_execute(cmd => 'ansible', cmd_options => '--profile', verbose => 1, timeout => 3600);
+            @ret = qesap_execute(cmd => 'ansible',
+                verbose => 1,
+                logname => 'qesap_ansible_retry.log.txt',
+                timeout => 3600);
             if ($ret[0])
             {
                 qesap_cluster_logs();
