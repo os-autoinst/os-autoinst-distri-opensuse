@@ -3,10 +3,11 @@ description: >
     This is for SElinux test
 schedule:
     - '{{bootloader_zkvm}}'
-    - boot/boot_to_desktop
+    - '{{sle_os_boot}}'
+    - '{{alp_boot}}'
     - security/selinux/selinux_setup
     - security/selinux/sestatus
-    - '{{selinux_enforcing}}'
+    - '{{sle_os_tests}}'
     - security/selinux/semanage_fcontext
     - security/selinux/semanage_boolean
     - security/selinux/fixfiles
@@ -19,6 +20,7 @@ schedule:
     - security/selinux/chcat
     - security/selinux/set_get_enforce
     - security/selinux/selinuxexeccon
+    - '{{alp_shutdown}}'
 conditional_schedule:
     bootloader_zkvm:
         ARCH:
@@ -26,11 +28,30 @@ conditional_schedule:
                 - installation/bootloader_zkvm
             ppc64le:
                 - installation/bootloader
-    selinux_enforcing:
+    sle_os_boot:
         DISTRI:
+            sle:
+                - boot/boot_to_desktop
             opensuse:
-                - security/selinux/selinux_smoke
-                - security/selinux/enforcing_mode_setup
+                - boot/boot_to_desktop
+    alp_boot:
+        ENCRYPTED_IMAGE:
+            0:
+                - microos/disk_boot
+                - transactional/host_config
+            1:
+                - jeos/firstrun
+                - transactional/host_config
+    sle_os_tests:
+        DISTRI:
             sle:
                 - security/selinux/selinux_smoke
                 - security/selinux/enforcing_mode_setup
+            opensuse:
+                - security/selinux/selinux_smoke
+                - security/selinux/enforcing_mode_setup
+    alp_shutdown:
+        DISTRI:
+            alp:
+                - console/journal_check
+                - shutdown/shutdown
