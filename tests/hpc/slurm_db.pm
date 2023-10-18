@@ -36,8 +36,6 @@ sub run ($self) {
     #for all slurm versions we have mariadb as a dependency apart from slurm18
     #TODO: remove below line as soon as not needed
     zypper_call("in mariadb") if $slurm_pkg =~ "slurm_18";
-    #specific if for sle15-sp1 with base slurm only which should be removed in early 2024
-    zypper_call("in mariadb") if (is_sle("=15-sp1") && $slurm_pkg eq "slurm");
     systemctl("start $mariadb_service");
     systemctl("is-active $mariadb_service");
 
