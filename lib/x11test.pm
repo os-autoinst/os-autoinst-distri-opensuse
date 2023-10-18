@@ -616,7 +616,7 @@ sub start_firefox {
     # Using match_typed parameter on KDE as typing in desktop runner may fail
     x11_start_program('firefox https://html5test.opensuse.org', valid => 0, match_typed => ((check_var('DESKTOP', 'kde')) ? "firefox_url_typed" : ''));
     $self->firefox_check_default;
-    assert_screen 'firefox-html-test';
+    assert_screen 'firefox-html-test', 200;
 }
 
 sub restart_firefox {
