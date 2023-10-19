@@ -46,19 +46,20 @@ sub run {
 
     $variables{HANA_ACCOUNT} = get_required_var('QESAPDEPLOY_HANA_ACCOUNT');
     $variables{HANA_CONTAINER} = get_required_var('QESAPDEPLOY_HANA_CONTAINER');
-    if (get_var("QESAPDEPLOY_HANA_TOKEN")) {
+    if (get_var('QESAPDEPLOY_HANA_TOKEN')) {
         $variables{HANA_TOKEN} = get_required_var('QESAPDEPLOY_HANA_TOKEN');
         # escape needed by 'sed'
         # but not implemented in file_content_replace() yet poo#120690
         $variables{HANA_TOKEN} =~ s/\&/\\\&/g;
     }
-    $variables{HANA_SAR} = get_required_var("QESAPDEPLOY_SAPCAR");
-    $variables{HANA_CLIENT_SAR} = get_required_var("QESAPDEPLOY_IMDB_CLIENT");
-    $variables{HANA_SAPCAR} = get_required_var("QESAPDEPLOY_IMDB_SERVER");
-    $variables{ANSIBLE_REMOTE_PYTHON} = get_var("QESAPDEPLOY_ANSIBLE_REMOTE_PYTHON", "/usr/bin/python3");
+    $variables{HANA_SAR} = get_required_var('QESAPDEPLOY_SAPCAR');
+    $variables{HANA_CLIENT_SAR} = get_required_var('QESAPDEPLOY_IMDB_CLIENT');
+    $variables{HANA_SAPCAR} = get_required_var('QESAPDEPLOY_IMDB_SERVER');
+    $variables{ANSIBLE_REMOTE_PYTHON} = get_var('QESAPDEPLOY_ANSIBLE_REMOTE_PYTHON', '/usr/bin/python3');
+    $variables{FENCING} = get_var('QESAPDEPLOY_FENCING', '');
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'GCE')) {
-        $variables{HANA_DATA_DISK_TYPE} = get_var("QESAPDEPLOY_HANA_DISK_TYPE", "pd-ssd");
-        $variables{HANA_LOG_DISK_TYPE} = get_var("QESAPDEPLOY_HANA_DISK_TYPE", "pd-ssd");
+        $variables{HANA_DATA_DISK_TYPE} = get_var('QESAPDEPLOY_HANA_DISK_TYPE', 'pd-ssd');
+        $variables{HANA_LOG_DISK_TYPE} = get_var('QESAPDEPLOY_HANA_DISK_TYPE', 'pd-ssd');
     }
 
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
