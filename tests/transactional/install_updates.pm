@@ -35,7 +35,7 @@ sub run {
     select_serial_terminal;
 
     if (is_sle_micro) {
-        assert_script_run 'curl -k https://ca.suse.de/certificates/ca/SUSE_Trust_Root.crt -o /etc/pki/trust/anchors/SUSE_Trust_Root.crt';
+        script_retry('curl -k https://ca.suse.de/certificates/ca/SUSE_Trust_Root.crt -o /etc/pki/trust/anchors/SUSE_Trust_Root.crt', timeout => 100, delay => 30, retry => 5);
         script_retry('pgrep update-ca-certificates', retry => 5, delay => 2, die => 0);
         assert_script_run 'update-ca-certificates -v';
 
