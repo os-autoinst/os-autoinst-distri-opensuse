@@ -50,6 +50,15 @@
         <arch>{{ARCH}}</arch>
       </addon>
       % }
+      % if ($is_ltss) {
+      <addon config:type="map">
+        <arch>{{ARCH}}</arch>
+        <name>SLE_HPC-LTSS</name>
+        <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
+        <release_type>nil</release_type>
+        <version>{{VERSION}}</version>
+      </addon>
+      % }
     </addons>
   </suse_register>
   <bootloader>
