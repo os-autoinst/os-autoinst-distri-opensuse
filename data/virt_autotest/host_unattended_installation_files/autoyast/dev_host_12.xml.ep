@@ -53,6 +53,12 @@
     <ask-list config:type="list"/>
     <mode>
       <confirm config:type="boolean">false</confirm>
+      <!-- Introduce WITHOUT_AUTOYAST_SECOND_STAGE to disable second stage to avoid configuration error of uninitialized interface -->
+      % if ($check_var->('WITHOUT_AUTOYAST_SECOND_STAGE', '1')) {
+      <second_stage config:type="boolean">false</second_stage>
+      % } else {
+      <second_stage config:type="boolean">true</second_stage>
+      % }
     </mode>
     <proposals config:type="list"/>
     <signature-handling>
@@ -91,6 +97,7 @@
   <networking>
     <keep_install_network config:type="boolean">true</keep_install_network>
     <managed config:type="boolean">false</managed>
+    <virt_bridge_proposal config:type="boolean">true</virt_bridge_proposal>
     <interfaces config:type="list">
       <interface>
         <device>br0</device>
