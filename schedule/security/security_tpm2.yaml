@@ -15,3 +15,10 @@ schedule:
     - security/tpm2/tpm2_tools/tpm2_tools_encrypt
     - security/tpm2/tpm2_tools/tpm2_tools_sign_verify
     - security/tpm2/tpm2_tools/tpm2_tools_auth
+    - security/tpm2/tpm2_measured_boot
+    - '{{keylime}}'
+conditional_schedule:
+    keylime:
+        DISTRI:
+            sle:
+                - security/tpm2/keylime/keylime
