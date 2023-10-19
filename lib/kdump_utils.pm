@@ -425,17 +425,28 @@ sub check_function {
     assert_script_run 'find /var/crash/';
 
     if ($args{test_type} eq 'function') {
-        # Check, that vmcore exists, otherwise fail
-        assert_script_run('ls -lah /var/crash/*/vmcore', 240);
-        if (is_transactional) {
-            # there is no crash utility; check at least that the core dump is not empty
-            assert_script_run('files=(/var/crash/*/vmcore) && test -s "${files[-1]}"', 240);
+        # check that core dump exists and that it is not empty
+        assert_script_run('files=(/var/crash/*/vmcore) && test -s "${files[-1]}"', 240);
+
+        # check the core dump via the crash utility if possible
+        my $crash_cmd;
+        my $vmcore_glob = '/var/crash/*/vmcore';
+        my $vmlinux_glob = (is_sle("<16") || is_sle_micro || is_leap("<16.0"))
+          ? '/boot/vmlinux-$(uname -r)*'
+          : '/usr/lib/modules/$(uname -r)/vmlinux*';
+        if (!is_transactional) {
+            $crash_cmd = "echo exit | crash `ls -1t $vmcore_glob | head -n1` $vmlinux_glob";
         }
-        else {
-            my $vmlinux = (is_sle("<16") || is_leap("<16.0")) ? '/boot/vmlinux-$(uname -r)*' : '/usr/lib/modules/$(uname -r)/vmlinux*';
-            my $crash_cmd = "echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` $vmlinux";
-            validate_script_output "$crash_cmd", sub { m/PANIC:\s([^\s]+)/ }, is_aarch64 ? 1200 : 800;
+        elsif (!get_var('SKIP_KERNEL_DEBUGINFO')) {
+            my $vmcore = script_output("ls -1t $vmcore_glob");
+            my $vmlinux = script_output("ls -1t $vmlinux_glob");
+            my $vmlinuxd = script_output('rpm -ql kernel-default-debuginfo | grep vmlinux');
+            my $zypper_call = 'zypper -n in crash';
+            my $crash_call = "echo exit | crash /host/$vmcore /host/$vmlinux /host/$vmlinuxd";
+            my $bash_cmd = "$zypper_call && $crash_call";
+            $crash_cmd = "podman container run --privileged -v '/:/host' registry.opensuse.org/opensuse/tumbleweed bash -c '$bash_cmd'";
         }
+        validate_script_output $crash_cmd, sub { m/PANIC:\s([^\s]+)/ }, is_aarch64 ? 1200 : 800 if $crash_cmd;
     }
     else {
         # migration tests need remove core files before migration start
