@@ -14,6 +14,7 @@ use testapi;
 use utils;
 use Utils::Architectures;
 use lockapi;
+use network_utils 'iface';
 
 sub run {
     my ($self) = @_;
@@ -27,7 +28,7 @@ sub run {
 
     # We don't run setup_multimachine in s390x, but we need to know the server and client's
     # ip address, so we add a known ip to NETDEV
-    my $netdev = get_var('NETDEV', 'eth0');
+    my $netdev = iface;
     assert_script_run("ip addr add $client_ip/24 dev $netdev") if (is_s390x);
     systemctl("stop firewalld");
 
