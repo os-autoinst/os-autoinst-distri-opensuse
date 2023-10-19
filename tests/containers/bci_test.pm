@@ -36,15 +36,16 @@ sub run_tox_cmd {
     $cmd .= " -k \"$bci_marker\"" if $bci_marker;
     $cmd .= " --reruns $bci_reruns --reruns-delay $bci_reruns_delay";
     $cmd .= "| tee $tox_out";
-    record_info("tox", "Running command: $cmd");
+    my $env_info = (split(/[ _:-]/, $env))[0];    # first word on many separators,to shorten long $env
+    record_info("tox " . $env_info, "Running command: $cmd");
     script_run("set -o pipefail");    # required because we don't want to rely on consoletest_setup for BCI tests.
     my $ret = script_run("timeout $bci_timeout $cmd", timeout => ($bci_timeout + 3));
     if ($ret == 124) {
         # man timeout: If  the command times out, and --preserve-status is not set, then exit with status 124.
-        record_info('Softfail', "The command <tox -e $env> timed out.", result => 'softfail');
+        record_info('TIMEOUT', "The command <tox -e $env> timed out.", result => 'fail');
         $error_count += 1;
     } elsif ($ret != 0) {
-        record_info('Softfail', "The command <tox -e $env> failed.", result => 'softfail');
+        record_info('FAILED', "The command <tox -e $env> failed.", result => 'fail');
         $error_count += 1;
     } else {
         record_info('PASSED');
