@@ -22,7 +22,7 @@ sub run {
     # xmessage returns 1 if not closed via okay button
     assert_script_run '$(test $? == 1 ; exit $?)';
 
-    enter_cmd "exit";
+    enter_cmd 'exit';
 }
 
 1;

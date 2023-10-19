@@ -22,7 +22,7 @@ sub run {
     wait_screen_change { send_key 'alt-f4' };
     assert_script_run '$(exit $?)';
 
-    enter_cmd "exit";
+    enter_cmd 'exit';
 }
 
 1;
