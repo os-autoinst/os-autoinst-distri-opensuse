@@ -126,7 +126,7 @@ sub run {
         }
 
         # Wait to get VG active on all nodes
-        sleep 5;
+        wait_until_resources_started;
     }
     else {
         diag 'Wait until LVM resource is created...';
