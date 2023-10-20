@@ -27,8 +27,4 @@ sub run {
     die "mouse cursor still visible";
 }
 
-sub test_flags {
-    return {milestone => 1};
-}
-
 1;
