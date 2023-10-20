@@ -295,7 +295,7 @@ sub check_containers_connectivity {
     record_info "connectivity", "Checking that containers can connect to the host, to each other and outside of the host";
     my $container_name = 'sut_container';
 
-    if (script_run('ping -6 -c 2 google.com') != 0) {
+    if (script_run('ping -6 -c 2 google.com') != 0 && is_sle_micro) {
         record_info('Disable ipv6', 'https://sd.suse.com/servicedesk/customer/portal/1/SD-135489', result => 'softfail');
         assert_script_run 'sysctl -w net.ipv6.conf.all.disable_ipv6=1';
     }
