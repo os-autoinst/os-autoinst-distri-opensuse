@@ -18,7 +18,7 @@ sub run {
     assert_screen 'test-xfce_lightdm_logout_login-1';
     type_password;
     send_key "ret";
-    assert_screen 'generic-desktop';
+    assert_screen 'generic-desktop', 100;
     mouse_set(100, 100);
     for (1 .. 4) {
         mouse_hide;
