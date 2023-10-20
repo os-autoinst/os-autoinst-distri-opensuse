@@ -74,6 +74,7 @@ sub run ($self) {
     push @load_modules, 'python3-scipy' if check_var('HPC_LIB', 'scipy');
     push @load_modules, 'papi' if check_var('HPC_LIB', 'papi');
     push @load_modules, 'openblas' if check_var('HPC_LIB', 'openblas');
+    push @load_modules, 'hdf5' if check_var('HPC_LIB', 'hdf5');
     assert_script_run "module load gnu @load_modules";
     script_run "module av";
 
@@ -87,6 +88,10 @@ sub run ($self) {
         my $version = script_output("module whatis openblas | grep Version");
         $version = (split(/: /, $version))[2];
         assert_script_run("$mpi_compiler -o $exports_path{'bin'}/$mpi_bin $exports_path{'bin'}/$mpi_c -Iexports_path{'hpc'}/gnu7/openblas/$version/include -Iexports_path{'hpc'}/gnu7/openblas/$version/lib64 -lopenblas");
+    } elsif (get_var('HPC_LIB') eq 'hdf5') {
+        my $version = script_output("module whatis hdf5 | grep Version");
+        $version = (split(/: /, $version))[2];
+        assert_script_run("$mpi_compiler -o $exports_path{'bin'}/$mpi_bin $exports_path{'bin'}/$mpi_c -Iexports_path{'hpc'}/gnu7/hdf5/$version/include -Iexports_path{'hpc'}/gnu7/hdf5/$version/lib64 -lhdf5");
     } else {
         assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin") if $mpi_compiler;
     }
@@ -108,6 +113,10 @@ sub run ($self) {
             }
         } else {
             assert_script_run($mpirun_s->single_node("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
+	    if (get_var('HPC_LIB') eq 'hdf5') {
+		assert_script_run "test -s /home/bernhard/rootatt.h5";
+		script_run "rm /home/bernhard/rootatt.h5";
+	    }
         }
     }
 
@@ -139,6 +148,11 @@ sub run ($self) {
             # module is not getting loaded for the c test execution
             unless (get_var('HPC_LIB') eq 'papi') {
                 assert_script_run($mpirun_s->all_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
+		if (get_var('HPC_LIB') eq 'hdf5') {
+		    #sleep;
+		    assert_script_run "test -s /home/bernhard/rootatt.h5";
+		    script_run "rm  /home/bernhard/rootatt.h5";
+	    }
             }
         }
     }

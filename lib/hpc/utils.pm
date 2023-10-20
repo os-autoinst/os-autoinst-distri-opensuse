@@ -1,4 +1,4 @@
-# SUSE's openQA tests
+# SUScE's openQA tests
 #
 # Copyright 2020-2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
@@ -71,6 +71,7 @@ sub get_mpi_src {
     return ('', 'sample_scipy.py') if ($libvar eq 'scipy');
     return ('mpicc', 'papi_hw_info.c') if (get_var('HPC_LIB') eq 'papi');
     return ('mpicc', 'test_cblas_dgemm.c') if (get_var('HPC_LIB') eq 'openblas');
+    return ('mpicc', 'rootatt.c') if (get_var('HPC_LIB') eq 'hdf5');
 }
 
 =head2 relogin_root
@@ -131,6 +132,11 @@ sub setup_scientific_module {
     }
     if ($lib eq 'openblas') {
         zypper_call("in libopenblas-gnu-hpc libopenblas-gnu-hpc-devel");
+        $self->relogin_root;
+        assert_script_run("module load gnu $mpi $lib");
+    }
+    if ($lib eq 'hdf5') {
+        zypper_call("in hdf5-gnu-hpc hdf5-gnu-hpc-devel");
         $self->relogin_root;
         assert_script_run("module load gnu $mpi $lib");
     }
