@@ -54,13 +54,11 @@ sub run {
 
     validate_script_output "aa-complain -d $aa_tmp_prof usr.sbin.nscd", sub { m/Setting.*complain/ };
 
-    # For tumbleweed, unload /usr/sbin/nscd profile in case, clean up the audit.log
-    if (is_tumbleweed) {
-        script_run "echo '/usr/sbin/nscd {}' | apparmor_parser -R";
-    }
     assert_script_run "echo > $log_file";
 
     systemctl('start nscd');
+
+    assert_script_run "aa-status | tee /dev/$serialdev";
 
     # Upload audit.log for reference
     upload_logs "$log_file";

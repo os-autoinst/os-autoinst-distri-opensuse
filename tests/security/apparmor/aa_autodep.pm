@@ -69,6 +69,12 @@ sub run {
 
     assert_script_run "aa-disable -d $aa_tmp_prof usr.sbin.nscd";
     $self->aa_tmp_prof_clean("$aa_tmp_prof");
+
+    assert_script_run "aa-status | tee /dev/$serialdev";
+
+    # delete cache file of aa-autodep generated profile, so that the next reload creates a fresh cache of /etc/apparmor.d/usr.sbin.nscd
+    # (wouldn't happen without deleting the cache file because the cache timestamp is newer than the profile (+ used abstractions) timestamp)
+    assert_script_run "rm -v /var/cache/apparmor/*/usr.sbin.nscd";
 }
 
 1;
