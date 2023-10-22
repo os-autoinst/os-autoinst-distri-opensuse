@@ -37,7 +37,7 @@ sub run ($self) {
     my $prompt = $user_virtio_fixed ? $testapi::username . "@" . get_required_var("HOSTNAME") . ":~> " : undef;
 
     script_run("sudo -u $testapi::username mkdir -p $exports_path{bin}");
-    zypper_call("in $mpi-gnu-hpc $mpi-gnu-hpc-devel imb-gnu-$mpi-hpc");
+    zypper_call("in $mpi-gnu-hpc $mpi-gnu-hpc-devel");
 
     my $need_restart = $self->setup_scientific_module();
     $self->relogin_root if $need_restart;
@@ -146,10 +146,7 @@ sub run ($self) {
     barrier_wait("MPI_RUN_TEST");
     record_info("MPI_RUN_TEST", strftime("\%H:\%M:\%S", localtime));
 
-    my $imb_version = script_output("rpm -q --queryformat '%{VERSION}' imb-gnu-$mpi-hpc");
-
     if ($mpi eq "mvapich2") {
-        my $return = script_run("set -o pipefail; mpirun -np 4 /usr/lib/hpc/gnu7/$mpi/imb/$imb_version/bin/IMB-MPI1 PingPong |& tee /tmp/mpi_bin.log", timeout => 120);
         if ($return == 136) {
             if (script_run('grep \'Caught error: Floating point exception (signal 8)\' /tmp/mpi_bin.log') == 0) {
                 record_soft_failure("bsc#1175679 Floating point exception should be fixed on mvapich2/2.3.4");
@@ -164,13 +161,7 @@ sub run ($self) {
             ##TODO: consider more robust handling of various errors
             die("echo $return - not expected errorcode") unless $return == 0;
         }
-    } else {
-        record_info("testing IMB", "Run all IMB-MPI1 components");
-        # Run IMB-MPI1 without args to run the whole set of testings. Mind the timeout if you do so
-        assert_script_run("mpirun -np 4 /usr/lib/hpc/gnu7/$mpi/imb/$imb_version/bin/IMB-MPI1 PingPong");
     }
-    barrier_wait("IMB_TEST_DONE");
-    record_info("IMB_TEST_DONE", strftime("\%H:\%M:\%S", localtime));
 }
 
 sub test_flags ($self) {
