@@ -226,4 +226,78 @@ subtest '[qesap_az_get_tenant_id]' => sub {
     is qesap_az_get_tenant_id($valid_uuid), 'c0ffeeee-c0ff-eeee-1234-123456abcdef', 'Returned value is a valid UUID';
 };
 
+subtest '[qesap_az_get_active_peerings] die for missing mandatory arguments' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+
+    # Test missing arguments
+    dies_ok { qesap_az_get_active_peerings(); } "Expected die if called without arguments";
+    dies_ok { qesap_az_get_active_peerings(vnet => 'SEAWEED'); } "Expected die if called without rg";
+    dies_ok { qesap_az_get_active_peerings(rg => 'CORAL'); } "Expected die if called without vnet";
+};
+
+subtest '[qesap_az_get_active_peerings] test correct ID extraction' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my %results;
+
+    $qesap->redefine(script_output => sub {
+            if ($_[0] =~ /myresourcegroup/ && $_[0] =~ /myvnetname/) {
+                return "vnet123456-vnet-other\nvnet789012-vnet-other\nvnet-nojobid-vnet-other";
+            }
+    });
+    # Test correct id extraction
+    %results = qesap_az_get_active_peerings(rg => 'myresourcegroup', vnet => 'myvnetname');
+    my %expected_results = (
+        "vnet123456-vnet-other" => 123456,
+        "vnet789012-vnet-other" => 789012
+    );
+
+    foreach my $key (keys %expected_results) {
+        ok($results{$key} == $expected_results{$key}, "Correct job id extracted for vnet name $key");
+    }
+};
+
+subtest '[qesap_az_get_active_peerings] test for incorrect job ID' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my %results;
+
+    $qesap->redefine(script_output => sub {
+            if ($_[0] =~ /myresourcegroup/ && $_[0] =~ /myvnetname/) {
+                return "vnet123456-vnet-other\nvnet789012-vnet-other\nvnet-nojobid-vnet-other";
+            }
+    });
+    # Test incorrect job ID
+    ok(!exists $results{"vnet-nojobid-vnet-other"}, "No job id extracted for vnet name without a valid job id");
+};
+
+subtest '[qesap_az_clean_old_peerings]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @delete_calls;
+
+    $qesap->redefine(qesap_az_get_active_peerings => sub {
+            return (
+                'peering1' => '100001',
+                'peering2' => '100002',
+                'peering3' => '100003'
+            );
+    });
+
+    $qesap->redefine(qesap_is_job_finished => sub {
+            my ($job_id) = @_;
+            return $job_id eq '100001' || $job_id eq '100003';    # Jobs 100001 and 100003 are finished
+    });
+
+    $qesap->redefine(qesap_az_simple_peering_delete => sub {
+            my (%args) = @_;
+            push @delete_calls, $args{peering_name};
+    });
+
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    qesap_az_clean_old_peerings(rg => 'myresourcegroup', vnet => 'myvnetname');
+
+    ok(any { $_ eq 'peering1' } @delete_calls, "Peering1 was deleted");
+    ok(none { $_ eq 'peering2' } @delete_calls, "Peering2 was not deleted");
+    ok(any { $_ eq 'peering3' } @delete_calls, "Peering3 was deleted");
+};
+
 done_testing;
