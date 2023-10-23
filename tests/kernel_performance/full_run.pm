@@ -36,7 +36,8 @@ sub full_run {
     if (my $skip_cases = get_var('SKIP_M_CASES')) {
         foreach my $case (split(/,/, $skip_cases)) {
             record_info("Skip testing case $case in PROJECT_M");
-            script_run("sed -i '/$case/d' $list_path/list");
+            script_run("sed -i '/^workload.*$case/d' $list_path/list");
+            script_run("sed -i '/^_func:.*$case/d' $list_path/list");
         }
     }
 
