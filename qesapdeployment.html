@@ -75,6 +75,11 @@
         </ul>
       </li>
       <li><a href="#qesap_az_clean_old_peerings">qesap_az_clean_old_peerings</a></li>
+      <li><a href="#qesap_az_setup_native_fencing_permissions">qesap_az_setup_native_fencing_permissions</a></li>
+      <li><a href="#qesap_az_enable_system_assigned_identity">qesap_az_enable_system_assigned_identity</a></li>
+      <li><a href="#qesap_az_assign_role">qesap_az_assign_role</a></li>
+      <li><a href="#qesap_az_get_tenant_id">qesap_az_get_tenant_id</a></li>
+      <li><a href="#qesap_az_validate_uuid_pattern">qesap_az_validate_uuid_pattern</a></li>
     </ul>
   </li>
   <li><a href="#POD-ERRORS">POD ERRORS</a></li>
@@ -942,31 +947,74 @@ qesap_export_instances()</code></pre>
 </dd>
 </dl>
 
+<h2 id="qesap_az_setup_native_fencing_permissions">qesap_az_setup_native_fencing_permissions</h2>
+
+<pre><code>qesap_az_setup_native_fencing_permissions(vmname=&gt;$vm_name,
+    subscription_id=&gt;$subscription_id,
+    resource_group=&gt;$resource_group,
+    role=&gt;$role);
+
+Sets up managed identity (MSI) by enabling system assigned identity and
+    role - role to be assigned
+    resource_group - resource group resource belongs to
+    subscription_id - valid azure subscription</code></pre>
+
+<h2 id="qesap_az_enable_system_assigned_identity">qesap_az_enable_system_assigned_identity</h2>
+
+<pre><code>qesap_az_enable_system_assigned_identity($vm_name, $resource_group);
+
+Enables &#39;System assigned identity&#39; for specified VM.
+Returns &#39;systemAssignedIdentity&#39; ID.</code></pre>
+
+<h2 id="qesap_az_assign_role">qesap_az_assign_role</h2>
+
+<pre><code>qesap_az_assign_role( assignee=&gt;$assignee, role=&gt;$role, subscription_id=&gt;$subscription_id, resource_group=&gt;$resource_group )
+
+Assigns defined role to &#39;assignee&#39; (user, vm, etc...) using subscription id.
+ assignee - UUID for the resource (VM in this case)
+ role - role to be assigned
+ resource_group - resource group resource belongs to
+ subscription_id - valid azure subscription</code></pre>
+
+<h2 id="qesap_az_get_tenant_id">qesap_az_get_tenant_id</h2>
+
+<pre><code>qesap_az_get_tenant_id( subscription_id=&gt;$subscription_id )
+
+Returns tenant ID related to the specified subscription ID.
+subscription_id - valid azure subscription</code></pre>
+
+<h2 id="qesap_az_validate_uuid_pattern">qesap_az_validate_uuid_pattern</h2>
+
+<pre><code>qesap_az_validate_uuid_pattern( uuid_string=&gt;$uuid_string )
+
+Function checks input string against uuid pattern which is commonly used as an identifier for azure resources.
+returns uuid (true) on match, 0 (false) on mismatch.</code></pre>
+
 <h1 id="POD-ERRORS">POD ERRORS</h1>
 
 <p>Hey! <b>The above document had some coding errors, which are explained below:</b></p>
 
 <dl>
 
-<dt id="Around-line-441">Around line 441:</dt>
+<dt id="Around-line-445">Around line 445:</dt>
 <dd>
 
 <p>You forgot a &#39;=back&#39; before &#39;=head3&#39;</p>
 
 </dd>
-<dt id="Around-line-461">Around line 461:</dt>
+<dt id="Around-line-465">Around line 465:</dt>
 <dd>
 
 <p>You forgot a &#39;=back&#39; before &#39;=head3&#39;</p>
 
 </dd>
-<dt id="Around-line-989">Around line 989:</dt>
+<dt id="Around-line-993">Around line 993:</dt>
 <dd>
 
 <p>You forgot a &#39;=back&#39; before &#39;=head3&#39;</p>
 
 </dd>
-<dt id="Around-line-1066">Around line 1066:</dt>
+<dt id="Around-line-1070">Around line 1070:</dt>
 <dd>
 
 <p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
