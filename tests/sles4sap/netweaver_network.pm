@@ -19,7 +19,7 @@ sub run {
     my $instance_type = get_required_var('INSTANCE_TYPE');
     my ($ip, $netmask) = split '/', get_required_var('INSTANCE_IP_CIDR');
     my $sid = get_required_var('INSTANCE_SID');
-    my $alias = lc("sap$sid" . substr($instance_type, 0, 2));
+    my $alias = get_var('INSTANCE_ALIAS', lc("sap$sid" . substr($instance_type, 0, 2)));
 
     # Export needed variables
     set_var('INSTANCE_ALIAS', "$alias");
@@ -30,8 +30,8 @@ sub run {
     my $eth = script_output "ip -o route | sed -rn '/^default/s/.+dev ([a-z]+[0-9]).+/\\1/p'";
     assert_script_run "ip a a dev $eth $ip/$netmask";
 
-    # Add IP addresses in /etc/hosts
-    assert_script_run "echo '$ip $alias' >> /etc/hosts";
+    # Add IP addresses in /etc/hosts. Skip for ENSA2 setup which is done via shared device later.
+    assert_script_run "echo '$ip $alias' >> /etc/hosts" unless (get_var('SAP_INSTANCES'));
 
     # Synchronize nodes
     barrier_wait "NW_CLUSTER_HOSTS_$cluster_name";

@@ -9,7 +9,7 @@ use Test::Mock::Time;
 use List::Util qw(any none);
 use Data::Dumper;
 
-use testapi 'set_var';
+use testapi qw(set_var);
 use qesapdeployment;
 set_var('QESAP_CONFIG_FILE', 'MARLIN');
 
@@ -275,9 +275,9 @@ subtest '[qesap_az_clean_old_peerings]' => sub {
 
     $qesap->redefine(qesap_az_get_active_peerings => sub {
             return (
-                'peering1' => '100001',
-                'peering2' => '100002',
-                'peering3' => '100003'
+                peering1 => '100001',
+                peering2 => '100002',
+                peering3 => '100003'
             );
     });
 
@@ -346,7 +346,7 @@ subtest '[qesap_az_create_sas_token] with custom permissions' => sub {
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'BOAT' });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $ret = qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', 'permission' => 'SHELL');
+    my $ret = qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', permission => 'SHELL');
 
     ok((any { /.*--permission SHELL.*/ } @calls), 'Configured permission');
 };

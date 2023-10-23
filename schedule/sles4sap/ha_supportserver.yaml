@@ -30,5 +30,11 @@ vars:
 schedule:
   - support_server/login
   - support_server/setup
+  - '{{setup_ensa_nfs}}'
   - ha/barrier_init
   - support_server/wait_children
+conditional_schedule:
+  setup_ensa_nfs:
+    ENSA_SETUP:
+      1:
+        - sles4sap/ensa_filesystems

@@ -68,7 +68,9 @@ sub run {
     # Create sapinst group
     assert_script_run "groupadd sapinst";
     assert_script_run "chgrp -R sapinst /sapinst/unattended";
-    assert_script_run "chmod 0775 /sapinst/unattended";
+
+    # setting permissions as per sapnote 2589600
+    assert_script_run "chmod -Rv 0775 /sapinst/unattended";
 
     # Start the installation
     enter_cmd "cd /sapinst/unattended";
