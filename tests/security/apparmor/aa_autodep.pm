@@ -40,11 +40,11 @@ sub run {
     };
 
     # Check the test files exist, double check to avoid perfomance issue
-    my $ret = script_run "ls -1 $test_binfiles > tee /dev/$serialdev";
+    my $ret = script_run "ls -1 $test_binfiles | tee /dev/$serialdev";
     if ($ret) {
         # If failed try sync and then check again
         assert_script_run "sync";
-        assert_script_run "ls -1 $test_binfiles > tee /dev/$serialdev";
+        assert_script_run "ls -1 $test_binfiles | tee /dev/$serialdev";
     }
 
     script_run_interactive(
@@ -60,15 +60,21 @@ sub run {
 
     # Output generated profiles list to serial console
     # Check the new genrated test files exist, double check to avoid perfomance issue
-    $ret = script_run "ls -1 $aa_tmp_prof/*pam* > tee /dev/$serialdev";
+    $ret = script_run "ls -1 $aa_tmp_prof/*pam* | tee /dev/$serialdev";
     if ($ret) {
         # If failed then try sync and then check again
         assert_script_run "sync";
-        assert_script_run "ls -1 $aa_tmp_prof/*pam* > tee /dev/$serialdev";
+        assert_script_run "ls -1 $aa_tmp_prof/*pam* | tee /dev/$serialdev";
     }
 
     assert_script_run "aa-disable -d $aa_tmp_prof usr.sbin.nscd";
     $self->aa_tmp_prof_clean("$aa_tmp_prof");
+
+    assert_script_run "aa-status | tee /dev/$serialdev";
+
+    # delete cache file of aa-autodep generated profile, so that the next reload creates a fresh cache of /etc/apparmor.d/usr.sbin.nscd
+    # (wouldn't happen without deleting the cache file because the cache timestamp is newer than the profile (+ used abstractions) timestamp)
+    assert_script_run "rm -v /var/cache/apparmor/*/usr.sbin.nscd";
 }
 
 1;
