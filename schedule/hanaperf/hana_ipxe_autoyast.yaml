@@ -1,0 +1,17 @@
+---
+name: hana_ipxe_autoyast
+description:    >
+    Deploy hana-perf machines by ipxe and autoyast
+vars:
+  DESKTOP: textmode
+schedule:
+  - autoyast/prepare_profile
+  - '{{pxe_bootloader}}'
+  - autoyast/installation
+conditional_schedule:
+  pxe_bootloader:
+    ARCH:
+      x86_64:
+        - installation/ipxe_install
+      ppc64le:
+        - installation/bootloader
