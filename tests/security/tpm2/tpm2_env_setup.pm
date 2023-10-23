@@ -53,17 +53,7 @@ sub run {
     # and make it connect to "--tcti=libtss2-tcti-mssim.so"
     if (get_var('QEMUTPM', '') ne 'instance' || get_var('QEMUTPM_VER', '') ne '2.0') {
         assert_script_run("mkdir /etc/systemd/system/tpm2-abrmd.service.d");
-        assert_script_run(
-            "echo \"\$(cat <<EOF
-[Service]
-ExecStart=
-ExecStart=/usr/sbin/tpm2-abrmd --tcti=libtss2-tcti-mssim.so
-
-[Unit]
-ConditionPathExistsGlob=
-EOF
-            )\" > /etc/systemd/system/tpm2-abrmd.service.d/emulator.conf"
-        );
+        assert_script_run('curl -v -o /etc/systemd/system/tpm2-abrmd.service.d/emulator.conf ' . data_url('security/tpm2/emulator.conf'));
         assert_script_run("systemctl daemon-reload");
 
         # Start the emulator
