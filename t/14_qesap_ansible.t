@@ -90,6 +90,7 @@ subtest '[qesap_ansible_script_output]' => sub {
     $qesap->redefine(script_output => sub { push @calls, $_[0];
             return 'ANEMONE' if ($_[0] =~ /cat.*/); });
     $qesap->redefine(qesap_ansible_script_output_file => sub { return '/tmp/ansible_script_output/'; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $out = qesap_ansible_script_output(cmd => 'SWIM', provider => 'NEMO', host => 'REEF', file => 'testout.txt', out_path => '/tmp/ansible_script_output/');
 
