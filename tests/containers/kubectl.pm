@@ -22,7 +22,8 @@ sub run {
 
     install_kubectl();
     # Record kubectl version and check if the tool itself is healthy
-    record_info("kubectl", script_output("kubectl version --client --output=json"));
+    record_info("kubectl", script_output(
+            sprintf('kubectl version --client %s', is_sle('=12-sp5') ? "" : "--output=json")));
 
     # Prepare the webserver testdata
     assert_script_run('mkdir -p /srv/www/kubectl');
