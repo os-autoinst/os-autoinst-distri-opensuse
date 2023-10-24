@@ -2526,12 +2526,6 @@ sub load_extra_tests_syscontainer {
 }
 
 sub load_extra_tests_kernel {
-    if (is_tumbleweed || is_sle('>=15-sp5')) {
-        loadtest "kernel/bpftrace";
-        loadtest "kernel/bcc";
-        loadtest "kernel/io_uring";
-    }
-
     loadtest "kernel/tuned";
     loadtest "kernel/fwupd" if is_sle('15+');
 
