@@ -19,6 +19,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_sle is_opensuse);
 
 sub run {
     my ($self) = @_;
@@ -74,7 +75,8 @@ sub run {
 
     # delete cache file of aa-autodep generated profile, so that the next reload creates a fresh cache of /etc/apparmor.d/usr.sbin.nscd
     # (wouldn't happen without deleting the cache file because the cache timestamp is newer than the profile (+ used abstractions) timestamp)
-    assert_script_run "rm -v /var/cache/apparmor/*/usr.sbin.nscd";
+    my $target_dir = (is_sle('>=15-SP2') || is_opensuse) ? '/var/cache/apparmor/' : '/var/lib/apparmor/cache/';
+    assert_script_run "find $target_dir -name usr.sbin.nscd -delete";
 }
 
 1;
