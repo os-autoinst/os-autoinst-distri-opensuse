@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
     int status;
 
     // Create a new application
-    app = gtk_application_new("org.example.hello", G_APPLICATION_DEFAULT_FLAGS);
+    app = gtk_application_new("org.example.hello", 0);
 
     // Connect the "activate" signal to the callback function
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
