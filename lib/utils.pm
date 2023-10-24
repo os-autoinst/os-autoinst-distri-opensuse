@@ -1246,11 +1246,12 @@ sub assert_screen_with_soft_timeout {
     my $needle_info = ref($mustmatch) eq "ARRAY" ? join(',', @$mustmatch) : $mustmatch;
     die("\$args{bugref} is not set in assert_screen_with_soft_timeout") unless ($args{bugref});
     $args{soft_failure_reason} //= "$args{bugref}: needle(s) $needle_info not found within $args{soft_timeout}";
+    my $reference = $args{soft_failure_reason};
     if ($args{soft_timeout}) {
         die "soft timeout has to be smaller than timeout" unless ($args{soft_timeout} < $args{timeout});
         my $ret = check_screen $mustmatch, $args{soft_timeout};
         return $ret if $ret;
-        record_info('Softfail', "$args{soft_failure_reason}", result => 'softfail');
+        record_soft_failure($reference);
     }
     return assert_screen $mustmatch, $args{timeout} - $args{soft_timeout};
 }

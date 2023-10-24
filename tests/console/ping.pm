@@ -56,15 +56,15 @@ sub run {
     my $cmd = "ping6 -c2 $addr -I$ifname -v";
     my $rc = script_run("$sudo $cmd -c2");
     if ($rc) {
-        my $bug;
-        $bug = "bsc#1195826 or bsc#1200617" if is_sle('=15-SP4');
-        $bug = "bsc#1196840 or bsc#1200617" if is_sle('=15-SP3');
-        $bug = "bsc#1199918 or bsc#1200617" if is_sle('=15-SP2');
-        $bug = "bsc#1199926" if is_sle('=15-SP1');
-        $bug = "bsc#1199927" if is_sle('=15');
+        my $reference;
+        $reference = "bsc#1195826 or bsc#1200617" if is_sle('=15-SP4');
+        $reference = "bsc#1196840 or bsc#1200617" if is_sle('=15-SP3');
+        $reference = "bsc#1199918 or bsc#1200617" if is_sle('=15-SP2');
+        $reference = "bsc#1199926" if is_sle('=15-SP1');
+        $reference = "bsc#1199927" if is_sle('=15');
 
-        if (defined($bug)) {
-            record_info('Softfail', $bug, result => 'softfail');
+        if (defined($reference)) {
+            record_info('Softfail', $reference, result => 'softfail');
         } else {
             record_info("Fail", "Unknown failure on $cmd, maybe related to: bsc#1200617, bsc#1195826, bsc#1196840, bsc#1199918, bsc#1199926, bsc#1199927",
                 result => 'fail');
@@ -75,7 +75,7 @@ sub run {
     if ($capability && $ping_group_range !~ m/^net.ipv4.ping_group_range\s*=\s*1\s*0/) {
         my $msg = "capability '$capability' is not needed when ICMP socket allowed for non-root user: '$ping_group_range'";
         if (is_sle('=15-SP3')) {
-            record_info('unneeded capability', "bsc#1196840#c29: $msg", result => 'softfail');
+            record_soft_failure('unneeded capability', "bsc#1196840#c29: $msg");
         } else {
             record_info('unneeded capability', $msg, result => 'fail');
             $self->result("fail");

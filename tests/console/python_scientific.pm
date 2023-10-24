@@ -29,8 +29,8 @@ sub run_python_script {
         if ((script_run("grep 'Softfail' $logfile | grep 'bsc#1180605'") == 0) && (!is_tumbleweed)) {
             record_info("scipy-fft", "scipy-fft module not available", result => 'softfail');
         } else {
-            my $failmsg = script_output("grep 'Softfail' '$logfile'");
-            record_info('Softfail', "$failmsg", result => 'softfail');
+            my $reference = script_output("grep 'Softfail' '$logfile'");
+            record_soft_failure($reference);
         }
     }
 }
