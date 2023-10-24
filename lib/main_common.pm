@@ -1746,7 +1746,7 @@ sub load_extra_tests_console {
     loadtest 'console/vhostmd' unless get_var('PUBLIC_CLOUD');
     loadtest 'console/rpcbind' unless is_jeos;
     # sysauth test scenarios run in the console
-    loadtest "sysauth/sssd" if (get_var('SYSAUTHTEST') || is_sle('12-SP5+'));
+    loadtest "sysauth/sssd" if (get_var('SYSAUTHTEST') || (is_sle('12-SP5+') && is_sle('<=15-SP3')));
     loadtest 'console/timezone';
     loadtest 'console/ntp' if is_sle('<15');
     loadtest 'console/procps';
