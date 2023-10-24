@@ -538,5 +538,13 @@
             "microos":  ["Tumbleweed"]
         },
         "type": "bug"
+    },
+    "bsc#1215383": {
+        "description": "pam_lastlog2\\(login:session\\): User 'bernhard' not found \\(101\\)",
+        "products": {
+            "opensuse": ["Tumbleweed"],
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "bug"
     }
 }
