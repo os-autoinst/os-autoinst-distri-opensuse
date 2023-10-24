@@ -59,21 +59,21 @@ sub run {
     my @matched_bugs;
 
     # Find lines which matches to the pattern_bug
-    foreach my $bug (keys %$bug_pattern) {
+    foreach my $bsc (keys %$bug_pattern) {
         my $buffer = "";
         foreach my $line (@journal_output) {
-            if ($line =~ /$bug_pattern->{$bug}->{description}/) {
+            if ($line =~ /$bug_pattern->{$bsc}->{description}/) {
                 $buffer .= $line . "\n";
-                push @matched_bugs, $bug;
+                push @matched_bugs, $bsc;
             }
         }
         if ($buffer) {
-            if ($bug_pattern->{$bug}->{type} eq 'feature') {
-                record_info($bug, $buffer);
-            } elsif ($bug_pattern->{$bug}->{type} eq 'ignore') {
+            if ($bug_pattern->{$bsc}->{type} eq 'feature') {
+                record_info($bsc, $buffer);
+            } elsif ($bug_pattern->{$bsc}->{type} eq 'ignore') {
                 bmwqemu::diag("Ignoring log message:\n$buffer\n");
             } else {
-                record_info('Softfail', "$bug:\n$buffer", result => 'softfail');
+                record_soft_failure("$bsc\n$buffer");
             }
         }
     }
@@ -101,7 +101,7 @@ sub run {
             my $failed_service_output = script_output("systemctl status $service -l || true");
             foreach my $bsc (@matched_bugs) {
                 if ($failed_service_output =~ $bug_pattern->{$bsc}->{description}) {
-                    record_info('Softfail', "Service: $service failed due to $bsc\n$failed_service_output", result => 'softfail');
+                    record_soft_failure("$service failed due to $bsc\n$failed_service_output");
                     next SRV;
                 }
             }
