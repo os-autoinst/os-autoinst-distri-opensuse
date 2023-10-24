@@ -11,7 +11,7 @@ use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_sle_micro is_microos is_leap is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp);
+use version_utils qw(is_sle_micro is_microos is_leap is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp is_transactional);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends;
@@ -775,17 +775,26 @@ sub fully_patch_system {
         return;
     }
 
-    # Repeatedly call zypper patch until it returns something other than 103 (package manager updates)
     my $ret = 1;
-    # Add -q to reduce the unnecessary log output.
-    # Reduce the pressure of serial port when running hyperv test with sle15.
-    # poo#115454
-    my $zypp_opt = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? '-q' : '';
-    for (1 .. 3) {
-        $ret = zypper_call("$zypp_opt patch --with-interactive -l", exitcode => [0, 4, 102, 103], timeout => 6000);
-        last if $ret != 103;
+    if (is_transactional) {
+        # Update package manager first, not possible to detect package manager update bsc#1216504
+        transactional::trup_call('patch');
+        transactional::reboot_on_changes();
+        # Continue with patch
+        transactional::trup_call('patch');
+        transactional::reboot_on_changes();
+        return;
+    } else {
+        # Repeatedly call zypper patch until it returns something other than 103 (package manager updates)
+        # Add -q to reduce the unnecessary log output.
+        # Reduce the pressure of serial port when running hyperv test with sle15.
+        # poo#115454
+        my $zypp_opt = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? '-q' : '';
+        for (1 .. 3) {
+            $ret = zypper_call("$zypp_opt patch --with-interactive -l", exitcode => [0, 4, 102, 103], timeout => 6000);
+            last if $ret != 103;
+        }
     }
-
     if (($ret == 4) && is_sle('>=12') && is_sle('<15')) {
         record_soft_failure 'bsc#1176655 openQA test fails in patch_sle - binutils-devel-2.31-9.29.1.aarch64 requires binutils = 2.31-9.29.1';
         my $para = '';
