@@ -28,7 +28,7 @@ sub run {
     enter_cmd "Start Here";
     assert_screen 'gnote-new-note-link';
     wait_screen_change { send_key 'up' };
-    send_key 'ctrl-ret';    #switch to link
+    assert_and_click "start_here";
     assert_screen 'gnote-note-start-here';
 
     # click the menu button on the tool bar

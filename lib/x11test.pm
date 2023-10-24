@@ -898,6 +898,15 @@ sub gnote_search_and_close {
     my ($self, $string, $needle) = @_;
 
     send_key "ctrl-f";
+    if (is_tumbleweed) {
+        if (check_screen('focus_search_box', 5)) {
+            assert_and_click "focus_search_box";
+        } else {
+            assert_and_click "display_search_bar";
+            assert_and_click "focus_search_box";
+            record_soft_failure("bsc#1216592 The shortcut Ctrl-F doesn't work as expected in gnote 45.0");
+        }
+    }
     # The gnote interface is slow. So we can't start immediately searching. We need to wait
     wait_still_screen(2);
     type_string $string;
@@ -919,6 +928,7 @@ sub cleanup_gnote {
 sub gnote_start_with_new_note {
     x11_start_program('gnote');
     send_key "ctrl-n";
+    send_key "shift-ctrl-n" if is_tumbleweed;
     assert_screen 'gnote-new-note', 5;
 }
 
