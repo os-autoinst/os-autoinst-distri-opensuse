@@ -96,6 +96,8 @@ our @EXPORT = qw(
   qesap_export_instances
   qesap_import_instances
   qesap_file_find_string
+  qesap_is_job_finished
+  qesap_az_get_active_peerings
   qesap_az_clean_old_peerings
   qesap_az_setup_native_fencing_permissions
   qesap_az_enable_system_assigned_identity
@@ -1748,7 +1750,8 @@ sub qesap_export_instances {
 
 =head3 qesap_is_job_finished
 
-    Get whether a specified job is still running or not
+    Get whether a specified job is still running or not. 
+    In cases of ambiguous responses, they are considered to be in `running` state.
 
 =over 1
 
@@ -1764,11 +1767,11 @@ sub qesap_is_job_finished {
 
     my $job_data = eval { decode_json($json_data) };
     if ($@) {
-        warn "Failed to decode JSON data for job $job_id: $@";
+        record_info("JSON error", "Failed to decode JSON data for job $job_id: $@");
         return 0;    # Assume job is still running if we can't get its state
     }
 
-    my $job_state = $job_data->{job}->{state} // '';
+    my $job_state = $job_data->{job}->{state} // 'running';    # assume job is running if unable to get status
 
     return ($job_state ne 'running');
 }
