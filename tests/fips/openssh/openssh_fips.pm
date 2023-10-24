@@ -29,14 +29,7 @@ sub run {
 
     zypper_call('info openssh');
     my $current_ver = script_output("rpm -q --qf '%{version}\n' openssh");
-
-    # openssh update to 8.3 in SLE15 SP3
-    if (!is_sle('<15-sp3') && ($current_ver ge 8.3)) {
-        record_info("openssh version", "Current openssh package version: $current_ver");
-    }
-    else {
-        record_soft_failure("jsc#SLE-16308: openssh version outdate, openssh version need to be updated over to 8.3+ in SLE15 SP3");
-    }
+    record_info("openssh version", "Current openssh package version: $current_ver");
 
     zypper_call('in expect') if script_run('rpm -q expect');
     # Verify MD5 is disabled in fips mode, no need to login
