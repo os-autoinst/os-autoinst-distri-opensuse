@@ -145,12 +145,12 @@ if (match_has_tag('yast2_missing_package')) {
 ```
 * Please add a bug/ticket reference for `record_soft_failure`, otherwise
   CI checks may fail. you can use formats like below:
-  bsc#12345 -> Bugzilla bug
-  poo#12345 -> Progress ticket
-  jsc#SLE-19640 -> Jira ticket
-  Maniphest#T5531
-  fate.suse.com/123
-  $reference or $bsc (for convenience) -> if you have to use a variable to define a reference ticket
+  - bsc#12345 -> Bugzilla bug
+  - poo#12345 -> Progress ticket
+  - jsc#SLE-19640 -> Jira ticket
+  - Maniphest#T5531
+  - fate.suse.com/123
+  - $reference, $bsc or $bugref for convenience if you have to use a variable to define a reference ticket
   If you don't have a reference ticket, and still want to mark a specific
   step as soft_fail, please use `record_info` with softfail tag:
   record_info($title [, $output] [, result => softfail] [, resultname => $resultname]);
