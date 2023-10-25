@@ -15,7 +15,7 @@ use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl);
 use YAML::PP;
 use File::Basename qw(basename);
-use version_utils qw(is_tumbleweed is_microos);
+use version_utils qw(is_tumbleweed is_microos is_jeos is_sle is_leap is_leap_micro is_sle_micro);
 
 my $data;
 my $fail = 0;
@@ -288,6 +288,10 @@ sub file_tests {
     print_summary('file_tests', @errors);
 }
 
+sub test_combustion_prepare {
+    assert_script_run('journalctl --no-pager | grep "localhost combustion: test_prepare function ran OK"');
+}
+
 sub run {
     my $self = shift;
     select_serial_terminal();
@@ -299,6 +303,15 @@ sub run {
     directory_tests();
     file_tests();
     disk_tests();
+
+    if (check_var('FIRST_BOOT_CONFIG', 'combustion') && !(is_sle_micro('<5.5') || is_leap_micro('<5.5'))) {
+        test_combustion_prepare();
+
+        if (script_run('command -v wicked &> /dev/null') == 0) {
+            my $if_name = script_output("find /sys/class/net -type l -not -lname '*virtual*' -printf '%f\n' | head -n1");
+            assert_script_run("grep dhcp /etc/sysconfig/network/ifcfg-${if_name}");
+        }
+    }
 
     $self->result('failure') if $fail;
 }
