@@ -403,6 +403,7 @@ sub qesap_yaml_replace {
 =item B<LOGNAME> - filename of the log file. This argument is optional,
                    if not specified the log filename is internally calculated
                    using content from CMD and CMD_OPTIONS.
+
 =back
 =cut
 
@@ -454,6 +455,7 @@ sub qesap_execute {
 =item B<FILE> - Path to the Ansible log file. (Required)
 
 =item B<SEARCH_STRING> - String to search for in the log file. (Required)
+
 =back
 =cut
 
@@ -966,6 +968,7 @@ sub qesap_wait_for_ssh {
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
 =item B<FAILOK> - if not set, Ansible failure result in die
+
 =back
 =cut
 
@@ -1067,6 +1070,7 @@ sub qesap_cluster_logs {
 =head3 qesap_az_get_vnet
 
 Return the output of az network vnet list
+
 =over 1
 
 =item B<RESOURCE_GROUP> - resource group name to query

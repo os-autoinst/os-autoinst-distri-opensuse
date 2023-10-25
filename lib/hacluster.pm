@@ -1205,6 +1205,7 @@ sub check_iscsi_failure {
 =head3 cluster_status_matches_regex
 
 Check crm status output against a hardcode regular expression in order to check the cluster health 
+
 =over 1
 
 =item B<SHOW_CLUSTER_STATUS> - Output from 'crm status' command
