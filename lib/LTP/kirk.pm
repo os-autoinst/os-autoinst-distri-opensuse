@@ -47,6 +47,32 @@ sub _kirk_from_repo
     assert_script_run($cmd, timeout => $timeout);
 }
 
+sub _kirk_from_container
+{
+    my ($cmd, $timeout, $volumes_ref) = @_;
+    my $container_engine = get_var('KIRK_CONTAINER', 'podman');
+    my $container_repo = get_var('KIRK_CONTAINER_REPO', 'registry.opensuse.org/benchmark/ltp/devel/containers/opensuse/kirk:latest');
+
+    if ($container_engine ne "docker" and $container_engine ne "podman") {
+        die("'$container_engine' platform is not supported");
+    }
+
+    if (script_run("rpm -qi $container_engine") == 1) {
+        is_transactional ? trup_install($container_engine) : zypper_call("in -y $container_engine");
+    }
+
+    assert_script_run("$container_engine pull $container_repo");
+
+    my $engine_command = "$container_engine run --name kirk_image -it --privileged --security-opt=unmask=ALL ";
+    foreach my $volume_ref (@$volumes_ref) {
+        $engine_command .= "--volume $volume_ref->{src}:$volume_ref->{dst} ";
+    }
+
+    $engine_command .= "$container_repo $cmd";
+
+    assert_script_run($engine_command, timeout => $timeout);
+}
+
 sub _kirk_upload_logs
 {
     assert_script_run("test -f /tmp/kirk.\$USER/latest/debug.log || echo No debug log");
@@ -82,6 +108,8 @@ sub run
         _kirk_from_git($cmd, $args{timeout});
     } elsif ($install_from =~ /repo/i) {
         _kirk_from_repo($cmd, $args{timeout});
+    } elsif ($install_from =~ /container/i) {
+        _kirk_from_container($cmd, $args{timeout}, $args{container_volumes});
     } else {
         die("Installation can't be done via '$install_from'");
     }
