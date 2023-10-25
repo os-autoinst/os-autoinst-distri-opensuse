@@ -94,8 +94,8 @@ sub test_flags ($self) {
 
 sub post_run_hook ($self) {
     record_info "post_run", "hook started";
-    pars_results('HPC warewulf4 controller tests', $file, @all_tests_results);
-    parse_extra_log('XUnit', $file);
+    parse_test_results('HPC warewulf4 controller tests', $file, @all_tests_results);
+    parse_extra_log('XUnit', "/tmp/$file");
     $self->upload_service_log('warewulfd');
     save_and_upload_log('cat /etc/hosts', "/tmp/hostfile");
     save_and_upload_log('ip a', "/tmp/controller_network");
