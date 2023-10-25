@@ -82,7 +82,6 @@
       <li><a href="#qesap_az_validate_uuid_pattern">qesap_az_validate_uuid_pattern</a></li>
     </ul>
   </li>
-  <li><a href="#POD-ERRORS">POD ERRORS</a></li>
 </ul><h1>lib/qesapdeployment.pm</h1>
 
 <h1 id="NAME">NAME</h1>
@@ -221,7 +220,7 @@ Test only returns execution result, failure has to be handled by calling method.
 <dd>
 
 </dd>
-<dt id="LOGNAME---filename-of-the-log-file.-This-argument-is-optional-if-not-specified-the-log-filename-is-internally-calculated-using-content-from-CMD-and-CMD_OPTIONS.-back"><b>LOGNAME</b> - filename of the log file. This argument is optional, if not specified the log filename is internally calculated using content from CMD and CMD_OPTIONS. =back</dt>
+<dt id="LOGNAME---filename-of-the-log-file.-This-argument-is-optional-if-not-specified-the-log-filename-is-internally-calculated-using-content-from-CMD-and-CMD_OPTIONS"><b>LOGNAME</b> - filename of the log file. This argument is optional, if not specified the log filename is internally calculated using content from CMD and CMD_OPTIONS.</dt>
 <dd>
 
 </dd>
@@ -238,7 +237,7 @@ Returns 1 if the string is found in the log file, 0 otherwise.</code></pre>
 <dd>
 
 </dd>
-<dt id="SEARCH_STRING---String-to-search-for-in-the-log-file.-Required-back"><b>SEARCH_STRING</b> - String to search for in the log file. (Required) =back</dt>
+<dt id="SEARCH_STRING---String-to-search-for-in-the-log-file.-Required"><b>SEARCH_STRING</b> - String to search for in the log file. (Required)</dt>
 <dd>
 
 </dd>
@@ -561,7 +560,7 @@ Return total time of retry loop in case of pass.</code></pre>
 <dd>
 
 </dd>
-<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die-back"><b>FAILOK</b> - if not set, Ansible failure result in die =back</dt>
+<dt id="FAILOK---if-not-set-Ansible-failure-result-in-die5"><b>FAILOK</b> - if not set, Ansible failure result in die</dt>
 <dd>
 
 </dd>
@@ -577,7 +576,7 @@ Return total time of retry loop in case of pass.</code></pre>
 
 <h3 id="qesap_az_get_vnet">qesap_az_get_vnet</h3>
 
-<p>Return the output of az network vnet list =over 1</p>
+<p>Return the output of az network vnet list</p>
 
 <dl>
 
@@ -990,38 +989,6 @@ subscription_id - valid azure subscription</code></pre>
 
 Function checks input string against uuid pattern which is commonly used as an identifier for azure resources.
 returns uuid (true) on match, 0 (false) on mismatch.</code></pre>
-
-<h1 id="POD-ERRORS">POD ERRORS</h1>
-
-<p>Hey! <b>The above document had some coding errors, which are explained below:</b></p>
-
-<dl>
-
-<dt id="Around-line-447">Around line 447:</dt>
-<dd>
-
-<p>You forgot a &#39;=back&#39; before &#39;=head3&#39;</p>
-
-</dd>
-<dt id="Around-line-467">Around line 467:</dt>
-<dd>
-
-<p>You forgot a &#39;=back&#39; before &#39;=head3&#39;</p>
-
-</dd>
-<dt id="Around-line-995">Around line 995:</dt>
-<dd>
-
-<p>You forgot a &#39;=back&#39; before &#39;=head3&#39;</p>
-
-</dd>
-<dt id="Around-line-1072">Around line 1072:</dt>
-<dd>
-
-<p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
-
-</dd>
-</dl>
 
 
 </body>

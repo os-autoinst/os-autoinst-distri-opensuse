@@ -73,7 +73,6 @@
       <li><a href="#is_community_jeos">is_community_jeos</a></li>
     </ul>
   </li>
-  <li><a href="#POD-ERRORS">POD ERRORS</a></li>
 </ul><h1>lib/version_utils.pm</h1>
 
 <h1 id="VERSION_UTILS">VERSION_UTILS</h1>
@@ -108,7 +107,7 @@
 
 <h2 id="is_virtualization_server">is_virtualization_server</h2>
 
-<p>Returns true if called on a virutalization server</p>
+<p>Returns true if called on a virtualization server</p>
 
 <h2 id="is_livecd">is_livecd</h2>
 
@@ -116,7 +115,7 @@
 
 <h2 id="check_version">check_version</h2>
 
-<p>Usage: check_version(&#39;&gt;15.0&#39;, get_var(&#39;VERSION&#39;), &#39;\d{2}&#39;) Query format: [= &gt; &lt; &gt;= &lt;=] version [+] (Example: &lt;=12-sp3 =12-sp1 &lt;4.0 &gt;=15 3.0+) Check agains: product version to check against - probably get_var(&#39;VERSION&#39;) Regex format: checks query version format (Example: /\d{2}\.\d/)#</p>
+<p>Usage: check_version(&#39;&gt;15.0&#39;, get_var(&#39;VERSION&#39;), &#39;\d{2}&#39;) Query format: [= &gt; &lt; &gt;= &lt;=] version [+] (Example: &lt;=12-sp3 =12-sp1 &lt;4.0 &gt;=15 3.0+) Check against: product version to check against - probably get_var(&#39;VERSION&#39;) Regex format: checks query version format (Example: /\d{2}\.\d/)#</p>
 
 <h2 id="is_microos">is_microos</h2>
 
@@ -268,7 +267,7 @@
 
 <h2 id="get_os_release">get_os_release</h2>
 
-<p>Get SLE release version, service pack and distribution name info from any running sles os without any dependencies It parses the info from /etc/os-release file, which can reside in any physical host or virtual machine The file can also be placed anywhere as long as it can be reached somehow by its absolute file path, which should be passed in as the second argument os_release_file, for example, &quot;/etc/os-release&quot; At the same time, connection method to the entity in which the file reside should be passed in as the firt argument go_to_target, for example, &quot;ssh root at name or ip address&quot; or &quot;way to download the file&quot; For use only on locahost, no argument needs to be specified</p>
+<p>Get SLE release version, service pack and distribution name info from any running sles os without any dependencies It parses the info from /etc/os-release file, which can reside in any physical host or virtual machine The file can also be placed anywhere as long as it can be reached somehow by its absolute file path, which should be passed in as the second argument os_release_file, for example, &quot;/etc/os-release&quot; At the same time, connection method to the entity in which the file reside should be passed in as the first argument go_to_target, for example, &quot;ssh root at name or ip address&quot; or &quot;way to download the file&quot; For use only on locahost, no argument needs to be specified</p>
 
 <h2 id="check_os_release">check_os_release</h2>
 
@@ -276,28 +275,20 @@
 
 <dl>
 
-<dt id="distri_name"><code>distri_name</code></dt>
+<dt id="distri_name---The-expected-distribution-name-to-compare"><code>distri_name</code> - The expected distribution name to compare.</dt>
 <dd>
-
-<p>The expected distribution name to compare.</p>
 
 </dd>
-<dt id="line"><code>line</code></dt>
+<dt id="line---The-line-well-be-parsing-and-checking"><code>line</code> - The line we&#39;ll be parsing and checking.</dt>
 <dd>
-
-<p>The line we&#39;ll be parsing and checking.</p>
 
 </dd>
-<dt id="go_to_target"><code>go_to_target</code></dt>
+<dt id="go_to_target---Command-connecting-to-the-SUT"><code>go_to_target</code> - Command connecting to the SUT</dt>
 <dd>
-
-<p>Command connecting to the SUT</p>
 
 </dd>
-<dt id="os_release_file"><code>os_release_file</code></dt>
+<dt id="os_release_file---The-full-path-to-the-Operating-system-identification-file.-Default-to-etc-os-release"><code>os_release_file</code> - The full path to the Operating system identification file. Default to <i>/etc/os-release</i>.</dt>
 <dd>
-
-<p>The full path to the Operating system identification file. Default to <i>/etc/os-release</i>.</p>
 
 <p>Returns 1 (true) if the ID_LIKE variable contains <code>distri_name</code>.</p>
 
@@ -338,7 +329,7 @@
 
 <h2 id="is_quarterly_iso">is_quarterly_iso</h2>
 
-<p>Returns true if called in quaterly iso testing</p>
+<p>Returns true if called in quarterly iso testing</p>
 
 <h2 id="get_version_id">get_version_id</h2>
 
@@ -351,26 +342,6 @@
 <h2 id="is_community_jeos">is_community_jeos</h2>
 
 <p>Returns true for tests using the images built by the &quot;JeOS&quot; package on OBS</p>
-
-<h1 id="POD-ERRORS">POD ERRORS</h1>
-
-<p>Hey! <b>The above document had some coding errors, which are explained below:</b></p>
-
-<dl>
-
-<dt id="Around-line-708">Around line 708:</dt>
-<dd>
-
-<p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
-
-</dd>
-<dt id="Around-line-739">Around line 739:</dt>
-<dd>
-
-<p>You forgot a &#39;=back&#39; before &#39;=head2&#39;</p>
-
-</dd>
-</dl>
 
 
 </body>
