@@ -21,6 +21,8 @@ sub run {
     foreach my $host (@remote_ips) {
         die 'Timed out while waiting for ssh to be available in the CSP instances' if qesap_wait_for_ssh(host => $host) == -1;
     }
+    enter_cmd 'export QESAP_SIM_RC=42';
+    enter_cmd 'export QESAP_SIM_MSG="Timed out waiting for last boot time check"';
     @ret = qesap_execute(cmd => 'ansible', cmd_options => '--profile', verbose => 1, timeout => 3600);
     if ($ret[0])
     {

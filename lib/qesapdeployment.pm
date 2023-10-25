@@ -700,6 +700,8 @@ sub qesap_ansible_cmd {
 
 =item B<FAILOK> - if not set, Ansible failure result in die
 
+=item B<VERBOSE> - 1 result in ansible-playbook to be called with '-vvvv', default is 0.
+
 =item B<TIMEOUT> - max expected execution time, default 180sec.
     Same timeout is used both for the execution of script_output.yaml and for the fetch_file.
     Timeout of the same amount is started two times.
@@ -716,6 +718,8 @@ sub qesap_ansible_script_output_file {
     $args{root} ||= 0;
     $args{failok} //= 0;
     $args{timeout} //= bmwqemu::scale_timeout(180);
+    $args{verbose} //= 0;
+    my $verbose = $args{verbose} ? '-vvvv' : '';
     my $remote_path = $args{remote_path} // '/tmp/';
     my $out_path = $args{out_path} // '/tmp/ansible_script_output/';
     my $file = $args{file} // 'testout.txt';
@@ -724,7 +728,7 @@ sub qesap_ansible_script_output_file {
     my $playbook = 'script_output.yaml';
     qesap_ansible_get_playbook(playbook => $playbook);
 
-    my @ansible_cmd = ('ansible-playbook', '-vvvv', $playbook);
+    my @ansible_cmd = ('ansible-playbook', $verbose, $playbook);
     push @ansible_cmd, ('-l', $args{host}, '-i', $inventory, '-u', $args{user});
     push @ansible_cmd, ('-b', '--become-user', 'root') if ($args{root});
     push @ansible_cmd, ('-e', qq("cmd='$args{cmd}'"),
@@ -799,6 +803,7 @@ sub qesap_ansible_script_output {
     # Print output and delete output file
     my $output = script_output("cat $local_tmp");
     enter_cmd "rm $local_tmp || echo 'Nothing to delete'";
+    record_info("Ansible cmd:$args{cmd}", $output);
     return $output;
 }
 
@@ -1267,7 +1272,7 @@ sub qesap_az_vnet_peering_delete {
         $source_ret = qesap_az_simple_peering_delete(rg => $args{source_group}, vnet_name => $source_vnet, peering_name => $peering_name, timeout => $args{timeout});
     }
     else {
-        record_info('NO PEERING', "No peering between job VMs and IBSM - maybe it wasn't created, or the resources have been destroyed.");
+        record_info('NO PEERING', "Function called without source_group argument.");
     }
     record_info('Destroying IBSM -> job_resources peering');
     my $target_ret = qesap_az_simple_peering_delete(rg => $args{target_group}, vnet_name => $target_vnet, peering_name => $peering_name, timeout => $args{timeout});
