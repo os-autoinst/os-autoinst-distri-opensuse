@@ -34,7 +34,8 @@ our @EXPORT = qw(
   lsblk_command
   validate_lsblk
   get_partition_table_via_blkid
-  is_lsblk_able_to_display_mountpoints);
+  is_lsblk_able_to_display_mountpoints
+  generate_xfstests_list);
 
 =head2 str_to_mb
 
@@ -507,6 +508,35 @@ sub validate_lsblk {
         }
     }
     return $errors;
+}
+
+=head2
+
+Generate xfstests subtests list
+This function translate test range to single tests, with xfstests test name format.
+Input an parameter with list of subtest name, Return a hash of test list.
+e.g. generate "xfs/001-003,xfs/005" into "{xfs/001 => 1, xfs/002 => 1, xfs/003 => 1, xfs/005 => 1}"
+
+=cut
+
+sub generate_xfstests_list {
+    my $raw_list = shift;
+    my @split_list = split(/,/, $raw_list);
+    my @test_list;
+    foreach my $test_item (@split_list) {
+        $test_item =~ m"\w+/";
+        my ($test_category, $test_num) = ($&, $');
+        if ($test_num =~ /^(\d{3})-(\d{3})$/) {
+            push(@test_list, map { $_ = "$test_category$_" } ($1 .. $2));
+        }
+        elsif ($test_num =~ /^\d{3}$/) {
+            push(@test_list, "$test_category$test_num");
+        }
+        else {
+            die "Invalid test list: $test_item";
+        }
+    }
+    return map { $_ => 1 } @test_list;
 }
 
 1;
