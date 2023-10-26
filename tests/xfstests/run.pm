@@ -26,7 +26,7 @@ use testapi;
 use utils;
 use Utils::Backends 'is_pvm';
 use power_action_utils qw(power_action prepare_system_shutdown);
-use filesystem_utils qw(format_partition);
+use filesystem_utils qw(format_partition generate_xfstests_list);
 use lockapi;
 use mmapi;
 use version_utils 'is_alp';
@@ -48,8 +48,7 @@ my $HB_SCRIPT = '/opt/heartbeat.sh';
 # - XFSTESTS: TEST_DEV type, and test in this folder and generic/ folder will be triggered. XFSTESTS=(xfs|btrfs|ext4)
 my $TEST_RANGES = get_required_var('XFSTESTS_RANGES');
 my $TEST_WRAPPER = '/opt/wrapper.sh';
-my @BLACKLIST = split(/,/, get_var('XFSTESTS_BLACKLIST'));
-my @GROUPLIST = split(/,/, get_var('XFSTESTS_GROUPLIST'));
+my $BLACKLIST = get_var('XFSTESTS_BLACKLIST');
 my $STATUS_LOG = '/opt/status.log';
 my $INST_DIR = '/opt/xfstests';
 my $LOG_DIR = '/opt/log';
@@ -186,14 +185,15 @@ sub tests_from_category {
     return @tests;
 }
 
-# Return matched exclude tests from groups in @GROUPLIST
+# Return matched exclude tests from groups in XFSTESTS_GROUPLIST
 # return structure - hash
 # Group name start with ! will exclude in test, and expected to use to update blacklist
 # If TEST_RANGES contain generic tests, then exclude tests from generic folder, else will exclude tests from filesystem type folder
 sub exclude_grouplist {
     my %tests_list = ();
     my $test_folder = $TEST_RANGES =~ /generic/ ? "generic" : $FSTYPE;
-    foreach my $group_name (@GROUPLIST) {
+    my @group_list = split(/,/, get_var('XFSTESTS_GROUPLIST'));
+    foreach my $group_name (@group_list) {
         next if ($group_name !~ /^\!/);
         $group_name = substr($group_name, 1);
         my $cmd = "awk '/$group_name/' $INST_DIR/tests/$test_folder/group.list | awk '{printf \"$test_folder/\"}{printf \$1}{printf \",\"}' > tmp.group";
@@ -205,14 +205,15 @@ sub exclude_grouplist {
     return %tests_list;
 }
 
-# Return matched include tests from groups in @GROUPLIST
+# Return matched include tests from groups in XFSTESTS_GROUPLIST
 # return structure - array
 # Group name start without ! will include in test, and expected to use to update test ranges
 # If TEST_RANGES contain generic tests, then include tests from generic folder, else will include tests from filesystem type folder
 sub include_grouplist {
     my @tests_list;
     my $test_folder = $TEST_RANGES =~ /generic/ ? "generic" : $FSTYPE;
-    foreach my $group_name (@GROUPLIST) {
+    my @group_list = split(/,/, get_var('XFSTESTS_GROUPLIST'));
+    foreach my $group_name (@group_list) {
         next if ($group_name =~ /^\!/);
         my $cmd = "awk '/$group_name/' $INST_DIR/tests/$test_folder/group.list | awk '{printf \"$test_folder/\"}{printf \$1}{printf \",\"}' > tmp.group";
         script_run($cmd);
@@ -258,26 +259,6 @@ sub tests_from_ranges {
         }
     }
     return @tests;
-}
-
-# Return a hash of blacklist to skip from @BLACKLIST
-# return structure - hash
-sub genarate_blacklist {
-    my @blacklist_copy;
-    foreach my $test_item (@BLACKLIST) {
-        $test_item =~ m"\w+/";
-        my ($test_category, $test_num) = ($&, $');
-        if ($test_num =~ /^(\d{3})-(\d{3})$/) {
-            push(@blacklist_copy, map { $_ = "$test_category$_" } ($1 .. $2));
-        }
-        elsif ($test_num =~ /^\d{3}$/) {
-            push(@blacklist_copy, "$test_category$test_num");
-        }
-        else {
-            die "Invalid test blacklist: $test_item";
-        }
-    }
-    return map { $_ => 1 } @blacklist_copy;
 }
 
 # Run a single test and write log to file
@@ -523,10 +504,6 @@ sub run {
         @tests = shuffle(@tests);
     }
 
-    # Genarate and maintain BLACKLIST by exclude group list
-    my %tests_needto_exclude = exclude_grouplist;
-    my %BLACKLIST = (genarate_blacklist, %tests_needto_exclude);
-
     test_prepare;
 
     # wait until nfs service is ready
@@ -537,12 +514,13 @@ sub run {
 
     heartbeat_start if $enable_heartbeat == 1;
 
+    my %black_list = (generate_xfstests_list($BLACKLIST), exclude_grouplist);
     my $status_log_content = "";
     foreach my $test (@tests) {
         # trim testname
         $test =~ s/^\s+|\s+$//g;
         # Skip tests inside blacklist
-        if (exists($BLACKLIST{$test})) {
+        if (exists($black_list{$test})) {
             next;
         }
 
