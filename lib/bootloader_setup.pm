@@ -1102,7 +1102,8 @@ sub zkvm_add_disk {
             # Copy existing disk image to local storage
             if (get_var("HDD_$di")) {
                 my $basename = basename(get_var("HDD_$di"));
-                my $hdd_path = $svirt->get_cmd_output("find $hdd_dir -name $basename | head -n1 | tr -d '\n'");
+                # `sort -r` ensures the parent directory is prefered over subdirectories because `find` itself searches depth-first.
+                my $hdd_path = $svirt->get_cmd_output("find $hdd_dir -name $basename | sort -r | head -n1 | tr -d '\n'");
                 $hdd_path or die "Unable to find image $basename in $hdd_dir";
                 diag("HDD path found: $hdd_path");
 
