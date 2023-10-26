@@ -44,8 +44,9 @@ sub run {
     systemctl("start chronyd");    # Ensure chrony is started
     assert_script_run('chronyc makestep');
     record_info('Show current date and time', script_output('date +"%Y-%m-%d"'));
-    assert_script_run('utmpdump /var/run/utmp');
-    assert_script_run('utmpdump /var/log/wtmp');
+    # Use LC_TIME=C.UTF-8 to force full date output including the year
+    assert_script_run('LC_TIME=C.UTF-8 who');
+    assert_script_run('last -F');
 
     # Stop the chrony service so that we can change date and time
     disable_and_stop_service('chronyd.service');
@@ -54,9 +55,8 @@ sub run {
     record_info('Timewarp', script_output('timedatectl status'));
     assert_script_run('timedatectl set-time "2038-01-20 03:14:07"');
 
-    # We may need to logout and login again to make the date/time change
-    # However, we need to handle many platforms and different products.
-    # Reboot the system to acieve this is a simple way for the time being.
+    # Trigger a reboot to make the date/time change fully effective and
+    # generate some last/who entries.
     if (is_transactional) {
         process_reboot(trigger => 1);
     }
@@ -67,8 +67,8 @@ sub run {
     }
     select_serial_terminal;
     record_info("time after reboot", script_output("timedatectl status"));
-    my $utmp_output = script_output('utmpdump /var/run/utmp');
-    my $wtmp_output = script_output('utmpdump /var/log/wtmp');
+    my $utmp_output = script_output('LC_TIME=C.UTF-8 who');
+    my $wtmp_output = script_output('last -F');
     record_soft_failure('bsc#1188626 uttmpdump shows incorrect year for 2038 and beyond') if ($utmp_output !~ m/2038/sx || $wtmp_output !~ m/2038/sx);
     systemctl('start chronyd.service');
     record_info('Show NTP sources', script_output('chronyc -n sources -v -a'));
@@ -78,11 +78,6 @@ sub run {
     # add some timeout after 'chronyc makestep'
     script_retry('journalctl -u chronyd | grep -e "System clock wrong" -e "Received KoD RATE"', delay => 60, retry => 3, die => 0);
     record_soft_failure('poo#127343, Time sync with NTP server failed') if script_run('chronyc makestep && sleep 2 && (date +"%Y-%m-%d" | grep -v 2038)') != 0;
-}
-
-sub post_run_hook {
-    my ($self) = shift;
-    upload_logs('/var/log/wtmp');
 }
 
 # We need to force the sytem to rollback to snapshot because of poo#127343
