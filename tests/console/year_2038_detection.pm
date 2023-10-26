@@ -83,7 +83,8 @@ sub run {
     # wait for chronyd service to check the system clock change;
     # add some timeout after 'chronyc makestep'
     script_retry('journalctl -u chronyd | grep -e "System clock wrong" -e "Received KoD RATE"', delay => 60, retry => 3, die => 0);
-    record_soft_failure('poo#127343, Time sync with NTP server failed') if script_run('chronyc makestep && sleep 2 && (date +"%Y-%m-%d" | grep -v 2038)') != 0;
+    assert_script_run('chronyc makestep');
+    record_soft_failure('poo#127343, Time sync with NTP server failed') unless script_retry('date +"%Y-%m-%d" | grep -v 2038', delay => 5, retry => 5, die => 0) == 0;
 }
 
 # Rollback the system because of poo#127343, to restore the chronyd.service state,
