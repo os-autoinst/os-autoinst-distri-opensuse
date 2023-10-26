@@ -114,6 +114,7 @@ exit 0
       <package>e2fsprogs</package>
       <package>btrfsprogs</package>
       <package>autoyast2</package>
+      <package>zypper-migration-plugin</package>
     </packages>
     <patterns t="list">
       <pattern>apparmor</pattern>
