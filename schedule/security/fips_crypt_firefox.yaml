@@ -7,7 +7,6 @@ schedule:
     - console/consoletest_setup
     - '{{repo_setup}}'
     - fips/fips_setup
-    - '{{y2_vnc_pvm}}'
     - fips/mozilla_nss/firefox_nss
 conditional_schedule:
     repo_setup:
@@ -17,7 +16,3 @@ conditional_schedule:
         FLAVOR:
             Online-QR:
                 - security/test_repo_setup
-    y2_vnc_pvm:
-        BACKEND:
-            pvm_hmc:
-                - console/yast2_vnc

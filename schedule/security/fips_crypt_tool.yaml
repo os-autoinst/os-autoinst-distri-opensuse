@@ -2,12 +2,11 @@ name: fips_crypt_tool
 description:    >
     This is for the crypt_tool fips tests.
 schedule:
-    - '{{boot}}'
+    - installation/bootloader_start
     - boot/boot_to_desktop
     - console/consoletest_setup
     - '{{repo_setup}}'
     - fips/fips_setup
-    - '{{y2_vnc_pvm}}'
     - fips/curl_fips_rc4_seed
     - console/aide_check
     - console/gpg
@@ -21,12 +20,6 @@ schedule:
     - x11/evolution/evolution_prepare_servers
     - console/mutt
 conditional_schedule:
-    boot:
-        ARCH:
-            s390x:
-                - installation/bootloader_start
-            ppc64le:
-                - installation/bootloader_start
     repo_setup:
         BETA:
             1:
@@ -34,7 +27,3 @@ conditional_schedule:
         FLAVOR:
             Online-QR:
                 - security/test_repo_setup
-    y2_vnc_pvm:
-        BACKEND:
-            pvm_hmc:
-                - console/yast2_vnc

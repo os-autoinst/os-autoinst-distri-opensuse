@@ -7,7 +7,6 @@ schedule:
     - '{{alp_boot}}'
     - '{{repo_setup}}'
     - fips/fips_setup
-    - '{{y2_vnc_pvm}}'
     - fips/openssl/openssl_fips_alglist
     - fips/openssl/openssl_fips_hash
     - fips/openssl/openssl_fips_cipher
@@ -28,8 +27,6 @@ conditional_schedule:
         ARCH:
             s390x:
                 - installation/bootloader_zkvm
-            ppc64le:
-                - installation/bootloader
     sle_os_boot:
         DISTRI:
             sle:
@@ -55,10 +52,6 @@ conditional_schedule:
                 - jeos/firstrun
                 - transactional/host_config
                 - security/selinux/selinux_setup
-    y2_vnc_pvm:
-        BACKEND:
-            pvm_hmc:
-                - console/yast2_vnc
     ssh:
         TEST_SUITE_NAME:
             fips_ker_mode_tests_crypt_core:

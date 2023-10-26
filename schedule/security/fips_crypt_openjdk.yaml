@@ -7,7 +7,6 @@ schedule:
     - console/consoletest_setup
     - '{{repo_setup}}'
     - fips/fips_setup
-    - '{{y2_vnc_pvm}}'
     - fips/openjdk/openjdk11_fips
     - fips/openjdk/openjdk11_ssh
     - fips/openjdk/openjdk17_fips
@@ -20,7 +19,3 @@ conditional_schedule:
         FLAVOR:
             Online-QR:
                 - security/test_repo_setup
-    y2_vnc_pvm:
-        BACKEND:
-            pvm_hmc:
-                - console/yast2_vnc
