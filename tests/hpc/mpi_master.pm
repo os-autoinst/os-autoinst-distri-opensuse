@@ -21,6 +21,8 @@ use isotovideo;
 
 use POSIX 'strftime';
 
+our $file = 'tmpresults.xml';
+
 sub run ($self) {
     select_serial_terminal();
     my $mpi = $self->get_mpi();
@@ -37,7 +39,8 @@ sub run ($self) {
     my $prompt = $user_virtio_fixed ? $testapi::username . '@' . get_required_var('HOSTNAME') . ':~> ' : undef;
 
     script_run("sudo -u $testapi::username mkdir -p $exports_path{bin}");
-    zypper_call("in $mpi-gnu-hpc $mpi-gnu-hpc-devel imb-gnu-$mpi-hpc");
+    my $rt = zypper_call("in $mpi-gnu-hpc $mpi-gnu-hpc-devel imb-gnu-$mpi-hpc");
+    test_case('Installation', "$mpi", $rt);
 
     my $need_restart = $self->setup_scientific_module();
     $self->relogin_root if $need_restart;
@@ -74,7 +77,8 @@ sub run ($self) {
     push @load_modules, 'python3-scipy' if check_var('HPC_LIB', 'scipy');
     push @load_modules, 'papi' if check_var('HPC_LIB', 'papi');
     push @load_modules, 'openblas' if check_var('HPC_LIB', 'openblas');
-    assert_script_run "module load gnu @load_modules";
+    $rt = assert_script_run "module load gnu @load_modules";
+    test_case('Enable modules', "Load gnu @load_modules", $rt);
     script_run "module av";
 
     barrier_wait('MPI_SETUP_READY');
@@ -82,15 +86,15 @@ sub run ($self) {
     if (get_var('HPC_LIB') eq 'papi') {
         my $papi_version = script_output("module whatis papi | grep Version");
         $papi_version = (split(/: /, $papi_version))[2];
-        assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin -I/usr/lib/hpc/papi/$papi_version/include/ -L/usr/lib/hpc/papi/$papi_version/lib64/ -lpapi") if $mpi_compiler;
+        $rt = assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin -I/usr/lib/hpc/papi/$papi_version/include/ -L/usr/lib/hpc/papi/$papi_version/lib64/ -lpapi") if $mpi_compiler;
     } elsif (get_var('HPC_LIB') eq 'openblas') {
         my $version = script_output("module whatis openblas | grep Version");
         $version = (split(/: /, $version))[2];
-        assert_script_run("$mpi_compiler -o $exports_path{'bin'}/$mpi_bin $exports_path{'bin'}/$mpi_c -Iexports_path{'hpc'}/gnu7/openblas/$version/include -Iexports_path{'hpc'}/gnu7/openblas/$version/lib64 -lopenblas");
+        $rt = assert_script_run("$mpi_compiler -o $exports_path{'bin'}/$mpi_bin $exports_path{'bin'}/$mpi_c -Iexports_path{'hpc'}/gnu7/openblas/$version/include -Iexports_path{'hpc'}/gnu7/openblas/$version/lib64 -lopenblas");
     } else {
-        assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin") if $mpi_compiler;
+        $rt = assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin") if $mpi_compiler;
     }
-
+    test_case('Compilation', 'Program compiled successfully', $rt);
     # python code is not compiled. *mpi_bin* is expected as a compiled binary. if compilation was not
     # invoked return source code (ex: sample_scipy.py).
     $mpi_bin = ($mpi_compiler) ? $mpi_bin : $mpi_c;
@@ -107,7 +111,8 @@ sub run ($self) {
                 record_soft_failure('bsc#1199811 known problem on single core on mvapich2/2.2');
             }
         } else {
-            assert_script_run($mpirun_s->single_node("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
+            $rt = assert_script_run($mpirun_s->single_node("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
+            test_case('Execution 0', 'Run in a single node', $rt);
         }
     }
 
@@ -132,13 +137,16 @@ sub run ($self) {
         }
     } else {
         if ($mpi_c eq 'sample_cplusplus.cpp') {
-            assert_script_run($mpirun_s->slave_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
-            assert_script_run($mpirun_s->n_nodes("$exports_path{'bin'}/$mpi_bin", 2), timeout => 120);
+            $rt = assert_script_run($mpirun_s->slave_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
+            test_case('Execution 1', 'Using compute nodes', $rt);
+            $rt = assert_script_run($mpirun_s->n_nodes("$exports_path{'bin'}/$mpi_bin", 2), timeout => 120);
+            test_case('Execution 2', 'Using n nodes', $rt);
         } else {
             # Skipping papi test on compute nodes as for some reason
             # module is not getting loaded for the c test execution
             unless (get_var('HPC_LIB') eq 'papi') {
-                assert_script_run($mpirun_s->all_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
+                $rt = assert_script_run($mpirun_s->all_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
+                test_case('Execution 1', 'Using Controller and Compute nodes', $rt);
             }
         }
     }
@@ -166,7 +174,8 @@ sub run ($self) {
     } else {
         record_info 'testing IMB', 'Run all IMB-MPI1 components';
         # Run IMB-MPI1 without args to run the whole set of testings. Mind the timeout if you do so
-        assert_script_run("mpirun -np 4 /usr/lib/hpc/gnu7/$mpi/imb/$imb_version/bin/IMB-MPI1 PingPong");
+        $rt = assert_script_run("mpirun -np 4 /usr/lib/hpc/gnu7/$mpi/imb/$imb_version/bin/IMB-MPI1 PingPong");
+        test_case('Test IMB', 'Basic performmance test', $rt);
     }
     barrier_wait('IMB_TEST_DONE');
     record_info 'IMB_TEST_DONE', strftime("\%H:\%M:\%S", localtime);
@@ -174,6 +183,12 @@ sub run ($self) {
 
 sub test_flags ($self) {
     return {fatal => 1, milestone => 1};
+}
+
+sub post_run_hook ($self) {
+    parse_test_results('HPC MPI tests', $file, @all_tests_results);
+    parse_extra_log('XUnit', "/tmp/$file");
+    $self->SUPER::post_run_hook();
 }
 
 sub post_fail_hook ($self) {
