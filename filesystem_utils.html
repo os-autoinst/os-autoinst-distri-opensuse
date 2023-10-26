@@ -32,6 +32,7 @@
       <li><a href="#lsblk_command">lsblk_command</a></li>
       <li><a href="#create_lsblk_validation_test_data">create_lsblk_validation_test_data</a></li>
       <li><a href="#validate_lsblk">validate_lsblk</a></li>
+      <li><a href="#"></a></li>
     </ul>
   </li>
 </ul><h1>lib/filesystem_utils.pm</h1>
@@ -146,6 +147,10 @@
 <p><b>type</b> represents the type of device. Valid values: &#39;disk&#39; and &#39;part&#39;; <b>has_mountpoints_col</b> indicates whether version of <code>lsblk</code> used contains new MOUNTPOINTS column including all subvolumes mountpoints or not.</p>
 
 <p>Returns string with all found errors.</p>
+
+<h2 id=""></h2>
+
+<p>Generate xfstests subtests list This function translate test range to single tests, with xfstests test name format. Input an parameter with list of subtest name, Return a hash of test list. e.g. generate &quot;xfs/001-003,xfs/005&quot; into &quot;{xfs/001 =&gt; 1, xfs/002 =&gt; 1, xfs/003 =&gt; 1, xfs/005 =&gt; 1}&quot;</p>
 
 
 </body>
