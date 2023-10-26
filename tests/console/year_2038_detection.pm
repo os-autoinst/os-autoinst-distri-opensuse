@@ -86,8 +86,9 @@ sub run {
     record_soft_failure('poo#127343, Time sync with NTP server failed') if script_run('chronyc makestep && sleep 2 && (date +"%Y-%m-%d" | grep -v 2038)') != 0;
 }
 
-# We need to force the sytem to rollback to snapshot because of poo#127343
-# so that we can get the right system clock
+# Rollback the system because of poo#127343, to restore the chronyd.service state,
+# to avoid polluting the journal with time travel (very confusing to read) and other
+# side effects of time warps.
 sub test_flags {
     return {always_rollback => 1};
 }
