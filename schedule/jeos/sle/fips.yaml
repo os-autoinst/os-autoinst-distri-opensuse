@@ -14,7 +14,7 @@ conditional_schedule:
                 - installation/bootloader_uefi
             svirt-hyperv:
                 - installation/bootloader_hyperv
-            svirt-vmware65:
+            svirt-vmware70:
                 - installation/bootloader_svirt
     maintenance:
         FLAVOR:

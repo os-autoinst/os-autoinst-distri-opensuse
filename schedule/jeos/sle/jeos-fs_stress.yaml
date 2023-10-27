@@ -14,7 +14,7 @@ conditional_schedule:
             'svirt-hyperv':
                 - installation/bootloader_hyperv
                 - installation/bootloader_uefi
-            'svirt-vmware65':
+            'svirt-vmware70':
                 - installation/bootloader_svirt
                 - installation/bootloader_uefi
 schedule:
