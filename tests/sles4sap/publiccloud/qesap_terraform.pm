@@ -95,15 +95,24 @@ sub run {
     set_var('QESAP_DEPLOYMENT_NAME', get_var('QESAP_DEPLOYMENT_NAME', $deployment_name));
     record_info 'Resource Group', "Resource Group used for deployment: $deployment_name";
 
-    if (get_var("HANA_TOKEN")) {
-        my $escaped_token = get_required_var("HANA_TOKEN");
+    my $provider = $self->provider_factory();
+    # Needed to create the SAS URI token
+    if (!is_azure()) {
+        my $azure_client = publiccloud::azure_client->new();
+        $azure_client->init();
+    }
+
+    if (get_var('HANA_ACCOUNT') && get_var('HANA_CONTAINER') && get_var('HANA_KEYNAME')) {
+        my $escaped_token = qesap_az_create_sas_token(storage => get_required_var('HANA_ACCOUNT'),
+            container => (split("/", get_required_var('HANA_CONTAINER')))[0],
+            keyname => get_required_var('HANA_KEYNAME'),
+            lifetime => 30);
         # escape needed by 'sed'
         # but not implemented in file_content_replace() yet poo#120690
         $escaped_token =~ s/\&/\\\&/g;
         set_var("HANA_TOKEN", $escaped_token);
     }
 
-    my $provider = $self->provider_factory();
     my $subscription_id = $provider->{provider_client}{subscription};
 
     # This section is only needed by tests using images uploaded
