@@ -105,16 +105,16 @@ subtest '[qesap_az_vnet_peering_delete]' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(get_current_job_id => sub { return 42; });
-    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'GYROS'; });
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'NEMO'; });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(record_soft_failure => sub { note(join(' ', 'RECORD_SOFT_FAILURE -->', @_)); });
     $qesap->redefine(qesap_az_get_vnet => sub {
-            return 'VNET_TZATZIKI' if ($_[0] =~ /TZATZIKI/);
+            return 'VNET_WHALE' if ($_[0] =~ /WHALE/);
             return;
     });
 
-    qesap_az_vnet_peering_delete(target_group => 'TZATZIKI');
+    qesap_az_vnet_peering_delete(target_group => 'WHALE');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     # qesap_az_get_peering_name
@@ -134,11 +134,11 @@ subtest '[qesap_az_vnet_peering_delete] delete failure' => sub {
             push @soft_failure, $_[0];
             note(join(' ', 'RECORD_SOFT_FAILURE -->', @_)); });
     $qesap->redefine(qesap_az_get_vnet => sub {
-            return 'VNET_TZATZIKI' if ($_[0] =~ /TZATZIKI/);
+            return 'VNET_WHALE' if ($_[0] =~ /WHALE/);
             return;
     });
 
-    qesap_az_vnet_peering_delete(target_group => 'TZATZIKI');
+    qesap_az_vnet_peering_delete(target_group => 'WHALE');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     note("\n  SF-->  " . join("\n  SF-->  ", @soft_failure));
@@ -298,6 +298,57 @@ subtest '[qesap_az_clean_old_peerings]' => sub {
     ok(any { $_ eq 'peering1' } @delete_calls, "Peering1 was deleted");
     ok(none { $_ eq 'peering2' } @delete_calls, "Peering2 was not deleted");
     ok(any { $_ eq 'peering3' } @delete_calls, "Peering3 was deleted");
+};
+
+
+subtest '[qesap_az_create_sas_token] mandatory arguments' => sub {
+    dies_ok { qesap_az_create_sas_token(container => 'NEMO', keyname => 'DORY'); } "Failed for missing argument storage";
+    dies_ok { qesap_az_create_sas_token(storage => 'NEMO', keyname => 'DORY'); } "Failed for missing argument container";
+    dies_ok { qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY'); } "Failed for missing argument keyname";
+};
+
+
+subtest '[qesap_az_create_sas_token]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'BOAT' });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN');
+
+    ok($ret eq 'BOAT', "The function return the token returned by the az command");
+    ok((any { /az storage container generate-sas.*/ } @calls), 'Main az command `az storage container generate-sas` properly composed');
+    ok((any { /.*--account-name DORY.*/ } @calls), 'storage argument is used for --account-name');
+    ok((any { /.*--name NEMO.*/ } @calls), 'container argument is used for --name');
+    ok((any { /az storage account keys list --account-name DORY.*/ } @calls), 'Inner az command `az storage account keys list` properly composed');
+    ok((any { /.*--query.*MARLIN.*/ } @calls), 'keyname argument used in the query of the inner command');
+    ok((any { /.*\[\?contains\(keyName.*\)\]\.value/ } @calls), 'contains query format to extract the key value is ok');
+    ok((any { /.*--permission r.*/ } @calls), 'default permission is read only');
+    ok((any { /.*--expiry.*date.*10/ } @calls), 'default token expire is 10 minutes');
+};
+
+
+subtest '[qesap_az_create_sas_token] with custom timeout' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'BOAT' });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', lifetime => 30);
+
+    ok((any { /.*--expiry.*date.*30/ } @calls), 'Configured lifetime');
+};
+
+
+subtest '[qesap_az_create_sas_token] with custom permissions' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'BOAT' });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', 'permission' => 'SHELL');
+
+    ok((any { /.*--permission SHELL.*/ } @calls), 'Configured permission');
 };
 
 done_testing;

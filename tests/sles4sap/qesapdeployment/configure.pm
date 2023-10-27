@@ -7,6 +7,7 @@
 use strict;
 use warnings;
 use Mojo::Base 'publiccloud::basetest';
+use publiccloud::azure_client;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use qesapdeployment;
@@ -17,6 +18,12 @@ sub run {
 
     # Init al the PC gears (ssh keys)
     my $provider = $self->provider_factory();
+
+    # Needed to create the SAS URI token
+    if (!check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+        my $azure_client = publiccloud::azure_client->new();
+        $azure_client->init();
+    }
 
     my %variables;
     $variables{REGION} = $provider->provider_client->region;
@@ -47,7 +54,11 @@ sub run {
     $variables{HANA_ACCOUNT} = get_required_var('QESAPDEPLOY_HANA_ACCOUNT');
     $variables{HANA_CONTAINER} = get_required_var('QESAPDEPLOY_HANA_CONTAINER');
     if (get_var('QESAPDEPLOY_HANA_TOKEN')) {
-        $variables{HANA_TOKEN} = get_required_var('QESAPDEPLOY_HANA_TOKEN');
+        $variables{HANA_TOKEN} = qesap_az_create_sas_token(storage => get_required_var('QESAPDEPLOY_HANA_ACCOUNT'),
+            container => (split("/", get_required_var('QESAPDEPLOY_HANA_CONTAINER')))[0],
+            keyname => get_required_var('QESAPDEPLOY_HANA_KEYNAME'),
+            lifetime => 30);
+        record_info('TOKEN', $variables{HANA_TOKEN});
         # escape needed by 'sed'
         # but not implemented in file_content_replace() yet poo#120690
         $variables{HANA_TOKEN} =~ s/\&/\\\&/g;
