@@ -21,9 +21,7 @@ use version_utils qw(is_sle is_tumbleweed);
 
 sub run {
     my ($self) = @_;
-    x11_start_program('gnote');
-    send_key "ctrl-n";
-    assert_screen 'gnote-new-note', 5;
+    $self->gnote_start_with_new_note;
     send_key "up";
     send_key "up";
     enter_cmd "new title-opensuse";

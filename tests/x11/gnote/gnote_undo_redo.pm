@@ -39,9 +39,7 @@ sub undo_redo_once {
 
 sub run {
     my ($self) = @_;
-    x11_start_program('gnote');
-    send_key "ctrl-n";
-    assert_screen 'gnote-new-note';
+    $self->gnote_start_with_new_note;
     enter_cmd "opensuse\nOPENSUSE";
     $self->undo_redo_once;
 
