@@ -12,8 +12,9 @@ use strict;
 use warnings;
 use testapi;
 use base 'consoletest';
-use utils 'zypper_call';
+use utils qw(zypper_call enter_cmd_slow);
 use version_utils 'is_sle';
+use Utils::Architectures qw(is_aarch64);
 
 sub run {
     select_console('root-console');
@@ -22,8 +23,13 @@ sub run {
     my $user_name = 'pamtest';
     my $user_pw = $testapi::password;
     my $bad_pw = 'badpassword';
-    assert_script_run("useradd -m $user_name");
-    assert_script_run("echo $user_name:$user_pw | chpasswd");
+    if (is_aarch64) {
+        enter_cmd_slow("useradd -m $user_name");
+        enter_cmd_slow("echo $user_name:$user_pw | chpasswd");
+    } else {
+        assert_script_run("useradd -m $user_name");
+        assert_script_run("echo $user_name:$user_pw | chpasswd");
+    }
 
     # Package change log check on SLE: jsc#sle-20638
     validate_script_output('rpm -q pam --changelog', sub { m/jsc#sle-20638/ }) if (is_sle);
