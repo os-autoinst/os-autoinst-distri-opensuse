@@ -16,6 +16,7 @@ use serial_terminal 'select_serial_terminal';
 use LTP::WhiteList;
 use version_utils qw(is_transactional);
 use transactional 'trup_install';
+use LTP::kirk;
 
 sub download_kernel_source
 {
@@ -66,21 +67,30 @@ sub run
     my $issues = get_var('KSELFTESTS_KNOWN_ISSUES', '');
     my $whitelist = LTP::WhiteList->new($issues);
     my @skipped = $whitelist->list_skipped_tests($environment, 'kselftests');
+    my $test_exclude;
     if (@skipped) {
-        my $test_exclude = join("|", @skipped);
+        $test_exclude = join("|", @skipped);
 
         record_info(
             "Exclude",
             "Excluding tests: $test_exclude",
             result => 'softfail'
         );
-
-        set_var('KIRK_SKIP', "$test_exclude");
     }
 
-    # setup kirk framework before calling it
-    set_var('KIRK_FRAMEWORK', "kselftests:root=$root");
-    set_var('KIRK_SUITE', "$suite");
+    my @volumes = (
+        {src => $root, dst => $root},
+        {src => "/tmp", dst => "/tmp"}
+    );
+
+    LTP::kirk->run(
+        framework => "kselftests:root=$root",
+        skip => $test_exclude,
+        suite => $suite,
+        # when KIRK_INSTALL == 'container' we want to share
+        # kselftests folder and kirk logs folder
+        container_volumes => \@volumes,
+    );
 }
 
 1;
