@@ -14,7 +14,7 @@ use utils qw(validate_script_output_retry);
 use containers::utils qw(reset_container_network_if_needed);
 use Utils::Architectures;
 use Utils::Backends qw(is_xen_pv is_hyperv);
-use version_utils qw(is_public_cloud is_sle);
+use version_utils qw(is_public_cloud is_sle is_vmware);
 use utils qw(script_retry);
 
 sub run {
@@ -35,7 +35,7 @@ sub run {
     # xen-pv does not define USB passthrough in the xml as of now
     # this feature has to be added -> https://progress.opensuse.org/issues/138410
     assert_script_run("$runtime run --rm $image bash -c '! test -d /dev/bus'");
-    assert_script_run("$runtime run --rm --privileged $image ls /dev/bus") unless (is_s390x || is_public_cloud || is_xen_pv || is_hyperv);
+    assert_script_run("$runtime run --rm --privileged $image ls /dev/bus") unless (is_s390x || is_public_cloud || is_xen_pv || is_hyperv || is_vmware);
 
     # Mounting tmpfs only works in privileged mode because the read-only protection in the default mode
     assert_script_run("$runtime run --rm --privileged $image mount -t tmpfs none /mnt");
