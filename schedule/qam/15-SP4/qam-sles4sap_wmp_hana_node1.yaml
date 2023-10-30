@@ -19,7 +19,6 @@ vars:
   QEMU_DISABLE_SNAPSHOTS: '1'
   TIMEOUT_SCALE: '3'
   USE_SUPPORT_SERVER: '1'
-  VIRTIO_CONSOLE: '0'
   WMP_TEST_REPO: 'https://gitlab.suse.de/lpalovsky/wmp_basic_tests/-/archive/master/wmp_basic_tests-master.tgz'
 schedule:
   - boot/boot_to_desktop
