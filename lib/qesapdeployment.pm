@@ -96,6 +96,8 @@ our @EXPORT = qw(
   qesap_export_instances
   qesap_import_instances
   qesap_file_find_string
+  qesap_is_job_finished
+  qesap_az_get_active_peerings
   qesap_az_clean_old_peerings
   qesap_az_setup_native_fencing_permissions
   qesap_az_enable_system_assigned_identity
@@ -401,6 +403,7 @@ sub qesap_yaml_replace {
 =item B<LOGNAME> - filename of the log file. This argument is optional,
                    if not specified the log filename is internally calculated
                    using content from CMD and CMD_OPTIONS.
+
 =back
 =cut
 
@@ -452,6 +455,7 @@ sub qesap_execute {
 =item B<FILE> - Path to the Ansible log file. (Required)
 
 =item B<SEARCH_STRING> - String to search for in the log file. (Required)
+
 =back
 =cut
 
@@ -964,6 +968,7 @@ sub qesap_wait_for_ssh {
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
 =item B<FAILOK> - if not set, Ansible failure result in die
+
 =back
 =cut
 
@@ -1065,6 +1070,7 @@ sub qesap_cluster_logs {
 =head3 qesap_az_get_vnet
 
 Return the output of az network vnet list
+
 =over 1
 
 =item B<RESOURCE_GROUP> - resource group name to query
@@ -1748,7 +1754,8 @@ sub qesap_export_instances {
 
 =head3 qesap_is_job_finished
 
-    Get whether a specified job is still running or not
+    Get whether a specified job is still running or not. 
+    In cases of ambiguous responses, they are considered to be in `running` state.
 
 =over 1
 
@@ -1764,11 +1771,11 @@ sub qesap_is_job_finished {
 
     my $job_data = eval { decode_json($json_data) };
     if ($@) {
-        warn "Failed to decode JSON data for job $job_id: $@";
+        record_info("JSON error", "Failed to decode JSON data for job $job_id: $@");
         return 0;    # Assume job is still running if we can't get its state
     }
 
-    my $job_state = $job_data->{job}->{state} // '';
+    my $job_state = $job_data->{job}->{state} // 'running';    # assume job is running if unable to get status
 
     return ($job_state ne 'running');
 }

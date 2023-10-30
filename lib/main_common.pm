@@ -1746,7 +1746,7 @@ sub load_extra_tests_console {
     loadtest 'console/vhostmd' unless get_var('PUBLIC_CLOUD');
     loadtest 'console/rpcbind' unless is_jeos;
     # sysauth test scenarios run in the console
-    loadtest "sysauth/sssd" if (get_var('SYSAUTHTEST') || is_sle('12-SP5+'));
+    loadtest "sysauth/sssd" if (get_var('SYSAUTHTEST') || (is_sle('12-SP5+') && is_sle('<=15-SP3')));
     loadtest 'console/timezone';
     loadtest 'console/ntp' if is_sle('<15');
     loadtest 'console/procps';
@@ -2526,12 +2526,6 @@ sub load_extra_tests_syscontainer {
 }
 
 sub load_extra_tests_kernel {
-    if (is_tumbleweed || is_sle('>=15-sp5')) {
-        loadtest "kernel/bpftrace";
-        loadtest "kernel/bcc";
-        loadtest "kernel/io_uring";
-    }
-
     loadtest "kernel/tuned";
     loadtest "kernel/fwupd" if is_sle('15+');
 

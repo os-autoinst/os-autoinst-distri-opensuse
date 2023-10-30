@@ -105,7 +105,7 @@ constant values for Trento tests
 =head2 Methods
 =cut
 
-=hean3 clone_trento_deployment
+=head3 clone_trento_deployment
 
 Clone gitlab.suse.de/qa-css/trento
 
@@ -237,6 +237,7 @@ sub get_resource_group {
 =head3 cluster_config
 
 Create a variable map and prepare the qe-sap-deployment using it
+
 =over 3
 
 =item B<PROVIDER> - CloudProvider name
@@ -859,6 +860,7 @@ sub cluster_wait_status {
 =head3 cluster_wait_status_by_regex
 
 Remotely run 'SAPHanaSR-showAttr' in a loop on $host, wait output that matches regular expression
+
 =over 3
 
 =item B<HOST> - Ansible name or filter for the remote host where to run 'SAPHanaSR-showAttr'

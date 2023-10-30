@@ -14,6 +14,8 @@ use testapi;
 use utils;
 use atsec_test;
 use Data::Dumper;
+use version_utils 'is_sle';
+use Utils::Architectures 'is_s390x';
 
 my %white_list_for_busctl = (
     systemd => 1,
@@ -85,6 +87,12 @@ sub run {
     my $output_busctl_list = script_output('busctl list');
     my %busctl_list_result = parse_results($output_busctl_list);
     record_info('Results of parsing busctl list', Dumper(\%busctl_list_result));
+
+    # https://bugzilla.suse.com/show_bug.cgi?id=1216538
+    if (is_sle('>=15-SP6') && is_s390x) {
+        $white_list_for_busctl{virtqemud} = 1;
+        push(@atsec_test::white_list_for_dbus, '1.28', '1.38');
+    }
 
     # Analyse the results.
     foreach my $wl (@atsec_test::white_list_for_dbus) {

@@ -23,7 +23,6 @@ testing" && exit 2)
 
 tools/tidy: os-autoinst/
 	@test -e tools/tidy || ln -s ../os-autoinst/tools/tidy tools/
-	@test -e tools/absolutize || ln -s ../os-autoinst/tools/absolutize tools/
 	@test -e .perltidyrc || ln -s os-autoinst/.perltidyrc ./
 
 tools/lib/: os-autoinst/
@@ -60,6 +59,10 @@ test-compile-changed: os-autoinst/
 .PHONY: test_pod_whitespace_rule
 test_pod_whitespace_rule:
 	tools/check_pod_whitespace_rule
+
+.PHONY: test_pod_errors
+test_pod_errors:
+	tools/check_pod_errors
 
 .PHONY: test-yaml-valid
 test-yaml-valid:
@@ -103,7 +106,7 @@ test-spec:
 	tools/update_spec --check
 
 .PHONY: test-static
-test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-files test-unused-modules-changed test-soft_failure-no-reference test-spec test-invalid-syntax test-code-style test-metadata test_pod_whitespace_rule
+test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-files test-unused-modules-changed test-soft_failure-no-reference test-spec test-invalid-syntax test-code-style test-metadata test_pod_whitespace_rule test_pod_errors
 
 .PHONY: test
 ifeq ($(TESTS),compile)
@@ -144,7 +147,7 @@ test-deleted-renamed-referenced-files:
 
 .PHONY: test-soft_failure-no-reference
 test-soft_failure-no-reference:
-	@! git --no-pager grep -E -e 'record_soft_failure\>.*\;' --and --not -e '([a-zA-Z]+#[a-zA-Z-]*[0-9]+|fate.suse.com/[0-9]+|\$reference)' lib/ tests/
+	@! git --no-pager grep -E -e 'record_soft_failure\>.*\;' --and --not -e '([a-zA-Z]+#[a-zA-Z-]*[0-9]+|fate.suse.com/[0-9]+|\$$(reference|bsc))' lib/ tests/
 
 .PHONY: test-invalid-syntax
 test-invalid-syntax:

@@ -657,7 +657,11 @@ sub check_cluster_state {
     my $cmd = (defined $args{proceed_on_failure} && $args{proceed_on_failure} == 1) ? \&script_run : \&assert_script_run;
 
     $cmd->("$crm_mon_cmd");
-    $cmd->("$crm_mon_cmd | grep -i 'no inactive resources'") if is_sle '12-sp3+';
+    if (is_sle '12-sp3+') {
+        # Add sleep as command 'crm_mon' outputs 'Inactive resources:' instead of 'no inactive resources' on 12-sp5
+        sleep 5;
+        $cmd->("$crm_mon_cmd | grep -i 'no inactive resources'");
+    }
     $cmd->('crm_mon -1 | grep \'partition with quorum\'');
     # In older versions, node names in crm node list output are followed by ": normal". In newer ones by ": member"
     $cmd->(q/crm_mon -s | grep "$(crm node list | grep -E -c ': member|: normal') nodes online"/);
@@ -1205,6 +1209,7 @@ sub check_iscsi_failure {
 =head3 cluster_status_matches_regex
 
 Check crm status output against a hardcode regular expression in order to check the cluster health 
+
 =over 1
 
 =item B<SHOW_CLUSTER_STATUS> - Output from 'crm status' command

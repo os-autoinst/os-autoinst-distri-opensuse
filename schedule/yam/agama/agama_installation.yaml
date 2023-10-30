@@ -1,4 +1,5 @@
 ---
+name: agama_installation
 description: >
   Playwright test on agama
 schedule:

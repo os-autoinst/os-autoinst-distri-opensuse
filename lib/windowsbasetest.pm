@@ -72,6 +72,11 @@ sub open_powershell_as_admin {
         assert_and_click "windows-user-account-ctl-hidden" if match_has_tag("windows-user-account-ctl-hidden");
         assert_and_click "windows-user-acount-ctl-yes";
         wait_still_screen stilltime => 3, timeout => 12;
+        if (check_var('WIN_VERSION', '11')) {
+            # When opening Powershell, sometimes the startup menu window pops up.
+            assert_screen(['powershell-with-startup-menu', 'powershell-as-admin-window'], 240);
+            send_key 'esc' if match_has_tag('powershell-with-startup-menu');
+        }
         assert_screen 'powershell-as-admin-window', timeout => 240;
         assert_and_click 'window-max';
         wait_still_screen stilltime => 3, timeout => 12;
