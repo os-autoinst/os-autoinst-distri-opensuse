@@ -106,7 +106,8 @@
             "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" , "5.5" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"],
+            "alp":  ["1.0"]
         },
         "type": "bug"
     },
@@ -471,7 +472,8 @@
     "boo#1215367": {
         "description": "pam_wtmpdb\\(login:session\\): Failed to execute statement: database is locked",
         "products": {
-            "microos":  ["Tumbleweed"]
+            "microos":  ["Tumbleweed"],
+            "alp": ["1.0"]
         },
         "type": "bug"
     },
@@ -519,7 +521,8 @@
         "description": "systemd-vconsole-setup\\[.*\\]: /usr/bin/setfont failed with exit status 71.*",
         "products": {
             "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"]
+            "microos":  ["Tumbleweed"],
+            "alp": ["1.0"]
         },
         "type": "bug"
     },
