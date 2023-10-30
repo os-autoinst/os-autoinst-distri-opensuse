@@ -179,7 +179,11 @@ sub login_to_console {
             save_screenshot;
             send_key 'ret';
             #wait grub2 boot menu after first stage upgrade
-            assert_screen('grub2', 300);
+            unless (check_screen('grub2', timeout => 290)) {
+                record_info("Reboot SUT", "Reboot " . get_required_var("SUT_IP") . " to match grub2 menu because last match failed");
+                ipmi_backend_utils::ipmitool("chassis power reset");
+                assert_screen('grub2', timeout => 300);
+            }
             #wait sshd up after first stage upgrade
             die "Can not connect to machine to perform offline upgrade second stage via ssh" unless (check_port_state(get_required_var('SUT_IP'), 22, 20));
             save_screenshot;
