@@ -80,6 +80,7 @@
       <li><a href="#qesap_az_assign_role">qesap_az_assign_role</a></li>
       <li><a href="#qesap_az_get_tenant_id">qesap_az_get_tenant_id</a></li>
       <li><a href="#qesap_az_validate_uuid_pattern">qesap_az_validate_uuid_pattern</a></li>
+      <li><a href="#qesap_az_create_sas_token">qesap_az_create_sas_token</a></li>
     </ul>
   </li>
 </ul><h1>lib/qesapdeployment.pm</h1>
@@ -989,6 +990,36 @@ subscription_id - valid azure subscription</code></pre>
 
 Function checks input string against uuid pattern which is commonly used as an identifier for azure resources.
 returns uuid (true) on match, 0 (false) on mismatch.</code></pre>
+
+<h2 id="qesap_az_create_sas_token">qesap_az_create_sas_token</h2>
+
+<p>Generate a SAS URI token for a storage container of choice</p>
+
+<p>Return the token string</p>
+
+<dl>
+
+<dt id="STORAGE---Storage-account-name-used-fur-the---account-name-argument-in-az-commands"><b>STORAGE</b> - Storage account name used fur the --account-name argument in az commands</dt>
+<dd>
+
+</dd>
+<dt id="CONTAINER---container-name-within-the-storage-account"><b>CONTAINER</b> - container name within the storage account</dt>
+<dd>
+
+</dd>
+<dt id="KEYNAME---name-of-the-access-key-within-the-storage-account"><b>KEYNAME</b> - name of the access key within the storage account</dt>
+<dd>
+
+</dd>
+<dt id="PERMISSION---access-permissions.-Syntax-is-what-documented-in-az-storage-container-generate-sas---help.-Some-of-them-of-interest:-a-dd-c-reate-d-elete-e-xecute-l-ist-m-ove-r-ead-w-rite.-Default-is-r"><b>PERMISSION</b> - access permissions. Syntax is what documented in &#39;az storage container generate-sas --help&#39;. Some of them of interest: (a)dd (c)reate (d)elete (e)xecute (l)ist (m)ove (r)ead (w)rite. Default is &#39;r&#39;</dt>
+<dd>
+
+</dd>
+<dt id="LIFETIME---life-time-of-the-token-in-minutes-default-is-10minute"><b>LIFETIME</b> - life time of the token in minutes, default is 10minute</dt>
+<dd>
+
+</dd>
+</dl>
 
 
 </body>
