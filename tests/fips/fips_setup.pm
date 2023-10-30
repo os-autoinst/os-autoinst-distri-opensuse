@@ -100,8 +100,8 @@ sub run {
         $self->wait_boot(bootloader_time => 200);
     }
 
-    # Workaround to resolve console switch issue
     select_serial_terminal;
+    # Workaround to resolve console switch issue
     assert_script_run q(grep '^1$' /proc/sys/crypto/fips_enabled) unless (get_var('FIPS_ENV_MODE'));
 }
 
