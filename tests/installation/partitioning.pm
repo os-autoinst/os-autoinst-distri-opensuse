@@ -15,7 +15,7 @@ use warnings;
 use testapi;
 use version_utils qw(is_leap is_storage_ng is_sle is_tumbleweed);
 use partition_setup qw(%partition_roles is_storage_ng_newui);
-
+use utils 'type_string_slow';
 sub run {
     if (check_var('SYSTEM_ROLE', 'Common_Criteria')) {
         assert_screen 'Common-Criteria-Evaluated-Configuration-RN-Next';
@@ -27,7 +27,7 @@ sub run {
         send_key 'alt-n';
         send_key 'down';
         send_key 'alt-f';
-        type_string 'ext4';
+        type_string_slow 'ext4';
         send_key 'alt-i';
         send_key 'b';
         assert_screen 'partitioning-ext4_root-btrfs_home';
@@ -38,7 +38,7 @@ sub run {
         send_key 'alt-n';
         send_key 'down';
         send_key 'alt-f';
-        type_string 'ext4';
+        type_string_slow 'ext4';
         send_key 'alt-i';
         send_key 'x';
         assert_screen 'partitioning-ext4_root-xfs_home';
