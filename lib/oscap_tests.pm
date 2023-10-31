@@ -223,7 +223,7 @@ sub oscap_evaluate {
     my @failed_rules = grep { $data{$_} =~ m/$f_fregex/ } keys %data;
     my $fail_count = scalar @failed_rules;
     # For a new installed OS the first time remediate can permit fail
-    if (($remediated <= 1 and $evaluate_count == 3) or ($remediated == 0 and $evaluate_count == 2)) {
+    if ($remediated <= 1 and $evaluate_count == 3) {
         record_info('non remediated', 'before remediation more rules fails are expected');
         record_info(
             "Passed rules count=$pass_count",
