@@ -256,7 +256,7 @@ TRENTO_WEB_PASSWORD | string | | Trento web password for the admin user. If not 
 TRENTO_QESAPDEPLOY_CLUSTER_OS_VER | string | | OS for nodes in SAP cluster.
 TRENTO_QESAPDEPLOY_HANA_ACCOUNT | string | | Azure blob server account for the SAP installers for the qe-sap-deployment hana_media.yaml.
 TRENTO_QESAPDEPLOY_HANA_CONTAINER | string | | Azure blob server container for the qe-sap-deployment hana_media.yaml.
-TRENTO_QESAPDEPLOY_HANA_TOKEN | string | | Azure blob server token for the qe-sap-deployment hana_media.yaml.
+TRENTO_QESAPDEPLOY_HANA_KEYNAME | string | | Azure blob server key name used to generate the SAS URI token for the qe-sap-deployment hana_media.yaml.
 TRENTO_QESAPDEPLOY_SAPCAR | string | | SAPCAR file name for the qe-sap-deployment hana_media.yaml.
 TRENTO_QESAPDEPLOY_IMDB_SERVER | string | | IMDB_SERVER file name for the qe-sap-deployment hana_media.yaml.
 TRENTO_QESAPDEPLOY_IMDB_CLIENT | string | | IMDB_CLIENT file name for the qe-sap-deployment hana_media.yaml.

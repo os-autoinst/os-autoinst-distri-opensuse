@@ -7,7 +7,7 @@
 # https://github.com/SUSE/qe-sap-deployment
 
 # Available OpenQA parameters:
-# HA_CLUSTER - Enables HA/Hana cluser scenario
+# HA_CLUSTER - Enables HA/Hana cluster scenario
 # NODE_COUNT - number of nodes to deploy. Needs to be >1 for cluster usage.
 # PUBLIC_CLOUD_INSTANCE_TYPE - VM size, sets terraform 'vm_size' parameter
 # USE_SAPCONF - (true/false) set 'false' to use saptune
@@ -15,10 +15,13 @@
 # FENCING_MECHANISM - (sbd/native) choose fencing mechanism
 # QESAP_SCC_NO_REGISTER - define variable in openqa to skip SCC registration via ANSIBLE
 # HANA_MEDIA - Hana install media directory
+# HANA_ACCOUNT - Azure Storage name
+# HANA_CONTAINER - Azure Container name
+# HANA_KEYNAME - Azure key name in the Storage to generate SAS URI token used by hana_media in qe-sap-deployment
 # _HANA_MASTER_PW (mandatory) - Hana master PW (secret)
 # INSTANCE_SID - SAP Sid
 # INSTANCE_ID - SAP instance id
-# ANSIBLE_REMOTE_PYTHON - define python version to be used for qesap-deploymnet (default '/usr/bin/python3')
+# ANSIBLE_REMOTE_PYTHON - define python version to be used for qe-sap-deploymnet (default '/usr/bin/python3')
 # PUBLIC_CLOUD_IMAGE_LOCATION - needed by get_blob_uri
 
 use strict;
@@ -43,7 +46,7 @@ sub test_flags {
     Check if a requested openQA variable is defined and returns it's current value.
     If the variable is not defined, it will:
      - defines it
-     - assignes the default value provided
+     - assigns the default value provided
      - returns its value
     $variable - variable to check against OpenQA settings
     $default - default value to set in case the variable is missing.
