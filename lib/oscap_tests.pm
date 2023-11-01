@@ -25,6 +25,7 @@ our @EXPORT = qw(
   $f_stderr
   $f_report
   $remediated
+  $evaluate_count
   set_ds_file
   upload_logs_reports
   oscap_security_guide_setup
@@ -62,8 +63,11 @@ our $profile_ID_sle_anssi_bp28_minimal = 'xccdf_org.ssgproject.content_profile_a
 our $profile_ID_sle_cis_workstation_l1 = 'xccdf_org.ssgproject.content_profile_cis_workstation_l1';
 our $profile_ID_tw = 'xccdf_org.ssgproject.content_profile_standard';
 
-# The OS status of remediation: '0', not remediated; '1', remediated
+# The OS status of remediation: '0', not remediated; '>=1', remediated
 our $remediated = 0;
+
+# Evaluate execution count
+our $evaluate_count = 3;
 
 # Upload HTML report by default
 set_var('UPLOAD_REPORT_HTML', 1);
@@ -155,11 +159,9 @@ sub oscap_remediate {
     if ($ret != 0 and $ret != 2) {
         record_info('bsc#1194676', 'remediation should be succeeded', result => 'fail');
     }
-    if ($remediated == 0) {
-        $remediated = 1;
-        record_info('remediated', 'setting status remediated');
-    }
 
+    $remediated++;
+    record_info("Remediated $remediated", "Setting status remediated. Count $remediated");
     # Upload logs & ouputs for reference
     upload_logs_reports();
 }
@@ -221,7 +223,7 @@ sub oscap_evaluate {
     my @failed_rules = grep { $data{$_} =~ m/$f_fregex/ } keys %data;
     my $fail_count = scalar @failed_rules;
     # For a new installed OS the first time remediate can permit fail
-    if ($remediated == 0) {
+    if ($remediated <= 1 and $evaluate_count == 3) {
         record_info('non remediated', 'before remediation more rules fails are expected');
         record_info(
             "Passed rules count=$pass_count",
