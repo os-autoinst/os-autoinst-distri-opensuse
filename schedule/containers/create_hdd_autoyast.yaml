@@ -26,6 +26,7 @@ schedule:
     - autoyast/save_y2logs
     - '{{grub_set_bootargs}}'
     - containers/install_updates
+    - console/system_prepare
     - '{{fips}}'
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
