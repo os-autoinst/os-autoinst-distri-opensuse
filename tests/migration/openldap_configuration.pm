@@ -55,7 +55,7 @@ sub run {
     assert_script_run "ps -aux | grep slapd";
 
     # setup sssd
-    assert_script_run "cp ./sssd.conf /etc/sssd/sssd.conf";
+    assert_script_run('install --mode 0600 -D ./sssd.conf /etc/sssd/sssd.conf');
     systemctl("stop sssd");
     assert_script_run "rm -rf /var/lib/sss/db/*";
     systemctl("restart sssd");
