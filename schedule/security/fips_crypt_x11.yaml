@@ -7,7 +7,6 @@ schedule:
     - console/consoletest_setup
     - '{{repo_setup}}'
     - fips/fips_setup
-    - '{{y2_vnc_pvm}}'
     - '{{tests_for_64bit}}'
     - x11/x3270_ssl
 conditional_schedule:
@@ -18,10 +17,6 @@ conditional_schedule:
         FLAVOR:
             Online-QR:
                 - security/test_repo_setup
-    y2_vnc_pvm:
-        BACKEND:
-            pvm_hmc:
-                - console/yast2_vnc
     tests_for_64bit:
         ARCH:
             x86_64:
