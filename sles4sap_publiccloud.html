@@ -44,6 +44,9 @@
       <li><a href="#create_hana_vars_section">create_hana_vars_section</a></li>
       <li><a href="#display_full_status">display_full_status</a></li>
       <li><a href="#list_cluster_nodes">list_cluster_nodes</a></li>
+      <li><a href="#get_hana_database_status">get_hana_database_status</a></li>
+      <li><a href="#is_hana_database_online">is_hana_database_online</a></li>
+      <li><a href="#is_primary_node_online">is_primary_node_online</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap_publiccloud.pm</h1>
@@ -189,6 +192,30 @@ Displays most useful debugging info about cluster status, database status within
 <pre><code>$self-&gt;list_cluster_nodes()
 
 Returns list of hostnames that are part of a cluster using cmr shell command from one of the cluster nodes.</code></pre>
+
+<h2 id="get_hana_database_status">get_hana_database_status</h2>
+
+<pre><code>Run a query to the hana database, parses &quot;hdbsql&quot; command output and check if the connection still is alive.
+Returns 1 if the response from hana database is online, 0 otherwise</code></pre>
+
+<h2 id="is_hana_database_online">is_hana_database_online</h2>
+
+<pre><code>Setup a timeout and check the hana database status is offline and there is not connection.
+if the connection still is online run a wait and try again to get the status.
+Returns 1 if the output of the hana database is online, 0 means that hana database is offline</code></pre>
+
+<dl>
+
+<dt id="TIMEOUT---default-900-item-TOTAL_CONSECUTIVE_PASSES---default-5"><b>TIMEOUT</b> - default 900 =item <b>TOTAL_CONSECUTIVE_PASSES</b> - default 5</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="is_primary_node_online">is_primary_node_online</h2>
+
+<pre><code>Check if primary node in a hana cluster is offline.
+Returns if primary node status is offline with 0 and 1 online</code></pre>
 
 
 </body>
