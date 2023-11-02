@@ -49,8 +49,7 @@ sub config_service {
     assert_script_run("pam-config -q --sss");
 
     # Write the sssd configuration file
-    assert_script_run('if [ ! -d /etc/sssd ]; then mkdir /etc/sssd; fi');
-    assert_script_run("cat /tmp/sssd.conf > /etc/sssd/sssd.conf && chmod 0600 /etc/sssd/sssd.conf");
+    assert_script_run('install --mode 0600 -D /tmp/sssd.conf /etc/sssd/sssd.conf');
 }
 
 sub start_service {
