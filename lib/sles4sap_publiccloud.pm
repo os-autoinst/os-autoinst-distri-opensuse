@@ -28,6 +28,7 @@ use hacluster;
 use qesapdeployment;
 use YAML::PP;
 use publiccloud::instance;
+use sles4sap;
 
 our @EXPORT = qw(
   run_cmd
@@ -57,6 +58,9 @@ our @EXPORT = qw(
   display_full_status
   list_cluster_nodes
   sles4sap_cleanup
+  is_hana_database_online
+  get_hana_database_status
+  is_primary_node_online
 );
 
 =head2 run_cmd
@@ -349,8 +353,8 @@ sub check_takeover {
     my ($self) = @_;
     my $hostname = $self->{my_instance}->{instance_id};
     my $retry_count = 0;
-    my $fenced_hana_status = $self->is_hana_online();
-    die("Fenced database '$hostname' is not offline") if ($fenced_hana_status == 1);
+    die("Database on the fenced node '$hostname' is not offline") if ($self->is_hana_database_online);
+    die("System replication '$hostname' is not offline") if ($self->is_primary_node_online);
 
   TAKEOVER_LOOP: while (1) {
         my $topology = $self->get_hana_topology();
@@ -381,7 +385,8 @@ sub check_takeover {
 sub enable_replication {
     my ($self) = @_;
     my $hostname = $self->{my_instance}->{instance_id};
-    die("Fenced database '$hostname' is not offline") if ($self->is_hana_online());
+    die("Database on the fenced node '$hostname' is not offline") if ($self->is_hana_database_online);
+    die("System replication '$hostname' is not offline") if ($self->is_primary_node_online);
 
     my $topology_out = $self->get_hana_topology(hostname => $hostname);
     my %topology = %$topology_out;
@@ -829,6 +834,97 @@ sub list_cluster_nodes {
         return \@cluster_nodes;
     }
     die 'None of the hosts are currently part of existing cluster' unless @cluster_nodes;
+}
+
+=head2 get_hana_database_status
+
+    Run a query to the hana database, parses "hdbsql" command output and check if the connection still is alive.
+    Returns 1 if the response from hana database is online, 0 otherwise
+
+=cut
+
+sub get_hana_database_status {
+    my ($self, $password_db, $instance_id) = @_;
+    my $hdb_cmd = "hdbsql -u SYSTEM -p $password_db -i $instance_id 'SELECT * FROM SYS.M_DATABASES;'";
+    my $output_cmd = $self->run_cmd(cmd => $hdb_cmd, runas => get_required_var("SAP_SIDADM"), proceed_on_failure => 1);
+
+    if ($output_cmd =~ /Connection failed/) {
+        record_info('HANA DB OFFLINE', "Hana database in primary node is offline. Here the output \n$output_cmd");
+        return 0;
+    }
+    return 1;
+}
+
+=head2 is_hana_database_online
+
+    Setup a timeout and check the hana database status is offline and there is not connection.
+    if the connection still is online run a wait and try again to get the status.
+    Returns 1 if the output of the hana database is online, 0 means that hana database is offline
+
+=over 2
+
+=item B<TIMEOUT> - default 900
+=item B<TOTAL_CONSECUTIVE_PASSES> - default 5
+
+=back
+=cut
+
+sub is_hana_database_online {
+    my ($self, %args) = @_;
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 900);
+    my $total_consecutive_passes = ($args{total_consecutive_passes} // 5);
+    my $instance_id = get_required_var('INSTANCE_ID');
+
+    my $db_status = -1;
+    my $consecutive_passes = 0;
+    my $password_db = get_required_var('_HANA_MASTER_PW');
+    my $start_time = time;
+    my $hdb_cmd = "hdbsql -u SYSTEM -p $password_db -i $instance_id 'SELECT * FROM SYS.M_DATABASES;'";
+
+    while ($consecutive_passes < $total_consecutive_passes) {
+        $db_status = $self->get_hana_database_status($password_db, $instance_id);
+        if (time - $start_time > $timeout) {
+            record_info("Hana database after timeout", $self->run_cmd(cmd => $hdb_cmd));
+            die("Hana database is still online");
+        }
+        if ($db_status == 0) {
+            last;
+        }
+        sleep 30;
+        ++$consecutive_passes;
+    }
+    return $db_status;
+}
+
+=head2 is_primary_node_online
+
+    Check if primary node in a hana cluster is offline.
+    Returns if primary node status is offline with 0 and 1 online
+
+=cut
+
+sub is_primary_node_online {
+    my ($self, %args) = @_;
+    my $sapadmin = lc(get_required_var('INSTANCE_SID')) . 'adm';
+
+    # Wait by default for 5 minutes
+    my $time_to_wait = 300;
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
+    my $cmd = "python exe/python_support/systemReplicationStatus.py";
+    my $output = "";
+
+    # Loop until is not primary the vm01 or timeout is reached
+    while ($time_to_wait > 0) {
+        $output = $self->run_cmd(cmd => $cmd, runas => $sapadmin, timeout => $timeout, proceed_on_failure => 1);
+        if ($output !~ /mode:[\r\n\s]+PRIMARY/) {
+            record_info('SYSTEM REPLICATION STATUS', "System replication status in pimary node.\n$@");
+            return 0;
+        }
+        $time_to_wait -= 10;
+        sleep 10;
+    }
+    record_info('SYSTEM REPLICATION STATUS', "System replication status in primary node.\n$output");
+    return 1;
 }
 
 1;

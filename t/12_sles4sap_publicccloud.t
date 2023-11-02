@@ -1,11 +1,11 @@
 use strict;
 use warnings;
-use testapi;
 use Test::MockModule;
 use Test::Exception;
 use Test::More;
-use sles4sap_publiccloud;
+use testapi;
 
+use sles4sap_publiccloud;
 
 subtest "Run 'setup_sbd_delay_publiccloud' with different values" => sub {
     my $self = sles4sap_publiccloud->new();
@@ -110,6 +110,66 @@ subtest '[list_cluster_nodes]' => sub {
 
     $sles4sap_publiccloud->redefine(run_cmd => sub { return 1; });
     dies_ok { $self->list_cluster_nodes() } 'Expected failure: missing mandatory arg';
+};
+
+subtest '[is_hana_database_offline]' => sub {
+    my $self = sles4sap_publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(get_hana_database_status => sub { return 0; });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
+    set_var('INSTANCE_ID', 'INSTANCE_IDTEST');
+    set_var('_HANA_MASTER_PW', '1234');
+
+    my $res = $self->is_hana_database_online();
+    set_var('SAP_SIDADM', undef);
+    set_var('INSTANCE_ID', undef);
+    set_var('_HANA_MASTER_PW', undef);
+    is $res, 0, "Hana database is offline";
+};
+
+subtest '[is_hana_database_offine with status online]' => sub {
+    my $self = sles4sap_publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(get_hana_database_status => sub { return 1; });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
+    set_var('INSTANCE_ID', 'INSTANCE_IDTEST');
+    set_var('_HANA_MASTER_PW', '1234');
+
+    my $res = $self->is_hana_database_online();
+    set_var('SAP_SIDADM', undef);
+    set_var('INSTANCE_ID', undef);
+    set_var('_HANA_MASTER_PW', undef);
+    is $res, 1, "Hana database is online";
+};
+
+subtest '[is_primary_node_offline]' => sub {
+    my $self = sles4sap_publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $res = "";
+    $sles4sap_publiccloud->redefine(run_cmd => sub { die "this system is not a system replication site" });
+    $sles4sap_publiccloud->redefine(record_info => sub { return; });
+
+    # Check if virtual machine 01 is a primary node and still belong to the system replication
+    set_var('INSTANCE_SID', 'INSTANCE_SIDTEST');
+    eval {
+        $res = $self->is_primary_node_online();
+    };
+    set_var('INSTANCE_SID', undef);
+    unlike($@, qr/mode:[\r\n\s]+PRIMARY/, 'System replication is offline on primary node');
+};
+
+subtest '[is_primary_node_online]' => sub {
+    my $self = sles4sap_publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(run_cmd => sub { return 'mode: PRIMARY'; });
+    $sles4sap_publiccloud->redefine(record_info => sub { return; });
+    set_var('INSTANCE_SID', 'INSTANCE_SIDTEST');
+
+    my $res = $self->is_primary_node_online();
+    set_var('INSTANCE_SID', undef);
+    is $res, 1, "System replication is online on primary node";
 };
 
 done_testing;
