@@ -15,7 +15,7 @@ use utils 'zypper_call';
 
 sub run {
     select_serial_terminal;
-    my $latest_gcc = script_output(q(zypper se -t package 'gcc>10'|awk '/\s+gcc[0-9]+\s+/ {print$2}'|sort -Vr|head -n1));
+    my $latest_gcc = script_output(q(zypper se -t package 'gcc>10'|grep -vE "^.*R.*\|"|awk -F'|' '/\s+gcc[0-9]+\s+/ {print$2}'|sort -Vr|head -n1));
     zypper_call("in sle-module-toolchain-release $latest_gcc", timeout => 1500);
     my $output = script_output("zypper lifecycle $latest_gcc", 300);
     diag($output);
