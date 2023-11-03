@@ -60,6 +60,18 @@ variable "enable_confidential_vm" {
     default = "disabled"
 }
 
+variable "vpc_security_group_ids" {
+    default = ""
+}
+
+variable "subnet_id" {
+    default = ""
+}
+
+variable "ipv6_address_count" {
+    default = 0
+}
+
 resource "random_id" "service" {
     count = var.instance_count
     keepers = {
@@ -73,37 +85,14 @@ resource "aws_key_pair" "openqa-keypair" {
     public_key = file("/root/.ssh/id_rsa.pub")
 }
 
-resource "aws_security_group" "basic_sg" {
-    name        = "openqa-${element(random_id.service.*.hex, 0)}"
-    description = "Allow all inbound traffic from SUSE IP ranges"
-
-    ingress {
-        from_port   = 0
-        to_port     = 0
-        protocol    = "-1"
-        cidr_blocks = ["213.151.95.130/32", "195.135.220.0/22", "195.250.132.144/29", "193.86.92.180/32"]
-    }
-
-    egress {
-        from_port       = 0
-        to_port         = 0
-        protocol        = "-1"
-        cidr_blocks     = ["0.0.0.0/0"]
-    }
-
-    tags = merge({
-            openqa_created_by = var.name
-            openqa_created_date = timestamp()
-            openqa_created_id = element(random_id.service.*.hex, 0)
-        }, var.tags)
-}
-
 resource "aws_instance" "openqa" {
     count           = var.instance_count
     ami             = var.image_id
     instance_type   = var.type
     key_name        = aws_key_pair.openqa-keypair.key_name
-    security_groups = [aws_security_group.basic_sg.name]
+    vpc_security_group_ids = [var.vpc_security_group_ids]
+    subnet_id = var.subnet_id
+    ipv6_address_count = var.ipv6_address_count
 
     tags = merge({
             openqa_created_by = var.name
