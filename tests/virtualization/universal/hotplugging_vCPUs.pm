@@ -51,18 +51,6 @@ sub test_add_vcpu {
         }
         # Reset CPU count to two
         die "Resetting vcpus failed" unless (set_vcpus($guest, 2));
-
-        ## Check for bsc#1187341. This whole section can be removed once bsc#1187341 is fixed
-        if ($guest eq 'sles12sp3PV') {
-            sleep(60);    # Bug needs some time to actually be triggered
-            if (script_run("virsh list --all | grep $guest | grep running") != 0) {
-                record_soft_failure("bsc#1187341 - $guest changing number of vspus crashes $guest");
-                script_run("xl dump-core > xl_coredump_$guest.log");
-                upload_logs("xl_coredump_$guest.log");
-                script_run("virsh start $guest");
-                ensure_online("$guest");
-            }
-        }
     }
 }
 
@@ -80,11 +68,7 @@ sub run_test {
             record_info "Skip hotplugging vCPU on $guest", "SEV/SEV-ES guest $guest does not support hotplugging vCPU";
             next;
         }
-        if ($guest eq "sles12sp3PV") {
-            record_soft_failure("Skipping vcpu hotplugging on $guest due to bsc#1187341");
-        } else {
-            test_add_vcpu($guest);
-        }
+        test_add_vcpu($guest);
     }
 }
 
