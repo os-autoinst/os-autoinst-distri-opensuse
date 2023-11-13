@@ -53,8 +53,6 @@ use constant QESAPDEPLOY_PY => 'python3.10';
 use constant QESAPDEPLOY_PIP => 'pip3.10';
 
 our @EXPORT = qw(
-  qesap_create_folder_tree
-  qesap_pip_install
   qesap_upload_logs
   qesap_get_deployment_code
   qesap_get_roles_code
@@ -64,7 +62,6 @@ our @EXPORT = qw(
   qesap_get_ansible_roles_dir
   qesap_prepare_env
   qesap_execute
-  qesap_yaml_replace
   qesap_ansible_cmd
   qesap_ansible_script_output_file
   qesap_ansible_script_output
@@ -151,6 +148,7 @@ sub qesap_create_folder_tree {
 
 sub qesap_get_variables {
     my %paths = qesap_get_file_paths();
+    die "Missing mandatory qesap_conf_src from qesap_get_file_paths()" unless $paths{'qesap_conf_src'};
     my $yaml_file = $paths{'qesap_conf_src'};
     my %variables;
     my $cmd = join(' ',
@@ -255,6 +253,24 @@ sub qesap_pip_install {
     qesap_venv_cmd_exec(cmd => $pip_ints_cmd, timeout => 720);
 }
 
+
+=head3 qesap_galaxy_install
+
+  Install all Ansible requirements of the qe-sap-deployment
+=cut
+
+sub qesap_galaxy_install {
+    my %paths = qesap_get_file_paths();
+    my $galaxy_install_log = '/tmp/galaxy_install.txt';
+
+    my $ans_req = "$paths{deployment_dir}/requirements.yml";
+    my $ans_galaxy_cmd = join(' ', 'ansible-galaxy install',
+        '-r', $ans_req,
+        '|& tee -a', $galaxy_install_log);
+    qesap_venv_cmd_exec(cmd => $ans_galaxy_cmd, timeout => 720);
+    push(@log_files, $galaxy_install_log);
+}
+
 =head3 qesap_upload_logs
 
     qesap_upload_logs([failok=1])
@@ -286,6 +302,7 @@ sub qesap_get_deployment_code {
     my $official_repo = 'github.com/SUSE/qe-sap-deployment';
     my $qesap_git_clone_log = '/tmp/git_clone.txt';
     my %paths = qesap_get_file_paths();
+    die "Missing mandatory terraform_dir from qesap_get_file_paths()" unless $paths{'terraform_dir'};
 
     record_info('QESAP repo', 'Preparing qe-sap-deployment repository');
 
@@ -557,16 +574,24 @@ sub qesap_get_ansible_roles_dir {
 sub qesap_prepare_env {
     my (%args) = @_;
     croak "Missing mandatory argument 'provider'" unless $args{provider};
+
     my $variables = $args{openqa_variables} ? $args{openqa_variables} : qesap_get_variables();
     my $provider_folder = lc $args{provider};
     my %paths = qesap_get_file_paths();
+    die "Missing mandatory deployment_dir from qesap_get_file_paths()" unless $paths{'deployment_dir'};
+    die "Missing mandatory qesap_conf_trgt from qesap_get_file_paths()" unless $paths{'qesap_conf_trgt'};
 
     # Option to skip straight to configuration
     unless ($args{only_configure}) {
+        die "Missing mandatory qesap_conf_src from qesap_get_file_paths()" unless $paths{'qesap_conf_src'};
         qesap_create_folder_tree();
         qesap_get_deployment_code();
         qesap_get_roles_code();
         qesap_pip_install();
+        # for the moment run it only conditionally
+        # to allow this test code also to work with older
+        # qe-sap-deployment versions
+        qesap_galaxy_install() if (script_run("test -e $paths{deployment_dir}/requirements.yml") == 0);
 
         record_info('QESAP yaml', 'Preparing yaml config file');
         assert_script_run('curl -v -fL ' . $paths{qesap_conf_src} . ' -o ' . $paths{qesap_conf_trgt});
