@@ -51,10 +51,10 @@ sub run {
     if (get_var("FIPS_ENV_MODE")) {
         die 'FIPS kernel mode is required for this test!' if check_var('SECURITY_TEST', 'crypt_kernel');
         is_alp ? trup_call("pkg install -t pattern fips") : zypper_call('in -t pattern fips');
-        $self->reboot_and_select_serial_term;
         foreach my $env ('OPENSSL_FIPS', 'OPENSSL_FORCE_FIPS_MODE', 'LIBGCRYPT_FORCE_FIPS_MODE', 'NSS_FIPS', 'GnuTLS_FORCE_FIPS_MODE') {
             assert_script_run "echo 'export $env=1' >> /etc/bash.bashrc";
         }
+        $self->reboot_and_select_serial_term;
         record_info 'ENV Mode', 'FIPS environment mode (for single modules) configured!';
     } else {
         trup_call("pkg install crypto-policies-scripts") if is_alp;
