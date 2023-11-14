@@ -1,7 +1,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Summary: Test 'stig' hardening in the 'scap-security-guide': detection mode
+# Summary: Test 'hipaa' hardening in the 'scap-security-guide': detection mode
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#93886, poo#104943
 

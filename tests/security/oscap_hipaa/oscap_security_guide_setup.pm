@@ -1,7 +1,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Summary: Test 'stig' hardening in the 'scap-security-guide' works: setup environment
+# Summary: Test 'pci-dss-4' hardening in the 'scap-security-guide' works: setup environment
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#93886, poo#104943
 
@@ -14,10 +14,9 @@ use version_utils qw(is_sle);
 
 sub run {
     my ($self) = @_;
-    $oscap_tests::profile_ID = is_sle ? $oscap_tests::profile_ID_sle_stig : $oscap_tests::profile_ID_tw;
-    $oscap_tests::evaluate_count = 3;
     select_console 'root-console';
-
+    $oscap_tests::evaluate_count = 3;
+    $oscap_tests::profile_ID = is_sle ? $oscap_tests::profile_ID_sle_hipaa : $oscap_tests::profile_ID_tw;
     $self->oscap_security_guide_setup();
 }
 

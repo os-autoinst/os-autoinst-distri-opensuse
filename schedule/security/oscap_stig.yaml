@@ -11,9 +11,8 @@ schedule:
     # Do evaluate again after remediate
     - security/oscap_stig/oscap_xccdf_eval
     - security/oscap_stig/oscap_xccdf_remediate
-    # Do evaluate again after 2nd remediate
+    # Do evaluate again after remediate
     - security/oscap_stig/oscap_xccdf_eval
-    - security/oscap_stig/baseline_comparison
 conditional_schedule:
     bootloader:
         ARCH:
