@@ -18,7 +18,7 @@ use warnings;
 sub run {
     # let's see how it looks at the beginning
     save_screenshot;
-    is_ipmi ? use_ssh_serial_console : select_console 'root-console';
+    is_ipmi ? use_ssh_serial_console : select_serial_terminal;
 
     # https://fate.suse.com/320347 https://bugzilla.suse.com/show_bug.cgi?id=988157
     if (check_var('NETWORK_INIT_PARAM', 'ifcfg=eth0=dhcp')) {
