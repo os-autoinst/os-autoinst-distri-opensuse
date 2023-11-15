@@ -10,10 +10,11 @@
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use base "consoletest";
-use testapi;
-use Utils::Backends;
 use strict;
 use warnings;
+use testapi;
+use Utils::Backends;
+use serial_terminal;
 
 sub run {
     # let's see how it looks at the beginning
