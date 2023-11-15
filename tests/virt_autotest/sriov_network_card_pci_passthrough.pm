@@ -158,7 +158,7 @@ sub prepare_host {
     #install required packages on host
     zypper_call '-t in pciutils nmap';    #to run 'lspci' and 'nmap' command
 
-    #check VT-d is supported in Intel x86_64 machines
+    #check IOMMU based on VT-d is supported in Intel x86_64 machines
     if (script_run("grep Intel /proc/cpuinfo") == 0) {
         assert_script_run "dmesg | grep -E \"DMAR:.*IOMMU enabled\"";
     }
@@ -400,7 +400,7 @@ sub save_network_device_status_logs {
 
     #logging device information in guest
     my $debug_script = "sriov_network_guest_logging.sh";
-    download_script($debug_script, machine => $vm) if (${test_step} eq "1-initial");
+    download_script($debug_script, machine => $vm, proceed_on_failure => 1) if (${test_step} eq "1-initial");
     script_run("ssh root\@$vm \"~/$debug_script\" >> $log_file 2>&1", die_on_timeout => 0);
 
     script_run "mv $log_file $log_dir/${vm}_${test_step}_network_device_status.txt";

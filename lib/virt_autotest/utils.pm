@@ -351,8 +351,9 @@ sub download_script_and_execute {
     my ($script_name, %args) = @_;
     $args{output_file} //= "$args{script_name}.log";
     $args{machine} //= 'localhost';
+    $args{proceed_on_failure} //= 0;
 
-    download_script($script_name, script_url => $args{script_url}, machine => $args{machine});
+    download_script($script_name, script_url => $args{script_url}, machine => $args{machine}, proceed_on_failure => $args{proceed_on_failure});
     my $cmd = "~/$script_name";
     $cmd = "ssh root\@$args{machine} " . "\"$cmd\"" if ($args{machine} ne 'localhost');
     script_run("$cmd >> $args{output_file} 2>&1");
@@ -362,17 +363,40 @@ sub download_script {
     my ($script_name, %args) = @_;
     my $script_url = $args{script_url} // data_url("virt_autotest/$script_name");
     my $machine = $args{machine} // 'localhost';
+    $args{proceed_on_failure} //= 0;
+
+    unless (head($script_url)) {
+        if ($args{proceed_on_failure}) {
+            record_info("URL is not accessible", "$script_url", result => 'fail');
+            return;
+        }
+        else {
+            die "$script_url is not accessible!";
+        }
+    }
 
     my $cmd = "curl -o ~/$script_name $script_url";
     $cmd = "ssh root\@$machine " . "\"$cmd\"" if ($machine ne 'localhost');
     unless (script_retry($cmd, timeout => 900, retry => 2, die => 0) == 0) {
-        # Add debug codes as the url only exists in a dynamic openqa URL
-        record_info("URL is not accessible", "$script_url", result => 'fail') unless head($script_url);
         unless ($machine eq 'localhost') {
-            record_info("machine is not ssh accessible", "$machine", result => 'fail') unless script_run("ssh root\@$machine 'hostname'") == 0;
-            record_info("OSD is unaccessible from $machine", "that means the machine is having problem to access SUSE network", result => 'fail') unless script_run("ssh root\@$machine 'ping -c3 openqa.suse.de'") == 0;
+            # Have to output debug info at here because no logs will be uploaded if there are connection problems
+            if (script_run("ssh root\@$machine 'hostname'") == 0) {
+                script_run("ssh root\@$machine 'ping -c3 openqa.suse.de'");
+                script_run("ssh root\@$machine 'nslookup " . get_var('WORKER_HOSTNAME', 'openqa.suse.de') . "'");
+                script_run("ssh root\@$machine 'dnsdomainname'");
+                script_run("ssh root\@$machine 'cat /etc/resolv.conf'");
+            }
+            else {
+                record_info("machine is not ssh accessible", "$machine", result => 'fail');
+            }
         }
-        die "Failed to download $script_url!";
+        if ($args{proceed_on_failure}) {
+            record_info("ERROR", "Failed to download $script_url on $machine!", result => 'fail');
+            return;
+        }
+        else {
+            die "Failed to download $script_url on $machine!";
+        }
     }
     $cmd = "chmod +x ~/$script_name";
     $cmd = "ssh root\@$machine " . "\"$cmd\"" if ($machine ne 'localhost');
