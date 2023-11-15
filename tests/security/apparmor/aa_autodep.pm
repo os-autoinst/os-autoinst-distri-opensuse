@@ -27,6 +27,8 @@ sub run {
     my $aa_tmp_prof = "/tmp/apparmor.d";
     my $test_binfiles = "/usr/bin/pam*";
 
+    zypper_call('in nscd');
+
     $self->aa_tmp_prof_prepare($aa_tmp_prof, 0);
 
     assert_script_run "aa-autodep -d $aa_tmp_prof/ nscd";
