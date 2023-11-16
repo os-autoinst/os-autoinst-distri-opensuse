@@ -30,6 +30,8 @@ sub run {
     my $tmp_prof = "/tmp/apparmor.d";
     my $audit_log = "/var/log/audit/audit.log";
 
+    zypper_call('in nscd');
+
     systemctl('restart auditd');
 
     $self->aa_tmp_prof_prepare("$tmp_prof");
