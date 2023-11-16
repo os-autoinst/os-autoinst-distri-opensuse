@@ -72,6 +72,8 @@ sub install_runtime_dependencies {
       audit
       bc
       binutils
+      bcachefs-tools
+      btrfsprogs
       dosfstools
       e2fsprogs
       evmctl
