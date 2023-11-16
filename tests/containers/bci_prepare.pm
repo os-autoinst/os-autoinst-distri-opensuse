@@ -83,8 +83,8 @@ sub run {
 
     my ($version, $sp, $host_distri) = get_os_release;
 
-    # CONTAINER_RUNTIME can be "docker", "podman" or both "podman,docker"
-    my $engines = get_required_var('CONTAINER_RUNTIME');
+    # CONTAINER_RUNTIMES can be "docker", "podman" or both "podman,docker"
+    my $engines = get_required_var('CONTAINER_RUNTIMES');
     my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
     my $bci_tests_branch = get_var('BCI_TESTS_BRANCH');
 

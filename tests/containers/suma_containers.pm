@@ -34,7 +34,7 @@ sub run {
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
 
     if (check_var('CONTAINER_SUMA', 'image')) {
-        my $runtimes = get_required_var('CONTAINER_RUNTIME');
+        my $runtimes = get_required_var('CONTAINER_RUNTIMES');
         my @runtimes = split /,/, $runtimes;
         for my $runtime (@runtimes) {
             script_retry("$runtime pull $image", timeout => 300, delay => 60, retry => 3);

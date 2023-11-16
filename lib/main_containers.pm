@@ -28,7 +28,7 @@ our @EXPORT = qw(
 );
 
 sub is_container_test {
-    return get_var('CONTAINER_RUNTIME', 0);
+    return get_var('CONTAINER_RUNTIMES', 0);
 }
 
 sub is_container_image_test {
@@ -204,7 +204,7 @@ sub update_host_and_publish_hdd {
         # we only need to shutdown the VM before publishing the HDD
         loadtest 'boot/boot_to_desktop';
         loadtest 'containers/update_host';
-        loadtest 'containers/openshift_setup' if check_var('CONTAINER_RUNTIME', 'openshift');
+        loadtest 'containers/openshift_setup' if check_var('CONTAINER_RUNTIMES', 'openshift');
     }
     loadtest 'shutdown/cleanup_before_shutdown' if is_s390x;
     loadtest 'shutdown/shutdown';
@@ -212,7 +212,7 @@ sub update_host_and_publish_hdd {
 }
 
 sub load_container_tests {
-    my $runtime = get_required_var('CONTAINER_RUNTIME');
+    my $runtime = get_required_var('CONTAINER_RUNTIMES');
 
     if (get_var('CONTAINER_UPDATE_HOST')) {
         update_host_and_publish_hdd();
