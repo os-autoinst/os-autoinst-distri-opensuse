@@ -9,11 +9,12 @@ use warnings;
 use base "consoletest";
 use testapi;
 use registration "scc_deregistration";
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     return unless (get_var('SCC_REGISTER') || get_var('HDD_SCC_REGISTERED'));
 
-    select_console 'root-console';
+    select_serial_terminal;
     scc_deregistration;
 }
 

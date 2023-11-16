@@ -1266,7 +1266,7 @@ This is needed to prevent access conflicts to the RPM database.
 =cut
 
 sub quit_packagekit {
-    script_run("systemctl mask packagekit; systemctl stop packagekit; while pgrep packagekitd; do sleep 1; done");
+    script_run("systemctl mask packagekit; systemctl stop packagekit; while pgrep packagekitd; do sleep 1; done", timeout => 60);
 }
 
 =head2 wait_for_purge_kernels
