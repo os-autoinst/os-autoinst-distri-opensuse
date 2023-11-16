@@ -60,7 +60,7 @@ sub run_tox_cmd {
     # e.g. junit_python.xml -> junit_python_podman.xml
     # We use script_run because the file might not exist if tox timed out or other
     # unexpected error.
-    script_run('mv junit_' . $env . '.xml junit_' . $env . '_${CONTAINER_RUNTIME}.xml');
+    script_run('mv junit_' . $env . '.xml junit_' . $env . '_${CONTAINER_RUNTIMES}.xml');
 }
 
 sub run {
@@ -98,7 +98,7 @@ sub run {
     record_info('Run', "Starting the tests for the following environments:\n$test_envs");
     assert_script_run("cd /root/BCI-tests");
     assert_script_run("export TOX_PARALLEL_NO_SPINNER=1");
-    assert_script_run("export CONTAINER_RUNTIME=$engine");
+    assert_script_run("export CONTAINER_RUNTIMES=$engine");
     $version =~ s/-SP/./g;
     $version = lc($version);
     assert_script_run("export OS_VERSION=$version");

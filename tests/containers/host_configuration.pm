@@ -22,7 +22,7 @@ sub run {
     my $interface;
     my $update_timeout = 2400;    # aarch64 takes sometimes 20-30 minutes for completion
     my ($version, $sp, $host_distri) = get_os_release;
-    my $engine = get_required_var('CONTAINER_RUNTIME');
+    my $engine = get_required_var('CONTAINER_RUNTIMES');
 
     # Update the system to get the latest released state of the hosts.
     # Check routing table is well configured

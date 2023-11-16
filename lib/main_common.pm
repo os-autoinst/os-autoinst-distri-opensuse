@@ -594,7 +594,7 @@ sub load_jeos_openstack_tests {
     unless (get_var('CI_VERIFICATION')) {
         loadtest "console/suseconnect_scc";
     }
-    unless (get_var('CONTAINER_RUNTIME')) {
+    unless (get_var('CONTAINER_RUNTIMES')) {
         loadtest "console/journal_check";
         loadtest "microos/libzypp_config";
     }
@@ -631,7 +631,7 @@ sub load_jeos_tests {
         loadtest "jeos/build_key";
         loadtest "console/prjconf_excluded_rpms";
     }
-    unless (get_var('CONTAINER_RUNTIME')) {
+    unless (get_var('CONTAINER_RUNTIMES')) {
         loadtest "console/journal_check";
         loadtest "microos/libzypp_config";
     }
@@ -644,7 +644,7 @@ sub load_jeos_tests {
     replace_opensuse_repos_tests if is_repo_replacement_required;
     loadtest 'console/verify_efi_mok' if get_var 'CHECK_MOK_IMPORT';
     # zypper_ref needs to run on jeos-containers. the is_sle is required otherwise is scheduled twice on o3
-    loadtest "console/zypper_ref" if (get_var('CONTAINER_RUNTIME') && is_sle);
+    loadtest "console/zypper_ref" if (get_var('CONTAINER_RUNTIMES') && is_sle);
 }
 
 sub installzdupstep_is_applicable {

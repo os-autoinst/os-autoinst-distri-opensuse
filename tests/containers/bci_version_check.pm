@@ -27,15 +27,15 @@ sub run {
     my $build = get_required_var('CONTAINER_IMAGE_BUILD');
     record_info('IMAGE', $image);
 
-    # If multiple engines are defined (e.g. CONTAINER_RUNTIME=podman,docker), we use just one. podman is preferred.
-    my $engines = get_required_var('CONTAINER_RUNTIME');
+    # If multiple engines are defined (e.g. CONTAINER_RUNTIMES=podman,docker), we use just one. podman is preferred.
+    my $engines = get_required_var('CONTAINER_RUNTIMES');
     my $engine;
     if ($engines =~ /podman/) {
         $engine = 'podman';
     } elsif ($engines =~ /docker/) {
         $engine = 'docker';
     } else {
-        die('No valid container engines defined in CONTAINER_RUNTIME variable!');
+        die('No valid container engines defined in CONTAINER_RUNTIMES variable!');
     }
 
     script_retry("$engine pull -q $image", timeout => 300, delay => 60, retry => 3);
