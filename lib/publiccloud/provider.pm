@@ -470,7 +470,14 @@ sub terraform_apply {
             $cmd .= "-var 'image_id=" . $image_id . "' ";
             record_info('INFO', "Creating instance $instance_type from $image_id ...");
         }
-        if (is_azure) {
+        if (is_ec2) {
+            my $vpc_security_group_ids = script_output("aws ec2 describe-security-groups --region '" . $self->provider_client->region . "' --filters 'Name=group-name,Values=tf-sg' --query 'SecurityGroups[0].GroupId' --output text");
+            my $subnet_id = script_output("aws ec2 describe-subnets --region '" . $self->provider_client->region . "' --filters 'Name=tag:Name,Values=tf-subnet' --query 'Subnets[0].SubnetId' --output text");
+            my $ipv6_address_count = get_var('PUBLIC_CLOUD_EC2_IPV6_ADDRESS_COUNT', 1);
+            $cmd .= "-var 'vpc_security_group_ids=$vpc_security_group_ids' " if ($vpc_security_group_ids);
+            $cmd .= "-var 'subnet_id=$subnet_id' " if ($subnet_id);
+            $cmd .= "-var 'ipv6_address_count=$ipv6_address_count' " if ($ipv6_address_count);
+        } elsif (is_azure) {
             # Note: Only the default Azure terraform profiles contains the 'storage-account' variable
             my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT');
             $cmd .= "-var 'storage-account=$storage_account' " if ($storage_account);

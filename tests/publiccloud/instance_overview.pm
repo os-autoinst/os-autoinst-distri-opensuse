@@ -33,10 +33,9 @@ sub run {
 
     assert_script_run("ps aux | nl");
 
-    assert_script_run("ip a s");
-    assert_script_run("ip -6 a s");
-    assert_script_run("ip r s");
-    assert_script_run("ip -6 r s");
+    assert_script_run("ip -c=never a s");
+    assert_script_run("ip -c=never r s");
+    assert_script_run("ip -c=never -6 r s");
 
     assert_script_run("cat /etc/hosts");
     assert_script_run("cat /etc/resolv.conf");
