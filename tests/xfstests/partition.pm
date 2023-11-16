@@ -179,7 +179,7 @@ sub create_loop_device_by_rootsize {
         @loop_dev_size = (($size1 . 'M') x 2, ($size2 . 'M') x 4);
     }
     else {
-        $size = $size / ($amount + 1);
+        $size > (20480 * ($amount + 1)) ? ($size = 20480) : ($size = $size / ($amount + 1));
         foreach (0 .. $amount) { push(@loop_dev_size, $size . 'M'); }
     }
     @filename = ('test_dev');
