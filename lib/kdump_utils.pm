@@ -365,6 +365,7 @@ sub configure_service {
     }
 
     prepare_for_kdump(%args);
+    select_console 'root-console';
     if ($args{yast_interface} eq 'cli') {
         is_transactional ? activate_kdump_transactional : activate_kdump_cli;
     } else {
