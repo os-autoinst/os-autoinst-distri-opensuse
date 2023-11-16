@@ -362,7 +362,8 @@
             "sle-micro": ["5.3", "5.4" , "5.5"],
             "microos":  ["Tumbleweed"],
             "opensuse":  ["Tumbleweed"],
-            "sle": ["15-SP6"]
+            "sle": ["15-SP6"],
+            "alp":  ["1.0"]
         },
         "type": "ignore"
     },
@@ -546,7 +547,8 @@
         "description": "pam_lastlog2\\(.*\\): User 'bernhard' not found \\(101\\)",
         "products": {
             "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"]
+            "microos":  ["Tumbleweed"],
+            "alp":  ["1.0"]            
         },
         "type": "bug"
     }
