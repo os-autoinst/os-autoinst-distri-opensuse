@@ -17,6 +17,7 @@ use testapi;
 use strict;
 use utils;
 use publiccloud::utils;
+use version_utils 'is_sle';
 use Utils::Logging 'tar_and_upload_log';
 
 sub run {
