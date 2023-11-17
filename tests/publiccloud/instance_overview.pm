@@ -33,9 +33,10 @@ sub run {
 
     assert_script_run("ps aux | nl");
 
-    assert_script_run("ip -c=never a s");
-    assert_script_run("ip -c=never r s");
-    assert_script_run("ip -c=never -6 r s");
+    my $ip_color = (is_sle('>=15-SP3')) ? '-c=never' : '';
+    assert_script_run("ip $ip_color a s");
+    assert_script_run("ip $ip_color r s");
+    assert_script_run("ip $ip_color -6 r s");
 
     assert_script_run("cat /etc/hosts");
     assert_script_run("cat /etc/resolv.conf");
