@@ -1,7 +1,0 @@
----
-description: "Tunning pre-installed RT system, adjust RT attributes of a process\nMaintainer: mloviska"
-name: 'rt_tunning ( qemu )'
-schedule:
-     - boot/boot_to_desktop
-     - installation/addon_products_yast2
-     - rt/rt_chrt
