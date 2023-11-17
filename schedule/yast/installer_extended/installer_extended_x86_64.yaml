@@ -89,3 +89,4 @@ test_data:
   registered_modules:
     - sle-module-basesystem
     - sle-module-server-applications
+    - sle-module-python3
