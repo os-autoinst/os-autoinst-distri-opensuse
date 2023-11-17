@@ -31,7 +31,11 @@ sub run {
 
     record_info('Test', 'Launch a container with privileged mode');
 
-    # /dev is only accessible in privileged mode
+    my $devices = script_run("$runtime run --rm --privileged $image ls /dev");
+    record_info("Devices (privileged)", $devices);
+    $devices = script_run("$runtime run --rm $image ls /dev");
+    record_info("Devices (unprivileged)", $devices);
+
     # xen-pv does not define USB passthrough in the xml as of now
     # this feature has to be added -> https://progress.opensuse.org/issues/138410
     assert_script_run("$runtime run --rm $image bash -c '! test -d /dev/bus'");
