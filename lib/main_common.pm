@@ -1083,7 +1083,7 @@ sub load_inst_tests {
         loadtest "installation/secure_boot";
     }
     if (installyaststep_is_applicable()) {
-        loadtest "installation/resolve_dependency_issues" unless get_var("DEPENDENCY_RESOLVER_FLAG");
+        loadtest "installation/resolve_dependency_issues" unless (get_var("DEPENDENCY_RESOLVER_FLAG") || get_var('KERNEL_64KB_PAGE_SIZE'));
         loadtest "installation/installation_overview";
         # On Xen PV we don't have GRUB on VNC
         # SELinux relabel reboots, so grub needs to timeout
