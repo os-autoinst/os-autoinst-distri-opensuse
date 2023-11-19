@@ -102,6 +102,8 @@ our @EXPORT = qw(
   qesap_az_get_tenant_id
   qesap_az_validate_uuid_pattern
   qesap_az_create_sas_token
+  qesap_terraform_clean_up_retry
+  qesap_terrafom_ansible_deploy_retry
 );
 
 =head1 DESCRIPTION
@@ -2029,4 +2031,91 @@ sub qesap_az_create_sas_token {
     record_info('GENERATE-SAS', $cmd);
     return script_output($cmd);
 }
+
+=head2 qesap_terraform_clean_up_retry
+
+    qesap_terraform_clean_up_retry()
+
+    Perform terraform destroy and catch and ignore any error.
+    This method is mostly useful when doing cleanup before retry in case of
+    Ansible failed on 'Timed out waiting for last boot time check'
+
+=cut
+
+sub qesap_terraform_clean_up_retry {
+    my $command = 'terraform';
+
+    # Do not do 'ansible' cleanup as if 'Timed out waiting for last boot time check' happened the SSH will be disconnected
+    # E.g., ansible SSH reports '"msg": "Timeout (12s) waiting for privilege escalation prompt: "'
+    # Terraform destroy can be executed in any case
+    record_info('Cleanup', "Executing $command cleanup");
+    my @clean_up_cmd_rc = qesap_execute(verbose => 1, cmd => $command, cmd_options => '-d', timeout => 1200);
+    if ($clean_up_cmd_rc[0] == 0) {
+        diag(ucfirst($command) . " cleanup attempt #  PASSED.");
+        record_info("Clean $command", ucfirst($command) . ' cleanup PASSED.');
+    }
+    else {
+        diag(ucfirst($command) . " cleanup attempt #  FAILED.");
+        record_info('Cleanup FAILED', "Cleanup $command FAILED", result => 'fail');
+    }
+}
+
+=head2 qesap_terrafom_ansible_deploy_retry
+
+    qesap_terrafom_ansible_deploy_retry( error_log=>$error_log )
+        error_log - ansible error log file name
+
+    Retry to deploy terraform + ansible
+    Return 0: we manage the failure properly
+    Return 1: something went wrong or we do not know what to do with the failure
+
+=cut
+
+sub qesap_terrafom_ansible_deploy_retry {
+    my (%args) = @_;
+    croak 'Missing mandatory error_log argument' unless $args{error_log};
+    my @ret;
+
+    if (qesap_file_find_string(file => $args{error_log}, search_string => 'Missing sudo password')) {
+        record_info('DETECTED ANSIBLE MISSING SUDO PASSWORD ERROR');
+        @ret = qesap_execute(cmd => 'ansible',
+            logname => 'qesap_ansible_retry.log.txt',
+            timeout => 3600);
+        if ($ret[0])
+        {
+            qesap_cluster_logs();
+            die "'qesap.py ansible' return: $ret[0]";
+        }
+        record_info('ANSIBLE RETRY PASS');
+    }
+    elsif (qesap_file_find_string(file => $args{error_log}, search_string => 'Timed out waiting for last boot time check')) {
+        record_info('DETECTED ANSIBLE TIMEOUT ERROR');
+        # Do cleanup before redeploy
+        qesap_terraform_clean_up_retry();
+        @ret = qesap_execute(
+            cmd => 'terraform',
+            verbose => 1,
+            logname => 'qesap_terraform_retry.log.txt',
+            timeout => 1800
+        );
+        die "'qesap.py terraform' return: $ret[0]" if ($ret[0]);
+        @ret = qesap_execute(
+            cmd => 'ansible',
+            verbose => 1,
+            logname => 'qesap_ansible_retry.log.txt',
+            timeout => 3600
+        );
+        if ($ret[0]) {
+            qesap_cluster_logs();
+            die "'qesap.py ansible' return: $ret[0]";
+        }
+        record_info('ANSIBLE RETRY PASS');
+    }
+    else {
+        qesap_cluster_logs();
+        return 1;
+    }
+    return 0;
+}
+
 1;
