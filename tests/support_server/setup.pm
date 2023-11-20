@@ -359,8 +359,9 @@ sub setup_iscsi_server {
     my $size = 0;
     for (my $num_lun = 1; $num_lun <= $num_luns; $num_lun++) {
         $start = $size + 1;
-        $size = $num_lun * $lun_size * 1024;
-        script_run "parted --script $hdd_lun mkpart primary ${start}MiB ${size}MiB";
+        # Last partition size in percentage to ensure it is not larger that device size.
+        $size = $num_lun eq $num_luns ? '100%' : $num_lun * $lun_size * 1024 . 'MiB';
+        script_run "parted --script $hdd_lun mkpart primary ${start}MiB ${size}";
     }
 
     # The easiest way (really!?) to configure LIO is with YaST
