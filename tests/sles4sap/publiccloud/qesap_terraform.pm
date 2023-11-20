@@ -117,15 +117,17 @@ sub run {
     }
 
     my $subscription_id = $provider->{provider_client}{subscription};
+    my $os_image_name;
 
-    # This section is only needed by tests using images uploaded
-    # with publiccloud_upload_img so using conf.yaml templates
-    # with OS_URI or SLE_IMAGE
     if (is_azure() && get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
-        set_var('OS_URI', $provider->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION')));
+        # This section is only needed by Azure tests using images uploaded
+        # with publiccloud_upload_img. This is because qe-sap-deployment
+        # is still not able to use images from Azure Gallery
+        $os_image_name = $provider->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
     } else {
-        set_var('SLE_IMAGE', $provider->get_image_id());
+        $os_image_name = $provider->get_image_id();
     }
+    set_var('SLES4SAP_OS_IMAGE_NAME', $os_image_name);
 
     set_var_output('USE_SAPCONF', 'true');
     my $ansible_playbooks = create_playbook_section_list($ha_enabled);

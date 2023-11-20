@@ -4,21 +4,24 @@
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Generic yaml template for use with qe-sap-deployment project: https://github.com/SUSE/qe-sap-deployment
+#   Settings are meant to be controlled via OpenQA variables and managed by test:
+#   tests/sles4sap/publiccloud/qesap_ansible.pm
 provider: 'gcp'
 apiver: 3
 terraform:
   variables:
+    # GENERAL VARIABLES #
     project: 'ei-sle-qa-sap-8469'
     region: '%PUBLIC_CLOUD_REGION%'
     deployment_name: '%QESAP_DEPLOYMENT_NAME%'
     admin_user: 'cloudadmin'
-    os_image: '%SLE_IMAGE%'
-    private_key: '~/.ssh/id_rsa'
     public_key: '~/.ssh/id_rsa.pub'
+    private_key: '~/.ssh/id_rsa'
+    os_image: '%SLES4SAP_OS_IMAGE_NAME%'
     gcp_credentials_file: '/root/google_credentials.json'
 
     # HANA
-    hana_count: '1'
+    hana_count: '%NODE_COUNT%'
     hana_ha_enabled: '%HA_CLUSTER%'
     hana_data_disk_type: '%HANA_DISK_TYPE%'
     hana_log_disk_type: '%HANA_DISK_TYPE%'
