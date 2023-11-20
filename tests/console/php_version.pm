@@ -27,7 +27,7 @@ sub run {
     # On sles15sp5, due to bus#1204824, the package "sle-module-web-scripting-release" is pre-installed,
     # which tricks SUSEConnect to assume that this module is activated which it isn't, so add below
     # workaround
-    if (is_sle('=15-SP5')) {
+    if (is_sle('>=15-SP5')) {
         if (script_run("suseconnect -l | grep 'Web and Scripting Module'| grep '(Activated)'") == 0) {
             if (script_run('zypper se php8') == 104) {
                 record_soft_failure 'bsc#1204824 -  php8 packages are not available on sles15sp5';
