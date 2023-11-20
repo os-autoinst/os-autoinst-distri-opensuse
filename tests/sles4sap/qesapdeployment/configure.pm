@@ -57,7 +57,10 @@ sub run {
         $variables{HANA_TOKEN} = qesap_az_create_sas_token(storage => get_required_var('QESAPDEPLOY_HANA_ACCOUNT'),
             container => (split("/", get_required_var('QESAPDEPLOY_HANA_CONTAINER')))[0],
             keyname => get_required_var('QESAPDEPLOY_HANA_KEYNAME'),
-            lifetime => 30);
+            # lifetime has to be enough to reach the point of the test that
+            # executes qe-sap-deployment Ansible playbook 'sap-hana-download-media.yaml'
+            # and eventually any Ansible retry.
+            lifetime => 120);
         record_info('TOKEN', $variables{HANA_TOKEN});
         # escape needed by 'sed'
         # but not implemented in file_content_replace() yet poo#120690
