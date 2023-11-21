@@ -11,7 +11,6 @@
 # NODE_COUNT - number of nodes to deploy. Needs to be >1 for cluster usage.
 # PUBLIC_CLOUD_INSTANCE_TYPE - VM size, sets terraform 'vm_size' parameter
 # USE_SAPCONF - (true/false) set 'false' to use saptune
-# HANA_OS_MAJOR_VERSION - sets 'hana_os_major_version' terraform parameter - default is taken from 'VERSION'
 # FENCING_MECHANISM - (sbd/native) choose fencing mechanism
 # QESAP_SCC_NO_REGISTER - define variable in openqa to skip SCC registration via ANSIBLE
 # HANA_MEDIA - Hana install media directory

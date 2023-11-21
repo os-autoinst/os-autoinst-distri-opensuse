@@ -19,7 +19,6 @@ terraform:
     public_key: '~/.ssh/id_rsa.pub'
     private_key: '~/.ssh/id_rsa'
     os_image: '%SLES4SAP_OS_IMAGE_NAME%'
-    hana_os_major_version: '%HANA_OS_MAJOR_VERSION%'
     hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
     iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
 
