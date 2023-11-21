@@ -124,7 +124,7 @@ sub run_test {
         check_guest_health($guest);
 
         #check the remaining vf(s) inside vm
-        for (my $i = 2; $i < $passthru_vf_count; $i++) {
+        for (my $i = 1; $i < $passthru_vf_count; $i++) {
             test_network_interface($guest, gate => $gateway, mac => $vfs[$i]->{vm_mac}, net => 'br123');
         }
 
@@ -399,6 +399,7 @@ sub save_network_device_status_logs {
     print_cmd_output_to_file("virsh domiflist $vm", $log_file);
 
     #logging device information in guest
+    script_run "echo '***** Status & logs inside $vm *****' >> $log_file";
     my $debug_script = "sriov_network_guest_logging.sh";
     download_script($debug_script, machine => $vm, proceed_on_failure => 1) if (${test_step} eq "1-initial");
     script_run("ssh root\@$vm \"~/$debug_script\" >> $log_file 2>&1", die_on_timeout => 0);
