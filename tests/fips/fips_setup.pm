@@ -57,13 +57,13 @@ sub run {
         $self->reboot_and_select_serial_term;
         record_info 'ENV Mode', 'FIPS environment mode (for single modules) configured!';
     } else {
-        trup_call("pkg install crypto-policies-scripts") if is_alp;
         zypper_call("in crypto-policies-scripts") if (is_sle('>=15-SP4') || is_jeos || is_tumbleweed);
+        trup_call("pkg install -t pattern fips") if is_alp;
         zypper_call("in -t pattern fips") if is_sle('<=15-SP3');
 
         $self->reboot_and_select_serial_term if (is_alp || is_jeos);
 
-        if (is_alp || is_sle('>=15-SP4') || is_jeos || is_tumbleweed) {
+        if (is_sle('>=15-SP4') || is_jeos || is_tumbleweed) {
             assert_script_run("fips-mode-setup --enable");
             $self->reboot_and_select_serial_term;
             validate_script_output("fips-mode-setup --check", sub { m/FIPS mode is enabled\.\n.*\nThe current crypto policy \(FIPS\) is based on the FIPS policy\./ });
