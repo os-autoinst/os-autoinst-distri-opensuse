@@ -18,7 +18,6 @@ terraform:
     public_key: '~/.ssh/id_rsa.pub'
     private_key: '~/.ssh/id_rsa'
     os_image_uri: '%SLES4SAP_OS_IMAGE_NAME%'
-    hana_os_major_version: '%HANA_OS_MAJOR_VERSION%'
 
     # HANA
     hana_count: '%NODE_COUNT%'

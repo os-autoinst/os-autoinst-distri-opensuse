@@ -19,7 +19,6 @@ terraform:
     aws_credentials: '/root/amazon_credentials'
     os_image: '%SLES4SAP_OS_IMAGE_NAME%'
     os_owner: '%SLE_IMAGE_OWNER%'
-    hana_os_major_version: '%HANA_OS_MAJOR_VERSION%'
 
     # HANA
     hana_count: '%NODE_COUNT%'
