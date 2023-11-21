@@ -22,6 +22,7 @@ use Utils::Backends;
 use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT SERIAL_USER_TERMINAL_DEFAULT_DEVICE SERIAL_USER_TERMINAL_DEFAULT_PORT);
 
 use Cwd;
+use Socket;
 use autotest 'query_isotovideo';
 use isotovideo;
 
@@ -562,11 +563,16 @@ sub init_consoles {
         if (is_backend_s390x) {
             # expand the S390 params
             my $s390_params = get_var("S390_NETWORK_PARAMS");
-            my $s390_host = get_required_var('S390_HOST');
-            $s390_params =~ s,\@S390_HOST\@,$s390_host,g;
+            my $s390_guest_fqdn = get_required_var("ZVM_GUEST");
+            my ($s390_guest_hostname) = $s390_guest_fqdn =~ /(.*?)\..*$/;
+            my $s390_guest_subnetmask = get_required_var("ZVM_GUEST_SUBNETMASK");
+            my $packed_ip = gethostbyname($s390_guest_fqdn);
+            my $s390_guest_ip = inet_ntoa($packed_ip);
+            $s390_params .= " HostIP=${s390_guest_ip}/${s390_guest_subnetmask}";
+            $s390_params .= " Hostname=${s390_guest_hostname}";
             set_var("S390_NETWORK_PARAMS", $s390_params);
 
-            ($hostname) = $s390_params =~ /Hostname=(\S+)/;
+            $hostname = $s390_guest_fqdn;
         }
 
         # adds serial console for s390x zVM
