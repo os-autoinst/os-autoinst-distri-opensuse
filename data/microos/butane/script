@@ -1,5 +1,5 @@
 #!/bin/bash
-# combustion: network
+# combustion: network prepare
 # 
 # Simple openQA combustion script used for sle-micro or Minimal-VM start from 15-SP6 and their opensuse counterparts
 # due to known bug boo#1157133, the script is intended to be used only on x86_64
@@ -15,9 +15,7 @@
 #   8) set test hostname 
 #   9) test networking
 #
-# Redirect output to the console
-exec > >(exec tee -a /dev/console) 2>&1
-set -eux
+set -euxo pipefail
 
 create_fs() {
     DRIVE='/dev/vdc'
@@ -56,6 +54,18 @@ RequiredBy=local-fs.target
 EOF
 
 }
+
+test_prepare() {
+    echo "combustion: test_prepare function ran OK" > /dev/kmsg
+}
+
+if [ "${1-}" = "--prepare" ]; then
+    test_prepare
+    exit 0
+fi
+
+# Redirect output to the console
+exec > >(exec tee -a /dev/console) 2>&1
 
 ### set locale, keyboard and timezone
 # exception: sle-micro comes with symlink /etc/localtime, thus systemd-firstboot fails
@@ -106,6 +116,16 @@ EOF
 
 systemctl enable sshd.service
 systemctl enable create_test_file.service
+
+#
+### Networking
+#
+# configure interface for minimal-vm based on sle
+IF=$(find /sys/class/net -type l -not -lname '*virtual*' -printf '%f\n' | head -n1)
+IF_CFG="/etc/sysconfig/network/ifcfg-$IF"
+if command -v wicked &> /dev/null && ! grep -q 'dhcp' "$IF_CFG" &> /dev/null; then
+    echo -e "BOOTPROTO=dhcp\nSTARTMODE=auto" > "$IF_CFG"
+fi
 
 echo Combustion was here > /usr/share/combustion-welcome
 curl conncheck.opensuse.org
