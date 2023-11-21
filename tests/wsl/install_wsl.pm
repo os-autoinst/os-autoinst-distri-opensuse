@@ -74,7 +74,7 @@ sub run {
         record_info 'Port close', 'Closing serial port...';
         $self->run_in_powershell(cmd => '$port.close()', code => sub { });
         $self->run_in_powershell(cmd => 'exit', code => sub { });
-        $self->use_search_feature($WSL_version);
+        $self->use_search_feature($WSL_version =~ s/\-/\ /gr);
         assert_and_click 'wsl-suse-startup-search';
     } elsif ($install_from eq 'msstore') {
         # Install required SUSE distro from the MS Store
