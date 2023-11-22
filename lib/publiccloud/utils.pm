@@ -247,6 +247,7 @@ sub gcloud_install {
     my $py_version = get_var('PYTHON_VERSION', '3.11');
     my $py_pkg_version = $py_version =~ s/\.//gr;
     push @pkgs, 'python' . $py_pkg_version;
+    add_suseconnect_product(get_addon_fullname('python3')) if is_sle('15-SP6+');
 
     zypper_call("in @pkgs", $timeout);
 
