@@ -1380,12 +1380,7 @@ sub load_x11tests {
             # loadtest "x11/plasma_browser_integration";
             loadtest "x11/khelpcenter";
         }
-        if (get_var("PLASMA5")) {
-            loadtest "x11/systemsettings5";
-        }
-        else {
-            loadtest "x11/systemsettings";
-        }
+        loadtest "x11/systemsettings";
         loadtest "x11/dolphin";
         loadtest "x11/konsole";
     }
