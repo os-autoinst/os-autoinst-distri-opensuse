@@ -23,10 +23,7 @@ use containers::common;
 use containers::container_images;
 use containers::utils qw(registry_url get_podman_version);
 use version_utils qw(is_sle is_leap is_jeos is_transactional package_version_cmp);
-use power_action_utils 'power_action';
-use bootloader_setup 'add_grub_cmdline_settings';
 use Utils::Architectures;
-use transactional 'process_reboot';
 use Utils::Logging 'save_and_upload_log';
 
 my $bsc1200623 = 0;    # to prevent printing the soft-failure more than once
@@ -59,20 +56,10 @@ sub run {
 
     # Prepare for Podman 3.4.4 and CGroups v2
     if (is_sle('15-SP3+') || is_leap('15.3+')) {
-        record_info 'cgroup v2', 'Switching to cgroup v2';
         assert_script_run "usermod -a -G systemd-journal $testapi::username";
-        if (is_transactional) {
-            add_grub_cmdline_settings('systemd.unified_cgroup_hierarchy=1', update_grub => 0);
-            assert_script_run('transactional-update grub.cfg');
-            process_reboot(trigger => 1);
-        } else {
-            add_grub_cmdline_settings('systemd.unified_cgroup_hierarchy=1', update_grub => 1);
-            power_action('reboot', textmode => 1);
-            $self->wait_boot(bootloader_time => 360);
-        }
+        switch_cgroup_version($self, 2);
         select_serial_terminal;
 
-        validate_script_output 'cat /proc/cmdline', sub { /systemd\.unified_cgroup_hierarchy=1/ };
         validate_script_output 'podman info', sub { /cgroupVersion: v2/ };
         validate_script_output "id $testapi::username", sub { /systemd-journal/ };
     }

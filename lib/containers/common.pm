@@ -12,13 +12,16 @@ use registration;
 use version_utils;
 use utils qw(zypper_call systemctl file_content_replace script_retry script_output_retry);
 use containers::utils qw(can_build_sle_base registry_url container_ip container_route);
-use transactional qw(trup_call check_reboot_changes);
+use transactional qw(trup_call check_reboot_changes process_reboot);
+use bootloader_setup 'add_grub_cmdline_settings';
+use serial_terminal 'select_serial_terminal';
+use power_action_utils 'power_action';
 use Mojo::JSON;
 
 our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed install_containerd_when_needed
   test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials
   install_buildah_when_needed test_rpm_db_backend activate_containers_module check_containers_connectivity
-  test_search_registry);
+  test_search_registry switch_cgroup_version);
 
 sub is_unreleased_sle {
     # If "SCC_URL" is set, it means we are in not-released SLE host and it points to proxy SCC url
@@ -324,6 +327,26 @@ sub check_containers_connectivity {
 
     # Kill the container running on background
     assert_script_run "$runtime kill $container_name";
+}
+
+sub switch_cgroup_version {
+    my ($self, $version) = @_;
+
+    my $setting = ($version == 1) ? 0 : 1;
+
+    record_info "cgroup v$version", "Switching to cgroup v$version";
+    if (is_transactional) {
+        add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=$setting", update_grub => 0);
+        assert_script_run('transactional-update grub.cfg');
+        process_reboot(trigger => 1);
+    } else {
+        add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=$setting", update_grub => 1);
+        power_action('reboot', textmode => 1);
+        $self->wait_boot(bootloader_time => 360);
+    }
+    select_serial_terminal;
+
+    validate_script_output("cat /proc/cmdline", sub { m/systemd\.unified_cgroup_hierarchy=$setting/ });
 }
 
 1;
