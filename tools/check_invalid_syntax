@@ -22,7 +22,7 @@ check_versions(){
         exit_code=$(($exit_code+1))
     fi
 
-    CHECK_IS_SLE_RESULT=$(${GIT_CMD} "is_sle[\(\s](\"|')\d{2,}(?:\.\d\+)\1")
+    CHECK_IS_SLE_RESULT=$(${GIT_CMD} "is_sle[\(\s](\"|')\d{2,}(?:\.\d\+)\1"+" --and -P "+"is_sle.*(['\"])[+].+\1[\)\s\;]")
     if [ ! -z "$CHECK_IS_SLE_RESULT" ]; then
         echo "${CHECK_IS_SLE_RESULT}"
         echo "Invalid  call for is_sle"
