@@ -441,6 +441,11 @@ sub run {
         $self->change_kernel_flavor($repo, $incident_id, $kernel_package,
             ['kernel-default']);
     }
+    elsif (get_var('KERNEL_64KB')) {
+        $kernel_package = 'kernel-64kb';
+        $self->change_kernel_flavor($repo, $incident_id, $kernel_package,
+            ['kernel-default']);
+    }
     elsif (get_var('KOTD_REPO')) {
         install_kotd($repo);
     }
@@ -494,6 +499,12 @@ because there is never any kernel-azure package in the pool repository.
 When KERNEL_BASE variable evaluates to true, the job should test the
 alternative minimal kernel. Uninstall kernel-default and install
 kernel-default-base instead. Then update kernel as in the default case.
+
+=head2 KERNEL_64KB
+
+When KERNEL_64KB variable evaluates to true, the job should test the
+alternative kernel with 64KB pagesize. Uninstall kernel-default and install
+kernel-64kb instead. Then update kernel as in the default case.
 
 =head2 KOTD_REPO
 
