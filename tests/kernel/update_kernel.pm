@@ -24,6 +24,16 @@ use Utils::Backends;
 use LTP::utils;
 use transactional;
 
+sub add_update_repos {
+    my @repos = split(",", shift);
+
+    while (my ($i, $val) = each(@repos)) {
+        zypper_call("ar $val kernel-update-$i");
+    }
+
+    zypper_call("ref");
+}
+
 sub check_kernel_package {
     my $kernel_name = shift;
 
@@ -47,13 +57,7 @@ sub first_azure_release {
 
     fully_patch_system;
     remove_kernel_packages();
-
-    my @repos = split(",", $repo);
-    while (my ($i, $val) = each(@repos)) {
-        zypper_call("ar $val kernel-update-$i");
-    }
-
-    zypper_call("ref");
+    add_update_repos($repo);
     zypper_call("in -l kernel-azure", exitcode => [0, 100, 101, 102, 103], timeout => 700);
     zypper_call('in kernel-devel');
 }
@@ -96,11 +100,7 @@ sub update_kernel {
         zypper_call('in kernel-devel');
     }
 
-    my @repos = split(",", $repo);
-    while (my ($i, $val) = each(@repos)) {
-        zypper_call("ar $val kernel-update-$i");
-    }
-    zypper_call("ref");
+    add_update_repos($repo);
 
     #Get patch list related to incident
     my $patches = '';
