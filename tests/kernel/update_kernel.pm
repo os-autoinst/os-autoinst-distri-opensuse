@@ -50,38 +50,28 @@ sub check_kernel_package {
     }
 }
 
-# kernel-azure is never released in pool, first release is in updates.
-# Fix the chicken & egg problem manually.
-sub first_azure_release {
-    my $repo = shift;
+sub change_kernel_flavor {
+    my ($self, $repo, $incident_id, $packname, $extra_packs) = @_;
+    my $first_release = get_var('KERNEL_FIRST_RELEASE');
 
     fully_patch_system;
     remove_kernel_packages();
-    add_update_repos($repo);
-    zypper_call("in -l kernel-azure", exitcode => [0, 100, 101, 102, 103], timeout => 700);
-    zypper_call('in kernel-devel');
-}
 
-sub prepare_azure {
-    my $self = shift;
+    # Install directly from update repo if the kernel flavor was not released
+    # in pool and this is the initial update. This is common for kernel-azure.
+    add_update_repos($repo) if $first_release;
 
-    fully_patch_system;
-    remove_kernel_packages();
-    zypper_call("in -l kernel-azure", exitcode => [0, 100, 101, 102, 103], timeout => 700);
-    check_kernel_package('kernel-azure');
-    power_action('reboot', textmode => 1);
-    boot_to_console($self);
-}
+    zypper_call("in -l $packname", exitcode => [0, 100, 101, 102, 103], timeout => 700);
+    check_kernel_package($packname);
 
-sub prepare_kernel_base {
-    my $self = shift;
-
-    fully_patch_system;
-    remove_kernel_packages();
-    zypper_call("in -l kernel-default-base", exitcode => [0, 100, 101, 102, 103], timeout => 700);
-    check_kernel_package('kernel-default-base');
-    power_action('reboot', textmode => 1);
-    boot_to_console($self);
+    if ($first_release) {
+        zypper_call('in ' . join(' ', @$extra_packs));
+    }
+    else {
+        power_action('reboot', textmode => 1);
+        boot_to_console($self);
+        update_kernel($repo, $incident_id);
+    }
 }
 
 sub update_kernel {
@@ -443,19 +433,13 @@ sub run {
     }
     elsif (get_var('AZURE')) {
         $kernel_package = 'kernel-azure';
-
-        if (get_var('AZURE_FIRST_RELEASE')) {
-            first_azure_release($repo);
-        }
-        else {
-            $self->prepare_azure;
-            update_kernel($repo, $incident_id);
-        }
+        $self->change_kernel_flavor($repo, $incident_id, $kernel_package,
+            ['kernel-default']);
     }
     elsif (get_var('KERNEL_BASE')) {
         $kernel_package = 'kernel-default-base';
-        $self->prepare_kernel_base;
-        update_kernel($repo, $incident_id);
+        $self->change_kernel_flavor($repo, $incident_id, $kernel_package,
+            ['kernel-default']);
     }
     elsif (get_var('KOTD_REPO')) {
         install_kotd($repo);
