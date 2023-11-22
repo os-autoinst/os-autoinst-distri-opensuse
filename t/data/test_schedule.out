@@ -51,7 +51,7 @@ tests/x11/ooffice.pm
 tests/x11/oomath.pm
 tests/x11/oocalc.pm
 tests/x11/khelpcenter.pm
-tests/x11/systemsettings5.pm
+tests/x11/systemsettings.pm
 tests/x11/dolphin.pm
 tests/x11/konsole.pm
 tests/x11/glxgears.pm
