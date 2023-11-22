@@ -146,6 +146,9 @@ sub wait_boot_windows {
             wait_still_screen stilltime => 15, timeout => 60;
             assert_screen(['windows-desktop', 'windows-edge-decline', 'networks-popup-be-discoverable', 'windows-start-menu', 'windows-qemu-drivers'], timeout => 120);
         }
+
+        # TODO: all this part should be added to the unattend XML in the future
+
         # Setup stable lock screen background
         record_info('Config lockscreen', 'Setup stable lock screen background');
         $self->use_search_feature('lock screen settings');
@@ -156,6 +159,15 @@ sub wait_boot_windows {
         assert_and_click 'windows-lock-screen-background';
         assert_and_click 'windows-select-picture';
         assert_and_click 'windows-close-lockscreen';
+        # These commands disable notifications that Windows shows randomly and
+        # make our windows lose focus
+        $self->open_powershell_as_admin;
+        $self->run_in_powershell(cmd => 'reg add "HKLM\Software\Policies\Microsoft\Windows" /v Explorer');
+        $self->run_in_powershell(cmd => 'reg add "HKLM\Software\Policies\Microsoft\Windows\Explorer" /v DisableNotificationCenter /t REG_DWORD /d 1');
+        $self->run_in_powershell(cmd => 'reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\PushNotifications" /v ToastEnabled /t REG_DWORD /d 0');
+        record_info 'Port close', 'Closing serial port...';
+        $self->run_in_powershell(cmd => '$port.close()', code => sub { });
+        $self->run_in_powershell(cmd => 'exit', code => sub { });
     } else {
         record_info("Win boot", "Windows started properly");
         assert_screen ['finish-setting', 'windows-desktop'], 240;
