@@ -331,7 +331,7 @@ sub get_guest_disk_name_from_guest_xml {
 sub compress_single_qcow2_disk {
     my ($orig_disk, $compressed_disk) = @_;
     my $timeout = '720';
-    my $cmd = "time nice ionice qemu-img convert --force-share -c -p -O qcow2 $orig_disk $compressed_disk";
+    my $cmd = "time nice ionice qemu-img convert --force-share -c -m 1 -p -O qcow2 $orig_disk $compressed_disk";
 
     if ($orig_disk =~ /qcow2/) {
         die("Disk compression failed from $orig_disk to $compressed_disk.") if (script_run($cmd, timeout => $timeout, die => 0, retry => 2) ne 0);
