@@ -1,0 +1,30 @@
+---
+products:
+  opensuse-*-github-x86_64:
+    distri: opensuse
+    flavor: github
+    arch: x86_64
+    version: Tumbleweed
+
+machines:
+  64bit:
+    backend: qemu
+    settings:
+      HDDSIZEGB: "20"
+      QEMUCPU: host
+      VIRTIO_CONSOLE: "1"
+      OFFLINE_SUT: "1"
+      WORKER_CLASS: qemu_x86_64
+
+.common: &common
+  product: opensuse-*-github-x86_64
+  machine: 64bit
+
+job_templates:
+  boot_to_snapshot:
+    <<: *common
+    settings:
+      BOOT_HDD_IMAGE: "1"
+      DESKTOP: textmode
+      PRODUCTDIR: products/opensuse
+      YAML_SCHEDULE: schedule/boot_to_snapshot.yaml
