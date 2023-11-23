@@ -1,14 +1,21 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2019 SUSE LLC
+# Copyright 2018-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
-use 5.018;
+
+# Summary: Kernel helper functions
+# Maintainer: Kernel QE <kernel-qa@suse.de>
+
+package kernel;
+
+use base Exporter;
 use testapi;
+use strict;
 use utils;
 use version_utils 'is_sle';
 use warnings;
 
-our @EXPORT_OK = qw(
+our @EXPORT = qw(
   remove_kernel_packages
 );
 
@@ -34,3 +41,4 @@ sub remove_kernel_packages {
     return @packages;
 }
 
+1;
