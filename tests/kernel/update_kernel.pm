@@ -16,7 +16,7 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_transactional package_version_cmp);
 use qam;
-use kernel 'remove_kernel_packages';
+use kernel;
 use klp;
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
@@ -384,7 +384,8 @@ sub install_kotd {
     fully_patch_system;
     remove_kernel_packages;
     zypper_ar($repo, name => 'KOTD', priority => 90, no_gpg_check => 1);
-    zypper_call("in -l kernel-default kernel-devel");
+    my $kernel_flavor = get_kernel_flavor;
+    zypper_call("in -l ${kernel_flavor} kernel-devel");
 }
 
 sub boot_to_console {
@@ -411,7 +412,7 @@ sub run {
 
     my $repo = get_var('KOTD_REPO');
     my $incident_id = undef;
-    my $kernel_package = 'kernel-default';
+    my $kernel_package = get_kernel_flavor;
 
     unless ($repo) {
         $repo = get_required_var('INCIDENT_REPO');

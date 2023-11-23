@@ -17,7 +17,12 @@ use warnings;
 
 our @EXPORT = qw(
   remove_kernel_packages
+  get_kernel_flavor
 );
+
+sub get_kernel_flavor {
+    return get_var('KERNEL_FLAVOR', 'kernel-default');
+}
 
 sub remove_kernel_packages {
     my @packages;
