@@ -480,6 +480,7 @@ sub load_online_migration_tests {
     if (is_sle && (get_var('FLAVOR') =~ /Migration/) && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE'))) {
         loadtest "console/check_os_release";
         loadtest "console/check_system_info";
+        loadtest "console/verify_lock_package" if (get_var("LOCK_PACKAGE"));
     }
 }
 
@@ -1181,6 +1182,7 @@ else {
             if (is_sle && (get_var('FLAVOR') =~ /Migration/) && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE'))) {
                 loadtest "console/check_os_release";
                 loadtest "console/check_system_info";
+                loadtest "console/verify_lock_package" if (get_var("LOCK_PACKAGE"));
             }
         }
     }
