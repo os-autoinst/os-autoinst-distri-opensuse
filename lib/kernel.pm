@@ -1,22 +1,37 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2019 SUSE LLC
+# Copyright 2018-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
-use 5.018;
+
+# Summary: Kernel helper functions
+# Maintainer: Kernel QE <kernel-qa@suse.de>
+
+package kernel;
+
+use base Exporter;
 use testapi;
+use strict;
 use utils;
 use version_utils 'is_sle';
 use warnings;
 
-our @EXPORT_OK = qw(
+our @EXPORT = qw(
   remove_kernel_packages
+  get_kernel_flavor
 );
+
+sub get_kernel_flavor {
+    return get_var('KERNEL_FLAVOR', 'kernel-default');
+}
 
 sub remove_kernel_packages {
     my @packages;
 
     if (check_var('SLE_PRODUCT', 'slert')) {
         @packages = qw(kernel-rt kernel-rt-devel kernel-source-rt);
+    }
+    elsif (get_kernel_flavor eq 'kernel-64kb') {
+        @packages = qw(kernel-64kb*);
     }
     else {
         @packages = qw(kernel-default kernel-default-devel kernel-macros kernel-source);
@@ -34,3 +49,4 @@ sub remove_kernel_packages {
     return @packages;
 }
 
+1;
