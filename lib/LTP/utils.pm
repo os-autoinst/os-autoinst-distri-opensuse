@@ -403,6 +403,10 @@ sub get_default_pkg {
 }
 
 sub install_from_repo {
+    # Workaround for kernel-64kb, until we add multibuild support to LTP package
+    # Lock kernel-default to don't pull it as LTP dependency
+    zypper_call 'al kernel-default' if get_kernel_flavor eq 'kernel-64kb';
+
     my @pkgs = split(/\s* \s*/, get_var('LTP_PKG', get_default_pkg));
 
     if (is_transactional) {

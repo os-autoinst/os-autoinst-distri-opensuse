@@ -30,6 +30,9 @@ sub remove_kernel_packages {
     if (check_var('SLE_PRODUCT', 'slert')) {
         @packages = qw(kernel-rt kernel-rt-devel kernel-source-rt);
     }
+    elsif (get_kernel_flavor eq 'kernel-64kb') {
+        @packages = qw(kernel-64kb*);
+    }
     else {
         @packages = qw(kernel-default kernel-default-devel kernel-macros kernel-source);
     }
