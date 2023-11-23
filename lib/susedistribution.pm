@@ -3,6 +3,7 @@ use base 'distribution';
 use serial_terminal ();
 use strict;
 use warnings;
+use Sys::Hostname qw(hostname);
 use Utils::Architectures;
 use utils qw(
   disable_serial_getty
@@ -567,6 +568,7 @@ sub init_consoles {
             my ($s390_guest_hostname) = $s390_guest_fqdn =~ /(.*?)\..*$/;
             my $s390_guest_subnetmask = get_required_var("ZVM_GUEST_SUBNETMASK");
             my $packed_ip = gethostbyname($s390_guest_fqdn);
+            die "Failed to get host by name for '$s390_guest_fqdn' (on " . hostname . ")" unless $packed_ip;
             my $s390_guest_ip = inet_ntoa($packed_ip);
             $s390_params .= " HostIP=${s390_guest_ip}/${s390_guest_subnetmask}";
             $s390_params .= " Hostname=${s390_guest_hostname}";
