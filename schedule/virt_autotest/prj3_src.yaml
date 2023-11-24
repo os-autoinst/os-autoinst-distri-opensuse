@@ -1,0 +1,7 @@
+name:          virt-guest-installation
+description:    >
+    Virtualization guest installation tests including extended feature tests schedule using IPXE
+vars:
+schedule:
+    - virt_autotest/guest_migration_src
+
