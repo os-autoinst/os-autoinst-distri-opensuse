@@ -664,8 +664,8 @@ sub upload_wicked_logs {
             script_run("cp $lfile $logs_dir/");
         }
     }
-    script_run("tar -C /tmp/ -cvzf $dir_name.tar.gz $dir_name");
-    $self->upload_log_file("$dir_name.tar.gz");
+    script_run("tar -C /tmp/ -cvzf /tmp/$dir_name.tar.gz $dir_name");
+    $self->upload_log_file("/tmp/$dir_name.tar.gz");
 }
 
 =head2 do_barrier
