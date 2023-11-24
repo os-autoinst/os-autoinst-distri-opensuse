@@ -405,7 +405,7 @@ sub get_from_data {
 
     $source .= check_var('IS_WICKED_REF', '1') ? 'ref' : 'sut' if $args{add_suffix};
     # we know we fail on other directories than data/wicked
-    assert_script_run("cp '" . WICKED_DATA_DIR . '/' . $source . "' '$target'");
+    assert_script_run("cp -r '" . WICKED_DATA_DIR . '/' . $source . "' '$target'");
     assert_script_run("chmod +x '$target'") if $args{executable};
 }
 
