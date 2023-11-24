@@ -3,7 +3,7 @@
 # Copyright 2017-2019 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: plasma5-session-wayland
+# Package: plasma5-session-wayland/plasma6-session
 # Summary: Prepare for wayland and log out of X11 and into wayland
 # Maintainer: Fabian Vogt <fvogt@suse.com>
 
@@ -16,9 +16,6 @@ use x11utils 'handle_login';
 
 sub run {
     my ($self) = @_;
-
-    # Make sure everything necessary is installed
-    ensure_installed "plasma5-session-wayland";
 
     # Log out of X session
     send_key 'super';    # Open the application menu
