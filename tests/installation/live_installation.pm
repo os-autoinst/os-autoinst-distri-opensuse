@@ -17,7 +17,7 @@ use base "installbasetest";
 use warnings;
 use testapi;
 use utils;
-use version_utils "is_upgrade";
+use version_utils qw(is_plasma6 is_upgrade);
 use strict;
 use warnings;
 use x11utils 'turn_off_kde_screensaver';
@@ -53,7 +53,7 @@ sub run {
             x11_start_program('xdg-su -c "/usr/sbin/start-install.sh upgrade"', target_match => 'maximize');
         }
         else {
-            assert_and_click 'live-upgrade';
+            assert_and_click 'live-upgrade', dclick => is_plasma6;
         }
     }
     else {
@@ -63,7 +63,7 @@ sub run {
             x11_start_program('xdg-su -c "/usr/sbin/start-install.sh"', target_match => 'maximize');
         }
         else {
-            assert_and_click 'live-installation';
+            assert_and_click 'live-installation', dclick => is_plasma6;
         }
     }
     assert_and_click 'maximize';
