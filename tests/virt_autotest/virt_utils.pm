@@ -81,11 +81,29 @@ sub locate_sourcefile {
 }
 
 sub get_repo_0_prefix {
-    # Get customized repo location from REPO_0_PREFIX and append missing forward slash to the end
+    my ($default_repo_urls_ref) = @_;
+    my @default_repo_urls = @{$default_repo_urls_ref};
     my $repo_0_prefix = get_var("REPO_0_PREFIX", "");
     $repo_0_prefix .= '/' unless $repo_0_prefix =~ /\/$/;
-    $repo_0_prefix = ($repo_0_prefix ne "/" ? $repo_0_prefix : "http://openqa.suse.de/assets/repo/");
-    return $repo_0_prefix;
+    foreach my $url (@default_repo_urls) {
+        my $repo_0 = get_var("REPO_0");
+        record_info("REPO_0 Original", "Original value of REPO_0: $repo_0");
+        my $version = get_version_for_daily_build_guest;
+        record_info("SUSE Version Check", "Checking if SUSE version ($version) requires modifying REPO_0.");
+        $repo_0 =~ s/-Online-/-Full-/ if ($version =~ /15-sp[2-9]/i);
+        record_info("REPO_0 Modified", "Modified value of REPO_0: $repo_0");
+        my $repo_0_prefix = ($repo_0_prefix ne "/" ? $repo_0_prefix : "http://$url/assets/repo/");
+        record_info("Final REPO_0_PREFIX", "Final constructed REPO_0_PREFIX URL: $repo_0_prefix");
+        # Check the HTTP response for this URL
+        my $check_url = "$repo_0_prefix$repo_0/CHECKSUMS";
+        record_info("URL Check", "Checking accessibility of URL: $check_url");
+        my $result = script_run("curl -sSf '$check_url' > /dev/null");
+        if ($result == 0) {
+            record_info("URL Accessible", "Successfully accessed URL: $check_url");
+            return $repo_0_prefix;    # Return the first accessible URL
+        }
+    }
+    die "All provided repo URLs are inaccessible.";
 }
 
 sub repl_repo_in_sourcefile {
@@ -93,8 +111,9 @@ sub repl_repo_in_sourcefile {
     my $verorig = "source.http.sles-" . get_version_for_daily_build_guest . "-64";
     my $veritem = is_x86_64 ? $verorig : get_required_var('ARCH') . ".$verorig";
     if (get_var("REPO_0")) {
+        my @repo_urls = ('openqa.suse.de', 'openqa.qa2.suse.asia');
         my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . locate_sourcefile;
-        my $newrepo = get_repo_0_prefix . get_var("REPO_0");
+        my $newrepo = get_repo_0_prefix(\@repo_urls) . get_var("REPO_0");
         # for sles15sp2+, install host with Online installer, while install guest with Full installer
         $newrepo =~ s/-Online-/-Full-/ if ($verorig =~ /15-sp[2-9]/i);
         my $shell_cmd
@@ -117,6 +136,7 @@ sub repl_repo_in_sourcefile {
 # Replace module repos configured in sources.* with openqa daily build repos
 sub repl_module_in_sourcefile {
     my $version = get_version_for_daily_build_guest;
+    my @repo_urls = ('openqa.suse.de', 'openqa.qa2.suse.asia');
     $version =~ s/fcs/sp0/;
     my ($release) = ($version =~ /(\d+)-/m);
     # We only support sle product, and only products >= sle15 has module link
@@ -126,7 +146,7 @@ sub repl_module_in_sourcefile {
     my $replaced_item = get_required_var('ARCH') . ".$replaced_orig";
     $version =~ s/-sp0//;
     $version = uc($version);
-    my $daily_build_module = get_repo_0_prefix;
+    my $daily_build_module = get_repo_0_prefix(\@repo_urls);
     # for sles15sp2+, install host with Online installer, while install guest with Full installer
     if ($version =~ /15-SP[2-9]/) {
         $daily_build_module .= get_var("REPO_0") . "/Module-\\2/";
