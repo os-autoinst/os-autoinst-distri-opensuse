@@ -23,7 +23,7 @@ sub run {
     select_serial_terminal;
 
 
-    if (is_sle) {
+    if (is_sle && !main_common::is_updates_tests) {
         # Check if BSC#1204824 is present
         if (script_run("suseconnect -l | grep 'Web and Scripting Module'| grep '(Activated)'") == 0) {
             die 'bsc#1204824 - Module activated already';
