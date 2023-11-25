@@ -177,7 +177,7 @@ sub run {
 
         # Make a list of the conflicting binaries in this patch.
         my @conflict_names = uniq pairmap {
-            map { $_ =~ /(^\s+(?<with_ext>\S*)(\.(?!src)\S* <))|^\s+(?<no_ext>\S*)/; $+{with_ext} // $+{no_ext} } @patchinfo[$a .. $b] } @ranges;
+            map { $_ =~ /(^\s+(?<with_ext>\S*)(\.(?!src)\S* <))|^\s+(?!srcpackage:)(?<no_ext>\S*)/; $+{with_ext} // $+{no_ext} } @patchinfo[$a .. $b] } @ranges;
         print "Conflict names: @conflict_names\n";
 
         # Get the l3 released binaries. Only installed binaries can conflict.
