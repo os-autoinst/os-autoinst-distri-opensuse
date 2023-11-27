@@ -37,7 +37,7 @@ sub create_user {
     assert_script_run "grep '^${serial_group}:.*:${user}\$' /etc/group || (chown $user /dev/$testapi::serialdev && gpasswd -a $user $serial_group)";
 
     # Don't ask password for sudo commands
-    assert_script_run "echo \"$user ALL=(ALL) NOPASSWD:ALL\" >> /etc/sudoers";
+    assert_script_run "echo '$user ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/50-$user";
 }
 
 sub run {
@@ -145,6 +145,8 @@ sub clean_container_host {
 }
 
 sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
     cleanup;
 }
 
