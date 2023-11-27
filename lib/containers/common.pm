@@ -334,6 +334,8 @@ sub switch_cgroup_version {
 
     my $setting = ($version == 1) ? 0 : 1;
 
+    return if (script_output("cat /proc/cmdline") =~ "systemd\.unified_cgroup_hierarchy=$setting");
+
     record_info "cgroup v$version", "Switching to cgroup v$version";
     if (is_transactional) {
         add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=$setting", update_grub => 0);
