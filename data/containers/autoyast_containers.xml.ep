@@ -116,7 +116,6 @@
       % }
       % unless ($get_var->('VERSION') =~ /12-SP3|12-SP4|12-SP5|15$/) {
       <package>podman</package>
-      <package>podman-cni-config</package>
       % }}
     </packages>
     <patterns config:type="list">
