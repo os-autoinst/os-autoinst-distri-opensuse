@@ -27,6 +27,10 @@ sub run {
     my $disksize = script_output "sfdisk --show-size /dev/$disk";
     die "Disk not bigger than the default size, got $disksize KiB" unless $disksize > (20 * 1024 * 1024);
 
+    # Verify that the GPT has no errors (PMBR mismatch, backup GPT not at the end)
+    # by looking for nonempty stderr.
+    die 'GPT has errors' if script_output("sfdisk --list-free /dev/$disk 2>&1 >/dev/null", proceed_on_failure => 0) ne '';
+
     # Verify that there is no unpartitioned space left
     my $left_sectors = (is_sle_micro("5.4+") && is_aarch64) ? 2048 : 0;
     validate_script_output("sfdisk --list-free /dev/$disk", qr/Unpartitioned space .* $left_sectors sectors/);
