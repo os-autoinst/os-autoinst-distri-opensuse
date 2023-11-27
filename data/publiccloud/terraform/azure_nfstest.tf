@@ -57,6 +57,10 @@ variable "vm_create_timeout" {
     default = "20m"
 }
 
+variable "subnet_id" {
+    default = ""
+}
+
 ## ---- data ---------------------------------------------------------------- ##
 
 // IP address of the client
@@ -88,50 +92,12 @@ resource "azurerm_resource_group" "openqa-group" {
 
 ## virtual network
 
-resource "azurerm_virtual_network" "openqa-network" {
-    name                = "${azurerm_resource_group.openqa-group.name}-vnet"
-    address_space       = ["192.168.0.0/16"]
-    location            = var.region
-    resource_group_name = azurerm_resource_group.openqa-group.name
-}
-
-resource "azurerm_subnet" "openqa-subnet" {
-    name                 = "${azurerm_resource_group.openqa-group.name}-subnet"
-    resource_group_name  = azurerm_resource_group.openqa-group.name
-    virtual_network_name = azurerm_virtual_network.openqa-network.name
-    address_prefixes     = ["192.168.1.0/24"]
-    service_endpoints    = ["Microsoft.Storage"]
-}
-
 resource "azurerm_public_ip" "openqa-publicip" {
     name                         = "${azurerm_resource_group.openqa-group.name}-public-ip"
     location                     = var.region
     resource_group_name          = azurerm_resource_group.openqa-group.name
     allocation_method            = "Dynamic"
     count                        = var.instance_count
-}
-
-resource "azurerm_network_security_group" "openqa-nsg" {
-    name                = "${azurerm_resource_group.openqa-group.name}-nsg"
-    location            = var.region
-    resource_group_name = azurerm_resource_group.openqa-group.name
-
-    security_rule {
-        name                       = "SSH"
-        priority                   = 1001
-        direction                  = "Inbound"
-        access                     = "Allow"
-        protocol                   = "Tcp"
-        source_port_range          = "*"
-        destination_port_range     = "22"
-        source_address_prefix      = "*"
-        destination_address_prefix = "*"
-    }
-}
-
-resource "azurerm_subnet_network_security_group_association" "openqa-net-sec-association" {
-    subnet_id                   = azurerm_subnet.openqa-subnet.id
-    network_security_group_id   = azurerm_network_security_group.openqa-nsg.id
 }
 
 resource "azurerm_network_interface" "openqa-nic" {
@@ -142,7 +108,7 @@ resource "azurerm_network_interface" "openqa-nic" {
 
     ip_configuration {
         name                          = "${element(random_id.service.*.hex, count.index)}-nic-config"
-        subnet_id                     = azurerm_subnet.openqa-subnet.id
+        subnet_id                     = "${var.subnet_id}"
         private_ip_address_allocation = "Dynamic"
         public_ip_address_id          = element(azurerm_public_ip.openqa-publicip.*.id, count.index)
     }
