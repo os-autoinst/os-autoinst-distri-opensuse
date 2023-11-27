@@ -144,10 +144,4 @@ sub clean_container_host {
     assert_script_run("$runtime system prune -a -f", 300);
 }
 
-sub post_fail_hook {
-    my ($self) = @_;
-    $self->SUPER::post_fail_hook;
-    cleanup;
-}
-
 1;
