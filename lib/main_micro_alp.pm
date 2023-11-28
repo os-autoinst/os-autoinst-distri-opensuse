@@ -321,6 +321,14 @@ sub load_tests {
         return 1;
     }
 
+    if (get_var('BTRFS_PROGS')) {
+        boot_hdd_image;
+        loadtest 'btrfs-progs/install';
+        loadtest 'btrfs-progs/run';
+        loadtest 'btrfs-progs/generate_report';
+        return 1;
+    }
+
     if (get_var('REMOTE_TARGET')) {
         load_remote_target_tests;
         return 1;
