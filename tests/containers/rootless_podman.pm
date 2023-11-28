@@ -55,7 +55,7 @@ sub run {
     }
 
     # Prepare for Podman 3.4.4 and CGroups v2
-    if (is_sle('15-SP3+') || is_leap('15.3+')) {
+    if ((is_sle('15-SP3+') || is_leap('15.3+')) && !check_var('CONTAINERS_CGROUP_VERSION', '1')) {
         assert_script_run "usermod -a -G systemd-journal $testapi::username";
         switch_cgroup_version($self, 2);
         select_serial_terminal;
