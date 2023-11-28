@@ -13,7 +13,8 @@ use warnings;
 use testapi;
 use Utils::Architectures;
 use utils;
-use virt_autotest::utils qw(restart_libvirtd);
+use virt_autotest::utils qw(restart_libvirtd check_libvirtd);
+use version_utils qw(is_leap);
 
 sub run {
     x11_start_program('xterm');
@@ -50,7 +51,17 @@ sub run {
     x11_start_program('xterm');
     wait_screen_change { send_key 'alt-f10' };
     become_root;
+    if (is_leap('15.0+')) {
+        # Clearly, If either of the below is active the system is using the modular daemons.
+        systemctl 'is-active virtqemud.socket', timeout => 60;
+        systemctl 'is-active virtqemud.service', timeout => 60;
+        zypper_call "se --provides 'libvirtd'";
+        # But need to install the libvirt daemon and libvirt client for virt-manager
+        zypper_call "in 'libvirt'";
+        systemctl 'start libvirtd', timeout => 60;
+    }
     restart_libvirtd;
+    check_libvirtd;
     wait_screen_change { send_key 'ret' };
     send_key 'ret';
     # close the xterm

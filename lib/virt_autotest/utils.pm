@@ -170,6 +170,7 @@ sub is_kvm_host {
 sub is_monolithic_libvirtd {
     record_info('WARNING', 'Libvirt package is not installed', result => 'fail') if (script_run('rpm -q libvirt-libs'));
     unless (is_alp) {
+        # why not check "is-active" for libvirtd.socket or libvirtd.service because, If either of them is active the system is using the monolithic daemon.
         return 1 if script_run('systemctl is-enabled libvirtd.service') == 0;
     }
     return 0;
