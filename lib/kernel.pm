@@ -12,7 +12,7 @@ use base Exporter;
 use testapi;
 use strict;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_rt);
 use warnings;
 
 our @EXPORT = qw(
@@ -27,7 +27,7 @@ sub get_kernel_flavor {
 sub remove_kernel_packages {
     my @packages;
 
-    if (check_var('SLE_PRODUCT', 'slert')) {
+    if (is_rt) {
         @packages = qw(kernel-rt kernel-rt-devel kernel-source-rt);
     }
     elsif (get_kernel_flavor eq 'kernel-64kb') {

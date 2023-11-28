@@ -16,7 +16,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use registration;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_rt);
 
 sub run {
     if (get_var('AZURE')) {
@@ -25,7 +25,7 @@ sub run {
     }
 
     if (script_run('[ -d /lib/modules/$(uname -r)/build ]') != 0) {
-        if (check_var('SLE_PRODUCT', 'slert')) {
+        if (is_rt) {
             zypper_call('in -l kernel-devel-rt');
         }
         else {

@@ -14,7 +14,7 @@ use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_sle is_transactional package_version_cmp);
+use version_utils qw(is_sle is_transactional package_version_cmp is_rt);
 use qam;
 use kernel;
 use klp;
@@ -85,7 +85,7 @@ sub update_kernel {
 
     fully_patch_system;
 
-    if (check_var('SLE_PRODUCT', 'slert')) {
+    if (is_rt) {
         if (is_transactional) {
             record_info("There is no kernel-devel-rt available on transactional system.");
         } else {
@@ -223,7 +223,7 @@ sub install_lock_kernel {
         'kernel-source-rt' => $src_version
     );
 
-    if (check_var('SLE_PRODUCT', 'slert')) {
+    if (is_rt) {
         push @packages, "kernel-devel-rt";
     }
     else {
@@ -420,7 +420,7 @@ sub run {
     }
 
     $kernel_package = 'kernel-default-base' if is_sle('<12');
-    $kernel_package = 'kernel-rt' if check_var('SLE_PRODUCT', 'slert');
+    $kernel_package = 'kernel-rt' if is_rt;
 
     if (get_var('KGRAFT')) {
         my $incident_klp_pkg = prepare_kgraft($repo, $incident_id);
