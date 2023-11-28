@@ -19,5 +19,3 @@ schedule:
   local_user:
     - installation/authentication/import_users
     - installation/authentication/root_simple_pwd
-  default_systemd_target:
-    - installation/installation_settings/validate_default_target

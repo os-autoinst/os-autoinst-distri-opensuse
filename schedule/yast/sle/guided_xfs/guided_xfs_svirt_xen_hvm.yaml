@@ -15,8 +15,6 @@ schedule:
     - installation/partitioning/guided_setup/select_filesystem_option_xfs
   booting:
     - installation/bootloader_settings/disable_boot_menu_timeout
-  default_systemd_target:
-    - installation/installation_settings/validate_default_target
   system_validation:
     - console/validate_partition_table_via_blkid
     - console/validate_blockdevices
