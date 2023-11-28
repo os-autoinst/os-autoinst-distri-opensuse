@@ -11,6 +11,8 @@ use base 'opensusebasetest';
 use utils;
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use version_utils 'is_transactional';
+use transactional;
 
 use constant STATUS_LOG => '/opt/status.log';
 
@@ -46,18 +48,17 @@ sub run {
     # Install btrfs-progs
     if (get_var('BTRFS_PROGS_REPO')) {
         # Add filesystems repository and install btrfs-progs package
-        my $btrfs_package_name;
-        if (get_var('KEEP_DEFAULT_BTRFS_BINARY')) {
-            $btrfs_package_name = get_var('BTRFS_PACKAGE_NAME', 'btrfs-progs-tests');
+        my $btrfs_package_name = get_var('KEEP_DEFAULT_BTRFS_BINARY') ? 'btrfs-progs-tests' : 'btrfs-progs';
+        zypper_ar(get_var('BTRFS_PROGS_REPO'), name => 'filesystems');
+        zypper_call '--gpg-auto-import-keys ref -r filesystems';
+        if (is_transactional) {
+            trup_call("pkg install -r filesystems $btrfs_package_name");
+            reboot_on_changes;
         }
         else {
-            $btrfs_package_name = get_var('BTRFS_PACKAGE_NAME', 'btrfs-progs');
-            zypper_call 'rm btrfsprogs';
+            zypper_call 'rm btrfsprogs' unless get_var('KEEP_DEFAULT_BTRFS_BINARY');
+            zypper_call "in -r filesystems $btrfs_package_name";
         }
-        zypper_call '--no-gpg-checks ar -f ' . get_var('BTRFS_PROGS_REPO') . ' filesystems';
-        zypper_call '--gpg-auto-import-keys ref -r filesystems';
-        zypper_call "in -r filesystems $btrfs_package_name";
-        zypper_call 'rr filesystems';
         set_var('WORK_DIR', '/opt/btrfs-progs-tests');
     }
     else {
