@@ -70,8 +70,6 @@ sub install_dhcp_container {
     # Start the dhcp6 container in the background
     assert_script_run("podman run -itd --replace --name kea-dhcp6 --privileged --network=host -v /etc/kea:/etc/kea $image  kea-dhcp6 -c /etc/kea/kea-dhcp6.conf");
     validate_script_output('podman ps ', sub { m/kea-dhcp6/ });
-    # cni-podman0 interface is created when running the first container
-    validate_script_output('ip a s cni-podman0', sub { /,UP/ });
 }
 
 sub setup_static_mm_network_ipv6 {

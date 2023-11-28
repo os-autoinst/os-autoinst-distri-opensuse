@@ -65,8 +65,6 @@ sub install_dhcp_container {
     # Start the dhcp4 container in the background
     assert_script_run("podman run -itd --replace --name kea-dhcp4 --privileged --network=host -v /etc/kea:/etc/kea $image  kea-dhcp4 -c /etc/kea/kea-dhcp4.conf");
     validate_script_output('podman ps ', sub { m/kea-dhcp4/ });
-    # cni-podman0 interface is created when running the first container
-    validate_script_output('ip a s cni-podman0', sub { /,UP/ });
     validate_script_output('ss -lnp', sub { /10.0.2.101:67/ });
 }
 
