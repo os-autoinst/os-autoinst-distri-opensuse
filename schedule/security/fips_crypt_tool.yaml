@@ -16,9 +16,16 @@ schedule:
     - console/openvswitch_ssl
     - console/ntp_client
     - console/cups
+    - console/cryptsetup
     - console/syslog
     - x11/evolution/evolution_prepare_servers
     - console/mutt
+    - fips/squid/squid_init
+    - fips/squid/squid_web_proxy
+    - fips/squid/squid_reverse_proxy
+    - security/ecryptfs/ecryptfs
+    - security/libserf/libserf
+    - '{{dm_crypt}}'
 conditional_schedule:
     repo_setup:
         BETA:
@@ -27,3 +34,7 @@ conditional_schedule:
         FLAVOR:
             Online-QR:
                 - security/test_repo_setup
+    dm_crypt:
+        TEST_SUITE_NAME:
+            fips_ker_mode_tests_crypt_tool:
+                - security/dm_crypt
