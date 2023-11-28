@@ -13,14 +13,16 @@ use testapi qw(
   assert_script_run
   assert_screen
   get_required_var
+  get_var
   enter_cmd
 );
 
 sub run {
     my $self = shift;
     my $test = get_required_var('AGAMA_TEST');
+    my $registration_code = get_var('REGCODE');
 
-    assert_script_run("playwright test --trace on --project chromium --config /usr/share/e2e-agama-playwright tests/" . $test . ".spec.ts", timeout => 1200);
+    assert_script_run("REGISTRATIONCODE=\"$registration_code\" playwright test --trace on --project chromium --config /usr/share/e2e-agama-playwright tests/" . $test . ".spec.ts", timeout => 1800);
     $self->upload_traces();
     enter_cmd 'reboot';
 }
