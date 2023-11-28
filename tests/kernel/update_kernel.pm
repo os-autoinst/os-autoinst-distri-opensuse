@@ -14,7 +14,7 @@ use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_sle is_sle_micro is_transactional package_version_cmp);
+use version_utils qw(is_sle is_sle_micro is_transactional package_version_cmp is_rt);
 use qam;
 use kernel;
 use klp;
@@ -86,7 +86,7 @@ sub update_kernel {
 
     fully_patch_system;
 
-    if (check_var('SLE_PRODUCT', 'slert')) {
+    if (is_rt) {
         install_package('kernel-devel-rt', skip_trup => 'There is no kernel-devel-rt available on transactional system.');
     }
     elsif (is_sle('12+')) {
@@ -220,7 +220,7 @@ sub install_lock_kernel {
         'kernel-source-rt' => $src_version
     );
 
-    if (check_var('SLE_PRODUCT', 'slert')) {
+    if (is_rt) {
         push @packages, "kernel-devel-rt";
     }
     else {
@@ -406,7 +406,7 @@ sub run {
     }
 
     # SLE Micro RT 5.1 image contains both kernel flavors, we need to remove kernel-default
-    if (is_sle_micro('=5.1') && check_var('SLE_PRODUCT', 'slert')) {
+    if (is_sle_micro('=5.1') && is_rt) {
         trup_call('pkg rm kernel-default');
         # kernel-rt will be removed with kernel-default, we can't lock it before, we need to install it after
         trup_call('-c pkg in kernel-rt');
@@ -425,7 +425,7 @@ sub run {
     }
 
     $kernel_package = 'kernel-default-base' if is_sle('<12');
-    $kernel_package = 'kernel-rt' if check_var('SLE_PRODUCT', 'slert');
+    $kernel_package = 'kernel-rt' if is_rt;
 
     if (get_var('KGRAFT')) {
         my $incident_klp_pkg = prepare_kgraft($repo, $incident_id);

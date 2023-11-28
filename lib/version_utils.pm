@@ -433,7 +433,7 @@ Returns true if called on a real time system
 =cut
 
 sub is_rt {
-    return (check_var('SLE_PRODUCT', 'rt') || get_var('FLAVOR') =~ /-rt/i);
+    return (check_var('SLE_PRODUCT', 'rt') || check_var('SLE_PRODUCT', 'slert') || get_var('FLAVOR') =~ /-rt/i);
 }
 
 =head2 is_hpc
