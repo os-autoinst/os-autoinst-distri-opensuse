@@ -54,6 +54,7 @@ sub install_podman_when_needed {
         } else {
             # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
             activate_containers_module if $host_os =~ 'sle';
+            push(@pkgs, 'podman-cni-config') if is_jeos() && is_sle('<=15-SP2');    # 1217509#c8
             push(@pkgs, 'apparmor-parser') if is_leap("=15.1");    # bsc#1123387
             zypper_call "in @pkgs";
         }
