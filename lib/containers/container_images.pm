@@ -193,7 +193,9 @@ sub test_opensuse_based_image {
         # If we are in not-released SLE host, we can't use zypper commands inside containers
         # that are not the same version as the host, so we skip this test.
         test_zypper_on_container($runtime, $image);
-        build_and_run_image(base => $image, runtime => $runtime);
+        # Older SLES containers require a different Containerfile
+        my $dockerfile = ($image =~ 'sle15:15\.1$|sle15:15\.2$' ? "Dockerfile.ltss" : "Dockerfile");
+        build_and_run_image(base => $image, runtime => $runtime, dockerfile => $dockerfile);
         if (is_sle && $runtime->runtime eq 'docker') {
             build_with_zypper_docker(image => $image, runtime => $runtime, version => $version);
         }

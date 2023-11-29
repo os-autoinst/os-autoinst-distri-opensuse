@@ -1,0 +1,13 @@
+# Containerfile for LTSS Base images (15-SP1, 15-SP2)
+# This requires a different Containerfile, as packages required for the regulart testing are not available
+
+# baseimage_var is a placeholder of your base image, e.g. registry.suse.com/suse/sle15:15.2
+# use base variable when you call test_containered_app
+FROM baseimage_var
+
+RUN zypper ref && rm -rf /var/cache
+
+# Set experimental variable
+ENV WORLD_VAR Arda
+
+ENTRYPOINT true
