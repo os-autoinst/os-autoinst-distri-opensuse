@@ -330,7 +330,8 @@ sub check_sysfs {
                     update_tss_attr(file_name => "$junit_file", attr => 'failures', value => $total_failure_tc_count);
                     update_tss_attr(file_name => "$junit_file", attr => 'tests', value => $total_tc_count);
                     parse_junit_log("$junit_file");
-                    die "Fail on the $self->{sysfs}->{$value}->{$sysfs_name_item}"; }
+                    record_info("Fail", "Fail on the $self->{sysfs}->{$value}->{$sysfs_name_item}");
+                }
             }
         }
     } else {
@@ -358,7 +359,8 @@ sub check_sysfs {
                 update_tss_attr(file_name => "$junit_file", attr => 'failures', value => $total_failure_tc_count);
                 update_tss_attr(file_name => "$junit_file", attr => 'tests', value => $total_tc_count);
                 parse_junit_log("$junit_file");
-                die "Fail on the $self->sysfs($value)"; }
+                record_info("Fail", "Fail on the $self->sysfs($value)");
+            }
 
         }
     }
