@@ -84,6 +84,14 @@ sub setup {
         assert_script_run 'sed -i "/:\/proc\/sys\/net\/ipv4\/tcp_keepalive/s/^/#/" Pattern/SLE15/testpattern_*';
         assert_script_run 'sed -i "/:\/proc\/sys\/net\/ipv4\/tcp_keepalive/s/^/#/" Pattern/SLE12/testpattern_*';
     }
+
+    # Remove "sap.conf" file to fix 12SP5 Public Cloud images Errors (see bsc#1218083 for more info):
+    #   UserTasksMax                          [FAIL]  max == 12288
+    #   UserTasksMax (sapconf DropIn)         [FAIL]  regular == missing
+    if (is_sle("=12-sp5") && get_var('PUBLIC_CLOUD')) {
+        assert_script_run "rm -f /etc/systemd/logind.conf.d/sap.conf";
+    }
+
     $self->reboot_wait;
 }
 
