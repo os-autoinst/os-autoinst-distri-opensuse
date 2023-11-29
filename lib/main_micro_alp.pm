@@ -14,6 +14,7 @@ use Exporter;
 use main_common;
 use main_ltp_loader 'load_kernel_tests';
 use main_containers qw(load_container_tests is_container_test);
+use main_publiccloud qw(load_publiccloud_download_repos);
 use testapi qw(check_var get_required_var get_var set_var);
 use version_utils;
 use utils;
@@ -272,18 +273,21 @@ sub load_journal_check_tests {
 
 sub load_slem_on_pc_tests {
     my $args = OpenQA::Test::RunArgs->new();
-
-    loadtest("boot/boot_to_desktop");
-    loadtest("publiccloud/prepare_instance", run_args => $args);
-    loadtest("publiccloud/registration", run_args => $args);
-    loadtest("publiccloud/ssh_interactive_start", run_args => $args);
-    loadtest("publiccloud/instance_overview", run_args => $args);
-    loadtest("publiccloud/slem_prepare", run_args => $args);
-    loadtest("transactional/enable_selinux") if (get_var('ENABLE_SELINUX'));
-    if (get_var("PUBLIC_CLOUD_CONTAINERS")) {
-        load_container_tests() if is_container_test;
+    if (get_var('PUBLIC_CLOUD_DOWNLOAD_TESTREPO')) {
+        load_publiccloud_download_repos();
+    } else {
+        loadtest("boot/boot_to_desktop");
+        loadtest("publiccloud/prepare_instance", run_args => $args);
+        loadtest("publiccloud/registration", run_args => $args);
+        loadtest("publiccloud/ssh_interactive_start", run_args => $args);
+        loadtest("publiccloud/instance_overview", run_args => $args);
+        loadtest("publiccloud/slem_prepare", run_args => $args);
+        loadtest("transactional/enable_selinux") if (get_var('ENABLE_SELINUX'));
+        if (get_var("PUBLIC_CLOUD_CONTAINERS")) {
+            load_container_tests() if is_container_test;
+        }
+        loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     }
-    loadtest("publiccloud/ssh_interactive_end", run_args => $args);
 }
 
 sub load_xfstests_tests {

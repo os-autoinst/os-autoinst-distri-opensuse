@@ -17,9 +17,7 @@ use Utils::Architectures qw(is_aarch64);
 use main_containers qw(load_container_tests);
 require bmwqemu;
 
-our @EXPORT = qw(
-  load_publiccloud_tests
-);
+our @EXPORT = qw(load_publiccloud_tests load_publiccloud_download_repos);
 
 sub load_maintenance_publiccloud_tests {
     my $args = OpenQA::Test::RunArgs->new();
