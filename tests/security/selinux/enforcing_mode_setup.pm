@@ -22,6 +22,11 @@ sub run {
     # make sure SELinux in "permissive" mode
     validate_script_output("sestatus", sub { m/.*Current\ mode:\ .*permissive.*/sx });
 
+    power_action("reboot", textmode => 1);
+    reconnect_mgmt_console if is_pvm;
+    $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 300);
+    select_serial_terminal;
+
     # label system
     assert_script_run("semanage boolean --modify --on selinuxuser_execmod");
     script_run("restorecon -R /", timeout => 1800, die_on_timeout => 0);
