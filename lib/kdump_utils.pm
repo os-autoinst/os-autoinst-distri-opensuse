@@ -434,7 +434,7 @@ sub check_function {
         # check the core dump via the crash utility if possible
         my $crash_cmd;
         my $vmcore_glob = '/var/crash/*/vmcore';
-        my $vmlinux_glob = (is_sle("<16") || is_sle_micro || is_leap("<16.0"))
+        my $vmlinux_glob = (is_sle("<16") || is_sle_micro("<6.0") || is_leap("<16.0"))
           ? '/boot/vmlinux-$(uname -r)*'
           : '/usr/lib/modules/$(uname -r)/vmlinux*';
         if (!is_transactional) {
