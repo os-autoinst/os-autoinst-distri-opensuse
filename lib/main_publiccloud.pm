@@ -74,7 +74,7 @@ sub load_maintenance_publiccloud_tests {
 sub load_publiccloud_consoletests {
     my ($run_args) = @_;
     # Please pass the $run_args to fatal test modules
-    loadtest 'console/cleanup_qam_testrepos' unless get_var('PUBLIC_CLOUD_QAM');
+    loadtest 'console/cleanup_qam_testrepos' if get_var('PUBLIC_CLOUD_QAM');
     loadtest 'console/openvswitch';
     loadtest 'console/rpm';
     loadtest 'console/openssl_alpn';
