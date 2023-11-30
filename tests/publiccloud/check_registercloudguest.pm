@@ -34,6 +34,13 @@ sub run {
 
     select_host_console();    # select console on the host, not the PC instance
 
+    if (check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect')) {
+        record_info('SKIP', 'PUBLIC_CLOUD_SCC_ENDPOINT is hardcoded to SUSEConnect - skipping registration testing. Falling back to registration module behavior');
+        registercloudguest($instance) if (is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION'));
+        register_addons_in_pc($instance);
+        return;
+    }
+
     if (is_container_host()) {
         # CHOST images don't have registercloudguest pre-installed. To install it we need to register which make it impossible to do
         # all BYOS related checks. So we just regestering system and going further
