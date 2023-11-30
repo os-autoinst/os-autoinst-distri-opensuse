@@ -610,7 +610,6 @@ sub cleanup {
     upload_logs("bootlog.txt", failok => 1);
 
     $self->SUPER::cleanup();
-    $self->provider_client->cleanup();
 }
 
 1;
