@@ -26,7 +26,7 @@ sub run {
 
     # Update the system to get the latest released state of the hosts.
     # Check routing table is well configured
-    if ($host_distri =~ /sles|opensuse/) {
+    if (get_required_var('DISTRI') =~ 'sle') {    # only on OSD
         my $host_version = get_required_var('HOST_VERSION');
         $host_version = ($host_version =~ /SP/) ? ("SLE_" . $host_version =~ s/-SP/_SP/r) : $host_version;
         zypper_call("--quiet up", timeout => $update_timeout);
