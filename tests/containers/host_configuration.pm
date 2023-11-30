@@ -27,7 +27,7 @@ sub run {
     # Update the system to get the latest released state of the hosts.
     # Check routing table is well configured
     if ($host_distri =~ /sles|opensuse/) {
-        my $host_version = get_required_var('HOST_VERSION');
+        my $host_version = get_var('HOST_VERSION') ? get_var('HOST_VERSION') : 'openSUSE_Tumbleweed';
         $host_version = ($host_version =~ /SP/) ? ("SLE_" . $host_version =~ s/-SP/_SP/r) : $host_version;
         zypper_call("--quiet up", timeout => $update_timeout);
         # Cannot use `ensure_ca_certificates_suse_installed` as it will depend
