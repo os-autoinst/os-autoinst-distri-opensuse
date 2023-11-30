@@ -211,6 +211,16 @@ our %images_list = (
             totest => sub { },
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
         },
+        '15-SP4' => {
+            released => sub { 'registry.suse.com/suse/sle15:15.4' },
+            totest => sub { },
+            available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
+        },
+        '15-SP5' => {
+            released => sub { 'registry.suse.com/suse/sle15:15.5' },
+            totest => sub { },
+            available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
+        },
         '5.0' => {
             released => sub { 'registry.opensuse.org/opensuse/tumbleweed' },
             totest => sub { },
