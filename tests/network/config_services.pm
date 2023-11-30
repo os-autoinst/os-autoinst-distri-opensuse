@@ -97,6 +97,8 @@ sub setup_mail_server {
     # configure postfix
     assert_script_run 'curl -f -v ' . autoinst_url . "/data/supportserver/mail_server/master.cf >/etc/postfix/master.cf";
     assert_script_run 'curl -f -v ' . autoinst_url . "/data/supportserver/mail_server/main.cf >/etc/postfix/main.cf";
+    # change compatibility_level on older version to make the configuration work
+    assert_script_run q(sed -i 's/compatibility_level = 3.6/compatibility_level = 2/' /etc/postfix/main.cf) if is_sle('=15-SP4');
 
     # start/restart services
     systemctl 'start dovecot';
