@@ -1,0 +1,13 @@
+name: security_misc_o3
+description:    >
+    This schedule is specifically for O3.
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - security/libserf/libserf
+    - security/ecryptfs/ecryptfs
+    - security/smartcard/version_check
+    - security/usbguard/usbguard
+    - security/check_kernel_config/CONFIG_FORTIFY_SOURCE
+    - security/check_kernel_config/dm_crypt
+    - security/grub_auth/grub_authorization
