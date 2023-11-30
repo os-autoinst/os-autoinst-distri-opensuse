@@ -13,6 +13,7 @@ package YaST::NetworkSettings::NetworkCardSetup::VLANAddressTab;
 use strict;
 use warnings;
 use testapi;
+use YaST::workarounds;
 use parent 'YaST::NetworkSettings::NetworkCardSetup::AddressTab';
 
 use constant {
