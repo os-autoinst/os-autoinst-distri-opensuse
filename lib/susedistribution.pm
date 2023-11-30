@@ -16,7 +16,7 @@ use utils qw(
   type_string_very_slow
   zypper_call
 );
-use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_opensuse is_hyperv);
+use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_opensuse is_hyperv is_plasma6);
 use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop x11_start_program_xterm);
 use Utils::Backends;
 
@@ -199,6 +199,9 @@ sub init_desktop_runner {
     my ($program, $timeout) = @_;
     $timeout //= 30;
     my $hotkey = desktop_runner_hotkey;
+
+    # Force krunner to run single words as shell command (see also kde#477794)
+    $program .= ' ;' if (is_plasma6 && $program !~ /\s/);
 
     send_key($hotkey);
 
