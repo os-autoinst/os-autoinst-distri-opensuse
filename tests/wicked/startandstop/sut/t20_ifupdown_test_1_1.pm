@@ -16,11 +16,12 @@ sub run {
     my $ifc1 = $ctx->iface;
     my $ifc2 = $ctx->iface2;
 
-    if ( $self->{name} !~ m/t\d+_ifupdown_(test_\d+\.\d+)/) {
+    if ( $self->{name} !~ m/t\d+_ifupdown_(test_\d+_\d+)/) {
         die ("Testname doesn't have expected format!");
     }
     my $test = $1;
     $test =~ s/_/-/;
+    $test =~ s/_/./;
 
     $self->get_from_data('wicked/scripts/ifupdown', '/tmp/');
     assert_script_run('cd /tmp/ifupdown/' . $test);
