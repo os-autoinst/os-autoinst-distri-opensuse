@@ -103,10 +103,10 @@ sub load_host_tests_podman {
         loadtest 'containers/podman_pods';
         # Default for ALP is Netavark
         loadtest('containers/podman_network_cni') unless (is_alp || is_sle_micro('6.0+'));
-        # Netavark not supported in 15-SP1 and 15-SP2 (due to podman version older than 4.0.0)
-        loadtest 'containers/podman_netavark' unless (is_staging || is_sle("<15-sp3") || is_ppc64le);
         # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
         loadtest 'containers/podman_firewall' unless (is_public_cloud || is_openstack || is_microos || is_alp);
+        # Netavark not supported in 15-SP1 and 15-SP2 (due to podman version older than 4.0.0)
+        loadtest 'containers/podman_netavark' unless (is_staging || is_sle("<15-sp3") || is_ppc64le);
         # Buildah is not available in SLE Micro, MicroOS and staging projects
         loadtest 'containers/buildah' unless (is_sle_micro || is_microos || is_leap_micro || is_alp || is_staging);
         loadtest 'containers/podman_quadlet' if is_tumbleweed;

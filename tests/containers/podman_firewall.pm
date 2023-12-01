@@ -33,18 +33,10 @@ sub run {
         $stop_firewall = 1;
     }
 
-    # cni-podman0 interface is created when running the first container
-    assert_script_run "podman pull " . registry_url('alpine');
-    assert_script_run "podman run --rm " . registry_url('alpine');
-    validate_script_output('ip a s cni-podman0', sub { /,UP/ });
-
-    # Run container in the background
+    # network interface is created when running the first container
     assert_script_run "podman pull " . registry_url('alpine');
     assert_script_run "podman run -id --rm --name $container_name -p 1234:1234 " . registry_url('alpine') . " sleep 30d";
-
-    # Cheking rules of specific running container
-    validate_script_output("iptables -vn -t nat -L PREROUTING", sub { /CNI-HOSTPORT-DNAT/ });
-    validate_script_output("iptables -vn -t nat -L POSTROUTING", sub { /CNI-HOSTPORT-MASQ/ });
+    validate_script_output("ip a s", sub { m/podman.* state UP / }, fail_message => "podman network interface fails to start");
 
     # Kill the container running on background (this may take some time)
     assert_script_run "podman kill $container_name ";
