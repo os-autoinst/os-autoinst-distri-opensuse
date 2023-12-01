@@ -1,4 +1,4 @@
-# Copyright 2015-2021 SUSE LLC
+# Copyright 2015-2024 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 package containers::common;
@@ -297,11 +297,6 @@ sub check_containers_connectivity {
     my $runtime = shift;
     record_info "connectivity", "Checking that containers can connect to the host, to each other and outside of the host";
     my $container_name = 'sut_container';
-
-    if (script_run('ping -6 -c 2 google.com') != 0 && is_sle_micro) {
-        record_info('Disable ipv6', 'https://sd.suse.com/servicedesk/customer/portal/1/SD-135489', result => 'softfail');
-        assert_script_run 'sysctl -w net.ipv6.conf.all.disable_ipv6=1';
-    }
 
     # Run container in the background (sleep for 30d because infinite is not supported by sleep in busybox)
     script_retry "$runtime pull " . registry_url('alpine'), retry => 3, delay => 120;
