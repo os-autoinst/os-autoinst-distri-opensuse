@@ -176,7 +176,6 @@ sub cleanup {
     upload_logs("instance_serial.txt", failok => 1);
 
     $self->SUPER::cleanup();
-    $self->provider_client->cleanup();
 }
 
 1;
