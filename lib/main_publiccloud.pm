@@ -96,7 +96,8 @@ my $should_use_runargs = sub {
       PUBLIC_CLOUD_CONTAINERS
       PUBLIC_CLOUD_SMOKETEST
       PUBLIC_CLOUD_AZURE_NFS_TEST
-      PUBLIC_CLOUD_NVIDIA);
+      PUBLIC_CLOUD_NVIDIA
+      PUBLIC_CLOUD_NETCONFIG);
     return grep { exists $bmwqemu::vars{$_} } @public_cloud_variables;
 };
 
@@ -125,30 +126,35 @@ sub load_latest_publiccloud_tests {
         else {
             loadtest("publiccloud/registration", run_args => $args);
         }
-        loadtest "publiccloud/ssh_interactive_start", run_args => $args;
-        if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
-            load_publiccloud_consoletests($args);
+        if (get_var('PUBLIC_CLOUD_NETCONFIG')) {
+            loadtest('publiccloud/cloud_netconfig', run_args => $args);
         }
-        elsif (check_var('PUBLIC_CLOUD_NVIDIA', 1)) {
-            die "ConfigError: The provider is not supported\n" unless (check_var('PUBLIC_CLOUD_PROVIDER', 'GCE') && is_sle('15-SP4+'));
-            loadtest "publiccloud/nvidia", run_args => $args;
+        else {
+            loadtest "publiccloud/ssh_interactive_start", run_args => $args;
+            if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
+                load_publiccloud_consoletests($args);
+            }
+            elsif (check_var('PUBLIC_CLOUD_NVIDIA', 1)) {
+                die "ConfigError: The provider is not supported\n" unless (check_var('PUBLIC_CLOUD_PROVIDER', 'GCE') && is_sle('15-SP4+'));
+                loadtest "publiccloud/nvidia", run_args => $args;
+            }
+            elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
+                load_container_tests();
+            } elsif (get_var('PUBLIC_CLOUD_SMOKETEST')) {
+                loadtest "publiccloud/smoketest";
+                loadtest "publiccloud/flavor_check" if (is_ec2());
+                loadtest "publiccloud/sev" if (get_var('PUBLIC_CLOUD_CONFIDENTIAL_VM'));
+                loadtest "publiccloud/xen" if (get_var('PUBLIC_CLOUD_XEN'));
+                loadtest "publiccloud/az_l8s_nvme" if (get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ 'Standard_L(8|16|32|64)s_v2');
+            } elsif (get_var('PUBLIC_CLOUD_XFS')) {
+                loadtest "publiccloud/xfsprepare";
+                loadtest "xfstests/run";
+                loadtest "xfstests/generate_report";
+            } elsif (get_var('PUBLIC_CLOUD_AZURE_NFS_TEST')) {
+                loadtest("publiccloud/azure_nfs", run_args => $args);
+            }
+            loadtest("publiccloud/ssh_interactive_end", run_args => $args);
         }
-        elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
-            load_container_tests();
-        } elsif (get_var('PUBLIC_CLOUD_SMOKETEST')) {
-            loadtest "publiccloud/smoketest";
-            loadtest "publiccloud/flavor_check" if (is_ec2());
-            loadtest "publiccloud/sev" if (get_var('PUBLIC_CLOUD_CONFIDENTIAL_VM'));
-            loadtest "publiccloud/xen" if (get_var('PUBLIC_CLOUD_XEN'));
-            loadtest "publiccloud/az_l8s_nvme" if (get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ 'Standard_L(8|16|32|64)s_v2');
-        } elsif (get_var('PUBLIC_CLOUD_XFS')) {
-            loadtest "publiccloud/xfsprepare";
-            loadtest "xfstests/run";
-            loadtest "xfstests/generate_report";
-        } elsif (get_var('PUBLIC_CLOUD_AZURE_NFS_TEST')) {
-            loadtest("publiccloud/azure_nfs", run_args => $args);
-        }
-        loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     }
     elsif (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
         loadtest "publiccloud/upload_image";
