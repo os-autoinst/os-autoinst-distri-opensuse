@@ -20,10 +20,10 @@ vlan0_id=10
 vlan0="${vlan0:-$bond0.$vlan0_id}"
 
 br0="${br0:-br0}"
-br0="${br0_ip:-10.6.0.1/24}"
+br0_ip="${br0_ip:-10.6.0.1/24}"
 
 br1="${br1:-br1}"
-br1="${br1_ip:-10.6.1.1/24}"
+br1_ip="${br1_ip:-10.6.1.1/24}"
 
 
 step0()
@@ -50,6 +50,13 @@ step0()
 		BONDING_SLAVE_1="$eth1"
 	EOF
 
+	cat >"${dir}/ifcfg-$vlan0" <<-EOF
+		STARTMODE='auto'
+		BOOTPROTO='static'
+		ETHERDEVICE='$bond0'
+		VLAN_ID='$vlan_id'
+	EOF
+
 	cat >"${dir}/ifcfg-${br0}" <<-EOF
 		STARTMODE='auto'
 		BOOTPROTO='static'
@@ -69,11 +76,15 @@ step0()
 	EOF
 
    	{
+		sed -E '1d;2d;/^([^#])/d;/^$/d' $BASH_SOURCE
+		echo ""
 		for dev in "$eth0" "$eth1" "$bond0" "$vlan0" "$br0" "$br1" ; do
 			echo "== ${dir}/ifcfg-${dev} =="
 			cat "${dir}/ifcfg-${dev}"
+			echo ""
 		done
 	} | tee "config-step-${step}.cfg"
+	echo "== wicked show-config"
 	wicked show-config | tee "config-step-${step}.xml"
 }
 
