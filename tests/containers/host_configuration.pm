@@ -26,14 +26,19 @@ sub run {
 
     # Update the system to get the latest released state of the hosts.
     # Check routing table is well configured
-    if (get_required_var('DISTRI') =~ 'sle') {    # only on OSD
-        my $host_version = get_required_var('HOST_VERSION');
+    if ($host_distri =~ /sle|opensuse/) {
+        my $host_version = get_var('HOST_VERSION');
         $host_version = ($host_version =~ /SP/) ? ("SLE_" . $host_version =~ s/-SP/_SP/r) : $host_version;
         zypper_call("--quiet up", timeout => $update_timeout);
         # Cannot use `ensure_ca_certificates_suse_installed` as it will depend
         # on the BCI container version instead of the host
         if (script_run('rpm -qi ca-certificates-suse') == 1) {
-            zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/$host_version/SUSE:CA.repo");
+            if ($host_version) {
+                zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/$host_version/SUSE:CA.repo");
+            } else {
+                zypper_call("ar --refresh http://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo");
+                zypper_call("--gpg-auto-import-keys -n install ca-certificates-suse");
+            }
             zypper_call("in ca-certificates-suse");
         }
     }
