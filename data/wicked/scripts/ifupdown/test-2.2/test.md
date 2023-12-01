@@ -24,13 +24,13 @@ MACVLANs on top of VLANs on same physical interface
     - skip     eth1.12             unrequested / not required by setup interfaces
     - skip     eth1.12.12          unrequested / not required by setup interfaces
 
-    options: --links
+    trigger: links=enabled
 
     - setup    eth1                requested
-      - setup    eth1.11           via --links
-        - setup    eth1.11.11      via --links
-      - setup    eth1.12           via --links
-        - setup    eth1.12.12      via --links
+      - setup    eth1.11           via links trigger
+        - setup    eth1.11.11      via links trigger
+      - setup    eth1.12           via links trigger
+        - setup    eth1.12.12      via links trigger
 
 #### wicked ifup eth1.11
 
@@ -40,11 +40,11 @@ MACVLANs on top of VLANs on same physical interface
     - skip     eth1.12             unrequested / not required by setup interfaces
     - skip     eth1.12.12          unrequested / not required by setup interfaces
 
-    options: --links
+    trigger: links=enabled
 
     - setup    eth1.11             requested
       - setup    eth1              required lower reference
-      - setup    eth1.11.11        via --links
+      - setup    eth1.11.11        via links trigger
     - skip     eth1.12             unrequested / not required by setup interfaces
     - skip     eth1.12.12          unrequested / not required by setup interfaces
 
@@ -56,11 +56,11 @@ MACVLANs on top of VLANs on same physical interface
     - skip     eth1.11             unrequested / not required by setup interfaces
     - skip     eth1.11.11          unrequested / not required by setup interfaces
 
-    options: --links
+    trigger: links=enabled
 
     - setup    eth1.12             requested
       - setup    eth1              required lower reference
-      - setup    eth1.12.12        via --links
+      - setup    eth1.12.12        via links trigger
     - skip     eth1.11             unrequested / not required by setup interfaces
     - skip     eth1.11.11          unrequested / not required by setup interfaces
 

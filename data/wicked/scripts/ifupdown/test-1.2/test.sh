@@ -1,8 +1,6 @@
 #!/bin/bash
 #
-# VLAN on physical interface
-#
-#  - eth1 is not created or deleted by wicked on shutdown
+# VLAN on virtual interface
 #
 # setup:
 #
@@ -79,31 +77,6 @@ step2()
 
 	echo ""
 	echo "=== step $step: finished with $err errors"
-}
-ifdown_dummy0=step2
-
-step3()
-{
-	has_wicked_support ifup --links || return
-	bold "=== step $step: ifup --links ${dummy0}"
-
-	echo "# wicked $wdebug ifup $cfg --links ${dummy0}"
-	wicked $wdebug ifup $cfg --links "$dummy0"
-	echo ""
-
-	print_device_status "$vlan0" "$dummy0"
-
-	check_device_is_up "$dummy0"
-	check_device_is_up "$vlan0"
-
-	echo ""
-	echo "=== step $step: finished with $err errors"
-}
-
-step4()
-{
-	has_wicked_support ifup --links || return
-	$ifdown_dummy0
 }
 
 step5()

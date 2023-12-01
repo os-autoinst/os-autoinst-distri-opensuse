@@ -18,11 +18,11 @@ VLAN on Bond of physical interfaces
     - skip     bond0.11            unrequested / not required by setup interfaces
     - skip     eth2                unrequested / not required by setup interfaces
 
-    options: --links
+    trigger: links=enabled
 
     - setup    eth1                requested
       - setup    bond0             required master reference
-        - setup    bond0.11        via --links
+        - setup    bond0.11        via links trigger
     - skip     eth2                unrequested / not required by setup interfaces
 
 #### wicked ifup eth2
@@ -32,54 +32,54 @@ VLAN on Bond of physical interfaces
     - skip     bond0.11            unrequested / not required by setup interfaces
     - skip     eth1                unrequested / not required by setup interfaces
 
-    options: --links
+    trigger: links=enabled
 
     - setup    eth2                requested
       - setup    bond0             required master reference
-        - setup    bond0.11        via --links
+        - setup    bond0.11        via links trigger
     - skip     eth1                unrequested / not required by setup interfaces
 
 #### wicked ifup bond0
 
     - setup    bond0               requested
+      - setup    eth1              via ports trigger
+      - setup    eth2              via ports trigger
+    - skip     bond0.11            unrequested / not required by setup interfaces
+
+    trigger: links=enabled
+
+    - setup    bond0               requested
+      - setup    eth1              via ports trigger
+      - setup    eth2              via ports trigger
+      - setup    bond0.11          via links trigger
+
+    trigger: links=enabled, ports=disabled
+
+    - setup    bond0               requested
+      - setup    bond0.11          via links trigger
+    - skip     eth1                unrequested / not required by setup interfaces
+    - skip     eth2                unrequested / not required by setup interfaces
+
+    trigger: ports=disabled
+
+    - setup    bond0               requested
     - skip     eth1                unrequested / not required by setup interfaces
     - skip     eth2                unrequested / not required by setup interfaces
     - skip     bond0.11            unrequested / not required by setup interfaces
-
-    options: --ports
-
-    - setup    bond0               requested
-      - setup    eth1              via --ports
-      - setup    eth2              via --ports
-    - skip     bond0.11            unrequested / not required by setup interfaces
-
-    options: --links
-
-    - setup    bond0               requested
-      - setup    bond0.11          via --links
-    - skip     eth1                unrequested / not required by setup interfaces
-    - skip     eth2                unrequested / not required by setup interfaces
-
-    options: --ports, --links
-
-    - setup    bond0               requested
-      - setup    eth1              via --ports
-      - setup    eth2              via --ports
-      - setup    bond0.11          via --links
 
 #### wicked ifup bond0.11
 
     - setup    bond0.11            requested
       - setup    bond0             required lower reference
-    - skip     eth1                unrequested / not required by setup interfaces
-    - skip     eth2                unrequested / not required by setup interfaces
+        - setup    eth1            via ports trigger
+        - setup    eth2            via ports trigger
 
-    options: --ports
+    trigger: ports=disabled
 
     - setup    bond0.11            requested
       - setup    bond0             required lower reference
-        - setup    eth1            via --ports
-        - setup    eth2            via --ports
+    - skip     eth1                unrequested / not required by setup interfaces
+    - skip     eth2                unrequested / not required by setup interfaces
 
 ---
 

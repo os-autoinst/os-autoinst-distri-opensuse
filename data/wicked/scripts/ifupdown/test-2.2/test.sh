@@ -117,35 +117,7 @@ step2()
 	echo ""
 	echo "=== step $step: finished with $err errors"
 }
-ifdown_eth0=step2
-
-step3()
-{
-	bold "=== step $step: ifup --links $eth0"
-
-	has_wicked_support ifup --links || return
-
-	echo "# wicked $wdebug ifup $cfg --links $eth0"
-	wicked $wdebug ifup $cfg --links $eth0
-	echo ""
-
-	print_device_status "$eth0" "$vlan0" "$vlan1" "$macvlan0" "$macvlan1"
-
-	check_device_is_up "$eth0"
-	check_device_is_up "$vlan0"
-	check_device_is_up "$vlan1"
-	check_device_is_up "$macvlan0"
-	check_device_is_up "$macvlan1"
-
-	echo ""
-	echo "=== step $step: finished with $err errors"
-}
-
-step4()
-{
-	has_wicked_support ifup --links || return
-	$ifdown_eth0
-}
+ifdown_all=step2
 
 step5()
 {
@@ -187,31 +159,9 @@ step6()
 	echo "=== step $step: finished with $err errors"
 }
 
-step7()
-{
-	bold "=== step $step: ifup --links $vlan0"
-
-	has_wicked_support ifup --links || return
-
-	echo "# wicked $wdebug ifup $cfg --links $vlan0"
-	wicked $wdebug ifup $cfg --links "$vlan0"
-	echo ""
-
-	print_device_status "$eth0" "$vlan0" "$vlan1" "$macvlan0" "$macvlan1"
-
-	check_device_is_up "$eth0"
-	check_device_is_up "$vlan0"
-	check_device_is_down "$vlan1"
-	check_device_is_up "$macvlan0"
-	check_device_is_down "$macvlan1"
-
-	echo ""
-	echo "=== step $step: finished with $err errors"
-}
-
 step8()
 {
-	$ifdown_eth0
+	$ifdown_all
 }
 
 
@@ -255,31 +205,9 @@ step10()
 	echo "=== step $step: finished with $err errors"
 }
 
-step11()
-{
-	bold "=== step $step: ifup --links $vlan1"
-
-	has_wicked_support ifup --links || return
-
-	echo "# wicked $wdebug ifup $cfg --links $vlan1"
-	wicked $wdebug ifup $cfg --links "$vlan1"
-	echo ""
-
-	print_device_status "$eth0" "$vlan0" "$vlan1" "$macvlan0" "$macvlan1"
-
-	check_device_is_up "$eth0"
-	check_device_is_down "$vlan0"
-	check_device_is_up "$vlan1"
-	check_device_is_down "$macvlan0"
-	check_device_is_up "$macvlan1"
-
-	echo ""
-	echo "=== step $step: finished with $err errors"
-}
-
 step12()
 {
-	$ifdown_eth0
+	$ifdown_all
 }
 
 step13()
@@ -322,53 +250,9 @@ step14()
 	echo "=== step $step: finished with $err errors"
 }
 
-step15()
-{
-	bold "=== step $step: ifup --links $macvlan0"
-
-	has_wicked_support ifup --links || return
-
-	echo "# wicked $wdebug ifup $cfg --links $macvlan0"
-	wicked $wdebug ifup $cfg --links "$macvlan0"
-	echo ""
-
-	print_device_status "$eth0" "$vlan0" "$vlan1" "$macvlan0" "$macvlan1"
-
-	check_device_is_up "$eth0"
-	check_device_is_up "$vlan0"
-	check_device_is_down "$vlan1"
-	check_device_is_up "$macvlan0"
-	check_device_is_down "$macvlan1"
-
-	echo ""
-	echo "=== step $step: finished with $err errors"
-}
-
-step16()
-{
-	bold "=== step $step: ifdown $vlan0"
-	has_wicked_support ifup --links || return
-
-	echo "# wicked $wdebug ifdown $vlan0"
-	wicked $wdebug ifdown "$vlan0"
-	echo ""
-
-	print_device_status "$eth0" "$vlan0" "$vlan1" "$macvlan0" "$macvlan1"
-
-	check_device_is_up "$eth0"
-	check_device_is_down "$vlan0"
-	check_device_is_down "$vlan1"
-	check_device_is_down "$macvlan0"
-	check_device_is_down "$macvlan1"
-
-	echo ""
-	echo "=== step $step: finished with $err errors"
-}
-
-
 step17()
 {
-	$ifdown_eth0
+	$ifdown_all
 }
 
 step18()
@@ -406,98 +290,6 @@ step19()
 	check_device_is_up "$vlan1"
 	check_device_is_down "$macvlan0"
 	check_device_is_down "$macvlan1"
-
-	echo ""
-	echo "=== step $step: finished with $err errors"
-}
-
-step20()
-{
-	bold "=== step $step: ifup --links $macvlan1"
-
-	has_wicked_support ifup --links || return
-
-	echo "# wicked $wdebug ifup $cfg --links $macvlan1"
-	wicked $wdebug ifup $cfg --links "$macvlan1"
-	echo ""
-
-	print_device_status "$eth0" "$vlan0" "$vlan1" "$macvlan0" "$macvlan1"
-
-	check_device_is_up "$eth0"
-	check_device_is_up "$vlan0"
-	check_device_is_down "$vlan1"
-	check_device_is_up "$macvlan0"
-	check_device_is_down "$macvlan1"
-
-	echo ""
-	echo "=== step $step: finished with $err errors"
-}
-
-step21()
-{
-	bold "=== step $step: ifdown $vlan1"
-	has_wicked_support ifup --links || return
-
-	echo "# wicked $wdebug ifdown $vlan1"
-	wicked $wdebug ifdown "$vlan1"
-	echo ""
-
-	print_device_status "$eth0" "$vlan0" "$vlan1" "$macvlan0" "$macvlan1"
-
-	check_device_is_up "$eth0"
-	check_device_is_down "$vlan0"
-	check_device_is_down "$vlan1"
-	check_device_is_down "$macvlan0"
-	check_device_is_down "$macvlan1"
-
-	echo ""
-	echo "=== step $step: finished with $err errors"
-}
-
-step21()
-{
-	$ifdown_eth0
-}
-
-
-step23()
-{
-	bold "=== step $step: ifup $macvlan0 $macvlan1"
-
-	has_wicked_support ifup --links || return
-
-	echo "# wicked $wdebug ifup $cfg $macvlan0 $macvlan1"
-	wicked $wdebug ifup $cfg "$macvlan0" "$macvlan1"
-	echo ""
-
-	print_device_status "$eth0" "$vlan0" "$vlan1" "$macvlan0" "$macvlan1"
-
-	check_device_is_up "$eth0"
-	check_device_is_up "$vlan0"
-	check_device_is_up "$vlan1"
-	check_device_is_up "$macvlan0"
-	check_device_is_up "$macvlan1"
-
-	echo ""
-	echo "=== step $step: finished with $err errors"
-}
-
-step24()
-{
-	bold "=== step $step: ifdown $vlan0"
-	has_wicked_support ifup --links || return
-
-	echo "# wicked $wdebug ifdown $vlan0"
-	wicked $wdebug ifdown "$vlan0"
-	echo ""
-
-	print_device_status "$eth0" "$vlan0" "$vlan1" "$macvlan0" "$macvlan1"
-
-	check_device_is_up "$eth0"
-	check_device_is_down "$vlan0"
-	check_device_is_up "$vlan1"
-	check_device_is_down "$macvlan0"
-	check_device_is_up "$macvlan1"
 
 	echo ""
 	echo "=== step $step: finished with $err errors"

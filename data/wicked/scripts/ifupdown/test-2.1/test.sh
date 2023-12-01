@@ -90,32 +90,6 @@ step2()
 }
 ifdown_all=step2
 
-step3()
-{
-	has_wicked_support ifup --links || return
-
-	bold "=== step $step: ifup --links $eth0"
-
-	echo "# wicked $wdebug ifup $cfg --links $eth0"
-	wicked $wdebug ifup $cfg --links $eth0
-	echo ""
-
-	print_device_status "$eth0" "$vlan0" "$macvlan0"
-
-	check_device_is_up "$eth0"
-	check_device_is_up "$vlan0"
-	check_device_is_up "$macvlan0"
-
-	echo ""
-	echo "=== step $step: finished with $err errors"
-}
-
-step4()
-{
-	has_wicked_support ifup --links || return
-	$ifdown_all
-}
-
 step5()
 {
 	bold "=== step $step: ifup $vlan0"
@@ -152,32 +126,6 @@ step6()
 	echo "=== step $step: finished with $err errors"
 }
 
-step7()
-{
-	has_wicked_support ifup --links || return
-
-	bold "=== step $step: ifup --links $vlan0"
-
-	echo "# wicked $wdebug ifup $cfg --links $vlan0"
-	wicked $wdebug ifup $cfg --links $vlan0
-	echo ""
-
-	print_device_status "$eth0" "$vlan0" "$macvlan0"
-
-	check_device_is_up "$eth0"
-	check_device_is_up "$vlan0"
-	check_device_is_up "$macvlan0"
-
-	echo ""
-	echo "=== step $step: finished with $err errors"
-}
-
-step8()
-{
-	has_wicked_support ifup --links || return
-	$ifdown_all
-}
-
 step9()
 {
 	bold "=== step $step: ifup $macvlan0"
@@ -197,43 +145,6 @@ step9()
 }
 
 step10()
-{
-	bold "=== step $step: ifdown $macvlan0"
-
-	echo "# wicked $wdebug ifdown $macvlan0"
-	wicked $wdebug ifdown $macvlan0
-	echo ""
-
-	print_device_status "$eth0" "$vlan0" "$macvlan0"
-
-	check_device_is_up "$eth0"
-	check_device_is_up "$vlan0"
-	check_device_is_down "$macvlan0"
-
-	echo ""
-	echo "=== step $step: finished with $err errors"
-}
-
-step11()
-{
-	has_wicked_support ifup --links || return
-	bold "=== step $step: ifup --links $macvlan0"
-
-	echo "# wicked $wdebug ifup $cfg --links $macvlan0"
-	wicked $wdebug ifup $cfg --links $macvlan0
-	echo ""
-
-	print_device_status "$eth0" "$vlan0" "$macvlan0"
-
-	check_device_is_up "$eth0"
-	check_device_is_up "$vlan0"
-	check_device_is_up "$macvlan0"
-
-	echo ""
-	echo "=== step $step: finished with $err errors"
-}
-
-step12()
 {
 	$ifdown_all
 }

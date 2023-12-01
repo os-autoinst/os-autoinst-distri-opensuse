@@ -82,30 +82,6 @@ ifdown_eth0=step2
 
 step3()
 {
-	has_wicked_support ifup --links || return
-	bold "=== step $step: ifup --links ${eth0}"
-
-	echo "# wicked $wdebug ifup $cfg --links ${eth0}"
-	wicked $wdebug ifup $cfg --links ${eth0}
-	echo ""
-
-	print_device_status "$eth0" "$vlan0"
-
-	check_device_is_up "$eth0"
-	check_device_is_up "$vlan0"
-
-	echo ""
-	echo "=== step $step: finished with $err errors"
-}
-
-step4()
-{
-	has_wicked_support ifup --links || return
-	$ifdown_eth0
-}
-
-step3()
-{
 	bold "=== step $step: ifup ${vlan0}"
 
 	echo "# wicked $wdebug ifup $cfg ${vlan0}"

@@ -20,11 +20,11 @@ MACVLAN on VLAN on physical interface
     - skip     eth1.11             unrequested / not required by setup interfaces
     - skip     macvlan1            unrequested / not required by setup interfaces
 
-    options: --links
+    trigger: links=enabled
 
     - setup    eth1                requested
-      - setup    eth1.11           via --links
-        - setup    macvlan1        via --links
+      - setup    eth1.11           via links trigger
+        - setup    macvlan1        via links trigger
 
 #### wicked ifup eth1.11
 
@@ -32,11 +32,11 @@ MACVLAN on VLAN on physical interface
       - setup    eth1              required lower reference
     - skip     macvlan1            unrequested / not required by setup interfaces
 
-    options: --links
+    trigger: links=enabled
 
     - setup    eth1.11             requested
       - setup    eth1              required lower reference
-      - setup    macvlan1          via --links
+      - setup    macvlan1          via links trigger
 
 #### wicked ifup macvlan1  
 

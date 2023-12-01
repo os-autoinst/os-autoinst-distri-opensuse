@@ -19,10 +19,10 @@ VLAN on virtual interface
     - setup    dummy1              requested
     - skip     vlan11              unrequested / not required by setup interfaces
 
-    options: --links
+    trigger: links=enabled
 
     - setup    dummy1              requested
-      - setup    vlan11            via --links
+      - setup    vlan11            via links trigger
 
 #### wicked ifup vlan11
 

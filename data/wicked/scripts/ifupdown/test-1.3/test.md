@@ -26,14 +26,14 @@ Bond on physical interfaces
 #### wicked ifup bond0
 
     - setup    bond0               requested
-    - skip     eth1                unrequested / not required by setup interfaces
-    - skip     eth2                unrequested / not required by setup interfaces
+      - setup    eth1              via ports trigger
+      - setup    eth2              via ports trigger
 
-    options: --ports
+    trigger: ports=disabed
 
     - setup    bond0               requested
-      - setup    eth1              via --ports
-      - setup    eth2              via --ports
+    - skip     eth1                unrequested / not required by setup interfaces
+    - skip     eth2                unrequested / not required by setup interfaces
 
 ---
 

@@ -87,13 +87,6 @@ check_policy_not_exists()
 	fi
 }
 
-has_wicked_support()
-{
-	local cmd=$1
-	local arg=$2
-	! wicked $cmd $arg |& grep "unrecognized option '$arg'" >/dev/null
-}
-
 color() {
     local NC
     local c=$1
