@@ -49,6 +49,7 @@ print_device_status()
 		echo "# ip a s dev $dev"
 		ip a s dev $dev
 	done
+	echo ""
 }
 check_device_is_up()
 {
@@ -143,8 +144,8 @@ while test $# -gt 0 ; do
 	-h) print_help; exit 0 ;;
 	-*) print_help; exit 2 ;;
 	*)  break ;;
-esac
-shift
+	esac
+	shift
 done
 
 # permit to override above variables

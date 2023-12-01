@@ -57,12 +57,16 @@ step0()
 		${br1_ip:+IPADDR='${br1_ip}'}
 	EOF
 
-   	{
-		for dev in "$eth0" "$vlan0" "$br0" "$br1" ; do
+	{
+		sed -E '1d;2d;/^([^#])/d;/^$/d' "$BASH_SOURCE"
+		echo ""
+		for dev in "$eth0" "$vlan0" "$br0" "$br1"; do
 			echo "== ${dir}/ifcfg-${dev} =="
 			cat "${dir}/ifcfg-${dev}"
+			echo ""
 		done
 	} | tee "config-step-${step}.cfg"
+	echo "== wicked show-config"
 	wicked show-config | tee "config-step-${step}.xml"
 }
 

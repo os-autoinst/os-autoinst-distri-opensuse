@@ -36,11 +36,14 @@ step0()
 		VLAN_ID='${vlan0_id}'
 	EOF
 
-	{
-		echo "== "${dir}/ifcfg-${eth0}" =="
-		cat "${dir}/ifcfg-${eth0}"
-		echo "== "${dir}/ifcfg-${vlan0}" =="
-		cat "${dir}/ifcfg-${vlan0}"
+   	{
+		sed -E '1d;2d;/^([^#])/d;/^$/d' $BASH_SOURCE
+		echo ""
+		for dev in "$eth0" "$vlan0" ; do
+			echo "== ${dir}/ifcfg-${dev} =="
+			cat "${dir}/ifcfg-${dev}"
+			echo ""
+		done
 	} | tee "config-step-${step}.cfg"
 	wicked show-config | tee "config-step-${step}.xml"
 }

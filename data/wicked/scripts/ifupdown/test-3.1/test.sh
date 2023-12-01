@@ -75,8 +75,8 @@ step0()
 		${br1_ip:+IPADDR='${br1_ip}'}
 	EOF
 
-   	{
-		sed -E '1d;2d;/^([^#])/d;/^$/d' $BASH_SOURCE
+	{
+		sed -E '1d;2d;/^([^#])/d;/^$/d' "$BASH_SOURCE"
 		echo ""
 		for dev in "$eth0" "$eth1" "$bond0" "$vlan0" "$br0" "$br1" ; do
 			echo "== ${dir}/ifcfg-${dev} =="

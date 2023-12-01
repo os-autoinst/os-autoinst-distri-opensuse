@@ -38,13 +38,14 @@ step0()
 		BONDING_SLAVE_1="$eth1"
 	EOF
 
-   	{
-		echo "== "${dir}/ifcfg-${eth0}" =="
-		cat "${dir}/ifcfg-${eth0}"
-		echo "== "${dir}/ifcfg-${eth1}" =="
-		cat "${dir}/ifcfg-${eth1}"
-		echo "== "${dir}/ifcfg-${bond0}" =="
-		cat "${dir}/ifcfg-${bond0}"
+	{
+		sed -E '1d;2d;/^([^#])/d;/^$/d' $BASH_SOURCE
+		echo ""
+		for dev in "$eth0" "$eth1" "$bond0"; do
+			echo "== ${dir}/ifcfg-${dev} =="
+			cat "${dir}/ifcfg-${dev}"
+			echo ""
+		done
 	} | tee "config-step-${step}.cfg"
 	wicked show-config | tee "config-step-${step}.xml"
 }

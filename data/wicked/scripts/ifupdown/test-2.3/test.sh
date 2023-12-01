@@ -50,12 +50,16 @@ step0()
 		${vlan0_ip:+IPADDR='${vlan0_ip}'}
 	EOF
 
-   	{
-		for dev in "$eth0" "$eth1" "$bond0" "$vlan0" ; do
+	{
+		sed -E '1d;2d;/^([^#])/d;/^$/d' "$BASH_SOURCE"
+		echo ""
+		for dev in "$eth0" "$eth1" "$bond0" "$vlan0"; do
 			echo "== ${dir}/ifcfg-${dev} =="
 			cat "${dir}/ifcfg-${dev}"
+			echo ""
 		done
 	} | tee "config-step-${step}.cfg"
+	echo "== wicked show-config"
 	wicked show-config | tee "config-step-${step}.xml"
 }
 
