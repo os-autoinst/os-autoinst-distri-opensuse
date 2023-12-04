@@ -656,6 +656,26 @@ sub run {
     mutex_create('support_server_ready');
 }
 
+sub pre_run_hook {
+    my ($self) = @_;
+
+    # Comment /etc/named.conf.include inclusion from /etc/named.conf in those
+    # cases this module runs on support servers which were configured in a
+    # previous job (for example, on migration scenarios)
+    my $openqa_zones_exists = !script_run 'test -f /etc/named.d/openqa.zones';
+    my $openqa_zones_in_include = !script_run q|grep -q -E "^include \"/etc/named.d/openqa.zones\";" /etc/named.conf.include|;
+    my $named_conf_include = !script_run q|grep -q -E "^include \"/etc/named.conf.include\";" /etc/named.conf|;
+    if ($openqa_zones_exists && $openqa_zones_in_include && $named_conf_include) {
+        # This is running in a support server which was configured on a previous job.
+        # Comment line with 'include "/etc/named.conf.include";' from /etc/named.conf
+        # as in some older versions, leaving the line causes /etc/named.d/openqa.zones
+        # to be included twice, which prevents named from starting
+        assert_script_run q|sed -i -e '/^include \"\/etc\/named.conf.include\";/ s/^/#/' /etc/named.conf|;
+    }
+
+    $self->SUPER::pre_run_hook;
+}
+
 sub test_flags {
     return {fatal => 1};
 }
