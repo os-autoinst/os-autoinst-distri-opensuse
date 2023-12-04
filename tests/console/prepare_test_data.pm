@@ -19,6 +19,7 @@ use warnings;
 
 sub run {
     is_ipmi ? use_ssh_serial_console : select_console 'root-console';
+    ensure_serialdev_permissions;
 
     my $timeout = get_var('PREPARE_TEST_DATA_TIMEOUT', 300);
 
