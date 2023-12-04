@@ -54,7 +54,7 @@ step0()
 		STARTMODE='auto'
 		BOOTPROTO='static'
 		ETHERDEVICE='$bond0'
-		VLAN_ID='$vlan_id'
+		VLAN_ID='$vlan0_id'
 	EOF
 
 	cat >"${dir}/ifcfg-${br0}" <<-EOF
