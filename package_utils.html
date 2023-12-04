@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/package_utils.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#install_package">install_package</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/package_utils.pm</h1>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<pre><code>Wrapper for zypper_call and trup_call</code></pre>
+
+<h2 id="install_package">install_package</h2>
+
+<pre><code>install_package(&#39;kernel-devel&#39; [, trup_packages =&gt; &#39;kernel-default-base] [, zypper_packages =&gt; &#39;kernel-devel&#39;]);</code></pre>
+
+<p><code>packages</code> defines packages to install for both zypper and trup call, Parameters <code>trup_extra</code> and <code>zypper_extra</code> define transactional or zypper specific packages. <code>skip_trup</code> or <code>skip_zypper</code> will return from fucntion, record_info is used if sentence is argument value. <code>trup_reboot</code> parameter will run check_reboot_changes after trup_call, reboot if diff between the current FS and the new snapshot.</p>
+
+
+</body>
+
+</html>
+
+
