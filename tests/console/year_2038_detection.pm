@@ -25,22 +25,13 @@ use version_utils qw(is_transactional is_sle is_sle_micro is_leap is_leap_micro)
 use Utils::Systemd 'disable_and_stop_service';
 use power_action_utils 'power_action';
 use Utils::Backends 'is_pvm';
-
-sub install_pkg {
-    if (is_transactional) {
-        trup_call('pkg install chrony');
-        check_reboot_changes;
-    }
-    else {
-        zypper_call('in chrony');
-    }
-}
+use package_utils;
 
 sub run {
     my $self = shift;
     select_serial_terminal;
 
-    install_pkg if (script_run('rpm -qi chrony') != 0);
+    install_package('chrony', trup_reboot => 1) if script_run('rpm -qi chrony') != 0;
     systemctl("start chronyd");    # Ensure chrony is started
     assert_script_run('chronyc makestep');
     record_info('Show current date and time', script_output('date +"%Y-%m-%d"'));

@@ -23,6 +23,7 @@ use repo_tools 'add_qa_head_repo';
 use Utils::Backends;
 use LTP::utils;
 use transactional;
+use package_utils;
 
 sub check_kernel_package {
     my $kernel_name = shift;
@@ -86,11 +87,7 @@ sub update_kernel {
     fully_patch_system;
 
     if (check_var('SLE_PRODUCT', 'slert')) {
-        if (is_transactional) {
-            record_info("There is no kernel-devel-rt available on transactional system.");
-        } else {
-            zypper_call('in kernel-devel-rt');
-        }
+        install_package('kernel-devel-rt', skip_trup => 'There is no kernel-devel-rt available on transactional system.');
     }
     elsif (is_sle('12+')) {
         zypper_call('in kernel-devel');
