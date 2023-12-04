@@ -49,9 +49,9 @@ sub set_svirt_domain_elements {
         $svirt->change_domain_element(os => cmdline => $cmdline);
 
         # show this on screen and make sure that kernel and initrd are actually saved
-        enter_cmd "wget $repo/boot/s390x/initrd -O $zkvm_img_path/$name.initrd";
+        enter_cmd "wget $repo/boot/s390x/initrd -O $zkvm_img_path/$name.initrd --no-check-certificate";
         assert_screen "initrd-saved";
-        enter_cmd "wget $repo/boot/s390x/linux -O $zkvm_img_path/$name.kernel";
+        enter_cmd "wget $repo/boot/s390x/linux -O $zkvm_img_path/$name.kernel --no-check-certificate";
         assert_screen "kernel-saved";
     }
     # after installation we need to redefine the domain, so just shutdown
