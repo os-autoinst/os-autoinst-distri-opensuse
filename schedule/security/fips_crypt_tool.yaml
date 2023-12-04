@@ -25,7 +25,7 @@ schedule:
     - fips/squid/squid_reverse_proxy
     - security/ecryptfs/ecryptfs
     - security/libserf/libserf
-    - '{{dm_crypt}}'
+    - '{{kern_only_tests}}'
 conditional_schedule:
     repo_setup:
         BETA:
@@ -34,7 +34,8 @@ conditional_schedule:
         FLAVOR:
             Online-QR:
                 - security/test_repo_setup
-    dm_crypt:
+    kern_only_tests:
         TEST_SUITE_NAME:
             fips_ker_mode_tests_crypt_tool:
                 - security/dm_crypt
+                - console/suseconnect.pm
