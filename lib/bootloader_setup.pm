@@ -15,7 +15,7 @@ use Time::HiRes 'sleep';
 use testapi;
 use Utils::Architectures;
 use utils;
-use version_utils qw(is_microos is_sle_micro is_jeos is_leap is_sle is_tumbleweed is_selfinstall is_alp is_transactional);
+use version_utils qw(is_microos is_sle_micro is_jeos is_leap is_sle is_tumbleweed is_selfinstall is_alp is_transactional is_rt);
 use mm_network;
 use Utils::Backends;
 
@@ -126,7 +126,7 @@ sub add_custom_grub_entries {
     elsif (is_sle_micro()) {
         $distro = "SLE Micro";
     }
-    elsif (check_var('SLE_PRODUCT', 'slert')) {
+    elsif (is_rt) {
         $distro = "SLE_RT" . ' \\?' . get_required_var('VERSION');
     }
     elsif (is_sle()) {
