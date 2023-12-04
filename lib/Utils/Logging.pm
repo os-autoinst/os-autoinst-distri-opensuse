@@ -249,7 +249,7 @@ sub problem_detection {
     clear_console;
 
     # Segmentation faults
-    save_and_upload_log("coredumpctl list", "segmentation-faults-list.txt", {screenshot => 1, noupload => 1});
+    record_info('COREDUMP detection: ', script_output('coredumpctl list', proceed_on_failure => 1));
     save_and_upload_log("coredumpctl info", "segmentation-faults-info.txt", {screenshot => 1, noupload => 1});
     # Save core dumps
     enter_cmd "mkdir -p coredumps";
