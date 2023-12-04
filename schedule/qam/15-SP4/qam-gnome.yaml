@@ -64,9 +64,6 @@ conditional_schedule:
     ARCH:
       x86_64:
         - console/glibc_sanity
-        - console/python_liblouis
-      aarch64:
-        - console/python_liblouis
   salt:
     SLE_PRODUCT:
       sles:

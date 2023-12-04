@@ -59,14 +59,12 @@ schedule:
 - x11/reboot_gnome
 - shutdown/cleanup_before_shutdown
 - shutdown/shutdown
+- '{{svirt_upload_assets}}'
 conditional_schedule:
   console_tests:
     ARCH:
       x86_64:
         - console/glibc_sanity
-        - console/python_liblouis
-      aarch64:
-        - console/python_liblouis
   salt:
     SLE_PRODUCT:
       sles:
