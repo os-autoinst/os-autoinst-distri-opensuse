@@ -59,11 +59,13 @@ step0()
 	wicked show-config | tee "config-step-${step}.xml"
 
 	systemctl is-active openvswitch || systemctl start openvswitch || {
-		echo "ERROR: Start openvswitch failed";
-		systemctl status openvswitch;
-		journalctl -xe --no-pager
-		systemctl status openvswitch;
-		exit 2;
+		echo "ERROR: Start openvswitch failed - retry now";
+		sleep 1;
+		if ! systemctl start openvswitch; then
+			journalctl -xe --no-pager
+			systemctl status openvswitch
+			exit 2
+		fi;
 	}
 
 }
