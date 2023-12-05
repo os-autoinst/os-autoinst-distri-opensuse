@@ -10,10 +10,10 @@
 #
 
 eth0="${eth0:-eth0}"
-eth0_ip="${vlan_ip:-10.0.0.1/24}"
+eth0_ip4="${eth0_ip4:-198.18.0.1/24}"
 
 vlan0_id="${vlan0_id:-10}"
-vlan0_ip="${vlan0_ip:-10.1.0.1/24}"
+vlan0_ip4="${vlan0_ip4:-198.18.2.1/24}"
 vlan0="${vlan0:-$eth0.$vlan0_id}"
 
 step0()
@@ -24,14 +24,14 @@ step0()
 		STARTMODE='auto'
 		BOOTPROTO='static'
 		ZONE=trusted
-		${eth0_ip:+IPADDR='${eth0_ip}'}
+		${eth0_ip4:+IPADDR='${eth0_ip4}'}
 	EOF
 
 	cat >"${dir}/ifcfg-${vlan0}" <<-EOF
 		STARTMODE='auto'
 		BOOTPROTO='static'
 		ZONE=trusted
-		${vlan0_ip:+IPADDR='${vlan0_ip}'}
+		${vlan0_ip4:+IPADDR='${vlan0_ip4}'}
 		ETHERDEVICE='${eth0}'
 		VLAN_ID='${vlan0_id}'
 	EOF

@@ -11,7 +11,7 @@ eth0="${eth0:-eth0}"
 eth1="${eth1:-eth1}"
 
 team0="${team0:-team0}"
-team0_ip="${team0_ip:-10.4.0.1/24}"
+team0_ip4="${team0_ip4:-198.18.10.1/24}"
 
 step0()
 {
@@ -34,7 +34,7 @@ step0()
 		TEAM_RUNNER='activebackup'
 		TEAM_PORT_DEVICE_1="$eth0"
 		TEAM_PORT_DEVICE_2="$eth1"
-		${team0_ip:+IPADDR='${team0_ip}'}
+		${team0_ip4:+IPADDR='${team0_ip4}'}
 	EOF
 
 	{

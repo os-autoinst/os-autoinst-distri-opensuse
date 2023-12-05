@@ -13,11 +13,11 @@
 eth0="${eth0:-eth0}"
 
 ovsbr0="${ovsbr0:-ovsbr0}"
-ovsbr0_ip="${ovsbr0_ip:-10.8.0.1/24}"
+ovsbr0_ip4="${ovsbr0_ip4:-198.18.12.1/24}"
 
 ovsbr1="${ovsbr1:-ovsbr1}"
 ovsbr1_vlan_id="${ovsbr1_vlan_id:-10}"
-ovsbr1_ip="${ovsbr1_ip:-10.8.1.1/24}"
+ovsbr1_ip4="${ovsbr1_ip4:-198.18.13.1/24}"
 
 step0()
 {
@@ -32,7 +32,7 @@ step0()
 		STARTMODE='auto'
 		BOOTPROTO='static'
 		ZONE=trusted
-		${ovsbr0_ip:+IPADDR='${ovsbr0_ip}'}
+		${ovsbr0_ip4:+IPADDR='${ovsbr0_ip4}'}
 		OVS_BRIDGE='yes'
 		OVS_BRIDGE_PORT_DEVICE_1='$eth0'
 	EOF
@@ -40,7 +40,7 @@ step0()
 	cat >"${dir}/ifcfg-${ovsbr1}" <<-EOF
 		STARTMODE='auto'
 		BOOTPROTO='static'
-		${ovsbr1_ip:+IPADDR='${ovsbr1_ip}'}
+		${ovsbr1_ip4:+IPADDR='${ovsbr1_ip4}'}
 		OVS_BRIDGE='yes'
 		OVS_BRIDGE_VLAN_PARENT='$ovsbr0'
 		OVS_BRIDGE_VLAN_TAG='$ovsbr1_vlan_id'

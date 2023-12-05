@@ -11,11 +11,11 @@ eth0="${eth0:-eth0}"
 eth1="${eth1:-eth1}"
 
 team0="${team0:-team0}"
-team0_ip="${team0_ip:-10.4.0.1/24}"
+team0_ip4="${team0_ip4:-198.18.10.1/24}"
 
 vlan0_id=10
 vlan0="${vlan0:-$team0.$vlan0_id}"
-vlan0_ip="${vlan0_ip:-10.1.0.1/24}"
+vlan0_ip4="${vlan0_ip4:-198.18.2.1/24}"
 
 step0()
 {
@@ -35,7 +35,7 @@ step0()
 		STARTMODE='auto'
 		BOOTPROTO='static'
 		ZONE=trusted
-		${team0_ip:+IPADDR='${team0_ip}'}
+		${team0_ip4:+IPADDR='${team0_ip4}'}
 		TEAM_RUNNER=activebackup
 		TEAM_PORT_DEVICE_1="$eth0"
 		TEAM_PORT_DEVICE_2="$eth1"
@@ -46,7 +46,7 @@ step0()
 		BOOTPROTO='static'
 		ETHERDEVICE='${team0}'
 		VLAN_ID=${vlan0_id}
-		${vlan0_ip:+IPADDR='${vlan0_ip}'}
+		${vlan0_ip4:+IPADDR='${vlan0_ip4}'}
 	EOF
 
 	{

@@ -9,12 +9,12 @@
 # TODO: change vlan0 default name to dummy0.10
 
 dummy0="${dummy0:-dummy0}"
-dummy0_ip="${dummy0_ip:-10.3.0.1/24}"
+dummy0_ip4="${dummy0_ip4:-198.18.4.1/24}"
 
 vlan0_id="${vlan0_id:-10}"
 #vlan0="${vlan0:-$dummy0.$vlan0_id}"
 vlan0="${vlan0:-vlan$vlan0_id}"
-vlan0_ip="${vlan0_ip:-10.1.0.1/24}"
+vlan0_ip4="${vlan0_ip4:-198.18.2.1/24}"
 
 step0()
 {
@@ -24,14 +24,14 @@ step0()
 		STARTMODE='auto'
 		BOOTPROTO='static'
 		ZONE=trusted
-		${dummy0_ip:+IPADDR='${dummy0_ip}'}
+		${dummy0_ip4:+IPADDR='${dummy0_ip4}'}
 	EOF
 
 	cat >"${dir}/ifcfg-${vlan0}" <<-EOF
 		STARTMODE='auto'
 		BOOTPROTO='static'
 		ZONE=trusted
-		${vlan0_ip:+IPADDR='${vlan0_ip}'}
+		${vlan0_ip4:+IPADDR='${vlan0_ip4}'}
 		ETHERDEVICE='${dummy0}'
 		VLAN_ID='${vlan0_id}'
 	EOF

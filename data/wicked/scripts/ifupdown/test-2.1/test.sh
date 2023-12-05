@@ -8,14 +8,14 @@
 #
 
 eth0="${eth0:-eth0}"
-eth0_ip=${eth0_ip:-10.0.0.1/24}
+eth0_ip4=${eth0_ip4:-198.18.0.1/24}
 
 vlan0_id=10
 vlan0="${vlan0:-$eth0.$vlan0_id}"
-vlan0_ip="${vlan0_ip:-10.1.0.1/24}"
+vlan0_ip4="${vlan0_ip4:-198.18.2.1/24}"
 
 macvlan0="${macvlan0:-macvlan0}"
-macvlan0_ip="${macvlan0_ip:-10.5.0.1/24}"
+macvlan0_ip4="${macvlan0_ip4:-198.18.6.1/24}"
 
 step0()
 {
@@ -24,7 +24,7 @@ step0()
 	cat >"${dir}/ifcfg-${eth0}" <<-EOF
 		STARTMODE='auto'
 		BOOTPROTO='static'
-		${eth0_ip:+IPADDR='${eth0_ip}'}
+		${eth0_ip4:+IPADDR='${eth0_ip4}'}
 	EOF
 
 	cat >"${dir}/ifcfg-${vlan0}" <<-EOF
@@ -32,14 +32,14 @@ step0()
 		BOOTPROTO='static'
 		ETHERDEVICE='${eth0}'
 		VLAN_ID=${vlan0_id}
-		${vlan0_ip:+IPADDR='${vlan0_ip}'}
+		${vlan0_ip4:+IPADDR='${vlan0_ip4}'}
 	EOF
 
 	cat >"${dir}/ifcfg-${macvlan0}" <<-EOF
 		STARTMODE='auto'
 		BOOTPROTO='static'
 		MACVLAN_DEVICE='${vlan0}'
-		${macvlan0_ip:+IPADDR='${macvlan0_ip}'}
+		${macvlan0_ip4:+IPADDR='${macvlan0_ip4}'}
 	EOF
 
 	{

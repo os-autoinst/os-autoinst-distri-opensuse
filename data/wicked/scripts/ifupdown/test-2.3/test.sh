@@ -11,11 +11,11 @@ eth0="${eth0:-eth0}"
 eth1="${eth1:-eth1}"
 
 bond0="${bond0:-bond0}"
-bond0_ip="${bond0_ip:-10.4.0.1/24}"
+bond0_ip4="${bond0_ip4:-198.18.5.1/24}"
 
 vlan0_id=10
 vlan0="${vlan0:-$bond0.$vlan0_id}"
-vlan0_ip="${vlan0_ip:-10.1.0.1/24}"
+vlan0_ip4="${vlan0_ip4:-198.18.2.1/24}"
 
 step0()
 {
@@ -35,7 +35,7 @@ step0()
 		STARTMODE='auto'
 		BOOTPROTO='static'
 		ZONE=trusted
-		${bond0_ip:+IPADDR='${bond0_ip}'}
+		${bond0_ip4:+IPADDR='${bond0_ip4}'}
 		BONDING_MASTER=yes
 		BONDING_MODULE_OPTS='mode=active-backup miimon=100'
 		BONDING_SLAVE_0="$eth0"
@@ -47,7 +47,7 @@ step0()
 		BOOTPROTO='static'
 		ETHERDEVICE='${bond0}'
 		VLAN_ID=${vlan0_id}
-		${vlan0_ip:+IPADDR='${vlan0_ip}'}
+		${vlan0_ip4:+IPADDR='${vlan0_ip4}'}
 	EOF
 
 	{

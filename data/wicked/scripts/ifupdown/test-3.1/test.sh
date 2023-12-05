@@ -13,17 +13,17 @@
 eth0="${eth0:-eth0}"
 eth1="${eth1:-eth1}"
 
-bond0="${bond:-bond0}"
-bond0_ip="${bond_ip:-10.4.0.1/24}"
+bond0="${bond0:-bond0}"
+bond0_ip4="${bond0_ip4:-198.18.5.1/24}"
 
 vlan0_id=10
 vlan0="${vlan0:-$bond0.$vlan0_id}"
 
 br0="${br0:-br0}"
-br0_ip="${br0_ip:-10.6.0.1/24}"
+br0_ip4="${br0_ip4:-198.18.8.1/24}"
 
 br1="${br1:-br1}"
-br1_ip="${br1_ip:-10.6.1.1/24}"
+br1_ip4="${br1_ip4:-198.18.9.1/24}"
 
 
 step0()
@@ -63,7 +63,7 @@ step0()
 		ZONE=trusted
 		BRIDGE=yes
 		BRIDGE_PORTS=$bond0
-		${br0_ip:+IPADDR='${br0_ip}'}
+		${br0_ip4:+IPADDR='${br0_ip4}'}
 	EOF
 
 	cat >"${dir}/ifcfg-${br1}" <<-EOF
@@ -72,7 +72,7 @@ step0()
 		ZONE=trusted
 		BRIDGE=yes
 		BRIDGE_PORTS=$vlan0
-		${br1_ip:+IPADDR='${br1_ip}'}
+		${br1_ip4:+IPADDR='${br1_ip4}'}
 	EOF
 
 	{
