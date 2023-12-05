@@ -13,21 +13,52 @@ use base qw(consoletest opensusebasetest);
 use strict;
 use warnings;
 use testapi;
-use bootloader_setup 'add_grub_cmdline_settings';
+use bootloader_setup qw(add_grub_cmdline_settings change_grub_config);
 use power_action_utils 'power_action';
 use serial_terminal 'select_serial_terminal';
 use transactional qw(trup_call process_reboot);
 use utils qw(zypper_call reconnect_mgmt_console);
 use Utils::Backends 'is_pvm';
-use version_utils qw(is_alp is_jeos is_sle is_tumbleweed);
+use version_utils qw(is_alp is_jeos is_sle_micro is_sle is_tumbleweed is_transactional);
 
 sub reboot_and_select_serial_term {
     my $self = shift;
 
-    is_alp ? process_reboot(trigger => 1) : power_action('reboot', textmode => 1, keepconsole => is_pvm);
+    is_transactional ? process_reboot(trigger => 1) : power_action('reboot', textmode => 1, keepconsole => is_pvm);
     reconnect_mgmt_console if is_pvm;
-    $self->wait_boot;
+    $self->wait_boot if !is_transactional;
     select_serial_terminal;
+}
+
+sub enable_fips {
+    my $self = shift;
+
+    if (is_sle('>=15-SP4') || is_jeos || is_tumbleweed) {
+        assert_script_run("fips-mode-setup --enable");
+        $self->reboot_and_select_serial_term;
+        validate_script_output("fips-mode-setup --check", sub { m/FIPS mode is enabled\.\n.*\nThe current crypto policy \(FIPS\) is based on the FIPS policy\./ });
+    } else {
+        if (is_transactional) {
+            change_grub_config('=\"[^\"]*', '& fips=1 ', 'GRUB_CMDLINE_LINUX_DEFAULT');
+            trup_call('--continue grub.cfg');
+        } else {
+            add_grub_cmdline_settings('fips=1', update_grub => 1);
+        }
+        $self->reboot_and_select_serial_term;
+        assert_script_run q(grep '^1$' /proc/sys/crypto/fips_enabled);
+    }
+}
+
+sub get_fips_pattern_name {
+    if (is_alp || is_sle_micro('>=6.0')) { return "alp_fips"; }
+    else { return "fips"; }
+}
+
+sub install_fips {
+    my $fips_pattern_name = get_fips_pattern_name();
+    zypper_call("in crypto-policies-scripts") if (is_sle('>=15-SP4') || is_jeos || is_tumbleweed);
+    trup_call("pkg install -t pattern $fips_pattern_name") if is_alp || is_sle_micro;
+    zypper_call("in -t pattern $fips_pattern_name") if is_sle('<=15-SP3');
 }
 
 sub run {
@@ -50,28 +81,15 @@ sub run {
 
     if (get_var("FIPS_ENV_MODE")) {
         die 'FIPS kernel mode is required for this test!' if check_var('SECURITY_TEST', 'crypt_kernel');
-        is_alp ? trup_call("pkg install -t pattern fips") : zypper_call('in -t pattern fips');
+        install_fips;
         foreach my $env ('OPENSSL_FIPS', 'OPENSSL_FORCE_FIPS_MODE', 'LIBGCRYPT_FORCE_FIPS_MODE', 'NSS_FIPS', 'GnuTLS_FORCE_FIPS_MODE') {
             assert_script_run "echo 'export $env=1' >> /etc/bash.bashrc";
         }
         $self->reboot_and_select_serial_term;
         record_info 'ENV Mode', 'FIPS environment mode (for single modules) configured!';
     } else {
-        zypper_call("in crypto-policies-scripts") if (is_sle('>=15-SP4') || is_jeos || is_tumbleweed);
-        trup_call("pkg install -t pattern fips") if is_alp;
-        zypper_call("in -t pattern fips") if is_sle('<=15-SP3');
-
-        $self->reboot_and_select_serial_term if (is_alp || is_jeos);
-
-        if (is_sle('>=15-SP4') || is_jeos || is_tumbleweed) {
-            assert_script_run("fips-mode-setup --enable");
-            $self->reboot_and_select_serial_term;
-            validate_script_output("fips-mode-setup --check", sub { m/FIPS mode is enabled\.\n.*\nThe current crypto policy \(FIPS\) is based on the FIPS policy\./ });
-        } else {
-            add_grub_cmdline_settings('fips=1', update_grub => 1);
-            $self->reboot_and_select_serial_term;
-            assert_script_run q(grep '^1$' /proc/sys/crypto/fips_enabled);
-        }
+        install_fips;
+        $self->enable_fips;
     }
 }
 
