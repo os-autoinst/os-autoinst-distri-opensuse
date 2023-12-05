@@ -91,7 +91,7 @@ step2()
 }
 ifdown_all=step2
 
-step5()
+step3()
 {
 	bold "=== step $step: ifup $vlan0"
 
@@ -109,7 +109,7 @@ step5()
 	echo "=== step $step: finished with $err errors"
 }
 
-step6()
+step4()
 {
 	bold "=== step $step: ifdown $vlan0"
 
@@ -127,7 +127,7 @@ step6()
 	echo "=== step $step: finished with $err errors"
 }
 
-step9()
+step5()
 {
 	bold "=== step $step: ifup $macvlan0"
 
@@ -145,7 +145,7 @@ step9()
 	echo "=== step $step: finished with $err errors"
 }
 
-step10()
+step6()
 {
 	$ifdown_all
 }

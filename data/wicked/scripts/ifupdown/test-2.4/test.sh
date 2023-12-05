@@ -170,7 +170,7 @@ step5()
 	echo "=== step $step: finished with $err errors"
 }
 
-step5()
+step6()
 {
 	bold "=== step $step: ifdown $br0 $br1"
 
@@ -190,7 +190,7 @@ step5()
 	echo "=== step $step: finished with $err errors"
 }
 
-step6()
+step7()
 {
 	bold "=== step $step: ifup $br0"
 
@@ -210,7 +210,7 @@ step6()
 	echo "=== step $step: finished with $err errors"
 }
 
-step5()
+step8()
 {
 	bold "=== step $step: ifdown $br0"
 
@@ -230,7 +230,7 @@ step5()
 	echo "=== step $step: finished with $err errors"
 }
 
-step6()
+step9()
 {
 	bold "=== step $step: ifup $br1"
 
@@ -249,9 +249,9 @@ step6()
 	echo ""
 	echo "=== step $step: finished with $err errors"
 }
-ifup_all=step6
+ifup_all=step9
 
-step7()
+step10()
 {
 	bold "=== step $step: ifdown $br0"
 
@@ -271,12 +271,12 @@ step7()
 	echo "=== step $step: finished with $err errors"
 }
 
-step8()
+step11()
 {
 	$ifup_all
 }
 
-step9()
+step12()
 {
 	bold "=== step $step: ifdown $br1"
 
@@ -297,12 +297,12 @@ step9()
 
 }
 
-step10()
+step13()
 {
 	$ifup_all
 }
 
-step11()
+step14()
 {
 	bold "=== step $step: ifdown $eth0"
 

@@ -82,7 +82,7 @@ step2()
 	echo "=== step $step: finished with $err errors"
 }
 
-step5()
+step3()
 {
 	bold "=== step $step: ifup ${vlan0}"
 
@@ -98,9 +98,9 @@ step5()
 	echo ""
 	echo "=== step $step: finished with $err errors"
 }
-ifup_vlan0=step5
+ifup_vlan0=step3
 
-step6()
+step4()
 {
 	bold "=== step $step: ifdown ${dummy0}"
 
@@ -117,12 +117,12 @@ step6()
 	echo "=== step $step: finished with $err errors"
 }
 
-step7()
+step5()
 {
 	$ifup_vlan0
 }
 
-step8()
+step6()
 {
 	bold "=== step $step: ifdown ${vlan0}"
 

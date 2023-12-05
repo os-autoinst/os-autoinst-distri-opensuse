@@ -123,7 +123,7 @@ step2()
 }
 ifdown_all=step2
 
-step5()
+step3()
 {
 	bold "=== step $step: ifup $vlan0"
 
@@ -143,7 +143,7 @@ step5()
 	echo "=== step $step: finished with $err errors"
 }
 
-step6()
+step4()
 {
 	bold "=== step $step: ifdown $vlan0"
 
@@ -163,13 +163,13 @@ step6()
 	echo "=== step $step: finished with $err errors"
 }
 
-step8()
+step5()
 {
 	$ifdown_all
 }
 
 
-step9()
+step6()
 {
 	bold "=== step $step: ifup $vlan1"
 
@@ -189,7 +189,7 @@ step9()
 	echo "=== step $step: finished with $err errors"
 }
 
-step10()
+step7()
 {
 	bold "=== step $step: ifdown $vlan1"
 
@@ -209,12 +209,12 @@ step10()
 	echo "=== step $step: finished with $err errors"
 }
 
-step12()
+step8()
 {
 	$ifdown_all
 }
 
-step13()
+step9()
 {
 	bold "=== step $step: ifup $macvlan0"
 
@@ -234,7 +234,7 @@ step13()
 	echo "=== step $step: finished with $err errors"
 }
 
-step14()
+step10()
 {
 	bold "=== step $step: ifdown $macvlan0"
 
@@ -254,12 +254,12 @@ step14()
 	echo "=== step $step: finished with $err errors"
 }
 
-step17()
+step11()
 {
 	$ifdown_all
 }
 
-step18()
+step12()
 {
 	bold "=== step $step: ifup $macvlan1"
 
@@ -279,7 +279,7 @@ step18()
 	echo "=== step $step: finished with $err errors"
 }
 
-step19()
+step13()
 {
 	bold "=== step $step: ifdown $macvlan1"
 
