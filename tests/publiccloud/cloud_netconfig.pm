@@ -21,7 +21,6 @@ sub run {
     my $instance = $args->{my_instance};
     my $os_version = get_var('VERSION');
     my $pers_net_rules = '/etc/udev/rules.d/75-persistent-net-generator.rules';
-    my $wr_net_rules = '/usr/lib/udev/write_net_rules';
 
     my $cloud_netconfig_svc_status = $instance->ssh_script_run(
         cmd => 'systemctl status cloud-netconfig.service');
@@ -37,27 +36,12 @@ sub run {
         fail_message => 'cloud-netconfig.timer appears not to be started.'
     );
 
-    # 75-persistent-net-generator.rules is required for SLES 12-SPX
-    if (is_sle('<=12-sp5')) {
-        $instance->ssh_assert_script_run(
-            cmd => "test -s $pers_net_rules",
-            fail_message => "File \"$pers_net_rules\" is required but missing."
-        );
-
-        $instance->ssh_assert_script_run(
-            cmd => "test -x $wr_net_rules",
-            fail_message => "Executable \"$wr_net_rules\" is required to "
-              . 'persist network configuration but missing.'
-        );
-    }
-    # 75-persistent-net-generator.rules is usually a symlink to /dev/null in SLES 15+
-    if (is_sle('15+')) {
-        $instance->ssh_assert_script_run(
-            cmd => "test -L $pers_net_rules",
-            fail_message => "File \"$pers_net_rules\" should be a symlink to "
-              . "\"/dev/null\" in SLES 15+."
-        );
-    }
+    # 75-persistent-net-generator.rules is usually a symlink to /dev/null in SLES 12+
+    $instance->ssh_assert_script_run(
+        cmd => "test -L $pers_net_rules",
+        fail_message => "File \"$pers_net_rules\" should be a symlink to "
+          . "\"/dev/null\" in SLES 12+."
+    );
 
     my $grep_cloudvm_ipv4_cmd =
       'ip -4 addr show eth0 | grep -oP "^\s+inet\s(\d+\.){3}\d+" | '
