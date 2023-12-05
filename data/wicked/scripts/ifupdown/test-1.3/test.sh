@@ -18,12 +18,12 @@ step0()
 	bold "=== $step -- Setup configuration"
 
 	cat >"${dir}/ifcfg-${eth0}" <<-EOF
-		STARTMODE='auto'
+		STARTMODE='hotplug'
 		BOOTPROTO='none'
 	EOF
 
 	cat >"${dir}/ifcfg-${eth1}" <<-EOF
-		STARTMODE='auto'
+		STARTMODE='hotplug'
 		BOOTPROTO='none'
 	EOF
 

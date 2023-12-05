@@ -31,17 +31,17 @@ step0()
 	bold "=== $step -- Setup configuration"
 
 	cat >"${dir}/ifcfg-$eth0" <<-EOF
-		STARTMODE='auto'
+		STARTMODE='hotplug'
 		BOOTPROTO='none'
 	EOF
 
 	cat >"${dir}/ifcfg-$eth1" <<-EOF
-		STARTMODE='auto'
+		STARTMODE='hotplug'
 		BOOTPROTO='none'
 	EOF
 
 	cat >"${dir}/ifcfg-${bond0}" <<-EOF
-		STARTMODE='hotplug'
+		STARTMODE='auto'
 		BOOTPROTO='none'
 		ZONE=trusted
 		BONDING_MASTER=yes
