@@ -61,7 +61,7 @@ step0()
 		STARTMODE='auto'
 		BOOTPROTO='static'
 		ZONE=trusted
-		BRDIGE=yes
+		BRIDGE=yes
 		BRIDGE_PORTS=$bond0
 		${br0_ip:+IPADDR='${br0_ip}'}
 	EOF
@@ -70,7 +70,7 @@ step0()
 		STARTMODE='auto'
 		BOOTPROTO='static'
 		ZONE=trusted
-		BRDIGE=yes
+		BRIDGE=yes
 		BRIDGE_PORTS=$vlan0
 		${br1_ip:+IPADDR='${br1_ip}'}
 	EOF
