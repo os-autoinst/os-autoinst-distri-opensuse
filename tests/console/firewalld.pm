@@ -63,11 +63,7 @@ sub check_rules {
     } else {
         assert_script_run("nft list chain inet firewalld filter_IN_public_allow | grep 25");
         assert_script_run("nft list chain inet firewalld filter_IN_public_allow | grep 110");
-        if (is_leap("<16.0") || is_sle("<16")) {
-            assert_script_run("nft list chain inet firewalld filter_FWDI_public | grep icmp");
-        } else {
-            assert_script_run("nft list chain inet firewalld filter_FWD_public | grep icmp");
-        }
+        assert_script_run("nft list chain inet firewalld filter_IN_public_allow | grep icmp");
         assert_script_run("nft list chain inet firewalld filter_IN_public_allow | grep 2000-3000");
     }
 }
