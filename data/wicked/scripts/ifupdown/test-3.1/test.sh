@@ -159,10 +159,10 @@ step4()
 
 step5()
 {
-	bold "=== step $step: ifup $br0"
+	bold "=== step $step: ifup $bond0"
 
-	echo "# wicked $wdebug ifup $cfg $br0"
-	wicked $wdebug ifup $cfg "$br0"
+	echo "# wicked $wdebug ifup $cfg $bond0"
+	wicked $wdebug ifup $cfg "$bond0"
 	echo ""
 
 	print_device_status "$eth0" "$eth1" "$bond0" "$vlan0" "$br0" "$br1"
@@ -185,6 +185,32 @@ step6()
 
 step7()
 {
+	bold "=== step $step: ifup $br0"
+
+	echo "# wicked $wdebug ifup $cfg $br0"
+	wicked $wdebug ifup $cfg "$br0"
+	echo ""
+
+	print_device_status "$eth0" "$eth1" "$bond0" "$vlan0" "$br0" "$br1"
+
+	check_device_is_up "$eth0"
+	check_device_is_up "$eth1"
+	check_device_is_up "$bond0"
+	check_device_is_down "$vlan0"
+	check_device_is_up "$br0"
+	check_device_is_down "$br1"
+
+	echo ""
+	echo "=== step $step: finished with $err errors"
+}
+
+step8()
+{
+	$ifdown_br0
+}
+
+step9()
+{
 	bold "=== step $step: ifup $vlan0"
 
 	echo "# wicked $wdebug ifup $cfg $vlan0"
@@ -203,9 +229,9 @@ step7()
 	echo ""
 	echo "=== step $step: finished with $err errors"
 }
-ifup_all=step7
+ifup_all=step9
 
-step8()
+step10()
 {
 	bold "=== step $step: ifdown $eth0"
 
@@ -226,7 +252,7 @@ step8()
 	echo "=== step $step: finished with $err errors"
 }
 
-step9()
+step11()
 {
 	bold "=== step $step: ifdown $eth1"
 
@@ -247,7 +273,7 @@ step9()
 	echo "=== step $step: finished with $err errors"
 }
 
-step10()
+step12()
 {
 	bold "=== step $step: ifdown $br0 $br1"
 
@@ -267,9 +293,9 @@ step10()
 	echo ""
 	echo "=== step $step: finished with $err errors"
 }
-ifdown_all=step10
+ifdown_all=step12
 
-step10()
+step13()
 {
 	bold "=== step $step: ifup $br0"
 
@@ -290,12 +316,12 @@ step10()
 	echo "=== step $step: finished with $err errors"
 }
 
-step11()
+step14()
 {
 	$ifdown_br0
 }
 
-step12()
+step15()
 {
 	bold "=== step $step: ifup $br1"
 
@@ -316,7 +342,7 @@ step12()
 	echo "=== step $step: finished with $err errors"
 }
 
-step13()
+step16()
 {
 	bold "=== step $step: ifdown $bond0"
 
@@ -337,12 +363,12 @@ step13()
 	echo "=== step $step: finished with $err errors"
 }
 
-step14()
+step17()
 {
 	$ifup_all
 }
 
-step15()
+step18()
 {
 	bold "=== step $step: ifdown $vlan0"
 
@@ -363,12 +389,12 @@ step15()
 	echo "=== step $step: finished with $err errors"
 }
 
-step16()
+step19()
 {
 	$ifup_all
 }
 
-step17()
+step20()
 {
 	bold "=== step $step: ifdown $br0"
 
@@ -389,12 +415,12 @@ step17()
 	echo "=== step $step: finished with $err errors"
 }
 
-step18()
+step21()
 {
 	$ifup_all
 }
 
-step19()
+step22()
 {
 	bold "=== step $step: ifdown $br1"
 
