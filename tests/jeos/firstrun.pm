@@ -189,11 +189,12 @@ sub run {
     }
 
     # Only execute this block on ALP when using the encrypted image.
-    if (is_alp && get_var("ENCRYPTED_IMAGE")) {
+    if ((is_alp || is_sle_micro('>=6.0')) && get_var("ENCRYPTED_IMAGE")) {
         # Select FDE with pass and tpm
         assert_screen "alp-fde-pass-tpm";
-        send_key "ret";
-        assert_screen "alp-fde-newluks";
+        # with the latest ALP 9.2/SLEM 3.4 build, this step takes more time than usual.
+        wait_screen_change(sub { send_key "ret" }, 25);
+        assert_screen("alp-fde-newluks", timeout => 120);
         type_password;
         send_key "ret";
         wait_still_screen 2;
