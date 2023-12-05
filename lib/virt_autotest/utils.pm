@@ -274,11 +274,11 @@ sub check_failures_in_journal {
         $failures .= "\"$warn\" in journals on $machine \n" if script_run("timeout --kill-after=3 --signal=9 120 $cmd") == 0;
     }
     if ($failures) {
-        if (get_var('KNOWN_KERNEL_BUGS')) {
-            record_soft_failure("Found failures: \n" . $failures . "There are known kernel bugs " . get_var('KNOWN_KERNEL_BUGS') . ". Please analyze journal logs to double check if a new bug needs to be opened or it is an old issue. And please add new bugs to KNOWN_KERNEL_BUGS in the form of bsc#555555.");
+        if (get_var('KNOWN_BUGS_FOUND_IN_JOURNAL')) {
+            record_soft_failure("Found failures: \n" . $failures . "There are known kernel bugs " . get_var('KNOWN_BUGS_FOUND_IN_JOURNAL') . ". Please look into journal files to determine if it is a known bug. If it is a new issue, please take action as described in poo#151361.");
         }
         else {
-            record_soft_failure("Found new failures: Fake bsc#5555(by PR rule)\n" . $failures . "This is an unknown failure which need to be investigated!");
+            record_soft_failure("Found new failures: " . $failures . " please take actions as described in poo#151361.\n");
         }
 
         my $logfile = "/tmp/journalctl-$machine.log";
