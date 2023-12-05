@@ -976,6 +976,8 @@ sub write_cfg {
     my $rand = random_string;
     # replace variables
     $content =~ s/\{\{(\w+)\}\}/$self->lookup($1, $args{env})/eg;
+    # make sure that dirs exists
+    assert_script_run('mkdir -p ' . dirname($filename));
     # unwrap content
     my ($indent) = $content =~ /^\r?\n?([ ]*)/m;
     $content =~ s/^$indent//mg;
