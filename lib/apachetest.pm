@@ -269,7 +269,7 @@ sub test_pgsql {
     assert_script_run "sudo -u postgres psql -d openQAdb -c \"SELECT * FROM test\" | grep 'can php write this?'";
 
     # add sudo rights to switch postgresql version and run script to determine oldest and latest version
-    assert_script_run 'echo "postgres ALL=(root) NOPASSWD: ALL" >>/etc/sudoers';
+    assert_script_run 'echo "postgres ALL=(root) NOPASSWD: ALL" >/etc/sudoers.d/postgres';
     assert_script_run "gpasswd -a postgres \$(stat -c %G /dev/$serialdev)";
     assert_script_run 'sudo chsh postgres -s /bin/bash';
     enter_cmd "su - postgres", wait_still_screen => 1;

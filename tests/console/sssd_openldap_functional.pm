@@ -73,7 +73,7 @@ sub run {
     validate_script_output('sshpass -p n0vell88 ssh bob@localhost echo "login as new password!"', sub { m/new password/ });
     validate_script_output('ldapwhoami -x -H ldap://ldapserver -D uid=bob,ou=users,dc=sssdtest,dc=com -w n0vell88', sub { m/bob/ });
     #Sudo run a command as another user
-    assert_script_run("sed -i '/Defaults targetpw/s/^/#/' /etc/sudoers");
+    assert_script_run("echo 'Defaults !targetpw' >/etc/sudoers.d/notargetpw");
     validate_script_output('sshpass -p open5use ssh adam@localhost "echo open5use|sudo -S -l"', sub { m#/usr/bin/cat# });
     assert_script_run(qq(su -c 'echo "file read only by owner bob" > hello && chmod 600 hello' -l bob));
     validate_script_output('sshpass -p open5use ssh adam@localhost "echo open5use|sudo -S -u bob /usr/bin/cat /home/bob/hello"', sub { m/file read only by owner bob/ });

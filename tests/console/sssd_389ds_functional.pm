@@ -119,7 +119,7 @@ sub run {
     #verify password changed in remote 389-ds.
     validate_script_output('ldapwhoami -x -H ldap://ldapserver -D uid=alice,ou=users,dc=sssdtest,dc=com -w n0vell88', sub { m/alice/ });
     #Sudo run a command as another user
-    assert_script_run("sed -i '/Defaults targetpw/s/^/#/' /etc/sudoers");
+    assert_script_run("echo 'Defaults !targetpw' >/etc/sudoers.d/notargetpw");
     enter_cmd('ssh -oStrictHostKeyChecking=no mary@localhost', wait_still_screen => 5);
     enter_cmd('open5use', wait_still_screen => 5);
     enter_cmd('echo open5use|sudo -S -l > /tmp/sudouser', wait_still_screen => 1);
