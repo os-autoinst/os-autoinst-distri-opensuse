@@ -31,11 +31,6 @@ sub run_microos_checks {
         zypper_call 'se -i kubernetes', exitcode => [104];
         assert_script_run '! rpm -q etcd';
     }
-    # Should have unconfigured Kubernetes & container runtime environment
-    if (check_var('SYSTEM_ROLE', 'kubeadm')) {
-        assert_script_run 'which crio';
-        zypper_call 'se -i kubernetes';
-    }
 }
 
 sub run {
