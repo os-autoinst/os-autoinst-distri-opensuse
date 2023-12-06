@@ -36,16 +36,16 @@ sub setup_static_network {
     my (%args) = @_;
     my $ip = $args{ip} // '10.0.2.15';
     my $mtu = $args{mtu} // 1458;
-    # Set default values
-    $args{silent} //= 0;
-    configure_static_dns(get_host_resolv_conf(), silent => $args{silent});
-    assert_script_run('echo default ' . $args{gw} . ' - - > /etc/sysconfig/network/routes');
+    my $gw = $args{gw} // testapi::host_ip();
+
+    configure_static_dns(get_host_resolv_conf(), silent => $args{silent} // 0);
+    assert_script_run("echo default $gw - - > /etc/sysconfig/network/routes");
     my $iface = iface();
     assert_script_run qq(echo -e "\\nSTARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$ip'\\nMTU='$mtu'">/etc/sysconfig/network/ifcfg-$iface);
     assert_script_run 'rcnetwork restart';
     assert_script_run 'ip addr';
-    assert_script_run 'ping -c 1 ' . $args{gw} . '|| journalctl -b --no-pager -o short-precise > /dev/' . $serialdev;
-    assert_script_run('ip -6 addr add ' . $args{ipv6} . ' dev ' . $iface) if (exists($args{ipv6}));
+    assert_script_run "ping -c 1 $gw || journalctl -b --no-pager -o short-precise > /dev/$serialdev";
+    assert_script_run "ip -6 addr add $args{ipv6} dev $iface" if exists $args{ipv6};
 }
 
 =head2 iface
