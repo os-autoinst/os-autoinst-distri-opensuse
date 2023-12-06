@@ -80,7 +80,7 @@ sub change_service_configuration_step {
     send_key_until_needlematch $needle_selection, 'up', 6, 1;
     if (check_var_array('EXTRATEST', 'y2uitest_ncurses')) {
         send_key 'ret';
-        assert_screen $needle_check;
+        apply_workaround_poo124652($needle_check) if (is_sle('>=15-SP4'));
     }
 }
 
