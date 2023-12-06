@@ -28,13 +28,14 @@ package libssh;
 use base 'consoletest';
 use strict;
 use warnings;
-use testapi;
+use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
 use Utils::Systemd 'disable_and_stop_service';
 use version_utils;
 use registration 'add_suseconnect_product';
 use containers::common 'install_docker_when_needed';
 use registration qw(add_suseconnect_product get_addon_fullname);
+use serial_terminal qw(select_serial_terminal set_serial_prompt);
 
 # Build a custom container image with openssl, curl and virsh installed.
 # The container will be used as client of libssh
@@ -84,12 +85,12 @@ EOT
     }
     #Build an custom image with openssh curl libvirt-client sshpass
     assert_script_run("mkdir /tmp/build && cd /tmp/build");
-    assert_script_run("cat > /tmp/build/Dockerfile <<'END'\n$dockerfile\nEND\n( exit \$?)");
+    type_string("cat > /tmp/build/Dockerfile <<'END'\n$dockerfile\nEND\n( exit \$?)\n\n");
     assert_script_run(qq(docker build -t libssh_image --build-arg tag="$tag" --build-arg pkgs="$pkgs" .), timeout => 600);
 }
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
     # contm is not supported on LTSS products bsc#1181835
     if (get_var('SCC_REGCODE_LTSS')) {
@@ -119,7 +120,8 @@ sub run {
     assert_script_run("docker cp libssh_container:/root/.ssh/id_rsa.pub /root/.ssh/authorized_keys");
 
     #Switch into container as client
-    enter_cmd("docker exec -it libssh_container bash", wait_still_screen => 3);
+    type_string("docker exec -it libssh_container bash\n\n");
+    set_serial_prompt('# ') if is_serial_terminal;
     assert_script_run("test -f /.dockerenv");    #verify inside container
     assert_script_run("ssh-keyscan susetest >> /root/.ssh/known_hosts");
     validate_script_output("curl -s sftp://susetest/tmp/test/ -u root:nots3cr3t", sub { m/libssh_testfile/ });
@@ -131,11 +133,12 @@ sub run {
     validate_script_output('virsh -c "qemu+libssh://root@susetest/system?sshauth=privkey&keyfile=/root/.ssh/id_rsa&known_hosts=/root/.ssh/known_hosts" hostname', sub { m/susetest/ }) if is_sle('>=15-sp1'); #libssh is not supported by libvirt for sle12 and sle15sp1
     validate_script_output('virsh -c "qemu+libssh2://root@susetest/system?sshauth=privkey&keyfile=/root/.ssh/id_rsa&known_hosts=/root/.ssh/known_hosts" hostname', sub { m/susetest/ });
     #Switch back to host
-    enter_cmd("exit", wait_still_screen => 3);
+    type_string("exit\n\n");
+    sleep 1;
     #libssh2 test with qemu-block-ssh
     assert_script_run("eval `ssh-agent` && ssh-add /root/.ssh/id_rsa");
     assert_script_run("qemu-system-x86_64 -daemonize -display none -drive format=raw,if=virtio,index=1,file=ssh://root\@$container_ip/tmp/libssh_block.raw -monitor unix:/tmp/socket01,server,nowait");
-    sleep 30;
+    sleep 10;
     validate_script_output('nc -U /tmp/socket01 <<EOF
 info block virtio1
 quit
