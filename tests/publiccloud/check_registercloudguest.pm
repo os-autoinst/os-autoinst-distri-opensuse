@@ -23,12 +23,12 @@ use version_utils 'is_sle';
 
 sub run {
     my ($self, $args) = @_;
+    select_host_console();
 
-    # Preserve args for post_fail_hook
-    $self->{instance} = $args->{my_instance};
-
-    # Create $instance to make the code easier to read
-    my $instance = $args->{my_instance};
+    my $provider = $self->provider_factory();
+    my $instance = $provider->create_instance();
+    $args->{my_provider} = $provider;
+    $args->{my_instance} = $instance;
 
     my $regcode_param = (is_byos()) ? "-r " . get_required_var('SCC_REGCODE') : '';
 
