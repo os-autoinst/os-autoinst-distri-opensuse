@@ -53,7 +53,7 @@ spec:
         - name: TAG1
           value: "quay.io/kubevirt/fedora-with-test-tooling-container-disk:latest"
         - name: IMAGE2
-          value: "quay.io/kubevirt/alpine-ext-kernel-boot-demo:v0.49.0"
+          value: "quay.io/kubevirt/alpine-ext-kernel-boot-demo:v${KUBEVIRT_VERSION}"
         - name: TAG2
           value: "registry:5000/kubevirt/alpine-ext-kernel-boot-demo:devel"
         volumeMounts:

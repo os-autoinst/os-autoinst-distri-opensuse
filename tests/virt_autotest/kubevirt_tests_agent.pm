@@ -104,6 +104,11 @@ sub rke2_agent_setup {
     # Wait for restarting rke2-server service complete
     barrier_wait('rke2_server_restart_complete');
 
+    # Workaround for bsc#1217658
+    my $config_toml_tmpl = 'config.toml.tmpl';
+    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$config_toml_tmpl") . " -o $config_toml_tmpl");
+    assert_script_run("cp $config_toml_tmpl /var/lib/rancher/rke2/agent/etc/containerd/$config_toml_tmpl");
+
     # Restart RKE2 service and check the service is active well after restart
     systemctl('restart rke2-agent.service', timeout => 180);
     $self->check_service_status();
@@ -132,6 +137,10 @@ sub rke2_agent_setup {
 
     script_retry('! kubectl get nodes | grep NotReady', retry => 14, delay => 20, timeout => 300);
     assert_script_run('kubectl get nodes');
+
+    # bsc#1210856
+    assert_script_run("mkdir -p /var/provision/kubevirt.io/tests && mount -t tmpfs tmpfs /var/provision/kubevirt.io/tests");
+    assert_script_run("echo 'tmpfs /var/provision/kubevirt.io/tests tmpfs rw 0 0' >> /etc/fstab");
 }
 
 sub check_service_status {

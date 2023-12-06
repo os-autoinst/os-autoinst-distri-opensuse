@@ -148,19 +148,12 @@ sub rke2_server_setup {
     our $local_registry_ip = script_output("nslookup $local_registry_fqdn|sed -n '5,1p'|awk -F' ' '{print \$2}'");
     assert_script_run("cat > /etc/rancher/rke2/registries.yaml <<__END
 mirrors:
-  registry.suse.de:
-    endpoint:
-      - http://registry.suse.com
   $local_registry_fqdn:5000:
     endpoint:
       - http://$local_registry_fqdn:5000
   $local_registry_ip:5000:
     endpoint:
       - http://$local_registry_ip:5000
-configs:
-  registry.suse.com:
-    tls:
-      insecure_skip_verify: true
 __END
 (exit \$?)");
 
@@ -169,6 +162,11 @@ __END
     mutex_wait('rke2_agent_start_ready', (keys %$children)[0]);
 
     assert_script_run("scp /etc/rancher/rke2/registries.yaml root\@$agent_ip:/etc/rancher/rke2/registries.yaml");
+
+    # Workaround for bsc#1217658
+    my $config_toml_tmpl = 'config.toml.tmpl';
+    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$config_toml_tmpl") . " -o $config_toml_tmpl");
+    assert_script_run("cp $config_toml_tmpl /var/lib/rancher/rke2/agent/etc/containerd/$config_toml_tmpl");
 
     # Restart RKE2 service and check the service is active well after restart
     systemctl('restart rke2-server.service', timeout => 180);
@@ -315,7 +313,7 @@ sub setup_longhorn_csi {
     my @deployments = split(/\n/, script_output("kubectl get --no-headers deployments -n longhorn-system -o custom-columns=:.metadata.name"));
     assert_script_run("kubectl rollout status deployment --timeout=20m -n longhorn-system $_") foreach (@deployments);
     my @daemonsets = split(/\n/, script_output("kubectl get --no-headers daemonsets -n longhorn-system -o custom-columns=:.metadata.name"));
-    assert_script_run("kubectl rollout status daemonset --timeout=20m -n longhorn-system $_") foreach (@daemonsets);
+    assert_script_run("kubectl rollout status daemonset --timeout=40m -n longhorn-system $_") foreach (@daemonsets);
 
     # Adjust Longhorn settings (lhs)
     script_retry('kubectl get -n longhorn-system lhs', retry => 8, delay => 10, timeout => 90);
@@ -342,13 +340,13 @@ sub setup_longhorn_csi {
         'snapshot.storage.k8s.io_volumesnapshotcontents.yaml',
         'snapshot.storage.k8s.io_volumesnapshots.yaml'
     );
-    assert_script_run("kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-4.0/client/config/crd/$_") foreach (@crd);
+    assert_script_run("kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-6.0/client/config/crd/$_") foreach (@crd);
 
     my @snapshot_controller = (
         'rbac-snapshot-controller.yaml',
         'setup-snapshot-controller.yaml'
     );
-    assert_script_run("kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-4.0/deploy/kubernetes/snapshot-controller/$_") foreach (@snapshot_controller);
+    assert_script_run("kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-6.0/deploy/kubernetes/snapshot-controller/$_") foreach (@snapshot_controller);
 
     # Create a backup target
     assert_script_run("kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v$longhorn_ver/deploy/backupstores/nfs-backupstore.yaml");
@@ -480,7 +478,9 @@ EOF
     # Workaround for bsc#1199448
     my $node_helper = 'node-helper.yaml';
     assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$node_helper") . " -o $node_helper");
+    assert_script_run("sed -e \"s/$kubevirt_ver/\${KUBEVIRT_VERSION}/g\"");
     assert_script_run("kubectl apply -f $node_helper");
+    assert_script_run("kubectl -n kubevirt-tests rollout status daemonset node-helper --timeout=50m");
 
     my $pre_rel_reg = get_required_var('PREVIOUS_RELEASE_REGISTRY');
     my $pre_rel_tag = get_required_var('PREVIOUS_RELEASE_TAG');
