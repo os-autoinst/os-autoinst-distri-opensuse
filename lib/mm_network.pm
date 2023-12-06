@@ -59,7 +59,6 @@ sub configure_static_ip {
     my $mtu = $args{mtu} // 1458;
     my $is_nm = $args{is_nm} // is_networkmanager();
     my $device = $args{device};
-    $mtu //= 1458;
 
     if ($is_nm) {
         my $nm_id;
