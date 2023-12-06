@@ -26,7 +26,7 @@ sub run {
     disable_and_stop_service($self->firewall) if check_unit_file($self->firewall);
 
     assert_script_run('nmcli conn');
-    my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | head -n1");
+    my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep -v ^lo: | head -n1");
     my ($device, $nm_id) = split(':', $nm_list);
     assert_script_run "nmcli connection modify '$nm_id' ipv4.method auto";
     assert_script_run("nmcli conn up '$nm_id'");
@@ -35,7 +35,7 @@ sub run {
     record_info("ip a", script_output("ip a"));
     assert_script_run('ping -c 1 10.0.2.101');
 
-    $nm_list = script_output("nmcli -t -f DEVICE,NAME c | head -n1");
+    $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep -v ^lo: | head -n1");
     ($device, $nm_id) = split(':', $nm_list);
     validate_script_output("ip -4 addr show dev $device | sed -rne '/inet/s/[[:blank:]]*inet ([0-9\\.]*).*/\\1/p'", sub { m/10.0.2.12[0-5]/ });
     #validate_script_output("$addr",  sub {m/10.0.2.12[0-5]/});
