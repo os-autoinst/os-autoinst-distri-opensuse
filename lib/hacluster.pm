@@ -618,7 +618,14 @@ sub ha_export_logs {
     upload_logs($mdadm_conf, failok => 1);
 
     # supportconfig
-    script_run "supportconfig -g -B $clustername", 300;
+    my $ret = script_run "supportconfig -g -B $clustername", 300, die_on_timeout => 0;
+    # Make it softfail for not blocking qem bot auto approvals on 12-SP5
+    # Command 'supportconfig' hangs on 12-SP5, script_run timed out and returned 'undef'
+    if (!defined($ret) && is_sle("=12-SP5")) {
+        record_soft_failure 'poo#151612';
+        # Send 'ctrl-c' to kill 'supportconfig' as it hangs
+        send_key('ctrl-c');
+    }
     upload_logs("/var/log/scc_$clustername.tgz", failok => 1);
 
     # pacemaker cts log
