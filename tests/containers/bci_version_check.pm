@@ -25,6 +25,9 @@ sub run {
 
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
     my $build = get_required_var('CONTAINER_IMAGE_BUILD');
+    my @build = split(/-/, $build);
+    my $buildrelease = $build[-1];
+
     record_info('IMAGE', $image);
 
     # If multiple engines are defined (e.g. CONTAINER_RUNTIMES=podman,docker), we use just one. podman is preferred.
@@ -45,7 +48,7 @@ sub run {
         my $reference = script_output(qq($engine inspect --type image $image | jq -r '.[0].Config.Labels."org.opensuse.reference"'));
         # Note: Both lines are aligned, thus the additional space
         record_info('builds', "CONTAINER_IMAGE_BUILD:  $build\norg.opensuse.reference: $reference");
-        die('Missmatch in image build number. The image build number is different than the one triggered by the container bot!') if ($reference !~ /$build$/);
+        die('Missmatch in image build number. The image build number is different than the one triggered by the container bot!') if ($reference !~ /$buildrelease$/);
     }
 
     if (get_var('IMAGE_STORE_DATA')) {
