@@ -27,6 +27,7 @@ use maintenance_smelt qw(get_packagebins_in_modules get_incident_packages);
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle);
+use Data::Dumper qw(Dumper);
 
 sub has_conflict {
     my $binary = shift;
@@ -81,7 +82,7 @@ sub get_patch {
     my ($incident_id, $repos) = @_;
     $repos =~ tr/,/ /;
     my $patches = script_output("zypper patches -r $repos | awk -F '|' '/$incident_id/ { print\$2 }'|uniq|tr '\n' ' '");
-    return $patches;
+    return split(/\s+/, $patches);
 }
 
 sub get_installed_bin_version {
@@ -131,21 +132,28 @@ sub run {
         next if s{http.*SUSE_Updates_(.*)/?}{$1};
         die 'Modules regex failed. Modules could not be extracted from repos variable.';
     }
+    record_info('Modules', "@modules");
 
     # Patch the SUT to a released state;
     fully_patch_system;
 
     set_var('MAINT_TEST_REPO', $repos);
     my $repos_count = add_test_repositories;
+    record_info('Repos', script_output('zypper lr -u'));
 
-    my $patches = get_patch($incident_id, $repos);
+    my @patches = get_patch($incident_id, $repos);
+    record_info "Patches", "@patches";
 
     # Get packages affected by the incident.
     my @packages = get_incident_packages($incident_id);
+    record_info('Packages', "@packages");
 
     # Get binaries that are in each package across the modules that are in the repos.
     foreach (@packages) {
         %bins = (%bins, get_packagebins_in_modules({package_name => $_, modules => \@modules}));
+        # hash of hashes with keys 'name', 'supportstatus' and 'package'.
+        # e.g. https://smelt.suse.de/api/v1/basic/maintained/grub2
+        record_info("$_", Dumper(\%bins));
     }
     die "Parsing binaries from SMELT data failed" if not keys %bins;
 
@@ -153,7 +161,7 @@ sub run {
     my @l3 = grep { ($bins{$_}->{supportstatus} eq 'l3') } keys %bins;
     my @unsupported = grep { ($bins{$_}->{supportstatus} eq 'unsupported') } keys %bins;
 
-    for my $patch (split(/\s+/, $patches)) {
+    for my $patch (@patches) {
         my %patch_bins = %bins;
         my (@patch_l2, @patch_l3, @patch_unsupported);
 
@@ -162,7 +170,9 @@ sub run {
 
         # Check if the patch was correctly configured.
         # Get info about the patch included in the update.
-        my @patchinfo = split '\n', script_output("zypper -n info -t patch $patch", 200);
+        my $patch_info = script_output("zypper -n info -t patch $patch", 200);
+        my @patchinfo = split '\n', $patch_info;
+        record_info "$patch", "$patch_info";
 
         # Find the lines where the Conflict sections begins.
         foreach (0 .. $#patchinfo) {
