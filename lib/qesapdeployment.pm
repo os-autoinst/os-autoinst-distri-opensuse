@@ -1867,29 +1867,27 @@ sub qesap_az_clean_old_peerings {
 =head2 qesap_az_setup_native_fencing_permissions
 
     qesap_az_setup_native_fencing_permissions(vmname=>$vm_name,
-        subscription_id=>$subscription_id,
-        resource_group=>$resource_group,
-        role=>$role);
+        resource_group=>$resource_group);
 
-    Sets up managed identity (MSI) by enabling system assigned identity and
-        role - role to be assigned
-        resource_group - resource group resource belongs to
-        subscription_id - valid azure subscription
+    Sets up managed identity (MSI) by enabling system assigned identity and role 'Virtual Machine Contributor'
+
+=over 2
+
+=item B<VM_NAME> - VM name
+
+=item B<RESOURCE_GROUP> - resource group resource belongs to
+
+=back
 =cut
 
 sub qesap_az_setup_native_fencing_permissions {
     my (%args) = @_;
-    foreach ('vm_name', 'subscription_id', 'resource_group') {
+    foreach ('vm_name', 'resource_group') {
         croak "Missing argument: '$_'" unless defined($args{$_});
     }
 
-    my $vm_name = $args{vm_name};
-    my $subscription_id = $args{subscription_id};
-    my $resource_group = $args{resource_group};
-    my $role = 'Virtual Machine Contributor';
-
-    my $vm_id = qesap_az_enable_system_assigned_identity($vm_name, $resource_group);
-    qesap_az_assign_role(assignee => $vm_id, role => $role, subscription_id => $subscription_id, resource_group => $resource_group);
+    my $vm_id = qesap_az_enable_system_assigned_identity(vm_name => $args{vm_name}, resource_group => $args{resource_group});
+    qesap_az_assign_role(assignee => $vm_id, role => 'Virtual Machine Contributor', resource_group => $args{resource_group});
 }
 
 =head2 qesap_az_enable_system_assigned_identity
@@ -1899,14 +1897,23 @@ sub qesap_az_setup_native_fencing_permissions {
     Enables 'System assigned identity' for specified VM.
     Returns 'systemAssignedIdentity' ID.
 
+=over 2
+
+=item B<VM_NAME> - VM name
+
+=item B<RESOURCE_GROUP> - resource group resource belongs to
+
+=back
 =cut
 
 sub qesap_az_enable_system_assigned_identity {
-    my ($vm_name, $resource_group) = @_;
-    croak "Missing 'vm_name' or 'resource_group argument'" unless ($vm_name and $resource_group);
+    my (%args) = @_;
+    foreach ('vm_name', 'resource_group') {
+        croak "Missing argument: '$_'" unless defined($args{$_});
+    }
 
     my $az_cmd = "az vm identity assign";
-    my $az_args = "--only-show-errors -g '$resource_group' -n '$vm_name' --query 'systemAssignedIdentity' -o tsv";
+    my $az_args = "--only-show-errors -g '$args{resource_group}' -n '$args{vm_name}' --query 'systemAssignedIdentity' -o tsv";
     my $identity_id = script_output(join(' ', $az_cmd, $az_args));
     croak 'Returned output does not match ID pattern' if qesap_az_validate_uuid_pattern($identity_id) eq 0;
     return $identity_id;
@@ -1914,30 +1921,28 @@ sub qesap_az_enable_system_assigned_identity {
 
 =head2 qesap_az_assign_role
 
-    qesap_az_assign_role( assignee=>$assignee, role=>$role, subscription_id=>$subscription_id, resource_group=>$resource_group )
+    qesap_az_assign_role( assignee=>$assignee, role=>$role, resource_group=>$resource_group )
 
     Assigns defined role to 'assignee' (user, vm, etc...) using subscription id.
      assignee - UUID for the resource (VM in this case)
      role - role to be assigned
      resource_group - resource group resource belongs to
-     subscription_id - valid azure subscription
 
 =cut
 
 sub qesap_az_assign_role {
     my (%args) = @_;
-    foreach ('assignee', 'role', 'subscription_id', 'resource_group') {
+    foreach ('assignee', 'role', 'resource_group') {
         croak "Missing argument: '$_'" unless defined($args{$_});
     }
 
-    my $assignee = $args{assignee};
-    my $role = $args{role};
-    my $subscription_id = $args{subscription_id};
-    my $resource_group = $args{resource_group};
-    my $az_cmd = "az role assignment create --only-show-errors";
-    my $az_cm_args = "--assignee '$assignee' --role '$role' --scope '/subscriptions/$subscription_id/resourceGroups/$resource_group'";
-
-    assert_script_run(join(" ", $az_cmd, $az_cm_args));
+    my $subscription_id = script_output('az account show --query "id" -o tsv');
+    my $az_cmd = join(' ', 'az role assignment',
+        'create --only-show-errors',
+        "--assignee '$args{assignee}'",
+        "--role '$args{role}'",
+        "--scope '/subscriptions/$subscription_id/resourceGroups/$args{resource_group}'");
+    assert_script_run($az_cmd);
 }
 
 =head2 qesap_az_get_tenant_id
