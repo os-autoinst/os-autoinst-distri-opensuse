@@ -958,14 +958,21 @@ In cases of ambiguous responses, they are considered to be in `running` state.</
 <h2 id="qesap_az_setup_native_fencing_permissions">qesap_az_setup_native_fencing_permissions</h2>
 
 <pre><code>qesap_az_setup_native_fencing_permissions(vmname=&gt;$vm_name,
-    subscription_id=&gt;$subscription_id,
-    resource_group=&gt;$resource_group,
-    role=&gt;$role);
+    resource_group=&gt;$resource_group);
 
-Sets up managed identity (MSI) by enabling system assigned identity and
-    role - role to be assigned
-    resource_group - resource group resource belongs to
-    subscription_id - valid azure subscription</code></pre>
+Sets up managed identity (MSI) by enabling system assigned identity and role &#39;Virtual Machine Contributor&#39;</code></pre>
+
+<dl>
+
+<dt id="VM_NAME---VM-name"><b>VM_NAME</b> - VM name</dt>
+<dd>
+
+</dd>
+<dt id="RESOURCE_GROUP---resource-group-resource-belongs-to"><b>RESOURCE_GROUP</b> - resource group resource belongs to</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="qesap_az_enable_system_assigned_identity">qesap_az_enable_system_assigned_identity</h2>
 
@@ -974,15 +981,26 @@ Sets up managed identity (MSI) by enabling system assigned identity and
 Enables &#39;System assigned identity&#39; for specified VM.
 Returns &#39;systemAssignedIdentity&#39; ID.</code></pre>
 
+<dl>
+
+<dt id="VM_NAME---VM-name1"><b>VM_NAME</b> - VM name</dt>
+<dd>
+
+</dd>
+<dt id="RESOURCE_GROUP---resource-group-resource-belongs-to1"><b>RESOURCE_GROUP</b> - resource group resource belongs to</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="qesap_az_assign_role">qesap_az_assign_role</h2>
 
-<pre><code>qesap_az_assign_role( assignee=&gt;$assignee, role=&gt;$role, subscription_id=&gt;$subscription_id, resource_group=&gt;$resource_group )
+<pre><code>qesap_az_assign_role( assignee=&gt;$assignee, role=&gt;$role, resource_group=&gt;$resource_group )
 
 Assigns defined role to &#39;assignee&#39; (user, vm, etc...) using subscription id.
  assignee - UUID for the resource (VM in this case)
  role - role to be assigned
- resource_group - resource group resource belongs to
- subscription_id - valid azure subscription</code></pre>
+ resource_group - resource group resource belongs to</code></pre>
 
 <h2 id="qesap_az_get_tenant_id">qesap_az_get_tenant_id</h2>
 
