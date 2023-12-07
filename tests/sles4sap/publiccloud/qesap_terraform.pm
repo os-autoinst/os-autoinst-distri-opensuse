@@ -159,9 +159,7 @@ sub run {
         if (get_var('FENCING_MECHANISM') eq 'native' && get_var('PUBLIC_CLOUD_PROVIDER') eq 'AZURE') {
             qesap_az_setup_native_fencing_permissions(
                 vm_name => $instance->instance_id,
-                subscription_id => $subscription_id,
-                resource_group => qesap_az_get_resource_group()
-            );
+                resource_group => qesap_az_get_resource_group());
         }
     }
 
