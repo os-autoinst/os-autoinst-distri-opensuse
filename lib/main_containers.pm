@@ -109,6 +109,7 @@ sub load_host_tests_podman {
         loadtest 'containers/podman_firewall' unless (is_public_cloud || is_openstack || is_microos || is_alp);
         # Buildah is not available in SLE Micro, MicroOS and staging projects
         loadtest 'containers/buildah' unless (is_sle_micro || is_microos || is_leap_micro || is_alp || is_staging);
+        loadtest 'containers/podman_quadlet' if is_tumbleweed;
         # https://github.com/containers/podman/issues/5732#issuecomment-610222293
         # exclude rootless podman on public cloud because of cgroups2 special settings
         unless (is_sle('<15-sp2') || is_openstack || is_public_cloud) {
