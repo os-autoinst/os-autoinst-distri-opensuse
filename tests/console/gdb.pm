@@ -49,6 +49,8 @@ sub run {
     # as systemd's dependency with *sysvinit-tools* was dropped
     $test_deps .= ' sysvinit-tools' if (is_sle('>15-sp2') || is_leap('>15.2'));
     zypper_call("in $test_deps");
+    # disable debuginfod
+    assert_script_run('unset DEBUGINFOD_URLS');
 
     #Test Case 1
     assert_script_run("curl -O " . data_url('gdb/test1.c'));
