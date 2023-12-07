@@ -4,6 +4,7 @@ description: >
 schedule:
     - '{{boot}}'
     - transactional/host_config
+    - '{{scc_slem}}'
     - security/selinux/selinux_setup
     - security/selinux/sestatus
     - security/selinux/container_selinux
@@ -14,3 +15,7 @@ conditional_schedule:
                 - microos/disk_boot
             1:
                 - jeos/firstrun
+    scc_slem:
+        DISTRI:
+            sle-micro:
+                - console/suseconnect_scc

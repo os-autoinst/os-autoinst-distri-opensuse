@@ -4,7 +4,13 @@ description:    >
 schedule:
     - jeos/firstrun
     - transactional/host_config
+    - '{{scc_slem}}'
     - security/selinux/selinux_setup
     - security/tpm2/tpm2_verify_presence
     - security/tpm2/tpm2_fail_key_unsealing.pm
     - security/fde_regenerate_key
+conditional_schedule:
+    scc_slem:
+        DISTRI:
+            sle-micro:
+                - console/suseconnect_scc

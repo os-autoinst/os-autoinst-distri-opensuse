@@ -1,10 +1,11 @@
 name: fips_crypt_core
 description:    >
-    This is for the crypt_core fips tests.
+    This is for the crypt_core fips tests on ALP/SLEM.
 schedule:
-    - installation/bootloader_start
-    - boot/boot_to_desktop
-    - console/consoletest_setup
+    - '{{alp_boot}}'
+    - transactional/host_config
+    - '{{scc_slem}}'
+    - security/selinux/selinux_setup
     - '{{repo_setup}}'
     - fips/fips_setup
     - fips/openssl/openssl_fips_alglist
@@ -24,20 +25,19 @@ schedule:
     - fips/openssh/openssh_fips
     # ssh disabled in env mode, see poo#125648
     - '{{ssh}}'
+    - console/journal_check
+    - shutdown/shutdown
 conditional_schedule:
-    repo_setup:
-        BETA:
+    alp_boot:
+        ENCRYPTED_IMAGE:
+            0:
+                - microos/disk_boot
             1:
-                - security/test_repo_setup
-        FLAVOR:
-            Online-QR:
-                - security/test_repo_setup
-    dhparam:
-        TEST_SUITE_NAME:
-            fips_ker_mode_tests_crypt_core:
-                - fips/openssl/openssl_fips_dhparam
-            fips_ker_mode_tests_crypt_core_intel_ipmi:
-                - fips/openssl/openssl_fips_dhparam
+                - jeos/firstrun
+    scc_slem:
+        DISTRI:
+            sle-micro:
+                - console/suseconnect_scc
     ssh:
         TEST_SUITE_NAME:
             fips_ker_mode_tests_crypt_core:
@@ -46,3 +46,9 @@ conditional_schedule:
             fips_ker_mode_tests_crypt_core_intel_ipmi:
                 - console/sshd
                 - console/ssh_cleanup
+    dhparam:
+        TEST_SUITE_NAME:
+            fips_ker_mode_tests_crypt_core:
+                - fips/openssl/openssl_fips_dhparam
+            fips_ker_mode_tests_crypt_core_intel_ipmi:
+                - fips/openssl/openssl_fips_dhparam
