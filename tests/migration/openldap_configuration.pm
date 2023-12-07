@@ -12,7 +12,7 @@ use serial_terminal 'select_serial_terminal';
 use strict;
 use warnings;
 use utils;
-use Utils::Systemd qw(systemctl disable_and_stop_service);
+use Utils::Systemd qw(systemctl disable_and_stop_service check_unit_file);
 use version_utils qw(is_tumbleweed is_sle);
 use Utils::Logging 'tar_and_upload_log';
 
@@ -24,7 +24,7 @@ sub run {
     zypper_call("in sssd sssd-tools sssd-ldap openldap2 openldap2-client");
 
     # Disable and stop the nscd daemon because it conflicts with sssd
-    disable_and_stop_service("nscd");
+    disable_and_stop_service('nscd') if check_unit_file('nscd');
 
     # On newer environments, nsswitch.conf is located in /usr/etc
     # Copy it to /etc directory
