@@ -14,7 +14,7 @@ use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_sle is_transactional package_version_cmp);
+use version_utils qw(is_sle is_sle_micro is_transactional package_version_cmp);
 use qam;
 use kernel;
 use klp;
@@ -403,6 +403,14 @@ sub run {
         select_serial_terminal;
     } else {
         boot_to_console($self);
+    }
+
+    # SLE Micro RT 5.1 image contains both kernel flavors, we need to remove kernel-default
+    if (is_sle_micro('=5.1') && check_var('SLE_PRODUCT', 'slert')) {
+        trup_call('pkg rm kernel-default');
+        # kernel-rt will be removed with kernel-default, we can't lock it before, we need to install it after
+        trup_call('-c pkg in kernel-rt');
+        reboot_on_changes;
     }
 
     add_extra_customer_repositories;
