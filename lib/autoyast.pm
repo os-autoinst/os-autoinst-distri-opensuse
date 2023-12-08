@@ -183,7 +183,10 @@ $profile is the autoyast profile 'autoinst.xml'.
 sub expand_template {
     my ($profile) = @_;
     my $template = Mojo::Template->new(vars => 1);
-    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) if get_var('INCIDENT_REPO');
+    # kernel incidents use special test module to install the update, install
+    # only the last released version
+    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'))
+      if get_var('INCIDENT_REPO') && get_var('FLAVOR', '') !~ m/Incidents-Kernel/;
     my $vars = {
         addons => expand_addons,
         repos => [split(/,/, get_var('MAINT_TEST_REPO', ''))],
