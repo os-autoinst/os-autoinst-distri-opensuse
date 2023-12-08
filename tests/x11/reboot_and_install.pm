@@ -12,7 +12,7 @@ use warnings;
 
 use testapi;
 use Utils::Architectures;
-use utils 'workaround_type_encrypted_passphrase';
+use utils 'unlock_bootloader';
 use power_action_utils 'power_action';
 use version_utils 'is_sle12_hdd_in_upgrade';
 
@@ -22,7 +22,7 @@ use registration;
 sub run {
     # reboot from previously booted hdd to do pre check or change e.g. before upgrade
     power_action('reboot');
-    workaround_type_encrypted_passphrase;
+    unlock_bootloader;
 
     # If the target has a different version, make sure the matching needles are used
     # for the bootmenu below already.

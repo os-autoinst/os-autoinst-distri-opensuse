@@ -11,7 +11,7 @@ use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_sle_micro is_microos is_leap is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp is_transactional);
+use version_utils qw(is_alp is_sle_micro is_microos is_leap is_leap_micro is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp is_transactional);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends;
@@ -50,8 +50,9 @@ our @EXPORT = qw(
   zypper_patches
   zypper_install_available
   set_zypper_lock_timeout
-  workaround_type_encrypted_passphrase
+  unlock_bootloader
   is_boot_encrypted
+  need_passphrase_again
   is_bridged_networking
   set_bridged_networking
   assert_screen_with_soft_timeout
@@ -1005,28 +1006,16 @@ sub set_zypper_lock_timeout {
     script_run("export ZYPP_LOCK_TIMEOUT='$timeout'");
 }
 
-=head2 workaround_type_encrypted_passphrase
+=head2 unlock_bootloader
 
- workaround_type_encrypted_passphrase();
+ unlock_bootloader();
 
-Record soft-failure for unresolved feature fsc#320901 which we think is
-important and then unlock encrypted boot partitions if we expect it to be
-encrypted. This condition is met on 'storage-ng' which by default puts the
-boot partition within the encrypted LVM same as in test scenarios where we
-explicitly create an LVM including boot (C<FULL_LVM_ENCRYPT>). C<ppc64le> was
-already doing the same by default also in the case of pre-storage-ng but not
-anymore for storage-ng.
+Unlock bootloader if boot partition is encrypted.
 
 =cut
 
-sub workaround_type_encrypted_passphrase {
-    # nothing to do if the boot partition is not encrypted in FULL_LVM_ENCRYPT
-    return unless is_boot_encrypted();
-    record_info(
-        "LUKS pass", "Workaround for 'Provide kernel interface to pass LUKS password from bootloader'.\n" .
-          'For further info, please, see https://fate.suse.com/320901, https://jira.suse.com/browse/SLE-2941, ' .
-          'https://jira.suse.com/browse/SLE-3976') if is_sle('12-SP4+');
-    unlock_if_encrypted;
+sub unlock_bootloader {
+    unlock_if_encrypted if is_boot_encrypted();
 }
 
 =head2 is_boot_encrypted
@@ -1054,6 +1043,24 @@ sub is_boot_encrypted {
     # installer would propose an encrypted installation again
     return 0 if get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE');
 
+    return 1;
+}
+
+=head2 need_passphrase_again
+
+ need_passphrase_again();
+
+With newer grub2 (in TW and SLE15-SP6 currently), if root disk is encrypted and
+contains `/boot`, entering the passphrase in GRUB2 is enough. The key is passed
+on during boot, so it's not asked for a second time.
+We need to enter the passphrase again if there are separate partitions encrypted
+without LVM configuration (cr_swap,cr_home etc).
+
+=cut
+
+sub need_passphrase_again {
+    my $need_passphrase_again = is_leap('<15.6') || is_sle('<15-sp6') || is_leap_micro || is_sle_micro || is_alp || (!get_var('LVM', '0') && !get_var('FULL_LVM_ENCRYPT', '0'));
+    return 0 if is_boot_encrypted && !$need_passphrase_again;
     return 1;
 }
 
