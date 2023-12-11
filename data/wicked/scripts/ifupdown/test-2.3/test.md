@@ -1,10 +1,11 @@
-VLAN on Bond of physical interfaces
+VLANs on Bond of physical interfaces
 
 ---
 
 ### tree:
 ```
     eth1,eth2   -m->    bond0   <-l-    bond0.11
+                                <-l-    bond0.12
 ```
 
 ---
@@ -16,6 +17,7 @@ VLAN on Bond of physical interfaces
     - setup    eth1                requested
       - setup    bond0             required master reference
     - skip     bond0.11            unrequested / not required by setup interfaces
+    - skip     bond0.12            unrequested / not required by setup interfaces
     - skip     eth2                unrequested / not required by setup interfaces
 
     trigger: links=enabled
@@ -23,6 +25,7 @@ VLAN on Bond of physical interfaces
     - setup    eth1                requested
       - setup    bond0             required master reference
         - setup    bond0.11        via links trigger
+        - setup    bond0.12        via links trigger
     - skip     eth2                unrequested / not required by setup interfaces
 
 #### wicked ifup eth2
@@ -30,6 +33,7 @@ VLAN on Bond of physical interfaces
     - setup    eth2                requested
       - setup    bond0             required master reference
     - skip     bond0.11            unrequested / not required by setup interfaces
+    - skip     bond0.12            unrequested / not required by setup interfaces
     - skip     eth1                unrequested / not required by setup interfaces
 
     trigger: links=enabled
@@ -37,6 +41,7 @@ VLAN on Bond of physical interfaces
     - setup    eth2                requested
       - setup    bond0             required master reference
         - setup    bond0.11        via links trigger
+        - setup    bond0.12        via links trigger
     - skip     eth1                unrequested / not required by setup interfaces
 
 #### wicked ifup bond0
@@ -45,6 +50,7 @@ VLAN on Bond of physical interfaces
       - setup    eth1              via ports trigger
       - setup    eth2              via ports trigger
     - skip     bond0.11            unrequested / not required by setup interfaces
+    - skip     bond0.12            unrequested / not required by setup interfaces
 
     trigger: links=enabled
 
@@ -52,11 +58,13 @@ VLAN on Bond of physical interfaces
       - setup    eth1              via ports trigger
       - setup    eth2              via ports trigger
       - setup    bond0.11          via links trigger
+      - setup    bond0.12          via links trigger
 
     trigger: links=enabled, ports=disabled
 
     - setup    bond0               requested
       - setup    bond0.11          via links trigger
+      - setup    bond0.12          via links trigger
     - skip     eth1                unrequested / not required by setup interfaces
     - skip     eth2                unrequested / not required by setup interfaces
 
@@ -66,6 +74,7 @@ VLAN on Bond of physical interfaces
     - skip     eth1                unrequested / not required by setup interfaces
     - skip     eth2                unrequested / not required by setup interfaces
     - skip     bond0.11            unrequested / not required by setup interfaces
+    - skip     bond0.12            unrequested / not required by setup interfaces
 
 #### wicked ifup bond0.11
 
@@ -73,6 +82,7 @@ VLAN on Bond of physical interfaces
       - setup    bond0             required lower reference
         - setup    eth1            via ports trigger
         - setup    eth2            via ports trigger
+    - skip     bond0.12            unrequested / not required by setup interfaces
 
     trigger: ports=disabled
 
@@ -80,6 +90,23 @@ VLAN on Bond of physical interfaces
       - setup    bond0             required lower reference
     - skip     eth1                unrequested / not required by setup interfaces
     - skip     eth2                unrequested / not required by setup interfaces
+    - skip     bond0.12            unrequested / not required by setup interfaces
+
+#### wicked ifup bond0.12
+
+    - setup    bond0.12            requested
+      - setup    bond0             required lower reference
+        - setup    eth1            via ports trigger
+        - setup    eth2            via ports trigger
+    - skip     bond0.11            unrequested / not required by setup interfaces
+
+    trigger: ports=disabled
+
+    - setup    bond0.12            requested
+      - setup    bond0             required lower reference
+    - skip     eth1                unrequested / not required by setup interfaces
+    - skip     eth2                unrequested / not required by setup interfaces
+    - skip     bond0.11            unrequested / not required by setup interfaces
 
 ---
 
@@ -91,6 +118,7 @@ VLAN on Bond of physical interfaces
     - skip     eth2                unrequested / no reference to shutdown interfaces
     - skip     bond0               unrequested / no reference to shutdown interfaces
     - skip     bond0.11            unrequested / no reference to shutdown interfaces
+    - skip     bond0.12            unrequested / no reference to shutdown interfaces
 
 #### wicked ifdown eth2
 
@@ -98,11 +126,13 @@ VLAN on Bond of physical interfaces
     - skip     eth1                unrequested / no reference to shutdown interfaces
     - skip     bond0               unrequested / no reference to shutdown interfaces
     - skip     bond0.11            unrequested / no reference to shutdown interfaces
+    - skip     bond0.12            unrequested / no reference to shutdown interfaces
 
 #### wicked ifdown bond0
 
     - shutdown bond0               requested
       - shutdown bond0.11          depends on lower shutdown
+      - shutdown bond0.12          depends on lower shutdown
       - shutdown eth1              depends on master shutdown
       - shutdown eth2              depends on master shutdown
 
@@ -112,4 +142,13 @@ VLAN on Bond of physical interfaces
     - skip     bond0               unrequested / no reference to shutdown interfaces
     - skip     eth1                unrequested / no reference to shutdown interfaces
     - skip     eth2                unrequested / no reference to shutdown interfaces
+    - skip     bond0.12            unrequested / no reference to shutdown interfaces
+
+#### wicked ifdown bond0.12
+
+    - shutdown bond0.12            requested
+    - skip     bond0               unrequested / no reference to shutdown interfaces
+    - skip     eth1                unrequested / no reference to shutdown interfaces
+    - skip     eth2                unrequested / no reference to shutdown interfaces
+    - skip     bond0.11            unrequested / no reference to shutdown interfaces
 
