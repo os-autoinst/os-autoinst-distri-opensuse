@@ -73,6 +73,28 @@ sub get_results {
     return $output;
 }
 
+sub sle12_zypp_resolve {
+    my ($cmd, $log) = @_;
+    die '$cmd is required' unless defined $cmd;
+    $log = " | tee /tmp/$log" if defined $log;
+    script_output "expect -c '
+        spawn $cmd;
+        expect {
+            \"Choose from\" {
+                send 1\\r
+                exp_continue
+            }
+            \"Continue\" {
+                send y\\r
+                exp_continue
+            }
+            -timeout -1 \"# \$\" {
+                interact
+            }
+        }'$log
+    ", 1500;
+}
+
 sub run {
     my ($self) = @_;
     my $incident_id = get_required_var('INCIDENT_ID');
@@ -198,7 +220,12 @@ sub run {
             record_info 'Conflicts', "@update_conflicts";
             for my $single_package (@update_conflicts) {
                 record_info 'Conflict preinstall', "Install conflicting package $single_package before update repo is enabled";
-                zypper_call("-v in -l $solver_focus $single_package", exitcode => [0, 102, 103], log => "prepare_${patch}_${single_package}.log", timeout => 1500);
+                if ($solver_focus) {
+                    zypper_call("-v in -l $solver_focus $single_package", exitcode => [0, 102, 103], log => "prepare_${patch}_${single_package}.log", timeout => 1500);
+                }
+                else {
+                    sle12_zypp_resolve("zypper -v in -l $single_package", "prepare_${patch}_${single_package}.log");
+                }
 
                 # Store version of installed binaries before update.
                 $patch_bins{$single_package}->{old} = get_installed_bin_version($single_package, 'old');
@@ -207,7 +234,12 @@ sub run {
 
                 # Patch binaries already installed.
                 record_info 'Conflict install', "Install patch $patch with conflicting $single_package";
-                zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
+                if ($solver_focus) {
+                    zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 2000);
+                }
+                else {
+                    sle12_zypp_resolve("zypper -v in -l -t patch $patch");
+                }
 
                 # Store version of installed binaries after update.
                 $patch_bins{$single_package}->{new} = get_installed_bin_version($single_package, 'new');
@@ -216,7 +248,12 @@ sub run {
 
                 record_info 'Conflict uninstall', "Uninstall patch $patch with conflicting $single_package";
                 # update repos are disabled, zypper dup will downgrade packages from patch
-                zypper_call('dup -l', exitcode => [0, 8]);
+                if ($solver_focus) {
+                    zypper_call('-v dup -l --replacefiles', exitcode => [0, 102, 103], timeout => 1500);
+                }
+                else {
+                    sle12_zypp_resolve('zypper -v dup -l --replacefiles');
+                }
                 # remove conflicts
                 foreach (@update_conflicts) {
                     zypper_call("rm $_", exitcode => [0, 104]);
@@ -231,7 +268,13 @@ sub run {
         # Install released version of installable binaries.
         if (scalar(keys %installable)) {
             record_info 'Preinstall', 'Install affected packages before update repo is enabled';
-            zypper_call("in -l $solver_focus" . join(' ', keys %installable), exitcode => [0, 102, 103], log => "prepare_$patch.log", timeout => 1500);
+            if ($solver_focus) {
+                zypper_call("in -l $solver_focus" . join(' ', keys %installable), exitcode => [0, 102, 103], log => "prepare_$patch.log", timeout => 1500);
+            }
+            else {
+                my $packages = join(' ', keys %installable);
+                sle12_zypp_resolve("zypper -v in $packages", "prepare_$patch.log");
+            }
         }
 
         # Store the version of the installed binaries before the update.
@@ -244,7 +287,17 @@ sub run {
 
         # Patch binaries already installed.
         record_info 'Install patch', "Install patch $patch";
-        zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
+        if (get_var('RESOLVE_PATCH_CONFLICT')) {
+            if ($solver_focus) {
+                zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
+            }
+            else {
+                sle12_zypp_resolve('zypper -v dup -l --replacefiles', "zypper_$patch.log");
+            }
+        }
+        else {
+            zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
+        }
 
         # Install binaries newly added by the incident.
         if (scalar @new_binaries) {
@@ -287,8 +340,13 @@ sub run {
         unless ($patch eq $patches[-1]) {
             disable_test_repositories($repos_count);
             record_info 'Uninstall patch', "Uninstall patch $patch";
-            # update repos are disabled, zypper dup will downgrade packages from patch
-            zypper_call('dup -l', exitcode => [0, 8]);
+            # zypper dup will downgrade dependencies of packages from patch
+            if ($solver_focus) {
+                zypper_call('-v dup -l --replacefiles', exitcode => [0, 102, 103], timeout => 1500);
+            }
+            else {
+                sle12_zypp_resolve('zypper -v dup -l --replacefiles');
+            }
             # remove patched packages with multiple versions installed e.g. kernel-source
             foreach (@patch_l3, @patch_l2) {
                 zypper_call("rm $_-\$(zypper se -si $_|awk 'END{print\$7}')", exitcode => [0, 104]) if script_output("rpm -q $_|wc -l", proceed_on_failure => 1) >= 2;
