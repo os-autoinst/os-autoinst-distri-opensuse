@@ -33,7 +33,7 @@ sub run {
     # https://tvm.apache.org/docs/tutorials/get_started/tvmc_command_line_driver.html
     # TVMC supports models created with Keras, ONNX, TensorFlow, TFLite and Torch. Use onnx model here.
     record_info('tvmc - no tune');
-    assert_script_run('curl -L -O https://media.githubusercontent.com/media/onnx/models/main/vision/classification/resnet/model/resnet50-v2-7.onnx');
+    assert_script_run('curl -L -O https://github.com/onnx/models/raw/69d69010b7ed6ba9438c392943d2715026792d40/archive/vision/classification/resnet/model/resnet50-v2-7.onnx');
     assert_script_run('curl -L -O https://github.com/apache/tvm/raw/b7b69a2d1dbfe7a9cd04ddab2e60f33654419d58/tutorials/get_started/tvmc_command_line_driver.py');
 
     assert_script_run('tvmc compile --target "llvm" --input-shapes "data:[1,3,224,224]" --output compiled_module.tar resnet50-v2-7.onnx', timeout => 600);
