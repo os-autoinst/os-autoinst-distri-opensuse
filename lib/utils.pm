@@ -116,6 +116,7 @@ our @EXPORT = qw(
   ping_size_check
   is_ipxe_boot
   is_uefi_boot
+  is_usb_boot
 );
 
 our @EXPORT_OK = qw(
@@ -2954,6 +2955,20 @@ sub is_uefi_boot {
     if (check_var('UEFI', '1') or check_var('IPXE_UEFI', '1')) {
         return 1;
     }
+    return 0;
+}
+
+=head2 is_usb_boot
+
+ is_usb_boot();
+
+This will return C<1> if the env variables suggest
+that it boots from USB.
+
+=cut
+
+sub is_usb_boot {
+    return 1 if get_var('USB_BOOT', '');
     return 0;
 }
 
