@@ -279,7 +279,7 @@
 [6CIPv6 only[46C [ NO ]
 [2C- Checking configured nameservers[26C
 [4C- Testing nameservers[36C
-[8CNameserver: 10.160.0.1[31C [ OK ]
+[8CNameserver: 10.144.53.53[31C [ OK ]
 [8CNameserver: 149.44.160.1[29C [ NO RESPONSE ]
 [8CNameserver: 2620:113:80c0:8080:10:160:2:88[11C [ OK ]
 [4C- Minimal of 2 responsive nameservers[20C [ OK ]
