@@ -13,7 +13,7 @@ use testapi;
 use utils 'script_retry';
 use version_utils qw(is_sle);
 use virt_autotest::common;
-use virt_autotest::utils qw(is_kvm_host guest_is_sle wait_guest_online download_script_and_execute remove_vm save_original_guest_xmls restore_downloaded_guests restore_original_guests upload_virt_logs);
+use virt_autotest::utils qw(is_kvm_host guest_is_sle wait_guest_online download_script_and_execute remove_vm save_original_guest_xmls restore_downloaded_guests restore_original_guests upload_virt_logs check_guest_health);
 
 our $vm_xml_save_dir = "/tmp/download_vm_xml";
 
@@ -92,6 +92,8 @@ sub run_test {
             }
         }
         record_info("NIC IRQs distribution on $nproc cpu cores", "@increased_irqs_on_cpu");
+
+        check_guest_health($guest);
     }
 
     restore_xml_changed_guests();
@@ -136,6 +138,7 @@ sub prepare_guest_for_irqbalance {
     }
 
     wait_guest_online($vm_name);
+    check_guest_health($vm_name);
     assert_script_run "ssh root\@$vm_name \"zypper in -y irqbalance\"" unless script_run("ssh root\@$vm_name \"rpm -q irqbalance\"") eq 0;
 
 }
