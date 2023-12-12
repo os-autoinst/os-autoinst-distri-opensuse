@@ -44,10 +44,17 @@ use bootloader_setup;
 use registration;
 use utils;
 use version_utils qw(is_jeos is_microos is_opensuse is_sle is_selfinstall);
+use Utils::Backends qw(is_ipmi);
 
 # hint: press shift-f10 trice for highest debug level
 sub run {
     my ($self) = @_;
+
+    # Press key 't' to let grub2 boot menu show up in serial console
+    if (is_ipmi && current_console eq 'sol' && is_selfinstall && get_var('IPXE_UEFI')) {
+        assert_screen('press-t-for-boot-menu', 180);
+        send_key('t');
+    }
 
     # Enabled boot menu for x86_64 uefi. In migration cases we set cdrom as boot index=0
     # However migration cases need to boot the hard disk and fully pach it which are the
@@ -64,7 +71,7 @@ sub run {
         }
     }
 
-    if (get_var("IPXE")) {
+    if (get_var("IPXE") && !is_usb_boot) {
         sleep 60;
         return;
     }
@@ -134,6 +141,19 @@ sub run {
     }
 
     uefi_bootmenu_params;
+
+    # Ipmi backend sol console is not reliable enough to change bootmenu params,
+    # so skip bootmenu_default_params which is not necessary now.
+    # However, serial console and AGAMA_AUTO settings are actually useful.
+    # If agama provides support for installation via ssh connection or others,
+    # we will then consider adding them back.
+    if (is_ipmi && is_selfinstall) {
+        # directly start installation
+        send_key "f10";
+        wait_still_screen;
+        return;
+    }
+
     bootmenu_default_params;
     unless (is_selfinstall) {
         bootmenu_remote_target;
