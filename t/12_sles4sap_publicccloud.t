@@ -44,51 +44,53 @@ subtest "Run 'setup_sbd_delay_publiccloud' with different values" => sub {
 };
 
 subtest '[azure_fencing_agents_playbook_args] Check Mandatory args' => sub {
-    set_var('AZURE_FENCE_AGENT_CONFIGURATION', 'spn');
+    # Create a list of mandatory arguments.
     my %mandatory_args = (
         'spn_application_id' => 'LongJohnSilver',
         'spn_application_password' => 'CaptainFlint');
+    # Notice like they are mandatory only if fencing is SPN
+    set_var('AZURE_FENCE_AGENT_CONFIGURATION', 'spn');
 
+    # For each mandatory args, try to call the sub
+    # without it and expect an exception.
     for my $key (keys %mandatory_args) {
         my $original_value = $mandatory_args{$key};
         delete $mandatory_args{$key};
         dies_ok { azure_fencing_agents_playbook_args(%mandatory_args) } "Expected failure: missing mandatory arg - $key";
         $mandatory_args{$key} = $original_value;
     }
-    set_var('AZURE_FENCE_AGENT_CONFIGURATION', '');
+    set_var('AZURE_FENCE_AGENT_CONFIGURATION', undef);
 };
 
 subtest '[azure_fencing_agents_playbook_args] Native fencing setup (default value)' => sub {
-    set_var('FENCING_MECHANISM', 'native');
     my $returned_value = azure_fencing_agents_playbook_args();
-    is $returned_value, '-e azure_identity_management=msi', "Test returned value: $returned_value";
-    set_var('AZURE_FENCE_AGENT_CONFIGURATION', '');
+    is $returned_value, '-e azure_identity_management=msi', "Default to MSI if called without arguments and AZURE_FENCE_AGENT_CONFIGURATION is not specified";
 };
 
 subtest '[azure_fencing_agents_playbook_args] MSI setup' => sub {
     set_var('AZURE_FENCE_AGENT_CONFIGURATION', 'msi');
-    set_var('FENCING_MECHANISM', 'native');
     my $returned_value = azure_fencing_agents_playbook_args();
-    is $returned_value, '-e azure_identity_management=msi', "Test returned value: $returned_value";
-    set_var('AZURE_FENCE_AGENT_CONFIGURATION', '');
+    is $returned_value, '-e azure_identity_management=msi', "Default to MSI if called without arguments and AZURE_FENCE_AGENT_CONFIGURATION is 'msi'";
+    set_var('AZURE_FENCE_AGENT_CONFIGURATION', undef);
 };
 
 subtest '[azure_fencing_agents_playbook_args] SPN setup' => sub {
-    set_var('AZURE_FENCE_AGENT_CONFIGURATION', 'spn');
-    set_var('FENCING_MECHANISM', 'native');
     my %mandatory_args =
       ('spn_application_id' => 'GolDRodger', 'spn_application_password' => 'JackSparrow');
 
-    my $expected_result = join(' ',
+    set_var('AZURE_FENCE_AGENT_CONFIGURATION', 'spn');
+    my $returned_value = azure_fencing_agents_playbook_args(%mandatory_args);
+    set_var('AZURE_FENCE_AGENT_CONFIGURATION', undef);
+
+    my @expected_results = (
         '-e azure_identity_management=spn',
         "-e spn_application_id=$mandatory_args{spn_application_id}",
         "-e spn_application_password=$mandatory_args{spn_application_password}",
     );
+    foreach (@expected_results) {
+        like($returned_value, "/$_/", "$_ is part of the playbooks options");
+    }
 
-    my $returned_value = azure_fencing_agents_playbook_args(%mandatory_args);
-    is $returned_value, $expected_result, "Test returned value:\n$returned_value";
-
-    set_var('AZURE_FENCE_AGENT_CONFIGURATION', '');
 };
 
 subtest '[list_cluster_nodes]' => sub {

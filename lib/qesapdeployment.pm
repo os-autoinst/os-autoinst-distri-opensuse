@@ -1912,10 +1912,14 @@ sub qesap_az_enable_system_assigned_identity {
         croak "Missing argument: '$_'" unless defined($args{$_});
     }
 
-    my $az_cmd = "az vm identity assign";
-    my $az_args = "--only-show-errors -g '$args{resource_group}' -n '$args{vm_name}' --query 'systemAssignedIdentity' -o tsv";
-    my $identity_id = script_output(join(' ', $az_cmd, $az_args));
-    croak 'Returned output does not match ID pattern' if qesap_az_validate_uuid_pattern($identity_id) eq 0;
+    my $identity_id = script_output(join(' ',
+            'az vm identity assign',
+            '--only-show-errors',
+            "-g '$args{resource_group}'",
+            "-n '$args{vm_name}'",
+            "--query 'systemAssignedIdentity'",
+            '-o tsv'));
+    die 'Returned output does not match ID pattern' if qesap_az_validate_uuid_pattern($identity_id) eq 0;
     return $identity_id;
 }
 
