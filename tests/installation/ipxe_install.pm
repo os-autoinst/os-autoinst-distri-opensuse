@@ -47,12 +47,12 @@ sub poweron_host {
 
 sub set_pxe_boot {
     while (1) {
-        my $stdout = ipmitool('chassis bootparam get 5');
-        last if $stdout =~ m/Boot Flag Valid.*Force PXE/s;
         diag "setting boot device to pxe";
         my $options = get_var('IPXE_UEFI') ? 'options=efiboot' : '';
         ipmitool("chassis bootdev pxe ${options}");
         sleep(3);
+        my $stdout = ipmitool('chassis bootparam get 5');
+        last if $stdout =~ m/Force PXE/s;
     }
 }
 
@@ -89,12 +89,12 @@ sub set_bootscript {
     }
 
     my $cmdline_extra;
-    $cmdline_extra .= " regurl=$regurl " if $regurl;
+    $cmdline_extra .= " regurl=$regurl " if ($regurl and !get_var('USB_BOOT'));
     $cmdline_extra .= " console=$console " if $console;
 
     # Support passing both EXTRA_PXE_CMDLINE to bootscripts
     $cmdline_extra .= get_var('EXTRA_PXE_CMDLINE') . ' ' if get_var('EXTRA_PXE_CMDLINE');
-    $cmdline_extra .= " root=/dev/ram0 initrd=initrd textmode=1" if check_var('IPXE_UEFI', '1');
+    $cmdline_extra .= " root=/dev/ram0 initrd=initrd textmode=1" if (check_var('IPXE_UEFI', '1') and !get_var('USB_BOOT'));
 
     if ($autoyast ne '') {
         $cmdline_extra .= " autoyast=$autoyast sshd=1 sshpassword=$testapi::password ";
@@ -174,7 +174,25 @@ sub run {
 
     poweroff_host;
 
-    #virtualization tests use a static ipxe configuration file in O3
+    # Note: 
+    # SLE Micro 6.0 Self-Install image does not directly support pxe boot.
+    # To install it on bare metal machine, firstly bring up a minimum system via ipxe
+    # with this function(eg sle15sp5 gm). But we do not need to finish installation, 
+    # booting to sshd-server-started is enough, at which we will have a ssh console
+    # to do latter steps.
+    # Then dd the Self-Install iso to a USB device.
+    # And then boot from the USB, and finish installation with the Self-Install iso.
+    # For more details, refer to poo#151498.
+    # To achieve the first step, in testsuite settings,
+    # - set `IPXE_UEFI`: SLE Micro 6.0+ only officially support uefi boot
+    # - set `USB_BOOT`: a flag to indicate this USB installation method, 
+    #                   which stops further installation
+    # - set `MIRROR_HTTP`: the repository to bring up a minimum system(eg sle15sp5 gm)
+    # - do NOT set `AUTOYAST`
+
+    die "Can't set AUTOYAST for usb boot!" if (get_var('AUTOYAST', '') && get_var('USB_BOOT', ''));
+
+    # virtualization tests use a static ipxe configuration file in O3
     set_bootscript unless get_var('IPXE_STATIC');
 
     set_pxe_boot;
@@ -187,7 +205,8 @@ sub run {
     if (get_var('VIRT_AUTOTEST')) {
         #it is static menu and choose the TW entry to start installation
         enter_o3_ipxe_boot_entry if get_var('IPXE_STATIC');
-        assert_screen([qw(load-linux-kernel load-initrd)], 240);
+	#assert_screen([qw(load-linux-kernel load-initrd)], 240);
+        check_screen([qw(load-linux-kernel load-initrd)], 240);
         # Loading initrd spend much time(fg. 10-15 minutes to Beijing SUT)
         # Downloading from O3 became much more quick, some needles may not be caught.
         check_screen([qw(start-tw-install start-sle-install network-config-created)], 60);
@@ -209,7 +228,10 @@ sub run {
     # when we don't use autoyast, we need to also load the right test modules to perform the remote installation
     if (get_var('AUTOYAST')) {
         # VIRT_AUTOTEST need not sleep and set_bootscript_hdd
-        return if get_var('VIRT_AUTOTEST');
+        if (get_var('VIRT_AUTOTEST')) {
+	    #set_disk_boot;
+            return;
+        }
         # HANA PERF uses DELL R840 and R740, their UEFI IPXE boot need not set_bootscript_hdd
         return if (get_var('HANA_PERF') && get_var('IPXE_UEFI'));
         # make sure to wait for a while befor changing the boot device again, in order to not change it too early
@@ -225,11 +247,17 @@ sub run {
         if (check_screen(\@tags, $ssh_vnc_wait_time)) {
             save_screenshot;
             sleep 2;
+            return if get_var('USB_BOOT');
             prepare_disks if (!is_upgrade && !get_var('KEEP_DISKS'));
         }
-        save_screenshot;
+        else {
+            save_screenshot;
+            die "Do not catch needle with tag $ssh_vnc_tag!" if get_var('USB_BOOT');
+        }
 
+	#save_screenshot;
         set_bootscript_hdd if get_var('IPXE_UEFI');
+	#set_disk_boot if get_var('VIRT_AUTOTEST');
 
         unless (get_var('HOST_INSTALL_AUTOYAST')) {
             select_console 'installation';

@@ -21,7 +21,7 @@ use Carp;
 use Socket;
 use virt_autotest::utils qw(is_xen_host check_port_state);
 
-our @EXPORT = qw(set_grub_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot ipmitool enable_sev_in_kernel add_kernel_options set_grub_terminal_and_timeout reconnect_when_ssh_console_broken set_ipxe_bootscript);
+our @EXPORT = qw(set_grub_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot ipmitool enable_sev_in_kernel add_kernel_options set_grub_terminal_and_timeout reconnect_when_ssh_console_broken set_ipxe_bootscript set_floppy_boot set_disk_boot);
 
 #With the new ipmi backend, we only use the root-ssh console when the SUT boot up,
 #and no longer setup the real serial console for either kvm or xen.
@@ -578,4 +578,25 @@ sub set_ipxe_bootscript {
       unless $response->{success};
 }
 
+sub set_floppy_boot {
+    while (1) {
+        diag "setting boot device to floppy/primary removable media";
+        my $options = get_var('IPXE_UEFI') ? 'options=efiboot' : '';
+        ipmitool("chassis bootdev floppy ${options}");
+        sleep(3);
+        my $stdout = ipmitool('chassis bootparam get 5');
+        last if $stdout =~ m/Force Boot from Floppy/s;
+    }
+}
+
+sub set_disk_boot {
+    while (1) {
+        diag "setting boot device to default Hard-Drive";
+        my $options = get_var('IPXE_UEFI') ? 'options=efiboot' : '';
+        ipmitool("chassis bootdev disk ${options}");
+        sleep(3);
+        my $stdout = ipmitool('chassis bootparam get 5');
+        last if $stdout =~ m/Force Boot from default Hard-Drive/s;
+    }
+}
 1;

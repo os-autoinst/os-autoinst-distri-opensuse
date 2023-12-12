@@ -14,6 +14,11 @@ use version_utils qw(is_alp is_leap_micro is_sle_micro);
 
 sub run {
     my ($self) = @_;
+    #TODO:workaround, to be removed
+    #select_console 'sol', await_console => 0;
+    #wait_still_screen;
+    #send_key_until_needlematch 'selfinstall-screen', 'f10', 5,5;
+
     assert_screen 'selfinstall-screen', 180;
     send_key 'down' unless check_screen 'selfinstall-select-drive';
     assert_screen 'selfinstall-select-drive';
@@ -41,7 +46,7 @@ sub run {
     } else {
         microos_login;
         # The installed system is definitely up now, so the CD can be ejected
-        eject_cd() unless $no_cd;
+        eject_cd() unless ($no_cd || get_var('USB_BOOT'));
     }
 
 }
