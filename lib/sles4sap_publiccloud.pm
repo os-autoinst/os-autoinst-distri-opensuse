@@ -745,29 +745,29 @@ sub create_playbook_section_list {
     );
 
     Collects data and creates string of arguments that can be supplied to playbook.
-    spn_application_id - application ID that allows API access for stonith device
+    spn_application_id - application ID that allows API access for STONITH device
     spn_application_password - password provided for application ID above
 
 =cut
 
 sub azure_fencing_agents_playbook_args {
     my (%args) = @_;
-    my $spn_application_id = $args{spn_application_id};
-    my $spn_application_password = $args{spn_application_password};
+
     my $fence_agent_openqa_var = get_var('AZURE_FENCE_AGENT_CONFIGURATION') // 'msi';
     croak "AZURE_FENCE_AGENT_CONFIGURATION contains dubious value: '$fence_agent_openqa_var'" unless
       !$fence_agent_openqa_var or $fence_agent_openqa_var =~ /msi|spn/;
     my $fence_agent_configuration = $fence_agent_openqa_var eq 'spn' ? $fence_agent_openqa_var : 'msi';
 
-    foreach ('spn_application_id', 'spn_application_password') {
-        next unless ($fence_agent_configuration eq 'spn');
-        croak "Missing '$_' argument" unless defined($args{$_});
+    if ($fence_agent_configuration eq 'spn') {
+        foreach ('spn_application_id', 'spn_application_password') {
+            croak "Missing '$_' argument" unless defined($args{$_});
+        }
     }
 
     my $playbook_opts = "-e azure_identity_management=$fence_agent_configuration";
     $playbook_opts = join(' ', $playbook_opts,
-        "-e spn_application_id=$spn_application_id",
-        "-e spn_application_password=$spn_application_password") if $fence_agent_configuration eq 'spn';
+        "-e spn_application_id=$args{spn_application_id}",
+        "-e spn_application_password=$args{spn_application_password}") if $fence_agent_configuration eq 'spn';
 
     return ($playbook_opts);
 }
@@ -864,6 +864,7 @@ sub get_hana_database_status {
 =over 2
 
 =item B<TIMEOUT> - default 900
+
 =item B<TOTAL_CONSECUTIVE_PASSES> - default 5
 
 =back
