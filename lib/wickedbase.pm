@@ -172,10 +172,11 @@ the name of it. It used `WICKED_VALGRIND_CMD` variable to build the command.
 
 sub valgrind_cmd {
     my ($self, $service) = @_;
+    my $cnt = $self->{valgrind_log_file_counter}->{$service} += 1;
 
     my $valgrind_cmd = get_var('WICKED_VALGRIND_CMD', '/usr/bin/valgrind --tool=memcheck --leak-check=yes');
     if ($service) {
-        my $logfile = "/var/log/valgrind_$service.log";
+        my $logfile = "/var/log/valgrind_${service}_$cnt.log";
         $valgrind_cmd = "$valgrind_cmd --log-file=$logfile";
     }
     return $valgrind_cmd;
@@ -228,7 +229,7 @@ sub valgrind_prerun {
 
     my @services = $self->valgrind_get_services();
     foreach my $service (@services) {
-        my $logfile = "/var/log/valgrind_$service.log";
+        my $logfile = "/var/log/valgrind_${service}_*.log";
 
         assert_script_run("rm -f $logfile");
     }
@@ -247,13 +248,12 @@ sub valgrind_postrun {
 
     my @services = $self->valgrind_get_services();
     foreach my $service (@services) {
-        my $logfile = "/var/log/valgrind_$service.log";
 
-        my @lines = split(/\r?\n/, script_output("test -r '$logfile' && grep 'ERROR SUMMARY' '$logfile' || true"));
-        foreach my $l (@lines) {
-            if ($l =~ /ERROR\s+SUMMARY:\s+(\d+)/) {
+        my @files = split(/\r?\n/, script_output("find /var/log -name 'valgrind_${service}_*.log' -print"));
+        foreach my $f (@files) {
+            if ((my $out = script_output("cat '$f'")) =~ /ERROR\s+SUMMARY:\s+(\d+)/) {
                 if ($1 > 0) {
-                    record_info("valgrind $service", "service:$service\n\n" . script_output("cat $logfile"), result => 'fail');
+                    record_info("valgrind $service", "service: $service\nfile: $f\n\n" . $out, result => 'fail');
                     $self->result('fail');
                     last;
                 }
