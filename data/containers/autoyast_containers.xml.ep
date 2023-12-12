@@ -129,6 +129,10 @@
               <copy_on_write config:type="boolean">true</copy_on_write>
               <path>boot/grub2/s390x-emu</path>
             </subvolume>
+            <subvolume config:type="map">
+              <copy_on_write config:type="boolean">false</copy_on_write>
+              <path>var</path>
+            </subvolume>
           </subvolumes>
           <subvolumes_prefix>@</subvolumes_prefix>
         </partition>
@@ -175,6 +179,10 @@
               <path>boot/grub2/arm64-efi/</path>
             </subvolume>
           % }
+            <subvolume config:type="map">
+              <copy_on_write config:type="boolean">false</copy_on_write>
+              <path>var</path>
+            </subvolume>
           </subvolumes>
           <subvolumes_prefix>@</subvolumes_prefix>
         </partition>
