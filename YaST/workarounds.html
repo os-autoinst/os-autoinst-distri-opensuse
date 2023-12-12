@@ -16,6 +16,7 @@
     <ul>
       <li><a href="#apply_workaround_poo124652-mustmatch-timeout-timeout-timeout">apply_workaround_poo124652 ($mustmatch, [,[$timeout] | timeout =&gt; $timeout] ):</a></li>
       <li><a href="#apply_workaround_bsc1206132">apply_workaround_bsc1206132 ():</a></li>
+      <li><a href="#workaround_poo124652_for_send_key_until">workaround_poo124652_for_send_key_until ():</a></li>
     </ul>
   </li>
 </ul><h1>lib/YaST/workarounds.pm</h1>
@@ -39,6 +40,14 @@
 <p>Records a soft failure with a reference to bsc#1206132</p>
 
 <p>Changes the iscsid service file to require and start after the iscsid socket. Then reloads systemd, in order to scan for the changed unit.</p>
+
+<h2 id="workaround_poo124652_for_send_key_until">workaround_poo124652_for_send_key_until ():</h2>
+
+<p>Workaround screen refresh issue for the send_key_until_needle_match</p>
+
+<p>Records a soft failure with a reference to bsc#1206132</p>
+
+<p>This is the wrapper for send_key_until_needle_match for applying apply_workaround_bsc1206132.</p>
 
 
 </body>
