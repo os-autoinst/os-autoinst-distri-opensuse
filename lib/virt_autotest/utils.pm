@@ -378,25 +378,22 @@ sub download_script {
     my $cmd = "curl -o ~/$script_name $script_url";
     $cmd = "ssh root\@$machine " . "\"$cmd\"" if ($machine ne 'localhost');
     unless (script_retry($cmd, timeout => 900, retry => 2, die => 0) == 0) {
+        record_info("Failed to download", "Fail to download $script_url on $machine, however it is accessible from worker instance!", result => 'fail');
         unless ($machine eq 'localhost') {
             # Have to output debug info at here because no logs will be uploaded if there are connection problems
             if (script_run("ssh root\@$machine 'hostname'") == 0) {
+                $script_url =~ /^https?:\/\/([\w\.]+)(:\d+)?\/.*/;
+                script_run("ssh root\@$machine 'ping $1'");
+                script_run("ssh root\@$machine 'traceroute $1'");
                 script_run("ssh root\@$machine 'ping -c3 openqa.suse.de'");
                 script_run("ssh root\@$machine 'nslookup " . get_var('WORKER_HOSTNAME', 'openqa.suse.de') . "'");
-                script_run("ssh root\@$machine 'dnsdomainname'");
                 script_run("ssh root\@$machine 'cat /etc/resolv.conf'");
             }
             else {
                 record_info("machine is not ssh accessible", "$machine", result => 'fail');
             }
         }
-        if ($args{proceed_on_failure}) {
-            record_info("ERROR", "Failed to download $script_url on $machine!", result => 'fail');
-            return;
-        }
-        else {
-            die "Failed to download $script_url on $machine!";
-        }
+        $args{proceed_on_failure} ? return : die "Failed to download $script_url on $machine!";
     }
     $cmd = "chmod +x ~/$script_name";
     $cmd = "ssh root\@$machine " . "\"$cmd\"" if ($machine ne 'localhost');
