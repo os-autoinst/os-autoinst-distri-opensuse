@@ -27,12 +27,10 @@ my $guestvm_cfg = {
     swtpm_1 => {
         xml_file => {uefi => 'swtpm_uefi_1_2.xml', legacy => 'swtpm_legacy_1_2.xml'},
         version => '1.2',
-        expect_cmd => 'tpm_version',
     },
     swtpm_2 => {
         xml_file => {uefi => 'swtpm_uefi_2_0.xml', legacy => 'swtpm_legacy_2_0.xml'},
         version => '2.0',
-        expect_cmd => 'tpm2_pcrread sha256:0',
     },
 };
 
@@ -81,8 +79,8 @@ sub stop_swtpm_vm {
     assert_script_run("$undef_vm_cmd");
 }
 
-# Function "swtpm_verify" gets ip address of the vm, and ssh access
-# into it, then check the tpm parameters along with required information
+# Function "swtpm_verify" logs into the VM to run commands for checking
+# tpm parameters along with required information
 sub swtpm_verify {
     my $para = shift;
     die "invalid swtpm parameter $para" unless ($guestvm_cfg->{$para});
@@ -92,34 +90,35 @@ sub swtpm_verify {
     assert_script_run("wget --quiet " . data_url("swtpm/ssh_port_chk_script") . " -P $image_path");
     assert_script_run("bash $image_path/ssh_port_chk_script", timeout => 200);
 
-    # Login to the vm and run the commands to check tpm device
-    my $user = 'root';
-    my $passwd = 'nots3cr3t';
+    # Generate an SSH key and copy it into the VM
     my $ip_addr = script_output("ip n | awk '/192\\.168\\.122/ {print \$1}'");
-    my $guest_swtpm_ver = $guestvm_cfg->{$para};
-    my $result_file = "/tmp/$para";
-    my $ssh_script = "$image_path/ssh_script";
-    my $expect_cmd = $guest_swtpm_ver->{expect_cmd};
-    assert_script_run("TPM_CHK_CMD=\"$expect_cmd\" $ssh_script $ip_addr $user $passwd > $result_file");
+    assert_script_run('ssh-keygen -f sshkey -N ""');
+    enter_cmd("ssh-copy-id -i sshkey.pub -o 'StrictHostKeyChecking no' ${ip_addr}");
+    wait_serial(qr/assword:/);
+    enter_cmd($testapi::password);
 
-    # Upload the log files for later debug
-    upload_logs("$result_file");
+    # Login to the vm and run the commands to check tpm device
+    my $ssh_prefix = "ssh -i sshkey ${ip_addr}";
+    assert_script_run("$ssh_prefix stat /dev/tpm0");
 
-    assert_script_run("grep tpm0 $result_file");
     if ($para eq "swtpm_1") {
-        assert_script_run("grep 'TPM 1.2 Version' $result_file");
+        validate_script_output("$ssh_prefix tpm_version", qr/TPM 1.2 Version/);
     }
     elsif ($para eq "swtpm_2") {
-        assert_script_run("grep tpmrm0 $result_file");
-        assert_script_run("grep '0 :' $result_file");    # The "tpm2_pcrread" command will show sha1:0 value
+        assert_script_run("$ssh_prefix stat /dev/tpmrm0");
+        validate_script_output("$ssh_prefix tpm2_pcrread sha256:0", qr/0 :/);
     }
+
+    my $eventlog = script_output("$ssh_prefix tpm2_eventlog /sys/kernel/security/tpm0/binary_bios_measurements");
 
     # Due to bsc#1199864, the following works only on SLE >= 15-SP4
     if (!is_sle('<15-SP4')) {
         # Measured boot check
         # If measured boot works fine, it can record available algorithms and pcrs
-        assert_script_run("cat $result_file | grep -E 'AlgorithmId|pcrs'");
+        die "Missing parts in the event log" unless $eventlog =~ /AlgorithmId|pcrs/;
     }
+
+    assert_script_run('rm sshkey sshkey.pub');
 }
 
 1;
