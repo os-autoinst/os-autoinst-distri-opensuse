@@ -26,12 +26,20 @@ sub test_failover {
 sub run {
     my ($self) = @_;
     select_console 'root-console';
-    # remove existing NM-managed connections (except loopback)
-    my @interfaces = grep { !/^lo/ } split('\n', script_output 'nmcli -t -f NAME con');
-    assert_script_run "nmcli con delete '$_'" for @interfaces;
+    my @devices;
+    # many device can share the same id, so we'll use hash keys to dedup
+    my %connections;
+    # remove existing NM-managed connections (except loopback).
+    foreach (split('\n', script_output 'nmcli -g DEVICE,UUID conn show --active')) {
+        next if /^lo:/;    # skip loopback device
+        my @item = split /:/;
+        push @devices, $item[0];
+        $connections{$item[1]} = 1;
+    }
+    assert_script_run "nmcli con delete '$_'" for keys %connections;
     # create a new bonding interface and connect the two ethernet
     assert_script_run "nmcli con add type bond ifname bond0 con-name bond0";
-    assert_script_run "nmcli con add type ethernet ifname $_ master bond0" for qw{eth0 eth1};
+    assert_script_run "nmcli con add type ethernet ifname $_ master bond0" for @devices;
     # bring up bond interface
     assert_script_run "nmcli con up bond0";
     # reboot to ensure connection properly comes up at start
@@ -41,8 +49,7 @@ sub run {
     # first connectivity check
     assert_script_run 'ping -c1 -I bond0 conncheck.opensuse.org';
     # check device failover
-    test_failover $_ for qw{eth0 eth1};
+    test_failover $_ for @devices;
 }
 
 1;
-
