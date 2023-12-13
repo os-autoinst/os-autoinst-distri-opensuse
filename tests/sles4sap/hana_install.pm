@@ -45,7 +45,8 @@ sub download_hana_assets_from_server {
     # Each HANA asset is about 16GB. A ten minute timeout assumes a generous
     # 27.3MB/s download speed. Adjust according to expected server conditions.
     assert_script_run "wget $hana_location", timeout => $nettout;
-    assert_script_run "tar -xf $filename";
+    # 5 minutes should be more than enough to unpack the installer
+    assert_script_run "tar -xf $filename", timeout => 300;
     assert_script_run "cd";
 }
 
