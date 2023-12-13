@@ -966,4 +966,25 @@ subtest '[qesap_is_job_finished]' => sub {
     ok($results[2] == 0, "Consider 'running' if the openqa job status response is 'running'");
 };
 
+subtest '[qesap_az_get_native_fencing_type]' => sub {
+    my $res_empty = qesap_az_get_native_fencing_type();
+    ok($res_empty eq 'msi', "Return 'msi' if openqa var is empty");
+};
+
+subtest '[qesap_az_get_native_fencing_type] wrong value for openqa variable' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    $qesap->redefine(get_var => sub { return 'AEGEAN'; });
+    dies_ok { qesap_az_get_native_fencing_type(); } 'Expected die if value is unexpected';
+};
+
+subtest '[qesap_az_get_native_fencing_type] correct variable' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    $qesap->redefine(get_var => sub { return 'msi'; });
+    my $res_msi = qesap_az_get_native_fencing_type();
+    $qesap->redefine(get_var => sub { return 'spn'; });
+    my $res_spn = qesap_az_get_native_fencing_type();
+    ok($res_msi eq 'msi', "Return 'msi' if openqa var is 'msi'");
+    ok($res_spn eq 'spn', "Return 'spn' if openqa var is 'spn'");
+};
+
 done_testing;
