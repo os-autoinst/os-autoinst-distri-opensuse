@@ -87,7 +87,7 @@ sub load_publiccloud_consoletests {
     loadtest 'console/journalctl';
     loadtest 'console/procps';
     loadtest 'console/suse_module_tools';
-    loadtest 'console/libgcrypt' unless is_sle '=12-SP4';
+    loadtest 'console/libgcrypt' unless check_var('BETA', '1') && !get_var('PUBLIC_CLOUD_QAM');
 }
 
 my $should_use_runargs = sub {
