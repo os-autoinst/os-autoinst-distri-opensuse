@@ -43,8 +43,9 @@
       <li><a href="#zypper_patches">zypper_patches</a></li>
       <li><a href="#"></a></li>
       <li><a href="#set_zypper_lock_timeout">set_zypper_lock_timeout</a></li>
-      <li><a href="#workaround_type_encrypted_passphrase">workaround_type_encrypted_passphrase</a></li>
+      <li><a href="#unlock_bootloader">unlock_bootloader</a></li>
       <li><a href="#is_boot_encrypted">is_boot_encrypted</a></li>
+      <li><a href="#need_passphrase_again">need_passphrase_again</a></li>
       <li><a href="#is_bridged_networking">is_bridged_networking</a></li>
       <li><a href="#set_bridged_networking">set_bridged_networking</a></li>
       <li><a href="#print_ip_info">print_ip_info</a></li>
@@ -334,17 +335,23 @@ zypper_ar(&#39;https://download.opensuse.org/repositories/devel:/kubic/openSUSE_
 
 <p>Set how many seconds zypper will wait for other processes to release the system lock. If this function is called without arguments, it&#39;ll set timeout to 300 seconds.</p>
 
-<h2 id="workaround_type_encrypted_passphrase">workaround_type_encrypted_passphrase</h2>
+<h2 id="unlock_bootloader">unlock_bootloader</h2>
 
-<pre><code>workaround_type_encrypted_passphrase();</code></pre>
+<pre><code>unlock_bootloader();</code></pre>
 
-<p>Record soft-failure for unresolved feature fsc#320901 which we think is important and then unlock encrypted boot partitions if we expect it to be encrypted. This condition is met on &#39;storage-ng&#39; which by default puts the boot partition within the encrypted LVM same as in test scenarios where we explicitly create an LVM including boot (<code>FULL_LVM_ENCRYPT</code>). <code>ppc64le</code> was already doing the same by default also in the case of pre-storage-ng but not anymore for storage-ng.</p>
+<p>Unlock bootloader if boot partition is encrypted.</p>
 
 <h2 id="is_boot_encrypted">is_boot_encrypted</h2>
 
 <pre><code>is_boot_encrypted();</code></pre>
 
 <p>This will return <code>1</code> if the env variables suggest that the boot partition is encrypted.</p>
+
+<h2 id="need_passphrase_again">need_passphrase_again</h2>
+
+<pre><code>need_passphrase_again();</code></pre>
+
+<p>With newer grub2 (in TW and SLE15-SP6 currently), if root disk is encrypted and contains `/boot`, entering the passphrase in GRUB2 is enough. The key is passed on during boot, so it&#39;s not asked for a second time. We need to enter the passphrase again if there are separate partitions encrypted without LVM configuration (cr_swap,cr_home etc).</p>
 
 <h2 id="is_bridged_networking">is_bridged_networking</h2>
 
