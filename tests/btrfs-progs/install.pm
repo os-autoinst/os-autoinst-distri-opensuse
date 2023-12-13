@@ -36,10 +36,14 @@ sub install_dependencies {
       libmount-devel
       libuuid-devel
     );
-    if (get_var('BTRFS_PROGS_DEPS')) {
-        @deps = split(/,/, get_var('BTRFS_PROGS_DEPS'));
+    if (is_transactional) {
+        @deps = split(/ /, get_var('BTRFS_PROGS_DEPS', 'attr'));
+        foreach (@deps) { trup_call("--continue pkg install $_"); }
     }
-    zypper_call('in ' . join(' ', @deps));
+    else {
+        if (get_var('BTRFS_PROGS_DEPS')) { @deps = split(/ /, get_var('BTRFS_PROGS_DEPS')); }
+        zypper_call('in ' . join(' ', @deps));
+    }
 }
 
 sub run {
@@ -53,6 +57,7 @@ sub run {
         zypper_call '--gpg-auto-import-keys ref -r filesystems';
         if (is_transactional) {
             trup_call("pkg install -r filesystems $btrfs_package_name");
+            install_dependencies;
             reboot_on_changes;
         }
         else {
