@@ -17,7 +17,7 @@ use containers::utils qw(check_min_runtime_version);
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle is_opensuse is_staging);
 use containers::k8s qw(install_k3s uninstall_k3s);
-use Utils::Architectures qw(is_ppc64le);
+use Utils::Architectures qw(is_ppc64le is_s390x);
 
 sub check_container_nspid {
     # expect set hostpid
@@ -117,8 +117,9 @@ sub run {
         validate_script_output('podman ps', sub { !m/testing-pod-container/ });
 
         # Staging does not have access to repositories, only to DVD
-        # curl -sfL https://get.k3s.io is not supported on ppc poo#128456
-        if (check_min_runtime_version('4.4.0') && !is_staging && !is_ppc64le) {
+        # curl -sfL https://get.k3s.io is not supported on ppc poo#128456 neither s390x
+        #   https://github.com/k3s-io/k3s/issues/9044
+        if (check_min_runtime_version('4.4.0') && !is_staging && !is_ppc64le && !is_s390x) {
             install_k3s();
             record_info('Test', 'kube apply');
             assert_script_run('podman kube apply --kubeconfig ~/.kube/config -f pod.yaml', timeout => 180);
