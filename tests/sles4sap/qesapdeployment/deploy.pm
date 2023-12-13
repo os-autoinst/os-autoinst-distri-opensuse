@@ -16,6 +16,19 @@ sub run {
     die "'qesap.py terraform' return: $ret[0]" if ($ret[0]);
     my $inventory = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     upload_logs($inventory, failok => 1);
+
+    # Set up azure native fencing
+    if (get_var('QESAPDEPLOY_FENCING') eq 'native' && get_var('PUBLIC_CLOUD_PROVIDER') eq 'AZURE') {
+        my @nodes = qesap_get_nodes_names();
+        foreach my $host_name (@nodes) {
+            if ($host_name =~ /hana/) {
+                qesap_az_setup_native_fencing_permissions(
+                    vm_name => $host_name,
+                    resource_group => qesap_az_get_resource_group());
+            }
+        }
+    }
+
     my @remote_ips = qesap_remote_hana_public_ips;
     record_info 'Remote IPs', join(' - ', @remote_ips);
     foreach my $host (@remote_ips) {

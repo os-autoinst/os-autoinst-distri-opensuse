@@ -58,6 +58,7 @@ our @EXPORT = qw(
   qesap_get_roles_code
   qesap_get_inventory
   qesap_get_nodes_number
+  qesap_get_nodes_names
   qesap_get_terraform_dir
   qesap_get_ansible_roles_dir
   qesap_prepare_env
@@ -521,6 +522,26 @@ sub qesap_get_nodes_number {
         $num_hosts += keys %{$value->{hosts}};
     }
     return $num_hosts;
+}
+
+=head3 qesap_get_nodes_names
+
+Get the cluster nodes' names from the inventory.yaml
+=cut
+
+sub qesap_get_nodes_names {
+    my $inventory = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    my $yp = YAML::PP->new();
+
+    my $inventory_content = script_output("cat $inventory");
+    my $parsed_inventory = $yp->load_string($inventory_content);
+    my @hosts;
+    while ((my $key, my $value) = each(%{$parsed_inventory->{all}->{children}})) {
+        if (exists $value->{hosts}) {
+            push @hosts, keys %{$value->{hosts}};
+        }
+    }
+    return @hosts;
 }
 
 =head3 qesap_get_terraform_dir
@@ -1867,14 +1888,14 @@ sub qesap_az_clean_old_peerings {
 
 =head2 qesap_az_get_native_fencing_type
 
-    qesap_az_get_native_fencing_type();
-
     Gets the native fencing type (spn/msi)
 
 =cut
 
 sub qesap_az_get_native_fencing_type {
-    my $type = get_var('AZURE_FENCE_AGENT_CONFIGURATION', get_var('QESAP_AZURE_FENCE_AGENT_CONFIGURATION', 'msi'));
+    my $type = get_var('AZURE_FENCE_AGENT_CONFIGURATION',
+        get_var('QESAP_AZURE_FENCE_AGENT_CONFIGURATION', 'msi'));
+
     unless ($type eq 'msi' || $type eq 'spn') {
         die "Invalid type: $type. Must be 'msi' or 'spn'.";
     }

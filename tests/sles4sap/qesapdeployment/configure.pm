@@ -70,7 +70,7 @@ sub run {
     $variables{HANA_CLIENT_SAR} = get_required_var('QESAPDEPLOY_IMDB_CLIENT');
     $variables{HANA_SAPCAR} = get_required_var('QESAPDEPLOY_IMDB_SERVER');
     $variables{ANSIBLE_REMOTE_PYTHON} = get_var('QESAPDEPLOY_ANSIBLE_REMOTE_PYTHON', '/usr/bin/python3');
-    $variables{FENCING} = get_var('QESAPDEPLOY_FENCING', '');
+    $variables{FENCING} = get_var('QESAPDEPLOY_FENCING', 'sbd');
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'GCE')) {
         $variables{HANA_DATA_DISK_TYPE} = get_var('QESAPDEPLOY_HANA_DISK_TYPE', 'pd-ssd');
         $variables{HANA_LOG_DISK_TYPE} = get_var('QESAPDEPLOY_HANA_DISK_TYPE', 'pd-ssd');
@@ -80,6 +80,13 @@ sub run {
         my %peering_settings = qesap_az_calculate_address_range(slot => get_required_var('WORKER_ID'));
         $variables{VNET_ADDRESS_RANGE} = $peering_settings{vnet_address_range};
         $variables{SUBNET_ADDRESS_RANGE} = $peering_settings{subnet_address_range};
+        if ($variables{FENCING} eq 'native') {
+            $variables{AZURE_NATIVE_FENCING_AIM} = qesap_az_get_native_fencing_type();
+            if ($variables{AZURE_NATIVE_FENCING_AIM} eq 'spn') {
+                $variables{AZURE_NATIVE_FENCING_APP_ID} = get_required_var('_SECRET_AZURE_SPN_APPLICATION_ID');
+                $variables{AZURE_NATIVE_FENCING_APP_PASSWORD} = get_required_var('_SECRET_AZURE_SPN_APP_PASSWORD');
+            }
+        }
     }
 
     $variables{ANSIBLE_ROLES} = qesap_get_ansible_roles_dir();
