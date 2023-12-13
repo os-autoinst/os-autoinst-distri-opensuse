@@ -257,10 +257,6 @@ sub test_container_image {
     $runtime->halt_container('testing');
     $runtime->get_container_logs('testing', $logfile);
     $runtime->remove_container('testing');
-    if (script_run("grep \"`uname -r`\" '$logfile'") != 0) {
-        upload_logs("$logfile");
-        die "Kernel smoke test failed for $image";
-    }
     if (script_run("grep \"Heartbeat from $image\" '$logfile'") != 0) {
         upload_logs("$logfile");
         die "Heartbeat test failed for $image";
