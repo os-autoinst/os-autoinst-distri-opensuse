@@ -458,7 +458,7 @@ sub wait_grub {
     }
     elsif (match_has_tag('encrypted-disk-password-prompt-grub')) {
         # unlock encrypted disk before grub
-        workaround_type_encrypted_passphrase;
+        unlock_bootloader;
         assert_screen("grub2", timeout => ((is_pvm) ? 300 : 90));
     }
     mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
@@ -511,7 +511,7 @@ sub wait_grub_to_boot_on_local_disk {
         check_screen('encrypted-disk-password-prompt', 10);
     }
     if (match_has_tag('encrypted-disk-password-prompt')) {
-        workaround_type_encrypted_passphrase;
+        unlock_bootloader;
         assert_screen('grub2');
     }
 }
@@ -541,7 +541,7 @@ sub reconnect_s390 {
     else {
         my $worker_hostname = get_required_var('WORKER_HOSTNAME');
         my $virsh_guest = get_required_var('VIRSH_GUEST');
-        workaround_type_encrypted_passphrase if get_var('S390_ZKVM');
+        unlock_bootloader if get_var('S390_ZKVM');
 
         select_console('svirt');
         save_svirt_pty;
@@ -905,8 +905,10 @@ sub wait_boot {
     }
     reconnect_xen if check_var('VIRSH_VMM_FAMILY', 'xen');
 
-    # on s390x svirt encryption is unlocked with workaround_type_encrypted_passphrase before here
-    unlock_if_encrypted unless get_var('S390_ZKVM');
+    # on s390x svirt encryption is unlocked with unlock_bootloader before here
+    if (need_passphrase_again) {
+        unlock_if_encrypted unless get_var('S390_ZKVM');
+    }
 
     $self->wait_boot_past_bootloader(%args);
     $self->{in_wait_boot} = 0;
