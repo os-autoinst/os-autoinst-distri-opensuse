@@ -14,7 +14,7 @@ use warnings;
 use testapi;
 
 sub run {
-    x11_start_program('thunar', valid => 0);
+    x11_start_program('thunar', target_match => 'thunar-homedir');
     send_key "shift-tab";
     send_key "home";
     send_key "down";
