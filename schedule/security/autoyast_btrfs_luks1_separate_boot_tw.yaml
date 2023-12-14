@@ -10,7 +10,6 @@ schedule:
   - installation/bootloader_start
   - autoyast/installation
   - installation/handle_reboot
-  - installation/boot_encrypt
   - installation/first_boot
   - autoyast/console
   - console/system_prepare
