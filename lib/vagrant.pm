@@ -25,19 +25,6 @@ sub install_vagrant {
     assert_script_run('rpm -i ' . $download_url . $vagrant_rpm);
 }
 
-# - install vagrant and vagrant-libvirt
-# - launch the required daemons
-sub setup_vagrant_libvirt {
-    select_console('root-console');
-
-    install_vagrant();
-
-    zypper_call("in libvirt");
-    assert_script_run('vagrant plugin install vagrant-libvirt');
-    systemctl("start libvirtd");
-    assert_script_run("usermod -a -G libvirt bernhard");
-}
-
 # - install vagrant and virtualbox
 # - launch the required daemons
 sub setup_vagrant_virtualbox {
