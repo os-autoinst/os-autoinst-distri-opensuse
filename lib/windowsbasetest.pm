@@ -52,7 +52,8 @@ sub open_powershell_as_admin {
     if (get_var('QAM_WINDOWS_SERVER')) {
         send_key_until_needlematch 'windows-quick-features-menu', 'super-x';
         wait_screen_change { send_key('shift-a') };
-        wait_screen_change { assert_and_click('window-max') };
+        # Maximize window
+        wait_screen_change { send_key('super-up') };
         assert_screen 'windows_server_powershell_opened', 30;
     } else {
         if (check_var('WIN_VERSION', '10')) {
@@ -78,7 +79,8 @@ sub open_powershell_as_admin {
             send_key 'esc' if match_has_tag('powershell-with-startup-menu');
         }
         assert_screen 'powershell-as-admin-window', timeout => 240;
-        assert_and_click 'window-max';
+        # Maximize window
+        send_key 'super-up';
         wait_still_screen stilltime => 3, timeout => 12;
         _setup_serial_device unless (exists $args{no_serial});
     }

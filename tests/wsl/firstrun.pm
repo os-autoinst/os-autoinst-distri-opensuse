@@ -119,11 +119,12 @@ sub run {
     assert_screen [qw(yast2-wsl-firstboot-welcome wsl-installing-prompt)], 480;
 
     if (match_has_tag 'yast2-wsl-firstboot-welcome') {
+
         # The new process of installing, appears in an already maximized window,
         # but sometimes it loses focus. So I created another needle to check if
         # the window is already maximized and click somewhere else to bring it to focus.
         assert_screen(['window-max', 'window-minimize']);
-        assert_and_click 'window-max' if match_has_tag 'window-max';
+        send_key 'super-up' if match_has_tag 'window-max';
         assert_and_click 'window-minimize' if match_has_tag 'window-minimize';
         wait_still_screen stilltime => 3, timeout => 10;
         is_fake_scc_url_needed && set_fake_scc_url();
@@ -155,8 +156,8 @@ sub run {
         # Back to CLI
         assert_screen 'wsl-linux-prompt';
     } else {
-        #1) skip registration, we cannot register against proxy SCC
-        assert_and_click 'window-max';
+        #1) Make sure to maximize the window and skip registration, we cannot register against proxy SCC
+        send_key 'super-up';
         assert_screen 'wsl-registration-prompt', 300;
         send_key 'ret';
 
