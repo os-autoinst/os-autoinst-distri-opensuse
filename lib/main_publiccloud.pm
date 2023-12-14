@@ -55,10 +55,12 @@ sub load_maintenance_publiccloud_tests {
             loadtest "xfstests/generate_report";
         } elsif (get_var('PUBLIC_CLOUD_SMOKETEST')) {
             loadtest "publiccloud/smoketest";
+            # flavor_check is concentrated on checking things which make sense only for image which is registered
+            # against internal Public Cloud infra, so whenever we using SUSEConnect whole module does not make much sense
             loadtest "publiccloud/flavor_check" if (is_ec2() && !check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect'));
             loadtest "publiccloud/sev" if (get_var('PUBLIC_CLOUD_CONFIDENTIAL_VM'));
             loadtest "publiccloud/xen" if (get_var('PUBLIC_CLOUD_XEN'));
-            loadtest "publiccloud/az_l8s_nvme" if (get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ 'Standard_L(8|16|32|64)s_v2');
+            loadtest "publiccloud/az_l8s_nvme" if (get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ 'Standard_L(8|16|32|64)s_v(2|3)');
             loadtest "publiccloud/hardened" if is_hardened;
         } elsif (get_var('PUBLIC_CLOUD_AZURE_NFS_TEST')) {
             loadtest("publiccloud/azure_nfs", run_args => $args);
@@ -142,7 +144,9 @@ sub load_latest_publiccloud_tests {
                 load_container_tests();
             } elsif (get_var('PUBLIC_CLOUD_SMOKETEST')) {
                 loadtest "publiccloud/smoketest";
-                loadtest "publiccloud/flavor_check" if (is_ec2());
+                # flavor_check is concentrated on checking things which make sense only for image which is registered
+                # against internal Public Cloud infra, so whenever we using SUSEConnect whole module does not make much sense
+                loadtest "publiccloud/flavor_check" if (is_ec2() && !check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect'));
                 loadtest "publiccloud/sev" if (get_var('PUBLIC_CLOUD_CONFIDENTIAL_VM'));
                 loadtest "publiccloud/xen" if (get_var('PUBLIC_CLOUD_XEN'));
                 loadtest "publiccloud/az_l8s_nvme" if (get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ 'Standard_L(8|16|32|64)s_v2');
