@@ -10,7 +10,7 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use version_utils qw(package_version_cmp is_transactional is_jeos is_alp);
+use version_utils qw(package_version_cmp is_transactional is_jeos is_alp is_sle_micro);
 use containers::utils qw(get_podman_version registry_url);
 use transactional qw(trup_call check_reboot_changes);
 use utils qw(zypper_call);
@@ -76,7 +76,7 @@ sub run {
         return 1;
     }
 
-    switch_to_netavark unless is_alp;
+    switch_to_netavark unless (is_alp || is_sle_micro('6.0+'));
     $podman->cleanup_system_host();
 
     ## TEST1
