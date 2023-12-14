@@ -50,6 +50,10 @@ sub run {
             return;
         }
     }
+
+    # Workaround for bug#1158557
+    send_key 'ret' if (check_screen('inst-bootloader-unknown-udev-device'));
+
     assert_screen([qw(inst-bootloader-settings inst-bootloader-settings-first_tab_highlighted)]);
     # Depending on an optional button "release notes" we need to press "tab"
     # to go to the first tab
