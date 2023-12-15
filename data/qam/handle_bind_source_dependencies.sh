@@ -56,7 +56,7 @@ else
         touch /tmp/REMOVE_PC
     fi
     if ! grep $SDK $SUSECONNECT; then
-        SUSEConnect -p $SDK/$VERSION_ID/$ARCH
+        SUSEConnect -p $SDK/$VERSION_ID/$ARCH --auto-agree-with-licenses
         touch /tmp/REMOVE_SDK
     fi
     if is_sle12; then
