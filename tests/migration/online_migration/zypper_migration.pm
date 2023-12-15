@@ -43,7 +43,7 @@ sub run {
     my $zypper_migration_bsc1196114 = qr/scriptlet failed, exit status 127/m;
     my $zypper_migration_license = qr/Do you agree with the terms of the license\? \[y/m;
     my $zypper_migration_urlerror = qr/URI::InvalidURIError/m;
-    my $zypper_migration_reterror = qr/^No migration available|Can't get available migrations/m;
+    my $zypper_migration_reterror = qr/^No migration available|Can't get available migrations|Can't determine the list of installed products/m;
 
     my $zypper_migration_signing_key = qr/^Do you want to reject the key, trust temporarily, or trust always?[\s\S,]* \[r/m;
     # start migration
