@@ -81,8 +81,8 @@ step1()
 	print_device_status "$eth0" "$ovsbr0" "$ovsbr1"
 
 	check_device_is_up "$eth0"
-	check_device_is_down "$ovsbr0"
-	check_device_is_up "$ovsbr1"
+	check_device_is_up "$ovsbr0"
+	check_device_is_down "$ovsbr1"
 
 	echo ""
 	echo "=== step $step: finished with $err errors"
