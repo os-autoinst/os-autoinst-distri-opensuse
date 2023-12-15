@@ -77,6 +77,7 @@ sub ssh_basic_check {
     assert_script_run("useradd -m $ssh_testman");
     assert_script_run("echo $changepwd | chpasswd");
     assert_script_run("usermod -aG \$(stat -c %G /dev/$serialdev) $ssh_testman");
+    assert_script_run("chmod g+rw /dev/$serialdev");
 
     # avoid harmless failures in virtio-console due to unexpected PS1
     assert_script_run("echo \"PS1='# '\" >> ~$ssh_testman/.bashrc") unless check_var('VIRTIO_CONSOLE', '0');

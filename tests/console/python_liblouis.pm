@@ -12,11 +12,12 @@ use strict;
 use warnings;
 use testapi;
 use version_utils;
-use utils "zypper_call";
+use utils qw(zypper_call ensure_serialdev_permissions);
 
 sub run {
     my ($self) = @_;
     select_console('root-console');
+    ensure_serialdev_permissions;
 
     # The package liblouis-tools is only available in openSUSE repos, so in SUSE
     # the tests are done within a Python script with the same library.
