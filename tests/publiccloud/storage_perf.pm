@@ -15,6 +15,7 @@ use utils;
 use db_utils;
 use Mojo::JSON;
 use publiccloud::utils qw(is_byos registercloudguest);
+use mmapi qw(get_current_job_id);
 
 use constant NUMJOBS => 4;
 use constant IODEPTH => 4;
@@ -67,7 +68,7 @@ sub analyze_previous_series {
 
 sub run {
     my ($self) = @_;
-    my $reg_code = get_var('SCC_REGCODE');
+
     my $runtime = get_var('PUBLIC_CLOUD_FIO_RUNTIME', 300);
     my $disk_size = get_var('PUBLIC_CLOUD_HDD2_SIZE');
     my $disk_type = get_var('PUBLIC_CLOUD_HDD2_TYPE');
@@ -103,9 +104,14 @@ sub run {
 
     my $tags = {
         instance_type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
+        job_id => get_current_job_id(),
+        os_provider => get_required_var('PUBLIC_CLOUD_PROVIDER'),
+        os_build => get_required_var('BUILD'),
         os_flavor => get_required_var('FLAVOR'),
         os_version => get_required_var('VERSION'),
-        os_build => get_required_var('BUILD'),
+        os_distri => get_required_var('DISTRI'),
+        os_arch => get_required_var('ARCH'),
+        os_region => undef,
         os_pc_build => get_required_var('PUBLIC_CLOUD_BUILD'),
         os_pc_kiwi_build => get_required_var('PUBLIC_CLOUD_BUILD_KIWI'),
         os_kernel_release => undef,
@@ -119,6 +125,7 @@ sub run {
 
     $tags->{os_kernel_release} = $instance->run_ssh_command(cmd => 'uname -r');
     $tags->{os_kernel_version} = $instance->run_ssh_command(cmd => 'uname -v');
+    $tags->{os_region} = $instance->{region};
 
     registercloudguest($instance) if is_byos();
     $instance->run_ssh_command(cmd => 'sudo zypper --gpg-auto-import-keys -q in -y fio', timeout => 600);
@@ -161,11 +168,11 @@ sub run {
         # Store values in influx-db
         if ($url) {
             my $data = {
-                table => 'storage',
+                table => 'storage_fio',
                 tags => $tags,
                 values => $values
             };
-            my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf');
+            my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf_2');
             my $token = get_required_var('_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN');
             my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
             influxdb_push_data($url, $db, $org, $token, $data) if (check_var('PUBLIC_CLOUD_PERF_PUSH_DATA', 1));
