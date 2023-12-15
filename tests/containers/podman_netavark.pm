@@ -43,8 +43,10 @@ sub _cleanup {
     remove_subtest_setup;
     script_run('rm -rf /etc/containers/containers.conf');
     $podman->cleanup_system_host();
-    validate_script_output('podman info --format {{.Host.NetworkBackend}}', sub { /cni/ });
-    validate_script_output('podman network ls', sub { /podman\s+bridge/ });
+    unless (is_alp || is_sle_micro('6.0+')) {
+        validate_script_output('podman info --format {{.Host.NetworkBackend}}', sub { /cni/ });
+        validate_script_output('podman network ls', sub { /podman\s+bridge/ });
+    }
 }
 
 sub switch_to_netavark {
@@ -78,6 +80,10 @@ sub run {
 
     switch_to_netavark unless (is_alp || is_sle_micro('6.0+'));
     $podman->cleanup_system_host();
+
+    # it is turned off in
+    # https://github.com/os-autoinst/os-autoinst-distri-opensuse/blame/master/lib/containers/common.pm#L303
+    assert_script_run 'sysctl -w net.ipv6.conf.all.disable_ipv6=0';
 
     ## TEST1
     record_info('TEST1', 'set static IP, and MAC addresses on a per-network basis');
@@ -193,6 +199,7 @@ sub post_run_hook {
     shift->_cleanup();
 }
 sub post_fail_hook {
+    script_run("sysctl -a | grep --color=never net");
     shift->_cleanup();
 }
 
