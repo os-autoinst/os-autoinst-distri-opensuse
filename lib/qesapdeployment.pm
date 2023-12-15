@@ -50,8 +50,8 @@ my @log_files = ();
 use constant QESAPDEPLOY_PREFIX => 'qesapdep';
 
 use constant QESAPDEPLOY_VENV => '/tmp/exec_venv';
-use constant QESAPDEPLOY_PY => 'python3.10';
-use constant QESAPDEPLOY_PIP => 'pip3.10';
+use constant QESAPDEPLOY_PY => 'python3.11';
+use constant QESAPDEPLOY_PIP => 'pip3.11';
 
 our @EXPORT = qw(
   qesap_upload_logs
