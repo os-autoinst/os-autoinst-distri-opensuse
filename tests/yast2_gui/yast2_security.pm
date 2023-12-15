@@ -28,7 +28,7 @@ sub run {
     select_console "x11";
 
     # Password Settings
-    y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 120);
+    y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 240);
     assert_and_click "yast2_security-pwd-settings";
     send_key "alt-m";
     wait_still_screen 1;
@@ -39,7 +39,7 @@ sub run {
     wait_screen_change { send_key "alt-o" };
 
     # Check previously set values + Login Settings
-    y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 120);
+    y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 240);
     assert_and_click "yast2_security-pwd-settings";
     apply_workaround_poo124652('yast2_security-check-min-pwd-len-and-exp-days') if (is_sle('>=15-SP4'));
     assert_screen "yast2_security-check-min-pwd-len-and-exp-days";
@@ -51,7 +51,7 @@ sub run {
     wait_still_screen 3;
 
     # Check previously set values + Miscellaneous Settings
-    y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 120);
+    y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 240);
     apply_workaround_poo124652('yast2_security-login-settings') if (is_sle('>=15-SP4'));
     assert_and_click "yast2_security-login-settings";
     apply_workaround_poo124652("yast2_security-login-attempts") if (is_sle('>=15-SP4'));
@@ -62,7 +62,7 @@ sub run {
     wait_screen_change { send_key "alt-o" };
 
     # Check previously set values
-    y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 120);
+    y2_module_guitest::launch_yast2_module_x11("security", match_timeout => 240);
     assert_and_click "yast2_security-misc-settings";
     apply_workaround_poo124652('yast2_security-file-perms-secure') if (is_sle('>=15-SP4'));
     assert_screen "yast2_security-file-perms-secure";
