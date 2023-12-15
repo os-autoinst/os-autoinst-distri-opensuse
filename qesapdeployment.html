@@ -34,6 +34,7 @@
           <li><a href="#qesap_file_find_string">qesap_file_find_string</a></li>
           <li><a href="#qesap_get_inventory">qesap_get_inventory</a></li>
           <li><a href="#qesap_get_nodes_number">qesap_get_nodes_number</a></li>
+          <li><a href="#qesap_get_nodes_names">qesap_get_nodes_names</a></li>
           <li><a href="#qesap_get_terraform_dir">qesap_get_terraform_dir</a></li>
           <li><a href="#qesap_get_ansible_roles_dir">qesap_get_ansible_roles_dir</a></li>
           <li><a href="#qesap_prepare_env">qesap_prepare_env</a></li>
@@ -267,6 +268,10 @@ Returns 1 if the string is found in the log file, 0 otherwise.</code></pre>
 <h3 id="qesap_get_nodes_number">qesap_get_nodes_number</h3>
 
 <p>Get the number of cluster nodes from the inventory.yaml</p>
+
+<h3 id="qesap_get_nodes_names">qesap_get_nodes_names</h3>
+
+<p>Get the cluster nodes&#39; names from the inventory.yaml</p>
 
 <h3 id="qesap_get_terraform_dir">qesap_get_terraform_dir</h3>
 
@@ -958,9 +963,7 @@ In cases of ambiguous responses, they are considered to be in `running` state.</
 
 <h2 id="qesap_az_get_native_fencing_type">qesap_az_get_native_fencing_type</h2>
 
-<pre><code>qesap_az_get_native_fencing_type();
-
-Gets the native fencing type (spn/msi)</code></pre>
+<pre><code>Gets the native fencing type (spn/msi)</code></pre>
 
 <h2 id="qesap_az_setup_native_fencing_permissions">qesap_az_setup_native_fencing_permissions</h2>
 
