@@ -89,7 +89,7 @@ sub process_reboot {
 
     handle_first_grub if ($args{automated_rollback});
 
-    if (! is_s390x && (is_microos || is_sle_micro('<6.0'))) {
+    if (!is_s390x && (is_microos || is_sle_micro('<6.0'))) {
         microos_reboot $args{trigger};
         record_kernel_audit_messages();
     } elsif (is_backend_s390x) {
