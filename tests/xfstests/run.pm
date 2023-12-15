@@ -191,6 +191,7 @@ sub tests_from_category {
 # If TEST_RANGES contain generic tests, then exclude tests from generic folder, else will exclude tests from filesystem type folder
 sub exclude_grouplist {
     my %tests_list = ();
+    return unless get_var('XFSTESTS_GROUPLIST');
     my $test_folder = $TEST_RANGES =~ /generic/ ? "generic" : $FSTYPE;
     my @group_list = split(/,/, get_var('XFSTESTS_GROUPLIST'));
     foreach my $group_name (@group_list) {
@@ -213,6 +214,7 @@ sub exclude_grouplist {
 # If TEST_RANGES contain generic tests, then include tests from generic folder, else will include tests from filesystem type folder
 sub include_grouplist {
     my @tests_list;
+    return unless get_var('XFSTESTS_GROUPLIST');
     my $test_folder = $TEST_RANGES =~ /generic/ ? "generic" : $FSTYPE;
     my @group_list = split(/,/, get_var('XFSTESTS_GROUPLIST'));
     foreach my $group_name (@group_list) {

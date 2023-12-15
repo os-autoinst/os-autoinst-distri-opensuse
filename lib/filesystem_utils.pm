@@ -521,6 +521,7 @@ e.g. generate "xfs/001-003,xfs/005" into "{xfs/001 => 1, xfs/002 => 1, xfs/003 =
 
 sub generate_xfstests_list {
     my $raw_list = shift;
+    return unless $raw_list;
     my @split_list = split(/,/, $raw_list);
     my @test_list;
     foreach my $test_item (@split_list) {
