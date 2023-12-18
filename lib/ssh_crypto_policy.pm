@@ -64,11 +64,7 @@ sub add_to_sshd_config() {
 
     # Create the config line that allows all the available algorithms
     # An example config can be "Ciphers aes128-ctr,aes192-ctr,aes256-ctr"
-    my $config_line = $self->{name} . " ";
-
-    for my $algorithm (@{$self->{algorithm_array}}) {
-        $config_line .= $algorithm . ",";
-    }
+    my $config_line = $self->{name} . ' ' . join(",", @{$self->{algorithm_array}});
 
     assert_script_run("(echo '$config_line' && cat /etc/ssh/sshd_config) > /etc/ssh/sshd_config_");
     assert_script_run("mv /etc/ssh/sshd_config_ /etc/ssh/sshd_config");
