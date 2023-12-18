@@ -58,7 +58,12 @@ sub get_hana_device_from_system {
     my $out = script_output q@echo PV=$(pvscan -s 2>/dev/null | awk '/dev/ {print $1}' | tr '\n' ',')@;
     $out =~ /PV=(.+),$/;
     $out = $1;
-    my @pvdevs = map { if ($_ =~ s@mapper/@@) { $_ =~ s/\-part\d+$// } else { $_ =~ s/\d+$// } $_ =~ s@^/dev/@@; $_; } split(/,/, $out);
+    my @pvdevs = map {
+        if ($_ =~ s@mapper/@@) { $_ =~ s/\-part\d+$// }
+        else { $_ =~ s/\d+$// }
+        $_ =~ s@^/dev/@@;
+        $_;
+    } split(/,/, $out);
 
     my $lsblk = q@lsblk -n -l -o NAME -d -e 7,11 | grep -E -vw '@ . join('|', @pvdevs) . "'";
     # lsblk command to probe for devices is different when in multipath scenario
@@ -142,7 +147,8 @@ sub run {
         # the HANA media from the factory/other directory of the openQA server.
         record_info "Dowloading using ASSET_0";
         download_hana_assets_from_server(target => $target, nettout => $tout);
-    } elsif (get_required_var 'HANA') {
+    }
+    elsif (get_required_var 'HANA') {
         # If not, the media will be retrieved from a remote server.
         record_info "Downloading using $proto";
         $self->copy_media($proto, $path, $tout, $target);
@@ -155,8 +161,7 @@ sub run {
         hanadata => {mountpt => '/hana/data', size => "${full_size}g"},
         hanalog => {mountpt => '/hana/log', size => "${half_size}g"},
         hanashared => {mountpt => '/hana/shared', size => "${full_size}g"},
-        usr_sap => {mountpt => "/usr/sap/$sid/home", size => '50g'}
-    );
+        usr_sap => {mountpt => "/usr/sap/$sid/home", size => '50g'});
 
     # Partition disks for Hana
     if (check_var('HANA_PARTITIONING_BY', 'yast')) {
@@ -240,8 +245,9 @@ sub run {
         }
 
         assert_script_run 'mkdir -p /etc/systemd/system/systemd-udev-settle.service.d';
-        assert_script_run "curl -f -v " . autoinst_url .
-          '/data/sles4sap/udev-settle-override.conf -o /etc/systemd/system/systemd-udev-settle.service.d/00-override.conf';
+        assert_script_run "curl -f -v "
+          . autoinst_url
+          . '/data/sles4sap/udev-settle-override.conf -o /etc/systemd/system/systemd-udev-settle.service.d/00-override.conf';
         systemctl 'daemon-reload';
         systemctl 'restart systemd-udev-settle';
 
@@ -255,11 +261,14 @@ sub run {
       if (script_run "ls $hdblcm");
 
     # Install hana
+    # Prepare hdblcm args.
+    # Note: set "--components=server,client" as other test moudle (monitoring_services.pm) installs shared pkgs from dir 'hdbclient'
     my @hdblcm_args = qw(--autostart=n --shell=/bin/sh --workergroup=default --system_usage=custom --batch
       --hostname=$(hostname) --db_mode=multiple_containers --db_isolation=low --restrict_max_mem=n
       --userid=1001 --groupid=79 --use_master_password=n --skip_hostagent_calls=n --system_usage=production
-      --components=server);
+    );
     push @hdblcm_args,
+      "--components=server,client",
       "--sid=$sid",
       "--number=$instid",
       "--home=$mountpts{usr_sap}->{mountpt}",
