@@ -103,7 +103,7 @@
     "bsc#1178033": {
         "description": "kernel: ITS@0x8080000: Unable to locate ITS domain handle",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" , "5.5" ],
+            "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" , "5.5", "6.0" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
             "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"],
@@ -356,10 +356,10 @@
         "type": "ignore"
     },
     "no-config-drive": {
-        "description": "Timed out waiting for device (/dev/disk/by-label/ignition|/dev/combustion/config)|dev-combustion-config.device: Job dev-combustion-config.device/start timed out.",
+        "description": "Timed out waiting for device (/dev/disk/by-label/ignition|/dev/combustion/config|/UUID=)|dev-combustion-config.device: Job dev-combustion-config.device/start timed out.",
         "products": {
             "leap-micro": ["5.3"],
-            "sle-micro": ["5.3", "5.4" , "5.5"],
+            "sle-micro": ["5.3", "5.4" , "5.5", "6.0"],
             "microos":  ["Tumbleweed"],
             "opensuse":  ["Tumbleweed"],
             "sle": ["15-SP6"],
@@ -488,7 +488,7 @@
     "bsc#1215377": {
         "description": "plugin /usr/sbin/sedispatch terminated unexpectedly",
         "products": {
-            "sle-micro": ["5.4" , "5.5"],
+            "sle-micro": ["5.4" , "5.5", "6.0"],
             "leap-micro": [ "5.5" ]
         },
         "type": "bug"
@@ -546,6 +546,7 @@
     "bsc#1215383": {
         "description": "pam_lastlog2\\(.*\\): User 'bernhard' not found \\(101\\)",
         "products": {
+            "sle-micro": ["6.0"],
             "opensuse": ["Tumbleweed"],
             "microos":  ["Tumbleweed"],
             "alp":  ["1.0"]            
