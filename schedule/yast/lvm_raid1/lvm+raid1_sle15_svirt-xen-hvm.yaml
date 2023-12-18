@@ -8,8 +8,6 @@ vars:
 schedule:
   suggested_partitioning:
     - installation/partitioning/setup_raid1_lvm
-  default_systemd_target:
-    - installation/installation_settings/validate_default_target
   system_validation:
     - console/validate_lvm_raid1
 test_data:

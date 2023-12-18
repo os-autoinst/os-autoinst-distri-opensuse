@@ -7,8 +7,6 @@ vars:
 schedule:
   suggested_partitioning:
     - installation/partitioning/msdos_partition_table
-  default_systemd_target:
-    - installation/installation_settings/validate_default_target
   system_preparation: []
   system_validation:
     - console/validate_partition_table_via_parted

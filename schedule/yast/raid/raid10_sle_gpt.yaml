@@ -9,8 +9,6 @@ vars:
 schedule:
   suggested_partitioning:
     - installation/partitioning/raid_gpt
-  default_systemd_target:
-    - installation/installation_settings/validate_default_target
   system_preparation:
     - console/hostname
     - console/system_prepare

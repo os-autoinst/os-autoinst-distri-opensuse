@@ -12,8 +12,6 @@ vars:
 schedule:
   suggested_partitioning:
     - installation/partitioning/new_partitioning_gpt
-  default_systemd_target:
-    - installation/installation_settings/validate_default_target
   grub:
     - installation/boot_encrypt
     - installation/handle_reboot

@@ -15,8 +15,6 @@ schedule:
   expert_partitioning:
     - installation/partitioning/new_partitioning_gpt
   suggested_partitioning: []
-  default_systemd_target:
-    - installation/installation_settings/validate_default_target
   system_preparation:
     - console/system_prepare
     - console/hostname
