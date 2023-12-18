@@ -199,18 +199,19 @@ sub sles4sap_cleanup {
 sub get_hana_topology {
     my ($self, %args) = @_;
     my @topology;
-    my $hostname = $args{hostname};
-    my $cmd_out = $self->run_cmd(cmd => "SAPHanaSR-showAttr --format=script", quiet => 1);
+    my $cmd_out = $self->run_cmd(cmd => 'SAPHanaSR-showAttr --format=script', quiet => 1);
     record_info("cmd_out", $cmd_out);
     my @all_parameters = map { if (/^Hosts/) { s,Hosts/,,; s,",,g; $_ } else { () } } split("\n", $cmd_out);
     my @all_hosts = uniq map { (split("/", $_))[0] } @all_parameters;
 
     for my $host (@all_hosts) {
+        # Only takes parameter and value for lines about one specific host at time
         my %host_parameters = map { my ($node, $parameter, $value) = split(/[\/=]/, $_);
-            if ($host eq $node) { ($parameter, $value) } else { () } } @all_parameters;
+            if ($host eq $node) { ($parameter, $value) } else { () } }
+          @all_parameters;
         push(@topology, \%host_parameters);
 
-        if (defined($hostname) && $hostname eq $host) {
+        if (defined($args{hostname}) && $args{hostname} eq $host) {
             return \%host_parameters;
         }
     }
@@ -352,25 +353,24 @@ sub cleanup_resource {
 sub check_takeover {
     my ($self) = @_;
     my $hostname = $self->{my_instance}->{instance_id};
-    my $retry_count = 0;
     die("Database on the fenced node '$hostname' is not offline") if ($self->is_hana_database_online);
     die("System replication '$hostname' is not offline") if ($self->is_primary_node_online);
+    my $retry_count = 0;
 
   TAKEOVER_LOOP: while (1) {
         my $topology = $self->get_hana_topology();
         $retry_count++;
         for my $entry (@$topology) {
             my %host_entry = %$entry;
-            my $sync_state = $host_entry{sync_state};
-            my $takeover_host = $host_entry{vhost};
-
-            if ($takeover_host ne $hostname && $sync_state eq "PRIM") {
-                record_info("Takeover status:", "Takeover complete to node '$takeover_host'");
+            die "Missing 'vhost' field in topology output" unless defined($host_entry{vhost});
+            die "Missing 'sync_state' field in topology output" unless defined($host_entry{sync_state});
+            if ($host_entry{vhost} ne $hostname && $host_entry{sync_state} eq "PRIM") {
+                record_info("Takeover status:", "Takeover complete to node '$host_entry{vhost}'");
                 last TAKEOVER_LOOP;
             }
-            sleep 30;
         }
         die "Test failed: takeover failed to complete." if ($retry_count > 40);
+        sleep 30;
     }
 
     return 1;

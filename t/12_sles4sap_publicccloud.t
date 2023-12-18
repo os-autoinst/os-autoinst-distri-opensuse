@@ -175,4 +175,214 @@ subtest '[is_primary_node_online]' => sub {
     is $res, 1, "System replication is online on primary node";
 };
 
+subtest '[get_hana_topology]' => sub {
+    my $self = sles4sap_publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            my $res = <<END;
+Global/global/cib-time="Fri Dec 15 05:54:20 2023"
+Global/global/maintenance="false"
+Hosts/vmhana01/clone_state="PROMOTED"
+Hosts/vmhana01/lpa_ha0_lpt="1702619602"
+Hosts/vmhana01/node_state="online"
+Hosts/vmhana01/op_mode="logreplay"
+Hosts/vmhana01/remoteHost="vmhana02"
+Hosts/vmhana01/roles="2:P:master1:master:worker:master"
+Hosts/vmhana01/site="site_a"
+Hosts/vmhana01/srah="-"
+Hosts/vmhana01/srmode="sync"
+Hosts/vmhana01/sync_state="PRIM"
+Hosts/vmhana01/version="2.00.073.00"
+Hosts/vmhana01/vhost="vmhana01"
+Hosts/vmhana02/clone_state="DEMOTED"
+Hosts/vmhana02/lpa_ha0_lpt="30"
+Hosts/vmhana02/node_state="online"
+Hosts/vmhana02/op_mode="logreplay"
+Hosts/vmhana02/remoteHost="vmhana01"
+Hosts/vmhana02/roles="4:S:master1:master:worker:master"
+Hosts/vmhana02/site="site_b"
+Hosts/vmhana02/srah="-"
+Hosts/vmhana02/srmode="sync"
+Hosts/vmhana02/sync_state="SOK"
+Hosts/vmhana02/version="2.00.073.00"
+Hosts/vmhana02/vhost="vmhana02"
+END
+            return $res;
+    });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $topology = $self->get_hana_topology();
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    my $num_of_hosts = 0;
+    for my $entry (@$topology) {
+        $num_of_hosts++;
+        my %host_entry = %$entry;
+        note("vhost: $host_entry{vhost}");
+        like $host_entry{vhost}, qr/vmhana/, "Parsing is ok for field vhost";
+    }
+
+    ok $num_of_hosts eq 2;
+};
+
+
+subtest '[get_hana_topology] for a specific node' => sub {
+    my $self = sles4sap_publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            my $res = <<END;
+Hosts/vmhana01/vhost="vmhana01"
+Hosts/vmhana02/vhost="vmhana02"
+END
+            return $res;
+    });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $entry = $self->get_hana_topology(hostname => 'vmhana02');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    my %host_entry = %$entry;
+    note("vhost: $host_entry{vhost}");
+    like $host_entry{vhost}, qr/vmhana02/, "Parsing is ok for field vhost";
+};
+
+
+subtest '[get_hana_topology] bad output' => sub {
+    my $self = sles4sap_publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            my $res = <<END;
+Signon to CIB failed: Transport endpoint is not connected
+Init failed, could not perform requested operations
+No attributes found for SID=ha0
+END
+            return $res;
+    });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $topology = $self->get_hana_topology();
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok scalar @$topology eq 0;
+};
+
+
+subtest '[check_takeover]' => sub {
+    my $self = sles4sap_publiccloud->new();
+    $self->{my_instance}->{instance_id} = 'Yondu';
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my @calls;
+    $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            my $res = <<END;
+Hosts/vmhana01/sync_state="PRIM"
+Hosts/vmhana01/vhost="vmhana01"
+Hosts/vmhana02/sync_state="SOK"
+Hosts/vmhana02/vhost="vmhana02"
+END
+            return $res;
+    });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    # Note how it pass at the first iteration because:
+    #  - two nodes in the output are named vmhana01 and vmhana02
+    #  - none has the name of "current node" that is Yondu
+    #  - at least one of them with name different from Yondu is in state PRIM
+    ok $self->check_takeover();
+    note("\n  -->  " . join("\n  -->  ", @calls));
+};
+
+
+subtest '[check_takeover] fail in showAttr' => sub {
+    my $self = sles4sap_publiccloud->new();
+    $self->{my_instance}->{instance_id} = 'Yondu';
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my @calls;
+    $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            my $res = <<END;
+Signon to CIB failed: Transport endpoint is not connected
+Init failed, could not perform requested operations
+No attributes found for SID=ha0
+END
+            return $res;
+    });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    dies_ok { $self->check_takeover() } "check_takeover fails if SAPHanaSR-showAttr keep give bad respose";
+    note("\n  -->  " . join("\n  -->  ", @calls));
+};
+
+
+subtest '[check_takeover] missing fields in SAPHanaSR-showAttr' => sub {
+    my $self = sles4sap_publiccloud->new();
+    $self->{my_instance}->{instance_id} = 'vmhana01';
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my @calls;
+    $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0 });
+    my $showAttr;
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return $showAttr;
+    });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    $showAttr = <<END;
+Hosts/vmhana01/vhost="vmhana01"
+Hosts/vmhana01/sync_state="SOK"
+Hosts/vmhana02/vhost="vmhana02"
+END
+    dies_ok { $self->check_takeover() } "check_takeover fails if sync_state is missing in SAPHanaSR-showAttr output";
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    @calls = ();
+
+    $showAttr = <<END;
+Hosts/vmhana01/vhost="vmhana01"
+Hosts/vmhana01/sync_state="SOK"
+Hosts/vmhana02/sync_state="SOK"
+END
+    dies_ok { $self->check_takeover() } "check_takeover fails if vhost is missing in SAPHanaSR-showAttr output";
+    note("\n  -->  " . join("\n  -->  ", @calls));
+};
+
+
+subtest '[check_takeover] fail if DB online' => sub {
+    my $self = sles4sap_publiccloud->new();
+    $self->{my_instance}->{instance_id} = 'Yondu';
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my @calls;
+    $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 1 });
+
+    dies_ok { $self->check_takeover() } "Takeover failed if sles4sap_publiccloud return 1";
+};
+
+
+subtest '[check_takeover] fail if primary online' => sub {
+    my $self = sles4sap_publiccloud->new();
+    $self->{my_instance}->{instance_id} = 'Yondu';
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my @calls;
+    $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 1 });
+
+    dies_ok { $self->check_takeover() } "Takeover failed if is_primary_node_online return 1";
+};
+
+
 done_testing;
