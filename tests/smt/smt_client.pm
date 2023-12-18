@@ -33,7 +33,7 @@ sub run {
     assert_script_run 'wget --no-check-certificate https://SERVER/repo/tools/clientSetup4SMT.sh';
     assert_script_run 'chmod a+x clientSetup4SMT.sh';
     assert_script_run 'echo y | ./clientSetup4SMT.sh --host https://server --regcert https://server/smt.crt';    #needs yes
-    assert_script_run 'SUSEConnect -p SLES/12.5/x86_64 --url https://server';
+    assert_script_run 'SUSEConnect --url https://server';
 
     #checking registration
     validate_script_output 'SUSEConnect --status', sub { m/"identifier":"SLES","version":"12\.5","arch":"x86_64","status":"Registered"/ };
