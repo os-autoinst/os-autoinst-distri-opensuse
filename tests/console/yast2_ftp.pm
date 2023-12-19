@@ -201,9 +201,12 @@ sub run {
         type_string_slow($vsftpd_directives->{dsa_cert_file});
     }
 
-    assert_screen 'yast2_ftp_port_closed';
-    send_key 'alt-p';    # open port in firewall
-    assert_screen 'yast2_ftp_port_opened';
+    # skip open firewall ports in Tumbleweed bsc#1207390
+    if (is_sle || is_leap) {
+        assert_screen 'yast2_ftp_port_closed';
+        send_key 'alt-p';    # open port in firewall
+        assert_screen 'yast2_ftp_port_opened';
+    }
     send_key 'alt-f';    # done and close the configuration page now
 
     # yast might take a while on sle12 due to suseconfig
@@ -212,9 +215,9 @@ sub run {
     # check /etc/vsftpd.conf whether it has been updated accordingly
     $self->vsftd_setup_checker($vsftpd_directives);
 
-    # check presence of vsftpd service in firewalld
+    # check presence of vsftpd service in firewalld excluding Tumbleweed (bsc#1207390)
     if ($self->firewall eq 'firewalld') {
-        vsftpd_firewall_checker;
+        vsftpd_firewall_checker unless is_tumbleweed;
     }
 
     # let's try to run it

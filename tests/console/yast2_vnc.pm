@@ -16,6 +16,7 @@ use utils;
 use registration 'add_suseconnect_product';
 use yast2_shortcuts qw($is_older_product %remote_admin %firewall_settings %firewall_details $confirm);
 use Utils::Backends qw(is_pvm is_ipmi);
+use version_utils;
 
 sub configure_remote_admin {
     # Force ncurses mode on powerVM setup to skip ssh forwarding x11 console
@@ -27,17 +28,18 @@ sub configure_remote_admin {
     send_key $remote_admin{allow_remote_admin_with_session};
     assert_screen 'yast2_vnc_allow_remote_admin_with_session';
     # Firewall Settings
-    if (check_screen 'yast2_vnc_firewall_port_closed') {
-        send_key $firewall_settings{open_port};
+    assert_screen([qw(yast2_vnc_no_network_interface yast2_vnc_firewall_port_closed yast2_vnc_firewall_port_open)]);
+    if (is_tumbleweed && (match_has_tag('yast2_vnc_no_network_interface'))) {
+        send_key $cmd{next};
     }
-    # Firewall Details
-    assert_screen 'yast2_vnc_firewall_port_open';
-    send_key $firewall_settings{details};
-    assert_screen 'yast2_vnc_firewall_port_details';
-    send_key $firewall_details{network_interfaces};
-    assert_screen 'yast2_vnc_firewall_details_interface_selected';
-    send_key $cmd{ok};
-    assert_screen 'yast2_vnc_firewall_details_selected';
+    if (match_has_tag('yast2_vnc_firewall_port_closed')) {
+        send_key $firewall_settings{open_port};
+        check_firewall_port_details();
+    }
+    if (match_has_tag('yast2_vnc_firewall_port_open')) {
+        check_firewall_port_details();
+    }
+
     # Confirm configuration
     send_key $confirm;
     assert_screen 'yast2_vnc_warning_text';
@@ -45,6 +47,16 @@ sub configure_remote_admin {
     wait_serial("$module_name-0", 60) || die "'yast2 remote' didn't finish";
     # Restart display-manager service to make the changes take effect for powerVM x11 access in FIPs test
     systemctl('restart display-manager') if (get_var("FIPS_ENABLED") && is_pvm);
+}
+
+sub check_firewall_port_details {
+    assert_screen 'yast2_vnc_firewall_port_open';
+    send_key $firewall_settings{details};
+    assert_screen 'yast2_vnc_firewall_port_details';
+    send_key $firewall_details{network_interfaces};
+    assert_screen 'yast2_vnc_firewall_details_interface_selected';
+    send_key $cmd{ok};
+    assert_screen 'yast2_vnc_firewall_details_selected';
 }
 
 sub check_service_listening {
