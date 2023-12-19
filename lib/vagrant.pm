@@ -5,7 +5,9 @@ use warnings;
 use utils;
 
 our @ISA = qw(Exporter);
-our @EXPORT = qw(setup_vagrant_libvirt setup_vagrant_virtualbox run_vagrant_cmd);
+our @EXPORT = qw(setup_vagrant_libvirt setup_vagrant_virtualbox run_vagrant_cmd $vagrant_logfile);
+
+our $vagrant_logfile = 'vagrant_cmd.log';
 
 sub install_vagrant {
     # no need to repeat if vagrant is already installed
@@ -40,19 +42,5 @@ sub setup_vagrant_virtualbox {
 
 sub run_vagrant_cmd {
     my ($cmd, %args) = @_;
-
-    my $logfile = 'vagrant_cmd.log';
-    local $@;
-    my $ret = eval {
-        return script_run("VAGRANT_LOG=DEBUG vagrant $cmd 2> $logfile", %args);
-    };
-    return undef if $ret == 0;
-    if (!$ret) {
-        upload_logs($logfile);
-
-        if ($@) {
-            die $@;
-        }
-        die "'vagrant $cmd' failed with $ret";
-    }
+    assert_script_run("VAGRANT_LOG=DEBUG vagrant $cmd 2> $vagrant_logfile", %args);
 }

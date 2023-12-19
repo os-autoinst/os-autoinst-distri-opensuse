@@ -80,4 +80,8 @@ sub run() {
     assert_script_run("popd");
 }
 
+sub post_fail_hook() {
+    upload_logs($vagrant_logfile);
+}
+
 1;

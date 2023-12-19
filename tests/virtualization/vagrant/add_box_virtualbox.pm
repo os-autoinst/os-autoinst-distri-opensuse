@@ -29,6 +29,7 @@ sub run() {
 }
 
 sub post_fail_hook() {
+    upload_logs($vagrant_logfile);
     assert_script_run('rm -rf Vagrantfile testfile .vagrant');
 }
 
