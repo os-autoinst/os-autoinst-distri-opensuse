@@ -53,13 +53,13 @@ sub run {
     assert_script_run "gnutls-cli -l | grep Protocols | $re_proto";
 
     # Check google's imap server and verify basic function
-    validate_script_output 'echo | gnutls-cli -d 1 imap.gmail.com -p 993', sub {
-        m/
+    validate_script_output('echo | gnutls-cli -d 1 imap.gmail.com -p 993', sub {
+            m/
             Certificate\stype:\sX\.509.*
             Status:\sThe\scertificate\sis\strusted.*
             Description:\s\(TLS1\.3.*\).*
             Handshake\swas\scompleted.*/sx
-    };
+    }, timeout => 120);
 }
 
 sub test_flags {
