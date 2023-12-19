@@ -10,11 +10,15 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use version_utils qw(package_version_cmp is_transactional is_jeos is_alp is_sle_micro);
+use version_utils qw(package_version_cmp is_transactional is_jeos is_leap is_sle_micro is_leap_micro is_sle);
 use containers::utils qw(get_podman_version registry_url);
 use transactional qw(trup_call check_reboot_changes);
 use utils qw(zypper_call);
 use Utils::Systemd qw(systemctl);
+
+sub is_cni_default {
+    return is_sle || is_leap || is_sle_micro('<6.0') || is_leap_micro;
+}
 
 sub remove_subtest_setup {
     assert_script_run("podman container rm -af");
@@ -37,16 +41,14 @@ sub is_container_running {
 
 # clean up routine only for systems that run CNI as default network backend
 sub _cleanup {
-    return if is_alp;
+    return unless is_cni_default;
     my $podman = shift->containers_factory('podman');
     select_console 'log-console';
     remove_subtest_setup;
     script_run('rm -rf /etc/containers/containers.conf');
     $podman->cleanup_system_host();
-    unless (is_alp || is_sle_micro('6.0+')) {
-        validate_script_output('podman info --format {{.Host.NetworkBackend}}', sub { /cni/ });
-        validate_script_output('podman network ls', sub { /podman\s+bridge/ });
-    }
+    validate_script_output('podman info --format {{.Host.NetworkBackend}}', sub { /cni/ });
+    validate_script_output('podman network ls', sub { /podman\s+bridge/ });
 }
 
 sub switch_to_netavark {
@@ -78,7 +80,7 @@ sub run {
         return 1;
     }
 
-    switch_to_netavark unless (is_alp || is_sle_micro('6.0+'));
+    switch_to_netavark if is_cni_default;
     $podman->cleanup_system_host();
 
     # it is turned off in
