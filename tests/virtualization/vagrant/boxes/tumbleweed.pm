@@ -81,7 +81,10 @@ sub run() {
 }
 
 sub post_fail_hook() {
+    my ($self) = @_;
+
     upload_logs($vagrant_logfile);
+    $self->SUPER::post_fail_hook;
 }
 
 1;
