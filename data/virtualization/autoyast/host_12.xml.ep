@@ -4,7 +4,7 @@
   <bootloader>
     <global>
       <activate>true</activate>
-      <boot_mbr>true</boot_mbr>
+      <!--boot_mbr>true</boot_mbr-->
       <gfxmode>auto</gfxmode>
       <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
@@ -12,7 +12,7 @@
       <terminal>serial</terminal>
       <timeout config:type="integer">10</timeout>
       <trusted_grub>false</trusted_grub>
-      <xen_append>splash=silent quiet console=<%= $get_var->('SERIALDEV') %>,115200</xen_append>
+      <xen_append>splash=silent quiet console=<%= $get_var->('SERIALDEV') %>,115200 <%= $check_var->('IPMI_HW', 'AMD') ? "amd_iommu=on" : "intel_iommu=on" %></xen_append>
       <xen_kernel_append>dom0_max_vcpus=4 dom0_mem=8192M,max:8192M loglvl=all guest_loglvl=all</xen_kernel_append>
     </global>
     <loader_type>grub2</loader_type>
@@ -119,24 +119,15 @@
         <bridge_stp>off</bridge_stp>
         <startmode>auto</startmode>
       </interface>
-      <interface>
-        <device>eth0</device>
-        <bootproto>none</bootproto>
-        <startmode>hotplug</startmode>
-      </interface>
-      <interface>
-        <device>eth1</device>
-        <bootproto>none</bootproto>
-        <startmode>hotplug</startmode>
-      </interface>
     </interfaces>
   </networking>
   <partitioning config:type="list">
     <drive>
-      % if ($check_var->('IPMI_HW', 'supermicro')) {
-      <device>/dev/sda</device>
-      % }
-      <disklabel>msdos</disklabel>
+  % my $wwn = {'lipa' => 'wwn-0x5002538c4002f8bd', briza => 'wwn-0x5000c5004f0e566d'};
+  % my $hostname = (split(/\./, $get_var->("SUT_IP")))[0];
+  % my $device_id = defined($wwn->{$hostname}) ? '/dev/disk/by-id/' . $wwn->{$hostname} : '';
+      <device><%= $device_id %></device>
+      <disklabel>gpt</disklabel>
       <enable_snapshots config:type="boolean">false</enable_snapshots>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
@@ -150,25 +141,8 @@
           <mount>/</mount>
           <mountby config:type="symbol">uuid</mountby>
           <partition_id config:type="integer">131</partition_id>
-          <partition_nr config:type="integer">1</partition_nr>
-          <partition_type>primary</partition_type>
           <resize config:type="boolean">false</resize>
           <size>400G</size>
-        </partition>
-        <partition>
-          <create config:type="boolean">true</create>
-          <crypt_fs config:type="boolean">false</crypt_fs>
-          <filesystem config:type="symbol">swap</filesystem>
-          <format config:type="boolean">true</format>
-          <fstopt>defaults</fstopt>
-          <loop_fs config:type="boolean">false</loop_fs>
-          <mount>swap</mount>
-          <mountby config:type="symbol">uuid</mountby>
-          <partition_id config:type="integer">130</partition_id>
-          <partition_nr config:type="integer">2</partition_nr>
-          <partition_type>primary</partition_type>
-          <resize config:type="boolean">false</resize>
-          <size>16G</size>
         </partition>
       </partitions>
       <type config:type="symbol">CT_DISK</type>
