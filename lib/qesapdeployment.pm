@@ -1109,8 +1109,11 @@ sub qesap_cluster_logs {
     my $inventory = qesap_get_inventory(provider => $provider);
     if (script_run("test -e $inventory") == 0)
     {
-        foreach my $host ('vmhana01', 'vmhana02') {
+        foreach my $host ('"hana[0]"', '"hana[1]"') {
             foreach my $cmd (qesap_cluster_log_cmds()) {
+                my $log_filename = "$host-$cmd->{Output}";
+                # remove square brackets
+                $log_filename =~ s/[\[\]"]//g;
                 my $out = qesap_ansible_script_output_file(cmd => $cmd->{Cmd},
                     provider => $provider,
                     host => $host,
@@ -1118,7 +1121,7 @@ sub qesap_cluster_logs {
                     root => 1,
                     path => '/tmp/',
                     out_path => '/tmp/ansible_script_output/',
-                    file => "$host-$cmd->{Output}");
+                    file => $log_filename);
                 upload_logs($out, failok => 1);
             }
             # Upload crm report
