@@ -734,7 +734,7 @@ sub qesap_ansible_cmd {
     Return is the local full path of the file containing the output of the
     remotely executed command.
 
-=over 10
+=over 11
 
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
@@ -752,6 +752,8 @@ sub qesap_ansible_cmd {
 
 =item B<FAILOK> - if not set, Ansible failure result in die
 
+=item B<VERBOSE> - 1 result in ansible-playbook to be called with '-vvvv', default is 0.
+
 =item B<TIMEOUT> - max expected execution time, default 180sec.
     Same timeout is used both for the execution of script_output.yaml and for the fetch_file.
     Timeout of the same amount is started two times.
@@ -768,19 +770,21 @@ sub qesap_ansible_script_output_file {
     $args{root} ||= 0;
     $args{failok} //= 0;
     $args{timeout} //= bmwqemu::scale_timeout(180);
-    my $remote_path = $args{remote_path} // '/tmp/';
-    my $out_path = $args{out_path} // '/tmp/ansible_script_output/';
-    my $file = $args{file} // 'testout.txt';
+    $args{verbose} //= 0;
+    my $verbose = $args{verbose} ? '-vvvv' : '';
+    $args{remote_path} //= '/tmp/';
+    $args{out_path} //= '/tmp/ansible_script_output/';
+    $args{file} //= 'testout.txt';
 
     my $inventory = qesap_get_inventory(provider => $args{provider});
     my $playbook = 'script_output.yaml';
     qesap_ansible_get_playbook(playbook => $playbook);
 
-    my @ansible_cmd = ('ansible-playbook', '-vvvv', $playbook);
+    my @ansible_cmd = ('ansible-playbook', $verbose, $playbook);
     push @ansible_cmd, ('-l', $args{host}, '-i', $inventory, '-u', $args{user});
     push @ansible_cmd, ('-b', '--become-user', 'root') if ($args{root});
     push @ansible_cmd, ('-e', qq("cmd='$args{cmd}'"),
-        '-e', "out_file='$file'", '-e', "remote_path='$remote_path'");
+        '-e', "out_file='$args{file}'", '-e', "remote_path='$args{remote_path}'");
     push @ansible_cmd, ('-e', "failok=yes") if ($args{failok});
 
     # ignore the return value for the moment
@@ -792,17 +796,18 @@ sub qesap_ansible_script_output_file {
         failok => $args{failok},
         user => $args{user},
         root => $args{root},
-        remote_path => $remote_path,
-        out_path => $out_path,
-        file => $file,
-        timeout => $args{timeout});
+        remote_path => $args{remote_path},
+        out_path => $args{out_path},
+        file => $args{file},
+        timeout => $args{timeout},
+        verbose => $args{verbose});
 }
 
 =head3 qesap_ansible_script_output
 
     Return the output of a command executed on the remote machine via Ansible.
 
-=over 9
+=over 10
 
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
@@ -833,9 +838,9 @@ sub qesap_ansible_script_output {
     $args{user} ||= 'cloudadmin';
     $args{root} ||= 0;
     $args{failok} //= 0;
-    my $path = $args{remote_path} // '/tmp/';
-    my $out_path = $args{out_path} // '/tmp/ansible_script_output/';
-    my $file = $args{file} // 'testout.txt';
+    $args{remote_path} //= '/tmp/';
+    $args{out_path} //= '/tmp/ansible_script_output/';
+    $args{file} //= 'testout.txt';
 
     # Grab command output as file
     my $local_tmp = qesap_ansible_script_output_file(cmd => $args{cmd},
@@ -844,9 +849,9 @@ sub qesap_ansible_script_output {
         failok => $args{failok},
         user => $args{user},
         root => $args{root},
-        remote_path => $path,
-        out_path => $out_path,
-        file => $file,
+        remote_path => $args{remote_path},
+        out_path => $args{out_path},
+        file => $args{file},
         timeout => $args{timeout});
     # Print output and delete output file
     my $output = script_output("cat $local_tmp");
@@ -869,7 +874,7 @@ sub qesap_ansible_script_output {
 
     Return the local path of the downloaded file.
 
-=over 8
+=over 10
 
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
@@ -889,6 +894,8 @@ sub qesap_ansible_script_output {
 
 =item B<OUT_PATH> - path to save file locally (without file name)
 
+=item B<VERBOSE> - 1 result in ansible-playbook to be called with '-vvvv', default is 0.
+
 =back
 =cut
 
@@ -899,24 +906,26 @@ sub qesap_ansible_fetch_file {
     $args{root} ||= 0;
     $args{failok} //= 0;
     $args{timeout} //= bmwqemu::scale_timeout(180);
-    my $local_path = $args{out_path} // '/tmp/ansible_script_output/';
-    my $local_file = $args{file} // 'testout.txt';
+    $args{out_path} //= '/tmp/ansible_script_output/';
+    $args{file} //= 'testout.txt';
+    $args{verbose} //= 0;
+    my $verbose = $args{verbose} ? '-vvvv' : '';
 
     my $inventory = qesap_get_inventory(provider => $args{provider});
     my $fetch_playbook = 'fetch_file.yaml';
 
     # reflect the same logic implement in the playbook
-    my $local_tmp = $local_path . $local_file;
+    my $local_tmp = $args{out_path} . $args{file};
 
     qesap_ansible_get_playbook(playbook => $fetch_playbook);
 
-    my @ansible_fetch_cmd = ('ansible-playbook', '-vvvv', $fetch_playbook);
+    my @ansible_fetch_cmd = ('ansible-playbook', $verbose, $fetch_playbook);
     push @ansible_fetch_cmd, ('-l', $args{host}, '-i', $inventory);
     push @ansible_fetch_cmd, ('-u', $args{user});
     push @ansible_fetch_cmd, ('-b', '--become-user', 'root') if ($args{root});
-    push @ansible_fetch_cmd, ('-e', "local_path='$local_path'",
+    push @ansible_fetch_cmd, ('-e', "local_path='$args{out_path}'",
         '-e', "remote_path='$args{remote_path}'",
-        '-e', "file='$local_file'");
+        '-e', "file='$args{file}'");
     push @ansible_fetch_cmd, ('-e', "failok=yes") if ($args{failok});
 
     qesap_venv_cmd_exec(cmd => join(' ', @ansible_fetch_cmd),
@@ -1041,7 +1050,8 @@ sub qesap_upload_crm_report {
         root => 1,
         remote_path => '/var/log/',
         out_path => '/tmp/ansible_script_output/',
-        file => "$args{host}-crm_report.tar.gz");
+        file => "$args{host}-crm_report.tar.gz",
+        verbose => 1);
     upload_logs($local_path, failok => 1);
 }
 
