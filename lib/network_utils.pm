@@ -35,7 +35,7 @@ Set DNS server defined via required variable C<STATIC_DNS_SERVER>
 sub setup_static_network {
     my (%args) = @_;
     my $ip = $args{ip} // '10.0.2.15';
-    my $mtu = $args{mtu} // 1458;
+    my $mtu = $args{mtu} // 1380;
     my $gw = $args{gw} // testapi::host_ip();
 
     configure_static_dns(get_host_resolv_conf(), silent => $args{silent} // 0);

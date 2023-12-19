@@ -113,7 +113,7 @@ sub setup_networks {
         $setup_script .= "NETMASK=$net_conf->{$network}->{subnet_mask}\n";
         $setup_script .= "STARTMODE='auto'\n";
         # TCP cannot pass GRE tunnel with default MTU value 1500 in combination of DF flag set in L3 for ovs bridge
-        $setup_script .= "MTU='1458'\n";
+        $setup_script .= "MTU='1380'\n";
         $setup_script .= "EOT\n";
     }
     $setup_script .= "systemctl restart network\n";
@@ -205,8 +205,8 @@ sub dhcpd_conf_generation {
         $setup_script .= "  range  " . ip_in_subnet($net_conf->{$network}, 15) . "  " . ip_in_subnet($net_conf->{$network}, 100) . ";\n";
         $setup_script .= "  default-lease-time 14400;\n";
         $setup_script .= "  max-lease-time 172800;\n";
-        # dhcp clients have to use MTU 1458 to be able pass GRE Tunnel
-        $setup_script .= "  option interface-mtu 1458;\n";
+        # dhcp clients have to use MTU 1380 to be able pass GRE Tunnel
+        $setup_script .= "  option interface-mtu 1380;\n";
         $setup_script .= "  option domain-name \"openqa.test\";\n";
         if ($dns) {
             $setup_script .= "  option domain-name-servers  $server_ip,  $server_ip;\n";
