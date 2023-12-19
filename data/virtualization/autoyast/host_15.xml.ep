@@ -150,16 +150,6 @@
     <bridge_stp>off</bridge_stp>
     <startmode>auto</startmode>
   </interface>
-  <interface>
-    <device>eth0</device>
-    <bootproto>none</bootproto>
-    <startmode>hotplug</startmode>
-  </interface>
-  <interface>
-    <device>eth1</device>
-    <bootproto>none</bootproto>
-    <startmode>hotplug</startmode>
-  </interface>
 </interfaces>
   </networking>
   <ntp-client>
@@ -175,10 +165,11 @@
   </ntp-client>
   <partitioning config:type="list">
     <drive>
-      % if ($check_var->('IPMI_HW', 'supermicro')) {
-      <device>/dev/sda</device>
-      % }
-      <disklabel>msdos</disklabel>
+  % my $wwn = {lipa => 'wwn-0x5002538c4002f8bd', briza => 'wwn-0x5000c5004f0e566d'};
+  % my $hostname = (split(/\./, $get_var->("SUT_IP")))[0];
+  % my $device_id = defined($wwn->{$hostname}) ? '/dev/disk/by-id/' . $wwn->{$hostname} : '';
+      <device><%= $device_id %></device>
+      <disklabel>gpt</disklabel>
       <enable_snapshots config:type="boolean">false</enable_snapshots>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
@@ -194,17 +185,7 @@
           <resize config:type="boolean">false</resize>
           <size>400G</size>
         </partition>
-        <partition>
-          <create config:type="boolean">true</create>
-          <filesystem config:type="symbol">swap</filesystem>
-          <format config:type="boolean">true</format>
-          <mount>swap</mount>
-          <mountby config:type="symbol">uuid</mountby>
-          <partition_id config:type="integer">130</partition_id>
-          <partition_nr config:type="integer">2</partition_nr>
-          <resize config:type="boolean">false</resize>
-          <size>16G</size>
-        </partition>
+        <partition/>
       </partitions>
       <type config:type="symbol">CT_DISK</type>
       <use>all</use>
