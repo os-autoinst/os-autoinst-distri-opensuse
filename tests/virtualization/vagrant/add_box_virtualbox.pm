@@ -29,7 +29,11 @@ sub run() {
 }
 
 sub post_fail_hook() {
+    my ($self) = @_;
+
+    upload_logs($vagrant_logfile);
     assert_script_run('rm -rf Vagrantfile testfile .vagrant');
+    $self->SUPER::post_fail_hook;
 }
 
 1;

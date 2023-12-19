@@ -8,8 +8,6 @@ vars:
 schedule:
     - '{{boot_to_desktop}}'
     - '{{add_box_virtualbox}}'
-    - virtualization/vagrant/add_box_libvirt
-    - virtualization/vagrant/sshfs
     - virtualization/vagrant/boxes/tumbleweed
 conditional_schedule:
     add_box_virtualbox:
@@ -20,10 +18,3 @@ conditional_schedule:
         BACKEND:
             qemu:
                 - boot/boot_to_desktop
-            generalhw:
-                - jeos/prepare_firstboot
-                - jeos/firstrun
-                - update/zypper_clear_repos
-                - console/zypper_ar
-                - console/zypper_ref
-                - console/zypper_lr

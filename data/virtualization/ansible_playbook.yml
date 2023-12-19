@@ -26,9 +26,6 @@
 
     - name: get the list of installed packages
       command: rpm -qa
-      args:
-        # we use rpm directly so silence the warning here
-        warn: false
       changed_when: false
       register: pkg_list
 
