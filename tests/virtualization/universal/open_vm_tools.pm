@@ -36,4 +36,10 @@ sub run {
 
 }
 
+sub post_run_hook () {
+    # The test is considered over, this step ensures virtual machine guest is unlocked by removing the 'lock_guest' file via SSH,
+    # it is called at the conclusion of a test run.
+    script_run("ssh root\@$_ rm lock_guest") foreach (keys %virt_autotest::common::guests);
+}
+
 1;
