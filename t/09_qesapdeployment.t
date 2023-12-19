@@ -543,8 +543,8 @@ subtest '[qesap_cluster_logs]' => sub {
     note("\n  SAVE_FILE-->  " . join("\n  SAVE_FILE-->  ", @save_file_calls));
     note("\n  LOG_FILES-->  " . join("\n  LOG_FILES-->  ", @logfile_calls));
     ok((any { /crm status/ } @ansible_calls), 'expected command executed remotely');
-    ok((any { /.*vmhana01-crm_status\.txt/ } @logfile_calls), 'qesap_ansible_script_output_file called with the expected vmhana01 log file');
-    ok((any { /.*vmhana02-crm_status\.txt/ } @logfile_calls), 'qesap_ansible_script_output_file called with the expected vmhana02 log file');
+    ok((any { /.*hana0-crm_status\.txt/ } @logfile_calls), 'qesap_ansible_script_output_file called with the expected vmhana01 log file');
+    ok((any { /.*hana1-crm_status\.txt/ } @logfile_calls), 'qesap_ansible_script_output_file called with the expected vmhana02 log file');
     ok((any { /.*BOUBLE.*/ } @save_file_calls), 'upload_logs is called with whatever filename returned by qesap_ansible_script_output_file');
 };
 
