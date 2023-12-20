@@ -13,7 +13,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro is_vmware is_alp);
+use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro is_vmware is_alp is_bootloader_sdboot);
 use Utils::Architectures;
 use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
@@ -176,6 +176,12 @@ sub run {
         assert_screen $password_needle;
         type_password;
         send_key 'ret';
+    }
+
+    if (is_bootloader_sdboot) {
+        assert_screen 'jeos-root-as-enc-pass';
+        send_key 'ret';
+        wait_serial(qr/^Encryption recovery key:\s+(([a-z]+-)+[a-z]+)/m) or die 'The encryption recovery key is missing';
     }
 
     if (is_sle || is_sle_micro) {
