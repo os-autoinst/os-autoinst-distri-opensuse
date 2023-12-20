@@ -33,7 +33,7 @@ sub run {
     #	kernel parameters and use graphical console
     wait_still_screen 3;
     assert_and_click 'yast2-bootloader_kernel-parameters';
-    assert_screen 'yast2-bootloader_kernel-parameters-switched';
+    apply_workaround_poo124652('yast2-bootloader_kernel-parameters-switched');
     send_key 'alt-p';
     send_key 'end';
     assert_screen 'yast2-bootloader_use-graphical-console';

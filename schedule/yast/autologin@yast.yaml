@@ -13,5 +13,3 @@ schedule:
     - installation/authentication/use_same_password_for_root
     - installation/authentication/enable_autologin
     - installation/authentication/default_user_simple_pwd
-  default_systemd_target:
-    - installation/installation_settings/validate_default_target

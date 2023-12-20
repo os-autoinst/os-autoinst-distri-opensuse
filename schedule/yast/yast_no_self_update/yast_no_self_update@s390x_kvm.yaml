@@ -11,5 +11,3 @@ vars:
 schedule:
   product_selection:
     - installation/validate_no_self_update
-  default_systemd_target:
-    - installation/installation_settings/validate_default_target

@@ -50,7 +50,7 @@ sub run {
     zypper_call 'in sudo expect';
     select_console 'user-console';
     # Defaults targetpw -> asks for root PW
-    my $exp_user = (is_azure && is_sle('=15-SP5')) ? 'bernhard' : 'root';
+    my $exp_user = (is_azure && is_sle('>=15-SP4')) ? 'bernhard' : 'root';
     assert_script_run("expect -c 'spawn sudo id -un;expect \"password for $exp_user\" {send \"$testapi::password\\r\";interact} default {exit 1}' | grep ^$exp_user");
     select_console 'root-console';
     # Prepare a file with content '1' for later IO redirection test
@@ -91,6 +91,9 @@ sub run {
     sudo_with_pw 'sudo env', grep => '-v ENVVAR=test132', env => 'ENVVAR test132';
     # sudoers configuration
     test_sudoers;
+    become_root;
+    assert_script_run 'test -f /etc/sudoers || (cp /usr/etc/sudoers /etc/sudoers && touch /tmp/sudoers.copied)';
+    enter_cmd 'exit';
     sudo_with_pw 'sudo sed -i "s/^Defaults\[\[\:space\:\]\]*targetpw/Defaults\ !targetpw/" /etc/sudoers';
     sudo_with_pw 'sudo sed -i "s/^ALL\[\[\:space\:\]\]*ALL/#ALL ALL/" /etc/sudoers';
     sudo_with_pw 'sudo su - sudo_test';
@@ -106,6 +109,7 @@ sub post_run_hook {
     assert_script_run 'sed -i "s/^Defaults\[\[\:space\:\]\]*\!targetpw/Defaults\ targetpw/" /etc/sudoers';
     assert_script_run 'sed -i "s/^#ALL\[\[\:space\:\]\]*ALL/ALL ALL/" /etc/sudoers';
     assert_script_run 'rm -f /etc/sudoers.d/test /etc/sudoers.d/sudo_group';
+    script_run 'test -f /tmp/sudoers.copied && rm /etc/sudoers /tmp/sudoers.copied';
     # remove test user
     assert_script_run 'userdel -r sudo_test && groupdel sudo_group';
 }

@@ -1,9 +1,0 @@
-name: fde_regen_key
-description:    >
-    This is for the fde_regen_key test.
-schedule:
-    - jeos/firstrun
-    - transactional/host_config
-    - security/selinux/selinux_setup
-    - security/tpm2/check_tpm2
-    - security/fde_regenerate_key

@@ -13,7 +13,8 @@ use serial_terminal 'select_serial_terminal';
 use utils qw(validate_script_output_retry);
 use containers::utils qw(reset_container_network_if_needed);
 use Utils::Architectures;
-use version_utils qw(is_public_cloud is_jeos);
+use Utils::Backends qw(is_xen_pv is_hyperv);
+use version_utils qw(is_public_cloud is_sle is_vmware);
 use utils qw(script_retry);
 
 sub run {
@@ -30,8 +31,15 @@ sub run {
 
     record_info('Test', 'Launch a container with privileged mode');
 
-    # /dev is only accessible in privileged mode
-    assert_script_run("$runtime run --rm --privileged $image ls /dev/bus") unless (is_s390x || is_public_cloud || is_jeos);
+    my $devices = script_run("$runtime run --rm --privileged $image ls /dev");
+    record_info("Devices (privileged)", $devices);
+    $devices = script_run("$runtime run --rm $image ls /dev");
+    record_info("Devices (unprivileged)", $devices);
+
+    # xen-pv does not define USB passthrough in the xml as of now
+    # this feature has to be added -> https://progress.opensuse.org/issues/138410
+    assert_script_run("$runtime run --rm $image bash -c '! test -d /dev/bus'");
+    assert_script_run("$runtime run --rm --privileged $image ls /dev/bus") unless (is_s390x || is_public_cloud || is_xen_pv || is_hyperv || is_vmware);
 
     # Mounting tmpfs only works in privileged mode because the read-only protection in the default mode
     assert_script_run("$runtime run --rm --privileged $image mount -t tmpfs none /mnt");
@@ -42,8 +50,9 @@ sub run {
 
     # Podman inside the container
     assert_script_run("$runtime run -d --privileged --name outer-container $image sleep 100000");
-    assert_script_run("$runtime exec outer-container zypper in -y podman");
-    assert_script_run("$runtime exec outer-container podman run -it $image ls");
+    assert_script_run("$runtime exec outer-container zypper in -r SLE_BCI -y podman");
+    # overlayfs can be used starting with kernel 4.18 by unprivileged users in an user namespace
+    assert_script_run("$runtime exec outer-container podman run -it $image ls") unless is_sle('=15-SP1');
 }
 
 sub cleanup {

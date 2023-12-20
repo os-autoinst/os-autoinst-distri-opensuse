@@ -22,7 +22,7 @@
 use Mojo::Base qw(consoletest);
 use XML::LibXML;
 use utils qw(zypper_call script_retry);
-use version_utils qw(get_os_release is_sle);
+use version_utils qw(get_os_release is_sle is_opensuse);
 use db_utils qw(push_image_data_to_db);
 use containers::common;
 use testapi;
@@ -35,7 +35,7 @@ sub packages_to_install {
     my $scc_timeout = 1200;    # SCC can take really long timetimes
 
     # Avoid PackageKit to conflict about lock with zypper
-    script_run("pkcon quit", die_on_timeout => 0);
+    script_run("pkcon quit", die_on_timeout => 0) if (is_sle || is_opensuse);
 
     # common packages
     my @packages = ('git-core', 'python3', 'gcc', 'jq');
@@ -82,10 +82,9 @@ sub run {
     assert_script_run('while pgrep -f zypp; do sleep 1; done', timeout => 300);
 
     my ($version, $sp, $host_distri) = get_os_release;
-    return if (get_var('HELM_CONFIG') && !($host_distri == "sles" && $version == 15 && $sp >= 3));
 
-    # CONTAINER_RUNTIME can be "docker", "podman" or both "podman,docker"
-    my $engines = get_required_var('CONTAINER_RUNTIME');
+    # CONTAINER_RUNTIMES can be "docker", "podman" or both "podman,docker"
+    my $engines = get_required_var('CONTAINER_RUNTIMES');
     my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
     my $bci_tests_branch = get_var('BCI_TESTS_BRANCH');
 
@@ -112,6 +111,8 @@ sub run {
     } else {
         die "Unexpected distribution ($host_distri) has been used";
     }
+
+    return if (get_var('HELM_CONFIG') && !($host_distri == "sles" && $version == 15 && $sp >= 3));
 
     # For BCI tests using podman, buildah package is also needed
     install_buildah_when_needed($host_distri) if ($engines =~ /podman/);

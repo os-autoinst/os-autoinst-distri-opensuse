@@ -105,7 +105,7 @@ constant values for Trento tests
 =head2 Methods
 =cut
 
-=hean3 clone_trento_deployment
+=head3 clone_trento_deployment
 
 Clone gitlab.suse.de/qa-css/trento
 
@@ -237,6 +237,7 @@ sub get_resource_group {
 =head3 cluster_config
 
 Create a variable map and prepare the qe-sap-deployment using it
+
 =over 3
 
 =item B<PROVIDER> - CloudProvider name
@@ -267,8 +268,12 @@ sub cluster_config {
 
     $variables{HANA_ACCOUNT} = get_required_var("TRENTO_QESAPDEPLOY_HANA_ACCOUNT");
     $variables{HANA_CONTAINER} = get_required_var("TRENTO_QESAPDEPLOY_HANA_CONTAINER");
-    if (get_var("TRENTO_QESAPDEPLOY_HANA_TOKEN")) {
-        $variables{HANA_TOKEN} = get_required_var("TRENTO_QESAPDEPLOY_HANA_TOKEN");
+    if (get_var("TRENTO_QESAPDEPLOY_HANA_KEYNAME")) {
+        $variables{HANA_TOKEN} = qesap_az_create_sas_token(storage => get_required_var('TRENTO_QESAPDEPLOY_HANA_ACCOUNT'),
+            container => (split("/", get_required_var('TRENTO_QESAPDEPLOY_HANA_CONTAINER')))[0],
+            keyname => get_required_var('TRENTO_QESAPDEPLOY_HANA_KEYNAME'),
+            lifetime => 30);
+        record_info('TOKEN', $variables{HANA_TOKEN});
         # escape needed by 'sed'
         # but not implemented in file_content_replace() yet poo#120690
         $variables{HANA_TOKEN} =~ s/\&/\\\&/g;
@@ -859,6 +864,7 @@ sub cluster_wait_status {
 =head3 cluster_wait_status_by_regex
 
 Remotely run 'SAPHanaSR-showAttr' in a loop on $host, wait output that matches regular expression
+
 =over 3
 
 =item B<HOST> - Ansible name or filter for the remote host where to run 'SAPHanaSR-showAttr'

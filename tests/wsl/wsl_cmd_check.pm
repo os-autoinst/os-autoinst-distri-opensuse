@@ -7,7 +7,7 @@
 # Maintainer: qa-c <qa-c@suse.de>
 
 use Mojo::Base qw(windowsbasetest);
-use testapi qw(assert_and_click enter_cmd get_var check_var);
+use testapi;
 use version_utils qw(is_sle is_opensuse);
 use wsl qw(is_sut_reg);
 
@@ -19,7 +19,8 @@ my %expected = (
 sub run {
     my $self = shift;
 
-    $self->open_powershell_as_admin();
+    assert_screen(['windows_desktop', 'powershell-as-admin-window']);
+    $self->open_powershell_as_admin if match_has_tag('windows_desktop');
     $self->run_in_powershell(cmd => 'wsl --list --verbose', timeout => 60);
     $self->run_in_powershell(cmd => "wsl mount | Select-String -Pattern $expected{mount}", timeout => 60);
     $self->run_in_powershell(cmd => qq{wsl ls $expected{mount}}, timeout => 60);

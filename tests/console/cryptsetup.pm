@@ -29,15 +29,7 @@ sub run {
 
     zypper_call('info cryptsetup');
     my $current_ver = script_output("rpm -q --qf '%{version}\n' cryptsetup");
-
-    # cryptsetup attempt to update to 2.4.0+ in SLE15 SP4 base on the feature
-    # SLE-20275: cryptsetup update to 2.4.0
-    if (!is_sle('<15-sp4') && ($current_ver ge 2.4.0)) {
-        record_info('cryptsetup version', "Version of Current cryptsetup package: $current_ver");
-    }
-    else {
-        record_soft_failure('jsc#SLE-20275: cryptsetup version is outdate and need to be updated over 2.4.0+ for SLE15-SP4');
-    }
+    record_info('cryptsetup version', "Version of Current cryptsetup package: $current_ver");
 
     # Create a random volume.
     assert_script_run('dd if=/dev/urandom of=/test.dm bs=1k count=51200');

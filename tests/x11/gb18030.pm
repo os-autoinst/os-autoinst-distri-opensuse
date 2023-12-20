@@ -1,10 +1,10 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: gb18030
-# Summary: GB18030-2005 standard certification
+# Summary: GB18030-2022 standard certification
 # - Download test text file from datadir
 # - Configure gedit and system fonts
 # - Launch gedit and open test text file
@@ -52,7 +52,7 @@ sub run {
     ensure_installed('gedit');
     # download test text file from x11 data directory
     x11_start_program("xterm");
-    enter_cmd("wget " . autoinst_url . "/data/x11/gb18030/{double,four}.txt");
+    enter_cmd("wget " . autoinst_url . "/data/x11/gb18030/{double,four,gb18030-2022}.txt");
 
     enter_cmd("gsettings set org.gnome.gedit.preferences.encodings candidate-encodings \"['GB18030', 'UTF-8']\"");
     enter_cmd("gsettings set org.gnome.gedit.preferences.editor use-default-font false");
@@ -65,7 +65,7 @@ sub run {
     # the following fonts preparing steps are documented at:
     # https://confluence.suse.com/display/~kailiu/How+to+prepare+the+system+for+GB18030-2005+certification
     become_root;
-    zypper_call("rm arphic-ukai-fonts arphic-uming-fonts baekmuk-*-fonts noto-*-tc* noto-*-jp* noto-*-kr* wqy* adobe-sourcecodepro-fonts xorg-x11-fonts-converted", exitcode => [0, 104]);
+    zypper_call("rm arphic-ukai-fonts arphic-uming-fonts baekmuk-*-fonts noto-*-tc* noto-*-jp* noto-*-kr* wqy* adobe-sourcecodepro-fonts xorg-x11-fonts-converted xscreensaver", exitcode => [0, 104]);
     zypper_call("in noto-sans-sc-mono-fonts");
     script_run("ln -s /usr/share/fontconfig/conf.avail/70-no-bitmaps.conf /etc/fonts/conf.d/");
 
@@ -74,6 +74,7 @@ sub run {
 
     test_gb18030_file('double', 45);
     test_gb18030_file('four', 9);
+    test_gb18030_file('gb18030-2022', 1);
 }
 
 1;

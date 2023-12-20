@@ -58,7 +58,7 @@ sub install_dhcp_container {
     assert_script_run("podman container runlabel install $image");
 
     # Copy the configured kea-dhcp6 config file to the container host and add the network interface name to listen on DHCP4 server
-    my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | head -n1");
+    my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep -v ^lo: | head -n1");
     ($device, $nm_id) = split(':', $nm_list);
     assert_script_run('curl -v -o /etc/kea/kea-dhcp6.conf  ' . data_url('kea-dhcp/kea-dhcp6.conf'));
     assert_script_run("cat  /etc/kea/kea-dhcp6.conf");
@@ -70,13 +70,11 @@ sub install_dhcp_container {
     # Start the dhcp6 container in the background
     assert_script_run("podman run -itd --replace --name kea-dhcp6 --privileged --network=host -v /etc/kea:/etc/kea $image  kea-dhcp6 -c /etc/kea/kea-dhcp6.conf");
     validate_script_output('podman ps ', sub { m/kea-dhcp6/ });
-    # cni-podman0 interface is created when running the first container
-    validate_script_output('ip a s cni-podman0', sub { /,UP/ });
 }
 
 sub setup_static_mm_network_ipv6 {
     my $ip = shift;
-    my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | head -n1");
+    my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep -v ^lo: | head -n1");
     ($device, $nm_id) = split(':', $nm_list);
     record_info('set_ip', "Device: $device\n NM ID: $nm_id\nIP: $ip");
     assert_script_run "nmcli connection modify '$nm_id' ifname '$device' ip6 $ip ipv6.method manual";

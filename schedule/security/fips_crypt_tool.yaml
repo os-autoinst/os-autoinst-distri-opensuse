@@ -2,12 +2,11 @@ name: fips_crypt_tool
 description:    >
     This is for the crypt_tool fips tests.
 schedule:
-    - '{{boot}}'
+    - installation/bootloader_start
     - boot/boot_to_desktop
     - console/consoletest_setup
     - '{{repo_setup}}'
     - fips/fips_setup
-    - '{{y2_vnc_pvm}}'
     - fips/curl_fips_rc4_seed
     - console/aide_check
     - console/gpg
@@ -17,16 +16,17 @@ schedule:
     - console/openvswitch_ssl
     - console/ntp_client
     - console/cups
+    - console/cryptsetup
     - console/syslog
     - x11/evolution/evolution_prepare_servers
     - console/mutt
+    - fips/squid/squid_init
+    - fips/squid/squid_web_proxy
+    - fips/squid/squid_reverse_proxy
+    - security/ecryptfs/ecryptfs
+    - security/libserf/libserf
+    - '{{kern_only_tests}}'
 conditional_schedule:
-    boot:
-        ARCH:
-            s390x:
-                - installation/bootloader_start
-            ppc64le:
-                - installation/bootloader_start
     repo_setup:
         BETA:
             1:
@@ -34,7 +34,8 @@ conditional_schedule:
         FLAVOR:
             Online-QR:
                 - security/test_repo_setup
-    y2_vnc_pvm:
-        BACKEND:
-            pvm_hmc:
-                - console/yast2_vnc
+    kern_only_tests:
+        TEST_SUITE_NAME:
+            fips_ker_mode_tests_crypt_tool:
+                - security/dm_crypt
+                - console/suseconnect.pm

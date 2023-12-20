@@ -27,7 +27,7 @@ sub run {
 
     my ($version, $sp, $host_distri) = get_os_release;
     # Skip HELM tests on SLES <15-SP3 and on PPC, where k3s is not available
-    return if (!($host_distri == "sles" && $version == 15 && $sp >= 3) || is_ppc64le || check_var('CONTAINER_RUNTIME', 'k8s'));
+    return if (!($host_distri == "sles" && $version == 15 && $sp >= 3) || is_ppc64le || check_var('CONTAINER_RUNTIMES', 'k8s'));
 
     systemctl 'stop firewalld';
     ensure_ca_certificates_suse_installed();

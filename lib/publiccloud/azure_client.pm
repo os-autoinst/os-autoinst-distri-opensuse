@@ -76,9 +76,4 @@ sub get_container_image_full_name {
     return "$full_name_prefix/$tag";
 }
 
-
-sub cleanup {
-    my ($self) = @_;
-}
-
 1;

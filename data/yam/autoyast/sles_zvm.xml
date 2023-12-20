@@ -154,7 +154,7 @@
     <dns t="map">
       <dhcp_hostname t="boolean">true</dhcp_hostname>
       <nameservers t="list">
-        <nameserver>10.160.0.1</nameserver>
+        <nameserver>10.144.53.53</nameserver>
       </nameservers>
       <resolv_conf_policy>auto</resolv_conf_policy>
       <searchlist t="list">

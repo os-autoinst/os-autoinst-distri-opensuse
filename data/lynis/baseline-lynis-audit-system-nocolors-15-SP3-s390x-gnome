@@ -207,7 +207,7 @@
 [2C- Checking configured nameservers[26C
 [4C- Testing nameservers[36C
 [8CNameserver: 10.160.2.88[30C [ OK ]
-[8CNameserver: 10.160.0.1[31C [ OK ]
+[8CNameserver: 10.144.53.53[31C [ OK ]
 [4C- Minimal of 2 responsive nameservers[20C [ OK ]
 [2C- Getting listening ports (TCP/UDP)[24C [ DONE ]
 [6C* Found 35 ports[39C

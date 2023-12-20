@@ -21,31 +21,23 @@ use testapi;
 use utils;
 use serial_terminal 'select_serial_terminal';
 use transactional qw(trup_call check_reboot_changes process_reboot);
-use version_utils qw(is_transactional);
+use version_utils qw(is_transactional is_sle is_sle_micro is_leap is_leap_micro);
 use Utils::Systemd 'disable_and_stop_service';
 use power_action_utils 'power_action';
 use Utils::Backends 'is_pvm';
-
-sub install_pkg {
-    if (is_transactional) {
-        trup_call('pkg install chrony');
-        check_reboot_changes;
-    }
-    else {
-        zypper_call('in chrony');
-    }
-}
+use package_utils;
 
 sub run {
     my $self = shift;
     select_serial_terminal;
 
-    install_pkg if (script_run('rpm -qi chrony') != 0);
+    install_package('chrony', trup_reboot => 1) if script_run('rpm -qi chrony') != 0;
     systemctl("start chronyd");    # Ensure chrony is started
     assert_script_run('chronyc makestep');
     record_info('Show current date and time', script_output('date +"%Y-%m-%d"'));
-    assert_script_run('utmpdump /var/run/utmp');
-    assert_script_run('utmpdump /var/log/wtmp');
+    # Use LC_TIME=C.UTF-8 to force full date output including the year
+    assert_script_run('LC_TIME=C.UTF-8 who');
+    assert_script_run('last -F');
 
     # Stop the chrony service so that we can change date and time
     disable_and_stop_service('chronyd.service');
@@ -54,9 +46,8 @@ sub run {
     record_info('Timewarp', script_output('timedatectl status'));
     assert_script_run('timedatectl set-time "2038-01-20 03:14:07"');
 
-    # We may need to logout and login again to make the date/time change
-    # However, we need to handle many platforms and different products.
-    # Reboot the system to acieve this is a simple way for the time being.
+    # Trigger a reboot to make the date/time change fully effective and
+    # generate some last/who entries.
     if (is_transactional) {
         process_reboot(trigger => 1);
     }
@@ -67,9 +58,15 @@ sub run {
     }
     select_serial_terminal;
     record_info("time after reboot", script_output("timedatectl status"));
-    my $utmp_output = script_output('utmpdump /var/run/utmp');
-    my $wtmp_output = script_output('utmpdump /var/log/wtmp');
-    record_soft_failure('bsc#1188626 uttmpdump shows incorrect year for 2038 and beyond') if ($utmp_output !~ m/2038/sx || $wtmp_output !~ m/2038/sx);
+    my $utmp_output = script_output('LC_TIME=C.UTF-8 who');
+    my $wtmp_output = script_output('last -F');
+    if ($utmp_output !~ m/2038/sx || $wtmp_output !~ m/2038/sx) {
+        if (is_sle('<16') || is_leap('<16.0') || is_sle_micro || is_leap_micro) {
+            record_soft_failure('bsc#1188626 SLE <= 15 not Y2038 compatible');
+        } else {
+            die('Not Y2038 compatible');
+        }
+    }
     systemctl('start chronyd.service');
     record_info('Show NTP sources', script_output('chronyc -n sources -v -a'));
 
@@ -77,16 +74,13 @@ sub run {
     # wait for chronyd service to check the system clock change;
     # add some timeout after 'chronyc makestep'
     script_retry('journalctl -u chronyd | grep -e "System clock wrong" -e "Received KoD RATE"', delay => 60, retry => 3, die => 0);
-    record_soft_failure('poo#127343, Time sync with NTP server failed') if script_run('chronyc makestep && sleep 2 && (date +"%Y-%m-%d" | grep -v 2038)') != 0;
+    assert_script_run('chronyc makestep');
+    record_soft_failure('poo#127343, Time sync with NTP server failed') unless script_retry('date +"%Y-%m-%d" | grep -v 2038', delay => 5, retry => 5, die => 0) == 0;
 }
 
-sub post_run_hook {
-    my ($self) = shift;
-    upload_logs('/var/log/wtmp');
-}
-
-# We need to force the sytem to rollback to snapshot because of poo#127343
-# so that we can get the right system clock
+# Rollback the system because of poo#127343, to restore the chronyd.service state,
+# to avoid polluting the journal with time travel (very confusing to read) and other
+# side effects of time warps.
 sub test_flags {
     return {always_rollback => 1};
 }

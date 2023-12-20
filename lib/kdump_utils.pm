@@ -23,17 +23,19 @@ our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump
   kdump_is_active do_kdump configure_service check_function
   full_kdump_check deactivate_kdump_cli);
 
-sub determine_kernel_debuginfo_package {
-    # Using the provided capabilities of the currently active kernel, get the
-    # name and version of the shortest flavor and add "-debuginfo" to the name.
+sub determine_kernel_debuginfo_latest_version {
+    # Using the provided capabilities of the latest installed kernel,
+    # get the name and version and add "-debuginfo" to the name.
+    # There is only kernel-default-debuginfo for both kernel-default & -base,
+    # kernel-default-base has extended version of kernel-default
     # Before kernel-default-base was built separately (< 15 SP2/15.2):
     # kernel-default-base(x86-64) = 4.12.14-197.37.1
-    # -> kernel-default-base-debuginfo-4.12.14-197.37.1
+    # -> kernel-default-debuginfo-4.12.14-197.37.1
     # With kernel-default-base built separately (>= 15 SP2/15.2):
     # kernel-default(x86-64) = 5.3.18-lp152.26.2
     # kernel-default-base(x86-64) = 5.3.18-lp152.26.2.lp152.8.2.2
     # -> kernel-default-debuginfo-5.3.18-lp152.26.2
-    return script_output('rpm -qf /boot/initrd-$(uname -r) --provides | awk \'match($0,/(kernel-.+)\(.+\) = (.+)/,m) {printf "%d %s-debuginfo-%s\n", length($0), m[1], m[2]}\' | sort -n | head -n1 | cut -d" " -f2-');
+    return script_output(q(zypper se -t package -s --match-exact kernel-default|awk -F'|' '/[0-9]+/ {print$4}'|sort -Vr|head -n1));
 }
 
 my $install_debug_info_timeout = 4000;
@@ -49,8 +51,8 @@ sub install_kernel_debuginfo {
     my $import_gpg = get_var('BUILD') =~ /^MR:/ ? '--gpg-auto-import-keys' : '';
     zypper_call "$import_gpg ref";
     return undef if get_var('SKIP_KERNEL_DEBUGINFO');
-    my $debuginfo = determine_kernel_debuginfo_package;
-    zypper_call("-v in $debuginfo", timeout => $install_debug_info_timeout);
+    my $version = determine_kernel_debuginfo_latest_version;
+    zypper_call("-v in kernel-default-debuginfo=$version", timeout => $install_debug_info_timeout);
 }
 
 sub get_repo_url_for_kdump_sle {
@@ -363,6 +365,7 @@ sub configure_service {
     }
 
     prepare_for_kdump(%args);
+    select_console 'root-console';
     if ($args{yast_interface} eq 'cli') {
         is_transactional ? activate_kdump_transactional : activate_kdump_cli;
     } else {
@@ -425,17 +428,28 @@ sub check_function {
     assert_script_run 'find /var/crash/';
 
     if ($args{test_type} eq 'function') {
-        # Check, that vmcore exists, otherwise fail
-        assert_script_run('ls -lah /var/crash/*/vmcore', 240);
-        if (is_transactional) {
-            # there is no crash utility; check at least that the core dump is not empty
-            assert_script_run('files=(/var/crash/*/vmcore) && test -s "${files[-1]}"', 240);
+        # check that core dump exists and that it is not empty
+        assert_script_run('files=(/var/crash/*/vmcore) && test -s "${files[-1]}"', 240);
+
+        # check the core dump via the crash utility if possible
+        my $crash_cmd;
+        my $vmcore_glob = '/var/crash/*/vmcore';
+        my $vmlinux_glob = (is_sle("<16") || is_sle_micro("<6.0") || is_leap("<16.0"))
+          ? '/boot/vmlinux-$(uname -r)*'
+          : '/usr/lib/modules/$(uname -r)/vmlinux*';
+        if (!is_transactional) {
+            $crash_cmd = "echo exit | crash `ls -1t $vmcore_glob | head -n1` $vmlinux_glob";
         }
-        else {
-            my $vmlinux = (is_sle("<16") || is_leap("<16.0")) ? '/boot/vmlinux-$(uname -r)*' : '/usr/lib/modules/$(uname -r)/vmlinux*';
-            my $crash_cmd = "echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` $vmlinux";
-            validate_script_output "$crash_cmd", sub { m/PANIC:\s([^\s]+)/ }, is_aarch64 ? 1200 : 800;
+        elsif (!get_var('SKIP_KERNEL_DEBUGINFO')) {
+            my $vmcore = script_output("ls -1t $vmcore_glob");
+            my $vmlinux = script_output("ls -1t $vmlinux_glob");
+            my $vmlinuxd = script_output('rpm -ql kernel-default-debuginfo | grep vmlinux');
+            my $zypper_call = 'zypper -n in crash';
+            my $crash_call = "echo exit | crash /host/$vmcore /host/$vmlinux /host/$vmlinuxd";
+            my $bash_cmd = "$zypper_call && $crash_call";
+            $crash_cmd = "podman container run --privileged -v '/:/host' registry.opensuse.org/opensuse/tumbleweed bash -c '$bash_cmd'";
         }
+        validate_script_output $crash_cmd, sub { m/PANIC:\s([^\s]+)/ }, is_aarch64 ? 1200 : 800 if $crash_cmd;
     }
     else {
         # migration tests need remove core files before migration start

@@ -13,6 +13,7 @@ package YaST::NetworkSettings::NetworkCardSetup::VLANAddressTab;
 use strict;
 use warnings;
 use testapi;
+use YaST::workarounds;
 use parent 'YaST::NetworkSettings::NetworkCardSetup::AddressTab';
 
 use constant {
@@ -22,7 +23,7 @@ use constant {
 
 sub fill_in_vlan_id {
     my ($self, $vlan_id) = @_;
-    assert_screen(ADDRESS_TAB);
+    apply_workaround_poo124652(ADDRESS_TAB);
     send_key 'alt-v';
     send_key 'tab';
     wait_screen_change { type_string($vlan_id) };

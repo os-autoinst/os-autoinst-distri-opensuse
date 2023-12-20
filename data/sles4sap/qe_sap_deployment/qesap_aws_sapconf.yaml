@@ -36,6 +36,7 @@ ansible:
     secondary_site: 'miky'
   create:
     - registration.yaml -e reg_code='%SCC_REGCODE_SLES4SAP%' -e email_address='testing@suse.com'
+    - fully-patch-system.yaml
     - pre-cluster.yaml
     - sap-hana-preconfigure.yaml -e use_sapconf=true
     - sap-hana-storage.yaml
@@ -43,6 +44,6 @@ ansible:
     - sap-hana-install.yaml
     - sap-hana-system-replication.yaml
     - sap-hana-system-replication-hooks.yaml
-    - sap-hana-cluster.yaml -e use_sbd=false
+    - sap-hana-cluster.yaml
   destroy:
     - deregister.yaml

@@ -480,6 +480,7 @@ sub load_online_migration_tests {
     if (is_sle && (get_var('FLAVOR') =~ /Migration/) && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE'))) {
         loadtest "console/check_os_release";
         loadtest "console/check_system_info";
+        loadtest "console/verify_lock_package" if (get_var("LOCK_PACKAGE"));
     }
 }
 
@@ -1181,17 +1182,12 @@ else {
             if (is_sle && (get_var('FLAVOR') =~ /Migration/) && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE'))) {
                 loadtest "console/check_os_release";
                 loadtest "console/check_system_info";
+                loadtest "console/verify_lock_package" if (get_var("LOCK_PACKAGE"));
             }
         }
     }
     elsif (get_var("BOOT_HDD_IMAGE") && !is_jeos) {
         boot_hdd_image;
-        if (get_var("ADDONS")) {
-            loadtest "installation/addon_products_yast2";
-        }
-        if (get_var('SCC_ADDONS') && !get_var('SLENKINS_NODE') && !get_var('PUBLIC_CLOUD')) {
-            loadtest "installation/addon_products_via_SCC_yast2";
-        }
         if (get_var("ISCSI_SERVER")) {
             set_var('INSTALLONLY', 1);
             loadtest "iscsi/iscsi_server";

@@ -20,5 +20,3 @@ schedule:
     - installation/partitioning/warning/prep_small
     - installation/partitioning/warning/zipl_small
     - installation/partitioning/warning/rootfs_small
-  default_systemd_target:
-    - installation/installation_settings/validate_default_target

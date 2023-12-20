@@ -34,7 +34,7 @@ sub grub_test {
 
     reconnect_mgmt_console if is_pvm;
     handle_installer_medium_bootup();
-    workaround_type_encrypted_passphrase;
+    unlock_bootloader;
     # 60 due to rare slowness e.g. multipath poo#11908
     # 90 as a workaround due to the qemu backend fallout
     assert_screen('grub2', $timeout);

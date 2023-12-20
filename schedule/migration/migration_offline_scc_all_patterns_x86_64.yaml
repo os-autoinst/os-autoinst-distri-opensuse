@@ -14,7 +14,7 @@ schedule:
   - migration/install_all_patterns
   - migration/query_all_rpm
   - migration/record_disk_info
-  - migration/reboot_to_upgrade
+  - migration/reboot_to_migration
   - migration/version_switch_upgrade_target
   - installation/bootloader
   - installation/welcome

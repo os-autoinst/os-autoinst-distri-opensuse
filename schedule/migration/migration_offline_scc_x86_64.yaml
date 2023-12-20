@@ -11,7 +11,7 @@ schedule:
   - migration/patch_and_reboot_system
   - migration/setup_sle
   - migration/record_disk_info
-  - migration/reboot_to_upgrade
+  - migration/reboot_to_migration
   - migration/version_switch_upgrade_target
   - installation/bootloader
   - installation/welcome

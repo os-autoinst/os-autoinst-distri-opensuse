@@ -11,8 +11,6 @@ schedule:
     - installation/module_registration/register_module_desktop
   system_role:
     - installation/system_role/accept_selected_role_SLES_with_GNOME
-  default_systemd_target:
-    - installation/installation_settings/validate_default_target
   system_preparation:
     - console/system_prepare
   system_validation:

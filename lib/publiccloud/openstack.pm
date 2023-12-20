@@ -100,7 +100,6 @@ sub cleanup {
     my ($self) = @_;
     $self->terraform_destroy() if ($self->terraform_applied);
     $self->delete_keypair();
-    $self->provider_client->cleanup();
     $self->delete_floating_ip();
 }
 

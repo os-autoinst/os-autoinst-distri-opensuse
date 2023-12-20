@@ -6,21 +6,19 @@
 # Summary: Generic yaml template for use with qe-sap-deployment project: https://github.com/SUSE/qe-sap-deployment
 #   Settings are meant to be controlled via OpenQA variables and managed by test:
 #   tests/sles4sap/publiccloud/qesap_ansible.pm
-
 provider: 'aws'
 apiver: 3
 terraform:
   variables:
     # GENERAL VARIABLES #
     aws_region: '%PUBLIC_CLOUD_REGION%'
-    aws_credentials: '/root/amazon_credentials'
-    admin_user: 'cloudadmin'
     deployment_name: '%QESAP_DEPLOYMENT_NAME%'
+    admin_user: 'cloudadmin'
     public_key: '~/.ssh/id_rsa.pub'
     private_key: '~/.ssh/id_rsa'
-    os_image: '%SLE_IMAGE%'
+    aws_credentials: '/root/amazon_credentials'
+    os_image: '%SLES4SAP_OS_IMAGE_NAME%'
     os_owner: '%SLE_IMAGE_OWNER%'
-    hana_os_major_version: '%HANA_OS_MAJOR_VERSION%'
 
     # HANA
     hana_count: '%NODE_COUNT%'

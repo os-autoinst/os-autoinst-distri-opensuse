@@ -46,7 +46,7 @@ sub install_dependencies_cthon04 {
 sub install_testsuite {
     my $testsuite = shift;
     if (get_var("PYNFS")) {
-        my $url = get_var('PYNFS_GIT_URL', 'git://git.linux-nfs.org/projects/bfields/pynfs.git');
+        my $url = get_var('PYNFS_GIT_URL', 'git://git.linux-nfs.org/projects/cdmackay/pynfs.git');
         my $rel = get_var('PYNFS_RELEASE');
 
         $rel = "-b $rel" if ($rel);

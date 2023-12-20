@@ -29,6 +29,8 @@ sub run {
     my $sc_dtch_msg = "Screen detached";
     my $sc_term_msg = "Screen terminated";
 
+    zypper_call('in nscd');
+
     systemctl('start auditd');
 
     $self->aa_tmp_prof_prepare("$aa_tmp_prof");

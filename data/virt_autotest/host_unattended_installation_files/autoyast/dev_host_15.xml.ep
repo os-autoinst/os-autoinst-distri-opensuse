@@ -96,14 +96,6 @@
   <networking>
     <keep_install_network config:type="boolean">true</keep_install_network>
     <backend>wicked</backend>
-    <dns>
-      <dhcp_hostname config:type="boolean">true</dhcp_hostname>
-      <nameservers config:type="list">
-        <nameserver>10.162.0.1</nameserver>
-<!--gonzo and a another machine can not get nameserver from local dns server after autoyast installation. Put a static nameserver option above. If nameserver is retrived from dhcp they will be merged. Otherwise use the static -->
-      </nameservers>
-      <resolv_conf_policy>auto</resolv_conf_policy>
-    </dns>
     <virt_bridge_proposal config:type="boolean">true</virt_bridge_proposal>
   </networking>
   <ntp-client>

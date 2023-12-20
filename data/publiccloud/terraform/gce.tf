@@ -131,9 +131,10 @@ resource "google_compute_instance" "openqa" {
         }, var.tags)
 
     network_interface {
-        network = "default"
-            access_config {
-        }
+        network = "tf-network"
+        subnetwork = "tf-subnetwork"
+        access_config {}
+        stack_type = "IPV4_ONLY"
     }
 
     service_account {

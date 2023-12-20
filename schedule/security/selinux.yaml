@@ -5,6 +5,7 @@ schedule:
     - '{{bootloader_zkvm}}'
     - '{{sle_os_boot}}'
     - '{{alp_boot}}'
+    - '{{scc_slem}}'
     - security/selinux/selinux_setup
     - security/selinux/sestatus
     - '{{sle_os_tests}}'
@@ -42,6 +43,10 @@ conditional_schedule:
             1:
                 - jeos/firstrun
                 - transactional/host_config
+    scc_slem:
+        DISTRI:
+            sle-micro:
+                - console/suseconnect_scc
     sle_os_tests:
         DISTRI:
             sle:

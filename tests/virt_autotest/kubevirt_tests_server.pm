@@ -404,7 +404,7 @@ EOF
     assert_script_run("echo 'tmpfs /var/provision/kubevirt.io/tests tmpfs rw 0 0' >> /etc/fstab");
 
     # bsc#1210884
-    assert_script_run(qq(kubectl -n kubevirt patch kubevirt kubevirt --type merge --patch '{"spec": {"configuration": {"developerConfiguration": {"pvcTolerateLessSpaceUpToPercent": 20}}}}'));
+    assert_script_run(qq(kubectl -n kubevirt patch kubevirt kubevirt --type merge --patch '{"spec": {"configuration": {"developerConfiguration": {"pvcTolerateLessSpaceUpToPercent": 30}}}}'));
 
     # bsc#1210906
     assert_script_run("sysctl -w vm.unprivileged_userfaultfd=1");
@@ -513,19 +513,18 @@ EOF
         $junit_xml = "$result_dir/$specific_test.xml";
         $test_log = "$result_dir/$specific_test.log";
 
-        if ($kubevirt_ver lt "0.50.0") {
-            $ginkgo_v2 = "-ginkgo.regexScansFilePath=true " .
-              "-ginkgo.focus='$ginkgo_focus' " .
-              "-ginkgo.skip='QUARANTINE$ginkgo_skip' " .
-              "-ginkgo.slowSpecThreshold 60 " .
-              "-ginkgo.v=true -ginkgo.trace=true " .
-              "-ginkgo.noisySkippings=false -ginkgo.progress=true";
-        } else {
+        if ($kubevirt_ver lt "1.0.0") {
             $ginkgo_v2 = "--ginkgo.focus='$ginkgo_focus' " .
               "--ginkgo.skip='QUARANTINE$ginkgo_skip' " .
               "--ginkgo.slow-spec-threshold 60s " .
               "--ginkgo.v=true --ginkgo.trace=true " .
               "--ginkgo.progress=true";
+        } else {
+            $ginkgo_v2 = "--ginkgo.focus='$ginkgo_focus' " .
+              "--ginkgo.skip='QUARANTINE$ginkgo_skip' " .
+              "--ginkgo.poll-progress-after 60s " .
+              "--ginkgo.v=true --ginkgo.trace=true " .
+              "--ginkgo.show-node-events";
         }
 
         $test_cmd = "virt-tests $ginkgo_v2 -kubeconfig=/root/.kube/config " .
@@ -562,24 +561,25 @@ EOF
             $junit_xml = "$result_dir/${section}.xml";
             $test_log = "$result_dir/${section}.log";
 
-            if ($kubevirt_ver lt "0.50.0") {
-                $ginkgo_v2 = "-ginkgo.regexScansFilePath=true " .
-                  "-ginkgo.focus='$go_test' " .
-                  "-ginkgo.skip='QUARANTINE$skip_test' " .
-                  "-ginkgo.slowSpecThreshold 60 " .
-                  "-ginkgo.v=true -ginkgo.trace=true " .
-                  "-ginkgo.noisySkippings=false -ginkgo.progress=true";
+            if ($go_test =~ /\.go$/) {
+                $ginkgo_focus = "--ginkgo.focus-file='$go_test' ";
             } else {
-                if ($go_test =~ /\.go$/) {
-                    $ginkgo_focus = "--ginkgo.focus-file='$go_test' ";
-                } else {
-                    $ginkgo_focus = "--ginkgo.focus='$go_test' ";
-                }
+                $ginkgo_focus = "--ginkgo.focus='$go_test' ";
+            }
+
+            if ($kubevirt_ver lt "1.0.0") {
                 $ginkgo_v2 = $ginkgo_focus .
                   "--ginkgo.skip='QUARANTINE$skip_test' " .
                   "--ginkgo.slow-spec-threshold 60s " .
                   "--ginkgo.v=true --ginkgo.trace=true " .
                   "--ginkgo.progress=true " .
+                  "--ginkgo.timeout=24h";
+            } else {
+                $ginkgo_v2 = $ginkgo_focus .
+                  "--ginkgo.skip='QUARANTINE$skip_test' " .
+                  "--ginkgo.poll-progress-after 60s " .
+                  "--ginkgo.v=true --ginkgo.trace=true " .
+                  "--ginkgo.show-node-events " .
                   "--ginkgo.timeout=24h";
             }
 

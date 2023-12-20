@@ -17,6 +17,12 @@ use utils;
 use lockapi;
 use Utils::Logging qw(tar_and_upload_log export_logs);
 
+our $file = 'tmpresults.xml';
+# xml vars
+my $load_rt = undef;
+my $compile_rt = undef;
+my $rt = undef;
+
 sub run ($self) {
     my $mpi = $self->get_mpi();
     my ($mpi_compiler, $mpi_c) = $self->get_mpi_src();
@@ -43,13 +49,15 @@ sub run ($self) {
 
     barrier_wait('MPI_SETUP_READY');
     if (check_var('HPC_LIB', 'boost')) {
-        assert_script_run "spack load boost^$mpi";
+        $load_rt = assert_script_run "spack load boost^$mpi";
         assert_script_run 'spack find --loaded';
-        assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin -l boost_mpi -I \${BOOST_ROOT}/include/ -L \${BOOST_ROOT}/lib 2>&1 > /tmp/make.out");
+        $compile_rt = assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin -l boost_mpi -I \${BOOST_ROOT}/include/ -L \${BOOST_ROOT}/lib 2>&1 > /tmp/make.out");
     } else {
-        assert_script_run "spack load $mpi";
-        assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin  2>&1 > /tmp/make.out");
+        $load_rt = assert_script_run "spack load $mpi";
+        $compile_rt = assert_script_run("$mpi_compiler $exports_path{'bin'}/$mpi_c -o $exports_path{'bin'}/$mpi_bin  2>&1 > /tmp/make.out");
     }
+    test_case('Enable modules', 'Load spack modules', $load_rt);
+    test_case('Compilation', 'Program compiled successfully', $compile_rt);
     barrier_wait('MPI_BINARIES_READY');
 
     type_string "sudo systemctl restart sshd\n";
@@ -59,11 +67,14 @@ sub run ($self) {
     systemctl 'status sshd';
     # Testing compiled code
     record_info('INFO', 'Run MPI over single machine');
-    assert_script_run("mpirun $exports_path{'bin'}/$mpi_bin");
+    $rt = assert_script_run("mpirun $exports_path{'bin'}/$mpi_bin");
+    test_case("$mpi_compiler test 0", 'Run in a single node', $compile_rt);
 
     record_info('INFO', 'Run MPI over several nodes');
     my $nodes = join(',', @cluster_nodes);
-    assert_script_run("mpirun -n 2 --host $nodes $exports_path{'bin'}/$mpi_bin", timeout => 120);
+    $rt = assert_script_run("mpirun -n 2 --host $nodes $exports_path{'bin'}/$mpi_bin", timeout => 120);
+    test_case("$mpi_compiler test 0", 'Run parallel', $compile_rt);
+
     barrier_wait('MPI_RUN_TEST');
 }
 
@@ -74,6 +85,8 @@ sub test_flags ($self) {
 sub post_run_hook ($self) {
     tar_and_upload_log("/etc/spack", "/tmp/spack_etc.tar", {timeout => 1200, screenshot => 1});
     $self->uninstall_spack_modules();
+    parse_test_results('HPC MPI tests', $file, @all_tests_results);
+    parse_extra_log('XUnit', "/tmp/$file");
 }
 
 sub post_fail_hook ($self) {

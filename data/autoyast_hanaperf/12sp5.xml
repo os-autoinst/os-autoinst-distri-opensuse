@@ -1,0 +1,263 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <add-on>
+    <add_on_products config:type="list"/>
+  </add-on>
+  <bootloader>
+    <global>
+      <append>showopts</append>
+      <terminal>serial</terminal>
+      <timeout config:type="integer">8</timeout>
+    </global>
+    <loader_type>grub2-efi</loader_type>
+  </bootloader>
+  <firewall>
+    <enable_firewall config:type="boolean">false</enable_firewall>
+    <start_firewall config:type="boolean">false</start_firewall>
+  </firewall>
+  <general>
+    <ask-list config:type="list"/>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+    <proposals config:type="list"/>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+    <storage>
+      <partition_alignment config:type="symbol">align_optimal</partition_alignment>
+      <start_multipath config:type="boolean">false</start_multipath>
+    </storage>
+  </general>
+  <kdump>
+    <add_crash_kernel config:type="boolean">false</add_crash_kernel>
+    <crash_kernel config:type="list">
+      <listentry>225M,high</listentry>
+      <listentry>72M,low</listentry>
+    </crash_kernel>
+  </kdump>
+  <keyboard>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages/>
+  </language>
+  <login_settings/>
+  <networking>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+    <managed config:type="boolean">false</managed>
+  </networking>
+  <partitioning config:type="list">
+    <drive>
+      <device>/dev/sda</device>
+      <disklabel>gpt</disklabel>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <filesystem config:type="symbol">vfat</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>umask=0002,utf8=true</fstopt>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mount>/boot/efi</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">259</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+          <resize config:type="boolean">false</resize>
+          <size>155352576</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>defaults</fstopt>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mount>swap</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">130</partition_id>
+          <partition_nr config:type="integer">2</partition_nr>
+          <resize config:type="boolean">false</resize>
+          <size>2146598400</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>defaults</fstopt>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mount>/</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">3</partition_nr>
+          <resize config:type="boolean">false</resize>
+          <size>max</size>
+          <subvolumes config:type="list">
+            <listentry>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>boot/grub2/i386-pc</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>boot/grub2/x86_64-efi</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>home</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>opt</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>srv</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>tmp</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>usr/local</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>var/cache</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>var/crash</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">false</copy_on_write>
+              <path>var/lib/libvirt/images</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>var/lib/machines</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>var/lib/mailman</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">false</copy_on_write>
+              <path>var/lib/mariadb</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">false</copy_on_write>
+              <path>var/lib/mysql</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>var/lib/named</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">false</copy_on_write>
+              <path>var/lib/pgsql</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">false</copy_on_write>
+              <path>var/log</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>var/opt</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>var/spool</path>
+            </listentry>
+            <listentry>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>var/tmp</path>
+            </listentry>
+          </subvolumes>
+        </partition>
+      </partitions>
+      <pesize/>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <services-manager>
+    <default_target>multi-user</default_target>
+    <services>
+      <disable config:type="list"/>
+      <enable config:type="list">
+        <service>sshd</service>
+        <service>wicked</service>
+        <service>wickedd-auto4</service>
+        <service>wickedd-dhcp4</service>
+        <service>wickedd-nanny</service>
+      </enable>
+    </services>
+  </services-manager>
+  <software>
+    <image/>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <instsource/>
+    <packages config:type="list">
+      <package>openssh</package>
+      <package>numactl</package>
+      <package>grub2-x86_64-efi</package>
+      <package>glibc</package>
+      <package>efibootmgr</package>
+      <package>e2fsprogs</package>
+      <package>dosfstools</package>
+      <package>btrfsprogs</package>
+      <package>biosdevname</package>
+    </packages>
+    <patterns config:type="list">
+      <pattern>32bit</pattern>
+      <pattern>Minimal</pattern>
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>documentation</pattern>
+      <pattern>sles-Minimal-32bit</pattern>
+      <pattern>sles-apparmor-32bit</pattern>
+      <pattern>sles-base-32bit</pattern>
+      <pattern>sles-documentation-32bit</pattern>
+      <pattern>sles-yast2</pattern>
+      <pattern>yast2</pattern>
+    </patterns>
+  </software>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>Asia/Shanghai</timezone>
+  </timezone>
+  <users config:type="list">
+    <user>
+      <authorized_keys config:type="list">
+        <authorized_key>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQClFIdtrTSLrBH9hg45x87LlKD65/omvfyQOpz2zecZkrnAmXGH2Qkjg9yReL8pVYAS4xVzWyUy4A7yoANarsGZ00h2P2cmNW5hsubrsYOggKjzxBKGVq7krNRQ7G35L3NRWPjccbRzTvvvjE/SEL2wyFMff7Djk/g9FZDFH3wY2m+9dlvNF/EHvUU1W9hr0zfCm/gdM8lPgimmsWfErbSZ+7MhQpxtVsoEnhlYY6sJ3Iq1718orSEFcOjXjlNUQBqnJFSlBPOk3IMGzr8AxV1SsJQOQ9UDBrgEozFCbg4wnDs38l4KMCu5aIbBwWkKCq+JKl3/utjc7QeUPzraTLrL+jGJ8RNmh0QwgOUraDI4+mqNcWAQ0k5OEm2PiAutcNi9MZP2vnQX0AgA7KovkyXzJe63M/YQRkYNKMWAjetmA/jzAG4AyV1Zug1NOjMM+Q8J8NItBDjv3TbxPPi7r5Iz2IpafRnwuVBjwu80v7G4JRh69vJ1tY6osmkKezq5BGPs+TOGXWYdGtQqt8Q0oEjw/3UnzJDfKBIRn84f26FIBP7A38cV5uQiHues5r8pKt/G6IRwG5tTSO4BqGIo1MYhyMCQ41t7q05GNHdTd17x0tjATEU4wVlTPlAdXXemdDNzFdMJToopd/5Pu1keDu9IUSu1SRuGynToVSzjSIWM9w== root@qadb2</authorized_key>
+      </authorized_keys>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$6$3gK2r.ZOzM46$gFoAi347kvBDseLiS3eYRaUVx.kSU84RJs/hEApKQ4sX5W2a4oxE41WkK06OnrN6q/cUJdOV0JLzv3kDnQ5hJ1</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>

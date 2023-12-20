@@ -48,6 +48,7 @@ use constant {
           is_tunneled
           is_bootloader_grub2
           is_bootloader_sdboot
+          is_plasma6
           requires_role_selection
           check_version
           get_os_release
@@ -157,7 +158,7 @@ sub is_rescuesystem {
 
 =head2 is_virtualization_server
 
-Returns true if called on a virutalization server
+Returns true if called on a virtualization server
 =cut
 
 sub is_virtualization_server {
@@ -177,7 +178,7 @@ sub is_livecd {
 
 Usage: check_version('>15.0', get_var('VERSION'), '\d{2}')
 Query format: [= > < >= <=] version [+] (Example: <=12-sp3 =12-sp1 <4.0 >=15 3.0+)
-Check agains: product version to check against - probably get_var('VERSION')
+Check against: product version to check against - probably get_var('VERSION')
 Regex format: checks query version format (Example: /\d{2}\.\d/)#
 =cut
 
@@ -685,7 +686,7 @@ It parses the info from /etc/os-release file, which can reside in any physical h
 The file can also be placed anywhere as long as it can be reached somehow by its absolute file path,
 which should be passed in as the second argument os_release_file, for example, "/etc/os-release"
 At the same time, connection method to the entity in which the file reside should be passed in as the
-firt argument go_to_target, for example, "ssh root at name or ip address" or "way to download the file"
+first argument go_to_target, for example, "ssh root at name or ip address" or "way to download the file"
 For use only on locahost, no argument needs to be specified
 =cut
 
@@ -705,25 +706,19 @@ sub get_os_release {
 
 Identify running os without any dependencies parsing the I</etc/os-release>.
 
-=item C<distri_name>
+=over 4
 
-The expected distribution name to compare.
+=item C<distri_name> - The expected distribution name to compare.
 
-=item C<line>
+=item C<line> - The line we'll be parsing and checking.
 
-The line we'll be parsing and checking.
+=item C<go_to_target> - Command connecting to the SUT
 
-=item C<go_to_target>
-
-Command connecting to the SUT
-
-=item C<os_release_file>
-
-The full path to the Operating system identification file.
-Default to I</etc/os-release>.
+=item C<os_release_file> - The full path to the Operating system identification file. Default to I</etc/os-release>.
 
 Returns 1 (true) if the ID_LIKE variable contains C<distri_name>.
 
+=back
 =cut
 
 sub check_os_release {
@@ -789,6 +784,16 @@ Returns true if the SUT uses systemd-boot as bootloader
 
 sub is_bootloader_sdboot {
     return get_var('BOOTLOADER', 'grub2') eq 'systemd-boot';
+}
+
+=head2 is_plasma6
+
+Returns true if the SUT uses Plasma 6.
+=cut
+
+sub is_plasma6 {
+    # Currently only krypton has it
+    return check_var('FLAVOR', 'Krypton-Live');
 }
 
 
@@ -857,7 +862,7 @@ sub package_version_cmp {
 
 =head2 is_quarterly_iso
 
-Returns true if called in quaterly iso testing
+Returns true if called in quarterly iso testing
 =cut
 
 sub is_quarterly_iso {

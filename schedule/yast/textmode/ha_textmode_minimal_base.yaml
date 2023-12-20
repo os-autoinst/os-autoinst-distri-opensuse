@@ -9,5 +9,3 @@ schedule:
     - installation/module_registration/register_extensions_and_modules
   system_role:
     - installation/system_role/select_role_minimal
-  default_systemd_target:
-    - installation/installation_settings/validate_default_target

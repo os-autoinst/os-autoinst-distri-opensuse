@@ -183,6 +183,8 @@ sub run {
         libgcrypt20 => '1.9.0',
         'libgcrypt20-hmac' => '1.9.0'
     };
+    delete $pkg_list->{'libgcrypt20-hmac'} if is_sle('15-SP6+');
+
     if (is_public_cloud() && check_var('BETA', '1')) {
         if (zypper_call("in " . join(' ', keys %$pkg_list), exitcode => [0, 4]) == '4') {
             record_info("Aborting", "The repositories are behind Public Cloud image. See bsc#1199312");

@@ -241,8 +241,17 @@ sub gcloud_install {
     my $dir = $args{dir} || 'google-cloud-sdk';
     my $timeout = $args{timeout} || 700;
 
-    zypper_call("in curl tar gzip", $timeout);
+    # WARNING:  Python 3.6.x is no longer officially supported by the Google Cloud CLI
+    # and may not function correctly. Please use Python version 3.8 and up.
+    my @pkgs = qw(curl tar gzip);
+    my $py_version = get_var('PYTHON_VERSION', '3.11');
+    my $py_pkg_version = $py_version =~ s/\.//gr;
+    push @pkgs, 'python' . $py_pkg_version;
+    add_suseconnect_product(get_addon_fullname('python3')) if is_sle('15-SP6+');
 
+    zypper_call("in @pkgs", $timeout);
+
+    assert_script_run("export CLOUDSDK_PYTHON=/usr/bin/python$py_version");
     assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
     assert_script_run("curl $url | bash", $timeout);
     assert_script_run("echo . /root/$dir/completion.bash.inc >> ~/.bashrc");

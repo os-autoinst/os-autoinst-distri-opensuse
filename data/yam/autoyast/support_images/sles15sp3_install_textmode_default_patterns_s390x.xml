@@ -104,6 +104,7 @@ exit 0
     <packages t="list">
       <package>sle-module-server-applications-release</package>
       <package>sle-module-basesystem-release</package>
+      <package>sles-ltss-release</package>
       <package>openssh</package>
       <package>kexec-tools</package>
       <package>grub2</package>
@@ -128,16 +129,23 @@ exit 0
     </products>
   </software>
   <suse_register config:type="map">
-    <addons t="list">
-      <addon t="map">
+    <addons config:type="list">
+      <addon config:type="map">
         <arch>{{ARCH}}</arch>
         <name>sle-module-server-applications</name>
         <version>{{VERSION}}</version>
       </addon>
-      <addon t="map">
+      <addon config:type="map">
         <arch>{{ARCH}}</arch>
         <name>sle-module-basesystem</name>
         <version>{{VERSION}}</version>
+      </addon>
+      <addon config:type="map">
+        <arch>{{ARCH}}</arch>
+        <name>SLES-LTSS</name>
+        <release_type>nil</release_type>
+        <version>{{VERSION}}</version>
+        <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
       </addon>
     </addons>
     <do_registration config:type="boolean">true</do_registration>

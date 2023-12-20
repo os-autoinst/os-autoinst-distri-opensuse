@@ -2,42 +2,29 @@ name: fips_crypt_core
 description:    >
     This is for the crypt_core fips tests.
 schedule:
-    - '{{bootloader_zkvm}}'
-    - '{{sle_os_boot}}'
-    - '{{alp_boot}}'
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/consoletest_setup
     - '{{repo_setup}}'
     - fips/fips_setup
-    - '{{y2_vnc_pvm}}'
     - fips/openssl/openssl_fips_alglist
     - fips/openssl/openssl_fips_hash
     - fips/openssl/openssl_fips_cipher
     - fips/openssl/dirmngr_setup
     - fips/openssl/dirmngr_daemon
+    - console/openssl_alpn
     - fips/gnutls/gnutls_base_check
     - fips/gnutls/gnutls_server
     - fips/gnutls/gnutls_client
     - fips/openssl/openssl_tlsv1_3
     - fips/openssl/openssl_pubkey_rsa
     - fips/openssl/openssl_pubkey_dsa
+    # dhparam only in ker mode
+    - '{{dhparam}}'
     - fips/openssh/openssh_fips
     # ssh disabled in env mode, see poo#125648
     - '{{ssh}}'
-    - '{{alp_shutdown}}'
 conditional_schedule:
-    bootloader_zkvm:
-        ARCH:
-            s390x:
-                - installation/bootloader_zkvm
-            ppc64le:
-                - installation/bootloader
-    sle_os_boot:
-        DISTRI:
-            sle:
-                - boot/boot_to_desktop
-                - console/consoletest_setup
-            opensuse:
-                - boot/boot_to_desktop
-                - console/consoletest_setup
     repo_setup:
         BETA:
             1:
@@ -45,20 +32,12 @@ conditional_schedule:
         FLAVOR:
             Online-QR:
                 - security/test_repo_setup
-    alp_boot:
-        ENCRYPTED_IMAGE:
-            0:
-                - microos/disk_boot
-                - transactional/host_config
-                - security/selinux/selinux_setup
-            1:
-                - jeos/firstrun
-                - transactional/host_config
-                - security/selinux/selinux_setup
-    y2_vnc_pvm:
-        BACKEND:
-            pvm_hmc:
-                - console/yast2_vnc
+    dhparam:
+        TEST_SUITE_NAME:
+            fips_ker_mode_tests_crypt_core:
+                - fips/openssl/openssl_fips_dhparam
+            fips_ker_mode_tests_crypt_core_intel_ipmi:
+                - fips/openssl/openssl_fips_dhparam
     ssh:
         TEST_SUITE_NAME:
             fips_ker_mode_tests_crypt_core:
@@ -67,8 +46,3 @@ conditional_schedule:
             fips_ker_mode_tests_crypt_core_intel_ipmi:
                 - console/sshd
                 - console/ssh_cleanup
-    alp_shutdown:
-        DISTRI:
-            alp:
-                - console/journal_check
-                - shutdown/shutdown

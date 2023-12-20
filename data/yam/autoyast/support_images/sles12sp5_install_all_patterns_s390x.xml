@@ -51,7 +51,7 @@
       <dhcp_hostname config:type="boolean">true</dhcp_hostname>
       <hostname>susetest</hostname>
       <nameservers config:type="list">
-        <nameserver>10.160.0.1</nameserver>
+        <nameserver>10.144.53.53</nameserver>
       </nameservers>
       <resolv_conf_policy>auto</resolv_conf_policy>
       <searchlist config:type="list">
@@ -147,84 +147,84 @@
   <ntp-client>
     <ntp_policy>auto</ntp_policy>
   </ntp-client>
-  <partitioning t="list">
-    <drive t="map">
+  <partitioning config:type="list">
+    <drive config:type="map">
       <device>/dev/disk/by-path/ccw-0.0.0000</device>
       <disklabel>gpt</disklabel>
-      <enable_snapshots t="boolean">true</enable_snapshots>
-      <partitions t="list">
-        <partition t="map">
-          <create t="boolean">true</create>
-          <filesystem t="symbol">ext2</filesystem>
-          <format t="boolean">true</format>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <partitions config:type="list">
+        <partition config:type="map">
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">ext2</filesystem>
+          <format config:type="boolean">true</format>
           <mount>/boot/zipl</mount>
-          <mountby t="symbol">path</mountby>
-          <partition_id t="integer">131</partition_id>
-          <partition_nr t="integer">1</partition_nr>
-          <resize t="boolean">false</resize>
+          <mountby config:type="symbol">path</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+          <resize config:type="boolean">false</resize>
           <size>314572800</size>
         </partition>
-        <partition t="map">
-          <create t="boolean">true</create>
-          <create_subvolumes t="boolean">true</create_subvolumes>
-          <filesystem t="symbol">btrfs</filesystem>
-          <format t="boolean">true</format>
+        <partition config:type="map">
+          <create config:type="boolean">true</create>
+          <create_subvolumes config:type="boolean">true</create_subvolumes>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <format config:type="boolean">true</format>
           <mount>/</mount>
-          <mountby t="symbol">path</mountby>
-          <partition_id t="integer">131</partition_id>
-          <partition_nr t="integer">2</partition_nr>
-          <quotas t="boolean">true</quotas>
-          <resize t="boolean">false</resize>
+          <mountby config:type="symbol">path</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">2</partition_nr>
+          <quotas config:type="boolean">true</quotas>
+          <resize config:type="boolean">false</resize>
           <size>max</size>
-          <subvolumes t="list">
-            <subvolume t="map">
-              <copy_on_write t="boolean">false</copy_on_write>
+          <subvolumes config:type="list">
+            <subvolume config:type="map">
+              <copy_on_write config:type="boolean">false</copy_on_write>
               <path>var</path>
             </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
+            <subvolume config:type="map">
+              <copy_on_write config:type="boolean">true</copy_on_write>
               <path>usr/local</path>
             </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
+            <subvolume config:type="map">
+              <copy_on_write config:type="boolean">true</copy_on_write>
               <path>tmp</path>
             </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
+            <subvolume config:type="map">
+              <copy_on_write config:type="boolean">true</copy_on_write>
               <path>srv</path>
             </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
+            <subvolume config:type="map">
+              <copy_on_write config:type="boolean">true</copy_on_write>
               <path>root</path>
             </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
+            <subvolume config:type="map">
+              <copy_on_write config:type="boolean">true</copy_on_write>
               <path>opt</path>
             </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
+            <subvolume config:type="map">
+              <copy_on_write config:type="boolean">true</copy_on_write>
               <path>home</path>
             </subvolume>
-            <subvolume t="map">
-              <copy_on_write t="boolean">true</copy_on_write>
+            <subvolume config:type="map">
+              <copy_on_write config:type="boolean">true</copy_on_write>
               <path>boot/grub2/s390x-emu</path>
             </subvolume>
           </subvolumes>
           <subvolumes_prefix>@</subvolumes_prefix>
         </partition>
-        <partition t="map">
-          <create t="boolean">true</create>
-          <filesystem t="symbol">swap</filesystem>
-          <format t="boolean">true</format>
+        <partition config:type="map">
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
           <mount>swap</mount>
-          <mountby t="symbol">path</mountby>
-          <partition_id t="integer">130</partition_id>
-          <partition_nr t="integer">3</partition_nr>
-          <resize t="boolean">false</resize>
+          <mountby config:type="symbol">path</mountby>
+          <partition_id config:type="integer">130</partition_id>
+          <partition_nr config:type="integer">3</partition_nr>
+          <resize config:type="boolean">false</resize>
           <size>2148515328</size>
         </partition>
       </partitions>
-      <type t="symbol">CT_DISK</type>
+      <type config:type="symbol">CT_DISK</type>
       <use>all</use>
     </drive>
   </partitioning>

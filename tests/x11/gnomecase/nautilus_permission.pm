@@ -42,6 +42,7 @@ sub run {
     assert_and_click 'nautilus-read-write-permission';
     assert_and_click 'nautilus-default-other-access-permission';
     assert_and_click 'nautilus-read-write-permission';
+    send_key "esc";    #close the custom permissions dialog
     send_key "esc";    #close the dialog
                        #reopen the properties menu to check if the changes kept
     if (is_sle('15+') || is_leap('15.0+') || is_tumbleweed) {
@@ -55,6 +56,7 @@ sub run {
     assert_screen 'nautilus-properties';
     assert_and_click 'nautilus-access-permission';
     assert_screen 'nautilus-permissions-changed';
+    send_key "esc";    #close the custom permissions dialog
     send_key "esc";    #close the dialog
 
     #clean: remove the created new note

@@ -1,0 +1,54 @@
+name: fips_crypt_core
+description:    >
+    This is for the crypt_core fips tests on ALP/SLEM.
+schedule:
+    - '{{alp_boot}}'
+    - transactional/host_config
+    - '{{scc_slem}}'
+    - security/selinux/selinux_setup
+    - '{{repo_setup}}'
+    - fips/fips_setup
+    - fips/openssl/openssl_fips_alglist
+    - fips/openssl/openssl_fips_hash
+    - fips/openssl/openssl_fips_cipher
+    - fips/openssl/dirmngr_setup
+    - fips/openssl/dirmngr_daemon
+    - console/openssl_alpn
+    - fips/gnutls/gnutls_base_check
+    - fips/gnutls/gnutls_server
+    - fips/gnutls/gnutls_client
+    - fips/openssl/openssl_tlsv1_3
+    - fips/openssl/openssl_pubkey_rsa
+    - fips/openssl/openssl_pubkey_dsa
+    # dhparam only in ker mode
+    - '{{dhparam}}'
+    - fips/openssh/openssh_fips
+    # ssh disabled in env mode, see poo#125648
+    - '{{ssh}}'
+    - console/journal_check
+    - shutdown/shutdown
+conditional_schedule:
+    alp_boot:
+        ENCRYPTED_IMAGE:
+            0:
+                - microos/disk_boot
+            1:
+                - jeos/firstrun
+    scc_slem:
+        DISTRI:
+            sle-micro:
+                - console/suseconnect_scc
+    ssh:
+        TEST_SUITE_NAME:
+            fips_ker_mode_tests_crypt_core:
+                - console/sshd
+                - console/ssh_cleanup
+            fips_ker_mode_tests_crypt_core_intel_ipmi:
+                - console/sshd
+                - console/ssh_cleanup
+    dhparam:
+        TEST_SUITE_NAME:
+            fips_ker_mode_tests_crypt_core:
+                - fips/openssl/openssl_fips_dhparam
+            fips_ker_mode_tests_crypt_core_intel_ipmi:
+                - fips/openssl/openssl_fips_dhparam

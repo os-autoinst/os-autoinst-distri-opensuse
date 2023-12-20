@@ -472,6 +472,9 @@ sub wrapup_log_file {
         elsif ($1 eq 'fail') {
             $aux{outcome} = 'failed';
         }
+        elsif ($1 eq 'softfail') {
+            $aux{outcome} = 'softfailed';
+        }
         $aux{test_index} = 0;
         push @{$results{tests}}, \%aux;
     }
@@ -482,24 +485,50 @@ sub wrapup_log_file {
 sub wrap_script_run {
     my ($self, $args) = @_;
     my $ret = '';
+    my $ret_tmp = '';
     my $log = '/tmp/log';
 
     $ret = script_run "$args > $log 2>&1";
     if ($ret) {
-        script_run "cat $log";
-        record_soft_failure('Error found:jsc#TEAM-7435');
-        # These are known issues so mark them as 'softfail' not 'fail' for not blocking 'bot' auto approval
-        # - sysstat service [FAIL] exited disabled != dead disabled
-        # - sysstat (cronjob) [FAIL] ok == no link
-        # - UserTasksMax [FAIL] max == 12288
-        # - UserTasksMax (sapconf DropIn) [FAIL] regular == missing
-        if (
-            script_run(
-"grep -Ev '(sysstat service.*FAIL.*exited disabled|sysstat \(cronjob\) .*FAIL.*ok|UserTasksMax.*FAIL.*max|UserTasksMax \(sapconf DropIn\).*FAIL.*regular)' $log"
-            ))
-        {
+        # Debug purpose
+        my $output = script_output("cat $log");
+        record_info("Issue Found", "$output");
+
+        # These are known issues so mark them as 'softfail' not 'fail' for not blocking 'bot' auto approval:
+        # For more details please refer to: https://confluence.suse.com/display/qasle/TEAM-8662+%5Bsaptune%5D+mr_test+in+CSP+for+saptune+3.1
+        #   In saptune 3.1 we have added SAP Note 1868829 to all HANA-related solutions as well removed 1410736 from ASE.
+        #   The current mr_test patterns simply do not reflect that change. See TEAM-7435
+        #     - HANA (notes) 1868829
+        #     - ASE (notes) 1410736
+        #   Leftover
+        #     - soft memlock for sybase      [FAIL]  8192 == 64
+        #     - hard memlock for sybase      [FAIL]  8192 == 64
+        $ret_tmp = script_run("cat $log | grep -E '([FAIL]|[WARN])' | grep -Ev '(HANA.*notes.*1868829|ASE.*notes.*1410736|.*memlock for sybase.*)'");
+        if ($ret_tmp == 0) {
             $result = 'fail';
+            record_soft_failure('Error found:jsc#TEAM-7435');
+            record_info('Issue can NOT be ignored, see jsc#TEAM-8662 for more details', "$output");
         }
+        else {
+            record_info('Issue can be ignored, see jsc#TEAM-8662 for more details', "$output");
+        }
+
+        if (get_var('PUBLIC_CLOUD') && ($result == 'fail')) {
+            # Mark Public Cloud test cases as 'softfail' not 'fail' for not blocking 'bot' auto approval
+            # as for 'saptune 3.1' current/old 'mr_test' do not fit cloud instances
+            #   UserTasksMax
+            #     - UserTasksMax [FAIL] max == 12288
+            #     - UserTasksMax (sapconf DropIn) [FAIL] regular == missing
+            $ret_tmp = script_run("grep -E '(UserTasksMax.*[FAIL])' $log");
+            if ($ret_tmp == 0) {
+                my $ret0
+                  = script_run("cat $log | grep -E '([FAIL]|[WARN])' | grep -Ev '(UserTasksMax.*max.*12288|UserTasksMax.*sapconf DropIn.*regular.*missing)'");
+                if ($ret0) {
+                    $result = 'softfail';
+                }
+            }
+        }
+
         $result_module = $result;
         $self->result("$result");
     }

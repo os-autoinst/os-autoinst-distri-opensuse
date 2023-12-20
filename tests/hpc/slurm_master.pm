@@ -39,8 +39,8 @@ sub run_tests ($slurm_conf) {
         push(@all_tests_results, run_ha_tests());
     }
 
-    pars_results('HPC slurm tests', $xmlfile, @all_tests_results);
-    parse_extra_log('XUnit', $xmlfile);
+    parse_test_results('HPC slurm tests', $xmlfile, @all_tests_results);
+    parse_extra_log('XUnit', "/tmp/$xmlfile");
 }
 
 ########################################
@@ -279,25 +279,19 @@ sub t01_accounting() {
     wait_serial("Password:"); type_string("$testapi::password", lf => 1);
 
     $testapi::username = $users{user_2};
-    script_run("srun --account=UNI_X_IT -N 2 hostname");
+    script_run("srun --account=UNI_X_IT -N 2 -x master-node01,slave-node02 hostname");
     $testapi::username = $users{user_3};
     type_string("su - $users{user_3}", lf => 1);
     wait_serial("Password:"); type_string("$testapi::password", lf => 1);
 
-    script_run("srun --account=UNI_Y_Biology -N 3 date");
+    script_run("srun --account=UNI_Y_Biology -N 3 -x master-node01,slave-node02 date");
     $testapi::username = $users{user_4};
     $prompt = $testapi::username . '@' . get_required_var('HOSTNAME') . ':~> ';
     type_string("su - $users{user_4}", lf => 1);
     wait_serial("Password:"); type_string("$testapi::password", lf => 1);
-    script_run("srun --account=UNI_Y_Physics -N 3 hostname");
+    script_run("srun --account=UNI_Y_Physics -N 3 -x master-node01,slave-node02 hostname");
 
     select_serial_terminal;
-    if (script_run("srun --uid=$users{user_2} --account=UNI_X_Math -w slave-node00,slave-node01 date") != 0) {
-        record_soft_failure 'bsc#1210374 - Cant run srun with with uid switch';
-        my $last_entry = script_output "squeue | tail -n1 | awk '{print \$1}'";
-        record_info("squeue", script_output "squeue");
-        assert_script_run("scancel $last_entry");
-    }
     # this is required; see: bugzilla#1150565?
     systemctl('restart slurmctld');
     systemctl('is-active slurmctld');

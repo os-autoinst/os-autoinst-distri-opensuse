@@ -115,8 +115,8 @@ sub run {
 }
 
 sub post_run_hook ($self) {
-    pars_results('HPC rasdaemon tests', $file, @all_tests_results);
-    parse_extra_log('XUnit', $file);
+    parse_test_results('HPC rasdaemon tests', $file, @all_tests_results);
+    parse_extra_log('XUnit', "/tmp/$file");
     $self->SUPER::post_run_hook();
 }
 

@@ -123,7 +123,22 @@ and additionally the following rules:
   reviewers fall in love with you :) https://mtlynch.io/code-review-love/
   Keep in mind that the text in the github pull request description is only
   visible on github, not in the git log which can be considered permanent
-  information storage.
+  information storage.  
+  Commits will be checked automatically by [this workflow defined in
+  `os-autoinst/os-autoinst-common`][4] to enforce the following rules:
+    * The commit subject **must not**:
+        * exceed 72 characters in length.
+        * end with a dot.
+    * The commit subject **must** start with a capital or tag. For example:
+        * `Fix deep issue in test module`
+        * `bugfix: Fix deep issue in a library`
+    * There must be an empty newline between the commit subject and the commit
+      body.
+
+    More rules could be added in the check and not necessarily be explicitly
+    described in this document. Keep an eye on the pull request check, it will
+    report any offending rule defined in the workflow.
+
 * Add comments to the source code if the code is not self-explanatory:
   Comments in the source code should describe the choices made, to answer the
   question "why is the code like this". The git commit message should describe
@@ -150,7 +165,7 @@ if (match_has_tag('yast2_missing_package')) {
   jsc#SLE-19640 -> Jira ticket
   Maniphest#T5531
   fate.suse.com/123
-  $reference -> if you have to use a variable to define a reference ticket
+  $reference or $bsc (for convenience) -> if you have to use a variable to define a reference ticket
   If you don't have a reference ticket, and still want to mark a specific
   step as soft_fail, please use `record_info` with softfail tag:
   record_info($title [, $output] [, result => softfail] [, resultname => $resultname]);
@@ -170,6 +185,7 @@ Also see the [DoD/DoR][3] as a helpful (but not mandatory) guideline for new con
 [1]: https://open.qa/docs/#_cloning_existing_jobs_openqa_clone_job
 [2]: https://open.qa/docs/#_triggering_tests_based_on_an_any_remote_git_refspec_or_open_github_pull_request
 [3]: https://progress.opensuse.org/projects/openqatests/wiki/Wiki#Definition-of-DONEREADY
+[4]: https://github.com/os-autoinst/os-autoinst-common/blob/master/.github/workflows/base-commit-message-checker.yml
 
 
 ### Handling separate product codebases or versions

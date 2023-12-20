@@ -19,12 +19,15 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_sle is_opensuse);
 
 sub run {
     my ($self) = @_;
 
     my $aa_tmp_prof = "/tmp/apparmor.d";
     my $test_binfiles = "/usr/bin/pam*";
+
+    zypper_call('in nscd');
 
     $self->aa_tmp_prof_prepare($aa_tmp_prof, 0);
 
@@ -40,11 +43,11 @@ sub run {
     };
 
     # Check the test files exist, double check to avoid perfomance issue
-    my $ret = script_run "ls -1 $test_binfiles > tee /dev/$serialdev";
+    my $ret = script_run "ls -1 $test_binfiles | tee /dev/$serialdev";
     if ($ret) {
         # If failed try sync and then check again
         assert_script_run "sync";
-        assert_script_run "ls -1 $test_binfiles > tee /dev/$serialdev";
+        assert_script_run "ls -1 $test_binfiles | tee /dev/$serialdev";
     }
 
     script_run_interactive(
@@ -60,15 +63,22 @@ sub run {
 
     # Output generated profiles list to serial console
     # Check the new genrated test files exist, double check to avoid perfomance issue
-    $ret = script_run "ls -1 $aa_tmp_prof/*pam* > tee /dev/$serialdev";
+    $ret = script_run "ls -1 $aa_tmp_prof/*pam* | tee /dev/$serialdev";
     if ($ret) {
         # If failed then try sync and then check again
         assert_script_run "sync";
-        assert_script_run "ls -1 $aa_tmp_prof/*pam* > tee /dev/$serialdev";
+        assert_script_run "ls -1 $aa_tmp_prof/*pam* | tee /dev/$serialdev";
     }
 
     assert_script_run "aa-disable -d $aa_tmp_prof usr.sbin.nscd";
     $self->aa_tmp_prof_clean("$aa_tmp_prof");
+
+    assert_script_run "aa-status | tee /dev/$serialdev";
+
+    # delete cache file of aa-autodep generated profile, so that the next reload creates a fresh cache of /etc/apparmor.d/usr.sbin.nscd
+    # (wouldn't happen without deleting the cache file because the cache timestamp is newer than the profile (+ used abstractions) timestamp)
+    my $target_dir = (is_sle('>=15-SP2') || is_opensuse) ? '/var/cache/apparmor/' : '/var/lib/apparmor/cache/';
+    assert_script_run "find $target_dir -name usr.sbin.nscd -delete";
 }
 
 1;

@@ -30,9 +30,8 @@ sub run {
     my $result = compare_run_log('audit-tools');
     $self->result($result);
 
-    # We need this workaround for >= 15-SP4 until https://bugzilla.suse.com/show_bug.cgi?id=1209910 is fixed
     if ($result == 'fail' && is_sle '>=15-SP4') {
-        record_soft_failure("poo#125039");
+        record_soft_failure("bsc#1209910");
         $self->result('ok');
     }
 }

@@ -154,7 +154,7 @@ sub do_partition_for_xfstests {
     }
     # Sync
     script_run('sync');
-    return $para{size} . 'M';
+    return ($para{size} . 'M') x ($para{amount} + 1);
 }
 
 # Create loop device by giving inputs
@@ -166,26 +166,28 @@ sub create_loop_device_by_rootsize {
     my $ref = shift;
     my %para = %{$ref};
     my $amount = 1;
-    my ($size, $count, $bsize);
+    my ($size, @loop_dev_size, @filename);
     if ($para{fstype} =~ /btrfs/) {
         $amount = 5;
     }
     # Use 90% of free space, not use all space in /root
-    $size = int($para{size} * 0.9 / ($amount + 1));
-    $bsize = 4096;
-    $count = int($size * 1024 * 1024 / $bsize);
-    my $num = 0;
-    my $filename;
-    while ($amount >= $num) {
-        if ($num) {
-            $filename = "scratch_dev$num";
-        }
-        else {
-            $filename = "test_dev";
-        }
-        assert_script_run("fallocate -l \$(($bsize * $count)) $INST_DIR/$filename", 300);
-        assert_script_run("losetup -fP $INST_DIR/$filename", 300);
-        $num += 1;
+    $size = int($para{size} * 0.9);
+    # 15G each for test_dev and scratch_dev1, other devices share the rest
+    if ($para{size} >= 38912 && $amount == 5 && get_var('XFSTESTS_BIG_SPACE')) {
+        my $size1 = 15360;
+        my $size2 = int(($size - ($size1 * 2)) / ($amount - 1));
+        @loop_dev_size = (($size1 . 'M') x 2, ($size2 . 'M') x 4);
+    }
+    else {
+        $size > (20480 * ($amount + 1)) ? ($size = 20480) : ($size = $size / ($amount + 1));
+        foreach (0 .. $amount) { push(@loop_dev_size, $size . 'M'); }
+    }
+    @filename = ('test_dev');
+    foreach (1 .. $amount) { push(@filename, "scratch_dev$_"); }
+    my $i = 0;
+    foreach (@filename) {
+        assert_script_run("fallocate -l $loop_dev_size[$i++] $INST_DIR/$_", 300);
+        assert_script_run("losetup -fP $INST_DIR/$_", 300);
     }
     script_run("losetup -a");
     format_with_options("$INST_DIR/test_dev", $para{fstype});
@@ -217,7 +219,7 @@ sub create_loop_device_by_rootsize {
     }
     # Sync
     script_run('sync');
-    return $size . 'M';
+    return @loop_dev_size;
 }
 
 sub set_config {
@@ -236,20 +238,20 @@ sub set_config {
 }
 
 sub post_env_info {
-    my $size = shift;
+    my @size = @_;
     # record version info
     my $ver_log = get_var('VERSION_LOG', '/opt/version.log');
     record_info('Version', script_output("cat $ver_log"));
 
     # record partition size info
-    my $size_info = get_var('XFSTESTS_TEST_DEV') . "    $size\n";
+    my $size_info = get_var('XFSTESTS_TEST_DEV') . "    " . shift(@size) . "\n";
     if (my $scratch_dev = get_var("XFSTESTS_SCRATCH_DEV")) {
-        $size_info = $size_info . $scratch_dev . "    $size\n";
+        $size_info = $size_info . "$scratch_dev    " . shift(@size) . "\n";
     }
     else {
         my @scratch_dev_pool = split(/ /, get_var("XFSTESTS_SCRATCH_DEV_POOL"));
         foreach (@scratch_dev_pool) {
-            $size_info = $size_info . $_ . "    $size\n";
+            $size_info = $size_info . "$_    " . shift(@size) . "\n";
         }
     }
     $size_info = $size_info . "PAGE_SIZE     " . script_output("getconf PAGE_SIZE") . "\n";
@@ -365,7 +367,7 @@ sub run {
     if (check_var('XFSTESTS', 'nfs')) {
         disable_and_stop_service('firewalld');
         set_var('XFSTESTS_TEST_DEV', mountpoint_to_partition('/'));
-        post_env_info(get_partition_size('/'));
+        post_env_info(join(' ', get_partition_size('/')));
         if (get_var('XFSTESTS_NFS_SERVER')) {
             server_configure_network($self);
             install_dependencies_nfs;

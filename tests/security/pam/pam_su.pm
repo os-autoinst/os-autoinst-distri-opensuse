@@ -49,8 +49,8 @@ sub run {
     assert_script_run "cp $sul_file $sul_file_bak";
     assert_script_run "sed -i '\$a auth     required       pam_wheel.so use_uid' $su_file";
     assert_script_run "sed -i '\$a auth     required       pam_wheel.so use_uid' $sul_file";
-    upload_logs($su_file);
-    upload_logs($sul_file);
+    upload_logs($su_file, failok => is_aarch64 ? 1 : 0);
+    upload_logs($sul_file, failok => is_aarch64 ? 1 : 0);
 
     clear_console;
 

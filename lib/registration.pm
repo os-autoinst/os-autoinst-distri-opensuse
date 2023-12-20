@@ -99,6 +99,9 @@ our @SLE12_MODULES = qw(
   sle-module-public-cloud
 );
 
+# Set SCC_DEBUG_SUSECONNECT=1 to enable debug output of SUSEConnect globally
+my $debug_flag = get_var('SCC_DEBUG_SUSECONNECT') ? '--debug' : '';
+
 # Method to determine if a short name references a module based on what's defined
 # on %SLE15_MODULES
 sub is_module {
@@ -192,7 +195,7 @@ sub add_suseconnect_product {
 
     my $try_cnt = 0;
     while ($try_cnt++ <= $retry) {
-        eval { assert_script_run("SUSEConnect -p $name/$version/$arch $params", timeout => $timeout); };
+        eval { assert_script_run("SUSEConnect $debug_flag -p $name/$version/$arch $params", timeout => $timeout); };
         if ($@) {
             record_info('retry', "SUSEConnect failed to activate the module $name. Retrying...");
             sleep 60 * $try_cnt;    # we wait a bit longer for each retry
@@ -225,7 +228,7 @@ sub ssh_add_suseconnect_product {
     $retries //= 3;
     $delay //= 10;
 
-    script_retry("ssh $remote sudo SUSEConnect -p $name/$version/$arch $params", delay => $delay, retry => $retries, timeout => $timeout);
+    script_retry("ssh $remote sudo SUSEConnect $debug_flag -p $name/$version/$arch $params", delay => $delay, retry => $retries, timeout => $timeout);
 }
 
 =head2 remove_suseconnect_product
@@ -240,7 +243,7 @@ sub remove_suseconnect_product {
     $version //= scc_version();
     $arch //= get_required_var('ARCH');
     $params //= '';
-    script_retry("SUSEConnect -d -p $name/$version/$arch $params", retry => 5, delay => 60, timeout => 180);
+    script_retry("SUSEConnect $debug_flag -d -p $name/$version/$arch $params", retry => 5, delay => 60, timeout => 180);
 }
 
 =head2 ssh_remove_suseconnect_product
@@ -257,7 +260,7 @@ sub ssh_remove_suseconnect_product {
     $version //= scc_version();
     $arch //= get_required_var('arch');
     $params //= '';
-    script_retry("ssh $remote sudo SUSEConnect -d -p $name/$version/$arch $params", retry => 5, delay => 60, timeout => 180);
+    script_retry("ssh $remote sudo SUSEConnect $debug_flag -d -p $name/$version/$arch $params", retry => 5, delay => 60, timeout => 180);
 }
 
 =head2 cleanup_registration
@@ -270,7 +273,7 @@ variable set.
 
 sub cleanup_registration {
     # Remove registration from the system
-    assert_script_run 'SUSEConnect --cleanup';
+    assert_script_run "SUSEConnect $debug_flag --cleanup";
     # Define proxy SCC if provided
     my $proxyscc = get_var('SCC_URL');
     assert_script_run "echo \"url: $proxyscc\" > /etc/SUSEConnect" if $proxyscc;
@@ -286,10 +289,10 @@ SUSEConnect --url with SMT/RMT server.
 
 sub register_product {
     if (get_var('SMT_URL')) {
-        assert_script_run('SUSEConnect --url ' . get_var('SMT_URL') . ' ' . uc(get_var('SLE_PRODUCT')) . '/' . scc_version(get_var('HDDVERSION')) . '/' . get_var('ARCH'), 200);
+        assert_script_run("SUSEConnect  $debug_flag --url " . get_var('SMT_URL') . ' ' . uc(get_var('SLE_PRODUCT')) . '/' . scc_version(get_var('HDDVERSION')) . '/' . get_var('ARCH'), 200);
     } else {
         my $scc_reg_code = is_sles4sap ? get_required_var('SCC_REGCODE_SLES4SAP') : get_required_var('SCC_REGCODE');
-        assert_script_run('SUSEConnect -r ' . $scc_reg_code, 200);
+        assert_script_run("SUSEConnect  $debug_flag -r " . $scc_reg_code, 200);
     }
 }
 
@@ -827,9 +830,9 @@ sub get_addon_fullname {
         rt => 'SUSE-Linux-Enterprise-RT',
         sapapp => 'sle-module-sap-applications',
         script => 'sle-module-web-scripting',
+        wsm => 'sle-module-web-scripting',
         serverapp => 'sle-module-server-applications',
         tcm => is_sle('15+') ? 'sle-module-development-tools' : 'sle-module-toolchain',
-        wsm => 'sle-module-web-scripting',
         python2 => 'sle-module-python2',
         python3 => 'sle-module-python3',
         phub => 'PackageHub',
@@ -906,20 +909,21 @@ sub scc_deregistration {
             record_soft_failure 'bsc#1189543 - Stale python2 module blocks de-registration after system migration';
             add_suseconnect_product('sle-module-python2');
         }
-        my $deregister_ret = script_run('SUSEConnect --de-register --debug > /tmp/SUSEConnect.debug 2>&1', 300);
+        # We don't need to pass $debug_flag to SUSEConnect, because it's already set
+        my $deregister_ret = script_run("SUSEConnect --de-register --debug > /tmp/SUSEConnect.debug 2>&1", 300);
         if ($deregister_ret) {
             # See git blame for previous workarounds.
             upload_logs "/tmp/SUSEConnect.debug";
             die "SUSEConnect --de-register returned error code $deregister_ret";
         }
-        my $output = script_output 'SUSEConnect -s';
+        my $output = script_output "SUSEConnect $debug_flag -s";
         die "System is still registered" unless $output =~ /Not Registered/;
         save_screenshot;
     }
     else {
         assert_script_run("zypper removeservice `zypper services --show-enabled-only --sort-by-name | awk {'print\$5'} | sed -n '1,2!p'`");
         assert_script_run('rm /etc/zypp/credentials.d/* /etc/SUSEConnect');
-        my $output = script_output 'SUSEConnect -s';
+        my $output = script_output "SUSEConnect $debug_flag -s";
         die "System is still registered" unless $output =~ /Not Registered/;
         save_screenshot;
     }

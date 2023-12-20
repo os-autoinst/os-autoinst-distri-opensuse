@@ -38,6 +38,16 @@ sub run {
         $tests = "test_sles";
     }
 
+    if (get_var('IMG_PROOF_GIT_REPO')) {
+        my $repo = get_required_var('IMG_PROOF_GIT_REPO');
+        my $branch = get_required_var('IMG_PROOF_GIT_BRANCH');
+        assert_script_run "zypper rm -y python3-img-proof python3-img-proof-tests";
+        assert_script_run "git clone --depth 1 -q --branch $branch $repo";
+        assert_script_run "cd img-proof";
+        assert_script_run "python3 setup.py install";
+        assert_script_run "cp -r usr/* /usr";
+    }
+
     my $img_proof = $provider->img_proof(
         instance => $instance,
         tests => $tests,

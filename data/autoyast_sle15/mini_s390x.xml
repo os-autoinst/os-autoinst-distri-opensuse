@@ -37,6 +37,9 @@
         <products config:type="list">
             <product>SLES</product>
         </products>
+        <packages config:type="list">
+            <package>openssh</package>
+        </packages>
     </software>
     <users config:type="list">
         <user>

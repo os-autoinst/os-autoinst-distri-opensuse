@@ -51,7 +51,7 @@ schedule:
     - x11/oomath
     - x11/oocalc
     - x11/khelpcenter
-    - x11/systemsettings5
+    - x11/systemsettings
     - x11/dolphin
     - x11/konsole
     - x11/glxgears

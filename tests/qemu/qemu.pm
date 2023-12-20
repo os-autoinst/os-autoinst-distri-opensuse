@@ -18,8 +18,12 @@ use version_utils qw(is_sle_micro is_leap_micro is_transactional);
 
 # 'patterns-microos-kvm_host' is required for SUMA client use case
 sub is_qemu_preinstalled {
-    if (is_sle_micro || is_leap_micro) {
+    if (is_sle_micro('<6.0') || is_leap_micro) {
         assert_script_run('rpm -q patterns-microos-kvm_host');
+        return 1;
+    }
+    elsif (is_sle_micro('>=6.0')) {
+        assert_script_run('rpm -q patterns-alp-kvm_host');
         return 1;
     }
     return 0;
@@ -58,7 +62,7 @@ sub run {
         is_qemu_preinstalled or install_qemu('qemu-s390x');
         # use kernel from host system for booting
         enter_cmd "qemu-system-s390x -nographic -kernel /boot/image -initrd /boot/initrd";
-        assert_screen ['qemu-reached-target-basic-system', 'qemu-s390x-exec-0x7f4-not-impl', 'qemu-linux-req-more-recent-proc-hw'], 300;
+        assert_screen ['qemu-reached-target-basic-system', 'qemu-s390x-exec-0x7f4-not-impl', 'qemu-linux-req-more-recent-proc-hw'], 400;
         if (match_has_tag 'qemu-s390x-exec-0x7f4-not-impl') {
             record_soft_failure 'bsc#1124595 - qemu on s390x fails when called WITHOUT kvm: EXECUTE on instruction prefix 0x7f4 not implemented';
             return;

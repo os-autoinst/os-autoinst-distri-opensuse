@@ -1,7 +1,0 @@
-name:          kirk
-description:    >
-    Kirk is an all-in-one testing framework
-schedule:
-    - boot/boot_to_desktop
-    - kernel/kirk
-    - shutdown/shutdown

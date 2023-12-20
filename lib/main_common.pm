@@ -594,7 +594,7 @@ sub load_jeos_openstack_tests {
     unless (get_var('CI_VERIFICATION')) {
         loadtest "console/suseconnect_scc";
     }
-    unless (get_var('CONTAINER_RUNTIME')) {
+    unless (get_var('CONTAINER_RUNTIMES')) {
         loadtest "console/journal_check";
         loadtest "microos/libzypp_config";
     }
@@ -631,7 +631,7 @@ sub load_jeos_tests {
         loadtest "jeos/build_key";
         loadtest "console/prjconf_excluded_rpms";
     }
-    unless (get_var('CONTAINER_RUNTIME')) {
+    unless (get_var('CONTAINER_RUNTIMES')) {
         loadtest "console/journal_check";
         loadtest "microos/libzypp_config";
     }
@@ -644,7 +644,7 @@ sub load_jeos_tests {
     replace_opensuse_repos_tests if is_repo_replacement_required;
     loadtest 'console/verify_efi_mok' if get_var 'CHECK_MOK_IMPORT';
     # zypper_ref needs to run on jeos-containers. the is_sle is required otherwise is scheduled twice on o3
-    loadtest "console/zypper_ref" if (get_var('CONTAINER_RUNTIME') && is_sle);
+    loadtest "console/zypper_ref" if (get_var('CONTAINER_RUNTIMES') && is_sle);
 }
 
 sub installzdupstep_is_applicable {
@@ -1083,7 +1083,7 @@ sub load_inst_tests {
         loadtest "installation/secure_boot";
     }
     if (installyaststep_is_applicable()) {
-        loadtest "installation/resolve_dependency_issues" unless get_var("DEPENDENCY_RESOLVER_FLAG");
+        loadtest "installation/resolve_dependency_issues" unless (get_var("DEPENDENCY_RESOLVER_FLAG") || get_var('KERNEL_64KB_PAGE_SIZE'));
         loadtest "installation/installation_overview";
         # On Xen PV we don't have GRUB on VNC
         # SELinux relabel reboots, so grub needs to timeout
@@ -1332,7 +1332,7 @@ sub load_x11tests {
         loadtest "x11/gedit";
     }
     # Need remove firefox tests in our migration tests from old Leap releases, keep them only in 15.2 and newer.
-    loadtest "x11/firefox" unless (is_leap && check_version('<15.2', get_var('ORIGINAL_VERSION'), qr/\d{2,}\.\d/) && is_upgrade());
+    loadtest "x11/firefox" unless (is_leap && is_upgrade() && check_version('<15.2', get_var('ORIGINAL_VERSION'), qr/\d{2,}\.\d/));
     if (is_opensuse && !get_var("OFW") && is_qemu && !check_var('FLAVOR', 'Rescue-CD') && !is_kde_live) {
         loadtest "x11/firefox_audio";
     }
@@ -1380,12 +1380,7 @@ sub load_x11tests {
             # loadtest "x11/plasma_browser_integration";
             loadtest "x11/khelpcenter";
         }
-        if (get_var("PLASMA5")) {
-            loadtest "x11/systemsettings5";
-        }
-        else {
-            loadtest "x11/systemsettings";
-        }
+        loadtest "x11/systemsettings";
         loadtest "x11/dolphin";
         loadtest "x11/konsole";
     }
@@ -1746,7 +1741,7 @@ sub load_extra_tests_console {
     loadtest 'console/vhostmd' unless get_var('PUBLIC_CLOUD');
     loadtest 'console/rpcbind' unless is_jeos;
     # sysauth test scenarios run in the console
-    loadtest "sysauth/sssd" if (get_var('SYSAUTHTEST') || is_sle('12-SP5+'));
+    loadtest "sysauth/sssd" if (get_var('SYSAUTHTEST') || (is_sle('12-SP5+') && is_sle('<=15-SP3')));
     loadtest 'console/timezone';
     loadtest 'console/ntp' if is_sle('<15');
     loadtest 'console/procps';
@@ -2252,6 +2247,9 @@ sub load_mitigation_tests {
             loadtest "cpu_bugs/add_repos_qemu";
         }
     }
+    if (get_var('KVM_GUEST')) {
+        loadtest "cpu_bugs/kvm_guest_mitigations";
+    }
     if (get_var('IPMI_TO_QEMU')) {
         loadtest "cpu_bugs/ipmi_to_qemu";
     }
@@ -2348,6 +2346,7 @@ sub load_system_prepare_tests {
     }
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
     loadtest 'console/hostname' unless is_bridged_networking;
+    loadtest 'kernel/install_kernel_flavor' if get_var('KERNEL_FLAVOR');
     loadtest 'console/install_rt_kernel' if check_var('SLE_PRODUCT', 'SLERT');
     loadtest 'console/force_scheduled_tasks' unless is_jeos;
     loadtest 'console/check_selinux_fails' if get_var('SELINUX');
@@ -2526,12 +2525,6 @@ sub load_extra_tests_syscontainer {
 }
 
 sub load_extra_tests_kernel {
-    if (is_tumbleweed || is_sle('>=15-sp5')) {
-        loadtest "kernel/bpftrace";
-        loadtest "kernel/bcc";
-        loadtest "kernel/io_uring";
-    }
-
     loadtest "kernel/tuned";
     loadtest "kernel/fwupd" if is_sle('15+');
 

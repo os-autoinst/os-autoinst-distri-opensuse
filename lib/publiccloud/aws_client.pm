@@ -78,8 +78,4 @@ sub configure_podman {
           . " | podman login --username AWS --password-stdin $full_name_prefix");
 }
 
-sub cleanup {
-    my ($self) = @_;
-}
-
 1;

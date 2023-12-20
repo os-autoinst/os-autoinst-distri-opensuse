@@ -618,7 +618,14 @@ sub ha_export_logs {
     upload_logs($mdadm_conf, failok => 1);
 
     # supportconfig
-    script_run "supportconfig -g -B $clustername", 300;
+    my $ret = script_run "supportconfig -g -B $clustername", 300, die_on_timeout => 0;
+    # Make it softfail for not blocking qem bot auto approvals on 12-SP5
+    # Command 'supportconfig' hangs on 12-SP5, script_run timed out and returned 'undef'
+    if (!defined($ret) && is_sle("=12-SP5")) {
+        record_soft_failure 'poo#151612';
+        # Send 'ctrl-c' to kill 'supportconfig' as it hangs
+        send_key('ctrl-c');
+    }
     upload_logs("/var/log/scc_$clustername.tgz", failok => 1);
 
     # pacemaker cts log
@@ -657,7 +664,11 @@ sub check_cluster_state {
     my $cmd = (defined $args{proceed_on_failure} && $args{proceed_on_failure} == 1) ? \&script_run : \&assert_script_run;
 
     $cmd->("$crm_mon_cmd");
-    $cmd->("$crm_mon_cmd | grep -i 'no inactive resources'") if is_sle '12-sp3+';
+    if (is_sle '12-sp3+') {
+        # Add sleep as command 'crm_mon' outputs 'Inactive resources:' instead of 'no inactive resources' on 12-sp5
+        sleep 5;
+        $cmd->("$crm_mon_cmd | grep -i 'no inactive resources'");
+    }
     $cmd->('crm_mon -1 | grep \'partition with quorum\'');
     # In older versions, node names in crm node list output are followed by ": normal". In newer ones by ": member"
     $cmd->(q/crm_mon -s | grep "$(crm node list | grep -E -c ': member|: normal') nodes online"/);
@@ -1205,6 +1216,7 @@ sub check_iscsi_failure {
 =head3 cluster_status_matches_regex
 
 Check crm status output against a hardcode regular expression in order to check the cluster health 
+
 =over 1
 
 =item B<SHOW_CLUSTER_STATUS> - Output from 'crm status' command

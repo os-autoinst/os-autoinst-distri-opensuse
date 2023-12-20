@@ -1,0 +1,260 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+ % if ($check_var->('SCC_REGISTER', 'installation')) {
+ <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email/>
+    <reg_code><![CDATA[<%= $get_var->('SCC_REGCODE') %>]]></reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    <reg_server><![CDATA[http://all-<%= $get_var->('BUILD') %>.proxy.scc.suse.de]]></reg_server>
+    <addons config:type="list">
+      <addon>
+        <name>sle-module-server-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-basesystem</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-legacy</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+    </addons>
+  </suse_register>
+  % } else {
+  <add-on>
+    <add_on_products config:type="list">
+      <listentry>
+        <alias>SLE-Module-Basesystem</alias>
+        % if ($check_var->('VERSION', '15-SP1')) {
+        <media_url><![CDATA[http://mirror.suse.asia/install/SLP/SLE-<%= $get_var->('VERSION') %>-Module-Basesystem-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
+        <product_dir>/</product_dir>
+        % } else {
+        <media_url><![CDATA[http://mirror.suse.asia/install/SLP/SLE-<%= $get_var->('VERSION') %>-Full-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
+        <product_dir>/Module-Basesystem</product_dir>
+        % }
+        <name>SLE-Module-Basesystem-GM</name>
+        <product>sle-module-basesystem</product>
+      </listentry>
+      <listentry>
+        <alias>SLE-Module-Server-Applications</alias>
+        % if ($check_var->('VERSION', '15-SP1')) {
+        <media_url><![CDATA[http://mirror.suse.asia/install/SLP/SLE-<%= $get_var->('VERSION') %>-Module-Server-Applications-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
+        <product_dir>/</product_dir>
+        % } else {
+        <media_url><![CDATA[http://mirror.suse.asia/install/SLP/SLE-<%= $get_var->('VERSION') %>-Full-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
+        <product_dir>/Module-Server-Applications</product_dir>
+        % }
+        <name>SLE-Module-Server-Applications-GM</name>
+        <product>sle-module-server-applications</product>
+      </listentry>
+      <listentry>
+        <alias>SLE-Module-Legacy</alias>
+        % if ($check_var->('VERSION', '15-SP1')) {
+        <media_url><![CDATA[http://mirror.suse.asia/install/SLP/SLE-<%= $get_var->('VERSION') %>-Module-Legacy-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
+        <product_dir>/</product_dir>
+        % } else {
+        <media_url><![CDATA[http://mirror.suse.asia/install/SLP/SLE-<%= $get_var->('VERSION') %>-Full-GM/<%= $get_var->('ARCH') %>/DVD1/]]></media_url>
+        <product_dir>/Module-Legacy</product_dir>
+        % }
+        <name>SLE-Module-Legacy-GM</name>
+        <product>sle-module-legacy</product>
+      </listentry>
+    </add_on_products>
+  </add-on>
+  % }
+  <bootloader>
+    <global>
+      <append>showopts</append>
+      <terminal>serial</terminal>
+    </global>
+    <loader_type>grub2-efi</loader_type>
+  </bootloader>
+  <firewall>
+    <enable_firewall config:type="boolean">false</enable_firewall>
+    <start_firewall config:type="boolean">false</start_firewall>
+  </firewall>
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+      <second_stage config:type="boolean">false</second_stage>
+    </mode>
+    <self_update config:type="boolean">false</self_update>
+    <storage>
+      <start_multipath config:type="boolean">false</start_multipath>
+    </storage>
+  </general>
+  <kdump>
+    <add_crash_kernel config:type="boolean">false</add_crash_kernel>
+  </kdump>
+  <keyboard>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages/>
+  </language>
+  <networking>
+    <dhcp_options>
+      <dhclient_client_id/>
+      <dhclient_hostname_option>AUTO</dhclient_hostname_option>
+    </dhcp_options>
+    <dns>
+      <dhcp_hostname config:type="boolean">true</dhcp_hostname>
+      <resolv_conf_policy>auto</resolv_conf_policy>
+      <write_hostname config:type="boolean">false</write_hostname>
+    </dns>
+    <ipv6 config:type="boolean">false</ipv6>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+    <virt_bridge_proposal config:type="boolean">true</virt_bridge_proposal>
+  </networking>
+  <ntp-client>
+    <ntp_policy>auto</ntp_policy>
+    <ntp_servers config:type="list"/>
+    <ntp_sync>manual</ntp_sync>
+  </ntp-client>
+  <partitioning config:type="list">
+    <drive>
+      <device>/dev/sda</device>
+      <disklabel>gpt</disklabel>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">vfat</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>utf8</fstopt>
+          <mount>/boot/efi</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">259</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+          <resize config:type="boolean">false</resize>
+          <size>536870912</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>swap</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">130</partition_id>
+          <partition_nr config:type="integer">3</partition_nr>
+          <resize config:type="boolean">false</resize>
+          <size>2148056576</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <create_subvolumes config:type="boolean">true</create_subvolumes>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>/</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">2</partition_nr>
+          <quotas config:type="boolean">true</quotas>
+          <resize config:type="boolean">false</resize>
+          <size>max</size>
+          <subvolumes config:type="list">
+            <subvolume>
+              <copy_on_write config:type="boolean">false</copy_on_write>
+              <path>var</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>usr/local</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>tmp</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>srv</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>root</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>opt</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>home</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>boot/grub2/x86_64-efi</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>boot/grub2/i386-pc</path>
+            </subvolume>
+          </subvolumes>
+          <subvolumes_prefix>@</subvolumes_prefix>
+        </partition>
+      </partitions>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <services-manager>
+    <default_target>multi-user</default_target>
+    <services>
+      <disable config:type="list"/>
+      <enable config:type="list">
+        <service>sshd</service>
+        <service>wickedd-auto4</service>
+        <service>wickedd-dhcp4</service>
+        <service>wickedd-nanny</service>
+      </enable>
+    </services>
+  </services-manager>
+  <software>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <packages config:type="list">
+      <package>python3</package>
+      <package>xfsprogs</package>
+      <package>sles-release</package>
+      <package>openssh</package>
+      <package>wicked</package>
+      <package>snapper</package>
+      <package>numactl</package>
+      <package>grub2-x86_64-efi</package>
+    </packages>
+    <patterns config:type="list">
+      <pattern>minimal_base</pattern>
+      <pattern>base</pattern>
+      <pattern>enhanced_base</pattern>
+      % if ($check_var->('SYSTEM_ROLE', 'kvm')) {
+      <pattern>kvm_server</pattern>
+      <pattern>kvm_tools</pattern>
+      % }
+    </patterns>
+    <products config:type="list">
+      <product>SLES</product>
+    </products>
+  </software>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>Asia/Shanghai</timezone>
+  </timezone>
+  <users config:type="list">
+    <user>
+      <authorized_keys config:type="list">
+        <authorized_key>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQClFIdtrTSLrBH9hg45x87LlKD65/omvfyQOpz2zecZkrnAmXGH2Qkjg9yReL8pVYAS4xVzWyUy4A7yoANarsGZ00h2P2cmNW5hsubrsYOggKjzxBKGVq7krNRQ7G35L3NRWPjccbRzTvvvjE/SEL2wyFMff7Djk/g9FZDFH3wY2m+9dlvNF/EHvUU1W9hr0zfCm/gdM8lPgimmsWfErbSZ+7MhQpxtVsoEnhlYY6sJ3Iq1718orSEFcOjXjlNUQBqnJFSlBPOk3IMGzr8AxV1SsJQOQ9UDBrgEozFCbg4wnDs38l4KMCu5aIbBwWkKCq+JKl3/utjc7QeUPzraTLrL+jGJ8RNmh0QwgOUraDI4+mqNcWAQ0k5OEm2PiAutcNi9MZP2vnQX0AgA7KovkyXzJe63M/YQRkYNKMWAjetmA/jzAG4AyV1Zug1NOjMM+Q8J8NItBDjv3TbxPPi7r5Iz2IpafRnwuVBjwu80v7G4JRh69vJ1tY6osmkKezq5BGPs+TOGXWYdGtQqt8Q0oEjw/3UnzJDfKBIRn84f26FIBP7A38cV5uQiHues5r8pKt/G6IRwG5tTSO4BqGIo1MYhyMCQ41t7q05GNHdTd17x0tjATEU4wVlTPlAdXXemdDNzFdMJToopd/5Pu1keDu9IUSu1SRuGynToVSzjSIWM9w== root@qadb2</authorized_key>
+      </authorized_keys>
+      <encrypted config:type="boolean">true</encrypted>
+      <home>/root</home>
+      <user_password>$6$OHLwpnZinmylfNHR$uWv10CWBO3iKQjLKB4KFBX.rLgmWWFN.2Y1uCz3lPYxxiGlZduBQrjFn03ROPS3ychihldRq95dwHoqLZlRcg1</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>

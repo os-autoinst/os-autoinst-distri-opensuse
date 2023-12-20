@@ -24,11 +24,6 @@ sub run {
     select_console('root-console');
     zypper_call('in pam_u2f');
 
-    # Package version check
-    my $pkg_list = {'pam_u2f' => '1.1.1'};
-    zypper_call("in " . join(' ', keys %$pkg_list));
-    package_upgrade_check($pkg_list);
-
     # Package change log check
     my $change_log = script_output('rpm -q pam_u2f --changelog');
     if ($change_log =~ m/Add support to FIDO2/

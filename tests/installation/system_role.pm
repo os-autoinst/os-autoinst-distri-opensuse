@@ -15,6 +15,7 @@ use warnings;
 use testapi;
 use Utils::Architectures;
 use version_utils qw(is_sle is_opensuse is_microos is_sle_micro);
+use YaST::workarounds;
 
 my %role_hotkey = (
     gnome => 's',
@@ -35,6 +36,11 @@ sub change_system_role {
         }
         else {
             assert_and_click "system-role-$system_role";
+            if (is_aarch64) {
+                if (!check_screen("system-role-$system_role-selected")) {
+                    apply_workaround_poo124652("system-role-$system_role-selected", 100);
+                }
+            }
             assert_and_click "system-role-$system_role-selected";
         }
     }

@@ -35,7 +35,27 @@ sub run {
     # skip ansible deployment in case of reusing infrastructure
     unless (get_var('QESAP_DEPLOYMENT_IMPORT')) {
         my @ret = qesap_execute(cmd => 'ansible', timeout => 3600, verbose => 1);
-        die("Ansible deploymend FAILED. Check 'qesap*' logs for details.") if $ret[0] > 0;
+        if ($ret[0]) {
+            # Retry to deploy terraform + ansible
+            if (qesap_terrafom_ansible_deploy_retry(error_log => $ret[1])) {
+                die "Retry failed, original ansible return: $ret[0]";
+            }
+
+            # Recreate instances data as the redeployment of terraform + ansible changes the instances
+            my $provider = $self->provider_factory();
+            my $instances = create_instance_data($provider);
+            foreach my $instance (@$instances) {
+                record_info 'New Instance', join(' ', 'IP: ', $instance->public_ip, 'Name: ', $instance->instance_id);
+                if (get_var('FENCING_MECHANISM') eq 'native' && get_var('PUBLIC_CLOUD_PROVIDER') eq 'AZURE') {
+                    qesap_az_setup_native_fencing_permissions(
+                        vm_name => $instance->instance_id,
+                        resource_group => qesap_az_get_resource_group());
+                }
+            }
+            $self->{instances} = $run_args->{instances} = $instances;
+            $self->{instance} = $run_args->{my_instance} = $run_args->{instances}[0];
+            $self->{provider} = $run_args->{my_provider} = $provider;    # Required for cleanup
+        }
         record_info('FINISHED', 'Ansible deployment process finished successfully.');
     }
 
@@ -67,15 +87,17 @@ sub run {
         $run_args->{site_b} = $instance if ($instance_id ne $master_node);
     }
 
-    get_var('QESAP_DEPLOYMENT_IMPORT') ?
-      record_info('IMPORT OK', 'Importing infrastructure successfully.') :
-      record_info('DEPLOY OK', 'Ansible deployment process finished successfully.');
+    get_var('QESAP_DEPLOYMENT_IMPORT')
+      ? record_info('IMPORT OK', 'Importing infrastructure successfully.')
+      : record_info('DEPLOY OK', 'Ansible deployment process finished successfully.');
 
     return unless $ha_enabled;
 
-    record_info('Instances:', "Detected HANA instances:
+    record_info(
+        'Instances:', "Detected HANA instances:
     Site A (PRIMARY): $run_args->{site_a}{instance_id}
-    Site B: $run_args->{site_b}{instance_id}");
+    Site B: $run_args->{site_b}{instance_id}"
+    );
     return 1;
 }
 

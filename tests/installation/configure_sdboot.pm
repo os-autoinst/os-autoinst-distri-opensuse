@@ -60,8 +60,10 @@ sub run {
     }
 
     send_key $cmd{ok};
-    # Adapting system setting needs longer time in case of installing/upgrading with multi-addons
+    # It doesn't immediately notice that the overview needs recalculation.
+    # Give it some time to make sure that it's fully loaded.
+    assert_screen 'installation-settings-overview-loaded', 220;
+    wait_still_screen 3;
     assert_screen 'installation-settings-overview-loaded', 220;
 }
-
 1;

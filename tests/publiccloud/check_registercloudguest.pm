@@ -23,16 +23,23 @@ use version_utils 'is_sle';
 
 sub run {
     my ($self, $args) = @_;
+    select_host_console();
 
-    # Preserve args for post_fail_hook
-    $self->{instance} = $args->{my_instance};
-
-    # Create $instance to make the code easier to read
-    my $instance = $args->{my_instance};
+    my $provider = $self->provider_factory();
+    my $instance = $provider->create_instance();
+    $args->{my_provider} = $provider;
+    $args->{my_instance} = $instance;
 
     my $regcode_param = (is_byos()) ? "-r " . get_required_var('SCC_REGCODE') : '';
 
     select_host_console();    # select console on the host, not the PC instance
+
+    if (check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect')) {
+        record_info('SKIP', 'PUBLIC_CLOUD_SCC_ENDPOINT is hardcoded to SUSEConnect - skipping registration testing. Falling back to registration module behavior');
+        registercloudguest($instance) if (is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION'));
+        register_addons_in_pc($instance);
+        return;
+    }
 
     if (is_container_host()) {
         # CHOST images don't have registercloudguest pre-installed. To install it we need to register which make it impossible to do

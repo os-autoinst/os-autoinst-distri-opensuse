@@ -80,8 +80,4 @@ sub configure_podman {
     assert_script_run('gcloud auth configure-docker --quiet ' . $self->gcr_zone);
 }
 
-sub cleanup {
-    my ($self) = @_;
-}
-
 1;

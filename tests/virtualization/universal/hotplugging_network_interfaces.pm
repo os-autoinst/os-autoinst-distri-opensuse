@@ -31,10 +31,6 @@ sub add_virtual_network_interface {
     unless ($guest =~ m/hvm/i && is_sle('<=12-SP2') && is_xen_host) {
         my $persistent_config_option = '';
         my $interface_model_option = '';
-        if (get_var('VIRT_AUTOTEST') && is_xen_host) {
-            record_soft_failure 'bsc#1168124 Bridge network interface hotplugging has to be performed at the beginning.';
-            $self->{test_results}->{$guest}->{"bsc#1168124 Bridge network interface hotplugging has to be performed at the beginning"}->{status} = 'SOFTFAILED';
-        }
         if (get_var('VIRT_AUTOTEST') && is_kvm_host) {
             $interface_model_option = '--model virtio';
         }

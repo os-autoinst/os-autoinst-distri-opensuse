@@ -6,9 +6,12 @@ schedule:
     - boot/boot_to_desktop
     - security/oscap_stig/oscap_security_guide_setup
     - security/oscap_stig/oscap_xccdf_eval
-    - security/oscap_stig/oscap_xccdf_eval_remote
+    - '{{eval_remote}}'
     - security/oscap_stig/oscap_xccdf_remediate
     # Do evaluate again after remediate
+    - security/oscap_stig/oscap_xccdf_eval
+    - security/oscap_stig/oscap_xccdf_remediate
+    # Do evaluate again after 2nd remediate
     - security/oscap_stig/oscap_xccdf_eval
     - security/oscap_stig/baseline_comparison
 conditional_schedule:
@@ -18,3 +21,7 @@ conditional_schedule:
                 - installation/bootloader_zkvm
             ppc64le:
                 - installation/bootloader
+    eval_remote:
+        ARCH:
+            s390x:
+                - security/oscap_stig/oscap_xccdf_eval_remote

@@ -17,6 +17,7 @@ use testapi;
 use strict;
 use utils;
 use publiccloud::utils;
+use version_utils 'is_sle';
 use Utils::Logging 'tar_and_upload_log';
 
 sub run {
@@ -33,10 +34,10 @@ sub run {
 
     assert_script_run("ps aux | nl");
 
-    assert_script_run("ip a s");
-    assert_script_run("ip -6 a s");
-    assert_script_run("ip r s");
-    assert_script_run("ip -6 r s");
+    my $ip_color = (is_sle('>=15-SP3')) ? '-c=never' : '';
+    assert_script_run("ip $ip_color a s");
+    assert_script_run("ip $ip_color r s");
+    assert_script_run("ip $ip_color -6 r s");
 
     assert_script_run("cat /etc/hosts");
     assert_script_run("cat /etc/resolv.conf");

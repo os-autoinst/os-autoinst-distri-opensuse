@@ -103,10 +103,11 @@
     "bsc#1178033": {
         "description": "kernel: ITS@0x8080000: Unable to locate ITS domain handle",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" , "5.5" ],
+            "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" , "5.5", "6.0" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"],
+            "alp":  ["1.0"]
         },
         "type": "bug"
     },
@@ -224,7 +225,7 @@
     "bsc#1197679": {
         "description": "route ipv4 0.0.0.0/0 via.*dev eth0#2 type unicast table main scope universe protocol dhcp covered by a ipv4:dhcp lease",
         "products": {
-            "sle": ["15-SP4", "15-SP5"]
+            "sle": ["15-SP4", "15-SP5", "15-SP6"]
         },
         "type": "bug"
     },
@@ -252,7 +253,7 @@
         "type": "ignore"
     },
     "apci-bridge": {
-        "description": "fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge|PCI: System does not support PCI",
+        "description": "fail to add MMCONFIG information, can't access extended (PCI|.*configuration) space under this bridge|PCI: System does not support PCI",
         "products": {
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
@@ -295,7 +296,7 @@
             "sle-micro": [ "5.0", "5.1" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
         },
         "type": "ignore"
     },
@@ -305,7 +306,7 @@
             "sle-micro": [ "5.0", "5.1" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
         },
         "type": "ignore"
     },
@@ -355,13 +356,14 @@
         "type": "ignore"
     },
     "no-config-drive": {
-        "description": "Timed out waiting for device (/dev/disk/by-label/ignition|/dev/combustion/config)|dev-combustion-config.device: Job dev-combustion-config.device/start timed out.",
+        "description": "Timed out waiting for device (/dev/disk/by-label/ignition|/dev/combustion/config|/UUID=)|dev-combustion-config.device: Job dev-combustion-config.device/start timed out.",
         "products": {
             "leap-micro": ["5.3"],
-            "sle-micro": ["5.3", "5.4" , "5.5"],
+            "sle-micro": ["5.3", "5.4" , "5.5", "6.0"],
             "microos":  ["Tumbleweed"],
             "opensuse":  ["Tumbleweed"],
-            "sle": ["15-SP6"]
+            "sle": ["15-SP6"],
+            "alp":  ["1.0"]
         },
         "type": "ignore"
     },
@@ -471,7 +473,8 @@
     "boo#1215367": {
         "description": "pam_wtmpdb\\(login:session\\): Failed to execute statement: database is locked",
         "products": {
-            "microos":  ["Tumbleweed"]
+            "microos":  ["Tumbleweed"],
+            "alp": ["1.0"]
         },
         "type": "bug"
     },
@@ -485,7 +488,7 @@
     "bsc#1215377": {
         "description": "plugin /usr/sbin/sedispatch terminated unexpectedly",
         "products": {
-            "sle-micro": ["5.4" , "5.5"],
+            "sle-micro": ["5.4" , "5.5", "6.0"],
             "leap-micro": [ "5.5" ]
         },
         "type": "bug"
@@ -519,7 +522,8 @@
         "description": "systemd-vconsole-setup\\[.*\\]: /usr/bin/setfont failed with exit status 71.*",
         "products": {
             "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"]
+            "microos":  ["Tumbleweed"],
+            "alp": ["1.0"]
         },
         "type": "bug"
     },
@@ -536,6 +540,16 @@
         "products": {
             "opensuse": ["Tumbleweed"],
             "microos":  ["Tumbleweed"]
+        },
+        "type": "bug"
+    },
+    "bsc#1215383": {
+        "description": "pam_lastlog2\\(.*\\): User 'bernhard' not found \\(101\\)",
+        "products": {
+            "sle-micro": ["6.0"],
+            "opensuse": ["Tumbleweed"],
+            "microos":  ["Tumbleweed"],
+            "alp":  ["1.0"]            
         },
         "type": "bug"
     }

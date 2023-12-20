@@ -29,10 +29,7 @@ sub run_test_per_provider {
 }
 
 sub run() {
-    my $is_virtualbox_applicable = is_x86_64();
-
-    setup_vagrant_libvirt();
-    setup_vagrant_virtualbox() if $is_virtualbox_applicable;
+    setup_vagrant_virtualbox();
 
     select_console('root-console');
     zypper_call('in ansible');
@@ -46,14 +43,8 @@ sub run() {
     $arch_ext = "_$arch" if !is_x86_64();
     my $build = get_required_var('BUILD');
 
-    my %boxes = (
-        # Tumbleweed.x86_64-1.0-{libvirt|virtualbox}-Snapshot20190704.vagrant.{libvirt|virtualbox}.box
-        libvirt => "$version.$arch-1.0-libvirt$arch_ext-Snapshot$build.vagrant.libvirt.box",
-    );
-    # virtualbox is supported only on x86_64
-    %boxes = (%boxes, virtualbox => "$version.$arch-1.0-virtualbox-Snapshot$build.vagrant.virtualbox.box") if $is_virtualbox_applicable;
-
-    my @providers = keys %boxes;
+    # Tumbleweed.x86_64-1.0-{libvirt|virtualbox}-Snapshot20190704.vagrant.{libvirt|virtualbox}.box
+    my $box = "$version.$arch-1.0-virtualbox-Snapshot$build.vagrant.virtualbox.box";
 
     #
     # get Vagrantfile template and replace the distro name & insert box filenames
@@ -61,13 +52,9 @@ sub run() {
     assert_script_run("wget --quiet " . data_url("virtualization/Vagrantfile"));
     assert_script_run("sed -i 's|DISTRO|$version|' Vagrantfile");
 
-    foreach my $provider (@providers) {
-        my $boxname = "$boxes{$provider}";
-        assert_script_run("wget --quiet " . autoinst_url("/assets/other/$boxname"));
+    assert_script_run("wget --quiet " . autoinst_url("/assets/other/$box"));
 
-        my $upcase_provider = uc $provider;
-        assert_script_run("sed -i 's|BOXNAME_$upcase_provider|$boxname|' Vagrantfile");
-    }
+    assert_script_run("sed -i 's|BOXNAME_VIRTUALBOX|$box|' Vagrantfile");
 
     # move the Vagrantfile into a empty subdirectory and invoke vagrant from
     # there, so that we don't synchronize the huge .box files into the VM
@@ -81,22 +68,23 @@ sub run() {
         assert_script_run("wget --quiet " . data_url("virtualization/$_"));
     }
 
-    foreach my $provider (@providers) {
-        run_test_per_provider($version, $provider);
-    }
+    run_test_per_provider($version, "virtualbox");
+
     assert_script_run("export BOX_STATIC_IP=1");
-    foreach my $provider (@providers) {
-        run_test_per_provider($version, $provider);
-    }
+    run_test_per_provider($version, "virtualbox");
 
     # cleanup after all the tests ran
-    foreach my $provider (@providers) {
-        my $boxname = "$boxes{$provider}";
-        run_vagrant_cmd("box remove --force --provider $provider ../$boxname");
-        assert_script_run("rm ../$boxname");
-    }
+    run_vagrant_cmd("box remove --force ../$box");
+    assert_script_run("rm ../$box");
 
     assert_script_run("popd");
+}
+
+sub post_fail_hook() {
+    my ($self) = @_;
+
+    upload_logs($vagrant_logfile);
+    $self->SUPER::post_fail_hook;
 }
 
 1;

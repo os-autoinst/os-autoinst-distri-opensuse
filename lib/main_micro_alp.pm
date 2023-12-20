@@ -14,6 +14,7 @@ use Exporter;
 use main_common;
 use main_ltp_loader 'load_kernel_tests';
 use main_containers qw(load_container_tests is_container_test);
+use main_publiccloud qw(load_publiccloud_download_repos);
 use testapi qw(check_var get_required_var get_var set_var);
 use version_utils;
 use utils;
@@ -183,7 +184,11 @@ sub load_common_tests {
     loadtest 'console/kubeadm' if (check_var('SYSTEM_ROLE', 'kubeadm'));
     # SLE Micro is not 2038-proof, so it doesn't apply here, but it does for ALP.
     # On s390x zvm setups we need more time to wait for system to boot up.
-    loadtest 'console/year_2038_detection' unless (is_s390x || is_sle_micro || is_leap_micro);
+    # Skip this test with sd-boot. The reason is not what you'd think though:
+    # With sd-boot, host_config does not perform a reboot and a snapshot is made while the serial terminal
+    # is logged in. year_2038_detection does a forced rollback to this snapshot and triggers poo#109929,
+    # breaking most later modules.
+    loadtest 'console/year_2038_detection' unless (is_s390x || is_sle_micro || is_leap_micro || is_bootloader_sdboot);
 }
 
 
@@ -268,18 +273,21 @@ sub load_journal_check_tests {
 
 sub load_slem_on_pc_tests {
     my $args = OpenQA::Test::RunArgs->new();
-
-    loadtest("boot/boot_to_desktop");
-    loadtest("publiccloud/prepare_instance", run_args => $args);
-    loadtest("publiccloud/registration", run_args => $args);
-    loadtest("publiccloud/ssh_interactive_start", run_args => $args);
-    loadtest("publiccloud/instance_overview", run_args => $args);
-    loadtest("publiccloud/slem_prepare", run_args => $args);
-    loadtest("transactional/enable_selinux") if (get_var('ENABLE_SELINUX'));
-    if (get_var("PUBLIC_CLOUD_CONTAINERS")) {
-        load_container_tests() if is_container_test;
+    if (get_var('PUBLIC_CLOUD_DOWNLOAD_TESTREPO')) {
+        load_publiccloud_download_repos();
+    } else {
+        loadtest("boot/boot_to_desktop");
+        loadtest("publiccloud/prepare_instance", run_args => $args);
+        loadtest("publiccloud/registration", run_args => $args);
+        loadtest("publiccloud/ssh_interactive_start", run_args => $args);
+        loadtest("publiccloud/instance_overview", run_args => $args);
+        loadtest("publiccloud/slem_prepare", run_args => $args);
+        loadtest("transactional/enable_selinux") if (get_var('ENABLE_SELINUX'));
+        if (get_var("PUBLIC_CLOUD_CONTAINERS")) {
+            load_container_tests() if is_container_test;
+        }
+        loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     }
-    loadtest("publiccloud/ssh_interactive_end", run_args => $args);
 }
 
 sub load_xfstests_tests {
@@ -314,6 +322,14 @@ sub load_tests {
 
     if (get_var('XFSTESTS')) {
         load_xfstests_tests;
+        return 1;
+    }
+
+    if (get_var('BTRFS_PROGS')) {
+        boot_hdd_image;
+        loadtest 'btrfs-progs/install';
+        loadtest 'btrfs-progs/run';
+        loadtest 'btrfs-progs/generate_report';
         return 1;
     }
 
