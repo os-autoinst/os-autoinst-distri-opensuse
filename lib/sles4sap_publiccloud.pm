@@ -858,7 +858,7 @@ sub get_hana_database_status {
 =head2 is_hana_database_online
 
     Setup a timeout and check the hana database status is offline and there is not connection.
-    if the connection still is online run a wait and try again to get the status.
+    If the connection still is online run a wait and try again to get the status.
     Returns 1 if the output of the hana database is online, 0 means that hana database is offline
 
 =over 2
@@ -873,7 +873,7 @@ sub get_hana_database_status {
 sub is_hana_database_online {
     my ($self, %args) = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 900);
-    my $total_consecutive_passes = ($args{total_consecutive_passes} // 5);
+    $args{total_consecutive_passes} //= 5;
     my $instance_id = get_required_var('INSTANCE_ID');
 
     my $db_status = -1;
@@ -882,7 +882,7 @@ sub is_hana_database_online {
     my $start_time = time;
     my $hdb_cmd = "hdbsql -u SYSTEM -p $password_db -i $instance_id 'SELECT * FROM SYS.M_DATABASES;'";
 
-    while ($consecutive_passes < $total_consecutive_passes) {
+    while ($consecutive_passes < $args{total_consecutive_passes}) {
         $db_status = $self->get_hana_database_status($password_db, $instance_id);
         if (time - $start_time > $timeout) {
             record_info("Hana database after timeout", $self->run_cmd(cmd => $hdb_cmd));
