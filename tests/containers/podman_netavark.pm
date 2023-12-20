@@ -10,11 +10,15 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use version_utils qw(package_version_cmp is_transactional is_jeos is_leap is_sle_micro is_leap_micro is_sle);
+use version_utils qw(package_version_cmp is_transactional is_jeos is_leap is_sle_micro is_leap_micro is_sle is_microos);
 use containers::utils qw(get_podman_version registry_url);
 use transactional qw(trup_call check_reboot_changes);
 use utils qw(zypper_call);
 use Utils::Systemd qw(systemctl);
+
+sub is_cni_in_tw {
+    return (script_output("podman info -f '{{.Host.NetworkBackend}}'") =~ "cni") && is_microos && get_var('TDUP');
+}
 
 sub is_cni_default {
     return is_sle || is_leap || is_sle_micro('<6.0') || is_leap_micro;
@@ -80,7 +84,7 @@ sub run {
         return 1;
     }
 
-    switch_to_netavark if is_cni_default;
+    switch_to_netavark if is_cni_default || is_cni_in_tw;
     $podman->cleanup_system_host();
 
     # it is turned off in
