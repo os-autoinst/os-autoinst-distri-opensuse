@@ -2897,8 +2897,8 @@ sub ping_size_check {
     my $target = shift;
     my $size = shift;
     # Check connectivity with different packet size to target
-    # Fragmentation is disabled, maximum size is 1430 to fit in 1458 MTU in GRE tunel
-    my @sizes = $size ? $size : (100, 1000, 1350, 1400, 1430);
+    # Fragmentation is disabled, maximum size is 1352 to fit in 1380 MTU in GRE tunel
+    my @sizes = $size ? $size : (100, 1000, 1252, 1350, 1352);
     for my $size (@sizes) {
         assert_script_run("ping -M do -s $size -c 1 $target", fail_message => "ping with packet size $size failed, problems with MTU size are expected. If it is multi-machine job, it can be GRE tunnel setup issue.");
     }
