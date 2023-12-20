@@ -81,6 +81,9 @@ EOT
         if (is_sle('<12-sp1')) {
             file_content_replace('/etc/dhcpd.conf', '^\s*ddns-update-style' => '# ddns-update-style', '^\s*dhcp-cache-threshold' => '# dhcp-cache-threshold');
         }
+        if (my $mtu = get_var('MM_MTU')) {
+            file_content_replace('/etc/dhcpd.conf', 'interface-mtu 1380' => "interface-mtu $mtu");
+        }
         file_content_replace('/etc/sysconfig/dhcpd', '--sed-modifier' => 'g', '^DHCPD_INTERFACE=.*' => 'DHCPD_INTERFACE="' . $ctx->iface() . '"');
 
         if (check_var('WICKED', 'basic')) {

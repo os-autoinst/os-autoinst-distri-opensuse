@@ -131,6 +131,7 @@ MACHINE | string | | Define machine name which defines worker specific configura
 MEDIACHECK | boolean | false | Enables `installation/mediacheck` test module.
 MEMTEST | boolean | false | Enables `installation/memtest` test module.
 MIRROR_{protocol} | string | | Specify source address
+MM_MTU | integer | 1380 | Specifies the MTU to set in SUTs of MM tests usually started with `NICTYPE=tap`.
 MOK_VERBOSITY | boolean | false | Enable verbosity feature of shim. Requires preinstalled `mokutil`.
 MOZILLATEST |||
 MOZILLA_NSS_DEVEL_REPO | string | | URL of the repository where to install the mozilla-nss packages from.
