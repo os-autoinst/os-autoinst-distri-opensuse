@@ -290,6 +290,7 @@ sub run {
     my $inst_ltp = get_var 'INSTALL_LTP';
     my $cmd_file = get_var('LTP_COMMAND_FILE');
     my $grub_param = 'ignore_loglevel';
+    my $is_ima = $cmd_file =~ m/^ima$/i;
 
     if ($inst_ltp !~ /(repo|git)/i) {
         die 'INSTALL_LTP must contain "git" or "repo"';
@@ -299,7 +300,7 @@ sub run {
         $self->wait_boot;
     }
 
-    enable_tpm_slb9670 if (get_var('MACHINE') =~ /RPi/);
+    enable_tpm_slb9670 if ($is_ima && get_var('MACHINE') =~ /RPi/);
 
     select_serial_terminal;
 
