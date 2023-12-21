@@ -66,7 +66,9 @@ sub run {
 
     # Create 3 partitions
     assert_script_run 'echo -e "g\nn\n\n\n+1G\nt\n8e\nn\n\n\n+1G\nt\n2\n8e\nn\n\n\n\nt\n\n8e\np\nw" | fdisk ' . $disk;
-    assert_script_run 'lsblk';
+    # The order of the mountpoints is not always the same, so there's need to
+    # force the sort order
+    assert_script_run 'lsblk --tree --sort=MOUNTPOINT';
 
     my $timeout = 180;
 
