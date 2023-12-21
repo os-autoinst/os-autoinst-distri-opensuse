@@ -16,7 +16,7 @@ use autotest;
 use utils;
 use wicked::TestContext;
 use Utils::Architectures;
-use version_utils qw(:VERSION :BACKEND :SCENARIO);
+use version_utils qw(:VERSION :BACKEND :SCENARIO is_community_jeos);
 use Utils::Backends;
 use data_integrity_utils 'verify_checksum';
 use bmwqemu ();
@@ -606,7 +606,7 @@ sub load_jeos_openstack_tests {
 }
 
 sub load_jeos_tests {
-    if ((is_arm || is_aarch64) && is_opensuse()) {
+    if (is_community_jeos()) {
         # Enable jeos-firstboot, due to boo#1020019
         load_boot_tests();
         loadtest "jeos/prepare_firstboot";
