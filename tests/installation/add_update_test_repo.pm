@@ -33,6 +33,11 @@ sub run() {
 
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) if get_var('INCIDENT_REPO');
     my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
+    for my $extra_repo (split(/,/, get_var('EXTRA_CUSTOMER_REPOS', ''))) {
+        my @repo_part = split(/;/, $extra_repo);
+        my $url = $repo_part[1];
+        push(@repos, $url);
+    }
 
     while (defined(my $maintrepo = shift @repos)) {
         next if $maintrepo =~ /^\s*$/;
