@@ -650,7 +650,9 @@ sub upload_wicked_logs {
     # that there is sense to do something at all
     assert_script_run('echo "CHECK CONSOLE"', fail_message => 'Console not usable. Failed to collect logs');
     record_info('Logs', "Collecting logs in $logs_dir");
-    script_run("mkdir -p $logs_dir");
+    script_run("mkdir -p $logs_dir/etc/sysconfig");
+    script_run("cp -r /etc/sysconfig/network $logs_dir/etc/sysconfig/");
+    script_run("cp -r /etc/wicked $logs_dir/etc/");
     script_run("date +'%Y-%m-%d %T.%6N' > $logs_dir/date");
     script_run("journalctl -b -o short-precise|tail -n +2 > $logs_dir/journalctl.log");
     script_run("wicked ifstatus --verbose all > $logs_dir/wicked_ifstatus.log 2>&1");
