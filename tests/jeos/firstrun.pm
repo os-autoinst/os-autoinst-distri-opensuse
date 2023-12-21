@@ -64,7 +64,7 @@ sub verify_mounts {
 }
 
 sub verify_hypervisor {
-    my $virt = script_output('systemd-detect-virt');
+    my $virt = script_output('systemd-detect-virt', proceed_on_failure => 1);
 
     return 0 if (
         is_qemu && $virt =~ /(qemu|kvm)/ ||
@@ -72,6 +72,11 @@ sub verify_hypervisor {
         is_hyperv && $virt =~ /microsoft/ ||
         is_vmware && $virt =~ /vmware/ ||
         check_var("VIRSH_VMM_FAMILY", "xen") && $virt =~ /xen/);
+
+    if (is_qemu && is_riscv && $virt =~ /none/) {
+        record_soft_failure('boo#1218309');
+        return 0;
+    }
 
     die("Unknown hypervisor: $virt");
 }

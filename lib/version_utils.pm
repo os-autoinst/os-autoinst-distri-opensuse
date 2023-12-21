@@ -925,6 +925,6 @@ Returns true for tests using the images built by the "JeOS" package on OBS
 =cut
 
 sub is_community_jeos {
-    return (get_var('FLAVOR', '') =~ /JeOS-for-(AArch64|RPi)/);
+    return (get_var('FLAVOR', '') =~ /JeOS-for-(AArch64|RISCV|RPi)/);
 }
 
