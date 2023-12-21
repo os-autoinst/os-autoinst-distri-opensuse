@@ -14,6 +14,21 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 
+sub validate_certificate {
+    my ($ca_dir, $file, $out_file, $expected_exit_code) = @_;
+
+    my $grep_cmd = ($expected_exit_code == 0)
+      ? q{grep -o 'dirmngr-client: certificate is valid'}
+      : q{grep -o 'dirmngr-client: validation of certificate failed: Certificate revoked'};
+    if (script_run("dirmngr-client --validate $ca_dir/certs/$file.crt.der 2>&1 | tee -a $out_file") == $expected_exit_code) {
+        assert_script_run("$grep_cmd $out_file");
+    } elsif (script_run("dirmngr-client --validate $ca_dir/certs/$file.crt.pem 2>&1 | tee -a $out_file") == $expected_exit_code) {
+        record_soft_failure 'Maniphest#T5531: dirmngr --validate broken for DER encoded files';
+    } else {
+        die "dirmngr-client did not exit with return $expected_exit_code";
+    }
+}
+
 sub dirmngr_daemon {
     select_serial_terminal;
 
@@ -40,25 +55,11 @@ sub dirmngr_daemon {
     assert_script_run("openssl x509 -inform der -outform pem -text -in $myca_dir/certs/test2.crt.der -out $myca_dir/certs/test2.crt.pem");
     assert_script_run("openssl x509 -inform der -outform pem -text -in $myca_dir/certs/test1.crt.der -out $myca_dir/certs/test1.crt.pem");
 
-    # Verify certificate ( test2.crt.der certificate is valid)
-    if (script_run("dirmngr-client --validate $myca_dir/certs/test2.crt.der 2>&1 | tee -a /tmp/cert2.out") == 0) {
-        assert_script_run("grep -o \'dirmngr-client: certificate is valid\' /tmp/cert2.out");
-    } elsif (script_run("dirmngr-client --validate $myca_dir/certs/test2.crt.pem 2>&1 | tee -a /tmp/cert2.out") == 0) {
-        record_soft_failure 'Maniphest#T5531: dirmngr --validate broken for DER encoded files';
-    }
-    else {
-        die "dirmngr-client did not exit with return 0";
-    }
+    # Verify test2.crt.der certificate
+    validate_certificate("$myca_dir", "test2", "/tmp/cert2.out", 0);
 
-    # Verify certificate ( test1.crt.der certificate is revoked)
-    if (script_run("dirmngr-client --validate $myca_dir/certs/test1.crt.der 2>&1 | tee -a /tmp/cert1.out") == 1) {
-        assert_script_run("grep -o \'dirmngr-client: validation of certificate failed: Certificate revoked\' /tmp/cert1.out");
-    } elsif (script_run("dirmngr-client --validate $myca_dir/certs/test1.crt.pem 2>&1 | tee -a /tmp/cert2.out") == 1) {
-        record_soft_failure 'Maniphest#T5531: dirmngr --validate broken for DER encoded files';
-    }
-    else {
-        die "dirmngr-client did not exit with return 1";
-    }
+    # Verify test1.crt.der certificate (revoked)
+    validate_certificate("$myca_dir", "test1", "/tmp/cert1.out", 1);
 }
 
 sub run {

@@ -6,7 +6,6 @@ schedule:
     - transactional/host_config
     - '{{scc_slem}}'
     - security/selinux/selinux_setup
-    - '{{repo_setup}}'
     - fips/fips_setup
     - fips/openssl/openssl_fips_alglist
     - fips/openssl/openssl_fips_hash
