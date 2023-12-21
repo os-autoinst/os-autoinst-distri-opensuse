@@ -27,6 +27,7 @@ use constant {
           is_arm
           is_ppc64le
           is_ppc64
+          is_riscv
           is_orthos_machine
           is_supported_suse_domain
           is_zvm
@@ -154,6 +155,18 @@ sub is_ppc64le {
 
 sub is_ppc64 {
     return check_var('ARCH', 'ppc64');
+}
+
+=head2 is_riscv
+
+ is_riscv();
+
+ Returns whether ARCH is a riscv (currently only riscv64).
+
+=cut
+
+sub is_riscv {
+    return check_var('ARCH', 'riscv64');
 }
 
 =head2 is_orthos_machine
