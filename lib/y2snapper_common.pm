@@ -167,7 +167,8 @@ sub y2snapper_show_changes_and_delete {
     # Press Show Changes
     send_key "alt-s";
     wait_still_screen(2, 4);
-    assert_screen 'yast2_snapper-unselected_testdata';
+    is_sle('>=15-SP4') ? apply_workaround_poo124652('yast2_snapper-unselected_testdata') : assert_screen('yast2_snapper-unselected_testdata');
+
     if ($ncurses) {
         # Select 1. subvolume (root) in the tree and expand it
         wait_screen_change { send_key "ret" };
@@ -190,7 +191,7 @@ sub y2snapper_show_changes_and_delete {
     }
     assert_screen 'yast2_snapper-confirm_delete';
     send_key "alt-y";
-    assert_screen 'yast2_snapper-empty-list';
+    is_sle('>=15-SP4') ? apply_workaround_poo124652('yast2_snapper-empty-list') : assert_screen('yast2_snapper-empty-list');
 }
 
 =head2 y2snapper_clean_and_quit
