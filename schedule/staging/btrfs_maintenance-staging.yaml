@@ -1,0 +1,7 @@
+---
+name: Btrfs maintenance
+description: >
+    Run btrfs maintenance programs
+schedule:
+    - boot/boot_to_desktop
+    - console/btrfs_balance
