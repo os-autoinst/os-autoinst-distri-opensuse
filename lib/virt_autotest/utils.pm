@@ -216,14 +216,14 @@ sub turn_on_libvirt_debugging_log {
     push @libvirt_daemons, 'virtlogd' if is_kvm_host;
 
     #turn on debug and log filter for libvirt services
-    #set log_level = 1 'debug'
+    #disable log_level = 1 'debug' as it generage large output
     #the size of libvirtd with debug level and without any filter on sles15sp3 xen is over 100G,
     #which consumes all the disk space. Now get comfirmation from virt developers,
     #log filter is set to store component logs with different levels.
     foreach my $daemon (@libvirt_daemons) {
         my $conf_file = "/etc/libvirt/$daemon.conf";
         if (script_run("ls $conf_file") == 0) {
-            script_run "sed -i '/^[# ]*log_level *=/{h;s/^[# ]*log_level *= *[0-9].*\$/log_level = 1/};\${x;/^\$/{s//log_level = 1/;H};x}' $conf_file";
+            script_run "sed -i 's/^[ ]*log_level *=/#&/' $conf_file";
             script_run "sed -i '/^[# ]*log_outputs *=/{h;s%^[# ]*log_outputs *=.*[0-9].*\$%log_outputs = \"1:file:/var/log/libvirt/$daemon.log\"%};\${x;/^\$/{s%%log_outputs = \"1:file:/var/log/libvirt/$daemon.log\"%;H};x}' $conf_file";
             script_run "sed -i '/^[# ]*log_filters *=/{h;s%^[# ]*log_filters *=.*[0-9].*\$%log_filters = \"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%};\${x;/^\$/{s%%log_filters = \"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%;H};x}' $conf_file";
         }
