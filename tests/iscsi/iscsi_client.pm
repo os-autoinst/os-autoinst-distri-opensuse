@@ -35,6 +35,7 @@ use Utils::Logging 'save_and_upload_log';
 my $test_data = get_test_suite_data();
 
 sub initiator_service_tab {
+    apply_workaround_poo124652('iscsi-client-service') if (is_sle('>=15-SP4'));
     unless (is_sle('<15') || is_leap('<15.1')) {
         if (is_sle('=15')) {
             change_service_configuration(
@@ -70,6 +71,8 @@ sub initiator_discovered_targets_tab {
     # next and press connect button
     send_key "alt-n";
     assert_and_click 'iscsi-initiator-connect-button';
+    wait_still_screen(2);
+    apply_workaround_poo124652('iscsi-initiator-discovery-startup') if (is_sle('>=15-SP4'));
     send_key_until_needlematch 'iscsi-initiator-connect-automatic', 'down';
     send_key 'alt-o';
     assert_screen 'iscsi-initiator-discovery-enable-login-auth';

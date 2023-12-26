@@ -15,7 +15,6 @@ use Config::Tiny;
 our @EXPORT = qw(
   apply_workaround_poo124652
   apply_workaround_bsc1206132
-  workaround_poo124652_for_send_key_until
 );
 
 =head1 Workarounds for known issues
@@ -76,35 +75,6 @@ sub apply_workaround_bsc1206132 {
     my $str = $Config->write_string();
     assert_script_run("echo \"$str\" > $service_unit");
     systemctl('daemon-reload');
-}
-
-=head2 workaround_poo124652_for_send_key_until ():
-
-Workaround screen refresh issue for the send_key_until_needle_match
-
-Records a soft failure with a reference to bsc#1206132
-
-This is the wrapper for send_key_until_needle_match for applying
-apply_workaround_bsc1206132.
-
-=cut
-
-sub workaround_poo124652_for_send_key_until {
-    my ($tag, $key, $counter, $timeout) = @_;
-
-    $counter //= 20;
-    $timeout //= 1;
-
-    my $real_timeout = 0;
-    while (!check_screen($tag, $real_timeout)) {
-        wait_screen_change {
-            send_key $key;
-        };
-        if (--$counter <= 0) {
-            apply_workaround_bsc1206132 $tag;
-        }
-        $real_timeout = $timeout;
-    }
 }
 
 1;
