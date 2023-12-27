@@ -300,6 +300,10 @@ sub stop_hana {
             # Try only extending ssh_opts
             ssh_opts => "-o ServerAliveInterval=2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR",
             %args);
+        # It is better to wait till ssh disappear
+        record_info("Wait ssh disappear start");
+        my $out = $self->{my_instance}->wait_for_ssh(timeout => 60, wait_stop => 1);
+        record_info("Wait ssh disappear end", "$out") if (defined $out);
         sleep 10;
         $self->{my_instance}->wait_for_ssh();
         return ();
