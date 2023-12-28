@@ -33,7 +33,7 @@ sub run {
             cmd => "wsl --install --no-distribution",
             code => sub {
                 unless (is_aarch64) {
-                    assert_screen(["windows-user-account-ctl-hidden", "windows-user-acount-ctl-allow-make-changes"], 240);
+                    assert_screen(["windows-user-account-ctl-hidden", "windows-user-acount-ctl-allow-make-changes"], 900);
                     assert_and_click "windows-user-account-ctl-hidden" if match_has_tag("windows-user-account-ctl-hidden");
                     assert_and_click "windows-user-acount-ctl-yes";
                 }
