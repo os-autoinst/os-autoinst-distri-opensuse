@@ -179,7 +179,7 @@ sub create_loop_device_by_rootsize {
         @loop_dev_size = (($size1 . 'M') x 2, ($size2 . 'M') x 4);
     }
     else {
-        $size > (20480 * ($amount + 1)) ? ($size = 20480) : ($size = $size / ($amount + 1));
+        $size > (20480 * ($amount + 1)) ? ($size = 20480) : ($size = int($size / ($amount + 1)));
         foreach (0 .. $amount) { push(@loop_dev_size, $size . 'M'); }
     }
     @filename = ('test_dev');
@@ -256,6 +256,7 @@ sub post_env_info {
     }
     $size_info = $size_info . "PAGE_SIZE     " . script_output("getconf PAGE_SIZE") . "\n";
     $size_info = $size_info . "QEMURAM       " . get_var("QEMURAM") . "\n";
+    $size_info = $size_info . "\n" . script_output("df -h");
     record_info('Size', $size_info);
 }
 
