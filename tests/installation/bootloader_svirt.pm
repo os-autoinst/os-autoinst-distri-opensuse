@@ -345,7 +345,7 @@ sub run {
 
     # connects to a guest VNC session
     select_console('sut', await_console => 0);
-    vmware_set_permanent_boot_device($boot_device);
+    vmware_set_permanent_boot_device($boot_device) unless (check_var('UEFI', '1'));
 }
 
 

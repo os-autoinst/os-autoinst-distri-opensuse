@@ -359,14 +359,14 @@ sub power_action {
         # instead of handling the still logged in system.
         handle_livecd_reboot_failure if get_var('LIVECD') && $action eq 'reboot';
         # Look aside before we are sure 'sut' console on VMware is ready, see poo#47150
-        select_console('svirt') if is_vmware && $action eq 'reboot';
+        select_console('svirt') if is_vmware && $action eq 'reboot' && !get_var('UEFI');
         reset_consoles;
         if ((check_var('VIRSH_VMM_FAMILY', 'xen') || get_var('S390_ZKVM')) && $action ne 'poweroff') {
             console('svirt')->start_serial_grab;
         }
         # When 'sut' is ready, select it
         # GRUB's serial terminal configuration relies on installation/add_serial_console.pm
-        if (is_vmware && $action eq 'reboot') {
+        if (is_vmware && $action eq 'reboot' && !get_var('UEFI')) {
             die 'GRUB not found on serial console' unless (is_jeos || wait_serial('GNU GRUB', 180));
             select_console('sut');
         }
