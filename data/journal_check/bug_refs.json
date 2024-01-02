@@ -331,6 +331,7 @@
         "description": "health-checker/fail.sh check\" failed|Machine didn't come up correctly, do a rollback",
         "products": {
             "microos":  ["Tumbleweed"],
+            "sle-micro": ["6.0"],
             "alp":  ["1.0"]
         },
         "type": "ignore"
@@ -475,6 +476,13 @@
         "products": {
             "microos":  ["Tumbleweed"],
             "alp": ["1.0"]
+        },
+        "type": "bug"
+    },
+    "bsc#1218471": {
+        "description": "pam_wtmpdb\\(login:session\\): Failed to execute statement: database is locked",
+        "products": {
+            "sle-micro": ["6.0"]
         },
         "type": "bug"
     },
