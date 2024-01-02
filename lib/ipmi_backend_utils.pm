@@ -20,6 +20,7 @@ use Utils::Architectures;
 use Carp;
 use Socket;
 use virt_autotest::utils qw(is_xen_host check_port_state);
+use Utils::Backends;
 
 our @EXPORT = qw(set_grub_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot ipmitool enable_sev_in_kernel add_kernel_options set_grub_terminal_and_timeout reconnect_when_ssh_console_broken set_ipxe_bootscript);
 
@@ -451,7 +452,7 @@ sub add_kernel_options {
     if (($args{grub_to_change} == 1) or ($args{grub_to_change} == 3)) {
         my $grub_default_file = "$args{root_dir}etc/default/grub";
         foreach (@options) {
-            $cmd = "sed -i -r \'s/\\b\\S*$_\\S*\\b//g; /GRUB_CMDLINE_LINUX_DEFAULT/ s/\\\"\$/ $_\\\"/g\' $grub_default_file";
+            $cmd = "sed -i -r \'s/\\b$_\\S*\\b//g; /GRUB_CMDLINE_LINUX_DEFAULT/ s/\\\"\$/ $_\\\"/g\' $grub_default_file";
             $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
             assert_script_run($cmd);
             save_screenshot;
@@ -515,6 +516,10 @@ sub set_grub_terminal_and_timeout {
         my $grub_default_file = "$args{root_dir}etc/default/grub";
         $cmd = "sed -i -r \'s/^#{0,}GRUB_TERMINAL=.*\$/GRUB_TERMINAL=\"$args{terminals}\"/' $grub_default_file; "
           . "sed -i -r \'s/^#{0,}GRUB_TIMEOUT=.*\$/GRUB_TIMEOUT=$args{timeout}/' $grub_default_file";
+        $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
+        assert_script_run($cmd);
+        save_screenshot;
+        $cmd = "grub2-mkconfig -o /boot/grub2/grub.cfg";
         $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
         assert_script_run($cmd);
         save_screenshot;

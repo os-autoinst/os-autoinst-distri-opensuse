@@ -16,7 +16,7 @@ vars:
   PATTERNS: default,kvm
   MAX_JOB_TIME: 10800
 schedule:
-  - "{{bootup_and_install}}"
+  # - "{{bootup_and_install}}"
   - virt_autotest/login_console
   - virt_autotest/prepare_transactional_server
   - "{{install_guest}}"

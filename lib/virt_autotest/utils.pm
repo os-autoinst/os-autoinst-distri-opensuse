@@ -31,7 +31,7 @@ our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest i
   print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs ensure_default_net_is_active ensure_guest_started
   ensure_online add_guest_to_hosts restart_libvirtd check_libvirtd remove_additional_disks remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests restore_downloaded_guests save_original_guest_xmls restore_original_guests save_guests_xml_for_change restore_xml_changed_guests
   is_guest_online wait_guests_shutdown remove_vm setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host
-  check_port_state subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest upload_virt_logs recreate_guests download_vm_import_disks enable_nm_debug check_activate_network_interface set_host_bridge_interface_with_nm upload_nm_debug_log restart_modular_libvirt_daemons check_modular_libvirt_daemons);
+  check_port_state is_registered_system do_system_registration check_system_registration subscribe_extensions_and_modules download_script download_script_and_execute is_sev_es_guest upload_virt_logs recreate_guests download_vm_import_disks enable_nm_debug check_activate_network_interface upload_nm_debug_log restart_modular_libvirt_daemons check_modular_libvirt_daemons);
 
 my %log_cursors;
 
@@ -921,6 +921,79 @@ sub check_port_state {
     return $port_state;
 }
 
+=head2 is_registered_system
+
+  is_registered_system(dst_machine => $machine)
+
+Detect whether system under test is registered. If [dst_machine] is not given,
+the default value 'localhost' will be used. Using "transactional-update register"
+if 1 is given to [usetrup], otherwise keeping using SUSEConnect.
+
+=cut
+
+sub is_registered_system {
+    my (%args) = @_;
+    $args{dst_machine} //= 'localhost';
+    $args{usetrup} //= 0;
+
+    my $cmd1 = $args{usetrup} == 1 ? "transactional-update register" : "SUSEConnect";
+    $cmd1 .= " --status-text";
+    my $cmd2 = $cmd1 . " | grep -i \"Not Registered\"";
+    $cmd2 = "ssh root\@$args{dst_machine} " . "\"$cmd2\"" if ($args{dst_machine} ne 'localhost');
+    save_screenshot;
+    if (script_run($cmd2) == 0) {
+        record_info("System Not Registered");
+        return 0;
+    }
+    record_info("System Registered");
+    return 1;
+}
+
+=head2 do_system_registration
+
+  do_system_registration(dst_machine => $machine, activate => 1/0)
+
+Register/de-register system according to argument [activate]. If argument [dst_machine]
+is not given, the default value 'localhost' will be used. Using "transactional-update 
+register" if 1 is given to [usetrup], otherwise keeping using SUSEConnect.
+
+=cut
+
+sub do_system_registration {
+    my (%args) = @_;
+    $args{dst_machine} //= 'localhost';
+    $args{activate} //= 1;
+    $args{usetrup} //= 0;
+
+    my $cmd = $args{usetrup} == 1 ? "transactional-update register" : "SUSEConnect";
+    $cmd .= $args{activate} == 1 ? " -r " . get_required_var('SCC_REGCODE') . " --url " . get_required_var('SCC_URL') : " -d";
+    $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
+    script_run($cmd);
+    save_screenshot;
+    is_registered_system;
+}
+
+=head2 check_system_registration
+
+  check_system_registration(dst_machine => $machine)
+
+Check current system registration status. If argument [dst_machine] is not given,
+the default value 'localhost' will be used. Using "transactional-update register"
+if 1 is given to [usetrup], otherwise keeping using SUSEConnect.
+
+=cut
+
+sub check_system_registration {
+    my (%args) = @_;
+    $args{dst_machine} //= 'localhost';
+    $args{usetrup} //= 0;
+
+    my $cmd = $args{usetrup} == 1 ? "transactional-update register" : "SUSEConnect";
+    $cmd .= " --status-text";
+    $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
+    record_info("System Registration Status", script_output($cmd, proceed_on_failure => 1));
+}
+
 =head2 subscribe_extensions_and_modules
 
   subscribe_extensions_and_modules(dst_machine => $machine, activate => 1/0, reg_exts => $exts)
@@ -932,7 +1005,9 @@ by default if argument dst_machine is not given any other address, and successfu
 access to dst_machine via ssh should be guaranteed in advance if dst_machine points 
 to a remote machine. Deactivation is also supported if argument activate is given 
 0 explicitly. Multiple extensions or modules can be passed in as a single string 
-separated by space to argument reg_exts to be subscribed one by one.
+separated by space to argument reg_exts to be subscribed one by one. Using
+"transactional-update register" for newer OS like SLE Micro 6.0, which is the more
+preferred way to do registration.
 
 =cut
 
@@ -941,31 +1016,44 @@ sub subscribe_extensions_and_modules {
     $args{dst_machine} //= 'localhost';
     $args{activate} //= 1;
     $args{reg_exts} //= '';
-    croak('Nothing to be subscribed. Please pass something to argument reg_exts.') if ($args{reg_exts} eq '');
 
-    my $cmd = '';
-    $cmd = "SUSEConnect -l";
-    $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
-    my $ret = script_run($cmd);
-    save_screenshot;
-    unless ($ret == 0) {
-        record_info("Base product not registered or no extensions/modules available.", script_output($cmd, proceed_on_failure => 1));
-        return $ret;
+    my $registered_system = is_registered_system;
+    if (!$registered_system and !$args{activate}) {
+        return;
     }
-
-    $ret = 0;
-    my @to_be_subscribed = split(/ /, $args{reg_exts});
-    foreach (@to_be_subscribed) {
-        $cmd = "-p " . "\$(SUSEConnect -l | grep -o \"\\b$_\\/.*\\/.*\\b\")";
-        $cmd = ($args{activate} != 0 ? "SUSEConnect " : "SUSEConnect -d ") . $cmd;
-        $cmd = "ssh root\@$args{dst_machine} " . "\'$cmd\'" if ($args{dst_machine} ne 'localhost');
-        $ret |= script_run($cmd, timeout => 120);
-        save_screenshot;
+    elsif ($registered_system and !$args{activate}) {
+        my @to_be_unsubscribed = split(/ /, $args{reg_exts});
+        if (!@to_be_unsubscribed) {
+            record_info('No specified extension or module to be unsubscribed. Deregistering entire system.');
+            do_system_registration(activate => 0);
+        }
+        else {
+            foreach (@to_be_unsubscribed) {
+                my $cmd = is_sle_micro('>=6.0') ? "transactional-update register" : "SUSEConnect";
+                $cmd .= " -d -p " . "\$($cmd -l | grep -o \"\\b$_\\/.*\\/.*\\b\")";
+                $cmd = "ssh root\@$args{dst_machine} " . "\'$cmd\'" if ($args{dst_machine} ne 'localhost');
+                script_run($cmd, timeout => 120);
+                save_screenshot;
+            }
+        }
     }
-    $cmd = "SUSEConnect --status-text";
-    $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
-    record_info("Subscription status on $args{dst_machine}", script_output($cmd));
-    return $ret;
+    else {
+        do_system_registration if (!$registered_system);
+        my @to_be_subscribed = split(/ /, $args{reg_exts});
+        if (@to_be_subscribed) {
+            foreach (@to_be_subscribed) {
+                my $cmd = is_sle_micro('>=6.0') ? "transactional-update register" : "SUSEConnect";
+                $cmd .= " -p " . "\$($cmd -l | grep -o \"\\b$_\\/.*\\/.*\\b\")";
+                $cmd = "ssh root\@$args{dst_machine} " . "\'$cmd\'" if ($args{dst_machine} ne 'localhost');
+                script_run($cmd, timeout => 120);
+                save_screenshot;
+            }
+        }
+        else {
+            record_info('No specified extension or module to be subscribed.');
+        }
+    }
+    check_system_registration(dst_machine => $args{dst_machine});
 }
 
 =head2 is_sev_es_guest
@@ -1150,23 +1238,6 @@ sub check_activate_network_interface {
     assert_script_run("nmcli device show $network_interface", 60);
     save_screenshot;
     record_info("Activate Network Interface check successfully for automation test.");
-}
-
-sub set_host_bridge_interface_with_nm {
-    # Setup Host Bridge Network Interface with nmcli(NetworkManager) as needed
-    my $_host_bridge_cfg = "/etc/NetworkManager/system-connections/br0.nmconnection";
-
-    # Change the NetworkManager log-level as DEBUG at runtime
-    enable_nm_debug;
-
-    if (script_run("[[ -f $_host_bridge_cfg ]]") != 0) {
-        my $_alp_host_bridge = "/root/alp_host_bridge_init.sh";
-        assert_script_run("curl " . data_url("virt_autotest/alp_host_bridge_init.sh") . " -o $_alp_host_bridge");
-        assert_script_run("chmod +rx $_alp_host_bridge && $_alp_host_bridge");
-        save_screenshot;
-        record_info("Host Bridge Network Interface is set successfully for automation test.", script_output("ip a; ip route show all"));
-    }
-    check_activate_network_interface;
 }
 
 sub upload_nm_debug_log {

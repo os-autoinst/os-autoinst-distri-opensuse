@@ -108,7 +108,7 @@ function do_cleanup_on_host() {
 
 #Just power on or reboot active guests to give them a clear start
 function do_cleanup_on_guests() {
-	local guest_domain_types="sles|alp"
+	local guest_domain_types="sles|slem|alp"
 	local guests_inactive_array=`virsh list --inactive | grep -Ei "${guest_domain_types}" | awk '{print $2}'`
 	local guest_domains_array=`virsh list  --all | grep -Ei "${guest_domain_types}" | awk '{print $2}'`
 	local guest_current=""
