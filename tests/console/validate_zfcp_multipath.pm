@@ -23,31 +23,24 @@ sub verify_host_bus_adapters_attached {
     }
 }
 
-# Verify that there are 8 SCSI block devices listed (as a result of having two adapters, two hard disks and two paths to each disk, 2^3 = 8)
-# Verify that LUN 0x4001403200000000 corresponds to the 214GB disk, and LUN 0x4001405000000000 to the 42.9GB disk
+# Verify that there are 2 SCSI block devices listed
+# Verify that LUN 0x0000000000000000 corresponds to 53.6GB disk
 sub verify_plain_scsi_block_devices {
     my @all_scsi_list = split /\n/, script_output "lsscsi -xxgst";
-    my $large_disks = scalar grep { /0x4001403200000000.+214GB/ } @all_scsi_list;
-    my $small_disks = scalar grep { /0x4001405000000000.+42.9GB/ } @all_scsi_list;
-    assert_equals 4, $large_disks, "Expected 4 SCSI block devices sized 214GB at LUN 0x4001403200000000 found $large_disks";
-    assert_equals 4, $small_disks, "Expected 4 SCSI block devices sized 42.9GB at LUN 0x4001405000000000, found $small_disks";
+    my $disks = scalar grep { /0x0000000000000000.+53\.6GB/ } @all_scsi_list;
+    assert_equals 2, $disks, "Expected 2 SCSI block devices sized 53.6GB at LUN 0x0000000000000000 found $disks";
 }
 
-# Verify that the multipath device with WWID 36005076307ffd3b30000000000000132 corresponds to the 200G disk and the multipath device with WWID 36005076307ffd3b30000000000000150 to the 40G disk
-# Verify that there are 4 block devices listed for each virtual multipath device, and those corresponds to the right LUN (1077035009 and 1079001089)
+# Verify that the multipath device with WWID 3600507638081855cd800000000000076 corresponds to the 50G disk
+# Verify that there are 2 block devices listed for each virtual multipath device
 sub verify_multipath_block_devices {
     my $mpath = script_output "multipath -l";
     my @mpath = split /\n/, $mpath;
-    # check for 200GB disk (multiline match)
-    assert_matches qr/^36005076307ffd3b30000000000000132.+\n^size=200G/m, $mpath, "Cannot find 200GB disk on WWID *132";
-    # must see the LUN 1077035009 over 4 paths
-    my $large_disks = scalar grep { /1077035009/ } @mpath;
-    assert_equals 4, $large_disks, "200GB block device does not have 4 paths";
-    # check for 40GB disk (multiline match)
-    assert_matches qr/^36005076307ffd3b30000000000000150.+\n^size=40G/m, $mpath, "Cannot find 40GB disk on WWID *150";
-    # must see the LUN 1079001089 over 4 paths
-    my $small_disks = scalar grep { /1079001089/ } @mpath;
-    assert_equals 4, $small_disks, "40GB block device does not have 4 paths";
+    # check for 50GB disk (multiline match)
+    assert_matches qr/^3600507638081855cd800000000000076.+\n^size=50G/m, $mpath, "Cannot find 50GB disk on WWID *076";
+    # must see the LUN over 2 paths
+    my $disks = scalar grep { /\bsd(a|b)\b/ } @mpath;
+    assert_equals 2, $disks, "50GB block device does not have 2 paths";
 }
 
 sub run {
