@@ -14,7 +14,8 @@ use File::Basename;
 use testapi;
 use Utils::Architectures;
 use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout);
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils qw(is_sle is_tumbleweed is_sle_micro);
+use utils qw(is_ipxe_boot);
 use ipmi_backend_utils;
 use virt_autotest::utils qw(is_xen_host is_kvm_host check_port_state check_host_health is_monolithic_libvirtd);
 use IPC::Run;
@@ -123,11 +124,12 @@ sub login_to_console {
         }
     }
 
-    unless (is_tumbleweed or check_screen([qw(grub2 grub1 prague-pxe-menu)], get_var('AUTOYAST') && !get_var("NOT_DIRECT_REBOOT_AFTER_AUTOYAST") ? 1 : 180)) {
+    my @bootup_needles = is_ipxe_boot ? qw(grub2) : qw(grub2 grub1 prague-pxe-menu);
+    unless (is_tumbleweed or check_screen(@bootup_needles, get_var('AUTOYAST') && !get_var("NOT_DIRECT_REBOOT_AFTER_AUTOYAST") ? 1 : 180)) {
         ipmitool("chassis power reset");
         reset_consoles;
         select_console 'sol', await_console => 0;
-        check_screen([qw(grub2 grub1 prague-pxe-menu)], 120);
+        check_screen(@bootup_needles, 120);
     }
 
     # If a PXE menu will appear just select the default option (and save us the time)

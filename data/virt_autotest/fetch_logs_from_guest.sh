@@ -262,7 +262,7 @@ fi
 
 unset guest_hash_ipaddr
 declare -a guest_hash_ipaddr=""
-guest_domain_types="sles|opensuse|tumbleweed|leap|oracle|alp"
+guest_domain_types="sles|slem|opensuse|tumbleweed|leap|oracle|alp"
 guests_inactive_array=`virsh list --inactive | grep -Ei "${guest_domain_types}" | awk '{print $2}'`
 guest_domains_array=`virsh list  --all | grep -Ei "${guest_domain_types}" | awk '{print $2}'`
 guest_current=""

@@ -111,6 +111,7 @@ sub process_reboot {
                 unlock_if_encrypted();
             }
             # Replace by wait_boot if possible
+            select_console('sol', await_console => 0) if (is_ipmi);
             assert_screen 'grub2', 150;
             wait_screen_change { send_key 'ret' };
         }

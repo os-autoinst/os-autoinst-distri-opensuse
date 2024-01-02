@@ -114,6 +114,8 @@ our @EXPORT = qw(
   write_sut_file
   @all_tests_results
   ping_size_check
+  is_ipxe_boot
+  is_uefi_boot
 );
 
 our @EXPORT_OK = qw(
@@ -2925,6 +2927,34 @@ sub write_sut_file {
     save_tmp_file($path, $contents);
     my $url = join('/', (autoinst_url, 'files', $path));
     assert_script_run("curl -v -o $path $url");
+}
+
+=head2 is_ipxe_boot
+
+Returns true if the current instance is in IPXE boot mode
+
+=cut
+
+sub is_ipxe_boot {
+
+    if (check_var('IPXE', '1') or check_var('IPXE_UEFI', '1')) {
+        return 1;
+    }
+    return 0;
+}
+
+=head2 is_uefi_boot
+
+Returns true if the current instance is in UEFI boot mode
+
+=cut
+
+sub is_uefi_boot {
+
+    if (check_var('UEFI', '1') or check_var('IPXE_UEFI', '1')) {
+        return 1;
+    }
+    return 0;
 }
 
 1;

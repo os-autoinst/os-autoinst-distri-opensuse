@@ -1,0 +1,54 @@
+{
+  "ignition": {
+    "version": "3.2.0"
+  },
+  "passwd": {
+    "users": [
+      {
+        "name": "root",
+        "passwordHash": "$2a$10$2qfKlKzzEp9tl3mde5CmhuxsEPd3DdlfJMQ.PNSI3rqXx4KztGYT6",
+        "sshAuthorizedKeys": [
+          "##Authorized-Keys##"
+        ]
+      },
+      {
+        "name": "qevirt",
+        "passwordHash": "$2a$10$v32/h9hPd9cATZgLI/a1AepB9eQuMbjvNBOxQIla19fmAMjznSczG",
+        "sshAuthorizedKeys": [
+          "##Authorized-Keys##"
+        ]
+      }
+    ]
+  },
+  "storage": {
+    "files": [
+      {
+        "path": "/etc/hostname",
+        "mode": 420,
+        "overwrite": true,
+        "contents": {
+          "source": "data:,##FQDN##"
+        }
+      }
+    ],
+    "filesystems": [
+      {
+        "device": "/dev/disk/by-label/ROOT",
+        "format": "btrfs",
+        "mountOptions": [
+          "subvol=/@/home"
+        ],
+        "path": "/home",
+        "wipeFilesystem": false
+      }
+    ]
+  },
+  "systemd": {
+    "units": [
+      {
+        "name": "sshd.service",
+        "enabled": true
+      }
+    ]
+  }
+}
