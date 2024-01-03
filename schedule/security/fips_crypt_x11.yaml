@@ -22,9 +22,13 @@ conditional_schedule:
     tests_for_64bit:
         ARCH:
             x86_64:
-                - x11/seahorse_sshkey
-                - x11/hexchat_ssl
+                - '{{we_supported_versions}}'
     xca:
         ARCH:
             x86_64:
                 - fips/xca
+    we_supported_versions:
+        VERSION:
+            15-SP5:
+                - x11/seahorse_sshkey
+                - x11/hexchat_ssl
