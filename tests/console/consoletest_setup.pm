@@ -73,7 +73,7 @@ sub run {
     # make a use of selected root-console in check_console_font to apply
     # the same environment changes as to root-virtio
     if (has_ttys()) {
-        check_console_font;
+    #    check_console_font;
         script_run '. /etc/bash.bashrc.local';
     }
 
