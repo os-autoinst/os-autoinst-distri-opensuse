@@ -50,8 +50,8 @@ sub run {
     zypper_call 'in sudo expect';
     select_console 'user-console';
     # Defaults targetpw -> asks for root PW
-    my $exp_user = (is_azure && (is_byos && is_sle('=15-SP4') || is_sle('>15-SP4'))) ? 'bernhard' : 'root';
-    validate_script_output("expect -c 'spawn sudo id -un;expect \"password for $exp_user\" {send \"$testapi::password\\r\";interact} default {exit 1}'", sub { $_ !~ "^$exp_user\$" });
+    my $exp_user = (is_azure && is_sle('>=15-SP4')) ? 'bernhard is not in the sudoers file' : 'root';
+    validate_script_output("expect -c 'spawn sudo id -un;expect password {send \"$testapi::password\\r\";interact}'", sub { qr/^$exp_user\$/ });
     select_console 'root-console';
     # Prepare a file with content '1' for later IO redirection test
     assert_script_run 'echo 1 >/run/openqa_sudo_test';
