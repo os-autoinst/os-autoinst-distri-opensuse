@@ -83,7 +83,7 @@ sub test_ovs_dpdk {
 
     # check dpdk-hugepages
     # we have issue with missing python script dpdk-hugepages.py, see boo#1212113
-    assert_script_run 'which dpdk-hugepages.py -s' if (is_sle || is_tumbleweed || (is_leap('>=15.5') && !(check_var('FLAVOR', 'DVD-Updates'))));
+    assert_script_run 'which dpdk-hugepages.py' if (is_sle('>=15-sp5') || is_tumbleweed || (is_leap('>=15.5') && !(check_var('FLAVOR', 'DVD-Updates'))));
     assert_script_run 'grep -i  "dpdk enabled" /var/log/openvswitch/ovs-vswitchd.log';
 }
 
