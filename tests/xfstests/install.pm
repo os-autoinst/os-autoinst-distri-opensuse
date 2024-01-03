@@ -52,6 +52,10 @@ sub install_xfstests_from_repo {
     zypper_call('--gpg-auto-import-keys ref');
     record_info('repo info', script_output('zypper lr -U'));
     if (is_transactional) {
+        script_run('id fsgqa &> /dev/null || useradd -d /home/fsgqa -k /etc/skel -ms /bin/bash -U fsgqa');
+        script_run('id fsgqa2 &> /dev/null || useradd -d /home/fsgqa2 -k /etc/skel -ms /bin/bash -U fsgqa2');
+        script_run('getent group sys >/dev/null || groupadd -r sys');
+        script_run('id daemon &> /dev/null || useradd daemon -g sys');
         trup_call('pkg install xfstests');
         unless (is_alp || $IS_MARBLE) {
             trup_call('--continue pkg install fio');
