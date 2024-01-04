@@ -144,12 +144,7 @@ sub check_network_status {
     $expected_status //= 'no_restart_or_reload';
     assert_screen 'yast2_closed_xterm_visible', 120;
     assert_script_run 'ip a';
-    if ($device eq 'bond') {
-        record_soft_failure 'bsc#992113';
-    }
-    else {
-        assert_script_run 'dig suse.com|grep \'status: NOERROR\'';    # test if conection and DNS is working
-    }
+    assert_script_run 'dig suse.com|grep \'status: NOERROR\'';
     assert_script_run 'cat journal.log';    # print journal.log
     my $journal_findings = script_output('cat journal.log');
     record_info "$expected_status", "Network status expects $expected_status";
