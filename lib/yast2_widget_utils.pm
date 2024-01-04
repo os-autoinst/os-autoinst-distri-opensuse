@@ -77,7 +77,7 @@ sub change_service_configuration_step {
 
     send_key $shortcut;
     send_key 'end';
-    workaround_poo124652_for_send_key_until $needle_selection, 'up', 6, 1;
+    send_key_until_needlematch $needle_selection, 'up', 6, 1;
     if (check_var_array('EXTRATEST', 'y2uitest_ncurses')) {
         send_key 'ret';
         apply_workaround_poo124652($needle_check) if (is_sle('>=15-SP4'));
