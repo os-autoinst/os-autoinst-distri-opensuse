@@ -71,17 +71,3 @@ sub test_flags {
 OpenQA script to upload images into public cloud. This test module is only
 added if PUBLIC_CLOUD_IMAGE_LOCATION is set.
 
-=head1 Configuration
-
-=head2 PUBLIC_CLOUD_PROVIDER
-
-The type of the CSP (e.g. AZURE, EC2, GOOGLE)
-
-=head2 PUBLIC_CLOUD_IMAGE_LOCATION
-
-The URL where the image gets downloaded from. The name of the image gets extracted
-from this URL.
-
-=head2 PUBLIC_CLOUD_REGION
-
-The region to use. (default-azure: westeurope, default-ec2: eu-central-1, default-gcp: europe-west1-b)
