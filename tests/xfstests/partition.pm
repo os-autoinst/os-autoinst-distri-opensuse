@@ -27,7 +27,8 @@ use mm_network;
 use nfs_common;
 use Utils::Systemd 'disable_and_stop_service';
 use registration;
-use version_utils 'is_alp';
+use version_utils qw(is_alp is_transactional);
+use transactional;
 
 my $INST_DIR = '/opt/xfstests';
 my $CONFIG_FILE = "$INST_DIR/local.config";
@@ -228,10 +229,10 @@ sub set_config {
         script_run("echo export TEST_XFS_REPAIR_REBUILD=1 >> $CONFIG_FILE");
     }
     if (check_var('XFSTESTS', 'nfs')) {
-        script_run("echo export TEST_DEV=$NFS_SERVER_IP:/export/test >> $CONFIG_FILE");
-        script_run("echo export TEST_DIR=/nfs/test >> $CONFIG_FILE");
-        script_run("echo export SCRATCH_DEV=$NFS_SERVER_IP:/export/scratch >> $CONFIG_FILE");
-        script_run("echo export SCRATCH_MNT=/nfs/scratch >> $CONFIG_FILE");
+        script_run("echo export TEST_DEV=$NFS_SERVER_IP:/opt/export/test >> $CONFIG_FILE");
+        script_run("echo export TEST_DIR=/opt/nfs/test >> $CONFIG_FILE");
+        script_run("echo export SCRATCH_DEV=$NFS_SERVER_IP:/opt/export/scratch >> $CONFIG_FILE");
+        script_run("echo export SCRATCH_MNT=/opt/nfs/scratch >> $CONFIG_FILE");
         script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$NFS_VERSION\"' >> $CONFIG_FILE");
     }
     record_info('Config file', script_output("cat $CONFIG_FILE"));
@@ -314,22 +315,35 @@ sub install_dependencies_ocfs2 {
     my @deps = qw(
       ocfs2-tools
     );
-    zypper_call('in ' . join(' ', @deps));
+    script_run('zypper --gpg-auto-import-keys ref');
+    if (is_transactional) {
+        trup_install(join(' ', @deps));
+        reboot_on_changes;
+    }
+    else {
+        zypper_call('in ' . join(' ', @deps));
+    }
     script_run('modprobe ocfs2');
 }
 
 sub install_dependencies_nfs {
     my @deps = qw(
-      nfs-client
       nfs-kernel-server
       nfs4-acl-tools
     );
-    zypper_call('in ' . join(' ', @deps));
+    script_run('zypper --gpg-auto-import-keys ref');
+    if (is_transactional) {
+        trup_install(join(' ', @deps));
+        reboot_on_changes;
+    }
+    else {
+        zypper_call('in nfs-client ' . join(' ', @deps));
+    }
 }
 
 sub setup_nfs_server {
     my $nfsversion = shift;
-    assert_script_run('mkdir -p /export/test /export/scratch /nfs/test /nfs/scratch && chown nobody:nogroup /export/test /export/scratch && echo \'/export/test *(rw,no_subtree_check,no_root_squash)\' >> /etc/exports && echo \'/export/scratch *(rw,no_subtree_check,no_root_squash,fsid=1)\' >> /etc/exports');
+    assert_script_run('mkdir -p /opt/export/test /opt/export/scratch /opt/nfs/test /opt/nfs/scratch && chown nobody:nogroup /opt/export/test /opt/export/scratch && echo \'/opt/export/test *(rw,no_subtree_check,no_root_squash)\' >> /etc/exports && echo \'/opt/export/scratch *(rw,no_subtree_check,no_root_squash,fsid=1)\' >> /etc/exports');
 
     my $nfsgrace = get_var('NFS_GRACE_TIME', 15);
     assert_script_run("echo 'options lockd nlm_grace_period=$nfsgrace' >> /etc/modprobe.d/lockd.conf && echo 'options lockd nlm_timeout=5' >> /etc/modprobe.d/lockd.conf");
@@ -378,7 +392,7 @@ sub run {
         elsif (get_var('PARALLEL_WITH')) {
             setup_static_mm_network('10.0.2.102/24');
             install_dependencies_nfs;
-            assert_script_run('mkdir -p /nfs/test /nfs/scratch');
+            assert_script_run('mkdir -p /opt/nfs/test /opt/nfs/scratch');
             $NFS_SERVER_IP = '10.0.2.101';
         }
         else {
