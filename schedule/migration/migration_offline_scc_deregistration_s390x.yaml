@@ -36,12 +36,12 @@ schedule:
   - console/hostname
   - console/force_scheduled_tasks
   - '{{scc_deregistration}}'
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+  - shutdown/svirt_upload_assets
 conditional_schedule:
   scc_deregistration:
     SCC_DEREGISTER:
       1:
         - console/scc_deregistration
-        - shutdown/grub_set_bootargs
-        - shutdown/cleanup_before_shutdown
-        - shutdown/shutdown
-        - shutdown/svirt_upload_assets
