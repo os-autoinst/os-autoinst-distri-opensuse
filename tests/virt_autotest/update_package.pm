@@ -53,6 +53,7 @@ sub run {
         set_grub_on_vh('', '', 'xen') if is_xen_host;
         set_grub_on_vh('', '', 'kvm') if is_kvm_host;
     } else {
+        return if is_s390x;
         my @files_to_upload = ("/boot/grub2/grub.cfg", "/etc/default/grub");
         upload_logs($_, failok => 1) foreach (@files_to_upload);
     }
