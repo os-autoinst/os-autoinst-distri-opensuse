@@ -604,11 +604,11 @@ sub cleanup {
     my ($self, $args) = @_;
     select_host_console(force => 1);
 
-    my $id = $args->{my_instance}->{instance_id};
-
-    script_run("az vm boot-diagnostics get-boot-log --ids $id | jq -r '.' > bootlog.txt", timeout => 120, die_on_timeout => 0);
-    upload_logs("bootlog.txt", failok => 1);
-
+    if (defined($args->{my_instance}->{instance_id})) {
+        my $id = $args->{my_instance}->{instance_id};
+        script_run("az vm boot-diagnostics get-boot-log --ids $id | jq -r '.' > bootlog.txt", timeout => 120, die_on_timeout => 0);
+        upload_logs("bootlog.txt", failok => 1);
+    }
     $self->SUPER::cleanup();
 }
 
