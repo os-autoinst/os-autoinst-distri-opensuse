@@ -1761,6 +1761,7 @@ sub load_extra_tests_console {
     loadtest 'console/wpa_supplicant' unless (!is_x86_64 || is_sle('<15') || is_leap('<15.1') || is_jeos || is_public_cloud);
     loadtest 'console/python_scientific' unless (is_sle("<15"));
     loadtest "console/parsec" if is_tumbleweed;
+    loadtest "console/perl_bootloader" unless (get_var('PUBLIC_CLOUD') || is_bootloader_sdboot);
 }
 
 sub load_extra_tests_sdk {
