@@ -25,6 +25,9 @@ schedule:
     - fips/squid/squid_reverse_proxy
     - security/ecryptfs/ecryptfs
     - security/libserf/libserf
+    - security/vsftpd/vsftpd_setup
+    - security/vsftpd/vsftpd
+    - security/vsftpd/lftp
     - '{{kern_only_tests}}'
 conditional_schedule:
     repo_setup:
