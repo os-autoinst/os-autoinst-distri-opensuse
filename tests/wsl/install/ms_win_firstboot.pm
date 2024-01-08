@@ -144,6 +144,11 @@ sub run {
         cmd => 'reg add HKEY_CURRENT_USER\Policies\Microsoft\Windows\Explorer /v DisableSearchBoxSuggestions /t REG_DWORD /d 1'
     );
 
+    # prevent password from expiring
+    $self->run_in_powershell(
+        cmd => 'Set-LocalUser -Name "Bernhard M. Wiedeman" -PasswordNeverExpires 1'
+    );
+
     # poweroff
     $self->reboot_or_shutdown(1);
     $self->wait_boot_windows(is_firstboot => 1);
