@@ -19,8 +19,8 @@ subtest "[setup_sbd_delay_publiccloud] with different values" => sub {
 
     my %passing_values_vs_expected = (
         '1' => '1',
-        'yes' => 'yes',
-        'no' => 'no',
+        yes => 'yes',
+        no => 'no',
         '0' => '0',
         '100' => '100',
         '100s' => '100');

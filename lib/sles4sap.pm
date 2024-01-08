@@ -13,9 +13,9 @@ use Mojo::Base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
-use serial_terminal 'select_serial_terminal';
+use serial_terminal qw(select_serial_terminal);
 use utils;
-use hacluster qw(get_hostname ha_export_logs pre_run_hook save_state wait_until_resources_started);
+use hacluster qw(get_hostname ha_export_logs pre_run_hook save_state wait_until_resources_started script_output_retry_check);
 use isotovideo;
 use ipmi_backend_utils;
 use x11utils qw(ensure_unlocked_desktop);
@@ -26,7 +26,9 @@ use version_utils qw(is_sle);
 use utils qw(zypper_call);
 use Digest::MD5 qw(md5_hex);
 use Utils::Systemd qw(systemctl);
-use Utils::Logging 'save_and_upload_log';
+use Utils::Logging qw(save_and_upload_log);
+use List::MoreUtils qw(uniq);
+use Carp qw(croak);
 
 our @EXPORT = qw(
   $instance_password
@@ -59,6 +61,15 @@ our @EXPORT = qw(
   do_hana_takeover
   install_libopenssl_legacy
   startup_type
+  prepare_sapinst_profile
+  netweaver_installation_data
+  prepare_swpm
+  sapcontrol_process_check
+  get_sidadm
+  sap_show_status_info
+  sapcontrol
+  get_instance_profile_path
+  get_remote_instance_number
 );
 
 =head1 SYNOPSIS
@@ -181,6 +192,7 @@ as well as the product type. Returns the value of B<$sapadmin>.
 
 sub set_sap_info {
     my ($self, $sid_env, $instance_env) = @_;
+    croak('missing mandatory arg') unless $sid_env and $instance_env;
     $sid = uc($sid_env);
     $instance = $instance_env;
     $sapadmin = lc($sid_env) . 'adm';
@@ -975,6 +987,480 @@ sub startup_type {
         record_info "$product Systemd", "$product is started using systemd units";
         record_info 'Systemd Units', $out;
     }
+}
+
+=head2 prepare_swpm
+
+ $self->prepare_swpm(sapcar_bin_path=>$sapcar_bin_path,
+    sar_archives_dir=>$sar_archives_dir,
+    swpm_sar_filename=>$swpm_sar_filename,
+    target_path=>$target_path);
+
+B<sapcar_bin_path> Filename with full path to SAPCAR binary
+B<sar_archives_dir> Directory which contains all required SAR archives (SWPM, SAP kernel, Patches, etc...)
+B<swpm_sar_filename> SWPM SAR archive filename
+B<target_path> Target path for archives to be unpacked into
+
+Unpacks and prepares swpm package from specified source dir into target directory using SAPCAR tool.
+After extraction it checks for 'sapinst' executable being present in target path. Croaks if executable is missing.
+
+=cut
+
+sub prepare_swpm {
+    my ($self, %args) = @_;
+    # Mandatory args
+    foreach ('sapcar_bin_path', 'sar_archives_dir', 'swpm_sar_filename', 'target_path') {
+        croak("Mandatory argument '$_' missing") unless $args{$_};
+    }
+
+    my $sapcar_bin_path = $args{sapcar_bin_path};
+    my $sar_archives_dir = $args{sar_archives_dir};
+    my $swpm_sar_filename = $args{swpm_sar_filename};
+    my $target_path = $args{target_path};
+    my $sapinst_executable = "$target_path/sapinst";
+
+    assert_script_run("mkdir -p $target_path");
+    assert_script_run("cp $sar_archives_dir/* $target_path/");
+    assert_script_run("cd $target_path; $sapcar_bin_path -xvf ./$swpm_sar_filename");
+    my $swpm_dir_content = script_output("ls -alitr $target_path");
+    record_info("SWPM dir", "$swpm_dir_content");
+
+    assert_script_run("test -x $sapinst_executable");
+    return $sapinst_executable;
+}
+
+=head2 prepare_sapinst_profile
+
+ $self->prepare_sapinst_profile(
+    profile_target_file=>$profile_target_file,
+    profile_template_file=>$profile_template_file,
+    sar_location_directory=>$sar_location_directory);
+
+Copies sapinst profile template from NFS to target dir and fills in required variables.
+
+B<profile_target_file> Full filename and path for sapinst install profile to be created
+B<profile_template_file> Template file location from which will the profile be sceated
+B<sar_location_directory> Location of SAR files -  this is filled into template
+
+=cut
+
+sub prepare_sapinst_profile {
+    my ($self, %args) = @_;
+    my $profile_target_file = $args{profile_target_file};
+    my $profile_template_file = $args{profile_template_file};
+    my $sar_location = $args{'sar_location_directory'};
+    my $nw_install_data = $self->netweaver_installation_data();
+    my $instance_data = $nw_install_data->{instances}{$args{instance_type}};
+
+    my %replace_params = (
+        '%INSTANCE_ID%' => $instance_data->{instance_id},
+        '%INSTANCE_SID%' => $nw_install_data->{instance_sid},
+        '%VIRTUAL_HOSTNAME%' => $instance_data->{virtual_hostname},
+        '%DOWNLOAD_BASKET%' => $sar_location,
+        '%SAPSYS_GID%' => $nw_install_data->{sapsys_gid},
+        '%SIDADM_UID%' => $nw_install_data->{sidadm_uid},
+        '%SIDADM_PASSWD%' => $testapi::password,    # Use default pw.
+        '%SAP_MASTER_PASSWORD%' => $nw_install_data->{sap_master_password}
+    );
+
+    assert_script_run("cp $profile_template_file $profile_target_file");
+    file_content_replace($profile_target_file, %replace_params);
+}
+
+=head2 prepare_sap_instances_data
+
+ $self->prepare_sap_instances_data();
+
+Prepares data for installation of all SAP components using openqa parameter "SAP_INSTANCES".
+parameter example: SAP_INSTANCES = "ASCS,ERS,PAS,AAS".
+B<HDB> = Hana database export - netweaver component, not database
+B<ASCS> = Central services
+B<ERS> = Enqueue replication
+B<PAS> = Primary application server
+B<AAS> = Additional application server
+
+=cut
+
+sub netweaver_installation_data {
+    my ($self) = @_;
+    croak("Parameter 'SAP_INSTANCES' contains empty value") unless get_var('SAP_INSTANCES');
+
+    my @defined_instances = split(',', get_required_var('SAP_INSTANCES'));
+    my @unsupported_values = map { !$self->is_instance_type_supported($_) ? $_ : () } @defined_instances;
+    my $sap_sid = uc get_required_var('INSTANCE_SID');
+    my %instances_data;
+    my $instance_id = 0;
+    my $sidadm_uid = get_var('SIDADM_UID', '1001');
+    my $sapsys_gid = get_var('SAPSYS_GID', '1002');
+    set_var('SIDADM_UID', $sidadm_uid);
+    set_var('SAPSYS_GID', $sapsys_gid);
+
+    croak('Unsupported instances defined: ' . join(' ', @unsupported_values) . "\nCheck 'SAP_INSTANCES' parameter")
+      if @unsupported_values;
+
+    # general variables
+    my %installation_data = (
+        instance_sid => $sap_sid,
+        sidadm => $self->get_sidadm(),
+        sidadm_uid => $sidadm_uid,
+        sapsys_gid => $sapsys_gid,
+        sap_master_password => get_required_var('_SECRET_SAP_MASTER_PASSWORD'),
+        sap_directory => "/usr/sap/$sap_sid"
+    );
+
+    return \%installation_data if check_var('SUPPORT_SERVER', '1');    # Supportserver does not need anything below
+
+    # Instance specific data
+    foreach (@defined_instances) {
+        my %instance_data;
+        $instance_data{instance_id} = sprintf("%02d", $instance_id);
+        $instance_data{product_id} = get_required_var($_ . '_PRODUCT_ID');
+        $instance_data{instance_dir_name} = $_ eq 'HDB' ? undef :
+          $self->get_nw_instance_name(instance_type => $_, instance_id => $instance_data{instance_id});
+        $instances_data{$_} = \%instance_data;
+        $instance_id++;
+    }
+    $installation_data{instances} = \%instances_data;
+
+    return \%installation_data;
+}
+
+=head2 get_nw_instance_name
+
+ $self->get_nw_instance_name(instance_type=>$instance_type, instance_id=>$instance_id);
+
+Returns standard sap instance directory name constructed from instance id and instance type.
+
+B<instance_type> Instance type (ASCS, ERS, PAS, AAS)
+B<instance_id> Instance ID - two digit number
+
+=cut
+
+sub get_nw_instance_name {
+    my ($self, %args) = @_;
+    foreach ('instance_type', 'instance_id') {
+        croak "missing mandatory argument '$_'" unless $args{$_};
+    }
+
+    my $instance_type = $self->is_instance_type_supported($args{instance_type});
+    my $instance_id = $args{instance_id};
+    my %instance_type_dir_names = (
+        ASCS => $instance_type . $instance_id,
+        ERS => $instance_type . $instance_id,
+        PAS => 'D' . $instance_id,    # D means 'Dialog'
+        AAS => 'D' . $instance_id
+    );
+
+    return $instance_type_dir_names{$instance_type};
+}
+
+=head2 is_instance_type_supported
+
+ $self->is_instance_type_supported($instance_type);
+
+Checks if instance type is supported.
+Returns $instance_type with sucess, croaks with missing argument or unsupported value detected.
+
+B<instance_type> Instance type (ASCS, ERS, PAS, AAS)
+
+=cut
+
+sub is_instance_type_supported {
+    my ($self, $instance_type) = @_;
+    my @supported_values = qw(ASCS HDB ERS PAS AAS);
+    croak("Argument '\$instance_type' undefined or unsupported")
+      unless $instance_type and grep(/^$instance_type$/, @supported_values) > 0;
+    return $instance_type;
+}
+
+=head2 share_hosts_entry
+
+ $self->share_hosts_entry(virtual_hostname=>$virtual_hostname,
+    virtual_ip=>$virtual_ip,
+    shared_directory_root=>shared_directory_root);
+
+ Creates file with virtual IP and hostname entry for /etc/hosts file on mounted shared device (Default: /sapmnt).
+ This is to help creating /etc/hosts file which would include entries for all nodes.
+ File name: <INSTANCE_TYPE>
+ File content: <virtual IP> <virtual_hostname>
+
+B<virtual_hostname> Virtual hostname (alias) which is tied to instance and will be moved with HA IP addr resource
+B<virtual_ip> Virtual IP addr tied to an instance and HA resource
+B<shared_directory_root> Shared directory available for all instances. Separate directory 'hosts' will be created
+
+=cut
+
+sub share_hosts_entry {
+    my ($self, %args) = @_;
+    my $virtual_hostname = $args{virtual_hostname} // get_var('INSTANCE_ALIAS', '$(hostname)');
+    my $instance_type = get_required_var('INSTANCE_TYPE');
+    my $virtual_ip = $args{virtual_ip} // (split('/', get_required_var('INSTANCE_IP_CIDR')))[0];
+    my $shared_directory_root = $args{shared_directory_root} // '/sapmnt';    # sapmnt is usually shared between all hosts
+    set_var('HOSTS_SHARED_DIRECTORY', "$shared_directory_root/hosts");
+
+    croak "Directory '$shared_directory_root' does not appear to be a mount point" if
+      script_run("mount | grep $shared_directory_root");
+
+    assert_script_run("mkdir -p $shared_directory_root/hosts");
+    assert_script_run("echo '$virtual_ip $virtual_hostname' >> $shared_directory_root/hosts/$instance_type");
+}
+
+=head2 add_hosts_file_entries
+
+ $self->add_hosts_file_entries();
+
+Reads files in 'HOSTS_SHARED_DIRECTORY' and adds entries into /etc/hosts file.
+
+=cut
+
+sub add_hosts_file_entries {
+    my $source_directory = get_var('HOSTS_SHARED_DIRECTORY', '/sapmnt/hosts');    # sapmnt is usually shared between all hosts
+    assert_script_run("cat $source_directory/* >> /etc/hosts");
+    assert_script_run('cat /etc/hosts');
+}
+
+=head2 get_sidadm
+
+ $self->get_sidadm([must_exist=>$must_exist]);
+
+Returns sidadm username created from SAP sid - parameter INSTANCE_SID.
+check_if_exists - if set to true, test will fail if user does not exist. tests inconsistency between OpenQA parameter and real username
+
+B<must_exist> Checks if sidadm exists, croaks on failure. Default 'false'
+
+=cut
+
+sub get_sidadm {
+    my ($self, %args) = @_;
+    my $must_exist = $args{'must_exist'} // 0;
+    my $sidadm = lc get_required_var('INSTANCE_SID') . 'adm';
+    my $user_exists = script_run("id $sidadm") ? 0 : 1;    # convert RC from script run to true/false
+
+    croak("User '$sidadm' does not exist") if $must_exist and !$user_exists;
+
+    return $sidadm;
+}
+
+=head2 sap_show_status_info
+
+ $self->sap_show_status_info(cluster=>1, netweaver=>1);
+
+Prints output for standard set of commands to show info about system in various stages of the test for troubleshooting.
+It is possible to activate or deactivate various output sections by named args:
+
+B<cluster> - Shows cluster related outputs
+B<netweaver> - Shows netweaver related outputs
+
+=cut
+
+sub sap_show_status_info {
+    my ($self, %args) = @_;
+    my $cluster = $args{cluster};
+    my $netweaver = $args{netweaver};
+    my $instance_id = defined($netweaver) ? $args{instance_id} : get_required_var('INSTANCE_ID');
+    my @output;
+
+    # Netweaver info
+    if (defined($netweaver)) {
+        push(@output, "\n//// NETWEAVER ///");
+        push(@output, "\n### SAPCONTROL PROCESS LIST ###");
+        push(@output, $self->sapcontrol(instance_id => $instance_id, webmethod => 'GetProcessList', return_output => 1));
+        push(@output, "\n### SAPCONTROL SYSTEM INSTANCE LIST ###");
+        push(@output, $self->sapcontrol(instance_id => $instance_id, webmethod => 'GetSystemInstanceList', return_output => 1));
+    }
+
+    # Cluster info
+    if (defined($cluster)) {
+        push(@output, "\n//// CLUSTER ///");
+        push(@output, "\n### CLUSTER STATUS ###");
+        push(@output, script_output('PAGER=/usr/bin/cat crm status'));
+    }
+    record_info('Status', join("\n", @output));
+}
+
+=head2 sapcontrol
+
+ $self->sapcontrol(instance_id=>$instance_id,
+    webmethod=>$webmethod,
+    [additional_args=>$additional_args,
+    remote_execution=>$remote_execution]);
+
+Executes sapcontrol webmethod for instance specified in arguments and returns exit code received from command.
+Allows remote execution of webmethods between instances, however not all webmethods are possible to execute in that manner.
+
+Sapcontrol return codes:
+RC 0 = webmethod call was successfull
+RC 1 = webmethod call failed
+RC 2 = last webmethod call in progress (processes are starting/stopping)
+RC 3 = all processes GREEN
+RC 4 = all processes GREY (stopped)
+
+B<instance_id> 2 digit instance number
+B<webmethod> webmethod name to be executed (Ex: Stop, GetProcessList, ...)
+B<additional_args> additional arguments to be appended at the end of command
+B<return_output> returns output instead of RC
+B<remote_hostname> hostname of the target instance for remote execution. Local execution does not need this.
+B<sidadm_password> Password for sidadm user. Only required for remote execution.
+
+=cut
+
+sub sapcontrol {
+    my ($self, %args) = @_;
+    my $webmethod = $args{webmethod};
+    my $instance_id = $args{instance_id};
+    my $remote_hostname = $args{remote_hostname};
+    my $return_output = $args{return_output};
+    my $additional_args = $args{additional_args} // '';
+    my $sidadm = $self->get_sidadm();
+    my $current_user = script_output_retry_check(cmd => 'whoami', sleep => 2, regex_string => "^root\$|^$sidadm\$");
+    my $sidadm_password = $args{sidadm_password};
+
+    croak "Mandatory argument 'webmethod' not specified" unless $webmethod;
+    croak "Mandatory argument 'instance_id' not specified" unless $instance_id;
+    croak "Function may be executed under root or sidadm.\nCurrent user: $current_user"
+      unless grep(/$current_user/, ('root', $sidadm));
+
+    my $cmd = join(' ', 'sapcontrol', '-nr', $instance_id);
+    # variables below allow sapcontrol to run under root
+    my $sapcontrol_path_root = '/usr/sap/hostctrl/exe';
+    my $root_env = "LD_LIBRARY_PATH=$sapcontrol_path_root:\$LD_LIBRARY_PATH";
+    $cmd = $current_user eq 'root' ? "$root_env $sapcontrol_path_root/$cmd" : $cmd;
+
+    if ($remote_hostname) {
+        croak "Mandatory argument 'sidadm_password' not specified" unless $sidadm_password;
+        $cmd = join(' ', $cmd, '-host', $remote_hostname, '-user', $sidadm, $sidadm_password);
+    }
+    $cmd = join(' ', $cmd,, '-function', $webmethod);
+    $cmd = join(' ', $cmd, $additional_args) if $additional_args;
+
+    my $result = $return_output ? script_output($cmd, proceed_on_failure => 1) : script_run($cmd);
+
+    return ($result);
+}
+
+=head2 sapcontrol_process_check
+
+ $self->sapcontrol_process_check(expected_state=>expected_state,
+    [instance_id=>$instance_id,
+    loop_sleep=>$loop_sleep,
+    timeout=>$timeout,
+    wait_for_state=>$wait_for_state]);
+
+Runs "sapcontrol -nr <INST_NO> -function GetProcessList" via SIDadm and compares RC against expected state.
+Croaks if state is not correct.
+RC 0 = webmethod call was successfull
+RC 1 = webmethod call failed (This includes NIECONN_REFUSED status)
+RC 2 = last webmethod call in progress (processes are starting/stopping)
+RC 3 = all processes GREEN
+RC 4 = all processes GREY (stopped)
+
+B<expected_state> State that is expected (failed, started, stopped)
+B<instance_id> Instance number - two digit number
+B<loop_sleep> sleep time between checks - only used if 'wait_for_state' is true
+B<timeout> timeout for waiting for target state, after which function croaks
+B<wait_for_state> If set to true, function will wait for expected state until success or timeout
+
+=cut
+
+sub sapcontrol_process_check {
+    my ($self, %args) = @_;
+    my $instance_id = $args{instance_id} // get_required_var('INSTANCE_ID');
+    my $expected_state = $args{expected_state};
+    my $loop_sleep = $args{loop_sleep} // 5;
+    my $timeout = $args{timeout} // bmwqemu::scale_timeout(120);
+    my $wait_for_state = $args{wait_for_state} // 0;
+    my %state_to_rc = (
+        failed => '1',    # After stopping service (ServiceStop method) sapcontrol returns RC1
+        started => '3',
+        stopped => '4'
+    );
+
+    croak "Argument 'expected state' undefined" unless defined($expected_state);
+
+    my @allowed_state_values = keys(%state_to_rc);
+    $expected_state = lc $expected_state;
+    croak "Value '$expected_state' for argument 'expected state' not supported. Allowed values: '@allowed_state_values'"
+      unless (grep(/^$expected_state$/, @allowed_state_values));
+
+    my $rc = $self->sapcontrol(instance_id => $instance_id, webmethod => 'GetProcessList');
+    my $start_time = time;
+
+    while ($rc ne $state_to_rc{$expected_state}) {
+        last unless $wait_for_state;
+        $rc = $self->sapcontrol(instance_id => $instance_id, webmethod => 'GetProcessList');
+        croak "Timeout while waiting for expected state: $expected_state" if (time - $start_time > $timeout);
+        sleep $loop_sleep;
+    }
+
+    if ($state_to_rc{$expected_state} ne $rc) {
+        $self->sap_show_status_info(netweaver => 1, instance_id => $instance_id);
+        croak "Processes are not '$expected_state'";
+    }
+
+    return $expected_state;
+}
+
+=head2 get_remote_instance_number
+
+ $self->get_instance_number(instance_type=>$instance_type);
+
+Finds instance number from remote instance using sapcontrol "GetSystemInstanceList" webmethod.
+Local system instance number is required to execute sapcontrol though.
+
+B<instance_type> Instance type (ASCS, ERS) - this can be expanded to other instances
+
+=cut
+
+sub get_remote_instance_number () {
+    my ($self, %args) = @_;
+    my $instance_type = $args{instance_type};
+    my $local_instance_id = get_required_var('INSTANCE_ID');
+
+    croak "Missing mandatory argument '$instance_type'." unless $instance_type;
+    croak "Function is not yet implemented for instance type: $instance_type" unless grep /$instance_type/, ('ASCS', 'ERS');
+
+    # This needs to be expanded for PAS and AAS
+    my %instance_type_features = (
+        ASCS => 'MESSAGESERVER',
+        ERS => 'ENQREP'
+    );
+
+    my @instance_data = grep /$instance_type_features{$instance_type}/,
+      split('\n', $self->sapcontrol(webmethod => 'GetSystemInstanceList', instance_id => $local_instance_id, return_output => 1));
+    my $instance_id = (split(', ', $instance_data[0]))[1];
+    $instance_id = sprintf("%02d", $instance_id);
+
+    return ($instance_id);
+}
+
+=head2 get_instance_profile_path
+
+ $self->get_instance_profile_path(instance_type=>$instance_type, instance_id=$instance_id);
+
+Returns full instance profile path for specified instance type
+
+B<instance_type> Instance type (ASCS, ERS, PAS, AAS)
+B<instance_id> Instance number - two digit number
+
+=cut
+
+sub get_instance_profile_path () {
+    my ($self, %args) = @_;
+    my $sap_sid = get_required_var('INSTANCE_SID');
+    my $instance_type = $args{instance_type};
+    my $instance_id = $args{instance_id};
+    croak "Missing mandator argument 'instance_id'" unless $instance_id;
+    croak "Function is not yet implemented for instance type: $instance_type" unless grep /$instance_type/, ('ASCS', 'ERS');
+
+    my $instance_name = $self->get_nw_instance_name(instance_type => $instance_type, instance_id => $instance_id);
+    my $profile_diectory = "/sapmnt/$sap_sid/profile";
+
+    my @profile_match = split('\s', script_output("ls $profile_diectory | grep -E '^$sap_sid\_$instance_name\_[^._]*\$'"));
+
+    my $profile_path = "$profile_diectory/$profile_match[0]";
+    croak "Profile '$profile_path' does not exist" if script_run("test -e $profile_path");
+
+    return ($profile_path);
 }
 
 sub post_run_hook {
