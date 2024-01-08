@@ -60,7 +60,7 @@ sub set_bootscript {
     my $host = get_required_var('SUT_IP');
     my $arch = get_required_var('ARCH');
     my $autoyast = get_var('AUTOYAST', '');
-    my $regurl = get_var('SCC_URL', '');
+    my $regurl = get_var('VIRT_AUTOTEST') ? get_var('HOST_SCC_URL', '') : get_var('SCC_URL', '');
     my $console = get_var('IPXE_CONSOLE', '');
     my $mirror_http = get_required_var('MIRROR_HTTP');
 
