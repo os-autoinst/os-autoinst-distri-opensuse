@@ -47,6 +47,19 @@
       <li><a href="#upload_hana_install_log">upload_hana_install_log</a></li>
       <li><a href="#upload_nw_install_log">upload_nw_install_log</a></li>
       <li><a href="#startup_type">startup_type</a></li>
+      <li><a href="#prepare_swpm">prepare_swpm</a></li>
+      <li><a href="#prepare_sapinst_profile">prepare_sapinst_profile</a></li>
+      <li><a href="#prepare_sap_instances_data">prepare_sap_instances_data</a></li>
+      <li><a href="#get_nw_instance_name">get_nw_instance_name</a></li>
+      <li><a href="#is_instance_type_supported">is_instance_type_supported</a></li>
+      <li><a href="#share_hosts_entry">share_hosts_entry</a></li>
+      <li><a href="#add_hosts_file_entries">add_hosts_file_entries</a></li>
+      <li><a href="#get_sidadm">get_sidadm</a></li>
+      <li><a href="#sap_show_status_info">sap_show_status_info</a></li>
+      <li><a href="#sapcontrol">sapcontrol</a></li>
+      <li><a href="#sapcontrol_process_check">sapcontrol_process_check</a></li>
+      <li><a href="#get_remote_instance_number">get_remote_instance_number</a></li>
+      <li><a href="#get_instance_profile_path">get_instance_profile_path</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap.pm</h1>
@@ -276,6 +289,126 @@ $self-&gt;SYSTEMCTL_UNITS_RE(qr/some regexp/);</code></pre>
 <pre><code>$self-&gt;startup_type();</code></pre>
 
 <p>Record whether the SAP workload was started via sapinit or systemd units.</p>
+
+<h2 id="prepare_swpm">prepare_swpm</h2>
+
+<pre><code>$self-&gt;prepare_swpm(sapcar_bin_path=&gt;$sapcar_bin_path,
+   sar_archives_dir=&gt;$sar_archives_dir,
+   swpm_sar_filename=&gt;$swpm_sar_filename,
+   target_path=&gt;$target_path);</code></pre>
+
+<p><b>sapcar_bin_path</b> Filename with full path to SAPCAR binary <b>sar_archives_dir</b> Directory which contains all required SAR archives (SWPM, SAP kernel, Patches, etc...) <b>swpm_sar_filename</b> SWPM SAR archive filename <b>target_path</b> Target path for archives to be unpacked into</p>
+
+<p>Unpacks and prepares swpm package from specified source dir into target directory using SAPCAR tool. After extraction it checks for &#39;sapinst&#39; executable being present in target path. Croaks if executable is missing.</p>
+
+<h2 id="prepare_sapinst_profile">prepare_sapinst_profile</h2>
+
+<pre><code>$self-&gt;prepare_sapinst_profile(
+   profile_target_file=&gt;$profile_target_file,
+   profile_template_file=&gt;$profile_template_file,
+   sar_location_directory=&gt;$sar_location_directory);</code></pre>
+
+<p>Copies sapinst profile template from NFS to target dir and fills in required variables.</p>
+
+<p><b>profile_target_file</b> Full filename and path for sapinst install profile to be created <b>profile_template_file</b> Template file location from which will the profile be sceated <b>sar_location_directory</b> Location of SAR files - this is filled into template</p>
+
+<h2 id="prepare_sap_instances_data">prepare_sap_instances_data</h2>
+
+<pre><code>$self-&gt;prepare_sap_instances_data();</code></pre>
+
+<p>Prepares data for installation of all SAP components using openqa parameter &quot;SAP_INSTANCES&quot;. parameter example: SAP_INSTANCES = &quot;ASCS,ERS,PAS,AAS&quot;. <b>HDB</b> = Hana database export - netweaver component, not database <b>ASCS</b> = Central services <b>ERS</b> = Enqueue replication <b>PAS</b> = Primary application server <b>AAS</b> = Additional application server</p>
+
+<h2 id="get_nw_instance_name">get_nw_instance_name</h2>
+
+<pre><code>$self-&gt;get_nw_instance_name(instance_type=&gt;$instance_type, instance_id=&gt;$instance_id);</code></pre>
+
+<p>Returns standard sap instance directory name constructed from instance id and instance type.</p>
+
+<p><b>instance_type</b> Instance type (ASCS, ERS, PAS, AAS) <b>instance_id</b> Instance ID - two digit number</p>
+
+<h2 id="is_instance_type_supported">is_instance_type_supported</h2>
+
+<pre><code>$self-&gt;is_instance_type_supported($instance_type);</code></pre>
+
+<p>Checks if instance type is supported. Returns $instance_type with sucess, croaks with missing argument or unsupported value detected.</p>
+
+<p><b>instance_type</b> Instance type (ASCS, ERS, PAS, AAS)</p>
+
+<h2 id="share_hosts_entry">share_hosts_entry</h2>
+
+<pre><code>$self-&gt;share_hosts_entry(virtual_hostname=&gt;$virtual_hostname,
+   virtual_ip=&gt;$virtual_ip,
+   shared_directory_root=&gt;shared_directory_root);
+
+Creates file with virtual IP and hostname entry for /etc/hosts file on mounted shared device (Default: /sapmnt).
+This is to help creating /etc/hosts file which would include entries for all nodes.
+File name: &lt;INSTANCE_TYPE&gt;
+File content: &lt;virtual IP&gt; &lt;virtual_hostname&gt;</code></pre>
+
+<p><b>virtual_hostname</b> Virtual hostname (alias) which is tied to instance and will be moved with HA IP addr resource <b>virtual_ip</b> Virtual IP addr tied to an instance and HA resource <b>shared_directory_root</b> Shared directory available for all instances. Separate directory &#39;hosts&#39; will be created</p>
+
+<h2 id="add_hosts_file_entries">add_hosts_file_entries</h2>
+
+<pre><code>$self-&gt;add_hosts_file_entries();</code></pre>
+
+<p>Reads files in &#39;HOSTS_SHARED_DIRECTORY&#39; and adds entries into /etc/hosts file.</p>
+
+<h2 id="get_sidadm">get_sidadm</h2>
+
+<pre><code>$self-&gt;get_sidadm([must_exist=&gt;$must_exist]);</code></pre>
+
+<p>Returns sidadm username created from SAP sid - parameter INSTANCE_SID. check_if_exists - if set to true, test will fail if user does not exist. tests inconsistency between OpenQA parameter and real username</p>
+
+<p><b>must_exist</b> Checks if sidadm exists, croaks on failure. Default &#39;false&#39;</p>
+
+<h2 id="sap_show_status_info">sap_show_status_info</h2>
+
+<pre><code>$self-&gt;sap_show_status_info(cluster=&gt;1, netweaver=&gt;1);</code></pre>
+
+<p>Prints output for standard set of commands to show info about system in various stages of the test for troubleshooting. It is possible to activate or deactivate various output sections by named args:</p>
+
+<p><b>cluster</b> - Shows cluster related outputs <b>netweaver</b> - Shows netweaver related outputs</p>
+
+<h2 id="sapcontrol">sapcontrol</h2>
+
+<pre><code>$self-&gt;sapcontrol(instance_id=&gt;$instance_id,
+   webmethod=&gt;$webmethod,
+   [additional_args=&gt;$additional_args,
+   remote_execution=&gt;$remote_execution]);</code></pre>
+
+<p>Executes sapcontrol webmethod for instance specified in arguments and returns exit code received from command. Allows remote execution of webmethods between instances, however not all webmethods are possible to execute in that manner.</p>
+
+<p>Sapcontrol return codes: RC 0 = webmethod call was successfull RC 1 = webmethod call failed RC 2 = last webmethod call in progress (processes are starting/stopping) RC 3 = all processes GREEN RC 4 = all processes GREY (stopped)</p>
+
+<p><b>instance_id</b> 2 digit instance number <b>webmethod</b> webmethod name to be executed (Ex: Stop, GetProcessList, ...) <b>additional_args</b> additional arguments to be appended at the end of command <b>return_output</b> returns output instead of RC <b>remote_hostname</b> hostname of the target instance for remote execution. Local execution does not need this. <b>sidadm_password</b> Password for sidadm user. Only required for remote execution.</p>
+
+<h2 id="sapcontrol_process_check">sapcontrol_process_check</h2>
+
+<pre><code>$self-&gt;sapcontrol_process_check(expected_state=&gt;expected_state,
+   [instance_id=&gt;$instance_id,
+   loop_sleep=&gt;$loop_sleep,
+   timeout=&gt;$timeout,
+   wait_for_state=&gt;$wait_for_state]);</code></pre>
+
+<p>Runs &quot;sapcontrol -nr &lt;INST_NO&gt; -function GetProcessList&quot; via SIDadm and compares RC against expected state. Croaks if state is not correct. RC 0 = webmethod call was successfull RC 1 = webmethod call failed (This includes NIECONN_REFUSED status) RC 2 = last webmethod call in progress (processes are starting/stopping) RC 3 = all processes GREEN RC 4 = all processes GREY (stopped)</p>
+
+<p><b>expected_state</b> State that is expected (failed, started, stopped) <b>instance_id</b> Instance number - two digit number <b>loop_sleep</b> sleep time between checks - only used if &#39;wait_for_state&#39; is true <b>timeout</b> timeout for waiting for target state, after which function croaks <b>wait_for_state</b> If set to true, function will wait for expected state until success or timeout</p>
+
+<h2 id="get_remote_instance_number">get_remote_instance_number</h2>
+
+<pre><code>$self-&gt;get_instance_number(instance_type=&gt;$instance_type);</code></pre>
+
+<p>Finds instance number from remote instance using sapcontrol &quot;GetSystemInstanceList&quot; webmethod. Local system instance number is required to execute sapcontrol though.</p>
+
+<p><b>instance_type</b> Instance type (ASCS, ERS) - this can be expanded to other instances</p>
+
+<h2 id="get_instance_profile_path">get_instance_profile_path</h2>
+
+<pre><code>$self-&gt;get_instance_profile_path(instance_type=&gt;$instance_type, instance_id=$instance_id);</code></pre>
+
+<p>Returns full instance profile path for specified instance type</p>
+
+<p><b>instance_type</b> Instance type (ASCS, ERS, PAS, AAS) <b>instance_id</b> Instance number - two digit number</p>
 
 
 </body>

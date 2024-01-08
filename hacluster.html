@@ -58,6 +58,9 @@
       <li><a href="#check_iscsi_failure">check_iscsi_failure</a>
         <ul>
           <li><a href="#cluster_status_matches_regex">cluster_status_matches_regex</a></li>
+          <li><a href="#crm_maintenance_status">crm_maintenance_status</a></li>
+          <li><a href="#crm_wait_for_maintenance">crm_wait_for_maintenance</a></li>
+          <li><a href="#crm_check_resource_location">crm_check_resource_location</a></li>
         </ul>
       </li>
     </ul>
@@ -345,6 +348,44 @@
 
 </dd>
 </dl>
+
+<h3 id="crm_maintenance_status">crm_maintenance_status</h3>
+
+<pre><code>crm_maintenance_status();</code></pre>
+
+<p>Check maintenance mode status. Returns true (maintenance active) or false (maintenance inactive). Croaks if unknown status is received.</p>
+
+<h3 id="crm_wait_for_maintenance">crm_wait_for_maintenance</h3>
+
+<pre><code>crm_wait_for_maintenance(target_state=&gt;$target_state, [loop_sleep=&gt;$loop_sleep, timeout=&gt;$timeout]);</code></pre>
+
+<p>Wait for maintenance to be turned on or off. Croaks on timeout.</p>
+
+<ul>
+
+<p><b>target_state</b> Target state of the maintenance mode (true/false)</p>
+
+<p><b>loop_sleep</b> Override default sleep value between checks</p>
+
+<p><b>timeout</b> Override default timeout value</p>
+
+</ul>
+
+<h3 id="crm_check_resource_location">crm_check_resource_location</h3>
+
+<pre><code>crm_check_resource_location(resource=&gt;$resource, [wait_for_target=&gt;$wait_for_target, timeout=&gt;$timeout]);</code></pre>
+
+<p>Checks current resource location, returns physical hostname of the node. Can be used to wait for desired state Eg: after failover. Croaks upon timeout.</p>
+
+<ul>
+
+<p><b>wait_for_target</b> Target location of the resource specified - physical hostname</p>
+
+<p><b>resource</b> Resource to check</p>
+
+<p><b>timeout</b> Override default timeout value</p>
+
+</ul>
 
 
 </body>
