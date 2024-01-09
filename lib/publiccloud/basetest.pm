@@ -39,14 +39,26 @@ sub provider_factory {
         $args{service} //= 'EC2';
 
         if ($args{service} eq 'ECR') {
-            $provider = publiccloud::ecr->new(
-                region => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1')
-            );
+            # publiccloud::aws_client needs to demand PUBLIC_CLOUD_REGION due to other places where
+            # we don't want to have defaults and want tests to fail when region is not defined
+            # so this is workaround to keep variable required for publiccloud::aws_client
+            # but not for cases where we using publiccloud::ecr which also must to init publiccloud::aws_client
+            # and in this case we CAN NOT define it on job level because publiccloud::aws_client
+            # will be initialized together with publiccloud::azure_client so same variable will need
+            # to have two different values
+            set_var('PUBLIC_CLOUD_REGION', 'eu-central-1') unless get_var('PUBLIC_CLOUD_REGION');
+            $provider = publiccloud::ecr->new();
         }
         elsif ($args{service} eq 'EKS') {
-            $provider = publiccloud::eks->new(
-                region => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1')
-            );
+            # publiccloud::aws_client needs to demand PUBLIC_CLOUD_REGION due to other places where
+            # we don't want to have defaults and want tests to fail when region is not defined
+            # so this is workaround to keep variable required for publiccloud::aws_client
+            # but not for cases where we using publiccloud::eks which also must to init publiccloud::aws_client
+            # and in this case we CAN NOT define it on job level because publiccloud::aws_client
+            # will be initialized together with publiccloud::azure_client so same variable will need
+            # to have two different values
+            set_var('PUBLIC_CLOUD_REGION', 'eu-central-1') unless get_var('PUBLIC_CLOUD_REGION');
+            $provider = publiccloud::eks->new();
         }
         elsif ($args{service} eq 'EC2') {
             $provider = publiccloud::ec2->new();
@@ -59,8 +71,15 @@ sub provider_factory {
     elsif ($args{provider} eq 'AZURE') {
         $args{service} //= 'AVM';
         if ($args{service} eq 'ACR') {
+            # publiccloud::azure_client needs to demand PUBLIC_CLOUD_REGION due to other places where
+            # we don't want to have defaults and want tests to fail when region is not defined
+            # so this is workaround to keep variable required for publiccloud::azure_client
+            # but not for cases where we using publiccloud::acr which also must to init publiccloud::azure_client
+            # and in this case we CAN NOT define it on job level because publiccloud::aws_client
+            # will be initialized together with publiccloud::azure_client so same variable will need
+            # to have two different values
+            set_var('PUBLIC_CLOUD_REGION', 'westeurope') unless get_var('PUBLIC_CLOUD_REGION');
             $provider = publiccloud::acr->new(
-                region => get_var('PUBLIC_CLOUD_REGION', 'westeurope'),
                 subscription => get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID'),
                 username => get_var('PUBLIC_CLOUD_USER', 'azureuser')
             );
