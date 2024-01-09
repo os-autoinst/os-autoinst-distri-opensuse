@@ -43,11 +43,12 @@ use File::Basename;
 
 my @log_files = ();
 
-# Terraform requirement
+# Terraform requirement that constrain QESAPDEPLOY_PREFIX value
 #  terraform/azure/infrastructure.tf  "azurerm_storage_account" "mytfstorageacc"
 # stdiag<PREFID><JOB_ID> can only consist of lowercase letters and numbers,
 # and must be between 3 and 24 characters long
 use constant QESAPDEPLOY_PREFIX => 'qesapdep';
+
 use constant QESAPDEPLOY_VENV => '/tmp/exec_venv';
 use constant QESAPDEPLOY_PY => 'python3.10';
 use constant QESAPDEPLOY_PIP => 'pip3.10';
@@ -1036,11 +1037,13 @@ sub qesap_upload_crm_report {
     foreach (qw(provider host)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     $args{failok} //= 0;
 
-    my $crm_log = "/var/log/$args{host}-crm_report";
+    my $log_filename = "$args{host}-crm_report";
+    $log_filename =~ s/[\[\]"]//g;
+    my $crm_log = "/var/log/$log_filename";
     my $report_opt = !is_sle('12-sp4+') ? '-f0' : '';
     qesap_ansible_cmd(cmd => "crm report $report_opt -E /var/log/ha-cluster-bootstrap.log $crm_log",
         provider => $args{provider},
-        filter => $args{host},
+        filter => "\"$args{host}\"",
         host_keys_check => 1,
         verbose => 1,
         failok => $args{failok});
@@ -1050,7 +1053,7 @@ sub qesap_upload_crm_report {
         root => 1,
         remote_path => '/var/log/',
         out_path => '/tmp/ansible_script_output/',
-        file => "$args{host}-crm_report.tar.gz",
+        file => "$log_filename.tar.gz",
         verbose => 1);
     upload_logs($local_path, failok => 1);
 }
@@ -1109,7 +1112,7 @@ sub qesap_cluster_logs {
     my $inventory = qesap_get_inventory(provider => $provider);
     if (script_run("test -e $inventory") == 0)
     {
-        foreach my $host ('"hana[0]"', '"hana[1]"') {
+        foreach my $host ('hana[0]', 'hana[1]') {
             foreach my $cmd (qesap_cluster_log_cmds()) {
                 my $log_filename = "$host-$cmd->{Output}";
                 # remove square brackets
