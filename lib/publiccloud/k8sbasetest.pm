@@ -66,15 +66,29 @@ Returns the name for the container registry based on the public provider
 sub get_container_registry_service_name {
     my ($self, $provider) = @_;
 
-    $provider //= get_required_var('PUBLIC_CLOUD_PROVIDER');
-
     if ($provider eq 'EC2') {
+        # publiccloud::aws_client needs to demand PUBLIC_CLOUD_REGION due to other places where
+        # we don't want to have defaults and want tests to fail when region is not defined
+        # so this is workaround to keep variable required for publiccloud::aws_client
+        # but not for cases where we using publiccloud::ecr which also must to init publiccloud::aws_client
+        # and in this case we CAN NOT define it on job level because publiccloud::aws_client
+        # will be initialized together with publiccloud::azure_client so same variable will need
+        # to have two different values
+        set_var('PUBLIC_CLOUD_REGION', 'eu-central-1') unless get_var('PUBLIC_CLOUD_REGION');
         return "ECR";
     }
     elsif ($provider eq 'GCE') {
         return "GCR";
     }
     elsif ($provider eq 'AZURE') {
+        # publiccloud::azure_client needs to demand PUBLIC_CLOUD_REGION due to other places where
+        # we don't want to have defaults and want tests to fail when region is not defined
+        # so this is workaround to keep variable required for publiccloud::azure_client
+        # but not for cases where we using publiccloud::acr which also must to init publiccloud::azure_client
+        # and in this case we CAN NOT define it on job level because publiccloud::aws_client
+        # will be initialized together with publiccloud::azure_client so same variable will need
+        # to have two different values
+        set_var('PUBLIC_CLOUD_REGION', 'westeurope') unless get_var('PUBLIC_CLOUD_REGION');
         return "ACR";
     }
     else {

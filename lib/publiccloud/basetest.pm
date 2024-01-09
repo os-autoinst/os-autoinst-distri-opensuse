@@ -39,14 +39,10 @@ sub provider_factory {
         $args{service} //= 'EC2';
 
         if ($args{service} eq 'ECR') {
-            $provider = publiccloud::ecr->new(
-                region => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1')
-            );
+            $provider = publiccloud::ecr->new();
         }
         elsif ($args{service} eq 'EKS') {
-            $provider = publiccloud::eks->new(
-                region => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1')
-            );
+            $provider = publiccloud::eks->new();
         }
         elsif ($args{service} eq 'EC2') {
             $provider = publiccloud::ec2->new();
@@ -60,7 +56,6 @@ sub provider_factory {
         $args{service} //= 'AVM';
         if ($args{service} eq 'ACR') {
             $provider = publiccloud::acr->new(
-                region => get_var('PUBLIC_CLOUD_REGION', 'westeurope'),
                 subscription => get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID'),
                 username => get_var('PUBLIC_CLOUD_USER', 'azureuser')
             );
