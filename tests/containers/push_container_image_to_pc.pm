@@ -16,18 +16,15 @@ sub run {
     my ($self, $run_args) = @_;
     my $provider = undef;
     my $container_registry_service = undef;
+    my $public_cloud_provider = shift(@{$run_args->{provider}});
+
+    die "Test called without \$run_args->{provider} denied" unless defined($public_cloud_provider);
+
 
     select_serial_terminal;
 
-    if (defined $run_args->{provider}) {
-        my $public_cloud_provider = shift(@{$run_args->{provider}});
-        $container_registry_service = $self->get_container_registry_service_name($public_cloud_provider);
-        $provider = $self->provider_factory(provider => $public_cloud_provider, service => $container_registry_service);
-    }
-    else {
-        $container_registry_service = $self->get_container_registry_service_name();
-        $provider = $self->provider_factory(service => $container_registry_service);
-    }
+    $container_registry_service = $self->get_container_registry_service_name($public_cloud_provider);
+    $provider = $self->provider_factory(provider => $public_cloud_provider, service => $container_registry_service);
 
     my $image = get_image_uri();
     my $tag = $provider->get_default_tag();
