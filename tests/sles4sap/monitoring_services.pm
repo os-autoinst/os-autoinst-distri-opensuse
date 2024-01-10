@@ -167,11 +167,22 @@ sub configure_sap_host_exporter {
 sub configure_node_exporter {
     my $monitoring_port = 9100;
     my $metrics_file = '/tmp/node_exporter.metrics';
+    my $wait_time = bmwqemu::scale_timeout(30);
+    my $not_ready = 1;
 
     # Install and start node_exporter
     zypper_call 'in golang-github-prometheus-node_exporter';
     systemctl 'enable --now prometheus-node_exporter';
     systemctl 'status prometheus-node_exporter';
+
+    # Wait $wait_time for prometheus node_exporter to start
+    while ($wait_time > 0) {
+        $not_ready = script_run 'journalctl --no-pager -t node_exporter | grep -q "Listening on"';
+        last unless ($not_ready);
+        sleep 5;
+        $wait_time -= 5;
+    }
+    die 'Timed out waiting during 30s (scaled) for prometheus node_exporter to start' if ($not_ready && $wait_time <= 0);
 
     # Check that node_exporter is working as expected
     assert_script_run "curl -o $metrics_file http://localhost:$monitoring_port/metrics";
