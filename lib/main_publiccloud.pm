@@ -179,7 +179,6 @@ sub load_publiccloud_cli_tools {
     } else {
         loadtest 'publiccloud/azure_cli';
         loadtest 'publiccloud/aws_cli';
-        loadtest 'publiccloud/google_cli';
     }
     loadtest 'shutdown/shutdown';
 }
