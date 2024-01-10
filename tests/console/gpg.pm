@@ -44,8 +44,7 @@ sub gpg_test {
     # Generating key pair
     if ($gpg_ver ge 2.1) {
         # Preparing a config file for gpg --batch option
-        assert_script_run(
-            "echo \"\$(cat <<EOF
+        my $egg_data = <<EOF;
 Key-Type: RSA
 Key-Length: $key_size
 Subkey-Type: RSA
@@ -54,8 +53,7 @@ Name-Real: $username
 Name-Email: $email
 Expire-Date: 0
 EOF
-            )\" > $egg_file"
-        );
+        write_sut_file($egg_file, $egg_data);
         assert_script_run("cat $egg_file");
 
         # Kill gpg-agent service when executing gpg2 command in case gpg-agent

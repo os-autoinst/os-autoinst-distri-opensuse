@@ -1,0 +1,43 @@
+# IP/IPv6 Firewall rule
+flush ruleset
+
+table firewall {
+  chain incoming {
+    type filter hook input priority 0; policy drop;
+
+    # established/related connections
+    ct state established,related accept
+
+    # loopback interface
+    iifname lo accept
+
+    # icmp
+    icmp type echo-request accept
+
+    # open tcp ports: sshd (22), httpd (80)
+    tcp dport {ssh, http} accept
+  }
+}
+
+table ip6 firewall {
+  chain incoming {
+    type filter hook input priority 0; policy drop;
+
+    # established/related connections
+    ct state established,related accept
+
+    # invalid connections
+    ct state invalid drop
+
+    # loopback interface
+    iifname lo accept
+
+    # icmp
+    # routers may also want: mld-listener-query, nd-router-solicit
+    icmpv6 type {echo-request,nd-neighbor-solicit} accept
+
+    # open tcp ports: sshd (22), httpd (80)
+    tcp dport {ssh, http} accept
+  }
+}
+
