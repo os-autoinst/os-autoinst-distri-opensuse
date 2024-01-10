@@ -21,6 +21,7 @@ use warnings;
 use utils qw(zypper_call systemctl script_retry);
 use Utils::Systemd 'disable_and_stop_service';
 use Utils::Logging 'save_and_upload_log';
+use version_utils qw(is_tumbleweed is_alp);
 
 sub run {
     my ($self) = @_;
@@ -39,24 +40,27 @@ sub run {
     # Show the version
     assert_script_run 'slptool -v';
     assert_script_run 'slptool findsrvs service:service-agent | grep service-agent';
-    assert_script_run 'slptool findsrvs service:ssh | grep "ssh://\|:22,"';
 
-    # List all available services
-    assert_script_run 'slptool findsrvtypes | grep -A99 -B99 "service:ssh"';
-    assert_script_run 'slptool -s DEFAULT findsrvtypes | grep -A99 -B99 "service:ssh"';
+    unless (is_tumbleweed || is_alp) {
+        assert_script_run 'slptool findsrvs service:ssh | grep "ssh://\|:22,"';
 
-    # Find all visible SSH services
-    assert_script_run 'slptool findsrvs ssh | grep -A99 -B99 "ssh://\|:22,"';
-    assert_script_run 'slptool -p findsrvs ssh | grep -A99 -B99 "ssh://\|:22,"';
-    assert_script_run 'slptool findsrvs service:ssh | grep -A99 -B99 "ssh://\|:22,"';
+        # List all available services
+        assert_script_run 'slptool findsrvtypes | grep -A99 -B99 "service:ssh"';
+        assert_script_run 'slptool -s DEFAULT findsrvtypes | grep -A99 -B99 "service:ssh"';
 
-    # Register sshd with custom attribute
-    assert_script_run 'slptool register service:ssh://localhost "(test=really_a_test)"';
-    # Display attributes of the SSH service
-    assert_script_run 'slptool findattrs service:ssh://localhost | grep "(test=really_a_test)"';
-    assert_script_run 'slptool findattrs service:ssh | grep "(description=Secure Shell Daemon)"';
-    # Deregister ssh
-    assert_script_run 'slptool deregister service:ssh://localhost';
+        # Find all visible SSH services
+        assert_script_run 'slptool findsrvs ssh | grep -A99 -B99 "ssh://\|:22,"';
+        assert_script_run 'slptool -p findsrvs ssh | grep -A99 -B99 "ssh://\|:22,"';
+        assert_script_run 'slptool findsrvs service:ssh | grep -A99 -B99 "ssh://\|:22,"';
+
+        # Register sshd with custom attribute
+        assert_script_run 'slptool register service:ssh://localhost "(test=really_a_test)"';
+        # Display attributes of the SSH service
+        assert_script_run 'slptool findattrs service:ssh://localhost | grep "(test=really_a_test)"';
+        assert_script_run 'slptool findattrs service:ssh | grep "(description=Secure Shell Daemon)"';
+        # Deregister ssh
+        assert_script_run 'slptool deregister service:ssh://localhost';
+    }
 
     # Register and find two NTP services
     assert_script_run 'slptool register ntp://tik.cesnet.cz:123,en,65535';

@@ -43,7 +43,7 @@ IFS=: read -r flasher_ip destination_folder <<< "$destination"
 
 echo "* Switch SD card to flasher"
 if [ "$tool" = "usbsdmux" ]; then
-  ssh root@$flasher_ip usbsdmux --direct /dev/usb-sd-mux/id-$device_serial host
+  ssh root@$flasher_ip usbsdmux /dev/usb-sd-mux/id-$device_serial host
 elif [ "$tool" = "sd-mux-ctrl" ]; then
   ssh root@$flasher_ip sd-mux-ctrl --device-serial=$device_serial --ts
 else
@@ -94,7 +94,7 @@ fi
 
 echo "* Switch SD card to SUT"
 if [ "$tool" = "usbsdmux" ]; then
-  ssh root@$flasher_ip usbsdmux --direct /dev/usb-sd-mux/id-$device_serial dut
+  ssh root@$flasher_ip usbsdmux /dev/usb-sd-mux/id-$device_serial dut
 elif [ "$tool" = "sd-mux-ctrl" ]; then
   ssh root@$flasher_ip sd-mux-ctrl --device-serial=$device_serial --dut
 else

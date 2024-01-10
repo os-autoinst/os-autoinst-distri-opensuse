@@ -81,9 +81,11 @@
     <loader_type>grub2-efi</loader_type>
     % }
   </bootloader>
+  % unless ($check_var->('DESKTOP', 'minimalx')) {
   <login_settings>
     <autologin_user>bernhard</autologin_user>
   </login_settings>
+  % }
   <networking>
     <keep_install_network config:type="boolean">true</keep_install_network>
     % if ($check_var->('DESKTOP', 'gnome')) {
@@ -91,6 +93,9 @@
     % }
   </networking>
   <services-manager>
+    % if ($check_var->('DESKTOP', 'minimalx')) {
+    <default_target>graphical</default_target>
+    % }
     <services>
       <enable config:type="list">
         <service>chronyd</service>
@@ -135,11 +140,137 @@
       <pattern>enhanced_base</pattern>
       <pattern>minimal_base</pattern>
       % }
+      % if ($check_var->('DESKTOP', 'minimalx')) {
+      <pattern>basesystem</pattern>
+      <pattern>basic_desktop</pattern>
+      <pattern>documentation</pattern>
+      <pattern>enhanced_base</pattern>
+      <pattern>fonts</pattern>
+      <pattern>fonts_opt</pattern>
+      <pattern>minimal_base</pattern>
+      <pattern>sw_management</pattern>
+      <pattern>x11</pattern>
+      <pattern>x11_enhanced</pattern>
+      <pattern>x11_yast</pattern>
+      <pattern>yast2_basis</pattern>
+      <pattern>yast2_desktop</pattern>
+      % }
       % if ($check_var->('SYSTEM_ROLE', 'serverro')) {
       <pattern>transactional_base</pattern>
       % }
     </patterns>
   </software>
+  % if ($check_var->('UEFI', '1') and $check_var->('FULL_LVM_ENCRYPT', '1')) {
+  <partitioning t="list">
+    <drive t="map">
+      <device>/dev/system</device>
+      <enable_snapshots t="boolean">true</enable_snapshots>
+      <partitions t="list">
+        <partition t="map">
+          <create t="boolean">true</create>
+          <create_subvolumes t="boolean">true</create_subvolumes>
+          <filesystem t="symbol">btrfs</filesystem>
+          <format t="boolean">false</format>
+          <lv_name>root</lv_name>
+          <mount>/</mount>
+          <mountby t="symbol">device</mountby>
+          <pool t="boolean">false</pool>
+          <quotas t="boolean">true</quotas>
+          <resize t="boolean">false</resize>
+          <size>19591593984</size>
+          <stripes t="integer">1</stripes>
+          <stripesize t="integer">0</stripesize>
+          <subvolumes t="list">
+            <subvolume t="map">
+              <copy_on_write t="boolean">false</copy_on_write>
+              <path>var</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>usr/local</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>tmp</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>srv</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>root</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>opt</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>home</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>boot/grub2/x86_64-efi</path>
+            </subvolume>
+            <subvolume t="map">
+              <copy_on_write t="boolean">true</copy_on_write>
+              <path>boot/grub2/i386-pc</path>
+            </subvolume>
+          </subvolumes>
+          <subvolumes_prefix>@</subvolumes_prefix>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <filesystem t="symbol">swap</filesystem>
+          <format t="boolean">false</format>
+          <lv_name>swap</lv_name>
+          <mount>swap</mount>
+          <mountby t="symbol">device</mountby>
+          <pool t="boolean">false</pool>
+          <resize t="boolean">false</resize>
+          <size>1337982976</size>
+          <stripes t="integer">1</stripes>
+          <stripesize t="integer">0</stripesize>
+        </partition>
+      </partitions>
+      <pesize>4194304</pesize>
+      <type t="symbol">CT_LVM</type>
+    </drive>
+    <drive t="map">
+      <device>/dev/vda</device>
+      <disklabel>gpt</disklabel>
+      <partitions t="list">
+        <partition t="map">
+          <create t="boolean">true</create>
+          <filesystem t="symbol">vfat</filesystem>
+          <format t="boolean">true</format>
+          <fstopt>utf8</fstopt>
+          <mount>/boot/efi</mount>
+          <mountby t="symbol">uuid</mountby>
+          <partition_id t="integer">259</partition_id>
+          <partition_nr t="integer">1</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>536870912</size>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <crypt_key>nots3cr3t</crypt_key>
+          <crypt_method t="symbol">luks1</crypt_method>
+          <format t="boolean">false</format>
+          <loop_fs t="boolean">true</loop_fs>
+          <lvm_group>system</lvm_group>
+          <partition_id t="integer">142</partition_id>
+          <partition_nr t="integer">2</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>20936900096</size>
+        </partition>
+      </partitions>
+      <type t="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  % }
   % if ($check_var->('SYSTEM_ROLE', 'serverro')) {
   <partitioning t="list">
     <drive t="map">

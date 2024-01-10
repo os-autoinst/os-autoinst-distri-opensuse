@@ -54,6 +54,15 @@ sub run {
             add_suseconnect_product(get_addon_fullname('pcm')) if is_sle;
             zypper_call("in jq aws-cli", timeout => 300);
 
+            # publiccloud::aws_client needs to demand PUBLIC_CLOUD_REGION due to other places where
+            # we don't want to have defaults and want tests to fail when region is not defined
+            # so this is workaround to keep variable required for publiccloud::aws_client
+            # but not for cases where we using publiccloud::ecr which also must to init publiccloud::aws_client
+            # and in this case we CAN NOT define it on job level because publiccloud::aws_client
+            # will be initialized together with publiccloud::azure_client so same variable will need
+            # to have two different values
+            set_var('PUBLIC_CLOUD_REGION', 'eu-central-1') unless get_var('PUBLIC_CLOUD_REGION');
+
             $provider = publiccloud::eks->new();
         }
         elsif ($k8s_backend eq 'AZURE') {
@@ -62,6 +71,15 @@ sub run {
             add_suseconnect_product(get_addon_fullname('phub'))
               if is_sle('=12-sp5');
             zypper_call('in jq azure-cli', timeout => 300);
+
+            # publiccloud::azure_client needs to demand PUBLIC_CLOUD_REGION due to other places where
+            # we don't want to have defaults and want tests to fail when region is not defined
+            # so this is workaround to keep variable required for publiccloud::azure_client
+            # but not for cases where we using publiccloud::acr which also must to init publiccloud::azure_client
+            # and in this case we CAN NOT define it on job level because publiccloud::aws_client
+            # will be initialized together with publiccloud::azure_client so same variable will need
+            # to have two different values
+            set_var('PUBLIC_CLOUD_REGION', 'westeurope') unless get_var('PUBLIC_CLOUD_REGION');
 
             $provider = publiccloud::aks->new();
         }

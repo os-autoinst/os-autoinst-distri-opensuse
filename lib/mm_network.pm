@@ -56,7 +56,7 @@ sub is_networkmanager {
 sub configure_static_ip {
     my (%args) = @_;
     my $ip = $args{ip};
-    my $mtu = $args{mtu} // 1380;
+    my $mtu = $args{mtu} // get_var('MM_MTU', 1380);
     my $is_nm = $args{is_nm} // is_networkmanager();
     my $device = $args{device};
 

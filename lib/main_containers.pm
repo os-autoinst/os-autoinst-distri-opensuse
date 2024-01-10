@@ -257,6 +257,11 @@ sub load_container_tests {
         return;
     }
 
+    if (get_var('PODMAN_BATS_SKIP')) {
+        loadtest 'containers/podman_integration';
+        return;
+    }
+
     foreach (split(',\s*', $runtime)) {
         my $run_args = OpenQA::Test::RunArgs->new();
         $run_args->{runtime} = $_;
