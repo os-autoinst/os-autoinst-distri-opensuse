@@ -363,9 +363,13 @@ sub check_takeover {
 
   TAKEOVER_LOOP: while (1) {
         my $topology = $self->get_hana_topology();
+        record_info("Cluster topology", $topology);
         $retry_count++;
         for my $entry (@$topology) {
             my %host_entry = %$entry;
+            record_info("Cluster Host", $host_entry{vhost});
+            record_info("Cluster Host", $host_entry{sync_state});
+            record_info("Cluster Host", $hostname);
             die "Missing 'vhost' field in topology output" unless defined($host_entry{vhost});
             die "Missing 'sync_state' field in topology output" unless defined($host_entry{sync_state});
             if ($host_entry{vhost} ne $hostname && $host_entry{sync_state} eq "PRIM") {
