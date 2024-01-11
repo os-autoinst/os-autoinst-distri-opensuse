@@ -5,6 +5,7 @@ use Test::Exception;
 use Test::More;
 use Test::Mock::Time;
 use testapi;
+use List::Util qw(any none);
 
 use sles4sap_publiccloud;
 
@@ -41,8 +42,8 @@ subtest "[setup_sbd_delay_publiccloud] with different values" => sub {
     set_var('HA_SBD_START_DELAY', undef);
     my $returned_delay = $self->setup_sbd_delay_publiccloud();
     is $returned_delay, 30, "Test with undefined 'HA_SBD_START_DELAY':\n Expected: 30\nGot: $returned_delay";
-
 };
+
 
 subtest '[azure_fencing_agents_playbook_args] Check Mandatory args' => sub {
     # Create a list of mandatory arguments.
@@ -63,10 +64,12 @@ subtest '[azure_fencing_agents_playbook_args] Check Mandatory args' => sub {
     set_var('AZURE_FENCE_AGENT_CONFIGURATION', undef);
 };
 
+
 subtest '[azure_fencing_agents_playbook_args] Native fencing setup (default value)' => sub {
     my $returned_value = azure_fencing_agents_playbook_args();
     is $returned_value, '-e azure_identity_management=msi', "Default to MSI if called without arguments and AZURE_FENCE_AGENT_CONFIGURATION is not specified";
 };
+
 
 subtest '[azure_fencing_agents_playbook_args] MSI setup' => sub {
     set_var('AZURE_FENCE_AGENT_CONFIGURATION', 'msi');
@@ -74,6 +77,7 @@ subtest '[azure_fencing_agents_playbook_args] MSI setup' => sub {
     is $returned_value, '-e azure_identity_management=msi', "Default to MSI if called without arguments and AZURE_FENCE_AGENT_CONFIGURATION is 'msi'";
     set_var('AZURE_FENCE_AGENT_CONFIGURATION', undef);
 };
+
 
 subtest '[azure_fencing_agents_playbook_args] SPN setup' => sub {
     my %mandatory_args =
@@ -91,8 +95,8 @@ subtest '[azure_fencing_agents_playbook_args] SPN setup' => sub {
     foreach (@expected_results) {
         like($returned_value, "/$_/", "$_ is part of the playbooks options");
     }
-
 };
+
 
 subtest '[list_cluster_nodes]' => sub {
     my $self = sles4sap_publiccloud->new();
@@ -115,6 +119,7 @@ subtest '[list_cluster_nodes]' => sub {
     dies_ok { $self->list_cluster_nodes() } 'Expected failure: missing mandatory arg';
 };
 
+
 subtest '[is_hana_database_online]' => sub {
     my $self = sles4sap_publiccloud->new();
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
@@ -130,6 +135,7 @@ subtest '[is_hana_database_online]' => sub {
     set_var('_HANA_MASTER_PW', undef);
     is $res, 0, "Hana database is offline";
 };
+
 
 subtest '[is_hana_database_online] with status online' => sub {
     my $self = sles4sap_publiccloud->new();
@@ -147,6 +153,7 @@ subtest '[is_hana_database_online] with status online' => sub {
     is $res, 1, "Hana database is online";
 };
 
+
 subtest '[is_primary_node_online]' => sub {
     my $self = sles4sap_publiccloud->new();
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
@@ -163,6 +170,7 @@ subtest '[is_primary_node_online]' => sub {
     unlike($@, qr/mode:[\r\n\s]+PRIMARY/, 'System replication is offline on primary node');
 };
 
+
 subtest '[is_primary_node_online]' => sub {
     my $self = sles4sap_publiccloud->new();
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
@@ -174,6 +182,7 @@ subtest '[is_primary_node_online]' => sub {
     set_var('INSTANCE_SID', undef);
     is $res, 1, "System replication is online on primary node";
 };
+
 
 subtest '[get_hana_topology]' => sub {
     my $self = sles4sap_publiccloud->new();
@@ -384,5 +393,54 @@ subtest '[check_takeover] fail if primary online' => sub {
     dies_ok { $self->check_takeover() } "Takeover failed if is_primary_node_online return 1";
 };
 
+
+subtest '[create_playbook_section_list]' => sub {
+    set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
+    set_var('USE_SAPCONF', 'Colombo');
+    my $ansible_playbooks = create_playbook_section_list();
+    set_var('SCC_REGCODE_SLES4SAP', undef);
+    set_var('USE_SAPCONF', undef);
+    note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
+    ok((any { /.*registration\.yaml.*reg_code=Magellano/ } @$ansible_playbooks), 'registration playbook is called with reg code from SCC_REGCODE_SLES4SAP');
+    ok((any { /.*sap-hana-preconfigure\.yaml.*use_sapconf=Colombo/ } @$ansible_playbooks), 'pre-cluster playbook is called with use_sapconf from USE_SAPCONF');
+};
+
+
+subtest '[create_playbook_section_list] ha_enabled => 0' => sub {
+    set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
+    set_var('USE_SAPCONF', 'Colombo');
+    my $ansible_playbooks = create_playbook_section_list(ha_enabled => 0);
+    set_var('SCC_REGCODE_SLES4SAP', undef);
+    set_var('USE_SAPCONF', undef);
+    note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
+    ok((any { /.*registration\.yaml.*/ } @$ansible_playbooks), 'registration playbook is called when ha_enabled => 0');
+    ok((any { /.*fully-patch-system\.yaml.*/ } @$ansible_playbooks), 'registration playbook is called when ha_enabled => 0');
+    ok(scalar @$ansible_playbooks == 2, 'Only two playbooks in ha_enabled => 0 mode');
+};
+
+
+subtest '[create_playbook_section_list] no_register => 1' => sub {
+    set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
+    set_var('USE_SAPCONF', 'Colombo');
+    my $ansible_playbooks = create_playbook_section_list(no_register => 1);
+    set_var('SCC_REGCODE_SLES4SAP', undef);
+    set_var('USE_SAPCONF', undef);
+    note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
+    ok((none { /.*registration\.yaml.*/ } @$ansible_playbooks), 'registration playbook is not called when no_register => 1');
+};
+
+
+subtest '[create_playbook_section_list] fencing => native in azure' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(is_azure => sub { return 1 });
+    set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
+    set_var('USE_SAPCONF', 'Colombo');
+    my $ansible_playbooks = create_playbook_section_list(fencing => 'native');
+    set_var('SCC_REGCODE_SLES4SAP', undef);
+    set_var('USE_SAPCONF', undef);
+    note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
+    ok((none { /.*cluster_sbd_prep\.yaml.*/ } @$ansible_playbooks), 'cluster_sbd_prep playbook is not called when fencing => native');
+    ok((any { /.*sap-hana-cluster\.yaml.*azure_identity_management=.*/ } @$ansible_playbooks), 'registration playbook is called when ha_enabled => 0');
+};
 
 done_testing;

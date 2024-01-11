@@ -131,7 +131,7 @@ sub run {
     set_var('SLES4SAP_OS_IMAGE_NAME', $os_image_name);
 
     set_var_output('USE_SAPCONF', 'true');
-    my $ansible_playbooks = create_playbook_section_list($ha_enabled);
+    my $ansible_playbooks = create_playbook_section_list(ha_enabled => $ha_enabled, no_register => get_var('QESAP_SCC_NO_REGISTER'), fencing => get_var('FENCING_MECHANISM'));
     my $ansible_hana_vars = create_hana_vars_section($ha_enabled);
 
     # Prepare QESAP deployment

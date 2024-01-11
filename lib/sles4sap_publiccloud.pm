@@ -3,7 +3,7 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Library used for SLES4SAP publicccloud deployment and tests
+# Summary: Library used for SLES4SAP publiccloud deployment and tests
 #
 # Note: Subroutines executing commands on remote host (using "run_cmd" or "run_ssh_command") require
 # to have $self->{my_instance} defined.
@@ -697,29 +697,41 @@ sub delete_network_peering {
 
 =head2 create_ansible_playbook_list
 
-    Detects HANA/HA scenario from openQA variables and returns a list of ansible playbooks to include
+    Detects HANA/HA scenario from function arguments and returns a list of ansible playbooks to include
     in the "ansible: create:" section of config.yaml file.
 
+=over 3
+
+=item B<HA_ENABLED> - Enable the installation of HANA and the cluster configuration
+
+=item B<NO_REGISTER> - "QESAP_SCC_NO_REGISTER" skips scc registration via ansible
+
+=item B<FENCING> - select fencing mechanism
+
+=back
 =cut
 
 sub create_playbook_section_list {
-    my ($ha_enabled) = @_;
+    my (%args) = @_;
+    $args{ha_enabled} //= 1;
+    $args{no_register} //= 0;
+    $args{fencing} //= 'sbd';
+
     my @playbook_list;
 
-    unless (get_var('QESAP_SCC_NO_REGISTER')) {
-        # Add registration module as first element - "QESAP_SCC_NO_REGISTER" skips scc registration via ansible
+    unless ($args{no_register}) {
+        # Add registration module as first element
         push @playbook_list, 'registration.yaml -e reg_code=' . get_required_var('SCC_REGCODE_SLES4SAP') . " -e email_address=''";
-        # Add "fully patch system" module after registration module and before test start/configuration moudles.
-        # Temporary moved inside ha_enabled condition to avoid test without Ansible to fails.
+        # Add "fully patch system" module after registration module and before test start/configuration modules.
+        # Temporary moved inside no_register condition to avoid test without Ansible to fails.
         # To be properly addressed in the caller and fully-patch-system can be placed back out of the if.
         push @playbook_list, 'fully-patch-system.yaml';
     }
 
-    # Prepares Azure native fencing related arguments for 'sap-hana-cluster.yaml' playbook
     my $hana_cluster_playbook = 'sap-hana-cluster.yaml';
-    my $azure_native_fencing_args;
-    if (get_var('FENCING_MECHANISM') eq 'native') {
-        $azure_native_fencing_args = azure_fencing_agents_playbook_args(
+    if ($args{fencing} eq 'native' and is_azure) {
+        # Prepares Azure native fencing related arguments for 'sap-hana-cluster.yaml' playbook
+        my $azure_native_fencing_args = azure_fencing_agents_playbook_args(
             spn_application_id => get_var('_SECRET_AZURE_SPN_APPLICATION_ID'),
             spn_application_password => get_var('_SECRET_AZURE_SPN_APP_PASSWORD')
         );
@@ -727,9 +739,9 @@ sub create_playbook_section_list {
     }
 
     # SLES4SAP/HA related playbooks
-    if ($ha_enabled) {
+    if ($args{ha_enabled}) {
         push @playbook_list, 'pre-cluster.yaml', 'sap-hana-preconfigure.yaml -e use_sapconf=' . get_required_var('USE_SAPCONF');
-        push @playbook_list, 'cluster_sbd_prep.yaml' if (check_var('FENCING_MECHANISM', 'sbd'));
+        push @playbook_list, 'cluster_sbd_prep.yaml' if ($args{fencing} eq 'sbd');
         push @playbook_list, qw(
           sap-hana-storage.yaml
           sap-hana-download-media.yaml
