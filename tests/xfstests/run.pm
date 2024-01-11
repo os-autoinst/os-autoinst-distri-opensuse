@@ -271,7 +271,12 @@ sub test_run {
     my $test = shift;
     my ($category, $num) = split(/\//, $test);
     my $run_options = '';
-    $run_options = '-nfs' if check_var('XFSTESTS', 'nfs');
+    if (check_var('XFSTESTS', 'nfs')) {
+        $run_options = '-nfs';
+    }
+    elsif (check_var('XFSTESTS', 'overlay')) {
+        $run_options = '-overlay';
+    }
     my $inject_code = get_var('INJECT_INFO', '');
     my $cmd = "\n$TEST_WRAPPER '$test' $run_options $inject_code | tee $LOG_DIR/$category/$num; ";
     $cmd .= "echo \${PIPESTATUS[0]} > $HB_DONE_FILE\n";
@@ -428,7 +433,12 @@ sub test_run_without_heartbeat {
     my ($category, $num) = split(/\//, $test);
     my $run_options = '';
     my $status_num = 1;
-    $run_options = '-nfs' if check_var('XFSTESTS', 'nfs');
+    if (check_var('XFSTESTS', 'nfs')) {
+        $run_options = '-nfs';
+    }
+    elsif (check_var('XFSTESTS', 'overlay')) {
+        $run_options = '-overlay';
+    }
     my $inject_code = get_var('INJECT_INFO', '');
     eval {
         $test_start = time();
