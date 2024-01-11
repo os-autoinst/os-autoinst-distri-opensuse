@@ -368,6 +368,7 @@ sub check_takeover {
             my %host_entry = %$entry;
             die "Missing 'vhost' field in topology output" unless defined($host_entry{vhost});
             die "Missing 'sync_state' field in topology output" unless defined($host_entry{sync_state});
+            record_info("Cluster Host", "vhost: $host_entry{vhost} compared with $hostname \n sync_state: $host_entry{sync_state} compared with PRIM");
             if ($host_entry{vhost} ne $hostname && $host_entry{sync_state} eq "PRIM") {
                 record_info("Takeover status:", "Takeover complete to node '$host_entry{vhost}'");
                 last TAKEOVER_LOOP;
