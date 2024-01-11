@@ -52,7 +52,7 @@ our @EXPORT = qw(
   set_zypper_lock_timeout
   unlock_bootloader
   is_boot_encrypted
-  need_passphrase_again
+  need_unlock_after_bootloader
   is_bridged_networking
   set_bridged_networking
   assert_screen_with_soft_timeout
@@ -1047,9 +1047,12 @@ sub is_boot_encrypted {
     return 1;
 }
 
-=head2 need_passphrase_again
+=head2 need_unlock_after_bootloader
 
- need_passphrase_again();
+ need_unlock_after_bootloader();
+
+Whether the disk encryption password(s) need to be entered during system boot
+(e.g. plymouth or systemd-cryptsetup text prompt).
 
 With newer grub2 (in TW and SLE15-SP6 currently), if root disk is encrypted and
 contains `/boot`, entering the passphrase in GRUB2 is enough. The key is passed
@@ -1059,9 +1062,9 @@ without LVM configuration (cr_swap,cr_home etc).
 
 =cut
 
-sub need_passphrase_again {
-    my $need_passphrase_again = is_leap('<15.6') || is_sle('<15-sp6') || is_leap_micro || is_sle_micro || is_alp || (!get_var('LVM', '0') && !get_var('FULL_LVM_ENCRYPT', '0'));
-    return 0 if is_boot_encrypted && !$need_passphrase_again;
+sub need_unlock_after_bootloader {
+    my $need_unlock_after_bootloader = is_leap('<15.6') || is_sle('<15-sp6') || is_leap_micro || is_sle_micro || is_alp || (!get_var('LVM', '0') && !get_var('FULL_LVM_ENCRYPT', '0'));
+    return 0 if is_boot_encrypted && !$need_unlock_after_bootloader;
     return 1;
 }
 
