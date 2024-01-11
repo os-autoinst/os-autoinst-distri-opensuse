@@ -251,7 +251,7 @@ sub basic_container_tests {
     # Using an init process as PID 1
     assert_script_run "$runtime run --rm --init $tumbleweed ps --no-headers -xo 'pid args' | grep '1 .*init'";
 
-    if (script_run('command -v man') == 0) {
+    if (script_run('test -x /usr/bin/man') == 0) {
         # Note: The output of man contains non-ASCII characters. Even a dash (`-`) imposes difficulties here, so it's best to stay with letters
         if ($runtime eq 'podman') {
             validate_script_output("man -P cat $runtime-build", sub { m/Build a container image using a Containerfile/ }, fail_message => "`man $runtime build` contents not validating");
