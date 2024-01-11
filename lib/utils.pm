@@ -11,7 +11,7 @@ use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_alp is_sle_micro is_microos is_leap is_leap_micro is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp is_transactional);
+use version_utils qw(is_alp is_sle_micro is_microos is_leap is_leap_micro is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp is_transactional is_bootloader_sdboot);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends;
@@ -1065,6 +1065,8 @@ without LVM configuration (cr_swap,cr_home etc).
 sub need_unlock_after_bootloader {
     my $need_unlock_after_bootloader = is_leap('<15.6') || is_sle('<15-sp6') || is_leap_micro || is_sle_micro || is_alp || (!get_var('LVM', '0') && !get_var('FULL_LVM_ENCRYPT', '0'));
     return 0 if is_boot_encrypted && !$need_unlock_after_bootloader;
+    # MicroOS with sdboot supports automatic TPM based unlocking.
+    return 0 if is_microos && is_bootloader_sdboot && get_var('QEMUTPM');
     return 1;
 }
 
