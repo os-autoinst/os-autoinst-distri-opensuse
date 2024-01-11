@@ -12,10 +12,6 @@ description: >
   On powerVM we don't want to test gnome, as is not used by customers, so setting
   system role to textmode, even though Desktop Applications module is enabled as
   is required for Development Tools module.
-vars:
-  SYSTEM_ROLE: textmode
-  SCC_ADDONS: desktop,legacy,sdk,script,contm
-  YUI_REST_API: 1
 schedule:
   registration:
     - installation/registration/skip_registration
