@@ -14,12 +14,15 @@ use Utils::Backends;
 use serial_terminal 'select_serial_terminal';
 
 sub run {
+    my ($self) = @_;
     assert_screen('release-notes-button');
     select_console 'install-shell';
     enter_cmd "zgrep -oh \"Got release notes.*\" /var/log/YaST2/y2log*";
     assert_screen [qw(got-releasenotes-RPM got-releasenotes-URL)];
     unless (match_has_tag 'got-releasenotes-URL') {
-        record_soft_failure('bsc#1190711 - Release notes source does NOT match expectations or not found in YaST logs, expected source: URL');
+        my $error_msg = 'Release notes source does NOT match expectations or not found in YaST logs, expected source: URL';
+        die $error_msg if ($self->is_sles_in_rc_phase() || $self->is_sles_in_gm_phase());
+        record_info('bsc#1190711', $error_msg);
     }
     reset_consoles;
     select_console 'installation';
