@@ -163,8 +163,24 @@ and the IBS Mirror. Function is generic over all the Cloud Providers</code></pre
 
 <h2 id="create_ansible_playbook_list">create_ansible_playbook_list</h2>
 
-<pre><code>Detects HANA/HA scenario from openQA variables and returns a list of ansible playbooks to include
+<pre><code>Detects HANA/HA scenario from function arguments and returns a list of ansible playbooks to include
 in the &quot;ansible: create:&quot; section of config.yaml file.</code></pre>
+
+<dl>
+
+<dt id="HA_ENABLED---Enable-the-installation-of-HANA-and-the-cluster-configuration"><b>HA_ENABLED</b> - Enable the installation of HANA and the cluster configuration</dt>
+<dd>
+
+</dd>
+<dt id="NO_REGISTER---QESAP_SCC_NO_REGISTER-skips-scc-registration-via-ansible"><b>NO_REGISTER</b> - &quot;QESAP_SCC_NO_REGISTER&quot; skips scc registration via ansible</dt>
+<dd>
+
+</dd>
+<dt id="FENCING---select-fencing-mechanism"><b>FENCING</b> - select fencing mechanism</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h3 id="azure_fencing_agents_playbook_args">azure_fencing_agents_playbook_args</h3>
 
