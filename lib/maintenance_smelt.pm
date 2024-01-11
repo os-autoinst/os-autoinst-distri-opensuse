@@ -15,7 +15,7 @@ use base "Exporter";
 use Exporter;
 
 
-our @EXPORT = qw(query_smelt get_incident_packages get_packagebins_in_modules);
+our @EXPORT = qw(query_smelt get_incident_packages get_packagebins_in_modules is_embargo_update);
 
 sub query_smelt {
     my $graphql = $_[0];
@@ -62,6 +62,15 @@ sub get_packagebins_in_modules {
     # Return a hash of hashes, hashed by name. The values are hashes with the keys 'name', 'supportstatus' and
     # 'package'.
     return map { $_->{name} => $_ } @arr;
+}
+
+sub is_embargo_update {
+    my ($incident, $type) = @_;
+    return 0 if ($type =~ /PTF/);
+    my $url = "https://smelt.suse.de/api/v1/basic/incidents/$incident/";
+    my $res = Mojo::UserAgent->new->get($url)->result;
+    die "Request to $url failed, response code " . $res->code if $res->code > 299;
+    return defined($res->json->{embargo});
 }
 
 1;
