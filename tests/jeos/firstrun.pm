@@ -186,6 +186,12 @@ sub run {
     if (is_bootloader_sdboot) {
         assert_screen 'jeos-root-as-enc-pass';
         send_key 'ret';
+
+        if (get_var('QEMUTPM')) {
+            assert_screen 'jeos-fde-tpm-enroll';
+            send_key 'ret';
+        }
+
         wait_serial(qr/^Encryption recovery key:\s+(([a-z]+-)+[a-z]+)/m) or die 'The encryption recovery key is missing';
     }
 
