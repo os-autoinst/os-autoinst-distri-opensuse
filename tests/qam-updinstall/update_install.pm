@@ -45,6 +45,7 @@ sub has_conflict {
         'gfs2-kmp-default' => 'kernel-default-base',
         'ocfs2-kmp-default' => 'kernel-default-base',
         dpdk => 'dpdk-thunderx',
+        dpdk22 => 'dpdk22-thunderx',
         'dpdk-devel' => 'dpdk-thunderx-devel',
         'dpdk-kmp-default' => 'dpdk-thunderx-kmp-default',
         'pulseaudio-module-gconf' => 'pulseaudio-module-gsettings',
