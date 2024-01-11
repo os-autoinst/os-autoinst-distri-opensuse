@@ -2902,7 +2902,7 @@ sub ping_size_check {
     my $max_mtu = get_var('MM_MTU', 1380);
     my @sizes = $size ? $size : (100, 1000, 1252, 1350, 1352, 1400, 1430);
     for my $size (@sizes) {
-        last if $size > $max_mtu;
+        last if ($size + 28) > $max_mtu;    # ping adds 8 Bytes ICMP header and 20 Bytes IPv4 header = 28 Bytes
         assert_script_run("ping -M do -s $size -c 1 $target", fail_message => "ping with packet size $size failed, problems with MTU size are expected. If it is multi-machine job, it can be GRE tunnel setup issue.");
     }
 }
