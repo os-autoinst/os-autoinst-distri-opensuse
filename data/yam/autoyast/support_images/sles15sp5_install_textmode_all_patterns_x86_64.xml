@@ -97,11 +97,6 @@ exit 0
       <addons t="list">
       <addon t="map">
         <arch>{{ARCH}}</arch>
-        <name>sle-module-desktop-applications</name>
-        <version>{{VERSION}}</version>
-      </addon>
-      <addon t="map">
-        <arch>{{ARCH}}</arch>
         <name>sle-module-python3</name>
         <version>{{VERSION}}</version>
       </addon>

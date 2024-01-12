@@ -97,12 +97,7 @@ exit 0
     </products>
   </software>
   <suse_register t="map">
-      <addons t="list">
-      <addon t="map">
-        <arch>{{ARCH}}</arch>
-        <name>sle-module-desktop-applications</name>
-        <version>{{VERSION}}</version>
-      </addon>
+    <addons t="list">
       <addon t="map">
         <arch>{{ARCH}}</arch>
         <name>SLES-LTSS</name>
