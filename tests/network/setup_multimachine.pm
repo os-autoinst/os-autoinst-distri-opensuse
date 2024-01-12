@@ -12,13 +12,22 @@ use warnings;
 use testapi;
 use lockapi;
 use mm_network 'setup_static_mm_network';
-use utils qw(zypper_call permit_root_ssh set_hostname);
+use utils qw(zypper_call permit_root_ssh set_hostname ping_size_check);
 use Utils::Systemd qw(disable_and_stop_service systemctl check_unit_file);
 use version_utils qw(is_sle is_opensuse);
 
 sub run {
     my ($self) = @_;
     my $hostname = get_var('HOSTNAME');
+    my $is_server = ($hostname =~ /server|master/);
+
+    if ($is_server) {
+        barrier_create 'MM_SETUP_DONE', 2;
+        barrier_create 'MM_SETUP_PING_CHECK_DONE', 2;
+        mutex_create 'barrier_setup_mm_done';
+    }
+    mutex_wait 'barrier_setup_mm_done';
+
     select_console 'root-console';
 
     # Do not use external DNS for our internal hostnames
@@ -30,7 +39,7 @@ sub run {
     disable_and_stop_service('apparmor', ignore_failure => 1);
 
     # Configure the internal network an  try it
-    if ($hostname =~ /server|master/) {
+    if ($is_server) {
         setup_static_mm_network('10.0.2.101/24');
     } else {
         setup_static_mm_network('10.0.2.102/24');
@@ -43,6 +52,12 @@ sub run {
     # This is needed only when the new SSH config directory exists
     # See: poo#93850
     permit_root_ssh();
+
+    barrier_wait 'MM_SETUP_DONE';
+    if (!$is_server) {
+        ping_size_check('server');
+    }
+    barrier_wait 'MM_SETUP_PING_CHECK_DONE';
 }
 
 1;
