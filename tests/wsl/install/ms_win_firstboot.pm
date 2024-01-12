@@ -73,6 +73,8 @@ sub run {
         sleep 3;
         assert_and_click 'windows-next';
     }
+    assert_and_click('windows-access-to-browsing-data')
+      if (check_var('WIN_VERSION', '10'));
     my $count = 0;
     my @privacy_menu =
       split(',', get_required_var('WIN_INSTALL_PRIVACY_NEEDLES'));
@@ -110,6 +112,12 @@ sub run {
     assert_screen 'windows-lock-screen-settings';
     assert_and_click 'windows-lock-screen-background';
     assert_and_click 'windows-select-picture';
+
+    # close window lock screen window
+    send_key "alt-f4";
+
+    # open powershell
+    $self->open_powershell_as_admin;
 
     # turn off hibernation and fast startup
     $self->power_configuration;
@@ -151,7 +159,7 @@ sub run {
 
     # poweroff
     $self->reboot_or_shutdown(1);
-    $self->wait_boot_windows(is_firstboot => 1);
+    $self->wait_boot_windows;
 }
 
 1;
