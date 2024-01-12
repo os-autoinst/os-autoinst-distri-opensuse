@@ -45,7 +45,7 @@
       <li><a href="#set_zypper_lock_timeout">set_zypper_lock_timeout</a></li>
       <li><a href="#unlock_bootloader">unlock_bootloader</a></li>
       <li><a href="#is_boot_encrypted">is_boot_encrypted</a></li>
-      <li><a href="#need_passphrase_again">need_passphrase_again</a></li>
+      <li><a href="#need_unlock_after_bootloader">need_unlock_after_bootloader</a></li>
       <li><a href="#is_bridged_networking">is_bridged_networking</a></li>
       <li><a href="#set_bridged_networking">set_bridged_networking</a></li>
       <li><a href="#print_ip_info">print_ip_info</a></li>
@@ -348,9 +348,11 @@ zypper_ar(&#39;https://download.opensuse.org/repositories/devel:/kubic/openSUSE_
 
 <p>This will return <code>1</code> if the env variables suggest that the boot partition is encrypted.</p>
 
-<h2 id="need_passphrase_again">need_passphrase_again</h2>
+<h2 id="need_unlock_after_bootloader">need_unlock_after_bootloader</h2>
 
-<pre><code>need_passphrase_again();</code></pre>
+<pre><code>need_unlock_after_bootloader();</code></pre>
+
+<p>Whether the disk encryption password(s) need to be entered during system boot (e.g. plymouth or systemd-cryptsetup text prompt).</p>
 
 <p>With newer grub2 (in TW and SLE15-SP6 currently), if root disk is encrypted and contains `/boot`, entering the passphrase in GRUB2 is enough. The key is passed on during boot, so it&#39;s not asked for a second time. We need to enter the passphrase again if there are separate partitions encrypted without LVM configuration (cr_swap,cr_home etc).</p>
 
