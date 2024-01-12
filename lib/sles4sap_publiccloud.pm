@@ -704,7 +704,10 @@ sub delete_network_peering {
 
 =item B<HA_ENABLED> - Enable the installation of HANA and the cluster configuration
 
-=item B<NO_REGISTER> - "QESAP_SCC_NO_REGISTER" skips scc registration via ansible
+=item B<REGISTRATION> - select registration mode, possible values are
+                          * registercloudguest (default)
+                          * suseconnect
+                          * noreg "QESAP_SCC_NO_REGISTER" skips scc registration via ansible
 
 =item B<FENCING> - select fencing mechanism
 
@@ -714,16 +717,24 @@ sub delete_network_peering {
 sub create_playbook_section_list {
     my (%args) = @_;
     $args{ha_enabled} //= 1;
-    $args{no_register} //= 0;
+    $args{registration} //= 'registercloudguest';
     $args{fencing} //= 'sbd';
 
     my @playbook_list;
 
-    unless ($args{no_register}) {
+    unless ($args{registration} eq 'noreg') {
         # Add registration module as first element
-        push @playbook_list, 'registration.yaml -e reg_code=' . get_required_var('SCC_REGCODE_SLES4SAP') . " -e email_address=''";
+        my $reg_code = '-e reg_code=' . get_required_var('SCC_REGCODE_SLES4SAP') . " -e email_address=''";
+        if ($args{registration} eq 'suseconnect') {
+            # For the moment, only role version of the registration playbook, using roles from community.sles-for-sap,
+            # is supporting force suseconnec.
+            push @playbook_list, "registration_role.yaml $reg_code -e use_suseconnect=true";
+        }
+        else {
+            push @playbook_list, "registration.yaml $reg_code";
+        }
         # Add "fully patch system" module after registration module and before test start/configuration modules.
-        # Temporary moved inside no_register condition to avoid test without Ansible to fails.
+        # Temporary moved inside noreg condition to avoid test without Ansible to fails.
         # To be properly addressed in the caller and fully-patch-system can be placed back out of the if.
         push @playbook_list, 'fully-patch-system.yaml';
     }
@@ -935,7 +946,7 @@ sub is_primary_node_online {
     while ($time_to_wait > 0) {
         $output = $self->run_cmd(cmd => $cmd, runas => $sapadmin, timeout => $timeout, proceed_on_failure => 1);
         if ($output !~ /mode:[\r\n\s]+PRIMARY/) {
-            record_info('SYSTEM REPLICATION STATUS', "System replication status in pimary node.\n$@");
+            record_info('SYSTEM REPLICATION STATUS', "System replication status in primary node.\n$@");
             return 0;
         }
         $time_to_wait -= 10;

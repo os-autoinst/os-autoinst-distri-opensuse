@@ -419,17 +419,6 @@ subtest '[create_playbook_section_list] ha_enabled => 0' => sub {
 };
 
 
-subtest '[create_playbook_section_list] no_register => 1' => sub {
-    set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
-    set_var('USE_SAPCONF', 'Colombo');
-    my $ansible_playbooks = create_playbook_section_list(no_register => 1);
-    set_var('SCC_REGCODE_SLES4SAP', undef);
-    set_var('USE_SAPCONF', undef);
-    note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
-    ok((none { /.*registration\.yaml.*/ } @$ansible_playbooks), 'registration playbook is not called when no_register => 1');
-};
-
-
 subtest '[create_playbook_section_list] fencing => native in azure' => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(is_azure => sub { return 1 });
@@ -441,6 +430,31 @@ subtest '[create_playbook_section_list] fencing => native in azure' => sub {
     note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
     ok((none { /.*cluster_sbd_prep\.yaml.*/ } @$ansible_playbooks), 'cluster_sbd_prep playbook is not called when fencing => native');
     ok((any { /.*sap-hana-cluster\.yaml.*azure_identity_management=.*/ } @$ansible_playbooks), 'registration playbook is called when ha_enabled => 0');
+};
+
+
+subtest '[create_playbook_section_list] registration => noreg' => sub {
+    set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
+    set_var('USE_SAPCONF', 'Colombo');
+    my $ansible_playbooks = create_playbook_section_list(registration => 'noreg');
+    set_var('SCC_REGCODE_SLES4SAP', undef);
+    set_var('USE_SAPCONF', undef);
+    note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
+    ok((none { /.*registration\.yaml.*/ } @$ansible_playbooks), 'registration playbook is not called when registration => noreg');
+};
+
+
+subtest '[create_playbook_section_list] registration => suseconnect' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(is_azure => sub { return 1 });
+    set_var('SCC_REGCODE_SLES4SAP', 'Magellano');
+    set_var('USE_SAPCONF', 'Colombo');
+    my $ansible_playbooks = create_playbook_section_list(registration => 'suseconnect');
+    set_var('SCC_REGCODE_SLES4SAP', undef);
+    set_var('USE_SAPCONF', undef);
+    note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
+    ok((any { /.*registration_role\.yaml.*/ } @$ansible_playbooks), 'registration_role playbook is called when registration => suseconnect');
+    ok((any { /.*use_suseconnect=true.*/ } @$ansible_playbooks), 'registration_role playbook is called with use_suseconnect=true when registration => suseconnect');
 };
 
 done_testing;

@@ -604,7 +604,7 @@ subtest '[qesap_upload_crm_report]' => sub {
     ok((any { /.*\/var\/log\/SALT\-crm_report/ } @calls), 'crm report file has the node name in it');
 };
 
-subtest '[qesap_upload_crm_report] ansyble host query' => sub {
+subtest '[qesap_upload_crm_report] ansible host query' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
     my @fetch_filename;

@@ -1276,7 +1276,7 @@ sub qesap_az_vnet_peering {
 
     Delete a single peering one way
 
-=over 3
+=over 4
 
 =item B<RG> - Name of the resource group
 
