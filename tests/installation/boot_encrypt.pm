@@ -14,7 +14,7 @@ use base "installbasetest";
 use utils;
 
 sub run {
-    unlock_if_encrypted(check_typed_password => 1) if need_passphrase_again;
+    unlock_if_encrypted(check_typed_password => 1) if need_unlock_after_bootloader;
 }
 
 1;

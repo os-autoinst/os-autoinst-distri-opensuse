@@ -906,7 +906,7 @@ sub wait_boot {
     reconnect_xen if check_var('VIRSH_VMM_FAMILY', 'xen');
 
     # on s390x svirt encryption is unlocked with unlock_bootloader before here
-    if (need_passphrase_again) {
+    if (need_unlock_after_bootloader) {
         unlock_if_encrypted unless get_var('S390_ZKVM');
     }
 

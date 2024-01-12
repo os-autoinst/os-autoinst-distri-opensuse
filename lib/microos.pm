@@ -11,6 +11,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use utils qw(need_unlock_after_bootloader unlock_if_encrypted);
 use version_utils qw(is_microos is_selfinstall is_bootloader_grub2 is_bootloader_sdboot);
 use power_action_utils 'power_action';
 use Utils::Architectures qw(is_aarch64);
@@ -48,6 +49,7 @@ sub microos_reboot {
     assert_screen 'grub2', 300 if is_bootloader_grub2;
     assert_screen 'systemd-boot', 300 if is_bootloader_sdboot;
     send_key('ret') unless get_var('KEEP_GRUB_TIMEOUT');
+    unlock_if_encrypted if need_unlock_after_bootloader;
     microos_login;
 }
 
