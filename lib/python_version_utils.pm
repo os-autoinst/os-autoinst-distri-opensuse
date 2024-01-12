@@ -38,7 +38,7 @@ returns an array of strings with all the available python versions in the reposi
 =cut
 
 sub get_available_python_versions() {
-    my @python3_versions = split(/\n/, script_output(qq[zypper se 'python3[0-9]*' | awk -F '|' '/python3[0-9]/ {gsub(" ", ""); print \$2}' | awk -F '-' '{print \$1}' | uniq]));
+    my @python3_versions = split(/\n/, script_output(qq[zypper se '/^python3[0-9]{1,2}\$/' | awk -F '|' '/python3[0-9]/ {gsub(" ", ""); print \$2}' | awk -F '-' '{print \$1}' | uniq]));
     record_info("Available versions", "All available new python3 versions are: @python3_versions");
     return @python3_versions;
 }

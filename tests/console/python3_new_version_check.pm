@@ -18,16 +18,18 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils;
 use utils "zypper_call";
+use python_version_utils;
 use registration "add_suseconnect_product";
 
 sub run {
     select_serial_terminal;
     # Test system python3 version
-    my @system_python_version = script_output(qq[zypper se --installed-only --provides '/usr/bin/python3' | awk -F '|' '/python3[0-9]*/ {gsub(" ", ""); print \$2}' | awk -F '-' '{print \$1}' | uniq]);
-    die "There are many python3 versions installed " if (scalar(@system_python_version) > 1);
-    record_info("System python version", "$system_python_version[0]");
+    my $system_python_version = get_system_python_version();
+    record_info("System python version", "$system_python_version");
     assert_script_run("[ -f man_or_boy.py ] || curl -O " . data_url("console/man_or_boy.py") . " || true");
-    my $python3_spec_release = get_python3_specific_release($system_python_version[0]);
+
+    my $python3_spec_release = script_output("rpm -q $system_python_version | awk -F \'-\' \'{print \$2}\'");
+    record_info("python_verison", $python3_spec_release);
     if (is_sle('>=15-SP4')) {
         if ((package_version_cmp($python3_spec_release, "3.6") < 0) ||
             (package_version_cmp($python3_spec_release, "3.7") >= 0)) {
@@ -36,46 +38,25 @@ sub run {
         }
     }
     record_info("Testing system python version $python3_spec_release", "python $python3_spec_release is tested now");
-    my $man_or_boy = script_output("/usr/bin/python3 man_or_boy.py");
-    if ($man_or_boy != -67) {
-        die("Execution of 'man_or_boy.py' with $system_python_version[0] is not correct\n");
-    }
+    run_python_test("/usr/bin/python3");
+
     # Test all avaiable new python3 versions if any
-    my $ret = zypper_call('se "python3[0-9]*"', exitcode => [0, 104]);
-    die('No new python3 packages available') if ($ret == 104);
-    my @python3_versions = split(/\n/, script_output(qq[zypper se 'python3[0-9]*' | awk -F '|' '/python3[0-9]/ {gsub(" ", ""); print \$2}' | awk -F '-' '{print \$1}' | uniq]));
-    record_info("Available versions", "All available new python3 versions are: @python3_versions");
+    my @python3_versions = get_available_python_versions();
     foreach my $python3_spec_release (@python3_versions) {
         record_info("Testing $python3_spec_release", "$python3_spec_release is tested now");
-        my $python3_version = get_python3_specific_release($python3_spec_release);
-        zypper_call("install $python3_spec_release");
+        my $python3_version = get_python3_binary($python3_spec_release);
+        zypper_call("install $python3_spec_release-base");
         # Running classic testing algorithm 'man_or_boy'. More info at:
         # https://rosettacode.org/wiki/Man_or_boy_test
-        my $man_or_boy = script_output("$python3_version man_or_boy.py");
-        if ($man_or_boy != -67) {
-            die("Execution of 'man_or_boy.py' with $python3_version is not correct\n");
-        }
+        run_python_test($python3_version);
     }
 }
 
-sub get_python3_specific_release {
-    my ($python3_version) = @_;
-    if ($python3_version eq "python3") {
-        return script_output("rpm -q python3 | awk -F \'-\' \'{print \$2}\'");
-    }
-    my $sub_version = substr($python3_version, 7);
-    return "python3.$sub_version";
-}
-
-sub remove_installed_pythons {
-    my $default_python = script_output("python3 --version | awk -F ' ' '{print \$2}\'");
-    my @python3_versions = split(/\n/, script_output(qq[zypper se 'python3[0-9]*' | awk -F '|' '/python3[0-9]/ {gsub(" ", ""); print \$2}' | awk -F '-' '{print \$1}' | uniq]));
-    record_info("Available versions", "All available new python3 versions are: @python3_versions");
-    foreach my $python3_spec_release (@python3_versions) {
-        my $python_versions = script_output("rpm -q $python3_spec_release | awk -F \'-\' \'{print \$2}\'");
-        record_info("Python version", "$python_versions:$default_python");
-        next if ($python_versions == $default_python);
-        assert_script_run("zypper remove -y  $python3_spec_release-base");
+sub run_python_test () {
+    my ($python_package) = @_;
+    my $man_or_boy = script_output("$python_package man_or_boy.py");
+    if ($man_or_boy != -67) {
+        die("Execution of 'man_or_boy.py' with $python_package is not correct\n");
     }
 
 }
