@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/YaST/EFItools.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#tools-for-EFI-related-operations-on-sys-firmware-efi">tools for EFI related operations on /sys/firmware/efi/</a>
+    <ul>
+      <li><a href="#check_secure_boot_status">check_secure_boot_status</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/YaST/EFItools.pm</h1>
+
+<h1 id="tools-for-EFI-related-operations-on-sys-firmware-efi">tools for EFI related operations on /sys/firmware/efi/</h1>
+
+<h2 id="check_secure_boot_status">check_secure_boot_status</h2>
+
+<p>The function reads out the octal values of the variable in efivars/SecureBoot-*. Secure Boot status is stored in the 5th byte of that variable (0=disabled, 1=enabled) See https://www.codelinsoft.it/sito/index.php/support/wiki/secure-boot for details</p>
+
+<p>We check if the 5th byte is set to 0 or 1 and act accordingly.</p>
+
+
+</body>
+
+</html>
+
+
