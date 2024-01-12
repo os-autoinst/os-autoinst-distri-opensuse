@@ -32,7 +32,7 @@ sub run {
 
     my $docker = "podman";
     if (is_sle) {
-        $docker = "docker";
+        $docker = "docker" if is_sle("<15-SP5");
         is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
     }
     zypper_call("in sssd sssd-ldap openldap2-client $docker");
@@ -44,7 +44,7 @@ sub run {
         $tag = (is_tumbleweed) ? "registry.opensuse.org/opensuse/tumbleweed" : "registry.opensuse.org/opensuse/leap";
     }
     else {
-        $tag = 'registry.suse.com/suse/sle15:15.4';
+        $tag = 'registry.suse.com/suse/sle15:15.5';
         if (check_var('BETA', '1') || (get_var('SCC_URL') =~ /proxy\.scc/)) {
             my ($v, $sp) = split("-SP", get_var("VERSION"));
             $tag = $sp > 0 ? "registry.suse.de/suse/sle-$v-sp$sp/ga/images/suse/sle$v:$v.$sp" : "registry.suse.de/suse/sle-$v/ga/images/suse/sle$v:$v.0";
@@ -83,6 +83,13 @@ sub run {
     }
 
     assert_script_run("$container_run_389_ds ds389_image");
+    # wait up to 60 seconds for container running
+    my $retries = 60;
+    while ($retries--) {
+        last if script_output("$docker inspect -f '{{.State.Running}}' ds389_container") =~ /true/;
+        sleep 1;
+    }
+    die "Cannot start container" unless $retries;
 
     assert_script_run("$docker exec ds389_container chown dirsrv:dirsrv /var/lib/dirsrv");
     assert_script_run("$docker exec ds389_container sed -n '/ldapserver/p' /etc/hosts >> /etc/hosts");
