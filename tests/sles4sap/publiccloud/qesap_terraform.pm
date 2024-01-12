@@ -131,7 +131,19 @@ sub run {
     set_var('SLES4SAP_OS_IMAGE_NAME', $os_image_name);
 
     set_var_output('USE_SAPCONF', 'true');
-    my $ansible_playbooks = create_playbook_section_list(ha_enabled => $ha_enabled, no_register => get_var('QESAP_SCC_NO_REGISTER'), fencing => get_var('FENCING_MECHANISM'));
+    # This is the path where community.sles-for-sap repo
+    # has been cloned.
+    # Not all the conf.yaml used by this file needs it but
+    # it is just easyer to define it here for all.
+    set_var("ANSIBLE_ROLES", qesap_get_ansible_roles_dir());
+    my $reg_mode = 'registercloudguest';    # Use registercloudguest by default
+    if (get_var('QESAP_SCC_NO_REGISTER')) {
+        $reg_mode = 'noreg';
+    }
+    elsif (get_var('QESAP_FORCE_SUSECONNECT')) {
+        $reg_mode = 'suseconnect';
+    }
+    my $ansible_playbooks = create_playbook_section_list(ha_enabled => $ha_enabled, registration => $reg_mode, fencing => get_var('FENCING_MECHANISM'));
     my $ansible_hana_vars = create_hana_vars_section($ha_enabled);
 
     # Prepare QESAP deployment
