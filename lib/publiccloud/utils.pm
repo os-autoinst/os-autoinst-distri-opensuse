@@ -21,6 +21,7 @@ use utils;
 use version_utils qw(is_sle is_public_cloud get_version_id is_transactional);
 use transactional qw(check_reboot_changes trup_call process_reboot);
 use registration;
+use maintenance_smelt qw(is_embargo_update);
 
 # Indicating if the openQA port has been already allowed via SELinux policies
 my $openqa_port_allowed = 0;
@@ -37,7 +38,6 @@ our @EXPORT = qw(
   is_gce
   is_container_host
   is_hardened
-  is_embargo_update
   registercloudguest
   register_addon
   register_openstack
@@ -188,14 +188,6 @@ sub is_container_host() {
 
 sub is_hardened() {
     return is_public_cloud && get_var('FLAVOR') =~ 'Hardened';
-}
-
-sub is_embargo_update {
-    my ($incident, $type) = @_;
-    return 0 if ($type =~ /PTF/);
-    script_retry("curl -sSf https://build.suse.de/attribs/SUSE:Maintenance:$incident -o /tmp/$incident.txt");
-    return 1 if (script_run("grep 'OBS:EmbargoDate' /tmp/$incident.txt") == 0);
-    return 0;
 }
 
 # Get credentials from the Public Cloud micro service, which requires user
