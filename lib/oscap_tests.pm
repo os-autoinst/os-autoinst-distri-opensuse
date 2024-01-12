@@ -7,10 +7,9 @@
 # Maintainer: QE Security <none@suse.de>
 
 package oscap_tests;
-
+use testapi;
 use strict;
 use warnings;
-use testapi;
 use utils;
 use base 'opensusebasetest';
 use version_utils qw(is_sle is_opensuse);
@@ -76,7 +75,7 @@ our $ssg_tw_xccdf = 'ssg-opensuse-xccdf.xml';
 our $f_ssg_ds;
 
 # Profile IDs
-our $profile_ID;
+our $profile_ID = "";
 our $ansible_profile_ID = "";
 # Profile names:
 our $profile_ID_sle_stig = 'xccdf_org.ssgproject.content_profile_stig';
@@ -88,12 +87,12 @@ our $profile_ID_sle_anssi_bp28_high = 'xccdf_org.ssgproject.content_profile_anss
 our $profile_ID_tw = 'xccdf_org.ssgproject.content_profile_standard';
 
 # Ansible playbooks
-our $ansible_playbook_sle_stig = "-playbook-stig.yml";
-our $ansible_playbook_sle_cis = "-playbook-cis.yml";
-our $ansible_playbook_sle_pci_dss_4 = "-playbook-pci-dss-4.yml";
+our $ansible_playbook_sle_stig = "playbook-stig.yml";
+our $ansible_playbook_sle_cis = "playbook-cis.yml";
+our $ansible_playbook_sle_pci_dss_4 = "playbook-pci-dss-4.yml";
 # Only sle-15
-our $ansible_playbook_sle_hipaa = "-playbook-hipaa.yml";
-our $ansible_playbook_sle_anssi_bp28_high = "-playbook-anssi_bp28_high.yml";
+our $ansible_playbook_sle_hipaa = "playbook-hipaa.yml";
+our $ansible_playbook_sle_anssi_bp28_high = "playbook-anssi_bp28_high.yml";
 
 our $ansible_playbook_standart = "opensuse-playbook-standard.yml";
 
@@ -139,7 +138,6 @@ our $failed_cce_ids_ref;
 
 # List to collect needed run results
 our @test_run_report = ();
-our $test_run_report_name = "test_run_report.txt";
 
 # Get sle version "sle12" or "sle15"
 our $sle_version = '';
@@ -147,7 +145,6 @@ our $sle_version = '';
 # Upload HTML report by default
 set_var('UPLOAD_REPORT_HTML', 1);
 
-# Set value for 'scap-security-guide' ds file
 sub set_ds_file {
     # Set the ds file for separate product, e.g.,
     # for SLE15 the ds file is "ssg-sle15-ds.xml";
@@ -159,8 +156,9 @@ sub set_ds_file {
     $f_ssg_sle_xccdf =
       '/usr/share/xml/scap/ssg/content/ssg-sle' . "$version" . '-xccdf.xml';
 }
+
 sub set_ds_file_name {
-    # Set the ds file for separate product, e.g.,
+    # Set the ds file name for separate product, e.g.,
     # for SLE15 the ds file is "ssg-sle15-ds.xml";
     # for SLE12 the ds file is "ssg-sle12-ds.xml";
     # for Tumbleweed the ds file is "ssg-opensuse-ds.xml"
@@ -173,13 +171,13 @@ sub set_ds_file_name {
 
 sub replace_ds_file {
     # Replace original ds file whith built or downloaded from repository
-    my $self = $_[0];
+    my ($self) = $_[0];
     my $ds_file_name = $_[1];
     my $url = "https://gitlab.suse.de/seccert-public/compliance-as-code-compiled/-/raw/main/content/";
 
     # ComplianceAsCode repository master branch
     if ($use_content_type == 3) {
-        assert_script_run("rm $f_ssg_sle_ds");
+        assert_script_run("rm $f_ssg_sle_ds") if script_run "! [[ -e $f_ssg_sle_ds ]]";
         # Copy built file to correct location
         my $ds_local_full_file_path = "$compliance_as_code_path/build/$ds_file_name";
         assert_script_run("cp $ds_local_full_file_path $f_ssg_sle_ds");
@@ -189,7 +187,7 @@ sub replace_ds_file {
     elsif ($use_content_type == 2) {
         download_file_from_https_repo($url, $ds_file_name);
         # Remove original ds file
-        assert_script_run("rm $f_ssg_sle_ds");
+        assert_script_run("rm $f_ssg_sle_ds") if script_run "! [[ -e $f_ssg_sle_ds ]]";
         # Copy downloaded file to correct location
         assert_script_run("cp $ds_file_name $f_ssg_sle_ds");
         record_info("Copied ds file", "Copied file $ds_file_name to $f_ssg_sle_ds");
@@ -197,13 +195,13 @@ sub replace_ds_file {
 }
 sub replace_xccdf_file {
     # Replace original xccdf file whith built or downloaded from repository
-    my $self = $_[0];
+    my ($self) = $_[0];
     my $xccdf_file_name = $_[1];
     my $url = "https://gitlab.suse.de/seccert-public/compliance-as-code-compiled/-/raw/main/content/";
 
     # ComplianceAsCode repository master branch
     if ($use_content_type == 3) {
-        assert_script_run("rm $f_ssg_sle_xccdf");
+        assert_script_run("rm $f_ssg_sle_xccdf") if script_run "! [[ -e $f_ssg_sle_xccdf ]]";
         # Copy built file to correct location
         my $xccdf_local_full_file_path = "$compliance_as_code_path/build/$xccdf_file_name";
         assert_script_run("cp $xccdf_local_full_file_path $f_ssg_sle_xccdf");
@@ -213,7 +211,7 @@ sub replace_xccdf_file {
     elsif ($use_content_type == 2) {
         download_file_from_https_repo($url, $xccdf_file_name);
         # Remove original xccdf file
-        assert_script_run("rm $f_ssg_sle_xccdf");
+        assert_script_run("rm $f_ssg_sle_xccdf") if script_run "! [[ -e $f_ssg_sle_xccdf ]]";
         # Copy downloaded file to correct location
         assert_script_run("cp $xccdf_file_name $f_ssg_sle_xccdf");
         record_info("Copied xccdf file", "Copied file $xccdf_file_name to $f_ssg_sle_xccdf");
@@ -271,12 +269,12 @@ sub modify_ansible_playbook {
 sub backup_ds_file {
     # Backup ds file for later reuse
     assert_script_run("cp $f_ssg_ds /root/$ssg_sle_ds");
-    record_info("Backuped ds file", "Backuped file $f_ssg_ds to /root/$ssg_sle_ds");
+    record_info("Backed up ds file", "Backuped file $f_ssg_ds to /root/$ssg_sle_ds");
 }
 
 sub restore_ds_file {
     # Restore ds file
-    assert_script_run("rm $f_ssg_ds");
+    assert_script_run("rm $f_ssg_ds") if script_run "! [[ -e $f_ssg_ds ]]";
     assert_script_run("cp /root/$ssg_sle_ds $f_ssg_ds");
     record_info("Restored ds file", "Restored file /root/$ssg_sle_ds to $f_ssg_ds");
 }
@@ -332,9 +330,9 @@ sub ansible_failed_tasks_search_vv {
 
     my @lines = split /\n|\r/, $data;
     for ($i = 0; $i <= $#lines;) {
-        if ($lines[$i] =~ /^fatal:/ or $lines[$i] =~ /^failed:/) {
+        if (($lines[$i] =~ /^fatal:/) or ($lines[$i] =~ /^failed:/)) {
             # looking for TASK name in upper lines
-            unless ($found_task == 1 or $i - $j == 0) {
+            unless (($found_task == 1) or ($i - $j == 0)) {
                 if ($lines[$i - $j] =~ /task path:/) {
                     # recording task line number in palybook
                     @report = (split /:/, $lines[$i - $j]);
@@ -452,6 +450,20 @@ sub download_file_from_https_repo {
     assert_script_run("chmod 774 $file_name");
     record_info("Downloaded file", "Downloaded file $file_name from $FULL_URL");
 }
+
+sub display_oscap_information {
+    #Displays OSCAP packages information
+    # Record the pkgs' version for reference
+    my $out = script_output("zypper se -s openscap-utils scap-security-guide");
+    record_info("Pkg_ver", "openscap security guide packages' version:\n $out");
+    # Check the ds file information for reference
+    $out = script_output("oscap info $f_ssg_ds", quiet => 1);
+    record_info("oscap info", "\"# oscap info $f_ssg_ds\" returns:\n $out");
+    # Check the oscap version information for reference
+    $out = script_output("oscap -V");
+    record_info("oscap version", "\"# oscap -V\" returns:\n $out");
+}
+
 sub pattern_count_in_file {
     #Find count and rules names of matched pattern
     my $data = $_[0];
@@ -622,7 +634,7 @@ sub modify_ds_ansible_files {
     $_[2] = \@ansible_rules;
 }
 
-sub generate_mising_rules {
+sub generate_missing_rules {
     # Generate text file that contains rules that missing implimentation for profile
     my $output_file = "missing_rules.txt";
 
@@ -645,7 +657,7 @@ sub generate_mising_rules {
     my $cmd = "python build-scripts/profile_tool.py stats --missing --skip-stats --profile $profile_ID --benchmark $f_ssg_sle_xccdf --format plain > $output_file";
 
     assert_script_run("$cmd");
-    record_info("Generated file $output_file", "generate_mising_rules Input file $f_ssg_sle_xccdf\n Command:\n$cmd");
+    record_info("Generated file $output_file", "generate_missing_rules Input file $f_ssg_sle_xccdf\n Command:\n$cmd");
     assert_script_run("cp $output_file /root");
 
     # Getting and showing profile statistics
@@ -727,13 +739,18 @@ sub get_tests_config {
     $config = Config::Tiny->read_string("$data");
     my $err = Config::Tiny::errstr;
     if ($err eq "") {
-        $use_content_type = $config->{tests_config}->{use_content_type};
-        $remove_rules_missing_fixes = $config->{tests_config}->{remove_rules_missing_fixes};
-        $use_exclusions = $config->{tests_config}->{use_exclusions};
+        # Configuration can be overridden by OpenQA variables
+        $use_content_type = (get_var('OSCAP_USE_CONTENT_TYPE', '') eq '' ? $config->{tests_config}->{use_content_type} : get_required_var('OSCAP_USE_CONTENT_TYPE'));
+        $remove_rules_missing_fixes = (get_var('OSCAP_REMOVE_RULES_MISSING_FIXES', '') eq '' ? $config->{tests_config}->{remove_rules_missing_fixes} : get_required_var('OSCAP_REMOVE_RULES_MISSING_FIXES'));
+        $use_exclusions = (get_var('OSCAP_USE_EXCLUSIONS', '') eq '' ? $config->{tests_config}->{use_content_type} : get_required_var('OSCAP_USE_EXCLUSIONS'));
+
+        # $use_content_type = $config->{tests_config}->{use_content_type};
+        # $remove_rules_missing_fixes = $config->{tests_config}->{remove_rules_missing_fixes};
+        # $use_exclusions = $config->{tests_config}->{use_exclusions};
         record_info("Set test configuration", "Set test configuration from file $config_file_path\n use_content_type = $use_content_type\n  remove_rules_missing_fixes = $remove_rules_missing_fixes\n use_exclusions = $use_exclusions");
     }
     else {
-        record_info("Tiny->read error", "Config::Tiny->read( $config_file_path )returened error:\n$err");
+        record_info("Tiny->read error", "Config::Tiny->read( $config_file_path )returned error:\n$err");
     }
     return $config_file_path;
 }
@@ -741,7 +758,6 @@ sub get_tests_config {
 sub get_test_expected_results {
     # Get efpected results from remote file
     my $eval_match = ();
-    my $found = -1;
     my $type = "";
     my $arch = "";
 
@@ -755,39 +771,28 @@ sub get_test_expected_results {
     if (is_aarch64 or is_arm) { $arch = "aarch64"; }
     if (is_ppc64le) { $arch = "ppc"; }
     if (is_x86_64) { $arch = "x86_64"; }
-    # $sle_version and $profile_ID are global varables
+
     my $exp_fail_list_name = $sle_version . "-exp_fail_list";
     my $expected_results_file_name = "openqa_tests_expected_results.yaml";
     my $url = "https://gitlab.suse.de/seccert-public/compliance-as-code-compiled/-/raw/main/content/";
+    my @eval_match = ();
 
     download_file_from_https_repo($url, $expected_results_file_name);
     upload_logs("$expected_results_file_name") if script_run "! [[ -e $expected_results_file_name ]]";
     my $data = script_output("cat $expected_results_file_name", quiet => 1);
 
-    # Pharse the expected results
+    # Phrase the expected results
     my $expected_results = YAML::PP::Load($data);
     record_info("Looking expected results", "Looking expected results for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch");
 
     $eval_match = $expected_results->{$profile_ID}->{$type}->{$arch}->{$exp_fail_list_name};
-    # If results defined
     if (defined $eval_match) {
-        $found = 1;
-        if (not defined $$eval_match[0]) {
-            my @eval_match = ();
-            $_[0] = \@eval_match;
-            record_info("Got expected results", "Got expected results for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nList of expected to fail rules:\n @eval_match");
-        }
-        else {
-            $_[0] = $eval_match;
-            record_info("Got expected results", "Got expected results for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nList of expected to fail rules:\n" . (join "\n", @$eval_match));
-        }
+        @eval_match = @$eval_match;
     }
-    else {
-        record_info("No expected results", "No expected results found in \nfile: $expected_results_file_name\n for profile_ID: $profile_ID\ntype: $type\narch: $arch\n Using results defined in the test file.");
-        my @eval_match = ();
-        $_[0] = \@eval_match;
-    }
-    return $found;
+    record_info("Got expected results", "Got expected results for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nList of expected to fail rules:\n" . (join "\n", @eval_match));
+
+    $_[0] = \@eval_match;
+    return 1;
 }
 
 sub get_test_exclusions {
@@ -812,71 +817,58 @@ sub get_test_exclusions {
         if (is_aarch64 or is_arm) { $arch = "aarch64"; }
         if (is_ppc64le) { $arch = "ppc"; }
         if (is_x86_64) { $arch = "x86_64"; }
-        # $sle_version and $profile_ID are global varables
+
         my $exclusions_list_name = $sle_version . "-exclusions_list";
         my $exclusions_file_name = "openqa_tests_exclusions.yaml";
         my $url = "https://gitlab.suse.de/seccert-public/compliance-as-code-compiled/-/raw/main/content/";
+        my @exclusions = ();
 
         download_file_from_https_repo($url, $exclusions_file_name);
         upload_logs("$exclusions_file_name") if script_run "! [[ -e $exclusions_file_name ]]";
         my $data = script_output("cat $exclusions_file_name", quiet => 1);
 
-        # Pharse the expected results
+        # Phrase the expected results
         my $exclusions_data = YAML::PP::Load($data);
         record_info("Looking exclusions", "Looking exclusions for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch");
 
         $exclusions = $exclusions_data->{$profile_ID}->{$type}->{$arch}->{$exclusions_list_name};
         # If results defined
         if (defined $exclusions) {
+            @exclusions = @$exclusions;
             $found = 1;
-            if (not defined $$exclusions[0]) {
-                my @exclusions = ();
-                $_[0] = \@exclusions;
-                record_info("Got exclusions", "Got exclusions for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nList excluded rules:\n @exclusions");
-            }
-            else {
-                $_[0] = $exclusions;
-                record_info("Got exclusions", "Got exclusions for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nList of excluded rules:\n" . (join "\n", @$exclusions));
-            }
         }
-        else {
-            record_info("No exclusions", "No exclusions found in \nfile: $exclusions_file_name\n for profile_ID: $profile_ID\ntype: $type\narch: $arch");
-            my @exclusions = ();
-            $_[0] = \@exclusions;
-        }
+        record_info("Got exclusions", "Got exclusions for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nList of excluded rules:\n" . (join "\n", @exclusions));
+
+        $_[0] = \@exclusions;
         return $found;
     }
 }
 
 sub oscap_security_guide_setup {
     # Main test setup function
-    select_console 'root-console';
-    # Setting $full_ansible_file_path aftr got ansible_profile_ID from test
     $full_ansible_file_path = $ansible_file_path . $ansible_profile_ID;
 
-    # Refresh repositories
+    record_info("$profile_ID", "Profile $profile_ID");
+    if ($ansible_remediation == 0) {
+        record_info("BASH", "BASH remediation used");
+    }
+    else {
+        record_info("Ansible", "Ansible remediation used");
+    }
+
     zypper_call('ref -s', timeout => 180);
-    # Install packages
     zypper_call('in openscap-utils scap-security-guide', timeout => 180);
-    # Record the pkgs' version for reference
-    my $out = script_output("zypper se -s openscap-utils scap-security-guide");
-    record_info("Pkg_ver", "openscap security guide packages' version:\n $out");
-    # Set ds file
     set_ds_file();
 
-    # Check the ds file information for reference
     $f_ssg_ds = is_sle ? $f_ssg_sle_ds : $f_ssg_tw_ds;
-    $out = script_output("oscap info $f_ssg_ds", quiet => 1);
-    record_info("oscap info", "\"# oscap info $f_ssg_ds\" returns:\n $out");
-    # Check the oscap version information for reference
-    $out = script_output("oscap -V");
-    record_info("oscap version", "\"# oscap -V\" returns:\n $out");
+    display_oscap_information();
 
-    # Get the tests configuration file from repository and set global configuration varables
+    # Get the tests configuration file from repository and set global configuration variables
     get_tests_config();
     push(@test_run_report, "[configuration]");
-    $out = script_output("date", quiet => 1);
+    my $out = script_output("date", quiet => 1);
     push(@test_run_report, "date = $out");
+    $out = "";
     push(@test_run_report, "profile_ID = $profile_ID");
     push(@test_run_report, "ansible_profile_file_name = $ansible_profile_ID");
     push(@test_run_report, "use_content_type = $use_content_type");
@@ -909,34 +901,32 @@ sub oscap_security_guide_setup {
     push(@test_run_report, "schedule = $schedule");
 
     unless (is_opensuse) {
-        # Some Packages require PackageHub repo is available
+        # Some packages require PackageHub repo is available
         return unless is_phub_ready();
         add_suseconnect_product(get_addon_fullname('phub'));
         # Need to use pyython3.1x
         add_suseconnect_product(get_addon_fullname('python3'));
-        # On SLES 12 ansible packages require depencies located in sle-module-public-cloud
-        add_suseconnect_product(get_addon_fullname('pcm'), (is_sle('<15') ? '12' : undef)) if is_sle('<15');
+        # On SLES 12 ansible packages require dependencies located in sle-module-public-cloud
+        add_suseconnect_product(get_addon_fullname('pcm'), (is_sle('<15') ? '12' : undef)) if is_sle;
     }
 
     # If required ansible remediation
     if ($ansible_remediation == 1) {
-        my $pkgs = 'ansible';
-        # Need to update SLES to fix issues with STIG playbook
-        record_info("Update", "Updaiting SLES");
-        zypper_call("up", timeout => 1800);
-        zypper_call "in $pkgs sudo";
-        # Record the pkgs' version for reference
-        my $out = script_output("zypper se -s $pkgs", quiet => 1);
-        record_info("$pkgs Pkg_ver", "$pkgs packages' version:\n $out");
+        my $pkg = 'ansible';
+        zypper_call "in $pkg sudo";
+        # Record the pkg' version for reference
+        my $out = script_output("zypper se -s $pkg", quiet => 1);
+        record_info("$pkg Pkg_ver", "$pkg packages' version:\n $out");
+        $out = "";
         #install ansible.posix
         assert_script_run("ansible-galaxy collection install ansible.posix");
     }
-    if ($remove_rules_missing_fixes == 1 or $use_content_type == 3) {
+    if (($remove_rules_missing_fixes == 1) or ($use_content_type == 3)) {
         # Get the code for the ComplianceAsCode by cloning its repository
         get_cac_code();
     }
     # compliance-as-code-compiled or ComplianceAsCode repository master branch
-    if ($use_content_type == 2 or $use_content_type == 3) {
+    if (($use_content_type == 2) or ($use_content_type == 3)) {
         my $ds_file_name = is_sle ? $ssg_sle_ds : $ssg_tw_ds;
         replace_ds_file(1, $ds_file_name);
 
@@ -947,6 +937,7 @@ sub oscap_security_guide_setup {
             replace_ansible_file();
         }
     }
+
     # Adding benchmark version to report
     my $ver_grep_cmd = 'grep "version update=" ' . "$f_ssg_sle_xccdf";
     $out = script_output("$ver_grep_cmd", quiet => 1);
@@ -955,12 +946,12 @@ sub oscap_security_guide_setup {
 
     if ($remove_rules_missing_fixes == 1) {
         # Generate text file that contains rules that missing implimentation for profile
-        my $mising_rules_full_path = generate_mising_rules();
+        my $missing_rules_full_path = generate_missing_rules();
 
         # Get bash and ansible rules lists from data based on provided
         my $ansible_rules_missing_fixes_ref;
         my $bash_rules_missing_fixes_ref;
-        modify_ds_ansible_files($mising_rules_full_path, $bash_rules_missing_fixes_ref, $ansible_rules_missing_fixes_ref);
+        modify_ds_ansible_files($missing_rules_full_path, $bash_rules_missing_fixes_ref, $ansible_rules_missing_fixes_ref);
         if ($ansible_remediation == 1) {
             push(@test_run_report, "ansible_rules_missing_fixes = \"" . (join ",",
                     @$ansible_rules_missing_fixes_ref) . "\"");
@@ -974,6 +965,10 @@ sub oscap_security_guide_setup {
         record_info("Do not modify DS or Ansible files", "Do not modify DS or Ansible files because remove_rules_missing_fixes = $remove_rules_missing_fixes");
     }
     backup_ds_file();
+
+    # Record the source pkgs' versions for reference
+    my $si_out = script_output("zypper se -si");
+    record_info("Installed Pkgs", "List of installed packages:\n $si_out");
 }
 
 =ansible return codes
@@ -1008,8 +1003,6 @@ sub oscap_remediate {
     select_console 'root-console';
 
     # Verify mitigation mode
-    # For pkg install rules need to refresh repositories
-    # zypper_call('ref -s', timeout => 180);
     if ($remediated == 0) {
         push(@test_run_report, "[tests_results]");
     }
@@ -1042,7 +1035,7 @@ sub oscap_remediate {
                     $script_cmd .= " --skip-tags " . (join ",", @$failed_cce_ids_ref);
                 }
             }
-            $script_cmd .= " >> $f_stdout 2>> $f_stderr";
+            $script_cmd .= " > $f_stdout 2>> $f_stderr";
         }
         $ret
           = script_run($script_cmd, timeout => 3200);
@@ -1063,7 +1056,7 @@ sub oscap_remediate {
         record_info('Got analysis results', "Ansible playbook.\nPLAY RECAP:\n$full_report");
 
         # If found failed or ignored tesks in ansible execution output
-        if ($failed_number > 0 or $ignored_number > 0) {
+        if (($failed_number > 0) or ($ignored_number > 0)) {
             record_info('Found failed tasks', "Found:\nFailed tasks: $failed_number\nIgnored tasks: $ignored_number\nin ansible playbook remediations $f_stdout file");
             $self->result('fail');
 
@@ -1127,10 +1120,11 @@ sub oscap_remediate {
 
 sub oscap_evaluate {
     # Does evaluation and result analysis
-    my ($self, $eval_match) = @_;
+    my ($self) = @_;
     select_console 'root-console';
 
-    my $n_failed_rules = @$eval_match;
+    my $n_failed_rules = 0;
+    my $eval_match;
     my ($failed_rules_ref, $passed_rules_ref);
     my ($failed_cce_rules_ref, $failed_id_rules_ref);
     my $lc;
@@ -1231,16 +1225,20 @@ sub oscap_evaluate {
                 @$passed_rules_ref
             );
             # Write collected report to file
+            my $test_run_report_name = "test_run_report.txt";
             record_info('Writing report', "Writing test report to file: $test_run_report_name");
             assert_script_run("printf \"" . (join "\n", @test_run_report) . "\" >> \"$test_run_report_name\"");
             # Upload logs & ouputs for reference
             upload_logs("$test_run_report_name") if script_run "! [[ -e $test_run_report_name ]]";
             upload_logs_reports();
         }
+        # Record the source pkgs' versions for reference
+        my $si_out = script_output("zypper se -si");
+        record_info("Installed Pkgs", "List of installed packages:\n $si_out");
     }
     else {
         record_info("errno=$ret", "# oscap xccdf eval --profile \"$profile_ID\" returns: $ret", result => 'fail');
-        $self->result('fail');
+        ($self)->result('fail');
     }
 }
 

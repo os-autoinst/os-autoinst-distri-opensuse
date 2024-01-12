@@ -1,0 +1,22 @@
+name: oscap_profile_tests
+description:    >
+    This is oscap profile test
+schedule:
+    - '{{bootloader}}'
+    - boot/boot_to_desktop
+    - security/oscap_profile_tests/oscap_security_guide_setup
+    - security/oscap_profile_tests/oscap_xccdf_eval
+    # - security/oscap_profile_tests/oscap_xccdf_eval_remote
+    - security/oscap_profile_tests/oscap_xccdf_remediate
+    # Do evaluate again after remediate
+    - security/oscap_profile_tests/oscap_xccdf_eval
+    - security/oscap_profile_tests/oscap_xccdf_remediate
+    # Do evaluate again after 2nd remediate
+    - security/oscap_profile_tests/oscap_xccdf_eval
+conditional_schedule:
+    bootloader:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
+            ppc64le:
+                - installation/bootloader

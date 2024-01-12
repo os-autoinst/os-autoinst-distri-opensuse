@@ -1,16 +1,14 @@
-# Copyright 2022 SUSE LLC
+# Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Summary: Test 'pci-dss' hardening in the 'scap-security-guide': detection mode with remote
-# Maintainer: QE Security <none@suse.de>
-# Tags: poo#93886, poo#104943
+# Summary: Generic test for hardening profile in the 'scap-security-guide': detection mode with remote
+# Maintainer: QE Security
 
 use base 'oscap_tests';
 use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle);
 
 sub run {
     my ($self) = @_;

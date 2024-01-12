@@ -1,9 +1,8 @@
-# Copyright 2022 SUSE LLC
+# Copyright 2024 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Summary: Test 'cis' hardening in the 'scap-security-guide': mitigation mode
-# Maintainer: QE Security <none@suse.de>
-# Tags: poo#93886, poo#104943
+# Summary: Generic test for hardening profile in the 'scap-security-guide': mitigation mode
+# Maintainer: QE Security
 
 use base 'oscap_tests';
 use strict;
@@ -18,6 +17,7 @@ sub run {
 }
 
 sub test_flags {
+    # Do not rollback as next test module will be run on this test environments
     return {fatal => 0};
 }
 
