@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2020-2022 SUSE LLC
+# Copyright 2020-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Base module for SELinux test cases
@@ -13,7 +13,7 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_alp);
+use version_utils qw(is_alp is_sle_micro);
 use Utils::Backends 'is_pvm';
 use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings);
 use power_action_utils 'power_action';
@@ -29,7 +29,7 @@ our @EXPORT = qw(
 
 our $file_contexts_local;
 # On ALP we want to use the default selinux targeted policy and do not have minimum installed which this checks
-if (is_alp) {
+if (is_alp || is_sle_micro('>=6.0')) {
     $file_contexts_local = '/etc/selinux/targeted/contexts/files/file_contexts.local';
 } else {
     $file_contexts_local = '/etc/selinux/minimum/contexts/files/file_contexts.local';
