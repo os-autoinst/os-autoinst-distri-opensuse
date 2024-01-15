@@ -44,6 +44,9 @@ sub run {
     $variables{USE_SAPCONF} = get_var('QESAPDEPLOY_USE_SAPCONF', 'false');
     $variables{SSH_KEY_PRIV} = '/root/.ssh/id_rsa';
     $variables{SSH_KEY_PUB} = '/root/.ssh/id_rsa.pub';
+    $variables{REGISTRATION_PLAYBOOK} = get_var('QESAPDEPLOY_REGISTRATION_PLAYBOOK', 'registration');
+    $variables{REGISTRATION_PLAYBOOK} =~ s/\.yaml$//;
+    $variables{SUSECONNECT} = get_var('QESAPDEPLOY_USE_SUSECONNECT', 'false');
 
     # Only BYOS images needs it
     $variables{SCC_REGCODE_SLES4SAP} = get_var('SCC_REGCODE_SLES4SAP', '');
