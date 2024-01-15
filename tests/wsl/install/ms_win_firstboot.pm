@@ -73,6 +73,8 @@ sub run {
         sleep 3;
         assert_and_click 'windows-next';
     }
+    assert_and_click('windows-access-to-browsing-data')
+      if (check_var('WIN_VERSION', '10'));
     my $count = 0;
     my @privacy_menu =
       split(',', get_required_var('WIN_INSTALL_PRIVACY_NEEDLES'));
@@ -111,20 +113,14 @@ sub run {
     assert_and_click 'windows-lock-screen-background';
     assert_and_click 'windows-select-picture';
 
-    # turn off hibernation and fast startup
+    # close window lock screen window
+    send_key "alt-f4";
+
+    # open powershell
     $self->open_powershell_as_admin;
-    $self->run_in_powershell(cmd =>
-          q{Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power' -Name HiberbootEnabled -Value 0}
-    );
-    $self->run_in_powershell(cmd => 'powercfg /hibernate off');
 
-    # disable screen's fade to black
-    $self->run_in_powershell(cmd => 'powercfg -change -monitor-timeout-ac 0');
-
-    # adjust visusal effects to best performance
-    $self->run_in_powershell(cmd =>
-          q{Set-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Value 2}
-    );
+    # turn off hibernation and fast startup
+    $self->power_configuration;
 
     # remove skype and xbox
     $self->run_in_powershell(cmd =>
@@ -156,9 +152,14 @@ sub run {
         cmd => 'reg add HKEY_CURRENT_USER\Policies\Microsoft\Windows\Explorer /v DisableSearchBoxSuggestions /t REG_DWORD /d 1'
     );
 
+    # prevent password from expiring
+    $self->run_in_powershell(
+        cmd => 'Set-LocalUser -Name "Bernhard M. Wiedeman" -PasswordNeverExpires 1'
+    );
+
     # poweroff
     $self->reboot_or_shutdown(1);
-    $self->wait_boot_windows(is_firstboot => 1);
+    $self->wait_boot_windows;
 }
 
 1;

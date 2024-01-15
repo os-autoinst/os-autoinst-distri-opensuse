@@ -90,7 +90,7 @@ sub nfs_server_configuration {
     send_key 'alt-n';    # next / OK
 
     # Setup Directories to Export
-    assert_screen 'nfs-server-export';
+    apply_workaround_poo124652('nfs-server-export');
     send_key 'alt-d';
     assert_screen 'nfs-server-export-popup';
     type_string $setup_nis_nfs_x11{nfs_dir};

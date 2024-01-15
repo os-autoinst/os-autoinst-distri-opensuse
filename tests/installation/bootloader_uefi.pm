@@ -43,7 +43,7 @@ use lockapi 'mutex_wait';
 use bootloader_setup;
 use registration;
 use utils;
-use version_utils qw(is_jeos is_microos is_sle is_selfinstall);
+use version_utils qw(is_jeos is_microos is_opensuse is_sle is_selfinstall);
 
 # hint: press shift-f10 trice for highest debug level
 sub run {
@@ -141,7 +141,7 @@ sub run {
 
         # JeOS is never deployed with Linuxrc involved,
         # so 'regurl' does not apply there.
-        registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless is_jeos;
+        registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless is_jeos || is_opensuse;
 
         # boot
         mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');

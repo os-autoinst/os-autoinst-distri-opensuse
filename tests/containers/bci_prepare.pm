@@ -54,21 +54,20 @@ sub packages_to_install {
             # PackageHub is needed for jq
             script_retry("SUSEConnect -p PackageHub/12.5/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
             push @packages, ('python36-devel', 'python36-pip');
-        } elsif ($version eq '15.0') {
-            # Desktop module is needed for SDK module, which is required for go and postgresql-devel
-            script_retry("SUSEConnect -p sle-module-desktop-applications/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
-            script_retry("SUSEConnect -p sle-module-development-tools/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
-            # On SLES15 go needs to be installed from packagehub. On later SLES it comes from the SDK module
-            script_retry("SUSEConnect -p PackageHub/15/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
-            push @packages, ('python3-devel', 'go1.10', 'skopeo');
-        } else {
+        } elsif ($version =~ /15\.[1-3]/) {
             # Desktop module is needed for SDK module, which is required for go and postgresql-devel
             script_retry("SUSEConnect -p sle-module-desktop-applications/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
             script_retry("SUSEConnect -p sle-module-development-tools/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
             push @packages, ('python3-devel', 'go', 'skopeo');
+        } else {
+            # Desktop module is needed for SDK module, which is required for go and postgresql-devel
+            script_retry("SUSEConnect -p sle-module-desktop-applications/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
+            script_retry("SUSEConnect -p sle-module-development-tools/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
+            script_retry("SUSEConnect -p sle-module-python3/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
+            push @packages, qw(python311 python311-devel go skopeo python311-pip python311-tox);
         }
     } elsif ($host_distri =~ /opensuse/) {
-        push @packages, qw(python3-devel go skopeo postgresql-server-devel);
+        push @packages, qw(python3-devel go skopeo postgresql-server-devel python3-pip python3-tox);
     } else {
         die("Host is not supported for running BCI tests.");
     }
@@ -83,8 +82,8 @@ sub run {
 
     my ($version, $sp, $host_distri) = get_os_release;
 
-    # CONTAINER_RUNTIME can be "docker", "podman" or both "podman,docker"
-    my $engines = get_required_var('CONTAINER_RUNTIME');
+    # CONTAINER_RUNTIMES can be "docker", "podman" or both "podman,docker"
+    my $engines = get_required_var('CONTAINER_RUNTIMES');
     my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
     my $bci_tests_branch = get_var('BCI_TESTS_BRANCH');
 
@@ -106,8 +105,10 @@ sub run {
         foreach my $pkg (@packages) {
             zypper_call("--quiet in $pkg", timeout => 300);
         }
-        assert_script_run('pip --quiet install --upgrade pip', timeout => 600);
-        assert_script_run("pip --quiet install tox --ignore-installed six", timeout => 600);
+        if (!grep(/-tox/, @packages)) {
+            assert_script_run('pip --quiet install --upgrade pip', timeout => 600);
+            assert_script_run("pip --quiet install tox --ignore-installed six", timeout => 600);
+        }
     } else {
         die "Unexpected distribution ($host_distri) has been used";
     }

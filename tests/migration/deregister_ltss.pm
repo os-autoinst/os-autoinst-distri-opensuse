@@ -10,10 +10,13 @@ use base "consoletest";
 use strict;
 use warnings;
 use registration qw(remove_suseconnect_product);
+use testapi qw(get_var set_var);
 
 sub run {
     remove_suseconnect_product('SLES-LTSS');
+    my $scc_addons = join ',',
+      grep { $_ ne 'ltss' } split(',', get_var('SCC_ADDONS'));
+    set_var('SCC_ADDONS', $scc_addons);
 }
 
 1;
-

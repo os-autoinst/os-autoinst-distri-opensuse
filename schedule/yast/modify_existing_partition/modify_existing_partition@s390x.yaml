@@ -8,8 +8,6 @@ vars:
 schedule:
   suggested_partitioning:
     - installation/partitioning/modify_existing_partition
-  default_systemd_target:
-    - installation/installation_settings/validate_default_target
   system_preparation: []
   system_validation:
     - console/validate_modify_existing_partition

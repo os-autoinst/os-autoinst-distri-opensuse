@@ -13,6 +13,8 @@ use warnings;
 use testapi;
 use utils;
 use audit_test qw(run_testcase compare_run_log);
+use version_utils 'is_sle';
+use virt_autotest::utils 'check_modular_libvirt_daemons';
 
 sub run {
     my ($self) = shift;
@@ -21,13 +23,15 @@ sub run {
     select_console 'root-console';
 
     # Install the required packages for libvirt environment setup,
-    zypper_call('in qemu libvirt virt-install virt-manager');
+    zypper_call('in libvirt virt-manager');
 
     # Start libvirtd daemon and start the default libvirt network
     assert_script_run('systemctl start libvirtd');
     assert_script_run('virsh net-define /etc/libvirt/qemu/networks/default.xml');
     assert_script_run('virsh net-start default');
-    assert_script_run('systemctl is-active libvirtd');
+    is_sle('15-sp6+') ?
+      check_modular_libvirt_daemons('qemu') :    # when system uses modular libvirt daemons
+      assert_script_run('systemctl is-active libvirtd');    # when system uses monolithic libvirt daemons
     assert_script_run('virsh net-list | grep default | grep active');
 
     # Download the pre-installed guest images and sample xml files

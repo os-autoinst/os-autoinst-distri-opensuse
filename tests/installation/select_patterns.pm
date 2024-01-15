@@ -29,4 +29,13 @@ sub run {
     $self->accept_changes();
 }
 
+sub post_fail_hook {
+    my $self = shift;
+
+    select_console 'log-console';
+    my $ret = script_output("grep -E -m 1 \"nothing provides\" /var/log/YaST2/y2log", proceed_on_failure => 1);
+    record_info("Conflict:", $ret, result => 'fail') if ($ret);
+    $self->SUPER::post_fail_hook();
+}
+
 1;

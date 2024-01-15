@@ -275,7 +275,7 @@
       <domain>suse</domain>
       <hostname>linux-gspv</hostname>
       <nameservers config:type="list">
-        <nameserver>10.160.0.1</nameserver>
+        <nameserver>10.144.53.53</nameserver>
       </nameservers>
       <resolv_conf_policy>auto</resolv_conf_policy>
       <write_hostname config:type="boolean">false</write_hostname>

@@ -42,6 +42,8 @@ sub run {
 
     select_serial_terminal;
 
+    export_ltp_env;
+
     # Debug code for poo#81142
     script_run('gzip -9 </dev/fb0 >framebuffer.dat.gz');
     upload_logs('framebuffer.dat.gz', failok => 1);

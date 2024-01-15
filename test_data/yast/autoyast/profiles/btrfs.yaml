@@ -8,7 +8,7 @@ profile:
             - mount: swap
             - mount: /
               subvolumes_prefix: ''
-              fstopt: rw,relatime,space_cache
+              fstopt: rw,relatime
               subvolumes:
                 subvolume:
                   - path: usr/local

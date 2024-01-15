@@ -21,12 +21,13 @@ use utils;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use repo_tools 'add_qa_head_repo';
-use version_utils qw(is_sle is_leap is_tumbleweed is_alp is_transactional);
+use version_utils qw(is_sle is_leap is_tumbleweed is_alp is_sle_micro is_transactional);
 use File::Basename;
 use transactional;
 
 my $STATUS_LOG = '/opt/status.log';
 my $VERSION_LOG = '/opt/version.log';
+my $IS_MARBLE = is_sle_micro && check_var('VERSION', '6.0');
 
 sub install_xfstests_from_repo {
     if (is_sle) {
@@ -42,11 +43,21 @@ sub install_xfstests_from_repo {
         zypper_ar($repo_url, name => 'xfstests-repo');
         zypper_ar($dep_url, name => 'dependency-repo');
     }
+    elsif ($IS_MARBLE) {
+        my $repo_url = get_var('XFSTESTS_REPO', 'http://download.suse.de/ibs/home:/yosun:/branches:/QA:/Head/SUSE_ALP_Products_Marble_6.0_standard/');
+        my $dep_url = get_var('DEPENDENCY_REPO', 'http://download.suse.de/ibs/home:/yosun:/branches:/SUSE:/Factory:/Head/standard/');
+        zypper_ar($repo_url, name => 'xfstests-repo');
+        zypper_ar($dep_url, name => 'dependency-repo');
+    }
     zypper_call('--gpg-auto-import-keys ref');
     record_info('repo info', script_output('zypper lr -U'));
     if (is_transactional) {
+        script_run('id fsgqa &> /dev/null || useradd -d /home/fsgqa -k /etc/skel -ms /bin/bash -U fsgqa');
+        script_run('id fsgqa2 &> /dev/null || useradd -d /home/fsgqa2 -k /etc/skel -ms /bin/bash -U fsgqa2');
+        script_run('getent group sys >/dev/null || groupadd -r sys');
+        script_run('id daemon &> /dev/null || useradd daemon -g sys');
         trup_call('pkg install xfstests');
-        unless (is_alp) {
+        unless (is_alp || $IS_MARBLE) {
             trup_call('--continue pkg install fio');
         }
         reboot_on_changes;

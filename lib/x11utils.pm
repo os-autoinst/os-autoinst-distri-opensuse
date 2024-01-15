@@ -9,7 +9,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle is_leap);
+use version_utils qw(is_sle is_leap is_plasma6);
 use utils 'assert_and_click_until_screen_change';
 use Utils::Architectures;
 use Utils::Backends qw(is_pvm is_qemu);
@@ -403,7 +403,8 @@ Turns off the Plasma desktop screen energy saving.
 =cut
 
 sub turn_off_plasma_screen_energysaver {
-    x11_start_program('kcmshell5 powerdevilprofilesconfig', target_match => [qw(kde-energysaver-enabled energysaver-disabled)]);
+    my $kcmshell = is_plasma6 ? 'kcmshell6' : 'kcmshell5';
+    x11_start_program("$kcmshell powerdevilprofilesconfig", target_match => [qw(kde-energysaver-enabled energysaver-disabled)]);
     assert_and_click 'kde-disable-energysaver' if match_has_tag('kde-energysaver-enabled');
     assert_screen 'kde-energysaver-disabled';
     # Was 'alt-o' before, but does not work in Plasma 5.17 due to kde#411758
@@ -420,7 +421,8 @@ Turns off the Plasma desktop screenlocker.
 =cut
 
 sub turn_off_plasma_screenlocker {
-    x11_start_program('kcmshell5 screenlocker', target_match => [qw(kde-screenlock-enabled screenlock-disabled)]);
+    my $kcmshell = is_plasma6 ? 'kcmshell6' : 'kcmshell5';
+    x11_start_program("$kcmshell screenlocker", target_match => [qw(kde-screenlock-enabled screenlock-disabled)]);
     assert_and_click 'kde-disable-screenlock' if match_has_tag('kde-screenlock-enabled');
     assert_screen 'screenlock-disabled';
     # Was 'alt-o' before, but does not work in Plasma 5.17 due to kde#411758
@@ -438,7 +440,8 @@ mouse_hide location can break needles and break or slow down matches.
 =cut
 
 sub turn_off_plasma_tooltips {
-    x11_start_program('kwriteconfig5 --file plasmarc --group PlasmaToolTips --key Delay -- -1',
+    my $kwriteconfig = is_plasma6 ? 'kwriteconfig6' : 'kwriteconfig5';
+    x11_start_program("$kwriteconfig --file plasmarc --group PlasmaToolTips --key Delay -- -1",
         target_match => 'generic-desktop', no_wait => 1) if check_var('DESKTOP', 'kde');
 }
 

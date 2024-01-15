@@ -41,33 +41,6 @@ subtest '[qesap_get_inventory] lower case' => sub {
     is $inventory_path, '/BRUCE/nemo/inventory.yaml', "inventory_path:$inventory_path is the expected one";
 };
 
-subtest '[qesap_create_folder_tree/qesap_get_file_paths] default' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    my @calls;
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(data_url => sub { return; });    # needed by qesap_get_file_paths
-
-    qesap_create_folder_tree();
-
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    is $calls[0], 'mkdir -p /root/qe-sap-deployment', "Default deploy location is /root/qe-sap-deployment";
-};
-
-subtest '[qesap_create_folder_tree/qesap_get_file_paths] user specified deployment_dir' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    my @calls;
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(data_url => sub { return; });    # needed by qesap_get_file_paths
-    my $custom_dir = '/DORY';
-    set_var('QESAP_DEPLOYMENT_DIR', $custom_dir);
-
-    qesap_create_folder_tree();
-
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    set_var('QESAP_DEPLOYMENT_DIR', undef);
-    is $calls[0], "mkdir -p $custom_dir", "Custom deploy location is $custom_dir";
-};
-
 subtest '[qesap_get_deployment_code] from default github' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
@@ -546,6 +519,7 @@ subtest '[qesap_wait_for_ssh] timeout' => sub {
 subtest '[qesap_cluster_logs]' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @ansible_calls;
+    my @crm_report_calls;
     my @save_file_calls;
     my @logfile_calls;
     $qesap->redefine(qesap_ansible_script_output_file => sub {
@@ -559,7 +533,7 @@ subtest '[qesap_cluster_logs]' => sub {
     $qesap->redefine(script_run => sub { return 0; });
     $qesap->redefine(upload_logs => sub { push @save_file_calls, $_[0]; return; });
     $qesap->redefine(qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt'}); });
-    $qesap->redefine(qesap_upload_crm_report => sub { return 0; });
+    $qesap->redefine(qesap_upload_crm_report => sub { my (%args) = @_; push @crm_report_calls, $args{host}; return 0; });
     my $cloud_provider = 'NEMO';
     set_var('PUBLIC_CLOUD_PROVIDER', $cloud_provider);
 
@@ -567,12 +541,14 @@ subtest '[qesap_cluster_logs]' => sub {
 
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
     note("\n  ANSIBLE_CMD-->  " . join("\n  ANSIBLE_CMD-->  ", @ansible_calls));
+    note("\n  CRM_REPORT-->  " . join("\n  CRM_REPORT-->  ", @crm_report_calls));
     note("\n  SAVE_FILE-->  " . join("\n  SAVE_FILE-->  ", @save_file_calls));
     note("\n  LOG_FILES-->  " . join("\n  LOG_FILES-->  ", @logfile_calls));
     ok((any { /crm status/ } @ansible_calls), 'expected command executed remotely');
-    ok((any { /.*vmhana01-crm_status\.txt/ } @logfile_calls), 'qesap_ansible_script_output_file called with the expected vmhana01 log file');
-    ok((any { /.*vmhana02-crm_status\.txt/ } @logfile_calls), 'qesap_ansible_script_output_file called with the expected vmhana02 log file');
+    ok((any { /.*hana0-crm_status\.txt/ } @logfile_calls), 'qesap_ansible_script_output_file called with the expected vmhana01 log file');
+    ok((any { /.*hana1-crm_status\.txt/ } @logfile_calls), 'qesap_ansible_script_output_file called with the expected vmhana02 log file');
     ok((any { /.*BOUBLE.*/ } @save_file_calls), 'upload_logs is called with whatever filename returned by qesap_ansible_script_output_file');
+    ok((any { /hana\[[0-1]\]/ } @crm_report_calls), 'upload_logs properly call qesap_upload_crm_report with hostnames');
 };
 
 subtest '[qesap_cluster_logs] multi log command' => sub {
@@ -625,6 +601,31 @@ subtest '[qesap_upload_crm_report]' => sub {
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok((any { /.*crm report.*/ } @calls), 'crm report is called');
+    ok((any { /.*\/var\/log\/SALT\-crm_report/ } @calls), 'crm report file has the node name in it');
+};
+
+subtest '[qesap_upload_crm_report] ansible host query' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my @fetch_filename;
+
+    $qesap->redefine(is_sle => sub { return 0; });
+    $qesap->redefine(qesap_ansible_cmd => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return 0; });
+    $qesap->redefine(qesap_ansible_fetch_file => sub {
+            my (%args) = @_;
+            push @fetch_filename, $args{file};
+            return 0; });
+    $qesap->redefine(upload_logs => sub { return 0; });
+
+    qesap_upload_crm_report(provider => 'SAND', host => 'hana[0]');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  FETCH_FILENAME-->  " . join("\n  FETCH_FILENAME-->  ", @fetch_filename));
+    ok((any { /.*\/var\/log\/hana0\-crm_report/ } @calls), 'crm report file has the node name in it');
+    ok((any { /hana0\-crm_report\.tar\.gz/ } @fetch_filename), 'crm report fetch file is properly formatted');
 };
 
 subtest '[qesap_calculate_deployment_name]' => sub {
@@ -647,6 +648,188 @@ subtest '[qesap_calculate_deployment_name] with postfix' => sub {
 
 subtest '[qesap_prepare_env] die for missing argument' => sub {
     dies_ok { qesap_prepare_env(); } "Expected die if called without provider arguments";
+};
+
+sub create_qesap_prepare_env_mocks_noret {
+    my $called_functions = shift;
+    my $mock_func = shift;
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+
+    # First mock functions returning nothing
+    foreach (@{$mock_func}) {
+        my $fn = $_;
+        $called_functions->{$fn} = 0;
+        $qesap->redefine($fn => sub { $called_functions->{$fn} = 1; return; });
+    }
+    return $qesap;
+}
+
+sub create_qesap_prepare_env_mocks_with_calls {
+    my $called_functions = shift;
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+
+    # then mock functions with some more complex return value
+    $called_functions->{qesap_get_file_paths} = 0;
+    $qesap->redefine(qesap_get_file_paths => sub {
+            $called_functions->{qesap_get_file_paths} = 1;
+            my %paths;
+            $paths{qesap_conf_src} = '/REEF';
+            $paths{qesap_conf_trgt} = '/SYDNEY.YAML';
+            $paths{terraform_dir} = '/SPLASH';
+            $paths{deployment_dir} = '/WAVE';
+            $paths{roles_dir} = '/BRUCE';
+            return (%paths);
+    });
+    $called_functions->{qesap_get_terraform_dir} = 0;
+    $qesap->redefine(qesap_get_terraform_dir => sub { $called_functions->{qesap_get_terraform_dir} = 1; return '/SHELL'; });
+    $called_functions->{qesap_execute} = 0;
+    $qesap->redefine(qesap_execute => sub { $called_functions->{qesap_execute} = 1; return (0, "ALL GOOD"); });
+
+    return $qesap;
+}
+
+subtest '[qesap_prepare_env]' => sub {
+    my %called_functions;
+    my @mock_func = qw(qesap_get_variables
+      qesap_yaml_replace
+      qesap_create_folder_tree
+      qesap_get_deployment_code
+      qesap_get_roles_code
+      qesap_pip_install
+      qesap_galaxy_install);
+    my $qesap = create_qesap_prepare_env_mocks_noret(\%called_functions, \@mock_func);
+    $qesap = create_qesap_prepare_env_mocks_with_calls(\%called_functions);
+    my @calls;
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(qesap_upload_logs => sub { return; });
+
+    qesap_prepare_env(provider => 'DONALDUCK');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    foreach (qw(qesap_get_file_paths qesap_get_terraform_dir qesap_execute)) {
+        my $fn = $_;
+        ok $called_functions{$fn} eq 1, "$fn called by qesap_prepare_env";
+    }
+    foreach (@mock_func) {
+        my $fn = $_;
+        ok $called_functions{$fn} eq 1, "$fn called by qesap_prepare_env";
+    }
+};
+
+subtest '[qesap_prepare_env] openqa_variables' => sub {
+    my %called_functions;
+    my @mock_func = qw(qesap_get_variables
+      qesap_yaml_replace
+      qesap_create_folder_tree
+      qesap_get_deployment_code
+      qesap_get_roles_code
+      qesap_pip_install
+      qesap_galaxy_install);
+    my $qesap = create_qesap_prepare_env_mocks_noret(\%called_functions, \@mock_func);
+    $qesap = create_qesap_prepare_env_mocks_with_calls(\%called_functions);
+    my @calls;
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(qesap_upload_logs => sub { return; });
+
+    my %variables;
+    qesap_prepare_env(openqa_variables => \%variables, provider => 'DONALDUCK');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok $called_functions{qesap_get_variables} eq 0, "qesap_get_variables not called by qesap_prepare_env when using openqa_variables";
+};
+
+subtest '[qesap_prepare_env] only_configure' => sub {
+    my %called_functions;
+    my @mock_func = qw(qesap_get_variables
+      qesap_yaml_replace
+      qesap_create_folder_tree
+      qesap_get_deployment_code
+      qesap_get_roles_code
+      qesap_pip_install
+      qesap_galaxy_install);
+    my $qesap = create_qesap_prepare_env_mocks_noret(\%called_functions, \@mock_func);
+    $qesap = create_qesap_prepare_env_mocks_with_calls(\%called_functions);
+    my @calls;
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(qesap_upload_logs => sub { return; });
+
+    qesap_prepare_env(provider => 'DONALDUCK', only_configure => 1);
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    # Check that a specific subset of function is not executed in only_configure mode
+    foreach (qw(qesap_create_folder_tree qesap_get_deployment_code qesap_get_roles_code qesap_pip_install qesap_galaxy_install)) {
+        my $fn = $_;
+        ok $called_functions{$fn} eq 0, "$fn not called by qesap_prepare_env in only_configure mode";
+    }
+};
+
+subtest '[qesap_prepare_env/qesap_yaml_replace]' => sub {
+    my %called_functions;
+    my @mock_func = qw(qesap_get_variables);
+    my $qesap = create_qesap_prepare_env_mocks_noret(\%called_functions, \@mock_func);
+    $qesap = create_qesap_prepare_env_mocks_with_calls(\%called_functions);
+    my @calls;
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; });
+    $called_functions{file_content_replace} = 0;
+    $qesap->redefine(file_content_replace => sub { $called_functions{file_content_replace} = 1; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(qesap_upload_logs => sub { return; });
+
+    qesap_prepare_env(provider => 'DONALDUCK', only_configure => 1);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok $called_functions{file_content_replace} eq 1, "file_content_replace called by qesap_yaml_replace";
+};
+
+subtest '[qesap_prepare_env/qesap_create_folder_tree/qesap_get_file_paths] default' => sub {
+    my %called_functions;
+    my @mock_func = qw(qesap_get_variables
+      qesap_yaml_replace
+      qesap_get_deployment_code
+      qesap_get_roles_code
+      qesap_pip_install
+      qesap_galaxy_install);
+    my $qesap = create_qesap_prepare_env_mocks_noret(\%called_functions, \@mock_func);
+    my @calls;
+    $qesap->redefine(data_url => sub { return '/TORNADO'; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(qesap_upload_logs => sub { return; });
+
+    qesap_prepare_env(provider => 'DONALDUCK');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    is $calls[0], 'mkdir -p /root/qe-sap-deployment', "Default deployment_dir is /root/qe-sap-deployment";
+    ok((any { qr/curl.*\/TORNADO -o \/root\/qe-sap-deployment\/scripts\/qesap\/MARLIN/ } @calls), 'Default location for the openQA conf.yaml templates');
+};
+
+subtest '[qesap_prepare_env/qesap_create_folder_tree/qesap_get_file_paths] user specified deployment_dir' => sub {
+    my %called_functions;
+    my @mock_func = qw(qesap_get_variables
+      qesap_yaml_replace
+      qesap_get_deployment_code
+      qesap_get_roles_code
+      qesap_pip_install
+      qesap_galaxy_install);
+    my $qesap = create_qesap_prepare_env_mocks_noret(\%called_functions, \@mock_func);
+    my @calls;
+    $qesap->redefine(data_url => sub { return '/TORNADO'; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(qesap_upload_logs => sub { return; });
+
+    set_var('QESAP_DEPLOYMENT_DIR', '/SUN');
+    qesap_prepare_env(provider => 'DONALDUCK');
+    set_var('QESAP_DEPLOYMENT_DIR', undef);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    is $calls[0], "mkdir -p /SUN", "Custom deploy location is /SUN";
 };
 
 sub create_qesap_prepare_env_mocks() {
@@ -809,6 +992,27 @@ subtest '[qesap_is_job_finished]' => sub {
     ok($results[0] == 0, "Consider 'running' state if the openqa job status response isn't JSON");
     ok($results[1] == 1, "Considered 'finished' state if the openqa job status response exists and isn't 'running'");
     ok($results[2] == 0, "Consider 'running' if the openqa job status response is 'running'");
+};
+
+subtest '[qesap_az_get_native_fencing_type]' => sub {
+    my $res_empty = qesap_az_get_native_fencing_type();
+    ok($res_empty eq 'msi', "Return 'msi' if openqa var is empty");
+};
+
+subtest '[qesap_az_get_native_fencing_type] wrong value for openqa variable' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    $qesap->redefine(get_var => sub { return 'AEGEAN'; });
+    dies_ok { qesap_az_get_native_fencing_type(); } 'Expected die if value is unexpected';
+};
+
+subtest '[qesap_az_get_native_fencing_type] correct variable' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    $qesap->redefine(get_var => sub { return 'msi'; });
+    my $res_msi = qesap_az_get_native_fencing_type();
+    $qesap->redefine(get_var => sub { return 'spn'; });
+    my $res_spn = qesap_az_get_native_fencing_type();
+    ok($res_msi eq 'msi', "Return 'msi' if openqa var is 'msi'");
+    ok($res_spn eq 'spn', "Return 'spn' if openqa var is 'spn'");
 };
 
 done_testing;

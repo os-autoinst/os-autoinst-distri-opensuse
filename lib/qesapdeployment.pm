@@ -43,28 +43,27 @@ use File::Basename;
 
 my @log_files = ();
 
-# Terraform requirement
+# Terraform requirement that constrain QESAPDEPLOY_PREFIX value
 #  terraform/azure/infrastructure.tf  "azurerm_storage_account" "mytfstorageacc"
 # stdiag<PREFID><JOB_ID> can only consist of lowercase letters and numbers,
 # and must be between 3 and 24 characters long
 use constant QESAPDEPLOY_PREFIX => 'qesapdep';
+
 use constant QESAPDEPLOY_VENV => '/tmp/exec_venv';
 use constant QESAPDEPLOY_PY => 'python3.10';
 use constant QESAPDEPLOY_PIP => 'pip3.10';
 
 our @EXPORT = qw(
-  qesap_create_folder_tree
-  qesap_pip_install
   qesap_upload_logs
   qesap_get_deployment_code
   qesap_get_roles_code
   qesap_get_inventory
   qesap_get_nodes_number
+  qesap_get_nodes_names
   qesap_get_terraform_dir
   qesap_get_ansible_roles_dir
   qesap_prepare_env
   qesap_execute
-  qesap_yaml_replace
   qesap_ansible_cmd
   qesap_ansible_script_output_file
   qesap_ansible_script_output
@@ -100,11 +99,14 @@ our @EXPORT = qw(
   qesap_az_get_active_peerings
   qesap_az_clean_old_peerings
   qesap_az_setup_native_fencing_permissions
+  qesap_az_get_native_fencing_type
   qesap_az_enable_system_assigned_identity
   qesap_az_assign_role
   qesap_az_get_tenant_id
   qesap_az_validate_uuid_pattern
   qesap_az_create_sas_token
+  qesap_terraform_clean_up_retry
+  qesap_terrafom_ansible_deploy_retry
 );
 
 =head1 DESCRIPTION
@@ -151,6 +153,7 @@ sub qesap_create_folder_tree {
 
 sub qesap_get_variables {
     my %paths = qesap_get_file_paths();
+    die "Missing mandatory qesap_conf_src from qesap_get_file_paths()" unless $paths{'qesap_conf_src'};
     my $yaml_file = $paths{'qesap_conf_src'};
     my %variables;
     my $cmd = join(' ',
@@ -255,6 +258,24 @@ sub qesap_pip_install {
     qesap_venv_cmd_exec(cmd => $pip_ints_cmd, timeout => 720);
 }
 
+
+=head3 qesap_galaxy_install
+
+  Install all Ansible requirements of the qe-sap-deployment
+=cut
+
+sub qesap_galaxy_install {
+    my %paths = qesap_get_file_paths();
+    my $galaxy_install_log = '/tmp/galaxy_install.txt';
+
+    my $ans_req = "$paths{deployment_dir}/requirements.yml";
+    my $ans_galaxy_cmd = join(' ', 'ansible-galaxy install',
+        '-r', $ans_req,
+        '|& tee -a', $galaxy_install_log);
+    qesap_venv_cmd_exec(cmd => $ans_galaxy_cmd, timeout => 720);
+    push(@log_files, $galaxy_install_log);
+}
+
 =head3 qesap_upload_logs
 
     qesap_upload_logs([failok=1])
@@ -286,6 +307,7 @@ sub qesap_get_deployment_code {
     my $official_repo = 'github.com/SUSE/qe-sap-deployment';
     my $qesap_git_clone_log = '/tmp/git_clone.txt';
     my %paths = qesap_get_file_paths();
+    die "Missing mandatory terraform_dir from qesap_get_file_paths()" unless $paths{'terraform_dir'};
 
     record_info('QESAP repo', 'Preparing qe-sap-deployment repository');
 
@@ -503,6 +525,26 @@ sub qesap_get_nodes_number {
     return $num_hosts;
 }
 
+=head3 qesap_get_nodes_names
+
+Get the cluster nodes' names from the inventory.yaml
+=cut
+
+sub qesap_get_nodes_names {
+    my $inventory = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    my $yp = YAML::PP->new();
+
+    my $inventory_content = script_output("cat $inventory");
+    my $parsed_inventory = $yp->load_string($inventory_content);
+    my @hosts;
+    while ((my $key, my $value) = each(%{$parsed_inventory->{all}->{children}})) {
+        if (exists $value->{hosts}) {
+            push @hosts, keys %{$value->{hosts}};
+        }
+    }
+    return @hosts;
+}
+
 =head3 qesap_get_terraform_dir
 
     Return the path used by the qesap script as -chdir argument for terraform
@@ -557,16 +599,24 @@ sub qesap_get_ansible_roles_dir {
 sub qesap_prepare_env {
     my (%args) = @_;
     croak "Missing mandatory argument 'provider'" unless $args{provider};
+
     my $variables = $args{openqa_variables} ? $args{openqa_variables} : qesap_get_variables();
     my $provider_folder = lc $args{provider};
     my %paths = qesap_get_file_paths();
+    die "Missing mandatory deployment_dir from qesap_get_file_paths()" unless $paths{'deployment_dir'};
+    die "Missing mandatory qesap_conf_trgt from qesap_get_file_paths()" unless $paths{'qesap_conf_trgt'};
 
     # Option to skip straight to configuration
     unless ($args{only_configure}) {
+        die "Missing mandatory qesap_conf_src from qesap_get_file_paths()" unless $paths{'qesap_conf_src'};
         qesap_create_folder_tree();
         qesap_get_deployment_code();
         qesap_get_roles_code();
         qesap_pip_install();
+        # for the moment run it only conditionally
+        # to allow this test code also to work with older
+        # qe-sap-deployment versions
+        qesap_galaxy_install() if (script_run("test -e $paths{deployment_dir}/requirements.yml") == 0);
 
         record_info('QESAP yaml', 'Preparing yaml config file');
         assert_script_run('curl -v -fL ' . $paths{qesap_conf_src} . ' -o ' . $paths{qesap_conf_trgt});
@@ -685,7 +735,7 @@ sub qesap_ansible_cmd {
     Return is the local full path of the file containing the output of the
     remotely executed command.
 
-=over 10
+=over 11
 
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
@@ -703,6 +753,8 @@ sub qesap_ansible_cmd {
 
 =item B<FAILOK> - if not set, Ansible failure result in die
 
+=item B<VERBOSE> - 1 result in ansible-playbook to be called with '-vvvv', default is 0.
+
 =item B<TIMEOUT> - max expected execution time, default 180sec.
     Same timeout is used both for the execution of script_output.yaml and for the fetch_file.
     Timeout of the same amount is started two times.
@@ -719,19 +771,21 @@ sub qesap_ansible_script_output_file {
     $args{root} ||= 0;
     $args{failok} //= 0;
     $args{timeout} //= bmwqemu::scale_timeout(180);
-    my $remote_path = $args{remote_path} // '/tmp/';
-    my $out_path = $args{out_path} // '/tmp/ansible_script_output/';
-    my $file = $args{file} // 'testout.txt';
+    $args{verbose} //= 0;
+    my $verbose = $args{verbose} ? '-vvvv' : '';
+    $args{remote_path} //= '/tmp/';
+    $args{out_path} //= '/tmp/ansible_script_output/';
+    $args{file} //= 'testout.txt';
 
     my $inventory = qesap_get_inventory(provider => $args{provider});
     my $playbook = 'script_output.yaml';
     qesap_ansible_get_playbook(playbook => $playbook);
 
-    my @ansible_cmd = ('ansible-playbook', '-vvvv', $playbook);
+    my @ansible_cmd = ('ansible-playbook', $verbose, $playbook);
     push @ansible_cmd, ('-l', $args{host}, '-i', $inventory, '-u', $args{user});
     push @ansible_cmd, ('-b', '--become-user', 'root') if ($args{root});
     push @ansible_cmd, ('-e', qq("cmd='$args{cmd}'"),
-        '-e', "out_file='$file'", '-e', "remote_path='$remote_path'");
+        '-e', "out_file='$args{file}'", '-e', "remote_path='$args{remote_path}'");
     push @ansible_cmd, ('-e', "failok=yes") if ($args{failok});
 
     # ignore the return value for the moment
@@ -743,17 +797,18 @@ sub qesap_ansible_script_output_file {
         failok => $args{failok},
         user => $args{user},
         root => $args{root},
-        remote_path => $remote_path,
-        out_path => $out_path,
-        file => $file,
-        timeout => $args{timeout});
+        remote_path => $args{remote_path},
+        out_path => $args{out_path},
+        file => $args{file},
+        timeout => $args{timeout},
+        verbose => $args{verbose});
 }
 
 =head3 qesap_ansible_script_output
 
     Return the output of a command executed on the remote machine via Ansible.
 
-=over 9
+=over 10
 
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
@@ -784,9 +839,9 @@ sub qesap_ansible_script_output {
     $args{user} ||= 'cloudadmin';
     $args{root} ||= 0;
     $args{failok} //= 0;
-    my $path = $args{remote_path} // '/tmp/';
-    my $out_path = $args{out_path} // '/tmp/ansible_script_output/';
-    my $file = $args{file} // 'testout.txt';
+    $args{remote_path} //= '/tmp/';
+    $args{out_path} //= '/tmp/ansible_script_output/';
+    $args{file} //= 'testout.txt';
 
     # Grab command output as file
     my $local_tmp = qesap_ansible_script_output_file(cmd => $args{cmd},
@@ -795,9 +850,9 @@ sub qesap_ansible_script_output {
         failok => $args{failok},
         user => $args{user},
         root => $args{root},
-        remote_path => $path,
-        out_path => $out_path,
-        file => $file,
+        remote_path => $args{remote_path},
+        out_path => $args{out_path},
+        file => $args{file},
         timeout => $args{timeout});
     # Print output and delete output file
     my $output = script_output("cat $local_tmp");
@@ -820,7 +875,7 @@ sub qesap_ansible_script_output {
 
     Return the local path of the downloaded file.
 
-=over 8
+=over 10
 
 =item B<PROVIDER> - Cloud provider name, used to find the inventory
 
@@ -840,6 +895,8 @@ sub qesap_ansible_script_output {
 
 =item B<OUT_PATH> - path to save file locally (without file name)
 
+=item B<VERBOSE> - 1 result in ansible-playbook to be called with '-vvvv', default is 0.
+
 =back
 =cut
 
@@ -850,24 +907,26 @@ sub qesap_ansible_fetch_file {
     $args{root} ||= 0;
     $args{failok} //= 0;
     $args{timeout} //= bmwqemu::scale_timeout(180);
-    my $local_path = $args{out_path} // '/tmp/ansible_script_output/';
-    my $local_file = $args{file} // 'testout.txt';
+    $args{out_path} //= '/tmp/ansible_script_output/';
+    $args{file} //= 'testout.txt';
+    $args{verbose} //= 0;
+    my $verbose = $args{verbose} ? '-vvvv' : '';
 
     my $inventory = qesap_get_inventory(provider => $args{provider});
     my $fetch_playbook = 'fetch_file.yaml';
 
     # reflect the same logic implement in the playbook
-    my $local_tmp = $local_path . $local_file;
+    my $local_tmp = $args{out_path} . $args{file};
 
     qesap_ansible_get_playbook(playbook => $fetch_playbook);
 
-    my @ansible_fetch_cmd = ('ansible-playbook', '-vvvv', $fetch_playbook);
+    my @ansible_fetch_cmd = ('ansible-playbook', $verbose, $fetch_playbook);
     push @ansible_fetch_cmd, ('-l', $args{host}, '-i', $inventory);
     push @ansible_fetch_cmd, ('-u', $args{user});
     push @ansible_fetch_cmd, ('-b', '--become-user', 'root') if ($args{root});
-    push @ansible_fetch_cmd, ('-e', "local_path='$local_path'",
+    push @ansible_fetch_cmd, ('-e', "local_path='$args{out_path}'",
         '-e', "remote_path='$args{remote_path}'",
-        '-e', "file='$local_file'");
+        '-e', "file='$args{file}'");
     push @ansible_fetch_cmd, ('-e', "failok=yes") if ($args{failok});
 
     qesap_venv_cmd_exec(cmd => join(' ', @ansible_fetch_cmd),
@@ -978,11 +1037,13 @@ sub qesap_upload_crm_report {
     foreach (qw(provider host)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     $args{failok} //= 0;
 
-    my $crm_log = "/var/log/$args{host}-crm_report";
+    my $log_filename = "$args{host}-crm_report";
+    $log_filename =~ s/[\[\]"]//g;
+    my $crm_log = "/var/log/$log_filename";
     my $report_opt = !is_sle('12-sp4+') ? '-f0' : '';
     qesap_ansible_cmd(cmd => "crm report $report_opt -E /var/log/ha-cluster-bootstrap.log $crm_log",
         provider => $args{provider},
-        filter => $args{host},
+        filter => "\"$args{host}\"",
         host_keys_check => 1,
         verbose => 1,
         failok => $args{failok});
@@ -992,7 +1053,8 @@ sub qesap_upload_crm_report {
         root => 1,
         remote_path => '/var/log/',
         out_path => '/tmp/ansible_script_output/',
-        file => "$args{host}-crm_report.tar.gz");
+        file => "$log_filename.tar.gz",
+        verbose => 1);
     upload_logs($local_path, failok => 1);
 }
 
@@ -1050,8 +1112,11 @@ sub qesap_cluster_logs {
     my $inventory = qesap_get_inventory(provider => $provider);
     if (script_run("test -e $inventory") == 0)
     {
-        foreach my $host ('vmhana01', 'vmhana02') {
+        foreach my $host ('hana[0]', 'hana[1]') {
             foreach my $cmd (qesap_cluster_log_cmds()) {
+                my $log_filename = "$host-$cmd->{Output}";
+                # remove square brackets
+                $log_filename =~ s/[\[\]"]//g;
                 my $out = qesap_ansible_script_output_file(cmd => $cmd->{Cmd},
                     provider => $provider,
                     host => $host,
@@ -1059,7 +1124,7 @@ sub qesap_cluster_logs {
                     root => 1,
                     path => '/tmp/',
                     out_path => '/tmp/ansible_script_output/',
-                    file => "$host-$cmd->{Output}");
+                    file => $log_filename);
                 upload_logs($out, failok => 1);
             }
             # Upload crm report
@@ -1211,7 +1276,7 @@ sub qesap_az_vnet_peering {
 
     Delete a single peering one way
 
-=over 3
+=over 4
 
 =item B<RG> - Name of the resource group
 
@@ -1837,32 +1902,46 @@ sub qesap_az_clean_old_peerings {
     }
 }
 
+=head2 qesap_az_get_native_fencing_type
+
+    Gets the native fencing type (spn/msi)
+
+=cut
+
+sub qesap_az_get_native_fencing_type {
+    my $type = get_var('AZURE_FENCE_AGENT_CONFIGURATION',
+        get_var('QESAP_AZURE_FENCE_AGENT_CONFIGURATION', 'msi'));
+
+    unless ($type eq 'msi' || $type eq 'spn') {
+        die "Invalid type: $type. Must be 'msi' or 'spn'.";
+    }
+    return $type;
+}
+
 =head2 qesap_az_setup_native_fencing_permissions
 
     qesap_az_setup_native_fencing_permissions(vmname=>$vm_name,
-        subscription_id=>$subscription_id,
-        resource_group=>$resource_group,
-        role=>$role);
+        resource_group=>$resource_group);
 
-    Sets up managed identity (MSI) by enabling system assigned identity and
-        role - role to be assigned
-        resource_group - resource group resource belongs to
-        subscription_id - valid azure subscription
+    Sets up managed identity (MSI) by enabling system assigned identity and role 'Virtual Machine Contributor'
+
+=over 2
+
+=item B<VM_NAME> - VM name
+
+=item B<RESOURCE_GROUP> - resource group resource belongs to
+
+=back
 =cut
 
 sub qesap_az_setup_native_fencing_permissions {
     my (%args) = @_;
-    foreach ('vm_name', 'subscription_id', 'resource_group') {
+    foreach ('vm_name', 'resource_group') {
         croak "Missing argument: '$_'" unless defined($args{$_});
     }
 
-    my $vm_name = $args{vm_name};
-    my $subscription_id = $args{subscription_id};
-    my $resource_group = $args{resource_group};
-    my $role = 'Virtual Machine Contributor';
-
-    my $vm_id = qesap_az_enable_system_assigned_identity($vm_name, $resource_group);
-    qesap_az_assign_role(assignee => $vm_id, role => $role, subscription_id => $subscription_id, resource_group => $resource_group);
+    my $vm_id = qesap_az_enable_system_assigned_identity(vm_name => $args{vm_name}, resource_group => $args{resource_group});
+    qesap_az_assign_role(assignee => $vm_id, role => 'Virtual Machine Contributor', resource_group => $args{resource_group});
 }
 
 =head2 qesap_az_enable_system_assigned_identity
@@ -1872,45 +1951,56 @@ sub qesap_az_setup_native_fencing_permissions {
     Enables 'System assigned identity' for specified VM.
     Returns 'systemAssignedIdentity' ID.
 
+=over 2
+
+=item B<VM_NAME> - VM name
+
+=item B<RESOURCE_GROUP> - resource group resource belongs to
+
+=back
 =cut
 
 sub qesap_az_enable_system_assigned_identity {
-    my ($vm_name, $resource_group) = @_;
-    croak "Missing 'vm_name' or 'resource_group argument'" unless ($vm_name and $resource_group);
+    my (%args) = @_;
+    foreach ('vm_name', 'resource_group') {
+        croak "Missing argument: '$_'" unless defined($args{$_});
+    }
 
-    my $az_cmd = "az vm identity assign";
-    my $az_args = "--only-show-errors -g '$resource_group' -n '$vm_name' --query 'systemAssignedIdentity' -o tsv";
-    my $identity_id = script_output(join(' ', $az_cmd, $az_args));
-    croak 'Returned output does not match ID pattern' if qesap_az_validate_uuid_pattern($identity_id) eq 0;
+    my $identity_id = script_output(join(' ',
+            'az vm identity assign',
+            '--only-show-errors',
+            "-g '$args{resource_group}'",
+            "-n '$args{vm_name}'",
+            "--query 'systemAssignedIdentity'",
+            '-o tsv'));
+    die 'Returned output does not match ID pattern' if qesap_az_validate_uuid_pattern($identity_id) eq 0;
     return $identity_id;
 }
 
 =head2 qesap_az_assign_role
 
-    qesap_az_assign_role( assignee=>$assignee, role=>$role, subscription_id=>$subscription_id, resource_group=>$resource_group )
+    qesap_az_assign_role( assignee=>$assignee, role=>$role, resource_group=>$resource_group )
 
     Assigns defined role to 'assignee' (user, vm, etc...) using subscription id.
      assignee - UUID for the resource (VM in this case)
      role - role to be assigned
      resource_group - resource group resource belongs to
-     subscription_id - valid azure subscription
 
 =cut
 
 sub qesap_az_assign_role {
     my (%args) = @_;
-    foreach ('assignee', 'role', 'subscription_id', 'resource_group') {
+    foreach ('assignee', 'role', 'resource_group') {
         croak "Missing argument: '$_'" unless defined($args{$_});
     }
 
-    my $assignee = $args{assignee};
-    my $role = $args{role};
-    my $subscription_id = $args{subscription_id};
-    my $resource_group = $args{resource_group};
-    my $az_cmd = "az role assignment create --only-show-errors";
-    my $az_cm_args = "--assignee '$assignee' --role '$role' --scope '/subscriptions/$subscription_id/resourceGroups/$resource_group'";
-
-    assert_script_run(join(" ", $az_cmd, $az_cm_args));
+    my $subscription_id = script_output('az account show --query "id" -o tsv');
+    my $az_cmd = join(' ', 'az role assignment',
+        'create --only-show-errors',
+        "--assignee '$args{assignee}'",
+        "--role '$args{role}'",
+        "--scope '/subscriptions/$subscription_id/resourceGroups/$args{resource_group}'");
+    assert_script_run($az_cmd);
 }
 
 =head2 qesap_az_get_tenant_id
@@ -2004,4 +2094,91 @@ sub qesap_az_create_sas_token {
     record_info('GENERATE-SAS', $cmd);
     return script_output($cmd);
 }
+
+=head2 qesap_terraform_clean_up_retry
+
+    qesap_terraform_clean_up_retry()
+
+    Perform terraform destroy and catch and ignore any error.
+    This method is mostly useful when doing cleanup before retry in case of
+    Ansible failed on 'Timed out waiting for last boot time check'
+
+=cut
+
+sub qesap_terraform_clean_up_retry {
+    my $command = 'terraform';
+
+    # Do not do 'ansible' cleanup as if 'Timed out waiting for last boot time check' happened the SSH will be disconnected
+    # E.g., ansible SSH reports '"msg": "Timeout (12s) waiting for privilege escalation prompt: "'
+    # Terraform destroy can be executed in any case
+    record_info('Cleanup', "Executing $command cleanup");
+    my @clean_up_cmd_rc = qesap_execute(verbose => 1, cmd => $command, cmd_options => '-d', timeout => 1200);
+    if ($clean_up_cmd_rc[0] == 0) {
+        diag(ucfirst($command) . " cleanup attempt #  PASSED.");
+        record_info("Clean $command", ucfirst($command) . ' cleanup PASSED.');
+    }
+    else {
+        diag(ucfirst($command) . " cleanup attempt #  FAILED.");
+        record_info('Cleanup FAILED', "Cleanup $command FAILED", result => 'fail');
+    }
+}
+
+=head2 qesap_terrafom_ansible_deploy_retry
+
+    qesap_terrafom_ansible_deploy_retry( error_log=>$error_log )
+        error_log - ansible error log file name
+
+    Retry to deploy terraform + ansible
+    Return 0: we manage the failure properly
+    Return 1: something went wrong or we do not know what to do with the failure
+
+=cut
+
+sub qesap_terrafom_ansible_deploy_retry {
+    my (%args) = @_;
+    croak 'Missing mandatory error_log argument' unless $args{error_log};
+    my @ret;
+
+    if (qesap_file_find_string(file => $args{error_log}, search_string => 'Missing sudo password')) {
+        record_info('DETECTED ANSIBLE MISSING SUDO PASSWORD ERROR');
+        @ret = qesap_execute(cmd => 'ansible',
+            logname => 'qesap_ansible_retry.log.txt',
+            timeout => 3600);
+        if ($ret[0])
+        {
+            qesap_cluster_logs();
+            die "'qesap.py ansible' return: $ret[0]";
+        }
+        record_info('ANSIBLE RETRY PASS');
+    }
+    elsif (qesap_file_find_string(file => $args{error_log}, search_string => 'Timed out waiting for last boot time check')) {
+        record_info('DETECTED ANSIBLE TIMEOUT ERROR');
+        # Do cleanup before redeploy
+        qesap_terraform_clean_up_retry();
+        @ret = qesap_execute(
+            cmd => 'terraform',
+            verbose => 1,
+            logname => 'qesap_terraform_retry.log.txt',
+            timeout => 1800
+        );
+        die "'qesap.py terraform' return: $ret[0]" if ($ret[0]);
+        @ret = qesap_execute(
+            cmd => 'ansible',
+            verbose => 1,
+            logname => 'qesap_ansible_retry.log.txt',
+            timeout => 3600
+        );
+        if ($ret[0]) {
+            qesap_cluster_logs();
+            die "'qesap.py ansible' return: $ret[0]";
+        }
+        record_info('ANSIBLE RETRY PASS');
+    }
+    else {
+        qesap_cluster_logs();
+        return 1;
+    }
+    return 0;
+}
+
 1;

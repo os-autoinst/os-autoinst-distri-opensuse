@@ -56,14 +56,13 @@ sub is_networkmanager {
 sub configure_static_ip {
     my (%args) = @_;
     my $ip = $args{ip};
-    my $mtu = $args{mtu} // 1458;
+    my $mtu = $args{mtu} // get_var('MM_MTU', 1380);
     my $is_nm = $args{is_nm} // is_networkmanager();
     my $device = $args{device};
-    $mtu //= 1458;
 
     if ($is_nm) {
         my $nm_id;
-        my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep '$device' | head -n1");
+        my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep -v ^lo: | grep '$device' | head -n1");
         ($device, $nm_id) = split(':', $nm_list);
 
         record_info('set_ip', "Device: $device\n NM ID: $nm_id\nIP: $ip\nMTU: $mtu");
@@ -110,7 +109,7 @@ sub configure_default_gateway {
     if ($is_nm) {
         my $nm_id;
         # When $device is not specified grep just does nothing and first connection is selected
-        my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep '$device' | head -n1");
+        my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep -v ^lo: | grep '$device' | head -n1");
         ($device, $nm_id) = split(':', $nm_list);
 
         assert_script_run "nmcli connection modify '$nm_id' ipv4.gateway 10.0.2.2";
@@ -128,7 +127,7 @@ sub configure_static_dns {
     my $servers = join(" ", @{$conf->{nameserver}});
 
     if ($is_nm) {
-        $nm_id = script_output('nmcli -t -f NAME c | head -n 1') unless ($nm_id);
+        $nm_id = script_output('nmcli -t -f NAME c | grep -v ^lo: | head -n 1') unless ($nm_id);
 
         assert_script_run "nmcli connection modify '$nm_id' ipv4.dns '$servers'";
     } else {

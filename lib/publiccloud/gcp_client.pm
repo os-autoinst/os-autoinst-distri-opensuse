@@ -23,7 +23,7 @@ has storage_name => sub { get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'openqa-storag
 has project_id => sub { get_var('PUBLIC_CLOUD_GOOGLE_PROJECT_ID') };
 has account => sub { get_var('PUBLIC_CLOUD_GOOGLE_ACCOUNT') };
 has gcr_zone => sub { get_var('PUBLIC_CLOUD_GCR_ZONE', 'eu.gcr.io') };
-has region => sub { get_var('PUBLIC_CLOUD_REGION', 'europe-west1-b') };
+has region => sub { get_required_var('PUBLIC_CLOUD_REGION') };
 has username => sub { get_var('PUBLIC_CLOUD_USER', 'susetest') };
 
 sub init {
@@ -78,10 +78,6 @@ Configure the podman to access the cloud provider registry
 sub configure_podman {
     my ($self) = @_;
     assert_script_run('gcloud auth configure-docker --quiet ' . $self->gcr_zone);
-}
-
-sub cleanup {
-    my ($self) = @_;
 }
 
 1;

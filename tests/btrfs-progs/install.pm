@@ -11,6 +11,8 @@ use base 'opensusebasetest';
 use utils;
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use version_utils 'is_transactional';
+use transactional;
 
 use constant STATUS_LOG => '/opt/status.log';
 
@@ -34,31 +36,29 @@ sub install_dependencies {
       libmount-devel
       libuuid-devel
     );
-    if (get_var('BTRFS_PROGS_DEPS')) {
-        @deps = split(/,/, get_var('BTRFS_PROGS_DEPS'));
-    }
+    if (get_var('BTRFS_PROGS_DEPS')) { @deps = split(/ /, get_var('BTRFS_PROGS_DEPS')); }
     zypper_call('in ' . join(' ', @deps));
 }
 
 sub run {
     select_serial_terminal;
 
-    # Install btrfs-progs
-    if (get_var('BTRFS_PROGS_REPO')) {
-        # Add filesystems repository and install btrfs-progs package
-        my $btrfs_package_name;
-        if (get_var('KEEP_DEFAULT_BTRFS_BINARY')) {
-            $btrfs_package_name = get_var('BTRFS_PACKAGE_NAME', 'btrfs-progs-tests');
+    # Install btrfs-progs from zypper
+    if (my $repo_url = get_var('BTRFS_PROGS_REPO')) {
+        my $btrfs_package_name = get_var('KEEP_DEFAULT_BTRFS_BINARY') ? 'btrfs-progs-tests' : 'btrfs-progs';
+        my $dep_url = get_var('DEPENDENCY_REPO', 'http://download.suse.de/ibs/home:/yosun:/branches:/SUSE:/Factory:/Head/standard/');
+        zypper_ar($repo_url, name => 'btrfs-progs-repo', priority => 90);
+        zypper_ar($dep_url, name => 'dependency-repo', priority => 90);
+        if (is_transactional) {
+            trup_call("pkg install $btrfs_package_name");
+            reboot_on_changes;
         }
         else {
-            $btrfs_package_name = get_var('BTRFS_PACKAGE_NAME', 'btrfs-progs');
-            zypper_call 'rm btrfsprogs';
+            zypper_call 'rm btrfsprogs' unless get_var('KEEP_DEFAULT_BTRFS_BINARY');
+            zypper_call "in $btrfs_package_name";
         }
-        zypper_call '--no-gpg-checks ar -f ' . get_var('BTRFS_PROGS_REPO') . ' filesystems';
-        zypper_call '--gpg-auto-import-keys ref -r filesystems';
-        zypper_call "in -r filesystems $btrfs_package_name";
-        zypper_call 'rr filesystems';
         set_var('WORK_DIR', '/opt/btrfs-progs-tests');
+        record_info('repo info', script_output('zypper lr -dE'));
     }
     else {
         # Build test suite of btrfs-progs from git

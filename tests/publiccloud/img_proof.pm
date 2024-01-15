@@ -38,6 +38,16 @@ sub run {
         $tests = "test_sles";
     }
 
+    if (get_var('IMG_PROOF_GIT_REPO')) {
+        my $repo = get_required_var('IMG_PROOF_GIT_REPO');
+        my $branch = get_required_var('IMG_PROOF_GIT_BRANCH');
+        assert_script_run "zypper rm -y python3-img-proof python3-img-proof-tests";
+        assert_script_run "git clone --depth 1 -q --branch $branch $repo";
+        assert_script_run "cd img-proof";
+        assert_script_run "python3 setup.py install";
+        assert_script_run "cp -r usr/* /usr";
+    }
+
     my $img_proof = $provider->img_proof(
         instance => $instance,
         tests => $tests,
@@ -97,34 +107,3 @@ public cloud module.
 The variables DISTRI, VERSION and ARCH must correspond to the system where
 img-proof get installed in and not to the public cloud image.
 
-=head1 Configuration
-
-=head2 PUBLIC_CLOUD_IMAGE_LOCATION
-
-Is used to retrieve the actually image ID from CSP via C<$provider->get_image_id()>
-
-For azure, the name of the image, e.g. B<SLES12-SP4-Azure-BYOS.x86_64-0.9.0-Build3.23.vhd>.
-For ec2 the AMI, e.g. B<ami-067a77ef88a35c1a5>.
-
-=head2 PUBLIC_CLOUD_PROVIDER
-
-The type of the CSP (Cloud service provider).
-
-=head2 PUBLIC_CLOUD_REGION
-
-The region to use. (default-azure: westeurope, default-ec2: eu-central-1)
-
-=head2 PUBLIC_CLOUD_INSTANCE_TYPE
-
-Specify the instance type. Which instance types exists depends on the CSP.
-(default-azure: Standard_A2, default-ec2: t2.large )
-
-More infos:
-Azure: https://docs.microsoft.com/en-us/rest/api/compute/virtualmachinesizes/list
-EC2: https://aws.amazon.com/ec2/instance-types/
-
-=head2 PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID
-
-This is B<only for azure> and used to create the service account file.
-
-=cut

@@ -105,6 +105,7 @@ exit 0
       <package>sle-module-server-applications-release</package>
       <package>sle-module-desktop-applications-release</package>
       <package>sle-module-basesystem-release</package>
+      <package>sles-ltss-release</package>
       <package>shim</package>
       <package>openssh</package>
       <package>kexec-tools</package>
@@ -114,6 +115,7 @@ exit 0
       <package>e2fsprogs</package>
       <package>btrfsprogs</package>
       <package>autoyast2</package>
+      <package>zypper-migration-plugin</package>
     </packages>
     <patterns t="list">
       <pattern>apparmor</pattern>
@@ -152,6 +154,12 @@ exit 0
         <arch>{{ARCH}}</arch>
         <name>sle-module-basesystem</name>
         <version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>SLES-LTSS</name>
+        <version>{{VERSION}}</version>
+        <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
       </addon>
     </addons>
     <do_registration t="boolean">true</do_registration>

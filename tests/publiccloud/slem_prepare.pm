@@ -21,7 +21,7 @@ sub run {
     select_serial_terminal;
 
     if (get_var("PUBLIC_CLOUD_CONTAINERS")) {
-        my $runtime = get_required_var('CONTAINER_RUNTIME');
+        my $runtime = get_required_var('CONTAINER_RUNTIMES');
         # Install packages for container test runs
         trup_call("pkg install $runtime toolbox");
         $instance->softreboot();
@@ -29,7 +29,7 @@ sub run {
 }
 
 sub test_flags {
-    return {fatal => 1};
+    return {fatal => 1, publiccloud_multi_module => 1};
 }
 
 1;

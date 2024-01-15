@@ -13,16 +13,17 @@ use strict;
 use warnings;
 use testapi;
 use utils 'assert_screen_with_soft_timeout';
+use version_utils 'is_plasma6';
 
 sub run {
     x11_start_program 'dolphin';
 
     # Go to ~/Documents
-    assert_and_click 'dolphin_icon_documents';
+    assert_and_click 'dolphin_icon_documents', dclick => is_plasma6;
     assert_screen_with_soft_timeout('dolphin_documents_empty', timeout => 90, soft_timeout => 30, bugref => 'boo#1112021');
 
     # Create a new folder
-    send_key 'f10';
+    send_key(is_plasma6 ? 'ctrl-shift-n' : 'f10');
     assert_screen 'dolphin_new_folder_dialog';
     type_string 'stuff';
     assert_screen 'dolphin_new_folder';

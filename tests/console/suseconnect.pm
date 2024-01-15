@@ -31,7 +31,7 @@ sub run {
     assert_script_run "SUSEConnect -d || SUSEConnect --cleanup";
     assert_script_run "SUSEConnect --status-text";
 
-    zypper_call 'lr';
+    zypper_call('lr', exitcode => [0, 6]);
     zypper_call 'services';
     zypper_call 'products';
 

@@ -50,7 +50,7 @@ Vagrant.configure("2") do |config|
   end
 
   if ENV['BOX_STATIC_IP'] != '1'
-    config.vm.provision :ansible do |ansible|
+    config.vm.provision "ansible_local" do |ansible|
       ansible.playbook = 'ansible_playbook.yml'
       ansible.become = true
       ansible.become_user = 'root'

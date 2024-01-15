@@ -1,0 +1,53 @@
+name: fips_env_mode_powervm
+description:    >
+    This is for the FIPS tests in ENV mode on the pvm_hmc backend.
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - '{{repo_setup}}'
+    - fips/fips_setup
+    - console/yast2_vnc
+    - fips/openssl/openssl_fips_alglist
+    - fips/openssl/openssl_fips_hash
+    - fips/openssl/openssl_fips_cipher
+    - fips/openssl/dirmngr_setup
+    - fips/openssl/dirmngr_daemon
+    - fips/gnutls/gnutls_base_check
+    - fips/gnutls/gnutls_server
+    - fips/gnutls/gnutls_client
+    - fips/openssl/openssl_tlsv1_3
+    - fips/openssl/openssl_pubkey_rsa
+    - fips/openssl/openssl_pubkey_dsa
+    - fips/openssh/openssh_fips
+    - fips/curl_fips_rc4_seed
+    - fips/squid/squid_init
+    - fips/squid/squid_web_proxy
+    - fips/squid/squid_reverse_proxy
+    - console/aide_check
+    - console/gpg
+    - console/journald_fss
+    - console/git
+    - console/clamav
+    - console/openvswitch_ssl
+    - console/ntp_client
+    - console/cups
+    - console/syslog
+    - console/curl_https
+    - console/wget_https
+    - console/w3m_https
+    - console/links_https
+    - console/lynx_https
+    - console/apache_ssl
+    - fips/mozilla_nss/apache_nssfips
+    - x11/x3270_ssl
+    - x11/evolution/evolution_prepare_servers
+    - console/mutt
+conditional_schedule:
+    repo_setup:
+        BETA:
+            1:
+                - security/test_repo_setup
+        FLAVOR:
+            Online-QR:
+                - security/test_repo_setup

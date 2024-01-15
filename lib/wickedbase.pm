@@ -976,6 +976,8 @@ sub write_cfg {
     my $rand = random_string;
     # replace variables
     $content =~ s/\{\{(\w+)\}\}/$self->lookup($1, $args{env})/eg;
+    # make sure that dirs exists
+    assert_script_run('mkdir -p ' . dirname($filename));
     # unwrap content
     my ($indent) = $content =~ /^\r?\n?([ ]*)/m;
     $content =~ s/^$indent//mg;
@@ -1160,7 +1162,7 @@ sub prepare_containers {
 sub get_containers {
     my $self = shift;
     if (!defined($self->{containers})) {
-        my $default_container = 'scapy=registry.opensuse.org/home/cfconrad/branches/opensuse/templates/images/tumbleweed/containers/scapy:latest';
+        my $default_container = 'scapy=registry.opensuse.org/home/cfconrad/openqa/containers/scapy:latest';
         my @containers = split(/\s*,\s*/, get_var("WICKED_CONTAINERS", $default_container));
         @containers = grep { /\w+=.+/ } @containers;
         $self->{containers} = {map { split(/=/, $_, 2) } @containers};

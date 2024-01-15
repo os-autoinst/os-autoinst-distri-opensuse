@@ -52,8 +52,10 @@ sub run {
         record_info('TEST', 'Installing Cockpit\'s Modules...');
         # In ALP, we need to refresh the metadata. poo#122029
         assert_script_run('zypper ref') if is_alp;
-        trup_call("pkg install @pkgs", timeout => 480);
-        check_reboot_changes;
+
+        my $results = script_output("transactional-update -n pkg install @pkgs", timeout => 480);
+        # No reboot needed if no package update
+        check_reboot_changes if ($results !~ /zypper: nothing to update/);
     }
 
     record_info('Cockpit', script_output('rpm -qi cockpit'));

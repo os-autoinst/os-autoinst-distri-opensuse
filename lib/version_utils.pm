@@ -48,6 +48,7 @@ use constant {
           is_tunneled
           is_bootloader_grub2
           is_bootloader_sdboot
+          is_plasma6
           requires_role_selection
           check_version
           get_os_release
@@ -785,6 +786,16 @@ sub is_bootloader_sdboot {
     return get_var('BOOTLOADER', 'grub2') eq 'systemd-boot';
 }
 
+=head2 is_plasma6
+
+Returns true if the SUT uses Plasma 6.
+=cut
+
+sub is_plasma6 {
+    # Currently only krypton has it
+    return check_var('FLAVOR', 'Krypton-Live');
+}
+
 
 =head2 has_test_issues
 
@@ -914,6 +925,6 @@ Returns true for tests using the images built by the "JeOS" package on OBS
 =cut
 
 sub is_community_jeos {
-    return (get_var('FLAVOR', '') =~ /JeOS-for-(AArch64|RPi)/);
+    return (get_var('FLAVOR', '') =~ /JeOS-for-(AArch64|RISCV|RPi)/);
 }
 

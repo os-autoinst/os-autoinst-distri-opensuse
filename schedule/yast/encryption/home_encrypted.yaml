@@ -7,8 +7,6 @@ vars:
 schedule:
   suggested_partitioning:
     - installation/partitioning/edit_proposal_encrypt
-  default_systemd_target:
-    - installation/installation_settings/validate_default_target
   first_login:
     - installation/boot_encrypt
     - installation/first_boot

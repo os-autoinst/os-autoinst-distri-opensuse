@@ -6,9 +6,7 @@ schedule:
   - console/prepare_test_data
   - console/consoletest_setup
   - console/add_phub_extension
-  - console/python_scientific
   - '{{sle15_x86_64}}'
-  - console/python_flake8
   - console/vmstat
   - console/systemd_rpm_macros
   - console/coredump_collect

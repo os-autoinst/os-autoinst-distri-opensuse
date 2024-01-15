@@ -103,6 +103,7 @@ sub setup_tftp_server {
 }
 
 sub setup_networks {
+    my ($mtu) = @_;
     my $net_conf = parse_network_configuration();
 
     for my $network (keys %$net_conf) {
@@ -113,7 +114,7 @@ sub setup_networks {
         $setup_script .= "NETMASK=$net_conf->{$network}->{subnet_mask}\n";
         $setup_script .= "STARTMODE='auto'\n";
         # TCP cannot pass GRE tunnel with default MTU value 1500 in combination of DF flag set in L3 for ovs bridge
-        $setup_script .= "MTU='1458'\n";
+        $setup_script .= "MTU='$mtu'\n";
         $setup_script .= "EOT\n";
     }
     $setup_script .= "systemctl restart network\n";
@@ -177,7 +178,7 @@ sub setup_dns_server {
 }
 
 sub dhcpd_conf_generation {
-    my ($dns, $pxe, $net_conf) = @_;
+    my ($dns, $pxe, $net_conf, $mtu) = @_;
     $setup_script .= "cat  >/etc/dhcpd.conf <<EOT\n";
     $setup_script .= "default-lease-time 14400;\n";
     if ($dns) {
@@ -205,8 +206,8 @@ sub dhcpd_conf_generation {
         $setup_script .= "  range  " . ip_in_subnet($net_conf->{$network}, 15) . "  " . ip_in_subnet($net_conf->{$network}, 100) . ";\n";
         $setup_script .= "  default-lease-time 14400;\n";
         $setup_script .= "  max-lease-time 172800;\n";
-        # dhcp clients have to use MTU 1458 to be able pass GRE Tunnel
-        $setup_script .= "  option interface-mtu 1458;\n";
+        # dhcp clients have to use MTU 1380 to be able pass GRE Tunnel
+        $setup_script .= "  option interface-mtu $mtu;\n";
         $setup_script .= "  option domain-name \"openqa.test\";\n";
         if ($dns) {
             $setup_script .= "  option domain-name-servers  $server_ip,  $server_ip;\n";
@@ -237,7 +238,7 @@ sub dhcpd_conf_generation {
 }
 
 sub setup_dhcp_server {
-    my ($dns, $pxe) = @_;
+    my ($dns, $pxe, $mtu) = @_;
     return if $dhcp_server_set;
     my $net_conf = parse_network_configuration();
 
@@ -246,7 +247,7 @@ sub setup_dhcp_server {
         $setup_script .= "curl -f -v " . autoinst_url . "/data" . get_var('SUPPORT_SERVER_DHPCD_CONFIG') . " >/etc/dhcpd.conf \n";
     }
     else {
-        dhcpd_conf_generation($dns, $pxe, $net_conf);
+        dhcpd_conf_generation($dns, $pxe, $net_conf, $mtu);
     }
 
     $setup_script .= "curl -f -v " . autoinst_url . "/data/supportserver/dhcp/sysconfig/dhcpd  >/etc/sysconfig/dhcpd \n";
@@ -359,8 +360,9 @@ sub setup_iscsi_server {
     my $size = 0;
     for (my $num_lun = 1; $num_lun <= $num_luns; $num_lun++) {
         $start = $size + 1;
-        $size = $num_lun * $lun_size * 1024;
-        script_run "parted --script $hdd_lun mkpart primary ${start}MiB ${size}MiB";
+        # Last partition size in percentage to ensure it is not larger that device size.
+        $size = $num_lun eq $num_luns ? '100%' : $num_lun * $lun_size * 1024 . 'MiB';
+        script_run "parted --script $hdd_lun mkpart primary ${start}MiB ${size}";
     }
 
     # The easiest way (really!?) to configure LIO is with YaST
@@ -569,8 +571,10 @@ sub run {
 
     my @server_roles = split(',|;', lc(get_var("SUPPORT_SERVER_ROLES")));
     my %server_roles = map { $_ => 1 } @server_roles;
+    my $mtu = get_var('MM_MTU', 1380);
 
-    setup_networks();
+
+    setup_networks($mtu);
     # Wait until all nodes boot first
     if (get_var 'SLENKINS_CONTROL') {
         barrier_wait 'HOSTNAMES_CONFIGURED';
@@ -580,7 +584,7 @@ sub run {
         # PXE server cannot be configured on other ARCH than x86_64
         # because 'syslinux' package only exists on it
         die "PXE server is only supported on x86_64 architecture" unless is_x86_64;
-        setup_dhcp_server((exists $server_roles{dns}), 1);
+        setup_dhcp_server((exists $server_roles{dns}), 1, $mtu);
         setup_pxe_server();
         setup_tftp_server();
     }
@@ -589,7 +593,7 @@ sub run {
     }
 
     if (exists $server_roles{dhcp}) {
-        setup_dhcp_server((exists $server_roles{dns}), 0);
+        setup_dhcp_server((exists $server_roles{dns}), 0, $mtu);
     }
     if (exists $server_roles{qemuproxy}) {
         setup_http_server();
@@ -653,6 +657,26 @@ sub run {
 
     # Create a *last* mutex to signal that support_server initialization is done
     mutex_create('support_server_ready');
+}
+
+sub pre_run_hook {
+    my ($self) = @_;
+
+    # Comment /etc/named.conf.include inclusion from /etc/named.conf in those
+    # cases this module runs on support servers which were configured in a
+    # previous job (for example, on migration scenarios)
+    my $openqa_zones_exists = !script_run 'test -f /etc/named.d/openqa.zones';
+    my $openqa_zones_in_include = !script_run q|grep -q -E "^include \"/etc/named.d/openqa.zones\";" /etc/named.conf.include|;
+    my $named_conf_include = !script_run q|grep -q -E "^include \"/etc/named.conf.include\";" /etc/named.conf|;
+    if ($openqa_zones_exists && $openqa_zones_in_include && $named_conf_include) {
+        # This is running in a support server which was configured on a previous job.
+        # Comment line with 'include "/etc/named.conf.include";' from /etc/named.conf
+        # as in some older versions, leaving the line causes /etc/named.d/openqa.zones
+        # to be included twice, which prevents named from starting
+        assert_script_run q|sed -i -e '/^include \"\/etc\/named.conf.include\";/ s/^/#/' /etc/named.conf|;
+    }
+
+    $self->SUPER::pre_run_hook;
 }
 
 sub test_flags {

@@ -14,15 +14,16 @@ use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_sle is_transactional package_version_cmp);
+use version_utils qw(is_sle is_sle_micro is_transactional package_version_cmp);
 use qam;
-use kernel 'remove_kernel_packages';
+use kernel;
 use klp;
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use Utils::Backends;
 use LTP::utils;
 use transactional;
+use package_utils;
 
 sub check_kernel_package {
     my $kernel_name = shift;
@@ -86,11 +87,7 @@ sub update_kernel {
     fully_patch_system;
 
     if (check_var('SLE_PRODUCT', 'slert')) {
-        if (is_transactional) {
-            record_info("There is no kernel-devel-rt available on transactional system.");
-        } else {
-            zypper_call('in kernel-devel-rt');
-        }
+        install_package('kernel-devel-rt', skip_trup => 'There is no kernel-devel-rt available on transactional system.');
     }
     elsif (is_sle('12+')) {
         zypper_call('in kernel-devel');
@@ -384,7 +381,8 @@ sub install_kotd {
     fully_patch_system;
     remove_kernel_packages;
     zypper_ar($repo, name => 'KOTD', priority => 90, no_gpg_check => 1);
-    zypper_call("in -l kernel-default kernel-devel");
+    my $kernel_flavor = get_kernel_flavor;
+    zypper_call("in -l ${kernel_flavor} kernel-devel");
 }
 
 sub boot_to_console {
@@ -407,11 +405,19 @@ sub run {
         boot_to_console($self);
     }
 
+    # SLE Micro RT 5.1 image contains both kernel flavors, we need to remove kernel-default
+    if (is_sle_micro('=5.1') && check_var('SLE_PRODUCT', 'slert')) {
+        trup_call('pkg rm kernel-default');
+        # kernel-rt will be removed with kernel-default, we can't lock it before, we need to install it after
+        trup_call('-c pkg in kernel-rt');
+        reboot_on_changes;
+    }
+
     add_extra_customer_repositories;
 
     my $repo = get_var('KOTD_REPO');
     my $incident_id = undef;
-    my $kernel_package = 'kernel-default';
+    my $kernel_package = get_kernel_flavor;
 
     unless ($repo) {
         $repo = get_required_var('INCIDENT_REPO');

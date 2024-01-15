@@ -88,19 +88,18 @@
   <bootloader>
     <global>
       <activate>true</activate>
-      <boot_mbr>true</boot_mbr>
       <gfxmode>auto</gfxmode>
       <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
       <serial>serial --speed=115200 --unit=<%= $get_var->('SERIALDEV') =~ s/ttyS//r %> --word=8 --parity=no --stop=1</serial>
       <timeout config:type="integer">10</timeout>
       <trusted_grub>false</trusted_grub>
-      <xen_append>splash=silent quiet console=<%= $get_var->('SERIALDEV') %>,115200</xen_append>
       <terminal>console</terminal>
-      % if ($check_var->('VERSION', '15')) {
-      <xen_kernel_append>dom0_max_vcpus=4 dom0_mem=8192M,max:8192M vga=gfx-1024x768x16 loglvl=all guest_loglvl=all</xen_kernel_append>
+      % if ($check_var->('SYSTEM_ROLE', 'xen')) {
+      <xen_append>splash=silent quiet console=<%= $get_var->('SERIALDEV') %>,115200 <%= $check_var->('IPMI_HW', 'AMD') ? "amd_iommu=on" : "intel_iommu=on" %></xen_append>
+      <xen_kernel_append><%= $check_var->('IPMI_HW', 'AMD') ? "" : "dom0_max_vcpus=4 dom0_mem=8192M,max:8192M" %> vga=gfx-1024x768x16 loglvl=all guest_loglvl=all</xen_kernel_append>
       % } else {
-      <xen_kernel_append>vga=gfx-1024x768x16 loglvl=all guest_loglvl=all</xen_kernel_append>
+      <append>splash=silent <%= $check_var->('IPMI_HW', 'AMD') ? "amd_iommu=on" : "intel_iommu=on" %></append>
       % }
     </global>
     <loader_type>grub2</loader_type>
@@ -109,7 +108,7 @@
     <ask-list config:type="list"/>
     <mode>
       <confirm config:type="boolean">false</confirm>
-      % if ($get_var->('VERSION') gt '15-SP3') {
+      % if ($get_var->('VERSION') gt '15-SP2') {
       <final_reboot config:type="boolean">true</final_reboot>
       % }
     </mode>
@@ -151,16 +150,6 @@
     <bridge_stp>off</bridge_stp>
     <startmode>auto</startmode>
   </interface>
-  <interface>
-    <device>eth0</device>
-    <bootproto>none</bootproto>
-    <startmode>hotplug</startmode>
-  </interface>
-  <interface>
-    <device>eth1</device>
-    <bootproto>none</bootproto>
-    <startmode>hotplug</startmode>
-  </interface>
 </interfaces>
   </networking>
   <ntp-client>
@@ -176,10 +165,11 @@
   </ntp-client>
   <partitioning config:type="list">
     <drive>
-      % if ($check_var->('IPMI_HW', 'supermicro')) {
-      <device>/dev/sda</device>
-      % }
-      <disklabel>msdos</disklabel>
+  % my $wwn = {lipa => 'wwn-0x5002538c4002f8bd', briza => 'wwn-0x5000c5004f0e566d', pegasus => 'wwn-0x5002538c4002f8be', galactica => 'wwn-0x5002538c4002f8cd'};
+  % my $hostname = (split(/\./, $get_var->("SUT_IP")))[0];
+  % my $device_id = defined($wwn->{$hostname}) ? '/dev/disk/by-id/' . $wwn->{$hostname} : '';
+      <device><%= $device_id %></device>
+      <disklabel>gpt</disklabel>
       <enable_snapshots config:type="boolean">false</enable_snapshots>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
@@ -195,17 +185,7 @@
           <resize config:type="boolean">false</resize>
           <size>400G</size>
         </partition>
-        <partition>
-          <create config:type="boolean">true</create>
-          <filesystem config:type="symbol">swap</filesystem>
-          <format config:type="boolean">true</format>
-          <mount>swap</mount>
-          <mountby config:type="symbol">uuid</mountby>
-          <partition_id config:type="integer">130</partition_id>
-          <partition_nr config:type="integer">2</partition_nr>
-          <resize config:type="boolean">false</resize>
-          <size>16G</size>
-        </partition>
+        <partition/>
       </partitions>
       <type config:type="symbol">CT_DISK</type>
       <use>all</use>

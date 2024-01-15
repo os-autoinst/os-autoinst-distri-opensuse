@@ -10,8 +10,6 @@ vars:
 schedule:
   suggested_partitioning:
     - installation/partitioning/new_partitioning_gpt
-  default_systemd_target:
-    - installation/installation_settings/validate_default_target
   system_validation:
     - console/validate_fstab
 test_data:

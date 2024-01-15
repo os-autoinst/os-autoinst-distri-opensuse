@@ -38,10 +38,10 @@
         <release_type>nil</release_type>
         <version>{{VERSION}}</version>
       </addon>
-      % unless ($check_var->('VERSION', '15') || $check_var->('VERSION', '15-SP6')) {
+      % unless ($check_var->('VERSION', '15')) {
       <addon config:type="map">
         <arch>{{ARCH}}</arch>
-        % unless ($check_var->('VERSION', '15-SP4') || $check_var->('VERSION','15-SP5')) {
+        % unless ($check_var->('VERSION', '15-SP4') || $check_var->('VERSION','15-SP5') || $check_var->('VERSION', '15-SP6')) {
         <name>sle-module-python2</name>
         % } else {
         <name>sle-module-python3</name>
@@ -202,40 +202,6 @@
       </hosts_entry>
     </hosts>
   </host>
-  <kdump>
-    <add_crash_kernel config:type="boolean">true</add_crash_kernel>
-    <crash_kernel>203M,high</crash_kernel>
-    <crash_xen_kernel>203M\&lt;4G</crash_xen_kernel>
-    <general>
-      <KDUMPTOOL_FLAGS/>
-      <KDUMP_COMMANDLINE/>
-      <KDUMP_COMMANDLINE_APPEND/>
-      <KDUMP_CONTINUE_ON_ERROR>true</KDUMP_CONTINUE_ON_ERROR>
-      <KDUMP_COPY_KERNEL>yes</KDUMP_COPY_KERNEL>
-      <KDUMP_CPUS/>
-      <KDUMP_DUMPFORMAT>lzo</KDUMP_DUMPFORMAT>
-      <KDUMP_DUMPLEVEL>31</KDUMP_DUMPLEVEL>
-      <KDUMP_FREE_DISK_SIZE>64</KDUMP_FREE_DISK_SIZE>
-      <KDUMP_HOST_KEY/>
-      <KDUMP_IMMEDIATE_REBOOT>yes</KDUMP_IMMEDIATE_REBOOT>
-      <KDUMP_KEEP_OLD_DUMPS>5</KDUMP_KEEP_OLD_DUMPS>
-      <KDUMP_KERNELVER/>
-      <KDUMP_NETCONFIG>auto</KDUMP_NETCONFIG>
-      <KDUMP_NET_TIMEOUT>30</KDUMP_NET_TIMEOUT>
-      <KDUMP_NOTIFICATION_CC/>
-      <KDUMP_NOTIFICATION_TO/>
-      <KDUMP_POSTSCRIPT/>
-      <KDUMP_PRESCRIPT/>
-      <KDUMP_REQUIRED_PROGRAMS/>
-      <KDUMP_SAVEDIR>/var/crash</KDUMP_SAVEDIR>
-      <KDUMP_SMTP_PASSWORD/>
-      <KDUMP_SMTP_SERVER/>
-      <KDUMP_SMTP_USER/>
-      <KDUMP_TRANSFER/>
-      <KDUMP_VERBOSE>3</KDUMP_VERBOSE>
-      <KEXEC_OPTIONS/>
-    </general>
-  </kdump>
   <networking config:type="map">
     <dhcp_options config:type="map">
       <dhclient_client_id/>
@@ -464,7 +430,7 @@
       <package>sle-module-development-tools-release</package>
       <package>sle-module-desktop-applications-release</package>
       <package>sle-module-basesystem-release</package>
-      % unless ($check_var->('VERSION', '15') || $check_var->('VERSION', '15-SP6')) {
+      % unless ($check_var->('VERSION', '15')) {
       % unless ($check_var->('VERSION', '15-SP4') || $check_var->('VERSION', '15-SP5') || $check_var->('VERSION', '15-SP6')) {
       <package>sle-module-python2-release</package>
       % } else {

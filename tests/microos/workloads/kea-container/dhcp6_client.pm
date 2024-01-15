@@ -26,7 +26,7 @@ sub run {
     disable_and_stop_service($self->firewall) if check_unit_file($self->firewall);
 
     assert_script_run('nmcli conn');
-    my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | head -n1");
+    my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep -v ^lo: | head -n1");
     my ($device, $nm_id) = split(':', $nm_list);
     assert_script_run "nmcli connection modify '$nm_id' ipv6.method dhcp";
     assert_script_run("nmcli conn up '$nm_id'");
@@ -35,6 +35,8 @@ sub run {
     record_info("ip a", script_output("ip a"));
     record_info("ip -6 route", script_output("ip -6 route"));
 
+    $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep -v ^lo: | head -n1");
+    ($device, $nm_id) = split(':', $nm_list);
     assert_script_run("ip -6 route add  fe12:3456:789a::1/48 dev $device");
     assert_script_run('ping -c 1 fe12:3456:789a::2');
     validate_script_output("ip -6 addr show dev $device || sed -nE 's/^.*inet6 ([^/]+)\/.*$/\1/p'", sub { m/fe12:3456:789a::[4-9]/ });

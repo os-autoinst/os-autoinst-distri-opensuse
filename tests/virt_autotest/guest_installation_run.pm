@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2012-2016 SUSE LLC
+# Copyright 2012-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: guest_installation_run: This test is used to verify if different products can be installed successfully as guest on specify host.
@@ -16,7 +16,9 @@ use virt_utils;
 sub get_script_run {
     my $pre_test_cmd = "";
     if (is_s390x) {
-        $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-virt_install_withopt-run";
+        #Use pipefail to keep the correct returns from test_virtualization-virt_install_withopt-run
+        $pre_test_cmd = "set -o pipefail;";
+        $pre_test_cmd .= "/usr/share/qa/tools/test_virtualization-virt_install_withopt-run";
     }
     else {
         my $prd_version = script_output("cat /etc/issue");
@@ -33,6 +35,7 @@ sub get_script_run {
     my $parallel_num = get_var("PARALLEL_NUM", "2");
 
     $pre_test_cmd = $pre_test_cmd . " -f " . $guest_pattern . " -n " . $parallel_num . " -r ";
+    $pre_test_cmd .= " 2>&1 | tee /tmp/s390x_guest_install_test.log" if (is_s390x);
 
     return $pre_test_cmd;
 }
@@ -87,6 +90,12 @@ sub run {
     }
 
     $self->run_test(7600, "", "yes", "yes", "/var/log/qa/", "guest-installation-logs", $upload_guest_assets_flag);
+    #upload testing logs for s390x guest installation test
+    if (is_s390x) {
+        #upload s390x_guest_install_test.log
+        upload_asset("/tmp/s390x_guest_install_test.log", 1, 1);
+        lpar_cmd("rm -r /tmp/s390x_guest_install_test.log");
+    }
 }
 
 1;

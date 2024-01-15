@@ -20,8 +20,6 @@ sub run {
     send_key 'ret';
     assert_screen 'slem-selfinstall-overwrite-drive';
     send_key 'ret';
-    # Use firmware boot manager of aarch64 to boot HDD
-    $self->handle_uefi_boot_disk_workaround if is_aarch64;
 
     my $no_cd;
     # workaround failed *kexec* execution on UEFI with SecureBoot
@@ -33,7 +31,7 @@ sub run {
     }
 
     # Before combustion 1.2, a reboot is necessary for firstboot configuration
-    if (is_leap_micro || is_sle_micro) {
+    if (is_leap_micro('<6.0') || is_sle_micro('<6.0')) {
         wait_serial('reboot: Restarting system', 240) or die "SelfInstall image has not rebooted as expected";
         # Avoid booting into selfinstall again
         eject_cd() unless $no_cd;

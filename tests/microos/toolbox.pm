@@ -37,7 +37,7 @@ sub create_user {
     assert_script_run "grep '^${serial_group}:.*:${user}\$' /etc/group || (chown $user /dev/$testapi::serialdev && gpasswd -a $user $serial_group)";
 
     # Don't ask password for sudo commands
-    assert_script_run "echo \"$user ALL=(ALL) NOPASSWD:ALL\" >> /etc/sudoers";
+    assert_script_run "echo '$user ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/50-$user";
 }
 
 sub run {
@@ -142,10 +142,6 @@ sub clean_container_host {
     die "You must define the runtime!" unless $runtime;
     assert_script_run("$runtime ps -q | xargs -r $runtime stop", 180);
     assert_script_run("$runtime system prune -a -f", 300);
-}
-
-sub post_fail_hook {
-    cleanup;
 }
 
 1;

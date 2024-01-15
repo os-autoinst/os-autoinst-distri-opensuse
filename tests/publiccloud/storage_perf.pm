@@ -15,6 +15,8 @@ use utils;
 use db_utils;
 use Mojo::JSON;
 use publiccloud::utils qw(is_byos registercloudguest);
+use mmapi qw(get_current_job_id);
+use publiccloud::utils qw(is_azure);
 
 use constant NUMJOBS => 4;
 use constant IODEPTH => 4;
@@ -67,11 +69,12 @@ sub analyze_previous_series {
 
 sub run {
     my ($self) = @_;
-    my $reg_code = get_var('SCC_REGCODE');
+
     my $runtime = get_var('PUBLIC_CLOUD_FIO_RUNTIME', 300);
     my $disk_size = get_var('PUBLIC_CLOUD_HDD2_SIZE');
     my $disk_type = get_var('PUBLIC_CLOUD_HDD2_TYPE');
     my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI');
+    my $use_nvme = is_azure() && get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ 'Standard_L(8|16|32|64)s_v(2|3)';
 
     my @scenario = (
         {
@@ -103,11 +106,16 @@ sub run {
 
     my $tags = {
         instance_type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
+        job_id => get_current_job_id(),
+        os_provider => get_required_var('PUBLIC_CLOUD_PROVIDER'),
+        os_build => get_required_var('BUILD'),
         os_flavor => get_required_var('FLAVOR'),
         os_version => get_required_var('VERSION'),
-        os_build => get_required_var('BUILD'),
-        os_pc_build => get_required_var('PUBLIC_CLOUD_BUILD'),
-        os_pc_kiwi_build => get_required_var('PUBLIC_CLOUD_BUILD_KIWI'),
+        os_distri => get_required_var('DISTRI'),
+        os_arch => get_required_var('ARCH'),
+        os_region => undef,
+        os_pc_build => undef,
+        os_pc_kiwi_build => undef,
         os_kernel_release => undef,
         os_kernel_version => undef,
     };
@@ -115,16 +123,42 @@ sub run {
     select_serial_terminal();
 
     my $provider = $self->provider_factory();
-    my $instance = $provider->create_instance(use_extra_disk => {size => $disk_size, type => $disk_type});
+    my $instance;
+    if ($use_nvme) {
+        $instance = $provider->create_instance();
+    }
+    else {
+        $instance = $provider->create_instance(use_extra_disk => {size => $disk_size, type => $disk_type});
+    }
+
+    if (get_var('PUBLIC_CLOUD_QAM')) {
+        $tags->{os_pc_build} = 'N/A';
+        $tags->{os_pc_kiwi_build} = 'N/A';
+    }
+    else {
+        $tags->{os_pc_build} = get_required_var('PUBLIC_CLOUD_BUILD');
+        $tags->{os_pc_kiwi_build} = get_required_var('PUBLIC_CLOUD_BUILD_KIWI');
+    }
 
     $tags->{os_kernel_release} = $instance->run_ssh_command(cmd => 'uname -r');
     $tags->{os_kernel_version} = $instance->run_ssh_command(cmd => 'uname -v');
+    $tags->{os_region} = $instance->{region};
 
-    registercloudguest($instance) if is_byos();
+    registercloudguest($instance) if is_byos() && !get_var('PUBLIC_CLOUD_QAM');
     $instance->run_ssh_command(cmd => 'sudo zypper --gpg-auto-import-keys -q in -y fio', timeout => 600);
 
-    my $block_device = '/dev/' . $instance->run_ssh_command(cmd => 'lsblk -n -l --output NAME,MOUNTPOINT | grep -v sr0 | sort | tail -n1');
+    my $block_device = '';
+
+    if ($use_nvme) {
+        $block_device = "/dev/nvme0n1";
+    }
+    else {
+        $block_device = '/dev/' . $instance->run_ssh_command(cmd => 'lsblk -n -l --output NAME,MOUNTPOINT | grep -v sr0 | sort | tail -n1');
+    }
+
     record_info('dev', "Block device under test: $block_device");
+
+
 
     for my $href (@scenario) {
         my $values = {};
@@ -161,11 +195,11 @@ sub run {
         # Store values in influx-db
         if ($url) {
             my $data = {
-                table => 'storage',
+                table => 'storage_fio',
                 tags => $tags,
                 values => $values
             };
-            my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf');
+            my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf_2');
             my $token = get_required_var('_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN');
             my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
             influxdb_push_data($url, $db, $org, $token, $data) if (check_var('PUBLIC_CLOUD_PERF_PUSH_DATA', 1));
@@ -201,28 +235,3 @@ Results to be reported for each scenario:
  - throughput
  - latency
  - IOPS
-
-=head1 Configuration
-
-=head2 PUBLIC_CLOUD_FIO
-
-If set, this test module is added to the job.
-
-
-=head2 PUBLIC_CLOUD_FIO_RUNTIME
-
-Set the execution time for each FIO tests. 300s by default.
-
-
-=head2 PUBLIC_CLOUD_FIO_SSD_SIZE
-
-Set the additional disk size for the FIO tests. 100GB by default.
-
-
-=head2 PUBLIC_CLOUD_PERF_DB_URI
-
-Optional variable. If set, the bootup times get stored in the influx
-database. The database name is 'publiccloud'.
-(e.g. PUBLIC_CLOUD_PERF_DB_URI=http://openqa-perf.qa.suse.de:8086)
-
-=cut

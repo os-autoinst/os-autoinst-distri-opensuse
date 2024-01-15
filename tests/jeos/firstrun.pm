@@ -13,7 +13,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro is_vmware is_alp);
+use version_utils qw(is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro is_vmware is_alp is_bootloader_sdboot);
 use Utils::Architectures;
 use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
@@ -64,7 +64,7 @@ sub verify_mounts {
 }
 
 sub verify_hypervisor {
-    my $virt = script_output('systemd-detect-virt');
+    my $virt = script_output('systemd-detect-virt', proceed_on_failure => 1);
 
     return 0 if (
         is_qemu && $virt =~ /(qemu|kvm)/ ||
@@ -72,6 +72,11 @@ sub verify_hypervisor {
         is_hyperv && $virt =~ /microsoft/ ||
         is_vmware && $virt =~ /vmware/ ||
         check_var("VIRSH_VMM_FAMILY", "xen") && $virt =~ /xen/);
+
+    if (is_qemu && is_riscv && $virt =~ /none/) {
+        record_soft_failure('boo#1218309');
+        return 0;
+    }
 
     die("Unknown hypervisor: $virt");
 }
@@ -178,6 +183,18 @@ sub run {
         send_key 'ret';
     }
 
+    if (is_bootloader_sdboot) {
+        assert_screen 'jeos-root-as-enc-pass';
+        send_key 'ret';
+
+        if (get_var('QEMUTPM')) {
+            assert_screen 'jeos-fde-tpm-enroll';
+            send_key 'ret';
+        }
+
+        wait_serial(qr/^Encryption recovery key:\s+(([a-z]+-)+[a-z]+)/m) or die 'The encryption recovery key is missing';
+    }
+
     if (is_sle || is_sle_micro) {
         assert_screen 'jeos-please-register';
         send_key 'ret';
@@ -189,11 +206,12 @@ sub run {
     }
 
     # Only execute this block on ALP when using the encrypted image.
-    if (is_alp && get_var("ENCRYPTED_IMAGE")) {
+    if ((is_alp || is_sle_micro('>=6.0')) && get_var("ENCRYPTED_IMAGE")) {
         # Select FDE with pass and tpm
         assert_screen "alp-fde-pass-tpm";
-        send_key "ret";
-        assert_screen "alp-fde-newluks";
+        # with the latest ALP 9.2/SLEM 3.4 build, this step takes more time than usual.
+        wait_screen_change(sub { send_key "ret" }, 25);
+        assert_screen("alp-fde-newluks", timeout => 120);
         type_password;
         send_key "ret";
         wait_still_screen 2;

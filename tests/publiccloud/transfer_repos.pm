@@ -15,7 +15,7 @@ use testapi;
 use strict;
 use utils;
 use publiccloud::ssh_interactive "select_host_console";
-use publiccloud::utils "is_embargo_update";
+use maintenance_smelt qw(is_embargo_update);
 
 sub run {
     my ($self, $args) = @_;

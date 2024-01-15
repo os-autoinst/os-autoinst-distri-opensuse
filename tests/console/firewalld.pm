@@ -63,11 +63,7 @@ sub check_rules {
     } else {
         assert_script_run("nft list chain inet firewalld filter_IN_public_allow | grep 25");
         assert_script_run("nft list chain inet firewalld filter_IN_public_allow | grep 110");
-        if (is_leap("<16.0") || is_sle("<16")) {
-            assert_script_run("nft list chain inet firewalld filter_FWDI_public | grep icmp");
-        } else {
-            assert_script_run("nft list chain inet firewalld filter_FWD_public | grep icmp");
-        }
+        assert_script_run("nft list chain inet firewalld filter_IN_public_allow | grep icmp");
         assert_script_run("nft list chain inet firewalld filter_IN_public_allow | grep 2000-3000");
     }
 }
@@ -93,7 +89,7 @@ sub collect_in_fwd_rule_count {
     } else {
         script_run("nft list chain inet firewalld filter_IN_public_allow");
         assert_script_run("nft list chain inet firewalld filter_IN_public_allow | wc -l | tee /tmp/nr_in_public.txt");
-        if (is_leap("<16.0") || is_sle("<16")) {
+        if (is_leap('<15.6') || is_sle('<15-SP6')) {
             script_run("nft list chain inet firewalld filter_FWDI_public");
             assert_script_run("nft list chain inet firewalld filter_FWDI_public | wc -l | tee /tmp/nr_fwdi_public.txt");
         } else {
@@ -111,7 +107,7 @@ sub verify_in_fwd_rule_count {
     } else {
         script_run("nft list chain inet firewalld filter_IN_public_allow");
         assert_script_run("test `nft list chain inet firewalld filter_IN_public_allow | wc -l` -eq `cat /tmp/nr_in_public.txt`");
-        if (is_leap("<16.0") || is_sle("<16")) {
+        if (is_leap("<15.6") || is_sle("<15-SP6")) {
             script_run("nft list chain inet firewalld filter_FWDI_public");
             assert_script_run("test `nft list chain inet firewalld filter_FWDI_public | wc -l` -eq `cat /tmp/nr_fwdi_public.txt`");
         } else {
@@ -160,7 +156,7 @@ sub test_masquerading {
         script_run("iptables -t nat -L --line-numbers");
         assert_script_run("iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l | tee /tmp/nr_rules_nat_pre.txt");
         assert_script_run("iptables -t nat -L POST_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l | tee /tmp/nr_rules_nat_post.txt");
-    } elsif (is_leap("<16.0") || is_sle("<16")) {
+    } elsif (is_leap("<15.6") || is_sle("<15-SP6")) {
         script_run("nft list chain ip firewalld nat_PRE_public_allow");
         script_run("nft list chain ip firewalld nat_POST_public_allow");
         assert_script_run("nft list chain ip firewalld nat_PRE_public_allow | wc -l | tee /tmp/nr_rules_nat_pre.txt");
@@ -178,7 +174,7 @@ sub test_masquerading {
     if (uses_iptables) {
         assert_script_run("iptables -t nat -L PRE_public_allow | grep 'to::22'");
         assert_script_run("iptables -t nat -L POST_public_allow | grep MASQUERADE");
-    } elsif (is_leap("<16.0") || is_sle("<16")) {
+    } elsif (is_leap("<15.6") || is_sle("<15-SP6")) {
         assert_script_run("nft list chain ip firewalld nat_PRE_public_allow | grep 'redirect to :22'");
         assert_script_run("nft list chain ip firewalld nat_POST_public_allow | grep masquerade");
     } else {
@@ -193,7 +189,7 @@ sub test_masquerading {
         script_run("iptables -t nat -L --line-numbers");
         assert_script_run("test `iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_nat_pre.txt`");
         assert_script_run("test `iptables -t nat -L POST_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_nat_post.txt`");
-    } elsif (is_leap("<16.0") || is_sle("<16")) {
+    } elsif (is_leap("<15.6") || is_sle("<15-SP6")) {
         script_run("nft list chain ip firewalld nat_PRE_public_allow");
         script_run("nft list chain ip firewalld nat_POST_public_allow");
         assert_script_run("test `nft list chain ip firewalld nat_PRE_public_allow | wc -l` -eq `cat /tmp/nr_rules_nat_pre.txt`");

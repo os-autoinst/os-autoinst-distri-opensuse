@@ -141,21 +141,3 @@ image to start the VMs, Azure can't enable accelerated network at start time. Th
 way to do this is to enable it stopping the VM and starting it again.
 More info here: https://goo.gl/3SGkMX
 
-=head1 Configuration
-
-=head2 PUBLIC_CLOUD_ACCNET
-
-If set, this test module is added to the job.
-
-=head2 PUBLIC_CLOUD_PROVIDER
-
-The type of the CSP (e.g. AZURE, EC2)
-
-=head2 PUBLIC_CLOUD_IMAGE_LOCATION
-
-The URL where the image gets downloaded from. The name of the image gets extracted
-from this URL.
-
-=head2 PUBLIC_CLOUD_REGION
-
-The region to use. (default-azure: westeurope, default-ec2: eu-central-1)

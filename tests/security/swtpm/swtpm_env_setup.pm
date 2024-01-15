@@ -18,20 +18,16 @@ use Utils::Architectures;
 use rpi 'enable_tpm_slb9670';
 
 sub run {
+    # Enable TPM on Raspberry Pi 4
+    # Refer: https://en.opensuse.org/HCL:Raspberry_Pi3_TPM
     if (get_var('MACHINE') =~ /RPi4/) {
         enable_tpm_slb9670;
     } else {
         select_serial_terminal;
     }
 
-
-    # Enable TPM on Raspberry Pi 4
-    # Refer: https://en.opensuse.org/HCL:Raspberry_Pi3_TPM
-    enable_tpm_slb9670 if (get_var('MACHINE') =~ /RPi4/);
-
-    # Install the required packages for libvirt environment setup,
-    # "expect" is used for later remote login test, so install here as well
-    zypper_call("in qemu libvirt swtpm expect virt-install virt-manager wget");
+    # Install the required packages for libvirt environment setup
+    zypper_call("in qemu libvirt swtpm virt-install virt-manager wget");
 
     # Start libvirtd daemon and start the default libvirt network
     assert_script_run("systemctl start libvirtd");
@@ -62,12 +58,6 @@ sub run {
         assert_script_run("mv $image_path/$hdd_swtpm_uefi $image_path/$uefi_image");
         assert_script_run("wget --quiet " . data_url($sample_file) . " -P $image_path");
     }
-
-    # Write expect script to implement ssh access into remote host and run some commands
-    assert_script_run("wget --quiet " . data_url("swtpm/ssh_script") . " -P $image_path");
-
-    # Change permission of the expect script
-    assert_script_run("chmod 755 $image_path/ssh_script");
 }
 
 sub test_flags {

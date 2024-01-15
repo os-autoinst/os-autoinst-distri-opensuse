@@ -34,18 +34,18 @@ Set DNS server defined via required variable C<STATIC_DNS_SERVER>
 
 sub setup_static_network {
     my (%args) = @_;
-    # Set default values
-    $args{ip} //= '10.0.2.15';
-    $args{gw} //= testapi::host_ip();
-    $args{silent} //= 0;
-    configure_static_dns(get_host_resolv_conf(), silent => $args{silent});
-    assert_script_run('echo default ' . $args{gw} . ' - - > /etc/sysconfig/network/routes');
+    my $ip = $args{ip} // '10.0.2.15';
+    my $mtu = $args{mtu} // get_var('MM_MTU', 1380);
+    my $gw = $args{gw} // testapi::host_ip();
+
+    configure_static_dns(get_host_resolv_conf(), silent => $args{silent} // 0);
+    assert_script_run("echo default $gw - - > /etc/sysconfig/network/routes");
     my $iface = iface();
-    assert_script_run qq(echo -e "\\nSTARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$args{ip}'">/etc/sysconfig/network/ifcfg-$iface);
+    assert_script_run qq(echo -e "\\nSTARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$ip'\\nMTU='$mtu'">/etc/sysconfig/network/ifcfg-$iface);
     assert_script_run 'rcnetwork restart';
     assert_script_run 'ip addr';
-    assert_script_run 'ping -c 1 ' . $args{gw} . '|| journalctl -b --no-pager -o short-precise > /dev/' . $serialdev;
-    assert_script_run('ip -6 addr add ' . $args{ipv6} . ' dev ' . $iface) if (exists($args{ipv6}));
+    assert_script_run "ping -c 1 $gw || journalctl -b --no-pager -o short-precise > /dev/$serialdev";
+    assert_script_run "ip -6 addr add $args{ipv6} dev $iface" if exists $args{ipv6};
 }
 
 =head2 iface

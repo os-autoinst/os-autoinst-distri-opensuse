@@ -251,7 +251,7 @@ sub basic_container_tests {
     # Using an init process as PID 1
     assert_script_run "$runtime run --rm --init $tumbleweed ps --no-headers -xo 'pid args' | grep '1 .*init'";
 
-    if (script_run('command -v man') == 0) {
+    if (script_run('test -x /usr/bin/man') == 0) {
         # Note: The output of man contains non-ASCII characters. Even a dash (`-`) imposes difficulties here, so it's best to stay with letters
         if ($runtime eq 'podman') {
             validate_script_output("man -P cat $runtime-build", sub { m/Build a container image using a Containerfile/ }, fail_message => "`man $runtime build` contents not validating");
@@ -308,7 +308,7 @@ sub reset_container_network_if_needed {
     # This workaround is only needed from SLE 15-SP3 (and Leap 15.3) onwards.
     # See https://bugzilla.suse.com/show_bug.cgi?id=1213811
     if ($version eq "15" && $sp >= 3) {
-        my $runtime = get_required_var('CONTAINER_RUNTIME');
+        my $runtime = get_required_var('CONTAINER_RUNTIMES');
         if ($host_distri =~ /sles|opensuse/ && $runtime =~ /docker/) {
             if ($current_engine eq 'podman') {
                 # Only stop docker, if docker is active. This is also a free check if docker is present

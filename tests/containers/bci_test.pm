@@ -60,7 +60,7 @@ sub run_tox_cmd {
     # e.g. junit_python.xml -> junit_python_podman.xml
     # We use script_run because the file might not exist if tox timed out or other
     # unexpected error.
-    script_run('mv junit_' . $env . '.xml junit_' . $env . '_${CONTAINER_RUNTIME}.xml');
+    script_run('mv junit_' . $env . '.xml junit_' . $env . '_${CONTAINER_RUNTIMES}.xml');
 }
 
 sub run {

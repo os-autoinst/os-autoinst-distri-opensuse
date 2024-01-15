@@ -28,7 +28,6 @@ sub run {
     barrier_create('smt_finished', 2);
 
     zypper_call 'in -t pattern smt';
-    zypper_call 'in mariadb';
 
     select_console 'root-console';
 

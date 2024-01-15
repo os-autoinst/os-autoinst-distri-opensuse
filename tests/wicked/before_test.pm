@@ -43,11 +43,14 @@ sub run {
     }
     record_info('INFO', 'Setting debug level for wicked logs');
     file_content_replace('/etc/sysconfig/network/config', '--sed-modifier' => 'g', '^WICKED_DEBUG=.*' => 'WICKED_DEBUG="all"', '^WICKED_LOG_LEVEL=.*' => 'WICKED_LOG_LEVEL="debug2"');
-    file_content_replace('/etc/systemd/journald.conf', '--debug' => 1,
+    $self->write_cfg('/etc/systemd/journald.conf.d/99-openqa-wicked-tests.conf', <<EOT);
+        [Journal]
         # see: https://github.com/systemd/systemd/commit/f0367da7d1a61ad698a55d17b5c28ddce0dc265a
-        '^#?RateLimitInterval=.*' => 'RateLimitInterval=0',
-        '^#?RateLimitIntervalSec=.*' => 'RateLimitIntervalSec=0',
-        '^#?RateLimitBurst=.*' => 'RateLimitBurst=0');
+        RateLimitInterval=0
+        RateLimitIntervalSec=0
+        RateLimitBurst=0
+EOT
+    record_info('journald.conf', script_output('systemd-analyze cat-config --no-pager systemd/journald.conf'));
     #preparing directories for holding config files
     assert_script_run('mkdir -p /data/{static_address,dynamic_address}');
 
@@ -77,6 +80,9 @@ sub run {
         $self->get_from_data('wicked/dhcp/dhcpd.conf', '/etc/dhcpd.conf');
         if (is_sle('<12-sp1')) {
             file_content_replace('/etc/dhcpd.conf', '^\s*ddns-update-style' => '# ddns-update-style', '^\s*dhcp-cache-threshold' => '# dhcp-cache-threshold');
+        }
+        if (my $mtu = get_var('MM_MTU')) {
+            file_content_replace('/etc/dhcpd.conf', 'interface-mtu 1380' => "interface-mtu $mtu");
         }
         file_content_replace('/etc/sysconfig/dhcpd', '--sed-modifier' => 'g', '^DHCPD_INTERFACE=.*' => 'DHCPD_INTERFACE="' . $ctx->iface() . '"');
 

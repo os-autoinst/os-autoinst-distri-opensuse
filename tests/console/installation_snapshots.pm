@@ -15,10 +15,11 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use serial_terminal;
 use version_utils qw(is_jeos is_sle);
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
     # Check if the corresponding snapshot is there
     my ($snapshot_desc, $snapshot_type);

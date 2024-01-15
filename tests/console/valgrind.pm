@@ -33,8 +33,7 @@ sub assert_present {
     my $text = shift;
     my $assert = shift;
     my $failmsg = shift // "Assertion failed: '$assert' not present";
-
-    die $failmsg if ($text !~ $assert);
+    die $failmsg if ($text !~ m/\Q$assert/);
 }
 
 sub run {
@@ -44,45 +43,46 @@ sub run {
 
     # Run valgrind memchecks
     assert_script_run 'valgrind --tool=memcheck --trace-children=yes ./valgrind-test';
-    my $output = script_output('valgrind --leak-check=full --show-leak-kinds=all ./valgrind-test --leak 2048 --leak 1024 --still-reachable 4096');
+    my $cmd = 'valgrind -s --log-fd=1';    # command with common options
+    my $output = script_output("$cmd --leak-check=full --show-leak-kinds=all ./valgrind-test --leak 2048 --leak 1024 --still-reachable 4096");
     assert_present($output, '3,072 bytes in 2 blocks are definitely lost in loss record 1 of 2', "Loss record 1 is missing");
     assert_present($output, '4,096 bytes in 1 blocks are still reachable in loss record 2 of 2', "Loss record 2 is missing");
     assert_present($output, 'leak_some_mem', "leak_some_mem is not present");
     assert_present($output, 'definitely lost: 3,072 bytes in 2 blocks', "'definitely lost' not matching in output");
     assert_present($output, 'still reachable: 4,096 bytes in 1 blocks', "'still reachable' not matching in output");
 
-    $output = script_output('valgrind --tool=memcheck --trace-children=yes ./valgrind-test --fork --leak 1024');
+    $output = script_output("$cmd --tool=memcheck --trace-children=yes ./valgrind-test --fork --leak 1024");
     assert_present($output, 'in use at exit: 1,024 bytes in 1 blocks', "In use not detected");
     assert_present($output, 'total heap usage: 1 allocs, 0 frees, 1,024 bytes allocated', "Heap statistics are wrong/unexpected");
     assert_present($output, 'definitely lost: 1,024 bytes in 1 blocks', "Definitely lost not detected");
 
-    $output = script_output('valgrind --tool=memcheck --trace-children=yes ./valgrind-test --leak 1024 --leak 1024 --leak 1024');
+    $output = script_output("$cmd --tool=memcheck --trace-children=yes ./valgrind-test --leak 1024 --leak 1024 --leak 1024");
     assert_present($output, 'in use at exit: 3,072 bytes in 3 blocks', "In use message mismatch");
     assert_present($output, 'total heap usage: 3 allocs, 0 frees, 3,072 bytes allocated', "heap stats are not matching");
     assert_present($output, 'definitely lost: 3,072 bytes in 3 blocks', "definitely lost is not matching");
 
-    $output = script_output('valgrind --tool=memcheck --leak-resolution=high ./valgrind-test --leak 1024');
+    $output = script_output("$cmd --tool=memcheck --leak-resolution=high ./valgrind-test --leak 1024");
     assert_present($output, 'in use at exit: 1,024 bytes in 1 blocks', "'in use at exit' not matching in output");
     assert_present($output, 'total heap usage: 1 allocs, 0 frees, 1,024 bytes allocated', "'heap usage' mismatch in output");
     assert_present($output, 'definitely lost: 1,024 bytes in 1 blocks', "'definitely lost' mismatch in output");
 
-    $output = script_output('valgrind --tool=memcheck --show-reachable=yes ./valgrind-test --leak 1024 --leak 1024 --still-reachable 2048');
+    $output = script_output("$cmd --tool=memcheck --show-reachable=yes ./valgrind-test --leak 1024 --leak 1024 --still-reachable 2048");
     assert_present($output, 'in use at exit: 4,096 bytes in 3 blocks', "'in use at exit' not matching in output");
     assert_present($output, 'total heap usage: 3 allocs, 0 frees, 4,096 bytes allocated', "heap stats are not matching");
     assert_present($output, 'definitely lost: 2,048 bytes in 2 blocks', "'definitely lost' of 2 blocks mismatch in output");
     assert_present($output, 'still reachable: 2,048 bytes in 1 blocks', "'definitely lost' of 1 block mismatch in output");
 
-    $output = script_output('valgrind --tool=memcheck ./valgrind-test');
+    $output = script_output("$cmd --tool=memcheck ./valgrind-test");
     assert_present($output, 'All heap blocks were freed -- no leaks are possible', "'All heap blocks were freed' not matching in output");
 
-    $output = script_output('valgrind --track-origins=yes ./valgrind-test --oob 256 40');
+    $output = script_output("$cmd --track-origins=yes ./valgrind-test --oob 256 40");
     assert_present($output, 'Invalid read of size', "Invalid read is not present");
     assert_present($output, 'bytes after a block of size 256 alloc', "block size output not matching");
     assert_present($output, 'Conditional jump or move depends on uninitialised value', "'conditional jump on uninitialised value' is not matching");
     assert_present($output, 'Uninitialised value was created by a heap allocation', "'uninitialised value by heap allocation' is not matching");
     assert_present($output, 'All heap blocks were freed -- no leaks are possible', "'all blocks freed' is not matching");
 
-    $output = script_output('valgrind --track-origins=yes ./valgrind-test --uninitialized 256');
+    $output = script_output("$cmd --track-origins=yes ./valgrind-test --uninitialized 256");
     assert_present($output, 'Conditional jump or move depends on uninitialised value', "'conditional jump on uninitialised value' is not matching");
     assert_present($output, 'Uninitialised value was created by a heap allocation', "'uninitialised value by heap allocation' is not matching");
     assert_present($output, 'All heap blocks were freed -- no leaks are possible', "'all blocks freed' is not matching");

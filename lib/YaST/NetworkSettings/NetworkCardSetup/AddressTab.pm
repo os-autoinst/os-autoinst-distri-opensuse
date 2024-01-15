@@ -11,6 +11,7 @@ package YaST::NetworkSettings::NetworkCardSetup::AddressTab;
 use strict;
 use warnings;
 use testapi;
+use YaST::workarounds;
 use parent 'YaST::NetworkSettings::NetworkCardSetup::NetworkCardSetupWizard';
 
 use constant {
@@ -18,12 +19,12 @@ use constant {
 };
 
 sub select_dynamic_address {
-    assert_screen(ADDRESS_TAB);
+    apply_workaround_poo124652(ADDRESS_TAB);
     send_key('alt-y');
 }
 
 sub select_no_link_and_ip_setup {
-    assert_screen(ADDRESS_TAB);
+    apply_workaround_poo124652(ADDRESS_TAB);
     send_key('alt-k');
 }
 

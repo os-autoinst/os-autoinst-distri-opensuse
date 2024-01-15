@@ -19,8 +19,10 @@ use File::Basename 'basename';
 use Utils::Architectures;
 use repo_tools 'add_qa_head_repo';
 use utils;
+use kernel 'get_kernel_flavor';
 
 our @EXPORT = qw(
+  export_ltp_env
   get_ltproot
   get_ltp_openposix_test_list_file
   get_ltp_version_file
@@ -60,7 +62,7 @@ sub shutdown_ltp {
 }
 
 sub want_ltp_32bit {
-    my $pkg = shift // get_var('LTP_PKG');
+    my $pkg = shift // get_var('LTP_PKG', '');
 
     # TEST is for running 32bit tests (e.g. ltp_syscalls_m32), checking
     # LTP_PKG is for install_ltp.pm which also uses prepare_ltp_env()
@@ -90,7 +92,7 @@ sub get_ltp_version_file {
 sub log_versions {
     my $report_missing_config = shift;
     my $kernel_pkg = is_jeos || get_var('KERNEL_BASE') ? 'kernel-default-base' :
-      (is_rt ? 'kernel-rt' : 'kernel-default');
+      (is_rt ? 'kernel-rt' : get_kernel_flavor);
     my $kernel_pkg_log = '/tmp/kernel-pkg.txt';
     my $ver_linux_log = '/tmp/ver_linux_before.txt';
     my $kernel_config = script_output('for f in "/boot/config-$(uname -r)" "/usr/lib/modules/$(uname -r)/config" /proc/config.gz; do if [ -f "$f" ]; then echo "$f"; break; fi; done');
@@ -137,11 +139,17 @@ sub log_versions {
     script_run('aa-enabled; aa-status');
 }
 
+sub export_ltp_env {
+    my $ltp_env = get_var('LTP_ENV');
+
+    if ($ltp_env) {
+        $ltp_env =~ s/,/ /g;
+        script_run("export $ltp_env");
+    }
+}
 
 # Set up basic shell environment for running LTP tests
 sub prepare_ltp_env {
-    my $ltp_env = get_var('LTP_ENV');
-
     assert_script_run('export LTPROOT=' . get_ltproot() . '; export LTP_COLORIZE_OUTPUT=n TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$PATH');
 
     # setup for LTP networking tests
@@ -150,11 +158,6 @@ sub prepare_ltp_env {
     my $block_dev = get_var('LTP_BIG_DEV');
     if ($block_dev && get_var('NUMDISKS') > 1) {
         assert_script_run("lsblk -la; export LTP_BIG_DEV=$block_dev");
-    }
-
-    if ($ltp_env) {
-        $ltp_env =~ s/,/ /g;
-        script_run("export $ltp_env");
     }
 
     assert_script_run('cd $LTPROOT/testcases/bin');
@@ -282,7 +285,11 @@ sub schedule_tests {
 
     parse_runfiles($cmd_file, $test_result_export, $suffix);
 
-    if (check_var('KGRAFT', 1) && check_var('UNINSTALL_INCIDENT', 1)) {
+    if (check_var('KGRAFT', 1) && check_var('KGRAFT_DOWNGRADE', 1)) {
+        loadtest_kernel 'klp_downgrade';
+        parse_runfiles($cmd_file, $test_result_export, $suffix . '_postun');
+    }
+    elsif (check_var('KGRAFT', 1) && check_var('UNINSTALL_INCIDENT', 1)) {
         loadtest_kernel 'uninstall_incident';
         parse_runfiles($cmd_file, $test_result_export, $suffix . '_postun');
     }
@@ -400,6 +407,10 @@ sub get_default_pkg {
 }
 
 sub install_from_repo {
+    # Workaround for kernel-64kb, until we add multibuild support to LTP package
+    # Lock kernel-default to don't pull it as LTP dependency
+    zypper_call 'al kernel-default' if get_kernel_flavor eq 'kernel-64kb';
+
     my @pkgs = split(/\s* \s*/, get_var('LTP_PKG', get_default_pkg));
 
     if (is_transactional) {

@@ -16,8 +16,6 @@ schedule:
     - installation/partitioning/select_guided_setup
     - installation/partitioning/guided_setup/enable_lvm
     - installation/partitioning/guided_setup/do_not_propose_separate_home
-  default_systemd_target:
-    - installation/installation_settings/validate_default_target
   system_preparation:
     - console/hostname
     - console/system_prepare

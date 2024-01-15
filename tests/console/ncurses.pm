@@ -23,6 +23,9 @@ sub run {
     zypper_call 'in dialog';
     select_console 'root-console';
 
+    # To avoid bsc#1180307
+    assert_script_run("/usr/lib/systemd/systemd-vconsole-setup");
+
     # Try to draw a bold red line
     script_run('echo "$(tput smacs;tput setaf 1;tput bold)lqqqqqqqqqqqqqqk$(tput rmacs;tput sgr0)"');
     # Try a simple yes/no dialog

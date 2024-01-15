@@ -10,11 +10,19 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use version_utils qw(package_version_cmp is_transactional is_jeos is_alp);
+use version_utils qw(package_version_cmp is_transactional is_jeos is_leap is_sle_micro is_leap_micro is_sle is_microos is_public_cloud);
 use containers::utils qw(get_podman_version registry_url);
 use transactional qw(trup_call check_reboot_changes);
 use utils qw(zypper_call);
 use Utils::Systemd qw(systemctl);
+
+sub is_cni_in_tw {
+    return (script_output("podman info -f '{{.Host.NetworkBackend}}'") =~ "cni") && is_microos && get_var('TDUP');
+}
+
+sub is_cni_default {
+    return is_sle || is_leap || is_sle_micro('<6.0') || is_leap_micro;
+}
 
 sub remove_subtest_setup {
     assert_script_run("podman container rm -af");
@@ -37,7 +45,7 @@ sub is_container_running {
 
 # clean up routine only for systems that run CNI as default network backend
 sub _cleanup {
-    return if is_alp;
+    return unless is_cni_default;
     my $podman = shift->containers_factory('podman');
     select_console 'log-console';
     remove_subtest_setup;
@@ -76,8 +84,12 @@ sub run {
         return 1;
     }
 
-    switch_to_netavark unless is_alp;
+    switch_to_netavark if is_cni_default || is_cni_in_tw;
     $podman->cleanup_system_host();
+
+    # it is turned off in
+    # https://github.com/os-autoinst/os-autoinst-distri-opensuse/blame/master/lib/containers/common.pm#L303
+    assert_script_run 'sysctl -w net.ipv6.conf.all.disable_ipv6=0';
 
     ## TEST1
     record_info('TEST1', 'set static IP, and MAC addresses on a per-network basis');
@@ -177,8 +189,17 @@ sub run {
         systemctl('enable --now netavark-dhcp-proxy.socket');
         systemctl('status netavark-dhcp-proxy.socket');
 
-        my $dev = script_output(q(ip -br link show | awk '/UP / {print $1}'));
-        assert_script_run("podman network create -d macvlan --interface-name $dev $net1->{name}");
+        my $dev = script_output(q(ip -br link show | awk '/UP / {print $1}'| head -n 1));
+        my $extra = '';
+        if (is_public_cloud) {
+            my $sn = script_output(qq(ip -o -f inet addr show $dev | awk '/scope global/ {print \$4}' | head -n 1)) =~ s/\.\d+\//\.0\//r;
+            $extra .= "--subnet $sn ";
+            my $gw = $sn =~ s/0\/\d+$/1/r;
+            $extra .= "--gateway $gw ";
+            my $range = $gw =~ s/\d+$/244\/30/r;
+            $extra .= "--ip-range $range";
+        }
+        assert_script_run("podman network create -d macvlan --interface-name $dev $extra $net1->{name}");
         assert_script_run("podman run --network $net1->{name} -td --name $ctr2->{name} $ctr2->{image}");
         if (is_container_running($ctr2->{name})) {
             assert_script_run("podman exec $ctr2->{name} ip addr show eth0");
@@ -193,6 +214,7 @@ sub post_run_hook {
     shift->_cleanup();
 }
 sub post_fail_hook {
+    script_run("sysctl -a | grep --color=never net");
     shift->_cleanup();
 }
 

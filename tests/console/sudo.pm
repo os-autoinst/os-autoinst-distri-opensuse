@@ -19,8 +19,8 @@ use strict;
 use warnings;
 use testapi;
 use utils 'zypper_call';
-use version_utils qw(is_sle);
-use publiccloud::utils qw(is_azure);
+use version_utils qw(is_sle is_public_cloud);
+use publiccloud::utils qw(is_azure is_byos);
 
 sub sudo_with_pw {
     my ($command, %args) = @_;
@@ -50,8 +50,8 @@ sub run {
     zypper_call 'in sudo expect';
     select_console 'user-console';
     # Defaults targetpw -> asks for root PW
-    my $exp_user = (is_azure && is_sle('=15-SP5')) ? 'bernhard' : 'root';
-    assert_script_run("expect -c 'spawn sudo id -un;expect \"password for $exp_user\" {send \"$testapi::password\\r\";interact} default {exit 1}' | grep ^$exp_user");
+    my $exp_user = (is_azure && is_sle('>=15-SP4')) ? 'bernhard is not in the sudoers file' : 'root';
+    validate_script_output("expect -c 'spawn sudo id -un;expect password {send \"$testapi::password\\r\";interact}'", sub { qr/^$exp_user\$/ });
     select_console 'root-console';
     # Prepare a file with content '1' for later IO redirection test
     assert_script_run 'echo 1 >/run/openqa_sudo_test';
@@ -91,6 +91,9 @@ sub run {
     sudo_with_pw 'sudo env', grep => '-v ENVVAR=test132', env => 'ENVVAR test132';
     # sudoers configuration
     test_sudoers;
+    become_root;
+    assert_script_run 'test -f /etc/sudoers || (cp /usr/etc/sudoers /etc/sudoers && touch /tmp/sudoers.copied)';
+    enter_cmd 'exit';
     sudo_with_pw 'sudo sed -i "s/^Defaults\[\[\:space\:\]\]*targetpw/Defaults\ !targetpw/" /etc/sudoers';
     sudo_with_pw 'sudo sed -i "s/^ALL\[\[\:space\:\]\]*ALL/#ALL ALL/" /etc/sudoers';
     sudo_with_pw 'sudo su - sudo_test';
@@ -106,8 +109,14 @@ sub post_run_hook {
     assert_script_run 'sed -i "s/^Defaults\[\[\:space\:\]\]*\!targetpw/Defaults\ targetpw/" /etc/sudoers';
     assert_script_run 'sed -i "s/^#ALL\[\[\:space\:\]\]*ALL/ALL ALL/" /etc/sudoers';
     assert_script_run 'rm -f /etc/sudoers.d/test /etc/sudoers.d/sudo_group';
+    script_run 'test -f /tmp/sudoers.copied && rm /etc/sudoers /tmp/sudoers.copied';
     # remove test user
     assert_script_run 'userdel -r sudo_test && groupdel sudo_group';
+}
+
+sub post_fail_hook {
+    script_run('tar -cf /var/tmp/sudoers.tmp /etc/sudoers');
+    upload_logs('/var/tmp/sudoers.tmp');
 }
 
 1;

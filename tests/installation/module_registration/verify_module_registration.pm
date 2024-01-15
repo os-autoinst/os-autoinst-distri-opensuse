@@ -18,9 +18,7 @@ use testapi;
 
 sub run {
     my %softfail_modules_data = (
-        PackageHub => "bsc#1202416 - packagehub cannot work at sles15sp5",
-        "sle-module-NVIDIA-compute" => "bsc#1204611 - no sle-module-NVIDIA-compute in 15sp5",
-        "sle-module-certifications" => "bsc#1204612 - no sle-module-certifications in 15sp5",
+        "sle-module-certifications" => "bsc#1214197 - no sle-module-certifications in 15sp6"
     );
 
     my @softfail_modules = keys %softfail_modules_data;

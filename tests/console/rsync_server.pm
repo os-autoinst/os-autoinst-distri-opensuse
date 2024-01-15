@@ -29,6 +29,7 @@ sub run {
     #preparation of rsync config files
     assert_script_run('curl -v -o /etc/rsyncd.conf ' . data_url('console/rsyncd.conf'));
     assert_script_run 'echo "test42:424242" > /etc/rsyncd.secrets';
+    assert_script_run 'chmod 600 /etc/rsyncd.secrets';
 
     if (is_sle('<12-sp5')) {    #using xinetd on sle 12
         assert_script_run(q{sed -i 's/\(\s*disable\s*=\).*/\1 no/' /etc/xinetd.d/rsync});

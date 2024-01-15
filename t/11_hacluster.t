@@ -5,7 +5,7 @@ use Test::Exception;
 use Test::MockModule;
 use hacluster;
 use testapi;
-use Scalar::Util 'looks_like_number';
+use Scalar::Util qw(looks_like_number);
 
 my %sbd_delay_params = (
     'sbd_delay_start' => 'yes',
@@ -18,9 +18,9 @@ my %sbd_delay_params = (
 subtest '[calculate_sbd_start_delay] Check sbd_delay_start values' => sub {
     my $sbd_delay;
     my %value_vs_expected = (
-        'yes' => 25,
+        yes => 25,
         '1' => 25,
-        'no' => 0,
+        no => 0,
         '0' => 0,
         '120' => 120,
     );
@@ -171,9 +171,9 @@ subtest '[setup_sbd_delay] Test OpenQA parameter input' => sub {
     });
 
     my %passing_values_vs_expected = (
-        'yes' => '30',
+        yes => '30',
         '' => '30',
-        'no' => '0',
+        no => '0',
         '0' => '0',
         '100' => '100',
         '100s' => '100');
@@ -203,6 +203,43 @@ subtest '[set_sbd_service_timeout] Check failing values' => sub {
     dies_ok { set_sbd_service_timeout() } 'Expected failure if no argument is provided';
     dies_ok { set_sbd_service_timeout('Chupacabras') } 'Expected failure if argument is not a number';
     is set_sbd_service_timeout('42'), '42', 'Function should not change delay time';
+};
+
+subtest '[crm_wait_for_maintenance] arguments validation' => sub {
+    # only supported values are 'false', 'true'
+    dies_ok { crm_wait_for_maintenance(target_state => 'superposition',
+            loop_sleep => 1) } 'Expected failure with incorrect argument';
+};
+
+subtest '[crm_wait_for_maintenance]' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my %correct_output_values = (true => ' maintenance-mode=true ', false => ' maintenance-mode=false ');
+    my @wrong_output_values = (' maintenance-mode=weirdKernelMessage ', 'as mweirdKernel_message aintenance-mode=false ');
+
+    foreach (@wrong_output_values) {
+        $hacluster->redefine(script_output => sub { return $_; });
+        dies_ok { crm_wait_for_maintenance(target_state => $_, loop_sleep => 1) }
+        'Fail with incorrect or mangled crm output';
+    }
+
+    foreach (keys %correct_output_values) {
+        $hacluster->redefine(script_output => sub { return $correct_output_values{$_}; });
+        is crm_wait_for_maintenance(target_state => $_, loop_sleep => 1), $_, "Return correct value: $_";
+    }
+};
+
+subtest '[crm_check_resource_location]' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my $resource = 'grp_EN2_ASCS00';
+    my $hostname = 'ensa-node01';
+    my @calls;
+    $hacluster->redefine(script_output => sub { return "resource $resource is running on: $hostname"; });
+
+    is crm_check_resource_location(resource => $resource), $hostname, "Return correct hostname: $hostname";
+    is crm_check_resource_location(resource => $resource, wait_for_target => $hostname),
+      $hostname, "Return correct hostname: $hostname";
 };
 
 done_testing;

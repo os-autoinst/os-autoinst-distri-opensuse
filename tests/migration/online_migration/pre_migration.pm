@@ -22,10 +22,8 @@ sub check_or_install_packages {
     assert_script_run('modprobe nvram') if is_pvm_hmc;
     if (get_var("FULL_UPDATE") || get_var("MINIMAL_UPDATE")) {
         # if system is fully updated or even minimal patch applied,
-        # all necessary packages for online migration should be installed
-        # and zypper-migration-plugin was obsoleted since 15sp4.
+        # all necessary packages for online migration should be installed.
         my @pkgs = qw(yast2-migration rollback-helper);
-        push @pkgs, "zypper-migration-plugin" if is_sle('<15-SP4', get_var('ORIGIN_SYSTEM_VERSION'));
         assert_script_run("rpm -q $_") foreach @pkgs;
     } else {
         # install necessary packages for online migration if system is not updated

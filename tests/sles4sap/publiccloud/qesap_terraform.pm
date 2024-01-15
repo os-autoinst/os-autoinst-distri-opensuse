@@ -7,18 +7,20 @@
 # https://github.com/SUSE/qe-sap-deployment
 
 # Available OpenQA parameters:
-# HA_CLUSTER - Enables HA/Hana cluser scenario
+# HA_CLUSTER - Enables HA/Hana cluster scenario
 # NODE_COUNT - number of nodes to deploy. Needs to be >1 for cluster usage.
 # PUBLIC_CLOUD_INSTANCE_TYPE - VM size, sets terraform 'vm_size' parameter
 # USE_SAPCONF - (true/false) set 'false' to use saptune
-# HANA_OS_MAJOR_VERSION - sets 'hana_os_major_version' terraform parameter - default is taken from 'VERSION'
 # FENCING_MECHANISM - (sbd/native) choose fencing mechanism
 # QESAP_SCC_NO_REGISTER - define variable in openqa to skip SCC registration via ANSIBLE
 # HANA_MEDIA - Hana install media directory
+# HANA_ACCOUNT - Azure Storage name
+# HANA_CONTAINER - Azure Container name
+# HANA_KEYNAME - Azure key name in the Storage to generate SAS URI token used by hana_media in qe-sap-deployment
 # _HANA_MASTER_PW (mandatory) - Hana master PW (secret)
 # INSTANCE_SID - SAP Sid
 # INSTANCE_ID - SAP instance id
-# ANSIBLE_REMOTE_PYTHON - define python version to be used for qesap-deploymnet (default '/usr/bin/python3')
+# ANSIBLE_REMOTE_PYTHON - define python version to be used for qe-sap-deploymnet (default '/usr/bin/python3')
 # PUBLIC_CLOUD_IMAGE_LOCATION - needed by get_blob_uri
 
 use strict;
@@ -43,7 +45,7 @@ sub test_flags {
     Check if a requested openQA variable is defined and returns it's current value.
     If the variable is not defined, it will:
      - defines it
-     - assignes the default value provided
+     - assigns the default value provided
      - returns its value
     $variable - variable to check against OpenQA settings
     $default - default value to set in case the variable is missing.
@@ -106,7 +108,9 @@ sub run {
         my $escaped_token = qesap_az_create_sas_token(storage => get_required_var('HANA_ACCOUNT'),
             container => (split("/", get_required_var('HANA_CONTAINER')))[0],
             keyname => get_required_var('HANA_KEYNAME'),
-            lifetime => 30);
+            # lifetime has to be enough to reach the point of the test that
+            # executes qe-sap-deployment Ansible playbook 'sap-hana-download-media.yaml'
+            lifetime => 90);
         # escape needed by 'sed'
         # but not implemented in file_content_replace() yet poo#120690
         $escaped_token =~ s/\&/\\\&/g;
@@ -114,18 +118,32 @@ sub run {
     }
 
     my $subscription_id = $provider->{provider_client}{subscription};
+    my $os_image_name;
 
-    # This section is only needed by tests using images uploaded
-    # with publiccloud_upload_img so using conf.yaml templates
-    # with OS_URI or SLE_IMAGE
     if (is_azure() && get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
-        set_var('OS_URI', $provider->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION')));
+        # This section is only needed by Azure tests using images uploaded
+        # with publiccloud_upload_img. This is because qe-sap-deployment
+        # is still not able to use images from Azure Gallery
+        $os_image_name = $provider->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
     } else {
-        set_var('SLE_IMAGE', $provider->get_image_id());
+        $os_image_name = $provider->get_image_id();
     }
+    set_var('SLES4SAP_OS_IMAGE_NAME', $os_image_name);
 
     set_var_output('USE_SAPCONF', 'true');
-    my $ansible_playbooks = create_playbook_section_list($ha_enabled);
+    # This is the path where community.sles-for-sap repo
+    # has been cloned.
+    # Not all the conf.yaml used by this file needs it but
+    # it is just easyer to define it here for all.
+    set_var("ANSIBLE_ROLES", qesap_get_ansible_roles_dir());
+    my $reg_mode = 'registercloudguest';    # Use registercloudguest by default
+    if (get_var('QESAP_SCC_NO_REGISTER')) {
+        $reg_mode = 'noreg';
+    }
+    elsif (get_var('QESAP_FORCE_SUSECONNECT')) {
+        $reg_mode = 'suseconnect';
+    }
+    my $ansible_playbooks = create_playbook_section_list(ha_enabled => $ha_enabled, registration => $reg_mode, fencing => get_var('FENCING_MECHANISM'));
     my $ansible_hana_vars = create_hana_vars_section($ha_enabled);
 
     # Prepare QESAP deployment
@@ -153,9 +171,7 @@ sub run {
         if (get_var('FENCING_MECHANISM') eq 'native' && get_var('PUBLIC_CLOUD_PROVIDER') eq 'AZURE') {
             qesap_az_setup_native_fencing_permissions(
                 vm_name => $instance->instance_id,
-                subscription_id => $subscription_id,
-                resource_group => qesap_az_get_resource_group()
-            );
+                resource_group => qesap_az_get_resource_group());
         }
     }
 

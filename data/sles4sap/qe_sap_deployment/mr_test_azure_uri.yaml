@@ -16,7 +16,7 @@ terraform:
     admin_user: 'cloudadmin'
     public_key: '~/.ssh/id_rsa.pub'
     private_key: '~/.ssh/id_rsa'
-    os_image_uri: '%OS_URI%'
+    os_image_uri: '%SLES4SAP_OS_IMAGE_NAME%'
 
     # HANA
     hana_count: '%NODE_COUNT%'

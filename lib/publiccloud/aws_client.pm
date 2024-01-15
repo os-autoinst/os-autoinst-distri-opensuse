@@ -13,7 +13,7 @@ use testapi;
 use utils;
 use publiccloud::utils;
 
-has region => sub { get_var('PUBLIC_CLOUD_REGION', 'eu-central-1') };
+has region => sub { get_required_var('PUBLIC_CLOUD_REGION') };
 has aws_account_id => undef;
 has container_registry => sub { get_var("PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY", 'suse-qec-testing') };
 has username => sub { get_var('PUBLIC_CLOUD_USER', 'ec2-user') };
@@ -76,10 +76,6 @@ sub configure_podman {
     assert_script_run("aws ecr get-login-password --region "
           . $self->region
           . " | podman login --username AWS --password-stdin $full_name_prefix");
-}
-
-sub cleanup {
-    my ($self) = @_;
 }
 
 1;

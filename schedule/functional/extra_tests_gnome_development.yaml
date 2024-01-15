@@ -27,18 +27,6 @@ conditional_schedule:
                 - x11/wine
                 - x11/chrome
                 - qe-core/x11/openbroadcastersoftware.py
-    python_liblouis:
-        DISTRI:
-            sle:
-                - '{{python_liblouis_sle}}'
-            opensuse:
-                - console/python_liblouis
-    python_liblouis_sle:
-        ARCH:
-            'x86_64':
-                - console/python_liblouis
-            'aarch64':
-                - console/python_liblouis
     opensuse_tests:
         DISTRI:
             opensuse:
@@ -68,6 +56,5 @@ schedule:
     - '{{keyboard_layout_gdm}}'
     - console/yast2_lan_device_settings
     - console/check_default_network_manager
-    - '{{python_liblouis}}'
     - console/coredump_collect
     - console/zypper_log_packages

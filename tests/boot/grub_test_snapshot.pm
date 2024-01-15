@@ -12,7 +12,7 @@ use warnings;
 use base 'opensusebasetest';
 use testapi;
 use power_action_utils 'power_action';
-use utils qw(workaround_type_encrypted_passphrase reconnect_mgmt_console);
+use utils qw(unlock_bootloader reconnect_mgmt_console);
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot change_grub_config);
 use Utils::Backends 'is_pvm';
 use Utils::Architectures qw(is_aarch64);

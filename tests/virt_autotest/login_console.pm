@@ -179,7 +179,11 @@ sub login_to_console {
             save_screenshot;
             send_key 'ret';
             #wait grub2 boot menu after first stage upgrade
-            assert_screen('grub2', 300);
+            unless (check_screen('grub2', timeout => 290)) {
+                record_info("Reboot SUT", "Reboot " . get_required_var("SUT_IP") . " to match grub2 menu because last match failed");
+                ipmi_backend_utils::ipmitool("chassis power reset");
+                assert_screen('grub2', timeout => 300);
+            }
             #wait sshd up after first stage upgrade
             die "Can not connect to machine to perform offline upgrade second stage via ssh" unless (check_port_state(get_required_var('SUT_IP'), 22, 20));
             save_screenshot;
@@ -220,6 +224,22 @@ sub login_to_console {
     set_ssh_console_timeout_before_use if (is_sle and is_remote_backend and is_x86_64 and get_var('VIRT_AUTOTEST', ''));
     # use console based on ssh to avoid unstable ipmi
     use_ssh_serial_console;
+
+    # Check 64kb page size enabled.
+    if (get_var('KERNEL_64KB_PAGE_SIZE')) {
+        # Verify 64kb page size enabled.
+        record_info('Baremetal kernel cmdline', script_output('cat /proc/cmdline'));
+        assert_script_run("dmesg | grep 'Linux version' | grep -- -64kb");
+        record_info('INFO', '64kb page size enabled.');
+
+        # Swap needs to be reinitiated
+        my $swap_partition = script_output("swapon | awk '/\\/dev/{print \$1; exit}'");
+        record_info('Current swap partition is ', $swap_partition);
+        assert_script_run("swapoff $swap_partition");
+        assert_script_run('swapon --fixpgsz');
+        assert_script_run('getconf PAGESIZE');
+    }
+
     # double-check xen role for xen host
     double_check_xen_role if (is_xen_host and !get_var('REBOOT_AFTER_UPGRADE'));
     check_kvm_modules if is_x86_64 and is_kvm_host and !get_var('REBOOT_AFTER_UPGRADE');

@@ -2,12 +2,11 @@ name: fips_crypt_web
 description:    >
     This is for the crypt_web fips tests.
 schedule:
-    - '{{boot}}'
+    - installation/bootloader_start
     - boot/boot_to_desktop
     - console/consoletest_setup
     - '{{repo_setup}}'
     - fips/fips_setup
-    - '{{y2_vnc_pvm}}'
     - console/curl_https
     - console/wget_https
     - console/w3m_https
@@ -16,12 +15,6 @@ schedule:
     - console/apache_ssl
     - fips/mozilla_nss/apache_nssfips
 conditional_schedule:
-    boot:
-        ARCH:
-            s390x:
-                - installation/bootloader_start
-            ppc64le:
-                - installation/bootloader_start
     repo_setup:
         BETA:
             1:
@@ -29,7 +22,3 @@ conditional_schedule:
         FLAVOR:
             Online-QR:
                 - security/test_repo_setup
-    y2_vnc_pvm:
-        BACKEND:
-            pvm_hmc:
-                - console/yast2_vnc

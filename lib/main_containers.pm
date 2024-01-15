@@ -28,7 +28,7 @@ our @EXPORT = qw(
 );
 
 sub is_container_test {
-    return get_var('CONTAINER_RUNTIME', 0);
+    return get_var('CONTAINER_RUNTIMES', 0);
 }
 
 sub is_container_image_test {
@@ -102,15 +102,16 @@ sub load_host_tests_podman {
         loadtest 'containers/podman_bci_systemd';
         loadtest 'containers/podman_pods';
         # Default for ALP is Netavark
-        loadtest('containers/podman_network_cni') unless (is_alp);
+        loadtest('containers/podman_network_cni') unless (is_alp || is_sle_micro('6.0+'));
         # Netavark not supported in 15-SP1 and 15-SP2 (due to podman version older than 4.0.0)
         loadtest 'containers/podman_netavark' unless (is_staging || is_sle("<15-sp3") || is_ppc64le);
         # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
         loadtest 'containers/podman_firewall' unless (is_public_cloud || is_openstack || is_microos || is_alp);
         # Buildah is not available in SLE Micro, MicroOS and staging projects
         loadtest 'containers/buildah' unless (is_sle_micro || is_microos || is_leap_micro || is_alp || is_staging);
+        loadtest 'containers/podman_quadlet' if is_tumbleweed;
         # https://github.com/containers/podman/issues/5732#issuecomment-610222293
-        # exclude rootless poman on public cloud because of cgroups2 special settings
+        # exclude rootless podman on public cloud because of cgroups2 special settings
         unless (is_sle('<15-sp2') || is_openstack || is_public_cloud) {
             loadtest 'containers/rootless_podman';
             loadtest 'containers/podman_remote' if is_sle '>15-sp2';
@@ -139,7 +140,7 @@ sub load_host_tests_docker {
         # to maintenance jobs or new products after Beta release
         # PackageHub is not available in SLE Micro | MicroOS
         loadtest 'containers/registry' if (is_x86_64 || is_sle('>=15-sp4'));
-        loadtest 'containers/docker_compose' unless is_public_cloud;
+        loadtest 'containers/docker_compose' unless (is_public_cloud || is_sle('=12-sp3'));
     }
     # Expected to work anywhere except of real HW backends, PC and Micro
     unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro) {
@@ -204,7 +205,7 @@ sub update_host_and_publish_hdd {
         # we only need to shutdown the VM before publishing the HDD
         loadtest 'boot/boot_to_desktop';
         loadtest 'containers/update_host';
-        loadtest 'containers/openshift_setup' if check_var('CONTAINER_RUNTIME', 'openshift');
+        loadtest 'containers/openshift_setup' if check_var('CONTAINER_RUNTIMES', 'openshift');
     }
     loadtest 'shutdown/cleanup_before_shutdown' if is_s390x;
     loadtest 'shutdown/shutdown';
@@ -212,7 +213,7 @@ sub update_host_and_publish_hdd {
 }
 
 sub load_container_tests {
-    my $runtime = get_required_var('CONTAINER_RUNTIME');
+    my $runtime = get_required_var('CONTAINER_RUNTIMES');
 
     if (get_var('CONTAINER_UPDATE_HOST')) {
         update_host_and_publish_hdd();
@@ -253,6 +254,11 @@ sub load_container_tests {
 
     if (get_var('CONTAINER_SUMA')) {
         loadtest 'containers/suma_containers';
+        return;
+    }
+
+    if (get_var('PODMAN_BATS_SKIP')) {
+        loadtest 'containers/podman_integration';
         return;
     }
 

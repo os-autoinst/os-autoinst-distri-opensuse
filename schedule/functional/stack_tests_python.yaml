@@ -1,0 +1,72 @@
+---
+name: stack_tests_python
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - '{{add_phub_extension}}'
+  - console/python_scientific
+  - '{{distri_version_specific}}'
+conditional_schedule:
+  distri_version_specific:
+    DISTRI:
+      sle:
+        - '{{version_specific}}'
+      opensuse:
+        - console/python_flake8
+        - console/python_pycairo
+        - console/django
+        - '{{python_liblouis}}'
+        - console/rabbitmq
+        - console/python3_new_version_check
+        - console/python3_setuptools
+        - console/python3_beautifulsoup4
+  version_specific:
+    VERSION:
+      15-SP6:
+        - console/python_flake8
+        - console/python_pycairo
+        - console/django
+        - '{{python_liblouis}}'
+        - console/rabbitmq
+        - console/python3_new_version_check
+        - console/python3_setuptools
+        - console/python3_beautifulsoup4
+      15-SP5:
+        - console/python_flake8
+        - console/python_pycairo
+        - console/django
+        - '{{python_liblouis}}'
+        - console/rabbitmq
+        - console/python3_new_version_check
+        - console/python3_setuptools
+        - console/python3_beautifulsoup4
+      15-SP4:
+        - console/python_flake8
+        - console/python_pycairo
+        - console/django
+        - '{{python_liblouis}}'
+        - console/rabbitmq
+        - console/python3_new_version_check
+        - console/python3_setuptools
+        - console/python3_beautifulsoup4
+      15-SP3:
+        - console/python_flake8
+        - console/django
+        - console/python_liblouis
+      15-SP2:
+        - console/python_flake8
+        - console/django
+        - console/python_liblouis
+      15-SP1:
+        - console/python_flake8
+        - console/django
+  python_liblouis:
+    ARCH:
+      'x86_64':
+        - console/python_liblouis
+      'aarch64':
+        - console/python_liblouis
+  add_phub_extension:
+    DISTRI:
+      sle:
+        - console/add_phub_extension

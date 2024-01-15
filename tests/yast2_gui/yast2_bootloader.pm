@@ -32,8 +32,9 @@ sub run {
 
     #	kernel parameters and use graphical console
     wait_still_screen 3;
-    assert_and_click 'yast2-bootloader_kernel-parameters';
-    assert_screen 'yast2-bootloader_kernel-parameters-switched';
+    is_sle('>=15-SP4') ? apply_workaround_poo124652('yast2-bootloader_kernel-parameters-full') : assert_screen 'yast2-bootloader_kernel-parameters-full';
+    send_key 'alt-k';
+    is_sle('>=15-SP4') ? apply_workaround_poo124652('yast2-bootloader_kernel-parameters-switched') : assert_screen 'yast2-bootloader_kernel-parameters-switched';
     send_key 'alt-p';
     send_key 'end';
     assert_screen 'yast2-bootloader_use-graphical-console';
@@ -48,7 +49,7 @@ sub run {
 
     #	default boot section
     if (is_sle('>=15-SP4')) {
-        apply_workaround_poo124652('yast2-bootloader_default-boot-section') if (is_sle('>=15-SP4'));
+        apply_workaround_poo124652('yast2-bootloader_default-boot-section');
         assert_and_click 'yast2-bootloader_default-boot-section';
     }
     else {

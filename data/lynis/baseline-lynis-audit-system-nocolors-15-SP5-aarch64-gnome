@@ -282,7 +282,7 @@
 [2C- Checking configured nameservers[26C
 [4C- Testing nameservers[36C
 [8CNameserver: 2620:113:80c0:8080:10:160:2:88[11C [ OK ]
-[8CNameserver: 2620:113:80c0:8080:10:160:0:1[12C [ OK ]
+[8CNameserver: 2a07:de40:b205:7:10:144:53:53[12C [ OK ]
 [8CNameserver: 2620:113:80c0:8000:10:161:0:98[11C [ OK ]
 [4C- Minimal of 2 responsive nameservers[20C [ OK ]
 [2C- Checking default gateway[33C [ DONE ]

@@ -40,8 +40,6 @@ sub delete_container_image {
 
 sub cleanup() {
     my ($self) = @_;
-
-    $self->provider_client->cleanup();
 }
 
 1;

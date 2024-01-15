@@ -408,7 +408,7 @@ sub create_image_version {
     # execute test runs. For reasons of being concise we re-use the existing variable PUBLIC_CLOUD_REGION, but here
     # it can contain a comma-separated list of all regions, in which the uploaded image should be available
     # The $self->region is not used here as it contains only the first region from the list.
-    my $target_regions = get_var("PUBLIC_CLOUD_REGION", "westeurope");
+    my $target_regions = get_required_var("PUBLIC_CLOUD_REGION");
     $target_regions =~ s/,/ /g;    # CLI expects spaces as separation, not commas
 
     my $definition = $self->get_image_definition($resource_group, $gallery);
@@ -604,13 +604,12 @@ sub cleanup {
     my ($self, $args) = @_;
     select_host_console(force => 1);
 
-    my $id = $args->{my_instance}->{instance_id};
-
-    script_run("az vm boot-diagnostics get-boot-log --ids $id | jq -r '.' > bootlog.txt", timeout => 120, die_on_timeout => 0);
-    upload_logs("bootlog.txt", failok => 1);
-
+    if (defined($args->{my_instance}->{instance_id})) {
+        my $id = $args->{my_instance}->{instance_id};
+        script_run("az vm boot-diagnostics get-boot-log --ids $id | jq -r '.' > bootlog.txt", timeout => 120, die_on_timeout => 0);
+        upload_logs("bootlog.txt", failok => 1);
+    }
     $self->SUPER::cleanup();
-    $self->provider_client->cleanup();
 }
 
 1;

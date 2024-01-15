@@ -9,6 +9,8 @@ NOTE: This list is not complete and may contain outdated info. If you face such 
 For a better overview some domain-specific values have been moved to their own section:
 
 * [Publiccloud](#publiccloud-specific-variables)
+* [Wicked](#wicked-testsuite-specifc-variables)
+* [xfstests](#xfstests-specific-variables)
 
 Variable        | Type      | Default value | Details
 ---             | ---       | ---           | ---
@@ -41,7 +43,8 @@ CHECK_RELEASENOTES | boolean | false | Loads `installation/releasenotes` test mo
 CHECKSUM_* | string | | SHA256 checksum of the * medium. E.g. CHECKSUM_ISO_1 for ISO_1.
 CHECKSUM_FAILED | string | | Variable is set if checksum of installation medium fails to visualize error in the test module and not just put this information in the autoinst log file.
 CLUSTER_TYPES | string | false | Set the type of cluster that have to be analyzed (example: "drbd hana"). This variable belongs to PUBLIC_CLOUD_.
-CONTAINER_RUNTIME | string | | Container runtime to be used, e.g.  `docker`, `podman`, or both `podman,docker`. In addition, it is also used for other container tests, like  `kubectl`, `helm`, etc.
+CONTAINER_RUNTIMES | string | | Container runtime to be used, e.g.  `docker`, `podman`, or both `podman,docker`. In addition, it is also used for other container tests, like  `kubectl`, `helm`, etc.
+CONTAINERS_CGROUP_VERSION | string | | If defined, cgroups version to switch to
 CONTAINERS_K3S_VERSION | string |  | If defined, install the provided version of k3s
 CONTAINERS_NO_SUSE_OS | boolean | false | Used by main_containers to see if the host is different than SLE or openSUSE.
 CONTAINERS_UNTESTED_IMAGES | boolean | false | Whether to use `untested_images` or `released_images` from `lib/containers/urls.pm`.
@@ -98,9 +101,11 @@ IPERF_REPO | string | | Link to repository with iperf tool for network performan
 IPXE | boolean | false | Indicates ipxe boot.
 ISO_MAXSIZE | integer | | Max size of the iso, used in `installation/isosize.pm`.
 IS_MM_SERVER | boolean | | If set, run server-specific part of the multimachine job
+IS_MM_CLIENT | boolean | | If set, run client-specific part of the multimachine job
 K3S_SYMLINK | string | | Can be 'skip' or 'force'. Skips the installation of k3s symlinks to tools like kubectl or forces the creation of symlinks
 K3S_BIN_DIR | string | | If defined, install k3s to this provided directory instead of `/usr/local/bin/`
 K3S_CHANNEL | string | | Set the release channel to pick the k3s version from. Options include "stable", "latest" and "testing"
+KERNEL_FLAVOR | string | kernel-default | Set specific kernel flavor for test scenarios
 KUBECTL_CLUSTER | string | | Defines the cluster used to test `kubectl`. Currently only `k3s` is supported.
 KUBECTL_VERSION | string | v1.22.12 | Defines the kubectl version.
 KEEP_DISKS | boolean | false | Prevents disks wiping for remote backends without snaphots support, e.g. ipmi, powerVM, zVM
@@ -127,6 +132,7 @@ MACHINE | string | | Define machine name which defines worker specific configura
 MEDIACHECK | boolean | false | Enables `installation/mediacheck` test module.
 MEMTEST | boolean | false | Enables `installation/memtest` test module.
 MIRROR_{protocol} | string | | Specify source address
+MM_MTU | integer | 1380 | Specifies the MTU to set in SUTs of MM tests usually started with `NICTYPE=tap`.
 MOK_VERBOSITY | boolean | false | Enable verbosity feature of shim. Requires preinstalled `mokutil`.
 MOZILLATEST |||
 MOZILLA_NSS_DEVEL_REPO | string | | URL of the repository where to install the mozilla-nss packages from.
@@ -169,6 +175,7 @@ RESCUECD | boolean | false | Indicates rescue image to be used.
 RESCUESYSTEM | boolean | false | Indicates rescue system under test.
 ROOTONLY | boolean | false | Request installation to create only the root account, no user account.
 RESET_HOSTNAME| boolean | false | If set to true content of /etc/hostname file will be erased
+SCC_DEBUG_SUSECONNECT | boolean | false | Set to pass debug flag to SUSEConnect
 SCC_ADDONS | string | | Comma separated list of modules to be enabled using SCC/RMT.
 SCC_DOCKER_IMAGE | string | | The content of /etc/zypp/credentials.d/SCCcredentials used by container-suseconnect-zypp zypper service in SLE base container images
 SELECT_FIRST_DISK | boolean | false | Enables test module to select first disk for the installation. Is used for baremetal machine tests with multiple disks available, including cases when server still has previous installation.
@@ -213,6 +220,7 @@ XDMUSED | boolean | false | Indicates availability of xdm.
 XFS_MKFS_OPTIONS | string | | Define additional mkfs parameters. Used only in publiccloud test runs.
 XFS_TEST_DEVICE | string | | Define the device used for xfs tests. Used only in publiccloud test runs.
 XFS_TESTS_REFLINK | boolean | false | If set to true, the mkfsoption for using reflink will be added. Used only in publiccloud test runs.
+XFSTESTS_OVERLAY_BASE_FS | string | xfs | Define the base filesystem type of overlayfs
 YAML_SCHEDULE_DEFAULT | string | | Defines default yaml file to be overriden by test suite schedule.
 YAML_SCHEDULE_FLOWS | string | | Defines a comma-separated values representing additional flows which overrides steps on the schedule specified in YAML_SCHEDULE_DEFAULT.
 YAML_SCHEDULE | string | | Defines yaml file containing test suite schedule.
@@ -256,7 +264,7 @@ TRENTO_WEB_PASSWORD | string | | Trento web password for the admin user. If not 
 TRENTO_QESAPDEPLOY_CLUSTER_OS_VER | string | | OS for nodes in SAP cluster.
 TRENTO_QESAPDEPLOY_HANA_ACCOUNT | string | | Azure blob server account for the SAP installers for the qe-sap-deployment hana_media.yaml.
 TRENTO_QESAPDEPLOY_HANA_CONTAINER | string | | Azure blob server container for the qe-sap-deployment hana_media.yaml.
-TRENTO_QESAPDEPLOY_HANA_TOKEN | string | | Azure blob server token for the qe-sap-deployment hana_media.yaml.
+TRENTO_QESAPDEPLOY_HANA_KEYNAME | string | | Azure blob server key name used to generate the SAS URI token for the qe-sap-deployment hana_media.yaml.
 TRENTO_QESAPDEPLOY_SAPCAR | string | | SAPCAR file name for the qe-sap-deployment hana_media.yaml.
 TRENTO_QESAPDEPLOY_IMDB_SERVER | string | | IMDB_SERVER file name for the qe-sap-deployment hana_media.yaml.
 TRENTO_QESAPDEPLOY_IMDB_CLIENT | string | | IMDB_CLIENT file name for the qe-sap-deployment hana_media.yaml.
@@ -269,6 +277,7 @@ QESAP_INSTALL_GITHUB_BRANCH | string | | Git branch. Ignored if QESAP_INSTALL_VE
 QESAP_INSTALL_GITHUB_NO_VERIFY | string | | Configure http.sslVerify false. Ignored if QESAP_VER is configured.
 QESAP_ROLES_INSTALL_GITHUB_REPO | string | github.com/sap-linuxlab/community.sles-for-sap | Git repository where to clone from. Ignored if QESAP_ROLES_INSTALL_VERSION is configured.
 QESAP_ROLES_INSTALL_GITHUB_BRANCH | string | | Git branch. Ignored if QESAP_ROLES_INSTALL_VERSION is configured.
+
 
 ### Publiccloud specific variables
 
@@ -292,6 +301,7 @@ PUBLIC_CLOUD_BUILD | string | "" | The image build number. Used only when we use
 PUBLIC_CLOUD_BUILD_KIWI | string | "" | The image kiwi build number. Used only when we use custom built image.
 PUBLIC_CLOUD_CONFIDENTIAL_VM | boolean | false | GCE Confidential VM instance
 PUBLIC_CLOUD_UPLOAD_IMG | boolean | false | If set, `publiccloud/upload_image` test module is added to the job.
+PUBLIC_CLOUD_REGISTRATION_TESTS | boolean | false | If set, only the registration tests are added to the job.
 PUBLIC_CLOUD_CONSOLE_TESTS | boolean | false | If set, console tests are added to the job.
 PUBLIC_CLOUD_CONTAINERS | boolean | false | If set, containers tests are added to the job.
 PUBLIC_CLOUD_DOWNLOAD_TESTREPO | boolean | false | If set, it schedules `publiccloud/download_repos` job.
@@ -300,6 +310,7 @@ PUBLIC_CLOUD_EC2_UPLOAD_AMI | string | "" | Needed to decide which image will be
 PUBLIC_CLOUD_EC2_UPLOAD_SECGROUP | string | "" | Allow to instruct ec2uploadimg script to use some existing security group instead of creating new one. If given, the parameter `--security-group-ids` is passed to `ec2uploadimg`.
 PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET | string | "" | Allow to instruct ec2uploadimg script to use some existing VPC instead of creating new one.
 PUBLIC_CLOUD_EC2_BOOT_MODE | string | "uefi-preferred" | The `--boot-mode` parameter for `ec2uploadimg` script. Available values: `legacy-bios`, `uefi`, `uefi-preferred` Currently unused variable. Use `git blame` to get context.
+PUBLIC_CLOUD_EC2_IPV6_ADDRESS_COUNT | string | 0 | How many IPv6 addresses should the instance have
 PUBLIC_CLOUD_FIO | boolean | false | If set, storage_perf test module is added to the job.
 PUBLIC_CLOUD_FIO_RUNTIME | integer | 300 | Set the execution time for each FIO tests.
 PUBLIC_CLOUD_FIO_SSD_SIZE | string | "100G" | Set the additional disk size for the FIO tests.
@@ -376,3 +387,61 @@ WICKED_SKIP_VERSION_CHECK | bool | false | Some test-modules require a specific 
 WICKED_TCPDUMP | bool | false | If enabled, on each test-module the network interfaces are set into promiscuous mode and a `*.pcap` file will be captured and uploaded.
 WICKED_VALGRIND | string | | Enable valgind for specified wicked binaries. Multiple values should be separated by `,`. If set to `all` or `1`, valgrind is enabled for all binaries(wickedd-auto4, wickedd-dhcp6, wickedd-dhcp4, wickedd-nanny, wickedd and wicked).
 WICKED_VALGRIND | string | /usr/bin/valgrind --tool=memcheck --leak-check=yes | The valgrind command used with `WICKED_VALGRIND` for each binary.
+
+
+### xfstests specific variables
+
+Following variables are relevant for filesystem tests xfstests. Contact: kernel-qa@suse.de
+
+Regular setting: some mandatory setting
+
+Variable        | Type      | Default value | Details
+---             | ---       | ---           | ---
+XFSTESTS_RANGES | string | | sub-tests ranges. This setting is mandatory. Support using "-" to define a range, or use "," to list separate subtests(e.g. xfs/001-999,generic/001). But the final test range will also count subtests defined in XFSTESTS_GROUPLIST, a skill to set subtests only by XFSTESTS_GROUPLIST is to set a minimal XFSTESTS_RANGES with XFSTESTS_GROUPLIST
+NO_SHUFFLE | boolean | 0 | the default sequence to run all subtests is a random sequence, it's designed to reduce the influence between each subtest. Set NO_SHUFFLE=1 to run in order
+XFSTESTS_BLACKLIST | string | | set the sub-tests will not run. Mostly use in the feature not supported, and exclude some critical issues to make whole tests stable. The final skip test list will also count those defined in XFSTESTS_GROUPLIST. It's also support "-" and "," to set skip range
+XFSTESTS_GROUPLIST | string | | it's an efficient way to set XFSTESTS_RANGES. Most likely use in test whole range in a single test, such as test special mount option. The range is supported in xfstests upstream, to know the whole range of group names could take a look at xfstests upstream README file. This parameter in openqa supports not only "include" tests, but also "exclude" tests. To add a "!" before a group name to exclude all subtests in that group. Here is an example: e.g. XFSTESTS_GROUPLIST=quick,!fuzz,!fuzzers,!realtime (Add all subtests in quick group, and exclude all dangerous subtests in fuzz, fuzzers, realtime groups)
+
+
+Run-time related: timeout control to avoid random fails when low performance
+
+Variable        | Type      | Default value | Details
+---             | ---       | ---           | ---
+XFSTESTS_HEARTBEAT_INTERVAL | integer | 30 | The interval (seconds) of each heartbeat signal
+XFSTESTS_HEARTBEAT_TIMEOUT | integer | 200 | The timeout (seconds) of not receiving a heartbeat signal
+XFSTESTS_SUBTEST_MAXTIME | integer | 2400 | Define the max test time (seconds) for a single subtest. The test logic will take the time out as a hang, to reset SUT and continue the rest of the tests. Considering xfstests contain some fuzzing tests which take quite a long time to finish, I suggest this max time don't set too small
+XFSTESTS_NO_HEARTBEAT | boolean | 0 | set XFSTESTS_NO_HEARTBEAT=1 to enable non-heartbeat mode. The heartbeat mode is default, you could also unset this parameter
+XFSTESTS_TIMEOUT | integer | 2000 | set de timeout (seconds) for each subtest. It is only used in non-heartbeat mode. And it's the only time control strategy in that mode
+
+
+Installation related: some optional setting to solve testsuite installation dependency issue
+
+Variable        | Type      | Default value | Details
+---             | ---       | ---           | ---
+XFSTESTS_REPO | string | | repo to install xfstests package
+DEPENDENCY_REPO | string | | ibs/obs repo to install related test package to solve dependency issues. e.g. fio
+XFSTESTS_DEVICE | string | | manually set a test disk for both TEST_DEV and SCRATCH_DEV
+
+
+Filesystem specific setting:
+
+Variable        | Type      | Default value | Details
+---             | ---       | ---           | ---
+XFSTEST_MKFS_OPTION | string | | BTRFS only, value=<options-in-mkfs>. Set the options in mkfs.btrfs. And also set it in xfstests runtime option BTRFS_MKFS_OPTIONS.
+XFSTESTS_LOGDEV | boolean | 0 | XFS only, value=0/1. enable log device in testing xfs
+XFSTESTS_XFS_REPAIR | boolean | 0 | XFS only, value=0/1. enable TEST_XFS_REPAIR_REBUILD=1 in xfstests log file local.config
+XFSTESTS_NFS_VERSION | string | 4.1 | NFS only, version of test target NFS
+XFSTESTS_NFS_SERVER | boolean | | NFS multimation test only, mandatory. To tag this test job for NFS server in a NFS multimachine test. NFS test in a multimachine test either a client or a server.
+NFS_GRACE_TIME | integer | 15 | NFS only, set the nlm_grace_period in /etc/modprobe.d/lockd.conf used in NFS test.
+PARALLEL_WITH | string | | NFS multimation test only, value=<set-the-parent-job-name>. To set the NFS server job name in NFS client job in a NFS multimachine test. e.g. xfstests_nfs4.1-server
+
+
+Debug setting: advance setting to debugging issues, may cause test fail
+
+Variable        | Type      | Default value | Details
+---             | ---       | ---           | ---
+XFSTESTS_DEBUG | string | | set it to enable debug tools under /proc/sys/kernel/. The value of XFSTESTS_DEBUG could be one or more parameters in the following: [hardlockup_panic hung_task_panic panic_on_io_nmi panic_on_oops panic_on_rcu_stall...] Collect more than 1 value at a time could use <space> to split it. e.g. XFSTESTS_DEBUG='hardlockup_panic panic_on_oops'. BTW, the softlockup_all_cpu_backtrace and softlockup_panic are default enabled
+BTRFS_DUMP | boolean | 0 | set BTRFS_DUMP=1 to collect btrfs dump image. It uses btrfs-image create/restore an image of the filesystem
+RAW_DUMP | boolean | 0 | set RAW_DUMP=1 to collect raw dump. It uses dd to collect start 512k info to dump the superblock of SCRATCH_DEV or SCRATCH_DEV_POOL
+INJECT_INFO | string | | Add 1 or several lines of code into xfstests level test script(not in openqa script). To add some debug or log collect info. This code will be used by the test wrapper, it will influence all subtests in this test, so better to only use it in debug and set XFSTESTS_RANGES to the subtest you want to. It contains 2 parameters split by space, the format: '<line-number><space><code>'. Beware the output may not match after injection, and better not to add space in the <code> part to avoid mistakes. e.g. INJECT_INFO='49 free' (to check memory in test code line 49)
+INJECT_INFO='<line-number> xtrace | string | | A special inject code is to set xtrace to debug shell script. Set INJECT_INFO='<line-number> xtrace' to openqa configure to enable it and start to record command start after injecting line <line-number>, and redirect debug info to /opt/log/xxx_xtrace.log

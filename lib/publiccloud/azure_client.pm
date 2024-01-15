@@ -14,7 +14,7 @@ use utils;
 use publiccloud::utils;
 
 has subscription => sub { get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') };
-has region => sub { get_var('PUBLIC_CLOUD_REGION', 'westeurope') };
+has region => sub { get_required_var('PUBLIC_CLOUD_REGION') };
 has username => sub { get_var('PUBLIC_CLOUD_USER', 'azureuser') };
 has credentials_file_content => undef;
 has container_registry => sub { get_var('PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY', 'suseqectesting') };
@@ -74,11 +74,6 @@ sub get_container_image_full_name {
     my ($self, $tag) = @_;
     my $full_name_prefix = sprintf('%s.azurecr.io', $self->container_registry);
     return "$full_name_prefix/$tag";
-}
-
-
-sub cleanup {
-    my ($self) = @_;
 }
 
 1;

@@ -1,5 +1,5 @@
-name:       autoyast_non_secure_boot
-description:   >
+name: autoyast_non_secure_boot
+description: >
   Test autoyast installation with non-secure boot option.
 vars:
   AUTOYAST: yam/autoyast/non_secure_boot.xml
@@ -24,4 +24,3 @@ schedule:
   - console/verify_secure_boot
 test_data:
   secure_boot: disabled
-  <<: !include test_data/yast/autoyast/profiles/non_secure_boot.yaml

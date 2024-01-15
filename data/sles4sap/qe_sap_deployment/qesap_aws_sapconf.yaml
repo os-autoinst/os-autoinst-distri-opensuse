@@ -19,6 +19,7 @@ terraform:
     hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
     iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
 ansible:
+  roles_path: '%ANSIBLE_ROLES%'
   az_storage_account_name: '%HANA_ACCOUNT%'
   az_container_name:  '%HANA_CONTAINER%'
   az_sas_token: '%HANA_TOKEN%'
@@ -35,7 +36,8 @@ ansible:
     primary_site: 'goofy'
     secondary_site: 'miky'
   create:
-    - registration.yaml -e reg_code='%SCC_REGCODE_SLES4SAP%' -e email_address='testing@suse.com'
+    - %REGISTRATION_PLAYBOOK%.yaml -e reg_code='%SCC_REGCODE_SLES4SAP%' -e email_address='testing@suse.com'
+    - fully-patch-system.yaml
     - pre-cluster.yaml
     - sap-hana-preconfigure.yaml -e use_sapconf=true
     - sap-hana-storage.yaml

@@ -24,6 +24,31 @@ sub is_multipath {
     return (get_var('MULTIPATH') and (get_var('MULTIPATH_CONFIRM') !~ /\bNO\b/i));
 }
 
+=head2 download_hana_assets_from_server
+
+  download_hana_assets_from_server()
+
+Download and extract HANA installation media to /sapinst directory of the SUT.
+The media location must be provided as ASSET_0 in the job settings and be
+available as an uncompressed tar in the factory/other directory of the openQA
+server
+
+=cut
+
+sub download_hana_assets_from_server {
+    my $target = $_{target} // '/sapinst';
+    my $nettout = $_{nettout} // 2700;
+    assert_script_run "mkdir $target";
+    assert_script_run "cd $target";
+    my $filename = get_required_var('ASSET_0');
+    my $hana_location = data_url('ASSET_0');
+    # Each HANA asset is about 16GB. A ten minute timeout assumes a generous
+    # 27.3MB/s download speed. Adjust according to expected server conditions.
+    assert_script_run "wget -O - $hana_location | tar -xf -", timeout => $nettout;
+    assert_script_run "cd";
+}
+
+
 sub get_hana_device_from_system {
     my ($self, $disk_requirement) = @_;
 
@@ -31,7 +56,12 @@ sub get_hana_device_from_system {
     my $out = script_output q@echo PV=$(pvscan -s 2>/dev/null | awk '/dev/ {print $1}' | tr '\n' ',')@;
     $out =~ /PV=(.+),$/;
     $out = $1;
-    my @pvdevs = map { if ($_ =~ s@mapper/@@) { $_ =~ s/\-part\d+$// } else { $_ =~ s/\d+$// } $_ =~ s@^/dev/@@; $_; } split(/,/, $out);
+    my @pvdevs = map {
+        if ($_ =~ s@mapper/@@) { $_ =~ s/\-part\d+$// }
+        else { $_ =~ s/\d+$// }
+        $_ =~ s@^/dev/@@;
+        $_;
+    } split(/,/, $out);
 
     my $lsblk = q@lsblk -n -l -o NAME -d -e 7,11 | grep -E -vw '@ . join('|', @pvdevs) . "'";
     # lsblk command to probe for devices is different when in multipath scenario
@@ -108,9 +138,19 @@ sub run {
     # This installs HANA. Start by configuring the appropiate SAP profile
     $self->prepare_profile('HANA');
 
-    # Copy media
-    $self->copy_media($proto, $path, 2700, '/sapinst');
-
+    # Transfer media.
+    my $target = '/sapinst';    # Directory in SUT where install media will be copied token
+    if (get_var 'ASSET_0') {
+        # If the ASSET_0 variable is defined, the test will attempt to download
+        # the HANA media from the factory/other directory of the openQA server.
+        record_info "Dowloading using ASSET_0";
+        download_hana_assets_from_server(target => $target, nettout => $tout);
+    }
+    elsif (get_required_var 'HANA') {
+        # If not, the media will be retrieved from a remote server.
+        record_info "Downloading using $proto";
+        $self->copy_media($proto, $path, $tout, $target);
+    }
     # Mount points information: use the same paths and minimum sizes as the wizard (based on RAM size)
     my $full_size = ceil($RAM / 1024);    # Use the ceil value of RAM in GB
     my $half_size = ceil($full_size / 2);
@@ -119,8 +159,7 @@ sub run {
         hanadata => {mountpt => '/hana/data', size => "${full_size}g"},
         hanalog => {mountpt => '/hana/log', size => "${half_size}g"},
         hanashared => {mountpt => '/hana/shared', size => "${full_size}g"},
-        usr_sap => {mountpt => "/usr/sap/$sid/home", size => '50g'}
-    );
+        usr_sap => {mountpt => "/usr/sap/$sid/home", size => '50g'});
 
     # Partition disks for Hana
     if (check_var('HANA_PARTITIONING_BY', 'yast')) {
@@ -204,8 +243,9 @@ sub run {
         }
 
         assert_script_run 'mkdir -p /etc/systemd/system/systemd-udev-settle.service.d';
-        assert_script_run "curl -f -v " . autoinst_url .
-          '/data/sles4sap/udev-settle-override.conf -o /etc/systemd/system/systemd-udev-settle.service.d/00-override.conf';
+        assert_script_run "curl -f -v "
+          . autoinst_url
+          . '/data/sles4sap/udev-settle-override.conf -o /etc/systemd/system/systemd-udev-settle.service.d/00-override.conf';
         systemctl 'daemon-reload';
         systemctl 'restart systemd-udev-settle';
 
@@ -219,10 +259,14 @@ sub run {
       if (script_run "ls $hdblcm");
 
     # Install hana
+    # Prepare hdblcm args.
+    # Note: set "--components=server,client" as other test moudle (monitoring_services.pm) installs shared pkgs from dir 'hdbclient'
     my @hdblcm_args = qw(--autostart=n --shell=/bin/sh --workergroup=default --system_usage=custom --batch
       --hostname=$(hostname) --db_mode=multiple_containers --db_isolation=low --restrict_max_mem=n
-      --userid=1001 --groupid=79 --use_master_password=n --skip_hostagent_calls=n --system_usage=production);
+      --userid=1001 --groupid=79 --use_master_password=n --skip_hostagent_calls=n --system_usage=production
+    );
     push @hdblcm_args,
+      "--components=server,client",
       "--sid=$sid",
       "--number=$instid",
       "--home=$mountpts{usr_sap}->{mountpt}",

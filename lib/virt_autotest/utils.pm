@@ -123,14 +123,14 @@ sub is_hyperv_virtualization {
 #feel free to extend to support more cases
 sub is_fv_guest {
     my $guest = shift;
-    return $guest =~ /\bfv\b/ || $guest =~ /\bhvm\b/;
+    return $guest =~ /\bfv\b/ || $guest =~ /hvm/i;
 }
 
 #return 1 if it is a pv guest judging by name
 #feel free to extend to support more cases
 sub is_pv_guest {
     my $guest = shift;
-    return $guest =~ /\bpv\b/;
+    return $guest =~ /pv/i;
 }
 
 #Check if guest is SLE with optional filter for:
@@ -170,7 +170,7 @@ sub is_kvm_host {
 sub is_monolithic_libvirtd {
     record_info('WARNING', 'Libvirt package is not installed', result => 'fail') if (script_run('rpm -q libvirt-libs'));
     unless (is_alp) {
-        return 1 if script_run('rpm -q libvirt-libs | grep -e "libs-9\.0" -e "libs-[1-8]\."') == 0;
+        return 1 if script_run('systemctl is-enabled libvirtd.service') == 0;
     }
     return 0;
 }
@@ -274,11 +274,11 @@ sub check_failures_in_journal {
         $failures .= "\"$warn\" in journals on $machine \n" if script_run("timeout --kill-after=3 --signal=9 120 $cmd") == 0;
     }
     if ($failures) {
-        if (get_var('KNOWN_KERNEL_BUGS')) {
-            record_soft_failure("Found failures: \n" . $failures . "There are known kernel bugs " . get_var('KNOWN_KERNEL_BUGS') . ". Please analyze journal logs to double check if a new bug needs to be opened or it is an old issue. And please add new bugs to KNOWN_KERNEL_BUGS in the form of bsc#555555.");
+        if (get_var('KNOWN_BUGS_FOUND_IN_JOURNAL')) {
+            record_soft_failure("Found failures: \n" . $failures . "There are known kernel bugs " . get_var('KNOWN_BUGS_FOUND_IN_JOURNAL') . ". Please look into journal files to determine if it is a known bug. If it is a new issue, please take action as described in poo#151361.");
         }
         else {
-            record_soft_failure("Found new failures: Fake bsc#5555(by PR rule)\n" . $failures . "This is an unknown failure which need to be investigated!");
+            record_soft_failure("Found new failures: " . $failures . " please take actions as described in poo#151361.\n");
         }
 
         my $logfile = "/tmp/journalctl-$machine.log";
@@ -351,8 +351,9 @@ sub download_script_and_execute {
     my ($script_name, %args) = @_;
     $args{output_file} //= "$args{script_name}.log";
     $args{machine} //= 'localhost';
+    $args{proceed_on_failure} //= 0;
 
-    download_script($script_name, script_url => $args{script_url}, machine => $args{machine});
+    download_script($script_name, script_url => $args{script_url}, machine => $args{machine}, proceed_on_failure => $args{proceed_on_failure});
     my $cmd = "~/$script_name";
     $cmd = "ssh root\@$args{machine} " . "\"$cmd\"" if ($args{machine} ne 'localhost');
     script_run("$cmd >> $args{output_file} 2>&1");
@@ -362,17 +363,37 @@ sub download_script {
     my ($script_name, %args) = @_;
     my $script_url = $args{script_url} // data_url("virt_autotest/$script_name");
     my $machine = $args{machine} // 'localhost';
+    $args{proceed_on_failure} //= 0;
+
+    unless (head($script_url)) {
+        if ($args{proceed_on_failure}) {
+            record_info("URL is not accessible", "$script_url", result => 'fail');
+            return;
+        }
+        else {
+            die "$script_url is not accessible!";
+        }
+    }
 
     my $cmd = "curl -o ~/$script_name $script_url";
     $cmd = "ssh root\@$machine " . "\"$cmd\"" if ($machine ne 'localhost');
     unless (script_retry($cmd, timeout => 900, retry => 2, die => 0) == 0) {
-        # Add debug codes as the url only exists in a dynamic openqa URL
-        record_info("URL is not accessible", "$script_url", result => 'fail') unless head($script_url);
+        record_info("Failed to download", "Fail to download $script_url on $machine, however it is accessible from worker instance!", result => 'fail');
         unless ($machine eq 'localhost') {
-            record_info("machine is not ssh accessible", "$machine", result => 'fail') unless script_run("ssh root\@$machine 'hostname'") == 0;
-            record_info("OSD is unaccessible from $machine", "that means the machine is having problem to access SUSE network", result => 'fail') unless script_run("ssh root\@$machine 'ping -c3 openqa.suse.de'") == 0;
+            # Have to output debug info at here because no logs will be uploaded if there are connection problems
+            if (script_run("ssh root\@$machine 'hostname'") == 0) {
+                $script_url =~ /^https?:\/\/([\w\.]+)(:\d+)?\/.*/;
+                script_run("ssh root\@$machine 'ping $1'");
+                script_run("ssh root\@$machine 'traceroute $1'");
+                script_run("ssh root\@$machine 'ping -c3 openqa.suse.de'");
+                script_run("ssh root\@$machine 'nslookup " . get_var('WORKER_HOSTNAME', 'openqa.suse.de') . "'");
+                script_run("ssh root\@$machine 'cat /etc/resolv.conf'");
+            }
+            else {
+                record_info("machine is not ssh accessible", "$machine", result => 'fail');
+            }
         }
-        die "Failed to download $script_url!";
+        $args{proceed_on_failure} ? return : die "Failed to download $script_url on $machine!";
     }
     $cmd = "chmod +x ~/$script_name";
     $cmd = "ssh root\@$machine " . "\"$cmd\"" if ($machine ne 'localhost');
