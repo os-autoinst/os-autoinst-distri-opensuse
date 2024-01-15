@@ -111,6 +111,7 @@ sub test_network_interface {
     my $routed = $args{routed} // 0;
     my $target = $args{target} // script_output("dig +short google.com");
 
+    record_info("Network test", "testing $mac");
     check_guest_ip("$guest", net => $net) if ((is_sle('>15') || is_alp) && ($isolated == 1) && get_var('VIRT_AUTOTEST'));
 
     save_guest_ip("$guest", name => $net);
