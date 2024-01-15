@@ -38,6 +38,9 @@ sub run_test {
     #clean up test logs
     script_run "[ -d $log_dir ] && rm -rf $log_dir; mkdir -p $log_dir";
 
+    #save original guest configuration file in case of restore in post_fail_hook()
+    save_original_guest_xmls();
+
     #get the SR-IOV device BDF and interface
     my @host_pfs;
     @host_pfs = find_sriov_ethernet_devices();
@@ -48,9 +51,6 @@ sub run_test {
     # enable 8 vfs for the SR-IOV device on host
     my @host_vfs = enable_vf(@host_pfs);
     record_info("VFs enabled", "@host_vfs");
-
-    #save original guest configuration file in case of restore in post_fail_hook()
-    save_original_guest_xmls();
 
     foreach my $guest (keys %virt_autotest::common::guests) {
         if (virt_autotest::utils::is_sev_es_guest($guest) ne 'notsev') {
