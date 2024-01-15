@@ -20,8 +20,6 @@ sub run {
     send_key 'ret';
     assert_screen 'slem-selfinstall-overwrite-drive';
     send_key 'ret';
-    # Use firmware boot manager of aarch64 to boot HDD
-    $self->handle_uefi_boot_disk_workaround if is_aarch64;
 
     my $no_cd;
     # workaround failed *kexec* execution on UEFI with SecureBoot
