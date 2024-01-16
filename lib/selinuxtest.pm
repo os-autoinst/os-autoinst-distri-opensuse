@@ -7,6 +7,8 @@
 # Maintainer: QE Security <none@suse.de>
 
 package selinuxtest;
+use base 'Exporter';
+use Exporter;
 
 use strict;
 use warnings;
@@ -25,6 +27,7 @@ our @EXPORT = qw(
   $file_output
   $policyfile_tar
   download_policy_pkgs
+  check_disabled
 );
 
 our $file_contexts_local;
@@ -104,6 +107,14 @@ sub check_category {
         record_info("WARNING", "file \"$file_name\" is abnormal", result => "softfail");
         assert_script_run("ls -lZd $file_name");
     }
+}
+
+# check disabled SELinux
+sub check_disabled {
+    record_info('SELinux', script_output('sestatus'));
+    assert_script_run('! selinuxenabled');
+    validate_script_output("getenforce", sub { m/Disabled/ });
+    validate_script_output("sestatus", sub { m/SELinux status:.*disabled/ });
 }
 
 sub reboot_and_reconnect {

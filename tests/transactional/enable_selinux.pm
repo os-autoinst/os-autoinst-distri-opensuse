@@ -15,10 +15,11 @@ use testapi;
 use transactional qw(process_reboot);
 use version_utils qw(is_leap_micro is_microos is_sle_micro is_public_cloud);
 use Utils::Systemd qw(systemctl);
-use Utils::Logging 'save_and_upload_log';
+use Utils::Logging qw(save_and_upload_log);
 use transactional qw(trup_call check_reboot_changes process_reboot);
 use publiccloud::utils qw(allow_openqa_port_selinux);
-use bootloader_setup 'replace_grub_cmdline_settings';
+use bootloader_setup qw(replace_grub_cmdline_settings);
+use selinuxtest qw(check_disabled);
 
 sub check_enforcing {
     assert_script_run('selinuxenabled');
@@ -28,13 +29,6 @@ sub check_enforcing {
     record_info('SELinux', script_output('sestatus'));
     record_info('Audit report', script_output('aureport'));
     record_info('Audit denials', script_output('aureport -a', proceed_on_failure => 1));
-}
-
-sub check_disabled {
-    record_info('SELinux', script_output('sestatus'));
-    assert_script_run('! selinuxenabled');
-    validate_script_output("getenforce", sub { m/Disabled/ });
-    validate_script_output("sestatus", sub { m/SELinux status:.*disabled/ });
 }
 
 sub is_enforcing {
