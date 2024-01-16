@@ -12,7 +12,6 @@ terraform:
     deployment_name: '%DEPLOYMENTNAME%'
     os_image: '%OS_VER%'
     os_owner: '%OS_OWNER%'
-    private_key: '%SSH_KEY_PRIV%'
     public_key: '%SSH_KEY_PUB%'
     aws_credentials: '/root/amazon_credentials'
     hana_instancetype: '%HANA_INSTANCE_TYPE%'
