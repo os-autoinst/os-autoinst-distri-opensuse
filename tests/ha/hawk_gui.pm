@@ -15,17 +15,13 @@ use lockapi;
 use hacluster;
 use x11test;
 use x11utils;
-use version_utils 'is_desktop_installed';
+use version_utils qw(get_os_release is_desktop_installed);
+use containers::common qw(install_podman_when_needed);
 
-sub install_docker {
-    my $docker_url = "https://download.docker.com/linux/static/stable/x86_64/docker-19.03.5.tgz";
-
-    assert_script_run "curl -s $docker_url | tar zxf - --strip-components 1 -C /usr/bin", 120;
-    # Allow the user to run docker. We can't add him to the docker group without restarting X.
-    # The final colon is to avoid a bash syntax error when assert_script_run() appends a semicolon
-    assert_script_run "/usr/bin/dockerd -G users --insecure-registry registry.suse.de >/dev/null 2>&1 & :";
+sub install_podman {
+    my ($running_version, $sp, $host_distri) = get_os_release;
+    install_podman_when_needed($host_distri);
 }
-
 
 sub run {
     my ($self) = @_;
@@ -47,14 +43,14 @@ sub run {
     }
 
     select_console 'root-console';
-    install_docker;
+    install_podman;
 
     # TODO: Use another namespace using team group name
     # Docker image source in https://github.com/ricardobranco777/hawk_test
     # It will be eventually moved to https://github.com/ClusterLabs/hawk/e2e_test
     my $docker_image = "registry.opensuse.org/devel/openqa/ci/tooling/containers_15_4/hawk_test:latest";
 
-    assert_script_run("docker pull $docker_image", 240);
+    assert_script_run("podman pull $docker_image", 240);
 
     # Rest of the test needs to be performed on the x11 console, but with the
     # HA_CLUSTER setting that console is not yet activated; newer versions of gdm
@@ -83,7 +79,12 @@ sub run {
     assert_script_run "mkdir -m 1777 $path";
     assert_script_run "xhost +";
     barrier_wait("HAWK_GUI_CPU_TEST_START_$cluster_name");
-    my $docker_cmd = "docker run --rm --name test --ipc=host -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=\$DISPLAY -v \$PWD/$path:/$path ";
+    # become root because podman command needs elevated permissions
+    # and then return to the user's home directory.
+    # If you delete this, also delete subsequent 'exit'
+    become_root;
+    assert_script_run("cd /home/bernhard");
+    my $docker_cmd = "podman run --rm --name test --ipc=host -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=\$DISPLAY -v \$PWD/$path:/$path ";
     $docker_cmd .= "$docker_image -b $browser -H $node1 -S $node2 -s $testapi::password -r /$results --virtual-ip $virtual_ip";
     enter_cmd "$docker_cmd 2>&1 | tee $logs; echo $pyscr-\$PIPESTATUS > $retcode";
     assert_screen "hawk-$browser", 60;
@@ -105,13 +106,16 @@ sub run {
     }
     if ($loop_count < 0) {
         record_info("$browser failed", "Test with browser [$browser] could not be completed in 30 minutes", result => 'softfail');
-        script_run "docker container kill test";
+        script_run "podman container kill test";
     }
 
     save_screenshot;
 
     assert_screen "generic-desktop";
     barrier_wait("HAWK_GUI_CPU_TEST_FINISH_$cluster_name");
+
+    # un-become root
+    enter_cmd("exit");
 
     # Error, log and results handling
     select_console 'user-console';
