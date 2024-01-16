@@ -45,7 +45,7 @@ sub packages_to_install {
         push @packages, ('platform-python-devel', 'python3-pip', 'golang', 'postgresql-devel');
     } elsif ($host_distri =~ /centos|rhel/) {
         push @packages, ('python3-devel', 'python3-pip', 'golang', 'postgresql-devel');
-    } elsif ($host_distri eq 'sles') {
+    } elsif ($host_distri eq 'sles' || $host_distri =~ /leap/) {
         # SDK is needed for postgresql
         my $version = "$version.$sp";
         push @packages, ('postgresql-server-devel');
@@ -61,9 +61,11 @@ sub packages_to_install {
             push @packages, ('python3-devel', 'go', 'skopeo');
         } else {
             # Desktop module is needed for SDK module, which is required for go and postgresql-devel
-            script_retry("SUSEConnect -p sle-module-desktop-applications/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
-            script_retry("SUSEConnect -p sle-module-development-tools/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
-            script_retry("SUSEConnect -p sle-module-python3/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
+            if ($host_distri !~ /leap/) {
+                script_retry("SUSEConnect -p sle-module-desktop-applications/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
+                script_retry("SUSEConnect -p sle-module-development-tools/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
+                script_retry("SUSEConnect -p sle-module-python3/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
+            }
             push @packages, qw(python311 python311-devel go skopeo python311-pip python311-tox);
         }
     } elsif ($host_distri =~ /opensuse/) {
