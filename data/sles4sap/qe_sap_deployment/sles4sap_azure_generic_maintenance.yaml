@@ -17,7 +17,6 @@ terraform:
     deployment_name: '%QESAP_DEPLOYMENT_NAME%'
     admin_user: 'cloudadmin'
     public_key: '~/.ssh/id_rsa.pub'
-    private_key: '~/.ssh/id_rsa'
     os_image: '%SLES4SAP_OS_IMAGE_NAME%'
     hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
     iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
