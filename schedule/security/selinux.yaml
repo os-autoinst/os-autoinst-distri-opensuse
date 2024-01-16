@@ -47,6 +47,8 @@ conditional_schedule:
         DISTRI:
             sle-micro:
                 - console/suseconnect_scc
+            alp:
+                - console/suseconnect_scc
     sle_os_tests:
         DISTRI:
             sle:

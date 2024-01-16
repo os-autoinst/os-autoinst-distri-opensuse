@@ -40,25 +40,7 @@ sub run {
         die 'Unknown bootloader';
     }
 
-    if (is_alp) {
-        # Add additional ALP repositories
-        my $repo = get_required_var('REPO_SLE_ALP');
-        my $hash = eval($repo);
-        my @repos;
-        if (ref $hash eq ref {}) {
-            foreach (keys %$hash) {
-                push @repos, $_;
-                push @repos, $hash->{$_} if defined($hash->{$_});
-            }
-        } else {
-            push @repos, $repo;
-        }
-
-        for (my $i = 0; $i <= $#repos; $i++) {
-            zypper_call("ar http://openqa.suse.de/assets/repo/$repos[$i] ALP_$i");
-        }
-
-        my $source_repo = get_var('REPO_ALP_SOURCE_BUILD');
+    if (my $source_repo = get_var('REPO_ALP_SOURCE_BUILD')) {
         zypper_call("ar $source_repo 'ALP Source Build Repository'") if $source_repo;
         zypper_call("--gpg-auto-import-keys ref");
     }
