@@ -20,17 +20,18 @@ sub run {
     # Get ds file and profile ID
     my $f_ssg_ds = is_sle ? $oscap_tests::f_ssg_sle_ds : $oscap_tests::f_ssg_tw_ds;
     my $profile_ID = is_sle ? $oscap_tests::profile_ID_sle_stig : $oscap_tests::profile_ID_tw;
-    my $n_passed_rules = 216;
-    my $n_failed_rules = 4;
+    my $n_passed_rules = 215;
+    my $n_failed_rules = 5;
     my @eval_match = (
         'content_rule_is_fips_mode_enabled',
         'content_rule_partition_for_var_log_audit',
         'content_rule_grub2_password',
-        'content_rule_no_files_unowned_by_user');
+        'content_rule_no_files_unowned_by_user',
+        'content_rule_aide_scan_notification');
 
     if (is_s390x) {
         $n_passed_rules = 215;
-        $n_failed_rules = 4;
+        $n_failed_rules = 5;
     }
     # Exclusion for ARM platform
     if (is_aarch64 or is_arm) {
@@ -38,7 +39,8 @@ sub run {
             'content_rule_is_fips_mode_enabled',
             'content_rule_partition_for_var_log_audit',
             'content_rule_grub2_uefi_password',
-            'content_rule_no_files_unowned_by_user');
+            'content_rule_no_files_unowned_by_user',
+            'content_rule_aide_scan_notification');
     }
 
     $self->oscap_evaluate($f_ssg_ds, $profile_ID, $n_passed_rules, $n_failed_rules, \@eval_match);
