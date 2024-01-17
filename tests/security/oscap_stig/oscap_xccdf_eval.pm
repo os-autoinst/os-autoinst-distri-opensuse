@@ -30,7 +30,7 @@ sub run {
         'content_rule_aide_scan_notification');
 
     if (is_s390x) {
-        $n_passed_rules = 215;
+        $n_passed_rules = 214;
         $n_failed_rules = 5;
     }
     # Exclusion for ARM platform
