@@ -520,6 +520,7 @@ sub reconnect_s390 {
     my (%args) = @_;
     my $ready_time = $args{ready_time};
     my $textmode = $args{textmode};
+    my $enable_root_ssh = $args{enable_root_ssh} // 0;
     return undef unless is_s390x;
     my $login_ready = get_login_message();
     if (is_backend_s390x) {
@@ -553,6 +554,12 @@ sub reconnect_s390 {
         type_line_svirt "root", expect => 'Password';
         type_line_svirt "$testapi::password";
         type_line_svirt "systemctl is-active network", expect => 'active';
+        if ($enable_root_ssh eq 1) {
+            record_info('Enable root ssh login');
+            type_line_svirt "mkdir -p /etc/ssh/sshd_config.d";
+            type_line_svirt "echo 'PermitRootLogin yes' \\> /etc/ssh/sshd_config.d/root.conf";
+            type_line_svirt "systemctl restart sshd";
+        }
         type_line_svirt 'systemctl is-active sshd', expect => 'active';
 
         # make sure we can reach the SSH server in the SUT, try up to 1 min (12 * 5s)
@@ -854,6 +861,7 @@ sub wait_boot {
     my $textmode = $args{textmode};
     my $ready_time = $args{ready_time} // ((check_var('VIRSH_VMM_FAMILY', 'hyperv') || is_ipmi) ? 500 : 300);
     my $in_grub = $args{in_grub} // 0;
+    my $enable_root_ssh = $args{enable_root_ssh} // 0;
 
     die "wait_boot: got undefined class" unless $self;
     # used to register a post fail hook being active while we are waiting for
@@ -869,7 +877,7 @@ sub wait_boot {
     # Reset the consoles after the reboot: there is no user logged in anywhere
     reset_consoles;
     select_console('sol', await_console => 0) if is_ipmi;
-    if (reconnect_s390(textmode => $textmode, ready_time => $ready_time)) {
+    if (reconnect_s390(textmode => $textmode, ready_time => $ready_time, enable_root_ssh => $enable_root_ssh)) {
     }
     elsif (get_var('USE_SUPPORT_SERVER') && get_var('USE_SUPPORT_SERVER_PXE_CUSTOMKERNEL')) {
         # A supportserver client to reboot via PXE after an initial installation.

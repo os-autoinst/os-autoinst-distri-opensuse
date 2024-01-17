@@ -16,7 +16,7 @@ use warnings;
 use testapi;
 use Utils::Architectures;
 use Utils::Backends;
-use version_utils qw(is_upgrade is_sles4sap is_sle);
+use version_utils qw(is_upgrade is_sles4sap is_sle is_alp is_sle_micro);
 
 sub run {
     my ($self) = @_;
@@ -49,7 +49,8 @@ sub run {
         wait_serial('Welcome to SUSE Linux', $timeout) || die "System did not boot in $timeout seconds.";
     }
     else {
-        $self->wait_boot(bootloader_time => $timeout, nologin => $nologin, ready_time => $ready_time);
+        my $enable_root_ssh = (is_alp || is_sle_micro('>=6.0') && is_s390x) ? 1 : 0;
+        $self->wait_boot(bootloader_time => $timeout, nologin => $nologin, ready_time => $ready_time, enable_root_ssh => $enable_root_ssh);
     }
 }
 
