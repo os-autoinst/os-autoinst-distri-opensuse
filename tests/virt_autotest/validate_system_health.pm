@@ -49,10 +49,10 @@ sub run_test {
     # Upload logs on x86_64
     if (get_var('FORCE_UPLOAD_LOGS') || @unhealthy_list != 0) {
         if (get_var('FORCE_UPLOAD_LOGS')) {
-            collect_host_and_guest_logs(join(' ', grep { $_ ne 'host' } keys %health_status));
+            collect_host_and_guest_logs(join(' ', grep { $_ ne 'host' } keys %health_status), '', '', '_validate_system_health');
         }
         else {
-            collect_host_and_guest_logs(join(' ', grep { $_ ne 'host' } @unhealthy_list));
+            collect_host_and_guest_logs(join(' ', grep { $_ ne 'host' } @unhealthy_list), '', '', '_validate_system_health');
         }
         $self->upload_coredumps;
         save_screenshot;
