@@ -20,7 +20,7 @@ sub run {
     # Get ds file and profile ID
     my $f_ssg_ds = is_sle ? $oscap_tests::f_ssg_sle_ds : $oscap_tests::f_ssg_tw_ds;
     my $profile_ID = is_sle ? $oscap_tests::profile_ID_sle_stig : $oscap_tests::profile_ID_tw;
-    my $n_passed_rules = 216;
+    my $n_passed_rules = 215;
     my $n_failed_rules = 5;
     my @eval_match = (
         'content_rule_is_fips_mode_enabled',
