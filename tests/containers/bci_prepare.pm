@@ -50,7 +50,7 @@ sub packages_to_install {
         my $version = "$version.$sp";
         push @packages, ('postgresql-server-devel');
         if ($version eq "12.5") {
-            script_retry("SUSEConnect -p sle-sdk/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
+            script_retry("SUSEConnect --auto-agree-with-licenses -p sle-sdk/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
             # PackageHub is needed for jq
             script_retry("SUSEConnect -p PackageHub/12.5/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
             push @packages, ('python36-devel', 'python36-pip');
