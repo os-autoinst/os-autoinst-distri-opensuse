@@ -216,7 +216,6 @@ sub poweroff_x11 {
     }
 
     if (check_var("DESKTOP", "mate")) {
-        x11_start_program("mate-session-save --shutdown-dialog", valid => 0);
         send_key "ctrl-alt-delete";    # shutdown
         assert_and_click 'mate_shutdown_btn';
     }
