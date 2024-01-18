@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Generic test for hardening profile in the 'scap-security-guide': detection mode with remote
-# Maintainer: QE Security
+# Maintainer: QE Security <none@suse.de>
 
 use base 'oscap_tests';
 use strict;
