@@ -15,6 +15,7 @@ use testapi;
 use strict;
 use utils;
 use publiccloud::ssh_interactive "select_host_console";
+use publiccloud::utils qw(is_hardened);
 use maintenance_smelt qw(is_embargo_update);
 
 sub run {
@@ -24,7 +25,8 @@ sub run {
     my $remote = $args->{my_instance}->username . '@' . $args->{my_instance}->public_ip;
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
     my $skip_mu = get_var('PUBLIC_CLOUD_SKIP_MU', 0);
-    my $repodir = "/opt/repos/";
+    # /opt folder in Hardened images requires extra permissions so we will use /tmp instead
+    my $repodir = is_hardened() ? "/tmp/repos" : "/opt/repos";
     # Trigger to skip the download to speed up verification runs
     if ($skip_mu) {
         record_info('Skip download', 'Skipping maintenance update download (triggered by setting)');
@@ -53,7 +55,7 @@ sub run {
             assert_script_run("echo $repo | tee -a /tmp/transfer_repos.txt");
         }
         # VM repos.dir support preparation
-        $args->{my_instance}->ssh_assert_script_run("sudo mkdir $repodir;sudo chmod a+w $repodir");
+        $args->{my_instance}->ssh_assert_script_run("sudo mkdir $repodir;sudo chmod 777 $repodir");
         # Mitigate occasional CSP network problems (especially one CSP is prone to those issues!)
         # Delay of 2 minutes between the tries to give their network some time to recover after a failure
         # For rsync the ~/repos/./ means that the --relative will take efect after.
