@@ -633,24 +633,27 @@ sub modify_ds_ansible_files {
     $_[1] = \@bash_rules;
     $_[2] = \@ansible_rules;
 }
-
-sub generate_missing_rules {
-    # Generate text file that contains rules that missing implimentation for profile
-    my $output_file = "missing_rules.txt";
-
+sub install_python311 {
     # Install python 3.11 needed for script execution
     zypper_call("in python311");
     # Set alias persistent
     my $alias_cmd = "alias python='/usr/bin/python3.11'";
     my $bashrc_path = "/root/.bashrc";
+    assert_script_run("rm /usr/bin/python3");
+    assert_script_run("ln -s python3.11 /usr/bin/python3");
     assert_script_run("printf \"" . $alias_cmd . "\" >> \"$bashrc_path\"");
+    assert_script_run("alias python=python3.11");
+}
+
+sub generate_missing_rules {
+    # Generate text file that contains rules that missing implimentation for profile
+    my $output_file = "missing_rules.txt";
 
     # Installing python libs to be able to run profile_tool.py
     my $py_libs = "jinja2 PyYAML pytest pytest-cov Jinja2 setuptools ninja";
     assert_script_run('pip3 --quiet install --upgrade pip', timeout => 600);
     assert_script_run("pip3 --quiet install $py_libs", timeout => 600);
 
-    assert_script_run("alias python=python3.11");
     assert_script_run("cd $compliance_as_code_path");
     assert_script_run("source .pyenv.sh");
     # Running script that generates file containing rules missing fixes
@@ -696,8 +699,15 @@ sub get_cac_code {
     if ($use_content_type == 3) {
         zypper_call('in cmake libxslt-tools', timeout => 180);
         my $py_libs = "lxml pytest pytest_cov json2html sphinxcontrib-jinjadomain autojinja sphinx_rtd_theme myst_parser prometheus_client mypy openpyxl pandas pcre2 cmakelint sphinx";
-        assert_script_run("pip3 --quiet install $py_libs", timeout => 600);
-
+        # On s390x pip requires packages to build modules
+        if (is_s390x) {
+            zypper_call('in ninja clang15 libxslt-devel libxml2-devel python311-devel', timeout => 180);
+            $py_libs = "lxml pytest pytest_cov json2html sphinxcontrib-jinjadomain autojinja sphinx_rtd_theme myst_parser prometheus_client mypy openpyxl pcre2 cmakelint sphinx";
+            assert_script_run("pip3 --quiet install $py_libs", timeout => 600);
+        }
+        else {
+            assert_script_run("pip3 --quiet install $py_libs", timeout => 600);
+        }
         # Building CaC content
         assert_script_run("cd $compliance_as_code_path");
         assert_script_run("sh build_product $sle_version", timeout => 9000);
@@ -743,10 +753,6 @@ sub get_tests_config {
         $use_content_type = (get_var('OSCAP_USE_CONTENT_TYPE', '') eq '' ? $config->{tests_config}->{use_content_type} : get_required_var('OSCAP_USE_CONTENT_TYPE'));
         $remove_rules_missing_fixes = (get_var('OSCAP_REMOVE_RULES_MISSING_FIXES', '') eq '' ? $config->{tests_config}->{remove_rules_missing_fixes} : get_required_var('OSCAP_REMOVE_RULES_MISSING_FIXES'));
         $use_exclusions = (get_var('OSCAP_USE_EXCLUSIONS', '') eq '' ? $config->{tests_config}->{use_content_type} : get_required_var('OSCAP_USE_EXCLUSIONS'));
-
-        # $use_content_type = $config->{tests_config}->{use_content_type};
-        # $remove_rules_missing_fixes = $config->{tests_config}->{remove_rules_missing_fixes};
-        # $use_exclusions = $config->{tests_config}->{use_exclusions};
         record_info("Set test configuration", "Set test configuration from file $config_file_path\n use_content_type = $use_content_type\n  remove_rules_missing_fixes = $remove_rules_missing_fixes\n use_exclusions = $use_exclusions");
     }
     else {
@@ -756,7 +762,7 @@ sub get_tests_config {
 }
 
 sub get_test_expected_results {
-    # Get efpected results from remote file
+    # Get expected results from remote file
     my $eval_match = ();
     my $type = "";
     my $arch = "";
@@ -908,6 +914,7 @@ sub oscap_security_guide_setup {
         add_suseconnect_product(get_addon_fullname('python3'));
         # On SLES 12 ansible packages require dependencies located in sle-module-public-cloud
         add_suseconnect_product(get_addon_fullname('pcm'), (is_sle('<15') ? '12' : undef)) if is_sle;
+        install_python311();
     }
 
     # If required ansible remediation
