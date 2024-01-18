@@ -68,7 +68,8 @@ Afterwards a screenshot will be created if C<$screenshot> is set.
 
 sub tar_and_upload_log {
     my ($sources, $dest, $args) = @_;
-    script_run("tar -jcv -f $dest $sources", $args->{timeout});
+    my $cmp = defined($args->{gzip}) ? '-zcv' : '-jcv';
+    script_run("tar $cmp -f $dest $sources", $args->{timeout});
     upload_logs($dest, failok => 1) unless $args->{noupload};
     save_screenshot() if $args->{screenshot};
 }
@@ -315,7 +316,7 @@ sub export_logs_basic {
     save_and_upload_log('ps axf', '/tmp/psaxf.log', {screenshot => 1});
     save_and_upload_log('journalctl -b -o short-precise', '/tmp/journal.log', {screenshot => 1});
     save_and_upload_log('dmesg', '/tmp/dmesg.log', {screenshot => 1});
-    tar_and_upload_log('/etc/sysconfig', '/tmp/sysconfig.tar.bz2');
+    tar_and_upload_log('/etc/sysconfig', '/tmp/sysconfig.tar.gz', {gzip => 1});
 
     for my $service (get_started_systemd_services()) {
         save_and_upload_log("journalctl -b -u $service", "/tmp/journal_$service.log", {screenshot => 1});
