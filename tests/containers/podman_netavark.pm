@@ -49,9 +49,20 @@ sub _cleanup {
     my $podman = shift->containers_factory('podman');
     select_console 'log-console';
     remove_subtest_setup;
-    script_run('rm -rf /etc/containers/containers.conf');
+
     $podman->cleanup_system_host();
-    validate_script_output('podman info --format {{.Host.NetworkBackend}}', sub { /cni/ });
+
+    # podman >=4.8.0 defaults to netavark,
+    # removing containers.conf falls back
+    # to cni which leads to failing tests
+    my $podman_version = get_podman_version();
+    if (package_version_cmp($podman_version, '4.8.0') < 0) {
+        script_run('rm -rf /etc/containers/containers.conf');
+        validate_script_output('podman info --format {{.Host.NetworkBackend}}', sub { /cni/ });
+    } else {
+        validate_script_output('podman info --format {{.Host.NetworkBackend}}', sub { /netavark/ });
+    }
+
     validate_script_output('podman network ls', sub { /podman\s+bridge/ });
 }
 
