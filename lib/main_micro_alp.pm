@@ -279,6 +279,10 @@ sub load_slem_on_pc_tests {
         loadtest("boot/boot_to_desktop");
         loadtest("publiccloud/prepare_instance", run_args => $args);
         loadtest("publiccloud/registration", run_args => $args);
+        # 2 next modules of pubcloud needed for sle-micro incidents/repos verification
+        loadtest("publiccloud/transfer_repos", run_args => $args);
+        loadtest("publiccloud/patch_and_reboot", run_args => $args);
+
         loadtest("publiccloud/ssh_interactive_start", run_args => $args);
         loadtest("publiccloud/instance_overview", run_args => $args);
         loadtest("publiccloud/slem_prepare", run_args => $args);
