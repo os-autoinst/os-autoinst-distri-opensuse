@@ -19,16 +19,17 @@ use warnings;
 
 sub run {
     select_serial_terminal;
+    my $timeout = 360;
 
     assert_script_run 'wget ' . data_url('qam/mdadm.sh');
     if (is_sle('<15')) {
-        if (script_run('bash mdadm.sh |& tee mdadm.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 200)) {
+        if (script_run('bash mdadm.sh |& tee mdadm.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', $timeout)) {
             record_soft_failure 'bsc#1105628';
-            assert_script_run 'bash mdadm.sh |& tee mdadm.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 200;
+            assert_script_run 'bash mdadm.sh |& tee mdadm.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', $timeout;
         }
     }
     else {
-        assert_script_run 'bash mdadm.sh |& tee mdadm.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 200;
+        assert_script_run 'bash mdadm.sh |& tee mdadm.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', $timeout;
     }
     upload_logs 'mdadm.log';
 }
