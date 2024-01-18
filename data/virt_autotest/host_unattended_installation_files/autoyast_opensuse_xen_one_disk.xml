@@ -39,7 +39,7 @@
     </yesno_messages>
   </report>
   <bootloader>
-    <loader_type>grub2</loader_type>
+    <loader_type>default</loader_type>
     <global>
       <activate>true</activate>
       <boot_mbr>true</boot_mbr>
