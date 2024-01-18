@@ -15,6 +15,7 @@
   <li>
     <ul>
       <li><a href="#gcloud_install-gcloud_install-url-dir-timeout">gcloud_install gcloud_install($url, $dir, $timeout)</a></li>
+      <li><a href="#fully_update_system">fully_update_system</a></li>
     </ul>
   </li>
 </ul><h1>lib/publiccloud/utils.pm</h1>
@@ -24,6 +25,12 @@
 <p>This function is used to install the gcloud CLI for the GKE Google Cloud.</p>
 
 <p>From $url we get the full package and install it in $dir local folder as a subdir of /root. Defaults are available for a simple call without parameters: gcloud_install()</p>
+
+<h2 id="fully_update_system">fully_update_system</h2>
+
+<pre><code>ssh_fully_patch_system($host);</code></pre>
+
+<p>Connect to the remote host <code>$host</code> using ssh and update the system by running <code>zypper update</code> twice. The first run will update the package manager, the second run will update the system. Transactional systems like SLE micro shall use <code>transactional_update patch</code> and reboot.</p>
 
 
 </body>
