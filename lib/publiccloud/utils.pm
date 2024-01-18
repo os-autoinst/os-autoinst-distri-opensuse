@@ -297,6 +297,8 @@ sub prepare_ssh_tunnel {
 
 sub kill_packagekit {
     my ($instance) = @_;
+    # sle-micro do not have pkcon installed
+    return if (is_sle_micro);
     my $ret = $instance->ssh_script_run(cmd => "sudo pkcon quit", timeout => 120);
     if ($ret) {
         # Older versions of systemd don't support "disable --now"

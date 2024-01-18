@@ -25,8 +25,7 @@ sub run {
     my $remote = $args->{my_instance}->username . '@' . $args->{my_instance}->public_ip;
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
     my $skip_mu = get_var('PUBLIC_CLOUD_SKIP_MU', 0);
-    # /opt folder in Hardened images requires extra permissions so we will use /tmp instead
-    my $repodir = is_hardened() ? "/tmp/repos/" : "/opt/repos/";
+    my $repodir = "/opt/repos/";
     # Trigger to skip the download to speed up verification runs
     if ($skip_mu) {
         record_info('Skip download', 'Skipping maintenance update download (triggered by setting)');
