@@ -116,10 +116,9 @@ sub investigate_yast2_failure {
     );
     # Hash with known errors which we don't want to track in each postfail hook
     my %y2log_known_errors = (
+        "<3>.*Can't find YCP client component clone_proposal" => 'bsc#1218700',
+        "<3>.*84 Factory receive nil name" => 'bsc#1218700',
         "<3>.*QueryWidget failed.*RichText.*VScrollValue" => 'bsc#1167248',
-        "<3>.*Solverrun finished with an ERROR" => 'bsc#1170322',
-        "<3>.*3 packages failed.*badlist" => 'bsc#1170322',
-        "<3>.*Unknown option.*MultiSelectionBox widget" => 'bsc#1170431',
         "<3>.*XML.*Argument.*to Read.*is nil" => 'bsc#1170432',
         "<3>.*no[t]? mount" => 'bsc#1092088',    # Detect not mounted partition
         "<3>.*lib/cheetah.rb" => 'bsc#1153749',
@@ -128,13 +127,13 @@ sub investigate_yast2_failure {
         # Adding reference to trello, detect those in single scenario
         # (build97.1) regressions
         # found https://openqa.suse.de/tests/3646274#step/logs_from_installation_system/412
-        "<3>.*SCR::Dir\\(\\) failed" => 'bsc#1158186',
-        "<3>.*Unknown desktop file: installation" => 'bsc#1158186',
-        "<3>.*Bad options for module: virtio_net" => 'bsc#1158186',
-        "<3>.*Wrong value for path ." => 'bsc#1158186',
-        "<3>.*setOptions:Empty map" => 'bsc#1158186',
-        "<3>.*Unmounting media failed" => 'bsc#1158186',
-        "<3>.*No base product has been found" => 'bsc#1158186',
+        "<3>.*SCR::Dir\\(\\) failed" => 'bsc#1158186 -> WONTFIX',
+        "<3>.*Unknown desktop file: installation" => 'bsc#1158186 -> WONTFIX',
+        "<3>.*Bad options for module: virtio_net" => 'bsc#1158186 -> WONTFIX',
+        "<3>.*Wrong value for path ." => 'bsc#1158186 -> WONTFIX',
+        "<3>.*setOptions:Empty map" => 'bsc#1158186 -> WONTFIX',
+        "<3>.*Unmounting media failed" => 'bsc#1158186 -> WONTFIX',
+        "<3>.*No base product has been found" => 'bsc#1158186 -> WONTFIX',
         "<3>.*Error output: dracut:" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*Reading install.inf" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*shellcommand" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
@@ -206,6 +205,7 @@ sub investigate_yast2_failure {
         "<3>.*Could not import key.*Subprocess failed" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*baseproduct symlink is dangling or missing" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*falling back to @\\{DEFAULT_HOME_PATH\\}" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*open for json file '/etc/libstorage/udev-filters.json' failed" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         # libzypp errors
         "<3>.*The requested URL returned error" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*Not adding cache" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
@@ -235,10 +235,10 @@ sub investigate_yast2_failure {
     my $detected_errors_detailed = '';
     for my $y2log_error (keys %y2log_errors) {
         if (my $y2log_error_result = script_output("$cmd_prefix -m 20 -C 5 -E \"$y2log_error\" $cmd_postfix")) {
-            # Save detected error to indetify if have new regressions
+            # Save detected error to identify if there are new regressions
             push @detected_errors, $y2log_error;
             if (my $bug = $y2log_errors{$y2log_error}) {
-                record_info('Softfail', "$bug\n\nDetails:\n$y2log_error_result", result => 'softfail');
+                record_info('Softfail', "$bug\n\nDetails:\n$y2log_error_result", result => 'softfail') unless ($bug =~ m/WONTFIX|trello/);
                 next;
             }
             $detected_errors_detailed .= "$y2log_error_result\n\n$delimiter\n\n";
