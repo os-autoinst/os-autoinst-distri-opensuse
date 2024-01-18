@@ -88,14 +88,17 @@ sub run {
 
     select_serial_terminal;
     my $podman = $self->containers_factory('podman');
-    my $podman_version = get_podman_version();
 
+    my $podman_version = get_podman_version();
     if (package_version_cmp($podman_version, '4.0.0') < 0) {
         record_info('No support', "Netavark backend is not supported in podman-$podman_version");
         return 1;
     }
 
-    switch_to_netavark if is_cni_default || is_cni_in_tw;
+    if ((is_cni_default || is_cni_in_tw) && package_version_cmp($podman_version, '4.8.0') < 0) {
+        switch_to_netavark;
+    }
+
     $podman->cleanup_system_host();
 
     # it is turned off in
