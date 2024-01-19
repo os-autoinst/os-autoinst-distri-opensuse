@@ -635,12 +635,11 @@ sub modify_ds_ansible_files {
 }
 sub install_python311 {
     # Install python 3.11 needed for script execution
+    # Ansible playbook still executed by python 3.6 because 3.11 breaks many rules
     zypper_call("in python311");
     # Set alias persistent
     my $alias_cmd = "alias python='/usr/bin/python3.11'";
     my $bashrc_path = "/root/.bashrc";
-    assert_script_run("rm /usr/bin/python3");
-    assert_script_run("ln -s python3.11 /usr/bin/python3");
     assert_script_run("printf \"" . $alias_cmd . "\" >> \"$bashrc_path\"");
     assert_script_run("alias python=python3.11");
 }
@@ -919,13 +918,14 @@ sub oscap_security_guide_setup {
 
     # If required ansible remediation
     if ($ansible_remediation == 1) {
-        my $pkg = 'ansible';
+        my $pkg = 'ansible python311-pyOpenSSL';
         zypper_call "in $pkg sudo";
         # Record the pkg' version for reference
         my $out = script_output("zypper se -s $pkg", quiet => 1);
         record_info("$pkg Pkg_ver", "$pkg packages' version:\n $out");
         $out = "";
         #install ansible.posix
+        assert_script_run("pip3 install ansible");
         assert_script_run("ansible-galaxy collection install ansible.posix");
     }
     if (($remove_rules_missing_fixes == 1) or ($use_content_type == 3)) {
