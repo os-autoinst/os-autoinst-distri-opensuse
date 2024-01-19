@@ -4,7 +4,14 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Run systemd upstream test cases
-# Maintainer: Martin Loviska <mloviska@suse.com>
+#
+# This module is an helper to run a single systemd test case under openQA.
+# It is invoked from prepare_systemd_and_testsuite.pm with autotest::loadtest() and run_args parameter.
+#
+# Since the full upstream systemd testsuite it not yet compatible on SLE, when the test fails
+# or timeouts, if the test name is contained in the SYSTEMD_SOFTFAIL variable, mark it as softfailed.
+#
+# Maintainer: qe-core@suse.com, Martin Loviska <mloviska@suse.com>
 
 use Mojo::Base qw(systemd_testsuite_test);
 use testapi;
@@ -50,6 +57,7 @@ sub run {
     select_serial_terminal();
 
     assert_script_run(build_cmd('clean', $args), timeout => 180);
+    # redirect stdout as a workaround to run the command and keep both the return code and the output
     my $rc = script_run(build_cmd('setup', $args) . "> /tmp/out.txt", timeout => 240);
     if ($rc != 0) {
         $self->{result} = decide_result($args->{test});

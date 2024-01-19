@@ -4,7 +4,14 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Prepare systemd and testsuite.
-# Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>, Thomas Blume <tblume@suse.com>
+#
+# This module works as a 'loader' for the actual systemd-testsuite testcases.
+# - install package systemd-testsuite, that contains a patched version of https://github.com/systemd/systemd
+# - for each test in the upstream testsuite, filter out those mentioned in the variable SYSTEMD_EXCLUDE
+# - for all other, schedule a new openQA testmodule: i.e. loadtest(runner.pm) passing a different name every time
+# - when this module ends, the single tests of the systemd testsuite are being executed by openQA as independent test modules.
+#
+# Maintainer: qe-core@suse.com, Thomas Blume <tblume@suse.com>
 
 use Mojo::Base qw(systemd_testsuite_test);
 use testapi;
