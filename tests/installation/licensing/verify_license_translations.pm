@@ -54,8 +54,9 @@ sub run {
         $license_agreement->select_language($found_lang);
         $license_agreement_info = $license_agreement->collect_current_license_agreement_info();
         if ($license_agreement_info->{text} !~ /$translation->{text}/) {
-            record_soft_failure("EULA content for the language: '$translation->{language}' didn't validate. See bsc#1203004 for details.\n");
-            diag("EULA validation failed:\nExpected:\n$translation->{text}\nActual:\n$license_agreement_info->{text}\n\n");
+            my $eula_err = "EULA content for the language: '$translation->{language}' didn't validate.";
+            die($eula_err) if $self->is_sles_in_gm_phase();
+            record_info('EULA', "EULAs usually not ready before GMC: $eula_err");
         }
     }
     # Set language back to default

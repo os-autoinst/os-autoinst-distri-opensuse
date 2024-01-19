@@ -611,6 +611,10 @@ sub deal_with_dependency_issues {
     }
 }
 
+sub is_sles_in_gm_phase {
+    return !get_var('BETA');
+}
+
 sub save_remote_upload_y2logs {
     my ($self, %args) = @_;
 
