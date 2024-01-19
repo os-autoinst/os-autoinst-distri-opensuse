@@ -24,7 +24,7 @@ sub run {
 
     select_console 'root-console';
 
-    zypper_call('in bridge-utils');
+    zypper_call('in bridge-utils netcat-openbsd');
 
     # Need to do 'make netconfig' to generate 'lblnet_tst_server'
     prepare_for_test(make => 1, timeout => 900, make_netconfig => 1);
