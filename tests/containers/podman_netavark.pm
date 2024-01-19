@@ -20,8 +20,10 @@ sub is_cni_in_tw {
     return (script_output("podman info -f '{{.Host.NetworkBackend}}'") =~ "cni") && is_microos && get_var('TDUP');
 }
 
+# podman >=4.8.0 defaults to netavark
 sub is_cni_default {
-    return is_sle || is_leap || is_sle_micro('<6.0') || is_leap_micro;
+    my $podman_version = get_podman_version();
+    return package_version_cmp($podman_version, '4.8.0') < 0;
 }
 
 sub remove_subtest_setup {
@@ -45,20 +47,16 @@ sub is_container_running {
 
 # clean up routine only for systems that run CNI as default network backend
 sub _cleanup {
-    return unless is_cni_default;
     my $podman = shift->containers_factory('podman');
     select_console 'log-console';
     remove_subtest_setup;
-    script_run('rm -rf /etc/containers/containers.conf');
-    $podman->cleanup_system_host();
 
-    # podman >=4.8.0 defaults to netavark,
-    # removing containers.conf falls back
-    # to cni which leads to failing tests
-    my $podman_version = get_podman_version();
-    if (package_version_cmp($podman_version, '4.8.0') < 0) {
+    if (is_cni_default) {
+        script_run('rm -f /etc/containers/containers.conf');
+        $podman->cleanup_system_host();
         validate_script_output('podman info --format {{.Host.NetworkBackend}}', sub { /cni/ });
     } else {
+        $podman->cleanup_system_host();
         validate_script_output('podman info --format {{.Host.NetworkBackend}}', sub { /netavark/ });
     }
 
@@ -94,8 +92,11 @@ sub run {
         return 1;
     }
 
-    if ((is_cni_default || is_cni_in_tw) && package_version_cmp($podman_version, '4.8.0') < 0) {
+    if (is_cni_default || is_cni_in_tw) {
         switch_to_netavark;
+    } else {
+        record_info('default', 'netavark should be the default network backend');
+        zypper_call('in aardvark-dns') if is_sle;
     }
 
     $podman->cleanup_system_host();
