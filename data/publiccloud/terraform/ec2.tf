@@ -64,6 +64,10 @@ variable "vpc_security_group_ids" {
   default = ""
 }
 
+variable "availability_zone" {
+  default = ""
+}
+
 variable "subnet_id" {
   default = ""
 }
@@ -91,6 +95,7 @@ resource "aws_instance" "openqa" {
   instance_type          = var.type
   key_name               = aws_key_pair.openqa-keypair.key_name
   vpc_security_group_ids = [var.vpc_security_group_ids]
+  availability_zone      = var.availability_zone
   subnet_id              = var.subnet_id
   ipv6_address_count     = var.ipv6_address_count
 
