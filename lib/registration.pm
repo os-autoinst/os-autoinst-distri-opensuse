@@ -315,7 +315,11 @@ sub register_addons_cmd {
                 add_suseconnect_product($name, $ver[0], undef, undef, 300, $retry);
             }
             elsif (grep(/$name/, keys %ADDONS_REGCODE)) {
-                add_suseconnect_product($name, undef, undef, "-r " . $ADDONS_REGCODE{$name}, 300, $retry);
+                my $opt = "";
+                if (is_sle("=15-SP4")) {
+                    $opt = " --auto-agree-with-licenses";
+                }
+                add_suseconnect_product($name, undef, undef, "-r " . $ADDONS_REGCODE{$name} . $opt, 300, $retry);
                 if ($name =~ /we/) {
                     zypper_call("--gpg-auto-import-keys ref");
                     add_suseconnect_product($name, undef, undef, "-r " . $ADDONS_REGCODE{$name}, 300, $retry);
