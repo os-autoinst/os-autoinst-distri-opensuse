@@ -23,7 +23,7 @@ sub is_cni_in_tw {
 # podman >=4.8.0 defaults to netavark
 sub is_cni_default {
     my $podman_version = get_podman_version();
-    return package_version_cmp($podman_version, '4.8.0') < 0;
+    return package_version_cmp($podman_version, '4.8.0') < 0 || is_sle_micro('<6.0');
 }
 
 sub remove_subtest_setup {
