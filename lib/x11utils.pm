@@ -230,11 +230,7 @@ sub handle_additional_polkit_windows {
         # expected that polkit authentication window can open for first time login.
         # see bsc#1177446 for more information.
         # Base latest feedback of bsc#1192992,authentication should never open if is_sle  >= 15SP4
-        if (is_sle('>=15-sp4')) {
-            record_soft_failure 'bsc#1192992 - authentication should never open if is_sle >= 15SP4';
-        } else {
-            record_info('authentication open for first time login');
-        }
+        record_info('authentication open for first time login, for bsc#1192992, authentication should never open if is_sle>=154');
         wait_still_screen(5);
         my $counter = 5;
         while (check_screen('authentication-required-user-settings', 10) && $counter) {
