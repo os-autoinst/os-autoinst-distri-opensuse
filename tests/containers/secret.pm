@@ -53,17 +53,24 @@ sub run {
     record_info("secret ls");
     assert_script_run("$runtime secret ls");
 
-    # Run a container passing secret1 as an env variable and secret2 as default
-    my $runtime_command = ($runtime =~ 'docker') ? 'service' : 'run';
+    # Run two containers passing secret1 as an env variable and secret2 as default
+    my $runtime_command = ($runtime =~ 'docker') ? 'service create' : 'run';
     record_info("Access secrets");
     script_run("$runtime pull registry.opensuse.org/opensuse/bci/bci-busybox:latest");
-    validate_script_output("$runtime $runtime_command --rm --name secret-test --secret secret1,type=env,target=TOP_SECRET1 --secret secret2 bci-busybox:latest printenv TOP_SECRET1", sub { m/T0p_S3cr3t1/ });
-    validate_script_output("$runtime $runtime_command --name secret-test --secret secret1,type=env,target=TOP_SECRET1 --secret secret2 bci-busybox:latest cat /run/secrets/secret2", sub { m/T0p_S3cr3t2/ });
+
+    # secret1 testing (CLI secret)
+    validate_script_output("$runtime $runtime_command --name secret1-test --secret src=secret1,type=env,target=TOP_SECRET1 bci-busybox:latest printenv TOP_SECRET1", sub { m/T0p_S3cr3t1/ });
     # Commit the container and check that the secrets are not in it
-    record_info("Commit container");
-    assert_script_run("$runtime commit secret-test secret-test-image");
-    validate_script_output("$runtime $runtime_command --rm --name new-secret-test secret-test-image:latest printenv TOP_SECRET1", sub { !m/T0p_S3cr3t1/ });
-    validate_script_output("$runtime $runtime_command --name new-secret-test secret-test-image:latest cat /run/secrets/secret2", sub { !m/T0p_S3cr3t2/ });
+    record_info("Commit container secret1-test");
+    assert_script_run("$runtime commit secret1-test secret1-test-image");
+    validate_script_output("$runtime $runtime_command --name secret1-test-commit secret-test-image:latest printenv TOP_SECRET1", sub { !m/T0p_S3cr3t1/ });
+
+    # secret2 testing (file secret)
+    validate_script_output("$runtime $runtime_command --name secret2-test --secret secret2 bci-busybox:latest cat /run/secrets/secret2", sub { m/T0p_S3cr3t2/ });
+    # Commit the container and check that the secrets are not in it
+    record_info("Commit container secret2-test");
+    assert_script_run("$runtime commit secret2-test secret2-test-image");
+    validate_script_output("$runtime $runtime_command --name secret2-test-commit secret2-test-image:latest cat /run/secrets/secret2", sub { !m/T0p_S3cr3t2/ });
 
     # Remove secrets
     record_info("secret rm");
