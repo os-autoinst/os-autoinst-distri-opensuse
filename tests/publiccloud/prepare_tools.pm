@@ -18,6 +18,8 @@ use utils;
 use version_utils qw(is_sle is_opensuse);
 use repo_tools 'generate_version';
 
+my $python_exec = 'python3.11';
+
 sub create_script_file {
     my ($filename, $fullpath, $content) = @_;
     save_tmp_file($filename, $content);
@@ -33,10 +35,11 @@ sub install_in_venv {
     assert_script_run(sprintf('curl -f -v %s/data/publiccloud/venv/%s.txt > /tmp/%s.txt', autoinst_url(), $binary, $binary)) if defined($args{requirements});
 
     my $venv = '/root/.venv_' . $binary;
-    assert_script_run("python3.10 -m venv $venv");
+    assert_script_run("$python_exec -m venv $venv");
     assert_script_run("source '$venv/bin/activate'");
     my $what_to_install = defined($args{requirements}) ? sprintf('-r /tmp/%s.txt', $binary) : $args{pip_packages};
     assert_script_run('pip install --force-reinstall ' . $what_to_install, timeout => $install_timeout);
+    record_info($venv, script_output('pip freeze'));
     assert_script_run('deactivate');
     my $script = <<EOT;
 #!/bin/sh
@@ -71,14 +74,24 @@ sub run {
     ensure_ca_certificates_suse_installed();
 
     # Install prerequisite packages test
-    zypper_call('-q in python310-pip python310-devel python3-pytest python3-img-proof python3-img-proof-tests podman docker jq rsync unzip');
-    record_info('python', script_output('python --version'));
+    zypper_call('-q in python3-img-proof python3-img-proof-tests');
+    record_info('python exec', script_output("$python_exec --version"));
+
+    # bsc#1213529
+    assert_script_run('cat /usr/lib/python3.6/site-packages/azure_core-1.23.1-py3.6.egg-info/requires.txt');
+    assert_script_run(q(sed -i 's/^typing-extensions>=4\.0\.1$/typing-extensions>=3.10.0.0/' /usr/lib/python3.6/site-packages/azure_core-1.23.1-py3.6.egg-info/requires.txt));
+
+    assert_script_run("img-proof list");
+    my $img_proof_ver = script_output('img-proof --version');
+    record_info('img-proof', $img_proof_ver);
+    set_var('PUBLIC_CLOUD_IMG_PROOF_VER', $img_proof_ver =~ /img-proof, version ([\d\.]+)/);
+
     systemctl('enable --now docker');
     assert_script_run('podman ps');
     assert_script_run('docker ps');
 
     # Install AWS cli
-    my $aws_version = '2.12.3';
+    my $aws_version = '2.15.2';
     # Download and import the AWS public PGP key
     assert_script_run(sprintf('curl -f -v %s/data/publiccloud/aws.asc -o /tmp/aws.asc', autoinst_url()));
     assert_script_run('gpg --import /tmp/aws.asc');
@@ -91,21 +104,12 @@ sub run {
     record_info('EC2', script_output('aws --version'));
 
     # Install ec2imgutils
-    # bsc#1213529
-    assert_script_run('cat /usr/lib/python3.6/site-packages/azure_core-1.23.1-py3.6.egg-info/requires.txt');
-    assert_script_run(q(sed -i 's/^typing-extensions>=4\.0\.1$/typing-extensions>=3.10.0.0/' /usr/lib/python3.6/site-packages/azure_core-1.23.1-py3.6.egg-info/requires.txt));
-
     install_in_venv('ec2uploadimg', requirements => 1);
     record_info('ec2imgutils', 'ec2uploadimg:' . script_output('ec2uploadimg --version'));
 
     # Install Azure cli
     install_in_venv('az', requirements => 1);
-    my $azure_error = '/tmp/azure_error';
-    record_info('Azure', script_output('az -v 2>' . $azure_error));
-    assert_script_run('cat ' . $azure_error);
-    if (script_run('test -s ' . $azure_error)) {
-        die("Unexpected error in azure-cli") unless validate_script_output("cat $azure_error", m/Please let us know how we are doing .* and let us know if you're interested in trying out our newest features .*/);
-    }
+    record_info('Azure', script_output('az -v'));
 
     # Install OpenStack cli
     install_in_venv('openstack', requirements => 1);
@@ -113,18 +117,13 @@ sub run {
 
     # Install Google Cloud SDK
     assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
+    assert_script_run("export CLOUDSDK_PYTHON=$python_exec");
     assert_script_run("curl sdk.cloud.google.com | bash");
     assert_script_run("echo . /root/google-cloud-sdk/completion.bash.inc >> ~/.bashrc");
     assert_script_run("echo . /root/google-cloud-sdk/path.bash.inc >> ~/.bashrc");
     record_info('GCE', script_output('source ~/.bashrc && gcloud version'));
 
-    # Create some directories, ipa will need them
-    assert_script_run("img-proof list");
-    my $img_proof_ver = script_output('img-proof --version');
-    record_info('img-proof', $img_proof_ver);
-    set_var('PUBLIC_CLOUD_IMG_PROOF_VER', $img_proof_ver =~ /img-proof, version ([\d\.]+)/);
-
-    my $terraform_version = get_var('TERRAFORM_VERSION', '1.3.6');
+    my $terraform_version = get_var('TERRAFORM_VERSION', '1.5.7');
     # Terraform in a container
     my $terraform_wrapper = <<EOT;
 #!/bin/bash -e
@@ -142,12 +141,12 @@ EOT
     my $ansible_core_version = get_var('ANSIBLE_CORE_VERSION');
     my $ansible_install_log = '/tmp/ansible_install.log';
 
-    assert_script_run("python3.10 -m pip install --no-input -q --no-color --log $ansible_install_log ansible==$ansible_version", timeout => 240);
+    assert_script_run("$python_exec -m pip install --no-input -q --no-color --log $ansible_install_log ansible==$ansible_version", timeout => 240);
     upload_logs("$ansible_install_log", failok => 1);
 
     if (length $ansible_core_version) {
         my $ansible_core_install_log = "/tmp/ansible_core_install.log";
-        assert_script_run("python3.10 -m pip install --no-input -q --no-color --log $ansible_core_install_log ansible-core==$ansible_core_version", timeout => 240);
+        assert_script_run("$python_exec -m pip install --no-input -q --no-color --log $ansible_core_install_log ansible-core==$ansible_core_version", timeout => 240);
         upload_logs("$ansible_core_install_log", failok => 1);
     }
     record_info('Ansible', script_output('ansible --version'));
