@@ -10,8 +10,6 @@ use warnings;
 use utils;
 use testapi;
 use Exporter 'import';
-use version_utils 'is_sle';
-use YaST::workarounds;
 
 our @EXPORT = qw(launch_yast2_module_x11 %setup_nis_nfs_x11);
 our %setup_nis_nfs_x11 = (
@@ -62,7 +60,7 @@ sub launch_yast2_module_x11 {
     diag 'assuming root-auth-dialog, typing password';
     type_password;
     send_key 'ret';
-    apply_workaround_poo124652($args{target_match}, $args{match_timeout}) if (is_sle('>=15-SP4'));
+    assert_screen $args{target_match}, $args{match_timeout};
     # Uses hotkey for gnome, adjust if need for other desktop
     send_key 'alt-f10' if $args{maximize_window};
 }
