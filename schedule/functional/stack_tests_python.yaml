@@ -20,6 +20,7 @@ conditional_schedule:
         - console/python3_new_version_check
         - console/python3_setuptools
         - console/python3_beautifulsoup4
+        - console/python3_websocket_client
   version_specific:
     VERSION:
       15-SP6:
@@ -31,6 +32,7 @@ conditional_schedule:
         - console/python3_new_version_check
         - console/python3_setuptools
         - console/python3_beautifulsoup4
+        - console/python3_websocket_client
       15-SP5:
         - console/python_flake8
         - console/python_pycairo
@@ -40,6 +42,7 @@ conditional_schedule:
         - console/python3_new_version_check
         - console/python3_setuptools
         - console/python3_beautifulsoup4
+        - console/python3_websocket_client
       15-SP4:
         - console/python_flake8
         - console/python_pycairo
@@ -49,6 +52,7 @@ conditional_schedule:
         - console/python3_new_version_check
         - console/python3_setuptools
         - console/python3_beautifulsoup4
+        - console/python3_websocket_client
       15-SP3:
         - console/python_flake8
         - console/django
