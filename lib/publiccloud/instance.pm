@@ -430,7 +430,8 @@ sub wait_for_ssh {
     # result display
     $sysout .= "\nTimeout $args{timeout} sec. expired" if ($duration >= $args{timeout});
     $instance_msg = "Check" . ($args{systemup_check} ? " SYSTEM " : " SSH ") . ($args{wait_stop} ? "DOWN" : "UP") .
-      ", $instance_msg, Duration: $duration sec.\nResult: $sshout . $sysout";
+      ", $instance_msg, Duration: $duration sec.\nResult: $sshout";
+    $instance_msg .= $sysout if defined($sysout);
     $instance_msg .= "\nRetries on failure: $retry" if ($retry);
     record_info("WAIT CHECK", $instance_msg);
     # OK
