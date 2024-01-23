@@ -821,7 +821,6 @@ the second run will update the system.
 
 sub ssh_fully_patch_system {
     my $remote = shift;
-
     my $cmd_time = time();
     # first run, possible update of packager -- exit code 103
     my $ret = script_run("ssh $remote 'sudo zypper -n patch --with-interactive -l'", 1500);

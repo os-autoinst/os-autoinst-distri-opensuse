@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_sle_micro is_public_cloud get_version_id is_transactional);
+use version_utils qw(is_sle is_public_cloud get_version_id is_transactional);
 use transactional qw(check_reboot_changes trup_call process_reboot);
 use registration;
 use maintenance_smelt qw(is_embargo_update);
@@ -46,7 +46,7 @@ our @EXPORT = qw(
   prepare_ssh_tunnel
   kill_packagekit
   allow_openqa_port_selinux
-  fully_update_system
+  ssh_update_transactional_system
 );
 
 # Get the current UTC timestamp as YYYY/mm/dd HH:MM:SS
@@ -297,8 +297,6 @@ sub prepare_ssh_tunnel {
 
 sub kill_packagekit {
     my ($instance) = @_;
-    # sle-micro do not have pkcon installed
-    return if (is_sle_micro);
     my $ret = $instance->ssh_script_run(cmd => "sudo pkcon quit", timeout => 120);
     if ($ret) {
         # Older versions of systemd don't support "disable --now"
@@ -329,40 +327,33 @@ sub allow_openqa_port_selinux {
 }
 
 
-=head2 fully_update_system
+=head2 ssh_update_transactional_system
 
- ssh_fully_patch_system($host);
+ssh_update_transactional_system($host);
 
-Connect to the remote host C<$host> using ssh and update the system by
-running C<zypper update> twice. The first run will update the package manager,
+Connect to the remote host C<$instance> using ssh and update the system by
+running C<zypper update> twice, in transactional mode. The first run will update the package manager,
 the second run will update the system.
-Transactional systems like SLE micro shall use C<transactional_update patch> and reboot. 
+Transactional systems like SLE micro used C<transactional_update up> and reboot. 
 
 =cut
 
-sub fully_update_system {
+sub ssh_update_transactional_system {
     my ($instance) = @_;
-    my $ret;
     my $cmd_time = time();
-    if (is_transactional)
-    {
-        my $cmd = "sudo transactional-update -n up";
-        my $cmd_name = "transactional update";
-        # first run, possible update of packager
-        my $ret = $instance->ssh_script_run(cmd => $cmd, timeout => 1500);
-        $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
-        record_info($cmd_name, 'The command ' . $cmd_name . ' took ' . (time() - $cmd_time) . ' seconds.');
-        die "$cmd_name failed with $ret" if ($ret != 0 && $ret != 102 && $ret != 103);
-        # second run, full system update
-        $cmd_time = time();
-        $ret = $instance->ssh_script_run(cmd => $cmd, timeout => 6000);
-        $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
-        record_info($cmd_name, 'The second command ' . $cmd_name . ' took ' . (time() - $cmd_time) . ' seconds.');
-        die "$cmd_name failed with $ret" if ($ret != 0 && $ret != 102);
-    } else {
-        ssh_fully_patch_system($instance->username . '@' . $instance->public_ip);
-        $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
-    }
+    my $cmd = "sudo transactional-update -n up";
+    my $cmd_name = "transactional update";
+    # first run, possible update of packager
+    my $ret = $instance->ssh_script_run(cmd => $cmd, timeout => 1500);
+    $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+    record_info($cmd_name, 'The command ' . $cmd_name . ' took ' . (time() - $cmd_time) . ' seconds.');
+    die "$cmd_name failed with $ret" if ($ret != 0 && $ret != 102 && $ret != 103);
+    # second run, full system update
+    $cmd_time = time();
+    $ret = $instance->ssh_script_run(cmd => $cmd, timeout => 6000);
+    $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+    record_info($cmd_name, 'The second command ' . $cmd_name . ' took ' . (time() - $cmd_time) . ' seconds.');
+    die "$cmd_name failed with $ret" if ($ret != 0 && $ret != 102);
 }
 
 1;
