@@ -645,17 +645,6 @@ sub install_python311 {
     assert_script_run("printf \"" . $alias_cmd . "\" >> \"$bashrc_path\"");
     assert_script_run("alias python=python3.11");
 }
-
-sub install_python3 {
-    # Install python 3 needed for script execution
-    zypper_call("in python3");
-    # Set alias persistent
-    my $alias_cmd = "alias python='/usr/bin/python3.6'";
-    my $bashrc_path = "/root/.bashrc";
-    assert_script_run("printf \"" . $alias_cmd . "\" >> \"$bashrc_path\"");
-    assert_script_run("alias python=python3.6");
-}
-
 sub generate_missing_rules {
     # Generate text file that contains rules that missing implimentation for profile
     my $output_file = "missing_rules.txt";
@@ -992,7 +981,9 @@ sub oscap_security_guide_setup {
     my $pip_out = script_output("pip freeze --local");
     record_info("python modules", "List of installed python modules:\n $pip_out");
     # Record Ansible version for reference
-    my $ansible_version = script_output("ansible --version");
+    if ($ansible_remediation == 1) {
+        my $ansible_version = script_output("ansible --version");
+    }
     record_info("ansible version", "Ansible version:\n $ansible_version");
     # Record python3 version for reference
     my $python3_version = script_output("python3 -VV");
