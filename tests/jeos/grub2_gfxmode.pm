@@ -12,13 +12,16 @@
 
 use Mojo::Base qw(opensusebasetest);
 use testapi;
-use serial_terminal 'select_serial_terminal';
+use serial_terminal;
 use jeos qw(set_grub_gfxmode);
+use utils qw(ensure_serialdev_permissions);
 
 sub run {
     select_serial_terminal;
 
     set_grub_gfxmode;
+    ensure_serialdev_permissions;
+    prepare_serial_console;
 }
 
 sub test_flags {
