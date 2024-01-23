@@ -983,8 +983,8 @@ sub oscap_security_guide_setup {
     # Record Ansible version for reference
     if ($ansible_remediation == 1) {
         my $ansible_version = script_output("ansible --version");
+        record_info("ansible version", "Ansible version:\n $ansible_version");
     }
-    record_info("ansible version", "Ansible version:\n $ansible_version");
     # Record python3 version for reference
     my $python3_version = script_output("python3 -VV");
     record_info("python3 version", "python3 version:\n $python3_version");
