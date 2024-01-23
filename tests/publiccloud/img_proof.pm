@@ -35,6 +35,7 @@ sub run {
 
     if (is_hardened) {
         # Fix permissions for /etc/ssh/sshd_config
+        # https://bugzilla.suse.com/show_bug.cgi?id=1219100
         $instance->ssh_assert_script_run('sudo chmod 600 /etc/ssh/sshd_config');
         # Avoid "pam_apparmor(sudo:session): Unknown error occurred changing to root hat: Operation not permitted"
         $instance->ssh_assert_script_run('sudo sed -i /pam_apparmor.so/d /etc/pam.d/*');
@@ -69,6 +70,8 @@ sub run {
     upload_logs($img_proof->{logfile});
     parse_extra_log(IPA => $img_proof->{results});
     assert_script_run('rm -rf img_proof_results');
+
+    $instance->upload_log('/var/tmp/report.html', failok => 1);
 
     # fail, if at least one test failed
     if ($img_proof->{fail} > 0) {
