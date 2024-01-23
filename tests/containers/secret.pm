@@ -29,16 +29,16 @@ sub run {
         assert_script_run("docker swarm init --advertise-addr $ip_addr");
     }
 
-    # Create a secret1 from CLI and inspect it
-    record_info("secret create CLI");
-    assert_script_run("printf T0p_S3cr3t1 | $runtime secret create secret1 -", fail_message => "Error creating secret from CLI", timeout => 60);
-    record_info("secret inspect CLI", script_output("$runtime secret inspect secret1"));
-
-    # Create a secret2 from file and inspect it
+    # Create a secret1 from file and inspect it
     record_info("secret create file");
-    script_run("printf T0p_S3cr3t2 > secret2.txt");
-    assert_script_run("$runtime secret create secret2 secret2.txt", fail_message => "Error creating secret from file", timeout => 60);
-    record_info("secret inspect file", script_output("$runtime secret inspect secret2"));
+    script_run("printf T0p_S3cr3t1 > secret1.txt");
+    assert_script_run("$runtime secret create secret1 secret1.txt", fail_message => "Error creating secret from file", timeout => 60);
+    record_info("secret inspect file", script_output("$runtime secret inspect secret1"));
+
+    # Create a secret2 from CLI and inspect it
+    record_info("secret create CLI");
+    assert_script_run("printf T0p_S3cr3t2 | $runtime secret create secret2 -", fail_message => "Error creating secret from CLI", timeout => 60);
+    record_info("secret inspect CLI", script_output("$runtime secret inspect secret2"));
 
     # Check if secret exists (only in podman)
     if ($runtime =~ 'podman') {
@@ -58,19 +58,22 @@ sub run {
     record_info("Access secrets");
     script_run("$runtime pull registry.opensuse.org/opensuse/bci/bci-busybox:latest");
 
-    # secret1 testing (CLI secret)
-    validate_script_output("$runtime $runtime_command --name secret1-test --secret src=secret1,type=env,target=TOP_SECRET1 bci-busybox:latest printenv TOP_SECRET1", sub { m/T0p_S3cr3t1/ });
+    # secret1 testing (default secret)
+    validate_script_output("$runtime $runtime_command --name secret1-test --secret secret1 bci-busybox:latest cat /run/secrets/secret1", sub { m/T0p_S3cr3t1/ });
     # Commit the container and check that the secrets are not in it
     record_info("Commit container secret1-test");
     assert_script_run("$runtime commit secret1-test secret1-test-image");
-    validate_script_output("$runtime $runtime_command --name secret1-test-commit secret-test-image:latest printenv TOP_SECRET1", sub { !m/T0p_S3cr3t1/ });
+    validate_script_output("$runtime $runtime_command --name secret1-test-commit secret1-test-image:latest cat /run/secrets/secret1", sub { !m/T0p_S3cr3t1/ });
 
-    # secret2 testing (file secret)
-    validate_script_output("$runtime $runtime_command --name secret2-test --secret secret2 bci-busybox:latest cat /run/secrets/secret2", sub { m/T0p_S3cr3t2/ });
-    # Commit the container and check that the secrets are not in it
-    record_info("Commit container secret2-test");
-    assert_script_run("$runtime commit secret2-test secret2-test-image");
-    validate_script_output("$runtime $runtime_command --name secret2-test-commit secret2-test-image:latest cat /run/secrets/secret2", sub { !m/T0p_S3cr3t2/ });
+    # Accessing secrets as env variables is not available in Docker
+    if ($runtime =~ 'podman') {
+        # secret2 testing (env secret)
+        validate_script_output("podman run --name secret2-test --secret secret2,type=env,target=TOP_SECRET2 bci-busybox:latest printenv TOP_SECRET2", sub { m/T0p_S3cr3t2/ });
+        # Commit the container and check that the secrets are not in it
+        record_info("Commit container secret2-test");
+        assert_script_run("podman commit secret2-test secret2-test-image");
+        validate_script_output("podman run --name secret1-test-commit secret-test-image:latest printenv TOP_SECRET2", sub { !m/T0p_S3cr3t2/ });
+    }
 
     # Remove secrets
     record_info("secret rm");
