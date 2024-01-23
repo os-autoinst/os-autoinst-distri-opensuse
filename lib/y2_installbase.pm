@@ -615,6 +615,11 @@ sub is_sles_in_gm_phase {
     return !get_var('BETA');
 }
 
+sub is_sles_in_rc_phase {
+    my $is_RC = !script_run('grep -r RC /README.BETA');
+    return $is_RC;
+}
+
 sub save_remote_upload_y2logs {
     my ($self, %args) = @_;
 
