@@ -12,7 +12,7 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use Mojo::File 'path';
 use Mojo::JSON;
-use publiccloud::utils qw(is_ondemand);
+use publiccloud::utils qw(is_ondemand is_hardened);
 use publiccloud::ssh_interactive 'select_host_console';
 
 sub run {
@@ -31,6 +31,13 @@ sub run {
     } else {
         $provider = $self->provider_factory();
         $instance = $provider->create_instance(check_guestregister => is_ondemand ? 1 : 0);
+    }
+
+    if (is_hardened) {
+        # Fix permissions for /etc/ssh/sshd_config
+        $instance->ssh_assert_script_run('sudo chmod 600 /etc/ssh/sshd_config');
+        # Avoid "pam_apparmor(sudo:session): Unknown error occurred changing to root hat: Operation not permitted"
+        $instance->ssh_assert_script_run('sudo sed -i /pam_apparmor.so/d /etc/pam.d/*');
     }
 
     if ($tests eq "default") {
