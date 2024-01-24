@@ -17,18 +17,18 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_alp);
+use version_utils qw(is_sle is_alp is_tumbleweed);
 
 sub run_test {
     my ($self) = @_;
 
     #Refer to bsc#1214223 more details
-    record_soft_failure('bsc#1214223 - Failed to attach NAT virtual network interface to guest system') if (is_xen_host && !is_monolithic_libvirtd);
+    record_soft_failure('bsc#1214223 - Failed to attach NAT virtual network interface to guest system') if (is_xen_host && !is_monolithic_libvirtd && !is_tumbleweed);
     #Download libvirt host bridge virtual network configuration file
     my $vnet_nated_cfg_name = "vnet_nated.xml";
     virt_autotest::virtual_network_utils::download_network_cfg($vnet_nated_cfg_name);
 
-    die "The default(NAT BASED NETWORK) virtual network does not exist" if (script_run('virsh net-list --all | grep default') != 0 && !is_alp);
+    die "The default(NAT BASED NETWORK) virtual network does not exist" if (script_run('virsh net-list --all | grep default') != 0 && !is_alp && !is_tumbleweed);
 
     #Create NAT BASED NETWORK
     assert_script_run("virsh net-create vnet_nated.xml");
