@@ -13,7 +13,7 @@ use Mojo::Base -base;
 use publiccloud::instance;
 use publiccloud::instances;
 use publiccloud::ssh_interactive 'select_host_console';
-use publiccloud::utils qw(is_azure is_gce is_ec2);
+use publiccloud::utils qw(is_azure is_gce is_ec2 is_hardened);
 use Carp;
 use List::Util qw(max);
 use Data::Dumper;
@@ -206,6 +206,9 @@ sub run_img_proof {
             $cmd .= "--exclude $excl ";
         }
     }
+
+    # Tell img-proof to generate SCAP report on hardened images
+    $cmd = "SCAP_REPORT=/var/tmp/report.html " . $cmd if is_hardened;
 
     $cmd .= $args{tests};
     record_info("img-proof cmd", $cmd);
