@@ -303,21 +303,23 @@ sub check_containers_connectivity {
     assert_script_run "$runtime run -id --rm --name $container_name -p 1234:1234 " . registry_url('alpine') . " sleep 30d";
     my $container_ip = container_ip $container_name, $runtime;
 
+    my $_4 = is_sle("<15") ? "" : "-4";
+
     # Connectivity to host check
     my $container_route = container_route($container_name, $runtime);
-    assert_script_run "ping -4 -c3 " . $container_route;
+    assert_script_run "ping $_4 -c3 " . $container_route;
     assert_script_run "$runtime run --rm " . registry_url('alpine') . " ping -4 -c3 " . $container_route;
 
     # Cross-container connectivity check
-    assert_script_run "ping -4 -c3 " . $container_ip;
+    assert_script_run "ping $_4 -c3 " . $container_ip;
     assert_script_run "$runtime run --rm " . registry_url('alpine') . " ping -4 -c3 " . $container_ip;
 
     # Outside IP connectivity check
-    script_retry "ping -4 -c3 8.8.8.8", retry => 3, delay => 120;
+    script_retry "ping $_4 -c3 8.8.8.8", retry => 3, delay => 120;
     script_retry "$runtime run --rm " . registry_url('alpine') . " ping -4 -c3 8.8.8.8", retry => 3, delay => 120;
 
     # Outside IP+DNS connectivity check
-    script_retry "ping -4 -c3 google.com", retry => 3, delay => 120;
+    script_retry "ping $_4 -c3 google.com", retry => 3, delay => 120;
     script_retry "$runtime run --rm " . registry_url('alpine') . " ping -4 -c3 google.com", retry => 3, delay => 120;
 
     # Kill the container running on background
