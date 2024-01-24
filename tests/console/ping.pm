@@ -45,7 +45,7 @@ sub run {
     my $addr = script_output("ip -6 addr show $ifname | grep 'scope link' | head -1 | awk '{ print \$2 }' | cut -d/ -f1");
 
     # test as non-root user
-    my $sudo = 'sudo -u \#1000';
+    my $sudo = "sudo -u $testapi::username";
     record_info('id non-root', script_output("$sudo id", proceed_on_failure => 1));
 
     foreach my $cmd ("ping localhost", "ping6 ::1", "ping6 $addr%$ifname") {
