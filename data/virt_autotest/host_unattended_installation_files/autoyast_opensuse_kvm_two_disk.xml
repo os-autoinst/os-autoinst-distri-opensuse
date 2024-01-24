@@ -120,6 +120,7 @@
         <service>firewalld</service>
       </disable>
       <enable t="list">
+	<service>NetworkManager</service>
 	<service>sshd</service>
 	<service>virtqemud</service>
 	<service>virtstoraged</service>
