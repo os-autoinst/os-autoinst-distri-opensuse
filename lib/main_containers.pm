@@ -243,6 +243,7 @@ sub load_container_tests {
     }
 
     if (get_var('HELM_CONFIG')) {
+        set_var('K3S_ENABLE_COREDNS', 1);
         loadtest 'containers/helm_rmt';
         return;
     }
