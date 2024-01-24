@@ -71,7 +71,7 @@ sub run {
     parse_extra_log(IPA => $img_proof->{results});
     assert_script_run('rm -rf img_proof_results');
 
-    $instance->ssh_script_run(cmd => 'sudo chmod a+r /var/tmp/report.html', no_quote => 1);
+    $instance->ssh_script_run(cmd => 'sudo chmod a+r /var/tmp/report.html || true', no_quote => 1);
     $instance->upload_log('/var/tmp/report.html', failok => 1);
 
     # fail, if at least one test failed
