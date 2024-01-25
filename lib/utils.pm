@@ -114,6 +114,7 @@ our @EXPORT = qw(
   write_sut_file
   @all_tests_results
   ping_size_check
+  handle_gnome_memory_ge_4g
 );
 
 our @EXPORT_OK = qw(
@@ -2925,6 +2926,27 @@ sub write_sut_file {
     save_tmp_file($path, $contents);
     my $url = join('/', (autoinst_url, 'files', $path));
     assert_script_run("curl -v -o $path $url");
+}
+
+=head2 handle_gnome_memory_ge_4g
+
+  handle_gnome_memory_ge_4g([fatal_flag => $fatal_flag])
+
+Handle gnome test on sle, system's ram must be at least 4GB
+https://progress.opensuse.org/issues/153808.
+
+=cut
+
+sub handle_gnome_memory_ge_4g {
+    my (%args) = @_;
+    $args{fatal_flag} //= 1;
+
+    my $os_handled = !is_leap('<15.5') && !is_sle('<15-SP5');
+    my $backend_handled = is_qemu || is_svirt;
+    if (check_var('DESKTOP', 'gnome') && get_var('GNOME_MEMORY_GE_4G', '1') && $os_handled && $backend_handled && (get_var('QEMURAM', 1024) < 4096)) {
+        die "DESKTOP=gnome System's ram must be at least 4GB, see poo#153808" if ($args{fatal_flag});
+        record_soft_failure "DESKTOP=gnome System's ram should be at least 4GB, see poo#153808";
+    }
 }
 
 1;

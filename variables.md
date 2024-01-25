@@ -370,6 +370,7 @@ PUBLIC_CLOUD_PY_BACKPORTS_REPO | string | "" | PY Backport repo URL for azure_mo
 PUBLIC_CLOUD_PY_AZURE_REPO | string | "" | PY azure repo URL for azure_more_cli_test.
 PUBLIC_CLOUD_TOOLS_REPO | string | "" | cloud tools repo URL for azure_more_cli_test.
 PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED | boolean | true | Internal variable written by the code and readed by the code . Should NOT be set manually
+GNOME_MEMORY_GE_4G | boolean | 1 | DESKTOP=gome System's ram must be at least 4GB unless explicitly asked
 
 
 ### Wicked testsuite specifc variables
