@@ -143,7 +143,7 @@ sub test_http_instserver {
 }
 
 sub start_yast2_instserver {
-    y2_module_guitest::launch_yast2_module_x11("instserver", match_timeout => 120);
+    y2_module_guitest::launch_yast2_module_x11("instserver", match_timeout => 120, apply_workaround => is_sle('>=15-SP4') ? 1 : 0);
     wait_still_screen;
 }
 

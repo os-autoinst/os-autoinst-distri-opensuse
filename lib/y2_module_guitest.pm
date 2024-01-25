@@ -35,7 +35,8 @@ Launch a yast configuration module C<$module> or the yast control center if C<$m
 
 Calls C<assert_screen> on C<$target_match>, defaults to C<yast2-$module-ui>.
 
-Optional C<$match_timeout> can be specified as a timeout on the C<assert_screen> call on C<$target_match>. 
+Optional C<$match_timeout> can be specified as a timeout on the C<assert_screen> call on C<$target_match>.
+Optional C<$apply_workaround> can be specified as all apply_workaround_poo124652 on the C<assert_screen> call on C<$target_match>.
 C<$maximize_window> option allows to maximize application window using shortcut.
 
 =cut
@@ -44,6 +45,7 @@ sub launch_yast2_module_x11 {
     my ($module, %args) = @_;
     $module //= '';
     $args{target_match} //= $module ? "yast2-$module-ui" : 'yast2-ui';
+    $args{apply_workaround} //= 0;
     my @tags = ['root-auth-dialog', ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match}];
     # Terminate yast processes which may still run
     if (get_var('YAST2_GUI_TERMINATE_PREVIOUS_INSTANCES')) {
@@ -62,8 +64,12 @@ sub launch_yast2_module_x11 {
     diag 'assuming root-auth-dialog, typing password';
     type_password;
     send_key 'ret';
-    wait_still_screen 2, 2;
-    is_sle('>=15-SP4') ? apply_workaround_poo124652($args{target_match}, $args{match_timeout}) : assert_screen $args{target_match}, $args{match_timeout};
+    if ($args{apply_workaround}) {
+        apply_workaround_poo124652($args{target_match}, $args{match_timeout});
+    }
+    else {
+        assert_screen $args{target_match}, $args{match_timeout};
+    }
     # Uses hotkey for gnome, adjust if need for other desktop
     send_key 'alt-f10' if $args{maximize_window};
 }
