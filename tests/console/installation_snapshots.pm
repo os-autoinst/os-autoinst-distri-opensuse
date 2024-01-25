@@ -24,7 +24,13 @@ sub run {
     # Check if the corresponding snapshot is there
     my ($snapshot_desc, $snapshot_type);
     if (is_jeos) {
-        $snapshot_desc = (is_sle('<=15-sp1')) ? 'Initial Status' : 'After jeos-firstboot configuration';
+        if (is_sle('<=15-sp1')) {
+            $snapshot_desc = 'Initial Status';
+        } elsif (check_var('FIRST_BOOT_CONFIG', 'combustion')) {
+            $snapshot_desc = 'After combustion configuration';
+        } else {
+            $snapshot_desc = 'After jeos-firstboot configuration';
+        }
         $snapshot_type = 'single';
     }
     elsif (get_var('AUTOUPGRADE')) {

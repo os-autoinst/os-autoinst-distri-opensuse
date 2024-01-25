@@ -21,7 +21,8 @@ use constant {
     GRUB_DEFAULT => '/etc/default/grub',
     GRUB_CFG => '/boot/grub2/grub.cfg',
     SYSCONFIG_BOOTLADER => '/etc/sysconfig/bootloader',
-    MOCK_CRT => '/boot/efi/EFI/mock.der'
+    MOCK_CRT => '/boot/efi/EFI/mock.der',
+    ESP_MOUNT => '/boot/efi'
 };
 
 my @errors;
@@ -29,7 +30,7 @@ my @errors;
 sub get_expected_efi_settings {
     my $settings = {};
     $settings->{label} = is_opensuse() ? lc(get_var('DISTRI')) : 'sles';
-    $settings->{mount} = '/boot/efi';
+    $settings->{mount} = ESP_MOUNT;
     if (!get_var('DISABLE_SECUREBOOT', 0)) {
         $settings->{exec} = '/EFI/' . $settings->{label} . '/shim.efi';
         $settings->{label} .= '-secureboot';
@@ -134,30 +135,24 @@ sub check_mok {
 }
 
 sub get_esp_info {
-    my $blk_dev_driver = {
-        qemu => 'virtblk',
-        svirt_xen => 'xvd',
-        svirt_hyperv => 'scsi'
-    };
-    # return a the first element (drive or partition number) from parted's output
-    my ($drive, $esp_part_no);
-    my $vbd = $blk_dev_driver->{join('_', grep { $_ } (get_required_var('BACKEND'), get_var('VIRSH_VMM_FAMILY')))};
-    foreach my $line (split(/\n/, script_output('parted --list --machine --script'))) {
-        if (!defined($drive) && $line =~ /gpt/ && $line =~ /$vbd/) {
-            ($drive) = split(/:/, $line, 2);
-        }
-        # older versions of parted used in sle12+ do not detect ESP specifically
-        # it is only labelled with "boot" flag instead of "boot, esp" as in sle15+
-        if (!defined($esp_part_no) && $line =~ /boot,\s?esp|boot/) {
-            ($esp_part_no) = split(/:/, $line, 2);
-        }
+    # return a ESP filesystem and absolute partition path
+    my ($esp_fs, $esp_fp) = split /\s+/, script_output("df --output=fstype,source --local ${\ESP_MOUNT} | sed -e /^Type/d");
+    ($esp_fs && $esp_fp) or die "No mounted ESP partition in ${\ESP_MOUNT} was not found!\n";
+
+    my ($drive, $esp_part_no, $parted);
+    if ($esp_fp =~ m/(^\/.*)(\d+$)/) {
+        ($drive, $esp_part_no) = ($1, $2);
+        $parted = script_output("parted $drive --machine --script print");
     }
-    ($drive && $esp_part_no) or die "No ESP partition or GPT drive was detected from parted's output";
-    my ($esp_fs, $esp_mp) = split /\s+/, script_output "df --output=fstype,target --local $drive$esp_part_no | sed -e /^Type/d";
-    ($esp_fs && $esp_mp) or die "No mounted ESP partition was not found!\n";
+
+    # older versions of parted used in sle12+ do not detect ESP specifically
+    # it is only labelled with "boot" flag instead of "boot, esp" as in sle15+
+    if (!defined($parted) && $parted !~ /^$drive.*gpt/ || $parted !~ /^$esp_part_no.*boot,\s?esp|boot/) {
+        die "No ESP partition or GPT drive was detected from parted's output\n";
+    }
 
     assert_script_run "parted --script $drive align-check optimal $esp_part_no";
-    return {drive => $drive, partition => "$drive$esp_part_no", fs => $esp_fs, mount => $esp_mp};
+    return {drive => $drive, partition => "$esp_fp", fs => $esp_fs, mount => ${\ESP_MOUNT}};
 }
 
 sub verification {
