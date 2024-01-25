@@ -21,8 +21,6 @@ schedule:
     - installation/partitioning/guided_setup/accept_default_hard_disks_selection
     - installation/partitioning/guided_setup/encrypt_lvm_simple_pwd
     - installation/partitioning/guided_setup/accept_default_fs_options
-  software:
-    - installation/installation_settings/validate_default_target
   first_login:
     - installation/boot_encrypt
     - installation/first_boot
