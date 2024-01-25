@@ -22,7 +22,7 @@ use Utils::Architectures;
 use Utils::Backends;
 
 sub is_image {
-    return get_required_var('FLAVOR') =~ /image|default|kvm/i;
+    return get_required_var('FLAVOR') =~ /image|default|kvm|base/i;
 }
 
 sub is_dvd {
