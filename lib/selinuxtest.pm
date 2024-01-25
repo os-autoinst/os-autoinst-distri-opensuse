@@ -36,7 +36,7 @@ if (is_alp || is_sle_micro('>=6.0')) {
 }
 our $file_output = '/tmp/cmd_output';
 our $policypkg_repo = get_var('SELINUX_POLICY_PKGS');
-our $policyfile_tar = 'testing-master';
+our $policyfile_tar = 'testing-main';
 our $dir = '/tmp/';
 
 # download SELinux policy pkgs
