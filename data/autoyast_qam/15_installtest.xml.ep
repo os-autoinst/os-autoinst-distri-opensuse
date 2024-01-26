@@ -3,6 +3,13 @@
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <add-on>
     <add_on_products config:type="list">
+      % if ($check_var->('SLE_PRODUCT', 'sled') and $is_ltss){
+      <listentry>
+        <name>SLED-LTSS:<%= $get_var->('VERSION') %>::update</name>
+        <alias>SLED-LTSS:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLED/<%= $get_var->('VERSION') %>-LTSS/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
       % unless ($check_var->('SLE_PRODUCT', 'sled')) {
       % if ($is_ltss) {
       <listentry>
