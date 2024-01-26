@@ -69,7 +69,10 @@ sub has_conflict {
         'dapl-devel' => 'dapl-debug-devel',
         'libdat2-2' => 'dapl-debug-libs',
         'libjpeg8-devel' => 'libjpeg62-devel',
-        dapl => 'dapl-debug'
+        dapl => 'dapl-debug',
+        'cloud-netconfig-gce' => 'cloud-netconfig-azure',
+        'cloud-netconfig-ec2' => 'cloud-netconfig-gce',
+        'cloud-netconfig-azure' => 'cloud-netconfig-ec2'
     );
     return $conflict{$binary};
 }
