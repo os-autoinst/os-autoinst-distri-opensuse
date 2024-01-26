@@ -21,7 +21,7 @@ use warnings;
 
 sub run {
     $testapi::distri->get_module_selection()->select_modules(
-        [qw(containers desktop development legacy web)]);
+        [qw(containers desktop development legacy web python)]);
 }
 
 1;
