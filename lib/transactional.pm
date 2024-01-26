@@ -111,8 +111,9 @@ sub process_reboot {
                 unlock_if_encrypted();
             }
             # Replace by wait_boot if possible
-            assert_screen 'grub2', 150;
-            wait_screen_change { send_key 'ret' };
+            if (check_screen 'grub2', 150) {
+                wait_screen_change { send_key 'ret' };
+            }
         }
         assert_screen 'linux-login', 200;
 
