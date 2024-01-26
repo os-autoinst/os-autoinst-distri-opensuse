@@ -19,18 +19,17 @@ sub run {
 
     select_console 'root-console';
 
-    # Install tool packages
-    zypper_call('in wget');
-    zypper_call('in gcc make');
+    zypper_call('in wget gcc make');
 
-    # Download the test scripts
     my $code_path = get_required_var('CODE_PATH');
-    my @lines = split(/[\/\.]+/, $code_path);
-    my $file_name = $lines[-2];
-    my $file_tar = $file_name . 'tar';
+    my ($file_name) = $code_path =~ m|/([^/]+)\.tar$|;
+
+    my $file_tar = $file_name . '.tar';
     assert_script_run("wget --no-check-certificate $code_path -O /tmp/$file_tar");
     assert_script_run("tar -xvf /tmp/$file_tar -C /tmp/");
-    assert_script_run("mv /tmp/$file_name $atsec_test::code_dir");
+
+    my $folder_name = script_output("tar -tf /tmp/$file_tar | head -n1 | cut -f1 -d'/'");
+    assert_script_run("mv /tmp/$folder_name $atsec_test::code_dir");
 }
 
 sub test_flags {
