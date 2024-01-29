@@ -239,6 +239,16 @@ sub run {
 
     # release console and reattach to be used again as serial output
     if (is_s390x && is_svirt) {
+        # enable root ssh login, see poo#154309
+        if (is_alp || is_sle_micro('>=6.0')) {
+            record_info "enable root ssh login";
+            enter_cmd "root";    # login to serial console at first
+            wait_still_screen 1;
+            enter_cmd "$testapi::password";
+            wait_still_screen 1;
+            enter_cmd "echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf";
+            enter_cmd "systemctl restart sshd";
+        }
         send_key('ctrl-^-]');
         $con->attach_to_running();
     }
