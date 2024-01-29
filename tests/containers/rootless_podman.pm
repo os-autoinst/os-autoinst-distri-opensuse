@@ -38,11 +38,7 @@ sub run {
 
     # add testuser to systemd-journal group to allow non-root
     # user to access container logs via journald event driver
-    # to avoid flakes w/ Podman <=4.0.0
-    $podman_version = get_podman_version();
-    if (package_version_cmp($podman_version, '4.0.0') <= 0) {
-        assert_script_run "usermod -a -G systemd-journal $testapi::username";
-    }
+    assert_script_run "usermod -a -G systemd-journal $testapi::username" if (is_sle);
 
     if (get_var('TDUP')) {
         my $unresolved_config = script_output('rpmconfigcheck');
@@ -56,7 +52,6 @@ sub run {
 
     # Prepare for Podman 3.4.4 and CGroups v2
     if ((is_sle('15-SP3+') || is_leap('15.3+')) && !check_var('CONTAINERS_CGROUP_VERSION', '1')) {
-        assert_script_run "usermod -a -G systemd-journal $testapi::username";
         switch_cgroup_version($self, 2);
         select_serial_terminal;
 
