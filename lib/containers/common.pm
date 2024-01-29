@@ -238,7 +238,7 @@ sub test_container_image {
     my %args = @_;
     my $image = $args{image};
     my $runtime = $args{runtime};
-    my $logfile = "/var/tmp/container_logs";
+    my $logfile = "/var/tmp/container_logs.txt";
 
     die 'Argument $image not provided!' unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
