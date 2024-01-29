@@ -66,7 +66,6 @@ sub set_svirt_domain_elements {
 sub run {
     my $svirt = select_console('svirt', await_console => 0);
 
-    record_info('SUT hostname', $svirt->get_cmd_output('hostname'));
     record_info('free -h', $svirt->get_cmd_output('free -h'));
     record_info('virsh freecell --all', $svirt->get_cmd_output('virsh freecell --all'));
     record_info('virsh domstats', $svirt->get_cmd_output('virsh domstats'));
@@ -76,6 +75,9 @@ sub run {
     zkvm_add_interface $svirt;
 
     $svirt->define_and_start;
+    record_info('SUT hostname', get_var('VIRSH_HOSTNAME'));
+    record_info('VM instance', get_var('VIRSH_INSTANCE'));
+    record_info('Guest ip', get_var('VIRSH_GUEST'));
 
     if (!get_var("BOOT_HDD_IMAGE") or (get_var('PATCHED_SYSTEM') and !get_var('ZDUP'))) {
         if (check_var("VIDEOMODE", "text")) {
