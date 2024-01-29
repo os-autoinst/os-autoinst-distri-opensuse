@@ -62,3 +62,6 @@ conditional_schedule:
             alp:
                 - console/journal_check
                 - shutdown/shutdown
+            sle-micro:
+                - console/journal_check
+                - shutdown/shutdown
