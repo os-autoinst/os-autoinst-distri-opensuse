@@ -1,0 +1,16 @@
+name:           RAID_gpt
+description:    >
+  Configure RAID 5/6/10 on the disks with GPT partition tables using Expert Partitioner.
+  Creates BIOS boot, root and swap partitions on each of the 4 disks and then uses
+  them for RAID 5/6/10.
+schedule:
+  suggested_partitioning:
+    - installation/partitioning/raid_gpt
+  system_preparation:
+    - console/hostname
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - shutdown/grub_set_bootargs
+  system_validation:
+    - console/validate_md_raid
+    - console/validate_raid
