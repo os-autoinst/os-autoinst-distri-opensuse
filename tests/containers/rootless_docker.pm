@@ -97,8 +97,6 @@ sub post_fail_hook {
     cleanup();
     select_serial_terminal();
     save_and_upload_log('cat /etc/{subuid,subgid}', "/tmp/permissions.txt");
-    assert_script_run("tar -capf /tmp/proc_files.tar.xz /proc/self");
-    upload_logs("/tmp/proc_files.tar.xz");
     $self->SUPER::post_fail_hook;
 }
 

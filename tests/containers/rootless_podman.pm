@@ -206,8 +206,6 @@ sub post_run_hook {
 sub post_fail_hook {
     my $self = shift;
     save_and_upload_log('cat /etc/{subuid,subgid}', "/tmp/permissions.txt");
-    assert_script_run("tar -capf /tmp/proc_files.tar.xz /proc/self");
-    upload_logs("/tmp/proc_files.tar.xz");
     if (is_sle) {
         save_and_upload_log('ls -la /etc/zypp/credentials.d', "/tmp/credentials.d.perm.txt");
         assert_script_run "setfacl -x u:$testapi::username /etc/zypp/credentials.d/*";
