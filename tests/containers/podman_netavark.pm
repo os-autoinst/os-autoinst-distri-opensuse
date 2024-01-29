@@ -15,6 +15,7 @@ use containers::utils qw(get_podman_version registry_url);
 use transactional qw(trup_call check_reboot_changes);
 use utils qw(zypper_call);
 use Utils::Systemd qw(systemctl);
+use Utils::Architectures qw(is_s390x);
 
 sub is_cni_in_tw {
     return (script_output("podman info -f '{{.Host.NetworkBackend}}'") =~ "cni") && is_microos && get_var('TDUP');
@@ -205,7 +206,7 @@ sub run {
 
         my $dev = script_output(q(ip -br link show | awk '/UP / {print $1}'| head -n 1));
         my $extra = '';
-        if (is_public_cloud) {
+        if (is_public_cloud || is_s390x) {
             my $sn = script_output(qq(ip -o -f inet addr show $dev | awk '/scope global/ {print \$4}' | head -n 1)) =~ s/\.\d+\//\.0\//r;
             $extra .= "--subnet $sn ";
             my $gw = $sn =~ s/0\/\d+$/1/r;
