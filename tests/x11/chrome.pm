@@ -46,7 +46,8 @@ sub run {
     avoid_async_keyring_popups;
     preserve_privacy_of_non_human_openqa_workers;
     assert_and_click 'chrome-default-browser-query';
-    assert_screen 'google-chrome-main-window', 50;
+    assert_screen [qw(google-chrome-main-window google-chrome-dont-sign-in)];
+    click_lastmatch if match_has_tag('google-chrome-dont-sign-in');
     wait_screen_change { send_key 'ctrl-l' };
     enter_cmd 'about:';
     assert_screen 'google-chrome-about';
