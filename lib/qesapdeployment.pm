@@ -459,7 +459,7 @@ sub qesap_execute {
     );
 
     push(@log_files, $exec_log);
-    record_info('QESAP exec', "Executing: \n$qesap_cmd");
+    record_info('QESAP exec', "Executing: \n$qesap_cmd \n\nlog to $exec_log");
 
     my $exec_rc = qesap_venv_cmd_exec(cmd => $qesap_cmd, timeout => $args{timeout}, failok => 1);
 
@@ -2112,7 +2112,11 @@ sub qesap_terraform_clean_up_retry {
     # E.g., ansible SSH reports '"msg": "Timeout (12s) waiting for privilege escalation prompt: "'
     # Terraform destroy can be executed in any case
     record_info('Cleanup', "Executing $command cleanup");
-    my @clean_up_cmd_rc = qesap_execute(verbose => 1, cmd => $command, cmd_options => '-d', timeout => 1200);
+    my @clean_up_cmd_rc = qesap_execute(
+        cmd => $command,
+        cmd_options => '-d',
+        timeout => 1200,
+        logname => 'qesap_terraform_destroy_retry.log.txt');
     if ($clean_up_cmd_rc[0] == 0) {
         diag(ucfirst($command) . " cleanup attempt #  PASSED.");
         record_info("Clean $command", ucfirst($command) . ' cleanup PASSED.');
@@ -2153,6 +2157,21 @@ sub qesap_terrafom_ansible_deploy_retry {
     }
     elsif (qesap_file_find_string(file => $args{error_log}, search_string => 'Timed out waiting for last boot time check')) {
         record_info('DETECTED ANSIBLE TIMEOUT ERROR');
+
+        if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+            my $rg = qesap_az_get_resource_group();
+            my $az_list_vm_cmd = "az vm list --resource-group $rg --query '[].{id:id,name:name}' -o json";
+            my $vm_data = decode_json(script_output($az_list_vm_cmd));
+            my $az_get_logs_cmd = 'az vm boot-diagnostics get-boot-log --ids';
+            foreach (@{$vm_data}) {
+                record_info('az vm boot-diagnostics json', "id: $_->{id} name: $_->{name}");
+                my $boot_diagnostics_log = '/tmp/boot-diagnostics_' . $_->{name} . '.txt';
+                script_run(join(' ', $az_get_logs_cmd, $_->{id}, '|& tee -a', $boot_diagnostics_log));
+                push(@log_files, $boot_diagnostics_log);
+                qesap_upload_logs();
+            }
+        }
+
         # Do cleanup before redeploy
         qesap_terraform_clean_up_retry();
         @ret = qesap_execute(
