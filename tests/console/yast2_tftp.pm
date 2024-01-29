@@ -59,9 +59,9 @@ sub run {
     assert_screen 'yast2_tftp-server_configuration_newdir_typed';
 
     # open port in firewall, if needed
-    assert_screen([qw(yast2_tftp_open_port yast2_tftp_closed_port)]);
+    assert_screen([qw(yast2_tftp_open_port yast2_tftp_closed_port yast2_tftp_no_network_interfaces)]);
 
-    #we only need to open the port if closed:
+    # we only need to open the port if closed:
     if (match_has_tag('yast2_tftp_closed_port')) {
         send_key 'alt-f';    # open tftp port in firewall
         assert_screen 'yast2_tftp_open_port';
@@ -69,6 +69,10 @@ sub run {
         assert_screen 'yast2_tftp_firewall_details';
         send_key 'alt-o';    # close the window
         assert_screen 'yast2_tftp_open_port';    # assert that window is closed
+    }
+    # bsc#1207390, skip open firewall ports for tumbleweed
+    elsif (match_has_tag('yast2_tftp_no_network_interfaces') && is_tumbleweed) {
+        assert_screen 'yast2_tftp_no_network_interfaces';
     }
 
     # view log
