@@ -6,16 +6,14 @@ description:    >
     2. "Minimal" role is selected;
     3. Boot to command-line mode;
     4. Installation is validated by default set of smoke tests.
-vars:
-  VIDEOMODE: text
-  YUI_REST_API: 1
 schedule:
   system_role:
     - installation/system_role/select_role_minimal
-  software:
+  default_systemd_target:
     - installation/installation_settings/validate_default_target
   system_preparation:
     - console/system_prepare
+  system_validation:
     - console/installation_snapshots
     - console/zypper_lr
     - console/zypper_ref
