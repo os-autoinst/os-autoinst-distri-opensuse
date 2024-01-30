@@ -156,6 +156,7 @@ sub upload_img {
           . "--ec2-ami '" . $helper_ami_id . "' "
           . "--type '" . $instance_type . "' "
           . "--user '" . $self->provider_client->username . "' "
+          . "--boot-mode '" . get_var('PUBLIC_CLOUD_EC2_BOOT_MODE', 'uefi-preferred') . "' "
           . ($sec_group ? "--security-group-ids '" . $sec_group . "' " : '')
           . ($vpc_subnet ? "--vpc-subnet-id '" . $vpc_subnet . "' " : '')
           . "'$file'",
