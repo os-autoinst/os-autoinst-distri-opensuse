@@ -604,7 +604,7 @@ sub cleanup {
     my ($self, $args) = @_;
     select_host_console(force => 1);
 
-    $self->get_image_version();
+    $self->get_image_version() if (get_var('PUBLIC_CLOUD_BUILD'));
 
     if (defined($args->{my_instance}->{instance_id})) {
         my $id = $args->{my_instance}->{instance_id};
