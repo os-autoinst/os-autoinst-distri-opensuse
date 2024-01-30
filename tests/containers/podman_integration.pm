@@ -39,7 +39,7 @@ sub run {
 
     # Install tests dependencies
     my @pkgs = qw(bats jq make netcat-openbsd openssl python3-PyYAML socat sudo systemd-container);
-    push @pkgs, qw(apache2-utils buildah criu go gpg2 podman-remote skopeo) unless is_sle_micro;
+    push @pkgs, qw(apache2-utils buildah catatonit criu go gpg2 podman-remote skopeo) unless is_sle_micro;
     if (is_transactional) {
         trup_call "-c pkg install -y @pkgs";
         check_reboot_changes;
@@ -67,7 +67,7 @@ sub run {
     my @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP'));
     push @skip_tests, "252-quadlet" unless is_tumbleweed;
     foreach my $test (@skip_tests) {
-        assert_script_run "rm test/system/$test.bats";
+        script_run "rm test/system/$test.bats";
     }
 
     # root / local
