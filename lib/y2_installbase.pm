@@ -620,6 +620,11 @@ sub is_sles_in_rc_phase {
     return $is_RC;
 }
 
+sub is_sles_in_rc_or_gm_phase {
+    my ($self) = @_;
+    return $self->is_sles_in_rc_phase || $self->is_sles_in_gm_phase;
+}
+
 sub save_remote_upload_y2logs {
     my ($self, %args) = @_;
 
