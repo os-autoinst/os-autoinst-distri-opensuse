@@ -21,7 +21,7 @@ sub run {
     assert_screen [qw(got-releasenotes-RPM got-releasenotes-URL)];
     unless (match_has_tag 'got-releasenotes-URL') {
         my $error_msg = 'Release notes source does NOT match expectations or not found in YaST logs, expected source: URL';
-        die $error_msg if ($self->is_sles_in_rc_phase() || $self->is_sles_in_gm_phase());
+        die $error_msg if $self->is_sles_in_rc_or_gm_phase();
         record_info('bsc#1190711', $error_msg);
     }
     reset_consoles;
