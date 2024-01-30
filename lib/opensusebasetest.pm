@@ -134,6 +134,7 @@ sub investigate_yast2_failure {
         "<3>.*setOptions:Empty map" => 'bsc#1158186 -> WONTFIX',
         "<3>.*Unmounting media failed" => 'bsc#1158186 -> WONTFIX',
         "<3>.*No base product has been found" => 'bsc#1158186 -> WONTFIX',
+        "<3>.*SystemCmd.cc\\(step_fork_and_exec\\)" => 'bsc#1219294 -> WONTFIX',
         "<3>.*Error output: dracut:" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*Reading install.inf" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*shellcommand" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
