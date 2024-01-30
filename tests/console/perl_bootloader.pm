@@ -14,7 +14,7 @@ use strict;
 use warnings;
 use utils 'zypper_call';
 use power_action_utils 'power_action';
-use version_utils 'is_sle';
+use version_utils qw(is_tumbleweed is_sle);
 
 sub run {
     my ($self) = @_;
@@ -49,10 +49,13 @@ sub run {
     assert_script_run 'pbl --del-option "TEST_OPTION"';
     assert_script_run('! grep -q "TEST_OPTION" /etc/default/grub');
 
-    # Create new log file and check if it exists and contains pbl log
+    # Create new log file and check if it exists and not empty
     assert_script_run 'pbl --log /var/log/pbl-test.log';
-    validate_script_output 'cat /var/log/pbl-test.log', qr/pbl/;
-
+    if (is_tumbleweed && script_run('grep pbl /var/log/pbl-test.log') != 0) {
+        record_soft_failure('bsc#1219347 - pbl log creates empty log file');
+    } else {
+        validate_script_output 'cat /var/log/pbl-test.log', qr/pbl/;
+    }
     power_action('reboot', textmode => 1);
     $self->wait_boot;
 
