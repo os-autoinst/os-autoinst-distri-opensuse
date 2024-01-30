@@ -316,7 +316,7 @@ sub register_addons_cmd {
             }
             elsif (grep(/$name/, keys %ADDONS_REGCODE)) {
                 my $opt = "";
-                if (is_sle("=15-SP4")) {
+                if (is_sle("=15-SP4") && !(is_s390x)) {
                     $opt = " --auto-agree-with-licenses";
                 }
                 add_suseconnect_product($name, undef, undef, "-r " . $ADDONS_REGCODE{$name} . $opt, 300, $retry);
