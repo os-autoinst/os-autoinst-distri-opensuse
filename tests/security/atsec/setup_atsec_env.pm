@@ -27,9 +27,7 @@ sub run {
     my $file_tar = $file_name . '.tar';
     assert_script_run("wget --no-check-certificate $code_path -O /tmp/$file_tar");
     assert_script_run("tar -xvf /tmp/$file_tar -C /tmp/");
-
-    my $folder_name = script_output("tar -tf /tmp/$file_tar | head -n1 | cut -f1 -d'/'");
-    assert_script_run("mv /tmp/$folder_name $atsec_test::code_dir");
+    assert_script_run("mv /tmp/$file_name $atsec_test::code_dir");
 }
 
 sub test_flags {

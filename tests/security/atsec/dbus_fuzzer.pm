@@ -85,8 +85,8 @@ sub run {
 
         my $exit_code = $filter_output =~ /Exit status:\s+(\d)/ ? $1 : 'unknow';
 
-        # Test case pass
-        next if ($exit_code == 0);
+        # Test case pass (0) or passed but there was a memory leak (3). See poo#154105
+        next if ($exit_code == 0 || $exit_code == 3);
 
         # When exit code is 1, may be internal dfuzzer error, need to parse output details
         next if ($exit_code == 1 && $filter_output =~ /Unable to get introspection data/);
