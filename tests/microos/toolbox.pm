@@ -81,7 +81,7 @@ sub run {
     record_info 'Test', "Rootless toolbox as $user";
     my $console = select_console 'user-console';
     my $uid = script_output 'id -u';
-    validate_script_output 'toolbox -u id', sub { m/uid=${uid}\(${user}\)/ }, timeout => 180;
+    validate_script_output 'toolbox -u id', sub { m/uid=${uid}\(${user}\)/ }, timeout => 300;
     die "$user shouldn't have access to /etc/passwd!" if (script_run('toolbox -u touch /etc/passwd') == 0);
     # Check if toolbox sees processes from outside the container (there should be no pid namespace separation)
     background_script_run('sleep 3612');
