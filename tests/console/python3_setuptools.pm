@@ -90,7 +90,7 @@ sub uninstall_package ($version_number) {
 
 sub cleanup {
     # Deletion of work folders
-    assert_script_run("rm -r dist user_package_setuptools.egg-info repo_webroot");
+    assert_script_run("rm -rf dist user_package_setuptools.egg-info repo_webroot");
     assert_script_run("deactivate");    # leave the virtual env
 }
 
