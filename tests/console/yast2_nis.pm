@@ -98,14 +98,9 @@ sub run() {
     send_key 'alt-o';
     wait_still_screen 2;
     send_key 'alt-f';    # close the dialog...
-    assert_screen([qw(nis_server_not_found ypbind_error)]);
-    if (match_has_tag 'ypbind_error') {
-        record_soft_failure 'bsc#1073281';
-        send_key 'alt-o';
-    }
-    else {
-        send_key 'alt-o';    # close it now even when config is not valid
-    }    # check error message for 'nis server not found'
+
+    # https://documentation.suse.com/sles/15-SP5/html/SLES-all/cha-security-firewall.html#sec-security-firewall-firewalld-rpcports
+    assert_screen('nis_server_not_found');
+    send_key 'alt-o';
 }
 1;
-
