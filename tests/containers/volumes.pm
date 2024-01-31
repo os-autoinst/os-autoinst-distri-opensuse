@@ -30,7 +30,6 @@ sub run {
     } else {
         return;
     }
-
     # From https://docs.docker.com/storage/bind-mounts/
     # The --mount flag does not support z or Z options for modifying selinux labels.
     my $Z = $runtime eq "podman" ? ",Z" : "";

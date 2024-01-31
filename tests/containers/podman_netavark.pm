@@ -11,7 +11,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils qw(package_version_cmp is_transactional is_jeos is_leap is_sle_micro is_leap_micro is_sle is_microos is_public_cloud);
-use containers::utils qw(get_podman_version registry_url);
+use containers::utils qw(get_podman_version registry_url check_podman);
 use transactional qw(trup_call check_reboot_changes);
 use utils qw(zypper_call);
 use Utils::Systemd qw(systemctl);
@@ -62,6 +62,8 @@ sub _cleanup {
     }
 
     validate_script_output('podman network ls', sub { /podman\s+bridge/ });
+
+    check_podman(reset => 1);
 }
 
 sub switch_to_netavark {

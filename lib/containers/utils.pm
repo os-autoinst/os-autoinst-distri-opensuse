@@ -19,10 +19,12 @@ use strict;
 use warnings;
 use version_utils;
 use Mojo::Util 'trim';
+use main_common qw(is_sh_ok);
 
 our @EXPORT = qw(test_seccomp runtime_smoke_tests basic_container_tests get_vars
   can_build_sle_base get_docker_version get_podman_version check_runtime_version
   check_min_runtime_version container_ip container_route registry_url reset_container_network_if_needed
+  check_podman check_docker
 );
 
 sub test_seccomp {
@@ -319,6 +321,53 @@ sub reset_container_network_if_needed {
             systemctl("restart firewalld") if (script_run("systemctl is-active firewalld") == 0);
         }
     }
+}
+
+sub check_podman {
+    my %args = @_;
+    # param. > 0 reset applied: default none, detect only.
+    my $reset = $args{reset} // 0;
+    my $runtime = "podman";
+    # virtual network status
+    if (script_output("$runtime info --format={{.Host.NetworkBackend}}") =~ /^cni/) {
+        if (is_sh_ok(script_run("$runtime run -q --rm hello-world >/dev/null", timeout => 600))) {
+            script_run("$runtime image rm hello-world >/dev/null");
+        } else {
+            record_info("$runtime Error", "$runtime run returned error", result => 'fail');
+            # if image not found timeout or error occurred:
+            is_sh_ok(script_run("$runtime image rm hello-world >/dev/null")) or return 0;
+            # reset
+            if ($reset) {
+                is_sh_ok(script_run("$runtime system reset --force")) or croak("$runtime reset error");
+                # network after reset
+                record_info("Reset ok", script_output("$runtime info --format={{.Host.NetworkBackend}}"));
+            }
+        }
+    }
+    return 1;
+}
+
+sub check_docker {
+    my %args = @_;
+    # param. > 0 reset applied: default none, detect only.
+    my $reset = $args{reset} // 0;
+    my $runtime = "docker";
+    script_output("$runtime info --format={{.Plugins.Network}}");
+    # run Hello container
+    if (is_sh_ok(script_run("$runtime run -q --rm hello-world >/dev/null", timeout => 600))) {
+        script_run("$runtime image rm hello-world >/dev/null");
+    } else {
+        record_info("$runtime Error", "$runtime run returned error", result => 'fail');
+        # if image not found timeout or error occurred:
+        is_sh_ok(script_run("$runtime rm hello-world >/dev/null")) or return 0;
+        # reset
+        if ($reset) {
+            is_sh_ok(script_run("$runtime system prune -a --force")) or croak("$runtime reset error");
+            # network after reset
+            record_info("Reset ok", script_output("$runtime info --format={{.Plugins.Network}}"));
+        }
+    }
+    return 1;
 }
 
 1;

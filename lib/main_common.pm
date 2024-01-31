@@ -54,6 +54,7 @@ our @EXPORT = qw(
   is_updates_test_repo
   is_updates_tests
   is_migration_tests
+  is_sh_ok
   kdestep_is_applicable
   kdump_is_applicable
   load_autoyast_clone_tests
@@ -332,6 +333,27 @@ sub is_desktop_module_selected {
       || (!is_sle('15+') && get_var('SCC_ADDONS', '') =~ /desktop|we|productivity|ha/)
       || (is_sle('15+') && get_var('SCC_ADDONS', '') =~ /desktop|we/)
       || is_sles4sap;
+}
+
+=head2 is_sh_ok
+
+    is_sh_ok($exit_code);
+
+For perl checks, to convert in positive-logic true or 1 value the exit_code 0 of an ok shell script.
+Can be used i.e. with script_run() in perl code.
+
+Return:
+the perl check passed status for a shell ok exit code, 
+that is true(1) and ok when input value is defined and zero: C<$x eq 0>
+otherwise false(undef or non-0).
+
+=cut
+
+sub is_sh_ok {
+    my $x = shift;
+    # convert to number
+    if (defined($x) and $x =~ /^[+-]?\d+$/) { $x += 0 } else { undef $x }
+    return (defined($x) and $x eq 0);
 }
 
 sub default_desktop {
