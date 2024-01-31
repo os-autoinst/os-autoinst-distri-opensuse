@@ -444,8 +444,6 @@ END
     like $calls[0], qr/cat.*\/CRUSH/;
 };
 
-
-
 subtest '[qesap_remote_hana_public_ips]' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
@@ -456,8 +454,8 @@ subtest '[qesap_remote_hana_public_ips]' => sub {
     my @ips = qesap_remote_hana_public_ips();
 
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
-    note("\n  C-->  " . join("\n  C-->  ", @ips));
     note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  IP-->  " . join("\n  IP-->  ", @ips));
     ok((any { /^10.0.1.1$/ } @ips), 'IP 1 matches');
     ok((any { /^10.0.1.2$/ } @ips), 'IP 2 matches');
 };
@@ -994,25 +992,54 @@ subtest '[qesap_is_job_finished]' => sub {
     ok($results[2] == 0, "Consider 'running' if the openqa job status response is 'running'");
 };
 
-subtest '[qesap_az_get_native_fencing_type]' => sub {
-    my $res_empty = qesap_az_get_native_fencing_type();
-    ok($res_empty eq 'msi', "Return 'msi' if openqa var is empty");
+subtest '[qesap_get_nodes_names]' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    my $str = <<END;
+all:
+  children:
+    hana:
+      hosts:
+        vmhana01:
+          ansible_host: 1.2.3.4
+          ansible_python_interpreter: /usr/bin/python3
+        vmhana02:
+          ansible_host: 1.2.3.5
+          ansible_python_interpreter: /usr/bin/python3
+
+    iscsi:
+      hosts:
+        vmiscsi01:
+          ansible_host: 1.2.3.6
+          ansible_python_interpreter: /usr/bin/python3
+
+  hosts: null
+END
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return $str; });
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    set_var('PUBLIC_CLOUD_PROVIDER', 'NEMO');
+
+    my @hosts = qesap_get_nodes_names();
+
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  H-->  " . join("\n  H-->  ", @hosts));
+    ok((scalar @hosts == 3), 'Exactly 3 hosts in the example inventory');
 };
 
-subtest '[qesap_az_get_native_fencing_type] wrong value for openqa variable' => sub {
+subtest '[qesap_add_server_to_hosts]' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    $qesap->redefine(get_var => sub { return 'AEGEAN'; });
-    dies_ok { qesap_az_get_native_fencing_type(); } 'Expected die if value is unexpected';
-};
+    my @calls;
+    $qesap->redefine(qesap_ansible_cmd => sub { my (%args) = @_; push @calls, $args{cmd}; });
+    set_var('PUBLIC_CLOUD_PROVIDER', 'NEMO');
 
-subtest '[qesap_az_get_native_fencing_type] correct variable' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    $qesap->redefine(get_var => sub { return 'msi'; });
-    my $res_msi = qesap_az_get_native_fencing_type();
-    $qesap->redefine(get_var => sub { return 'spn'; });
-    my $res_spn = qesap_az_get_native_fencing_type();
-    ok($res_msi eq 'msi', "Return 'msi' if openqa var is 'msi'");
-    ok($res_spn eq 'spn', "Return 'spn' if openqa var is 'spn'");
+    qesap_add_server_to_hosts(
+        name => 'ISLAND.SEA',
+        ip => '1.2.3.4');
+
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { qr/sed.*\/etc\/hosts/ } @calls), 'AWS Region matches');
 };
 
 done_testing;
