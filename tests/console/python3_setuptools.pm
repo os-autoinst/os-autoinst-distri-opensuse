@@ -46,7 +46,6 @@ sub run_tests ($python3_spec_release) {
     build_package($python_binary);
     http_install_test($version_number);
     local_install_test($version_number);
-    cleanup();
 }
 
 # Creating the source package with the name 'dist/user_package_setuptools-1.0.tar.gz' in the dist folder.
