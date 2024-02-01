@@ -36,6 +36,7 @@ sub run {
 
     my $podman = $self->containers_factory('podman');
 
+    $podman_version = get_podman_version();
     # add testuser to systemd-journal group to allow non-root
     # user to access container logs via journald event driver
     # bsc#1207673, bsc#1218023
