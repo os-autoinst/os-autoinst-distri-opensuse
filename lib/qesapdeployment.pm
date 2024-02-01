@@ -105,6 +105,7 @@ our @EXPORT = qw(
   qesap_az_get_tenant_id
   qesap_az_validate_uuid_pattern
   qesap_az_create_sas_token
+  qesap_az_diagnostic_log
   qesap_terraform_clean_up_retry
   qesap_terrafom_ansible_deploy_retry
 );
@@ -697,6 +698,7 @@ sub qesap_ansible_cmd {
     foreach (qw(provider cmd)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     $args{user} ||= 'cloudadmin';
     $args{filter} ||= 'all';
+    $args{timeout} //= bmwqemu::scale_timeout(90);
     $args{failok} //= 0;
     my $verbose = $args{verbose} ? ' -vvvv' : '';
 
@@ -1130,6 +1132,14 @@ sub qesap_cluster_logs {
             # Upload crm report
             qesap_upload_crm_report(host => $host, provider => $provider, failok => 1);
         }
+    }
+
+    if ($provider eq 'AZURE') {
+        my @diagnostic_logs = qesap_az_diagnostic_log();
+        foreach (@diagnostic_logs) {
+            push(@log_files, $_);
+        }
+        qesap_upload_logs();
     }
 }
 
@@ -2094,6 +2104,30 @@ sub qesap_az_create_sas_token {
     return script_output($cmd);
 }
 
+=head2 qesap_az_diagnostic_log
+
+Call `az vm boot-diagnostics json` for each running VM in the
+resource group associated to this openQA job
+
+Return a list of diagnostic file paths on the JumpHost
+=cut
+
+sub qesap_az_diagnostic_log {
+    my @diagnostic_log_files;
+    my $rg = qesap_az_get_resource_group();
+    my $az_list_vm_cmd = "az vm list --resource-group $rg --query '[].{id:id,name:name}' -o json";
+    my $vm_data = decode_json(script_output($az_list_vm_cmd));
+    my $az_get_logs_cmd = 'az vm boot-diagnostics get-boot-log --ids';
+    foreach (@{$vm_data}) {
+        record_info('az vm boot-diagnostics json', "id: $_->{id} name: $_->{name}");
+        my $boot_diagnostics_log = '/tmp/boot-diagnostics_' . $_->{name} . '.txt';
+        script_run(join(' ', $az_get_logs_cmd, $_->{id}, '|&', 'tee', $boot_diagnostics_log));
+        push(@diagnostic_log_files, $boot_diagnostics_log);
+
+    }
+    return @diagnostic_log_files;
+}
+
 =head2 qesap_terraform_clean_up_retry
 
     qesap_terraform_clean_up_retry()
@@ -2135,6 +2169,11 @@ sub qesap_terraform_clean_up_retry {
     Return 0: we manage the failure properly
     Return 1: something went wrong or we do not know what to do with the failure
 
+=over 1
+
+=item B<ERROR_LOG> - error log filename
+
+=back
 =cut
 
 sub qesap_terrafom_ansible_deploy_retry {
@@ -2143,7 +2182,7 @@ sub qesap_terrafom_ansible_deploy_retry {
     my @ret;
 
     if (qesap_file_find_string(file => $args{error_log}, search_string => 'Missing sudo password')) {
-        record_info('DETECTED ANSIBLE MISSING SUDO PASSWORD ERROR');
+        record_info('DETECTED ANSIBLE ERROR', 'MISSING SUDO PASSWORD');
         @ret = qesap_execute(cmd => 'ansible',
             logname => 'qesap_ansible_retry.log.txt',
             timeout => 3600);
@@ -2155,18 +2194,12 @@ sub qesap_terrafom_ansible_deploy_retry {
         record_info('ANSIBLE RETRY PASS');
     }
     elsif (qesap_file_find_string(file => $args{error_log}, search_string => 'Timed out waiting for last boot time check')) {
-        record_info('DETECTED ANSIBLE TIMEOUT ERROR');
+        record_info('DETECTED ANSIBLE ERROR', 'REBOOT TIMEOUT');
 
         if (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
-            my $rg = qesap_az_get_resource_group();
-            my $az_list_vm_cmd = "az vm list --resource-group $rg --query '[].{id:id,name:name}' -o json";
-            my $vm_data = decode_json(script_output($az_list_vm_cmd));
-            my $az_get_logs_cmd = 'az vm boot-diagnostics get-boot-log --ids';
-            foreach (@{$vm_data}) {
-                record_info('az vm boot-diagnostics json', "id: $_->{id} name: $_->{name}");
-                my $boot_diagnostics_log = '/tmp/boot-diagnostics_' . $_->{name} . '.txt';
-                script_run(join(' ', $az_get_logs_cmd, $_->{id}, '|& tee -a', $boot_diagnostics_log));
-                push(@log_files, $boot_diagnostics_log);
+            my @diagnostic_logs = qesap_az_diagnostic_log();
+            foreach (@diagnostic_logs) {
+                push(@log_files, $_);
                 qesap_upload_logs();
             }
         }
@@ -2193,6 +2226,8 @@ sub qesap_terrafom_ansible_deploy_retry {
         record_info('ANSIBLE RETRY PASS');
     }
     else {
+        qesap_file_find_string(file => $args{error_log}, search_string => 'fatal:');
+        qesap_file_find_string(file => $args{error_log}, search_string => 'failed: [');
         qesap_cluster_logs();
         return 1;
     }

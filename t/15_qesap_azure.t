@@ -318,13 +318,11 @@ subtest '[qesap_az_clean_old_peerings]' => sub {
     ok(any { $_ eq 'peering3' } @delete_calls, "Peering3 was deleted");
 };
 
-
 subtest '[qesap_az_create_sas_token] mandatory arguments' => sub {
     dies_ok { qesap_az_create_sas_token(container => 'NEMO', keyname => 'DORY'); } "Failed for missing argument storage";
     dies_ok { qesap_az_create_sas_token(storage => 'NEMO', keyname => 'DORY'); } "Failed for missing argument container";
     dies_ok { qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY'); } "Failed for missing argument keyname";
 };
-
 
 subtest '[qesap_az_create_sas_token]' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
@@ -346,7 +344,6 @@ subtest '[qesap_az_create_sas_token]' => sub {
     ok((any { /.*--expiry.*date.*10/ } @calls), 'default token expire is 10 minutes');
 };
 
-
 subtest '[qesap_az_create_sas_token] with custom timeout' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
@@ -358,7 +355,6 @@ subtest '[qesap_az_create_sas_token] with custom timeout' => sub {
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok((any { /.*--expiry.*date.*30/ } @calls), 'Configured lifetime');
 };
-
 
 subtest '[qesap_az_create_sas_token] with custom permissions' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
@@ -392,4 +388,43 @@ subtest '[qesap_az_get_native_fencing_type] correct variable' => sub {
       ok($res_msi eq 'msi', "Return 'msi' if openqa var is 'msi'");
     ok($res_spn eq 'spn', "Return 'spn' if openqa var is 'spn'");
 };
+
+subtest '[qesap_az_diagnostic_log] no VMs' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(qesap_az_get_resource_group => sub { return 'DENTIST'; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    # Configure vm list to return no VMs
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return '[]'; });
+
+    my @log_files = qesap_az_diagnostic_log();
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /az vm list.*/ } @calls), 'Proper base command for vm list');
+    ok((any { /.*--resource-group DENTIST.*/ } @calls), 'Proper resource group in vm list');
+    ok((any { /.*-o json.*/ } @calls), 'Proper output format in vm list');
+    ok((scalar @log_files == 0), 'No returned logs');
+};
+
+subtest '[qesap_az_diagnostic_log] one VMs' => sub {
+    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(qesap_az_get_resource_group => sub { return 'DENTIST'; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    # Configure vm list to return no VMs
+    $qesap->redefine(script_output => sub { push @calls, $_[0]; return '[{"name": "NEMO", "id": "MARLIN"}]'; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; });
+
+    my @log_files = qesap_az_diagnostic_log();
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /az vm boot-diagnostics get-boot-log.*/ } @calls), 'Proper base command for vm boot-diagnostics get-boot-log');
+    ok((any { /.*--ids MARLIN.*/ } @calls), 'Proper id in boot-diagnostics');
+    ok((any { /.*tee.*boot-diagnostics_NEMO.*/ } @calls), 'Proper output file in boot-diagnostics');
+    ok((scalar @log_files == 1), 'Exactly one returned logs for one VM');
+};
+
+
 done_testing;
