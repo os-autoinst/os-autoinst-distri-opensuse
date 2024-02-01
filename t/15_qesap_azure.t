@@ -23,6 +23,7 @@ subtest '[qesap_az_get_resource_group]' => sub {
 
     my $result = qesap_az_get_resource_group();
 
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok((any { /az group list.*/ } @calls), 'az command properly composed');
     ok((any { /.*CRAB.*/ } @calls), 'az filtered by jobId');
     ok($result eq 'BOAT', 'function return is equal to the script_output return');
@@ -194,8 +195,8 @@ subtest '[qesap_az_assign_role]' => sub {
     );
 
     qesap_az_assign_role(%mandatory_args);
-    note("\n  C-->  " . join("\n  C-->  ", @calls));
 
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok((any { /az role assignment/ } @calls), 'az command properly composed');
 };
 
@@ -317,13 +318,11 @@ subtest '[qesap_az_clean_old_peerings]' => sub {
     ok(any { $_ eq 'peering3' } @delete_calls, "Peering3 was deleted");
 };
 
-
 subtest '[qesap_az_create_sas_token] mandatory arguments' => sub {
     dies_ok { qesap_az_create_sas_token(container => 'NEMO', keyname => 'DORY'); } "Failed for missing argument storage";
     dies_ok { qesap_az_create_sas_token(storage => 'NEMO', keyname => 'DORY'); } "Failed for missing argument container";
     dies_ok { qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY'); } "Failed for missing argument keyname";
 };
-
 
 subtest '[qesap_az_create_sas_token]' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
@@ -333,6 +332,7 @@ subtest '[qesap_az_create_sas_token]' => sub {
 
     my $ret = qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN');
 
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok($ret eq 'BOAT', "The function return the token returned by the az command");
     ok((any { /az storage container generate-sas.*/ } @calls), 'Main az command `az storage container generate-sas` properly composed');
     ok((any { /.*--account-name DORY.*/ } @calls), 'storage argument is used for --account-name');
@@ -344,7 +344,6 @@ subtest '[qesap_az_create_sas_token]' => sub {
     ok((any { /.*--expiry.*date.*10/ } @calls), 'default token expire is 10 minutes');
 };
 
-
 subtest '[qesap_az_create_sas_token] with custom timeout' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
@@ -353,9 +352,9 @@ subtest '[qesap_az_create_sas_token] with custom timeout' => sub {
 
     my $ret = qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', lifetime => 30);
 
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok((any { /.*--expiry.*date.*30/ } @calls), 'Configured lifetime');
 };
-
 
 subtest '[qesap_az_create_sas_token] with custom permissions' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
@@ -365,9 +364,30 @@ subtest '[qesap_az_create_sas_token] with custom permissions' => sub {
 
     my $ret = qesap_az_create_sas_token(container => 'NEMO', storage => 'DORY', keyname => 'MARLIN', permission => 'SHELL');
 
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok((any { /.*--permission SHELL.*/ } @calls), 'Configured permission');
 };
 
+subtest '[qesap_az_get_native_fencing_type]' => sub {
+    my $res_empty = qesap_az_get_native_fencing_type();
+    ok($res_empty eq 'msi', "Return 'msi' if openqa var is empty");
+};
+
+subtest '[qesap_az_get_native_fencing_type] wrong value for openqa variable' => sub {
+    set_var('QESAP_AZURE_FENCE_AGENT_CONFIGURATION', 'AEGEAN'),
+      dies_ok { qesap_az_get_native_fencing_type(); } 'Expected die if value is unexpected';
+    set_var('QESAP_AZURE_FENCE_AGENT_CONFIGURATION', undef),;
+};
+
+subtest '[qesap_az_get_native_fencing_type] correct variable' => sub {
+    set_var('QESAP_AZURE_FENCE_AGENT_CONFIGURATION', 'msi'),
+      my $res_msi = qesap_az_get_native_fencing_type();
+    set_var('QESAP_AZURE_FENCE_AGENT_CONFIGURATION', 'spn'),
+      my $res_spn = qesap_az_get_native_fencing_type();
+    set_var('QESAP_AZURE_FENCE_AGENT_CONFIGURATION', undef),
+      ok($res_msi eq 'msi', "Return 'msi' if openqa var is 'msi'");
+    ok($res_spn eq 'spn', "Return 'spn' if openqa var is 'spn'");
+};
 
 subtest '[qesap_az_diagnostic_log] no VMs' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);

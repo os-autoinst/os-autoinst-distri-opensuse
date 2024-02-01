@@ -150,7 +150,7 @@ sub export_ltp_env {
 
 # Set up basic shell environment for running LTP tests
 sub prepare_ltp_env {
-    assert_script_run('export LTPROOT=' . get_ltproot() . '; export LTP_COLORIZE_OUTPUT=n TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$PATH');
+    assert_script_run('export LTPROOT=' . get_ltproot() . '; export LTP_COLORIZE_OUTPUT=n PATH=$LTPROOT/testcases/bin:$PATH');
 
     # setup for LTP networking tests
     assert_script_run("export PASSWD='$testapi::password'");
