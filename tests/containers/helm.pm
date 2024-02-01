@@ -102,10 +102,10 @@ sub run {
 
     install_helm();
 
-    assert_script_run('curl --create-dir -vo ~/helm-test/Chart.yaml ' . data_url('containers/helm-test/') . 'Chart.yaml');
-    assert_script_run('curl --create-dir -vo ~/helm-test/values.yaml ' . data_url('containers/helm-test/') . 'values.yaml');
-    assert_script_run('curl --create-dir -vo ~/helm-test/templates/job.yaml ' . data_url('containers/helm-test/templates/') . 'job.yaml');
-    assert_script_run('curl --create-dir -vo ~/helm-test/templates/NOTES.txt ' . data_url('containers/helm-test/templates/') . 'NOTES.txt');
+    assert_script_run('curl --create-dirs -vo ~/helm-test/Chart.yaml ' . data_url('containers/helm-test/') . 'Chart.yaml');
+    assert_script_run('curl --create-dirs -vo ~/helm-test/values.yaml ' . data_url('containers/helm-test/') . 'values.yaml');
+    assert_script_run('curl --create-dirs -vo ~/helm-test/templates/job.yaml ' . data_url('containers/helm-test/templates/') . 'job.yaml');
+    assert_script_run('curl --create-dirs -vo ~/helm-test/templates/NOTES.txt ' . data_url('containers/helm-test/templates/') . 'NOTES.txt');
 
     assert_script_run("kubectl create namespace helm-ns-$job_id");
     assert_script_run("kubectl config set-context --current --namespace=helm-ns-$job_id");
