@@ -1133,12 +1133,13 @@ sub qesap_cluster_logs {
             qesap_upload_crm_report(host => $host, provider => $provider, failok => 1);
         }
     }
+
     if ($provider eq 'AZURE') {
         my @diagnostic_logs = qesap_az_diagnostic_log();
         foreach (@diagnostic_logs) {
             push(@log_files, $_);
-            qesap_upload_logs();
         }
+        qesap_upload_logs();
     }
 }
 

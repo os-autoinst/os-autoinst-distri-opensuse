@@ -426,4 +426,5 @@ subtest '[qesap_az_diagnostic_log] one VMs' => sub {
     ok((scalar @log_files == 1), 'Exactly one returned logs for one VM');
 };
 
+
 done_testing;
