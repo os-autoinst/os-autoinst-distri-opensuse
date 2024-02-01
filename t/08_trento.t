@@ -211,8 +211,10 @@ subtest '[cypress_configs]' => sub {
 
     my $ver = '9.8.7';
     set_var('TRENTO_VERSION' => $ver);
+    set_var('PUBLIC_CLOUD_PROVIDER' => 'CACIOTTA');
     cypress_configs('/FESTA/BANCONE/SPREMUTA');
     set_var('TRENTO_VERSION', undef);
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     note("\n  L-->  " . join("\n  L-->  ", @logs));
     ok((any { /cypress\.env\.py -u .*43\.43\.43\.43 -p SPUMA_DI_TONNO -f Premium -n $nodes --trento-version $ver/ } @calls), '[cypress.env.py] cmd is ok');

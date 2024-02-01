@@ -23,6 +23,8 @@ sub test_flags {
 sub run {
     my ($self, $run_args) = @_;
 
+    my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
+
     # Needed to have peering and ansible state propagated in post_fail_hook
     $self->import_context($run_args);
 
@@ -42,11 +44,11 @@ sub run {
             }
 
             # Recreate instances data as the redeployment of terraform + ansible changes the instances
-            my $provider = $self->provider_factory();
-            my $instances = create_instance_data($provider);
+            my $provider_instance = $self->provider_factory();
+            my $instances = create_instance_data($provider_instance);
             foreach my $instance (@$instances) {
                 record_info 'New Instance', join(' ', 'IP: ', $instance->public_ip, 'Name: ', $instance->instance_id);
-                if (get_var('FENCING_MECHANISM') eq 'native' && get_var('PUBLIC_CLOUD_PROVIDER') eq 'AZURE') {
+                if (get_var('FENCING_MECHANISM') eq 'native' && $provider eq 'AZURE') {
                     qesap_az_setup_native_fencing_permissions(
                         vm_name => $instance->instance_id,
                         resource_group => qesap_az_get_resource_group());
@@ -54,7 +56,7 @@ sub run {
             }
             $self->{instances} = $run_args->{instances} = $instances;
             $self->{instance} = $run_args->{my_instance} = $run_args->{instances}[0];
-            $self->{provider} = $run_args->{my_provider} = $provider;    # Required for cleanup
+            $self->{provider} = $run_args->{my_provider} = $provider_instance;    # Required for cleanup
         }
         record_info('FINISHED', 'Ansible deployment process finished successfully.');
     }

@@ -411,8 +411,6 @@ subtest '[qesap_file_find_string] fail' => sub {
 subtest '[qesap_get_nodes_number]' => sub {
     my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
     my @calls;
-    my $cloud_provider = 'NEMO';
-    set_var('PUBLIC_CLOUD_PROVIDER', $cloud_provider);
     my $str = <<END;
 all:
   children:
@@ -436,9 +434,8 @@ END
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return $str; });
     $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
 
-    my $res = qesap_get_nodes_number();
+    my $res = qesap_get_nodes_number(provider => 'NEMO');
 
-    set_var('PUBLIC_CLOUD_PROVIDER', undef);
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     is $res, 3, 'Number of agents like expected';
     like $calls[0], qr/cat.*\/CRUSH/;
@@ -1017,11 +1014,9 @@ all:
 END
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return $str; });
     $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
-    set_var('PUBLIC_CLOUD_PROVIDER', 'NEMO');
 
-    my @hosts = qesap_get_nodes_names();
+    my @hosts = qesap_get_nodes_names(provider => 'NEMO');
 
-    set_var('PUBLIC_CLOUD_PROVIDER', undef);
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     note("\n  H-->  " . join("\n  H-->  ", @hosts));
     ok((scalar @hosts == 3), 'Exactly 3 hosts in the example inventory');
