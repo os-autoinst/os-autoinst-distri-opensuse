@@ -50,14 +50,7 @@
           <li><a href="#qesap_upload_crm_report">qesap_upload_crm_report</a></li>
           <li><a href="#qesap_cluster_log_cmds">qesap_cluster_log_cmds</a></li>
           <li><a href="#qesap_cluster_logs">qesap_cluster_logs</a></li>
-          <li><a href="#qesap_az_get_vnet">qesap_az_get_vnet</a></li>
           <li><a href="#qesap_calculate_deployment_name">qesap_calculate_deployment_name</a></li>
-          <li><a href="#qesap_az_get_resource_group">qesap_az_get_resource_group</a></li>
-          <li><a href="#qesap_az_calculate_address_range">qesap_az_calculate_address_range</a></li>
-          <li><a href="#qesap_az_vnet_peering">qesap_az_vnet_peering</a></li>
-          <li><a href="#qesap_az_simple_peering_delete">qesap_az_simple_peering_delete</a></li>
-          <li><a href="#qesap_az_vnet_peering_delete">qesap_az_vnet_peering_delete</a></li>
-          <li><a href="#qesap_az_get_peering_name">qesap_az_get_peering_name</a></li>
           <li><a href="#qesap_aws_get_region_subnets">qesap_aws_get_region_subnets</a></li>
           <li><a href="#qesap_aws_get_vpc_id">qesap_aws_get_vpc_id</a></li>
           <li><a href="#qesap_aws_get_transit_gateway_vpc_attachment-Ged-a-description-of-one-or-more-transit-gateway-attachments-Function-support-optional-arguments-that-are-translated-to-filters:---transit_gateway_attach_id---name">qesap_aws_get_transit_gateway_vpc_attachment Ged a description of one or more transit-gateway-attachments Function support optional arguments that are translated to filters: - transit_gateway_attach_id - name</a></li>
@@ -73,6 +66,13 @@
           <li><a href="#qesap_import_instances">qesap_import_instances</a></li>
           <li><a href="#qesap_export_instances">qesap_export_instances</a></li>
           <li><a href="#qesap_is_job_finished">qesap_is_job_finished</a></li>
+          <li><a href="#qesap_az_get_vnet">qesap_az_get_vnet</a></li>
+          <li><a href="#qesap_az_get_resource_group">qesap_az_get_resource_group</a></li>
+          <li><a href="#qesap_az_calculate_address_range">qesap_az_calculate_address_range</a></li>
+          <li><a href="#qesap_az_vnet_peering">qesap_az_vnet_peering</a></li>
+          <li><a href="#qesap_az_simple_peering_delete">qesap_az_simple_peering_delete</a></li>
+          <li><a href="#qesap_az_vnet_peering_delete">qesap_az_vnet_peering_delete</a></li>
+          <li><a href="#qesap_az_get_peering_name">qesap_az_get_peering_name</a></li>
           <li><a href="#qesap_az_get_active_peerings">qesap_az_get_active_peerings</a></li>
         </ul>
       </li>
@@ -596,18 +596,6 @@ Return total time of retry loop in case of pass.</code></pre>
 
 <pre><code>Collect logs from a deployed cluster</code></pre>
 
-<h3 id="qesap_az_get_vnet">qesap_az_get_vnet</h3>
-
-<p>Return the output of az network vnet list</p>
-
-<dl>
-
-<dt id="RESOURCE_GROUP---resource-group-name-to-query"><b>RESOURCE_GROUP</b> - resource group name to query</dt>
-<dd>
-
-</dd>
-</dl>
-
 <h3 id="qesap_calculate_deployment_name">qesap_calculate_deployment_name</h3>
 
 <p>Compose the deployment name. It always has the JobId</p>
@@ -615,111 +603,6 @@ Return total time of retry loop in case of pass.</code></pre>
 <dl>
 
 <dt id="PREFIX---optional-substring-prepend-in-front-of-the-job-id"><b>PREFIX</b> - optional substring prepend in front of the job id</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h3 id="qesap_az_get_resource_group">qesap_az_get_resource_group</h3>
-
-<p>Query and return the resource group used by the qe-sap-deployment</p>
-
-<dl>
-
-<dt id="SUBSTRING---optional-substring-to-be-used-with-additional-grep-at-the-end-of-the-command"><b>SUBSTRING</b> - optional substring to be used with additional grep at the end of the command</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h3 id="qesap_az_calculate_address_range">qesap_az_calculate_address_range</h3>
-
-<p>Calculate the vnet and subnet address ranges. The format is 10.ip2.ip3.0/21 and /24 respectively. ip2 and ip3 are calculated using the slot number as seed.</p>
-
-<dl>
-
-<dt id="SLOT---integer-to-be-used-as-seed-in-calculating-addresses"><b>SLOT</b> - integer to be used as seed in calculating addresses</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h3 id="qesap_az_vnet_peering">qesap_az_vnet_peering</h3>
-
-<pre><code>Create a pair of network peering between
-the two provided deployments.</code></pre>
-
-<dl>
-
-<dt id="SOURCE_GROUP---resource-group-of-source"><b>SOURCE_GROUP</b> - resource group of source</dt>
-<dd>
-
-</dd>
-<dt id="TARGET_GROUP---resource-group-of-target"><b>TARGET_GROUP</b> - resource group of target</dt>
-<dd>
-
-</dd>
-<dt id="TIMEOUT---default-is-5-mins"><b>TIMEOUT</b> - default is 5 mins</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h3 id="qesap_az_simple_peering_delete">qesap_az_simple_peering_delete</h3>
-
-<pre><code>Delete a single peering one way</code></pre>
-
-<dl>
-
-<dt id="RG---Name-of-the-resource-group"><b>RG</b> - Name of the resource group</dt>
-<dd>
-
-</dd>
-<dt id="VNET_NAME---Name-of-the-vnet"><b>VNET_NAME</b> - Name of the vnet</dt>
-<dd>
-
-</dd>
-<dt id="PEERING_NAME---Name-of-the-peering"><b>PEERING_NAME</b> - Name of the peering</dt>
-<dd>
-
-</dd>
-<dt id="TIMEOUT---Optional-Timeout-for-the-script_run-command"><b>TIMEOUT</b> - (Optional) Timeout for the script_run command</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h3 id="qesap_az_vnet_peering_delete">qesap_az_vnet_peering_delete</h3>
-
-<pre><code>Delete all the network peering between the two provided deployments.</code></pre>
-
-<dl>
-
-<dt id="SOURCE_GROUP---resource-group-of-source.-This-parameter-is-optional-if-not-provided-the-related-peering-will-be-ignored"><b>SOURCE_GROUP</b> - resource group of source. This parameter is optional, if not provided the related peering will be ignored.</dt>
-<dd>
-
-</dd>
-<dt id="TARGET_GROUP---resource-group-of-target.-This-parameter-is-mandatory-and-the-associated-resource-group-is-supposed-to-still-exist"><b>TARGET_GROUP</b> - resource group of target. This parameter is mandatory and the associated resource group is supposed to still exist.</dt>
-<dd>
-
-</dd>
-<dt id="TIMEOUT---default-is-5-mins1"><b>TIMEOUT</b> - default is 5 mins</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h3 id="qesap_az_get_peering_name">qesap_az_get_peering_name</h3>
-
-<pre><code>Search for all network peering related to both:
- - resource group related to the current job
- - the provided resource group.
-Returns the peering name or
-empty string if a peering doesn&#39;t exist</code></pre>
-
-<dl>
-
-<dt id="RESOURCE_GROUP---resource-group-connected-to-the-peering"><b>RESOURCE_GROUP</b> - resource group connected to the peering</dt>
 <dd>
 
 </dd>
@@ -746,7 +629,7 @@ is kind to use as tag for each resource.</code></pre>
 
 <dl>
 
-<dt id="RESOURCE_GROUP---resource-group-name-to-query1"><b>RESOURCE_GROUP</b> - resource group name to query</dt>
+<dt id="RESOURCE_GROUP---resource-group-name-to-query"><b>RESOURCE_GROUP</b> - resource group name to query</dt>
 <dd>
 
 </dd>
@@ -791,7 +674,7 @@ Return 0 (false) if create-transit-gateway-vpc-attachment fails or the gateway d
 <dd>
 
 </dd>
-<dt id="TIMEOUT---default-is-5-mins2"><b>TIMEOUT</b> - default is 5 mins</dt>
+<dt id="TIMEOUT---default-is-5-mins"><b>TIMEOUT</b> - default is 5 mins</dt>
 <dd>
 
 </dd>
@@ -811,7 +694,7 @@ Return 0 (false) if delete-transit-gateway-vpc-attachment fails or the gateway d
 <dd>
 
 </dd>
-<dt id="TIMEOUT---default-is-5-mins3"><b>TIMEOUT</b> - default is 5 mins</dt>
+<dt id="TIMEOUT---default-is-5-mins1"><b>TIMEOUT</b> - default is 5 mins</dt>
 <dd>
 
 </dd>
@@ -932,6 +815,123 @@ In cases of ambiguous responses, they are considered to be in `running` state.</
 <dl>
 
 <dt id="JOB_ID---id-of-job-to-check"><b>JOB_ID</b> - id of job to check</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_az_get_vnet">qesap_az_get_vnet</h3>
+
+<p>Return the output of az network vnet list</p>
+
+<dl>
+
+<dt id="RESOURCE_GROUP---resource-group-name-to-query1"><b>RESOURCE_GROUP</b> - resource group name to query</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_az_get_resource_group">qesap_az_get_resource_group</h3>
+
+<p>Query and return the resource group used by the qe-sap-deployment</p>
+
+<dl>
+
+<dt id="SUBSTRING---optional-substring-to-be-used-with-additional-grep-at-the-end-of-the-command"><b>SUBSTRING</b> - optional substring to be used with additional grep at the end of the command</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_az_calculate_address_range">qesap_az_calculate_address_range</h3>
+
+<p>Calculate the vnet and subnet address ranges. The format is 10.ip2.ip3.0/21 and /24 respectively. ip2 and ip3 are calculated using the slot number as seed.</p>
+
+<dl>
+
+<dt id="SLOT---integer-to-be-used-as-seed-in-calculating-addresses"><b>SLOT</b> - integer to be used as seed in calculating addresses</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_az_vnet_peering">qesap_az_vnet_peering</h3>
+
+<pre><code>Create a pair of network peering between
+the two provided deployments.</code></pre>
+
+<dl>
+
+<dt id="SOURCE_GROUP---resource-group-of-source"><b>SOURCE_GROUP</b> - resource group of source</dt>
+<dd>
+
+</dd>
+<dt id="TARGET_GROUP---resource-group-of-target"><b>TARGET_GROUP</b> - resource group of target</dt>
+<dd>
+
+</dd>
+<dt id="TIMEOUT---default-is-5-mins2"><b>TIMEOUT</b> - default is 5 mins</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_az_simple_peering_delete">qesap_az_simple_peering_delete</h3>
+
+<pre><code>Delete a single peering one way</code></pre>
+
+<dl>
+
+<dt id="RG---Name-of-the-resource-group"><b>RG</b> - Name of the resource group</dt>
+<dd>
+
+</dd>
+<dt id="VNET_NAME---Name-of-the-vnet"><b>VNET_NAME</b> - Name of the vnet</dt>
+<dd>
+
+</dd>
+<dt id="PEERING_NAME---Name-of-the-peering"><b>PEERING_NAME</b> - Name of the peering</dt>
+<dd>
+
+</dd>
+<dt id="TIMEOUT---Optional-Timeout-for-the-script_run-command"><b>TIMEOUT</b> - (Optional) Timeout for the script_run command</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_az_vnet_peering_delete">qesap_az_vnet_peering_delete</h3>
+
+<pre><code>Delete all the network peering between the two provided deployments.</code></pre>
+
+<dl>
+
+<dt id="SOURCE_GROUP---resource-group-of-source.-This-parameter-is-optional-if-not-provided-the-related-peering-will-be-ignored"><b>SOURCE_GROUP</b> - resource group of source. This parameter is optional, if not provided the related peering will be ignored.</dt>
+<dd>
+
+</dd>
+<dt id="TARGET_GROUP---resource-group-of-target.-This-parameter-is-mandatory-and-the-associated-resource-group-is-supposed-to-still-exist"><b>TARGET_GROUP</b> - resource group of target. This parameter is mandatory and the associated resource group is supposed to still exist.</dt>
+<dd>
+
+</dd>
+<dt id="TIMEOUT---default-is-5-mins3"><b>TIMEOUT</b> - default is 5 mins</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_az_get_peering_name">qesap_az_get_peering_name</h3>
+
+<pre><code>Search for all network peering related to both:
+ - resource group related to the current job
+ - the provided resource group.
+Returns the peering name or
+empty string if a peering doesn&#39;t exist</code></pre>
+
+<dl>
+
+<dt id="RESOURCE_GROUP---resource-group-connected-to-the-peering"><b>RESOURCE_GROUP</b> - resource group connected to the peering</dt>
 <dd>
 
 </dd>
