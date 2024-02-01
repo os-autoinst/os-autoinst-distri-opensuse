@@ -112,9 +112,11 @@ and additionally the following rules:
   according schedule for Tumbleweed tests, e.g. in schedule/ or main.pm.
   Exceptions are any special SLE-specific behaviour or packages not in
   Tumbleweed or the case not being relevant otherwise.
-* Avoid "dead code": Don't add disabled code as nobody but you will understand
-  why this is not active. Better leave it out and keep in your local git
-  repository, either in `git stash` or a temporary "WIP"-commit.
+* Avoid "dead code": Is generally discouraged to add disabled code as others will lack
+  the context as to why this is not active. Better leave it out and keep in your local git
+  repository, either in `git stash` or a temporary "WIP"-commit. If it needs to
+  be added, it should come with an accompanying comment stating the reasons why
+  it must be there.
 * Details in commit messages: The commit message should have enough details,
   e.g. what issue is fixed, why this needs to change, to which versions of which
   product it applies, link to a bug or a feature entry, the choices you made,
