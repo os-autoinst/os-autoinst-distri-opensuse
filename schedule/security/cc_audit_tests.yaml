@@ -3,7 +3,7 @@ description:    >
     This is for cc audit test.
 schedule:
     - installation/bootloader_start
-    - '{{enc_boot}}'
+    - boot/boot_to_desktop
     - security/cc/cc_audit_test_setup
     - '{{disable_root_ssh}}'
     - security/cc/audit_tools
@@ -19,14 +19,6 @@ schedule:
     - security/cc/crypto
     - security/cc/misc
 conditional_schedule:
-    enc_boot:
-        ENCRYPT:
-            0:
-                - boot/boot_to_desktop
-            1:
-                - installation/grub_test
-                - installation/boot_encrypt
-                - installation/first_boot
     disable_root_ssh:
         ARCH:
             s390x:
