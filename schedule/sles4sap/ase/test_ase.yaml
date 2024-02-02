@@ -1,0 +1,20 @@
+---
+name: test_ase
+description: >
+  SAP ASE smoke test for SLES for SAP.
+  This will install SAP ASE in SUT, and then perform some small tests to confirm
+  ASE is running after installation.
+  It does not test for automatic startup after a boot, nor covers SAP ASE HA scenarios.
+  Requires installation media and response file as openQA assets.
+vars:
+  BOOTFROM: c
+  BOOT_HDD_IMAGE: '1'
+  HDD_SCC_REGISTERED: '1'
+  # Below have to be entered in the OpenQA UI because it doesn't read this YAML
+  # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-%DESKTOP%.qcow2
+schedule:
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - sles4sap/patterns
+  - sles4sap/ase_install
+  - sles4sap/ase_test
