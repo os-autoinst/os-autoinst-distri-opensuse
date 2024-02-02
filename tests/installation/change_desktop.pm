@@ -17,6 +17,7 @@ use version_utils 'is_sle';
 
 sub change_desktop {
     my ($self) = @_;
+    wait_still_screen;
     # ncurses offers a faster way
     if (check_var('VIDEOMODE', 'text')) {
         send_key 'alt-c';
