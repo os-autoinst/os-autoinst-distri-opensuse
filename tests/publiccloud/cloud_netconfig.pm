@@ -36,10 +36,23 @@ sub run {
     else {
         die('cloud-netconfig.service status appears to be incorrect!');
     }
-    $instance->ssh_assert_script_run(
-        cmd => 'systemctl status cloud-netconfig.timer',
-        fail_message => 'cloud-netconfig.timer appears not to be started.'
-    );
+
+    # Currently, cloud-netconfig.timer is not active for older SLES versions in
+    # GCE. C.f. bsc#1219428.
+    if (is_gce() && is_sle('<15-SP4')) {
+        if ($instance->ssh_script_run(
+                cmd => 'systemctl status cloud-netconfig.timer'
+        )) {
+            record_soft_failure('bsc#1219428');
+        } else {
+            record_info('Success', 'cloud-netconfig.timer is active.');
+        }
+    } else {
+        $instance->ssh_assert_script_run(
+            cmd => 'systemctl status cloud-netconfig.timer',
+            fail_message => 'cloud-netconfig.timer appears not to be started.'
+        );
+    }
 
     # 75-persistent-net-generator.rules is usually a symlink to /dev/null in SLES 12+
     $instance->ssh_assert_script_run(
