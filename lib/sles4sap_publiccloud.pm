@@ -726,8 +726,6 @@ sub create_playbook_section_list {
         # Add registration module as first element
         my $reg_code = '-e reg_code=' . get_required_var('SCC_REGCODE_SLES4SAP') . " -e email_address=''";
         if ($args{registration} eq 'suseconnect') {
-            # For the moment, only role version of the registration playbook, using roles from community.sles-for-sap,
-            # is supporting force suseconnec.
             push @playbook_list, "registration.yaml $reg_code -e use_suseconnect=true";
         }
         else {
