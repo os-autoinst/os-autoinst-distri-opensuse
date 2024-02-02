@@ -33,9 +33,6 @@ sub run ($self) {
     my $mariadb_service = "mariadb";
     $mariadb_service = "mysql" if is_sle('<12-sp4');
 
-    #for all slurm versions we have mariadb as a dependency apart from slurm18
-    #TODO: remove below line as soon as not needed
-    zypper_call("in mariadb") if $slurm_pkg =~ "slurm_18";
     systemctl("start $mariadb_service");
     systemctl("is-active $mariadb_service");
 
