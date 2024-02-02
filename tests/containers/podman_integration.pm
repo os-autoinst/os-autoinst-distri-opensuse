@@ -17,6 +17,9 @@ use transactional qw(trup_call check_reboot_changes);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use containers::common;
 
+my $test_dir = "/var/tmp";
+my $podman_version = "";
+
 sub run {
     select_serial_terminal;
     my ($running_version, $sp, $host_distri) = get_os_release;
@@ -31,7 +34,7 @@ sub run {
         } elsif (is_sle_micro('<6.0')) {
             $sle_version = "15.5";
         }
-        trup_call "register -p PackageHub/$sle_version/" . get_required_var('ARCH');
+        trup_call "register -p PackageHub/$sle_version/" . " " . get_required_var('ARCH');
         zypper_call "--gpg-auto-import-keys ref";
     } elsif (is_sle) {
         add_suseconnect_product(get_addon_fullname('phub'));
@@ -47,37 +50,88 @@ sub run {
         zypper_call "in @pkgs";
     }
 
+    # Create user if not present
     if (script_run("grep $testapi::username /etc/passwd") != 0) {
         my $serial_group = script_output "stat -c %G /dev/$testapi::serialdev";
         assert_script_run "useradd -m -G $serial_group $testapi::username";
         assert_script_run "echo '${testapi::username}:$testapi::password' | chpasswd";
     }
+    select_user_serial_terminal();
 
-    my $test_dir = (script_run("grep $testapi::username /etc/passwd") == 0) ? "/home/$testapi::username" : "/root";
+    # Download podman sources
+    my $test_dir = "/var/tmp";
+    $podman_version = get_podman_version();
     assert_script_run "cd $test_dir";
-
-    my $podman_version = get_podman_version();
     script_retry("curl -sL https://github.com/containers/podman/archive/refs/tags/v$podman_version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
     assert_script_run "cd podman-$podman_version/";
-    # The user must be able to create a log file too
-    assert_script_run "chmod 1777 .";
-
     assert_script_run "sed -i 's/bats_opts=()/bats_opts=(--tap)/' hack/bats";
+    assert_script_run "cp -r test/system test/system.orig";
 
-    my @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP'));
-    push @skip_tests, "252-quadlet" unless is_tumbleweed;
+    #
+    # user / local
+    #
+
+    my @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . get_var('PODMAN_BATS_SKIP_USER_LOCAL', ''));
     foreach my $test (@skip_tests) {
         script_run "rm test/system/$test.bats";
     }
 
+    my $log_file = "bats-user-local.tap";
+    assert_script_run "echo $log_file .. > $log_file";
+    script_run "env PODMAN=/usr/bin/podman QUADLET=/usr/libexec/podman/quadlet hack/bats --rootless | tee -a $log_file", 2600;
+    parse_extra_log(TAP => $log_file);
+    assert_script_run "rm -rf test/system";
+
+    #
+    # user / remote
+    #
+
+    unless (is_sle_micro) {
+        assert_script_run "cp -r test/system.orig test/system";
+        @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . get_var('PODMAN_BATS_SKIP_USER_REMOTE', ''));
+        foreach my $test (@skip_tests) {
+            script_run "rm test/system/$test.bats";
+        }
+
+        $log_file = "bats-user-remote.tap";
+        assert_script_run "echo $log_file .. > $log_file";
+        background_script_run "podman system service --timeout=0";
+        script_run "env PODMAN=/usr/bin/podman QUADLET=/usr/libexec/podman/quadlet hack/bats --rootless --remote | tee -a $log_file", 2600;
+        parse_extra_log(TAP => $log_file);
+        assert_script_run "rm -rf test/system";
+        script_run 'kill %1';
+    }
+
+    #
     # root / local
-    my $log_file = "bats-root-local.tap";
+    #
+
+    select_serial_terminal;
+    assert_script_run("cd $test_dir/podman-$podman_version/");
+
+    assert_script_run "cp -r test/system.orig test/system";
+    @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . get_var('PODMAN_BATS_SKIP_ROOT_LOCAL', ''));
+    foreach my $test (@skip_tests) {
+        script_run "rm test/system/$test.bats";
+    }
+
+    $log_file = "bats-root-local.tap";
     assert_script_run "echo $log_file .. > $log_file";
     script_run "env PODMAN=/usr/bin/podman QUADLET=/usr/libexec/podman/quadlet hack/bats --root | tee -a $log_file", 2600;
     parse_extra_log(TAP => $log_file);
+    assert_script_run "rm -rf test/system";
 
+    #
     # root / remote
+    #
+
     unless (is_sle_micro) {
+        assert_script_run "cp -r test/system.orig test/system";
+        @skip_tests = split(/\s+/, get_required_var('PODMAN_BATS_SKIP') . " " . get_var('PODMAN_BATS_SKIP_ROOT_REMOTE', ''));
+        foreach my $test (@skip_tests) {
+            script_run "rm test/system/$test.bats";
+        }
+
         $log_file = "bats-root-remote.tap";
         assert_script_run "echo $log_file .. > $log_file";
         background_script_run "podman system service --timeout=0";
@@ -85,29 +139,22 @@ sub run {
         parse_extra_log(TAP => $log_file);
         script_run 'kill %1';
     }
+}
 
-    if (is_sle_micro) {
-        ensure_serialdev_permissions;
-        select_console "user-console";
-    } else {
-        select_user_serial_terminal();
-    }
+sub cleanup() {
+    script_run("rm -f $test_dir/podman-$podman_version/");
+}
 
-    # user / local
-    $log_file = "bats-user-local.tap";
-    assert_script_run "echo $log_file .. > $log_file";
-    script_run "env PODMAN=/usr/bin/podman QUADLET=/usr/libexec/podman/quadlet hack/bats --rootless | tee -a $log_file", 2600;
-    parse_extra_log(TAP => $log_file);
+sub post_fail_hook {
+    my ($self) = @_;
+    cleanup();
+    $self->SUPER::post_fail_hook;
+}
 
-    # user /remote
-    unless (is_sle_micro) {
-        $log_file = "bats-user-remote.tap";
-        assert_script_run "echo $log_file .. > $log_file";
-        background_script_run "podman system service --timeout=0";
-        script_run "env PODMAN=/usr/bin/podman QUADLET=/usr/libexec/podman/quadlet hack/bats --rootless --remote | tee -a $log_file", 2600;
-        parse_extra_log(TAP => $log_file);
-        script_run 'kill %1';
-    }
+sub post_run_hook {
+    my ($self) = @_;
+    cleanup();
+    $self->SUPER::post_run_hook;
 }
 
 1;
