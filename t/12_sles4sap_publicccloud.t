@@ -453,8 +453,7 @@ subtest '[create_playbook_section_list] registration => suseconnect' => sub {
     set_var('SCC_REGCODE_SLES4SAP', undef);
     set_var('USE_SAPCONF', undef);
     note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
-    ok((any { /.*registration_role\.yaml.*/ } @$ansible_playbooks), 'registration_role playbook is called when registration => suseconnect');
-    ok((any { /.*use_suseconnect=true.*/ } @$ansible_playbooks), 'registration_role playbook is called with use_suseconnect=true when registration => suseconnect');
+    ok((any { /.*use_suseconnect=true.*/ } @$ansible_playbooks), 'registration playbook is called with use_suseconnect=true when registration => suseconnect');
 };
 
 done_testing;
