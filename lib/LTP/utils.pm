@@ -160,6 +160,7 @@ sub prepare_ltp_env {
         assert_script_run("lsblk -la; export LTP_BIG_DEV=$block_dev");
     }
 
+    export_ltp_env;
     assert_script_run('cd $LTPROOT/testcases/bin');
 }
 
