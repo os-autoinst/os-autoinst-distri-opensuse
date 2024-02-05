@@ -150,8 +150,9 @@ sub run {
         # assert_screen ['trust_nvidia_gpg_keys', 'wsl-installation-completed'], timeout => 240;
         # send_key 'alt-t' if (match_has_tag 'trust_nvidia_gpg_keys');
 
-        assert_screen 'wsl-installation-completed', 240;
+        assert_screen('wsl-installation-completed', 240);
         send_key 'alt-f';
+        click_lastmatch if (check_screen('wsl-onedrive-popup'));
         # Back to CLI
         assert_screen 'wsl-linux-prompt';
     } else {
