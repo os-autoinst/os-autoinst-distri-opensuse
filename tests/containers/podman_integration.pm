@@ -41,8 +41,8 @@ sub run {
     }
 
     # Install tests dependencies
-    my @pkgs = qw(bats jq make netcat-openbsd openssl python3-PyYAML socat sudo systemd-container);
-    push @pkgs, qw(apache2-utils buildah catatonit criu go gpg2 podman-remote skopeo) unless is_sle_micro;
+    my @pkgs = qw(bats jq make netcat-openbsd openssl python3-PyYAML socat skopeo sudo systemd-container);
+    push @pkgs, qw(apache2-utils buildah catatonit criu go gpg2 podman-remote) unless is_sle_micro;
     if (is_transactional) {
         trup_call "-c pkg install -y @pkgs";
         check_reboot_changes;
