@@ -44,7 +44,7 @@ sub download_hana_assets_from_server {
     my $hana_location = data_url('ASSET_0');
     # Each HANA asset is about 16GB. A ten minute timeout assumes a generous
     # 27.3MB/s download speed. Adjust according to expected server conditions.
-    assert_script_run "wgeti -O -- - $hana_location | tar -xf -- -", timeout => $nettout;
+    assert_script_run "wget -O -- - $hana_location | tar -xf -- -", timeout => $nettout;
     # Skip checksum check if DISABLE_CHECKSUM is set, or if checksum file is not
     # part of the archive
     my $sap_chksum_file = 'MD5FILE.DAT';
