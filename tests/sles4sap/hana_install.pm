@@ -55,7 +55,7 @@ sub download_hana_assets_from_server {
     # Switch to $target to verify copied contents are OK
     assert_script_run "pushd $target";
     # If SAP provided MD5 sum file is present convert it to the md5sum format
-    assert_script_run "[[ -f $sap_chksum_file ]] && awk '{print $2\" \"$1}' $target/$sap_chksum_file > $target/$chksum_file";
+    assert_script_run "[[ -f $sap_chksum_file ]] && awk '{print \$2\" \"\$1}' $target/$sap_chksum_file > $target/$chksum_file";
     assert_script_run "md5sum -c --quiet $chksum_file", $nettout;
     assert_script_run "cd";
 }
