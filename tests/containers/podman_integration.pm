@@ -70,6 +70,8 @@ sub run {
     assert_script_run "sed -i 's/bats_opts=()/bats_opts=(--tap)/' hack/bats";
     assert_script_run "cp -r test/system test/system.orig";
 
+    my $quadlet = script_output "rpm -ql podman | grep podman/quadlet";
+
     #
     # user / local
     #
@@ -81,7 +83,7 @@ sub run {
 
     my $log_file = "bats-user-local.tap";
     assert_script_run "echo $log_file .. > $log_file";
-    script_run "env PODMAN=/usr/bin/podman QUADLET=/usr/libexec/podman/quadlet hack/bats --rootless | tee -a $log_file", 2600;
+    script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats --rootless | tee -a $log_file", 2600;
     parse_extra_log(TAP => $log_file);
     assert_script_run "rm -rf test/system";
 
@@ -99,7 +101,7 @@ sub run {
         $log_file = "bats-user-remote.tap";
         assert_script_run "echo $log_file .. > $log_file";
         background_script_run "podman system service --timeout=0";
-        script_run "env PODMAN=/usr/bin/podman QUADLET=/usr/libexec/podman/quadlet hack/bats --rootless --remote | tee -a $log_file", 2600;
+        script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats --rootless --remote | tee -a $log_file", 2600;
         parse_extra_log(TAP => $log_file);
         assert_script_run "rm -rf test/system";
         script_run 'kill %1';
@@ -120,7 +122,7 @@ sub run {
 
     $log_file = "bats-root-local.tap";
     assert_script_run "echo $log_file .. > $log_file";
-    script_run "env PODMAN=/usr/bin/podman QUADLET=/usr/libexec/podman/quadlet hack/bats --root | tee -a $log_file", 2600;
+    script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats --root | tee -a $log_file", 2600;
     parse_extra_log(TAP => $log_file);
     assert_script_run "rm -rf test/system";
 
@@ -138,7 +140,7 @@ sub run {
         $log_file = "bats-root-remote.tap";
         assert_script_run "echo $log_file .. > $log_file";
         background_script_run "podman system service --timeout=0";
-        script_run "env PODMAN=/usr/bin/podman QUADLET=/usr/libexec/podman/quadlet hack/bats --root --remote | tee -a $log_file", 2600;
+        script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats --root --remote | tee -a $log_file", 2600;
         parse_extra_log(TAP => $log_file);
         script_run 'kill %1';
     }
