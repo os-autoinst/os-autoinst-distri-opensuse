@@ -34,15 +34,15 @@ sub run {
         } elsif (is_sle_micro('<6.0')) {
             $sle_version = "15.5";
         }
-        trup_call "register -p PackageHub/$sle_version/" . " " . get_required_var('ARCH');
+        trup_call "register -p PackageHub/$sle_version/" . get_required_var('ARCH');
         zypper_call "--gpg-auto-import-keys ref";
     } elsif (is_sle) {
         add_suseconnect_product(get_addon_fullname('phub'));
     }
 
     # Install tests dependencies
-    my @pkgs = qw(bats jq make netcat-openbsd openssl python3-PyYAML socat sudo systemd-container);
-    push @pkgs, qw(apache2-utils buildah catatonit criu go gpg2 podman-remote skopeo) unless is_sle_micro;
+    my @pkgs = qw(bats jq make netcat-openbsd openssl python3-PyYAML socat skopeo sudo systemd-container);
+    push @pkgs, qw(apache2-utils buildah catatonit criu go gpg2 podman-remote) unless is_sle_micro;
     if (is_transactional) {
         trup_call "-c pkg install -y @pkgs";
         check_reboot_changes;
@@ -55,8 +55,11 @@ sub run {
         my $serial_group = script_output "stat -c %G /dev/$testapi::serialdev";
         assert_script_run "useradd -m -G $serial_group $testapi::username";
         assert_script_run "echo '${testapi::username}:$testapi::password' | chpasswd";
+        ensure_serialdev_permissions;
+        select_console "user-console";
+    } else {
+        select_user_serial_terminal();
     }
-    select_user_serial_terminal();
 
     # Download podman sources
     my $test_dir = "/var/tmp";
@@ -66,6 +69,8 @@ sub run {
     assert_script_run "cd podman-$podman_version/";
     assert_script_run "sed -i 's/bats_opts=()/bats_opts=(--tap)/' hack/bats";
     assert_script_run "cp -r test/system test/system.orig";
+
+    my $quadlet = script_output "rpm -ql podman | grep podman/quadlet";
 
     #
     # user / local
@@ -78,7 +83,7 @@ sub run {
 
     my $log_file = "bats-user-local.tap";
     assert_script_run "echo $log_file .. > $log_file";
-    script_run "env PODMAN=/usr/bin/podman QUADLET=/usr/libexec/podman/quadlet hack/bats --rootless | tee -a $log_file", 2600;
+    script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats --rootless | tee -a $log_file", 2600;
     parse_extra_log(TAP => $log_file);
     assert_script_run "rm -rf test/system";
 
@@ -96,7 +101,7 @@ sub run {
         $log_file = "bats-user-remote.tap";
         assert_script_run "echo $log_file .. > $log_file";
         background_script_run "podman system service --timeout=0";
-        script_run "env PODMAN=/usr/bin/podman QUADLET=/usr/libexec/podman/quadlet hack/bats --rootless --remote | tee -a $log_file", 2600;
+        script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats --rootless --remote | tee -a $log_file", 2600;
         parse_extra_log(TAP => $log_file);
         assert_script_run "rm -rf test/system";
         script_run 'kill %1';
@@ -117,7 +122,7 @@ sub run {
 
     $log_file = "bats-root-local.tap";
     assert_script_run "echo $log_file .. > $log_file";
-    script_run "env PODMAN=/usr/bin/podman QUADLET=/usr/libexec/podman/quadlet hack/bats --root | tee -a $log_file", 2600;
+    script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats --root | tee -a $log_file", 2600;
     parse_extra_log(TAP => $log_file);
     assert_script_run "rm -rf test/system";
 
@@ -135,7 +140,7 @@ sub run {
         $log_file = "bats-root-remote.tap";
         assert_script_run "echo $log_file .. > $log_file";
         background_script_run "podman system service --timeout=0";
-        script_run "env PODMAN=/usr/bin/podman QUADLET=/usr/libexec/podman/quadlet hack/bats --root --remote | tee -a $log_file", 2600;
+        script_run "env PODMAN=/usr/bin/podman QUADLET=$quadlet hack/bats --root --remote | tee -a $log_file", 2600;
         parse_extra_log(TAP => $log_file);
         script_run 'kill %1';
     }
