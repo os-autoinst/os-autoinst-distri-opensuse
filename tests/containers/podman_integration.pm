@@ -34,7 +34,7 @@ sub run {
         } elsif (is_sle_micro('<6.0')) {
             $sle_version = "15.5";
         }
-        trup_call "register -p PackageHub/$sle_version/" . " " . get_required_var('ARCH');
+        trup_call "register -p PackageHub/$sle_version/" . get_required_var('ARCH');
         zypper_call "--gpg-auto-import-keys ref";
     } elsif (is_sle) {
         add_suseconnect_product(get_addon_fullname('phub'));
